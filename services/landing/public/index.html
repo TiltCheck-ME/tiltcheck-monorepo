@@ -64,6 +64,31 @@
       transform: translateY(-2px);
     }
     
+    nav.top-nav {
+      display: flex;
+      justify-content: center;
+      gap: 24px;
+      padding: 12px 20px;
+      background: #0e0e0e;
+      border-bottom: 1px solid #222;
+    }
+    nav.top-nav a {
+      color: #aaa;
+      text-decoration: none;
+      font-size: 0.9rem;
+      transition: color 0.2s;
+    }
+    nav.top-nav a:hover,
+    nav.top-nav a:focus-visible {
+      color: #00d4aa;
+      outline: 2px solid #00d4aa;
+      outline-offset: 4px;
+    }
+    nav.top-nav a[aria-current="page"] {
+      color: #00d4aa;
+      font-weight: 600;
+    }
+    
     /* Hero Section */
     .hero {
       padding: 100px 20px 80px;
@@ -368,6 +393,14 @@
   </style>
 </head>
 <body>
+  <nav class="top-nav">
+    <a href="/" aria-current="page">Home</a>
+    <a href="/casinos.html">Casinos</a>
+    <a href="/degen-trust.html">Degens</a>
+    <a href="/docs/index.html">Docs</a>
+    <a href="/dashboard">Dashboard</a>
+    <a href="/about.html">About</a>
+  </nav>
   <header>
     <div class="container">
       <nav style="display: flex; justify-content: space-between; align-items: center; max-width: 1200px; margin: 0 auto;">
