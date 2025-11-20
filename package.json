@@ -20,7 +20,14 @@
     "lint": "eslint \"apps/**/*.ts\" \"modules/**/*.ts\" \"services/**/*.ts\" \"packages/**/*.ts\"",
     "lint:fix": "pnpm lint --fix",
     "clean": "pnpm --recursive clean && rm -rf node_modules",
-    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\""
+    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\"",
+    "bundle:components": "bash scripts/bundle-components.sh",
+    "contrast": "node scripts/contrast-check.js",
+    "contrast:dom": "node scripts/contrast-check-dom.js",
+    "a11y:serve": "node scripts/serve-components.js",
+    "a11y:audit": "bash scripts/a11y-audit.sh",
+    "test:components": "node scripts/validate-components.js",
+    "audit:all": "pnpm test:components && pnpm bundle:components && pnpm contrast && pnpm contrast:dom && pnpm a11y:audit"
   },
   "devDependencies": {
     "@types/node": "^20.10.0",
@@ -31,6 +38,10 @@
     "eslint": "^9.12.0",
     "@typescript-eslint/eslint-plugin": "^8.9.0",
     "@typescript-eslint/parser": "^8.9.0",
-    "eslint-config-prettier": "^9.1.0"
+    "eslint-config-prettier": "^9.1.0",
+    "jsdom": "^24.0.0",
+    "pa11y": "^6.2.3",
+    "lighthouse": "^12.0.0",
+    "http-server": "^14.1.1"
   }
 }
