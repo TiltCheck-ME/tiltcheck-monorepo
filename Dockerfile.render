@@ -1,0 +1,57 @@
+# Unified Dockerfile for Render deployment - bundles all services + Nginx in one container
+# Uses forego to orchestrate multiple processes
+
+FROM node:20-alpine AS base
+
+# Install system dependencies (nginx, supervisor, build tools for native modules)
+RUN apk add --no-cache \
+    nginx \
+    supervisor \
+    ca-certificates \
+    python3 \
+    make \
+    g++ \
+    && rm -rf /var/cache/apk/*
+
+WORKDIR /app
+
+# Copy package files for all workspaces
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY packages/*/package.json ./packages/
+COPY modules/*/package.json ./modules/
+COPY apps/discord-bot/package.json ./apps/discord-bot/
+COPY services/dashboard/package.json ./services/dashboard/
+COPY services/landing/package.json ./services/landing/
+COPY services/trust-rollup/package.json ./services/trust-rollup/
+
+# Install pnpm and dependencies (with workspace resolution)
+RUN npm install -g pnpm@9 && pnpm install --frozen-lockfile
+
+# Copy all source code
+COPY . .
+
+# Build only web-facing services (landing + dashboard; bot requires additional deps)
+RUN set -e && \
+    cd /app/packages/types && pnpm run build && \
+    cd /app/packages/config && pnpm run build && \
+    cd /app/packages/esm-utils && pnpm run build && \
+    cd /app/services/dashboard && pnpm run build
+
+# Copy supervisor config for process orchestration
+COPY supervisord.conf /etc/supervisord.conf
+
+# Create necessary directories
+RUN mkdir -p /app/data /var/log/nginx /run/nginx /var/log/supervisor
+
+# Copy Nginx config (adjusted for localhost upstreams)
+COPY services/reverse-proxy/nginx.render.conf /etc/nginx/nginx.conf
+
+# Expose Render's dynamic port (Nginx will listen on $PORT)
+EXPOSE $PORT
+
+# Health check (Nginx proxy health endpoint)
+HEALTHCHECK --interval=30s --timeout=10s --retries=3 --start-period=40s \
+  CMD wget --quiet --tries=1 --spider http://localhost:${PORT:-8080}/proxy-health || exit 1
+
+# Start all processes via supervisord
+CMD ["/usr/bin/supervisord", "-c", "/etc/supervisord.conf"]

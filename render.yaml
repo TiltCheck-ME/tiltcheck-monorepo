@@ -1,0 +1,60 @@
+# Render Blueprint - Infrastructure as Code
+# Defines all services, environment, and configuration for Render deployment
+# Usage: Push to repo, then Render dashboard → Blueprint → select this repo
+
+services:
+  # Unified web service (all TiltCheck services in one container)
+  - type: web
+    name: tiltcheck-unified
+    runtime: docker
+    dockerfilePath: ./Dockerfile.render
+    region: oregon  # Change to preferred region (oregon, ohio, frankfurt, singapore)
+    plan: standard  # starter (free 750h, sleeps) | standard ($25/mo, always-on) | pro
+    branch: main
+    healthCheckPath: /proxy-health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DISCORD_TOKEN
+        sync: false  # Set manually in dashboard (secret)
+      - key: DISCORD_CLIENT_ID
+        sync: false
+      - key: DISCORD_GUILD_ID
+        sync: false
+      - key: SUSLINK_AUTO_SCAN
+        value: "true"
+      - key: TRUST_THRESHOLD
+        value: "60"
+      - key: DASHBOARD_POLL_MS
+        value: "30000"
+      - key: DASHBOARD_EVENTS_KEEP_DAYS
+        value: "7"
+      - key: SOLANA_RPC_URL
+        value: "https://api.mainnet-beta.solana.com"
+      - key: JUSTTHETIP_FEE_WALLET
+        sync: false  # Set manually (sensitive)
+      - key: PENDING_TIPS_STORE_PATH
+        value: "/app/data/pending-tips.json"
+      - key: TRIVIA_STORE_PATH
+        value: "/app/data/trivia-store.json"
+      - key: LANDING_LOG_PATH
+        value: "/app/data/landing-requests.log"
+
+    # Persistent disk for data storage (survives container restarts)
+    disk:
+      name: tiltcheck-data
+      mountPath: /app/data
+      sizeGB: 1  # Increase as needed for logs/events
+
+    # Auto-deploy on push to main
+    autoDeploy: true
+
+    # Notifications (optional: Slack, email, Discord webhook)
+    # notifications:
+    #   - type: slack
+    #     url: https://hooks.slack.com/services/YOUR/SLACK/WEBHOOK
+
+# Custom domains (configure after service creation)
+# domains:
+#   - name: tiltcheck.it.com
+#     type: apex  # or subdomain
