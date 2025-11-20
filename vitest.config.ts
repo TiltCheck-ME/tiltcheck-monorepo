@@ -34,6 +34,9 @@ export default defineConfig({
       '**/.*/**',
     ],
     environment: 'node',
+    env: {
+      TRUST_ROLLUP_SNAPSHOT_DIR: r('.test-data'),
+    },
     coverage: {
       reporter: ['text', 'html'],
       provider: 'v8',

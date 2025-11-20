@@ -1,6 +1,4 @@
-// Relaxed event-router import to avoid Docker build failures
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const eventRouter: any = (require('@tiltcheck/event-router') as any).eventRouter || (globalThis as any).eventRouter || {};
+import { eventRouter } from '@tiltcheck/event-router';
 import type { PriceUpdateEvent } from '@tiltcheck/types';
 
 export interface PriceOracle {
@@ -41,7 +39,7 @@ class InMemoryPriceOracle implements PriceOracle {
         updatedAt: Date.now(),
         stale: false
       };
-      eventRouter.publish('price.updated', 'pricing-oracle', evt);
+      void eventRouter.publish('price.updated', 'pricing-oracle', evt);
     }
   }
 
