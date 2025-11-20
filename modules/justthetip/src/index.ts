@@ -35,6 +35,7 @@ export {
   createTransferRequest,
   createTipWithFeeRequest,
   createTransactionRequest,
+  createAirdropWithFeeRequest,
 } from './solana-pay.js';
 
 export {

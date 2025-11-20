@@ -13,3 +13,4 @@ export { submitpromo, approvepromo, denypromo, pendingpromos } from './promo.js'
 export { poker } from './poker.js';
 export { cooldown, tilt } from './cooldown.js';
 export { justthetip } from './justthetip.js';
+export { airdrop } from './airdrop.js';

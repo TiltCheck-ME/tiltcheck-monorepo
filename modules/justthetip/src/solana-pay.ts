@@ -194,3 +194,65 @@ export async function createTransactionRequest(
     transaction,
   };
 }
+
+/**
+ * Create an airdrop request (multi-transfer) WITH optional TiltCheck fee included.
+ * Builds a transaction with N transfers (one per recipient) plus fee transfer if configured.
+ */
+export async function createAirdropWithFeeRequest(
+  connection: Connection,
+  senderAddress: string,
+  recipientAddresses: string[],
+  amountPerRecipientSOL: number,
+): Promise<{ url: string; qrCode: string; transaction: Transaction }> {
+  const sender = new PublicKey(senderAddress);
+  const transaction = new Transaction();
+
+  // Add transfers for each recipient
+  for (const addr of recipientAddresses) {
+    const recipient = new PublicKey(addr);
+    transaction.add(
+      SystemProgram.transfer({
+        fromPubkey: sender,
+        toPubkey: recipient,
+        lamports: Math.floor(amountPerRecipientSOL * 1e9),
+      })
+    );
+  }
+
+  // Optional fee transfer
+  if (FEE_WALLET) {
+    const feeAccount = new PublicKey(FEE_WALLET);
+    transaction.add(
+      SystemProgram.transfer({
+        fromPubkey: sender,
+        toPubkey: feeAccount,
+        lamports: Math.floor(FLAT_FEE_SOL * 1e9),
+      })
+    );
+  } else {
+    console.warn('[SolanaPay] No fee wallet configured - airdrop fee will not be collected');
+  }
+
+  // Blockhash + fee payer
+  const { blockhash } = await connection.getLatestBlockhash();
+  transaction.recentBlockhash = blockhash;
+  transaction.feePayer = sender;
+
+  // Serialize (unsigned, user will sign)
+  const serialized = transaction.serialize({
+    requireAllSignatures: false,
+    verifySignatures: false,
+  });
+  const base64 = serialized.toString('base64');
+  const url = `solana:${base64}`;
+
+  // Generate QR
+  const qr = createQR(url);
+  const qrBlob = await qr.getRawData('png');
+  if (!qrBlob) throw new Error('Failed to generate QR code');
+  const qrArrayBuffer = await qrBlob.arrayBuffer();
+  const qrBase64 = Buffer.from(qrArrayBuffer).toString('base64');
+
+  return { url, qrCode: qrBase64, transaction };
+}
