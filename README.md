@@ -137,6 +137,23 @@ pnpm --filter discord-bot dev
 
 See **[QUICKSTART.md](./QUICKSTART.md)** for 5-minute setup or **[DEPLOYMENT.md](./DEPLOYMENT.md)** for production deployment.
 
+### Components + A11y Audits
+
+Run the brand-aligned component library and automated accessibility checks:
+
+```bash
+# Bundle + contrast + DOM contrast + Pa11y + Lighthouse
+pnpm audit:all
+
+# Serve bundled components locally
+pnpm a11y:serve  # open http://localhost:5178/index.html
+
+# Minimal DOM snapshot tests
+pnpm test:components
+```
+
+Artifacts are written to `dist/components/` (including Lighthouse reports). See `docs/tiltcheck/17-components-audits.md` for details.
+
 ### For Contributors
 
 1. **Read the docs** in `/docs/tiltcheck/`
