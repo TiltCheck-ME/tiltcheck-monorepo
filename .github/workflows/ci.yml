@@ -25,6 +25,14 @@ jobs:
         run: pnpm build
       - name: Lint
         run: pnpm lint
+      - name: Bundle components
+        run: pnpm bundle:components
+      - name: Contrast audit
+        run: pnpm contrast
+      - name: DOM contrast audit
+        run: pnpm contrast:dom
+      - name: Accessibility audit (pa11y + lighthouse)
+        run: pnpm a11y:audit
       - name: Type check (tsc --noEmit)
         run: pnpm exec tsc -p tsconfig.json --noEmit
       - name: Run tests (Vitest)
@@ -36,3 +44,58 @@ jobs:
         with:
           name: coverage-report
           path: coverage/
+      - name: Upload component bundle
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: component-bundle
+          path: dist/components/
+
+  components-a11y:
+    name: Components A11y & Contrast
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'pnpm'
+      - name: Install pnpm
+        run: npm install -g pnpm@8
+      - name: Install deps
+        run: pnpm install --frozen-lockfile || pnpm install
+      - name: Run audits (bundle + contrast + a11y)
+        run: pnpm audit:all
+      - name: Upload component bundle
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: component-bundle
+          path: dist/components/
+
+  landing-a11y:
+    name: Landing A11y
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'pnpm'
+      - name: Install pnpm
+        run: npm install -g pnpm@8
+      - name: Install deps
+        run: pnpm install --frozen-lockfile || pnpm install
+      - name: Run landing accessibility audit
+        run: pnpm a11y:audit:landing
+      - name: Upload landing a11y artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: landing-a11y
+          path: |
+            dist/landing-lighthouse-accessibility.json
