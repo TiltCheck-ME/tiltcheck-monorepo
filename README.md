@@ -40,6 +40,13 @@ Every module is Discord-first, non-custodial, and optimized for low-cost serverl
 4. **Cost Discipline** — Built on free-tier infra (Cloudflare, Supabase, etc.)
 5. **Degen Ergonomics** — Simple, funny, blunt, and extremely practical
 
+## Branch Protection & Required Checks
+
+TiltCheck protects `main` with two required status checks:
+- `components-a11y` (shared components: bundle, contrast, a11y)
+- `landing-a11y` (landing pages: a11y)
+
+See [`docs/tiltcheck/17-branch-protection.md`](docs/tiltcheck/17-branch-protection.md) for details on the ruleset, why these checks matter, and how to update them if CI jobs change.
 ---
 
 ## Repository Structure
