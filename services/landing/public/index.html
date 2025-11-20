@@ -417,6 +417,37 @@
           <div class="stat-label">Flat Tip Fee</div>
         </div>
       </div>
+      <!-- KPI Metrics Preview Strip (placeholder values; dynamic integration forthcoming) -->
+      <div class="kpi-strip" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:14px;margin:48px auto 0;max-width:960px;">
+        <div class="kpi" style="background:#121212;border:1px solid #222;padding:14px 12px;border-radius:10px;display:flex;flex-direction:column;gap:6px;" aria-label="Casino fairness deltas tracked">
+          <span style="font-size:.55rem;letter-spacing:.15em;text-transform:uppercase;color:#888;">Fairness Deltas</span>
+          <strong id="kpiFairness" style="font-size:1.3rem;color:#00d4aa;">--</strong>
+        </div>
+        <div class="kpi" style="background:#121212;border:1px solid #222;padding:14px 12px;border-radius:10px;display:flex;flex-direction:column;gap:6px;" aria-label="Scam links blocked by SusLink">
+          <span style="font-size:.55rem;letter-spacing:.15em;text-transform:uppercase;color:#888;">Links Blocked</span>
+          <strong id="kpiLinksBlocked" style="font-size:1.3rem;color:#00d4aa;">--</strong>
+        </div>
+        <div class="kpi" style="background:#121212;border:1px solid #222;padding:14px 12px;border-radius:10px;display:flex;flex-direction:column;gap:6px;" aria-label="Bonuses catalogued by CollectClock">
+          <span style="font-size:.55rem;letter-spacing:.15em;text-transform:uppercase;color:#888;">Bonuses Tracked</span>
+          <strong id="kpiBonuses" style="font-size:1.3rem;color:#00d4aa;">--</strong>
+        </div>
+        <div class="kpi" style="background:#121212;border:1px solid #222;padding:14px 12px;border-radius:10px;display:flex;flex-direction:column;gap:6px;" aria-label="Promos classified by FreeSpinScan">
+          <span style="font-size:.55rem;letter-spacing:.15em;text-transform:uppercase;color:#888;">Promos Classified</span>
+          <strong id="kpiPromos" style="font-size:1.3rem;color:#00d4aa;">--</strong>
+        </div>
+        <div class="kpi" style="background:#121212;border:1px solid #222;padding:14px 12px;border-radius:10px;display:flex;flex-direction:column;gap:6px;" aria-label="Tilt events predicted by Tilt Engine">
+          <span style="font-size:.55rem;letter-spacing:.15em;text-transform:uppercase;color:#888;">Tilt Predictions</span>
+          <strong id="kpiTilt" style="font-size:1.3rem;color:#00d4aa;">--</strong>
+        </div>
+        <div class="kpi" style="background:#121212;border:1px solid #222;padding:14px 12px;border-radius:10px;display:flex;flex-direction:column;gap:6px;" aria-label="Accountability wallet locks triggered">
+          <span style="font-size:.55rem;letter-spacing:.15em;text-transform:uppercase;color:#888;">Wallet Locks</span>
+          <strong id="kpiLocks" style="font-size:1.3rem;color:#00d4aa;">--</strong>
+        </div>
+        <div class="kpi" style="background:#121212;border:1px solid #222;padding:14px 12px;border-radius:10px;display:flex;flex-direction:column;gap:6px;" aria-label="Degen trust score lookups">
+          <span style="font-size:.55rem;letter-spacing:.15em;text-transform:uppercase;color:#888;">Trust Lookups</span>
+          <strong id="kpiLookups" style="font-size:1.3rem;color:#00d4aa;">--</strong>
+        </div>
+      </div>
       <!-- Main page content -->
       <div style="margin:40px auto 0;max-width:800px;text-align:center;color:#c9d2d2;font-size:1.1rem;">
         <p><strong>TiltCheck</strong> is the open-source trust engine for casino and degen communities. We provide real-time transparency, scam detection, tipping, bonus tracking, and accountability tools—all Discord-first, non-custodial, and built for safety. Explore our tools, check trust scores, and join the movement for smarter, safer play.</p>
@@ -475,6 +506,23 @@
     }
     setInterval(updateMetrics,4000); updateMetrics();
     window.addEventListener('resize', draw);
+  })();
+
+  // Placeholder KPI population (replace with real API integration)
+  (function(){
+    const seeds = {
+      kpiFairness: 128, // fairness deltas tracked
+      kpiLinksBlocked: 342, // malicious links blocked
+      kpiBonuses: 57, // bonuses monitored
+      kpiPromos: 214, // promos classified
+      kpiTilt: 89, // tilt predictions issued
+      kpiLocks: 34, // accountability locks
+      kpiLookups: 473 // trust score lookups
+    };
+    Object.entries(seeds).forEach(([id,val]) => {
+      const el = document.getElementById(id);
+      if(el) el.textContent = val.toString();
+    });
   })();
 </script>
 
