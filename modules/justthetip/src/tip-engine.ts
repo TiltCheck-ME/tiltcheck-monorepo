@@ -15,6 +15,8 @@ import { eventRouter } from '@tiltcheck/event-router';
 import { pricingOracle } from '@tiltcheck/pricing-oracle';
 import { getWallet } from './wallet-manager.js';
 import { v4 as uuidv4 } from 'uuid';
+import fs from 'fs';
+import path from 'path';
 
 const SOLANA_RPC_URL = process.env.SOLANA_RPC_URL || 'https://api.mainnet-beta.solana.com';
 const FLAT_FEE_SOL = 0.0007; // ~$0.07 at $100/SOL
@@ -48,6 +50,49 @@ interface PendingTip {
 }
 
 const pendingTips = new Map<string, PendingTip[]>(); // recipientId → tips
+
+// Persistence (simple JSON file) -------------------------------------------------
+const PENDING_TIPS_PATH = process.env.PENDING_TIPS_STORE_PATH || path.join(process.cwd(), 'data', 'pending-tips.json');
+
+function ensureStoreDir(): void {
+  const dir = path.dirname(PENDING_TIPS_PATH);
+  if (!fs.existsSync(dir)) {
+    fs.mkdirSync(dir, { recursive: true });
+  }
+}
+
+function loadPendingTipsFromDisk(): void {
+  try {
+    if (fs.existsSync(PENDING_TIPS_PATH)) {
+      const raw = fs.readFileSync(PENDING_TIPS_PATH, 'utf8');
+      const data: PendingTip[] = JSON.parse(raw);
+      for (const tip of data) {
+        if (!pendingTips.has(tip.recipientId)) pendingTips.set(tip.recipientId, []);
+        pendingTips.get(tip.recipientId)!.push(tip);
+      }
+      console.log(`[JustTheTip] Loaded ${data.length} pending tips from disk`);
+    }
+  } catch (error) {
+    console.error('[JustTheTip] Failed to load pending tips store:', error);
+  }
+}
+
+function savePendingTipsToDisk(): void {
+  try {
+    ensureStoreDir();
+    const all: PendingTip[] = [];
+    for (const arr of pendingTips.values()) all.push(...arr);
+    fs.writeFileSync(PENDING_TIPS_PATH, JSON.stringify(all, null, 2), 'utf8');
+  } catch (error) {
+    console.error('[JustTheTip] Failed to persist pending tips store:', error);
+  }
+}
+
+// Load at module init
+loadPendingTipsFromDisk();
+
+// Periodic flush (every 30s)
+setInterval(() => savePendingTipsToDisk(), 30_000).unref();
 
 /**
  * Execute tip (non-custodial, requires sender signature)
@@ -89,6 +134,7 @@ export async function executeTip(request: TipRequest, senderKeypair: Keypair): P
         pendingTips.set(request.recipientId, []);
       }
       pendingTips.get(request.recipientId)!.push(pending);
+      savePendingTipsToDisk();
 
       void eventRouter.publish('tip.pending', 'justthetip', {
         tipId,
@@ -246,4 +292,12 @@ export async function processPendingTips(userId: string): Promise<void> {
 
   // Clear processed tips
   pendingTips.delete(userId);
+  savePendingTipsToDisk();
 }
+
+// Expose manual persistence helpers (optional external use)
+export const pendingTipsPersistence = {
+  save: savePendingTipsToDisk,
+  load: loadPendingTipsFromDisk,
+  path: PENDING_TIPS_PATH,
+};
