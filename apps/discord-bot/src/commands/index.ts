@@ -12,3 +12,4 @@ export { submitpromo, approvepromo, denypromo, pendingpromos } from './promo.js'
 export { trustDashboard } from './trust.js';
 export { poker } from './poker.js';
 export { cooldown, tilt } from './cooldown.js';
+export { justthetip } from './justthetip.js';

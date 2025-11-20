@@ -18,6 +18,8 @@
     "@tiltcheck/freespinscan": "workspace:*",
     "@tiltcheck/poker": "workspace:*",
     "@tiltcheck/tiltcheck-core": "workspace:*",
+    "@tiltcheck/justthetip": "workspace:*",
+    "@tiltcheck/natural-language-parser": "workspace:*",
     "@tiltcheck/esm-utils": "workspace:*",
     "discord.js": "^14.14.1",
     "dotenv": "^16.3.1"
