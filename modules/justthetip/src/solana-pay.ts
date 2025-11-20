@@ -7,6 +7,9 @@ import { PublicKey, Transaction, SystemProgram, Connection } from '@solana/web3.
 import { encodeURL, createQR } from '@solana/pay';
 import BigNumber from 'bignumber.js';
 
+const FLAT_FEE_SOL = 0.0007; // ~$0.07 at $100/SOL
+const FEE_WALLET = process.env.JUSTTHETIP_FEE_WALLET || '';
+
 export interface SolanaPayRequest {
   url: string;
   qrCode: string; // Base64 encoded PNG
@@ -16,6 +19,9 @@ export interface SolanaPayRequest {
 /**
  * Create a Solana Pay transfer URL
  * Users scan this QR code with their Solana wallet to approve the transaction
+ * 
+ * NOTE: This creates a simple transfer WITHOUT the TiltCheck fee.
+ * For tips with fees, use createTipWithFeeRequest()
  */
 export async function createTransferRequest(
   recipientAddress: string,
@@ -44,6 +50,78 @@ export async function createTransferRequest(
 
   return {
     url: url.toString(),
+    qrCode: qrBase64,
+  };
+}
+
+/**
+ * Create a tip request WITH TiltCheck fee included
+ * Creates a transaction with two transfers: tip amount + 0.0007 SOL fee
+ */
+export async function createTipWithFeeRequest(
+  connection: Connection,
+  senderAddress: string,
+  recipientAddress: string,
+  amountSOL: number,
+  label?: string,
+): Promise<{ url: string; qrCode: string; signature?: string }> {
+  if (!FEE_WALLET) {
+    console.warn('[SolanaPay] No fee wallet configured - fee will not be collected');
+    // Fall back to simple transfer without fee
+    return createTransferRequest(recipientAddress, amountSOL, label);
+  }
+
+  const sender = new PublicKey(senderAddress);
+  const recipient = new PublicKey(recipientAddress);
+  const feeAccount = new PublicKey(FEE_WALLET);
+
+  // Build transaction with tip + fee
+  const transaction = new Transaction();
+
+  // Add tip transfer
+  transaction.add(
+    SystemProgram.transfer({
+      fromPubkey: sender,
+      toPubkey: recipient,
+      lamports: Math.floor(amountSOL * 1e9),
+    })
+  );
+
+  // Add fee transfer
+  transaction.add(
+    SystemProgram.transfer({
+      fromPubkey: sender,
+      toPubkey: feeAccount,
+      lamports: Math.floor(FLAT_FEE_SOL * 1e9),
+    })
+  );
+
+  // Get recent blockhash
+  const { blockhash } = await connection.getLatestBlockhash();
+  transaction.recentBlockhash = blockhash;
+  transaction.feePayer = sender;
+
+  // Serialize transaction for Solana Pay
+  const serialized = transaction.serialize({
+    requireAllSignatures: false,
+    verifySignatures: false,
+  });
+  const base64 = serialized.toString('base64');
+
+  // Create transaction request URL
+  const url = `solana:${base64}`;
+
+  // Generate QR code
+  const qr = createQR(url);
+  const qrBlob = await qr.getRawData('png');
+  if (!qrBlob) {
+    throw new Error('Failed to generate QR code');
+  }
+  const qrArrayBuffer = await qrBlob.arrayBuffer();
+  const qrBase64 = Buffer.from(qrArrayBuffer).toString('base64');
+
+  return {
+    url,
     qrCode: qrBase64,
   };
 }

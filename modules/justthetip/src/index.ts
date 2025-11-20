@@ -33,7 +33,13 @@ export {
 
 export {
   createTransferRequest,
+  createTipWithFeeRequest,
   createTransactionRequest,
 } from './solana-pay.js';
+
+export {
+  trackTransaction,
+  cleanupPendingTransactions,
+} from './transaction-monitor.js';
 
 console.log('[JustTheTip] Module loaded - Non-custodial tipping ready');

@@ -10,10 +10,15 @@ import {
   getWallet, 
   getWalletBalance,
   hasWallet,
-  createTransferRequest,
+  createTipWithFeeRequest,
 } from '@tiltcheck/justthetip';
+// TODO: Import trackTransaction once we can extract signatures from user wallet responses
 import { parseAmount, formatAmount } from '@tiltcheck/natural-language-parser';
 import { isOnCooldown } from '@tiltcheck/tiltcheck-core';
+import { Connection } from '@solana/web3.js';
+
+const SOLANA_RPC_URL = process.env.SOLANA_RPC_URL || 'https://api.mainnet-beta.solana.com';
+const connection = new Connection(SOLANA_RPC_URL, 'confirmed');
 
 export const justthetip: Command = {
   data: new SlashCommandBuilder()
@@ -242,11 +247,12 @@ async function handleTip(interaction: ChatInputCommandInteraction) {
       throw new Error('Sender wallet not found');
     }
 
-    const { url } = await createTransferRequest(
+    const { url } = await createTipWithFeeRequest(
+      connection,
+      senderWallet.address,
       recipientWallet.address,
       parsedAmount.value,
-      `TiltCheck Tip to ${recipient.username}`,
-      `Sending ${formatAmount(parsedAmount)} via JustTheTip`
+      `TiltCheck Tip to ${recipient.username}`
     );
 
     // Create button with Solana Pay deep link
