@@ -42,6 +42,9 @@ export type EventType =
   | 'trust.state.snapshot'
   | 'tilt.detected'
   | 'tilt.cooldown.requested'
+  | 'cooldown.violated'
+  | 'scam.reported'
+  | 'accountability.success'
   | 'survey.matched'
   | 'game.started'
   | 'game.completed';
