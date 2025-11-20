@@ -130,7 +130,8 @@ pnpm --filter discord-bot dev
 
 # Test in Discord
 # /ping
-# /trust dashboard
+# /trust casino stake.com
+# /trust user @username
 # /scan https://example.com
 ```
 
