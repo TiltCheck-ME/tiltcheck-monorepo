@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Casino Trust Engine - TiltCheck</title>
+  <link rel="stylesheet" href="styles/base.css">
+  <link rel="stylesheet" href="styles/tool-page.css">
+  <style>
+    body { background: #101010; color: #e0e0e0; font-family: Inter, system-ui, sans-serif; }
+    .container { max-width: 900px; margin: 0 auto; padding: 40px 16px; }
+    h1 { font-size: 2.5rem; margin-bottom: 18px; color: #00d4aa; }
+    .trust-card { background: #181818; border: 1px solid #222; border-radius: 12px; padding: 28px; margin-bottom: 24px; }
+    .trust-card h2 { color: #00a8ff; margin-bottom: 10px; font-size: 1.3rem; }
+    .trust-card p { color: #b0e0e0; margin-bottom: 8px; }
+    .score { font-size: 1.7rem; color: #00d4aa; font-weight: 700; }
+    .badge { display: inline-block; background: #222; color: #00d4aa; border-radius: 8px; padding: 4px 12px; font-size: 0.9rem; margin-right: 8px; }
+  </style>
+</head>
+<body>
+  <nav class="navbar">
+    <div class="container" style="padding:0;">
+      <a href="/" class="logo">TiltCheck</a>
+      <div class="nav-links">
+        <a href="/#tools">Tools</a>
+        <a href="/about.html">About</a>
+        <a href="/casinos.html" aria-current="page">Casinos</a>
+        <a href="/degentrust.html">Degens</a>
+        <a href="/dashboard">Dashboard</a>
+        <a href="https://discord.gg/s6NNfPHxMS" class="cta-small">Join Discord</a>
+      </div>
+    </div>
+  </nav>
+  <div class="container">
+    <h1>Casino Trust Engine</h1>
+    <div class="trust-card">
+      <h2>What is Casino Trust?</h2>
+      <p>The Casino Trust Engine tracks fairness, payout reliability, bonus nerfs, promo transparency, and compliance across the ecosystem. Scores are updated in real time and exported for community review.</p>
+      <span class="badge">Non-Custodial</span>
+      <span class="badge">Flat Fee</span>
+      <span class="badge">Evidence Export</span>
+    </div>
+    <div class="trust-card">
+      <h2>Casino Trust Signals</h2>
+      <ul>
+        <li><strong>Fairness:</strong> Payouts, RTP, and dispute rates</li>
+        <li><strong>Bonus Nerfs:</strong> Promo changes and cycles</li>
+        <li><strong>Compliance:</strong> KYC, withdrawal, and legal triggers</li>
+        <li><strong>Transparency:</strong> Open logs and explainable scores</li>
+      </ul>
+    </div>
+    <div class="trust-card">
+      <h2>Current Trust Score</h2>
+      <div class="score">--</div>
+      <p style="color:#888;">Live scores coming soon. For now, join Discord for updates and contribute your casino experiences.</p>
+    </div>
+  </div>
+</body>
+</html>
