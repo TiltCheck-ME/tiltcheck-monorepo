@@ -192,6 +192,13 @@ export function getUserTiltStatus(userId: string): {
   };
 }
 
+/**
+ * Get user activity (for admin/debug purposes)
+ */
+export function getUserActivity(userId: string): UserActivity | undefined {
+  return userActivities.get(userId);
+}
+
 // Subscribe to game/tip events to track losses
 eventRouter.subscribe('tip.failed', (event) => {
   const { userId, amount } = event.data;

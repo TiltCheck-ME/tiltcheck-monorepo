@@ -8,6 +8,7 @@ import { Client, Events } from 'discord.js';
 import { eventRouter } from '@tiltcheck/event-router';
 import { extractUrls } from '@tiltcheck/discord-utils';
 import { suslink } from '@tiltcheck/suslink';
+import { trackMessage } from '@tiltcheck/tiltcheck-core';
 import { config } from '../config.js';
 import type { CommandHandler } from './commands.js';
 
@@ -70,6 +71,13 @@ export class EventHandler {
         // Ignore bot messages
         if (message.author.bot) return;
 
+        // Track message for tilt detection
+        trackMessage(
+          message.author.id,
+          message.content,
+          message.channelId
+        );
+
         // Extract URLs from message
         const urls = extractUrls(message.content);
 
@@ -114,6 +122,58 @@ export class EventHandler {
         
         // For now, just log it
         // TODO: Implement mod notification system
+      },
+      'discord-bot'
+    );
+
+    // Subscribe to tilt detected events (warn users on cooldown)
+    eventRouter.subscribe(
+      'tilt.detected',
+      async (event) => {
+        const { userId, reason, severity } = event.data;
+        
+        console.log(
+          `[EventHandler] Tilt detected: User ${userId} (${severity}) - ${reason}`
+        );
+
+        // Try to DM the user
+        try {
+          const user = await this.client.users.fetch(userId);
+          await user.send(
+            `⚠️ **Tilt Warning**\n\n` +
+            `Reason: ${reason}\n` +
+            `Severity: ${severity}\n\n` +
+            `You've been placed on a 15-minute cooldown. Take a break. 🧘`
+          );
+        } catch (error) {
+          console.warn(`[EventHandler] Could not DM user ${userId}:`, error);
+        }
+      },
+      'discord-bot'
+    );
+
+    // Subscribe to cooldown violation events
+    eventRouter.subscribe(
+      'cooldown.violated',
+      async (event) => {
+        const { userId, action, newDuration } = event.data;
+        
+        console.log(
+          `[EventHandler] Cooldown violation: User ${userId} attempted ${action}`
+        );
+
+        // Try to DM the user
+        try {
+          const user = await this.client.users.fetch(userId);
+          await user.send(
+            `🚫 **Cooldown Violation**\n\n` +
+            `You tried to ${action} while on cooldown.\n` +
+            `Your cooldown has been extended to ${newDuration} minutes.\n\n` +
+            `Seriously, take a break. We're trying to help.`
+          );
+        } catch (error) {
+          console.warn(`[EventHandler] Could not DM user ${userId}:`, error);
+        }
       },
       'discord-bot'
     );

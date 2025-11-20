@@ -15,6 +15,7 @@ export {
   triggerCooldown,
   shouldWarnUser,
   getUserTiltStatus,
+  getUserActivity,
 } from './tilt-detector.js';
 
 export {

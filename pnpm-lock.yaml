@@ -50,9 +50,15 @@ importers:
       '@tiltcheck/freespinscan':
         specifier: workspace:*
         version: link:../../modules/freespinscan
+      '@tiltcheck/poker':
+        specifier: workspace:*
+        version: link:../../modules/poker
       '@tiltcheck/suslink':
         specifier: workspace:*
         version: link:../../modules/suslink
+      '@tiltcheck/tiltcheck-core':
+        specifier: workspace:*
+        version: link:../../modules/tiltcheck-core
       '@tiltcheck/types':
         specifier: workspace:*
         version: link:../../packages/types
