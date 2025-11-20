@@ -1,0 +1,36 @@
+{
+  "name": "tiltcheck-monorepo",
+  "version": "0.1.0",
+  "private": true,
+  "description": "TiltCheck Ecosystem - Built by a degen, for degens",
+  "author": "jmenichole",
+  "license": "UNLICENSED",
+  "engines": {
+    "node": ">=18.0.0",
+    "pnpm": ">=8.0.0"
+  },
+  "scripts": {
+    "dev": "pnpm --parallel --recursive dev",
+    "build": "pnpm --recursive build",
+    "test": "vitest --run",
+    "test:watch": "vitest",
+    "test:all": "pnpm --recursive test",
+    "coverage": "vitest run --coverage",
+    "coverage:ci": "CI=true vitest run --coverage",
+    "lint": "eslint \"apps/**/*.ts\" \"modules/**/*.ts\" \"services/**/*.ts\" \"packages/**/*.ts\"",
+    "lint:fix": "pnpm lint --fix",
+    "clean": "pnpm --recursive clean && rm -rf node_modules",
+    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\""
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "prettier": "^3.1.0",
+    "typescript": "^5.3.0",
+    "vitest": "^1.6.0",
+    "@vitest/coverage-v8": "^1.6.0",
+    "eslint": "^9.12.0",
+    "@typescript-eslint/eslint-plugin": "^8.9.0",
+    "@typescript-eslint/parser": "^8.9.0",
+    "eslint-config-prettier": "^9.1.0"
+  }
+}

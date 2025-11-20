@@ -28,10 +28,39 @@ Solve the problems of:
 - Optional swap via Jupiter after fee deduction  
 - No balance custody (no legal exposure)  
 - Discord-first UI  
+ - Real-time pricing via in-memory oracle (event driven)  
+ - Hardened swap quoting: slippage & fee breakdown  
+ - Failure path detection (swap.failed)  
 
 ### Why It Exists:
 Degen tipping bots fail constantly.  
 JustTheTip fixes the liquidity and custody problems without becoming a custodial service.
+
+### Pricing & Swap Hardening Additions:
+The module now integrates a lightweight in-memory Pricing Oracle that:
+- Publishes `price.updated` events on every price change (payload includes token, oldPrice, newPrice, updatedAt, stale flag)
+- Tracks update timestamps and exposes `isStale(token)`
+- Applies a default TTL of 5 minutes; prices older than this are considered stale
+- Supports `refreshPrice(token, fetcher)` for external integration hooks (fetcher returns Promise<number>)
+
+Swap quotes now include:
+- `slippageBps`: Maximum tolerated slippage (basis points)
+- `minOutputAmount`: Minimum acceptable output after slippage tolerance
+- `platformFeeBps`: Founder/platform fee applied to output
+- `networkFeeLamports`: Simulated network fee (converted to SOL)
+- `finalOutputAfterFees`: Output after deducting platform + network fees
+- Centralized defaults provided via `swapDefaults` (`slippageBps`, `platformFeeBps`, `networkFeeLamports`) and overrideable per tip.
+
+Events emitted by JustTheTip:
+- `tip.initiated`, `tip.completed`, `tip.pending.resolved`
+- `wallet.registered`, `wallet.disconnected`
+- `swap.quote`, `swap.completed`, `swap.failed`
+- `price.updated` (oracle service)
+
+Failure Handling:
+During execution the realized output is compared to `minOutputAmount`. If it falls below tolerance, a `swap.failed` event is published with reason `Slippage exceeded tolerance`.
+
+These enhancements provide clearer transparency on pricing, fees, and swap reliability while enabling downstream listeners to react to stale pricing conditions or failed executions.
 
 ---
 

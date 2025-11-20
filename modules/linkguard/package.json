@@ -1,0 +1,10 @@
+{
+  "name": "@tiltcheck/linkguard",
+  "version": "0.1.0",
+  "main": "src/index.ts",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "test": "vitest --run"
+  }
+}

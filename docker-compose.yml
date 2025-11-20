@@ -1,0 +1,76 @@
+version: '3.8'
+
+services:
+  dashboard:
+    build:
+      context: .
+      dockerfile: services/dashboard/Dockerfile
+    container_name: tiltcheck-dashboard
+    ports:
+      - "5055:5055"
+    environment:
+      - NODE_ENV=production
+      - PORT=5055
+      - DASHBOARD_POLL_MS=${DASHBOARD_POLL_MS:-30000}
+      - DASHBOARD_EVENTS_KEEP_DAYS=${DASHBOARD_EVENTS_KEEP_DAYS:-7}
+      - DISCORD_WEBHOOK_URL=${DISCORD_WEBHOOK_URL}
+    volumes:
+      - ./data:/app/data
+      - dashboard-events:/app/data/events
+    restart: unless-stopped
+    networks:
+      - tiltcheck
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:5055/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  discord-bot:
+    build:
+      context: .
+      dockerfile: apps/discord-bot/Dockerfile
+    container_name: tiltcheck-bot
+    ports:
+      - "8081:8081"
+    environment:
+      - NODE_ENV=production
+      - DISCORD_TOKEN=${DISCORD_TOKEN}
+      - DISCORD_CLIENT_ID=${DISCORD_CLIENT_ID}
+      - DISCORD_GUILD_ID=${DISCORD_GUILD_ID}
+      - DASHBOARD_URL=http://dashboard:5055
+      - SUSLINK_AUTO_SCAN=${SUSLINK_AUTO_SCAN:-true}
+      - TRUST_THRESHOLD=${TRUST_THRESHOLD:-60}
+    volumes:
+      - ./data:/app/data
+    restart: unless-stopped
+    networks:
+      - tiltcheck
+    depends_on:
+      dashboard:
+        condition: service_healthy
+
+  trust-rollup:
+    build:
+      context: .
+      dockerfile: services/trust-rollup/Dockerfile
+    container_name: tiltcheck-rollup
+    ports:
+      - "8082:8082"
+    environment:
+      - NODE_ENV=production
+    volumes:
+      - ./data:/app/data
+    restart: unless-stopped
+    networks:
+      - tiltcheck
+    depends_on:
+      - dashboard
+
+networks:
+  tiltcheck:
+    driver: bridge
+
+volumes:
+  dashboard-events:

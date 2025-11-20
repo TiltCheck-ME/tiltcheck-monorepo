@@ -1,0 +1,69 @@
+name: Deploy Discord Bot
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'apps/discord-bot/**'
+      - 'packages/**'
+      - '.github/workflows/deploy-bot.yml'
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build packages
+        run: pnpm run build
+
+      - name: Build Docker image
+        run: |
+          docker build -f apps/discord-bot/Dockerfile -t tiltcheck-bot:${{ github.sha }} .
+          docker tag tiltcheck-bot:${{ github.sha }} tiltcheck-bot:latest
+
+      - name: Log in to Docker Hub
+        if: github.event_name != 'pull_request'
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Push to Docker Hub
+        if: github.event_name != 'pull_request'
+        run: |
+          docker tag tiltcheck-bot:latest ${{ secrets.DOCKER_USERNAME }}/tiltcheck-bot:latest
+          docker tag tiltcheck-bot:latest ${{ secrets.DOCKER_USERNAME }}/tiltcheck-bot:${{ github.sha }}
+          docker push ${{ secrets.DOCKER_USERNAME }}/tiltcheck-bot:latest
+          docker push ${{ secrets.DOCKER_USERNAME }}/tiltcheck-bot:${{ github.sha }}
+
+      - name: Deploy to server
+        if: github.event_name != 'pull_request'
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          script: |
+            cd /opt/tiltcheck
+            docker-compose pull discord-bot
+            docker-compose up -d discord-bot
+            docker system prune -f

@@ -43,13 +43,13 @@ instructions: |
   - system architecture
   - modules
   - data models
-  - tools overview
+  - AI prompts
   - trust engines
-  - prompts
   - future roadmap
   - poker specs
   - funding intelligence flow
   - diagrams
+  - branding
   - founder voice
 
   Always prefer these internal docs over assumptions.
@@ -64,14 +64,15 @@ instructions: |
   - adhere to the “flat fee 0.07 SOL” rule unless user specifies otherwise
   - ensure safety checks on swaps, tips, or airdrops
   - keep modules independent using the Event Router
+  - follow data models defined in docs
 
   ## When Asking Questions
   Ask:
   - “What problem are you trying to solve?”
   - “What module does this belong to?”
   - “What’s the cheapest way to do this?”
-  - “Should this live in Discord or web UI?”
-  - “Do you want scrappy MVP or polished version?”
+  - “Should this live in Discord or the web UI?”
+  - “Is this MVP or polished build?”
 
   ## When Suggesting Improvements
   Focus on:
@@ -97,7 +98,7 @@ instructions: |
   - do NOT hallucinate missing data (ask instead)
 
   ## High-Level Goal:
-  Help the founder build TiltCheck into a modular, trusted, entertaining, fair, Discord-first ecosystem —  
+  Help the founder build TiltCheck into a modular, trusted, entertaining, fair, Discord-first ecosystem —
   with minimal cost, maximum clarity, and a vibe true to its roots:
   “Made for Degens. By Degens.”
 
