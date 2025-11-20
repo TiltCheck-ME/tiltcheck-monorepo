@@ -15,22 +15,20 @@ RUN apk add --no-cache \
 
 WORKDIR /app
 
-# Copy package files for all workspaces
+# Copy package manager configs first
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
-COPY packages/*/package.json ./packages/
-COPY modules/*/package.json ./modules/
-COPY apps/discord-bot/package.json ./apps/discord-bot/
-COPY services/dashboard/package.json ./services/dashboard/
-COPY services/landing/package.json ./services/landing/
-COPY services/trust-rollup/package.json ./services/trust-rollup/
 
-# Install pnpm and dependencies (with workspace resolution)
+
+# Copy all workspace package.json files (needed for dependency resolution)
+COPY packages/ ./packages/
+COPY modules/ ./modules/
+COPY apps/ ./apps/
+COPY services/ ./services/
+
+# Install pnpm and dependencies
 RUN npm install -g pnpm@9 && pnpm install --frozen-lockfile
 
-# Copy all source code
-COPY . .
-
-# Build only web-facing services (landing + dashboard; bot requires additional deps)
+# Build only web-facing services (landing is plain JS, dashboard needs compilation)
 RUN set -e && \
     cd /app/packages/types && pnpm run build && \
     cd /app/packages/config && pnpm run build && \
