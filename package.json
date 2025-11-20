@@ -26,8 +26,10 @@
     "contrast:dom": "node scripts/contrast-check-dom.js",
     "a11y:serve": "node scripts/serve-components.js",
     "a11y:audit": "bash scripts/a11y-audit.sh",
+    "a11y:serve:landing": "node scripts/serve-landing.js",
+    "a11y:audit:landing": "bash scripts/landing-a11y-audit.sh",
     "test:components": "node scripts/validate-components.js",
-    "audit:all": "pnpm test:components && pnpm bundle:components && pnpm contrast && pnpm contrast:dom && pnpm a11y:audit"
+    "audit:all": "pnpm test:components && pnpm bundle:components && pnpm contrast && pnpm contrast:dom && pnpm a11y:audit && pnpm a11y:audit:landing"
   },
   "devDependencies": {
     "@types/node": "^20.10.0",

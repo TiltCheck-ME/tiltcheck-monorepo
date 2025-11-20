@@ -153,7 +153,7 @@
     
     .tools-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
       gap: 30px;
       max-width: 1200px;
       margin: 0 auto;
@@ -196,6 +196,22 @@
       font-size: 0.8rem;
       font-weight: 600;
       text-transform: uppercase;
+    }
+
+    /* Mobile adjustments */
+    @media (max-width: 680px) {
+      header { padding: 42px 16px; }
+      .logo { font-size: 2.2rem; }
+      .tagline { font-size: 1rem; }
+      .hero { padding: 64px 16px 48px; }
+      .hero h1 { font-size: 2.2rem; }
+      .hero p { font-size: 1rem; padding: 0 6px; }
+      .cta-button { padding: 12px 20px; font-size: 1rem; }
+      .cta-secondary { padding: 10px 18px; font-size: 0.95rem; }
+      .hero-stats { gap: 22px; }
+      .stat-number { font-size: 2rem; }
+      .tools-section { padding: 56px 16px; }
+      .tools-section h2 { font-size: 2rem; }
     }
     
     .status-live {
@@ -262,7 +278,7 @@
     }
     
     footer p {
-      color: #666;
+      color: #888;
       margin-bottom: 10px;
     }
     
@@ -279,7 +295,7 @@
     .built-by {
       margin-top: 20px;
       font-size: 0.9rem;
-      color: #444;
+      color: #888;
     }
     
     /* Responsive */
