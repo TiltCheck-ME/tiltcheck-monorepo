@@ -1,6 +1,7 @@
 /**
  * Trust Rollup Service
  * Aggregates trust.casino.updated and trust.domain.updated events hourly and publishes rollups.
+ * Also fetches external casino data periodically for verification.
  * Lightweight in-memory implementation.
  */
 
@@ -9,6 +10,7 @@ import http from 'http';
 import fs from 'fs';
 import path from 'path';
 import { validateRollupSnapshotFile } from './rollup-schema.js';
+import { startCasinoVerificationScheduler } from './verification-scheduler.js';
 import type { TiltCheckEvent, TrustCasinoUpdateEvent, TrustDomainUpdateEvent } from '@tiltcheck/types';
 
 interface AggregatedEntry {
@@ -90,6 +92,14 @@ export function flushTrustRollups() {
 
 let ready = true; // Service sets ready immediately after subscriptions
 console.log('[TrustRollup] Service initialized');
+
+// Start external casino verification scheduler
+if (process.env.ENABLE_CASINO_VERIFICATION !== 'false') {
+  startCasinoVerificationScheduler();
+  console.log('[TrustRollup] Casino verification scheduler enabled');
+} else {
+  console.log('[TrustRollup] Casino verification scheduler disabled');
+}
 
 // Lightweight health server
 const HEALTH_PORT = process.env.TRUST_ROLLUP_HEALTH_PORT || '8082';

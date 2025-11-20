@@ -238,24 +238,68 @@ export class TrustEnginesService {
   }
 
   private async onCasinoRollup(event: TiltCheckEvent) {
-    const { casinos } = event.data as any;
+    const { casinos, source } = event.data as any;
     if (!casinos) return;
 
     // Process hourly aggregated casino trust events
     for (const [casinoName, agg] of Object.entries(casinos as Record<string, any>)) {
-      const { totalDelta, events: eventCount } = agg;
-      if (eventCount === 0) continue;
+      const { totalDelta, events: eventCount, externalData } = agg;
+      if (eventCount === 0 && !externalData) continue;
 
-      // Average delta impact on bonus score
-      const avgDelta = totalDelta / eventCount;
-      const delta = Math.max(-5, Math.min(5, avgDelta / 2)); // Dampened rollup impact
-      
-      this.updateCasinoScore(
-        casinoName,
-        'bonusScore',
-        delta,
-        `Hourly rollup: ${eventCount} events, avg Δ${avgDelta.toFixed(1)}`
-      );
+      // If this is from external verification, apply detailed deltas
+      if (source === 'external-verification' && externalData) {
+        if (externalData.fairnessDelta) {
+          this.updateCasinoScore(
+            casinoName,
+            'fairnessScore',
+            externalData.fairnessDelta,
+            'External RTP/fairness verification'
+          );
+        }
+        if (externalData.payoutDelta) {
+          this.updateCasinoScore(
+            casinoName,
+            'payoutScore',
+            externalData.payoutDelta,
+            'External payout speed verification'
+          );
+        }
+        if (externalData.bonusDelta) {
+          this.updateCasinoScore(
+            casinoName,
+            'bonusScore',
+            externalData.bonusDelta,
+            'External bonus terms verification'
+          );
+        }
+        if (externalData.complianceDelta) {
+          this.updateCasinoScore(
+            casinoName,
+            'complianceScore',
+            externalData.complianceDelta,
+            'External compliance verification'
+          );
+        }
+        if (externalData.supportDelta) {
+          this.updateCasinoScore(
+            casinoName,
+            'supportScore',
+            externalData.supportDelta,
+            'External support quality verification'
+          );
+        }
+      } else if (eventCount > 0) {
+        // Standard rollup from internal events
+        const avgDelta = totalDelta / eventCount;
+        const delta = Math.max(-5, Math.min(5, avgDelta / 2)); // Dampened rollup impact
+        
+        this.updateCasinoScore(
+          casinoName,
+          'bonusScore',
+          delta,
+          `Hourly rollup: ${eventCount} events, avg Δ${avgDelta.toFixed(1)}`
+        );
+      }
     }
   }
 
