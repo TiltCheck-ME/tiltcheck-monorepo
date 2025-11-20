@@ -1,0 +1,19 @@
+{
+  "name": "@tiltcheck/natural-language-parser",
+  "version": "0.1.0",
+  "description": "Natural language parsing for amounts, durations, and user targeting",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "@tiltcheck/types": "workspace:*"
+  },
+  "devDependencies": {
+    "typescript": "^5.3.3"
+  }
+}
