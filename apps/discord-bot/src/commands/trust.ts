@@ -5,7 +5,7 @@
  */
 
 import { SlashCommandBuilder, ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
-import type { Command } from '../types';
+import type { Command } from '../types.js';
 import { trustEngines } from '@tiltcheck/trust-engines';
 
 export const trustDashboard: Command = {

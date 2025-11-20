@@ -6,7 +6,7 @@
 
 import { SlashCommandBuilder, ChatInputCommandInteraction } from 'discord.js';
 import { createEmbed, Colors } from '@tiltcheck/discord-utils';
-import type { Command } from '../types';
+import type { Command } from '../types.js';
 
 export const help: Command = {
   data: new SlashCommandBuilder()

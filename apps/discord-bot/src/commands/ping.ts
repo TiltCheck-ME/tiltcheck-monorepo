@@ -6,7 +6,7 @@
 
 import { SlashCommandBuilder, ChatInputCommandInteraction } from 'discord.js';
 import { successEmbed } from '@tiltcheck/discord-utils';
-import type { Command } from '../types';
+import type { Command } from '../types.js';
 
 export const ping: Command = {
   data: new SlashCommandBuilder()

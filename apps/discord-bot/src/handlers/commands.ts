@@ -5,7 +5,7 @@
  */
 
 import { Collection } from 'discord.js';
-import type { Command, CommandCollection } from '../types';
+import type { Command, CommandCollection } from '../types.js';
 import * as commands from '../commands/index.js';
 
 export class CommandHandler {

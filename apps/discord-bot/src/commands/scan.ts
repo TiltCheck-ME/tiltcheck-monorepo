@@ -7,7 +7,7 @@
 import { SlashCommandBuilder, ChatInputCommandInteraction } from 'discord.js';
 import { suslink } from '@tiltcheck/suslink';
 import { linkScanEmbed, errorEmbed, isValidUrl } from '@tiltcheck/discord-utils';
-import type { Command } from '../types';
+import type { Command } from '../types.js';
 
 export const scan: Command = {
   data: new SlashCommandBuilder()
