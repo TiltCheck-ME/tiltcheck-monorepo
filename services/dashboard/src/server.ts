@@ -353,7 +353,6 @@ export function createServer(): any {
     // Reuse legal rights logic via internal call (simulate)
     const legalResp: any = {};
     try {
-      const lrUrl = `/api/legal-rights/evaluate?region=${encodeURIComponent(region)}${casinoId?`&casino=${encodeURIComponent(casinoId)}`:''}`;
       // direct function invocation rather than HTTP (avoid nesting express)
       const casinoData = casinoId ? casinoMap[casinoId] : undefined;
       const triggers: any[] = [];

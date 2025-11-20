@@ -6,3 +6,7 @@ packages:
 
 ignoredBuiltDependencies:
   - puppeteer
+
+overrides:
+  esbuild@<=0.24.2: '>=0.25.0'
+  semver@>=7.0.0 <7.5.2: '>=7.5.2'

@@ -19,8 +19,6 @@ jobs:
           node-version: '20'
       - name: Enable Corepack (pnpm)
         run: corepack enable
-      - name: Install pnpm
-        run: npm install -g pnpm@8
       - name: Install jq
         run: sudo apt-get update && sudo apt-get install -y jq
       - name: Build images
