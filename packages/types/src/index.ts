@@ -61,6 +61,7 @@ export interface TiltCheckEvent<T = any> {
 
 export type ModuleId =
   | 'tiltcheck'
+  | 'tiltcheck-core'
   | 'suslink'
   | 'collectclock'
   | 'freespinscan'

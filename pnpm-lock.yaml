@@ -177,6 +177,22 @@ importers:
         specifier: ^5.3.0
         version: 5.9.3
 
+  modules/tiltcheck-core:
+    dependencies:
+      '@tiltcheck/event-router':
+        specifier: workspace:*
+        version: link:../../services/event-router
+      '@tiltcheck/types':
+        specifier: workspace:*
+        version: link:../../packages/types
+    devDependencies:
+      typescript:
+        specifier: ^5.3.0
+        version: 5.9.3
+      vitest:
+        specifier: ^1.0.0
+        version: 1.6.1(@types/node@20.19.25)
+
   packages/config:
     devDependencies:
       typescript:
