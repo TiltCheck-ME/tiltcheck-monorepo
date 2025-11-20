@@ -18,6 +18,8 @@
     "@tiltcheck/freespinscan": "workspace:*",
     "@tiltcheck/poker": "workspace:*",
     "@tiltcheck/tiltcheck-core": "workspace:*",
+    "@tiltcheck/triviadrops": "workspace:*",
+    "@tiltcheck/trust-engines": "workspace:*",
     "@tiltcheck/justthetip": "workspace:*",
     "@tiltcheck/natural-language-parser": "workspace:*",
     "@tiltcheck/esm-utils": "workspace:*",
