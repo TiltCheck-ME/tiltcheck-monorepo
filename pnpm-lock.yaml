@@ -48,6 +48,9 @@ importers:
       typescript:
         specifier: ^5.3.0
         version: 5.9.3
+      typescript-eslint:
+        specifier: ^8.9.0
+        version: 8.47.0(eslint@9.39.1)(typescript@5.9.3)
       vitest:
         specifier: ^1.6.0
         version: 1.6.1(@types/node@20.19.25)(jsdom@24.1.3(bufferutil@4.0.9)(utf-8-validate@5.0.10))
@@ -81,6 +84,12 @@ importers:
       '@tiltcheck/tiltcheck-core':
         specifier: workspace:*
         version: link:../../modules/tiltcheck-core
+      '@tiltcheck/triviadrops':
+        specifier: workspace:*
+        version: link:../../modules/triviadrops
+      '@tiltcheck/trust-engines':
+        specifier: workspace:*
+        version: link:../../services/trust-engines
       '@tiltcheck/types':
         specifier: workspace:*
         version: link:../../packages/types
@@ -3130,6 +3139,13 @@ packages:
 
   typed-query-selector@2.12.0:
     resolution: {integrity: sha512-SbklCd1F0EiZOyPiW192rrHZzZ5sBijB6xM+cpmrwDqObvdtunOHHIk9fCGsoK5JVIYXoyEp4iEdE3upFH3PAg==}
+
+  typescript-eslint@8.47.0:
+    resolution: {integrity: sha512-Lwe8i2XQ3WoMjua/r1PHrCTpkubPYJCAfOurtn+mtTzqB6jNd+14n9UN1bJ4s3F49x9ixAm0FLflB/JzQ57M8Q==}
+    engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
+    peerDependencies:
+      eslint: ^8.57.0 || ^9.0.0
+      typescript: '>=4.8.4 <6.0.0'
 
   typescript@5.9.3:
     resolution: {integrity: sha512-jl1vZzPDinLr9eUt3J/t7V6FgNEw9QjvBPdysz9KfQDD41fQrC2Y4vKQdiaUpFT4bXlb1RHhLpp8wtm6M5TgSw==}
@@ -6442,6 +6458,17 @@ snapshots:
       mime-types: 2.1.35
 
   typed-query-selector@2.12.0: {}
+
+  typescript-eslint@8.47.0(eslint@9.39.1)(typescript@5.9.3):
+    dependencies:
+      '@typescript-eslint/eslint-plugin': 8.47.0(@typescript-eslint/parser@8.47.0(eslint@9.39.1)(typescript@5.9.3))(eslint@9.39.1)(typescript@5.9.3)
+      '@typescript-eslint/parser': 8.47.0(eslint@9.39.1)(typescript@5.9.3)
+      '@typescript-eslint/typescript-estree': 8.47.0(typescript@5.9.3)
+      '@typescript-eslint/utils': 8.47.0(eslint@9.39.1)(typescript@5.9.3)
+      eslint: 9.39.1
+      typescript: 5.9.3
+    transitivePeerDependencies:
+      - supports-color
 
   typescript@5.9.3: {}
 
