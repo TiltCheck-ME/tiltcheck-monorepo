@@ -34,6 +34,21 @@
 html { background: var(--color-bg); color: var(--color-text); font-family: var(--font-sans); }
 body { margin:0; }
 
+/* Navigation focus accessibility */
+.navbar .nav-links a,
+header nav a { position:relative; }
+.navbar .nav-links a:focus-visible,
+header nav a:focus-visible {
+  outline: 3px solid var(--color-accent);
+  outline-offset: 3px;
+  border-radius: var(--radius-sm);
+  box-shadow: 0 0 0 4px rgba(0,212,170,0.30), 0 4px 18px rgba(0,212,170,0.25);
+}
+@media (prefers-reduced-motion: reduce) {
+  .navbar .nav-links a:focus-visible,
+  header nav a:focus-visible { box-shadow: 0 0 0 4px rgba(0,212,170,0.35); }
+}
+
 /* Typography helpers */
 .lede { font-size: 1.15rem; line-height: 1.8; color: var(--color-text-secondary); }
 .lede-accent { font-size: 1.3rem; line-height: 1.8; font-weight:600; color: var(--color-accent); }
@@ -73,10 +88,51 @@ footer { background: var(--color-bg); padding: var(--space-6) var(--space-4); te
 footer p { color: #999; margin-bottom: var(--space-2); }
 footer a { color: var(--color-accent); text-decoration:none; margin:0 var(--space-2); }
 footer a:hover { text-decoration:underline; }
+.footer a:focus-visible, footer a:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 3px;
+  border-radius: var(--radius-sm);
+  box-shadow: 0 0 0 3px rgba(0,212,170,0.35);
+  text-decoration: none;
+}
 .built-by { margin-top: var(--space-4); font-size:0.9rem; color: #999; }
 
 /* Responsive */
 @media (max-width: 720px) {
   .lede-accent { font-size:1.15rem; }
   .gauge-ring { width:100px; height:100px; }
+}
+
+/* High-contrast theme variant (manual toggle via .theme-hc or user pref) */
+.theme-hc {
+  --color-bg: #000000;
+  --color-surface-0: #020202;
+  --color-surface-1: #050505;
+  --color-surface-2: #0a0a0a;
+  --color-border: #2f2f2f;
+  --color-text: #ffffff;
+  --color-text-secondary: #e0e0e0;
+  --color-text-muted: #b5b5b5;
+  --color-accent: #00f2c2;
+  --color-accent-alt: #33bbff;
+  --gradient-hero: linear-gradient(135deg,#050507,#101018 100%);
+}
+
+@media (prefers-contrast: more) {
+  :root {
+    --color-bg: #000;
+    --color-surface-0: #050505;
+    --color-surface-1: #0a0a0a;
+    --color-surface-2: #101010;
+    --color-border: #2a2a2a;
+    --color-text: #ffffff;
+    --color-text-secondary: #e5e5e5;
+    --color-text-muted: #c0c0c0;
+    --color-accent: #00e6ba;
+    --color-accent-alt: #14b5ff;
+  }
+  .card, .box-accent, footer, .navbar, header, .philosophy-card {
+    box-shadow: 0 0 0 1px #222, 0 0 0 4px rgba(0,212,170,0.15);
+  }
+  a:focus-visible { outline-width: 3px; }
 }

@@ -1,5 +1,8 @@
 packages:
-  - 'apps/*'
-  - 'modules/*'
-  - 'services/*'
-  - 'packages/*'
+  - apps/*
+  - modules/*
+  - services/*
+  - packages/*
+
+ignoredBuiltDependencies:
+  - puppeteer

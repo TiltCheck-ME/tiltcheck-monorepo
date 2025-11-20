@@ -1,0 +1,102 @@
+{
+  "summary": "Components + A11y: Degen Trust Engine, Lighthouse for Ecosystem + Landing, ESLint v9 flat config",
+  "merged": true,
+  "mergedAt": "2025-11-20T18:54:31Z",
+  "prNumber": 2,
+  "url": "https://github.com/jmenichole/tiltcheck-monorepo/pull/2",
+  "changes": {
+    "components": [
+      {
+        "file": "services/dashboard/public/components/degen-trust-engine.html",
+        "description": "New Degen Trust Engine component with trust score, tilt indicators, behavior score, accountability metrics, recovery timeline, recent events, and trust levels"
+      },
+      {
+        "file": "services/dashboard/public/components/index.html",
+        "description": "Added card linking to degen-trust-engine.html"
+      }
+    ],
+    "audits": [
+      {
+        "file": "scripts/a11y-audit.sh",
+        "description": "Extended Lighthouse to audit ecosystem.html and generate separate JSON report"
+      },
+      {
+        "file": "scripts/serve-landing.js",
+        "description": "Static server for landing page at localhost:5190"
+      },
+      {
+        "file": "scripts/landing-a11y-audit.sh",
+        "description": "Pa11y + Lighthouse audit pipeline for landing site"
+      }
+    ],
+    "tests": [
+      {
+        "file": "scripts/validate-components.js",
+        "description": "Minimal DOM snapshot + structure validation for components"
+      },
+      {
+        "file": "tests/snapshots/ecosystem.cards.json",
+        "description": "Snapshot of ecosystem prompt card titles"
+      },
+      {
+        "file": "tests/snapshots/degen-trust-engine.levels.json",
+        "description": "Snapshot of trust level names"
+      }
+    ],
+    "lint": [
+      {
+        "file": "eslint.config.js",
+        "description": "Flat ESLint v9 config to restore pnpm lint functionality"
+      }
+    ],
+    "landing": [
+      {
+        "file": "services/landing/public/index.html",
+        "description": "Mobile responsiveness improvements (reduced grid min-width, adjusted paddings/fonts) and footer contrast fixes (elevated text colors to #888 for WCAG AA)"
+      }
+    ],
+    "docs": [
+      {
+        "file": "README.md",
+        "description": "Added Components + A11y Audits section with usage commands"
+      },
+      {
+        "file": "docs/tiltcheck/17-components-audits.md",
+        "description": "Updated with new pages list, test:components script, and landing Lighthouse artifact"
+      }
+    ],
+    "packageJson": [
+      {
+        "file": "package.json",
+        "description": "Added scripts: test:components, a11y:serve:landing, a11y:audit:landing; updated audit:all to include landing audits"
+      }
+    ]
+  },
+  "artifacts": {
+    "components": [
+      "dist/components/lighthouse-accessibility.json",
+      "dist/components/lighthouse-ecosystem-accessibility.json"
+    ],
+    "landing": [
+      "dist/landing-lighthouse-accessibility.json"
+    ],
+    "bundle": "dist/components/ (all minified HTML files)"
+  },
+  "scripts": {
+    "fullSuite": "pnpm audit:all",
+    "componentsA11y": "pnpm a11y:audit",
+    "landingA11y": "pnpm a11y:audit:landing",
+    "componentTests": "pnpm test:components",
+    "lint": "pnpm lint"
+  },
+  "ciRequiredCheck": "components-a11y",
+  "notes": [
+    "Some packages have no tests; pnpm --recursive test can exit 1 due to no test files. Out of scope.",
+    "Docker dashboard service healthcheck is green locally."
+  ],
+  "commitShas": [
+    "6377e3a6ddbec3cd3b307e27dedc0026e5a63fb4",
+    "8715694",
+    "2dbb0e3"
+  ]
+}
