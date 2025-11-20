@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>QualifyFirst - AI Survey Pre-Screening | TiltCheck</title>
+  <meta name="description" content="Route users through pre-screen filters before they waste time on surveys or promos they're not eligible for." />
+  <link rel="stylesheet" href="../styles/tool-page.css" />
+</head>
+<body>
+  <nav class="navbar">
+    <div class="container">
+      <a href="/" class="logo">TiltCheck</a>
+      <div class="nav-links">
+        <a href="/#tools">Tools</a>
+        <a href="/dashboard">Dashboard</a>
+        <a href="https://discord.gg/tiltcheck" class="cta-small">Join Discord</a>
+      </div>
+    </div>
+  </nav>
+
+  <header class="tool-header">
+    <div class="container">
+      <div class="tool-icon-large">📋</div>
+      <h1>QualifyFirst</h1>
+      <p class="tool-tagline">Stop wasting time on bad surveys</p>
+      <span class="status-badge status-soon">Coming Soon</span>
+    </div>
+  </header>
+
+  <section class="tool-overview">
+    <div class="container">
+      <div class="two-column">
+        <div>
+          <h2>What is it?</h2>
+          <p>QualifyFirst runs a lightweight pre-screen interaction so users avoid launching full surveys or promos they'll screen out of anyway.</p>
+          <p>Faster routing. Less friction. Higher completion rates. More sanity.</p>
+        </div>
+        <div class="feature-box">
+          <h3>Planned Features</h3>
+          <ul>
+            <li>🔀 Dynamic question branching</li>
+            <li>🧠 AI-based eligibility scoring</li>
+            <li>🗂️ Template survey profiles</li>
+            <li>📤 Export qualified user sets</li>
+            <li>⚙️ Admin config in Discord</li>
+            <li>🚫 Early screen-out detection</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="commands-section">
+    <div class="container">
+      <h2>Planned Commands</h2>
+      <div class="commands-grid">
+        <div class="command-card"><div class="command-name">/qualify start</div><p>Begin a pre-screen session</p><div class="command-example"><code>/qualify start survey:StakeRewards</code></div></div>
+        <div class="command-card"><div class="command-name">/qualify config</div><p>Admin: edit branching logic</p><div class="command-example"><code>/qualify config edit</code></div></div>
+        <div class="command-card"><div class="command-name">/qualify export</div><p>Export qualified user list</p><div class="command-example"><code>/qualify export survey:StakeRewards</code></div></div>
+        <div class="command-card"><div class="command-name">/qualify stats</div><p>Show pass rate & drop-off points</p><div class="command-example"><code>/qualify stats</code></div></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="how-it-works">
+    <div class="container">
+      <h2>Pipeline</h2>
+      <div class="steps">
+        <div class="step"><div class="step-number">1</div><div class="step-content"><h3>Select survey</h3><p>User launches pre-screen for a configured survey.</p></div></div>
+        <div class="step"><div class="step-number">2</div><div class="step-content"><h3>Adaptive questions</h3><p>Branching logic narrows eligibility fast.</p></div></div>
+        <div class="step"><div class="step-number">3</div><div class="step-content"><h3>Score result</h3><p>AI + rule set produce pass / fail + notes.</p></div></div>
+        <div class="step"><div class="step-number">4</div><div class="step-content"><h3>Route outcome</h3><p>Pass → survey link; fail → alternate suggestions.</p></div></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="tech-section">
+    <div class="container">
+      <h2>Technical Targets</h2>
+      <div class="tech-grid">
+        <div class="tech-item"><h4>Branching</h4><p>Decision graph + early exits</p></div>
+        <div class="tech-item"><h4>Scoring</h4><p>Hybrid rules + AI reasoning</p></div>
+        <div class="tech-item"><h4>Storage</h4><p>Minimal session retention</p></div>
+        <div class="tech-item"><h4>Exports</h4><p>CSV / JSON direct DM</p></div>
+        <div class="tech-item"><h4>Privacy</h4><p>User consent before logging</p></div>
+        <div class="tech-item"><h4>Status</h4><p>Design phase</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="cta-section">
+    <div class="container">
+      <h2>Want to shape this?</h2>
+      <p>Join Discord and give feedback during design & alpha.</p>
+      <a href="https://discord.gg/tiltcheck" class="cta-button">Join Discord →</a>
+    </div>
+  </section>
+
+  <footer>
+    <div class="container">
+      <p><a href="/">Home</a> • <a href="/#tools">All Tools</a> • <a href="https://discord.gg/tiltcheck">Discord</a> • <a href="https://github.com/jmenichole/tiltcheck-monorepo">GitHub</a></p>
+      <p class="built-by">Built by <a href="https://github.com/jmenichole">jmenichole</a> • TiltCheck © 2024–2025</p>
+    </div>
+  </footer>
+</body>
+</html>
