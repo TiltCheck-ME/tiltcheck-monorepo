@@ -38,3 +38,7 @@ It is built around five principles:
 This documentation describes the entire architecture, every module, how they interact, and how the AI agent should reason about the system.
 
 Welcome to TiltCheck.
+
+## Quick Links
+
+- Branch Protection & Required Checks: see `docs/tiltcheck/17-branch-protection.md` for why we require `components-a11y` and `landing-a11y`, how the GitHub Actions jobs map to ruleset contexts, and how to update/import the ruleset.
