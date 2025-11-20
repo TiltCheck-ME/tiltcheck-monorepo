@@ -41,6 +41,10 @@ PUPPETEER_EXECUTABLE_PATH="${PUPPETEER_EXECUTABLE_PATH:-}" \
 CHROME_PATH="${CHROME_PATH:-}" \
 npx pa11y "http://localhost:$PORT/index.html" --threshold 0 || true
 
+PUPPETEER_EXECUTABLE_PATH="${PUPPETEER_EXECUTABLE_PATH:-}" \
+CHROME_PATH="${CHROME_PATH:-}" \
+npx pa11y "http://localhost:$PORT/about.html" --threshold 0 || true
+
 # Lighthouse (a11y only)
 LH_URL="http://localhost:$PORT/index.html"
 for attempt in 1 2 3; do

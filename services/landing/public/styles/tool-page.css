@@ -603,7 +603,7 @@ footer {
 }
 
 footer p {
-  color: #666;
+  color: #999;
   margin-bottom: 10px;
 }
 
@@ -620,7 +620,7 @@ footer a:hover {
 .built-by {
   margin-top: 20px;
   font-size: 0.9rem;
-  color: #444;
+  color: #999;
 }
 
 /* Responsive */
