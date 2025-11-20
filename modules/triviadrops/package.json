@@ -1,0 +1,16 @@
+{
+  "name": "@tiltcheck/triviadrops",
+  "version": "0.1.0",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "type": "module",
+  "private": true,
+  "description": "On-demand trivia drops for Discord",
+  "scripts": {
+    "build": "tsc"
+  },
+  "dependencies": {
+    "@ai-sdk/openai": "^2.0.69",
+    "ai": "^5.0.97"
+  }
+}

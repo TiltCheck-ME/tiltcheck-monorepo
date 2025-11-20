@@ -66,21 +66,51 @@
     
     /* Hero Section */
     .hero {
-      padding: 80px 20px;
+      padding: 100px 20px 80px;
       text-align: center;
+      background: radial-gradient(1200px 500px at 50% -10%, rgba(0, 168, 255, 0.25), transparent 60%),
+                  radial-gradient(900px 400px at 10% 10%, rgba(0, 212, 170, 0.18), transparent 60%),
+                  linear-gradient(135deg, #0b0b12 0%, #0a0a0a 100%);
+      border-bottom: 2px solid #00d4aa22;
     }
     
     .hero h1 {
-      font-size: 2.5rem;
+      font-size: 3rem;
       margin-bottom: 20px;
       color: #fff;
     }
     
     .hero p {
-      font-size: 1.2rem;
+      font-size: 1.15rem;
       color: #aaa;
       max-width: 800px;
       margin: 0 auto 40px;
+    }
+
+    .cta-group {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 14px;
+      flex-wrap: wrap;
+    }
+
+    .cta-secondary {
+      display: inline-block;
+      background: transparent;
+      color: #00d4aa;
+      padding: 13px 28px;
+      border-radius: 8px;
+      text-decoration: none;
+      font-weight: 700;
+      font-size: 1.05rem;
+      transition: all 0.25s ease;
+      border: 2px solid #00d4aa;
+    }
+    .cta-secondary:hover { background: #00d4aa11; transform: translateY(-2px); }
+
+    .cta-disabled {
+      opacity: 0.6; cursor: not-allowed; border-style: dashed;
     }
     
     .hero-stats {
@@ -134,6 +164,7 @@
       border: 1px solid #222;
       border-radius: 12px;
       padding: 30px;
+      display: block;
       transition: all 0.3s ease;
     }
     
@@ -144,8 +175,7 @@
     }
     
     .tool-icon {
-      font-size: 3rem;
-      margin-bottom: 15px;
+      display: none;
     }
     
     .tool-card h3 {
@@ -267,18 +297,20 @@
   <header>
     <div class="container">
       <div class="logo">TiltCheck</div>
-      <p class="tagline">Built by a degen, for degens</p>
-      <a href="https://discord.gg/tiltcheck" class="cta-button">Join Discord →</a>
+      <p class="tagline">The Degen Transparency Layer</p>
+      <a href="https://discord.gg/s6NNfPHxMS" class="cta-button">Join Discord →</a>
     </div>
   </header>
 
   <section class="hero">
     <div class="container">
-      <h1>Smart tools for casino communities</h1>
-      <p>
-        Scam detection. Non-custodial tipping. Bonus tracking. Tilt prevention. Trivia drops.
-        <br>No BS. No custody. No judgment. Just tools that actually help.
-      </p>
+      <h1>The Degen Transparency Layer</h1>
+      <p>Tools, trust engines, predictions, and safety systems that make degen communities smarter, safer, and actually fun again.</p>
+      <div class="cta-group">
+        <a href="/dashboard" class="cta-button">Launch TiltCheck</a>
+        <a href="https://discord.gg/s6NNfPHxMS" class="cta-secondary">Join the Discord</a>
+        <a href="#" class="cta-secondary cta-disabled" aria-disabled="true" title="Coming soon">View the Trust Scores (coming soon)</a>
+      </div>
       
       <div class="hero-stats">
         <div class="stat">
@@ -297,73 +329,73 @@
     </div>
   </section>
 
-  <section class="tools-section">
+  <section class="tools-section" id="tools">
     <div class="container">
       <h2>The Tools</h2>
       <div class="tools-grid">
         
-        <div class="tool-card">
+        <a class="tool-card" href="/tools/justthetip.html">
           <div class="tool-icon">🪙</div>
           <h3>JustTheTip</h3>
           <p>Non-custodial Solana tipping, airdrops, and swaps. Flat fee. No balance custody. No legal exposure.</p>
           <span class="tool-status status-live">Live</span>
-        </div>
+        </a>
 
-        <div class="tool-card">
+        <a class="tool-card" href="/tools/justthetip.html#triviadrops">
           <div class="tool-icon">🎯</div>
           <h3>TriviaDrops</h3>
-          <p>On-demand trivia with AI-generated questions, streaks, achievements, and leaderboards. 6 categories.</p>
+          <p>On-demand AI trivia with streaks, achievements, and leaderboards. Feature of JustTheTip.</p>
           <span class="tool-status status-live">Live</span>
-        </div>
+        </a>
 
-        <div class="tool-card">
+        <a class="tool-card" href="/tools/suslink.html">
           <div class="tool-icon">🔗</div>
           <h3>SusLink</h3>
           <p>AI-powered link scanner that detects scam sites, redirects, and impersonation before you click.</p>
           <span class="tool-status status-live">Live</span>
-        </div>
+        </a>
 
-        <div class="tool-card">
+        <a class="tool-card" href="/tools/collectclock.html">
           <div class="tool-icon">⏰</div>
           <h3>CollectClock</h3>
           <p>Daily bonus tracker with nerf detection and bonus cycle prediction. Know when casinos change terms.</p>
           <span class="tool-status status-beta">Beta</span>
-        </div>
+        </a>
 
-        <div class="tool-card">
+        <a class="tool-card" href="/tools/freespinscan.html">
           <div class="tool-icon">🎁</div>
           <h3>FreeSpinScan</h3>
           <p>Promo submission system with auto-classification, mod approval queue, and prediction engine.</p>
           <span class="tool-status status-beta">Beta</span>
-        </div>
+        </a>
 
-        <div class="tool-card">
+        <a class="tool-card" href="/tools/poker.html">
           <div class="tool-icon">🃏</div>
           <h3>Poker</h3>
           <p>Texas Hold'em poker directly in Discord. Play with friends, track stats, climb leaderboards.</p>
           <span class="tool-status status-soon">Coming Soon</span>
-        </div>
+        </a>
 
-        <div class="tool-card">
+        <a class="tool-card" href="/tools/tiltcheck-core.html">
           <div class="tool-icon">🧠</div>
           <h3>TiltCheck Core</h3>
           <p>Behavior analysis, cooldown nudges, and accountability tools. Helps you slow down without policing.</p>
           <span class="tool-status status-beta">Beta</span>
-        </div>
+        </a>
 
-        <div class="tool-card">
+        <a class="tool-card" href="/tools/qualifyfirst.html">
           <div class="tool-icon">📋</div>
           <h3>QualifyFirst</h3>
           <p>AI survey router that pre-screens users to prevent screen-outs and wasted time.</p>
           <span class="tool-status status-soon">Coming Soon</span>
-        </div>
+        </a>
 
-        <div class="tool-card">
+        <a class="tool-card" href="/tools/daad.html">
           <div class="tool-icon">🎮</div>
           <h3>DA&D</h3>
           <p>Degens Against Decency. AI-powered Cards Against Humanity-style game for degen communities.</p>
           <span class="tool-status status-soon">Coming Soon</span>
-        </div>
+        </a>
 
       </div>
     </div>
@@ -371,51 +403,37 @@
 
   <section class="features-section">
     <div class="container">
-      <h2>Why TiltCheck?</h2>
+      <h2>Why TiltCheck Exists</h2>
       <div class="features-list">
-        
+        <div class="feature-item"><div><h3>Scam links</h3><p>Detect phishing, redirects, and impersonation before clicks happen.</p></div></div>
+        <div class="feature-item"><div><h3>Nerfed bonuses</h3><p>Track promos, nerfs, and terms changes across casinos.</p></div></div>
+        <div class="feature-item"><div><h3>Confusing payouts</h3><p>Clarity on fees, timelines, and real-world payout behavior.</p></div></div>
+        <div class="feature-item"><div><h3>Mod chaos</h3><p>Auto-reviewed promos, consistent rules, fewer disputes.</p></div></div>
+        <div class="feature-item"><div><h3>Tilt spirals</h3><p>Gentle cooldown nudges and accountability tools — no shame.</p></div></div>
+        <div class="feature-item"><div><h3>Shady casinos</h3><p>Signals for fairness, compliance, and user outcomes.</p></div></div>
+        <div class="feature-item"><div><h3>Zero transparency</h3><p>Explainable scoring and open modules.</p></div></div>
+        <div class="feature-item"><div><h3>No accountability tools</h3><p>Opt-in vaults, phone‑a‑friend withdraws, and trust signals.</p></div></div>
+      </div>
+      <p class="built-by" style="text-align:center; margin-top: 20px; color:#888">TiltCheck fixes all of it. Made for Degens. By Degens.™</p>
+    </div>
+  </section>
+
+  <section class="features-section" style="background:#111">
+    <div class="container">
+      <h2>Trust Engines</h2>
+      <div class="features-list">
         <div class="feature-item">
           <div>
-            <h3>🚫 Non-Custodial</h3>
-            <p>We never hold your crypto. Ever. Zero custody = zero legal exposure for you and us.</p>
+            <h3>🏛️ Casino Trust Engine</h3>
+            <p>Tracks fairness, payouts, nerfs, promos, and compliance across the ecosystem so you know who’s legit.</p>
           </div>
         </div>
-
         <div class="feature-item">
           <div>
-            <h3>🤖 AI-Powered</h3>
-            <p>Smart scam detection, trivia generation, and predictive intelligence without the corporate BS.</p>
+            <h3>🧠 Degen Trust Engine</h3>
+            <p>Non-judgmental reputation around behavior, good faith, accountability, and scam detection. Transparency without punishment.</p>
           </div>
         </div>
-
-        <div class="feature-item">
-          <div>
-            <h3>💰 Fair Pricing</h3>
-            <p>Flat $0.07 tip fee. No hidden charges. No percentage cuts. No surprises.</p>
-          </div>
-        </div>
-
-        <div class="feature-item">
-          <div>
-            <h3>🔧 Modular</h3>
-            <p>Every tool stands alone. Use what you need. Ignore the rest. No bloat.</p>
-          </div>
-        </div>
-
-        <div class="feature-item">
-          <div>
-            <h3>🎯 Discord-First</h3>
-            <p>Where degens actually hang out. Slash commands, embeds, and instant feedback.</p>
-          </div>
-        </div>
-
-        <div class="feature-item">
-          <div>
-            <h3>🆓 Free Tier Infra</h3>
-            <p>Built scrappy on Cloudflare, Supabase, and free APIs. Keeps costs low so tools stay free.</p>
-          </div>
-        </div>
-
       </div>
     </div>
   </section>
@@ -423,9 +441,22 @@
   <footer>
     <div class="container">
       <p>
-        <a href="https://discord.gg/tiltcheck">Discord</a> •
+        <a href="https://discord.gg/s6NNfPHxMS">Discord</a> •
         <a href="https://github.com/jmenichole/tiltcheck-monorepo">GitHub</a> •
         <a href="/dashboard">Trust Dashboard</a>
+      </p>
+      <p style="margin-top:8px;">
+        <a href="https://x.com/Tilt_check" target="_blank" rel="noopener">X: @Tilt_check</a> •
+        <a href="https://x.com/jmenichole0" target="_blank" rel="noopener">X: @jmenichole0</a> •
+        <a href="https://www.linkedin.com/in/jmenichole0/" target="_blank" rel="noopener">LinkedIn</a>
+      </p>
+      <p class="built-by">
+        <a href="https://jmenichole.github.io/Portfolio/" target="_blank" rel="noopener">made for degens by degens</a>
+      </p>
+      <p class="built-by" style="margin-top:6px;">
+        Support the project: 
+        <a href="https://ko-fi.com/jmenichole0" target="_blank" rel="noopener">Ko‑fi</a> •
+        <a href="https://github.com/sponsors/jmenichole" target="_blank" rel="noopener">GitHub Sponsors</a>
       </p>
       <p class="built-by">
         Built by <a href="https://github.com/jmenichole">jmenichole</a> • TiltCheck Ecosystem © 2024–2025
