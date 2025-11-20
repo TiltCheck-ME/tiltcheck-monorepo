@@ -62,8 +62,10 @@ export type ModuleId =
   | 'collectclock'
   | 'freespinscan'
   | 'justthetip'
+  | 'pricing-oracle'
   | 'trust-engine-casino'
   | 'trust-engine-degen'
+  | 'trust-rollup'
   | 'poker-module'
   | 'discord-bot';
 

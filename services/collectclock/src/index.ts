@@ -1,6 +1,4 @@
-// Relaxed event-router import to avoid Docker build failures
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const eventRouter: any = (require('@tiltcheck/event-router') as any).eventRouter || (globalThis as any).eventRouter || {};
+import { eventRouter } from '@tiltcheck/event-router';
 import fs from 'fs';
 import path from 'path';
 import type {
