@@ -16,7 +16,7 @@ RUN apk add --no-cache \
 WORKDIR /app
 
 # Copy package manager configs first
-COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml tsconfig.json vitest.config.ts ./
 
 
 # Copy all workspace package.json files (needed for dependency resolution)
