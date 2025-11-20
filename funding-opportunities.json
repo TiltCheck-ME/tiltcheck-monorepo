@@ -1,0 +1,600 @@
+{
+  "last_updated": "2024-11-20",
+  "version": "1.0",
+  "opportunities": [
+    {
+      "id": 1,
+      "name": "Solana Foundation Grants",
+      "type": "grant",
+      "category": "blockchain",
+      "amount_min": 5000,
+      "amount_max": 500000,
+      "currency": "USD",
+      "deadline": "rolling",
+      "link": "https://solana.org/grants",
+      "eligibility": [
+        "Building on Solana blockchain",
+        "Open source preferred",
+        "Clear roadmap and milestones"
+      ],
+      "tiltcheck_fit": {
+        "score": 9,
+        "reasons": [
+          "JustTheTip module uses Solana/Jupiter",
+          "Non-custodial wallet integration",
+          "Community-focused tooling"
+        ]
+      },
+      "priority": "high",
+      "effort_level": "hard",
+      "application_time_days": 2,
+      "response_time_months": 2
+    },
+    {
+      "id": 2,
+      "name": "Cloudflare Workers Launchpad",
+      "type": "credits",
+      "category": "infrastructure",
+      "amount_min": 25000,
+      "amount_max": 250000,
+      "currency": "USD",
+      "deadline": "rolling",
+      "link": "https://www.cloudflare.com/lp/workers-launchpad/",
+      "eligibility": [
+        "Building on Cloudflare Workers",
+        "Early-stage startups",
+        "Serverless-first architecture"
+      ],
+      "tiltcheck_fit": {
+        "score": 10,
+        "reasons": [
+          "Serverless-first design",
+          "Worker-based APIs planned",
+          "Cost-efficient scaling"
+        ]
+      },
+      "priority": "high",
+      "effort_level": "medium",
+      "application_time_days": 0.5,
+      "response_time_months": 1
+    },
+    {
+      "id": 3,
+      "name": "GitHub Accelerator",
+      "type": "accelerator",
+      "category": "female_founder",
+      "amount_min": 20000,
+      "amount_max": 20000,
+      "currency": "USD",
+      "deadline": "spring_fall_cohorts",
+      "link": "https://accelerator.github.com",
+      "eligibility": [
+        "Open source maintainers",
+        "Underrepresented founders",
+        "Building developer tools"
+      ],
+      "tiltcheck_fit": {
+        "score": 10,
+        "reasons": [
+          "Female founder (jmenichole)",
+          "Open source potential",
+          "Developer tools ecosystem"
+        ]
+      },
+      "priority": "high",
+      "effort_level": "hard",
+      "application_time_days": 2,
+      "response_time_months": 4
+    },
+    {
+      "id": 4,
+      "name": "Female Founders Fund",
+      "type": "investment",
+      "category": "female_founder",
+      "amount_min": 50000,
+      "amount_max": 1000000,
+      "currency": "USD",
+      "deadline": "rolling",
+      "link": "https://www.femalefoundersfund.com/",
+      "eligibility": [
+        "Female or non-binary founder",
+        "Tech startups",
+        "Early stage acceptable"
+      ],
+      "tiltcheck_fit": {
+        "score": 9,
+        "reasons": [
+          "Female founder (jmenichole)",
+          "Tech/crypto startup",
+          "Clear product vision"
+        ]
+      },
+      "priority": "high",
+      "effort_level": "hard",
+      "application_time_days": 2,
+      "response_time_months": 3
+    },
+    {
+      "id": 5,
+      "name": "Magic Developer Program",
+      "type": "credits",
+      "category": "infrastructure",
+      "amount_min": 1000,
+      "amount_max": 10000,
+      "currency": "USD",
+      "deadline": "rolling",
+      "link": "https://magic.link/",
+      "eligibility": [
+        "Using Magic for auth",
+        "Early-stage products"
+      ],
+      "tiltcheck_fit": {
+        "score": 9,
+        "reasons": [
+          "Planned Magic integration",
+          "Wallet auth needs",
+          "Non-custodial approach"
+        ]
+      },
+      "priority": "high",
+      "effort_level": "easy",
+      "application_time_days": 0.25,
+      "response_time_months": 0.5
+    },
+    {
+      "id": 6,
+      "name": "Supabase Launch Week Credits",
+      "type": "credits",
+      "category": "infrastructure",
+      "amount_min": 2000,
+      "amount_max": 10000,
+      "currency": "USD",
+      "deadline": "quarterly",
+      "link": "https://supabase.com/",
+      "eligibility": [
+        "Building with Supabase",
+        "Sharing project publicly",
+        "Active community participation"
+      ],
+      "tiltcheck_fit": {
+        "score": 8,
+        "reasons": [
+          "Using Supabase for free tier",
+          "Database needs",
+          "Auth integration planned"
+        ]
+      },
+      "priority": "medium",
+      "effort_level": "easy",
+      "application_time_days": 0.25,
+      "response_time_months": 0
+    },
+    {
+      "id": 7,
+      "name": "Coinbase Developer Grants",
+      "type": "grant",
+      "category": "blockchain",
+      "amount_min": 10000,
+      "amount_max": 100000,
+      "currency": "USD",
+      "deadline": "quarterly",
+      "link": "https://www.coinbase.com/ventures",
+      "eligibility": [
+        "Building consumer crypto products",
+        "Focus on accessibility and safety",
+        "Multi-chain support a plus"
+      ],
+      "tiltcheck_fit": {
+        "score": 7,
+        "reasons": [
+          "Consumer-focused tools",
+          "Safety and transparency focus"
+        ],
+        "concerns": [
+          "May need to expand beyond Solana"
+        ]
+      },
+      "priority": "medium",
+      "effort_level": "medium",
+      "application_time_days": 1,
+      "response_time_months": 2
+    },
+    {
+      "id": 8,
+      "name": "Gitcoin Grants",
+      "type": "quadratic_funding",
+      "category": "blockchain",
+      "amount_min": 1000,
+      "amount_max": 50000,
+      "currency": "USD",
+      "deadline": "quarterly_rounds",
+      "link": "https://gitcoin.co/grants",
+      "eligibility": [
+        "Public goods projects",
+        "Open source",
+        "Community voting"
+      ],
+      "tiltcheck_fit": {
+        "score": 9,
+        "reasons": [
+          "Trust/safety tools",
+          "Open source alignment",
+          "Community-focused mission"
+        ]
+      },
+      "priority": "medium",
+      "effort_level": "medium",
+      "application_time_days": 0.5,
+      "response_time_months": 2
+    },
+    {
+      "id": 9,
+      "name": "OpenAI Startup Fund",
+      "type": "investment",
+      "category": "ai",
+      "amount_min": 100000,
+      "amount_max": 1000000,
+      "currency": "USD",
+      "deadline": "rolling",
+      "link": "https://openai.com/fund",
+      "eligibility": [
+        "AI-first products",
+        "Early stage startups",
+        "Using OpenAI APIs"
+      ],
+      "tiltcheck_fit": {
+        "score": 8,
+        "reasons": [
+          "AI-powered fairness detection",
+          "Tilt detection systems",
+          "DA&D game module"
+        ]
+      },
+      "priority": "medium",
+      "effort_level": "hard",
+      "application_time_days": 2,
+      "response_time_months": 3
+    },
+    {
+      "id": 10,
+      "name": "Anthropic Credits Program",
+      "type": "credits",
+      "category": "ai",
+      "amount_min": 10000,
+      "amount_max": 100000,
+      "currency": "USD",
+      "deadline": "rolling",
+      "link": "https://www.anthropic.com/",
+      "eligibility": [
+        "Startups using Claude",
+        "Research or beneficial AI applications",
+        "Non-commercial or early-revenue projects"
+      ],
+      "tiltcheck_fit": {
+        "score": 10,
+        "reasons": [
+          "Perfect for agent-based architecture",
+          "Safety-focused mission",
+          "Context-heavy analysis tasks"
+        ]
+      },
+      "priority": "high",
+      "effort_level": "medium",
+      "application_time_days": 0.5,
+      "response_time_months": 1
+    },
+    {
+      "id": 11,
+      "name": "Railway Startup Credits",
+      "type": "credits",
+      "category": "infrastructure",
+      "amount_min": 100,
+      "amount_max": 500,
+      "currency": "USD",
+      "per": "month",
+      "deadline": "rolling",
+      "link": "https://railway.app/",
+      "eligibility": [
+        "Early-stage projects",
+        "Active deployment"
+      ],
+      "tiltcheck_fit": {
+        "score": 7,
+        "reasons": [
+          "Easy deployment option",
+          "Database hosting",
+          "Simple setup"
+        ]
+      },
+      "priority": "medium",
+      "effort_level": "easy",
+      "application_time_days": 0.1,
+      "response_time_months": 0.1
+    },
+    {
+      "id": 12,
+      "name": "Y Combinator",
+      "type": "accelerator",
+      "category": "startup",
+      "amount_min": 500000,
+      "amount_max": 500000,
+      "currency": "USD",
+      "equity": "7%",
+      "deadline": "march_august",
+      "link": "https://www.ycombinator.com/apply",
+      "eligibility": [
+        "Early-stage startups",
+        "Any geography",
+        "Team or solo founder"
+      ],
+      "tiltcheck_fit": {
+        "score": 6,
+        "reasons": [
+          "Solo founder acceptable",
+          "Consumer product"
+        ],
+        "concerns": [
+          "Highly competitive"
+        ]
+      },
+      "priority": "medium",
+      "effort_level": "hard",
+      "application_time_days": 3,
+      "response_time_months": 6
+    },
+    {
+      "id": 13,
+      "name": "AWS Activate",
+      "type": "credits",
+      "category": "infrastructure",
+      "amount_min": 10000,
+      "amount_max": 100000,
+      "currency": "USD",
+      "deadline": "rolling",
+      "link": "https://aws.amazon.com/activate/",
+      "eligibility": [
+        "Early-stage startups",
+        "Associated with accelerators/VCs",
+        "Female founders via specific programs"
+      ],
+      "tiltcheck_fit": {
+        "score": 6,
+        "reasons": [
+          "Female founder pathway"
+        ],
+        "concerns": [
+          "TiltCheck prefers Cloudflare/Supabase"
+        ]
+      },
+      "priority": "low",
+      "effort_level": "medium",
+      "application_time_days": 1,
+      "response_time_months": 1
+    },
+    {
+      "id": 14,
+      "name": "Solana Hackathons",
+      "type": "hackathon",
+      "category": "blockchain",
+      "amount_min": 5000,
+      "amount_max": 50000,
+      "currency": "USD",
+      "deadline": "quarterly",
+      "link": "https://solana.com/hackathons",
+      "eligibility": [
+        "Building on Solana",
+        "Original projects or significant updates",
+        "Team or solo"
+      ],
+      "tiltcheck_fit": {
+        "score": 9,
+        "reasons": [
+          "JustTheTip perfect fit",
+          "Non-custodial tools angle",
+          "Community impact category"
+        ]
+      },
+      "priority": "high",
+      "effort_level": "very_hard",
+      "application_time_days": 3,
+      "response_time_months": 0
+    },
+    {
+      "id": 15,
+      "name": "Discord Community Challenge",
+      "type": "competition",
+      "category": "platform",
+      "amount_min": 25000,
+      "amount_max": 100000,
+      "currency": "USD",
+      "deadline": "occasional",
+      "link": "https://discord.com/category/community",
+      "eligibility": [
+        "Discord bots/apps",
+        "Community-focused",
+        "Moderation or safety tools prioritized"
+      ],
+      "tiltcheck_fit": {
+        "score": 10,
+        "reasons": [
+          "Discord-first design",
+          "Safety and moderation focus",
+          "Community tools"
+        ]
+      },
+      "priority": "high",
+      "effort_level": "very_hard",
+      "application_time_days": 5,
+      "response_time_months": 1
+    },
+    {
+      "id": 16,
+      "name": "ETHGlobal Hackathons",
+      "type": "hackathon",
+      "category": "blockchain",
+      "amount_min": 10000,
+      "amount_max": 100000,
+      "currency": "USD",
+      "deadline": "monthly",
+      "link": "https://ethglobal.com/",
+      "eligibility": [
+        "Building Web3 tools",
+        "Multi-chain encouraged",
+        "Consumer focus welcome"
+      ],
+      "tiltcheck_fit": {
+        "score": 7,
+        "reasons": [
+          "Consumer safety tools",
+          "DeFi infrastructure"
+        ],
+        "concerns": [
+          "Ethereum-focused but multi-chain accepted"
+        ]
+      },
+      "priority": "medium",
+      "effort_level": "very_hard",
+      "application_time_days": 3,
+      "response_time_months": 0
+    },
+    {
+      "id": 17,
+      "name": "Backbone Angels",
+      "type": "investment",
+      "category": "female_founder",
+      "amount_min": 25000,
+      "amount_max": 100000,
+      "currency": "USD",
+      "deadline": "rolling",
+      "link": "https://www.backboneangels.com/",
+      "eligibility": [
+        "Women founders",
+        "Pre-seed to Series A",
+        "Tech companies"
+      ],
+      "tiltcheck_fit": {
+        "score": 9,
+        "reasons": [
+          "Female founder",
+          "Tech product",
+          "Scalable model"
+        ]
+      },
+      "priority": "medium",
+      "effort_level": "hard",
+      "application_time_days": 2,
+      "response_time_months": 2
+    },
+    {
+      "id": 18,
+      "name": "SheEO Ventures",
+      "type": "loan",
+      "category": "female_founder",
+      "amount_min": 100000,
+      "amount_max": 100000,
+      "currency": "USD",
+      "interest": "0%",
+      "deadline": "annual",
+      "link": "https://sheeo.world/",
+      "eligibility": [
+        "Women-led ventures",
+        "Social impact focus",
+        "Revenue stage not required"
+      ],
+      "tiltcheck_fit": {
+        "score": 9,
+        "reasons": [
+          "Social impact (gambling safety)",
+          "Female founder",
+          "Community-focused"
+        ]
+      },
+      "priority": "medium",
+      "effort_level": "hard",
+      "application_time_days": 2,
+      "response_time_months": 4
+    },
+    {
+      "id": 19,
+      "name": "Developer DAO",
+      "type": "bounty",
+      "category": "blockchain",
+      "amount_min": 500,
+      "amount_max": 10000,
+      "currency": "USD",
+      "deadline": "ongoing",
+      "link": "https://www.developerdao.com/",
+      "eligibility": [
+        "Web3 developers",
+        "Open source contributions",
+        "DAO membership helpful"
+      ],
+      "tiltcheck_fit": {
+        "score": 8,
+        "reasons": [
+          "Developer tools",
+          "Web3 ecosystem",
+          "Community focus"
+        ]
+      },
+      "priority": "medium",
+      "effort_level": "medium",
+      "application_time_days": 0.5,
+      "response_time_months": 0.5
+    },
+    {
+      "id": 20,
+      "name": "Lablab.ai AI Hackathons",
+      "type": "hackathon",
+      "category": "ai",
+      "amount_min": 5000,
+      "amount_max": 20000,
+      "currency": "USD",
+      "deadline": "weekly",
+      "link": "https://lablab.ai/",
+      "eligibility": [
+        "AI-powered projects",
+        "Using sponsor APIs"
+      ],
+      "tiltcheck_fit": {
+        "score": 8,
+        "reasons": [
+          "AI agent architecture",
+          "Tilt detection AI",
+          "DA&D game module"
+        ]
+      },
+      "priority": "medium",
+      "effort_level": "very_hard",
+      "application_time_days": 2,
+      "response_time_months": 0
+    }
+  ],
+  "categories": {
+    "blockchain": "Web3, crypto, and blockchain-specific opportunities",
+    "ai": "AI and machine learning focused programs",
+    "infrastructure": "Cloud credits and infrastructure support",
+    "female_founder": "Programs specifically for female/underrepresented founders",
+    "platform": "Platform-specific opportunities (Discord, etc.)",
+    "startup": "General startup accelerators and programs"
+  },
+  "priority_levels": {
+    "high": "Apply within 1-2 weeks",
+    "medium": "Apply within 1-2 months",
+    "low": "Consider if other priorities complete"
+  },
+  "effort_levels": {
+    "easy": "Less than 4 hours",
+    "medium": "4 hours to 1 day",
+    "hard": "1-2 days",
+    "very_hard": "2+ days or ongoing project"
+  },
+  "metadata": {
+    "total_opportunities": 20,
+    "high_priority_count": 8,
+    "immediate_action_count": 4,
+    "total_potential_value_usd": 3500000,
+    "compiled_by": "TiltCheck Funding Intelligence Agent",
+    "next_review_date": "2024-12-20"
+  }
+}
