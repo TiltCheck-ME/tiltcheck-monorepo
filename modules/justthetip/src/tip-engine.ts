@@ -14,7 +14,7 @@ import {
 import { eventRouter } from '@tiltcheck/event-router';
 import { pricingOracle } from '@tiltcheck/pricing-oracle';
 import { getWallet } from './wallet-manager.js';
-import crypto from 'crypto';
+import { v4 as uuidv4 } from 'uuid';
 
 const SOLANA_RPC_URL = process.env.SOLANA_RPC_URL || 'https://api.mainnet-beta.solana.com';
 const FLAT_FEE_SOL = 0.0007; // ~$0.07 at $100/SOL
@@ -53,7 +53,7 @@ const pendingTips = new Map<string, PendingTip[]>(); // recipientId → tips
  * Execute tip (non-custodial, requires sender signature)
  */
 export async function executeTip(request: TipRequest, senderKeypair: Keypair): Promise<TipResult> {
-  const tipId = crypto.randomUUID();
+  const tipId = uuidv4();
   
   try {
     // Get sender wallet

@@ -14,7 +14,7 @@ import {
 import { eventRouter } from '@tiltcheck/event-router';
 import { pricingOracle } from '@tiltcheck/pricing-oracle';
 import { getWallet } from './wallet-manager.js';
-import crypto from 'crypto';
+import { v4 as uuidv4 } from 'uuid';
 
 const SOLANA_RPC_URL = process.env.SOLANA_RPC_URL || 'https://api.mainnet-beta.solana.com';
 const FLAT_FEE_SOL = 0.0007; // Single fee for entire airdrop
@@ -43,7 +43,7 @@ export interface AirdropResult {
  * Execute airdrop to multiple recipients
  */
 export async function executeAirdrop(request: AirdropRequest, senderKeypair: Keypair): Promise<AirdropResult> {
-  const airdropId = crypto.randomUUID();
+  const airdropId = uuidv4();
   
   try {
     // Get sender wallet

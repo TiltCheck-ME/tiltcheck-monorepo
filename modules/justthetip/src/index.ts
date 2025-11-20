@@ -2,7 +2,8 @@
  * JustTheTip - Non-Custodial Solana Tipping Module
  * 
  * Features:
- * - Magic.link wallet registration
+ * - External wallet registration (Phantom, Solflare, etc)
+ * - Solana Pay QR code signing
  * - Direct wallet-to-wallet transfers
  * - Multi-send airdrops
  * - Flat $0.07 fee (non-custodial)
@@ -14,7 +15,6 @@ export * from './tip-engine.js';
 export * from './airdrop-engine.js';
 
 export {
-  registerMagicWallet,
   registerExternalWallet,
   getWallet,
   getWalletBalance,
@@ -30,5 +30,10 @@ export {
 export {
   executeAirdrop,
 } from './airdrop-engine.js';
+
+export {
+  createTransferRequest,
+  createTransactionRequest,
+} from './solana-pay.js';
 
 console.log('[JustTheTip] Module loaded - Non-custodial tipping ready');
