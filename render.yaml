@@ -7,7 +7,7 @@ services:
   - type: web
     name: tiltcheck-unified
     runtime: docker
-    dockerfilePath: ./Dockerfile.render
+    dockerfilePath: Dockerfile.render
     region: oregon  # Change to preferred region (oregon, ohio, frankfurt, singapore)
     plan: standard  # starter (free 750h, sleeps) | standard ($25/mo, always-on) | pro
     branch: main
