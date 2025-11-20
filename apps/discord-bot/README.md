@@ -14,6 +14,9 @@ Discord bot for the TiltCheck ecosystem.
 - `/ping` - Check bot status
 - `/help` - Show available commands
 - `/scan <url>` - Scan a URL for suspicious patterns
+- `/trust casino <name>` - Show casino reputation breakdown
+- `/trust user [@user]` - Show user trust level & behavior history
+- `/trust explain` - Learn how trust scoring works
 
 ## Setup
 

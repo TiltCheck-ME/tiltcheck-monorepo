@@ -281,4 +281,58 @@ Then: restrict promo posting privileges
 
 ---
 
+# 8.3 Implementation Status
+
+## Current Implementation (v0.1.0)
+
+The Trust Engines service is now live with the following features:
+
+### Casino Trust Engine ✅
+- **Weighted 7-category scoring** (0-100 scale)
+  - Fairness (30%), Payout Speed (20%), Bonus Terms (15%), User Reports (15%)
+  - Freespin Value (10%), Compliance (5%), Support Quality (5%)
+- **Event handlers**:
+  - `link.flagged` → Reduces fairness/compliance based on severity
+  - `bonus.nerf.detected` → Reduces bonusTerms proportional to drop %
+  - `casino.rollup.completed` → Updates fairness/payout from Trust Rollup
+  - `domain.rollup.completed` → Updates compliance/support from external data
+- **APIs**: `getCasinoScore()`, `getCasinoBreakdown()`, `explainCasinoScore()`
+- **Persistence**: JSON storage at `data/casino-trust.json`
+
+### Degen Trust Engine ✅
+- **5-level classification** (very-high → high-risk)
+  - Base score starts at 70
+  - Tilt indicators: -5 each (max -25)
+  - Scam flags: -20 each (max -40)
+  - Accountability bonus: +10 each (max +15)
+  - Community reports: variable impact
+- **Event handlers**:
+  - `tip.completed` → Tracks healthy social behavior
+  - `tilt.detected` → Records tilt episodes
+  - `cooldown.violated` → Penalizes impulsive behavior
+  - `scam.reported` → Hard penalty for malicious activity
+  - `accountability.success` → Rewards recovery/transparency
+- **Recovery mechanism**: Tilt indicators decay 0.5 points per hour
+- **APIs**: `getDegenScore()`, `getDegenBreakdown()`, `explainDegenScore()`
+- **Persistence**: JSON storage at `data/degen-trust.json`
+
+### Discord Integration ✅
+Users can interact with trust scores via `/trust` commands:
+- `/trust casino <name>` - Weighted breakdown with color-coded embeds
+- `/trust user [@user]` - Trust level with emoji indicators
+- `/trust explain` - Educational content on scoring methodology
+
+### Future Enhancements 🚧
+- RTP/Fairness live monitoring (requires screen-sharing integration)
+- Payout speed tracking (requires payment processor integration)
+- Advanced scam detection patterns
+- Cross-server reputation portability
+- Web dashboard for casino comparisons
+- Trust score appeals process
+- Community-driven weight adjustments
+
+See `services/trust-engines/README.md` for usage documentation.
+
+---
+
 # End of `8-trust-engines.md`
