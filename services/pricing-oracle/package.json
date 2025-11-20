@@ -1,0 +1,14 @@
+{
+  "name": "@tiltcheck/pricing-oracle",
+  "version": "0.1.0",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "test": "vitest run services/pricing-oracle"
+  },
+  "dependencies": {
+    "@tiltcheck/types": "workspace:*",
+    "@tiltcheck/event-router": "workspace:*"
+  }
+}

@@ -1,0 +1,23 @@
+# .dockerignore
+node_modules/
+dist/
+.git/
+.github/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.DS_Store
+.env
+.env.local
+.env.*.local
+coverage/
+*.tsbuildinfo
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+data/
+tmp/

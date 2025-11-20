@@ -1,0 +1,38 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'pnpm'
+      - name: Install pnpm
+        run: npm install -g pnpm@8
+      - name: Install deps
+        run: pnpm install --frozen-lockfile || pnpm install
+      - name: Build all
+        run: pnpm build
+      - name: Lint
+        run: pnpm lint
+      - name: Type check (tsc --noEmit)
+        run: pnpm exec tsc -p tsconfig.json --noEmit
+      - name: Run tests (Vitest)
+        run: pnpm test
+      - name: Generate coverage report
+        run: pnpm coverage
+      - name: Upload coverage artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage/

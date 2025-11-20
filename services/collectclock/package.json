@@ -1,0 +1,20 @@
+{
+  "name": "@tiltcheck/collectclock-deprecated",
+  "version": "0.1.0",
+  "private": true,
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "dev": "tsc -p tsconfig.json --watch",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "@tiltcheck/types": "workspace:*",
+    "@tiltcheck/event-router": "workspace:*",
+    "@tiltcheck/config": "workspace:*"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.0"
+  }
+}
