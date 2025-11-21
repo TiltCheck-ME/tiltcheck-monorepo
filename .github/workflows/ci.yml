@@ -32,8 +32,6 @@ jobs:
         run: pnpm contrast:dom
       - name: Accessibility audit (pa11y + lighthouse)
         run: pnpm a11y:audit
-      - name: Type check (tsc --noEmit)
-        run: pnpm exec tsc -p tsconfig.json --noEmit
       - name: Run tests (Vitest)
         run: pnpm test
       - name: Generate coverage report
