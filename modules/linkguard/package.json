@@ -6,5 +6,10 @@
   "private": true,
   "scripts": {
     "test": "vitest --run"
+  },
+  "dependencies": {
+    "@tiltcheck/config": "workspace:*",
+    "@tiltcheck/event-router": "workspace:*",
+    "@tiltcheck/types": "workspace:*"
   }
 }
