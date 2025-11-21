@@ -54,7 +54,11 @@ export type EventType =
   | 'accountability.success'
   | 'survey.matched'
   | 'game.started'
-  | 'game.completed';
+  | 'game.completed'
+  // LockVault events (time-locked disposable vault wallets)
+  | 'vault.locked'
+  | 'vault.extended'
+  | 'vault.unlocked';
 
 export interface TiltCheckEvent<T = any> {
   id: string;
@@ -78,7 +82,8 @@ export type ModuleId =
   | 'trust-engine-degen'
   | 'trust-rollup'
   | 'poker-module'
-  | 'discord-bot';
+  | 'discord-bot'
+  | 'lockvault';
 
 // ============================================
 // User & Identity Types
