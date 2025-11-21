@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>TiltCheck Casino Trust Live</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <link rel="stylesheet" href="styles/base.css" />
+  <style>
+    body { font-family: system-ui, sans-serif; margin: 1.25rem; background:#0d1117; color:#e6edf3; }
+    h1 { font-size: 1.4rem; margin: 0 0 1rem; }
+    table { width:100%; border-collapse: collapse; margin-top: .75rem; }
+    th, td { padding:.5rem .6rem; border-bottom:1px solid #30363d; text-align:left; font-size:.85rem; }
+    th { background:#161b22; position:sticky; top:0; }
+    tr.risk-critical { background: linear-gradient(90deg,#3d0a0a,#0d1117); }
+    tr.risk-high { background: linear-gradient(90deg,#40220a,#0d1117); }
+    tr.risk-elevated { background: linear-gradient(90deg,#38300a,#0d1117); }
+    tr.risk-watch { background: linear-gradient(90deg,#232b45,#0d1117); }
+    .badge { display:inline-block; padding:2px 6px; border-radius:4px; font-size:.7rem; font-weight:600; letter-spacing:.5px; }
+    .b-critical { background:#d63447; color:#fff; }
+    .b-high { background:#ff8c37; color:#fff; }
+    .b-elevated { background:#d6b534; color:#000; }
+    .b-watch { background:#5972a8; color:#fff; }
+    .b-low { background:#3b8f52; color:#fff; }
+    .delta-pos { color:#3ddc97; }
+    .delta-neg { color:#ff5f5f; }
+    .toolbar { display:flex; gap:.75rem; flex-wrap:wrap; align-items:center; }
+    .toolbar input { background:#161b22; border:1px solid #30363d; color:#e6edf3; padding:.45rem .6rem; border-radius:4px; }
+    .cta-btn { background:#ff8c37; color:#000; border:none; padding:.4rem .6rem; border-radius:4px; cursor:pointer; font-size:.7rem; font-weight:600; }
+    .cta-btn:hover { filter:brightness(1.1); }
+    .sr-only { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); border:0; }
+    #status { font-size:.7rem; opacity:.6; }
+  </style>
+</head>
+<body>
+  <h1>Casino Trust Live Dashboard</h1>
+  <p id="status" aria-live="polite">Connecting…</p>
+  <div class="toolbar" role="region" aria-label="Filters">
+    <label>Min Score <input id="filterScore" type="number" min="0" max="100" value="0" /></label>
+    <label>Risk
+      <select id="filterRisk">
+        <option value="">Any</option>
+        <option value="critical">Critical</option>
+        <option value="high">High</option>
+        <option value="elevated">Elevated</option>
+        <option value="watch">Watch</option>
+        <option value="low">Low</option>
+      </select>
+    </label>
+    <button id="refreshBtn" class="cta-btn" type="button">Manual Refresh</button>
+  </div>
+  <table aria-describedby="status" aria-label="Casino trust scoreboard">
+    <thead>
+      <tr>
+        <th scope="col">Casino</th>
+        <th scope="col">Score</th>
+        <th scope="col">Δ</th>
+        <th scope="col">Risk</th>
+        <th scope="col">Volatility</th>
+        <th scope="col">Nerfs 24h</th>
+        <th scope="col">Reasons</th>
+        <th scope="col">Action</th>
+      </tr>
+    </thead>
+    <tbody id="trustBody"></tbody>
+  </table>
+  <script src="trust-dashboard.js" type="module"></script>
+</body>
+</html>
