@@ -111,7 +111,7 @@ class VaultManager {
     this.byUser.get(record.userId)!.add(record.id);
     this.schedulePersist();
 
-    void eventRouter.publish('vault.locked' as any, 'lockvault' as any, { id: record.id, userId: record.userId, unlockAt: record.unlockAt, amountSOL: record.lockedAmountSOL });
+    void eventRouter.publish('vault.locked', 'lockvault', { id: record.id, userId: record.userId, unlockAt: record.unlockAt, amountSOL: record.lockedAmountSOL });
     return record;
   }
 
@@ -125,7 +125,7 @@ class VaultManager {
     vault.status = 'unlocked';
     vault.history.push({ ts: now(), action: 'unlocked' });
     this.schedulePersist();
-    void eventRouter.publish('vault.unlocked' as any, 'lockvault' as any, { id: vault.id, userId: vault.userId });
+    void eventRouter.publish('vault.unlocked', 'lockvault', { id: vault.id, userId: vault.userId });
     return vault;
   }
 
@@ -139,7 +139,7 @@ class VaultManager {
     vault.extendedCount += 1;
     vault.history.push({ ts: now(), action: 'extended', note: `+${additionalRaw}` });
     this.schedulePersist();
-    void eventRouter.publish('vault.extended' as any, 'lockvault' as any, { id: vault.id, userId: vault.userId, unlockAt: vault.unlockAt });
+    void eventRouter.publish('vault.extended', 'lockvault', { id: vault.id, userId: vault.userId, unlockAt: vault.unlockAt });
     return vault;
   }
 
