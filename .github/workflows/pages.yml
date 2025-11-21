@@ -1,0 +1,32 @@
+name: Deploy GitHub Pages
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Prepare out directory
+        run: |
+          mkdir out
+          rsync -av --delete services/landing/public/ out/
+          mkdir -p out/docs-md
+          rsync -av docs/tiltcheck/ out/docs-md/
+          # Add CNAME if present in repo root or public
+          if [ -f services/landing/public/CNAME ]; then cp services/landing/public/CNAME out/CNAME; fi
+          echo "Build artifacts prepared"
+
+      - name: Publish to gh-pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: out
+          force_orphan: true
