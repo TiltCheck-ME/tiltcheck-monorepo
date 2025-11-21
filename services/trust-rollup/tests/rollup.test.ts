@@ -1,3 +1,26 @@
+import { describe, it, expect } from 'vitest';
+import { eventRouter } from '@tiltcheck/event-router';
+import { getCasinoSnapshots } from '../src/index.js';
+
+describe('Casino Trust Aggregator', () => {
+  it('classifies risk escalation with nerf and volatility', async () => {
+    // Publish a series of trust updates and a nerf
+    for (let i = 0; i < 5; i++) {
+      await eventRouter.publish('trust.casino.updated', 'collectclock', {
+        casinoName: 'CasinoA', previousScore: 70 + i, newScore: 70 + i + 2, delta: 2, severity: 2, reason: `adj${i}`, source: 'collectclock'
+      });
+    }
+    await eventRouter.publish('bonus.nerf.detected', 'collectclock', {
+      casinoName: 'CasinoA', previousAmount: 100, newAmount: 60, delta: -40, percentDrop: 0.4, detectedAt: Date.now()
+    });
+    const snapshots = getCasinoSnapshots();
+    const snap = snapshots.find(s => s.casinoName === 'CasinoA');
+    expect(snap).toBeTruthy();
+    expect(snap!.events24h).toBeGreaterThanOrEqual(6);
+    expect(snap!.nerfs24h).toBe(1);
+    expect(['watch','elevated','high','critical']).toContain(snap!.riskLevel); // Should not be 'low'
+  });
+});
 import { describe, it, expect, beforeEach } from 'vitest';
 import '../src/index'; // initialize subscriptions directly
 import { eventRouter } from '@tiltcheck/event-router';
