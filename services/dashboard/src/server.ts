@@ -136,7 +136,7 @@ export function createServer(): any {
   // Static dashboard front-end
   const DASHBOARD_PUBLIC_DIR = path.join(process.cwd(), 'services', 'dashboard', 'public');
   if (fs.existsSync(DASHBOARD_PUBLIC_DIR)) {
-    app.use('/dashboard', express.static(DASHBOARD_PUBLIC_DIR));
+    app.use('/dashboard', express.static(DASHBOARD_PUBLIC_DIR, {}));
     app.get('/dashboard', (_req, res) => {
       res.sendFile(path.join(DASHBOARD_PUBLIC_DIR, 'index.html'));
     });
