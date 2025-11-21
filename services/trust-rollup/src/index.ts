@@ -41,6 +41,9 @@ interface CasinoTrustSnapshot {
   riskLevel: 'low' | 'watch' | 'elevated' | 'high' | 'critical';
   lastReasons: string[];
   sources: Set<string>;
+  // New analytics metrics
+  payoutDrift?: number; // 0-1 normalized absolute mean trust delta indicating directional bias
+  volatilityShift?: number; // 0-1 magnitude of recent variance change (captures regime shift)
 }
 
 const CASINO_WINDOWS: Map<string, CasinoRealTimeWindowEvent[]> = new Map();
@@ -90,6 +93,23 @@ function recomputeSnapshot(casinoName: string, currentScore?: number, previousSc
   const percentNerfMax24h = nerfPercents.length ? Math.max(...nerfPercents) : undefined;
   const lastReasons = REASONS.get(casinoName) || [];
   const sources = SOURCES.get(casinoName) || new Set();
+
+  // Payout Drift Metric: mean of trust deltas absolute value normalized to cap (cap=25)
+  const trustDeltas = window.filter(e => e.type === 'trust' && typeof e.delta === 'number').map(e => e.delta as number);
+  const meanDelta = trustDeltas.length ? trustDeltas.reduce((a,b)=>a+b,0) / trustDeltas.length : 0;
+  const payoutDrift = Math.min(1, Math.abs(meanDelta) / 25); // directional bias strength
+
+  // Volatility Shift Metric: compare variance of last 10 trust deltas vs previous 10
+  let volatilityShift: number | undefined;
+  if (trustDeltas.length >= 20) {
+    const recent = trustDeltas.slice(-10);
+    const prior = trustDeltas.slice(-20, -10);
+    const recentVar = stdDev(recent);
+    const priorVar = stdDev(prior);
+    const diff = Math.abs(recentVar - priorVar);
+    // Normalize with cap diff=30
+    volatilityShift = Math.min(1, diff / 30);
+  }
   const snapshot: CasinoTrustSnapshot = {
     casinoName,
     currentScore: currentScore ?? (CASINO_SNAPSHOTS.get(casinoName)?.currentScore || 0),
@@ -104,7 +124,9 @@ function recomputeSnapshot(casinoName: string, currentScore?: number, previousSc
     percentNerfMax24h,
     riskLevel: classifyRisk(volatility24h, nerfs24h),
     lastReasons: lastReasons.slice(-5),
-    sources
+    sources,
+    payoutDrift,
+    volatilityShift
   };
   CASINO_SNAPSHOTS.set(casinoName, snapshot);
   // Publish synthetic rollup snapshot for this casino only
