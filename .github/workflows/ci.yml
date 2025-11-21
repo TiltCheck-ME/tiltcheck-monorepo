@@ -72,6 +72,7 @@ jobs:
         with:
           name: component-bundle
           path: dist/components/
+          overwrite: true
 
   landing-a11y:
     name: Landing A11y

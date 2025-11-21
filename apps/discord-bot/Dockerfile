@@ -23,6 +23,9 @@ COPY services/collectclock/package.json ./services/collectclock/
     COPY modules/freespinscan/package.json ./modules/freespinscan/
     COPY modules/freespinschannelbot/package.json ./modules/freespinschannelbot/
     COPY modules/triviadrops/package.json ./modules/triviadrops/
+    COPY modules/poker/package.json ./modules/poker/
+    COPY modules/tiltcheck-core/package.json ./modules/tiltcheck-core/
+    COPY modules/natural-language-parser/package.json ./modules/natural-language-parser/
     COPY services/trust-rollup/package.json ./services/trust-rollup/
     COPY services/trust-engines/package.json ./services/trust-engines/
     COPY apps/discord-bot/package.json ./apps/discord-bot/
@@ -65,6 +68,9 @@ COPY modules/collectclock/package.json ./modules/collectclock/
 COPY modules/freespinscan/package.json ./modules/freespinscan/
 COPY modules/freespinschannelbot/package.json ./modules/freespinschannelbot/
 COPY modules/triviadrops/package.json ./modules/triviadrops/
+COPY modules/poker/package.json ./modules/poker/
+COPY modules/tiltcheck-core/package.json ./modules/tiltcheck-core/
+COPY modules/natural-language-parser/package.json ./modules/natural-language-parser/
 COPY services/trust-rollup/package.json ./services/trust-rollup/
 COPY services/trust-engines/package.json ./services/trust-engines/
 COPY apps/discord-bot/package.json ./apps/discord-bot/
@@ -86,6 +92,9 @@ COPY --from=builder /app/modules/collectclock/dist ./modules/collectclock/dist
 COPY --from=builder /app/modules/freespinscan/dist ./modules/freespinscan/dist
 COPY --from=builder /app/modules/freespinschannelbot/dist ./modules/freespinschannelbot/dist
 COPY --from=builder /app/modules/triviadrops/dist ./modules/triviadrops/dist
+COPY --from=builder /app/modules/poker/dist ./modules/poker/dist
+COPY --from=builder /app/modules/tiltcheck-core/dist ./modules/tiltcheck-core/dist
+COPY --from=builder /app/modules/natural-language-parser/dist ./modules/natural-language-parser/dist
 COPY --from=builder /app/services/trust-rollup/dist ./services/trust-rollup/dist
 COPY --from=builder /app/services/trust-engines/dist ./services/trust-engines/dist
 COPY --from=builder /app/apps/discord-bot/dist ./apps/discord-bot/dist
