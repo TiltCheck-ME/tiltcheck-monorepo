@@ -16,6 +16,9 @@ const ADMIN_IPS = buildAdminIPs(cfg);
 console.log('Admin IP Allowlist configured:', ADMIN_IPS);
 const ipAllowlist = ipAllowlistMiddleware(ADMIN_IPS);
 const { requestLogger, adminLogger, buildMetrics, pathCounters } = initLogging(LOG_PATH);
+// Rate limiter conditional setup
+const RATE_LIMIT_DISABLED = process.env.RATE_LIMIT_DISABLED === '1';
+const effectiveRateLimit = RATE_LIMIT_DISABLED ? (req, _res, next) => next() : rateLimitMiddleware;
 
 const app = express();
 app.set('trust proxy', true);
@@ -67,7 +70,7 @@ app.get('/about', (_req, res) => {
 });
 
 // Newsletter unsubscribe endpoint (hashed)
-app.post('/api/newsletter/unsubscribe', rateLimitMiddleware, async (req, res) => {
+app.post('/api/newsletter/unsubscribe', effectiveRateLimit, async (req, res) => {
   const email = (req.body.email || '').trim().toLowerCase();
   if (!email || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
     return res.status(400).json({ ok: false, error: 'Invalid email' });
@@ -148,7 +151,7 @@ app.get('/testimonials', (_req, res) => {
 });
 
 // Newsletter subscribe endpoint (hashed storage + migration)
-app.post('/api/newsletter/subscribe', rateLimitMiddleware, async (req, res) => {
+app.post('/api/newsletter/subscribe', effectiveRateLimit, async (req, res) => {
   const email = (req.body.email || '').trim().toLowerCase();
   const honeypot = (req.body.website || '').trim();
   if (honeypot) return res.status(400).json({ ok: false, error: 'Bot detected' });
@@ -304,10 +307,14 @@ app.use((req, res) => {
   res.status(404).json({ error: 'Not Found', path: req.originalUrl });
 });
 
-// Initialize Redis rate limiter
-initRateLimiter().catch(err => {
-  console.warn('[Server] Rate limiter init failed, using in-memory fallback:', err.message);
-});
+// Initialize Redis rate limiter unless disabled
+if (!RATE_LIMIT_DISABLED) {
+  initRateLimiter().catch(err => {
+    console.warn('[Server] Rate limiter init failed, using in-memory fallback:', err.message);
+  });
+} else {
+  console.log('[Server] Rate limiter disabled via RATE_LIMIT_DISABLED=1');
+}
 
 // Graceful shutdown
 process.on('SIGTERM', async () => {
