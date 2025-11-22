@@ -51,10 +51,73 @@
       </ul>
     </div>
     <div class="trust-card">
-      <h2>Current Trust Score</h2>
-      <div class="score">--</div>
-      <p style="color:#888;">Live scores coming soon. For now, join Discord for updates and contribute your casino experiences.</p>
+      <h2>Casino Directory (Latest Scrape)</h2>
+      <p style="margin-bottom:12px; color:#b0e0e0;">This table renders the most recent scrape. You can also download the raw CSV: <a href="/data/casino_data_latest.csv" style="color:#00d4aa;">casino_data_latest.csv</a></p>
+      <div style="overflow:auto;">
+        <table id="casino-table" style="width:100%; border-collapse:collapse; font-size:14px;">
+          <thead>
+            <tr style="border-bottom:1px solid #333;">
+              <th style="text-align:left; padding:8px;">Name</th>
+              <th style="text-align:left; padding:8px;">URL</th>
+              <th style="text-align:right; padding:8px;">Data Score</th>
+              <th style="text-align:right; padding:8px;">Avg Rating</th>
+              <th style="text-align:center; padding:8px;">SSL</th>
+              <th style="text-align:center; padding:8px;">2FA</th>
+              <th style="text-align:left; padding:8px;">Fairness Certs</th>
+              <th style="text-align:right; padding:8px;">Providers</th>
+              <th style="text-align:right; padding:8px;">Withdrawals</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
     </div>
   </div>
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+  <script>
+    (function(){
+      const tbody = document.querySelector('#casino-table tbody');
+      function safe(v){ return (v===undefined||v===null)?'':String(v); }
+      function boolBadge(v){
+        const yes = String(v).toLowerCase()==='true' || v===true;
+        return `<span class="badge" style="${yes?'color:#00d4aa;':'color:#ff7a7a;'}">${yes?'Yes':'No'}</span>`;
+      }
+      fetch('/data/casino_data_latest.csv', { cache: 'no-cache' })
+        .then(r => { if(!r.ok) throw new Error('Failed to load CSV'); return r.text(); })
+        .then(csv => new Promise(resolve => Papa.parse(csv, { header: true, skipEmptyLines: true, complete: resolve })))
+        .then(result => {
+          const rows = (result && result.data) ? result.data : [];
+          // Basic sort by data_completeness_score desc
+          rows.sort((a,b) => (parseFloat(b.data_completeness_score||0) - parseFloat(a.data_completeness_score||0)));
+          const limited = rows.slice(0, 50);
+          tbody.innerHTML = limited.map(r => {
+            const name = safe(r.name);
+            const url = safe(r.url);
+            const score = Number.parseFloat(r.data_completeness_score||0).toFixed(2);
+            const rating = (r.avg_rating && r.avg_rating !== '' ? Number.parseFloat(r.avg_rating).toFixed(1) : '—');
+            const ssl = boolBadge(r.has_ssl);
+            const tfa = boolBadge(r.two_factor_auth);
+            const fairness = safe(r.fairness_certifications||'');
+            const providers = safe(r.provider_count||'0');
+            const withdraws = safe(r.withdrawal_methods_count||'0');
+            const urlCell = url ? `<a href="${url}" target="_blank" rel="noopener" style="color:#00a8ff;">link</a>` : '—';
+            return `<tr style="border-bottom:1px solid #222;">
+              <td style="padding:8px;">${name}</td>
+              <td style="padding:8px;">${urlCell}</td>
+              <td style="padding:8px; text-align:right;">${score}</td>
+              <td style="padding:8px; text-align:right;">${rating}</td>
+              <td style="padding:8px; text-align:center;">${ssl}</td>
+              <td style="padding:8px; text-align:center;">${tfa}</td>
+              <td style="padding:8px;">${fairness || '—'}</td>
+              <td style="padding:8px; text-align:right;">${providers}</td>
+              <td style="padding:8px; text-align:right;">${withdraws}</td>
+            </tr>`;
+          }).join('');
+        })
+        .catch(err => {
+          tbody.innerHTML = `<tr><td colspan="9" style="padding:12px; color:#ff7a7a;">Failed to load latest casino data: ${err.message}</td></tr>`;
+        });
+    })();
+  </script>
 </body>
 </html>

@@ -22,6 +22,7 @@ try {
 const app = express();
 const PORT = process.env.PORT || 8080;
 const LOG_PATH = process.env.LANDING_LOG_PATH || '/tmp/landing-requests.log';
+const DATA_DIR = path.join(__dirname, '../../data');
 
 // IP Allowlist for admin routes - Add your IP addresses here
 const ADMIN_IPS = [
@@ -127,6 +128,30 @@ app.get('/metrics', (req, res) => {
 
 const publicDir = path.join(__dirname, 'public');
 app.use(express.static(publicDir, { extensions: ['html'] }));
+
+// Expose only the latest casino CSV via a stable path (do NOT expose entire data directory)
+function getLatestCasinoCSVPath() {
+  try {
+    const files = fs.readdirSync(DATA_DIR)
+      .filter((f) => f.startsWith('casino_data_') && f.endsWith('.csv'))
+      .map((f) => ({
+        name: f,
+        full: path.join(DATA_DIR, f),
+        mtime: fs.statSync(path.join(DATA_DIR, f)).mtimeMs,
+      }))
+      .sort((a, b) => b.mtime - a.mtime);
+    return files.length ? files[0].full : null;
+  } catch (e) {
+    console.warn('getLatestCasinoCSVPath failed:', e.message);
+    return null;
+  }
+}
+
+app.get('/data/casino_data_latest.csv', (req, res) => {
+  const latest = getLatestCasinoCSVPath();
+  if (!latest) return res.status(404).send('No casino CSV found');
+  res.sendFile(latest);
+});
 
 // Root -> landing page
 app.get('/', (_req, res) => {
