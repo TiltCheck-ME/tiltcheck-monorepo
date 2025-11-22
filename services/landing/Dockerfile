@@ -8,17 +8,15 @@ WORKDIR /app
 # Copy workspace root files for pnpm resolution
 COPY package.json pnpm-workspace.yaml pnpm-lock.yaml ./
 
-# Copy workspace dependency needed by landing (express-utils) before install
-COPY packages/express-utils/package.json ./packages/express-utils/
+# Ensure directory exists then copy full express-utils workspace package (package.json + src)
+RUN mkdir -p packages/express-utils
+COPY packages/express-utils ./packages/express-utils
 
-# Copy landing package manifest
+# Copy landing package manifest prior to filtered install
 COPY services/landing/package.json ./services/landing/
 
-# Install only landing dependencies (will also link express-utils workspace dep)
+# Install only landing dependencies (will link express-utils via workspace mapping)
 RUN pnpm install --prod --filter @tiltcheck/landing
-
-# Copy source of workspace dependencies required at runtime
-COPY packages/express-utils/src ./packages/express-utils/src
 
 # Copy landing source & public assets (include lib required by server.js)
 COPY services/landing/lib ./services/landing/lib
