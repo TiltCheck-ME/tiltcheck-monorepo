@@ -34,6 +34,17 @@
 html { background: var(--color-bg); color: var(--color-text); font-family: var(--font-sans); }
 body { margin:0; }
 
+/* Breadcrumb & navbar link accessible contrast */
+.breadcrumbs a,
+.navbar .nav-links a,
+.navbar a.logo {
+  color: #f2f2ff; /* passes 4.5:1 against dark bg */
+  text-decoration: none;
+}
+.breadcrumbs a:hover,
+.navbar .nav-links a:hover,
+.navbar a.logo:hover { color: var(--color-accent); }
+
 /* Navigation focus accessibility */
 .navbar .nav-links a,
 header nav a { position:relative; }
