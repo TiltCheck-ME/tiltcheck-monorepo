@@ -73,9 +73,9 @@ JUSTTHETIP_FEE_WALLET=your_solana_wallet_address
 
 <p><strong>Paths</strong> (defaults work; override if needed):</p>
 <pre class="code-block" data-lang=""><code>
-PENDING_TIPS_STORE_PATH=/app/data/pending-tips.json
-TRIVIA_STORE_PATH=/app/data/trivia-store.json
-LANDING_LOG_PATH=/app/data/landing-requests.log
+PENDING_TIPS_STORE_PATH=/tmp/pending-tips.json
+TRIVIA_STORE_PATH=/tmp/trivia-store.json
+LANDING_LOG_PATH=/tmp/landing-requests.log
 </code></pre>
 
 <h3>4. Custom Domain Setup (tiltcheck.it.com)</h3>
@@ -222,7 +222,7 @@ docker rm -f tiltcheck-test
 <ul>
 <li><strong>Starter (512MB)</strong>: Free for 750 hours/month (sleeps after 15min inactivity)</li>
 <li><strong>Standard (2GB)</strong>: ~$25/month (always-on, better for production)</li>
-<li><strong>Database</strong>: Not needed currently (file-based storage in <code>/app/data</code>)</li>
+<li><strong>Database</strong>: Not needed currently (file-based storage in <code>/tmp</code> or Railway volumes)</li>
 <li><strong>Bandwidth</strong>: 100GB included; overage $0.10/GB</li>
 </ul>
 
@@ -263,7 +263,7 @@ docker rm -f tiltcheck-test
 
 <h2>Next Steps</h2>
 <ul>
-<li>Add persistent disk for <code>/app/data</code> (Render Disks) to survive container restarts</li>
+<li>Use Railway Volumes or persistent storage if needed (currently using <code>/tmp</code> for logs)</li>
 <li>Integrate external log sink (Loki, Datadog) for long-term retention</li>
 <li>Set up monitoring alerts (Render Notifications or webhooks)</li>
 <li>Enable auto-deploy previews for PRs</li>
