@@ -12,6 +12,11 @@ const PORT = cfg.PORT;
 const LOG_PATH = cfg.LANDING_LOG_PATH;
 const DATA_DIR = path.join(__dirname, '../../data');
 
+// Ensure data & log paths exist early to avoid ENOENT on first requests
+try { require('fs').mkdirSync(DATA_DIR, { recursive: true }); } catch {}
+try { require('fs').mkdirSync(path.dirname(LOG_PATH), { recursive: true }); } catch {}
+try { const fs = require('fs'); if (!fs.existsSync(LOG_PATH)) fs.writeFileSync(LOG_PATH, ''); } catch (e) { console.warn('Log file init failed:', e.message); }
+
 const ADMIN_IPS = buildAdminIPs(cfg);
 console.log('Admin IP Allowlist configured:', ADMIN_IPS);
 const ipAllowlist = ipAllowlistMiddleware(ADMIN_IPS);
