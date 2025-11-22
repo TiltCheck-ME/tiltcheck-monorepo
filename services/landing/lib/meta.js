@@ -18,11 +18,22 @@ function buildSiteMap() {
   return {
     'Main Site': {
       '/': { title: 'Homepage', ...stamp() },
-      '/about.html': { title: 'About TiltCheck', ...stamp() },
+      '/about': { title: 'About TiltCheck', ...stamp() },
+      '/how-it-works': { title: 'How TiltCheck Works', ...stamp() },
+      '/trust-explained': { title: 'Trust System Explained', ...stamp() },
+      '/contact': { title: 'Contact Us', ...stamp() },
+      '/privacy': { title: 'Privacy Policy', ...stamp() },
+      '/terms': { title: 'Terms of Service', ...stamp() },
+      '/faq': { title: 'Frequently Asked Questions', ...stamp() },
+      '/site-map': { title: 'HTML Site Map', ...stamp() },
+      '/press-kit': { title: 'Press Kit & Brand Assets', ...stamp() },
+      '/newsletter': { title: 'Newsletter Signup', ...stamp() },
+      '/testimonials': { title: 'User Testimonials (Pending)', ...stamp() },
       '/casinos.html': { title: 'Casino Directory', ...stamp() },
       '/trust.html': { title: 'Trust Dashboard', ...stamp() },
       '/degen-trust.html': { title: 'Degen Trust Engine', ...stamp() },
-      '/control-room': { title: 'Admin Control Room', ...stamp() }
+      '/control-room': { title: 'Admin Control Room', ...stamp() },
+      '/component-gallery': { title: 'Component Gallery', ...stamp() }
     },
     'Tools Suite': {
       '/tools/justthetip.html': { title: 'JustTheTip - Solana Tips', ...stamp() },
