@@ -44,6 +44,12 @@ check() {
     readyVal=$(echo "$raw" | sed -n 's/.*"ready":\s*\([^,}]*\).*/\1/p' | tr -d ' ')
   fi
   if [[ "$REQUIRE_READY" == "true" ]]; then
+    # If ready field missing but status ok, treat as ready
+    if [[ -z "$readyVal" ]]; then
+      if echo "$raw" | grep -q '"status"[[:space:]]*:[[:space:]]*"ok"'; then
+        readyVal="true"
+      fi
+    fi
     if [[ "$readyVal" != "true" ]]; then
       echo "ERROR: $name not ready (ready=$readyVal)" >&2
       return 2
