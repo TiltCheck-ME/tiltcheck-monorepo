@@ -1,0 +1,1255 @@
+{
+  "casinos": [
+    {
+      "id": "dabble-real-money-pick-em-app-app-store",
+      "name": "âDabble - Real Money Pick 'Em App - App Store",
+      "baseURL": "https://click.dabble.com/GaFA/js1v7hqv",
+      "endpoints": {},
+      "platforms": {
+        "reddit": "r/click",
+        "trustpilot": "click"
+      },
+      "regulator": "Unknown",
+      "enabled": true,
+      "lastCollected": null,
+      "metadata": {
+        "description": "Download Dabble - Real Money Pick 'Em by Dabble Sports on the App Store. See screenshots, ratings and reviews, user tips, and more games like Dabble - Realâ¦",
+        "completeness": 57.14285714285714,
+        "ssl": true,
+        "encryption": "SSL/TLS",
+        "twoFactor": false,
+        "providers": [],
+        "providerCount": 0,
+        "licenses": [],
+        "licenseCount": 0,
+        "fairnessCerts": [
+          "GLI",
+          "TST"
+        ],
+        "withdrawalMethods": [
+          "PayPal",
+          "Bank Transfer"
+        ],
+        "withdrawalMethodCount": 2,
+        "avgRTP": 0,
+        "rtpCount": 0,
+        "reviewCount": 1,
+        "avgRating": 4.7,
+        "importDate": "2025-11-22T08:33:36.645Z",
+        "sourceFile": "casino_data_20251121_205157.csv"
+      }
+    },
+    {
+      "id": "best-social-casino-in-usa-free-to-play",
+      "name": "Best Social Casino in USA - Free to Play",
+      "baseURL": "https://spree.com/?r=1450539",
+      "endpoints": {},
+      "platforms": {
+        "reddit": "r/spree",
+        "trustpilot": "spree"
+      },
+      "regulator": "UK Gambling Commission (United Kingdom)",
+      "enabled": true,
+      "lastCollected": null,
+      "metadata": {
+        "description": "Discover the ultimate gaming destination with Spree, the best social casino in the USA! Enjoy a thrilling selection of free-to-play slots, poker, and more. Experience the excitement of Vegas from the comfort of your home.",
+        "completeness": 85.71428571428571,
+        "ssl": true,
+        "encryption": "SSL/TLS",
+        "twoFactor": true,
+        "providers": [
+          "Microgaming",
+          "Pragmatic Play",
+          "Yggdrasil",
+          "Red Tiger"
+        ],
+        "providerCount": 4,
+        "licenses": [
+          "UK Gambling Commission (United Kingdom)"
+        ],
+        "licenseCount": 1,
+        "fairnessCerts": [
+          "GLI",
+          "TST"
+        ],
+        "withdrawalMethods": [
+          "Visa",
+          "Mastercard",
+          "Cryptocurrency"
+        ],
+        "withdrawalMethodCount": 3,
+        "avgRTP": 100,
+        "rtpCount": 2,
+        "reviewCount": 0,
+        "avgRating": 0,
+        "importDate": "2025-11-22T08:33:36.645Z",
+        "sourceFile": "casino_data_20251121_205157.csv"
+      }
+    },
+    {
+      "id": "bitslerio-free-social-casino-for-us-players",
+      "name": "Bitsler.io - Free Social Casino for US Players",
+      "baseURL": "https://www.bitsler.io/?ref=jmenichole",
+      "endpoints": {},
+      "platforms": {
+        "reddit": "r/bitsler",
+        "trustpilot": "bitsler"
+      },
+      "regulator": "Malta Gaming Authority (Malta)",
+      "enabled": true,
+      "lastCollected": null,
+      "metadata": {
+        "description": "Join Bitsler Social Casino and play 1300+ games for free. Enjoy slots, blackjack and more with no purchase necessary. Sign up and get 37,500 free Gold Coins!",
+        "completeness": 85.71428571428571,
+        "ssl": true,
+        "encryption": "SSL/TLS",
+        "twoFactor": true,
+        "providers": [
+          "Microgaming",
+          "Yggdrasil",
+          "Betsoft",
+          "IGT"
+        ],
+        "providerCount": 4,
+        "licenses": [
+          "Malta Gaming Authority (Malta)"
+        ],
+        "licenseCount": 1,
+        "fairnessCerts": [
+          "TST"
+        ],
+        "withdrawalMethods": [
+          "Bitcoin"
+        ],
+        "withdrawalMethodCount": 1,
+        "avgRTP": 96,
+        "rtpCount": 85,
+        "reviewCount": 0,
+        "avgRating": 0,
+        "importDate": "2025-11-22T08:33:36.644Z",
+        "sourceFile": "casino_data_20251121_205157.csv"
+      }
+    },
+    {
+      "id": "chanced",
+      "name": "Chanced Casino",
+      "baseURL": "https://chanced.com",
+      "endpoints": {
+        "fairness": "/fairness"
+      },
+      "platforms": {
+        "reddit": "r/Chanced"
+      },
+      "regulator": "Curacao",
+      "enabled": true,
+      "lastCollected": null,
+      "bonusInfo": {
+        "dailyBonus": 0.5,
+        "currency": "SC",
+        "cooldownHours": 24,
+        "requiresDeposit": false
+      }
+    },
+    {
+      "id": "chumba",
+      "name": "Chumba Casino",
+      "baseURL": "https://chumbacasino.com",
+      "endpoints": {
+        "fairness": "/fairness"
+      },
+      "platforms": {
+        "reddit": "r/ChumbaCasino"
+      },
+      "regulator": "Malta Gaming Authority",
+      "enabled": true,
+      "lastCollected": null,
+      "bonusInfo": {
+        "dailyBonus": 1,
+        "currency": "SC",
+        "cooldownHours": 24,
+        "requiresDeposit": false
+      }
+    },
+    {
+      "id": "clubs-poker",
+      "name": "Clubs Poker",
+      "baseURL": "https://play.clubs.poker/?referralCode=104192",
+      "endpoints": {},
+      "platforms": {
+        "reddit": "r/play",
+        "trustpilot": "play"
+      },
+      "regulator": "Unknown",
+      "enabled": true,
+      "lastCollected": null,
+      "metadata": {
+        "description": "",
+        "completeness": 14.285714285714285,
+        "ssl": true,
+        "encryption": null,
+        "twoFactor": false,
+        "providers": [],
+        "providerCount": 0,
+        "licenses": [],
+        "licenseCount": 0,
+        "fairnessCerts": [],
+        "withdrawalMethods": [],
+        "withdrawalMethodCount": 0,
+        "avgRTP": 0,
+        "rtpCount": 0,
+        "reviewCount": 0,
+        "avgRating": 0,
+        "importDate": "2025-11-22T08:33:36.644Z",
+        "sourceFile": "casino_data_20251121_205157.csv"
+      }
+    },
+    {
+      "id": "crown-coins",
+      "name": "Crown Coins",
+      "baseURL": "https://crowncoins.com",
+      "endpoints": {
+        "fairness": "/fairness"
+      },
+      "platforms": {
+        "reddit": "r/CrownCoins"
+      },
+      "regulator": "Curacao",
+      "enabled": true,
+      "lastCollected": null,
+      "bonusInfo": {
+        "dailyBonus": 1.5,
+        "currency": "SC",
+        "cooldownHours": 24,
+        "requiresDeposit": false
+      }
+    },
+    {
+      "id": "crowncoins",
+      "name": "Crown Coins",
+      "baseURL": "https://crowncoins.com",
+      "endpoints": {
+        "fairness": "/fairness"
+      },
+      "platforms": {
+        "reddit": "r/CrownCoins"
+      },
+      "regulator": "Curacao",
+      "enabled": true,
+      "lastCollected": null,
+      "bonusInfo": {
+        "dailyBonus": 1.5,
+        "currency": "SC",
+        "cooldownHours": 24,
+        "requiresDeposit": false
+      }
+    },
+    {
+      "id": "fortune-wheelz-social-casino-play-for-free",
+      "name": "Fortune Wheelz Social Casino: Play for Free",
+      "baseURL": "https://fortunewheelz.com/?invited_by=P36ZS6",
+      "endpoints": {},
+      "platforms": {
+        "reddit": "r/fortunewheelz",
+        "trustpilot": "fortunewheelz"
+      },
+      "regulator": "UK Gambling Commission (United Kingdom)",
+      "enabled": true,
+      "lastCollected": null,
+      "metadata": {
+        "description": "Personalized approach. Fortune coins, daily. Support 24/7. Play Social Promotional Games online at fortunewheelz.com",
+        "completeness": 85.71428571428571,
+        "ssl": true,
+        "encryption": null,
+        "twoFactor": false,
+        "providers": [
+          "Betsoft",
+          "Novomatic"
+        ],
+        "providerCount": 2,
+        "licenses": [
+          "UK Gambling Commission (United Kingdom)"
+        ],
+        "licenseCount": 1,
+        "fairnessCerts": [
+          "GLI",
+          "TST"
+        ],
+        "withdrawalMethods": [
+          "PayPal"
+        ],
+        "withdrawalMethodCount": 1,
+        "avgRTP": 100,
+        "rtpCount": 1,
+        "reviewCount": 0,
+        "avgRating": 0,
+        "importDate": "2025-11-22T08:33:36.645Z",
+        "sourceFile": "casino_data_20251121_205157.csv"
+      }
+    },
+    {
+      "id": "funrize",
+      "name": "Funrize",
+      "baseURL": "https://funrize.com",
+      "endpoints": {
+        "fairness": "/fairness"
+      },
+      "platforms": {
+        "reddit": "r/Funrize"
+      },
+      "regulator": "Curacao",
+      "enabled": true,
+      "lastCollected": null,
+      "bonusInfo": {
+        "dailyBonus": 1,
+        "currency": "SC",
+        "cooldownHours": 24,
+        "requiresDeposit": false
+      }
+    },
+    {
+      "id": "goated-play-bet-with-crypto",
+      "name": "Goated – Play & Bet with Crypto",
+      "baseURL": "https://www.goated.com/r/YDRZLJ",
+      "endpoints": {},
+      "platforms": {
+        "reddit": "r/goated",
+        "trustpilot": "goated"
+      },
+      "regulator": "Unknown",
+      "enabled": true,
+      "lastCollected": null,
+      "metadata": {
+        "description": "Experience Goated’s crypto casino: play over 1,200 games, bet on sports and access VIP perks, airdrops and instant withdrawals.",
+        "completeness": 42.857142857142854,
+        "ssl": true,
+        "encryption": "SSL/TLS",
+        "twoFactor": true,
+        "providers": [],
+        "providerCount": 0,
+        "licenses": [],
+        "licenseCount": 0,
+        "fairnessCerts": [
+          "GLI",
+          "TST"
+        ],
+        "withdrawalMethods": [
+          "Bitcoin",
+          "Cryptocurrency"
+        ],
+        "withdrawalMethodCount": 2,
+        "avgRTP": 0,
+        "rtpCount": 0,
+        "reviewCount": 0,
+        "avgRating": 0,
+        "importDate": "2025-11-22T08:33:36.645Z",
+        "sourceFile": "casino_data_20251121_205157.csv"
+      }
+    },
+    {
+      "id": "high-5-casino",
+      "name": "High 5 Casino",
+      "baseURL": "https://high5casino.com/gc?adId=INV001%3AJmenichole",
+      "endpoints": {},
+      "platforms": {
+        "reddit": "r/high5casino",
+        "trustpilot": "high5casino"
+      },
+      "regulator": "Unknown",
+      "enabled": true,
+      "lastCollected": null,
+      "metadata": {
+        "description": "High 5 Casino features exclusive slot titles and one of the biggest game libraries, with free daily bonuses and promotions. Play for real prizes!",
+        "completeness": 28.57142857142857,
+        "ssl": true,
+        "encryption": "SSL/TLS",
+        "twoFactor": false,
+        "providers": [],
+        "providerCount": 0,
+        "licenses": [],
+        "licenseCount": 0,
+        "fairnessCerts": [],
+        "withdrawalMethods": [],
+        "withdrawalMethodCount": 0,
+        "avgRTP": 96,
+        "rtpCount": 2,
+        "reviewCount": 0,
+        "avgRating": 0,
+        "importDate": "2025-11-22T08:33:36.645Z",
+        "sourceFile": "casino_data_20251121_205157.csv"
+      }
+    },
+    {
+      "id": "jackpota",
+      "name": "Jackpota",
+      "baseURL": "https://www.jackpota.com/?r=85453282",
+      "endpoints": {},
+      "platforms": {
+        "reddit": "r/jackpota",
+        "trustpilot": "jackpota"
+      },
+      "regulator": "Malta Gaming Authority (Malta)",
+      "enabled": true,
+      "lastCollected": null,
+      "metadata": {
+        "description": "Join the best Free-Play social casino at Jackpota.com. Play over 700 thrilling games. Get your Free Coins and Start your Winning adventure today",
+        "completeness": 42.857142857142854,
+        "ssl": true,
+        "encryption": "SSL/TLS",
+        "twoFactor": true,
+        "providers": [],
+        "providerCount": 0,
+        "licenses": [
+          "Malta Gaming Authority (Malta)"
+        ],
+        "licenseCount": 1,
+        "fairnessCerts": [
+          "TST"
+        ],
+        "withdrawalMethods": [],
+        "withdrawalMethodCount": 0,
+        "avgRTP": 0,
+        "rtpCount": 0,
+        "reviewCount": 0,
+        "avgRating": 0,
+        "importDate": "2025-11-22T08:33:36.644Z",
+        "sourceFile": "casino_data_20251121_205157.csv"
+      }
+    },
+    {
+      "id": "jmenichole-is-on-jemlit",
+      "name": "Jmenichole is on Jemlit",
+      "baseURL": "https://jemlit.com/en/a/Jmenichole",
+      "endpoints": {},
+      "platforms": {
+        "reddit": "r/jemlit",
+        "trustpilot": "jemlit"
+      },
+      "regulator": "Unknown",
+      "enabled": true,
+      "lastCollected": null,
+      "metadata": {
+        "description": "Unlock a 25% bonus on your initial deposit and 3 FREE Boxes by using the code JMLT25! Plus, remember to input the code Jmenichole every time you deposit to receive a generous 5% bonus on your funds forever!",
+        "completeness": 42.857142857142854,
+        "ssl": true,
+        "encryption": "SSL/TLS",
+        "twoFactor": false,
+        "providers": [],
+        "providerCount": 0,
+        "licenses": [],
+        "licenseCount": 0,
+        "fairnessCerts": [
+          "GLI",
+          "TST"
+        ],
+        "withdrawalMethods": [
+          "Bitcoin"
+        ],
+        "withdrawalMethodCount": 1,
+        "avgRTP": 0,
+        "rtpCount": 0,
+        "reviewCount": 0,
+        "avgRating": 0,
+        "importDate": "2025-11-22T08:33:36.645Z",
+        "sourceFile": "casino_data_20251121_205157.csv"
+      }
+    },
+    {
+      "id": "lonestar-casino",
+      "name": "LoneStar Casino",
+      "baseURL": "https://lonestarcasino.com/refer/678504",
+      "endpoints": {},
+      "platforms": {
+        "reddit": "r/lonestarcasino",
+        "trustpilot": "lonestarcasino"
+      },
+      "regulator": "Unknown",
+      "enabled": true,
+      "lastCollected": null,
+      "metadata": {
+        "description": "Offers the best mobile online Social Casino",
+        "completeness": 57.14285714285714,
+        "ssl": true,
+        "encryption": "SSL/TLS",
+        "twoFactor": false,
+        "providers": [
+          "NetEnt",
+          "Microgaming",
+          "Pragmatic Play",
+          "Betsoft",
+          "EGT"
+        ],
+        "providerCount": 5,
+        "licenses": [],
+        "licenseCount": 0,
+        "fairnessCerts": [
+          "GLI",
+          "TST"
+        ],
+        "withdrawalMethods": [],
+        "withdrawalMethodCount": 0,
+        "avgRTP": 0,
+        "rtpCount": 0,
+        "reviewCount": 1,
+        "avgRating": 4.4,
+        "importDate": "2025-11-22T08:33:36.645Z",
+        "sourceFile": "casino_data_20251121_205157.csv"
+      }
+    },
+    {
+      "id": "lucky-bits-vegas-casino",
+      "name": "Lucky Bits Vegas Casino",
+      "baseURL": "https://luckybitsvegas.com/gc/?adId=INV001%3Ajmenichole",
+      "endpoints": {},
+      "platforms": {
+        "reddit": "r/luckybitsvegas",
+        "trustpilot": "luckybitsvegas"
+      },
+      "regulator": "Unknown",
+      "enabled": true,
+      "lastCollected": null,
+      "metadata": {
+        "description": "Play free Vegas style slots at Lucky Bits Vegas. Sweepstakes crypto casino with daily rewards, Game Coins, and Sweeps Coins redeemable for real prizes.",
+        "completeness": 14.285714285714285,
+        "ssl": true,
+        "encryption": "SSL/TLS",
+        "twoFactor": false,
+        "providers": [],
+        "providerCount": 0,
+        "licenses": [],
+        "licenseCount": 0,
+        "fairnessCerts": [],
+        "withdrawalMethods": [],
+        "withdrawalMethodCount": 0,
+        "avgRTP": 0,
+        "rtpCount": 0,
+        "reviewCount": 0,
+        "avgRating": 0,
+        "importDate": "2025-11-22T08:33:36.645Z",
+        "sourceFile": "casino_data_20251121_205157.csv"
+      }
+    },
+    {
+      "id": "luckybird-social-sweepstakes-casino",
+      "name": "LuckyBird social sweepstakes casino",
+      "baseURL": "https://luckybird.vip/?c=c_jmenichole",
+      "endpoints": {},
+      "platforms": {
+        "reddit": "r/luckybird",
+        "trustpilot": "luckybird"
+      },
+      "regulator": "Unknown",
+      "enabled": true,
+      "lastCollected": null,
+      "metadata": {
+        "description": "LuckyBird is the best social sweepstakes casino, the best crypto casino with unlimited faucet, play dice and slots, redeem to btc",
+        "completeness": 14.285714285714285,
+        "ssl": true,
+        "encryption": null,
+        "twoFactor": false,
+        "providers": [],
+        "providerCount": 0,
+        "licenses": [],
+        "licenseCount": 0,
+        "fairnessCerts": [],
+        "withdrawalMethods": [],
+        "withdrawalMethodCount": 0,
+        "avgRTP": 0,
+        "rtpCount": 0,
+        "reviewCount": 0,
+        "avgRating": 0,
+        "importDate": "2025-11-22T08:33:36.644Z",
+        "sourceFile": "casino_data_20251121_205157.csv"
+      }
+    },
+    {
+      "id": "luckyland-casino",
+      "name": "LuckyLand Casino",
+      "baseURL": "https://luckylandslots.com/",
+      "endpoints": {},
+      "platforms": {
+        "reddit": "r/luckylandslots",
+        "trustpilot": "luckylandslots"
+      },
+      "regulator": "Unknown",
+      "enabled": true,
+      "lastCollected": null,
+      "metadata": {
+        "description": "Fun social slots with cash prizes!",
+        "completeness": 14.285714285714285,
+        "ssl": true,
+        "encryption": null,
+        "twoFactor": false,
+        "providers": [],
+        "providerCount": 0,
+        "licenses": [],
+        "licenseCount": 0,
+        "fairnessCerts": [],
+        "withdrawalMethods": [],
+        "withdrawalMethodCount": 0,
+        "avgRTP": 0,
+        "rtpCount": 0,
+        "reviewCount": 0,
+        "avgRating": 0,
+        "importDate": "2025-11-22T08:33:36.645Z",
+        "sourceFile": "casino_data_20251121_205157.csv"
+      }
+    },
+    {
+      "id": "luckyland",
+      "name": "Luckyland Slots",
+      "baseURL": "https://luckylandslots.com",
+      "endpoints": {
+        "fairness": "/fairness"
+      },
+      "platforms": {
+        "reddit": "r/LuckylandSlots"
+      },
+      "regulator": "Malta Gaming Authority",
+      "enabled": true,
+      "lastCollected": null,
+      "bonusInfo": {
+        "dailyBonus": 2,
+        "currency": "SC",
+        "cooldownHours": 24,
+        "requiresDeposit": false
+      }
+    },
+    {
+      "id": "lunaland-home",
+      "name": "Lunaland - Home",
+      "baseURL": "https://lunalandcasino.com/",
+      "endpoints": {},
+      "platforms": {
+        "reddit": "r/lunalandcasino",
+        "trustpilot": "lunalandcasino"
+      },
+      "regulator": "Unknown",
+      "enabled": true,
+      "lastCollected": null,
+      "metadata": {
+        "description": "Start spinning at Lunaland Casino! Play sweepstakes slots and social casino games. Join for free, claim daily bonuses and rewards.",
+        "completeness": 14.285714285714285,
+        "ssl": true,
+        "encryption": "SSL/TLS",
+        "twoFactor": false,
+        "providers": [],
+        "providerCount": 0,
+        "licenses": [],
+        "licenseCount": 0,
+        "fairnessCerts": [],
+        "withdrawalMethods": [],
+        "withdrawalMethodCount": 0,
+        "avgRTP": 0,
+        "rtpCount": 0,
+        "reviewCount": 0,
+        "avgRating": 0,
+        "importDate": "2025-11-22T08:33:36.645Z",
+        "sourceFile": "casino_data_20251121_205157.csv"
+      }
+    },
+    {
+      "id": "megabonanza-ultimate-social-casino-experience",
+      "name": "MegaBonanza - Ultimate Social Casino Experience",
+      "baseURL": "https://www.megabonanza.com/?r=72781897",
+      "endpoints": {},
+      "platforms": {
+        "reddit": "r/megabonanza",
+        "trustpilot": "megabonanza"
+      },
+      "regulator": "Unknown",
+      "enabled": true,
+      "lastCollected": null,
+      "metadata": {
+        "description": "Join MegaBonanza for the ultimate social casino experience! Play for free and become part of the MegaBonanza community today!",
+        "completeness": 57.14285714285714,
+        "ssl": true,
+        "encryption": "SSL/TLS",
+        "twoFactor": true,
+        "providers": [
+          "NetEnt",
+          "Playtech",
+          "Yggdrasil",
+          "Betsoft",
+          "IGT"
+        ],
+        "providerCount": 5,
+        "licenses": [],
+        "licenseCount": 0,
+        "fairnessCerts": [
+          "TST"
+        ],
+        "withdrawalMethods": [],
+        "withdrawalMethodCount": 0,
+        "avgRTP": 0,
+        "rtpCount": 0,
+        "reviewCount": 1,
+        "avgRating": 5,
+        "importDate": "2025-11-22T08:33:36.644Z",
+        "sourceFile": "casino_data_20251121_205157.csv"
+      }
+    },
+    {
+      "id": "modo",
+      "name": "MODO",
+      "baseURL": "https://modo.us/",
+      "endpoints": {},
+      "platforms": {
+        "reddit": "r/modo",
+        "trustpilot": "modo"
+      },
+      "regulator": "Unknown",
+      "enabled": true,
+      "lastCollected": null,
+      "metadata": {
+        "description": "Hundreds of Free To Play Social Casino-Style Games including Slots, Blackjack, Roulette and more with Huge Sweepstakes Prizes. Free, Fast and Secure!",
+        "completeness": 28.57142857142857,
+        "ssl": true,
+        "encryption": null,
+        "twoFactor": false,
+        "providers": [],
+        "providerCount": 0,
+        "licenses": [],
+        "licenseCount": 0,
+        "fairnessCerts": [
+          "TST"
+        ],
+        "withdrawalMethods": [],
+        "withdrawalMethodCount": 0,
+        "avgRTP": 0,
+        "rtpCount": 0,
+        "reviewCount": 0,
+        "avgRating": 0,
+        "importDate": "2025-11-22T08:33:36.644Z",
+        "sourceFile": "casino_data_20251121_205157.csv"
+      }
+    },
+    {
+      "id": "myprize-us-free-social-casino-games",
+      "name": "MyPrize US: Free Social Casino Games",
+      "baseURL": "https://myprize.us/invite/jmenichole",
+      "endpoints": {},
+      "platforms": {
+        "reddit": "r/myprize",
+        "trustpilot": "myprize"
+      },
+      "regulator": "Malta Gaming Authority (Malta)",
+      "enabled": true,
+      "lastCollected": null,
+      "metadata": {
+        "description": "Experience MyPrize US, America's premier social casino. Play free slots, table games, and more with no purchase needed. Join now and claim your welcome offers!",
+        "completeness": 42.857142857142854,
+        "ssl": true,
+        "encryption": "SSL/TLS",
+        "twoFactor": false,
+        "providers": [
+          "IGT"
+        ],
+        "providerCount": 1,
+        "licenses": [
+          "Malta Gaming Authority (Malta)"
+        ],
+        "licenseCount": 1,
+        "fairnessCerts": [],
+        "withdrawalMethods": [],
+        "withdrawalMethodCount": 0,
+        "avgRTP": 0,
+        "rtpCount": 0,
+        "reviewCount": 0,
+        "avgRating": 0,
+        "importDate": "2025-11-22T08:33:36.644Z",
+        "sourceFile": "casino_data_20251121_205157.csv"
+      }
+    },
+    {
+      "id": "nolimitcoins",
+      "name": "NoLimitCoins",
+      "baseURL": "https://nolimitcoins.com/?invited_by=ZI1JIU",
+      "endpoints": {},
+      "platforms": {
+        "reddit": "r/nolimitcoins",
+        "trustpilot": "nolimitcoins"
+      },
+      "regulator": "Unknown",
+      "enabled": true,
+      "lastCollected": null,
+      "metadata": {
+        "description": "",
+        "completeness": 57.14285714285714,
+        "ssl": true,
+        "encryption": null,
+        "twoFactor": false,
+        "providers": [
+          "Betsoft",
+          "Novomatic"
+        ],
+        "providerCount": 2,
+        "licenses": [],
+        "licenseCount": 0,
+        "fairnessCerts": [
+          "GLI",
+          "TST"
+        ],
+        "withdrawalMethods": [
+          "PayPal"
+        ],
+        "withdrawalMethodCount": 1,
+        "avgRTP": 0,
+        "rtpCount": 0,
+        "reviewCount": 0,
+        "avgRating": 0,
+        "importDate": "2025-11-22T08:33:36.645Z",
+        "sourceFile": "casino_data_20251121_205157.csv"
+      }
+    },
+    {
+      "id": "pulsz",
+      "name": "Pulsz Casino",
+      "baseURL": "https://pulsz.com",
+      "endpoints": {
+        "fairness": "/fairness"
+      },
+      "platforms": {
+        "reddit": "r/Pulsz"
+      },
+      "regulator": "Malta Gaming Authority",
+      "enabled": true,
+      "lastCollected": null,
+      "bonusInfo": {
+        "dailyBonus": 2,
+        "currency": "SC",
+        "cooldownHours": 24,
+        "requiresDeposit": false
+      }
+    },
+    {
+      "id": "ragingbull",
+      "name": "RagingBull",
+      "baseURL": "https://ragingbull.com/",
+      "endpoints": {},
+      "platforms": {
+        "reddit": "r/ragingbull",
+        "trustpilot": "ragingbull"
+      },
+      "regulator": "Unknown",
+      "enabled": true,
+      "lastCollected": null,
+      "metadata": {
+        "description": "Want to learn trading tips and secrets? If so, look no further than RagingBull- a perfect platform for both experienced traders and newbies. Learn to profit from troubled market conditions.",
+        "completeness": 14.285714285714285,
+        "ssl": true,
+        "encryption": "SSL/TLS",
+        "twoFactor": false,
+        "providers": [],
+        "providerCount": 0,
+        "licenses": [],
+        "licenseCount": 0,
+        "fairnessCerts": [],
+        "withdrawalMethods": [],
+        "withdrawalMethodCount": 0,
+        "avgRTP": 0,
+        "rtpCount": 0,
+        "reviewCount": 0,
+        "avgRating": 0,
+        "importDate": "2025-11-22T08:33:36.645Z",
+        "sourceFile": "casino_data_20251121_205157.csv"
+      }
+    },
+    {
+      "id": "real-prize",
+      "name": "Real Prize",
+      "baseURL": "https://www.realprize.com/refer/317136",
+      "endpoints": {},
+      "platforms": {
+        "reddit": "r/realprize",
+        "trustpilot": "realprize"
+      },
+      "regulator": "Unknown",
+      "enabled": true,
+      "lastCollected": null,
+      "metadata": {
+        "description": "Join the ultimate free-to-play online social casino! Spin to win, and claim your daily bonus coins! Enjoy Vegas-style games at their best!",
+        "completeness": 42.857142857142854,
+        "ssl": true,
+        "encryption": "SSL/TLS",
+        "twoFactor": false,
+        "providers": [
+          "NetEnt",
+          "Microgaming",
+          "Pragmatic Play",
+          "Betsoft",
+          "EGT"
+        ],
+        "providerCount": 5,
+        "licenses": [],
+        "licenseCount": 0,
+        "fairnessCerts": [
+          "GLI",
+          "TST"
+        ],
+        "withdrawalMethods": [],
+        "withdrawalMethodCount": 0,
+        "avgRTP": 0,
+        "rtpCount": 0,
+        "reviewCount": 0,
+        "avgRating": 0,
+        "importDate": "2025-11-22T08:33:36.644Z",
+        "sourceFile": "casino_data_20251121_205157.csv"
+      }
+    },
+    {
+      "id": "rolla",
+      "name": "Rolla",
+      "baseURL": "https://www.rolla.com/?raf=3873",
+      "endpoints": {},
+      "platforms": {
+        "reddit": "r/rolla",
+        "trustpilot": "rolla"
+      },
+      "regulator": "Unknown",
+      "enabled": true,
+      "lastCollected": null,
+      "metadata": {
+        "description": "Join the best social casino at rolla.com. Enjoy over 900 exciting slot games. Grab your Free Coins and Start Winning!",
+        "completeness": 42.857142857142854,
+        "ssl": true,
+        "encryption": "SSL/TLS",
+        "twoFactor": false,
+        "providers": [],
+        "providerCount": 0,
+        "licenses": [],
+        "licenseCount": 0,
+        "fairnessCerts": [
+          "TST"
+        ],
+        "withdrawalMethods": [
+          "Trustly"
+        ],
+        "withdrawalMethodCount": 1,
+        "avgRTP": 0,
+        "rtpCount": 0,
+        "reviewCount": 0,
+        "avgRating": 0,
+        "importDate": "2025-11-22T08:33:36.645Z",
+        "sourceFile": "casino_data_20251121_205157.csv"
+      }
+    },
+    {
+      "id": "rollbit",
+      "name": "Rollbit",
+      "baseURL": "https://rollbit.com",
+      "endpoints": {
+        "fairness": "/fairness",
+        "provablyFair": "/fairness"
+      },
+      "platforms": {
+        "reddit": "r/Rollbit"
+      },
+      "regulator": "Curacao",
+      "enabled": true,
+      "lastCollected": null,
+      "bonusInfo": {
+        "dailyBonus": 0.5,
+        "currency": "SC",
+        "cooldownHours": 24,
+        "requiresDeposit": false
+      }
+    },
+    {
+      "id": "rollingriches",
+      "name": "Rollingriches",
+      "baseURL": "https://rollingriches.com/",
+      "endpoints": {},
+      "platforms": {
+        "reddit": "r/rollingriches",
+        "trustpilot": "rollingriches"
+      },
+      "regulator": "Unknown",
+      "enabled": true,
+      "lastCollected": null,
+      "metadata": {
+        "description": "",
+        "completeness": 14.285714285714285,
+        "ssl": true,
+        "encryption": null,
+        "twoFactor": false,
+        "providers": [],
+        "providerCount": 0,
+        "licenses": [],
+        "licenseCount": 0,
+        "fairnessCerts": [],
+        "withdrawalMethods": [],
+        "withdrawalMethodCount": 0,
+        "avgRTP": 0,
+        "rtpCount": 0,
+        "reviewCount": 0,
+        "avgRating": 0,
+        "importDate": "2025-11-22T08:33:36.645Z",
+        "sourceFile": "casino_data_20251121_205157.csv"
+      }
+    },
+    {
+      "id": "roxy-moxy",
+      "name": "Roxy Moxy",
+      "baseURL": "https://roxymoxy.com/home?invite=f94f874427",
+      "endpoints": {},
+      "platforms": {
+        "reddit": "r/roxymoxy",
+        "trustpilot": "roxymoxy"
+      },
+      "regulator": "Unknown",
+      "enabled": true,
+      "lastCollected": null,
+      "metadata": {
+        "description": "",
+        "completeness": 14.285714285714285,
+        "ssl": true,
+        "encryption": null,
+        "twoFactor": false,
+        "providers": [],
+        "providerCount": 0,
+        "licenses": [],
+        "licenseCount": 0,
+        "fairnessCerts": [],
+        "withdrawalMethods": [],
+        "withdrawalMethodCount": 0,
+        "avgRTP": 0,
+        "rtpCount": 0,
+        "reviewCount": 0,
+        "avgRating": 0,
+        "importDate": "2025-11-22T08:33:36.645Z",
+        "sourceFile": "casino_data_20251121_205157.csv"
+      }
+    },
+    {
+      "id": "roxy-moxy",
+      "name": "Roxy Moxy",
+      "baseURL": "https://roxymoxy.com/",
+      "endpoints": {},
+      "platforms": {
+        "reddit": "r/roxymoxy",
+        "trustpilot": "roxymoxy"
+      },
+      "regulator": "Unknown",
+      "enabled": true,
+      "lastCollected": null,
+      "metadata": {
+        "description": "",
+        "completeness": 14.285714285714285,
+        "ssl": true,
+        "encryption": null,
+        "twoFactor": false,
+        "providers": [],
+        "providerCount": 0,
+        "licenses": [],
+        "licenseCount": 0,
+        "fairnessCerts": [],
+        "withdrawalMethods": [],
+        "withdrawalMethodCount": 0,
+        "avgRTP": 0,
+        "rtpCount": 0,
+        "reviewCount": 0,
+        "avgRating": 0,
+        "importDate": "2025-11-22T08:33:36.645Z",
+        "sourceFile": "casino_data_20251121_205157.csv"
+      }
+    },
+    {
+      "id": "shuffle",
+      "name": "Shuffle",
+      "baseURL": "https://shuffle.com/",
+      "endpoints": {},
+      "platforms": {
+        "reddit": "r/shuffle",
+        "trustpilot": "shuffle"
+      },
+      "regulator": "Unknown",
+      "enabled": true,
+      "lastCollected": null,
+      "metadata": {
+        "description": "Play the best crypto casino games at Shuffle VIP crypto casino. Play 10,000+ games, instant deposit, sportsbook, and the exclusive SHFL Lottery and more!",
+        "completeness": 85.71428571428571,
+        "ssl": true,
+        "encryption": "SSL/TLS",
+        "twoFactor": true,
+        "providers": [
+          "NetEnt",
+          "Microgaming",
+          "Evolution Gaming",
+          "Pragmatic Play"
+        ],
+        "providerCount": 4,
+        "licenses": [],
+        "licenseCount": 0,
+        "fairnessCerts": [
+          "GLI",
+          "TST"
+        ],
+        "withdrawalMethods": [
+          "Bank Transfer",
+          "Bitcoin",
+          "Cryptocurrency"
+        ],
+        "withdrawalMethodCount": 3,
+        "avgRTP": 94.5,
+        "rtpCount": 6,
+        "reviewCount": 1,
+        "avgRating": 3,
+        "importDate": "2025-11-22T08:33:36.645Z",
+        "sourceFile": "casino_data_20251121_205157.csv"
+      }
+    },
+    {
+      "id": "slips-live-betting",
+      "name": "Slips - Live Betting",
+      "baseURL": "https://slips.com/invite?code=6901",
+      "endpoints": {},
+      "platforms": {
+        "reddit": "r/slips",
+        "trustpilot": "slips"
+      },
+      "regulator": "Unknown",
+      "enabled": true,
+      "lastCollected": null,
+      "metadata": {
+        "description": "Slips is the next-generation peer-to-peer betting platform where players bet against each other â not the house. Offering Heads Up, Pools, Tourlays, and AI-Generated Prediction Markets, Slips creates a social-first experience where users win, connect, and compete in real time.",
+        "completeness": 14.285714285714285,
+        "ssl": true,
+        "encryption": null,
+        "twoFactor": false,
+        "providers": [],
+        "providerCount": 0,
+        "licenses": [],
+        "licenseCount": 0,
+        "fairnessCerts": [],
+        "withdrawalMethods": [],
+        "withdrawalMethodCount": 0,
+        "avgRTP": 0,
+        "rtpCount": 0,
+        "reviewCount": 0,
+        "avgRating": 0,
+        "importDate": "2025-11-22T08:33:36.645Z",
+        "sourceFile": "casino_data_20251121_205157.csv"
+      }
+    },
+    {
+      "id": "social-casino-2025",
+      "name": "Social casino 2025",
+      "baseURL": "https://moonspin.com/",
+      "endpoints": {},
+      "platforms": {
+        "reddit": "r/moonspin",
+        "trustpilot": "moonspin"
+      },
+      "regulator": "Unknown",
+      "enabled": true,
+      "lastCollected": null,
+      "metadata": {
+        "description": "Discover our wide range of brand-new social casino games! ✅ No purchase necessary ✅ Provably Fair technology",
+        "completeness": 42.857142857142854,
+        "ssl": true,
+        "encryption": "SSL/TLS",
+        "twoFactor": true,
+        "providers": [],
+        "providerCount": 0,
+        "licenses": [],
+        "licenseCount": 0,
+        "fairnessCerts": [
+          "GLI",
+          "TST"
+        ],
+        "withdrawalMethods": [
+          "Visa",
+          "Skrill",
+          "Bank Transfer",
+          "Bitcoin",
+          "Cryptocurrency"
+        ],
+        "withdrawalMethodCount": 5,
+        "avgRTP": 0,
+        "rtpCount": 0,
+        "reviewCount": 0,
+        "avgRating": 0,
+        "importDate": "2025-11-22T08:33:36.645Z",
+        "sourceFile": "casino_data_20251121_205157.csv"
+      }
+    },
+    {
+      "id": "stake-us",
+      "name": "Stake.us",
+      "baseURL": "https://stake.us",
+      "endpoints": {
+        "fairness": "/fairness",
+        "provablyFair": "/provably-fair",
+        "games": "/api/games"
+      },
+      "platforms": {
+        "reddit": "r/Stake",
+        "trustpilot": "stake.us"
+      },
+      "regulator": "Curacao",
+      "enabled": true,
+      "lastCollected": null,
+      "bonusInfo": {
+        "dailyBonus": 1,
+        "currency": "SC",
+        "cooldownHours": 24,
+        "requiresDeposit": false
+      }
+    },
+    {
+      "id": "wow-vegas",
+      "name": "WOW Vegas",
+      "baseURL": "https://wowvegas.com",
+      "endpoints": {
+        "fairness": "/fairness"
+      },
+      "platforms": {
+        "reddit": "r/WowVegas"
+      },
+      "regulator": "Malta Gaming Authority",
+      "enabled": true,
+      "lastCollected": null,
+      "bonusInfo": {
+        "dailyBonus": 1.5,
+        "currency": "SC",
+        "cooldownHours": 24,
+        "requiresDeposit": false
+      }
+    },
+    {
+      "id": "zoot-play-free-crash-plinko-mines-and-dice-games-f",
+      "name": "ZOOT: Play Free Crash, Plinko, Mines, and Dice Games for Cash Prizes",
+      "baseURL": "https://getzoot.us/?referralCode=ZOOTwithJMENICHOLE",
+      "endpoints": {},
+      "platforms": {
+        "reddit": "r/getzoot",
+        "trustpilot": "getzoot"
+      },
+      "regulator": "Unknown",
+      "enabled": true,
+      "lastCollected": null,
+      "metadata": {
+        "description": "ZOOT has the best free to play crash, plinko, mines, and dice games that can be played for fun or to win cash prizes. Collect your daily SC and GC bonus today and Get Zooting!",
+        "completeness": 28.57142857142857,
+        "ssl": true,
+        "encryption": null,
+        "twoFactor": false,
+        "providers": [],
+        "providerCount": 0,
+        "licenses": [],
+        "licenseCount": 0,
+        "fairnessCerts": [
+          "GLI"
+        ],
+        "withdrawalMethods": [],
+        "withdrawalMethodCount": 0,
+        "avgRTP": 0,
+        "rtpCount": 0,
+        "reviewCount": 0,
+        "avgRating": 0,
+        "importDate": "2025-11-22T08:33:36.645Z",
+        "sourceFile": "casino_data_20251121_205157.csv"
+      }
+    }
+  ]
+}

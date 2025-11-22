@@ -1,0 +1,19 @@
+{
+  "casinos": [
+    {
+      "id": "stake-us",
+      "name": "Stake.us",
+      "baseURL": "https://stake.us",
+      "endpoints": {
+        "fairness": "/fairness",
+        "provablyFair": "/provably-fair"
+      },
+      "platforms": {
+        "reddit": "r/Stake"
+      },
+      "regulator": "Curacao",
+      "enabled": true,
+      "lastCollected": "2025-11-21T03:10:37.876Z"
+    }
+  ]
+}

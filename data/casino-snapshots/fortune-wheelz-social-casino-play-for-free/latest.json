@@ -1,0 +1,75 @@
+{
+  "casinoId": "fortune-wheelz-social-casino-play-for-free",
+  "casinoName": "Fortune Wheelz Social Casino: Play for Free",
+  "collectedAt": "2025-11-22T08:34:49.538Z",
+  "source": "csv-metadata",
+  "version": "1.0",
+  "compositeScore": 80,
+  "riskLevel": "MODERATE",
+  "categories": {
+    "rng_fairness": {
+      "score": 85,
+      "confidence": 0.7,
+      "rationale": [
+        "Certifications: GLI, TST"
+      ]
+    },
+    "rtp_transparency": {
+      "score": 100,
+      "confidence": 0.6,
+      "rationale": [
+        "Average RTP: 100% (1 games)"
+      ]
+    },
+    "volatility_consistency": {
+      "score": 70,
+      "confidence": 0.1,
+      "rationale": [
+        "No historical spin data available yet"
+      ]
+    },
+    "session_integrity": {
+      "score": 80,
+      "confidence": 0.8,
+      "rationale": [
+        "SSL: ✅",
+        "Encryption: Unknown",
+        "2FA: ❌"
+      ]
+    },
+    "operational_transparency": {
+      "score": 75,
+      "confidence": 0.7,
+      "rationale": [
+        "Licenses: 1 (UK Gambling Commission (United Kingdom))",
+        "Providers: 2",
+        "Withdrawal methods: 1"
+      ]
+    }
+  },
+  "metadata": {
+    "completeness": 85.71428571428571,
+    "providers": [
+      "Betsoft",
+      "Novomatic"
+    ],
+    "licenses": [
+      "UK Gambling Commission (United Kingdom)"
+    ],
+    "fairnessCerts": [
+      "GLI",
+      "TST"
+    ],
+    "ssl": true,
+    "encryption": null,
+    "twoFactor": false,
+    "avgRTP": 100,
+    "avgRating": 0,
+    "reviewCount": 0
+  },
+  "notes": [
+    "Generated from CSV scraper metadata",
+    "AI enrichment pending - schedule for next AI Collector run",
+    "Data completeness: 85.7%"
+  ]
+}

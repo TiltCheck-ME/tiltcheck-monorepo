@@ -1,0 +1,23 @@
+{
+  "name": "@tiltcheck/gameplay-analyzer",
+  "version": "0.1.0",
+  "type": "module",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "build:isolated": "tsc -p tsconfig.isolated.json",
+    "dev": "tsx src/index.ts"
+  },
+  "dependencies": {
+    "@tiltcheck/event-router": "workspace:*",
+    "@tiltcheck/grading-engine": "workspace:*",
+    "@tiltcheck/types": "workspace:*",
+    "better-sqlite3": "^11.10.0",
+    "@noble/ed25519": "^2.1.0",
+    "ulid": "^2.4.0",
+    "ws": "^8.18.3"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^7.6.13"
+  }
+}

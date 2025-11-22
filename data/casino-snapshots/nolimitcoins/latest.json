@@ -1,0 +1,73 @@
+{
+  "casinoId": "nolimitcoins",
+  "casinoName": "NoLimitCoins",
+  "collectedAt": "2025-11-22T08:34:49.541Z",
+  "source": "csv-metadata",
+  "version": "1.0",
+  "compositeScore": 42,
+  "riskLevel": "HIGH",
+  "categories": {
+    "rng_fairness": {
+      "score": 85,
+      "confidence": 0.7,
+      "rationale": [
+        "Certifications: GLI, TST"
+      ]
+    },
+    "rtp_transparency": {
+      "score": 50,
+      "confidence": 0.2,
+      "rationale": [
+        "No RTP data available"
+      ]
+    },
+    "volatility_consistency": {
+      "score": 70,
+      "confidence": 0.1,
+      "rationale": [
+        "No historical spin data available yet"
+      ]
+    },
+    "session_integrity": {
+      "score": 80,
+      "confidence": 0.8,
+      "rationale": [
+        "SSL: ✅",
+        "Encryption: Unknown",
+        "2FA: ❌"
+      ]
+    },
+    "operational_transparency": {
+      "score": 40,
+      "confidence": 0.7,
+      "rationale": [
+        "Licenses: 0 (None)",
+        "Providers: 2",
+        "Withdrawal methods: 1"
+      ]
+    }
+  },
+  "metadata": {
+    "completeness": 57.14285714285714,
+    "providers": [
+      "Betsoft",
+      "Novomatic"
+    ],
+    "licenses": [],
+    "fairnessCerts": [
+      "GLI",
+      "TST"
+    ],
+    "ssl": true,
+    "encryption": null,
+    "twoFactor": false,
+    "avgRTP": 0,
+    "avgRating": 0,
+    "reviewCount": 0
+  },
+  "notes": [
+    "Generated from CSV scraper metadata",
+    "AI enrichment pending - schedule for next AI Collector run",
+    "Data completeness: 57.1%"
+  ]
+}

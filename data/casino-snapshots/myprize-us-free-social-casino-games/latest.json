@@ -1,0 +1,71 @@
+{
+  "casinoId": "myprize-us-free-social-casino-games",
+  "casinoName": "MyPrize US: Free Social Casino Games",
+  "collectedAt": "2025-11-22T08:34:49.540Z",
+  "source": "csv-metadata",
+  "version": "1.0",
+  "compositeScore": 33,
+  "riskLevel": "CRITICAL",
+  "categories": {
+    "rng_fairness": {
+      "score": 50,
+      "confidence": 0.3,
+      "rationale": [
+        "No fairness certifications found in metadata"
+      ]
+    },
+    "rtp_transparency": {
+      "score": 50,
+      "confidence": 0.2,
+      "rationale": [
+        "No RTP data available"
+      ]
+    },
+    "volatility_consistency": {
+      "score": 70,
+      "confidence": 0.1,
+      "rationale": [
+        "No historical spin data available yet"
+      ]
+    },
+    "session_integrity": {
+      "score": 80,
+      "confidence": 0.8,
+      "rationale": [
+        "SSL: ✅",
+        "Encryption: SSL/TLS",
+        "2FA: ❌"
+      ]
+    },
+    "operational_transparency": {
+      "score": 75,
+      "confidence": 0.7,
+      "rationale": [
+        "Licenses: 1 (Malta Gaming Authority (Malta))",
+        "Providers: 1",
+        "Withdrawal methods: 0"
+      ]
+    }
+  },
+  "metadata": {
+    "completeness": 42.857142857142854,
+    "providers": [
+      "IGT"
+    ],
+    "licenses": [
+      "Malta Gaming Authority (Malta)"
+    ],
+    "fairnessCerts": [],
+    "ssl": true,
+    "encryption": "SSL/TLS",
+    "twoFactor": false,
+    "avgRTP": 0,
+    "avgRating": 0,
+    "reviewCount": 0
+  },
+  "notes": [
+    "Generated from CSV scraper metadata",
+    "AI enrichment pending - schedule for next AI Collector run",
+    "Data completeness: 42.9%"
+  ]
+}

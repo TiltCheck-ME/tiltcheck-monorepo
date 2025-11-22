@@ -1,0 +1,23 @@
+{
+  "name": "@tiltcheck/screen-analyzer",
+  "version": "0.1.0",
+  "type": "module",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsx src/index.ts"
+  },
+  "dependencies": {
+    "@tiltcheck/event-router": "workspace:*",
+    "@tiltcheck/types": "workspace:*",
+    "tesseract.js": "^5.0.4",
+    "jimp": "^0.22.10",
+    "puppeteer": "^21.6.1",
+    "ws": "^8.18.3"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.4",
+    "tsx": "^4.6.2",
+    "typescript": "^5.3.3"
+  }
+}

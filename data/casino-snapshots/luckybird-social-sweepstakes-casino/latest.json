@@ -1,0 +1,67 @@
+{
+  "casinoId": "luckybird-social-sweepstakes-casino",
+  "casinoName": "LuckyBird social sweepstakes casino",
+  "collectedAt": "2025-11-22T08:34:49.540Z",
+  "source": "csv-metadata",
+  "version": "1.0",
+  "compositeScore": 9,
+  "riskLevel": "CRITICAL",
+  "categories": {
+    "rng_fairness": {
+      "score": 50,
+      "confidence": 0.3,
+      "rationale": [
+        "No fairness certifications found in metadata"
+      ]
+    },
+    "rtp_transparency": {
+      "score": 50,
+      "confidence": 0.2,
+      "rationale": [
+        "No RTP data available"
+      ]
+    },
+    "volatility_consistency": {
+      "score": 70,
+      "confidence": 0.1,
+      "rationale": [
+        "No historical spin data available yet"
+      ]
+    },
+    "session_integrity": {
+      "score": 80,
+      "confidence": 0.8,
+      "rationale": [
+        "SSL: ✅",
+        "Encryption: Unknown",
+        "2FA: ❌"
+      ]
+    },
+    "operational_transparency": {
+      "score": 40,
+      "confidence": 0.7,
+      "rationale": [
+        "Licenses: 0 (None)",
+        "Providers: 0",
+        "Withdrawal methods: 0"
+      ]
+    }
+  },
+  "metadata": {
+    "completeness": 14.285714285714285,
+    "providers": [],
+    "licenses": [],
+    "fairnessCerts": [],
+    "ssl": true,
+    "encryption": null,
+    "twoFactor": false,
+    "avgRTP": 0,
+    "avgRating": 0,
+    "reviewCount": 0
+  },
+  "notes": [
+    "Generated from CSV scraper metadata",
+    "AI enrichment pending - schedule for next AI Collector run",
+    "Data completeness: 14.3%"
+  ]
+}

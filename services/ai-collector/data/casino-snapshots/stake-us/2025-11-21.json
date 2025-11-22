@@ -1,0 +1,93 @@
+{
+  "casinoId": "stake-us",
+  "collectedAt": "2025-11-21T03:10:37.876Z",
+  "sources": {
+    "disclosures": {
+      "rtpVersionPublished": false,
+      "auditReportPresent": false
+    },
+    "sentiment": {
+      "overallScore": 0,
+      "sampleSize": 0,
+      "topComplaints": [
+        "No reviews found"
+      ]
+    },
+    "hashVerifications": [
+      {
+        "verified": true,
+        "ts": 1763608241048
+      },
+      {
+        "verified": true,
+        "ts": 1763521841048
+      }
+    ]
+  },
+  "errors": [],
+  "grading": {
+    "casino": "stake-us",
+    "categories": {
+      "rngIntegrity": {
+        "score": 100,
+        "metrics": {
+          "hashVerification": 0,
+          "rotationRegularity": 0.3
+        },
+        "rationale": [
+          "Regular seed rotations",
+          "All hash verifications passed"
+        ]
+      },
+      "rtpTransparency": {
+        "score": 100,
+        "metrics": {
+          "payoutDrift": 0,
+          "rtpDriftScore": 0
+        },
+        "rationale": [
+          "Distribution aligns with paytable",
+          "RTP within expected range"
+        ]
+      },
+      "volatilityConsistency": {
+        "score": 100,
+        "metrics": {
+          "volatilityShift": 0,
+          "bonusLatency": 0,
+          "featureIntervalVariance": 0
+        },
+        "rationale": [
+          "Stable volatility profile",
+          "Bonus frequency as expected"
+        ]
+      },
+      "sessionBehavior": {
+        "score": 100,
+        "metrics": {
+          "seedRotationCorrelation": 0,
+          "streakClusterZ": 0,
+          "postBonusSlopeScore": 0
+        },
+        "rationale": [
+          "No rotation-payout correlation",
+          "Normal streak distribution"
+        ]
+      },
+      "transparencyEthics": {
+        "score": 85,
+        "metrics": {
+          "disclosureCompleteness": 1,
+          "auditPresenceFlag": 1
+        },
+        "rationale": [
+          "Missing key disclosures (RTP/audit)",
+          "No external audit report"
+        ]
+      }
+    },
+    "compositeScore": 97,
+    "disclaimer": "Advisory, data-driven anomaly-based grading. High anomaly values indicate statistical deviations requiring cautious interpretation, not definitive misconduct.",
+    "version": "0.1.0"
+  }
+}

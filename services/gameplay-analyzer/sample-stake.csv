@@ -1,0 +1,11 @@
+bet,win,timestamp,spin_id,outcome
+1.00,0.50,1700000000000,spin_001,cherry-cherry-lemon
+1.00,2.50,1700000005000,spin_002,seven-seven-cherry
+1.00,0.00,1700000010000,spin_003,lemon-bar-cherry
+2.00,5.00,1700000015000,spin_004,seven-seven-seven
+1.00,1.00,1700000020000,spin_005,cherry-cherry-cherry
+1.50,0.00,1700000025000,spin_006,bar-lemon-bar
+1.00,0.50,1700000030000,spin_007,cherry-lemon-cherry
+3.00,0.00,1700000035000,spin_008,bar-bar-lemon
+1.00,10.00,1700000040000,spin_009,bonus-bonus-bonus
+1.00,0.00,1700000045000,spin_010,lemon-lemon-bar

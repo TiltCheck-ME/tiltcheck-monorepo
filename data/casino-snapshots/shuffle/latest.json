@@ -1,0 +1,75 @@
+{
+  "casinoId": "shuffle",
+  "casinoName": "Shuffle",
+  "collectedAt": "2025-11-22T08:34:49.542Z",
+  "source": "csv-metadata",
+  "version": "1.0",
+  "compositeScore": 78,
+  "riskLevel": "MODERATE",
+  "categories": {
+    "rng_fairness": {
+      "score": 85,
+      "confidence": 0.7,
+      "rationale": [
+        "Certifications: GLI, TST"
+      ]
+    },
+    "rtp_transparency": {
+      "score": 94.5,
+      "confidence": 0.6,
+      "rationale": [
+        "Average RTP: 94.5% (6 games)"
+      ]
+    },
+    "volatility_consistency": {
+      "score": 70,
+      "confidence": 0.1,
+      "rationale": [
+        "No historical spin data available yet"
+      ]
+    },
+    "session_integrity": {
+      "score": 80,
+      "confidence": 0.8,
+      "rationale": [
+        "SSL: ✅",
+        "Encryption: SSL/TLS",
+        "2FA: ✅"
+      ]
+    },
+    "operational_transparency": {
+      "score": 40,
+      "confidence": 0.7,
+      "rationale": [
+        "Licenses: 0 (None)",
+        "Providers: 4",
+        "Withdrawal methods: 3"
+      ]
+    }
+  },
+  "metadata": {
+    "completeness": 85.71428571428571,
+    "providers": [
+      "NetEnt",
+      "Microgaming",
+      "Evolution Gaming",
+      "Pragmatic Play"
+    ],
+    "licenses": [],
+    "fairnessCerts": [
+      "GLI",
+      "TST"
+    ],
+    "ssl": true,
+    "encryption": "SSL/TLS",
+    "twoFactor": true,
+    "avgRTP": 94.5,
+    "avgRating": 3,
+    "reviewCount": 1
+  },
+  "notes": [
+    "Generated from CSV scraper metadata",
+    "AI enrichment pending - schedule for next AI Collector run",
+    "Data completeness: 85.7%"
+  ]
+}

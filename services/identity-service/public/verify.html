@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>TiltCheck Verification</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <style>
+    body { font-family: system-ui,-apple-system,Segoe UI,Roboto,sans-serif; margin: 2rem; background:#0f1216; color:#e8f4f8; }
+    h1 { color:#35c2ff; }
+    .card { max-width: 760px; margin:0 auto; background:#182128; padding:1.5rem 2rem; border-radius:12px; box-shadow:0 4px 12px rgba(0,0,0,.4); }
+    pre { background:#10161c; padding:1rem; overflow:auto; border-radius:8px; font-size:.8rem; }
+    button { background:#35c2ff; color:#041016; border:none; padding:.75rem 1.2rem; font-weight:600; border-radius:8px; cursor:pointer; }
+    button[disabled] { opacity:.5; cursor:not-allowed; }
+    a { color:#35c2ff; }
+    .steps { margin:1rem 0; padding-left:1.2rem; }
+    .status { margin-top:1rem; font-size:.9rem; }
+    .flex { display:flex; gap:.75rem; flex-wrap:wrap; }
+    .ok { color:#4ade80; }
+    .warn { color:#facc15; }
+    .err { color:#f87171; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>Account Verification</h1>
+    <p>One-time verification links your Discord account to a unified TiltCheck profile (trust score, wallets, gameplay history). No custody, no repeated signups.</p>
+    <ol class="steps">
+      <li>Load Terms & Privacy</li>
+      <li>Accept legal docs</li>
+      <li>Discord login via Magic</li>
+      <li>Profile activated</li>
+    </ol>
+    <div id="legal">
+      <h2>Terms (excerpt)</h2>
+      <pre id="terms">Loading...</pre>
+      <h2>Privacy (excerpt)</h2>
+      <pre id="privacy">Loading...</pre>
+    </div>
+    <label style="display:block;margin:1rem 0;">
+      <input type="checkbox" id="agree" /> I have read and accept the Terms & Privacy.
+    </label>
+    <div class="flex">
+      <button id="acceptBtn" disabled>Accept & Continue</button>
+      <button id="magicBtn" disabled>Login with Discord (Magic)</button>
+    </div>
+    <div class="status" id="status"></div>
+  </div>
+  <script>
+    const discordIdParam = new URLSearchParams(location.search).get('discordId');
+    const base = location.origin;
+    const statusEl = document.getElementById('status');
+    const agreeEl = document.getElementById('agree');
+    const acceptBtn = document.getElementById('acceptBtn');
+    const magicBtn = document.getElementById('magicBtn');
+    const termsEl = document.getElementById('terms');
+    const privacyEl = document.getElementById('privacy');
+
+    async function loadLegal() {
+      try {
+        const t = await fetch(base + '/legal/terms').then(r => r.text());
+        const p = await fetch(base + '/legal/privacy').then(r => r.text());
+        termsEl.textContent = t.slice(0, 1500) + (t.length > 1500 ? '\n... (truncated)' : '');
+        privacyEl.textContent = p.slice(0, 1500) + (p.length > 1500 ? '\n... (truncated)' : '');
+      } catch (e) {
+        termsEl.textContent = 'Failed to load terms';
+        privacyEl.textContent = 'Failed to load privacy';
+      }
+    }
+
+    loadLegal();
+
+    agreeEl.addEventListener('change', () => {
+      acceptBtn.disabled = !agreeEl.checked;
+    });
+
+    acceptBtn.addEventListener('click', async () => {
+      if (!discordIdParam) {
+        statusEl.innerHTML = '<span class="err">Missing discordId param</span>';
+        return;
+      }
+      acceptBtn.disabled = true;
+      statusEl.textContent = 'Recording acceptance...';
+      try {
+        const res = await fetch(base + '/identity/' + discordIdParam + '/accept-legal', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({})
+        }).then(r => r.json());
+        statusEl.innerHTML = '<span class="ok">Legal accepted for ' + res.discordId + '</span>'; 
+        magicBtn.disabled = false;
+      } catch (e) {
+        statusEl.innerHTML = '<span class="err">Failed: ' + e + '</span>';
+        acceptBtn.disabled = false;
+      }
+    });
+
+    magicBtn.addEventListener('click', () => {
+      // Placeholder: real integration redirects to Magic social discord login
+      const defaultRedirect = encodeURIComponent((window.BASE_PUBLIC_URL || 'https://tiltcheck.it.com') + '/auth/discord/callback');
+      const userAuth = (window.DISCORD_USER_OAUTH_URL || `https://discord.com/oauth2/authorize?client_id=1425775422360125524&response_type=code&redirect_uri=${defaultRedirect}&scope=identify%20email`);
+      statusEl.textContent = 'Redirecting to Discord login...';
+      window.location.href = userAuth;
+    });
+  </script>
+</body>
+</html>
