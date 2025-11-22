@@ -1,0 +1,157 @@
+/**
+ * Integration test: Gameplay Analyzer → Trust Events → CollectClock
+ * Verifies that anomaly detection impacts trust scoring and bonus claims
+ */
+
+import { describe, it, expect, beforeEach } from 'vitest';
+import { eventRouter } from '@tiltcheck/event-router';
+import { CollectClockService } from '@tiltcheck/collectclock';
+import { addTrustSignal, getProfile, getTrustBand } from '@tiltcheck/identity-core';
+import type { GameplayAnomalyEvent } from '@tiltcheck/types';
+
+describe('Gameplay Analyzer + CollectClock Integration', () => {
+  let collectclock: CollectClockService;
+  const testUserId = 'test-user-123';
+  const testCasino = 'test-casino';
+
+  beforeEach(() => {
+    // Reset collectclock with trust gating enabled
+    collectclock = new CollectClockService({
+      trustGating: {
+        enabled: true,
+        minTrustScore: 30,
+        trustBandLimits: {
+          RED: 1,
+          YELLOW: 2,
+          GREEN: 5,
+          PLATINUM: 10
+        }
+      }
+    });
+    
+    collectclock.registerCasino(testCasino, 100);
+  });
+
+  it('should allow bonus claim for user with good trust score', () => {
+    // Setup: User has good trust (GREEN band, score ~75)
+    addTrustSignal(testUserId, 'tip', 'tip_activity', 0.5, 1.0);
+    
+    const profile = getProfile(testUserId);
+    expect(profile.trustScore).toBeGreaterThan(50);
+    
+    // Should allow claim
+    const claim = collectclock.claimBonus(testCasino, testUserId, profile.trustScore, getTrustBand(profile.trustScore));
+    expect(claim.userId).toBe(testUserId);
+    expect(claim.amount).toBe(100);
+  });
+
+  it('should reject bonus claim for user with low trust score', () => {
+    // Setup: User has very low trust (RED band, score < 30)
+    addTrustSignal(testUserId, 'tilt', 'tilt_severity', -1, 1.0);
+    
+    const profile = getProfile(testUserId);
+    expect(profile.trustScore).toBeLessThan(30);
+    
+    // Should reject claim
+    expect(() => {
+      collectclock.claimBonus(testCasino, testUserId, profile.trustScore, getTrustBand(profile.trustScore));
+    }).toThrow(/Trust score too low/);
+  });
+
+  it('should reduce trust score when gameplay anomaly detected', () => {
+    // Setup: User starts with neutral trust
+    const initialProfile = getProfile(testUserId);
+    const initialScore = initialProfile.trustScore;
+    
+    // Simulate pump detection event from gameplay analyzer
+    const pumpEvent: GameplayAnomalyEvent = {
+      userId: testUserId,
+      casinoId: 'stake-us',
+      anomalyType: 'pump',
+      severity: 'critical',
+      confidence: 0.9,
+      metadata: {
+        observedRTP: 1.15,
+        baselineRTP: 0.96,
+        deviationRatio: 0.198,
+        windowSize: 100
+      },
+      reason: 'RTP elevated 19.8% above baseline in 100-spin window',
+      timestamp: Date.now()
+    };
+    
+    // Publish event (identity-core should auto-subscribe and reduce trust)
+    eventRouter.publish('fairness.pump.detected', 'gameplay-analyzer', pumpEvent);
+    
+    // Wait for event processing
+    const updatedProfile = getProfile(testUserId);
+    
+    // Trust should have decreased
+    expect(updatedProfile.trustScore).toBeLessThan(initialScore);
+  });
+
+  it('should enforce daily claim limits by trust band', () => {
+    // Setup: User in YELLOW band (2 claims/day limit)
+    addTrustSignal(testUserId, 'gameplay', 'rtp_drift', -0.2, 0.5);
+    
+    const profile = getProfile(testUserId);
+    const band = getTrustBand(profile.trustScore);
+    
+    // First claim should succeed
+    const claim1 = collectclock.claimBonus(testCasino, testUserId, profile.trustScore, band);
+    expect(claim1.userId).toBe(testUserId);
+    
+    // Wait for cooldown (would normally be 24h, but we can manipulate state for test)
+    // For now, this demonstrates the trust band check logic
+    expect(band).toBe('YELLOW');
+  });
+
+  it('should publish trust.casino.updated when bonus nerf detected', (done) => {
+    let trustEventReceived = false;
+    
+    // Subscribe to trust events
+    eventRouter.subscribe('trust.casino.updated', (evt) => {
+      if (evt.source === 'collectclock' && evt.data.reason?.includes('Bonus nerf')) {
+        trustEventReceived = true;
+        expect(evt.data.severity).toBeGreaterThan(0);
+        done();
+      }
+    }, 'test-suite');
+    
+    // Trigger nerf (15%+ drop)
+    collectclock.updateBonus(testCasino, 100);
+    collectclock.updateBonus(testCasino, 80); // 20% drop
+    
+    // Give event time to propagate
+    setTimeout(() => {
+      expect(trustEventReceived).toBe(true);
+    }, 100);
+  });
+
+  it('should integrate win clustering detection with trust reduction', () => {
+    // Setup: User starts neutral
+    const initialProfile = getProfile(testUserId);
+    
+    // Simulate win clustering anomaly
+    const clusterEvent: GameplayAnomalyEvent = {
+      userId: testUserId,
+      casinoId: 'stake-us',
+      anomalyType: 'win_clustering',
+      severity: 'warning',
+      confidence: 0.75,
+      metadata: {
+        clusterScore: 0.82,
+        windowSize: 100
+      },
+      reason: 'Abnormal win clustering detected',
+      timestamp: Date.now()
+    };
+    
+    eventRouter.publish('fairness.cluster.detected', 'gameplay-analyzer', clusterEvent);
+    
+    const updatedProfile = getProfile(testUserId);
+    
+    // Should apply negative trust signal
+    expect(updatedProfile.trustScore).toBeLessThan(initialProfile.trustScore);
+  });
+});

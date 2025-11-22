@@ -52,3 +52,6 @@ temp/
 # Cloudflare
 .wrangler/
 wrangler.toml.local
+age.agekey
+data/sessions.json
+apps/discord-bot/data/sessions.json
