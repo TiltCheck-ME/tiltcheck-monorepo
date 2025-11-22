@@ -5,6 +5,7 @@ TiltCheck follows a minimal attack surface philosophy:
 - no private key storage  
 - no sensitive personal data  
 - no long-term session storage  
+- no fabricated testimonials (see TRUST-POLICY.md)  
 
 ## Supported Versions
 Active version: `main` branch.

@@ -5,7 +5,15 @@
  * Gracefully falls back to in-memory when Redis is unavailable.
  */
 
-import { createClient } from 'redis';
+// Use dynamic import for Redis (ESM module)
+let createClient;
+const loadRedis = async () => {
+  if (!createClient) {
+    const redis = await import('redis');
+    createClient = redis.createClient;
+  }
+  return createClient;
+};
 
 const RATE_LIMIT_WINDOW_MS = 10 * 60 * 1000; // 10 minutes
 const MAX_REQUESTS = 5;
@@ -19,10 +27,11 @@ let useRedis = false;
 /**
  * Initialize Redis client
  */
-export async function initRateLimiter() {
+async function initRateLimiter() {
   try {
+    const getClient = await loadRedis();
     const redisUrl = process.env.REDIS_URL || 'redis://localhost:6379';
-    redisClient = createClient({ url: redisUrl });
+    redisClient = getClient({ url: redisUrl });
     
     redisClient.on('error', (err) => {
       console.error('[RateLimiter] Redis error:', err.message);
@@ -43,7 +52,7 @@ export async function initRateLimiter() {
  * @param {string} ip - Client IP address
  * @returns {Promise<{allowed: boolean, remaining: number}>}
  */
-export async function checkRateLimit(ip) {
+async function checkRateLimit(ip) {
   const key = `ratelimit:newsletter:${ip}`;
   const now = Date.now();
 
@@ -83,7 +92,7 @@ export async function checkRateLimit(ip) {
 /**
  * Express middleware for rate limiting
  */
-export function rateLimitMiddleware(req, res, next) {
+function rateLimitMiddleware(req, res, next) {
   const ip = req.ip || req.connection.remoteAddress;
   
   checkRateLimit(ip).then(({ allowed, remaining }) => {
@@ -109,9 +118,16 @@ export function rateLimitMiddleware(req, res, next) {
 /**
  * Cleanup on shutdown
  */
-export async function closeRateLimiter() {
+async function closeRateLimiter() {
   if (redisClient) {
     await redisClient.quit();
     console.log('[RateLimiter] Redis connection closed');
   }
 }
+
+module.exports = {
+  initRateLimiter,
+  checkRateLimit,
+  rateLimitMiddleware,
+  closeRateLimiter
+};

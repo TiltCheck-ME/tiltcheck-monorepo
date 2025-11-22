@@ -187,6 +187,7 @@ Before deploying:
 - `services/landing/public/styles/main.css` (723 lines)
 - `services/landing/THEME_GUIDE.md` (420 lines)
 - `services/landing/ACCESSIBILITY_AUDIT.md` (335 lines)
+- `tests/landing-image-integration.spec.ts` (image a11y tests)
 
 **Total**: 2,175 lines of production-ready code + documentation
 
@@ -222,3 +223,35 @@ Before deploying:
 **Optimized for**: Performance, Accessibility, SEO, Mobile-First  
 **Status**: ✅ Production Ready (pending final testing)  
 **Last Updated**: November 21, 2025
+
+## 🖼️ Image Integration (Latest Update)
+### What Changed
+- Mounted shared asset directory via `/assets` route in `server.js` (cache: 7d)
+- Added decorative hero background image (empty alt, non-blocking LCP)
+- Embedded 8 tool icons (lazy-loaded, descriptive concise alt text)
+- Embedded feature icons for each "Why" item (lazy-loaded, consistent sizing)
+- Added CSS for `.tool-icon`, `.feature-icon`, and `.hero-bg-img` (blend, glow, motion-safe)
+- Created test `landing-image-integration.spec.ts` to enforce alt + lazy loading
+
+### A11y & Performance Notes
+- Decorative hero image uses `alt=""` + `aria-hidden` to avoid noise
+- Icons are meaningful: concise alt (< 50 chars) supports SR users
+- All non-hero images use `loading="lazy"` + fixed `width`/`height` to reduce CLS
+- Potential next improvement: convert large JPEGs to optimized WebP/AVIF and add `<link rel="preload" as="image">` for hero asset
+
+### Remaining Opportunities
+- [ ] Image optimization (WebP/AVIF variants)
+- [ ] Automated size budget check (prevent oversized new assets)
+- [ ] Responsive `srcset` for high-density displays
+- [ ] Central icon mapping JSON for future dynamic rendering
+- [ ] Optional skeleton shimmer for tool cards before icons load
+
+### Quick Test Command
+```bash
+pnpm test --filter landing-image-integration.spec.ts
+```
+
+### Suggested Alt Text Conventions
+- Pattern: `<concept> icon` or `<action> visualization`
+- Avoid repeating "TiltCheck" (implied context)
+- Use empty alt for purely decorative / background imagery
