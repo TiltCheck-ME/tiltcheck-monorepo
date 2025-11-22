@@ -100,6 +100,11 @@ Promo submission system with auto-classification, mod approval queue, and predic
 
 ### 📋 **QualifyFirst**
 AI survey router that pre-screens users to prevent screen-outs and wasted time.
+\n+Phase 1 implementation (module `@tiltcheck/qualifyfirst`):
+- Deterministic heuristic scoring (no external AI yet)
+- Emits events: `survey.match.predicted`, `survey.route.generated`
+- Transparent reasons & risk flags (no bypass of legit exclusion criteria)
+- Ready for Phase 2 adaptive weighting & trust integration
 
 ### 🎮 **DA&D (Degens Against Decency)**
 AI-powered card game built for degen communities.
