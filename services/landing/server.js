@@ -226,7 +226,18 @@ app.get('/sitemap.xml', (_req, res) => {
 });
 
 app.get('/health', (_req, res) => {
-  res.json({ status: 'ok', service: 'landing', ts: Date.now() });
+  const mem = process.memoryUsage();
+  res.json({
+    status: 'ok',
+    service: 'landing',
+    ready: true,
+    ts: Date.now(),
+    uptimeSeconds: Math.floor(process.uptime()),
+    memory: {
+      rssMB: (mem.rss / 1024 / 1024).toFixed(2),
+      heapUsedMB: (mem.heapUsed / 1024 / 1024).toFixed(2)
+    }
+  });
 });
 
 app.get('/dashboard', (_req, res) => {
