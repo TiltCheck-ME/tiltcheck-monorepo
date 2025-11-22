@@ -2,14 +2,85 @@ const express = require('express');
 const path = require('path');
 const fs = require('fs');
 
+// Load environment variables from .env.local if it exists
+try {
+  const envFile = path.join(__dirname, '../../.env.local');
+  if (fs.existsSync(envFile)) {
+    const envContent = fs.readFileSync(envFile, 'utf8');
+    envContent.split('\n').forEach(line => {
+      const [key, value] = line.split('=');
+      if (key && value && !process.env[key]) {
+        process.env[key] = value;
+      }
+    });
+    console.log('Loaded environment variables from .env.local');
+  }
+} catch (error) {
+  console.warn('Could not load .env.local:', error.message);
+}
+
 const app = express();
 const PORT = process.env.PORT || 8080;
-const LOG_PATH = process.env.LANDING_LOG_PATH || '/app/data/landing-requests.log';
+const LOG_PATH = process.env.LANDING_LOG_PATH || '/tmp/landing-requests.log';
+
+// IP Allowlist for admin routes - Add your IP addresses here
+const ADMIN_IPS = [
+  '127.0.0.1',           // localhost
+  '::1',                 // localhost IPv6
+  '::ffff:127.0.0.1',    // localhost IPv4 mapped
+  process.env.ADMIN_IP_1, // Your home IP
+  process.env.ADMIN_IP_2, // Your office IP
+  process.env.ADMIN_IP_3  // VPN IP, etc.
+].filter(Boolean); // Remove undefined values
+
+console.log('Admin IP Allowlist configured:', ADMIN_IPS);
+
+// IP allowlist middleware
+const ipAllowlist = (req, res, next) => {
+  // Get client IP with multiple fallbacks
+  const clientIP = req.ip || 
+                  req.connection?.remoteAddress || 
+                  req.socket?.remoteAddress ||
+                  (req.connection?.socket ? req.connection.socket.remoteAddress : null) ||
+                  (req.headers['x-forwarded-for'] ? req.headers['x-forwarded-for'].split(',')[0].trim() : null) ||
+                  req.headers['x-real-ip'] ||
+                  '127.0.0.1';
+  
+  console.log(`[${new Date().toISOString()}] Admin access attempt from IP: ${clientIP}`);
+  console.log('Request headers:', JSON.stringify({
+    'x-forwarded-for': req.headers['x-forwarded-for'],
+    'x-real-ip': req.headers['x-real-ip'],
+    'user-agent': req.headers['user-agent']
+  }, null, 2));
+  
+  // Check if IP is in allowlist
+  if (!ADMIN_IPS.includes(clientIP)) {
+    const errorMsg = {
+      error: 'Access denied',
+      message: 'Admin panel access is restricted to authorized IPs only',
+      timestamp: new Date().toISOString(),
+      clientIP: clientIP,
+      allowedIPs: ADMIN_IPS.filter(Boolean)
+    };
+    
+    console.warn(`[SECURITY] Blocked admin access from unauthorized IP: ${clientIP}`);
+    
+    // Return JSON error response
+    res.status(403).json(errorMsg);
+    return;
+  }
+  
+  console.log(`[SECURITY] Admin access granted to authorized IP: ${clientIP}`);
+  next();
+};
 
 // Ensure log directory exists (best effort)
 try {
   fs.mkdirSync(path.dirname(LOG_PATH), { recursive: true });
 } catch {}
+
+// Trust proxy for accurate IP detection (important for Render/Heroku)
+app.set('trust proxy', true);
 
 // Production security headers (HSTS, CSP, etc.)
 app.use((req, res, next) => {
@@ -72,26 +143,8 @@ app.get('/dashboard', (_req, res) => {
   res.sendFile(path.join(publicDir, 'trust.html'));
 });
 
-// Protected Control Room - Admin only access
-app.get('/control-room', (req, res) => {
-  // Simple auth check - in production, use proper auth
-  const authHeader = req.headers.authorization;
-  const adminKey = process.env.ADMIN_ACCESS_KEY || 'tiltcheck-admin-2024';
-  
-  // Check for basic auth or query param for development
-  const isAuthorized = 
-    (authHeader && authHeader === `Bearer ${adminKey}`) ||
-    req.query.key === adminKey ||
-    req.headers['x-admin-key'] === adminKey;
-  
-  if (!isAuthorized) {
-    res.status(401).json({ 
-      error: 'Unauthorized', 
-      message: 'Admin access required. Use ?key=admin-key or Authorization header.' 
-    });
-    return;
-  }
-  
+// Protected Control Room - IP allowlist only
+app.get('/control-room', ipAllowlist, (req, res) => {
   // Log admin access
   const ts = new Date().toISOString();
   const line = JSON.stringify({ 
@@ -100,27 +153,17 @@ app.get('/control-room', (req, res) => {
     ip: req.ip, 
     ua: req.headers['user-agent'] || '' 
   }) + '\n';
-  fs.appendFile(LOG_PATH, line, err => { if (err) console.error('admin log failed', err); });
+  try {
+    fs.appendFileSync(LOG_PATH, line);
+  } catch (err) {
+    console.error('admin log failed', err);
+  }
   
   res.sendFile(path.join(publicDir, 'control-room.html'));
 });
 
-// Admin API endpoints for control room
-app.get('/admin/status', (req, res) => {
-  // Same auth check
-  const authHeader = req.headers.authorization;
-  const adminKey = process.env.ADMIN_ACCESS_KEY || 'tiltcheck-admin-2024';
-  
-  const isAuthorized = 
-    (authHeader && authHeader === `Bearer ${adminKey}`) ||
-    req.query.key === adminKey ||
-    req.headers['x-admin-key'] === adminKey;
-  
-  if (!isAuthorized) {
-    res.status(401).json({ error: 'Unauthorized' });
-    return;
-  }
-  
+// Admin API endpoints for control room - IP allowlist protected
+app.get('/admin/status', ipAllowlist, (req, res) => {
   // Return system status
   res.json({
     timestamp: Date.now(),
@@ -141,22 +184,8 @@ app.get('/admin/status', (req, res) => {
   });
 });
 
-// Site Map API for Control Room
-app.get('/admin/sitemap', (req, res) => {
-  // Same auth check
-  const authHeader = req.headers.authorization;
-  const adminKey = process.env.ADMIN_ACCESS_KEY || 'tiltcheck-admin-2024';
-  
-  const isAuthorized = 
-    (authHeader && authHeader === `Bearer ${adminKey}`) ||
-    req.query.key === adminKey ||
-    req.headers['x-admin-key'] === adminKey;
-  
-  if (!isAuthorized) {
-    res.status(401).json({ error: 'Unauthorized' });
-    return;
-  }
-  
+// Site Map API for Control Room - IP allowlist protected
+app.get('/admin/sitemap', ipAllowlist, (req, res) => {
   // Return site map structure with real-time status
   res.json({
     timestamp: Date.now(),
