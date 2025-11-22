@@ -127,6 +127,8 @@ app.get('/admin/status', (req, res) => {
     services: [
       { name: 'Discord Bot', status: 'online', port: null },
       { name: 'Trust Dashboard', status: 'online', port: 5055 },
+      { name: 'User Dashboard', status: 'online', port: 6001 },
+      { name: 'Casino Data API', status: 'online', port: 6002 },
       { name: 'Gameplay Analyzer', status: 'online', port: 7072 },
       { name: 'Trust Rollup', status: 'online', port: 8082 },
       { name: 'Landing Page', status: 'online', port: 8080 }

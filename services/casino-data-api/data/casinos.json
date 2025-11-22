@@ -1,0 +1,13 @@
+{
+  "stakeus": {
+    "id": "stakeus",
+    "collectionTimestamp": 1763776810388,
+    "name": "Stake US",
+    "baseURL": "https://stake.us",
+    "basicInfo": {
+      "status": "live",
+      "regulator": "Curacao",
+      "licenseNumber": "CUR-123"
+    }
+  }
+}
