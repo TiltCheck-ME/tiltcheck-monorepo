@@ -1,7 +1,7 @@
 FROM node:20-alpine
 
-# Install pnpm
-RUN npm install -g pnpm@8
+# Install pnpm (lockfileVersion 9 alignment)
+RUN npm install -g pnpm@9
 
 WORKDIR /app
 

@@ -1,8 +1,8 @@
 # Build stage
 FROM node:20-alpine AS builder
 
-# Install pnpm
-RUN npm install -g pnpm@8
+# Install pnpm (lockfileVersion 9 alignment)
+RUN npm install -g pnpm@9
 
 WORKDIR /app
 
@@ -31,8 +31,8 @@ RUN pnpm run -C packages/types build && \
 # Production stage
 FROM node:20-alpine
 
-# Install pnpm
-RUN npm install -g pnpm@8
+# Install pnpm (lockfileVersion 9 alignment)
+RUN npm install -g pnpm@9
 
 WORKDIR /app
 
