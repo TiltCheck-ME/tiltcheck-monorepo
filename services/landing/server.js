@@ -2,8 +2,7 @@
 const express = require('express');
 const path = require('path');
 const { loadConfig } = require('./lib/config');
-const { buildAdminIPs, ipAllowlistMiddleware } = require('./lib/security');
-const { initLogging } = require('./lib/logging');
+const { buildAdminIPs, ipAllowlistMiddleware, initLogging } = require('@tiltcheck/express-utils');
 const { getLatestCasinoCSVPath } = require('./lib/data-latest');
 const { buildServiceStatus, buildSiteMap } = require('./lib/meta');
 
@@ -96,6 +95,32 @@ app.get('/admin/sitemap', ipAllowlist, (_req, res) => {
       requests: Object.values(pathCounters).reduce((a, b) => a + b, 0)
     }
   });
+});
+
+// Admin logs endpoint - stream recent log entries
+app.get('/admin/logs', ipAllowlist, (req, res) => {
+  const fs = require('fs');
+  const tail = parseInt(req.query.tail) || 100;
+  
+  try {
+    const logData = fs.readFileSync(LOG_PATH, 'utf8');
+    const lines = logData.trim().split('\n').filter(Boolean);
+    const recentLines = lines.slice(-tail);
+    const parsedLogs = recentLines.map(line => {
+      try {
+        return JSON.parse(line);
+      } catch {
+        return { raw: line };
+      }
+    });
+    res.json({ logs: parsedLogs, count: parsedLogs.length, tail });
+  } catch (err) {
+    if (err.code === 'ENOENT') {
+      res.json({ logs: [], count: 0, message: 'Log file not yet created' });
+    } else {
+      res.status(500).json({ error: 'Failed to read logs', message: err.message });
+    }
+  }
 });
 
 app.use((req, res) => {

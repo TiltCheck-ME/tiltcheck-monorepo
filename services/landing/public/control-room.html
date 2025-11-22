@@ -692,6 +692,28 @@
                     </div>
                 </div>
             </div>
+            
+            <!-- Logs Panel -->
+            <div id="logs" class="panel-view" style="display: none;">
+                <div class="panel">
+                    <div class="panel-title">
+                        📜 Live Server Logs
+                        <button class="btn" onclick="refreshLogs()">Refresh</button>
+                        <button class="btn" onclick="toggleAutoRefresh()">Auto: <span id="auto-status">OFF</span></button>
+                        <select id="log-tail" onchange="refreshLogs()">
+                            <option value="25">Last 25</option>
+                            <option value="50" selected>Last 50</option>
+                            <option value="100">Last 100</option>
+                            <option value="250">Last 250</option>
+                        </select>
+                    </div>
+                    <div class="panel-content">
+                        <div id="logs-container" style="max-height: 600px; overflow-y: auto; font-family: 'Courier New', monospace; font-size: 12px; background: #000; color: #0f0; padding: 10px; border-radius: 4px;">
+                            <div class="logs-loading">Loading logs...</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </main>
     </div>
     
@@ -1373,6 +1395,94 @@
             xml += '</urlset>';
             return xml;
         }
+        
+        // Log Viewer Functions
+        let autoRefreshInterval = null;
+        
+        function refreshLogs() {
+            const key = new URLSearchParams(window.location.search).get('key') || 'tiltcheck-admin-2024';
+            const tail = document.getElementById('log-tail')?.value || 50;
+            const container = document.getElementById('logs-container');
+            
+            if (!container) return;
+            
+            container.innerHTML = '<div class="logs-loading">Loading logs...</div>';
+            
+            fetch(`/admin/logs?key=${key}&tail=${tail}`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    const logs = data.logs || [];
+                    
+                    if (!logs || logs.length === 0) {
+                        container.innerHTML = '<div style="color: #888; padding: 10px;">No logs available</div>';
+                        return;
+                    }
+                    
+                    let html = '<table style="width: 100%; border-collapse: collapse;">';
+                    html += '<thead><tr style="background: #001100; border-bottom: 2px solid #00ff41;">';
+                    html += '<th style="padding: 8px; text-align: left;">Timestamp</th>';
+                    html += '<th style="padding: 8px; text-align: left;">Method</th>';
+                    html += '<th style="padding: 8px; text-align: left;">Path</th>';
+                    html += '<th style="padding: 8px; text-align: left;">IP</th>';
+                    html += '<th style="padding: 8px; text-align: left;">User-Agent</th>';
+                    html += '</tr></thead>';
+                    html += '<tbody>';
+                    
+                    logs.forEach((log, idx) => {
+                        const bgColor = idx % 2 === 0 ? '#000' : '#001100';
+                        const methodColor = log.method === 'GET' ? '#0f0' : log.method === 'POST' ? '#ff0' : '#f80';
+                        
+                        html += `<tr style="background: ${bgColor}; border-bottom: 1px solid #003300;">`;
+                        html += `<td style="padding: 6px; color: #888;">${new Date(log.ts).toLocaleString()}</td>`;
+                        html += `<td style="padding: 6px; color: ${methodColor}; font-weight: bold;">${log.method || 'N/A'}</td>`;
+                        html += `<td style="padding: 6px; color: #0ff;">${log.path || 'N/A'}</td>`;
+                        html += `<td style="padding: 6px; color: #f0f;">${log.ip || 'N/A'}</td>`;
+                        html += `<td style="padding: 6px; color: #888; font-size: 10px;">${(log.ua || 'N/A').substring(0, 60)}...</td>`;
+                        html += '</tr>';
+                    });
+                    
+                    html += '</tbody></table>';
+                    container.innerHTML = html;
+                    
+                    // Auto-scroll to bottom
+                    container.scrollTop = container.scrollHeight;
+                })
+                .catch(error => {
+                    container.innerHTML = `<div style="color: #f00; padding: 10px;">Error loading logs: ${error.message}</div>`;
+                    console.error('Log fetch error:', error);
+                });
+        }
+        
+        function toggleAutoRefresh() {
+            const statusEl = document.getElementById('auto-status');
+            
+            if (autoRefreshInterval) {
+                clearInterval(autoRefreshInterval);
+                autoRefreshInterval = null;
+                statusEl.textContent = 'OFF';
+                statusEl.style.color = '#888';
+            } else {
+                refreshLogs(); // Immediate refresh
+                autoRefreshInterval = setInterval(refreshLogs, 5000); // Every 5 seconds
+                statusEl.textContent = 'ON';
+                statusEl.style.color = '#0f0';
+            }
+        }
+        
+        // Hook into showPanel to refresh logs when panel is shown
+        const originalShowPanel = showPanel;
+        showPanel = function(panelId) {
+            originalShowPanel(panelId);
+            
+            if (panelId === 'logs') {
+                setTimeout(() => refreshLogs(), 100);
+            }
+        };
     </script>
 </body>
 </html>
