@@ -19,6 +19,7 @@ export default defineConfig({
   },
   test: {
     include: [
+      'tests/**/*.test.{ts,tsx}',
       'apps/**/*.test.{ts,tsx}',
       'modules/**/*.test.{ts,tsx}',
       'services/**/*.test.{ts,tsx}',
