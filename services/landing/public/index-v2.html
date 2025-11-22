@@ -32,6 +32,11 @@
   
   <!-- Favicon -->
   <link rel="icon" type="image/svg+xml" href="/assets/logo/favicon-white.svg">
+  <link rel="manifest" href="/manifest.json">
+  <!-- Preload optimized hero background (will convert to WebP later) -->
+  <link rel="preload" as="image" href="/assets/images/Dark%20gradient%20hero%20background,%20layered%20radial%20neon%20teal%20and%20purple%20energy%20waves,%20soft%20gold%20sparks,%20minimal%20abstract%20pattern,%20high-resolution%20texture%20for%20overlay%20use.jpg" fetchpriority="high">
+  <link rel="canonical" href="https://tiltcheck.example/" />
+  <script type="application/ld+json">{ "@context": "https://schema.org", "@type": "Organization", "name": "TiltCheck", "url": "https://tiltcheck.example/", "logo": "https://tiltcheck.example/assets/logo/favicon-white.svg", "sameAs": ["https://x.com/Tilt_check","https://github.com/jmenichole/tiltcheck-monorepo"] }</script>
 </head>
 <body>
   <!-- Skip to main content link (accessibility) -->
@@ -79,6 +84,9 @@
     <!-- Hero Section -->
     <section class="hero" aria-labelledby="hero-title">
       <div class="container">
+        <!-- Decorative hero background image (non-essential) -->
+           <img src="/assets/images/dark-gradient-hero-background-layered-radial-neon-teal-and-purple-energy-waves-soft-gold-sparks-minimal-abstract-pattern-high-resolution-texture-for-overlay-use.webp"
+             alt="" class="hero-bg-img" loading="eager" decoding="async" aria-hidden="true" fetchpriority="high">
         <h2 id="hero-title">The Degen Transparency Layer</h2>
         <p class="hero-description">
           Tools, trust engines, predictions, and safety systems that make degen communities 
@@ -153,49 +161,57 @@
         <h2 id="tools-title" class="section-title">The Tools</h2>
         <div class="tools-grid">
           
-          <a class="tool-card" href="/tools/justthetip.html">
+          <a class="tool-card" data-tool="justthetip" href="/tools/justthetip.html">
+            <img class="tool-icon" width="56" height="56" loading="lazy" decoding="async" alt="Wallet accountability concept icon">
             <h3>JustTheTip</h3>
             <p>Non-custodial Solana tipping, airdrops, and swaps. Flat fee. No balance custody. No legal exposure.</p>
             <span class="tool-status status-live">Live</span>
           </a>
 
-          <a class="tool-card" href="/tools/suslink.html">
+          <a class="tool-card" data-tool="suslink" href="/tools/suslink.html">
+            <img class="tool-icon" width="56" height="56" loading="lazy" decoding="async" alt="Link scanning security visualization">
             <h3>SusLink</h3>
             <p>AI-powered link scanner that detects scam sites, redirects, and impersonation before you click.</p>
             <span class="tool-status status-live">Live</span>
           </a>
 
-          <a class="tool-card" href="/tools/collectclock.html">
+          <a class="tool-card" data-tool="collectclock" href="/tools/collectclock.html">
+            <img class="tool-icon" width="56" height="56" loading="lazy" decoding="async" alt="Holographic bonus tracking dashboard">
             <h3>CollectClock</h3>
             <p>Daily bonus tracker with nerf detection and bonus cycle prediction. Know when casinos change terms.</p>
             <span class="tool-status status-beta">Beta</span>
           </a>
 
-          <a class="tool-card" href="/tools/freespinscan.html">
+          <a class="tool-card" data-tool="freespinscan" href="/tools/freespinscan.html">
+            <img class="tool-icon" width="56" height="56" loading="lazy" decoding="async" alt="Holographic roulette wheel scan">
             <h3>FreeSpinScan</h3>
             <p>Promo submission system with auto-classification, mod approval queue, and prediction engine.</p>
             <span class="tool-status status-beta">Beta</span>
           </a>
 
-          <a class="tool-card" href="/tools/poker.html">
+          <a class="tool-card" data-tool="poker" href="/tools/poker.html">
+            <img class="tool-icon" width="56" height="56" loading="lazy" decoding="async" alt="Cyber transparency analytics dashboard">
             <h3>Poker</h3>
             <p>Texas Hold'em poker directly in Discord. Play with friends, track stats, climb leaderboards.</p>
             <span class="tool-status status-soon">Coming Soon</span>
           </a>
 
-          <a class="tool-card" href="/tools/tiltcheck-core.html">
+          <a class="tool-card" data-tool="tiltcheck-core" href="/tools/tiltcheck-core.html">
+            <img class="tool-icon" width="56" height="56" loading="lazy" decoding="async" alt="Trust network nodes mesh">
             <h3>TiltCheck Core</h3>
             <p>Behavior analysis, cooldown nudges, and accountability tools. Helps you slow down without policing.</p>
             <span class="tool-status status-beta">Beta</span>
           </a>
 
-          <a class="tool-card" href="/tools/qualifyfirst.html">
+          <a class="tool-card" data-tool="qualifyfirst" href="/tools/qualifyfirst.html">
+            <img class="tool-icon" width="56" height="56" loading="lazy" decoding="async" alt="Performance bar chart icon">
             <h3>QualifyFirst</h3>
             <p>AI survey router that pre-screens users to prevent screen-outs and wasted time.</p>
             <span class="tool-status status-soon">Coming Soon</span>
           </a>
 
-          <a class="tool-card" href="/tools/daad.html">
+          <a class="tool-card" data-tool="daad" href="/tools/daad.html">
+            <img class="tool-icon" width="56" height="56" loading="lazy" decoding="async" alt="Shield lock security icon">
             <h3>DA&D</h3>
             <p>Degens Against Decency. AI-powered Cards Against Humanity-style game for degen communities.</p>
             <span class="tool-status status-soon">Coming Soon</span>
@@ -211,48 +227,56 @@
         <h2 id="why-title" class="section-title">Why TiltCheck Exists</h2>
         <div class="features-list">
           <div class="feature-item">
+            <img class="feature-icon" width="60" height="60" loading="lazy" decoding="async" src="/assets/images/Minimal%20flat-icon%20style,%20black%20background%20circle,%20neon%20teal%20outline,%20gold%20fill,%20icon%20of%20a%20shield%20with%20lock%20(for%20security%20section),%20simple%20and%20clean,%20512%C3%97512%20px,%20vector%20look.jpg" alt="Shield lock security icon">
             <div>
               <h3>Scam links</h3>
               <p>Detect phishing, redirects, and impersonation before clicks happen.</p>
             </div>
           </div>
           <div class="feature-item">
+            <img class="feature-icon" width="60" height="60" loading="lazy" decoding="async" src="/assets/images/Massive%20holographic%20roulette%20wheel%20floating%20in%20a%20dark%20cyber-lab,%20neon%20teal%20and%20purple%20data%20streams%20scanning%20it,%20gold%20scan%20lines,%20dramatic%20shadows,%20cinematic%20sci-fi%20realism,%204K%20render.jpg" alt="Roulette wheel scan icon">
             <div>
               <h3>Nerfed bonuses</h3>
               <p>Track promos, nerfs, and terms changes across casinos.</p>
             </div>
           </div>
           <div class="feature-item">
+            <img class="feature-icon" width="60" height="60" loading="lazy" decoding="async" src="/assets/images/Neon%20purple%20bar%20chart%20icon%20with%20teal%20upward%20arrow,%20thin%20gold%20highlight,%20black%20circular%20badge,%20simple%20vector.jpg" alt="Bar chart icon">
             <div>
               <h3>Confusing payouts</h3>
               <p>Clarity on fees, timelines, and real-world payout behavior.</p>
             </div>
           </div>
           <div class="feature-item">
+            <img class="feature-icon" width="60" height="60" loading="lazy" decoding="async" src="/assets/images/Futuristic%20command%20war-room%20overview,%20curved%20holo%20displays,%20analytical%20graphs,%20teal%20data%20beams%20scanning%20reels,%20purple%20edge%20glows,%20gold%20signal%20pulses,%20refined%20and%20professional%20(no%20characters),%20cinematic%20top-down%20angle.jpg" alt="War-room analytics icon">
             <div>
               <h3>Mod chaos</h3>
               <p>Auto-reviewed promos, consistent rules, fewer disputes.</p>
             </div>
           </div>
           <div class="feature-item">
+            <img class="feature-icon" width="60" height="60" loading="lazy" decoding="async" src="/assets/images/Abstract%20trust%20network%20mesh,%20glowing%20neon%20teal%20nodes%20connected%20by%20thin%20purple%20links,%20one%20gold-highlighted%20anomaly%20node,%20deep%20black%20gradient%20background,%20subtle%20circuit%20traces,%20modern%20and%20clean,%20minimal%20noise.jpg" alt="Trust mesh icon">
             <div>
               <h3>Tilt spirals</h3>
               <p>Gentle cooldown nudges and accountability tools — no shame.</p>
             </div>
           </div>
           <div class="feature-item">
+            <img class="feature-icon" width="60" height="60" loading="lazy" decoding="async" src="/assets/images/Ultra-wide%20cyber-punk%20transparency%20dashboard,%20holographic%20panels%20analyzing%20slot%20fairness%20deltas,%20neon%20teal%20_%20electric%20blue%20light%20shafts,%20faint%20purple%20matrix%20code,%20subtle%20gold%20accent%20lines,%20dark%20cinematic%20atmosphere,%20high%20detail,%20soft%20volumetric%20glow.jpg" alt="Transparency dashboard icon">
             <div>
               <h3>Shady casinos</h3>
               <p>Signals for fairness, compliance, and user outcomes.</p>
             </div>
           </div>
           <div class="feature-item">
+            <img class="feature-icon" width="60" height="60" loading="lazy" decoding="async" src="/assets/images/Abstract%20trust%20network%20mesh,%20glowing%20neon%20teal%20nodes%20connected%20by%20thin%20purple%20links,%20one%20gold-highlighted%20anomaly%20node,%20deep%20black%20gradient%20background,%20subtle%20circuit%20traces,%20modern%20and%20clean,%20minimal%20noise.jpg" alt="Trust nodes icon">
             <div>
               <h3>Zero transparency</h3>
               <p>Explainable scoring and open modules.</p>
             </div>
           </div>
           <div class="feature-item">
+            <img class="feature-icon" width="60" height="60" loading="lazy" decoding="async" src="/assets/images/Wallet%20lock%20accountability%20concept_%20two%20hands%20separated%20by%20a%20transparent%20shield%20with%20a%20glowing%20teal%20lock,%20minimal,%20abstract,%20no%20faces.jpg" alt="Wallet lock icon">
             <div>
               <h3>No accountability tools</h3>
               <p>Opt-in vaults, phone-a-friend withdraws, and trust signals.</p>
@@ -288,39 +312,72 @@
   <!-- Footer -->
   <footer class="site-footer">
     <div class="container">
-      <nav aria-label="Footer navigation">
+      <div class="footer-grid">
+        <div>
+          <h3>TiltCheck</h3>
+          <p>Protecting degens from tilt-induced disaster since 2024.</p>
+        </div>
+        <div>
+          <h4>Product</h4>
+          <ul>
+            <li><a href="/">Home</a></li>
+            <li><a href="/how-it-works">How It Works</a></li>
+            <li><a href="/trust-explained">Trust System</a></li>
+                        <li><a href="/faq">FAQ</a></li>
+            <li><a href="/dashboard">Trust Dashboard</a></li>
+            <li><a href="/search">Search</a></li>
+            <li><a href="/press-kit">Press Kit</a></li>
+            <li><a href="/newsletter">Newsletter</a></li>
+            <li><a href="/testimonials">Testimonials</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4>Company</h4>
+          <ul>
+            <li><a href="/about">About</a></li>
+            <li><a href="/contact">Contact</a></li>
+            <li><a href="https://github.com/jmenichole/tiltcheck-monorepo" target="_blank" rel="noopener">GitHub</a></li>
+            <li><a href="https://discord.gg/s6NNfPHxMS" target="_blank" rel="noopener">Discord</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4>Legal</h4>
+          <ul>
+            <li><a href="/privacy">Privacy Policy</a></li>
+            <li><a href="/terms">Terms of Service</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer-bottom">
         <p>
-          <a href="/">Home</a> •
-          <a href="/#tools">All Tools</a> •
-          <a href="/about.html">About</a> •
-          <a href="/degen-trust.html">Degen Trust</a> •
-          <a href="https://discord.gg/s6NNfPHxMS" target="_blank" rel="noopener noreferrer">Discord</a> •
-          <a href="https://github.com/jmenichole/tiltcheck-monorepo" target="_blank" rel="noopener noreferrer">GitHub</a> •
-          <a href="/dashboard">Trust Dashboard</a>
+          Built by <a href="https://github.com/jmenichole" target="_blank" rel="noopener">jmenichole</a> • 
+          TiltCheck Ecosystem © 2024–2025 • 
+          <a href="https://ko-fi.com/jmenichole0" target="_blank" rel="noopener">Support</a>
         </p>
-        <p>
-          <a href="https://x.com/Tilt_check" target="_blank" rel="noopener noreferrer">X: @Tilt_check</a> •
-          <a href="https://x.com/jmenichole0" target="_blank" rel="noopener noreferrer">X: @jmenichole0</a> •
-          <a href="https://www.linkedin.com/in/jmenichole0/" target="_blank" rel="noopener noreferrer">LinkedIn</a>
-        </p>
-      </nav>
-      <p class="built-by">
-        <a href="https://jmenichole.github.io/Portfolio/" target="_blank" rel="noopener noreferrer">made for degens by degens</a>
-      </p>
-      <p class="built-by">
-        Support the project: 
-        <a href="https://ko-fi.com/jmenichole0" target="_blank" rel="noopener noreferrer">Ko-fi</a> •
-        <a href="https://github.com/sponsors/jmenichole" target="_blank" rel="noopener noreferrer">GitHub Sponsors</a>
-      </p>
-      <p class="built-by">
-        Built by <a href="https://github.com/jmenichole" target="_blank" rel="noopener noreferrer">jmenichole</a> • 
-        TiltCheck Ecosystem © 2024–2025
-      </p>
+      </div>
     </div>
   </footer>
 
   <!-- Scripts -->
   <script>
+    // Theme switcher (default / degen edition)
+    (function(){
+      const toggle = document.createElement('button');
+      toggle.textContent = 'Theme';
+      toggle.className = 'btn btn-secondary';
+      toggle.type = 'button';
+      toggle.style.position='fixed';
+      toggle.style.bottom='1rem';
+      toggle.style.right='1rem';
+      toggle.setAttribute('aria-label','Toggle theme variant');
+      let mode = 'default';
+      toggle.addEventListener('click',()=>{
+        mode = mode === 'default' ? 'degen' : 'default';
+        document.documentElement.setAttribute('data-theme', mode);
+      });
+      requestIdleCallback(() => document.body.appendChild(toggle));
+    })();
+
     // KPI population with animation
     (function() {
       const seeds = {
@@ -397,10 +454,31 @@
       });
     }
 
-    // Lazy load analytics (performance optimization)
+    // Lazy load analytics & register SW
     window.addEventListener('load', () => {
-      // Add your analytics script here
-      console.log('TiltCheck landing page loaded');
+      requestIdleCallback(() => {
+        console.log('TiltCheck landing page loaded');
+        if ('serviceWorker' in navigator) {
+          navigator.serviceWorker.register('/sw.js').catch(console.error);
+        }
+        // Persisted theme restore
+        const saved = localStorage.getItem('tc-theme');
+        if (saved) document.documentElement.setAttribute('data-theme', saved);
+        // Dynamic icon injection
+        fetch('/images-manifest.json').then(r => r.json()).then(manifest => {
+          document.querySelectorAll('.tool-card[data-tool] img.tool-icon').forEach(img => {
+            const key = img.closest('.tool-card').getAttribute('data-tool');
+            const src = manifest.tools[key];
+            if (src) {
+              img.src = src;
+              // Provide AVIF fallback via picture if needed later; for now simple srcset duplication
+              img.srcset = `${src} 1x, ${src} 2x`;
+              img.setAttribute('loading','lazy');
+              img.setAttribute('decoding','async');
+            }
+          });
+        }).catch(()=>{});
+      });
     });
   </script>
 </body>
