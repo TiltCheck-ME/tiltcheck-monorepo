@@ -6,6 +6,7 @@ set -euo pipefail
 
 ROLLUP_URL="${ROLLUP_URL:-http://localhost:8082/health}"
 BOT_URL="${BOT_URL:-http://localhost:8081/health}"
+LANDING_URL="${LANDING_URL:-http://localhost:8080/health}"
 REQUIRE_READY="${REQUIRE_READY:-true}"          # fail if ready != true
 WAIT_ATTEMPTS="${WAIT_ATTEMPTS:-30}"            # max polling attempts
 WAIT_INTERVAL="${WAIT_INTERVAL:-2}"             # seconds between attempts
@@ -54,6 +55,7 @@ check() {
 overall_rc=0
 check "trust-rollup" "$ROLLUP_URL" || overall_rc=$?
 check "discord-bot" "$BOT_URL" || overall_rc=$?
+check "landing" "$LANDING_URL" || overall_rc=$?
 
 if (( overall_rc != 0 )); then
   echo "Health checks FAILED (rc=$overall_rc)" >&2
