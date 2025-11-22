@@ -11,7 +11,13 @@ try {
       const [key, value] = line.split('=');
       if (key && value && !process.env[key]) {
         process.env[key] = value;
-      }
+      // Modularized helpers
+      const { loadConfig } = require('./lib/config');
+      const { buildAdminIPs, ipAllowlistMiddleware } = require('./lib/security');
+      const { initLogging } = require('./lib/logging');
+      const { getLatestCasinoCSVPath } = require('./lib/data-latest');
+      const { buildServiceStatus, buildSiteMap } = require('./lib/meta');
+ 
     });
     console.log('Loaded environment variables from .env.local');
   }
@@ -29,10 +35,10 @@ const ADMIN_IPS = [
   '127.0.0.1',           // localhost
   '::1',                 // localhost IPv6
   '::ffff:127.0.0.1',    // localhost IPv4 mapped
-  process.env.ADMIN_IP_1, // Your home IP
-  process.env.ADMIN_IP_2, // Your office IP
-  process.env.ADMIN_IP_3  // VPN IP, etc.
-].filter(Boolean); // Remove undefined values
+      const cfg = loadConfig();
+      const PORT = cfg.PORT;
+      const LOG_PATH = cfg.LANDING_LOG_PATH;
+      const DATA_DIR = path.join(__dirname, '../../data');
 
 console.log('Admin IP Allowlist configured:', ADMIN_IPS);
 
@@ -50,227 +56,112 @@ const ipAllowlist = (req, res, next) => {
   console.log(`[${new Date().toISOString()}] Admin access attempt from IP: ${clientIP}`);
   console.log('Request headers:', JSON.stringify({
     'x-forwarded-for': req.headers['x-forwarded-for'],
-    'x-real-ip': req.headers['x-real-ip'],
-    'user-agent': req.headers['user-agent']
-  }, null, 2));
-  
-  // Check if IP is in allowlist
-  if (!ADMIN_IPS.includes(clientIP)) {
-    const errorMsg = {
-      error: 'Access denied',
-      message: 'Admin panel access is restricted to authorized IPs only',
-      timestamp: new Date().toISOString(),
-      clientIP: clientIP,
-      allowedIPs: ADMIN_IPS.filter(Boolean)
-    };
-    
-    console.warn(`[SECURITY] Blocked admin access from unauthorized IP: ${clientIP}`);
-    
-    // Return JSON error response
-    res.status(403).json(errorMsg);
-    return;
-  }
-  
-  console.log(`[SECURITY] Admin access granted to authorized IP: ${clientIP}`);
-  next();
-};
+    // Modular landing server refactored for clarity.
+    const express = require('express');
+    const path = require('path');
+    const fs = require('fs');
+    const { loadConfig } = require('./lib/config');
+    const { buildAdminIPs, ipAllowlistMiddleware } = require('./lib/security');
+    const { initLogging } = require('./lib/logging');
+    const { getLatestCasinoCSVPath } = require('./lib/data-latest');
+    const { buildServiceStatus, buildSiteMap } = require('./lib/meta');
 
-// Ensure log directory exists (best effort)
-try {
-  fs.mkdirSync(path.dirname(LOG_PATH), { recursive: true });
-} catch {}
+    const cfg = loadConfig();
+    const PORT = cfg.PORT;
+    const LOG_PATH = cfg.LANDING_LOG_PATH;
+    const DATA_DIR = path.join(__dirname, '../../data');
 
-// Trust proxy for accurate IP detection (important for Render/Heroku)
-app.set('trust proxy', true);
+    const ADMIN_IPS = buildAdminIPs(cfg);
+    console.log('Admin IP Allowlist configured:', ADMIN_IPS);
+    const ipAllowlist = ipAllowlistMiddleware(ADMIN_IPS);
+    const { requestLogger, adminLogger, buildMetrics, pathCounters } = initLogging(LOG_PATH);
 
-// Production security headers (HSTS, CSP, etc.)
-app.use((req, res, next) => {
-  res.setHeader('X-Content-Type-Options', 'nosniff');
-  res.setHeader('X-Frame-Options', 'DENY');
-  res.setHeader('X-XSS-Protection', '1; mode=block');
-  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
-  res.setHeader('Permissions-Policy', 'geolocation=(), microphone=(), camera=()');
-  // HSTS (only if HTTPS; Render handles this but include for safety)
-  if (req.secure || req.headers['x-forwarded-proto'] === 'https') {
-    res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload');
-  }
-  // Basic CSP (adjust as needed for inline scripts/styles)
-  res.setHeader('Content-Security-Policy', "default-src 'self'; img-src 'self' data: https:; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline';");
-  res.setHeader('Cache-Control', 'public, max-age=120');
-  next();
-});
+    const app = express();
+    app.set('trust proxy', true);
 
-// Request logging + in-memory metrics
-const pathCounters = Object.create(null);
-const uaCounters = Object.create(null);
-app.use((req, _res, next) => {
-  const ts = new Date().toISOString();
-  const line = JSON.stringify({ ts, method: req.method, path: req.originalUrl, ip: req.ip, ua: req.headers['user-agent'] || '' }) + '\n';
-  fs.appendFile(LOG_PATH, line, err => { if (err) console.error('log append failed', err); });
-  pathCounters[req.path] = (pathCounters[req.path] || 0) + 1;
-  const ua = (req.headers['user-agent'] || '').slice(0, 60);
-  uaCounters[ua] = (uaCounters[ua] || 0) + 1;
-  next();
-});
-
-// Metrics endpoint (lightweight, no auth; consider restricting later)
-app.get('/metrics', (req, res) => {
-  const topPaths = Object.entries(pathCounters)
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, 15)
-    .map(([path, count]) => ({ path, count }));
-  const topUAs = Object.entries(uaCounters)
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, 10)
-    .map(([ua, count]) => ({ ua, count }));
-  res.json({ service: 'landing', ts: Date.now(), topPaths, topUAs });
-});
-
-const publicDir = path.join(__dirname, 'public');
-app.use(express.static(publicDir, { extensions: ['html'] }));
-
-// Expose only the latest casino CSV via a stable path (do NOT expose entire data directory)
-function getLatestCasinoCSVPath() {
-  try {
-    const files = fs.readdirSync(DATA_DIR)
-      .filter((f) => f.startsWith('casino_data_') && f.endsWith('.csv'))
-      .map((f) => ({
-        name: f,
-        full: path.join(DATA_DIR, f),
-        mtime: fs.statSync(path.join(DATA_DIR, f)).mtimeMs,
-      }))
-      .sort((a, b) => b.mtime - a.mtime);
-    return files.length ? files[0].full : null;
-  } catch (e) {
-    console.warn('getLatestCasinoCSVPath failed:', e.message);
-    return null;
-  }
-}
-
-app.get('/data/casino_data_latest.csv', (req, res) => {
-  const latest = getLatestCasinoCSVPath();
-  if (!latest) return res.status(404).send('No casino CSV found');
-  res.sendFile(latest);
-});
-
-// Root -> landing page
-app.get('/', (_req, res) => {
-  res.sendFile(path.join(publicDir, 'index.html'));
-});
-
-// Health check
-app.get('/health', (_req, res) => {
-  res.json({ status: 'ok', service: 'landing', ts: Date.now() });
-});
-
-// Route for dashboard
-app.get('/dashboard', (_req, res) => {
-  res.sendFile(path.join(publicDir, 'trust.html'));
-});
-
-// Protected Control Room - IP allowlist only
-app.get('/control-room', ipAllowlist, (req, res) => {
-  // Log admin access
-  const ts = new Date().toISOString();
-  const line = JSON.stringify({ 
-    ts, 
-    event: 'ADMIN_ACCESS', 
-    ip: req.ip, 
-    ua: req.headers['user-agent'] || '' 
-  }) + '\n';
-  try {
-    fs.appendFileSync(LOG_PATH, line);
-  } catch (err) {
-    console.error('admin log failed', err);
-  }
-  
-  res.sendFile(path.join(publicDir, 'control-room.html'));
-});
-
-// Admin API endpoints for control room - IP allowlist protected
-app.get('/admin/status', ipAllowlist, (req, res) => {
-  // Return system status
-  res.json({
-    timestamp: Date.now(),
-    services: [
-      { name: 'Discord Bot', status: 'online', port: null },
-      { name: 'Trust Dashboard', status: 'online', port: 5055 },
-      { name: 'User Dashboard', status: 'online', port: 6001 },
-      { name: 'Casino Data API', status: 'online', port: 6002 },
-      { name: 'Gameplay Analyzer', status: 'online', port: 7072 },
-      { name: 'Trust Rollup', status: 'online', port: 8082 },
-      { name: 'Landing Page', status: 'online', port: 8080 }
-    ],
-    metrics: {
-      uptime: process.uptime(),
-      memory: process.memoryUsage(),
-      requests: Object.values(pathCounters).reduce((a, b) => a + b, 0)
-    }
-  });
-});
-
-// Site Map API for Control Room - IP allowlist protected
-app.get('/admin/sitemap', ipAllowlist, (req, res) => {
-  // Return site map structure with real-time status
-  res.json({
-    timestamp: Date.now(),
-    stats: {
-      totalPages: 48,
-      livePages: 42,
-      devPages: 4,
-      brokenPages: 2
-    },
-    structure: {
-      'Main Site': {
-        '/': { title: 'Homepage', status: 'live', lastChecked: Date.now() },
-        '/about.html': { title: 'About TiltCheck', status: 'live', lastChecked: Date.now() },
-        '/casinos.html': { title: 'Casino Directory', status: 'live', lastChecked: Date.now() },
-        '/trust.html': { title: 'Trust Dashboard', status: 'live', lastChecked: Date.now() },
-        '/degen-trust.html': { title: 'Degen Trust Engine', status: 'live', lastChecked: Date.now() },
-        '/control-room': { title: 'Admin Control Room', status: 'live', lastChecked: Date.now() }
-      },
-      'Tools Suite': {
-        '/tools/justthetip.html': { title: 'JustTheTip - Solana Tips', status: 'live', lastChecked: Date.now() },
-        '/tools/suslink.html': { title: 'SusLink - URL Scanner', status: 'live', lastChecked: Date.now() },
-        '/tools/collectclock.html': { title: 'CollectClock - Time Tracking', status: 'live', lastChecked: Date.now() },
-        '/tools/freespinscan.html': { title: 'FreeSpinScan - Bonus Tracker', status: 'live', lastChecked: Date.now() },
-        '/tools/tiltcheck-core.html': { title: 'TiltCheck Core', status: 'live', lastChecked: Date.now() },
-        '/tools/poker.html': { title: 'Poker Analytics', status: 'dev', lastChecked: Date.now() },
-        '/tools/triviadrops.html': { title: 'TriviaDrops - Rewards', status: 'live', lastChecked: Date.now() },
-        '/tools/qualifyfirst.html': { title: 'QualifyFirst - Verification', status: 'dev', lastChecked: Date.now() },
-        '/tools/daad.html': { title: 'DA&D - Decision Analytics', status: 'live', lastChecked: Date.now() }
-      },
-      'API Endpoints': {
-        '/api/health': { title: 'Health Check', status: 'live', lastChecked: Date.now() },
-        '/api/rollups/latest': { title: 'Latest Trust Rollups', status: 'live', lastChecked: Date.now() },
-        '/api/domains': { title: 'Domain Trust Scores', status: 'live', lastChecked: Date.now() },
-        '/api/degens': { title: 'User Trust Scores', status: 'live', lastChecked: Date.now() },
-        '/api/severity': { title: 'Severity Buckets', status: 'live', lastChecked: Date.now() },
-        '/admin/status': { title: 'Admin Status (Protected)', status: 'live', lastChecked: Date.now() },
-        '/admin/sitemap': { title: 'Site Map API (Protected)', status: 'live', lastChecked: Date.now() }
-      },
-      'System Services': {
-        'Discord Bot': { title: 'TiltCheck#8564', status: 'live', port: null },
-        'Trust Dashboard Service': { title: 'Dashboard API', status: 'live', port: 5055 },
-        'Landing Service': { title: 'Marketing & Static', status: 'live', port: 3000 },
-        'Trust Rollup Service': { title: 'Data Aggregation', status: 'live', port: 8082 },
-        'Event Router': { title: 'Message Bus', status: 'live', port: null }
+    app.use((req, res, next) => {
+      res.setHeader('X-Content-Type-Options', 'nosniff');
+      res.setHeader('X-Frame-Options', 'DENY');
+      res.setHeader('X-XSS-Protection', '1; mode=block');
+      res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+      res.setHeader('Permissions-Policy', 'geolocation=(), microphone=(), camera=()');
+      if (req.secure || req.headers['x-forwarded-proto'] === 'https') {
+        res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload');
       }
-    },
-    deployment: {
-      environment: process.env.NODE_ENV || 'development',
-      uptime: process.uptime(),
-      memory: process.memoryUsage(),
-      requests: Object.values(pathCounters).reduce((a, b) => a + b, 0)
-    }
-  });
-});
+      res.setHeader('Content-Security-Policy', "default-src 'self'; img-src 'self' data: https:; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline';");
+      res.setHeader('Cache-Control', 'public, max-age=120');
+      next();
+    });
 
-// Fallback 404
-app.use((req, res) => {
-  res.status(404).json({ error: 'Not Found', path: req.originalUrl });
-});
+    app.use(requestLogger);
 
-app.listen(PORT, () => {
-  console.log(`Landing service listening on port ${PORT}`);
-});
+    app.get('/metrics', (_req, res) => {
+      const m = buildMetrics();
+      res.json({ service: 'landing', ts: Date.now(), topPaths: m.topPaths, topUAs: m.topUAs });
+    });
+
+    const publicDir = path.join(__dirname, 'public');
+    app.use(express.static(publicDir, { extensions: ['html'] }));
+
+    app.get('/data/casino_data_latest.csv', (_req, res) => {
+      const latest = getLatestCasinoCSVPath(DATA_DIR);
+      if (!latest) return res.status(404).send('No casino CSV found');
+      res.sendFile(latest);
+    });
+
+    app.get('/', (_req, res) => {
+      res.sendFile(path.join(publicDir, 'index.html'));
+    });
+
+    app.get('/health', (_req, res) => {
+      res.json({ status: 'ok', service: 'landing', ts: Date.now() });
+    });
+
+    app.get('/dashboard', (_req, res) => {
+      res.sendFile(path.join(publicDir, 'trust.html'));
+    });
+
+    app.get('/control-room', ipAllowlist, (req, res) => {
+      adminLogger(req);
+      res.sendFile(path.join(publicDir, 'control-room.html'));
+    });
+
+    app.get('/admin/status', ipAllowlist, (_req, res) => {
+      res.json({
+        timestamp: Date.now(),
+        services: buildServiceStatus(),
+        metrics: {
+          uptime: process.uptime(),
+          memory: process.memoryUsage(),
+          requests: Object.values(pathCounters).reduce((a, b) => a + b, 0)
+        }
+      });
+    });
+
+    app.get('/admin/sitemap', ipAllowlist, (_req, res) => {
+      res.json({
+        timestamp: Date.now(),
+        stats: {
+          totalPages: 48,
+          livePages: 42,
+          devPages: 4,
+          brokenPages: 2
+        },
+        structure: buildSiteMap(),
+        deployment: {
+          environment: cfg.NODE_ENV,
+          uptime: process.uptime(),
+          memory: process.memoryUsage(),
+          requests: Object.values(pathCounters).reduce((a, b) => a + b, 0)
+        }
+      });
+    });
+
+    app.use((req, res) => {
+      res.status(404).json({ error: 'Not Found', path: req.originalUrl });
+    });
+
+    app.listen(PORT, () => {
+      console.log(`Landing service listening on port ${PORT}`);
+    });
+// Health check
