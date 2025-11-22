@@ -2,6 +2,8 @@
 
 ## 🎉 Successfully Completed
 
+> CI trigger marker (workflow_dispatch enabled): 2025-11-22T00:00:00Z
+
 ### Infrastructure ✅
 
 1. **Monorepo Setup**
