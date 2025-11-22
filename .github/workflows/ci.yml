@@ -36,16 +36,15 @@ jobs:
         run: pnpm test
       - name: Landing server health check
         run: |
+          export PORT=8080
+          export LANDING_LOG_PATH=/tmp/ci-landing.log
+          export ADMIN_IP_1=127.0.0.1
           cd services/landing
           node server.js &
           SERVER_PID=$!
-          sleep 3
+          sleep 5
           curl -f http://localhost:8080/health || (kill $SERVER_PID && exit 1)
           kill $SERVER_PID
-        env:
-          PORT: 8080
-          LANDING_LOG_PATH: /tmp/ci-landing.log
-          ADMIN_IP_1: 127.0.0.1
       - name: Generate coverage report
         run: pnpm coverage
       - name: Upload coverage artifact
