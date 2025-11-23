@@ -17,7 +17,7 @@
   "dependencies": {
     "express": "^4.19.2",
     "cors": "^2.8.5",
-    "commander": "^12.1.0",
+    "commander": "^14.0.2",
     "@types/node": "^20.12.7"
   },
   "devDependencies": {

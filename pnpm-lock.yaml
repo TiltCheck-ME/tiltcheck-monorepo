@@ -489,8 +489,8 @@ importers:
         specifier: ^20.12.7
         version: 20.19.25
       commander:
-        specifier: ^12.1.0
-        version: 12.1.0
+        specifier: ^14.0.2
+        version: 14.0.2
       cors:
         specifier: ^2.8.5
         version: 2.8.5
