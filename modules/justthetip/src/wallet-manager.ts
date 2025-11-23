@@ -25,10 +25,19 @@ const wallets = new Map<string, WalletInfo>();
  * Register external wallet (Phantom, Solflare, etc.)
  */
 export function registerExternalWallet(userId: string, address: string): WalletInfo {
-  // Validate Solana address (skip in test mode for mock addresses)
+  // Defensive validation (skip in test mode for mock addresses)
   if (process.env.NODE_ENV !== 'test') {
+    const base58Re = /^[1-9A-HJ-NP-Za-km-z]+$/; // Solana base58 alphabet
+    if (!base58Re.test(address) || address.length < 32 || address.length > 50) {
+      throw new Error('Invalid Solana address format');
+    }
     try {
-      new PublicKey(address);
+      const pk = new PublicKey(address);
+      const buf = pk.toBuffer();
+      // Public keys should be exactly 32 bytes (Ed25519)
+      if (buf.length !== 32) {
+        throw new Error('Unexpected public key length');
+      }
     } catch {
       throw new Error('Invalid Solana address');
     }
@@ -111,3 +120,7 @@ export function clearWallets(): void {
 export function getAllWallets(): Map<string, WalletInfo> {
   return new Map(wallets);
 }
+
+// Future extension point: if lower-level SPL Token account parsing is added,
+// introduce buffer length & range assertions before passing user-influenced
+// data into token layout utilities to mitigate bigint-buffer overflow risk.
