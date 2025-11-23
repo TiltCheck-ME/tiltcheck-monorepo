@@ -18,7 +18,7 @@
     "passport": "^0.7.0",
     "passport-discord": "^0.1.4",
     "socket.io": "^4.7.0",
-    "uuid": "^9.0.0",
+    "uuid": "^13.0.0",
     "@tiltcheck/types": "workspace:*",
     "@tiltcheck/event-router": "workspace:*",
     "@tiltcheck/dad": "workspace:*",
