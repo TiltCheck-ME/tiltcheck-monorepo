@@ -8,6 +8,10 @@ on:
     # Run health checks every 6 hours
     - cron: '0 */6 * * *'
 
+permissions:
+  contents: read
+  issues: write
+
 jobs:
   verify-production:
     name: Verify Production Health
