@@ -21,16 +21,46 @@ export interface WalletInfo {
 const wallets = new Map<string, WalletInfo>();
 
 /**
+ * Validate Solana address format and length to prevent bigint-buffer vulnerability
+ * (GHSA-3gc7-fjrx-p6mg) from processing malformed inputs.
+ * 
+ * @param address - The Solana address to validate
+ * @throws Error if address is invalid
+ */
+function validateSolanaAddress(address: string): void {
+  // Check for base58 charset (no 0, O, I, l)
+  const base58Regex = /^[1-9A-HJ-NP-Za-km-z]+$/;
+  if (!base58Regex.test(address)) {
+    throw new Error('Invalid Solana address: contains invalid characters');
+  }
+
+  // Typical Solana address is 32-44 characters (base58 encoded 32 bytes)
+  if (address.length < 32 || address.length > 44) {
+    throw new Error('Invalid Solana address: incorrect length');
+  }
+
+  // Attempt to decode and verify it's exactly 32 bytes
+  let publicKey: PublicKey;
+  try {
+    publicKey = new PublicKey(address);
+  } catch {
+    throw new Error('Invalid Solana address: failed to decode');
+  }
+
+  // Verify the decoded key is exactly 32 bytes (prevents buffer overflow)
+  const keyBytes = publicKey.toBytes();
+  if (keyBytes.length !== 32) {
+    throw new Error('Invalid Solana address: must be exactly 32 bytes');
+  }
+}
+
+/**
  * Register external wallet (Phantom, Solflare, etc.)
  */
 export function registerExternalWallet(userId: string, address: string): WalletInfo {
   // Validate Solana address (skip in test mode for mock addresses)
   if (process.env.NODE_ENV !== 'test') {
-    try {
-      new PublicKey(address);
-    } catch {
-      throw new Error('Invalid Solana address');
-    }
+    validateSolanaAddress(address);
   }
 
   const walletInfo: WalletInfo = {
