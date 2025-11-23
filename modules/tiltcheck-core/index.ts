@@ -9,7 +9,7 @@ export interface TiltEvent {
   severity: 'low' | 'medium' | 'high';
 }
 
-export function detectTilt(userId: string): TiltEvent | null {
+export function detectTilt(_userId: string): TiltEvent | null {
   // TODO: Implement tilt detection logic
   return null;
 }

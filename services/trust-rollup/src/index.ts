@@ -267,7 +267,7 @@ export function flushTrustRollups() {
   publishRollups();
 }
 
-let ready = true; // Service sets ready immediately after subscriptions
+// Service sets ready immediately after subscriptions
 console.log('[TrustRollup] Service initialized');
 
 // Start external casino verification scheduler

@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { emitDomainTrustFromScan } from '../src/trust-domain';
 import { eventRouter } from '@tiltcheck/event-router';
-import type { LinkScanResult, TiltCheckEvent } from '@tiltcheck/types';
+import type { LinkScanResult } from '@tiltcheck/types';
 
 function makeScan(riskLevel: LinkScanResult['riskLevel'], url = 'https://example.com'): LinkScanResult {
   return { url, riskLevel, reason: `test:${riskLevel}`, scannedAt: new Date() };

@@ -3,13 +3,13 @@
   "version": "1.0.0",
   "description": "Casino data collection API for TiltCheck AI agents",
   "type": "module",
-  "main": "src/index.js",
+  "main": "dist/index.js",
   "bin": {
-    "casino-collector": "src/cli.js"
+    "casino-collector": "dist/cli.js"
   },
   "scripts": {
     "dev": "tsx watch src/index.ts",
-    "build": "tsx src/index.ts",
+    "build": "tsc",
     "start": "node dist/index.js",
     "cli": "tsx src/cli.ts"
   },

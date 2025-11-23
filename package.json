@@ -2,6 +2,7 @@
   "name": "tiltcheck-monorepo",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "description": "TiltCheck Ecosystem - Built by a degen, for degens",
   "author": "jmenichole",
   "license": "UNLICENSED",

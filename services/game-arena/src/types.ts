@@ -5,15 +5,19 @@
 import type { Request } from 'express';
 
 // Extend Express Request user globally
+export interface ExpressUser {
+  id: string;
+  username: string;
+  discriminator: string;
+  avatar: string | null;
+  email?: string;
+}
+
 declare global {
+  // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace Express {
-    interface User {
-      id: string;
-      username: string;
-      discriminator: string;
-      avatar: string | null;
-      email?: string;
-    }
+    // eslint-disable-next-line @typescript-eslint/no-empty-object-type
+    interface User extends ExpressUser {}
   }
 }
 

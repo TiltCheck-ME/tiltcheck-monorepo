@@ -1,6 +1,8 @@
 import { Keypair } from '@solana/web3.js';
 import { eventRouter } from '@tiltcheck/event-router';
 import { parseAmount } from '@tiltcheck/natural-language-parser';
+import fs from 'fs';
+import path from 'path';
 
 export interface LockVaultInput {
   userId: string;
@@ -53,8 +55,6 @@ class VaultManager {
 
   private persist() {
     try {
-      const fs = require('fs');
-      const path = require('path');
       const payload = JSON.stringify({ vaults: Array.from(this.vaults.values()) }, null, 2);
       const dir = path.dirname(this.persistencePath);
       if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
@@ -66,7 +66,6 @@ class VaultManager {
 
   private load() {
     try {
-      const fs = require('fs');
       if (!fs.existsSync(this.persistencePath)) return;
       const raw = JSON.parse(fs.readFileSync(this.persistencePath, 'utf-8'));
       for (const v of raw.vaults || []) {

@@ -60,7 +60,7 @@ function loadFiles() {
       const raw = JSON.parse(fs.readFileSync(DEGEN_FILE, 'utf-8'));
       degenScores = raw.users || raw.userScores || [];
     }
-  } catch (err) { /* optional file */ }
+  } catch (_err) { /* optional file */ }
 }
 
 setInterval(loadFiles, POLL_INTERVAL_MS);
@@ -148,7 +148,7 @@ export function createServer(): any {
       if(fs.existsSync(GAUGE_CONFIG_PATH)){
         return JSON.parse(fs.readFileSync(GAUGE_CONFIG_PATH,'utf-8'));
       }
-    } catch(err){ /* ignore */ }
+    } catch(_err){ /* ignore */ }
     return {
       volatilityInvertMax: 100,
       midSeverityPenalty: 1,
@@ -174,7 +174,7 @@ export function createServer(): any {
       fs.mkdirSync(path.dirname(GAUGE_CONFIG_PATH), { recursive: true });
       fs.writeFileSync(GAUGE_CONFIG_PATH, JSON.stringify(next, null, 2));
       return next;
-    } catch(err){ return current; }
+    } catch(_err){ return current; }
   }
 
   // SSE endpoint
@@ -369,7 +369,7 @@ export function createServer(): any {
       legalResp.region = region.toUpperCase();
       legalResp.casino = casinoId || null;
       legalResp.triggers = triggers;
-    } catch (e) {
+    } catch (_e) {
       legalResp.error = 'legal_rights_stub_failed';
     }
     const evidence = {
@@ -405,7 +405,7 @@ export function createServer(): any {
       });
       // Age-based pruning
       parsed.filter(p => (now - p.ts) > retentionMs).forEach(p => {
-        try { fs.unlinkSync(path.join(EVIDENCE_DIR, p.file)); } catch(err){ /* ignore */ }
+        try { fs.unlinkSync(path.join(EVIDENCE_DIR, p.file)); } catch(_err){ /* ignore */ }
       });
       // Count-based pruning
       const remaining = fs.readdirSync(EVIDENCE_DIR).filter(f=>f.endsWith('.json'));
@@ -416,9 +416,9 @@ export function createServer(): any {
           return { file: f, ts };
         }).sort((a,b)=>a.ts - b.ts); // oldest first
         const toRemove = again.slice(0, again.length - EVIDENCE_MAX_COUNT);
-        toRemove.forEach(p => { try { fs.unlinkSync(path.join(EVIDENCE_DIR, p.file)); } catch(err){ /* ignore */ } });
+        toRemove.forEach(p => { try { fs.unlinkSync(path.join(EVIDENCE_DIR, p.file)); } catch(_err){ /* ignore */ } });
       }
-    } catch(err){ /* silent prune errors */ }
+    } catch(_err){ /* silent prune errors */ }
   }
 
   app.post('/api/evidence/package', (req: any, res: any) => {
@@ -458,7 +458,7 @@ export function createServer(): any {
       fs.writeFileSync(path.join(EVIDENCE_DIR, `${pkg.id}.json`), JSON.stringify(pkg, null, 2));
       pruneEvidencePackages();
       res.json({ ok:true, id: pkg.id, triggersCount: triggers.length, retentionDays: EVIDENCE_RETENTION_DAYS });
-    } catch (err) {
+    } catch (_err) {
       res.status(500).json({ ok:false, error:'persist_failed' });
     }
   });
@@ -470,7 +470,7 @@ export function createServer(): any {
       const files = fs.readdirSync(EVIDENCE_DIR).filter(f=>f.endsWith('.json'));
       const list = files.map(f => ({ id: f.replace('.json','') })).sort((a,b)=> (a.id < b.id ? 1 : -1)).slice(0, EVIDENCE_MAX_COUNT);
       res.json({ packages: list, retentionDays: EVIDENCE_RETENTION_DAYS, maxCount: EVIDENCE_MAX_COUNT });
-    } catch (err) {
+    } catch (_err) {
       res.status(500).json({ packages: [], error:'list_failed' });
     }
   });
@@ -481,7 +481,7 @@ export function createServer(): any {
       const target = path.join(EVIDENCE_DIR, `${req.params.id}.json`);
       if(!fs.existsSync(target)) return res.status(404).json({ error:'not_found' });
       res.type('application/json').send(fs.readFileSync(target,'utf-8'));
-    } catch (err) {
+    } catch (_err) {
       res.status(500).json({ error:'read_failed' });
     }
   });
@@ -524,7 +524,7 @@ export function createServer(): any {
         lines.push(`trigger_${i}_evidenceCount,${t.evidenceCount}`);
       });
       res.type('text/csv').send(lines.join('\n'));
-    } catch(err){ res.status(500).send('error,export_failed'); }
+    } catch(_err){ res.status(500).send('error,export_failed'); }
   });
 
   // CSV transient export (no persistence) using query params similar to GET JSON endpoint
@@ -571,7 +571,7 @@ export function createServer(): any {
         lines.push(`trigger_${i}_evidenceCount,${t.evidenceCount}`);
       });
       res.type('text/csv').send(lines.join('\n'));
-    } catch(err){ res.status(500).send('error,export_failed'); }
+    } catch(_err){ res.status(500).send('error,export_failed'); }
   });
 
   // Persist event buffer periodically (simple overwrite; rotation by day can be added later)
