@@ -202,18 +202,20 @@ program
       console.log(`📋 Found ${result.count} casinos`);
       console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
       
-      result.casinos.forEach((casino: any, index: number) => {
-        console.log(`${index + 1}. ${casino.name} (${casino.id})`);
-        console.log(`   Status: ${casino.status}`);
-        if (casino.regulator) console.log(`   Regulator: ${casino.regulator}`);
-        if (casino.collectionTimestamp) {
-          console.log(`   Last Updated: ${new Date(casino.collectionTimestamp).toLocaleString()}`);
-        }
+      if (result.casinos && result.casinos.length > 0) {
+        result.casinos.forEach((casino: any, index: number) => {
+          console.log(`${index + 1}. ${casino.name} (${casino.id})`);
+          console.log(`   Status: ${casino.status}`);
+          if (casino.regulator) console.log(`   Regulator: ${casino.regulator}`);
+          if (casino.collectionTimestamp) {
+            console.log(`   Last Updated: ${new Date(casino.collectionTimestamp).toLocaleString()}`);
+          }
           console.log('');
         });
       } else {
         console.log('No casinos found.');
-      }    } catch (error) {
+      }
+    } catch (error) {
       console.error('❌ Failed to list casinos:');
       console.error(error instanceof Error ? error.message : error);
       process.exit(1);
