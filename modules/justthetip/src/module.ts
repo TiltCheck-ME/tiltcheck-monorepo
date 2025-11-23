@@ -259,18 +259,31 @@ export class JustTheTipModule {
    * Initiate a token-based tip (with swap)
    */
   async initiateTokenTip(senderId: string, recipientId: string, amount: number, token: string) {
-    // Stub implementation for token swap
+    // Get token price from oracle
+    const tokenPrice = pricingOracle.getUsdPrice(token);
+    const solPrice = pricingOracle.getUsdPrice('SOL');
+    
+    // Calculate USD value of input token
+    const usdValue = amount * tokenPrice;
+    
+    // Calculate SOL amount from USD value
+    const solAmount = usdValue / solPrice;
+    
+    // Apply platform fee (0.7% or 70 basis points)
+    const platformFeeBps = 70;
+    const outputAmount = solAmount * (1 - platformFeeBps / 10000);
+    
     const quote = {
       inputToken: token,
       outputToken: 'SOL',
       inputAmount: amount,
-      outputAmount: amount * 0.99, // Simulated conversion
+      outputAmount: outputAmount,
       slippageBps: 50,
-      platformFeeBps: 70,
-      minOutputAmount: amount * 0.98,
+      platformFeeBps: platformFeeBps,
+      minOutputAmount: outputAmount * 0.98,
     };
 
-    const tip = await this.initiateTip(senderId, recipientId, quote.outputAmount, 'SOL');
+    const tip = await this.initiateTip(senderId, recipientId, outputAmount, 'SOL');
 
     await eventRouter.publish('swap.quote', 'justthetip', {
       tipId: tip.id,
@@ -298,6 +311,15 @@ export class JustTheTipModule {
 
     // Clear pending tips for this user
     this.pendingTips.delete(userId);
+  }
+
+  /**
+   * Clear all state (for testing)
+   */
+  clearState(): void {
+    this.wallets.clear();
+    this.tips.clear();
+    this.pendingTips.clear();
   }
 }
 

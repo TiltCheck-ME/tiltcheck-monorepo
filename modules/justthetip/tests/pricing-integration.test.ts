@@ -2,11 +2,13 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import { JustTheTipModule } from '../src/index';
 import { pricingOracle } from '@tiltcheck/pricing-oracle';
 import { eventRouter } from '@tiltcheck/event-router';
+import { clearWallets } from '../src/wallet-manager';
 
 describe('JustTheTip Pricing Integration', () => {
   let mod: JustTheTipModule;
 
   beforeEach(() => {
+    clearWallets(); // Clear wallets from previous tests
     mod = new JustTheTipModule();
     eventRouter.clearHistory();
     pricingOracle.setUsdPrice('SOL', 200);
