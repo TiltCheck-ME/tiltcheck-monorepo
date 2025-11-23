@@ -1,0 +1,258 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: #0d1117;
+    color: #c9d1d9;
+}
+
+.dark-theme {
+    background: #0d1117;
+    color: #c9d1d9;
+}
+
+.login-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+}
+
+.login-box {
+    background: #161b22;
+    padding: 2rem;
+    border-radius: 8px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+    text-align: center;
+    max-width: 400px;
+}
+
+.login-box h1 {
+    margin-bottom: 0.5rem;
+}
+
+.login-box p {
+    color: #8b949e;
+    margin-bottom: 1.5rem;
+}
+
+.login-box input {
+    width: 100%;
+    padding: 0.75rem;
+    margin-bottom: 1rem;
+    background: #0d1117;
+    border: 1px solid #30363d;
+    border-radius: 6px;
+    color: #c9d1d9;
+    font-size: 1rem;
+}
+
+.login-box button {
+    width: 100%;
+    padding: 0.75rem;
+    background: #238636;
+    border: none;
+    border-radius: 6px;
+    color: white;
+    font-size: 1rem;
+    cursor: pointer;
+}
+
+.login-box button:hover {
+    background: #2ea043;
+}
+
+.error {
+    color: #f85149;
+    margin-top: 1rem;
+}
+
+header {
+    background: #161b22;
+    padding: 1rem 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #30363d;
+}
+
+.header-actions {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+}
+
+.grid-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    gap: 1.5rem;
+    padding: 2rem;
+}
+
+.panel {
+    background: #161b22;
+    border: 1px solid #30363d;
+    border-radius: 6px;
+    padding: 1.5rem;
+}
+
+.panel.full-width {
+    grid-column: 1 / -1;
+}
+
+.panel h2 {
+    margin-bottom: 1rem;
+    color: #58a6ff;
+}
+
+.service {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem;
+    margin-bottom: 0.5rem;
+    background: #0d1117;
+    border-radius: 4px;
+}
+
+.status-badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 12px;
+    font-size: 0.875rem;
+}
+
+.status-badge.running {
+    background: #238636;
+    color: white;
+}
+
+.status-badge.stopped {
+    background: #6e7681;
+    color: white;
+}
+
+.metric {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.5rem 0;
+}
+
+.feed {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.feed-entry {
+    display: flex;
+    gap: 1rem;
+    padding: 0.5rem;
+    border-bottom: 1px solid #30363d;
+    font-size: 0.875rem;
+}
+
+.terminal {
+    background: #0d1117;
+    border: 1px solid #30363d;
+    border-radius: 4px;
+    padding: 1rem;
+    height: 200px;
+    overflow-y: auto;
+    font-family: 'Courier New', monospace;
+    font-size: 0.875rem;
+    margin-bottom: 1rem;
+}
+
+.terminal .input {
+    color: #58a6ff;
+}
+
+.terminal .output {
+    color: #7ee787;
+    margin-bottom: 0.5rem;
+}
+
+.actions, .actions-grid {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+button, .btn-primary, .btn-secondary, .btn-danger, .btn-warning, .btn-small {
+    padding: 0.5rem 1rem;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.875rem;
+}
+
+.btn-primary {
+    background: #238636;
+    color: white;
+}
+
+.btn-primary:hover {
+    background: #2ea043;
+}
+
+.btn-secondary {
+    background: #21262d;
+    color: #c9d1d9;
+    border: 1px solid #30363d;
+}
+
+.btn-secondary:hover {
+    background: #30363d;
+}
+
+.btn-danger {
+    background: #da3633;
+    color: white;
+}
+
+.btn-danger:hover {
+    background: #f85149;
+}
+
+.btn-warning {
+    background: #bb8009;
+    color: white;
+}
+
+.btn-warning:hover {
+    background: #d29922;
+}
+
+.btn-small {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+}
+
+#terminal-form {
+    display: flex;
+    gap: 0.5rem;
+}
+
+#terminal-form input {
+    flex: 1;
+    padding: 0.5rem;
+    background: #0d1117;
+    border: 1px solid #30363d;
+    border-radius: 6px;
+    color: #c9d1d9;
+}
+
+.doc-item {
+    padding: 0.5rem;
+    margin-bottom: 0.25rem;
+    background: #0d1117;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.doc-item:hover {
+    background: #161b22;
+}
