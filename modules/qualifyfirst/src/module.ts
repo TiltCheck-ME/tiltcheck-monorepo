@@ -189,9 +189,7 @@ export class QualifyFirstModule {
 
     for (const survey of this.surveys.values()) {
       const matchResult = this.calculateMatch(profile, survey);
-      if (matchResult.matchProbability > 0) {
-        matches.push(matchResult);
-      }
+      matches.push(matchResult);
     }
 
     // Sort by match probability (highest first)
