@@ -1,0 +1,164 @@
+name: Security Audit
+
+on:
+  schedule:
+    # Run daily at 00:00 UTC
+    - cron: '0 0 * * *'
+  workflow_dispatch: # Allow manual trigger
+  pull_request:
+    paths:
+      - 'pnpm-lock.yaml'
+      - 'package.json'
+      - '**/package.json'
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run pnpm audit
+        id: audit
+        run: |
+          # Run audit and capture output
+          pnpm audit --json > audit-results.json 2>&1 || true
+          
+          # Check if there are vulnerabilities
+          if [ -s audit-results.json ]; then
+            echo "audit_output<<EOF" >> $GITHUB_OUTPUT
+            cat audit-results.json >> $GITHUB_OUTPUT
+            echo "EOF" >> $GITHUB_OUTPUT
+            
+            # Check for high/critical vulnerabilities
+            if grep -q '"severity":"high"' audit-results.json || grep -q '"severity":"critical"' audit-results.json; then
+              echo "has_high_severity=true" >> $GITHUB_OUTPUT
+            else
+              echo "has_high_severity=false" >> $GITHUB_OUTPUT
+            fi
+          else
+            echo "has_high_severity=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Check for bigint-buffer vulnerability
+        id: check_bigint
+        run: |
+          # Check if bigint-buffer is still present (check lockfile directly for efficiency)
+          if grep -q "bigint-buffer" pnpm-lock.yaml; then
+            echo "bigint_present=true" >> $GITHUB_OUTPUT
+            echo "::warning::bigint-buffer dependency is still present in the dependency tree"
+          else
+            echo "bigint_present=false" >> $GITHUB_OUTPUT
+            echo "::notice::bigint-buffer dependency has been removed!"
+          fi
+
+      - name: Check for GHSA-3gc7-fjrx-p6mg status
+        id: check_ghsa
+        run: |
+          # Try to fetch advisory information (requires network access)
+          # This is a best-effort check
+          echo "Checking for GHSA-3gc7-fjrx-p6mg status..."
+          
+          # Check pnpm lock file for bigint-buffer (any version including pre-release)
+          # Using portable grep/sed instead of -P flag for compatibility
+          if grep -q "bigint-buffer@" pnpm-lock.yaml; then
+            BIGINT_VERSION=$(grep "bigint-buffer@" pnpm-lock.yaml | sed 's/.*bigint-buffer@\([0-9][0-9a-zA-Z.-]*\).*/\1/' | head -1)
+            echo "vulnerable_version=true" >> $GITHUB_OUTPUT
+            echo "bigint_version=$BIGINT_VERSION" >> $GITHUB_OUTPUT
+            echo "::warning::bigint-buffer@$BIGINT_VERSION detected in lockfile"
+          else
+            echo "vulnerable_version=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Create or update tracking issue
+        if: steps.check_bigint.outputs.bigint_present == 'true'
+        uses: actions/github-script@v7
+        env:
+          BIGINT_VERSION: ${{ steps.check_ghsa.outputs.bigint_version }}
+        with:
+          script: |
+            const issueTitle = 'Track upstream bigint-buffer vulnerability (GHSA-3gc7-fjrx-p6mg)';
+            const bigintVersion = process.env.BIGINT_VERSION || 'unknown';
+            
+            // Search for existing issue
+            const issues = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open',
+              labels: ['security']
+            });
+            
+            const existingIssue = issues.data.find(issue => 
+              issue.title.includes('bigint-buffer') || 
+              issue.title.includes('GHSA-3gc7-fjrx-p6mg')
+            );
+            
+            const comment = `## Daily Security Audit Report
+            
+            **Date:** ${new Date().toISOString().split('T')[0]}
+            **Status:** bigint-buffer dependency still present
+            
+            ### Current State
+            - \`bigint-buffer@${bigintVersion}\` is present via \`@solana/spl-token\`
+            - Runtime mitigations are active in \`wallet-manager.ts\`
+            - Monitoring for upstream patches
+            
+            ### Actions Required
+            - Continue monitoring [@solana/buffer-layout-utils](https://github.com/solana-labs/buffer-layout)
+            - Check for new releases that remove or patch bigint-buffer
+            - Update dependencies when fix is available
+            
+            ---
+            *This is an automated security audit. See [\`.github/workflows/security-audit.yml\`](.github/workflows/security-audit.yml)*`;
+            
+            if (existingIssue) {
+              // Add comment to existing issue
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: existingIssue.number,
+                body: comment
+              });
+              console.log(`Updated issue #${existingIssue.number}`);
+            } else {
+              console.log('No existing tracking issue found - manual intervention may be needed');
+            }
+
+      - name: Post success notice
+        if: steps.check_bigint.outputs.bigint_present == 'false'
+        run: |
+          echo "::notice::✅ bigint-buffer dependency has been removed from the project!"
+          echo "::notice::Consider closing the tracking issue if it still exists."
+
+      - name: Fail on new high/critical vulnerabilities
+        if: steps.audit.outputs.has_high_severity == 'true'
+        run: |
+          echo "::error::New high or critical severity vulnerabilities detected!"
+          echo "Review the audit results and take appropriate action."
+          exit 1
+
+      - name: Upload audit results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-audit-results
+          path: audit-results.json
+          retention-days: 30
