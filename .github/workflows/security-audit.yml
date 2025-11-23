@@ -90,9 +90,12 @@ jobs:
       - name: Create or update tracking issue
         if: steps.check_bigint.outputs.bigint_present == 'true'
         uses: actions/github-script@v7
+        env:
+          BIGINT_VERSION: ${{ steps.check_ghsa.outputs.bigint_version }}
         with:
           script: |
             const issueTitle = 'Track upstream bigint-buffer vulnerability (GHSA-3gc7-fjrx-p6mg)';
+            const bigintVersion = process.env.BIGINT_VERSION || 'unknown';
             
             // Search for existing issue
             const issues = await github.rest.issues.listForRepo({
@@ -113,7 +116,7 @@ jobs:
             **Status:** bigint-buffer dependency still present
             
             ### Current State
-            - \`bigint-buffer@1.1.5\` is present via \`@solana/spl-token\`
+            - \`bigint-buffer@${bigintVersion}\` is present via \`@solana/spl-token\`
             - Runtime mitigations are active in \`wallet-manager.ts\`
             - Monitoring for upstream patches
             
