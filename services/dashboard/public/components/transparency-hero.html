@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>TiltCheck Transparency Hero</title>
+<style>
+ :root{--accent:#00d4aa;--accent-alt:#00a8ff;--border:#222;--bg:#0f0f0f;}
+ body{margin:0;font-family:Inter,system-ui,sans-serif;background:var(--bg);color:#fff;display:flex;align-items:center;justify-content:center;min-height:100vh;padding:40px;}
+ .hero{max-width:860px;width:100%;text-align:center;padding:60px 40px;border:1px solid var(--border);border-radius:16px;background:linear-gradient(135deg,#121212,#181a1d);position:relative;overflow:hidden;}
+ .hero:before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 28% 30%,rgba(0,212,170,.22),transparent 70%);opacity:.5;pointer-events:none;}
+ h1{margin:0 0 18px;font-size:2.35rem;font-weight:600;line-height:1.1;}
+ .tag{display:inline-block;font-size:.55rem;letter-spacing:.15em;text-transform:uppercase;padding:6px 10px;border:1px solid var(--border);border-radius:30px;background:#181818;color:var(--accent-alt);margin-bottom:18px;}
+ p{margin:0 0 18px;font-size:.95rem;color:#c9d2d2;}
+ .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-top:8px;}
+ .fact{background:#181818;border:1px solid var(--border);padding:12px;border-radius:10px;font-size:.7rem;letter-spacing:.05em;text-transform:uppercase;color:#9aa;display:flex;flex-direction:column;gap:4px;}
+ .fact strong{font-size:.95rem;color:var(--accent);letter-spacing:0;font-weight:600;text-transform:none;}
+ .cta{margin-top:30px;display:inline-block;padding:10px 20px;border-radius:10px;background:linear-gradient(90deg,var(--accent),var(--accent-alt));color:#000;font-weight:600;text-decoration:none;font-size:.85rem;letter-spacing:.06em;}
+ .disclaimer{margin-top:26px;font-size:.6rem;color:#888;letter-spacing:.05em;}
+ @media(max-width:640px){h1{font-size:1.9rem;padding:0 4px;} .hero{padding:44px 26px;} }
+</style>
+</head>
+<body>
+ <section class="hero" role="main" aria-labelledby="heroTitle" aria-describedby="heroDesc" aria-label="Transparency hero section">
+  <span class="tag">Transparency Layer</span>
+  <h1 id="heroTitle">Accountability Signals For Degens</h1>
+  <p id="heroDesc">Real-time trust deltas, severity momentum & fairness triggers distilled into exportable evidence artifacts. Non-custodial. No hype. Just signals.</p>
+  <div class="grid" role="list" aria-label="Key guarantees">
+    <div class="fact" role="listitem"><strong>Non‑Custodial</strong><span>We never hold funds</span></div>
+    <div class="fact" role="listitem"><strong>Flat Fee</strong><span>0.07 SOL rule</span></div>
+    <div class="fact" role="listitem"><strong>Heuristic</strong><span>Not legal advice</span></div>
+    <div class="fact" role="listitem"><strong>Evidence</strong><span>Export JSON / CSV</span></div>
+  </div>
+  <a class="cta" href="/dashboard/experimental.html">Open Dashboard</a>
+  <div class="disclaimer">Signals only. Preserve original logs for disputes.</div>
+ </section>
+</body>
+</html>

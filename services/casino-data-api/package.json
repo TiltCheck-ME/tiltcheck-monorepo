@@ -1,0 +1,28 @@
+{
+  "name": "@tiltcheck/casino-data-api",
+  "version": "1.0.0",
+  "description": "Casino data collection API for TiltCheck AI agents",
+  "type": "module",
+  "main": "src/index.js",
+  "bin": {
+    "casino-collector": "src/cli.js"
+  },
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsx src/index.ts",
+    "start": "node dist/index.js",
+    "cli": "tsx src/cli.ts"
+  },
+  "keywords": ["tiltcheck", "casino-data", "api", "ai-agent"],
+  "dependencies": {
+    "express": "^4.19.2",
+    "cors": "^2.8.5",
+    "commander": "^12.1.0",
+    "@types/node": "^20.12.7"
+  },
+  "devDependencies": {
+    "tsx": "^4.7.1",
+    "@types/express": "^4.17.21",
+    "@types/cors": "^2.8.17"
+  }
+}

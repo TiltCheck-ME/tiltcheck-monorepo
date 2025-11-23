@@ -64,6 +64,31 @@
       transform: translateY(-2px);
     }
     
+    nav.top-nav {
+      display: flex;
+      justify-content: center;
+      gap: 24px;
+      padding: 12px 20px;
+      background: #0e0e0e;
+      border-bottom: 1px solid #222;
+    }
+    nav.top-nav a {
+      color: #aaa;
+      text-decoration: none;
+      font-size: 0.9rem;
+      transition: color 0.2s;
+    }
+    nav.top-nav a:hover,
+    nav.top-nav a:focus-visible {
+      color: #00d4aa;
+      outline: 2px solid #00d4aa;
+      outline-offset: 4px;
+    }
+    nav.top-nav a[aria-current="page"] {
+      color: #00d4aa;
+      font-weight: 600;
+    }
+    
     /* Hero Section */
     .hero {
       padding: 100px 20px 80px;
@@ -166,12 +191,37 @@
       padding: 30px;
       display: block;
       transition: all 0.3s ease;
+      text-decoration: none;
     }
     
     .tool-card:hover {
       border-color: #00d4aa;
       transform: translateY(-5px);
       box-shadow: 0 10px 30px rgba(0, 212, 170, 0.2);
+      text-decoration: none;
+    }
+
+    .tool-card:link, .tool-card:visited, .tool-card:active, .tool-card:focus {
+      text-decoration: none;
+      outline: none;
+    }
+
+    /* High-contrast focus outline (keyboard accessibility) */
+    .tool-card:focus-visible {
+      outline: 3px solid #00d4aa;
+      outline-offset: 4px;
+      box-shadow: 0 0 0 4px rgba(0,212,170,0.35), 0 6px 22px rgba(0,212,170,0.25);
+    }
+    .tool-card:focus-visible .tool-status {
+      transform: none; /* avoid double movement */
+    }
+
+    /* Reduced motion preference */
+    @media (prefers-reduced-motion: reduce) {
+      .tool-card, .tool-status { transition: none !important; }
+      .tool-card:focus .tool-status,
+      .tool-card:focus-visible .tool-status,
+      .tool-card:focus-within .tool-status { transform: none; }
     }
     
     .tool-icon {
@@ -196,6 +246,27 @@
       font-size: 0.8rem;
       font-weight: 600;
       text-transform: uppercase;
+      transition: box-shadow 0.25s ease, transform 0.25s ease;
+    }
+
+    /* Focus-only accent for accessibility (keyboard navigation) */
+    .tool-card:focus .tool-status.status-live,
+    .tool-card:focus-visible .tool-status.status-live,
+    .tool-card:focus-within .tool-status.status-live {
+      box-shadow: 0 0 0 2px rgba(0,212,170,0.35), 0 0 14px rgba(0,212,170,0.45);
+      transform: translateY(-2px);
+    }
+    .tool-card:focus .tool-status.status-beta,
+    .tool-card:focus-visible .tool-status.status-beta,
+    .tool-card:focus-within .tool-status.status-beta {
+      box-shadow: 0 0 0 2px rgba(255,193,7,0.35), 0 0 14px rgba(255,193,7,0.45);
+      transform: translateY(-2px);
+    }
+    .tool-card:focus .tool-status.status-soon,
+    .tool-card:focus-visible .tool-status.status-soon,
+    .tool-card:focus-within .tool-status.status-soon {
+      box-shadow: 0 0 0 2px rgba(136,136,136,0.35), 0 0 14px rgba(136,136,136,0.45);
+      transform: translateY(-2px);
     }
 
     /* Mobile adjustments */
@@ -307,16 +378,45 @@
       .hero-stats { gap: 20px; }
       .stat-number { font-size: 2rem; }
     }
+
+    /* Nav link focus accessibility */
+    header nav a { position:relative; }
+    header nav a:focus-visible {
+      outline: 3px solid #00d4aa;
+      outline-offset: 3px;
+      border-radius: 6px;
+      box-shadow: 0 0 0 4px rgba(0,212,170,0.30), 0 4px 14px rgba(0,212,170,0.25);
+    }
+    @media (prefers-reduced-motion: reduce) {
+      header nav a:focus-visible { box-shadow: 0 0 0 4px rgba(0,212,170,0.35); }
+    }
   </style>
 </head>
 <body>
+  <nav class="top-nav">
+    <a href="/" aria-current="page">Home</a>
+    <a href="/casinos.html">Casinos</a>
+    <a href="/degen-trust.html">Degens</a>
+    <a href="/docs/index.html">Docs</a>
+    <a href="/dashboard">Dashboard</a>
+    <a href="/about.html">About</a>
+  </nav>
   <header>
     <div class="container">
       <nav style="display: flex; justify-content: space-between; align-items: center; max-width: 1200px; margin: 0 auto;">
-        <div class="logo">TiltCheck</div>
+        <div class="logo" style="display: flex; align-items: center; gap: 18px;">
+          <svg viewBox="0 0 200 200" aria-label="TiltCheck logo" width="70" height="70" style="vertical-align: middle;">
+            <circle cx="100" cy="100" r="88" fill="none" stroke="#222" stroke-width="4" />
+            <path d="M140 60 A60 60 0 1 1 140 140" fill="none" stroke="#00d4aa" stroke-width="16" stroke-linecap="round" />
+            <circle cx="140" cy="100" r="10" fill="#00a8ff" />
+          </svg>
+          <span style="font-size:2.2rem;font-weight:900;background:linear-gradient(135deg,#00d4aa 0%,#00a8ff 100%);-webkit-background-clip:text;background-clip:text;color:transparent;">TiltCheck</span>
+        </div>
         <div style="display: flex; gap: 25px; align-items: center;">
-          <a href="/#tools" style="color: #aaa; text-decoration: none;">Tools</a>
+          <a href="/#tools" aria-current="page" style="color: #aaa; text-decoration: none;">Tools</a>
           <a href="/about.html" style="color: #aaa; text-decoration: none;">About</a>
+          <a href="/casinos.html" style="color: #aaa; text-decoration: none;">Casinos</a>
+          <a href="/degentrust.html" style="color: #aaa; text-decoration: none;">Degens</a>
           <a href="/dashboard" style="color: #aaa; text-decoration: none;">Dashboard</a>
           <a href="https://discord.gg/s6NNfPHxMS" style="background: #00d4aa; color: #0a0a0a; padding: 8px 20px; border-radius: 6px; font-weight: 600; text-decoration: none;">Join Discord</a>
         </div>
@@ -336,7 +436,6 @@
         <a href="https://discord.gg/s6NNfPHxMS" class="cta-secondary">Join the Discord</a>
         <a href="#" class="cta-secondary cta-disabled" aria-disabled="true" title="Coming soon">View the Trust Scores (coming soon)</a>
       </div>
-      
       <div class="hero-stats">
         <div class="stat">
           <div class="stat-number">9</div>
@@ -351,8 +450,114 @@
           <div class="stat-label">Flat Tip Fee</div>
         </div>
       </div>
+      <!-- KPI Metrics Preview Strip (placeholder values; dynamic integration forthcoming) -->
+      <div class="kpi-strip" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:14px;margin:48px auto 0;max-width:960px;">
+        <div class="kpi" style="background:#121212;border:1px solid #222;padding:14px 12px;border-radius:10px;display:flex;flex-direction:column;gap:6px;" aria-label="Casino fairness deltas tracked">
+          <span style="font-size:.55rem;letter-spacing:.15em;text-transform:uppercase;color:#888;">Fairness Deltas</span>
+          <strong id="kpiFairness" style="font-size:1.3rem;color:#00d4aa;">--</strong>
+        </div>
+        <div class="kpi" style="background:#121212;border:1px solid #222;padding:14px 12px;border-radius:10px;display:flex;flex-direction:column;gap:6px;" aria-label="Scam links blocked by SusLink">
+          <span style="font-size:.55rem;letter-spacing:.15em;text-transform:uppercase;color:#888;">Links Blocked</span>
+          <strong id="kpiLinksBlocked" style="font-size:1.3rem;color:#00d4aa;">--</strong>
+        </div>
+        <div class="kpi" style="background:#121212;border:1px solid #222;padding:14px 12px;border-radius:10px;display:flex;flex-direction:column;gap:6px;" aria-label="Bonuses catalogued by CollectClock">
+          <span style="font-size:.55rem;letter-spacing:.15em;text-transform:uppercase;color:#888;">Bonuses Tracked</span>
+          <strong id="kpiBonuses" style="font-size:1.3rem;color:#00d4aa;">--</strong>
+        </div>
+        <div class="kpi" style="background:#121212;border:1px solid #222;padding:14px 12px;border-radius:10px;display:flex;flex-direction:column;gap:6px;" aria-label="Promos classified by FreeSpinScan">
+          <span style="font-size:.55rem;letter-spacing:.15em;text-transform:uppercase;color:#888;">Promos Classified</span>
+          <strong id="kpiPromos" style="font-size:1.3rem;color:#00d4aa;">--</strong>
+        </div>
+        <div class="kpi" style="background:#121212;border:1px solid #222;padding:14px 12px;border-radius:10px;display:flex;flex-direction:column;gap:6px;" aria-label="Tilt events predicted by Tilt Engine">
+          <span style="font-size:.55rem;letter-spacing:.15em;text-transform:uppercase;color:#888;">Tilt Predictions</span>
+          <strong id="kpiTilt" style="font-size:1.3rem;color:#00d4aa;">--</strong>
+        </div>
+        <div class="kpi" style="background:#121212;border:1px solid #222;padding:14px 12px;border-radius:10px;display:flex;flex-direction:column;gap:6px;" aria-label="Accountability wallet locks triggered">
+          <span style="font-size:.55rem;letter-spacing:.15em;text-transform:uppercase;color:#888;">Wallet Locks</span>
+          <strong id="kpiLocks" style="font-size:1.3rem;color:#00d4aa;">--</strong>
+        </div>
+        <div class="kpi" style="background:#121212;border:1px solid #222;padding:14px 12px;border-radius:10px;display:flex;flex-direction:column;gap:6px;" aria-label="Degen trust score lookups">
+          <span style="font-size:.55rem;letter-spacing:.15em;text-transform:uppercase;color:#888;">Trust Lookups</span>
+          <strong id="kpiLookups" style="font-size:1.3rem;color:#00d4aa;">--</strong>
+        </div>
+      </div>
+      <!-- Main page content -->
+      <div style="margin:40px auto 0;max-width:800px;text-align:center;color:#c9d2d2;font-size:1.1rem;">
+        <p><strong>TiltCheck</strong> is the open-source trust engine for casino and degen communities. We provide real-time transparency, scam detection, tipping, bonus tracking, and accountability tools—all Discord-first, non-custodial, and built for safety. Explore our tools, check trust scores, and join the movement for smarter, safer play.</p>
+      </div>
+      <!-- Transparency Hero from Canva file -->
+      <section class="features-section" style="max-width:860px;margin:40px auto 0;padding:0;">
+        <div class="hero" aria-labelledby="heroTitle" aria-describedby="heroDesc" style="background:linear-gradient(135deg,#121212,#181a1d);border-radius:16px;box-shadow:0 4px 32px rgba(0,212,170,0.08);padding:48px 28px;">
+          <span class="hero-tag" style="display:inline-block;font-size:.7rem;letter-spacing:.15em;text-transform:uppercase;padding:6px 10px;border:1px solid #222;border-radius:30px;background:#181818;color:#00a8ff;margin-bottom:16px;">Transparency Layer</span>
+          <h3 id="heroTitle" style="margin:0 0 18px;font-size:2.1rem;font-weight:600;line-height:1.1;">Accountability Signals For Degens</h3>
+          <p id="heroDesc" style="margin:0 0 16px;font-size:.95rem;color:#c9d2d2;">Real-time trust deltas, severity momentum & fairness triggers distilled into exportable evidence artifacts. Non-custodial. No hype. Just signals.</p>
+          <div class="facts" aria-label="Core Guarantees" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-top:10px;">
+            <div class="fact" style="background:#181818;border:1px solid #222;padding:12px;border-radius:10px;font-size:.7rem;letter-spacing:.05em;text-transform:uppercase;color:#9aa;display:flex;flex-direction:column;gap:4px;"><strong style="font-size:.95rem;color:#00d4aa;letter-spacing:0;font-weight:600;text-transform:none;">Non‑Custodial</strong><span>We never hold funds</span></div>
+            <div class="fact" style="background:#181818;border:1px solid #222;padding:12px;border-radius:10px;font-size:.7rem;letter-spacing:.05em;text-transform:uppercase;color:#9aa;display:flex;flex-direction:column;gap:4px;"><strong style="font-size:.95rem;color:#00d4aa;letter-spacing:0;font-weight:600;text-transform:none;">Flat Fee</strong><span>0.07 SOL rule</span></div>
+            <div class="fact" style="background:#181818;border:1px solid #222;padding:12px;border-radius:10px;font-size:.7rem;letter-spacing:.05em;text-transform:uppercase;color:#9aa;display:flex;flex-direction:column;gap:4px;"><strong style="font-size:.95rem;color:#00d4aa;letter-spacing:0;font-weight:600;text-transform:none;">Heuristic</strong><span>Not legal advice</span></div>
+            <div class="fact" style="background:#181818;border:1px solid #222;padding:12px;border-radius:10px;font-size:.7rem;letter-spacing:.05em;text-transform:uppercase;color:#9aa;display:flex;flex-direction:column;gap:4px;"><strong style="font-size:.95rem;color:#00d4aa;letter-spacing:0;font-weight:600;text-transform:none;">Evidence</strong><span>JSON / CSV Export</span></div>
+          </div>
+          <a class="cta" href="/dashboard/experimental.html" style="margin-top:28px;display:inline-block;padding:10px 20px;border-radius:10px;background:linear-gradient(90deg,#00d4aa,#00a8ff);color:#000;font-weight:600;text-decoration:none;font-size:.82rem;letter-spacing:.06em;">Open Dashboard</a>
+          <div class="disclaimer" style="margin-top:22px;font-size:.6rem;color:#777;letter-spacing:.05em;">Signals only. Preserve original logs for disputes.</div>
+        </div>
+      </section>
     </div>
   </section>
+  <!-- Trust Behavior Panel from Canva file -->
+  <section class="features-section" style="max-width:900px;margin:0 auto 60px;">
+    <h2 style="font-size:1.3rem;letter-spacing:.12em;text-transform:uppercase;color:#9aa;margin-bottom:18px;">Trust Behavior Panel</h2>
+    <div class="panel" style="background:#141414;border:1px solid #222;border-radius:12px;padding:20px;">
+      <div class="tb-header" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;"><div class="tb-title" style="font-size:1.15rem;letter-spacing:.08em;text-transform:uppercase;color:#00d4aa;">Trust Behavior</div><div class="tb-badge" style="font-size:.55rem;letter-spacing:.15em;text-transform:uppercase;padding:6px 10px;border:1px solid #222;border-radius:30px;background:#181818;color:#00a8ff;">+ Accountability</div></div>
+      <div class="tb-grid" style="display:grid;grid-template-columns:1.3fr .7fr;gap:20px;">
+        <div class="tb-chart" style="background:#181818;border:1px solid #222;border-radius:10px;display:flex;align-items:center;justify-content:center;position:relative;min-height:120px;">
+          <canvas id="tbChart" aria-label="Behavior trend" role="img" style="width:100%;height:120px;"></canvas>
+        </div>
+        <div class="metrics" style="display:flex;flex-direction:column;gap:14px;">
+          <div class="metric" style="background:#181818;border:1px solid #222;padding:12px 14px;border-radius:10px;display:flex;flex-direction:column;gap:6px;"><label style="font-size:.55rem;letter-spacing:.12em;text-transform:uppercase;color:#9aa;">Trust Index</label><div class="value" id="tbTrust" style="font-size:1.4rem;font-weight:600;">--</div></div>
+          <div class="metric" style="background:#181818;border:1px solid #222;padding:12px 14px;border-radius:10px;display:flex;flex-direction:column;gap:6px;"><label style="font-size:.55rem;letter-spacing:.12em;text-transform:uppercase;color:#9aa;">Tilt Level</label><div class="barWrap" style="height:30px;background:#101010;border:1px solid #222;border-radius:24px;overflow:hidden;position:relative;"><div class="barFill" id="tbTiltFill" style="height:100%;background:linear-gradient(90deg,#00a8ff,#00d4aa);width:0%;transition:width .6s ease;"></div><div class="barPct" id="tbTiltPct" style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font-size:.6rem;font-weight:600;">--</div></div></div>
+          <div class="metric" style="background:#181818;border:1px solid #222;padding:12px 14px;border-radius:10px;display:flex;flex-direction:column;gap:6px;"><label style="font-size:.55rem;letter-spacing:.12em;text-transform:uppercase;color:#9aa;">Cooldown</label><div class="value" id="tbCooldown" style="font-size:1.4rem;font-weight:600;">--</div></div>
+          <div class="support" id="tbSupport" style="font-size:.7rem;color:#9aa;background:#181818;border:1px solid #222;padding:10px 12px;border-radius:10px;">Recovery in progress.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+<script>
+  // Trust Behavior Panel chart and metrics
+  (function(){
+    const c = document.getElementById('tbChart').getContext('2d');
+    const data = Array.from({length:40},(_,i)=>({x:i,y:60+Math.sin(i/3)*10+Math.random()*6}));
+    function draw(){
+      const w=c.canvas.width=c.canvas.clientWidth; const h=c.canvas.height=c.canvas.clientHeight;
+      c.clearRect(0,0,w,h); c.strokeStyle='#222'; c.lineWidth=1; for(let i=1;i<4;i++){const y=(h/4)*i; c.beginPath(); c.moveTo(0,y); c.lineTo(w,y); c.stroke();}
+      c.strokeStyle='#00a8ff'; c.lineWidth=2; c.beginPath(); data.forEach((p,i)=>{const x=(i/(data.length-1))*w; const y=h-(p.y/100)*h; i?c.lineTo(x,y):c.moveTo(x,y);}); c.stroke();
+    }
+    draw();
+    function updateMetrics(){
+      const trust = 70 + Math.floor(Math.random()*25); document.getElementById('tbTrust').textContent=trust;
+      const tilt = Math.floor(Math.random()*60); document.getElementById('tbTiltFill').style.width=tilt+'%'; document.getElementById('tbTiltPct').textContent=tilt+'%';
+      const mins = 1+Math.floor(Math.random()*5); const secs = String(Math.floor(Math.random()*60)).padStart(2,'0'); document.getElementById('tbCooldown').textContent=`${mins}:${secs}`;
+    }
+    setInterval(updateMetrics,4000); updateMetrics();
+    window.addEventListener('resize', draw);
+  })();
+
+  // Placeholder KPI population (replace with real API integration)
+  (function(){
+    const seeds = {
+      kpiFairness: 128, // fairness deltas tracked
+      kpiLinksBlocked: 342, // malicious links blocked
+      kpiBonuses: 57, // bonuses monitored
+      kpiPromos: 214, // promos classified
+      kpiTilt: 89, // tilt predictions issued
+      kpiLocks: 34, // accountability locks
+      kpiLookups: 473 // trust score lookups
+    };
+    Object.entries(seeds).forEach(([id,val]) => {
+      const el = document.getElementById(id);
+      if(el) el.textContent = val.toString();
+    });
+  })();
+</script>
 
   <section class="tools-section" id="tools">
     <div class="container">
@@ -363,13 +568,6 @@
           <div class="tool-icon">🪙</div>
           <h3>JustTheTip</h3>
           <p>Non-custodial Solana tipping, airdrops, and swaps. Flat fee. No balance custody. No legal exposure.</p>
-          <span class="tool-status status-live">Live</span>
-        </a>
-
-        <a class="tool-card" href="/tools/justthetip.html#triviadrops">
-          <div class="tool-icon">🎯</div>
-          <h3>TriviaDrops</h3>
-          <p>On-demand AI trivia with streaks, achievements, and leaderboards. Feature of JustTheTip.</p>
           <span class="tool-status status-live">Live</span>
         </a>
 
@@ -469,6 +667,7 @@
         <a href="/">Home</a> •
         <a href="/#tools">All Tools</a> •
         <a href="/about.html">About</a> •
+        <a href="/degen-trust.html">Degen Trust</a> •
         <a href="https://discord.gg/s6NNfPHxMS">Discord</a> •
         <a href="https://github.com/jmenichole/tiltcheck-monorepo">GitHub</a> •
         <a href="/dashboard">Trust Dashboard</a>

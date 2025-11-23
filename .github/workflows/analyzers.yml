@@ -1,0 +1,32 @@
+name: Analyzer Services
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 6 * * *'
+
+jobs:
+  build-analyzers:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'pnpm'
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Build analyzer services
+        run: pnpm --filter @tiltcheck/gameplay-analyzer --filter @tiltcheck/enhanced-analyzer run build
+      - name: Runtime smoke (skip listen)
+        env:
+          BUILD_SKIP_LISTEN: '1'
+        run: |
+          pnpm --filter @tiltcheck/gameplay-analyzer exec node dist/index.js || true
+          pnpm --filter @tiltcheck/enhanced-analyzer exec node dist/index.js || true

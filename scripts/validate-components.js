@@ -70,6 +70,18 @@ function degenEngineSnapshot(doc){
   return { levels };
 }
 
+function trustPanelSnapshot(doc){
+  const metrics = Array.from(doc.querySelectorAll('.metric-label'))
+    .map(m => m.textContent.trim());
+  return { metrics };
+}
+
+function transparencyHeroSnapshot(doc){
+  const guarantees = Array.from(doc.querySelectorAll('li strong'))
+    .map(g => g.textContent.trim());
+  return { guarantees };
+}
+
 function run(){
   const update = process.env.UPDATE_SNAPSHOTS === 'true';
   const files = fs.readdirSync(SRC_DIR).filter(f => f.endsWith('.html'));
@@ -99,6 +111,28 @@ function run(){
         const expected = readSnapshot('degen-trust-engine.levels.json');
         if (!expected) throw new Error('Missing snapshot: tests/snapshots/degen-trust-engine.levels.json');
         assertEqual(snap, expected, 'Degen Trust Engine levels snapshot mismatch');
+      }
+    }
+
+    if (f === 'trust-panel.html'){
+      const snap = trustPanelSnapshot(doc);
+      if (update){
+        writeSnapshot('trust-panel.metrics.json', snap);
+      } else {
+        const expected = readSnapshot('trust-panel.metrics.json');
+        if (!expected) throw new Error('Missing snapshot: tests/snapshots/trust-panel.metrics.json');
+        assertEqual(snap, expected, 'Trust Panel metrics snapshot mismatch');
+      }
+    }
+
+    if (f === 'transparency-hero.html'){
+      const snap = transparencyHeroSnapshot(doc);
+      if (update){
+        writeSnapshot('transparency-hero.guarantees.json', snap);
+      } else {
+        const expected = readSnapshot('transparency-hero.guarantees.json');
+        if (!expected) throw new Error('Missing snapshot: tests/snapshots/transparency-hero.guarantees.json');
+        assertEqual(snap, expected, 'Transparency Hero guarantees snapshot mismatch');
       }
     }
 

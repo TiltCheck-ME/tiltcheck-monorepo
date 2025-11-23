@@ -1,0 +1,17 @@
+{
+  "casino": {
+    "casinos": {
+      "stakeus": {
+        "lastScore": 65,
+        "totalDelta": 0,
+        "timestamp": 1763776810389,
+        "factors": {
+          "regulatory": 50,
+          "security": 60,
+          "reputation": 50,
+          "operations": 60
+        }
+      }
+    }
+  }
+}

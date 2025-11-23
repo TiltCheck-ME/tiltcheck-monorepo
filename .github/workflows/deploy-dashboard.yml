@@ -67,6 +67,6 @@ jobs:
           key: ${{ secrets.DEPLOY_SSH_KEY }}
           script: |
             cd /opt/tiltcheck
-            docker-compose pull dashboard
-            docker-compose up -d dashboard
+            docker compose pull dashboard
+            docker compose up -d dashboard
             docker system prune -f

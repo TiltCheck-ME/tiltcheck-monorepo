@@ -22,10 +22,63 @@
  #ticker .event { white-space:nowrap; }
  button { background:#222; color:#eee; border:1px solid #444; padding:6px 10px; cursor:pointer; }
  button:disabled { opacity:0.4; cursor:not-allowed; }
+ /* Trust Gauges */
+ #trustGauges { display:flex; flex-wrap:wrap; gap:18px; margin:16px 0 28px; }
+ .gauge { background:#181818; border:1px solid #222; border-radius:12px; padding:12px 16px; display:flex; align-items:center; gap:14px; box-shadow:0 2px 6px rgba(0,0,0,0.4); }
+ .gauge-ring { width:72px; height:72px; position:relative; }
+ .gauge-ring svg { width:100%; height:100%; transform:rotate(-90deg); }
+ .gauge-ring circle { fill:none; stroke-width:10; stroke-linecap:round; }
+ .gauge-metric { display:flex; flex-direction:column; gap:4px; }
+ .gauge-label { font-size:0.7rem; letter-spacing:0.06em; text-transform:uppercase; color:#888; }
+ .gauge-value { font-size:1.35rem; font-weight:600; }
+ .gauge-desc { font-size:0.7rem; color:#aaa; line-height:1.2; }
+ .accent { color:#00d4aa; }
 </style>
 </head>
 <body>
 <h1>TiltCheck Trust Dashboard</h1>
+<p style="margin:4px 0 18px; font-size:12px; color:#aaa;">Explore the <a href="/dashboard/experimental.html" style="color:#00d4aa; text-decoration:none;">Experimental Trust View</a> for anomaly map & evidence export.</p>
+<div id="trustGauges">
+  <div class="gauge" id="gaugeCasino">
+    <div class="gauge-ring">
+      <svg viewBox="0 0 100 100">
+        <circle cx="50" cy="50" r="42" stroke="#222"/>
+        <circle cx="50" cy="50" r="42" stroke="#00d4aa" stroke-dasharray="0 264" id="casinoArc"/>
+      </svg>
+    </div>
+    <div class="gauge-metric">
+      <div class="gauge-label">Casino Trust</div>
+      <div class="gauge-value" id="casinoVal">--</div>
+      <div class="gauge-desc">Avg last score across tracked casinos.</div>
+    </div>
+  </div>
+  <div class="gauge" id="gaugePayout">
+    <div class="gauge-ring">
+      <svg viewBox="0 0 100 100">
+        <circle cx="50" cy="50" r="42" stroke="#222"/>
+        <circle cx="50" cy="50" r="42" stroke="#00a8ff" stroke-dasharray="0 264" id="payoutArc"/>
+      </svg>
+    </div>
+    <div class="gauge-metric">
+      <div class="gauge-label">Payout Reliability</div>
+      <div class="gauge-value" id="payoutVal">--</div>
+      <div class="gauge-desc">Lower severity share (1–2) vs total.</div>
+    </div>
+  </div>
+  <div class="gauge" id="gaugeDegen">
+    <div class="gauge-ring">
+      <svg viewBox="0 0 100 100">
+        <circle cx="50" cy="50" r="42" stroke="#222"/>
+        <circle cx="50" cy="50" r="42" stroke="#ff6b6b" stroke-dasharray="0 264" id="degenArc"/>
+      </svg>
+    </div>
+    <div class="gauge-metric">
+      <div class="gauge-label">Volatility / Risk</div>
+      <div class="gauge-value" id="degenVal">--</div>
+      <div class="gauge-desc">Weighted severity momentum (higher = spikier).</div>
+    </div>
+  </div>
+</div>
 <button id="snapshotBtn">Request Snapshot</button>
 <span id="snapshotInfo"></span>
 <div id="configInfo" style="margin-top:8px; font-size:0.85em; color:#888;"></div>
@@ -159,6 +212,114 @@ function drawSparkline(canvas, deltas){
   }
 }
 setInterval(refreshSparklines, 15000); refreshSparklines();
+
+// --- Trust Gauges Update ---
+// External gauge config (loaded from /config/gauge-config.json with fallback defaults)
+let GAUGE_CONFIG = {
+  volatilityInvertMax: 100,
+  midSeverityPenalty: 1,
+  highSeverityPenalty: 1,
+  refreshMs: 15000
+};
+async function loadGaugeConfig(){
+  try {
+    const resp = await fetch('/config/gauge-config.json');
+    if(resp.ok){
+      const data = await resp.json();
+      GAUGE_CONFIG = { ...GAUGE_CONFIG, ...data };
+    }
+  } catch(e){ /* silent */ }
+}
+const circumference = 2 * Math.PI * 42; // r=42
+function setArc(el, pct){
+  const clamped = Math.max(0, Math.min(1, pct));
+  el.setAttribute('stroke-dasharray', `${(clamped*circumference).toFixed(1)} ${(circumference).toFixed(1)}`);
+}
+async function updateGauges(){
+  try {
+    const [rollups, severity] = await Promise.all([
+      fetch('/api/rollups/latest').then(r=>r.json()),
+      fetch('/api/severity').then(r=>r.json())
+    ]);
+    // Casino Trust: average lastScore across casinos (0-100 normalized to 0-1)
+    const casinos = Object.values(rollups?.casino?.casinos||{});
+    const avgScore = casinos.length ? casinos.reduce((a,c)=>a+(c.lastScore||0),0)/casinos.length : 0;
+    document.getElementById('casinoVal').textContent = Math.round(avgScore);
+    setArc(document.getElementById('casinoArc'), avgScore/100);
+    // Payout Reliability: proportion of low severity events (sev 1-2) vs all events
+    const buckets = severity?.buckets||{};
+    let total=0, low=0; Object.entries(buckets).forEach(([sev,count])=>{ total+=count; if(+sev<=2) low+=count; });
+    const payoutReliability = total? (low/total):0;
+    document.getElementById('payoutVal').textContent = Math.round(payoutReliability*100)+'%';
+    setArc(document.getElementById('payoutArc'), payoutReliability);
+    // Volatility / Risk: weighted severity momentum using sev^2 * count / (max theoretical if all sev=5)
+    const weighted = Object.entries(buckets).reduce((a,[sev,count])=> a + (Math.pow(+sev,2)*count),0);
+    const maxTheoretical = total * Math.pow(5,2);
+    const risk = maxTheoretical? weighted / maxTheoretical : 0; // 0-1
+    document.getElementById('degenVal').textContent = (risk*100).toFixed(1)+'%';
+    setArc(document.getElementById('degenArc'), risk);
+  } catch(e){ /* ignore transient */ }
+}
+// Load external config then start refresh loop
+let gaugeIntervalId;
+function startGaugeLoop(){
+  if(gaugeIntervalId) clearInterval(gaugeIntervalId);
+  gaugeIntervalId = setInterval(updateGauges, GAUGE_CONFIG.refreshMs);
+  updateGauges();
+  const info = document.getElementById('configInfo');
+  if(info){
+    const existing = info.textContent || '';
+    if(!existing.includes('Gauge Refresh')){
+      info.textContent = existing + (existing? ' • ' : '') + `Gauge Refresh: ${(GAUGE_CONFIG.refreshMs/1000).toFixed(1)}s`;
+    } else {
+      info.textContent = existing.replace(/Gauge Refresh: [0-9.]+s/, `Gauge Refresh: ${(GAUGE_CONFIG.refreshMs/1000).toFixed(1)}s`);
+    }
+  }
+}
+loadGaugeConfig().finally(startGaugeLoop);
+
+// --- Admin Panel (query ?admin=1) for live gauge config patch ---
+if(window.location.search.includes('admin=1')){
+  const panel = document.createElement('div');
+  panel.style.margin='18px 0'; panel.style.padding='12px 14px'; panel.style.background='#181818'; panel.style.border='1px solid #333'; panel.style.borderRadius='8px';
+  panel.innerHTML = `
+    <div style="font-size:12px; font-weight:600; margin-bottom:6px;">Gauge Config Admin</div>
+    <form id="gAdminForm" style="display:flex; flex-wrap:wrap; gap:8px; align-items:flex-end;">
+      <label style="display:flex; flex-direction:column; font-size:11px;">refreshMs
+        <input name="refreshMs" type="number" min="3000" step="1000" value="${GAUGE_CONFIG.refreshMs}" style="background:#111; color:#eee; border:1px solid #444; padding:4px 6px; width:110px;" />
+      </label>
+      <label style="display:flex; flex-direction:column; font-size:11px;">volatilityInvertMax
+        <input name="volatilityInvertMax" type="number" min="0" value="${GAUGE_CONFIG.volatilityInvertMax}" style="background:#111; color:#eee; border:1px solid #444; padding:4px 6px; width:120px;" />
+      </label>
+      <label style="display:flex; flex-direction:column; font-size:11px;">midSeverityPenalty
+        <input name="midSeverityPenalty" type="number" min="0" value="${GAUGE_CONFIG.midSeverityPenalty}" style="background:#111; color:#eee; border:1px solid #444; padding:4px 6px; width:120px;" />
+      </label>
+      <label style="display:flex; flex-direction:column; font-size:11px;">highSeverityPenalty
+        <input name="highSeverityPenalty" type="number" min="0" value="${GAUGE_CONFIG.highSeverityPenalty}" style="background:#111; color:#eee; border:1px solid #444; padding:4px 6px; width:120px;" />
+      </label>
+      <button type="submit" style="background:#222; color:#eee; border:1px solid #555; padding:6px 10px;">Patch Config</button>
+      <span id="gAdminStatus" style="font-size:11px; color:#888;"></span>
+    </form>`;
+  document.body.insertBefore(panel, document.getElementById('trustGauges').nextSibling);
+  document.getElementById('gAdminForm').addEventListener('submit', async (e)=>{
+    e.preventDefault();
+    const form = e.target;
+    const payload = {};
+    ['refreshMs','volatilityInvertMax','midSeverityPenalty','highSeverityPenalty'].forEach(k=>{
+      const el=form.querySelector(`[name="${k}"]`); if(el) payload[k]=parseInt(el.value,10);
+    });
+    const status = document.getElementById('gAdminStatus'); status.textContent='Patching…';
+    try {
+      const resp = await fetch('/api/config/gauges',{ method:'PATCH', headers:{ 'Content-Type':'application/json' }, body: JSON.stringify(payload) });
+      const json = await resp.json();
+      if(json.ok){
+        GAUGE_CONFIG = { ...GAUGE_CONFIG, ...json.config };
+        startGaugeLoop();
+        status.textContent='Updated.';
+      } else status.textContent='Failed.';
+    } catch(err){ status.textContent='Error.'; }
+  });
+}
 </script>
 </body>
 </html>

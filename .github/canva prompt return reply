@@ -1,0 +1,2169 @@
+<!doctype html>
+<html lang="en">
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard Icon Set</title>
+  <script src="/_sdk/element_sdk.js"></script>
+  <style>
+    body {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #1a1a1a;
+      color: #ffffff;
+      min-height: 100%;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 1600px;
+      margin: 0 auto;
+      padding: 48px 32px;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 56px;
+    }
+
+    h1 {
+      font-size: 48px;
+      font-weight: 700;
+      margin: 0 0 16px 0;
+      color: #00d9ff;
+      letter-spacing: -0.5px;
+    }
+
+    .subtitle {
+      font-size: 18px;
+      color: #8a8a8a;
+      margin: 0;
+      font-weight: 400;
+    }
+
+    .controls {
+      display: flex;
+      justify-content: center;
+      gap: 16px;
+      margin-bottom: 48px;
+      flex-wrap: wrap;
+    }
+
+    .variant-btn {
+      background: #2a2a2a;
+      color: #8a8a8a;
+      border: 2px solid #2a2a2a;
+      padding: 14px 32px;
+      border-radius: 12px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.25s;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .variant-btn:hover {
+      border-color: #00d9ff;
+      color: #00d9ff;
+    }
+
+    .variant-btn.active {
+      background: #00d9ff;
+      color: #1a1a1a;
+      border-color: #00d9ff;
+    }
+
+    .icon-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 24px;
+      margin-bottom: 64px;
+    }
+
+    .icon-card {
+      background: #242424;
+      border: 1px solid #2a2a2a;
+      border-radius: 16px;
+      padding: 32px;
+      text-align: center;
+      transition: all 0.3s;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .icon-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, #00d9ff, transparent);
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+
+    .icon-card:hover {
+      transform: translateY(-4px);
+      border-color: #00d9ff;
+      box-shadow: 0 16px 40px rgba(0, 217, 255, 0.2);
+    }
+
+    .icon-card:hover::before {
+      opacity: 1;
+    }
+
+    .icon-display {
+      width: 128px;
+      height: 128px;
+      margin: 0 auto 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #1a1a1a;
+      border-radius: 12px;
+      border: 1px solid #2a2a2a;
+    }
+
+    .icon-title {
+      font-size: 20px;
+      font-weight: 700;
+      color: #00d9ff;
+      margin: 0 0 8px 0;
+    }
+
+    .icon-subtitle {
+      font-size: 14px;
+      color: #6a6a6a;
+      margin: 0 0 24px 0;
+    }
+
+    .download-btns {
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .dl-btn {
+      background: transparent;
+      color: #00d9ff;
+      border: 1px solid #00d9ff;
+      padding: 10px 20px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+
+    .dl-btn:hover {
+      background: #00d9ff;
+      color: #1a1a1a;
+      transform: scale(1.05);
+    }
+
+    .dl-btn:active {
+      transform: scale(0.98);
+    }
+
+    .export-panel {
+      background: #242424;
+      border: 1px solid #2a2a2a;
+      border-radius: 16px;
+      padding: 48px;
+      text-align: center;
+    }
+
+    .export-panel h2 {
+      font-size: 28px;
+      color: #00d9ff;
+      margin: 0 0 24px 0;
+      font-weight: 700;
+    }
+
+    .export-actions {
+      display: flex;
+      gap: 16px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .export-all-btn {
+      background: #00d9ff;
+      color: #1a1a1a;
+      border: none;
+      padding: 18px 36px;
+      border-radius: 12px;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .export-all-btn:hover {
+      background: #00b8dd;
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(0, 217, 255, 0.4);
+    }
+
+    .toast-msg {
+      position: fixed;
+      bottom: 32px;
+      right: 32px;
+      background: #00d9ff;
+      color: #1a1a1a;
+      padding: 18px 28px;
+      border-radius: 12px;
+      font-weight: 700;
+      font-size: 14px;
+      box-shadow: 0 8px 32px rgba(0, 217, 255, 0.5);
+      opacity: 0;
+      transform: translateY(20px);
+      transition: all 0.3s;
+      pointer-events: none;
+      z-index: 1000;
+      letter-spacing: 0.3px;
+    }
+
+    .toast-msg.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    @media (max-width: 768px) {
+      .icon-grid {
+        grid-template-columns: 1fr;
+      }
+      
+      h1 {
+        font-size: 36px;
+      }
+    }
+  </style>
+  <style>@view-transition { navigation: auto; }</style>
+  <script src="/_sdk/data_sdk.js" type="text/javascript"></script>
+  <script src="https://cdn.tailwindcss.com" type="text/javascript"></script>
+ </head>
+ <body>
+  <div class="container">
+   <header>
+    <h1 id="main-title">Dashboard Icon Set</h1>
+    <p class="subtitle" id="main-description">Professional minimal line icons • Cyan on Charcoal • 2px stroke</p>
+   </header>
+   <div class="controls"><button class="variant-btn active" onclick="setVariant('solid')">Solid</button> <button class="variant-btn" onclick="setVariant('outline')">Outline</button>
+   </div>
+   <div class="icon-grid" id="iconGrid"></div>
+   <div class="export-panel">
+    <h2>Bulk Export</h2>
+    <div class="export-actions"><button class="export-all-btn" onclick="bulkExport('svg')">Export All SVG</button> <button class="export-all-btn" onclick="bulkExport('512')">Export All 512×512</button> <button class="export-all-btn" onclick="bulkExport('128')">Export All 128×128</button>
+    </div>
+   </div>
+  </div>
+  <div class="toast-msg" id="toast"></div>
+  <script>
+    const defaultConfig = {
+      set_title: "Dashboard Icon Set",
+      description: "Professional minimal line icons • Cyan on Charcoal • 2px stroke"
+    };
+
+    let activeVariant = 'solid';
+
+    const iconSet = {
+      tipping: {
+        title: "Tipping",
+        subtitle: "Tips & Gratuity",
+        solid: `<svg viewBox="0 0 128 128" width="96" height="96" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="64" cy="64" r="36" stroke="#00d9ff" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M50 64 L60 74 L78 56" stroke="#00d9ff" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M64 28 L64 48" stroke="#00d9ff" stroke-width="2" stroke-linecap="round"/>
+          <path d="M28 64 L48 64" stroke="#00d9ff" stroke-width="2" stroke-linecap="round"/>
+          <path d="M80 64 L100 64" stroke="#00d9ff" stroke-width="2" stroke-linecap="round"/>
+          <path d="M64 80 L64 100" stroke="#00d9ff" stroke-width="2" stroke-linecap="round"/>
+          <circle cx="64" cy="64" r="4" fill="#00d9ff"/>
+        </svg>`,
+        outline: `<svg viewBox="0 0 128 128" width="96" height="96" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="64" cy="64" r="36" stroke="#00d9ff" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M50 64 L60 74 L78 56" stroke="#00d9ff" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M64 28 L64 48" stroke="#00d9ff" stroke-width="2" stroke-linecap="round"/>
+          <path d="M28 64 L48 64" stroke="#00d9ff" stroke-width="2" stroke-linecap="round"/>
+          <path d="M80 64 L100 64" stroke="#00d9ff" stroke-width="2" stroke-linecap="round"/>
+          <path d="M64 80 L64 100" stroke="#00d9ff" stroke-width="2" stroke-linecap="round"/>
+        </svg>`
+      },
+      swaps: {
+        title: "Swaps",
+        subtitle: "Exchange & Transfer",
+        solid: `<svg viewBox="0 0 128 128" width="96" height="96" xmlns="http://www.w3.org/2000/svg">
+          <path d="M20 45 L100 45" stroke="#00d9ff" stroke-width="2" stroke-linecap="round"/>
+          <path d="M85 30 L100 45 L85 60" stroke="#00d9ff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+          <path d="M108 83 L28 83" stroke="#00d9ff" stroke-width="2" stroke-linecap="round"/>
+          <path d="M43 68 L28 83 L43 98" stroke="#00d9ff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+          <circle cx="100" cy="45" r="5" fill="#00d9ff"/>
+          <circle cx="28" cy="83" r="5" fill="#00d9ff"/>
+        </svg>`,
+        outline: `<svg viewBox="0 0 128 128" width="96" height="96" xmlns="http://www.w3.org/2000/svg">
+          <path d="M20 45 L100 45" stroke="#00d9ff" stroke-width="2" stroke-linecap="round"/>
+          <path d="M85 30 L100 45 L85 60" stroke="#00d9ff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+          <path d="M108 83 L28 83" stroke="#00d9ff" stroke-width="2" stroke-linecap="round"/>
+          <path d="M43 68 L28 83 L43 98" stroke="#00d9ff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+        </svg>`
+      },
+      link_scan: {
+        title: "Link Scan",
+        subtitle: "QR & Code Reader",
+        solid: `<svg viewBox="0 0 128 128" width="96" height="96" xmlns="http://www.w3.org/2000/svg">
+          <rect x="28" y="28" width="32" height="32" rx="2" stroke="#00d9ff" stroke-width="2" fill="none"/>
+          <rect x="68" y="28" width="32" height="32" rx="2" stroke="#00d9ff" stroke-width="2" fill="none"/>
+          <rect x="28" y="68" width="32" height="32" rx="2" stroke="#00d9ff" stroke-width="2" fill="none"/>
+          <rect x="36" y="36" width="16" height="16" rx="1" fill="#00d9ff"/>
+          <rect x="76" y="36" width="16" height="16" rx="1" fill="#00d9ff"/>
+          <rect x="36" y="76" width="16" height="16" rx="1" fill="#00d9ff"/>
+          <path d="M68 76 L100 76 L100 100 L68 100 Z" stroke="#00d9ff" stroke-width="2" fill="none"/>
+          <circle cx="84" cy="88" r="6" fill="#00d9ff"/>
+        </svg>`,
+        outline: `<svg viewBox="0 0 128 128" width="96" height="96" xmlns="http://www.w3.org/2000/svg">
+          <rect x="28" y="28" width="32" height="32" rx="2" stroke="#00d9ff" stroke-width="2" fill="none"/>
+          <rect x="68" y="28" width="32" height="32" rx="2" stroke="#00d9ff" stroke-width="2" fill="none"/>
+          <rect x="28" y="68" width="32" height="32" rx="2" stroke="#00d9ff" stroke-width="2" fill="none"/>
+          <rect x="36" y="36" width="16" height="16" rx="1" stroke="#00d9ff" stroke-width="2" fill="none"/>
+          <rect x="76" y="36" width="16" height="16" rx="1" stroke="#00d9ff" stroke-width="2" fill="none"/>
+          <rect x="36" y="76" width="16" height="16" rx="1" stroke="#00d9ff" stroke-width="2" fill="none"/>
+          <path d="M68 76 L100 76 L100 100 L68 100 Z" stroke="#00d9ff" stroke-width="2" fill="none"/>
+        </svg>`
+      },
+      bonus_clock: {
+        title: "Bonus Clock",
+        subtitle: "Time-Limited Offers",
+        solid: `<svg viewBox="0 0 128 128" width="96" height="96" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="64" cy="70" r="38" stroke="#00d9ff" stroke-width="2" fill="none"/>
+          <path d="M64 70 L64 42" stroke="#00d9ff" stroke-width="2" stroke-linecap="round"/>
+          <path d="M64 70 L82 84" stroke="#00d9ff" stroke-width="2" stroke-linecap="round"/>
+          <circle cx="64" cy="70" r="4" fill="#00d9ff"/>
+          <path d="M50 22 L64 32 L78 22" stroke="#00d9ff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+          <circle cx="94" cy="50" r="3" fill="#00d9ff"/>
+          <circle cx="102" cy="70" r="3" fill="#00d9ff"/>
+          <circle cx="94" cy="90" r="3" fill="#00d9ff"/>
+        </svg>`,
+        outline: `<svg viewBox="0 0 128 128" width="96" height="96" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="64" cy="70" r="38" stroke="#00d9ff" stroke-width="2" fill="none"/>
+          <path d="M64 70 L64 42" stroke="#00d9ff" stroke-width="2" stroke-linecap="round"/>
+          <path d="M64 70 L82 84" stroke="#00d9ff" stroke-width="2" stroke-linecap="round"/>
+          <path d="M50 22 L64 32 L78 22" stroke="#00d9ff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+          <circle cx="94" cy="50" r="3" stroke="#00d9ff" stroke-width="2" fill="none"/>
+          <circle cx="102" cy="70" r="3" stroke="#00d9ff" stroke-width="2" fill="none"/>
+          <circle cx="94" cy="90" r="3" stroke="#00d9ff" stroke-width="2" fill="none"/>
+        </svg>`
+      },
+      promo_review: {
+        title: "Promo Review",
+        subtitle: "Rating & Feedback",
+        solid: `<svg viewBox="0 0 128 128" width="96" height="96" xmlns="http://www.w3.org/2000/svg">
+          <path d="M64 24 L74 50 L102 50 L80 66 L90 92 L64 76 L38 92 L48 66 L26 50 L54 50 Z" stroke="#00d9ff" stroke-width="2" stroke-linejoin="round" fill="none"/>
+          <circle cx="64" cy="64" r="12" fill="#00d9ff"/>
+          <path d="M24 104 L52 104" stroke="#00d9ff" stroke-width="2" stroke-linecap="round"/>
+          <path d="M60 104 L104 104" stroke="#00d9ff" stroke-width="2" stroke-linecap="round"/>
+          <circle cx="56" cy="104" r="4" fill="#00d9ff"/>
+        </svg>`,
+        outline: `<svg viewBox="0 0 128 128" width="96" height="96" xmlns="http://www.w3.org/2000/svg">
+          <path d="M64 24 L74 50 L102 50 L80 66 L90 92 L64 76 L38 92 L48 66 L26 50 L54 50 Z" stroke="#00d9ff" stroke-width="2" stroke-linejoin="round" fill="none"/>
+          <path d="M24 104 L52 104" stroke="#00d9ff" stroke-width="2" stroke-linecap="round"/>
+          <path d="M60 104 L104 104" stroke="#00d9ff" stroke-width="2" stroke-linecap="round"/>
+          <circle cx="56" cy="104" r="4" stroke="#00d9ff" stroke-width="2" fill="none"/>
+        </svg>`
+      },
+      poker: {
+        title: "Poker",
+        subtitle: "Card Games",
+        solid: `<svg viewBox="0 0 128 128" width="96" height="96" xmlns="http://www.w3.org/2000/svg">
+          <rect x="24" y="38" width="40" height="56" rx="4" stroke="#00d9ff" stroke-width="2" fill="none"/>
+          <rect x="44" y="30" width="40" height="56" rx="4" stroke="#00d9ff" stroke-width="2" fill="none"/>
+          <rect x="64" y="38" width="40" height="56" rx="4" stroke="#00d9ff" stroke-width="2" fill="#1a1a1a"/>
+          <path d="M84 56 L84 70" stroke="#00d9ff" stroke-width="2" stroke-linecap="round"/>
+          <path d="M77 63 L91 63" stroke="#00d9ff" stroke-width="2" stroke-linecap="round"/>
+          <circle cx="84" cy="78" r="3" fill="#00d9ff"/>
+        </svg>`,
+        outline: `<svg viewBox="0 0 128 128" width="96" height="96" xmlns="http://www.w3.org/2000/svg">
+          <rect x="24" y="38" width="40" height="56" rx="4" stroke="#00d9ff" stroke-width="2" fill="none"/>
+          <rect x="44" y="30" width="40" height="56" rx="4" stroke="#00d9ff" stroke-width="2" fill="none"/>
+          <rect x="64" y="38" width="40" height="56" rx="4" stroke="#00d9ff" stroke-width="2" fill="none"/>
+          <path d="M84 56 L84 70" stroke="#00d9ff" stroke-width="2" stroke-linecap="round"/>
+          <path d="M77 63 L91 63" stroke="#00d9ff" stroke-width="2" stroke-linecap="round"/>
+        </svg>`
+      },
+      behavior_tilt: {
+        title: "Behavior/Tilt",
+        subtitle: "Mood Analytics",
+        solid: `<svg viewBox="0 0 128 128" width="96" height="96" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="64" cy="64" r="42" stroke="#00d9ff" stroke-width="2" fill="none"/>
+          <path d="M46 88 Q64 70 82 88" stroke="#00d9ff" stroke-width="2" stroke-linecap="round" fill="none"/>
+          <circle cx="50" cy="54" r="4" fill="#00d9ff"/>
+          <circle cx="78" cy="54" r="4" fill="#00d9ff"/>
+          <path d="M30 46 L20 36" stroke="#00d9ff" stroke-width="2" stroke-linecap="round"/>
+          <path d="M98 46 L108 36" stroke="#00d9ff" stroke-width="2" stroke-linecap="round"/>
+          <path d="M30 82 L20 92" stroke="#00d9ff" stroke-width="2" stroke-linecap="round"/>
+          <path d="M98 82 L108 92" stroke="#00d9ff" stroke-width="2" stroke-linecap="round"/>
+        </svg>`,
+        outline: `<svg viewBox="0 0 128 128" width="96" height="96" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="64" cy="64" r="42" stroke="#00d9ff" stroke-width="2" fill="none"/>
+          <path d="M46 88 Q64 70 82 88" stroke="#00d9ff" stroke-width="2" stroke-linecap="round" fill="none"/>
+          <circle cx="50" cy="54" r="4" stroke="#00d9ff" stroke-width="2" fill="none"/>
+          <circle cx="78" cy="54" r="4" stroke="#00d9ff" stroke-width="2" fill="none"/>
+          <path d="M30 46 L20 36" stroke="#00d9ff" stroke-width="2" stroke-linecap="round"/>
+          <path d="M98 46 L108 36" stroke="#00d9ff" stroke-width="2" stroke-linecap="round"/>
+          <path d="M30 82 L20 92" stroke="#00d9ff" stroke-width="2" stroke-linecap="round"/>
+          <path d="M98 82 L108 92" stroke="#00d9ff" stroke-width="2" stroke-linecap="round"/>
+        </svg>`
+      },
+      survey_router: {
+        title: "Survey Router",
+        subtitle: "Decision Flow",
+        solid: `<svg viewBox="0 0 128 128" width="96" height="96" xmlns="http://www.w3.org/2000/svg">
+          <rect x="42" y="20" width="44" height="28" rx="4" stroke="#00d9ff" stroke-width="2" fill="none"/>
+          <path d="M64 48 L64 62" stroke="#00d9ff" stroke-width="2"/>
+          <circle cx="64" cy="70" r="8" stroke="#00d9ff" stroke-width="2" fill="#00d9ff"/>
+          <path d="M56 78 L32 102" stroke="#00d9ff" stroke-width="2" stroke-linecap="round"/>
+          <path d="M72 78 L96 102" stroke="#00d9ff" stroke-width="2" stroke-linecap="round"/>
+          <rect x="16" y="94" width="32" height="20" rx="3" stroke="#00d9ff" stroke-width="2" fill="none"/>
+          <rect x="80" y="94" width="32" height="20" rx="3" stroke="#00d9ff" stroke-width="2" fill="none"/>
+          <circle cx="32" cy="104" r="3" fill="#00d9ff"/>
+          <circle cx="96" cy="104" r="3" fill="#00d9ff"/>
+        </svg>`,
+        outline: `<svg viewBox="0 0 128 128" width="96" height="96" xmlns="http://www.w3.org/2000/svg">
+          <rect x="42" y="20" width="44" height="28" rx="4" stroke="#00d9ff" stroke-width="2" fill="none"/>
+          <path d="M64 48 L64 62" stroke="#00d9ff" stroke-width="2"/>
+          <circle cx="64" cy="70" r="8" stroke="#00d9ff" stroke-width="2" fill="none"/>
+          <path d="M56 78 L32 102" stroke="#00d9ff" stroke-width="2" stroke-linecap="round"/>
+          <path d="M72 78 L96 102" stroke="#00d9ff" stroke-width="2" stroke-linecap="round"/>
+          <rect x="16" y="94" width="32" height="20" rx="3" stroke="#00d9ff" stroke-width="2" fill="none"/>
+          <rect x="80" y="94" width="32" height="20" rx="3" stroke="#00d9ff" stroke-width="2" fill="none"/>
+        </svg>`
+      },
+      games: {
+        title: "Games",
+        subtitle: "Gaming & Play",
+        solid: `<svg viewBox="0 0 128 128" width="96" height="96" xmlns="http://www.w3.org/2000/svg">
+          <path d="M32 50 C32 40 38 36 46 36 L82 36 C90 36 96 40 96 50 L96 66 L84 66 L84 78 L68 78 L68 66 L44 66 L44 50 Z" stroke="#00d9ff" stroke-width="2" stroke-linejoin="round" fill="none"/>
+          <path d="M24 82 Q28 92 38 92 L90 92 Q100 92 104 82" stroke="#00d9ff" stroke-width="2" stroke-linecap="round" fill="none"/>
+          <circle cx="78" cy="54" r="4" fill="#00d9ff"/>
+          <circle cx="88" cy="66" r="4" fill="#00d9ff"/>
+          <path d="M50 54 L56 54" stroke="#00d9ff" stroke-width="2" stroke-linecap="round"/>
+          <path d="M53 51 L53 57" stroke="#00d9ff" stroke-width="2" stroke-linecap="round"/>
+        </svg>`,
+        outline: `<svg viewBox="0 0 128 128" width="96" height="96" xmlns="http://www.w3.org/2000/svg">
+          <path d="M32 50 C32 40 38 36 46 36 L82 36 C90 36 96 40 96 50 L96 66 L84 66 L84 78 L68 78 L68 66 L44 66 L44 50 Z" stroke="#00d9ff" stroke-width="2" stroke-linejoin="round" fill="none"/>
+          <path d="M24 82 Q28 92 38 92 L90 92 Q100 92 104 82" stroke="#00d9ff" stroke-width="2" stroke-linecap="round" fill="none"/>
+          <circle cx="78" cy="54" r="4" stroke="#00d9ff" stroke-width="2" fill="none"/>
+          <circle cx="88" cy="66" r="4" stroke="#00d9ff" stroke-width="2" fill="none"/>
+          <path d="M50 54 L56 54" stroke="#00d9ff" stroke-width="2" stroke-linecap="round"/>
+          <path d="M53 51 L53 57" stroke="#00d9ff" stroke-width="2" stroke-linecap="round"/>
+        </svg>`
+      }
+    };
+
+    function renderIconGrid() {
+      const grid = document.getElementById('iconGrid');
+      grid.innerHTML = '';
+      
+      Object.entries(iconSet).forEach(([key, data]) => {
+        const svg = activeVariant === 'solid' ? data.solid : data.outline;
+        
+        const card = document.createElement('div');
+        card.className = 'icon-card';
+        card.innerHTML = `
+          <div class="icon-display">${svg}</div>
+          <h3 class="icon-title">${data.title}</h3>
+          <p class="icon-subtitle">${data.subtitle}</p>
+          <div class="download-btns">
+            <button class="dl-btn" onclick="downloadSingle('${key}', 'svg')">SVG</button>
+            <button class="dl-btn" onclick="downloadSingle('${key}', '512')">512px</button>
+            <button class="dl-btn" onclick="downloadSingle('${key}', '128')">128px</button>
+          </div>
+        `;
+        grid.appendChild(card);
+      });
+    }
+
+    function setVariant(variant) {
+      activeVariant = variant;
+      document.querySelectorAll('.variant-btn').forEach(btn => {
+        btn.classList.remove('active');
+      });
+      event.target.classList.add('active');
+      renderIconGrid();
+    }
+
+    function notify(msg) {
+      const toast = document.getElementById('toast');
+      toast.textContent = msg;
+      toast.classList.add('visible');
+      setTimeout(() => {
+        toast.classList.remove('visible');
+      }, 2800);
+    }
+
+    function downloadSingle(key, format) {
+      const data = iconSet[key];
+      const svg = activeVariant === 'solid' ? data.solid : data.outline;
+      
+      if (format === 'svg') {
+        const blob = new Blob([svg], { type: 'image/svg+xml' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `${key}_${activeVariant}.svg`;
+        link.click();
+        URL.revokeObjectURL(url);
+        notify(`${data.title} SVG downloaded ✓`);
+      } else {
+        const size = parseInt(format);
+        const canvas = document.createElement('canvas');
+        canvas.width = size;
+        canvas.height = size;
+        const ctx = canvas.getContext('2d');
+        
+        const image = new Image();
+        image.onload = () => {
+          ctx.fillStyle = '#1a1a1a';
+          ctx.fillRect(0, 0, size, size);
+          ctx.drawImage(image, 0, 0, size, size);
+          
+          canvas.toBlob(blob => {
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `${key}_${activeVariant}_${size}x${size}.png`;
+            link.click();
+            URL.revokeObjectURL(url);
+            notify(`${data.title} ${size}×${size} downloaded ✓`);
+          });
+        };
+        image.src = 'data:image/svg+xml;base64,' + btoa(svg);
+      }
+    }
+
+    function bulkExport(format) {
+      let count = 0;
+      const total = Object.keys(iconSet).length;
+      
+      Object.keys(iconSet).forEach((key, idx) => {
+        setTimeout(() => {
+          downloadSingle(key, format);
+          count++;
+          if (count === total) {
+            setTimeout(() => {
+              const label = format === 'svg' ? 'SVG' : `${format}×${format}`;
+              notify(`All ${total} icons exported as ${label} ✓`);
+            }, 600);
+          }
+        }, idx * 250);
+      });
+    }
+
+    const defaultConfig = {
+      set_title: "Dashboard Icon Set",
+      description: "Professional minimal line icons • Cyan on Charcoal • 2px stroke"
+    };
+
+    async function onConfigChange(config) {
+      document.getElementById('main-title').textContent = config.set_title || defaultConfig.set_title;
+      document.getElementById('main-description').textContent = config.description || defaultConfig.description;
+    }
+
+    if (window.elementSdk) {
+      window.elementSdk.init({
+        defaultConfig,
+        onConfigChange,
+        mapToCapabilities: () => ({
+          recolorables: [],
+          borderables: [],
+          fontEditable: undefined,
+          fontSizeable: undefined
+        }),
+        mapToEditPanelValues: (config) => new Map([
+          ["set_title", config.set_title || defaultConfig.set_title],
+          ["description", config.description || defaultConfig.description]
+        ])
+      });
+    }
+
+    renderIconGrid();
+  </script>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9a19a10d622096b1',t:'MTc2MzY1OTM0My4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
+
+
+<!doctype html>
+<html lang="en">
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard Icon Set</title>
+  <script src="/_sdk/element_sdk.js"></script>
+  <style>
+    body {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      background: #1a1a1a;
+      color: #e0e0e0;
+      min-height: 100%;
+      display: flex;
+      flex-direction: column;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 40px 24px;
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 48px;
+    }
+
+    .header h1 {
+      font-size: 32px;
+      font-weight: 600;
+      margin: 0 0 12px 0;
+      color: #00d9ff;
+    }
+
+    .header p {
+      font-size: 16px;
+      margin: 0;
+      color: #a0a0a0;
+    }
+
+    .icon-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 32px;
+      margin-bottom: 48px;
+    }
+
+    .icon-card {
+      background: #2a2a2a;
+      border-radius: 12px;
+      padding: 24px;
+      text-align: center;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .icon-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 8px 24px rgba(0, 217, 255, 0.15);
+    }
+
+    .icon-wrapper {
+      width: 128px;
+      height: 128px;
+      margin: 0 auto 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #1a1a1a;
+      border-radius: 8px;
+    }
+
+    .icon-name {
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: #00d9ff;
+    }
+
+    .icon-label {
+      font-size: 13px;
+      color: #a0a0a0;
+      margin-bottom: 16px;
+    }
+
+    .button-group {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    button {
+      background: #00d9ff;
+      color: #1a1a1a;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+      white-space: nowrap;
+    }
+
+    button:hover {
+      background: #00b8dd;
+    }
+
+    button:active {
+      transform: scale(0.98);
+    }
+
+    .variant-toggle {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      margin-bottom: 32px;
+      flex-wrap: wrap;
+    }
+
+    .variant-btn {
+      background: #2a2a2a;
+      color: #a0a0a0;
+      padding: 12px 24px;
+      border-radius: 8px;
+    }
+
+    .variant-btn.active {
+      background: #00d9ff;
+      color: #1a1a1a;
+    }
+
+    .export-section {
+      text-align: center;
+      padding: 32px;
+      background: #2a2a2a;
+      border-radius: 12px;
+      margin-top: 24px;
+    }
+
+    .export-section h2 {
+      font-size: 24px;
+      margin: 0 0 20px 0;
+      color: #00d9ff;
+    }
+
+    .export-buttons {
+      display: flex;
+      gap: 16px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .export-btn {
+      background: #00d9ff;
+      color: #1a1a1a;
+      border: none;
+      padding: 14px 28px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .export-btn:hover {
+      background: #00b8dd;
+      transform: translateY(-2px);
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: #00d9ff;
+      color: #1a1a1a;
+      padding: 16px 24px;
+      border-radius: 8px;
+      font-weight: 600;
+      opacity: 0;
+      transform: translateY(20px);
+      transition: all 0.3s;
+      pointer-events: none;
+      z-index: 1000;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  </style>
+  <style>@view-transition { navigation: auto; }</style>
+  <script src="/_sdk/data_sdk.js" type="text/javascript"></script>
+  <script src="https://cdn.tailwindcss.com" type="text/javascript"></script>
+ </head>
+ <body>
+  <div class="container">
+   <div class="header">
+    <h1 id="main-title">Dashboard Icon Set</h1>
+    <p id="main-description">Minimal line icons for dashboard - Cyan on Charcoal</p>
+   </div>
+   <div class="variant-toggle"><button class="variant-btn active" onclick="switchVariant('solid')">Solid</button> <button class="variant-btn" onclick="switchVariant('outline')">Outline</button>
+   </div>
+   <div class="icon-grid" id="icon-grid"></div>
+   <div class="export-section">
+    <h2>Export All Icons</h2>
+    <div class="export-buttons"><button class="export-btn" onclick="exportAll('svg')">Download All SVG</button> <button class="export-btn" onclick="exportAll('512')">Download All 512×512 PNG</button> <button class="export-btn" onclick="exportAll('128')">Download All 128×128 PNG</button>
+    </div>
+   </div>
+  </div>
+  <div class="toast" id="toast"></div>
+  <script>
+    const defaultConfig = {
+      set_title: "Dashboard Icon Set",
+      description: "Minimal line icons for dashboard"
+    };
+
+    const config = {};
+
+    let currentVariant = 'solid';
+
+    const icons = {
+      tipping: {
+        name: "Tipping",
+        label: "Gratuity & Tips",
+        solid: `<svg viewBox="0 0 128 128" width="96" height="96">
+          <path d="M64 16 L64 48" stroke="#00d9ff" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+          <circle cx="64" cy="64" r="32" stroke="#00d9ff" stroke-width="2.5" fill="none"/>
+          <path d="M56 64 L64 72 L72 56" stroke="#00d9ff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+          <path d="M32 64 L48 64" stroke="#00d9ff" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+          <path d="M80 64 L96 64" stroke="#00d9ff" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+          <path d="M64 80 L64 112" stroke="#00d9ff" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+          <circle cx="64" cy="64" r="6" fill="#00d9ff"/>
+        </svg>`,
+        outline: `<svg viewBox="0 0 128 128" width="96" height="96">
+          <path d="M64 16 L64 48" stroke="#00d9ff" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+          <circle cx="64" cy="64" r="32" stroke="#00d9ff" stroke-width="2.5" fill="none"/>
+          <path d="M56 64 L64 72 L72 56" stroke="#00d9ff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+          <path d="M32 64 L48 64" stroke="#00d9ff" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+          <path d="M80 64 L96 64" stroke="#00d9ff" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+          <path d="M64 80 L64 112" stroke="#00d9ff" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+        </svg>`
+      },
+      swaps: {
+        name: "Swaps",
+        label: "Exchange & Transfer",
+        solid: `<svg viewBox="0 0 128 128" width="96" height="96">
+          <path d="M24 40 L104 40" stroke="#00d9ff" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+          <path d="M88 24 L104 40 L88 56" stroke="#00d9ff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+          <path d="M104 88 L24 88" stroke="#00d9ff" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+          <path d="M40 72 L24 88 L40 104" stroke="#00d9ff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+          <circle cx="104" cy="40" r="5" fill="#00d9ff"/>
+          <circle cx="24" cy="88" r="5" fill="#00d9ff"/>
+        </svg>`,
+        outline: `<svg viewBox="0 0 128 128" width="96" height="96">
+          <path d="M24 40 L104 40" stroke="#00d9ff" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+          <path d="M88 24 L104 40 L88 56" stroke="#00d9ff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+          <path d="M104 88 L24 88" stroke="#00d9ff" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+          <path d="M40 72 L24 88 L40 104" stroke="#00d9ff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+        </svg>`
+      },
+      link_scan: {
+        name: "Link Scan",
+        label: "QR & Code Scanner",
+        solid: `<svg viewBox="0 0 128 128" width="96" height="96">
+          <rect x="32" y="32" width="28" height="28" stroke="#00d9ff" stroke-width="2.5" fill="none" rx="2"/>
+          <rect x="68" y="32" width="28" height="28" stroke="#00d9ff" stroke-width="2.5" fill="none" rx="2"/>
+          <rect x="32" y="68" width="28" height="28" stroke="#00d9ff" stroke-width="2.5" fill="none" rx="2"/>
+          <rect x="40" y="40" width="12" height="12" fill="#00d9ff" rx="1"/>
+          <rect x="76" y="40" width="12" height="12" fill="#00d9ff" rx="1"/>
+          <rect x="40" y="76" width="12" height="12" fill="#00d9ff" rx="1"/>
+          <path d="M68 76 L96 76 L96 96 L68 96 Z" stroke="#00d9ff" stroke-width="2.5" fill="none"/>
+          <circle cx="82" cy="86" r="4" fill="#00d9ff"/>
+        </svg>`,
+        outline: `<svg viewBox="0 0 128 128" width="96" height="96">
+          <rect x="32" y="32" width="28" height="28" stroke="#00d9ff" stroke-width="2.5" fill="none" rx="2"/>
+          <rect x="68" y="32" width="28" height="28" stroke="#00d9ff" stroke-width="2.5" fill="none" rx="2"/>
+          <rect x="32" y="68" width="28" height="28" stroke="#00d9ff" stroke-width="2.5" fill="none" rx="2"/>
+          <rect x="40" y="40" width="12" height="12" stroke="#00d9ff" stroke-width="2" fill="none" rx="1"/>
+          <rect x="76" y="40" width="12" height="12" stroke="#00d9ff" stroke-width="2" fill="none" rx="1"/>
+          <rect x="40" y="76" width="12" height="12" stroke="#00d9ff" stroke-width="2" fill="none" rx="1"/>
+          <path d="M68 76 L96 76 L96 96 L68 96 Z" stroke="#00d9ff" stroke-width="2.5" fill="none"/>
+        </svg>`
+      },
+      bonus_clock: {
+        name: "Bonus Clock",
+        label: "Time-Limited Rewards",
+        solid: `<svg viewBox="0 0 128 128" width="96" height="96">
+          <circle cx="64" cy="72" r="36" stroke="#00d9ff" stroke-width="2.5" fill="none"/>
+          <path d="M64 72 L64 48" stroke="#00d9ff" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+          <path d="M64 72 L80 84" stroke="#00d9ff" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+          <path d="M52 24 L64 36 L76 24" stroke="#00d9ff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+          <circle cx="64" cy="72" r="4" fill="#00d9ff"/>
+          <path d="M90 52 L96 48" stroke="#00d9ff" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+          <path d="M98 72 L104 72" stroke="#00d9ff" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+          <path d="M90 92 L96 96" stroke="#00d9ff" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+        </svg>`,
+        outline: `<svg viewBox="0 0 128 128" width="96" height="96">
+          <circle cx="64" cy="72" r="36" stroke="#00d9ff" stroke-width="2.5" fill="none"/>
+          <path d="M64 72 L64 48" stroke="#00d9ff" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+          <path d="M64 72 L80 84" stroke="#00d9ff" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+          <path d="M52 24 L64 36 L76 24" stroke="#00d9ff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+          <path d="M90 52 L96 48" stroke="#00d9ff" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+          <path d="M98 72 L104 72" stroke="#00d9ff" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+          <path d="M90 92 L96 96" stroke="#00d9ff" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+        </svg>`
+      },
+      promo_review: {
+        name: "Promo Review",
+        label: "Rating & Feedback",
+        solid: `<svg viewBox="0 0 128 128" width="96" height="96">
+          <path d="M64 28 L72 52 L98 52 L78 66 L86 90 L64 76 L42 90 L50 66 L30 52 L56 52 Z" stroke="#00d9ff" stroke-width="2.5" stroke-linejoin="round" fill="none"/>
+          <circle cx="64" cy="64" r="10" fill="#00d9ff"/>
+          <path d="M24 100 L48 100" stroke="#00d9ff" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+          <path d="M56 100 L104 100" stroke="#00d9ff" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+        </svg>`,
+        outline: `<svg viewBox="0 0 128 128" width="96" height="96">
+          <path d="M64 28 L72 52 L98 52 L78 66 L86 90 L64 76 L42 90 L50 66 L30 52 L56 52 Z" stroke="#00d9ff" stroke-width="2.5" stroke-linejoin="round" fill="none"/>
+          <path d="M24 100 L48 100" stroke="#00d9ff" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+          <path d="M56 100 L104 100" stroke="#00d9ff" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+        </svg>`
+      },
+      poker: {
+        name: "Poker",
+        label: "Card Games",
+        solid: `<svg viewBox="0 0 128 128" width="96" height="96">
+          <rect x="28" y="36" width="36" height="52" rx="4" stroke="#00d9ff" stroke-width="2.5" fill="none"/>
+          <rect x="48" y="28" width="36" height="52" rx="4" stroke="#00d9ff" stroke-width="2.5" fill="none"/>
+          <rect x="64" y="40" width="36" height="52" rx="4" stroke="#00d9ff" stroke-width="2.5" fill="#1a1a1a"/>
+          <path d="M82 56 L82 68" stroke="#00d9ff" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+          <path d="M76 62 L88 62" stroke="#00d9ff" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+          <circle cx="82" cy="76" r="3" fill="#00d9ff"/>
+        </svg>`,
+        outline: `<svg viewBox="0 0 128 128" width="96" height="96">
+          <rect x="28" y="36" width="36" height="52" rx="4" stroke="#00d9ff" stroke-width="2.5" fill="none"/>
+          <rect x="48" y="28" width="36" height="52" rx="4" stroke="#00d9ff" stroke-width="2.5" fill="none"/>
+          <rect x="64" y="40" width="36" height="52" rx="4" stroke="#00d9ff" stroke-width="2.5" fill="none"/>
+          <path d="M82 56 L82 68" stroke="#00d9ff" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+          <path d="M76 62 L88 62" stroke="#00d9ff" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+        </svg>`
+      },
+      behavior_tilt: {
+        name: "Behavior/Tilt",
+        label: "Mood & Analytics",
+        solid: `<svg viewBox="0 0 128 128" width="96" height="96">
+          <circle cx="64" cy="64" r="40" stroke="#00d9ff" stroke-width="2.5" fill="none"/>
+          <path d="M48 88 Q64 72 80 88" stroke="#00d9ff" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+          <circle cx="52" cy="56" r="4" fill="#00d9ff"/>
+          <circle cx="76" cy="56" r="4" fill="#00d9ff"/>
+          <path d="M32 48 L24 40" stroke="#00d9ff" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+          <path d="M96 48 L104 40" stroke="#00d9ff" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+          <path d="M96 80 L104 88" stroke="#00d9ff" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+        </svg>`,
+        outline: `<svg viewBox="0 0 128 128" width="96" height="96">
+          <circle cx="64" cy="64" r="40" stroke="#00d9ff" stroke-width="2.5" fill="none"/>
+          <path d="M48 88 Q64 72 80 88" stroke="#00d9ff" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+          <circle cx="52" cy="56" r="4" stroke="#00d9ff" stroke-width="2" fill="none"/>
+          <circle cx="76" cy="56" r="4" stroke="#00d9ff" stroke-width="2" fill="none"/>
+          <path d="M32 48 L24 40" stroke="#00d9ff" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+          <path d="M96 48 L104 40" stroke="#00d9ff" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+          <path d="M96 80 L104 88" stroke="#00d9ff" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+        </svg>`
+      },
+      survey_router: {
+        name: "Survey Router",
+        label: "Flow & Navigation",
+        solid: `<svg viewBox="0 0 128 128" width="96" height="96">
+          <rect x="44" y="24" width="40" height="24" rx="4" stroke="#00d9ff" stroke-width="2.5" fill="none"/>
+          <path d="M64 48 L64 64" stroke="#00d9ff" stroke-width="2.5" fill="none"/>
+          <circle cx="64" cy="72" r="8" stroke="#00d9ff" stroke-width="2.5" fill="#00d9ff"/>
+          <path d="M56 80 L32 104" stroke="#00d9ff" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+          <path d="M72 80 L96 104" stroke="#00d9ff" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+          <rect x="20" y="96" width="24" height="16" rx="3" stroke="#00d9ff" stroke-width="2.5" fill="none"/>
+          <rect x="84" y="96" width="24" height="16" rx="3" stroke="#00d9ff" stroke-width="2.5" fill="none"/>
+        </svg>`,
+        outline: `<svg viewBox="0 0 128 128" width="96" height="96">
+          <rect x="44" y="24" width="40" height="24" rx="4" stroke="#00d9ff" stroke-width="2.5" fill="none"/>
+          <path d="M64 48 L64 64" stroke="#00d9ff" stroke-width="2.5" fill="none"/>
+          <circle cx="64" cy="72" r="8" stroke="#00d9ff" stroke-width="2.5" fill="none"/>
+          <path d="M56 80 L32 104" stroke="#00d9ff" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+          <path d="M72 80 L96 104" stroke="#00d9ff" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+          <rect x="20" y="96" width="24" height="16" rx="3" stroke="#00d9ff" stroke-width="2.5" fill="none"/>
+          <rect x="84" y="96" width="24" height="16" rx="3" stroke="#00d9ff" stroke-width="2.5" fill="none"/>
+        </svg>`
+      },
+      games: {
+        name: "Games",
+        label: "Gaming & Play",
+        solid: `<svg viewBox="0 0 128 128" width="96" height="96">
+          <path d="M36 48 L36 64 L52 64 L52 80 L68 80 L68 64 L92 64 L92 48 Q92 40 84 40 L44 40 Q36 40 36 48 Z" stroke="#00d9ff" stroke-width="2.5" stroke-linejoin="round" fill="none"/>
+          <circle cx="76" cy="56" r="4" fill="#00d9ff"/>
+          <circle cx="84" cy="72" r="4" fill="#00d9ff"/>
+          <path d="M44 56 L48 56" stroke="#00d9ff" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+          <path d="M46 54 L46 58" stroke="#00d9ff" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+          <path d="M28 80 Q32 88 40 88 L88 88 Q96 88 100 80" stroke="#00d9ff" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+        </svg>`,
+        outline: `<svg viewBox="0 0 128 128" width="96" height="96">
+          <path d="M36 48 L36 64 L52 64 L52 80 L68 80 L68 64 L92 64 L92 48 Q92 40 84 40 L44 40 Q36 40 36 48 Z" stroke="#00d9ff" stroke-width="2.5" stroke-linejoin="round" fill="none"/>
+          <circle cx="76" cy="56" r="4" stroke="#00d9ff" stroke-width="2" fill="none"/>
+          <circle cx="84" cy="72" r="4" stroke="#00d9ff" stroke-width="2" fill="none"/>
+          <path d="M44 56 L48 56" stroke="#00d9ff" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+          <path d="M46 54 L46 58" stroke="#00d9ff" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+          <path d="M28 80 Q32 88 40 88 L88 88 Q96 88 100 80" stroke="#00d9ff" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+        </svg>`
+      }
+    };
+
+    function renderIcons() {
+      const grid = document.getElementById('icon-grid');
+      grid.innerHTML = '';
+      
+      Object.entries(icons).forEach(([key, icon]) => {
+        const card = document.createElement('div');
+        card.className = 'icon-card';
+        
+        const svg = currentVariant === 'solid' ? icon.solid : icon.outline;
+        
+        card.innerHTML = `
+          <div class="icon-wrapper">${svg}</div>
+          <div class="icon-name">${icon.name}</div>
+          <div class="icon-label">${icon.label}</div>
+          <div class="button-group">
+            <button onclick="downloadIcon('${key}', 'svg')">SVG</button>
+            <button onclick="downloadIcon('${key}', '512')">512px</button>
+            <button onclick="downloadIcon('${key}', '128')">128px</button>
+          </div>
+        `;
+        
+        grid.appendChild(card);
+      });
+    }
+
+    function switchVariant(variant) {
+      currentVariant = variant;
+      document.querySelectorAll('.variant-btn').forEach(btn => {
+        btn.classList.remove('active');
+      });
+      event.target.classList.add('active');
+      renderIcons();
+    }
+
+    function showToast(message) {
+      const toast = document.getElementById('toast');
+      toast.textContent = message;
+      toast.classList.add('show');
+      setTimeout(() => {
+        toast.classList.remove('show');
+      }, 2500);
+    }
+
+    function downloadIcon(iconKey, format) {
+      const icon = icons[iconKey];
+      const svg = currentVariant === 'solid' ? icon.solid : icon.outline;
+      
+      if (format === 'svg') {
+        const blob = new Blob([svg], { type: 'image/svg+xml' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${iconKey}_${currentVariant}.svg`;
+        a.click();
+        URL.revokeObjectURL(url);
+        showToast(`${icon.name} SVG downloaded`);
+      } else {
+        const size = parseInt(format);
+        const canvas = document.createElement('canvas');
+        canvas.width = size;
+        canvas.height = size;
+        const ctx = canvas.getContext('2d');
+        
+        const img = new Image();
+        img.onload = function() {
+          ctx.fillStyle = '#1a1a1a';
+          ctx.fillRect(0, 0, size, size);
+          ctx.drawImage(img, 0, 0, size, size);
+          
+          canvas.toBlob(function(blob) {
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${iconKey}_${currentVariant}_${size}x${size}.png`;
+            a.click();
+            URL.revokeObjectURL(url);
+            showToast(`${icon.name} ${size}×${size} downloaded`);
+          });
+        };
+        img.src = 'data:image/svg+xml;base64,' + btoa(svg);
+      }
+    }
+
+    function exportAll(format) {
+      let count = 0;
+      Object.keys(icons).forEach((key, index) => {
+        setTimeout(() => {
+          downloadIcon(key, format);
+          count++;
+          if (count === Object.keys(icons).length) {
+            setTimeout(() => {
+              showToast(`All ${format === 'svg' ? 'SVG' : format + '×' + format} files downloaded`);
+            }, 500);
+          }
+        }, index * 200);
+      });
+    }
+
+    async function onConfigChange(config) {
+      const title = config.set_title || defaultConfig.set_title;
+      const description = config.description || defaultConfig.description;
+      
+      document.getElementById('main-title').textContent = title;
+      document.getElementById('main-description').textContent = description;
+    }
+
+    if (window.elementSdk) {
+      window.elementSdk.init({
+        defaultConfig,
+        onConfigChange,
+        mapToCapabilities: (config) => ({
+          recolorables: [],
+          borderables: [],
+          fontEditable: undefined,
+          fontSizeable: undefined
+        }),
+        mapToEditPanelValues: (config) => new Map([
+          ["set_title", config.set_title || defaultConfig.set_title],
+          ["description", config.description || defaultConfig.description]
+        ])
+      });
+    }
+
+    renderIcons();
+  </script>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9a199d7eb50e96b1',t:'MTc2MzY1OTE5Ny4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
+
+hero background prompts:
+
+<!doctype html>
+<html lang="en">
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TiltCheck Hero Background V2</title>
+  <script src="/_sdk/element_sdk.js"></script>
+  <style>
+    body {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      background: #0f0f14;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html, body {
+      height: 100%;
+      width: 100%;
+    }
+
+    .hero-container {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      background: radial-gradient(ellipse at center, #1a1a24 0%, #0f0f14 100%);
+      overflow: hidden;
+    }
+
+    /* Noise texture */
+    .noise-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      opacity: 0.07;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 300 300' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.95' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+      z-index: 20;
+      pointer-events: none;
+    }
+
+    /* Fragmented chip pieces */
+    .chip-fragment {
+      position: absolute;
+      border: 1.5px solid;
+      opacity: 0;
+      animation: fragmentFloat 6s ease-in-out infinite;
+    }
+
+    .fragment-1 {
+      width: 80px;
+      height: 80px;
+      top: 35%;
+      left: 46%;
+      border-color: rgba(6, 182, 212, 0.6);
+      clip-path: polygon(0 0, 100% 0, 85% 100%, 0% 85%);
+      animation-delay: 0s;
+    }
+
+    .fragment-2 {
+      width: 60px;
+      height: 60px;
+      top: 48%;
+      left: 52%;
+      border-color: rgba(168, 85, 247, 0.7);
+      clip-path: polygon(15% 0, 100% 15%, 100% 100%, 0 100%);
+      animation-delay: 1.5s;
+    }
+
+    .fragment-3 {
+      width: 70px;
+      height: 70px;
+      top: 42%;
+      left: 49%;
+      border-color: rgba(6, 182, 212, 0.5);
+      clip-path: polygon(0 0, 100% 0, 100% 85%, 15% 100%);
+      animation-delay: 3s;
+    }
+
+    .fragment-4 {
+      width: 50px;
+      height: 50px;
+      top: 55%;
+      left: 47%;
+      border-color: rgba(168, 85, 247, 0.5);
+      clip-path: polygon(0 15%, 85% 0, 100% 100%, 0% 100%);
+      animation-delay: 4.5s;
+    }
+
+    @keyframes fragmentFloat {
+      0% {
+        opacity: 0;
+        transform: scale(1) rotate(0deg) translateY(0);
+      }
+      15% {
+        opacity: 0.7;
+      }
+      50% {
+        opacity: 0.5;
+        transform: scale(1.3) rotate(45deg) translateY(-30px);
+      }
+      85% {
+        opacity: 0.2;
+      }
+      100% {
+        opacity: 0;
+        transform: scale(1.6) rotate(90deg) translateY(-70px);
+        filter: blur(3px);
+      }
+    }
+
+    /* Data ribbons */
+    .data-ribbon {
+      position: absolute;
+      height: 1px;
+      background: linear-gradient(90deg, 
+        transparent 0%, 
+        rgba(6, 182, 212, 0.6) 20%,
+        rgba(168, 85, 247, 0.6) 50%,
+        rgba(6, 182, 212, 0.6) 80%,
+        transparent 100%);
+      animation: ribbonFlow 8s linear infinite;
+      z-index: 3;
+    }
+
+    .ribbon-1 {
+      top: 38%;
+      left: 0;
+      width: 60%;
+      animation-delay: 0s;
+    }
+
+    .ribbon-2 {
+      top: 52%;
+      right: 0;
+      width: 55%;
+      animation-delay: 2s;
+    }
+
+    .ribbon-3 {
+      top: 45%;
+      left: 10%;
+      width: 50%;
+      animation-delay: 4s;
+    }
+
+    @keyframes ribbonFlow {
+      0% {
+        opacity: 0;
+        transform: translateX(-20%);
+      }
+      20% {
+        opacity: 0.8;
+      }
+      80% {
+        opacity: 0.8;
+      }
+      100% {
+        opacity: 0;
+        transform: translateX(20%);
+      }
+    }
+
+    /* Holographic scan bars */
+    .scan-bar {
+      position: absolute;
+      left: 0;
+      width: 100%;
+      height: 2px;
+      background: linear-gradient(90deg,
+        transparent,
+        rgba(6, 182, 212, 0.8) 40%,
+        rgba(168, 85, 247, 0.8) 60%,
+        transparent);
+      box-shadow: 0 0 20px rgba(6, 182, 212, 0.5);
+      animation: scanMove 5s ease-in-out infinite;
+      z-index: 7;
+    }
+
+    .scan-bar-1 {
+      animation-delay: 0s;
+    }
+
+    .scan-bar-2 {
+      animation-delay: 2.5s;
+      animation-duration: 6s;
+    }
+
+    @keyframes scanMove {
+      0% {
+        top: 30%;
+        opacity: 0;
+      }
+      10% {
+        opacity: 1;
+      }
+      90% {
+        opacity: 1;
+      }
+      100% {
+        top: 70%;
+        opacity: 0;
+      }
+    }
+
+    /* Central focal point */
+    .focal-core {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 450px;
+      height: 450px;
+      background: radial-gradient(
+        circle at center,
+        rgba(168, 85, 247, 0.2) 0%,
+        rgba(6, 182, 212, 0.12) 40%,
+        transparent 70%
+      );
+      z-index: 1;
+      animation: coreBreath 5s ease-in-out infinite;
+    }
+
+    @keyframes coreBreath {
+      0%, 100% {
+        opacity: 0.5;
+        transform: translate(-50%, -50%) scale(1);
+      }
+      50% {
+        opacity: 0.8;
+        transform: translate(-50%, -50%) scale(1.15);
+      }
+    }
+
+    /* Wireframe hexagons */
+    .hex-wire {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 4;
+    }
+
+    .hexagon {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 140px;
+      height: 80px;
+      border-left: 1px solid rgba(6, 182, 212, 0.3);
+      border-right: 1px solid rgba(6, 182, 212, 0.3);
+      animation: hexRotate 30s linear infinite;
+    }
+
+    .hexagon::before,
+    .hexagon::after {
+      content: '';
+      position: absolute;
+      width: 99px;
+      height: 99px;
+      border: 1px solid rgba(6, 182, 212, 0.3);
+      transform: rotate(60deg);
+    }
+
+    .hexagon::before {
+      left: -49px;
+      top: -9px;
+    }
+
+    .hexagon::after {
+      right: -49px;
+      top: -9px;
+    }
+
+    .hex-2 {
+      transform: translate(-50%, -50%) scale(1.5) rotate(30deg);
+      opacity: 0.6;
+      animation-duration: 40s;
+      animation-direction: reverse;
+    }
+
+    .hex-2 .hexagon {
+      border-color: rgba(168, 85, 247, 0.25);
+    }
+
+    .hex-2 .hexagon::before,
+    .hex-2 .hexagon::after {
+      border-color: rgba(168, 85, 247, 0.25);
+    }
+
+    @keyframes hexRotate {
+      from { transform: translate(-50%, -50%) rotate(0deg); }
+      to { transform: translate(-50%, -50%) rotate(360deg); }
+    }
+
+    /* Floating data points */
+    .data-point {
+      position: absolute;
+      width: 3px;
+      height: 3px;
+      background: rgba(6, 182, 212, 0.9);
+      border-radius: 50%;
+      box-shadow: 0 0 6px rgba(6, 182, 212, 0.8);
+      animation: pointDrift 4s ease-in-out infinite;
+      z-index: 6;
+    }
+
+    @keyframes pointDrift {
+      0%, 100% {
+        opacity: 0;
+        transform: translate(0, 0);
+      }
+      50% {
+        opacity: 1;
+        transform: translate(var(--drift-x, 30px), var(--drift-y, -40px));
+      }
+    }
+
+    /* Vertical indicator lines */
+    .indicator-line {
+      position: absolute;
+      width: 1px;
+      height: 80%;
+      top: 10%;
+      background: linear-gradient(180deg,
+        transparent,
+        rgba(168, 85, 247, 0.4) 30%,
+        rgba(168, 85, 247, 0.4) 70%,
+        transparent);
+      animation: indicatorPulse 3s ease-in-out infinite;
+    }
+
+    .indicator-left {
+      left: 20%;
+      animation-delay: 0s;
+    }
+
+    .indicator-right {
+      right: 20%;
+      animation-delay: 1.5s;
+    }
+
+    @keyframes indicatorPulse {
+      0%, 100% {
+        opacity: 0.2;
+      }
+      50% {
+        opacity: 0.7;
+      }
+    }
+
+    /* Subtle grid background */
+    .grid-underlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      opacity: 0.08;
+      z-index: 0;
+    }
+
+    /* Corner accents */
+    .corner-accent {
+      position: absolute;
+      width: 150px;
+      height: 150px;
+      border: 1px solid rgba(6, 182, 212, 0.4);
+      z-index: 8;
+    }
+
+    .accent-tl {
+      top: 0;
+      left: 0;
+      border-right: none;
+      border-bottom: none;
+    }
+
+    .accent-br {
+      bottom: 0;
+      right: 0;
+      border-left: none;
+      border-top: none;
+    }
+
+    /* Parallax depth layers */
+    .depth-layer {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 2;
+    }
+
+    .depth-blur {
+      position: absolute;
+      width: 200px;
+      height: 200px;
+      border-radius: 50%;
+      filter: blur(40px);
+      opacity: 0.3;
+    }
+
+    .blur-1 {
+      top: 20%;
+      left: 40%;
+      background: rgba(168, 85, 247, 0.3);
+      animation: blurFloat1 8s ease-in-out infinite;
+    }
+
+    .blur-2 {
+      bottom: 25%;
+      right: 35%;
+      background: rgba(6, 182, 212, 0.25);
+      animation: blurFloat2 10s ease-in-out infinite;
+    }
+
+    @keyframes blurFloat1 {
+      0%, 100% { transform: translate(0, 0); }
+      50% { transform: translate(-30px, 20px); }
+    }
+
+    @keyframes blurFloat2 {
+      0%, 100% { transform: translate(0, 0); }
+      50% { transform: translate(25px, -25px); }
+    }
+  </style>
+  <style>@view-transition { navigation: auto; }</style>
+  <script src="/_sdk/data_sdk.js" type="text/javascript"></script>
+  <script src="https://cdn.tailwindcss.com" type="text/javascript"></script>
+ </head>
+ <body>
+  <div class="hero-container"><!-- Grid underlay -->
+   <svg class="grid-underlay" xmlns="http://www.w3.org/2000/svg"><defs>
+     <pattern id="techGrid" width="50" height="50" patternunits="userSpaceOnUse">
+      <path d="M 50 0 L 0 0 0 50" fill="none" stroke="rgba(6, 182, 212, 0.15)" stroke-width="0.5" />
+     </pattern>
+    </defs> <rect width="100%" height="100%" fill="url(#techGrid)" />
+   </svg><!-- Depth blur layers -->
+   <div class="depth-layer">
+    <div class="depth-blur blur-1"></div>
+    <div class="depth-blur blur-2"></div>
+   </div><!-- Central focal core -->
+   <div class="focal-core"></div><!-- Wireframe hexagons -->
+   <div class="hex-wire">
+    <div class="hexagon"></div>
+   </div>
+   <div class="hex-wire hex-2">
+    <div class="hexagon"></div>
+   </div><!-- Fragmented chip pieces -->
+   <div class="chip-fragment fragment-1"></div>
+   <div class="chip-fragment fragment-2"></div>
+   <div class="chip-fragment fragment-3"></div>
+   <div class="chip-fragment fragment-4"></div><!-- Data ribbons -->
+   <div class="data-ribbon ribbon-1"></div>
+   <div class="data-ribbon ribbon-2"></div>
+   <div class="data-ribbon ribbon-3"></div><!-- Floating data points container -->
+   <div id="dataPoints"></div><!-- Vertical indicators -->
+   <div class="indicator-line indicator-left"></div>
+   <div class="indicator-line indicator-right"></div><!-- Holographic scan bars -->
+   <div class="scan-bar scan-bar-1"></div>
+   <div class="scan-bar scan-bar-2"></div><!-- Corner accents -->
+   <div class="corner-accent accent-tl"></div>
+   <div class="corner-accent accent-br"></div><!-- Noise overlay -->
+   <div class="noise-overlay"></div>
+  </div>
+  <script>
+    const defaultConfig = {
+      primary_color: "#0f0f14",
+      cyan_accent: "#06b6d4",
+      purple_accent: "#a855f7"
+    };
+
+    let config = { ...defaultConfig };
+
+    // Generate floating data points
+    function generateDataPoints() {
+      const container = document.getElementById('dataPoints');
+      const pointCount = 30;
+
+      for (let i = 0; i < pointCount; i++) {
+        const point = document.createElement('div');
+        point.className = 'data-point';
+        point.style.left = `${42 + Math.random() * 16}%`;
+        point.style.top = `${35 + Math.random() * 30}%`;
+        point.style.animationDelay = `${Math.random() * 4}s`;
+        point.style.animationDuration = `${3 + Math.random() * 2}s`;
+        point.style.setProperty('--drift-x', `${(Math.random() - 0.5) * 60}px`);
+        point.style.setProperty('--drift-y', `${-20 - Math.random() * 40}px`);
+
+        if (Math.random() > 0.6) {
+          point.style.background = 'rgba(168, 85, 247, 0.9)';
+          point.style.boxShadow = '0 0 6px rgba(168, 85, 247, 0.8)';
+        }
+
+        container.appendChild(point);
+      }
+    }
+
+    async function onConfigChange(newConfig) {
+      const heroContainer = document.querySelector('.hero-container');
+      const primaryColor = newConfig.primary_color || defaultConfig.primary_color;
+      
+      heroContainer.style.background = `radial-gradient(ellipse at center, #1a1a24 0%, ${primaryColor} 100%)`;
+    }
+
+    if (window.elementSdk) {
+      window.elementSdk.init({
+        defaultConfig,
+        onConfigChange,
+        mapToCapabilities: (cfg) => ({
+          recolorables: [
+            {
+              get: () => cfg.primary_color || defaultConfig.primary_color,
+              set: (value) => {
+                cfg.primary_color = value;
+                window.elementSdk.setConfig({ primary_color: value });
+              }
+            },
+            {
+              get: () => cfg.cyan_accent || defaultConfig.cyan_accent,
+              set: (value) => {
+                cfg.cyan_accent = value;
+                window.elementSdk.setConfig({ cyan_accent: value });
+              }
+            },
+            {
+              get: () => cfg.purple_accent || defaultConfig.purple_accent,
+              set: (value) => {
+                cfg.purple_accent = value;
+                window.elementSdk.setConfig({ purple_accent: value });
+              }
+            }
+          ],
+          borderables: [],
+          fontEditable: undefined,
+          fontSizeable: undefined
+        }),
+        mapToEditPanelValues: () => new Map()
+      });
+      
+      config = window.elementSdk.config;
+    }
+
+    // Initialize
+    generateDataPoints();
+  </script>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9a19a634f71d96b1',t:'MTc2MzY1OTU1NC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
+
+
+version 2 :
+
+<!doctype html>
+<html lang="en">
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TiltCheck Hero Background</title>
+  <script src="/_sdk/element_sdk.js"></script>
+  <style>
+    body {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      background: #1a1a1f;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html, body {
+      height: 100%;
+      width: 100%;
+    }
+
+    .hero-container {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(135deg, #1a1a1f 0%, #0d0d12 50%, #1a1a1f 100%);
+      overflow: hidden;
+    }
+
+    /* Noise grain overlay */
+    .noise-layer {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      opacity: 0.08;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 10;
+    }
+
+    /* Base grid layer */
+    .grid-layer {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      opacity: 0.15;
+      z-index: 1;
+    }
+
+    /* Scanline effects */
+    .scanlines {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 8;
+      background: repeating-linear-gradient(
+        0deg,
+        rgba(0, 255, 255, 0.03) 0px,
+        transparent 1px,
+        transparent 2px,
+        rgba(0, 255, 255, 0.03) 3px
+      );
+      animation: scanlineMove 8s linear infinite;
+    }
+
+    @keyframes scanlineMove {
+      0% { transform: translateY(0); }
+      100% { transform: translateY(20px); }
+    }
+
+    /* Dissolving chips layer */
+    .chip {
+      position: absolute;
+      border-radius: 50%;
+      border: 2px solid;
+      opacity: 0;
+      animation: chipDissolve 4s ease-in-out infinite;
+    }
+
+    .chip-1 {
+      width: 120px;
+      height: 120px;
+      top: 30%;
+      left: 45%;
+      border-color: rgba(147, 51, 234, 0.6);
+      animation-delay: 0s;
+    }
+
+    .chip-2 {
+      width: 90px;
+      height: 90px;
+      top: 55%;
+      left: 48%;
+      border-color: rgba(0, 255, 255, 0.5);
+      animation-delay: 1.3s;
+    }
+
+    .chip-3 {
+      width: 100px;
+      height: 100px;
+      top: 40%;
+      left: 52%;
+      border-color: rgba(147, 51, 234, 0.4);
+      animation-delay: 2.6s;
+    }
+
+    @keyframes chipDissolve {
+      0% {
+        opacity: 0;
+        transform: scale(1) translateY(0);
+        filter: blur(0px);
+      }
+      25% {
+        opacity: 0.6;
+      }
+      50% {
+        opacity: 0.4;
+        transform: scale(1.2) translateY(-20px);
+      }
+      75% {
+        opacity: 0.2;
+        transform: scale(1.4) translateY(-40px);
+        filter: blur(2px);
+      }
+      100% {
+        opacity: 0;
+        transform: scale(1.6) translateY(-60px);
+        filter: blur(4px);
+      }
+    }
+
+    /* Data stream particles */
+    .data-stream {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 3;
+    }
+
+    .particle {
+      position: absolute;
+      width: 2px;
+      height: 2px;
+      background: rgba(0, 255, 255, 0.8);
+      box-shadow: 0 0 4px rgba(0, 255, 255, 0.6);
+      animation: particleFlow 3s linear infinite;
+    }
+
+    @keyframes particleFlow {
+      0% {
+        opacity: 0;
+        transform: translateY(0) translateX(0);
+      }
+      10% {
+        opacity: 1;
+      }
+      90% {
+        opacity: 0.8;
+      }
+      100% {
+        opacity: 0;
+        transform: translateY(-150px) translateX(var(--drift, 20px));
+      }
+    }
+
+    /* Trust gauge elements */
+    .gauge-container {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 400px;
+      height: 400px;
+      z-index: 4;
+    }
+
+    .gauge-ring {
+      position: absolute;
+      border-radius: 50%;
+      border: 1px solid;
+      animation: gaugeRotate 20s linear infinite;
+    }
+
+    .gauge-ring-1 {
+      width: 250px;
+      height: 250px;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      border-color: rgba(147, 51, 234, 0.3);
+      animation-duration: 25s;
+    }
+
+    .gauge-ring-2 {
+      width: 320px;
+      height: 320px;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      border-color: rgba(0, 255, 255, 0.25);
+      animation-duration: 30s;
+      animation-direction: reverse;
+    }
+
+    @keyframes gaugeRotate {
+      from { transform: translate(-50%, -50%) rotate(0deg); }
+      to { transform: translate(-50%, -50%) rotate(360deg); }
+    }
+
+    /* Radial glow center */
+    .radial-glow {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 500px;
+      height: 500px;
+      background: radial-gradient(
+        circle at center,
+        rgba(147, 51, 234, 0.15) 0%,
+        rgba(0, 255, 255, 0.08) 30%,
+        transparent 70%
+      );
+      z-index: 2;
+      animation: glowPulse 4s ease-in-out infinite;
+    }
+
+    @keyframes glowPulse {
+      0%, 100% { opacity: 0.6; transform: translate(-50%, -50%) scale(1); }
+      50% { opacity: 0.9; transform: translate(-50%, -50%) scale(1.1); }
+    }
+
+    /* Point cloud lines */
+    .point-cloud {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 5;
+    }
+
+    .cloud-line {
+      position: absolute;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(0, 255, 255, 0.4), transparent);
+      animation: lineFlow 5s ease-in-out infinite;
+    }
+
+    @keyframes lineFlow {
+      0% { opacity: 0; transform: translateX(-100%); }
+      50% { opacity: 1; }
+      100% { opacity: 0; transform: translateX(100%); }
+    }
+
+    /* Vertical accent lines */
+    .vertical-accent {
+      position: absolute;
+      width: 1px;
+      height: 100%;
+      background: linear-gradient(180deg, transparent, rgba(147, 51, 234, 0.3), transparent);
+      opacity: 0.4;
+    }
+
+    .accent-left {
+      left: 25%;
+      animation: flickerLeft 3s ease-in-out infinite;
+    }
+
+    .accent-right {
+      right: 25%;
+      animation: flickerRight 3s ease-in-out infinite;
+      animation-delay: 1.5s;
+    }
+
+    @keyframes flickerLeft {
+      0%, 100% { opacity: 0.2; }
+      50% { opacity: 0.6; }
+    }
+
+    @keyframes flickerRight {
+      0%, 100% { opacity: 0.3; }
+      50% { opacity: 0.7; }
+    }
+
+    /* Edge highlights */
+    .edge-highlight {
+      position: absolute;
+      background: linear-gradient(90deg, rgba(0, 255, 255, 0.4), transparent);
+      height: 1px;
+      width: 200px;
+      animation: edgeGlow 4s ease-in-out infinite;
+    }
+
+    .edge-top-left {
+      top: 0;
+      left: 0;
+    }
+
+    .edge-bottom-right {
+      bottom: 0;
+      right: 0;
+      transform: rotate(180deg);
+      animation-delay: 2s;
+    }
+
+    @keyframes edgeGlow {
+      0%, 100% { opacity: 0.3; }
+      50% { opacity: 0.8; }
+    }
+  </style>
+  <style>@view-transition { navigation: auto; }</style>
+  <script src="/_sdk/data_sdk.js" type="text/javascript"></script>
+  <script src="https://cdn.tailwindcss.com" type="text/javascript"></script>
+ </head>
+ <body>
+  <div class="hero-container"><!-- Radial glow center -->
+   <div class="radial-glow"></div><!-- Grid layer -->
+   <svg class="grid-layer" xmlns="http://www.w3.org/2000/svg"><defs>
+     <pattern id="grid" width="40" height="40" patternunits="userSpaceOnUse">
+      <path d="M 40 0 L 0 0 0 40" fill="none" stroke="rgba(0, 255, 255, 0.1)" stroke-width="0.5" />
+     </pattern>
+    </defs> <rect width="100%" height="100%" fill="url(#grid)" />
+   </svg><!-- Dissolving chips -->
+   <div class="chip chip-1"></div>
+   <div class="chip chip-2"></div>
+   <div class="chip chip-3"></div><!-- Data stream particles -->
+   <div class="data-stream" id="dataStream"></div><!-- Trust gauge rings -->
+   <div class="gauge-container">
+    <div class="gauge-ring gauge-ring-1"></div>
+    <div class="gauge-ring gauge-ring-2"></div>
+   </div><!-- Point cloud lines -->
+   <div class="point-cloud" id="pointCloud"></div><!-- Vertical accent lines -->
+   <div class="vertical-accent accent-left"></div>
+   <div class="vertical-accent accent-right"></div><!-- Edge highlights -->
+   <div class="edge-highlight edge-top-left"></div>
+   <div class="edge-highlight edge-bottom-right"></div><!-- Scanlines -->
+   <div class="scanlines"></div><!-- Noise overlay -->
+   <div class="noise-layer"></div>
+  </div>
+  <script>
+    const defaultConfig = {
+      background_color: "#1a1a1f",
+      accent_cyan: "#00ffff",
+      accent_purple: "#9333ea",
+      glow_intensity: 0.15
+    };
+
+    let config = { ...defaultConfig };
+
+    // Generate data stream particles
+    function generateParticles() {
+      const container = document.getElementById('dataStream');
+      const particleCount = 40;
+
+      for (let i = 0; i < particleCount; i++) {
+        const particle = document.createElement('div');
+        particle.className = 'particle';
+        particle.style.left = `${45 + Math.random() * 10}%`;
+        particle.style.top = `${40 + Math.random() * 20}%`;
+        particle.style.animationDelay = `${Math.random() * 3}s`;
+        particle.style.setProperty('--drift', `${(Math.random() - 0.5) * 40}px`);
+        
+        if (Math.random() > 0.5) {
+          particle.style.background = 'rgba(147, 51, 234, 0.7)';
+          particle.style.boxShadow = '0 0 4px rgba(147, 51, 234, 0.5)';
+        }
+        
+        container.appendChild(particle);
+      }
+    }
+
+    // Generate point cloud lines
+    function generateCloudLines() {
+      const container = document.getElementById('pointCloud');
+      const lineCount = 8;
+
+      for (let i = 0; i < lineCount; i++) {
+        const line = document.createElement('div');
+        line.className = 'cloud-line';
+        line.style.top = `${35 + Math.random() * 30}%`;
+        line.style.width = `${150 + Math.random() * 200}px`;
+        line.style.animationDelay = `${Math.random() * 5}s`;
+        line.style.animationDuration = `${4 + Math.random() * 3}s`;
+        
+        if (Math.random() > 0.5) {
+          line.style.background = 'linear-gradient(90deg, transparent, rgba(147, 51, 234, 0.35), transparent)';
+        }
+        
+        container.appendChild(line);
+      }
+    }
+
+    async function onConfigChange(newConfig) {
+      const heroContainer = document.querySelector('.hero-container');
+      const backgroundColor = newConfig.background_color || defaultConfig.background_color;
+      
+      heroContainer.style.background = `linear-gradient(135deg, ${backgroundColor} 0%, #0d0d12 50%, ${backgroundColor} 100%)`;
+    }
+
+    if (window.elementSdk) {
+      window.elementSdk.init({
+        defaultConfig,
+        onConfigChange,
+        mapToCapabilities: (cfg) => ({
+          recolorables: [
+            {
+              get: () => cfg.background_color || defaultConfig.background_color,
+              set: (value) => {
+                cfg.background_color = value;
+                window.elementSdk.setConfig({ background_color: value });
+              }
+            },
+            {
+              get: () => cfg.accent_cyan || defaultConfig.accent_cyan,
+              set: (value) => {
+                cfg.accent_cyan = value;
+                window.elementSdk.setConfig({ accent_cyan: value });
+              }
+            },
+            {
+              get: () => cfg.accent_purple || defaultConfig.accent_purple,
+              set: (value) => {
+                cfg.accent_purple = value;
+                window.elementSdk.setConfig({ accent_purple: value });
+              }
+            }
+          ],
+          borderables: [],
+          fontEditable: undefined,
+          fontSizeable: undefined
+        }),
+        mapToEditPanelValues: (cfg) => new Map()
+      });
+      
+      config = window.elementSdk.config;
+    }
+
+    // Initialize animations
+    generateParticles();
+    generateCloudLines();
+  </script>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9a19a3d3e44696b1',t:'MTc2MzY1OTQ1Ni4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>

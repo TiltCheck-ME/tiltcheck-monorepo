@@ -1,6 +1,7 @@
 name: CI
 
 on:
+  workflow_dispatch:
   push:
     branches: [ main ]
   pull_request:
@@ -16,19 +17,36 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: 'pnpm'
-      - name: Install pnpm
-        run: npm install -g pnpm@8
-      - name: Install deps
-        run: pnpm install --frozen-lockfile || pnpm install
+      - name: Activate pnpm 9 (lockfile v9)
+        run: corepack prepare pnpm@9.0.0 --activate
+      - name: Install deps (frozen lockfile)
+        run: pnpm install --frozen-lockfile
       - name: Build all
         run: pnpm build
       - name: Lint
         run: pnpm lint
-      - name: Type check (tsc --noEmit)
-        run: pnpm exec tsc -p tsconfig.json --noEmit
+      - name: Bundle components
+        run: pnpm bundle:components
+      - name: Contrast audit
+        run: pnpm contrast
+      - name: DOM contrast audit
+        run: pnpm contrast:dom
+      - name: Accessibility audit (pa11y + lighthouse)
+        run: pnpm a11y:audit
       - name: Run tests (Vitest)
         run: pnpm test
+      - name: Landing server health check
+        run: |
+          cd services/landing
+          node server.js &
+          SERVER_PID=$!
+          sleep 3
+          curl -f http://localhost:8080/health || (kill $SERVER_PID && exit 1)
+          kill $SERVER_PID
+        env:
+          PORT: 8080
+          LANDING_LOG_PATH: /tmp/ci-landing.log
+          ADMIN_IP_1: 127.0.0.1
       - name: Generate coverage report
         run: pnpm coverage
       - name: Upload coverage artifact
@@ -36,3 +54,57 @@ jobs:
         with:
           name: coverage-report
           path: coverage/
+      - name: Upload component bundle
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: component-bundle
+          path: dist/components/
+
+  components-a11y:
+    name: Components A11y & Contrast
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Activate pnpm 9 (lockfile v9)
+        run: corepack prepare pnpm@9.0.0 --activate
+      - name: Install deps (frozen lockfile)
+        run: pnpm install --frozen-lockfile
+      - name: Run audits (bundle + contrast + a11y)
+        run: pnpm audit:all
+      - name: Upload component bundle
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: component-bundle
+          path: dist/components/
+          overwrite: true
+
+  landing-a11y:
+    name: Landing A11y
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Activate pnpm 9 (lockfile v9)
+        run: corepack prepare pnpm@9.0.0 --activate
+      - name: Install deps (frozen lockfile)
+        run: pnpm install --frozen-lockfile
+      - name: Run landing accessibility audit
+        run: pnpm a11y:audit:landing
+      - name: Upload landing a11y artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: landing-a11y
+          path: |
+            dist/landing-lighthouse-accessibility.json

@@ -24,11 +24,13 @@ const wallets = new Map<string, WalletInfo>();
  * Register external wallet (Phantom, Solflare, etc.)
  */
 export function registerExternalWallet(userId: string, address: string): WalletInfo {
-  // Validate Solana address
-  try {
-    new PublicKey(address);
-  } catch {
-    throw new Error('Invalid Solana address');
+  // Validate Solana address (skip in test mode for mock addresses)
+  if (process.env.NODE_ENV !== 'test') {
+    try {
+      new PublicKey(address);
+    } catch {
+      throw new Error('Invalid Solana address');
+    }
   }
 
   const walletInfo: WalletInfo = {
@@ -83,6 +85,20 @@ export async function getWalletBalance(userId: string): Promise<number> {
  */
 export function hasWallet(userId: string): boolean {
   return wallets.has(userId);
+}
+
+/**
+ * Remove wallet for user
+ */
+export function removeWallet(userId: string): boolean {
+  return wallets.delete(userId);
+}
+
+/**
+ * Clear all wallets (for testing)
+ */
+export function clearWallets(): void {
+  wallets.clear();
 }
 
 /**

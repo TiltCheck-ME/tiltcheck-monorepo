@@ -17,9 +17,12 @@
     "@tiltcheck/suslink": "workspace:*",
     "@tiltcheck/freespinscan": "workspace:*",
     "@tiltcheck/tiltcheck-core": "workspace:*",
+    "@tiltcheck/triviadrops": "workspace:*",
+    "@tiltcheck/trust-engines": "workspace:*",
     "@tiltcheck/justthetip": "workspace:*",
     "@tiltcheck/natural-language-parser": "workspace:*",
     "@tiltcheck/esm-utils": "workspace:*",
+    "@tiltcheck/lockvault": "workspace:*",
     "discord.js": "^14.14.1",
     "dotenv": "^16.3.1"
   },
