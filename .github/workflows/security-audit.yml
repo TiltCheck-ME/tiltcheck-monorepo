@@ -77,10 +77,12 @@ jobs:
           # This is a best-effort check
           echo "Checking for GHSA-3gc7-fjrx-p6mg status..."
           
-          # Check pnpm lock file for bigint-buffer version
-          if grep -q "bigint-buffer@1.1.5" pnpm-lock.yaml; then
+          # Check pnpm lock file for bigint-buffer (any version)
+          if grep -q "bigint-buffer@" pnpm-lock.yaml; then
+            BIGINT_VERSION=$(grep -oP 'bigint-buffer@\K[0-9.]+' pnpm-lock.yaml | head -1)
             echo "vulnerable_version=true" >> $GITHUB_OUTPUT
-            echo "::warning::Vulnerable bigint-buffer@1.1.5 detected in lockfile"
+            echo "bigint_version=$BIGINT_VERSION" >> $GITHUB_OUTPUT
+            echo "::warning::bigint-buffer@$BIGINT_VERSION detected in lockfile"
           else
             echo "vulnerable_version=false" >> $GITHUB_OUTPUT
           fi
