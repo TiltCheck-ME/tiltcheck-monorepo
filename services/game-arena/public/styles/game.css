@@ -1,0 +1,460 @@
+/**
+ * Game Page Styles
+ * 
+ * Copyright (c) 2024 Degens Against Decency
+ * Licensed under the MIT License
+ * See LICENSE file in the project root for full license information.
+ */
+
+.game-container {
+  max-width: 1600px;
+  margin: 0 auto;
+  padding: 20px;
+  display: grid;
+  grid-template-areas:
+    "header header header"
+    "players game-area chat"
+    "players game-controls chat";
+  grid-template-columns: 250px 1fr 300px;
+  grid-template-rows: auto 1fr auto;
+  gap: 20px;
+  min-height: 100vh;
+}
+
+.game-header {
+  grid-area: header;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 15px;
+  padding: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border: 1px solid rgba(180, 255, 57, 0.2);
+  box-shadow: 0 0 20px rgba(180, 255, 57, 0.1);
+}
+
+.game-info h1 {
+  color: var(--brand-green);
+  margin-bottom: 5px;
+  font-size: 1.5rem;
+}
+
+.game-meta {
+  display: flex;
+  gap: 20px;
+  font-size: 0.9rem;
+  color: var(--text-light);
+}
+
+.player-info {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.player-info img {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 2px solid var(--brand-green);
+  box-shadow: 0 0 15px rgba(180, 255, 57, 0.4);
+}
+
+.players-panel {
+  grid-area: players;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 15px;
+  padding: 20px;
+  border: 1px solid rgba(180, 255, 57, 0.2);
+  height: fit-content;
+}
+
+.players-panel h3 {
+  color: var(--brand-green);
+  margin-bottom: 15px;
+  text-align: center;
+}
+
+.players-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.player-item {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(180, 255, 57, 0.2);
+  border-radius: 8px;
+  padding: 12px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.player-item.current-player {
+  border-color: var(--brand-green);
+  background: rgba(180, 255, 57, 0.1);
+  box-shadow: 0 0 15px rgba(180, 255, 57, 0.2);
+}
+
+.player-item img {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+}
+
+.player-name {
+  font-weight: 600;
+  color: #fff;
+}
+
+.player-score {
+  margin-left: auto;
+  color: var(--brand-green);
+  font-weight: 600;
+}
+
+.game-area {
+  grid-area: game-area;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 15px;
+  padding: 30px;
+  border: 1px solid rgba(180, 255, 57, 0.2);
+  min-height: 400px;
+  display: flex;
+  flex-direction: column;
+}
+
+.game-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+}
+
+.game-controls {
+  grid-area: game-controls;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 15px;
+  padding: 20px;
+  border: 1px solid rgba(180, 255, 57, 0.2);
+}
+
+.game-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+}
+
+.chat-panel {
+  grid-area: chat;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 15px;
+  padding: 20px;
+  border: 1px solid rgba(180, 255, 57, 0.2);
+  display: flex;
+  flex-direction: column;
+  height: fit-content;
+  max-height: 600px;
+}
+
+.chat-panel h3 {
+  color: var(--brand-green);
+  margin-bottom: 15px;
+  text-align: center;
+}
+
+.chat-messages {
+  flex: 1;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 8px;
+  padding: 15px;
+  margin-bottom: 15px;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.chat-message {
+  margin-bottom: 10px;
+  padding: 8px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.chat-message .sender {
+  color: var(--brand-green);
+  font-weight: 600;
+  margin-bottom: 3px;
+}
+
+.chat-message .text {
+  color: #fff;
+  line-height: 1.4;
+}
+
+.chat-input {
+  display: flex;
+  gap: 10px;
+}
+
+.chat-input input {
+  flex: 1;
+  padding: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.05);
+  color: #fff;
+}
+
+.chat-input input:focus {
+  outline: none;
+  border-color: var(--brand-green);
+  box-shadow: 0 0 10px rgba(180, 255, 57, 0.3);
+}
+
+/* Game-specific content styles */
+
+/* Degens Against Decency */
+.degens-question {
+  background: rgba(180, 255, 57, 0.05);
+  border: 2px solid var(--brand-green);
+  border-radius: 15px;
+  padding: 30px;
+  margin-bottom: 30px;
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: #fff;
+  text-align: center;
+  box-shadow: 0 0 20px rgba(180, 255, 57, 0.2);
+}
+
+.player-hand {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 15px;
+  margin-top: 20px;
+}
+
+.answer-card {
+  background: rgba(255, 255, 255, 0.03);
+  border: 2px solid rgba(180, 255, 57, 0.3);
+  border-radius: 12px;
+  padding: 20px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  min-height: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.answer-card:hover {
+  border-color: var(--brand-green);
+  transform: translateY(-3px);
+  box-shadow: 0 5px 15px rgba(180, 255, 57, 0.3);
+}
+
+.answer-card.selected {
+  border-color: var(--brand-green);
+  background: rgba(180, 255, 57, 0.1);
+  box-shadow: 0 0 20px rgba(180, 255, 57, 0.4);
+}
+
+.submissions-area {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 20px;
+  margin-top: 20px;
+}
+
+.submission-card {
+  background: rgba(180, 255, 57, 0.03);
+  border: 2px solid var(--brand-green);
+  border-radius: 12px;
+  padding: 20px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  min-height: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  position: relative;
+}
+
+.submission-card:hover {
+  border-color: var(--brand-purple);
+  background: rgba(160, 32, 240, 0.05);
+  box-shadow: 0 0 20px rgba(160, 32, 240, 0.3);
+}
+
+.submission-card.winner {
+  border-color: var(--brand-yellow);
+  background: rgba(255, 255, 0, 0.1);
+  box-shadow: 0 0 25px rgba(255, 255, 0, 0.5);
+}
+
+/* 2 Truths and a Lie */
+.truths-lie-prompt {
+  background: rgba(0, 255, 255, 0.05);
+  border: 2px solid var(--brand-teal);
+  border-radius: 15px;
+  padding: 30px;
+  margin-bottom: 30px;
+  text-align: center;
+  box-shadow: 0 0 20px rgba(0, 255, 255, 0.2);
+}
+
+.statements-area {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin-top: 20px;
+}
+
+.statement-item {
+  background: rgba(255, 255, 255, 0.03);
+  border: 2px solid rgba(0, 255, 255, 0.3);
+  border-radius: 12px;
+  padding: 20px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.statement-item:hover {
+  border-color: var(--brand-teal);
+  box-shadow: 0 0 15px rgba(0, 255, 255, 0.3);
+}
+
+.statement-item.selected {
+  border-color: var(--brand-green);
+  background: rgba(180, 255, 57, 0.1);
+  box-shadow: 0 0 20px rgba(180, 255, 57, 0.3);
+}
+
+.statement-number {
+  background: var(--brand-teal);
+  color: var(--brand-dark);
+  border-radius: 50%;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  flex-shrink: 0;
+  box-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+}
+
+/* Poker */
+.poker-table {
+  background: radial-gradient(ellipse at center, rgba(0, 100, 0, 0.3) 0%, rgba(0, 50, 0, 0.1) 100%);
+  border: 3px solid rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  width: 400px;
+  height: 300px;
+  margin: 20px auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.poker-pot {
+  background: rgba(255, 255, 0, 0.2);
+  border: 2px solid #ffff00;
+  border-radius: 10px;
+  padding: 15px;
+  text-align: center;
+  font-weight: 600;
+  color: #ffff00;
+}
+
+.player-cards {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  margin: 20px 0;
+}
+
+.playing-card {
+  background: white;
+  color: black;
+  border-radius: 8px;
+  width: 60px;
+  height: 84px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  border: 2px solid #333;
+  position: relative;
+}
+
+.playing-card.red {
+  color: #d32f2f;
+}
+
+.playing-card.hidden {
+  background: linear-gradient(135deg, #1a1a2e, #16213e);
+  color: transparent;
+}
+
+.betting-controls {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-top: 20px;
+}
+
+/* Responsive design */
+@media (max-width: 1200px) {
+  .game-container {
+    grid-template-areas:
+      "header"
+      "players"
+      "game-area"
+      "game-controls"
+      "chat";
+    grid-template-columns: 1fr;
+    grid-template-rows: auto auto 1fr auto auto;
+  }
+
+  .players-panel, .chat-panel {
+    max-height: none;
+  }
+}
+
+@media (max-width: 768px) {
+  .game-container {
+    padding: 10px;
+    gap: 15px;
+  }
+
+  .game-header {
+    flex-direction: column;
+    gap: 15px;
+    text-align: center;
+  }
+
+  .game-meta {
+    justify-content: center;
+  }
+
+  .player-hand {
+    grid-template-columns: 1fr;
+  }
+
+  .submissions-area {
+    grid-template-columns: 1fr;
+  }
+}

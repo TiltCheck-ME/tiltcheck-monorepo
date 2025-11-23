@@ -62,6 +62,9 @@ export type EventType =
   | 'survey.withdrawal.requested'
   | 'game.started'
   | 'game.completed'
+  | 'game.created'
+  | 'game.player.joined'
+  | 'game.player.left'
   | 'game.card.played'
   | 'game.round.ended';
 
@@ -90,7 +93,8 @@ export type ModuleId =
   | 'trust-rollup'
   | 'poker-module'
   | 'discord-bot'
-  | 'lockvault';
+  | 'lockvault'
+  | 'game-arena';
 
 // ============================================
 // User & Identity Types
