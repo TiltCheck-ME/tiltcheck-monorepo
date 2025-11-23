@@ -7,11 +7,13 @@ vi.mock('express', () => {
     use: vi.fn(),
     get: vi.fn((path: string, handler: Function) => { routes.push({ method: 'GET', path, handler }); }),
     post: vi.fn((path: string, handler: Function) => { routes.push({ method: 'POST', path, handler }); }),
+    patch: vi.fn((path: string, handler: Function) => { routes.push({ method: 'PATCH', path, handler }); }),
     listen: vi.fn((_port: number, cb?: () => void) => ({ address: () => ({ port: 0 }), close: (cb2?: () => void) => cb2 && cb2() })),
     _routes: routes,
   } as any;
   const express = () => app;
-  (express as any).json = () => (req: any, res: any, next: any) => next && next();
+  (express as any).json = () => (_req: any, _res: any, next: any) => next && next();
+  (express as any).static = vi.fn(() => (_req: any, _res: any, next: any) => next && next());
   return { default: express };
 });
 

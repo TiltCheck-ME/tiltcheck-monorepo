@@ -69,6 +69,27 @@ export class DatabaseClient {
   }
 
   /**
+   * Connect to database (for compatibility)
+   */
+  async connect(): Promise<void> {
+    // Connection is established in constructor
+    // This method exists for compatibility with legacy code
+    if (!this.supabase) {
+      console.warn('DatabaseClient: No Supabase credentials provided');
+    }
+  }
+
+  /**
+   * Execute a query (for compatibility)
+   */
+  async query(_sql: string, _params?: any[]): Promise<any> {
+    // This method exists for compatibility with legacy code
+    // For Supabase, use the specific methods instead
+    console.warn('DatabaseClient.query() is deprecated. Use specific methods instead.');
+    return null;
+  }
+
+  /**
    * Health check
    */
   async healthCheck(): Promise<{ ok: boolean; timestamp: number; connected: boolean }> {
@@ -84,7 +105,7 @@ export class DatabaseClient {
         timestamp: Date.now(),
         connected: true
       };
-    } catch (error) {
+    } catch (_error) {
       return { ok: false, timestamp: Date.now(), connected: true };
     }
   }
@@ -159,7 +180,7 @@ export class DatabaseClient {
     if (!this.supabase) return null;
 
     // Get current stats
-    let stats = await this.getUserStats(discordId);
+    const stats = await this.getUserStats(discordId);
     
     if (!stats) {
       return null;

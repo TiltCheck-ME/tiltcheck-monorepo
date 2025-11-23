@@ -131,7 +131,7 @@ class CasinoTrustEngine {
   }
 
   private async handleFlaggedLink(event: any) {
-    const { url, riskLevel } = event.data;
+    const { url } = event.data;
 
     // Extract casino from URL (simplified)
     const casino = this.extractCasino(url);
@@ -211,8 +211,9 @@ async function runExample() {
 
   // Initialize modules
   const freeSpinScan = new FreeSpinScanModule();
-  const susLink = new SusLinkModule();
-  const casinoTrust = new CasinoTrustEngine();
+  // Modules initialized but not used in this example
+  // const susLink = new SusLinkModule();
+  // const casinoTrust = new CasinoTrustEngine();
 
   // Wait a bit for subscriptions to register
   await new Promise((resolve) => setTimeout(resolve, 100));

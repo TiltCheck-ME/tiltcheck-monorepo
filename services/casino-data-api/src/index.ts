@@ -184,7 +184,7 @@ app.get('/api/casinos', authenticateAPI, async (req, res) => {
     }
     
     res.json({ casinos: filteredCasinos, count: filteredCasinos.length });
-  } catch (error) {
+  } catch (_error) {
     res.status(500).json({ error: 'Failed to load casinos' });
   }
 });
@@ -200,7 +200,7 @@ app.get('/api/casinos/:casinoId', authenticateAPI, async (req, res) => {
     }
     
     res.json(casino);
-  } catch (error) {
+  } catch (_error) {
     res.status(500).json({ error: 'Failed to load casino data' });
   }
 });
@@ -253,7 +253,7 @@ app.post('/api/casinos/bulk', authenticateAPI, async (req, res) => {
     
     const existingCasinos = await loadCasinos();
     let updatedCount = 0;
-    let errors = [];
+    const errors = [];
     
     for (const casinoData of newCasinos) {
       try {
@@ -281,7 +281,7 @@ app.post('/api/casinos/bulk', authenticateAPI, async (req, res) => {
       timestamp: Date.now()
     });
     
-  } catch (error) {
+  } catch (_error) {
     res.status(500).json({ error: 'Bulk update failed' });
   }
 });
@@ -300,7 +300,7 @@ app.get('/api/trust/:casinoId?', authenticateAPI, async (req, res) => {
     }
     
     res.json(trustData);
-  } catch (error) {
+  } catch (_error) {
     res.status(500).json({ error: 'Failed to load trust data' });
   }
 });
@@ -495,7 +495,7 @@ app.get('/api/collection/status', authenticateAPI, async (req, res) => {
     };
     
     res.json(stats);
-  } catch (error) {
+  } catch (_error) {
     res.status(500).json({ error: 'Failed to get collection status' });
   }
 });

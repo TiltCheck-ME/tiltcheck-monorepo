@@ -78,7 +78,7 @@ export class LinkScanner {
       console.log(`[SusLink] Scanned ${url} in ${Date.now() - startTime}ms → ${riskLevel}`);
 
       return result;
-    } catch (error) {
+    } catch (_error) {
       // Invalid URL
       return {
         url,

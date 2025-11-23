@@ -216,7 +216,7 @@ export class QualifyFirstModule {
 
     // Check required traits
     let requiredMatches = 0;
-    let requiredTotal = survey.requiredTraits.size;
+    const requiredTotal = survey.requiredTraits.size;
 
     for (const [key, value] of survey.requiredTraits) {
       const userValue = profile.traits.get(key);
