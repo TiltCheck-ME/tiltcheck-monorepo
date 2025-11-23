@@ -6,8 +6,16 @@
     <title>Waitlist Sign-Up</title>
     <link rel="stylesheet" href="styles.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+    <!--
+        Load Supabase credentials from config.js.
+        Create a file named 'config.js' in the same directory with the following content:
+        window.SUPABASE_URL = 'https://your-real-supabase-url.supabase.co';
+        window.SUPABASE_ANON_KEY = 'your-real-anon-key';
+        Make sure to exclude 'config.js' from version control (.gitignore).
+    -->
+    <script src="config.js"></script>
     <script>
-        const supabase = supabase.createClient('https://your-supabase-url.supabase.co', 'your-anon-key');
+        const supabase = supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
 
         async function signUp(event) {
             event.preventDefault();

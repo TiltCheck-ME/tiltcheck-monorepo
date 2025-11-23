@@ -22,10 +22,22 @@ export interface DiffResult {
 
 export function discoverCommands(commandsDir: string): any[] {
   // Legacy synchronous discovery (prefers built JS). Falls back to async variant if empty.
-  const entries = readdirSync(commandsDir);
+  // Validate commandsDir to prevent path traversal attacks
+  const resolvedCommandsDir = path.resolve(commandsDir);
+  if (!resolvedCommandsDir.startsWith(path.resolve(process.cwd()))) {
+    throw new Error('Invalid commands directory: path traversal detected');
+  }
+  
+  const entries = readdirSync(resolvedCommandsDir);
   const commands: any[] = [];
   for (const file of entries) {
-    const full = path.join(commandsDir, file);
+    // Prevent directory traversal in file names
+    if (file.includes('..') || file.includes('/') || file.includes('\\')) {
+      console.warn(`[command-deploy] Skipping suspicious file name: ${file}`);
+      continue;
+    }
+    
+    const full = path.join(resolvedCommandsDir, file);
     if (statSync(full).isDirectory()) continue;
     if (!full.endsWith('.js')) continue; // only pick js here
     try {
@@ -45,10 +57,22 @@ export function discoverCommands(commandsDir: string): any[] {
 }
 
 export async function discoverCommandsAsync(commandsDir: string): Promise<any[]> {
-  const entries = readdirSync(commandsDir);
+  // Validate commandsDir to prevent path traversal attacks
+  const resolvedCommandsDir = path.resolve(commandsDir);
+  if (!resolvedCommandsDir.startsWith(path.resolve(process.cwd()))) {
+    throw new Error('Invalid commands directory: path traversal detected');
+  }
+  
+  const entries = readdirSync(resolvedCommandsDir);
   const commands: any[] = [];
   for (const file of entries) {
-    const full = path.join(commandsDir, file);
+    // Prevent directory traversal in file names
+    if (file.includes('..') || file.includes('/') || file.includes('\\')) {
+      console.warn(`[command-deploy] Skipping suspicious file name: ${file}`);
+      continue;
+    }
+    
+    const full = path.join(resolvedCommandsDir, file);
     if (statSync(full).isDirectory()) continue;
     if (!/(\.ts|\.js)$/.test(full)) continue;
     try {
@@ -64,7 +88,7 @@ export async function discoverCommandsAsync(commandsDir: string): Promise<any[]>
           commands.push(data);
         }
       }
-    } catch (e) {
+    } catch {
       // Attempt require fallback for js
       if (full.endsWith('.js')) {
         try {
@@ -91,7 +115,7 @@ export async function fetchExisting(rest: REST, clientId: string, guildId?: stri
       return await rest.get(Routes.applicationGuildCommands(clientId, guildId)) as any[];
     }
     return await rest.get(Routes.applicationCommands(clientId)) as any[];
-  } catch (e) {
+  } catch {
     return [];
   }
 }

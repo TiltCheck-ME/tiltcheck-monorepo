@@ -7,6 +7,26 @@ import { User, EmbedBuilder } from 'discord.js';
 import fs from 'fs/promises';
 import path from 'path';
 
+/**
+ * Get verification URL with fallback priority:
+ * 1. DISCORD_USER_OAUTH_URL (highest priority)
+ * 2. IDENTITY_VERIFY_URL
+ * 3. BASE_PUBLIC_URL + /verify
+ * 4. Default hardcoded URL (lowest priority)
+ */
+function getVerifyUrl(): string {
+  if (process.env.DISCORD_USER_OAUTH_URL) {
+    return process.env.DISCORD_USER_OAUTH_URL;
+  }
+  if (process.env.IDENTITY_VERIFY_URL) {
+    return process.env.IDENTITY_VERIFY_URL;
+  }
+  if (process.env.BASE_PUBLIC_URL) {
+    return `${process.env.BASE_PUBLIC_URL.replace(/\/$/, '')}/verify`;
+  }
+  return 'https://tiltcheck.it.com/verify';
+}
+
 export interface OnboardingState {
   userId: string;
   hasSeenWelcome: boolean;
@@ -104,7 +124,7 @@ export function isNewUser(userId: string): boolean {
 export async function sendWelcomeDM(user: User, botName: 'TiltCheck' | 'JustTheTip'): Promise<boolean> {
   try {
     const isTiltCheck = botName === 'TiltCheck';
-    const verifyUrl = process.env.DISCORD_USER_OAUTH_URL || process.env.IDENTITY_VERIFY_URL || (process.env.BASE_PUBLIC_URL ? `${process.env.BASE_PUBLIC_URL.replace(/\/$/, '')}/verify` : 'https://tiltcheck.it.com/verify');
+    const verifyUrl = getVerifyUrl();
     const botInviteUrl = process.env.DISCORD_BOT_INVITE_URL || 'https://discord.com/oauth2/authorize?client_id=1425775422360125524&permissions=2252626595138624&scope=bot+applications.commands';
     
     const welcomeEmbed = new EmbedBuilder()

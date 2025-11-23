@@ -226,7 +226,12 @@ const METRICS: MetricsState = {
 };
 
 // Rolling window (last N matches) metrics
-const ROLLING_CAPACITY = parseInt(process.env.QF_ROLLING_CAPACITY || '100');
+const _rollingCapacityRaw = process.env.QF_ROLLING_CAPACITY || '100';
+let ROLLING_CAPACITY = parseInt(_rollingCapacityRaw);
+if (Number.isNaN(ROLLING_CAPACITY)) {
+  console.warn(`[QualifyFirst] Invalid QF_ROLLING_CAPACITY value "${_rollingCapacityRaw}", falling back to default (100).`);
+  ROLLING_CAPACITY = 100;
+}
 interface RollingEntry { score: number; probability: number; riskFlags: string[]; }
 const ROLLING: RollingEntry[] = [];
 
