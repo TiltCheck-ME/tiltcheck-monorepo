@@ -46,29 +46,37 @@ class VaultManager {
   private persistDebounce?: NodeJS.Timeout;
 
   constructor() {
-    this.load();
+    void this.load();
   }
 
   private schedulePersist() {
     clearTimeout(this.persistDebounce as any);
-    this.persistDebounce = setTimeout(() => this.persist(), 250);
+    this.persistDebounce = setTimeout(() => void this.persist(), 250);
   }
 
-  private persist() {
+  private async persist() {
     try {
       const payload = JSON.stringify({ vaults: Array.from(this.vaults.values()) }, null, 2);
       const dir = path.dirname(this.persistencePath);
-      if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-      fs.writeFileSync(this.persistencePath, payload, 'utf-8');
+      try {
+        await fsPromises.access(dir);
+      } catch {
+        await fsPromises.mkdir(dir, { recursive: true });
+      }
+      await fsPromises.writeFile(this.persistencePath, payload, 'utf-8');
     } catch (err) {
       console.error('[LockVault] Persist failed', err);
     }
   }
 
-  private load() {
+  private async load() {
     try {
-      if (!fs.existsSync(this.persistencePath)) return;
-      const raw = JSON.parse(fs.readFileSync(this.persistencePath, 'utf-8'));
+      try {
+        await fsPromises.access(this.persistencePath);
+      } catch {
+        return; // File doesn't exist
+      }
+      const raw = JSON.parse(await fsPromises.readFile(this.persistencePath, 'utf-8'));
       for (const v of raw.vaults || []) {
         this.vaults.set(v.id, v);
         if (!this.byUser.has(v.userId)) this.byUser.set(v.userId, new Set());

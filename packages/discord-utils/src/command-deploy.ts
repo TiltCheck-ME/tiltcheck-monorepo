@@ -138,7 +138,7 @@ export async function discoverCommandsAsync(commandsDir: string): Promise<any[]>
           commands.push(data);
         }
       }
-    } catch (e) {
+    } catch {
       // Attempt require fallback for js
       if (full.endsWith('.js')) {
         try {
@@ -165,7 +165,7 @@ export async function fetchExisting(rest: REST, clientId: string, guildId?: stri
       return await rest.get(Routes.applicationGuildCommands(clientId, guildId)) as any[];
     }
     return await rest.get(Routes.applicationCommands(clientId)) as any[];
-  } catch (e) {
+  } catch {
     return [];
   }
 }

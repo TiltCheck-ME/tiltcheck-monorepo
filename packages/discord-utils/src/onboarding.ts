@@ -7,6 +7,26 @@ import { User, EmbedBuilder } from 'discord.js';
 import fs from 'fs/promises';
 import path from 'path';
 
+/**
+ * Get verification URL with fallback priority:
+ * 1. DISCORD_USER_OAUTH_URL (highest priority)
+ * 2. IDENTITY_VERIFY_URL
+ * 3. BASE_PUBLIC_URL + /verify
+ * 4. Default hardcoded URL (lowest priority)
+ */
+function getVerifyUrl(): string {
+  if (process.env.DISCORD_USER_OAUTH_URL) {
+    return process.env.DISCORD_USER_OAUTH_URL;
+  }
+  if (process.env.IDENTITY_VERIFY_URL) {
+    return process.env.IDENTITY_VERIFY_URL;
+  }
+  if (process.env.BASE_PUBLIC_URL) {
+    return `${process.env.BASE_PUBLIC_URL.replace(/\/$/, '')}/verify`;
+  }
+  return 'https://tiltcheck.it.com/verify';
+}
+
 export interface OnboardingState {
   userId: string;
   hasSeenWelcome: boolean;
