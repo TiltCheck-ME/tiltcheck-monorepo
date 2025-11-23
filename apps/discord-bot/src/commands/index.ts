@@ -13,4 +13,3 @@ export { submitpromo, approvepromo, denypromo, pendingpromos } from './promo.js'
 export { cooldown, tilt } from './cooldown.js';
 export { justthetip } from './justthetip.js';
 export { airdrop } from './airdrop.js';
-export { qualify, surveyprofile } from './qualify.js';

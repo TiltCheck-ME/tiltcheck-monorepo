@@ -1,0 +1,6 @@
+
+> tiltcheck-monorepo@0.1.0 test /home/runner/work/tiltcheck-monorepo/tiltcheck-monorepo
+> vitest --run
+
+ ELIFECYCLE  Test failed. See above for more details.
+ WARN   Local package.json exists, but node_modules missing, did you mean to install?

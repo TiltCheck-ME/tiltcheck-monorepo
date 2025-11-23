@@ -19,6 +19,7 @@ export interface UserProfile {
   traits: Map<string, string | number | boolean>;
   completedSurveys: string[];
   failedScreeners: string[];
+  earningsUSD: number; // Total earnings from completed surveys
   createdAt: number;
   updatedAt: number;
 }
@@ -98,6 +99,7 @@ export class QualifyFirstModule {
         traits: new Map(Object.entries(initialTraits || {})),
         completedSurveys: [],
         failedScreeners: [],
+        earningsUSD: 0,
         createdAt: Date.now(),
         updatedAt: Date.now(),
       };
@@ -283,6 +285,10 @@ export class QualifyFirstModule {
     // Update profile based on result
     if (result.status === 'completed') {
       profile.completedSurveys.push(result.surveyId);
+      // Add earnings to user's balance
+      if (result.payout) {
+        profile.earningsUSD += result.payout;
+      }
     } else if (result.status === 'screened-out') {
       profile.failedScreeners.push(result.surveyId);
     }
@@ -372,6 +378,55 @@ export class QualifyFirstModule {
     }
 
     return questions;
+  }
+
+  /**
+   * Request withdrawal of earnings via JustTheTip
+   * This emits an event that JustTheTip can handle
+   */
+  async requestWithdrawal(userId: string, amountUSD: number): Promise<{ success: boolean; message: string }> {
+    const profile = this.profiles.get(userId);
+    if (!profile) {
+      throw new Error('User profile not found');
+    }
+
+    if (amountUSD > profile.earningsUSD) {
+      return {
+        success: false,
+        message: `Insufficient balance. You have $${profile.earningsUSD.toFixed(2)} available.`
+      };
+    }
+
+    if (amountUSD < 5.00) {
+      return {
+        success: false,
+        message: 'Minimum withdrawal amount is $5.00'
+      };
+    }
+
+    // Emit withdrawal request event for JustTheTip to handle
+    await eventRouter.publish('survey.withdrawal.requested', 'qualifyfirst', {
+      userId,
+      amountUSD,
+      currentBalance: profile.earningsUSD,
+    }, userId);
+
+    // Deduct from earnings (pending until JustTheTip processes)
+    profile.earningsUSD -= amountUSD;
+    profile.updatedAt = Date.now();
+
+    return {
+      success: true,
+      message: `Withdrawal request for $${amountUSD.toFixed(2)} submitted. Use /justthetip to complete the payout.`
+    };
+  }
+
+  /**
+   * Get user's current earnings balance
+   */
+  getEarnings(userId: string): number {
+    const profile = this.profiles.get(userId);
+    return profile?.earningsUSD || 0;
   }
 }
 
