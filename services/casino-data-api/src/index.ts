@@ -12,7 +12,6 @@ import { dirname, join } from 'path';
 import fs from 'fs/promises';
 
 const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
 
 const app = express();
 const PORT = process.env.CASINO_API_PORT || 6002;
@@ -23,7 +22,7 @@ app.use(cors());
 app.use(express.json({ limit: '10mb' }));
 
 // Health endpoint for monitoring
-app.get('/api/health', (req, res) => {
+app.get('/api/health', (_req, res) => {
   res.json({
     status: 'online',
     timestamp: new Date().toISOString(),
@@ -138,7 +137,7 @@ interface CasinoData {
 
 // API Routes
 
-app.get('/health', (req, res) => {
+app.get('/health', (_req, res) => {
   res.json({
     status: 'ok',
     service: 'casino-data-api',
@@ -183,9 +182,9 @@ app.get('/api/casinos', authenticateAPI, async (req, res) => {
       return res.json({ casinos: summary, count: summary.length });
     }
     
-    res.json({ casinos: filteredCasinos, count: filteredCasinos.length });
+    return res.json({ casinos: filteredCasinos, count: filteredCasinos.length });
   } catch (_error) {
-    res.status(500).json({ error: 'Failed to load casinos' });
+    return res.status(500).json({ error: 'Failed to load casinos' });
   }
 });
 
@@ -199,9 +198,9 @@ app.get('/api/casinos/:casinoId', authenticateAPI, async (req, res) => {
       return res.status(404).json({ error: 'Casino not found' });
     }
     
-    res.json(casino);
+    return res.json(casino);
   } catch (_error) {
-    res.status(500).json({ error: 'Failed to load casino data' });
+    return res.status(500).json({ error: 'Failed to load casino data' });
   }
 });
 
@@ -230,7 +229,7 @@ app.post('/api/casinos/:casinoId', authenticateAPI, async (req, res) => {
     // Update trust scores
     await updateTrustScore(casinoId, casinoData);
     
-    res.json({ 
+    return res.json({ 
       success: true, 
       casinoId,
       timestamp: casinoData.collectionTimestamp 
@@ -238,7 +237,7 @@ app.post('/api/casinos/:casinoId', authenticateAPI, async (req, res) => {
     
   } catch (error) {
     console.error('Failed to save casino data:', error);
-    res.status(500).json({ error: 'Failed to save casino data' });
+    return res.status(500).json({ error: 'Failed to save casino data' });
   }
 });
 
@@ -274,7 +273,7 @@ app.post('/api/casinos/bulk', authenticateAPI, async (req, res) => {
     
     await saveCasinos(existingCasinos);
     
-    res.json({
+    return res.json({
       success: true,
       updated: updatedCount,
       errors,
@@ -282,7 +281,7 @@ app.post('/api/casinos/bulk', authenticateAPI, async (req, res) => {
     });
     
   } catch (_error) {
-    res.status(500).json({ error: 'Bulk update failed' });
+    return res.status(500).json({ error: 'Bulk update failed' });
   }
 });
 
@@ -299,14 +298,14 @@ app.get('/api/trust/:casinoId?', authenticateAPI, async (req, res) => {
       return res.json(casinoTrust);
     }
     
-    res.json(trustData);
+    return res.json(trustData);
   } catch (_error) {
-    res.status(500).json({ error: 'Failed to load trust data' });
+    return res.status(500).json({ error: 'Failed to load trust data' });
   }
 });
 
 // Data collection templates for AI agents
-app.get('/api/templates', authenticateAPI, (req, res) => {
+app.get('/api/templates', authenticateAPI, (_req, res) => {
   res.json({
     casinoDataTemplate: {
       id: 'casino-identifier',
@@ -472,7 +471,7 @@ async function updateTrustScore(casinoId: string, casinoData: CasinoData): Promi
 }
 
 // Collection status endpoint
-app.get('/api/collection/status', authenticateAPI, async (req, res) => {
+app.get('/api/collection/status', authenticateAPI, async (_req, res) => {
   try {
     const casinos = await loadCasinos();
     const allCasinos = Object.values(casinos);
@@ -494,9 +493,9 @@ app.get('/api/collection/status', authenticateAPI, async (req, res) => {
         Math.max(...allCasinos.map(c => c.collectionTimestamp)) : 0
     };
     
-    res.json(stats);
+    return res.json(stats);
   } catch (_error) {
-    res.status(500).json({ error: 'Failed to get collection status' });
+    return res.status(500).json({ error: 'Failed to get collection status' });
   }
 });
 

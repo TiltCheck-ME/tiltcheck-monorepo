@@ -56,7 +56,7 @@ program
   .option('--status <status>', 'Casino status (live|suspended|investigating)', 'live')
   .option('--api-url <url>', 'API base URL')
   .option('--api-key <key>', 'API key for authentication')
-  .action(async (options) => {
+  .action(async (options: any) => {
     try {
       let casinoData: CasinoSubmission;
       
@@ -123,7 +123,7 @@ program
   .requiredOption('--file <path>', 'JSON file with array of casino data')
   .option('--api-url <url>', 'API base URL')
   .option('--api-key <key>', 'API key for authentication')
-  .action(async (options) => {
+  .action(async (options: any) => {
     try {
       const filePath = path.resolve(options.file);
       const fileContent = await fs.readFile(filePath, 'utf-8');
@@ -177,7 +177,7 @@ program
   .option('--format <format>', 'Output format (full|summary)', 'summary')
   .option('--api-url <url>', 'API base URL')
   .option('--api-key <key>', 'API key for authentication')
-  .action(async (options) => {
+  .action(async (options: any) => {
     try {
       const apiUrl = options.apiUrl || API_BASE;
       const apiKey = options.apiKey || API_KEY;
@@ -197,7 +197,7 @@ program
         throw new Error(`API request failed: ${response.status} ${response.statusText}\\n${error}`);
       }
       
-      const result = await response.json();
+      const result = await response.json() as ApiResponse;
       
       console.log(`📋 Found ${result.count} casinos`);
       console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
@@ -228,7 +228,7 @@ program
   .requiredOption('--casino-id <id>', 'Casino identifier')
   .option('--api-url <url>', 'API base URL')
   .option('--api-key <key>', 'API key for authentication')
-  .action(async (options) => {
+  .action(async (options: any) => {
     try {
       const apiUrl = options.apiUrl || API_BASE;
       const apiKey = options.apiKey || API_KEY;
@@ -248,7 +248,7 @@ program
         throw new Error(`API request failed: ${response.status} ${response.statusText}\\n${error}`);
       }
       
-      const casino = await response.json();
+      const casino = await response.json() as CasinoSubmission;
       
       console.log(`🎰 ${casino.name} (${casino.id})`);
       console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
@@ -302,7 +302,7 @@ program
   .command('template')
   .description('Generate a template JSON file for casino data collection')
   .option('--output <file>', 'Output file path', 'casino-template.json')
-  .action(async (options) => {
+  .action(async (options: any) => {
     try {
       const template = {
         id: 'casino-identifier',
@@ -392,7 +392,7 @@ program
   .description('Get collection status and statistics')
   .option('--api-url <url>', 'API base URL')
   .option('--api-key <key>', 'API key for authentication')
-  .action(async (options) => {
+  .action(async (options: any) => {
     try {
       const apiUrl = options.apiUrl || API_BASE;
       const apiKey = options.apiKey || API_KEY;
@@ -408,7 +408,7 @@ program
         throw new Error(`API request failed: ${response.status} ${response.statusText}\\n${error}`);
       }
       
-      const stats = await response.json();
+      const stats = await response.json() as any;
       
       console.log('📊 Collection Status');
       console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
