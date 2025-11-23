@@ -21,6 +21,12 @@ export interface WalletInfo {
 const wallets = new Map<string, WalletInfo>();
 
 /**
+ * Base58 charset validation regex (no 0, O, I, l characters)
+ * Compiled once for performance
+ */
+const BASE58_REGEX = /^[1-9A-HJ-NP-Za-km-z]+$/;
+
+/**
  * Validate Solana address format and length to prevent bigint-buffer vulnerability
  * (GHSA-3gc7-fjrx-p6mg) from processing malformed inputs.
  * 
@@ -29,8 +35,7 @@ const wallets = new Map<string, WalletInfo>();
  */
 function validateSolanaAddress(address: string): void {
   // Check for base58 charset (no 0, O, I, l)
-  const base58Regex = /^[1-9A-HJ-NP-Za-km-z]+$/;
-  if (!base58Regex.test(address)) {
+  if (!BASE58_REGEX.test(address)) {
     throw new Error('Invalid Solana address: must use base58 encoding (no 0, O, I, or l characters)');
   }
 
