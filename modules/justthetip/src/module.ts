@@ -14,6 +14,9 @@ export type WalletType = 'x402' | 'magic' | 'phantom' | 'solflare' | 'other';
 const MIN_USD_AMOUNT = 0.10;
 const MAX_USD_AMOUNT = 100.00;
 
+// Fee configuration (basis points)
+const PLATFORM_FEE_BPS = 70; // 0.7% platform fee
+
 interface Wallet {
   userId: string;
   address: string;
@@ -269,9 +272,8 @@ export class JustTheTipModule {
     // Calculate SOL amount from USD value
     const solAmount = usdValue / solPrice;
     
-    // Apply platform fee (0.7% or 70 basis points)
-    const platformFeeBps = 70;
-    const outputAmount = solAmount * (1 - platformFeeBps / 10000);
+    // Apply platform fee
+    const outputAmount = solAmount * (1 - PLATFORM_FEE_BPS / 10000);
     
     const quote = {
       inputToken: token,
@@ -279,7 +281,7 @@ export class JustTheTipModule {
       inputAmount: amount,
       outputAmount: outputAmount,
       slippageBps: 50,
-      platformFeeBps: platformFeeBps,
+      platformFeeBps: PLATFORM_FEE_BPS,
       minOutputAmount: outputAmount * 0.98,
     };
 
