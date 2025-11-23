@@ -32,17 +32,26 @@
 
 ### Applications ✅
 
-5. **Discord Bot** (`@tiltcheck/discord-bot`)
+5. **TiltCheck Discord Bot** (`@tiltcheck/discord-bot`)
+   - Main ecosystem bot for earning & safety tools
    - Slash command handler system
    - Event Router integration
    - Auto link scanning in messages
-   - Commands: `/ping`, `/help`, `/scan`
-   - Full Event Router integration
+   - Commands: `/ping`, `/help`, `/scan`, `/submitpromo`, `/justthetip`, `/qualify`, `/surveyprofile`, and more
+   - Integrates: SusLink, FreeSpinScan, JustTheTip, QualifyFirst, TiltCheck Core
+   - **Status**: Built and tested ✅
+
+6. **DA&D Game Bot** (`@tiltcheck/dad-bot`) — **NEW**
+   - Separate bot for games and entertainment
+   - DA&D (Degens Against Decency) card game commands
+   - Poker integration
+   - Commands: `/play`, `/join`, `/startgame`, `/hand`, `/submit`, `/vote`, `/scores`, `/poker`
+   - Integrates: DA&D module, Poker module
    - **Status**: Built and tested ✅
 
 ### Modules ✅
 
-6. **SusLink Module** (`@tiltcheck/suslink`)
+7. **SusLink Module** (`@tiltcheck/suslink`)
    - Link risk scanning (5 detection methods)
    - Detects: TLD scams, keywords, impersonation, suspicious subdomains, long URLs
    - Risk levels: safe, suspicious, high, critical
@@ -70,7 +79,8 @@
 ```
 tiltcheck-monorepo/
 ├── apps/
-│   └── discord-bot/        ✅ @tiltcheck/discord-bot v0.1.0
+│   ├── discord-bot/        ✅ @tiltcheck/discord-bot v0.1.0 (TiltCheck ecosystem)
+│   └── dad-bot/            ✅ @tiltcheck/dad-bot v0.1.0 (Games bot) — **NEW**
 ├── packages/
 │   ├── types/              ✅ @tiltcheck/types v0.1.0 (updated with survey & game events)
 │   ├── discord-utils/      ✅ @tiltcheck/discord-utils v0.1.0
@@ -85,6 +95,7 @@ tiltcheck-monorepo/
     ├── freespinscan/       ✅ @tiltcheck/freespinscan v0.1.0
     ├── justthetip/         ✅ @tiltcheck/justthetip v0.1.0 (updated with module singleton)
     ├── collectclock/       ✅ @tiltcheck/collectclock v0.1.0
+    ├── poker/              ✅ @tiltcheck/poker v0.1.0
     ├── qualifyfirst/       ✅ @tiltcheck/qualifyfirst v0.1.0 (NEW)
     └── dad/                ✅ @tiltcheck/dad v0.1.0 (NEW)
 ```
