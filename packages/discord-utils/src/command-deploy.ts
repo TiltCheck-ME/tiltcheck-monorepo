@@ -46,8 +46,9 @@ function validateDirectoryPath(dirPath: string): string {
  */
 function isPathWithinBase(filePath: string, baseDir: string): boolean {
   try {
-    const resolvedFile = path.resolve(filePath);
-    const resolvedBase = path.resolve(baseDir);
+    // Resolve symlinks to prevent symlink-based directory traversal
+    const resolvedFile = realpathSync(filePath);
+    const resolvedBase = realpathSync(baseDir);
     const relative = path.relative(resolvedBase, resolvedFile);
     
     // Allow files in the base directory (empty string) or subdirectories (no '..' or absolute paths)
