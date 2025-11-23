@@ -1,0 +1,97 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"/><title>Dashboard Enhancements (Experimental &amp; Classic) - TiltCheck</title><meta name="description" content="Date: 2025-11-20"/><link rel="stylesheet" href="/styles/base.css"/><style>body{background:#0a0a0a;color:#e0e0e0;font-family:Inter,system-ui,sans-serif;margin:0;padding:0}main{max-width:900px;margin:0 auto;padding:40px 18px;line-height:1.7}a{color:#00d4aa;text-decoration:none}a:hover{text-decoration:underline}.page-hero{padding:54px 24px 32px;background:linear-gradient(135deg,#121212,#181818);border-bottom:1px solid #222}.page-hero h1{margin:0 0 10px;font-size:2.4rem;background:linear-gradient(135deg,#00d4aa,#00a8ff);-webkit-background-clip:text;color:transparent}.lede{color:#aaa;font-size:1.05rem;max-width:760px}pre{background:#181818;padding:14px 16px;border:1px solid #222;border-radius:8px;overflow:auto;font-size:.85rem}code{font-family:ui-monospace,Monaco,Consolas,monospace;color:#00a8ff}.breadcrumb{font-size:.7rem;letter-spacing:.12em;text-transform:uppercase;color:#888;margin:0 0 12px}.nav-inline{display:flex;gap:20px;align-items:center;font-size:.8rem;padding:10px 20px;background:#111;border-bottom:1px solid #222}nav a{color:#aaa}nav a[aria-current="page"]{color:#00d4aa;font-weight:600}</style></head><body><nav class="nav-inline"><a href="/" >Home</a><a href="/docs/index.html" aria-current="page">Docs</a><a href="/dashboard">Dashboard</a><a href="/about.html">About</a></nav><header class="page-hero"><div class="breadcrumb">Docs / Dashboard Enhancements (Experimental &amp; Classic)</div><h1>Dashboard Enhancements (Experimental &amp; Classic)</h1><p class="lede">Date: 2025-11-20</p></header><main id="content"><h1>Dashboard Enhancements (Experimental & Classic)</h1>
+
+<p>Date: 2025-11-20</p>
+
+<h2>Overview</h2>
+<p>This document captures recent improvements to the TiltCheck dashboard layer: experimental trust view, legal rights & evidence API stubs, accessibility updates, gauge configuration abstraction, persistence for evidence packages, and contrast adjustments.</p>
+
+<h2>Changes Implemented</h2>
+
+<h3>1. Experimental Trust View (<code>services/dashboard/public/experimental.html</code>)</h3>
+<ul>
+<li>Added new page with: summary bar, fairness gauges, payout timeline, anomaly map, evidence export form.</li>
+<li>Accessibility: semantic landmarks (<code>header</code>, <code>nav</code>, <code>main</code>, <code>section</code> with <code>role=&quot;region&quot;</code> + <code>aria-labelledby</code>), <code>aria-live</code> for anomaly updates, focus outline injection.</li>
+<li>Evidence export form: downloads client-side JSON from <code>/api/evidence/package</code> aggregation.</li>
+</ul>
+
+<h3>2. Classic Dashboard Link (<code>services/dashboard/public/index.html</code>)</h3>
+<ul>
+<li>Added inline link promoting Experimental Trust View.</li>
+<li>Introduced <code>GAUGE_CONFIG</code> object (refresh interval and formula tuning constants).</li>
+</ul>
+
+<h3>3. Gauge Formula Configuration</h3>
+<ul>
+<li>Centralized tunable parameters (<code>volatilityInvertMax</code>, <code>midSeverityPenalty</code>, <code>highSeverityPenalty</code>, <code>refreshMs</code>) in <code>GAUGE_CONFIG</code>.</li>
+<li>Externalized to JSON: <code>services/dashboard/public/config/gauge-config.json</code> fetched at runtime (falls back to defaults if unavailable).</li>
+<li>Front-end starts gauge refresh interval only after config load; page reload required to apply new <code>refreshMs</code> currently.</li>
+</ul>
+
+<h3>4. Legal Rights Evaluation Stub (<code>/api/legal-rights/evaluate</code>)</h3>
+<ul>
+<li>Returns mock triggers derived from casino rollup deltas, low score, existing risk alerts, region placeholders (CA, EU).</li>
+<li>Disclaimer included; non-advisory transparency signal.</li>
+</ul>
+
+<h3>5. Evidence Package Aggregation & Pruning (<code>/api/evidence/package</code>)</h3>
+<ul>
+<li>GET variant (existing) provides transient snapshot bundling alerts + severity + legal triggers.</li>
+<li>POST <code>/api/evidence/package</code> persists a package with generated <code>id</code> under <code>data/evidence-packages/</code>.</li>
+<li>Listing endpoint: <code>GET /api/evidence/packages</code> returns IDs (now includes retention metadata).</li>
+<li>Retrieval endpoint: <code>GET /api/evidence/package/:id</code> serves stored JSON.</li>
+<li>Pruning: automatic age & count pruning after each persist and during listing.</li>
+<p>- Env <code>EVIDENCE_RETENTION_DAYS</code> (default 14) controls age-based deletion.</p>
+<p>- Env <code>EVIDENCE_MAX_COUNT</code> (default 150) ensures storage ceiling (oldest removed first).</p>
+</ul>
+
+<h3>6. Accessibility & Contrast</h3>
+<ul>
+<li>Muted text variable <code>--color-text-muted</code> updated from <code>#888</code> to <code>#9aa</code> for improved contrast against dark background.</li>
+<li>Added focus-visible outline style in experimental page for keyboard navigation clarity.</li>
+</ul>
+
+<h3>7. Evidence Export Integration</h3>
+<ul>
+<li>Form allows region & optional casino filter.</li>
+<li>Generates downloadable JSON transparency artifact including: alerts, severity buckets, rollup slice, legal rights triggers, advisory.</li>
+<li>Future extension: Add server-side artifact creation directly from front-end with persistent ID returned (POST now available).</li>
+</ul>
+
+<h2>Endpoints Summary</h2>
+<p>| Endpoint | Method | Purpose |</p>
+<p>|----------|--------|---------|</p>
+<p>| <code>/api/legal-rights/evaluate</code> | GET | Stub legal rights heuristic triggers |</p>
+<p>| <code>/api/evidence/package</code> | GET | Transient evidence aggregation (no persistence) |</p>
+<p>| <code>/api/evidence/package</code> | POST | Persist evidence snapshot (returns <code>id</code>) |</p>
+<p>| <code>/api/evidence/packages</code> | GET | List persisted package IDs |</p>
+<p>| <code>/api/evidence/package/:id</code> | GET | Retrieve specific persisted package |</p>
+<p>| <code>/api/config/gauges</code> | GET (planned) | (Planned) Serve current gauge config JSON |</p>
+<p>| <code>/api/config/gauges</code> | PATCH (planned) | (Planned) Mutate & persist allowed gauge parameters |</p>
+<p>| <code>/api/evidence/package/:id.csv</code> | GET | CSV export of a persisted evidence package |</p>
+<p>| <code>/api/evidence/package.csv</code> | GET | CSV transient evidence aggregation (query filters) |</p>
+
+<h2>Follow-Up Opportunities</h2>
+<ul>
+<li>Front-end gauge admin panel now supports live PATCH; consider adding auth UX (token currently via <code>GAUGE_ADMIN_TOKEN</code> header <code>x-admin-token</code>).</li>
+<li>Add severity trend mini-sparklines to experimental summary bar.</li>
+<li>Extend legal rights badge system with per-trigger detail tooltip & historical count trend.</li>
+<li>Multi-format export: add NDJSON stream endpoint for bulk evidence.</li>
+<li>Evidence storage monitoring: surface disk usage & prune by size threshold.</li>
+<li>Add severity trend mini-sparklines to experimental summary bar.</li>
+<li>Integrate legal rights triggers visual badges in anomaly map panel.</li>
+<li>Provide CSV export option for evidence data alongside JSON.</li>
+<li>Automated deletion / pruning for evidence packages older than retention period.</li>
+</ul>
+
+<h2>Notes</h2>
+<ul>
+<li>All stubs intentionally heuristic; replace with rule engine later.</li>
+<li>Persistence currently synchronous writes; consider batching or queue for high-frequency requests.</li>
+<li>Contrast changes limited to muted text; full WCAG audit pending.</li>
+<li>Gauge PATCH endpoint gated by optional <code>GAUGE_ADMIN_TOKEN</code>; if set, clients must send <code>x-admin-token</code> header.</li>
+<li>CSV exports flatten structured arrays (alerts, triggers) into row-wise key/value pairs for simplicity.</li>
+</ul>
+
+<h2>Author</h2>
+<p>GitHub Copilot (TiltCheck Development Agent)</p>
+</main><footer style="padding:40px 24px;text-align:center;font-size:.75rem;color:#666;border-top:1px solid #222">TiltCheck Docs • Non-custodial • Signals only.</footer></body></html>

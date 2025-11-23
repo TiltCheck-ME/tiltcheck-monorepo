@@ -1,0 +1,635 @@
+/* Shared styles for all tool pages */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  background: #0a0a0a;
+  color: #e0e0e0;
+  line-height: 1.6;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+/* Navbar */
+.navbar {
+  background: #111;
+  border-bottom: 1px solid #222;
+  padding: 15px 0;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.navbar .container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.logo {
+  font-size: 1.5rem;
+  font-weight: 900;
+  background: linear-gradient(135deg, #00d4aa 0%, #00a8ff 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-decoration: none;
+}
+
+.nav-links {
+  display: flex;
+  gap: 25px;
+  align-items: center;
+}
+
+.nav-links a {
+  color: #aaa;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.nav-links a:hover {
+  color: #00d4aa;
+}
+
+.cta-small {
+  background: #00d4aa;
+  color: #0a0a0a !important;
+  padding: 8px 20px;
+  border-radius: 6px;
+  font-weight: 600;
+}
+
+.cta-small:hover {
+  background: #00b894;
+}
+
+/* Tool Header */
+.tool-header {
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  padding: 80px 20px;
+  text-align: center;
+  border-bottom: 2px solid #00d4aa;
+}
+
+.tool-icon-large {
+  font-size: 5rem;
+  margin-bottom: 20px;
+}
+
+.tool-header h1 {
+  font-size: 3.5rem;
+  margin-bottom: 10px;
+  color: #fff;
+}
+
+.tool-tagline {
+  font-size: 1.3rem;
+  color: #aaa;
+  margin-bottom: 20px;
+}
+
+.status-badge {
+  display: inline-block;
+  padding: 8px 20px;
+  border-radius: 25px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.status-live {
+  background: rgba(0, 212, 170, 0.2);
+  color: #00d4aa;
+  border: 2px solid #00d4aa;
+}
+
+.status-beta {
+  background: rgba(255, 193, 7, 0.2);
+  color: #ffc107;
+  border: 2px solid #ffc107;
+}
+
+.status-soon {
+  background: rgba(136, 136, 136, 0.2);
+  color: #888;
+  border: 2px solid #444;
+}
+
+/* Tool Overview */
+.tool-overview {
+  padding: 80px 20px;
+}
+
+.two-column {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 60px;
+  align-items: start;
+}
+
+.tool-overview h2 {
+  font-size: 2.5rem;
+  margin-bottom: 20px;
+  color: #fff;
+}
+
+.tool-overview p {
+  font-size: 1.1rem;
+  color: #aaa;
+  margin-bottom: 15px;
+}
+
+.feature-box {
+  background: #1a1a1a;
+  border: 1px solid #222;
+  border-radius: 12px;
+  padding: 30px;
+}
+
+.feature-box h3 {
+  color: #00d4aa;
+  margin-bottom: 15px;
+  font-size: 1.3rem;
+}
+
+.feature-box ul {
+  list-style: none;
+}
+
+.feature-box li {
+  padding: 8px 0;
+  color: #ccc;
+  font-size: 1rem;
+}
+
+/* Commands Section */
+.commands-section {
+  padding: 80px 20px;
+  background: #111;
+}
+
+.commands-section h2 {
+  text-align: center;
+  font-size: 2.5rem;
+  margin-bottom: 50px;
+  color: #fff;
+}
+
+.commands-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 30px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.command-card {
+  background: #1a1a1a;
+  border: 1px solid #222;
+  border-radius: 12px;
+  padding: 30px;
+  transition: all 0.3s ease;
+}
+
+.command-card:hover {
+  border-color: #00d4aa;
+  transform: translateY(-5px);
+}
+
+.command-name {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: #00d4aa;
+  margin-bottom: 10px;
+  font-family: 'Courier New', monospace;
+}
+
+.command-card p {
+  color: #aaa;
+  margin-bottom: 15px;
+}
+
+.command-example {
+  background: #0a0a0a;
+  padding: 10px 15px;
+  border-radius: 6px;
+  border-left: 3px solid #00d4aa;
+}
+
+.command-example code {
+  color: #00d4aa;
+  font-family: 'Courier New', monospace;
+  font-size: 0.95rem;
+}
+
+/* Categories Section */
+.categories-section {
+  padding: 80px 20px;
+}
+
+.categories-section h2 {
+  text-align: center;
+  font-size: 2.5rem;
+  margin-bottom: 50px;
+  color: #fff;
+}
+
+.categories-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 30px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.category-card {
+  background: #1a1a1a;
+  border: 1px solid #222;
+  border-radius: 12px;
+  padding: 30px;
+  text-align: center;
+  transition: all 0.3s ease;
+}
+
+.category-card:hover {
+  border-color: #00d4aa;
+  transform: translateY(-5px);
+}
+
+.category-icon {
+  font-size: 3rem;
+  margin-bottom: 15px;
+}
+
+.category-card h3 {
+  font-size: 1.5rem;
+  margin-bottom: 10px;
+  color: #fff;
+}
+
+.category-card p {
+  color: #888;
+}
+
+/* Achievements Section */
+.achievements-section {
+  padding: 80px 20px;
+  background: #111;
+}
+
+.achievements-section h2 {
+  text-align: center;
+  font-size: 2.5rem;
+  margin-bottom: 15px;
+  color: #fff;
+}
+
+.section-subtitle {
+  text-align: center;
+  color: #888;
+  margin-bottom: 50px;
+  font-size: 1.1rem;
+}
+
+.achievements-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 25px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.achievement-card {
+  background: #1a1a1a;
+  border: 1px solid #222;
+  border-radius: 12px;
+  padding: 25px;
+  text-align: center;
+  transition: all 0.3s ease;
+}
+
+.achievement-card:hover {
+  border-color: #ffc107;
+  transform: translateY(-3px);
+}
+
+.achievement-icon {
+  font-size: 2.5rem;
+  margin-bottom: 10px;
+}
+
+.achievement-card h4 {
+  font-size: 1.2rem;
+  margin-bottom: 8px;
+  color: #fff;
+}
+
+.achievement-card p {
+  color: #888;
+  font-size: 0.95rem;
+}
+
+/* Detection Section */
+.detection-section {
+  padding: 80px 20px;
+  background: #111;
+}
+
+.detection-section h2 {
+  text-align: center;
+  font-size: 2.5rem;
+  margin-bottom: 50px;
+  color: #fff;
+}
+
+.detection-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 30px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.detection-card {
+  background: #1a1a1a;
+  border: 1px solid #222;
+  border-radius: 12px;
+  padding: 30px;
+  transition: all 0.3s ease;
+}
+
+.detection-card:hover {
+  border-color: #ff4444;
+  transform: translateY(-5px);
+}
+
+.detection-icon {
+  font-size: 3rem;
+  margin-bottom: 15px;
+}
+
+.detection-card h3 {
+  font-size: 1.5rem;
+  margin-bottom: 10px;
+  color: #fff;
+}
+
+.detection-card p {
+  color: #888;
+}
+
+/* Risk Levels */
+.risk-levels {
+  padding: 80px 20px;
+}
+
+.risk-levels h2 {
+  text-align: center;
+  font-size: 2.5rem;
+  margin-bottom: 50px;
+  color: #fff;
+}
+
+.three-column {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 30px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.risk-card {
+  background: #1a1a1a;
+  border: 2px solid;
+  border-radius: 12px;
+  padding: 30px;
+  text-align: center;
+}
+
+.risk-safe { border-color: #00d4aa; }
+.risk-suspicious { border-color: #ffc107; }
+.risk-dangerous { border-color: #ff4444; }
+
+.risk-icon {
+  font-size: 3rem;
+  margin-bottom: 15px;
+}
+
+.risk-card h3 {
+  font-size: 1.5rem;
+  margin-bottom: 15px;
+  color: #fff;
+}
+
+.risk-card p {
+  color: #aaa;
+}
+
+/* How It Works */
+.how-it-works {
+  padding: 80px 20px;
+  background: #111;
+}
+
+.how-it-works h2 {
+  text-align: center;
+  font-size: 2.5rem;
+  margin-bottom: 50px;
+  color: #fff;
+}
+
+.steps {
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.step {
+  display: flex;
+  gap: 30px;
+  margin-bottom: 40px;
+  align-items: start;
+}
+
+.step-number {
+  background: linear-gradient(135deg, #00d4aa 0%, #00a8ff 100%);
+  color: #0a0a0a;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  font-weight: 900;
+  flex-shrink: 0;
+}
+
+.step-content h3 {
+  font-size: 1.5rem;
+  margin-bottom: 10px;
+  color: #fff;
+}
+
+.step-content p {
+  color: #aaa;
+}
+
+.step-content code {
+  background: #1a1a1a;
+  padding: 3px 8px;
+  border-radius: 4px;
+  color: #00d4aa;
+  font-family: 'Courier New', monospace;
+}
+
+/* Why Section */
+.why-section {
+  padding: 80px 20px;
+}
+
+.why-section h2 {
+  text-align: center;
+  font-size: 2.5rem;
+  margin-bottom: 50px;
+  color: #fff;
+}
+
+.reason-card {
+  background: #1a1a1a;
+  border: 1px solid #222;
+  border-radius: 12px;
+  padding: 30px;
+  text-align: center;
+}
+
+.reason-card h3 {
+  font-size: 1.3rem;
+  margin-bottom: 15px;
+  color: #fff;
+}
+
+.reason-card p {
+  color: #888;
+}
+
+/* Tech Section */
+.tech-section {
+  padding: 80px 20px;
+  background: #0a0a0a;
+}
+
+.tech-section h2 {
+  text-align: center;
+  font-size: 2.5rem;
+  margin-bottom: 50px;
+  color: #fff;
+}
+
+.tech-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 25px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.tech-item {
+  background: #1a1a1a;
+  border: 1px solid #222;
+  border-radius: 8px;
+  padding: 20px;
+}
+
+.tech-item h4 {
+  color: #00d4aa;
+  margin-bottom: 8px;
+  font-size: 1.1rem;
+}
+
+.tech-item p {
+  color: #aaa;
+  font-size: 0.95rem;
+}
+
+/* CTA Section */
+.cta-section {
+  padding: 100px 20px;
+  text-align: center;
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+}
+
+.cta-section h2 {
+  font-size: 2.5rem;
+  margin-bottom: 15px;
+  color: #fff;
+}
+
+.cta-section p {
+  font-size: 1.2rem;
+  color: #aaa;
+  margin-bottom: 30px;
+}
+
+.cta-button {
+  display: inline-block;
+  background: #00d4aa;
+  color: #0a0a0a;
+  padding: 15px 40px;
+  border-radius: 8px;
+  text-decoration: none;
+  font-weight: 700;
+  font-size: 1.1rem;
+  transition: all 0.3s ease;
+  border: 2px solid #00d4aa;
+}
+
+.cta-button:hover {
+  background: transparent;
+  color: #00d4aa;
+  transform: translateY(-2px);
+}
+
+/* Footer */
+footer {
+  background: #0a0a0a;
+  padding: 40px 20px;
+  text-align: center;
+  border-top: 1px solid #222;
+}
+
+footer p {
+  color: #999;
+  margin-bottom: 10px;
+}
+
+footer a {
+  color: #00d4aa;
+  text-decoration: none;
+  margin: 0 10px;
+}
+
+footer a:hover {
+  text-decoration: underline;
+}
+
+.built-by {
+  margin-top: 20px;
+  font-size: 0.9rem;
+  color: #999;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .nav-links { gap: 15px; font-size: 0.9rem; }
+  .tool-header h1 { font-size: 2.5rem; }
+  .tool-icon-large { font-size: 3.5rem; }
+  .two-column { grid-template-columns: 1fr; gap: 40px; }
+  .three-column { grid-template-columns: 1fr; }
+  .step { flex-direction: column; gap: 15px; }
+  .step-number { width: 50px; height: 50px; font-size: 1.3rem; }
+}
