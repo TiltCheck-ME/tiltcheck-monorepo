@@ -52,6 +52,14 @@ temp/
 # Cloudflare
 .wrangler/
 wrangler.toml.local
+
+# Test artifacts
+.test-data/
+**/tests/tmpdata/
+**/tests/tmpdata_pruned/
+data/casino-trust.json
+data/domain-trust-scores.json
+=======
 age.agekey
 data/sessions.json
 apps/discord-bot/data/sessions.json

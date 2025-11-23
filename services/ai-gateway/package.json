@@ -1,0 +1,17 @@
+{
+  "name": "@tiltcheck/ai-gateway",
+  "version": "0.1.0",
+  "description": "AI Gateway for TiltCheck - Survey matching, card generation, moderation, tilt detection, NL commands, recommendations, and support",
+  "type": "module",
+  "main": "src/index.js",
+  "scripts": {
+    "dev": "node src/index.js",
+    "start": "node src/index.js"
+  },
+  "dependencies": {
+    "@tiltcheck/types": "workspace:*",
+    "@tiltcheck/event-router": "workspace:*",
+    "express": "^4.18.2",
+    "cors": "^2.8.5"
+  }
+}
