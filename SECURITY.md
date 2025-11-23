@@ -9,22 +9,38 @@ TiltCheck follows a minimal attack surface philosophy:
 ## Supported Versions
 Active version: `main` branch.
 
-## Security Remediations
+## Known Vulnerabilities & Mitigations
 
-### bigint-buffer Vulnerability (GHSA-3gc7-fjrx-p6mg)
-**Status:** ✅ Resolved  
-**Date:** November 2025  
-**Severity:** High  
+### Transitive Dependencies
 
-**Issue:** Buffer overflow vulnerability in `bigint-buffer@1.1.5` via `toBigIntLE()` function. This affected the dependency chain through `@solana/spl-token > @solana/buffer-layout-utils > bigint-buffer`.
+| Advisory | Package | Severity | Status | Mitigation |
+|----------|---------|----------|--------|------------|
+| [GHSA-3gc7-fjrx-p6mg](https://github.com/advisories/GHSA-3gc7-fjrx-p6mg) | `bigint-buffer@1.1.5` | High | Tracking Upstream | Runtime guards implemented |
 
-**Resolution:** Implemented pnpm override to replace vulnerable `bigint-buffer` with secure fork `@gsknnft/bigint-buffer@1.3.2`. This fork provides:
-- Security fixes for buffer overflow vulnerability
-- Full API compatibility with original package
-- Pure JavaScript fallback for Node.js versions <24
-- Modern TypeScript and build tooling
+#### GHSA-3gc7-fjrx-p6mg: bigint-buffer Integer Overflow
 
-No code changes were required; the override is transparent to all consuming packages.
+**Dependency Chain:**  
+`@solana/spl-token@0.4.14` → `@solana/buffer-layout-utils@0.2.0` → `bigint-buffer@1.1.5`
+
+**Impact:**  
+TiltCheck does not directly invoke bigint-buffer functions. Usage occurs inside SPL Token layout utilities. User-provided data is limited to validated base58 Solana addresses.
+
+**Mitigations Implemented:**
+- ✅ Runtime guard added in `modules/justthetip/src/wallet-manager.ts`
+  - Base58 charset validation (no 0, O, I, l characters)
+  - Address length validation (32-44 characters)
+  - 32-byte buffer constraint enforcement
+- ✅ Automated daily security audit workflow (`.github/workflows/security-audit.yml`)
+- ✅ Comprehensive test coverage for validation logic
+- ✅ Vulnerability documented with upstream tracking
+
+**Upstream Status:**  
+Monitoring for patched release of `@solana/buffer-layout-utils` or removal of bigint-buffer dependency.
+
+**Next Steps:**
+- Monitor upstream repositories for security patches
+- Upgrade dependency chain when fix released
+- Track progress in issue [#15](https://github.com/jmenichole/tiltcheck-monorepo/issues/15)
 
 ## Reporting a Vulnerability
 
