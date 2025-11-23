@@ -10,6 +10,10 @@
  * - Pending tips for unregistered users
  */
 
+// Export module singleton and class
+export { JustTheTipModule, justthetip } from './module.js';
+
+// Export original low-level functions for advanced usage
 export * from './wallet-manager.js';
 export * from './tip-engine.js';
 export * from './airdrop-engine.js';
