@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TiltCheck Control Room</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body class="dark-theme">
+    <div id="login-screen" class="login-container">
+        <div class="login-box">
+            <h1>🎛️ Control Room</h1>
+            <p>TiltCheck Admin Dashboard</p>
+            <form id="login-form">
+                <input type="password" id="password" placeholder="Admin Password" required>
+                <button type="submit">Login</button>
+            </form>
+            <div id="login-error" class="error"></div>
+        </div>
+    </div>
+
+    <div id="dashboard" class="dashboard" style="display: none;">
+        <header>
+            <h1>🎛️ TiltCheck Control Room</h1>
+            <div class="header-actions">
+                <span id="current-time"></span>
+                <button onclick="logout()" class="btn-secondary">Logout</button>
+            </div>
+        </header>
+
+        <div class="grid-container">
+            <!-- System Status -->
+            <div class="panel">
+                <h2>System Status</h2>
+                <div id="services-status"></div>
+                <button onclick="refreshStatus()" class="btn-primary">Refresh</button>
+            </div>
+
+            <!-- System Metrics -->
+            <div class="panel">
+                <h2>System Metrics</h2>
+                <div id="metrics">
+                    <div class="metric">
+                        <span class="label">Load Average:</span>
+                        <span id="load-avg" class="value">...</span>
+                    </div>
+                    <div class="metric">
+                        <span class="label">Uptime:</span>
+                        <span id="uptime" class="value">...</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Process Management -->
+            <div class="panel">
+                <h2>Process Management</h2>
+                <div class="actions">
+                    <button onclick="killAll()" class="btn-danger">Kill All Services</button>
+                    <button onclick="restartAll()" class="btn-warning">Restart All</button>
+                </div>
+                <div id="process-logs"></div>
+            </div>
+
+            <!-- Command Feed -->
+            <div class="panel full-width">
+                <h2>Live Command Feed</h2>
+                <div id="command-feed" class="feed"></div>
+            </div>
+
+            <!-- Documentation -->
+            <div class="panel">
+                <h2>Documentation</h2>
+                <div id="docs-list"></div>
+            </div>
+
+            <!-- AI Terminal -->
+            <div class="panel">
+                <h2>AI Terminal</h2>
+                <div id="terminal-output" class="terminal"></div>
+                <form id="terminal-form">
+                    <input type="text" id="terminal-input" placeholder="Ask AI to make changes...">
+                    <button type="submit">Send</button>
+                </form>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="panel">
+                <h2>Quick Actions</h2>
+                <div class="actions-grid">
+                    <button onclick="clearCaches()" class="btn-secondary">Clear Caches</button>
+                    <button onclick="exportState()" class="btn-secondary">Export State</button>
+                    <button onclick="viewLogs()" class="btn-secondary">View Logs</button>
+                    <button onclick="emergencyStop()" class="btn-danger">Emergency Stop</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/js/app.js"></script>
+</body>
+</html>
