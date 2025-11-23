@@ -37,5 +37,19 @@ module.exports = {
         DASHBOARD_URL: 'http://localhost:5055',
       },
     },
+    {
+      name: 'landing',
+      script: './services/landing/server.js',
+      cwd: './',
+      watch: false,
+      env: {
+        NODE_ENV: 'production',
+        PORT: '8080',
+        LANDING_LOG_PATH: '/tmp/landing-requests.log',
+        ADMIN_IP_1: process.env.ADMIN_IP_1 || '127.0.0.1',
+        ADMIN_IP_2: process.env.ADMIN_IP_2,
+        ADMIN_IP_3: process.env.ADMIN_IP_3,
+      },
+    },
   ],
 };

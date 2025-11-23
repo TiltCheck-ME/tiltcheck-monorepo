@@ -64,6 +64,6 @@ jobs:
           key: ${{ secrets.DEPLOY_SSH_KEY }}
           script: |
             cd /opt/tiltcheck
-            docker-compose pull discord-bot
-            docker-compose up -d discord-bot
+            docker compose pull discord-bot
+            docker compose up -d discord-bot
             docker system prune -f

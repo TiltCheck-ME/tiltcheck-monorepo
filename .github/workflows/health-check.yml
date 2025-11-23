@@ -13,8 +13,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Flush trust-rollup snapshot
-        run: docker exec tiltcheck-rollup node -e "import('./dist/index.js').then(m=>m.flushTrustRollups())"
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -31,13 +29,9 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'pnpm'
 
       - name: Enable Corepack (pnpm)
         run: corepack enable
-
-      - name: Install pnpm
-        run: npm install -g pnpm@8
 
       - name: Install jq
         run: sudo apt-get update && sudo apt-get install -y jq
@@ -59,7 +53,7 @@ jobs:
       - name: Build images
         env:
           DOCKER_BUILDKIT: 1
-        run: docker-compose build discord-bot trust-rollup
+        run: docker compose build discord-bot trust-rollup
 
       - name: Start services
         env:
@@ -67,7 +61,7 @@ jobs:
           DISCORD_CLIENT_ID: ${{ secrets.DISCORD_CLIENT_ID }}
           DISCORD_GUILD_ID: ${{ secrets.DISCORD_GUILD_ID }}
           SKIP_DISCORD_LOGIN: 'false'
-        run: docker-compose up -d discord-bot trust-rollup
+        run: docker compose up -d discord-bot trust-rollup
 
       - name: Wait briefly for startup
         run: sleep 10

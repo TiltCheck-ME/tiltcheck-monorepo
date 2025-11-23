@@ -13,12 +13,15 @@
 export * from './wallet-manager.js';
 export * from './tip-engine.js';
 export * from './airdrop-engine.js';
+export * from './justthetip-module.js';
 
 export {
   registerExternalWallet,
   getWallet,
   getWalletBalance,
   hasWallet,
+  removeWallet,
+  clearWallets,
 } from './wallet-manager.js';
 
 export {

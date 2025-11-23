@@ -7,6 +7,7 @@ describe('JustTheTipModule', () => {
 
   beforeEach(() => {
     justthetip = new JustTheTipModule();
+    justthetip.clearState();
     eventRouter.clearHistory();
   });
 
