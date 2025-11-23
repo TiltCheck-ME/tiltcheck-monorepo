@@ -52,9 +52,17 @@ export type EventType =
   | 'cooldown.violated'
   | 'scam.reported'
   | 'accountability.success'
+  | 'user.profile.updated'
+  | 'survey.completed'
+  | 'survey.profile.created'
+  | 'survey.profile.updated'
+  | 'survey.added'
   | 'survey.matched'
+  | 'survey.result.recorded'
   | 'game.started'
-  | 'game.completed';
+  | 'game.completed'
+  | 'game.card.played'
+  | 'game.round.ended';
 
 export interface TiltCheckEvent<T = any> {
   id: string;
@@ -73,6 +81,8 @@ export type ModuleId =
   | 'collectclock'
   | 'freespinscan'
   | 'justthetip'
+  | 'qualifyfirst'
+  | 'dad'
   | 'pricing-oracle'
   | 'trust-engine-casino'
   | 'trust-engine-degen'
