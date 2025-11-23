@@ -12,14 +12,14 @@
       "supportScore": 75,
       "history": [
         {
-          "timestamp": 1763892819788,
+          "timestamp": 1763926720619,
           "delta": -1,
           "reason": "Bonus nerf detected (-30.0%)",
           "severity": 3,
           "category": "bonusScore"
         }
       ],
-      "lastUpdated": 1763892819788
+      "lastUpdated": 1763926720619
     }
   ],
   [
@@ -35,14 +35,14 @@
       "supportScore": 75,
       "history": [
         {
-          "timestamp": 1763892823559,
+          "timestamp": 1763926724414,
           "delta": -1,
           "reason": "Bonus nerf detected (-30.0%)",
           "severity": 3,
           "category": "bonusScore"
         }
       ],
-      "lastUpdated": 1763892823559
+      "lastUpdated": 1763926724414
     }
   ]
 ]
