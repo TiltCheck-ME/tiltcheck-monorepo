@@ -15,6 +15,7 @@
     "@tiltcheck/event-router": "workspace:*",
     "@tiltcheck/discord-utils": "workspace:*",
     "@tiltcheck/dad": "workspace:*",
+    "@tiltcheck/poker": "workspace:*",
     "discord.js": "^14.14.1",
     "dotenv": "^16.3.1"
   },
