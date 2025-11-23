@@ -17,6 +17,17 @@ This document provides a complete overview of the system’s high-level architec
 
 ---
 
+## CI/CD and Required Checks
+
+We protect `main` with two lightweight, user-facing checks to prevent regressions:
+
+- `components-a11y` — builds and audits shared web components (bundle, contrast, Pa11y + Lighthouse)
+- `landing-a11y` — audits the marketing pages (Pa11y + Lighthouse a11y JSON)
+
+See `docs/tiltcheck/17-branch-protection.md` for the full ruleset rationale and how these map to GitHub Actions job names.
+
+---
+
 # 9.1 High-Level Architecture Diagram
 
 ┌────────────────────────────────────────────────────────────┐

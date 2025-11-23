@@ -89,7 +89,7 @@ export const triviadrop: Command = {
         if (question.choices && question.choices.length > 0) {
           embed.addFields({
             name: 'Choices',
-            value: question.choices.map((c, i) => `${String.fromCharCode(65 + i)}. ${c}`).join('\n'),
+            value: question.choices.map((c: string, i: number) => `${String.fromCharCode(65 + i)}. ${c}`).join('\n'),
           });
         }
 
@@ -150,7 +150,7 @@ export const triviadrop: Command = {
           .setTitle('🏆 Trivia Leaderboard')
           .setDescription(
             leaderboard
-              .map((entry, i) => {
+              .map((entry: { username: string; score: number; totalAttempts: number; correctAnswers: number }, i: number) => {
                 const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `${i + 1}.`;
                 const accuracy = entry.totalAttempts > 0 
                   ? Math.round((entry.correctAnswers / entry.totalAttempts) * 100) 
@@ -210,7 +210,7 @@ export const triviadrop: Command = {
             played_100: '💪 Grinder',
           };
           const achievementList = stats.achievements
-            .map(id => achievementNames[id] || id)
+            .map((id: string) => achievementNames[id] || id)
             .join(', ');
           embed.addFields({ name: 'Achievements', value: achievementList });
         }

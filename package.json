@@ -29,21 +29,34 @@
     "a11y:serve:landing": "node scripts/serve-landing.js",
     "a11y:audit:landing": "bash scripts/landing-a11y-audit.sh",
     "test:components": "node scripts/validate-components.js",
-    "audit:all": "pnpm test:components && pnpm bundle:components && pnpm contrast && pnpm contrast:dom && pnpm a11y:audit && pnpm a11y:audit:landing"
+    "audit:all": "pnpm test:components && pnpm bundle:components && pnpm contrast && pnpm contrast:dom && pnpm a11y:audit && pnpm a11y:audit:landing",
+    "audit:images": "node scripts/audit-images.js",
+    "audit:a11y:landing": "node scripts/a11y-regression-landing.js",
+    "ci:landing": "vitest --run landing-image-integration.test.ts && pnpm audit:images && pnpm audit:a11y:landing",
+    "optimize:images": "node scripts/optimize-images.js",
+    "lighthouse:landing": "node scripts/run-lighthouse.js",
+    "build:search-index": "node scripts/build-search-index.js",
+    "lighthouse:ci": "node scripts/lighthouse-ci.js"
   },
   "devDependencies": {
     "@types/node": "^20.10.0",
-    "prettier": "^3.1.0",
-    "typescript": "^5.3.0",
-    "vitest": "^1.6.0",
-    "@vitest/coverage-v8": "^1.6.0",
-    "eslint": "^9.12.0",
+    "@types/supertest": "^6.0.2",
     "@typescript-eslint/eslint-plugin": "^8.9.0",
     "@typescript-eslint/parser": "^8.9.0",
+    "@vitest/coverage-v8": "^1.6.0",
+    "eslint": "^9.12.0",
     "eslint-config-prettier": "^9.1.0",
+    "http-server": "^14.1.1",
     "jsdom": "^24.0.0",
-    "pa11y": "^6.2.3",
     "lighthouse": "^12.0.0",
-    "http-server": "^14.1.1"
+    "lunr": "^2.3.9",
+    "pa11y": "^9.0.1",
+    "prettier": "^3.1.0",
+    "puppeteer": "^24.31.0",
+    "sharp": "^0.33.5",
+    "supertest": "^7.0.0",
+    "typescript": "^5.3.0",
+    "typescript-eslint": "^8.9.0",
+    "vitest": "^1.6.0"
   }
 }

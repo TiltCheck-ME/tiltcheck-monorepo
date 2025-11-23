@@ -39,16 +39,19 @@ jobs:
       
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
+=======
+      - name: Enable Corepack (pnpm)
+        run: corepack enable
       - name: Install jq
         run: sudo apt-get update && sudo apt-get install -y jq
       - name: Build images
         env:
           DOCKER_BUILDKIT: 1
-        run: docker-compose build discord-bot trust-rollup
+        run: docker compose build discord-bot trust-rollup landing
       - name: Start services (smoke mode)
         env:
           SKIP_DISCORD_LOGIN: 'true'
-        run: docker-compose up -d discord-bot trust-rollup
+        run: docker compose up -d discord-bot trust-rollup landing
       - name: Wait briefly for startup
         run: sleep 8
       - name: Run health checks (fail if not ready)

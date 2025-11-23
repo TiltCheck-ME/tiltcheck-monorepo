@@ -89,7 +89,8 @@ export type ModuleId =
   | 'trust-engine-degen'
   | 'trust-rollup'
   | 'poker-module'
-  | 'discord-bot';
+  | 'discord-bot'
+  | 'lockvault';
 
 // ============================================
 // User & Identity Types

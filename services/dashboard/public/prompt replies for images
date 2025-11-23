@@ -1,0 +1,3091 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>TiltCheck Component Showcase (Brand Refactor)</title>
+<style>
+ :root{--bg:#0f0f0f;--surface:#141414;--surface-alt:#181818;--border:#222;--accent:#00d4aa;--accent-alt:#00a8ff;--danger:#ff6b6b;--text:#fff;--text-muted:#9aa;--radius:12px;}
+ body{margin:0;font-family:Inter,system-ui,sans-serif;background:var(--bg);color:var(--text);padding:36px;line-height:1.4;}
+ h1,h2{margin:0;font-weight:600;}
+ a{color:var(--accent-alt);text-decoration:none;}
+ .section{margin-bottom:60px;}
+ .section>h2{font-size:.8rem;letter-spacing:.15em;text-transform:uppercase;color:var(--text-muted);margin-bottom:18px;}
+ .panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px;}
+ /* Trust Behavior Panel */
+ .tb-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;}
+ .tb-title{font-size:1.15rem;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);}
+ .tb-badge{font-size:.55rem;letter-spacing:.15em;text-transform:uppercase;padding:6px 10px;border:1px solid var(--border);border-radius:30px;background:var(--surface-alt);color:var(--accent-alt);}
+ .tb-grid{display:grid;grid-template-columns:1.3fr .7fr;gap:20px;}
+ .tb-chart{background:var(--surface-alt);border:1px solid var(--border);border-radius:10px;display:flex;align-items:center;justify-content:center;position:relative;}
+ .metrics{display:flex;flex-direction:column;gap:14px;}
+ .metric{background:var(--surface-alt);border:1px solid var(--border);padding:12px 14px;border-radius:10px;display:flex;flex-direction:column;gap:6px;}
+ .metric label{font-size:.55rem;letter-spacing:.12em;text-transform:uppercase;color:var(--text-muted);}
+ .metric .value{font-size:1.4rem;font-weight:600;}
+ .barWrap{height:30px;background:#101010;border:1px solid var(--border);border-radius:24px;overflow:hidden;position:relative;}
+ .barFill{height:100%;background:linear-gradient(90deg,var(--accent-alt),var(--accent));width:0%;transition:width .6s ease;}
+ .barPct{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font-size:.6rem;font-weight:600;}
+ .support{font-size:.7rem;color:var(--text-muted);background:var(--surface-alt);border:1px solid var(--border);padding:10px 12px;border-radius:10px;}
+ canvas{width:100%;height:100%;}
+ @media(max-width:900px){.tb-grid{grid-template-columns:1fr;}}
+ /* Logo */
+ .logo-wrap{display:flex;flex-direction:column;align-items:center;gap:18px;padding:28px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);}
+ .logo-wrap svg{width:150px;height:150px;}
+ .logo-wrap h3{margin:0;font-size:1.2rem;font-weight:600;letter-spacing:.18em;text-transform:uppercase;background:linear-gradient(90deg,var(--accent),var(--accent-alt));-webkit-background-clip:text;background-clip:text;color:transparent;}
+ /* Hero Banner */
+ .hero{max-width:860px;margin:0 auto;padding:60px 42px;border:1px solid var(--border);border-radius:16px;background:linear-gradient(135deg,#121212,#181a1d);position:relative;overflow:hidden;}
+ .hero:before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 28% 30%,rgba(0,212,170,.22),transparent 70%);opacity:.5;pointer-events:none;}
+ .hero-tag{display:inline-block;font-size:.55rem;letter-spacing:.15em;text-transform:uppercase;padding:6px 10px;border:1px solid var(--border);border-radius:30px;background:var(--surface-alt);color:var(--accent-alt);margin-bottom:16px;}
+ .hero h3{margin:0 0 18px;font-size:2.3rem;font-weight:600;line-height:1.1;}
+ .hero p{margin:0 0 16px;font-size:.95rem;color:#c9d2d2;}
+ .facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-top:10px;}
+ .fact{background:var(--surface-alt);border:1px solid var(--border);padding:12px;border-radius:10px;font-size:.7rem;letter-spacing:.05em;text-transform:uppercase;color:var(--text-muted);display:flex;flex-direction:column;gap:4px;}
+ .fact strong{font-size:.95rem;color:var(--accent);letter-spacing:0;font-weight:600;text-transform:none;}
+ .cta{margin-top:28px;display:inline-block;padding:10px 20px;border-radius:10px;background:linear-gradient(90deg,var(--accent),var(--accent-alt));color:#000;font-weight:600;text-decoration:none;font-size:.82rem;letter-spacing:.06em;}
+ .disclaimer{margin-top:22px;font-size:.6rem;color:#777;letter-spacing:.05em;}
+ @media(max-width:640px){.hero h3{font-size:1.9rem;} .hero{padding:48px 28px;}}
+</style>
+</head>
+<body>
+  <div class="section" id="trust-panel">
+    <h2>Trust Behavior Panel</h2>
+    <div class="panel">
+      <div class="tb-header"><div class="tb-title">Trust Behavior</div><div class="tb-badge">+ Accountability</div></div>
+      <div class="tb-grid">
+        <div class="tb-chart"><canvas id="tbChart" aria-label="Behavior trend" role="img"></canvas></div>
+        <div class="metrics">
+          <div class="metric"><label>Trust Index</label><div class="value" id="tbTrust">--</div></div>
+          <div class="metric"><label>Tilt Level</label><div class="barWrap"><div class="barFill" id="tbTiltFill"></div><div class="barPct" id="tbTiltPct">--</div></div></div>
+          <div class="metric"><label>Cooldown</label><div class="value" id="tbCooldown">--</div></div>
+          <div class="support" id="tbSupport">Recovery in progress.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="section" id="logo">
+    <h2>Logo Lockup</h2>
+    <div class="logo-wrap">
+      <svg viewBox="0 0 200 200" aria-label="TiltCheck logo" width="150" height="150">
+        <circle cx="100" cy="100" r="88" fill="none" stroke="#222" stroke-width="4" />
+        <!-- Bold C shape -->
+        <path d="M140 60
+                  A60 60 0 1 1 140 140" 
+              fill="none" stroke="#00d4aa" stroke-width="16" stroke-linecap="round" />
+        <!-- Accent dot -->
+        <circle cx="140" cy="100" r="10" fill="#00a8ff" />
+      </svg>
+      <h3>TiltCheck</h3>
+    </div>
+  </div>
+  <div class="section" id="hero">
+    <h2>Transparency Hero</h2>
+    <div class="hero" aria-labelledby="heroTitle" aria-describedby="heroDesc">
+      <span class="hero-tag">Transparency Layer</span>
+      <h3 id="heroTitle">Accountability Signals For Degens</h3>
+      <p id="heroDesc">Real-time trust deltas, severity momentum & fairness triggers distilled into exportable evidence artifacts. Non-custodial. No hype. Just signals.</p>
+      <div class="facts" aria-label="Core Guarantees">
+        <div class="fact"><strong>Non‑Custodial</strong><span>We never hold funds</span></div>
+        <div class="fact"><strong>Flat Fee</strong><span>0.07 SOL rule</span></div>
+        <div class="fact"><strong>Heuristic</strong><span>Not legal advice</span></div>
+        <div class="fact"><strong>Evidence</strong><span>JSON / CSV Export</span></div>
+      </div>
+      <a class="cta" href="/dashboard/experimental.html">Open Dashboard</a>
+      <div class="disclaimer">Signals only. Preserve original logs for disputes.</div>
+    </div>
+  </div>
+<script>
+  // Namespace to avoid collisions
+  (function(){
+    const c = document.getElementById('tbChart').getContext('2d');
+    const data = Array.from({length:40},(_,i)=>({x:i,y:60+Math.sin(i/3)*10+Math.random()*6}));
+    function draw(){
+      const w=c.canvas.width=c.canvas.clientWidth; const h=c.canvas.height=c.canvas.clientHeight;
+      c.clearRect(0,0,w,h); c.strokeStyle='#222'; c.lineWidth=1; for(let i=1;i<4;i++){const y=(h/4)*i; c.beginPath(); c.moveTo(0,y); c.lineTo(w,y); c.stroke();}
+      c.strokeStyle='#00a8ff'; c.lineWidth=2; c.beginPath(); data.forEach((p,i)=>{const x=(i/(data.length-1))*w; const y=h-(p.y/100)*h; i?c.lineTo(x,y):c.moveTo(x,y);}); c.stroke();
+    }
+    draw();
+    function updateMetrics(){
+      const trust = 70 + Math.floor(Math.random()*25); document.getElementById('tbTrust').textContent=trust;
+      const tilt = Math.floor(Math.random()*60); document.getElementById('tbTiltFill').style.width=tilt+'%'; document.getElementById('tbTiltPct').textContent=tilt+'%';
+      const mins = 1+Math.floor(Math.random()*5); const secs = String(Math.floor(Math.random()*60)).padStart(2,'0'); document.getElementById('tbCooldown').textContent=`${mins}:${secs}`;
+    }
+    setInterval(updateMetrics,4000); updateMetrics();
+    window.addEventListener('resize', draw);
+  })();
+</script>
+</body>
+</html>
+      background: rgba(138, 43, 226, 0.2);
+      border: 2px solid #8a2be2;
+      border-radius: 10px;
+      padding: 6%;
+      position: relative;
+      overflow: hidden;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      box-shadow: 0 0 25px rgba(138, 43, 226, 0.3);
+    }
+
+    .metric-box::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 3px;
+      background: linear-gradient(90deg, #ff00ff, #00ffff);
+      animation: progressShine 2s linear infinite;
+    }
+
+    @keyframes progressShine {
+      0% { transform: translateX(-100%); }
+      100% { transform: translateX(100%); }
+    }
+
+    .metric-title {
+      font-size: 0.95em;
+      color: #b19cd9;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      margin-bottom: 4%;
+    }
+
+    .metric-display {
+      font-size: 3.5em;
+      font-weight: 900;
+      color: #00ffff;
+      text-shadow: 0 0 20px rgba(0, 255, 255, 0.9);
+      line-height: 1;
+    }
+
+    .tilt-bar-container {
+      margin-top: 5%;
+    }
+
+    .tilt-bar {
+      width: 100%;
+      height: 35px;
+      background: rgba(0, 0, 50, 0.7);
+      border-radius: 20px;
+      overflow: hidden;
+      border: 2px solid #ff00ff;
+      position: relative;
+    }
+
+    .tilt-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #ff00ff 0%, #ff0099 50%, #ff00ff 100%);
+      background-size: 200% 100%;
+      border-radius: 20px;
+      transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 0 25px rgba(255, 0, 255, 0.9);
+      animation: barShimmer 2s linear infinite;
+    }
+
+    @keyframes barShimmer {
+      to { background-position: 200% 0; }
+    }
+
+    .tilt-percentage {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 0.95em;
+      font-weight: 800;
+      color: #fff;
+      text-shadow: 0 0 8px rgba(0, 0, 0, 0.8);
+      z-index: 10;
+    }
+
+    .cooldown-timer {
+      background: rgba(0, 255, 255, 0.15);
+      border: 2px solid #00ffff;
+      border-radius: 10px;
+      padding: 8%;
+      text-align: center;
+      box-shadow: 0 0 30px rgba(0, 255, 255, 0.4);
+    }
+
+    .timer-value {
+      font-size: 3em;
+      font-weight: 900;
+      color: #00ffff;
+      text-shadow: 0 0 25px rgba(0, 255, 255, 1);
+      margin: 4% 0;
+      animation: timerPulse 1s ease-in-out infinite;
+    }
+
+    @keyframes timerPulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.1); }
+    }
+
+    .timer-label {
+      font-size: 0.9em;
+      color: #7dd3c0;
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+    }
+
+    .support-message {
+      background: rgba(255, 0, 255, 0.1);
+      border: 2px dashed #ff00ff;
+      border-radius: 8px;
+      padding: 5%;
+      text-align: center;
+      font-size: 1.05em;
+      color: #e0b3ff;
+      font-style: italic;
+      letter-spacing: 0.05em;
+      line-height: 1.5;
+    }
+
+    @media (max-width: 1024px) {
+      .content-grid {
+        grid-template-columns: 1fr;
+      }
+      
+      .main-heading {
+        font-size: 1.8em;
+      }
+      
+      .metric-display {
+        font-size: 2.5em;
+      }
+    }
+  </style>
+  <style>@view-transition { navigation: auto; }</style>
+  <script src="/_sdk/data_sdk.js" type="text/javascript"></script>
+  <script src="https://cdn.tailwindcss.com" type="text/javascript"></script>
+ </head>
+ <body>
+  <div class="cyber-grid"></div>
+  <div class="wrapper">
+   <header class="top-bar">
+    <h1 class="main-heading" id="mainHeading">TRUST BEHAVIOR</h1>
+    <div class="status-badge" id="boostText">
+     +ACCOUNTABILITY
+    </div>
+   </header>
+   <div class="content-grid">
+    <section class="graph-panel">
+     <h2 class="panel-label">◆ BEHAVIOR ANALYSIS ◆</h2>
+     <div class="graph-area">
+      <svg width="100%" height="100%" viewbox="0 0 500 250" preserveaspectratio="none"><defs>
+        <lineargradient id="cooldownGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+         <stop offset="0%" style="stop-color:#9d4edd;stop-opacity:0.4" />
+         <stop offset="100%" style="stop-color:#9d4edd;stop-opacity:0" />
+        </lineargradient>
+       </defs> <!-- Grid lines --> <line x1="0" y1="62.5" x2="500" y2="62.5" stroke="rgba(0,255,255,0.1)" stroke-width="1" /> <line x1="0" y1="125" x2="500" y2="125" stroke="rgba(0,255,255,0.1)" stroke-width="1" /> <line x1="0" y1="187.5" x2="500" y2="187.5" stroke="rgba(0,255,255,0.1)" stroke-width="1" /> <!-- Cooldown curve (background) --> <path class="cooldown-curve" d="M0,200 Q50,160 100,150 T200,140 T300,145 T400,135 T500,130 L500,250 L0,250 Z" /> <!-- Main behavior curve --> <path class="behavior-curve" d="M0,180 Q50,150 100,140 T200,135 T300,145 T400,130 T500,125">
+        <animate attributename="d" dur="8s" repeatcount="indefinite" values="M0,180 Q50,150 100,140 T200,135 T300,145 T400,130 T500,125;
+                        M0,185 Q50,155 100,145 T200,140 T300,150 T400,135 T500,130;
+                        M0,180 Q50,150 100,140 T200,135 T300,145 T400,130 T500,125" />
+       </path> <!-- Tilt spikes --> <path class="tilt-spike" d="M150,135 L160,60 L170,135">
+        <animate attributename="d" dur="3s" repeatcount="indefinite" values="M150,135 L160,60 L170,135;
+                        M150,135 L160,75 L170,135;
+                        M150,135 L160,60 L170,135" />
+       </path> <path class="tilt-spike" d="M320,145 L330,70 L340,145">
+        <animate attributename="d" dur="4s" repeatcount="indefinite" values="M320,145 L330,70 L340,145;
+                        M320,145 L330,85 L340,145;
+                        M320,145 L330,70 L340,145" />
+       </path> <path class="tilt-spike" d="M450,130 L458,55 L466,130">
+        <animate attributename="d" dur="3.5s" repeatcount="indefinite" values="M450,130 L458,55 L466,130;
+                        M450,130 L458,70 L466,130;
+                        M450,130 L458,55 L466,130" />
+       </path>
+      </svg>
+     </div>
+    </section>
+    <aside class="metrics-sidebar">
+     <div class="metric-box">
+      <div class="metric-title">
+       TRUST INDEX
+      </div>
+      <div class="metric-display" id="trustIndex">
+       82
+      </div>
+     </div>
+     <div class="metric-box">
+      <div class="metric-title">
+       TILT LEVEL
+      </div>
+      <div class="tilt-bar-container">
+       <div class="tilt-bar">
+        <div class="tilt-percentage" id="tiltPercent">
+         28%
+        </div>
+        <div class="tilt-bar-fill" id="tiltBarFill" style="width: 28%;"></div>
+       </div>
+      </div>
+     </div>
+     <div class="cooldown-timer">
+      <div class="timer-label">
+       COOLDOWN
+      </div>
+      <div class="timer-value" id="cooldownValue">
+       4:32
+      </div>
+     </div>
+     <div class="support-message" id="statusMessage">
+      you're doing great, recovery in progress ✨
+     </div>
+    </aside>
+   </div>
+  </div>
+  <script>
+    const defaultConfig = {
+      main_heading: "TRUST BEHAVIOR",
+      status_message: "you're doing great, recovery in progress ✨",
+      boost_text: "+ACCOUNTABILITY",
+      background_color: "#0d0520",
+      accent_cyan: "#00ffff",
+      accent_magenta: "#ff00ff",
+      accent_purple: "#8a2be2",
+      text_color: "#e0f7ff",
+      font_family: "JetBrains Mono, Courier New",
+      font_size: 16
+    };
+
+    async function onConfigChange(config) {
+      const mainHeading = document.getElementById('mainHeading');
+      const statusMessage = document.getElementById('statusMessage');
+      const boostText = document.getElementById('boostText');
+
+      if (mainHeading) mainHeading.textContent = config.main_heading || defaultConfig.main_heading;
+      if (statusMessage) statusMessage.textContent = config.status_message || defaultConfig.status_message;
+      if (boostText) boostText.textContent = config.boost_text || defaultConfig.boost_text;
+
+      const bgColor = config.background_color || defaultConfig.background_color;
+      const cyan = config.accent_cyan || defaultConfig.accent_cyan;
+      const magenta = config.accent_magenta || defaultConfig.accent_magenta;
+      const purple = config.accent_purple || defaultConfig.accent_purple;
+      const textColor = config.text_color || defaultConfig.text_color;
+      const fontFamily = config.font_family || defaultConfig.font_family;
+      const fontSize = config.font_size || defaultConfig.font_size;
+
+      document.body.style.background = `radial-gradient(ellipse at center, #1a0b2e 0%, ${bgColor} 100%)`;
+      document.body.style.color = textColor;
+      document.body.style.fontFamily = `${fontFamily}, monospace`;
+
+      const sizeScale = fontSize / defaultConfig.font_size;
+      
+      if (mainHeading) {
+        mainHeading.style.color = cyan;
+        mainHeading.style.fontSize = `${2.5 * sizeScale}em`;
+      }
+
+      document.querySelectorAll('.panel-label').forEach(el => {
+        el.style.color = cyan;
+        el.style.fontSize = `${1.1 * sizeScale}em`;
+      });
+
+      document.querySelectorAll('.metric-display').forEach(el => {
+        el.style.color = cyan;
+        el.style.fontSize = `${3.5 * sizeScale}em`;
+      });
+
+      document.querySelectorAll('.behavior-curve').forEach(el => {
+        el.style.stroke = cyan;
+      });
+
+      document.querySelectorAll('.tilt-spike').forEach(el => {
+        el.style.stroke = magenta;
+      });
+
+      const topBar = document.querySelector('.top-bar');
+      if (topBar) topBar.style.borderColor = purple;
+
+      const graphPanel = document.querySelector('.graph-panel');
+      if (graphPanel) graphPanel.style.borderColor = cyan;
+
+      document.querySelectorAll('.metric-box').forEach(el => {
+        el.style.borderColor = purple;
+      });
+
+      const tiltBar = document.querySelector('.tilt-bar');
+      if (tiltBar) tiltBar.style.borderColor = magenta;
+
+      const cooldownTimer = document.querySelector('.cooldown-timer');
+      if (cooldownTimer) cooldownTimer.style.borderColor = cyan;
+
+      const supportMessage = document.querySelector('.support-message');
+      if (supportMessage) supportMessage.style.borderColor = magenta;
+    }
+
+    function mapToCapabilities(config) {
+      return {
+        recolorables: [
+          {
+            get: () => config.background_color || defaultConfig.background_color,
+            set: (value) => {
+              if (window.elementSdk) {
+                window.elementSdk.config.background_color = value;
+                window.elementSdk.setConfig({ background_color: value });
+              }
+            }
+          },
+          {
+            get: () => config.accent_cyan || defaultConfig.accent_cyan,
+            set: (value) => {
+              if (window.elementSdk) {
+                window.elementSdk.config.accent_cyan = value;
+                window.elementSdk.setConfig({ accent_cyan: value });
+              }
+            }
+          },
+          {
+            get: () => config.accent_magenta || defaultConfig.accent_magenta,
+            set: (value) => {
+              if (window.elementSdk) {
+                window.elementSdk.config.accent_magenta = value;
+                window.elementSdk.setConfig({ accent_magenta: value });
+              }
+            }
+          },
+          {
+            get: () => config.accent_purple || defaultConfig.accent_purple,
+            set: (value) => {
+              if (window.elementSdk) {
+                window.elementSdk.config.accent_purple = value;
+                window.elementSdk.setConfig({ accent_purple: value });
+              }
+            }
+          },
+          {
+            get: () => config.text_color || defaultConfig.text_color,
+            set: (value) => {
+              if (window.elementSdk) {
+                window.elementSdk.config.text_color = value;
+                window.elementSdk.setConfig({ text_color: value });
+              }
+            }
+          }
+        ],
+        borderables: [],
+        fontEditable: {
+          get: () => config.font_family || defaultConfig.font_family,
+          set: (value) => {
+            if (window.elementSdk) {
+              window.elementSdk.config.font_family = value;
+              window.elementSdk.setConfig({ font_family: value });
+            }
+          }
+        },
+        fontSizeable: {
+          get: () => config.font_size || defaultConfig.font_size,
+          set: (value) => {
+            if (window.elementSdk) {
+              window.elementSdk.config.font_size = value;
+              window.elementSdk.setConfig({ font_size: value });
+            }
+          }
+        }
+      };
+    }
+
+    function mapToEditPanelValues(config) {
+      return new Map([
+        ["main_heading", config.main_heading || defaultConfig.main_heading],
+        ["status_message", config.status_message || defaultConfig.status_message],
+        ["boost_text", config.boost_text || defaultConfig.boost_text]
+      ]);
+    }
+
+    if (window.elementSdk) {
+      window.elementSdk.init({
+        defaultConfig,
+        onConfigChange,
+        mapToCapabilities,
+        mapToEditPanelValues
+      });
+    }
+
+    // Dynamic animations
+    let trustValue = 82;
+    setInterval(() => {
+      trustValue = 70 + Math.floor(Math.random() * 25);
+      document.getElementById('trustIndex').textContent = trustValue;
+    }, 3500);
+
+    let tiltValue = 28;
+    setInterval(() => {
+      tiltValue = 15 + Math.floor(Math.random() * 50);
+      document.getElementById('tiltPercent').textContent = tiltValue + '%';
+      document.getElementById('tiltBarFill').style.width = tiltValue + '%';
+    }, 4200);
+
+    let minutes = 4;
+    let seconds = 32;
+    setInterval(() => {
+      seconds--;
+      if (seconds < 0) {
+        seconds = 59;
+        minutes--;
+        if (minutes < 0) minutes = 5;
+      }
+      const secStr = seconds < 10 ? '0' + seconds : seconds;
+      document.getElementById('cooldownValue').textContent = `${minutes}:${secStr}`;
+    }, 1000);
+  </script>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9a19b3b9c2dd3800',t:'MTc2MzY2MDEwOC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
+
+your opinion? perhaps for a user end dashboard ?
+
+logo prompt return, your thoughts?
+<!doctype html>
+<html lang="en">
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TiltCheck Logo</title>
+  <script src="/_sdk/element_sdk.js"></script>
+  <style>
+    body {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, #0a0a1a 0%, #1a1a2e 100%);
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    }
+
+    html {
+      height: 100%;
+    }
+
+    .logo-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 24px;
+      padding: 40px;
+    }
+
+    .logo-wrapper {
+      position: relative;
+      width: 280px;
+      height: 280px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .logo-svg {
+      width: 100%;
+      height: 100%;
+      filter: drop-shadow(0 0 20px rgba(0, 255, 255, 0.5));
+    }
+
+    .brand-text {
+      font-size: 32px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      background: linear-gradient(135deg, #00ffff 0%, #00ccff 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      text-shadow: 0 0 30px rgba(0, 255, 255, 0.3);
+      margin: 0;
+    }
+
+    @media (max-width: 768px) {
+      .logo-wrapper {
+        width: 220px;
+        height: 220px;
+      }
+
+      .brand-text {
+        font-size: 24px;
+      }
+    }
+  </style>
+  <style>@view-transition { navigation: auto; }</style>
+  <script src="/_sdk/data_sdk.js" type="text/javascript"></script>
+  <script src="https://cdn.tailwindcss.com" type="text/javascript"></script>
+ </head>
+ <body>
+  <div class="logo-container">
+   <div class="logo-wrapper">
+    <svg class="logo-svg" viewbox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"><!-- Outer circular gauge (subtle) --> <circle cx="100" cy="100" r="85" fill="none" stroke="rgba(138, 43, 226, 0.15)" stroke-width="2" /> <!-- Purple shadow/glow base --> <g opacity="0.4">
+      <path d="M 60 50 L 90 50 L 90 150 L 60 150 Z" fill="none" stroke="#8a2be2" stroke-width="10" stroke-linecap="round" stroke-linejoin="round" />
+      <path d="M 110 70 L 140 50 L 140 150 L 110 130 Z" fill="none" stroke="#8a2be2" stroke-width="10" stroke-linecap="round" stroke-linejoin="round" />
+      <circle cx="100" cy="100" r="72" fill="none" stroke="#8a2be2" stroke-width="3" />
+     </g> <!-- Main cyan T shape (angular, left side) --> <path d="M 50 45 L 95 45 L 95 55 L 77.5 55 L 77.5 155 L 67.5 155 L 67.5 55 L 50 55 Z" fill="none" stroke="#00ffff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" /> <!-- Main cyan C shape (angular, right side) --> <path d="M 145 60 L 145 50 L 105 50 L 105 150 L 145 150 L 145 140" fill="none" stroke="#00ffff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" /> <!-- Trust gauge arc (top right, subtle accent) --> <path d="M 130 75 A 30 30 0 0 1 130 125" fill="none" stroke="#00ffff" stroke-width="2.5" stroke-linecap="round" opacity="0.6" /> <!-- Small gauge indicator dot --> <circle cx="130" cy="100" r="3" fill="#00ffff" opacity="0.8" /> <!-- Inner connecting element (adds cohesion) --> <line x1="95" y1="100" x2="105" y2="100" stroke="#00ffff" stroke-width="3" opacity="0.5" />
+    </svg>
+   </div>
+   <h1 class="brand-text" id="brandName">TiltCheck</h1>
+  </div>
+  <script>
+    const defaultConfig = {
+      brand_name: "TiltCheck",
+      primary_color: "#00ffff",
+      secondary_color: "#8a2be2",
+      background_start: "#0a0a1a",
+      background_end: "#1a1a2e"
+    };
+
+    async function onConfigChange(config) {
+      const brandName = config.brand_name || defaultConfig.brand_name;
+      const primaryColor = config.primary_color || defaultConfig.primary_color;
+      const secondaryColor = config.secondary_color || defaultConfig.secondary_color;
+      const backgroundStart = config.background_start || defaultConfig.background_start;
+      const backgroundEnd = config.background_end || defaultConfig.background_end;
+
+      // Update brand name
+      const brandElement = document.getElementById('brandName');
+      if (brandElement) {
+        brandElement.textContent = brandName;
+      }
+
+      // Update colors
+      document.body.style.background = `linear-gradient(135deg, ${backgroundStart} 0%, ${backgroundEnd} 100%)`;
+      
+      const logoSvg = document.querySelector('.logo-svg');
+      if (logoSvg) {
+        logoSvg.style.filter = `drop-shadow(0 0 20px ${primaryColor}80)`;
+        
+        // Update all cyan strokes
+        const cyanElements = logoSvg.querySelectorAll('[stroke="#00ffff"]');
+        cyanElements.forEach(el => el.setAttribute('stroke', primaryColor));
+        
+        // Update all purple strokes
+        const purpleElements = logoSvg.querySelectorAll('[stroke="#8a2be2"]');
+        purpleElements.forEach(el => el.setAttribute('stroke', secondaryColor));
+        
+        // Update fills
+        const cyanFills = logoSvg.querySelectorAll('[fill="#00ffff"]');
+        cyanFills.forEach(el => el.setAttribute('fill', primaryColor));
+      }
+
+      // Update text gradient
+      if (brandElement) {
+        brandElement.style.background = `linear-gradient(135deg, ${primaryColor} 0%, ${primaryColor}cc 100%)`;
+        brandElement.style.webkitBackgroundClip = 'text';
+        brandElement.style.backgroundClip = 'text';
+        brandElement.style.textShadow = `0 0 30px ${primaryColor}4d`;
+      }
+    }
+
+    function mapToCapabilities(config) {
+      return {
+        recolorables: [
+          {
+            get: () => config.background_start || defaultConfig.background_start,
+            set: (value) => {
+              config.background_start = value;
+              window.elementSdk.setConfig({ background_start: value });
+            }
+          },
+          {
+            get: () => config.background_end || defaultConfig.background_end,
+            set: (value) => {
+              config.background_end = value;
+              window.elementSdk.setConfig({ background_end: value });
+            }
+          },
+          {
+            get: () => config.primary_color || defaultConfig.primary_color,
+            set: (value) => {
+              config.primary_color = value;
+              window.elementSdk.setConfig({ primary_color: value });
+            }
+          },
+          {
+            get: () => config.secondary_color || defaultConfig.secondary_color,
+            set: (value) => {
+              config.secondary_color = value;
+              window.elementSdk.setConfig({ secondary_color: value });
+            }
+          }
+        ],
+        borderables: [],
+        fontEditable: undefined,
+        fontSizeable: undefined
+      };
+    }
+
+    function mapToEditPanelValues(config) {
+      return new Map([
+        ["brand_name", config.brand_name || defaultConfig.brand_name]
+      ]);
+    }
+
+    // Initialize SDK
+    if (window.elementSdk) {
+      window.elementSdk.init({
+        defaultConfig,
+        onConfigChange,
+        mapToCapabilities,
+        mapToEditPanelValues
+      });
+    }
+  </script>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9a19b65965a95fc4',t:'MTc2MzY2MDIxNS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
+
+<!doctype html>
+<html lang="en">
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TiltCheck Neon Logo</title>
+  <script src="/_sdk/element_sdk.js"></script>
+  <style>
+    body {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #0d0d1a;
+      font-family: 'Space Grotesk', -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+
+    html {
+      height: 100%;
+    }
+
+    .logo-frame {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 32px;
+      padding: 40px;
+    }
+
+    .icon-container {
+      position: relative;
+      width: 300px;
+      height: 300px;
+    }
+
+    .neon-logo {
+      width: 100%;
+      height: 100%;
+    }
+
+    /* Glow effects */
+    .cyan-glow {
+      filter: drop-shadow(0 0 8px #00ffff) drop-shadow(0 0 16px #00ffff88);
+    }
+
+    .purple-glow {
+      filter: drop-shadow(0 0 12px #9d4edd) drop-shadow(0 0 24px #9d4edd44);
+    }
+
+    .wordmark {
+      font-size: 36px;
+      font-weight: 700;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      color: #00ffff;
+      text-shadow: 0 0 10px #00ffff, 0 0 20px #00ffff88, 0 0 30px #00ffff44;
+      margin: 0;
+    }
+
+    @media (max-width: 768px) {
+      .icon-container {
+        width: 240px;
+        height: 240px;
+      }
+
+      .wordmark {
+        font-size: 28px;
+        letter-spacing: 3px;
+      }
+    }
+  </style>
+  <style>@view-transition { navigation: auto; }</style>
+  <script src="/_sdk/data_sdk.js" type="text/javascript"></script>
+  <script src="https://cdn.tailwindcss.com" type="text/javascript"></script>
+ </head>
+ <body>
+  <main class="logo-frame">
+   <div class="icon-container">
+    <svg class="neon-logo" viewbox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"><defs><!-- Cyan glow filter -->
+      <filter id="cyanGlow">
+       <fegaussianblur stddeviation="3" result="coloredBlur" />
+       <femerge>
+        <femergenode in="coloredBlur" />
+        <femergenode in="SourceGraphic" />
+       </femerge>
+      </filter> <!-- Purple shadow filter -->
+      <filter id="purpleShadow">
+       <fegaussianblur in="SourceAlpha" stddeviation="4" />
+       <feoffset dx="2" dy="2" result="offsetblur" />
+       <feflood flood-color="#9d4edd" flood-opacity="0.6" />
+       <fecomposite in2="offsetblur" operator="in" />
+       <femerge>
+        <femergenode />
+        <femergenode in="SourceGraphic" />
+       </femerge>
+      </filter>
+     </defs> <!-- Subtle circular trust gauge (background) --> <g opacity="0.3">
+      <circle cx="100" cy="100" r="80" fill="none" stroke="#9d4edd" stroke-width="1.5" stroke-dasharray="4 4" />
+      <path d="M 140 60 A 56 56 0 0 1 140 140" fill="none" stroke="#00ffff" stroke-width="2" opacity="0.5" />
+      <circle cx="140" cy="100" r="3" fill="#00ffff" />
+     </g> <!-- Purple shadow layer (behind) --> <g opacity="0.5" transform="translate(3, 3)">
+      <path d="M 50 40 L 50 60 L 70 60 L 70 160 L 90 160 L 90 60 L 110 60 L 110 40 Z" fill="none" stroke="#9d4edd" stroke-width="6" stroke-linecap="square" stroke-linejoin="miter" />
+      <path d="M 150 60 L 150 40 L 110 40 L 110 50 L 140 50 L 140 150 L 110 150 L 110 160 L 150 160 L 150 140" fill="none" stroke="#9d4edd" stroke-width="6" stroke-linecap="square" stroke-linejoin="miter" />
+     </g> <!-- Main cyan T shape (angular geometric) --> <path d="M 50 40 L 50 60 L 70 60 L 70 160 L 90 160 L 90 60 L 110 60 L 110 40 Z" fill="none" stroke="#00ffff" stroke-width="5" stroke-linecap="square" stroke-linejoin="miter" filter="url(#cyanGlow)" /> <!-- Main cyan C shape (angular geometric, interlocked) --> <path d="M 150 60 L 150 40 L 110 40 L 110 50 L 140 50 L 140 150 L 110 150 L 110 160 L 150 160 L 150 140" fill="none" stroke="#00ffff" stroke-width="5" stroke-linecap="square" stroke-linejoin="miter" filter="url(#cyanGlow)" /> <!-- Connecting accent line (fusion point) --> <line x1="90" y1="100" x2="110" y2="100" stroke="#00ffff" stroke-width="3" opacity="0.7" filter="url(#cyanGlow)" /> <!-- Small accent dots for tech feel --> <circle cx="80" cy="50" r="2" fill="#00ffff" opacity="0.8" /> <circle cx="130" cy="50" r="2" fill="#00ffff" opacity="0.8" /> <circle cx="80" cy="150" r="2" fill="#00ffff" opacity="0.8" /> <circle cx="130" cy="150" r="2" fill="#00ffff" opacity="0.8" />
+    </svg>
+   </div>
+   <h1 class="wordmark" id="brandText">TILTCHECK</h1>
+  </main>
+  <script>
+    const defaultConfig = {
+      brand_name: "TILTCHECK",
+      background_color: "#0d0d1a",
+      cyan_glow: "#00ffff",
+      purple_shadow: "#9d4edd"
+    };
+
+    async function onConfigChange(config) {
+      const brandName = config.brand_name || defaultConfig.brand_name;
+      const backgroundColor = config.background_color || defaultConfig.background_color;
+      const cyanGlow = config.cyan_glow || defaultConfig.cyan_glow;
+      const purpleShadow = config.purple_shadow || defaultConfig.purple_shadow;
+
+      // Update brand name
+      const brandElement = document.getElementById('brandText');
+      if (brandElement) {
+        brandElement.textContent = brandName;
+        brandElement.style.color = cyanGlow;
+        brandElement.style.textShadow = `0 0 10px ${cyanGlow}, 0 0 20px ${cyanGlow}88, 0 0 30px ${cyanGlow}44`;
+      }
+
+      // Update background
+      document.body.style.background = backgroundColor;
+
+      // Update SVG colors
+      const svg = document.querySelector('.neon-logo');
+      if (svg) {
+        // Cyan strokes
+        const cyanPaths = svg.querySelectorAll('path[stroke="#00ffff"], line[stroke="#00ffff"]');
+        cyanPaths.forEach(el => el.setAttribute('stroke', cyanGlow));
+
+        // Cyan fills
+        const cyanCircles = svg.querySelectorAll('circle[fill="#00ffff"]');
+        cyanCircles.forEach(el => el.setAttribute('fill', cyanGlow));
+
+        // Purple strokes
+        const purplePaths = svg.querySelectorAll('[stroke="#9d4edd"]');
+        purplePaths.forEach(el => el.setAttribute('stroke', purpleShadow));
+      }
+    }
+
+    function mapToCapabilities(config) {
+      return {
+        recolorables: [
+          {
+            get: () => config.background_color || defaultConfig.background_color,
+            set: (value) => {
+              config.background_color = value;
+              window.elementSdk.setConfig({ background_color: value });
+            }
+          },
+          {
+            get: () => config.cyan_glow || defaultConfig.cyan_glow,
+            set: (value) => {
+              config.cyan_glow = value;
+              window.elementSdk.setConfig({ cyan_glow: value });
+            }
+          },
+          {
+            get: () => config.purple_shadow || defaultConfig.purple_shadow,
+            set: (value) => {
+              config.purple_shadow = value;
+              window.elementSdk.setConfig({ purple_shadow: value });
+            }
+          }
+        ],
+        borderables: [],
+        fontEditable: undefined,
+        fontSizeable: undefined
+      };
+    }
+
+    function mapToEditPanelValues(config) {
+      return new Map([
+        ["brand_name", config.brand_name || defaultConfig.brand_name]
+      ]);
+    }
+
+    // Initialize SDK
+    if (window.elementSdk) {
+      window.elementSdk.init({
+        defaultConfig,
+        onConfigChange,
+        mapToCapabilities,
+        mapToEditPanelValues
+      });
+    }
+  </script>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9a19b81a235f96b1',t:'MTc2MzY2MDI4Ny4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
+
+<!doctype html>
+<html lang="en">
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TiltCheck Cyberpunk Banner</title>
+  <script src="/_sdk/element_sdk.js"></script>
+  <style>
+    body {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      background: #000000;
+      font-family: 'Orbitron', 'Rajdhani', sans-serif;
+      height: 100%;
+    }
+
+    html {
+      height: 100%;
+    }
+
+    .banner-container {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(135deg, #0a0a1f 0%, #1a0a2e 50%, #0f0820 100%);
+      overflow: hidden;
+    }
+
+    /* Animated background grid */
+    .grid-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-image: 
+        linear-gradient(rgba(0, 255, 255, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(138, 43, 226, 0.03) 1px, transparent 1px);
+      background-size: 50px 50px;
+      animation: gridMove 20s linear infinite;
+    }
+
+    @keyframes gridMove {
+      0% { transform: translate(0, 0); }
+      100% { transform: translate(50px, 50px); }
+    }
+
+    /* Circuit patterns */
+    .circuit-pattern {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      opacity: 0.15;
+    }
+
+    .circuit-line {
+      position: absolute;
+      background: linear-gradient(90deg, transparent, #00ffff, transparent);
+      animation: circuitPulse 3s ease-in-out infinite;
+    }
+
+    .circuit-line:nth-child(1) {
+      top: 20%;
+      left: 0;
+      width: 40%;
+      height: 2px;
+      animation-delay: 0s;
+    }
+
+    .circuit-line:nth-child(2) {
+      top: 60%;
+      right: 0;
+      width: 35%;
+      height: 2px;
+      animation-delay: 1s;
+    }
+
+    .circuit-line:nth-child(3) {
+      top: 40%;
+      left: 10%;
+      width: 30%;
+      height: 2px;
+      animation-delay: 2s;
+    }
+
+    @keyframes circuitPulse {
+      0%, 100% { opacity: 0.1; }
+      50% { opacity: 0.4; }
+    }
+
+    /* Light streaks */
+    .light-streak {
+      position: absolute;
+      width: 2px;
+      height: 150px;
+      background: linear-gradient(180deg, transparent, #00ffff, transparent);
+      opacity: 0.3;
+      animation: streakMove 4s linear infinite;
+    }
+
+    .light-streak:nth-child(1) {
+      left: 15%;
+      animation-delay: 0s;
+    }
+
+    .light-streak:nth-child(2) {
+      left: 45%;
+      animation-delay: 1.5s;
+    }
+
+    .light-streak:nth-child(3) {
+      left: 75%;
+      animation-delay: 3s;
+    }
+
+    @keyframes streakMove {
+      0% {
+        top: -150px;
+        opacity: 0;
+      }
+      50% {
+        opacity: 0.5;
+      }
+      100% {
+        top: 100%;
+        opacity: 0;
+      }
+    }
+
+    /* Particle effects */
+    .particles-container {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+    }
+
+    .particle {
+      position: absolute;
+      width: 4px;
+      height: 4px;
+      background: #00ffff;
+      border-radius: 50%;
+      box-shadow: 0 0 10px #00ffff;
+      animation: particleFloat 6s ease-in-out infinite;
+    }
+
+    .particle:nth-child(even) {
+      background: #9d4edd;
+      box-shadow: 0 0 10px #9d4edd;
+    }
+
+    @keyframes particleFloat {
+      0% {
+        transform: translate(0, 0) scale(1);
+        opacity: 0;
+      }
+      20% {
+        opacity: 1;
+      }
+      80% {
+        opacity: 1;
+      }
+      100% {
+        transform: translate(var(--tx), var(--ty)) scale(0);
+        opacity: 0;
+      }
+    }
+
+    /* Casino chips */
+    .casino-chip {
+      position: absolute;
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      border: 3px solid #00ffff;
+      background: radial-gradient(circle at 30% 30%, #1a1a3e, #0a0a1f);
+      box-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
+      animation: chipDissolve 4s ease-in-out infinite;
+      opacity: 0.7;
+    }
+
+    .casino-chip::before {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      background: #9d4edd;
+      box-shadow: 0 0 15px #9d4edd;
+    }
+
+    @keyframes chipDissolve {
+      0% {
+        transform: translateY(0) scale(1);
+        opacity: 0.7;
+      }
+      50% {
+        opacity: 0.5;
+      }
+      100% {
+        transform: translateY(-100px) scale(0.3);
+        opacity: 0;
+      }
+    }
+
+    /* Trust score gauges */
+    .gauge {
+      position: absolute;
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      border: 3px solid rgba(0, 255, 255, 0.3);
+      animation: gaugeSpin 8s linear infinite;
+    }
+
+    .gauge::before {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 60%;
+      height: 3px;
+      background: linear-gradient(90deg, #00ffff, #9d4edd);
+      transform-origin: left center;
+      transform: translate(0, -50%);
+      box-shadow: 0 0 10px #00ffff;
+    }
+
+    @keyframes gaugeSpin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    /* Glitch effect overlay */
+    .glitch-overlay {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      background: repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 2px,
+        rgba(0, 255, 255, 0.03) 2px,
+        rgba(0, 255, 255, 0.03) 4px
+      );
+      animation: glitchShift 0.3s infinite;
+    }
+
+    @keyframes glitchShift {
+      0%, 100% { transform: translateX(0); }
+      33% { transform: translateX(-2px); }
+      66% { transform: translateX(2px); }
+    }
+
+    /* Main content */
+    .content-wrapper {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      text-align: center;
+      z-index: 10;
+      width: 90%;
+    }
+
+    .title {
+      font-size: 5rem;
+      font-weight: 900;
+      color: #00ffff;
+      text-shadow: 
+        0 0 20px #00ffff,
+        0 0 40px #00ffff,
+        0 0 60px #00ffff,
+        2px 2px 0 #9d4edd,
+        4px 4px 0 rgba(157, 78, 221, 0.5);
+      letter-spacing: 0.1em;
+      margin: 0;
+      animation: titleGlow 2s ease-in-out infinite;
+    }
+
+    @keyframes titleGlow {
+      0%, 100% {
+        text-shadow: 
+          0 0 20px #00ffff,
+          0 0 40px #00ffff,
+          0 0 60px #00ffff,
+          2px 2px 0 #9d4edd,
+          4px 4px 0 rgba(157, 78, 221, 0.5);
+      }
+      50% {
+        text-shadow: 
+          0 0 30px #00ffff,
+          0 0 60px #00ffff,
+          0 0 90px #00ffff,
+          2px 2px 0 #9d4edd,
+          4px 4px 0 rgba(157, 78, 221, 0.8);
+      }
+    }
+
+    .tagline {
+      font-size: 1.8rem;
+      font-weight: 600;
+      color: #ffffff;
+      text-shadow: 
+        0 0 10px #9d4edd,
+        0 0 20px #9d4edd;
+      letter-spacing: 0.05em;
+      margin-top: 1rem;
+      animation: taglineFlicker 3s ease-in-out infinite;
+    }
+
+    @keyframes taglineFlicker {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.8; }
+    }
+
+    /* 3D neon accents */
+    .neon-accent {
+      position: absolute;
+      width: 150px;
+      height: 150px;
+      border: 2px solid #00ffff;
+      border-radius: 10px;
+      transform: rotateX(60deg) rotateZ(45deg);
+      box-shadow: 
+        0 0 20px rgba(0, 255, 255, 0.5),
+        inset 0 0 20px rgba(0, 255, 255, 0.2);
+      animation: accentFloat 5s ease-in-out infinite;
+    }
+
+    .neon-accent:nth-child(1) {
+      top: 10%;
+      left: 10%;
+      animation-delay: 0s;
+    }
+
+    .neon-accent:nth-child(2) {
+      top: 20%;
+      right: 15%;
+      border-color: #9d4edd;
+      box-shadow: 
+        0 0 20px rgba(157, 78, 221, 0.5),
+        inset 0 0 20px rgba(157, 78, 221, 0.2);
+      animation-delay: 1s;
+    }
+
+    @keyframes accentFloat {
+      0%, 100% {
+        transform: rotateX(60deg) rotateZ(45deg) translateY(0);
+      }
+      50% {
+        transform: rotateX(60deg) rotateZ(45deg) translateY(-20px);
+      }
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+      .title {
+        font-size: 3rem;
+      }
+      .tagline {
+        font-size: 1.2rem;
+      }
+      .neon-accent {
+        width: 80px;
+        height: 80px;
+      }
+    }
+  </style>
+  <style>@view-transition { navigation: auto; }</style>
+  <script src="/_sdk/data_sdk.js" type="text/javascript"></script>
+  <script src="https://cdn.tailwindcss.com" type="text/javascript"></script>
+ </head>
+ <body>
+  <div class="banner-container"><!-- Background layers -->
+   <div class="grid-overlay"></div><!-- Circuit patterns -->
+   <div class="circuit-pattern">
+    <div class="circuit-line"></div>
+    <div class="circuit-line"></div>
+    <div class="circuit-line"></div>
+   </div><!-- Light streaks -->
+   <div class="light-streak"></div>
+   <div class="light-streak"></div>
+   <div class="light-streak"></div><!-- Particles container -->
+   <div class="particles-container" id="particles"></div><!-- Casino chips -->
+   <div class="casino-chip" style="left: 20%; top: 30%;"></div>
+   <div class="casino-chip" style="left: 70%; top: 50%; animation-delay: 2s;"></div><!-- Trust score gauges -->
+   <div class="gauge" style="left: 10%; top: 60%;"></div>
+   <div class="gauge" style="right: 10%; top: 40%; animation-delay: 4s;"></div><!-- 3D neon accents -->
+   <div class="neon-accent"></div>
+   <div class="neon-accent"></div><!-- Glitch overlay -->
+   <div class="glitch-overlay"></div><!-- Main content -->
+   <div class="content-wrapper">
+    <h1 class="title" id="mainTitle">TiltCheck</h1>
+    <p class="tagline" id="taglineText">Made for Degens. By Degens.</p>
+   </div>
+  </div>
+  <script>
+    const defaultConfig = {
+      main_title: "TiltCheck",
+      tagline: "Made for Degens. By Degens.",
+      background_color: "#0a0a1f",
+      primary_color: "#00ffff",
+      secondary_color: "#9d4edd",
+      text_color: "#ffffff",
+      font_family: "Orbitron"
+    };
+
+    async function onConfigChange(config) {
+      const customFont = config.font_family || defaultConfig.font_family;
+      const baseFontStack = "'Rajdhani', sans-serif";
+      
+      const titleElement = document.getElementById('mainTitle');
+      const taglineElement = document.getElementById('taglineText');
+      
+      titleElement.textContent = config.main_title || defaultConfig.main_title;
+      taglineElement.textContent = config.tagline || defaultConfig.tagline;
+      
+      titleElement.style.fontFamily = `${customFont}, ${baseFontStack}`;
+      taglineElement.style.fontFamily = `${customFont}, ${baseFontStack}`;
+      
+      titleElement.style.color = config.primary_color || defaultConfig.primary_color;
+      taglineElement.style.color = config.text_color || defaultConfig.text_color;
+      
+      document.querySelector('.banner-container').style.background = 
+        `linear-gradient(135deg, ${config.background_color || defaultConfig.background_color} 0%, #1a0a2e 50%, #0f0820 100%)`;
+    }
+
+    function mapToCapabilities(config) {
+      return {
+        recolorables: [
+          {
+            get: () => config.background_color || defaultConfig.background_color,
+            set: (value) => {
+              config.background_color = value;
+              if (window.elementSdk) window.elementSdk.setConfig({ background_color: value });
+            }
+          },
+          {
+            get: () => config.primary_color || defaultConfig.primary_color,
+            set: (value) => {
+              config.primary_color = value;
+              if (window.elementSdk) window.elementSdk.setConfig({ primary_color: value });
+            }
+          },
+          {
+            get: () => config.secondary_color || defaultConfig.secondary_color,
+            set: (value) => {
+              config.secondary_color = value;
+              if (window.elementSdk) window.elementSdk.setConfig({ secondary_color: value });
+            }
+          },
+          {
+            get: () => config.text_color || defaultConfig.text_color,
+            set: (value) => {
+              config.text_color = value;
+              if (window.elementSdk) window.elementSdk.setConfig({ text_color: value });
+            }
+          }
+        ],
+        borderables: [],
+        fontEditable: {
+          get: () => config.font_family || defaultConfig.font_family,
+          set: (value) => {
+            config.font_family = value;
+            if (window.elementSdk) window.elementSdk.setConfig({ font_family: value });
+          }
+        },
+        fontSizeable: undefined
+      };
+    }
+
+    function mapToEditPanelValues(config) {
+      return new Map([
+        ["main_title", config.main_title || defaultConfig.main_title],
+        ["tagline", config.tagline || defaultConfig.tagline]
+      ]);
+    }
+
+    // Generate particles
+    function createParticles() {
+      const container = document.getElementById('particles');
+      for (let i = 0; i < 30; i++) {
+        const particle = document.createElement('div');
+        particle.className = 'particle';
+        particle.style.left = `${Math.random() * 100}%`;
+        particle.style.top = `${Math.random() * 100}%`;
+        particle.style.setProperty('--tx', `${(Math.random() - 0.5) * 200}px`);
+        particle.style.setProperty('--ty', `${(Math.random() - 0.5) * 200}px`);
+        particle.style.animationDelay = `${Math.random() * 6}s`;
+        container.appendChild(particle);
+      }
+    }
+
+    if (window.elementSdk) {
+      window.elementSdk.init({
+        defaultConfig,
+        onConfigChange,
+        mapToCapabilities,
+        mapToEditPanelValues
+      });
+    }
+
+    createParticles();
+  </script>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9a19bb1ed1a93800',t:'MTc2MzY2MDQxMC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
+
+
+
+<!doctype html>
+<html lang="en">
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TiltCheck Ecosystem</title>
+  <script src="/_sdk/element_sdk.js"></script>
+  <style>
+    body {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      overflow: hidden;
+      font-family: 'Courier New', monospace;
+    }
+
+    html {
+      height: 100%;
+    }
+
+    .container {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      align-items: center;
+      padding: 3rem 2rem;
+      background: linear-gradient(135deg, #0a0015 0%, #1a0033 25%, #001a33 50%, #1a0033 75%, #0a0015 100%);
+      overflow: hidden;
+    }
+
+    .glitch-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 2px,
+        rgba(0, 255, 255, 0.03) 2px,
+        rgba(0, 255, 255, 0.03) 4px
+      );
+      pointer-events: none;
+      animation: glitchScan 8s linear infinite;
+    }
+
+    @keyframes glitchScan {
+      0%, 100% { opacity: 0.3; }
+      50% { opacity: 0.1; }
+    }
+
+    .neon-glow {
+      position: absolute;
+      width: 60%;
+      height: 60%;
+      background: radial-gradient(ellipse at center, rgba(0, 255, 255, 0.15) 0%, transparent 70%);
+      animation: pulse 4s ease-in-out infinite;
+      pointer-events: none;
+    }
+
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); opacity: 0.5; }
+      50% { transform: scale(1.1); opacity: 0.3; }
+    }
+
+    .header {
+      position: relative;
+      z-index: 2;
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+
+    .title {
+      font-size: 4rem;
+      font-weight: bold;
+      margin: 0 0 0.5rem 0;
+      text-transform: uppercase;
+      letter-spacing: 0.3rem;
+      text-shadow: 0 0 20px rgba(0, 255, 255, 0.8), 0 0 40px rgba(138, 43, 226, 0.6);
+      animation: titleGlitch 3s ease-in-out infinite;
+    }
+
+    @keyframes titleGlitch {
+      0%, 90%, 100% { transform: translateX(0); }
+      92% { transform: translateX(-2px); }
+      94% { transform: translateX(2px); }
+      96% { transform: translateX(-1px); }
+    }
+
+    .subtitle {
+      font-size: 1.5rem;
+      margin: 0;
+      letter-spacing: 0.2rem;
+      opacity: 0.9;
+    }
+
+    .center-content {
+      position: relative;
+      z-index: 2;
+      width: 100%;
+      max-width: 800px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3rem;
+    }
+
+    .degen-silhouette {
+      position: relative;
+      width: 200px;
+      height: 250px;
+      margin-bottom: 2rem;
+    }
+
+    .degen-shape {
+      fill: none;
+      stroke-width: 2;
+      filter: drop-shadow(0 0 15px rgba(0, 255, 255, 0.6));
+    }
+
+    .trust-gauge-container {
+      position: relative;
+      width: 100%;
+      max-width: 500px;
+      height: 200px;
+      margin: 2rem 0;
+    }
+
+    .gauge-arc {
+      fill: none;
+      stroke-width: 8;
+      stroke-linecap: round;
+      filter: drop-shadow(0 0 10px currentColor);
+    }
+
+    .gauge-label {
+      font-size: 0.9rem;
+      letter-spacing: 0.1rem;
+      text-anchor: middle;
+      text-transform: uppercase;
+    }
+
+    .chips-container {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      top: 0;
+      left: 0;
+      pointer-events: none;
+      overflow: hidden;
+    }
+
+    .chip {
+      position: absolute;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      border: 3px solid;
+      animation: chipDissolve 4s ease-in-out infinite;
+      opacity: 0;
+    }
+
+    @keyframes chipDissolve {
+      0% {
+        transform: translateY(0) scale(1);
+        opacity: 0.8;
+      }
+      50% {
+        opacity: 0.4;
+      }
+      100% {
+        transform: translateY(-300px) scale(0.2);
+        opacity: 0;
+      }
+    }
+
+    .data-point {
+      position: absolute;
+      width: 4px;
+      height: 4px;
+      border-radius: 50%;
+      animation: dataRise 3s ease-out infinite;
+    }
+
+    @keyframes dataRise {
+      0% {
+        transform: translateY(0) scale(1);
+        opacity: 0;
+      }
+      20% {
+        opacity: 1;
+      }
+      100% {
+        transform: translateY(-400px) scale(0.5);
+        opacity: 0;
+      }
+    }
+
+    .event-stream {
+      position: absolute;
+      width: 100%;
+      height: 2px;
+      opacity: 0.6;
+      animation: streamFlow 6s linear infinite;
+    }
+
+    @keyframes streamFlow {
+      0% {
+        transform: translateX(-100%) scaleX(0.5);
+        opacity: 0;
+      }
+      50% {
+        opacity: 0.8;
+      }
+      100% {
+        transform: translateX(100%) scaleX(1.5);
+        opacity: 0;
+      }
+    }
+
+    .footer {
+      position: relative;
+      z-index: 2;
+      text-align: center;
+      font-size: 1.1rem;
+      letter-spacing: 0.15rem;
+      opacity: 0.8;
+      margin-top: 2rem;
+    }
+
+    @media (max-width: 768px) {
+      .title {
+        font-size: 2.5rem;
+        letter-spacing: 0.2rem;
+      }
+      .subtitle {
+        font-size: 1.1rem;
+      }
+      .degen-silhouette {
+        width: 150px;
+        height: 200px;
+      }
+    }
+  </style>
+  <style>@view-transition { navigation: auto; }</style>
+  <script src="/_sdk/data_sdk.js" type="text/javascript"></script>
+  <script src="https://cdn.tailwindcss.com" type="text/javascript"></script>
+ </head>
+ <body>
+  <div class="container">
+   <div class="glitch-overlay"></div>
+   <div class="neon-glow"></div>
+   <div class="chips-container" id="chipsContainer"></div>
+   <header class="header">
+    <h1 class="title" id="mainTitle">TiltCheck Ecosystem</h1>
+    <p class="subtitle" id="subtitle">Trust Engines Activated</p>
+   </header>
+   <div class="center-content">
+    <div class="degen-silhouette">
+     <svg viewbox="0 0 200 250" xmlns="http://www.w3.org/2000/svg"><path class="degen-shape" id="degenPath" d="M100,30 Q85,50 85,80 L85,120 Q75,140 75,160 L75,220 M100,30 Q115,50 115,80 L115,120 Q125,140 125,160 L125,220 M70,90 L85,80 M115,80 L130,90 M75,160 L50,180 M125,160 L150,180 M85,50 Q100,40 115,50" stroke-dasharray="500" stroke-dashoffset="500">
+       <animate attributename="stroke-dashoffset" from="500" to="0" dur="2s" fill="freeze" />
+      </path> <ellipse cx="100" cy="25" rx="25" ry="30" class="degen-shape" opacity="0.6" stroke-dasharray="200" stroke-dashoffset="200">
+       <animate attributename="stroke-dashoffset" from="200" to="0" dur="2s" fill="freeze" />
+      </ellipse>
+     </svg>
+    </div>
+    <div class="trust-gauge-container">
+     <svg width="100%" height="100%" viewbox="0 0 500 200"><defs>
+       <lineargradient id="gaugeGradient1" x1="0%" y1="0%" x2="100%" y2="0%">
+        <stop offset="0%" style="stop-color:#00ffff;stop-opacity:1" />
+        <stop offset="100%" style="stop-color:#8a2be2;stop-opacity:1" />
+       </lineargradient>
+      </defs> <path class="gauge-arc" id="gaugeArc1" d="M 50 180 A 200 200 0 0 1 250 20" stroke="url(#gaugeGradient1)" opacity="0.8">
+       <animate attributename="opacity" values="0.8;1;0.8" dur="3s" repeatcount="indefinite" />
+      </path> <path class="gauge-arc" id="gaugeArc2" d="M 250 20 A 200 200 0 0 1 450 180" stroke="url(#gaugeGradient1)" opacity="0.6">
+       <animate attributename="opacity" values="0.6;0.9;0.6" dur="3s" repeatcount="indefinite" begin="0.5s" />
+      </path> <text class="gauge-label" id="gaugeLabel1" x="150" y="195" opacity="0.7">
+       Low Risk
+      </text> <text class="gauge-label" id="gaugeLabel2" x="250" y="40" opacity="0.9">
+       Verified
+      </text> <text class="gauge-label" id="gaugeLabel3" x="350" y="195" opacity="0.7">
+       High Trust
+      </text>
+     </svg>
+    </div>
+   </div>
+   <footer class="footer" id="footerText">
+    Built by @jmenichole
+   </footer>
+  </div>
+  <script>
+    const defaultConfig = {
+      background_color: "#0a0015",
+      surface_color: "#1a0033",
+      text_color: "#00ffff",
+      primary_action_color: "#8a2be2",
+      secondary_action_color: "#00bfff",
+      main_title: "TiltCheck Ecosystem",
+      subtitle: "Trust Engines Activated",
+      footer_text: "Built by @jmenichole"
+    };
+
+    let config = { ...defaultConfig };
+
+    async function onConfigChange(newConfig) {
+      config = { ...config, ...newConfig };
+      
+      const mainTitle = document.getElementById('mainTitle');
+      const subtitle = document.getElementById('subtitle');
+      const footerText = document.getElementById('footerText');
+      
+      mainTitle.textContent = config.main_title;
+      mainTitle.style.color = config.text_color;
+      
+      subtitle.textContent = config.subtitle;
+      subtitle.style.color = config.text_color;
+      
+      footerText.textContent = config.footer_text;
+      footerText.style.color = config.text_color;
+      
+      const degenPath = document.getElementById('degenPath');
+      degenPath.style.stroke = config.text_color;
+      
+      const gaugeArcs = document.querySelectorAll('.gauge-arc');
+      gaugeArcs.forEach(arc => {
+        arc.style.stroke = config.primary_action_color;
+      });
+      
+      const gaugeLabels = document.querySelectorAll('.gauge-label');
+      gaugeLabels.forEach(label => {
+        label.style.fill = config.text_color;
+      });
+    }
+
+    function createChips() {
+      const container = document.getElementById('chipsContainer');
+      const colors = [config.text_color, config.primary_action_color, config.secondary_action_color];
+      
+      setInterval(() => {
+        const chip = document.createElement('div');
+        chip.className = 'chip';
+        chip.style.left = Math.random() * 100 + '%';
+        chip.style.borderColor = colors[Math.floor(Math.random() * colors.length)];
+        chip.style.animationDelay = Math.random() * 2 + 's';
+        container.appendChild(chip);
+        
+        for (let i = 0; i < 8; i++) {
+          const dataPoint = document.createElement('div');
+          dataPoint.className = 'data-point';
+          dataPoint.style.left = chip.style.left;
+          dataPoint.style.bottom = '20%';
+          dataPoint.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+          dataPoint.style.animationDelay = (Math.random() * 1 + 0.5) + 's';
+          container.appendChild(dataPoint);
+          
+          setTimeout(() => dataPoint.remove(), 3000);
+        }
+        
+        setTimeout(() => chip.remove(), 4000);
+      }, 800);
+    }
+
+    function createEventStreams() {
+      const container = document.getElementById('chipsContainer');
+      const colors = [config.text_color, config.primary_action_color, config.secondary_action_color];
+      
+      setInterval(() => {
+        const stream = document.createElement('div');
+        stream.className = 'event-stream';
+        stream.style.top = (Math.random() * 80 + 10) + '%';
+        stream.style.background = `linear-gradient(90deg, transparent, ${colors[Math.floor(Math.random() * colors.length)]}, transparent)`;
+        stream.style.animationDelay = Math.random() * 2 + 's';
+        container.appendChild(stream);
+        
+        setTimeout(() => stream.remove(), 6000);
+      }, 1500);
+    }
+
+    if (window.elementSdk) {
+      window.elementSdk.init({
+        defaultConfig,
+        onConfigChange,
+        mapToCapabilities: (config) => ({
+          recolorables: [
+            {
+              get: () => config.background_color || defaultConfig.background_color,
+              set: (value) => {
+                config.background_color = value;
+                window.elementSdk.setConfig({ background_color: value });
+              }
+            },
+            {
+              get: () => config.surface_color || defaultConfig.surface_color,
+              set: (value) => {
+                config.surface_color = value;
+                window.elementSdk.setConfig({ surface_color: value });
+              }
+            },
+            {
+              get: () => config.text_color || defaultConfig.text_color,
+              set: (value) => {
+                config.text_color = value;
+                window.elementSdk.setConfig({ text_color: value });
+              }
+            },
+            {
+              get: () => config.primary_action_color || defaultConfig.primary_action_color,
+              set: (value) => {
+                config.primary_action_color = value;
+                window.elementSdk.setConfig({ primary_action_color: value });
+              }
+            },
+            {
+              get: () => config.secondary_action_color || defaultConfig.secondary_action_color,
+              set: (value) => {
+                config.secondary_action_color = value;
+                window.elementSdk.setConfig({ secondary_action_color: value });
+              }
+            }
+          ],
+          borderables: [],
+          fontEditable: undefined,
+          fontSizeable: undefined
+        }),
+        mapToEditPanelValues: (config) => new Map([
+          ["main_title", config.main_title || defaultConfig.main_title],
+          ["subtitle", config.subtitle || defaultConfig.subtitle],
+          ["footer_text", config.footer_text || defaultConfig.footer_text]
+        ])
+      });
+    }
+
+    createChips();
+    createEventStreams();
+    onConfigChange(config);
+  </script>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9a19c052c55b3800',t:'MTc2MzY2MDYyNC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
+
+Casino trust badges set (Verified Fair, Consistent, Mixed Signals, Risky, Avoid)
+color-coded diamond-shaped icons, neon cyan -> green -> yellow -> orange -> red,
+digital HUD interface, microcircuits, subtle glitching, crisp vector style, 
+perfect for dashboards and bot embeds. aspect 1:1
+
+<!doctype html>
+<html lang="en">
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Casino Trust Badges</title>
+  <script src="/_sdk/element_sdk.js"></script>
+  <style>
+    body {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      background: #0a0e1a;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Courier New', monospace;
+    }
+
+    html {
+      height: 100%;
+    }
+
+    .container {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 2rem;
+      padding: 3rem;
+      max-width: 1400px;
+      width: 100%;
+    }
+
+    .badge-wrapper {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .badge {
+      position: relative;
+      width: 160px;
+      height: 160px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .diamond-outer {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      transform: rotate(45deg);
+      border: 3px solid;
+      background: rgba(10, 14, 26, 0.95);
+      box-shadow: 0 0 30px rgba(0, 0, 0, 0.8);
+    }
+
+    .diamond-inner {
+      position: absolute;
+      width: 85%;
+      height: 85%;
+      transform: rotate(45deg);
+      border: 2px solid;
+      opacity: 0.4;
+    }
+
+    .circuit-pattern {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      opacity: 0.15;
+      pointer-events: none;
+    }
+
+    .badge-icon {
+      position: relative;
+      z-index: 2;
+      width: 70px;
+      height: 70px;
+    }
+
+    .glitch-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      opacity: 0;
+      animation: glitch 4s infinite;
+      pointer-events: none;
+    }
+
+    @keyframes glitch {
+      0%, 90%, 100% { opacity: 0; }
+      91%, 93% { opacity: 0.3; transform: translate(2px, 1px); }
+      92% { opacity: 0.5; transform: translate(-2px, -1px); }
+    }
+
+    .badge-label {
+      text-align: center;
+      font-size: 0.9rem;
+      font-weight: bold;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      text-shadow: 0 0 10px currentColor;
+    }
+
+    /* Color schemes */
+    .badge-1 .diamond-outer { border-color: #00ffff; box-shadow: 0 0 30px rgba(0, 255, 255, 0.4), inset 0 0 20px rgba(0, 255, 255, 0.1); }
+    .badge-1 .diamond-inner { border-color: #00ffff; }
+    .badge-1 .badge-label { color: #00ffff; }
+    .badge-1 .badge-icon { filter: drop-shadow(0 0 8px #00ffff); }
+
+    .badge-2 .diamond-outer { border-color: #00ff88; box-shadow: 0 0 30px rgba(0, 255, 136, 0.4), inset 0 0 20px rgba(0, 255, 136, 0.1); }
+    .badge-2 .diamond-inner { border-color: #00ff88; }
+    .badge-2 .badge-label { color: #00ff88; }
+    .badge-2 .badge-icon { filter: drop-shadow(0 0 8px #00ff88); }
+
+    .badge-3 .diamond-outer { border-color: #ffff00; box-shadow: 0 0 30px rgba(255, 255, 0, 0.4), inset 0 0 20px rgba(255, 255, 0, 0.1); }
+    .badge-3 .diamond-inner { border-color: #ffff00; }
+    .badge-3 .badge-label { color: #ffff00; }
+    .badge-3 .badge-icon { filter: drop-shadow(0 0 8px #ffff00); }
+
+    .badge-4 .diamond-outer { border-color: #ff8800; box-shadow: 0 0 30px rgba(255, 136, 0, 0.4), inset 0 0 20px rgba(255, 136, 0, 0.1); }
+    .badge-4 .diamond-inner { border-color: #ff8800; }
+    .badge-4 .badge-label { color: #ff8800; }
+    .badge-4 .badge-icon { filter: drop-shadow(0 0 8px #ff8800); }
+
+    .badge-5 .diamond-outer { border-color: #ff0044; box-shadow: 0 0 30px rgba(255, 0, 68, 0.4), inset 0 0 20px rgba(255, 0, 68, 0.1); }
+    .badge-5 .diamond-inner { border-color: #ff0044; }
+    .badge-5 .badge-label { color: #ff0044; }
+    .badge-5 .badge-icon { filter: drop-shadow(0 0 8px #ff0044); }
+
+    @media (max-width: 1200px) {
+      .container {
+        grid-template-columns: repeat(3, 1fr);
+      }
+    }
+
+    @media (max-width: 768px) {
+      .container {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1.5rem;
+        padding: 2rem;
+      }
+      .badge {
+        width: 120px;
+        height: 120px;
+      }
+      .badge-icon {
+        width: 50px;
+        height: 50px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .container {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+  <style>@view-transition { navigation: auto; }</style>
+  <script src="/_sdk/data_sdk.js" type="text/javascript"></script>
+  <script src="https://cdn.tailwindcss.com" type="text/javascript"></script>
+ </head>
+ <body>
+  <div class="container">
+   <div class="badge-wrapper">
+    <div class="badge badge-1">
+     <div class="diamond-outer">
+      <div class="glitch-overlay" style="border: 2px solid #00ffff; transform: rotate(45deg);"></div>
+     </div>
+     <div class="diamond-inner"></div>
+     <svg class="circuit-pattern" viewbox="0 0 100 100"><path d="M20,20 L30,20 L30,30 M70,20 L80,20 L80,30 M20,70 L30,70 L30,80 M70,70 L80,70 L80,80" stroke="currentColor" fill="none" stroke-width="0.5" /> <circle cx="30" cy="30" r="2" fill="currentColor" /> <circle cx="70" cy="30" r="2" fill="currentColor" /> <circle cx="30" cy="70" r="2" fill="currentColor" /> <circle cx="70" cy="70" r="2" fill="currentColor" />
+     </svg>
+     <svg class="badge-icon" viewbox="0 0 100 100" fill="none" stroke="#00ffff" stroke-width="3"><circle cx="50" cy="50" r="30" /> <path d="M35,50 L45,60 L65,35" stroke-linecap="round" stroke-linejoin="round" />
+     </svg>
+    </div>
+    <div class="badge-label" id="label-1">
+     VERIFIED FAIR
+    </div>
+   </div>
+   <div class="badge-wrapper">
+    <div class="badge badge-2">
+     <div class="diamond-outer">
+      <div class="glitch-overlay" style="border: 2px solid #00ff88; transform: rotate(45deg);"></div>
+     </div>
+     <div class="diamond-inner"></div>
+     <svg class="circuit-pattern" viewbox="0 0 100 100"><path d="M20,20 L30,20 L30,30 M70,20 L80,20 L80,30 M20,70 L30,70 L30,80 M70,70 L80,70 L80,80" stroke="currentColor" fill="none" stroke-width="0.5" /> <circle cx="30" cy="30" r="2" fill="currentColor" /> <circle cx="70" cy="30" r="2" fill="currentColor" /> <circle cx="30" cy="70" r="2" fill="currentColor" /> <circle cx="70" cy="70" r="2" fill="currentColor" />
+     </svg>
+     <svg class="badge-icon" viewbox="0 0 100 100" fill="none" stroke="#00ff88" stroke-width="3"><path d="M30,35 L50,25 L70,35 L70,65 L50,75 L30,65 Z" stroke-linejoin="round" /> <circle cx="50" cy="50" r="8" fill="#00ff88" />
+     </svg>
+    </div>
+    <div class="badge-label" id="label-2">
+     CONSISTENT
+    </div>
+   </div>
+   <div class="badge-wrapper">
+    <div class="badge badge-3">
+     <div class="diamond-outer">
+      <div class="glitch-overlay" style="border: 2px solid #ffff00; transform: rotate(45deg);"></div>
+     </div>
+     <div class="diamond-inner"></div>
+     <svg class="circuit-pattern" viewbox="0 0 100 100"><path d="M20,20 L30,20 L30,30 M70,20 L80,20 L80,30 M20,70 L30,70 L30,80 M70,70 L80,70 L80,80" stroke="currentColor" fill="none" stroke-width="0.5" /> <circle cx="30" cy="30" r="2" fill="currentColor" /> <circle cx="70" cy="30" r="2" fill="currentColor" /> <circle cx="30" cy="70" r="2" fill="currentColor" /> <circle cx="70" cy="70" r="2" fill="currentColor" />
+     </svg>
+     <svg class="badge-icon" viewbox="0 0 100 100" fill="none" stroke="#ffff00" stroke-width="3"><circle cx="50" cy="35" r="10" /> <path d="M50,45 L50,65 M40,60 L60,60" stroke-linecap="round" />
+     </svg>
+    </div>
+    <div class="badge-label" id="label-3">
+     MIXED SIGNALS
+    </div>
+   </div>
+   <div class="badge-wrapper">
+    <div class="badge badge-4">
+     <div class="diamond-outer">
+      <div class="glitch-overlay" style="border: 2px solid #ff8800; transform: rotate(45deg);"></div>
+     </div>
+     <div class="diamond-inner"></div>
+     <svg class="circuit-pattern" viewbox="0 0 100 100"><path d="M20,20 L30,20 L30,30 M70,20 L80,20 L80,30 M20,70 L30,70 L30,80 M70,70 L80,70 L80,80" stroke="currentColor" fill="none" stroke-width="0.5" /> <circle cx="30" cy="30" r="2" fill="currentColor" /> <circle cx="70" cy="30" r="2" fill="currentColor" /> <circle cx="30" cy="70" r="2" fill="currentColor" /> <circle cx="70" cy="70" r="2" fill="currentColor" />
+     </svg>
+     <svg class="badge-icon" viewbox="0 0 100 100" fill="none" stroke="#ff8800" stroke-width="3"><path d="M50,25 L55,45 L75,45 L60,57 L65,75 L50,63 L35,75 L40,57 L25,45 L45,45 Z" stroke-linejoin="round" /> <circle cx="50" cy="50" r="5" fill="#ff8800" />
+     </svg>
+    </div>
+    <div class="badge-label" id="label-4">
+     RISKY
+    </div>
+   </div>
+   <div class="badge-wrapper">
+    <div class="badge badge-5">
+     <div class="diamond-outer">
+      <div class="glitch-overlay" style="border: 2px solid #ff0044; transform: rotate(45deg);"></div>
+     </div>
+     <div class="diamond-inner"></div>
+     <svg class="circuit-pattern" viewbox="0 0 100 100"><path d="M20,20 L30,20 L30,30 M70,20 L80,20 L80,30 M20,70 L30,70 L30,80 M70,70 L80,70 L80,80" stroke="currentColor" fill="none" stroke-width="0.5" /> <circle cx="30" cy="30" r="2" fill="currentColor" /> <circle cx="70" cy="30" r="2" fill="currentColor" /> <circle cx="30" cy="70" r="2" fill="currentColor" /> <circle cx="70" cy="70" r="2" fill="currentColor" />
+     </svg>
+     <svg class="badge-icon" viewbox="0 0 100 100" fill="none" stroke="#ff0044" stroke-width="3"><circle cx="50" cy="50" r="30" /> <path d="M35,35 L65,65 M65,35 L35,65" stroke-linecap="round" />
+     </svg>
+    </div>
+    <div class="badge-label" id="label-5">
+     AVOID
+    </div>
+   </div>
+  </div>
+  <script>
+    const defaultConfig = {
+      badge_1_text: "VERIFIED FAIR",
+      badge_2_text: "CONSISTENT",
+      badge_3_text: "MIXED SIGNALS",
+      badge_4_text: "RISKY",
+      badge_5_text: "AVOID",
+      background_color: "#0a0e1a"
+    };
+
+    async function onConfigChange(config) {
+      document.getElementById('label-1').textContent = config.badge_1_text || defaultConfig.badge_1_text;
+      document.getElementById('label-2').textContent = config.badge_2_text || defaultConfig.badge_2_text;
+      document.getElementById('label-3').textContent = config.badge_3_text || defaultConfig.badge_3_text;
+      document.getElementById('label-4').textContent = config.badge_4_text || defaultConfig.badge_4_text;
+      document.getElementById('label-5').textContent = config.badge_5_text || defaultConfig.badge_5_text;
+      
+      document.body.style.background = config.background_color || defaultConfig.background_color;
+    }
+
+    function mapToCapabilities(config) {
+      return {
+        recolorables: [
+          {
+            get: () => config.background_color || defaultConfig.background_color,
+            set: (value) => {
+              if (window.elementSdk) {
+                window.elementSdk.setConfig({ background_color: value });
+              }
+            }
+          }
+        ],
+        borderables: [],
+        fontEditable: undefined,
+        fontSizeable: undefined
+      };
+    }
+
+    function mapToEditPanelValues(config) {
+      return new Map([
+        ["badge_1_text", config.badge_1_text || defaultConfig.badge_1_text],
+        ["badge_2_text", config.badge_2_text || defaultConfig.badge_2_text],
+        ["badge_3_text", config.badge_3_text || defaultConfig.badge_3_text],
+        ["badge_4_text", config.badge_4_text || defaultConfig.badge_4_text],
+        ["badge_5_text", config.badge_5_text || defaultConfig.badge_5_text]
+      ]);
+    }
+
+    if (window.elementSdk) {
+      window.elementSdk.init({
+        defaultConfig,
+        onConfigChange,
+        mapToCapabilities,
+        mapToEditPanelValues
+      });
+    }
+  </script>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9a19c31db5833800',t:'MTc2MzY2MDczOC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
+
+
+Degen trust badges set (Very High, High, Neutral, Low, High Risk)
+emoji-inspired but cyberpunk styled, glowing auras, trust-meter arcs,
+tech-meets-degen aesthetic, expressive but clean, matching palette of cyan/purple. aspect 1:1
+
+<!doctype html>
+<html lang="en">
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Degen Trust Badges</title>
+  <script src="/_sdk/element_sdk.js"></script>
+  <style>
+    body {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      background: linear-gradient(135deg, #0a0e27 0%, #1a1a2e 100%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Courier New', monospace;
+      overflow: hidden;
+    }
+
+    html {
+      height: 100%;
+    }
+
+    .container {
+      width: 90%;
+      max-width: 1200px;
+      padding: 2rem;
+    }
+
+    .title {
+      text-align: center;
+      font-size: 2.5rem;
+      font-weight: bold;
+      margin-bottom: 3rem;
+      background: linear-gradient(90deg, #00f5ff, #a855f7);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      text-transform: uppercase;
+      letter-spacing: 3px;
+    }
+
+    .badges-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 2rem;
+      margin-bottom: 2rem;
+    }
+
+    .badge {
+      position: relative;
+      aspect-ratio: 1;
+      background: rgba(20, 25, 45, 0.6);
+      border-radius: 20px;
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: transform 0.3s ease;
+      border: 2px solid;
+      backdrop-filter: blur(10px);
+    }
+
+    .badge:hover {
+      transform: scale(1.05);
+    }
+
+    .badge::before {
+      content: '';
+      position: absolute;
+      inset: -2px;
+      border-radius: 20px;
+      padding: 2px;
+      background: linear-gradient(135deg, var(--glow-color-1), var(--glow-color-2));
+      -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+      -webkit-mask-composite: xor;
+      mask-composite: exclude;
+      opacity: 0.8;
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 0.8; }
+      50% { opacity: 0.4; }
+    }
+
+    .badge-icon {
+      font-size: 4rem;
+      margin-bottom: 1rem;
+      filter: drop-shadow(0 0 10px var(--glow-color-1));
+    }
+
+    .badge-label {
+      font-size: 1.1rem;
+      font-weight: bold;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      margin-bottom: 0.5rem;
+      color: var(--text-color);
+    }
+
+    .trust-meter {
+      width: 100%;
+      height: 8px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 10px;
+      overflow: hidden;
+      margin-top: 1rem;
+      position: relative;
+    }
+
+    .trust-fill {
+      height: 100%;
+      border-radius: 10px;
+      background: linear-gradient(90deg, var(--glow-color-1), var(--glow-color-2));
+      box-shadow: 0 0 10px var(--glow-color-1);
+      transition: width 0.5s ease;
+    }
+
+    .badge-desc {
+      font-size: 0.75rem;
+      color: rgba(255, 255, 255, 0.6);
+      text-align: center;
+      margin-top: 0.5rem;
+    }
+
+    /* Very High */
+    .very-high {
+      --glow-color-1: #00f5ff;
+      --glow-color-2: #00b8d4;
+      --text-color: #00f5ff;
+      border-color: rgba(0, 245, 255, 0.3);
+    }
+
+    /* High */
+    .high {
+      --glow-color-1: #4ade80;
+      --glow-color-2: #22c55e;
+      --text-color: #4ade80;
+      border-color: rgba(74, 222, 128, 0.3);
+    }
+
+    /* Neutral */
+    .neutral {
+      --glow-color-1: #fbbf24;
+      --glow-color-2: #f59e0b;
+      --text-color: #fbbf24;
+      border-color: rgba(251, 191, 36, 0.3);
+    }
+
+    /* Low */
+    .low {
+      --glow-color-1: #fb923c;
+      --glow-color-2: #f97316;
+      --text-color: #fb923c;
+      border-color: rgba(251, 146, 60, 0.3);
+    }
+
+    /* High Risk */
+    .high-risk {
+      --glow-color-1: #ef4444;
+      --glow-color-2: #dc2626;
+      --text-color: #ef4444;
+      border-color: rgba(239, 68, 68, 0.3);
+    }
+
+    .cyber-grid {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-image: 
+        linear-gradient(rgba(0, 245, 255, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(168, 85, 247, 0.03) 1px, transparent 1px);
+      background-size: 50px 50px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .container {
+      position: relative;
+      z-index: 1;
+    }
+
+    @media (max-width: 768px) {
+      .title {
+        font-size: 1.8rem;
+      }
+      
+      .badges-grid {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+      }
+      
+      .badge-icon {
+        font-size: 3rem;
+      }
+    }
+  </style>
+  <style>@view-transition { navigation: auto; }</style>
+  <script src="/_sdk/data_sdk.js" type="text/javascript"></script>
+  <script src="https://cdn.tailwindcss.com" type="text/javascript"></script>
+ </head>
+ <body>
+  <div class="cyber-grid"></div>
+  <div class="container">
+   <h1 class="title" id="pageTitle">Degen Trust Badges</h1>
+   <div class="badges-grid">
+    <div class="badge very-high">
+     <div class="badge-icon">
+      💎
+     </div>
+     <div class="badge-label">
+      Very High
+     </div>
+     <div class="badge-desc">
+      Diamond Hands
+     </div>
+     <div class="trust-meter">
+      <div class="trust-fill" style="width: 100%"></div>
+     </div>
+    </div>
+    <div class="badge high">
+     <div class="badge-icon">
+      🚀
+     </div>
+     <div class="badge-label">
+      High
+     </div>
+     <div class="badge-desc">
+      Moon Mission
+     </div>
+     <div class="trust-meter">
+      <div class="trust-fill" style="width: 80%"></div>
+     </div>
+    </div>
+    <div class="badge neutral">
+     <div class="badge-icon">
+      ⚡
+     </div>
+     <div class="badge-label">
+      Neutral
+     </div>
+     <div class="badge-desc">
+      DYOR Status
+     </div>
+     <div class="trust-meter">
+      <div class="trust-fill" style="width: 50%"></div>
+     </div>
+    </div>
+    <div class="badge low">
+     <div class="badge-icon">
+      ⚠️
+     </div>
+     <div class="badge-label">
+      Low
+     </div>
+     <div class="badge-desc">
+      Caution Zone
+     </div>
+     <div class="trust-meter">
+      <div class="trust-fill" style="width: 30%"></div>
+     </div>
+    </div>
+    <div class="badge high-risk">
+     <div class="badge-icon">
+      ☠️
+     </div>
+     <div class="badge-label">
+      High Risk
+     </div>
+     <div class="badge-desc">
+      Danger Territory
+     </div>
+     <div class="trust-meter">
+      <div class="trust-fill" style="width: 10%"></div>
+     </div>
+    </div>
+   </div>
+  </div>
+  <script>
+    const defaultConfig = {
+      page_title: "Degen Trust Badges",
+      background_color: "#0a0e27",
+      primary_color: "#00f5ff",
+      secondary_color: "#a855f7",
+      text_color: "#ffffff",
+      font_family: "Courier New"
+    };
+
+    let config = { ...defaultConfig };
+
+    async function onConfigChange(newConfig) {
+      config = { ...config, ...newConfig };
+      
+      const pageTitle = document.getElementById('pageTitle');
+      if (pageTitle) {
+        pageTitle.textContent = config.page_title || defaultConfig.page_title;
+      }
+
+      document.body.style.background = `linear-gradient(135deg, ${config.background_color || defaultConfig.background_color} 0%, #1a1a2e 100%)`;
+      
+      const title = document.querySelector('.title');
+      if (title) {
+        title.style.background = `linear-gradient(90deg, ${config.primary_color || defaultConfig.primary_color}, ${config.secondary_color || defaultConfig.secondary_color})`;
+        title.style.webkitBackgroundClip = 'text';
+        title.style.backgroundClip = 'text';
+        title.style.fontFamily = `${config.font_family || defaultConfig.font_family}, monospace`;
+      }
+    }
+
+    function mapToCapabilities(config) {
+      return {
+        recolorables: [
+          {
+            get: () => config.background_color || defaultConfig.background_color,
+            set: (value) => {
+              config.background_color = value;
+              window.elementSdk.setConfig({ background_color: value });
+            }
+          },
+          {
+            get: () => config.primary_color || defaultConfig.primary_color,
+            set: (value) => {
+              config.primary_color = value;
+              window.elementSdk.setConfig({ primary_color: value });
+            }
+          },
+          {
+            get: () => config.secondary_color || defaultConfig.secondary_color,
+            set: (value) => {
+              config.secondary_color = value;
+              window.elementSdk.setConfig({ secondary_color: value });
+            }
+          }
+        ],
+        borderables: [],
+        fontEditable: {
+          get: () => config.font_family || defaultConfig.font_family,
+          set: (value) => {
+            config.font_family = value;
+            window.elementSdk.setConfig({ font_family: value });
+          }
+        },
+        fontSizeable: undefined
+      };
+    }
+
+    function mapToEditPanelValues(config) {
+      return new Map([
+        ["page_title", config.page_title || defaultConfig.page_title]
+      ]);
+    }
+
+    if (window.elementSdk) {
+      window.elementSdk.init({
+        defaultConfig,
+        onConfigChange,
+        mapToCapabilities,
+        mapToEditPanelValues
+      });
+    }
+  </script>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9a19c538e0b40a18',t:'MTc2MzY2MDgyNC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
+
+<!doctype html>
+<html lang="en">
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cyber Mindfulness</title>
+  <script src="/_sdk/element_sdk.js"></script>
+  <style>
+    body {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      overflow: hidden;
+      font-family: 'Orbitron', 'Courier New', monospace;
+    }
+
+    html {
+      height: 100%;
+    }
+
+    #app {
+      width: 100%;
+      height: 100%;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+    }
+
+    .ui-overlay {
+      position: relative;
+      z-index: 10;
+      text-align: center;
+      pointer-events: none;
+    }
+
+    #title {
+      font-size: 3em;
+      font-weight: bold;
+      margin-bottom: 0.5em;
+      text-shadow: 0 0 20px currentColor, 0 0 40px currentColor;
+      letter-spacing: 0.1em;
+    }
+
+    #status {
+      font-size: 1.2em;
+      margin-bottom: 1em;
+      opacity: 0.9;
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+    }
+
+    #tilt-indicator {
+      font-size: 1em;
+      padding: 0.8em 1.5em;
+      border-radius: 25px;
+      backdrop-filter: blur(10px);
+      border: 2px solid;
+      display: inline-block;
+      transition: all 0.3s ease;
+    }
+
+    .mist-particle {
+      position: absolute;
+      border-radius: 50%;
+      pointer-events: none;
+      filter: blur(8px);
+      opacity: 0;
+    }
+
+    .glow-ring {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      border-radius: 50%;
+      border: 3px solid;
+      pointer-events: none;
+      opacity: 0;
+    }
+  </style>
+  <style>@view-transition { navigation: auto; }</style>
+  <script src="/_sdk/data_sdk.js" type="text/javascript"></script>
+  <script src="https://cdn.tailwindcss.com" type="text/javascript"></script>
+ </head>
+ <body>
+  <div id="app">
+   <canvas id="waveCanvas"></canvas>
+   <div class="ui-overlay">
+    <div id="title">
+     CYBER MINDFULNESS
+    </div>
+    <div id="status">
+     INITIALIZING...
+    </div>
+    <div id="tilt-indicator">
+     KEEP DEVICE STEADY
+    </div>
+   </div>
+  </div>
+  <script>
+    const defaultConfig = {
+      background_color: "#0a0a1a",
+      primary_color: "#00ffff",
+      secondary_color: "#ff00ff",
+      text_color: "#ffffff",
+      accent_color: "#ff6b35",
+      font_family: "Orbitron",
+      font_size: 16,
+      main_title: "CYBER MINDFULNESS",
+      status_label: "INITIALIZING...",
+      cooldown_message: "COOL-DOWN ACTIVE"
+    };
+
+    let config = { ...defaultConfig };
+
+    const canvas = document.getElementById('waveCanvas');
+    const ctx = canvas.getContext('2d');
+    let width, height;
+    let animationId;
+
+    let tiltX = 0;
+    let tiltY = 0;
+    let tiltIntensity = 0;
+    let spikes = [];
+    let mistParticles = [];
+    let glowRings = [];
+    let timeOffset = 0;
+    let cooldownActive = false;
+    let interventionGlow = 0;
+
+    function resizeCanvas() {
+      width = canvas.width = canvas.offsetWidth;
+      height = canvas.height = canvas.offsetHeight;
+    }
+
+    function requestPermission() {
+      if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
+        DeviceOrientationEvent.requestPermission()
+          .then(permissionState => {
+            if (permissionState === 'granted') {
+              window.addEventListener('deviceorientation', handleOrientation);
+            }
+          })
+          .catch(console.error);
+      } else {
+        window.addEventListener('deviceorientation', handleOrientation);
+      }
+    }
+
+    function handleOrientation(event) {
+      tiltX = event.gamma || 0;
+      tiltY = event.beta || 0;
+      tiltIntensity = Math.sqrt(tiltX * tiltX + tiltY * tiltY) / 90;
+
+      if (tiltIntensity > 0.3) {
+        addSpike();
+        if (tiltIntensity > 0.6 && !cooldownActive) {
+          triggerIntervention();
+        }
+      }
+
+      updateStatus();
+    }
+
+    function addSpike() {
+      const spike = {
+        x: width * 0.8,
+        y: height / 2,
+        height: tiltIntensity * 200 + 50,
+        width: 4,
+        velocity: -3 - Math.random() * 2,
+        opacity: 1
+      };
+      spikes.push(spike);
+    }
+
+    function triggerIntervention() {
+      cooldownActive = true;
+      interventionGlow = 1;
+      
+      for (let i = 0; i < 5; i++) {
+        setTimeout(() => {
+          const ring = {
+            radius: 50,
+            maxRadius: 400,
+            opacity: 0.8,
+            speed: 3
+          };
+          glowRings.push(ring);
+        }, i * 100);
+      }
+
+      for (let i = 0; i < 30; i++) {
+        setTimeout(() => {
+          addMistParticle();
+        }, i * 50);
+      }
+
+      setTimeout(() => {
+        cooldownActive = false;
+        interventionGlow = 0;
+      }, 5000);
+    }
+
+    function addMistParticle() {
+      const particle = document.createElement('div');
+      particle.className = 'mist-particle';
+      
+      const size = Math.random() * 60 + 40;
+      particle.style.width = size + 'px';
+      particle.style.height = size + 'px';
+      particle.style.left = (Math.random() * 100) + '%';
+      particle.style.top = (Math.random() * 100) + '%';
+      particle.style.backgroundColor = config.primary_color || defaultConfig.primary_color;
+      
+      document.getElementById('app').appendChild(particle);
+      
+      setTimeout(() => {
+        particle.style.opacity = '0.4';
+        particle.style.transform = `translate(${(Math.random() - 0.5) * 200}px, ${-100 - Math.random() * 100}px) scale(1.5)`;
+        particle.style.transition = 'all 2s ease-out';
+      }, 10);
+      
+      setTimeout(() => {
+        particle.remove();
+      }, 2100);
+    }
+
+    function updateStatus() {
+      const statusEl = document.getElementById('status');
+      const indicatorEl = document.getElementById('tilt-indicator');
+      
+      if (cooldownActive) {
+        statusEl.textContent = config.cooldown_message || defaultConfig.cooldown_message;
+        indicatorEl.textContent = '✓ BALANCED';
+      } else if (tiltIntensity < 0.2) {
+        statusEl.textContent = config.status_label || defaultConfig.status_label;
+        indicatorEl.textContent = '✓ STEADY';
+      } else if (tiltIntensity < 0.5) {
+        statusEl.textContent = 'DETECTING MOTION';
+        indicatorEl.textContent = '⚠ SLIGHT TILT';
+      } else {
+        statusEl.textContent = 'HIGH ACTIVITY';
+        indicatorEl.textContent = '⚠ STABILIZE';
+      }
+    }
+
+    function drawBackground() {
+      const bgColor = config.background_color || defaultConfig.background_color;
+      ctx.fillStyle = bgColor;
+      ctx.fillRect(0, 0, width, height);
+      
+      if (interventionGlow > 0) {
+        const gradient = ctx.createRadialGradient(width/2, height/2, 0, width/2, height/2, width/2);
+        const primaryColor = config.primary_color || defaultConfig.primary_color;
+        gradient.addColorStop(0, primaryColor + Math.floor(interventionGlow * 40).toString(16).padStart(2, '0'));
+        gradient.addColorStop(1, bgColor);
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, 0, width, height);
+        interventionGlow *= 0.95;
+      }
+    }
+
+    function drawWave() {
+      ctx.beginPath();
+      ctx.strokeStyle = config.secondary_color || defaultConfig.secondary_color;
+      ctx.lineWidth = 3;
+      ctx.shadowBlur = 15;
+      ctx.shadowColor = config.secondary_color || defaultConfig.secondary_color;
+
+      for (let x = 0; x < width; x++) {
+        const y = height / 2 + 
+          Math.sin((x + timeOffset) * 0.01) * 30 +
+          Math.sin((x + timeOffset) * 0.02) * 20 +
+          Math.sin((x + timeOffset) * 0.005) * 40;
+        
+        if (x === 0) {
+          ctx.moveTo(x, y);
+        } else {
+          ctx.lineTo(x, y);
+        }
+      }
+      
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+    }
+
+    function drawSpikes() {
+      spikes = spikes.filter(spike => {
+        spike.x += spike.velocity;
+        spike.opacity -= 0.005;
+        
+        if (spike.opacity <= 0 || spike.x < -10) {
+          return false;
+        }
+        
+        ctx.save();
+        ctx.globalAlpha = spike.opacity;
+        
+        const gradient = ctx.createLinearGradient(0, spike.y - spike.height, 0, spike.y + spike.height);
+        const accentColor = config.accent_color || defaultConfig.accent_color;
+        const primaryColor = config.primary_color || defaultConfig.primary_color;
+        gradient.addColorStop(0, accentColor);
+        gradient.addColorStop(0.5, primaryColor);
+        gradient.addColorStop(1, accentColor);
+        
+        ctx.fillStyle = gradient;
+        ctx.shadowBlur = 20;
+        ctx.shadowColor = accentColor;
+        
+        ctx.beginPath();
+        ctx.moveTo(spike.x, spike.y);
+        ctx.lineTo(spike.x + spike.width / 2, spike.y - spike.height);
+        ctx.lineTo(spike.x + spike.width, spike.y);
+        ctx.lineTo(spike.x + spike.width / 2, spike.y + spike.height);
+        ctx.closePath();
+        ctx.fill();
+        
+        ctx.restore();
+        return true;
+      });
+    }
+
+    function drawGlowRings() {
+      glowRings = glowRings.filter(ring => {
+        ring.radius += ring.speed;
+        ring.opacity -= 0.01;
+        
+        if (ring.opacity <= 0 || ring.radius > ring.maxRadius) {
+          return false;
+        }
+        
+        ctx.save();
+        ctx.globalAlpha = ring.opacity;
+        ctx.strokeStyle = config.primary_color || defaultConfig.primary_color;
+        ctx.lineWidth = 4;
+        ctx.shadowBlur = 25;
+        ctx.shadowColor = config.primary_color || defaultConfig.primary_color;
+        
+        ctx.beginPath();
+        ctx.arc(width / 2, height / 2, ring.radius, 0, Math.PI * 2);
+        ctx.stroke();
+        
+        ctx.restore();
+        return true;
+      });
+    }
+
+    function drawGrid() {
+      ctx.strokeStyle = (config.primary_color || defaultConfig.primary_color) + '20';
+      ctx.lineWidth = 1;
+      
+      const gridSize = 50;
+      for (let x = 0; x < width; x += gridSize) {
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, height);
+        ctx.stroke();
+      }
+      
+      for (let y = 0; y < height; y += gridSize) {
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(width, y);
+        ctx.stroke();
+      }
+    }
+
+    function animate() {
+      drawBackground();
+      drawGrid();
+      drawWave();
+      drawSpikes();
+      drawGlowRings();
+      
+      timeOffset += 2;
+      animationId = requestAnimationFrame(animate);
+    }
+
+    function applyStyles() {
+      const titleEl = document.getElementById('title');
+      const statusEl = document.getElementById('status');
+      const indicatorEl = document.getElementById('tilt-indicator');
+      const customFont = config.font_family || defaultConfig.font_family;
+      const baseSize = config.font_size || defaultConfig.font_size;
+      const baseFontStack = 'Courier New, monospace';
+      const textColor = config.text_color || defaultConfig.text_color;
+      const primaryColor = config.primary_color || defaultConfig.primary_color;
+      const bgColor = config.background_color || defaultConfig.background_color;
+      
+      document.body.style.fontFamily = `${customFont}, ${baseFontStack}`;
+      document.body.style.backgroundColor = bgColor;
+      
+      titleEl.style.fontSize = `${baseSize * 3}px`;
+      titleEl.style.color = textColor;
+      titleEl.textContent = config.main_title || defaultConfig.main_title;
+      
+      statusEl.style.fontSize = `${baseSize * 1.2}px`;
+      statusEl.style.color = primaryColor;
+      
+      indicatorEl.style.fontSize = `${baseSize}px`;
+      indicatorEl.style.color = textColor;
+      indicatorEl.style.borderColor = primaryColor;
+      indicatorEl.style.backgroundColor = bgColor + 'aa';
+    }
+
+    async function onConfigChange(newConfig) {
+      config = { ...newConfig };
+      applyStyles();
+    }
+
+    function mapToCapabilities(config) {
+      return {
+        recolorables: [
+          {
+            get: () => config.background_color || defaultConfig.background_color,
+            set: (value) => {
+              config.background_color = value;
+              if (window.elementSdk) window.elementSdk.setConfig({ background_color: value });
+            }
+          },
+          {
+            get: () => config.primary_color || defaultConfig.primary_color,
+            set: (value) => {
+              config.primary_color = value;
+              if (window.elementSdk) window.elementSdk.setConfig({ primary_color: value });
+            }
+          },
+          {
+            get: () => config.secondary_color || defaultConfig.secondary_color,
+            set: (value) => {
+              config.secondary_color = value;
+              if (window.elementSdk) window.elementSdk.setConfig({ secondary_color: value });
+            }
+          },
+          {
+            get: () => config.text_color || defaultConfig.text_color,
+            set: (value) => {
+              config.text_color = value;
+              if (window.elementSdk) window.elementSdk.setConfig({ text_color: value });
+            }
+          },
+          {
+            get: () => config.accent_color || defaultConfig.accent_color,
+            set: (value) => {
+              config.accent_color = value;
+              if (window.elementSdk) window.elementSdk.setConfig({ accent_color: value });
+            }
+          }
+        ],
+        borderables: [],
+        fontEditable: {
+          get: () => config.font_family || defaultConfig.font_family,
+          set: (value) => {
+            config.font_family = value;
+            if (window.elementSdk) window.elementSdk.setConfig({ font_family: value });
+          }
+        },
+        fontSizeable: {
+          get: () => config.font_size || defaultConfig.font_size,
+          set: (value) => {
+            config.font_size = value;
+            if (window.elementSdk) window.elementSdk.setConfig({ font_size: value });
+          }
+        }
+      };
+    }
+
+    function mapToEditPanelValues(config) {
+      return new Map([
+        ["main_title", config.main_title || defaultConfig.main_title],
+        ["status_label", config.status_label || defaultConfig.status_label],
+        ["cooldown_message", config.cooldown_message || defaultConfig.cooldown_message]
+      ]);
+    }
+
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+    
+    if (window.elementSdk) {
+      window.elementSdk.init({
+        defaultConfig,
+        onConfigChange,
+        mapToCapabilities,
+        mapToEditPanelValues
+      });
+      
+      config = window.elementSdk.config;
+    }
+    
+    applyStyles();
+    animate();
+    requestPermission();
+  </script>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9a19cb1ec6695fc4',t:'MTc2MzY2MTA2Ni4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>

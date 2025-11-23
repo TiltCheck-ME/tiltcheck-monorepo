@@ -1,0 +1,6 @@
+{
+  "volatilityInvertMax": 100,
+  "midSeverityPenalty": 1,
+  "highSeverityPenalty": 1,
+  "refreshMs": 15000
+}
