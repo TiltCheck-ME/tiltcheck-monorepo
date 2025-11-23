@@ -1,0 +1,74 @@
+/**
+ * DA&D Discord Bot
+ * 
+ * Dedicated bot for Degens Against Decency game and Poker.
+ */
+
+import { Client, GatewayIntentBits } from 'discord.js';
+import http from 'http';
+import { config, validateConfig } from './config.js';
+import { CommandHandler, EventHandler } from './handlers/index.js';
+
+async function main() {
+  console.log('='.repeat(50));
+  console.log('🃏 DA&D Game Bot');
+  console.log('Degens Against Decency + Poker');
+  console.log('='.repeat(50));
+
+  validateConfig();
+
+  const client = new Client({
+    intents: [
+      GatewayIntentBits.Guilds,
+      GatewayIntentBits.GuildMessages,
+      GatewayIntentBits.MessageContent,
+    ],
+  });
+
+  const commandHandler = new CommandHandler();
+  const eventHandler = new EventHandler(client, commandHandler);
+
+  commandHandler.loadCommands();
+  eventHandler.registerDiscordEvents();
+  eventHandler.subscribeToEvents();
+
+  console.log('[Bot] Logging in to Discord...');
+  await client.login(config.discordToken);
+
+  // Health check endpoint
+  const HEALTH_PORT = process.env.DAD_BOT_HEALTH_PORT || '8082';
+  http.createServer((req, res) => {
+    if (req.url === '/health') {
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ 
+        status: 'ok', 
+        bot: 'dad-bot',
+        ready: client.isReady() 
+      }));
+    } else {
+      res.writeHead(404);
+      res.end();
+    }
+  }).listen(HEALTH_PORT, () => {
+    console.log(`[Bot] Health server listening on ${HEALTH_PORT}`);
+  });
+}
+
+process.on('unhandledRejection', (error) => {
+  console.error('[Bot] Unhandled rejection:', error);
+});
+
+process.on('SIGINT', () => {
+  console.log('\n[Bot] Shutting down gracefully...');
+  process.exit(0);
+});
+
+process.on('SIGTERM', () => {
+  console.log('\n[Bot] Shutting down gracefully...');
+  process.exit(0);
+});
+
+main().catch((error) => {
+  console.error('[Bot] Fatal error:', error);
+  process.exit(1);
+});

@@ -1,0 +1,17 @@
+{
+  "name": "@tiltcheck/qualifyfirst-service",
+  "version": "0.1.0",
+  "description": "QualifyFirst - AI-powered survey matching PWA",
+  "type": "module",
+  "main": "src/server.js",
+  "scripts": {
+    "dev": "node src/server.js",
+    "start": "node src/server.js",
+    "build": "echo 'Static site - no build needed'"
+  },
+  "dependencies": {
+    "@tiltcheck/qualifyfirst": "workspace:*",
+    "express": "^4.18.2",
+    "cors": "^2.8.5"
+  }
+}

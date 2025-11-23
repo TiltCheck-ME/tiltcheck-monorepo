@@ -27,7 +27,7 @@
       <p class="built-by">
         <a href="https://jmenichole.github.io/Portfolio/" target="_blank" rel="noopener">made for degens by degens</a>
       </p>
-      <span class="status-badge status-soon">Coming Soon</span>
+      <span class="status-badge status-live">Live (Separate Bot)</span>
     </div>
   </header>
 
@@ -36,18 +36,20 @@
       <div class="two-column">
         <div>
           <h2>What is it?</h2>
-          <p>DA&D is an AI-driven fill-the-blank card game. One prompt card. Players submit responses. Judge picks the most unhinged / perfect answer.</p>
-          <p>Rotating judges, dynamic AI card injection, and optional seasonal decks (crypto meltdown edition coming).</p>
+          <p><strong>TL;DR:</strong> Cards Against Humanity for Discord, but crypto-themed. Submit cards, vote for the funniest, win points. Separate bot so it doesn't clutter your main server.</p>
+          <p>DA&D is a fill-the-blank card game where one player's prompt card meets everyone else's answer cards. Judge picks the most unhinged response. Rotating roles, anonymous voting, and degen-themed card packs. Perfect for Discord communities that appreciate dark humor.</p>
         </div>
         <div class="feature-box">
-          <h3>Planned Features</h3>
+          <h3>Live Features</h3>
           <ul>
-            <li>🃏 AI-generated prompt & answer cards</li>
-            <li>🔄 Rotating dealer / judge role</li>
-            <li>⚡ Real-time vote reaction UI</li>
-            <li>🏆 Session scoreboard & streak bonuses</li>
-            <li>🗂️ Deck themes (crypto, tilt, casino lore)</li>
-            <li>🧪 Content filters you can dial up/down</li>
+            <li>🃏 White/Black card system with "Degen Starter Pack"</li>
+            <li>🎮 Full game flow: create → join → start → play → vote → score</li>
+            <li>🔄 Rotating dealer role each round</li>
+            <li>👥 2-10 players per game</li>
+            <li>🎯 Anonymous card submission and voting</li>
+            <li>🏆 Round-based scoring with leaderboards</li>
+            <li>🎲 Includes Poker game integration</li>
+            <li>🤖 Dedicated Discord bot (doesn't clutter TiltCheck bot)</li>
           </ul>
         </div>
       </div>
@@ -56,47 +58,144 @@
 
   <section class="commands-section">
     <div class="container">
-      <h2>Planned Commands</h2>
+      <h2>Discord Commands (DA&D Bot)</h2>
+      <p><strong>Note:</strong> DA&D runs on its own dedicated bot to keep game commands separate from TiltCheck's earning/safety tools. Invite the DA&D bot to use these commands.</p>
       <div class="commands-grid">
-        <div class="command-card"><div class="command-name">/daad start</div><p>Create a lobby & invite players</p><div class="command-example"><code>/daad start deck:crypto</code></div></div>
-        <div class="command-card"><div class="command-name">/daad join</div><p>Join an active lobby</p><div class="command-example"><code>/daad join lobby:CryptoChaos</code></div></div>
-        <div class="command-card"><div class="command-name">/daad score</div><p>Show current standings</p><div class="command-example"><code>/daad score</code></div></div>
-        <div class="command-card"><div class="command-name">/daad deck</div><p>List available deck themes</p><div class="command-example"><code>/daad deck list</code></div></div>
+        <div class="command-card"><div class="command-name">/play</div><p>Start a new DA&D game in the current channel</p><div class="command-example"><code>/play</code></div></div>
+        <div class="command-card"><div class="command-name">/join</div><p>Join an active game in the channel</p><div class="command-example"><code>/join</code></div></div>
+        <div class="command-card"><div class="command-name">/startgame</div><p>Begin the game once all players have joined</p><div class="command-example"><code>/startgame</code></div></div>
+        <div class="command-card"><div class="command-name">/hand</div><p>View your current hand of cards (DM)</p><div class="command-example"><code>/hand</code></div></div>
+        <div class="command-card"><div class="command-name">/submit</div><p>Submit your card for the current round</p><div class="command-example"><code>/submit card:3</code></div></div>
+        <div class="command-card"><div class="command-name">/vote</div><p>Vote for the funniest answer</p><div class="command-example"><code>/vote player:@username</code></div></div>
+        <div class="command-card"><div class="command-name">/scores</div><p>View current game leaderboard</p><div class="command-example"><code>/scores</code></div></div>
+        <div class="command-card"><div class="command-name">/poker</div><p>Play poker (also in DA&D bot)</p><div class="command-example"><code>/poker</code></div></div>
       </div>
     </div>
   </section>
 
   <section class="how-it-works">
     <div class="container">
-      <h2>Round Flow</h2>
+      <h2>How It Works - Complete Guide</h2>
+      
       <div class="steps">
-        <div class="step"><div class="step-number">1</div><div class="step-content"><h3>Prompt dealt</h3><p>Dealer posts AI-generated blank card.</p></div></div>
-        <div class="step"><div class="step-number">2</div><div class="step-content"><h3>Players submit</h3><p>Private answer selection or AI-suggest assist.</p></div></div>
-        <div class="step"><div class="step-number">3</div><div class="step-content"><h3>Judge picks</h3><p>Responses revealed; judge selects winner.</p></div></div>
-        <div class="step"><div class="step-number">4</div><div class="step-content"><h3>Score & rotate</h3><p>Point awarded; next judge rotates seat.</p></div></div>
+        <div class="step">
+          <div class="step-number">1</div>
+          <div class="step-content">
+            <h3>Game Setup (Host Creates Game)</h3>
+            <p>Any player can create a game in a Discord channel. Others can join until the host starts the game.</p>
+            <ul style="margin-top: 0.5rem; font-size: 0.9rem;">
+              <li><strong>Command:</strong> <code>/play</code> to create, <code>/join</code> for others</li>
+              <li><strong>Players:</strong> 2-10 players required</li>
+              <li><strong>Card Pack:</strong> Starts with "Degen Starter Pack" (crypto casino themed)</li>
+              <li><strong>Dealing:</strong> Each player gets 7 white cards (answers)</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="step">
+          <div class="step-number">2</div>
+          <div class="step-content">
+            <h3>Round Begins (Prompt Revealed)</h3>
+            <p>One player is the judge for each round. A black card (prompt with blanks) is revealed to all players.</p>
+            <ul style="margin-top: 0.5rem; font-size: 0.9rem;">
+              <li><strong>Black Card Example:</strong> "When I'm tilting, I _ instead of touching grass."</li>
+              <li><strong>Judge:</strong> Rotates each round so everyone gets a turn</li>
+              <li><strong>Non-judges:</strong> Must submit one white card from their hand</li>
+              <li><strong>Privacy:</strong> Submissions are anonymous until voting</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="step">
+          <div class="step-number">3</div>
+          <div class="step-content">
+            <h3>Players Submit Cards</h3>
+            <p>Each player (except the judge) selects one white card from their hand that best completes the prompt.</p>
+            <ul style="margin-top: 0.5rem; font-size: 0.9rem;">
+              <li><strong>Your Hand:</strong> Use <code>/hand</code> to see your cards in a DM</li>
+              <li><strong>Submit:</strong> <code>/submit card:3</code> to play card #3 from your hand</li>
+              <li><strong>Timer:</strong> 60 seconds to submit (auto-submit random card if timeout)</li>
+              <li><strong>Anonymous:</strong> Judge won't know who submitted which card</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="step">
+          <div class="step-number">4</div>
+          <div class="step-content">
+            <h3>Voting & Scoring</h3>
+            <p>All submitted cards are revealed anonymously. The judge picks the funniest/best answer. Winner gets a point.</p>
+            <ul style="margin-top: 0.5rem; font-size: 0.9rem;">
+              <li><strong>Judge Picks:</strong> <code>/vote player:@username</code> to award point</li>
+              <li><strong>Scoring:</strong> 1 point per round won</li>
+              <li><strong>Leaderboard:</strong> <code>/scores</code> shows current standings</li>
+              <li><strong>Next Round:</strong> Judge role rotates, everyone draws back to 7 cards</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="step">
+          <div class="step-number">5</div>
+          <div class="step-content">
+            <h3>Game Continues Until Complete</h3>
+            <p>Play continues through multiple rounds until someone reaches the winning score or the game is manually ended.</p>
+            <ul style="margin-top: 0.5rem; font-size: 0.9rem;">
+              <li><strong>Win Condition:</strong> First to 7 points (configurable)</li>
+              <li><strong>Rounds:</strong> Each player judges at least once before game ends</li>
+              <li><strong>Final Scores:</strong> Winner announced, full leaderboard displayed</li>
+              <li><strong>Stats:</strong> Cards played, rounds won, participation tracked</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div style="margin-top: 3rem; padding: 2rem; background: rgba(255,255,255,0.05); border-radius: 8px;">
+        <h3>Example Round</h3>
+        <p><strong>Black Card:</strong> "I lost $10K on a _ play. Never touching leverage again."</p>
+        <p><strong>Submissions (anonymous):</strong></p>
+        <ul style="margin-left: 2rem; margin-top: 0.5rem;">
+          <li>1. "100x short on a meme coin"</li>
+          <li>2. "midnight drunk trading"</li>
+          <li>3. "my wife's college fund"</li>
+          <li>4. "revenge trading after a bad beat"</li>
+        </ul>
+        <p style="margin-top: 0.5rem;"><strong>Judge picks:</strong> #3 wins the round. That player gets 1 point.</p>
+        <p><strong>Why this works:</strong> Cards Against Humanity gameplay meets crypto degen culture. The "Degen Starter Pack" includes 100+ cards themed around casino gambling, crypto trading, and the absolute degeneracy of Discord financial communities.</p>
+      </div>
+
+      <div style="margin-top: 2rem; padding: 2rem; background: rgba(255,255,255,0.05); border-radius: 8px;">
+        <h3>Why a Separate Bot?</h3>
+        <p>DA&D runs on its own dedicated Discord bot instead of being part of the main TiltCheck bot. Here's why:</p>
+        <ul style="margin-left: 2rem; margin-top: 0.5rem;">
+          <li><strong>Less Clutter:</strong> Game commands don't mix with earning/safety commands</li>
+          <li><strong>Different Audiences:</strong> Some servers just want games, some just want tips/promos</li>
+          <li><strong>Performance:</strong> Game state management doesn't slow down tipping transactions</li>
+          <li><strong>Permissions:</strong> Game bot can have different permission levels than financial bot</li>
+        </ul>
+        <p style="margin-top: 0.5rem;">Invite whichever bots your community wants. No forced bundles.</p>
       </div>
     </div>
   </section>
 
   <section class="tech-section">
     <div class="container">
-      <h2>Technical Targets</h2>
+      <h2>Technical Details</h2>
       <div class="tech-grid">
-        <div class="tech-item"><h4>Generation</h4><p>AI templates w/ toxicity guardrails</p></div>
-        <div class="tech-item"><h4>Privacy</h4><p>Hidden submissions; reveal phase</p></div>
-        <div class="tech-item"><h4>Moderation</h4><p>Dealer veto & deck filtering</p></div>
-        <div class="tech-item"><h4>Anti-Stall</h4><p>Timeout auto-select random safe answer</p></div>
-        <div class="tech-item"><h4>Extensibility</h4><p>Custom deck injection JSON spec</p></div>
-        <div class="tech-item"><h4>Status</h4><p>Early design / prototyping</p></div>
+        <div class="tech-item"><h4>Card Packs</h4><p>"Degen Starter Pack" included, custom packs coming</p></div>
+        <div class="tech-item"><h4>Privacy</h4><p>Anonymous submissions until voting</p></div>
+        <div class="tech-item"><h4>Game Flow</h4><p>Create → Join → Start → Play → Vote → Score</p></div>
+        <div class="tech-item"><h4>Players</h4><p>2-10 players per game</p></div>
+        <div class="tech-item"><h4>Architecture</h4><p>Dedicated Discord bot (separate from TiltCheck)</p></div>
+        <div class="tech-item"><h4>Status</h4><p>✅ Live - invite DA&D bot to play</p></div>
       </div>
     </div>
   </section>
 
   <section class="cta-section">
     <div class="container">
-      <h2>Want alpha access?</h2>
-      <p>Join Discord and get notified for the first playtest.</p>
-      <a href="https://discord.gg/tiltcheck" class="cta-button">Join Discord →</a>
+      <h2>Ready to play?</h2>
+      <p>Invite the DA&D bot to your Discord server and start a game.</p>
+      <a href="https://discord.gg/tiltcheck" class="cta-button">Get DA&D Bot →</a>
     </div>
   </section>
 
