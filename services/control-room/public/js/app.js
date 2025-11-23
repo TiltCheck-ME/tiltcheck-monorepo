@@ -46,7 +46,7 @@ function showDashboard() {
     setInterval(loadSystemStatus, 10000); // Refresh every 10s
 }
 
-async function logout() {
+window.logout = async function() {
     await fetch('/api/auth/logout', { method: 'POST' });
     location.reload();
 }
@@ -95,7 +95,7 @@ async function loadDocs() {
     document.getElementById('docs-list').innerHTML = html || 'No documents available';
 }
 
-async function viewDoc(filename) {
+window.viewDoc = async function(filename) {
     const response = await fetch(`/api/docs/${filename}`);
     const { content } = await response.json();
     
@@ -127,7 +127,7 @@ function startCommandFeed() {
     };
 }
 
-async function restartService(service) {
+window.restartService = async function(service) {
     if (!confirm(`Restart ${service}?`)) return;
     
     const response = await fetch(`/api/process/restart/${service}`, { method: 'POST' });
@@ -147,7 +147,7 @@ async function killAll() {
     loadSystemStatus();
 }
 
-async function restartAll() {
+window.restartAll = async function() {
     if (!confirm('Restart ALL services?')) return;
     
     await killAll();
@@ -156,24 +156,24 @@ async function restartAll() {
     }, 2000);
 }
 
-function clearCaches() {
+window.clearCaches = function() {
     alert('Cache clear functionality would be implemented here');
 }
 
-function exportState() {
+window.exportState = function() {
     alert('System state export functionality would be implemented here');
 }
 
-function viewLogs() {
+window.viewLogs = function() {
     alert('Logs viewer would be implemented here');
 }
 
-function emergencyStop() {
+window.emergencyStop = function() {
     if (!confirm('EMERGENCY STOP - Are you sure?')) return;
     killAll();
 }
 
-function refreshStatus() {
+window.refreshStatus = function() {
     loadSystemStatus();
     loadMetrics();
 }

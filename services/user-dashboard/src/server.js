@@ -162,7 +162,7 @@ app.patch('/api/wallets/:walletId/primary', requireAuth, (req, res) => {
 
 // Transaction history routes
 app.get('/api/transactions', requireAuth, (req, res) => {
-  const userId = req.user.id;
+  // req.user.id available from requireAuth middleware
   const userTransactions = [
     {
       id: 'tx1',
@@ -198,7 +198,7 @@ app.get('/api/transactions', requireAuth, (req, res) => {
 
 // Activity feed routes
 app.get('/api/activity', requireAuth, (req, res) => {
-  const userId = req.user.id;
+  // req.user.id available from requireAuth middleware
   const activities = [
     {
       id: 'act1',

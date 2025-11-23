@@ -23,7 +23,7 @@ const wss = new WebSocketServer({ server });
 const PORT = process.env.CONTROL_ROOM_PORT || 3001;
 
 // Trust System Configuration
-const TRUST_NFT_COLLECTION = process.env.TRUST_NFT_COLLECTION || 'your_nft_collection_address';
+// const TRUST_NFT_COLLECTION = process.env.TRUST_NFT_COLLECTION || 'your_nft_collection_address';
 const REQUIRED_TRUST_LEVEL = process.env.REQUIRED_TRUST_LEVEL || 'admin'; // admin, moderator, viewer
 const SOLANA_RPC_URL = process.env.SOLANA_RPC_URL || 'https://api.mainnet-beta.solana.com';
 
@@ -155,7 +155,7 @@ async function checkNFTOwnership(walletAddress) {
       })
     });
     
-    const data = await response.json();
+    await response.json();
     
     // Check if any token accounts match our Trust NFT Collection
     // Production version should verify collection address and metadata

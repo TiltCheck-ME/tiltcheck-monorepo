@@ -148,7 +148,7 @@ function getActivityIcon(type) {
     return icons[type] || '📌';
 }
 
-async function addWallet() {
+window.addWallet = async function() {
     const address = prompt('Enter wallet address:');
     if (!address) return;
     
@@ -168,7 +168,7 @@ async function addWallet() {
     }
 }
 
-async function setPrimary(walletId) {
+window.setPrimary = async function(walletId) {
     const response = await fetch(`/api/wallets/${walletId}/primary`, {
         method: 'PATCH'
     });
@@ -178,11 +178,11 @@ async function setPrimary(walletId) {
     }
 }
 
-function editProfile() {
+window.editProfile = function() {
     alert('Profile editor would open here');
 }
 
-async function requestWithdrawal() {
+window.requestWithdrawal = async function() {
     const amount = parseFloat(prompt('Enter withdrawal amount (min $5.00):'));
     
     if (amount < 5) {
@@ -200,7 +200,7 @@ async function requestWithdrawal() {
     alert(result.message || result.error);
 }
 
-async function saveSettings() {
+window.saveSettings = async function() {
     const prefs = {
         notifications: {
             tipReceived: document.getElementById('notify-tips').checked,

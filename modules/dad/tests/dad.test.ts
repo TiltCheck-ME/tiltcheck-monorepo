@@ -266,8 +266,8 @@ describe('DA&D Module', () => {
     });
 
     it('should get active games for channel', async () => {
-      const game1 = await module.createGame('channel-1', ['degen-starter']);
-      const game2 = await module.createGame('channel-1', ['degen-starter']);
+      await module.createGame('channel-1', ['degen-starter']);
+      await module.createGame('channel-1', ['degen-starter']);
       await module.createGame('channel-2', ['degen-starter']);
 
       const channelGames = module.getChannelGames('channel-1');

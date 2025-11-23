@@ -11,48 +11,22 @@
  * 7. User Support
  */
 
-import { eventRouter } from '@tiltcheck/event-router';
-
-export type AIModel = 'gpt-4o' | 'gpt-4o-mini' | 'claude-3-5-sonnet';
-
-export interface AIRequest {
-  application: 'survey-matching' | 'card-generation' | 'moderation' | 'tilt-detection' | 'nl-commands' | 'recommendations' | 'support';
-  model?: AIModel;
-  prompt: string;
-  context?: Record<string, any>;
-  temperature?: number;
-  maxTokens?: number;
-  responseFormat?: 'text' | 'json';
-}
-
-export interface AIResponse {
-  success: boolean;
-  data?: any;
-  text?: string;
-  usage?: {
-    promptTokens: number;
-    completionTokens: number;
-    totalTokens: number;
-  };
-  error?: string;
-  cached?: boolean;
-}
+// import { eventRouter } from '@tiltcheck/event-router';
 
 /**
  * AI Gateway Service
  */
-export class AIGatewayService {
-  private cache: Map<string, { response: AIResponse; timestamp: number }> = new Map();
-  private cacheTimeout = 3600000; // 1 hour
-
+class AIGatewayService {
   constructor() {
+    this.cache = new Map();
+    this.cacheTimeout = 3600000; // 1 hour
     this.setupEventListeners();
   }
 
   /**
    * Setup event listeners
    */
-  private setupEventListeners(): void {
+  setupEventListeners() {
     // Listen for AI requests from other modules
     eventRouter.subscribe(
       'ai.request',
@@ -68,7 +42,7 @@ export class AIGatewayService {
   /**
    * Main AI processing entry point
    */
-  async process(request: AIRequest): Promise<AIResponse> {
+  async process(request) {
     // Check cache first
     const cacheKey = this.getCacheKey(request);
     const cached = this.cache.get(cacheKey);
@@ -78,7 +52,7 @@ export class AIGatewayService {
     }
 
     // Route to appropriate application
-    let response: AIResponse;
+    let response;
     
     switch (request.application) {
       case 'survey-matching':
@@ -121,7 +95,7 @@ export class AIGatewayService {
    * Application 1: Survey Matching Intelligence
    * Analyzes user profile vs survey requirements for better matching
    */
-  async surveyMatching(request: AIRequest): Promise<AIResponse> {
+  async surveyMatching(request) {
     const { context } = request;
     
     // Mock AI response - in production would call OpenAI API
@@ -157,7 +131,7 @@ export class AIGatewayService {
    * Application 2: DA&D Card Generation
    * Generates contextual cards for Cards Against Humanity-style gameplay
    */
-  async cardGeneration(request: AIRequest): Promise<AIResponse> {
+  async cardGeneration(request) {
     const { context } = request;
     const theme = context?.theme || 'degen-casino';
     const cardType = context?.cardType || 'both';
@@ -202,7 +176,7 @@ export class AIGatewayService {
    * Application 3: Content Moderation
    * Auto-moderate user submissions (links, promos, messages)
    */
-  async moderation(request: AIRequest): Promise<AIResponse> {
+  async moderation(request) {
     const { context } = request;
     
     // Mock moderation analysis
@@ -239,7 +213,7 @@ export class AIGatewayService {
    * Application 4: Tilt Detection
    * Analyzes gambling behavior patterns for tilt risk
    */
-  async tiltDetection(request: AIRequest): Promise<AIResponse> {
+  async tiltDetection(request) {
     const { context } = request;
     
     // Mock tilt analysis
@@ -282,7 +256,7 @@ export class AIGatewayService {
    * Application 5: Natural Language Commands
    * Parse natural language into bot commands
    */
-  async naturalLanguageCommands(request: AIRequest): Promise<AIResponse> {
+  async naturalLanguageCommands(request) {
     const { prompt } = request;
     
     // Mock NL parsing
@@ -315,7 +289,7 @@ export class AIGatewayService {
    * Application 6: Personalized Recommendations
    * Suggest surveys, games, promos based on user profile
    */
-  async recommendations(request: AIRequest): Promise<AIResponse> {
+  async recommendations(request) {
     const { context } = request;
     
     // Mock recommendations
@@ -372,7 +346,7 @@ export class AIGatewayService {
    * Application 7: User Support
    * AI-powered help and support responses
    */
-  async support(request: AIRequest): Promise<AIResponse> {
+  async support(request) {
     const { prompt, context } = request;
     
     // Mock support response
@@ -413,7 +387,7 @@ export class AIGatewayService {
   /**
    * Generate cache key for request
    */
-  private getCacheKey(request: AIRequest): string {
+  private getCacheKey(request: AIRequest) {
     return `${request.application}:${request.prompt}:${JSON.stringify(request.context || {})}`;
   }
 
@@ -432,7 +406,7 @@ export class AIGatewayService {
   /**
    * Get cache statistics
    */
-  getCacheStats(): { size: number; hitRate: number } {
+  getCacheStats() {
     return {
       size: this.cache.size,
       hitRate: 0 // Would track in production
@@ -441,6 +415,6 @@ export class AIGatewayService {
 }
 
 // Export singleton instance
-export const aiGateway = new AIGatewayService();
+module.exports = { AIGatewayService, aiGateway: new AIGatewayService() };
 
 console.log('[AIGateway] Service initialized with 7 applications');
