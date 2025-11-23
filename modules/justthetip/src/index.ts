@@ -12,6 +12,8 @@
 
 // Export module singleton and class
 export { JustTheTipModule, justthetip } from './module.js';
+export { walletService, WalletService } from './wallet-service.js';
+export type { UserWallet, TransactionRequest, WalletProvider, TransactionStatus } from './wallet-service.js';
 
 // Export original low-level functions for advanced usage
 export * from './wallet-manager.js';
