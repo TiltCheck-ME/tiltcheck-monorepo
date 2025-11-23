@@ -31,7 +31,14 @@ Successfully completed full testing, integration, and buildout of the TiltCheck 
 - ✅ Wrote detailed documentation with game rules
 - ✅ Integrated with Event Router
 
-### 4. Security and Quality
+### 4. Discord Bot Integration
+- ✅ Added QualifyFirst commands to main TiltCheck bot
+- ✅ Created separate DA&D game bot for entertainment
+- ✅ Moved poker from TiltCheck bot to DA&D game bot
+- ✅ Organized commands by purpose (earning/safety vs games)
+- ✅ Both bots build successfully
+
+### 5. Security and Quality
 - ✅ Updated .gitignore to exclude test artifacts and secrets
 - ✅ No security vulnerabilities found (CodeQL scan: 0 alerts)
 - ✅ Code review passed with minor optimization suggestions
@@ -110,6 +117,43 @@ Successfully completed full testing, integration, and buildout of the TiltCheck 
 - `modules/dad/README.md` (199 lines)
 - `modules/dad/package.json`
 - `modules/dad/tsconfig.json`
+
+## Discord Bots Created
+
+### TiltCheck Bot (@tiltcheck/discord-bot)
+
+**Purpose**: Main ecosystem bot for earning, safety, and casino tools
+
+**Commands**:
+- `/ping`, `/help` - Bot management
+- `/scan` - Link scanning (SusLink)
+- `/submitpromo`, `/approvepromo`, `/denypromo`, `/pendingpromos` - Promo management (FreeSpinScan)
+- `/blockdomain`, `/unblockdomain`, `/blockpattern`, `/unblockpattern` - Blocklist management
+- `/justthetip`, `/airdrop` - Tipping and airdrops
+- `/cooldown`, `/tilt` - Tilt detection
+- `/qualify`, `/surveyprofile` - Survey matching (QualifyFirst) **NEW**
+
+**Modules Integrated**: SusLink, FreeSpinScan, JustTheTip, QualifyFirst, TiltCheck Core
+
+### DA&D Game Bot (@tiltcheck/dad-bot) **NEW**
+
+**Purpose**: Separate entertainment bot for games
+
+**Commands**:
+- `/play`, `/join`, `/startgame` - Game management
+- `/hand`, `/submit`, `/vote`, `/scores` - Game play
+- `/poker` - Poker game
+
+**Modules Integrated**: DA&D, Poker
+
+**Files Created**:
+- `apps/dad-bot/` - Complete bot application
+- `apps/dad-bot/src/index.ts` - Bot entry point
+- `apps/dad-bot/src/commands/game.ts` - DA&D commands
+- `apps/dad-bot/src/commands/poker.ts` - Poker commands
+- `apps/dad-bot/src/handlers/` - Event and command handlers
+- `apps/dad-bot/README.md` - Bot documentation
+- `apps/discord-bot/src/commands/qualify.ts` - QualifyFirst commands for TiltCheck bot
 
 ## Type System Updates
 
