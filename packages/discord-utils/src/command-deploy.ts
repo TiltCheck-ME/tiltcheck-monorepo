@@ -15,20 +15,27 @@ function validateDirectoryPath(dirPath: string): string {
     throw new Error('Invalid commandsDir: path must be a non-empty string');
   }
   
+  // Resolve to absolute path
+  const absolutePath = path.resolve(dirPath);
+  
+  // Resolve symlinks - handle errors separately for better error messages
+  let realPath: string;
   try {
-    // Resolve to absolute path and resolve symlinks
-    const absolutePath = path.resolve(dirPath);
-    const realPath = realpathSync(absolutePath);
-    
-    // Verify it's a directory
+    realPath = realpathSync(absolutePath);
+  } catch (err) {
+    throw new Error(`Invalid commandsDir: unable to resolve path ${dirPath} - ${err instanceof Error ? err.message : String(err)}`);
+  }
+  
+  // Verify it's a directory
+  try {
     if (!statSync(realPath).isDirectory()) {
       throw new Error(`Invalid commandsDir: ${dirPath} is not a directory`);
     }
-    
-    return realPath;
   } catch (err) {
-    throw new Error(`Invalid commandsDir: ${dirPath} - ${err instanceof Error ? err.message : String(err)}`);
+    throw new Error(`Invalid commandsDir: cannot access ${dirPath} - ${err instanceof Error ? err.message : String(err)}`);
   }
+  
+  return realPath;
 }
 
 /**
@@ -43,8 +50,8 @@ function isPathWithinBase(filePath: string, baseDir: string): boolean {
     const resolvedBase = path.resolve(baseDir);
     const relative = path.relative(resolvedBase, resolvedFile);
     
-    // If the relative path starts with '..', it's outside the base directory
-    return !relative.startsWith('..') && !path.isAbsolute(relative);
+    // If the relative path is empty, starts with '..', or is absolute, it's invalid
+    return relative !== '' && !relative.startsWith('..') && !path.isAbsolute(relative);
   } catch {
     return false;
   }
@@ -78,7 +85,7 @@ export function discoverCommands(commandsDir: string): any[] {
     
     // Security: Ensure the file is within the commands directory
     if (!isPathWithinBase(full, validatedDir)) {
-      console.warn(`[Security] Skipping file outside commands directory: ${file}`);
+      console.warn(`[Security] Skipping file outside commands directory:`, path.basename(file));
       continue;
     }
     
@@ -111,7 +118,7 @@ export async function discoverCommandsAsync(commandsDir: string): Promise<any[]>
     
     // Security: Ensure the file is within the commands directory
     if (!isPathWithinBase(full, validatedDir)) {
-      console.warn(`[Security] Skipping file outside commands directory: ${file}`);
+      console.warn(`[Security] Skipping file outside commands directory:`, path.basename(file));
       continue;
     }
     
