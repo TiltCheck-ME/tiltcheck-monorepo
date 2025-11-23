@@ -2,7 +2,8 @@
 
 [![Health Full](https://github.com/jmenichole/tiltcheck-monorepo/actions/workflows/health-check.yml/badge.svg)](https://github.com/jmenichole/tiltcheck-monorepo/actions/workflows/health-check.yml)
 [![Health Smoke](https://github.com/jmenichole/tiltcheck-monorepo/actions/workflows/health-smoke.yml/badge.svg)](https://github.com/jmenichole/tiltcheck-monorepo/actions/workflows/health-smoke.yml)
-[![Cache Rotate](https://github.com/jmenichole/tiltcheck-monorepo/actions/workflows/cache-rotate.yml/badge.svg)](https://github.com/jmenichole/tiltcheck-monorepo/actions/workflows/cache-rotate.yml)
+[![CodeQL](https://github.com/jmenichole/tiltcheck-monorepo/actions/workflows/codeql.yml/badge.svg)](https://github.com/jmenichole/tiltcheck-monorepo/actions/workflows/codeql.yml)
+[![Security Audit](https://github.com/jmenichole/tiltcheck-monorepo/actions/workflows/security-audit.yml/badge.svg)](https://github.com/jmenichole/tiltcheck-monorepo/actions/workflows/security-audit.yml)
 
 **Built by a degen, for degens.**
 
@@ -42,11 +43,30 @@ Every module is Discord-first, non-custodial, and optimized for low-cost serverl
 
 ## Branch Protection & Required Checks
 
-TiltCheck protects `main` with two required status checks:
+TiltCheck protects `main` with required status checks:
 - `components-a11y` (shared components: bundle, contrast, a11y)
 - `landing-a11y` (landing pages: a11y)
+- `Analyze Code` (CodeQL security scanning)
 
-See [`docs/tiltcheck/17-branch-protection.md`](docs/tiltcheck/17-branch-protection.md) for details on the ruleset, why these checks matter, and how to update them if CI jobs change.
+See [`docs/tiltcheck/17-branch-protection.md`](docs/tiltcheck/17-branch-protection.md) for details on the ruleset.
+
+## Automation & Security
+
+TiltCheck includes comprehensive automation for security, reliability, and maintenance:
+
+- **🔐 Security Scanning:** CodeQL (daily), Dependabot (weekly), pnpm audit (daily)
+- **🤖 Dependency Updates:** Automated PRs with safe auto-merge for patch/minor updates
+- **📋 Issue/PR Templates:** Standardized reporting with security checklists
+- **🏷️ Auto-labeling:** Automatic PR labels based on changed files and size
+- **🧹 Stale Bot:** Automatic cleanup of inactive issues/PRs
+- **👥 CODEOWNERS:** Automatic review requests for security-sensitive changes
+- **💚 Health Monitoring:** Production service health checks every 6 hours
+
+**Quick Start:**
+- Most automations are already active and require no setup
+- See [AUTOMATION-SETUP.md](./AUTOMATION-SETUP.md) for configuration guide
+- See [AUTOMATION-REFERENCE.md](./AUTOMATION-REFERENCE.md) for quick reference
+
 ---
 
 ## Repository Structure

@@ -1,0 +1,43 @@
+---
+name: Feature Request
+about: Suggest a new feature or enhancement
+title: '[FEATURE] '
+labels: ['enhancement', 'needs-triage']
+assignees: []
+---
+
+## Feature Description
+<!-- A clear and concise description of the feature you'd like -->
+
+## Problem Statement
+<!-- What problem does this feature solve? -->
+
+## Proposed Solution
+<!-- How should this feature work? -->
+
+## Module/Service
+<!-- Which part of TiltCheck is this for? -->
+- [ ] JustTheTip (tipping & swaps)
+- [ ] SusLink (link scanner)
+- [ ] CollectClock (bonus tracker)
+- [ ] FreeSpinScan (promo verification)
+- [ ] QualifyFirst (survey router)
+- [ ] TiltCheck Core (tilt detection)
+- [ ] Trust Engines
+- [ ] Discord Bot
+- [ ] Dashboard
+- [ ] Other: ___________
+
+## Additional Context
+<!-- Any other context, mockups, or examples -->
+
+## Alignment with TiltCheck Principles
+<!-- How does this align with TiltCheck's core principles? -->
+- [ ] Maintains modularity
+- [ ] Non-custodial (if applicable)
+- [ ] Discord-first approach
+- [ ] Cost-efficient (free-tier compatible)
+- [ ] Degen-friendly UX
+
+## Alternative Solutions
+<!-- What alternatives have you considered? -->

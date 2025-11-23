@@ -1,0 +1,36 @@
+# TiltCheck Monorepo Code Owners
+# These owners will be requested for review when someone opens a PR
+
+# Default owner for everything in the repo
+* @jmenichole
+
+# Security-sensitive files
+/SECURITY.md @jmenichole
+/docs/security/ @jmenichole
+/.github/workflows/security-audit.yml @jmenichole
+/.github/workflows/codeql.yml @jmenichole
+
+# Core infrastructure
+/.github/ @jmenichole
+/docker-compose.yml @jmenichole
+/Dockerfile @jmenichole
+/apps/discord-bot/Dockerfile @jmenichole
+
+# Branch protection and automation
+/branch-protection-ruleset.json @jmenichole
+/.github/dependabot.yml @jmenichole
+
+# Discord bot - critical service
+/apps/discord-bot/ @jmenichole
+
+# Trust engines - critical algorithms
+/services/trust-rollup/ @jmenichole
+
+# Non-custodial wallet management - security critical
+/modules/justthetip/ @jmenichole
+/modules/wallet-manager/ @jmenichole
+
+# Package and dependency management
+/package.json @jmenichole
+/pnpm-lock.yaml @jmenichole
+/pnpm-workspace.yaml @jmenichole
