@@ -31,7 +31,7 @@ function validateSolanaAddress(address: string): void {
   // Check for base58 charset (no 0, O, I, l)
   const base58Regex = /^[1-9A-HJ-NP-Za-km-z]+$/;
   if (!base58Regex.test(address)) {
-    throw new Error('Invalid Solana address: contains invalid characters');
+    throw new Error('Invalid Solana address: must use base58 encoding (no 0, O, I, or l characters)');
   }
 
   // Typical Solana address is 32-44 characters (base58 encoded 32 bytes)

@@ -2,7 +2,7 @@
  * Wallet Manager Tests - Runtime Guards for bigint-buffer vulnerability
  */
 
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import {
   registerExternalWallet,
   getWallet,
@@ -16,6 +16,11 @@ describe('WalletManager - Security Guards', () => {
     clearWallets();
     // Set to production for validation tests
     process.env.NODE_ENV = 'production';
+  });
+
+  afterEach(() => {
+    // Restore original NODE_ENV
+    process.env.NODE_ENV = originalNodeEnv;
   });
 
   describe('Solana Address Validation (GHSA-3gc7-fjrx-p6mg mitigation)', () => {
@@ -42,7 +47,7 @@ describe('WalletManager - Security Guards', () => {
       invalidAddresses.forEach((address) => {
         expect(() => {
           registerExternalWallet('user123', address);
-        }).toThrow('Invalid Solana address');
+        }).toThrow('Invalid Solana address: must use base58 encoding');
       });
     });
 
@@ -114,9 +119,6 @@ describe('WalletManager - Security Guards', () => {
       // In test mode, validation is skipped to allow mock addresses
       const wallet = registerExternalWallet('user123', mockAddress);
       expect(wallet.address).toBe(mockAddress);
-      
-      // Restore production mode for other tests
-      process.env.NODE_ENV = 'production';
     });
   });
 });
