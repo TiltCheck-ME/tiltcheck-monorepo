@@ -1,0 +1,11 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Security Vulnerability (Critical)
+    url: mailto:jmenichole.security@proton.me
+    about: For critical security issues - DO NOT file a public issue
+  - name: Documentation
+    url: https://github.com/jmenichole/tiltcheck-monorepo/tree/main/docs
+    about: Check the docs for guides and architecture details
+  - name: Contributing Guide
+    url: https://github.com/jmenichole/tiltcheck-monorepo/blob/main/CONTRIBUTING.md
+    about: Learn how to contribute to TiltCheck

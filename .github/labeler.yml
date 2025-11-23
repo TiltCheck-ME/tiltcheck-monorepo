@@ -1,0 +1,101 @@
+# Labeler configuration for automatic PR labeling
+# See: https://github.com/actions/labeler
+
+# Discord Bot
+'discord-bot':
+  - changed-files:
+    - any-glob-to-any-file: 'apps/discord-bot/**/*'
+
+# Services
+'trust-engines':
+  - changed-files:
+    - any-glob-to-any-file: 'services/trust-rollup/**/*'
+
+'dashboard':
+  - changed-files:
+    - any-glob-to-any-file: 'services/dashboard/**/*'
+
+'landing':
+  - changed-files:
+    - any-glob-to-any-file: 'services/landing/**/*'
+
+# Modules
+'justthetip':
+  - changed-files:
+    - any-glob-to-any-file: 'modules/justthetip/**/*'
+
+'suslink':
+  - changed-files:
+    - any-glob-to-any-file: 'modules/suslink/**/*'
+
+'collectclock':
+  - changed-files:
+    - any-glob-to-any-file: 'modules/collectclock/**/*'
+
+'freespinscan':
+  - changed-files:
+    - any-glob-to-any-file: 'modules/freespinscan/**/*'
+
+'qualifyfirst':
+  - changed-files:
+    - any-glob-to-any-file: 'modules/qualifyfirst/**/*'
+
+# Infrastructure
+'ci/cd':
+  - changed-files:
+    - any-glob-to-any-file:
+      - '.github/workflows/**/*'
+      - '.github/actions/**/*'
+
+'docker':
+  - changed-files:
+    - any-glob-to-any-file:
+      - '**/Dockerfile'
+      - 'docker-compose.yml'
+      - '.dockerignore'
+
+'security':
+  - changed-files:
+    - any-glob-to-any-file:
+      - 'SECURITY.md'
+      - '.github/workflows/security-audit.yml'
+      - '.github/workflows/codeql.yml'
+      - 'docs/security/**/*'
+
+# Documentation
+'documentation':
+  - changed-files:
+    - any-glob-to-any-file:
+      - '**/*.md'
+      - 'docs/**/*'
+
+# Testing
+'testing':
+  - changed-files:
+    - any-glob-to-any-file:
+      - '**/*.test.ts'
+      - '**/*.test.js'
+      - '**/*.spec.ts'
+      - '**/*.spec.js'
+      - 'tests/**/*'
+      - 'vitest.config.ts'
+
+# Dependencies
+'dependencies':
+  - changed-files:
+    - any-glob-to-any-file:
+      - 'package.json'
+      - 'pnpm-lock.yaml'
+      - '**/package.json'
+
+# Configuration
+'configuration':
+  - changed-files:
+    - any-glob-to-any-file:
+      - '**/.env.example'
+      - '**/.env.*.example'
+      - 'tsconfig.json'
+      - '**/tsconfig.json'
+      - 'eslint.config.js'
+      - '.eslintrc.*'
+      - '.prettierrc'
