@@ -16,7 +16,7 @@
     "@tiltcheck/discord-utils": "workspace:*",
     "@tiltcheck/suslink": "workspace:*",
     "@tiltcheck/freespinscan": "workspace:*",
-    "@tiltcheck/poker": "workspace:*",
+    "@tiltcheck/qualifyfirst": "workspace:*",
     "@tiltcheck/tiltcheck-core": "workspace:*",
     "@tiltcheck/justthetip": "workspace:*",
     "@tiltcheck/natural-language-parser": "workspace:*",

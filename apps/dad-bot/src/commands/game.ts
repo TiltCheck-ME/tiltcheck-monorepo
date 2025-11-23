@@ -6,7 +6,7 @@
 
 import { SlashCommandBuilder, ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
 import { dad } from '@tiltcheck/dad';
-import { successEmbed, errorEmbed, infoEmbed } from '@tiltcheck/discord-utils';
+import { successEmbed, errorEmbed } from '@tiltcheck/discord-utils';
 import type { Command } from '../types.js';
 
 export const play: Command = {
