@@ -59,6 +59,7 @@ export type EventType =
   | 'survey.added'
   | 'survey.matched'
   | 'survey.result.recorded'
+  | 'survey.withdrawal.requested'
   | 'game.started'
   | 'game.completed'
   | 'game.card.played'
