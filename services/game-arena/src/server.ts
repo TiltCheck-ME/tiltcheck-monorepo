@@ -1,6 +1,6 @@
 /**
  * Game Arena Server
- * Web-based multiplayer game arena with Discord authentication
+ * Web-based multiplayer game arena with Discord authentication and Supabase stats
  */
 
 import express from 'express';
@@ -14,6 +14,7 @@ import { fileURLToPath } from 'url';
 
 import { config, validateConfig } from './config.js';
 import { GameManager } from './game-manager.js';
+import { statsService } from './stats-service.js';
 import type {
   DiscordUser,
   ClientToServerEvents,
@@ -42,6 +43,11 @@ const io = new SocketIOServer<ClientToServerEvents, ServerToClientEvents>(httpSe
 
 // Initialize game manager
 const gameManager = new GameManager();
+
+// Initialize stats service
+statsService.initialize().catch(err => {
+  console.error('[Server] Failed to initialize stats service:', err);
+});
 
 // Middleware
 app.use(express.json());
@@ -214,6 +220,48 @@ app.get('/api/games/:gameId', requireAuth, (req, res) => {
   const user = req.user as DiscordUser;
   const gameState = gameManager.getGameState(gameId, user.id);
   res.json({ game, gameState });
+});
+
+// Get user stats
+app.get('/api/stats/:discordId', async (req, res) => {
+  const { discordId } = req.params;
+  
+  try {
+    const stats = await statsService.getUserStats(discordId);
+    if (!stats) {
+      res.status(404).json({ error: 'User stats not found' });
+      return;
+    }
+    res.json(stats);
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Get leaderboard
+app.get('/api/leaderboard', async (req, res) => {
+  const gameType = req.query.type as 'dad' | 'poker' | undefined;
+  const limit = parseInt(req.query.limit as string) || 100;
+  
+  try {
+    const leaderboard = await statsService.getLeaderboard(gameType, limit);
+    res.json({ leaderboard, gameType: gameType || 'global' });
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Get user game history
+app.get('/api/history/:discordId', async (req, res) => {
+  const { discordId } = req.params;
+  const limit = parseInt(req.query.limit as string) || 50;
+  
+  try {
+    const history = await statsService.getUserGameHistory(discordId, limit);
+    res.json({ history });
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
 });
 
 // WebSocket handling

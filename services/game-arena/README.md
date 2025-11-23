@@ -95,12 +95,46 @@ DISCORD_CLIENT_ID=your_client_id
 DISCORD_CLIENT_SECRET=your_client_secret
 DISCORD_CALLBACK_URL=http://localhost:3010/auth/discord/callback
 SESSION_SECRET=generate_random_secret
+
+# Supabase (Required for stats tracking)
+SUPABASE_URL=your_supabase_project_url
+SUPABASE_ANON_KEY=your_supabase_anon_key
 ```
 
 Generate a secure session secret:
 ```bash
 node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 ```
+
+### Supabase Setup
+
+1. **Create a Supabase project** at [supabase.com](https://supabase.com)
+
+2. **Run the database schema**:
+   - Go to Supabase Dashboard → SQL Editor
+   - Copy contents of `/packages/database/schema.sql`
+   - Run the SQL to create tables, indexes, and policies
+
+3. **Get your credentials**:
+   - Project URL: Settings → API → Project URL
+   - Anon key: Settings → API → anon/public key
+
+4. **Configure environment variables**:
+   ```env
+   SUPABASE_URL=https://your-project.supabase.co
+   SUPABASE_ANON_KEY=your-anon-key-here
+   ```
+
+5. **Verify connection**:
+   ```bash
+   curl http://localhost:3010/health
+   # Should show { connected: true }
+   ```
+
+The database will automatically track:
+- User stats across web and Discord bot
+- Game history
+- Leaderboards (global, DA&D, Poker)
 
 ### Development
 
@@ -173,6 +207,9 @@ services/game-arena/
 - `GET /api/games` - List active games
 - `POST /api/games` - Create new game
 - `GET /api/games/:gameId` - Get game details
+- `GET /api/stats/:discordId` - Get user stats
+- `GET /api/leaderboard?type=dad|poker&limit=100` - Get leaderboard
+- `GET /api/history/:discordId?limit=50` - Get user game history
 
 ### WebSocket Events
 
