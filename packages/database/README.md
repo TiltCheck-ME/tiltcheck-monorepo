@@ -1,34 +1,41 @@
-# DatabaseClient Module
+# TiltCheck Database Package
 
-This module provides a placeholder `DatabaseClient` class for future database integration. It is designed to be modular, testable, and migration-ready.
+Supabase integration for user stats, game history, and leaderboards across the TiltCheck ecosystem.
 
-## API
+## Features
 
-### `DatabaseClient`
-- `constructor(config: DBConfig = {})`
-  - Accepts an optional configuration object.
-- `connect(): void`
-  - Placeholder method for establishing a database connection.
-- `query(sql: string, params?: any[]): Promise<any>`
-  - Placeholder method for executing SQL queries.
-- `healthCheck(): Promise<{ ok: boolean, timestamp: number }>`
-  - Returns a simple health status object.
+- **User Stats**: Cumulative statistics for each Discord user
+- **Game History**: Individual game records for analytics
+- **Leaderboards**: Global, DA&D, and Poker rankings
+- **Cross-Platform**: Tracks stats from both web arena and Discord bot
+
+## Quick Setup
+
+1. Create Supabase project at [supabase.com](https://supabase.com)
+2. Run `schema.sql` in SQL Editor
+3. Get credentials from Settings → API
+4. Set environment variables:
+   ```env
+   SUPABASE_URL=https://your-project.supabase.co
+   SUPABASE_ANON_KEY=your_anon_key
+   ```
 
 ## Usage
-```ts
-import { DatabaseClient } from './src/index';
-const db = new DatabaseClient();
-db.connect();
-const result = await db.query('SELECT 1');
+
+```typescript
+import { db } from '@tiltcheck/database';
+
+// Get stats
+const stats = await db.getUserStats('discord_id');
+
+// Update stats  
+await db.updateUserStats('discord_id', 'dad', {
+  won: true,
+  score: 10
+});
+
+// Get leaderboard
+const leaderboard = await db.getLeaderboard('dad', 100);
 ```
 
-## Migration Notes
-- All methods are placeholders and should be replaced with real logic as the codebase evolves.
-- The module is covered by minimal smoke tests to ensure CI and coverage thresholds are met.
-
-## Test Coverage
-- Tests confirm constructibility and method presence.
-- Ready for expansion as real database logic is added.
-
----
-TiltCheck Ecosystem © 2024–2025. For architecture and migration details, see `/docs/tiltcheck/`.
+See `schema.sql` for complete database schema.
