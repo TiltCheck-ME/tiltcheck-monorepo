@@ -1,0 +1,91 @@
+# Dependabot configuration for automated dependency updates
+# See: https://docs.github.com/en/code-security/dependabot/dependabot-version-updates
+
+version: 2
+updates:
+  # GitHub Actions
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "03:00"
+    labels:
+      - "dependencies"
+      - "github-actions"
+    reviewers:
+      - "jmenichole"
+    open-pull-requests-limit: 5
+
+  # pnpm workspace (root)
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "04:00"
+    labels:
+      - "dependencies"
+      - "npm"
+    reviewers:
+      - "jmenichole"
+    open-pull-requests-limit: 10
+    versioning-strategy: increase-if-necessary
+    groups:
+      # Group dev dependencies together
+      dev-dependencies:
+        dependency-type: "development"
+        update-types:
+          - "minor"
+          - "patch"
+      # Group production dependencies by category
+      typescript-ecosystem:
+        patterns:
+          - "typescript*"
+          - "@types/*"
+          - "ts-*"
+      testing-tools:
+        patterns:
+          - "vitest*"
+          - "@vitest/*"
+          - "jest*"
+          - "supertest"
+          - "jsdom"
+      eslint-prettier:
+        patterns:
+          - "eslint*"
+          - "prettier*"
+          - "@typescript-eslint/*"
+      build-tools:
+        patterns:
+          - "esbuild"
+          - "vite*"
+          - "rollup*"
+
+  # Discord bot
+  - package-ecosystem: "npm"
+    directory: "/apps/discord-bot"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "05:00"
+    labels:
+      - "dependencies"
+      - "discord-bot"
+    reviewers:
+      - "jmenichole"
+    open-pull-requests-limit: 5
+
+  # Docker dependencies
+  - package-ecosystem: "docker"
+    directory: "/apps/discord-bot"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "06:00"
+    labels:
+      - "dependencies"
+      - "docker"
+    reviewers:
+      - "jmenichole"
+    open-pull-requests-limit: 3

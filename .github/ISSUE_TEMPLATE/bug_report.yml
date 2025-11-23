@@ -1,0 +1,43 @@
+---
+name: Bug Report
+about: Report a bug or unexpected behavior
+title: '[BUG] '
+labels: ['bug', 'needs-triage']
+assignees: ['jmenichole']
+---
+
+## Bug Description
+<!-- A clear and concise description of what the bug is -->
+
+## Steps to Reproduce
+1. 
+2. 
+3. 
+
+## Expected Behavior
+<!-- What you expected to happen -->
+
+## Actual Behavior
+<!-- What actually happened -->
+
+## Environment
+- **Module/Service**: <!-- e.g., discord-bot, justthetip, dashboard -->
+- **Node Version**: <!-- e.g., 20.10.0 -->
+- **OS**: <!-- e.g., Ubuntu 22.04, macOS 14 -->
+- **Deployment**: <!-- e.g., local, Docker, production -->
+
+## Logs/Screenshots
+<!-- If applicable, add logs or screenshots to help explain the problem -->
+```
+paste relevant logs here
+```
+
+## Additional Context
+<!-- Any other context about the problem -->
+
+## Security Impact
+- [ ] This bug has security implications
+- [ ] This bug involves user data or wallets
+- [ ] This bug is a potential vulnerability
+
+<!-- If any security boxes are checked, please email jmenichole.security@proton.me instead of filing a public issue -->
