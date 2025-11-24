@@ -1,10 +1,10 @@
 {
   "batches": [
     {
-      "generatedAt": "2025-11-24T05:51:58.656Z",
+      "generatedAt": "2025-11-24T05:53:00.235Z",
       "domain": {
-        "windowStart": 1763963518655,
-        "windowEnd": 1763963518656,
+        "windowStart": 1763963580234,
+        "windowEnd": 1763963580234,
         "domains": {
           "abc.xyz": {
             "totalDelta": -20,
@@ -15,8 +15,8 @@
         }
       },
       "casino": {
-        "windowStart": 1763963518655,
-        "windowEnd": 1763963518656,
+        "windowStart": 1763963580234,
+        "windowEnd": 1763963580234,
         "casinos": {}
       }
     }
