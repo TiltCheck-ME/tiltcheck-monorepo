@@ -152,6 +152,10 @@ app.get('/testimonials', (_req, res) => {
   res.sendFile(path.join(publicDir, 'testimonials.html'));
 });
 
+app.get('/status', (_req, res) => {
+  res.sendFile(path.join(publicDir, 'status.html'));
+});
+
 // Newsletter subscribe endpoint (hashed storage + migration)
 app.post('/api/newsletter/subscribe', rateLimitMiddleware, async (req, res) => {
   const email = (req.body.email || '').trim().toLowerCase();
