@@ -25,6 +25,10 @@ const profiles = new Map<string, TrustProfile>();
 // Default trust score for new users
 const DEFAULT_TRUST_SCORE = 50;
 
+// Trust score impact multiplier for signals
+// Higher values mean signals have more impact on trust scores
+const TRUST_SIGNAL_IMPACT_MULTIPLIER = 25;
+
 /**
  * Get or create a trust profile for a user
  */
@@ -64,7 +68,7 @@ export function addTrustSignal(
   
   // Update trust score based on weighted signal
   // Increase impact by using a larger scale factor
-  const impact = weight * confidence * 25; // Increased from 10 to 25
+  const impact = weight * confidence * TRUST_SIGNAL_IMPACT_MULTIPLIER;
   profile.trustScore = Math.max(0, Math.min(100, profile.trustScore + impact));
   profile.lastUpdated = Date.now();
 }
@@ -86,6 +90,16 @@ export function clearProfiles(): void {
   profiles.clear();
 }
 
-// Note: Gameplay anomaly detection disabled per requirements
-// Previously subscribed to fairness.pump.detected and fairness.cluster.detected
-// but we don't reduce trust scores for game anomalies anymore
+/**
+ * Note: Gameplay Anomaly Event Subscriptions Disabled
+ * 
+ * Per product requirements, gameplay anomalies (pump detection, win clustering, etc.)
+ * should affect casino trust scores but NOT degen/player trust scores.
+ * 
+ * Casino trust scoring is handled by the trust-engines service which subscribes to
+ * these events directly. Player identity and trust profiles managed here are for
+ * broader behavior patterns (tips, community engagement, etc.) not gameplay outcomes.
+ * 
+ * Future consideration: May want to track gameplay anomalies in player profiles
+ * for analytics/reporting purposes without impacting trust scores.
+ */

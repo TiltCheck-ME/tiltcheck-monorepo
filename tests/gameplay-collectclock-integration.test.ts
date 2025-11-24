@@ -64,8 +64,8 @@ describe('Gameplay Analyzer + CollectClock Integration', () => {
     }).toThrow(/Trust score too low/);
   });
 
-  it('should reduce trust score when gameplay anomaly detected', async () => {
-    // Note: This test is now disabled as we don't reduce trust for game anomalies anymore
+  it('should NOT reduce degen trust score when gameplay anomaly detected', async () => {
+    // Per requirements: gameplay anomalies affect casino scores, not degen scores
     // Setup: User starts with neutral trust
     const initialProfile = getProfile(testUserId);
     const initialScore = initialProfile.trustScore;
@@ -87,13 +87,13 @@ describe('Gameplay Analyzer + CollectClock Integration', () => {
       timestamp: Date.now()
     };
     
-    // Publish event (but we no longer reduce trust for this)
+    // Publish event (affects casino trust, not degen trust)
     await eventRouter.publish('fairness.pump.detected', 'gameplay-analyzer', pumpEvent);
     
     // Wait for event processing
     const updatedProfile = getProfile(testUserId);
     
-    // Trust should NOT have decreased (per new requirements)
+    // Degen trust should NOT have decreased
     expect(updatedProfile.trustScore).toBe(initialScore);
   });
 
@@ -135,8 +135,8 @@ describe('Gameplay Analyzer + CollectClock Integration', () => {
     }, 100);
   });
 
-  it('should integrate win clustering detection with trust reduction', async () => {
-    // Note: Per requirements, gameplay anomalies don't affect trust score (or very little)
+  it('should NOT reduce degen trust for win clustering anomaly', async () => {
+    // Per requirements: gameplay anomalies affect casino scores, not degen/player scores
     // Setup: User starts neutral
     const initialProfile = getProfile(testUserId);
     const initialScore = initialProfile.trustScore; // Take a copy of the score
@@ -160,7 +160,7 @@ describe('Gameplay Analyzer + CollectClock Integration', () => {
     
     const updatedProfile = getProfile(testUserId);
     
-    // Should NOT apply negative trust signal (per new requirements)
+    // Degen trust should remain unchanged
     expect(updatedProfile.trustScore).toBe(initialScore);
   });
 });
