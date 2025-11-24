@@ -19,7 +19,7 @@
     "express": "^4.19.2",
     "cors": "^2.8.5",
     "commander": "^12.1.0",
-    "@types/node": "^20.12.7"
+    "@types/node": "^24.10.1"
   },
   "devDependencies": {
     "tsx": "^4.7.1",
