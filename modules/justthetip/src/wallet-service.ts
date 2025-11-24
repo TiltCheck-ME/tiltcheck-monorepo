@@ -363,7 +363,7 @@ export class WalletService {
       await eventRouter.publish('transaction.failed', 'wallet-service', {
         userId,
         amountUSD,
-        error: error.message,
+        error: error instanceof Error ? error.message : 'Unknown error',
       }, userId);
     }
   }
