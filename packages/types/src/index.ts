@@ -66,7 +66,15 @@ export type EventType =
   | 'game.player.joined'
   | 'game.player.left'
   | 'game.card.played'
-  | 'game.round.ended';
+  | 'game.round.ended'
+  | 'vault.locked'
+  | 'vault.unlocked'
+  | 'vault.extended'
+  | 'transaction.created'
+  | 'transaction.approved'
+  | 'transaction.submitted'
+  | 'transaction.confirmed'
+  | 'transaction.failed';
 
 export interface TiltCheckEvent<T = any> {
   id: string;
@@ -94,7 +102,8 @@ export type ModuleId =
   | 'poker-module'
   | 'discord-bot'
   | 'lockvault'
-  | 'game-arena';
+  | 'game-arena'
+  | 'wallet-service';
 
 // ============================================
 // User & Identity Types
