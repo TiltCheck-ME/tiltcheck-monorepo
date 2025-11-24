@@ -4,6 +4,9 @@ FROM node:20-alpine AS builder
 # Install pnpm (lockfileVersion 9 alignment)
 RUN npm install -g pnpm@9
 
+# Install build tools required by node-gyp for native modules
+RUN apk add --no-cache python3 make g++ build-base git && ln -sf /usr/bin/python3 /usr/bin/python
+
 WORKDIR /app
 
 # Copy package files

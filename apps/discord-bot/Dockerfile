@@ -4,6 +4,10 @@ FROM node:20-alpine AS builder
 # Install pnpm matching lockfileVersion 9
 RUN npm install -g pnpm@9
 
+# Install build tools required by node-gyp for native modules
+# node-gyp requires python and a C toolchain on Alpine
+RUN apk add --no-cache python3 make g++ build-base git && ln -sf /usr/bin/python3 /usr/bin/python
+
 WORKDIR /app
 
 # Copy package files
@@ -17,6 +21,7 @@ COPY services/event-router/package.json ./services/event-router/
 COPY services/pricing-oracle/package.json ./services/pricing-oracle/
 COPY services/dashboard/package.json ./services/dashboard/
 COPY services/collectclock/package.json ./services/collectclock/
+COPY services/casino-data-api/package.json ./services/casino-data-api/
 COPY modules/suslink/package.json ./modules/suslink/
 COPY modules/justthetip/package.json ./modules/justthetip/
 COPY modules/collectclock/package.json ./modules/collectclock/
@@ -63,6 +68,7 @@ COPY services/event-router/package.json ./services/event-router/
 COPY services/pricing-oracle/package.json ./services/pricing-oracle/
 COPY services/dashboard/package.json ./services/dashboard/
 COPY services/collectclock/package.json ./services/collectclock/
+COPY services/casino-data-api/package.json ./services/casino-data-api/
 COPY modules/suslink/package.json ./modules/suslink/
 COPY modules/justthetip/package.json ./modules/justthetip/
 COPY modules/collectclock/package.json ./modules/collectclock/
