@@ -9,23 +9,10 @@
 
 import { eventRouter } from '@tiltcheck/event-router';
 import { v4 as uuidv4 } from 'uuid';
+import { getSolscanUrl } from './utils.js';
 
 export type WalletProvider = 'x402' | 'magic' | 'phantom' | 'solflare' | 'user-supplied';
 export type TransactionStatus = 'pending' | 'approved' | 'signed' | 'submitted' | 'confirmed' | 'failed';
-
-// Solana network for explorer URLs
-const SOLANA_NETWORK = process.env.SOLANA_NETWORK || 'mainnet-beta';
-
-/**
- * Generate Solscan explorer URL for a transaction
- */
-function getSolscanUrl(signature: string, cluster: string = SOLANA_NETWORK): string {
-  const baseUrl = 'https://solscan.io/tx/';
-  if (cluster === 'mainnet-beta') {
-    return `${baseUrl}${signature}`;
-  }
-  return `${baseUrl}${signature}?cluster=${cluster}`;
-}
 
 /**
  * User wallet mapping (NON-CUSTODIAL)
@@ -347,7 +334,9 @@ export class WalletService {
     // In real implementation, this would submit to Solana blockchain
     // For now, just mark as submitted
     tx.status = 'submitted';
-    tx.transactionHash = signature; // Use signature as transaction hash
+    // On Solana, the transaction signature IS the transaction hash/ID
+    // Using it for both fields maintains consistency with the Solana model
+    tx.transactionHash = signature;
     tx.explorerUrl = getSolscanUrl(signature);
 
     await eventRouter.publish('transaction.submitted', 'wallet-service', {

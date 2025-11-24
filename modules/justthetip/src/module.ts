@@ -6,6 +6,7 @@
 import { eventRouter } from '@tiltcheck/event-router';
 import { pricingOracle } from '@tiltcheck/pricing-oracle';
 import { v4 as uuidv4 } from 'uuid';
+import { getSolscanUrl } from './utils.js';
 
 // Wallet types supported
 export type WalletType = 'x402' | 'magic' | 'phantom' | 'solflare' | 'other';
@@ -16,20 +17,6 @@ const MAX_USD_AMOUNT = 100.00;
 
 // Fee configuration (basis points)
 const PLATFORM_FEE_BPS = 70; // 0.7% platform fee
-
-// Solana network for explorer URLs (mainnet-beta, devnet, testnet)
-const SOLANA_NETWORK = process.env.SOLANA_NETWORK || 'mainnet-beta';
-
-/**
- * Generate Solscan explorer URL for a transaction
- */
-function getSolscanUrl(signature: string, cluster: string = SOLANA_NETWORK): string {
-  const baseUrl = 'https://solscan.io/tx/';
-  if (cluster === 'mainnet-beta') {
-    return `${baseUrl}${signature}`;
-  }
-  return `${baseUrl}${signature}?cluster=${cluster}`;
-}
 
 interface Wallet {
   userId: string;
@@ -102,6 +89,8 @@ export class JustTheTipModule {
     const pendingAsSender = Array.from(this.tips.values()).filter(
       tip => tip.senderId === userId && tip.status === 'pending'
     );
+    // Note: This filters all tips for efficiency with current scale.
+    // For large datasets, consider using the pendingTips Map or adding an index.
     const pendingAsRecipient = Array.from(this.tips.values()).filter(
       tip => tip.recipientId === userId && tip.status === 'pending'
     );
