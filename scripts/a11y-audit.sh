@@ -23,10 +23,10 @@ if [[ -z "${PUPPETEER_EXECUTABLE_PATH:-}" ]]; then
 fi
 
 bash "$ROOT_DIR/scripts/bundle-components.sh"
-node "$ROOT_DIR/scripts/contrast-check-dom.js"
+node "$ROOT_DIR/scripts/contrast-check-dom.cjs"
 
 # Start server in background
-node "$ROOT_DIR/scripts/serve-components.js" &
+node "$ROOT_DIR/scripts/serve-components.cjs" &
 SERVE_PID=$!
 trap 'kill $SERVE_PID 2>/dev/null || true' EXIT
 

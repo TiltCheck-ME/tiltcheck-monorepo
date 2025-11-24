@@ -59,6 +59,7 @@ wrangler.toml.local
 **/tests/tmpdata_pruned/
 data/casino-trust.json
 data/domain-trust-scores.json
+data/lockvault.json
 =======
 age.agekey
 data/sessions.json
