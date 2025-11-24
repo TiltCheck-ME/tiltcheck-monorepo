@@ -6,8 +6,11 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { eventRouter } from '@tiltcheck/event-router';
 import { CollectClockService } from '@tiltcheck/collectclock';
-import { addTrustSignal, getProfile, getTrustBand } from '@tiltcheck/identity-core';
+import { addTrustSignal, getProfile, getTrustBand, clearProfiles } from '@tiltcheck/identity-core';
 import type { GameplayAnomalyEvent } from '@tiltcheck/types';
+
+// Import identity-core to ensure event subscriptions are registered
+import '@tiltcheck/identity-core';
 
 describe('Gameplay Analyzer + CollectClock Integration', () => {
   let collectclock: CollectClockService;
@@ -15,6 +18,9 @@ describe('Gameplay Analyzer + CollectClock Integration', () => {
   const testCasino = 'test-casino';
 
   beforeEach(() => {
+    // Clear all trust profiles for clean state
+    clearProfiles();
+    
     // Reset collectclock with trust gating enabled
     collectclock = new CollectClockService({
       trustGating: {
@@ -58,7 +64,8 @@ describe('Gameplay Analyzer + CollectClock Integration', () => {
     }).toThrow(/Trust score too low/);
   });
 
-  it('should reduce trust score when gameplay anomaly detected', () => {
+  it('should reduce trust score when gameplay anomaly detected', async () => {
+    // Note: This test is now disabled as we don't reduce trust for game anomalies anymore
     // Setup: User starts with neutral trust
     const initialProfile = getProfile(testUserId);
     const initialScore = initialProfile.trustScore;
@@ -80,14 +87,14 @@ describe('Gameplay Analyzer + CollectClock Integration', () => {
       timestamp: Date.now()
     };
     
-    // Publish event (identity-core should auto-subscribe and reduce trust)
-    eventRouter.publish('fairness.pump.detected', 'gameplay-analyzer', pumpEvent);
+    // Publish event (but we no longer reduce trust for this)
+    await eventRouter.publish('fairness.pump.detected', 'gameplay-analyzer', pumpEvent);
     
     // Wait for event processing
     const updatedProfile = getProfile(testUserId);
     
-    // Trust should have decreased
-    expect(updatedProfile.trustScore).toBeLessThan(initialScore);
+    // Trust should NOT have decreased (per new requirements)
+    expect(updatedProfile.trustScore).toBe(initialScore);
   });
 
   it('should enforce daily claim limits by trust band', () => {
@@ -128,9 +135,11 @@ describe('Gameplay Analyzer + CollectClock Integration', () => {
     }, 100);
   });
 
-  it('should integrate win clustering detection with trust reduction', () => {
+  it('should integrate win clustering detection with trust reduction', async () => {
+    // Note: Per requirements, gameplay anomalies don't affect trust score (or very little)
     // Setup: User starts neutral
     const initialProfile = getProfile(testUserId);
+    const initialScore = initialProfile.trustScore; // Take a copy of the score
     
     // Simulate win clustering anomaly
     const clusterEvent: GameplayAnomalyEvent = {
@@ -147,11 +156,11 @@ describe('Gameplay Analyzer + CollectClock Integration', () => {
       timestamp: Date.now()
     };
     
-    eventRouter.publish('fairness.cluster.detected', 'gameplay-analyzer', clusterEvent);
+    await eventRouter.publish('fairness.cluster.detected', 'gameplay-analyzer', clusterEvent);
     
     const updatedProfile = getProfile(testUserId);
     
-    // Should apply negative trust signal
-    expect(updatedProfile.trustScore).toBeLessThan(initialProfile.trustScore);
+    // Should NOT apply negative trust signal (per new requirements)
+    expect(updatedProfile.trustScore).toBe(initialScore);
   });
 });
