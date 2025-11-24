@@ -2,7 +2,7 @@
 
 ## 🎉 Successfully Completed
 
-> CI trigger marker (workflow_dispatch enabled): 2025-11-24T05:52:00Z
+> CI trigger marker (workflow_dispatch enabled): 2025-11-24T05:52:00Z (UTC)
 
 ### Infrastructure ✅
 
