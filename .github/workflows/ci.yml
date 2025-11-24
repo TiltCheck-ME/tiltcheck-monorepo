@@ -25,7 +25,9 @@ jobs:
         run: pnpm install --frozen-lockfile
       - name: Build all
         run: pnpm build
-      - name: Rebuild bin links
+      - name: Link binaries
+        # Re-run install to create bin symlinks for packages built by prepare scripts
+        # This is fast as deps are already installed (only updates symlinks)
         run: pnpm install
       - name: Lint
         run: pnpm lint
