@@ -6,9 +6,9 @@
  - Compares snapshots for select pages
 
  Usage:
-   node scripts/validate-components.js
+   node scripts/validate-components.cjs
  To update snapshots:
-   UPDATE_SNAPSHOTS=true node scripts/validate-components.js
+   UPDATE_SNAPSHOTS=true node scripts/validate-components.cjs
 */
 const fs = require('fs');
 const path = require('path');
