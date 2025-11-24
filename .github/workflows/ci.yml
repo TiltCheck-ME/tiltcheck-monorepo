@@ -56,13 +56,13 @@ jobs:
       - name: Generate coverage report
         run: pnpm coverage
       - name: Upload coverage artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: coverage-report
           path: coverage/
       - name: Upload component bundle
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: component-bundle
           path: dist/components/
@@ -87,7 +87,7 @@ jobs:
         run: pnpm audit:all
       - name: Upload component bundle
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: component-bundle
           path: dist/components/
@@ -113,7 +113,7 @@ jobs:
         run: pnpm a11y:audit:landing
       - name: Upload landing a11y artifact
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: landing-a11y
           path: |
