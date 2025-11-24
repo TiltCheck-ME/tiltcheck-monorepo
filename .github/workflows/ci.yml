@@ -25,6 +25,8 @@ jobs:
         run: pnpm install --frozen-lockfile
       - name: Build all
         run: pnpm build
+      - name: Rebuild bin links
+        run: pnpm install
       - name: Lint
         run: pnpm lint
       - name: Bundle components
