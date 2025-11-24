@@ -452,6 +452,19 @@ importers:
         specifier: ^1.6.1
         version: 1.6.1(@types/node@20.19.25)(jsdom@24.1.3(bufferutil@4.0.9)(utf-8-validate@5.0.10))
 
+  packages/identity-core:
+    dependencies:
+      '@tiltcheck/event-router':
+        specifier: workspace:*
+        version: link:../../services/event-router
+      '@tiltcheck/types':
+        specifier: workspace:*
+        version: link:../types
+    devDependencies:
+      typescript:
+        specifier: ^5.3.3
+        version: 5.9.3
+
   packages/natural-language-parser:
     dependencies:
       '@tiltcheck/types':

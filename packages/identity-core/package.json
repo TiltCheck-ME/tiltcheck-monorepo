@@ -1,7 +1,7 @@
 {
-  "name": "@tiltcheck/natural-language-parser",
+  "name": "@tiltcheck/identity-core",
   "version": "0.1.0",
-  "description": "Natural language parsing for amounts, durations, and user targeting",
+  "description": "Identity and trust scoring system",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -11,7 +11,8 @@
     "clean": "rm -rf dist"
   },
   "dependencies": {
-    "@tiltcheck/types": "workspace:*"
+    "@tiltcheck/types": "workspace:*",
+    "@tiltcheck/event-router": "workspace:*"
   },
   "devDependencies": {
     "typescript": "^5.3.3"
