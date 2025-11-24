@@ -15,12 +15,21 @@ export const help: Command = {
 
   async execute(interaction: ChatInputCommandInteraction) {
     const embed = createEmbed(
-      '🎰 TiltCheck Bot',
-      'Your gambling accountability companion',
+      '🪙 JustTheTip Bot',
+      'Non-custodial Solana tipping • Powered by TiltCheck',
       Colors.PRIMARY
     );
 
     embed.addFields(
+      {
+        name: '💰 Tipping',
+        value:
+          '`/justthetip tip @user <amount>` - Send SOL to another user\n' +
+          '`/justthetip wallet` - Manage your wallet\n' +
+          '`/justthetip balance` - Check your balance\n' +
+          '`/airdrop` - Send SOL to multiple users',
+        inline: false,
+      },
       {
         name: '🔍 Link Scanning',
         value:
@@ -29,12 +38,11 @@ export const help: Command = {
         inline: false,
       },
       {
-        name: '🎯 Coming Soon',
+        name: '🎯 More Features',
         value:
-          '• `/tip` - Send crypto tips to other degens\n' +
-          '• `/bonus` - Track your casino bonuses\n' +
-          '• `/trust` - Check casino trust scores\n' +
-          '• `/tilt` - Check your tilt status',
+          '• `/triviadrop` - Play trivia for rewards\n' +
+          '• `/trust` - Check trust scores\n' +
+          '• `/support` - Get help from the community',
         inline: false,
       },
       {
@@ -47,14 +55,14 @@ export const help: Command = {
         value:
           '✅ Non-custodial (you control your funds)\n' +
           '✅ Flat $0.07 fee per tip\n' +
-          '✅ Community-driven trust scores\n' +
+          '✅ Direct wallet-to-wallet transfers\n' +
           '✅ Automatic link scanning',
         inline: false,
       }
     );
 
     embed.setFooter({
-      text: 'TiltCheck - Because degeneracy deserves better infrastructure',
+      text: 'JustTheTip Bot • Powered by TiltCheck',
     });
 
     await interaction.reply({ embeds: [embed] });
