@@ -12,8 +12,8 @@ importers:
   .:
     devDependencies:
       '@types/node':
-        specifier: ^20.10.0
-        version: 20.19.25
+        specifier: ^24.10.1
+        version: 24.10.1
       '@types/supertest':
         specifier: ^6.0.2
         version: 6.0.3
@@ -25,7 +25,7 @@ importers:
         version: 8.47.0(eslint@9.39.1)(typescript@5.9.3)
       '@vitest/coverage-v8':
         specifier: ^1.6.0
-        version: 1.6.1(vitest@1.6.1(@types/node@20.19.25)(jsdom@24.1.3(bufferutil@4.0.9)(utf-8-validate@5.0.10)))
+        version: 1.6.1(vitest@1.6.1(@types/node@24.10.1)(jsdom@24.1.3(bufferutil@4.0.9)(utf-8-validate@5.0.10)))
       eslint:
         specifier: ^9.12.0
         version: 9.39.1
@@ -67,7 +67,7 @@ importers:
         version: 8.47.0(eslint@9.39.1)(typescript@5.9.3)
       vitest:
         specifier: ^1.6.0
-        version: 1.6.1(@types/node@20.19.25)(jsdom@24.1.3(bufferutil@4.0.9)(utf-8-validate@5.0.10))
+        version: 1.6.1(@types/node@24.10.1)(jsdom@24.1.3(bufferutil@4.0.9)(utf-8-validate@5.0.10))
 
   apps/dad-bot:
     dependencies:
@@ -94,8 +94,8 @@ importers:
         version: 16.6.1
     devDependencies:
       '@types/node':
-        specifier: ^20.10.0
-        version: 20.19.25
+        specifier: ^24.10.1
+        version: 24.10.1
       tsx:
         specifier: ^4.7.0
         version: 4.20.6
@@ -149,8 +149,8 @@ importers:
         version: 16.6.1
     devDependencies:
       '@types/node':
-        specifier: ^20.10.0
-        version: 20.19.25
+        specifier: ^24.10.1
+        version: 24.10.1
       tsx:
         specifier: ^4.7.0
         version: 4.20.6
@@ -197,7 +197,7 @@ importers:
         version: 5.9.3
       vitest:
         specifier: ^1.6.0
-        version: 1.6.1(@types/node@20.19.25)(jsdom@24.1.3(bufferutil@4.0.9)(utf-8-validate@5.0.10))
+        version: 1.6.1(@types/node@24.10.1)(jsdom@24.1.3(bufferutil@4.0.9)(utf-8-validate@5.0.10))
 
   modules/freespinscan:
     dependencies:
@@ -299,8 +299,8 @@ importers:
         version: link:../../packages/types
     devDependencies:
       '@types/node':
-        specifier: ^20.10.0
-        version: 20.19.25
+        specifier: ^24.10.1
+        version: 24.10.1
       tsx:
         specifier: ^4.7.0
         version: 4.20.6
@@ -324,7 +324,7 @@ importers:
         version: 5.9.3
       vitest:
         specifier: ^1.0.0
-        version: 1.6.1(@types/node@20.19.25)(jsdom@24.1.3(bufferutil@4.0.9)(utf-8-validate@5.0.10))
+        version: 1.6.1(@types/node@24.10.1)(jsdom@24.1.3(bufferutil@4.0.9)(utf-8-validate@5.0.10))
 
   modules/qualifyfirst:
     dependencies:
@@ -349,7 +349,7 @@ importers:
         version: 5.9.3
       vitest:
         specifier: ^1.6.0
-        version: 1.6.1(@types/node@20.19.25)(jsdom@24.1.3(bufferutil@4.0.9)(utf-8-validate@5.0.10))
+        version: 1.6.1(@types/node@24.10.1)(jsdom@24.1.3(bufferutil@4.0.9)(utf-8-validate@5.0.10))
 
   modules/suslink:
     dependencies:
@@ -364,8 +364,8 @@ importers:
         version: link:../../packages/types
     devDependencies:
       '@types/node':
-        specifier: ^20.10.0
-        version: 20.19.25
+        specifier: ^24.10.1
+        version: 24.10.1
       tsx:
         specifier: ^4.7.0
         version: 4.20.6
@@ -387,7 +387,7 @@ importers:
         version: 5.9.3
       vitest:
         specifier: ^1.0.0
-        version: 1.6.1(@types/node@20.19.25)(jsdom@24.1.3(bufferutil@4.0.9)(utf-8-validate@5.0.10))
+        version: 1.6.1(@types/node@24.10.1)(jsdom@24.1.3(bufferutil@4.0.9)(utf-8-validate@5.0.10))
 
   modules/triviadrops:
     dependencies:
@@ -430,8 +430,8 @@ importers:
         version: 14.25.1(bufferutil@4.0.9)(utf-8-validate@5.0.10)
     devDependencies:
       '@types/node':
-        specifier: ^20.10.0
-        version: 20.19.25
+        specifier: ^24.10.1
+        version: 24.10.1
       typescript:
         specifier: ^5.3.0
         version: 5.9.3
@@ -450,7 +450,7 @@ importers:
     devDependencies:
       vitest:
         specifier: ^1.6.1
-        version: 1.6.1(@types/node@20.19.25)(jsdom@24.1.3(bufferutil@4.0.9)(utf-8-validate@5.0.10))
+        version: 1.6.1(@types/node@24.10.1)(jsdom@24.1.3(bufferutil@4.0.9)(utf-8-validate@5.0.10))
 
   packages/natural-language-parser:
     dependencies:
@@ -486,8 +486,8 @@ importers:
   services/casino-data-api:
     dependencies:
       '@types/node':
-        specifier: ^20.12.7
-        version: 20.19.25
+        specifier: ^24.10.1
+        version: 24.10.1
       commander:
         specifier: ^12.1.0
         version: 12.1.0
@@ -590,8 +590,8 @@ importers:
         version: link:../../packages/types
     devDependencies:
       '@types/node':
-        specifier: ^20.10.0
-        version: 20.19.25
+        specifier: ^24.10.1
+        version: 24.10.1
       tsx:
         specifier: ^4.7.0
         version: 4.20.6
@@ -1956,8 +1956,8 @@ packages:
   '@types/node@12.20.55':
     resolution: {integrity: sha512-J8xLz7q2OFulZ2cyGTLE1TbbZcjpno7FaN6zdJNrgAdrJ+DZzh/uFR6YrTb4C+nXakvud8Q4+rbhoIWlYQbUFQ==}
 
-  '@types/node@20.19.25':
-    resolution: {integrity: sha512-ZsJzA5thDQMSQO788d7IocwwQbI8B5OPzmqNvpf3NY/+MHDAS759Wo0gd2WQeXYt5AAAQjzcrTVC6SKCuYgoCQ==}
+  '@types/node@24.10.1':
+    resolution: {integrity: sha512-GNWcUTRBgIRJD5zj+Tq0fKOJ5XZajIiBroOF0yvj2bSU1WvNdYS/dn9UxwsujGW4JX06dnHyjV2y9rRaybH0iQ==}
 
   '@types/oauth@0.9.6':
     resolution: {integrity: sha512-H9TRCVKBNOhZZmyHLqFt9drPM9l+ShWiqqJijU1B8P3DX3ub84NjxDuy+Hjrz+fEca5Kwip3qPMKNyiLgNJtIA==}
@@ -4243,8 +4243,8 @@ packages:
   underscore@1.12.1:
     resolution: {integrity: sha512-hEQt0+ZLDVUMhebKxL4x1BTtDY7bavVofhZ9KZ4aI26X9SRaE+Y3m83XUL1UP2jn8ynjndwCCpEHdUG+9pP1Tw==}
 
-  undici-types@6.21.0:
-    resolution: {integrity: sha512-iwDZqg0QAGrg9Rav5H4n0M64c3mkR59cJ6wQp+7C4nI0gsmExaedaYLNO44eT4AtBBwjbTiGPMlt2Md0T9H9JQ==}
+  undici-types@7.16.0:
+    resolution: {integrity: sha512-Zz+aZWSj8LE6zoxD+xrjh4VfkIG8Ya6LvYkZqtUQGJPZjYl53ypCaUwWqo7eI0x66KBGeRo+mlBEkMSeSZ38Nw==}
 
   undici@6.21.3:
     resolution: {integrity: sha512-gBLkYIlEnSp8pFbT64yFgGE6UIB9tAkhukC23PmMDCe5Nd+cRqKxSjw5y54MK2AZMgZfJWMaNE4nYUHgi1XEOw==}
@@ -5686,23 +5686,23 @@ snapshots:
   '@types/body-parser@1.19.6':
     dependencies:
       '@types/connect': 3.4.38
-      '@types/node': 20.19.25
+      '@types/node': 24.10.1
 
   '@types/connect@3.4.38':
     dependencies:
-      '@types/node': 20.19.25
+      '@types/node': 24.10.1
 
   '@types/cookiejar@2.1.5': {}
 
   '@types/cors@2.8.19':
     dependencies:
-      '@types/node': 20.19.25
+      '@types/node': 24.10.1
 
   '@types/estree@1.0.8': {}
 
   '@types/express-serve-static-core@4.19.7':
     dependencies:
-      '@types/node': 20.19.25
+      '@types/node': 24.10.1
       '@types/qs': 6.14.0
       '@types/range-parser': 1.2.7
       '@types/send': 1.2.1
@@ -5728,17 +5728,17 @@ snapshots:
 
   '@types/mysql@2.15.26':
     dependencies:
-      '@types/node': 20.19.25
+      '@types/node': 24.10.1
 
   '@types/node@12.20.55': {}
 
-  '@types/node@20.19.25':
+  '@types/node@24.10.1':
     dependencies:
-      undici-types: 6.21.0
+      undici-types: 7.16.0
 
   '@types/oauth@0.9.6':
     dependencies:
-      '@types/node': 20.19.25
+      '@types/node': 24.10.1
 
   '@types/passport-discord@0.1.15':
     dependencies:
@@ -5762,7 +5762,7 @@ snapshots:
 
   '@types/pg@8.6.1':
     dependencies:
-      '@types/node': 20.19.25
+      '@types/node': 24.10.1
       pg-protocol: 1.10.3
       pg-types: 2.2.0
 
@@ -5775,16 +5775,16 @@ snapshots:
   '@types/send@0.17.6':
     dependencies:
       '@types/mime': 1.3.5
-      '@types/node': 20.19.25
+      '@types/node': 24.10.1
 
   '@types/send@1.2.1':
     dependencies:
-      '@types/node': 20.19.25
+      '@types/node': 24.10.1
 
   '@types/serve-static@1.15.10':
     dependencies:
       '@types/http-errors': 2.0.5
-      '@types/node': 20.19.25
+      '@types/node': 24.10.1
       '@types/send': 0.17.6
 
   '@types/shimmer@1.2.0': {}
@@ -5793,7 +5793,7 @@ snapshots:
     dependencies:
       '@types/cookiejar': 2.1.5
       '@types/methods': 1.1.4
-      '@types/node': 20.19.25
+      '@types/node': 24.10.1
       form-data: 4.0.5
 
   '@types/supertest@6.0.3':
@@ -5803,7 +5803,7 @@ snapshots:
 
   '@types/tedious@4.0.14':
     dependencies:
-      '@types/node': 20.19.25
+      '@types/node': 24.10.1
 
   '@types/uuid@10.0.0': {}
 
@@ -5817,15 +5817,15 @@ snapshots:
 
   '@types/ws@7.4.7':
     dependencies:
-      '@types/node': 20.19.25
+      '@types/node': 24.10.1
 
   '@types/ws@8.18.1':
     dependencies:
-      '@types/node': 20.19.25
+      '@types/node': 24.10.1
 
   '@types/yauzl@2.10.3':
     dependencies:
-      '@types/node': 20.19.25
+      '@types/node': 24.10.1
     optional: true
 
   '@typescript-eslint/eslint-plugin@8.47.0(@typescript-eslint/parser@8.47.0(eslint@9.39.1)(typescript@5.9.3))(eslint@9.39.1)(typescript@5.9.3)':
@@ -5923,7 +5923,7 @@ snapshots:
 
   '@vercel/oidc@3.0.5': {}
 
-  '@vitest/coverage-v8@1.6.1(vitest@1.6.1(@types/node@20.19.25)(jsdom@24.1.3(bufferutil@4.0.9)(utf-8-validate@5.0.10)))':
+  '@vitest/coverage-v8@1.6.1(vitest@1.6.1(@types/node@24.10.1)(jsdom@24.1.3(bufferutil@4.0.9)(utf-8-validate@5.0.10)))':
     dependencies:
       '@ampproject/remapping': 2.3.0
       '@bcoe/v8-coverage': 0.2.3
@@ -5938,7 +5938,7 @@ snapshots:
       std-env: 3.10.0
       strip-literal: 2.1.1
       test-exclude: 6.0.0
-      vitest: 1.6.1(@types/node@20.19.25)(jsdom@24.1.3(bufferutil@4.0.9)(utf-8-validate@5.0.10))
+      vitest: 1.6.1(@types/node@24.10.1)(jsdom@24.1.3(bufferutil@4.0.9)(utf-8-validate@5.0.10))
     transitivePeerDependencies:
       - supports-color
 
@@ -6255,7 +6255,7 @@ snapshots:
 
   chrome-launcher@1.2.1:
     dependencies:
-      '@types/node': 20.19.25
+      '@types/node': 24.10.1
       escape-string-regexp: 4.0.0
       is-wsl: 2.2.0
       lighthouse-logger: 2.0.2
@@ -6494,7 +6494,7 @@ snapshots:
   engine.io@6.6.4(bufferutil@4.0.9)(utf-8-validate@5.0.10):
     dependencies:
       '@types/cors': 2.8.19
-      '@types/node': 20.19.25
+      '@types/node': 24.10.1
       accepts: 1.3.8
       base64id: 2.0.0
       cookie: 0.7.2
@@ -8168,7 +8168,7 @@ snapshots:
 
   speedline-core@1.4.3:
     dependencies:
-      '@types/node': 20.19.25
+      '@types/node': 24.10.1
       image-ssim: 0.2.0
       jpeg-js: 0.4.4
 
@@ -8397,7 +8397,7 @@ snapshots:
 
   underscore@1.12.1: {}
 
-  undici-types@6.21.0: {}
+  undici-types@7.16.0: {}
 
   undici@6.21.3: {}
 
@@ -8437,13 +8437,13 @@ snapshots:
 
   vary@1.1.2: {}
 
-  vite-node@1.6.1(@types/node@20.19.25):
+  vite-node@1.6.1(@types/node@24.10.1):
     dependencies:
       cac: 6.7.14
       debug: 4.4.3
       pathe: 1.1.2
       picocolors: 1.1.1
-      vite: 5.4.21(@types/node@20.19.25)
+      vite: 5.4.21(@types/node@24.10.1)
     transitivePeerDependencies:
       - '@types/node'
       - less
@@ -8455,16 +8455,16 @@ snapshots:
       - supports-color
       - terser
 
-  vite@5.4.21(@types/node@20.19.25):
+  vite@5.4.21(@types/node@24.10.1):
     dependencies:
       esbuild: 0.21.5
       postcss: 8.5.6
       rollup: 4.53.3
     optionalDependencies:
-      '@types/node': 20.19.25
+      '@types/node': 24.10.1
       fsevents: 2.3.3
 
-  vitest@1.6.1(@types/node@20.19.25)(jsdom@24.1.3(bufferutil@4.0.9)(utf-8-validate@5.0.10)):
+  vitest@1.6.1(@types/node@24.10.1)(jsdom@24.1.3(bufferutil@4.0.9)(utf-8-validate@5.0.10)):
     dependencies:
       '@vitest/expect': 1.6.1
       '@vitest/runner': 1.6.1
@@ -8483,11 +8483,11 @@ snapshots:
       strip-literal: 2.1.1
       tinybench: 2.9.0
       tinypool: 0.8.4
-      vite: 5.4.21(@types/node@20.19.25)
-      vite-node: 1.6.1(@types/node@20.19.25)
+      vite: 5.4.21(@types/node@24.10.1)
+      vite-node: 1.6.1(@types/node@24.10.1)
       why-is-node-running: 2.3.0
     optionalDependencies:
-      '@types/node': 20.19.25
+      '@types/node': 24.10.1
       jsdom: 24.1.3(bufferutil@4.0.9)(utf-8-validate@5.0.10)
     transitivePeerDependencies:
       - less
