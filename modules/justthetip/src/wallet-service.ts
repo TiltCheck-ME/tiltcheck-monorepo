@@ -9,6 +9,7 @@
 
 import { eventRouter } from '@tiltcheck/event-router';
 import { v4 as uuidv4 } from 'uuid';
+import { getSolscanUrl } from './utils.js';
 
 export type WalletProvider = 'x402' | 'magic' | 'phantom' | 'solflare' | 'user-supplied';
 export type TransactionStatus = 'pending' | 'approved' | 'signed' | 'submitted' | 'confirmed' | 'failed';
@@ -43,11 +44,13 @@ export interface TransactionRequest {
   status: TransactionStatus;
   metadata?: Record<string, any>;
   createdAt: number;
+  sequence: number; // Monotonic sequence for ordering
   expiresAt: number;
   approvedAt?: number;
   signedAt?: number;
   signature?: string;
   transactionHash?: string;
+  explorerUrl?: string; // Solscan link for transaction receipt
 }
 
 /**
@@ -69,6 +72,7 @@ export class WalletService {
   private userWallets: Map<string, UserWallet[]> = new Map();
   private transactionRequests: Map<string, TransactionRequest> = new Map();
   private botWallets: Map<string, BotWallet> = new Map();
+  private transactionSequence: number = 0;
 
   constructor() {
     this.initializeBotWallets();
@@ -206,6 +210,7 @@ export class WalletService {
         recipientProvider: recipientWallet.provider,
       },
       createdAt: Date.now(),
+      sequence: ++this.transactionSequence,
       expiresAt: Date.now() + (15 * 60 * 1000), // 15 minutes
     };
 
@@ -256,6 +261,7 @@ export class WalletService {
         source: 'survey-earnings',
       },
       createdAt: Date.now(),
+      sequence: ++this.transactionSequence,
       expiresAt: Date.now() + (24 * 60 * 60 * 1000), // 24 hours
     };
 
@@ -328,11 +334,24 @@ export class WalletService {
     // In real implementation, this would submit to Solana blockchain
     // For now, just mark as submitted
     tx.status = 'submitted';
-    tx.transactionHash = `MOCK_TX_${uuidv4()}`;
+    // On Solana, the transaction signature IS the transaction hash/ID
+    // Using it for both fields maintains consistency with the Solana model
+    tx.transactionHash = signature;
+    tx.explorerUrl = getSolscanUrl(signature);
 
     await eventRouter.publish('transaction.submitted', 'wallet-service', {
       transactionId,
       transactionHash: tx.transactionHash,
+      explorerUrl: tx.explorerUrl,
+      receipt: {
+        transactionHash: signature,
+        explorerUrl: tx.explorerUrl,
+        timestamp: tx.signedAt,
+        from: tx.from,
+        to: tx.to,
+        amount: tx.amountUSD,
+        currency: tx.token,
+      },
     }, tx.userId);
 
     // Simulate confirmation
@@ -341,6 +360,7 @@ export class WalletService {
       await eventRouter.publish('transaction.confirmed', 'wallet-service', {
         transactionId,
         transactionHash: tx.transactionHash,
+        explorerUrl: tx.explorerUrl,
       }, tx.userId);
     }, 2000);
   }
@@ -387,7 +407,42 @@ export class WalletService {
       }
     }
 
-    return transactions.sort((a, b) => b.createdAt - a.createdAt);
+    // Sort by sequence (most recent first)
+    return transactions.sort((a, b) => b.sequence - a.sequence);
+  }
+
+  /**
+   * Get user's completed transactions with receipts
+   * Returns only confirmed transactions with Solscan links
+   */
+  getUserTransactionReceipts(userId: string): Array<{
+    transactionId: string;
+    type: string;
+    from: string;
+    to: string;
+    amount: number;
+    currency: string;
+    status: string;
+    timestamp: number;
+    signature?: string;
+    transactionHash?: string;
+    explorerUrl?: string;
+  }> {
+    return this.getUserTransactions(userId)
+      .filter(tx => tx.status === 'confirmed' && tx.signature)
+      .map(tx => ({
+        transactionId: tx.id,
+        type: tx.type,
+        from: tx.from,
+        to: tx.to,
+        amount: tx.amountUSD,
+        currency: tx.token,
+        status: tx.status,
+        timestamp: tx.signedAt || tx.createdAt,
+        signature: tx.signature,
+        transactionHash: tx.transactionHash,
+        explorerUrl: tx.explorerUrl,
+      }));
   }
 
   /**

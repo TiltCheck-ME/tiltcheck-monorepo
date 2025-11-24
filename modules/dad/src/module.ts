@@ -360,8 +360,9 @@ export class DADModule {
 
     round.votes.set(voterId, submissionUserId);
 
-    // Check if all players have voted
-    if (round.votes.size === game.players.size - 1) {
+    // Check if all players have voted (everyone votes except can't vote for self)
+    // With N players, we expect N votes (each player votes once)
+    if (round.votes.size === game.players.size) {
       await this.endRound(gameId);
     }
   }
