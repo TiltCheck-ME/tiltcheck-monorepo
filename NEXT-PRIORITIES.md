@@ -1,6 +1,6 @@
 # TiltCheck Next Priorities
 
-**Updated:** 2025-11-24  
+**Updated:** November 24, 2025  
 **Test Status:** 180/195 passing (92.3%)  
 **Open PRs:** 4 (dependency updates + Railway deployment fix)
 
@@ -277,7 +277,7 @@ Failing Suites:
 
 ```bash
 # Run JustTheTip tests only
-npx pnpm test modules/justthetip
+pnpm test modules/justthetip
 
 # Focus on fixing these test files:
 # 1. modules/justthetip/tests/justthetip.test.ts
@@ -289,5 +289,5 @@ npx pnpm test modules/justthetip
 
 ---
 
-**Last Updated:** 2025-11-24  
+**Last Updated:** November 24, 2025  
 **Next Review:** After test stabilization (estimated 2-3 days)
