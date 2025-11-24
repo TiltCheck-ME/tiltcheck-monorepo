@@ -13,6 +13,20 @@ import { v4 as uuidv4 } from 'uuid';
 export type WalletProvider = 'x402' | 'magic' | 'phantom' | 'solflare' | 'user-supplied';
 export type TransactionStatus = 'pending' | 'approved' | 'signed' | 'submitted' | 'confirmed' | 'failed';
 
+// Solana network for explorer URLs
+const SOLANA_NETWORK = process.env.SOLANA_NETWORK || 'mainnet-beta';
+
+/**
+ * Generate Solscan explorer URL for a transaction
+ */
+function getSolscanUrl(signature: string, cluster: string = SOLANA_NETWORK): string {
+  const baseUrl = 'https://solscan.io/tx/';
+  if (cluster === 'mainnet-beta') {
+    return `${baseUrl}${signature}`;
+  }
+  return `${baseUrl}${signature}?cluster=${cluster}`;
+}
+
 /**
  * User wallet mapping (NON-CUSTODIAL)
  * Only stores public address, never private keys
@@ -49,6 +63,7 @@ export interface TransactionRequest {
   signedAt?: number;
   signature?: string;
   transactionHash?: string;
+  explorerUrl?: string; // Solscan link for transaction receipt
 }
 
 /**
@@ -332,11 +347,22 @@ export class WalletService {
     // In real implementation, this would submit to Solana blockchain
     // For now, just mark as submitted
     tx.status = 'submitted';
-    tx.transactionHash = `MOCK_TX_${uuidv4()}`;
+    tx.transactionHash = signature; // Use signature as transaction hash
+    tx.explorerUrl = getSolscanUrl(signature);
 
     await eventRouter.publish('transaction.submitted', 'wallet-service', {
       transactionId,
       transactionHash: tx.transactionHash,
+      explorerUrl: tx.explorerUrl,
+      receipt: {
+        transactionHash: signature,
+        explorerUrl: tx.explorerUrl,
+        timestamp: tx.signedAt,
+        from: tx.from,
+        to: tx.to,
+        amount: tx.amountUSD,
+        currency: tx.token,
+      },
     }, tx.userId);
 
     // Simulate confirmation
@@ -345,6 +371,7 @@ export class WalletService {
       await eventRouter.publish('transaction.confirmed', 'wallet-service', {
         transactionId,
         transactionHash: tx.transactionHash,
+        explorerUrl: tx.explorerUrl,
       }, tx.userId);
     }, 2000);
   }
@@ -393,6 +420,40 @@ export class WalletService {
 
     // Sort by sequence (most recent first)
     return transactions.sort((a, b) => b.sequence - a.sequence);
+  }
+
+  /**
+   * Get user's completed transactions with receipts
+   * Returns only confirmed transactions with Solscan links
+   */
+  getUserTransactionReceipts(userId: string): Array<{
+    transactionId: string;
+    type: string;
+    from: string;
+    to: string;
+    amount: number;
+    currency: string;
+    status: string;
+    timestamp: number;
+    signature?: string;
+    transactionHash?: string;
+    explorerUrl?: string;
+  }> {
+    return this.getUserTransactions(userId)
+      .filter(tx => tx.status === 'confirmed' && tx.signature)
+      .map(tx => ({
+        transactionId: tx.id,
+        type: tx.type,
+        from: tx.from,
+        to: tx.to,
+        amount: tx.amountUSD,
+        currency: tx.token,
+        status: tx.status,
+        timestamp: tx.signedAt || tx.createdAt,
+        signature: tx.signature,
+        transactionHash: tx.transactionHash,
+        explorerUrl: tx.explorerUrl,
+      }));
   }
 
   /**

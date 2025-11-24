@@ -1,0 +1,27 @@
+{
+  "vaults": [
+    {
+      "id": "1735689600000-glzyq74",
+      "userId": "u1",
+      "vaultAddress": "9jVMdTxx554pkiWBeEwUPjQNyLrfZiC9h2Ju7aX32VQv",
+      "createdAt": 1735689600000,
+      "unlockAt": 1735690800000,
+      "lockedAmountSOL": 3,
+      "originalInput": "3",
+      "status": "extended",
+      "history": [
+        {
+          "ts": 1735689600000,
+          "action": "locked",
+          "note": "duration=10m"
+        },
+        {
+          "ts": 1735689600000,
+          "action": "extended",
+          "note": "+10m"
+        }
+      ],
+      "extendedCount": 1
+    }
+  ]
+}
