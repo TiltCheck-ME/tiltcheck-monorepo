@@ -17,6 +17,20 @@ const MAX_USD_AMOUNT = 100.00;
 // Fee configuration (basis points)
 const PLATFORM_FEE_BPS = 70; // 0.7% platform fee
 
+// Solana network for explorer URLs (mainnet-beta, devnet, testnet)
+const SOLANA_NETWORK = process.env.SOLANA_NETWORK || 'mainnet-beta';
+
+/**
+ * Generate Solscan explorer URL for a transaction
+ */
+function getSolscanUrl(signature: string, cluster: string = SOLANA_NETWORK): string {
+  const baseUrl = 'https://solscan.io/tx/';
+  if (cluster === 'mainnet-beta') {
+    return `${baseUrl}${signature}`;
+  }
+  return `${baseUrl}${signature}?cluster=${cluster}`;
+}
+
 interface Wallet {
   userId: string;
   address: string;
@@ -36,6 +50,7 @@ interface Tip {
   createdAt: number;
   completedAt?: number;
   signature?: string;
+  explorerUrl?: string; // Solscan link for transaction receipt
 }
 
 export class JustTheTipModule {
@@ -211,8 +226,9 @@ export class JustTheTipModule {
     tip.status = 'completed';
     tip.signature = signature;
     tip.completedAt = Date.now();
+    tip.explorerUrl = getSolscanUrl(signature);
 
-    // Emit tip.completed event
+    // Emit tip.completed event with receipt info
     await eventRouter.publish('tip.completed', 'justthetip', {
       tipId: tip.id,
       senderId: tip.senderId,
@@ -220,6 +236,14 @@ export class JustTheTipModule {
       usdAmount: tip.usdAmount,
       solAmount: tip.solAmount,
       signature,
+      explorerUrl: tip.explorerUrl,
+      receipt: {
+        transactionHash: signature,
+        explorerUrl: tip.explorerUrl,
+        timestamp: tip.completedAt,
+        amount: tip.usdAmount,
+        currency: 'USD',
+      },
     }, tip.senderId);
 
     // Emit trust events for sender and recipient
@@ -256,6 +280,39 @@ export class JustTheTipModule {
     return Array.from(this.tips.values()).filter(
       tip => tip.senderId === userId || tip.recipientId === userId
     );
+  }
+
+  /**
+   * Get completed transaction history for a user with receipts
+   * Returns tips sorted by completion date (most recent first)
+   */
+  getTransactionHistory(userId: string): Array<{
+    tipId: string;
+    type: 'sent' | 'received';
+    amount: number;
+    currency: string;
+    otherParty: string;
+    status: string;
+    completedAt?: number;
+    signature?: string;
+    explorerUrl?: string;
+  }> {
+    const userTips = this.getTipsForUser(userId);
+    
+    return userTips
+      .filter(tip => tip.status === 'completed')
+      .sort((a, b) => (b.completedAt || 0) - (a.completedAt || 0))
+      .map(tip => ({
+        tipId: tip.id,
+        type: tip.senderId === userId ? 'sent' : 'received',
+        amount: tip.usdAmount,
+        currency: 'USD',
+        otherParty: tip.senderId === userId ? tip.recipientId : tip.senderId,
+        status: tip.status,
+        completedAt: tip.completedAt,
+        signature: tip.signature,
+        explorerUrl: tip.explorerUrl,
+      }));
   }
 
   /**
