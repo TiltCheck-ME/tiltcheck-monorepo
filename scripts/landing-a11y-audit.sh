@@ -23,7 +23,7 @@ if [[ -z "${PUPPETEER_EXECUTABLE_PATH:-}" ]]; then
 fi
 
 # Start server in background
-node "$ROOT_DIR/scripts/serve-landing.js" &
+node "$ROOT_DIR/scripts/serve-landing.cjs" &
 SERVE_PID=$!
 trap 'kill $SERVE_PID 2>/dev/null || true' EXIT
 
