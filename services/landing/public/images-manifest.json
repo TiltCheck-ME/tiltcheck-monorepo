@@ -1,0 +1,44 @@
+{
+  "tools": {
+    "justthetip": {
+      "icon": "/assets/icons/just-the-tip.svg",
+      "name": "JustTheTip",
+      "description": "Non-custodial tipping system"
+    },
+    "suslink": {
+      "icon": "/assets/icons/sus-link.svg",
+      "name": "SusLink",
+      "description": "Link scanner and scam detector"
+    },
+    "collectclock": {
+      "icon": "/assets/icons/collect-clock.svg",
+      "name": "CollectClock",
+      "description": "Bonus tracking and cooldown manager"
+    },
+    "freespinscan": {
+      "icon": "/assets/icons/freespin-scan.svg",
+      "name": "FreeSpinScan",
+      "description": "Free spin and promo verification"
+    },
+    "poker": {
+      "icon": "/assets/icons/icons-sprite.svg",
+      "name": "Poker",
+      "description": "Poker game module"
+    },
+    "tiltcheck-core": {
+      "icon": "/assets/icons/tilt-engine.svg",
+      "name": "TiltCheck Core",
+      "description": "Tilt detection and management"
+    },
+    "qualifyfirst": {
+      "icon": "/assets/icons/icons-sprite.svg",
+      "name": "QualifyFirst",
+      "description": "User qualification system"
+    },
+    "daad": {
+      "icon": "/assets/icons/dand.svg",
+      "name": "D&D",
+      "description": "Degens & Dragons game"
+    }
+  }
+}
