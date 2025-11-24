@@ -43,6 +43,7 @@ export interface TransactionRequest {
   status: TransactionStatus;
   metadata?: Record<string, any>;
   createdAt: number;
+  sequence: number; // Monotonic sequence for ordering
   expiresAt: number;
   approvedAt?: number;
   signedAt?: number;
@@ -69,6 +70,7 @@ export class WalletService {
   private userWallets: Map<string, UserWallet[]> = new Map();
   private transactionRequests: Map<string, TransactionRequest> = new Map();
   private botWallets: Map<string, BotWallet> = new Map();
+  private transactionSequence: number = 0;
 
   constructor() {
     this.initializeBotWallets();
@@ -206,6 +208,7 @@ export class WalletService {
         recipientProvider: recipientWallet.provider,
       },
       createdAt: Date.now(),
+      sequence: ++this.transactionSequence,
       expiresAt: Date.now() + (15 * 60 * 1000), // 15 minutes
     };
 
@@ -256,6 +259,7 @@ export class WalletService {
         source: 'survey-earnings',
       },
       createdAt: Date.now(),
+      sequence: ++this.transactionSequence,
       expiresAt: Date.now() + (24 * 60 * 60 * 1000), // 24 hours
     };
 
@@ -387,7 +391,8 @@ export class WalletService {
       }
     }
 
-    return transactions.sort((a, b) => b.createdAt - a.createdAt);
+    // Sort by sequence (most recent first)
+    return transactions.sort((a, b) => b.sequence - a.sequence);
   }
 
   /**
