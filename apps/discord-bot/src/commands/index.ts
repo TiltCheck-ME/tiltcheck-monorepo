@@ -15,14 +15,14 @@ export { justthetip } from './justthetip.js';
 export { airdrop } from './airdrop.js';
 export { lockvault } from './lockvault.js';
 export { support } from './support.js';
-export { trust } from './trust.js';
-export { casino } from './casino-group.js';
-export { security } from './security-group.js';
-export { profile } from './profile-group.js';
-export { sessionverify } from './sessionverify.js';
-export { submitseed } from './submitseed.js';
-export { collectclock } from './collectclock.js';
-export { trustreport } from './trustreport.js';
-export { playanalyze } from './playanalyze.js';
+export { trustDashboard } from './trust.js';
+// export { casino } from './casino-group.js'; // Not yet implemented
+// export { security } from './security-group.js'; // Not yet implemented
+// export { profile } from './profile-group.js'; // Not yet implemented
+// export { sessionverify } from './sessionverify.js'; // Not yet implemented
+// export { submitseed } from './submitseed.js'; // Not yet implemented
+// export { collectclock } from './collectclock.js'; // Not yet implemented
+// export { trustreport } from './trustreport.js'; // Not yet implemented
+// export { playanalyze } from './playanalyze.js'; // Not yet implemented
 export { tiltcheck } from './tiltcheck.js';
 export { triviadrop } from './triviadrop.js';
