@@ -277,7 +277,7 @@ Failing Suites:
 
 ```bash
 # Run JustTheTip tests only
-pnpm test modules/justthetip
+npx pnpm test modules/justthetip
 
 # Focus on fixing these test files:
 # 1. modules/justthetip/tests/justthetip.test.ts
