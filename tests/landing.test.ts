@@ -1,42 +1,98 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
-import { spawn } from 'child_process';
+import { spawn, ChildProcess } from 'child_process';
 import path from 'path';
+import { createServer } from 'net';
+
+/**
+ * Helper to find an available port
+ */
+function getAvailablePort(): Promise<number> {
+  return new Promise((resolve, reject) => {
+    const server = createServer();
+    server.listen(0, () => {
+      const address = server.address();
+      if (address && typeof address === 'object') {
+        const port = address.port;
+        server.close(() => resolve(port));
+      } else {
+        server.close(() => reject(new Error('Failed to get port')));
+      }
+    });
+    server.on('error', reject);
+  });
+}
+
+/**
+ * Helper to wait for the server to be ready by polling the health endpoint
+ */
+async function waitForServer(url: string, maxAttempts = 30, intervalMs = 200): Promise<void> {
+  for (let i = 0; i < maxAttempts; i++) {
+    try {
+      const res = await fetch(`${url}/health`);
+      if (res.ok) {
+        return;
+      }
+    } catch {
+      // Server not ready yet, continue polling
+    }
+    await new Promise(resolve => setTimeout(resolve, intervalMs));
+  }
+  throw new Error(`Server at ${url} did not become ready after ${maxAttempts * intervalMs}ms`);
+}
 
 describe('Landing Server Integration', () => {
-  let serverProcess: any;
-  const PORT = 8081; // Use different port to avoid conflicts
-  const baseURL = `http://localhost:${PORT}`;
+  let serverProcess: ChildProcess | null = null;
+  let PORT: number;
+  let baseURL: string;
 
   beforeAll(async () => {
-    // Start landing server on alternate port
-    return new Promise((resolve, reject) => {
-      serverProcess = spawn('node', ['services/landing/server.js'], {
-        cwd: path.resolve(__dirname, '..'),
-        env: { 
-          ...process.env, 
-          PORT: PORT.toString(),
-          LANDING_LOG_PATH: '/tmp/landing-test.log',
-          ADMIN_IP_1: '127.0.0.1',
-        },
-      });
+    // Get an available port to avoid conflicts with parallel tests
+    PORT = await getAvailablePort();
+    baseURL = `http://localhost:${PORT}`;
 
-      serverProcess.stdout.on('data', (data: Buffer) => {
-        if (data.toString().includes('listening on port')) {
-          setTimeout(resolve, 500); // Give server time to fully start
-        }
-      });
-
-      serverProcess.stderr.on('data', (data: Buffer) => {
-        console.error('Server error:', data.toString());
-      });
-
-      setTimeout(() => reject(new Error('Server start timeout')), 5000);
+    // Start landing server on the dynamically assigned port
+    serverProcess = spawn('node', ['services/landing/server.js'], {
+      cwd: path.resolve(__dirname, '..'),
+      env: { 
+        ...process.env, 
+        PORT: PORT.toString(),
+        LANDING_LOG_PATH: `/tmp/landing-test-${PORT}.log`,
+        ADMIN_IP_1: '127.0.0.1',
+      },
+      stdio: ['pipe', 'pipe', 'pipe'],
     });
+
+    serverProcess.stderr?.on('data', (data: Buffer) => {
+      console.error('Server error:', data.toString());
+    });
+
+    // Wait for server to be ready by polling health endpoint
+    await waitForServer(baseURL);
   });
 
-  afterAll(() => {
+  afterAll(async () => {
     if (serverProcess) {
-      serverProcess.kill();
+      // Send SIGTERM and wait for process to exit
+      await new Promise<void>((resolve) => {
+        // Register exit handler before killing to avoid race condition
+        const onExit = () => {
+          clearTimeout(fallbackTimeout);
+          resolve();
+        };
+        serverProcess!.once('exit', onExit);
+        
+        // Send graceful shutdown signal
+        serverProcess!.kill('SIGTERM');
+        
+        // Fallback timeout if process doesn't exit gracefully
+        const fallbackTimeout = setTimeout(() => {
+          if (serverProcess!.exitCode === null) {
+            // Process hasn't exited yet, force kill
+            serverProcess!.kill('SIGKILL');
+          }
+          resolve();
+        }, 2000);
+      });
     }
   });
 
