@@ -1,0 +1,77 @@
+{
+  "actions": [
+    {
+      "action": "review",
+      "module": "bigint-buffer",
+      "resolves": [
+        {
+          "id": 1103747,
+          "path": "modules__justthetip>@solana/spl-token>@solana/buffer-layout-utils>bigint-buffer",
+          "dev": false,
+          "bundled": false,
+          "optional": false
+        }
+      ]
+    }
+  ],
+  "advisories": {
+    "1103747": {
+      "findings": [
+        {
+          "version": "1.1.5",
+          "paths": [
+            "apps/discord-bot > @tiltcheck/justthetip@link:../../modules/justthetip > @solana/pay@0.2.6 > @solana/spl-token@0.4.14 > @solana/buffer-layout-utils@0.2.0 > bigint-buffer@1.1.5",
+            "apps/discord-bot > @tiltcheck/justthetip@link:../../modules/justthetip > @solana/spl-token@0.4.14 > @solana/buffer-layout-utils@0.2.0 > bigint-buffer@1.1.5",
+            "apps/justthetip-bot > @tiltcheck/justthetip@link:../../modules/justthetip > @solana/pay@0.2.6 > @solana/spl-token@0.4.14 > @solana/buffer-layout-utils@0.2.0 > bigint-buffer@1.1.5",
+            "apps/justthetip-bot > @tiltcheck/justthetip@link:../../modules/justthetip > @solana/spl-token@0.4.14 > @solana/buffer-layout-utils@0.2.0 > bigint-buffer@1.1.5",
+            "modules/justthetip > @solana/pay@0.2.6 > @solana/spl-token@0.4.14 > @solana/buffer-layout-utils@0.2.0 > bigint-buffer@1.1.5",
+            "modules/justthetip > @solana/spl-token@0.4.14 > @solana/buffer-layout-utils@0.2.0 > bigint-buffer@1.1.5"
+          ]
+        }
+      ],
+      "found_by": null,
+      "deleted": null,
+      "references": "- https://nvd.nist.gov/vuln/detail/CVE-2025-3194\n- https://security.snyk.io/vuln/SNYK-JS-BIGINTBUFFER-3364597\n- https://www.usenix.org/system/files/sec23fall-prepub-262_staicu.pdf\n- https://github.com/no2chem/bigint-buffer/blob/master/src/index.ts#L25\n- https://github.com/advisories/GHSA-3gc7-fjrx-p6mg",
+      "created": "2025-04-04T06:34:22.000Z",
+      "id": 1103747,
+      "npm_advisory_id": null,
+      "overview": "Versions of the package bigint-buffer from 0.0.0 to 1.1.5 are vulnerable to Buffer Overflow in the toBigIntLE() function. Attackers can exploit this to crash the application.",
+      "reported_by": null,
+      "title": "bigint-buffer Vulnerable to Buffer Overflow via toBigIntLE() Function",
+      "metadata": null,
+      "cves": [
+        "CVE-2025-3194"
+      ],
+      "access": "public",
+      "severity": "high",
+      "module_name": "bigint-buffer",
+      "vulnerable_versions": "<=1.1.5",
+      "github_advisory_id": "GHSA-3gc7-fjrx-p6mg",
+      "recommendation": "None",
+      "patched_versions": "<0.0.0",
+      "updated": "2025-04-04T18:23:46.000Z",
+      "cvss": {
+        "score": 7.5,
+        "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H"
+      },
+      "cwe": [
+        "CWE-120"
+      ],
+      "url": "https://github.com/advisories/GHSA-3gc7-fjrx-p6mg"
+    }
+  },
+  "muted": [],
+  "metadata": {
+    "vulnerabilities": {
+      "info": 0,
+      "low": 0,
+      "moderate": 0,
+      "high": 1,
+      "critical": 0
+    },
+    "dependencies": 938,
+    "devDependencies": 0,
+    "optionalDependencies": 0,
+    "totalDependencies": 938
+  }
+}

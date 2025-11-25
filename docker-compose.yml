@@ -27,21 +27,18 @@ services:
       retries: 3
       start_period: 40s
 
-  discord-bot:
+  justthetip-bot:
     build:
       context: .
-      dockerfile: apps/discord-bot/Dockerfile
-    container_name: tiltcheck-bot
+      dockerfile: apps/justthetip-bot/Dockerfile
+    container_name: justthetip-bot
     ports:
       - "8081:8081"
     environment:
       - NODE_ENV=production
-      - DISCORD_TOKEN=${DISCORD_TOKEN}
-      - DISCORD_CLIENT_ID=${DISCORD_CLIENT_ID}
+      - DISCORD_TOKEN=${JUSTTHETIP_DISCORD_TOKEN}
+      - DISCORD_CLIENT_ID=${JUSTTHETIP_CLIENT_ID}
       - DISCORD_GUILD_ID=${DISCORD_GUILD_ID}
-      - DASHBOARD_URL=http://dashboard:5055
-      - SUSLINK_AUTO_SCAN=${SUSLINK_AUTO_SCAN:-true}
-      - TRUST_THRESHOLD=${TRUST_THRESHOLD:-60}
     volumes:
       - ./data:/app/data
     restart: unless-stopped

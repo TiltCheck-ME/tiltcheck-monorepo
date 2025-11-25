@@ -19,13 +19,6 @@ jobs:
         run: corepack enable && corepack prepare pnpm@9 --activate
       - name: Install deps
         run: pnpm install --frozen-lockfile
-      - name: Dry-run discord-bot (if inputs provided)
-        run: |
-          if [ -n "$DISCORD_TOKEN" ] && [ -n "$DISCORD_CLIENT_ID" ]; then \
-            pnpm --filter @tiltcheck/discord-bot deploy:commands:dry-run || true; \
-          else \
-            echo "Skipping discord-bot dry-run (missing DISCORD_TOKEN / DISCORD_CLIENT_ID)"; \
-          fi
       - name: Dry-run justthetip-bot (if inputs provided)
         run: |
           if [ -n "$JUSTTHETIP_DISCORD_TOKEN" ] && [ -n "$JUSTTHETIP_DISCORD_CLIENT_ID" ]; then \
@@ -38,6 +31,5 @@ jobs:
         with:
           name: command-validate
           path: |
-            apps/discord-bot/data/last-command-sync.json
             apps/justthetip-bot/data/last-command-sync.json
           if-no-files-found: warn

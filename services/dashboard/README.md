@@ -1,35 +1,111 @@
-# TiltCheck Trust Dashboard Service (Draft)
+# TiltCheck Dashboard Service
 
-Lightweight Express + SSE service exposing real-time trust metrics (domain, casino, degen) and rollup snapshots.
+The personalized web dashboard service for the TiltCheck ecosystem. Provides comprehensive analytics and management interfaces that Discord bot commands redirect to.
 
-## Endpoints
-- `GET /` static dashboard HTML (served from `public/index.html`)
-- `GET /events` (SSE): live stream of trust events (init snapshot + incremental updates)
-- `GET /api/rollups/latest` latest aggregate batch from `data/trust-rollups.json`
-- `GET /api/domains` domain score snapshot from `data/domain-trust-scores.json`
-- `GET /api/degens` user/degen trust scores if snapshot exists
-- `GET /api/health` snapshot age, throttled count, buffer size, retentionDays
-- `GET /api/config` configuration details (pollIntervalMs, retentionDays, throttleWindowMs, snapshotDir)
-- `GET /api/severity` current severity bucket counts
-- `GET /api/alerts` current risk alerts list
-- `POST /api/request-snapshot` publish `trust.state.requested` event (subject to upstream throttle)
+## Overview
+
+The dashboard service serves as the central web interface for TiltCheck users, integrating trust analytics, tilt monitoring, and cooldown management into personalized dashboards.
+
+## Features
+
+### 🎯 Trust Analytics Dashboard
+- Real-time trust scoring for users
+- Casino trust leaderboards  
+- Trust factor breakdowns
+- Historical trust events
+
+### 📈 Tilt Monitoring Dashboard
+- Live tilt level detection
+- 24-hour tilt history charts
+- Risk factor identification
+- Personalized recommendations
+
+### ❄️ Cooldown Management Dashboard
+- Spending limit tracking (daily/weekly/monthly)
+- Quick cooldown controls (15min to 24h+)
+- Active cooldown management
+- Lock vault integration
+
+### 🌐 Main Dashboard
+- Unified overview of all metrics
+- Quick navigation to specialized dashboards
+- Real-time status updates
+- TiltCheck ecosystem integration
+
+## API Endpoints
+
+### Dashboard Routes
+- `GET /dashboard?discord={id}` - Main unified dashboard
+- `GET /dashboard/trust?discord={id}` - Trust analytics
+- `GET /dashboard/tilt?discord={id}` - Tilt monitoring  
+- `GET /dashboard/cooldown?discord={id}` - Cooldown management
+
+### API Routes
+- `GET /api/trust/:discordId` - Trust data JSON
+- `GET /api/casinos` - Casino trust scores JSON
+- `GET /api/events` - Server-Sent Events for real-time updates
+
+### Health Check
+- `GET /health` - Service status
+
+## Discord Bot Integration
+
+Discord bot commands redirect users to their personalized dashboards:
+
+```javascript
+// Trust command redirects to trust dashboard
+/trust → https://tiltcheck.com/dashboard/trust?discord={user_id}
+
+// Tilt check redirects to tilt monitoring
+/tiltcheck → https://tiltcheck.com/dashboard/tilt?discord={user_id}
+
+// Cooldown commands redirect to cooldown management
+/cooldown → https://tiltcheck.com/dashboard/cooldown?discord={user_id}
+```
 
 ## Development
+
+### Local Development
 ```bash
-pnpm install
-pnpm --filter @tiltcheck/dashboard dev
+cd services/dashboard
+npm run dev  # Starts on port 3001
 ```
-Server listens on `PORT` (default 5055).
 
-## Notes
-- Poll interval configurable via `DASHBOARD_POLL_MS` (default 30s)
-- Event retention for daily logs configurable via `DASHBOARD_EVENTS_KEEP_DAYS` (default 7)
-- Discord webhook alerts configurable via `DISCORD_WEBHOOK_URL` (optional)
-- Throttle heuristic increments when snapshot requested inside 5s window since last snapshot
-- Event buffer limited to last 500 trust events
+### Access Dashboards
+- Main: http://localhost:3001/dashboard?discord=YOUR_DISCORD_ID
+- Trust: http://localhost:3001/dashboard/trust?discord=YOUR_DISCORD_ID
+- Tilt: http://localhost:3001/dashboard/tilt?discord=YOUR_DISCORD_ID
+- Cooldown: http://localhost:3001/dashboard/cooldown?discord=YOUR_DISCORD_ID
 
-## Next Steps
-- Enhance alert de-duplication with rollup window reset logic
-- Improve throttled detection using explicit response correlation
-- Add severity distribution chart (Chart.js) and sparklines for movers
-- Persist event buffer daily for historical analysis (implemented: daily rotation with pruning)
+### Build & Deploy
+```bash
+npm run build  # Compiles TypeScript
+npm start      # Production mode
+```
+
+## Integration Status
+
+### ✅ Completed
+- Express server with routing
+- Complete HTML dashboard templates  
+- Trust engine integration structure
+- Real-time event streaming setup
+- CORS and security configuration
+- Mock data for development/testing
+
+### 🔄 In Progress
+- Trust engine data source connections
+- Tilt monitoring integration
+- User preference persistence
+- Casino data API integration
+
+### 📋 Planned
+- User authentication system
+- Data export functionality
+- Mobile responsive optimizations
+- Advanced analytics and charts
+
+---
+
+**Created by jmenichole**  
+**TiltCheck Ecosystem © 2024–2025**

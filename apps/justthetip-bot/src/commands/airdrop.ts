@@ -1,119 +1,112 @@
 /**
  * Airdrop Command
- * Creates a multi-recipient Solana Pay transaction the user signs.
+ * Creates a claimable drop that users can join by clicking a claim button.
  */
 
 import { SlashCommandBuilder, ChatInputCommandInteraction, EmbedBuilder, ButtonBuilder, ButtonStyle, ActionRowBuilder } from 'discord.js';
 import type { Command } from '../types.js';
-import { hasWallet, getWallet, createAirdropWithFeeRequest } from '@tiltcheck/justthetip';
-import { Connection } from '@solana/web3.js';
-
-const SOLANA_RPC_URL = process.env.SOLANA_RPC_URL || 'https://api.mainnet-beta.solana.com';
-const connection = new Connection(SOLANA_RPC_URL, 'confirmed');
+import { hasWallet, getWallet } from '@tiltcheck/justthetip';
+import { parseAmount } from '@tiltcheck/natural-language-parser';
 
 export const airdrop: Command = {
   data: new SlashCommandBuilder()
     .setName('airdrop')
-    .setDescription('Send a tip to multiple users (multi-transfer)')
-    .addStringOption(opt =>
-      opt
-        .setName('recipients')
-        .setDescription('Space-separated user mentions (e.g. @user1 @user2)')
-        .setRequired(true)
-    )
+    .setDescription('Create a claimable drop - users click "Claim" to join')
     .addStringOption(opt =>
       opt
         .setName('amount')
-        .setDescription('Amount per recipient in SOL (e.g. 0.1)')
+        .setDescription('Amount per person (e.g., "$5", "10", "0.1 SOL") - you pay when users claim')
         .setRequired(true)
+    )
+    .addIntegerOption(opt =>
+      opt
+        .setName('max_claims')
+        .setDescription('Maximum number of people who can claim (default: 10)')
+        .setRequired(false)
+        .setMinValue(1)
+        .setMaxValue(50)
+    )
+    .addStringOption(opt =>
+      opt
+        .setName('duration')
+        .setDescription('How long the drop stays active (e.g., "1h", "30m", "2 hours") - default: 1 hour')
+        .setRequired(false)
     ),
+
   async execute(interaction: ChatInputCommandInteraction) {
     await interaction.deferReply();
 
     if (!hasWallet(interaction.user.id)) {
-      await interaction.editReply({ content: '❌ You need to register a wallet first using `/justthetip wallet register-external`.' });
+      await interaction.editReply({ 
+        content: '❌ You need to register a wallet first!\nUse `/wallet action:register address:<your-address>` to connect your wallet.' 
+      });
       return;
     }
 
-    const recipientsRaw = interaction.options.getString('recipients', true);
     const amountRaw = interaction.options.getString('amount', true);
-
-    const amountPerRecipient = parseFloat(amountRaw);
-    if (isNaN(amountPerRecipient) || amountPerRecipient <= 0) {
-      await interaction.editReply({ content: '❌ Invalid amount. Provide a positive SOL value like `0.05`.' });
-      return;
-    }
-
-    // Extract user IDs from mentions
-    const idRegex = /<@!?(\d+)>/g;
-    const userIds: string[] = [];
-    let match: RegExpExecArray | null;
-    while ((match = idRegex.exec(recipientsRaw)) !== null) {
-      userIds.push(match[1]);
-    }
-
-    if (userIds.length === 0) {
-      await interaction.editReply({ content: '❌ No valid user mentions found. Use space-separated mentions like `@Alice @Bob`.' });
-      return;
-    }
-
-    const senderWallet = getWallet(interaction.user.id);
-    if (!senderWallet) {
-      await interaction.editReply({ content: '❌ Sender wallet not found after registration.' });
-      return;
-    }
-
-    // Resolve recipient wallet addresses
-    const walletAddresses: string[] = [];
-    const missingWallets: string[] = [];
-    for (const uid of userIds) {
-      const w = getWallet(uid);
-      if (w) walletAddresses.push(w.address); else missingWallets.push(uid);
-    }
-
-    if (walletAddresses.length === 0) {
-      await interaction.editReply({ content: '❌ None of the mentioned users have registered wallets yet.' });
-      return;
-    }
+    const maxClaims = interaction.options.getInteger('max_claims') || 10;
+    const durationRaw = interaction.options.getString('duration') || '1h';
 
     try {
-      const { url } = await createAirdropWithFeeRequest(
-        connection,
-        senderWallet.address,
-        walletAddresses,
-        amountPerRecipient,
-      );
-
-      const payButton = new ButtonBuilder()
-        .setLabel('🚀 Open Airdrop in Wallet')
-        .setStyle(ButtonStyle.Link)
-        .setURL(url);
-
-      const row = new ActionRowBuilder<ButtonBuilder>().addComponents(payButton);
-
-      const totalSOL = amountPerRecipient * walletAddresses.length;
-      const feeText = process.env.JUSTTHETIP_FEE_WALLET ? '0.0007 SOL' : 'None (fee wallet not configured)';
-
-      const embed = new EmbedBuilder()
-        .setColor(0x8844ff)
-        .setTitle('🚀 Airdrop Ready')
-        .setDescription(
-          `**Recipients:** ${walletAddresses.length}\n` +
-          `**Amount Each:** ${amountPerRecipient} SOL\n` +
-          `**Total (excluding fee):** ${totalSOL.toFixed(4)} SOL\n` +
-          `**Fee:** ${feeText}\n\n` +
-          'Tap the button below to open the unsigned transaction in your wallet and approve the multi-transfer.'
-        )
-        .setFooter({ text: 'Powered by Solana Pay multi-transfer' });
-
-      let missingNote = '';
-      if (missingWallets.length > 0) {
-        missingNote = `\n⚠️ Skipped ${missingWallets.length} user(s) without wallets.`;
+      const { amountUSD, amountSOL } = parseAmount(amountRaw);
+      
+      const senderWallet = getWallet(interaction.user.id);
+      if (!senderWallet) {
+        await interaction.editReply({ content: '❌ Wallet registration error. Please try again.' });
+        return;
       }
 
-      await interaction.editReply({ embeds: [embed], components: [row], content: missingNote });
+      // Generate unique drop ID
+      const dropId = `drop_${interaction.user.id}_${Date.now()}`;
+      
+      // Store drop data (in a real implementation, this would go to a database)
+      const dropData = {
+        id: dropId,
+        createdBy: interaction.user.id,
+        createdAt: Date.now(),
+        amountUSD,
+        amountSOL,
+        maxClaims,
+        duration: durationRaw,
+        claims: [],
+        status: 'active'
+      };
+
+      const claimButton = new ButtonBuilder()
+        .setCustomId(`claim_drop_${dropId}`)
+        .setLabel('🎁 Claim Drop')
+        .setStyle(ButtonStyle.Primary)
+        .setEmoji('💰');
+
+      const row = new ActionRowBuilder<ButtonBuilder>().addComponents(claimButton);
+
+      const totalCost = (amountUSD || 0) * maxClaims;
+      const embed = new EmbedBuilder()
+        .setColor(0x00D4AA)
+        .setTitle('🎁 Airdrop Created!')
+        .setDescription(
+          `**Drop Amount:** $${amountUSD?.toFixed(2) || 'N/A'} USD (≈${amountSOL?.toFixed(4) || 'N/A'} SOL) per person\\n` +
+          `**Max Claims:** ${maxClaims} people\\n` +
+          `**Duration:** ${durationRaw}\\n` +
+          `**Total Cost:** $${totalCost.toFixed(2)} USD (you pay as people claim)\\n\\n` +
+          `🎯 **Users click "Claim Drop" below to join!**\\n` +
+          `You'll pay $${amountUSD?.toFixed(2) || 'N/A'} + $0.07 fee for each person who claims.`
+        )
+        .addFields(
+          { name: '👥 Claims', value: '0 / ' + maxClaims, inline: true },
+          { name: '⏰ Expires', value: `<t:${Math.floor((Date.now() + 3600000) / 1000)}:R>`, inline: true }
+        )
+        .setFooter({ text: 'Powered by JustTheTip • Non-custodial drops' });
+
+      await interaction.editReply({ embeds: [embed], components: [row] });
+
+      // TODO: Store drop data in database/file system
+      // TODO: Set up expiration timer
+      
     } catch (error) {
-      await interaction.editReply({ content: `❌ Failed to build airdrop transaction: ${error instanceof Error ? error.message : 'Unknown error'}` });
+      await interaction.editReply({ 
+        content: `❌ Invalid amount format. Use formats like "$5", "10", or "0.1 SOL"` 
+      });
     }
   },
 };

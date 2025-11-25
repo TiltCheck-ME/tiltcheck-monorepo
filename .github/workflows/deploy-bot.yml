@@ -1,10 +1,10 @@
-name: Deploy Discord Bot
+name: Deploy JustTheTip Bot
 
 on:
   push:
     branches: [main]
     paths:
-      - 'apps/discord-bot/**'
+      - 'apps/justthetip-bot/**'
       - 'packages/**'
       - '.github/workflows/deploy-bot.yml'
   workflow_dispatch:
@@ -37,8 +37,8 @@ jobs:
 
       - name: Build Docker image
         run: |
-          docker build -f apps/discord-bot/Dockerfile -t tiltcheck-bot:${{ github.sha }} .
-          docker tag tiltcheck-bot:${{ github.sha }} tiltcheck-bot:latest
+          docker build -f apps/justthetip-bot/Dockerfile -t justthetip-bot:${{ github.sha }} .
+          docker tag justthetip-bot:${{ github.sha }} justthetip-bot:latest
 
       - name: Log in to Docker Hub
         if: github.event_name != 'pull_request'
@@ -50,10 +50,10 @@ jobs:
       - name: Push to Docker Hub
         if: github.event_name != 'pull_request'
         run: |
-          docker tag tiltcheck-bot:latest ${{ secrets.DOCKER_USERNAME }}/tiltcheck-bot:latest
-          docker tag tiltcheck-bot:latest ${{ secrets.DOCKER_USERNAME }}/tiltcheck-bot:${{ github.sha }}
-          docker push ${{ secrets.DOCKER_USERNAME }}/tiltcheck-bot:latest
-          docker push ${{ secrets.DOCKER_USERNAME }}/tiltcheck-bot:${{ github.sha }}
+          docker tag justthetip-bot:latest ${{ secrets.DOCKER_USERNAME }}/justthetip-bot:latest
+          docker tag justthetip-bot:latest ${{ secrets.DOCKER_USERNAME }}/justthetip-bot:${{ github.sha }}
+          docker push ${{ secrets.DOCKER_USERNAME }}/justthetip-bot:latest
+          docker push ${{ secrets.DOCKER_USERNAME }}/justthetip-bot:${{ github.sha }}
 
       - name: Deploy to server
         if: github.event_name != 'pull_request'
@@ -64,6 +64,6 @@ jobs:
           key: ${{ secrets.DEPLOY_SSH_KEY }}
           script: |
             cd /opt/tiltcheck
-            docker compose pull discord-bot
-            docker compose up -d discord-bot
+            docker compose pull justthetip-bot
+            docker compose up -d justthetip-bot
             docker system prune -f

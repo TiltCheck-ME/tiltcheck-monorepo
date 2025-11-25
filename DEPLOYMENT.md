@@ -30,12 +30,12 @@ pnpm test
 
 ---
 
-## 2. Discord Bot Configuration
+## 2. JustTheTip Bot Configuration
 
 ### A. Create Discord Application
 1. Go to [Discord Developer Portal](https://discord.com/developers/applications)
 2. Click "New Application"
-3. Name it "TiltCheck" and create
+3. Name it "JustTheTip" and create
 4. Go to "Bot" tab → "Add Bot"
 5. Copy the **Bot Token** (keep this secret!)
 6. Go to "OAuth2" → "General"
@@ -54,7 +54,7 @@ pnpm test
 
 ### D. Configure Bot Environment
 ```bash
-cd apps/discord-bot
+cd apps/justthetip-bot
 cp .env.example .env
 ```
 
@@ -63,7 +63,6 @@ Edit `.env`:
 DISCORD_TOKEN=your_bot_token_from_step_A5
 DISCORD_CLIENT_ID=your_client_id_from_step_A7
 DISCORD_GUILD_ID=your_server_id_from_step_C
-DASHBOARD_URL=http://localhost:5055
 ```
 
 ---
@@ -102,9 +101,9 @@ DISCORD_WEBHOOK_URL=your_webhook_url_from_step_A5
 pnpm --filter @tiltcheck/dashboard dev
 ```
 
-**Terminal 2 - Discord Bot:**
+**Terminal 2 - JustTheTip Bot:**
 ```bash
-pnpm --filter discord-bot dev
+pnpm --filter @tiltcheck/justthetip-bot dev
 ```
 
 **Terminal 3 - Trust Rollup Service (optional):**
@@ -121,25 +120,25 @@ pnpm run build
 # Start dashboard
 pnpm --filter @tiltcheck/dashboard start
 
-# Start bot (in separate process/container)
-pnpm --filter discord-bot start
+# Start JustTheTip bot (in separate process/container)
+pnpm --filter @tiltcheck/justthetip-bot start
 ```
 
 ---
 
 ## 5. Verify Deployment
 
-### Test Discord Bot
+### Test JustTheTip Bot
 In your Discord server:
 ```
-/ping
+/tip @user 5 SOL for being awesome
 ```
-Should respond with latency.
+Should initiate a tip transaction.
 
 ```
-/trust dashboard
+/balance
 ```
-Should show live metrics if dashboard is running.
+Should show your current balance.
 
 ### Test Dashboard Alerts
 1. Visit `http://localhost:5055` in browser
@@ -207,8 +206,8 @@ module.exports = {
       }
     },
     {
-      name: 'discord-bot',
-      cwd: './apps/discord-bot',
+      name: 'justthetip-bot',
+      cwd: './apps/justthetip-bot',
       script: 'dist/index.js',
       env: {
         NODE_ENV: 'production'
@@ -271,7 +270,7 @@ curl http://localhost:5055/api/config
 ```bash
 # PM2 logs
 pm2 logs dashboard
-pm2 logs discord-bot
+pm2 logs justthetip-bot
 
 # Docker logs
 docker-compose logs -f dashboard
@@ -299,16 +298,12 @@ find ./data/events -name "trust-events-*.json" -mtime +7 -delete
 | `DISCORD_WEBHOOK_URL` | No | - | Discord webhook for alerts |
 | `NODE_ENV` | No | `development` | Environment mode |
 
-### Discord Bot
+### JustTheTip Bot
 | Variable | Required | Default | Description |
 |----------|----------|---------|-------------|
 | `DISCORD_TOKEN` | **Yes** | - | Bot token from Discord |
 | `DISCORD_CLIENT_ID` | **Yes** | - | Application client ID |
 | `DISCORD_GUILD_ID` | No | - | Guild ID for dev commands |
-| `DASHBOARD_URL` | No | `http://localhost:5055` | Dashboard API URL |
-| `COMMAND_PREFIX` | No | `!` | Legacy command prefix |
-| `SUSLINK_AUTO_SCAN` | No | `true` | Auto-scan links in messages |
-| `TRUST_THRESHOLD` | No | `60` | Minimum trust score |
 
 ---
 
@@ -318,7 +313,7 @@ find ./data/events -name "trust-events-*.json" -mtime +7 -delete
 - Verify bot is online in Discord server members list
 - Check `DISCORD_TOKEN` is correct
 - Ensure bot has proper permissions in channel
-- Check logs: `pm2 logs discord-bot` or `docker-compose logs discord-bot`
+- Check logs: `pm2 logs justthetip-bot` or `docker-compose logs justthetip-bot`
 
 ### Dashboard 404 Errors
 - Verify service is running: `curl http://localhost:5055/api/health`

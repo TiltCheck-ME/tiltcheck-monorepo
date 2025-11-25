@@ -1,0 +1,1029 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="QualifyFirst - Earn money with smart survey matching and microtasks. Maximize earnings, minimize screen-outs.">
+    <title>QualifyFirst - Smart Earnings Platform</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #0a0b0d;
+            --bg-secondary: #0f1115;
+            --surface: #151720;
+            --surface-2: #1a1d26;
+            --surface-hover: #1f222d;
+            --border: #23262f;
+            --border-light: #2d3139;
+            --accent: #00d4aa;
+            --accent-hover: #00b893;
+            --accent-alt: #8a5cff;
+            --accent-alt-hover: #7a4ee6;
+            --warning: #ffa726;
+            --success: #00d4aa;
+            --danger: #ff5e9a;
+            --text: #ffffff;
+            --text-secondary: #b0b8c1;
+            --text-muted: #6b7280;
+            --radius: 16px;
+            --radius-sm: 8px;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.4);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+            background: linear-gradient(135deg, var(--bg) 0%, var(--bg-secondary) 100%);
+            color: var(--text);
+            line-height: 1.6;
+            min-height: 100vh;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 24px;
+        }
+
+        /* Header Styles */
+        .header {
+            background: linear-gradient(135deg, var(--surface) 0%, var(--surface-2) 100%);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 32px;
+            margin-bottom: 32px;
+            text-align: center;
+            box-shadow: var(--shadow);
+        }
+
+        .header h1 {
+            background: linear-gradient(135deg, var(--accent) 0%, var(--accent-alt) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 12px;
+            font-size: clamp(2rem, 5vw, 3rem);
+            font-weight: 800;
+            letter-spacing: -0.02em;
+        }
+
+        .subtitle {
+            color: var(--text-secondary);
+            font-size: clamp(1rem, 2vw, 1.2rem);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* Cooldown Banner */
+        .cooldown-banner {
+            background: linear-gradient(135deg, var(--accent-alt) 0%, var(--accent) 100%);
+            padding: 20px 32px;
+            border-radius: var(--radius);
+            margin-bottom: 32px;
+            text-align: center;
+            box-shadow: var(--shadow-lg);
+            animation: slideDown 0.5s ease-out;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .cooldown-banner h3 {
+            margin-bottom: 8px;
+            font-size: 1.3rem;
+        }
+
+        /* Navigation Tabs */
+        .nav-tabs {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 32px;
+            overflow-x: auto;
+            padding-bottom: 8px;
+        }
+
+        .nav-tab {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            padding: 12px 24px;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+            font-weight: 600;
+        }
+
+        .nav-tab:hover {
+            background: var(--surface-hover);
+            border-color: var(--border-light);
+        }
+
+        .nav-tab.active {
+            background: linear-gradient(135deg, var(--accent) 0%, var(--accent-hover) 100%);
+            border-color: var(--accent);
+            color: var(--bg);
+        }
+
+        /* Grid Layout */
+        .grid {
+            display: grid;
+            grid-template-columns: 380px 1fr;
+            gap: 32px;
+            margin-bottom: 32px;
+        }
+
+        /* Card Styles */
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 28px;
+            box-shadow: var(--shadow);
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            box-shadow: var(--shadow-lg);
+        }
+
+        .card h3 {
+            color: var(--accent);
+            margin-bottom: 20px;
+            font-size: 1.4rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .stat-item {
+            background: var(--surface-2);
+            padding: 20px;
+            border-radius: var(--radius-sm);
+            text-align: center;
+            border: 1px solid var(--border);
+            transition: all 0.3s ease;
+        }
+
+        .stat-item:hover {
+            border-color: var(--accent);
+            transform: translateY(-2px);
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--accent) 0%, var(--accent-alt) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 4px;
+        }
+
+        .stat-label {
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+        /* Form Styles */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px 16px;
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            color: var(--text);
+            font-size: 15px;
+            transition: all 0.3s ease;
+            font-family: inherit;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(0, 212, 170, 0.1);
+        }
+
+        /* Button Styles */
+        .btn {
+            background: linear-gradient(135deg, var(--accent) 0%, var(--accent-hover) 100%);
+            color: var(--bg);
+            border: none;
+            padding: 14px 24px;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            font-weight: 700;
+            font-size: 15px;
+            transition: all 0.3s ease;
+            box-shadow: var(--shadow);
+            width: 100%;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn.secondary {
+            background: var(--surface-2);
+            color: var(--text);
+            border: 1px solid var(--border);
+        }
+
+        .btn.secondary:hover {
+            background: var(--surface-hover);
+            border-color: var(--border-light);
+        }
+
+        .btn.small {
+            padding: 8px 16px;
+            font-size: 13px;
+            width: auto;
+        }
+
+        /* Survey & Task Cards */
+        .item-card {
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 24px;
+            margin-bottom: 20px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .item-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--accent) 0%, var(--accent-alt) 100%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .item-card:hover {
+            border-color: var(--accent);
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .item-card:hover::before {
+            opacity: 1;
+        }
+
+        .item-title {
+            font-size: 1.15rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+            color: var(--text);
+        }
+
+        .item-description {
+            color: var(--text-secondary);
+            margin-bottom: 16px;
+            line-height: 1.5;
+        }
+
+        .item-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .item-payout {
+            color: var(--success);
+            font-weight: 800;
+            font-size: 1.3rem;
+        }
+
+        .item-time {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .item-provider {
+            background: var(--surface);
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            border: 1px solid var(--border);
+        }
+
+        .match-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .match-high {
+            background: rgba(0, 212, 170, 0.15);
+            color: var(--success);
+            border: 1px solid rgba(0, 212, 170, 0.3);
+        }
+
+        .match-medium {
+            background: rgba(255, 167, 38, 0.15);
+            color: var(--warning);
+            border: 1px solid rgba(255, 167, 38, 0.3);
+        }
+
+        .match-low {
+            background: rgba(255, 94, 154, 0.15);
+            color: var(--danger);
+            border: 1px solid rgba(255, 94, 154, 0.3);
+        }
+
+        .item-footer {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .item-reasoning {
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px solid var(--border);
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+        }
+
+        /* Badge Styles */
+        .badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .badge-success {
+            background: rgba(0, 212, 170, 0.15);
+            color: var(--success);
+        }
+
+        .badge-warning {
+            background: rgba(255, 167, 38, 0.15);
+            color: var(--warning);
+        }
+
+        .badge-info {
+            background: rgba(138, 92, 255, 0.15);
+            color: var(--accent-alt);
+        }
+
+        /* Loading State */
+        .loading {
+            text-align: center;
+            padding: 60px 20px;
+        }
+
+        .spinner {
+            width: 48px;
+            height: 48px;
+            border: 4px solid var(--surface-2);
+            border-top: 4px solid var(--accent);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-muted);
+        }
+
+        .empty-state-icon {
+            font-size: 4rem;
+            margin-bottom: 16px;
+            opacity: 0.5;
+        }
+
+        /* Questions List */
+        .questions-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .questions-list li {
+            background: var(--surface-2);
+            padding: 14px 16px;
+            margin-bottom: 10px;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .questions-list li:hover {
+            background: var(--surface-hover);
+            border-color: var(--accent);
+            transform: translateX(4px);
+        }
+
+        .questions-list li::before {
+            content: '→';
+            color: var(--accent);
+            font-weight: bold;
+        }
+
+        /* Category Filter */
+        .category-filters {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .category-filter {
+            padding: 8px 16px;
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .category-filter:hover {
+            background: var(--surface-hover);
+            border-color: var(--border-light);
+        }
+
+        .category-filter.active {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: var(--bg);
+        }
+
+        /* Earnings Summary */
+        .earnings-summary {
+            background: linear-gradient(135deg, var(--accent-alt) 0%, var(--accent) 100%);
+            padding: 24px;
+            border-radius: var(--radius);
+            margin-bottom: 24px;
+            color: white;
+            box-shadow: var(--shadow-lg);
+        }
+
+        .earnings-summary h4 {
+            margin-bottom: 8px;
+            opacity: 0.9;
+        }
+
+        .earnings-amount {
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-bottom: 8px;
+        }
+
+        .earnings-breakdown {
+            display: flex;
+            gap: 24px;
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 1024px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 16px;
+            }
+
+            .header {
+                padding: 24px 20px;
+            }
+
+            .card {
+                padding: 20px;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .nav-tabs {
+                gap: 8px;
+            }
+
+            .nav-tab {
+                padding: 10px 16px;
+                font-size: 0.9rem;
+            }
+        }
+
+        /* Utility Classes */
+        .hidden {
+            display: none !important;
+        }
+
+        .fade-in {
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header fade-in">
+            <h1>🎯 QualifyFirst</h1>
+            <p class="subtitle">Maximize your earnings with AI-powered survey matching and revenue-generating microtasks</p>
+        </div>
+
+        <!-- Cooldown Banner -->
+        <div id="cooldown-banner" class="cooldown-banner hidden">
+            <h3>👍 Perfect timing for a productive break!</h3>
+            <p>Turn your cooldown into earnings with personalized surveys and quick microtasks</p>
+        </div>
+
+        <!-- Navigation Tabs -->
+        <div class="nav-tabs">
+            <div class="nav-tab active" onclick="switchTab('surveys')">📊 Surveys</div>
+            <div class="nav-tab" onclick="switchTab('microtasks')">⚡ Microtasks</div>
+            <div class="nav-tab" onclick="switchTab('earnings')">💰 Earnings</div>
+        </div>
+
+        <!-- Main Grid -->
+        <div class="grid">
+            <!-- Sidebar: Profile -->
+            <div class="card fade-in">
+                <h3>👤 Your Profile</h3>
+                
+                <div id="loading-profile" class="loading">
+                    <div class="spinner"></div>
+                    <p>Loading profile...</p>
+                </div>
+
+                <div id="profile-content" class="hidden">
+                    <!-- Earnings Summary -->
+                    <div class="earnings-summary">
+                        <h4>Total Earnings</h4>
+                        <div class="earnings-amount" id="total-earnings">$0.00</div>
+                        <div class="earnings-breakdown">
+                            <div><strong id="completed-count">0</strong> completed</div>
+                            <div><strong id="pending-amount">$0</strong> pending</div>
+                        </div>
+                    </div>
+
+                    <!-- Stats -->
+                    <div class="stats-grid">
+                        <div class="stat-item">
+                            <div class="stat-value" id="surveys-completed">0</div>
+                            <div class="stat-label">Surveys</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value" id="tasks-completed">0</div>
+                            <div class="stat-label">Tasks</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value" id="success-rate">0%</div>
+                            <div class="stat-label">Success</div>
+                        </div>
+                    </div>
+
+                    <!-- Profile Form -->
+                    <form class="profile-form" id="profile-form">
+                        <div class="form-group">
+                            <label for="ageRange">Age Range</label>
+                            <select name="ageRange" id="ageRange" class="form-control">
+                                <option value="">Select...</option>
+                                <option value="18-24">18-24</option>
+                                <option value="25-34">25-34</option>
+                                <option value="35-44">35-44</option>
+                                <option value="45-54">45-54</option>
+                                <option value="55+">55+</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="hasPets">Have Pets?</label>
+                            <select name="hasPets" id="hasPets" class="form-control">
+                                <option value="">Select...</option>
+                                <option value="true">Yes</option>
+                                <option value="false">No</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="ownsCar">Own a Car?</label>
+                            <select name="ownsCar" id="ownsCar" class="form-control">
+                                <option value="">Select...</option>
+                                <option value="true">Yes</option>
+                                <option value="false">No</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="hasChildren">Have Children?</label>
+                            <select name="hasChildren" id="hasChildren" class="form-control">
+                                <option value="">Select...</option>
+                                <option value="true">Yes</option>
+                                <option value="false">No</option>
+                            </select>
+                        </div>
+
+                        <button type="submit" class="btn">💾 Update Profile</button>
+                    </form>
+
+                    <!-- Quick Questions -->
+                    <div style="margin-top: 24px;">
+                        <h4 style="margin-bottom: 12px; color: var(--text-secondary); font-size: 0.95rem;">📝 Improve Your Matches</h4>
+                        <ul id="questions-list" class="questions-list">
+                            <!-- Populated by JS -->
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Content Area -->
+            <div>
+                <!-- Surveys Tab -->
+                <div id="surveys-tab" class="card fade-in">
+                    <h3>📊 Matched Surveys</h3>
+                    
+                    <div id="loading-surveys" class="loading">
+                        <div class="spinner"></div>
+                        <p>Finding your best matches...</p>
+                    </div>
+
+                    <div id="surveys-content" class="hidden">
+                        <div id="surveys-list">
+                            <!-- Populated by JS -->
+                        </div>
+                    </div>
+
+                    <div id="no-surveys" class="empty-state hidden">
+                        <div class="empty-state-icon">🎯</div>
+                        <h3>No surveys available</h3>
+                        <p>Complete your profile to unlock more opportunities!</p>
+                    </div>
+                </div>
+
+                <!-- Microtasks Tab -->
+                <div id="microtasks-tab" class="card fade-in hidden">
+                    <h3>⚡ Revenue-Generating Microtasks</h3>
+                    
+                    <div class="category-filters" id="category-filters">
+                        <div class="category-filter active" data-category="all">All Tasks</div>
+                        <div class="category-filter" data-category="crypto">💎 Crypto</div>
+                        <div class="category-filter" data-category="reviews">⭐ Reviews</div>
+                        <div class="category-filter" data-category="cashback">💰 Cashback</div>
+                        <div class="category-filter" data-category="social">📱 Social</div>
+                        <div class="category-filter" data-category="testing">🧪 Testing</div>
+                    </div>
+
+                    <div id="loading-tasks" class="loading">
+                        <div class="spinner"></div>
+                        <p>Loading microtasks...</p>
+                    </div>
+
+                    <div id="tasks-content" class="hidden">
+                        <div id="tasks-list">
+                            <!-- Populated by JS -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Earnings Tab -->
+                <div id="earnings-tab" class="card fade-in hidden">
+                    <h3>💰 Earnings Dashboard</h3>
+                    
+                    <div id="earnings-content">
+                        <!-- Populated by JS -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const discordId = urlParams.get('discord') || 'demo-user';
+        const source = urlParams.get('source');
+
+        let currentTab = 'surveys';
+        let currentCategory = 'all';
+        let allTasks = [];
+
+        // Show cooldown banner
+        if (source === 'cooldown') {
+            document.getElementById('cooldown-banner').classList.remove('hidden');
+        }
+
+        // Tab Switching
+        function switchTab(tab) {
+            currentTab = tab;
+            
+            // Update tab buttons
+            document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            // Show/hide content
+            document.getElementById('surveys-tab').classList.toggle('hidden', tab !== 'surveys');
+            document.getElementById('microtasks-tab').classList.toggle('hidden', tab !== 'microtasks');
+            document.getElementById('earnings-tab').classList.toggle('hidden', tab !== 'earnings');
+            
+            // Load content if needed
+            if (tab === 'microtasks' && allTasks.length === 0) {
+                loadMicrotasks();
+            } else if (tab === 'earnings') {
+                loadEarnings();
+            }
+        }
+
+        // Load Profile
+        async function loadProfile() {
+            try {
+                const response = await fetch(`/api/profile/${discordId}`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    populateProfile(data.profile);
+                    document.getElementById('loading-profile').classList.add('hidden');
+                    document.getElementById('profile-content').classList.remove('hidden');
+                }
+            } catch (error) {
+                console.error('Failed to load profile:', error);
+            }
+        }
+
+        function populateProfile(profile) {
+            document.getElementById('total-earnings').textContent = `$${profile.earnings.toFixed(2)}`;
+            document.getElementById('completed-count').textContent = profile.completedSurveys;
+            document.getElementById('surveys-completed').textContent = profile.completedSurveys;
+            document.getElementById('success-rate').textContent = `${profile.averageCompletion}%`;
+        }
+
+        // Load Surveys
+        async function loadSurveys() {
+            try {
+                const response = await fetch(`/api/matches/${discordId}`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    populateSurveys(data.matches);
+                    document.getElementById('loading-surveys').classList.add('hidden');
+                    if (data.matches.length > 0) {
+                        document.getElementById('surveys-content').classList.remove('hidden');
+                    } else {
+                        document.getElementById('no-surveys').classList.remove('hidden');
+                    }
+                }
+            } catch (error) {
+                console.error('Failed to load surveys:', error);
+            }
+        }
+
+        function populateSurveys(matches) {
+            const container = document.getElementById('surveys-list');
+            container.innerHTML = matches.map(match => `
+                <div class="item-card fade-in">
+                    <div class="item-title">${match.survey.title}</div>
+                    <div class="item-description">${match.survey.description}</div>
+                    <div class="item-meta">
+                        <div style="display: flex; gap: 12px; align-items: center;">
+                            <span class="item-payout">$${match.survey.payoutUSD.toFixed(2)}</span>
+                            <span class="item-time">⏱ ${match.survey.estimatedMinutes} min</span>
+                        </div>
+                        <span class="match-indicator match-${match.matchLevel.toLowerCase()}">
+                            ● ${match.matchProbability.toFixed(0)}% Match
+                        </span>
+                    </div>
+                    <div class="item-footer">
+                        <button class="btn small" onclick="startSurvey('${match.survey.id}', '${match.survey.title}')">
+                            Start Survey →
+                        </button>
+                        <span class="item-provider">${match.survey.source}</span>
+                    </div>
+                    <div class="item-reasoning">
+                        <span>💡</span>
+                        <span>${match.reasoning}</span>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Load Microtasks
+        async function loadMicrotasks() {
+            try {
+                const response = await fetch(`/api/microtasks/${discordId}`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    allTasks = data.tasks;
+                    filterTasks();
+                    document.getElementById('loading-tasks').classList.add('hidden');
+                    document.getElementById('tasks-content').classList.remove('hidden');
+                }
+            } catch (error) {
+                console.error('Failed to load microtasks:', error);
+            }
+        }
+
+        function filterTasks() {
+            const filtered = currentCategory === 'all' 
+                ? allTasks 
+                : allTasks.filter(t => t.category === currentCategory);
+            
+            const container = document.getElementById('tasks-list');
+            container.innerHTML = filtered.map(task => `
+                <div class="item-card fade-in">
+                    <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 8px;">
+                        <div class="item-title">${task.name}</div>
+                        <span class="badge badge-${task.difficulty === 'easy' ? 'success' : task.difficulty === 'medium' ? 'warning' : 'info'}">
+                            ${task.difficulty}
+                        </span>
+                    </div>
+                    <div class="item-description">${task.instructions}</div>
+                    <div class="item-meta">
+                        <div style="display: flex; gap: 12px; align-items: center;">
+                            <span class="item-payout">$${task.userPayout.amount.toFixed(2)}</span>
+                            <span class="item-time">⏱ ${task.estimatedMinutes} min</span>
+                        </div>
+                        <span class="badge badge-info">${task.category}</span>
+                    </div>
+                    <div style="margin-bottom: 16px; font-size: 0.85rem; color: var(--text-muted);">
+                        <strong>Payment:</strong> ${task.userPayout.type} • ${task.userPayout.processingTime}
+                    </div>
+                    <button class="btn small" onclick="startTask('${task.id}', '${task.name}')">
+                        Start Task →
+                    </button>
+                </div>
+            `).join('');
+        }
+
+        // Category Filter
+        document.querySelectorAll('.category-filter').forEach(filter => {
+            filter.addEventListener('click', (e) => {
+                document.querySelectorAll('.category-filter').forEach(f => f.classList.remove('active'));
+                e.target.classList.add('active');
+                currentCategory = e.target.dataset.category;
+                filterTasks();
+            });
+        });
+
+        // Load Earnings
+        async function loadEarnings() {
+            try {
+                const response = await fetch(`/api/microtasks/earnings/${discordId}`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    const container = document.getElementById('earnings-content');
+                    container.innerHTML = `
+                        <div class="stats-grid" style="margin-bottom: 32px;">
+                            <div class="stat-item">
+                                <div class="stat-value">$${data.earnings.totalEarned.toFixed(2)}</div>
+                                <div class="stat-label">Total Earned</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-value">$${data.earnings.pendingPayout.toFixed(2)}</div>
+                                <div class="stat-label">Pending</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-value">${data.earnings.tasksCompleted}</div>
+                                <div class="stat-label">Tasks Done</div>
+                            </div>
+                        </div>
+                        <div class="empty-state">
+                            <div class="empty-state-icon">📊</div>
+                            <h3>Detailed earnings history coming soon!</h3>
+                            <p>Track all your surveys and microtasks in one place</p>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                console.error('Failed to load earnings:', error);
+            }
+        }
+
+        // Actions
+        function startSurvey(id, title) {
+            alert(`🎯 Starting Survey: ${title}\n\nIn production, this will redirect to the survey platform.`);
+        }
+
+        function startTask(id, name) {
+            alert(`⚡ Starting Microtask: ${name}\n\nIn production, this will open task instructions and verification system.`);
+        }
+
+        // Profile Form
+        document.getElementById('profile-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const traits = {};
+            
+            for (const [key, value] of formData.entries()) {
+                if (value) traits[key] = value === 'true' ? true : value === 'false' ? false : value;
+            }
+
+            try {
+                const response = await fetch(`/api/profile/${discordId}/traits`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ traits })
+                });
+
+                if (response.ok) {
+                    alert('✅ Profile updated! Refreshing matches...');
+                    loadSurveys();
+                    loadMicrotasks();
+                }
+            } catch (error) {
+                console.error('Failed to update profile:', error);
+            }
+        });
+
+        // Initialize
+        if (discordId) {
+            loadProfile();
+            loadSurveys();
+        }
+    </script>
+</body>
+</html>

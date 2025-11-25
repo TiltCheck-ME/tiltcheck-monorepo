@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QualifyFirst - Smart Survey Matching</title>
+    <style>
+        :root {
+            --bg: #0f0f12;
+            --surface: #151720;
+            --surface-2: #1a1d26;
+            --border: #23242a;
+            --accent: #00d4aa;
+            --accent-alt: #8a5cff;
+            --warning: #ffa500;
+            --success: #00d4aa;
+            --text: #ffffff;
+            --muted: #aab4bd;
+            --radius: 12px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: Inter, system-ui, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 24px;
+            margin-bottom: 24px;
+            text-align: center;
+        }
+
+        .header h1 {
+            color: var(--accent);
+            margin-bottom: 8px;
+            font-size: 2.5rem;
+        }
+
+        .subtitle {
+            color: var(--muted);
+            font-size: 1.1rem;
+        }
+
+        .cooldown-banner {
+            background: linear-gradient(135deg, var(--accent-alt), var(--accent));
+            padding: 16px;
+            border-radius: var(--radius);
+            margin-bottom: 24px;
+            text-align: center;
+        }
+
+        .cooldown-banner h3 {
+            margin-bottom: 8px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 24px;
+            margin-bottom: 24px;
+        }
+
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 24px;
+        }
+
+        .card h3 {
+            color: var(--accent);
+            margin-bottom: 16px;
+        }
+
+        .profile-form {
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 10px 12px;
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            color: var(--text);
+            font-size: 14px;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        .btn {
+            background: var(--accent);
+            color: var(--bg);
+            border: none;
+            padding: 12px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .btn:hover {
+            background: #00b893;
+        }
+
+        .btn.secondary {
+            background: var(--surface-2);
+            color: var(--text);
+            border: 1px solid var(--border);
+        }
+
+        .btn.secondary:hover {
+            background: #242830;
+        }
+
+        .survey-card {
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 20px;
+            margin-bottom: 16px;
+            transition: all 0.3s ease;
+        }
+
+        .survey-card:hover {
+            border-color: var(--accent);
+            transform: translateY(-2px);
+        }
+
+        .survey-title {
+            font-size: 1.1rem;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+
+        .survey-description {
+            color: var(--muted);
+            margin-bottom: 12px;
+        }
+
+        .survey-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .survey-payout {
+            color: var(--success);
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+
+        .survey-time {
+            color: var(--muted);
+            font-size: 0.9rem;
+        }
+
+        .match-indicator {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .match-high {
+            background: rgba(0, 212, 170, 0.2);
+            color: var(--success);
+        }
+
+        .match-medium {
+            background: rgba(255, 165, 0, 0.2);
+            color: var(--warning);
+        }
+
+        .match-low {
+            background: rgba(255, 94, 154, 0.2);
+            color: #ff5e9a;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 16px;
+            background: var(--surface-2);
+            border-radius: 8px;
+        }
+
+        .stat-value {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: var(--accent);
+            margin-bottom: 4px;
+        }
+
+        .stat-label {
+            color: var(--muted);
+            font-size: 0.9rem;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: var(--muted);
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid var(--surface-2);
+            border-top: 4px solid var(--accent);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 16px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .questions-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .questions-list li {
+            background: var(--surface-2);
+            padding: 12px;
+            margin-bottom: 8px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        .questions-list li:hover {
+            background: #242830;
+        }
+
+        .no-surveys {
+            text-align: center;
+            padding: 40px;
+            color: var(--muted);
+        }
+
+        @media (max-width: 768px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .container {
+                padding: 12px;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎯 QualifyFirst</h1>
+            <p class="subtitle">Smart survey matching to maximize your earnings and minimize screen-outs</p>
+        </div>
+
+        <!-- Cooldown Banner (shown when redirected from cooldown) -->
+        <div id="cooldown-banner" class="cooldown-banner" style="display: none;">
+            <h3>👍 Great timing for a productive break!</h3>
+            <p>While on cooldown, earn money by completing surveys matched to your profile.</p>
+        </div>
+
+        <div class="grid">
+            <!-- Profile Setup -->
+            <div class="card">
+                <h3>Your Profile</h3>
+                
+                <div id="loading-profile" class="loading">
+                    <div class="spinner"></div>
+                    <p>Loading your profile...</p>
+                </div>
+
+                <div id="profile-content" style="display: none;">
+                    <div class="stats-grid">
+                        <div class="stat-item">
+                            <div class="stat-value" id="earnings">$0</div>
+                            <div class="stat-label">Total Earned</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value" id="completed">0</div>
+                            <div class="stat-label">Completed</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value" id="screened-out">0</div>
+                            <div class="stat-label">Screen-outs</div>
+                        </div>
+                    </div>
+
+                    <form class="profile-form" id="profile-form">
+                        <div class="form-group">
+                            <label for="hasPets">Do you have pets?</label>
+                            <select name="hasPets" id="hasPets" class="form-control">
+                                <option value="">Select...</option>
+                                <option value="true">Yes</option>
+                                <option value="false">No</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="ownsCar">Do you own a car?</label>
+                            <select name="ownsCar" id="ownsCar" class="form-control">
+                                <option value="">Select...</option>
+                                <option value="true">Yes</option>
+                                <option value="false">No</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="hasChildren">Do you have children?</label>
+                            <select name="hasChildren" id="hasChildren" class="form-control">
+                                <option value="">Select...</option>
+                                <option value="true">Yes</option>
+                                <option value="false">No</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="ageRange">Age range:</label>
+                            <select name="ageRange" id="ageRange" class="form-control">
+                                <option value="">Select...</option>
+                                <option value="18-24">18-24</option>
+                                <option value="25-34">25-34</option>
+                                <option value="35-44">35-44</option>
+                                <option value="45-54">45-54</option>
+                                <option value="55+">55+</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="medicalComfort">Comfortable with medical surveys?</label>
+                            <select name="medicalComfort" id="medicalComfort" class="form-control">
+                                <option value="">Select...</option>
+                                <option value="true">Yes</option>
+                                <option value="false">No</option>
+                            </select>
+                        </div>
+
+                        <button type="submit" class="btn">Update Profile</button>
+                    </form>
+
+                    <div style="margin-top: 20px;">
+                        <h4>Recommended Questions</h4>
+                        <ul id="questions-list" class="questions-list">
+                            <!-- Populated by JS -->
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Survey Matches -->
+            <div class="card">
+                <h3>Matched Surveys</h3>
+                
+                <div id="loading-surveys" class="loading">
+                    <div class="spinner"></div>
+                    <p>Finding your best survey matches...</p>
+                </div>
+
+                <div id="surveys-content" style="display: none;">
+                    <div id="surveys-list">
+                        <!-- Populated by JS -->
+                    </div>
+                </div>
+
+                <div id="no-surveys" class="no-surveys" style="display: none;">
+                    <p>🎯 No surveys available right now</p>
+                    <p>Complete your profile to unlock more matches!</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const discordId = urlParams.get('discord');
+        const source = urlParams.get('source');
+
+        // Show cooldown banner if redirected from cooldown
+        if (source === 'cooldown') {
+            document.getElementById('cooldown-banner').style.display = 'block';
+        }
+
+        let currentProfile = null;
+
+        async function loadProfile() {
+            if (!discordId) {
+                alert('Discord ID required');
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/profile/${discordId}`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    currentProfile = data.profile;
+                    populateProfile(data.profile);
+                    document.getElementById('loading-profile').style.display = 'none';
+                    document.getElementById('profile-content').style.display = 'block';
+                }
+            } catch (error) {
+                console.error('Failed to load profile:', error);
+            }
+        }
+
+        function populateProfile(profile) {
+            // Update stats
+            document.getElementById('earnings').textContent = `$${profile.earnings.toFixed(2)}`;
+            document.getElementById('completed').textContent = profile.completedSurveys;
+            document.getElementById('screened-out').textContent = profile.failedScreeners;
+
+            // Populate form
+            const traits = profile.traits;
+            for (const [key, value] of Object.entries(traits)) {
+                const element = document.getElementById(key);
+                if (element) {
+                    element.value = value.toString();
+                }
+            }
+        }
+
+        async function loadSurveys() {
+            if (!discordId) return;
+
+            try {
+                const response = await fetch(`/api/matches/${discordId}`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    populateSurveys(data.matches);
+                    document.getElementById('loading-surveys').style.display = 'none';
+                    document.getElementById('surveys-content').style.display = 'block';
+                }
+            } catch (error) {
+                console.error('Failed to load surveys:', error);
+            }
+        }
+
+        function populateSurveys(matches) {
+            const container = document.getElementById('surveys-list');
+            
+            if (matches.length === 0) {
+                document.getElementById('surveys-content').style.display = 'none';
+                document.getElementById('no-surveys').style.display = 'block';
+                return;
+            }
+
+            container.innerHTML = matches.map(match => `
+                <div class="survey-card">
+                    <div class="survey-title">${match.survey.title}</div>
+                    <div class="survey-description">${match.survey.description}</div>
+                    <div class="survey-meta">
+                        <div>
+                            <span class="survey-payout">$${match.survey.payoutUSD.toFixed(2)}</span>
+                            <span class="survey-time">${match.survey.estimatedMinutes} min</span>
+                        </div>
+                        <span class="match-indicator match-${match.matchLevel}">
+                            ${match.matchProbability.toFixed(0)}% match
+                        </span>
+                    </div>
+                    <button class="btn" onclick="startSurvey('${match.survey.id}')">
+                        Start Survey
+                    </button>
+                    <div style="margin-top: 12px; font-size: 0.9rem; color: var(--muted);">
+                        ${match.reasoning.join(' • ')}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        async function loadQuestions() {
+            if (!discordId) return;
+
+            try {
+                const response = await fetch(`/api/questions/${discordId}`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    const container = document.getElementById('questions-list');
+                    container.innerHTML = data.questions.map(q => 
+                        `<li onclick="answerQuestion('${q}')">${q}</li>`
+                    ).join('');
+                }
+            } catch (error) {
+                console.error('Failed to load questions:', error);
+            }
+        }
+
+        function startSurvey(surveyId) {
+            // In a real implementation, this would redirect to the actual survey
+            alert(`Starting survey ${surveyId}. In production, this would redirect to the survey platform.`);
+        }
+
+        function answerQuestion(question) {
+            // In a real implementation, this would open a modal to answer the question
+            alert(`Quick question: ${question}\n\nThis would open a modal in production.`);
+        }
+
+        // Handle profile form submission
+        document.getElementById('profile-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const formData = new FormData(e.target);
+            const traits = {};
+            
+            for (const [key, value] of formData.entries()) {
+                if (value) {
+                    traits[key] = value === 'true' ? true : value === 'false' ? false : value;
+                }
+            }
+
+            try {
+                const response = await fetch(`/api/profile/${discordId}/traits`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ traits })
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    alert('Profile updated successfully!');
+                    // Reload surveys with new profile
+                    loadSurveys();
+                    loadQuestions();
+                }
+            } catch (error) {
+                console.error('Failed to update profile:', error);
+                alert('Failed to update profile');
+            }
+        });
+
+        // Initialize app
+        if (discordId) {
+            loadProfile();
+            loadSurveys();
+            loadQuestions();
+        }
+    </script>
+</body>
+</html>

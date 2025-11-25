@@ -3,17 +3,97 @@
  * Manages Discord client events
  */
 
-import { Client, Events, REST, Routes } from 'discord.js';
-// import { isNewUser, sendWelcomeDM } from '@tiltcheck/discord-utils'; // TEMP: not exported yet
-// import { parseSetupRequest } from '@tiltcheck/ai-service'; // TEMP: package doesn't exist
+import { Client, Events, REST, Routes, User, EmbedBuilder } from 'discord.js';
 import { config } from '../config.js';
 import type { CommandHandler } from './commands.js';
+import fs from 'fs/promises';
+import path from 'path';
+
+// Simple file-based storage for tracking first-time users
+const FIRST_TIME_USERS_FILE = path.join(process.cwd(), 'data', 'first-time-users.json');
 
 export class EventHandler {
   constructor(
     private client: Client,
     private commandHandler: CommandHandler
   ) {}
+
+  /**
+   * Check if user is new and send welcome DM
+   */
+  private async handleFirstTimeUser(user: User): Promise<void> {
+    try {
+      // Load existing first-time users
+      let firstTimeUsers: string[] = [];
+      try {
+        const data = await fs.readFile(FIRST_TIME_USERS_FILE, 'utf-8');
+        firstTimeUsers = JSON.parse(data);
+      } catch {
+        // File doesn't exist yet, that's fine
+        firstTimeUsers = [];
+      }
+
+      // Check if this is a new user
+      if (!firstTimeUsers.includes(user.id)) {
+        // Mark as seen
+        firstTimeUsers.push(user.id);
+        
+        // Save updated list
+        await fs.mkdir(path.dirname(FIRST_TIME_USERS_FILE), { recursive: true });
+        await fs.writeFile(FIRST_TIME_USERS_FILE, JSON.stringify(firstTimeUsers, null, 2));
+        
+        // Send welcome DM
+        await this.sendWelcomeDM(user);
+      }
+    } catch (error) {
+      console.error('[JTT Bot] Error handling first-time user:', error);
+      // Don't let this error break the command execution
+    }
+  }
+
+  /**
+   * Send welcome DM to new users
+   */
+  private async sendWelcomeDM(user: User): Promise<void> {
+    try {
+      const welcomeEmbed = new EmbedBuilder()
+        .setColor(0x14F195)
+        .setTitle('🌟 Welcome to JustTheTip!')
+        .setDescription(
+          '**Thanks for trying JustTheTip - the non-custodial Solana tipping bot!**\n\n' +
+          '✨ **What makes us different?**\n' +
+          '• You control your funds (non-custodial)\n' +
+          '• Tip in USD, auto-converted to SOL\n' +
+          '• Only $0.07 fee per transaction\n' +
+          '• No KYC required - just your wallet address\n\n' +
+          '🚀 **Quick Start:**\n' +
+          '1. `/wallet register` - Connect your Phantom/Solflare wallet\n' +
+          '2. `/tip @someone $5` - Send your first tip!\n' +
+          '3. `/help` - See all available commands\n\n' +
+          '💡 **Pro Tip:** Any tips sent to you before wallet registration will be automatically claimed when you connect your wallet!'
+        )
+        .addFields(
+          { 
+            name: '🔗 Useful Links', 
+            value: '[📖 Documentation](https://tiltcheck.com/docs/justthetip)\n[🎯 TiltCheck Dashboard](https://tiltcheck.com/dashboard)\n[💬 Support](https://discord.gg/tiltcheck)', 
+            inline: false 
+          },
+          { 
+            name: '🛡️ Safety First', 
+            value: 'JustTheTip is **completely non-custodial**. We never hold your funds - everything goes directly from your wallet to the recipient.', 
+            inline: false 
+          }
+        )
+        .setFooter({ text: 'JustTheTip • Powered by TiltCheck • Built on Solana' })
+        .setTimestamp();
+
+      await user.send({ embeds: [welcomeEmbed] });
+      console.log(`[JTT Bot] 📬 Sent welcome DM to ${user.tag}`);
+    } catch (error) {
+      // User might have DMs disabled
+      console.log(`[JTT Bot] ❌ Could not send welcome DM to ${user.tag}:`, error);
+    }
+  }
 
   registerDiscordEvents(): void {
     // Ready event
@@ -56,11 +136,10 @@ export class EventHandler {
     this.client.on(Events.InteractionCreate, async (interaction) => {
       if (!interaction.isChatInputCommand()) return;
 
+      const userId = interaction.user.id;
+      
       // Check if this is a new user - send welcome DM on first command
-      // TEMP: disabled until isNewUser/sendWelcomeDM are exported
-      // if (isNewUser(interaction.user.id)) {
-      //   await sendWelcomeDM(interaction.user, 'JustTheTip');
-      // }
+      await this.handleFirstTimeUser(interaction.user);
 
       const command = this.commandHandler.getCommand(interaction.commandName);
 

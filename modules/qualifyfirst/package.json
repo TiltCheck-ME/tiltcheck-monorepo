@@ -26,14 +26,14 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@tiltcheck/types": "workspace:*",
+    "@tiltcheck/config": "workspace:*",
     "@tiltcheck/event-router": "workspace:*",
-    "@tiltcheck/config": "workspace:*"
+    "@tiltcheck/types": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "^20.10.0",
     "tsx": "^4.7.0",
     "typescript": "^5.3.0",
-    "vitest": "^1.5.0"
+    "vitest": "^4.0.13"
   }
 }

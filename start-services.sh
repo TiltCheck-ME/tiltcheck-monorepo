@@ -11,10 +11,7 @@ mkdir -p /app/logs
 echo "📱 Starting Landing Web Server..."
 cd /app/services/landing && node server.js &
 
-echo "🤖 Starting Main Discord Bot..."
-cd /app/apps/discord-bot && npx tsx src/index.ts &
-
-echo "💰 Starting JustTheTip Bot..."
+echo "💰 Starting JustTheTip Bot (powered by TiltCheck)..."
 cd /app/apps/justthetip-bot && npx tsx src/index.ts &
 
 echo "✅ All services started!"

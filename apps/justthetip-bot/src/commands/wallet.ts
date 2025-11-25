@@ -69,13 +69,23 @@ export const wallet: Command = {
       try {
         const wallet = registerExternalWallet(interaction.user.id, address);
         
+        // Auto-claim any pending tips
+        const { claimPendingTips } = await import('@tiltcheck/justthetip');
+        const pendingTips = await claimPendingTips(interaction.user.id);
+        
         // Mark onboarding step as complete
         await updateOnboardingState(interaction.user.id, { hasRegisteredWallet: true });
+        
+        let description = 'Your wallet has been connected';
+        if (pendingTips.length > 0) {
+          const totalAmount = pendingTips.reduce((sum, tip) => sum + tip.amount, 0);
+          description += `\n\n🎉 **${pendingTips.length} pending tips automatically claimed!**\nTotal: $${totalAmount.toFixed(2)} USD`;
+        }
         
         const embed = new EmbedBuilder()
           .setColor(0x00FF00)
           .setTitle('✅ Wallet Registered!')
-          .setDescription('Your wallet has been connected')
+          .setDescription(description)
           .addFields(
             { name: 'Address', value: `\`${wallet.address}\``, inline: false },
             { name: 'Type', value: 'External', inline: true },

@@ -25,15 +25,16 @@ curl http://localhost:5055/api/health
 ## Services
 
 - **dashboard** - Trust metrics dashboard (port 5055)
-- **discord-bot** - Discord bot with trust commands
+- **justthetip-bot** - JustTheTip Discord bot powered by TiltCheck (port 8081)
 - **trust-rollup** - Aggregates trust events hourly
+- **landing** - Landing page web server (port 8080)
 
 ## Common Commands
 
 ```bash
 # View logs
 docker-compose logs -f dashboard
-docker-compose logs -f discord-bot
+docker-compose logs -f justthetip-bot
 
 # Restart a service
 docker-compose restart dashboard
@@ -152,13 +153,13 @@ docker-compose logs -f dashboard
 ### Bot not connecting
 ```bash
 # Check logs
-docker-compose logs discord-bot
+docker-compose logs justthetip-bot
 
 # Verify env vars
-docker-compose exec discord-bot env | grep DISCORD
+docker-compose exec justthetip-bot env | grep DISCORD
 
 # Restart
-docker-compose restart discord-bot
+docker-compose restart justthetip-bot
 ```
 
 ### Dashboard not accessible

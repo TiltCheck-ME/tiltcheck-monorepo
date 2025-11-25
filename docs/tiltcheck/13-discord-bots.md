@@ -1,7 +1,7 @@
 © 2024–2025 TiltCheck Ecosystem (Created by jmenichole). All Rights Reserved.
 
 # 13. Discord Bot Architecture & Command Design
-This document defines all Discord bot logic for TiltCheck, including:
+This document defines Discord bot logic for the TiltCheck ecosystem, including:
 
 - command structure  
 - permissions  
@@ -12,23 +12,20 @@ This document defines all Discord bot logic for TiltCheck, including:
 - rate limits  
 - UX guidelines  
 
-TiltCheck is **Discord-first**, so this file is core to how users experience the entire ecosystem.
-
 ---
 
 # 13.1 Overview
 
-TiltCheck runs as a **single Discord bot**, but internally behaves like:
+The TiltCheck ecosystem is **Discord-first** but delivered through **JustTheTip bot**, which integrates TiltCheck's core functionality:
 
-- JustTheTip bot  
-- SusLink bot  
-- CollectClock bot  
-- FreeSpinScan bot  
-- QualifyFirst bot  
-- Tilt Engine bot  
-- DA&D bot  
+**JustTheTip Bot** (powered by TiltCheck) provides:
+- Non-custodial tipping, airdrops, and swaps
+- Trust scoring and analytics
+- Link scanning and security
+- Bonus tracking and predictions
+- Community engagement features
 
-Modules attach commands via a shared Command Hub.
+TiltCheck's core analytics and trust engines run as backend services that power the bot's intelligence, but are also available via web dashboards and APIs for broader ecosystem access beyond Discord.
 
 ---
 

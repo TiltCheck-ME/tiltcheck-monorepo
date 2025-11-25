@@ -7,10 +7,10 @@
 pnpm install
 ```
 
-### 2. Configure Discord Bot
+### 2. Configure JustTheTip Bot
 ```bash
-cp apps/discord-bot/.env.example apps/discord-bot/.env
-# Edit apps/discord-bot/.env and add your Discord token & client ID
+cp apps/justthetip-bot/.env.example apps/justthetip-bot/.env
+# Edit apps/justthetip-bot/.env and add your Discord token & client ID
 # Get from https://discord.com/developers/applications
 ```
 
@@ -27,9 +27,9 @@ cp services/dashboard/.env.example services/dashboard/.env
 pnpm --filter @tiltcheck/dashboard dev
 ```
 
-**Terminal 2 - Discord Bot:**
+**Terminal 2 - JustTheTip Bot:**
 ```bash
-pnpm --filter discord-bot dev
+pnpm --filter @tiltcheck/justthetip-bot dev
 ```
 
 ### 4.1 CI Modes (Smoke vs Full)
@@ -58,19 +58,18 @@ scripts/validate-rollup.sh   # Flush & assert snapshot structure (full mode)
 
 To locally emulate smoke CI:
 ```bash
-SKIP_DISCORD_LOGIN=true pnpm --filter discord-bot dev
+SKIP_DISCORD_LOGIN=true pnpm --filter @tiltcheck/justthetip-bot dev
 ```
 
 To emulate full mode (requires valid Discord secrets in .env):
 ```bash
-pnpm --filter discord-bot dev
+pnpm --filter @tiltcheck/justthetip-bot dev
 ```
 
 ### 5. Test in Discord
 ```
-/ping
-/trust dashboard
-/scan https://example.com
+/tip @user 5 SOL for being awesome
+/balance
 ```
 
 ---
@@ -162,7 +161,7 @@ npx pnpm format
 8. ⏳ DA&D (game module)
 
 ### Infrastructure to Build
-- ⏳ Discord Bot shell (in `apps/discord-bot/`)
+- ⏳ JustTheTip Bot (powered by TiltCheck) shell (in `apps/justthetip-bot/`)
 - ⏳ Trust Engine services
 - ⏳ Database package (shared schemas)
 - ⏳ Discord utilities package

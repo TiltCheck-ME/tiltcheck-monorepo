@@ -129,22 +129,20 @@ Shared wallet notifications and "phone-a-friend" tilt intervention.
 # Install dependencies
 pnpm install
 
-# Configure Discord bot and dashboard
-cp apps/discord-bot/.env.example apps/discord-bot/.env
+# Configure JustTheTip bot and dashboard
+cp apps/justthetip-bot/.env.example apps/justthetip-bot/.env
 cp services/dashboard/.env.example services/dashboard/.env
 # Edit .env files with your Discord credentials
 
 # Start dashboard (terminal 1)
 pnpm --filter @tiltcheck/dashboard dev
 
-# Start Discord bot (terminal 2)
-pnpm --filter discord-bot dev
+# Start JustTheTip bot (terminal 2)
+pnpm --filter @tiltcheck/justthetip-bot dev
 
 # Test in Discord
-# /ping
-# /trust casino stake.com
-# /trust user @username
-# /scan https://example.com
+# /tip @user 5 SOL for being awesome
+# /balance
 ```
 
 See **[QUICKSTART.md](./QUICKSTART.md)** for 5-minute setup or **[DEPLOYMENT.md](./DEPLOYMENT.md)** for production deployment.
@@ -224,10 +222,10 @@ It's built by someone who understands the problems firsthand.
 ## Roadmap
 
 ### Phase 1 — Core Launch (MVP)
-- JustTheTip, SusLink, CollectClock, FreeSpinScan
+- JustTheTip bot (powered by TiltCheck)
+- SusLink, CollectClock, FreeSpinScan modules
 - Basic trust engines
-- TiltCheck Core
-- Discord bot
+- TiltCheck Core analytics
 
 ### Phase 2 — Intelligence Expansion
 - Prediction models

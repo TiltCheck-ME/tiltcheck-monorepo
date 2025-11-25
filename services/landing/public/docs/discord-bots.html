@@ -65,18 +65,17 @@
 
 <p>/tip</p>
 <p>/airdrop</p>
-<p>/swap</p>
 <p>/wallet</p>
+<p>/balance</p>
 <p>/scan</p>
-<p>/promo</p>
-<p>/bonus</p>
-<p>/predict</p>
-<p>/tilt</p>
 <p>/trust</p>
-<p>/surveys</p>
-<p>/friend</p>
-<p>/play</p>
+<p>/tilt</p>
+<p>/cooldown</p>
+<p>/lockvault</p>
+<p>/triviadrop</p>
+<p>/poker</p>
 <p>/help</p>
+<p>/support</p>
 
 <p>Each group maps to a module.</p>
 
@@ -90,20 +89,26 @@
 
 <h2>13.4.1 JustTheTip Commands</h2>
 
-<h3><code>/tip @user &lt;amount&gt; &lt;token&gt;</code></h3>
-<p>Send a non-custodial tip.</p>
+<h3><code>/tip @user &lt;amount&gt;</code></h3>
+<p>Send a USD tip (auto-converted to SOL). Example: <code>/tip @user $5</code></p>
 
-<h3><code>/airdrop &lt;amount&gt; &lt;token&gt; &lt;role or list&gt;</code></h3>
-<p>Mass send.</p>
+<h3><code>/airdrop @users &lt;amount&gt;</code></h3>
+<p>Send tips to multiple users. Example: <code>/airdrop @user1 @user2 $10</code></p>
 
-<h3><code>/swap &lt;amount&gt; &lt;from&gt; &lt;to&gt;</code></h3>
-<p>Perform Jupiter swap (post-fee).</p>
+<h3><code>/wallet register &lt;address&gt;</code></h3>
+<p>Connect your Phantom/Solflare wallet address.</p>
 
-<h3><code>/mywallet</code></h3>
-<p>Display wallet.</p>
+<h3><code>/wallet view</code></h3>
+<p>View your connected wallet details.</p>
 
-<h3><code>/setwallet &lt;address&gt;</code></h3>
-<p>Bind wallet.</p>
+<h3><code>/balance</code></h3>
+<p>Check your SOL wallet balance.</p>
+
+<h3><code>/pending</code></h3>
+<p>View unclaimed tips (auto-claimed on wallet registration).</p>
+
+<h3><code>/claim</code></h3>
+<p>Manually claim pending tips.</p>
 
 <p>---</p>
 

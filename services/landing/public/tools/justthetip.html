@@ -57,30 +57,30 @@
 
   <section class="commands-section">
     <div class="container">
-      <h2>Discord Commands</h2>
+      <h2>Discord Commands (JustTheTip Bot)</h2>
       <div class="commands-grid">
         
         <div class="command-card">
           <div class="command-name">/tip</div>
-          <p>Send SOL to another Discord user instantly</p>
+          <p>Send USD tips (auto-converted to SOL)</p>
           <div class="command-example">
-            <code>/tip @degen 0.5 SOL</code>
+            <code>/tip @degen $5</code>
           </div>
         </div>
 
         <div class="command-card">
           <div class="command-name">/airdrop</div>
-          <p>Send SOL to multiple users at once</p>
+          <p>Send USD tips to multiple users</p>
           <div class="command-example">
-            <code>/airdrop 0.1 SOL @user1 @user2 @user3</code>
+            <code>/airdrop @user1 @user2 $10</code>
           </div>
         </div>
 
         <div class="command-card">
-          <div class="command-name">/swap</div>
-          <p>Swap tokens using Jupiter aggregator</p>
+          <div class="command-name">/wallet</div>
+          <p>Connect your Phantom/Solflare wallet</p>
           <div class="command-example">
-            <code>/swap 1 SOL to USDC</code>
+            <code>/wallet register</code>
           </div>
         </div>
 
@@ -105,7 +105,7 @@
           <div class="step-number">1</div>
           <div class="step-content">
             <h3>You initiate a tip</h3>
-            <p>Use <code>/tip @user 0.5 SOL</code> in Discord</p>
+            <p>Use <code>/tip @user $5</code> in Discord (auto-converts to SOL)</p>
           </div>
         </div>
 
@@ -113,7 +113,7 @@
           <div class="step-number">2</div>
           <div class="step-content">
             <h3>We generate a transaction</h3>
-            <p>JustTheTip creates a Solana transaction that sends SOL from your wallet to theirs</p>
+            <p>JustTheTip creates a Solana transaction with current USD/SOL rate + $0.07 fee</p>
           </div>
         </div>
 

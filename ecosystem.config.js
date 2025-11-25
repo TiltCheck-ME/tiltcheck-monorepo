@@ -26,15 +26,14 @@ module.exports = {
       },
     },
     {
-      name: 'discord-bot',
-      script: './apps/discord-bot/dist/index.js',
+      name: 'justthetip-bot',
+      script: './apps/justthetip-bot/dist/index.js',
       cwd: './',
       watch: false,
       env: {
         NODE_ENV: 'production',
-        DISCORD_TOKEN: process.env.DISCORD_TOKEN,
-        DISCORD_CLIENT_ID: process.env.DISCORD_CLIENT_ID,
-        DASHBOARD_URL: 'http://localhost:5055',
+        DISCORD_TOKEN: process.env.JUSTTHETIP_DISCORD_TOKEN,
+        DISCORD_CLIENT_ID: process.env.JUSTTHETIP_CLIENT_ID,
       },
     },
     {

@@ -4,9 +4,9 @@ on:
   workflow_dispatch:
     inputs:
       bot:
-        description: "Target bot (discord|justthetip)"
+        description: "Target bot (justthetip)"
         required: true
-        default: "discord"
+        default: "justthetip"
       perform:
         description: "Action (deploy|remove)"
         required: true
@@ -22,16 +22,16 @@ on:
         description: "Optional guild ID for scoped deployment"
         required: false
       discordToken:
-        description: "Discord bot token (discord bot)"
+        description: "Discord bot token (deprecated - use justthetip)"
         required: false
       discordClientId:
-        description: "Discord application client ID (discord bot)"
+        description: "Discord application client ID (deprecated - use justthetip)"
         required: false
       justthetipToken:
-        description: "JustTheTip bot token (justthetip bot)"
+        description: "JustTheTip bot token"
         required: false
       justthetipClientId:
-        description: "JustTheTip application client ID (justthetip bot)"
+        description: "JustTheTip application client ID"
         required: false
 
 jobs:
@@ -57,18 +57,12 @@ jobs:
           REMOVE_NAME="${{ inputs.removeName }}"
           DRY="${{ inputs.dryRun }}"
           GUILD="${{ inputs.guildId }}"
-          if [ "$BOT" = "discord" ]; then
-            if [ -z "${{ inputs.discordToken }}" ] || [ -z "${{ inputs.discordClientId }}" ]; then
-              echo "Missing discordToken or discordClientId input"; exit 1; fi
-            export DISCORD_TOKEN="${{ inputs.discordToken }}"
-            export DISCORD_CLIENT_ID="${{ inputs.discordClientId }}"
-          else
-            if [ -z "${{ inputs.justthetipToken }}" ] || [ -z "${{ inputs.justthetipClientId }}" ]; then
-              echo "Missing justthetipToken or justthetipClientId input"; exit 1; fi
-            export JUSTTHETIP_DISCORD_TOKEN="${{ inputs.justthetipToken }}"
-            export JUSTTHETIP_DISCORD_CLIENT_ID="${{ inputs.justthetipClientId }}"
-          fi
-          if [ "$BOT" = "discord" ]; then PKG="@tiltcheck/discord-bot"; else PKG="@tiltcheck/justthetip-bot"; fi
+          # Only support justthetip-bot now
+          if [ -z "${{ inputs.justthetipToken }}" ] || [ -z "${{ inputs.justthetipClientId }}" ]; then
+            echo "Missing justthetipToken or justthetipClientId input"; exit 1; fi
+          export JUSTTHETIP_DISCORD_TOKEN="${{ inputs.justthetipToken }}"
+          export JUSTTHETIP_DISCORD_CLIENT_ID="${{ inputs.justthetipClientId }}"
+          PKG="@tiltcheck/justthetip-bot"
           CMD="pnpm --filter $PKG deploy:commands"
           if [ "$DRY" = "true" ]; then CMD="$CMD:dry-run"; fi
           if [ -n "$GUILD" ]; then CMD="$CMD --guild $GUILD"; fi
@@ -88,6 +82,5 @@ jobs:
         with:
           name: command-sync-${{ inputs.bot }}
           path: |
-            apps/discord-bot/data/last-command-sync.json
             apps/justthetip-bot/data/last-command-sync.json
           if-no-files-found: warn

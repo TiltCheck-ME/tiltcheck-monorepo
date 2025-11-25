@@ -26,9 +26,9 @@ jobs:
           key: buildx-weekly-${{ runner.os }}-${{ github.run_id }}
           restore-keys: |
             buildx-weekly-${{ runner.os }}-
-      - name: Prime build cache (discord-bot minimal build)
+      - name: Prime build cache (justthetip-bot minimal build)
         env:
           DOCKER_BUILDKIT: 1
-        run: docker build -f apps/discord-bot/Dockerfile --target builder -t tiltcheck-cache-prime .
+        run: docker build -f apps/justthetip-bot/Dockerfile --target builder -t tiltcheck-cache-prime .
       - name: Done
         run: echo "✅ Cache rotation complete"
