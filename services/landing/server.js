@@ -152,6 +152,18 @@ app.get('/testimonials', (_req, res) => {
   res.sendFile(path.join(publicDir, 'testimonials.html'));
 });
 
+// Admin-only status page (ecosystem status & completion tracking)
+app.get('/admin/ecosystem-status', ipAllowlist, (req, res) => {
+  adminLogger(req);
+  res.sendFile(path.join(publicDir, 'admin-status.html'));
+});
+
+// Admin analytics page
+app.get('/admin/analytics', ipAllowlist, rateLimitMiddleware, (req, res) => {
+  adminLogger(req);
+  res.sendFile(path.join(publicDir, 'admin-analytics.html'));
+});
+
 // Newsletter subscribe endpoint (hashed storage + migration)
 app.post('/api/newsletter/subscribe', rateLimitMiddleware, async (req, res) => {
   const email = (req.body.email || '').trim().toLowerCase();
