@@ -9,15 +9,16 @@
  * - /ping - Bot status check
  * - /help - Help and command info
  * 
- * Legacy/Utility Commands:
+ * Utility Commands:
  * - /support - Request help from support
- * - /trust - Trust score dashboard
  * - /tiltcheck - Tilt monitoring
  * - /cooldown - Cooldown management
  * - /lockvault - Vault management (legacy, now in /tip)
  * - /poker - Poker tools
  * - /scan - Quick URL scan (legacy, now in /suslink)
  * - /triviadrop - Trivia drops (legacy, now in /tip trivia)
+ * 
+ * Note: Trust scores are available on the website - no slash command needed
  */
 
 // Core commands
@@ -26,9 +27,8 @@ export { help } from './help.js';
 export { suslinkCmd as suslink } from './suslink.js';
 export { tip } from './tip.js';
 
-// Support and trust
+// Support and tilt monitoring
 export { support } from './support.js';
-export { trustDashboard as trust } from './trust.js';
 export { tiltcheck } from './tiltcheck.js';
 
 // Cooldown and vault management

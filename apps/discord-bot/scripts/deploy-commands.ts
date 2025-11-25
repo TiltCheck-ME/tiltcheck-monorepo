@@ -8,7 +8,7 @@
  *   npx tsx scripts/deploy-commands.ts --clear   # Clear before deploying
  */
 
-import { REST, Routes } from 'discord.js';
+import { REST, Routes, type RESTPostAPIApplicationCommandsJSONBody } from 'discord.js';
 import { config, validateConfig } from '../src/config.js';
 import { CommandHandler } from '../src/handlers/commands.js';
 
@@ -47,19 +47,25 @@ async function deployCommands() {
     const commands = commandHandler.getCommandData();
     console.log(`📦 Found ${commands.length} commands to register`);
 
-    let data: any[];
+    // Discord API response includes name and description
+    interface RegisteredCommand {
+      name: string;
+      description: string;
+    }
+
+    let data: RegisteredCommand[];
     if (useGuild && config.guildId) {
       console.log(`🚀 Registering commands to guild: ${config.guildId}...`);
       data = await rest.put(
         Routes.applicationGuildCommands(config.clientId, config.guildId),
         { body: commands }
-      ) as any[];
+      ) as RegisteredCommand[];
     } else {
       console.log('🌐 Registering commands globally...');
       data = await rest.put(
         Routes.applicationCommands(config.clientId),
         { body: commands }
-      ) as any[];
+      ) as RegisteredCommand[];
     }
 
     console.log(`\n✅ Successfully registered ${data.length} commands:`);

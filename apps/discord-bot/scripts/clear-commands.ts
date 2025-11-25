@@ -18,19 +18,22 @@ async function clearCommands() {
 
   const rest = new REST().setToken(config.discordToken);
   const clearGuildOnly = process.argv.includes('--guild');
+  const clearGlobalOnly = process.argv.includes('--global');
+  const shouldClearGuild = config.guildId && (clearGuildOnly || !clearGlobalOnly);
+  const shouldClearGlobal = !clearGuildOnly;
 
   try {
-    if (config.guildId && (clearGuildOnly || !process.argv.includes('--global'))) {
+    if (shouldClearGuild) {
       // Clear guild-specific commands
       console.log(`🗑️  Clearing guild commands for guild: ${config.guildId}...`);
       await rest.put(
-        Routes.applicationGuildCommands(config.clientId, config.guildId),
+        Routes.applicationGuildCommands(config.clientId, config.guildId!),
         { body: [] }
       );
       console.log('✅ Guild commands cleared successfully');
     }
 
-    if (!clearGuildOnly) {
+    if (shouldClearGlobal) {
       // Clear global commands
       console.log('🗑️  Clearing global commands...');
       await rest.put(
