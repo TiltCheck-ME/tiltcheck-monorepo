@@ -74,11 +74,20 @@ describe('Landing Server Integration', () => {
     if (serverProcess) {
       // Send SIGTERM and wait for process to exit
       await new Promise<void>((resolve) => {
-        serverProcess!.on('exit', () => resolve());
+        // Register exit handler before killing to avoid race condition
+        const onExit = () => {
+          clearTimeout(fallbackTimeout);
+          resolve();
+        };
+        serverProcess!.once('exit', onExit);
+        
+        // Send graceful shutdown signal
         serverProcess!.kill('SIGTERM');
+        
         // Fallback timeout if process doesn't exit gracefully
-        setTimeout(() => {
-          if (!serverProcess!.killed) {
+        const fallbackTimeout = setTimeout(() => {
+          if (serverProcess!.exitCode === null) {
+            // Process hasn't exited yet, force kill
             serverProcess!.kill('SIGKILL');
           }
           resolve();
