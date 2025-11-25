@@ -22,27 +22,36 @@ export const help: Command = {
 
     embed.addFields(
       {
-        name: '💰 Tipping',
+        name: '💰 /tip - Tipping & Wallet',
         value:
-          '`/justthetip tip @user <amount>` - Send SOL to another user\n' +
-          '`/justthetip wallet` - Manage your wallet\n' +
-          '`/justthetip balance` - Check your balance\n' +
-          '`/airdrop` - Send SOL to multiple users',
+          '`/tip send @user <amount>` - Send SOL to a user\n' +
+          '`/tip airdrop @users <amount>` - Multi-user tips\n' +
+          '`/tip wallet` - Register/view your wallet\n' +
+          '`/tip balance` - Check your balance',
         inline: false,
       },
       {
-        name: '🔍 Link Scanning',
+        name: '🔒 /tip - Vault (Time-lock)',
         value:
-          '`/scan <url>` - Scan a casino link for suspicious patterns\n' +
-          'Detects phishing, scams, and fake casino sites.',
+          '`/tip lock <amount> <duration>` - Lock funds\n' +
+          '`/tip unlock <id>` - Unlock after expiry\n' +
+          '`/tip vaults` - View your vaults',
         inline: false,
       },
       {
-        name: '🎯 More Features',
+        name: '🎯 /tip trivia - Trivia Drops',
         value:
-          '• `/triviadrop` - Play trivia for rewards\n' +
-          '• `/trust` - Check trust scores\n' +
-          '• `/support` - Get help from the community',
+          '`/tip trivia $5 15s` - Start a trivia round\n' +
+          'Random category, prize split among winners!\n' +
+          'Time accepts: "15s", "30 secs", "1 min"',
+        inline: false,
+      },
+      {
+        name: '🔗 /suslink - Link Safety',
+        value:
+          '`/suslink scan <url>` - Scan for scams\n' +
+          '`/suslink submit <url>` - Submit a promo\n' +
+          '`/suslink pending` - View pending promos',
         inline: false,
       },
       {
@@ -56,6 +65,7 @@ export const help: Command = {
           '✅ Non-custodial (you control your funds)\n' +
           '✅ Flat $0.07 fee per tip\n' +
           '✅ Direct wallet-to-wallet transfers\n' +
+          '✅ Time-locked vaults for self-control\n' +
           '✅ Automatic link scanning',
         inline: false,
       }

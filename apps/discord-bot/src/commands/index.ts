@@ -2,26 +2,20 @@
  * Command Index
  * 
  * Exports all available commands.
+ * 
+ * JustTheTip Bot Commands:
+ * - /tip - Main tipping, wallet, vault, airdrop, and trivia commands
+ * - /suslink - Link scanning and promo management
+ * - /ping - Bot status check
+ * - /help - Help and command info
  */
 
 export { ping } from './ping.js';
 export { help } from './help.js';
-export { scan } from './scan.js';
-export { blockdomain, unblockdomain, blockpattern, unblockpattern } from './blocklist.js';
-export { submitpromo, approvepromo, denypromo, pendingpromos } from './promo.js';
-export { cooldown, tilt } from './cooldown.js';
-export { justthetip } from './justthetip.js';
-export { airdrop } from './airdrop.js';
-export { lockvault } from './lockvault.js';
+export { suslinkCmd as suslink } from './suslink.js';
+export { tip } from './tip.js';
+
+// Legacy commands kept for backwards compatibility
+// These will be deprecated in favor of /tip and /suslink
 export { support } from './support.js';
 export { trustDashboard } from './trust.js';
-// export { casino } from './casino-group.js'; // Not yet implemented
-// export { security } from './security-group.js'; // Not yet implemented
-// export { profile } from './profile-group.js'; // Not yet implemented
-// export { sessionverify } from './sessionverify.js'; // Not yet implemented
-// export { submitseed } from './submitseed.js'; // Not yet implemented
-// export { collectclock } from './collectclock.js'; // Not yet implemented
-// export { trustreport } from './trustreport.js'; // Not yet implemented
-// export { playanalyze } from './playanalyze.js'; // Not yet implemented
-export { tiltcheck } from './tiltcheck.js';
-export { triviadrop } from './triviadrop.js';
