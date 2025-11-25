@@ -159,7 +159,7 @@ app.get('/admin/ecosystem-status', ipAllowlist, (req, res) => {
 });
 
 // Admin analytics page
-app.get('/admin/analytics', ipAllowlist, (req, res) => {
+app.get('/admin/analytics', ipAllowlist, rateLimitMiddleware, (req, res) => {
   adminLogger(req);
   res.sendFile(path.join(publicDir, 'admin-analytics.html'));
 });
