@@ -15,7 +15,6 @@
  * - /tiltcheck - Tilt monitoring
  * - /cooldown - Cooldown management
  * - /lockvault - Vault management (legacy, now in /tip)
- * - /poker - Poker tools
  * - /scan - Quick URL scan (legacy, now in /suslink)
  * - /triviadrop - Trivia drops (legacy, now in /tip trivia)
  */
@@ -36,7 +35,6 @@ export { cooldown, tilt } from './cooldown.js';
 export { lockvault } from './lockvault.js';
 
 // Entertainment
-export { poker } from './poker.js';
 export { triviadrop } from './triviadrop.js';
 
 // Legacy scan command (functionality now in /suslink scan)
@@ -50,7 +48,8 @@ export { justthetip } from './justthetip.js';
 
 // Promo management commands (mod only)
 export { submitpromo, approvepromo, denypromo, pendingpromos } from './promo.js';
+export { setpromochannel } from './setpromochannel.js';
 
 // Blocklist management commands (mod only)
-export { blockdomain, unblockdomain, blockpattern, unblockpattern } from './blocklist.js';
+export { blockdomain, unblockdomain } from './blocklist.js';
 
