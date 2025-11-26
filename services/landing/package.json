@@ -10,6 +10,6 @@
   "dependencies": {
     "@tiltcheck/express-utils": "workspace:*",
     "express": "^4.19.0",
-    "redis": "^4.7.0"
+    "redis": "^5.10.0"
   }
 }

@@ -1,5 +1,6 @@
 /**
- * TiltCheck Discord Bot
+ * JustTheTip Discord Bot
+ * Powered by TiltCheck
  * 
  * Main entry point for the Discord bot.
  * Integrates all TiltCheck modules via Event Router.
@@ -16,7 +17,7 @@ import { startTrustAdapter } from '@tiltcheck/discord-utils/trust-adapter';
 
 async function main() {
   console.log('='.repeat(50));
-  console.log('🎰 TiltCheck Discord Bot');
+  console.log('🪙 JustTheTip Bot - Powered by TiltCheck');
   console.log('='.repeat(50));
 
   // Validate configuration unless skipping login (CI smoke)
@@ -68,7 +69,7 @@ async function main() {
   const HEALTH_PORT = process.env.DISCORD_BOT_HEALTH_PORT || '8081';
   http.createServer((req, res) => {
     if (req.url === '/health') {
-      const body = JSON.stringify({ service: 'discord-bot', ready, commands: commandHandler.getAllCommands().length });
+      const body = JSON.stringify({ service: 'justthetip-bot', ready, commands: commandHandler.getAllCommands().length });
       res.writeHead(200, { 'Content-Type': 'application/json' });
       res.end(body);
       return;

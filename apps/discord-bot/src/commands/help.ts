@@ -15,26 +15,43 @@ export const help: Command = {
 
   async execute(interaction: ChatInputCommandInteraction) {
     const embed = createEmbed(
-      '🎰 TiltCheck Bot',
-      'Your gambling accountability companion',
+      '🪙 JustTheTip Bot',
+      'Non-custodial Solana tipping • Powered by TiltCheck',
       Colors.PRIMARY
     );
 
     embed.addFields(
       {
-        name: '🔍 Link Scanning',
+        name: '💰 /tip - Tipping & Wallet',
         value:
-          '`/scan <url>` - Scan a casino link for suspicious patterns\n' +
-          'Detects phishing, scams, and fake casino sites.',
+          '`/tip send @user <amount>` - Send SOL to a user\n' +
+          '`/tip airdrop @users <amount>` - Multi-user tips\n' +
+          '`/tip wallet` - Register/view your wallet\n' +
+          '`/tip balance` - Check your balance',
         inline: false,
       },
       {
-        name: '🎯 Coming Soon',
+        name: '🔒 /tip - Vault (Time-lock)',
         value:
-          '• `/tip` - Send crypto tips to other degens\n' +
-          '• `/bonus` - Track your casino bonuses\n' +
-          '• `/trust` - Check casino trust scores\n' +
-          '• `/tilt` - Check your tilt status',
+          '`/tip lock <amount> <duration>` - Lock funds\n' +
+          '`/tip unlock <id>` - Unlock after expiry\n' +
+          '`/tip vaults` - View your vaults',
+        inline: false,
+      },
+      {
+        name: '🎯 /tip trivia - Trivia Drops',
+        value:
+          '`/tip trivia $5 15s` - Start a trivia round\n' +
+          'Random category, prize split among winners!\n' +
+          'Time accepts: "15s", "30 secs", "1 min"',
+        inline: false,
+      },
+      {
+        name: '🔗 /suslink - Link Safety',
+        value:
+          '`/suslink scan <url>` - Scan for scams\n' +
+          '`/suslink submit <url>` - Submit a promo\n' +
+          '`/suslink pending` - View pending promos',
         inline: false,
       },
       {
@@ -47,14 +64,15 @@ export const help: Command = {
         value:
           '✅ Non-custodial (you control your funds)\n' +
           '✅ Flat $0.07 fee per tip\n' +
-          '✅ Community-driven trust scores\n' +
+          '✅ Direct wallet-to-wallet transfers\n' +
+          '✅ Time-locked vaults for self-control\n' +
           '✅ Automatic link scanning',
         inline: false,
       }
     );
 
     embed.setFooter({
-      text: 'TiltCheck - Because degeneracy deserves better infrastructure',
+      text: 'JustTheTip Bot • Powered by TiltCheck',
     });
 
     await interaction.reply({ embeds: [embed] });
