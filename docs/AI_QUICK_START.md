@@ -171,7 +171,7 @@ collector.on('end', (collected) => {
 
 ### Rebuild & Restart Bot
 ```bash
-cd /Users/fullsail/Desktop/tiltcheck-monorepo/tiltcheck-monorepo
+cd $(git rev-parse --show-toplevel)
 
 # Rebuild Discord bot
 pnpm -F @tiltcheck/discord-bot build
