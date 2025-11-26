@@ -1,0 +1,25 @@
+{
+  "name": "@tiltcheck/browser-extension",
+  "version": "1.0.0",
+  "description": "TiltGuard browser extension for casino fairness analysis and tilt detection",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node build.js",
+    "build:vercel": "echo 'Serverless - no build needed'",
+    "watch": "node build.js --watch",
+    "clean": "rm -rf dist",
+    "server": "node server/api.js",
+    "dev": "concurrently \"npm run watch\" \"npm run server\""
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "cors": "^2.8.5"
+  },
+  "devDependencies": {
+    "@types/chrome": "^0.0.254",
+    "esbuild": "^0.19.8",
+    "typescript": "^5.3.2",
+    "concurrently": "^8.2.2"
+  }
+}

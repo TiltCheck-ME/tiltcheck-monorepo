@@ -1,0 +1,13 @@
+{
+  "version": 2,
+  "buildCommand": "npm run build:vercel",
+  "outputDirectory": "public",
+  "rewrites": [
+    { "source": "/api/health", "destination": "/api/health" },
+    { "source": "/api/auth/guest", "destination": "/api/auth/guest" },
+    { "source": "/api/auth/discord", "destination": "/api/auth/discord" },
+    { "source": "/api/auth/discord/callback", "destination": "/api/auth/discord/callback" },
+    { "source": "/api/dashboard", "destination": "/api/dashboard" },
+    { "source": "/api/vault/balance", "destination": "/api/vault/balance" }
+  ]
+}

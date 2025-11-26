@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TiltCheck Analyzer</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      width: 350px;
+      min-height: 400px;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+      color: #fff;
+      padding: 0;
+    }
+    
+    .header {
+      background: linear-gradient(135deg, #00ff88 0%, #00ccff 100%);
+      padding: 20px;
+      text-align: center;
+      box-shadow: 0 4px 12px rgba(0, 255, 136, 0.3);
+    }
+    
+    .header h1 {
+      font-size: 24px;
+      font-weight: bold;
+      color: #000;
+      margin-bottom: 5px;
+    }
+    
+    .header p {
+      font-size: 12px;
+      color: #003;
+      opacity: 0.8;
+    }
+    
+    .status {
+      padding: 20px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .status-indicator {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 15px;
+    }
+    
+    .status-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: #ff3838;
+      animation: pulse 2s infinite;
+    }
+    
+    .status-dot.active {
+      background: #00ff88;
+    }
+    
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+    
+    .status-text {
+      font-size: 14px;
+      font-weight: 600;
+    }
+    
+    .info-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 10px;
+    }
+    
+    .info-item {
+      background: rgba(255, 255, 255, 0.05);
+      padding: 10px;
+      border-radius: 8px;
+    }
+    
+    .info-label {
+      font-size: 11px;
+      color: rgba(255, 255, 255, 0.6);
+      margin-bottom: 5px;
+    }
+    
+    .info-value {
+      font-size: 14px;
+      font-weight: 600;
+      color: #00ff88;
+    }
+    
+    .controls {
+      padding: 20px;
+    }
+    
+    .btn {
+      width: 100%;
+      padding: 14px;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      margin-bottom: 10px;
+    }
+    
+    .btn-primary {
+      background: linear-gradient(135deg, #00ff88 0%, #00ccff 100%);
+      color: #000;
+    }
+    
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 255, 136, 0.4);
+    }
+    
+    .btn-danger {
+      background: #ff3838;
+      color: #fff;
+    }
+    
+    .btn-danger:hover {
+      background: #cc2020;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(255, 56, 56, 0.4);
+    }
+    
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.1);
+      color: #fff;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+    
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.15);
+    }
+    
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none !important;
+    }
+    
+    .stats {
+      padding: 20px;
+      background: rgba(0, 0, 0, 0.2);
+    }
+    
+    .stat-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+    
+    .stat-row:last-child {
+      border-bottom: none;
+    }
+    
+    .stat-label {
+      font-size: 13px;
+      color: rgba(255, 255, 255, 0.7);
+    }
+    
+    .stat-value {
+      font-size: 14px;
+      font-weight: 600;
+      color: #00ff88;
+    }
+    
+    .stat-value.danger {
+      color: #ff3838;
+    }
+    
+    .stat-value.warning {
+      color: #ffaa00;
+    }
+    
+    .settings {
+      padding: 20px;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .setting-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 0;
+    }
+    
+    .setting-label {
+      font-size: 13px;
+    }
+    
+    .toggle {
+      position: relative;
+      width: 44px;
+      height: 24px;
+    }
+    
+    .toggle input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+    
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: rgba(255, 255, 255, 0.2);
+      transition: 0.4s;
+      border-radius: 24px;
+    }
+    
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 18px;
+      width: 18px;
+      left: 3px;
+      bottom: 3px;
+      background-color: white;
+      transition: 0.4s;
+      border-radius: 50%;
+    }
+    
+    input:checked + .slider {
+      background: linear-gradient(135deg, #00ff88 0%, #00ccff 100%);
+    }
+    
+    input:checked + .slider:before {
+      transform: translateX(20px);
+    }
+    
+    .hidden {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>TiltCheck</h1>
+    <p>Casino Fairness Analyzer</p>
+  </div>
+  
+  <div class="status">
+    <div class="status-indicator">
+      <div class="status-dot" id="statusDot"></div>
+      <div class="status-text" id="statusText">Inactive</div>
+    </div>
+    
+    <div class="info-grid">
+      <div class="info-item">
+        <div class="info-label">Casino</div>
+        <div class="info-value" id="casinoId">-</div>
+      </div>
+      <div class="info-item">
+        <div class="info-label">Game</div>
+        <div class="info-value" id="gameId">-</div>
+      </div>
+    </div>
+  </div>
+  
+  <div class="controls">
+    <button class="btn btn-primary" id="startBtn">Start Analysis</button>
+    <button class="btn btn-danger hidden" id="stopBtn">Stop Analysis</button>
+    <button class="btn btn-secondary" id="reportBtn" disabled>View Report</button>
+  </div>
+  
+  <div class="stats hidden" id="statsSection">
+    <div class="stat-row">
+      <span class="stat-label">Total Spins</span>
+      <span class="stat-value" id="totalSpins">0</span>
+    </div>
+    <div class="stat-row">
+      <span class="stat-label">Total Wagered</span>
+      <span class="stat-value" id="totalWagered">$0.00</span>
+    </div>
+    <div class="stat-row">
+      <span class="stat-label">Total Won</span>
+      <span class="stat-value" id="totalWon">$0.00</span>
+    </div>
+    <div class="stat-row">
+      <span class="stat-label">RTP</span>
+      <span class="stat-value" id="rtp">0%</span>
+    </div>
+    <div class="stat-row">
+      <span class="stat-label">Verdict</span>
+      <span class="stat-value" id="verdict">-</span>
+    </div>
+  </div>
+  
+  <div class="settings">
+    <div class="setting-item">
+      <span class="setting-label">Auto-start</span>
+      <label class="toggle">
+        <input type="checkbox" id="autoStartToggle">
+        <span class="slider"></span>
+      </label>
+    </div>
+  </div>
+  
+  <script src="popup.js"></script>
+</body>
+</html>

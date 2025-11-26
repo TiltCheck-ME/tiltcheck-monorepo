@@ -1,0 +1,46 @@
+{
+  "manifest_version": 3,
+  "name": "TiltCheck Casino Analyzer",
+  "version": "1.0.0",
+  "description": "Real-time casino gameplay analysis for RTP verification and fairness detection",
+  "permissions": [
+    "storage",
+    "activeTab",
+    "tabs"
+  ],
+  "host_permissions": [
+    "https://stake.com/*",
+    "https://roobet.com/*",
+    "https://bc.game/*",
+    "https://duelbits.com/*",
+    "https://*/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://stake.com/*",
+        "https://roobet.com/*",
+        "https://bc.game/*",
+        "https://duelbits.com/*"
+      ],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  }
+}
