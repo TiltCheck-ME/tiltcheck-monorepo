@@ -1,0 +1,38 @@
+{
+  "name": "@tiltcheck/gameplay-analyzer",
+  "version": "1.0.0",
+  "description": "Gameplay anomaly detection service for TiltCheck - detects RTP manipulation, win clustering, and fairness issues",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "test": "vitest --run",
+    "test:watch": "vitest",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "@tiltcheck/event-router": "workspace:*",
+    "@tiltcheck/types": "workspace:*",
+    "@tiltcheck/config": "workspace:*"
+  },
+  "devDependencies": {
+    "typescript": "^5.3.3",
+    "vitest": "^1.6.0"
+  },
+  "keywords": [
+    "tiltcheck",
+    "gameplay",
+    "rtp",
+    "fairness",
+    "casino",
+    "analytics"
+  ]
+}
