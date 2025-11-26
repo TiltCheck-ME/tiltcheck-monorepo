@@ -60,7 +60,7 @@ async function main() {
         const body = JSON.stringify({
           service: 'justthetip-bot',
           ready,
-          commands: commandHandler.getAllCommands().length,
+          commands: commandHandler.getCommandCount(),
           tipEvents,
           memory: {
             rssMB: +(mem.rss / 1024 / 1024).toFixed(2),

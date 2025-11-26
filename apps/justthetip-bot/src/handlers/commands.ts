@@ -32,7 +32,12 @@ export class CommandHandler {
   }
 
   getAllCommands(): Command[] {
-    return Array.from(this.commands.values());
+    // Use spread operator to convert Collection values to array
+    return [...this.commands.values()];
+  }
+
+  getCommandCount(): number {
+    return this.commands.size;
   }
 
   getCommandData() {
