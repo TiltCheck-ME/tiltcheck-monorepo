@@ -84,7 +84,7 @@ class AIGatewayService {
   /**
    * Call OpenAI API with structured output
    */
-  async callOpenAI(systemPrompt, userPrompt, responseFormat = null) {
+  async callOpenAI(systemPrompt, userPrompt, responseFormat = null, maxTokens = 1000) {
     if (this.useMock || !this.openai) {
       return null; // Fall back to mock
     }
@@ -99,7 +99,7 @@ class AIGatewayService {
         model: this.model,
         messages,
         temperature: 0.7,
-        max_tokens: 1000
+        max_tokens: maxTokens
       };
 
       // Use JSON mode if response format is specified
@@ -108,6 +108,12 @@ class AIGatewayService {
       }
 
       const completion = await this.openai.chat.completions.create(options);
+
+      // Validate response structure
+      if (!completion.choices || completion.choices.length === 0 || !completion.choices[0].message) {
+        console.error('[AIGateway] Invalid OpenAI response: no choices returned');
+        return null; // Fall back to mock
+      }
 
       return {
         content: completion.choices[0].message.content,
@@ -250,7 +256,8 @@ Always respond with valid JSON containing: whiteCards (array), blackCards (array
 Card type requested: ${cardType} (white = answers, black = prompts, both = mix)
 Make them funny, edgy, and relevant to crypto/gambling culture.`;
 
-    const aiResponse = await this.callOpenAI(systemPrompt, userPrompt, true);
+    // Use higher token limit for card generation
+    const aiResponse = await this.callOpenAI(systemPrompt, userPrompt, true, 1500);
 
     if (aiResponse) {
       try {
