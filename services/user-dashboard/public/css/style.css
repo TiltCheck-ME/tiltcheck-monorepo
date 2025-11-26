@@ -5,9 +5,9 @@
 }
 
 body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    background: #f6f8fa;
-    color: #24292f;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: #0E0E0F;
+    color: #B8C4CE;
 }
 
 .login-container {
@@ -18,20 +18,22 @@ body {
 }
 
 .login-box {
-    background: white;
-    padding: 3rem;
-    border-radius: 8px;
-    box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+    background: #1A1F24;
+    padding: 2.5rem;
+    border-radius: 6px;
+    border: 1px solid rgba(0, 255, 198, 0.1);
     text-align: center;
     max-width: 400px;
 }
 
 .login-box h1 {
     margin-bottom: 0.5rem;
+    color: #fff;
+    font-family: 'Space Grotesk', 'Inter', sans-serif;
 }
 
 .login-box p {
-    color: #57606a;
+    color: #6B7280;
     margin-bottom: 2rem;
 }
 
@@ -43,22 +45,31 @@ body {
     background: #5865F2;
     color: white;
     text-decoration: none;
-    border-radius: 6px;
+    border-radius: 4px;
     font-weight: 500;
+    transition: opacity 0.2s ease-out;
 }
 
 .btn-discord:hover {
-    background: #4752C4;
+    opacity: 0.9;
 }
 
 header {
-    background: white;
+    background: #111316;
     padding: 1rem 2rem;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    box-shadow: 0 1px 0 rgba(0,0,0,0.1);
-    margin-bottom: 2rem;
+    border-bottom: 1px solid rgba(0, 255, 198, 0.1);
+    margin-bottom: 1.5rem;
+}
+
+header h1 {
+    font-family: 'Space Grotesk', 'Inter', sans-serif;
+    background: linear-gradient(135deg, #00FFC6 0%, #00C2FF 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
 }
 
 .user-info {
@@ -70,15 +81,16 @@ header {
 .avatar {
     width: 40px;
     height: 40px;
-    border-radius: 50%;
+    border-radius: 4px;
+    border: 1px solid rgba(0, 255, 198, 0.2);
 }
 
 .tabs {
-    background: white;
+    background: #111316;
     padding: 0 2rem;
     display: flex;
     gap: 0.5rem;
-    border-bottom: 1px solid #d0d7de;
+    border-bottom: 1px solid rgba(0, 255, 198, 0.1);
 }
 
 .tab {
@@ -86,13 +98,19 @@ header {
     border: none;
     padding: 1rem 1.5rem;
     cursor: pointer;
-    color: #57606a;
+    color: #6B7280;
     border-bottom: 2px solid transparent;
+    font-family: 'Inter', sans-serif;
+    transition: color 0.2s ease-out, border-color 0.2s ease-out;
+}
+
+.tab:hover {
+    color: #B8C4CE;
 }
 
 .tab.active {
-    color: #0969da;
-    border-bottom-color: #fd8c73;
+    color: #00FFC6;
+    border-bottom-color: #00FFC6;
 }
 
 .content {
@@ -113,38 +131,42 @@ header {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
     gap: 1rem;
-    margin: 2rem 0;
+    margin: 1.5rem 0;
 }
 
 .stat-card {
-    background: white;
-    padding: 1.5rem;
-    border-radius: 8px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    background: #1A1F24;
+    padding: 1.25rem;
+    border-radius: 6px;
+    border: 1px solid rgba(0, 255, 198, 0.1);
 }
 
 .stat-card h3 {
-    font-size: 0.875rem;
-    color: #57606a;
+    font-size: 0.8rem;
+    color: #6B7280;
     margin-bottom: 0.5rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-family: 'JetBrains Mono', monospace;
 }
 
 .stat-value {
-    font-size: 2rem;
+    font-size: 1.75rem;
     font-weight: bold;
-    color: #0969da;
+    color: #00FFC6;
+    font-family: 'Space Grotesk', 'Inter', sans-serif;
 }
 
 .wallet-card {
-    background: white;
+    background: #1A1F24;
     padding: 1rem;
-    border-radius: 8px;
+    border-radius: 6px;
     margin-bottom: 1rem;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    border: 1px solid rgba(0, 255, 198, 0.1);
 }
 
 .wallet-card.primary {
-    border: 2px solid #0969da;
+    border-color: #00FFC6;
 }
 
 .wallet-header {
@@ -155,62 +177,65 @@ header {
 }
 
 .wallet-address {
-    font-family: 'Courier New', monospace;
-    color: #57606a;
-    font-size: 0.875rem;
+    font-family: 'JetBrains Mono', 'Courier New', monospace;
+    color: #6B7280;
+    font-size: 0.85rem;
 }
 
 .badge {
-    background: #0969da;
-    color: white;
+    background: rgba(0, 255, 198, 0.12);
+    color: #00FFC6;
     padding: 0.25rem 0.5rem;
-    border-radius: 12px;
-    font-size: 0.75rem;
+    border-radius: 4px;
+    font-size: 0.7rem;
+    font-family: 'JetBrains Mono', monospace;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
 }
 
 .transaction {
     display: flex;
     gap: 1rem;
     padding: 1rem;
-    background: white;
-    border-radius: 8px;
-    margin-bottom: 1rem;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    background: #1A1F24;
+    border-radius: 6px;
+    margin-bottom: 0.75rem;
+    border: 1px solid rgba(0, 255, 198, 0.1);
 }
 
 .tx-icon {
-    width: 40px;
-    height: 40px;
+    width: 36px;
+    height: 36px;
     display: flex;
     align-items: center;
     justify-content: center;
-    border-radius: 50%;
-    font-size: 1.5rem;
+    border-radius: 4px;
+    font-size: 1.2rem;
 }
 
 .transaction.sent .tx-icon {
-    background: #fff1e5;
-    color: #bc4c00;
+    background: rgba(255, 82, 82, 0.12);
+    color: #FF5252;
 }
 
 .transaction.received .tx-icon {
-    background: #dafbe1;
-    color: #1a7f37;
+    background: rgba(76, 175, 80, 0.12);
+    color: #4CAF50;
 }
 
 .activity-item {
     display: flex;
     gap: 1rem;
     align-items: start;
-    padding: 1rem;
-    background: white;
-    border-radius: 8px;
+    padding: 0.875rem;
+    background: #1A1F24;
+    border-radius: 6px;
     margin-bottom: 0.5rem;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    border: 1px solid rgba(0, 255, 198, 0.1);
 }
 
 .activity-icon {
-    font-size: 1.5rem;
+    font-size: 1.25rem;
 }
 
 .activity-details {
@@ -218,57 +243,65 @@ header {
 }
 
 .activity-time {
-    font-size: 0.75rem;
-    color: #57606a;
+    font-size: 0.7rem;
+    color: #6B7280;
+    font-family: 'JetBrains Mono', monospace;
 }
 
 .settings-section {
-    background: white;
-    padding: 1.5rem;
-    border-radius: 8px;
+    background: #1A1F24;
+    padding: 1.25rem;
+    border-radius: 6px;
     margin-bottom: 1rem;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    border: 1px solid rgba(0, 255, 198, 0.1);
 }
 
 .settings-section h3 {
     margin-bottom: 1rem;
+    color: #fff;
+    font-family: 'Space Grotesk', 'Inter', sans-serif;
 }
 
 .settings-section label {
     display: block;
     margin-bottom: 0.75rem;
     cursor: pointer;
+    color: #B8C4CE;
 }
 
 .settings-section input[type="checkbox"] {
     margin-right: 0.5rem;
+    accent-color: #00FFC6;
 }
 
 button, .btn-primary, .btn-secondary, .btn-small {
     padding: 0.5rem 1rem;
-    border: none;
-    border-radius: 6px;
+    border: 1px solid transparent;
+    border-radius: 4px;
     cursor: pointer;
-    font-size: 0.875rem;
+    font-size: 0.85rem;
+    font-family: 'Inter', sans-serif;
+    transition: opacity 0.2s ease-out;
 }
 
 .btn-primary {
-    background: #2da44e;
-    color: white;
+    background: #00FFC6;
+    color: #0E0E0F;
+    border-color: #00FFC6;
 }
 
 .btn-primary:hover {
-    background: #2c974b;
+    opacity: 0.9;
 }
 
 .btn-secondary {
-    background: #f6f8fa;
-    color: #24292f;
-    border: 1px solid #d0d7de;
+    background: #1A1F24;
+    color: #B8C4CE;
+    border-color: rgba(0, 255, 198, 0.2);
 }
 
 .btn-secondary:hover {
-    background: #f3f4f6;
+    border-color: rgba(0, 255, 198, 0.4);
 }
 
 .btn-small {
@@ -277,26 +310,28 @@ button, .btn-primary, .btn-secondary, .btn-small {
 }
 
 .help-text {
-    font-size: 0.875rem;
-    color: #57606a;
+    font-size: 0.85rem;
+    color: #6B7280;
     margin-top: 0.5rem;
 }
 
 .earnings-amount {
-    font-size: 2.5rem;
+    font-size: 2.25rem;
     font-weight: bold;
-    color: #2da44e;
+    color: #4CAF50;
     margin: 1rem 0;
+    font-family: 'Space Grotesk', 'Inter', sans-serif;
 }
 
 .profile-field {
     display: flex;
     justify-content: space-between;
     padding: 0.5rem 0;
-    border-bottom: 1px solid #d0d7de;
+    border-bottom: 1px solid rgba(0, 255, 198, 0.1);
 }
 
 .field-label {
     font-weight: 500;
     text-transform: capitalize;
+    color: #fff;
 }
