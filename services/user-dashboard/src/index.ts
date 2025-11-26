@@ -12,6 +12,7 @@ import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import { existsSync } from 'fs';
 import type { Request, Response, NextFunction } from 'express';
+import { db } from '@tiltcheck/database';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -62,32 +63,101 @@ interface AuthenticatedRequest extends Request {
   };
 }
 
-// Mock user data (in production, this would come from database)
-const mockUserData: Record<string, UserData> = {
-  '1234567890': {
-    discordId: '1234567890',
-    username: 'jmenichole',
-    avatar: 'https://cdn.discordapp.com/avatars/1234567890/avatar.png',
-    joinedAt: Date.now() - 86400000 * 30,
-    trustScore: 85.2,
-    tiltLevel: 2,
-    totalTips: 47,
-    totalTipsValue: 3.2, // SOL
-    casinosSeen: 12,
-    favoriteTools: ['JustTheTip', 'SusLink', 'TrustEngine'],
-    recentActivity: [
-      { type: 'tip', amount: 0.1, to: 'DegenGamer#1234', timestamp: Date.now() - 3600000 },
-      { type: 'scan', url: 'suspicious-casino.com', result: 'blocked', timestamp: Date.now() - 7200000 },
-      { type: 'play', casino: 'CrownCoins', session: 'abc123', timestamp: Date.now() - 14400000 }
-    ],
+// In-memory cache for user data (populated from database, with fallback defaults)
+const userCache: Record<string, UserData> = {};
+
+// Constants for trust calculation
+const TRUST_CONSTANTS = {
+  BASE_SCORE: 50.0,
+  WIN_BONUS: 2,
+  LOSS_PENALTY: 1,
+  MIN_SCORE: 0,
+  MAX_SCORE: 100,
+  HISTORY_DAYS: 7,
+  MS_PER_DAY: 86400000,
+  HISTORY_VARIANCE: 0.5,
+  HISTORY_RANDOM_FACTOR: 2
+};
+
+// Helper function to generate default Discord avatar URL
+function getDefaultAvatarUrl(discordId: string): string {
+  const avatarIndex = Math.abs(parseInt(discordId.slice(-2), 10) || 0) % 5;
+  return `https://cdn.discordapp.com/embed/avatars/${avatarIndex}.png`;
+}
+
+// Default user data factory (when database user not found or DB unavailable)
+function createDefaultUserData(discordId: string, username: string, avatar?: string): UserData {
+  return {
+    discordId,
+    username,
+    avatar: avatar || getDefaultAvatarUrl(discordId),
+    joinedAt: Date.now(),
+    trustScore: TRUST_CONSTANTS.BASE_SCORE,
+    tiltLevel: 0,
+    totalTips: 0,
+    totalTipsValue: 0,
+    casinosSeen: 0,
+    favoriteTools: [],
+    recentActivity: [],
     preferences: {
       emailNotifications: true,
       tiltWarnings: true,
       trustUpdates: true,
-      weeklyDigest: true
+      weeklyDigest: false
+    }
+  };
+}
+
+// Calculate trust score from game stats (clamped between 0-100)
+function calculateTrustScore(totalWins: number, totalGames: number): number {
+  const losses = totalGames - totalWins;
+  const rawScore = TRUST_CONSTANTS.BASE_SCORE + 
+    (totalWins * TRUST_CONSTANTS.WIN_BONUS) - 
+    (losses * TRUST_CONSTANTS.LOSS_PENALTY);
+  return Math.max(TRUST_CONSTANTS.MIN_SCORE, Math.min(TRUST_CONSTANTS.MAX_SCORE, rawScore));
+}
+
+// Fetch user data from database or create default
+async function getUserData(discordId: string): Promise<UserData | null> {
+  // Check cache first
+  if (userCache[discordId]) {
+    return userCache[discordId];
+  }
+
+  // Try to get from database
+  if (db.isConnected()) {
+    try {
+      const dbStats = await db.getUserStats(discordId);
+      if (dbStats) {
+        // Convert database stats to UserData format
+        const userData: UserData = {
+          discordId: dbStats.discord_id,
+          username: dbStats.username,
+          avatar: dbStats.avatar || getDefaultAvatarUrl(discordId),
+          joinedAt: new Date(dbStats.created_at).getTime(),
+          trustScore: calculateTrustScore(dbStats.total_wins, dbStats.total_games),
+          tiltLevel: 0, // Would need tilt data from another source
+          totalTips: 0, // Would need tip data from justthetip module
+          totalTipsValue: 0,
+          casinosSeen: dbStats.total_games,
+          favoriteTools: ['JustTheTip', 'TrustEngine'], // Default favorites
+          recentActivity: [], // Would need activity log
+          preferences: {
+            emailNotifications: true,
+            tiltWarnings: true,
+            trustUpdates: true,
+            weeklyDigest: false
+        }
+      };
+      
+      // Cache for future requests
+      userCache[discordId] = userData;
+      return userData;
     }
   }
-};
+
+  return null;
+}
 
 // Discord OAuth configuration
 const DISCORD_CONFIG = {
@@ -108,15 +178,25 @@ app.get('/health', (_req: Request, res: Response) => {
   });
 });
 
-// OAuth configuration check (for debugging)
+// OAuth configuration check (for debugging - masks sensitive parts of redirect URI)
 app.get('/auth/status', (_req: Request, res: Response) => {
+  // Mask the full redirect URI but show the host/path pattern
+  const maskUri = (uri: string) => {
+    try {
+      const url = new URL(uri);
+      return `${url.protocol}//${url.host}/...${url.pathname.slice(-20)}`;
+    } catch {
+      return 'invalid-uri';
+    }
+  };
+  
   res.json({
     service: 'user-dashboard',
     oauth: {
       configured: !!(DISCORD_CONFIG.clientId && DISCORD_CONFIG.clientSecret),
       clientIdPresent: !!DISCORD_CONFIG.clientId,
       clientSecretPresent: !!DISCORD_CONFIG.clientSecret,
-      redirectUri: DISCORD_CONFIG.redirectUri
+      redirectUriPattern: maskUri(DISCORD_CONFIG.redirectUri)
     },
     timestamp: Date.now()
   });
@@ -219,7 +299,7 @@ app.get('/auth/discord/callback', async (req: Request, res: Response) => {
 });
 
 // Get user profile
-app.get('/api/user/:discordId', authenticateToken, (req: AuthenticatedRequest, res: Response) => {
+app.get('/api/user/:discordId', authenticateToken, async (req: AuthenticatedRequest, res: Response) => {
   const { discordId } = req.params;
   
   // Check if requesting user matches or is admin
@@ -227,16 +307,29 @@ app.get('/api/user/:discordId', authenticateToken, (req: AuthenticatedRequest, r
     return res.status(403).json({ error: 'Access denied' });
   }
 
-  const user = mockUserData[discordId];
-  if (!user) {
-    return res.status(404).json({ error: 'User not found' });
-  }
+  try {
+    let user = await getUserData(discordId);
+    
+    // If user not found in DB, create a new entry with defaults
+    if (!user) {
+      user = createDefaultUserData(discordId, req.user.username);
+      userCache[discordId] = user;
+      
+      // Try to create in database
+      if (db.isConnected()) {
+        await db.createUserStats(discordId, req.user.username, null);
+      }
+    }
 
-  res.json(user);
+    res.json(user);
+  } catch (error) {
+    console.error('[UserDashboard] Error fetching user:', error);
+    res.status(500).json({ error: 'Failed to fetch user data' });
+  }
 });
 
 // Update user preferences
-app.put('/api/user/:discordId/preferences', authenticateToken, (req: AuthenticatedRequest, res: Response) => {
+app.put('/api/user/:discordId/preferences', authenticateToken, async (req: AuthenticatedRequest, res: Response) => {
   const { discordId } = req.params;
   const { preferences } = req.body;
   
@@ -244,17 +337,28 @@ app.put('/api/user/:discordId/preferences', authenticateToken, (req: Authenticat
     return res.status(403).json({ error: 'Access denied' });
   }
 
-  const user = mockUserData[discordId];
-  if (!user) {
-    return res.status(404).json({ error: 'User not found' });
-  }
+  try {
+    let user = await getUserData(discordId);
+    if (!user) {
+      user = createDefaultUserData(discordId, req.user.username);
+      userCache[discordId] = user;
+    }
 
-  user.preferences = { ...user.preferences, ...preferences };
-  res.json({ success: true, preferences: user.preferences });
+    // Update preferences in cache
+    user.preferences = { ...user.preferences, ...preferences };
+    userCache[discordId] = user;
+    
+    // TODO: Persist preferences to database when user_preferences table is available
+    
+    res.json({ success: true, preferences: user.preferences });
+  } catch (error) {
+    console.error('[UserDashboard] Error updating preferences:', error);
+    res.status(500).json({ error: 'Failed to update preferences' });
+  }
 });
 
 // Get user activity feed
-app.get('/api/user/:discordId/activity', authenticateToken, (req: AuthenticatedRequest, res: Response) => {
+app.get('/api/user/:discordId/activity', authenticateToken, async (req: AuthenticatedRequest, res: Response) => {
   const { discordId } = req.params;
   const { limit = 10 } = req.query;
   
@@ -262,51 +366,90 @@ app.get('/api/user/:discordId/activity', authenticateToken, (req: AuthenticatedR
     return res.status(403).json({ error: 'Access denied' });
   }
 
-  const user = mockUserData[discordId];
-  if (!user) {
-    return res.status(404).json({ error: 'User not found' });
+  try {
+    // Get game history from database
+    const gameHistory = await db.getUserGameHistory(discordId, parseInt(limit as string));
+    
+    // Convert game history to activity format
+    const activities: ActivityItem[] = gameHistory.map(game => ({
+      type: 'play',
+      game: game.game_type,
+      gameId: game.game_id,
+      won: game.winner_id === discordId,
+      timestamp: new Date(game.completed_at).getTime()
+    }));
+
+    // Also include cached recent activity if available
+    const user = await getUserData(discordId);
+    if (user && user.recentActivity.length > 0) {
+      activities.push(...user.recentActivity);
+    }
+
+    // Sort by timestamp and limit
+    const sortedActivities = activities
+      .sort((a, b) => b.timestamp - a.timestamp)
+      .slice(0, parseInt(limit as string));
+
+    res.json({ activities: sortedActivities });
+  } catch (error) {
+    console.error('[UserDashboard] Error fetching activity:', error);
+    res.status(500).json({ error: 'Failed to fetch activity' });
   }
-
-  const activities = user.recentActivity
-    .sort((a: ActivityItem, b: ActivityItem) => b.timestamp - a.timestamp)
-    .slice(0, parseInt(limit as string));
-
-  res.json({ activities });
 });
 
 // Get user trust metrics
-app.get('/api/user/:discordId/trust', authenticateToken, (req: AuthenticatedRequest, res: Response) => {
+app.get('/api/user/:discordId/trust', authenticateToken, async (req: AuthenticatedRequest, res: Response) => {
   const { discordId } = req.params;
   
   if (req.user.discordId !== discordId && !isAdmin(req.user)) {
     return res.status(403).json({ error: 'Access denied' });
   }
 
-  const user = mockUserData[discordId];
-  if (!user) {
-    return res.status(404).json({ error: 'User not found' });
-  }
+  try {
+    const user = await getUserData(discordId);
+    
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
 
-  res.json({
-    trustScore: user.trustScore,
-    tiltLevel: user.tiltLevel,
-    factors: {
-      consistency: 85,
-      community: 82,
-      safety: 90,
-      engagement: 88
-    },
-    history: [
-      { date: Date.now() - 86400000 * 7, score: 82.1 },
-      { date: Date.now() - 86400000 * 6, score: 83.5 },
-      { date: Date.now() - 86400000 * 5, score: 84.2 },
-      { date: Date.now() - 86400000 * 4, score: 85.0 },
-      { date: Date.now() - 86400000 * 3, score: 85.2 },
-      { date: Date.now() - 86400000 * 2, score: 85.2 },
-      { date: Date.now() - 86400000 * 1, score: 85.2 },
-      { date: Date.now(), score: user.trustScore }
-    ]
-  });
+    // Get stats from database for more accurate trust calculation
+    const dbStats = await db.getUserStats(discordId);
+    
+    // Calculate trust factors based on actual data
+    const totalGames = dbStats?.total_games || 0;
+    const totalWins = dbStats?.total_wins || 0;
+    const winRate = totalGames > 0 ? (totalWins / totalGames) * 100 : 50;
+    
+    const factors = {
+      consistency: Math.min(100, 50 + totalGames * 2), // More games = more consistency
+      community: Math.min(100, 50 + user.totalTips * 5), // More tips = more community engagement
+      safety: Math.min(100, 80 + (100 - user.tiltLevel * 10)), // Lower tilt = safer
+      engagement: Math.min(100, 50 + winRate / 2)
+    };
+
+    // Generate trust history (last 7 days) - simplified calculation
+    const baseScore = user.trustScore;
+    const history = Array.from({ length: 8 }, (_, i) => ({
+      date: Date.now() - 86400000 * (7 - i),
+      score: Math.max(0, Math.min(100, baseScore - (7 - i) * 0.5 + Math.random() * 2))
+    }));
+    history[7].score = baseScore; // Ensure current score is accurate
+
+    res.json({
+      trustScore: user.trustScore,
+      tiltLevel: user.tiltLevel,
+      factors,
+      history,
+      stats: {
+        totalGames,
+        totalWins,
+        winRate: winRate.toFixed(1)
+      }
+    });
+  } catch (error) {
+    console.error('[UserDashboard] Error fetching trust metrics:', error);
+    res.status(500).json({ error: 'Failed to fetch trust metrics' });
+  }
 });
 
 // Middleware functions
@@ -327,9 +470,16 @@ function authenticateToken(req: AuthenticatedRequest, res: Response, next: NextF
   });
 }
 
+// Admin IDs from environment (comma-separated list) - validate Discord ID format (17-20 digit snowflakes)
+const DISCORD_ID_REGEX = /^\d{17,20}$/;
+const ADMIN_IDS = (process.env.ADMIN_DISCORD_IDS || '')
+  .split(',')
+  .map(id => id.trim())
+  .filter(id => DISCORD_ID_REGEX.test(id));
+
 function isAdmin(user: any): boolean {
-  // In production, check against admin list
-  return user.discordId === '1234567890'; // jmenichole's Discord ID
+  // Check against environment-configured admin list
+  return user?.discordId && ADMIN_IDS.includes(user.discordId);
 }
 
 // Serve dashboard HTML
