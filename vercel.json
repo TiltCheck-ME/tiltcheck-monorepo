@@ -1,0 +1,7 @@
+{
+  "version": 2,
+  "buildCommand": "pnpm build",
+  "outputDirectory": "services/landing/public",
+  "framework": null,
+  "installCommand": "pnpm install"
+}
