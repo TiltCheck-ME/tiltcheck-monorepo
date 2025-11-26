@@ -4,6 +4,25 @@
 
 For original casino games (Pump, Keno, Plinko, Mines, etc.), we want to **automatically capture gameplay data** to verify RTP without requiring manual input.
 
+## User Choice: Multiple Approaches Available
+
+**Why not just one approach? Let users choose what works best for them!**
+
+| Approach | Best For | Effort | Accuracy |
+|----------|----------|--------|----------|
+| 🔌 **Browser Extension** | Desktop players, auto-capture | Install once | ⭐⭐⭐⭐⭐ |
+| 📱 **PWA Sidebar** | Mobile, any device | Quick taps | ⭐⭐⭐⭐ |
+| 🔐 **Provably Fair Upload** | Historical analysis | Export + upload | ⭐⭐⭐⭐⭐ |
+| 📷 **Screen OCR** | Native apps | Grant permission | ⭐⭐⭐ |
+
+Users can mix and match based on their setup:
+- **Desktop gamer?** → Use the browser extension for auto-capture
+- **Mobile player?** → Use the PWA sidebar with quick-tap buttons
+- **Want proof?** → Upload provably fair seeds for cryptographic verification
+- **Using native app?** → Screen OCR captures everything visually
+
+---
+
 ## Approaches for Automatic Capture
 
 ### 1. **Browser Extension with Network Interception** ⭐ Best for Desktop
@@ -258,6 +277,28 @@ interface GameSession {
 
 ## Next Steps
 
-1. Which approach should we prioritize?
+1. ~~Which approach should we prioritize?~~ **ALL OF THEM - Give users options!**
 2. Which casinos/games should we target first?
-3. Should we build the extension or focus on provably fair verification?
+3. ~~Should we build the extension or focus on provably fair verification?~~ **Build both!**
+
+## Implementation Roadmap
+
+### Phase 1: Core Options (Current)
+- ✅ PWA with sidebar and quick-tap input
+- ✅ Provably fair seed verification
+- ✅ Archive upload (CSV/JSON)
+
+### Phase 2: Browser Extension
+- [ ] Chrome extension for network interception
+- [ ] Firefox extension port
+- [ ] Auto-detect supported casinos
+
+### Phase 3: Enhanced Mobile
+- [ ] Screen OCR for native apps
+- [ ] Voice input for hands-free logging
+- [ ] Smartwatch companion app
+
+### Phase 4: Casino Partnerships
+- [ ] Official API integrations
+- [ ] "TiltCheck Verified" badge program
+- [ ] Aggregate anonymized RTP data

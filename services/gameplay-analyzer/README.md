@@ -17,19 +17,42 @@ The service includes mobile-specific features designed for:
 - **Bandwidth Optimization**: Compressed payload formats for mobile networks
 - **Batch Processing**: Aggregate multiple spins before analysis to reduce API calls
 
-## PWA vs Chrome Extension
+## Choose Your Input Method
 
-### Do You Need a Chrome Extension?
+**We give users options!** Pick the approach that works best for your setup:
 
-**No!** The GameplayAnalyzer is designed to work as a **Progressive Web App (PWA)** without requiring a browser extension. Here's why:
+| Method | Best For | How It Works |
+|--------|----------|--------------|
+| 🔌 **Browser Extension** | Desktop auto-capture | Intercepts casino WebSocket/API traffic automatically |
+| 📱 **PWA Sidebar** | Mobile & any device | Quick-tap buttons to log wins/losses |
+| 🔐 **Provably Fair Upload** | Historical verification | Upload seeds/CSV to verify past bets cryptographically |
+| 📷 **Screen OCR** | Native casino apps | AI reads game results from screen capture |
 
-| Approach | Pros | Cons |
-|----------|------|------|
-| **PWA (Recommended)** | Works on all devices, no install friction, offline support, push notifications | Requires manual spin logging |
-| **Chrome Extension** | Can auto-detect spins, intercept network | Desktop only, Chrome only, complex distribution |
-| **Native App** | Full device access, overlays | Requires app store approval, platform-specific |
+### Mix and Match
 
-### PWA Capabilities
+- **Desktop gamer?** → Browser extension captures everything automatically
+- **Mobile player?** → PWA sidebar with quick-tap is fast and works anywhere
+- **Want cryptographic proof?** → Upload provably fair seeds for verification
+- **Using native app?** → Screen OCR works with any app
+
+## Browser Extension (Desktop Auto-Capture)
+
+For desktop users who want **zero manual input**, the browser extension:
+
+- Intercepts casino WebSocket messages automatically
+- Captures every bet, multiplier, and payout
+- Extracts provably fair seeds when available
+- Works with Chrome and Firefox
+
+```
+Casino Server ←→ [Extension intercepts] ←→ Browser UI
+                        ↓
+                 TiltCheck Analyzer
+```
+
+**Status:** Planned for Phase 2
+
+## PWA Sidebar (Mobile & Universal)
 
 The PWA client provides:
 
