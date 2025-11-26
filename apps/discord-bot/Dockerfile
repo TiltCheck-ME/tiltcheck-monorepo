@@ -79,8 +79,8 @@ COPY services/trust-engines/package.json ./services/trust-engines/
 COPY services/casino-data-api/package.json ./services/casino-data-api/
 COPY apps/discord-bot/package.json ./apps/discord-bot/
 
-# Install production dependencies only
-RUN pnpm install --prod
+# Install production dependencies only (--ignore-scripts to skip prepare scripts that need tsc)
+RUN pnpm install --prod --ignore-scripts
 
 # Copy built files from builder
 COPY --from=builder /app/packages/types/dist ./packages/types/dist
