@@ -74,7 +74,9 @@ export type EventType =
   | 'transaction.approved'
   | 'transaction.submitted'
   | 'transaction.confirmed'
-  | 'transaction.failed';
+  | 'transaction.failed'
+  | 'fairness.pump.detected'
+  | 'fairness.cluster.detected';
 
 export interface TiltCheckEvent<T = any> {
   id: string;
@@ -103,7 +105,8 @@ export type ModuleId =
   | 'discord-bot'
   | 'lockvault'
   | 'game-arena'
-  | 'wallet-service';
+  | 'wallet-service'
+  | 'identity-core';
 
 // ============================================
 // User & Identity Types
@@ -354,6 +357,21 @@ export interface Cooldown {
   reason: string;
   startedAt: Date;
   endsAt: Date;
+}
+
+// ============================================
+// Gameplay & Fairness Types
+// ============================================
+
+export interface GameplayAnomalyEvent {
+  userId: string;
+  casinoId: string;
+  anomalyType: 'pump' | 'win_clustering' | 'rtp_drift';
+  severity: 'warning' | 'critical';
+  confidence: number; // 0-1
+  metadata: Record<string, any>;
+  reason: string;
+  timestamp: number;
 }
 
 // ============================================

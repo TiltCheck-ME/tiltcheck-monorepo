@@ -2,7 +2,7 @@
 
 ## 🎉 Successfully Completed
 
-> CI trigger marker (workflow_dispatch enabled): 2025-11-22T00:00:00Z
+> CI trigger marker (workflow_dispatch enabled): 2025-11-24T05:52:00Z (UTC)
 
 ### Infrastructure ✅
 
@@ -104,25 +104,36 @@ tiltcheck-monorepo/
 
 ## 🧪 Test Summary
 
-**Current Status: 147 / 168 tests passing (87.5%)**
+**Current Status: 180 / 195 tests passing (92.3%)**
 
 ### Passing Test Suites
-- ✅ **SusLink**: All tests passing
-- ✅ **FreeSpinScan**: All tests passing (8 tests)
-- ✅ **QualifyFirst**: All tests passing (14 tests) — **NEW MODULE**
-- ✅ **DA&D**: All tests passing (20 tests) — **NEW MODULE**
-- ✅ **JustTheTip**: Core tests passing (11 tests fixed)
+- ✅ **QualifyFirst**: All tests passing (14 tests)
+- ✅ **Poker**: All tests passing
 - ✅ **Event Router**: All tests passing
-- ✅ **Trust Engines**: All tests passing
 - ✅ **Discord Utilities**: All tests passing
-- ✅ **CollectClock**: All tests passing
-- ✅ **TiltCheck Core**: All tests passing
+- ✅ **Database**: All tests passing
+- ✅ **Pricing Oracle**: All tests passing
+- ✅ **Casino Data API**: All tests passing
 
-### Remaining Test Failures (21 tests)
-- ⚠️ **JustTheTip Advanced Swap Features**: 21 tests failing
-  - These tests require advanced swap functionality not yet implemented
-  - Tests expect: `executeSwap()`, advanced quote fields, slippage handling
-  - Status: Feature gap, not critical for core functionality
+### Failing Test Suites (15 tests failing across 17 test files)
+- ⚠️ **JustTheTip**: 10 tests failing
+  - Wallet management issues: duplicate registration, disconnect validation
+  - Tipping flow validation: min/max amount checks, unregistered sender handling
+  - Degen trust event emission
+  - Core wallet service transaction history ordering
+- ⚠️ **FreeSpinScan**: 4 tests failing
+  - Approval/denial workflow tests
+  - Blocklist pattern matching
+- ⚠️ **DA&D**: 1 test failing
+  - Voting functionality
+- ⚠️ **Integration Tests**: Multiple failures
+  - CollectClock integration tests
+  - Trust engine integration tests
+  - SusLink module tests
+  - LinkGuard emission tests
+  - LockVault tests
+  - Landing page tests
+  - Manifest injection tests
 
 ## 🧪 Test Files Created
 
@@ -149,53 +160,62 @@ tiltcheck-monorepo/
 
 ## 🚀 Next Steps
 
-### Priority 1: Core Infrastructure
-- [x] Discord bot shell (`apps/discord-bot/`)
-- [x] Discord utilities package (`packages/discord-utils/`)
-- [x] Database package (`packages/database/`) — placeholder API, documented, tested
+### Priority 1: Test Stabilization (CRITICAL)
+- [ ] **Fix JustTheTip Test Failures** (10 tests) — BLOCKING
+  - [ ] Fix wallet management validation issues
+  - [ ] Fix min/max amount validation
+  - [ ] Fix unregistered sender handling
+  - [ ] Fix transaction history ordering in wallet service
+  - [ ] Fix degen trust event emission
+- [ ] **Fix FreeSpinScan Test Failures** (4 tests)
+  - [ ] Fix approval/denial workflow tests
+  - [ ] Fix blocklist pattern matching
+- [ ] **Fix DA&D Voting Test** (1 test)
+  - [ ] Fix player voting functionality
+- [ ] **Fix Integration Test Failures**
+  - [ ] CollectClock integration tests
+  - [ ] Trust engine integration tests
+  - [ ] SusLink module tests
+  - [ ] LinkGuard and LockVault tests
+  - [ ] Landing page and manifest tests
 
-### Priority 2: Additional Modules
-- [x] FreeSpinScan - promo submission & validation — **fully functional** with:
-  - SusLink integration for URL scanning
-  - Configurable blocklist (domains & patterns)
-  - Mod approval/denial workflow
-  - Discord commands (`/submitpromo`, `/approvepromo`, `/denypromo`, `/pendingpromos`, `/blockdomain`, `/unblockdomain`, `/blockpattern`, `/unblockpattern`)
-  - Event-driven architecture (`promo.submitted`, `promo.approved`, `promo.denied`, `promo.flagged`)
-  - Comprehensive tests (8 passing)
-- [x] JustTheTip - P2P tipping with Solana Pay & wallet management — **fully functional** with:
-   - Multi-wallet support (x402 Trustless Agent, Magic Link, Phantom, Solflare)
-   - USD to SOL conversion with validation ($0.10-$100.00 range)
-   - Pending tips system (auto-resolves when recipient registers wallet)
-   - Solana Pay URL generation for direct P2P transfers
-   - Wallet management: duplicate prevention, safe disconnect with pending tips warning
-   - Event-driven architecture (`tip.initiated`, `tip.completed`, `tip.pending.resolved`, `wallet.registered`, `wallet.disconnected`)
-   - Comprehensive tests (17 passing)
-   - Addresses original repo wallet command issues: duplicate registration prevention, disconnect confirmation, pending tips warnings
-- [x] CollectClock - bonus tracking & notifications — placeholder, minimal test, documented
-- [x] Trust Engines - casino + degen trust scoring — event-driven, documented, tested
-- [x] QualifyFirst - AI-powered survey routing & screen-out avoidance — **fully functional** with:
-   - User profile modeling with trait tracking
-   - Smart survey matching algorithm (high/medium/low confidence)
-   - Screen-out history tracking and avoidance
-   - Recommended questions for profile improvement
-   - Survey completion statistics (completion rate, earnings, etc.)
-   - Event-driven architecture (`survey.profile.created`, `survey.profile.updated`, `survey.added`, `survey.matched`, `survey.result.recorded`)
-   - Comprehensive tests (14 passing)
-- [x] DA&D (Degens Against Decency) - AI-powered card game — **fully functional** with:
-   - White cards (answers) and Black cards (prompts)
-   - Card pack system with default "Degen Starter Pack"
-   - Custom card pack creation
-   - Full game flow: create, join, start, play, vote
-   - Player scoring and round management
-   - Anonymous voting system
-   - Event-driven architecture (`game.started`, `game.card.played`, `game.round.ended`, `game.completed`)
-   - Comprehensive tests (20 passing)
-- [ ] TiltCheck Core - tilt detection & accountability
+### Priority 2: Deployment Readiness
+- [ ] **Railway Deployment**
+  - [x] Fix Procfile dashboard entry point (PR #58)
+  - [ ] Test deployment pipeline
+  - [ ] Validate all services start correctly
+- [ ] **Environment Configuration**
+  - [ ] Document required environment variables
+  - [ ] Create production .env templates
+  - [ ] Add deployment health checks
 
-### Priority 3: Testing & CI/CD
-- [x] Testing framework (Vitest)
-- [x] Integration tests (SusLink, EventRouter, Discord bot)
-- [x] GitHub Actions CI/CD
+### Priority 3: Module Completion
+- [ ] **TiltCheck Core** - tilt detection & accountability
+  - [ ] Implement core tilt detection logic
+  - [ ] Add cooldown nudges
+  - [ ] Create accountability tools
+  - [ ] Add comprehensive tests
+- [ ] **CollectClock Enhancement**
+  - [ ] Complete bonus tracking implementation
+  - [ ] Add notification system
+  - [ ] Improve integration with trust engines
+
+### Priority 4: Documentation Updates
+- [ ] Update DEPLOYMENT.md with Railway instructions
+- [ ] Document test failures and resolution plans
+- [ ] Update QUICKSTART.md with current state
+- [ ] Create troubleshooting guide for common issues
+
+### Completed Recently ✅
+- ✅ QualifyFirst fully implemented (14 tests passing)
+- ✅ DA&D fully implemented (mostly working, 1 test failing)
+- ✅ Discord bot shell and utilities
+- ✅ Database package (placeholder API)
+- ✅ FreeSpinScan (4 tests failing, needs fixes)
+- ✅ JustTheTip (10 tests failing, needs fixes)
+- ✅ Trust Engines (integration tests failing)
+- ✅ Poker module
+- ✅ GitHub Actions CI/CD
 
 ## 💡 Key Patterns Established
 
@@ -288,19 +308,22 @@ The monorepo infrastructure is complete and battle-tested. You can now:
 3. Create Discord bot to expose modules to users
 4. Deploy modules independently (serverless-ready)
 
-**Recent updates (December 2024):**
+**Recent updates (November 2025):**
+- ✅ **Test Coverage Improved** — 180/195 tests passing (92.3%, up from 87.5%)
+- ⚠️ **Test Failures Identified** — 15 tests failing across JustTheTip (10), FreeSpinScan (4), DA&D (1)
+- ⚠️ **Integration Tests Need Attention** — CollectClock, Trust Engines, SusLink module tests failing
+- ✅ **Railway Deployment Fix** — Procfile dashboard entry point corrected (PR #58)
+- ✅ **Dependency Updates** — Redis, jsdom, @types/node updates pending review
 - ✅ **QualifyFirst fully implemented** — AI-powered survey routing with profile modeling, matching algorithm, and screen-out tracking (14 tests passing)
-- ✅ **DA&D fully implemented** — Card game with white/black cards, game flow, voting, and scoring (20 tests passing)
-- ✅ **JustTheTip module pattern fixed** — Added singleton pattern and class export (11 additional tests passing)
+- ✅ **DA&D mostly complete** — Card game with white/black cards, game flow, voting, and scoring (20 tests passing, 1 voting test needs fix)
+- ✅ **JustTheTip module needs fixes** — Core functionality working but 10 tests failing (wallet management, validation)
 - ✅ **Event types expanded** — Added survey and game events to @tiltcheck/types
-- ✅ **FreeSpinScan fully migrated and functional** with blocklist management, SusLink integration, approval workflow, and Discord commands
-- ✅ **SusLink verified functional** with comprehensive scanning, event integration, and Discord `/scan` command
-- ✅ DatabaseClient, JustTheTip, CollectClock, and TrustEngines documented and tested
-- ✅ All coverage thresholds and CI checks pass
-- ✅ Discord bot commands expanded: 12+ commands across modules
-- ✅ Test coverage: 147/168 passing (87.5%)
+- ✅ **FreeSpinScan needs attention** — Blocklist management and approval workflow tests failing (4 tests)
+- ✅ DatabaseClient, Pricing Oracle, Discord bot commands expanded
+- ✅ GitHub Actions CI/CD active with health checks
 
 ---
 
-**Status**: Foundation Complete ✅ | QualifyFirst & DA&D Migration Complete ✅  
-**Next**: Discord bot integration for new modules, TiltCheck Core implementation
+**Status**: Foundation Complete ✅ | QualifyFirst & DA&D Complete ✅ | Test Stabilization Needed ⚠️  
+**Current Test Status**: 180/195 passing (92.3%) - 15 failures need attention  
+**Next Critical Priority**: Fix failing tests in JustTheTip (10), FreeSpinScan (4), DA&D (1), and integration tests

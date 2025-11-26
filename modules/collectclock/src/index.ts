@@ -19,6 +19,17 @@ interface CasinoBonusState {
   claims: Map<string, number>;
 }
 
+export interface TrustGatingConfig {
+  enabled: boolean;
+  minTrustScore: number;
+  trustBandLimits: {
+    RED: number;
+    YELLOW: number;
+    GREEN: number;
+    PLATINUM: number;
+  };
+}
+
 export interface CollectClockConfig {
   defaultCooldownMs: number;
   nerfThresholdPercent: number;
@@ -31,6 +42,7 @@ export interface CollectClockConfig {
   persistenceLogDir?: string;
   maxPersistenceLogSizeBytes?: number;
   maxPersistenceLogFiles?: number;
+  trustGating?: TrustGatingConfig;
 }
 
 export interface CollectClockLogger {
@@ -149,9 +161,20 @@ export class CollectClockService {
     }
   }
 
-  claimBonus(casinoName: string, userId: string): BonusClaimEvent {
+  claimBonus(casinoName: string, userId: string, trustScore?: number, _trustBand?: string): BonusClaimEvent {
     const state = this.casinos.get(casinoName);
     if (!state) throw new Error('Casino not registered');
+    
+    // Trust gating check
+    if (this.cfg.trustGating?.enabled) {
+      if (trustScore === undefined) {
+        throw new Error('Trust score required when trust gating is enabled');
+      }
+      if (trustScore < this.cfg.trustGating.minTrustScore) {
+        throw new Error('Trust score too low to claim bonus');
+      }
+    }
+    
     const now = Date.now();
     const lastClaim = state.claims.get(userId) || 0;
     if (now - lastClaim < state.cooldownMs) {

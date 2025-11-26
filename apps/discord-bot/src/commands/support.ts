@@ -1,7 +1,7 @@
 import { SlashCommandBuilder, ChatInputCommandInteraction } from 'discord.js';
 import type { Command } from '../types.js';
 
-const SUPPORT_CHANNEL_ID = '1441697360785834085';
+const SUPPORT_CHANNEL_ID = '1437295074856927363';
 const OWNER_MENTION = '<@jmenichole>';
 
 export const support: Command = {
