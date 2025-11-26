@@ -29,6 +29,7 @@ COPY modules/natural-language-parser/package.json ./modules/natural-language-par
 COPY modules/lockvault/package.json ./modules/lockvault/
 COPY services/trust-rollup/package.json ./services/trust-rollup/
 COPY services/trust-engines/package.json ./services/trust-engines/
+COPY services/casino-data-api/package.json ./services/casino-data-api/
 COPY apps/discord-bot/package.json ./apps/discord-bot/
 
     # Install dependencies
@@ -75,6 +76,7 @@ COPY modules/natural-language-parser/package.json ./modules/natural-language-par
 COPY modules/lockvault/package.json ./modules/lockvault/
 COPY services/trust-rollup/package.json ./services/trust-rollup/
 COPY services/trust-engines/package.json ./services/trust-engines/
+COPY services/casino-data-api/package.json ./services/casino-data-api/
 COPY apps/discord-bot/package.json ./apps/discord-bot/
 
 # Install production dependencies only
@@ -100,6 +102,7 @@ COPY --from=builder /app/modules/natural-language-parser/dist ./modules/natural-
 COPY --from=builder /app/modules/lockvault/dist ./modules/lockvault/dist
 COPY --from=builder /app/services/trust-rollup/dist ./services/trust-rollup/dist
 COPY --from=builder /app/services/trust-engines/dist ./services/trust-engines/dist
+COPY --from=builder /app/services/casino-data-api/dist ./services/casino-data-api/dist
 COPY --from=builder /app/apps/discord-bot/dist ./apps/discord-bot/dist
 
 # Create data directory
