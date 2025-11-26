@@ -25,7 +25,7 @@ importers:
         version: 8.47.0(eslint@9.39.1)(typescript@5.9.3)
       '@vitest/coverage-v8':
         specifier: ^1.6.0
-        version: 1.6.1(vitest@1.6.1(@types/node@24.10.1)(jsdom@24.1.3(bufferutil@4.0.9)(utf-8-validate@5.0.10)))
+        version: 1.6.1(vitest@1.6.1(@types/node@24.10.1)(jsdom@27.2.0(bufferutil@4.0.9)(utf-8-validate@5.0.10)))
       eslint:
         specifier: ^9.12.0
         version: 9.39.1
@@ -67,7 +67,7 @@ importers:
         version: 8.47.0(eslint@9.39.1)(typescript@5.9.3)
       vitest:
         specifier: ^1.6.0
-        version: 1.6.1(@types/node@24.10.1)(jsdom@24.1.3(bufferutil@4.0.9)(utf-8-validate@5.0.10))
+        version: 1.6.1(@types/node@24.10.1)(jsdom@27.2.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))
 
   apps/dad-bot:
     dependencies:
@@ -197,7 +197,7 @@ importers:
         version: 5.9.3
       vitest:
         specifier: ^1.6.0
-        version: 1.6.1(@types/node@24.10.1)(jsdom@24.1.3(bufferutil@4.0.9)(utf-8-validate@5.0.10))
+        version: 1.6.1(@types/node@24.10.1)(jsdom@27.2.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))
 
   modules/freespinscan:
     dependencies:
@@ -324,7 +324,7 @@ importers:
         version: 5.9.3
       vitest:
         specifier: ^1.0.0
-        version: 1.6.1(@types/node@24.10.1)(jsdom@24.1.3(bufferutil@4.0.9)(utf-8-validate@5.0.10))
+        version: 1.6.1(@types/node@24.10.1)(jsdom@27.2.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))
 
   modules/qualifyfirst:
     dependencies:
@@ -349,7 +349,7 @@ importers:
         version: 5.9.3
       vitest:
         specifier: ^1.6.0
-        version: 1.6.1(@types/node@24.10.1)(jsdom@24.1.3(bufferutil@4.0.9)(utf-8-validate@5.0.10))
+        version: 1.6.1(@types/node@24.10.1)(jsdom@27.2.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))
 
   modules/suslink:
     dependencies:
@@ -387,7 +387,7 @@ importers:
         version: 5.9.3
       vitest:
         specifier: ^1.0.0
-        version: 1.6.1(@types/node@24.10.1)(jsdom@24.1.3(bufferutil@4.0.9)(utf-8-validate@5.0.10))
+        version: 1.6.1(@types/node@24.10.1)(jsdom@27.2.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))
 
   modules/triviadrops:
     dependencies:
@@ -450,7 +450,20 @@ importers:
     devDependencies:
       vitest:
         specifier: ^1.6.1
-        version: 1.6.1(@types/node@24.10.1)(jsdom@24.1.3(bufferutil@4.0.9)(utf-8-validate@5.0.10))
+        version: 1.6.1(@types/node@24.10.1)(jsdom@27.2.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))
+
+  packages/identity-core:
+    dependencies:
+      '@tiltcheck/event-router':
+        specifier: workspace:*
+        version: link:../../services/event-router
+      '@tiltcheck/types':
+        specifier: workspace:*
+        version: link:../types
+    devDependencies:
+      typescript:
+        specifier: ^5.3.3
+        version: 5.9.3
 
   packages/natural-language-parser:
     dependencies:
@@ -758,8 +771,8 @@ packages:
   '@acemir/cssom@0.9.24':
     resolution: {integrity: sha512-5YjgMmAiT2rjJZU7XK1SNI7iqTy92DpaYVgG6x63FxkJ11UpYfLndHJATtinWJClAXiOlW9XWaUyAQf8pMrQPg==}
 
-  '@ai-sdk/gateway@2.0.14':
-    resolution: {integrity: sha512-QU+ZVizSXN/V5uWgwapXrCLvkUEmmJeojAbikMH4gLgbeQF3oRugcQm3D8X9B+Rnestbz5cevNap7vKyJT/jfA==}
+  '@ai-sdk/gateway@2.0.15':
+    resolution: {integrity: sha512-i1YVKzC1dg9LGvt+GthhD7NlRhz9J4+ZRj3KELU14IZ/MHPsOBiFeEoCCIDLR+3tqT8/+5nIsK3eZ7DFRfMfdw==}
     engines: {node: '>=18'}
     peerDependencies:
       zod: ^3.25.76 || ^4.1.8
@@ -4151,8 +4164,8 @@ packages:
   third-party-web@0.27.0:
     resolution: {integrity: sha512-h0JYX+dO2Zr3abCQpS6/uFjujaOjA1DyDzGQ41+oFn9VW/ARiq9g5ln7qEP9+BTzDpOMyIfsfj4OvfgXAsMUSA==}
 
-  third-party-web@0.28.0:
-    resolution: {integrity: sha512-4P798O67JmIKRJfJ1HSOkIsZrx2+FuaN2jTQX+imHXFPbGp17KSMDabYxrRT011B3gBzaoHFhUkBlEkNZN8vuQ==}
+  third-party-web@0.29.0:
+    resolution: {integrity: sha512-nBDSJw5B7Sl1YfsATG2XkW5qgUPODbJhXw++BKygi9w6O/NKS98/uY/nR/DxDq2axEjL6halHW1v+jhm/j1DBQ==}
 
   tinybench@2.9.0:
     resolution: {integrity: sha512-0+DUvqWMValLmha6lr4kD8iAMK1HzV0/aKnCtWb9v9641TnP/MFb7Pc2bxoxQjTXAErryXVgUOfv2YqNllqGeg==}
@@ -4530,7 +4543,7 @@ snapshots:
 
   '@acemir/cssom@0.9.24': {}
 
-  '@ai-sdk/gateway@2.0.14(zod@3.25.76)':
+  '@ai-sdk/gateway@2.0.15(zod@3.25.76)':
     dependencies:
       '@ai-sdk/provider': 2.0.0
       '@ai-sdk/provider-utils': 3.0.17(zod@3.25.76)
@@ -5293,7 +5306,7 @@ snapshots:
   '@paulirish/trace_engine@0.0.59':
     dependencies:
       legacy-javascript: 0.0.1
-      third-party-web: 0.28.0
+      third-party-web: 0.29.0
 
   '@pm2/agent@2.0.4(bufferutil@4.0.9)(utf-8-validate@5.0.10)':
     dependencies:
@@ -5977,7 +5990,7 @@ snapshots:
 
   '@vercel/oidc@3.0.5': {}
 
-  '@vitest/coverage-v8@1.6.1(vitest@1.6.1(@types/node@24.10.1)(jsdom@24.1.3(bufferutil@4.0.9)(utf-8-validate@5.0.10)))':
+  '@vitest/coverage-v8@1.6.1(vitest@1.6.1(@types/node@24.10.1)(jsdom@27.2.0(bufferutil@4.0.9)(utf-8-validate@5.0.10)))':
     dependencies:
       '@ampproject/remapping': 2.3.0
       '@bcoe/v8-coverage': 0.2.3
@@ -5992,7 +6005,7 @@ snapshots:
       std-env: 3.10.0
       strip-literal: 2.1.1
       test-exclude: 6.0.0
-      vitest: 1.6.1(@types/node@24.10.1)(jsdom@24.1.3(bufferutil@4.0.9)(utf-8-validate@5.0.10))
+      vitest: 1.6.1(@types/node@24.10.1)(jsdom@27.2.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))
     transitivePeerDependencies:
       - supports-color
 
@@ -8335,7 +8348,7 @@ snapshots:
 
   third-party-web@0.27.0: {}
 
-  third-party-web@0.28.0: {}
+  third-party-web@0.29.0: {}
 
   tinybench@2.9.0: {}
 
@@ -8499,7 +8512,7 @@ snapshots:
       '@types/node': 24.10.1
       fsevents: 2.3.3
 
-  vitest@1.6.1(@types/node@24.10.1)(jsdom@24.1.3(bufferutil@4.0.9)(utf-8-validate@5.0.10)):
+  vitest@1.6.1(@types/node@24.10.1)(jsdom@27.2.0(bufferutil@4.0.9)(utf-8-validate@5.0.10)):
     dependencies:
       '@vitest/expect': 1.6.1
       '@vitest/runner': 1.6.1
@@ -8523,7 +8536,7 @@ snapshots:
       why-is-node-running: 2.3.0
     optionalDependencies:
       '@types/node': 24.10.1
-      jsdom: 24.1.3(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+      jsdom: 27.2.0(bufferutil@4.0.9)(utf-8-validate@5.0.10)
     transitivePeerDependencies:
       - less
       - lightningcss
