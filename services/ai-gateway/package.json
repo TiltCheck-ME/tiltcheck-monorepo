@@ -5,13 +5,15 @@
   "type": "module",
   "main": "src/index.js",
   "scripts": {
-    "dev": "node src/index.js",
-    "start": "node src/index.js"
+    "dev": "node server.js",
+    "start": "node server.js",
+    "start:standalone": "node src/index.js"
   },
   "dependencies": {
     "@tiltcheck/types": "workspace:*",
     "@tiltcheck/event-router": "workspace:*",
     "express": "^4.18.2",
-    "cors": "^2.8.5"
+    "cors": "^2.8.5",
+    "openai": "^4.20.0"
   }
 }
