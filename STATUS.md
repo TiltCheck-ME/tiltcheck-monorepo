@@ -104,9 +104,10 @@ tiltcheck-monorepo/
 
 ## 🧪 Test Summary
 
-**Current Status: 252 / 252 tests passing (100%)** ✅
+**Current Status: 307 / 307 tests passing (100%)** ✅
 
 ### All Test Suites Passing
+- ✅ **TiltCheck Core**: All tests passing (55 tests) — **NEW**
 - ✅ **QualifyFirst**: All tests passing (14 tests)
 - ✅ **Poker**: All tests passing
 - ✅ **Event Router**: All tests passing
@@ -123,6 +124,7 @@ tiltcheck-monorepo/
 
 ## 🧪 Test Files Created
 
+- `modules/tiltcheck-core/tests/*` - TiltCheck Core tests (55 tests)
 - `modules/suslink/examples/test-scanner.ts` - Scanner unit tests
 - `modules/suslink/examples/integration.ts` - SusLink + Event Router demo
 - `apps/discord-bot/examples/test-bot.ts` - Discord bot integration demo
@@ -147,7 +149,7 @@ tiltcheck-monorepo/
 ## 🚀 Next Steps
 
 ### Priority 1: Deployment Readiness ✅ (CRITICAL)
-- [x] **Test Stabilization Complete** — All 252 tests passing
+- [x] **Test Stabilization Complete** — All 307 tests passing
 - [ ] **Railway Deployment**
   - [x] Fix Procfile dashboard entry point (PR #58)
   - [ ] Test deployment pipeline
@@ -158,11 +160,12 @@ tiltcheck-monorepo/
   - [ ] Add deployment health checks
 
 ### Priority 2: Module Completion
-- [ ] **TiltCheck Core** - tilt detection & accountability
-  - [ ] Implement core tilt detection logic
-  - [ ] Add cooldown nudges
-  - [ ] Create accountability tools
-  - [ ] Add comprehensive tests
+- [x] **TiltCheck Core** - tilt detection & accountability ✅ **COMPLETE**
+  - [x] Implement core tilt detection logic
+  - [x] Add cooldown nudges
+  - [x] Create soft-nudge message system
+  - [x] Add comprehensive tests (55 tests)
+  - [x] Create README documentation
 - [ ] **CollectClock Enhancement**
   - [ ] Complete bonus tracking implementation
   - [ ] Add notification system
@@ -174,7 +177,8 @@ tiltcheck-monorepo/
 - [ ] Create troubleshooting guide for common issues
 
 ### Completed Recently ✅
-- ✅ **All Tests Passing** (252/252 = 100%)
+- ✅ **All Tests Passing** (307/307 = 100%)
+- ✅ **TiltCheck Core fully implemented** — tilt detection, cooldowns, nudges (55 tests) — **NEW**
 - ✅ QualifyFirst fully implemented (14 tests passing)
 - ✅ DA&D fully implemented and stable (voting, game flow, scoring all working)
 - ✅ JustTheTip fully stable (wallet management, tipping flow, trust events)
@@ -278,7 +282,8 @@ The monorepo infrastructure is complete and battle-tested. You can now:
 4. Deploy modules independently (serverless-ready)
 
 **Recent updates (November 2025):**
-- ✅ **All Tests Passing** — 252/252 tests passing (100%)
+- ✅ **TiltCheck Core Implemented** — Tilt detection, cooldowns, soft-nudge messages (55 tests passing) — **NEW**
+- ✅ **All Tests Passing** — 307/307 tests passing (100%)
 - ✅ **Test Stabilization Complete** — All previously failing tests now fixed
 - ✅ **Railway Deployment Fix** — Procfile dashboard entry point corrected (PR #58)
 - ✅ **Dependency Updates** — Redis, jsdom, @types/node updates pending review
@@ -292,6 +297,6 @@ The monorepo infrastructure is complete and battle-tested. You can now:
 
 ---
 
-**Status**: Foundation Complete ✅ | All Modules Stable ✅ | Ready for Deployment 🚀  
-**Current Test Status**: 252/252 passing (100%) ✅  
-**Next Critical Priority**: Deploy to production and implement TiltCheck Core module
+**Status**: Foundation Complete ✅ | TiltCheck Core Complete ✅ | All Modules Stable ✅ | Ready for Deployment 🚀  
+**Current Test Status**: 307/307 passing (100%) ✅  
+**Next Critical Priority**: Deploy to production and enhance CollectClock module

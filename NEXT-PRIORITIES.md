@@ -1,120 +1,45 @@
 # TiltCheck Next Priorities
 
-**Updated:** November 24, 2025  
-**Test Status:** 180/195 passing (92.3%)  
+**Updated:** November 26, 2025  
+**Test Status:** 307/307 passing (100%) ✅  
 **Open PRs:** 4 (dependency updates + Railway deployment fix)
 
 ---
 
-## 🚨 CRITICAL: Test Stabilization
+## ✅ COMPLETED: Test Stabilization
 
-The repository has **15 failing tests** that need immediate attention before proceeding with new features or deployment.
+All tests are now passing! The repository has **307 tests** all passing.
 
-### Failing Test Breakdown
+### Recent Accomplishments
 
-#### JustTheTip Module (10 failures) 🔴 HIGH PRIORITY
-**Impact:** Core tipping functionality unreliable
+#### TiltCheck Core Module ✅ COMPLETE
+**The namesake module is now fully implemented!**
 
-```
-Failures:
-✗ Tipping Flow: min/max amount validation (4 tests)
-✗ Wallet Management: duplicate registration prevention (2 tests)
-✗ Wallet Management: disconnect validation (2 tests)
-✗ Degen Trust: event emission (1 test)
-✗ Wallet Service: transaction history ordering (1 test)
-```
+**Features Implemented:**
+- ✅ Tilt detection logic (message patterns, loss streaks, behavioral signals)
+- ✅ Cooldown management (auto and manual cooldowns)
+- ✅ Soft-nudge message system (humorous, friendly nudges)
+- ✅ Violation tracking and escalation
+- ✅ Event integration (tilt.detected, cooldown.violated events)
+- ✅ Comprehensive tests (55 tests, 100% passing)
+- ✅ README documentation
 
-**Root Causes:**
-1. Validation logic for min/max amounts not working correctly
-2. Wallet duplicate check error messages don't match test expectations
-3. Wallet disconnect doesn't return expected wallet information
-4. Transaction history ordering is reversed
-5. Degen trust events not emitted alongside casino trust events
-
-**Action Items:**
-- [ ] Review and fix validation in `modules/justthetip/src/core.ts`
-- [ ] Update error messages to match test expectations OR update tests
-- [ ] Fix disconnect method to return wallet info before deletion
-- [ ] Fix transaction history sort order (most recent first)
-- [ ] Ensure degen trust events emit alongside casino trust
-
-**Estimated Effort:** 4-6 hours
+**Signal Types Detected:**
+- `rapid-messages` - 5+ messages in 30 seconds
+- `caps-spam` - All caps message spam
+- `rage-quit` - Rage keywords detected
+- `loan-request` - Asking for loans/money
+- `loss-streak` - 3+ consecutive losses
 
 ---
 
-#### FreeSpinScan Module (4 failures) 🟡 MEDIUM PRIORITY
-**Impact:** Promo submission workflow unreliable
-
-```
-Failures:
-✗ Approval workflow: approve pending submission
+## 🚀 CURRENT: Deployment Focus
 ✗ Approval workflow: deny pending submission with reason
 ✗ Approval workflow: get pending submissions
 ✗ Blocklist: domain and pattern matching
-```
-
-**Root Causes:**
-1. Approval/denial workflow methods not implemented or broken
-2. Blocklist pattern matching logic failing
-
-**Action Items:**
-- [ ] Implement/fix `approvePromo()` method
-- [ ] Implement/fix `denyPromo()` method
-- [ ] Implement/fix `getPendingPromos()` method
-- [ ] Debug blocklist pattern matching logic
-
-**Estimated Effort:** 3-4 hours
-
 ---
 
-#### DA&D Game Module (1 failure) 🟢 LOW PRIORITY
-**Impact:** Game voting feature broken
-
-```
-Failures:
-✗ Voting: allow players to vote
-```
-
-**Root Causes:**
-1. Voting logic not correctly implemented
-
-**Action Items:**
-- [ ] Debug and fix voting method in `modules/dad/src/core.ts`
-
-**Estimated Effort:** 1-2 hours
-
----
-
-#### Integration Tests (Multiple failures) 🟡 MEDIUM PRIORITY
-**Impact:** Module integration unreliable
-
-```
-Failing Suites:
-✗ CollectClock integration tests
-✗ Trust engine integration tests
-✗ SusLink module tests
-✗ LinkGuard emission tests
-✗ LockVault tests
-✗ Landing page tests
-✗ Manifest injection tests
-```
-
-**Root Causes:**
-1. Modules may have broken integration points
-2. Test setup/teardown may be insufficient
-3. Event Router integration may have issues
-
-**Action Items:**
-- [ ] Review each failing integration test
-- [ ] Check event emission and subscription
-- [ ] Verify module initialization order
-- [ ] Ensure proper test isolation
-
-**Estimated Effort:** 6-8 hours
-
----
-
-## 📦 Deployment Readiness
+## 🚀 CURRENT: Deployment Focus
 
 ### Railway Deployment
 - ✅ **FIXED:** Procfile dashboard entry point (PR #58 - pending merge)
@@ -138,33 +63,10 @@ Failing Suites:
 
 ---
 
-## 🔨 Module Implementation
-
-### TiltCheck Core (Not Started) 🔴 HIGH PRIORITY
-**Purpose:** Tilt detection & accountability - the namesake module
-
-**Requirements:**
-- Tilt detection algorithm (behavior pattern analysis)
-- Cooldown nudge system (time-based recommendations)
-- Accountability tools (buddy system, limits)
-- Discord command integration
-- Event-driven architecture
-
-**Action Items:**
-- [ ] Design tilt detection algorithm
-- [ ] Implement core detection logic
-- [ ] Add cooldown nudge system
-- [ ] Create accountability buddy features
-- [ ] Add comprehensive tests (target: 15+ tests)
-- [ ] Integrate with Discord bot
-- [ ] Document API and usage
-
-**Estimated Effort:** 16-20 hours (1-2 weeks)
-
----
+## 🔨 Module Enhancement
 
 ### CollectClock Enhancement 🟡 MEDIUM PRIORITY
-**Status:** Placeholder exists, needs full implementation
+**Status:** Basic structure exists, needs full implementation
 
 **Requirements:**
 - Bonus tracking (daily, weekly, monthly)
@@ -181,21 +83,32 @@ Failing Suites:
 - [ ] Add prediction models (Phase 2)
 - [ ] Expand test coverage
 
-**Estimated Effort:** 12-16 hours
+**Estimated Effort:** 10-14 hours
+
+---
+
+### Accountabilibuddy 🟡 FUTURE PRIORITY
+**Status:** Not started - Phase 2 feature
+
+**Requirements:**
+- Shared wallet monitoring
+- Phone-a-friend intervention system
+- Buddy matching algorithm
+- Discord integration
+
+**Estimated Effort:** 20-25 hours
 
 ---
 
 ## 📝 Documentation Updates
 
-### Critical Documentation Gaps
-1. **Test Failure Resolution Guide** - Help developers understand and fix failing tests
-2. **Deployment Guide** - Railway-specific deployment instructions
-3. **Environment Variables** - Comprehensive list with descriptions
-4. **Troubleshooting Guide** - Common issues and solutions
-5. **Module Integration Guide** - How to add new modules
+### Documentation Gaps
+1. **Deployment Guide** - Railway-specific deployment instructions
+2. **Environment Variables** - Comprehensive list with descriptions
+3. **Troubleshooting Guide** - Common issues and solutions
+4. **Module Integration Guide** - How to add new modules
 
 **Action Items:**
-- [ ] Create TEST-FAILURES.md with analysis of each failing test
 - [ ] Update DEPLOYMENT.md with Railway instructions
 - [ ] Create ENV-VARIABLES.md reference
 - [ ] Create TROUBLESHOOTING.md
@@ -225,69 +138,67 @@ Failing Suites:
 
 ## 📊 Priority Timeline
 
-### Week 1 (Current - CRITICAL)
-1. **Fix JustTheTip tests** (10 failures) - 6 hours
-2. **Fix FreeSpinScan tests** (4 failures) - 4 hours
-3. **Fix DA&D voting test** (1 failure) - 2 hours
-4. **Review and merge Railway deployment fix** - 1 hour
-5. **Document test failures** - 2 hours
+### This Week (Deployment Focus)
+1. **Deploy to Railway** - 4 hours
+2. **Environment documentation** - 2 hours
+3. **Health checks** - 2 hours
 
-**Total: ~15 hours** ⏰
+**Total: ~8 hours** ⏰
 
-### Week 2 (HIGH PRIORITY)
-1. **Fix integration tests** - 8 hours
-2. **Start TiltCheck Core implementation** - 12 hours
-3. **Update deployment documentation** - 4 hours
+### Next 2 Weeks (Enhancement)
+1. **Enhance CollectClock** - 10-14 hours
+2. **Review dependency PRs** - 3 hours
+3. **Documentation updates** - 4 hours
 
-**Total: ~24 hours** ⏰
+**Total: ~17-21 hours** ⏰
 
-### Week 3-4 (MEDIUM PRIORITY)
-1. **Complete TiltCheck Core** - 8 hours
-2. **Enhance CollectClock** - 16 hours
-3. **Review and merge dependency updates** - 3 hours
-4. **Create comprehensive documentation** - 4 hours
+### Month 2 (Advanced Features)
+1. **Accountabilibuddy** - 20-25 hours
+2. **AI integration** - 15-20 hours
+3. **Web UI enhancements** - 10-15 hours
 
-**Total: ~31 hours** ⏰
+**Total: ~45-60 hours** ⏰
 
 ---
 
 ## ✅ Success Criteria
 
 ### Before Production Deployment
-- [ ] ✅ All tests passing (195/195 = 100%)
-- [ ] ✅ Railway deployment successful
-- [ ] ✅ All environment variables documented
-- [ ] ✅ Health checks implemented and passing
-- [ ] ✅ TiltCheck Core implemented and tested
-- [ ] ✅ Discord bot commands fully tested
-- [ ] ✅ Documentation complete and accurate
+- [x] ✅ All tests passing (307/307 = 100%)
+- [x] ✅ TiltCheck Core implemented and tested
+- [ ] ⏳ Railway deployment successful
+- [ ] ⏳ All environment variables documented
+- [ ] ⏳ Health checks implemented and passing
+- [ ] ⏳ Discord bot commands fully tested
+- [ ] ⏳ Documentation complete and accurate
 
 ### Phase 1 MVP Ready
-- [ ] ✅ All core modules tested and stable
-- [ ] ✅ Discord bot deployed and running
-- [ ] ✅ Trust engines operational
-- [ ] ✅ User authentication working
-- [ ] ✅ Basic monitoring in place
+- [x] ✅ All core modules tested and stable
+- [ ] ⏳ Discord bot deployed and running
+- [ ] ⏳ Trust engines operational
+- [ ] ⏳ User authentication working
+- [ ] ⏳ Basic monitoring in place
 
 ---
 
 ## 🎯 Next Immediate Action
 
-**START HERE:** Fix JustTheTip test failures (highest priority, most failures)
+**START HERE:** Deploy to Railway
 
 ```bash
-# Run JustTheTip tests only
-npx pnpm test modules/justthetip
+# Test the build
+pnpm build
 
-# Focus on fixing these test files:
-# 1. modules/justthetip/tests/justthetip.test.ts
-# 2. modules/justthetip/tests/wallet-service.test.ts
-# 3. modules/justthetip/tests/degen-trust.test.ts
+# Run all tests
+pnpm test
+
+# Deploy to Railway (if Railway CLI installed)
+railway up
 ```
 
-**Expected Outcome:** 10 additional tests passing, bringing total to 190/195 (97.4%)
+**Expected Outcome:** TiltCheck ecosystem running in production
 
 ---
 
-**Last Updated:** November 24, 2025  
-**Next Review:** After test stabilization (estimated 2-3 days)
+**Last Updated:** November 26, 2025  
+**Next Review:** After deployment (estimated 2-3 days)

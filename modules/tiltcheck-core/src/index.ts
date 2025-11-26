@@ -7,6 +7,7 @@ export * from './types.js';
 export * from './message-analyzer.js';
 export * from './cooldown-manager.js';
 export * from './tilt-detector.js';
+export * from './nudge-generator.js';
 
 export {
   trackMessage,
@@ -30,3 +31,12 @@ export {
   analyzeMessages,
   calculateTiltScore,
 } from './message-analyzer.js';
+
+export {
+  getNudgeMessage,
+  formatNudge,
+  getEscalatedNudges,
+  getCooldownMessage,
+  getViolationMessage,
+  type NudgeMessage,
+} from './nudge-generator.js';
