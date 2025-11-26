@@ -12,14 +12,22 @@
  * - Real-world spending reminders
  */
 
-// Configuration constants - defined before early exit check
-// These should match the values in server/api.js and be updated when deployment changes
+/**
+ * Configuration constants for early exit check - MUST be defined before imports.
+ * These are intentionally duplicated from config.ts because this code runs before
+ * any ES module imports to prevent loading resources on excluded domains.
+ * 
+ * When updating, also update the corresponding values in:
+ * - browser-extension/src/config.ts
+ * - browser-extension/server/api.js (TILTGUARD_API_PORT environment variable)
+ */
 const API_SERVER_PORT = '3333';
+const EXCLUDED_DOMAIN_PATTERNS = ['discord.com'];
 
-// Early exit if on Discord or localhost API - BEFORE any imports or code runs
+// Early exit if on excluded domain or localhost API - BEFORE any imports or code runs
 const hostname = window.location.hostname;
 const isExcludedDomain = 
-  hostname.includes('discord.com') ||
+  EXCLUDED_DOMAIN_PATTERNS.some(pattern => hostname.includes(pattern)) ||
   (hostname === 'localhost' && window.location.port === API_SERVER_PORT);
 
 if (isExcludedDomain) {
