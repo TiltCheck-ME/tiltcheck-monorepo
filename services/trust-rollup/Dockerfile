@@ -43,8 +43,8 @@ COPY packages/config/package.json ./packages/config/
 COPY services/event-router/package.json ./services/event-router/
 COPY services/trust-rollup/package.json ./services/trust-rollup/
 
-# Install production dependencies only
-RUN pnpm install --prod
+# Install production dependencies only (--ignore-scripts to skip prepare scripts that need tsc)
+RUN pnpm install --prod --ignore-scripts
 
 # Copy built files from builder
 COPY --from=builder /app/packages/types/dist ./packages/types/dist

@@ -147,12 +147,15 @@ async function getUserData(discordId: string): Promise<UserData | null> {
             tiltWarnings: true,
             trustUpdates: true,
             weeklyDigest: false
-        }
-      };
+          }
+        };
       
-      // Cache for future requests
-      userCache[discordId] = userData;
-      return userData;
+        // Cache for future requests
+        userCache[discordId] = userData;
+        return userData;
+      }
+    } catch (_error) {
+      // Database error - fall through to return null
     }
   }
 
