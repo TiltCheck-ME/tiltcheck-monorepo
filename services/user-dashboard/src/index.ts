@@ -93,7 +93,8 @@ const mockUserData: Record<string, UserData> = {
 const DISCORD_CONFIG = {
   clientId: process.env.DISCORD_CLIENT_ID,
   clientSecret: process.env.DISCORD_CLIENT_SECRET,
-  redirectUri: process.env.DISCORD_REDIRECT_URI || 'http://localhost:6001/auth/discord/callback'
+  // Use DISCORD_CALLBACK_URL for consistency with other services, fallback to DISCORD_REDIRECT_URI
+  redirectUri: process.env.DISCORD_CALLBACK_URL || process.env.DISCORD_REDIRECT_URI || 'http://localhost:6001/auth/discord/callback'
 };
 
 // Routes
@@ -107,17 +108,55 @@ app.get('/health', (_req: Request, res: Response) => {
   });
 });
 
+// OAuth configuration check (for debugging)
+app.get('/auth/status', (_req: Request, res: Response) => {
+  res.json({
+    service: 'user-dashboard',
+    oauth: {
+      configured: !!(DISCORD_CONFIG.clientId && DISCORD_CONFIG.clientSecret),
+      clientIdPresent: !!DISCORD_CONFIG.clientId,
+      clientSecretPresent: !!DISCORD_CONFIG.clientSecret,
+      redirectUri: DISCORD_CONFIG.redirectUri
+    },
+    timestamp: Date.now()
+  });
+});
+
 // Discord OAuth flow
 app.get('/auth/discord', (_req: Request, res: Response) => {
+  // Validate OAuth configuration
+  if (!DISCORD_CONFIG.clientId) {
+    console.error('[UserDashboard] Discord OAuth not configured: Missing DISCORD_CLIENT_ID');
+    return res.status(500).json({ 
+      error: 'Discord OAuth not configured',
+      message: 'DISCORD_CLIENT_ID environment variable is required'
+    });
+  }
+  
   const discordAuthUrl = `https://discord.com/api/oauth2/authorize?client_id=${DISCORD_CONFIG.clientId}&redirect_uri=${encodeURIComponent(DISCORD_CONFIG.redirectUri)}&response_type=code&scope=identify%20email`;
   res.redirect(discordAuthUrl);
 });
 
 app.get('/auth/discord/callback', async (req: Request, res: Response) => {
-  const { code } = req.query;
+  const { code, error: discordError, error_description } = req.query;
+  
+  // Handle Discord OAuth errors
+  if (discordError) {
+    console.error('[UserDashboard] Discord OAuth error:', discordError, error_description);
+    return res.redirect(`/dashboard?error=${encodeURIComponent(discordError as string)}`);
+  }
   
   if (!code) {
     return res.status(400).json({ error: 'Missing authorization code' });
+  }
+
+  // Validate OAuth configuration
+  if (!DISCORD_CONFIG.clientId || !DISCORD_CONFIG.clientSecret) {
+    console.error('[UserDashboard] Discord OAuth not configured properly');
+    return res.status(500).json({ 
+      error: 'Discord OAuth not configured',
+      message: 'Missing DISCORD_CLIENT_ID or DISCORD_CLIENT_SECRET'
+    });
   }
 
   try {
@@ -137,7 +176,9 @@ app.get('/auth/discord/callback', async (req: Request, res: Response) => {
     });
 
     if (!tokenResponse.ok) {
-      throw new Error('Failed to exchange code for token');
+      const errorBody = await tokenResponse.text();
+      console.error('[UserDashboard] Token exchange failed:', tokenResponse.status, errorBody);
+      throw new Error(`Failed to exchange code for token: ${tokenResponse.status}`);
     }
 
     const tokenData = await tokenResponse.json() as { access_token: string };
@@ -150,7 +191,9 @@ app.get('/auth/discord/callback', async (req: Request, res: Response) => {
     });
 
     if (!userResponse.ok) {
-      throw new Error('Failed to fetch user data');
+      const errorBody = await userResponse.text();
+      console.error('[UserDashboard] User fetch failed:', userResponse.status, errorBody);
+      throw new Error(`Failed to fetch user data: ${userResponse.status}`);
     }
 
     const userData = await userResponse.json() as { id: string; username: string; discriminator: string };
@@ -170,8 +213,8 @@ app.get('/auth/discord/callback', async (req: Request, res: Response) => {
     res.redirect(`/dashboard?token=${token}`);
 
   } catch (error) {
-    console.error('Discord OAuth error:', error);
-    res.status(500).json({ error: 'Authentication failed' });
+    console.error('[UserDashboard] Discord OAuth error:', error);
+    res.redirect('/dashboard?error=auth_failed');
   }
 });
 
@@ -608,4 +651,11 @@ app.listen(PORT, () => {
   console.log(`🎯 User Dashboard service listening on port ${PORT}`);
   console.log(`📊 Dashboard: http://localhost:${PORT}/dashboard`);
   console.log(`🔑 Discord OAuth: http://localhost:${PORT}/auth/discord`);
+  console.log(`🔗 Discord Callback URL: ${DISCORD_CONFIG.redirectUri}`);
+  if (!DISCORD_CONFIG.clientId) {
+    console.warn('⚠️  DISCORD_CLIENT_ID not set - OAuth will not work');
+  }
+  if (!DISCORD_CONFIG.clientSecret) {
+    console.warn('⚠️  DISCORD_CLIENT_SECRET not set - OAuth will not work');
+  }
 });
