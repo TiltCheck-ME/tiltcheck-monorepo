@@ -2,6 +2,33 @@
 
 AI-powered intelligence for TiltCheck ecosystem with 7 core applications.
 
+## Quick Start
+
+### 1. Configure Environment
+```bash
+cp .env.example .env
+# Edit .env and add your OpenAI API key
+```
+
+### 2. Environment Variables
+| Variable | Required | Default | Description |
+|----------|----------|---------|-------------|
+| `OPENAI_API_KEY` | **Yes** | - | Your OpenAI API key |
+| `OPENAI_MODEL` | No | `gpt-4o-mini` | Model to use (gpt-4o, gpt-4o-mini, gpt-3.5-turbo) |
+| `AI_GATEWAY_PORT` | No | `3002` | HTTP server port |
+
+### 3. Run the Service
+```bash
+# Development
+pnpm dev
+
+# Production
+pnpm start
+```
+
+### 4. Fallback Mode
+If `OPENAI_API_KEY` is not set, the service runs in **mock mode** with predefined responses. This is useful for development and testing without API costs.
+
 ## Applications
 
 ### 1. Survey Matching Intelligence
@@ -176,24 +203,118 @@ The service listens for `ai.request` events and publishes `ai.response` events, 
 
 ## Production Deployment
 
-Replace mock responses with actual AI API calls (OpenAI, Anthropic, etc.):
+The AI Gateway is **production-ready** with OpenAI integration:
+
+1. Set `OPENAI_API_KEY` environment variable
+2. Optionally set `OPENAI_MODEL` (default: `gpt-4o-mini` for cost efficiency)
+3. Deploy to any Node.js host (Render, Railway, Fly.io, etc.)
+
+### Response Format
+All responses include a `source` field indicating whether the response came from:
+- `openai` - Real OpenAI API response
+- `mock` - Fallback mock response (when API unavailable)
 
 ```javascript
-// Example: Replace mock with OpenAI API
-async surveyMatching(request) {
-  const completion = await openai.chat.completions.create({
-    model: 'gpt-4o-mini',
-    messages: [{ role: 'user', content: request.prompt }],
-    response_format: { type: 'json_object' }
-  });
-  
-  return {
-    success: true,
-    data: JSON.parse(completion.choices[0].message.content),
-    usage: completion.usage
-  };
+{
+  success: true,
+  data: { ... },
+  usage: { promptTokens: 150, completionTokens: 100, totalTokens: 250 },
+  source: 'openai'  // or 'mock'
 }
 ```
+
+### Cost Estimates (gpt-4o-mini)
+| Application | ~Tokens/Request | ~Cost/1000 Requests |
+|-------------|-----------------|---------------------|
+| Survey Matching | 250 | $0.04 |
+| Card Generation | 500 | $0.08 |
+| Moderation | 180 | $0.03 |
+| Tilt Detection | 400 | $0.06 |
+| NL Commands | 90 | $0.01 |
+| Recommendations | 500 | $0.08 |
+| Support | 220 | $0.04 |
+
+## Fly.io Deployment
+
+### 1. Install Fly CLI
+```bash
+# macOS
+brew install flyctl
+
+# Linux
+curl -L https://fly.io/install.sh | sh
+
+# Windows
+powershell -Command "iwr https://fly.io/install.ps1 -useb | iex"
+```
+
+### 2. Login & Create App
+```bash
+cd services/ai-gateway
+fly auth login
+fly launch --no-deploy
+```
+
+### 3. Set Secrets
+```bash
+# Required: OpenAI API Key
+fly secrets set OPENAI_API_KEY=sk-your-api-key-here
+
+# Optional: Model selection (default: gpt-4o-mini)
+fly secrets set OPENAI_MODEL=gpt-4o-mini
+```
+
+### 4. Deploy
+```bash
+fly deploy
+```
+
+### 5. Verify Deployment
+```bash
+# Check status
+fly status
+
+# View logs
+fly logs
+
+# Test health endpoint
+curl https://tiltcheck-ai-gateway.fly.dev/health
+```
+
+### 6. Test API Endpoints
+```bash
+# Test moderation
+curl -X POST https://tiltcheck-ai-gateway.fly.dev/api/moderation \
+  -H "Content-Type: application/json" \
+  -d '{"prompt": "Check this link!", "context": {"url": "https://example.com"}}'
+
+# Test support
+curl -X POST https://tiltcheck-ai-gateway.fly.dev/api/support \
+  -H "Content-Type: application/json" \
+  -d '{"prompt": "How do I withdraw my earnings?"}'
+```
+
+### Fly.io Free Tier
+- 3 shared-cpu-1x VMs with 256MB RAM
+- 160GB outbound data transfer
+- Perfect for AI Gateway (low memory, burst CPU)
+
+## API Endpoints
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/health` | Health check with status |
+| GET | `/status` | Service status and available applications |
+| POST | `/api/process` | Generic AI processing (specify `application` in body) |
+| POST | `/api/survey-matching` | Survey matching intelligence |
+| POST | `/api/card-generation` | DA&D card generation |
+| POST | `/api/moderation` | Content moderation |
+| POST | `/api/tilt-detection` | Tilt/gambling behavior analysis |
+| POST | `/api/nl-commands` | Natural language command parsing |
+| POST | `/api/recommendations` | Personalized recommendations |
+| POST | `/api/support` | AI-powered user support |
+| GET | `/api/cache/stats` | Cache statistics |
+| POST | `/api/cache/clear` | Clear expired cache |
 
 ## Testing
 
