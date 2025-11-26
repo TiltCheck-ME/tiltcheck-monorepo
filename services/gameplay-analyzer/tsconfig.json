@@ -5,7 +5,8 @@
     "rootDir": "./src",
     "declaration": true,
     "declarationMap": true,
-    "sourceMap": true
+    "sourceMap": true,
+    "lib": ["ES2020", "DOM", "DOM.Iterable", "WebWorker"]
   },
   "include": ["src/**/*"],
   "exclude": ["node_modules", "dist", "tests"]

@@ -244,7 +244,7 @@ export class GameplayAnalyzerService {
    * This detects when a casino shows higher than normal RTP
    * to hook new players or encourage larger bets.
    */
-  detectPump(stats: RTPStats): AnomalyResult {
+  private detectPump(stats: RTPStats): AnomalyResult {
     const baseline = this.config.baselineRTP;
     const deviation = stats.observedRTP - baseline;
     const deviationRatio = deviation / baseline;
@@ -304,7 +304,7 @@ export class GameplayAnalyzerService {
    * Natural wins should be relatively randomly distributed.
    * Suspicious clustering could indicate manipulation.
    */
-  detectWinClustering(spins: SpinResult[]): AnomalyResult {
+  private detectWinClustering(spins: SpinResult[]): AnomalyResult {
     if (spins.length < this.config.minSpinsRequired) {
       return {
         anomalyType: 'win_clustering',
@@ -360,7 +360,7 @@ export class GameplayAnalyzerService {
    * Monitors for consistent deviation that might indicate
    * the game's actual RTP doesn't match advertised.
    */
-  detectRTPDrift(spins: SpinResult[]): AnomalyResult {
+  private detectRTPDrift(spins: SpinResult[]): AnomalyResult {
     if (spins.length < this.config.minSpinsRequired * 2) {
       return {
         anomalyType: 'rtp_drift',

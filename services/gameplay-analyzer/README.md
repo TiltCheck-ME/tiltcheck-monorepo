@@ -17,9 +17,38 @@ The service includes mobile-specific features designed for:
 - **Bandwidth Optimization**: Compressed payload formats for mobile networks
 - **Batch Processing**: Aggregate multiple spins before analysis to reduce API calls
 
+## PWA vs Chrome Extension
+
+### Do You Need a Chrome Extension?
+
+**No!** The GameplayAnalyzer is designed to work as a **Progressive Web App (PWA)** without requiring a browser extension. Here's why:
+
+| Approach | Pros | Cons |
+|----------|------|------|
+| **PWA (Recommended)** | Works on all devices, no install friction, offline support, push notifications | Requires manual spin logging |
+| **Chrome Extension** | Can auto-detect spins, intercept network | Desktop only, Chrome only, complex distribution |
+| **Native App** | Full device access, overlays | Requires app store approval, platform-specific |
+
+### PWA Capabilities
+
+The PWA client provides:
+
+- ✅ **Offline Storage**: IndexedDB for storing spins when offline
+- ✅ **Background Sync**: Auto-sync when connection restored
+- ✅ **Push Notifications**: Anomaly alerts even when app closed
+- ✅ **Install to Home Screen**: Native app-like experience
+- ✅ **Quick Bet Buttons**: Fast spin logging with preset multipliers
+
+### How It Works Without Extension
+
+1. **Manual Logging**: User taps buttons to record wins/losses
+2. **Quick Input**: Preset wager amounts and common multipliers (x2, x5, x10, etc.)
+3. **Real-time Analysis**: Each batch of spins triggers anomaly detection
+4. **Alerts**: Push notifications when anomalies detected
+
 ## Usage
 
-### Basic Usage
+### Basic Usage (Server-side)
 
 ```typescript
 import { gameplayAnalyzer } from '@tiltcheck/gameplay-analyzer';
@@ -41,7 +70,42 @@ console.log(report.pumpAnalysis);
 console.log(report.recommendations);
 ```
 
-### Mobile Usage
+### PWA Client Usage
+
+```typescript
+import { GameplayPWAClient, QuickBetTracker } from '@tiltcheck/gameplay-analyzer';
+
+// Initialize PWA client
+const client = new GameplayPWAClient({
+  userId: 'user-123',
+  casinoId: 'stake-us',
+  gameId: 'sweet-bonanza',
+  onAnomalyDetected: (summary) => {
+    console.log('Anomaly detected!', summary);
+    // Show alert to user
+  },
+});
+
+// Use quick bet tracker for fast input
+const tracker = new QuickBetTracker(client);
+tracker.setWager(10); // $10 bets
+
+// User taps buttons:
+await tracker.loss();     // Record a loss
+await tracker.x2();       // Record 2x win
+await tracker.x10();      // Record 10x win
+await tracker.bigWin();   // Record 10x win
+await tracker.megaWin();  // Record 50x win
+
+// Get session stats
+const stats = client.getSessionStats();
+console.log(`RTP: ${stats.sessionRTP.toFixed(1)}%`);
+
+// End session
+const report = await client.endSession();
+```
+
+### Mobile Usage (Compressed Format)
 
 ```typescript
 import { GameplayAnalyzerService } from '@tiltcheck/gameplay-analyzer';
