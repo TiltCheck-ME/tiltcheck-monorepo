@@ -21,7 +21,7 @@ const isExcludedDomain =
 if (isExcludedDomain) {
   console.log('[TiltGuard] Skipping - excluded domain:', hostname);
   // Exit immediately - don't load anything
-  throw new Error('TiltGuard: Excluded domain');
+  return;
 }
 
 // Only import and run on allowed casino sites
