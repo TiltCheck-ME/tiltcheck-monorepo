@@ -13,11 +13,16 @@
 
 // Event router integration - import only when available
 let eventRouter = null;
-try {
-  const eventRouterModule = await import('@tiltcheck/event-router');
-  eventRouter = eventRouterModule.eventRouter;
-} catch (e) {
-  console.log('[AIGateway] Event router not available, running standalone');
+
+// Initialize eventRouter asynchronously
+async function initEventRouter() {
+  try {
+    const eventRouterModule = await import('@tiltcheck/event-router');
+    eventRouter = eventRouterModule.eventRouter;
+    console.log('[AIGateway] Event router integration enabled');
+  } catch (e) {
+    console.log('[AIGateway] Event router not available, running standalone');
+  }
 }
 
 /**
@@ -27,6 +32,12 @@ class AIGatewayService {
   constructor() {
     this.cache = new Map();
     this.cacheTimeout = 3600000; // 1 hour
+  }
+
+  /**
+   * Initialize the service (call after eventRouter is loaded)
+   */
+  init() {
     this.setupEventListeners();
   }
 
@@ -429,7 +440,19 @@ class AIGatewayService {
   }
 }
 
-// Export singleton instance
-module.exports = { AIGatewayService, aiGateway: new AIGatewayService() };
+// Create and initialize the service
+const aiGateway = new AIGatewayService();
 
-console.log('[AIGateway] Service initialized with 7 applications');
+// Initialize event router and then the service
+initEventRouter()
+  .then(() => {
+    aiGateway.init();
+    console.log('[AIGateway] Service initialized with 7 applications');
+  })
+  .catch((err) => {
+    console.error('[AIGateway] Initialization failed:', err.message);
+    console.log('[AIGateway] Service running in standalone mode');
+  });
+
+// Export singleton instance
+module.exports = { AIGatewayService, aiGateway };
