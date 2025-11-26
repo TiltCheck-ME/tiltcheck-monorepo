@@ -15,6 +15,7 @@ export default defineConfig({
       '@tiltcheck/discord-utils': r('packages/discord-utils/src/index.ts'),
       '@tiltcheck/database': r('packages/database/src/index.ts'),
       '@tiltcheck/suslink': r('modules/suslink/src/index.ts'),
+      '@tiltcheck/identity-core': r('packages/identity-core/src/index.ts'),
     },
   },
   test: {

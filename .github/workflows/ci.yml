@@ -23,6 +23,8 @@ jobs:
         run: corepack prepare pnpm@9.0.0 --activate
       - name: Install deps (frozen lockfile)
         run: pnpm install --frozen-lockfile
+        env:
+          PUPPETEER_SKIP_DOWNLOAD: 'true'
       - name: Build all
         run: pnpm build
       - name: Link binaries
@@ -39,6 +41,8 @@ jobs:
         run: pnpm contrast:dom
       - name: Accessibility audit (pa11y + lighthouse)
         run: pnpm a11y:audit
+        env:
+          PUPPETEER_EXECUTABLE_PATH: /usr/bin/google-chrome
       - name: Run tests (Vitest)
         run: pnpm test
       - name: Landing server health check
@@ -83,8 +87,12 @@ jobs:
         run: corepack prepare pnpm@9.0.0 --activate
       - name: Install deps (frozen lockfile)
         run: pnpm install --frozen-lockfile
+        env:
+          PUPPETEER_SKIP_DOWNLOAD: 'true'
       - name: Run audits (bundle + contrast + a11y)
         run: pnpm audit:all
+        env:
+          PUPPETEER_EXECUTABLE_PATH: /usr/bin/google-chrome
       - name: Upload component bundle
         if: always()
         uses: actions/upload-artifact@v5
@@ -109,8 +117,12 @@ jobs:
         run: corepack prepare pnpm@9.0.0 --activate
       - name: Install deps (frozen lockfile)
         run: pnpm install --frozen-lockfile
+        env:
+          PUPPETEER_SKIP_DOWNLOAD: 'true'
       - name: Run landing accessibility audit
         run: pnpm a11y:audit:landing
+        env:
+          PUPPETEER_EXECUTABLE_PATH: /usr/bin/google-chrome
       - name: Upload landing a11y artifact
         if: always()
         uses: actions/upload-artifact@v5
