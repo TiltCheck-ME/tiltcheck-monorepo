@@ -17,24 +17,50 @@ let redisClient = null;
 let useRedis = false;
 
 /**
- * Initialize Redis client
+ * Initialize Redis client with timeout
  */
 async function initRateLimiter() {
+  // Skip Redis if REDIS_URL is not set (common in containerized environments)
+  if (!process.env.REDIS_URL) {
+    console.log('[RateLimiter] REDIS_URL not set, using in-memory fallback');
+    useRedis = false;
+    return;
+  }
+
   try {
-    const redisUrl = process.env.REDIS_URL || 'redis://localhost:6379';
-    redisClient = createClient({ url: redisUrl });
+    const redisUrl = process.env.REDIS_URL;
+    redisClient = createClient({ 
+      url: redisUrl,
+      socket: {
+        connectTimeout: 5000, // 5 second connection timeout
+        reconnectStrategy: false // Don't auto-reconnect, use fallback instead
+      }
+    });
     
     redisClient.on('error', (err) => {
       console.error('[RateLimiter] Redis error:', err.message);
       useRedis = false;
     });
 
-    await redisClient.connect();
+    // Add timeout wrapper to prevent hanging
+    const connectWithTimeout = Promise.race([
+      redisClient.connect(),
+      new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Redis connection timeout')), 5000)
+      )
+    ]);
+
+    await connectWithTimeout;
     useRedis = true;
     console.log('[RateLimiter] Redis connected');
   } catch (err) {
     console.warn('[RateLimiter] Redis unavailable, using in-memory fallback:', err.message);
     useRedis = false;
+    // Clean up any partial connection
+    if (redisClient) {
+      try { await redisClient.disconnect(); } catch {}
+      redisClient = null;
+    }
   }
 }
 
