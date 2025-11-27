@@ -6,8 +6,8 @@ RUN npm install -g pnpm@9
 
 WORKDIR /app
 
-# Copy package files
-COPY package.json pnpm-workspace.yaml pnpm-lock.yaml ./
+# Copy package files and pnpm config
+COPY package.json pnpm-workspace.yaml pnpm-lock.yaml .npmrc ./
 
 # Packages
 COPY packages/types/package.json ./packages/types/
@@ -55,18 +55,18 @@ COPY modules/qualifyfirst/package.json ./modules/qualifyfirst/
 COPY apps/discord-bot/package.json ./apps/discord-bot/
 COPY apps/dad-bot/package.json ./apps/dad-bot/
 
-# Install dependencies
-RUN pnpm install
+# Install dependencies with frozen lockfile for reproducible builds
+RUN pnpm install --frozen-lockfile
 
-# Copy source code
+# Copy all source code
 COPY packages/ ./packages/
 COPY services/ ./services/
 COPY modules/ ./modules/
-COPY apps/discord-bot/ ./apps/discord-bot/
+COPY apps/ ./apps/
 COPY tsconfig.json ./
 
-# Build packages
-RUN pnpm run build
+# Build all packages recursively
+RUN pnpm -r build
 
 # Production stage
 FROM node:20-alpine
@@ -76,8 +76,8 @@ RUN npm install -g pnpm@9
 
 WORKDIR /app
 
-# Copy package files
-COPY package.json pnpm-workspace.yaml pnpm-lock.yaml ./
+# Copy package files and pnpm config
+COPY package.json pnpm-workspace.yaml pnpm-lock.yaml .npmrc ./
 
 # Packages
 COPY packages/types/package.json ./packages/types/
@@ -126,9 +126,9 @@ COPY apps/discord-bot/package.json ./apps/discord-bot/
 COPY apps/dad-bot/package.json ./apps/dad-bot/
 
 # Install production dependencies only (--ignore-scripts to skip prepare scripts that need tsc)
-RUN pnpm install --prod --ignore-scripts
+RUN pnpm install --prod --frozen-lockfile --ignore-scripts
 
-# Copy built files from builder - Packages
+# Copy built files from builder - Packages (only those with dist folders)
 COPY --from=builder /app/packages/types/dist ./packages/types/dist
 COPY --from=builder /app/packages/config/dist ./packages/config/dist
 COPY --from=builder /app/packages/discord-utils/dist ./packages/discord-utils/dist
@@ -138,7 +138,12 @@ COPY --from=builder /app/packages/identity-core/dist ./packages/identity-core/di
 COPY --from=builder /app/packages/natural-language-parser/dist ./packages/natural-language-parser/dist
 COPY --from=builder /app/packages/supabase-auth/dist ./packages/supabase-auth/dist
 
-# Copy built files from builder - Services
+# Copy express-utils source (no build script, uses source files directly)
+COPY --from=builder /app/packages/express-utils/src ./packages/express-utils/src
+
+# Copy built files from builder - Services (only those with dist folders)
+# Note: ai-gateway, control-room, landing, and user-dashboard are plain JS services
+# without TypeScript builds. Their source files run directly without compilation.
 COPY --from=builder /app/services/event-router/dist ./services/event-router/dist
 COPY --from=builder /app/services/pricing-oracle/dist ./services/pricing-oracle/dist
 COPY --from=builder /app/services/trust-rollup/dist ./services/trust-rollup/dist
@@ -149,7 +154,10 @@ COPY --from=builder /app/services/dashboard/dist ./services/dashboard/dist
 COPY --from=builder /app/services/game-arena/dist ./services/game-arena/dist
 COPY --from=builder /app/services/gameplay-analyzer/dist ./services/gameplay-analyzer/dist
 
-# Copy built files from builder - Modules
+# Copy services/qualifyfirst source (static site, no build output)
+COPY --from=builder /app/services/qualifyfirst/src ./services/qualifyfirst/src
+
+# Copy built files from builder - Modules (only those with dist folders)
 COPY --from=builder /app/modules/suslink/dist ./modules/suslink/dist
 COPY --from=builder /app/modules/justthetip/dist ./modules/justthetip/dist
 COPY --from=builder /app/modules/collectclock/dist ./modules/collectclock/dist
