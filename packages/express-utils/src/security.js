@@ -324,6 +324,23 @@ class CircuitBreaker {
     this.lastFailure = 0;
     this.halfOpenAttempts = 0;
   }
+
+  /**
+   * Force circuit to OPEN state (for testing)
+   * @param {number} [lastFailureOffset=0] - Milliseconds to subtract from now for lastFailure
+   */
+  forceOpen(lastFailureOffset = 0) {
+    this.state = 'OPEN';
+    this.lastFailure = Date.now() - lastFailureOffset;
+  }
+
+  /**
+   * Force circuit to HALF_OPEN state (for testing)
+   */
+  forceHalfOpen() {
+    this.state = 'HALF_OPEN';
+    this.halfOpenAttempts = 0;
+  }
 }
 
 /**
@@ -378,28 +395,49 @@ function isUrlSafe(url) {
     }
     
     // Block internal/private networks
-    const blockedHosts = [
-      'localhost',
-      '127.0.0.1',
-      '0.0.0.0',
-      '::1',
-      '169.254.', // Link-local
-      '10.',      // Private Class A
-      '172.16.',  // Private Class B (172.16-31.x.x)
-      '192.168.', // Private Class C
-    ];
-    
     const hostname = parsed.hostname.toLowerCase();
     
-    for (const blocked of blockedHosts) {
-      if (hostname === blocked || hostname.startsWith(blocked)) {
-        return false;
-      }
+    // Exact matches for localhost variants
+    const exactBlocked = ['localhost', '127.0.0.1', '0.0.0.0', '::1'];
+    if (exactBlocked.includes(hostname)) {
+      return false;
     }
     
-    // Block AWS metadata endpoint
-    if (hostname === '169.254.169.254') {
-      return false;
+    // Check for private IP ranges using proper IP parsing
+    // IPv4 private ranges: 10.x.x.x, 172.16-31.x.x, 192.168.x.x, 169.254.x.x
+    const ipv4Match = hostname.match(/^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/);
+    if (ipv4Match) {
+      const [, a, b, c, d] = ipv4Match.map(Number);
+      
+      // Validate each octet is in range
+      if ([a, b, c, d].some(octet => octet < 0 || octet > 255)) {
+        return false;
+      }
+      
+      // 10.0.0.0/8 - Private Class A
+      if (a === 10) {
+        return false;
+      }
+      
+      // 172.16.0.0/12 - Private Class B (172.16.0.0 - 172.31.255.255)
+      if (a === 172 && b >= 16 && b <= 31) {
+        return false;
+      }
+      
+      // 192.168.0.0/16 - Private Class C
+      if (a === 192 && b === 168) {
+        return false;
+      }
+      
+      // 169.254.0.0/16 - Link-local (including AWS metadata 169.254.169.254)
+      if (a === 169 && b === 254) {
+        return false;
+      }
+      
+      // 127.0.0.0/8 - Loopback
+      if (a === 127) {
+        return false;
+      }
     }
     
     return true;
