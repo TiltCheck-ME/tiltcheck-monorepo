@@ -23,6 +23,7 @@ function loadConfig() {
   return {
     PORT: process.env.PORT || 8080,
     LANDING_LOG_PATH: process.env.LANDING_LOG_PATH || '/tmp/landing-requests.log',
+    PUBLIC_BASE_URL: process.env.PUBLIC_BASE_URL,
     ADMIN_IP_1: process.env.ADMIN_IP_1,
     ADMIN_IP_2: process.env.ADMIN_IP_2,
     ADMIN_IP_3: process.env.ADMIN_IP_3,
