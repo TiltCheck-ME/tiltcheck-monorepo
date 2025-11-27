@@ -73,16 +73,11 @@ function defaultUnauthorized(_req: Request, res: Response, _next: NextFunction):
  * Validates the access token and attaches user info to request
  */
 export function authMiddleware(options: AuthMiddlewareOptions = {}): RequestHandler {
-  // Create or use provided auth client
-  let authClient: SupabaseAuthClient;
+  // Create or use provided auth client - shared across all requests handled by this middleware
+  const authClient: SupabaseAuthClient = options.authClient || createAuthClientFromEnv();
   
   return async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-      // Initialize auth client on first request (lazy initialization)
-      if (!authClient) {
-        authClient = options.authClient || createAuthClientFromEnv();
-      }
-
       // Attach auth client to request
       req.authClient = authClient;
 
