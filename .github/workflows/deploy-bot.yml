@@ -24,10 +24,11 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Install pnpm
-        uses: pnpm/action-setup@v2
-        with:
-          version: 8
+      - name: Enable Corepack
+        run: corepack enable
+
+      - name: Activate pnpm 9 (lockfile v9)
+        run: corepack prepare pnpm@9.0.0 --activate
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
