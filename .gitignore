@@ -9,6 +9,7 @@ node_modules/
 
 # Build outputs
 dist/
+!services/casino-data-api/dist/
 build/
 .next/
 out/
