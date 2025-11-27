@@ -1,0 +1,29 @@
+{
+  "name": "@tiltcheck/supabase-auth",
+  "version": "0.1.0",
+  "description": "Supabase authentication integration for TiltCheck ecosystem",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "clean": "rm -rf dist",
+    "test": "vitest --run"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.39.0",
+    "@tiltcheck/types": "workspace:*"
+  },
+  "devDependencies": {
+    "typescript": "^5.3.0",
+    "vitest": "^1.6.0"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    }
+  }
+}
