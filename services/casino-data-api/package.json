@@ -10,7 +10,6 @@
   "scripts": {
     "dev": "tsx watch src/index.ts",
     "build": "tsc -p tsconfig.json",
-    "prepare": "pnpm run build",
     "start": "node dist/index.js",
     "cli": "tsx src/cli.ts"
   },
