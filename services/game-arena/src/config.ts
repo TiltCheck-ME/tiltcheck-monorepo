@@ -1,6 +1,8 @@
 /**
  * Game Arena Server Configuration
  * Central configuration for the game arena service
+ * 
+ * Now uses Supabase Discord OAuth for authentication
  */
 
 export const config = {
@@ -9,11 +11,18 @@ export const config = {
   nodeEnv: process.env.NODE_ENV || 'development',
   isDev: process.env.NODE_ENV !== 'production',
 
-  // Discord OAuth
-  discord: {
-    clientId: process.env.DISCORD_CLIENT_ID || '',
-    clientSecret: process.env.DISCORD_CLIENT_SECRET || '',
-    callbackUrl: process.env.DISCORD_CALLBACK_URL || 'https://arena.tiltcheck.me/auth/discord/callback',
+  // Supabase Auth Configuration (required)
+  supabase: {
+    url: process.env.SUPABASE_URL || '',
+    anonKey: process.env.SUPABASE_ANON_KEY || '',
+  },
+
+  // OAuth Redirect URLs
+  auth: {
+    // Redirect URL after successful Discord OAuth via Supabase
+    redirectUrl: process.env.AUTH_REDIRECT_URL || 'https://tiltcheck.me/arena/auth/callback',
+    // URL for failed auth
+    failureUrl: process.env.AUTH_FAILURE_URL || '/?error=auth_failed',
   },
 
   // Session
@@ -21,12 +30,6 @@ export const config = {
     secret: process.env.SESSION_SECRET || 'dev-secret-change-in-production',
     cookieName: 'tiltcheck.arena.sid',
     maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-  },
-
-  // Supabase (optional)
-  supabase: {
-    url: process.env.SUPABASE_URL,
-    anonKey: process.env.SUPABASE_ANON_KEY,
   },
 
   // Redis (optional)
@@ -46,12 +49,20 @@ export const config = {
 export function validateConfig(): void {
   const errors: string[] = [];
 
-  if (!config.discord.clientId && !config.isDev) {
-    errors.push('DISCORD_CLIENT_ID is required in production');
+  if (!config.supabase.url) {
+    if (!config.isDev) {
+      errors.push('SUPABASE_URL is required in production');
+    } else {
+      console.warn('⚠️  SUPABASE_URL not set - authentication will not work');
+    }
   }
 
-  if (!config.discord.clientSecret && !config.isDev) {
-    errors.push('DISCORD_CLIENT_SECRET is required in production');
+  if (!config.supabase.anonKey) {
+    if (!config.isDev) {
+      errors.push('SUPABASE_ANON_KEY is required in production');
+    } else {
+      console.warn('⚠️  SUPABASE_ANON_KEY not set - authentication will not work');
+    }
   }
 
   if (config.session.secret === 'dev-secret-change-in-production' && !config.isDev) {
