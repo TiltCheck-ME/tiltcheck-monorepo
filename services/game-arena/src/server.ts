@@ -1,26 +1,32 @@
 /**
  * Game Arena Server
- * Web-based multiplayer game arena with Discord authentication and Supabase stats
+ * Web-based multiplayer game arena with Supabase Discord authentication
+ * 
+ * Uses @tiltcheck/supabase-auth for Discord OAuth via Supabase
  */
 
 import express from 'express';
 import { createServer } from 'http';
 import { Server as SocketIOServer } from 'socket.io';
 import session from 'express-session';
-import passport from 'passport';
-import { Strategy as DiscordStrategy } from 'passport-discord';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
 import { config, validateConfig } from './config.js';
 import { GameManager } from './game-manager.js';
 import { statsService } from './stats-service.js';
+import {
+  createAuthClient,
+  type SupabaseAuthClient,
+  type AuthUser,
+} from '@tiltcheck/supabase-auth';
 import type {
   DiscordUser,
   ClientToServerEvents,
   ServerToClientEvents,
   CreateGameRequest,
 } from './types.js';
+import { mapAuthUserToDiscordUser } from './types.js';
 
 // ES module __dirname equivalent
 const __filename = fileURLToPath(import.meta.url);
@@ -49,12 +55,25 @@ statsService.initialize().catch(err => {
   console.error('[Server] Failed to initialize stats service:', err);
 });
 
+// Initialize Supabase auth client (if configured)
+let authClient: SupabaseAuthClient | null = null;
+if (config.supabase.url && config.supabase.anonKey) {
+  authClient = createAuthClient({
+    supabaseUrl: config.supabase.url,
+    supabaseAnonKey: config.supabase.anonKey,
+    persistSession: false, // Server-side doesn't persist sessions
+  });
+  console.log('✅ Supabase auth client initialized');
+} else {
+  console.warn('⚠️  Supabase auth not configured - authentication will be disabled');
+}
+
 // Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, '../public')));
 
-// Session configuration
+// Session configuration (used to store auth tokens)
 const sessionMiddleware = session({
   secret: config.session.secret,
   resave: false,
@@ -70,42 +89,56 @@ const sessionMiddleware = session({
 
 app.use(sessionMiddleware);
 
-// Passport configuration
-if (config.discord.clientId && config.discord.clientSecret) {
-  passport.use(
-    new DiscordStrategy(
-      {
-        clientID: config.discord.clientId,
-        clientSecret: config.discord.clientSecret,
-        callbackURL: config.discord.callbackUrl,
-        scope: ['identify', 'email'],
-      },
-      async (_accessToken, _refreshToken, profile, done) => {
-        const user: DiscordUser = {
-          id: profile.id,
-          username: profile.username,
-          discriminator: profile.discriminator,
-          avatar: profile.avatar,
-          email: profile.email,
-        };
-        return done(null, user);
-      }
-    )
-  );
-
-  passport.serializeUser((user: any, done) => done(null, user));
-  passport.deserializeUser((user: any, done) => done(null, user));
-
-  app.use(passport.initialize());
-  app.use(passport.session());
+// Extended session type
+declare module 'express-session' {
+  interface SessionData {
+    accessToken?: string;
+    refreshToken?: string;
+    user?: AuthUser;
+  }
 }
 
-// Authentication middleware
-function requireAuth(req: express.Request, res: express.Response, next: express.NextFunction): void {
-  if (req.isAuthenticated && req.isAuthenticated()) {
+// Authentication middleware - validates session token
+async function requireAuth(req: express.Request, res: express.Response, next: express.NextFunction): Promise<void> {
+  // Check if user is stored in session
+  if (req.session.user && req.session.accessToken) {
+    req.user = req.session.user;
     return next();
   }
+  
+  // Check for Bearer token in Authorization header
+  const authHeader = req.headers.authorization;
+  if (authHeader && authHeader.startsWith('Bearer ') && authClient) {
+    const token = authHeader.substring(7);
+    try {
+      // Set the session and get user
+      const { data: sessionData, error: sessionError } = await authClient.setSession(
+        token,
+        req.session.refreshToken || ''
+      );
+      
+      if (sessionError || !sessionData) {
+        res.status(401).json({ error: 'Invalid or expired token' });
+        return;
+      }
+      
+      req.user = sessionData.user;
+      return next();
+    } catch {
+      res.status(401).json({ error: 'Authentication failed' });
+      return;
+    }
+  }
+  
   res.status(401).json({ error: 'Authentication required' });
+}
+
+// Optional auth middleware - attaches user if available
+async function optionalAuth(req: express.Request, _res: express.Response, next: express.NextFunction): Promise<void> {
+  if (req.session.user) {
+    req.user = req.session.user;
+  }
+  next();
 }
 
 // Share session with Socket.IO
@@ -119,11 +152,12 @@ app.get('/health', (_req, res) => {
     status: 'ok',
     uptime: process.uptime(),
     timestamp: Date.now(),
+    auth: authClient ? 'enabled' : 'disabled',
   });
 });
 
 // Home page
-app.get('/', (req, res) => {
+app.get('/', optionalAuth, (req, res) => {
   if (req.user) {
     res.redirect('/arena');
   } else {
@@ -141,37 +175,112 @@ app.get('/game/:gameId', requireAuth, (_req, res) => {
   res.sendFile(path.join(__dirname, '../public/game.html'));
 });
 
-// Auth routes
-if (config.discord.clientId && config.discord.clientSecret) {
-  app.get('/auth/discord', passport.authenticate('discord'));
+// Auth routes using Supabase Discord OAuth
+if (authClient) {
+  // Initiate Discord OAuth via Supabase
+  app.get('/auth/discord', async (_req, res) => {
+    try {
+      const { data, error } = await authClient!.signInWithOAuth({
+        provider: 'discord',
+        options: {
+          scopes: 'identify email',
+          redirectTo: config.auth.redirectUrl,
+          skipBrowserRedirect: true,
+        },
+      });
 
-  app.get(
-    '/auth/discord/callback',
-    passport.authenticate('discord', { failureRedirect: '/?error=auth_failed' }),
-    (_req, res) => {
-      res.redirect('/arena');
-    }
-  );
-
-  app.get('/auth/logout', (req, res) => {
-    req.logout((err) => {
-      if (err) {
-        res.status(500).json({ error: 'Logout failed' });
+      if (error || !data?.url) {
+        console.error('[Auth] Failed to get OAuth URL:', error);
+        res.redirect(config.auth.failureUrl);
         return;
+      }
+
+      // Redirect user to Discord OAuth page via Supabase
+      res.redirect(data.url);
+    } catch (err) {
+      console.error('[Auth] OAuth error:', err);
+      res.redirect(config.auth.failureUrl);
+    }
+  });
+
+  // OAuth callback - exchange code for session
+  app.get('/auth/callback', async (req, res) => {
+    const { code, error: oauthError } = req.query;
+
+    if (oauthError) {
+      console.error('[Auth] OAuth error from provider:', oauthError);
+      res.redirect(config.auth.failureUrl);
+      return;
+    }
+
+    if (!code || typeof code !== 'string') {
+      console.error('[Auth] No code received');
+      res.redirect(config.auth.failureUrl);
+      return;
+    }
+
+    try {
+      // Exchange code for session
+      const { data: sessionData, error: exchangeError } = await authClient!.exchangeCodeForSession(code);
+
+      if (exchangeError || !sessionData) {
+        console.error('[Auth] Code exchange failed:', exchangeError);
+        res.redirect(config.auth.failureUrl);
+        return;
+      }
+
+      // Store session in express session
+      req.session.accessToken = sessionData.accessToken;
+      req.session.refreshToken = sessionData.refreshToken;
+      req.session.user = sessionData.user;
+
+      console.log(`✅ User authenticated: ${sessionData.user.discordUsername || sessionData.user.email}`);
+      
+      // Redirect to arena
+      res.redirect('/arena');
+    } catch (err) {
+      console.error('[Auth] Callback error:', err);
+      res.redirect(config.auth.failureUrl);
+    }
+  });
+
+  // Logout
+  app.get('/auth/logout', async (req, res) => {
+    try {
+      if (authClient && req.session.accessToken) {
+        await authClient.signOut();
+      }
+    } catch (err) {
+      console.error('[Auth] Logout error:', err);
+    }
+
+    req.session.destroy((err) => {
+      if (err) {
+        console.error('[Auth] Session destroy error:', err);
       }
       res.redirect('/');
     });
   });
 } else {
-  console.warn('⚠️  Discord OAuth not configured - authentication endpoints disabled');
+  console.warn('⚠️  Supabase auth not configured - authentication endpoints disabled');
+  
+  // Provide helpful error messages
+  app.get('/auth/discord', (_req, res) => {
+    res.status(503).json({
+      error: 'Authentication not configured',
+      message: 'Set SUPABASE_URL and SUPABASE_ANON_KEY environment variables to enable authentication',
+    });
+  });
 }
 
 // API routes
 
 // Get current user
-app.get('/api/user', (req, res) => {
+app.get('/api/user', optionalAuth, (req, res) => {
   if (req.user) {
-    res.json(req.user);
+    // Map to DiscordUser format for client compatibility
+    const discordUser = mapAuthUserToDiscordUser(req.user);
+    res.json(discordUser);
   } else {
     res.status(401).json({ error: 'Not authenticated' });
   }
@@ -187,9 +296,10 @@ app.get('/api/games', (_req, res) => {
 app.post('/api/games', requireAuth, async (req, res) => {
   try {
     const { gameType, maxPlayers, isPrivate }: CreateGameRequest = req.body;
-    const user = req.user as DiscordUser;
+    const user = req.user!;
+    const discordUser = mapAuthUserToDiscordUser(user);
 
-    const game = await gameManager.createGame(user.id, user.username, gameType, {
+    const game = await gameManager.createGame(discordUser.id, discordUser.username, gameType, {
       maxPlayers,
       isPrivate,
       platform: 'web',
@@ -217,8 +327,9 @@ app.get('/api/games/:gameId', requireAuth, (req, res) => {
     return;
   }
 
-  const user = req.user as DiscordUser;
-  const gameState = gameManager.getGameState(gameId, user.id);
+  const user = req.user!;
+  const discordUser = mapAuthUserToDiscordUser(user);
+  const gameState = gameManager.getGameState(gameId, discordUser.id);
   res.json({ game, gameState });
 });
 
@@ -267,14 +378,15 @@ app.get('/api/history/:discordId', async (req, res) => {
 // WebSocket handling
 io.on('connection', (socket) => {
   const session = (socket.request as any).session;
-  const user: DiscordUser | undefined = session?.passport?.user;
+  const authUser: AuthUser | undefined = session?.user;
 
-  if (!user) {
+  if (!authUser) {
     console.log('❌ Unauthorized WebSocket connection');
     socket.disconnect();
     return;
   }
 
+  const user: DiscordUser = mapAuthUserToDiscordUser(authUser);
   console.log(`✅ User connected: ${user.username} (${user.id})`);
 
   // Join lobby
@@ -404,7 +516,8 @@ process.on('SIGTERM', async () => {
 httpServer.listen(config.port, () => {
   console.log(`🎮 Game Arena server running on port ${config.port}`);
   console.log(`🌍 Environment: ${config.nodeEnv}`);
-  console.log(`🔐 Discord OAuth: ${config.discord.clientId ? 'Enabled' : 'Disabled'}`);
+  console.log(`🔐 Supabase Auth: ${authClient ? 'Enabled' : 'Disabled'}`);
+  console.log(`🔗 Auth Redirect: ${config.auth.redirectUrl}`);
 });
 
 export { app, httpServer, io };
