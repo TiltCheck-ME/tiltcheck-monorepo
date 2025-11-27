@@ -6,8 +6,38 @@ TiltCheck follows a minimal attack surface philosophy:
 - no sensitive personal data  
 - no long-term session storage  
 
+## Security Documentation
+
+- **[API Security Guide](./docs/security/API-SECURITY-GUIDE.md)** — Protecting against third-party API breaches
+- **[IP Allowlist Deployment](./docs/security/DEPLOY_IP_ALLOWLIST.md)** — Admin panel protection
+
 ## Supported Versions
 Active version: `main` branch.
+
+## Third-Party API Security
+
+TiltCheck integrates with multiple external services. For protection against API breaches:
+
+### Security Utilities Available
+
+The `@tiltcheck/express-utils` package provides:
+
+- **API Signature Verification** — HMAC-based request signing
+- **Rate Limiting** — Protect against abuse
+- **Circuit Breaker** — Graceful degradation when APIs fail
+- **URL Validation** — Prevent SSRF attacks
+- **Error Sanitization** — Don't leak internal details
+- **Data Redaction** — Remove sensitive data from logs
+
+See [`packages/express-utils/README.md`](./packages/express-utils/README.md) for usage.
+
+### Key Practices
+
+1. **Never commit API keys** — Use environment variables
+2. **Validate all inputs** — Before passing to external APIs
+3. **Sanitize all outputs** — From external APIs before use
+4. **Implement fallbacks** — Mock responses when APIs fail
+5. **Monitor for anomalies** — Track unusual patterns
 
 ## Known Vulnerabilities & Mitigations
 
@@ -51,6 +81,7 @@ If you discover:
 - Discord permissions issue  
 - prediction poisoning  
 - any suspicious AI behavior  
+- third-party API breach
 
 Contact privately:
 
