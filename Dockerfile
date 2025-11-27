@@ -24,12 +24,11 @@ FROM base AS build
 RUN apt-get update -qq && \
     apt-get install --no-install-recommends -y build-essential node-gyp pkg-config python-is-python3
 
-# Install node modules
-COPY .npmrc package.json pnpm-lock.yaml ./
-RUN pnpm install --frozen-lockfile --prod=false
-
-# Copy application code
+# Copy application code (includes workspace package.json files and pre-built casino-data-api dist)
 COPY . .
+
+# Install node modules
+RUN pnpm install --frozen-lockfile --prod=false
 
 # Build application
 RUN pnpm run build
