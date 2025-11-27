@@ -3,8 +3,17 @@
  * @tiltcheck/express-utils/security
  */
 
-import { describe, it, expect, beforeEach, vi } from 'vitest';
-const security = require('../src/security.js');
+import { describe, it, expect, beforeEach } from 'vitest';
+import {
+  signRequest,
+  verifySignature,
+  RateLimiter,
+  CircuitBreaker,
+  isUrlSafe,
+  sanitizeError,
+  redactSensitiveData,
+  buildAdminIPs
+} from '../src/security.js';
 
 describe('API Security Utilities', () => {
   describe('signRequest / verifySignature', () => {
@@ -12,36 +21,36 @@ describe('API Security Utilities', () => {
     const payload = { userId: '123', action: 'tip', amount: 5 };
 
     it('should generate consistent signatures for same payload', () => {
-      const sig1 = security.signRequest(payload, secret);
-      const sig2 = security.signRequest(payload, secret);
+      const sig1 = signRequest(payload, secret);
+      const sig2 = signRequest(payload, secret);
       expect(sig1).toBe(sig2);
     });
 
     it('should generate different signatures for different payloads', () => {
-      const sig1 = security.signRequest(payload, secret);
-      const sig2 = security.signRequest({ ...payload, amount: 10 }, secret);
+      const sig1 = signRequest(payload, secret);
+      const sig2 = signRequest({ ...payload, amount: 10 }, secret);
       expect(sig1).not.toBe(sig2);
     });
 
     it('should verify valid signatures', () => {
-      const signature = security.signRequest(payload, secret);
-      expect(security.verifySignature(payload, signature, secret)).toBe(true);
+      const signature = signRequest(payload, secret);
+      expect(verifySignature(payload, signature, secret)).toBe(true);
     });
 
     it('should reject invalid signatures', () => {
-      const signature = security.signRequest(payload, secret);
-      expect(security.verifySignature(payload, 'invalid-signature', secret)).toBe(false);
+      const signature = signRequest(payload, secret);
+      expect(verifySignature(payload, 'invalid-signature', secret)).toBe(false);
     });
 
     it('should reject signatures with wrong secret', () => {
-      const signature = security.signRequest(payload, secret);
-      expect(security.verifySignature(payload, signature, 'wrong-secret')).toBe(false);
+      const signature = signRequest(payload, secret);
+      expect(verifySignature(payload, signature, 'wrong-secret')).toBe(false);
     });
 
     it('should handle string payloads', () => {
       const stringPayload = 'simple string payload';
-      const signature = security.signRequest(stringPayload, secret);
-      expect(security.verifySignature(stringPayload, signature, secret)).toBe(true);
+      const signature = signRequest(stringPayload, secret);
+      expect(verifySignature(stringPayload, signature, secret)).toBe(true);
     });
   });
 
@@ -49,7 +58,7 @@ describe('API Security Utilities', () => {
     let limiter;
 
     beforeEach(() => {
-      limiter = new security.RateLimiter(3, 1000); // 3 requests per second
+      limiter = new RateLimiter(3, 1000); // 3 requests per second
     });
 
     it('should allow requests under the limit', () => {
@@ -97,7 +106,7 @@ describe('API Security Utilities', () => {
     let breaker;
 
     beforeEach(() => {
-      breaker = new security.CircuitBreaker({
+      breaker = new CircuitBreaker({
         failureThreshold: 2,
         resetTimeMs: 100
       });
@@ -130,17 +139,15 @@ describe('API Security Utilities', () => {
     });
 
     it('should reject calls when OPEN', async () => {
-      // Force circuit open
-      breaker.state = 'OPEN';
-      breaker.lastFailure = Date.now();
+      // Force circuit open using test method
+      breaker.forceOpen(0);
       
       await expect(breaker.call(async () => 'success')).rejects.toThrow('Circuit breaker is OPEN');
     });
 
     it('should transition to HALF_OPEN after reset time', async () => {
-      // Force circuit open with old timestamp
-      breaker.state = 'OPEN';
-      breaker.lastFailure = Date.now() - 200; // Past reset time
+      // Force circuit open with old timestamp (200ms ago, past reset time of 100ms)
+      breaker.forceOpen(200);
       
       // Should transition to HALF_OPEN and allow call
       const result = await breaker.call(async () => 'success');
@@ -149,14 +156,14 @@ describe('API Security Utilities', () => {
     });
 
     it('should close circuit on success in HALF_OPEN', async () => {
-      breaker.state = 'HALF_OPEN';
+      breaker.forceHalfOpen();
       
       await breaker.call(async () => 'success');
       expect(breaker.getState().state).toBe('CLOSED');
     });
 
     it('should re-open circuit on failure in HALF_OPEN', async () => {
-      breaker.state = 'HALF_OPEN';
+      breaker.forceHalfOpen();
       
       await expect(breaker.call(async () => { throw new Error('fail'); })).rejects.toThrow();
       expect(breaker.getState().state).toBe('OPEN');
@@ -165,45 +172,68 @@ describe('API Security Utilities', () => {
 
   describe('isUrlSafe', () => {
     it('should allow valid HTTPS URLs', () => {
-      expect(security.isUrlSafe('https://api.example.com/data')).toBe(true);
-      expect(security.isUrlSafe('https://github.com')).toBe(true);
+      expect(isUrlSafe('https://api.example.com/data')).toBe(true);
+      expect(isUrlSafe('https://github.com')).toBe(true);
     });
 
     it('should allow valid HTTP URLs', () => {
-      expect(security.isUrlSafe('http://api.example.com/data')).toBe(true);
+      expect(isUrlSafe('http://api.example.com/data')).toBe(true);
     });
 
     it('should block localhost', () => {
-      expect(security.isUrlSafe('http://localhost/api')).toBe(false);
-      expect(security.isUrlSafe('http://127.0.0.1/api')).toBe(false);
-      expect(security.isUrlSafe('http://0.0.0.0/api')).toBe(false);
+      expect(isUrlSafe('http://localhost/api')).toBe(false);
+      expect(isUrlSafe('http://127.0.0.1/api')).toBe(false);
+      expect(isUrlSafe('http://0.0.0.0/api')).toBe(false);
     });
 
     it('should block private network ranges', () => {
-      expect(security.isUrlSafe('http://10.0.0.1/api')).toBe(false);
-      expect(security.isUrlSafe('http://172.16.0.1/api')).toBe(false);
-      expect(security.isUrlSafe('http://192.168.1.1/api')).toBe(false);
+      expect(isUrlSafe('http://10.0.0.1/api')).toBe(false);
+      expect(isUrlSafe('http://172.16.0.1/api')).toBe(false);
+      expect(isUrlSafe('http://192.168.1.1/api')).toBe(false);
     });
 
     it('should block AWS metadata endpoint', () => {
-      expect(security.isUrlSafe('http://169.254.169.254/latest/meta-data')).toBe(false);
+      expect(isUrlSafe('http://169.254.169.254/latest/meta-data')).toBe(false);
     });
 
     it('should block non-HTTP protocols', () => {
-      expect(security.isUrlSafe('file:///etc/passwd')).toBe(false);
-      expect(security.isUrlSafe('ftp://ftp.example.com')).toBe(false);
+      expect(isUrlSafe('file:///etc/passwd')).toBe(false);
+      expect(isUrlSafe('ftp://ftp.example.com')).toBe(false);
     });
 
     it('should handle invalid URLs gracefully', () => {
-      expect(security.isUrlSafe('not-a-url')).toBe(false);
-      expect(security.isUrlSafe('')).toBe(false);
+      expect(isUrlSafe('not-a-url')).toBe(false);
+      expect(isUrlSafe('')).toBe(false);
+    });
+
+    it('should not have false positives for valid public IPs', () => {
+      // Ensure IPs that look similar to private ranges are allowed
+      expect(isUrlSafe('http://110.0.0.1/api')).toBe(true);  // Not 10.x.x.x
+      expect(isUrlSafe('http://8.8.8.8/api')).toBe(true);     // Google DNS
+      expect(isUrlSafe('http://1.1.1.1/api')).toBe(true);     // Cloudflare DNS
+      expect(isUrlSafe('http://104.16.0.1/api')).toBe(true);  // Cloudflare range
+    });
+
+    it('should block all loopback addresses', () => {
+      expect(isUrlSafe('http://127.0.0.1/api')).toBe(false);
+      expect(isUrlSafe('http://127.1.2.3/api')).toBe(false);  // Also loopback range
+      expect(isUrlSafe('http://127.255.255.255/api')).toBe(false);
+    });
+
+    it('should block entire Class B private range', () => {
+      expect(isUrlSafe('http://172.16.0.1/api')).toBe(false);
+      expect(isUrlSafe('http://172.20.100.50/api')).toBe(false);
+      expect(isUrlSafe('http://172.31.255.255/api')).toBe(false);
+      // But allow IPs outside the 172.16-31 range
+      expect(isUrlSafe('http://172.15.0.1/api')).toBe(true);
+      expect(isUrlSafe('http://172.32.0.1/api')).toBe(true);
     });
   });
 
   describe('sanitizeError', () => {
     it('should hide internal error details', () => {
       const error = new Error('Database connection failed at 192.168.1.100:5432');
-      const sanitized = security.sanitizeError(error);
+      const sanitized = sanitizeError(error);
       
       expect(sanitized.message).not.toContain('192.168.1.100');
       expect(sanitized.error).toBe('An error occurred');
@@ -211,14 +241,14 @@ describe('API Security Utilities', () => {
 
     it('should preserve safe error messages', () => {
       const error = new Error('Rate limit exceeded');
-      const sanitized = security.sanitizeError(error);
+      const sanitized = sanitizeError(error);
       
       expect(sanitized.message).toBe('Rate limit exceeded');
     });
 
     it('should include timestamp', () => {
       const error = new Error('Some error');
-      const sanitized = security.sanitizeError(error);
+      const sanitized = sanitizeError(error);
       
       expect(sanitized.timestamp).toBeDefined();
     });
@@ -233,7 +263,7 @@ describe('API Security Utilities', () => {
         email: 'user@example.com'
       };
       
-      const redacted = security.redactSensitiveData(data);
+      const redacted = redactSensitiveData(data);
       
       expect(redacted.userId).toBe('123');
       expect(redacted.email).toBe('user@example.com');
@@ -243,7 +273,7 @@ describe('API Security Utilities', () => {
 
     it('should not modify the original object', () => {
       const data = { apiKey: 'secret' };
-      security.redactSensitiveData(data);
+      redactSensitiveData(data);
       
       expect(data.apiKey).toBe('secret');
     });
@@ -254,7 +284,7 @@ describe('API Security Utilities', () => {
         normalField: 'visible'
       };
       
-      const redacted = security.redactSensitiveData(data, ['customSecret']);
+      const redacted = redactSensitiveData(data, ['customSecret']);
       
       expect(redacted.customSecret).toBe('[REDACTED]');
       expect(redacted.normalField).toBe('visible');
@@ -263,13 +293,13 @@ describe('API Security Utilities', () => {
 
   describe('buildAdminIPs', () => {
     it('should include localhost IPs', () => {
-      const ips = security.buildAdminIPs({});
+      const ips = buildAdminIPs({});
       expect(ips).toContain('127.0.0.1');
       expect(ips).toContain('::1');
     });
 
     it('should include environment variable IPs', () => {
-      const ips = security.buildAdminIPs({
+      const ips = buildAdminIPs({
         ADMIN_IP_1: '1.2.3.4',
         ADMIN_IP_2: '5.6.7.8'
       });
@@ -278,7 +308,7 @@ describe('API Security Utilities', () => {
     });
 
     it('should filter undefined values', () => {
-      const ips = security.buildAdminIPs({
+      const ips = buildAdminIPs({
         ADMIN_IP_1: '1.2.3.4',
         ADMIN_IP_2: undefined
       });
