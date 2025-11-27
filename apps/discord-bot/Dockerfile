@@ -142,6 +142,8 @@ COPY --from=builder /app/packages/supabase-auth/dist ./packages/supabase-auth/di
 COPY --from=builder /app/packages/express-utils/src ./packages/express-utils/src
 
 # Copy built files from builder - Services (only those with dist folders)
+# Note: ai-gateway, control-room, landing, and user-dashboard are plain JS services
+# without TypeScript builds. Their source files run directly without compilation.
 COPY --from=builder /app/services/event-router/dist ./services/event-router/dist
 COPY --from=builder /app/services/pricing-oracle/dist ./services/pricing-oracle/dist
 COPY --from=builder /app/services/trust-rollup/dist ./services/trust-rollup/dist
