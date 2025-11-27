@@ -1,4 +1,7 @@
-version: '3.8'
+- name: Docker Login
+  uses: docker/login-action@v3.6.0
+  
+  version: '3.8'
 
 services:
   dashboard:
