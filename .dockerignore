@@ -1,6 +1,8 @@
 # .dockerignore
 node_modules/
 dist/
+# Keep pre-built dist for casino-data-api bin entry
+!services/casino-data-api/dist/
 .git/
 .github/
 *.log
