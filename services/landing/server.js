@@ -220,7 +220,7 @@ app.get('/sitemap.xml', (_req, res) => {
   const fs = require('fs');
   const siteMap = buildSiteMap();
   const entries = [];
-  const baseUrl = cfg.PUBLIC_BASE_URL || 'https://tiltcheck.example';
+  const baseUrl = cfg.PUBLIC_BASE_URL || 'https://tiltcheck.me';
   const collect = (obj) => {
     Object.entries(obj).forEach(([key, val]) => {
       if (key.startsWith('/')) {

@@ -264,8 +264,15 @@ interface AuthSession {
 ## Supabase Setup
 
 1. Create a Supabase project at https://supabase.com
-2. Enable desired auth providers in Authentication > Providers
-3. For Discord OAuth:
+2. Configure Auth URL settings in **Authentication > URL Configuration**:
+   - **Site URL**: `https://tiltcheck.me` (your production domain)
+   - **Redirect URLs**: Add all allowed callback URLs:
+     - `https://tiltcheck.me/auth/callback`
+     - `https://arena.tiltcheck.me/auth/discord/callback`
+     - `https://dashboard.tiltcheck.me/auth/discord/callback`
+     - `http://localhost:3000/auth/callback` (for development)
+3. Enable desired auth providers in **Authentication > Providers**
+4. For Discord OAuth:
    - Create a Discord application at https://discord.com/developers/applications
    - Add OAuth2 redirect URL: `https://your-project.supabase.co/auth/v1/callback`
    - Copy Client ID and Secret to Supabase Discord provider settings
