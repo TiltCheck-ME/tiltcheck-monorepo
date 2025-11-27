@@ -646,27 +646,27 @@
                     <div class="panel-content">
                         <div class="metric">
                             <span>🏠 Homepage</span>
-                            <span class="metric-value">https://tiltcheck.it.com</span>
+                            <span class="metric-value">https://tiltcheck.me</span>
                         </div>
                         <div class="metric">
                             <span>📊 Trust Dashboard</span>
-                            <span class="metric-value">https://tiltcheck.it.com/dashboard/</span>
+                            <span class="metric-value">https://tiltcheck.me/dashboard/</span>
                         </div>
                         <div class="metric">
                             <span>🎮 Gameplay Analyzer</span>
-                            <span class="metric-value">https://tiltcheck.it.com/analyzer/</span>
+                            <span class="metric-value">https://tiltcheck.me/analyzer/</span>
                         </div>
                         <div class="metric">
                             <span>🤖 Enhanced Analyzer</span>
-                            <span class="metric-value">https://tiltcheck.it.com/enhanced/</span>
+                            <span class="metric-value">https://tiltcheck.me/enhanced/</span>
                         </div>
                         <div class="metric">
                             <span>📸 Screen Analyzer</span>
-                            <span class="metric-value">https://tiltcheck.it.com/screen/</span>
+                            <span class="metric-value">https://tiltcheck.me/screen/</span>
                         </div>
                         <div class="metric">
                             <span>⚙️ Trust API</span>
-                            <span class="metric-value">https://tiltcheck.it.com/trust-api/</span>
+                            <span class="metric-value">https://tiltcheck.me/trust-api/</span>
                         </div>
                     </div>
                 </div>
@@ -1111,9 +1111,9 @@
                                       info.status === 'dev' ? 'status-dev' : 'status-broken';
                     
                     const fullUrl = path.startsWith('/api/') || path.startsWith('/admin/') ? 
-                                  `https://tiltcheck.it.com${path}` : 
+                                  `https://tiltcheck.me${path}` : 
                                   path.includes('://') ? path :
-                                  `https://tiltcheck.it.com${path}`;
+                                  `https://tiltcheck.me${path}`;
                     
                     const lastChecked = info.lastChecked ? 
                                       new Date(info.lastChecked).toLocaleTimeString() : '';
@@ -1167,9 +1167,9 @@
                                   page.status === 'dev' ? 'status-dev' : 'status-broken';
                 
                 const fullUrl = page.path.startsWith('/api/') || page.path.startsWith('/admin/') ? 
-                              `https://tiltcheck.it.com${page.path}` : 
+                              `https://tiltcheck.me${page.path}` : 
                               page.path.includes('://') ? page.path :
-                              `https://tiltcheck.it.com${page.path}`;
+                              `https://tiltcheck.me${page.path}`;
                 
                 return `
                     <li class="sitemap-item" data-path="${page.path}" data-title="${page.title}">
@@ -1206,7 +1206,7 @@
             Object.values(siteMapData.structure).forEach(section => {
                 Object.entries(section).forEach(([path, info]) => {
                     if (path.startsWith('/')) {
-                        urls.push(`https://tiltcheck.it.com${path} - ${info.title}`);
+                        urls.push(`https://tiltcheck.me${path} - ${info.title}`);
                     }
                 });
             });
@@ -1378,7 +1378,7 @@
             Object.values(siteMapData.structure).forEach(section => {
                 Object.entries(section).forEach(([path, info]) => {
                     if (info.status === 'live' && path.startsWith('/')) {
-                        const fullUrl = `https://tiltcheck.it.com${path}`;
+                        const fullUrl = `https://tiltcheck.me${path}`;
                         window.open(fullUrl, '_blank');
                     }
                 });
@@ -1393,7 +1393,7 @@
                 Object.entries(section).forEach(([path, info]) => {
                     if (info.status === 'live' && path.startsWith('/')) {
                         xml += '  <url>\\n';
-                        xml += `    <loc>https://tiltcheck.it.com${path}</loc>\\n`;
+                        xml += `    <loc>https://tiltcheck.me${path}</loc>\\n`;
                         xml += `    <lastmod>${new Date().toISOString().split('T')[0]}</lastmod>\\n`;
                         xml += '    <changefreq>weekly</changefreq>\\n';
                         xml += '    <priority>0.8</priority>\\n';

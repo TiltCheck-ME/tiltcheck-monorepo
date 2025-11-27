@@ -86,7 +86,7 @@ export async function sendWelcomeDM(user: User): Promise<boolean> {
         `**The best part?** I never hold your funds. Your keys, your crypto. Always.\n\n` +
         `Ready to join the ecosystem? Let's get you set up! 👇`
       )
-      .setThumbnail('https://tiltcheck.it.com/assets/logo/favicon-white.svg')
+      .setThumbnail('https://tiltcheck.me/assets/logo/favicon-white.svg')
       .setFooter({ text: 'JustTheTip Bot • Powered by TiltCheck • Est. 2024' });
 
     // Action buttons
@@ -250,7 +250,7 @@ async function showLearnMore(interaction: MessageComponentInteraction): Promise<
   const websiteBtn = new ButtonBuilder()
     .setLabel('🌐 Visit Website')
     .setStyle(ButtonStyle.Link)
-    .setURL('https://tiltcheck.it.com');
+    .setURL('https://tiltcheck.me');
 
   const row = new ActionRowBuilder<ButtonBuilder>()
     .addComponents(startBtn, websiteBtn);
@@ -555,7 +555,7 @@ async function completeOnboarding(interaction: MessageComponentInteraction): Pro
   const websiteBtn = new ButtonBuilder()
     .setLabel('🌐 Visit Website')
     .setStyle(ButtonStyle.Link)
-    .setURL('https://tiltcheck.it.com');
+    .setURL('https://tiltcheck.me');
 
   const row = new ActionRowBuilder<ButtonBuilder>()
     .addComponents(discordBtn, websiteBtn);
