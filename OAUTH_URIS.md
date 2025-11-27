@@ -201,6 +201,30 @@ For each service:
 
 ---
 
+## Supabase Auth URL Configuration
+
+When using Supabase for authentication, configure these settings in **Supabase Dashboard > Authentication > URL Configuration**:
+
+| Setting | Value | Description |
+|---------|-------|-------------|
+| **Site URL** | `https://tiltcheck.me` | Base URL for your production application |
+| **Redirect URLs** | See list below | All allowed OAuth callback URLs |
+
+**Required Redirect URLs to add in Supabase:**
+```
+https://tiltcheck.me/auth/callback
+https://arena.tiltcheck.me/auth/discord/callback
+https://jt.tiltcheck.me/auth/discord/callback
+https://qf.tiltcheck.me/auth/discord/callback
+https://dg.tiltcheck.me/auth/discord/callback
+https://dashboard.tiltcheck.me/auth/discord/callback
+https://www.tiltcheck.me/auth/discord/callback
+http://localhost:3000/auth/callback
+http://localhost:3010/auth/discord/callback
+```
+
+---
+
 ## Security Notes
 
 1. **Never commit** Discord Client Secrets to git
@@ -219,9 +243,10 @@ If you encounter OAuth issues:
 3. Verify environment variables are set correctly
 4. Check SSL certificate is valid
 5. Review Discord Developer Portal audit log
+6. Verify Supabase Site URL matches your production domain
 
 ---
 
-**Last Updated**: 2025-11-23
+**Last Updated**: 2025-11-27
 **Domain**: tiltcheck.me
 **Ecosystem**: TiltCheck
