@@ -52,7 +52,7 @@ After deployment, test your live site:
 
 ```bash
 # Replace with your actual domain
-DOMAIN="tiltcheck.it.com"
+DOMAIN="tiltcheck.me"
 
 # Should work from your IP
 curl https://$DOMAIN/control-room

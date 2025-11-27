@@ -5,7 +5,7 @@ RUN apk add --no-cache openssl && \
 		openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
 			-keyout /etc/ssl/localcerts/selfsigned.key \
 			-out /etc/ssl/localcerts/selfsigned.crt \
-			-subj "/CN=tiltcheck.it.com" && \
+			-subj "/CN=tiltcheck.me" && \
 		rm -f /etc/nginx/conf.d/default.conf
 
 COPY services/reverse-proxy/nginx.conf /etc/nginx/nginx.conf

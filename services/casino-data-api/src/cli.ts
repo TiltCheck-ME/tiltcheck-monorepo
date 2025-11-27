@@ -10,7 +10,7 @@ import { program } from 'commander';
 import fs from 'fs/promises';
 import path from 'path';
 
-const API_BASE = process.env.TILTCHECK_API_URL || 'https://tiltcheck.it.com/casino-api';
+const API_BASE = process.env.TILTCHECK_API_URL || 'https://tiltcheck.me/casino-api';
 const API_KEY = process.env.TILTCHECK_API_KEY || 'tiltcheck-casino-collector-2024';
 
 interface CasinoSubmission {

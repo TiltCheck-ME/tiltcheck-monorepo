@@ -74,10 +74,10 @@ TRIVIA_STORE_PATH=/app/data/trivia-store.json
 LANDING_LOG_PATH=/app/data/landing-requests.log
 ```
 
-### 4. Custom Domain Setup (tiltcheck.it.com)
-- In Render service settings → **Custom Domains** → Add `tiltcheck.it.com`
+### 4. Custom Domain Setup (tiltcheck.me)
+- In Render service settings → **Custom Domains** → Add `tiltcheck.me`
 - Render will provide DNS instructions:
-  - **CNAME**: `tiltcheck.it.com` → `tiltcheck-unified.onrender.com` (or your service URL)
+  - **CNAME**: `tiltcheck.me` → `tiltcheck-unified.onrender.com` (or your service URL)
   - For apex domain (`it.com`), use ALIAS/ANAME if your registrar supports it
 - Wait for DNS propagation (5-20 min typically)
 - Render auto-issues Let's Encrypt certificate (no manual certbot needed)
@@ -93,13 +93,13 @@ LANDING_LOG_PATH=/app/data/landing-requests.log
 ### 6. Verify Deployment
 Once live, test endpoints:
 ```bash
-curl https://tiltcheck.it.com/proxy-health
+curl https://tiltcheck.me/proxy-health
 # Expected: {"status":"ok","proxy":"nginx","render":true}
 
-curl https://tiltcheck.it.com/
+curl https://tiltcheck.me/
 # Expected: Landing page HTML
 
-curl https://tiltcheck.it.com/api/health
+curl https://tiltcheck.me/api/health
 # Expected: {"lastSnapshotTs":null,...}
 ```
 
