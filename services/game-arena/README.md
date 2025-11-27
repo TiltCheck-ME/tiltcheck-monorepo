@@ -72,7 +72,7 @@ eventRouter.subscribe('game.completed', async (event) => {
 3. Go to OAuth2 settings
 4. Add redirect URIs:
    - **Development**: `http://localhost:3010/auth/discord/callback`
-   - **Production**: `https://arena.tiltcheck.it.com/auth/discord/callback`
+   - **Production**: `https://arena.tiltcheck.me/auth/discord/callback`
 5. Copy Client ID and Client Secret
 
 ### Installation
@@ -98,7 +98,7 @@ DISCORD_CLIENT_SECRET=your_client_secret
 # Development:
 DISCORD_CALLBACK_URL=http://localhost:3010/auth/discord/callback
 # Production:
-# DISCORD_CALLBACK_URL=https://arena.tiltcheck.it.com/auth/discord/callback
+# DISCORD_CALLBACK_URL=https://arena.tiltcheck.me/auth/discord/callback
 SESSION_SECRET=generate_random_secret
 
 # Supabase (Required for stats tracking)

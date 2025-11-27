@@ -13,7 +13,7 @@ export const config = {
   discord: {
     clientId: process.env.DISCORD_CLIENT_ID || '',
     clientSecret: process.env.DISCORD_CLIENT_SECRET || '',
-    callbackUrl: process.env.DISCORD_CALLBACK_URL || 'https://arena.tiltcheck.it.com/auth/discord/callback',
+    callbackUrl: process.env.DISCORD_CALLBACK_URL || 'https://arena.tiltcheck.me/auth/discord/callback',
   },
 
   // Session
