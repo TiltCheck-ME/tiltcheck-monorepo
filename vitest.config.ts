@@ -59,7 +59,17 @@ export default defineConfig({
         'apps/**',
         'modules/collectclock/**',
         'modules/justthetip/**',
+        'modules/poker/**',
         'packages/database/**',
+        'packages/discord-utils/src/embeds.ts',
+        'packages/discord-utils/src/trust-adapter.ts',
+        'packages/natural-language-parser/**',
+        'packages/supabase-auth/src/client.ts',
+        'packages/supabase-auth/src/middleware.ts',
+        'services/casino-data-api/**',
+        'services/game-arena/**',
+        'services/gameplay-analyzer/src/pwa/**',
+        'services/gameplay-analyzer/src/provably-fair/index.ts',
       ],
       thresholds: isCI
         ? {
