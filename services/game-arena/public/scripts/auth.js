@@ -1,5 +1,6 @@
 /**
  * Authentication and user management
+ * Uses Supabase Discord OAuth for authentication
  */
 
 class AuthManager {
@@ -35,6 +36,7 @@ class AuthManager {
 
     if (discordLogin) {
       discordLogin.addEventListener('click', () => {
+        // Redirect to Discord OAuth via Supabase
         window.location.href = '/auth/discord';
       });
     }
@@ -64,14 +66,20 @@ class AuthManager {
     const userAvatar = document.getElementById('user-avatar');
 
     if (userInfo && loginPrompt && userName && userAvatar && this.user) {
-      userName.textContent = `${this.user.username}#${this.user.discriminator}`;
+      // Display username (discriminator is deprecated in Discord)
+      userName.textContent = this.user.username;
       
-      // Discord avatar URL format
+      // Use avatar URL from Supabase auth or Discord CDN
       if (this.user.avatar) {
-        userAvatar.src = `https://cdn.discordapp.com/avatars/${this.user.id}/${this.user.avatar}.png?size=128`;
+        // Check if it's a full URL (from Supabase) or just an avatar ID (Discord)
+        if (this.user.avatar.startsWith('http')) {
+          userAvatar.src = this.user.avatar;
+        } else {
+          userAvatar.src = `https://cdn.discordapp.com/avatars/${this.user.id}/${this.user.avatar}.png?size=128`;
+        }
       } else {
-        // Default Discord avatar
-        const defaultAvatarIndex = parseInt(this.user.discriminator) % 5;
+        // Default Discord avatar based on user ID
+        const defaultAvatarIndex = parseInt(this.user.id) % 5;
         userAvatar.src = `https://cdn.discordapp.com/embed/avatars/${defaultAvatarIndex}.png`;
       }
       

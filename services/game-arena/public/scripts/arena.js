@@ -105,14 +105,21 @@ class ArenaManager {
     const userAvatar = document.getElementById('user-avatar');
 
     if (userName && this.user) {
-      userName.textContent = `${this.user.username}#${this.user.discriminator}`;
+      // Display username (discriminator is deprecated in Discord)
+      userName.textContent = this.user.username;
     }
 
     if (userAvatar && this.user) {
       if (this.user.avatar) {
-        userAvatar.src = `https://cdn.discordapp.com/avatars/${this.user.id}/${this.user.avatar}.png?size=128`;
+        // Check if it's a full URL (from Supabase) or just an avatar ID (Discord)
+        if (this.user.avatar.startsWith('http')) {
+          userAvatar.src = this.user.avatar;
+        } else {
+          userAvatar.src = `https://cdn.discordapp.com/avatars/${this.user.id}/${this.user.avatar}.png?size=128`;
+        }
       } else {
-        const defaultAvatarIndex = parseInt(this.user.discriminator) % 5;
+        // Default Discord avatar based on user ID
+        const defaultAvatarIndex = parseInt(this.user.id) % 5;
         userAvatar.src = `https://cdn.discordapp.com/embed/avatars/${defaultAvatarIndex}.png`;
       }
     }

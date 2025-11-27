@@ -3,27 +3,33 @@
  */
 
 import type { Request } from 'express';
+import type { AuthUser, AuthSession } from '@tiltcheck/supabase-auth';
 
-// Extend Express Request user globally
+// Extend Express Request to include Supabase auth
 export interface ExpressUser {
   id: string;
   username: string;
   discriminator: string;
   avatar: string | null;
   email?: string;
+  discordId?: string;
 }
 
 declare global {
   // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace Express {
-    // eslint-disable-next-line @typescript-eslint/no-empty-object-type
-    interface User extends ExpressUser {}
+    interface Request {
+      /** Authenticated user from Supabase */
+      user?: AuthUser;
+      /** Current Supabase auth session */
+      authSession?: AuthSession;
+    }
   }
 }
 
-// User types
+// User types - mapped from Supabase AuthUser for game usage
 export interface DiscordUser {
-  id: string;
+  id: string;           // Discord ID
   username: string;
   discriminator: string;
   avatar: string | null;
@@ -31,7 +37,20 @@ export interface DiscordUser {
 }
 
 export interface AuthenticatedRequest extends Request {
-  user?: DiscordUser;
+  user?: AuthUser;
+}
+
+/**
+ * Map Supabase AuthUser to DiscordUser for game logic compatibility
+ */
+export function mapAuthUserToDiscordUser(authUser: AuthUser): DiscordUser {
+  return {
+    id: authUser.discordId || authUser.id,  // Use Discord ID if available, fallback to Supabase ID
+    username: authUser.discordUsername || authUser.email?.split('@')[0] || 'Unknown',
+    discriminator: '0',  // Discord deprecated discriminators
+    avatar: authUser.avatarUrl || null,
+    email: authUser.email,
+  };
 }
 
 // Game types
