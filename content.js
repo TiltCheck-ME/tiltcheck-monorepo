@@ -905,7 +905,7 @@
   };
 
   // src/sidebar.ts
-  var API_BASE = "https://tiltcheck.it.com/api";
+  var API_BASE = "https://api.tiltcheck.me";
   var authToken = null;
   var showSettings = false;
   var apiKeys = {
@@ -1724,7 +1724,7 @@ Upgrade to Premium?`);
     console.log("[TiltGuard] Skipping - excluded domain:", hostname);
     throw new Error("TiltGuard: Excluded domain");
   }
-  var ANALYZER_WS_URL = "ws://localhost:7071";
+  var ANALYZER_WS_URL = "wss://api.tiltcheck.me/analyzer";
   var extractor = null;
   var tiltDetector = null;
   var licenseVerifier = null;
