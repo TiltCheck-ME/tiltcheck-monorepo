@@ -1,16 +1,72 @@
-- name: Docker Login
-  uses: docker/login-action@v3.6.0
-  
-  version: '3.8'
+# TiltCheck One-Launch Deployment
+# Deploy all core services with: docker-compose up -d
+# For minimum viable deployment: docker-compose up -d landing
+# For full deployment: docker-compose --profile full up -d
+
+version: '3.8'
 
 services:
+  # ===========================================
+  # REVERSE PROXY - Entry point for all traffic
+  # ===========================================
+  reverse-proxy:
+    build:
+      context: .
+      dockerfile: services/reverse-proxy/Dockerfile
+    container_name: tiltcheck-proxy
+    ports:
+      - "80:80"
+      - "443:443"
+    restart: unless-stopped
+    networks:
+      - tiltcheck
+    depends_on:
+      landing:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:80/proxy-health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+  # ===========================================
+  # CORE SERVICES
+  # ===========================================
+  
+  landing:
+    build:
+      context: .
+      dockerfile: services/landing/Dockerfile
+    container_name: tiltcheck-landing
+    expose:
+      - "8080"
+    environment:
+      - NODE_ENV=production
+      - PORT=8080
+      - LANDING_LOG_PATH=/tmp/landing-requests.log
+      - ADMIN_IP_1=${ADMIN_IP_1}
+      - ADMIN_IP_2=${ADMIN_IP_2}
+      - ADMIN_IP_3=${ADMIN_IP_3}
+    volumes:
+      - ./data:/app/data
+    restart: unless-stopped
+    networks:
+      - tiltcheck
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+
   dashboard:
     build:
       context: .
       dockerfile: services/dashboard/Dockerfile
     container_name: tiltcheck-dashboard
-    ports:
-      - "5055:5055"
+    expose:
+      - "5055"
     environment:
       - NODE_ENV=production
       - PORT=5055
@@ -35,8 +91,6 @@ services:
       context: .
       dockerfile: apps/discord-bot/Dockerfile
     container_name: tiltcheck-bot
-    ports:
-      - "8081:8081"
     environment:
       - NODE_ENV=production
       - DISCORD_TOKEN=${DISCORD_TOKEN}
@@ -59,10 +113,11 @@ services:
       context: .
       dockerfile: services/trust-rollup/Dockerfile
     container_name: tiltcheck-rollup
-    ports:
-      - "8082:8082"
+    expose:
+      - "8082"
     environment:
       - NODE_ENV=production
+      - PORT=8082
     volumes:
       - ./data:/app/data
     restart: unless-stopped
@@ -70,32 +125,6 @@ services:
       - tiltcheck
     depends_on:
       - dashboard
-
-  landing:
-    build:
-      context: .
-      dockerfile: services/landing/Dockerfile
-    container_name: tiltcheck-landing
-    ports:
-      - "8080:8080"
-    environment:
-      - NODE_ENV=production
-      - PORT=8080
-      - LANDING_LOG_PATH=/tmp/landing-requests.log
-      - ADMIN_IP_1=${ADMIN_IP_1}
-      - ADMIN_IP_2=${ADMIN_IP_2}
-      - ADMIN_IP_3=${ADMIN_IP_3}
-    volumes:
-      - ./data:/app/data
-    restart: unless-stopped
-    networks:
-      - tiltcheck
-    healthcheck:
-      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8080/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 20s
 
 networks:
   tiltcheck:
