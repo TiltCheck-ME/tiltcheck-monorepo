@@ -3,6 +3,9 @@ FROM node:20-alpine
 # Install pnpm (lockfileVersion 9 alignment)
 RUN npm install -g pnpm@9
 
+# Set CI environment variable to avoid pnpm TTY issues
+ENV CI=true
+
 WORKDIR /app
 
 # Copy workspace root files for pnpm resolution
