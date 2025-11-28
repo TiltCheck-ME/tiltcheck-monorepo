@@ -1,0 +1,36 @@
+# syntax = docker/dockerfile:1
+
+# Node base
+ARG NODE_VERSION=20.18.0
+FROM node:${NODE_VERSION}-slim AS base
+
+WORKDIR /app
+ENV NODE_ENV=production
+
+# Install pnpm (match lockfile 9.x) and pm2
+ARG PNPM_VERSION=9.15.9
+RUN npm install -g pnpm@${PNPM_VERSION} pm2@latest && \
+    apt-get update -qq && apt-get install -y --no-install-recommends build-essential python-is-python3 && \
+    rm -rf /var/lib/apt/lists/*
+
+# Build stage
+FROM base AS build
+COPY . .
+ENV CI=true
+RUN pnpm install --frozen-lockfile --prod=false && \
+    pnpm run build && \
+    pnpm prune --prod
+
+# Final image
+FROM base
+COPY --from=build /app /app
+
+# Expose service ports (dashboard, landing)
+EXPOSE 5055
+EXPOSE 8081
+
+# Docker healthcheck for dashboard
+HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 CMD curl -fs http://localhost:5055/api/health || exit 1
+
+# Default command runs all services via PM2
+CMD ["pm2-runtime", "ecosystem.config.cjs"]
