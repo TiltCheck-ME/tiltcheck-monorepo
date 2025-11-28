@@ -12,8 +12,10 @@ WORKDIR /app
 # Set production environment
 ENV NODE_ENV="production"
 
-# Install pnpm (lockfileVersion 9 alignment)
-RUN npm install -g pnpm@9
+# Install pnpm
+# Pin to pnpm 9.x to match lockfileVersion 9.0 and avoid pnpm 10.x version parsing bugs
+ARG PNPM_VERSION=9.15.9
+RUN npm install -g pnpm@$PNPM_VERSION
 
 # Set CI environment variable to avoid pnpm TTY issues
 ENV CI=true
