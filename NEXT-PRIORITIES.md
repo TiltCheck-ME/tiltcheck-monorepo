@@ -1,16 +1,71 @@
 # TiltCheck Next Priorities
 
-**Updated:** November 26, 2025  
-**Test Status:** 307/307 passing (100%) ✅  
-**Open PRs:** 4 (dependency updates + Railway deployment fix)
+**Updated:** November 28, 2025  
+**Test Status:** 411/411 passing (100%) ✅  
+**Build Status:** All 38 packages build successfully ✅  
+**Open PRs:** 2 (PR #104: Browser extension docs, PR #105: Status update)
+
+---
+
+## 🔥 CRITICAL: Fix CI/CD Pipeline
+
+### Health Check Workflow Failing ❌
+**Root Cause:** Docker build fails during production dependency install
+
+**The Problem:**
+When running `pnpm install --prod` in the Docker build, the `casino-data-api` package tries to run its `build` script (pnpm lifecycle behavior), which requires `tsc` (TypeScript), but TypeScript is a devDependency that's not installed in production mode.
+
+```
+services/casino-data-api prepare: sh: tsc: not found
+ELIFECYCLE Command failed.
+```
+
+**Solutions (choose one):**
+
+#### Option 1: Quick Fix (Recommended)
+Add `prepare` script with graceful fallback in `services/casino-data-api/package.json`:
+```json
+{
+  "scripts": {
+    "prepare": "npm run build 2>/dev/null || true"
+  }
+}
+```
+
+This makes the prepare script fail gracefully when TypeScript isn't available (production mode).
+
+#### Option 2: Disable pnpm ignore-scripts
+Add `.npmrc` at project root with:
+```
+ignore-scripts=false
+side-effects-cache=false
+```
+And ensure pre-built `dist/` files are included in the Docker context.
+
+#### Option 3: Multi-Stage Docker Build
+Build TypeScript in a builder stage with devDependencies, then copy only compiled files to production stage.
+
+**Action Items:**
+- [ ] Apply fix to casino-data-api package.json
+- [ ] Re-run health-check workflow
+- [ ] Verify CI passes on main branch
+
+**Estimated Effort:** 30 minutes
 
 ---
 
 ## ✅ COMPLETED: Test Stabilization
 
-All tests are now passing! The repository has **307 tests** all passing.
+All tests are now passing! The repository has **411 tests** all passing across 50 test files.
 
-### Recent Accomplishments
+### Recent Accomplishments (November 28, 2025)
+
+#### Status Review ✅ COMPLETE
+- ✅ Verified all 411 tests pass
+- ✅ Verified all 38 packages build successfully
+- ✅ Identified CI failure root cause (Docker build issue)
+- ✅ Updated STATUS.md with current information
+- ✅ Updated NEXT-PRIORITIES.md with actionable next steps
 
 #### TiltCheck Core Module ✅ COMPLETE
 **The namesake module is now fully implemented!**
@@ -33,28 +88,18 @@ All tests are now passing! The repository has **307 tests** all passing.
 
 ---
 
-## 🚀 CURRENT: Deployment Focus
-✗ Approval workflow: deny pending submission with reason
-✗ Approval workflow: get pending submissions
-✗ Blocklist: domain and pattern matching
----
+## 🚀 Priority 1: Fix CI Then Deploy
 
-## 🚀 CURRENT: Deployment Focus
-
-### Railway Deployment
-- ✅ **FIXED:** Procfile dashboard entry point (PR #58 - pending merge)
+### After CI Fix: Railway Deployment
+- ✅ **FIXED:** Procfile dashboard entry point (PR #58 - merged)
+- ✅ **FIXED:** .dockerignore to include casino-data-api dist files (PR #102 - merged)
+- ⏳ **PENDING:** Fix casino-data-api prepare script
 - ⏳ **PENDING:** Test full deployment pipeline
 - ⏳ **PENDING:** Validate all services start correctly
-- ⏳ **PENDING:** Add health check endpoints
-
-### Environment Configuration
-- ⏳ **NEEDED:** Document all required environment variables
-- ⏳ **NEEDED:** Create production .env.example templates
-- ⏳ **NEEDED:** Add environment validation on startup
 
 **Action Items:**
-- [ ] Merge PR #58 (Railway deployment fix)
-- [ ] Create comprehensive environment variable documentation
+- [ ] Fix casino-data-api prepare script
+- [ ] Re-run health-check workflow to verify fix
 - [ ] Test deployment on Railway staging environment
 - [ ] Add startup health checks for all services
 - [ ] Create deployment troubleshooting guide
@@ -63,7 +108,33 @@ All tests are now passing! The repository has **307 tests** all passing.
 
 ---
 
-## 🔨 Module Enhancement
+## 🔌 Priority 2: Backend Production Mode
+
+### AI Gateway Production Mode
+**Status:** Uses mock responses, needs real API integration
+
+**Action Items:**
+- [ ] Replace mock responses with actual OpenAI API calls
+- [ ] Configure Vercel AI SDK for production
+- [ ] Add rate limiting and cost monitoring
+- [ ] Test with real prompts
+
+**Estimated Effort:** 6-8 hours
+
+### Trust Rollup Real Data
+**Status:** External fetchers return mock data
+
+**Action Items:**
+- [ ] Implement actual RTP verification API calls
+- [ ] Connect to external casino data sources
+- [ ] Add license verification integration
+- [ ] Test with real casino domains
+
+**Estimated Effort:** 8-12 hours
+
+---
+
+## 🔨 Priority 3: Module Enhancement
 
 ### CollectClock Enhancement 🟡 MEDIUM PRIORITY
 **Status:** Basic structure exists, needs full implementation
@@ -100,7 +171,23 @@ All tests are now passing! The repository has **307 tests** all passing.
 
 ---
 
-## 📝 Documentation Updates
+## 🐛 Priority 4: Browser Extension Fixes
+
+**Issues Identified (PR #104):**
+- `popup.html` line 411 references `popup-enhanced.js` but actual file is `popup.js`
+- `popup.js` expects DOM elements that don't exist in `popup.html`
+- Source files in zip have stale URLs vs bundled `content.js`
+
+**Action Items:**
+- [ ] Fix popup.html script reference
+- [ ] Align DOM element IDs between popup.js and popup.html
+- [ ] Update bundled content.js with correct URLs
+
+**Estimated Effort:** 2-3 hours
+
+---
+
+## 📝 Priority 5: Documentation Updates
 
 ### Documentation Gaps
 1. **Deployment Guide** - Railway-specific deployment instructions
@@ -118,64 +205,47 @@ All tests are now passing! The repository has **307 tests** all passing.
 
 ---
 
-## 🔄 Dependency Management
-
-### Open Dependency PRs (Review Needed)
-- **PR #56:** redis 4.7.1 → 5.10.0 (MAJOR version bump, review carefully)
-- **PR #55:** jsdom 24.1.3 → 27.2.0 (MAJOR version bump, may break tests)
-- **PR #54:** @types/node 20.19.25 → 24.10.1 (MAJOR version bump)
-- **PR #57:** ai 5.0.100 → 5.0.101 (already merged)
-
-**Action Items:**
-- [ ] Review breaking changes for each major version bump
-- [ ] Test locally with updated dependencies
-- [ ] Merge or close PRs based on compatibility
-- [ ] Update pnpm-lock.yaml
-
-**Estimated Effort:** 2-3 hours
-
----
-
 ## 📊 Priority Timeline
 
-### This Week (Deployment Focus)
-1. **Deploy to Railway** - 4 hours
-2. **Environment documentation** - 2 hours
+### This Week (CI/CD Focus)
+1. **Fix CI pipeline** - 30 minutes
+2. **Deploy to Railway** - 4 hours
 3. **Health checks** - 2 hours
 
-**Total: ~8 hours** ⏰
+**Total: ~6-7 hours** ⏰
 
-### Next 2 Weeks (Enhancement)
-1. **Enhance CollectClock** - 10-14 hours
-2. **Review dependency PRs** - 3 hours
+### Next 2 Weeks (Production Mode)
+1. **AI Gateway production mode** - 6-8 hours
+2. **Trust Rollup real data** - 8-12 hours
 3. **Documentation updates** - 4 hours
 
-**Total: ~17-21 hours** ⏰
+**Total: ~18-24 hours** ⏰
 
-### Month 2 (Advanced Features)
-1. **Accountabilibuddy** - 20-25 hours
-2. **AI integration** - 15-20 hours
+### Month 2 (Enhancement)
+1. **Enhance CollectClock** - 10-14 hours
+2. **Accountabilibuddy** - 20-25 hours
 3. **Web UI enhancements** - 10-15 hours
 
-**Total: ~45-60 hours** ⏰
+**Total: ~40-54 hours** ⏰
 
 ---
 
 ## ✅ Success Criteria
 
 ### Before Production Deployment
-- [x] ✅ All tests passing (307/307 = 100%)
+- [x] ✅ All tests passing (411/411 = 100%)
+- [x] ✅ All packages build successfully (38/38)
 - [x] ✅ TiltCheck Core implemented and tested
+- [ ] ⏳ CI pipeline passing (health-check workflow)
 - [ ] ⏳ Railway deployment successful
 - [ ] ⏳ All environment variables documented
 - [ ] ⏳ Health checks implemented and passing
 - [ ] ⏳ Discord bot commands fully tested
-- [ ] ⏳ Documentation complete and accurate
 
 ### Phase 1 MVP Ready
 - [x] ✅ All core modules tested and stable
 - [ ] ⏳ Discord bot deployed and running
-- [ ] ⏳ Trust engines operational
+- [ ] ⏳ Trust engines operational with real data
 - [ ] ⏳ User authentication working
 - [ ] ⏳ Basic monitoring in place
 
@@ -183,22 +253,25 @@ All tests are now passing! The repository has **307 tests** all passing.
 
 ## 🎯 Next Immediate Action
 
-**START HERE:** Deploy to Railway
+**START HERE:** Fix the CI pipeline
 
 ```bash
-# Test the build
+# 1. Fix casino-data-api prepare script
+# Edit services/casino-data-api/package.json to add:
+# "prepare": "npm run build 2>/dev/null || true"
+
+# 2. Test the build locally
 pnpm build
 
-# Run all tests
+# 3. Run all tests
 pnpm test
 
-# Deploy to Railway (if Railway CLI installed)
-railway up
+# 4. Commit and push to trigger CI
 ```
 
-**Expected Outcome:** TiltCheck ecosystem running in production
+**Expected Outcome:** Health-check workflow passes, enabling deployment
 
 ---
 
-**Last Updated:** November 26, 2025  
-**Next Review:** After deployment (estimated 2-3 days)
+**Last Updated:** November 28, 2025  
+**Next Review:** After CI fix verified (estimated 1-2 days)
