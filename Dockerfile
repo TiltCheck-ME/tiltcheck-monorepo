@@ -16,6 +16,8 @@ ENV NODE_ENV="production"
 ARG PNPM_VERSION=latest
 RUN npm install -g pnpm@$PNPM_VERSION
 
+# Set CI environment variable to avoid pnpm TTY issues
+ENV CI=true
 
 # Throw-away build stage to reduce size of final image
 FROM base AS build
