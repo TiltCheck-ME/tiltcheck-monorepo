@@ -47,10 +47,61 @@
     <a href="/" aria-current="page">Home</a>
     <a href="/casinos.html">Casinos</a>
     <a href="/degen-trust.html">Degens</a>
-    <a href="/docs/index.html">Docs</a>
     <a href="/dashboard">Dashboard</a>
     <a href="/about.html">About</a>
+    
+    <!-- Hamburger Menu Button (mobile) -->
+    <button class="hamburger-btn" aria-label="Open menu" aria-expanded="false" onclick="toggleMobileNav()">
+      <span class="hamburger-icon"></span>
+    </button>
   </nav>
+
+  <!-- Mobile Navigation Overlay -->
+  <div class="mobile-nav" id="mobileNav" aria-hidden="true">
+    <div class="mobile-nav-links">
+      <a href="/">Home</a>
+      <a href="/about.html">About</a>
+      <a href="/how-it-works.html">How It Works</a>
+      <a href="/casinos.html">Casino Trust</a>
+      <a href="/degen-trust.html">Degen Trust</a>
+      <a href="/trust-explained.html">Trust Explained</a>
+      <a href="/faq.html">FAQ</a>
+    </div>
+    
+    <div class="mobile-nav-section">
+      <h3>Tools</h3>
+      <a href="/tools/justthetip.html">JustTheTip</a>
+      <a href="/tools/suslink.html">SusLink</a>
+      <a href="/tools/collectclock.html">CollectClock</a>
+      <a href="/tools/freespinscan.html">FreeSpinScan</a>
+      <a href="/tools/tiltcheck-core.html">TiltCheck Core</a>
+      <a href="/tools/daad.html">DA&D</a>
+      <a href="/tools/qualifyfirst.html">QualifyFirst</a>
+      <a href="/tools/poker.html">Poker</a>
+      <a href="/tools/triviadrops.html">TriviaDrops</a>
+    </div>
+    
+    <div class="mobile-nav-section">
+      <h3>Resources</h3>
+      <a href="/dashboard">Dashboard</a>
+      <a href="/press-kit.html">Press Kit</a>
+      <a href="/contact.html">Contact</a>
+      <a href="/newsletter.html">Newsletter</a>
+    </div>
+    
+    <div class="mobile-nav-section">
+      <h3>Community</h3>
+      <a href="https://discord.gg/s6NNfPHxMS" target="_blank" rel="noopener">Discord</a>
+      <a href="https://github.com/jmenichole/tiltcheck-monorepo" target="_blank" rel="noopener">GitHub</a>
+      <a href="https://x.com/Tilt_check" target="_blank" rel="noopener">X (Twitter)</a>
+    </div>
+    
+    <div class="mobile-nav-section">
+      <h3>Legal</h3>
+      <a href="/privacy.html">Privacy Policy</a>
+      <a href="/terms.html">Terms of Service</a>
+    </div>
+  </div>
 
   <!-- Header -->
   <header class="site-header">
@@ -479,6 +530,31 @@
           });
         }).catch(()=>{});
       });
+    });
+    
+    // Mobile Navigation Toggle
+    function toggleMobileNav() {
+      const btn = document.querySelector('.hamburger-btn');
+      const nav = document.getElementById('mobileNav');
+      const isOpen = btn.classList.toggle('open');
+      nav.classList.toggle('open', isOpen);
+      btn.setAttribute('aria-expanded', isOpen);
+      nav.setAttribute('aria-hidden', !isOpen);
+      document.body.style.overflow = isOpen ? 'hidden' : '';
+    }
+    
+    // Close mobile nav on link click
+    document.querySelectorAll('.mobile-nav a').forEach(link => {
+      link.addEventListener('click', () => {
+        toggleMobileNav();
+      });
+    });
+    
+    // Close on escape key
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && document.querySelector('.mobile-nav.open')) {
+        toggleMobileNav();
+      }
     });
   </script>
 </body>
