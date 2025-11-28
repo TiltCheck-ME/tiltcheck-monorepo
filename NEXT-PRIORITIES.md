@@ -10,18 +10,20 @@
 ## 🔥 CRITICAL: Fix CI/CD Pipeline
 
 ### Health Check Workflow Failing ❌
-**Root Cause:** Docker build fails during `casino-data-api` package preparation
+**Root Cause:** Docker build fails during production dependency install
 
 **The Problem:**
+When running `pnpm install --prod` in the Docker build, the `casino-data-api` package tries to run its `build` script (pnpm lifecycle behavior), which requires `tsc` (TypeScript), but TypeScript is a devDependency that's not installed in production mode.
+
 ```
-npm error esbuild: Failed to install correctly
-npm error lifecycle script "prepare"
+services/casino-data-api prepare: sh: tsc: not found
+ELIFECYCLE Command failed.
 ```
 
 **Solutions (choose one):**
 
 #### Option 1: Quick Fix (Recommended)
-Add graceful fallback to `services/casino-data-api/package.json`:
+Add `prepare` script with graceful fallback in `services/casino-data-api/package.json`:
 ```json
 {
   "scripts": {
@@ -30,8 +32,18 @@ Add graceful fallback to `services/casino-data-api/package.json`:
 }
 ```
 
-#### Option 2: Multi-Stage Docker Build
-Use separate build and production stages in Dockerfile to avoid running `prepare` during production install.
+This makes the prepare script fail gracefully when TypeScript isn't available (production mode).
+
+#### Option 2: Disable pnpm ignore-scripts
+Add `.npmrc` at project root with:
+```
+ignore-scripts=false
+side-effects-cache=false
+```
+And ensure pre-built `dist/` files are included in the Docker context.
+
+#### Option 3: Multi-Stage Docker Build
+Build TypeScript in a builder stage with devDependencies, then copy only compiled files to production stage.
 
 **Action Items:**
 - [ ] Apply fix to casino-data-api package.json
