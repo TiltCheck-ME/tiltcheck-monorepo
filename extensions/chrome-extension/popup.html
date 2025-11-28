@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TiltCheck</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    body {
+      width: 360px;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #0a0a0a;
+      color: #e0e0e0;
+      padding: 16px;
+    }
+
+    .logo {
+      font-size: 1.3rem;
+      font-weight: 900;
+      background: linear-gradient(135deg, #00d4aa 0%, #00a8ff 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 8px;
+    }
+
+    .subtitle {
+      font-size: 0.75rem;
+      color: #666;
+      margin-bottom: 16px;
+    }
+
+    .balance-card {
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+      border: 2px solid #00d4aa;
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 12px;
+      text-align: center;
+    }
+
+    .balance-label {
+      font-size: 0.75rem;
+      color: #888;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+
+    .balance-amount {
+      font-size: 2rem;
+      font-weight: 900;
+      color: #00d4aa;
+      margin-bottom: 8px;
+    }
+
+    .balance-change {
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
+
+    .balance-change.positive { color: #00d4aa; }
+    .balance-change.negative { color: #ff4444; }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .stat-box {
+      background: #1a1a1a;
+      border: 1px solid #222;
+      border-radius: 8px;
+      padding: 12px;
+      text-align: center;
+    }
+
+    .stat-value {
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: #00d4aa;
+      margin-bottom: 4px;
+    }
+
+    .stat-label {
+      font-size: 0.7rem;
+      color: #666;
+      text-transform: uppercase;
+    }
+
+    .tilt-alert {
+      background: #1a1a1a;
+      border-left: 4px solid #ffc107;
+      border-radius: 6px;
+      padding: 12px;
+      margin-bottom: 12px;
+      display: none;
+    }
+
+    .tilt-alert.active { display: block; }
+    .tilt-alert.warning { border-left-color: #ffc107; background: rgba(255, 193, 7, 0.1); }
+    .tilt-alert.danger { border-left-color: #ff4444; background: rgba(255, 68, 68, 0.1); }
+
+    .tilt-icon {
+      font-size: 1.2rem;
+      margin-bottom: 4px;
+    }
+
+    .tilt-title {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: #ffc107;
+      margin-bottom: 4px;
+    }
+
+    .tilt-alert.danger .tilt-title { color: #ff4444; }
+
+    .tilt-message {
+      font-size: 0.75rem;
+      color: #ccc;
+      line-height: 1.4;
+    }
+
+    .btn {
+      width: 100%;
+      background: #00d4aa;
+      color: #0a0a0a;
+      border: none;
+      padding: 10px;
+      border-radius: 6px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-bottom: 6px;
+      font-size: 0.85rem;
+    }
+
+    .btn:hover { background: #00b894; }
+
+    .btn-secondary {
+      background: transparent;
+      color: #00d4aa;
+      border: 2px solid #00d4aa;
+    }
+
+    .btn-secondary:hover { background: rgba(0, 212, 170, 0.1); }
+
+    .status {
+      background: #1a1a1a;
+      border: 1px solid #222;
+      border-radius: 8px;
+      padding: 8px 12px;
+      margin-bottom: 12px;
+      text-align: center;
+    }
+
+    .status-text {
+      font-size: 0.75rem;
+      color: #666;
+    }
+
+    .status-text.active { color: #00d4aa; }
+    .status-text.inactive { color: #ff4444; }
+
+    .session-time {
+      font-size: 0.8rem;
+      color: #888;
+      text-align: center;
+      margin-bottom: 8px;
+    }
+  </style>
+</head>
+<body>
+  <div class="logo">TiltCheck</div>
+  <div class="subtitle">Live Gameplay Monitor</div>
+  <button class="btn btn-secondary" id="login-btn" style="margin-bottom:10px;">Login with Discord</button>
+  
+  <div class="status">
+    <div class="status-text" id="status">Not on tiltcheck.me</div>
+  </div>
+
+  <div class="balance-card">
+    <div class="balance-label">Current Balance</div>
+    <div class="balance-amount" id="balance">$0.00</div>
+    <div class="balance-change" id="balance-change">--</div>
+  </div>
+
+  <div class="session-time" id="session-time">Session: 0m</div>
+
+  <div class="stats-grid">
+    <div class="stat-box">
+      <div class="stat-value" id="wagered">$0</div>
+      <div class="stat-label">Wagered</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-value" id="won">$0</div>
+      <div class="stat-label">Won</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-value" id="winrate">0%</div>
+      <div class="stat-label">Win Rate</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-value" id="net">$0</div>
+      <div class="stat-label">Net P/L</div>
+    </div>
+  </div>
+
+  <div class="tilt-alert" id="tilt-alert">
+    <div class="tilt-icon">⚠️</div>
+    <div class="tilt-title" id="tilt-title">Tilt Warning</div>
+    <div class="tilt-message" id="tilt-message">Take a break and reassess your strategy.</div>
+  </div>
+
+  <button class="btn" id="refresh-stats">Refresh Stats</button>
+  <button class="btn btn-secondary" id="open-sidebar">Open Full Dashboard</button>
+  
+  <script src="popup.js"></script>
+</body>
+</html>

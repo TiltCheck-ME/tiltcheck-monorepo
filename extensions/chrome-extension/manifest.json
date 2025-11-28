@@ -1,0 +1,33 @@
+{
+  "manifest_version": 3,
+  "name": "TiltCheck - Degen Safety Companion",
+  "version": "1.0.0",
+  "description": "Real-time scam detection, casino trust scores, and link scanning for degen communities.",
+  "author": "jmenichole",
+  "permissions": [
+    "activeTab",
+    "storage",
+    "sidePanel",
+    "identity"
+  ],
+  "host_permissions": [
+    "https://*/*",
+    "http://*/*"
+  ],
+  "action": {
+    "default_popup": "popup.html"
+  },
+  "side_panel": {
+    "default_path": "sidepanel.html"
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"],
+      "run_at": "document_end"
+    }
+  ]
+}
