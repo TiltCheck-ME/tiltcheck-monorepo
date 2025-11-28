@@ -167,7 +167,7 @@ pnpm --filter discord-bot dev
 # /scan https://example.com
 ```
 
-See **[QUICKSTART.md](./QUICKSTART.md)** for 5-minute setup or **[DEPLOYMENT.md](./DEPLOYMENT.md)** for production deployment.
+See **[QUICKSTART.md](./QUICKSTART.md)** for 5-minute setup, **[DEPLOYMENT.md](./DEPLOYMENT.md)** for production deployment, or **[SPACESHIP-DEPLOYMENT-ENV.md](./SPACESHIP-DEPLOYMENT-ENV.md)** for complete Spaceship/Hyperlift environment variables.
 
 ### Components + A11y Audits
 
