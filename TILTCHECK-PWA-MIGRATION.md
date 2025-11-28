@@ -503,7 +503,7 @@ AI: That's called "chasing losses" and it rarely works.
 ### Phase 2: Announce Migration (1-2 weeks)
 
 **Week 8: Announcement**
-- Deploy TiltCheck PWA to production (e.g., `tracker.tiltcheck.io`)
+- Deploy TiltCheck PWA to production (e.g., `tracker.tiltcheck.me`)
 - Update Discord bot help text
 - Add `/tiltcheck` redirect command
 - Post announcements in Discord servers
@@ -519,7 +519,7 @@ TiltCheck has moved to a dedicated app!
 ❌ The /cooldown and /tilt commands will be REMOVED on [date]
 
 ✅ Use the new TiltCheck app instead:
-   🔗 https://tracker.tiltcheck.io
+   🔗 https://tracker.tiltcheck.me
 
 Why the change?
 - 🔒 Privacy: Your data is private, not visible in Discord
@@ -543,7 +543,7 @@ Questions? Use /tiltcheck command for more info.
   ⚠️ This command is deprecated and will be removed on [date].
   
   Please use the TiltCheck app instead:
-  🔗 https://tracker.tiltcheck.io
+  🔗 https://tracker.tiltcheck.me
   
   [Run command anyway? Yes / No]
   ```
@@ -565,12 +565,12 @@ export default {
   name: 'tiltcheck',
   description: 'Access the TiltCheck gambling tracker app',
   async execute(interaction) {
-    const qrCode = 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=https://tracker.tiltcheck.io';
+    const qrCode = 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=https://tracker.tiltcheck.me';
     
     await interaction.reply({
       content: '🎰 **TiltCheck - Gambling Tracker**\n\n' +
         '**Track your gambling, set limits, get AI support:**\n' +
-        '🔗 https://tracker.tiltcheck.io\n\n' +
+        '🔗 https://tracker.tiltcheck.me\n\n' +
         '**Features:**\n' +
         '• Private session logging\n' +
         '• Spending analytics & charts\n' +
@@ -858,7 +858,7 @@ eventRouter.subscribe('user.profile.updated', (event) => {
 | 5 | Integration | Stake API, Rollbit API, auto-tracking | Casino integrations working |
 | 6 | AI | AI Gateway integration, chat UI, coaching prompts | AI chatbot functional |
 | 7 | Testing | End-to-end tests, security audit, performance | Production-ready PWA |
-| 8 | Deploy | Deploy to production, announce migration | Live at tracker.tiltcheck.io |
+| 8 | Deploy | Deploy to production, announce migration | Live at tracker.tiltcheck.me |
 | 9-10 | Grace Period | Support users, monitor adoption, iterate | Users migrating to PWA |
 | 11 | Removal | Delete Discord commands, archive files | Full migration complete |
 

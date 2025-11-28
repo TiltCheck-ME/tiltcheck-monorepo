@@ -48,7 +48,7 @@ This document explores use cases for all TiltCheck tools as Progressive Web Apps
 - Share QR via social media, email, websites
 
 #### Public Tipping Page
-- Personal URL like `tiltcheck.io/tip/username`
+- Personal URL like `tiltcheck.me/tip/username`
 - Similar to PayPal.me or Venmo profiles
 - Embedded on personal website/blog
 - Social media bio link
