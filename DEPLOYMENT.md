@@ -159,7 +159,58 @@ Should scan URL and emit trust events to dashboard.
 
 ## 6. Production Deployment Options
 
-### Option A: Docker Compose (Recommended)
+### Option A: Starlight™ Hyperlift (Easy Deployment)
+
+Deploy directly from GitHub with no DevOps setup required using [Starlight Hyperlift](https://www.spaceship.com/starlight-cloud/hyperlift/).
+
+**Prerequisites:**
+- GitHub repository connected to Hyperlift Manager
+- Hyperlift account on [spaceship.com](https://www.spaceship.com)
+
+**Quick Deployment Steps:**
+
+1. **Connect GitHub to Hyperlift**
+   - Go to Hyperlift Manager dashboard
+   - Connect your GitHub account
+   - Select the `jmenichole/tiltcheck-monorepo` repository
+
+2. **Configure Build Settings**
+   - Dockerfile path: `Dockerfile` (for full monorepo) or service-specific:
+     - Dashboard: `services/dashboard/Dockerfile`
+     - Discord Bot: `apps/discord-bot/Dockerfile`
+     - Landing: `services/landing/Dockerfile`
+   - Branch: `main`
+
+3. **Set Environment Variables** (in Hyperlift Manager):
+   ```
+   PORT=8080
+   NODE_ENV=production
+   DISCORD_TOKEN=your_bot_token
+   DISCORD_CLIENT_ID=your_client_id
+   DISCORD_GUILD_ID=your_server_id
+   ```
+
+4. **Deploy**
+   - Enable automatic builds on push (optional)
+   - Click "Build & Deploy"
+
+**Port Configuration:**
+- Default Hyperlift port: `8080`
+- Configure via environment variable, not Dockerfile `EXPOSE`
+
+**Multi-Service Deployment:**
+For the full TiltCheck ecosystem, deploy each service separately:
+
+| Service | Dockerfile Path | Default Port |
+|---------|-----------------|--------------|
+| Dashboard | `services/dashboard/Dockerfile` | 5055 |
+| Discord Bot | `apps/discord-bot/Dockerfile` | 8081 |
+| Landing Page | `services/landing/Dockerfile` | 8080 |
+| Trust Rollup | `services/trust-rollup/Dockerfile` | 8082 |
+
+See [HYPERLIFT.md](./HYPERLIFT.md) for detailed Starlight Hyperlift deployment guide.
+
+### Option B: Docker Compose (Self-Hosted)
 
 See [DOCKER.md](./DOCKER.md) for detailed Docker deployment guide.
 
