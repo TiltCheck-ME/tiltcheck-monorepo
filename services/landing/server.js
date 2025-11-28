@@ -62,9 +62,9 @@ app.get('/data/casino_data_latest.csv', (_req, res) => {
   res.sendFile(latest);
 });
 
-// Serve redesigned landing as root (index-v2.html replaces legacy index.html)
+// Serve landing as root
 app.get('/', (_req, res) => {
-  res.sendFile(path.join(publicDir, 'index-v2.html'));
+  res.sendFile(path.join(publicDir, 'index.html'));
 });
 // Content pages
 app.get('/about', (_req, res) => {
@@ -225,7 +225,7 @@ app.get('/sitemap.xml', (_req, res) => {
     Object.entries(obj).forEach(([key, val]) => {
       if (key.startsWith('/')) {
         // Try to derive mtime from file if it exists
-        const filePath = path.join(publicDir, key === '/' ? 'index-v2.html' : key.replace(/^\//, ''));
+        const filePath = path.join(publicDir, key === '/' ? 'index.html' : key.replace(/^\//, ''));
         let lastmodIso = new Date(val.lastChecked).toISOString();
         try {
           const stat = fs.statSync(filePath);
