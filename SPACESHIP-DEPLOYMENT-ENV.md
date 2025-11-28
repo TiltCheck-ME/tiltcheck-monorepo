@@ -2,9 +2,9 @@
 
 This document lists **ALL environment variables** you need to configure in the Spaceship/Hyperlift deployment manager to successfully deploy the TiltCheck ecosystem.
 
-> **Domain Structure:**
-> - `tiltcheck.me` - Landing pages and public frontend
-> - `server.tiltcheck.me` - Backend APIs and services
+> **Single Deployment:** Everything runs on `tiltcheck.me`
+> - Landing pages, dashboard, and API endpoints all served from one deployment
+> - Dockerfile: `services/landing/Dockerfile`
 
 > **Note:** A 503 error typically indicates the server isn't responding properly. Ensure all **REQUIRED** variables are set correctly.
 
@@ -165,7 +165,7 @@ If using JustTheTip or other blockchain features:
 
 | Variable | Example Value | Description |
 |----------|---------------|-------------|
-| `ALLOWED_ORIGINS` | `https://tiltcheck.me,https://server.tiltcheck.me` | CORS allowed origins |
+| `ALLOWED_ORIGINS` | `https://tiltcheck.me` | CORS allowed origins |
 | `GAUGE_ADMIN_TOKEN` | `random_token` | Admin token for gauge config |
 | `REQUIRED_TRUST_LEVEL` | `0` | Minimum trust level (0-100) |
 
@@ -188,7 +188,7 @@ If using JustTheTip or other blockchain features:
 
 | Variable | Example Value | Description |
 |----------|---------------|-------------|
-| `TILTCHECK_API_URL` | `https://server.tiltcheck.me` | TiltCheck API base URL (backend) |
+| `TILTCHECK_API_URL` | `https://tiltcheck.me/api` | TiltCheck API base URL |
 | `TILTCHECK_API_KEY` | `your_api_key` | Internal API key |
 | `CASINO_API_KEY` | `tiltcheck-casino-collector-2024` | Casino data API key |
 | `CASINO_API_PORT` | `6002` | Casino API port |
@@ -312,7 +312,7 @@ ADMIN_IP_1=your_public_ip
 
 ## Troubleshooting 503 Errors
 
-If you're seeing a 503 error on tiltcheck.me or server.tiltcheck.me, check:
+If you're seeing a 503 error on tiltcheck.me, check:
 
 ### 1. Is `PORT=8080` set?
 This is the most common issue. Hyperlift requires port 8080.
@@ -321,7 +321,7 @@ This is the most common issue. Hyperlift requires port 8080.
 Required for production builds.
 
 ### 3. Verify Health Endpoint
-Access `https://tiltcheck.me/health` or `https://server.tiltcheck.me/health` directly. 
+Access `https://tiltcheck.me/health` directly. 
 
 **Expected successful response:**
 ```json
