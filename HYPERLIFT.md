@@ -125,6 +125,24 @@ Every push to the selected branch will trigger a new build and deployment.
 
 ---
 
+## URL Routing (Unified Deployment)
+
+When using `Dockerfile.unified`, nginx routes requests to the appropriate service:
+
+| URL Pattern | Service | Description |
+|-------------|---------|-------------|
+| `/` | Landing | Main website and static pages |
+| `/about`, `/contact`, `/faq`, etc. | Landing | Content pages |
+| `/dashboard` | Redirects to `/dashboard/` | Ensures proper trailing slash |
+| `/dashboard/` | Dashboard | Trust analytics dashboard |
+| `/api/*` | Dashboard | REST API endpoints |
+| `/health` | Landing | Service health check |
+| `/proxy-health` | nginx | Nginx health check |
+
+**Important:** The `/dashboard` route (without trailing slash) automatically redirects to `/dashboard/` to ensure consistent routing.
+
+---
+
 ## Multi-Service Architecture
 
 For the complete TiltCheck ecosystem, deploy services as separate Hyperlift apps:
