@@ -100,6 +100,15 @@ If you need direct port access for debugging:
 docker-compose up -d
 ```
 
+### Option 5: Unified Container (Hyperlift/Render)
+For platforms that require a single container:
+```bash
+docker build -f Dockerfile.unified -t tiltcheck-unified .
+docker run -p 8080:8080 tiltcheck-unified
+```
+
+**Dockerfile path for Hyperlift Manager:** `Dockerfile.unified`
+
 ## Useful Commands
 
 ```bash
