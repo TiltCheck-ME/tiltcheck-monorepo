@@ -42,6 +42,15 @@ function getEnvVar(key: string, required = true): string {
   return value || '';
 }
 
+/**
+ * Get Discord token from either DISCORD_TOKEN or DISCORD_BOT_TOKEN
+ * Supports both variable names for flexibility across different deployment environments
+ */
+function getDiscordToken(): string {
+  const token = process.env.DISCORD_TOKEN || process.env.DISCORD_BOT_TOKEN;
+  return token || '';
+}
+
 function getBoolEnv(key: string, defaultValue = false): boolean {
   const value = process.env[key];
   if (!value) return defaultValue;
@@ -56,8 +65,8 @@ function getNumberEnv(key: string, defaultValue: number): number {
 }
 
 export const config: BotConfig = {
-  // Discord
-  discordToken: getEnvVar('DISCORD_TOKEN'),
+  // Discord (supports both DISCORD_TOKEN and DISCORD_BOT_TOKEN)
+  discordToken: getDiscordToken(),
   clientId: getEnvVar('DISCORD_CLIENT_ID'),
   guildId: getEnvVar('DISCORD_GUILD_ID', false),
 
@@ -77,7 +86,7 @@ export const config: BotConfig = {
 export function validateConfig(): void {
   if (!config.discordToken) {
     throw new Error(
-      'DISCORD_TOKEN is required. Please check your .env file.'
+      'DISCORD_TOKEN or DISCORD_BOT_TOKEN is required. Please check your .env file.'
     );
   }
 
