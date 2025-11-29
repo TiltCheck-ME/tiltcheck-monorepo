@@ -1,5 +1,5 @@
-import { describe, it, expect } from 'vitest';
-import { pricingOracle } from '../src';
+import { describe, it, expect, vi } from 'vitest';
+import { pricingOracle, fetchJupiterPrice, fetchJupiterPrices } from '../src';
 import { eventRouter } from '@tiltcheck/event-router';
 
 describe('PricingOracle', () => {
@@ -55,5 +55,125 @@ describe('PricingOracle', () => {
 
   it('throws on unknown token', () => {
     expect(() => pricingOracle.getUsdPrice('UNKNOWN')).toThrow('Price not available');
+  });
+});
+
+describe('Jupiter Price API', () => {
+  it('fetchJupiterPrice returns a number for valid token', async () => {
+    const mockResponse = {
+      data: {
+        SOL: {
+          id: 'So11111111111111111111111111111111111111112',
+          mintSymbol: 'SOL',
+          vsToken: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+          vsTokenSymbol: 'USDC',
+          price: 150.25
+        }
+      },
+      timeTaken: 0.5
+    };
+
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => mockResponse
+    }));
+
+    const price = await fetchJupiterPrice('SOL');
+    expect(price).toBe(150.25);
+    expect(fetch).toHaveBeenCalledWith('https://price.jup.ag/v4/price?ids=SOL');
+
+    vi.unstubAllGlobals();
+  });
+
+  it('fetchJupiterPrice throws on API error', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+      ok: false,
+      status: 500,
+      statusText: 'Internal Server Error'
+    }));
+
+    await expect(fetchJupiterPrice('SOL')).rejects.toThrow('Jupiter API request failed');
+
+    vi.unstubAllGlobals();
+  });
+
+  it('fetchJupiterPrice throws when token not found', async () => {
+    const mockResponse = {
+      data: {},
+      timeTaken: 0.5
+    };
+
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => mockResponse
+    }));
+
+    await expect(fetchJupiterPrice('UNKNOWN')).rejects.toThrow('Price not found for token');
+
+    vi.unstubAllGlobals();
+  });
+
+  it('fetchJupiterPrices returns prices for multiple tokens', async () => {
+    const mockResponse = {
+      data: {
+        SOL: {
+          id: 'So11111111111111111111111111111111111111112',
+          mintSymbol: 'SOL',
+          vsToken: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+          vsTokenSymbol: 'USDC',
+          price: 150.25
+        },
+        BONK: {
+          id: 'DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263',
+          mintSymbol: 'BONK',
+          vsToken: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+          vsTokenSymbol: 'USDC',
+          price: 0.00002
+        }
+      },
+      timeTaken: 0.5
+    };
+
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => mockResponse
+    }));
+
+    const prices = await fetchJupiterPrices(['SOL', 'BONK']);
+    expect(prices.SOL).toBe(150.25);
+    expect(prices.BONK).toBe(0.00002);
+    expect(fetch).toHaveBeenCalledWith('https://price.jup.ag/v4/price?ids=SOL,BONK');
+
+    vi.unstubAllGlobals();
+  });
+
+  it('refreshFromJupiter updates oracle and emits event', async () => {
+    const mockResponse = {
+      data: {
+        SOL: {
+          id: 'So11111111111111111111111111111111111111112',
+          mintSymbol: 'SOL',
+          vsToken: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+          vsTokenSymbol: 'USDC',
+          price: 175.50
+        }
+      },
+      timeTaken: 0.5
+    };
+
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => mockResponse
+    }));
+
+    eventRouter.clearHistory();
+    const price = await pricingOracle.refreshFromJupiter('SOL');
+    expect(price).toBe(175.50);
+    expect(pricingOracle.getUsdPrice('SOL')).toBe(175.50);
+    
+    const events = eventRouter.getHistory({ eventType: 'price.updated' });
+    expect(events.length).toBeGreaterThan(0);
+
+    vi.unstubAllGlobals();
   });
 });

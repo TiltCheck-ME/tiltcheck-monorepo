@@ -238,13 +238,14 @@ DATABASE_URL=              # PostgreSQL connection string
 
 #### Optional Integrations
 
-**CoinGecko API (Price Data)**
+**Jupiter Price API (Price Data)**
 ```env
-COINGECKO_API_KEY=         # Optional, for enhanced price feeds
+# No API key required - Jupiter provides free, real-time Solana token prices
+# API Endpoint: https://price.jup.ag/v4/price
 ```
-**Status:** Optional - Pricing oracle works without it  
-**Free Tier:** 30 calls/min  
-**Paid Tier:** $129/month for 500 calls/min  
+**Status:** ✅ Integrated - Pricing oracle uses Jupiter Price API  
+**Rate Limit:** No strict limits for reasonable usage  
+**Cost:** Free  
 **Needed For:** Real-time token pricing
 
 **Magic.link (Wallet Creation)**
@@ -284,7 +285,7 @@ ANTHROPIC_API_KEY=         # Anthropic API key
 | Discord | ✅ Ready | Yes | Yes | CRITICAL |
 | Solana RPC | ✅ Ready | Yes | For tipping | HIGH |
 | PostgreSQL | ✅ Ready | Yes | Recommended | HIGH |
-| CoinGecko | ⏳ Optional | Yes | No | MEDIUM |
+| Jupiter Price API | ✅ Ready | Yes | For pricing | MEDIUM |
 | Magic.link | ⏳ Planned | Yes | For wallets | MEDIUM |
 | Supabase | ⏳ Planned | Yes | Optional | MEDIUM |
 | OpenAI | ⏳ Planned | No | For AI | LOW |
@@ -587,14 +588,14 @@ ANTHROPIC_API_KEY=         # Anthropic API key
 
 ### Enhanced Features (Optional)
 
-#### 4. CoinGecko API (Price Feeds)
-**What:** Real-time token pricing  
-**Free Tier:** 30 calls/min (adequate for MVP)  
-**Paid Tier:** $129/month for 500 calls/min  
-**Setup Time:** 5 minutes  
+#### 4. Jupiter Price API (Price Feeds)
+**What:** Real-time Solana token pricing from Jupiter  
+**Free Tier:** Unlimited (no API key required)  
+**Paid Tier:** N/A - free service  
+**Setup Time:** Already integrated  
 **Needed For:** USD conversion in tips  
-**Current Status:** ⏳ Works without it, optional enhancement  
-**Priority:** LOW  
+**Current Status:** ✅ Integrated  
+**Priority:** MEDIUM  
 
 #### 5. Magic.link (Wallet Creation)
 **What:** Non-custodial wallet creation via email  
@@ -629,7 +630,7 @@ ANTHROPIC_API_KEY=         # Anthropic API key
 | Discord | Low | 10 min | Yes | CRITICAL |
 | Solana RPC | Low | 5 min | For tipping | HIGH |
 | PostgreSQL | Medium | 15 min | No | HIGH |
-| CoinGecko | Low | 5 min | No | LOW |
+| Jupiter Price API | Low | Integrated | No | MEDIUM |
 | Magic.link | Medium | 30 min | No | MEDIUM |
 | AI APIs | Medium | 15 min | No | LOW |
 | Supabase | Medium | 20 min | No | MEDIUM |
