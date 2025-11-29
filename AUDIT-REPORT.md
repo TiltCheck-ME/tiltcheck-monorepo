@@ -197,7 +197,7 @@ CASINO_API_PORT=6002             # Casino API port
 TILTCHECK_API_KEY=                # TiltCheck API key
 TILTCHECK_API_URL=                # TiltCheck API base URL
 OPENAI_API_KEY=                   # OpenAI API key for AI features
-COINGECKO_API_KEY=                # CoinGecko for pricing oracle (optional)
+# Note: Pricing oracle uses Jupiter Price API (no key required)
 ```
 
 #### Security & Authentication
@@ -288,9 +288,10 @@ ADMIN_IP_=                        # Admin IP whitelist prefix
    - Integration code present
    - **Action Required:** Verify API keys and configuration
 
-4. **External APIs (CoinGecko, OpenAI)**
-   - Optional integrations configured
-   - **Action Required:** Provide API keys if features needed
+4. **External APIs (Jupiter Price API, OpenAI)**
+   - Jupiter Price API integrated for token pricing (no key required)
+   - OpenAI optional for AI features
+   - **Action Required:** Provide OpenAI API keys if AI features needed
 
 ---
 

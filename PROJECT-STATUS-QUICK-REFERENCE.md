@@ -141,10 +141,10 @@
    - Status: ✅ Client ready
 
 ### Optional (Enhanced Features)
-4. **CoinGecko API** (Price data)
-   - Free: 30 calls/min
-   - Paid: $129/month
-   - Priority: LOW
+4. **Jupiter Price API** (Price data)
+   - Free: Unlimited (no key required)
+   - Priority: MEDIUM
+   - Status: ✅ Integrated
 
 5. **Magic.link** (Wallet creation)
    - Free: 10k MAU
@@ -272,7 +272,7 @@ All 41 test files are passing with 252 tests total.
 | Discord | 🟢 Low | 10 min | ✅ Yes |
 | Solana RPC | 🟢 Low | 5 min | For tipping |
 | PostgreSQL | 🟡 Med | 15 min | Recommended |
-| CoinGecko | 🟢 Low | 5 min | Optional |
+| Jupiter Price API | 🟢 Low | Integrated | ✅ Yes |
 | Magic.link | 🟡 Med | 30 min | Phase 2 |
 | AI APIs | 🟡 Med | 15 min | Phase 2 |
 

@@ -234,8 +234,8 @@ OPENAI_API_KEY=<openai_key>                # GPT-4o, GPT-4o-mini
 # OR
 ANTHROPIC_API_KEY=<anthropic_key>          # Claude
 
-# Pricing Oracle
-COINGECKO_API_KEY=<api_key>                # Free tier available
+# Pricing Oracle - Uses Jupiter Price API (no key required)
+# https://price.jup.ag/v4/price
 
 # Admin Control Room
 ADMIN_PASSWORD=<secure_password>           # Admin access
