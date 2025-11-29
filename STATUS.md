@@ -37,8 +37,8 @@
 | Component | Status | Issue | Priority |
 |-----------|--------|-------|----------|
 | **Health Check CI** | ✅ Fixed - Awaiting Re-run | Fix applied, CI just needs to run on latest commits | LOW |
-| **AI Gateway (Prod)** | ⚠️ Mock Only | Uses mock responses, not actual OpenAI API | MEDIUM |
-| **Trust Rollup (Prod)** | ⚠️ Mock Only | External fetchers return mock data | MEDIUM |
+| **AI Gateway (Prod)** | ✅ Ready | OpenAI integration complete, just needs API key configured | LOW |
+| **Trust Rollup (Prod)** | ✅ Ready | External API integration ready, uses mock data when keys not set | LOW |
 | **Browser Extension** | ⚠️ Issues | popup.html references wrong JS file, DOM mismatches | LOW |
 | **Railway Deployment** | ⏳ Pending | Not tested in production | MEDIUM |
 
@@ -48,12 +48,18 @@
 |-----------|--------|---------------|
 | **CollectClock** | Basic structure only | Full bonus tracking implementation |
 | **Accountabilibuddy** | Not started | Phase 2 feature |
-| **Environment Docs** | Incomplete | Comprehensive env variable documentation |
+| **Environment Docs** | ✅ Updated | AI & Trust API keys documented in .env.example |
 | **Deployment Guide** | Missing Railway specifics | Add Railway deployment instructions |
 
 ---
 
 ### Recent Changes (November 29, 2025)
+
+#### AI & Trust API Integration ✅
+- **AI Gateway**: OpenAI integration fully operational, uses real API with `OPENAI_API_KEY` configured
+- **Trust Rollup**: External API integration added for CasinoGuru and AskGamblers
+- **Environment Variables**: Updated `.env.example` with all AI/Trust API configurations
+- **Graceful Fallbacks**: Both services use curated mock data when API keys not configured
 
 #### Status Review & CI Fix Verification ✅
 - **All Tests Passing**: Verified 417/417 tests pass (6 new tests added)
