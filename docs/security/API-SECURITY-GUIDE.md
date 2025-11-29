@@ -376,7 +376,7 @@ const anomalyDetector = {
 | Solana | Blockchain | Non-custodial, public network |
 | Magic.link | Wallet creation | Non-custodial, OAuth flow |
 | Supabase | Database | Row-level security, encrypted |
-| CoinGecko | Pricing data | Public API, rate limited |
+| Jupiter | Pricing data | Public API, no key required |
 
 ---
 

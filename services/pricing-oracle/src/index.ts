@@ -1,6 +1,72 @@
 import { eventRouter } from '@tiltcheck/event-router';
 import type { PriceUpdateEvent } from '@tiltcheck/types';
 
+const JUPITER_PRICE_API = 'https://price.jup.ag/v4/price';
+
+export interface JupiterPriceResponse {
+  data: {
+    [key: string]: {
+      id: string;
+      mintSymbol: string;
+      vsToken: string;
+      vsTokenSymbol: string;
+      price: number;
+    };
+  };
+  timeTaken: number;
+}
+
+/**
+ * Fetch the current USD price for a token from Jupiter Price API
+ * @param tokenSymbol - Token symbol (e.g., 'SOL', 'BONK')
+ * @returns The current USD price
+ */
+export async function fetchJupiterPrice(tokenSymbol: string): Promise<number> {
+  const url = `${JUPITER_PRICE_API}?ids=${encodeURIComponent(tokenSymbol)}`;
+  const response = await fetch(url);
+  
+  if (!response.ok) {
+    throw new Error(`Jupiter API request failed: ${response.status} ${response.statusText}`);
+  }
+  
+  const data = (await response.json()) as JupiterPriceResponse;
+  const tokenData = data.data[tokenSymbol];
+  
+  if (!tokenData) {
+    throw new Error(`Price not found for token: ${tokenSymbol}`);
+  }
+  
+  return tokenData.price;
+}
+
+/**
+ * Fetch multiple token prices from Jupiter Price API
+ * @param tokenSymbols - Array of token symbols
+ * @returns Map of token symbol to USD price. Tokens not found on Jupiter are excluded from the result.
+ *          Check result keys to determine which tokens were successfully fetched.
+ */
+export async function fetchJupiterPrices(tokenSymbols: string[]): Promise<Record<string, number>> {
+  const ids = tokenSymbols.map(s => encodeURIComponent(s)).join(',');
+  const url = `${JUPITER_PRICE_API}?ids=${ids}`;
+  const response = await fetch(url);
+  
+  if (!response.ok) {
+    throw new Error(`Jupiter API request failed: ${response.status} ${response.statusText}`);
+  }
+  
+  const data = (await response.json()) as JupiterPriceResponse;
+  const prices: Record<string, number> = {};
+  
+  for (const symbol of tokenSymbols) {
+    const tokenData = data.data[symbol];
+    if (tokenData) {
+      prices[symbol] = tokenData.price;
+    }
+  }
+  
+  return prices;
+}
+
 export interface PriceOracle {
   getUsdPrice(token: string): number;
   setUsdPrice(token: string, price: number, publishEvent?: boolean): void;
@@ -8,6 +74,8 @@ export interface PriceOracle {
   isStale(token: string): boolean;
   setTTL(ms: number): void;
   refreshPrice(token: string, fetcher: () => Promise<number>): Promise<number>;
+  refreshFromJupiter(token: string): Promise<number>;
+  refreshAllFromJupiter(tokens?: string[]): Promise<Record<string, number>>;
 }
 
 class InMemoryPriceOracle implements PriceOracle {
@@ -63,6 +131,19 @@ class InMemoryPriceOracle implements PriceOracle {
     const newPrice = await fetcher();
     this.setUsdPrice(token, newPrice, true);
     return newPrice;
+  }
+
+  async refreshFromJupiter(token: string): Promise<number> {
+    const price = await fetchJupiterPrice(token.toUpperCase());
+    this.setUsdPrice(token, price, true);
+    return price;
+  }
+
+  async refreshAllFromJupiter(tokens?: string[]): Promise<Record<string, number>> {
+    const tokenList = tokens ?? Array.from(this.prices.keys());
+    const prices = await fetchJupiterPrices(tokenList);
+    this.bulkSet(prices, true);
+    return prices;
   }
 }
 

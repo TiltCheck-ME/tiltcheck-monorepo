@@ -178,7 +178,8 @@ If using JustTheTip or other blockchain features:
 | Variable | Example Value | Description |
 |----------|---------------|-------------|
 | `OPENAI_API_KEY` | `sk-...` | OpenAI API key for AI features |
-| `COINGECKO_API_KEY` | `CG-...` | CoinGecko API for pricing data |
+
+> **Note:** Pricing oracle uses Jupiter Price API (https://price.jup.ag) for Solana token prices. No API key required.
 
 ---
 
@@ -302,7 +303,7 @@ JUSTTHETIP_FEE_WALLET=your_wallet_address
 
 # External APIs (optional)
 OPENAI_API_KEY=sk-your_key
-COINGECKO_API_KEY=CG-your_key
+# Note: Pricing oracle uses Jupiter Price API (https://price.jup.ag) - no API key required
 
 # Admin IPs (optional)
 ADMIN_IP_1=your_public_ip

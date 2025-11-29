@@ -77,9 +77,8 @@ Added to:
    - No `/justthetip airdrop` subcommand yet
 
 5. **USD Conversion**
-   - Pricing oracle exists
-   - No CoinGecko API key configured
-   - "$10" parsing works but conversion is mock
+   - Pricing oracle exists with Jupiter Price API integration
+   - "$10" parsing works with live price conversion
 
 ## 🧪 How to Test
 
@@ -154,7 +153,7 @@ SOLANA_RPC_URL=✅ configured (devnet)
 
 # Still need:
 JUSTTHETIP_FEE_WALLET=<your_wallet_address>
-COINGECKO_API_KEY=<optional>
+# Note: Pricing oracle uses Jupiter Price API (no key required)
 ```
 
 ## 🎯 Current Status

@@ -34,7 +34,7 @@ DISCORD_CALLBACK_URL=http://localhost:3001/auth/discord/callback
 
 # External APIs
 OPENAI_API_KEY=<for_ai_features>
-COINGECKO_API_KEY=<for_price_data>
+# Note: Pricing oracle uses Jupiter Price API (https://price.jup.ag) - no API key required
 
 # Notifications
 DISCORD_WEBHOOK_URL=<webhook_url>
