@@ -257,8 +257,9 @@ app.get('/health', (_req, res) => {
   });
 });
 
+// Redirect /dashboard to the full dashboard service at /dashboard/
 app.get('/dashboard', (_req, res) => {
-  res.sendFile(path.join(publicDir, 'trust.html'));
+  res.redirect(301, '/dashboard/');
 });
 
 app.get('/control-room', ipAllowlist, (req, res) => {
