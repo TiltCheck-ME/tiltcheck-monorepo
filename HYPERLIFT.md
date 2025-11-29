@@ -76,6 +76,18 @@ SUPABASE_ANON_KEY=your_anon_key
 
 ## Service Dockerfiles
 
+### Unified Deployment (Recommended for Hyperlift)
+
+For a single container with all web services:
+
+| Service | Dockerfile Path | Description | Port |
+|---------|-----------------|-------------|------|
+| **🚀 Unified (All-in-One)** | `Dockerfile.unified` | Landing + Dashboard + nginx proxy | 8080 |
+
+This is the recommended option for Hyperlift Manager - deploys everything in one container.
+
+### Individual Services
+
 Deploy each TiltCheck service separately:
 
 | Service | Dockerfile Path | Description | Port |
