@@ -169,6 +169,122 @@ importers:
         specifier: ^5.3.0
         version: 5.9.3
 
+  backend:
+    dependencies:
+      '@tiltcheck/dad':
+        specifier: workspace:*
+        version: link:../modules/dad
+      '@tiltcheck/database':
+        specifier: workspace:*
+        version: link:../packages/database
+      '@tiltcheck/event-router':
+        specifier: workspace:*
+        version: link:../services/event-router
+      '@tiltcheck/poker':
+        specifier: workspace:*
+        version: link:../modules/poker
+      '@tiltcheck/supabase-auth':
+        specifier: workspace:*
+        version: link:../packages/supabase-auth
+      '@tiltcheck/types':
+        specifier: workspace:*
+        version: link:../packages/types
+      express:
+        specifier: ^4.19.0
+        version: 4.21.2
+      express-session:
+        specifier: ^1.18.0
+        version: 1.18.2
+      socket.io:
+        specifier: ^4.7.0
+        version: 4.8.1(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+      uuid:
+        specifier: ^9.0.0
+        version: 9.0.1
+    devDependencies:
+      '@types/express':
+        specifier: ^4.17.21
+        version: 4.17.25
+      '@types/express-session':
+        specifier: ^1.18.0
+        version: 1.18.2
+      '@types/uuid':
+        specifier: ^9.0.0
+        version: 9.0.8
+      tsx:
+        specifier: ^4.7.0
+        version: 4.20.6
+
+  bot:
+    dependencies:
+      '@tiltcheck/config':
+        specifier: workspace:*
+        version: link:../packages/config
+      '@tiltcheck/discord-utils':
+        specifier: workspace:*
+        version: link:../packages/discord-utils
+      '@tiltcheck/esm-utils':
+        specifier: workspace:*
+        version: link:../packages/esm-utils
+      '@tiltcheck/event-router':
+        specifier: workspace:*
+        version: link:../services/event-router
+      '@tiltcheck/freespinscan':
+        specifier: workspace:*
+        version: link:../modules/freespinscan
+      '@tiltcheck/justthetip':
+        specifier: workspace:*
+        version: link:../modules/justthetip
+      '@tiltcheck/lockvault':
+        specifier: workspace:*
+        version: link:../modules/lockvault
+      '@tiltcheck/natural-language-parser':
+        specifier: workspace:*
+        version: link:../packages/natural-language-parser
+      '@tiltcheck/suslink':
+        specifier: workspace:*
+        version: link:../modules/suslink
+      '@tiltcheck/tiltcheck-core':
+        specifier: workspace:*
+        version: link:../modules/tiltcheck-core
+      '@tiltcheck/triviadrops':
+        specifier: workspace:*
+        version: link:../modules/triviadrops
+      '@tiltcheck/trust-engines':
+        specifier: workspace:*
+        version: link:../services/trust-engines
+      '@tiltcheck/types':
+        specifier: workspace:*
+        version: link:../packages/types
+      discord.js:
+        specifier: ^14.14.1
+        version: 14.25.1(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+      dotenv:
+        specifier: ^16.3.1
+        version: 16.6.1
+    devDependencies:
+      '@types/node':
+        specifier: ^24.10.1
+        version: 24.10.1
+      tsx:
+        specifier: ^4.7.0
+        version: 4.20.6
+      typescript:
+        specifier: ^5.3.0
+        version: 5.9.3
+
+  frontend:
+    dependencies:
+      '@tiltcheck/express-utils':
+        specifier: workspace:*
+        version: link:../packages/express-utils
+      express:
+        specifier: ^4.19.0
+        version: 4.21.2
+      redis:
+        specifier: ^5.10.0
+        version: 5.10.0
+
   modules/collectclock:
     dependencies:
       '@tiltcheck/config':
