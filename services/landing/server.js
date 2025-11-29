@@ -215,6 +215,48 @@ app.post('/api/newsletter/subscribe', rateLimitMiddleware, async (req, res) => {
   }
 });
 
+// SusLink API - Scan a URL for suspicious patterns
+app.post('/api/suslink/scan', rateLimitMiddleware, async (req, res) => {
+  const url = (req.body.url || '').trim();
+  
+  // Validate URL format
+  if (!url) {
+    return res.status(400).json({ ok: false, error: 'URL is required' });
+  }
+  
+  // Basic URL validation
+  try {
+    new URL(url);
+  } catch {
+    return res.status(400).json({ ok: false, error: 'Invalid URL format' });
+  }
+  
+  // Ensure URL starts with http:// or https://
+  if (!url.startsWith('http://') && !url.startsWith('https://')) {
+    return res.status(400).json({ ok: false, error: 'URL must start with http:// or https://' });
+  }
+  
+  try {
+    // Dynamically import the ES module
+    const { LinkScanner } = await import('@tiltcheck/suslink/scanner');
+    const scanner = new LinkScanner();
+    const result = await scanner.scan(url);
+    
+    return res.json({
+      ok: true,
+      result: {
+        url: result.url,
+        riskLevel: result.riskLevel,
+        reason: result.reason,
+        scannedAt: result.scannedAt
+      }
+    });
+  } catch (err) {
+    console.error('[SusLink API] Scan error:', err.message);
+    return res.status(500).json({ ok: false, error: 'Scan failed' });
+  }
+});
+
 // Sitemap XML (public) derived from buildSiteMap
 app.get('/sitemap.xml', (_req, res) => {
   const fs = require('fs');

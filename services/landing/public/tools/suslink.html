@@ -4,8 +4,212 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>SusLink - AI Scam Detection | TiltCheck</title>
-  <meta name="description" content="AI-powered link scanner that detects scam sites, redirects, and impersonation before you click.">
+  <meta name="description" content="AI-powered link scanner that detects scam sites, redirects, and impersonation before you click. Check any link manually or use our Discord bot.">
   <link rel="stylesheet" href="../styles/tool-page.css">
+  <style>
+    /* Link Scanner Styles */
+    .scanner-section {
+      padding: 40px 20px;
+      background: linear-gradient(180deg, #111316 0%, #0E0E0F 100%);
+      border-bottom: 1px solid rgba(0, 255, 198, 0.2);
+    }
+    
+    .scanner-section h2 {
+      text-align: center;
+      font-size: 2rem;
+      font-family: 'Space Grotesk', 'Inter', sans-serif;
+      margin-bottom: 12px;
+      color: #fff;
+    }
+    
+    .scanner-section .subtitle {
+      text-align: center;
+      color: #6B7280;
+      margin-bottom: 32px;
+    }
+    
+    .scanner-form {
+      max-width: 700px;
+      margin: 0 auto;
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    
+    .scanner-input {
+      flex: 1;
+      min-width: 280px;
+      padding: 14px 18px;
+      background: #1A1F24;
+      border: 1px solid rgba(0, 255, 198, 0.2);
+      border-radius: 6px;
+      color: #fff;
+      font-size: 1rem;
+      font-family: 'JetBrains Mono', 'Courier New', monospace;
+    }
+    
+    .scanner-input:focus {
+      outline: none;
+      border-color: #00FFC6;
+    }
+    
+    .scanner-input::placeholder {
+      color: #6B7280;
+    }
+    
+    .scanner-btn {
+      padding: 14px 32px;
+      background: #00FFC6;
+      color: #0E0E0F;
+      border: none;
+      border-radius: 6px;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: opacity 0.2s ease-out;
+    }
+    
+    .scanner-btn:hover {
+      opacity: 0.9;
+    }
+    
+    .scanner-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    
+    .scan-result {
+      max-width: 700px;
+      margin: 24px auto 0;
+      padding: 20px;
+      border-radius: 6px;
+      display: none;
+    }
+    
+    .scan-result.visible {
+      display: block;
+    }
+    
+    .scan-result.safe {
+      background: rgba(76, 175, 80, 0.1);
+      border: 1px solid #4CAF50;
+    }
+    
+    .scan-result.suspicious {
+      background: rgba(255, 193, 7, 0.1);
+      border: 1px solid #FFC107;
+    }
+    
+    .scan-result.high, .scan-result.critical {
+      background: rgba(255, 82, 82, 0.1);
+      border: 1px solid #FF5252;
+    }
+    
+    .scan-result.error {
+      background: rgba(255, 82, 82, 0.1);
+      border: 1px solid #FF5252;
+    }
+    
+    .result-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+    
+    .result-icon {
+      font-size: 2rem;
+    }
+    
+    .result-title {
+      font-size: 1.3rem;
+      font-weight: 700;
+      font-family: 'Space Grotesk', 'Inter', sans-serif;
+    }
+    
+    .safe .result-title { color: #4CAF50; }
+    .suspicious .result-title { color: #FFC107; }
+    .high .result-title, .critical .result-title { color: #FF5252; }
+    .error .result-title { color: #FF5252; }
+    
+    .result-url {
+      font-family: 'JetBrains Mono', 'Courier New', monospace;
+      font-size: 0.9rem;
+      color: #6B7280;
+      word-break: break-all;
+      margin-bottom: 8px;
+    }
+    
+    .result-reason {
+      color: #B8C4CE;
+      line-height: 1.6;
+    }
+    
+    .result-timestamp {
+      font-size: 0.8rem;
+      color: #6B7280;
+      margin-top: 12px;
+    }
+    
+    .loading-spinner {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      border: 2px solid rgba(0, 255, 198, 0.3);
+      border-radius: 50%;
+      border-top-color: #00FFC6;
+      animation: spin 1s ease-in-out infinite;
+      margin-right: 8px;
+      vertical-align: middle;
+    }
+    
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    
+    /* Coming Soon Section */
+    .coming-soon-section {
+      padding: 60px 20px;
+      background: linear-gradient(180deg, #0E0E0F 0%, #111316 100%);
+      border-top: 1px solid rgba(0, 255, 198, 0.1);
+      border-bottom: 1px solid rgba(0, 255, 198, 0.1);
+    }
+    
+    .coming-soon-section h2 {
+      text-align: center;
+      font-size: 2rem;
+      font-family: 'Space Grotesk', 'Inter', sans-serif;
+      margin-bottom: 24px;
+      color: #fff;
+    }
+    
+    .coming-soon-content {
+      max-width: 600px;
+      margin: 0 auto;
+      text-align: center;
+      background: rgba(26, 31, 36, 0.85);
+      border: 1px solid rgba(0, 255, 198, 0.2);
+      border-radius: 8px;
+      padding: 32px;
+    }
+    
+    .coming-soon-icon {
+      font-size: 3.5rem;
+      margin-bottom: 16px;
+    }
+    
+    .coming-soon-description {
+      color: #B8C4CE;
+      font-size: 1.05rem;
+      line-height: 1.7;
+      margin-bottom: 20px;
+    }
+    
+    .coming-soon-description strong {
+      color: #00FFC6;
+      font-family: 'JetBrains Mono', 'Courier New', monospace;
+    }
+  </style>
 </head>
 <body>
   <nav class="navbar">
@@ -24,9 +228,41 @@
       <div class="tool-icon-large">🔗</div>
       <h1>SusLink</h1>
       <p class="tool-tagline">AI-powered scam detection before you click</p>
-      <span class="status-badge status-live">Live in Discord</span>
+      <span class="status-badge status-live">Live</span>
     </div>
   </header>
+
+  <!-- Link Scanner Section -->
+  <section class="scanner-section" aria-labelledby="scanner-title">
+    <div class="container">
+      <h2 id="scanner-title">Check Any Link</h2>
+      <p class="subtitle">Paste a URL below to scan it for scams, phishing, and suspicious patterns</p>
+      
+      <form class="scanner-form" id="scannerForm">
+        <input 
+          type="url" 
+          class="scanner-input" 
+          id="urlInput" 
+          placeholder="https://example.com/suspicious-link" 
+          aria-label="URL to scan"
+          required
+        >
+        <button type="submit" class="scanner-btn" id="scanBtn">
+          Scan Link
+        </button>
+      </form>
+      
+      <div class="scan-result" id="scanResult" aria-live="polite">
+        <div class="result-header">
+          <span class="result-icon" id="resultIcon"></span>
+          <span class="result-title" id="resultTitle"></span>
+        </div>
+        <div class="result-url" id="resultUrl"></div>
+        <div class="result-reason" id="resultReason"></div>
+        <div class="result-timestamp" id="resultTimestamp"></div>
+      </div>
+    </div>
+  </section>
 
   <section class="tool-overview">
     <div class="container">
@@ -34,21 +270,21 @@
         <div>
           <h2>What is it?</h2>
           <p>
-            SusLink automatically scans every link posted in your Discord server and flags scams, phishing sites, and impersonators in real-time.
+            SusLink is an AI-powered link scanner that helps you stay safe online. Use the form above to manually check any link, or add our bot to your Discord server for automatic protection.
           </p>
           <p>
-            No more clicking sketchy casino links. No more wallet drainers. Just instant AI-powered protection for your community.
+            No more clicking sketchy casino links. No more wallet drainers. Just instant AI-powered protection.
           </p>
         </div>
         <div class="feature-box">
           <h3>Key Features</h3>
           <ul>
             <li>🤖 AI-powered scam detection</li>
-            <li>🔍 Checks URL patterns, redirects, SSL certs</li>
-            <li>🚨 Real-time alerts for suspicious links</li>
+            <li>🔍 Checks URL patterns and domain reputation</li>
+            <li>🚨 Real-time risk assessment</li>
             <li>🎣 Phishing site detection</li>
             <li>👥 Impersonation flagging</li>
-            <li>⚡ Instant scanning (no manual checks)</li>
+            <li>⚡ Instant scanning</li>
           </ul>
         </div>
       </div>
@@ -100,6 +336,21 @@
     </div>
   </section>
 
+  <!-- Coming Soon: Email Spam Check -->
+  <section class="coming-soon-section">
+    <div class="container">
+      <h2>Coming Soon: Email Spam Check</h2>
+      <div class="coming-soon-content">
+        <div class="coming-soon-icon">📧</div>
+        <p class="coming-soon-description">
+          Forward suspicious emails to <strong>check@suslink.tiltcheck.me</strong> and get an instant spam analysis. 
+          We'll scan for phishing attempts, malicious links, and scam patterns — then reply with a detailed report.
+        </p>
+        <span class="status-badge status-soon">Coming Soon</span>
+      </div>
+    </div>
+  </section>
+
   <section class="how-it-works">
     <div class="container">
       <h2>How It Works</h2>
@@ -108,8 +359,8 @@
         <div class="step">
           <div class="step-number">1</div>
           <div class="step-content">
-            <h3>Link posted in Discord</h3>
-            <p>Someone shares a URL in your server</p>
+            <h3>Enter a URL</h3>
+            <p>Paste any suspicious link into the scanner above</p>
           </div>
         </div>
 
@@ -117,7 +368,7 @@
           <div class="step-number">2</div>
           <div class="step-content">
             <h3>AI scans instantly</h3>
-            <p>SusLink checks domain age, SSL, redirects, known scam databases, and AI pattern matching</p>
+            <p>SusLink checks domain patterns, TLD risk, known scam keywords, and impersonation attempts</p>
           </div>
         </div>
 
@@ -125,15 +376,15 @@
           <div class="step-number">3</div>
           <div class="step-content">
             <h3>Risk assessment</h3>
-            <p>Categorized as Safe, Suspicious, or Dangerous based on 15+ indicators</p>
+            <p>Categorized as Safe, Suspicious, High Risk, or Critical based on multiple indicators</p>
           </div>
         </div>
 
         <div class="step">
           <div class="step-number">4</div>
           <div class="step-content">
-            <h3>Alert posted</h3>
-            <p>If risky, SusLink posts a warning with details before anyone clicks</p>
+            <h3>Get your result</h3>
+            <p>See exactly why a link was flagged so you can make informed decisions</p>
           </div>
         </div>
 
@@ -170,22 +421,22 @@
 
   <section class="commands-section">
     <div class="container">
-      <h2>Discord Commands</h2>
+      <h2>Also Available in Discord</h2>
       <div class="commands-grid">
         
         <div class="command-card">
-          <div class="command-name">/scanlink</div>
-          <p>Manually scan any URL for scams</p>
+          <div class="command-name">/scan</div>
+          <p>Manually scan any URL for scams in Discord</p>
           <div class="command-example">
-            <code>/scanlink https://sketchy-casino.com</code>
+            <code>/scan https://sketchy-casino.com</code>
           </div>
         </div>
 
         <div class="command-card">
-          <div class="command-name">Auto-scanning</div>
-          <p>SusLink automatically scans all links posted in channels (no command needed)</p>
+          <div class="command-name">Web Scanner</div>
+          <p>Use the form at the top of this page to check links from anywhere</p>
           <div class="command-example">
-            <code>Just post links normally</code>
+            <code>No Discord required!</code>
           </div>
         </div>
 
@@ -234,9 +485,9 @@
 
   <section class="cta-section">
     <div class="container">
-      <h2>Protect your community from scams</h2>
-      <p>Add SusLink to your Discord server and stop phishing before it starts.</p>
-      <a href="https://discord.gg/tiltcheck" class="cta-button">Join Discord →</a>
+      <h2>Stay safe from scams</h2>
+      <p>Check any link before you click, or join our Discord for community protection.</p>
+      <a href="https://discord.gg/s6NNfPHxMS" class="cta-button">Join Discord →</a>
     </div>
   </section>
 
@@ -245,7 +496,7 @@
       <p>
         <a href="/">Home</a> •
         <a href="/#tools">All Tools</a> •
-        <a href="https://discord.gg/tiltcheck">Discord</a> •
+        <a href="https://discord.gg/s6NNfPHxMS">Discord</a> •
         <a href="https://github.com/jmenichole/tiltcheck-monorepo">GitHub</a>
       </p>
       <p class="built-by">
@@ -256,5 +507,91 @@
       </p>
     </div>
   </footer>
+
+  <script>
+    // SusLink Scanner Script
+    (function() {
+      const form = document.getElementById('scannerForm');
+      const urlInput = document.getElementById('urlInput');
+      const scanBtn = document.getElementById('scanBtn');
+      const resultDiv = document.getElementById('scanResult');
+      const resultIcon = document.getElementById('resultIcon');
+      const resultTitle = document.getElementById('resultTitle');
+      const resultUrl = document.getElementById('resultUrl');
+      const resultReason = document.getElementById('resultReason');
+      const resultTimestamp = document.getElementById('resultTimestamp');
+
+      const riskConfig = {
+        safe: { icon: '✅', title: 'Safe', description: 'No suspicious patterns detected' },
+        suspicious: { icon: '⚠️', title: 'Suspicious', description: 'Some red flags detected' },
+        high: { icon: '🚨', title: 'High Risk', description: 'Multiple red flags detected' },
+        critical: { icon: '🛑', title: 'Critical', description: 'Likely scam or phishing attempt' }
+      };
+
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const url = urlInput.value.trim();
+        if (!url) return;
+
+        // Show loading state
+        scanBtn.disabled = true;
+        scanBtn.innerHTML = '<span class="loading-spinner"></span>Scanning...';
+        resultDiv.classList.remove('visible', 'safe', 'suspicious', 'high', 'critical', 'error');
+
+        try {
+          const response = await fetch('/api/suslink/scan', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ url })
+          });
+
+          const data = await response.json();
+
+          if (data.ok && data.result) {
+            const { riskLevel, reason, scannedAt } = data.result;
+            const config = riskConfig[riskLevel] || riskConfig.suspicious;
+
+            resultIcon.textContent = config.icon;
+            resultTitle.textContent = config.title;
+            resultUrl.textContent = url;
+            resultReason.textContent = reason;
+            resultTimestamp.textContent = `Scanned at ${new Date(scannedAt).toLocaleString()}`;
+            
+            resultDiv.className = 'scan-result visible ' + riskLevel;
+          } else {
+            // Error response
+            resultIcon.textContent = '❌';
+            resultTitle.textContent = 'Scan Failed';
+            resultUrl.textContent = url;
+            resultReason.textContent = data.error || 'Unable to scan this URL. Please check the format and try again.';
+            resultTimestamp.textContent = '';
+            
+            resultDiv.className = 'scan-result visible error';
+          }
+        } catch (err) {
+          console.error('Scan error:', err);
+          resultIcon.textContent = '❌';
+          resultTitle.textContent = 'Error';
+          resultUrl.textContent = url;
+          resultReason.textContent = 'Network error. Please check your connection and try again.';
+          resultTimestamp.textContent = '';
+          
+          resultDiv.className = 'scan-result visible error';
+        } finally {
+          scanBtn.disabled = false;
+          scanBtn.textContent = 'Scan Link';
+        }
+      });
+
+      // Auto-prepend https:// if user types without protocol
+      urlInput.addEventListener('blur', () => {
+        const val = urlInput.value.trim();
+        if (val && !val.startsWith('http://') && !val.startsWith('https://')) {
+          urlInput.value = 'https://' + val;
+        }
+      });
+    })();
+  </script>
 </body>
 </html>
