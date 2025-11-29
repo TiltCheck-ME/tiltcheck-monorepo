@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>TiltCheck Testimonials – Transparency First</title>
+  <meta name="description" content="Real user testimonials for TiltCheck will appear here once collected. We do not fabricate endorsements." />
+  <link rel="canonical" href="/testimonials" />
+  <link rel="stylesheet" href="/styles/main.css" />
+  <meta name="robots" content="noindex,follow" />
+  <style>
+    .pending-box { background:#111; border:1px solid #222; padding:1.5rem; border-radius:8px; max-width:780px; margin:2rem auto; }
+    .pending-box h2 { margin-top:0; color:var(--color-primary); }
+    .submission-note { font-size:.85rem; opacity:.75; margin-top:1rem; }
+    .placeholder-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:1rem; margin-top:2rem; }
+    .placeholder-card { border:1px dashed #333; padding:1rem; border-radius:6px; font-size:.8rem; color:#777; min-height:120px; display:flex; align-items:center; justify-content:center; text-align:center; }
+    .criteria-list li { margin:.4rem 0; }
+  </style>
+</head>
+<body class="content-page">
+  <nav class="breadcrumbs"></nav>
+  <header class="site-header">
+    <div class="container">
+      <h1>User Testimonials (Coming Soon)</h1>
+      <p>No manufactured hype. Only authentic feedback once real users opt-in.</p>
+    </div>
+  </header>
+  <main class="container">
+    <section class="pending-box" aria-labelledby="transparency-heading">
+      <h2 id="transparency-heading">Transparency Policy</h2>
+      <p>We intentionally launch this page <strong>without fabricated quotes</strong>. Testimonials will appear only after users voluntarily submit feedback and consent to publication. Until then, we keep it empty to avoid misleading claims.</p>
+      <ul class="criteria-list">
+        <li>No paid endorsements.</li>
+        <li>No AI-generated praise.</li>
+        <li>No incentive-based reviews.</li>
+        <li>Opt-out honored instantly.</li>
+      </ul>
+      <p class="submission-note">Want to submit a future testimonial? Join the Discord (<a href="https://discord.gg/s6NNfPHxMS" target="_blank" rel="noopener">community invite</a>) – we'll open a #feedback channel soon.</p>
+    </section>
+    <section aria-label="Empty testimonial slots">
+      <div class="placeholder-grid">
+        <div class="placeholder-card" aria-hidden="true">Reserved for real user story</div>
+        <div class="placeholder-card" aria-hidden="true">Reserved for landing impact note</div>
+        <div class="placeholder-card" aria-hidden="true">Reserved for trust system feedback</div>
+      </div>
+    </section>
+    <section style="margin-top:2.5rem">
+      <h2>Why No Placeholder Quotes?</h2>
+      <p>Placeholder praise erodes trust. TiltCheck focuses on anti-scam and anti-tilt protection — that commitment starts by refusing to stage fake social proof.</p>
+    </section>
+    <section style="margin-top:2.5rem" aria-labelledby="feedback-heading">
+      <h2 id="feedback-heading">Submit Feedback (Disabled)</h2>
+      <p>This form is intentionally disabled until Discord channel automation is live. Use /support in Discord. Channel ID: <code>1441697360785834085</code>.</p>
+      <form id="feedback-form" class="pending-box" aria-disabled="true">
+        <label for="fb-message">Your Feedback</label>
+        <textarea id="fb-message" name="message" rows="4" placeholder="Discord-only submission for now" disabled></textarea>
+        <button type="submit" disabled>Submit (Disabled)</button>
+      </form>
+    </section>
+  </main>
+  <footer class="site-footer"><div class="container"><p><a href="/">← Home</a></p></div></footer>
+  <script src="/breadcrumbs.js" defer></script>
+</body>
+</html>
