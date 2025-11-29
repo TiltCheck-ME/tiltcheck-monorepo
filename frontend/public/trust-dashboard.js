@@ -1,6 +1,16 @@
 // Casino Trust Dashboard Client (SSE + fallback)
-// API_URL can be configured via window.TRUST_API_URL or defaults to trust-rollup service
-const API_BASE = window.TRUST_API_URL || (location.origin.replace(/:\d+$/, ':' + (window.TRUST_ROLLUP_PORT || '8082')));
+// API configuration priority:
+// 1. window.TRUST_API_URL - Full API URL (e.g., 'https://api.tiltcheck.me')
+// 2. window.TRUST_ROLLUP_PORT - Port number for same-origin API (e.g., '8082')
+// 3. Default: same origin with /api path prefix for production deployments
+const DEFAULT_API_PATH = '/api/trust';
+const getApiBase = () => {
+  if (window.TRUST_API_URL) return window.TRUST_API_URL;
+  if (window.TRUST_ROLLUP_PORT) return location.origin.replace(/:\d+$/, ':' + window.TRUST_ROLLUP_PORT);
+  // Production default: use same origin with API path
+  return location.origin;
+};
+const API_BASE = getApiBase();
 const STREAM_URL = API_BASE + '/api/trust/stream';
 const SNAPSHOT_URL = API_BASE + '/api/trust/casinos';
 
