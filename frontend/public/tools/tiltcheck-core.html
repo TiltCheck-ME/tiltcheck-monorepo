@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TiltCheck Core - Behavior & Cooldown Engine | TiltCheck</title>
+  <meta name="description" content="Pattern recognition, cooldown nudges, and accountability signals for casino pacing—without shaming or moralizing." />
+  <link rel="stylesheet" href="../styles/tool-page.css" />
+</head>
+<body>
+  <nav class="navbar">
+    <div class="container">
+      <a href="/" class="logo">TiltCheck</a>
+      <div class="nav-links">
+        <a href="/#tools">Tools</a>
+        <a href="/dashboard">Dashboard</a>
+        <a href="https://discord.gg/s6NNfPHxMS" class="cta-small">Join Discord</a>
+      </div>
+    </div>
+  </nav>
+
+  <header class="tool-header">
+    <div class="container">
+      <div class="tool-icon-large">🧠</div>
+      <h1>TiltCheck Core</h1>
+      <p class="tool-tagline">Cool-down & pattern intelligence without judgment</p>
+      <p class="built-by">
+        <a href="https://jmenichole.github.io/Portfolio/" target="_blank" rel="noopener">made for degens by degens</a>
+      </p>
+      <span class="status-badge status-beta">Beta</span>
+    </div>
+  </header>
+
+  <section class="tool-overview">
+    <div class="container">
+      <div class="two-column">
+        <div>
+          <h2>What is it?</h2>
+          <p>TiltCheck Core monitors pacing signals (messages, commands, high-risk link interactions) and offers gentle cooldown nudges when patterns skew into burnout territory.</p>
+          <p>No lectures. No policing. Opt-in accountability you can tune to your tolerance.</p>
+        </div>
+        <div class="feature-box">
+          <h3>Key Features</h3>
+          <ul>
+            <li>📈 Session pacing model</li>
+            <li>🧊 Cooldown suggestion nudges</li>
+            <li>🔁 Streak & relapse tracking (private)</li>
+            <li>👥 Accountability buddy opt-in</li>
+            <li>🪩 High-risk trigger detection (casino spam, loss-chasing)</li>
+            <li>⚙️ User-tunable thresholds</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="commands-section">
+    <div class="container">
+      <h2>Discord Commands (Beta)</h2>
+      <div class="commands-grid">
+        <div class="command-card">
+          <div class="command-name">/tilt status</div>
+          <p>Shows current pacing state & last nudge</p>
+          <div class="command-example"><code>/tilt status</code></div>
+        </div>
+        <div class="command-card">
+          <div class="command-name">/tilt set-threshold</div>
+          <p>Adjust sensitivity (low / medium / high)</p>
+          <div class="command-example"><code>/tilt set-threshold high</code></div>
+        </div>
+        <div class="command-card">
+          <div class="command-name">/tilt buddy</div>
+          <p>Pair with an accountability buddy</p>
+          <div class="command-example"><code>/tilt buddy @trustedUser</code></div>
+        </div>
+        <div class="command-card">
+          <div class="command-name">/tilt privacy</div>
+          <p>Toggle what events buddies can see</p>
+          <div class="command-example"><code>/tilt privacy minimal</code></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="how-it-works">
+    <div class="container">
+      <h2>Flow</h2>
+      <div class="steps">
+        <div class="step"><div class="step-number">1</div><div class="step-content"><h3>Capture signals</h3><p>Message cadence, tool usage, risk actions.</p></div></div>
+        <div class="step"><div class="step-number">2</div><div class="step-content"><h3>Score session</h3><p>Pacing algorithm updates tilt probability index.</p></div></div>
+        <div class="step"><div class="step-number">3</div><div class="step-content"><h3>Nudge gently</h3><p>Cooldown suggestion if thresholds crossed.</p></div></div>
+        <div class="step"><div class="step-number">4</div><div class="step-content"><h3>Optional escalation</h3><p>Buddy notified (if opted-in) for supportive check-in.</p></div></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="tech-section">
+    <div class="container">
+      <h2>Technical Details</h2>
+      <div class="tech-grid">
+        <div class="tech-item"><h4>Scoring</h4><p>Weighted event decay + burst detection</p></div>
+        <div class="tech-item"><h4>Privacy</h4><p>Local aggregates; no external profiling</p></div>
+        <div class="tech-item"><h4>Buddy Channel</h4><p>DM or private thread dispatch</p></div>
+        <div class="tech-item"><h4>Nudge Style</h4><p>Neutral language / optional cooldown timers</p></div>
+        <div class="tech-item"><h4>Config</h4><p>User-level JSON settings</p></div>
+        <div class="tech-item"><h4>Status</h4><p>Beta—threshold recalibration ongoing</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="cta-section">
+    <div class="container">
+      <h2>Opt into smarter pacing</h2>
+      <p>Join Discord to test TiltCheck Core and tune your profile.</p>
+      <a href="https://discord.gg/tiltcheck" class="cta-button">Join Discord →</a>
+    </div>
+  </section>
+
+  <footer>
+    <div class="container">
+      <p><a href="/">Home</a> • <a href="/#tools">All Tools</a> • <a href="https://discord.gg/tiltcheck">Discord</a> • <a href="https://github.com/jmenichole/tiltcheck-monorepo">GitHub</a></p>
+      <p class="built-by">Built by <a href="https://github.com/jmenichole">jmenichole</a> • TiltCheck © 2024–2025</p>
+    </div>
+  </footer>
+</body>
+</html>
