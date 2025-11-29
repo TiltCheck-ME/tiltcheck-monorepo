@@ -285,7 +285,7 @@ See `SECURITY.md` for reporting vulnerabilities.
 ## Contact
 
 **Founder:** jmenichole  
-**Security:** jmenichole007@outlook.com
+**Security:** jme@tiltcheck.me
 
 ---
 

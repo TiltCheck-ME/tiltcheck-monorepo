@@ -238,7 +238,7 @@ After completing the required steps, verify everything is working:
 
 - **Documentation issues:** Open an issue with `documentation` label
 - **Automation not working:** Open an issue with `ci/cd` label
-- **Security concerns:** Email jmenichole.security@proton.me
+- **Security concerns:** Email jme@tiltcheck.me
 
 ---
 

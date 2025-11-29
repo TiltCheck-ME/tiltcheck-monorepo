@@ -288,7 +288,7 @@ After setup, verify everything is working:
 - Keep secrets secure and rotated
 
 🔒 **Security contacts:**
-- Critical vulnerabilities: jmenichole.security@proton.me
+- Critical vulnerabilities: jme@tiltcheck.me
 - General security: Use security issue template
 
 ## Cost Considerations
@@ -317,7 +317,7 @@ All automations use GitHub's free tier:
 
 - **Documentation Issues:** Open an issue with `documentation` label
 - **Automation Not Working:** Open an issue with `ci/cd` label
-- **Security Concerns:** Email jmenichole.security@proton.me
+- **Security Concerns:** Email jme@tiltcheck.me
 
 ---
 

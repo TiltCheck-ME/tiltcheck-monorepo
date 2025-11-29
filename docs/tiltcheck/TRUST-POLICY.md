@@ -31,7 +31,7 @@ TiltCheck does not fabricate social proof, endorsements, or user quotes.
 - All tests located in `/tests/` directory with vitest framework.
 
 ## Removal / Opt-Out
-Message in the Discord support channel or email `jmenichole.security@proton.me` with the testimonial reference. Removal is executed and confirmed.
+Message in the Discord support channel or email `jme@tiltcheck.me` with the testimonial reference. Removal is executed and confirmed.
 
 ## Alignment With Security Posture
 This policy complements `SECURITY.md` by reducing trust attack vectors (fake endorsements, fabricated authority signals).

@@ -113,7 +113,7 @@ Visit: Security tab → Code scanning alerts
 - **Manual:** `pnpm update` + commit
 
 ### "I found a security issue"
-- **Critical:** Email jmenichole.security@proton.me
+- **Critical:** Email jme@tiltcheck.me
 - **Low severity:** Use security issue template
 
 ### "How do I know if CI passes?"
