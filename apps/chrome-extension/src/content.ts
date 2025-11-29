@@ -12,10 +12,18 @@
  * - Real-world spending reminders
  */
 
+/**
+ * Check if hostname matches a domain (handles subdomains correctly)
+ */
+function isDomain(hostname: string, domain: string): boolean {
+  // Exact match or subdomain match (e.g., "www.discord.com" matches "discord.com")
+  return hostname === domain || hostname.endsWith('.' + domain);
+}
+
 // Early exit if on Discord or localhost API - BEFORE any imports or code runs
-const hostname = window.location.hostname;
+const hostname = window.location.hostname.toLowerCase();
 const isExcludedDomain = 
-  hostname.includes('discord.com') ||
+  isDomain(hostname, 'discord.com') ||
   (hostname === 'localhost' && window.location.port === '3333');
 
 if (isExcludedDomain) {
@@ -668,14 +676,15 @@ function showNotification(message: string, type: 'success' | 'warning' | 'error'
 function detectCasinoId(): string {
   const hostname = window.location.hostname.toLowerCase();
   
-  if (hostname.includes('stake.com')) return 'stake';
-  if (hostname.includes('roobet.com')) return 'roobet';
-  if (hostname.includes('bc.game')) return 'bc-game';
-  if (hostname.includes('duelbits.com')) return 'duelbits';
-  if (hostname.includes('rollbit.com')) return 'rollbit';
-  if (hostname.includes('shuffle.com')) return 'shuffle';
-  if (hostname.includes('gamdom.com')) return 'gamdom';
-  if (hostname.includes('csgoempire.com')) return 'csgoempire';
+  // Use isDomain for secure domain matching
+  if (isDomain(hostname, 'stake.com') || isDomain(hostname, 'stake.us')) return 'stake';
+  if (isDomain(hostname, 'roobet.com')) return 'roobet';
+  if (isDomain(hostname, 'bc.game')) return 'bc-game';
+  if (isDomain(hostname, 'duelbits.com')) return 'duelbits';
+  if (isDomain(hostname, 'rollbit.com')) return 'rollbit';
+  if (isDomain(hostname, 'shuffle.com')) return 'shuffle';
+  if (isDomain(hostname, 'gamdom.com')) return 'gamdom';
+  if (isDomain(hostname, 'csgoempire.com')) return 'csgoempire';
   
   // Extract domain name as fallback
   const parts = hostname.replace('www.', '').split('.');
