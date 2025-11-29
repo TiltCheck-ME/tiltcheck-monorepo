@@ -45,7 +45,7 @@ let casinoVerification: any = null;
 
 // Intervention state
 let cooldownEndTime: number | null = null;
-let interventionQueue: any[] = [];
+const interventionQueue: any[] = [];
 
 /**
  * Initialize on page load
@@ -116,7 +116,7 @@ async function startMonitoring() {
   try {
     await client.connect();
     console.log('[TiltGuard] Connected to analyzer server');
-  } catch (error) {
+  } catch (_error) {
     console.log('[TiltGuard] Analyzer backend offline - tilt monitoring only');
   }
   
@@ -544,9 +544,9 @@ function openVaultInterface(amount: number) {
 }
 
 /**
- * Show persistent warning
+ * Show persistent warning (reserved for future use)
  */
-function showPersistentWarning(message: string) {
+function _showPersistentWarning(message: string) {
   const warning = document.createElement('div');
   warning.style.cssText = `
     position: fixed;
@@ -736,7 +736,7 @@ async function getUserId(): Promise<string> {
           resolve(newId);
         }
       });
-    } catch (e) {
+    } catch (_e) {
       // Fallback to localStorage if chrome.storage is not available
       let userId = localStorage.getItem('tiltguard_user_id');
       if (!userId) {

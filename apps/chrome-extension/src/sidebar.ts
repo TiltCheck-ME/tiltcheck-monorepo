@@ -606,7 +606,7 @@ function addFeedMessage(message: string) {
   }
 }
 
-let pnlHistory: number[] = [];
+const pnlHistory: number[] = [];
 
 function initPnLGraph() {
   const canvas = document.getElementById('pnl-canvas') as HTMLCanvasElement;
@@ -719,7 +719,7 @@ function updateGuardian(active: boolean) {
   addFeedMessage(active ? 'Guardian activated' : 'Guardian deactivated');
 }
 
-function updateTilt(score: number, indicators: string[]) {
+function updateTilt(score: number, _indicators: string[]) {
   const scoreEl = document.getElementById('tg-score-value');
   if (scoreEl) {
     scoreEl.textContent = Math.round(score).toString();
