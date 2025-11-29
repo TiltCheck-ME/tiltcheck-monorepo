@@ -216,6 +216,16 @@ app.post('/api/newsletter/subscribe', rateLimitMiddleware, async (req, res) => {
 });
 
 // SusLink API - Scan a URL for suspicious patterns
+// Cache the scanner module to avoid repeated dynamic imports
+let cachedLinkScanner = null;
+async function getLinkScanner() {
+  if (!cachedLinkScanner) {
+    const module = await import('@tiltcheck/suslink/scanner');
+    cachedLinkScanner = module.LinkScanner;
+  }
+  return cachedLinkScanner;
+}
+
 app.post('/api/suslink/scan', rateLimitMiddleware, async (req, res) => {
   const url = (req.body.url || '').trim();
   
@@ -224,21 +234,18 @@ app.post('/api/suslink/scan', rateLimitMiddleware, async (req, res) => {
     return res.status(400).json({ ok: false, error: 'URL is required' });
   }
   
-  // Basic URL validation
+  // Basic URL validation - URL constructor validates protocol is http/https
   try {
-    new URL(url);
+    const parsed = new URL(url);
+    if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
+      return res.status(400).json({ ok: false, error: 'URL must use http:// or https://' });
+    }
   } catch {
     return res.status(400).json({ ok: false, error: 'Invalid URL format' });
   }
   
-  // Ensure URL starts with http:// or https://
-  if (!url.startsWith('http://') && !url.startsWith('https://')) {
-    return res.status(400).json({ ok: false, error: 'URL must start with http:// or https://' });
-  }
-  
   try {
-    // Dynamically import the ES module
-    const { LinkScanner } = await import('@tiltcheck/suslink/scanner');
+    const LinkScanner = await getLinkScanner();
     const scanner = new LinkScanner();
     const result = await scanner.scan(url);
     

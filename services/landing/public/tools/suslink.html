@@ -584,11 +584,17 @@
         }
       });
 
-      // Auto-prepend https:// if user types without protocol
+      // Show hint if user types without protocol - let them choose http or https
       urlInput.addEventListener('blur', () => {
         const val = urlInput.value.trim();
         if (val && !val.startsWith('http://') && !val.startsWith('https://')) {
-          urlInput.value = 'https://' + val;
+          // Show error state to prompt user to add protocol
+          resultIcon.textContent = 'ℹ️';
+          resultTitle.textContent = 'Add Protocol';
+          resultUrl.textContent = val;
+          resultReason.textContent = 'Please add http:// or https:// to the beginning of your URL.';
+          resultTimestamp.textContent = '';
+          resultDiv.className = 'scan-result visible suspicious';
         }
       });
     })();
