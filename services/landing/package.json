@@ -9,6 +9,7 @@
   },
   "dependencies": {
     "@tiltcheck/express-utils": "workspace:*",
+    "@tiltcheck/suslink": "workspace:*",
     "express": "^4.19.0",
     "redis": "^5.10.0"
   }
