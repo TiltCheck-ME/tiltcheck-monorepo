@@ -1,5 +1,6 @@
 // Casino Trust Dashboard Client (SSE + fallback)
-const API_BASE = location.origin.replace(/:\d+$/, ':' + (window.TRUST_ROLLUP_PORT || '8082'));
+// API_URL can be configured via window.TRUST_API_URL or defaults to trust-rollup service
+const API_BASE = window.TRUST_API_URL || (location.origin.replace(/:\d+$/, ':' + (window.TRUST_ROLLUP_PORT || '8082')));
 const STREAM_URL = API_BASE + '/api/trust/stream';
 const SNAPSHOT_URL = API_BASE + '/api/trust/casinos';
 

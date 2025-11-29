@@ -388,20 +388,22 @@
     </div>
 
     <div class="trust-table-container">
-      <table id="trustTable" role="table" aria-label="Casino trust scores">
+      <table id="trustTable" role="table" aria-label="Casino trust scores" aria-describedby="status">
         <thead>
           <tr>
-            <th>Casino</th>
-            <th>Trust Score</th>
-            <th>Risk Level</th>
-            <th>24h Change</th>
-            <th>Sessions</th>
-            <th>Last Updated</th>
+            <th scope="col">Casino</th>
+            <th scope="col">Score</th>
+            <th scope="col">Δ</th>
+            <th scope="col">Risk</th>
+            <th scope="col">Volatility</th>
+            <th scope="col">Nerfs 24h</th>
+            <th scope="col">Reasons</th>
+            <th scope="col">Action</th>
           </tr>
         </thead>
-        <tbody id="trustTableBody">
+        <tbody id="trustBody">
           <tr>
-            <td colspan="6" class="empty-state">
+            <td colspan="8" class="empty-state">
               <h3>🔄 Loading Trust Data</h3>
               <p>Fetching real-time casino trust metrics...</p>
             </td>
@@ -414,21 +416,11 @@
       <p>&copy; 2024-2025 TiltCheck Trust Engine | Real-time analysis | <a href="/" style="color: var(--primary);">Back to Home</a></p>
     </div>
   </div>
-  <table aria-describedby="status" aria-label="Casino trust scoreboard">
-    <thead>
-      <tr>
-        <th scope="col">Casino</th>
-        <th scope="col">Score</th>
-        <th scope="col">Δ</th>
-        <th scope="col">Risk</th>
-        <th scope="col">Volatility</th>
-        <th scope="col">Nerfs 24h</th>
-        <th scope="col">Reasons</th>
-        <th scope="col">Action</th>
-      </tr>
-    </thead>
-    <tbody id="trustBody"></tbody>
-  </table>
+  <!-- API URL configuration - can be set by server-side injection or environment -->
+  <script>
+    // Configure API URL from environment or use default trust-rollup endpoint
+    window.TRUST_API_URL = window.TRUST_API_URL || '';
+  </script>
   <script src="trust-dashboard.js" type="module"></script>
 </body>
 </html>
