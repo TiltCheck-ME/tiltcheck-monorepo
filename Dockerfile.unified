@@ -1,36 +1,56 @@
-# syntax = docker/dockerfile:1
+# TiltCheck Unified Dockerfile for Hyperlift Manager
+# Runs Landing, Dashboard, and nginx proxy in a single container
+# Deploy with: Dockerfile path = Dockerfile.unified
 
-# Node base
 ARG NODE_VERSION=20.18.0
 FROM node:${NODE_VERSION}-slim AS base
 
 WORKDIR /app
-ENV NODE_ENV=production
+ENV NODE_ENV="production"
+ENV CI=true
 
-# Install pnpm (match lockfile 9.x) and pm2
+# Install pnpm (pinned to 9.x for lockfile compatibility)
 ARG PNPM_VERSION=9.15.9
-RUN npm install -g pnpm@${PNPM_VERSION} pm2@latest && \
-    apt-get update -qq && apt-get install -y --no-install-recommends build-essential python-is-python3 && \
-    rm -rf /var/lib/apt/lists/*
+RUN npm install -g pnpm@$PNPM_VERSION
 
 # Build stage
 FROM base AS build
-COPY . .
-ENV CI=true
-RUN pnpm install --frozen-lockfile --prod=false && \
-    pnpm run build && \
-    pnpm prune --prod
 
-# Final image
+# Install build dependencies
+RUN apt-get update -qq && \
+    apt-get install --no-install-recommends -y build-essential node-gyp pkg-config python-is-python3
+
+COPY . .
+
+# Install all dependencies and build
+RUN pnpm install --frozen-lockfile --prod=false
+RUN pnpm run build
+RUN pnpm prune --prod
+
+# Final stage
 FROM base
+
+# Install nginx, supervisor, and wget for multi-process management and health checks
+RUN apt-get update -qq && \
+    apt-get install --no-install-recommends -y nginx supervisor wget && \
+    rm -rf /var/lib/apt/lists/* && \
+    mkdir -p /var/log/supervisor
+
+# Copy built application
 COPY --from=build /app /app
 
-# Expose service ports (dashboard, landing)
-EXPOSE 5055
-EXPOSE 8081
+# Copy nginx config for unified container
+COPY services/reverse-proxy/nginx.render.conf /etc/nginx/nginx.conf
 
-# Docker healthcheck for dashboard
-HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 CMD curl -fs http://localhost:5055/api/health || exit 1
+# Copy supervisor config
+COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
-# Default command runs all services via PM2
-CMD ["pm2-runtime", "ecosystem.config.cjs"]
+# Expose port 8080 (Hyperlift default)
+EXPOSE 8080
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+    CMD wget --quiet --tries=1 --spider http://localhost:8080/proxy-health || exit 1
+
+# Start supervisor (manages nginx + node services)
+CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]

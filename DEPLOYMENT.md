@@ -2,6 +2,8 @@
 
 Complete guide for deploying the TiltCheck ecosystem with Discord integration.
 
+> 📦 **Quick Start:** For one-command deployment of all services, see [ONE-LAUNCH-DEPLOYMENT.md](./ONE-LAUNCH-DEPLOYMENT.md)
+
 ---
 
 ## Prerequisites
