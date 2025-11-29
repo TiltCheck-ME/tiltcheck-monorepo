@@ -1,0 +1,44 @@
+{
+  "$schema": "https://spaceship.run/schemas/spaceship.json",
+  "name": "tiltcheck",
+  "services": {
+    "frontend": {
+      "type": "web",
+      "path": "frontend",
+      "port": 3000,
+      "dockerfile": "Dockerfile",
+      "env": {
+        "API_URL": "${API_URL}",
+        "WS_URL": "${WS_URL}",
+        "NODE_ENV": "production"
+      }
+    },
+    "backend": {
+      "type": "web",
+      "path": "backend",
+      "port": 7071,
+      "dockerfile": "Dockerfile",
+      "env": {
+        "PORT": "7071",
+        "MONGODB_URI": "${MONGODB_URI}",
+        "NODE_ENV": "production",
+        "SUPABASE_URL": "${SUPABASE_URL}",
+        "SUPABASE_ANON_KEY": "${SUPABASE_ANON_KEY}"
+      }
+    },
+    "bot": {
+      "type": "worker",
+      "path": "bot",
+      "dockerfile": "Dockerfile",
+      "env": {
+        "DISCORD_TOKEN": "${DISCORD_TOKEN}",
+        "DISCORD_CLIENT_ID": "${DISCORD_CLIENT_ID}",
+        "DISCORD_GUILD_ID": "${DISCORD_GUILD_ID}",
+        "API_URL": "${API_URL}",
+        "WS_URL": "${WS_URL}",
+        "MONGODB_URI": "${MONGODB_URI}",
+        "NODE_ENV": "production"
+      }
+    }
+  }
+}
