@@ -1,6 +1,10 @@
 # TiltCheck Spaceship/Hyperlift Deployment - Environment Variables Guide
 
-This document lists **ALL environment variables** you need to configure in the Spaceship/Hyperlift deployment manager to successfully deploy tiltcheck.me.
+This document lists **ALL environment variables** you need to configure in the Spaceship/Hyperlift deployment manager to successfully deploy the TiltCheck ecosystem.
+
+> **Single Deployment:** Everything runs on `tiltcheck.me`
+> - Landing pages, dashboard, and API endpoints all served from one deployment
+> - Dockerfile: `services/landing/Dockerfile`
 
 > **Note:** A 503 error typically indicates the server isn't responding properly. Ensure all **REQUIRED** variables are set correctly.
 
@@ -70,7 +74,7 @@ If deploying the Discord bot separately or as part of the monorepo:
 | Variable | Example Value | Description |
 |----------|---------------|-------------|
 | `DISCORD_GUILD_ID` | `9876543210987654321` | Server ID for development commands |
-| `DASHBOARD_URL` | `https://dashboard.tiltcheck.me` | URL to dashboard service |
+| `DASHBOARD_URL` | `https://tiltcheck.me/dashboard` | URL to dashboard service |
 
 ### OPTIONAL Variables
 
@@ -161,7 +165,7 @@ If using JustTheTip or other blockchain features:
 
 | Variable | Example Value | Description |
 |----------|---------------|-------------|
-| `ALLOWED_ORIGINS` | `https://tiltcheck.me,https://api.tiltcheck.me` | CORS allowed origins |
+| `ALLOWED_ORIGINS` | `https://tiltcheck.me` | CORS allowed origins |
 | `GAUGE_ADMIN_TOKEN` | `random_token` | Admin token for gauge config |
 | `REQUIRED_TRUST_LEVEL` | `0` | Minimum trust level (0-100) |
 
@@ -184,7 +188,7 @@ If using JustTheTip or other blockchain features:
 
 | Variable | Example Value | Description |
 |----------|---------------|-------------|
-| `TILTCHECK_API_URL` | `https://api.tiltcheck.me` | TiltCheck API base URL |
+| `TILTCHECK_API_URL` | `https://tiltcheck.me/api` | TiltCheck API base URL |
 | `TILTCHECK_API_KEY` | `your_api_key` | Internal API key |
 | `CASINO_API_KEY` | `tiltcheck-casino-collector-2024` | Casino data API key |
 | `CASINO_API_PORT` | `6002` | Casino API port |

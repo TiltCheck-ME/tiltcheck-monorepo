@@ -77,6 +77,8 @@
         </table>
       </div>
     </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+    <script>
     (function(){
       const tbody = document.querySelector('#casino-table tbody');
       const meta = document.getElementById('meta');
@@ -170,19 +172,6 @@
           apply();
         }));
     })();
-              <td style="padding:8px; text-align:right;">${rating}</td>
-              <td style="padding:8px; text-align:center;">${ssl}</td>
-              <td style="padding:8px; text-align:center;">${tfa}</td>
-              <td style="padding:8px;">${fairness || '—'}</td>
-              <td style="padding:8px; text-align:right;">${providers}</td>
-              <td style="padding:8px; text-align:right;">${withdraws}</td>
-            </tr>`;
-          }).join('');
-        })
-        .catch(err => {
-          tbody.innerHTML = `<tr><td colspan="9" style="padding:12px; color:#ff7a7a;">Failed to load latest casino data: ${err.message}</td></tr>`;
-        });
-    })();
-  </script>
+    </script>
 </body>
 </html>
