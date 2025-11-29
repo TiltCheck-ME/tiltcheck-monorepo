@@ -3,7 +3,7 @@ import { readFileSync } from 'fs';
 import path from 'path';
 import { JSDOM } from 'jsdom';
 
-const HTML_PATH = path.resolve(__dirname, '../services/landing/public/index-v2.html');
+const HTML_PATH = path.resolve(__dirname, '../services/landing/public/index.html');
 const MANIFEST_PATH = path.resolve(__dirname, '../services/landing/public/images-manifest.json');
 
 describe('Manifest-driven icon injection scaffolding', () => {
