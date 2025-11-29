@@ -42,7 +42,8 @@ export async function fetchJupiterPrice(tokenSymbol: string): Promise<number> {
 /**
  * Fetch multiple token prices from Jupiter Price API
  * @param tokenSymbols - Array of token symbols
- * @returns Map of token symbol to USD price
+ * @returns Map of token symbol to USD price. Tokens not found on Jupiter are excluded from the result.
+ *          Check result keys to determine which tokens were successfully fetched.
  */
 export async function fetchJupiterPrices(tokenSymbols: string[]): Promise<Record<string, number>> {
   const ids = tokenSymbols.map(s => encodeURIComponent(s)).join(',');

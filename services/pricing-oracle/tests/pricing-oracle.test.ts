@@ -147,6 +147,34 @@ describe('Jupiter Price API', () => {
     vi.unstubAllGlobals();
   });
 
+  it('fetchJupiterPrices excludes tokens not found in API response', async () => {
+    const mockResponse = {
+      data: {
+        SOL: {
+          id: 'So11111111111111111111111111111111111111112',
+          mintSymbol: 'SOL',
+          vsToken: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+          vsTokenSymbol: 'USDC',
+          price: 150.25
+        }
+        // UNKNOWN token is not in response
+      },
+      timeTaken: 0.5
+    };
+
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => mockResponse
+    }));
+
+    const prices = await fetchJupiterPrices(['SOL', 'UNKNOWN']);
+    expect(prices.SOL).toBe(150.25);
+    expect(prices.UNKNOWN).toBeUndefined();
+    expect(Object.keys(prices)).toHaveLength(1);
+
+    vi.unstubAllGlobals();
+  });
+
   it('refreshFromJupiter updates oracle and emits event', async () => {
     const mockResponse = {
       data: {
