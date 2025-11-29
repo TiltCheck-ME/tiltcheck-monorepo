@@ -561,7 +561,7 @@ function verifyDiscordRequest(req) {
 If you discover a security vulnerability in TiltCheck or its integrations:
 
 1. **DO NOT** open a public issue
-2. Email: jmenichole.security@proton.me
+2. Email: jme@tiltcheck.me
 3. Include: Description, reproduction steps, potential impact
 
 ---

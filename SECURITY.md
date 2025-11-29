@@ -85,7 +85,7 @@ If you discover:
 
 Contact privately:
 
-**Email:** jmenichole.security@proton.me  
+**Email:** jme@tiltcheck.me  
 **Discord:** (to be added)
 
 Do NOT open a public issue for security vulnerabilities.

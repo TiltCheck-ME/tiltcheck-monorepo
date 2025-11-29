@@ -172,4 +172,4 @@ Go to: https://chrome.google.com/webstore/devconsole
 For publishing issues:
 - Check [Chrome Web Store policies](https://developer.chrome.com/docs/webstore/program-policies/)
 - Review [Extension guidelines](https://developer.chrome.com/docs/extensions/)
-- Contact: jmenichole007@outlook.com
+- Contact: jme@tiltcheck.me
