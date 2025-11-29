@@ -50,8 +50,17 @@ app.get('/metrics', (_req, res) => {
 
 const publicDir = path.join(__dirname, 'public');
 app.use(express.static(publicDir, { extensions: ['html'] }));
-// Serve shared asset library (images, logos) under /assets without copying into public.
-app.use('/assets', express.static(path.resolve(__dirname, '../../assets'), {
+
+// Serve shared asset library (images, logos) from root /assets directory
+// This takes precedence over public/assets for shared resources
+const rootAssetsDir = path.resolve(__dirname, '../../assets');
+app.use('/assets', express.static(rootAssetsDir, {
+  immutable: true,
+  maxAge: '7d'
+}));
+
+// Fallback to public/assets if file not found in root assets
+app.use('/assets', express.static(path.join(publicDir, 'assets'), {
   immutable: true,
   maxAge: '7d'
 }));
@@ -212,6 +221,55 @@ app.post('/api/newsletter/subscribe', rateLimitMiddleware, async (req, res) => {
     return res.json({ ok: true, migrated });
   } catch (err) {
     return res.status(500).json({ ok: false, error: 'Persist failed' });
+  }
+});
+
+// SusLink API - Scan a URL for suspicious patterns
+// Cache the scanner module to avoid repeated dynamic imports
+let cachedLinkScanner = null;
+async function getLinkScanner() {
+  if (!cachedLinkScanner) {
+    const module = await import('@tiltcheck/suslink/scanner');
+    cachedLinkScanner = module.LinkScanner;
+  }
+  return cachedLinkScanner;
+}
+
+app.post('/api/suslink/scan', rateLimitMiddleware, async (req, res) => {
+  const url = (req.body.url || '').trim();
+  
+  // Validate URL format
+  if (!url) {
+    return res.status(400).json({ ok: false, error: 'URL is required' });
+  }
+  
+  // Basic URL validation - URL constructor validates protocol is http/https
+  try {
+    const parsed = new URL(url);
+    if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
+      return res.status(400).json({ ok: false, error: 'URL must use http:// or https://' });
+    }
+  } catch {
+    return res.status(400).json({ ok: false, error: 'Invalid URL format' });
+  }
+  
+  try {
+    const LinkScanner = await getLinkScanner();
+    const scanner = new LinkScanner();
+    const result = await scanner.scan(url);
+    
+    return res.json({
+      ok: true,
+      result: {
+        url: result.url,
+        riskLevel: result.riskLevel,
+        reason: result.reason,
+        scannedAt: result.scannedAt
+      }
+    });
+  } catch (err) {
+    console.error('[SusLink API] Scan error:', err.message);
+    return res.status(500).json({ ok: false, error: 'Scan failed' });
   }
 });
 

@@ -440,7 +440,7 @@ body {
 
 .tools-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  grid-template-columns: repeat(3, 1fr);
   gap: var(--space-xl);
   max-width: var(--container-max);
   margin: 0 auto;
@@ -460,6 +460,7 @@ body {
   position: relative;
   backdrop-filter: var(--glass-backdrop);
   -webkit-backdrop-filter: var(--glass-backdrop);
+  text-align: left;
 }
 
 .tool-card:hover {
@@ -648,6 +649,12 @@ body {
 }
 
 /* === Responsive Design === */
+@media (max-width: 1024px) {
+  .tools-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
 @media (max-width: 768px) {
   .header-content {
     flex-direction: column;

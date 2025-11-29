@@ -192,9 +192,9 @@ body {
 
 .commands-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  grid-template-columns: repeat(2, 1fr);
   gap: 24px;
-  max-width: 1200px;
+  max-width: 900px;
   margin: 0 auto;
 }
 
@@ -204,6 +204,7 @@ body {
   border-radius: 6px;
   padding: 24px;
   transition: border-color 0.2s ease-out;
+  text-align: left;
 }
 
 .command-card:hover {
@@ -251,7 +252,7 @@ body {
 
 .categories-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  grid-template-columns: repeat(3, 1fr);
   gap: 24px;
   max-width: 1200px;
   margin: 0 auto;
@@ -262,7 +263,7 @@ body {
   border: 1px solid rgba(0, 255, 198, 0.1);
   border-radius: 6px;
   padding: 24px;
-  text-align: center;
+  text-align: left;
   transition: border-color 0.2s ease-out;
 }
 
@@ -309,7 +310,7 @@ body {
 
 .achievements-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  grid-template-columns: repeat(3, 1fr);
   gap: 20px;
   max-width: 1200px;
   margin: 0 auto;
@@ -320,7 +321,7 @@ body {
   border: 1px solid rgba(0, 255, 198, 0.1);
   border-radius: 6px;
   padding: 20px;
-  text-align: center;
+  text-align: left;
   transition: border-color 0.2s ease-out;
 }
 
@@ -361,7 +362,7 @@ body {
 
 .detection-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  grid-template-columns: repeat(3, 1fr);
   gap: 24px;
   max-width: 1200px;
   margin: 0 auto;
@@ -373,6 +374,7 @@ body {
   border-radius: 6px;
   padding: 24px;
   transition: border-color 0.2s ease-out;
+  text-align: left;
 }
 
 .detection-card:hover {
@@ -552,7 +554,7 @@ body {
 
 .tech-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  grid-template-columns: repeat(3, 1fr);
   gap: 20px;
   max-width: 1200px;
   margin: 0 auto;
@@ -563,6 +565,7 @@ body {
   border: 1px solid rgba(0, 255, 198, 0.1);
   border-radius: 6px;
   padding: 16px;
+  text-align: left;
 }
 
 .tech-item h4 {
@@ -643,7 +646,17 @@ footer a:hover {
   color: #6B7280;
 }
 
-/* Responsive */
+/* Responsive - Tablet */
+@media (max-width: 1024px) {
+  .detection-grid,
+  .categories-grid,
+  .achievements-grid,
+  .tech-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* Responsive - Mobile */
 @media (max-width: 768px) {
   .nav-links { gap: 15px; font-size: 0.9rem; }
   .tool-header h1 { font-size: 2.2rem; }
@@ -652,4 +665,12 @@ footer a:hover {
   .three-column { grid-template-columns: 1fr; }
   .step { flex-direction: column; gap: 12px; }
   .step-number { width: 40px; height: 40px; font-size: 1.1rem; }
+  
+  .detection-grid,
+  .categories-grid,
+  .achievements-grid,
+  .tech-grid,
+  .commands-grid {
+    grid-template-columns: 1fr;
+  }
 }
