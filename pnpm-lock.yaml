@@ -73,12 +73,18 @@ importers:
 
   apps/dad-bot:
     dependencies:
+      '@tiltcheck/config':
+        specifier: workspace:*
+        version: link:../../packages/config
       '@tiltcheck/dad':
         specifier: workspace:*
         version: link:../../modules/dad
       '@tiltcheck/discord-utils':
         specifier: workspace:*
         version: link:../../packages/discord-utils
+      '@tiltcheck/esm-utils':
+        specifier: workspace:*
+        version: link:../../packages/esm-utils
       '@tiltcheck/event-router':
         specifier: workspace:*
         version: link:../../services/event-router
@@ -107,6 +113,9 @@ importers:
 
   apps/discord-bot:
     dependencies:
+      '@tiltcheck/config':
+        specifier: workspace:*
+        version: link:../../packages/config
       '@tiltcheck/discord-utils':
         specifier: workspace:*
         version: link:../../packages/discord-utils

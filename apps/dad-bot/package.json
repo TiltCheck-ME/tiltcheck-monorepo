@@ -12,6 +12,8 @@
   },
   "dependencies": {
     "@tiltcheck/types": "workspace:*",
+    "@tiltcheck/config": "workspace:*",
+    "@tiltcheck/esm-utils": "workspace:*",
     "@tiltcheck/event-router": "workspace:*",
     "@tiltcheck/discord-utils": "workspace:*",
     "@tiltcheck/dad": "workspace:*",

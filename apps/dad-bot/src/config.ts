@@ -7,6 +7,13 @@
 import dotenv from 'dotenv';
 import path from 'path';
 import { dirname } from '@tiltcheck/esm-utils';
+import { 
+  getEnvVar, 
+  getDiscordToken, 
+  getBoolEnv, 
+  getNumberEnv,
+  DISCORD_TOKEN_ENV_VARS 
+} from '@tiltcheck/config';
 
 // Emulate __dirname in ESM via shared utility
 const __dirname = dirname(import.meta.url);
@@ -32,38 +39,6 @@ export interface BotConfig {
   trustThreshold: number;
 }
 
-function getEnvVar(key: string, required = true): string {
-  const value = process.env[key];
-
-  if (!value && required) {
-    throw new Error(`Missing required environment variable: ${key}`);
-  }
-
-  return value || '';
-}
-
-/**
- * Get Discord token from either DISCORD_TOKEN or DISCORD_BOT_TOKEN
- * Supports both variable names for flexibility across different deployment environments
- */
-function getDiscordToken(): string {
-  const token = process.env.DISCORD_TOKEN || process.env.DISCORD_BOT_TOKEN;
-  return token || '';
-}
-
-function getBoolEnv(key: string, defaultValue = false): boolean {
-  const value = process.env[key];
-  if (!value) return defaultValue;
-  return value.toLowerCase() === 'true' || value === '1';
-}
-
-function getNumberEnv(key: string, defaultValue: number): number {
-  const value = process.env[key];
-  if (!value) return defaultValue;
-  const parsed = parseInt(value, 10);
-  return isNaN(parsed) ? defaultValue : parsed;
-}
-
 export const config: BotConfig = {
   // Discord (supports both DISCORD_TOKEN and DISCORD_BOT_TOKEN)
   discordToken: getDiscordToken(),
@@ -86,7 +61,7 @@ export const config: BotConfig = {
 export function validateConfig(): void {
   if (!config.discordToken) {
     throw new Error(
-      'DISCORD_TOKEN or DISCORD_BOT_TOKEN is required. Please check your .env file.'
+      `${DISCORD_TOKEN_ENV_VARS.join(' or ')} is required. Please check your .env file.`
     );
   }
 
