@@ -50,8 +50,17 @@ app.get('/metrics', (_req, res) => {
 
 const publicDir = path.join(__dirname, 'public');
 app.use(express.static(publicDir, { extensions: ['html'] }));
-// Serve shared asset library (images, logos) under /assets without copying into public.
-app.use('/assets', express.static(path.resolve(__dirname, '../../assets'), {
+
+// Serve shared asset library (images, logos) from root /assets directory
+// This takes precedence over public/assets for shared resources
+const rootAssetsDir = path.resolve(__dirname, '../../assets');
+app.use('/assets', express.static(rootAssetsDir, {
+  immutable: true,
+  maxAge: '7d'
+}));
+
+// Fallback to public/assets if file not found in root assets
+app.use('/assets', express.static(path.join(publicDir, 'assets'), {
   immutable: true,
   maxAge: '7d'
 }));
