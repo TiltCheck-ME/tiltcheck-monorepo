@@ -26,3 +26,55 @@ export const severityConfig: SeverityConfig = {
   compute: computeSeverity,
   penalty: penaltyForSeverity,
 };
+
+// ============================================================
+// Environment Variable Utilities
+// ============================================================
+
+/** Environment variable names for Discord bot token (in order of preference) */
+export const DISCORD_TOKEN_ENV_VARS = ['DISCORD_TOKEN', 'DISCORD_BOT_TOKEN'] as const;
+
+/**
+ * Get a required environment variable
+ * @throws Error if variable is missing and required=true
+ */
+export function getEnvVar(key: string, required = true): string {
+  const value = process.env[key];
+
+  if (!value && required) {
+    throw new Error(`Missing required environment variable: ${key}`);
+  }
+
+  return value || '';
+}
+
+/**
+ * Get Discord token from either DISCORD_TOKEN or DISCORD_BOT_TOKEN
+ * Supports both variable names for flexibility across different deployment environments
+ */
+export function getDiscordToken(): string {
+  for (const envVar of DISCORD_TOKEN_ENV_VARS) {
+    const value = process.env[envVar];
+    if (value) return value;
+  }
+  return '';
+}
+
+/**
+ * Get a boolean environment variable with a default value
+ */
+export function getBoolEnv(key: string, defaultValue = false): boolean {
+  const value = process.env[key];
+  if (!value) return defaultValue;
+  return value.toLowerCase() === 'true' || value === '1';
+}
+
+/**
+ * Get a number environment variable with a default value
+ */
+export function getNumberEnv(key: string, defaultValue: number): number {
+  const value = process.env[key];
+  if (!value) return defaultValue;
+  const parsed = parseInt(value, 10);
+  return isNaN(parsed) ? defaultValue : parsed;
+}
