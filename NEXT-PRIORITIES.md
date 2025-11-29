@@ -16,7 +16,7 @@
 2. ✅ `apps/discord-bot/Dockerfile` - Uses `--ignore-scripts` flag in production stage (line 135)
 3. ✅ `services/trust-rollup/Dockerfile` - Uses `--ignore-scripts` flag in production stage
 
-**Note:** The last failing CI run (Nov 26) was from an older commit. The current main branch has all fixes applied. The health-check workflow simply hasn't run on the latest commits yet.
+**Note:** The last failing CI run was on November 26, 2025 (commit `abdc6654`). The current main branch (commit `13ece23` from Nov 29) already contains all fixes. The health-check workflow simply hasn't run on the latest commits yet.
 
 **Verification:**
 - Local build: ✅ All packages build successfully
