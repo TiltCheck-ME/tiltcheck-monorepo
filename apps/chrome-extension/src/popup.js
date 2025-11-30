@@ -3,8 +3,29 @@
  * Updated to work with the new popup.html UI layout
  */
 
-// AI Gateway URL (Cloudflare Workers)
+// AI Gateway URL - validated trusted domain
 const AI_GATEWAY_URL = 'https://ai-gateway.tiltcheck.me';
+
+// Trusted domain whitelist for AI Gateway
+const TRUSTED_AI_DOMAINS = [
+  'ai-gateway.tiltcheck.me',
+  'api.tiltcheck.me',
+  'localhost'
+];
+
+/**
+ * Validate AI Gateway URL is from a trusted domain
+ */
+function isValidAIGatewayURL(url: string): boolean {
+  try {
+    const parsedUrl = new URL(url);
+    return TRUSTED_AI_DOMAINS.some(domain => 
+      parsedUrl.hostname === domain || parsedUrl.hostname.endsWith('.' + domain)
+    );
+  } catch {
+    return false;
+  }
+}
 
 let currentSessionId = null;
 let updateInterval = null;

@@ -1,0 +1,31 @@
+{
+  "name": "@tiltcheck/analytics",
+  "version": "1.0.0",
+  "description": "Internal analytics and heatmap tracking for TiltCheck",
+  "main": "dist/index.js",
+  "module": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "type": "module",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    },
+    "./client": {
+      "import": "./dist/client.js",
+      "types": "./dist/client.d.ts"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "typescript": "^5.3.3"
+  },
+  "files": [
+    "dist",
+    "src"
+  ]
+}
