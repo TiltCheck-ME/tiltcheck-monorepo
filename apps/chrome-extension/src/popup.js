@@ -13,21 +13,7 @@ const TRUSTED_AI_DOMAINS = [
   'localhost'
 ];
 
-/**
- * Validate AI Gateway URL is from a trusted domain
- * @param {string} url - The URL to validate
- * @returns {boolean} - Whether the URL is from a trusted domain
- */
-function isValidAIGatewayURL(url) {
-  try {
-    const parsedUrl = new URL(url);
-    return TRUSTED_AI_DOMAINS.some(domain => 
-      parsedUrl.hostname === domain || parsedUrl.hostname.endsWith('.' + domain)
-    );
-  } catch {
-    return false;
-  }
-}
+
 
 let currentSessionId = null;
 let updateInterval = null;
