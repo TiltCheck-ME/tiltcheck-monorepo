@@ -27,7 +27,12 @@ const DEFAULT_CONFIG: TrackerConfig = {
  * Generate a unique session ID
  */
 function generateSessionId(): string {
-  return `sess_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  // Use crypto.getRandomValues for secure random string
+  const array = new Uint8Array(12);
+  window.crypto.getRandomValues(array);
+  // Convert to hex string
+  const hex = Array.from(array).map(b => b.toString(16).padStart(2, '0')).join('');
+  return `sess_${Date.now()}_${hex}`;
 }
 
 /**
