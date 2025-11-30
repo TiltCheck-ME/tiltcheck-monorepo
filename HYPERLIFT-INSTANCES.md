@@ -10,44 +10,44 @@ This document lists the recommended subdomain and Dockerfile path for deploying 
 
 ## 🎯 How Many Instances Do You Need?
 
-### ⭐ Recommended: 2 Instances (Minimum)
+### ⭐ Recommended: 3 Instances
 
-The most efficient setup uses just **2 instances**:
+The recommended setup uses **3 instances**:
 
 | # | Subdomain | Dockerfile Path | Size | What's Included |
 |---|-----------|-----------------|------|-----------------|
-| 1 | `tiltcheck.me` | `Dockerfile.unified` | sm | Landing + Dashboard + nginx (combined) |
-| 2 | `justthetip.tiltcheck.me` | `bot/Dockerfile` | xsm | Discord Bot with all game modules |
+| 1 | `tiltcheck.me` | `Dockerfile.unified` | sm | Website + Dashboard + Trust Engine (combined) |
+| 2 | `api.tiltcheck.me` | `backend/Dockerfile` | sm | Backend API |
+| 3 | `justthetip.tiltcheck.me` | `bot/Dockerfile` | xsm | Discord Bots |
 
 **Routes on tiltcheck.me:**
-- `/` → Landing page
+- `/` → Landing page (website)
 - `/dashboard/` → Trust dashboard
-- `/api/*` → Dashboard API
+- `/api/*` → Dashboard API (trust engine)
 
 ---
 
-### 3 Instances (Separate Dashboard)
+### 2 Instances (Minimal)
 
-If you want the dashboard on its own subdomain:
+If you don't need a separate API:
 
 | # | Subdomain | Dockerfile Path | Size | What's Included |
 |---|-----------|-----------------|------|-----------------|
-| 1 | `tiltcheck.me` | `services/landing/Dockerfile` | xsm | Landing page only |
-| 2 | `dashboard.tiltcheck.me` | `services/dashboard/Dockerfile` | sm | Trust dashboard + API |
-| 3 | `justthetip.tiltcheck.me` | `bot/Dockerfile` | xsm | Discord Bot |
+| 1 | `tiltcheck.me` | `Dockerfile.unified` | sm | Website + Dashboard + Trust Engine |
+| 2 | `justthetip.tiltcheck.me` | `bot/Dockerfile` | xsm | Discord Bots |
 
 ---
 
-### 4 Instances (Full Web App)
+### 4 Instances (With Frontend App)
 
-If you need the frontend web app and backend API:
+If you need the frontend web app separate:
 
 | # | Subdomain | Dockerfile Path | Size | What's Included |
 |---|-----------|-----------------|------|-----------------|
-| 1 | `tiltcheck.me` | `Dockerfile.unified` | sm | Landing + Dashboard (combined) |
-| 2 | `app.tiltcheck.me` | `frontend/Dockerfile` | sm | Web frontend |
-| 3 | `api.tiltcheck.me` | `backend/Dockerfile` | sm | Backend API |
-| 4 | `justthetip.tiltcheck.me` | `bot/Dockerfile` | xsm | Discord Bot |
+| 1 | `tiltcheck.me` | `Dockerfile.unified` | sm | Website + Dashboard + Trust Engine |
+| 2 | `api.tiltcheck.me` | `backend/Dockerfile` | sm | Backend API |
+| 3 | `app.tiltcheck.me` | `frontend/Dockerfile` | sm | Web frontend app |
+| 4 | `justthetip.tiltcheck.me` | `bot/Dockerfile` | xsm | Discord Bots |
 
 ---
 
