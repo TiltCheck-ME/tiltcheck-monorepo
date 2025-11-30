@@ -15,8 +15,10 @@ const TRUSTED_AI_DOMAINS = [
 
 /**
  * Validate AI Gateway URL is from a trusted domain
+ * @param {string} url - The URL to validate
+ * @returns {boolean} - Whether the URL is from a trusted domain
  */
-function isValidAIGatewayURL(url: string): boolean {
+function isValidAIGatewayURL(url) {
   try {
     const parsedUrl = new URL(url);
     return TRUSTED_AI_DOMAINS.some(domain => 
