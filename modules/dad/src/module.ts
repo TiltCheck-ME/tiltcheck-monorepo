@@ -4,7 +4,7 @@
  * 
  * Features:
  * - White cards (answers) and Black cards (prompts)
- * - AI-generated card packs
+ * - AI-generated card packs via AI Gateway
  * - Player matching and voting
  * - Score tracking and leaderboards
  * - Seasonal and themed expansions
@@ -12,6 +12,22 @@
 
 import { eventRouter } from '@tiltcheck/event-router';
 import { v4 as uuidv4 } from 'uuid';
+
+// AI Gateway client for card generation
+let aiClient: any = null;
+
+// Initialize AI client dynamically
+async function getAIClient() {
+  if (!aiClient) {
+    try {
+      const module = await import('@tiltcheck/ai-client');
+      aiClient = module.aiClient;
+    } catch {
+      console.log('[DA&D] AI client not available, using default cards only');
+    }
+  }
+  return aiClient;
+}
 
 // Card types
 export interface WhiteCard {
@@ -124,6 +140,111 @@ export class DADModule {
     };
 
     this.cardPacks.set(degenPack.id, degenPack);
+  }
+
+  /**
+   * Generate AI-powered card pack
+   * Uses AI Gateway for contextual, theme-appropriate cards
+   */
+  async generateAICardPack(options: {
+    theme?: string;
+    name?: string;
+    cardCount?: number;
+  } = {}): Promise<CardPack> {
+    const theme = options.theme || 'degen-casino';
+    const name = options.name || `AI Pack: ${theme}`;
+    const count = options.cardCount || 10;
+
+    const client = await getAIClient();
+    
+    if (client) {
+      try {
+        const result = await client.generateCards({
+          theme,
+          cardType: 'both',
+          count,
+        });
+
+        if (result.success && result.data) {
+          const packId = uuidv4();
+          
+          const whiteCards: WhiteCard[] = (result.data.whiteCards || []).map((text: string) => ({
+            id: uuidv4(),
+            text,
+            packId,
+          }));
+
+          const blackCards: BlackCard[] = (result.data.blackCards || []).map((text: string) => ({
+            id: uuidv4(),
+            text,
+            blanks: (text.match(/_____/g) || []).length || 1,
+            packId,
+          }));
+
+          const pack: CardPack = {
+            id: packId,
+            name,
+            description: `AI-generated pack with theme: ${theme}`,
+            theme,
+            whiteCards,
+            blackCards,
+            isOfficial: false,
+            createdAt: Date.now(),
+          };
+
+          this.cardPacks.set(pack.id, pack);
+          console.log(`[DA&D] Generated AI pack "${name}" with ${whiteCards.length} white and ${blackCards.length} black cards`);
+          
+          return pack;
+        }
+      } catch (error) {
+        console.log('[DA&D] AI card generation failed, using fallback:', error);
+      }
+    }
+
+    // Fallback: generate basic pack without AI
+    return this.createFallbackPack(theme, name);
+  }
+
+  /**
+   * Create fallback pack when AI is unavailable
+   */
+  private async createFallbackPack(theme: string, name: string): Promise<CardPack> {
+    const packId = uuidv4();
+    
+    const fallbackWhiteCards = [
+      'A mysterious crypto airdrop',
+      'Losing your seed phrase',
+      'FOMO buying at the top',
+      'Rage betting after a bad beat',
+      'Telling Discord you\'re quitting gambling',
+      'One more bonus buy before bed',
+    ];
+
+    const fallbackBlackCards = [
+      'What made me tilt today? _____',
+      'The worst decision in my gambling career: _____',
+      'Why did the casino nerf my bonus? _____',
+    ];
+
+    const pack: CardPack = {
+      id: packId,
+      name,
+      description: `Fallback pack for theme: ${theme}`,
+      theme,
+      whiteCards: fallbackWhiteCards.map(text => ({ id: uuidv4(), text, packId })),
+      blackCards: fallbackBlackCards.map(text => ({ 
+        id: uuidv4(), 
+        text, 
+        blanks: 1, 
+        packId 
+      })),
+      isOfficial: false,
+      createdAt: Date.now(),
+    };
+
+    this.cardPacks.set(pack.id, pack);
+    return pack;
   }
 
   /**
