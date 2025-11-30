@@ -16,6 +16,10 @@ export default defineConfig({
       '@tiltcheck/database': r('packages/database/src/index.ts'),
       '@tiltcheck/suslink': r('modules/suslink/src/index.ts'),
       '@tiltcheck/identity-core': r('packages/identity-core/src/index.ts'),
+      '@tiltcheck/config': r('packages/config/src/index.ts'),
+      '@tiltcheck/natural-language-parser': r('packages/natural-language-parser/src/index.ts'),
+      '@tiltcheck/pricing-oracle': r('services/pricing-oracle/src/index.ts'),
+      '@tiltcheck/collectclock': r('modules/collectclock/src/index.ts'),
     },
   },
   test: {
