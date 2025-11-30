@@ -331,21 +331,22 @@ app.get('/api/analytics/summary', requireAuth, (req, res) => {
   const sessionIds = new Set(relevantEvents.map(e => e.sessionId));
   const userIds = new Set(relevantEvents.filter(e => e.userId).map(e => e.userId));
   
-  // Top pages
-  const pageCounts = {};
+  // Top pages - use Map to safely handle user-provided keys
+  const pageCounts = new Map();
   pageViews.forEach(pv => {
-    const path = pv.data?.path || pv.page || '/';
-    pageCounts[path] = (pageCounts[path] || 0) + 1;
+    const path = String(pv.data?.path || pv.page || '/');
+    pageCounts.set(path, (pageCounts.get(path) || 0) + 1);
   });
-  const topPages = Object.entries(pageCounts)
+  const topPages = Array.from(pageCounts.entries())
     .sort((a, b) => b[1] - a[1])
     .slice(0, 10)
     .map(([page, views]) => ({ page, views }));
   
-  // Events by type
-  const eventsByType = {};
+  // Events by type - use Map to safely handle user-provided keys
+  const eventsByType = new Map();
   relevantEvents.forEach(e => {
-    eventsByType[e.type] = (eventsByType[e.type] || 0) + 1;
+    const eventType = String(e.type || 'unknown');
+    eventsByType.set(eventType, (eventsByType.get(eventType) || 0) + 1);
   });
   
   res.json({
@@ -353,7 +354,7 @@ app.get('/api/analytics/summary', requireAuth, (req, res) => {
     uniqueSessions: sessionIds.size,
     uniqueUsers: userIds.size,
     topPages,
-    eventsByType,
+    eventsByType: Object.fromEntries(eventsByType),
     feedbackCount: relevantEvents.filter(e => e.type === 'feedback').length,
     betaUsers: betaSignups.length,
     range,

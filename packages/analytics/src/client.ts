@@ -132,8 +132,13 @@ export class AnalyticsTracker {
    * Track a custom event
    */
   trackEvent(type: string, data: Record<string, unknown> = {}): void {
+    // Generate secure random event ID using crypto API
+    const array = new Uint8Array(6);
+    window.crypto.getRandomValues(array);
+    const randomHex = Array.from(array).map(b => b.toString(16).padStart(2, '0')).join('');
+    
     const event = {
-      id: `evt_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`,
+      id: `evt_${Date.now()}_${randomHex}`,
       type,
       timestamp: Date.now(),
       sessionId: this.sessionId,
@@ -440,8 +445,6 @@ export class AnalyticsTracker {
     this.eventQueue = [];
 
     try {
-      const method = sync ? 'sendBeacon' : 'fetch';
-      
       if (sync && navigator.sendBeacon) {
         navigator.sendBeacon(
           this.config.endpoint,
