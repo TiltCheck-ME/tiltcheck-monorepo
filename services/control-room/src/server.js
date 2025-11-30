@@ -233,6 +233,10 @@ wss.on('connection', (ws) => {
 // Analytics API Endpoints
 // =============================================
 
+// Analytics configuration constants
+const CLICK_CLUSTER_TOLERANCE = 3; // Percentage tolerance for clustering nearby clicks
+const MAX_ANALYTICS_EVENTS = 50000; // Maximum events to keep in memory
+
 // In-memory analytics storage (would use database in production)
 const analyticsEvents = [];
 const betaSignups = [];
@@ -289,7 +293,7 @@ app.post('/api/analytics', (req, res) => {
       const y = Math.round((event.data.y / event.data.viewportHeight) * 100);
       
       const existing = heatmap.clicks.find(c => 
-        Math.abs(c.x - x) < 3 && Math.abs(c.y - y) < 3
+        Math.abs(c.x - x) < CLICK_CLUSTER_TOLERANCE && Math.abs(c.y - y) < CLICK_CLUSTER_TOLERANCE
       );
       
       if (existing) {
@@ -300,9 +304,9 @@ app.post('/api/analytics', (req, res) => {
     }
   });
   
-  // Trim old events (keep last 50k)
-  if (analyticsEvents.length > 50000) {
-    analyticsEvents.splice(0, analyticsEvents.length - 50000);
+  // Trim old events
+  if (analyticsEvents.length > MAX_ANALYTICS_EVENTS) {
+    analyticsEvents.splice(0, analyticsEvents.length - MAX_ANALYTICS_EVENTS);
   }
   
   res.json({ success: true, received: events.length });
