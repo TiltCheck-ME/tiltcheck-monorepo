@@ -8,10 +8,27 @@
  * - Casino impersonation
  * - Phishing attempts
  * 
+ * Enhanced with AI Gateway for intelligent content moderation.
  * Philosophy: Inform, don't block. Give users the info to make smart decisions.
  */
 
 import type { RiskLevel, LinkScanResult } from '@tiltcheck/types';
+
+// AI Gateway client for enhanced moderation
+let aiClient: any = null;
+
+// Initialize AI client dynamically
+async function getAIClient() {
+  if (!aiClient) {
+    try {
+      const module = await import('@tiltcheck/ai-client');
+      aiClient = module.aiClient;
+    } catch {
+      console.log('[SusLink] AI client not available, using heuristic only');
+    }
+  }
+  return aiClient;
+}
 
 // High-risk TLDs commonly used in scams
 const RISKY_TLDS = [
@@ -229,5 +246,67 @@ export class LinkScanner {
     } catch {
       return 'critical';
     }
+  }
+
+  /**
+   * AI-enhanced scan using AI Gateway for content moderation
+   * Provides more accurate scam detection and reasoning
+   */
+  async scanWithAI(url: string): Promise<LinkScanResult & { 
+    aiEnhanced?: boolean;
+    aiConfidence?: number;
+    suggestedAction?: string;
+  }> {
+    // First, run heuristic scan
+    const heuristicResult = await this.scan(url);
+    
+    const client = await getAIClient();
+    
+    if (client) {
+      try {
+        const aiResult = await client.moderate(url, {
+          url,
+          contentType: 'url',
+        });
+
+        if (aiResult.success && aiResult.data) {
+          const aiData = aiResult.data;
+          
+          // Merge AI insights with heuristic results
+          let finalRiskLevel: RiskLevel = heuristicResult.riskLevel;
+          
+          // AI can upgrade risk level if it detects something heuristics missed
+          if (aiData.isScam && finalRiskLevel === 'safe') {
+            finalRiskLevel = 'suspicious';
+          }
+          if (aiData.categories?.scam > 0.7 || aiData.categories?.malicious > 0.5) {
+            finalRiskLevel = 'high';
+          }
+          if (aiData.categories?.scam > 0.9) {
+            finalRiskLevel = 'critical';
+          }
+
+          const aiReason = aiData.reasoning || '';
+          const combinedReason = aiReason 
+            ? `${heuristicResult.reason}. AI: ${aiReason}`
+            : heuristicResult.reason;
+
+          return {
+            url,
+            riskLevel: finalRiskLevel,
+            reason: combinedReason,
+            scannedAt: new Date(),
+            aiEnhanced: true,
+            aiConfidence: aiData.confidence || 0,
+            suggestedAction: aiData.suggestedAction,
+          };
+        }
+      } catch (error) {
+        console.log('[SusLink] AI scan failed, using heuristic only:', error);
+      }
+    }
+
+    // Return heuristic-only result
+    return heuristicResult;
   }
 }
