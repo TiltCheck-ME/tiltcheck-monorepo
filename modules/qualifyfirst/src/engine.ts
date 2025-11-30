@@ -1,7 +1,23 @@
 /**
  * QualifyFirst heuristic engine
- * Phase 1: deterministic scoring (no external AI calls yet)
+ * Phase 1: deterministic scoring with AI Gateway enhancement
  */
+
+// AI Gateway client for enhanced survey matching
+let aiClient: any = null;
+
+// Initialize AI client dynamically
+async function getAIClient() {
+  if (!aiClient) {
+    try {
+      const module = await import('@tiltcheck/ai-client');
+      aiClient = module.aiClient;
+    } catch {
+      console.log('[QualifyFirst] AI client not available, using heuristic only');
+    }
+  }
+  return aiClient;
+}
 
 export interface UserProfile {
   id: string;
@@ -30,12 +46,15 @@ export interface MatchProbability {
   score: number; // 0-100 scaled
   reasons: string[];
   riskFlags: string[];
+  aiEnhanced?: boolean;
+  aiRecommendations?: string[];
 }
 
 export interface RouteResult {
   userId: string;
   generatedAt: number;
   matches: MatchProbability[];
+  aiNextBestAction?: string;
 }
 
 /** Basic weight constants */
@@ -125,6 +144,56 @@ export function routeSurveys(user: UserProfile, surveys: SurveyMeta[]): RouteRes
     .filter(m => m.score >= 30) // basic threshold to avoid poor matches initially
     .sort((a, b) => b.score - a.score);
   return { userId: user.id, generatedAt: Date.now(), matches };
+}
+
+/**
+ * AI-enhanced survey routing
+ * Uses AI Gateway for intelligent matching and recommendations
+ */
+export async function routeSurveysWithAI(user: UserProfile, surveys: SurveyMeta[]): Promise<RouteResult> {
+  // Get heuristic matches first
+  const heuristicMatches = surveys.map(s => predictSurveyMatch(user, s))
+    .filter(m => m.score >= 30)
+    .sort((a, b) => b.score - a.score);
+
+  const client = await getAIClient();
+  
+  if (client) {
+    try {
+      const result = await client.surveyMatching(user, surveys[0]); // AI analyzes top survey
+      
+      if (result.success && result.data) {
+        const aiData = result.data;
+        
+        // Enhance top matches with AI insights
+        const enhancedMatches = heuristicMatches.map((match, index) => {
+          if (index === 0 && aiData.matchConfidence) {
+            return {
+              ...match,
+              // Blend heuristic and AI scores
+              probability: (match.probability + aiData.matchConfidence) / 2,
+              score: Math.round((match.score + (aiData.matchConfidence * 100)) / 2),
+              aiEnhanced: true,
+              aiRecommendations: aiData.recommendedActions || [],
+            };
+          }
+          return match;
+        });
+
+        return {
+          userId: user.id,
+          generatedAt: Date.now(),
+          matches: enhancedMatches,
+          aiNextBestAction: aiData.recommendedActions?.[0],
+        };
+      }
+    } catch (error) {
+      console.log('[QualifyFirst] AI enhancement failed, using heuristic only:', error);
+    }
+  }
+
+  // Fallback to heuristic-only routing
+  return { userId: user.id, generatedAt: Date.now(), matches: heuristicMatches };
 }
 
 export function explainScreenOut(user: UserProfile, survey: SurveyMeta): string[] {

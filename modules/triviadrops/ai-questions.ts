@@ -1,11 +1,44 @@
 /**
  * AI Question Generation for TriviaDrops
- * Integrates Vercel AI SDK for infinite question generation
+ * Integrates with AI Gateway for infinite question generation
+ * Falls back to Vercel AI SDK or static bank when gateway is unavailable
  */
 
 import type { TriviaQuestion, TriviaCategory } from './index.js';
-import { generateText } from 'ai';
-import { openai } from '@ai-sdk/openai';
+
+// Try to use AI Gateway first, then Vercel AI SDK
+let aiClient: any = null;
+
+async function getAIGatewayClient() {
+  if (!aiClient) {
+    try {
+      const module = await import('@tiltcheck/ai-client');
+      aiClient = module.aiClient;
+      console.log('[TriviaDrops] AI Gateway client loaded');
+    } catch {
+      console.log('[TriviaDrops] AI Gateway client not available');
+    }
+  }
+  return aiClient;
+}
+
+// Vercel AI SDK imports (fallback)
+let generateText: any = null;
+let openaiProvider: any = null;
+
+async function getVercelAI() {
+  if (!generateText) {
+    try {
+      const aiModule = await import('ai');
+      const openaiModule = await import('@ai-sdk/openai');
+      generateText = aiModule.generateText;
+      openaiProvider = openaiModule.openai;
+    } catch {
+      console.log('[TriviaDrops] Vercel AI SDK not available');
+    }
+  }
+  return { generateText, openai: openaiProvider };
+}
 
 interface AIQuestionRequest {
   category?: TriviaCategory;
@@ -13,11 +46,11 @@ interface AIQuestionRequest {
   topic?: string;
 }
 
-const AI_ENABLED = !!process.env.OPENAI_API_KEY;
+const AI_ENABLED = !!process.env.OPENAI_API_KEY || !!process.env.AI_GATEWAY_URL;
 
 /**
  * Generate a trivia question using AI
- * Falls back to static question bank if AI is unavailable
+ * Tries AI Gateway first, then Vercel AI SDK, then falls back to static bank
  */
 export async function generateAIQuestionAsync(
   request: AIQuestionRequest
@@ -26,12 +59,47 @@ export async function generateAIQuestionAsync(
     return generateAIQuestion(request);
   }
 
-  try {
-    const categoryPrompt = request.category ? ` about ${request.category}` : '';
-    const difficultyPrompt = request.difficulty ? ` at ${request.difficulty} difficulty` : '';
-    const topicPrompt = request.topic ? ` focusing on ${request.topic}` : '';
+  // Try AI Gateway first
+  const gatewayClient = await getAIGatewayClient();
+  if (gatewayClient) {
+    try {
+      const result = await gatewayClient.getSupport(
+        `Generate a ${request.difficulty || 'medium'} trivia question about ${request.category || 'general'}${request.topic ? ` focusing on ${request.topic}` : ''}. Return as JSON with question, choices (4 options), answer, category, difficulty.`,
+        { type: 'trivia-generation' }
+      );
 
-    const prompt = `Generate a multiple choice trivia question${categoryPrompt}${difficultyPrompt}${topicPrompt}.
+      if (result.success && result.data?.answer) {
+        try {
+          // Parse JSON from the AI response
+          const parsed = JSON.parse(result.data.answer);
+          if (parsed.question && Array.isArray(parsed.choices) && parsed.choices.length === 4 && parsed.answer) {
+            return {
+              question: parsed.question,
+              choices: parsed.choices,
+              answer: parsed.answer,
+              category: request.category || 'general',
+              difficulty: request.difficulty || 'medium',
+            };
+          }
+        } catch {
+          console.log('[TriviaDrops] Failed to parse AI Gateway response');
+        }
+      }
+    } catch (error) {
+      console.log('[TriviaDrops] AI Gateway failed:', error);
+    }
+  }
+
+  // Fallback to Vercel AI SDK
+  try {
+    const { generateText: genText, openai: openaiProv } = await getVercelAI();
+    
+    if (genText && openaiProv) {
+      const categoryPrompt = request.category ? ` about ${request.category}` : '';
+      const difficultyPrompt = request.difficulty ? ` at ${request.difficulty} difficulty` : '';
+      const topicPrompt = request.topic ? ` focusing on ${request.topic}` : '';
+
+      const prompt = `Generate a multiple choice trivia question${categoryPrompt}${difficultyPrompt}${topicPrompt}.
 
 Return ONLY a valid JSON object with this exact structure (no markdown, no extra text):
 {
@@ -49,31 +117,30 @@ Rules:
 - The answer must match one of the choices exactly
 - Keep questions appropriate and educational`;
 
-    const result = await generateText({
-      model: openai('gpt-4o-mini'),
-      prompt,
-      maxRetries: 2,
-    });
+      const result = await genText({
+        model: openaiProv('gpt-4o-mini'),
+        prompt,
+        maxRetries: 2,
+      });
 
-    const parsed = JSON.parse(result.text);
-    
-    // Validate the response
-    if (!parsed.question || !Array.isArray(parsed.choices) || parsed.choices.length !== 4 || !parsed.answer) {
-      console.warn('[TriviaDrops] AI generated invalid question, falling back to static bank');
-      return generateAIQuestion(request);
+      const parsed = JSON.parse(result.text);
+      
+      if (parsed.question && Array.isArray(parsed.choices) && parsed.choices.length === 4 && parsed.answer) {
+        return {
+          question: parsed.question,
+          choices: parsed.choices,
+          answer: parsed.answer,
+          category: request.category || 'general',
+          difficulty: request.difficulty || 'medium',
+        };
+      }
     }
-
-    return {
-      question: parsed.question,
-      choices: parsed.choices,
-      answer: parsed.answer,
-      category: request.category || 'general',
-      difficulty: request.difficulty || 'medium',
-    };
   } catch (error) {
-    console.error('[TriviaDrops] AI question generation failed:', error);
-    return generateAIQuestion(request);
+    console.error('[TriviaDrops] Vercel AI generation failed:', error);
   }
+
+  // Final fallback to static bank
+  return generateAIQuestion(request);
 }
 
 /**

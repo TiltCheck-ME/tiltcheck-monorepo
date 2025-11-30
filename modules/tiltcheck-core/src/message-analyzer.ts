@@ -1,9 +1,26 @@
 /**
  * Message Pattern Analyzer
  * Detects tilt signals from Discord message patterns
+ * Enhanced with AI Gateway integration for intelligent analysis
  */
 
 import type { TiltSignal, MessageActivity } from './types.js';
+
+// AI Gateway client for enhanced tilt detection
+let aiClient: any = null;
+
+// Initialize AI client dynamically to avoid circular dependencies
+async function getAIClient() {
+  if (!aiClient) {
+    try {
+      const module = await import('@tiltcheck/ai-client');
+      aiClient = module.aiClient;
+    } catch {
+      console.log('[TiltCheck] AI client not available, using local analysis only');
+    }
+  }
+  return aiClient;
+}
 
 const TILT_KEYWORDS = [
   'fuck', 'shit', 'scam', 'rigged', 'bullshit', 'wtf', 'fml',
@@ -160,4 +177,86 @@ export function calculateTiltScore(signals: TiltSignal[]): number {
   }
   
   return totalWeight > 0 ? weightedSum / totalWeight : 0;
+}
+
+/**
+ * Enhanced async message analysis using AI Gateway
+ * Falls back to local analysis if AI is unavailable
+ */
+export async function analyzeMessagesWithAI(
+  messages: MessageActivity[],
+  userId: string,
+  additionalContext?: {
+    recentBets?: Array<{ amount: number; won: boolean; timestamp: number }>;
+    sessionDuration?: number;
+    losses?: number;
+  }
+): Promise<{
+  signals: TiltSignal[];
+  tiltScore: number;
+  aiAnalysis?: {
+    riskLevel: string;
+    interventionSuggestions: string[];
+    cooldownRecommended: boolean;
+    cooldownDuration: number;
+  };
+}> {
+  // Get local signals first
+  const signals = analyzeMessages(messages, userId);
+  const localTiltScore = calculateTiltScore(signals);
+  
+  // Try AI-enhanced analysis
+  const client = await getAIClient();
+  if (client) {
+    try {
+      const result = await client.detectTilt({
+        recentBets: additionalContext?.recentBets || [],
+        sessionDuration: additionalContext?.sessionDuration || 0,
+        losses: additionalContext?.losses || 0,
+        recentMessages: messages.slice(-10).map(m => m.content),
+      });
+      
+      if (result.success && result.data) {
+        const aiData = result.data;
+        
+        // Merge AI insights with local signals
+        const combinedScore = (localTiltScore + (aiData.tiltScore / 20)) / 2; // Normalize AI score (0-100) to (0-5)
+        
+        // Add AI-detected indicators as signals
+        if (aiData.indicators) {
+          for (const indicator of aiData.indicators) {
+            signals.push({
+              userId,
+              signalType: 'ai-detected',
+              severity: aiData.riskLevel === 'critical' ? 5 : 
+                        aiData.riskLevel === 'high' ? 4 :
+                        aiData.riskLevel === 'moderate' ? 3 : 2,
+              confidence: 0.85,
+              context: { aiIndicator: indicator },
+              detectedAt: Date.now(),
+            });
+          }
+        }
+        
+        return {
+          signals,
+          tiltScore: combinedScore,
+          aiAnalysis: {
+            riskLevel: aiData.riskLevel,
+            interventionSuggestions: aiData.interventionSuggestions || [],
+            cooldownRecommended: aiData.cooldownRecommended || false,
+            cooldownDuration: aiData.cooldownDuration || 0,
+          },
+        };
+      }
+    } catch (error) {
+      console.log('[TiltCheck] AI analysis failed, using local only:', error);
+    }
+  }
+  
+  // Return local-only analysis
+  return {
+    signals,
+    tiltScore: localTiltScore,
+  };
 }
