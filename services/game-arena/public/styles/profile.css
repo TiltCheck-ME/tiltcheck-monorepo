@@ -1,0 +1,392 @@
+/**
+ * Profile Page Styles
+ * 
+ * Copyright (c) 2024 Degens Against Decency
+ * Licensed under the MIT License
+ * See LICENSE file in the project root for full license information.
+ */
+
+.profile-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.profile-header {
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 20px;
+  padding: 25px 30px;
+  margin-bottom: 30px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border: 1px solid rgba(180, 255, 57, 0.2);
+  box-shadow: 0 0 20px rgba(180, 255, 57, 0.1);
+}
+
+.profile-header h1 {
+  color: var(--brand-green);
+  margin-top: 10px;
+}
+
+.back-link {
+  color: var(--brand-teal);
+  text-decoration: none;
+  font-size: 0.9rem;
+  transition: color 0.3s ease;
+}
+
+.back-link:hover {
+  color: var(--brand-green);
+}
+
+.profile-content {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 25px;
+}
+
+.profile-section {
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 20px;
+  padding: 25px;
+  border: 1px solid rgba(180, 255, 57, 0.2);
+  transition: all 0.3s ease;
+}
+
+.profile-section:hover {
+  border-color: rgba(180, 255, 57, 0.3);
+  box-shadow: 0 0 20px rgba(180, 255, 57, 0.1);
+}
+
+.profile-section h3 {
+  color: var(--brand-green);
+  margin-bottom: 20px;
+  font-size: 1.3rem;
+}
+
+.section-desc {
+  color: var(--text-light);
+  margin-bottom: 20px;
+  font-size: 0.9rem;
+}
+
+/* Profile Overview */
+.profile-overview {
+  grid-column: span 2;
+}
+
+.avatar-section {
+  text-align: center;
+  padding: 20px 0;
+}
+
+.avatar-glow.large {
+  display: inline-block;
+  margin-bottom: 20px;
+}
+
+.avatar-glow.large img {
+  width: 120px;
+  height: 120px;
+  border: 4px solid var(--brand-green);
+  border-radius: 50%;
+}
+
+.avatar-section h2 {
+  color: var(--brand-white);
+  font-size: 1.8rem;
+  margin-bottom: 5px;
+}
+
+.text-muted {
+  color: var(--text-muted);
+}
+
+.level-display {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 15px;
+  margin-top: 25px;
+}
+
+.level-badge.large {
+  width: 70px;
+  height: 70px;
+  font-size: 1.8rem;
+}
+
+.xp-bar {
+  width: 100%;
+  max-width: 300px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.xp-text {
+  color: var(--text-light);
+  font-size: 0.85rem;
+  text-align: center;
+}
+
+/* Stats Grid */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 15px;
+}
+
+.stats-card {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(180, 255, 57, 0.15);
+  border-radius: 12px;
+  padding: 15px;
+  text-align: center;
+  transition: all 0.3s ease;
+}
+
+.stats-card:hover {
+  border-color: rgba(180, 255, 57, 0.4);
+  transform: translateY(-2px);
+  box-shadow: 0 0 15px rgba(180, 255, 57, 0.2);
+}
+
+.stats-card .stat-label {
+  color: var(--text-light);
+  font-size: 0.85rem;
+  margin-bottom: 8px;
+}
+
+.stats-card .stat-value {
+  color: var(--brand-green);
+  font-size: 1.8rem;
+  font-weight: 700;
+  text-shadow: 0 0 10px rgba(180, 255, 57, 0.3);
+}
+
+/* Game History */
+.game-history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.game-history-item {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(180, 255, 57, 0.15);
+  border-radius: 10px;
+  padding: 15px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: all 0.3s ease;
+}
+
+.game-history-item:hover {
+  border-color: rgba(180, 255, 57, 0.3);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.game-history-item .game-type {
+  color: var(--brand-teal);
+  font-weight: 600;
+}
+
+.game-history-item .game-date {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+
+.game-history-item .game-result {
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.game-result.win {
+  background: rgba(180, 255, 57, 0.2);
+  color: var(--brand-green);
+}
+
+.game-result.loss {
+  background: rgba(255, 100, 100, 0.2);
+  color: #ff6464;
+}
+
+/* Achievements */
+.achievements-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 15px;
+}
+
+.achievement {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(180, 255, 57, 0.15);
+  border-radius: 12px;
+  padding: 15px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  transition: all 0.3s ease;
+}
+
+.achievement.unlocked {
+  border-color: var(--brand-green);
+  background: rgba(180, 255, 57, 0.05);
+}
+
+.achievement.locked {
+  opacity: 0.5;
+}
+
+.achievement-icon {
+  font-size: 2rem;
+}
+
+.achievement-info {
+  flex: 1;
+}
+
+.achievement-title {
+  color: var(--brand-white);
+  font-weight: 600;
+  margin-bottom: 3px;
+}
+
+.achievement-desc {
+  color: var(--text-muted);
+  font-size: 0.8rem;
+}
+
+/* Integrations */
+.integrations-section {
+  grid-column: span 2;
+}
+
+.integrations-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 15px;
+}
+
+.integration-card {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(180, 255, 57, 0.15);
+  border-radius: 12px;
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  transition: all 0.3s ease;
+}
+
+.integration-card:hover {
+  border-color: rgba(180, 255, 57, 0.3);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.integration-card.connected {
+  border-color: var(--brand-green);
+  background: rgba(180, 255, 57, 0.05);
+}
+
+.integration-icon {
+  font-size: 2rem;
+  width: 50px;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(180, 255, 57, 0.1);
+  border-radius: 12px;
+  color: var(--brand-green);
+}
+
+.integration-info {
+  flex: 1;
+}
+
+.integration-name {
+  color: var(--brand-white);
+  font-weight: 600;
+  margin-bottom: 3px;
+}
+
+.integration-status {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+
+.integration-card.connected .integration-status {
+  color: var(--brand-green);
+}
+
+.secondary-button.small {
+  padding: 8px 16px;
+  font-size: 0.85rem;
+}
+
+/* Recent Games Section Specific */
+.recent-games-section {
+  grid-column: span 2;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .profile-content {
+    grid-template-columns: 1fr;
+  }
+  
+  .profile-overview,
+  .integrations-section,
+  .recent-games-section {
+    grid-column: span 1;
+  }
+  
+  .profile-header {
+    flex-direction: column;
+    gap: 15px;
+    text-align: center;
+  }
+  
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .achievements-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .integrations-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .profile-container {
+    padding: 10px;
+  }
+  
+  .profile-section {
+    padding: 20px;
+  }
+  
+  .stats-card .stat-value {
+    font-size: 1.4rem;
+  }
+  
+  .avatar-glow.large img {
+    width: 100px;
+    height: 100px;
+  }
+  
+  .level-badge.large {
+    width: 55px;
+    height: 55px;
+    font-size: 1.4rem;
+  }
+}

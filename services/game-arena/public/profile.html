@@ -1,0 +1,194 @@
+<!--
+  Degens Against Decency - User Profile Page
+  
+  Copyright (c) 2024 Degens Against Decency
+  Licensed under the MIT License
+  See LICENSE file in the project root for full license information.
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Profile - TiltCheck Game Arena</title>
+  <link rel="stylesheet" href="/styles/main.css" />
+  <link rel="stylesheet" href="/styles/profile.css" />
+</head>
+<body>
+  <div class="profile-container">
+    <header class="profile-header">
+      <div>
+        <a href="/arena" class="back-link">← Back to Arena</a>
+        <h1>🎮 Player Profile</h1>
+      </div>
+      <div class="user-panel">
+        <img id="user-avatar" src="" alt="User Avatar" />
+        <div>
+          <div id="user-name">Loading...</div>
+          <button id="logout-btn" class="secondary-button">Logout</button>
+        </div>
+      </div>
+    </header>
+
+    <main class="profile-content">
+      <!-- Profile Overview Section -->
+      <section class="profile-section profile-overview">
+        <div class="avatar-section">
+          <div class="avatar-glow large">
+            <img id="profile-avatar" src="" alt="Profile Avatar" />
+          </div>
+          <h2 id="profile-username">Loading...</h2>
+          <p id="profile-discriminator" class="text-muted"></p>
+          <div class="level-display">
+            <div class="level-badge large" id="user-level">1</div>
+            <div class="xp-bar">
+              <div class="progress-bar-container">
+                <div id="xp-progress" class="progress-bar" style="width: 0%;"></div>
+              </div>
+              <span id="xp-text" class="xp-text">0 / 100 XP</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Stats Section -->
+      <section class="profile-section stats-section">
+        <h3>📊 Game Statistics</h3>
+        <div class="stats-grid">
+          <div class="stats-card">
+            <div class="stat-label">Total Games</div>
+            <div class="stat-value" id="stat-total-games">0</div>
+          </div>
+          <div class="stats-card">
+            <div class="stat-label">Games Won</div>
+            <div class="stat-value" id="stat-games-won">0</div>
+          </div>
+          <div class="stats-card">
+            <div class="stat-label">Win Rate</div>
+            <div class="stat-value" id="stat-win-rate">0%</div>
+          </div>
+          <div class="stats-card">
+            <div class="stat-label">Total Points</div>
+            <div class="stat-value" id="stat-total-points">0</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Game-Specific Stats -->
+      <section class="profile-section game-stats-section">
+        <h3>🃏 Degens Against Decency</h3>
+        <div class="stats-grid">
+          <div class="stats-card">
+            <div class="stat-label">DA&D Games</div>
+            <div class="stat-value" id="stat-dad-games">0</div>
+          </div>
+          <div class="stats-card">
+            <div class="stat-label">DA&D Wins</div>
+            <div class="stat-value" id="stat-dad-wins">0</div>
+          </div>
+          <div class="stats-card">
+            <div class="stat-label">Cards Played</div>
+            <div class="stat-value" id="stat-cards-played">0</div>
+          </div>
+          <div class="stats-card">
+            <div class="stat-label">Funniest Pick</div>
+            <div class="stat-value" id="stat-funniest-picks">0</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Recent Games Section -->
+      <section class="profile-section recent-games-section">
+        <h3>🕹️ Recent Games</h3>
+        <div id="recent-games-list" class="game-history-list">
+          <div class="loading">Loading recent games...</div>
+        </div>
+      </section>
+
+      <!-- Achievements Section -->
+      <section class="profile-section achievements-section">
+        <h3>🏆 Achievements</h3>
+        <div class="achievements-grid" id="achievements-grid">
+          <div class="achievement unlocked">
+            <span class="achievement-icon">🎮</span>
+            <div class="achievement-info">
+              <div class="achievement-title">First Game</div>
+              <div class="achievement-desc">Play your first game</div>
+            </div>
+          </div>
+          <div class="achievement locked">
+            <span class="achievement-icon">🔒</span>
+            <div class="achievement-info">
+              <div class="achievement-title">Card Shark</div>
+              <div class="achievement-desc">Win 10 games</div>
+            </div>
+          </div>
+          <div class="achievement locked">
+            <span class="achievement-icon">🔒</span>
+            <div class="achievement-info">
+              <div class="achievement-title">Comedy Legend</div>
+              <div class="achievement-desc">Get 50 funniest picks</div>
+            </div>
+          </div>
+          <div class="achievement locked">
+            <span class="achievement-icon">🔒</span>
+            <div class="achievement-info">
+              <div class="achievement-title">Degen Master</div>
+              <div class="achievement-desc">Reach level 10</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Integrations Section -->
+      <section id="integrations" class="profile-section integrations-section">
+        <h3>⚡ Integrations</h3>
+        <p class="section-desc">Connect your game arena with other TiltCheck services</p>
+        
+        <div class="integrations-grid">
+          <div class="integration-card connected">
+            <div class="integration-icon">
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03z"/>
+              </svg>
+            </div>
+            <div class="integration-info">
+              <div class="integration-name">Discord</div>
+              <div class="integration-status">✅ Connected</div>
+            </div>
+          </div>
+
+          <div class="integration-card">
+            <div class="integration-icon">🎰</div>
+            <div class="integration-info">
+              <div class="integration-name">TiltCheck Bot</div>
+              <div class="integration-status">Link your Discord bot stats</div>
+            </div>
+            <button class="secondary-button small">Link</button>
+          </div>
+
+          <div class="integration-card">
+            <div class="integration-icon">🔗</div>
+            <div class="integration-info">
+              <div class="integration-name">SusLink</div>
+              <div class="integration-status">Get suspicious link alerts</div>
+            </div>
+            <button class="secondary-button small">Enable</button>
+          </div>
+
+          <div class="integration-card">
+            <div class="integration-icon">💰</div>
+            <div class="integration-info">
+              <div class="integration-name">JustTheTip</div>
+              <div class="integration-status">Connect tip wallet</div>
+            </div>
+            <button class="secondary-button small">Connect</button>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="/scripts/profile.js"></script>
+</body>
+</html>

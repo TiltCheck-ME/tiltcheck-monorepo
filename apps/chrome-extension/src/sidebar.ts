@@ -1,9 +1,11 @@
 /**
  * TiltGuard Sidebar - Fully Functional UI
  * Features: Discord auth, vault, dashboard, wallet, session export, premium upgrades
+ * Integrates with AI Gateway for intelligent tilt detection
  */
 
 const API_BASE = 'https://api.tiltcheck.me';
+const AI_GATEWAY_URL = 'https://ai-gateway.tiltcheck.me';
 let authToken: string | null = null;
 let showSettings = false;
 let apiKeys: any = {
@@ -35,6 +37,35 @@ async function apiCall(endpoint: string, options: any = {}) {
   } catch (error) {
     console.error('API Error:', error);
     return { error: 'Network error' };
+  }
+}
+
+/**
+ * Call AI Gateway for intelligent analysis
+ */
+async function callAIGateway(application: string, data: any = {}) {
+  try {
+    const response = await fetch(`${AI_GATEWAY_URL}/api/ai`, {
+      method: 'POST',
+      headers: { 
+        'Content-Type': 'application/json',
+        ...(authToken ? { 'Authorization': `Bearer ${authToken}` } : {})
+      },
+      body: JSON.stringify({
+        application,
+        prompt: data.prompt || '',
+        context: data.context || {}
+      })
+    });
+    
+    if (response.ok) {
+      return await response.json();
+    }
+    console.log('[TiltGuard] AI Gateway request failed, using local fallback');
+    return { success: false, error: 'Request failed' };
+  } catch (error) {
+    console.log('[TiltGuard] AI Gateway offline, using local fallback');
+    return { success: false, error: 'Network error' };
   }
 }
 
@@ -719,7 +750,7 @@ function updateGuardian(active: boolean) {
   addFeedMessage(active ? 'Guardian activated' : 'Guardian deactivated');
 }
 
-function updateTilt(score: number, _indicators: string[]) {
+async function updateTilt(score: number, _indicators: string[]) {
   const scoreEl = document.getElementById('tg-score-value');
   if (scoreEl) {
     scoreEl.textContent = Math.round(score).toString();
@@ -732,6 +763,21 @@ function updateTilt(score: number, _indicators: string[]) {
   // Add to feed if high tilt
   if (score >= 60) {
     addFeedMessage(`⚠️ High tilt detected: ${Math.round(score)}`);
+    
+    // Get AI-powered intervention suggestions
+    const aiResult = await callAIGateway('tilt-detection', {
+      context: {
+        recentBets: [],
+        sessionDuration: Math.floor((Date.now() - sessionStats.startTime) / 60000),
+        losses: Math.max(0, sessionStats.totalWagered - sessionStats.totalWins)
+      }
+    });
+    
+    if (aiResult.success && aiResult.data?.interventionSuggestions) {
+      aiResult.data.interventionSuggestions.forEach((suggestion: string) => {
+        addFeedMessage(`💡 ${suggestion}`);
+      });
+    }
   }
 }
 
