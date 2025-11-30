@@ -4,65 +4,82 @@ This document lists the recommended subdomain and Dockerfile path for deploying 
 
 ## ✅ Is this viable?
 
-**Yes!** The TiltCheck monorepo is designed for multi-instance deployment. Each service has its own Dockerfile optimized for containerized deployment. You can run each as a separate Hyperlift app with its own subdomain.
+**Yes!** The TiltCheck monorepo is designed for multi-instance deployment. You can consolidate services to minimize the number of deployments.
 
 ---
 
-## Instance Reference Table
+## 🎯 How Many Instances Do You Need?
 
-| Subdomain | Service | Dockerfile Path | Description | Default Port | Size |
-|-----------|---------|-----------------|-------------|--------------|------|
-| `tiltcheck.me` | Landing Page | `services/landing/Dockerfile` | Main marketing/info site | 8080 | xsm |
-| `dashboard.tiltcheck.me` | Trust Dashboard | `services/dashboard/Dockerfile` | Trust metrics analytics API | 5055 → 8080 | sm |
-| `bot.tiltcheck.me` | Discord Bot (apps) | `apps/discord-bot/Dockerfile` | Main TiltCheck Discord bot | worker (no port) | xsm |
-| `justthetip.tiltcheck.me` | Discord Bot (bot) | `bot/Dockerfile` | Alternate bot with game modules | worker (no port) | xsm |
-| `api.tiltcheck.me` | Backend API | `backend/Dockerfile` | Backend REST API | 7071 → 8080 | sm |
-| `app.tiltcheck.me` | Frontend | `frontend/Dockerfile` | Web application frontend | 3000 → 8080 | sm |
-| `trust.tiltcheck.me` | Trust Rollup | `services/trust-rollup/Dockerfile` | Trust score aggregation | 8082 → 8080 | xsm |
-| `ai.tiltcheck.me` | AI Gateway | `services/ai-gateway/Dockerfile` | AI processing service | 8080 | sm |
+### ⭐ Recommended: 2 Instances (Minimum)
 
----
+The most efficient setup uses just **2 instances**:
 
-## Unified Deployment Option
+| # | Subdomain | Dockerfile Path | Size | What's Included |
+|---|-----------|-----------------|------|-----------------|
+| 1 | `tiltcheck.me` | `Dockerfile.unified` | sm | Landing + Dashboard + nginx (combined) |
+| 2 | `justthetip.tiltcheck.me` | `bot/Dockerfile` | xsm | Discord Bot with all game modules |
 
-If you prefer a single container with Landing + Dashboard + nginx proxy:
-
-| Subdomain | Service | Dockerfile Path | Description | Port |
-|-----------|---------|-----------------|-------------|------|
-| `tiltcheck.me` | Unified (All-in-One) | `Dockerfile.unified` | Landing + Dashboard + nginx proxy | 8080 |
+**Routes on tiltcheck.me:**
+- `/` → Landing page
+- `/dashboard/` → Trust dashboard
+- `/api/*` → Dashboard API
 
 ---
 
-## Discord Bot Instances
+### 3 Instances (Separate Dashboard)
 
-You can run multiple Discord bot instances for different purposes:
+If you want the dashboard on its own subdomain:
 
-### Option A: Full-featured bot (`apps/discord-bot`)
-- **Dockerfile:** `apps/discord-bot/Dockerfile`
-- **Subdomain:** `bot.tiltcheck.me` (worker, no HTTP needed)
-- **Size:** xsm (256MB RAM)
-- **Features:** Complete TiltCheck bot with all modules
-
-### Option B: Game-focused bot (`bot/`)
-- **Dockerfile:** `bot/Dockerfile`
-- **Subdomain:** `justthetip.tiltcheck.me` (worker, no HTTP needed)
-- **Size:** xsm (256MB RAM)
-- **Features:** Game-focused bot with poker, dad jokes, and gambling modules
+| # | Subdomain | Dockerfile Path | Size | What's Included |
+|---|-----------|-----------------|------|-----------------|
+| 1 | `tiltcheck.me` | `services/landing/Dockerfile` | xsm | Landing page only |
+| 2 | `dashboard.tiltcheck.me` | `services/dashboard/Dockerfile` | sm | Trust dashboard + API |
+| 3 | `justthetip.tiltcheck.me` | `bot/Dockerfile` | xsm | Discord Bot |
 
 ---
 
-## Environment Variables Per Instance
+### 4 Instances (Full Web App)
 
-### Discord Bots (apps/discord-bot or bot/)
-```env
-DISCORD_TOKEN=your_bot_token
-DISCORD_CLIENT_ID=your_client_id
-DISCORD_GUILD_ID=your_server_id
-DASHBOARD_URL=https://dashboard.tiltcheck.me
-NODE_ENV=production
-```
+If you need the frontend web app and backend API:
 
-### Dashboard
+| # | Subdomain | Dockerfile Path | Size | What's Included |
+|---|-----------|-----------------|------|-----------------|
+| 1 | `tiltcheck.me` | `Dockerfile.unified` | sm | Landing + Dashboard (combined) |
+| 2 | `app.tiltcheck.me` | `frontend/Dockerfile` | sm | Web frontend |
+| 3 | `api.tiltcheck.me` | `backend/Dockerfile` | sm | Backend API |
+| 4 | `justthetip.tiltcheck.me` | `bot/Dockerfile` | xsm | Discord Bot |
+
+---
+
+## 📦 What Each Dockerfile Combines
+
+| Dockerfile | Services Included | Use When |
+|------------|-------------------|----------|
+| `Dockerfile.unified` | Landing + Dashboard + nginx proxy | You want 1 container for all web services |
+| `Dockerfile` | Full monorepo (all services) | You want everything in 1 container |
+| `bot/Dockerfile` | Discord bot + all game modules | You need the Discord bot |
+| `apps/discord-bot/Dockerfile` | Discord bot (alternate) | Alternative bot setup |
+
+---
+
+## 🔧 Quick Reference: Subdomain → Dockerfile
+
+| Subdomain | Dockerfile Path | Size | Purpose |
+|-----------|-----------------|------|---------|
+| `tiltcheck.me` | `Dockerfile.unified` | sm | Landing + Dashboard combined |
+| `tiltcheck.me` | `services/landing/Dockerfile` | xsm | Landing only |
+| `dashboard.tiltcheck.me` | `services/dashboard/Dockerfile` | sm | Dashboard only |
+| `justthetip.tiltcheck.me` | `bot/Dockerfile` | xsm | Discord Bot |
+| `api.tiltcheck.me` | `backend/Dockerfile` | sm | Backend API |
+| `app.tiltcheck.me` | `frontend/Dockerfile` | sm | Web frontend |
+| `trust.tiltcheck.me` | `services/trust-rollup/Dockerfile` | xsm | Trust aggregation |
+| `ai.tiltcheck.me` | `services/ai-gateway/Dockerfile` | sm | AI processing |
+
+---
+
+## Environment Variables
+
+### For `Dockerfile.unified` (tiltcheck.me)
 ```env
 PORT=8080
 NODE_ENV=production
@@ -71,13 +88,16 @@ DASHBOARD_EVENTS_KEEP_DAYS=7
 DISCORD_WEBHOOK_URL=your_webhook_url
 ```
 
-### Landing
+### For Discord Bot (justthetip.tiltcheck.me)
 ```env
-PORT=8080
+DISCORD_TOKEN=your_bot_token
+DISCORD_CLIENT_ID=your_client_id
+DISCORD_GUILD_ID=your_server_id
+DASHBOARD_URL=https://tiltcheck.me
 NODE_ENV=production
 ```
 
-### Backend API
+### For Backend API (api.tiltcheck.me)
 ```env
 PORT=8080
 NODE_ENV=production
@@ -86,7 +106,7 @@ SUPABASE_URL=your_supabase_url
 SUPABASE_ANON_KEY=your_anon_key
 ```
 
-### Frontend
+### For Frontend (app.tiltcheck.me)
 ```env
 PORT=8080
 NODE_ENV=production
@@ -94,70 +114,24 @@ API_URL=https://api.tiltcheck.me
 WS_URL=wss://api.tiltcheck.me
 ```
 
-### Trust Rollup
-```env
-PORT=8080
-NODE_ENV=production
-```
-
-### AI Gateway
-```env
-PORT=8080
-NODE_ENV=production
-```
-
 ---
 
-## Setup Steps for Each Instance
+## Setup Steps
 
-1. **Create New App in Hyperlift Manager**
-   - Log in to [Hyperlift Manager](https://www.spaceship.com)
-   - Click **New App**
-   - Select the `jmenichole/tiltcheck-monorepo` repository
-
-2. **Configure Dockerfile Path**
-   - Use the Dockerfile path from the table above
-   - Branch: `main`
-
-3. **Set Environment Variables**
-   - Add the required environment variables for that service
-   - Important: Set `PORT=8080` (Hyperlift default)
-
-4. **Configure Custom Domain (Optional)**
-   - In app settings, add your subdomain
-   - Configure DNS to point to Hyperlift
-
-5. **Deploy**
-   - Click **Build & Deploy**
-   - Enable auto-deploy for the `main` branch if desired
-
----
-
-## Service Communication
-
-Configure inter-service communication via environment variables:
-
-```env
-# In Discord Bot
-DASHBOARD_URL=https://dashboard.tiltcheck.me
-
-# In Frontend
-API_URL=https://api.tiltcheck.me
-
-# In Trust Rollup
-DASHBOARD_URL=https://dashboard.tiltcheck.me
-```
+1. **Create New App** in [Hyperlift Manager](https://www.spaceship.com)
+2. **Select Repository:** `jmenichole/tiltcheck-monorepo`
+3. **Set Dockerfile Path** from the table above
+4. **Add Environment Variables** for that service
+5. **Set `PORT=8080`** (required for Hyperlift)
+6. **Deploy** and configure your custom subdomain
 
 ---
 
 ## Notes
 
-- **Port Configuration:** All services should use `PORT=8080` for Hyperlift compatibility
-- **Worker Services:** Discord bots are worker-type services (no HTTP port exposed)
-- **Size Recommendations:** 
-  - `xsm`: Discord bots, landing page, trust rollup
-  - `sm`: Dashboard, backend API, frontend, AI gateway
-- **Auto-builds:** Enable on `main` branch for production deployments
+- **Worker Services:** Discord bots don't need HTTP ports (background workers)
+- **Size Guide:** `xsm` = 256MB RAM, `sm` = 512MB RAM
+- **Auto-builds:** Enable on `main` branch for automatic deployments
 
 ---
 
