@@ -19,6 +19,47 @@ interface CasinoBonusState {
   claims: Map<string, number>;
 }
 
+// User-defined custom bonus categories
+export interface CustomBonusCategory {
+  id: string;
+  userId: string;
+  casinoName: string;
+  categoryName: string; // e.g., "Daily SC", "Streak Bonus", "Deposit Match"
+  cooldownMs: number;
+  lastClaimed?: number;
+  notes?: string;
+  createdAt: number;
+}
+
+// Notification subscription for bonus alerts
+export interface BonusNotificationSubscription {
+  userId: string;
+  casinoName: string;
+  notifyOnReady: boolean;
+  notifyOnNerf: boolean;
+  discordDM: boolean;
+  createdAt: number;
+}
+
+// User bonus claim history entry
+export interface UserBonusHistoryEntry {
+  userId: string;
+  casinoName: string;
+  amount: number;
+  claimedAt: number;
+  categoryId?: string;
+}
+
+// Timer info returned to users
+export interface BonusTimer {
+  casinoName: string;
+  categoryName?: string;
+  nextEligibleAt: number;
+  remainingMs: number;
+  isReady: boolean;
+  currentAmount: number;
+}
+
 export interface TrustGatingConfig {
   enabled: boolean;
   minTrustScore: number;
@@ -43,6 +84,8 @@ export interface CollectClockConfig {
   maxPersistenceLogSizeBytes?: number;
   maxPersistenceLogFiles?: number;
   trustGating?: TrustGatingConfig;
+  notificationWindowMs?: number; // Window for "just became ready" notifications
+  maxUserHistoryEntries?: number; // Max history entries per user
 }
 
 export interface CollectClockLogger {
@@ -63,11 +106,18 @@ const defaultConfig: CollectClockConfig = {
   persistenceLogDir: process.env.COLLECTCLOCK_LOG_DIR,
   maxPersistenceLogSizeBytes: 256 * 1024,
   maxPersistenceLogFiles: 3,
+  notificationWindowMs: 60000, // 1 minute window for "just became ready" notifications
+  maxUserHistoryEntries: 1000, // Max history entries per user
 };
 
 export class CollectClockService {
   private casinos: Map<string, CasinoBonusState> = new Map();
   private cfg: CollectClockConfig;
+  
+  // New: User-specific data stores
+  private customCategories: Map<string, CustomBonusCategory> = new Map(); // key: `${userId}:${casinoName}:${categoryName}`
+  private notifications: Map<string, BonusNotificationSubscription> = new Map(); // key: `${userId}:${casinoName}`
+  private userHistory: UserBonusHistoryEntry[] = [];
 
   constructor(config?: Partial<CollectClockConfig>) {
     this.cfg = { ...defaultConfig, ...(config || {}) };
@@ -190,6 +240,10 @@ export class CollectClockService {
       nextEligibleAt: next,
     };
     eventRouter.publish('bonus.claimed', 'collectclock', evt, userId);
+    
+    // Record to user history
+    this.recordUserClaim(userId, casinoName, state.currentAmount);
+    
     return evt;
   }
 
@@ -230,6 +284,380 @@ export class CollectClockService {
     } catch {
       return [];
     }
+  }
+
+  // =============================================
+  // User Timer Management
+  // =============================================
+
+  /**
+   * Get all bonus timers for a user across all registered casinos
+   */
+  getUserTimers(userId: string): BonusTimer[] {
+    const now = Date.now();
+    const timers: BonusTimer[] = [];
+
+    for (const [casinoName, state] of this.casinos) {
+      const lastClaim = state.claims.get(userId) || 0;
+      const nextEligibleAt = lastClaim + state.cooldownMs;
+      const remainingMs = Math.max(0, nextEligibleAt - now);
+      
+      timers.push({
+        casinoName,
+        nextEligibleAt: lastClaim === 0 ? now : nextEligibleAt,
+        remainingMs: lastClaim === 0 ? 0 : remainingMs,
+        isReady: lastClaim === 0 || remainingMs === 0,
+        currentAmount: state.currentAmount,
+      });
+    }
+
+    // Also include custom category timers
+    for (const [, category] of this.customCategories) {
+      if (category.userId !== userId) continue;
+      const lastClaim = category.lastClaimed || 0;
+      const nextEligibleAt = lastClaim + category.cooldownMs;
+      const remainingMs = Math.max(0, nextEligibleAt - now);
+      
+      timers.push({
+        casinoName: category.casinoName,
+        categoryName: category.categoryName,
+        nextEligibleAt: lastClaim === 0 ? now : nextEligibleAt,
+        remainingMs: lastClaim === 0 ? 0 : remainingMs,
+        isReady: lastClaim === 0 || remainingMs === 0,
+        currentAmount: 0, // Custom categories don't track amounts
+      });
+    }
+
+    return timers;
+  }
+
+  /**
+   * Get timer for a specific casino for a user
+   */
+  getUserTimer(userId: string, casinoName: string): BonusTimer | undefined {
+    const state = this.casinos.get(casinoName);
+    if (!state) return undefined;
+
+    const now = Date.now();
+    const lastClaim = state.claims.get(userId) || 0;
+    const nextEligibleAt = lastClaim + state.cooldownMs;
+    const remainingMs = Math.max(0, nextEligibleAt - now);
+
+    return {
+      casinoName,
+      nextEligibleAt: lastClaim === 0 ? now : nextEligibleAt,
+      remainingMs: lastClaim === 0 ? 0 : remainingMs,
+      isReady: lastClaim === 0 || remainingMs === 0,
+      currentAmount: state.currentAmount,
+    };
+  }
+
+  /**
+   * Get all ready timers for a user (bonuses that can be claimed now)
+   */
+  getReadyTimers(userId: string): BonusTimer[] {
+    return this.getUserTimers(userId).filter(t => t.isReady);
+  }
+
+  // =============================================
+  // Custom Bonus Categories
+  // =============================================
+
+  /**
+   * Create a custom bonus category for a user (e.g., "Daily SC", "Streak Bonus")
+   */
+  createCustomCategory(
+    userId: string,
+    casinoName: string,
+    categoryName: string,
+    cooldownMs: number,
+    notes?: string
+  ): CustomBonusCategory {
+    const key = `${userId}:${casinoName}:${categoryName}`;
+    if (this.customCategories.has(key)) {
+      throw new Error('Category already exists');
+    }
+
+    const category: CustomBonusCategory = {
+      id: key,
+      userId,
+      casinoName,
+      categoryName,
+      cooldownMs,
+      notes,
+      createdAt: Date.now(),
+    };
+
+    this.customCategories.set(key, category);
+    return category;
+  }
+
+  /**
+   * Claim a custom category bonus
+   */
+  claimCustomCategory(userId: string, casinoName: string, categoryName: string): BonusTimer {
+    const key = `${userId}:${casinoName}:${categoryName}`;
+    const category = this.customCategories.get(key);
+    if (!category) {
+      throw new Error('Category not found');
+    }
+
+    const now = Date.now();
+    const lastClaim = category.lastClaimed || 0;
+    if (lastClaim > 0 && now - lastClaim < category.cooldownMs) {
+      throw new Error('Cooldown active for custom category');
+    }
+
+    category.lastClaimed = now;
+
+    const nextEligibleAt = now + category.cooldownMs;
+    return {
+      casinoName,
+      categoryName,
+      nextEligibleAt,
+      remainingMs: category.cooldownMs,
+      isReady: false,
+      currentAmount: 0,
+    };
+  }
+
+  /**
+   * Get all custom categories for a user
+   */
+  getUserCustomCategories(userId: string): CustomBonusCategory[] {
+    return Array.from(this.customCategories.values()).filter(c => c.userId === userId);
+  }
+
+  /**
+   * Delete a custom category
+   */
+  deleteCustomCategory(userId: string, casinoName: string, categoryName: string): boolean {
+    const key = `${userId}:${casinoName}:${categoryName}`;
+    return this.customCategories.delete(key);
+  }
+
+  // =============================================
+  // Notification Subscriptions
+  // =============================================
+
+  /**
+   * Subscribe to bonus notifications for a casino
+   */
+  subscribeNotifications(
+    userId: string,
+    casinoName: string,
+    options: { notifyOnReady?: boolean; notifyOnNerf?: boolean; discordDM?: boolean } = {}
+  ): BonusNotificationSubscription {
+    const key = `${userId}:${casinoName}`;
+    
+    const subscription: BonusNotificationSubscription = {
+      userId,
+      casinoName,
+      notifyOnReady: options.notifyOnReady ?? true,
+      notifyOnNerf: options.notifyOnNerf ?? true,
+      discordDM: options.discordDM ?? true,
+      createdAt: Date.now(),
+    };
+
+    this.notifications.set(key, subscription);
+    return subscription;
+  }
+
+  /**
+   * Unsubscribe from bonus notifications
+   */
+  unsubscribeNotifications(userId: string, casinoName: string): boolean {
+    const key = `${userId}:${casinoName}`;
+    return this.notifications.delete(key);
+  }
+
+  /**
+   * Get all notification subscriptions for a user
+   */
+  getUserNotifications(userId: string): BonusNotificationSubscription[] {
+    return Array.from(this.notifications.values()).filter(n => n.userId === userId);
+  }
+
+  /**
+   * Get users subscribed to a casino's notifications
+   */
+  getCasinoSubscribers(casinoName: string): BonusNotificationSubscription[] {
+    return Array.from(this.notifications.values()).filter(n => n.casinoName === casinoName);
+  }
+
+  /**
+   * Check pending notifications and return users who need to be notified
+   * This should be called periodically by a scheduler
+   */
+  checkPendingNotifications(): Array<{ subscription: BonusNotificationSubscription; type: 'ready' | 'nerf'; details: any }> {
+    const pending: Array<{ subscription: BonusNotificationSubscription; type: 'ready' | 'nerf'; details: any }> = [];
+    const now = Date.now();
+
+    for (const [, subscription] of this.notifications) {
+      if (!subscription.notifyOnReady) continue;
+
+      const state = this.casinos.get(subscription.casinoName);
+      if (!state) continue;
+
+      const lastClaim = state.claims.get(subscription.userId) || 0;
+      const nextEligibleAt = lastClaim + state.cooldownMs;
+      const notificationWindow = this.cfg.notificationWindowMs ?? 60000;
+      
+      // If bonus just became ready (within notification window)
+      if (lastClaim > 0 && nextEligibleAt <= now && nextEligibleAt > now - notificationWindow) {
+        pending.push({
+          subscription,
+          type: 'ready',
+          details: {
+            casinoName: subscription.casinoName,
+            amount: state.currentAmount,
+            readyAt: nextEligibleAt,
+          },
+        });
+      }
+    }
+
+    return pending;
+  }
+
+  // =============================================
+  // User Bonus History
+  // =============================================
+
+  /**
+   * Get bonus claim history for a user
+   */
+  getUserBonusHistory(userId: string, options?: { casinoName?: string; limit?: number }): UserBonusHistoryEntry[] {
+    let history = this.userHistory.filter(h => h.userId === userId);
+    
+    if (options?.casinoName) {
+      history = history.filter(h => h.casinoName === options.casinoName);
+    }
+    
+    // Sort by most recent first
+    history.sort((a, b) => b.claimedAt - a.claimedAt);
+    
+    if (options?.limit) {
+      history = history.slice(0, options.limit);
+    }
+    
+    return history;
+  }
+
+  /**
+   * Get bonus claim statistics for a user
+   */
+  getUserBonusStats(userId: string): { 
+    totalClaims: number; 
+    totalAmount: number; 
+    casinoBreakdown: Record<string, { claims: number; amount: number }>;
+  } {
+    const userClaims = this.userHistory.filter(h => h.userId === userId);
+    const casinoBreakdown: Record<string, { claims: number; amount: number }> = {};
+
+    for (const claim of userClaims) {
+      if (!casinoBreakdown[claim.casinoName]) {
+        casinoBreakdown[claim.casinoName] = { claims: 0, amount: 0 };
+      }
+      casinoBreakdown[claim.casinoName].claims++;
+      casinoBreakdown[claim.casinoName].amount += claim.amount;
+    }
+
+    return {
+      totalClaims: userClaims.length,
+      totalAmount: userClaims.reduce((sum, c) => sum + c.amount, 0),
+      casinoBreakdown,
+    };
+  }
+
+  /**
+   * Record a bonus claim to user history
+   * This is called internally when claimBonus succeeds
+   */
+  private recordUserClaim(userId: string, casinoName: string, amount: number, categoryId?: string): void {
+    this.userHistory.push({
+      userId,
+      casinoName,
+      amount,
+      claimedAt: Date.now(),
+      categoryId,
+    });
+
+    // Trim history per user to prevent memory bloat (more efficient single-pass)
+    const maxEntries = this.cfg.maxUserHistoryEntries ?? 1000;
+    let userCount = 0;
+    
+    // Count user entries efficiently
+    for (const h of this.userHistory) {
+      if (h.userId === userId) userCount++;
+    }
+    
+    if (userCount > maxEntries) {
+      const toRemove = userCount - maxEntries;
+      let removed = 0;
+      // Remove oldest entries first (they're at the beginning since we push new ones)
+      this.userHistory = this.userHistory.filter(h => {
+        if (h.userId === userId && removed < toRemove) {
+          removed++;
+          return false;
+        }
+        return true;
+      });
+    }
+  }
+
+  // =============================================
+  // Nerf Tracking Enhancements
+  // =============================================
+
+  /**
+   * Get nerf history for a casino
+   */
+  getNerfHistory(casinoName: string): { previousAmount: number; newAmount: number; percentDrop: number; detectedAt: number }[] {
+    const state = this.casinos.get(casinoName);
+    if (!state) return [];
+
+    const nerfs: { previousAmount: number; newAmount: number; percentDrop: number; detectedAt: number }[] = [];
+    const history = state.history;
+
+    for (let i = 1; i < history.length; i++) {
+      const prev = history[i - 1];
+      const curr = history[i];
+      if (curr.amount < prev.amount) {
+        const drop = prev.amount - curr.amount;
+        const percentDrop = drop / prev.amount;
+        if (percentDrop >= this.cfg.nerfThresholdPercent) {
+          nerfs.push({
+            previousAmount: prev.amount,
+            newAmount: curr.amount,
+            percentDrop,
+            detectedAt: curr.updatedAt,
+          });
+        }
+      }
+    }
+
+    return nerfs;
+  }
+
+  /**
+   * Get all casinos that have been nerfed
+   */
+  getAllNerfedCasinos(): { casinoName: string; nerfCount: number; lastNerf?: { percentDrop: number; detectedAt: number } }[] {
+    const result: { casinoName: string; nerfCount: number; lastNerf?: { percentDrop: number; detectedAt: number } }[] = [];
+
+    for (const [casinoName] of this.casinos) {
+      const nerfs = this.getNerfHistory(casinoName);
+      if (nerfs.length > 0) {
+        result.push({
+          casinoName,
+          nerfCount: nerfs.length,
+          lastNerf: nerfs[nerfs.length - 1],
+        });
+      }
+    }
+
+    return result;
   }
 
   private writePersistent(filePath: string, data: any[]) {
