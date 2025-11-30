@@ -3,6 +3,8 @@
 Deploy TiltCheck containerized apps directly from GitHub with [Starlight™ Hyperlift](https://www.spaceship.com/starlight-cloud/hyperlift/) — no DevOps or infrastructure setup required.
 
 > 📋 **For a complete list of ALL environment variables**, see **[SPACESHIP-DEPLOYMENT-ENV.md](./SPACESHIP-DEPLOYMENT-ENV.md)**
+>
+> 🚀 **For separate Hyperlift instances with subdomains**, see **[HYPERLIFT-INSTANCES.md](./HYPERLIFT-INSTANCES.md)**
 
 ---
 
