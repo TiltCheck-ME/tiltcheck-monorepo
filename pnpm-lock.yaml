@@ -540,6 +540,18 @@ importers:
         specifier: ^5.0.97
         version: 5.0.103(zod@3.25.76)
 
+  packages/ai-client:
+    devDependencies:
+      typescript:
+        specifier: ^5.3.3
+        version: 5.9.3
+
+  packages/analytics:
+    devDependencies:
+      typescript:
+        specifier: ^5.3.3
+        version: 5.9.3
+
   packages/config:
     devDependencies:
       typescript:
