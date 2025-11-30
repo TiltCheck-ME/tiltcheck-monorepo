@@ -1,25 +1,39 @@
 /**
- * Popup script for browser extension
+ * Popup script for TiltCheck Guardian browser extension
+ * Updated to work with the new popup.html UI layout
  */
+
+// AI Gateway URL (Cloudflare Workers)
+const AI_GATEWAY_URL = 'https://ai-gateway.tiltcheck.me';
 
 let currentSessionId = null;
 let updateInterval = null;
+let isMonitoring = false;
 
-// Get elements
-const statusDot = document.getElementById('statusDot');
-const statusText = document.getElementById('statusText');
-const casinoId = document.getElementById('casinoId');
-const gameId = document.getElementById('gameId');
+// DOM Elements - matching new popup.html structure
+const licenseIcon = document.getElementById('licenseIcon');
+const licenseTitle = document.getElementById('licenseTitle');
+const licenseDetails = document.getElementById('licenseDetails');
+const licenseWarning = document.getElementById('licenseWarning');
+const tiltSection = document.getElementById('tiltSection');
+const tiltScore = document.getElementById('tiltScore');
+const tiltIndicators = document.getElementById('tiltIndicators');
+const interventionBox = document.getElementById('interventionBox');
+const interventionIcon = document.getElementById('interventionIcon');
+const interventionMessage = document.getElementById('interventionMessage');
+const interventionPrimary = document.getElementById('interventionPrimary');
+const interventionSecondary = document.getElementById('interventionSecondary');
+const sessionStats = document.getElementById('sessionStats');
+const statDuration = document.getElementById('statDuration');
+const statBets = document.getElementById('statBets');
+const statProfit = document.getElementById('statProfit');
+const statROI = document.getElementById('statROI');
+const statRTP = document.getElementById('statRTP');
+const statVerdict = document.getElementById('statVerdict');
 const startBtn = document.getElementById('startBtn');
 const stopBtn = document.getElementById('stopBtn');
+const vaultBtn = document.getElementById('vaultBtn');
 const reportBtn = document.getElementById('reportBtn');
-const statsSection = document.getElementById('statsSection');
-const totalSpins = document.getElementById('totalSpins');
-const totalWagered = document.getElementById('totalWagered');
-const totalWon = document.getElementById('totalWon');
-const rtp = document.getElementById('rtp');
-const verdict = document.getElementById('verdict');
-const autoStartToggle = document.getElementById('autoStartToggle');
 
 /**
  * Send message to content script
@@ -39,69 +53,270 @@ function sendMessage(message) {
 }
 
 /**
- * Update UI based on status
+ * Call AI Gateway for tilt detection
  */
-async function updateStatus() {
-  const status = await sendMessage({ type: 'get_status' });
-  
-  if (status.error) {
-    statusText.textContent = 'Not on casino site';
-    statusDot.classList.remove('active');
+async function callAIGateway(application, data) {
+  try {
+    const response = await fetch(`${AI_GATEWAY_URL}/api/ai`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        application,
+        prompt: data.prompt || '',
+        context: data.context || {}
+      })
+    });
+    
+    if (response.ok) {
+      return await response.json();
+    }
+    return { success: false, error: 'AI Gateway request failed' };
+  } catch (error) {
+    console.log('[TiltGuard] AI Gateway offline, using local analysis');
+    return { success: false, error: error.message };
+  }
+}
+
+/**
+ * Update license verification display
+ */
+function updateLicenseDisplay(verification) {
+  if (!verification) {
+    licenseIcon.textContent = '🔍';
+    licenseTitle.textContent = 'Checking license...';
+    licenseDetails.textContent = '-';
     return;
   }
-  
-  if (status.isActive) {
-    statusText.textContent = 'Analyzing...';
-    statusDot.classList.add('active');
-    startBtn.classList.add('hidden');
-    stopBtn.classList.remove('hidden');
-    reportBtn.disabled = false;
-    statsSection.classList.remove('hidden');
-    currentSessionId = status.sessionId;
+
+  if (verification.isLegitimate) {
+    licenseIcon.textContent = '✅';
+    licenseTitle.textContent = 'Licensed Casino';
+    licenseDetails.textContent = verification.licenseInfo?.authority || 'Verified';
+    licenseWarning.classList.add('hidden');
   } else {
-    statusText.textContent = 'Ready';
-    statusDot.classList.remove('active');
-    startBtn.classList.remove('hidden');
-    stopBtn.classList.add('hidden');
-    reportBtn.disabled = true;
-    statsSection.classList.add('hidden');
-    currentSessionId = null;
+    licenseIcon.textContent = '⚠️';
+    licenseTitle.textContent = verification.verdict || 'Unlicensed';
+    licenseDetails.textContent = 'Proceed with caution';
+    licenseWarning.textContent = `⚠️ ${verification.reasoning || 'This casino may not be properly licensed'}`;
+    licenseWarning.classList.remove('hidden');
   }
-  
-  casinoId.textContent = status.casinoId || '-';
-  gameId.textContent = status.gameId || '-';
 }
 
 /**
- * Start analysis
+ * Update tilt monitor display
  */
-async function startAnalysis() {
+async function updateTiltDisplay(tiltData) {
+  if (!tiltData) return;
+
+  tiltSection.classList.remove('hidden');
+  
+  const score = tiltData.tiltRisk || tiltData.tiltScore || 0;
+  tiltScore.textContent = `${Math.round(score)}/100`;
+  
+  // Color-code the tilt score
+  tiltScore.className = 'tilt-score';
+  if (score >= 60) {
+    tiltScore.classList.add('danger');
+  } else if (score >= 30) {
+    tiltScore.classList.add('warning');
+  }
+  
+  // Try AI Gateway for enhanced tilt detection
+  const aiResult = await callAIGateway('tilt-detection', {
+    context: {
+      recentBets: tiltData.recentBets || [],
+      sessionDuration: tiltData.sessionDuration || 0,
+      losses: tiltData.losses || 0
+    }
+  });
+  
+  // Update indicators
+  const indicators = aiResult.success 
+    ? aiResult.data.indicators 
+    : (tiltData.tiltSigns || []).map(s => s.message || s);
+  
+  tiltIndicators.innerHTML = indicators.map(indicator => {
+    const severity = indicator.toLowerCase().includes('critical') ? 'critical' 
+      : indicator.toLowerCase().includes('high') ? 'high'
+      : indicator.toLowerCase().includes('medium') ? 'medium' 
+      : 'low';
+    return `
+      <div class="tilt-indicator ${severity}">
+        <div class="tilt-indicator-title">${indicator}</div>
+      </div>
+    `;
+  }).join('');
+  
+  // Show intervention if AI recommends cooldown
+  if (aiResult.success && aiResult.data.cooldownRecommended) {
+    showIntervention({
+      type: 'cooldown',
+      message: aiResult.data.interventionSuggestions?.[0] || 'Consider taking a break',
+      duration: aiResult.data.cooldownDuration || 300
+    });
+  }
+}
+
+/**
+ * Show intervention UI
+ */
+function showIntervention(intervention) {
+  interventionBox.classList.remove('hidden');
+  
+  if (intervention.type === 'cooldown' || intervention.severity === 'critical') {
+    interventionBox.classList.add('critical');
+    interventionIcon.textContent = '🛑';
+  } else {
+    interventionBox.classList.remove('critical');
+    interventionIcon.textContent = '⚠️';
+  }
+  
+  interventionMessage.textContent = intervention.message;
+  
+  interventionPrimary.textContent = intervention.primaryAction || 'Take Break';
+  interventionPrimary.onclick = () => {
+    sendMessage({ type: 'start_cooldown', duration: intervention.duration || 300000 });
+    interventionBox.classList.add('hidden');
+  };
+  
+  interventionSecondary.textContent = 'Dismiss';
+  interventionSecondary.onclick = () => {
+    interventionBox.classList.add('hidden');
+  };
+}
+
+/**
+ * Update session stats display
+ */
+function updateSessionStats(stats) {
+  if (!stats) return;
+  
+  sessionStats.classList.remove('hidden');
+  
+  // Duration
+  const duration = stats.duration || Math.floor((Date.now() - stats.startTime) / 1000);
+  const minutes = Math.floor(duration / 60);
+  statDuration.textContent = `${minutes}m`;
+  
+  // Bets
+  statBets.textContent = stats.totalBets || 0;
+  
+  // Profit/Loss
+  const profit = (stats.totalWon || 0) - (stats.totalWagered || 0);
+  statProfit.textContent = `$${profit.toFixed(2)}`;
+  statProfit.className = 'stat-value ' + (profit >= 0 ? '' : 'negative');
+  
+  // ROI
+  const roi = stats.totalWagered > 0 
+    ? ((profit / stats.totalWagered) * 100).toFixed(1) 
+    : 0;
+  statROI.textContent = `${roi}%`;
+  statROI.className = 'stat-value ' + (roi >= 0 ? '' : 'negative');
+  
+  // RTP
+  const rtp = stats.totalWagered > 0 
+    ? ((stats.totalWon / stats.totalWagered) * 100).toFixed(1) 
+    : 0;
+  statRTP.textContent = `${rtp}%`;
+  
+  // Verdict
+  if (rtp < 90) {
+    statVerdict.textContent = 'COLD';
+    statVerdict.className = 'stat-value negative';
+  } else if (rtp > 100) {
+    statVerdict.textContent = 'HOT';
+    statVerdict.className = 'stat-value';
+  } else {
+    statVerdict.textContent = 'NORMAL';
+    statVerdict.className = 'stat-value neutral';
+  }
+}
+
+/**
+ * Start Guardian monitoring
+ */
+async function startGuardian() {
   const result = await sendMessage({ type: 'start_analysis' });
   
-  if (result.success) {
-    await updateStatus();
-    startStatsUpdate();
+  if (result.success || !result.error) {
+    isMonitoring = true;
+    currentSessionId = result.sessionId || `session_${Date.now()}`;
+    
+    startBtn.classList.add('hidden');
+    stopBtn.classList.remove('hidden');
+    
+    // Start periodic updates
+    updateInterval = setInterval(refreshStatus, 3000);
+    
+    // Initial update
+    await refreshStatus();
   } else {
-    alert('Failed to start analysis: ' + (result.error || 'Unknown error'));
+    alert('Failed to start: ' + (result.error || 'Unknown error'));
   }
 }
 
 /**
- * Stop analysis
+ * Stop Guardian monitoring
  */
-async function stopAnalysis() {
+async function stopGuardian() {
   const result = await sendMessage({ type: 'stop_analysis' });
   
-  if (result.success) {
-    await updateStatus();
-    stopStatsUpdate();
+  isMonitoring = false;
+  currentSessionId = null;
+  
+  startBtn.classList.remove('hidden');
+  stopBtn.classList.add('hidden');
+  
+  if (updateInterval) {
+    clearInterval(updateInterval);
+    updateInterval = null;
+  }
+  
+  // Hide dynamic sections
+  tiltSection.classList.add('hidden');
+  interventionBox.classList.add('hidden');
+}
+
+/**
+ * Refresh status from content script
+ */
+async function refreshStatus() {
+  // Get license verification
+  const licenseResult = await sendMessage({ type: 'get_license_verification' });
+  if (licenseResult && !licenseResult.error) {
+    updateLicenseDisplay(licenseResult);
+  }
+  
+  // Get tilt data
+  const tiltResult = await sendMessage({ type: 'get_tilt_status' });
+  if (tiltResult && !tiltResult.error) {
+    await updateTiltDisplay(tiltResult);
+  }
+  
+  // Get session stats
+  const statsResult = await sendMessage({ type: 'get_session_stats' });
+  if (statsResult && !statsResult.error) {
+    updateSessionStats(statsResult);
+  }
+  
+  // Check for interventions
+  const interventionResult = await sendMessage({ type: 'get_pending_intervention' });
+  if (interventionResult && interventionResult.intervention) {
+    showIntervention(interventionResult.intervention);
   }
 }
 
 /**
- * View fairness report
+ * Open vault interface
  */
-async function viewReport() {
+function openVault() {
+  chrome.tabs.create({ url: 'https://tiltcheck.me/vault' });
+}
+
+/**
+ * View full report
+ */
+async function viewFullReport() {
   const result = await sendMessage({ type: 'request_report' });
   
   if (result.error) {
@@ -109,90 +324,38 @@ async function viewReport() {
     return;
   }
   
-  const report = result.report;
-  
-  // Update stats
-  if (report.sessionStats) {
-    totalSpins.textContent = report.sessionStats.totalSpins || 0;
-    totalWagered.textContent = `$${(report.sessionStats.totalWagered || 0).toFixed(2)}`;
-    totalWon.textContent = `$${(report.sessionStats.totalWon || 0).toFixed(2)}`;
-    rtp.textContent = `${(report.sessionStats.actualRTP || 0).toFixed(2)}%`;
-    
-    // Color code RTP
-    const rtpValue = report.sessionStats.actualRTP || 0;
-    if (rtpValue < 90) {
-      rtp.classList.add('danger');
-      rtp.classList.remove('warning');
-    } else if (rtpValue < 95) {
-      rtp.classList.add('warning');
-      rtp.classList.remove('danger');
-    } else {
-      rtp.classList.remove('danger', 'warning');
-    }
-  }
-  
-  // Update verdict
-  if (report.verdict) {
-    verdict.textContent = report.verdict.toUpperCase();
-    verdict.className = 'stat-value';
-    
-    if (report.verdict === 'rigged' || report.verdict === 'unfair') {
-      verdict.classList.add('danger');
-    } else if (report.verdict === 'suspicious') {
-      verdict.classList.add('warning');
-    }
-  }
-  
-  // Show detailed report in alert (TODO: better UI)
-  if (report.recommendations && report.recommendations.length > 0) {
-    alert('Report:\n\n' + report.recommendations.join('\n\n'));
-  }
+  // Open report in new tab or show in popup
+  const reportData = JSON.stringify(result.report, null, 2);
+  const blob = new Blob([reportData], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  chrome.tabs.create({ url });
 }
 
-/**
- * Start periodic stats update
- */
-function startStatsUpdate() {
-  if (updateInterval) clearInterval(updateInterval);
-  
-  updateInterval = setInterval(async () => {
-    if (currentSessionId) {
-      await viewReport();
-    }
-  }, 5000); // Update every 5 seconds
-}
+// Event Listeners
+if (startBtn) startBtn.addEventListener('click', startGuardian);
+if (stopBtn) stopBtn.addEventListener('click', stopGuardian);
+if (vaultBtn) vaultBtn.addEventListener('click', openVault);
+if (reportBtn) reportBtn.addEventListener('click', viewFullReport);
 
-/**
- * Stop stats update
- */
-function stopStatsUpdate() {
-  if (updateInterval) {
-    clearInterval(updateInterval);
-    updateInterval = null;
+// Initial status check
+refreshStatus();
+
+// Listen for messages from content script
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  switch (message.type) {
+    case 'license_verification':
+      updateLicenseDisplay(message.data);
+      break;
+    case 'tilt_update':
+      updateTiltDisplay(message.data);
+      break;
+    case 'intervention':
+      showIntervention(message.data);
+      break;
+    case 'session_stats':
+      updateSessionStats(message.data);
+      break;
   }
-}
-
-/**
- * Toggle auto-start
- */
-function toggleAutoStart() {
-  const enabled = autoStartToggle.checked;
-  chrome.storage.local.set({ autoStart: enabled });
-}
-
-// Event listeners
-startBtn.addEventListener('click', startAnalysis);
-stopBtn.addEventListener('click', stopAnalysis);
-reportBtn.addEventListener('click', viewReport);
-autoStartToggle.addEventListener('change', toggleAutoStart);
-
-// Load settings
-chrome.storage.local.get(['autoStart'], (result) => {
-  autoStartToggle.checked = result.autoStart || false;
+  sendResponse({ received: true });
+  return true;
 });
-
-// Initial status update
-updateStatus();
-
-// Update status every 2 seconds
-setInterval(updateStatus, 2000);
