@@ -135,7 +135,7 @@ export class AnalyticsTracker {
     // Generate secure random event ID using crypto API
     const array = new Uint8Array(6);
     window.crypto.getRandomValues(array);
-    const randomHex = Array.from(array).map(b => b.toString(16).padStart(2, '0')).join('');
+    const randomHex = Array.from(array, b => b.toString(16).padStart(2, '0')).join('');
     
     const event = {
       id: `evt_${Date.now()}_${randomHex}`,

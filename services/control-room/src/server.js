@@ -334,7 +334,9 @@ app.get('/api/analytics/summary', requireAuth, (req, res) => {
   // Top pages - use Map to safely handle user-provided keys
   const pageCounts = new Map();
   pageViews.forEach(pv => {
-    const path = String(pv.data?.path || pv.page || '/');
+    // Safely convert to string to prevent property injection
+    const rawPath = pv.data?.path || pv.page || '/';
+    const path = typeof rawPath === 'string' ? rawPath : '/';
     pageCounts.set(path, (pageCounts.get(path) || 0) + 1);
   });
   const topPages = Array.from(pageCounts.entries())
@@ -345,7 +347,9 @@ app.get('/api/analytics/summary', requireAuth, (req, res) => {
   // Events by type - use Map to safely handle user-provided keys
   const eventsByType = new Map();
   relevantEvents.forEach(e => {
-    const eventType = String(e.type || 'unknown');
+    // Safely convert to string to prevent property injection
+    const rawType = e.type || 'unknown';
+    const eventType = typeof rawType === 'string' ? rawType : 'unknown';
     eventsByType.set(eventType, (eventsByType.get(eventType) || 0) + 1);
   });
   
