@@ -445,7 +445,9 @@ app.post('/api/beta/signup', (req, res) => {
     data: { email, interests, source }
   });
   
-  console.log(`[Beta] New signup: ${email}`);
+  // Sanitize email to prevent log injection
+  const safeEmail = typeof email === 'string' ? email.replace(/[\n\r]/g, '') : '';
+  console.log(`[Beta] New signup: "${safeEmail}"`);
   
   res.json({ success: true, id: signup.id });
 });
