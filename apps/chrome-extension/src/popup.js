@@ -13,7 +13,19 @@ const TRUSTED_AI_DOMAINS = [
   'localhost'
 ];
 
-
+/**
+ * Validate AI Gateway URL is from a trusted domain
+ * @param {string} url - The URL to validate
+ * @returns {boolean} - Whether the URL is from a trusted domain
+ */
+function isValidAIGatewayURL(url) {
+  try {
+    const parsedUrl = new URL(url);
+    return TRUSTED_AI_DOMAINS.includes(parsedUrl.hostname);
+  } catch {
+    return false;
+  }
+}
 
 let currentSessionId = null;
 let updateInterval = null;
@@ -65,8 +77,16 @@ function sendMessage(message) {
  * Call AI Gateway for tilt detection
  */
 async function callAIGateway(application, data) {
+  const gatewayUrl = `${AI_GATEWAY_URL}/api/ai`;
+  
+  // Validate URL is from a trusted domain
+  if (!isValidAIGatewayURL(gatewayUrl)) {
+    console.error('[TiltGuard] Untrusted AI Gateway URL blocked');
+    return { success: false, error: 'Untrusted AI Gateway URL' };
+  }
+  
   try {
-    const response = await fetch(`${AI_GATEWAY_URL}/api/ai`, {
+    const response = await fetch(gatewayUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
