@@ -25,6 +25,15 @@
   <!-- Stylesheets -->
   <link rel="stylesheet" href="/styles/theme.css">
   <link rel="stylesheet" href="/styles/main.css">
+  <style>
+    /* Respect reduced motion preferences */
+    @media (prefers-reduced-motion: reduce) {
+      * { animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; transition-duration: 0.001ms !important; }
+    }
+    .mobile-section-toggle { display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; border: 1px solid #2a2f34; border-radius: 6px; background: #11161b; color: #eee; margin-top: 10px; }
+    .mobile-section-toggle[aria-expanded="true"] { background: #151a20; }
+    .mobile-section-content { display: none; padding: 6px 10px; }
+  </style>
   
   <!-- Preconnect for performance -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -34,7 +43,8 @@
   <link rel="icon" type="image/svg+xml" href="/assets/logo/favicon-white.svg">
   <link rel="manifest" href="/manifest.json">
   <!-- Preload optimized hero background (will convert to WebP later) -->
-  <link rel="preload" as="image" href="/assets/images/Dark%20gradient%20hero%20background,%20layered%20radial%20neon%20teal%20and%20purple%20energy%20waves,%20soft%20gold%20sparks,%20minimal%20abstract%20pattern,%20high-resolution%20texture%20for%20overlay%20use.jpg" fetchpriority="high">
+  <!-- Preload hero image that matches the displayed source -->
+  <link rel="preload" as="image" href="/assets/images/dark-gradient-hero-background-layered-radial-neon-teal-and-purple-energy-waves-soft-gold-sparks-minimal-abstract-pattern-high-resolution-texture-for-overlay-use.webp" fetchpriority="high">
   <link rel="canonical" href="https://tiltcheck.me/" />
   <script type="application/ld+json">{ "@context": "https://schema.org", "@type": "Organization", "name": "TiltCheck", "url": "https://tiltcheck.me/", "logo": "https://tiltcheck.me/assets/logo/favicon-white.svg", "sameAs": ["https://x.com/Tilt_check","https://github.com/jmenichole/tiltcheck-monorepo"] }</script>
 </head>
@@ -55,6 +65,58 @@
       </svg>
       Login
     </a>
+    <!-- Education & Help Dropdown -->
+    <div class="nav-dropdown" role="navigation" aria-label="Education & Help">
+      <button class="nav-dropbtn" aria-haspopup="true" aria-expanded="false">Education & Help</button>
+      <div class="nav-dropdown-content">
+        <a href="/getting-started.html">Getting Started</a>
+        <a href="/tutorials.html">Tutorials</a>
+        <a href="/glossary.html">Glossary</a>
+        <a href="/responsible-gambling.html">Responsible Gambling</a>
+        <a href="/help.html">Help Center</a>
+      </div>
+    </div>
+    <!-- Transparency & Data Dropdown -->
+    <div class="nav-dropdown" role="navigation" aria-label="Transparency & Data">
+      <button class="nav-dropbtn" aria-haspopup="true" aria-expanded="false">Transparency & Data</button>
+      <div class="nav-dropdown-content">
+        <a href="/stats-dashboard.html">Stats Dashboard</a>
+        <a href="/casino-reviews.html">Casino Reviews</a>
+        <a href="/scam-reports.html">Scam Reports</a>
+        <a href="/trust-api.html">Trust Score API Docs</a>
+        <a href="/transparency-reports.html">Transparency Reports</a>
+      </div>
+    </div>
+    <!-- Legal & Compliance Dropdown -->
+    <div class="nav-dropdown" role="navigation" aria-label="Legal & Compliance">
+      <button class="nav-dropbtn" aria-haspopup="true" aria-expanded="false">Legal & Compliance</button>
+      <div class="nav-dropdown-content">
+        <a href="/privacy.html">Privacy Policy</a>
+        <a href="/terms.html">Terms of Service</a>
+        <a href="/compliance.html">Compliance Overview</a>
+        <a href="/licensing.html">Licensing Info</a>
+        <a href="/cookie-policy.html">Cookie Policy</a>
+      </div>
+    </div>
+    <a href="/newsletter.html">Newsletter</a>
+    <a href="/press-kit.html">Press Kit</a>
+    <a href="/testimonials.html">Testimonials</a>
+    <a href="/contact.html">Contact</a>
+    <!-- Tools Dropdown -->
+    <div class="nav-dropdown" role="navigation" aria-label="Tools">
+      <button class="nav-dropbtn" aria-haspopup="true" aria-expanded="false">Tools</button>
+      <div class="nav-dropdown-content">
+        <a href="/tools/justthetip.html">JustTheTip</a>
+        <a href="/tools/suslink.html">SusLink</a>
+        <a href="/tools/collectclock.html">CollectClock</a>
+        <a href="/tools/freespinscan.html">FreeSpinScan</a>
+        <a href="/tools/tiltcheck-core.html">TiltCheck Core</a>
+        <a href="/tools/daad.html">DA&D</a>
+        <a href="/tools/qualifyfirst.html">QualifyFirst</a>
+        <a href="/tools/poker.html">Poker</a>
+        <a href="/tools/triviadrops.html">TriviaDrops</a>
+      </div>
+    </div>
     
     <!-- Hamburger Menu Button (mobile) -->
     <button class="hamburger-btn" aria-label="Open menu" aria-expanded="false" onclick="toggleMobileNav()">
@@ -66,12 +128,41 @@
   <div class="mobile-nav" id="mobileNav" aria-hidden="true">
     <div class="mobile-nav-links">
       <a href="/">Home</a>
+      <a href="/casinos.html">Casinos</a>
+      <a href="/degen-trust.html">Degens</a>
+      <a href="/trust-scores.html">Trust Scores</a>
+      <a href="/dashboard">Dashboard</a>
       <a href="/about.html">About</a>
-      <a href="/how-it-works.html">How It Works</a>
-      <a href="/casinos.html">Casino Trust</a>
-      <a href="/degen-trust.html">Degen Trust</a>
-      <a href="/trust-explained.html">Trust Explained</a>
-      <a href="/faq.html">FAQ</a>
+      <button class="mobile-section-toggle" aria-expanded="false" aria-controls="mobile-edu">Education & Help<span>▾</span></button>
+      <div id="mobile-edu" class="mobile-section-content" aria-hidden="true">
+        <a href="/how-it-works.html">How It Works</a>
+        <a href="/faq.html">FAQ</a>
+        <a href="/getting-started.html">Getting Started</a>
+        <a href="/tutorials.html">Tutorials</a>
+        <a href="/glossary.html">Glossary</a>
+        <a href="/responsible-gambling.html">Responsible Gambling</a>
+        <a href="/help.html">Help Center</a>
+      </div>
+      <button class="mobile-section-toggle" aria-expanded="false" aria-controls="mobile-trans">Transparency & Data<span>▾</span></button>
+      <div id="mobile-trans" class="mobile-section-content" aria-hidden="true">
+        <a href="/stats-dashboard.html">Stats Dashboard</a>
+        <a href="/casino-reviews.html">Casino Reviews</a>
+        <a href="/scam-reports.html">Scam Reports</a>
+        <a href="/trust-api.html">Trust Score API Docs</a>
+        <a href="/transparency-reports.html">Transparency Reports</a>
+      </div>
+      <button class="mobile-section-toggle" aria-expanded="false" aria-controls="mobile-legal">Legal & Compliance<span>▾</span></button>
+      <div id="mobile-legal" class="mobile-section-content" aria-hidden="true">
+        <a href="/privacy.html">Privacy Policy</a>
+        <a href="/terms.html">Terms of Service</a>
+        <a href="/compliance.html">Compliance Overview</a>
+        <a href="/licensing.html">Licensing Info</a>
+        <a href="/cookie-policy.html">Cookie Policy</a>
+      </div>
+      <a href="/newsletter.html">Newsletter</a>
+      <a href="/press-kit.html">Press Kit</a>
+      <a href="/testimonials.html">Testimonials</a>
+      <a href="/contact.html">Contact</a>
     </div>
     
     <div class="mobile-nav-section">
@@ -112,9 +203,12 @@
     </div>
     
     <div class="mobile-nav-section">
-      <h3>Legal</h3>
+      <h3>Legal & Compliance</h3>
       <a href="/privacy.html">Privacy Policy</a>
       <a href="/terms.html">Terms of Service</a>
+      <a href="/compliance.html">Compliance Overview</a>
+      <a href="/licensing.html">Licensing Info</a>
+      <a href="/cookie-policy.html">Cookie Policy</a>
     </div>
   </div>
 
@@ -381,6 +475,7 @@
       <div class="footer-grid">
         <div>
           <h3>TiltCheck</h3>
+          <p><strong>Mission:</strong> TiltCheck: The only casino tool that wants you to win, not just play. We’re not your mom, but we’ll yell at you if you’re about to get scammed. Built for degens who hate losing to the house and to themselves—anti-tilt, anti-scam, pro-fun. Degen smarter, not harder.</p>
           <p>Protecting degens from tilt-induced disaster since 2024.</p>
         </div>
         <div>
@@ -443,6 +538,7 @@
       toggle.addEventListener('click',()=>{
         mode = mode === 'default' ? 'degen' : 'default';
         document.documentElement.setAttribute('data-theme', mode);
+        try { localStorage.setItem('tc-theme', mode); } catch(e) {}
       });
       requestIdleCallback(() => document.body.appendChild(toggle));
     })();
@@ -567,6 +663,17 @@
         toggleMobileNav();
       });
     });
+      // Collapsible mobile sections
+      document.querySelectorAll('.mobile-section-toggle').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const targetId = btn.getAttribute('aria-controls');
+          const section = document.getElementById(targetId);
+          const expanded = btn.getAttribute('aria-expanded') === 'true';
+          btn.setAttribute('aria-expanded', String(!expanded));
+          section.style.display = expanded ? 'none' : 'block';
+          section.setAttribute('aria-hidden', String(expanded));
+        });
+      });
     
     // Close on escape key
     document.addEventListener('keydown', (e) => {
@@ -574,6 +681,32 @@
         toggleMobileNav();
       }
     });
+  </script>
+  <script>
+    // Accessible dropdowns: basic keyboard toggle and escape to close
+    (function(){
+      document.querySelectorAll('.nav-dropdown .nav-dropbtn').forEach(btn => {
+        const content = btn.nextElementSibling;
+        btn.addEventListener('click', () => {
+          const expanded = btn.getAttribute('aria-expanded') === 'true';
+          btn.setAttribute('aria-expanded', String(!expanded));
+          content.style.display = expanded ? 'none' : 'block';
+        });
+        btn.addEventListener('keydown', (e) => {
+          if (e.key === 'Escape') {
+            btn.setAttribute('aria-expanded', 'false');
+            content.style.display = 'none';
+            btn.blur();
+          }
+        });
+        document.addEventListener('click', (e) => {
+          if (!btn.parentElement.contains(e.target)) {
+            btn.setAttribute('aria-expanded', 'false');
+            content.style.display = 'none';
+          }
+        });
+      });
+    })();
   </script>
   <script src="/scripts/auth.js"></script>
 </body>
