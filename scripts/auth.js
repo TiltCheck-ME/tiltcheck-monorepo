@@ -11,6 +11,9 @@ class TiltCheckAuth {
 
   async init() {
     await this.checkAuthStatus();
+    if (this.user && !this.hasAcceptedTerms()) {
+      this.showTermsModal();
+    }
     this.updateNavigation();
   }
 
@@ -157,6 +160,83 @@ class TiltCheckAuth {
 
   getUser() {
     return this.user;
+  }
+
+  hasAcceptedTerms() {
+    if (!this.user) return false;
+    const accepted = localStorage.getItem(`terms_accepted_${this.user.id}`);
+    return accepted === 'true';
+  }
+
+  acceptTerms() {
+    if (this.user) {
+      localStorage.setItem(`terms_accepted_${this.user.id}`, 'true');
+      localStorage.setItem(`terms_accepted_date_${this.user.id}`, new Date().toISOString());
+    }
+  }
+
+  showTermsModal() {
+    const modal = document.createElement('div');
+    modal.style.cssText = 'position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.9); display: flex; align-items: center; justify-content: center; z-index: 10000; padding: 20px;';
+    
+    modal.innerHTML = `
+      <div style="background: #1a1f24; border: 2px solid #00d4aa; border-radius: 12px; max-width: 600px; width: 100%; max-height: 80vh; overflow-y: auto; padding: 30px;">
+        <h2 style="color: #00d4aa; margin-bottom: 20px; font-size: 1.8rem;">⚖️ Terms & Conditions</h2>
+        <div style="color: #ccc; line-height: 1.6; margin-bottom: 24px;">
+          <p style="margin-bottom: 16px;">Welcome to TiltCheck! Before you continue, please review and accept our terms:</p>
+          
+          <h3 style="color: #00d4aa; font-size: 1.2rem; margin: 20px 0 10px;">What You're Agreeing To:</h3>
+          <ul style="margin-left: 20px; margin-bottom: 16px;">
+            <li style="margin-bottom: 8px;">TiltCheck is a transparency tool, not financial advice</li>
+            <li style="margin-bottom: 8px;">All crypto transactions are non-custodial (you control your keys)</li>
+            <li style="margin-bottom: 8px;">Tilt detection signals are informational, not diagnostic</li>
+            <li style="margin-bottom: 8px;">We collect anonymous usage analytics to improve the platform</li>
+            <li style="margin-bottom: 8px;">Discord integration requires read access to messages in enabled servers</li>
+          </ul>
+
+          <h3 style="color: #00d4aa; font-size: 1.2rem; margin: 20px 0 10px;">Your Responsibilities:</h3>
+          <ul style="margin-left: 20px; margin-bottom: 16px;">
+            <li style="margin-bottom: 8px;">You are 18+ years old or have parental consent</li>
+            <li style="margin-bottom: 8px;">You understand gambling risks and your local laws</li>
+            <li style="margin-bottom: 8px;">You will not abuse, exploit, or misuse TiltCheck services</li>
+            <li style="margin-bottom: 8px;">You acknowledge that TiltCheck is provided "as-is" without warranties</li>
+          </ul>
+
+          <p style="margin: 20px 0; padding: 16px; background: #0f1419; border-left: 4px solid #ff6b6b; border-radius: 4px;">
+            <strong style="color: #ff6b6b;">⚠️ Important:</strong> TiltCheck cannot prevent tilt, guarantee fairness, or recover losses. Always gamble responsibly.
+          </p>
+
+          <p style="font-size: 0.9rem; color: #888;">
+            By clicking "I Accept", you agree to our 
+            <a href="/terms.html" target="_blank" style="color: #00d4aa; text-decoration: underline;">Terms of Service</a> and 
+            <a href="/privacy.html" target="_blank" style="color: #00d4aa; text-decoration: underline;">Privacy Policy</a>.
+          </p>
+        </div>
+        
+        <div style="display: flex; gap: 12px; justify-content: flex-end;">
+          <button id="terms-decline" style="padding: 12px 24px; background: #2a2f34; color: #eee; border: 1px solid #444; border-radius: 6px; cursor: pointer; font-weight: 600;">Decline & Logout</button>
+          <button id="terms-accept" style="padding: 12px 24px; background: #00d4aa; color: #0a0e13; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">I Accept</button>
+        </div>
+      </div>
+    `;
+
+    document.body.appendChild(modal);
+
+    document.getElementById('terms-accept').onclick = () => {
+      this.acceptTerms();
+      document.body.removeChild(modal);
+    };
+
+    document.getElementById('terms-decline').onclick = () => {
+      this.logout();
+    };
+
+    // Prevent closing by clicking outside
+    modal.onclick = (e) => {
+      if (e.target === modal) {
+        e.stopPropagation();
+      }
+    };
   }
 }
 
