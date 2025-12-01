@@ -62,7 +62,7 @@ export class AnalyticsTracker {
   private sessionId: string;
   private userId?: string;
   private eventQueue: any[] = [];
-  private flushTimeout: number | null = null;
+  private _flushTimeout: number | null = null;
   private maxScrollDepth = 0;
   private pageStartTime = Date.now();
 

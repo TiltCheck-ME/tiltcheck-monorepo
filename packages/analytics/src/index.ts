@@ -122,7 +122,7 @@ const heatmaps = new Map<string, HeatmapData>();
 export class AnalyticsServer {
   private config: AnalyticsConfig;
   private maxEvents = 100000; // Max events to keep in memory
-  private flushInterval: NodeJS.Timeout | null = null;
+  private _flushInterval: NodeJS.Timeout | null = null;
 
   constructor(config: Partial<AnalyticsConfig> = {}) {
     this.config = {
