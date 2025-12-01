@@ -738,7 +738,7 @@ importers:
         version: 0.1.4
       pm2:
         specifier: ^6.0.9
-        version: 6.0.9(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+        version: 6.0.14(bufferutil@4.0.9)(utf-8-validate@5.0.10)
       tweetnacl:
         specifier: ^1.0.3
         version: 1.0.3
@@ -1700,6 +1700,11 @@ packages:
   '@pm2/agent@2.1.1':
     resolution: {integrity: sha512-0V9ckHWd/HSC8BgAbZSoq8KXUG81X97nSkAxmhKDhmF8vanyaoc1YXwc2KVkbWz82Rg4gjd2n9qiT3i7bdvGrQ==}
 
+  '@pm2/blessed@0.1.81':
+    resolution: {integrity: sha512-ZcNHqQjMuNRcQ7Z1zJbFIQZO/BDKV3KbiTckWdfbUaYhj7uNmUwb+FbdDWSCkvxNr9dBJQwvV17o6QBkAvgO0g==}
+    engines: {node: '>= 0.8.0'}
+    hasBin: true
+
   '@pm2/io@6.1.0':
     resolution: {integrity: sha512-IxHuYURa3+FQ6BKePlgChZkqABUKFYH6Bwbw7V/pWU1pP6iR1sCI26l7P9ThUEB385ruZn/tZS3CXDUF5IA1NQ==}
     engines: {node: '>=6.0'}
@@ -2447,11 +2452,6 @@ packages:
   bindings@1.5.0:
     resolution: {integrity: sha512-p2q/t/mhvuOj/UeLlV6566GD/guowlr0hHxClI0W9m7MWYkL1F0hLo+0Aexs9HSPCtR1SXQ0TD3MMKrXZajbiQ==}
 
-  blessed@0.1.81:
-    resolution: {integrity: sha512-LoF5gae+hlmfORcG1M5+5XZi4LBmvlXTzwJWzUlPryN/SJdSflZvROM2TwkT0GMpq7oqT48NRd4GS7BiVBc5OQ==}
-    engines: {node: '>= 0.8.0'}
-    hasBin: true
-
   bn.js@5.2.2:
     resolution: {integrity: sha512-v2YAxEmKaBLahNwE1mjp4WON6huMNeuDvagFZW+ASCuA/ku0bXR9hSMw0XpiqMoA3+rmnyck/tPRSFQkoC9Cuw==}
 
@@ -2693,8 +2693,8 @@ packages:
     resolution: {integrity: sha512-fnULvOpxnC5/Vg3NCiWelDsLiUc9bRwAPs/+LfTLNvetFCtCTN+yQz15C/fs4AwX1R9K5GLtLfn8QW+dWisaAw==}
     engines: {node: '>=0.11'}
 
-  dayjs@1.11.19:
-    resolution: {integrity: sha512-t5EcLVS6QPBNqM2z8fakk/NKel+Xzshgt8FFKAn+qwlD1pzZWxh0nVCrvFK7ZDb6XucZeF9z8C7CBWTRIVApAw==}
+  dayjs@1.11.15:
+    resolution: {integrity: sha512-MC+DfnSWiM9APs7fpiurHGCoeIx0Gdl6QZBy+5lu8MbYKN5FZEXqOgrundfibdfhGZ15o9hzmZ2xJjZnbvgKXQ==}
 
   dayjs@1.8.36:
     resolution: {integrity: sha512-3VmRXEtw7RZKAf+4Tv1Ym9AGeo8r8+CjDi26x+7SYQil1UqtqdaokhzoEJohqlzt0m5kacJSDhJQkG/LWhpRBw==}
@@ -3913,8 +3913,8 @@ packages:
   pm2-sysmonit@1.2.8:
     resolution: {integrity: sha512-ACOhlONEXdCTVwKieBIQLSi2tQZ8eKinhcr9JpZSUAL8Qy0ajIgRtsLxG/lwPOW3JEKqPyw/UaHmTWhUzpP4kA==}
 
-  pm2@6.0.9:
-    resolution: {integrity: sha512-OyXwuqOjH4LpaA7mQtqCgAp1fWrnjL7Qwz3NjBJEnc9UMXUEoUrv447X8XoFiyw1JUJfM6IqXSSy2MlIxISvTg==}
+  pm2@6.0.14:
+    resolution: {integrity: sha512-wX1FiFkzuT2H/UUEA8QNXDAA9MMHDsK/3UHj6Dkd5U7kxyigKDA5gyDw78ycTQZAuGCLWyUX5FiXEuVQWafukA==}
     engines: {node: '>=16.0.0'}
     hasBin: true
 
@@ -4105,6 +4105,11 @@ packages:
 
   semver@7.5.4:
     resolution: {integrity: sha512-1bCSESV6Pv+i21Hvpxp3Dx+pSD8lIPt8uVjRrxAUt/nbswYc+tK6Y2btiULjd4+fnq15PX+nqQDC7Oft7WkwcA==}
+    engines: {node: '>=10'}
+    hasBin: true
+
+  semver@7.7.2:
+    resolution: {integrity: sha512-RF0Fw+rO5AMf9MAyaRXI4AV0Ulj5lMHqVxxdSgiVbixSCXoEmmX/jk0CuJw4+3SqroYO9VoUh+HcuJivvtJemA==}
     engines: {node: '>=10'}
     hasBin: true
 
@@ -5409,12 +5414,14 @@ snapshots:
       pm2-axon: 4.0.1
       pm2-axon-rpc: 0.7.1
       proxy-agent: 6.4.0
-      semver: 7.7.3
+      semver: 7.7.2
       ws: 7.5.10(bufferutil@4.0.9)(utf-8-validate@5.0.10)
     transitivePeerDependencies:
       - bufferutil
       - supports-color
       - utf-8-validate
+
+  '@pm2/blessed@0.1.81': {}
 
   '@pm2/io@6.1.0':
     dependencies:
@@ -6313,8 +6320,6 @@ snapshots:
     dependencies:
       file-uri-to-path: 1.0.0
 
-  blessed@0.1.81: {}
-
   bn.js@5.2.2: {}
 
   bodec@0.1.0: {}
@@ -6579,7 +6584,7 @@ snapshots:
     dependencies:
       '@babel/runtime': 7.28.4
 
-  dayjs@1.11.19: {}
+  dayjs@1.11.15: {}
 
   dayjs@1.8.36: {}
 
@@ -7914,20 +7919,20 @@ snapshots:
       - supports-color
     optional: true
 
-  pm2@6.0.9(bufferutil@4.0.9)(utf-8-validate@5.0.10):
+  pm2@6.0.14(bufferutil@4.0.9)(utf-8-validate@5.0.10):
     dependencies:
       '@pm2/agent': 2.1.1(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+      '@pm2/blessed': 0.1.81
       '@pm2/io': 6.1.0
       '@pm2/js-api': 0.8.0(bufferutil@4.0.9)(utf-8-validate@5.0.10)
       '@pm2/pm2-version-check': 1.0.4
       ansis: 4.0.0-node10
       async: 3.2.6
-      blessed: 0.1.81
       chokidar: 3.6.0
       cli-tableau: 2.0.1
       commander: 2.15.1
       croner: 4.1.97
-      dayjs: 1.11.19
+      dayjs: 1.11.15
       debug: 4.4.3
       enquirer: 2.3.6
       eventemitter2: 5.0.1
@@ -7941,7 +7946,7 @@ snapshots:
       pm2-deploy: 1.0.2
       pm2-multimeter: 0.1.2
       promptly: 2.2.0
-      semver: 7.7.3
+      semver: 7.7.2
       source-map-support: 0.5.21
       sprintf-js: 1.1.2
       vizion: 2.2.1
@@ -8204,6 +8209,8 @@ snapshots:
   semver@7.5.4:
     dependencies:
       lru-cache: 6.0.0
+
+  semver@7.7.2: {}
 
   semver@7.7.3: {}
 
