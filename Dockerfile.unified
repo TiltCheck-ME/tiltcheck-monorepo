@@ -21,25 +21,13 @@ RUN apt-get update -qq && \
     apt-get install --no-install-recommends -y build-essential node-gyp pkg-config python-is-python3 && \
     rm -rf /var/lib/apt/lists/*
 
-# Copy package files first for better layer caching
-COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
-COPY packages/*/package.json ./packages/
-COPY apps/*/package.json ./apps/
-COPY backend/package.json ./backend/
-COPY bot/package.json ./bot/
-COPY frontend/package.json ./frontend/
-COPY modules/*/package.json ./modules/
-COPY services/*/package.json ./services/
-
-# Install dependencies with timeout and retry settings
-RUN pnpm config set network-timeout 300000 && \
-    pnpm config set fetch-retries 5 && \
-    pnpm config set fetch-retry-mintimeout 20000 && \
-    pnpm config set fetch-retry-maxtimeout 120000 && \
-    pnpm install --frozen-lockfile --prod=false
-
-# Copy source code
+# Copy everything (simpler, more reliable for monorepos)
 COPY . .
+
+# Install dependencies with network settings and no lockfile freeze
+RUN pnpm config set network-timeout 600000 && \
+    pnpm config set fetch-retries 3 && \
+    pnpm install --no-frozen-lockfile
 
 # Build all workspaces
 RUN pnpm run build
