@@ -17,6 +17,7 @@ class ProfileManager {
     await this.loadUser();
     await this.loadStats();
     await this.loadRecentGames();
+    await this.loadTipHistory();
     this.setupEventListeners();
   }
 
@@ -229,6 +230,97 @@ class ProfileManager {
     if (diffDays < 7) return `${diffDays}d ago`;
     
     return date.toLocaleDateString();
+  }
+
+  async loadTipHistory() {
+    if (!this.user) return;
+
+    try {
+      // Mock tip history for now - will integrate with JustTheTip API later
+      const tipHistory = await this.fetchTipHistory();
+      
+      // Update tip stats
+      const stats = this.calculateTipStats(tipHistory);
+      this.setElementText('tip-total-sent', `${stats.totalSent.toFixed(4)} SOL`);
+      this.setElementText('tip-total-received', `${stats.totalReceived.toFixed(4)} SOL`);
+      this.setElementText('tip-count-sent', stats.countSent);
+      this.setElementText('tip-count-received', stats.countReceived);
+
+      // Display tip history
+      const listContainer = document.getElementById('tip-history-list');
+      if (!listContainer) return;
+
+      if (tipHistory.length === 0) {
+        listContainer.innerHTML = '<div style="text-align: center; padding: 40px; color: #888;">No tip history yet. Start tipping with <a href="/tools/justthetip.html" style="color: #00d4aa;">JustTheTip</a>!</div>';
+        return;
+      }
+
+      listContainer.innerHTML = tipHistory.map(tip => `
+        <div class="game-history-item" style="padding: 16px; background: #0f1419; border-radius: 8px; margin-bottom: 12px; border-left: 4px solid ${tip.type === 'sent' ? '#ff6b6b' : '#00d4aa'};">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div>
+              <div style="font-weight: 600; color: ${tip.type === 'sent' ? '#ff6b6b' : '#00d4aa'}; margin-bottom: 4px;">
+                ${tip.type === 'sent' ? '↗️ Sent' : '↙️ Received'} ${tip.amount} SOL
+              </div>
+              <div style="font-size: 0.9rem; color: #888;">
+                ${tip.type === 'sent' ? 'To: ' : 'From: '}${tip.otherUser}
+              </div>
+              ${tip.note ? `<div style="font-size: 0.85rem; color: #aaa; margin-top: 4px; font-style: italic;">"${tip.note}"</div>` : ''}
+            </div>
+            <div style="text-align: right; color: #888; font-size: 0.85rem;">
+              ${this.formatDate(tip.timestamp)}
+            </div>
+          </div>
+        </div>
+      `).join('');
+    } catch (error) {
+      console.error('Failed to load tip history:', error);
+      const listContainer = document.getElementById('tip-history-list');
+      if (listContainer) {
+        listContainer.innerHTML = '<div style="text-align: center; padding: 40px; color: #ff6b6b;">Failed to load tip history</div>';
+      }
+    }
+  }
+
+  async fetchTipHistory() {
+    // Mock data for now - will replace with actual API call
+    // TODO: Integrate with JustTheTip backend API
+    return [
+      {
+        type: 'received',
+        amount: 0.05,
+        otherUser: 'CryptoWhale#1234',
+        note: 'Nice play!',
+        timestamp: new Date(Date.now() - 3600000).toISOString()
+      },
+      {
+        type: 'sent',
+        amount: 0.02,
+        otherUser: 'DegenKing#5678',
+        note: 'Thanks for the tip earlier',
+        timestamp: new Date(Date.now() - 86400000).toISOString()
+      },
+      {
+        type: 'received',
+        amount: 0.1,
+        otherUser: 'LuckyDegen#9999',
+        note: '',
+        timestamp: new Date(Date.now() - 172800000).toISOString()
+      }
+    ];
+  }
+
+  calculateTipStats(tips) {
+    return tips.reduce((acc, tip) => {
+      if (tip.type === 'sent') {
+        acc.totalSent += tip.amount;
+        acc.countSent++;
+      } else {
+        acc.totalReceived += tip.amount;
+        acc.countReceived++;
+      }
+      return acc;
+    }, { totalSent: 0, totalReceived: 0, countSent: 0, countReceived: 0 });
   }
 
   setElementText(id, text) {
