@@ -181,6 +181,9 @@ export async function getWalletBalance(userId: string): Promise<number> {
  * Check if user has wallet registered
  */
 export function hasWallet(userId: string): boolean {
+  return wallets.has(userId);
+}
+
 /**
  * Remove wallet for user
  */
@@ -193,9 +196,6 @@ export async function removeWallet(userId: string): Promise<boolean> {
   }
   
   return deleted;
-}*/
-export function removeWallet(userId: string): boolean {
-  return wallets.delete(userId);
 }
 
 /**

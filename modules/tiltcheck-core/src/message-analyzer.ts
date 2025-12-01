@@ -13,8 +13,10 @@ let aiClient: any = null;
 async function getAIClient() {
   if (!aiClient) {
     try {
-      const module = await import('@tiltcheck/ai-client');
-      aiClient = module.aiClient;
+      // TODO: Re-enable when ai-client package is built
+      // const module = await import('@tiltcheck/ai-client');
+      // aiClient = module.aiClient;
+      console.log('[TiltCheck] AI client not available, using local analysis only');
     } catch {
       console.log('[TiltCheck] AI client not available, using local analysis only');
     }

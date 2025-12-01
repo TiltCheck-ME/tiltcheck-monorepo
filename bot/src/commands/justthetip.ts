@@ -141,7 +141,7 @@ async function handleWallet(interaction: ChatInputCommandInteraction) {
     }
 
     try {
-      const wallet = registerExternalWallet(interaction.user.id, address);
+      const wallet = await registerExternalWallet(interaction.user.id, address);
       
       const embed = new EmbedBuilder()
         .setColor(0x00FF00)
