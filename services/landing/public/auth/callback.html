@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Authenticating... | TiltCheck</title>
+  <meta name="robots" content="noindex">
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background: #0a0e13;
+      color: #e0e0e0;
+      font-family: system-ui, -apple-system, sans-serif;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+    }
+    .auth-container {
+      text-align: center;
+      padding: 40px;
+    }
+    .spinner {
+      width: 50px;
+      height: 50px;
+      border: 4px solid #1a1f24;
+      border-top-color: #00d4aa;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 20px;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    h1 {
+      color: #00d4aa;
+      font-size: 1.5rem;
+      margin-bottom: 10px;
+    }
+    p {
+      color: #888;
+      margin: 0;
+    }
+    .error {
+      color: #ff6b6b;
+      margin-top: 20px;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="auth-container">
+    <div class="spinner"></div>
+    <h1>Authenticating...</h1>
+    <p>Please wait while we complete your Discord login.</p>
+    <p class="error" id="error-message"></p>
+  </div>
+
+  <script src="/scripts/auth.js"></script>
+  <script>
+    // The auth.js script handles the OAuth callback automatically
+    // After processing, redirect to the intended destination or home
+    
+    setTimeout(() => {
+      // If we're still here after 3 seconds, check auth status
+      if (window.tiltCheckAuth && window.tiltCheckAuth.getUser()) {
+        // Successfully authenticated, redirect to home or previous page
+        const returnUrl = sessionStorage.getItem('auth-return-url') || '/';
+        sessionStorage.removeItem('auth-return-url');
+        window.location.href = returnUrl;
+      } else {
+        // Check for error in URL
+        const params = new URLSearchParams(window.location.search);
+        const error = params.get('error') || params.get('error_description');
+        if (error) {
+          document.getElementById('error-message').textContent = 'Error: ' + error;
+          document.getElementById('error-message').style.display = 'block';
+        } else {
+          // No error but no user, redirect to home
+          window.location.href = '/';
+        }
+      }
+    }, 1500);
+  </script>
+</body>
+</html>

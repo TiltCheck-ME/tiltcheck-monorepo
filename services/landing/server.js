@@ -75,6 +75,12 @@ app.get('/data/casino_data_latest.csv', (_req, res) => {
 app.get('/', (_req, res) => {
   res.sendFile(path.join(publicDir, 'index.html'));
 });
+
+// Auth callback page for Supabase OAuth (rate-limited to prevent abuse)
+app.get('/auth/callback', rateLimitMiddleware, (_req, res) => {
+  res.sendFile(path.join(publicDir, 'auth/callback.html'));
+});
+
 // Content pages
 app.get('/about', (_req, res) => {
   res.sendFile(path.join(publicDir, 'about.html'));

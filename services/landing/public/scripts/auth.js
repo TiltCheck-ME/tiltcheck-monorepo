@@ -1,51 +1,276 @@
 /**
  * Shared Authentication Script for TiltCheck
- * Checks auth status and updates navigation across all pages
+ * Uses Supabase OAuth for cross-ecosystem Discord authentication
+ * 
+ * This script provides:
+ * - Discord login via Supabase OAuth
+ * - Persistent session across all pages
+ * - User profile dropdown in navigation
+ * - Cross-ecosystem identity management
  */
+
+// Supabase configuration - loaded from window or defaults
+// NOTE: The anon key is intentionally public and designed to be exposed in client-side code.
+// It has Row Level Security (RLS) policies that control data access.
+// See: https://supabase.com/docs/guides/api/api-keys
+const SUPABASE_URL = window.TILTCHECK_SUPABASE_URL || 'https://cswqfwiijgstoelpwelz.supabase.co';
+const SUPABASE_ANON_KEY = window.TILTCHECK_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNzd3Fmd2lpamtzdG9lbHB3ZWx6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzI0NjgxNzAsImV4cCI6MjA0ODA0NDE3MH0.pPNfXrfmBWaqG8K7Ez1gC8-3Si2Mi8p9EhFYBrYrhBc';
+
+// Simple Supabase auth client for browser
+class SupabaseAuthBrowser {
+  constructor(url, key) {
+    this.url = url;
+    this.key = key;
+    this.storageKey = 'sb-' + url.split('//')[1].split('.')[0] + '-auth-token';
+  }
+
+  async getSession() {
+    try {
+      const stored = localStorage.getItem(this.storageKey);
+      if (!stored) return null;
+      
+      const session = JSON.parse(stored);
+      if (!session || !session.access_token) return null;
+      
+      // Verify session is still valid
+      const response = await fetch(`${this.url}/auth/v1/user`, {
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`,
+          'apikey': this.key
+        }
+      });
+      
+      if (response.ok) {
+        const user = await response.json();
+        return { user, session };
+      }
+      
+      // Try to refresh token
+      if (session.refresh_token) {
+        return await this.refreshSession(session.refresh_token);
+      }
+      
+      return null;
+    } catch (e) {
+      console.error('[Auth] Session check error:', e);
+      return null;
+    }
+  }
+
+  async refreshSession(refreshToken) {
+    try {
+      const response = await fetch(`${this.url}/auth/v1/token?grant_type=refresh_token`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': this.key
+        },
+        body: JSON.stringify({ refresh_token: refreshToken })
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        this.saveSession(data);
+        return { user: data.user, session: data };
+      }
+      
+      return null;
+    } catch (e) {
+      console.error('[Auth] Refresh error:', e);
+      return null;
+    }
+  }
+
+  saveSession(session) {
+    localStorage.setItem(this.storageKey, JSON.stringify(session));
+  }
+
+  clearSession() {
+    localStorage.removeItem(this.storageKey);
+  }
+
+  /**
+   * Generate a random code verifier for PKCE
+   */
+  generateCodeVerifier() {
+    const array = new Uint8Array(32);
+    crypto.getRandomValues(array);
+    return btoa(String.fromCharCode.apply(null, array))
+      .replace(/\+/g, '-')
+      .replace(/\//g, '_')
+      .replace(/=+$/, '');
+  }
+
+  /**
+   * Generate code challenge from verifier for PKCE
+   */
+  async generateCodeChallenge(verifier) {
+    const encoder = new TextEncoder();
+    const data = encoder.encode(verifier);
+    const digest = await crypto.subtle.digest('SHA-256', data);
+    return btoa(String.fromCharCode.apply(null, new Uint8Array(digest)))
+      .replace(/\+/g, '-')
+      .replace(/\//g, '_')
+      .replace(/=+$/, '');
+  }
+
+  /**
+   * Get OAuth URL with proper PKCE parameters
+   */
+  async getOAuthUrl(provider, redirectTo) {
+    // Generate and store code verifier for PKCE
+    const codeVerifier = this.generateCodeVerifier();
+    const codeChallenge = await this.generateCodeChallenge(codeVerifier);
+    sessionStorage.setItem('supabase-code-verifier', codeVerifier);
+    
+    // Store current page for return after auth
+    sessionStorage.setItem('auth-return-url', window.location.href);
+    
+    const params = new URLSearchParams({
+      provider: provider,
+      redirect_to: redirectTo || window.location.origin + '/auth/callback',
+      code_challenge: codeChallenge,
+      code_challenge_method: 'S256'
+    });
+    return `${this.url}/auth/v1/authorize?${params.toString()}`;
+  }
+
+  async exchangeCodeForSession(code) {
+    try {
+      const codeVerifier = sessionStorage.getItem('supabase-code-verifier') || '';
+      
+      const response = await fetch(`${this.url}/auth/v1/token?grant_type=authorization_code`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': this.key
+        },
+        body: JSON.stringify({ 
+          auth_code: code,
+          code_verifier: codeVerifier
+        })
+      });
+      
+      // Clear the code verifier after use
+      sessionStorage.removeItem('supabase-code-verifier');
+      
+      if (response.ok) {
+        const data = await response.json();
+        this.saveSession(data);
+        return { user: data.user, session: data };
+      }
+      
+      return null;
+    } catch (e) {
+      console.error('[Auth] Code exchange error:', e);
+      return null;
+    }
+  }
+
+  async signOut() {
+    try {
+      const stored = localStorage.getItem(this.storageKey);
+      if (stored) {
+        const session = JSON.parse(stored);
+        await fetch(`${this.url}/auth/v1/logout`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${session.access_token}`,
+            'apikey': this.key
+          }
+        });
+      }
+    } catch (e) {
+      console.error('[Auth] Logout error:', e);
+    }
+    this.clearSession();
+  }
+}
+
+// Initialize Supabase auth
+const supabaseAuth = new SupabaseAuthBrowser(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 class TiltCheckAuth {
   constructor() {
     this.user = null;
+    this.session = null;
     this.init();
   }
 
   async init() {
+    // Handle OAuth callback if we're on the callback page
+    await this.handleAuthCallback();
+    
+    // Check existing session
     await this.checkAuthStatus();
+    
+    // Show terms modal if needed
     if (this.user && !this.hasAcceptedTerms()) {
       this.showTermsModal();
     }
+    
+    // Update all login buttons on the page
     this.updateNavigation();
   }
 
-  async checkAuthStatus() {
-    try {
-      // Check game arena auth endpoint
-      const response = await fetch('/play/api/user', {
-        credentials: 'include'
-      });
-      
-      if (response.ok) {
-        this.user = await response.json();
+  async handleAuthCallback() {
+    // Check if we're on an auth callback page
+    const url = new URL(window.location.href);
+    const code = url.searchParams.get('code');
+    const error = url.searchParams.get('error');
+    
+    if (error) {
+      console.error('[Auth] OAuth error:', error);
+      // Remove query params and show error
+      window.history.replaceState({}, '', url.pathname);
+      return;
+    }
+    
+    if (code) {
+      // Exchange code for session
+      const result = await supabaseAuth.exchangeCodeForSession(code);
+      if (result) {
+        this.user = result.user;
+        this.session = result.session;
       }
-    } catch (error) {
-      // User not logged in or game arena not available
-      this.user = null;
+      // Remove query params from URL
+      window.history.replaceState({}, '', url.pathname);
+    }
+  }
+
+  async checkAuthStatus() {
+    const result = await supabaseAuth.getSession();
+    if (result) {
+      this.user = result.user;
+      this.session = result.session;
     }
   }
 
   updateNavigation() {
-    const loginButton = document.querySelector('.discord-login-btn, a[href="/play/"]');
+    // Find all login buttons on the page
+    const loginButtons = document.querySelectorAll('.discord-login-btn, a[href="/play/"], a[href="/play/auth/discord"]');
     
-    if (!loginButton) return;
-
-    if (this.user) {
-      // Replace login button with user avatar dropdown
-      const avatar = this.createUserAvatar();
-      loginButton.replaceWith(avatar);
-    }
+    loginButtons.forEach(loginButton => {
+      if (this.user) {
+        // Replace login button with user avatar dropdown
+        const avatar = this.createUserAvatar();
+        loginButton.replaceWith(avatar);
+      } else {
+        // Make sure login button triggers Discord OAuth
+        loginButton.addEventListener('click', (e) => {
+          e.preventDefault();
+          this.loginWithDiscord();
+        });
+        // Update href for non-JS fallback
+        loginButton.href = '#';
+        loginButton.setAttribute('data-auth', 'discord-login');
+      }
+    });
   }
 
   createUserAvatar() {
+    const discordUser = this.getDiscordUser();
+    
     const container = document.createElement('div');
     container.className = 'user-avatar-container';
     container.style.cssText = 'position: relative; display: inline-block;';
@@ -59,17 +284,14 @@ class TiltCheckAuth {
 
     const img = document.createElement('img');
     img.style.cssText = 'width: 36px; height: 36px; border-radius: 50%; object-fit: cover;';
-    img.alt = this.user.username || 'User';
+    img.alt = discordUser.username || 'User';
     
-    // Set avatar URL
-    if (this.user.avatar) {
-      if (this.user.avatar.startsWith('http')) {
-        img.src = this.user.avatar;
-      } else {
-        img.src = `https://cdn.discordapp.com/avatars/${this.user.id}/${this.user.avatar}.png?size=128`;
-      }
+    // Set avatar URL from Supabase user metadata
+    if (discordUser.avatar) {
+      img.src = discordUser.avatar;
     } else {
-      const defaultIndex = parseInt(this.user.id) % 5;
+      // Default Discord avatar
+      const defaultIndex = Math.abs(discordUser.id?.charCodeAt(0) || 0) % 5;
       img.src = `https://cdn.discordapp.com/embed/avatars/${defaultIndex}.png`;
     }
 
@@ -85,7 +307,7 @@ class TiltCheckAuth {
     const userInfo = document.createElement('div');
     userInfo.style.cssText = 'padding: 12px 16px; border-bottom: 1px solid #2a2f34;';
     userInfo.innerHTML = `
-      <div style="font-weight: 600; color: #00d4aa;">${this.user.username}</div>
+      <div style="font-weight: 600; color: #00d4aa;">${discordUser.username}</div>
       <div style="font-size: 0.85rem; color: #888;">Logged in via Discord</div>
     `;
 
@@ -145,12 +367,18 @@ class TiltCheckAuth {
     return container;
   }
 
+  /**
+   * Initiate Discord OAuth login via Supabase
+   */
+  async loginWithDiscord() {
+    const redirectUrl = window.location.origin + '/auth/callback';
+    const oauthUrl = await supabaseAuth.getOAuthUrl('discord', redirectUrl);
+    window.location.href = oauthUrl;
+  }
+
   async logout() {
     try {
-      await fetch('/play/auth/logout', {
-        method: 'POST',
-        credentials: 'include'
-      });
+      await supabaseAuth.signOut();
       window.location.reload();
     } catch (error) {
       console.error('Logout failed:', error);
@@ -160,6 +388,21 @@ class TiltCheckAuth {
 
   getUser() {
     return this.user;
+  }
+
+  /**
+   * Get Discord-specific user info from Supabase user metadata
+   */
+  getDiscordUser() {
+    if (!this.user) return null;
+    
+    const metadata = this.user.user_metadata || {};
+    return {
+      id: metadata.provider_id || this.user.id,
+      username: metadata.full_name || metadata.name || metadata.preferred_username || this.user.email?.split('@')[0] || 'User',
+      avatar: metadata.avatar_url || null,
+      email: this.user.email
+    };
   }
 
   hasAcceptedTerms() {
