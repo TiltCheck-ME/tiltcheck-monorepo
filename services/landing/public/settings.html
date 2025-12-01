@@ -360,6 +360,37 @@
       </div>
     </div>
 
+    <!-- Subscription Section -->
+    <div class="settings-section" id="subscription">
+      <h2>💳 Subscription</h2>
+      
+      <div class="setting-item">
+        <div class="setting-info">
+          <h3>Chrome Extension</h3>
+          <p id="subscription-status-text">Loading subscription status...</p>
+        </div>
+        <div class="setting-control">
+          <button class="btn btn-primary" id="manage-subscription-btn" onclick="manageSubscription()">Manage</button>
+        </div>
+      </div>
+
+      <div id="subscription-details" style="display: none; margin-top: 20px; padding: 20px; background: #0f1419; border-radius: 8px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+          <div>
+            <div style="font-weight: 600; color: #00d4aa;">Status</div>
+            <div id="sub-status-display" style="color: #eee; margin-top: 4px;">--</div>
+          </div>
+          <div style="text-align: right;">
+            <div style="font-weight: 600; color: #00d4aa;">Next Billing</div>
+            <div id="sub-next-billing" style="color: #eee; margin-top: 4px;">--</div>
+          </div>
+        </div>
+        <div style="border-top: 1px solid #2a2f34; padding-top: 12px; margin-top: 12px;">
+          <button class="btn btn-danger" onclick="cancelSubscription()">Cancel Subscription</button>
+        </div>
+      </div>
+    </div>
+
     <!-- Danger Zone -->
     <div class="settings-section" style="border-color: #ff4444;">
       <h2 style="color: #ff4444;">⚠️ Danger Zone</h2>
@@ -448,24 +479,98 @@
       settings[settingKey] = !isActive;
       
       saveSettings();
+    function confirmDeleteAccount() {
+      const confirmation = prompt('This action cannot be undone. Type "DELETE" to confirm:');
+      if (confirmation === 'DELETE') {
+        alert('Account deletion is not yet implemented. Please contact support for account deletion requests.');
+      }
     }
 
-    function saveProfileVisibility() {
-      const select = document.getElementById('profile-visibility');
-      settings['profile-visibility'] = select.value;
-      saveSettings();
+    function manageSubscription() {
+      window.location.href = '/chrome-extension-subscription.html';
     }
 
-    function saveSettings() {
-      localStorage.setItem('tiltcheck_settings', JSON.stringify(settings));
-      showSaveIndicator();
+    function cancelSubscription() {
+      if (confirm('Are you sure you want to cancel your subscription? You will lose access at the end of your current billing period.')) {
+        alert('Subscription cancellation will be implemented with Stripe integration.');
+        // TODO: Call Stripe API to cancel subscription
+      }
     }
 
-    function showSaveIndicator() {
-      const indicator = document.getElementById('save-status');
-      indicator.classList.add('visible');
+    async function loadSubscriptionStatus() {
+      const user = window.tiltCheckAuth?.getUser();
+      
+      if (!user) {
+        document.getElementById('subscription-status-text').textContent = 'Login to manage subscription';
+        document.getElementById('manage-subscription-btn').textContent = 'Login';
+        return;
+      }
+
+      // Check if founder
+      if (user.username === 'jmenichole') {
+        document.getElementById('subscription-status-text').textContent = 'Founder - Lifetime Premium Access 👑';
+        document.getElementById('manage-subscription-btn').style.display = 'none';
+        return;
+      }
+
+      // Get subscription from localStorage (mock for now)
+      const sub = getSubscriptionData(user.id);
+      
+      if (sub.status === 'trial') {
+        document.getElementById('subscription-status-text').textContent = `Free trial (${sub.daysRemaining} days remaining)`;
+        document.getElementById('manage-subscription-btn').textContent = 'Subscribe';
+      } else if (sub.status === 'active') {
+        document.getElementById('subscription-status-text').textContent = 'Active - $5/month';
+        document.getElementById('manage-subscription-btn').textContent = 'Manage';
+        document.getElementById('subscription-details').style.display = 'block';
+        document.getElementById('sub-status-display').textContent = 'Active';
+        
+        const nextBilling = new Date();
+        nextBilling.setMonth(nextBilling.getMonth() + 1);
+        document.getElementById('sub-next-billing').textContent = nextBilling.toLocaleDateString();
+      } else {
+        document.getElementById('subscription-status-text').textContent = 'Not subscribed';
+        document.getElementById('manage-subscription-btn').textContent = 'Start Trial';
+      }
+    }
+
+    function getSubscriptionData(userId) {
+      const key = `subscription_${userId}`;
+      const saved = localStorage.getItem(key);
+      
+      if (!saved) {
+        return { status: 'none' };
+      }
+
+      const sub = JSON.parse(saved);
+      
+      if (sub.status === 'trial') {
+        const now = new Date();
+        const end = new Date(sub.trialEnd);
+        const diffTime = end - now;
+        sub.daysRemaining = Math.max(0, Math.ceil(diffTime / (1000 * 60 * 60 * 24)));
+      }
+      
+      return sub;
+    }
+
+    // Load settings when auth is ready
+    if (window.tiltCheckAuth) {
       setTimeout(() => {
-        indicator.classList.remove('visible');
+        loadSettings();
+        loadSubscriptionStatus();
+      }, 500);
+    } else {
+      window.addEventListener('load', () => {
+        setTimeout(() => {
+          loadSettings();
+          loadSubscriptionStatus();
+        }, 500);
+      });
+    }
+  </script>
+</body>
+</html> indicator.classList.remove('visible');
       }, 2000);
     }
 
