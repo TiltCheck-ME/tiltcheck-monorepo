@@ -152,6 +152,9 @@ importers:
       '@tiltcheck/natural-language-parser':
         specifier: workspace:*
         version: link:../../packages/natural-language-parser
+      '@tiltcheck/poker':
+        specifier: workspace:*
+        version: link:../../modules/poker
       '@tiltcheck/suslink':
         specifier: workspace:*
         version: link:../../modules/suslink
