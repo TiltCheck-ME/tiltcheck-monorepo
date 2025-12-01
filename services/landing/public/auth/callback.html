@@ -64,7 +64,7 @@
     
     setTimeout(() => {
       // If we're still here after 3 seconds, check auth status
-      if (window.tiltCheckAuth && window.tiltCheckAuth.user) {
+      if (window.tiltCheckAuth && window.tiltCheckAuth.getUser()) {
         // Successfully authenticated, redirect to home or previous page
         const returnUrl = sessionStorage.getItem('auth-return-url') || '/';
         sessionStorage.removeItem('auth-return-url');

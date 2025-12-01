@@ -76,8 +76,8 @@ app.get('/', (_req, res) => {
   res.sendFile(path.join(publicDir, 'index.html'));
 });
 
-// Auth callback page for Supabase OAuth
-app.get('/auth/callback', (_req, res) => {
+// Auth callback page for Supabase OAuth (rate-limited to prevent abuse)
+app.get('/auth/callback', rateLimitMiddleware, (_req, res) => {
   res.sendFile(path.join(publicDir, 'auth/callback.html'));
 });
 
