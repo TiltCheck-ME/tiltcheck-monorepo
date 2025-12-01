@@ -25,6 +25,15 @@
   <!-- Stylesheets -->
   <link rel="stylesheet" href="/styles/theme.css">
   <link rel="stylesheet" href="/styles/main.css">
+  <style>
+    /* Respect reduced motion preferences */
+    @media (prefers-reduced-motion: reduce) {
+      * { animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; transition-duration: 0.001ms !important; }
+    }
+    .mobile-section-toggle { display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; border: 1px solid #2a2f34; border-radius: 6px; background: #11161b; color: #eee; margin-top: 10px; }
+    .mobile-section-toggle[aria-expanded="true"] { background: #151a20; }
+    .mobile-section-content { display: none; padding: 6px 10px; }
+  </style>
   
   <!-- Preconnect for performance -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -116,30 +125,36 @@
       <a href="/trust-scores.html">Trust Scores</a>
       <a href="/dashboard">Dashboard</a>
       <a href="/about.html">About</a>
-      <a href="/how-it-works.html">How It Works</a>
-      <a href="/faq.html">FAQ</a>
+      <button class="mobile-section-toggle" aria-expanded="false" aria-controls="mobile-edu">Education & Help<span>▾</span></button>
+      <div id="mobile-edu" class="mobile-section-content" aria-hidden="true">
+        <a href="/how-it-works.html">How It Works</a>
+        <a href="/faq.html">FAQ</a>
+        <a href="/getting-started.html">Getting Started</a>
+        <a href="/tutorials.html">Tutorials</a>
+        <a href="/glossary.html">Glossary</a>
+        <a href="/responsible-gambling.html">Responsible Gambling</a>
+        <a href="/help.html">Help Center</a>
+      </div>
+      <button class="mobile-section-toggle" aria-expanded="false" aria-controls="mobile-trans">Transparency & Data<span>▾</span></button>
+      <div id="mobile-trans" class="mobile-section-content" aria-hidden="true">
+        <a href="/stats-dashboard.html">Stats Dashboard</a>
+        <a href="/casino-reviews.html">Casino Reviews</a>
+        <a href="/scam-reports.html">Scam Reports</a>
+        <a href="/trust-api.html">Trust Score API Docs</a>
+        <a href="/transparency-reports.html">Transparency Reports</a>
+      </div>
+      <button class="mobile-section-toggle" aria-expanded="false" aria-controls="mobile-legal">Legal & Compliance<span>▾</span></button>
+      <div id="mobile-legal" class="mobile-section-content" aria-hidden="true">
+        <a href="/privacy.html">Privacy Policy</a>
+        <a href="/terms.html">Terms of Service</a>
+        <a href="/compliance.html">Compliance Overview</a>
+        <a href="/licensing.html">Licensing Info</a>
+        <a href="/cookie-policy.html">Cookie Policy</a>
+      </div>
       <a href="/newsletter.html">Newsletter</a>
       <a href="/press-kit.html">Press Kit</a>
       <a href="/testimonials.html">Testimonials</a>
       <a href="/contact.html">Contact</a>
-      <!-- Education & Help -->
-      <a href="/getting-started.html">Getting Started</a>
-      <a href="/tutorials.html">Tutorials</a>
-      <a href="/glossary.html">Glossary</a>
-      <a href="/responsible-gambling.html">Responsible Gambling</a>
-      <a href="/help.html">Help Center</a>
-      <!-- Transparency & Data -->
-      <a href="/stats-dashboard.html">Stats Dashboard</a>
-      <a href="/casino-reviews.html">Casino Reviews</a>
-      <a href="/scam-reports.html">Scam Reports</a>
-      <a href="/trust-api.html">Trust Score API Docs</a>
-      <a href="/transparency-reports.html">Transparency Reports</a>
-      <!-- Legal & Compliance -->
-      <a href="/privacy.html">Privacy Policy</a>
-      <a href="/terms.html">Terms of Service</a>
-      <a href="/compliance.html">Compliance Overview</a>
-      <a href="/licensing.html">Licensing Info</a>
-      <a href="/cookie-policy.html">Cookie Policy</a>
     </div>
     
     <div class="mobile-nav-section">
@@ -640,6 +655,17 @@
         toggleMobileNav();
       });
     });
+      // Collapsible mobile sections
+      document.querySelectorAll('.mobile-section-toggle').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const targetId = btn.getAttribute('aria-controls');
+          const section = document.getElementById(targetId);
+          const expanded = btn.getAttribute('aria-expanded') === 'true';
+          btn.setAttribute('aria-expanded', String(!expanded));
+          section.style.display = expanded ? 'none' : 'block';
+          section.setAttribute('aria-hidden', String(expanded));
+        });
+      });
     
     // Close on escape key
     document.addEventListener('keydown', (e) => {
