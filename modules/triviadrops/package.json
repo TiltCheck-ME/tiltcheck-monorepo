@@ -10,6 +10,8 @@
     "build": "tsc"
   },
   "dependencies": {
+    "@tiltcheck/ai-client": "workspace:*",
+    "@tiltcheck/types": "workspace:*",
     "@ai-sdk/openai": "^2.0.69",
     "ai": "^5.0.97"
   }
