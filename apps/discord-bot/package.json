@@ -22,6 +22,7 @@
     "@tiltcheck/trust-engines": "workspace:*",
     "@tiltcheck/justthetip": "workspace:*",
     "@tiltcheck/natural-language-parser": "workspace:*",
+    "@tiltcheck/poker": "workspace:*",
     "@tiltcheck/esm-utils": "workspace:*",
     "@tiltcheck/lockvault": "workspace:*",
     "discord.js": "^14.14.1",
