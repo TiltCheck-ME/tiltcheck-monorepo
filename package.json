@@ -12,7 +12,8 @@
   },
   "scripts": {
     "dev": "pnpm --parallel --recursive dev",
-    "build": "pnpm --recursive build",
+    "build": "bash scripts/ordered-build.sh",
+    "build:legacy": "pnpm -r --workspace-concurrency=1 build",
     "test": "vitest --run",
     "test:watch": "vitest",
     "test:all": "pnpm --recursive test",
