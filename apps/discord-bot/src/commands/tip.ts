@@ -153,41 +153,52 @@ export const tip: Command = {
     ),
 
   async execute(interaction: ChatInputCommandInteraction) {
-    const subcommand = interaction.options.getSubcommand();
+    try {
+      const subcommand = interaction.options.getSubcommand();
 
-    switch (subcommand) {
-      case 'send':
-        await handleTip(interaction);
-        break;
-      case 'airdrop':
-        await handleAirdrop(interaction);
-        break;
-      case 'wallet':
-        await handleWallet(interaction);
-        break;
-      case 'balance':
-        await handleBalance(interaction);
-        break;
-      case 'pending':
-        await handlePending(interaction);
-        break;
-      case 'lock':
-        await handleVaultLock(interaction);
-        break;
-      case 'unlock':
-        await handleVaultUnlock(interaction);
-        break;
-      case 'extend':
-        await handleVaultExtend(interaction);
-        break;
-      case 'vaults':
-        await handleVaultStatus(interaction);
-        break;
-      case 'trivia':
-        await handleTriviaDrop(interaction);
-        break;
-      default:
-        await interaction.reply({ content: 'Unknown command', ephemeral: true });
+      switch (subcommand) {
+        case 'send':
+          await handleTip(interaction);
+          break;
+        case 'airdrop':
+          await handleAirdrop(interaction);
+          break;
+        case 'wallet':
+          await handleWallet(interaction);
+          break;
+        case 'balance':
+          await handleBalance(interaction);
+          break;
+        case 'pending':
+          await handlePending(interaction);
+          break;
+        case 'lock':
+          await handleVaultLock(interaction);
+          break;
+        case 'unlock':
+          await handleVaultUnlock(interaction);
+          break;
+        case 'extend':
+          await handleVaultExtend(interaction);
+          break;
+        case 'vaults':
+          await handleVaultStatus(interaction);
+          break;
+        case 'trivia':
+          await handleTriviaDrop(interaction);
+          break;
+        default:
+          await interaction.reply({ content: 'Unknown command', ephemeral: true });
+      }
+    } catch (error) {
+      console.error('[TIP] Command error:', error);
+      const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred';
+      
+      if (interaction.deferred || interaction.replied) {
+        await interaction.editReply({ content: `❌ Error: ${errorMessage}` });
+      } else {
+        await interaction.reply({ content: `❌ Error: ${errorMessage}`, ephemeral: true });
+      }
     }
   },
 };

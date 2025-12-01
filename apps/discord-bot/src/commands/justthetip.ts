@@ -75,23 +75,34 @@ export const justthetip: Command = {
     ),
 
   async execute(interaction: ChatInputCommandInteraction) {
-    const subcommand = interaction.options.getSubcommand();
+    try {
+      const subcommand = interaction.options.getSubcommand();
 
-    switch (subcommand) {
-      case 'wallet':
-        await handleWallet(interaction);
-        break;
-      case 'tip':
-        await handleTip(interaction);
-        break;
-      case 'balance':
-        await handleBalance(interaction);
-        break;
-      case 'pending':
-        await handlePending(interaction);
-        break;
-      default:
-        await interaction.reply({ content: 'Unknown command', ephemeral: true });
+      switch (subcommand) {
+        case 'wallet':
+          await handleWallet(interaction);
+          break;
+        case 'tip':
+          await handleTip(interaction);
+          break;
+        case 'balance':
+          await handleBalance(interaction);
+          break;
+        case 'pending':
+          await handlePending(interaction);
+          break;
+        default:
+          await interaction.reply({ content: 'Unknown command', ephemeral: true });
+      }
+    } catch (error) {
+      console.error('[JUSTTHETIP] Command error:', error);
+      const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred';
+      
+      if (interaction.deferred || interaction.replied) {
+        await interaction.editReply({ content: `❌ Error: ${errorMessage}` });
+      } else {
+        await interaction.reply({ content: `❌ Error: ${errorMessage}`, ephemeral: true });
+      }
     }
   },
 };
