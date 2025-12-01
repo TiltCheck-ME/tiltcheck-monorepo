@@ -30,6 +30,12 @@ export class EventHandler {
 
     // Interaction create (slash commands)
     this.client.on(Events.InteractionCreate, async (interaction) => {
+      // Handle button interactions
+      if (interaction.isButton()) {
+        await this.handleButtonInteraction(interaction);
+        return;
+      }
+
       if (!interaction.isChatInputCommand()) return;
 
       const command = this.commandHandler.getCommand(interaction.commandName);
@@ -99,6 +105,39 @@ export class EventHandler {
     }
 
     console.log('[EventHandler] Discord events registered');
+  }
+
+  /**
+   * Handle button interactions
+   */
+  private async handleButtonInteraction(interaction: any): Promise<void> {
+    const customId = interaction.customId;
+
+    // Handle airdrop claim buttons
+    if (customId.startsWith('airdrop_claim_')) {
+      const messageId = interaction.message.id;
+      
+      // Import the airdrop handler from tip command
+      // This is a workaround - ideally we'd have a shared button handler registry
+      try {
+        const tipCommand = this.commandHandler.getCommand('tip');
+        if (tipCommand && 'handleAirdropClaim' in tipCommand) {
+          await (tipCommand as any).handleAirdropClaim(interaction, messageId);
+        } else {
+          await interaction.reply({ content: '❌ Airdrop claim handler not found.', ephemeral: true });
+        }
+      } catch (error) {
+        console.error('[EventHandler] Airdrop claim error:', error);
+        await interaction.reply({ 
+          content: `❌ Failed to process claim: ${error instanceof Error ? error.message : 'Unknown error'}`, 
+          ephemeral: true 
+        });
+      }
+      return;
+    }
+
+    // Unknown button
+    await interaction.reply({ content: '❌ Unknown button action.', ephemeral: true });
   }
 
   /**

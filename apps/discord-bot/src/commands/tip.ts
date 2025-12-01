@@ -18,6 +18,16 @@ import { parseAmountNL, formatAmount, parseDurationNL, parseCategory } from '@ti
 import { isOnCooldown } from '@tiltcheck/tiltcheck-core';
 import { Connection } from '@solana/web3.js';
 
+// Active public airdrops - messageId -> airdrop data
+const activeAirdrops = new Map<string, {
+  hostId: string;
+  amountPerUser: number;
+  totalSlots: number;
+  claimedBy: Set<string>;
+  paymentUrl: string;
+  createdAt: number;
+}>();
+
 // Active trivia rounds - channelId -> round data
 const activeTriviaRounds = new Map<string, {
   question: string;
@@ -54,12 +64,15 @@ export const tip: Command = {
     .addSubcommand(sub =>
       sub
         .setName('airdrop')
-        .setDescription('Send SOL to multiple users')
-        .addStringOption(opt =>
-          opt.setName('recipients').setDescription('Space-separated user mentions (e.g. @user1 @user2)').setRequired(true)
-        )
+        .setDescription('Send SOL to multiple users or create public claim')
         .addStringOption(opt =>
           opt.setName('amount').setDescription('Amount per recipient in SOL (e.g. 0.1)').setRequired(true)
+        )
+        .addStringOption(opt =>
+          opt.setName('recipients').setDescription('User mentions (@user1 @user2) or "public" for anyone to claim').setRequired(false)
+        )
+        .addIntegerOption(opt =>
+          opt.setName('slots').setDescription('Number of claim slots for public airdrops (default: 10)').setRequired(false)
         )
     )
     // Wallet management
@@ -321,8 +334,9 @@ async function handleAirdrop(interaction: ChatInputCommandInteraction) {
     return;
   }
 
-  const recipientsRaw = interaction.options.getString('recipients', true);
   const amountRaw = interaction.options.getString('amount', true);
+  const recipientsRaw = interaction.options.getString('recipients');
+  const slots = interaction.options.getInteger('slots') || 10;
 
   const amountPerRecipient = parseFloat(amountRaw);
   if (isNaN(amountPerRecipient) || amountPerRecipient <= 0) {
@@ -330,6 +344,16 @@ async function handleAirdrop(interaction: ChatInputCommandInteraction) {
     return;
   }
 
+  // Check if this is a public airdrop
+  const isPublic = !recipientsRaw || recipientsRaw.toLowerCase().trim() === 'public';
+
+  if (isPublic) {
+    // Create a public claim airdrop
+    await handlePublicAirdrop(interaction, amountPerRecipient, slots);
+    return;
+  }
+
+  // Original targeted airdrop logic
   const idRegex = /<@!?(\d+)>/g;
   const userIds: string[] = [];
   let match: RegExpExecArray | null;
@@ -338,7 +362,7 @@ async function handleAirdrop(interaction: ChatInputCommandInteraction) {
   }
 
   if (userIds.length === 0) {
-    await interaction.editReply({ content: '❌ No valid user mentions found. Use space-separated mentions like `@Alice @Bob`.' });
+    await interaction.editReply({ content: '❌ No valid user mentions found. Use space-separated mentions like `@Alice @Bob`, or use "public" for anyone to claim.' });
     return;
   }
 
@@ -399,6 +423,55 @@ async function handleAirdrop(interaction: ChatInputCommandInteraction) {
   } catch (error) {
     await interaction.editReply({ content: `❌ Failed to build airdrop transaction: ${error instanceof Error ? error.message : 'Unknown error'}` });
   }
+}
+
+async function handlePublicAirdrop(interaction: ChatInputCommandInteraction, amountPerUser: number, slots: number) {
+  const senderWallet = getWallet(interaction.user.id);
+  if (!senderWallet) {
+    await interaction.editReply({ content: '❌ Wallet not found.' });
+    return;
+  }
+
+  // For public airdrops, we'll create a claimable link that generates payment requests on-demand
+  const totalSOL = amountPerUser * slots;
+  const feeText = process.env.JUSTTHETIP_FEE_WALLET ? '0.0007 SOL per claim' : 'None';
+
+  const claimButton = new ButtonBuilder()
+    .setCustomId(`airdrop_claim_${interaction.id}`)
+    .setLabel('🎁 Claim Airdrop')
+    .setStyle(ButtonStyle.Success);
+
+  const row = new ActionRowBuilder<ButtonBuilder>().addComponents(claimButton);
+
+  const embed = new EmbedBuilder()
+    .setColor(0xFF6B00)
+    .setTitle('🎁 Public Airdrop')
+    .setDescription(
+      `**Amount per claim:** ${amountPerUser} SOL\n` +
+      `**Total slots:** ${slots}\n` +
+      `**Claimed:** 0/${slots}\n` +
+      `**Fee:** ${feeText}\n\n` +
+      '**Click the button below to claim!**\n' +
+      'First come, first served. Each user can claim once.'
+    )
+    .setFooter({ text: `Hosted by ${interaction.user.username} • JustTheTip` });
+
+  const reply = await interaction.editReply({ embeds: [embed], components: [row] });
+
+  // Store airdrop data for claim handling
+  activeAirdrops.set(reply.id, {
+    hostId: interaction.user.id,
+    amountPerUser,
+    totalSlots: slots,
+    claimedBy: new Set(),
+    paymentUrl: '', // Generated per claim
+    createdAt: Date.now(),
+  });
+
+  // Auto-cleanup after 1 hour
+  setTimeout(() => {
+    activeAirdrops.delete(reply.id);
+  }, 60 * 60 * 1000);
 }
 
 async function handleWallet(interaction: ChatInputCommandInteraction) {
@@ -841,3 +914,110 @@ async function handleTriviaDrop(interaction: ChatInputCommandInteraction) {
     }
   });
 }
+
+// ==================== AIRDROP CLAIM HANDLER ====================
+
+export async function handleAirdropClaim(interaction: any, messageId: string) {
+  const airdrop = activeAirdrops.get(messageId);
+  
+  if (!airdrop) {
+    await interaction.reply({ content: '❌ This airdrop has expired or is no longer available.', ephemeral: true });
+    return;
+  }
+
+  const userId = interaction.user.id;
+
+  // Check if user already claimed
+  if (airdrop.claimedBy.has(userId)) {
+    await interaction.reply({ content: '❌ You have already claimed this airdrop!', ephemeral: true });
+    return;
+  }
+
+  // Check if slots are full
+  if (airdrop.claimedBy.size >= airdrop.totalSlots) {
+    await interaction.reply({ content: '❌ All airdrop slots have been claimed!', ephemeral: true });
+    return;
+  }
+
+  // Check if claimer has a wallet
+  const claimerWallet = getWallet(userId);
+  if (!claimerWallet) {
+    await interaction.reply({ 
+      content: '❌ You need to register a wallet first using `/tip wallet` before claiming airdrops.', 
+      ephemeral: true 
+    });
+    return;
+  }
+
+  // Get host wallet
+  const hostWallet = getWallet(airdrop.hostId);
+  if (!hostWallet) {
+    await interaction.reply({ content: '❌ Host wallet not found.', ephemeral: true });
+    return;
+  }
+
+  try {
+    // Create a single-recipient airdrop (which is just a tip with a button)
+    const { url } = await createTipWithFeeRequest(
+      connection,
+      hostWallet.address,
+      claimerWallet.address,
+      airdrop.amountPerUser
+    );
+
+    // Mark as claimed
+    airdrop.claimedBy.add(userId);
+
+    const payButton = new ButtonBuilder()
+      .setLabel('💰 Complete Payment in Wallet')
+      .setStyle(ButtonStyle.Link)
+      .setURL(url);
+
+    const row = new ActionRowBuilder<ButtonBuilder>().addComponents(payButton);
+
+    await interaction.reply({ 
+      content: `✅ **Claim Reserved!**\n\nAmount: ${airdrop.amountPerUser} SOL\n\nThe host needs to approve the payment. Click the button below to send them a payment request.`, 
+      components: [row],
+      ephemeral: true 
+    });
+
+    // Update the original message to show new claim count
+    const claimed = airdrop.claimedBy.size;
+    const remaining = airdrop.totalSlots - claimed;
+
+    const updatedEmbed = new EmbedBuilder()
+      .setColor(remaining > 0 ? 0xFF6B00 : 0x666666)
+      .setTitle(remaining > 0 ? '🎁 Public Airdrop' : '✅ Airdrop Completed')
+      .setDescription(
+        `**Amount per claim:** ${airdrop.amountPerUser} SOL\n` +
+        `**Total slots:** ${airdrop.totalSlots}\n` +
+        `**Claimed:** ${claimed}/${airdrop.totalSlots}\n` +
+        `**Fee:** ${process.env.JUSTTHETIP_FEE_WALLET ? '0.0007 SOL per claim' : 'None'}\n\n` +
+        (remaining > 0 
+          ? '**Click the button below to claim!**\nFirst come, first served. Each user can claim once.'
+          : '**All slots claimed!** Thanks for participating.')
+      )
+      .setFooter({ text: `Hosted by ${interaction.message.embeds[0]?.footer?.text?.split(' • ')[0] || 'Unknown'} • JustTheTip` });
+
+    const claimButton = new ButtonBuilder()
+      .setCustomId(`airdrop_claim_${messageId}`)
+      .setLabel('🎁 Claim Airdrop')
+      .setStyle(ButtonStyle.Success)
+      .setDisabled(remaining === 0);
+
+    const buttonRow = new ActionRowBuilder<ButtonBuilder>().addComponents(claimButton);
+
+    await interaction.message.edit({ embeds: [updatedEmbed], components: [buttonRow] });
+
+  } catch (error) {
+    // Remove the claim if payment request failed
+    airdrop.claimedBy.delete(userId);
+    await interaction.reply({ 
+      content: `❌ Failed to create payment request: ${error instanceof Error ? error.message : 'Unknown error'}`, 
+      ephemeral: true 
+    });
+  }
+}
+
+// Attach the handler to the tip command export
+(tip as any).handleAirdropClaim = handleAirdropClaim;
