@@ -6,7 +6,7 @@
 
 export interface TiltSignal {
   userId: string;
-  signalType: 'rapid-messages' | 'caps-spam' | 'loan-request' | 'rage-quit' | 'bad-beat' | 'loss-streak';
+  signalType: 'rapid-messages' | 'caps-spam' | 'loan-request' | 'rage-quit' | 'bad-beat' | 'loss-streak' | 'ai-detected';
   severity: number; // 1-5
   confidence: number; // 0-1
   context?: Record<string, any>;
