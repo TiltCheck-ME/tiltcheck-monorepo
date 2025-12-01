@@ -6,9 +6,17 @@
 
 import { Connection, PublicKey, LAMPORTS_PER_SOL } from '@solana/web3.js';
 import { eventRouter } from '@tiltcheck/event-router';
+import { promises as fs } from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
 const SOLANA_RPC_URL = process.env.SOLANA_RPC_URL || 'https://api.mainnet-beta.solana.com';
 const connection = new Connection(SOLANA_RPC_URL, 'confirmed');
+
+// Persistence file path
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const WALLET_DATA_PATH = path.resolve(__dirname, '../../../data/justthetip-wallets.json');
 
 export interface WalletInfo {
   userId: string;
@@ -18,7 +26,58 @@ export interface WalletInfo {
   registeredAt: number;
 }
 
+interface WalletDataStore {
+  version: string;
+  lastUpdated: number;
+  wallets: Record<string, WalletInfo>;
+}
+
 const wallets = new Map<string, WalletInfo>();
+
+/**
+ * Load wallets from persistent storage
+ */
+async function loadWallets(): Promise<void> {
+  try {
+    const data = await fs.readFile(WALLET_DATA_PATH, 'utf-8');
+    const store: WalletDataStore = JSON.parse(data);
+    
+    for (const [userId, walletInfo] of Object.entries(store.wallets)) {
+      wallets.set(userId, walletInfo);
+    }
+    
+    console.log(`[JustTheTip] Loaded ${wallets.size} wallets from storage`);
+  } catch (error: any) {
+    if (error.code === 'ENOENT') {
+      console.log('[JustTheTip] No existing wallet data, starting fresh');
+    } else {
+      console.error('[JustTheTip] Failed to load wallets:', error);
+    }
+  }
+}
+
+/**
+ * Save wallets to persistent storage
+ */
+async function saveWallets(): Promise<void> {
+  try {
+    const store: WalletDataStore = {
+      version: '1.0.0',
+      lastUpdated: Date.now(),
+      wallets: Object.fromEntries(wallets),
+    };
+    
+    // Ensure data directory exists
+    await fs.mkdir(path.dirname(WALLET_DATA_PATH), { recursive: true });
+    
+    await fs.writeFile(WALLET_DATA_PATH, JSON.stringify(store, null, 2), 'utf-8');
+  } catch (error) {
+    console.error('[JustTheTip] Failed to save wallets:', error);
+  }
+}
+
+// Load wallets on module initialization
+loadWallets().catch(console.error);
 
 /**
  * Base58 charset validation regex (excludes 0, O, I, and l characters)
@@ -62,7 +121,7 @@ function validateSolanaAddress(address: string): void {
 /**
  * Register external wallet (Phantom, Solflare, etc.)
  */
-export function registerExternalWallet(userId: string, address: string): WalletInfo {
+export async function registerExternalWallet(userId: string, address: string): Promise<WalletInfo> {
   // Validate Solana address (skip in test mode for mock addresses)
   if (process.env.NODE_ENV !== 'test') {
     validateSolanaAddress(address);
@@ -76,6 +135,9 @@ export function registerExternalWallet(userId: string, address: string): WalletI
   };
 
   wallets.set(userId, walletInfo);
+
+  // Persist to disk
+  await saveWallets();
 
   // Emit event
   void eventRouter.publish('wallet.registered', 'justthetip', {
@@ -119,12 +181,19 @@ export async function getWalletBalance(userId: string): Promise<number> {
  * Check if user has wallet registered
  */
 export function hasWallet(userId: string): boolean {
-  return wallets.has(userId);
-}
-
 /**
  * Remove wallet for user
  */
+export async function removeWallet(userId: string): Promise<boolean> {
+  const deleted = wallets.delete(userId);
+  
+  if (deleted) {
+    // Persist to disk
+    await saveWallets();
+  }
+  
+  return deleted;
+}*/
 export function removeWallet(userId: string): boolean {
   return wallets.delete(userId);
 }

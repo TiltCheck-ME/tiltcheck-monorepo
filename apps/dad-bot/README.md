@@ -29,17 +29,36 @@ cp .env.example .env
 # Edit .env with your Discord bot token and client ID
 ```
 
-3. Build:
+3. **Deploy slash commands to Discord:**
+```bash
+pnpm deploy
+```
+This registers all commands with Discord. Run this whenever you add/modify commands.
+
+4. Build:
 ```bash
 pnpm build
 ```
 
-4. Run:
+5. Run:
 ```bash
 pnpm start
 # Or for development:
 pnpm dev
 ```
+
+## Important: Command Registration
+
+**Slash commands must be deployed to Discord before they work!**
+
+Run `pnpm deploy` after:
+- Initial setup
+- Adding new commands
+- Modifying command options
+- Changing guilds
+
+For development, set `DISCORD_GUILD_ID` in `.env` for instant command updates.  
+For production, remove `DISCORD_GUILD_ID` to deploy globally (takes up to 1 hour).
 
 ## Discord Bot Setup
 

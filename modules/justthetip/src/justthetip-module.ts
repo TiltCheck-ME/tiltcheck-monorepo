@@ -99,7 +99,7 @@ export class JustTheTipModule {
     };
 
     // Actually remove the wallet
-    removeWallet(userId);
+    await removeWallet(userId);
     
     let message = '✅ Wallet disconnected successfully';
     if (pendingCount > 0) {
