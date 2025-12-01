@@ -226,7 +226,7 @@ export class AIClient {
         throw new Error(`AI Gateway returned ${response.status}`);
       }
 
-      return await response.json();
+      return await response.json() as AIResponse<T>;
     } catch (error) {
       clearTimeout(timeoutId);
       
