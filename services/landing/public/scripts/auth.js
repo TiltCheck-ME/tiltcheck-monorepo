@@ -10,6 +10,9 @@
  */
 
 // Supabase configuration - loaded from window or defaults
+// NOTE: The anon key is intentionally public and designed to be exposed in client-side code.
+// It has Row Level Security (RLS) policies that control data access.
+// See: https://supabase.com/docs/guides/api/api-keys
 const SUPABASE_URL = window.TILTCHECK_SUPABASE_URL || 'https://cswqfwiijgstoelpwelz.supabase.co';
 const SUPABASE_ANON_KEY = window.TILTCHECK_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNzd3Fmd2lpamtzdG9lbHB3ZWx6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzI0NjgxNzAsImV4cCI6MjA0ODA0NDE3MH0.pPNfXrfmBWaqG8K7Ez1gC8-3Si2Mi8p9EhFYBrYrhBc';
 
@@ -86,16 +89,56 @@ class SupabaseAuthBrowser {
     localStorage.removeItem(this.storageKey);
   }
 
-  getOAuthUrl(provider, redirectTo) {
+  /**
+   * Generate a random code verifier for PKCE
+   */
+  generateCodeVerifier() {
+    const array = new Uint8Array(32);
+    crypto.getRandomValues(array);
+    return btoa(String.fromCharCode.apply(null, array))
+      .replace(/\+/g, '-')
+      .replace(/\//g, '_')
+      .replace(/=+$/, '');
+  }
+
+  /**
+   * Generate code challenge from verifier for PKCE
+   */
+  async generateCodeChallenge(verifier) {
+    const encoder = new TextEncoder();
+    const data = encoder.encode(verifier);
+    const digest = await crypto.subtle.digest('SHA-256', data);
+    return btoa(String.fromCharCode.apply(null, new Uint8Array(digest)))
+      .replace(/\+/g, '-')
+      .replace(/\//g, '_')
+      .replace(/=+$/, '');
+  }
+
+  /**
+   * Get OAuth URL with proper PKCE parameters
+   */
+  async getOAuthUrl(provider, redirectTo) {
+    // Generate and store code verifier for PKCE
+    const codeVerifier = this.generateCodeVerifier();
+    const codeChallenge = await this.generateCodeChallenge(codeVerifier);
+    sessionStorage.setItem('supabase-code-verifier', codeVerifier);
+    
+    // Store current page for return after auth
+    sessionStorage.setItem('auth-return-url', window.location.href);
+    
     const params = new URLSearchParams({
       provider: provider,
-      redirect_to: redirectTo || window.location.origin + '/auth/callback'
+      redirect_to: redirectTo || window.location.origin + '/auth/callback',
+      code_challenge: codeChallenge,
+      code_challenge_method: 'S256'
     });
     return `${this.url}/auth/v1/authorize?${params.toString()}`;
   }
 
   async exchangeCodeForSession(code) {
     try {
+      const codeVerifier = sessionStorage.getItem('supabase-code-verifier') || '';
+      
       const response = await fetch(`${this.url}/auth/v1/token?grant_type=authorization_code`, {
         method: 'POST',
         headers: {
@@ -104,9 +147,12 @@ class SupabaseAuthBrowser {
         },
         body: JSON.stringify({ 
           auth_code: code,
-          code_verifier: sessionStorage.getItem('supabase-code-verifier') || ''
+          code_verifier: codeVerifier
         })
       });
+      
+      // Clear the code verifier after use
+      sessionStorage.removeItem('supabase-code-verifier');
       
       if (response.ok) {
         const data = await response.json();
@@ -324,9 +370,9 @@ class TiltCheckAuth {
   /**
    * Initiate Discord OAuth login via Supabase
    */
-  loginWithDiscord() {
+  async loginWithDiscord() {
     const redirectUrl = window.location.origin + '/auth/callback';
-    const oauthUrl = supabaseAuth.getOAuthUrl('discord', redirectUrl);
+    const oauthUrl = await supabaseAuth.getOAuthUrl('discord', redirectUrl);
     window.location.href = oauthUrl;
   }
 
