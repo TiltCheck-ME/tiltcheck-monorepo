@@ -167,7 +167,25 @@ export const tip: Command = {
 
   async execute(interaction: ChatInputCommandInteraction) {
     try {
-      const subcommand = interaction.options.getSubcommand();
+      const subcommand = interaction.options.getSubcommand(false);
+
+      if (!subcommand) {
+        await interaction.reply({
+          content: '❌ Please specify a subcommand:\n' +
+            '• `/tip send` - Send SOL to a user\n' +
+            '• `/tip airdrop` - Send SOL to multiple users or create public claim\n' +
+            '• `/tip wallet` - Manage your wallet\n' +
+            '• `/tip balance` - Check your balance\n' +
+            '• `/tip pending` - View pending tips\n' +
+            '• `/tip lock` - Lock SOL in vault\n' +
+            '• `/tip unlock` - Unlock vault\n' +
+            '• `/tip extend` - Extend vault lock\n' +
+            '• `/tip vaults` - View vault status\n' +
+            '• `/tip trivia` - Create trivia airdrop',
+          ephemeral: true
+        });
+        return;
+      }
 
       switch (subcommand) {
         case 'send':

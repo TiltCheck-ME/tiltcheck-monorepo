@@ -76,7 +76,19 @@ export const justthetip: Command = {
 
   async execute(interaction: ChatInputCommandInteraction) {
     try {
-      const subcommand = interaction.options.getSubcommand();
+      const subcommand = interaction.options.getSubcommand(false);
+
+      if (!subcommand) {
+        await interaction.reply({
+          content: '❌ Please specify a subcommand:\n' +
+            '• `/justthetip wallet` - Manage your wallet\n' +
+            '• `/justthetip tip` - Send a tip\n' +
+            '• `/justthetip balance` - Check balance\n' +
+            '• `/justthetip pending` - View pending tips',
+          ephemeral: true
+        });
+        return;
+      }
 
       switch (subcommand) {
         case 'wallet':
