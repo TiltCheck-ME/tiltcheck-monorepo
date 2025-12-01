@@ -24,10 +24,10 @@ RUN apt-get update -qq && \
 # Copy everything (simpler, more reliable for monorepos)
 COPY . .
 
-# Install dependencies with network settings and no lockfile freeze
+# Install ALL dependencies (including devDependencies needed for build)
 RUN pnpm config set network-timeout 600000 && \
     pnpm config set fetch-retries 3 && \
-    pnpm install --no-frozen-lockfile
+    pnpm install --no-frozen-lockfile --shamefully-hoist
 
 # Build all workspaces
 RUN pnpm run build
