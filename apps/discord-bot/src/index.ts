@@ -6,10 +6,10 @@
  * Integrates all TiltCheck modules via Event Router.
  */
 
-import { Client, GatewayIntentBits } from 'discord.js';
+import { Client, GatewayIntentBits, Partials } from 'discord.js';
 import http from 'http';
 import { config, validateConfig } from './config.js';
-import { CommandHandler, EventHandler } from './handlers/index.js';
+import { CommandHandler, EventHandler, registerDMHandler } from './handlers/index.js';
 
 // Import modules to initialize them
 import '@tiltcheck/suslink';
@@ -33,12 +33,17 @@ async function main() {
       GatewayIntentBits.Guilds,
       GatewayIntentBits.GuildMessages,
       GatewayIntentBits.MessageContent,
+      GatewayIntentBits.DirectMessages,
     ],
+    partials: [Partials.Channel], // Required for DM support
   });
 
   // Initialize handlers
   const commandHandler = new CommandHandler();
   const eventHandler = new EventHandler(client, commandHandler);
+
+  // Register DM handler for natural language assistance
+  registerDMHandler(client);
 
   // Start trust adapter to listen for trust events and log formatted output
   startTrustAdapter({

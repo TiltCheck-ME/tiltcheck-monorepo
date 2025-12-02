@@ -15,15 +15,12 @@ import {
   getSwapQuote,
   createSwapTransaction,
   getSupportedTokens,
-  formatSwapQuote,
   isTokenSupported,
   // LTC Bridge imports
   getLtcSwapQuote,
   createLtcDepositAddress,
   getLtcDepositStatus,
   getUserPendingDeposits,
-  formatLtcDepositInstructions,
-  getSupportedLtcOutputs,
 } from '@tiltcheck/justthetip';
 import { lockVault, unlockVault, extendVault, getVaultStatus, type LockVaultRecord } from '@tiltcheck/lockvault';
 import { parseAmountNL, formatAmount, parseDurationNL, parseCategory } from '@tiltcheck/natural-language-parser';

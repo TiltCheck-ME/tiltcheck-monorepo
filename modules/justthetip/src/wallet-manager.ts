@@ -13,10 +13,15 @@ import { fileURLToPath } from 'url';
 const SOLANA_RPC_URL = process.env.SOLANA_RPC_URL || 'https://api.mainnet-beta.solana.com';
 const connection = new Connection(SOLANA_RPC_URL, 'confirmed');
 
-// Persistence file path
+// Persistence file path - use environment variable or default to data directory
+// For production (Render, etc), set WALLET_DATA_PATH to a persistent volume path
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const WALLET_DATA_PATH = path.resolve(__dirname, '../../../data/justthetip-wallets.json');
+const DEFAULT_DATA_DIR = path.resolve(__dirname, '../../../data');
+const WALLET_DATA_PATH = process.env.WALLET_DATA_PATH || path.join(
+  process.env.DATA_DIR || DEFAULT_DATA_DIR,
+  'justthetip-wallets.json'
+);
 
 export interface WalletInfo {
   userId: string;
@@ -71,12 +76,14 @@ async function saveWallets(): Promise<void> {
     await fs.mkdir(path.dirname(WALLET_DATA_PATH), { recursive: true });
     
     await fs.writeFile(WALLET_DATA_PATH, JSON.stringify(store, null, 2), 'utf-8');
+    console.log(`[JustTheTip] Saved ${wallets.size} wallets to ${WALLET_DATA_PATH}`);
   } catch (error) {
     console.error('[JustTheTip] Failed to save wallets:', error);
   }
 }
 
 // Load wallets on module initialization
+console.log(`[JustTheTip] Wallet data path: ${WALLET_DATA_PATH}`);
 loadWallets().catch(console.error);
 
 /**

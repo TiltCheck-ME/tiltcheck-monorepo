@@ -11,20 +11,19 @@
  * - Flat fee model consistent with tipping
  */
 
-import { Connection, PublicKey, VersionedTransaction } from '@solana/web3.js';
+import { Connection } from '@solana/web3.js';
 import { createQR } from '@solana/pay';
 import { eventRouter } from '@tiltcheck/event-router';
 import { pricingOracle } from '@tiltcheck/pricing-oracle';
 import { v4 as uuidv4 } from 'uuid';
 import { swapDefaults } from './config.js';
-import type { SwapQuote, SwapRequest } from '@tiltcheck/types';
+import type { SwapQuote } from '@tiltcheck/types';
 
 const JUPITER_QUOTE_API = 'https://quote-api.jup.ag/v6/quote';
 const JUPITER_SWAP_API = 'https://quote-api.jup.ag/v6/swap';
 
 // Platform fee wallet (same as tip fee wallet)
 const FEE_WALLET = process.env.JUSTTHETIP_FEE_WALLET || '';
-const FLAT_FEE_SOL = 0.0007; // ~$0.07
 
 /**
  * Supported tokens for swaps
