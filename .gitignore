@@ -63,6 +63,7 @@ wrangler.toml.local
 data/casino-trust.json
 data/domain-trust-scores.json
 data/lockvault.json
+data/justthetip-wallets.json
 =======
 age.agekey
 data/sessions.json
