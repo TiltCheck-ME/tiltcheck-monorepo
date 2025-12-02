@@ -24,17 +24,17 @@ describe('WalletManager - Security Guards', () => {
   });
 
   describe('Solana Address Validation (GHSA-3gc7-fjrx-p6mg mitigation)', () => {
-    it('should accept valid Solana address', () => {
+    it('should accept valid Solana address', async () => {
       // Valid Solana mainnet address (32 bytes base58 encoded)
       const validAddress = 'DYw8jCTfwHNRJhhmFcbXvVDTqWMEVFBX6ZKUmG5CNSKK';
       
-      const wallet = registerExternalWallet('user123', validAddress);
+      const wallet = await registerExternalWallet('user123', validAddress);
       
       expect(wallet.address).toBe(validAddress);
       expect(wallet.userId).toBe('user123');
     });
 
-    it('should reject address with invalid base58 characters', () => {
+    it('should reject address with invalid base58 characters', async () => {
       // Contains invalid characters (0, O, I, l not in base58)
       const invalidAddresses = [
         'DYw8jCTfwHNRJhhmFcbXvVDTqWMEVFBX6ZKUmG5CNSK0', // contains 0
@@ -44,50 +44,45 @@ describe('WalletManager - Security Guards', () => {
         'DYw8jCTfwHNRJhhmFcbXvVDTqWMEVFBX6ZKUmG5CNSK!', // contains !
       ];
 
-      invalidAddresses.forEach((address) => {
-        expect(() => {
-          registerExternalWallet('user123', address);
-        }).toThrow('Invalid Solana address: must use base58 encoding');
-      });
+      for (const address of invalidAddresses) {
+        await expect(registerExternalWallet('user123', address))
+          .rejects.toThrow('Invalid Solana address: must use base58 encoding');
+      }
     });
 
-    it('should reject address that is too short', () => {
+    it('should reject address that is too short', async () => {
       const tooShort = 'DYw8jCTfwHNRJhhmFcbXvVDTqWME'; // < 32 chars
       
-      expect(() => {
-        registerExternalWallet('user123', tooShort);
-      }).toThrow('Invalid Solana address: incorrect length');
+      await expect(registerExternalWallet('user123', tooShort))
+        .rejects.toThrow('Invalid Solana address: incorrect length');
     });
 
-    it('should reject address that is too long', () => {
+    it('should reject address that is too long', async () => {
       const tooLong = 'DYw8jCTfwHNRJhhmFcbXvVDTqWMEVFBX6ZKUmG5CNSKKabcdefghij'; // > 44 chars
       
-      expect(() => {
-        registerExternalWallet('user123', tooLong);
-      }).toThrow('Invalid Solana address: incorrect length');
+      await expect(registerExternalWallet('user123', tooLong))
+        .rejects.toThrow('Invalid Solana address: incorrect length');
     });
 
-    it('should reject empty address', () => {
-      expect(() => {
-        registerExternalWallet('user123', '');
-      }).toThrow('Invalid Solana address');
+    it('should reject empty address', async () => {
+      await expect(registerExternalWallet('user123', ''))
+        .rejects.toThrow('Invalid Solana address');
     });
 
-    it('should reject malformed base58 string', () => {
+    it('should reject malformed base58 string', async () => {
       // Valid length but not a valid public key
       const malformed = 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa';
       
-      expect(() => {
-        registerExternalWallet('user123', malformed);
-      }).toThrow('Invalid Solana address');
+      await expect(registerExternalWallet('user123', malformed))
+        .rejects.toThrow('Invalid Solana address');
     });
 
-    it('should prevent buffer overflow by checking 32-byte constraint', () => {
+    it('should prevent buffer overflow by checking 32-byte constraint', async () => {
       // This test ensures the validation prevents any address that doesn't
       // decode to exactly 32 bytes, protecting against bigint-buffer vulnerability
       const validAddress = 'DYw8jCTfwHNRJhhmFcbXvVDTqWMEVFBX6ZKUmG5CNSKK';
       
-      const wallet = registerExternalWallet('user123', validAddress);
+      const wallet = await registerExternalWallet('user123', validAddress);
       expect(wallet).toBeDefined();
       
       // The validation function should have checked that the decoded key is 32 bytes
@@ -95,12 +90,12 @@ describe('WalletManager - Security Guards', () => {
       expect(storedWallet?.address).toBe(validAddress);
     });
 
-    it('should handle multiple wallet registrations with different addresses', () => {
+    it('should handle multiple wallet registrations with different addresses', async () => {
       const address1 = 'DYw8jCTfwHNRJhhmFcbXvVDTqWMEVFBX6ZKUmG5CNSKK';
       const address2 = 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v';
       
-      const wallet1 = registerExternalWallet('user1', address1);
-      const wallet2 = registerExternalWallet('user2', address2);
+      const wallet1 = await registerExternalWallet('user1', address1);
+      const wallet2 = await registerExternalWallet('user2', address2);
       
       expect(wallet1.address).toBe(address1);
       expect(wallet2.address).toBe(address2);
@@ -110,14 +105,14 @@ describe('WalletManager - Security Guards', () => {
   });
 
   describe('Test Mode Behavior', () => {
-    it('should skip validation in test mode', () => {
+    it('should skip validation in test mode', async () => {
       // Restore test mode
       process.env.NODE_ENV = 'test';
       
       const mockAddress = 'MOCK_ADDRESS_123';
       
       // In test mode, validation is skipped to allow mock addresses
-      const wallet = registerExternalWallet('user123', mockAddress);
+      const wallet = await registerExternalWallet('user123', mockAddress);
       expect(wallet.address).toBe(mockAddress);
     });
   });
