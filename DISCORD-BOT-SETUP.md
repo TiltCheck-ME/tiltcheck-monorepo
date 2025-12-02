@@ -171,7 +171,14 @@ DISCORD_GUILD_ID=your_test_guild_id  # Optional
 
 #### 3. Deploy Commands
 ```bash
-npx tsx apps/discord-bot/src/deploy-commands.ts
+# Deploy all commands
+npx tsx bot/src/deploy-commands.ts
+
+# Clear old commands first, then deploy fresh
+npx tsx bot/src/deploy-commands.ts --clear
+
+# Only clear commands (useful for removing old/duplicate commands)
+npx tsx bot/src/deploy-commands.ts --clear-only
 ```
 
 #### 4. Start Bot
