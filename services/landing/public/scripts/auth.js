@@ -63,7 +63,7 @@ class TiltCheckAuth {
       const check = () => {
         const loginBtn = document.querySelector(loginSelector);
         const injected = !hasNavPlaceholder || (hasNavPlaceholder && loginBtn);
-        if (loginBtn || Date.now() - start > maxWaitMs) {
+        if (injected || Date.now() - start > maxWaitMs) {
           resolve();
         } else {
           setTimeout(check, intervalMs);
