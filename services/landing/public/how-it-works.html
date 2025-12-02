@@ -12,6 +12,7 @@
   <meta name="theme-color" content="#7c3aed">
 </head>
 <body>
+  <div id="shared-nav"></div>
   <nav class="breadcrumbs"></nav>
   <header class="site-header">
     <nav class="container">
@@ -145,6 +146,7 @@
     </article>
   </main>
 
+  <div id="shared-footer"></div>
   <footer class="site-footer">
     <div class="container">
       <div class="footer-grid">
@@ -183,4 +185,12 @@
   </footer>
 </body>
 <script src="/breadcrumbs.js" defer></script>
+<script>
+  (function(){
+    const navMount = document.getElementById('shared-nav');
+    const footerMount = document.getElementById('shared-footer');
+    if (navMount) { fetch('/components/nav.html').then(r=>r.text()).then(html=>{ navMount.innerHTML = html; }).catch(()=>{}); }
+    if (footerMount) { fetch('/components/footer.html').then(r=>r.text()).then(html=>{ footerMount.innerHTML = html; }).catch(()=>{}); }
+  })();
+</script>
 </html>

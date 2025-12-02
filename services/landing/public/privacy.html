@@ -31,6 +31,8 @@
       <p><strong>Last Updated:</strong> November 22, 2025</p>
       
       <section>
+        <div id="shared-nav"></div>
+  
         <h2>1. Introduction</h2>
         <p>
           TiltCheck ("we," "us," "our") is committed to protecting your privacy. This Privacy Policy explains how we collect, use, and safeguard your data when you use our Discord bot and related services.
@@ -51,7 +53,16 @@
           <li><strong>Tilt Scores:</strong> Calculated behavioral patterns (anonymized)</li>
         </ul>
 
-        <h3>2.2 Data You Provide</h3>
+      </body>
+      <div id="shared-footer"></div>
+      <script>
+        (function(){
+          const navMount = document.getElementById('shared-nav');
+          const footerMount = document.getElementById('shared-footer');
+          if (navMount) { fetch('/components/nav.html').then(r=>r.text()).then(html=>{ navMount.innerHTML = html; }).catch(()=>{}); }
+          if (footerMount) { fetch('/components/footer.html').then(r=>r.text()).then(html=>{ footerMount.innerHTML = html; }).catch(()=>{}); }
+        })();
+      </script>
         <ul>
           <li><strong>Wallet Addresses:</strong> When you link a Solana wallet for tipping</li>
           <li><strong>Scam Reports:</strong> Casino domains and complaint details you submit</li>
