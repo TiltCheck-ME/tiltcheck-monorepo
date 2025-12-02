@@ -31,6 +31,15 @@ export const help: Command = {
         inline: false,
       },
       {
+        name: '💱 /tip swap - Crypto Swaps',
+        value:
+          '`/tip swap quote` - Get swap rates\n' +
+          '`/tip swap deposit` - Start a swap (LTC → SOL)\n' +
+          '`/tip swap status` - Check swap progress\n' +
+          'Powered by ChangeNow • Non-custodial',
+        inline: false,
+      },
+      {
         name: '🔒 /tip - Vault (Time-lock)',
         value:
           '`/tip lock <amount> <duration>` - Lock funds\n' +
@@ -67,6 +76,13 @@ export const help: Command = {
           '✅ Direct wallet-to-wallet transfers\n' +
           '✅ Time-locked vaults for self-control\n' +
           '✅ Automatic link scanning',
+        inline: false,
+      },
+      {
+        name: '💬 DM Support',
+        value:
+          'You can chat with me directly in DMs!\n' +
+          'Send me a message for help, support, or to use commands privately.',
         inline: false,
       }
     );

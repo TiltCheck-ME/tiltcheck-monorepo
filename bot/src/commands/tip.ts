@@ -12,6 +12,11 @@ import {
   hasWallet,
   createTipWithFeeRequest,
   createAirdropWithFeeRequest,
+  getLtcSwapQuote,
+  createLtcDepositAddress,
+  getLtcDepositStatus,
+  getUserPendingDeposits,
+  getSupportedLtcOutputs,
 } from '@tiltcheck/justthetip';
 import { lockVault, unlockVault, extendVault, getVaultStatus, type LockVaultRecord } from '@tiltcheck/lockvault';
 import { parseAmountNL, formatAmount, parseDurationNL, parseCategory } from '@tiltcheck/natural-language-parser';
@@ -150,6 +155,35 @@ export const tip: Command = {
             )
             .setRequired(false)
         )
+    )
+    // Swap - swap crypto to SOL via ChangeNow
+    .addSubcommand(sub =>
+      sub
+        .setName('swap')
+        .setDescription('Swap crypto to SOL via ChangeNow')
+        .addStringOption(opt =>
+          opt
+            .setName('action')
+            .setDescription('Swap action')
+            .setRequired(true)
+            .addChoices(
+              { name: 'New Swap', value: 'deposit' },
+              { name: 'Check Status', value: 'status' },
+              { name: 'Get Quote', value: 'quote' },
+            )
+        )
+        .addStringOption(opt =>
+          opt.setName('from').setDescription('Input currency (LTC, BTC, ETH, etc.) - default: LTC').setRequired(false)
+        )
+        .addStringOption(opt =>
+          opt.setName('to').setDescription('Output token (SOL, USDC, USDT) - default: SOL').setRequired(false)
+        )
+        .addStringOption(opt =>
+          opt.setName('amount').setDescription('Amount to swap (for quote)').setRequired(false)
+        )
+        .addStringOption(opt =>
+          opt.setName('deposit_id').setDescription('Deposit ID (for status check)').setRequired(false)
+        )
     ),
 
   async execute(interaction: ChatInputCommandInteraction) {
@@ -185,6 +219,9 @@ export const tip: Command = {
         break;
       case 'trivia':
         await handleTriviaDrop(interaction);
+        break;
+      case 'swap':
+        await handleSwap(interaction);
         break;
       default:
         await interaction.reply({ content: 'Unknown command', ephemeral: true });
@@ -829,4 +866,189 @@ async function handleTriviaDrop(interaction: ChatInputCommandInteraction) {
       // In production, would create airdrop transaction to all winners
     }
   });
+}
+
+// ==================== SWAP HANDLER (ChangeNow Integration) ====================
+
+async function handleSwap(interaction: ChatInputCommandInteraction) {
+  const action = interaction.options.getString('action', true);
+  const fromCurrency = interaction.options.getString('from')?.toUpperCase() || 'LTC';
+  const toCurrency = interaction.options.getString('to')?.toUpperCase() || 'SOL';
+  const amount = interaction.options.getString('amount');
+  const depositId = interaction.options.getString('deposit_id');
+
+  // Validate output token
+  const supportedOutputs = getSupportedLtcOutputs();
+  if (!supportedOutputs.includes(toCurrency)) {
+    await interaction.reply({
+      content: `❌ Unsupported output token: ${toCurrency}\n\nSupported: ${supportedOutputs.join(', ')}`,
+      ephemeral: true,
+    });
+    return;
+  }
+
+  switch (action) {
+    case 'quote': {
+      await interaction.deferReply({ ephemeral: true });
+      
+      const amountNum = amount ? parseFloat(amount) : 1;
+      if (isNaN(amountNum) || amountNum <= 0) {
+        await interaction.editReply({
+          content: '❌ Invalid amount. Please provide a positive number.',
+        });
+        return;
+      }
+
+      const quoteResult = await getLtcSwapQuote(toCurrency as 'SOL' | 'USDC' | 'USDT', amountNum);
+      
+      if (!quoteResult.success || !quoteResult.quote) {
+        await interaction.editReply({
+          content: `❌ Failed to get quote: ${quoteResult.error || 'Unknown error'}`,
+        });
+        return;
+      }
+
+      const quote = quoteResult.quote;
+      const estimatedOutput = amountNum * quote.rate;
+
+      const embed = new EmbedBuilder()
+        .setColor(0x00BFFF)
+        .setTitle('💱 Swap Quote')
+        .setDescription(`Swap **${fromCurrency}** → **${toCurrency}** via ChangeNow`)
+        .addFields(
+          { name: 'Input', value: `${amountNum} ${fromCurrency}`, inline: true },
+          { name: 'Estimated Output', value: `~${estimatedOutput.toFixed(6)} ${toCurrency}`, inline: true },
+          { name: 'Rate', value: `1 ${fromCurrency} ≈ ${quote.rate.toFixed(6)} ${toCurrency}`, inline: false },
+          { name: 'Min Amount', value: `${quote.minAmount} ${fromCurrency}`, inline: true },
+          { name: 'Max Amount', value: `${quote.maxAmount} ${fromCurrency}`, inline: true },
+          { name: 'Est. Time', value: `~${quote.estimatedTime} minutes`, inline: true },
+        )
+        .setFooter({ text: 'Rates are estimates and may vary • Powered by ChangeNow' });
+
+      await interaction.editReply({ embeds: [embed] });
+      break;
+    }
+
+    case 'deposit': {
+      await interaction.deferReply({ ephemeral: true });
+
+      if (!hasWallet(interaction.user.id)) {
+        await interaction.editReply({
+          content: '❌ You need to register a wallet first!\nUse `/tip wallet` → Register (External) to connect your Solana wallet.',
+        });
+        return;
+      }
+
+      const wallet = getWallet(interaction.user.id);
+      if (!wallet) {
+        await interaction.editReply({
+          content: '❌ Wallet not found. Please register again with `/tip wallet`.',
+        });
+        return;
+      }
+
+      const depositResult = await createLtcDepositAddress(
+        interaction.user.id,
+        wallet.address,
+        toCurrency as 'SOL' | 'USDC' | 'USDT',
+      );
+
+      if (!depositResult.success || !depositResult.ltcAddress) {
+        await interaction.editReply({
+          content: `❌ Failed to create deposit: ${depositResult.error || 'Unknown error'}`,
+        });
+        return;
+      }
+
+      const embed = new EmbedBuilder()
+        .setColor(0xFFD700)
+        .setTitle('🪙 Swap Deposit Ready')
+        .setDescription(`Send **${fromCurrency}** to receive **${toCurrency}** in your Solana wallet`)
+        .addFields(
+          { name: `${fromCurrency} Deposit Address`, value: `\`\`\`${depositResult.ltcAddress}\`\`\``, inline: false },
+          { name: 'Output Token', value: toCurrency, inline: true },
+          { name: 'Your Wallet', value: `\`${wallet.address.substring(0, 8)}...${wallet.address.substring(wallet.address.length - 8)}\``, inline: true },
+          { name: 'Min Deposit', value: `${depositResult.minAmount} ${fromCurrency}`, inline: true },
+          { name: 'Max Deposit', value: `${depositResult.maxAmount} ${fromCurrency}`, inline: true },
+          { name: 'Deposit ID', value: `\`${depositResult.depositId}\``, inline: false },
+        )
+        .setFooter({ text: `Expires in 24h • Use /tip swap status to check progress • Powered by ChangeNow` });
+
+      await interaction.editReply({ embeds: [embed] });
+      break;
+    }
+
+    case 'status': {
+      await interaction.deferReply({ ephemeral: true });
+
+      if (depositId) {
+        // Check specific deposit
+        const status = await getLtcDepositStatus(depositId);
+        
+        if (!status) {
+          await interaction.editReply({
+            content: `❌ Deposit not found: \`${depositId}\`\n\nMake sure you're using the correct Deposit ID.`,
+          });
+          return;
+        }
+
+        const statusEmoji: Record<string, string> = {
+          'waiting': '⏳',
+          'confirming': '🔄',
+          'exchanging': '💱',
+          'sending': '📤',
+          'finished': '✅',
+          'failed': '❌',
+          'refunded': '↩️',
+          'expired': '⏰',
+        };
+
+        const embed = new EmbedBuilder()
+          .setColor(status.status === 'finished' ? 0x00FF00 : status.status === 'failed' ? 0xFF0000 : 0xFFD700)
+          .setTitle(`${statusEmoji[status.status] || '❓'} Swap Status`)
+          .addFields(
+            { name: 'Deposit ID', value: `\`${status.depositId}\``, inline: false },
+            { name: 'Status', value: status.status.charAt(0).toUpperCase() + status.status.slice(1), inline: true },
+          );
+
+        if (status.ltcAmount) {
+          embed.addFields({ name: 'Input Amount', value: `${status.ltcAmount} LTC`, inline: true });
+        }
+        if (status.outputAmount) {
+          embed.addFields({ name: 'Output Amount', value: `${status.outputAmount} ${toCurrency}`, inline: true });
+        }
+        if (status.txHash) {
+          embed.addFields({ name: 'Solana TX', value: `\`${status.txHash}\``, inline: false });
+        }
+
+        embed.setFooter({ text: 'Powered by ChangeNow' });
+
+        await interaction.editReply({ embeds: [embed] });
+      } else {
+        // Show all pending deposits for user
+        const pendingDeposits = getUserPendingDeposits(interaction.user.id);
+
+        if (pendingDeposits.length === 0) {
+          await interaction.editReply({
+            content: 'ℹ️ No pending swaps.\n\nUse `/tip swap deposit` to start a new swap.',
+          });
+          return;
+        }
+
+        const embed = new EmbedBuilder()
+          .setColor(0x1E90FF)
+          .setTitle('📋 Your Pending Swaps')
+          .setDescription(pendingDeposits.map(d => 
+            `• **${d.depositId.substring(0, 8)}...** → ${d.outputToken} • Status: ${d.status}`
+          ).join('\n'))
+          .setFooter({ text: 'Use /tip swap status deposit_id:<id> for details' });
+
+        await interaction.editReply({ embeds: [embed] });
+      }
+      break;
+    }
+
+    default:
+      await interaction.reply({ content: 'Unknown swap action', ephemeral: true });
+  }
 }
