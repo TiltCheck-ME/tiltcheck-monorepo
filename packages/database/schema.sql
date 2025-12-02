@@ -32,6 +32,32 @@ CREATE TABLE IF NOT EXISTS user_stats (
   updated_at TIMESTAMPTZ DEFAULT NOW() NOT NULL
 );
 
+-- Wallet Registrations Table
+-- Stores user wallet addresses for JustTheTip tipping
+CREATE TABLE IF NOT EXISTS wallet_registrations (
+  discord_id TEXT PRIMARY KEY,
+  wallet_address TEXT NOT NULL,
+  wallet_type TEXT DEFAULT 'external' NOT NULL,
+  registered_at TIMESTAMPTZ DEFAULT NOW() NOT NULL,
+  updated_at TIMESTAMPTZ DEFAULT NOW() NOT NULL
+);
+
+-- User Onboarding Table
+-- Tracks user onboarding status and preferences
+CREATE TABLE IF NOT EXISTS user_onboarding (
+  discord_id TEXT PRIMARY KEY,
+  is_onboarded BOOLEAN DEFAULT false NOT NULL,
+  has_accepted_terms BOOLEAN DEFAULT false NOT NULL,
+  risk_level TEXT DEFAULT 'moderate' CHECK (risk_level IN ('conservative', 'moderate', 'degen')),
+  cooldown_enabled BOOLEAN DEFAULT false NOT NULL,
+  daily_limit INTEGER,
+  notifications_tips BOOLEAN DEFAULT true NOT NULL,
+  notifications_trivia BOOLEAN DEFAULT true NOT NULL,
+  notifications_promos BOOLEAN DEFAULT false NOT NULL,
+  joined_at TIMESTAMPTZ DEFAULT NOW() NOT NULL,
+  updated_at TIMESTAMPTZ DEFAULT NOW() NOT NULL
+);
+
 -- Game History Table
 -- Records individual completed games for history and analytics
 CREATE TABLE IF NOT EXISTS game_history (
@@ -56,6 +82,9 @@ CREATE INDEX IF NOT EXISTS idx_user_stats_dad_score ON user_stats(dad_score DESC
 CREATE INDEX IF NOT EXISTS idx_user_stats_poker_chips ON user_stats(poker_chips_won DESC);
 CREATE INDEX IF NOT EXISTS idx_user_stats_last_played ON user_stats(last_played_at DESC);
 
+-- Wallet registrations indexes
+CREATE INDEX IF NOT EXISTS idx_wallet_registrations_address ON wallet_registrations(wallet_address);
+
 -- Game history indexes
 CREATE INDEX IF NOT EXISTS idx_game_history_winner ON game_history(winner_id);
 CREATE INDEX IF NOT EXISTS idx_game_history_type ON game_history(game_type);
@@ -77,10 +106,22 @@ CREATE TRIGGER update_user_stats_updated_at
   FOR EACH ROW 
   EXECUTE FUNCTION update_updated_at_column();
 
+CREATE TRIGGER update_wallet_registrations_updated_at 
+  BEFORE UPDATE ON wallet_registrations 
+  FOR EACH ROW 
+  EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TRIGGER update_user_onboarding_updated_at 
+  BEFORE UPDATE ON user_onboarding 
+  FOR EACH ROW 
+  EXECUTE FUNCTION update_updated_at_column();
+
 -- Row Level Security (RLS) Policies
 -- Enable RLS
 ALTER TABLE user_stats ENABLE ROW LEVEL SECURITY;
 ALTER TABLE game_history ENABLE ROW LEVEL SECURITY;
+ALTER TABLE wallet_registrations ENABLE ROW LEVEL SECURITY;
+ALTER TABLE user_onboarding ENABLE ROW LEVEL SECURITY;
 
 -- Allow anyone to read stats (for leaderboards)
 CREATE POLICY "Public read access for user stats" 
@@ -103,6 +144,36 @@ CREATE POLICY "Service role can update user stats"
 CREATE POLICY "Service role can insert game history" 
   ON game_history FOR INSERT 
   WITH CHECK (auth.role() = 'service_role');
+
+-- Wallet registrations policies (service role only for write, public read)
+CREATE POLICY "Public read access for wallet registrations" 
+  ON wallet_registrations FOR SELECT 
+  USING (true);
+
+CREATE POLICY "Service role can insert wallet registrations" 
+  ON wallet_registrations FOR INSERT 
+  WITH CHECK (auth.role() = 'service_role');
+
+CREATE POLICY "Service role can update wallet registrations" 
+  ON wallet_registrations FOR UPDATE 
+  USING (auth.role() = 'service_role');
+
+CREATE POLICY "Service role can delete wallet registrations" 
+  ON wallet_registrations FOR DELETE 
+  USING (auth.role() = 'service_role');
+
+-- User onboarding policies (service role only for write, public read)
+CREATE POLICY "Public read access for user onboarding" 
+  ON user_onboarding FOR SELECT 
+  USING (true);
+
+CREATE POLICY "Service role can insert user onboarding" 
+  ON user_onboarding FOR INSERT 
+  WITH CHECK (auth.role() = 'service_role');
+
+CREATE POLICY "Service role can update user onboarding" 
+  ON user_onboarding FOR UPDATE 
+  USING (auth.role() = 'service_role');
 
 -- Views for common queries
 

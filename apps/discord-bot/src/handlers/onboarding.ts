@@ -1,6 +1,9 @@
 /**
  * Onboarding System for JustTheTip Bot
  * Handles first-time user welcome, wallet setup, and preferences
+ * 
+ * Storage: Uses Supabase (free tier) with in-memory cache for fast reads.
+ * Falls back to memory-only if Supabase is not configured.
  */
 
 import { 
@@ -14,8 +17,21 @@ import {
   StringSelectMenuOptionBuilder,
   DMChannel,
 } from 'discord.js';
+import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
-// Track onboarded users (in production, this would be in database)
+// Supabase client for persistent storage (free tier)
+let supabase: SupabaseClient | null = null;
+if (process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY) {
+  supabase = createClient(
+    process.env.SUPABASE_URL,
+    process.env.SUPABASE_SERVICE_ROLE_KEY
+  );
+  console.log('[Onboarding] Using Supabase for persistence (free tier)');
+} else {
+  console.log('[Onboarding] Supabase not configured - onboarding data will be stored in memory only');
+}
+
+// In-memory cache for fast reads
 const onboardedUsers = new Set<string>();
 const userPreferences = new Map<string, UserPreferences>();
 
@@ -37,6 +53,112 @@ interface UserPreferences {
 }
 
 /**
+ * Load onboarding data from Supabase into memory cache
+ */
+async function loadOnboardingData(): Promise<void> {
+  if (!supabase) {
+    console.log('[Onboarding] No Supabase configured, starting with empty cache');
+    return;
+  }
+
+  try {
+    const { data, error } = await supabase
+      .from('user_onboarding')
+      .select('*');
+
+    if (error) {
+      console.error('[Onboarding] Failed to load from Supabase:', error);
+      return;
+    }
+
+    if (data) {
+      for (const row of data) {
+        if (row.is_onboarded) {
+          onboardedUsers.add(row.discord_id);
+        }
+        
+        const prefs: UserPreferences = {
+          userId: row.discord_id,
+          discordId: row.discord_id,
+          joinedAt: new Date(row.joined_at).getTime(),
+          notifications: {
+            tips: row.notifications_tips,
+            trivia: row.notifications_trivia,
+            promos: row.notifications_promos,
+          },
+          riskLevel: row.risk_level || 'moderate',
+          cooldownEnabled: row.cooldown_enabled,
+          dailyLimit: row.daily_limit,
+          hasAcceptedTerms: row.has_accepted_terms,
+        };
+        userPreferences.set(row.discord_id, prefs);
+      }
+      console.log(`[Onboarding] Loaded ${onboardedUsers.size} onboarded users from Supabase`);
+    }
+  } catch (error) {
+    console.error('[Onboarding] Failed to load onboarding data:', error);
+  }
+}
+
+/**
+ * Save user onboarding to Supabase
+ */
+async function saveOnboardingToDb(userId: string, prefs: UserPreferences): Promise<void> {
+  if (!supabase) return;
+
+  try {
+    const { error } = await supabase
+      .from('user_onboarding')
+      .upsert({
+        discord_id: userId,
+        is_onboarded: onboardedUsers.has(userId),
+        has_accepted_terms: prefs.hasAcceptedTerms,
+        risk_level: prefs.riskLevel,
+        cooldown_enabled: prefs.cooldownEnabled,
+        daily_limit: prefs.dailyLimit,
+        notifications_tips: prefs.notifications.tips,
+        notifications_trivia: prefs.notifications.trivia,
+        notifications_promos: prefs.notifications.promos,
+        joined_at: new Date(prefs.joinedAt).toISOString(),
+      }, { onConflict: 'discord_id' });
+
+    if (error) {
+      console.error('[Onboarding] Failed to save to Supabase:', error);
+    } else {
+      console.log(`[Onboarding] Saved user ${userId} to Supabase`);
+    }
+  } catch (error) {
+    console.error('[Onboarding] Failed to save onboarding data:', error);
+  }
+}
+
+/**
+ * Mark user as onboarded in Supabase
+ */
+async function markOnboardedInDb(userId: string): Promise<void> {
+  if (!supabase) return;
+
+  try {
+    const { error } = await supabase
+      .from('user_onboarding')
+      .upsert({
+        discord_id: userId,
+        is_onboarded: true,
+        joined_at: new Date().toISOString(),
+      }, { onConflict: 'discord_id' });
+
+    if (error) {
+      console.error('[Onboarding] Failed to mark onboarded in Supabase:', error);
+    }
+  } catch (error) {
+    console.error('[Onboarding] Failed to mark onboarded:', error);
+  }
+}
+
+// Load onboarding data on module initialization
+loadOnboardingData().catch(console.error);
+
+/**
  * Check if user needs onboarding
  */
 export function needsOnboarding(userId: string): boolean {
@@ -48,6 +170,8 @@ export function needsOnboarding(userId: string): boolean {
  */
 export function markOnboarded(userId: string): void {
   onboardedUsers.add(userId);
+  // Save immediately when user is onboarded
+  markOnboardedInDb(userId).catch(console.error);
 }
 
 /**
@@ -63,6 +187,8 @@ export function getUserPreferences(userId: string): UserPreferences | undefined 
 export function saveUserPreferences(prefs: UserPreferences): void {
   userPreferences.set(prefs.userId, prefs);
   onboardedUsers.add(prefs.userId);
+  // Persist to Supabase
+  saveOnboardingToDb(prefs.userId, prefs).catch(console.error);
 }
 
 /**

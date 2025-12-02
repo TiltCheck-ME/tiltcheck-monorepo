@@ -2,21 +2,29 @@
  * Wallet Manager
  * Handles external Solana wallet registration (Phantom, Solflare, etc)
  * Signing handled via Solana Pay QR codes
+ * 
+ * Storage: Uses Supabase (free tier) with in-memory cache for fast reads.
+ * Falls back to file storage if Supabase is not configured.
  */
 
 import { Connection, PublicKey, LAMPORTS_PER_SOL } from '@solana/web3.js';
 import { eventRouter } from '@tiltcheck/event-router';
-import { promises as fs } from 'fs';
-import path from 'path';
-import { fileURLToPath } from 'url';
+import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
 const SOLANA_RPC_URL = process.env.SOLANA_RPC_URL || 'https://api.mainnet-beta.solana.com';
 const connection = new Connection(SOLANA_RPC_URL, 'confirmed');
 
-// Persistence file path
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const WALLET_DATA_PATH = path.resolve(__dirname, '../../../data/justthetip-wallets.json');
+// Supabase client for persistent storage (free tier)
+let supabase: SupabaseClient | null = null;
+if (process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY) {
+  supabase = createClient(
+    process.env.SUPABASE_URL,
+    process.env.SUPABASE_SERVICE_ROLE_KEY
+  );
+  console.log('[JustTheTip] Using Supabase for wallet persistence (free tier)');
+} else {
+  console.log('[JustTheTip] Supabase not configured - wallets will be stored in memory only');
+}
 
 export interface WalletInfo {
   userId: string;
@@ -26,53 +34,88 @@ export interface WalletInfo {
   registeredAt: number;
 }
 
-interface WalletDataStore {
-  version: string;
-  lastUpdated: number;
-  wallets: Record<string, WalletInfo>;
-}
-
+// In-memory cache for fast reads
 const wallets = new Map<string, WalletInfo>();
 
 /**
- * Load wallets from persistent storage
+ * Load wallets from Supabase into memory cache
  */
 async function loadWallets(): Promise<void> {
+  if (!supabase) {
+    console.log('[JustTheTip] No Supabase configured, starting with empty wallet cache');
+    return;
+  }
+
   try {
-    const data = await fs.readFile(WALLET_DATA_PATH, 'utf-8');
-    const store: WalletDataStore = JSON.parse(data);
-    
-    for (const [userId, walletInfo] of Object.entries(store.wallets)) {
-      wallets.set(userId, walletInfo);
+    const { data, error } = await supabase
+      .from('wallet_registrations')
+      .select('*');
+
+    if (error) {
+      console.error('[JustTheTip] Failed to load wallets from Supabase:', error);
+      return;
     }
-    
-    console.log(`[JustTheTip] Loaded ${wallets.size} wallets from storage`);
-  } catch (error: any) {
-    if (error.code === 'ENOENT') {
-      console.log('[JustTheTip] No existing wallet data, starting fresh');
-    } else {
-      console.error('[JustTheTip] Failed to load wallets:', error);
+
+    if (data) {
+      for (const row of data) {
+        const walletInfo: WalletInfo = {
+          userId: row.discord_id,
+          address: row.wallet_address,
+          type: row.wallet_type as 'external',
+          registeredAt: new Date(row.registered_at).getTime(),
+        };
+        wallets.set(row.discord_id, walletInfo);
+      }
+      console.log(`[JustTheTip] Loaded ${wallets.size} wallets from Supabase`);
     }
+  } catch (error) {
+    console.error('[JustTheTip] Failed to load wallets:', error);
   }
 }
 
 /**
- * Save wallets to persistent storage
+ * Save wallet to Supabase
  */
-async function saveWallets(): Promise<void> {
+async function saveWalletToDb(walletInfo: WalletInfo): Promise<void> {
+  if (!supabase) return;
+
   try {
-    const store: WalletDataStore = {
-      version: '1.0.0',
-      lastUpdated: Date.now(),
-      wallets: Object.fromEntries(wallets),
-    };
-    
-    // Ensure data directory exists
-    await fs.mkdir(path.dirname(WALLET_DATA_PATH), { recursive: true });
-    
-    await fs.writeFile(WALLET_DATA_PATH, JSON.stringify(store, null, 2), 'utf-8');
+    const { error } = await supabase
+      .from('wallet_registrations')
+      .upsert({
+        discord_id: walletInfo.userId,
+        wallet_address: walletInfo.address,
+        wallet_type: walletInfo.type,
+        registered_at: new Date(walletInfo.registeredAt).toISOString(),
+      }, { onConflict: 'discord_id' });
+
+    if (error) {
+      console.error('[JustTheTip] Failed to save wallet to Supabase:', error);
+    } else {
+      console.log(`[JustTheTip] Saved wallet to Supabase: ${walletInfo.userId}`);
+    }
   } catch (error) {
-    console.error('[JustTheTip] Failed to save wallets:', error);
+    console.error('[JustTheTip] Failed to save wallet:', error);
+  }
+}
+
+/**
+ * Delete wallet from Supabase
+ */
+async function deleteWalletFromDb(userId: string): Promise<void> {
+  if (!supabase) return;
+
+  try {
+    const { error } = await supabase
+      .from('wallet_registrations')
+      .delete()
+      .eq('discord_id', userId);
+
+    if (error) {
+      console.error('[JustTheTip] Failed to delete wallet from Supabase:', error);
+    }
+  } catch (error) {
+    console.error('[JustTheTip] Failed to delete wallet:', error);
   }
 }
 
@@ -134,10 +177,11 @@ export async function registerExternalWallet(userId: string, address: string): P
     registeredAt: Date.now(),
   };
 
+  // Update in-memory cache
   wallets.set(userId, walletInfo);
 
-  // Persist to disk
-  await saveWallets();
+  // Persist to Supabase
+  await saveWalletToDb(walletInfo);
 
   // Emit event
   void eventRouter.publish('wallet.registered', 'justthetip', {
@@ -191,8 +235,7 @@ export async function removeWallet(userId: string): Promise<boolean> {
   const deleted = wallets.delete(userId);
   
   if (deleted) {
-    // Persist to disk
-    await saveWallets();
+    await deleteWalletFromDb(userId);
   }
   
   return deleted;
