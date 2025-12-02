@@ -1012,7 +1012,7 @@ async function handleSwap(interaction: ChatInputCommandInteraction) {
           );
 
         if (status.ltcAmount) {
-          embed.addFields({ name: 'Input Amount', value: `${status.ltcAmount} ${fromCurrency}`, inline: true });
+          embed.addFields({ name: 'Input Amount', value: `${status.ltcAmount} LTC`, inline: true });
         }
         if (status.outputAmount) {
           embed.addFields({ name: 'Output Amount', value: `${status.outputAmount} ${toCurrency}`, inline: true });
