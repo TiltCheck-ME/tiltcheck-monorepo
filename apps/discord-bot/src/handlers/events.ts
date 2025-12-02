@@ -11,6 +11,7 @@ import { suslink } from '@tiltcheck/suslink';
 import { trackMessage } from '@tiltcheck/tiltcheck-core';
 import { config } from '../config.js';
 import type { CommandHandler } from './commands.js';
+import { checkAndOnboard, handleOnboardingInteraction, needsOnboarding } from './onboarding.js';
 
 export class EventHandler {
   constructor(
@@ -32,11 +33,30 @@ export class EventHandler {
     this.client.on(Events.InteractionCreate, async (interaction) => {
       // Handle button interactions
       if (interaction.isButton()) {
+        // Check for onboarding buttons first
+        if (interaction.customId.startsWith('onboard_')) {
+          await handleOnboardingInteraction(interaction);
+          return;
+        }
         await this.handleButtonInteraction(interaction);
         return;
       }
 
+      // Handle select menu interactions (for onboarding preferences)
+      if (interaction.isStringSelectMenu() && interaction.customId.startsWith('onboard_')) {
+        await handleOnboardingInteraction(interaction);
+        return;
+      }
+
       if (!interaction.isChatInputCommand()) return;
+
+      // Check if user needs onboarding (first-time user)
+      if (needsOnboarding(interaction.user.id)) {
+        // Send welcome DM in background (don't block command execution)
+        checkAndOnboard(interaction.user).catch(err => {
+          console.error('[Bot] Failed to send welcome DM:', err);
+        });
+      }
 
       const command = this.commandHandler.getCommand(interaction.commandName);
 

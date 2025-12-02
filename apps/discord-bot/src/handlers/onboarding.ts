@@ -1,6 +1,7 @@
 /**
  * Onboarding System for JustTheTip Bot
  * Handles first-time user welcome, wallet setup, and preferences
+ * With persistent storage to survive bot restarts
  */
 
 import { 
@@ -14,8 +15,14 @@ import {
   StringSelectMenuOptionBuilder,
   DMChannel,
 } from 'discord.js';
+import { promises as fs } from 'fs';
+import path from 'path';
 
-// Track onboarded users (in production, this would be in database)
+// Persistence file paths
+const DEFAULT_DATA_DIR = process.env.DATA_DIR || path.join(process.cwd(), 'data');
+const ONBOARDING_DATA_PATH = process.env.ONBOARDING_DATA_PATH || path.join(DEFAULT_DATA_DIR, 'onboarding-users.json');
+
+// Track onboarded users with persistence
 const onboardedUsers = new Set<string>();
 const userPreferences = new Map<string, UserPreferences>();
 
@@ -36,6 +43,70 @@ interface UserPreferences {
   degenId?: string; // Future NFT-based ID
 }
 
+interface OnboardingDataStore {
+  version: string;
+  lastUpdated: number;
+  onboardedUserIds: string[];
+  preferences: Record<string, UserPreferences>;
+}
+
+/**
+ * Load onboarding data from persistent storage
+ */
+async function loadOnboardingData(): Promise<void> {
+  try {
+    const data = await fs.readFile(ONBOARDING_DATA_PATH, 'utf-8');
+    const store: OnboardingDataStore = JSON.parse(data);
+    
+    // Load onboarded users
+    for (const userId of store.onboardedUserIds) {
+      onboardedUsers.add(userId);
+    }
+    
+    // Load user preferences
+    for (const [userId, prefs] of Object.entries(store.preferences)) {
+      userPreferences.set(userId, prefs);
+    }
+    
+    console.log(`[Onboarding] Loaded ${onboardedUsers.size} onboarded users from storage`);
+  } catch (error: any) {
+    if (error.code === 'ENOENT') {
+      console.log('[Onboarding] No existing onboarding data, starting fresh');
+    } else {
+      console.error('[Onboarding] Failed to load onboarding data:', error);
+    }
+  }
+}
+
+/**
+ * Save onboarding data to persistent storage
+ */
+async function saveOnboardingData(): Promise<void> {
+  try {
+    const store: OnboardingDataStore = {
+      version: '1.0.0',
+      lastUpdated: Date.now(),
+      onboardedUserIds: Array.from(onboardedUsers),
+      preferences: Object.fromEntries(userPreferences),
+    };
+    
+    // Ensure data directory exists
+    await fs.mkdir(path.dirname(ONBOARDING_DATA_PATH), { recursive: true });
+    
+    await fs.writeFile(ONBOARDING_DATA_PATH, JSON.stringify(store, null, 2), 'utf-8');
+    console.log(`[Onboarding] Saved ${onboardedUsers.size} users to ${ONBOARDING_DATA_PATH}`);
+  } catch (error) {
+    console.error('[Onboarding] Failed to save onboarding data:', error);
+  }
+}
+
+// Load onboarding data on module initialization
+console.log(`[Onboarding] Data path: ${ONBOARDING_DATA_PATH}`);
+loadOnboardingData().catch(console.error);
+
+// Periodic save (every 60 seconds)
+setInterval(() => saveOnboardingData().catch(console.error), 60_000);
+
 /**
  * Check if user needs onboarding
  */
@@ -48,6 +119,8 @@ export function needsOnboarding(userId: string): boolean {
  */
 export function markOnboarded(userId: string): void {
   onboardedUsers.add(userId);
+  // Save immediately when user is onboarded
+  saveOnboardingData().catch(console.error);
 }
 
 /**
@@ -63,6 +136,8 @@ export function getUserPreferences(userId: string): UserPreferences | undefined 
 export function saveUserPreferences(prefs: UserPreferences): void {
   userPreferences.set(prefs.userId, prefs);
   onboardedUsers.add(prefs.userId);
+  // Persist to disk
+  saveOnboardingData().catch(console.error);
 }
 
 /**
