@@ -1,0 +1,21 @@
+{
+  "version": "1.0.0",
+  "lastUpdated": 1764661403040,
+  "wallets": {
+    "user123": {
+      "userId": "user123",
+      "address": "MOCK_ADDRESS_123",
+      "type": "external",
+      "registeredAt": 1764661403040
+    }
+  }
+}764661403038
+    },
+    "user2": {
+      "userId": "user2",
+      "address": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+      "type": "external",
+      "registeredAt": 1764661403038
+    }
+  }
+}
