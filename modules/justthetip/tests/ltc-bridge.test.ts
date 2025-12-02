@@ -3,7 +3,7 @@
  * Tests for native LTC to Solana token bridge functionality
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import {
   getLtcSwapQuote,
   createLtcDepositAddress,
