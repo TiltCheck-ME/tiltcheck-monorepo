@@ -8,16 +8,7 @@
   <link rel="stylesheet" href="../styles/tool-page.css" />
 </head>
 <body>
-  <nav class="navbar">
-    <div class="container">
-      <a href="/" class="logo">TiltCheck</a>
-      <div class="nav-links">
-        <a href="/#tools">Tools</a>
-        <a href="/dashboard">Dashboard</a>
-        <a href="https://discord.gg/s6NNfPHxMS" class="cta-small">Join Discord</a>
-      </div>
-    </div>
-  </nav>
+  <div id="shared-nav"></div>
 
   <header class="tool-header">
     <div class="container">
@@ -26,24 +17,10 @@
       <p class="tool-tagline">Promo submission, moderation & prediction</p>
       <p class="built-by">
         <a href="https://jmenichole.github.io/Portfolio/" target="_blank" rel="noopener">made for degens by degens</a>
-      </p>
-      <span class="status-badge status-beta">Beta</span>
-    </div>
-  </header>
-
-  <section class="tool-overview">
-    <div class="container">
-      <div class="two-column">
-        <div>
-          <h2>What is it?</h2>
-          <p>FreeSpinScan is a structured intake layer for casino promos: free spins, deposit multipliers, reload codes, and mission rewards.</p>
-          <p>Users submit offers. AI classifies risk & value. Mods approve. System learns drop cadence + value decay.</p>
-        </div>
-        <div class="feature-box">
-          <h3>Key Features</h3>
-          <ul>
-            <li>📥 Structured submission flow</li>
-            <li>🧪 AI risk + value scoring</li>
+      <div id="shared-footer"></div>
+    </body>
+    <script src="/scripts/components-loader.js"></script>
+    </html>
             <li>🛡️ Moderator approval queue</li>
             <li>⏳ Expiration tracking</li>
             <li>🔮 Predicted next promo window</li>
@@ -123,4 +100,13 @@
     </div>
   </footer>
 </body>
+<div id="shared-footer"></div>
+<script>
+  (function(){
+    const navMount = document.getElementById('shared-nav');
+    const footerMount = document.getElementById('shared-footer');
+    if (navMount) { fetch('/components/nav.html').then(r=>r.text()).then(html=>{ navMount.innerHTML = html; }).catch(()=>{}); }
+    if (footerMount) { fetch('/components/footer.html').then(r=>r.text()).then(html=>{ footerMount.innerHTML = html; }).catch(()=>{}); }
+  })();
+</script>
 </html>

@@ -10,16 +10,7 @@
   <link rel="stylesheet" href="../styles/tool-page.css">
 </head>
 <body>
-  <nav class="navbar">
-    <div class="container">
-      <a href="/" class="logo">TiltCheck</a>
-      <div class="nav-links">
-        <a href="/#tools">Tools</a>
-        <a href="/dashboard">Dashboard</a>
-        <a href="https://discord.gg/s6NNfPHxMS" class="cta-small">Join Discord</a>
-      </div>
-    </div>
-  </nav>
+  <div id="shared-nav"></div>
 
   <header class="tool-header">
     <div class="container">
@@ -27,24 +18,10 @@
       <h1>TriviaDrops</h1>
       <p class="tool-tagline">This feature now lives inside JustTheTip</p>
       <span class="status-badge status-live">Redirecting…</span>
-    </div>
-  </header>
-
-  <section class="tool-overview">
-    <div class="container">
-      <div class="two-column">
-        <div>
-          <h2>Redirecting to JustTheTip…</h2>
-          <p>If you are not redirected, <a href="/tools/justthetip.html#triviadrops">click here to go to TriviaDrops inside JustTheTip</a>.</p>
-        </div>
-        <div class="feature-box">
-          <h3>Heads up</h3>
-          <ul>
-            <li>TriviaDrops is now a feature of JustTheTip</li>
-            <li>All commands and docs live there</li>
-          </ul>
-        </div>
-      </div>
+    <div id="shared-footer"></div>
+  </body>
+  <script src="/scripts/components-loader.js"></script>
+  </html>
     </div>
   </section>
 
@@ -83,4 +60,13 @@
     </div>
   </footer>
 </body>
+<div id="shared-footer"></div>
+<script>
+  (function(){
+    const navMount = document.getElementById('shared-nav');
+    const footerMount = document.getElementById('shared-footer');
+    if (navMount) { fetch('/components/nav.html').then(r=>r.text()).then(html=>{ navMount.innerHTML = html; }).catch(()=>{}); }
+    if (footerMount) { fetch('/components/footer.html').then(r=>r.text()).then(html=>{ footerMount.innerHTML = html; }).catch(()=>{}); }
+  })();
+</script>
 </html>

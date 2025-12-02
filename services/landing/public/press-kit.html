@@ -25,6 +25,7 @@
   }</script>
 </head>
 <body class="content-page">
+<div id="shared-nav"></div>
 <nav class="breadcrumbs"></nav>
 <header class="site-header">
   <div class="container">
@@ -37,15 +38,29 @@
     <h2>Logos</h2>
     <div class="asset-grid" aria-label="Logo download options">
       <div class="asset-item">
-        <img src="/assets/logo/tiltcheck-logo-dark.png" alt="TiltCheck logo dark" style="width:100%;height:auto" />
-        <p><a download href="/assets/logo/tiltcheck-logo-dark.png">PNG (Dark)</a></p>
+        <picture>
+          <source srcset="/assets/logo/tiltcheck-logo-dark.avif" type="image/avif">
+          <source srcset="/assets/logo/tiltcheck-logo-dark.webp" type="image/webp">
+          <img src="/assets/logo/tiltcheck-logo-dark.png" alt="TiltCheck logo dark" style="width:100%;height:auto" loading="lazy" decoding="async" />
+        </picture>
+        <p>
+          <a download href="/assets/logo/tiltcheck-logo-dark.png">PNG (Dark)</a> • 
+          <a download href="/assets/logo/tiltcheck-logo-dark.webp">WebP</a>
+        </p>
       </div>
       <div class="asset-item">
-        <img src="/assets/logo/tiltcheck-logo-light.png" alt="TiltCheck logo light" style="width:100%;height:auto" />
-        <p><a download href="/assets/logo/tiltcheck-logo-light.png">PNG (Light)</a></p>
+        <picture>
+          <source srcset="/assets/logo/tiltcheck-logo-light.avif" type="image/avif">
+          <source srcset="/assets/logo/tiltcheck-logo-light.webp" type="image/webp">
+          <img src="/assets/logo/tiltcheck-logo-light.png" alt="TiltCheck logo light" style="width:100%;height:auto" loading="lazy" decoding="async" />
+        </picture>
+        <p>
+          <a download href="/assets/logo/tiltcheck-logo-light.png">PNG (Light)</a> • 
+          <a download href="/assets/logo/tiltcheck-logo-light.webp">WebP</a>
+        </p>
       </div>
       <div class="asset-item">
-        <img src="/assets/logo/tiltcheck-logo.svg" alt="TiltCheck logo vector" style="width:100%;height:auto" />
+        <img src="/assets/logo/tiltcheck-logo.svg" alt="TiltCheck logo vector" style="width:100%;height:auto" loading="lazy" />
         <p><a download href="/assets/logo/tiltcheck-logo.svg">SVG Vector</a></p>
       </div>
     </div>
@@ -81,6 +96,8 @@
   </section>
 </main>
 <footer class="site-footer"><div class="container"><p><a href="/">← Home</a></p></div></footer>
+<div id="shared-footer"></div>
 </body>
 <script src="/breadcrumbs.js" defer></script>
+<script src="/scripts/components-loader.js"></script>
 </html>

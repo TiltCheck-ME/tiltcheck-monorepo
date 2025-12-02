@@ -20,6 +20,7 @@
   </style>
 </head>
 <body class="content-page">
+<div id="shared-nav"></div>
 <nav class="breadcrumbs"></nav>
 <header class="site-header">
   <div class="container">
@@ -50,6 +51,7 @@
   </form>
 </main>
 <footer class="site-footer"><div class="container"><p><a href="/">← Home</a></p></div></footer>
+<div id="shared-footer"></div>
 <script src="/breadcrumbs.js" defer></script>
 <script>
   (function(){
@@ -86,6 +88,14 @@
         else { unsubStatus.textContent=j.error||'Unsubscribe failed.'; unsubStatus.className='status err'; }
       } catch(err){ unsubStatus.textContent='Network error.'; unsubStatus.className='status err'; }
     });
+  })();
+</script>
+<script>
+  (function(){
+    const navMount = document.getElementById('shared-nav');
+    const footerMount = document.getElementById('shared-footer');
+    if (navMount) { fetch('/components/nav.html').then(r=>r.text()).then(html=>{ navMount.innerHTML = html; }).catch(()=>{}); }
+    if (footerMount) { fetch('/components/footer.html').then(r=>r.text()).then(html=>{ footerMount.innerHTML = html; }).catch(()=>{}); }
   })();
 </script>
 </body>

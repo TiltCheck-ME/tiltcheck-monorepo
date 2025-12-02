@@ -14,7 +14,13 @@ class TiltCheckAuth {
     if (this.user && !this.hasAcceptedTerms()) {
       this.showTermsModal();
     }
+    await this.waitForNavReady();
     this.updateNavigation();
+
+    // React to shared component injection if it fires later
+    document.addEventListener('tc:componentsLoaded', () => {
+      this.updateNavigation();
+    });
   }
 
   async checkAuthStatus() {
@@ -43,6 +49,33 @@ class TiltCheckAuth {
       const avatar = this.createUserAvatar();
       loginButton.replaceWith(avatar);
     }
+  }
+
+  // Wait for shared nav injection to complete or for login button to exist
+  waitForNavReady() {
+    const hasNavPlaceholder = !!document.getElementById('shared-nav');
+    const loginSelector = '.discord-login-btn, a[href="/play/"]';
+    const maxWaitMs = 2000; // 2s safety
+    const intervalMs = 50;
+
+    return new Promise((resolve) => {
+      const start = Date.now();
+      const check = () => {
+        const loginBtn = document.querySelector(loginSelector);
+        const injected = !hasNavPlaceholder || (hasNavPlaceholder && loginBtn);
+        if (loginBtn || Date.now() - start > maxWaitMs) {
+          resolve();
+        } else {
+          setTimeout(check, intervalMs);
+        }
+      };
+      // If DOM already has the element, resolve immediately
+      if (document.querySelector(loginSelector)) {
+        resolve();
+      } else {
+        check();
+      }
+    });
   }
 
   createUserAvatar() {

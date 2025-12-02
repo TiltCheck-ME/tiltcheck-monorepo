@@ -8,16 +8,7 @@
   <link rel="stylesheet" href="../styles/tool-page.css" />
 </head>
 <body>
-  <nav class="navbar">
-    <div class="container">
-      <a href="/" class="logo">TiltCheck</a>
-      <div class="nav-links">
-        <a href="/#tools">Tools</a>
-        <a href="/dashboard">Dashboard</a>
-        <a href="https://discord.gg/s6NNfPHxMS" class="cta-small">Join Discord</a>
-      </div>
-    </div>
-  </nav>
+  <div id="shared-nav"></div>
 
   <header class="tool-header">
     <div class="container">
@@ -26,24 +17,10 @@
       <p class="tool-tagline">Degens Against Decency (Discord Party Game)</p>
       <p class="built-by">
         <a href="https://jmenichole.github.io/Portfolio/" target="_blank" rel="noopener">made for degens by degens</a>
-      </p>
-      <span class="status-badge status-live">Live (Separate Bot)</span>
-    </div>
-  </header>
-
-  <section class="tool-overview">
-    <div class="container">
-      <div class="two-column">
-        <div>
-          <h2>What is it?</h2>
-          <p><strong>TL;DR:</strong> Cards Against Humanity for Discord, but crypto-themed. Submit cards, vote for the funniest, win points. Separate bot so it doesn't clutter your main server.</p>
-          <p>DA&D is a fill-the-blank card game where one player's prompt card meets everyone else's answer cards. Judge picks the most unhinged response. Rotating roles, anonymous voting, and degen-themed card packs. Perfect for Discord communities that appreciate dark humor.</p>
-        </div>
-        <div class="feature-box">
-          <h3>Live Features</h3>
-          <ul>
-            <li>🃏 White/Black card system with "Degen Starter Pack"</li>
-            <li>🎮 Full game flow: create → join → start → play → vote → score</li>
+      <div id="shared-footer"></div>
+    </body>
+    <script src="/scripts/components-loader.js"></script>
+    </html>
             <li>🔄 Rotating dealer role each round</li>
             <li>👥 2-10 players per game</li>
             <li>🎯 Anonymous card submission and voting</li>
@@ -206,4 +183,13 @@
     </div>
   </footer>
 </body>
+<div id="shared-footer"></div>
+<script>
+  (function(){
+    const navMount = document.getElementById('shared-nav');
+    const footerMount = document.getElementById('shared-footer');
+    if (navMount) { fetch('/components/nav.html').then(r=>r.text()).then(html=>{ navMount.innerHTML = html; }).catch(()=>{}); }
+    if (footerMount) { fetch('/components/footer.html').then(r=>r.text()).then(html=>{ footerMount.innerHTML = html; }).catch(()=>{}); }
+  })();
+</script>
 </html>
