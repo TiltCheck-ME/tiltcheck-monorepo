@@ -12,6 +12,18 @@ import {
   hasWallet,
   createTipWithFeeRequest,
   createAirdropWithFeeRequest,
+  getSwapQuote,
+  createSwapTransaction,
+  getSupportedTokens,
+  formatSwapQuote,
+  isTokenSupported,
+  // LTC Bridge imports
+  getLtcSwapQuote,
+  createLtcDepositAddress,
+  getLtcDepositStatus,
+  getUserPendingDeposits,
+  formatLtcDepositInstructions,
+  getSupportedLtcOutputs,
 } from '@tiltcheck/justthetip';
 import { lockVault, unlockVault, extendVault, getVaultStatus, type LockVaultRecord } from '@tiltcheck/lockvault';
 import { parseAmountNL, formatAmount, parseDurationNL, parseCategory } from '@tiltcheck/natural-language-parser';
@@ -163,6 +175,65 @@ export const tip: Command = {
             )
             .setRequired(false)
         )
+    )
+    // Token swap via Jupiter
+    .addSubcommand(sub =>
+      sub
+        .setName('swap')
+        .setDescription('Swap tokens using Jupiter aggregator (e.g., USDC to SOL)')
+        .addStringOption(opt =>
+          opt.setName('from')
+            .setDescription('Token to swap from (e.g., USDC, SOL, BONK)')
+            .setRequired(true)
+        )
+        .addStringOption(opt =>
+          opt.setName('to')
+            .setDescription('Token to swap to (e.g., SOL, USDC, JUP)')
+            .setRequired(true)
+        )
+        .addStringOption(opt =>
+          opt.setName('amount')
+            .setDescription('Amount to swap (e.g., "10", "0.5", "100")')
+            .setRequired(true)
+        )
+    )
+    // List supported tokens for swap
+    .addSubcommand(sub =>
+      sub
+        .setName('tokens')
+        .setDescription('List supported tokens for swapping')
+    )
+    // LTC deposit - get address to deposit native LTC
+    .addSubcommand(sub =>
+      sub
+        .setName('ltc')
+        .setDescription('Deposit native LTC and receive Solana tokens')
+        .addStringOption(opt =>
+          opt.setName('action')
+            .setDescription('LTC action')
+            .setRequired(true)
+            .addChoices(
+              { name: 'Deposit - Get LTC deposit address', value: 'deposit' },
+              { name: 'Quote - Get LTC swap rate', value: 'quote' },
+              { name: 'Status - Check deposit status', value: 'status' },
+              { name: 'Pending - View pending deposits', value: 'pending' },
+            )
+        )
+        .addStringOption(opt =>
+          opt.setName('output')
+            .setDescription('Token to receive (SOL, USDC, USDT) - default: SOL')
+            .setRequired(false)
+            .addChoices(
+              { name: 'SOL - Solana', value: 'SOL' },
+              { name: 'USDC - USD Coin', value: 'USDC' },
+              { name: 'USDT - Tether', value: 'USDT' },
+            )
+        )
+        .addStringOption(opt =>
+          opt.setName('deposit_id')
+            .setDescription('Deposit ID (for status check)')
+            .setRequired(false)
+        )
     ),
 
   async execute(interaction: ChatInputCommandInteraction) {
@@ -181,7 +252,10 @@ export const tip: Command = {
             '• `/tip unlock` - Unlock vault\n' +
             '• `/tip extend` - Extend vault lock\n' +
             '• `/tip vaults` - View vault status\n' +
-            '• `/tip trivia` - Create trivia airdrop',
+            '• `/tip trivia` - Create trivia airdrop\n' +
+            '• `/tip swap` - Swap Solana tokens via Jupiter\n' +
+            '• `/tip tokens` - List supported swap tokens\n' +
+            '• `/tip ltc` - Deposit native LTC, receive Solana tokens',
           ephemeral: true
         });
         return;
@@ -217,6 +291,15 @@ export const tip: Command = {
           break;
         case 'trivia':
           await handleTriviaDrop(interaction);
+          break;
+        case 'swap':
+          await handleSwap(interaction);
+          break;
+        case 'tokens':
+          await handleTokens(interaction);
+          break;
+        case 'ltc':
+          await handleLtc(interaction);
           break;
         default:
           await interaction.reply({ content: 'Unknown command', ephemeral: true });
@@ -1033,6 +1116,368 @@ export async function handleAirdropClaim(interaction: any, messageId: string) {
     await interaction.reply({ 
       content: `❌ Failed to create payment request: ${error instanceof Error ? error.message : 'Unknown error'}`, 
       ephemeral: true 
+    });
+  }
+}
+
+// ==================== SWAP HANDLERS ====================
+
+async function handleSwap(interaction: ChatInputCommandInteraction) {
+  await interaction.deferReply();
+
+  // Check user has wallet
+  if (!hasWallet(interaction.user.id)) {
+    await interaction.editReply({
+      content: '❌ You need to register a wallet first!\nUse `/tip wallet` → Register (External) to connect your Solana wallet.',
+    });
+    return;
+  }
+
+  const fromToken = interaction.options.getString('from', true).toUpperCase();
+  const toToken = interaction.options.getString('to', true).toUpperCase();
+  const amountStr = interaction.options.getString('amount', true);
+
+  // Validate tokens
+  if (!isTokenSupported(fromToken)) {
+    await interaction.editReply({
+      content: `❌ Unsupported input token: ${fromToken}\n\n**Supported tokens:** ${getSupportedTokens().join(', ')}\n\n💡 Use \`/tip tokens\` to see all supported tokens.`,
+    });
+    return;
+  }
+
+  if (!isTokenSupported(toToken)) {
+    await interaction.editReply({
+      content: `❌ Unsupported output token: ${toToken}\n\n**Supported tokens:** ${getSupportedTokens().join(', ')}\n\n💡 Use \`/tip tokens\` to see all supported tokens.`,
+    });
+    return;
+  }
+
+  // Parse amount
+  const amount = parseFloat(amountStr);
+  if (isNaN(amount) || amount <= 0) {
+    await interaction.editReply({
+      content: '❌ Invalid amount. Please enter a positive number.',
+    });
+    return;
+  }
+
+  try {
+    // Get swap quote from Jupiter
+    const quoteResult = await getSwapQuote(interaction.user.id, fromToken, toToken, amount);
+
+    if (!quoteResult.success || !quoteResult.quote) {
+      await interaction.editReply({
+        content: `❌ ${quoteResult.error || 'Failed to get swap quote'}`,
+      });
+      return;
+    }
+
+    const { quote, outputAmount, priceImpactPct, routeDescription } = quoteResult;
+
+    // Create swap transaction
+    const wallet = getWallet(interaction.user.id);
+    if (!wallet) {
+      await interaction.editReply({ content: '❌ Wallet not found.' });
+      return;
+    }
+
+    const swapResult = await createSwapTransaction(connection, wallet.address, quote);
+
+    if (!swapResult.success || !swapResult.url) {
+      await interaction.editReply({
+        content: `❌ ${swapResult.error || 'Failed to create swap transaction'}`,
+      });
+      return;
+    }
+
+    // Create swap button
+    const swapButton = new ButtonBuilder()
+      .setLabel('💱 Execute Swap in Wallet')
+      .setStyle(ButtonStyle.Link)
+      .setURL(swapResult.url);
+
+    const row = new ActionRowBuilder<ButtonBuilder>().addComponents(swapButton);
+
+    // Build response embed
+    const priceImpactEmoji = (priceImpactPct || 0) < 1 ? '✅' : (priceImpactPct || 0) < 3 ? '⚠️' : '🔴';
+    
+    const embed = new EmbedBuilder()
+      .setColor(0x9945FF) // Jupiter purple
+      .setTitle('💱 Swap Ready')
+      .setDescription(
+        `**Swap ${amount} ${fromToken} → ${toToken}**\n\n` +
+        `📥 Input: ${amount} ${fromToken}\n` +
+        `📤 Output: ~${outputAmount?.toFixed(6)} ${toToken}\n` +
+        `💱 Rate: 1 ${fromToken} ≈ ${((outputAmount || 0) / amount).toFixed(6)} ${toToken}\n` +
+        `${priceImpactEmoji} Price Impact: ${(priceImpactPct || 0).toFixed(2)}%\n\n` +
+        (routeDescription ? `🛤️ Route: ${routeDescription}\n\n` : '') +
+        '**Tap the button below to execute the swap in your wallet!**'
+      )
+      .setFooter({ text: 'Powered by Jupiter • JustTheTip' });
+
+    await interaction.editReply({ embeds: [embed], components: [row] });
+  } catch (error) {
+    console.error('[TIP SWAP] Error:', error);
+    await interaction.editReply({
+      content: `❌ Swap failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+    });
+  }
+}
+
+async function handleTokens(interaction: ChatInputCommandInteraction) {
+  const tokens = getSupportedTokens();
+  
+  const embed = new EmbedBuilder()
+    .setColor(0x9945FF)
+    .setTitle('💱 Supported Swap Tokens')
+    .setDescription(
+      '**Solana Tokens (Jupiter Swap):**\n' +
+      tokens.map(t => `• **${t}**`).join('\n') +
+      '\n\n**Cross-Chain (LTC Bridge):**\n' +
+      '• **LTC** → SOL, USDC, USDT\n\n' +
+      '💡 Use `/tip swap from:TOKEN to:TOKEN amount:X` to swap\n' +
+      '💡 Use `/tip ltc action:deposit` to deposit native LTC'
+    )
+    .setFooter({ text: 'Powered by Jupiter & ChangeNOW • JustTheTip' });
+
+  await interaction.reply({ embeds: [embed], ephemeral: true });
+}
+
+// ==================== LTC BRIDGE HANDLERS ====================
+
+async function handleLtc(interaction: ChatInputCommandInteraction) {
+  const action = interaction.options.getString('action', true);
+  const outputToken = (interaction.options.getString('output') || 'SOL') as 'SOL' | 'USDC' | 'USDT';
+  const depositId = interaction.options.getString('deposit_id');
+
+  switch (action) {
+    case 'deposit':
+      await handleLtcDeposit(interaction, outputToken);
+      break;
+    case 'quote':
+      await handleLtcQuote(interaction, outputToken);
+      break;
+    case 'status':
+      await handleLtcStatus(interaction, depositId);
+      break;
+    case 'pending':
+      await handleLtcPending(interaction);
+      break;
+    default:
+      await interaction.reply({ content: 'Unknown LTC action', ephemeral: true });
+  }
+}
+
+async function handleLtcDeposit(interaction: ChatInputCommandInteraction, outputToken: 'SOL' | 'USDC' | 'USDT') {
+  await interaction.deferReply({ ephemeral: true });
+
+  // Check user has wallet
+  if (!hasWallet(interaction.user.id)) {
+    await interaction.editReply({
+      content: '❌ You need to register a Solana wallet first!\n' +
+        'Use `/tip wallet` → Register (External) to connect your Solana wallet.\n\n' +
+        'Your LTC will be converted and sent to your Solana wallet.',
+    });
+    return;
+  }
+
+  const wallet = getWallet(interaction.user.id);
+  if (!wallet) {
+    await interaction.editReply({ content: '❌ Wallet not found.' });
+    return;
+  }
+
+  try {
+    // Create LTC deposit address
+    const deposit = await createLtcDepositAddress(
+      interaction.user.id,
+      wallet.address,
+      outputToken
+    );
+
+    if (!deposit.success || !deposit.ltcAddress) {
+      await interaction.editReply({
+        content: `❌ ${deposit.error || 'Failed to create deposit address'}`,
+      });
+      return;
+    }
+
+    // Create copy address button (Discord doesn't support clipboard, but we can format nicely)
+    const embed = new EmbedBuilder()
+      .setColor(0x345D9D) // Litecoin blue
+      .setTitle('🪙 LTC Deposit Address')
+      .setDescription(
+        `Send **native LTC** to this address:\n\n` +
+        `\`\`\`\n${deposit.ltcAddress}\n\`\`\`\n` +
+        `You will receive **${outputToken}** in your Solana wallet.`
+      )
+      .addFields(
+        { name: '📊 Limits', value: `Min: ${deposit.minAmount} LTC\nMax: ${deposit.maxAmount} LTC`, inline: true },
+        { name: '📍 Your Wallet', value: `\`${wallet.address.substring(0, 8)}...${wallet.address.substring(wallet.address.length - 8)}\``, inline: true },
+        { name: '⏰ Expires', value: `<t:${Math.floor((deposit.expiresAt || Date.now()) / 1000)}:R>`, inline: true },
+      )
+      .addFields(
+        { name: '💡 Instructions', value: 
+          '1. Copy the LTC address above\n' +
+          '2. Send LTC from your Litecoin wallet\n' +
+          '3. Wait ~15-30 minutes for confirmation\n' +
+          '4. Use `/tip ltc action:status` to check progress'
+        }
+      )
+      .setFooter({ text: `Deposit ID: ${deposit.depositId} • JustTheTip LTC Bridge` });
+
+    await interaction.editReply({ embeds: [embed] });
+  } catch (error) {
+    console.error('[LTC DEPOSIT] Error:', error);
+    await interaction.editReply({
+      content: `❌ Failed to create deposit: ${error instanceof Error ? error.message : 'Unknown error'}`,
+    });
+  }
+}
+
+async function handleLtcQuote(interaction: ChatInputCommandInteraction, outputToken: 'SOL' | 'USDC' | 'USDT') {
+  await interaction.deferReply({ ephemeral: true });
+
+  try {
+    const quoteResult = await getLtcSwapQuote(outputToken, 1); // Quote for 1 LTC
+
+    if (!quoteResult.success || !quoteResult.quote) {
+      await interaction.editReply({
+        content: `❌ ${quoteResult.error || 'Failed to get quote'}`,
+      });
+      return;
+    }
+
+    const { quote } = quoteResult;
+
+    const embed = new EmbedBuilder()
+      .setColor(0x345D9D)
+      .setTitle('💱 LTC Swap Quote')
+      .setDescription(
+        `**1 LTC ≈ ${quote.rate.toFixed(6)} ${outputToken}**\n\n` +
+        `Swap your native Litecoin for Solana tokens!`
+      )
+      .addFields(
+        { name: 'Min Deposit', value: `${quote.minAmount} LTC`, inline: true },
+        { name: 'Max Deposit', value: `${quote.maxAmount} LTC`, inline: true },
+        { name: 'Est. Time', value: `~${quote.estimatedTime} minutes`, inline: true },
+        { name: 'Network Fee', value: `~${quote.networkFee} ${outputToken}`, inline: true },
+      )
+      .addFields(
+        { name: '📝 Example', value: 
+          `• Send 0.1 LTC → Receive ~${(0.1 * quote.rate).toFixed(4)} ${outputToken}\n` +
+          `• Send 1 LTC → Receive ~${quote.rate.toFixed(4)} ${outputToken}\n` +
+          `• Send 5 LTC → Receive ~${(5 * quote.rate).toFixed(4)} ${outputToken}`
+        }
+      )
+      .setFooter({ text: 'Rates update in real-time • JustTheTip LTC Bridge' });
+
+    await interaction.editReply({ embeds: [embed] });
+  } catch (error) {
+    console.error('[LTC QUOTE] Error:', error);
+    await interaction.editReply({
+      content: `❌ Failed to get quote: ${error instanceof Error ? error.message : 'Unknown error'}`,
+    });
+  }
+}
+
+async function handleLtcStatus(interaction: ChatInputCommandInteraction, depositId: string | null) {
+  await interaction.deferReply({ ephemeral: true });
+
+  if (!depositId) {
+    // Show all pending deposits for user
+    await handleLtcPending(interaction);
+    return;
+  }
+
+  try {
+    const status = await getLtcDepositStatus(depositId);
+
+    if (!status) {
+      await interaction.editReply({
+        content: `❌ Deposit not found: ${depositId}\n\nUse \`/tip ltc action:pending\` to see your deposits.`,
+      });
+      return;
+    }
+
+    // Status emoji mapping
+    const statusEmoji: Record<string, string> = {
+      'waiting': '⏳',
+      'confirming': '🔄',
+      'exchanging': '💱',
+      'sending': '📤',
+      'finished': '✅',
+      'failed': '❌',
+      'refunded': '↩️',
+      'expired': '⏰',
+    };
+
+    const embed = new EmbedBuilder()
+      .setColor(status.status === 'finished' ? 0x00FF00 : status.status === 'failed' ? 0xFF0000 : 0x345D9D)
+      .setTitle(`${statusEmoji[status.status] || '❓'} LTC Deposit Status`)
+      .addFields(
+        { name: 'Status', value: status.status.toUpperCase(), inline: true },
+        { name: 'Deposit ID', value: depositId.substring(0, 8) + '...', inline: true },
+      );
+
+    if (status.ltcAmount) {
+      embed.addFields({ name: 'LTC Sent', value: `${status.ltcAmount} LTC`, inline: true });
+    }
+    if (status.outputAmount) {
+      embed.addFields({ name: 'Received', value: `${status.outputAmount}`, inline: true });
+    }
+    if (status.txHash) {
+      embed.addFields({ name: 'Solana TX', value: `\`${status.txHash.substring(0, 16)}...\``, inline: false });
+    }
+    if (status.ltcTxHash) {
+      embed.addFields({ name: 'LTC TX', value: `\`${status.ltcTxHash.substring(0, 16)}...\``, inline: false });
+    }
+
+    embed.setFooter({ text: `Last updated: ${new Date(status.updatedAt).toLocaleString()}` });
+
+    await interaction.editReply({ embeds: [embed] });
+  } catch (error) {
+    console.error('[LTC STATUS] Error:', error);
+    await interaction.editReply({
+      content: `❌ Failed to get status: ${error instanceof Error ? error.message : 'Unknown error'}`,
+    });
+  }
+}
+
+async function handleLtcPending(interaction: ChatInputCommandInteraction) {
+  // If already deferred, skip
+  if (!interaction.deferred && !interaction.replied) {
+    await interaction.deferReply({ ephemeral: true });
+  }
+
+  try {
+    const deposits = getUserPendingDeposits(interaction.user.id);
+
+    if (deposits.length === 0) {
+      await interaction.editReply({
+        content: '📋 No pending LTC deposits.\n\nUse `/tip ltc action:deposit` to create a new deposit address.',
+      });
+      return;
+    }
+
+    const embed = new EmbedBuilder()
+      .setColor(0x345D9D)
+      .setTitle('📋 Pending LTC Deposits')
+      .setDescription(
+        deposits.map((d, i) => 
+          `**${i + 1}.** \`${d.depositId.substring(0, 8)}...\`\n` +
+          `   Status: ${d.status} | Output: ${d.outputToken}\n` +
+          `   Address: \`${d.ltcAddress.substring(0, 20)}...\`\n` +
+          `   Created: <t:${Math.floor(d.createdAt / 1000)}:R>`
+        ).join('\n\n')
+      )
+      .setFooter({ text: 'Use /tip ltc action:status deposit_id:ID to check specific deposit' });
+
+    await interaction.editReply({ embeds: [embed] });
+  } catch (error) {
+    console.error('[LTC PENDING] Error:', error);
+    await interaction.editReply({
+      content: `❌ Failed to get deposits: ${error instanceof Error ? error.message : 'Unknown error'}`,
     });
   }
 }
