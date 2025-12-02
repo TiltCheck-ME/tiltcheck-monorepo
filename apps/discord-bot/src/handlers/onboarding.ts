@@ -1,7 +1,9 @@
 /**
  * Onboarding System for JustTheTip Bot
  * Handles first-time user welcome, wallet setup, and preferences
- * With persistent storage to survive bot restarts
+ * 
+ * Storage: Uses Supabase (free tier) with in-memory cache for fast reads.
+ * Falls back to memory-only if Supabase is not configured.
  */
 
 import { 
@@ -15,14 +17,21 @@ import {
   StringSelectMenuOptionBuilder,
   DMChannel,
 } from 'discord.js';
-import { promises as fs } from 'fs';
-import path from 'path';
+import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
-// Persistence file paths
-const DEFAULT_DATA_DIR = process.env.DATA_DIR || path.join(process.cwd(), 'data');
-const ONBOARDING_DATA_PATH = process.env.ONBOARDING_DATA_PATH || path.join(DEFAULT_DATA_DIR, 'onboarding-users.json');
+// Supabase client for persistent storage (free tier)
+let supabase: SupabaseClient | null = null;
+if (process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY) {
+  supabase = createClient(
+    process.env.SUPABASE_URL,
+    process.env.SUPABASE_SERVICE_ROLE_KEY
+  );
+  console.log('[Onboarding] Using Supabase for persistence (free tier)');
+} else {
+  console.log('[Onboarding] Supabase not configured - onboarding data will be stored in memory only');
+}
 
-// Track onboarded users with persistence
+// In-memory cache for fast reads
 const onboardedUsers = new Set<string>();
 const userPreferences = new Map<string, UserPreferences>();
 
@@ -43,69 +52,111 @@ interface UserPreferences {
   degenId?: string; // Future NFT-based ID
 }
 
-interface OnboardingDataStore {
-  version: string;
-  lastUpdated: number;
-  onboardedUserIds: string[];
-  preferences: Record<string, UserPreferences>;
-}
-
 /**
- * Load onboarding data from persistent storage
+ * Load onboarding data from Supabase into memory cache
  */
 async function loadOnboardingData(): Promise<void> {
+  if (!supabase) {
+    console.log('[Onboarding] No Supabase configured, starting with empty cache');
+    return;
+  }
+
   try {
-    const data = await fs.readFile(ONBOARDING_DATA_PATH, 'utf-8');
-    const store: OnboardingDataStore = JSON.parse(data);
-    
-    // Load onboarded users
-    for (const userId of store.onboardedUserIds) {
-      onboardedUsers.add(userId);
+    const { data, error } = await supabase
+      .from('user_onboarding')
+      .select('*');
+
+    if (error) {
+      console.error('[Onboarding] Failed to load from Supabase:', error);
+      return;
     }
-    
-    // Load user preferences
-    for (const [userId, prefs] of Object.entries(store.preferences)) {
-      userPreferences.set(userId, prefs);
+
+    if (data) {
+      for (const row of data) {
+        if (row.is_onboarded) {
+          onboardedUsers.add(row.discord_id);
+        }
+        
+        const prefs: UserPreferences = {
+          userId: row.discord_id,
+          discordId: row.discord_id,
+          joinedAt: new Date(row.joined_at).getTime(),
+          notifications: {
+            tips: row.notifications_tips,
+            trivia: row.notifications_trivia,
+            promos: row.notifications_promos,
+          },
+          riskLevel: row.risk_level || 'moderate',
+          cooldownEnabled: row.cooldown_enabled,
+          dailyLimit: row.daily_limit,
+          hasAcceptedTerms: row.has_accepted_terms,
+        };
+        userPreferences.set(row.discord_id, prefs);
+      }
+      console.log(`[Onboarding] Loaded ${onboardedUsers.size} onboarded users from Supabase`);
     }
-    
-    console.log(`[Onboarding] Loaded ${onboardedUsers.size} onboarded users from storage`);
-  } catch (error: any) {
-    if (error.code === 'ENOENT') {
-      console.log('[Onboarding] No existing onboarding data, starting fresh');
-    } else {
-      console.error('[Onboarding] Failed to load onboarding data:', error);
-    }
+  } catch (error) {
+    console.error('[Onboarding] Failed to load onboarding data:', error);
   }
 }
 
 /**
- * Save onboarding data to persistent storage
+ * Save user onboarding to Supabase
  */
-async function saveOnboardingData(): Promise<void> {
+async function saveOnboardingToDb(userId: string, prefs: UserPreferences): Promise<void> {
+  if (!supabase) return;
+
   try {
-    const store: OnboardingDataStore = {
-      version: '1.0.0',
-      lastUpdated: Date.now(),
-      onboardedUserIds: Array.from(onboardedUsers),
-      preferences: Object.fromEntries(userPreferences),
-    };
-    
-    // Ensure data directory exists
-    await fs.mkdir(path.dirname(ONBOARDING_DATA_PATH), { recursive: true });
-    
-    await fs.writeFile(ONBOARDING_DATA_PATH, JSON.stringify(store, null, 2), 'utf-8');
-    console.log(`[Onboarding] Saved ${onboardedUsers.size} users to ${ONBOARDING_DATA_PATH}`);
+    const { error } = await supabase
+      .from('user_onboarding')
+      .upsert({
+        discord_id: userId,
+        is_onboarded: onboardedUsers.has(userId),
+        has_accepted_terms: prefs.hasAcceptedTerms,
+        risk_level: prefs.riskLevel,
+        cooldown_enabled: prefs.cooldownEnabled,
+        daily_limit: prefs.dailyLimit,
+        notifications_tips: prefs.notifications.tips,
+        notifications_trivia: prefs.notifications.trivia,
+        notifications_promos: prefs.notifications.promos,
+        joined_at: new Date(prefs.joinedAt).toISOString(),
+      }, { onConflict: 'discord_id' });
+
+    if (error) {
+      console.error('[Onboarding] Failed to save to Supabase:', error);
+    } else {
+      console.log(`[Onboarding] Saved user ${userId} to Supabase`);
+    }
   } catch (error) {
     console.error('[Onboarding] Failed to save onboarding data:', error);
   }
 }
 
-// Load onboarding data on module initialization
-console.log(`[Onboarding] Data path: ${ONBOARDING_DATA_PATH}`);
-loadOnboardingData().catch(console.error);
+/**
+ * Mark user as onboarded in Supabase
+ */
+async function markOnboardedInDb(userId: string): Promise<void> {
+  if (!supabase) return;
 
-// Periodic save (every 60 seconds)
-setInterval(() => saveOnboardingData().catch(console.error), 60_000);
+  try {
+    const { error } = await supabase
+      .from('user_onboarding')
+      .upsert({
+        discord_id: userId,
+        is_onboarded: true,
+        joined_at: new Date().toISOString(),
+      }, { onConflict: 'discord_id' });
+
+    if (error) {
+      console.error('[Onboarding] Failed to mark onboarded in Supabase:', error);
+    }
+  } catch (error) {
+    console.error('[Onboarding] Failed to mark onboarded:', error);
+  }
+}
+
+// Load onboarding data on module initialization
+loadOnboardingData().catch(console.error);
 
 /**
  * Check if user needs onboarding
@@ -120,7 +171,7 @@ export function needsOnboarding(userId: string): boolean {
 export function markOnboarded(userId: string): void {
   onboardedUsers.add(userId);
   // Save immediately when user is onboarded
-  saveOnboardingData().catch(console.error);
+  markOnboardedInDb(userId).catch(console.error);
 }
 
 /**
@@ -136,8 +187,8 @@ export function getUserPreferences(userId: string): UserPreferences | undefined 
 export function saveUserPreferences(prefs: UserPreferences): void {
   userPreferences.set(prefs.userId, prefs);
   onboardedUsers.add(prefs.userId);
-  // Persist to disk
-  saveOnboardingData().catch(console.error);
+  // Persist to Supabase
+  saveOnboardingToDb(prefs.userId, prefs).catch(console.error);
 }
 
 /**

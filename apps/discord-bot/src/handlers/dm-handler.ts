@@ -10,7 +10,7 @@
  * The AI understands the intent and provides helpful guidance.
  */
 
-import { Client, Message, EmbedBuilder, ChannelType } from 'discord.js';
+import { Client, Message, ChannelType } from 'discord.js';
 import { aiClient } from '@tiltcheck/ai-client';
 import { hasWallet, getWallet, getSupportedTokens } from '@tiltcheck/justthetip';
 
@@ -24,7 +24,7 @@ const HELP_KEYWORDS = ['help', 'how', 'what', 'can i', 'guide', 'tutorial'];
 /**
  * Handle a direct message to the bot
  */
-export async function handleDirectMessage(client: Client, message: Message): Promise<void> {
+export async function handleDirectMessage(_client: Client, message: Message): Promise<void> {
   // Ignore bot messages
   if (message.author.bot) return;
 
@@ -50,7 +50,7 @@ export async function handleDirectMessage(client: Client, message: Message): Pro
 
   // Fall back to rule-based intent detection
   const response = await getRuleBasedResponse(userId, content);
-  await message.reply(response);
+  await message.reply({ content: response });
 }
 
 /**
@@ -102,7 +102,7 @@ async function getAIResponse(userId: string, question: string): Promise<string |
 /**
  * Rule-based response when AI is unavailable
  */
-async function getRuleBasedResponse(userId: string, content: string): Promise<string | EmbedBuilder> {
+async function getRuleBasedResponse(userId: string, content: string): Promise<string> {
   const hasUserWallet = hasWallet(userId);
 
   // LTC-related questions
