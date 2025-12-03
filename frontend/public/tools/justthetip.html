@@ -655,6 +655,181 @@
     </div>
   </section>
 
+  <!-- Crypto Onramp & Swap Section -->
+  <section class="onramp-section">
+    <div class="container">
+      <h2>Buy, Sell & Swap Crypto</h2>
+      <p>Get SOL instantly with our integrated onramp partners, or swap between tokens using the best aggregators.</p>
+      
+      <div class="onramp-grid">
+        <!-- Coinbase Onramp -->
+        <div class="onramp-card">
+          <div class="icon">💳</div>
+          <h3>Buy with Card</h3>
+          <p>Purchase SOL directly with credit/debit card through Coinbase Onramp. Fast, secure, and beginner-friendly.</p>
+          <ul>
+            <li>✓ Credit & debit cards accepted</li>
+            <li>✓ Bank transfers available</li>
+            <li>✓ Apple Pay & Google Pay</li>
+            <li>✓ Direct to your wallet</li>
+          </ul>
+          <span class="badge badge-partner">Coinbase</span>
+        </div>
+        
+        <!-- Jupiter Swap -->
+        <div class="onramp-card">
+          <div class="icon">🔄</div>
+          <h3>Jupiter Swap</h3>
+          <p>Swap between Solana tokens with the best rates. Jupiter aggregates all DEXs to find optimal routes.</p>
+          <ul>
+            <li>✓ Best price across all DEXs</li>
+            <li>✓ SOL, USDC, USDT, and 1000+ tokens</li>
+            <li>✓ Minimal slippage</li>
+            <li>✓ Non-custodial swaps</li>
+          </ul>
+          <span class="badge badge-live">Live</span>
+        </div>
+        
+        <!-- ChangeNow -->
+        <div class="onramp-card">
+          <div class="icon">🌐</div>
+          <h3>Cross-Chain Swap</h3>
+          <p>Swap BTC, ETH, LTC and 200+ cryptocurrencies to SOL via ChangeNow. No account required.</p>
+          <ul>
+            <li>✓ 200+ cryptocurrencies supported</li>
+            <li>✓ No registration required</li>
+            <li>✓ Fixed & floating rates</li>
+            <li>✓ Direct to Solana wallet</li>
+          </ul>
+          <span class="badge badge-partner">ChangeNow</span>
+        </div>
+        
+        <!-- Sell Crypto -->
+        <div class="onramp-card">
+          <div class="icon">💵</div>
+          <h3>Cash Out</h3>
+          <p>Convert your SOL back to fiat currency. Withdraw to bank account or card.</p>
+          <ul>
+            <li>✓ Bank transfer withdrawals</li>
+            <li>✓ Card cashouts</li>
+            <li>✓ Multiple fiat currencies</li>
+            <li>✓ Competitive rates</li>
+          </ul>
+          <span class="badge badge-partner">Coinbase</span>
+        </div>
+      </div>
+      
+      <div style="text-align: center; margin-top: 40px;">
+        <p style="color: #6B7280; margin-bottom: 20px;">Use <code style="background: #1A1F24; padding: 4px 8px; border-radius: 4px; color: #00FFC6;">/tip swap</code> in Discord to access swaps directly from the bot.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- User Dashboard Section -->
+  <section class="user-dashboard">
+    <div class="container">
+      <h2>Your JustTheTip Dashboard</h2>
+      <p>View your tip history, manage settings, and track your activity.</p>
+      
+      <!-- Login prompt (shown when not logged in) -->
+      <div class="dashboard-login" id="dashboardLogin">
+        <h3>Connect with Discord</h3>
+        <p>Login to view your tip history, wallet settings, and personalized stats.</p>
+        <a href="#" class="discord-login-btn" id="discordLoginBtn">
+          <svg viewBox="0 0 24 24" fill="currentColor">
+            <path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/>
+          </svg>
+          Login with Discord
+        </a>
+      </div>
+      
+      <!-- Dashboard content (shown when logged in) -->
+      <div class="dashboard-content" id="dashboardContent">
+        <div class="dashboard-header">
+          <div class="user-info">
+            <img src="" alt="User avatar" class="user-avatar" id="userAvatar">
+            <div>
+              <div class="user-name" id="userName">Loading...</div>
+              <div class="user-wallet" id="userWallet">No wallet connected</div>
+            </div>
+          </div>
+          <a href="#" class="cta-button" style="font-size: 0.9rem; padding: 10px 20px;" id="logoutBtn">Logout</a>
+        </div>
+        
+        <div class="dashboard-stats">
+          <div class="stat-card">
+            <div class="value" id="statTipsSent">0</div>
+            <div class="label">Tips Sent</div>
+          </div>
+          <div class="stat-card">
+            <div class="value" id="statTipsReceived">0</div>
+            <div class="label">Tips Received</div>
+          </div>
+          <div class="stat-card">
+            <div class="value" id="statTotalVolume">0 SOL</div>
+            <div class="label">Total Volume</div>
+          </div>
+          <div class="stat-card">
+            <div class="value" id="statBalance">-- SOL</div>
+            <div class="label">Wallet Balance</div>
+          </div>
+        </div>
+        
+        <div class="history-section">
+          <h3>Recent Activity</h3>
+          <div class="history-list" id="historyList">
+            <div class="history-item received">
+              <div class="history-details">
+                <div class="history-type">Sample: Tip Received</div>
+                <div class="history-meta">From @degen_user • 2 hours ago</div>
+              </div>
+              <div class="history-amount positive">+0.5 SOL</div>
+            </div>
+            <div class="history-item sent">
+              <div class="history-details">
+                <div class="history-type">Sample: Tip Sent</div>
+                <div class="history-meta">To @friend • Yesterday</div>
+              </div>
+              <div class="history-amount negative">-0.25 SOL</div>
+            </div>
+            <div class="history-item swap">
+              <div class="history-details">
+                <div class="history-type">Sample: Token Swap</div>
+                <div class="history-meta">USDC → SOL via Jupiter • 3 days ago</div>
+              </div>
+              <div class="history-amount positive">+2.5 SOL</div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="settings-section">
+          <h3>Settings</h3>
+          <div class="setting-item">
+            <div class="setting-label">
+              Tip Notifications
+              <small>Get notified when you receive tips</small>
+            </div>
+            <div class="toggle-switch active" data-setting="notifications"></div>
+          </div>
+          <div class="setting-item">
+            <div class="setting-label">
+              Public Profile
+              <small>Show your stats on leaderboards</small>
+            </div>
+            <div class="toggle-switch" data-setting="public-profile"></div>
+          </div>
+          <div class="setting-item">
+            <div class="setting-label">
+              Auto-accept Small Tips
+              <small>Automatically accept tips under 0.1 SOL</small>
+            </div>
+            <div class="toggle-switch active" data-setting="auto-accept"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <section class="cta-section">
     <div class="container">
       <h2>Ready to start tipping?</h2>
@@ -692,13 +867,14 @@
       </div>
     </div>
   </section>
+  </main>
 
   <footer>
     <div class="container">
       <p>
         <a href="/">Home</a> •
         <a href="/#tools">All Tools</a> •
-        <a href="https://discord.gg/tiltcheck">Discord</a> •
+        <a href="https://discord.gg/s6NNfPHxMS">Discord</a> •
         <a href="https://github.com/jmenichole/tiltcheck-monorepo">GitHub</a>
       </p>
       <p class="built-by">
@@ -709,5 +885,85 @@
       </p>
     </div>
   </footer>
+  
+  <script>
+    // Mobile Navigation Toggle
+    function toggleMobileNav() {
+      const btn = document.querySelector('.hamburger-btn');
+      const nav = document.getElementById('mobileNav');
+      const isOpen = btn.classList.toggle('open');
+      nav.classList.toggle('open', isOpen);
+      btn.setAttribute('aria-expanded', isOpen);
+      nav.setAttribute('aria-hidden', !isOpen);
+      document.body.style.overflow = isOpen ? 'hidden' : '';
+    }
+    
+    document.querySelectorAll('.mobile-nav a').forEach(link => {
+      link.addEventListener('click', () => toggleMobileNav());
+    });
+    
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && document.querySelector('.mobile-nav.open')) {
+        toggleMobileNav();
+      }
+    });
+    
+    // Toggle switches
+    document.querySelectorAll('.toggle-switch').forEach(toggle => {
+      toggle.addEventListener('click', () => {
+        toggle.classList.toggle('active');
+        const setting = toggle.dataset.setting;
+        const isActive = toggle.classList.contains('active');
+        console.log(`Setting ${setting}: ${isActive}`);
+        // In production, this would save to user preferences
+      });
+    });
+    
+    // Dashboard auth integration (connects with auth.js if available)
+    document.addEventListener('DOMContentLoaded', () => {
+      const loginSection = document.getElementById('dashboardLogin');
+      const contentSection = document.getElementById('dashboardContent');
+      const loginBtn = document.getElementById('discordLoginBtn');
+      const logoutBtn = document.getElementById('logoutBtn');
+      
+      // Check if auth script is loaded
+      if (window.tiltCheckAuth) {
+        const user = window.tiltCheckAuth.getUser();
+        if (user) {
+          showDashboard(user);
+        }
+      }
+      
+      loginBtn?.addEventListener('click', (e) => {
+        e.preventDefault();
+        if (window.tiltCheckAuth) {
+          window.tiltCheckAuth.loginWithDiscord();
+        } else {
+          // Redirect to Discord OAuth directly
+          window.location.href = 'https://discord.gg/s6NNfPHxMS';
+        }
+      });
+      
+      logoutBtn?.addEventListener('click', (e) => {
+        e.preventDefault();
+        if (window.tiltCheckAuth) {
+          window.tiltCheckAuth.logout();
+        }
+      });
+      
+      function showDashboard(user) {
+        loginSection.style.display = 'none';
+        contentSection.classList.add('active');
+        
+        const discordUser = window.tiltCheckAuth?.getDiscordUser();
+        if (discordUser) {
+          document.getElementById('userName').textContent = discordUser.username;
+          if (discordUser.avatar) {
+            document.getElementById('userAvatar').src = discordUser.avatar;
+          }
+        }
+      }
+    });
+  </script>
 </body>
 </html>
