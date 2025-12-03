@@ -6,6 +6,7 @@ const { buildAdminIPs, ipAllowlistMiddleware, initLogging } = require('@tiltchec
 const { getLatestCasinoCSVPath } = require('./lib/data-latest');
 const { buildServiceStatus, buildSiteMap } = require('./lib/meta');
 const { rateLimitMiddleware, initRateLimiter, closeRateLimiter } = require('./lib/rate-limiter');
+const { createStripeRouter } = require('./lib/stripe');
 
 const cfg = loadConfig();
 const PORT = cfg.PORT;
@@ -24,6 +25,12 @@ const { requestLogger, adminLogger, buildMetrics, pathCounters } = initLogging(L
 
 const app = express();
 app.set('trust proxy', true);
+
+// Stripe webhook needs raw body, so we configure it before other body parsers
+// The stripe router will handle its own raw body parsing for the webhook endpoint
+app.use('/api/stripe/webhook', express.raw({ type: 'application/json' }));
+
+// Regular body parsers for other routes
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -36,7 +43,8 @@ app.use((req, res, next) => {
   if (req.secure || req.headers['x-forwarded-for'] === 'https') {
     res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload');
   }
-  res.setHeader('Content-Security-Policy', "default-src 'self'; img-src 'self' data: https:; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline';");
+  // Updated CSP to allow Stripe.js
+  res.setHeader('Content-Security-Policy', "default-src 'self'; img-src 'self' data: https:; script-src 'self' 'unsafe-inline' https://js.stripe.com; style-src 'self' 'unsafe-inline'; frame-src https://js.stripe.com https://hooks.stripe.com; connect-src 'self' https://api.stripe.com;");
   res.setHeader('Cache-Control', 'public, max-age=120');
   next();
 });
@@ -85,6 +93,9 @@ app.get('/auth/callback', rateLimitMiddleware, (_req, res) => {
 app.get('/about', (_req, res) => {
   res.sendFile(path.join(publicDir, 'about.html'));
 });
+
+// Stripe API routes (no rate limiting as Stripe has its own protections)
+app.use('/api/stripe', createStripeRouter(express));
 
 // Newsletter unsubscribe endpoint (hashed)
 app.post('/api/newsletter/unsubscribe', rateLimitMiddleware, async (req, res) => {

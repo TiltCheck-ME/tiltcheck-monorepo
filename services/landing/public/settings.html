@@ -479,6 +479,37 @@
       settings[settingKey] = !isActive;
       
       saveSettings();
+    }
+
+    function saveSettings() {
+      localStorage.setItem('tiltcheck_settings', JSON.stringify(settings));
+      showSaveIndicator();
+    }
+
+    function saveProfileVisibility() {
+      const value = document.getElementById('profile-visibility').value;
+      settings['profile-visibility'] = value;
+      saveSettings();
+    }
+
+    function showSaveIndicator() {
+      const indicator = document.getElementById('save-status');
+      indicator.classList.add('visible');
+      setTimeout(() => {
+        indicator.classList.remove('visible');
+      }, 2000);
+    }
+
+    function connectWallet() {
+      alert('Wallet connection coming soon! This will integrate with Phantom/Solflare for Solana tips.');
+    }
+
+    function disconnectDiscord() {
+      if (confirm('Are you sure you want to disconnect your Discord account? You will be logged out.')) {
+        window.location.href = '/play/auth/logout';
+      }
+    }
+
     function confirmDeleteAccount() {
       const confirmation = prompt('This action cannot be undone. Type "DELETE" to confirm:');
       if (confirmation === 'DELETE') {
@@ -490,10 +521,60 @@
       window.location.href = '/chrome-extension-subscription.html';
     }
 
-    function cancelSubscription() {
-      if (confirm('Are you sure you want to cancel your subscription? You will lose access at the end of your current billing period.')) {
-        alert('Subscription cancellation will be implemented with Stripe integration.');
-        // TODO: Call Stripe API to cancel subscription
+    async function cancelSubscription() {
+      const user = window.tiltCheckAuth?.getUser();
+      if (!user) {
+        alert('Please login to cancel your subscription.');
+        return;
+      }
+
+      if (!confirm('Are you sure you want to cancel your subscription? You will lose access at the end of your current billing period.')) {
+        return;
+      }
+
+      const cancelBtn = document.querySelector('.btn-danger[onclick="cancelSubscription()"]');
+      if (cancelBtn) {
+        cancelBtn.disabled = true;
+        cancelBtn.textContent = 'Cancelling...';
+      }
+
+      try {
+        const response = await fetch('/api/stripe/cancel-subscription', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ userId: user.id })
+        });
+
+        const data = await response.json();
+
+        if (data.ok) {
+          // Update local storage
+          const key = `subscription_${user.id}`;
+          const sub = JSON.parse(localStorage.getItem(key) || '{}');
+          sub.status = 'cancelled';
+          sub.cancelledAt = new Date().toISOString();
+          localStorage.setItem(key, JSON.stringify(sub));
+
+          document.getElementById('subscription-status-text').textContent = 'Cancelled - access until end of billing period';
+          document.getElementById('subscription-details').style.display = 'none';
+          
+          if (cancelBtn) {
+            cancelBtn.textContent = 'Cancelled';
+          }
+
+          alert('Your subscription has been cancelled. You will have access until the end of your current billing period.');
+        } else {
+          throw new Error(data.error || 'Failed to cancel subscription');
+        }
+      } catch (error) {
+        console.error('Cancel subscription error:', error);
+        alert('Failed to cancel subscription: ' + error.message);
+        if (cancelBtn) {
+          cancelBtn.disabled = false;
+          cancelBtn.textContent = 'Cancel Subscription';
+        }
       }
     }
 
@@ -506,16 +587,32 @@
         return;
       }
 
-      // Check if founder
-      if (user.username === 'jmenichole') {
-        document.getElementById('subscription-status-text').textContent = 'Founder - Lifetime Premium Access 👑';
-        document.getElementById('manage-subscription-btn').style.display = 'none';
-        return;
+      // Try to get subscription from server first (handles founder status)
+      try {
+        const response = await fetch(`/api/stripe/subscription-status?userId=${encodeURIComponent(user.id)}&username=${encodeURIComponent(user.username || '')}`);
+        if (response.ok) {
+          const data = await response.json();
+          if (data.ok && data.subscription) {
+            // Handle founder status from server
+            if (data.subscription.status === 'founder') {
+              document.getElementById('subscription-status-text').textContent = 'Founder - Lifetime Premium Access 👑';
+              document.getElementById('manage-subscription-btn').style.display = 'none';
+              return;
+            }
+            updateSubscriptionUI(data.subscription);
+            return;
+          }
+        }
+      } catch (error) {
+        console.warn('Could not fetch subscription status from server:', error);
       }
 
-      // Get subscription from localStorage (mock for now)
+      // Fallback to localStorage
       const sub = getSubscriptionData(user.id);
-      
+      updateSubscriptionUI(sub);
+    }
+
+    function updateSubscriptionUI(sub) {
       if (sub.status === 'trial') {
         document.getElementById('subscription-status-text').textContent = `Free trial (${sub.daysRemaining} days remaining)`;
         document.getElementById('manage-subscription-btn').textContent = 'Subscribe';
@@ -525,9 +622,18 @@
         document.getElementById('subscription-details').style.display = 'block';
         document.getElementById('sub-status-display').textContent = 'Active';
         
-        const nextBilling = new Date();
-        nextBilling.setMonth(nextBilling.getMonth() + 1);
-        document.getElementById('sub-next-billing').textContent = nextBilling.toLocaleDateString();
+        if (sub.currentPeriodEnd) {
+          const nextBilling = new Date(sub.currentPeriodEnd);
+          document.getElementById('sub-next-billing').textContent = nextBilling.toLocaleDateString();
+        } else {
+          const nextBilling = new Date();
+          nextBilling.setMonth(nextBilling.getMonth() + 1);
+          document.getElementById('sub-next-billing').textContent = nextBilling.toLocaleDateString();
+        }
+      } else if (sub.status === 'cancelled') {
+        document.getElementById('subscription-status-text').textContent = 'Cancelled - access until end of billing period';
+        document.getElementById('manage-subscription-btn').textContent = 'Resubscribe';
+        document.getElementById('subscription-details').style.display = 'none';
       } else {
         document.getElementById('subscription-status-text').textContent = 'Not subscribed';
         document.getElementById('manage-subscription-btn').textContent = 'Start Trial';
@@ -566,37 +672,6 @@
           loadSettings();
           loadSubscriptionStatus();
         }, 500);
-      });
-    }
-  </script>
-</body>
-</html> indicator.classList.remove('visible');
-      }, 2000);
-    }
-
-    function connectWallet() {
-      alert('Wallet connection coming soon! This will integrate with Phantom/Solflare for Solana tips.');
-    }
-
-    function disconnectDiscord() {
-      if (confirm('Are you sure you want to disconnect your Discord account? You will be logged out.')) {
-        window.location.href = '/play/auth/logout';
-      }
-    }
-
-    function confirmDeleteAccount() {
-      const confirmation = prompt('This action cannot be undone. Type "DELETE" to confirm:');
-      if (confirmation === 'DELETE') {
-        alert('Account deletion is not yet implemented. Please contact support for account deletion requests.');
-      }
-    }
-
-    // Load settings when auth is ready
-    if (window.tiltCheckAuth) {
-      setTimeout(loadSettings, 500);
-    } else {
-      window.addEventListener('load', () => {
-        setTimeout(loadSettings, 500);
       });
     }
   </script>
