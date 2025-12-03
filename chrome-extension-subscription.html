@@ -273,10 +273,26 @@
     </div>
   </div>
 
+  <script src="https://js.stripe.com/v3/"></script>
   <script src="/scripts/auth.js"></script>
   <script>
-    // Founder Discord ID (jmenichole)
-    const FOUNDER_DISCORD_ID = process.env.FOUNDER_DISCORD_ID || ''; // Set this in env vars
+    // Stripe public key (will be loaded from API)
+    let stripe = null;
+
+    // Initialize Stripe when the page loads
+    async function initStripe() {
+      try {
+        const response = await fetch('/api/stripe/config');
+        if (response.ok) {
+          const config = await response.json();
+          if (config.publicKey) {
+            stripe = Stripe(config.publicKey);
+          }
+        }
+      } catch (error) {
+        console.warn('Could not initialize Stripe:', error);
+      }
+    }
 
     // Check subscription status
     async function checkSubscription() {
@@ -290,20 +306,38 @@
         return;
       }
 
-      // Founder gets free access
-      if (user.id === FOUNDER_DISCORD_ID || user.username === 'jmenichole') {
-        document.getElementById('founder-notice').style.display = 'block';
-        document.getElementById('subscribe-btn').style.display = 'none';
-        document.querySelector('.pricing-card').style.opacity = '0.6';
-        return;
+      // Founder/premium users get free access (configured server-side)
+      // Check with the subscription API which handles founder exceptions
+      try {
+        const response = await fetch(`/api/stripe/subscription-status?userId=${encodeURIComponent(user.id)}&username=${encodeURIComponent(user.username || '')}`);
+        if (response.ok) {
+          const data = await response.json();
+          if (data.ok && data.subscription) {
+            // Handle founder status from server
+            if (data.subscription.status === 'founder') {
+              document.getElementById('founder-notice').style.display = 'block';
+              document.getElementById('subscribe-btn').style.display = 'none';
+              document.querySelector('.pricing-card').style.opacity = '0.6';
+              return;
+            }
+            updateUIWithSubscription(data.subscription);
+            return;
+          }
+        }
+      } catch (error) {
+        console.warn('Could not fetch subscription status from server:', error);
       }
 
-      // Check subscription status from localStorage (mock for now)
+      // Fallback to localStorage
       const sub = getSubscriptionStatus(user.id);
-      
+      updateUIWithSubscription(sub);
+    }
+
+    function updateUIWithSubscription(sub) {
       if (sub.status === 'trial') {
         showSubscriptionStatus('trial', `Trial ends in ${sub.daysRemaining} days`);
         document.getElementById('subscribe-btn').textContent = 'Subscribe Now';
+        document.getElementById('subscribe-btn').onclick = handleSubscribe;
       } else if (sub.status === 'active') {
         showSubscriptionStatus('active', 'Active subscription - thank you! 💚');
         document.getElementById('subscribe-btn').textContent = 'Manage Subscription';
@@ -312,8 +346,15 @@
         };
       } else if (sub.status === 'expired') {
         showSubscriptionStatus('expired', 'Trial expired - subscribe to continue');
+        document.getElementById('subscribe-btn').textContent = 'Subscribe Now';
+        document.getElementById('subscribe-btn').onclick = handleSubscribe;
+      } else if (sub.status === 'cancelled') {
+        showSubscriptionStatus('expired', 'Subscription cancelled');
+        document.getElementById('subscribe-btn').textContent = 'Resubscribe';
+        document.getElementById('subscribe-btn').onclick = handleSubscribe;
       } else {
         document.getElementById('subscribe-btn').textContent = 'Start Free Trial';
+        document.getElementById('subscribe-btn').onclick = handleSubscribe;
       }
     }
 
@@ -368,8 +409,8 @@
       return sub;
     }
 
-    // Subscribe button handler
-    document.getElementById('subscribe-btn').onclick = function() {
+    // Handle subscription button click
+    async function handleSubscribe() {
       const user = window.tiltCheckAuth?.getUser();
       
       if (!user) {
@@ -377,16 +418,87 @@
         return;
       }
 
-      // Mock subscription flow
-      alert('Stripe integration coming soon! For now, this is a preview of the subscription flow.');
-      
-      // TODO: Integrate with Stripe
-      // const sub = getSubscriptionStatus(user.id);
-      // sub.status = 'active';
-      // sub.subscriptionId = 'stripe_sub_id';
-      // localStorage.setItem(`subscription_${user.id}`, JSON.stringify(sub));
-      // checkSubscription();
-    };
+      const btn = document.getElementById('subscribe-btn');
+      btn.disabled = true;
+      btn.textContent = 'Loading...';
+
+      try {
+        // Create checkout session on the server
+        const response = await fetch('/api/stripe/create-checkout-session', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            userId: user.id,
+            email: user.email,
+            username: user.username
+          })
+        });
+
+        const data = await response.json();
+
+        if (!data.ok) {
+          throw new Error(data.error || 'Failed to create checkout session');
+        }
+
+        // If we have a Stripe instance, redirect to checkout
+        if (stripe && data.sessionId) {
+          const result = await stripe.redirectToCheckout({ sessionId: data.sessionId });
+          if (result.error) {
+            throw new Error(result.error.message);
+          }
+        } else if (data.url) {
+          // Fallback: use the URL directly
+          window.location.href = data.url;
+        } else {
+          throw new Error('Stripe not configured. Please try again later.');
+        }
+      } catch (error) {
+        console.error('Subscription error:', error);
+        alert('Failed to start subscription: ' + error.message);
+        btn.disabled = false;
+        checkSubscription(); // Reset button text
+      }
+    }
+
+    // Check for success/cancel from Stripe redirect
+    function checkUrlParams() {
+      const params = new URLSearchParams(window.location.search);
+      const success = params.get('success');
+      const cancelled = params.get('cancelled');
+
+      if (success === 'true') {
+        const user = window.tiltCheckAuth?.getUser();
+        if (user) {
+          // Update local storage with active subscription
+          const key = `subscription_${user.id}`;
+          const sub = JSON.parse(localStorage.getItem(key) || '{}');
+          sub.status = 'active';
+          sub.activatedAt = new Date().toISOString();
+          localStorage.setItem(key, JSON.stringify(sub));
+        }
+        
+        showSubscriptionStatus('active', 'Subscription successful! Thank you for subscribing! 💚');
+        document.getElementById('subscribe-btn').textContent = 'Manage Subscription';
+        document.getElementById('subscribe-btn').onclick = () => {
+          window.location.href = '/settings.html#subscription';
+        };
+        
+        // Clean up URL
+        window.history.replaceState({}, '', window.location.pathname);
+      } else if (cancelled === 'true') {
+        showSubscriptionStatus('expired', 'Subscription was cancelled. You can try again anytime.');
+        // Clean up URL
+        window.history.replaceState({}, '', window.location.pathname);
+      }
+    }
+
+    // Initialize
+    document.addEventListener('DOMContentLoaded', () => {
+      initStripe();
+      checkUrlParams();
+    });
 
     // Load subscription status when auth is ready
     if (window.tiltCheckAuth) {
