@@ -13,8 +13,8 @@
 // NOTE: The anon key is intentionally public and designed to be exposed in client-side code.
 // It has Row Level Security (RLS) policies that control data access.
 // See: https://supabase.com/docs/guides/api/api-keys
-const SUPABASE_URL = window.TILTCHECK_SUPABASE_URL || 'https://cswqfwiijgstoelpwelz.supabase.co';
-const SUPABASE_ANON_KEY = window.TILTCHECK_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNzd3Fmd2lpamtzdG9lbHB3ZWx6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzI0NjgxNzAsImV4cCI6MjA0ODA0NDE3MH0.pPNfXrfmBWaqG8K7Ez1gC8-3Si2Mi8p9EhFYBrYrhBc';
+const SUPABASE_URL = window.TILTCHECK_SUPABASE_URL || 'https://ypyvqddzrdjzfdwhcacb.supabase.co';
+const SUPABASE_ANON_KEY = window.TILTCHECK_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlweXZxZGR6cmRqemZkd2hjYWNiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzI0NjgxNzAsImV4cCI6MjA0ODA0NDE3MH0.placeholder';
 
 // Simple Supabase auth client for browser
 class SupabaseAuthBrowser {
