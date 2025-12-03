@@ -12,6 +12,7 @@ export * from './nudge-generator.js';
 export {
   trackMessage,
   trackLoss,
+  trackBet,
   resetLossStreak,
   triggerCooldown,
   shouldWarnUser,
