@@ -733,7 +733,7 @@
       
       <!-- Login prompt (shown when not logged in) -->
       <div class="dashboard-login" id="dashboardLogin">
-        <h3>Connect with Discord</h3>
+        <h3>Connect to TiltCheck</h3>
         <p>Login to view your tip history, wallet settings, and personalized stats.</p>
         <a href="#" class="discord-login-btn" id="discordLoginBtn">
           <svg viewBox="0 0 24 24" fill="currentColor">
@@ -741,6 +741,7 @@
           </svg>
           Login with Discord
         </a>
+        <!-- Email login option injected by auth.js -->
       </div>
       
       <!-- Dashboard content (shown when logged in) -->
@@ -965,5 +966,7 @@
       }
     });
   </script>
+  <!-- TiltCheck Ecosystem Auth -->
+  <script src="/scripts/auth.js"></script>
 </body>
 </html>
