@@ -56,13 +56,6 @@ export const help: Command = {
         inline: false,
       },
       {
-        name: '🧠 /tiltcheck - Tilt Monitoring',
-        value:
-          '`/tiltcheck status` - View your tilt status\n' +
-          '`/tiltcheck set` - Configure tilt settings',
-        inline: false,
-      },
-      {
         name: '📊 /trust - Trust Dashboard',
         value:
           '`/trust` - Open your personalized trust dashboard\n' +
