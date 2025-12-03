@@ -394,7 +394,6 @@ app.get('/api/tips', requireAuth, (req, res) => {
       otherUser: tip.senderId === discordUser.id ? tip.recipientId : tip.senderId,
       status: tip.status,
       timestamp: new Date(tip.createdAt).toISOString(),
-      note: '', // Notes not currently supported in base module
     }));
 
     res.json({ tips: formattedTips });

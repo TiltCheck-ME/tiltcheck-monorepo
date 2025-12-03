@@ -6,6 +6,9 @@
  * See LICENSE file in the project root for full license information.
  */
 
+// Constants for display formatting
+const SOL_DECIMAL_PLACES = 4;
+
 class ProfileManager {
   constructor() {
     this.user = null;
@@ -247,8 +250,8 @@ class ProfileManager {
       
       // Update tip stats
       const stats = this.calculateTipStats(tipHistory);
-      this.setElementText('tip-total-sent', `${stats.totalSent.toFixed(4)} SOL`);
-      this.setElementText('tip-total-received', `${stats.totalReceived.toFixed(4)} SOL`);
+      this.setElementText('tip-total-sent', `${stats.totalSent.toFixed(SOL_DECIMAL_PLACES)} SOL`);
+      this.setElementText('tip-total-received', `${stats.totalReceived.toFixed(SOL_DECIMAL_PLACES)} SOL`);
       this.setElementText('tip-count-sent', stats.countSent);
       this.setElementText('tip-count-received', stats.countReceived);
 
@@ -265,7 +268,7 @@ class ProfileManager {
           <div style="display: flex; justify-content: space-between; align-items: center;">
             <div>
               <div style="font-weight: 600; color: ${tip.type === 'sent' ? '#ff6b6b' : '#00d4aa'}; margin-bottom: 4px;">
-                ${tip.type === 'sent' ? '↗️ Sent' : '↙️ Received'} ${tip.amount.toFixed(4)} SOL
+                ${tip.type === 'sent' ? '↗️ Sent' : '↙️ Received'} ${tip.amount.toFixed(SOL_DECIMAL_PLACES)} SOL
               </div>
               <div style="font-size: 0.9rem; color: #888;">
                 ${tip.type === 'sent' ? 'To: ' : 'From: '}${tip.otherUser}
@@ -349,7 +352,7 @@ class ProfileManager {
         <div style="display: flex; justify-content: space-between; align-items: center;">
           <div>
             <div style="font-weight: 600; color: #f0ad4e; margin-bottom: 4px;">
-              ⏳ Pending: ${tip.amount.toFixed(4)} SOL
+              ⏳ Pending: ${tip.amount.toFixed(SOL_DECIMAL_PLACES)} SOL
             </div>
             <div style="font-size: 0.9rem; color: #888;">
               From: ${tip.senderId}
@@ -384,7 +387,7 @@ class ProfileManager {
 
   updateWalletDisplay(walletData) {
     const walletStatus = document.getElementById('wallet-status');
-    const connectBtn = document.querySelector('.integration-card:last-child button');
+    const connectBtn = document.getElementById('wallet-connect-btn');
     
     if (walletData.connected) {
       if (walletStatus) {
