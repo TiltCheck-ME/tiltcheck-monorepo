@@ -1,16 +1,27 @@
 [build]
   base = "services/landing"
   publish = "public"
-  command = "echo 'Static site - no build needed'"
 
 [build.environment]
   NODE_VERSION = "20"
 
+# Discord bot invite redirect
 [[redirects]]
-  from = "/*"
-  to = "/index.html"
-  status = 200
-  conditions = {Role = ["admin"]}
+  from = "/invite"
+  to = "https://discord.com/oauth2/authorize?client_id=1445916179163250860"
+  status = 302
+
+# Discord community redirect
+[[redirects]]
+  from = "/discord"
+  to = "https://discord.gg/s6NNfPHxMS"
+  status = 302
+
+# Bot alias redirect
+[[redirects]]
+  from = "/bot"
+  to = "https://discord.com/oauth2/authorize?client_id=1445916179163250860"
+  status = 302
 
 # SPA fallback for 404s
 [[redirects]]
