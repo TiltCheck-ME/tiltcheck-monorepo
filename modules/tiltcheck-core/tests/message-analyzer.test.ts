@@ -1,5 +1,5 @@
-import { describe, it, expect } from 'vitest';
-import { analyzeMessages, calculateTiltScore } from '../src/message-analyzer';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { analyzeMessages, calculateTiltScore, analyzeMessagesWithAI } from '../src/message-analyzer';
 import type { MessageActivity, TiltSignal } from '../src/types';
 
 describe('Message Analyzer', () => {
@@ -154,6 +154,76 @@ describe('Message Analyzer', () => {
 
       expect(lowScore).toBe(5);
       expect(highScore).toBe(5);
+    });
+  });
+
+  describe('analyzeMessagesWithAI', () => {
+    beforeEach(() => {
+      vi.clearAllMocks();
+    });
+
+    afterEach(() => {
+      vi.restoreAllMocks();
+    });
+
+    it('should return local analysis when AI client is not available', async () => {
+      const now = Date.now();
+      const messages: MessageActivity[] = [
+        { content: 'this game is rigged', timestamp: now - 1000, channelId: 'channel-1' },
+        { content: 'such a scam', timestamp: now - 2000, channelId: 'channel-1' },
+      ];
+
+      const result = await analyzeMessagesWithAI(messages, 'user-1');
+
+      expect(result.signals).toBeDefined();
+      expect(result.tiltScore).toBeGreaterThanOrEqual(0);
+      // AI analysis should be undefined when AI client is not available
+      expect(result.aiAnalysis).toBeUndefined();
+    });
+
+    it('should include local tilt score for all messages', async () => {
+      const now = Date.now();
+      const messages: MessageActivity[] = [
+        { content: 'can someone loan me money?', timestamp: now - 1000, channelId: 'channel-1' },
+      ];
+
+      const result = await analyzeMessagesWithAI(messages, 'user-1');
+
+      expect(result.signals.length).toBeGreaterThan(0);
+      expect(result.tiltScore).toBeGreaterThan(0);
+      
+      // Should have loan-request signal
+      const loanSignal = result.signals.find(s => s.signalType === 'loan-request');
+      expect(loanSignal).toBeDefined();
+    });
+
+    it('should return empty signals for empty messages', async () => {
+      const result = await analyzeMessagesWithAI([], 'user-1');
+
+      expect(result.signals).toEqual([]);
+      expect(result.tiltScore).toBe(0);
+    });
+
+    it('should accept additional context for analysis', async () => {
+      const now = Date.now();
+      const messages: MessageActivity[] = [
+        { content: 'im on a roll', timestamp: now - 1000, channelId: 'channel-1' },
+      ];
+
+      const additionalContext = {
+        recentBets: [
+          { amount: 100, won: false, timestamp: now - 10000 },
+          { amount: 200, won: false, timestamp: now - 5000 },
+        ],
+        sessionDuration: 3600,
+        losses: 500,
+      };
+
+      const result = await analyzeMessagesWithAI(messages, 'user-1', additionalContext);
+
+      expect(result).toBeDefined();
+      expect(result.signals).toBeDefined();
+      expect(result.tiltScore).toBeGreaterThanOrEqual(0);
     });
   });
 });
