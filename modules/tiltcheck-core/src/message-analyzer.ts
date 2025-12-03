@@ -6,17 +6,39 @@
 
 import type { TiltSignal, MessageActivity } from './types.js';
 
+// Type definition for the AI client's detectTilt method
+interface AIClientInterface {
+  detectTilt(context: {
+    recentBets?: Array<{ amount: number; won: boolean; timestamp: number }>;
+    sessionDuration?: number;
+    losses?: number;
+    recentMessages?: string[];
+  }): Promise<{
+    success: boolean;
+    data?: {
+      tiltScore: number;
+      riskLevel: 'low' | 'moderate' | 'high' | 'critical';
+      indicators: string[];
+      interventionSuggestions?: string[];
+      cooldownRecommended?: boolean;
+      cooldownDuration?: number;
+    };
+    error?: string;
+  }>;
+}
+
 // AI Gateway client for enhanced tilt detection
-let aiClient: any = null;
+let aiClient: AIClientInterface | null = null;
+let aiClientInitialized = false;
 
 // Initialize AI client dynamically to avoid circular dependencies
-async function getAIClient() {
-  if (!aiClient) {
+async function getAIClient(): Promise<AIClientInterface | null> {
+  if (!aiClientInitialized) {
+    aiClientInitialized = true;
     try {
-      // TODO: Re-enable when ai-client package is built
-      // const module = await import('@tiltcheck/ai-client');
-      // aiClient = module.aiClient;
-      console.log('[TiltCheck] AI client not available, using local analysis only');
+      const module = await import('@tiltcheck/ai-client');
+      aiClient = module.aiClient as AIClientInterface;
+      console.log('[TiltCheck] AI client loaded successfully');
     } catch {
       console.log('[TiltCheck] AI client not available, using local analysis only');
     }
