@@ -1,0 +1,54 @@
+/**
+ * Health Routes - /health/*
+ * Health check endpoints
+ */
+
+import { Router } from 'express';
+
+const router = Router();
+
+/**
+ * GET /health
+ * Basic health check
+ */
+router.get('/', (_req, res) => {
+  res.json({
+    status: 'ok',
+    service: 'api-gateway',
+    version: '0.1.0',
+    timestamp: new Date().toISOString(),
+  });
+});
+
+/**
+ * GET /health/ready
+ * Readiness check (for Kubernetes)
+ */
+router.get('/ready', (_req, res) => {
+  // In a real implementation, check database connectivity, etc.
+  const checks = {
+    database: true, // Would actually check DB connection
+    redis: true,    // Would check Redis if used
+  };
+  
+  const allHealthy = Object.values(checks).every(Boolean);
+  
+  res.status(allHealthy ? 200 : 503).json({
+    status: allHealthy ? 'ready' : 'not ready',
+    checks,
+    timestamp: new Date().toISOString(),
+  });
+});
+
+/**
+ * GET /health/live
+ * Liveness check (for Kubernetes)
+ */
+router.get('/live', (_req, res) => {
+  res.json({
+    status: 'alive',
+    timestamp: new Date().toISOString(),
+  });
+});
+
+export { router as healthRouter };
