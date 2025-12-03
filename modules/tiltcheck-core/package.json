@@ -14,6 +14,9 @@
     "@tiltcheck/event-router": "workspace:*",
     "@tiltcheck/types": "workspace:*"
   },
+  "optionalDependencies": {
+    "@tiltcheck/ai-client": "workspace:*"
+  },
   "devDependencies": {
     "typescript": "^5.3.0",
     "vitest": "^1.0.0"

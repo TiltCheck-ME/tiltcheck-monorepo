@@ -6,7 +6,7 @@
 
 import { Client, Events } from 'discord.js';
 import { eventRouter } from '@tiltcheck/event-router';
-import { extractUrls } from '@tiltcheck/discord-utils';
+import { extractUrls, ModNotifier, createModNotifier } from '@tiltcheck/discord-utils';
 import { suslink } from '@tiltcheck/suslink';
 import { trackMessage } from '@tiltcheck/tiltcheck-core';
 import { config } from '../config.js';
@@ -14,10 +14,22 @@ import type { CommandHandler } from './commands.js';
 import { checkAndOnboard, handleOnboardingInteraction, needsOnboarding } from './onboarding.js';
 
 export class EventHandler {
+  private modNotifier: ModNotifier;
+
   constructor(
     private client: Client,
     private commandHandler: CommandHandler
-  ) {}
+  ) {
+    // Initialize mod notifier with config
+    this.modNotifier = createModNotifier({
+      modChannelId: config.modNotifications.modChannelId,
+      modRoleId: config.modNotifications.modRoleId,
+      enabled: config.modNotifications.enabled,
+      rateLimitWindowMs: config.modNotifications.rateLimitWindowMs,
+      maxNotificationsPerWindow: config.modNotifications.maxNotificationsPerWindow,
+      dedupeWindowMs: config.modNotifications.dedupeWindowMs,
+    });
+  }
 
   /**
    * Register all Discord event handlers
@@ -27,6 +39,9 @@ export class EventHandler {
     this.client.once(Events.ClientReady, (client) => {
       console.log(`[Bot] Ready! Logged in as ${client.user.tag}`);
       console.log(`[Bot] Serving ${client.guilds.cache.size} guilds`);
+      
+      // Set the client on the mod notifier once ready
+      this.modNotifier.setClient(client);
     });
 
     // Interaction create (slash commands)
@@ -168,19 +183,20 @@ export class EventHandler {
     eventRouter.subscribe(
       'link.flagged',
       async (event) => {
-        const { url, riskLevel } = event.data;
+        const { url, riskLevel, userId, channelId, reason } = event.data;
         
         console.log(
           `[EventHandler] High-risk link flagged: ${url} (${riskLevel})`
         );
 
-        // In production, you might want to:
-        // 1. Notify moderators in a specific channel
-        // 2. Log to a database
-        // 3. Take automatic action (delete message, warn user, etc.)
-        
-        // For now, just log it
-        // TODO: Implement mod notification system
+        // Send mod notification for flagged links
+        await this.modNotifier.notifyLinkFlagged({
+          url,
+          riskLevel,
+          userId,
+          channelId,
+          reason,
+        });
       },
       'discord-bot'
     );
@@ -189,11 +205,19 @@ export class EventHandler {
     eventRouter.subscribe(
       'tilt.detected',
       async (event) => {
-        const { userId, reason, severity } = event.data;
+        const { userId, reason, severity, channelId } = event.data;
         
         console.log(
           `[EventHandler] Tilt detected: User ${userId} (${severity}) - ${reason}`
         );
+
+        // Send mod notification for tilt detection
+        await this.modNotifier.notifyTiltDetected({
+          userId,
+          reason,
+          severity,
+          channelId,
+        });
 
         // Try to DM the user
         try {
@@ -215,11 +239,19 @@ export class EventHandler {
     eventRouter.subscribe(
       'cooldown.violated',
       async (event) => {
-        const { userId, action, newDuration } = event.data;
+        const { userId, action, newDuration, channelId } = event.data;
         
         console.log(
           `[EventHandler] Cooldown violation: User ${userId} attempted ${action}`
         );
+
+        // Send mod notification for cooldown violation
+        await this.modNotifier.notifyCooldownViolation({
+          userId,
+          action,
+          newDuration,
+          channelId,
+        });
 
         // Try to DM the user
         try {
