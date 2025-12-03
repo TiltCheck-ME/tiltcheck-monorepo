@@ -302,7 +302,13 @@ export class ModNotifier {
     }
 
     try {
-      const channel = await this.client!.channels.fetch(this.config.modChannelId);
+      // Extra null check even though isEnabled() guards this
+      if (!this.client) {
+        console.error('[ModNotifier] Client is null');
+        return false;
+      }
+
+      const channel = await this.client.channels.fetch(this.config.modChannelId);
       
       if (!channel || !channel.isTextBased()) {
         console.error('[ModNotifier] Mod channel not found or not a text channel');
@@ -467,12 +473,19 @@ export class ModNotifier {
  * Create a ModNotifier instance from environment variables
  */
 export function createModNotifier(config?: Partial<ModNotifierConfig>): ModNotifier {
+  // Helper to safely parse integers from environment variables
+  const parseIntOrDefault = (value: string | undefined, defaultValue: number): number => {
+    if (!value) return defaultValue;
+    const parsed = parseInt(value, 10);
+    return isNaN(parsed) ? defaultValue : parsed;
+  };
+
   return new ModNotifier({
     modChannelId: config?.modChannelId ?? process.env.MOD_CHANNEL_ID,
     modRoleId: config?.modRoleId ?? process.env.MOD_ROLE_ID,
-    rateLimitWindowMs: config?.rateLimitWindowMs ?? parseInt(process.env.MOD_RATE_LIMIT_WINDOW_MS ?? '60000', 10),
-    maxNotificationsPerWindow: config?.maxNotificationsPerWindow ?? parseInt(process.env.MOD_MAX_NOTIFICATIONS_PER_WINDOW ?? '10', 10),
+    rateLimitWindowMs: config?.rateLimitWindowMs ?? parseIntOrDefault(process.env.MOD_RATE_LIMIT_WINDOW_MS, 60000),
+    maxNotificationsPerWindow: config?.maxNotificationsPerWindow ?? parseIntOrDefault(process.env.MOD_MAX_NOTIFICATIONS_PER_WINDOW, 10),
     enabled: config?.enabled ?? (process.env.MOD_NOTIFICATIONS_ENABLED !== 'false'),
-    dedupeWindowMs: config?.dedupeWindowMs ?? parseInt(process.env.MOD_DEDUPE_WINDOW_MS ?? '300000', 10),
+    dedupeWindowMs: config?.dedupeWindowMs ?? parseIntOrDefault(process.env.MOD_DEDUPE_WINDOW_MS, 300000),
   });
 }
