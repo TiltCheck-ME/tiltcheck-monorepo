@@ -105,6 +105,15 @@
         </div>
       </section>
 
+      <!-- Pending Tips Section -->
+      <section id="pending-tips-section" class="profile-section pending-tips-section" style="display: none;">
+        <h3>⏳ Pending Tips</h3>
+        <p style="color: #888; margin-bottom: 16px;">Tips waiting for you to register your wallet</p>
+        <div id="pending-tips-list" class="game-history-list">
+          <div class="loading">Loading pending tips...</div>
+        </div>
+      </section>
+
       <!-- JustTheTip History Section -->
       <section class="profile-section tip-history-section">
         <h3>💰 JustTheTip History</h3>
@@ -202,13 +211,13 @@
             <button class="secondary-button small">Enable</button>
           </div>
 
-          <div class="integration-card">
+          <div class="integration-card" id="justthetip-integration">
             <div class="integration-icon">💰</div>
             <div class="integration-info">
               <div class="integration-name">JustTheTip</div>
-              <div class="integration-status">Connect tip wallet</div>
+              <div class="integration-status" id="wallet-status">Connect tip wallet</div>
             </div>
-            <button class="secondary-button small">Connect</button>
+            <button class="secondary-button small" id="wallet-connect-btn">Connect</button>
           </div>
         </div>
       </section>

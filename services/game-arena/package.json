@@ -22,7 +22,8 @@
     "@tiltcheck/dad": "workspace:*",
     "@tiltcheck/poker": "workspace:*",
     "@tiltcheck/db": "workspace:*",
-    "@tiltcheck/supabase-auth": "workspace:*"
+    "@tiltcheck/supabase-auth": "workspace:*",
+    "@tiltcheck/justthetip": "workspace:*"
   },
   "devDependencies": {
     "@types/express": "^4.17.21",
