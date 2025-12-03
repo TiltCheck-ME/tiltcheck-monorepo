@@ -6,43 +6,131 @@ This document analyzes the styling and content consistency across TiltCheck land
 
 ---
 
-## Executive Summary
+## Progress Summary
 
-TiltCheck has two distinct page styling patterns:
+### Completed ✅
+- [x] Fee documentation consistency (0.0007 SOL) 
+- [x] Responsible gambling page created with full content
+- [x] Responsible gambling link added to footers (index, faq, about)
+- [x] About page header/navigation migrated to newer pattern
+- [x] Standardized footer structure with responsible gambling links
 
-1. **"Newer" pages** - Use `theme.css` + `main.css` with modern CSS variables, consistent navigation, and refined design
-2. **"Original/older" pages** - Use `base.css` + `tool-page.css` with different styling patterns and simpler navigation
+### In Progress 🔄
+- [ ] Full migration of about.html to newer CSS pattern
+- [ ] Tool pages migration (justthetip, daad, poker, etc.)
+- [ ] Navigation standardization across all pages
+- [ ] Tool status badge accuracy updates
 
-This creates visual inconsistency across the site that should be unified.
+### Remaining 📋
+- [ ] Migrate casinos.html, degen-trust.html to newer pattern
+- [ ] Fix broken internal links
+- [ ] Cloudflare Workers implementation
 
 ---
 
 ## Cloudflare Workers in TiltCheck
 
-### Current Role
+### What Cloudflare Workers Will Do
 
-Cloudflare Workers is a key part of TiltCheck's planned serverless architecture:
+Cloudflare Workers is the planned **serverless backbone** of the TiltCheck ecosystem. Here's what each component will handle:
 
-1. **Command Hub** (Layer 2 in Architecture)
-   - Parses Discord slash commands
-   - Routes actions to modules
-   - Handles rate limiting and permissions
-   - Returns ephemeral replies to Discord
+#### 1. **Command Hub Worker**
+The central router for all Discord bot commands.
+```
+User types /trust casino.com in Discord
+    → Discord sends webhook to Command Hub Worker
+    → Worker validates request, rate limits user
+    → Worker routes to appropriate module (Casino Trust Engine)
+    → Worker returns response to Discord
+```
+**Benefits:**
+- 0ms cold start (always warm)
+- <50ms response time globally
+- No server to maintain
+- Automatic scaling
 
-2. **Event Router** (Layer 3 in Architecture)
-   - Dispatches async tasks to modules
-   - Handles link scanning, casino page fetching
-   - Runs predictions, wallet balance checks
-   - Updates trust scores
+#### 2. **Event Router Worker**
+Handles async background tasks that don't need immediate response.
+```
+User submits a suspicious link
+    → SusLink Worker queues URL for scanning
+    → Background scan runs (VirusTotal, domain age, etc.)
+    → Results stored in KV/D1
+    → User notified when complete
+```
+**Use Cases:**
+- Link scanning (SusLink)
+- Casino page fetching (CollectClock)
+- Trust score calculations
+- Wallet balance checks
+- Promo validation (FreeSpinScan)
 
-3. **Storage Integration**
-   - Cloudflare KV for URL scans and swap attempts
-   - D1 (SQLite) for Worker-compatible database
-   - Durable Objects for stateful operations
+#### 3. **Cloudflare KV Storage**
+Fast key-value storage for frequently accessed data.
+```javascript
+// Example: Cache casino trust scores
+await KV.put(`casino:stake.com`, JSON.stringify({
+  trustScore: 72,
+  lastUpdated: Date.now(),
+  flags: ['slow_payouts']
+}), { expirationTtl: 3600 });
+```
+**Stored Data:**
+- URL scan results (cached 24h)
+- Casino trust scores (cached 1h)
+- User session data
+- Rate limit counters
 
-4. **Edge Caching**
-   - Static assets for Game Arena
-   - AI Gateway API endpoint
+#### 4. **Cloudflare D1 (SQLite)**
+Relational database for structured data.
+```sql
+-- Casino trust records
+CREATE TABLE casino_trust (
+  domain TEXT PRIMARY KEY,
+  trust_score INTEGER,
+  license TEXT,
+  payout_speed TEXT,
+  community_reports INTEGER,
+  last_scanned TIMESTAMP
+);
+```
+
+#### 5. **Durable Objects**
+For stateful operations requiring consistency.
+- Game state (DA&D, Poker)
+- Active tip transactions
+- Real-time leaderboards
+
+### Cloudflare Workers Architecture Diagram
+
+```
+┌─────────────────────────────────────────────────────────┐
+│                    Discord                              │
+│            (Slash commands, buttons)                    │
+└─────────────────────┬───────────────────────────────────┘
+                      │ Webhook
+                      ▼
+┌─────────────────────────────────────────────────────────┐
+│            Command Hub Worker                           │
+│    • Parse command • Validate • Route • Rate limit      │
+└─────────┬────────────────────────────────┬──────────────┘
+          │                                │
+          ▼                                ▼
+┌─────────────────────┐      ┌─────────────────────────────┐
+│   Cloudflare KV     │      │    Event Router Worker      │
+│  • URL cache        │      │   • Async tasks             │
+│  • Trust scores     │      │   • Background scans        │
+│  • Session data     │      │   • Score calculations      │
+└─────────────────────┘      └──────────────┬──────────────┘
+                                            │
+                                            ▼
+                             ┌─────────────────────────────┐
+                             │      Cloudflare D1          │
+                             │   • Casino records          │
+                             │   • User trust history      │
+                             │   • Promo submissions       │
+                             └─────────────────────────────┘
+```
 
 ### Implementation Status
 
@@ -51,6 +139,7 @@ Cloudflare Workers is a key part of TiltCheck's planned serverless architecture:
 | Command Hub | **Planned** | Architecture documented, not implemented |
 | Event Router | **Planned** | Design complete, pending development |
 | KV Storage | **Planned** | Would replace some Supabase usage |
+| D1 Database | **Planned** | For structured data |
 | AI Gateway | **Planned** | Listed in deployment docs |
 | Edge Caching | **Planned** | For static assets |
 
