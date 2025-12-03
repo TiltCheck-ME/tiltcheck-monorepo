@@ -9,27 +9,137 @@
   <link rel="stylesheet" href="/styles/theme.css">
   <link rel="stylesheet" href="/styles/main.css">
   <link rel="manifest" href="/manifest.json">
-  <meta name="theme-color" content="#7c3aed">
+  <meta name="theme-color" content="#00FFC6">
+  <style>
+    .legal-hero {
+      background: linear-gradient(180deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
+      padding: clamp(4rem, 8vw, 6rem) var(--container-padding);
+      text-align: center;
+      border-bottom: 1px solid rgba(0, 255, 198, 0.2);
+    }
+    
+    .legal-hero h1 {
+      font-size: var(--text-3xl);
+      font-weight: var(--weight-black);
+      font-family: var(--font-display);
+      color: var(--text-primary);
+      margin-bottom: var(--space-md);
+    }
+    
+    .legal-hero .updated {
+      color: var(--text-muted);
+      font-size: var(--text-sm);
+    }
+    
+    .legal-content {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: clamp(2rem, 4vw, 4rem) var(--container-padding);
+    }
+    
+    .legal-content section {
+      margin-bottom: var(--space-2xl);
+    }
+    
+    .legal-content h2 {
+      font-size: var(--text-xl);
+      color: var(--color-primary);
+      margin-bottom: var(--space-md);
+      padding-bottom: var(--space-sm);
+      border-bottom: 1px solid var(--border-subtle);
+    }
+    
+    .legal-content h3 {
+      font-size: var(--text-lg);
+      color: var(--text-primary);
+      margin: var(--space-lg) 0 var(--space-sm);
+    }
+    
+    .legal-content p {
+      color: var(--text-secondary);
+      line-height: var(--leading-relaxed);
+      margin-bottom: var(--space-md);
+    }
+    
+    .legal-content ul {
+      list-style: none;
+      padding: 0;
+      margin: var(--space-md) 0;
+    }
+    
+    .legal-content li {
+      padding: var(--space-sm) 0;
+      padding-left: var(--space-lg);
+      color: var(--text-secondary);
+      position: relative;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+    
+    .legal-content li:last-child {
+      border-bottom: none;
+    }
+    
+    .legal-content li::before {
+      content: '•';
+      position: absolute;
+      left: 0;
+      color: var(--color-primary);
+    }
+    
+    .legal-content li strong {
+      color: var(--text-primary);
+    }
+    
+    .legal-content a {
+      color: var(--color-primary);
+      text-decoration: none;
+    }
+    
+    .legal-content a:hover {
+      text-decoration: underline;
+    }
+  </style>
 </head>
 <body>
+  <a href="#main-content" class="skip-link">Skip to main content</a>
   <nav class="breadcrumbs"></nav>
-  <header class="site-header">
-    <nav class="container">
-      <a href="/" class="logo">TiltCheck</a>
-      <ul class="nav-links">
-        <li><a href="/">Home</a></li>
-        <li><a href="/about">About</a></li>
-        <li><a href="/how-it-works">How It Works</a></li>
-        <li><a href="/contact">Contact</a></li>
-      </ul>
-    </nav>
-  </header>
 
-  <main class="container">
-    <article class="content-page legal-doc">
+  <!-- Top Navigation -->
+  <nav class="top-nav" role="navigation" aria-label="Primary navigation">
+    <a href="/">Home</a>
+    <a href="/casinos.html">Casinos</a>
+    <a href="/degen-trust.html">Degens</a>
+    <a href="/dashboard">Dashboard</a>
+    <a href="/about.html">About</a>
+    <a href="https://discord.gg/s6NNfPHxMS" class="btn btn-primary btn-nav" target="_blank" rel="noopener noreferrer">Join Discord</a>
+    
+    <button class="hamburger-btn" aria-label="Open menu" aria-expanded="false" onclick="toggleMobileNav()">
+      <span class="hamburger-icon"></span>
+    </button>
+  </nav>
+  
+  <!-- Mobile Navigation -->
+  <div class="mobile-nav" id="mobileNav" aria-hidden="true">
+    <div class="mobile-nav-links">
+      <a href="/">Home</a>
+      <a href="/about.html">About</a>
+      <a href="/casinos.html">Casino Trust</a>
+      <a href="/degen-trust.html">Degen Trust</a>
+    </div>
+    <div class="mobile-nav-section">
+      <h3>Legal</h3>
+      <a href="/privacy.html" aria-current="page">Privacy Policy</a>
+      <a href="/terms.html">Terms of Service</a>
+    </div>
+  </div>
+
+  <main id="main-content">
+    <header class="legal-hero">
       <h1>Privacy Policy</h1>
-      <p><strong>Last Updated:</strong> November 22, 2025</p>
-      
+      <p class="updated">Last Updated: November 22, 2025</p>
+    </header>
+    
+    <div class="legal-content">
       <section>
         <h2>1. Introduction</h2>
         <p>

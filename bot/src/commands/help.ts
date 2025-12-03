@@ -56,16 +56,15 @@ export const help: Command = {
         inline: false,
       },
       {
-        name: '🔗 /suslink - Link Safety',
+        name: '📊 /trust - Trust Dashboard',
         value:
-          '`/suslink scan <url>` - Scan for scams\n' +
-          '`/suslink submit <url>` - Submit a promo\n' +
-          '`/suslink pending` - View pending promos',
+          '`/trust` - Open your personalized trust dashboard\n' +
+          '`/trust casino <name>` - Check casino trust score',
         inline: false,
       },
       {
         name: '🛠️ Utility',
-        value: '`/ping` - Check bot status\n`/help` - Show this message',
+        value: '`/ping` - Check bot status\n`/help` - Show this message\n`/support` - Get help',
         inline: false,
       },
       {
@@ -75,7 +74,7 @@ export const help: Command = {
           '✅ Flat $0.07 fee per tip\n' +
           '✅ Direct wallet-to-wallet transfers\n' +
           '✅ Time-locked vaults for self-control\n' +
-          '✅ Automatic link scanning',
+          '✅ Cross-chain swaps via ChangeNow',
         inline: false,
       },
       {
