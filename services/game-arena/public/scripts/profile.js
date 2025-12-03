@@ -17,6 +17,8 @@ class ProfileManager {
     await this.loadUser();
     await this.loadStats();
     await this.loadRecentGames();
+    await this.loadWalletStatus();
+    await this.loadPendingTips();
     await this.loadTipHistory();
     this.setupEventListeners();
   }
@@ -235,8 +237,12 @@ class ProfileManager {
   async loadTipHistory() {
     if (!this.user) return;
 
+    const listContainer = document.getElementById('tip-history-list');
+    if (listContainer) {
+      listContainer.innerHTML = '<div class="loading">Loading tip history...</div>';
+    }
+
     try {
-      // Mock tip history for now - will integrate with JustTheTip API later
       const tipHistory = await this.fetchTipHistory();
       
       // Update tip stats
@@ -247,7 +253,6 @@ class ProfileManager {
       this.setElementText('tip-count-received', stats.countReceived);
 
       // Display tip history
-      const listContainer = document.getElementById('tip-history-list');
       if (!listContainer) return;
 
       if (tipHistory.length === 0) {
@@ -260,7 +265,7 @@ class ProfileManager {
           <div style="display: flex; justify-content: space-between; align-items: center;">
             <div>
               <div style="font-weight: 600; color: ${tip.type === 'sent' ? '#ff6b6b' : '#00d4aa'}; margin-bottom: 4px;">
-                ${tip.type === 'sent' ? '↗️ Sent' : '↙️ Received'} ${tip.amount} SOL
+                ${tip.type === 'sent' ? '↗️ Sent' : '↙️ Received'} ${tip.amount.toFixed(4)} SOL
               </div>
               <div style="font-size: 0.9rem; color: #888;">
                 ${tip.type === 'sent' ? 'To: ' : 'From: '}${tip.otherUser}
@@ -275,39 +280,126 @@ class ProfileManager {
       `).join('');
     } catch (error) {
       console.error('Failed to load tip history:', error);
-      const listContainer = document.getElementById('tip-history-list');
       if (listContainer) {
-        listContainer.innerHTML = '<div style="text-align: center; padding: 40px; color: #ff6b6b;">Failed to load tip history</div>';
+        listContainer.innerHTML = '<div style="text-align: center; padding: 40px; color: #ff6b6b;">Failed to load tip history. Please try again later.</div>';
       }
     }
   }
 
   async fetchTipHistory() {
-    // Mock data for now - will replace with actual API call
-    // TODO: Integrate with JustTheTip backend API
-    return [
-      {
-        type: 'received',
-        amount: 0.05,
-        otherUser: 'CryptoWhale#1234',
-        note: 'Nice play!',
-        timestamp: new Date(Date.now() - 3600000).toISOString()
-      },
-      {
-        type: 'sent',
-        amount: 0.02,
-        otherUser: 'DegenKing#5678',
-        note: 'Thanks for the tip earlier',
-        timestamp: new Date(Date.now() - 86400000).toISOString()
-      },
-      {
-        type: 'received',
-        amount: 0.1,
-        otherUser: 'LuckyDegen#9999',
-        note: '',
-        timestamp: new Date(Date.now() - 172800000).toISOString()
+    const response = await fetch('/api/tips');
+    if (!response.ok) {
+      if (response.status === 401) {
+        // User not authenticated, return empty array
+        return [];
       }
-    ];
+      throw new Error('Failed to fetch tip history');
+    }
+    const data = await response.json();
+    return data.tips || [];
+  }
+
+  async loadPendingTips() {
+    if (!this.user) return;
+
+    const pendingContainer = document.getElementById('pending-tips-list');
+    if (pendingContainer) {
+      pendingContainer.innerHTML = '<div class="loading">Loading pending tips...</div>';
+    }
+
+    try {
+      const response = await fetch('/api/tips/pending');
+      if (!response.ok) {
+        if (response.status === 401) {
+          return;
+        }
+        throw new Error('Failed to fetch pending tips');
+      }
+      const data = await response.json();
+      const pendingTips = data.pendingTips || [];
+
+      this.updatePendingTipsDisplay(pendingTips);
+    } catch (error) {
+      console.error('Failed to load pending tips:', error);
+      if (pendingContainer) {
+        pendingContainer.innerHTML = '<div style="text-align: center; padding: 20px; color: #ff6b6b;">Failed to load pending tips.</div>';
+      }
+    }
+  }
+
+  updatePendingTipsDisplay(pendingTips) {
+    const pendingContainer = document.getElementById('pending-tips-list');
+    const pendingSection = document.getElementById('pending-tips-section');
+    
+    if (!pendingContainer) return;
+
+    if (pendingTips.length === 0) {
+      if (pendingSection) {
+        pendingSection.style.display = 'none';
+      }
+      return;
+    }
+
+    if (pendingSection) {
+      pendingSection.style.display = 'block';
+    }
+
+    pendingContainer.innerHTML = pendingTips.map(tip => `
+      <div class="game-history-item" style="padding: 16px; background: #1a1f26; border-radius: 8px; margin-bottom: 12px; border-left: 4px solid #f0ad4e;">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <div>
+            <div style="font-weight: 600; color: #f0ad4e; margin-bottom: 4px;">
+              ⏳ Pending: ${tip.amount.toFixed(4)} SOL
+            </div>
+            <div style="font-size: 0.9rem; color: #888;">
+              From: ${tip.senderId}
+            </div>
+            <div style="font-size: 0.85rem; color: #aaa; margin-top: 4px;">
+              Register your wallet to claim this tip
+            </div>
+          </div>
+          <div style="text-align: right; color: #888; font-size: 0.85rem;">
+            ${this.formatDate(tip.timestamp)}
+          </div>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  async loadWalletStatus() {
+    if (!this.user) return;
+
+    try {
+      const response = await fetch('/api/tips/wallet');
+      if (!response.ok) {
+        return;
+      }
+      const data = await response.json();
+      
+      this.updateWalletDisplay(data);
+    } catch (error) {
+      console.error('Failed to load wallet status:', error);
+    }
+  }
+
+  updateWalletDisplay(walletData) {
+    const walletStatus = document.getElementById('wallet-status');
+    const connectBtn = document.querySelector('.integration-card:last-child button');
+    
+    if (walletData.connected) {
+      if (walletStatus) {
+        walletStatus.textContent = `✅ Connected: ${this.truncateAddress(walletData.address)}`;
+      }
+      if (connectBtn) {
+        connectBtn.textContent = 'Disconnect';
+        connectBtn.classList.add('connected');
+      }
+    }
+  }
+
+  truncateAddress(address) {
+    if (!address) return '';
+    return `${address.slice(0, 4)}...${address.slice(-4)}`;
   }
 
   calculateTipStats(tips) {
