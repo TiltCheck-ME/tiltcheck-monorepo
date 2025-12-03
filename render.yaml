@@ -1,0 +1,48 @@
+# Render Blueprint for TiltCheck
+# Split deployment: Static landing + Dynamic app services
+
+services:
+  # Static landing page - serves instantly from CDN (no cold starts)
+  - type: static
+    name: tiltcheck-landing
+    buildCommand: echo "Static site - no build needed"
+    staticPublishPath: services/landing/public
+    headers:
+      - path: /assets/*
+        name: Cache-Control
+        value: public, max-age=31536000, immutable
+      - path: /*
+        name: X-Frame-Options
+        value: DENY
+      - path: /*
+        name: X-Content-Type-Options
+        value: nosniff
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /404.html
+
+  # Next.js Dashboard (user accounts, tools, interactive features)
+  # This needs a web service for server-side rendering and API routes
+  - type: web
+    name: tiltcheck-dashboard
+    runtime: node
+    buildCommand: pnpm install && pnpm --filter @tiltcheck/dashboard build
+    startCommand: pnpm --filter @tiltcheck/dashboard start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 3000
+    healthCheckPath: /api/health
+
+  # Game Arena (DA&D, poker, etc.) - Real-time game server
+  - type: web
+    name: tiltcheck-game-arena
+    runtime: node
+    buildCommand: pnpm install && pnpm --filter @tiltcheck/game-arena build
+    startCommand: pnpm --filter @tiltcheck/game-arena start
+    envVars:
+      - key: NODE_ENV
+        value: production
+

@@ -6,6 +6,86 @@ Complete guide for deploying the TiltCheck ecosystem with Discord integration.
 
 ---
 
+## Deployment Architecture
+
+TiltCheck uses a **hybrid deployment** for optimal performance:
+
+| Component | Type | Why | Recommended Host |
+|-----------|------|-----|------------------|
+| Landing page (`services/landing`) | Static | Marketing pages, instant loading | Vercel, Netlify, Cloudflare Pages |
+| Dashboard (`apps/dashboard`) | Next.js SSR | User auth, interactive tools | Render, Railway, Fly.io |
+| Game Arena (`services/game-arena`) | Node.js | Real-time games (DA&D, poker) | Render, Railway, Fly.io |
+| Discord Bot (`apps/discord-bot`) | Node.js | Always-on bot | Render, Railway, Fly.io |
+| API Services | Node.js | Backend APIs | Render, Railway, Fly.io |
+
+### Why Split Deployment?
+
+- **Landing page** = Static HTML/CSS/JS → Deploy to CDN for **instant** page loads (0ms cold start)
+- **Dashboard/Games** = Need server for auth, database, real-time → Deploy to web service
+
+---
+
+## Quick Deploy: Landing Page (Instant Loading)
+
+The marketing landing page at `services/landing/public` is static and loads instantly when deployed to a CDN:
+
+### Option 1: Vercel (Recommended)
+```bash
+# Install Vercel CLI
+npm i -g vercel
+
+# Deploy (uses vercel.json config automatically)
+vercel --prod
+```
+
+### Option 2: Netlify
+```bash
+# Install Netlify CLI  
+npm i -g netlify-cli
+
+# Deploy
+netlify deploy --prod --dir=services/landing/public
+```
+
+### Option 3: Cloudflare Pages
+1. Connect your GitHub repo to Cloudflare Pages
+2. Set build output directory: `services/landing/public`
+3. No build command needed
+
+---
+
+## Quick Deploy: Dashboard & App Services
+
+For the interactive parts (user accounts, games, tools), you need a server:
+
+### Option 1: Render Blueprint (Easiest)
+1. Go to [Render Dashboard](https://dashboard.render.com)
+2. Click "New" → "Blueprint"
+3. Connect this repo - it will use `render.yaml` automatically
+4. This deploys both the static landing AND the dynamic services
+
+### Option 2: Railway
+```bash
+# Install Railway CLI
+npm i -g @railway/cli
+
+# Login and deploy
+railway login
+railway up
+```
+
+### Option 3: Fly.io
+```bash
+# Uses fly.toml configuration
+fly deploy
+```
+
+> ⚠️ **Cold Start Warning:** Free tiers on Render/Railway "spin down" after inactivity, causing 30-60 second delays. To avoid this:
+> - Use a paid tier ($7/month on Render)
+> - Or use a health check service like UptimeRobot to ping every 5 minutes
+
+---
+
 ## Prerequisites
 
 - Node.js 18+ and pnpm
