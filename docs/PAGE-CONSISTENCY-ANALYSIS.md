@@ -4,6 +4,8 @@
 
 This document analyzes the styling and content consistency across TiltCheck landing pages, identifying what needs to be aligned, what's left to develop, and next steps.
 
+> **See also:** [TILTCHECK-PROJECT-MAP.md](./TILTCHECK-PROJECT-MAP.md) for the full ecosystem architecture and multi-platform roadmap.
+
 ---
 
 ## Progress Summary
