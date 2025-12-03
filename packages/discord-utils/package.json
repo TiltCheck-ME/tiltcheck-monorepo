@@ -30,6 +30,11 @@
       "types": "./dist/trust-adapter.d.ts",
       "import": "./dist/trust-adapter.js",
       "default": "./dist/trust-adapter.js"
+    },
+    "./mod-notifier": {
+      "types": "./dist/mod-notifier.d.ts",
+      "import": "./dist/mod-notifier.js",
+      "default": "./dist/mod-notifier.js"
     }
   },
   "scripts": {
