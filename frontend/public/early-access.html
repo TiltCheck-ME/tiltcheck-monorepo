@@ -3,36 +3,60 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Newsletter Signup – TiltCheck</title>
-  <meta name="description" content="Receive occasional updates on new trust tools, anti-tilt features, and safety improvements.">
-  <link rel="canonical" href="https://tiltcheck.me/newsletter">
+  <title>Early Access - TiltCheck Beta</title>
+  <meta name="description" content="Sign up for early access to TiltCheck beta. Get exclusive access to tilt detection, casino trust scores, and scam protection tools.">
+  <link rel="canonical" href="https://tiltcheck.me/early-access">
   <link rel="stylesheet" href="/styles/theme.css">
   <link rel="stylesheet" href="/styles/main.css">
   <link rel="manifest" href="/manifest.json">
   <meta name="theme-color" content="#00d4aa">
+  
+  <!-- Open Graph -->
+  <meta property="og:title" content="TiltCheck Early Access - Join the Beta">
+  <meta property="og:description" content="Get exclusive early access to TiltCheck tools: tilt detection, casino trust scores, scam link scanning, and more.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://tiltcheck.me/early-access">
+  
   <style>
-    .newsletter-hero {
-      background: radial-gradient(900px 400px at 50% 0%, rgba(0, 255, 198, 0.08), transparent 70%),
+    .beta-hero {
+      background: radial-gradient(1200px 500px at 50% -10%, rgba(0, 194, 255, 0.12), transparent 70%),
+                  radial-gradient(900px 400px at 10% 10%, rgba(0, 255, 198, 0.08), transparent 70%),
                   linear-gradient(180deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
-      padding: clamp(3rem, 6vw, 4rem) var(--container-padding);
+      padding: clamp(4rem, 8vw, 6rem) var(--container-padding);
       text-align: center;
       border-bottom: 1px solid rgba(0, 255, 198, 0.15);
     }
     
-    .newsletter-hero h1 {
-      font-size: var(--text-2xl);
-      font-weight: var(--weight-bold);
+    .beta-hero h1 {
+      font-size: var(--text-3xl);
+      font-weight: var(--weight-black);
+      font-family: var(--font-display);
       color: var(--text-primary);
-      margin-bottom: var(--space-md);
+      margin-bottom: var(--space-lg);
     }
     
-    .newsletter-hero p {
+    .beta-hero .tagline {
+      font-size: var(--text-lg);
       color: var(--text-secondary);
       max-width: 600px;
-      margin: 0 auto;
+      margin: 0 auto var(--space-xl);
     }
     
-    form.newsletter {
+    .beta-badge {
+      display: inline-block;
+      background: rgba(0, 255, 198, 0.12);
+      color: var(--color-primary);
+      border: 1px solid var(--color-primary);
+      padding: var(--space-xs) var(--space-md);
+      border-radius: var(--radius-sm);
+      font-size: var(--text-xs);
+      font-weight: var(--weight-semibold);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: var(--space-lg);
+    }
+    
+    .signup-form {
       max-width: 480px;
       margin: var(--space-2xl) auto;
       background: var(--glass-bg);
@@ -43,22 +67,21 @@
       -webkit-backdrop-filter: blur(8px);
     }
     
-    form.newsletter h2 {
+    .signup-form h2 {
       font-size: var(--text-xl);
       font-weight: var(--weight-bold);
       color: var(--text-primary);
-      margin-top: 0;
       margin-bottom: var(--space-md);
     }
     
-    form.newsletter label {
+    .signup-form label {
       display: block;
       margin: var(--space-md) 0 var(--space-xs);
       font-weight: var(--weight-medium);
       color: var(--text-secondary);
     }
     
-    form.newsletter input[type=email] {
+    .signup-form input[type="email"] {
       width: 100%;
       padding: var(--space-md);
       background: var(--bg-primary);
@@ -69,13 +92,13 @@
       transition: border-color var(--transition-base);
     }
     
-    form.newsletter input[type=email]:focus {
+    .signup-form input[type="email"]:focus {
       outline: none;
       border-color: var(--color-primary);
       box-shadow: 0 0 0 3px rgba(0, 255, 198, 0.15);
     }
     
-    form.newsletter button {
+    .signup-form button {
       width: 100%;
       margin-top: var(--space-lg);
       padding: var(--space-md) var(--space-xl);
@@ -89,9 +112,13 @@
       transition: opacity var(--transition-base), transform var(--transition-fast);
     }
     
-    form.newsletter button:hover {
+    .signup-form button:hover {
       opacity: 0.9;
       transform: translateY(-1px);
+    }
+    
+    .signup-form button:active {
+      transform: translateY(0);
     }
     
     .status {
@@ -100,8 +127,13 @@
       text-align: center;
     }
     
-    .status.ok { color: var(--color-positive); }
-    .status.err { color: var(--color-error); }
+    .status.ok {
+      color: var(--color-positive);
+    }
+    
+    .status.err {
+      color: var(--color-error);
+    }
     
     .fineprint {
       font-size: var(--text-xs);
@@ -117,16 +149,50 @@
       top: -9999px;
     }
     
-    .unsub-section {
-      border-top: 1px solid var(--border-subtle);
-      padding-top: var(--space-lg);
-      margin-top: var(--space-lg);
+    .benefits-section {
+      padding: clamp(3rem, 6vw, 4rem) var(--container-padding);
+      background: var(--bg-secondary);
     }
     
-    .unsub-section p {
-      font-size: var(--text-sm);
-      color: var(--text-muted);
+    .benefits-section h2 {
+      text-align: center;
+      font-size: var(--text-2xl);
+      font-weight: var(--weight-bold);
+      color: var(--text-primary);
+      margin-bottom: var(--space-2xl);
+    }
+    
+    .benefits-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: var(--space-xl);
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+    
+    .benefit-card {
+      background: var(--glass-bg);
+      border: 1px solid rgba(0, 255, 198, 0.1);
+      border-radius: var(--radius-md);
+      padding: var(--space-xl);
+      text-align: center;
+    }
+    
+    .benefit-icon {
+      font-size: 2.5rem;
       margin-bottom: var(--space-md);
+    }
+    
+    .benefit-card h3 {
+      font-size: var(--text-lg);
+      font-weight: var(--weight-semibold);
+      color: var(--text-primary);
+      margin-bottom: var(--space-sm);
+    }
+    
+    .benefit-card p {
+      color: var(--text-muted);
+      line-height: var(--leading-relaxed);
     }
   </style>
 </head>
@@ -151,7 +217,9 @@
       <a href="/">Home</a>
       <a href="/about.html">About</a>
       <a href="/how-it-works.html">How It Works</a>
-      <a href="/newsletter" aria-current="page">Newsletter</a>
+      <a href="/casinos.html">Casino Trust</a>
+      <a href="/degen-trust.html">Degen Trust</a>
+      <a href="/early-access" aria-current="page">Early Access</a>
     </div>
     
     <div class="mobile-nav-section">
@@ -163,34 +231,76 @@
   </div>
   
   <main id="main-content">
-    <section class="newsletter-hero">
+    <section class="beta-hero">
       <div class="container">
-        <h1>Newsletter Signup</h1>
-        <p>Low-noise updates about new tools, safety features, and trust ecosystem improvements. No spam, no selling emails.</p>
+        <span class="beta-badge">Early Access</span>
+        <h1>Join the TiltCheck Beta</h1>
+        <p class="tagline">
+          Get exclusive early access to tilt detection, casino trust scores, scam link scanning, 
+          and all the tools degens need to stay safe.
+        </p>
       </div>
     </section>
     
-    <section style="padding: clamp(2rem, 4vw, 3rem) var(--container-padding);">
-      <form class="newsletter" id="newsletter-form" aria-labelledby="newsletter-heading">
-        <h2 id="newsletter-heading">Stay Informed</h2>
+    <section class="benefits-section">
+      <div class="container">
+        <h2>What You'll Get</h2>
+        <div class="benefits-grid">
+          <div class="benefit-card">
+            <div class="benefit-icon">🛡️</div>
+            <h3>Scam Protection</h3>
+            <p>SusLink AI-powered link scanning detects phishing and impersonation before you click.</p>
+          </div>
+          <div class="benefit-card">
+            <div class="benefit-icon">📊</div>
+            <h3>Casino Trust Scores</h3>
+            <p>Know which casinos are legit before you deposit. Data-driven trust signals you can rely on.</p>
+          </div>
+          <div class="benefit-card">
+            <div class="benefit-icon">🧠</div>
+            <h3>Tilt Detection</h3>
+            <p>Gentle nudges when you're emotionally compromised. No shame, just awareness.</p>
+          </div>
+          <div class="benefit-card">
+            <div class="benefit-icon">💎</div>
+            <h3>Non-Custodial Tips</h3>
+            <p>JustTheTip - direct wallet-to-wallet Solana tipping. Your keys, your crypto.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+    
+    <section style="padding: clamp(3rem, 6vw, 4rem) var(--container-padding);">
+      <form class="signup-form" id="early-access-form" aria-labelledby="signup-heading">
+        <h2 id="signup-heading">Sign Up for Early Access</h2>
+        <p style="color: var(--text-muted); margin-bottom: var(--space-md);">
+          Be among the first to test new features and shape the future of TiltCheck.
+        </p>
+        
         <label for="email">Email address</label>
-        <input id="email" name="email" type="email" required autocomplete="email" placeholder="you@example.com" aria-required="true">
+        <input 
+          id="email" 
+          name="email" 
+          type="email" 
+          required 
+          autocomplete="email" 
+          placeholder="you@example.com" 
+          aria-required="true"
+        >
+        
         <div class="hidden-field" aria-hidden="true">
           <label for="website">Website (leave blank)</label>
           <input id="website" name="website" type="text" tabindex="-1">
         </div>
-        <button type="submit">Subscribe</button>
-        <div id="status" class="status" role="status" aria-live="polite"></div>
-        <p class="fineprint">We only send when there is meaningful progress (roughly monthly or less). You can unsubscribe anytime. We never sell or share addresses. Stored as a simple hash list for privacy.</p>
         
-        <div class="unsub-section">
-          <h3 style="font-size: var(--text-lg); color: var(--text-primary); margin-bottom: var(--space-sm);">Need to Unsubscribe?</h3>
-          <p>Enter the same email you used to subscribe. We store only a salted hash; this matches by recomputing that hash.</p>
-          <label for="unsub-email">Email address</label>
-          <input id="unsub-email" name="unsub-email" type="email" required autocomplete="email" placeholder="you@example.com" aria-required="true">
-          <button type="button" id="unsub-btn" style="background: transparent; border: 1px solid var(--color-primary); color: var(--color-primary);">Unsubscribe</button>
-          <div id="unsub-status" class="status" role="status" aria-live="polite"></div>
-        </div>
+        <button type="submit">Request Early Access</button>
+        
+        <div id="status" class="status" role="status" aria-live="polite"></div>
+        
+        <p class="fineprint">
+          We'll notify you when your access is ready. No spam, ever. 
+          Your email is stored as a salted hash for privacy.
+        </p>
       </form>
     </section>
   </main>
@@ -260,65 +370,43 @@
       }
     });
     
-    // Form submissions
-    (function(){
-      const form = document.getElementById('newsletter-form');
+    // Form submission
+    (function() {
+      const form = document.getElementById('early-access-form');
       const statusEl = document.getElementById('status');
       
       form.addEventListener('submit', async (e) => {
         e.preventDefault();
         statusEl.textContent = 'Submitting…';
         statusEl.className = 'status';
+        
         const fd = new FormData(form);
-        const data = { email: fd.get('email'), website: fd.get('website') };
+        const data = Object.fromEntries(fd.entries());
+        
         try {
-          const res = await fetch('/api/newsletter/subscribe', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(data) });
+          const res = await fetch('/api/newsletter/subscribe', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+          });
           const j = await res.json();
+          
           if (j.ok) {
             if (j.duplicate) {
-              statusEl.textContent = 'Already subscribed ✔';
+              statusEl.textContent = 'You\'re already on the list! We\'ll be in touch soon. ✔';
               statusEl.className = 'status ok';
             } else {
-              statusEl.textContent = 'Subscribed! Welcome.';
+              statusEl.textContent = 'You\'re on the list! We\'ll notify you when access is ready. 🎉';
               statusEl.className = 'status ok';
-              document.getElementById('email').value = '';
+              form.reset();
             }
           } else {
-            statusEl.textContent = j.error || 'Subscription failed.';
+            statusEl.textContent = j.error || 'Signup failed. Please try again.';
             statusEl.className = 'status err';
           }
-        } catch(err) {
-          statusEl.textContent = 'Network error.';
+        } catch (err) {
+          statusEl.textContent = 'Network error. Please try again.';
           statusEl.className = 'status err';
-        }
-      });
-      
-      const unsubBtn = document.getElementById('unsub-btn');
-      const unsubStatus = document.getElementById('unsub-status');
-      
-      unsubBtn.addEventListener('click', async () => {
-        const email = document.getElementById('unsub-email').value;
-        if (!email) {
-          unsubStatus.textContent = 'Please enter an email.';
-          unsubStatus.className = 'status err';
-          return;
-        }
-        unsubStatus.textContent = 'Processing…';
-        unsubStatus.className = 'status';
-        try {
-          const res = await fetch('/api/newsletter/unsubscribe', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ email }) });
-          const j = await res.json();
-          if (j.ok) {
-            unsubStatus.textContent = 'Unsubscribed. You will no longer receive updates.';
-            unsubStatus.className = 'status ok';
-            document.getElementById('unsub-email').value = '';
-          } else {
-            unsubStatus.textContent = j.error || 'Unsubscribe failed.';
-            unsubStatus.className = 'status err';
-          }
-        } catch(err) {
-          unsubStatus.textContent = 'Network error.';
-          unsubStatus.className = 'status err';
         }
       });
     })();

@@ -112,6 +112,14 @@ app.get('/how-it-works', (_req, res) => {
   res.sendFile(path.join(publicDir, 'how-it-works.html'));
 });
 
+app.get('/early-access', (_req, res) => {
+  res.sendFile(path.join(publicDir, 'early-access.html'));
+});
+
+app.get('/beta', (_req, res) => {
+  res.sendFile(path.join(publicDir, 'beta.html'));
+});
+
 app.get('/trust-explained', (_req, res) => {
   res.sendFile(path.join(publicDir, 'trust-explained.html'));
 });
