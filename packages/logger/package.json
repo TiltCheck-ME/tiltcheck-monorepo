@@ -1,29 +1,28 @@
 {
-  "name": "@tiltcheck/config",
+  "name": "@tiltcheck/logger",
   "version": "0.1.0",
+  "description": "Structured logging for TiltCheck ecosystem using pino",
   "type": "module",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "scripts": {
-    "build": "tsc -p tsconfig.json",
+    "build": "tsc",
     "dev": "tsc --watch",
     "clean": "rm -rf dist"
   },
   "dependencies": {
-    "zod": "^3.22.4"
+    "pino": "^8.17.2",
+    "pino-pretty": "^10.3.1"
   },
   "devDependencies": {
-    "typescript": "^5.4.0"
+    "@types/node": "^20.10.0",
+    "typescript": "^5.3.0"
   },
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js",
       "default": "./dist/index.js"
-    },
-    "./env": {
-      "types": "./dist/env.d.ts",
-      "import": "./dist/env.js"
     }
   }
 }

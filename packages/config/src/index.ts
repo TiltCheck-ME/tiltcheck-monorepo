@@ -1,3 +1,56 @@
+/**
+ * @tiltcheck/config
+ * 
+ * Centralized configuration for the TiltCheck ecosystem.
+ * Includes severity calculations, environment utilities, and Zod-validated configs.
+ */
+
+// Re-export environment validation
+export {
+  // Schemas
+  jwtConfigSchema,
+  serviceJwtConfigSchema,
+  discordConfigSchema,
+  databaseConfigSchema,
+  supabaseConfigSchema,
+  serverConfigSchema,
+  cookieConfigSchema,
+  fullConfigSchema,
+  
+  // Types
+  type JWTEnvConfig,
+  type ServiceJWTEnvConfig,
+  type DiscordEnvConfig,
+  type DatabaseEnvConfig,
+  type SupabaseEnvConfig,
+  type ServerEnvConfig,
+  type CookieEnvConfig,
+  type FullEnvConfig,
+  type ValidationResult,
+  
+  // Validation functions
+  validateEnv,
+  getJWTConfig,
+  getServiceJWTConfig,
+  getDiscordConfig,
+  getDatabaseConfig,
+  getSupabaseConfig,
+  getServerConfig,
+  getCookieConfig,
+  validateAllConfig,
+  createPartialValidator,
+  
+  // Service-specific configs
+  getAPIConfig,
+  getDashboardConfig,
+  getJustTheTipConfig,
+  getBotConfig,
+} from './env.js';
+
+// ============================================================
+// Severity Configuration (Legacy)
+// ============================================================
+
 export const DEFAULT_SEVERITY_SCALE = [2, 4, 6, 8, 12];
 
 export function computeSeverity(percentDrop: number): number {
@@ -28,7 +81,7 @@ export const severityConfig: SeverityConfig = {
 };
 
 // ============================================================
-// Environment Variable Utilities
+// Environment Variable Utilities (Legacy - prefer Zod validation)
 // ============================================================
 
 /** Environment variable names for Discord bot token (in order of preference) */
@@ -37,6 +90,7 @@ export const DISCORD_TOKEN_ENV_VARS = ['DISCORD_TOKEN', 'DISCORD_BOT_TOKEN'] as 
 /**
  * Get a required environment variable
  * @throws Error if variable is missing and required=true
+ * @deprecated Use getDiscordConfig() or other typed config functions instead
  */
 export function getEnvVar(key: string, required = true): string {
   const value = process.env[key];

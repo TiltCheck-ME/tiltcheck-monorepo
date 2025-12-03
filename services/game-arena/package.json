@@ -21,7 +21,7 @@
     "@tiltcheck/event-router": "workspace:*",
     "@tiltcheck/dad": "workspace:*",
     "@tiltcheck/poker": "workspace:*",
-    "@tiltcheck/database": "workspace:*",
+    "@tiltcheck/db": "workspace:*",
     "@tiltcheck/supabase-auth": "workspace:*"
   },
   "devDependencies": {
