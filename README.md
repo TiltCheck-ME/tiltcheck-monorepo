@@ -1,9 +1,24 @@
-# TiltCheck Ecosystem
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="assets/icons/tiltcheck-logo.svg">
+    <source media="(prefers-color-scheme: light)" srcset="assets/icons/tiltcheck-logo.svg">
+    <img alt="TiltCheck Logo" src="logocurrent.png" width="200" height="200">
+  </picture>
+</p>
 
-[![Health Full](https://github.com/jmenichole/tiltcheck-monorepo/actions/workflows/health-check.yml/badge.svg)](https://github.com/jmenichole/tiltcheck-monorepo/actions/workflows/health-check.yml)
-[![Health Smoke](https://github.com/jmenichole/tiltcheck-monorepo/actions/workflows/health-smoke.yml/badge.svg)](https://github.com/jmenichole/tiltcheck-monorepo/actions/workflows/health-smoke.yml)
-[![CodeQL](https://github.com/jmenichole/tiltcheck-monorepo/actions/workflows/codeql.yml/badge.svg)](https://github.com/jmenichole/tiltcheck-monorepo/actions/workflows/codeql.yml)
-[![Security Audit](https://github.com/jmenichole/tiltcheck-monorepo/actions/workflows/security-audit.yml/badge.svg)](https://github.com/jmenichole/tiltcheck-monorepo/actions/workflows/security-audit.yml)
+<h1 align="center">TiltCheck Ecosystem</h1>
+
+<p align="center">
+  <a href="https://github.com/jmenichole/tiltcheck-monorepo/actions/workflows/health-check.yml"><img src="https://github.com/jmenichole/tiltcheck-monorepo/actions/workflows/health-check.yml/badge.svg" alt="Health Full"></a>
+  <a href="https://github.com/jmenichole/tiltcheck-monorepo/actions/workflows/health-smoke.yml"><img src="https://github.com/jmenichole/tiltcheck-monorepo/actions/workflows/health-smoke.yml/badge.svg" alt="Health Smoke"></a>
+  <a href="https://github.com/jmenichole/tiltcheck-monorepo/actions/workflows/codeql.yml"><img src="https://github.com/jmenichole/tiltcheck-monorepo/actions/workflows/codeql.yml/badge.svg" alt="CodeQL"></a>
+  <a href="https://github.com/jmenichole/tiltcheck-monorepo/actions/workflows/security-audit.yml"><img src="https://github.com/jmenichole/tiltcheck-monorepo/actions/workflows/security-audit.yml/badge.svg" alt="Security Audit"></a>
+</p>
+
+<p align="center">
+  <a href="https://discord.com/oauth2/authorize?client_id=1445916179163250860"><img src="https://img.shields.io/badge/Add%20to%20Discord-5865F2?style=for-the-badge&logo=discord&logoColor=white" alt="Add to Discord"></a>
+  <a href="https://discord.gg/s6NNfPHxMS"><img src="https://img.shields.io/badge/Join%20Community-5865F2?style=for-the-badge&logo=discord&logoColor=white" alt="Join Discord"></a>
+</p>
 
 **Built by a degen, for degens.**
 

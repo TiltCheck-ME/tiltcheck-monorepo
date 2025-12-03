@@ -1,7 +1,38 @@
 {
   "version": 2,
-  "buildCommand": "pnpm build",
   "outputDirectory": "services/landing/public",
   "framework": null,
-  "installCommand": "pnpm install"
+  "headers": [
+    {
+      "source": "/assets/(.*)",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
+      ]
+    },
+    {
+      "source": "/(.*)",
+      "headers": [
+        { "key": "X-Frame-Options", "value": "DENY" },
+        { "key": "X-Content-Type-Options", "value": "nosniff" },
+        { "key": "X-XSS-Protection", "value": "1; mode=block" }
+      ]
+    }
+  ],
+  "redirects": [
+    {
+      "source": "/invite",
+      "destination": "https://discord.com/oauth2/authorize?client_id=1445916179163250860",
+      "permanent": false
+    },
+    {
+      "source": "/discord",
+      "destination": "https://discord.gg/s6NNfPHxMS",
+      "permanent": false
+    },
+    {
+      "source": "/bot",
+      "destination": "https://discord.com/oauth2/authorize?client_id=1445916179163250860",
+      "permanent": false
+    }
+  ]
 }
