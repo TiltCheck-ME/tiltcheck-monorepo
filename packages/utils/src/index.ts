@@ -175,9 +175,19 @@ export function omit<T extends object, K extends keyof T>(
 }
 
 /**
- * Deep clone an object
+ * Deep clone an object using structuredClone
+ * Falls back to JSON serialization for compatibility
+ * Note: Functions, undefined, symbols, and circular references may not be preserved
  */
 export function deepClone<T>(obj: T): T {
+  // Use structuredClone if available (Node 17+, modern browsers)
+  if (typeof structuredClone === 'function') {
+    try {
+      return structuredClone(obj);
+    } catch {
+      // Fall back to JSON for unsupported types
+    }
+  }
   return JSON.parse(JSON.stringify(obj));
 }
 
@@ -191,11 +201,12 @@ export function formatDate(date: Date): string {
 /**
  * Parse a duration string to milliseconds
  * Supports: '1h', '30m', '7d', '1w', '60s'
+ * @throws {ValidationError} If duration format is invalid
  */
 export function parseDuration(duration: string): number {
   const match = duration.match(/^(\d+)(s|m|h|d|w)$/);
   if (!match) {
-    throw new Error(`Invalid duration format: ${duration}`);
+    throw new ValidationError(`Invalid duration format: ${duration}`, 'duration');
   }
   
   const value = parseInt(match[1], 10);

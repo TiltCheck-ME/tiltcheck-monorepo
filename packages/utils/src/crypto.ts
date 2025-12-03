@@ -1,6 +1,13 @@
 /**
  * @tiltcheck/utils - Crypto Helpers
+ * 
  * Cryptographic utilities for tokens, hashing, etc.
+ * 
+ * SECURITY NOTES:
+ * - All tokens are generated using Node.js crypto.randomBytes (CSPRNG)
+ * - Hashes use SHA-256/SHA-512 for one-way transformations
+ * - Token verification uses constant-time comparison to prevent timing attacks
+ * - Never store raw tokens - always hash them before storage
  */
 
 import { randomBytes, createHash, createHmac } from 'crypto';
@@ -25,10 +32,20 @@ export function randomBase64(bytes: number = 32): string {
 
 /**
  * Generate a random numeric string
+ * Uses rejection sampling to avoid modulo bias
  */
 export function randomNumeric(length: number = 6): string {
   const max = Math.pow(10, length);
-  const random = randomBytes(4).readUInt32BE(0);
+  // Use rejection sampling to avoid bias
+  const bytesNeeded = Math.ceil(Math.log2(max) / 8) + 1;
+  const maxValid = Math.floor(256 ** bytesNeeded / max) * max;
+  
+  let random: number;
+  do {
+    const bytes = randomBytes(bytesNeeded);
+    random = bytes.reduce((acc, byte, i) => acc + byte * (256 ** i), 0);
+  } while (random >= maxValid);
+  
   return String(random % max).padStart(length, '0');
 }
 
