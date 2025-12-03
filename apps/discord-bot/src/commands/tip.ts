@@ -21,6 +21,9 @@ import {
   createLtcDepositAddress,
   getLtcDepositStatus,
   getUserPendingDeposits,
+  // Prize distribution imports
+  createPrizeDistribution,
+  isAdmin,
 } from '@tiltcheck/justthetip';
 import { lockVault, unlockVault, extendVault, getVaultStatus, type LockVaultRecord } from '@tiltcheck/lockvault';
 import { parseAmountNL, formatAmount, parseDurationNL, parseCategory } from '@tiltcheck/natural-language-parser';
@@ -231,6 +234,32 @@ export const tip: Command = {
             .setDescription('Deposit ID (for status check)')
             .setRequired(false)
         )
+    )
+    // Admin prize distribution
+    .addSubcommand(sub =>
+      sub
+        .setName('distribute')
+        .setDescription('(Admin) Create prize distribution for multiple users')
+        .addStringOption(opt =>
+          opt.setName('recipients')
+            .setDescription('User mentions (@user1 @user2) to receive prizes')
+            .setRequired(true)
+        )
+        .addStringOption(opt =>
+          opt.setName('total')
+            .setDescription('Total prize amount in SOL (e.g., "0.5", "1")')
+            .setRequired(true)
+        )
+        .addStringOption(opt =>
+          opt.setName('context')
+            .setDescription('Distribution context')
+            .setRequired(false)
+            .addChoices(
+              { name: 'Trivia', value: 'trivia' },
+              { name: 'Airdrop', value: 'airdrop' },
+              { name: 'Custom', value: 'custom' },
+            )
+        )
     ),
 
   async execute(interaction: ChatInputCommandInteraction) {
@@ -252,7 +281,8 @@ export const tip: Command = {
             '• `/tip trivia` - Create trivia airdrop\n' +
             '• `/tip swap` - Swap Solana tokens via Jupiter\n' +
             '• `/tip tokens` - List supported swap tokens\n' +
-            '• `/tip ltc` - Deposit native LTC, receive Solana tokens',
+            '• `/tip ltc` - Deposit native LTC, receive Solana tokens\n' +
+            '• `/tip distribute` - (Admin) Create prize distribution',
           ephemeral: true
         });
         return;
@@ -297,6 +327,9 @@ export const tip: Command = {
           break;
         case 'ltc':
           await handleLtc(interaction);
+          break;
+        case 'distribute':
+          await handleDistribute(interaction);
           break;
         default:
           await interaction.reply({ content: 'Unknown command', ephemeral: true });
@@ -531,7 +564,6 @@ async function handlePublicAirdrop(interaction: ChatInputCommandInteraction, amo
   }
 
   // For public airdrops, we'll create a claimable link that generates payment requests on-demand
-  const totalSOL = amountPerUser * slots;
   const feeText = process.env.JUSTTHETIP_FEE_WALLET ? '0.0007 SOL per claim' : 'None';
 
   const claimButton = new ButtonBuilder()
@@ -1007,8 +1039,77 @@ async function handleTriviaDrop(interaction: ChatInputCommandInteraction) {
       
       await channel.send({ embeds: [winnerEmbed] });
 
-      // TODO: Actually distribute prizes via Solana Pay airdrop
-      // In production, would create airdrop transaction to all winners
+      // Distribute prizes via Solana Pay
+      try {
+        const result = await createPrizeDistribution(
+          connection,
+          round.hostId,
+          winners,
+          round.prize,
+          'trivia'
+        );
+
+        if (result.success && result.distribution && result.paymentUrl) {
+          // Create button for host to sign the transaction
+          const payButton = new ButtonBuilder()
+            .setLabel('💰 Distribute Prizes')
+            .setStyle(ButtonStyle.Link)
+            .setURL(result.paymentUrl);
+
+          const row = new ActionRowBuilder<ButtonBuilder>().addComponents(payButton);
+
+          const distributionEmbed = new EmbedBuilder()
+            .setColor(0xFFD700)
+            .setTitle('💸 Prize Distribution Ready')
+            .setDescription(
+              `**Total Prize:** ${round.prize.toFixed(4)} SOL\n` +
+              `**Winners:** ${winners.length}\n` +
+              `**Per Winner:** ${prizePerWinner.toFixed(4)} SOL\n` +
+              (result.skippedRecipients && result.skippedRecipients.length > 0 
+                ? `\n⚠️ Skipped ${result.skippedRecipients.length} winner(s) without wallets.`
+                : '') +
+              '\n\n**Host:** Click the button below to sign and distribute prizes!'
+            )
+            .setFooter({ text: `Distribution ID: ${result.distribution.id} • JustTheTip` });
+
+          await channel.send({ 
+            content: `<@${round.hostId}> 📣 Sign to distribute prizes:`, 
+            embeds: [distributionEmbed], 
+            components: [row] 
+          });
+
+          console.log(`[Trivia] Prize distribution created: ${result.distribution.id}`);
+        } else {
+          // Handle distribution creation failure
+          console.error('[Trivia] Failed to create prize distribution:', result.error);
+
+          const errorEmbed = new EmbedBuilder()
+            .setColor(0xFF6600)
+            .setTitle('⚠️ Prize Distribution Issue')
+            .setDescription(
+              `Unable to create automatic prize distribution.\n\n` +
+              `**Reason:** ${result.error || 'Unknown error'}\n\n` +
+              `Host can manually send prizes using \`/tip airdrop\``
+            )
+            .setFooter({ text: 'JustTheTip • Powered by TiltCheck' });
+
+          await channel.send({ embeds: [errorEmbed] });
+        }
+      } catch (error) {
+        console.error('[Trivia] Prize distribution error:', error);
+        
+        const errorEmbed = new EmbedBuilder()
+          .setColor(0xFF6600)
+          .setTitle('⚠️ Prize Distribution Error')
+          .setDescription(
+            `An error occurred while setting up prize distribution.\n\n` +
+            `**Error:** ${error instanceof Error ? error.message : 'Unknown error'}\n\n` +
+            `Host can manually send prizes using \`/tip airdrop\``
+          )
+          .setFooter({ text: 'JustTheTip • Powered by TiltCheck' });
+
+        await channel.send({ embeds: [errorEmbed] });
+      }
     }
   });
 }
@@ -1475,6 +1576,113 @@ async function handleLtcPending(interaction: ChatInputCommandInteraction) {
     console.error('[LTC PENDING] Error:', error);
     await interaction.editReply({
       content: `❌ Failed to get deposits: ${error instanceof Error ? error.message : 'Unknown error'}`,
+    });
+  }
+}
+
+// ==================== PRIZE DISTRIBUTION HANDLER ====================
+
+async function handleDistribute(interaction: ChatInputCommandInteraction) {
+  await interaction.deferReply();
+
+  // Check if user is admin
+  if (!isAdmin(interaction.user.id)) {
+    await interaction.editReply({
+      content: '❌ Only admins can trigger prize distributions.\n\n' +
+        'If you want to send SOL to multiple users, use `/tip airdrop` instead.',
+    });
+    return;
+  }
+
+  // Check if user has wallet
+  if (!hasWallet(interaction.user.id)) {
+    await interaction.editReply({
+      content: '❌ You need to register a wallet first!\nUse `/tip wallet` → Register (External) to connect your Solana wallet.',
+    });
+    return;
+  }
+
+  const recipientsRaw = interaction.options.getString('recipients', true);
+  const totalRaw = interaction.options.getString('total', true);
+  const context = (interaction.options.getString('context') || 'custom') as 'trivia' | 'airdrop' | 'custom';
+
+  // Parse total prize amount
+  const totalPrize = parseFloat(totalRaw);
+  if (isNaN(totalPrize) || totalPrize <= 0) {
+    await interaction.editReply({
+      content: '❌ Invalid total amount. Provide a positive SOL value like `0.5` or `1`.',
+    });
+    return;
+  }
+
+  // Extract user IDs from mentions
+  const idRegex = /<@!?(\d+)>/g;
+  const recipientIds: string[] = [];
+  let match: RegExpExecArray | null;
+  while ((match = idRegex.exec(recipientsRaw)) !== null) {
+    recipientIds.push(match[1]);
+  }
+
+  if (recipientIds.length === 0) {
+    await interaction.editReply({
+      content: '❌ No valid user mentions found. Use space-separated mentions like `@Alice @Bob`.',
+    });
+    return;
+  }
+
+  try {
+    const result = await createPrizeDistribution(
+      connection,
+      interaction.user.id,
+      recipientIds,
+      totalPrize,
+      context
+    );
+
+    if (!result.success || !result.distribution || !result.paymentUrl) {
+      await interaction.editReply({
+        content: `❌ Failed to create prize distribution: ${result.error || 'Unknown error'}`,
+      });
+      return;
+    }
+
+    const prizePerRecipient = result.distribution.prizePerRecipient;
+    const recipientCount = result.distribution.recipientIds.length;
+
+    // Create button for signing the transaction
+    const payButton = new ButtonBuilder()
+      .setLabel('💰 Sign & Distribute')
+      .setStyle(ButtonStyle.Link)
+      .setURL(result.paymentUrl);
+
+    const row = new ActionRowBuilder<ButtonBuilder>().addComponents(payButton);
+
+    const embed = new EmbedBuilder()
+      .setColor(0x00AA00)
+      .setTitle('💸 Prize Distribution Ready')
+      .setDescription(
+        `**Total Prize:** ${totalPrize.toFixed(4)} SOL\n` +
+        `**Recipients:** ${recipientCount}\n` +
+        `**Per Recipient:** ${prizePerRecipient.toFixed(4)} SOL\n` +
+        `**Context:** ${context.charAt(0).toUpperCase() + context.slice(1)}\n` +
+        `**Fee:** ${process.env.JUSTTHETIP_FEE_WALLET ? '0.0007 SOL' : 'None (fee wallet not configured)'}\n\n` +
+        (result.skippedRecipients && result.skippedRecipients.length > 0
+          ? `⚠️ Skipped ${result.skippedRecipients.length} user(s) without wallets.\n\n`
+          : '') +
+        '**Click the button below to sign and distribute prizes!**'
+      )
+      .setFooter({ text: `Distribution ID: ${result.distribution.id} • JustTheTip` });
+
+    await interaction.editReply({
+      embeds: [embed],
+      components: [row],
+    });
+
+    console.log(`[TIP DISTRIBUTE] Created distribution ${result.distribution.id} for ${recipientCount} recipients`);
+  } catch (error) {
+    console.error('[TIP DISTRIBUTE] Error:', error);
+    await interaction.editReply({
+      content: `❌ Failed to create distribution: ${error instanceof Error ? error.message : 'Unknown error'}`,
     });
   }
 }
