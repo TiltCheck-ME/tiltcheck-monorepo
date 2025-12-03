@@ -194,9 +194,35 @@ Detect:
 ### Core Features:
 - Vault locking  
 - Cooldown suggestions  
-- “Phone-a-friend” notifications  
+- "Phone-a-friend" notifications  
 - Accountabilibuddy double-wallet withdrawals  
 - Discord-based trust score signals  
+
+### Tilt Detection Heuristics:
+TiltCheck Core implements several heuristics to detect tilt behavior:
+
+1. **Loss Streak Detection** — Tracks consecutive losses across tips, games, and bets. A loss streak of 3+ triggers tilt warnings with increasing severity.
+
+2. **Bet Sizing Analysis** — Monitors betting patterns to detect sudden increases. If a user's bet size doubles or triples their baseline (rolling average), it flags a `bet-sizing` tilt signal. This is especially concerning after losses.
+
+3. **Message Sentiment Analysis** — Scans Discord messages for rage indicators:
+   - Rapid messaging (5+ messages in 30 seconds)
+   - ALL CAPS spam
+   - Rage keywords ("rigged", "scam", "fuck this", etc.)
+   - Loan requests ("need money", "can someone spot me")
+
+4. **Bad Beat Detection** — Listens to `game.completed` events and identifies unlikely losses (bad beats). A < 5% probability loss triggers high severity tilt warnings.
+
+### Event Router Integration:
+TiltCheck Core emits and subscribes to events:
+
+**Emitted Events:**
+- `tilt.detected` — When tilt score exceeds threshold (includes userId, reason, severity, signals)
+- `cooldown.violated` — When a user on cooldown attempts to continue
+
+**Subscribed Events:**
+- `tip.failed` — Tracks failed tip attempts as potential losses
+- `game.completed` — Processes game results for winners/losers and bad beats
 
 ### Why It Exists:
 Nobody thinks clearly on tilt.  

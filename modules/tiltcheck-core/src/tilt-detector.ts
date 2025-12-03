@@ -6,14 +6,20 @@
 import { eventRouter } from '@tiltcheck/event-router';
 import { analyzeMessages, calculateTiltScore } from './message-analyzer.js';
 import { startCooldown, isOnCooldown, recordViolation, getCooldownStatus } from './cooldown-manager.js';
-import type { UserActivity, TiltSignal } from './types.js';
+import type { UserActivity, TiltSignal, BetRecord, GameCompletedEvent } from './types.js';
 
 const userActivities = new Map<string, UserActivity>();
 
+/** Threshold for bet size increase considered a red flag (2x baseline) */
+const BET_INCREASE_THRESHOLD = 2.0;
+
+/** Minimum bets required to establish baseline */
+const MIN_BETS_FOR_BASELINE = 3;
+
 /**
- * Track a user message
+ * Get or create user activity record
  */
-export function trackMessage(userId: string, content: string, channelId: string): void {
+function getOrCreateActivity(userId: string): UserActivity {
   let activity = userActivities.get(userId);
   
   if (!activity) {
@@ -22,9 +28,19 @@ export function trackMessage(userId: string, content: string, channelId: string)
       messages: [],
       lossStreak: 0,
       cooldownViolations: 0,
+      recentBets: [],
     };
     userActivities.set(userId, activity);
   }
+  
+  return activity;
+}
+
+/**
+ * Track a user message
+ */
+export function trackMessage(userId: string, content: string, channelId: string): void {
+  const activity = getOrCreateActivity(userId);
   
   // Add message to history
   activity.messages.push({
@@ -56,17 +72,7 @@ export function trackMessage(userId: string, content: string, channelId: string)
  * Track a loss event (from poker, tips, etc.)
  */
 export function trackLoss(userId: string, amount: number, context?: Record<string, any>): void {
-  let activity = userActivities.get(userId);
-  
-  if (!activity) {
-    activity = {
-      userId,
-      messages: [],
-      lossStreak: 0,
-      cooldownViolations: 0,
-    };
-    userActivities.set(userId, activity);
-  }
+  const activity = getOrCreateActivity(userId);
   
   activity.lastLoss = Date.now();
   activity.lossStreak++;
@@ -94,6 +100,108 @@ export function resetLossStreak(userId: string): void {
   if (activity) {
     activity.lossStreak = 0;
   }
+}
+
+/**
+ * Track a bet for bet sizing analysis
+ * @param userId - User who placed the bet
+ * @param amount - Bet amount
+ * @param gameType - Type of game (poker, blackjack, etc.)
+ * @param won - Whether the bet was won
+ */
+export function trackBet(userId: string, amount: number, gameType: string, won: boolean): void {
+  const activity = getOrCreateActivity(userId);
+  
+  const betRecord: BetRecord = {
+    amount,
+    timestamp: Date.now(),
+    gameType,
+    won,
+  };
+  
+  activity.recentBets.push(betRecord);
+  
+  // Keep last 10 bets
+  if (activity.recentBets.length > 10) {
+    activity.recentBets = activity.recentBets.slice(-10);
+  }
+  
+  // Update baseline bet size (rolling average of winning/stable bets)
+  updateBaselineBetSize(activity);
+  
+  // Check for bet sizing tilt signal
+  const betSignal = detectBetSizingChange(activity, amount);
+  if (betSignal) {
+    processTiltSignals(userId, [betSignal]);
+  }
+  
+  // Track loss if bet was lost
+  if (!won) {
+    trackLoss(userId, amount, { source: 'bet', gameType });
+  } else {
+    // Win resets loss streak
+    resetLossStreak(userId);
+  }
+}
+
+/**
+ * Update baseline bet size using rolling average
+ * Uses the first 3 bets to establish a stable baseline for comparison
+ */
+function updateBaselineBetSize(activity: UserActivity): void {
+  // Only update baseline with at least MIN_BETS_FOR_BASELINE bets
+  if (activity.recentBets.length < MIN_BETS_FOR_BASELINE) {
+    return;
+  }
+  
+  // Use the first 3 bets to establish a stable baseline
+  // This provides a consistent reference point regardless of history size
+  const baselineBets = activity.recentBets.slice(0, MIN_BETS_FOR_BASELINE);
+  const avgBet = baselineBets.reduce((sum, b) => sum + b.amount, 0) / baselineBets.length;
+  
+  // Only set baseline if not already set (we want to detect changes from normal behavior)
+  if (activity.baselineBetSize === undefined) {
+    activity.baselineBetSize = avgBet;
+  }
+}
+
+/**
+ * Detect sudden bet sizing changes (a key tilt indicator)
+ * Doubling or more of bet size after losses is a red flag
+ */
+function detectBetSizingChange(activity: UserActivity, currentBet: number): TiltSignal | null {
+  // Need baseline to compare
+  if (activity.baselineBetSize === undefined || activity.baselineBetSize === 0) {
+    return null;
+  }
+  
+  const betRatio = currentBet / activity.baselineBetSize;
+  
+  // If bet is BET_INCREASE_THRESHOLD times the baseline, flag it
+  if (betRatio >= BET_INCREASE_THRESHOLD) {
+    // Severity scales with bet increase: 2x=2, 3x=3, 4x=4, 5x+=5
+    // Ensure minimum severity of 2 when threshold is met
+    const severity = Math.max(2, Math.min(5, Math.floor(betRatio)));
+    
+    // Higher confidence if on a loss streak
+    const confidence = activity.lossStreak >= 2 ? 0.9 : 0.75;
+    
+    return {
+      userId: activity.userId,
+      signalType: 'bet-sizing',
+      severity,
+      confidence,
+      context: {
+        currentBet,
+        baselineBet: activity.baselineBetSize,
+        betRatio: betRatio.toFixed(2),
+        lossStreak: activity.lossStreak,
+      },
+      detectedAt: Date.now(),
+    };
+  }
+  
+  return null;
 }
 
 /**
@@ -205,9 +313,55 @@ eventRouter.subscribe('tip.failed', (event) => {
   trackLoss(userId, amount, { source: 'tip-failed' });
 }, 'tiltcheck-core');
 
-eventRouter.subscribe('game.completed', (_event) => {
+eventRouter.subscribe('game.completed', (event) => {
+  const data = event.data as GameCompletedEvent;
+  const { result, participants } = data;
+  
+  if (!result) return;
+  
+  const winnerIds = new Set(result.winners?.map(w => w.userId) || []);
+  
+  // Get all participants - either from explicit list or from winners
+  const allParticipants = participants || Array.from(winnerIds);
+  
   // Track losses for non-winners
-  // TODO: Implementation depends on game result structure
+  for (const participantId of allParticipants) {
+    if (!winnerIds.has(participantId)) {
+      // This participant lost - track the loss
+      // Use pot/participant count as estimated loss amount
+      const estimatedLoss = result.pot / Math.max(allParticipants.length, 2);
+      trackLoss(participantId, estimatedLoss, { 
+        source: 'game-completed',
+        gameId: data.gameId,
+      });
+    } else {
+      // Winner - reset their loss streak
+      resetLossStreak(participantId);
+    }
+  }
+  
+  // Check for bad beats (highly unlikely losses) - strong tilt indicator
+  if (result.badBeat) {
+    const { loserId, probability } = result.badBeat;
+    
+    // Bad beats with < 10% probability are severe tilt triggers
+    const severity = probability < 0.05 ? 5 : probability < 0.1 ? 4 : 3;
+    
+    const signal: TiltSignal = {
+      userId: loserId,
+      signalType: 'bad-beat',
+      severity,
+      confidence: 0.95,
+      context: {
+        probability,
+        gameId: data.gameId,
+        pot: result.pot,
+      },
+      detectedAt: Date.now(),
+    };
+    
+    processTiltSignals(loserId, [signal]);
+  }
 }, 'tiltcheck-core');
 
 console.log('[TiltCheck] Tilt Detection Core initialized');
