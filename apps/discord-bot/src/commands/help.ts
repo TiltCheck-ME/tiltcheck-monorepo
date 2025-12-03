@@ -31,6 +31,15 @@ export const help: Command = {
         inline: false,
       },
       {
+        name: '💱 /tip swap - Crypto Swaps',
+        value:
+          '`/tip swap quote` - Get swap rates\n' +
+          '`/tip swap deposit` - Start a swap (LTC → SOL)\n' +
+          '`/tip swap status` - Check swap progress\n' +
+          'Powered by ChangeNow • Non-custodial',
+        inline: false,
+      },
+      {
         name: '🔒 /tip - Vault (Time-lock)',
         value:
           '`/tip lock <amount> <duration>` - Lock funds\n' +
@@ -47,16 +56,22 @@ export const help: Command = {
         inline: false,
       },
       {
-        name: '🔗 /suslink - Link Safety',
+        name: '🧠 /tiltcheck - Tilt Monitoring',
         value:
-          '`/suslink scan <url>` - Scan for scams\n' +
-          '`/suslink submit <url>` - Submit a promo\n' +
-          '`/suslink pending` - View pending promos',
+          '`/tiltcheck status` - View your tilt status\n' +
+          '`/tiltcheck set` - Configure tilt settings',
+        inline: false,
+      },
+      {
+        name: '📊 /trust - Trust Dashboard',
+        value:
+          '`/trust` - Open your personalized trust dashboard\n' +
+          '`/trust casino <name>` - Check casino trust score',
         inline: false,
       },
       {
         name: '🛠️ Utility',
-        value: '`/ping` - Check bot status\n`/help` - Show this message',
+        value: '`/ping` - Check bot status\n`/help` - Show this message\n`/support` - Get help',
         inline: false,
       },
       {
@@ -66,7 +81,7 @@ export const help: Command = {
           '✅ Flat $0.07 fee per tip\n' +
           '✅ Direct wallet-to-wallet transfers\n' +
           '✅ Time-locked vaults for self-control\n' +
-          '✅ Automatic link scanning',
+          '✅ Cross-chain swaps via ChangeNow',
         inline: false,
       }
     );

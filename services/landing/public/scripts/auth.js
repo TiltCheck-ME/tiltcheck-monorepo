@@ -266,6 +266,52 @@ class TiltCheckAuth {
         loginButton.setAttribute('data-auth', 'discord-login');
       }
     });
+    
+    // Handle email login links across the ecosystem
+    const emailLoginLinks = document.querySelectorAll('#emailLoginLink, .email-login-link, [data-auth="email-login"]');
+    emailLoginLinks.forEach(link => {
+      link.addEventListener('click', (e) => {
+        e.preventDefault();
+        this.showEmailLoginModal();
+      });
+    });
+    
+    // Add "Don't have Discord?" link dynamically to login sections if not present
+    this.injectEmailLoginOption();
+  }
+
+  /**
+   * Inject email login option into login sections across the ecosystem
+   */
+  injectEmailLoginOption() {
+    // Find containers that have Discord login buttons but no email option
+    const discordBtns = document.querySelectorAll('.discord-login-btn');
+    
+    discordBtns.forEach(btn => {
+      const container = btn.parentElement;
+      if (!container) return;
+      
+      // Check if email option already exists
+      if (container.querySelector('.email-login-link, #emailLoginLink')) return;
+      
+      // Create email login option
+      const emailOption = document.createElement('p');
+      emailOption.style.cssText = 'margin-top: 16px; text-align: center;';
+      emailOption.innerHTML = `
+        <a href="#" class="email-login-link" style="color: #6B7280; font-size: 0.85rem; text-decoration: underline;">
+          Don't have Discord? Login with email
+        </a>
+      `;
+      
+      // Insert after the Discord button
+      btn.insertAdjacentElement('afterend', emailOption);
+      
+      // Add click handler
+      emailOption.querySelector('.email-login-link').addEventListener('click', (e) => {
+        e.preventDefault();
+        this.showEmailLoginModal();
+      });
+    });
   }
 
   createUserAvatar() {
@@ -376,6 +422,53 @@ class TiltCheckAuth {
     window.location.href = oauthUrl;
   }
 
+  /**
+   * Initiate email magic link login via Supabase
+   */
+  async loginWithEmail(email) {
+    try {
+      const response = await fetch(`${SUPABASE_URL}/auth/v1/otp`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': SUPABASE_ANON_KEY
+        },
+        body: JSON.stringify({
+          email: email,
+          options: {
+            emailRedirectTo: window.location.origin + '/auth/callback'
+          }
+        })
+      });
+      
+      if (response.ok) {
+        return { success: true, message: 'Check your email for a login link!' };
+      } else {
+        const error = await response.json();
+        return { success: false, message: error.error_description || 'Failed to send login email' };
+      }
+    } catch (e) {
+      console.error('[Auth] Email login error:', e);
+      return { success: false, message: 'Network error. Please try again.' };
+    }
+  }
+
+  /**
+   * Check if user logged in via Discord or Email
+   */
+  getLoginMethod() {
+    if (!this.user) return null;
+    const provider = this.user.app_metadata?.provider;
+    return provider === 'discord' ? 'discord' : 'email';
+  }
+
+  /**
+   * Check if user needs legal notices via email (no Discord)
+   */
+  needsEmailLegalNotices() {
+    return this.getLoginMethod() === 'email';
+  }
+
   async logout() {
     try {
       await supabaseAuth.signOut();
@@ -415,10 +508,110 @@ class TiltCheckAuth {
     if (this.user) {
       localStorage.setItem(`terms_accepted_${this.user.id}`, 'true');
       localStorage.setItem(`terms_accepted_date_${this.user.id}`, new Date().toISOString());
+      
+      // If email user, record that legal notices should be sent via email
+      if (this.needsEmailLegalNotices()) {
+        localStorage.setItem(`legal_notice_method_${this.user.id}`, 'email');
+      }
     }
   }
 
+  /**
+   * Show email login modal for users without Discord
+   */
+  showEmailLoginModal() {
+    const modal = document.createElement('div');
+    modal.id = 'email-login-modal';
+    modal.style.cssText = 'position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.9); display: flex; align-items: center; justify-content: center; z-index: 10000; padding: 20px;';
+    
+    modal.innerHTML = `
+      <div style="background: #1a1f24; border: 2px solid #00d4aa; border-radius: 12px; max-width: 420px; width: 100%; padding: 30px;">
+        <h2 style="color: #00d4aa; margin-bottom: 8px; font-size: 1.5rem; text-align: center;">📧 Login with Email</h2>
+        <p style="color: #888; text-align: center; margin-bottom: 24px; font-size: 0.9rem;">
+          We'll send you a magic link to sign in instantly.
+        </p>
+        
+        <form id="email-login-form">
+          <div style="margin-bottom: 16px;">
+            <label for="login-email" style="display: block; color: #ccc; margin-bottom: 8px; font-size: 0.9rem;">Email address</label>
+            <input 
+              type="email" 
+              id="login-email" 
+              required
+              placeholder="you@example.com"
+              style="width: 100%; padding: 12px 16px; background: #0a0e13; border: 1px solid #374151; border-radius: 6px; color: #fff; font-size: 1rem; box-sizing: border-box;"
+            >
+          </div>
+          
+          <button type="submit" id="email-submit-btn" style="width: 100%; padding: 14px; background: #00d4aa; color: #0a0e13; border: none; border-radius: 6px; font-weight: 700; cursor: pointer; font-size: 1rem; transition: opacity 0.2s;">
+            Send Magic Link
+          </button>
+          
+          <div id="email-login-status" style="margin-top: 16px; text-align: center; font-size: 0.9rem; display: none;"></div>
+        </form>
+        
+        <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #374151; text-align: center;">
+          <p style="color: #888; font-size: 0.85rem; margin-bottom: 12px;">Have Discord?</p>
+          <button id="switch-to-discord" style="padding: 10px 20px; background: #5865F2; color: #fff; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 0.9rem;">
+            Login with Discord
+          </button>
+        </div>
+        
+        <button id="close-email-modal" style="position: absolute; top: 15px; right: 15px; background: none; border: none; color: #888; font-size: 1.5rem; cursor: pointer; padding: 5px;">×</button>
+        
+        <p style="margin-top: 20px; font-size: 0.75rem; color: #6B7280; text-align: center;">
+          📬 Legal notices will be sent to your email since you don't use Discord.
+        </p>
+      </div>
+    `;
+
+    document.body.appendChild(modal);
+
+    const form = document.getElementById('email-login-form');
+    const statusEl = document.getElementById('email-login-status');
+    const submitBtn = document.getElementById('email-submit-btn');
+
+    form.onsubmit = async (e) => {
+      e.preventDefault();
+      const email = document.getElementById('login-email').value;
+      
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Sending...';
+      statusEl.style.display = 'none';
+      
+      const result = await this.loginWithEmail(email);
+      
+      statusEl.style.display = 'block';
+      if (result.success) {
+        statusEl.style.color = '#4CAF50';
+        statusEl.textContent = '✓ ' + result.message;
+        submitBtn.textContent = 'Email Sent!';
+      } else {
+        statusEl.style.color = '#FF5252';
+        statusEl.textContent = '✗ ' + result.message;
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Send Magic Link';
+      }
+    };
+
+    document.getElementById('switch-to-discord').onclick = () => {
+      document.body.removeChild(modal);
+      this.loginWithDiscord();
+    };
+
+    document.getElementById('close-email-modal').onclick = () => {
+      document.body.removeChild(modal);
+    };
+
+    modal.onclick = (e) => {
+      if (e.target === modal) {
+        document.body.removeChild(modal);
+      }
+    };
+  }
+
   showTermsModal() {
+    const isEmailUser = this.needsEmailLegalNotices();
     const modal = document.createElement('div');
     modal.style.cssText = 'position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.9); display: flex; align-items: center; justify-content: center; z-index: 10000; padding: 20px;';
     
@@ -434,7 +627,7 @@ class TiltCheckAuth {
             <li style="margin-bottom: 8px;">All crypto transactions are non-custodial (you control your keys)</li>
             <li style="margin-bottom: 8px;">Tilt detection signals are informational, not diagnostic</li>
             <li style="margin-bottom: 8px;">We collect anonymous usage analytics to improve the platform</li>
-            <li style="margin-bottom: 8px;">Discord integration requires read access to messages in enabled servers</li>
+            ${isEmailUser ? '' : '<li style="margin-bottom: 8px;">Discord integration requires read access to messages in enabled servers</li>'}
           </ul>
 
           <h3 style="color: #00d4aa; font-size: 1.2rem; margin: 20px 0 10px;">Your Responsibilities:</h3>
@@ -448,6 +641,12 @@ class TiltCheckAuth {
           <p style="margin: 20px 0; padding: 16px; background: #0f1419; border-left: 4px solid #ff6b6b; border-radius: 4px;">
             <strong style="color: #ff6b6b;">⚠️ Important:</strong> TiltCheck cannot prevent tilt, guarantee fairness, or recover losses. Always gamble responsibly.
           </p>
+
+          ${isEmailUser ? `
+          <p style="margin: 16px 0; padding: 12px; background: rgba(0, 212, 170, 0.1); border-left: 4px solid #00d4aa; border-radius: 4px; font-size: 0.9rem;">
+            <strong style="color: #00d4aa;">📧 Legal Notices:</strong> Since you signed up with email, important legal updates and notices will be sent to your email address.
+          </p>
+          ` : ''}
 
           <p style="font-size: 0.9rem; color: #888;">
             By clicking "I Accept", you agree to our 
