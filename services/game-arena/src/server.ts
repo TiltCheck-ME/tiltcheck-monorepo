@@ -27,6 +27,7 @@ import type {
   CreateGameRequest,
 } from './types.js';
 import { mapAuthUserToDiscordUser } from './types.js';
+import { justthetip } from '@tiltcheck/justthetip';
 
 // ES module __dirname equivalent
 const __filename = fileURLToPath(import.meta.url);
@@ -372,6 +373,94 @@ app.get('/api/history/:discordId', async (req, res) => {
     res.json({ history });
   } catch (error: any) {
     res.status(500).json({ error: error.message });
+  }
+});
+
+// JustTheTip API routes
+
+// Get tip history for authenticated user
+app.get('/api/tips', requireAuth, (req, res) => {
+  try {
+    const user = req.user!;
+    const discordUser = mapAuthUserToDiscordUser(user);
+    const tips = justthetip.getTipsForUser(discordUser.id);
+    
+    // Format tips for client
+    const formattedTips = tips.map(tip => ({
+      id: tip.id,
+      type: tip.senderId === discordUser.id ? 'sent' : 'received',
+      amount: tip.solAmount || 0,
+      usdAmount: tip.usdAmount || 0,
+      otherUser: tip.senderId === discordUser.id ? tip.recipientId : tip.senderId,
+      status: tip.status,
+      timestamp: new Date(tip.createdAt).toISOString(),
+    }));
+
+    res.json({ tips: formattedTips });
+  } catch (error: any) {
+    console.error('[Tips] Failed to get tip history:', error);
+    res.status(500).json({ error: error.message || 'Failed to load tip history' });
+  }
+});
+
+// Get pending tips for authenticated user
+app.get('/api/tips/pending', requireAuth, (req, res) => {
+  try {
+    const user = req.user!;
+    const discordUser = mapAuthUserToDiscordUser(user);
+    const pendingTips = justthetip.getPendingTipsForUser(discordUser.id);
+    
+    // Format pending tips for client
+    const formattedTips = pendingTips.map(tip => ({
+      id: tip.id,
+      senderId: tip.senderId,
+      amount: tip.solAmount || 0,
+      usdAmount: tip.usdAmount || 0,
+      timestamp: new Date(tip.createdAt).toISOString(),
+      status: tip.status,
+    }));
+
+    res.json({ pendingTips: formattedTips });
+  } catch (error: any) {
+    console.error('[Tips] Failed to get pending tips:', error);
+    res.status(500).json({ error: error.message || 'Failed to load pending tips' });
+  }
+});
+
+// Get user's wallet status
+app.get('/api/tips/wallet', requireAuth, (req, res) => {
+  try {
+    const user = req.user!;
+    const discordUser = mapAuthUserToDiscordUser(user);
+    const wallet = justthetip.getWallet(discordUser.id);
+    
+    if (wallet) {
+      res.json({
+        connected: true,
+        address: wallet.address,
+        type: wallet.type,
+        registeredAt: wallet.registeredAt,
+      });
+    } else {
+      res.json({ connected: false });
+    }
+  } catch (error: any) {
+    console.error('[Tips] Failed to get wallet status:', error);
+    res.status(500).json({ error: error.message || 'Failed to get wallet status' });
+  }
+});
+
+// Get transaction history with receipts
+app.get('/api/tips/history', requireAuth, (req, res) => {
+  try {
+    const user = req.user!;
+    const discordUser = mapAuthUserToDiscordUser(user);
+    const history = justthetip.getTransactionHistory(discordUser.id);
+    
+    res.json({ history });
+  } catch (error: any) {
+    console.error('[Tips] Failed to get transaction history:', error);
+    res.status(500).json({ error: error.message || 'Failed to load transaction history' });
   }
 });
 
