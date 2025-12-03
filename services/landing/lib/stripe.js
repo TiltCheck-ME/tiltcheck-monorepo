@@ -135,8 +135,22 @@ function createStripeRouter(express) {
    */
   router.get('/subscription-status', (req, res) => {
     const userId = req.query.userId;
+    const username = req.query.username;
+    
     if (!userId) {
       return res.status(400).json({ ok: false, error: 'userId is required' });
+    }
+
+    // Check if user is a founder (configurable via environment)
+    const founderUsernames = (process.env.FOUNDER_USERNAMES || 'jmenichole').split(',').map(u => u.trim().toLowerCase());
+    if (username && founderUsernames.includes(username.toLowerCase())) {
+      return res.json({ 
+        ok: true, 
+        subscription: {
+          status: 'founder',
+          message: 'Lifetime premium access'
+        }
+      });
     }
 
     const subscription = getSubscription(userId);
@@ -282,8 +296,9 @@ function createStripeRouter(express) {
   /**
    * POST /api/stripe/webhook
    * Handle Stripe webhooks for subscription updates
+   * Note: Raw body parsing is configured in server.js for this route
    */
-  router.post('/webhook', express.raw({ type: 'application/json' }), async (req, res) => {
+  router.post('/webhook', async (req, res) => {
     if (!stripe) {
       return res.status(503).send('Stripe not configured');
     }
@@ -296,8 +311,13 @@ function createStripeRouter(express) {
         event = stripe.webhooks.constructEvent(req.body, sig, STRIPE_WEBHOOK_SECRET);
       } else {
         // For development without webhook secret verification
+        // Only allow in non-production environments
+        if (process.env.NODE_ENV === 'production') {
+          console.error('[Stripe] Webhook secret not configured in production');
+          return res.status(500).send('Webhook secret not configured');
+        }
         event = JSON.parse(req.body.toString());
-        console.warn('[Stripe] Webhook signature not verified (no secret configured)');
+        console.warn('[Stripe] Webhook signature not verified (development mode)');
       }
     } catch (err) {
       console.error('[Stripe] Webhook signature verification failed:', err.message);

@@ -125,6 +125,16 @@ describe('Stripe API Integration', () => {
       expect(json.ok).toBe(true);
       expect(json.subscription).toBe(null);
     });
+
+    it('GET /api/stripe/subscription-status returns founder status for configured usernames', async () => {
+      // Default founder is jmenichole
+      const res = await fetch(`${baseURL}/api/stripe/subscription-status?userId=any-id&username=jmenichole`);
+      expect(res.status).toBe(200);
+      const json: any = await res.json();
+      expect(json.ok).toBe(true);
+      expect(json.subscription).not.toBe(null);
+      expect(json.subscription.status).toBe('founder');
+    });
   });
 
   describe('Create Checkout Session Endpoint', () => {
@@ -192,11 +202,9 @@ describe('Stripe API Integration', () => {
   });
 });
 
+import fs from 'fs';
+
 describe('Stripe Subscription Storage', () => {
-  // Import the storage functions for unit testing
-  let stripeModule: any;
-  const fs = require('fs');
-  const path = require('path');
   const tempSubscriptionsFile = '/tmp/test-subscriptions.json';
 
   beforeAll(() => {

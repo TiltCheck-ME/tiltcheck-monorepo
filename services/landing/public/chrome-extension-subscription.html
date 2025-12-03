@@ -306,20 +306,20 @@
         return;
       }
 
-      // Founder gets free access
-      if (user.username === 'jmenichole') {
-        document.getElementById('founder-notice').style.display = 'block';
-        document.getElementById('subscribe-btn').style.display = 'none';
-        document.querySelector('.pricing-card').style.opacity = '0.6';
-        return;
-      }
-
-      // Try to get subscription from server first
+      // Founder/premium users get free access (configured server-side)
+      // Check with the subscription API which handles founder exceptions
       try {
-        const response = await fetch(`/api/stripe/subscription-status?userId=${encodeURIComponent(user.id)}`);
+        const response = await fetch(`/api/stripe/subscription-status?userId=${encodeURIComponent(user.id)}&username=${encodeURIComponent(user.username || '')}`);
         if (response.ok) {
           const data = await response.json();
           if (data.ok && data.subscription) {
+            // Handle founder status from server
+            if (data.subscription.status === 'founder') {
+              document.getElementById('founder-notice').style.display = 'block';
+              document.getElementById('subscribe-btn').style.display = 'none';
+              document.querySelector('.pricing-card').style.opacity = '0.6';
+              return;
+            }
             updateUIWithSubscription(data.subscription);
             return;
           }

@@ -587,19 +587,18 @@
         return;
       }
 
-      // Check if founder
-      if (user.username === 'jmenichole') {
-        document.getElementById('subscription-status-text').textContent = 'Founder - Lifetime Premium Access 👑';
-        document.getElementById('manage-subscription-btn').style.display = 'none';
-        return;
-      }
-
-      // Try to get subscription from server first
+      // Try to get subscription from server first (handles founder status)
       try {
-        const response = await fetch(`/api/stripe/subscription-status?userId=${encodeURIComponent(user.id)}`);
+        const response = await fetch(`/api/stripe/subscription-status?userId=${encodeURIComponent(user.id)}&username=${encodeURIComponent(user.username || '')}`);
         if (response.ok) {
           const data = await response.json();
           if (data.ok && data.subscription) {
+            // Handle founder status from server
+            if (data.subscription.status === 'founder') {
+              document.getElementById('subscription-status-text').textContent = 'Founder - Lifetime Premium Access 👑';
+              document.getElementById('manage-subscription-btn').style.display = 'none';
+              return;
+            }
             updateSubscriptionUI(data.subscription);
             return;
           }
