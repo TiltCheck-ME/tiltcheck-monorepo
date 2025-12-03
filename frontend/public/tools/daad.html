@@ -5,20 +5,43 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>DA&D - Degens Against Decency | TiltCheck</title>
   <meta name="description" content="AI-powered, Cards Against Humanity-style party game tuned for degen Discord communities." />
+  <link rel="stylesheet" href="../styles/theme.css">
+  <link rel="stylesheet" href="../styles/main.css">
   <link rel="stylesheet" href="../styles/tool-page.css" />
 </head>
 <body>
-  <nav class="navbar">
-    <div class="container">
-      <a href="/" class="logo">TiltCheck</a>
-      <div class="nav-links">
-        <a href="/#tools">Tools</a>
-        <a href="/dashboard">Dashboard</a>
-        <a href="https://discord.gg/s6NNfPHxMS" class="cta-small">Join Discord</a>
-      </div>
-    </div>
-  </nav>
+  <a href="#main-content" class="skip-link">Skip to main content</a>
 
+  <!-- Top Navigation -->
+  <nav class="top-nav" role="navigation" aria-label="Primary navigation">
+    <a href="/">Home</a>
+    <a href="/casinos.html">Casinos</a>
+    <a href="/degen-trust.html">Degens</a>
+    <a href="/dashboard">Dashboard</a>
+    <a href="/about.html">About</a>
+    <a href="https://discord.gg/s6NNfPHxMS" class="btn btn-primary btn-nav" target="_blank" rel="noopener noreferrer">Join Discord</a>
+    
+    <button class="hamburger-btn" aria-label="Open menu" aria-expanded="false" onclick="toggleMobileNav()">
+      <span class="hamburger-icon"></span>
+    </button>
+  </nav>
+  
+  <!-- Mobile Navigation -->
+  <div class="mobile-nav" id="mobileNav" aria-hidden="true">
+    <div class="mobile-nav-links">
+      <a href="/">Home</a>
+      <a href="/about.html">About</a>
+      <a href="/casinos.html">Casino Trust</a>
+      <a href="/degen-trust.html">Degen Trust</a>
+    </div>
+    <div class="mobile-nav-section">
+      <h3>Games</h3>
+      <a href="/tools/daad.html" aria-current="page">DA&D</a>
+      <a href="/tools/poker.html">Poker</a>
+    </div>
+  </div>
+
+  <main id="main-content">
   <header class="tool-header">
     <div class="container">
       <div class="tool-icon-large">🎮</div>
@@ -195,15 +218,28 @@
     <div class="container">
       <h2>Ready to play?</h2>
       <p>Invite the DA&D bot to your Discord server and start a game.</p>
-      <a href="https://discord.gg/tiltcheck" class="cta-button">Get DA&D Bot →</a>
+      <a href="https://discord.gg/s6NNfPHxMS" class="cta-button">Get DA&D Bot →</a>
     </div>
   </section>
+  </main>
 
   <footer>
     <div class="container">
-      <p><a href="/">Home</a> • <a href="/#tools">All Tools</a> • <a href="https://discord.gg/tiltcheck">Discord</a> • <a href="https://github.com/jmenichole/tiltcheck-monorepo">GitHub</a></p>
+      <p><a href="/">Home</a> • <a href="/#tools">All Tools</a> • <a href="https://discord.gg/s6NNfPHxMS">Discord</a> • <a href="https://github.com/jmenichole/tiltcheck-monorepo">GitHub</a></p>
       <p class="built-by">Built by <a href="https://github.com/jmenichole">jmenichole</a> • TiltCheck © 2024–2025</p>
     </div>
   </footer>
+
+  <script>
+    function toggleMobileNav() {
+      const btn = document.querySelector('.hamburger-btn');
+      const nav = document.getElementById('mobileNav');
+      const isOpen = btn.classList.toggle('open');
+      nav.classList.toggle('open', isOpen);
+      btn.setAttribute('aria-expanded', isOpen);
+      nav.setAttribute('aria-hidden', !isOpen);
+      document.body.style.overflow = isOpen ? 'hidden' : '';
+    }
+  </script>
 </body>
 </html>
