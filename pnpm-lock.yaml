@@ -665,7 +665,11 @@ importers:
         version: 5.9.3
       vitest:
         specifier: ^1.0.0
-        version: 1.6.1(@types/node@24.10.1)(jsdom@27.2.0)
+        version: 1.6.1(@types/node@24.10.1)(jsdom@27.2.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))
+    optionalDependencies:
+      '@tiltcheck/ai-client':
+        specifier: workspace:*
+        version: link:../../packages/ai-client
 
   modules/triviadrops:
     dependencies:
