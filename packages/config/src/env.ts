@@ -51,12 +51,17 @@ export const databaseConfigSchema = z.object({
 });
 
 /**
- * Supabase Configuration Schema (for storage only)
+ * Supabase Configuration Schema (for storage only) - base shape
  */
-export const supabaseConfigSchema = z.object({
+const supabaseBaseShape = {
   SUPABASE_URL: z.string().url('SUPABASE_URL must be a valid URL').optional(),
   SUPABASE_ANON_KEY: z.string().optional(),
-}).refine(
+};
+
+/**
+ * Supabase Configuration Schema (for storage only)
+ */
+export const supabaseConfigSchema = z.object(supabaseBaseShape).refine(
   (data) => {
     // If one is provided, both must be provided
     if (data.SUPABASE_URL || data.SUPABASE_ANON_KEY) {
@@ -96,7 +101,7 @@ export const fullConfigSchema = z.object({
   ...databaseConfigSchema.shape,
   ...serverConfigSchema.shape,
   ...cookieConfigSchema.shape,
-  ...supabaseConfigSchema.shape,
+  ...supabaseBaseShape,
   ...serviceJwtConfigSchema.shape,
 });
 

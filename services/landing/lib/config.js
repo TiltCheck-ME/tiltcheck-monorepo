@@ -27,7 +27,12 @@ function loadConfig() {
     ADMIN_IP_1: process.env.ADMIN_IP_1,
     ADMIN_IP_2: process.env.ADMIN_IP_2,
     ADMIN_IP_3: process.env.ADMIN_IP_3,
-    NODE_ENV: process.env.NODE_ENV || 'development'
+    NODE_ENV: process.env.NODE_ENV || 'development',
+    // Stripe configuration
+    STRIPE_SECRET_KEY: process.env.STRIPE_SECRET_KEY,
+    STRIPE_PUBLIC_KEY: process.env.STRIPE_PUBLIC_KEY,
+    STRIPE_WEBHOOK_SECRET: process.env.STRIPE_WEBHOOK_SECRET,
+    STRIPE_PRICE_ID: process.env.STRIPE_PRICE_ID
   };
 }
 
