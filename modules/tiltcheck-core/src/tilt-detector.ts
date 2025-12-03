@@ -146,6 +146,7 @@ export function trackBet(userId: string, amount: number, gameType: string, won: 
 
 /**
  * Update baseline bet size using rolling average
+ * Uses the first 3 bets to establish a stable baseline for comparison
  */
 function updateBaselineBetSize(activity: UserActivity): void {
   // Only update baseline with at least MIN_BETS_FOR_BASELINE bets
@@ -153,8 +154,9 @@ function updateBaselineBetSize(activity: UserActivity): void {
     return;
   }
   
-  // Use the first N bets to establish baseline (exclude recent bets that might be tilted)
-  const baselineBets = activity.recentBets.slice(0, Math.max(3, activity.recentBets.length - 2));
+  // Use the first 3 bets to establish a stable baseline
+  // This provides a consistent reference point regardless of history size
+  const baselineBets = activity.recentBets.slice(0, MIN_BETS_FOR_BASELINE);
   const avgBet = baselineBets.reduce((sum, b) => sum + b.amount, 0) / baselineBets.length;
   
   // Only set baseline if not already set (we want to detect changes from normal behavior)
@@ -177,9 +179,9 @@ function detectBetSizingChange(activity: UserActivity, currentBet: number): Tilt
   
   // If bet is BET_INCREASE_THRESHOLD times the baseline, flag it
   if (betRatio >= BET_INCREASE_THRESHOLD) {
-    // Severity scales with how much the bet increased
-    // 2x = severity 2, 3x = severity 3, 4x+ = severity 4-5
-    const severity = Math.min(5, Math.floor(betRatio));
+    // Severity scales with bet increase: 2x=2, 3x=3, 4x=4, 5x+=5
+    // Ensure minimum severity of 2 when threshold is met
+    const severity = Math.max(2, Math.min(5, Math.floor(betRatio)));
     
     // Higher confidence if on a loss streak
     const confidence = activity.lossStreak >= 2 ? 0.9 : 0.75;
