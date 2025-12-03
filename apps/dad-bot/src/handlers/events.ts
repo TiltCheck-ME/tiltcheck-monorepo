@@ -92,8 +92,10 @@ export class EventHandler {
             `[Bot] Auto-scanning ${urls.length} URLs from ${message.author.tag}`
           );
 
-          // Note: suslink scanning handled by discord-bot if both running
-          // or can be enabled by adding @tiltcheck/suslink dependency
+          // The dad-bot focuses on card games (DA&D) and delegates link scanning
+          // to the main discord-bot which has the @tiltcheck/suslink dependency.
+          // To enable scanning here, add @tiltcheck/suslink to dependencies and
+          // call suslink.scanUrl() for each URL.
         }
       });
     }
