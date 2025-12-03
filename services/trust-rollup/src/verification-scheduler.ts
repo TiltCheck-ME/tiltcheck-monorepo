@@ -1,24 +1,20 @@
 /**
  * Casino Verification Scheduler
- * Periodically fetches external casino data and publishes casino.rollup events
+ * Periodically fetches external casino data and publishes casino.rollup events.
+ * Dynamically pulls active casinos from configured sources (trust engine, file, or env).
  */
 
 import { eventRouter } from '@tiltcheck/event-router';
 import { fetchCasinoExternalData, calculateTrustDeltas } from './external-fetchers.js';
-
-// List of casinos to monitor
-// TODO: Make this dynamic (pull from active casinos in trust engine)
-const MONITORED_CASINOS = [
-  'stake.com',
-  'duelbits.com',
-  'rollbit.com',
-  'roobet.com',
-  'bc.game',
-];
+import { fetchActiveCasinos, getSourceConfig, type CasinoSourceResult } from './casino-source-provider.js';
 
 // How often to check each casino (in hours)
 const VERIFICATION_INTERVAL_HOURS = 6;
 const VERIFICATION_INTERVAL_MS = VERIFICATION_INTERVAL_HOURS * 60 * 60 * 1000;
+
+// Cache for dynamic casino list with TTL
+let cachedCasinos: CasinoSourceResult | null = null;
+const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
 
 let verificationInterval: NodeJS.Timeout | null = null;
 
@@ -74,12 +70,34 @@ async function verifyCasino(casinoName: string) {
 }
 
 /**
+ * Get the current list of active casinos, using cached results if fresh
+ */
+async function getActiveCasinos(): Promise<string[]> {
+  const now = Date.now();
+  
+  // Use cache if still valid
+  if (cachedCasinos && (now - cachedCasinos.fetchedAt) < CACHE_TTL_MS) {
+    return cachedCasinos.casinos;
+  }
+  
+  // Fetch fresh casino list
+  cachedCasinos = await fetchActiveCasinos();
+  return cachedCasinos.casinos;
+}
+
+/**
  * Verify all monitored casinos
  */
 async function verifyAllCasinos() {
   console.log('[CasinoVerification] Starting verification cycle...');
   
-  for (const casino of MONITORED_CASINOS) {
+  // Fetch active casinos dynamically
+  const casinos = await getActiveCasinos();
+  const source = cachedCasinos?.source || 'unknown';
+  
+  console.log(`[CasinoVerification] Verifying ${casinos.length} casinos (source: ${source})`);
+  
+  for (const casino of casinos) {
     await verifyCasino(casino);
     // Small delay between requests to avoid rate limiting
     await new Promise(resolve => setTimeout(resolve, 1000));
@@ -97,7 +115,15 @@ export function startCasinoVerificationScheduler() {
     return;
   }
 
+  // Log source configuration at startup
+  const sourceConfig = getSourceConfig();
   console.log(`[CasinoVerification] Starting scheduler (every ${VERIFICATION_INTERVAL_HOURS}h)`);
+  console.log(`[CasinoVerification] Source config: ${JSON.stringify({
+    trustEngine: sourceConfig.trustEngineUrl ? 'configured' : 'not configured',
+    sourceFile: sourceConfig.sourceFile || 'not configured',
+    envList: sourceConfig.envList ? 'configured' : 'not configured',
+    hasDefaults: sourceConfig.hasDefaults
+  })}`);
   
   // Run immediately on start
   verifyAllCasinos().catch(console.error);
@@ -115,6 +141,7 @@ export function stopCasinoVerificationScheduler() {
   if (verificationInterval) {
     clearInterval(verificationInterval);
     verificationInterval = null;
+    cachedCasinos = null; // Clear cache on stop
     console.log('[CasinoVerification] Scheduler stopped');
   }
 }
@@ -131,29 +158,32 @@ export async function triggerManualVerification(casinoName?: string) {
 }
 
 /**
- * Add a casino to the monitoring list
+ * Force refresh the casino list cache
+ * Useful when casino configuration changes
  */
-export function addMonitoredCasino(casinoName: string) {
-  if (!MONITORED_CASINOS.includes(casinoName)) {
-    MONITORED_CASINOS.push(casinoName);
-    console.log(`[CasinoVerification] Added ${casinoName} to monitoring`);
-  }
+export function refreshCasinoCache(): void {
+  cachedCasinos = null;
+  console.log('[CasinoVerification] Casino cache cleared, will refresh on next cycle');
 }
 
 /**
- * Remove a casino from monitoring
+ * Get list of monitored casinos (async as it may need to fetch dynamically)
  */
-export function removeMonitoredCasino(casinoName: string) {
-  const index = MONITORED_CASINOS.indexOf(casinoName);
-  if (index > -1) {
-    MONITORED_CASINOS.splice(index, 1);
-    console.log(`[CasinoVerification] Removed ${casinoName} from monitoring`);
-  }
+export async function getMonitoredCasinos(): Promise<string[]> {
+  const casinos = await getActiveCasinos();
+  return [...casinos];
 }
 
 /**
- * Get list of monitored casinos
+ * Get source information about current casino list
  */
-export function getMonitoredCasinos() {
-  return [...MONITORED_CASINOS];
+export function getCasinoSourceInfo(): { source: string; count: number; fetchedAt: number } | null {
+  if (!cachedCasinos) {
+    return null;
+  }
+  return {
+    source: cachedCasinos.source,
+    count: cachedCasinos.casinos.length,
+    fetchedAt: cachedCasinos.fetchedAt
+  };
 }
