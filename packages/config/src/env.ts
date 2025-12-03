@@ -81,6 +81,7 @@ export const serverConfigSchema = z.object({
  * Cookie Configuration Schema
  */
 export const cookieConfigSchema = z.object({
+  SESSION_COOKIE_NAME: z.string().default('tiltcheck_session'),
   COOKIE_DOMAIN: z.string().default('.tiltcheck.me'),
   COOKIE_SECURE: z.string().transform((val) => val === 'true').default('true'),
   COOKIE_MAX_AGE: z.string().transform((val) => parseInt(val, 10) || 604800).default('604800'), // 7 days
