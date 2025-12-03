@@ -25,6 +25,9 @@ const TRUST_ENGINE_URL = process.env.TRUST_ENGINE_URL;
 const MAX_RETRIES = 3;
 const BASE_RETRY_DELAY_MS = 1000;
 
+// Fetch timeout (configurable via env)
+const FETCH_TIMEOUT_MS = parseInt(process.env.CASINO_FETCH_TIMEOUT_MS || '5000', 10);
+
 /**
  * Result of fetching casinos from a source
  */
@@ -157,7 +160,7 @@ async function fetchFromTrustEngine(baseUrl: string): Promise<string[]> {
   const url = `${baseUrl.replace(/\/$/, '')}/api/casinos/active`;
   
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 5000);
+  const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
   
   try {
     const response = await fetch(url, {

@@ -8,29 +8,33 @@ const originalEnv = { ...process.env };
 describe('Casino Source Provider', () => {
   const testDir = '/tmp/casino-source-test';
   
-  beforeEach(() => {
+  beforeEach(async () => {
     // Reset environment variables before each test
     process.env = { ...originalEnv };
     delete process.env.TRUST_ENGINE_URL;
     delete process.env.CASINO_SOURCE_FILE;
     delete process.env.MONITORED_CASINOS;
     
-    // Create test directory
-    if (!fs.existsSync(testDir)) {
-      fs.mkdirSync(testDir, { recursive: true });
+    // Create test directory using async API
+    try {
+      await fs.promises.access(testDir);
+    } catch {
+      await fs.promises.mkdir(testDir, { recursive: true });
     }
     
     // Clear module cache to get fresh env vars
     vi.resetModules();
   });
   
-  afterEach(() => {
+  afterEach(async () => {
     // Restore original env
     process.env = { ...originalEnv };
     
-    // Clean up test files
-    if (fs.existsSync(testDir)) {
-      fs.rmSync(testDir, { recursive: true, force: true });
+    // Clean up test files using async API
+    try {
+      await fs.promises.rm(testDir, { recursive: true, force: true });
+    } catch {
+      // Ignore cleanup errors
     }
   });
 

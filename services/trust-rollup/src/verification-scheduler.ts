@@ -115,15 +115,16 @@ export function startCasinoVerificationScheduler() {
     return;
   }
 
-  // Log source configuration at startup
+  // Log source configuration at startup (mask sensitive paths in production)
   const sourceConfig = getSourceConfig();
-  console.log(`[CasinoVerification] Starting scheduler (every ${VERIFICATION_INTERVAL_HOURS}h)`);
-  console.log(`[CasinoVerification] Source config: ${JSON.stringify({
+  const logConfig = {
     trustEngine: sourceConfig.trustEngineUrl ? 'configured' : 'not configured',
-    sourceFile: sourceConfig.sourceFile || 'not configured',
+    sourceFile: sourceConfig.sourceFile ? 'configured' : 'not configured',
     envList: sourceConfig.envList ? 'configured' : 'not configured',
     hasDefaults: sourceConfig.hasDefaults
-  })}`);
+  };
+  console.log(`[CasinoVerification] Starting scheduler (every ${VERIFICATION_INTERVAL_HOURS}h)`);
+  console.log(`[CasinoVerification] Source config: ${JSON.stringify(logConfig)}`);
   
   // Run immediately on start
   verifyAllCasinos().catch(console.error);
