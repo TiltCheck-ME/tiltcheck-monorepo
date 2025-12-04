@@ -89,8 +89,8 @@ body {
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: clamp(1rem, 2vw, 1.5rem);
-  padding: var(--space-md) var(--container-padding);
+  gap: clamp(0.75rem, 1.5vw, 1.25rem);
+  padding: var(--space-sm) var(--container-padding);
   background: var(--bg-secondary);
   border-bottom: 1px solid var(--border-subtle);
   position: sticky;
@@ -98,6 +98,29 @@ body {
   z-index: var(--z-sticky);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
+  flex-wrap: wrap;
+}
+
+.top-nav .nav-logo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none;
+  margin-right: auto;
+}
+
+.top-nav .nav-logo::after {
+  display: none;
+}
+
+.top-nav .nav-logo img {
+  border-radius: 4px;
+}
+
+.top-nav .nav-logo span {
+  color: var(--color-primary);
+  font-weight: 700;
+  font-size: 1.1rem;
 }
 
 .top-nav a {
@@ -144,6 +167,23 @@ body {
 
 .top-nav a[aria-current="page"]::after {
   width: 100%;
+}
+
+.top-nav .discord-login-btn {
+  background: #5865F2;
+  color: white !important;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-weight: 600;
+}
+
+.top-nav .discord-login-btn::after {
+  display: none;
+}
+
+.top-nav .discord-login-btn:hover {
+  background: #4752c4;
+  color: white !important;
 }
 
 /* === Header === */
@@ -1221,6 +1261,84 @@ body {
   }
   
   .header-nav {
+    display: none;
+  }
+}
+
+/* === Navigation Dropdown === */
+.nav-dropdown {
+  position: relative;
+  display: inline-block;
+}
+
+.nav-dropbtn {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  cursor: pointer;
+  padding: var(--space-xs) var(--space-sm);
+  border-radius: var(--radius-sm);
+  transition: color var(--transition-base);
+  font-family: var(--font-primary);
+}
+
+.nav-dropbtn:hover,
+.nav-dropbtn:focus {
+  color: var(--color-primary);
+}
+
+.nav-dropbtn:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.nav-dropdown-content {
+  display: none;
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  min-width: 200px;
+  padding: var(--space-sm) 0;
+  z-index: var(--z-dropdown);
+  box-shadow: var(--shadow-lg);
+  margin-top: var(--space-xs);
+}
+
+.nav-dropdown-content a {
+  display: block;
+  padding: var(--space-sm) var(--space-lg);
+  color: var(--text-secondary);
+  text-decoration: none;
+  font-size: var(--text-sm);
+  transition: background var(--transition-base), color var(--transition-base);
+}
+
+.nav-dropdown-content a:hover,
+.nav-dropdown-content a:focus {
+  background: var(--bg-secondary);
+  color: var(--color-primary);
+}
+
+.nav-dropdown-content a::after {
+  display: none;
+}
+
+/* Show dropdown on hover (desktop) */
+@media (hover: hover) {
+  .nav-dropdown:hover .nav-dropdown-content {
+    display: block;
+  }
+}
+
+/* Hide dropdowns on mobile - they're in mobile nav */
+@media (max-width: 768px) {
+  .nav-dropdown {
     display: none;
   }
 }
