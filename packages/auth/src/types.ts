@@ -20,7 +20,7 @@ export interface JWTPayload {
   /** Issuer */
   iss: string;
   /** Audience */
-  aud: string;
+  aud: string | string[];
   /** JWT ID for revocation tracking */
   jti?: string;
   /** Session type */

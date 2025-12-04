@@ -71,7 +71,13 @@ export async function exchangeCode(
       return { success: false, error: `Token exchange failed: ${error}` };
     }
     
-    const data = await response.json();
+    const data = await response.json() as {
+      access_token: string;
+      refresh_token: string;
+      token_type: string;
+      expires_in: number;
+      scope: string;
+    };
     
     return {
       success: true,
@@ -115,7 +121,13 @@ export async function refreshTokens(
       return { success: false, error: `Token refresh failed: ${error}` };
     }
     
-    const data = await response.json();
+    const data = await response.json() as {
+      access_token: string;
+      refresh_token: string;
+      token_type: string;
+      expires_in: number;
+      scope: string;
+    };
     
     return {
       success: true,
@@ -151,7 +163,17 @@ export async function getDiscordUser(
       return { success: false, error: `Failed to get user: ${error}` };
     }
     
-    const data = await response.json();
+    const data = await response.json() as {
+      id: string;
+      username: string;
+      discriminator: string;
+      global_name?: string;
+      avatar?: string;
+      email?: string;
+      verified?: boolean;
+      flags?: number;
+      premium_type?: number;
+    };
     
     return {
       success: true,

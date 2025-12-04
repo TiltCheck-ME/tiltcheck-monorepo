@@ -21,7 +21,7 @@ declare global {
   namespace Express {
     interface Request {
       auth?: AuthContext;
-      session?: SessionData;
+      tiltcheckSession?: SessionData;
     }
   }
 }
@@ -135,7 +135,7 @@ export function sessionAuth(
         isAdmin: session.type === 'admin',
         session,
       };
-      req.session = session;
+      req.tiltcheckSession = session;
       
       next();
     } catch (error) {
@@ -237,7 +237,7 @@ export function bearerAuth(
         isAdmin: payload.type === 'admin',
         session,
       };
-      req.session = session;
+      req.tiltcheckSession = session;
       
       next();
     } catch (error) {
@@ -394,7 +394,7 @@ export function flexAuth(
         isAdmin: payload.type === 'admin',
         session,
       };
-      req.session = session;
+      req.tiltcheckSession = session;
       
       next();
     } catch (error) {
