@@ -101,7 +101,8 @@
           spinner.style.display = 'none';
           statusTitle.textContent = 'Success!';
           statusMessage.textContent = 'Redirecting you now...';
-          successMessage.textContent = 'Welcome, ' + (window.tiltCheckAuth.getDiscordUser()?.username || 'User') + '!';
+          const username = window.tiltCheckAuth.getDiscordUser()?.username || 'User';
+          successMessage.textContent = 'Welcome, ' + username + '!';
           successMessage.style.display = 'block';
           
           // Redirect to the original page or home
