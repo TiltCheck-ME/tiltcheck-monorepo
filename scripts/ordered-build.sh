@@ -19,6 +19,7 @@ pnpm --filter @tiltcheck/pricing-oracle build
 echo "📦 Stage 3: Extended packages..."
 pnpm --filter @tiltcheck/ai-client build
 pnpm --filter @tiltcheck/database build
+pnpm --filter @tiltcheck/db build
 pnpm --filter @tiltcheck/natural-language-parser build
 pnpm --filter @tiltcheck/discord-utils build
 pnpm --filter @tiltcheck/identity-core build
