@@ -61,10 +61,10 @@ export async function createToken(
     .setExpirationTime(now + expiresInSeconds)
     .setIssuer(mergedConfig.issuer!)
     .setAudience(mergedConfig.audience!)
-    .setSubject(payload.sub);
+    .setSubject(payload.sub as string);
 
   if (payload.jti) {
-    jwt.setJti(payload.jti);
+    jwt.setJti(payload.jti as string);
   }
 
   return jwt.sign(secret);
@@ -93,8 +93,8 @@ export async function verifyToken(
         iat: payload.iat as number,
         exp: payload.exp as number,
         iss: payload.iss as string,
-        aud: payload.aud as string,
-        jti: payload.jti,
+        aud: Array.isArray(payload.aud) ? payload.aud[0] : (payload.aud as string),
+        jti: payload.jti as string | undefined,
         type: (payload.type as SessionType) || 'user',
         roles: (payload.roles as string[]) || [],
         ...payload,

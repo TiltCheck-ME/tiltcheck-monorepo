@@ -180,7 +180,7 @@ router.post('/:id/complete', sessionAuth(), async (req, res) => {
  * GET /tip/:id
  * Get tip details
  */
-router.get('/:id', sessionAuth({ required: false }), async (req, res) => {
+router.get('/:id', sessionAuth(undefined, { required: false }), async (req, res) => {
   try {
     const { id } = req.params;
     
