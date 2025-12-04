@@ -6,6 +6,9 @@
 // Re-export everything from src/
 export * from './src/index.js';
 
+// Import tilt detector function for legacy compatibility wrapper
+import { getUserTiltStatus } from './src/tilt-detector.js';
+
 // Legacy TiltEvent interface for backwards compatibility
 export interface TiltEvent {
   userId: string;
@@ -21,10 +24,7 @@ export interface TiltEvent {
  * @returns TiltEvent if tilt is detected, null otherwise
  */
 export function detectTilt(userId: string): TiltEvent | null {
-  // Import the actual tilt status from the detector
-  // Using dynamic import to avoid circular dependency issues
-  const { getUserTiltStatus } = require('./src/tilt-detector.js');
-  
+  // Use the imported tilt status from the detector
   const status = getUserTiltStatus(userId);
   
   // No signals detected
