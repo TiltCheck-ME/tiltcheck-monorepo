@@ -51,6 +51,11 @@ export async function createToken(
   const expiresInSeconds = parseDuration(mergedConfig.expiresIn!);
   const now = Math.floor(Date.now() / 1000);
   
+  // Validate required fields
+  if (!payload.sub || typeof payload.sub !== 'string') {
+    throw new Error('payload.sub must be a non-empty string');
+  }
+  
   const jwt = new SignJWT({
     ...payload,
     type: payload.type,
@@ -63,7 +68,7 @@ export async function createToken(
     .setAudience(mergedConfig.audience!)
     .setSubject(payload.sub);
 
-  if (payload.jti) {
+  if (payload.jti && typeof payload.jti === 'string') {
     jwt.setJti(payload.jti);
   }
 
@@ -93,8 +98,8 @@ export async function verifyToken(
         iat: payload.iat as number,
         exp: payload.exp as number,
         iss: payload.iss as string,
-        aud: payload.aud as string,
-        jti: payload.jti,
+        aud: Array.isArray(payload.aud) ? payload.aud[0] : (payload.aud as string),
+        jti: payload.jti as string | undefined,
         type: (payload.type as SessionType) || 'user',
         roles: (payload.roles as string[]) || [],
         ...payload,

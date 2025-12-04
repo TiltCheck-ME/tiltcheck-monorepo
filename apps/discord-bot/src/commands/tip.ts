@@ -24,6 +24,7 @@ import {
 } from '@tiltcheck/justthetip';
 import { lockVault, unlockVault, extendVault, getVaultStatus, type LockVaultRecord } from '@tiltcheck/lockvault';
 import { parseAmountNL, formatAmount, parseDurationNL, parseCategory } from '@tiltcheck/natural-language-parser';
+import { pricingOracle } from '@tiltcheck/pricing-oracle';
 import { isOnCooldown } from '@tiltcheck/tiltcheck-core';
 import { Connection } from '@solana/web3.js';
 
@@ -75,7 +76,7 @@ export const tip: Command = {
         .setName('airdrop')
         .setDescription('Send SOL to multiple users or create public claim')
         .addStringOption(opt =>
-          opt.setName('amount').setDescription('Amount per recipient in SOL (e.g. 0.1)').setRequired(true)
+          opt.setName('amount').setDescription('Amount per recipient (e.g. "$7", "0.1 sol", "5 bucks")').setRequired(true)
         )
         .addStringOption(opt =>
           opt.setName('recipients').setDescription('User mentions (@user1 @user2) or "public" for anyone to claim').setRequired(false)
@@ -436,9 +437,33 @@ async function handleAirdrop(interaction: ChatInputCommandInteraction) {
   const recipientsRaw = interaction.options.getString('recipients');
   const slots = interaction.options.getInteger('slots') || 10;
 
-  const amountPerRecipient = parseFloat(amountRaw);
-  if (isNaN(amountPerRecipient) || amountPerRecipient <= 0) {
-    await interaction.editReply({ content: '❌ Invalid amount. Provide a positive SOL value like `0.05`.' });
+  // Use enhanced NLP parser for natural language amounts
+  // Handles: "$5", "5 bucks", "five dollars", "0.1 sol", etc.
+  const parseResult = parseAmountNL(amountRaw);
+  
+  if (!parseResult.success || !parseResult.data) {
+    await interaction.editReply({
+      content: `❌ ${parseResult.error}\n\nExamples: "$5", "five bucks", "0.1 sol", "7 dollars"`,
+    });
+    return;
+  }
+
+  const parsedAmount = parseResult.data;
+  
+  // Convert USD to SOL if needed
+  let amountPerRecipientSOL = parsedAmount.value;
+  if (parsedAmount.currency === 'USD') {
+    try {
+      const solPrice = pricingOracle.getUsdPrice('SOL');
+      amountPerRecipientSOL = parsedAmount.value / solPrice;
+    } catch {
+      await interaction.editReply({ content: '❌ Unable to get current SOL price. Please try again or specify amount in SOL.' });
+      return;
+    }
+  }
+
+  if (amountPerRecipientSOL <= 0) {
+    await interaction.editReply({ content: '❌ Invalid amount. Provide a positive value like `$5` or `0.05 sol`.' });
     return;
   }
 
@@ -447,7 +472,7 @@ async function handleAirdrop(interaction: ChatInputCommandInteraction) {
 
   if (isPublic) {
     // Create a public claim airdrop
-    await handlePublicAirdrop(interaction, amountPerRecipient, slots);
+    await handlePublicAirdrop(interaction, amountPerRecipientSOL, slots, parsedAmount);
     return;
   }
 
@@ -487,7 +512,7 @@ async function handleAirdrop(interaction: ChatInputCommandInteraction) {
       connection,
       senderWallet.address,
       walletAddresses,
-      amountPerRecipient,
+      amountPerRecipientSOL,
     );
 
     const payButton = new ButtonBuilder()
@@ -497,15 +522,20 @@ async function handleAirdrop(interaction: ChatInputCommandInteraction) {
 
     const row = new ActionRowBuilder<ButtonBuilder>().addComponents(payButton);
 
-    const totalSOL = amountPerRecipient * walletAddresses.length;
+    const totalSOL = amountPerRecipientSOL * walletAddresses.length;
     const feeText = process.env.JUSTTHETIP_FEE_WALLET ? '0.0007 SOL' : 'None (fee wallet not configured)';
+
+    // Display both SOL and USD value if USD was input
+    const amountDisplay = parsedAmount.currency === 'USD'
+      ? `${formatAmount(parsedAmount)} (~${amountPerRecipientSOL.toFixed(4)} SOL)`
+      : `${amountPerRecipientSOL.toFixed(4)} SOL`;
 
     const embed = new EmbedBuilder()
       .setColor(0x8844ff)
       .setTitle('🚀 Airdrop Ready')
       .setDescription(
         `**Recipients:** ${walletAddresses.length}\n` +
-        `**Amount Each:** ${amountPerRecipient} SOL\n` +
+        `**Amount Each:** ${amountDisplay}\n` +
         `**Total (excluding fee):** ${totalSOL.toFixed(4)} SOL\n` +
         `**Fee:** ${feeText}\n\n` +
         'Tap the button below to open the unsigned transaction in your wallet.'
@@ -523,7 +553,7 @@ async function handleAirdrop(interaction: ChatInputCommandInteraction) {
   }
 }
 
-async function handlePublicAirdrop(interaction: ChatInputCommandInteraction, amountPerUser: number, slots: number) {
+async function handlePublicAirdrop(interaction: ChatInputCommandInteraction, amountPerUser: number, slots: number, parsedAmount?: { value: number; currency: 'SOL' | 'USD' }) {
   const senderWallet = getWallet(interaction.user.id);
   if (!senderWallet) {
     await interaction.editReply({ content: '❌ Wallet not found.' });
@@ -541,11 +571,16 @@ async function handlePublicAirdrop(interaction: ChatInputCommandInteraction, amo
 
   const row = new ActionRowBuilder<ButtonBuilder>().addComponents(claimButton);
 
+  // Display both SOL and USD value if USD was input
+  const amountDisplay = parsedAmount && parsedAmount.currency === 'USD'
+    ? `$${parsedAmount.value.toFixed(2)} USD (~${amountPerUser.toFixed(4)} SOL)`
+    : `${amountPerUser.toFixed(4)} SOL`;
+
   const embed = new EmbedBuilder()
     .setColor(0xFF6B00)
     .setTitle('🎁 Public Airdrop')
     .setDescription(
-      `**Amount per claim:** ${amountPerUser} SOL\n` +
+      `**Amount per claim:** ${amountDisplay}\n` +
       `**Total slots:** ${slots}\n` +
       `**Claimed:** 0/${slots}\n` +
       `**Fee:** ${feeText}\n\n` +
