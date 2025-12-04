@@ -6,6 +6,8 @@
 import { SlashCommandBuilder, ChatInputCommandInteraction, EmbedBuilder, ButtonBuilder, ButtonStyle, ActionRowBuilder } from 'discord.js';
 import type { Command } from '../types.js';
 import { hasWallet, getWallet, createAirdropWithFeeRequest } from '@tiltcheck/justthetip';
+import { parseAmountNL, formatAmount } from '@tiltcheck/natural-language-parser';
+import { pricingOracle } from '@tiltcheck/pricing-oracle';
 import { Connection } from '@solana/web3.js';
 
 const SOLANA_RPC_URL = process.env.SOLANA_RPC_URL || 'https://api.mainnet-beta.solana.com';
@@ -24,7 +26,7 @@ export const airdrop: Command = {
     .addStringOption(opt =>
       opt
         .setName('amount')
-        .setDescription('Amount per recipient in SOL (e.g. 0.1)')
+        .setDescription('Amount per recipient (e.g. "$7", "0.1 sol", "5 bucks")')
         .setRequired(true)
     ),
   async execute(interaction: ChatInputCommandInteraction) {
@@ -38,9 +40,33 @@ export const airdrop: Command = {
     const recipientsRaw = interaction.options.getString('recipients', true);
     const amountRaw = interaction.options.getString('amount', true);
 
-    const amountPerRecipient = parseFloat(amountRaw);
-    if (isNaN(amountPerRecipient) || amountPerRecipient <= 0) {
-      await interaction.editReply({ content: '❌ Invalid amount. Provide a positive SOL value like `0.05`.' });
+    // Use enhanced NLP parser for natural language amounts
+    // Handles: "$5", "5 bucks", "five dollars", "0.1 sol", etc.
+    const parseResult = parseAmountNL(amountRaw);
+    
+    if (!parseResult.success || !parseResult.data) {
+      await interaction.editReply({
+        content: `❌ ${parseResult.error}\n\nExamples: "$5", "five bucks", "0.1 sol", "7 dollars"`,
+      });
+      return;
+    }
+
+    const parsedAmount = parseResult.data;
+    
+    // Convert USD to SOL if needed
+    let amountPerRecipientSOL = parsedAmount.value;
+    if (parsedAmount.currency === 'USD') {
+      try {
+        const solPrice = pricingOracle.getUsdPrice('SOL');
+        amountPerRecipientSOL = parsedAmount.value / solPrice;
+      } catch {
+        await interaction.editReply({ content: '❌ Unable to get current SOL price. Please try again or specify amount in SOL.' });
+        return;
+      }
+    }
+
+    if (amountPerRecipientSOL <= 0) {
+      await interaction.editReply({ content: '❌ Invalid amount. Provide a positive value like `$5` or `0.05 sol`.' });
       return;
     }
 
@@ -81,7 +107,7 @@ export const airdrop: Command = {
         connection,
         senderWallet.address,
         walletAddresses,
-        amountPerRecipient,
+        amountPerRecipientSOL,
       );
 
       const payButton = new ButtonBuilder()
@@ -91,15 +117,20 @@ export const airdrop: Command = {
 
       const row = new ActionRowBuilder<ButtonBuilder>().addComponents(payButton);
 
-      const totalSOL = amountPerRecipient * walletAddresses.length;
+      const totalSOL = amountPerRecipientSOL * walletAddresses.length;
       const feeText = process.env.JUSTTHETIP_FEE_WALLET ? '0.0007 SOL' : 'None (fee wallet not configured)';
+
+      // Display both SOL and USD value
+      const amountDisplay = parsedAmount.currency === 'USD'
+        ? `${formatAmount(parsedAmount)} (~${amountPerRecipientSOL.toFixed(4)} SOL)`
+        : `${amountPerRecipientSOL.toFixed(4)} SOL`;
 
       const embed = new EmbedBuilder()
         .setColor(0x8844ff)
         .setTitle('🚀 Airdrop Ready')
         .setDescription(
           `**Recipients:** ${walletAddresses.length}\n` +
-          `**Amount Each:** ${amountPerRecipient} SOL\n` +
+          `**Amount Each:** ${amountDisplay}\n` +
           `**Total (excluding fee):** ${totalSOL.toFixed(4)} SOL\n` +
           `**Fee:** ${feeText}\n\n` +
           'Tap the button below to open the unsigned transaction in your wallet and approve the multi-transfer.'

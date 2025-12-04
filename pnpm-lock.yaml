@@ -254,6 +254,9 @@ importers:
       '@tiltcheck/poker':
         specifier: workspace:*
         version: link:../../modules/poker
+      '@tiltcheck/pricing-oracle':
+        specifier: workspace:*
+        version: link:../../services/pricing-oracle
       '@tiltcheck/suslink':
         specifier: workspace:*
         version: link:../../modules/suslink

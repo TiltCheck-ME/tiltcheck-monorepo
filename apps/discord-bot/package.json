@@ -29,6 +29,7 @@
     "@tiltcheck/poker": "workspace:*",
     "@tiltcheck/esm-utils": "workspace:*",
     "@tiltcheck/lockvault": "workspace:*",
+    "@tiltcheck/pricing-oracle": "workspace:*",
     "discord.js": "^14.14.1",
     "dotenv": "^16.3.1"
   },
