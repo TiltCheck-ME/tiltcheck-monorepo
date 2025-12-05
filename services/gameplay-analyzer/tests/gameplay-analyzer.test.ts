@@ -46,7 +46,8 @@ describe('GameplayAnalyzerService', () => {
         payout = inWinStreak ? wager * 2 * rtpMultiplier : 0;
       } else {
         // Random distribution matching expected RTP
-        const isWin = Math.random() < 0.3; // ~30% win rate
+        // Ensure at least one win to prevent 0 RTP in edge cases
+        const isWin = i === 0 || Math.random() < 0.3; // First spin always wins, ~30% win rate otherwise
         payout = isWin ? wager * (rtpMultiplier / 0.3) : 0;
       }
 
