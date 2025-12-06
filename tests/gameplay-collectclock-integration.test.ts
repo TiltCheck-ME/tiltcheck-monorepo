@@ -113,26 +113,30 @@ describe('Gameplay Analyzer + CollectClock Integration', () => {
     expect(band).toBe('YELLOW');
   });
 
-  it('should publish trust.casino.updated when bonus nerf detected', (done) => {
+  it('should publish trust.casino.updated when bonus nerf detected', async () => {
     let trustEventReceived = false;
     
     // Subscribe to trust events
-    eventRouter.subscribe('trust.casino.updated', (evt) => {
-      if (evt.source === 'collectclock' && evt.data.reason?.includes('Bonus nerf')) {
-        trustEventReceived = true;
-        expect(evt.data.severity).toBeGreaterThan(0);
-        done();
-      }
-    }, 'test-suite');
+    await new Promise<void>((resolve) => {
+      eventRouter.subscribe('trust.casino.updated', (evt) => {
+        if (evt.source === 'collectclock' && evt.data.reason?.includes('Bonus nerf')) {
+          trustEventReceived = true;
+          expect(evt.data.severity).toBeGreaterThan(0);
+          resolve();
+        }
+      }, 'test-suite');
+      
+      // Trigger nerf (15%+ drop)
+      collectclock.updateBonus(testCasino, 100);
+      collectclock.updateBonus(testCasino, 80); // 20% drop
+      
+      // Give event time to propagate (fallback timeout)
+      setTimeout(() => {
+        resolve();
+      }, 100);
+    });
     
-    // Trigger nerf (15%+ drop)
-    collectclock.updateBonus(testCasino, 100);
-    collectclock.updateBonus(testCasino, 80); // 20% drop
-    
-    // Give event time to propagate
-    setTimeout(() => {
-      expect(trustEventReceived).toBe(true);
-    }, 100);
+    expect(trustEventReceived).toBe(true);
   });
 
   it('should NOT reduce degen trust for win clustering anomaly', async () => {
