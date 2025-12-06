@@ -172,7 +172,7 @@ OPENAI_MODEL=gpt-4o-mini  # Options: gpt-4o, gpt-4o-mini, gpt-4-turbo
 - [x] Document AI Gateway production deployment steps ✅
 - [x] Create production configuration checklist ✅
 - [x] Add monitoring and logging recommendations ✅
-- [ ] Configure OPENAI_API_KEY in production (user action)
+- [ ] Configure OPENAI_API_KEY in production → **See "Next Immediate Actions" section for step-by-step guide**
 
 **Status:** Ready for production - just configure API key
 
@@ -411,6 +411,58 @@ railway variables set PORT="8080"
 TiltCheck is now running in production. Focus on post-deployment monitoring and optimization.
 
 > **Note:** Custom domain requires Railway plan upgrade - scheduled for later implementation.
+
+### 🔑 PRIORITY: Configure OpenAI API Key
+
+**Status:** Ready to configure - enables production AI features
+
+**Steps to Configure:**
+
+1. **Get OpenAI API Key:**
+   ```bash
+   # Go to https://platform.openai.com/api-keys
+   # Click "Create new secret key"
+   # Copy the key (starts with sk-)
+   ```
+
+2. **Set Railway Environment Variables:**
+   ```bash
+   # Make sure you're in the correct Railway project
+   railway login
+   railway link
+   
+   # Configure OpenAI
+   railway variables set OPENAI_API_KEY="sk-your-actual-key-here"
+   railway variables set OPENAI_MODEL="gpt-4o-mini"
+   
+   # Verify variables are set
+   railway variables
+   ```
+
+3. **Restart Services:**
+   ```bash
+   # Railway will auto-restart, or force restart:
+   railway restart
+   ```
+
+4. **Verify AI Gateway is in Production Mode:**
+   ```bash
+   # Check logs for "AI Gateway: Production mode"
+   railway logs --service=discord-bot | grep -i "ai gateway"
+   ```
+
+**Expected Cost:** ~$5-50/month depending on usage (gpt-4o-mini is very cost-efficient)
+
+**What This Enables:**
+- Real AI-powered tilt detection
+- Smart casino recommendations
+- Natural language command processing
+- Content moderation
+- Support responses
+
+See [AI Gateway Production Guide](./docs/AI-GATEWAY-PRODUCTION.md) for detailed information.
+
+---
 
 ### 📊 Post-Deployment Monitoring (First 24 Hours)
 
