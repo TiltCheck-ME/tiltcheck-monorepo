@@ -3,6 +3,46 @@
 Complete guide for deploying the TiltCheck ecosystem with Discord integration.
 
 > 📦 **Quick Start:** For one-command deployment of all services, see [ONE-LAUNCH-DEPLOYMENT.md](./ONE-LAUNCH-DEPLOYMENT.md)
+> 
+> 🚂 **Railway Production:** For production deployment to Railway with full monitoring, see [docs/RAILWAY-DEPLOYMENT-GUIDE.md](./docs/RAILWAY-DEPLOYMENT-GUIDE.md)
+> 
+> ✅ **Production Checklist:** For comprehensive deployment verification, see [docs/PRODUCTION-DEPLOYMENT-CHECKLIST.md](./docs/PRODUCTION-DEPLOYMENT-CHECKLIST.md)
+
+---
+
+## Deployment Options
+
+Choose the deployment strategy that fits your needs:
+
+### 1. Railway (Recommended for Production)
+
+**Best for:** Full production deployment with monitoring
+
+- **[Railway Deployment Guide](./docs/RAILWAY-DEPLOYMENT-GUIDE.md)** - Complete Railway setup
+- **[AI Gateway Production](./docs/AI-GATEWAY-PRODUCTION.md)** - OpenAI integration guide
+- **[Trust Rollup Production](./docs/TRUST-ROLLUP-PRODUCTION.md)** - Real data integration
+- **[Production Checklist](./docs/PRODUCTION-DEPLOYMENT-CHECKLIST.md)** - Deployment verification
+
+**Deployment:**
+```bash
+railway login
+railway link
+railway variables set DISCORD_TOKEN="your_token"
+railway up
+bash scripts/verify-railway-deployment.sh
+```
+
+### 2. Docker Compose (Quick Local/Staging)
+
+**Best for:** Local development, staging, or self-hosted
+
+See [ONE-LAUNCH-DEPLOYMENT.md](./ONE-LAUNCH-DEPLOYMENT.md) for details.
+
+### 3. Split Deployment (Advanced)
+
+**Best for:** Optimized performance with CDN static hosting
+
+Details below in this document.
 
 ---
 

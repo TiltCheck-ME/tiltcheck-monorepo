@@ -184,6 +184,36 @@ pnpm --filter discord-bot dev
 
 See **[QUICKSTART.md](./QUICKSTART.md)** for 5-minute setup, **[ONE-LAUNCH-DEPLOYMENT.md](./ONE-LAUNCH-DEPLOYMENT.md)** for one-command Docker deployment, **[DEPLOYMENT.md](./DEPLOYMENT.md)** for full production guide, or **[SPACESHIP-DEPLOYMENT-ENV.md](./SPACESHIP-DEPLOYMENT-ENV.md)** for complete Spaceship/Hyperlift environment variables.
 
+### Production Deployment
+
+For production deployments to Railway:
+
+```bash
+# 1. Install Railway CLI
+npm install -g @railway/cli
+
+# 2. Login and link project
+railway login
+railway link
+
+# 3. Set environment variables (see guides below)
+railway variables set DISCORD_TOKEN="your_token"
+railway variables set DISCORD_CLIENT_ID="your_client_id"
+railway variables set DISCORD_GUILD_ID="your_guild_id"
+
+# 4. Deploy
+railway up
+
+# 5. Verify deployment
+bash scripts/verify-railway-deployment.sh
+```
+
+**Production Guides:**
+- **[Railway Deployment Guide](./docs/RAILWAY-DEPLOYMENT-GUIDE.md)** - Complete Railway setup and configuration
+- **[AI Gateway Production](./docs/AI-GATEWAY-PRODUCTION.md)** - OpenAI integration and cost optimization
+- **[Trust Rollup Production](./docs/TRUST-ROLLUP-PRODUCTION.md)** - Real casino data integration
+- **[Production Deployment Checklist](./docs/PRODUCTION-DEPLOYMENT-CHECKLIST.md)** - Step-by-step deployment verification
+
 ### Components + A11y Audits
 
 Run the brand-aligned component library and automated accessibility checks:
