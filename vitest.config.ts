@@ -20,6 +20,7 @@ export default defineConfig({
       '@tiltcheck/natural-language-parser': r('packages/natural-language-parser/src/index.ts'),
       '@tiltcheck/pricing-oracle': r('services/pricing-oracle/src/index.ts'),
       '@tiltcheck/collectclock': r('modules/collectclock/src/index.ts'),
+      '@tiltcheck/ai-client': r('packages/ai-client/src/index.ts'),
     },
   },
   test: {
