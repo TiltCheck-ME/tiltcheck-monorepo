@@ -90,6 +90,24 @@ All tests are now passing! The repository has **417 tests** all passing across 5
 
 ## 🚀 Priority 1: Deploy to Production ✅ DEPLOYED
 
+### Hybrid Deployment Architecture ✅ ACTIVE
+
+**Current Deployment Strategy:**
+- **Landing Page:** Render (static hosting) - Port auto-assigned by Render
+  - Default port: 8080 (or Render's assigned PORT)
+  - Configuration: Render automatically sets PORT environment variable
+- **Backend Services:** Railway - https://degensagainstdecency-production.up.railway.app
+  - Discord Bot (port 8081)
+  - Dashboard (port 5055)
+  - Trust Rollup (port 8082)
+
+**Why Hybrid?**
+- ✅ Render offers excellent static hosting with CDN (fast, cheap/free)
+- ✅ Railway handles dynamic services (Discord bot, APIs, real-time features)
+- ✅ No need to change what's already working
+- ✅ Can consolidate later if desired (see Priority 6)
+- ✅ **Decision:** Keep landing on Render (confirmed)
+
 ### Railway Deployment ✅ COMPLETE
 **Production URL:** https://degensagainstdecency-production.up.railway.app
 
@@ -267,6 +285,45 @@ USE_MOCK_TRUST_DATA=false         # Set true to force mock
 
 ## 🏗️ Priority 6: Infrastructure Improvements
 
+### Deployment Consolidation 🟡 OPTIONAL
+**Status:** Hybrid deployment working well - consolidation optional
+
+**Current Setup:**
+- Landing Page: Render (static hosting with CDN)
+- Backend Services: Railway (Discord bot, APIs, real-time features)
+
+**Option A: Keep Hybrid (Recommended)**
+- ✅ Render's static hosting is optimized for landing pages
+- ✅ Free/cheap for static sites with global CDN
+- ✅ Railway handles dynamic services well
+- ✅ Best performance for each service type
+- ✅ No changes needed - it's working!
+
+**Option B: Consolidate to Railway**
+- Move landing page to Railway
+- Single platform for all services
+- Easier management (one dashboard)
+- Requires Railway configuration update
+
+**If consolidating to Railway:**
+```bash
+# Add landing service to Railway
+railway link
+railway up
+
+# Configure landing page
+railway variables set LANDING_LOG_PATH="/tmp/landing-requests.log"
+railway variables set PORT="8080"
+
+# Then deprecate Render deployment
+```
+
+**Estimated Effort:** 2-3 hours (if consolidating)
+
+**Recommendation:** Keep current hybrid setup unless you prefer single-platform management.
+
+---
+
 ### Custom Domain Setup 🔵 FUTURE
 **Status:** Requires Railway plan upgrade - scheduled for later
 
@@ -284,7 +341,7 @@ USE_MOCK_TRUST_DATA=false         # Set true to force mock
 **Action Items:**
 - [ ] Upgrade Railway plan to Pro or Team
 - [ ] Register custom domain
-- [ ] Configure DNS records
+- [ ] Configure DNS records (point to Railway for backend, Render for landing)
 - [ ] Update documentation with new domain
 - [ ] Update Discord bot help text with new URLs
 
@@ -382,7 +439,8 @@ railway metrics
    - [ ] Monitor for command errors
 
 2. **Service Health Checks**
-   - [ ] Landing page accessible: https://degensagainstdecency-production.up.railway.app
+   - [ ] Landing page accessible on Render (static hosting)
+   - [ ] Railway backend services healthy: https://degensagainstdecency-production.up.railway.app
    - [ ] Dashboard showing events correctly
    - [ ] Trust Rollup returning scores
    - [ ] All health endpoints returning `ready: true`
