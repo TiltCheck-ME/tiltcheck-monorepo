@@ -9,6 +9,9 @@ primary_region = 'iad'
 [build]
   dockerfile = 'Dockerfile.unified'
 
+[experimental]
+  cmd = ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]
+
 [http_service]
   internal_port = 8080
   force_https = true
