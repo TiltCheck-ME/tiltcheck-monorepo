@@ -1,0 +1,95 @@
+name: Chrome Extension Build
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'apps/chrome-extension/**'
+      - '.github/workflows/extension-build.yml'
+  pull_request:
+    paths:
+      - 'apps/chrome-extension/**'
+  workflow_dispatch:
+
+jobs:
+  build-extension:
+    name: Build Chrome Extension
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 9
+
+      - name: Cache dependencies
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.pnpm-store
+            **/node_modules
+          key: ${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build extension
+        run: |
+          cd apps/chrome-extension
+          pnpm run build
+
+      - name: Validate manifest
+        run: |
+          cd apps/chrome-extension
+          node -e "const manifest = require('./dist/manifest.json'); console.log('Extension version:', manifest.version);"
+
+      - name: Create extension package
+        run: |
+          cd apps/chrome-extension/dist
+          zip -r ../tiltcheck-extension.zip .
+          cd ..
+          ls -lh tiltcheck-extension.zip
+
+      - name: Upload extension artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: chrome-extension-package
+          path: apps/chrome-extension/tiltcheck-extension.zip
+          retention-days: 30
+
+      - name: Calculate extension hash
+        run: |
+          cd apps/chrome-extension
+          sha256sum tiltcheck-extension.zip > extension-hash.txt
+          cat extension-hash.txt
+
+      - name: Upload hash
+        uses: actions/upload-artifact@v3
+        with:
+          name: extension-hash
+          path: apps/chrome-extension/extension-hash.txt
+          retention-days: 30
+
+  notify-build:
+    name: Notify Build Status
+    needs: build-extension
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send Discord notification
+        uses: sarisia/actions-status-discord@v1
+        with:
+          webhook: ${{ secrets.DISCORD_CI_WEBHOOK }}
+          status: ${{ needs.build-extension.result }}
+          title: "Chrome Extension Build"
+          description: |
+            **Status:** ${{ needs.build-extension.result }}
+            **Branch:** ${{ github.ref }}
+            **Commit:** ${{ github.sha }}
+          color: ${{ needs.build-extension.result == 'success' && '0x00ff00' || '0xff0000' }}
