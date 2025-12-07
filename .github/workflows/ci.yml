@@ -62,13 +62,13 @@ jobs:
       - name: Upload coverage artifact
         uses: actions/upload-artifact@v5
         with:
-          name: coverage-report
+          name: coverage-report-${{ github.run_id }}
           path: coverage/
       - name: Upload component bundle
         if: always()
         uses: actions/upload-artifact@v5
         with:
-          name: component-bundle
+          name: component-bundle-${{ github.run_id }}
           path: dist/components/
 
   components-a11y:
@@ -97,7 +97,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v5
         with:
-          name: component-bundle
+          name: component-bundle-a11y-${{ github.run_id }}
           path: dist/components/
           overwrite: true
 
@@ -127,6 +127,6 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v5
         with:
-          name: landing-a11y
+          name: landing-a11y-${{ github.run_id }}
           path: |
             dist/landing-lighthouse-accessibility.json

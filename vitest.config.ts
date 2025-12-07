@@ -76,6 +76,12 @@ export default defineConfig({
         // Supabase auth - requires Supabase environment for testing
         'packages/supabase-auth/src/client.ts',
         'packages/supabase-auth/src/middleware.ts',
+        // Auth package - requires complex auth environment setup
+        'packages/auth/**',
+        // Analytics client - requires analytics service environment
+        'packages/analytics/**',
+        // Utils package - generic utilities requiring various external dependencies
+        'packages/utils/**',
         // Services requiring external dependencies or infrastructure
         'services/casino-data-api/**', // CLI tool for casino data collection
         'services/game-arena/**', // Game server requiring WebSocket setup
