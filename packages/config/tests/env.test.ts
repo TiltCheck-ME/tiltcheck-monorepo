@@ -16,12 +16,7 @@ import {
   getBotConfig,
   jwtConfigSchema,
   serviceJwtConfigSchema,
-  discordConfigSchema,
-  databaseConfigSchema,
-  supabaseConfigSchema,
   serverConfigSchema,
-  cookieConfigSchema,
-  fullConfigSchema,
 } from '../src/env';
 
 describe('Config Package - Environment Validation', () => {
