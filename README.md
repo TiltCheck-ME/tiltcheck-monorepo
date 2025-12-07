@@ -9,8 +9,7 @@
 <h1 align="center">TiltCheck Ecosystem</h1>
 
 <p align="center">
-  <a href="https://github.com/jmenichole/tiltcheck-monorepo/actions/workflows/health-check.yml"><img src="https://github.com/jmenichole/tiltcheck-monorepo/actions/workflows/health-check.yml/badge.svg" alt="Health Full"></a>
-  <a href="https://github.com/jmenichole/tiltcheck-monorepo/actions/workflows/health-smoke.yml"><img src="https://github.com/jmenichole/tiltcheck-monorepo/actions/workflows/health-smoke.yml/badge.svg" alt="Health Smoke"></a>
+  <a href="https://github.com/jmenichole/tiltcheck-monorepo/actions/workflows/health-check.yml"><img src="https://github.com/jmenichole/tiltcheck-monorepo/actions/workflows/health-check.yml/badge.svg" alt="Health Check"></a>
   <a href="https://github.com/jmenichole/tiltcheck-monorepo/actions/workflows/codeql.yml"><img src="https://github.com/jmenichole/tiltcheck-monorepo/actions/workflows/codeql.yml/badge.svg" alt="CodeQL"></a>
   <a href="https://github.com/jmenichole/tiltcheck-monorepo/actions/workflows/security-audit.yml"><img src="https://github.com/jmenichole/tiltcheck-monorepo/actions/workflows/security-audit.yml/badge.svg" alt="Security Audit"></a>
 </p>
