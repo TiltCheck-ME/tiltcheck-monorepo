@@ -1,6 +1,7 @@
 # TiltCheck Next Priorities
 
 **Updated:** December 6, 2025  
+**Deployment Status:** ✅ Deployed to Railway (Active)  
 **Test Status:** 537/537 passing (100%) ✅  
 **Build Status:** All 54 packages build successfully ✅  
 
@@ -87,9 +88,29 @@ All tests are now passing! The repository has **417 tests** all passing across 5
 
 ---
 
-## 🚀 Priority 1: Deploy to Production ✅ READY
+## 🚀 Priority 1: Deploy to Production ✅ DEPLOYED
 
-### Railway Deployment
+### Hybrid Deployment Architecture ✅ ACTIVE
+
+**Current Deployment Strategy:**
+- **Landing Page:** Render (static hosting) - Port auto-assigned by Render
+  - Default port: 8080 (or Render's assigned PORT)
+  - Configuration: Render automatically sets PORT environment variable
+- **Backend Services:** Railway - https://degensagainstdecency-production.up.railway.app
+  - Discord Bot (port 8081)
+  - Dashboard (port 5055)
+  - Trust Rollup (port 8082)
+
+**Why Hybrid?**
+- ✅ Render offers excellent static hosting with CDN (fast, cheap/free)
+- ✅ Railway handles dynamic services (Discord bot, APIs, real-time features)
+- ✅ No need to change what's already working
+- ✅ Can consolidate later if desired (see Priority 6)
+- ✅ **Decision:** Keep landing on Render (confirmed)
+
+### Railway Deployment ✅ COMPLETE
+**Production URL:** https://degensagainstdecency-production.up.railway.app
+
 - ✅ **FIXED:** Procfile dashboard entry point (PR #58 - merged)
 - ✅ **FIXED:** .dockerignore to include casino-data-api dist files (PR #102 - merged)
 - ✅ **FIXED:** casino-data-api prepare script (already in main)
@@ -98,6 +119,7 @@ All tests are now passing! The repository has **417 tests** all passing across 5
 - ✅ **VERIFIED:** All packages build successfully (54/54)
 - ✅ **COMPLETE:** Enhanced health checks for production deployment
 - ✅ **COMPLETE:** Railway deployment documentation and verification scripts
+- ✅ **DEPLOYED:** Railway deployment verified with `railway up`
 
 **Documentation Created:**
 - ✅ [Railway Deployment Guide](./docs/RAILWAY-DEPLOYMENT-GUIDE.md) - Complete Railway setup
@@ -113,10 +135,10 @@ All tests are now passing! The repository has **417 tests** all passing across 5
 - [x] Create Railway deployment guide ✅
 - [x] Create deployment verification script ✅
 - [x] Document health check system ✅
-- [ ] Deploy to Railway staging environment (user action)
-- [ ] Test full deployment (user action)
+- [x] Deploy to Railway ✅
+- [x] Verify deployment with `railway up` ✅
 
-**Status:** Ready for deployment - all documentation and tools complete
+**Status:** ✅ Deployed to production - monitoring phase active
 
 ---
 
@@ -150,7 +172,7 @@ OPENAI_MODEL=gpt-4o-mini  # Options: gpt-4o, gpt-4o-mini, gpt-4-turbo
 - [x] Document AI Gateway production deployment steps ✅
 - [x] Create production configuration checklist ✅
 - [x] Add monitoring and logging recommendations ✅
-- [ ] Configure OPENAI_API_KEY in production (user action)
+- [ ] Configure OPENAI_API_KEY in production → **See "Next Immediate Actions" section for step-by-step guide**
 
 **Status:** Ready for production - just configure API key
 
@@ -261,19 +283,89 @@ USE_MOCK_TRUST_DATA=false         # Set true to force mock
 
 ---
 
+## 🏗️ Priority 6: Infrastructure Improvements
+
+### Deployment Consolidation 🟡 OPTIONAL
+**Status:** Hybrid deployment working well - consolidation optional
+
+**Current Setup:**
+- Landing Page: Render (static hosting with CDN)
+- Backend Services: Railway (Discord bot, APIs, real-time features)
+
+**Option A: Keep Hybrid (Recommended)**
+- ✅ Render's static hosting is optimized for landing pages
+- ✅ Free/cheap for static sites with global CDN
+- ✅ Railway handles dynamic services well
+- ✅ Best performance for each service type
+- ✅ No changes needed - it's working!
+
+**Option B: Consolidate to Railway**
+- Move landing page to Railway
+- Single platform for all services
+- Easier management (one dashboard)
+- Requires Railway configuration update
+
+**If consolidating to Railway:**
+```bash
+# Add landing service to Railway
+railway link
+railway up
+
+# Configure landing page
+railway variables set LANDING_LOG_PATH="/tmp/landing-requests.log"
+railway variables set PORT="8080"
+
+# Then deprecate Render deployment
+```
+
+**Estimated Effort:** 2-3 hours (if consolidating)
+
+**Recommendation:** Keep current hybrid setup unless you prefer single-platform management.
+
+---
+
+### Custom Domain Setup 🔵 FUTURE
+**Status:** Requires Railway plan upgrade - scheduled for later
+
+**Benefits:**
+- Professional branding (e.g., tiltcheck.me, degensagainstdecency.com)
+- Easier to remember URL
+- SSL certificate with custom domain
+- Better SEO and marketing
+
+**Requirements:**
+- Railway Pro plan ($20/month minimum)
+- Domain registration (~$10-15/year)
+- DNS configuration
+
+**Action Items:**
+- [ ] Upgrade Railway plan to Pro or Team
+- [ ] Register custom domain
+- [ ] Configure DNS records (point to Railway for backend, Render for landing)
+- [ ] Update documentation with new domain
+- [ ] Update Discord bot help text with new URLs
+
+**Estimated Cost Impact:** +$15/month (Railway upgrade)
+
+**Estimated Effort:** 1-2 hours (once plan upgraded)
+
+---
+
 ## 📊 Priority Timeline
 
-### This Week (CI/CD Focus)
-1. **Fix CI pipeline** - 30 minutes
-2. **Deploy to Railway** - 4 hours
-3. **Health checks** - 2 hours
+### ✅ Completed
+1. ✅ **Fix CI pipeline** - 30 minutes
+2. ✅ **Deploy to Railway** - 4 hours
+3. ✅ **Health checks** - 2 hours
+4. ✅ **Railway deployment verification** - Complete
 
 **Total: ~6-7 hours** ⏰
 
-### Next 2 Weeks (Production Mode)
-1. **AI Gateway production mode** - 6-8 hours
-2. **Trust Rollup real data** - 8-12 hours
-3. **Documentation updates** - 4 hours
+### Next 2 Weeks (Production Optimization)
+1. **Monitor deployment stability** - 1-2 hours/day (first week)
+2. **AI Gateway production mode** (optional) - 6-8 hours
+3. **Trust Rollup real data** (optional) - 8-12 hours
+4. **Documentation updates** - 4 hours
 
 **Total: ~18-24 hours** ⏰
 
@@ -297,62 +389,191 @@ USE_MOCK_TRUST_DATA=false         # Set true to force mock
 - [x] ✅ Railway deployment guide complete
 - [x] ✅ Health check system documented
 - [x] ✅ Production configuration guides created
-- [ ] ⏳ Railway deployment successful (user action)
-- [ ] ⏳ All environment variables configured (user action)
-- [ ] ⏳ Discord bot commands fully tested in production (user action)
+- [x] ✅ Railway deployment successful and verified
+- [ ] ⏳ All environment variables configured for production features (optional)
+- [ ] ⏳ Discord bot commands fully tested in production (in progress)
 
-### Phase 1 MVP Ready
+### Phase 1 MVP Deployment Status
 - [x] ✅ All core modules tested and stable
-- [ ] ⏳ Discord bot deployed and running
-- [ ] ⏳ Trust engines operational with real data
-- [ ] ⏳ User authentication working
-- [ ] ⏳ Basic monitoring in place
+- [x] ✅ Discord bot deployed and running
+- [ ] ⏳ Trust engines operational with real data (currently mock data)
+- [ ] ⏳ User authentication working (requires Supabase)
+- [ ] ⏳ Production monitoring in place (24-hour observation period)
 
 ---
 
-## 🎯 Next Immediate Action
+## 🎯 Next Immediate Actions
 
-**COMPLETE:** CI pipeline documentation and deployment guides are ready! ✅
+**DEPLOYMENT COMPLETE:** Railway deployment verified! ✅
 
-The following resources are now available:
+**Production URL:** https://degensagainstdecency-production.up.railway.app
 
-### 📚 Production Deployment Guides
-1. **[Railway Deployment Guide](./docs/RAILWAY-DEPLOYMENT-GUIDE.md)** - Step-by-step Railway setup
-2. **[AI Gateway Production](./docs/AI-GATEWAY-PRODUCTION.md)** - OpenAI integration guide  
-3. **[Trust Rollup Production](./docs/TRUST-ROLLUP-PRODUCTION.md)** - Real data configuration
-4. **[Production Checklist](./docs/PRODUCTION-DEPLOYMENT-CHECKLIST.md)** - Complete verification
-5. **[Health Check Guide](./docs/HEALTH-CHECK-GUIDE.md)** - Monitoring and troubleshooting
+TiltCheck is now running in production. Focus on post-deployment monitoring and optimization.
 
-### 🛠️ Deployment Tools
-- **Verification Script:** `scripts/verify-railway-deployment.sh` - Automated deployment testing
-- **Health Check Script:** `scripts/check-health.sh` - Service health monitoring
+> **Note:** Custom domain requires Railway plan upgrade - scheduled for later implementation.
 
-### 🚀 Next Steps for Deployment
+### 🔑 PRIORITY: Configure OpenAI API Key
+
+**Status:** Ready to configure - enables production AI features
+
+**Steps to Configure:**
+
+1. **Get OpenAI API Key:**
+   ```bash
+   # Go to https://platform.openai.com/api-keys
+   # Click "Create new secret key"
+   # Copy the key (starts with sk-)
+   ```
+
+2. **Set Railway Environment Variables:**
+   ```bash
+   # Make sure you're in the correct Railway project
+   railway login
+   railway link
+   
+   # Configure OpenAI
+   railway variables set OPENAI_API_KEY="sk-your-actual-key-here"
+   railway variables set OPENAI_MODEL="gpt-4o-mini"
+   
+   # Verify variables are set
+   railway variables
+   ```
+
+3. **Restart Services:**
+   ```bash
+   # Railway will auto-restart, or force restart:
+   railway restart
+   ```
+
+4. **Verify AI Gateway is in Production Mode:**
+   ```bash
+   # Check logs for "AI Gateway: Production mode"
+   railway logs --service=discord-bot | grep -i "ai gateway"
+   ```
+
+**Expected Cost:** ~$5-50/month depending on usage (gpt-4o-mini is very cost-efficient)
+
+**What This Enables:**
+- Real AI-powered tilt detection
+- Smart casino recommendations
+- Natural language command processing
+- Content moderation
+- Support responses
+
+See [AI Gateway Production Guide](./docs/AI-GATEWAY-PRODUCTION.md) for detailed information.
+
+---
+
+### 📊 Post-Deployment Monitoring (First 24 Hours)
 
 ```bash
-# 1. Install Railway CLI
-npm install -g @railway/cli
-
-# 2. Login and setup project
-railway login
-railway link
-
-# 3. Configure environment variables
-railway variables set DISCORD_TOKEN="your_token"
-railway variables set DISCORD_CLIENT_ID="your_client_id"
-railway variables set DISCORD_GUILD_ID="your_guild_id"
-# See Railway Deployment Guide for all required variables
-
-# 4. Deploy
-railway up
-
-# 5. Verify deployment
+# 1. Monitor service health
+# Set the production URL
+export RAILWAY_DOMAIN="degensagainstdecency-production.up.railway.app"
 bash scripts/verify-railway-deployment.sh
+
+# 2. Watch logs for errors
+railway logs --follow
+
+# 3. Check service status
+railway status
+
+# 4. Monitor resource usage
+railway metrics
 ```
 
-**Expected Outcome:** Full production deployment with monitoring ✅
+### ✅ Immediate Verification Tasks
+
+1. **Discord Bot Testing**
+   - [ ] Verify bot is online in Discord server
+   - [ ] Test core commands: `/tiltcheck help`, `/casino-trust stake.com`
+   - [ ] Check command response times (<2s)
+   - [ ] Monitor for command errors
+
+2. **Service Health Checks**
+   - [ ] Landing page accessible on Render (static hosting)
+   - [ ] Railway backend services healthy: https://degensagainstdecency-production.up.railway.app
+   - [ ] Dashboard showing events correctly
+   - [ ] Trust Rollup returning scores
+   - [ ] All health endpoints returning `ready: true`
+
+3. **Performance Monitoring**
+   - [ ] Monitor memory usage (should be <512MB per service)
+   - [ ] Check response times (should be <2s)
+   - [ ] Verify no memory leaks over 24 hours
+   - [ ] Check API usage within budget
+
+4. **Error Monitoring**
+   - [ ] Review logs for any error spikes
+   - [ ] Check for uncaught exceptions
+   - [ ] Verify error handling working properly
+   - [ ] Monitor rate limiting
+   - [ ] Monitor rate limiting
+
+### 🔧 Configuration Optimization
+
+Based on current deployment mode:
+
+**AI Gateway:**
+- Current: Mock mode (no OPENAI_API_KEY set)
+- Next Step: Configure OpenAI API key for production AI features (optional)
+- Cost: ~$5-50/month depending on usage
+
+**Trust Rollup:**
+- Current: Mock data mode
+- Next Step: Configure Casino API keys for real-time data (optional)
+- Cost: ~$99-399/month for API access
+
+**Database:**
+- Current: Likely using in-memory storage
+- Next Step: Configure Supabase for persistent storage (recommended)
+- Cost: Free tier sufficient
+
+### 📋 Week 1 Goals
+
+1. **Stability**
+   - Monitor for 7 days without critical errors
+   - Establish baseline performance metrics
+   - Document any issues or anomalies
+
+2. **User Testing**
+   - Test all Discord commands in production
+   - Gather initial user feedback
+   - Identify any missing features
+
+3. **Optimization**
+   - Tune cache settings based on usage patterns
+   - Optimize resource allocation if needed
+   - Review and adjust rate limits
+
+4. **Documentation**
+   - Document actual deployment configuration
+   - Note any deviations from guides
+   - Create runbook for common issues
+
+### 🚀 Next Priority: Production Data Sources
+
+Once deployment is stable (after 24-48 hours):
+
+1. **Configure AI Gateway Production Mode** (Priority 2)
+   - Set OPENAI_API_KEY for real AI responses
+   - Select appropriate model (gpt-4o-mini recommended)
+   - Monitor API costs and usage
+
+2. **Configure Trust Rollup Real Data** (Priority 2)
+   - Optionally set Casino API keys
+   - Enable real-time trust scores
+   - Validate data accuracy
+
+See [Priority 2: Backend Production Mode](#-priority-2-backend-production-mode--ready) for details.
+
+**Expected Timeline:** 
+- First 24 hours: Active monitoring
+- Days 2-7: Stability verification
+- Week 2: Production data sources (optional)
 
 ---
 
 **Last Updated:** December 6, 2025  
-**Next Review:** After production deployment validation (estimated 1-2 weeks)
+**Deployment Status:** ✅ Deployed to Railway - Post-deployment monitoring active  
+**Next Review:** After 24-hour stability verification
