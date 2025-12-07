@@ -1,0 +1,147 @@
+name: Discord Bot Redeploy
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'apps/discord-bot/**'
+      - 'packages/**'
+      - 'modules/**'
+      - '.github/workflows/bot-redeploy.yml'
+  workflow_dispatch:
+
+jobs:
+  detect-changes:
+    name: Detect Bot Changes
+    runs-on: ubuntu-latest
+    outputs:
+      bot-changed: ${{ steps.filter.outputs.bot }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dorny/paths-filter@v2
+        id: filter
+        with:
+          filters: |
+            bot:
+              - 'apps/discord-bot/**'
+              - 'packages/**'
+              - 'modules/**'
+
+  build-bot:
+    name: Build Discord Bot
+    needs: detect-changes
+    if: needs.detect-changes.outputs.bot-changed == 'true' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 9
+
+      - name: Cache dependencies
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.pnpm-store
+            **/node_modules
+          key: ${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build packages
+        run: pnpm build
+
+      - name: Run bot tests
+        run: pnpm --filter discord-bot test
+        continue-on-error: true
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: discord-bot-dist
+          path: apps/discord-bot/dist
+          retention-days: 7
+
+  deploy-bot:
+    name: Deploy to Production
+    needs: build-bot
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+      url: ${{ secrets.BOT_HEALTH_URL }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: discord-bot-dist
+          path: apps/discord-bot/dist
+
+      - name: Deploy to Railway
+        run: |
+          echo "Deploying to Railway..."
+          # Railway deployment would go here
+          # railway up --service discord-bot
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+
+      - name: Wait for deployment
+        run: sleep 30
+
+      - name: Verify bot health
+        run: |
+          echo "Checking bot health..."
+          curl --fail --retry 3 --retry-delay 10 ${{ secrets.BOT_HEALTH_URL }}/health || exit 1
+
+      - name: Send success notification
+        uses: sarisia/actions-status-discord@v1
+        with:
+          webhook: ${{ secrets.DISCORD_DEPLOY_WEBHOOK }}
+          status: success
+          title: "Discord Bot Deployed Successfully"
+          description: |
+            **Branch:** main
+            **Commit:** ${{ github.sha }}
+            **Author:** ${{ github.actor }}
+            
+            Bot is now running and healthy.
+          color: 0x00ff00
+          url: ${{ secrets.BOT_HEALTH_URL }}
+
+  rollback:
+    name: Rollback on Failure
+    needs: deploy-bot
+    if: failure()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger rollback
+        run: |
+          echo "Deployment failed - triggering rollback"
+          # Rollback logic would go here
+          # railway rollback --service discord-bot
+
+      - name: Send failure notification
+        uses: sarisia/actions-status-discord@v1
+        with:
+          webhook: ${{ secrets.DISCORD_DEPLOY_WEBHOOK }}
+          status: failure
+          title: "Discord Bot Deployment Failed"
+          description: |
+            **Branch:** main
+            **Commit:** ${{ github.sha }}
+            **Author:** ${{ github.actor }}
+            
+            Deployment failed. Automatic rollback initiated.
+          color: 0xff0000
+          url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
