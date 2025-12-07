@@ -15,7 +15,9 @@ ENV NODE_ENV="production"
 # Install pnpm
 # Pin to pnpm 9.x to match lockfileVersion 9.0 and avoid pnpm 10.x version parsing bugs
 ARG PNPM_VERSION=9.15.9
-RUN npm install -g pnpm@$PNPM_VERSION
+ARG NPM_STRICT_SSL=true
+RUN npm config set strict-ssl $NPM_STRICT_SSL && \
+    npm install -g pnpm@$PNPM_VERSION
 
 # Set CI environment variable to avoid pnpm TTY issues
 ENV CI=true
@@ -31,7 +33,11 @@ RUN apt-get update -qq && \
 COPY . .
 
 # Install node modules
-RUN pnpm install --frozen-lockfile --prod=false
+ARG NPM_STRICT_SSL=true
+ENV PUPPETEER_SKIP_DOWNLOAD=true
+RUN npm config set strict-ssl $NPM_STRICT_SSL && \
+    pnpm config set strict-ssl $NPM_STRICT_SSL && \
+    pnpm install --frozen-lockfile --prod=false
 
 # Build application
 RUN pnpm run build
@@ -43,9 +49,27 @@ RUN pnpm prune --prod
 # Final stage for app image
 FROM base
 
+# Install nginx, supervisor, and wget for multi-process management and health checks
+RUN apt-get update -qq && \
+    apt-get install --no-install-recommends -y nginx supervisor wget && \
+    rm -rf /var/lib/apt/lists/* && \
+    mkdir -p /var/log/supervisor
+
 # Copy built application
 COPY --from=build /app /app
 
-# Start the server by default, this can be overwritten at runtime
-EXPOSE 3000
-CMD [ "node", "index.js" ]
+# Copy nginx config for unified container
+COPY services/reverse-proxy/nginx.render.conf /etc/nginx/nginx.conf
+
+# Copy supervisor config
+COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+
+# Expose port 8080 (Hyperlift default)
+EXPOSE 8080
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+    CMD wget --quiet --tries=1 --spider http://localhost:8080/proxy-health || exit 1
+
+# Start supervisor (manages nginx + node services)
+CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]
