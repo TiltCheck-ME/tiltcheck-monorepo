@@ -187,14 +187,37 @@ docker-compose exec dashboard sh -c "find /app/data/events -name '*.json' -mtime
 GitHub Actions workflows automatically:
 1. Run tests on PR
 2. Build Docker images on merge to main
-3. Push to Docker Hub
-4. Deploy to production server
+3. Push to Docker Hub (if credentials are configured)
+4. Deploy to production server (if deployment secrets are configured)
 
-Required secrets:
-- `DOCKER_USERNAME`
-- `DOCKER_PASSWORD`
-- `DEPLOY_HOST`
-- `DEPLOY_USER`
-- `DEPLOY_SSH_KEY`
+### Setting Up Docker Hub Authentication
+
+To enable automatic Docker Hub pushes in CI/CD:
+
+1. **Create a Docker Hub Access Token** (recommended over password):
+   - Log in to [Docker Hub](https://hub.docker.com)
+   - Go to Account Settings → Security → Access Tokens
+   - Click "New Access Token"
+   - Name it "GitHub Actions" and select "Read & Write" permissions
+   - Copy the token (you won't be able to see it again)
+
+2. **Add GitHub Repository Secrets**:
+   - Go to your GitHub repository → Settings → Secrets and variables → Actions
+   - Click "New repository secret" and add:
+     - Name: `DOCKER_USERNAME`, Value: your Docker Hub username
+     - Name: `DOCKER_PASSWORD`, Value: your Docker Hub access token (from step 1)
+
+3. **Test the Workflow**:
+   - Push a change to the `main` branch
+   - Check the Actions tab to verify the Docker build and push succeeds
+
+**Security Note**: Always use Docker Hub access tokens instead of your account password. This provides better security and can be easily revoked if compromised.
+
+### Additional Required Secrets
+
+For full deployment automation, also configure:
+- `DEPLOY_HOST` - Production server hostname or IP
+- `DEPLOY_USER` - SSH username for deployment
+- `DEPLOY_SSH_KEY` - Private SSH key for server access
 
 See [DEPLOYMENT.md](./DEPLOYMENT.md) for complete setup.
