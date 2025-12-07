@@ -32,7 +32,7 @@ The Docker Hub authentication secrets (`DOCKER_USERNAME` and `DOCKER_PASSWORD`) 
 
 ### Step 2: Add Secrets to GitHub Repository
 
-1. Go to your GitHub repository: https://github.com/jmenichole/tiltcheck-monorepo
+1. Go to your GitHub repository's settings page
 2. Navigate to **Settings** → **Secrets and variables** → **Actions**
 3. Click **"New repository secret"**
 
@@ -40,7 +40,7 @@ Add two secrets:
 
 **Secret 1: DOCKER_USERNAME**
 - Name: `DOCKER_USERNAME`
-- Value: Your Docker Hub username (e.g., `jmenichole`)
+- Value: Your Docker Hub username (e.g., `your-dockerhub-username`)
 
 **Secret 2: DOCKER_PASSWORD**
 - Name: `DOCKER_PASSWORD`  
