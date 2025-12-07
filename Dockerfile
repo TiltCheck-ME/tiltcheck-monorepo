@@ -15,7 +15,9 @@ ENV NODE_ENV="production"
 # Install pnpm
 # Pin to pnpm 9.x to match lockfileVersion 9.0 and avoid pnpm 10.x version parsing bugs
 ARG PNPM_VERSION=9.15.9
-RUN npm install -g pnpm@$PNPM_VERSION
+ARG NPM_STRICT_SSL=true
+RUN npm config set strict-ssl $NPM_STRICT_SSL && \
+    npm install -g pnpm@$PNPM_VERSION
 
 # Set CI environment variable to avoid pnpm TTY issues
 ENV CI=true
@@ -31,7 +33,11 @@ RUN apt-get update -qq && \
 COPY . .
 
 # Install node modules
-RUN pnpm install --frozen-lockfile --prod=false
+ARG NPM_STRICT_SSL=true
+ENV PUPPETEER_SKIP_DOWNLOAD=true
+RUN npm config set strict-ssl $NPM_STRICT_SSL && \
+    pnpm config set strict-ssl $NPM_STRICT_SSL && \
+    pnpm install --frozen-lockfile --prod=false
 
 # Build application
 RUN pnpm run build
