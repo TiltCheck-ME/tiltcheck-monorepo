@@ -36,6 +36,13 @@ jobs:
       - name: Build packages
         run: pnpm run build
 
+      - name: Configure Docker PATH
+        run: |
+          # Add Docker CLI to PATH if installed in $HOME/.docker/bin
+          if [ -d "$HOME/.docker/bin" ] && [[ ":$PATH:" != *":$HOME/.docker/bin:"* ]]; then
+            echo "$HOME/.docker/bin" >> $GITHUB_PATH
+          fi
+
       - name: Build Docker image
         run: |
           docker build -f apps/discord-bot/Dockerfile -t tiltcheck-bot:${{ github.sha }} .

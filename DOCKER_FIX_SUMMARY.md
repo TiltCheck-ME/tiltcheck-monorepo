@@ -46,6 +46,13 @@ Both deployment workflows now validate Docker Hub credentials BEFORE attempting 
 - Clear instructions for creating scoped tokens with minimal permissions
 - Security best practices section covering token rotation and management
 
+### 4. Docker PATH Configuration
+
+- Added automatic PATH configuration for Docker CLI in both workflows
+- Handles cases where Docker is installed in `$HOME/.docker/bin` (custom runners or local environments)
+- Standard GitHub Actions runners are unaffected (Docker already in PATH)
+- See `.github/DOCKER_HUB_SETUP.md` for manual PATH configuration instructions
+
 ## What You Need To Do
 
 **The workflows are now ready, but you must configure the Docker Hub secrets in your GitHub repository:**

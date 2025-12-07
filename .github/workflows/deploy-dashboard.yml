@@ -39,6 +39,13 @@ jobs:
       - name: Run tests
         run: pnpm --filter @tiltcheck/dashboard test
 
+      - name: Configure Docker PATH
+        run: |
+          # Add Docker CLI to PATH if installed in $HOME/.docker/bin
+          if [ -d "$HOME/.docker/bin" ] && [[ ":$PATH:" != *":$HOME/.docker/bin:"* ]]; then
+            echo "$HOME/.docker/bin" >> $GITHUB_PATH
+          fi
+
       - name: Build Docker image
         run: |
           docker build -f services/dashboard/Dockerfile -t tiltcheck-dashboard:${{ github.sha }} .

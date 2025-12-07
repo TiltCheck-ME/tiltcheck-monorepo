@@ -105,6 +105,21 @@ The validation script checks both credentials and provides helpful error message
 - **Fix**: Verify the workflow uses `${{ secrets.DOCKER_USERNAME }}/image-name` format
 - **Example**: `docker push ${{ secrets.DOCKER_USERNAME }}/tiltcheck-dashboard:latest`
 
+### Error: "docker: command not found" or Docker commands failing
+- **Cause**: Docker CLI tools are not in the system PATH
+- **Fix**: Docker CLI tools may be installed in `$HOME/.docker/bin` - add this to your PATH
+- **Solution for workflows**: Add a step to configure PATH before running Docker commands:
+  ```yaml
+  - name: Configure Docker PATH
+    run: echo "$HOME/.docker/bin" >> $GITHUB_PATH
+  ```
+- **Solution for local development**: Add to your shell profile (`.bashrc`, `.zshrc`, etc.):
+  ```bash
+  export PATH="$HOME/.docker/bin:$PATH"
+  ```
+
+**Note**: Standard GitHub Actions runners have Docker pre-installed in PATH. This is only needed for custom runners or local development environments.
+
 ## Additional Resources
 
 - [Docker Hub Access Tokens Documentation](https://docs.docker.com/docker-hub/access-tokens/)
