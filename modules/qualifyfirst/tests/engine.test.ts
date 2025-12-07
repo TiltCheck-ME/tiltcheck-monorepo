@@ -738,8 +738,8 @@ describe('QualifyFirst Engine', () => {
     });
 
     it('should handle publishing without attached publisher', () => {
-      // Attach null publisher to reset
-      attachPublisher(null as any);
+      // Create a null publisher
+      const nullPublisher: EventPublisher | null = null;
 
       const user: UserProfile = {
         id: 'user1',
