@@ -52,9 +52,6 @@ RUN apt-get update -qq && \
 # Copy built application
 COPY --from=build /app /app
 
-# Ensure assets are in place
-COPY assets /app/assets
-
 # Copy nginx config for unified container
 COPY services/reverse-proxy/nginx.render.conf /etc/nginx/nginx.conf
 
