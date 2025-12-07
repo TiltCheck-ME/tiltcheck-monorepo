@@ -119,12 +119,20 @@ export class BatchLogSender {
   }
 
   /**
-   * Stop automatic flush timer
+   * Stop automatic flush timer and cleanup
    */
   stop(): void {
     if (this.timer) {
       clearInterval(this.timer);
+      this.timer = undefined;
     }
     this.flush();
+  }
+
+  /**
+   * Destructor for cleanup (call before process exit)
+   */
+  destroy(): void {
+    this.stop();
   }
 }

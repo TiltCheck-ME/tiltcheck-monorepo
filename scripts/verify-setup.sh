@@ -118,7 +118,7 @@ for var in "${REQUIRED_VARS[@]}"; do
     print_error "$var is not set"
   else
     # Check minimum length for secrets
-    if [[ "$var" == *"SECRET"* ]] || [[ "$var" == *"KEY"* ]] && [[ "$var" != *"CLIENT_ID"* ]]; then
+    if [[ ( "$var" == *"SECRET"* || "$var" == *"KEY"* ) && "$var" != *"CLIENT_ID"* ]]; then
       VAR_LENGTH=${#!var}
       if [ "$VAR_LENGTH" -ge 32 ]; then
         print_success "$var is set (length: $VAR_LENGTH)"
@@ -178,8 +178,11 @@ echo ""
 echo "Checking Discord bot token..."
 
 if [ -n "$DISCORD_TOKEN" ]; then
-  # Try to get bot user info
-  BOT_INFO=$(curl -s -H "Authorization: Bot $DISCORD_TOKEN" https://discord.com/api/v10/users/@me 2>/dev/null || echo "{}")
+  # Try to get bot user info (using temp file to avoid token in process list)
+  TEMP_HEADER=$(mktemp)
+  echo "Authorization: Bot $DISCORD_TOKEN" > "$TEMP_HEADER"
+  BOT_INFO=$(curl -s -H @"$TEMP_HEADER" https://discord.com/api/v10/users/@me 2>/dev/null || echo "{}")
+  rm -f "$TEMP_HEADER"
   
   if echo "$BOT_INFO" | grep -q '"id"'; then
     BOT_USERNAME=$(echo "$BOT_INFO" | grep -o '"username":"[^"]*"' | cut -d'"' -f4)
