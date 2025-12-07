@@ -43,9 +43,30 @@ RUN pnpm prune --prod
 # Final stage for app image
 FROM base
 
+# Install nginx, supervisor, and wget for multi-process management and health checks
+RUN apt-get update -qq && \
+    apt-get install --no-install-recommends -y nginx supervisor wget && \
+    rm -rf /var/lib/apt/lists/* && \
+    mkdir -p /var/log/supervisor
+
 # Copy built application
 COPY --from=build /app /app
 
-# Start the server by default, this can be overwritten at runtime
-EXPOSE 3000
-CMD [ "node", "index.js" ]
+# Ensure assets are in place
+COPY assets /app/assets
+
+# Copy nginx config for unified container
+COPY services/reverse-proxy/nginx.render.conf /etc/nginx/nginx.conf
+
+# Copy supervisor config
+COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+
+# Expose port 8080 (Hyperlift default)
+EXPOSE 8080
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+    CMD wget --quiet --tries=1 --spider http://localhost:8080/proxy-health || exit 1
+
+# Start supervisor (manages nginx + node services)
+CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]
