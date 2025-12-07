@@ -36,10 +36,24 @@ jobs:
       - name: Build packages
         run: pnpm run build
 
+      - name: Configure Docker PATH
+        run: |
+          # Add Docker CLI to PATH if installed in $HOME/.docker/bin
+          if [ -d "$HOME/.docker/bin" ] && [[ ":$PATH:" != *":$HOME/.docker/bin:"* ]]; then
+            echo "$HOME/.docker/bin" >> $GITHUB_PATH
+          fi
+
       - name: Build Docker image
         run: |
           docker build -f apps/discord-bot/Dockerfile -t tiltcheck-bot:${{ github.sha }} .
           docker tag tiltcheck-bot:${{ github.sha }} tiltcheck-bot:latest
+
+      - name: Validate Docker Hub credentials
+        if: github.event_name != 'pull_request'
+        env:
+          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+        run: bash scripts/validate-docker-credentials.sh
 
       - name: Log in to Docker Hub
         if: github.event_name != 'pull_request'
