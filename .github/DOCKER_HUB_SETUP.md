@@ -25,7 +25,7 @@ The Docker Hub authentication secrets (`DOCKER_USERNAME` and `DOCKER_PASSWORD`) 
 2. Go to **Account Settings** → **Security** → **Access Tokens**
 3. Click **"New Access Token"**
 4. Configure the token:
-   - **Description**: `GitHub Actions - TiltCheck`
+   - **Description**: `GitHub Actions - <your-project-name>` (e.g., "GitHub Actions - MyApp")
    - **Access permissions**: `Read & Write` (or `Read, Write, Delete` if you need full control)
 5. Click **Generate**
 6. **Copy the token immediately** - you won't be able to see it again!
@@ -57,17 +57,18 @@ Add two secrets:
 
 ## Validation
 
-The workflows now include a validation step that checks if the credentials are configured before attempting to log in. This provides a clearer error message if the secrets are missing:
+The workflows now include a validation step that checks if the credentials are configured before attempting to log in. This uses a reusable script (`scripts/validate-docker-credentials.sh`) that provides clear error messages if secrets are missing:
 
 ```yaml
 - name: Validate Docker Hub credentials
   if: github.event_name != 'pull_request'
-  run: |
-    if [ -z "${{ secrets.DOCKER_USERNAME }}" ] || [ -z "${{ secrets.DOCKER_PASSWORD }}" ]; then
-      echo "::error::Docker Hub credentials are not configured."
-      exit 1
-    fi
+  env:
+    DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+    DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+  run: bash scripts/validate-docker-credentials.sh
 ```
+
+The validation script checks both credentials and provides helpful error messages pointing to this setup documentation.
 
 ## Security Best Practices
 
