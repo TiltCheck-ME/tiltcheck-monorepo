@@ -139,7 +139,7 @@ RAILWAY_DOMAIN=myapp.railway.app VERBOSE=true bash scripts/verify-railway-deploy
 
 ## GitHub Actions Health Checks
 
-### Health Full Workflow
+### Health Check Workflow
 
 Runs comprehensive health checks on every push and PR:
 
@@ -153,20 +153,7 @@ Runs comprehensive health checks on every push and PR:
 5. Validates trust rollup snapshot
 6. Dumps logs on failure
 
-**Badge:** ![Health Full](https://github.com/jmenichole/tiltcheck-monorepo/actions/workflows/health-check.yml/badge.svg)
-
-### Health Smoke Workflow
-
-Quick smoke test for rapid feedback:
-
-**Workflow:** `.github/workflows/health-smoke.yml`
-
-**What it does:**
-1. Quick service availability check
-2. Validates critical endpoints
-3. Fast feedback (<2 minutes)
-
-**Badge:** ![Health Smoke](https://github.com/jmenichole/tiltcheck-monorepo/actions/workflows/health-smoke.yml/badge.svg)
+**Badge:** ![Health Check](https://github.com/jmenichole/tiltcheck-monorepo/actions/workflows/health-check.yml/badge.svg)
 
 ### Deployment Health Workflow
 

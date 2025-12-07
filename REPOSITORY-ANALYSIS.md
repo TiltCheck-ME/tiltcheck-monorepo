@@ -378,25 +378,21 @@ exclude: [
    - Trust rollup validation
    - ✅ Excellent
 
-3. **health-smoke.yml** - Quick smoke tests
-   - Fast validation
-   - ✅ Good for PR checks
-
-4. **analyzers.yml** - Daily analyzer builds
+3. **analyzers.yml** - Daily analyzer builds
    - Scheduled at 6 AM daily
    - Builds gameplay & enhanced analyzers
    - ✅ Good proactive monitoring
 
-5. **cache-rotate.yml** - Cache management
+4. **cache-rotate.yml** - Cache management
    - ✅ Prevents stale cache issues
 
-6. **deploy-bot.yml** - Bot deployment
+5. **deploy-bot.yml** - Bot deployment
    - ⚠️ Production deployment (needs review)
 
-7. **deploy-dashboard.yml** - Dashboard deployment
+6. **deploy-dashboard.yml** - Dashboard deployment
    - ⚠️ Production deployment (needs review)
 
-8. **pages.yml** - GitHub Pages
+7. **pages.yml** - GitHub Pages
    - Static site deployment
    - ✅ Automated docs publishing
 
