@@ -1,5 +1,32 @@
 # 🚀 Deployment Checklist - Tilt Persistence System
 
+## ⚠️ CRITICAL: Commit Discipline
+
+**BEFORE ANYTHING ELSE:** After every change, do this:
+
+```bash
+# 1. Check uncommitted changes
+git status
+
+# 2. Stage everything
+git add -A
+
+# 3. Commit with meaningful message
+git commit -m "feat: description of what changed"
+
+# 4. PUSH IMMEDIATELY (don't wait!)
+git push origin main
+
+# 5. Verify success (look for "main -> main" in output)
+# Example: To https://github.com/jmenichole/tiltcheck-monorepo.git c8e4424..d0fbab2 main -> main
+```
+
+**Why?** Recent issue: Changes were made but not pushed → production didn't update → users saw 404s
+
+**Solution:** Push within 1 minute of commit. Always.
+
+---
+
 ## Pre-Deployment (Do First)
 
 ### Prepare Your Accounts
@@ -14,14 +41,15 @@
 - [ ] Discord Bot Token: `MT...`
 - [ ] Discord Client ID: `123...`
 
-### Push Code
+### Push Code (MANDATORY)
 ```bash
 git add -A
 git commit -m "feat: add tilt events persistence"
 git push origin main
+# ⏳ Wait for "main -> main" confirmation
 ```
 
-✅ All code is now on GitHub
+✅ All code is now on GitHub and deploying
 
 ---
 
