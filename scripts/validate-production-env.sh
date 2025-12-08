@@ -76,8 +76,8 @@ check_var() {
     local required="${2:-false}"
     local description="${3:-}"
     
-    if railway variables get "$var_name" >/dev/null 2>&1; then
-        local value=$(railway variables get "$var_name")
+    local value=$(railway variables get "$var_name" 2>/dev/null)
+    if [[ -n "$value" ]]; then
         # Hide sensitive values
         if [[ "$var_name" =~ (TOKEN|KEY|SECRET|PASSWORD) ]]; then
             value="***${value: -4}"
@@ -101,11 +101,11 @@ check_var_format() {
     local pattern="$2"
     local description="$3"
     
-    if ! railway variables get "$var_name" >/dev/null 2>&1; then
+    local value=$(railway variables get "$var_name" 2>/dev/null)
+    if [[ -z "$value" ]]; then
         return 0  # Skip if not set
     fi
     
-    local value=$(railway variables get "$var_name")
     if [[ ! "$value" =~ $pattern ]]; then
         log_error "$var_name has invalid format - $description"
         return 1
@@ -121,11 +121,11 @@ check_var_length() {
     local min_length="$2"
     local description="$3"
     
-    if ! railway variables get "$var_name" >/dev/null 2>&1; then
+    local value=$(railway variables get "$var_name" 2>/dev/null)
+    if [[ -z "$value" ]]; then
         return 0  # Skip if not set
     fi
     
-    local value=$(railway variables get "$var_name")
     if (( ${#value} < min_length )); then
         log_error "$var_name is too short (min: $min_length) - $description"
         return 1
