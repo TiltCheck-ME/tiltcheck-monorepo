@@ -61,7 +61,7 @@ class SidebarNavigation {
           <ul>
             <li><a href="/">Home</a></li>
             <li><a href="/#tools">Tools</a></li>
-            <li><a href="/dashboard">Dashboard</a></li>
+            <li><a href="/control-room.html">Dashboard</a></li>
             <li><a href="/about.html">About</a></li>
           </ul>
         </div>
@@ -74,6 +74,8 @@ class SidebarNavigation {
             <li><a href="/extension.html">TiltGuard Extension</a></li>
             <li><a href="/tools/tiltcheck-core.html">TiltCheck Core</a></li>
             <li><a href="/tools/qualifyfirst.html">QualifyFirst</a></li>
+            <li><a href="/tools/suslink.html">SusLink</a></li>
+            <li><a href="/tools/daad.html">DA&D</a></li>
             <li><a href="/tools/triviadrops.html">TriviaDrops</a></li>
           </ul>
         </div>
@@ -91,10 +93,11 @@ class SidebarNavigation {
         <div class="nav-section">
           <h3>Resources</h3>
           <ul>
-            <li><a href="/education.html">Education & Help</a></li>
+            <li><a href="/help.html">Help & Support</a></li>
             <li><a href="/press-kit.html">Press Kit</a></li>
             <li><a href="/contact.html">Contact</a></li>
-            <li><a href="/transparency.html">Transparency & Data</a></li>
+            <li><a href="/site-map.html">Site Map</a></li>
+            <li><a href="/faq.html">FAQ</a></li>
           </ul>
         </div>
 
