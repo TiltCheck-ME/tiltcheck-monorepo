@@ -63,6 +63,9 @@ interface AuthenticatedRequest extends Request {
   };
 }
 
+// Type for route handlers that use authenticateToken middleware
+type AuthenticatedHandler = (req: AuthenticatedRequest, res: Response) => void | Promise<void>;
+
 // In-memory cache for user data (populated from database, with fallback defaults)
 const userCache: Record<string, UserData> = {};
 
@@ -302,12 +305,13 @@ app.get('/auth/discord/callback', async (req: Request, res: Response) => {
 });
 
 // Get user profile
-app.get('/api/user/:discordId', authenticateToken, async (req: AuthenticatedRequest, res: Response) => {
+app.get('/api/user/:discordId', authenticateToken as any, async (req: AuthenticatedRequest, res: Response) => {
   const { discordId } = req.params;
   
   // Check if requesting user matches or is admin
   if (req.user.discordId !== discordId && !isAdmin(req.user)) {
-    return res.status(403).json({ error: 'Access denied' });
+    res.status(403).json({ error: 'Access denied' });
+    return;
   }
 
   try {
@@ -329,10 +333,10 @@ app.get('/api/user/:discordId', authenticateToken, async (req: AuthenticatedRequ
     console.error('[UserDashboard] Error fetching user:', error);
     res.status(500).json({ error: 'Failed to fetch user data' });
   }
-});
+}) as express.RequestHandler);
 
 // Update user preferences
-app.put('/api/user/:discordId/preferences', authenticateToken, async (req: AuthenticatedRequest, res: Response) => {
+app.put('/api/user/:discordId/preferences', authenticateToken, (async (req: AuthenticatedRequest, res: Response) => {
   const { discordId } = req.params;
   const { preferences } = req.body;
   
@@ -358,10 +362,10 @@ app.put('/api/user/:discordId/preferences', authenticateToken, async (req: Authe
     console.error('[UserDashboard] Error updating preferences:', error);
     res.status(500).json({ error: 'Failed to update preferences' });
   }
-});
+}) as express.RequestHandler);
 
 // Get user activity feed
-app.get('/api/user/:discordId/activity', authenticateToken, async (req: AuthenticatedRequest, res: Response) => {
+app.get('/api/user/:discordId/activity', authenticateToken, (async (req: AuthenticatedRequest, res: Response) => {
   const { discordId } = req.params;
   const { limit = 10 } = req.query;
   
@@ -374,7 +378,7 @@ app.get('/api/user/:discordId/activity', authenticateToken, async (req: Authenti
     const gameHistory = await db.getUserGameHistory(discordId, parseInt(limit as string));
     
     // Convert game history to activity format
-    const activities: ActivityItem[] = gameHistory.map(game => ({
+    const activities: ActivityItem[] = gameHistory.map((game: any) => ({
       type: 'play',
       game: game.game_type,
       gameId: game.game_id,
@@ -398,10 +402,10 @@ app.get('/api/user/:discordId/activity', authenticateToken, async (req: Authenti
     console.error('[UserDashboard] Error fetching activity:', error);
     res.status(500).json({ error: 'Failed to fetch activity' });
   }
-});
+}) as express.RequestHandler);
 
 // Get user trust metrics
-app.get('/api/user/:discordId/trust', authenticateToken, async (req: AuthenticatedRequest, res: Response) => {
+app.get('/api/user/:discordId/trust', authenticateToken, (async (req: AuthenticatedRequest, res: Response) => {
   const { discordId } = req.params;
   
   if (req.user.discordId !== discordId && !isAdmin(req.user)) {
@@ -453,7 +457,7 @@ app.get('/api/user/:discordId/trust', authenticateToken, async (req: Authenticat
     console.error('[UserDashboard] Error fetching trust metrics:', error);
     res.status(500).json({ error: 'Failed to fetch trust metrics' });
   }
-});
+}) as express.RequestHandler);
 
 // Middleware functions
 function authenticateToken(req: AuthenticatedRequest, res: Response, next: NextFunction) {
