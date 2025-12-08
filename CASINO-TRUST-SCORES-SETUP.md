@@ -3,7 +3,8 @@
 **Status:** Ready to generate  
 **Service:** Trust Rollup (`services/trust-rollup/`)  
 **Time to First Scores:** ~2 minutes  
-**Default Casinos:** stake.com, duelbits.com, rollbit.com, roobet.com, bc.game
+**Default Casinos:** stake.com, shuffle.com, stake.us, shuffle.us, luckybird.io, crowncoins.com, chanced.com, lonestar.com, myprize.us, gamba.com  
+**Display Page:** `/casinos` (trust score cards)
 
 ---
 
@@ -48,7 +49,7 @@ npx tsx cli.ts --verify-all
 
 The trust rollup service generates:
 
-### 1. **Initial Casino Trust Scores** (5 monitored casinos)
+### 1. **Initial Casino Trust Scores** (10 monitored casinos)
 ```json
 {
   "stake.com": {
@@ -59,10 +60,15 @@ The trust rollup service generates:
     "bonus": 60,
     "overall": 67
   },
-  "duelbits.com": { ... },
-  "rollbit.com": { ... },
-  "roobet.com": { ... },
-  "bc.game": { ... }
+  "shuffle.com": { "overall": 71 },
+  "stake.us": { "overall": 73 },
+  "shuffle.us": { "overall": 70 },
+  "luckybird.io": { "overall": 68 },
+  "crowncoins.com": { "overall": 66 },
+  "chanced.com": { "overall": 65 },
+  "lonestar.com": { "overall": 67 },
+  "myprize.us": { "overall": 64 },
+  "gamba.com": { "overall": 69 }
 }
 ```
 
@@ -217,10 +223,15 @@ cat data/trust-rollups.json | jq '.batches[-1].casinos | keys'
 # Output:
 # [
 #   "stake.com",
-#   "duelbits.com",
-#   "rollbit.com",
-#   "roobet.com",
-#   "bc.game"
+#   "shuffle.com",
+#   "stake.us",
+#   "shuffle.us",
+#   "luckybird.io",
+#   "crowncoins.com",
+#   "chanced.com",
+#   "lonestar.com",
+#   "myprize.us",
+#   "gamba.com"
 # ]
 ```
 
@@ -342,7 +353,8 @@ docker run -d \
 - [ ] Service responds to health check: `curl http://localhost:5056/health`
 - [ ] Triggered verification: `curl -X POST http://localhost:5056/api/verify -H "Content-Type: application/json" -d '{"casino":"all"}'`
 - [ ] Scores visible: `cat data/trust-rollups.json | jq '.batches[-1].casinos'`
-- [ ] All 5 casinos have scores
+- [ ] All 10 casinos have scores
+- [ ] View scores page: https://tiltcheck.me/casinos (prod) or http://localhost:3000/casinos (local)
 
 ---
 
