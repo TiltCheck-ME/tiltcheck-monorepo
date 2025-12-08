@@ -17,3 +17,8 @@ export {
   getUserPreferences,
   saveUserPreferences,
 } from './onboarding.js';
+export {
+  initializeTiltEventsHandler,
+  getUserTiltHistory,
+  getUserTiltStats,
+} from './tilt-events-handler.js';

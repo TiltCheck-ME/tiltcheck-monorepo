@@ -45,39 +45,59 @@
   <!-- Skip to main content link (accessibility) -->
   <a href="#main-content" class="skip-link">Skip to main content</a>
 
-  <!-- Top Navigation -->
-  <nav class="top-nav" role="navigation" aria-label="Primary navigation">
-    <a href="/" aria-current="page">Home</a>
-    <a href="/casinos.html">Casinos</a>
-    <a href="/degen-trust.html">Degens</a>
-    <a href="/dashboard">Dashboard</a>
-    <a href="/about.html">About</a>
-    <a href="https://discord.gg/s6NNfPHxMS" class="btn btn-primary btn-nav" target="_blank" rel="noopener noreferrer">Join Discord</a>
-    
-    <!-- Hamburger Menu Button (mobile) -->
-    <button class="hamburger-btn" aria-label="Open menu" aria-expanded="false" onclick="toggleMobileNav()">
-      <span class="hamburger-icon"></span>
+  <!-- Floating User Action Button -->
+  <div class="user-action-wrapper">
+    <!-- Login Button (shown when not authenticated) -->
+    <button id="login-btn" class="user-action-btn" aria-label="Login with Discord" style="display: none;">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+        <circle cx="12" cy="7" r="4"></circle>
+      </svg>
     </button>
-  </nav>
 
-  <!-- Mobile Navigation Overlay -->
-  <div class="mobile-nav" id="mobileNav" aria-hidden="true">
-    <div class="mobile-nav-links">
-      <a href="/">Home</a>
-      <a href="/about.html">About</a>
-      <a href="/how-it-works.html">How It Works</a>
-      <a href="/casinos.html">Casino Trust</a>
-      <a href="/degen-trust.html">Degen Trust</a>
-      <a href="/trust-explained.html">Trust Explained</a>
-      <a href="/faq.html">FAQ</a>
+    <!-- User Button (shown when authenticated) -->
+    <button id="user-btn" class="user-action-btn user-logged-in" aria-label="User menu" style="display: none;">
+      <img id="user-avatar" src="" alt="" class="user-avatar">
+      <span id="user-name" class="user-name"></span>
+    </button>
+
+    <!-- User Dropdown Menu -->
+    <div id="user-dropdown" class="user-dropdown">
+      <a href="/dashboard/user" class="dropdown-item">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="3" width="7" height="7"></rect>
+          <rect x="14" y="3" width="7" height="7"></rect>
+          <rect x="14" y="14" width="7" height="7"></rect>
+          <rect x="3" y="14" width="7" height="7"></rect>
+        </svg>
+        My Dashboard
+      </a>
+      <a href="/dashboard" class="dropdown-item">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
+          <path d="M2 17l10 5 10-5M2 12l10 5 10-5"></path>
+        </svg>
+        Control Center
+      </a>
+      <a href="/extension" class="dropdown-item">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+        </svg>
+        TiltGuard Extension
+      </a>
+      <div class="dropdown-divider"></div>
+      <button id="logout-btn" class="dropdown-item">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+          <polyline points="16 17 21 12 16 7"></polyline>
+          <line x1="21" y1="12" x2="9" y2="12"></line>
+        </svg>
+        Logout
+      </button>
     </div>
-    
-    <div class="mobile-nav-section">
-      <h3>Tools</h3>
-      <a href="/tools/justthetip.html">JustTheTip</a>
-      <a href="/tools/suslink.html">SusLink</a>
-      <a href="/tools/collectclock.html">CollectClock</a>
-      <a href="/tools/freespinscan.html">FreeSpinScan</a>
+  </div>
+
+  <!-- Main Content -->
       <a href="/tools/tiltcheck-core.html">TiltCheck Core</a>
       <a href="/tools/daad.html">DA&D</a>
       <a href="/tools/qualifyfirst.html">QualifyFirst</a>
@@ -107,31 +127,24 @@
     </div>
   </div>
 
-  <!-- Header -->
-  <header class="site-header">
-    <div class="container">
-      <div class="header-content">
-        <div class="logo-group">
-          <svg class="logo-icon" viewBox="0 0 200 200" aria-label="TiltCheck logo" role="img">
-            <circle cx="100" cy="100" r="88" fill="none" stroke="#222" stroke-width="4"/>
-            <path d="M140 60 A60 60 0 1 1 140 140" fill="none" stroke="#00d4aa" stroke-width="16" stroke-linecap="round"/>
-            <circle cx="140" cy="100" r="10" fill="#00a8ff"/>
-          </svg>
-          <h1 class="logo-text">TiltCheck</h1>
-        </div>
-      </div>
-      <p class="tagline">The Degen Transparency Layer</p>
-    </div>
-  </header>
-
   <!-- Main Content -->
   <main id="main-content">
     <!-- Hero Section -->
     <section class="hero" aria-labelledby="hero-title">
       <div class="container">
+        <div class="logo-group" style="justify-content: center; margin-bottom: 2rem;">
+          <svg class="logo-icon" viewBox="0 0 200 200" aria-label="TiltCheck logo" role="img" style="width: 80px; height: 80px;">
+            <circle cx="100" cy="100" r="88" fill="none" stroke="#222" stroke-width="4"/>
+            <path d="M140 60 A60 60 0 1 1 140 140" fill="none" stroke="#00d4aa" stroke-width="16" stroke-linecap="round"/>
+            <circle cx="140" cy="100" r="10" fill="#00a8ff"/>
+          </svg>
+          <h1 class="logo-text" style="font-size: 3rem; color: var(--color-primary);">TiltCheck</h1>
+        </div>
+        
         <!-- Decorative hero background image (non-essential) -->
-           <img src="/assets/images/dark-gradient-hero-background-layered-radial-neon-teal-and-purple-energy-waves-soft-gold-sparks-minimal-abstract-pattern-high-resolution-texture-for-overlay-use.webp"
-             alt="" class="hero-bg-img" loading="eager" decoding="async" aria-hidden="true" fetchpriority="high">
+        <img src="/assets/images/dark-gradient-hero-background-layered-radial-neon-teal-and-purple-energy-waves-soft-gold-sparks-minimal-abstract-pattern-high-resolution-texture-for-overlay-use.webp"
+          alt="" class="hero-bg-img" loading="eager" decoding="async" aria-hidden="true" fetchpriority="high">
+        
         <h2 id="hero-title">The Degen Transparency Layer</h2>
         <p class="hero-description">
           Tools, trust engines, predictions, and safety systems that make degen communities 
@@ -145,8 +158,8 @@
           <a href="https://discord.gg/s6NNfPHxMS" class="btn btn-secondary" target="_blank" rel="noopener noreferrer">
             Join the Discord
           </a>
-          <button class="btn btn-secondary btn-disabled" aria-disabled="true" title="Coming soon">
-            View Trust Scores (soon)
+          <button class="btn btn-secondary btn-disabled" aria-disabled="true" title="Trust Scores feature launching Q1 2025" aria-label="Trust Scores feature launching Q1 2025">
+            View Trust Scores <span style="font-size: 0.75rem; opacity: 0.7;">(Q1 2025)</span>
           </button>
         </div>
 
@@ -368,12 +381,21 @@
             <li><a href="/">Home</a></li>
             <li><a href="/how-it-works">How It Works</a></li>
             <li><a href="/trust-explained">Trust System</a></li>
-                        <li><a href="/faq">FAQ</a></li>
-            <li><a href="/dashboard">Trust Dashboard</a></li>
-            <li><a href="/search">Search</a></li>
+            <li><a href="/casinos">Casino Trust Scores</a></li>
+            <li><a href="/degen-trust">Degen Trust Scores</a></li>
+            <li><a href="/extension">Extension & Analyzer</a></li>
+            <li><a href="/faq">FAQ</a></li>
+            <li><a href="/dashboard">Dashboard</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4>Resources</h4>
+          <ul>
             <li><a href="/press-kit">Press Kit</a></li>
             <li><a href="/newsletter">Newsletter</a></li>
-            <li><a href="/testimonials">Testimonials</a></li>
+            <li><a href="/docs/">Developer Docs</a></li>
+            <li><a href="/site-map">Site Map</a></li>
+            <li><a href="/search">Search</a></li>
           </ul>
         </div>
         <div>
@@ -384,9 +406,7 @@
             <li><a href="https://github.com/jmenichole/tiltcheck-monorepo" target="_blank" rel="noopener">GitHub</a></li>
             <li><a href="https://discord.gg/s6NNfPHxMS" target="_blank" rel="noopener">Discord</a></li>
           </ul>
-        </div>
-        <div>
-          <h4>Legal</h4>
+          <h4 style="margin-top: 1.5rem;">Legal</h4>
           <ul>
             <li><a href="/privacy">Privacy Policy</a></li>
             <li><a href="/terms">Terms of Service</a></li>
@@ -554,5 +574,132 @@
       }
     });
   </script>
+
+  <!-- Auth Script -->
+  <script src="/scripts/auth.js" defer></script>
+
+  <style>
+    /* Floating User Action Button */
+    .user-action-wrapper {
+      position: fixed;
+      top: 1.5rem;
+      right: 1.5rem;
+      z-index: 1000;
+    }
+
+    .user-action-btn {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.75rem 1.25rem;
+      background: rgba(0, 212, 170, 0.1);
+      border: 2px solid var(--color-primary);
+      border-radius: 50px;
+      color: var(--color-primary);
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      backdrop-filter: blur(10px);
+      box-shadow: 0 4px 20px rgba(0, 212, 170, 0.2);
+    }
+
+    .user-action-btn:hover {
+      background: rgba(0, 212, 170, 0.2);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 30px rgba(0, 212, 170, 0.3);
+    }
+
+    .user-action-btn.user-logged-in {
+      background: rgba(0, 168, 255, 0.1);
+      border-color: var(--color-secondary);
+      color: white;
+    }
+
+    .user-avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      border: 2px solid var(--color-secondary);
+    }
+
+    .user-name {
+      font-size: 0.95rem;
+      max-width: 150px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    /* User Dropdown */
+    .user-dropdown {
+      position: absolute;
+      top: calc(100% + 0.5rem);
+      right: 0;
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      min-width: 220px;
+      padding: 0.5rem 0;
+      opacity: 0;
+      visibility: hidden;
+      transform: translateY(-10px);
+      transition: all 0.3s ease;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+    }
+
+    .user-dropdown.show {
+      opacity: 1;
+      visibility: visible;
+      transform: translateY(0);
+    }
+
+    .dropdown-item {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.75rem 1.25rem;
+      color: var(--text-color);
+      text-decoration: none;
+      transition: all 0.2s ease;
+      cursor: pointer;
+      background: none;
+      border: none;
+      width: 100%;
+      text-align: left;
+      font-size: 0.95rem;
+    }
+
+    .dropdown-item:hover {
+      background: rgba(0, 212, 170, 0.1);
+      color: var(--color-primary);
+    }
+
+    .dropdown-item svg {
+      flex-shrink: 0;
+      opacity: 0.7;
+    }
+
+    .dropdown-divider {
+      height: 1px;
+      background: var(--border-color);
+      margin: 0.5rem 0;
+    }
+
+    /* Mobile adjustments */
+    @media (max-width: 768px) {
+      .user-action-wrapper {
+        top: 1rem;
+        right: 1rem;
+      }
+
+      .user-action-btn {
+        padding: 0.6rem 1rem;
+      }
+
+      .user-name {
+        display: none;
+      }
+    }
+  </style>
 </body>
 </html>

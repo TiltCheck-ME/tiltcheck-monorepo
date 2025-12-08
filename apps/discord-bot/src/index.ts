@@ -9,7 +9,7 @@
 import { Client, GatewayIntentBits, Partials } from 'discord.js';
 import http from 'http';
 import { config, validateConfig } from './config.js';
-import { CommandHandler, EventHandler, registerDMHandler } from './handlers/index.js';
+import { CommandHandler, EventHandler, registerDMHandler, initializeTiltEventsHandler } from './handlers/index.js';
 import { initializeAlertService } from './services/alert-service.js';
 import { TrustAlertsHandler } from './handlers/trust-alerts-handler.js';
 
@@ -18,15 +18,21 @@ import '@tiltcheck/suslink';
 import { startTrustAdapter } from '@tiltcheck/discord-utils/trust-adapter';
 
 async function main() {
-  console.log('='.repeat(50));
-  console.log('🪙 JustTheTip Bot - Powered by TiltCheck');
-  console.log('='.repeat(50));
+  const startTime = Date.now();
+  console.log('\n' + '═'.repeat(60));
+  console.log('🪙  JustTheTip Discord Bot - Powered by TiltCheck');
+  console.log('═'.repeat(60));
+  console.log(`📅 Started at: ${new Date().toLocaleString()}`);
+  console.log(`🔧 Environment: ${process.env.NODE_ENV || 'development'}`);
+  console.log('═'.repeat(60) + '\n');
 
   // Validate configuration unless skipping login (CI smoke)
   if (process.env.SKIP_DISCORD_LOGIN === 'true') {
-    console.log('[Bot] SKIP_DISCORD_LOGIN set – skipping config validation');
+    console.log('⚠️  [Config] SKIP_DISCORD_LOGIN enabled - skipping Discord auth');
   } else {
+    console.log('📋 [Config] Validating configuration...');
     validateConfig();
+    console.log('✅ [Config] Configuration validated\n');
   }
 
   // Create Discord client
@@ -41,55 +47,114 @@ async function main() {
   });
 
   // Initialize handlers
+  console.log('🔌 [Handlers] Initializing handlers...');
   const commandHandler = new CommandHandler();
   const eventHandler = new EventHandler(client, commandHandler);
+  console.log('✅ [Handlers] Handlers initialized\n');
 
   // Initialize alert service for posting to channels
+  console.log('🚨 [Alerts] Initializing alert service...');
   initializeAlertService(client);
+  console.log('✅ [Alerts] Alert service ready\n');
 
   // Initialize trust alerts handler to post events to Discord
+  console.log('📊 [Trust] Initializing trust alerts handler...');
   TrustAlertsHandler.initialize();
+  console.log('✅ [Trust] Trust alerts subscribed\n');
+
+  // Initialize tilt events handler to persist to backend
+  console.log('💾 [Tilt] Initializing tilt events persistence...');
+  initializeTiltEventsHandler();
+  console.log('✅ [Tilt] Tilt events handler ready\n');
 
   // Register DM handler for natural language assistance
+  console.log('💬 [DM] Registering direct message handler...');
   registerDMHandler(client);
+  console.log('✅ [DM] DM handler ready\n');
 
   // Start trust adapter to listen for trust events and log formatted output
+  console.log('📈 [Adapter] Starting trust adapter...');
   startTrustAdapter({
-    onFormatted: (formatted: string, raw: any) => {
-      console.log('[TrustAdapter]', formatted, raw.metadata ? { meta: raw.metadata } : '');
+    onFormatted: (formatted: string) => {
+      console.log('  📡 [TrustAdapter]', formatted);
     },
   });
+  console.log('✅ [Adapter] Trust adapter ready\n');
 
   // Load commands
+  console.log('⚡ [Commands] Loading slash commands...');
   commandHandler.loadCommands();
+  console.log('');
 
   // Register event handlers
+  console.log('👂 [Events] Registering Discord events...');
   eventHandler.registerDiscordEvents();
+  console.log('✅ [Events] Discord events registered');
+  
+  console.log('📡 [Events] Subscribing to EventRouter...');
   eventHandler.subscribeToEvents();
+  console.log('✅ [Events] EventRouter subscriptions active\n');
 
   // Login to Discord
-  console.log('[Bot] Logging in to Discord...');
+  console.log('🔐 [Discord] Connecting to Discord...');
   let ready = false;
   if (process.env.SKIP_DISCORD_LOGIN === 'true') {
-    console.log('[Bot] SKIP_DISCORD_LOGIN enabled - skipping Discord login (CI smoke)');
+    console.log('⚠️  [Discord] CI mode - skipping Discord login');
     ready = true; // mark ready immediately for health check
   } else {
     await client.login(config.discordToken);
-    client.once('ready', () => { ready = true; });
+    client.once('ready', () => {
+      ready = true;
+      console.log('✅ [Discord] Connected and ready!');
+    });
   }
+  console.log('');
 
   // Health server
   const HEALTH_PORT = process.env.DISCORD_BOT_HEALTH_PORT || '8081';
-  http.createServer((req, res) => {
+  const PORT = parseInt(HEALTH_PORT, 10);
+  
+  const healthServer = http.createServer((req, res) => {
     if (req.url === '/health') {
-      const body = JSON.stringify({ service: 'justthetip-bot', ready, commands: commandHandler.getAllCommands().length });
+      const body = JSON.stringify({ 
+        service: 'justthetip-bot', 
+        ready, 
+        uptime: Math.round((Date.now() - startTime) / 1000),
+        commands: commandHandler.getAllCommands().length 
+      });
       res.writeHead(200, { 'Content-Type': 'application/json' });
       res.end(body);
       return;
     }
-    res.writeHead(404); res.end();
-  }).listen(parseInt(HEALTH_PORT, 10), () => {
-    console.log(`[Bot] Health server listening on ${HEALTH_PORT}`);
+    res.writeHead(404); 
+    res.end();
+  });
+
+  healthServer.listen(PORT, () => {
+    console.log(`🏥 [Health] Bot health check listening on port ${PORT}`);
+    console.log('');
+    console.log('═'.repeat(60));
+    console.log('✅ JustTheTip Bot fully initialized and ready!');
+    console.log('═'.repeat(60));
+    console.log('');
+    console.log('📊 Status Summary:');
+    console.log(`  ├─ Health Endpoint: http://localhost:${PORT}/health`);
+    console.log(`  ├─ Status: Ready`);
+    console.log(`  ├─ Commands Loaded: ${commandHandler.getAllCommands().length}`);
+    console.log(`  └─ Uptime: ${Math.round((Date.now() - startTime) / 1000)}s`);
+    console.log('');
+  });
+
+  healthServer.on('error', (err: NodeJS.ErrnoException) => {
+    if (err.code === 'EADDRINUSE') {
+      console.error('\n❌ [Error] Port conflict!');
+      console.error(`   Port ${PORT} is already in use.`);
+      console.error('   ✨ Solution: Use a different port:');
+      console.error(`      export DISCORD_BOT_HEALTH_PORT=9081`);
+      console.error(`      pnpm --filter @tiltcheck/discord-bot dev`);
+      process.exit(1);
+    }
+    throw err;
   });
 }
 

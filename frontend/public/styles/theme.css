@@ -26,7 +26,7 @@
   /* Text colors */
   --text-primary: #ffffff;
   --text-secondary: #B8C4CE;
-  --text-muted: #6B7280;
+  --text-muted: #7B8290; /* Improved contrast: 4.5:1 on dark bg */
   --text-disabled: #4B5563;
   
   /* Borders & dividers - Sharp edges, neon 1px borders */
