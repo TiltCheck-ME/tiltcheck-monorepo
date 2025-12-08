@@ -11,8 +11,10 @@
 
   const CHATBOT_ID = 'tiltcheck-chatbot-widget';
   const STORAGE_KEY = 'tiltcheck-chat-history';
+  const ANALYTICS_KEY = 'tiltcheck-chatbot-analytics';
   const API_ENDPOINT = process.env.VERCEL_AI_GATEWAY_API_URL || 'https://api.vercel.ai';
   const API_KEY = process.env.VERCEL_AI_GATEWAY_API_KEY;
+  const ENABLE_AI_GATEWAY = !!API_KEY;  // Only enable if API key present
 
   // Knowledge base for quick responses
   const KNOWLEDGE_BASE = {
@@ -380,6 +382,84 @@ Be friendly, concise, and factual. Help users with questions about any TiltCheck
       this.messages = this.loadHistory();
       this.isOpen = false;
       this.isLoading = false;
+      this.currentPage = this.detectCurrentPage();
+      this.analytics = this.loadAnalytics();
+      this.feedback = {};  // Store feedback for current session
+    }
+
+    // Detect current page for context-aware responses
+    detectCurrentPage() {
+      const path = window.location.pathname;
+      const host = window.location.host;
+      
+      if (path.includes('/casinos')) return 'casinos';
+      if (path.includes('/degen-trust')) return 'degen-trust';
+      if (path.includes('/dashboard')) return 'dashboard';
+      if (path.includes('/faq')) return 'faq';
+      if (path.includes('/about')) return 'about';
+      if (path.includes('/extension') || host.includes('chrome')) return 'extension';
+      if (path === '/' || path === '/index.html') return 'home';
+      return 'general';
+    }
+
+    // Analytics tracking
+    trackQuestion(question, source = 'knowledge-base') {
+      const timestamp = new Date().toISOString();
+      this.analytics.questions = this.analytics.questions || [];
+      
+      this.analytics.questions.push({
+        timestamp,
+        question: question.substring(0, 100),
+        page: this.currentPage,
+        source  // 'knowledge-base' or 'ai-gateway'
+      });
+      
+      // Keep last 100 questions
+      if (this.analytics.questions.length > 100) {
+        this.analytics.questions = this.analytics.questions.slice(-100);
+      }
+      
+      this.saveAnalytics();
+    }
+
+    // Track feedback (was this helpful?)
+    trackFeedback(messageId, helpful) {
+      this.analytics.feedback = this.analytics.feedback || [];
+      
+      this.analytics.feedback.push({
+        timestamp: new Date().toISOString(),
+        messageId,
+        helpful,  // true/false
+        page: this.currentPage
+      });
+      
+      this.saveAnalytics();
+      
+      // Send to server if available
+      if (navigator.sendBeacon) {
+        navigator.sendBeacon('/api/chatbot/feedback', JSON.stringify({
+          helpful,
+          page: this.currentPage,
+          timestamp: new Date().toISOString()
+        }));
+      }
+    }
+
+    loadAnalytics() {
+      try {
+        const saved = localStorage.getItem(ANALYTICS_KEY);
+        return saved ? JSON.parse(saved) : { questions: [], feedback: [], sessions: 0 };
+      } catch {
+        return { questions: [], feedback: [], sessions: 0 };
+      }
+    }
+
+    saveAnalytics() {
+      try {
+        localStorage.setItem(ANALYTICS_KEY, JSON.stringify(this.analytics));
+      } catch (e) {
+        console.warn('Could not save analytics:', e);
+      }
     }
 
     loadHistory() {
@@ -435,6 +515,9 @@ Be friendly, concise, and factual. Help users with questions about any TiltCheck
 
       if (!text || this.isLoading) return;
 
+      // Track question for analytics
+      this.trackQuestion(text);
+
       // Add user message
       this.messages.push({ role: 'user', content: text });
       this.renderMessage('user', text);
@@ -447,55 +530,149 @@ Be friendly, concise, and factual. Help users with questions about any TiltCheck
       const knowledgeAnswer = findKnowledgeAnswer(text);
       if (knowledgeAnswer) {
         setTimeout(() => {
-          this.removeTyping();
-          this.messages.push({ role: 'assistant', content: knowledgeAnswer });
-          this.renderMessage('assistant', knowledgeAnswer);
+          removeTyping();
+          const messageId = `kb_${Date.now()}`;
+          this.messages.push({ role: 'assistant', content: knowledgeAnswer, id: messageId });
+          this.renderMessage('assistant', knowledgeAnswer, messageId);
           this.isLoading = false;
           this.saveHistory();
         }, 300);
+      } else if (ENABLE_AI_GATEWAY) {
+        // Use AI Gateway for smart responses
+        this.callAIGateway(text);
       } else {
-        // Fall back to API if available
-        this.callAPI(text);
+        // Fallback to suggestions
+        this.showFallback();
       }
     }
 
-    callAPI(userMessage) {
-      // This would integrate with OpenAI/Vercel AI Gateway
-      // For now, use knowledge base as fallback
-      const fallbackAnswer = `I'm not sure about that specific question. Try asking me about:
-- Casino trust scores
-- Discord bot commands
-- Tilt detection
-- JustTheTip crypto tipping
-- SusLink URL scanning
-- Chrome extension
-- Getting started
-- Dashboard features
-- TriviaDrop games`;
-
+    showFallback() {
       setTimeout(() => {
         this.removeTyping();
-        this.messages.push({ role: 'assistant', content: fallbackAnswer });
-        this.renderMessage('assistant', fallbackAnswer);
+        const fallbackAnswer = `I'm not sure about that specific question. I can help with:\n\n📊 Casino trust scores\n💬 Discord bot commands\n🎮 Tilt detection\n💸 JustTheTip tipping\n🔍 SusLink scanning\n📱 Extension features\n📈 Dashboard\n✅ Getting started\n\nWant to ask about one of these topics?`;
+        
+        const messageId = `fb_${Date.now()}`;
+        this.messages.push({ role: 'assistant', content: fallbackAnswer, id: messageId });
+        this.renderMessage('assistant', fallbackAnswer, messageId, true);
         this.isLoading = false;
         this.saveHistory();
-      }, 800);
+      }, 300);
     }
 
-    renderMessage(role, content) {
+    renderMessage(role, content, messageId, showFeedback = false) {
       const messagesEl = document.getElementById(`${CHATBOT_ID}-messages`);
       if (!messagesEl) return;
 
       const messageEl = document.createElement('div');
       messageEl.className = `tiltcheck-message ${role}`;
+      messageEl.id = messageId || `msg_${Date.now()}`;
 
       const contentEl = document.createElement('div');
       contentEl.className = 'tiltcheck-message-content';
       contentEl.textContent = content;
 
       messageEl.appendChild(contentEl);
+
+      // Add feedback buttons for assistant messages
+      if (role === 'assistant' && showFeedback !== false) {
+        const feedbackEl = document.createElement('div');
+        feedbackEl.className = 'tiltcheck-feedback';
+        feedbackEl.style.cssText = 'margin-top:8px;display:flex;gap:8px;font-size:0.8rem;';
+        feedbackEl.innerHTML = `
+          <button class="tiltcheck-feedback-btn" onclick="window.TiltCheckChatbot.trackFeedback('${messageEl.id}', true)" style="background:rgba(0,212,170,0.2);border:1px solid rgba(0,212,170,0.4);color:#00d4aa;padding:4px 8px;border-radius:4px;cursor:pointer;">👍 Helpful</button>
+          <button class="tiltcheck-feedback-btn" onclick="window.TiltCheckChatbot.trackFeedback('${messageEl.id}', false)" style="background:rgba(255,107,107,0.2);border:1px solid rgba(255,107,107,0.4);color:#ff6b6b;padding:4px 8px;border-radius:4px;cursor:pointer;">👎 Not helpful</button>
+        `;
+        messageEl.appendChild(feedbackEl);
+      }
+
       messagesEl.appendChild(messageEl);
       messagesEl.scrollTop = messagesEl.scrollHeight;
+    }
+
+    callAIGateway(userMessage) {
+      // Context-aware system prompt based on current page
+      const contextPrompt = this.getContextPrompt();
+      
+      fetch('https://api.vercel.ai/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${API_KEY}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          model: 'gpt-4o-mini',
+          messages: [
+            { role: 'system', content: contextPrompt },
+            ...this.messages.slice(-10).map(m => ({ role: m.role, content: m.content }))  // Last 10 messages for context
+          ],
+          temperature: 0.7,
+          max_tokens: 500,
+          stream: false
+        })
+      })
+      .then(response => {
+        if (!response.ok) throw new Error(`API error: ${response.status}`);
+        return response.json();
+      })
+      .then(data => {
+        this.removeTyping();
+        const answer = data.choices[0].message.content;
+        const messageId = `ai_${Date.now()}`;
+        
+        this.messages.push({ 
+          role: 'assistant', 
+          content: answer, 
+          id: messageId,
+          source: 'ai-gateway'
+        });
+        
+        this.renderMessage('assistant', answer, messageId, true);
+        this.isLoading = false;
+        this.saveHistory();
+        this.trackQuestion(userMessage, 'ai-gateway');
+      })
+      .catch(error => {
+        console.error('AI Gateway error:', error);
+        this.removeTyping();
+        this.showFallback();
+      });
+    }
+
+    getContextPrompt() {
+      const basePrompt = `You are TiltCheck's helpful AI assistant. TiltCheck is an ecosystem of tools for responsible casino gaming and crypto community features.
+
+Core Features:
+- Casino Trust Scores (0-100 based on fairness, support, payouts, compliance, bonuses)
+- SusLink: URL/link scanner detecting phishing and malware
+- Tilt Detection: AI emotional analysis to prevent problem gambling
+- JustTheTip: Non-custodial crypto tipping on Solana
+- TriviaDrop: Free daily trivia games with SOL rewards
+- Discord Bot: 50+ commands for casino data, trust scores, commands
+- Chrome Extension: Real-time tilt detection and casino sidebar UI
+- Degen Trust System: Community trust scoring
+- Dashboard: Analytics, wallet integration, session tracking
+
+Be friendly, concise, and factual. Help users with questions about any TiltCheck feature. Provide links when relevant. Prioritize safety and responsible gaming.`;
+
+      switch (this.currentPage) {
+        case 'casinos':
+          return basePrompt + `\n\nUser is on the Casino Trust Scores page. Focus on explaining how trust scores work (5-category breakdown: Fairness, Support, Payouts, Compliance, Bonuses), help them understand specific casino scores, and mention the voting feature for next casinos.`;
+        
+        case 'dashboard':
+          return basePrompt + `\n\nUser is on the Dashboard. Focus on dashboard-specific features: session analytics, trust scores, wallet integration, game history, personal tilt analysis, security settings, leaderboards.`;
+        
+        case 'extension':
+          return basePrompt + `\n\nUser is asking about the Chrome Extension. Focus on extension-specific features: sidebar UI, real-time tilt detection, live session stats, game info lookup, vault controls, SusLink link protection.`;
+        
+        case 'degen-trust':
+          return basePrompt + `\n\nUser is on the Degen Trust page. Focus on community trust scoring: how personal trust scores are calculated, trust signals, reputation system, how to improve trust.`;
+        
+        case 'faq':
+          return basePrompt + `\n\nUser is on the FAQ page. Provide clear, concise, structured answers. Link to relevant pages when helpful.`;
+        
+        default:
+          return basePrompt;
+      }
     }
 
     showTyping() {
