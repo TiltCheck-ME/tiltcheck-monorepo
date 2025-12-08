@@ -18,8 +18,30 @@ import {
 // Emulate __dirname in ESM via shared utility
 const __dirname = dirname(import.meta.url);
 
-// Load .env file relative to project root (one level up)
-dotenv.config({ path: path.join(__dirname, '../.env') });
+// Load .env files - try .env.local first (root), then .env (root), then .env in app dir
+// __dirname is apps/discord-bot/src, so we need to go up 3 levels to reach monorepo root
+const rootEnvLocal = path.resolve(__dirname, '../../../.env.local');
+const rootEnv = path.resolve(__dirname, '../../../.env');
+const appEnvLocal = path.resolve(__dirname, '../.env.local');
+const appEnv = path.resolve(__dirname, '../.env');
+
+// Debug: Log the paths we're trying to load
+if (process.env.DEBUG_ENV_LOADING) {
+  console.log('[Config] Attempting to load .env files from:');
+  console.log('  __dirname:', __dirname);
+  console.log('  rootEnvLocal:', rootEnvLocal);
+  console.log('  rootEnv:', rootEnv);
+  console.log('  appEnvLocal:', appEnvLocal);
+  console.log('  appEnv:', appEnv);
+}
+
+// Try loading from root .env.local first (preferred for local dev)
+dotenv.config({ path: rootEnvLocal });
+// Fall back to root .env
+dotenv.config({ path: rootEnv });
+// Fall back to app-level .env files
+dotenv.config({ path: appEnvLocal });
+dotenv.config({ path: appEnv });
 
 export interface AlertChannelsConfig {
   /** Channel ID for trust/security alerts */
