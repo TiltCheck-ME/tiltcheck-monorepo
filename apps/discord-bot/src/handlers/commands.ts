@@ -22,12 +22,12 @@ export class CommandHandler {
     // Load commands from the commands directory
     const commandModules = Object.values(commands);
 
-    let count = 0;
+    let _count = 0;
     for (const command of commandModules) {
       if ('data' in command && 'execute' in command) {
         this.commands.set(command.data.name, command as Command);
-        console.log(`  📄 /​${command.data.name}`);
-        count++;
+        console.log(`  📄 /${command.data.name}`);
+        _count++;
       }
     }
 
