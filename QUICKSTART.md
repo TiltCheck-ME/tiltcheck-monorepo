@@ -7,32 +7,51 @@
 pnpm install
 ```
 
-### 2. Configure Discord Bot
+### 2. Configure Environment
+
+Copy the environment template:
 ```bash
-cp apps/discord-bot/.env.example apps/discord-bot/.env
-# Edit apps/discord-bot/.env and add your Discord token & client ID
-# Get from https://discord.com/developers/applications
+cp .env.template .env.local
 ```
 
-### 3. Configure Dashboard (Optional - for alerts)
+Then fill in your required values:
 ```bash
-cp services/dashboard/.env.example services/dashboard/.env
-# Edit services/dashboard/.env and add Discord webhook URL (optional)
+# Required - Get from https://discord.com/developers/applications
+DISCORD_TOKEN=your_discord_bot_token
+DISCORD_CLIENT_ID=your_client_id
+DISCORD_GUILD_ID=your_guild_id
+NODE_ENV=development
+
+# Optional but recommended
+SOLANA_RPC_URL=https://api.devnet.solana.com
+JUSTTHETIP_FEE_WALLET=your_fee_wallet_address
 ```
 
-### 4. Start Services
+### 3. Start Services
 
-**Terminal 1 - Dashboard:**
+**Option A: All services (recommended)**
+```bash
+pnpm dev
+```
+
+**Option B: Individual services**
+
+Terminal 1 - Discord Bot:
+```bash
+pnpm --filter @tiltcheck/discord-bot dev
+```
+
+Terminal 2 - Dashboard:
 ```bash
 pnpm --filter @tiltcheck/dashboard dev
 ```
 
-**Terminal 2 - Discord Bot:**
+Terminal 3 - Landing:
 ```bash
-pnpm --filter discord-bot dev
+pnpm --filter @tiltcheck/landing dev
 ```
 
-### 4.1 CI Modes (Smoke vs Full)
+### 4. CI Modes (Smoke vs Full)
 TiltCheck CI runs two separate workflows:
 
 | Workflow | Mode  | Purpose | Discord Login | Snapshot Validation | Env Flag |
@@ -61,17 +80,32 @@ To locally emulate smoke CI:
 SKIP_DISCORD_LOGIN=true pnpm --filter discord-bot dev
 ```
 
-To emulate full mode (requires valid Discord secrets in .env):
+To emulate full mode (requires valid Discord secrets in .env.local):
 ```bash
 pnpm --filter discord-bot dev
 ```
 
-### 5. Test in Discord
+### 5. Verify Setup
+
+**Check environment variables:**
+```bash
+grep DISCORD .env.local
+```
+
+**Verify wallet persistence:**
+```bash
+ls -la data/justthetip-wallets.json
+```
+
+### 6. Test in Discord
 ```
 /ping
+/tip wallet view
 /trust dashboard
 /scan https://example.com
 ```
+
+If bot doesn't respond, check logs for auth errors.
 
 ---
 
