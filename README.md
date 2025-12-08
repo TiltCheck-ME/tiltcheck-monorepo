@@ -209,9 +209,13 @@ bash scripts/verify-railway-deployment.sh
 
 **Production Guides:**
 - **[Railway Deployment Guide](./docs/RAILWAY-DEPLOYMENT-GUIDE.md)** - Complete Railway setup and configuration
+- **[Production Deployment Checklist](./docs/PRODUCTION-DEPLOYMENT-CHECKLIST.md)** - Pre-deployment verification
+- **[Post-Deployment Checklist](./docs/POST-DEPLOYMENT-CHECKLIST.md)** - Post-deployment verification and monitoring setup
+- **[Production Runbook](./docs/PRODUCTION-RUNBOOK.md)** - Operational procedures and common tasks
+- **[Production Monitoring](./docs/PRODUCTION-MONITORING.md)** - Monitoring and alerting setup
+- **[Production Troubleshooting](./docs/PRODUCTION-TROUBLESHOOTING.md)** - Problem diagnosis and resolution
 - **[AI Gateway Production](./docs/AI-GATEWAY-PRODUCTION.md)** - OpenAI integration and cost optimization
 - **[Trust Rollup Production](./docs/TRUST-ROLLUP-PRODUCTION.md)** - Real casino data integration
-- **[Production Deployment Checklist](./docs/PRODUCTION-DEPLOYMENT-CHECKLIST.md)** - Step-by-step deployment verification
 
 ### Components + A11y Audits
 
