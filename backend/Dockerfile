@@ -9,8 +9,8 @@ ENV CI=true
 
 WORKDIR /app
 
-# Copy package files and pnpm config
-COPY package.json pnpm-workspace.yaml pnpm-lock.yaml .npmrc ./
+# Copy workspace root files
+COPY package.json pnpm-workspace.yaml pnpm-lock.yaml .npmrc tsconfig.json ./
 
 # Copy package manifests for workspace resolution
 COPY packages/types/package.json ./packages/types/
@@ -31,7 +31,6 @@ COPY services/event-router/ ./services/event-router/
 COPY modules/dad/ ./modules/dad/
 COPY modules/poker/ ./modules/poker/
 COPY backend/ ./backend/
-COPY tsconfig.json ./
 
 # Build all packages recursively
 RUN pnpm -r build
@@ -44,11 +43,16 @@ RUN npm install -g pnpm@9
 
 # Set CI environment variable to avoid pnpm TTY issues
 ENV CI=true
+ENV NODE_ENV=production
+ENV PORT=7071
 
 WORKDIR /app
 
 # Copy package files and pnpm config
-COPY package.json pnpm-workspace.yaml pnpm-lock.yaml .npmrc ./
+COPY package.json ./
+COPY pnpm-workspace.yaml ./
+COPY pnpm-lock.yaml ./
+COPY .npmrc ./
 
 # Copy package manifests
 COPY packages/types/package.json ./packages/types/
@@ -83,9 +87,8 @@ WORKDIR /app/backend
 # Expose port 7071 as specified
 EXPOSE 7071
 
-# Environment variables
-ENV PORT=7071
-ENV NODE_ENV=production
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+  CMD node -e "require('http').get('http://localhost:7071/health', (r) => {if (r.statusCode !== 200) throw new Error(r.statusCode)})" || exit 1
 
 # Start application
 CMD ["node", "dist/server.js"]
