@@ -245,13 +245,21 @@ pnpm build
 ```
 
 ### Priority 2: API Key Configuration
-**Effort:** 15 minutes  
-**Impact:** Unlock optional features  
+**Effort:** 5 minutes  
+**Impact:** Unlock AI features  
+**Status:** ✅ READY (keys obtained)
+
+**Configured Keys:**
+- ✅ OPENAI_API_KEY (pending Railway deployment)
+- ✅ VERCEL_AI_GATEWAY_API_KEY (optional routing layer)
+
 **Steps:**
 ```bash
-# In Railway Dashboard
-# Set environment variables:
-# OPENAI_API_KEY=sk-...
+# In Railway Dashboard, set one or both:
+railway variables set OPENAI_API_KEY=sk-...
+railway variables set VERCEL_AI_GATEWAY_API_KEY=vck_...
+
+# Optional integrations (for later):
 # STRIPE_API_KEY=sk_live_...
 # SENDGRID_API_KEY=SG...
 ```
