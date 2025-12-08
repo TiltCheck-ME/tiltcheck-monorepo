@@ -49,6 +49,21 @@
       </div>
     </div>
     <div class="trust-card">
+      <h2>Vote for Next Casino</h2>
+      <p style="margin-bottom:16px; color:#b0e0e0;">Which casino should we analyze next? Vote below to help us prioritize!</p>
+      <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:12px; margin-bottom:12px;">
+        <input type="text" id="casino-nominee" placeholder="Enter casino domain..." style="background:#111; color:#e0e0e0; border:1px solid #333; border-radius:8px; padding:10px; grid-column:1/-1;">
+        <button id="vote-btn" style="background:#00d4aa; color:#1a1a2e; border:none; border-radius:8px; padding:10px 20px; font-weight:600; cursor:pointer; grid-column:1/-1; transition:all 0.3s ease;">Vote for This Casino</button>
+      </div>
+      <div id="vote-results" style="background:#111; border:1px solid #222; border-radius:8px; padding:12px; margin-top:12px;">
+        <div style="font-size:0.9rem; color:#9adbd0; margin-bottom:8px;">Top Nominees (Click to Vote):</div>
+        <div id="vote-list" style="display:flex; flex-wrap:wrap; gap:8px;">
+          <!-- Vote buttons will be populated here -->
+        </div>
+      </div>
+      <div id="vote-message" style="margin-top:12px; font-size:0.9rem; color:#00d4aa; text-align:center;"></div>
+    </div>
+    <div class="trust-card">
       <h2>Casino Trust Signals</h2>
       <ul>
         <li><strong>Fairness:</strong> Payouts, RTP, and dispute rates</li>
@@ -180,6 +195,69 @@
       // Render on load
       renderTrustCards();
       
+      // Voting System
+      const voteNominee = document.getElementById('casino-nominee');
+      const voteBtn = document.getElementById('vote-btn');
+      const voteList = document.getElementById('vote-list');
+      const voteMessage = document.getElementById('vote-message');
+      
+      let votes = JSON.parse(localStorage.getItem('casino-votes') || '{}');
+      const suggestedCasinos = [
+        'duelbits.com', 'rollbit.com', 'roobet.com', 'bc.game',
+        'cloudbet.com', 'nitrogen.sports', 'bovada.lv', 'betonline.ag',
+        'bettor.com', 'foxbet.com', 'draftkings.com', 'fanduel.com'
+      ];
+      
+      function renderVotes() {
+        const sorted = Object.entries(votes)
+          .sort((a, b) => b[1] - a[1])
+          .slice(0, 8);
+        
+        voteList.innerHTML = sorted.map(([casino, count]) => `
+          <button style="background:#222; color:#00d4aa; border:1px solid #00d4aa; border-radius:6px; padding:8px 12px; cursor:pointer; font-size:0.9rem; transition:all 0.3s ease;" 
+            onmouseover="this.style.background='#00d4aa'; this.style.color='#1a1a2e';"
+            onmouseout="this.style.background='#222'; this.style.color='#00d4aa';"
+            onclick="document.getElementById('casino-nominee').value='${casino}'; addVote('${casino}');">
+            ${casino} (${count})
+          </button>
+        `).join('');
+        
+        // Add suggested casinos
+        suggestedCasinos.slice(0, 4).forEach(casino => {
+          if (!votes[casino]) {
+            voteList.innerHTML += `
+              <button style="background:#111; color:#9adbd0; border:1px solid #333; border-radius:6px; padding:8px 12px; cursor:pointer; font-size:0.85rem; transition:all 0.3s ease;" 
+                onmouseover="this.style.background='#222';"
+                onmouseout="this.style.background='#111';"
+                onclick="document.getElementById('casino-nominee').value='${casino}'; addVote('${casino}');">
+                + ${casino}
+              </button>
+            `;
+          }
+        });
+      }
+      
+      function addVote(casino) {
+        const normalized = casino.toLowerCase().trim();
+        if (!normalized) {
+          voteMessage.textContent = '❌ Please enter a casino name';
+          return;
+        }
+        votes[normalized] = (votes[normalized] || 0) + 1;
+        localStorage.setItem('casino-votes', JSON.stringify(votes));
+        renderVotes();
+        voteMessage.textContent = `✅ Voted for ${normalized}! ${votes[normalized]} vote(s) total`;
+        voteNominee.value = '';
+        setTimeout(() => voteMessage.textContent = '', 4000);
+      }
+      
+      voteBtn.addEventListener('click', () => addVote(voteNominee.value));
+      voteNominee.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') addVote(voteNominee.value);
+      });
+      
+      renderVotes();
+      
       // Rest of the casino directory functionality
       const tbody = document.querySelector('#casino-table tbody');
       const meta = document.getElementById('meta');
@@ -274,5 +352,7 @@
         }));
     })();
     </script>
+    <!-- TiltCheck AI Chatbot Widget -->
+    <script src="/chatbot-widget.js"></script>
 </body>
 </html>
