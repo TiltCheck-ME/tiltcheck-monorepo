@@ -25,14 +25,13 @@
  */
 
 import type { Request, Response, NextFunction } from 'express';
+import 'express';
 
 // Extend Express Request type to include correlation ID
-declare global {
-  namespace Express {
-    interface Request {
-      id?: string;
-      log?: any; // Would be pino.Logger in real implementation
-    }
+declare module 'express' {
+  export interface Request {
+    id?: string;
+    log?: any; // Would be pino.Logger in real implementation
   }
 }
 
