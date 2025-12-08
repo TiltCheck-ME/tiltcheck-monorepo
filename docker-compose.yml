@@ -3,8 +3,6 @@
 # For minimum viable deployment: docker-compose up -d landing
 # For full deployment: docker-compose --profile full up -d
 
-version: '3.8'
-
 services:
   # ===========================================
   # REVERSE PROXY - Entry point for all traffic
