@@ -4,14 +4,18 @@
  * Displays available commands and module information.
  */
 
-import { SlashCommandBuilder, ChatInputCommandInteraction } from 'discord.js';
+import { SlashCommandBuilder, ChatInputCommandInteraction, InteractionContextType } from 'discord.js';
 import { createEmbed, Colors } from '@tiltcheck/discord-utils';
 import type { Command } from '../types.js';
 
 export const help: Command = {
   data: new SlashCommandBuilder()
     .setName('help')
-    .setDescription('Show available commands and features'),
+    .setDescription('Show available commands and features')
+    .setContexts(
+      InteractionContextType.Guild,
+      InteractionContextType.BotDM
+    ),
 
   async execute(interaction: ChatInputCommandInteraction) {
     const embed = createEmbed(

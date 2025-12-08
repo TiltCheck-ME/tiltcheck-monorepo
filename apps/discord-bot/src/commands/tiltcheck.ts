@@ -1,10 +1,14 @@
-import { SlashCommandBuilder, ChatInputCommandInteraction } from 'discord.js';
+import { SlashCommandBuilder, ChatInputCommandInteraction, InteractionContextType } from 'discord.js';
 import type { Command } from '../types.js';
 
 export const tiltcheck: Command = {
   data: new SlashCommandBuilder()
     .setName('tiltcheck')
-    .setDescription('Admin config and diagnostics')
+    .setDescription('Check tilt status and manage cooldowns')
+    .setContexts(
+      InteractionContextType.Guild,
+      InteractionContextType.BotDM
+    )
     .addSubcommand(sub =>
       sub.setName('config')
         .setDescription('View or update admin config')

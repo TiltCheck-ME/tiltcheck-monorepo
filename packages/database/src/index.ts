@@ -314,6 +314,170 @@ export class DatabaseClient {
   getClient(): SupabaseClient | null {
     return this.supabase;
   }
+
+  /**
+   * Store a tilt detection event
+   */
+  async recordTiltEvent(data: {
+    userId: string;
+    timestamp: number;
+    signals: any[];
+    tiltScore: number;
+    context?: 'discord-dm' | 'discord-guild';
+  }): Promise<boolean> {
+    if (!this.supabase) {
+      console.warn('DatabaseClient: No database connected');
+      return false;
+    }
+
+    try {
+      const { error } = await this.supabase.from('tilt_events').insert({
+        user_id: data.userId,
+        timestamp: new Date(data.timestamp).toISOString(),
+        signals: JSON.stringify(data.signals),
+        tilt_score: data.tiltScore,
+        context: data.context || 'discord-dm',
+        created_at: new Date().toISOString(),
+      });
+
+      if (error) {
+        console.error('[DB] Error recording tilt event:', error);
+        return false;
+      }
+
+      return true;
+    } catch (err) {
+      console.error('[DB] Error recording tilt event:', err);
+      return false;
+    }
+  }
+
+  /**
+   * Get tilt event history for a user
+   */
+  async getTiltHistory(userId: string, options: {
+    days?: number;
+    limit?: number;
+  } = {}): Promise<any[]> {
+    if (!this.supabase) return [];
+
+    try {
+      const days = options.days || 7;
+      const limit = Math.min(options.limit || 100, 500);
+
+      const startDate = new Date();
+      startDate.setDate(startDate.getDate() - days);
+
+      const { data, error } = await this.supabase
+        .from('tilt_events')
+        .select('*')
+        .eq('user_id', userId)
+        .gte('timestamp', startDate.toISOString())
+        .order('timestamp', { ascending: false })
+        .limit(limit);
+
+      if (error) {
+        console.error('[DB] Error fetching tilt history:', error);
+        return [];
+      }
+
+      return (data || []).map(event => ({
+        ...event,
+        signals: typeof event.signals === 'string' ? JSON.parse(event.signals) : event.signals,
+      }));
+    } catch (err) {
+      console.error('[DB] Error fetching tilt history:', err);
+      return [];
+    }
+  }
+
+  /**
+   * Get tilt statistics for a user
+   */
+  async getTiltStats(userId: string): Promise<{
+    totalEvents: number;
+    averageTiltScore: number;
+    maxTiltScore: number;
+    lastEventAt: string | null;
+    eventsLast24h: number;
+    eventsLast7d: number;
+  }> {
+    if (!this.supabase) {
+      return {
+        totalEvents: 0,
+        averageTiltScore: 0,
+        maxTiltScore: 0,
+        lastEventAt: null,
+        eventsLast24h: 0,
+        eventsLast7d: 0,
+      };
+    }
+
+    try {
+      const { data, error } = await this.supabase
+        .from('tilt_events')
+        .select('timestamp, tilt_score')
+        .eq('user_id', userId)
+        .order('timestamp', { ascending: false });
+
+      if (error) {
+        console.error('[DB] Error fetching tilt stats:', error);
+        return {
+          totalEvents: 0,
+          averageTiltScore: 0,
+          maxTiltScore: 0,
+          lastEventAt: null,
+          eventsLast24h: 0,
+          eventsLast7d: 0,
+        };
+      }
+
+      const events = data || [];
+
+      if (events.length === 0) {
+        return {
+          totalEvents: 0,
+          averageTiltScore: 0,
+          maxTiltScore: 0,
+          lastEventAt: null,
+          eventsLast24h: 0,
+          eventsLast7d: 0,
+        };
+      }
+
+      const now = new Date();
+      const last24h = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+      const last7d = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+
+      const scores = events.map(e => e.tilt_score).filter(s => s !== null);
+      const averageTiltScore = scores.length > 0
+        ? scores.reduce((a, b) => a + b, 0) / scores.length
+        : 0;
+      const maxTiltScore = scores.length > 0 ? Math.max(...scores) : 0;
+
+      const eventsLast24h = events.filter(e => new Date(e.timestamp) > last24h).length;
+      const eventsLast7d = events.filter(e => new Date(e.timestamp) > last7d).length;
+
+      return {
+        totalEvents: events.length,
+        averageTiltScore: parseFloat(averageTiltScore.toFixed(2)),
+        maxTiltScore,
+        lastEventAt: events[0]?.timestamp || null,
+        eventsLast24h,
+        eventsLast7d,
+      };
+    } catch (err) {
+      console.error('[DB] Error calculating tilt stats:', err);
+      return {
+        totalEvents: 0,
+        averageTiltScore: 0,
+        maxTiltScore: 0,
+        lastEventAt: null,
+        eventsLast24h: 0,
+        eventsLast7d: 0,
+      };
+    }
+  }
 }
 
 // Export singleton instance

@@ -1,6 +1,27 @@
 {
   "version": 2,
-  "outputDirectory": "services/landing/public",
+  "builds": [
+    {
+      "src": "frontend/package.json",
+      "use": "@vercel/static-build",
+      "config": { "distDir": "public" }
+    },
+    {
+      "src": "apps/dashboard/package.json",
+      "use": "@vercel/next"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/dashboard(/.*)?",
+      "dest": "/apps/dashboard$1"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/frontend/public/$1"
+    }
+  ],
+  "outputDirectory": "frontend/public",
   "framework": null,
   "headers": [
     {
@@ -14,7 +35,8 @@
       "headers": [
         { "key": "X-Frame-Options", "value": "DENY" },
         { "key": "X-Content-Type-Options", "value": "nosniff" },
-        { "key": "X-XSS-Protection", "value": "1; mode=block" }
+        { "key": "X-XSS-Protection", "value": "1; mode=block" },
+        { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" }
       ]
     }
   ],
@@ -34,5 +56,9 @@
       "destination": "https://discord.com/oauth2/authorize?client_id=1445916179163250860",
       "permanent": false
     }
-  ]
+  ],
+  "env": {
+    "VERCEL_AI_GATEWAY_ENABLED": "true",
+    "AI_GATEWAY_URL": "https://gateway.ai.cloudflare.com/v1"
+  }
 }

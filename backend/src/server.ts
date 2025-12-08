@@ -18,6 +18,7 @@ import { fileURLToPath } from 'url';
 import { config, validateConfig } from './config.js';
 import { GameManager } from './game-manager.js';
 import { statsService } from './stats-service.js';
+import tiltRoutes from './routes/tilt.js';
 import {
   createAuthClient,
   type SupabaseAuthClient,
@@ -351,6 +352,9 @@ app.get('/api/stats/:discordId', async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 });
+
+// Tilt events API routes
+app.use('/api/tilt', tiltRoutes);
 
 // Get leaderboard
 app.get('/api/leaderboard', async (req, res) => {

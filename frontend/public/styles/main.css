@@ -89,7 +89,7 @@ body {
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: clamp(1rem, 2vw, 1.5rem);
+  gap: clamp(1.5rem, 3vw, 2rem); /* Increased gap for better spacing */
   padding: var(--space-md) var(--container-padding);
   background: var(--bg-secondary);
   border-bottom: 1px solid var(--border-subtle);
@@ -459,7 +459,7 @@ body {
 
 .tools-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); /* Mobile-friendly: 280px instead of 300px */
   gap: var(--space-xl);
   max-width: var(--container-max);
   margin: 0 auto;

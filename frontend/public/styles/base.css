@@ -63,7 +63,6 @@ header nav a:focus-visible {
 
 /* Typography helpers */
 .lede { font-size: 1.15rem; line-height: 1.8; color: var(--color-text-secondary); }
-.lede-accent { font-size: 1.3rem; line-height: 1.8; font-weight:600; color: var(--color-accent); }
 .heading-accent { color: var(--color-accent); }
 .text-muted { color: var(--color-text-muted); }
 

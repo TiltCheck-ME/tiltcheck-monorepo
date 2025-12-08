@@ -29,6 +29,7 @@ export { tip } from './tip.js';
 export { support } from './support.js';
 export { trustDashboard as trust } from './trust.js';
 export { tiltcheck } from './tiltcheck.js';
+export { data as dashboardData, execute as dashboardExecute } from './dashboard.js';
 
 // Cooldown and vault management
 export { cooldown, tilt } from './cooldown.js';
