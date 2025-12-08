@@ -210,11 +210,6 @@ Use the unified Dockerfile at root with Render's native Docker support.
 railway up
 ```
 
-### Fly.io
-```bash
-fly deploy
-```
-
 ### DigitalOcean App Platform
 Connect GitHub repo and use Docker Compose deployment.
 
@@ -227,7 +222,6 @@ Connect GitHub repo and use Docker Compose deployment.
 | `.env.docker.example` | Environment template |
 | `Dockerfile` | Unified monorepo build |
 | `Procfile` | Process orchestration (Heroku) |
-| `fly.toml` | Fly.io configuration |
 
 ---
 

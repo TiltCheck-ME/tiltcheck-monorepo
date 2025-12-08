@@ -53,10 +53,10 @@ TiltCheck uses a **hybrid deployment** for optimal performance:
 | Component | Type | Why | Recommended Host |
 |-----------|------|-----|------------------|
 | Landing page (`services/landing`) | Static | Marketing pages, instant loading | Vercel, Netlify, Cloudflare Pages |
-| Dashboard (`apps/dashboard`) | Next.js SSR | User auth, interactive tools | Render, Railway, Fly.io |
-| Game Arena (`services/game-arena`) | Node.js | Real-time games (DA&D, poker) | Render, Railway, Fly.io |
-| Discord Bot (`apps/discord-bot`) | Node.js | Always-on bot | Render, Railway, Fly.io |
-| API Services | Node.js | Backend APIs | Render, Railway, Fly.io |
+| Dashboard (`apps/dashboard`) | Next.js SSR | User auth, interactive tools | Railway, Render |
+| Game Arena (`services/game-arena`) | Node.js | Real-time games (DA&D, poker) | Railway, Render |
+| Discord Bot (`apps/discord-bot`) | Node.js | Always-on bot | Railway, Render |
+| API Services | Node.js | Backend APIs | Railway, Render |
 
 ### Why Split Deployment?
 
@@ -114,15 +114,7 @@ railway login
 railway up
 ```
 
-### Option 3: Fly.io
-```bash
-# Uses fly.toml configuration
-fly deploy
-```
-
-> ⚠️ **Cold Start Warning:** Free tiers on Render/Railway "spin down" after inactivity, causing 30-60 second delays. To avoid this:
-> - Use a paid tier ($7/month on Render)
-> - Or use a health check service like UptimeRobot to ping every 5 minutes
+> ⚠️ **Cold Start Warning:** Railway's free tier may experience brief delays during startup. For production, use a paid plan ($5/month minimum).
 
 ---
 

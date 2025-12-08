@@ -48,18 +48,17 @@ cat data/justthetip-wallets.json | jq '.wallets'
 
 ## Deployment
 
-### To Fly.io (TiltCheck main app)
+### To Railway
 ```bash
 git add -A
 git commit -m "your changes"
 git push origin main
-# Fly auto-deploys on push
+# Railway auto-deploys on push to main
 ```
 
-### To Railway (if needed)
+Alternatively, trigger a manual deploy:
 ```bash
 railway up
-# Or Railway auto-deploys on push if webhooks are configured
 ```
 
 ## Notes

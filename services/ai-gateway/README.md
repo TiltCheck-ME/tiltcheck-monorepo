@@ -207,7 +207,7 @@ The AI Gateway is **production-ready** with OpenAI integration:
 
 1. Set `OPENAI_API_KEY` environment variable
 2. Optionally set `OPENAI_MODEL` (default: `gpt-4o-mini` for cost efficiency)
-3. Deploy to any Node.js host (Render, Railway, Fly.io, etc.)
+3. Deploy to Railway, Render, or any Node.js host
 
 ### Response Format
 All responses include a `source` field indicating whether the response came from:
@@ -234,70 +234,53 @@ All responses include a `source` field indicating whether the response came from
 | Recommendations | 500 | $0.08 |
 | Support | 220 | $0.04 |
 
-## Fly.io Deployment
+## Railway Deployment
 
-### 1. Install Fly CLI
+### 1. Install Railway CLI
 ```bash
-# macOS
-brew install flyctl
-
-# Linux
-curl -L https://fly.io/install.sh | sh
-
-# Windows
-powershell -Command "iwr https://fly.io/install.ps1 -useb | iex"
+npm i -g @railway/cli
 ```
 
-### 2. Login & Create App
+### 2. Login & Deploy
 ```bash
 cd services/ai-gateway
-fly auth login
-fly launch --no-deploy
+railway login
+railway up
 ```
 
-### 3. Set Secrets
+### 3. Set Environment Variables
+
+In Railway dashboard or via CLI:
 ```bash
 # Required: OpenAI API Key
-fly secrets set OPENAI_API_KEY=sk-your-api-key-here
+railway variables set OPENAI_API_KEY=sk-your-api-key-here
 
 # Optional: Model selection (default: gpt-4o-mini)
-fly secrets set OPENAI_MODEL=gpt-4o-mini
+railway variables set OPENAI_MODEL=gpt-4o-mini
 ```
 
-### 4. Deploy
+### 4. Verify Deployment
 ```bash
-fly deploy
+# Check status and logs in Railway dashboard
+# Or via CLI:
+railway logs
 ```
 
-### 5. Verify Deployment
+### 5. Test API Endpoints
 ```bash
-# Check status
-fly status
+# Get your Railway service URL from dashboard, then:
+curl https://your-service.railway.app/health
 
-# View logs
-fly logs
-
-# Test health endpoint
-curl https://tiltcheck-ai-gateway.fly.dev/health
-```
-
-### 6. Test API Endpoints
-```bash
 # Test moderation
-curl -X POST https://tiltcheck-ai-gateway.fly.dev/api/moderation \
+curl -X POST https://your-service.railway.app/api/moderation \
   -H "Content-Type: application/json" \
   -d '{"prompt": "Check this link!", "context": {"url": "https://example.com"}}'
 
 # Test support
-curl -X POST https://tiltcheck-ai-gateway.fly.dev/api/support \
+curl -X POST https://your-service.railway.app/api/support \
   -H "Content-Type: application/json" \
   -d '{"prompt": "How do I withdraw my earnings?"}'
 ```
-
-### Fly.io Free Tier
-- 3 shared-cpu-1x VMs with 256MB RAM
-- 160GB outbound data transfer
-- Perfect for AI Gateway (low memory, burst CPU)
 
 ## API Endpoints
 

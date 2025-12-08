@@ -242,7 +242,6 @@ Agent tracks recurring events (e.g., monthly hackathons)
 - Cloudflare  
 - Supabase  
 - GitHub  
-- Fly.io  
 - Railway  
 
 ### **4. Startup Programs**
