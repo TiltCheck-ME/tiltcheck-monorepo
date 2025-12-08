@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <title>TiltCheck - Casino Trust Dashboard</title>
   <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <link rel="stylesheet" href="/styles/sidebar-nav.css">
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     
@@ -337,19 +338,6 @@
   </style>
 </head>
 <body>
-  <!-- Navigation -->
-  <nav class="navbar">
-    <div class="nav-container">
-      <a href="/" class="nav-logo">🎮 TiltCheck</a>
-      <ul class="nav-menu">
-        <li><a href="/" class="nav-link">Home</a></li>
-        <li><a href="/dashboard" class="nav-link active">Trust Dashboard</a></li>
-        <li><a href="/#features" class="nav-link">Features</a></li>
-        <li><a href="/#tools" class="nav-link">Tools</a></li>
-      </ul>
-    </div>
-  </nav>
-
   <div class="container">
     <div class="dashboard-header">
       <h1>Casino <span class="highlight">Trust Dashboard</span></h1>
@@ -422,6 +410,8 @@
     window.TRUST_API_URL = window.TRUST_API_URL || '';
   </script>
   <script src="trust-dashboard.js" type="module"></script>
+  <!-- Sidebar Navigation -->
+  <script src="/js/navigation.js"></script>
   <!-- TiltCheck AI Chatbot Widget -->
   <script src="/chatbot-widget.js"></script>
 </body>
