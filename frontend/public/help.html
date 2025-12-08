@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Get help with TiltCheck. Find answers to common questions, contact support, and learn how to use our tools.">
+  <meta name="theme-color" content="#00d4aa">
+  <title>Help & Support - TiltCheck</title>
+  <link rel="stylesheet" href="/styles/theme.css">
+  <link rel="stylesheet" href="/styles/main.css">
+  <link rel="manifest" href="/manifest.json">
+  <link rel="icon" type="image/svg+xml" href="/assets/logo/favicon-white.svg">
+  <style>
+    main {
+      padding: 4rem 2rem;
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+
+    .breadcrumb {
+      color: var(--color-text-secondary);
+      margin-bottom: 2rem;
+      font-size: 0.875rem;
+    }
+
+    .breadcrumb a {
+      color: var(--color-primary);
+      text-decoration: none;
+      transition: color 0.3s ease;
+    }
+
+    .breadcrumb a:hover {
+      color: #00a8ff;
+    }
+
+    h1 {
+      font-size: 2.5rem;
+      margin-bottom: 0.5rem;
+      color: white;
+      font-weight: 700;
+    }
+
+    .subtitle {
+      color: var(--color-text-secondary);
+      margin-bottom: 3rem;
+      font-size: 1.125rem;
+    }
+
+    .help-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 2rem;
+      margin-bottom: 4rem;
+    }
+
+    .help-card {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(0, 212, 170, 0.1);
+      border-radius: 1rem;
+      padding: 2rem;
+      transition: all 0.3s ease;
+      cursor: pointer;
+    }
+
+    .help-card:hover {
+      background: rgba(255, 255, 255, 0.05);
+      border-color: rgba(0, 212, 170, 0.3);
+      transform: translateY(-4px);
+    }
+
+    .help-card-icon {
+      font-size: 2.5rem;
+      margin-bottom: 1rem;
+    }
+
+    .help-card h3 {
+      color: white;
+      margin-bottom: 0.75rem;
+      font-size: 1.25rem;
+    }
+
+    .help-card p {
+      color: var(--color-text-secondary);
+      font-size: 0.95rem;
+      line-height: 1.6;
+      margin-bottom: 1rem;
+    }
+
+    .help-card-link {
+      color: var(--color-primary);
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 0.875rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      transition: color 0.3s ease;
+    }
+
+    .help-card-link:hover {
+      color: #00a8ff;
+    }
+
+    .faq-section {
+      margin-bottom: 4rem;
+    }
+
+    .faq-section h2 {
+      color: white;
+      margin-bottom: 1.5rem;
+      font-size: 1.5rem;
+    }
+
+    .faq-item {
+      background: rgba(255, 255, 255, 0.02);
+      border-left: 3px solid rgba(0, 212, 170, 0.3);
+      padding: 1.5rem;
+      margin-bottom: 1rem;
+      border-radius: 0.5rem;
+    }
+
+    .faq-item h4 {
+      color: var(--color-primary);
+      margin-bottom: 0.75rem;
+      font-size: 1rem;
+      font-weight: 600;
+    }
+
+    .faq-item p {
+      color: var(--color-text-secondary);
+      margin: 0;
+      font-size: 0.95rem;
+      line-height: 1.6;
+    }
+
+    .contact-section {
+      background: linear-gradient(135deg, rgba(0, 212, 170, 0.1) 0%, rgba(0, 168, 255, 0.1) 100%);
+      border: 1px solid rgba(0, 212, 170, 0.2);
+      border-radius: 1rem;
+      padding: 2rem;
+      text-align: center;
+    }
+
+    .contact-section h2 {
+      color: white;
+      margin-bottom: 1rem;
+    }
+
+    .contact-section p {
+      color: var(--color-text-secondary);
+      margin-bottom: 1.5rem;
+      font-size: 1rem;
+      line-height: 1.6;
+    }
+
+    .contact-buttons {
+      display: flex;
+      justify-content: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      padding: 0.75rem 1.5rem;
+      border: none;
+      border-radius: 0.5rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .btn-primary {
+      background: var(--color-primary);
+      color: #1a1a2e;
+    }
+
+    .btn-primary:hover {
+      background: #00a8ff;
+      transform: translateY(-2px);
+    }
+
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.1);
+      color: white;
+      border: 1px solid rgba(0, 212, 170, 0.3);
+    }
+
+    .btn-secondary:hover {
+      background: rgba(0, 212, 170, 0.1);
+    }
+
+    @media (max-width: 768px) {
+      main {
+        padding: 2rem 1rem;
+      }
+
+      h1 {
+        font-size: 1.875rem;
+      }
+
+      .help-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .contact-buttons {
+        flex-direction: column;
+      }
+
+      .btn {
+        width: 100%;
+        justify-content: center;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main id="main-content">
+    <nav class="breadcrumb">
+      <a href="/">Home</a> / <span>Help & Support</span>
+    </nav>
+
+    <h1>Help & Support</h1>
+    <p class="subtitle">Find answers to your questions and get support from our community.</p>
+
+    <!-- Quick Links -->
+    <div class="help-grid">
+      <div class="help-card">
+        <div class="help-card-icon">❓</div>
+        <h3>FAQ</h3>
+        <p>Find answers to common questions about TiltCheck, trust scoring, and how our tools work.</p>
+        <a href="/faq.html" class="help-card-link">Read FAQ →</a>
+      </div>
+
+      <div class="help-card">
+        <div class="help-card-icon">🛠️</div>
+        <h3>How It Works</h3>
+        <p>Learn how TiltCheck tools function and how to get the most out of our ecosystem.</p>
+        <a href="/how-it-works.html" class="help-card-link">Learn More →</a>
+      </div>
+
+      <div class="help-card">
+        <div class="help-card-icon">🎯</div>
+        <h3>Trust System</h3>
+        <p>Understand how our trust scoring algorithm works and what metrics we track.</p>
+        <a href="/trust-explained.html" class="help-card-link">Understand Trust →</a>
+      </div>
+
+      <div class="help-card">
+        <div class="help-card-icon">📖</div>
+        <h3>Developer Docs</h3>
+        <p>Access API documentation and integration guides for developers.</p>
+        <a href="/docs/" class="help-card-link" target="_blank">View Docs →</a>
+      </div>
+
+      <div class="help-card">
+        <div class="help-card-icon">🛡️</div>
+        <h3>Security</h3>
+        <p>Learn about our security practices and how we protect your data.</p>
+        <a href="/privacy.html" class="help-card-link">Security & Privacy →</a>
+      </div>
+
+      <div class="help-card">
+        <div class="help-card-icon">🌐</div>
+        <h3>Site Map</h3>
+        <p>Browse a complete map of all pages and tools available in TiltCheck.</p>
+        <a href="/site-map.html" class="help-card-link">Explore →</a>
+      </div>
+    </div>
+
+    <!-- Common Issues -->
+    <div class="faq-section">
+      <h2>Quick Answers</h2>
+
+      <div class="faq-item">
+        <h4>How do I sign up?</h4>
+        <p>Click the "Login" button at the top-right and connect with your Discord account. Your account is created automatically.</p>
+      </div>
+
+      <div class="faq-item">
+        <h4>What happens to my data?</h4>
+        <p>We only store your Discord username and avatar. We never access your passwords or personal messages. Read our <a href="/privacy.html" style="color: var(--color-primary);">Privacy Policy</a> for details.</p>
+      </div>
+
+      <div class="faq-item">
+        <h4>How do I report a scam or problem?</h4>
+        <p>Use the <a href="/contact.html" style="color: var(--color-primary);">Contact form</a> to report issues, or reach out in our <a href="https://discord.gg/s6NNfPHxMS" target="_blank" rel="noopener" style="color: var(--color-primary);">Discord community</a>.</p>
+      </div>
+
+      <div class="faq-item">
+        <h4>Is TiltCheck free?</h4>
+        <p>Yes! All core features are free. Most tools and trust scoring are available to everyone. Some premium features may be added later.</p>
+      </div>
+
+      <div class="faq-item">
+        <h4>Can I delete my account?</h4>
+        <p>Yes. Contact support with your request and we'll delete your data within 30 days.</p>
+      </div>
+
+      <div class="faq-item">
+        <h4>Do you have a mobile app?</h4>
+        <p>We offer a PWA (Progressive Web App) that works on mobile. Click "Install PWA" on the dashboard or use your browser's "Add to Home Screen" option.</p>
+      </div>
+    </div>
+
+    <!-- Contact Section -->
+    <div class="contact-section">
+      <h2>Still need help?</h2>
+      <p>Our community is here to support you. Reach out via contact form, Discord, or check our documentation.</p>
+      <div class="contact-buttons">
+        <a href="/contact.html" class="btn btn-primary">📧 Contact Support</a>
+        <a href="https://discord.gg/s6NNfPHxMS" target="_blank" rel="noopener" class="btn btn-secondary">💬 Join Discord</a>
+        <a href="https://github.com/jmenichole/tiltcheck-monorepo" target="_blank" rel="noopener" class="btn btn-secondary">🔗 GitHub</a>
+      </div>
+    </div>
+  </main>
+</body>
+</html>
