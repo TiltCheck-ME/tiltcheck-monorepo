@@ -2,47 +2,69 @@
 # Split deployment: Static landing + Dynamic app services
 
 services:
-  # Static landing page - serves instantly from CDN (no cold starts)
-  - type: static
-    name: tiltcheck-landing
-    buildCommand: echo "Static site - no build needed"
-    staticPublishPath: services/landing/public
-    headers:
-      - path: /assets/*
-        name: Cache-Control
-        value: public, max-age=31536000, immutable
-      - path: /*
-        name: X-Frame-Options
-        value: DENY
-      - path: /*
-        name: X-Content-Type-Options
-        value: nosniff
-    routes:
-      - type: rewrite
-        source: /*
-        destination: /404.html
-
-  # Next.js Dashboard (user accounts, tools, interactive features)
-  # This needs a web service for server-side rendering and API routes
+  # Unified Discord Bots - All bots in one Render container
   - type: web
-    name: tiltcheck-dashboard
-    runtime: node
-    buildCommand: pnpm install && pnpm --filter @tiltcheck/dashboard build
-    startCommand: pnpm --filter @tiltcheck/dashboard start
+    name: tiltcheck-bots
+    env: docker
+    plan: free
+    dockerfilePath: ./Dockerfile.bots
+    numInstances: 1
+    autoDeploy: true
+    repo: https://github.com/jmenichole/tiltcheck-monorepo
+    branch: main
+    # Bots don't expose HTTP ports, so no healthcheck
     envVars:
+      # Discord Bot Tokens & Config
+      - key: DISCORD_TOKEN
+        scope: runtime
+        sync: false
+      - key: DISCORD_CLIENT_ID
+        scope: runtime
+        sync: false
+      - key: DISCORD_GUILD_ID
+        scope: runtime
+        sync: false
+      - key: JUSTTHETIP_DISCORD_BOT_TOKEN
+        scope: runtime
+        sync: false
+      - key: JUSTTHETIP_DISCORD_CLIENT_ID
+        scope: runtime
+        sync: false
+      - key: JUSTTHETIP_FEE_WALLET
+        scope: runtime
+        sync: false
+      # Discord Alert Channels
+      - key: TRUST_ALERTS_CHANNEL_ID
+        scope: runtime
+        sync: false
+      - key: SUPPORT_CHANNEL_ID
+        scope: runtime
+        sync: false
+      # Supabase (data persistence)
+      - key: SUPABASE_URL
+        scope: runtime
+        sync: false
+      - key: SUPABASE_ANON_KEY
+        scope: runtime
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        scope: runtime
+        sync: false
+      - key: SUPABASE_PUBLISHABLE_KEY
+        scope: runtime
+        sync: false
+      # Solana
+      - key: SOLANA_RPC_URL
+        value: https://api.mainnet-beta.solana.com
+        scope: runtime
+      - key: SOLANA_NETWORK
+        value: mainnet-beta
+        scope: runtime
+      # Backend API URL (Railway backend endpoint)
+      - key: BACKEND_API_URL
+        value: https://api.tiltcheck.com
+        scope: runtime
       - key: NODE_ENV
         value: production
-      - key: PORT
-        value: 3000
-    healthCheckPath: /api/health
-
-  # Game Arena (DA&D, poker, etc.) - Real-time game server
-  - type: web
-    name: tiltcheck-game-arena
-    runtime: node
-    buildCommand: pnpm install && pnpm --filter @tiltcheck/game-arena build
-    startCommand: pnpm --filter @tiltcheck/game-arena start
-    envVars:
-      - key: NODE_ENV
-        value: production
+        scope: runtime
 

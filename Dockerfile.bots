@@ -1,108 +1,84 @@
-# Combined bots container: runs main discord-bot and dad-bot together via PM2
+# Unified Discord Bots Container (Render Deployment)
+# Runs all Discord bots: dad-bot, discord-bot, JustTheTip in one container
 
-FROM node:20-alpine AS builder
+FROM node:20-alpine
 
 RUN npm install -g pnpm@9
 ENV CI=true
+ENV NODE_ENV=production
+
 WORKDIR /app
 
-# Root workspace files
+# Copy workspace files
 COPY package.json pnpm-workspace.yaml pnpm-lock.yaml .npmrc tsconfig.json ./
 
-# Pre-copy package.json files to optimize installs (monorepo layout)
-# Packages
+# Copy bot package.json files
+COPY apps/dad-bot/package.json ./apps/dad-bot/
+COPY apps/discord-bot/package.json ./apps/discord-bot/
+COPY bot/package.json ./bot/
+
+# Copy package dependencies
 COPY packages/types/package.json ./packages/types/
 COPY packages/config/package.json ./packages/config/
+COPY packages/database/package.json ./packages/database/
 COPY packages/discord-utils/package.json ./packages/discord-utils/
 COPY packages/esm-utils/package.json ./packages/esm-utils/
-COPY packages/database/package.json ./packages/database/
-COPY packages/express-utils/package.json ./packages/express-utils/
-COPY packages/identity-core/package.json ./packages/identity-core/
-COPY packages/natural-language-parser/package.json ./packages/natural-language-parser/
 COPY packages/supabase-auth/package.json ./packages/supabase-auth/
-
-# Services (only needed for shared deps build graph)
 COPY services/event-router/package.json ./services/event-router/
-COPY services/trust-engines/package.json ./services/trust-engines/
-COPY services/pricing-oracle/package.json ./services/pricing-oracle/
-COPY services/trust-rollup/package.json ./services/trust-rollup/
 
-# Modules used by bots
-COPY modules/suslink/package.json ./modules/suslink/
-COPY modules/justthetip/package.json ./modules/justthetip/
-COPY modules/collectclock/package.json ./modules/collectclock/
-COPY modules/freespinscan/package.json ./modules/freespinscan/
-COPY modules/triviadrops/package.json ./modules/triviadrops/
-COPY modules/poker/package.json ./modules/poker/
-COPY modules/tiltcheck-core/package.json ./modules/tiltcheck-core/
-COPY modules/lockvault/package.json ./modules/lockvault/
-COPY modules/dad/package.json ./modules/dad/
-COPY modules/linkguard/package.json ./modules/linkguard/
-COPY modules/qualifyfirst/package.json ./modules/qualifyfirst/
+# Copy all source code
+COPY apps/dad-bot/ ./apps/dad-bot/
+COPY apps/discord-bot/ ./apps/discord-bot/
+COPY bot/ ./bot/
+COPY packages/ ./packages/
+COPY services/event-router/ ./services/event-router/
 
-# Apps
-COPY apps/discord-bot/package.json ./apps/discord-bot/
-COPY apps/dad-bot/package.json ./apps/dad-bot/
-
-# Install deps
+# Install dependencies
 RUN pnpm install --frozen-lockfile
 
-# Copy sources
-COPY packages ./packages
-COPY services ./services
-COPY modules ./modules
-COPY apps ./apps
+# Build all bots and dependencies
+RUN pnpm -r --filter @tiltcheck/dad-bot --filter @tiltcheck/discord-bot --filter @tiltcheck/bot build
 
-# Build all
-RUN pnpm -r build
+# Install production dependencies only
+RUN pnpm install --prod --frozen-lockfile --ignore-scripts
 
-
-FROM node:20-alpine AS runtime
-
-RUN npm install -g pnpm@9 pm2@5
-ENV CI=true
-WORKDIR /app
-
-# Copy workspace manifests (so require paths resolve)
-COPY package.json pnpm-workspace.yaml pnpm-lock.yaml .npmrc ./
-
-# Copy built artifacts and minimal runtime files
-# Packages
-COPY --from=builder /app/packages/types/dist ./packages/types/dist
-COPY --from=builder /app/packages/config/dist ./packages/config/dist
-COPY --from=builder /app/packages/discord-utils/dist ./packages/discord-utils/dist
-COPY --from=builder /app/packages/esm-utils/dist ./packages/esm-utils/dist
-COPY --from=builder /app/packages/database/dist ./packages/database/dist
-COPY --from=builder /app/packages/identity-core/dist ./packages/identity-core/dist
-COPY --from=builder /app/packages/natural-language-parser/dist ./packages/natural-language-parser/dist
-COPY --from=builder /app/packages/supabase-auth/dist ./packages/supabase-auth/dist
-COPY --from=builder /app/packages/express-utils/src ./packages/express-utils/src
-
-# Modules used by bots
-COPY --from=builder /app/modules/suslink/dist ./modules/suslink/dist
-COPY --from=builder /app/modules/justthetip/dist ./modules/justthetip/dist
-COPY --from=builder /app/modules/collectclock/dist ./modules/collectclock/dist
-COPY --from=builder /app/modules/freespinscan/dist ./modules/freespinscan/dist
-COPY --from=builder /app/modules/triviadrops/dist ./modules/triviadrops/dist
-COPY --from=builder /app/modules/poker/dist ./modules/poker/dist
-COPY --from=builder /app/modules/tiltcheck-core/dist ./modules/tiltcheck-core/dist
-COPY --from=builder /app/modules/lockvault/dist ./modules/lockvault/dist
-COPY --from=builder /app/modules/dad/dist ./modules/dad/dist
-COPY --from=builder /app/modules/linkguard/dist ./modules/linkguard/dist
-COPY --from=builder /app/modules/qualifyfirst/dist ./modules/qualifyfirst/dist
-
-# Apps (dist)
-COPY --from=builder /app/apps/discord-bot/dist ./apps/discord-bot/dist
-COPY --from=builder /app/apps/dad-bot/dist ./apps/dad-bot/dist
-
-# PM2 ecosystem to run both
-COPY ecosystem.bots.config.js ./ecosystem.bots.config.js
-
-# Create data dir if needed
+# Create data directory for persistence
 RUN mkdir -p /app/data
 
-# Default ports (Hyperlift typically expects 8080; bots don't serve HTTP by default)
-ENV PORT=8080
+# Start script that runs all three bots in parallel
+RUN cat > /app/start-bots.sh << 'BOTEOF'
+#!/bin/sh
+set -e
 
-# Use pm2-runtime for proper signal handling
-CMD ["pm2-runtime", "start", "ecosystem.bots.config.js"]
+echo "Starting TiltCheck Discord Bots..."
+
+# Start all bots in background
+if [ -f ./apps/dad-bot/dist/index.js ]; then
+  echo "Starting DA&D Bot..."
+  node ./apps/dad-bot/dist/index.js &
+  DAD_PID=$!
+fi
+
+if [ -f ./apps/discord-bot/dist/index.js ]; then
+  echo "Starting Main Discord Bot..."
+  node ./apps/discord-bot/dist/index.js &
+  DISCORD_PID=$!
+fi
+
+if [ -f ./bot/dist/index.js ]; then
+  echo "Starting JustTheTip Bot..."
+  node ./bot/dist/index.js &
+  JTT_PID=$!
+fi
+
+# Keep container alive and handle signals
+trap 'echo "Shutting down bots..."; kill $DAD_PID $DISCORD_PID $JTT_PID 2>/dev/null; exit 0' SIGTERM SIGINT
+
+wait
+
+BOTEOF
+
+RUN chmod +x /app/start-bots.sh
+
+# No ports exposed (Discord bots connect via WebSocket to Discord)
+CMD ["/app/start-bots.sh"]

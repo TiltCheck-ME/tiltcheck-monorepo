@@ -22,15 +22,15 @@ COPY modules/dad/package.json ./modules/dad/
 COPY modules/poker/package.json ./modules/poker/
 COPY backend/package.json ./backend/
 
-# Install dependencies with frozen lockfile for reproducible builds
-RUN pnpm install --frozen-lockfile
-
 # Copy all source code
 COPY packages/ ./packages/
 COPY services/event-router/ ./services/event-router/
 COPY modules/dad/ ./modules/dad/
 COPY modules/poker/ ./modules/poker/
 COPY backend/ ./backend/
+
+# Install dependencies after sources are in place to preserve workspace node_modules links
+RUN pnpm install --frozen-lockfile
 
 # Build all packages recursively
 RUN pnpm -r build

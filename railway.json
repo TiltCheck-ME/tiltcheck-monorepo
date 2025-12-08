@@ -5,9 +5,11 @@
     "dockerfile": "./backend/Dockerfile"
   },
   "deploy": {
-    "startCommand": "cd backend && node dist/index.js",
+    "startCommand": "node backend/dist/server.js",
     "healthcheckPath": "/health",
     "healthcheckInterval": 10,
-    "restartPolicyMaxRetries": 5
+    "healthcheckTimeout": 5,
+    "restartPolicyMaxRetries": 5,
+    "restartPolicyType": "on_failure"
   }
 }
