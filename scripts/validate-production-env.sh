@@ -140,7 +140,7 @@ check_discord_config() {
     log_info "Validating Discord configuration..."
     
     check_var "DISCORD_TOKEN" "true" "Discord bot authentication token"
-    check_var_format "DISCORD_TOKEN" "^[A-Za-z0-9_\.-]{50,}" "Should start with Bot token format"
+    check_var_format "DISCORD_TOKEN" "^[A-Za-z0-9_\.-]{50,}" "Should be at least 50 characters (Discord bot token)"
     
     check_var "DISCORD_CLIENT_ID" "true" "Discord application client ID"
     check_var_format "DISCORD_CLIENT_ID" "^[0-9]{17,19}$" "Should be 17-19 digit snowflake ID"
@@ -194,7 +194,7 @@ check_ai_config() {
     log_info "Validating AI Gateway configuration..."
     
     check_var "OPENAI_API_KEY" "false" "OpenAI API key for production AI features"
-    check_var_format "OPENAI_API_KEY" "^sk-[A-Za-z0-9]{32,}$" "Should start with 'sk-'"
+    check_var_format "OPENAI_API_KEY" "^sk-[A-Za-z0-9_-]{20,}$" "Should start with 'sk-' and contain valid characters"
     
     check_var "OPENAI_MODEL" "false" "OpenAI model selection (default: gpt-4o-mini)"
     
