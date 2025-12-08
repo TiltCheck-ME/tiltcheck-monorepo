@@ -22,6 +22,20 @@ COPY packages/express-utils/package.json ./packages/express-utils/
 COPY packages/identity-core/package.json ./packages/identity-core/
 COPY packages/natural-language-parser/package.json ./packages/natural-language-parser/
 COPY packages/supabase-auth/package.json ./packages/supabase-auth/
+COPY packages/ai-client/package.json ./packages/ai-client/
+COPY packages/analytics/package.json ./packages/analytics/
+COPY packages/api-client/package.json ./packages/api-client/
+COPY packages/api-response-types/package.json ./packages/api-response-types/
+COPY packages/auth/package.json ./packages/auth/
+COPY packages/db/package.json ./packages/db/
+COPY packages/error-factory/package.json ./packages/error-factory/
+COPY packages/event-types/package.json ./packages/event-types/
+COPY packages/logger/package.json ./packages/logger/
+COPY packages/monitoring/package.json ./packages/monitoring/
+COPY packages/retry-utility/package.json ./packages/retry-utility/
+COPY packages/trust-score-types/package.json ./packages/trust-score-types/
+COPY packages/utils/package.json ./packages/utils/
+COPY packages/validator/package.json ./packages/validator/
 
 # Services
 COPY services/event-router/package.json ./services/event-router/
@@ -95,6 +109,20 @@ COPY packages/express-utils/package.json ./packages/express-utils/
 COPY packages/identity-core/package.json ./packages/identity-core/
 COPY packages/natural-language-parser/package.json ./packages/natural-language-parser/
 COPY packages/supabase-auth/package.json ./packages/supabase-auth/
+COPY packages/ai-client/package.json ./packages/ai-client/
+COPY packages/analytics/package.json ./packages/analytics/
+COPY packages/api-client/package.json ./packages/api-client/
+COPY packages/api-response-types/package.json ./packages/api-response-types/
+COPY packages/auth/package.json ./packages/auth/
+COPY packages/db/package.json ./packages/db/
+COPY packages/error-factory/package.json ./packages/error-factory/
+COPY packages/event-types/package.json ./packages/event-types/
+COPY packages/logger/package.json ./packages/logger/
+COPY packages/monitoring/package.json ./packages/monitoring/
+COPY packages/retry-utility/package.json ./packages/retry-utility/
+COPY packages/trust-score-types/package.json ./packages/trust-score-types/
+COPY packages/utils/package.json ./packages/utils/
+COPY packages/validator/package.json ./packages/validator/
 
 # Services
 COPY services/event-router/package.json ./services/event-router/
@@ -143,6 +171,20 @@ COPY --from=builder /app/packages/database/dist ./packages/database/dist
 COPY --from=builder /app/packages/identity-core/dist ./packages/identity-core/dist
 COPY --from=builder /app/packages/natural-language-parser/dist ./packages/natural-language-parser/dist
 COPY --from=builder /app/packages/supabase-auth/dist ./packages/supabase-auth/dist
+COPY --from=builder /app/packages/ai-client/dist ./packages/ai-client/dist
+COPY --from=builder /app/packages/analytics/dist ./packages/analytics/dist
+COPY --from=builder /app/packages/api-client/dist ./packages/api-client/dist
+COPY --from=builder /app/packages/api-response-types/dist ./packages/api-response-types/dist
+COPY --from=builder /app/packages/auth/dist ./packages/auth/dist
+COPY --from=builder /app/packages/db/dist ./packages/db/dist
+COPY --from=builder /app/packages/error-factory/dist ./packages/error-factory/dist
+COPY --from=builder /app/packages/event-types/dist ./packages/event-types/dist
+COPY --from=builder /app/packages/logger/dist ./packages/logger/dist
+COPY --from=builder /app/packages/monitoring/dist ./packages/monitoring/dist
+COPY --from=builder /app/packages/retry-utility/dist ./packages/retry-utility/dist
+COPY --from=builder /app/packages/trust-score-types/dist ./packages/trust-score-types/dist
+COPY --from=builder /app/packages/utils/dist ./packages/utils/dist
+COPY --from=builder /app/packages/validator/dist ./packages/validator/dist
 
 # Copy express-utils source (no build script, uses source files directly)
 COPY --from=builder /app/packages/express-utils/src ./packages/express-utils/src
