@@ -10,6 +10,8 @@ import { Client, GatewayIntentBits, Partials } from 'discord.js';
 import http from 'http';
 import { config, validateConfig } from './config.js';
 import { CommandHandler, EventHandler, registerDMHandler } from './handlers/index.js';
+import { initializeAlertService } from './services/alert-service.js';
+import { TrustAlertsHandler } from './handlers/trust-alerts-handler.js';
 
 // Import modules to initialize them
 import '@tiltcheck/suslink';
@@ -41,6 +43,12 @@ async function main() {
   // Initialize handlers
   const commandHandler = new CommandHandler();
   const eventHandler = new EventHandler(client, commandHandler);
+
+  // Initialize alert service for posting to channels
+  initializeAlertService(client);
+
+  // Initialize trust alerts handler to post events to Discord
+  TrustAlertsHandler.initialize();
 
   // Register DM handler for natural language assistance
   registerDMHandler(client);

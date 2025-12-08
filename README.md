@@ -16,7 +16,7 @@
 
 <p align="center">
   <a href="https://discord.com/oauth2/authorize?client_id=1445916179163250860"><img src="https://img.shields.io/badge/Add%20to%20Discord-5865F2?style=for-the-badge&logo=discord&logoColor=white" alt="Add to Discord"></a>
-  <a href="https://discord.gg/s6NNfPHxMS"><img src="https://img.shields.io/badge/Join%20Community-5865F2?style=for-the-badge&logo=discord&logoColor=white" alt="Join Discord"></a>
+  <a href="https://discord.gg/PdjhpmRNdj"><img src="https://img.shields.io/badge/Join%20Community-5865F2?style=for-the-badge&logo=discord&logoColor=white" alt="Join Discord"></a>
 </p>
 
 **Built by a degen, for degens.**

@@ -7,6 +7,7 @@
 export { CommandHandler } from './commands.js';
 export { EventHandler } from './events.js';
 export { registerDMHandler, handleDirectMessage } from './dm-handler.js';
+export { TrustAlertsHandler } from './trust-alerts-handler.js';
 export { 
   checkAndOnboard, 
   needsOnboarding, 

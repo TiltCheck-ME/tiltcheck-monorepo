@@ -21,6 +21,13 @@ const __dirname = dirname(import.meta.url);
 // Load .env file relative to project root (one level up)
 dotenv.config({ path: path.join(__dirname, '../.env') });
 
+export interface AlertChannelsConfig {
+  /** Channel ID for trust/security alerts */
+  trustAlertsChannelId?: string;
+  /** Channel ID for support tickets */
+  supportChannelId?: string;
+}
+
 export interface ModNotificationConfig {
   /** Channel ID for mod notifications */
   modChannelId?: string;
@@ -53,6 +60,9 @@ export interface BotConfig {
   suslinkAutoScan: boolean;
   trustThreshold: number;
 
+  // Alert channels
+  alertChannels: AlertChannelsConfig;
+
   // Mod notifications
   modNotifications: ModNotificationConfig;
 }
@@ -73,6 +83,12 @@ export const config: BotConfig = {
   // Module settings
   suslinkAutoScan: getBoolEnv('SUSLINK_AUTO_SCAN', true),
   trustThreshold: getNumberEnv('TRUST_THRESHOLD', 60),
+
+  // Alert channels
+  alertChannels: {
+    trustAlertsChannelId: getEnvVar('TRUST_ALERTS_CHANNEL_ID', false),
+    supportChannelId: getEnvVar('SUPPORT_CHANNEL_ID', false),
+  },
 
   // Mod notifications
   modNotifications: {
@@ -102,6 +118,16 @@ export function validateConfig(): void {
   console.log('[Config] Configuration loaded successfully');
   console.log(`[Config] Environment: ${config.nodeEnv}`);
   console.log(`[Config] Auto-scan links: ${config.suslinkAutoScan}`);
+  
+  // Log alert channels
+  if (config.alertChannels.trustAlertsChannelId) {
+    console.log(`[Config] Trust alerts channel: ${config.alertChannels.trustAlertsChannelId}`);
+  }
+  if (config.alertChannels.supportChannelId) {
+    console.log(`[Config] Support tickets channel: ${config.alertChannels.supportChannelId}`);
+  }
+  
+  // Log mod notifications
   console.log(`[Config] Mod notifications: ${config.modNotifications.enabled ? 'enabled' : 'disabled'}`);
   if (config.modNotifications.enabled && config.modNotifications.modChannelId) {
     console.log(`[Config] Mod channel: ${config.modNotifications.modChannelId}`);

@@ -18,9 +18,13 @@ Then fill in your required values:
 ```bash
 # Required - Get from https://discord.com/developers/applications
 DISCORD_TOKEN=your_discord_bot_token
-DISCORD_CLIENT_ID=your_client_id
-DISCORD_GUILD_ID=your_guild_id
+DISCORD_CLIENT_ID=1445916179163250860
+DISCORD_GUILD_ID=1446973117472964620  # TiltCheck main server
 NODE_ENV=development
+
+# Optional - Alert channels (for trust and support alerts)
+TRUST_ALERTS_CHANNEL_ID=1447524353263665252
+SUPPORT_CHANNEL_ID=1447524748069306489
 
 # Optional but recommended
 SOLANA_RPC_URL=https://api.devnet.solana.com

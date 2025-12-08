@@ -68,3 +68,4 @@ data/justthetip-wallets.json
 age.agekey
 data/sessions.json
 apps/discord-bot/data/sessions.json
+.vercel
