@@ -40,7 +40,7 @@ jobs:
 
       - name: Cache pnpm dependencies
         id: pnpm-cache
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: |
             ${{ env.STORE_PATH }}
@@ -74,7 +74,7 @@ jobs:
         run: corepack prepare pnpm@9.0.0 --activate
 
       - name: Restore pnpm cache
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: |
             ~/.pnpm-store
@@ -111,7 +111,7 @@ jobs:
         run: corepack prepare pnpm@9.0.0 --activate
 
       - name: Restore pnpm cache
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: |
             ~/.pnpm-store
@@ -145,7 +145,7 @@ jobs:
         run: corepack prepare pnpm@9.0.0 --activate
 
       - name: Restore pnpm cache
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: |
             ~/.pnpm-store
@@ -192,7 +192,7 @@ jobs:
         run: corepack prepare pnpm@9.0.0 --activate
 
       - name: Restore pnpm cache
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: |
             ~/.pnpm-store
@@ -211,7 +211,7 @@ jobs:
         run: pnpm install
 
       - name: Cache build outputs
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: |
             **/dist
@@ -258,7 +258,7 @@ jobs:
         run: corepack prepare pnpm@9.0.0 --activate
 
       - name: Restore pnpm cache
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: |
             ~/.pnpm-store
