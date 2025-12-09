@@ -17,7 +17,7 @@
     "express-session": "^1.18.0",
     "socket.io": "^4.7.0",
     "uuid": "^9.0.0",
-    "multer": "^1.4.5-lts.1",
+    "multer": "^2.0.2",
     "@tiltcheck/types": "workspace:*",
     "@tiltcheck/event-router": "workspace:*",
     "@tiltcheck/dad": "workspace:*",
