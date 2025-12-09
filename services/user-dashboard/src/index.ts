@@ -333,10 +333,10 @@ app.get('/api/user/:discordId', authenticateToken as any, async (req: Authentica
     console.error('[UserDashboard] Error fetching user:', error);
     res.status(500).json({ error: 'Failed to fetch user data' });
   }
-}) as express.RequestHandler);
+});
 
 // Update user preferences
-app.put('/api/user/:discordId/preferences', authenticateToken, (async (req: AuthenticatedRequest, res: Response) => {
+app.put('/api/user/:discordId/preferences', authenticateToken as any, async (req: AuthenticatedRequest, res: Response) => {
   const { discordId } = req.params;
   const { preferences } = req.body;
   
@@ -362,10 +362,10 @@ app.put('/api/user/:discordId/preferences', authenticateToken, (async (req: Auth
     console.error('[UserDashboard] Error updating preferences:', error);
     res.status(500).json({ error: 'Failed to update preferences' });
   }
-}) as express.RequestHandler);
+});
 
 // Get user activity feed
-app.get('/api/user/:discordId/activity', authenticateToken, (async (req: AuthenticatedRequest, res: Response) => {
+app.get('/api/user/:discordId/activity', authenticateToken as any, async (req: AuthenticatedRequest, res: Response) => {
   const { discordId } = req.params;
   const { limit = 10 } = req.query;
   
@@ -402,10 +402,10 @@ app.get('/api/user/:discordId/activity', authenticateToken, (async (req: Authent
     console.error('[UserDashboard] Error fetching activity:', error);
     res.status(500).json({ error: 'Failed to fetch activity' });
   }
-}) as express.RequestHandler);
+});
 
 // Get user trust metrics
-app.get('/api/user/:discordId/trust', authenticateToken, (async (req: AuthenticatedRequest, res: Response) => {
+app.get('/api/user/:discordId/trust', authenticateToken as any, async (req: AuthenticatedRequest, res: Response) => {
   const { discordId } = req.params;
   
   if (req.user.discordId !== discordId && !isAdmin(req.user)) {
@@ -457,7 +457,7 @@ app.get('/api/user/:discordId/trust', authenticateToken, (async (req: Authentica
     console.error('[UserDashboard] Error fetching trust metrics:', error);
     res.status(500).json({ error: 'Failed to fetch trust metrics' });
   }
-}) as express.RequestHandler);
+});
 
 // Middleware functions
 function authenticateToken(req: AuthenticatedRequest, res: Response, next: NextFunction) {
