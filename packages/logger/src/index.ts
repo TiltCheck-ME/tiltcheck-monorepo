@@ -5,7 +5,16 @@
  * Provides consistent, environment-aware logging across all services.
  */
 
-import pino, { Logger, LoggerOptions } from 'pino';
+import * as pinoModule from 'pino';
+import type { Logger, LoggerOptions } from 'pino';
+
+// Extract the callable pino function from the module
+// pino exports both as namespace and as callable default
+const createPino = (pinoModule.default || pinoModule) as unknown as {
+  (options?: LoggerOptions): Logger;
+  (options: LoggerOptions, stream?: pinoModule.DestinationStream): Logger;
+  stdTimeFunctions: typeof pinoModule.stdTimeFunctions;
+};
 
 // ============================================================================
 // Types
@@ -44,7 +53,7 @@ export function createLogger(config: LoggerConfig): Logger {
       env: process.env.NODE_ENV || 'development',
       ...config.base,
     },
-    timestamp: pino.stdTimeFunctions.isoTime,
+    timestamp: createPino.stdTimeFunctions.isoTime,
     formatters: {
       level: (label) => ({ level: label }),
     },
@@ -52,7 +61,7 @@ export function createLogger(config: LoggerConfig): Logger {
 
   // Use pino-pretty transport in development
   if (pretty) {
-    return pino({
+    return createPino({
       ...options,
       transport: {
         target: 'pino-pretty',
@@ -66,7 +75,7 @@ export function createLogger(config: LoggerConfig): Logger {
   }
 
   // JSON logging for production
-  return pino(options);
+  return createPino(options);
 }
 
 // ============================================================================
@@ -193,5 +202,5 @@ export function fatal(msg: string, err?: Error | Record<string, unknown>): void 
 // Re-exports
 // ============================================================================
 
-export { Logger } from 'pino';
+export type { Logger } from 'pino';
 export default getLogger;
