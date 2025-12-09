@@ -8,8 +8,9 @@
 import * as pinoModule from 'pino';
 import type { Logger, LoggerOptions } from 'pino';
 
-// Extract the callable pino function from the module
-// pino exports both as namespace and as callable default
+// pino is a CommonJS module that exports both as a namespace (pino.*) 
+// and as a callable default function. With NodeNext module resolution,
+// we need to explicitly extract and type the callable function.
 const createPino = (pinoModule.default || pinoModule) as unknown as {
   (options?: LoggerOptions): Logger;
   (options: LoggerOptions, stream?: pinoModule.DestinationStream): Logger;
