@@ -3,7 +3,7 @@
  * Personal gambling data analysis with AI insights
  */
 
-import { Router } from 'express';
+import { Router, Request, Response } from 'express';
 import multer from 'multer';
 import { SupabaseClient } from '@supabase/supabase-js';
 
@@ -37,10 +37,11 @@ interface PatternInsight {
  * Upload game archive CSV/JSON
  * POST /api/admin/game-archive/upload
  */
-router.post('/upload', upload.single('archive'), async (req, res) => {
+router.post('/upload', upload.single('archive'), async (req: Request, res: Response): Promise<void> => {
   try {
     if (!req.file) {
-      return res.status(400).json({ error: 'No file uploaded' });
+      res.status(400).json({ error: 'No file uploaded' });
+      return;
     }
 
     const fileContent = req.file.buffer.toString('utf-8');
@@ -73,7 +74,7 @@ router.post('/upload', upload.single('archive'), async (req, res) => {
  * Get AI pattern insights from game archive
  * GET /api/admin/game-archive/insights
  */
-router.get('/insights', async (req, res) => {
+router.get('/insights', async (req: Request, res: Response): Promise<void> => {
   try {
     const supabase = req.app.get('supabase') as SupabaseClient;
     
@@ -86,7 +87,8 @@ router.get('/insights', async (req, res) => {
 
     if (error) throw error;
     if (!sessions || sessions.length === 0) {
-      return res.json({ insights: [], message: 'No data available' });
+      res.json({ insights: [], message: 'No data available' });
+      return;
     }
 
     // Run AI pattern recognition
@@ -110,12 +112,13 @@ router.get('/insights', async (req, res) => {
  * Get Stake.com data via API (optional)
  * POST /api/admin/game-archive/stake-import
  */
-router.post('/stake-import', async (req, res) => {
+router.post('/stake-import', async (req: Request, res: Response): Promise<void> => {
   try {
     const { apiKey, startDate, endDate } = req.body;
 
     if (!apiKey) {
-      return res.status(400).json({ error: 'Stake API key required' });
+      res.status(400).json({ error: 'Stake API key required' });
+      return;
     }
 
     // Fetch from Stake API
@@ -138,7 +141,7 @@ router.post('/stake-import', async (req, res) => {
     const supabase = req.app.get('supabase') as SupabaseClient;
     const { error } = await supabase
       .from('game_sessions')
-      .insert(sessions.map(s => ({
+      .insert(sessions.map((s: GameSession) => ({
         ...s,
         user_id: req.user?.id || 'admin',
         uploaded_at: new Date().toISOString()
