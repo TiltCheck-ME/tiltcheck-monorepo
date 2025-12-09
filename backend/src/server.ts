@@ -356,6 +356,10 @@ app.get('/api/stats/:discordId', async (req, res) => {
 // Tilt events API routes
 app.use('/api/tilt', tiltRoutes);
 
+// Game archive AI analysis routes (admin only)
+import gameArchiveRoutes from './routes/admin/game-archive.js';
+app.use('/api/admin/game-archive', gameArchiveRoutes);
+
 // Get leaderboard
 app.get('/api/leaderboard', async (req, res) => {
   const gameType = req.query.type as 'dad' | 'poker' | undefined;
