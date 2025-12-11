@@ -11,6 +11,7 @@ import { suslink } from '@tiltcheck/suslink';
 import { trackMessage } from '@tiltcheck/tiltcheck-core';
 import { config } from '../config.js';
 import type { CommandHandler } from './commands.js';
+import type { TiltCheckEvent } from '@tiltcheck/types';
 
 export class EventHandler {
   constructor(
@@ -108,7 +109,7 @@ export class EventHandler {
     // Subscribe to link flagged events (high-risk links)
     eventRouter.subscribe(
       'link.flagged',
-      async (event) => {
+      async (event: TiltCheckEvent) => {
         const { url, riskLevel } = event.data;
         
         console.log(
@@ -129,7 +130,7 @@ export class EventHandler {
     // Subscribe to tilt detected events (warn users on cooldown)
     eventRouter.subscribe(
       'tilt.detected',
-      async (event) => {
+      async (event: TiltCheckEvent) => {
         const { userId, reason, severity } = event.data;
         
         console.log(
@@ -155,7 +156,7 @@ export class EventHandler {
     // Subscribe to cooldown violation events
     eventRouter.subscribe(
       'cooldown.violated',
-      async (event) => {
+      async (event: TiltCheckEvent) => {
         const { userId, action, newDuration } = event.data;
         
         console.log(

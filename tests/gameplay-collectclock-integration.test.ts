@@ -118,7 +118,7 @@ describe('Gameplay Analyzer + CollectClock Integration', () => {
     
     // Subscribe to trust events
     await new Promise<void>((resolve) => {
-      eventRouter.subscribe('trust.casino.updated', (evt) => {
+      eventRouter.subscribe('trust.casino.updated', (evt: any) => {
         if (evt.source === 'collectclock' && evt.data.reason?.includes('Bonus nerf')) {
           trustEventReceived = true;
           expect(evt.data.severity).toBeGreaterThan(0);

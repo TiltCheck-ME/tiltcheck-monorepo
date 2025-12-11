@@ -16,7 +16,7 @@ describe('DA&D Module', () => {
       
       expect(packs.length).toBeGreaterThan(0);
       
-      const degenPack = packs.find(p => p.id === 'degen-starter');
+      const degenPack = packs.find((p: any) => p.id === 'degen-starter');
       expect(degenPack).toBeDefined();
       expect(degenPack?.name).toBe('Degen Starter Pack');
       expect(degenPack?.whiteCards.length).toBeGreaterThan(0);
@@ -44,7 +44,7 @@ describe('DA&D Module', () => {
 
       // Verify it's in the list
       const packs = module.getCardPacks();
-      expect(packs.some(p => p.id === pack.id)).toBe(true);
+      expect(packs.some((p: any) => p.id === pack.id)).toBe(true);
     });
   });
 
@@ -145,7 +145,7 @@ describe('DA&D Module', () => {
 
       // Check game started event was emitted
       const events = eventRouter.getHistory();
-      expect(events.some(e => e.type === 'game.started')).toBe(true);
+      expect(events.some((e: any) => e.type === 'game.started')).toBe(true);
     });
 
     it('should require at least 2 players to start', async () => {
@@ -188,7 +188,7 @@ describe('DA&D Module', () => {
 
       // Check event was emitted
       const events = eventRouter.getHistory();
-      expect(events.some(e => e.type === 'game.card.played')).toBe(true);
+      expect(events.some((e: any) => e.type === 'game.card.played')).toBe(true);
     });
 
     it('should require correct number of cards for blanks', async () => {
@@ -272,7 +272,7 @@ describe('DA&D Module', () => {
 
       const channelGames = module.getChannelGames('channel-1');
       expect(channelGames.length).toBe(2);
-      expect(channelGames.every(g => g.channelId === 'channel-1')).toBe(true);
+      expect(channelGames.every((g: any) => g.channelId === 'channel-1')).toBe(true);
     });
 
     it('should not return completed games', async () => {

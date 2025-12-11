@@ -40,19 +40,19 @@ function formatDegenTrust(evt: TrustDegenUpdateEvent): FormatterResult {
 }
 
 export function initFreeSpinsChannelBotTrustLogging() {
-  eventRouter.subscribe('trust.domain.updated' as any, (evt) => {
+  eventRouter.subscribe('trust.domain.updated' as any, (evt: any) => {
     const f = formatDomainTrust(evt.data as TrustDomainUpdateEvent);
     console.log(`[FreeSpinsChannelBot] ${f.severityEmoji} ${f.line}`);
   }, 'freespinschannelbot' as any);
-  eventRouter.subscribe('trust.casino.updated' as any, (evt) => {
+  eventRouter.subscribe('trust.casino.updated' as any, (evt: any) => {
     const f = formatCasinoTrust(evt.data as TrustCasinoUpdateEvent);
     console.log(`[FreeSpinsChannelBot] ${f.severityEmoji} ${f.line}`);
   }, 'freespinschannelbot' as any);
-  eventRouter.subscribe('trust.degen.updated' as any, (evt) => {
+  eventRouter.subscribe('trust.degen.updated' as any, (evt: any) => {
     const f = formatDegenTrust(evt.data as TrustDegenUpdateEvent);
     console.log(`[FreeSpinsChannelBot] ${f.severityEmoji} ${f.line}`);
   }, 'freespinschannelbot' as any);
-  eventRouter.subscribe('trust.state.snapshot' as any, (evt) => {
+  eventRouter.subscribe('trust.state.snapshot' as any, (evt: any) => {
     const summary = formatSnapshotSummary(evt.data as SnapshotPayload);
     console.log(`[FreeSpinsChannelBot] 📊 Trust Snapshot\n${summary}`);
   }, 'freespinschannelbot' as any);

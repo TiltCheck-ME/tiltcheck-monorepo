@@ -263,7 +263,7 @@ async function runExample() {
 
   console.log('Event History (last 10):');
   const history = eventRouter.getHistory({ limit: 10 });
-  history.forEach((e) => {
+  history.forEach((e: any) => {
     console.log(`  ${e.type} from ${e.source} at ${new Date(e.timestamp).toISOString()}`);
   });
 

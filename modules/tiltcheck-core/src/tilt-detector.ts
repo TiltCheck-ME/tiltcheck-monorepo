@@ -7,6 +7,7 @@ import { eventRouter } from '@tiltcheck/event-router';
 import { analyzeMessages, calculateTiltScore } from './message-analyzer.js';
 import { startCooldown, isOnCooldown, recordViolation, getCooldownStatus } from './cooldown-manager.js';
 import type { UserActivity, TiltSignal, BetRecord, GameCompletedEvent } from './types.js';
+import type { TiltCheckEvent } from '@tiltcheck/types';
 
 const userActivities = new Map<string, UserActivity>();
 
@@ -308,12 +309,12 @@ export function getUserActivity(userId: string): UserActivity | undefined {
 }
 
 // Subscribe to game/tip events to track losses
-eventRouter.subscribe('tip.failed', (event) => {
+eventRouter.subscribe('tip.failed', (event: TiltCheckEvent) => {
   const { userId, amount } = event.data;
   trackLoss(userId, amount, { source: 'tip-failed' });
 }, 'tiltcheck-core');
 
-eventRouter.subscribe('game.completed', (event) => {
+eventRouter.subscribe('game.completed', (event: TiltCheckEvent) => {
   const data = event.data as GameCompletedEvent;
   const { result, participants } = data;
   

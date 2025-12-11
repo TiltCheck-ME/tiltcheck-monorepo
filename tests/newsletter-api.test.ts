@@ -60,7 +60,7 @@ describe('Newsletter API', () => {
 
       const emailHash = crypto.createHash('sha256').update(salt + ':' + email).digest('hex');
 
-      if (list.some(e => e.hash === emailHash)) {
+      if (list.some((e: any) => e.hash === emailHash)) {
         return res.json({ ok: true, duplicate: true });
       }
 
@@ -95,7 +95,7 @@ describe('Newsletter API', () => {
 
       const emailHash = crypto.createHash('sha256').update(salt + ':' + email).digest('hex');
       const before = list.length;
-      list = list.filter(e => e.hash !== emailHash);
+      list = list.filter((e: any) => e.hash !== emailHash);
 
       if (list.length === before) {
         return res.json({ ok: true, notFound: true });
@@ -229,14 +229,14 @@ describe('Newsletter API', () => {
       const list = JSON.parse(data);
       
       // Check no plaintext emails exist
-      const hasPlaintext = list.some(entry => 
+      const hasPlaintext = list.some((entry: any) => 
         entry.email && entry.email.includes('@')
       );
       
       expect(hasPlaintext).toBe(false);
       
       // Check hash exists
-      const hasHash = list.some(entry => 
+      const hasHash = list.some((entry: any) => 
         entry.hash && entry.hash.length === 64 // SHA-256 hex length
       );
       

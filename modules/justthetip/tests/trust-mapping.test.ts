@@ -11,9 +11,9 @@ describe('JustTheTip trust mapping', () => {
     await justthetip.completeTip(tip.id, 'TestSignature');
     const trustEvents = eventRouter.getHistory({ eventType: 'trust.casino.updated' });
     expect(trustEvents.length).toBeGreaterThanOrEqual(2); // sender + recipient
-    const payloads = trustEvents.map(e => e.data as any);
-    const senderEvt = payloads.find(p => p.metadata?.userId === 'sender');
-    const recipientEvt = payloads.find(p => p.metadata?.userId === 'recipient');
+    const payloads = trustEvents.map((e: any) => e.data as any);
+    const senderEvt = payloads.find((p: any) => p.metadata?.userId === 'sender');
+    const recipientEvt = payloads.find((p: any) => p.metadata?.userId === 'recipient');
     expect(senderEvt?.delta).toBe(1);
     expect(recipientEvt?.delta).toBe(2);
   });

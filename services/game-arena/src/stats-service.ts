@@ -27,7 +27,7 @@ export class StatsService {
     // Subscribe to game completion events
     eventRouter.subscribe(
       'game.completed',
-      async (event) => {
+      async (event: TiltCheckEvent) => {
         await this.handleGameCompleted(event);
       },
       'game-arena'

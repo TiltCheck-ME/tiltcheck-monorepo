@@ -34,7 +34,7 @@ describe('CollectClockService', () => {
     const trustEvents = eventRouter.getHistory({ eventType: 'trust.casino.updated' });
     // collectclock emits one; trust-engine will emit another asynchronously
     expect(trustEvents.length).toBeGreaterThanOrEqual(1);
-    const ccEvent = trustEvents.find(e => e.source === 'collectclock' || e.data.source === 'collectclock');
+    const ccEvent = trustEvents.find((e: any) => e.source === 'collectclock' || e.data.source === 'collectclock');
     expect(ccEvent).toBeDefined();
   });
 

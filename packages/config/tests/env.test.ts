@@ -45,7 +45,7 @@ describe('Config Package - Environment Validation', () => {
 
       expect(result.success).toBe(false);
       expect(result.errors).toBeDefined();
-      expect(result.errors?.some((e) => e.includes('at least 32 characters'))).toBe(true);
+      expect(result.errors?.some((e: any) => e.includes('at least 32 characters'))).toBe(true);
     });
 
     it('should use defaults for JWT config', () => {

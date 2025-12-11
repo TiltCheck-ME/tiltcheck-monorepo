@@ -13,7 +13,7 @@ describe('dashboard state', () => {
       pushEvent({ id: 'd'+i, type: 'trust.domain.updated', timestamp: Date.now(), source: 'suslink', data: { domain: 'spark.example', delta: i-3, severity: 2, reason: 'risk:safe' } });
     }
     const spark = getSparklineData();
-    const target = spark.domains.find(d => d.entity === 'spark.example');
+    const target = spark.domains.find((d: any) => d.entity === 'spark.example');
     expect(target).toBeTruthy();
     expect(target!.deltas.length).toBeGreaterThanOrEqual(6);
   });

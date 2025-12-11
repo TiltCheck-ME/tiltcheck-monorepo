@@ -12,6 +12,7 @@
 
 import { eventRouter } from '@tiltcheck/event-router';
 import { v4 as uuidv4 } from 'uuid';
+import type { TiltCheckEvent } from '@tiltcheck/types';
 
 // AI Gateway client for card generation
 let aiClient: any = null;
@@ -99,7 +100,7 @@ export class DADModule {
     // Listen for game events if needed
     eventRouter.subscribe(
       'game.started',
-      async (event) => {
+      async (event: TiltCheckEvent) => {
         console.log('[DA&D] Game started:', event.data);
       },
       'dad'

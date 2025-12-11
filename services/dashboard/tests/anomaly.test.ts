@@ -14,7 +14,7 @@ describe('domain anomaly detection', () => {
         data: { domain, delta: -5 - (i % 2), severity: 2, reason: 'baseline' }
       });
     }
-    const before = dashboardState.riskAlerts.filter(a => a.kind === 'domain-anomaly' && a.entity === domain).length;
+    const before = dashboardState.riskAlerts.filter((a: any) => a.kind === 'domain-anomaly' && a.entity === domain).length;
     // Outlier with large negative delta and sufficient severity
     pushEvent({
       id: 'outlier1',
@@ -23,7 +23,7 @@ describe('domain anomaly detection', () => {
       source: 'suslink',
       data: { domain, delta: -60, severity: 4, reason: 'sudden-drop' }
     });
-    const after = dashboardState.riskAlerts.filter(a => a.kind === 'domain-anomaly' && a.entity === domain).length;
+    const after = dashboardState.riskAlerts.filter((a: any) => a.kind === 'domain-anomaly' && a.entity === domain).length;
     expect(after).toBe(before + 1);
     // Second similar outlier should not duplicate alert
     pushEvent({
@@ -33,12 +33,12 @@ describe('domain anomaly detection', () => {
       source: 'suslink',
       data: { domain, delta: -70, severity: 4, reason: 'continued-drop' }
     });
-    const final = dashboardState.riskAlerts.filter(a => a.kind === 'domain-anomaly' && a.entity === domain).length;
+    const final = dashboardState.riskAlerts.filter((a: any) => a.kind === 'domain-anomaly' && a.entity === domain).length;
     expect(final).toBe(after); // no duplicate
   });
   it('does not flag anomaly without sufficient baseline', () => {
     const domain = 'shortbaseline.example';
-    const before = dashboardState.riskAlerts.filter(a => a.kind === 'domain-anomaly' && a.entity === domain).length;
+    const before = dashboardState.riskAlerts.filter((a: any) => a.kind === 'domain-anomaly' && a.entity === domain).length;
     // Fewer than required baseline events (<5)
     for (let i = 0; i < 3; i++) {
       pushEvent({
@@ -57,7 +57,7 @@ describe('domain anomaly detection', () => {
       source: 'suslink',
       data: { domain, delta: -80, severity: 5, reason: 'huge-drop' }
     });
-    const after = dashboardState.riskAlerts.filter(a => a.kind === 'domain-anomaly' && a.entity === domain).length;
+    const after = dashboardState.riskAlerts.filter((a: any) => a.kind === 'domain-anomaly' && a.entity === domain).length;
     expect(after).toBe(before); // still no anomaly alert
   });
 });

@@ -31,7 +31,7 @@ async function testCommands() {
 
   const commands = commandHandler.getAllCommands();
   console.log(`\n✅ Loaded ${commands.length} commands:`);
-  commands.forEach((cmd) => {
+  commands.forEach((cmd: any) => {
     console.log(`  • /${cmd.data.name} - ${cmd.data.description}`);
   });
 
@@ -88,7 +88,7 @@ async function testEventIntegration() {
   // Simulate Discord bot subscribing to events
   eventRouter.subscribe(
     'link.scanned',
-    async (event) => {
+    async (event: any) => {
       const { url, riskLevel } = event.data;
       console.log(`  [Bot] Received scan result: ${url} → ${riskLevel}`);
     },
@@ -97,7 +97,7 @@ async function testEventIntegration() {
 
   eventRouter.subscribe(
     'link.flagged',
-    async (event) => {
+    async (event: any) => {
       const { url, riskLevel } = event.data;
       console.log(`  [Bot] 🚨 High-risk link flagged: ${url} (${riskLevel})`);
     },
@@ -136,7 +136,7 @@ async function showStats() {
 
   const history = eventRouter.getHistory({ limit: 5 });
   console.log(`\n📜 Recent Events (last ${history.length}):`);
-  history.forEach((event, i) => {
+  history.forEach((event: any, i: any) => {
     console.log(`  ${i + 1}. ${event.type} from ${event.source}`);
   });
 }

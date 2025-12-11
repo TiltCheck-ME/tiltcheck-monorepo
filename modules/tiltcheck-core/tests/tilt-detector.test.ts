@@ -65,7 +65,7 @@ describe('Tilt Detector', () => {
       trackLoss('user-loss-2', 300);
 
       const history = eventRouter.getHistory();
-      const tiltEvent = history.find(e => e.type === 'tilt.detected');
+      const tiltEvent = history.find((e: any) => e.type === 'tilt.detected');
 
       expect(tiltEvent).toBeDefined();
       expect(tiltEvent?.data.reason).toBe('loss-streak');
@@ -135,7 +135,7 @@ describe('Tilt Detector', () => {
       trackBet('user-bet-tilt', 35, 'poker', false);
 
       const history = eventRouter.getHistory();
-      const tiltEvent = history.find(e => 
+      const tiltEvent = history.find((e: any) => 
         e.type === 'tilt.detected' && 
         e.data.signals?.some((s: any) => s.type === 'bet-sizing')
       );
@@ -153,7 +153,7 @@ describe('Tilt Detector', () => {
       trackBet('user-bet-gradual', 15, 'poker', true);
 
       const history = eventRouter.getHistory();
-      const betSizingTilt = history.find(e => 
+      const betSizingTilt = history.find((e: any) => 
         e.type === 'tilt.detected' && 
         e.data.signals?.some((s: any) => s.type === 'bet-sizing')
       );
@@ -324,7 +324,7 @@ describe('Tilt Detector', () => {
       });
 
       const history = eventRouter.getHistory();
-      const tiltEvent = history.find(e => 
+      const tiltEvent = history.find((e: any) => 
         e.type === 'tilt.detected' && 
         e.data.reason === 'bad-beat'
       );
