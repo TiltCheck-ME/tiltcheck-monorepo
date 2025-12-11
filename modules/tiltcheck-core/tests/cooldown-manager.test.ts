@@ -114,7 +114,7 @@ describe('Cooldown Manager', () => {
       recordViolation('user-8');
 
       const history = eventRouter.getHistory();
-      const violationEvent = history.find(e => e.type === 'cooldown.violated');
+      const violationEvent = history.find((e: any) => e.type === 'cooldown.violated');
 
       expect(violationEvent).toBeDefined();
       expect(violationEvent?.data.userId).toBe('user-8');

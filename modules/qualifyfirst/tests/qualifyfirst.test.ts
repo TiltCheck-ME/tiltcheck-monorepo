@@ -27,7 +27,7 @@ describe('QualifyFirst Module', () => {
 
       // Check event was emitted
       const events = eventRouter.getHistory();
-      expect(events.some(e => e.type === 'survey.profile.created')).toBe(true);
+      expect(events.some((e: any) => e.type === 'survey.profile.created')).toBe(true);
     });
 
     it('should update existing user profile traits', async () => {
@@ -43,7 +43,7 @@ describe('QualifyFirst Module', () => {
 
       // Check event was emitted
       const events = eventRouter.getHistory();
-      expect(events.some(e => e.type === 'survey.profile.updated')).toBe(true);
+      expect(events.some((e: any) => e.type === 'survey.profile.updated')).toBe(true);
     });
 
     it('should retrieve user profile', async () => {
@@ -80,7 +80,7 @@ describe('QualifyFirst Module', () => {
 
       // Check event was emitted
       const events = eventRouter.getHistory();
-      expect(events.some(e => e.type === 'survey.added')).toBe(true);
+      expect(events.some((e: any) => e.type === 'survey.added')).toBe(true);
     });
   });
 
@@ -127,18 +127,18 @@ describe('QualifyFirst Module', () => {
       const matches = await module.matchSurveys('user4');
 
       // Should match Pet Owners Survey with high probability
-      const petSurvey = matches.find(m => m.survey.title === 'Pet Owners Survey');
+      const petSurvey = matches.find((m: any) => m.survey.title === 'Pet Owners Survey');
       expect(petSurvey).toBeDefined();
       expect(petSurvey?.matchLevel).toBe('high');
       expect(petSurvey?.matchProbability).toBe(100);
 
       // Should NOT match Car Owners Survey (excluded due to hasPets: true)
-      const carSurvey = matches.find(m => m.survey.title === 'Car Owners Survey');
+      const carSurvey = matches.find((m: any) => m.survey.title === 'Car Owners Survey');
       expect(carSurvey?.matchProbability).toBe(0);
 
       // Check event was emitted
       const events = eventRouter.getHistory();
-      expect(events.some(e => e.type === 'survey.matched')).toBe(true);
+      expect(events.some((e: any) => e.type === 'survey.matched')).toBe(true);
     });
 
     it('should sort matches by probability (highest first)', async () => {
@@ -188,7 +188,7 @@ describe('QualifyFirst Module', () => {
 
       // Match surveys - should reduce probability for previously failed survey
       const matches = await module.matchSurveys('user6');
-      const medicalMatch = matches.find(m => m.survey.id === survey.id);
+      const medicalMatch = matches.find((m: any) => m.survey.id === survey.id);
       
       expect(medicalMatch?.matchProbability).toBeLessThan(100);
       expect(medicalMatch?.reasoning).toContain('⚠ Previously screened out of this survey');
@@ -227,7 +227,7 @@ describe('QualifyFirst Module', () => {
 
       // Check event was emitted
       const events = eventRouter.getHistory();
-      expect(events.some(e => e.type === 'survey.result.recorded')).toBe(true);
+      expect(events.some((e: any) => e.type === 'survey.result.recorded')).toBe(true);
     });
 
     it('should record screened-out survey', async () => {

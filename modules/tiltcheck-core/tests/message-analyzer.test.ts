@@ -19,7 +19,7 @@ describe('Message Analyzer', () => {
 
       const signals = analyzeMessages(messages, 'user-1');
 
-      const rapidSignal = signals.find(s => s.signalType === 'rapid-messages');
+      const rapidSignal = signals.find((s: any) => s.signalType === 'rapid-messages');
       expect(rapidSignal).toBeDefined();
       expect(rapidSignal?.severity).toBeGreaterThan(0);
       expect(rapidSignal?.confidence).toBe(0.7);
@@ -35,7 +35,7 @@ describe('Message Analyzer', () => {
 
       const signals = analyzeMessages(messages, 'user-1');
 
-      const rapidSignal = signals.find(s => s.signalType === 'rapid-messages');
+      const rapidSignal = signals.find((s: any) => s.signalType === 'rapid-messages');
       expect(rapidSignal).toBeUndefined();
     });
 
@@ -51,7 +51,7 @@ describe('Message Analyzer', () => {
 
       const signals = analyzeMessages(messages, 'user-1');
 
-      const capsSignal = signals.find(s => s.signalType === 'caps-spam');
+      const capsSignal = signals.find((s: any) => s.signalType === 'caps-spam');
       expect(capsSignal).toBeDefined();
       expect(capsSignal?.severity).toBe(3);
     });
@@ -65,7 +65,7 @@ describe('Message Analyzer', () => {
 
       const signals = analyzeMessages(messages, 'user-1');
 
-      const rageSignal = signals.find(s => s.signalType === 'rage-quit');
+      const rageSignal = signals.find((s: any) => s.signalType === 'rage-quit');
       expect(rageSignal).toBeDefined();
       expect(rageSignal?.confidence).toBe(0.8);
     });
@@ -78,7 +78,7 @@ describe('Message Analyzer', () => {
 
       const signals = analyzeMessages(messages, 'user-1');
 
-      const loanSignal = signals.find(s => s.signalType === 'loan-request');
+      const loanSignal = signals.find((s: any) => s.signalType === 'loan-request');
       expect(loanSignal).toBeDefined();
       expect(loanSignal?.severity).toBe(4);
       expect(loanSignal?.confidence).toBe(0.9);
@@ -92,7 +92,7 @@ describe('Message Analyzer', () => {
 
       const signals = analyzeMessages(messages, 'user-1');
 
-      const loanSignal = signals.find(s => s.signalType === 'loan-request');
+      const loanSignal = signals.find((s: any) => s.signalType === 'loan-request');
       expect(loanSignal).toBeDefined();
     });
   });
@@ -193,7 +193,7 @@ describe('Message Analyzer', () => {
       expect(result.tiltScore).toBeGreaterThan(0);
       
       // Should have loan-request signal
-      const loanSignal = result.signals.find(s => s.signalType === 'loan-request');
+      const loanSignal = result.signals.find((s: any) => s.signalType === 'loan-request');
       expect(loanSignal).toBeDefined();
     });
 

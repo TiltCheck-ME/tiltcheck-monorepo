@@ -349,7 +349,7 @@ export function getCurrentAggregates() {
 // Throttled event-based read responder
 let lastSnapshotRespondTs = 0;
 const SNAPSHOT_MIN_INTERVAL_MS = 5_000; // 5s throttle
-eventRouter.subscribe('trust.state.requested', async (evt) => {
+eventRouter.subscribe('trust.state.requested', async (evt: any) => {
   const now = Date.now();
   if (now - lastSnapshotRespondTs < SNAPSHOT_MIN_INTERVAL_MS) {
     console.log('[TrustRollup] Snapshot request throttled');

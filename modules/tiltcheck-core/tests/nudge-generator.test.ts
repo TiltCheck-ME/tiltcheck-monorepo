@@ -131,7 +131,7 @@ describe('Nudge Generator', () => {
       const nudges = getEscalatedNudges(signals);
 
       expect(nudges.length).toBe(2);
-      expect(nudges.some(n => n.severity === 'firm')).toBe(true);
+      expect(nudges.some((n: any) => n.severity === 'firm')).toBe(true);
     });
   });
 
