@@ -10,6 +10,7 @@
 import { eventRouter } from '@tiltcheck/event-router';
 import { v4 as uuidv4 } from 'uuid';
 import { getSolscanUrl } from './utils.js';
+import type { TiltCheckEvent } from '@tiltcheck/types';
 
 export type WalletProvider = 'x402' | 'magic' | 'phantom' | 'solflare' | 'user-supplied';
 export type TransactionStatus = 'pending' | 'approved' | 'signed' | 'submitted' | 'confirmed' | 'failed';
@@ -106,7 +107,7 @@ export class WalletService {
     // Listen for withdrawal requests from QualifyFirst
     eventRouter.subscribe(
       'survey.withdrawal.requested',
-      async (event) => {
+      async (event: TiltCheckEvent) => {
         const { userId, amountUSD } = event.data as any;
         await this.handleWithdrawalRequest(userId, amountUSD);
       },

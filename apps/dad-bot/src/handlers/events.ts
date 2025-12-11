@@ -9,6 +9,7 @@ import { eventRouter } from '@tiltcheck/event-router';
 import { extractUrls, ModNotifier, createModNotifier } from '@tiltcheck/discord-utils';
 import { config } from '../config.js';
 import type { CommandHandler } from './commands.js';
+import type { TiltCheckEvent } from '@tiltcheck/types';
 
 export class EventHandler {
   private modNotifier: ModNotifier;
@@ -110,7 +111,7 @@ export class EventHandler {
     // Subscribe to link flagged events (high-risk links)
     eventRouter.subscribe(
       'link.flagged',
-      async (event) => {
+      async (event: TiltCheckEvent) => {
         const { url, riskLevel, userId, channelId, reason } = event.data;
         
         console.log(
@@ -132,7 +133,7 @@ export class EventHandler {
     // Subscribe to tilt detected events (warn users on cooldown)
     eventRouter.subscribe(
       'tilt.detected',
-      async (event) => {
+      async (event: TiltCheckEvent) => {
         const { userId, reason, severity, channelId } = event.data;
         
         console.log(
@@ -166,7 +167,7 @@ export class EventHandler {
     // Subscribe to cooldown violation events
     eventRouter.subscribe(
       'cooldown.violated',
-      async (event) => {
+      async (event: TiltCheckEvent) => {
         const { userId, action, newDuration, channelId } = event.data;
         
         console.log(

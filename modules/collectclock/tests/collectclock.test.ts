@@ -33,7 +33,7 @@ describe('CollectClockService', () => {
     expect(nerfEvents[0].data.percentDrop).toBeGreaterThanOrEqual(0.25);
     const trustEvents = eventRouter.getHistory({ eventType: 'trust.casino.updated' });
     expect(trustEvents.length).toBeGreaterThanOrEqual(1);
-    const ccEvent = trustEvents.find(e => e.source === 'collectclock' || e.data.source === 'collectclock');
+    const ccEvent = trustEvents.find((e: any) => e.source === 'collectclock' || e.data.source === 'collectclock');
     expect(ccEvent).toBeDefined();
   });
 
