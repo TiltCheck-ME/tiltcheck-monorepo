@@ -91,7 +91,7 @@ describe('Trust Rollup Service', () => {
     const casinoRollups = eventRouter.getHistory({ eventType: 'trust.casino.rollup' });
     // At least one (real-time) plus one (hourly flush)
     expect(casinoRollups.length).toBeGreaterThanOrEqual(1);
-    const aggregatedEvent = casinoRollups.find(evt => evt.data && (evt.data as any).casinos);
+    const aggregatedEvent = casinoRollups.find((evt: any) => evt.data && (evt.data as any).casinos);
     expect(aggregatedEvent).toBeTruthy();
     const casinoPayload: any = aggregatedEvent!.data;
     expect(casinoPayload.casinos['stake.com'].totalDelta).toBe(8);

@@ -229,14 +229,14 @@ describe('Newsletter API', () => {
       const list = JSON.parse(data);
       
       // Check no plaintext emails exist
-      const hasPlaintext = list.some(entry => 
+      const hasPlaintext = list.some((entry: any) => 
         entry.email && entry.email.includes('@')
       );
       
       expect(hasPlaintext).toBe(false);
       
       // Check hash exists
-      const hasHash = list.some(entry => 
+      const hasHash = list.some((entry: any) => 
         entry.hash && entry.hash.length === 64 // SHA-256 hex length
       );
       

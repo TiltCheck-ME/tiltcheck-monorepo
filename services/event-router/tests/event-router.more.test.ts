@@ -25,7 +25,7 @@ describe('EventRouter edge cases', () => {
       throw new Error('boom');
     }, 'tiltcheck');
 
-    const unsub2 = eventRouter.subscribe('game.started', (e) => {
+    const unsub2 = eventRouter.subscribe('game.started', (e: any) => {
       good.push(e);
     }, 'tiltcheck');
 

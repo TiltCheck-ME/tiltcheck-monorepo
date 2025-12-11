@@ -311,8 +311,8 @@ describe('QualifyFirst Module', () => {
       const questions = module.getRecommendedQuestions('newuser');
       
       expect(questions.length).toBeGreaterThan(0);
-      expect(questions.some(q => q.includes('pets'))).toBe(true);
-      expect(questions.some(q => q.includes('car'))).toBe(true);
+      expect(questions.some((q: any) => q.includes('pets'))).toBe(true);
+      expect(questions.some((q: any) => q.includes('car'))).toBe(true);
     });
 
     it('should only recommend questions for missing traits', async () => {
@@ -324,11 +324,11 @@ describe('QualifyFirst Module', () => {
       const questions = module.getRecommendedQuestions('user10');
       
       // Should not recommend questions about pets or car
-      expect(questions.some(q => q.includes('pets'))).toBe(false);
-      expect(questions.some(q => q.includes('car'))).toBe(false);
+      expect(questions.some((q: any) => q.includes('pets'))).toBe(false);
+      expect(questions.some((q: any) => q.includes('car'))).toBe(false);
       
       // Should recommend other questions
-      expect(questions.some(q => q.includes('children') || q.includes('age') || q.includes('medical'))).toBe(true);
+      expect(questions.some((q: any) => q.includes('children') || q.includes('age') || q.includes('medical'))).toBe(true);
     });
   });
 
