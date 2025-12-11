@@ -1,6 +1,7 @@
 import express from 'express';
 import fs from 'fs';
 import path from 'path';
+import { fileURLToPath } from 'url';
 import { dashboardState, pushEvent, addRiskAlert, getSparklineData } from './state.js';
 import { createDailyEventWriter } from './rotation.js';
 import { createDiscordNotifier } from './discord-notifier.js';
@@ -139,7 +140,7 @@ export function createServer(): any {
   const possiblePaths = [
     path.join(process.cwd(), 'services', 'dashboard', 'public'),
     path.join(process.cwd(), 'public'),
-    path.join(new URL('.', import.meta.url).pathname, '..', 'public')
+    path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'public')
   ];
   const DASHBOARD_PUBLIC_DIR = possiblePaths.find(p => fs.existsSync(p));
   
