@@ -1,6 +1,7 @@
 import express from 'express';
 import fs from 'fs';
 import path from 'path';
+import { fileURLToPath } from 'url';
 import { dashboardState, pushEvent, addRiskAlert, getSparklineData } from './state.js';
 import { createDailyEventWriter } from './rotation.js';
 import { createDiscordNotifier } from './discord-notifier.js';
@@ -134,8 +135,16 @@ export function createServer(): any {
   const app = express();
   app.use(express.json());
   // Static dashboard front-end
-  const DASHBOARD_PUBLIC_DIR = path.join(process.cwd(), 'services', 'dashboard', 'public');
-  if (fs.existsSync(DASHBOARD_PUBLIC_DIR)) {
+  // Try services/dashboard/public relative to CWD first (monorepo context)
+  // Then try public relative to this file's location (standalone context)
+  const possiblePaths = [
+    path.join(process.cwd(), 'services', 'dashboard', 'public'),
+    path.join(process.cwd(), 'public'),
+    path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'public')
+  ];
+  const DASHBOARD_PUBLIC_DIR = possiblePaths.find(p => fs.existsSync(p));
+  
+  if (DASHBOARD_PUBLIC_DIR) {
     app.use('/dashboard', express.static(DASHBOARD_PUBLIC_DIR, {}));
     app.get('/dashboard', (_req, res) => {
       res.sendFile(path.join(DASHBOARD_PUBLIC_DIR, 'index.html'));

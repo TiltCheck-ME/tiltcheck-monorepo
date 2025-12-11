@@ -14,7 +14,7 @@
   },
   "scripts": {
     "build": "tsc -b",
-    "dev": "ts-node src/index.ts",
+    "dev": "tsx src/index.ts",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
@@ -22,6 +22,7 @@
     "@tiltcheck/types": "workspace:*"
   },
   "devDependencies": {
-    "typescript": "^5.4.0"
+    "typescript": "^5.4.0",
+    "tsx": "^4.7.0"
   }
 }
