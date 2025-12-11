@@ -226,7 +226,7 @@ describe('TrustEnginesService', () => {
       await new Promise(resolve => setTimeout(resolve, 10));
 
       const explanations = service.explainDegenScore('explain-me');
-      expect(explanations.some(e => e.includes('Trust Level'))).toBe(true);
+      expect(explanations.some((e: any) => e.includes('Trust Level'))).toBe(true);
     });
   });
 

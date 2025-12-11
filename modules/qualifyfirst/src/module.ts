@@ -12,6 +12,7 @@
 
 import { eventRouter } from '@tiltcheck/event-router';
 import { v4 as uuidv4 } from 'uuid';
+import type { TiltCheckEvent } from '@tiltcheck/types';
 
 // User profile traits (opt-in data)
 export interface UserProfile {
@@ -69,7 +70,7 @@ export class QualifyFirstModule {
     // Listen for user profile updates from other modules
     eventRouter.subscribe(
       'user.profile.updated',
-      async (event) => {
+      async (event: TiltCheckEvent) => {
         const { userId, traits } = event.data as any;
         await this.updateUserTraits(userId, traits);
       },
@@ -79,7 +80,7 @@ export class QualifyFirstModule {
     // Listen for survey completions
     eventRouter.subscribe(
       'survey.completed',
-      async (event) => {
+      async (event: TiltCheckEvent) => {
         const result = event.data as SurveyResult;
         await this.recordSurveyResult(result);
       },

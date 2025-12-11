@@ -4,7 +4,7 @@ import { eventRouter } from '../src';
 describe('EventRouter', () => {
   it('publishes and records events', async () => {
     const events: any[] = [];
-    const unsubscribe = eventRouter.subscribe('tip.completed', (e) => {
+    const unsubscribe = eventRouter.subscribe('tip.completed', (e: any) => {
       events.push(e);
     }, 'tiltcheck');
 

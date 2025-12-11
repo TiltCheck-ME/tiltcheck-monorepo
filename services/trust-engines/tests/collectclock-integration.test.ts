@@ -19,8 +19,8 @@ describe('Integration: CollectClock → TrustEngines', () => {
 
     const trustEvents = eventRouter.getHistory({ eventType: 'trust.casino.updated' });
     // Expect at least one from collectclock (severity only) and one from trust-engine-casino (score update)
-    const fromCollectClock = trustEvents.find(e => e.data.source === 'collectclock');
-    const fromTrustEngine = trustEvents.find(e => e.data.source === 'trust-engine-casino');
+    const fromCollectClock = trustEvents.find((e: any) => e.data.source === 'collectclock');
+    const fromTrustEngine = trustEvents.find((e: any) => e.data.source === 'trust-engine-casino');
     expect(fromCollectClock).toBeDefined();
     expect(fromTrustEngine).toBeDefined();
     expect(fromCollectClock?.data.severity).toBe(3);

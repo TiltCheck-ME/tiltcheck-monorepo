@@ -8,13 +8,13 @@ describe('EventRouter edge cases', () => {
     await eventRouter.publish('tip.completed', 'tiltcheck', { a: 3 }, 'user-B');
 
     const byType = eventRouter.getHistory({ eventType: 'tip.completed' });
-    expect(byType.every(e => e.type === 'tip.completed')).toBe(true);
+    expect(byType.every((e: any) => e.type === 'tip.completed')).toBe(true);
 
     const bySource = eventRouter.getHistory({ source: 'tiltcheck' });
-    expect(bySource.every(e => e.source === 'tiltcheck')).toBe(true);
+    expect(bySource.every((e: any) => e.source === 'tiltcheck')).toBe(true);
 
     const byUser = eventRouter.getHistory({ userId: 'user-B' });
-    expect(byUser.every(e => e.userId === 'user-B')).toBe(true);
+    expect(byUser.every((e: any) => e.userId === 'user-B')).toBe(true);
   });
 
   it('does not crash when a handler throws', async () => {
@@ -25,7 +25,7 @@ describe('EventRouter edge cases', () => {
       throw new Error('boom');
     }, 'tiltcheck');
 
-    const unsub2 = eventRouter.subscribe('game.started', (e) => {
+    const unsub2 = eventRouter.subscribe('game.started', (e: any) => {
       good.push(e);
     }, 'tiltcheck');
 

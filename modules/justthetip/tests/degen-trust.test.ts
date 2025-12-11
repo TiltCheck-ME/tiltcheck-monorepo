@@ -13,8 +13,8 @@ describe('JustTheTip degen trust events', () => {
     const degenEvents = eventRouter.getHistory({ eventType: 'trust.degen.updated' });
     expect(casinoEvents.length).toBeGreaterThanOrEqual(2);
     expect(degenEvents.length).toBeGreaterThanOrEqual(2);
-    const senderDegenEvt = degenEvents.map(e => e.data as any).find(p => p.userId === 'senderDegen');
-    const recipientDegenEvt = degenEvents.map(e => e.data as any).find(p => p.userId === 'recipientDegen');
+    const senderDegenEvt = degenEvents.map((e: any) => e.data as any).find((p: any) => p.userId === 'senderDegen');
+    const recipientDegenEvt = degenEvents.map((e: any) => e.data as any).find((p: any) => p.userId === 'recipientDegen');
     expect(senderDegenEvt?.delta).toBe(1);
     expect(recipientDegenEvt?.delta).toBe(2);
   });
