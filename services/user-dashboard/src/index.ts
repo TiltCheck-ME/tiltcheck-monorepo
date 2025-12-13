@@ -307,16 +307,11 @@ app.get('/auth/discord/callback', async (req: Request, res: Response) => {
 });
 
 // Get user profile
-app.get('/api/user/:discordId', authenticateToken as any, async (req: AuthenticatedRequest, res: Response) => {
+app.get('/api/user/:discordId', authenticateToken, requireUser, async (req: AuthenticatedRequest, res: Response) => {
   const { discordId } = req.params;
   
-  if (!req.user) {
-    res.status(401).json({ error: 'Unauthorized' });
-    return;
-  }
-  
   // Check if requesting user matches or is admin
-  if (req.user.discordId !== discordId && !isAdmin(req.user)) {
+  if (req.user!.discordId !== discordId && !isAdmin(req.user)) {
     res.status(403).json({ error: 'Access denied' });
     return;
   }
@@ -326,12 +321,12 @@ app.get('/api/user/:discordId', authenticateToken as any, async (req: Authentica
     
     // If user not found in DB, create a new entry with defaults
     if (!user) {
-      user = createDefaultUserData(discordId, req.user.username);
+      user = createDefaultUserData(discordId, req.user!.username);
       userCache[discordId] = user;
       
       // Try to create in database
       if (db.isConnected()) {
-        await db.createUserStats(discordId, req.user.username, null);
+        await db.createUserStats(discordId, req.user!.username, null);
       }
     }
 
@@ -343,16 +338,11 @@ app.get('/api/user/:discordId', authenticateToken as any, async (req: Authentica
 });
 
 // Update user preferences
-app.put('/api/user/:discordId/preferences', authenticateToken as any, async (req: AuthenticatedRequest, res: Response) => {
+app.put('/api/user/:discordId/preferences', authenticateToken, requireUser, async (req: AuthenticatedRequest, res: Response) => {
   const { discordId } = req.params;
   const { preferences } = req.body;
   
-  if (!req.user) {
-    res.status(401).json({ error: 'Unauthorized' });
-    return;
-  }
-  
-  if (req.user.discordId !== discordId) {
+  if (req.user!.discordId !== discordId) {
     res.status(403).json({ error: 'Access denied' });
     return;
   }
@@ -360,7 +350,7 @@ app.put('/api/user/:discordId/preferences', authenticateToken as any, async (req
   try {
     let user = await getUserData(discordId);
     if (!user) {
-      user = createDefaultUserData(discordId, req.user.username);
+      user = createDefaultUserData(discordId, req.user!.username);
       userCache[discordId] = user;
     }
 
@@ -378,16 +368,11 @@ app.put('/api/user/:discordId/preferences', authenticateToken as any, async (req
 });
 
 // Get user activity feed
-app.get('/api/user/:discordId/activity', authenticateToken as any, async (req: AuthenticatedRequest, res: Response) => {
+app.get('/api/user/:discordId/activity', authenticateToken, requireUser, async (req: AuthenticatedRequest, res: Response) => {
   const { discordId } = req.params;
   const { limit = 10 } = req.query;
   
-  if (!req.user) {
-    res.status(401).json({ error: 'Unauthorized' });
-    return;
-  }
-  
-  if (req.user.discordId !== discordId && !isAdmin(req.user)) {
+  if (req.user!.discordId !== discordId && !isAdmin(req.user)) {
     res.status(403).json({ error: 'Access denied' });
     return;
   }
@@ -424,15 +409,10 @@ app.get('/api/user/:discordId/activity', authenticateToken as any, async (req: A
 });
 
 // Get user trust metrics
-app.get('/api/user/:discordId/trust', authenticateToken as any, async (req: AuthenticatedRequest, res: Response) => {
+app.get('/api/user/:discordId/trust', authenticateToken, requireUser, async (req: AuthenticatedRequest, res: Response) => {
   const { discordId } = req.params;
   
-  if (!req.user) {
-    res.status(401).json({ error: 'Unauthorized' });
-    return;
-  }
-  
-  if (req.user.discordId !== discordId && !isAdmin(req.user)) {
+  if (req.user!.discordId !== discordId && !isAdmin(req.user)) {
     res.status(403).json({ error: 'Access denied' });
     return;
   }
@@ -501,6 +481,15 @@ function authenticateToken(req: AuthenticatedRequest, res: Response, next: NextF
     req.user = user;
     next();
   });
+}
+
+// Middleware to require authenticated user (must be used after authenticateToken)
+function requireUser(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+  if (!req.user) {
+    res.status(401).json({ error: 'Unauthorized' });
+    return;
+  }
+  next();
 }
 
 // Admin IDs from environment (comma-separated list) - validate Discord ID format (17-20 digit snowflakes)

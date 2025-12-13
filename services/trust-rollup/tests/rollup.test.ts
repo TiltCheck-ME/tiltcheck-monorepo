@@ -1,8 +1,11 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { eventRouter } from '@tiltcheck/event-router';
 import { getCasinoSnapshots, flushTrustRollups, TRUST_ROLLUP_SNAPSHOT_PATH } from '../src/index.js';
-import '../src/index.js'; // initialize subscriptions directly
 import fs from 'fs';
+
+// Import trust-rollup module to initialize event subscriptions (side effect)
+// This registers the event handlers needed for the aggregation tests
+import '../src/index.js';
 
 describe('Casino Trust Aggregator', () => {
   it('classifies risk escalation with nerf and volatility', async () => {
