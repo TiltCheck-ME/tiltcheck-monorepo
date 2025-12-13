@@ -22,7 +22,7 @@ jobs:
       - name: Activate pnpm 9 (lockfile v9)
         run: corepack prepare pnpm@9.0.0 --activate
       - name: Install deps (frozen lockfile)
-        run: pnpm install --frozen-lockfile
+        run: pnpm install --frozen-lockfile --no-link-workspace-packages
         env:
           PUPPETEER_SKIP_DOWNLOAD: 'true'
       - name: Build all
@@ -86,7 +86,7 @@ jobs:
       - name: Activate pnpm 9 (lockfile v9)
         run: corepack prepare pnpm@9.0.0 --activate
       - name: Install deps (frozen lockfile)
-        run: pnpm install --frozen-lockfile
+        run: pnpm install --frozen-lockfile --no-link-workspace-packages
         env:
           PUPPETEER_SKIP_DOWNLOAD: 'true'
       - name: Run audits (bundle + contrast + a11y)
@@ -116,7 +116,7 @@ jobs:
       - name: Activate pnpm 9 (lockfile v9)
         run: corepack prepare pnpm@9.0.0 --activate
       - name: Install deps (frozen lockfile)
-        run: pnpm install --frozen-lockfile
+        run: pnpm install --frozen-lockfile --no-link-workspace-packages
         env:
           PUPPETEER_SKIP_DOWNLOAD: 'true'
       - name: Run landing accessibility audit
