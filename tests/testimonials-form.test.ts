@@ -12,9 +12,9 @@ import path from 'path';
 const TESTIMONIALS_PATH = path.join(process.cwd(), 'services/landing/public/testimonials.html');
 
 describe('Testimonials Page', () => {
-  let dom;
-  let document;
-  let html;
+  let dom: JSDOM;
+  let document: Document;
+  let html: string;
 
   beforeAll(async () => {
     html = await fs.readFile(TESTIMONIALS_PATH, 'utf8');

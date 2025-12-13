@@ -18,8 +18,8 @@ process.env.NEWSLETTER_SALT = 'test-salt';
 const ORIGINAL_FILE = path.join(DATA_DIR, 'newsletter-subscribers.json');
 
 describe('Newsletter API', () => {
-  let app;
-  let originalData;
+  let app: express.Application;
+  let originalData: string | null;
 
   beforeAll(async () => {
     // Backup production file

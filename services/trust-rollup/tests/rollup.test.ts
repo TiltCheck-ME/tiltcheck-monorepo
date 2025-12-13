@@ -1,6 +1,8 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, beforeEach } from 'vitest';
 import { eventRouter } from '@tiltcheck/event-router';
-import { getCasinoSnapshots } from '../src/index.js';
+import { getCasinoSnapshots, flushTrustRollups, TRUST_ROLLUP_SNAPSHOT_PATH } from '../src/index.js';
+import '../src/index.js'; // initialize subscriptions directly
+import fs from 'fs';
 
 describe('Casino Trust Aggregator', () => {
   it('classifies risk escalation with nerf and volatility', async () => {
@@ -42,11 +44,6 @@ describe('Casino Trust Aggregator', () => {
     expect(snap!.volatilityShift).toBeGreaterThan(0); // variance change detected
   });
 });
-import { describe, it, expect, beforeEach } from 'vitest';
-import '../src/index'; // initialize subscriptions directly
-import { eventRouter } from '@tiltcheck/event-router';
-import { flushTrustRollups, TRUST_ROLLUP_SNAPSHOT_PATH } from '../src/index';
-import fs from 'fs';
 
 function publishDomain(domain: string, delta: number) {
   return eventRouter.publish('trust.domain.updated', 'suslink', {

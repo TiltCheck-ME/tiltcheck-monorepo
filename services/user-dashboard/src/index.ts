@@ -55,12 +55,14 @@ interface UserPreferences {
   weeklyDigest: boolean;
 }
 
+interface DiscordUser {
+  discordId: string;
+  username: string;
+  discriminator: string;
+}
+
 interface AuthenticatedRequest extends Request {
-  user: {
-    discordId: string;
-    username: string;
-    discriminator: string;
-  };
+  user?: DiscordUser;
 }
 
 // Type for route handlers that use authenticateToken middleware
@@ -308,6 +310,11 @@ app.get('/auth/discord/callback', async (req: Request, res: Response) => {
 app.get('/api/user/:discordId', authenticateToken as any, async (req: AuthenticatedRequest, res: Response) => {
   const { discordId } = req.params;
   
+  if (!req.user) {
+    res.status(401).json({ error: 'Unauthorized' });
+    return;
+  }
+  
   // Check if requesting user matches or is admin
   if (req.user.discordId !== discordId && !isAdmin(req.user)) {
     res.status(403).json({ error: 'Access denied' });
@@ -340,8 +347,14 @@ app.put('/api/user/:discordId/preferences', authenticateToken as any, async (req
   const { discordId } = req.params;
   const { preferences } = req.body;
   
+  if (!req.user) {
+    res.status(401).json({ error: 'Unauthorized' });
+    return;
+  }
+  
   if (req.user.discordId !== discordId) {
-    return res.status(403).json({ error: 'Access denied' });
+    res.status(403).json({ error: 'Access denied' });
+    return;
   }
 
   try {
@@ -369,8 +382,14 @@ app.get('/api/user/:discordId/activity', authenticateToken as any, async (req: A
   const { discordId } = req.params;
   const { limit = 10 } = req.query;
   
+  if (!req.user) {
+    res.status(401).json({ error: 'Unauthorized' });
+    return;
+  }
+  
   if (req.user.discordId !== discordId && !isAdmin(req.user)) {
-    return res.status(403).json({ error: 'Access denied' });
+    res.status(403).json({ error: 'Access denied' });
+    return;
   }
 
   try {
@@ -408,15 +427,22 @@ app.get('/api/user/:discordId/activity', authenticateToken as any, async (req: A
 app.get('/api/user/:discordId/trust', authenticateToken as any, async (req: AuthenticatedRequest, res: Response) => {
   const { discordId } = req.params;
   
+  if (!req.user) {
+    res.status(401).json({ error: 'Unauthorized' });
+    return;
+  }
+  
   if (req.user.discordId !== discordId && !isAdmin(req.user)) {
-    return res.status(403).json({ error: 'Access denied' });
+    res.status(403).json({ error: 'Access denied' });
+    return;
   }
 
   try {
     const user = await getUserData(discordId);
     
     if (!user) {
-      return res.status(404).json({ error: 'User not found' });
+      res.status(404).json({ error: 'User not found' });
+      return;
     }
 
     // Get stats from database for more accurate trust calculation
@@ -490,7 +516,7 @@ function isAdmin(user: any): boolean {
 }
 
 // Serve dashboard HTML
-app.get('/dashboard', (req, res) => {
+app.get('/dashboard', (_req, res) => {
   const dashboardPath = join(__dirname, '../public/dashboard.html');
   if (existsSync(dashboardPath)) {
     res.sendFile(dashboardPath);
