@@ -42,16 +42,14 @@ jobs:
         id: pnpm-cache
         uses: actions/cache@v3
         with:
-          path: |
-            ${{ env.STORE_PATH }}
-            **/node_modules
+          path: ${{ env.STORE_PATH }}
           key: ${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
           restore-keys: |
             ${{ runner.os }}-pnpm-
 
       - name: Install dependencies
         if: steps.pnpm-cache.outputs.cache-hit != 'true'
-        run: pnpm install --frozen-lockfile
+        run: pnpm install --frozen-lockfile --no-link-workspace-packages
         env:
           PUPPETEER_SKIP_DOWNLOAD: 'true'
 
@@ -73,16 +71,21 @@ jobs:
       - name: Activate pnpm 9
         run: corepack prepare pnpm@9.0.0 --activate
 
+      - name: Get pnpm store directory
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+
       - name: Restore pnpm cache
         uses: actions/cache@v3
         with:
-          path: |
-            ~/.pnpm-store
-            **/node_modules
+          path: ${{ env.STORE_PATH }}
           key: ${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: pnpm install --frozen-lockfile --no-link-workspace-packages
         env:
           PUPPETEER_SKIP_DOWNLOAD: 'true'
 
@@ -110,16 +113,21 @@ jobs:
       - name: Activate pnpm 9
         run: corepack prepare pnpm@9.0.0 --activate
 
+      - name: Get pnpm store directory
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+
       - name: Restore pnpm cache
         uses: actions/cache@v3
         with:
-          path: |
-            ~/.pnpm-store
-            **/node_modules
+          path: ${{ env.STORE_PATH }}
           key: ${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: pnpm install --frozen-lockfile --no-link-workspace-packages
         env:
           PUPPETEER_SKIP_DOWNLOAD: 'true'
 
@@ -144,16 +152,21 @@ jobs:
       - name: Activate pnpm 9
         run: corepack prepare pnpm@9.0.0 --activate
 
+      - name: Get pnpm store directory
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+
       - name: Restore pnpm cache
         uses: actions/cache@v3
         with:
-          path: |
-            ~/.pnpm-store
-            **/node_modules
+          path: ${{ env.STORE_PATH }}
           key: ${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: pnpm install --frozen-lockfile --no-link-workspace-packages
         env:
           PUPPETEER_SKIP_DOWNLOAD: 'true'
 
@@ -191,16 +204,21 @@ jobs:
       - name: Activate pnpm 9
         run: corepack prepare pnpm@9.0.0 --activate
 
+      - name: Get pnpm store directory
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+
       - name: Restore pnpm cache
         uses: actions/cache@v3
         with:
-          path: |
-            ~/.pnpm-store
-            **/node_modules
+          path: ${{ env.STORE_PATH }}
           key: ${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: pnpm install --frozen-lockfile --no-link-workspace-packages
         env:
           PUPPETEER_SKIP_DOWNLOAD: 'true'
 
@@ -257,16 +275,21 @@ jobs:
       - name: Activate pnpm 9
         run: corepack prepare pnpm@9.0.0 --activate
 
+      - name: Get pnpm store directory
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+
       - name: Restore pnpm cache
         uses: actions/cache@v3
         with:
-          path: |
-            ~/.pnpm-store
-            **/node_modules
+          path: ${{ env.STORE_PATH }}
           key: ${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: pnpm install --frozen-lockfile --no-link-workspace-packages
         env:
           PUPPETEER_SKIP_DOWNLOAD: 'true'
 
