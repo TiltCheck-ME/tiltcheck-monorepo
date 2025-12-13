@@ -311,7 +311,7 @@ app.get('/api/user/:discordId', authenticateToken, requireUser, async (req: Auth
   const { discordId } = req.params;
   
   // Check if requesting user matches or is admin
-  if (req.user!.discordId !== discordId && !isAdmin(req.user)) {
+  if (req.user!.discordId !== discordId && !isAdmin(req.user!)) {
     res.status(403).json({ error: 'Access denied' });
     return;
   }
@@ -372,7 +372,7 @@ app.get('/api/user/:discordId/activity', authenticateToken, requireUser, async (
   const { discordId } = req.params;
   const { limit = 10 } = req.query;
   
-  if (req.user!.discordId !== discordId && !isAdmin(req.user)) {
+  if (req.user!.discordId !== discordId && !isAdmin(req.user!)) {
     res.status(403).json({ error: 'Access denied' });
     return;
   }
@@ -412,7 +412,7 @@ app.get('/api/user/:discordId/activity', authenticateToken, requireUser, async (
 app.get('/api/user/:discordId/trust', authenticateToken, requireUser, async (req: AuthenticatedRequest, res: Response) => {
   const { discordId } = req.params;
   
-  if (req.user!.discordId !== discordId && !isAdmin(req.user)) {
+  if (req.user!.discordId !== discordId && !isAdmin(req.user!)) {
     res.status(403).json({ error: 'Access denied' });
     return;
   }
