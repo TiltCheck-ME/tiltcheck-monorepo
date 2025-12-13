@@ -8,6 +8,7 @@
 import express from 'express';
 import cors from 'cors';
 import jwt from 'jsonwebtoken';
+import rateLimit from 'express-rate-limit';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import { existsSync } from 'fs';
@@ -19,6 +20,15 @@ const __dirname = dirname(__filename);
 
 const app = express();
 const PORT = process.env.USER_DASHBOARD_PORT || 6001;
+
+// Rate limiter for sensitive routes
+const trustLimiter = rateLimit({
+  windowMs: 1 * 60 * 1000, // 1 minute window
+  max: 10, // limit each IP to 10 requests per minute
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Too many requests, please try again later.' }
+});
 const JWT_SECRET = process.env.JWT_SECRET || 'tiltcheck-user-secret-2024';
 
 // Middleware
@@ -409,8 +419,13 @@ app.get('/api/user/:discordId/activity', authenticateToken, requireUser, async (
 });
 
 // Get user trust metrics
-app.get('/api/user/:discordId/trust', authenticateToken, requireUser, async (req: AuthenticatedRequest, res: Response) => {
-  const { discordId } = req.params;
+app.get(
+  '/api/user/:discordId/trust',
+  authenticateToken,
+  requireUser,
+  trustLimiter,
+  async (req: AuthenticatedRequest, res: Response) => {
+    const { discordId } = req.params;
   
   if (req.user!.discordId !== discordId && !isAdmin(req.user!)) {
     res.status(403).json({ error: 'Access denied' });

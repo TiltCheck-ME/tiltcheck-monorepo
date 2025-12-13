@@ -20,7 +20,8 @@
     "@tiltcheck/event-router": "workspace:*",
     "@tiltcheck/types": "workspace:*",
     "@tiltcheck/qualifyfirst": "workspace:*",
-    "@tiltcheck/justthetip": "workspace:*"
+    "@tiltcheck/justthetip": "workspace:*",
+    "express-rate-limit": "^8.2.1"
   },
   "devDependencies": {
     "@types/cors": "^2.8.17",
