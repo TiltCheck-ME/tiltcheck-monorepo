@@ -110,8 +110,8 @@ jobs:
                 exit 1
               fi
               
-              # Check health endpoint
-              HEALTH_RESPONSE=$(docker exec tiltcheck-dashboard wget -q -O - http://localhost:5055/api/health 2>&1 || echo "")
+              # Check health endpoint using curl (fallback to wget if curl not available)
+              HEALTH_RESPONSE=$(docker exec tiltcheck-dashboard sh -c 'curl -sf http://localhost:5055/api/health 2>/dev/null || wget -q -O - http://localhost:5055/api/health 2>/dev/null' || echo "")
               
               if [ -n "$HEALTH_RESPONSE" ]; then
                 echo "Health response: $HEALTH_RESPONSE"
