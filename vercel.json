@@ -83,9 +83,5 @@
     }
   ],
   "regions": ["sfo1"],
-  "public": true,
-  "env": {
-    "VERCEL_AI_GATEWAY_ENABLED": "true",
-    "AI_GATEWAY_URL": "https://gateway.ai.cloudflare.com/v1"
-  }
+  "public": true
 }
