@@ -85,3 +85,52 @@ jobs:
             docker compose pull dashboard
             docker compose up -d dashboard
             docker system prune -f
+
+      - name: Verify deployment health
+        if: github.event_name != 'pull_request'
+        uses: appleboy/ssh-action@v1.2.4
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          script: |
+            echo "Waiting for dashboard to be ready..."
+            MAX_ATTEMPTS=30
+            ATTEMPT=0
+            
+            while [ $ATTEMPT -lt $MAX_ATTEMPTS ]; do
+              ATTEMPT=$((ATTEMPT + 1))
+              echo "Attempt $ATTEMPT/$MAX_ATTEMPTS..."
+              
+              # Check if container is running
+              if ! docker ps | grep -q tiltcheck-dashboard; then
+                echo "Error: dashboard container is not running"
+                docker ps -a | grep tiltcheck-dashboard || true
+                docker logs tiltcheck-dashboard --tail 50 || true
+                exit 1
+              fi
+              
+              # Check health endpoint
+              HEALTH_RESPONSE=$(docker exec tiltcheck-dashboard wget -q -O - http://localhost:5055/api/health 2>&1 || echo "")
+              
+              if [ -n "$HEALTH_RESPONSE" ]; then
+                echo "Health response: $HEALTH_RESPONSE"
+                
+                # Dashboard health endpoint doesn't have a ready field, 
+                # so we check if it responds with valid JSON
+                if echo "$HEALTH_RESPONSE" | grep -q '"lastSnapshotTs"'; then
+                  echo "✅ Dashboard is healthy and responding!"
+                  exit 0
+                else
+                  echo "Dashboard response unexpected, waiting..."
+                fi
+              else
+                echo "Health endpoint not responding yet..."
+              fi
+              
+              sleep 2
+            done
+            
+            echo "❌ Deployment verification failed: dashboard did not become ready within timeout"
+            docker logs tiltcheck-dashboard --tail 100
+            exit 1
