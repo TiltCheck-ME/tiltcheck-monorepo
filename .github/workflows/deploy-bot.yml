@@ -31,7 +31,7 @@ jobs:
         run: corepack prepare pnpm@9.0.0 --activate
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: pnpm install --frozen-lockfile --no-link-workspace-packages
 
       - name: Build packages
         run: pnpm run build
