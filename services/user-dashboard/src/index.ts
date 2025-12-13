@@ -8,6 +8,7 @@
 import express from 'express';
 import cors from 'cors';
 import jwt from 'jsonwebtoken';
+import rateLimit from 'express-rate-limit';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import { existsSync } from 'fs';
@@ -19,6 +20,15 @@ const __dirname = dirname(__filename);
 
 const app = express();
 const PORT = process.env.USER_DASHBOARD_PORT || 6001;
+
+// Rate limiter for sensitive routes
+const trustLimiter = rateLimit({
+  windowMs: 1 * 60 * 1000, // 1 minute window
+  max: 10, // limit each IP to 10 requests per minute
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Too many requests, please try again later.' }
+});
 const JWT_SECRET = process.env.JWT_SECRET || 'tiltcheck-user-secret-2024';
 
 // Middleware
@@ -55,12 +65,14 @@ interface UserPreferences {
   weeklyDigest: boolean;
 }
 
+interface DiscordUser {
+  discordId: string;
+  username: string;
+  discriminator: string;
+}
+
 interface AuthenticatedRequest extends Request {
-  user: {
-    discordId: string;
-    username: string;
-    discriminator: string;
-  };
+  user?: DiscordUser;
 }
 
 // Type for route handlers that use authenticateToken middleware
@@ -305,11 +317,11 @@ app.get('/auth/discord/callback', async (req: Request, res: Response) => {
 });
 
 // Get user profile
-app.get('/api/user/:discordId', authenticateToken as any, async (req: AuthenticatedRequest, res: Response) => {
+app.get('/api/user/:discordId', authenticateToken, requireUser, async (req: AuthenticatedRequest, res: Response) => {
   const { discordId } = req.params;
   
   // Check if requesting user matches or is admin
-  if (req.user.discordId !== discordId && !isAdmin(req.user)) {
+  if (req.user!.discordId !== discordId && !isAdmin(req.user!)) {
     res.status(403).json({ error: 'Access denied' });
     return;
   }
@@ -319,12 +331,12 @@ app.get('/api/user/:discordId', authenticateToken as any, async (req: Authentica
     
     // If user not found in DB, create a new entry with defaults
     if (!user) {
-      user = createDefaultUserData(discordId, req.user.username);
+      user = createDefaultUserData(discordId, req.user!.username);
       userCache[discordId] = user;
       
       // Try to create in database
       if (db.isConnected()) {
-        await db.createUserStats(discordId, req.user.username, null);
+        await db.createUserStats(discordId, req.user!.username, null);
       }
     }
 
@@ -336,18 +348,19 @@ app.get('/api/user/:discordId', authenticateToken as any, async (req: Authentica
 });
 
 // Update user preferences
-app.put('/api/user/:discordId/preferences', authenticateToken as any, async (req: AuthenticatedRequest, res: Response) => {
+app.put('/api/user/:discordId/preferences', authenticateToken, requireUser, async (req: AuthenticatedRequest, res: Response) => {
   const { discordId } = req.params;
   const { preferences } = req.body;
   
-  if (req.user.discordId !== discordId) {
-    return res.status(403).json({ error: 'Access denied' });
+  if (req.user!.discordId !== discordId) {
+    res.status(403).json({ error: 'Access denied' });
+    return;
   }
 
   try {
     let user = await getUserData(discordId);
     if (!user) {
-      user = createDefaultUserData(discordId, req.user.username);
+      user = createDefaultUserData(discordId, req.user!.username);
       userCache[discordId] = user;
     }
 
@@ -365,12 +378,13 @@ app.put('/api/user/:discordId/preferences', authenticateToken as any, async (req
 });
 
 // Get user activity feed
-app.get('/api/user/:discordId/activity', authenticateToken as any, async (req: AuthenticatedRequest, res: Response) => {
+app.get('/api/user/:discordId/activity', authenticateToken, requireUser, async (req: AuthenticatedRequest, res: Response) => {
   const { discordId } = req.params;
   const { limit = 10 } = req.query;
   
-  if (req.user.discordId !== discordId && !isAdmin(req.user)) {
-    return res.status(403).json({ error: 'Access denied' });
+  if (req.user!.discordId !== discordId && !isAdmin(req.user!)) {
+    res.status(403).json({ error: 'Access denied' });
+    return;
   }
 
   try {
@@ -405,18 +419,25 @@ app.get('/api/user/:discordId/activity', authenticateToken as any, async (req: A
 });
 
 // Get user trust metrics
-app.get('/api/user/:discordId/trust', authenticateToken as any, async (req: AuthenticatedRequest, res: Response) => {
-  const { discordId } = req.params;
+app.get(
+  '/api/user/:discordId/trust',
+  authenticateToken,
+  requireUser,
+  trustLimiter,
+  async (req: AuthenticatedRequest, res: Response) => {
+    const { discordId } = req.params;
   
-  if (req.user.discordId !== discordId && !isAdmin(req.user)) {
-    return res.status(403).json({ error: 'Access denied' });
+  if (req.user!.discordId !== discordId && !isAdmin(req.user!)) {
+    res.status(403).json({ error: 'Access denied' });
+    return;
   }
 
   try {
     const user = await getUserData(discordId);
     
     if (!user) {
-      return res.status(404).json({ error: 'User not found' });
+      res.status(404).json({ error: 'User not found' });
+      return;
     }
 
     // Get stats from database for more accurate trust calculation
@@ -477,6 +498,15 @@ function authenticateToken(req: AuthenticatedRequest, res: Response, next: NextF
   });
 }
 
+// Middleware to require authenticated user (must be used after authenticateToken)
+function requireUser(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+  if (!req.user) {
+    res.status(401).json({ error: 'Unauthorized' });
+    return;
+  }
+  next();
+}
+
 // Admin IDs from environment (comma-separated list) - validate Discord ID format (17-20 digit snowflakes)
 const DISCORD_ID_REGEX = /^\d{17,20}$/;
 const ADMIN_IDS = (process.env.ADMIN_DISCORD_IDS || '')
@@ -490,7 +520,7 @@ function isAdmin(user: any): boolean {
 }
 
 // Serve dashboard HTML
-app.get('/dashboard', (req, res) => {
+app.get('/dashboard', (_req, res) => {
   const dashboardPath = join(__dirname, '../public/dashboard.html');
   if (existsSync(dashboardPath)) {
     res.sendFile(dashboardPath);
