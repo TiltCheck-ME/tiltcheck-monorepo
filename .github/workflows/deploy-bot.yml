@@ -82,3 +82,51 @@ jobs:
             docker compose pull discord-bot
             docker compose up -d discord-bot
             docker system prune -f
+
+      - name: Verify deployment health
+        if: github.event_name != 'pull_request'
+        uses: appleboy/ssh-action@v1.2.4
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          script: |
+            echo "Waiting for discord-bot to be ready..."
+            MAX_ATTEMPTS=30
+            ATTEMPT=0
+            
+            while [ $ATTEMPT -lt $MAX_ATTEMPTS ]; do
+              ATTEMPT=$((ATTEMPT + 1))
+              echo "Attempt $ATTEMPT/$MAX_ATTEMPTS..."
+              
+              # Check if container is running
+              if ! docker ps | grep -q tiltcheck-bot; then
+                echo "Error: discord-bot container is not running"
+                docker ps -a | grep tiltcheck-bot || true
+                docker logs tiltcheck-bot --tail 50 || true
+                exit 1
+              fi
+              
+              # Check health endpoint using curl (fallback to wget if curl not available)
+              HEALTH_RESPONSE=$(docker exec tiltcheck-bot sh -c 'curl -sf http://localhost:8081/health 2>/dev/null || wget -q -O - http://localhost:8081/health 2>/dev/null' || echo "")
+              
+              if [ -n "$HEALTH_RESPONSE" ]; then
+                echo "Health response: $HEALTH_RESPONSE"
+                
+                # Check if ready field is true
+                if echo "$HEALTH_RESPONSE" | grep -q '"ready":true'; then
+                  echo "✅ Discord bot is healthy and ready!"
+                  exit 0
+                else
+                  echo "Bot is not ready yet, waiting..."
+                fi
+              else
+                echo "Health endpoint not responding yet..."
+              fi
+              
+              sleep 2
+            done
+            
+            echo "❌ Deployment verification failed: discord-bot did not become ready within timeout"
+            docker logs tiltcheck-bot --tail 100
+            exit 1
