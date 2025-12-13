@@ -1,21 +1,7 @@
 {
   "version": 2,
-  "buildCommand": "cd frontend && npm install && npm run build",
-  "installCommand": "npm install --legacy-peer-deps",
   "outputDirectory": "frontend/public",
   "framework": null,
-  "env": {
-    "NODE_ENV": "production",
-    "NEXT_PUBLIC_API_URL": "@backend-api-url",
-    "NEXT_PUBLIC_SUPABASE_URL": "@supabase-url",
-    "NEXT_PUBLIC_SUPABASE_ANON_KEY": "@supabase-anon-key"
-  },
-  "functions": {
-    "frontend/server.js": {
-      "memory": 512,
-      "maxDuration": 10
-    }
-  },
   "routes": [
     {
       "src": "^/api/(.*)",
@@ -79,21 +65,6 @@
       ]
     }
   ],
-  "regions": ["sfo1"],
-  "public": true
-}
-      ]
-    },
-    {
-      "source": "/(.*)",
-      "headers": [
-        { "key": "X-Frame-Options", "value": "DENY" },
-        { "key": "X-Content-Type-Options", "value": "nosniff" },
-        { "key": "X-XSS-Protection", "value": "1; mode=block" },
-        { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" }
-      ]
-    }
-  ],
   "redirects": [
     {
       "source": "/invite",
@@ -111,6 +82,8 @@
       "permanent": false
     }
   ],
+  "regions": ["sfo1"],
+  "public": true,
   "env": {
     "VERCEL_AI_GATEWAY_ENABLED": "true",
     "AI_GATEWAY_URL": "https://gateway.ai.cloudflare.com/v1"
