@@ -1,0 +1,23 @@
+{
+  "name": "@tiltcheck/cli",
+  "version": "0.1.0",
+  "description": "TiltCheck CLI",
+  "type": "module",
+  "bin": {
+    "tiltcheck": "./dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "clean": "rm -rf dist",
+    "checklists": "node dist/index.js checklists"
+  },
+  "dependencies": {
+    "@tiltcheck/shared": "workspace:*",
+    "commander": "^12.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "typescript": "^5.3.0"
+  }
+}
