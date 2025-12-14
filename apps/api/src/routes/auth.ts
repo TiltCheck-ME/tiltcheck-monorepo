@@ -68,16 +68,29 @@ const authLimiter = rateLimit({
 // ============================================================================
 
 /**
+ * Get JWT secret from environment
+ */
+function getJWTSecret(): string {
+  const secret = process.env.JWT_SECRET;
+  if (!secret) {
+    throw new Error('JWT_SECRET environment variable is required');
+  }
+  return secret;
+}
+
+/**
  * Generate JWT token for user
  */
 function generateJWT(userId: string, email: string, roles: string[]): string {
-  const secret = process.env.JWT_SECRET || 'supersecret';
+  const secret = getJWTSecret();
   
-  return jwt.sign(
+  const token = jwt.sign(
     { userId, email, roles },
     secret,
     { expiresIn: '7d' }
   );
+  
+  return token;
 }
 
 // ============================================================================
@@ -340,7 +353,7 @@ router.get('/me', async (req, res) => {
     const authHeader = req.headers.authorization;
     if (authHeader && authHeader.startsWith('Bearer ')) {
       const token = authHeader.split(' ')[1];
-      const secret = process.env.JWT_SECRET || 'supersecret';
+      const secret = getJWTSecret();
       
       try {
         const payload = jwt.verify(token, secret) as { userId: string; email: string; roles: string[] };
