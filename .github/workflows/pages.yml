@@ -1,4 +1,5 @@
 name: Deploy GitHub Pages
+# Deploys the TiltCheck landing page to GitHub Pages
 
 on:
   push:
