@@ -1,4 +1,9 @@
-name: Discord Bot Redeploy
+# NOTE: This workflow is for Railway deployment (experimental/alternative).
+# The main production deployment uses deploy-bot.yml (SSH-based).
+# This workflow is currently DISABLED to avoid conflicts.
+# To enable Railway deployment, remove the 'if: false' condition below.
+
+name: Discord Bot Redeploy (Railway - Disabled)
 
 on:
   push:
@@ -14,6 +19,7 @@ jobs:
   detect-changes:
     name: Detect Bot Changes
     runs-on: ubuntu-latest
+    if: false  # Disabled - use deploy-bot.yml for production deployment
     outputs:
       bot-changed: ${{ steps.filter.outputs.bot }}
     steps:
@@ -54,6 +60,8 @@ jobs:
             ~/.pnpm-store
             **/node_modules
           key: ${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile --no-link-workspace-packages
