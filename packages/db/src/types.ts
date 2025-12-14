@@ -17,6 +17,7 @@ export interface User {
   discord_avatar: string | null;
   wallet_address: string | null;
   email: string | null;
+  hashed_password: string | null;
   roles: string[];
   created_at: Date;
   updated_at: Date;
@@ -32,6 +33,7 @@ export interface CreateUserPayload {
   discord_avatar?: string;
   wallet_address?: string;
   email?: string;
+  hashed_password?: string;
   roles?: string[];
 }
 
@@ -44,6 +46,7 @@ export interface UpdateUserPayload {
   discord_avatar?: string;
   wallet_address?: string;
   email?: string;
+  hashed_password?: string;
   roles?: string[];
   last_login_at?: Date;
 }

@@ -1,10 +1,12 @@
 /**
  * Auth Routes - /auth/*
- * Handles Discord OAuth, session management, and user info
+ * Handles Discord OAuth, JWT auth, session management, and user info
  */
 
 import { Router } from 'express';
 import rateLimit from 'express-rate-limit';
+import jwt from 'jsonwebtoken';
+import bcrypt from 'bcryptjs';
 import {
   getDiscordAuthUrl,
   verifyDiscordOAuth,
@@ -16,7 +18,14 @@ import {
   type JWTConfig,
   type DiscordOAuthConfig,
 } from '@tiltcheck/auth';
-import { findOrCreateUserByDiscord } from '@tiltcheck/db';
+import { 
+  findOrCreateUserByDiscord, 
+  findUserByEmail, 
+  createUser,
+  updateUser,
+  findUserById,
+} from '@tiltcheck/db';
+import { authMiddleware } from '../middleware/auth.js';
 
 const router = Router();
 
@@ -55,8 +64,165 @@ const authLimiter = rateLimit({
 });
 
 // ============================================================================
+// Helper Functions
+// ============================================================================
+
+/**
+ * Generate JWT token for user
+ */
+function generateJWT(userId: string, email: string, roles: string[]): string {
+  const secret = process.env.JWT_SECRET || 'supersecret';
+  
+  return jwt.sign(
+    { userId, email, roles },
+    secret,
+    { expiresIn: '7d' }
+  );
+}
+
+// ============================================================================
 // Routes
 // ============================================================================
+
+/**
+ * POST /auth/register
+ * Register a new user with email and password
+ */
+router.post('/register', authLimiter, async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    
+    // Validate input
+    if (!email || !password) {
+      res.status(400).json({ 
+        error: 'Email and password are required', 
+        code: 'MISSING_FIELDS' 
+      });
+      return;
+    }
+    
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      res.status(400).json({ 
+        error: 'Invalid email format', 
+        code: 'INVALID_EMAIL' 
+      });
+      return;
+    }
+    
+    // Validate password length
+    if (password.length < 6) {
+      res.status(400).json({ 
+        error: 'Password must be at least 6 characters', 
+        code: 'INVALID_PASSWORD' 
+      });
+      return;
+    }
+    
+    // Check if user already exists
+    const existingUser = await findUserByEmail(email);
+    if (existingUser) {
+      res.status(409).json({ 
+        error: 'User with this email already exists', 
+        code: 'USER_EXISTS' 
+      });
+      return;
+    }
+    
+    // Hash password
+    const hashedPassword = await bcrypt.hash(password, 10);
+    
+    // Create user
+    const user = await createUser({
+      email,
+      hashed_password: hashedPassword,
+      roles: ['user'],
+    });
+    
+    if (!user) {
+      res.status(500).json({ 
+        error: 'Failed to create user', 
+        code: 'CREATE_FAILED' 
+      });
+      return;
+    }
+    
+    // Generate JWT
+    const token = generateJWT(user.id, user.email!, user.roles);
+    
+    res.status(201).json({
+      success: true,
+      token,
+      user: {
+        id: user.id,
+        email: user.email,
+        roles: user.roles,
+      },
+    });
+  } catch (error) {
+    console.error('[Auth] Register error:', error);
+    res.status(500).json({ error: 'Registration failed' });
+  }
+});
+
+/**
+ * POST /auth/login
+ * Login with email and password, returns JWT token
+ */
+router.post('/login', authLimiter, async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    
+    // Validate input
+    if (!email || !password) {
+      res.status(400).json({ 
+        error: 'Email and password are required', 
+        code: 'MISSING_FIELDS' 
+      });
+      return;
+    }
+    
+    // Find user by email
+    const user = await findUserByEmail(email);
+    if (!user || !user.hashed_password) {
+      res.status(401).json({ 
+        error: 'Invalid credentials', 
+        code: 'INVALID_CREDENTIALS' 
+      });
+      return;
+    }
+    
+    // Verify password
+    const isValidPassword = await bcrypt.compare(password, user.hashed_password);
+    if (!isValidPassword) {
+      res.status(401).json({ 
+        error: 'Invalid credentials', 
+        code: 'INVALID_CREDENTIALS' 
+      });
+      return;
+    }
+    
+    // Update last login
+    await updateUser(user.id, { last_login_at: new Date() });
+    
+    // Generate JWT
+    const token = generateJWT(user.id, user.email!, user.roles);
+    
+    res.json({
+      success: true,
+      token,
+      user: {
+        id: user.id,
+        email: user.email,
+        roles: user.roles,
+      },
+    });
+  } catch (error) {
+    console.error('[Auth] Login error:', error);
+    res.status(500).json({ error: 'Login failed' });
+  }
+});
 
 /**
  * GET /auth/discord/login
@@ -166,10 +332,39 @@ router.get('/discord/callback', authLimiter, async (req, res) => {
 
 /**
  * GET /auth/me
- * Returns current user info from session
+ * Returns current user info from JWT token or session cookie
  */
 router.get('/me', async (req, res) => {
   try {
+    // Try JWT token first (from Authorization header)
+    const authHeader = req.headers.authorization;
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      const token = authHeader.split(' ')[1];
+      const secret = process.env.JWT_SECRET || 'supersecret';
+      
+      try {
+        const payload = jwt.verify(token, secret) as { userId: string; email: string; roles: string[] };
+        const user = await findUserById(payload.userId);
+        
+        if (user) {
+          res.json({
+            userId: user.id,
+            email: user.email,
+            discordId: user.discord_id,
+            discordUsername: user.discord_username,
+            walletAddress: user.wallet_address,
+            roles: user.roles,
+            type: 'user',
+            isAdmin: user.roles.includes('admin'),
+          });
+          return;
+        }
+      } catch (jwtError) {
+        // Token invalid, try session cookie
+      }
+    }
+    
+    // Fallback to session cookie (Discord OAuth)
     const jwtConfig = getJWTConfig();
     const cookieHeader = req.headers.cookie;
     
