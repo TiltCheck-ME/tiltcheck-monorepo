@@ -10,21 +10,23 @@ ENV CI=true
 WORKDIR /app
 
 # Copy package files
-COPY package.json pnpm-workspace.yaml pnpm-lock.yaml ./
+COPY package.json pnpm-workspace.yaml pnpm-lock.yaml .npmrc ./
 COPY packages/types/package.json ./packages/types/
 COPY packages/config/package.json ./packages/config/
 COPY packages/discord-utils/package.json ./packages/discord-utils/
 COPY services/event-router/package.json ./services/event-router/
 COPY services/dashboard/package.json ./services/dashboard/
 
-    # Install dependencies
-    RUN pnpm install
+# Install dependencies
+RUN pnpm install --frozen-lockfile
 
-    # Copy source code
-    COPY packages/ ./packages/
-    COPY services/event-router/ ./services/event-router/
-    COPY services/dashboard/ ./services/dashboard/
-    COPY tsconfig.json ./
+# Copy source code
+COPY packages/types/ ./packages/types/
+COPY packages/config/ ./packages/config/
+COPY packages/discord-utils/ ./packages/discord-utils/
+COPY services/event-router/ ./services/event-router/
+COPY services/dashboard/ ./services/dashboard/
+COPY tsconfig.json ./
 
 # Build packages
 RUN pnpm run -C packages/types build && \
@@ -44,7 +46,7 @@ ENV CI=true
 WORKDIR /app
 
 # Copy package files
-COPY package.json pnpm-workspace.yaml pnpm-lock.yaml ./
+COPY package.json pnpm-workspace.yaml pnpm-lock.yaml .npmrc ./
 COPY packages/types/package.json ./packages/types/
 COPY packages/config/package.json ./packages/config/
 COPY packages/discord-utils/package.json ./packages/discord-utils/
@@ -52,7 +54,7 @@ COPY services/event-router/package.json ./services/event-router/
 COPY services/dashboard/package.json ./services/dashboard/
 
 # Install production dependencies only (--ignore-scripts to skip prepare scripts that need tsc)
-RUN pnpm install --prod --ignore-scripts
+RUN pnpm install --prod --frozen-lockfile --ignore-scripts
 
 # Copy built files from builder
 COPY --from=builder /app/packages/types/dist ./packages/types/dist
