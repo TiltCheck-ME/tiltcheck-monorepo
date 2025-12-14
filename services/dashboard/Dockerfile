@@ -21,6 +21,8 @@ COPY services/dashboard/package.json ./services/dashboard/
 RUN pnpm install --frozen-lockfile
 
 # Copy source code
+# Note: Only copying packages that dashboard depends on (see package.json dependencies)
+# This keeps the Docker image small. If dashboard dependencies change, update this list.
 COPY packages/types/ ./packages/types/
 COPY packages/config/ ./packages/config/
 COPY packages/discord-utils/ ./packages/discord-utils/
