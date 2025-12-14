@@ -24,6 +24,7 @@ export interface ClientConfig {
   baseUrl?: string;
   token?: string;
   fetch?: typeof fetch;
+  autoSetToken?: boolean; // Automatically set token after login/register
 }
 
 export interface RequestOptions {
@@ -39,11 +40,13 @@ export class TiltCheckClient {
   private baseUrl: string;
   private token: string | null;
   private fetchFn: typeof fetch;
+  private autoSetToken: boolean;
 
   constructor(config: ClientConfig = {}) {
     this.baseUrl = config.baseUrl || 'http://localhost:4000';
     this.token = config.token || null;
     this.fetchFn = config.fetch || globalThis.fetch;
+    this.autoSetToken = config.autoSetToken ?? true; // Default to true for convenience
   }
 
   /**
@@ -85,11 +88,27 @@ export class TiltCheckClient {
       signal: options.signal,
     });
 
-    const data = await response.json();
+    let data: unknown = null;
+    
+    // Only parse JSON if there's content
+    const contentType = response.headers.get('content-type');
+    if (contentType && contentType.includes('application/json')) {
+      try {
+        data = await response.json();
+      } catch (err) {
+        // Response claimed to be JSON but wasn't - treat as error
+        if (!response.ok) {
+          throw new TiltCheckAPIError('Invalid response format', 'INVALID_RESPONSE', response.status);
+        }
+      }
+    }
 
     if (!response.ok) {
-      const error = errorSchema.parse(data);
-      throw new TiltCheckAPIError(error.error, error.code, response.status, error.details);
+      if (data) {
+        const error = errorSchema.parse(data);
+        throw new TiltCheckAPIError(error.error, error.code, response.status, error.details);
+      }
+      throw new TiltCheckAPIError('Request failed', 'REQUEST_FAILED', response.status);
     }
 
     return data as T;
@@ -105,7 +124,9 @@ export class TiltCheckClient {
   async register(payload: RegisterRequest, options?: RequestOptions): Promise<AuthResponse> {
     registerSchema.parse(payload);
     const response = await this.request<AuthResponse>('POST', '/auth/register', payload, options);
-    this.token = response.token;
+    if (this.autoSetToken) {
+      this.token = response.token;
+    }
     return response;
   }
 
@@ -115,7 +136,9 @@ export class TiltCheckClient {
   async login(payload: LoginRequest, options?: RequestOptions): Promise<AuthResponse> {
     loginSchema.parse(payload);
     const response = await this.request<AuthResponse>('POST', '/auth/login', payload, options);
-    this.token = response.token;
+    if (this.autoSetToken) {
+      this.token = response.token;
+    }
     return response;
   }
 
