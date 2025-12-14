@@ -12,6 +12,7 @@ WORKDIR /app
 # Copy package files
 COPY package.json pnpm-workspace.yaml pnpm-lock.yaml ./
 COPY packages/types/package.json ./packages/types/
+COPY packages/config/package.json ./packages/config/
 COPY packages/discord-utils/package.json ./packages/discord-utils/
 COPY services/event-router/package.json ./services/event-router/
 COPY services/dashboard/package.json ./services/dashboard/
