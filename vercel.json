@@ -1,6 +1,8 @@
 {
   "version": 2,
+  "buildCommand": "echo 'Static files already built'",
   "outputDirectory": "frontend/public",
+  "installCommand": "echo 'No install needed'",
   "framework": null,
   "routes": [
     {
