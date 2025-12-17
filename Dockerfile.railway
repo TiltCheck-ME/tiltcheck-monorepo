@@ -17,6 +17,7 @@ COPY packages/config/package.json packages/config/tsconfig.json ./packages/confi
 COPY packages/esm-utils/package.json packages/esm-utils/tsconfig.json ./packages/esm-utils/
 COPY packages/database/package.json packages/database/tsconfig.json ./packages/database/
 COPY services/event-router/package.json services/event-router/tsconfig.json ./services/event-router/
+COPY services/trust-rollup/package.json services/trust-rollup/tsconfig.json ./services/trust-rollup/
 COPY services/dashboard/package.json services/dashboard/tsconfig.json ./services/dashboard/
 
 # Install dependencies (including devDependencies for build)
@@ -25,6 +26,7 @@ RUN pnpm install --frozen-lockfile
 # Copy source code
 COPY packages/ ./packages/
 COPY services/event-router/ ./services/event-router/
+COPY services/trust-rollup/ ./services/trust-rollup/
 COPY services/dashboard/ ./services/dashboard/
 
 # Build in dependency order
@@ -33,6 +35,7 @@ RUN pnpm --filter @tiltcheck/types run build && \
     pnpm --filter @tiltcheck/esm-utils run build && \
     pnpm --filter @tiltcheck/database run build && \
     pnpm --filter @tiltcheck/event-router run build && \
+    pnpm --filter @tiltcheck/trust-rollup run build && \
     pnpm --filter @tiltcheck/dashboard run build
 
 # Production stage - minimal image
@@ -40,8 +43,9 @@ FROM node:20.18.0-alpine AS production
 
 WORKDIR /app
 
-# Install pnpm 10
-RUN npm install -g pnpm@10.0.0
+# Install pnpm 10 and curl for healthchecks
+RUN npm install -g pnpm@10.0.0 && \
+    apk add --no-cache curl
 
 # Copy workspace configuration
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
@@ -52,6 +56,7 @@ COPY packages/config/package.json ./packages/config/
 COPY packages/esm-utils/package.json ./packages/esm-utils/
 COPY packages/database/package.json ./packages/database/
 COPY services/event-router/package.json ./services/event-router/
+COPY services/trust-rollup/package.json ./services/trust-rollup/
 COPY services/dashboard/package.json ./services/dashboard/
 
 # Install production dependencies only
@@ -63,10 +68,11 @@ COPY --from=builder /app/packages/config/dist ./packages/config/dist
 COPY --from=builder /app/packages/esm-utils/dist ./packages/esm-utils/dist
 COPY --from=builder /app/packages/database/dist ./packages/database/dist
 COPY --from=builder /app/services/event-router/dist ./services/event-router/dist
+COPY --from=builder /app/services/trust-rollup/dist ./services/trust-rollup/dist
 COPY --from=builder /app/services/dashboard/dist ./services/dashboard/dist
 
-# Copy dashboard static files
-COPY --from=builder /app/services/dashboard/public ./services/dashboard/public
+# Copy dashboard static files if they exist
+COPY --from=builder /app/services/dashboard/public ./services/dashboard/public 2>/dev/null || true
 
 # Create data directory
 RUN mkdir -p /app/data
@@ -76,8 +82,8 @@ ENV NODE_ENV=production \
 
 EXPOSE 8080
 
-# Health check for Railway
+# Health check using curl instead of wget
 HEALTHCHECK --interval=20s --timeout=10s --retries=3 --start-period=30s \
-  CMD wget --quiet --tries=1 --spider http://localhost:${PORT}/api/health || exit 1
+  CMD curl -f http://localhost:${PORT}/api/health || exit 1
 
 CMD ["node", "services/dashboard/dist/server.js"]
