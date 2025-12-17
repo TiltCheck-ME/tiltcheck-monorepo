@@ -2,7 +2,6 @@
   "name": "@tiltcheck/database",
   "version": "0.1.0",
   "private": true,
-  "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
@@ -10,10 +9,10 @@
     "dev": "tsc --watch"
   },
   "dependencies": {
-    "@tiltcheck/types": "workspace:*",
-    "@supabase/supabase-js": "^2.39.0"
+    "@tiltcheck/types": "workspace:*"
   },
   "devDependencies": {
+    "@types/bcryptjs": "^2.4.6",
     "typescript": "^5.3.0"
   }
 }
