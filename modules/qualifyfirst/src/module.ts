@@ -32,8 +32,8 @@ export interface Survey {
   description: string;
   estimatedMinutes: number;
   payoutUSD: number;
-  requiredTraits: Map<string, string | number | boolean>;
-  excludedTraits: Map<string, string | number | boolean>;
+  requiredTraits: Map<string, string | number | boolean> | Record<string, string | number | boolean>;
+  excludedTraits: Map<string, string | number | boolean> | Record<string, string | number | boolean>;
   source: string; // 'affiliate' | 'partner' | 'user-submitted'
   createdAt: number;
 }
