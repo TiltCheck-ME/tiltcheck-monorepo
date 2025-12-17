@@ -215,11 +215,19 @@ export class QualifyFirstModule {
     let matchScore = 50; // Start at neutral
     const reasoning: string[] = [];
 
+    // Normalize traits to Maps if they're Records
+    const requiredTraits = survey.requiredTraits instanceof Map 
+      ? survey.requiredTraits 
+      : new Map(Object.entries(survey.requiredTraits));
+    const excludedTraits = survey.excludedTraits instanceof Map 
+      ? survey.excludedTraits 
+      : new Map(Object.entries(survey.excludedTraits));
+
     // Check required traits
     let requiredMatches = 0;
-    const requiredTotal = survey.requiredTraits.size;
+    const requiredTotal = requiredTraits.size;
 
-    for (const [key, value] of survey.requiredTraits) {
+    for (const [key, value] of requiredTraits) {
       const userValue = profile.traits.get(key);
       if (userValue === value) {
         requiredMatches++;
@@ -236,7 +244,7 @@ export class QualifyFirstModule {
     }
 
     // Check excluded traits (disqualifiers)
-    for (const [key, value] of survey.excludedTraits) {
+    for (const [key, value] of excludedTraits) {
       const userValue = profile.traits.get(key);
       if (userValue === value) {
         matchScore = 0;
