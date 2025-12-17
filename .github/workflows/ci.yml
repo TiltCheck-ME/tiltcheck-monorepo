@@ -67,3 +67,10 @@ jobs:
           name: coverage-report
           path: coverage/
         continue-on-error: true
+      
+      - name: Notify Vercel
+        uses: vercel/repository-dispatch/actions/status@v1
+        if: always()
+        with:
+          name: Vercel - tiltcheck-monorepo: CI
+        continue-on-error: true
