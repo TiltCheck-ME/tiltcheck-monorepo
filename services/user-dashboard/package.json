@@ -15,7 +15,7 @@
     "passport": "^0.7.0",
     "passport-discord": "^0.1.4",
     "cors": "^2.8.5",
-    "jsonwebtoken": "^9.0.2",
+    "jsonwebtoken": "^9.0.3",
     "@tiltcheck/db": "workspace:*",
     "@tiltcheck/event-router": "workspace:*",
     "@tiltcheck/types": "workspace:*",
