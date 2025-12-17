@@ -801,11 +801,10 @@ importers:
         version: 5.9.3
 
   packages/config:
-    dependencies:
-      zod:
-        specifier: ^3.22.4
-        version: 3.25.76
     devDependencies:
+      '@types/bcryptjs':
+        specifier: ^2.4.6
+        version: 2.4.6
       typescript:
         specifier: ^5.4.0
         version: 5.9.3
