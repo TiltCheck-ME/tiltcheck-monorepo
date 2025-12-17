@@ -17,6 +17,7 @@ COPY packages/config/package.json packages/config/tsconfig.json ./packages/confi
 COPY packages/esm-utils/package.json packages/esm-utils/tsconfig.json ./packages/esm-utils/
 COPY packages/database/package.json packages/database/tsconfig.json ./packages/database/
 COPY services/event-router/package.json services/event-router/tsconfig.json ./services/event-router/
+COPY services/pricing-oracle/package.json services/pricing-oracle/tsconfig.json ./services/pricing-oracle/
 COPY services/trust-rollup/package.json services/trust-rollup/tsconfig.json ./services/trust-rollup/
 COPY services/dashboard/package.json services/dashboard/tsconfig.json ./services/dashboard/
 
@@ -26,6 +27,7 @@ RUN pnpm install --frozen-lockfile
 # Copy source code
 COPY packages/ ./packages/
 COPY services/event-router/ ./services/event-router/
+COPY services/pricing-oracle/ ./services/pricing-oracle/
 COPY services/trust-rollup/ ./services/trust-rollup/
 COPY services/dashboard/ ./services/dashboard/
 
@@ -35,6 +37,7 @@ RUN pnpm --filter @tiltcheck/types run build && \
     pnpm --filter @tiltcheck/esm-utils run build && \
     pnpm --filter @tiltcheck/database run build && \
     pnpm --filter @tiltcheck/event-router run build && \
+    pnpm --filter @tiltcheck/pricing-oracle run build && \
     pnpm --filter @tiltcheck/trust-rollup run build && \
     pnpm --filter "./services/dashboard" run build
 
@@ -56,6 +59,7 @@ COPY packages/config/package.json ./packages/config/
 COPY packages/esm-utils/package.json ./packages/esm-utils/
 COPY packages/database/package.json ./packages/database/
 COPY services/event-router/package.json ./services/event-router/
+COPY services/pricing-oracle/package.json ./services/pricing-oracle/
 COPY services/trust-rollup/package.json ./services/trust-rollup/
 COPY services/dashboard/package.json ./services/dashboard/
 
@@ -68,6 +72,7 @@ COPY --from=builder /app/packages/config/dist ./packages/config/dist
 COPY --from=builder /app/packages/esm-utils/dist ./packages/esm-utils/dist
 COPY --from=builder /app/packages/database/dist ./packages/database/dist
 COPY --from=builder /app/services/event-router/dist ./services/event-router/dist
+COPY --from=builder /app/services/pricing-oracle/dist ./services/pricing-oracle/dist
 COPY --from=builder /app/services/trust-rollup/dist ./services/trust-rollup/dist
 COPY --from=builder /app/services/dashboard/dist ./services/dashboard/dist
 

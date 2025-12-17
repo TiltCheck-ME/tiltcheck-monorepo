@@ -36,14 +36,15 @@ jobs:
           pnpm --filter @tiltcheck/api-client run build
           pnpm --filter @tiltcheck/auth run build
           pnpm --filter @tiltcheck/event-router run build
+          pnpm --filter @tiltcheck/pricing-oracle run build
           pnpm --filter @tiltcheck/trust-rollup run build
       
       - name: Build services/dashboard (Express server)
-        run: pnpm --filter @tiltcheck/dashboard --filter="./services/dashboard" run build
+        run: pnpm --filter "./services/dashboard" run build
         continue-on-error: true
       
       - name: Build apps/dashboard (Next.js app)
-        run: pnpm --filter @tiltcheck/dashboard --filter="./apps/dashboard" run build
+        run: pnpm --filter "./apps/dashboard" run build
       
       - name: Lint
         run: pnpm lint
