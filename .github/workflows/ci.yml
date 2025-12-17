@@ -19,6 +19,8 @@ jobs:
           cache: 'pnpm'
       - name: Install pnpm
         run: npm install -g pnpm@10.0.0
+      - name: Add npm global bin to PATH
+        run: echo "$(npm bin -g)" >> $GITHUB_PATH
       - name: Install deps
         run: pnpm install --frozen-lockfile
       - name: Build all packages
