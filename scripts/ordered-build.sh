@@ -25,6 +25,7 @@ pnpm --filter @tiltcheck/db build
 pnpm --filter @tiltcheck/natural-language-parser build
 pnpm --filter @tiltcheck/discord-utils build
 pnpm --filter @tiltcheck/identity-core build
+pnpm --filter @tiltcheck/cli build
 pnpm --filter @tiltcheck/supabase-auth build
 
 echo "⏳ Waiting for Stage 3 to complete..."
