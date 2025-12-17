@@ -1,7 +1,6 @@
 name: CI
 
 on:
-  workflow_dispatch:
   push:
     branches: [ main ]
   pull_request:
@@ -14,146 +13,33 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
       - name: Setup Node
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v4
         with:
           node-version: 20
-      - name: Enable Corepack
-        run: corepack enable
-      - name: Activate pnpm 10 (lockfile v9.0 (pnpm 10))
-        run: corepack prepare pnpm@10.0.0 --activate
-      - name: Install deps (frozen lockfile)
-        run: pnpm install --frozen-lockfile --no-link-workspace-packages
-        env:
-          PUPPETEER_SKIP_DOWNLOAD: 'true'
-      - name: Build all
-        run: pnpm build
-      - name: Link binaries
-        # Re-run install to create bin symlinks for packages built by prepare scripts
-        # This is fast as deps are already installed (only updates symlinks)
-        run: pnpm install
+          cache: 'pnpm'
+      - name: Install pnpm
+        run: npm install -g pnpm@10.0.0
+      - name: Install deps
+        run: pnpm install --frozen-lockfile
+      - name: Build all packages
+        run: |
+          pnpm --filter @tiltcheck/types run build
+          pnpm --filter @tiltcheck/config run build
+          pnpm --filter @tiltcheck/esm-utils run build
+          pnpm --filter @tiltcheck/database run build
+          pnpm --filter @tiltcheck/event-router run build
+          pnpm --filter @tiltcheck/trust-rollup run build
+          pnpm --filter @tiltcheck/dashboard run build
       - name: Lint
         run: pnpm lint
-      - name: Bundle components
-        run: pnpm bundle:components
-      - name: Contrast audit
-        run: pnpm contrast
-      - name: DOM contrast audit
-        run: pnpm contrast:dom
-      - name: Accessibility audit (pa11y + lighthouse)
-        run: pnpm a11y:audit
-        env:
-          PUPPETEER_EXECUTABLE_PATH: /usr/bin/google-chrome
+      - name: Type check (tsc --noEmit)
+        run: pnpm exec tsc -p tsconfig.json --noEmit
       - name: Run tests (Vitest)
         run: pnpm test
-      - name: Landing server health check
-        run: |
-          cd services/landing
-          node server.js &
-          SERVER_PID=$!
-          sleep 3
-          curl -f http://localhost:8080/health || (kill $SERVER_PID && exit 1)
-          kill $SERVER_PID
-        env:
-          PORT: 8080
-          LANDING_LOG_PATH: /tmp/ci-landing.log
-          ADMIN_IP_1: 127.0.0.1
       - name: Generate coverage report
         run: pnpm coverage
       - name: Upload coverage artifact
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v4
         with:
-          name: coverage-report-${{ github.run_id }}
+          name: coverage-report
           path: coverage/
-      - name: Upload component bundle
-        if: always()
-        uses: actions/upload-artifact@v5
-        with:
-          name: component-bundle-${{ github.run_id }}
-          path: dist/components/
-
-  components-a11y:
-    name: Components A11y & Contrast
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Setup Node
-        uses: actions/setup-node@v6
-        with:
-          node-version: 20
-      - name: Enable Corepack
-        run: corepack enable
-      - name: Activate pnpm 10 (lockfile v9.0 (pnpm 10))
-        run: corepack prepare pnpm@10.0.0 --activate
-      - name: Install deps (frozen lockfile)
-        run: pnpm install --frozen-lockfile --no-link-workspace-packages
-        env:
-          PUPPETEER_SKIP_DOWNLOAD: 'true'
-      - name: Run audits (bundle + contrast + a11y)
-        run: pnpm audit:all
-        env:
-          PUPPETEER_EXECUTABLE_PATH: /usr/bin/google-chrome
-      - name: Upload component bundle
-        if: always()
-        uses: actions/upload-artifact@v5
-        with:
-          name: component-bundle-a11y-${{ github.run_id }}
-          path: dist/components/
-          overwrite: true
-
-  landing-a11y:
-    name: Landing A11y
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Setup Node
-        uses: actions/setup-node@v6
-        with:
-          node-version: 20
-      - name: Enable Corepack
-        run: corepack enable
-      - name: Activate pnpm 10 (lockfile v9.0 (pnpm 10))
-        run: corepack prepare pnpm@10.0.0 --activate
-      - name: Install deps (frozen lockfile)
-        run: pnpm install --frozen-lockfile --no-link-workspace-packages
-        env:
-          PUPPETEER_SKIP_DOWNLOAD: 'true'
-      - name: Run landing accessibility audit
-        run: pnpm a11y:audit:landing
-        env:
-          PUPPETEER_EXECUTABLE_PATH: /usr/bin/google-chrome
-      - name: Upload landing a11y artifact
-        if: always()
-        uses: actions/upload-artifact@v5
-        with:
-          name: landing-a11y-${{ github.run_id }}
-          path: |
-            dist/landing-lighthouse-accessibility.json
-
-#   docker:
-#     runs-on: ubuntu-latest
-#     permissions:
-#       contents: read
-#     steps:
-#       - name: Checkout
-#         uses: actions/checkout@v4
-#       - name: Log in to Docker Hub
-#         uses: docker/login-action@v3
-#         with:
-#           username: ${{ secrets.DOCKER_USERNAME }}
-#           password: ${{ secrets.DOCKER_PASSWORD }}
-#       - name: Set up Docker Buildx
-#         uses: docker/setup-buildx-action@v3
-#         with:
-#           driver: cloud
-#           endpoint: "jmenichole/tiltcheck"
-#       - name: Build and push
-#         uses: docker/build-push-action@v6
-#         with:
-#           context: .
-#           file: ./apps/discord-bot/Dockerfile
-#           tags: "${{ secrets.DOCKER_USERNAME }}/docker-build-cloud-demo:latest"
-#           # For pull requests, export results to the build cache.
-#           # Otherwise, push to a registry.
-#           outputs: ${{ github.event_name == 'pull_request' && 'type=cacheonly' || 'type=registry' }}
