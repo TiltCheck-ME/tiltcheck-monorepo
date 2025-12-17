@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "buildCommand": "echo 'Static files already built'",
+  "buildCommand": "ls -la frontend/public/index.html && echo 'Static site ready'",
   "outputDirectory": "frontend/public",
-  "installCommand": "echo 'No install needed'",
+  "installCommand": "pnpm install --frozen-lockfile || echo 'Install failed but static files exist'",
   "framework": null,
   "routes": [
     {
@@ -36,10 +36,17 @@
       }
     },
     {
+      "src": "/(.+\\.(html|css|js|json|png|jpg|jpeg|gif|svg|ico|woff|woff2|ttf|eot))",
+      "dest": "/$1"
+    },
+    {
       "src": "/(.*)",
-      "dest": "/index.html"
+      "dest": "/$1",
+      "status": 404
     }
   ],
+  "cleanUrls": true,
+  "trailingSlash": false,
   "headers": [
     {
       "source": "/(.*)",
