@@ -17,7 +17,7 @@
     "passport-discord": "^0.1.4",
     "@solana/web3.js": "^1.87.0",
     "tweetnacl": "^1.0.3",
-    "pm2": "^6.0.9",
+    "pm2": "^6.0.14",
     "ws": "^8.16.0",
     "@tiltcheck/event-router": "workspace:*",
     "@tiltcheck/types": "workspace:*"
