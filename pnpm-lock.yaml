@@ -1156,9 +1156,6 @@ importers:
         specifier: workspace:*
         version: link:../../packages/types
     devDependencies:
-      '@types/bcryptjs':
-        specifier: ^2.4.6
-        version: 2.4.6
       '@types/node':
         specifier: ^24.10.1
         version: 24.10.1
