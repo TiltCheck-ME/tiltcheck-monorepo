@@ -1,12 +1,12 @@
 # Optimized Railway Dockerfile for Dashboard Service
 # Multi-stage build to minimize final image size
 
-FROM node:20-alpine AS builder
+FROM node:20.18.0-alpine AS builder
 
 WORKDIR /app
 
 # Install pnpm 10 to match lockfile
-RUN npm install -g pnpm@10
+RUN npm install -g pnpm@10.0.0
 
 # Copy workspace configuration
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml tsconfig.json ./
@@ -36,12 +36,12 @@ RUN pnpm --filter @tiltcheck/types run build && \
     pnpm --filter @tiltcheck/dashboard run build
 
 # Production stage - minimal image
-FROM node:20-alpine AS production
+FROM node:20.18.0-alpine AS production
 
 WORKDIR /app
 
 # Install pnpm 10
-RUN npm install -g pnpm@10
+RUN npm install -g pnpm@10.0.0
 
 # Copy workspace configuration
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
