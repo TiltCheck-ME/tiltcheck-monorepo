@@ -6,8 +6,8 @@
  */
 
 export const config = {
-  // Server - uses port 7071 for Spaceship Hyperlift deployment
-  port: parseInt(process.env.PORT || '7071', 10),
+  // Server - uses PORT env var (Railway sets 8080)
+  port: parseInt(process.env.PORT || '8080', 10),
   nodeEnv: process.env.NODE_ENV || 'development',
   isDev: process.env.NODE_ENV !== 'production',
 
