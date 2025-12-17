@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { dashboardState, pushEvent, getSparklineData } from '../src/state';
+import { dashboardState, pushEvent, getSparklineData } from '../src/state.js';
 
 describe('dashboard state', () => {
   it('increments severity buckets', () => {

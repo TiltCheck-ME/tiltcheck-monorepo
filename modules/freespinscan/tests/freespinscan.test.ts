@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { freespinscan } from '../src/index';
+import { freespinscan } from '../src/index.js';
 
 describe('FreeSpinScan module', () => {
   it('subscribes to promo.submitted event (smoke)', async () => {

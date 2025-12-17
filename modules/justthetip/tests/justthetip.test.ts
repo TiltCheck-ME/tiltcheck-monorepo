@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { JustTheTipModule } from '../src/index';
+import { JustTheTipModule } from '../src/index.js';
 import { eventRouter } from '@tiltcheck/event-router';
 
 describe('JustTheTipModule', () => {

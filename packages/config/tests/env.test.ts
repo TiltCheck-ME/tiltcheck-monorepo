@@ -17,7 +17,7 @@ import {
   jwtConfigSchema,
   serviceJwtConfigSchema,
   serverConfigSchema,
-} from '../src/env';
+} from '../src/env.js';
 
 describe('Config Package - Environment Validation', () => {
   describe('validateEnv', () => {

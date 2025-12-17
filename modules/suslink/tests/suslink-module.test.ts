@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { SusLinkModule } from '../src/suslink';
+import { SusLinkModule } from '../src/suslink.js';
 import { eventRouter } from '@tiltcheck/event-router';
 
 describe('SusLinkModule', () => {

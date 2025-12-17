@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { CollectClockService } from '../src/index';
+import { CollectClockService } from '../src/index.js';
 import fs from 'fs';
 import path from 'path';
 import { eventRouter } from '@tiltcheck/event-router';

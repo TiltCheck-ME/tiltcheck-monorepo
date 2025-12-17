@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { ModNotifier, createModNotifier } from '../src/mod-notifier';
+import { ModNotifier, createModNotifier } from '../src/mod-notifier.js';
 
 // Mock Discord.js Client and TextChannel
 const mockSend = vi.fn().mockResolvedValue({});

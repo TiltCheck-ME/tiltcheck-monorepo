@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { justthetip } from '../src/index';
+import { justthetip } from '../src/index.js';
 import { eventRouter } from '@tiltcheck/event-router';
 
 describe('JustTheTip trust mapping', () => {

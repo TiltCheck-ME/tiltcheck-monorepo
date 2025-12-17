@@ -10,7 +10,7 @@ import {
   extractUrls,
   containsMentions,
   validateArgs,
-} from '../src/validators';
+} from '../src/validators.js';
 
 describe('discord-utils/validators', () => {
   it('validates urls', () => {

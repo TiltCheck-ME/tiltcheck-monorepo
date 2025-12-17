@@ -8,7 +8,7 @@ import {
   shouldWarnUser,
   getUserTiltStatus,
   getUserActivity,
-} from '../src/tilt-detector';
+} from '../src/tilt-detector.js';
 import { eventRouter } from '@tiltcheck/event-router';
 
 describe('Tilt Detector', () => {

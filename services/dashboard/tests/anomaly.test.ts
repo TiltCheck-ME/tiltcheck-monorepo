@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { dashboardState, pushEvent } from '../src/state';
+import { dashboardState, pushEvent } from '../src/state.js';
 
 describe('domain anomaly detection', () => {
   it('flags a domain-anomaly after baseline established', () => {

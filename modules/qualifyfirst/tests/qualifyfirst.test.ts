@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { QualifyFirstModule, qualifyFirst } from '../src/index';
+import { QualifyFirstModule, qualifyFirst } from '../src/index.js';
 import { eventRouter } from '@tiltcheck/event-router';
 
 describe('QualifyFirst Module', () => {
