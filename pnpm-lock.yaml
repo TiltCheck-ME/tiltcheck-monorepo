@@ -13,6 +13,9 @@ importers:
 
   .:
     devDependencies:
+      '@types/bcryptjs':
+        specifier: ^3.0.0
+        version: 3.0.0
       '@types/jsdom':
         specifier: ^27.0.0
         version: 27.0.0
