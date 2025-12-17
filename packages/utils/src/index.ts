@@ -5,6 +5,9 @@
  * Provides error handling, API response formatting, and crypto helpers.
  */
 
+// Import ValidationError for internal use
+import { ValidationError } from './errors.js';
+
 // Error helpers
 export {
   TiltCheckError,
