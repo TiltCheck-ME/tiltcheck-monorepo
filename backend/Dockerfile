@@ -84,8 +84,8 @@ RUN mkdir -p /app/data
 # Set working directory for backend
 WORKDIR /app/backend
 
-# Expose port 7071 as specified
-EXPOSE 7071
+# Expose port 8080 (Railway default)
+EXPOSE 8080
 
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
   CMD node -e "const port = process.env.PORT || 7071; require('http').get('http://localhost:' + port + '/health', (r) => {if (r.statusCode !== 200) throw new Error(r.statusCode)})" || exit 1

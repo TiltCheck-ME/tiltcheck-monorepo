@@ -5,7 +5,7 @@
  * Exposes game arena, multiplayer games, and real-time WebSocket connections.
  * Uses @tiltcheck/supabase-auth for Discord OAuth via Supabase.
  * 
- * Deployed as a separate service via Spaceship Hyperlift on port 7071.
+ * Deployed on Railway using PORT env var (default: 8080).
  */
 
 import express from 'express';
