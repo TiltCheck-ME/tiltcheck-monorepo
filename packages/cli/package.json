@@ -10,6 +10,7 @@
     "build": "tsc",
     "dev": "tsc --watch",
     "clean": "rm -rf dist",
+    "prepare": "tsc",
     "checklists": "node dist/index.js checklists"
   },
   "dependencies": {
