@@ -7,8 +7,8 @@
   "deploy": {
     "startCommand": "node backend/dist/server.js",
     "healthcheckPath": "/health",
-    "healthcheckInterval": 10,
-    "healthcheckTimeout": 5,
+    "healthcheckInterval": 20,
+    "healthcheckTimeout": 10,
     "restartPolicyMaxRetries": 5,
     "restartPolicyType": "on_failure"
   }
