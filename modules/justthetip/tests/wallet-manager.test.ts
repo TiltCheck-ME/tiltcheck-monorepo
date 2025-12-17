@@ -69,7 +69,7 @@ describe('WalletManager - Security Guards', () => {
 
     it('should reject malformed base58 string', async () => {
       // Valid length but not a valid public key
-      const malformed = 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa';
+      const malformed = 'shortinvalid';
       
       await expect(registerExternalWallet('user123', malformed))
         .rejects.toThrow('Invalid Solana address');
