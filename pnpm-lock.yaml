@@ -1304,6 +1304,9 @@ importers:
         specifier: ^3.25.76
         version: 3.25.76
     devDependencies:
+      '@types/bcryptjs':
+        specifier: ^2.4.6
+        version: 2.4.6
       tsx:
         specifier: ^4.7.0
         version: 4.21.0
