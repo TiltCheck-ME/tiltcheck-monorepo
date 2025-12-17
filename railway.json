@@ -5,7 +5,7 @@
     "dockerfile": "./backend/Dockerfile"
   },
   "deploy": {
-    "startCommand": "node backend/dist/server.js",
+    "startCommand": "node dist/server.js",
     "healthcheckPath": "/health",
     "healthcheckInterval": 20,
     "healthcheckTimeout": 10,
