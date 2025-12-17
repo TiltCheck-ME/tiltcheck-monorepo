@@ -875,6 +875,9 @@ importers:
 
   packages/esm-utils:
     devDependencies:
+      '@types/bcryptjs':
+        specifier: ^2.4.6
+        version: 2.4.6
       typescript:
         specifier: ^5.3.0
         version: 5.9.3
