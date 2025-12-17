@@ -9,8 +9,8 @@ pnpm --filter @tiltcheck/types --filter @tiltcheck/config --filter @tiltcheck/es
 echo "📦 Layer 1: Core infrastructure..."
 pnpm --filter @tiltcheck/shared --filter @tiltcheck/database --filter @tiltcheck/db --filter @tiltcheck/api-client --filter @tiltcheck/auth --filter @tiltcheck/supabase-auth --filter @tiltcheck/natural-language-parser run build
 
-echo "📦 Layer 2: Event system..."
-pnpm --filter @tiltcheck/event-router run build
+echo "📦 Layer 2: Event system & CLI..."
+pnpm --filter @tiltcheck/event-router --filter @tiltcheck/cli run build
 
 echo "📦 Layer 3: Services layer..."
 pnpm --filter @tiltcheck/pricing-oracle --filter @tiltcheck/discord-utils --filter @tiltcheck/trust-engines --filter @tiltcheck/trust-rollup run build
