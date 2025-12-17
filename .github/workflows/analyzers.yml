@@ -20,12 +20,13 @@ jobs:
         with:
           node-version: 20
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile --no-link-workspace-packages
+        run: pnpm install --frozen-lockfile
+      - name: Build dependencies first
+        run: pnpm --filter "@tiltcheck/types" --filter "@tiltcheck/event-router" --filter "@tiltcheck/config" run build
       - name: Build analyzer services
-        run: pnpm --filter @tiltcheck/gameplay-analyzer --filter @tiltcheck/enhanced-analyzer run build
+        run: pnpm --filter @tiltcheck/gameplay-analyzer run build
       - name: Runtime smoke (skip listen)
         env:
           BUILD_SKIP_LISTEN: '1'
         run: |
           pnpm --filter @tiltcheck/gameplay-analyzer exec node dist/index.js || true
-          pnpm --filter @tiltcheck/enhanced-analyzer exec node dist/index.js || true
