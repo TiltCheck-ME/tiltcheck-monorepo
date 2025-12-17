@@ -512,7 +512,7 @@ function setupEventListeners() {
         userData = event.data.user;
         isAuthenticated = true;
         localStorage.setItem('tiltguard_auth', JSON.stringify(userData));
-        localStorage.setItem('tiltguard_token', authToken);
+        localStorage.setItem('tiltguard_token', authToken || '');
         showMainContent();
         addFeedMessage(`Authenticated as ${userData.username}`);
         window.removeEventListener('message', handleMessage);
@@ -612,7 +612,7 @@ async function continueAsGuest() {
     userData = result.user;
     isAuthenticated = true;
     localStorage.setItem('tiltguard_auth', JSON.stringify(userData));
-    localStorage.setItem('tiltguard_token', authToken);
+    localStorage.setItem('tiltguard_token', authToken || '');
     showMainContent();
     addFeedMessage('Guest session started');
   } else {
