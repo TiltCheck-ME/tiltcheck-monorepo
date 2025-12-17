@@ -16,11 +16,10 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: 'pnpm'
       - name: Install pnpm
-        run: npm install -g pnpm@10.0.0
-      - name: Add npm global bin to PATH
-        run: echo "$(npm bin -g)" >> $GITHUB_PATH
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.0.0
       - name: Install deps
         run: pnpm install --frozen-lockfile
       - name: Build all packages
