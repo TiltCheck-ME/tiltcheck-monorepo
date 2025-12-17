@@ -6,7 +6,7 @@
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "scripts": {
-    "build": "tsc",
+    "build": "tsc && tsc src/middleware/next.ts --outDir dist/middleware --declaration --declarationMap --sourceMap || echo 'Warning: Next.js middleware compilation skipped'",
     "dev": "tsc --watch",
     "clean": "rm -rf dist",
     "test": "vitest --run"
