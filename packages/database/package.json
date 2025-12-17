@@ -9,7 +9,7 @@
     "dev": "tsc --watch"
   },
   "dependencies": {
-    "@supabase/supabase-js": "^2.39.0",
+    "@supabase/supabase-js": "^2.47.1",
     "@tiltcheck/types": "workspace:*"
   },
   "devDependencies": {
