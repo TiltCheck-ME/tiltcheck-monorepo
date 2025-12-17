@@ -74,7 +74,8 @@
       "bufferutil",
       "esbuild",
       "sharp",
-      "utf-8-validate"
+      "utf-8-validate",
+      "puppeteer"
     ]
   }
 }

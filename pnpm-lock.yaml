@@ -804,6 +804,10 @@ importers:
         version: 5.9.3
 
   packages/config:
+    dependencies:
+      zod:
+        specifier: ^3.25.76
+        version: 3.25.76
     devDependencies:
       '@types/bcryptjs':
         specifier: ^2.4.6
