@@ -2,7 +2,7 @@
 FROM node:20-alpine AS builder
 
 # Install pnpm
-RUN npm install -g pnpm@9
+RUN npm install -g pnpm@10
 
 # Set CI environment variable
 ENV CI=true
@@ -40,7 +40,7 @@ RUN pnpm -F @tiltcheck/backend -r build
 # Production stage
 FROM node:20-alpine
 
-RUN npm install -g pnpm@9
+RUN npm install -g pnpm@10
 
 ENV CI=true
 ENV NODE_ENV=production

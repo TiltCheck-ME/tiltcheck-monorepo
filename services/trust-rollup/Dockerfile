@@ -2,7 +2,7 @@
 FROM node:20-alpine AS builder
 
 # Install pnpm (lockfileVersion 9 alignment)
-RUN npm install -g pnpm@9
+RUN npm install -g pnpm@10
 
 # Set CI environment variable to avoid pnpm TTY issues
 ENV CI=true
@@ -35,7 +35,7 @@ RUN pnpm run -C packages/types build && \
 FROM node:20-alpine
 
 # Install pnpm (lockfileVersion 9 alignment)
-RUN npm install -g pnpm@9
+RUN npm install -g pnpm@10
 
 # Set CI environment variable to avoid pnpm TTY issues
 ENV CI=true

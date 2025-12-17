@@ -9,8 +9,8 @@ WORKDIR /app
 ENV NODE_ENV="production"
 ENV CI=true
 
-# Install pnpm (pinned to 9.x for lockfile compatibility)
-ARG PNPM_VERSION=9.15.9
+# Install pnpm (pinned to 10.x for lockfile v9.0 compatibility)
+ARG PNPM_VERSION=10.0.0
 RUN npm install -g pnpm@$PNPM_VERSION
 
 # Build stage
