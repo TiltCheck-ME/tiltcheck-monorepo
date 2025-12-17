@@ -18,6 +18,13 @@ pnpm --filter @tiltcheck/pricing-oracle --filter @tiltcheck/discord-utils --filt
 echo "📦 Layer 4: Business logic modules..."
 pnpm --filter @tiltcheck/suslink --filter @tiltcheck/linkguard --filter @tiltcheck/collectclock --filter @tiltcheck/tiltcheck-core --filter @tiltcheck/justthetip --filter @tiltcheck/lockvault --filter @tiltcheck/freespinscan --filter @tiltcheck/dad --filter @tiltcheck/poker --filter @tiltcheck/qualifyfirst run build
 
-echo "✅ Core packages built successfully!"
-echo "💡 To build apps, run: pnpm --filter './apps/*' run build"
-echo "💡 To build services, run: pnpm --filter './services/*' run build"
+echo "📦 Layer 5: Applications..."
+pnpm --filter './apps/*' run build
+
+echo "📦 Layer 6: Services..."
+pnpm --filter './services/*' run build
+
+echo ""
+echo "✅ All packages built successfully!"
+echo ""
+echo "🎉 Complete monorepo build finished!"
