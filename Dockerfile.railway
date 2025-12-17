@@ -29,14 +29,14 @@ COPY services/event-router/ ./services/event-router/
 COPY services/trust-rollup/ ./services/trust-rollup/
 COPY services/dashboard/ ./services/dashboard/
 
-# Build in dependency order
+# Build in dependency order - use path filters to avoid ambiguity
 RUN pnpm --filter @tiltcheck/types run build && \
     pnpm --filter @tiltcheck/config run build && \
     pnpm --filter @tiltcheck/esm-utils run build && \
     pnpm --filter @tiltcheck/database run build && \
     pnpm --filter @tiltcheck/event-router run build && \
     pnpm --filter @tiltcheck/trust-rollup run build && \
-    pnpm --filter @tiltcheck/dashboard run build
+    pnpm --filter "./services/dashboard" run build
 
 # Production stage - minimal image
 FROM node:20.18.0-alpine AS production
