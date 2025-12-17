@@ -71,8 +71,8 @@ COPY --from=builder /app/services/event-router/dist ./services/event-router/dist
 COPY --from=builder /app/services/trust-rollup/dist ./services/trust-rollup/dist
 COPY --from=builder /app/services/dashboard/dist ./services/dashboard/dist
 
-# Copy dashboard static files if they exist
-COPY --from=builder /app/services/dashboard/public ./services/dashboard/public 2>/dev/null || true
+# Copy dashboard static files
+COPY --from=builder /app/services/dashboard/public ./services/dashboard/public
 
 # Create data directory
 RUN mkdir -p /app/data
