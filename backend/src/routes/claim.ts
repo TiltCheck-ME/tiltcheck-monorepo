@@ -34,23 +34,28 @@ router.post('/submit', async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
+    // Validate API key format (basic check)
+    if (apiKey.length < 10) {
+      res.status(400).json({ error: 'Invalid API key format' });
+      return;
+    }
+
+    // ⚠️  PLACEHOLDER IMPLEMENTATION
+    // This scaffold does not actually store or process claims yet.
+    // In production, implement:
+    // 1. Encrypt and store API key: await database.storeUserApiKey(userId, apiKey);
+    // 2. Fetch active codes: const activeCodes = await codeDatabase.getActiveCodes();
+    // 3. Queue claim jobs: for (const code of activeCodes) { await claimQueue.add('claim', { userId, code: code.code }); }
+
     // Generate unique user ID
     const userId = randomUUID();
 
-    // TODO: Store encrypted API key in database
-    // await database.storeUserApiKey(userId, apiKey);
-
-    // TODO: Queue claim jobs for all active codes
-    // const activeCodes = await codeDatabase.getActiveCodes();
-    // for (const code of activeCodes) {
-    //   await claimQueue.add('claim', { userId, code: code.code });
-    // }
-
-    console.log(`[API] Stored API key and queued claims for user: ${userId}`);
+    console.log(`[API] ⚠️  PLACEHOLDER: Would store API key and queue claims for user: ${userId}`);
+    console.log(`[API] NOTE: No actual processing will occur until database and job queue are implemented`);
 
     res.json({
       userId,
-      message: 'API key received. Claims are being processed.',
+      message: 'API key received. NOTE: This is a placeholder - implement database and job queue to enable actual processing.',
     });
   } catch (error) {
     console.error('[API] Error submitting API key:', error);

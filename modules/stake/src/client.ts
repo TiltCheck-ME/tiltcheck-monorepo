@@ -196,17 +196,22 @@ export class StakeClient {
   /**
    * Handle and normalize errors
    * 
+   * Ensures all errors are wrapped in StakeApiError for consistent error handling
+   * 
    * @private
    */
-  private handleError(error: unknown): Error {
+  private handleError(error: unknown): StakeApiError {
+    // Already a StakeApiError, return as-is
     if (error instanceof StakeApiError) {
       return error;
     }
 
+    // Standard Error, wrap in StakeApiError
     if (error instanceof Error) {
       return new StakeApiError(error.message);
     }
 
+    // Unknown error type, wrap with generic message
     return new StakeApiError('Unknown error occurred');
   }
 
