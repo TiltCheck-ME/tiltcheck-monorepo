@@ -1,96 +1,39 @@
 {
   "version": 2,
-  "buildCommand": "ls -la frontend/public/index.html && echo 'Static site ready'",
-  "outputDirectory": "frontend/public",
-  "installCommand": "pnpm install --frozen-lockfile || echo 'Install failed but static files exist'",
-  "framework": null,
+  "functions": {
+    "api/**/*.ts": {
+      "runtime": "@vercel/node@3.0.0"
+    }
+  },
   "routes": [
     {
-      "src": "^/api/(.*)",
-      "dest": "https://api.tiltcheck.com/api/$1",
+      "src": "^/api/ai/(.*)",
+      "dest": "https://api.openai.com/v1/$1",
       "headers": {
         "Access-Control-Allow-Origin": "*",
         "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
         "Access-Control-Allow-Headers": "Content-Type, Authorization"
       }
-    },
-    {
-      "src": "/styles/(.*)",
-      "dest": "/styles/$1",
-      "headers": {
-        "Cache-Control": "public, max-age=31536000, immutable"
-      }
-    },
-    {
-      "src": "/js/(.*)",
-      "dest": "/js/$1",
-      "headers": {
-        "Cache-Control": "public, max-age=3600"
-      }
-    },
-    {
-      "src": "/assets/(.*)",
-      "dest": "/assets/$1",
-      "headers": {
-        "Cache-Control": "public, max-age=31536000, immutable"
-      }
-    },
-    {
-      "src": "/(.+\\.(html|css|js|json|png|jpg|jpeg|gif|svg|ico|woff|woff2|ttf|eot))",
-      "dest": "/$1"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/$1",
-      "status": 404
     }
   ],
-  "cleanUrls": true,
-  "trailingSlash": false,
   "headers": [
     {
-      "source": "/(.*)",
+      "source": "/api/(.*)",
       "headers": [
         {
-          "key": "X-Content-Type-Options",
-          "value": "nosniff"
+          "key": "Access-Control-Allow-Origin",
+          "value": "*"
         },
         {
-          "key": "X-Frame-Options",
-          "value": "DENY"
+          "key": "Access-Control-Allow-Methods",
+          "value": "GET, POST, PUT, DELETE, OPTIONS"
         },
         {
-          "key": "X-XSS-Protection",
-          "value": "1; mode=block"
-        },
-        {
-          "key": "Referrer-Policy",
-          "value": "strict-origin-when-cross-origin"
-        },
-        {
-          "key": "Permissions-Policy",
-          "value": "geolocation=(), microphone=(), camera=()"
+          "key": "Access-Control-Allow-Headers",
+          "value": "Content-Type, Authorization"
         }
       ]
     }
   ],
-  "redirects": [
-    {
-      "source": "/invite",
-      "destination": "https://discord.com/oauth2/authorize?client_id=1445916179163250860",
-      "permanent": false
-    },
-    {
-      "source": "/discord",
-      "destination": "https://discord.gg/s6NNfPHxMS",
-      "permanent": false
-    },
-    {
-      "source": "/bot",
-      "destination": "https://discord.com/oauth2/authorize?client_id=1445916179163250860",
-      "permanent": false
-    }
-  ],
-  "regions": ["sfo1"],
-  "public": true
+  "regions": ["sfo1"]
 }

@@ -15,12 +15,34 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 9
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build Auto-Claimer web frontend
+        run: |
+          cd apps/web
+          pnpm build
+          cd ../..
+
       - name: Prepare out directory
         run: |
           mkdir out
           rsync -av --delete services/landing/public/ out/
           mkdir -p out/docs-md
           rsync -av docs/tiltcheck/ out/docs-md/
+          # Add Auto-Claimer web app
+          mkdir -p out/auto-claimer
+          rsync -av apps/web/dist/ out/auto-claimer/
           # Add CNAME if present in repo root or public
           if [ -f services/landing/public/CNAME ]; then cp services/landing/public/CNAME out/CNAME; fi
           echo "Build artifacts prepared"
