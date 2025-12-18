@@ -120,8 +120,8 @@ router.get('/status/:userId', async (req: Request, res: Response) => {
 router.get('/history/:userId', async (req: Request, res: Response) => {
   try {
     const { userId } = req.params;
-    const limit = parseInt(req.query.limit as string) || 50;
-    const statusFilter = req.query.status as string | undefined;
+    const _limit = parseInt(req.query.limit as string) || 50;
+    const _statusFilter = req.query.status as string | undefined;
 
     // TODO: Fetch claim history from database
     // let history = await database.getClaimHistory(userId, limit);
