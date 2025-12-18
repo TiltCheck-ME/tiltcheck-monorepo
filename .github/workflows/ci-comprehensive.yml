@@ -155,7 +155,11 @@ jobs:
           pnpm -r --filter './modules/**' --filter './services/**' --filter './packages/**' build || echo "Some packages may not have build scripts"
 
       - name: TypeScript type check
-        run: pnpm exec tsc --noEmit --skipLibCheck
+        run: |
+          echo "Type checking apps and services..."
+          pnpm -r --filter './apps/**' --filter './services/**' exec tsc --noEmit --skipLibCheck || echo "Some packages may not have TypeScript"
+          echo "Running root level type check..."
+          pnpm exec tsc --noEmit --skipLibCheck
 
   test:
     name: Unit & Integration Tests
