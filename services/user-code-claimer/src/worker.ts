@@ -23,20 +23,31 @@ export class ClaimWorker {
 
   /**
    * Start the worker
+   * 
+   * NOTE: This is a placeholder implementation for the project scaffold.
+   * In production, this should:
+   * 1. Connect to Redis using the provided URL
+   * 2. Create a BullMQ Worker instance
+   * 3. Start processing jobs from the queue
+   * 
+   * @param redisUrl - Redis connection URL for BullMQ
    */
   async start(redisUrl: string): Promise<void> {
-    console.log('[ClaimWorker] Starting worker...');
+    console.log('[ClaimWorker] ⚠️  PLACEHOLDER MODE - No actual worker created');
     console.log(`[ClaimWorker] Redis URL: ${redisUrl}`);
-
+    console.log('[ClaimWorker] To enable job processing, implement BullMQ Worker:');
+    console.log('[ClaimWorker]   const connection = { url: redisUrl };');
+    console.log('[ClaimWorker]   this.worker = new Worker("claim-jobs", this.processJob.bind(this), {');
+    console.log('[ClaimWorker]     connection,');
+    console.log('[ClaimWorker]     concurrency: parseInt(process.env.CLAIM_WORKER_CONCURRENCY || "10", 10),');
+    console.log('[ClaimWorker]   });');
+    
     // NOTE: This is a placeholder. In production:
     // const connection = { url: redisUrl };
     // this.worker = new Worker('claim-jobs', this.processJob.bind(this), {
     //   connection,
     //   concurrency: parseInt(process.env.CLAIM_WORKER_CONCURRENCY || '10', 10),
     // });
-
-    console.log('[ClaimWorker] Worker started (placeholder mode)');
-    console.log('[ClaimWorker] In production, this would connect to Redis and process jobs');
   }
 
   /**
