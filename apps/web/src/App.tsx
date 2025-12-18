@@ -10,10 +10,9 @@ import {
   submitApiKey,
   getClaimStatus,
   getClaimHistory,
-  getAvailableCodes,
   deleteUserData,
 } from './api';
-import type { ClaimStatus, ClaimHistoryItem, AvailableCode } from './types';
+import type { ClaimStatus, ClaimHistoryItem } from './types';
 import './App.css';
 
 const USER_ID_KEY = 'tiltcheck_auto_claimer_user_id';
@@ -27,7 +26,6 @@ function App() {
   const [error, setError] = useState<string | null>(null);
   const [status, setStatus] = useState<ClaimStatus | null>(null);
   const [history, setHistory] = useState<ClaimHistoryItem[]>([]);
-  const [codes, setCodes] = useState<AvailableCode[]>([]);
   const [statusFilter, setStatusFilter] = useState<string>('all');
 
   // Load data when userId changes
@@ -35,7 +33,6 @@ function App() {
     if (userId) {
       loadClaimStatus();
       loadClaimHistory();
-      loadAvailableCodes();
 
       // Poll status every 5 seconds
       const interval = setInterval(loadClaimStatus, 5000);
@@ -67,14 +64,7 @@ function App() {
     }
   };
 
-  const loadAvailableCodes = async () => {
-    try {
-      const data = await getAvailableCodes();
-      setCodes(data);
-    } catch (err) {
-      console.error('Failed to load codes:', err);
-    }
-  };
+
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

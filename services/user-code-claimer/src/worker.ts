@@ -26,6 +26,7 @@ export class ClaimWorker {
    */
   async start(redisUrl: string): Promise<void> {
     console.log('[ClaimWorker] Starting worker...');
+    console.log(`[ClaimWorker] Redis URL: ${redisUrl}`);
 
     // NOTE: This is a placeholder. In production:
     // const connection = { url: redisUrl };
