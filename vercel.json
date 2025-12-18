@@ -38,11 +38,6 @@
     {
       "src": "/(.+\\.(html|css|js|json|png|jpg|jpeg|gif|svg|ico|woff|woff2|ttf|eot))",
       "dest": "/$1"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/$1",
-      "status": 404
     }
   ],
   "cleanUrls": true,
