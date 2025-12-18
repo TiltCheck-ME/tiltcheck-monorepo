@@ -1,0 +1,23 @@
+{
+  "name": "@tiltcheck/stake",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Reusable Stake API client for checking eligibility and claiming promo codes",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "dev": "tsc --watch",
+    "test": "vitest --run",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "@tiltcheck/types": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "^24.10.1",
+    "typescript": "^5.3.0",
+    "vitest": "^1.6.0"
+  }
+}
