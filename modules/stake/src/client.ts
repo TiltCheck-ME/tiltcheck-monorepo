@@ -19,8 +19,6 @@ import {
   StakeApiError,
   RateLimitError,
   AuthenticationError,
-  InvalidCodeError,
-  IneligibleError,
 } from './errors.js';
 
 /**

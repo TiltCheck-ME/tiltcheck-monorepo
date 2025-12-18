@@ -8,7 +8,6 @@
  */
 
 import type { ClaimerDatabase, ClaimHistory } from './types.js';
-import { randomUUID } from 'crypto';
 
 /**
  * In-memory database implementation (for development/testing)
