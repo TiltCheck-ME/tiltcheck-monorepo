@@ -5,9 +5,9 @@
   "type": "module",
   "description": "TiltCheck Auto-Claimer Web Frontend",
   "scripts": {
-    "dev": "vite",
-    "build": "tsc && vite build",
-    "preview": "vite preview",
+    "dev": "pnpm exec vite",
+    "build": "tsc && pnpm exec vite build",
+    "preview": "pnpm exec vite preview",
     "clean": "rm -rf dist"
   },
   "dependencies": {

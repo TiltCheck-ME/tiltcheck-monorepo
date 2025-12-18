@@ -25,12 +25,13 @@ const router = express.Router();
  * Body: { apiKey: string }
  * Returns: { userId: string, message: string }
  */
-router.post('/submit', async (req: Request, res: Response) => {
+router.post('/submit', async (req: Request, res: Response): Promise<void> => {
   try {
     const { apiKey } = req.body;
 
     if (!apiKey || typeof apiKey !== 'string') {
-      return res.status(400).json({ error: 'API key is required' });
+      res.status(400).json({ error: 'API key is required' });
+      return;
     }
 
     // Generate unique user ID
@@ -154,7 +155,7 @@ router.get('/history/:userId', async (req: Request, res: Response) => {
  *   }>
  * }
  */
-router.get('/codes', async (req: Request, res: Response) => {
+router.get('/codes', async (_req: Request, res: Response) => {
   try {
     // TODO: Fetch active codes from database
     // const activeCodes = await codeDatabase.getActiveCodes();
