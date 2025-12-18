@@ -17,8 +17,8 @@
     "@tiltcheck/types": "workspace:*",
     "@tiltcheck/event-router": "workspace:*",
     "telegraf": "^4.16.3",
-    "telegram": "^2.25.13",
-    "pg": "^8.13.1",
+    "telegram": "^2.26.22",
+    "pg": "^8.16.3",
     "input": "^1.0.1"
   },
   "devDependencies": {
