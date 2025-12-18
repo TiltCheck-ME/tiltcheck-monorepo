@@ -11,12 +11,37 @@
  */
 
 import express, { type Request, type Response } from 'express';
-import { randomUUID } from 'crypto';
+import { ClaimService } from '../claim-service.js';
 
 const router = express.Router();
 
-// NOTE: These are placeholder implementations
-// In production, integrate with actual database and job queue
+// Initialize ClaimService (singleton pattern)
+let claimService: ClaimService | null = null;
+
+function getClaimService(): ClaimService {
+  if (!claimService) {
+    const redisUrl = process.env.REDIS_URL || 'redis://localhost:6379';
+    const databaseUrl = process.env.DATABASE_URL || 'postgresql://localhost:5432/tiltcheck';
+    const encryptionKey = process.env.API_KEY_ENCRYPTION_KEY;
+
+    if (!encryptionKey) {
+      throw new Error('API_KEY_ENCRYPTION_KEY environment variable is required');
+    }
+
+    claimService = new ClaimService({
+      redisUrl,
+      databaseUrl,
+      encryptionKey,
+    });
+
+    // Initialize schema on first use
+    claimService.initialize().catch((err) => {
+      console.error('[ClaimRoutes] Failed to initialize database:', err);
+    });
+  }
+  
+  return claimService;
+}
 
 /**
  * POST /api/claim/submit
@@ -40,22 +65,14 @@ router.post('/submit', async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
-    // ⚠️  PLACEHOLDER IMPLEMENTATION
-    // This scaffold does not actually store or process claims yet.
-    // In production, implement:
-    // 1. Encrypt and store API key: await database.storeUserApiKey(userId, apiKey);
-    // 2. Fetch active codes: const activeCodes = await codeDatabase.getActiveCodes();
-    // 3. Queue claim jobs: for (const code of activeCodes) { await claimQueue.add('claim', { userId, code: code.code }); }
+    const service = getClaimService();
+    const { userId } = await service.submitApiKey(apiKey);
 
-    // Generate unique user ID
-    const userId = randomUUID();
-
-    console.log(`[API] ⚠️  PLACEHOLDER: Would store API key and queue claims for user: ${userId}`);
-    console.log(`[API] NOTE: No actual processing will occur until database and job queue are implemented`);
+    console.log(`[API] Stored API key and queued claims for user: ${userId}`);
 
     res.json({
       userId,
-      message: 'API key received. NOTE: This is a placeholder - implement database and job queue to enable actual processing.',
+      message: 'API key received. Claims are being processed.',
     });
   } catch (error) {
     console.error('[API] Error submitting API key:', error);
@@ -79,22 +96,8 @@ router.post('/submit', async (req: Request, res: Response): Promise<void> => {
 router.get('/status/:userId', async (req: Request, res: Response) => {
   try {
     const { userId } = req.params;
-
-    // TODO: Fetch claim history from database
-    // const history = await database.getClaimHistory(userId);
-
-    // Placeholder response
-    const history: any[] = [];
-
-    const stats = {
-      userId,
-      total: history.length,
-      claimed: history.filter((h) => h.status === 'claimed').length,
-      skipped: history.filter((h) => h.status === 'skipped').length,
-      failed: history.filter((h) => h.status === 'failed').length,
-      processing: 0, // TODO: Count pending jobs in queue
-    };
-
+    const service = getClaimService();
+    const stats = await service.getClaimStatus(userId);
     res.json(stats);
   } catch (error) {
     console.error('[API] Error fetching status:', error);
@@ -125,17 +128,11 @@ router.get('/status/:userId', async (req: Request, res: Response) => {
 router.get('/history/:userId', async (req: Request, res: Response) => {
   try {
     const { userId } = req.params;
-    const _limit = parseInt(req.query.limit as string) || 50;
-    const _statusFilter = req.query.status as string | undefined;
+    const limit = parseInt(req.query.limit as string) || 50;
+    const statusFilter = req.query.status as string | undefined;
 
-    // TODO: Fetch claim history from database
-    // let history = await database.getClaimHistory(userId, limit);
-    // if (statusFilter) {
-    //   history = history.filter((h) => h.status === statusFilter);
-    // }
-
-    // Placeholder response
-    const claims: any[] = [];
+    const service = getClaimService();
+    const claims = await service.getClaimHistory(userId, limit, statusFilter);
 
     res.json({
       userId,
@@ -162,12 +159,8 @@ router.get('/history/:userId', async (req: Request, res: Response) => {
  */
 router.get('/codes', async (_req: Request, res: Response) => {
   try {
-    // TODO: Fetch active codes from database
-    // const activeCodes = await codeDatabase.getActiveCodes();
-
-    // Placeholder response
-    const codes: any[] = [];
-
+    const service = getClaimService();
+    const codes = await service.getAvailableCodes();
     res.json({ codes });
   } catch (error) {
     console.error('[API] Error fetching codes:', error);
@@ -185,13 +178,8 @@ router.get('/codes', async (_req: Request, res: Response) => {
 router.delete('/user/:userId', async (req: Request, res: Response) => {
   try {
     const { userId } = req.params;
-
-    // TODO: Delete user data from database
-    // await database.deleteUserApiKey(userId);
-    // await database.deleteClaimHistory(userId);
-
-    console.log(`[API] Deleted data for user: ${userId}`);
-
+    const service = getClaimService();
+    await service.deleteUserData(userId);
     res.json({ message: 'User data deleted successfully' });
   } catch (error) {
     console.error('[API] Error deleting user data:', error);

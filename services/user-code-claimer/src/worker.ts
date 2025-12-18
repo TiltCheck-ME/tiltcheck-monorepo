@@ -1,7 +1,7 @@
 /**
  * Claim Worker - Processes claim jobs from queue
  * 
- * NOTE: This uses BullMQ for job queue management.
+ * Uses BullMQ for job queue management.
  * Requires Redis instance for queue storage.
  */
 
@@ -24,30 +24,44 @@ export class ClaimWorker {
   /**
    * Start the worker
    * 
-   * NOTE: This is a placeholder implementation for the project scaffold.
-   * In production, this should:
-   * 1. Connect to Redis using the provided URL
-   * 2. Create a BullMQ Worker instance
-   * 3. Start processing jobs from the queue
-   * 
    * @param redisUrl - Redis connection URL for BullMQ
    */
   async start(redisUrl: string): Promise<void> {
-    console.log('[ClaimWorker] ⚠️  PLACEHOLDER MODE - No actual worker created');
+    console.log('[ClaimWorker] Starting worker...');
     console.log(`[ClaimWorker] Redis URL: ${redisUrl}`);
-    console.log('[ClaimWorker] To enable job processing, implement BullMQ Worker:');
-    console.log('[ClaimWorker]   const connection = { url: redisUrl };');
-    console.log('[ClaimWorker]   this.worker = new Worker("claim-jobs", this.processJob.bind(this), {');
-    console.log('[ClaimWorker]     connection,');
-    console.log('[ClaimWorker]     concurrency: parseInt(process.env.CLAIM_WORKER_CONCURRENCY || "10", 10),');
-    console.log('[ClaimWorker]   });');
-    
-    // NOTE: This is a placeholder. In production:
-    // const connection = { url: redisUrl };
-    // this.worker = new Worker('claim-jobs', this.processJob.bind(this), {
-    //   connection,
-    //   concurrency: parseInt(process.env.CLAIM_WORKER_CONCURRENCY || '10', 10),
-    // });
+
+    try {
+      // Parse Redis URL to get connection config
+      const connection = { url: redisUrl };
+
+      // Create BullMQ Worker
+      this.worker = new Worker('claim-jobs', this.processJob.bind(this), {
+        connection,
+        concurrency: parseInt(process.env.CLAIM_WORKER_CONCURRENCY || '10', 10),
+        limiter: {
+          max: 100,
+          duration: 1000,
+        },
+      });
+
+      // Event listeners
+      this.worker.on('completed', (job) => {
+        console.log(`[ClaimWorker] Job ${job.id} completed`);
+      });
+
+      this.worker.on('failed', (job, err) => {
+        console.error(`[ClaimWorker] Job ${job?.id} failed:`, err);
+      });
+
+      this.worker.on('error', (err) => {
+        console.error('[ClaimWorker] Worker error:', err);
+      });
+
+      console.log('[ClaimWorker] Worker started successfully');
+    } catch (error) {
+      console.error('[ClaimWorker] Failed to start worker:', error);
+      throw error;
+    }
   }
 
   /**

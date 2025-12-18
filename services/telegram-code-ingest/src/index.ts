@@ -6,8 +6,10 @@
  */
 
 import { TelegramMonitor } from './telegram-monitor.js';
+import { RealTelegramMonitor } from './telegram-client.js';
 import { InMemoryCodeDatabase } from './database.js';
-import type { TelegramConfig } from './types.js';
+import { PostgresCodeDatabase } from './postgres-database.js';
+import type { TelegramConfig, CodeDatabase } from './types.js';
 
 /**
  * Load configuration from environment variables
@@ -38,6 +40,40 @@ function loadConfig(): TelegramConfig {
 }
 
 /**
+ * Create database instance based on configuration
+ */
+async function createDatabase(): Promise<CodeDatabase> {
+  const databaseUrl = process.env.DATABASE_URL;
+  
+  if (databaseUrl && !databaseUrl.includes('mock')) {
+    console.log('[Database] Using PostgreSQL database');
+    const db = new PostgresCodeDatabase(databaseUrl);
+    await db.initialize();
+    return db;
+  }
+
+  console.log('[Database] Using in-memory database (development mode)');
+  return new InMemoryCodeDatabase();
+}
+
+/**
+ * Create monitor instance based on configuration
+ */
+function createMonitor(
+  config: TelegramConfig,
+  database: CodeDatabase,
+  useRealClient: boolean
+): TelegramMonitor | RealTelegramMonitor {
+  if (useRealClient) {
+    console.log('[Monitor] Using real Telegram MTProto client');
+    return new RealTelegramMonitor(config, database);
+  }
+
+  console.log('[Monitor] Using placeholder polling monitor');
+  return new TelegramMonitor(config, database);
+}
+
+/**
  * Main function
  */
 async function main() {
@@ -45,25 +81,28 @@ async function main() {
   console.log('Loading configuration...');
 
   const config = loadConfig();
-  const database = new InMemoryCodeDatabase();
+  const database = await createDatabase();
 
-  // TODO: Replace with actual database implementation
-  // Example: const database = new PostgresCodeDatabase(process.env.DATABASE_URL);
+  // Use real Telegram client if session string is provided or in production
+  const useRealClient =
+    !!config.sessionString || process.env.NODE_ENV === 'production';
 
-  const monitor = new TelegramMonitor(config, database);
+  const monitor = createMonitor(config, database, useRealClient);
 
   // Handle shutdown gracefully
-  process.on('SIGINT', () => {
+  const shutdown = async () => {
     console.log('\nShutting down...');
-    monitor.stop();
+    await monitor.stop();
+    
+    if ('close' in database && typeof database.close === 'function') {
+      await database.close();
+    }
+    
     process.exit(0);
-  });
+  };
 
-  process.on('SIGTERM', () => {
-    console.log('\nShutting down...');
-    monitor.stop();
-    process.exit(0);
-  });
+  process.on('SIGINT', shutdown);
+  process.on('SIGTERM', shutdown);
 
   // Start monitoring
   await monitor.start();
