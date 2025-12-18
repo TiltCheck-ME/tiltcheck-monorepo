@@ -152,14 +152,10 @@ jobs:
           pnpm --filter @tiltcheck/cli build
           pnpm --filter @tiltcheck/supabase-auth build
           echo "Building remaining workspace packages..."
-          pnpm -r --filter './modules/**' --filter './services/**' --filter './packages/**' build || echo "Some packages may not have build scripts"
+          pnpm -r --filter './modules/**' --filter './services/**' --filter './packages/**' build --if-present
 
       - name: TypeScript type check
-        run: |
-          echo "Type checking apps and services..."
-          pnpm -r --filter './apps/**' --filter './services/**' exec tsc --noEmit --skipLibCheck || echo "Some packages may not have TypeScript"
-          echo "Running root level type check..."
-          pnpm exec tsc --noEmit --skipLibCheck
+        run: pnpm exec tsc --noEmit --skipLibCheck
 
   test:
     name: Unit & Integration Tests
