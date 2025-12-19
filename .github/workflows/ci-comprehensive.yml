@@ -152,7 +152,7 @@ jobs:
           pnpm --filter @tiltcheck/cli build
           pnpm --filter @tiltcheck/supabase-auth build
           echo "Building remaining workspace packages..."
-          pnpm -r --filter './modules/**' --filter './services/**' --filter './packages/**' build --if-present
+          pnpm -r --filter './modules/**' --filter './services/**' --filter './packages/**' --if-present build
 
       - name: TypeScript type check
         run: pnpm exec tsc --noEmit --skipLibCheck
