@@ -105,6 +105,12 @@ services:
     depends_on:
       dashboard:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "test -f /tmp/bot-ready || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 60s
 
   trust-rollup:
     build:
@@ -123,6 +129,12 @@ services:
       - tiltcheck
     depends_on:
       - dashboard
+    healthcheck:
+      test: ["CMD-SHELL", "test -f /tmp/rollup-ready || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 60s
 
 networks:
   tiltcheck:
