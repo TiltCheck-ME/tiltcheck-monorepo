@@ -271,6 +271,14 @@ export function flushTrustRollups() {
 const ready = true;
 console.log('[TrustRollup] Service initialized');
 
+// Write ready marker for health checks
+try {
+  fs.writeFileSync('/tmp/rollup-ready', 'ready');
+  console.log('[TrustRollup] Ready marker written');
+} catch (e) {
+  console.error('[TrustRollup] Failed to write ready marker:', e);
+}
+
 // Start external casino verification scheduler
 if (process.env.ENABLE_CASINO_VERIFICATION !== 'false') {
   startCasinoVerificationScheduler();

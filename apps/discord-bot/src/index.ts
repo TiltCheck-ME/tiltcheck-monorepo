@@ -101,11 +101,27 @@ async function main() {
   if (process.env.SKIP_DISCORD_LOGIN === 'true') {
     console.log('⚠️  [Discord] CI mode - skipping Discord login');
     ready = true; // mark ready immediately for health check
+    // Write ready marker for health checks
+    try {
+      const fs = await import('fs');
+      fs.writeFileSync('/tmp/bot-ready', 'ready');
+      console.log('✅ [Health] Ready marker written');
+    } catch (e) {
+      console.error('❌ [Health] Failed to write ready marker:', e);
+    }
   } else {
     await client.login(config.discordToken);
     client.once('ready', () => {
       ready = true;
       console.log('✅ [Discord] Connected and ready!');
+      // Write ready marker for health checks
+      try {
+        const fs = require('fs');
+        fs.writeFileSync('/tmp/bot-ready', 'ready');
+        console.log('✅ [Health] Ready marker written');
+      } catch (e) {
+        console.error('❌ [Health] Failed to write ready marker:', e);
+      }
     });
   }
   console.log('');
