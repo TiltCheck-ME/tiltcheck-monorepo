@@ -104,7 +104,6 @@ async function main() {
     ready = true; // mark ready immediately for health check
     // Write ready marker for health checks
     try {
-      const fs = await import('fs');
       fs.writeFileSync('/tmp/bot-ready', 'ready');
       console.log('✅ [Health] Ready marker written');
     } catch (e) {
