@@ -8,6 +8,7 @@
 
 import { Client, GatewayIntentBits, Partials } from 'discord.js';
 import http from 'http';
+import fs from 'fs';
 import { config, validateConfig } from './config.js';
 import { CommandHandler, EventHandler, registerDMHandler, initializeTiltEventsHandler } from './handlers/index.js';
 import { initializeAlertService } from './services/alert-service.js';
@@ -103,7 +104,6 @@ async function main() {
     ready = true; // mark ready immediately for health check
     // Write ready marker for health checks
     try {
-      const fs = await import('fs');
       fs.writeFileSync('/tmp/bot-ready', 'ready');
       console.log('✅ [Health] Ready marker written');
     } catch (e) {
@@ -116,7 +116,6 @@ async function main() {
       console.log('✅ [Discord] Connected and ready!');
       // Write ready marker for health checks
       try {
-        const fs = require('fs');
         fs.writeFileSync('/tmp/bot-ready', 'ready');
         console.log('✅ [Health] Ready marker written');
       } catch (e) {
