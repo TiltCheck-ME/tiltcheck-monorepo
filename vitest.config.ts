@@ -85,6 +85,7 @@ export default defineConfig({
         // Services requiring external dependencies or infrastructure
         'services/casino-data-api/**', // CLI tool for casino data collection
         'services/game-arena/**', // Game server requiring WebSocket setup
+        'services/dashboard/**', // Dashboard service - requires database and Discord context
         // PWA/client-side code - needs browser environment
         'services/gameplay-analyzer/src/pwa/**',
         'services/gameplay-analyzer/src/provably-fair/index.ts',
