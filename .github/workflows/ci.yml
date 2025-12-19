@@ -36,6 +36,7 @@ jobs:
           pnpm --filter @tiltcheck/api-client run build
           pnpm --filter @tiltcheck/auth run build
           pnpm --filter @tiltcheck/event-router run build
+          pnpm --filter @tiltcheck/discord-utils run build
           pnpm --filter @tiltcheck/cli run build
           pnpm --filter @tiltcheck/pricing-oracle run build
           pnpm --filter @tiltcheck/trust-rollup run build

@@ -74,10 +74,13 @@
     "onlyBuiltDependencies": [
       "@gsknnft/bigint-buffer",
       "bufferutil",
+      "core-js",
+      "es5-ext",
       "esbuild",
+      "msgpackr-extract",
+      "puppeteer",
       "sharp",
-      "utf-8-validate",
-      "puppeteer"
+      "utf-8-validate"
     ]
   }
 }
