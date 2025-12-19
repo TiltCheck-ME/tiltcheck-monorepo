@@ -61,6 +61,8 @@ export class RealTelegramMonitor {
       console.log('[TelegramClient] Save this session string to TELEGRAM_SESSION_STRING:');
       if (typeof sessionString === 'string') {
         console.log(sessionString);
+      } else {
+        console.warn('[TelegramClient] Session string is not a string, skipping display');
       }
     }
 
