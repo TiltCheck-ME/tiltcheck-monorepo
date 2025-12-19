@@ -59,7 +59,9 @@ export class RealTelegramMonitor {
     const sessionString = this.client.session.save();
     if (!this.config.sessionString) {
       console.log('[TelegramClient] Save this session string to TELEGRAM_SESSION_STRING:');
-      console.log(sessionString as string);
+      if (typeof sessionString === 'string') {
+        console.log(sessionString);
+      }
     }
 
     // Register event handler for new messages
