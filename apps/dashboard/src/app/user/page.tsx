@@ -6,7 +6,7 @@
  */
 
 import { Suspense } from 'react';
-import UserDashboardContent from './content.js';
+import UserDashboardContent from './content';
 
 export default function UserDashboard() {
   return (
