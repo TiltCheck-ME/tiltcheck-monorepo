@@ -26,10 +26,9 @@
   },
   "include": [
     "*.ts",
-    "*.js",
     "tests/**/*",
     "scripts/**/*",
     "{packages,services,modules,apps}/*/{dist,tests,examples}/**/*"
   ],
-  "exclude": ["node_modules", "dist", "build"]
+  "exclude": ["node_modules", "dist", "build", "eslint.config.js"]
 }
