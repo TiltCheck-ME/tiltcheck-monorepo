@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { DatabaseClient } from '../src';
+import { DatabaseClient } from '../src/index.js';
 
 describe('DatabaseClient', () => {
   it('can be constructed and has placeholder methods', () => {

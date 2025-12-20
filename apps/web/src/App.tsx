@@ -11,8 +11,8 @@ import {
   getClaimStatus,
   getClaimHistory,
   deleteUserData,
-} from './api';
-import type { ClaimStatus, ClaimHistoryItem } from './types';
+} from './api.js';
+import type { ClaimStatus, ClaimHistoryItem } from './types.js';
 import './App.css';
 
 const USER_ID_KEY = 'tiltcheck_auto_claimer_user_id';
