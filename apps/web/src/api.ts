@@ -7,7 +7,7 @@ import type {
   ClaimHistory,
   AvailableCode,
   SubmitApiKeyResponse,
-} from './types';
+} from './types.js';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
 
