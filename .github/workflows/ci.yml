@@ -49,6 +49,9 @@ jobs:
         run: pnpm --filter "./apps/dashboard" run build
         continue-on-error: true
       
+      - name: Build apps/web
+        run: pnpm --filter "@tiltcheck/web" run build
+      
       - name: Lint
         run: pnpm lint || echo "Lint failed but continuing"
         continue-on-error: true
