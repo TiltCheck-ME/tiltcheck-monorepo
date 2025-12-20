@@ -99,6 +99,11 @@ describe('InMemoryClaimerDatabase', () => {
 
   it('should reset rate limit after window expires', async () => {
     const userId = 'user-time';
+    const realDateNow = Date.now;
+    let currentTime = Date.now();
+
+    // Mock Date.now() to control time
+    vi.spyOn(Date, 'now').mockImplementation(() => currentTime);
     
     // Increment to limit
     for (let i = 0; i < 5; i++) {
@@ -108,13 +113,15 @@ describe('InMemoryClaimerDatabase', () => {
     // Should be at limit
     expect(await database.checkRateLimit(userId)).toBe(false);
 
-    // Mock time passage by manipulating the rate limit data directly
-    // In real implementation, this would be handled by time-based window expiry
-    await new Promise(resolve => setTimeout(resolve, 10));
+    // Advance time by more than 60 seconds (rate limit window)
+    currentTime += 61000;
     
-    // Force window reset by checking with a new timestamp context
+    // Window should have expired, allowing new requests
     const allowed = await database.checkRateLimit(userId);
-    expect(typeof allowed).toBe('boolean');
+    expect(allowed).toBe(true);
+
+    // Restore Date.now
+    vi.spyOn(Date, 'now').mockRestore();
   });
 
   it('should save failed claim history', async () => {
