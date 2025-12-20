@@ -29,18 +29,7 @@
     "*.js",
     "tests/**/*",
     "scripts/**/*",
-    "packages/*/dist/**/*",
-    "services/*/dist/**/*",
-    "modules/*/dist/**/*",
-    "apps/*/dist/**/*",
-    "packages/*/tests/**/*",
-    "services/*/tests/**/*",
-    "modules/*/tests/**/*",
-    "apps/*/tests/**/*",
-    "packages/*/examples/**/*",
-    "services/*/examples/**/*",
-    "modules/*/examples/**/*",
-    "apps/*/examples/**/*"
+    "{packages,services,modules,apps}/*/{dist,tests,examples}/**/*"
   ],
   "exclude": ["node_modules", "dist", "build"]
 }
