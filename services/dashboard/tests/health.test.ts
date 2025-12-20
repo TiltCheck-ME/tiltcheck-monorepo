@@ -20,7 +20,7 @@ vi.mock('express', () => {
 describe('health endpoint', () => {
   it('exposes retentionDays from env', async () => {
     process.env.DASHBOARD_EVENTS_KEEP_DAYS = '9';
-    const mod = await import('../src/server');
+    const mod = await import('../src/server.js');
     const app: any = mod.createServer();
     const route = app._routes.find((r: any) => r.method === 'GET' && r.path === '/api/health');
     let captured: any = null;

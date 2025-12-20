@@ -622,7 +622,10 @@ export type ModuleId =
   | 'lockvault'
   | 'game-arena'
   | 'wallet-service'
-  | 'identity-core';
+  | 'identity-core'
+  | 'gameplay-analyzer'
+  | 'linkguard'
+  | 'test-suite';
 
 // ============================================
 // User & Identity Types
