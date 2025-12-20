@@ -1,5 +1,5 @@
 // Test event factory utilities for TiltCheck
-import type { TiltCheckEvent, EventType, ModuleId } from '../src.js';
+import type { TiltCheckEvent, EventType, ModuleId } from '../src/index.js';
 
 export function makeEvent<T = any>(type: EventType, source: ModuleId, data: T, userId?: string): TiltCheckEvent<T> {
   return {
