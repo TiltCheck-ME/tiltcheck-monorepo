@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>TiltCheck Design System</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../styles/base.css" />
+  <style>
+    body { font-family: var(--font-sans); margin:0; background: var(--color-bg); color: var(--color-text); }
+    header { padding:48px 24px 32px; background: var(--gradient-hero); border-bottom:2px solid var(--color-accent); }
+    h1 { margin:0 0 8px; font-size:2.8rem; }
+    .subtitle { color: var(--color-text-muted); font-size:1.1rem; }
+    nav { background:#0f0f0f; padding:8px 24px; font-size:0.85rem; display:flex; gap:18px; }
+    nav a { color: var(--color-text-secondary); text-decoration:none; }
+    nav a:hover { color: var(--color-accent); }
+    .container { max-width:1200px; margin:0 auto; padding:32px 24px; }
+    .grid { display:grid; gap:24px; grid-template-columns: repeat(auto-fit, minmax(260px,1fr)); }
+    .token { background: var(--color-surface-2); border:1px solid var(--color-border); border-radius: var(--radius-md); padding:16px 18px; }
+    .swatch { width:56px; height:56px; border-radius:8px; margin-bottom:12px; box-shadow: var(--shadow-sm); }
+    code { font-size:0.75rem; background:#181818; padding:3px 6px; border-radius:4px; }
+    .section-title { font-size:1.8rem; margin:0 0 8px; }
+    .icons-grid { display:grid; grid-template-columns: repeat(auto-fit, minmax(100px,1fr)); gap:24px; margin-top:20px; }
+    .icon-card { text-align:center; background: var(--color-surface-1); padding:14px 10px; border:1px solid var(--color-border); border-radius: var(--radius-sm); }
+    .icon-card svg { width:48px; height:48px; }
+    .badge { display:inline-block; padding:4px 8px; font-size:0.65rem; letter-spacing:0.05em; background:#181818; border:1px solid var(--color-border); border-radius:6px; text-transform:uppercase; margin-right:6px; }
+    footer { padding:48px 24px; text-align:center; font-size:0.8rem; color: var(--color-text-muted); }
+    .link-inline { color: var(--color-accent); text-decoration:none; }
+    .link-inline:hover { text-decoration:underline; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Design System</h1>
+    <div class="subtitle">Tokens, components, and patterns powering the TiltCheck transparency layer.</div>
+  </header>
+  <nav>
+    <a href="/">Home</a>
+    <a href="/about.html">About</a>
+    <a href="/components/trust-gauges.html">Trust Gauges</a>
+    <a href="#tokens">Tokens</a>
+    <a href="#icons">Icons</a>
+  </nav>
+  <main class="container">
+    <section id="tokens">
+      <h2 class="section-title">Color Tokens</h2>
+      <p class="lede">Foundational palette kept intentionally minimal for clarity, contrast, and speed. All components derive from these variables in <code>styles/base.css</code>.</p>
+      <div class="grid">
+        <div class="token"><div class="swatch" style="background:var(--color-bg);"></div><strong>Background</strong><br><code>--color-bg</code></div>
+        <div class="token"><div class="swatch" style="background:var(--color-surface-1);"></div><strong>Surface 1</strong><br><code>--color-surface-1</code></div>
+        <div class="token"><div class="swatch" style="background:var(--color-surface-2);"></div><strong>Surface 2</strong><br><code>--color-surface-2</code></div>
+        <div class="token"><div class="swatch" style="background:var(--color-accent);"></div><strong>Accent</strong><br><code>--color-accent</code></div>
+        <div class="token"><div class="swatch" style="background:var(--color-accent-alt);"></div><strong>Accent Alt</strong><br><code>--color-accent-alt</code></div>
+        <div class="token"><div class="swatch" style="background:var(--color-danger);"></div><strong>Danger</strong><br><code>--color-danger</code></div>
+      </div>
+    </section>
+    <section id="typography">
+      <h2 class="section-title">Typography</h2>
+      <p class="lede">Single sans stack for consistency: <code>Inter</code> with system fallbacks. Weight usage: 400 for body, 500 for navigation, 600 for emphasis, 700 for hero headlines. Avoid decorative fonts to keep trust visuals clean.</p>
+      <div class="token"><strong>Sample Scale</strong><br>
+        <div style="font-size:2.4rem; font-weight:700;">Hero Headline</div>
+        <div style="font-size:1.4rem; font-weight:600;">Section Title</div>
+        <div style="font-size:1.15rem; font-weight:500;">Lead / Lede Paragraph</div>
+        <div style="font-size:0.85rem; letter-spacing:0.05em; text-transform:uppercase; font-weight:600;">Meta Label</div>
+      </div>
+    </section>
+    <section id="icons">
+      <h2 class="section-title">Icon Set</h2>
+      <p class="lede">Monoline icons: 2px stroke, no fill except accent dots. Represent core modules. Suggested usage size 32–48px. Provided individually and via sprite.</p>
+      <div class="icons-grid">
+        <div class="icon-card"><svg><use href="/assets/icons/icons-sprite.svg#icon-just-the-tip" /></svg><div class="badge">JustTheTip</div></div>
+        <div class="icon-card"><svg><use href="/assets/icons/icons-sprite.svg#icon-sus-link" /></svg><div class="badge">SusLink</div></div>
+        <div class="icon-card"><svg><use href="/assets/icons/icons-sprite.svg#icon-collect-clock" /></svg><div class="badge">CollectClock</div></div>
+        <div class="icon-card"><svg><use href="/assets/icons/icons-sprite.svg#icon-freespin-scan" /></svg><div class="badge">FreeSpinScan</div></div>
+        <div class="icon-card"><svg><use href="/assets/icons/icons-sprite.svg#icon-tilt-engine" /></svg><div class="badge">Tilt Engine</div></div>
+        <div class="icon-card"><svg><use href="/assets/icons/icons-sprite.svg#icon-dand" /></svg><div class="badge">DA&D</div></div>
+        <div class="icon-card"><svg><use href="/assets/icons/icons-sprite.svg#icon-accountability-wallet" /></svg><div class="badge">Accountability</div></div>
+      </div>
+    </section>
+    <section id="components">
+      <h2 class="section-title">Trust Gauges</h2>
+      <p class="lede">Interactive gauge patterns live in <code>components/trust-gauges.html</code>. Dashboard integration adds dynamic arcs, reliability ratio, and volatility computation.</p>
+      <p>Guidelines:
+        <ul style="line-height:1.6; color:var(--color-text-secondary);">
+          <li>Ring stroke width: 10px minimum for clarity on dark.</li>
+          <li>Animate arc changes &lt; 800ms; ease not linear.</li>
+          <li>Label in uppercase 0.7rem with muted color (#888).</li>
+          <li>Never mix more than two accent hues per gauge cluster.</li>
+        </ul>
+      </p>
+      <a class="button" href="/components/trust-gauges.html">View Gauge Gallery</a>
+    </section>
+    <section id="principles">
+      <h2 class="section-title">Principles</h2>
+      <div class="grid">
+        <div class="token"><strong>Clarity</strong><br><small>No ornamental shadows; trust visuals must read instantly.</small></div>
+        <div class="token"><strong>Restraint</strong><br><small>Limited color usage preserves semantic impact (danger vs accent).</small></div>
+        <div class="token"><strong>Non-Custodial</strong><br><small>No interface suggesting holding funds or private keys.</small></div>
+        <div class="token"><strong>Explainability</strong><br><small>Every aggregate should map to underlying evidence accessible to users.</small></div>
+      </div>
+    </section>
+  </main>
+  <footer>
+    Design System © TiltCheck 2024–2025 • <a class="link-inline" href="/about.html">About</a>
+  </footer>
+</body>
+</html>

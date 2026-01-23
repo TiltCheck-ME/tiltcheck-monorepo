@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Authenticating... | TiltCheck</title>
+  <meta name="robots" content="noindex">
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background: #0a0e13;
+      color: #e0e0e0;
+      font-family: system-ui, -apple-system, sans-serif;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+    }
+    .auth-container {
+      text-align: center;
+      padding: 40px;
+    }
+    .spinner {
+      width: 50px;
+      height: 50px;
+      border: 4px solid #1a1f24;
+      border-top-color: #00d4aa;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 20px;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    h1 {
+      color: #00d4aa;
+      font-size: 1.5rem;
+      margin-bottom: 10px;
+    }
+    p {
+      color: #888;
+      margin: 0;
+    }
+    .error {
+      color: #ff6b6b;
+      margin-top: 20px;
+      display: none;
+    }
+    .success {
+      color: #00d4aa;
+      margin-top: 20px;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="auth-container">
+    <div class="spinner" id="spinner"></div>
+    <h1 id="status-title">Authenticating...</h1>
+    <p id="status-message">Please wait while we complete your Discord login.</p>
+    <p class="error" id="error-message"></p>
+    <p class="success" id="success-message"></p>
+  </div>
+
+  <script src="/scripts/auth.js"></script>
+  <script>
+    // Wait for auth to fully initialize and then redirect
+    async function handleCallback() {
+      const statusTitle = document.getElementById('status-title');
+      const statusMessage = document.getElementById('status-message');
+      const errorMessage = document.getElementById('error-message');
+      const successMessage = document.getElementById('success-message');
+      const spinner = document.getElementById('spinner');
+      
+      // Check for error in URL first
+      const params = new URLSearchParams(window.location.search);
+      const error = params.get('error') || params.get('error_description');
+      
+      if (error) {
+        spinner.style.display = 'none';
+        statusTitle.textContent = 'Authentication Failed';
+        statusMessage.style.display = 'none';
+        errorMessage.textContent = 'Error: ' + error;
+        errorMessage.style.display = 'block';
+        setTimeout(() => {
+          window.location.href = '/';
+        }, 3000);
+        return;
+      }
+      
+      // Poll for auth completion (up to 10 seconds)
+      let attempts = 0;
+      const maxAttempts = 20;
+      
+      const checkAuth = async () => {
+        attempts++;
+        
+        if (window.tiltCheckAuth && window.tiltCheckAuth.getUser()) {
+          // Successfully authenticated
+          spinner.style.display = 'none';
+          statusTitle.textContent = 'Success!';
+          statusMessage.textContent = 'Redirecting you now...';
+          const username = window.tiltCheckAuth.getDiscordUser()?.username || 'User';
+          successMessage.textContent = 'Welcome, ' + username + '!';
+          successMessage.style.display = 'block';
+          
+          // Redirect to the original page or home
+          const returnUrl = sessionStorage.getItem('auth-return-url') || '/';
+          sessionStorage.removeItem('auth-return-url');
+          
+          setTimeout(() => {
+            window.location.href = returnUrl;
+          }, 1000);
+          return;
+        }
+        
+        if (attempts >= maxAttempts) {
+          // Timeout - redirect anyway (session may be stored)
+          const returnUrl = sessionStorage.getItem('auth-return-url') || '/';
+          sessionStorage.removeItem('auth-return-url');
+          window.location.href = returnUrl;
+          return;
+        }
+        
+        // Wait and check again
+        setTimeout(checkAuth, 500);
+      };
+      
+      // Start checking after a brief delay for auth.js to initialize
+      setTimeout(checkAuth, 500);
+    }
+    
+    handleCallback();
+  </script>
+</body>
+</html>

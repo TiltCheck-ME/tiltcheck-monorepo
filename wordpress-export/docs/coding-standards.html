@@ -1,0 +1,113 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"/><title>TiltCheck Coding Standards &amp; Conventions - TiltCheck</title><meta name="description" content="1. **Small Modules** – Each module owns a narrow responsibility and communicates only via Event Router."/><link rel="stylesheet" href="/styles/base.css"/><style>body{background:#0a0a0a;color:#e0e0e0;font-family:Inter,system-ui,sans-serif;margin:0;padding:0}main{max-width:900px;margin:0 auto;padding:40px 18px;line-height:1.7}a{color:#00d4aa;text-decoration:none}a:hover{text-decoration:underline}.page-hero{padding:54px 24px 32px;background:linear-gradient(135deg,#121212,#181818);border-bottom:1px solid #222}.page-hero h1{margin:0 0 10px;font-size:2.4rem;background:linear-gradient(135deg,#00d4aa,#00a8ff);-webkit-background-clip:text;color:transparent}.lede{color:#aaa;font-size:1.05rem;max-width:760px}pre{background:#181818;padding:14px 16px;border:1px solid #222;border-radius:8px;overflow:auto;font-size:.85rem}code{font-family:ui-monospace,Monaco,Consolas,monospace;color:#00a8ff}.breadcrumb{font-size:.7rem;letter-spacing:.12em;text-transform:uppercase;color:#888;margin:0 0 12px}.nav-inline{display:flex;gap:20px;align-items:center;font-size:.8rem;padding:10px 20px;background:#111;border-bottom:1px solid #222}nav a{color:#aaa}nav a[aria-current="page"]{color:#00d4aa;font-weight:600}</style></head><body><nav class="nav-inline"><a href="/" >Home</a><a href="/docs/index.html" aria-current="page">Docs</a><a href="/dashboard">Dashboard</a><a href="/about.html">About</a></nav><header class="page-hero"><div class="breadcrumb">Docs / TiltCheck Coding Standards &amp; Conventions</div><h1>TiltCheck Coding Standards &amp; Conventions</h1><p class="lede">1. **Small Modules** – Each module owns a narrow responsibility and communicates only via Event Router.</p></header><main id="content"><h1>TiltCheck Coding Standards & Conventions</h1>
+
+<h2>Core Principles</h2>
+<p>1. <strong>Small Modules</strong> – Each module owns a narrow responsibility and communicates only via Event Router.</p>
+<p>2. <strong>Non-Custodial</strong> – Never store private keys or hold user funds.</p>
+<p>3. <strong>Deterministic Events</strong> – Events published must be reproducible from inputs; avoid hidden random side-effects.</p>
+<p>4. <strong>No Deep Relative Imports</strong> – Use workspace package names, not <code>../../../</code> paths.</p>
+<p>5. <strong>Fail Soft</strong> – Handler errors are logged; do not crash the bus.</p>
+
+<h2>TypeScript</h2>
+<ul>
+<li>Enable <code>strict</code> everywhere (already enforced by root <code>tsconfig.json</code>).</li>
+<li>Prefer explicit return types on public functions.</li>
+<li>Use <code>unknown</code> for untrusted external inputs before narrowing.</li>
+<li>Use discriminated unions for multi-state objects instead of boolean flags.</li>
+</ul>
+
+<h2>Naming</h2>
+<ul>
+<li>Files: <code>kebab-case.ts</code>.</li>
+<li>Classes: <code>PascalCase</code> ending with <code>Module</code>, <code>Service</code>, or <code>Client</code>.</li>
+<li>Event types: <code>scope.action</code> (e.g. <code>tip.completed</code>, <code>link.scanned</code>).</li>
+<li>Package names: <code>@tiltcheck/&lt;module&gt;</code>.</li>
+</ul>
+
+<h2>Event Usage</h2>
+<pre class="code-block" data-lang="typescript"><code>
+// Subscribe
+eventRouter.subscribe(&#39;link.scanned&#39;, handler, &#39;suslink&#39;);
+
+// Publish
+await eventRouter.publish(&#39;link.scanned&#39;, &#39;suslink&#39;, { url, riskLevel }, userId);
+</code></pre>
+<ul>
+<li>Always set <code>source</code> correctly to the module id.</li>
+<li>Use concise data payloads; derive heavy analytics outside the event.</li>
+</ul>
+
+<h2>Logging</h2>
+<p>Prefix all logs with module/service tag:</p>
+<pre class="code-block" data-lang="typescript"><code>
+console.log(&#39;[SusLink] Scanned&#39;, url);
+</code></pre>
+<p>Avoid spam: batch repetitive logs or use counts.</p>
+
+<h2>Errors</h2>
+<ul>
+<li>Catch and log; include context but never secrets.</li>
+<li>Wrap external calls (HTTP, RPC) with try/catch and fallback.</li>
+</ul>
+
+<h2>Security & Safety</h2>
+<ul>
+<li>Strip user-provided markdown before echoing content.</li>
+<li>Never trust URLs; validate with <code>isValidUrl</code> before scan/processing.</li>
+<li>Add TODO tags only with actionable next step.</li>
+</ul>
+
+<h2>Testing (Vitest Plan)</h2>
+<ul>
+<li>Unit tests live in <code>module/tests/*.test.ts</code>.</li>
+<li>Integration tests simulate events via Event Router.</li>
+<li>Avoid real network calls—use test doubles.</li>
+</ul>
+
+<h2>Pull Request Guidelines</h2>
+<ul>
+<li>One focused concern per PR.</li>
+<li>Include migration notes if moving code from legacy repo.</li>
+<li>Update <code>STATUS.md</code> for new modules or major changes.</li>
+</ul>
+
+<h2>Anti-Patterns (Avoid)</h2>
+<p>| Pattern | Why Avoid |</p>
+<p>|---------|-----------|</p>
+<p>| Shared mutable state across modules | Breaks isolation & testability |</p>
+<p>| Direct module imports for behavior | Defeats event-driven decoupling |</p>
+<p>| Storing secrets in code | Security risk |</p>
+<p>| Giant util files | Hard to reason; split by domain |</p>
+<p>| Silent catch blocks | Masks failures |</p>
+
+<h2>Example Module Skeleton</h2>
+<pre class="code-block" data-lang="typescript"><code>
+export class ExampleModule {
+  constructor() {
+    eventRouter.subscribe(&#39;promo.submitted&#39;, this.onPromo.bind(this), &#39;example&#39;);
+  }
+  private async onPromo(event: TiltCheckEvent) {
+    // validate
+    // publish result
+    await eventRouter.publish(&#39;promo.approved&#39;, &#39;example&#39;, { id: event.id }, event.userId);
+  }
+}
+</code></pre>
+
+<h2>Performance Notes</h2>
+<ul>
+<li>Keep handler logic <10ms where possible.</li>
+<li>Offload heavy tasks to future worker/queue (placeholder).</li>
+</ul>
+
+<h2>Documentation Expectations</h2>
+<p>Each module requires a README with:</p>
+<ul>
+<li>Purpose summary</li>
+<li>Events consumed</li>
+<li>Events emitted</li>
+<li>Primary data structures</li>
+</ul>
+
+<p>---</p>
+<p><strong>Evolves as platform grows; propose improvements via PR.</strong></p>
+</main><footer style="padding:40px 24px;text-align:center;font-size:.75rem;color:#666;border-top:1px solid #222">TiltCheck Docs • Non-custodial • Signals only.</footer></body></html>
