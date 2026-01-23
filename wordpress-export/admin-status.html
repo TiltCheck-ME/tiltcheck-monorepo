@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TiltCheck Admin | Ecosystem Status</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
+            background: #0a0a0a;
+            color: #00ff41;
+            overflow-x: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(45deg, #001100, #002200);
+            border-bottom: 2px solid #00ff41;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 0 20px #00ff4150;
+        }
+        
+        .logo { font-size: 1.5rem; font-weight: bold; text-shadow: 0 0 10px #00ff41; }
+        .user-info { display: flex; align-items: center; gap: 1rem; }
+        .status-dot { width: 12px; height: 12px; border-radius: 50%; background: #00ff41; animation: pulse 2s infinite; box-shadow: 0 0 10px #00ff41; }
+        
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+        
+        .main-grid { display: grid; grid-template-columns: 280px 1fr; min-height: calc(100vh - 80px); }
+        .sidebar { background: #111; border-right: 1px solid #00ff41; padding: 2rem 1rem; overflow-y: auto; }
+        .nav-group { margin-bottom: 2rem; }
+        .nav-title { color: #00ff41; font-size: 0.9rem; font-weight: bold; margin-bottom: 1rem; text-transform: uppercase; letter-spacing: 1px; }
+        .nav-link { display: block; padding: 0.75rem 1rem; color: #888; text-decoration: none; border-radius: 4px; margin-bottom: 0.5rem; transition: all 0.3s ease; border: 1px solid transparent; }
+        .nav-link:hover, .nav-link.active { background: #002200; color: #00ff41; border-color: #00ff41; box-shadow: 0 0 10px #00ff4130; }
+        .nav-link .status { float: right; font-size: 0.8rem; }
+        
+        .content { padding: 2rem; overflow-y: auto; background: #0a0a0a; }
+        .status-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1.5rem; margin: 1.5rem 0; }
+        .entity-card { background: #111; border: 1px solid #333; border-radius: 8px; padding: 1.25rem; transition: all 0.3s ease; }
+        .entity-card:hover { border-color: #00ff41; box-shadow: 0 0 15px #00ff4120; }
+        .entity-header { display: flex; justify-content: space-between; align-items: start; margin-bottom: 12px; }
+        .entity-title { display: flex; align-items: center; gap: 10px; }
+        .entity-icon { font-size: 1.5rem; }
+        .entity-name { font-size: 1.1rem; font-weight: bold; color: #fff; margin: 0; }
+        .entity-type { font-size: 0.7rem; color: #666; text-transform: uppercase; }
+        
+        .badge { padding: 4px 10px; border-radius: 12px; font-size: 0.7rem; font-weight: bold; }
+        .badge-live { background: #00ff41; color: #000; }
+        .badge-progress { background: #ffaa00; color: #000; }
+        .badge-planned { background: #555; color: #fff; }
+        .badge-blocked { background: #ff4444; color: #fff; }
+        
+        .entity-desc { color: #888; font-size: 0.85rem; margin-bottom: 12px; line-height: 1.4; }
+        .progress-section { margin-top: 12px; }
+        .progress-label { display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 0.8rem; }
+        .progress-text { color: #666; }
+        .progress-pct { color: #00ff41; font-weight: bold; }
+        .progress-bar { width: 100%; height: 6px; background: #222; border-radius: 3px; overflow: hidden; }
+        .progress-fill { height: 100%; background: linear-gradient(90deg, #00ff41 0%, #00a8ff 100%); transition: width 0.3s ease; }
+        
+        .category-header { margin: 2rem 0 1rem 0; padding-bottom: 8px; border-bottom: 1px solid #00ff41; }
+        .category-header h2 { font-size: 1.3rem; color: #00ff41; display: flex; align-items: center; gap: 10px; }
+        .category-stats { display: flex; gap: 20px; margin-top: 8px; font-size: 0.8rem; color: #666; }
+        .stat-value { color: #00ff41; font-weight: bold; }
+        
+        .overview-panel { background: #111; border: 1px solid #00ff41; border-radius: 8px; padding: 1.5rem; margin-bottom: 2rem; box-shadow: 0 0 20px #00ff4120; }
+        .overview-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.5rem; margin-top: 1rem; }
+        .overview-stat { text-align: center; padding: 1rem; background: #0a0a0a; border-radius: 8px; }
+        .overview-value { font-size: 2rem; font-weight: bold; color: #00ff41; text-shadow: 0 0 10px #00ff41; }
+        .overview-label { font-size: 0.8rem; color: #888; margin-top: 0.5rem; }
+        
+        .legend { display: flex; gap: 1.5rem; margin-top: 1rem; flex-wrap: wrap; }
+        .legend-item { display: flex; align-items: center; gap: 6px; font-size: 0.8rem; color: #888; }
+        
+        @media (max-width: 1200px) { .overview-grid { grid-template-columns: repeat(2, 1fr); } }
+        @media (max-width: 768px) { .main-grid { grid-template-columns: 1fr; } .sidebar { display: none; } .status-grid { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="logo">🎮 TiltCheck Admin</div>
+        <div class="user-info">
+            <div class="status-dot"></div>
+            <span>jmenichole</span>
+            <span>|</span>
+            <span id="current-time"></span>
+        </div>
+    </header>
+    
+    <div class="main-grid">
+        <nav class="sidebar">
+            <div class="nav-group">
+                <div class="nav-title">📊 Admin Pages</div>
+                <a href="/control-room" class="nav-link">🎮 Control Room <span class="status">●</span></a>
+                <a href="/admin/ecosystem-status" class="nav-link active">📊 Ecosystem Status <span class="status">●</span></a>
+                <a href="/admin/analytics" class="nav-link">📈 Analytics <span class="status">●</span></a>
+            </div>
+            
+            <div class="nav-group">
+                <div class="nav-title">🔧 Quick Links</div>
+                <a href="/admin/sitemap" class="nav-link">🗺️ Site Map API <span class="status">●</span></a>
+                <a href="/admin/status" class="nav-link">⚙️ Service Status API <span class="status">●</span></a>
+                <a href="/admin/logs" class="nav-link">📝 System Logs <span class="status">●</span></a>
+            </div>
+            
+            <div class="nav-group">
+                <div class="nav-title">🌐 Public Site</div>
+                <a href="/" class="nav-link">🏠 Homepage</a>
+                <a href="/dashboard" class="nav-link">📊 Trust Dashboard</a>
+                <a href="/#tools" class="nav-link">🛠️ Tools</a>
+            </div>
+        </nav>
+        
+        <main class="content">
+            <div class="overview-panel">
+                <h2 style="color: #00ff41; margin-bottom: 0.5rem;">🎯 Overall Health</h2>
+                <div class="overview-grid">
+                    <div class="overview-stat"><div class="overview-value">67%</div><div class="overview-label">Overall Completion</div></div>
+                    <div class="overview-stat"><div class="overview-value">8.0/10</div><div class="overview-label">Health Score</div></div>
+                    <div class="overview-stat"><div class="overview-value">97.9%</div><div class="overview-label">Tests Passing</div></div>
+                    <div class="overview-stat"><div class="overview-value">35</div><div class="overview-label">Total Entities</div></div>
+                </div>
+                <div class="legend">
+                    <div class="legend-item"><span class="badge badge-live">Live</span><span>Production ready</span></div>
+                    <div class="legend-item"><span class="badge badge-progress">In Progress</span><span>Being developed</span></div>
+                    <div class="legend-item"><span class="badge badge-planned">Planned</span><span>Not started</span></div>
+                    <div class="legend-item"><span class="badge badge-blocked">Blocked</span><span>Dependency issues</span></div>
+                </div>
+            </div>
+            
+            <section class="category-header"><h2>🤖 Applications</h2><div class="category-stats"><span>Total: <span class="stat-value">2</span></span><span>Avg: <span class="stat-value">85%</span></span></div></section>
+            <div class="status-grid">
+                <div class="entity-card"><div class="entity-header"><div class="entity-title"><span class="entity-icon">🤖</span><div><h3 class="entity-name">Discord Bot</h3><div class="entity-type">Application</div></div></div><span class="badge badge-live">Live</span></div><p class="entity-desc">Main TiltCheck ecosystem bot. Integrates SusLink, FreeSpinScan, JustTheTip, QualifyFirst.</p><div class="progress-section"><div class="progress-label"><span class="progress-text">Completion</span><span class="progress-pct">85%</span></div><div class="progress-bar"><div class="progress-fill" style="width: 85%"></div></div></div></div>
+                <div class="entity-card"><div class="entity-header"><div class="entity-title"><span class="entity-icon">🎮</span><div><h3 class="entity-name">DA&D Bot</h3><div class="entity-type">Application</div></div></div><span class="badge badge-live">Live</span></div><p class="entity-desc">Games bot with DA&D card game and poker integration.</p><div class="progress-section"><div class="progress-label"><span class="progress-text">Completion</span><span class="progress-pct">85%</span></div><div class="progress-bar"><div class="progress-fill" style="width: 85%"></div></div></div></div>
+            </div>
+            
+            <section class="category-header"><h2>⚙️ Core Modules</h2><div class="category-stats"><span>Total: <span class="stat-value">12</span></span><span>Avg: <span class="stat-value">62%</span></span></div></section>
+            <div class="status-grid">
+                <div class="entity-card"><div class="entity-header"><div class="entity-title"><span class="entity-icon">🔗</span><div><h3 class="entity-name">SusLink</h3><div class="entity-type">Module</div></div></div><span class="badge badge-live">Live</span></div><p class="entity-desc">AI-powered link scanner for scam detection.</p><div class="progress-section"><div class="progress-label"><span class="progress-text">Completion</span><span class="progress-pct">100%</span></div><div class="progress-bar"><div class="progress-fill" style="width: 100%"></div></div></div></div>
+                <div class="entity-card"><div class="entity-header"><div class="entity-title"><span class="entity-icon">🪙</span><div><h3 class="entity-name">JustTheTip</h3><div class="entity-type">Module</div></div></div><span class="badge badge-progress">In Progress</span></div><p class="entity-desc">Non-custodial Solana tipping, airdrops, and swaps.</p><div class="progress-section"><div class="progress-label"><span class="progress-text">Completion</span><span class="progress-pct">95%</span></div><div class="progress-bar"><div class="progress-fill" style="width: 95%"></div></div></div></div>
+                <div class="entity-card"><div class="entity-header"><div class="entity-title"><span class="entity-icon">⏰</span><div><h3 class="entity-name">CollectClock</h3><div class="entity-type">Module</div></div></div><span class="badge badge-progress">In Progress</span></div><p class="entity-desc">Daily bonus tracker with nerf detection.</p><div class="progress-section"><div class="progress-label"><span class="progress-text">Completion</span><span class="progress-pct">40%</span></div><div class="progress-bar"><div class="progress-fill" style="width: 40%"></div></div></div></div>
+                <div class="entity-card"><div class="entity-header"><div class="entity-title"><span class="entity-icon">🎁</span><div><h3 class="entity-name">FreeSpinScan</h3><div class="entity-type">Module</div></div></div><span class="badge badge-progress">In Progress</span></div><p class="entity-desc">Promo submission with auto-classification.</p><div class="progress-section"><div class="progress-label"><span class="progress-text">Completion</span><span class="progress-pct">95%</span></div><div class="progress-bar"><div class="progress-fill" style="width: 95%"></div></div></div></div>
+                <div class="entity-card"><div class="entity-header"><div class="entity-title"><span class="entity-icon">📋</span><div><h3 class="entity-name">QualifyFirst</h3><div class="entity-type">Module</div></div></div><span class="badge badge-live">Live</span></div><p class="entity-desc">AI survey router for pre-screening users.</p><div class="progress-section"><div class="progress-label"><span class="progress-text">Completion</span><span class="progress-pct">100%</span></div><div class="progress-bar"><div class="progress-fill" style="width: 100%"></div></div></div></div>
+                <div class="entity-card"><div class="entity-header"><div class="entity-title"><span class="entity-icon">🎮</span><div><h3 class="entity-name">DA&D Game</h3><div class="entity-type">Module</div></div></div><span class="badge badge-live">Live</span></div><p class="entity-desc">Degens Against Decency card game.</p><div class="progress-section"><div class="progress-label"><span class="progress-text">Completion</span><span class="progress-pct">100%</span></div><div class="progress-bar"><div class="progress-fill" style="width: 100%"></div></div></div></div>
+                <div class="entity-card"><div class="entity-header"><div class="entity-title"><span class="entity-icon">🃏</span><div><h3 class="entity-name">Poker</h3><div class="entity-type">Module</div></div></div><span class="badge badge-live">Live</span></div><p class="entity-desc">Texas Hold'em poker with betting.</p><div class="progress-section"><div class="progress-label"><span class="progress-text">Completion</span><span class="progress-pct">100%</span></div><div class="progress-bar"><div class="progress-fill" style="width: 100%"></div></div></div></div>
+                <div class="entity-card"><div class="entity-header"><div class="entity-title"><span class="entity-icon">🧠</span><div><h3 class="entity-name">TiltCheck Core</h3><div class="entity-type">Module</div></div></div><span class="badge badge-planned">Planned</span></div><p class="entity-desc">Tilt detection and cooldown nudges.</p><div class="progress-section"><div class="progress-label"><span class="progress-text">Completion</span><span class="progress-pct">0%</span></div><div class="progress-bar"><div class="progress-fill" style="width: 0%"></div></div></div></div>
+                <div class="entity-card"><div class="entity-header"><div class="entity-title"><span class="entity-icon">🏆</span><div><h3 class="entity-name">Casino Trust</h3><div class="entity-type">Module</div></div></div><span class="badge badge-progress">In Progress</span></div><p class="entity-desc">Casino scoring based on RTP and bonus nerfs.</p><div class="progress-section"><div class="progress-label"><span class="progress-text">Completion</span><span class="progress-pct">95%</span></div><div class="progress-bar"><div class="progress-fill" style="width: 95%"></div></div></div></div>
+                <div class="entity-card"><div class="entity-header"><div class="entity-title"><span class="entity-icon">👤</span><div><h3 class="entity-name">Degen Trust</h3><div class="entity-type">Module</div></div></div><span class="badge badge-progress">In Progress</span></div><p class="entity-desc">User scoring based on behavior patterns.</p><div class="progress-section"><div class="progress-label"><span class="progress-text">Completion</span><span class="progress-pct">95%</span></div><div class="progress-bar"><div class="progress-fill" style="width: 95%"></div></div></div></div>
+            </div>
+            
+            <section class="category-header"><h2>🛠️ Services</h2><div class="category-stats"><span>Total: <span class="stat-value">15</span></span><span>Avg: <span class="stat-value">75%</span></span></div></section>
+            <div class="status-grid">
+                <div class="entity-card"><div class="entity-header"><div class="entity-title"><span class="entity-icon">🔄</span><div><h3 class="entity-name">Event Router</h3><div class="entity-type">Service</div></div></div><span class="badge badge-live">Live</span></div><p class="entity-desc">Pub/sub event bus for inter-module communication.</p><div class="progress-section"><div class="progress-label"><span class="progress-text">Completion</span><span class="progress-pct">100%</span></div><div class="progress-bar"><div class="progress-fill" style="width: 100%"></div></div></div></div>
+                <div class="entity-card"><div class="entity-header"><div class="entity-title"><span class="entity-icon">🌐</span><div><h3 class="entity-name">Landing Page</h3><div class="entity-type">Service</div></div></div><span class="badge badge-live">Live</span></div><p class="entity-desc">Public-facing website with tool showcases.</p><div class="progress-section"><div class="progress-label"><span class="progress-text">Completion</span><span class="progress-pct">90%</span></div><div class="progress-bar"><div class="progress-fill" style="width: 90%"></div></div></div></div>
+                <div class="entity-card"><div class="entity-header"><div class="entity-title"><span class="entity-icon">📊</span><div><h3 class="entity-name">Dashboard</h3><div class="entity-type">Service</div></div></div><span class="badge badge-live">Live</span></div><p class="entity-desc">Trust dashboards with data visualization.</p><div class="progress-section"><div class="progress-label"><span class="progress-text">Completion</span><span class="progress-pct">85%</span></div><div class="progress-bar"><div class="progress-fill" style="width: 85%"></div></div></div></div>
+                <div class="entity-card"><div class="entity-header"><div class="entity-title"><span class="entity-icon">💰</span><div><h3 class="entity-name">Pricing Oracle</h3><div class="entity-type">Service</div></div></div><span class="badge badge-live">Live</span></div><p class="entity-desc">Real-time crypto price feeds.</p><div class="progress-section"><div class="progress-label"><span class="progress-text">Completion</span><span class="progress-pct">90%</span></div><div class="progress-bar"><div class="progress-fill" style="width: 90%"></div></div></div></div>
+                <div class="entity-card"><div class="entity-header"><div class="entity-title"><span class="entity-icon">🏛️</span><div><h3 class="entity-name">Control Room</h3><div class="entity-type">Service</div></div></div><span class="badge badge-progress">In Progress</span></div><p class="entity-desc">Admin dashboard for moderation.</p><div class="progress-section"><div class="progress-label"><span class="progress-text">Completion</span><span class="progress-pct">50%</span></div><div class="progress-bar"><div class="progress-fill" style="width: 50%"></div></div></div></div>
+                <div class="entity-card"><div class="entity-header"><div class="entity-title"><span class="entity-icon">🤖</span><div><h3 class="entity-name">AI Gateway</h3><div class="entity-type">Service</div></div></div><span class="badge badge-progress">In Progress</span></div><p class="entity-desc">Unified AI services interface.</p><div class="progress-section"><div class="progress-label"><span class="progress-text">Completion</span><span class="progress-pct">40%</span></div><div class="progress-bar"><div class="progress-fill" style="width: 40%"></div></div></div></div>
+            </div>
+            
+            <section class="category-header"><h2>📦 Shared Packages</h2><div class="category-stats"><span>Total: <span class="stat-value">6</span></span><span>Avg: <span class="stat-value">92%</span></span></div></section>
+            <div class="status-grid">
+                <div class="entity-card"><div class="entity-header"><div class="entity-title"><span class="entity-icon">📘</span><div><h3 class="entity-name">Types</h3><div class="entity-type">Package</div></div></div><span class="badge badge-live">Live</span></div><p class="entity-desc">Shared TypeScript type definitions.</p><div class="progress-section"><div class="progress-label"><span class="progress-text">Completion</span><span class="progress-pct">100%</span></div><div class="progress-bar"><div class="progress-fill" style="width: 100%"></div></div></div></div>
+                <div class="entity-card"><div class="entity-header"><div class="entity-title"><span class="entity-icon">💬</span><div><h3 class="entity-name">Discord Utils</h3><div class="entity-type">Package</div></div></div><span class="badge badge-live">Live</span></div><p class="entity-desc">Reusable Discord.js utilities.</p><div class="progress-section"><div class="progress-label"><span class="progress-text">Completion</span><span class="progress-pct">100%</span></div><div class="progress-bar"><div class="progress-fill" style="width: 100%"></div></div></div></div>
+                <div class="entity-card"><div class="entity-header"><div class="entity-title"><span class="entity-icon">🗄️</span><div><h3 class="entity-name">Database</h3><div class="entity-type">Package</div></div></div><span class="badge badge-live">Live</span></div><p class="entity-desc">PostgreSQL client wrapper.</p><div class="progress-section"><div class="progress-label"><span class="progress-text">Completion</span><span class="progress-pct">90%</span></div><div class="progress-bar"><div class="progress-fill" style="width: 90%"></div></div></div></div>
+                <div class="entity-card"><div class="entity-header"><div class="entity-title"><span class="entity-icon">⚙️</span><div><h3 class="entity-name">Config</h3><div class="entity-type">Package</div></div></div><span class="badge badge-blocked">Blocked</span></div><p class="entity-desc">Centralized configuration management.</p><div class="progress-section"><div class="progress-label"><span class="progress-text">Completion</span><span class="progress-pct">80%</span></div><div class="progress-bar"><div class="progress-fill" style="width: 80%"></div></div></div></div>
+            </div>
+        </main>
+    </div>
+    
+    <script>
+        function updateTime() {
+            const now = new Date();
+            document.getElementById('current-time').textContent = now.toLocaleTimeString();
+        }
+        setInterval(updateTime, 1000);
+        updateTime();
+    </script>
+</body>
+</html>

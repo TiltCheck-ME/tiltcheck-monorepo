@@ -1,0 +1,178 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"/><title>16. System Diagrams - TiltCheck</title><meta name="description" content="© 2024–2025 TiltCheck Ecosystem (Created by jmenichole). All Rights Reserved."/><link rel="stylesheet" href="/styles/base.css"/><style>body{background:#0a0a0a;color:#e0e0e0;font-family:Inter,system-ui,sans-serif;margin:0;padding:0}main{max-width:900px;margin:0 auto;padding:40px 18px;line-height:1.7}a{color:#00d4aa;text-decoration:none}a:hover{text-decoration:underline}.page-hero{padding:54px 24px 32px;background:linear-gradient(135deg,#121212,#181818);border-bottom:1px solid #222}.page-hero h1{margin:0 0 10px;font-size:2.4rem;background:linear-gradient(135deg,#00d4aa,#00a8ff);-webkit-background-clip:text;color:transparent}.lede{color:#aaa;font-size:1.05rem;max-width:760px}pre{background:#181818;padding:14px 16px;border:1px solid #222;border-radius:8px;overflow:auto;font-size:.85rem}code{font-family:ui-monospace,Monaco,Consolas,monospace;color:#00a8ff}.breadcrumb{font-size:.7rem;letter-spacing:.12em;text-transform:uppercase;color:#888;margin:0 0 12px}.nav-inline{display:flex;gap:20px;align-items:center;font-size:.8rem;padding:10px 20px;background:#111;border-bottom:1px solid #222}nav a{color:#aaa}nav a[aria-current="page"]{color:#00d4aa;font-weight:600}</style></head><body><nav class="nav-inline"><a href="/" >Home</a><a href="/docs/index.html" aria-current="page">Docs</a><a href="/dashboard">Dashboard</a><a href="/about.html">About</a></nav><header class="page-hero"><div class="breadcrumb">Docs / 16. System Diagrams</div><h1>16. System Diagrams</h1><p class="lede">© 2024–2025 TiltCheck Ecosystem (Created by jmenichole). All Rights Reserved.</p></header><main id="content"><p>© 2024–2025 TiltCheck Ecosystem (Created by jmenichole). All Rights Reserved.</p>
+
+<h1>16. System Diagrams</h1>
+<p>This file contains simplified architecture diagrams, module relationships, trust engine flows, and high-level overviews of system pathways.</p>
+<p>All diagrams are ASCII-based to ensure compatibility across editors and GitHub previews.</p>
+
+<p>---</p>
+
+<h1>16.1 Full Ecosystem Diagram</h1>
+
+<p>┌───────────────────────────────┐</p>
+<p>│            Discord            │</p>
+<p>│ Slash Commands + Mod Actions  │</p>
+<p>└───────────┬───────────────────┘</p>
+<p>│</p>
+<p>(Verifies Requests)</p>
+<p>│</p>
+<p>┌─────────────▼─────────────┐</p>
+<p>│       Command Hub          │</p>
+<p>│    (Cloudflare Worker)     │</p>
+<p>└─────────────┬─────────────┘</p>
+<p>│</p>
+<p>┌───────────┼───────────┬───────────┐</p>
+<p>▼           ▼           ▼           ▼</p>
+<p>┌────────────┐┌──────────┐┌──────────┐┌───────────────┐</p>
+<p>│ JustTheTip ││ SusLink  ││CollectClk││ FreeSpinScan   │</p>
+<p>└─────┬──────┘└────┬─────┘└────┬─────┘└──────┬────────┘</p>
+<p>│            │           │            │</p>
+<p>└────────────┼───────────┼────────────┘</p>
+<p>▼</p>
+<p>┌──────────────────────────┐</p>
+<p>│      Trust Engines       │</p>
+<p>│ Casino + Degen + Tilt AI │</p>
+<p>└───────┬──────────┬──────┘</p>
+<p>▼          ▼</p>
+<p>┌────────────────┐ ┌───────────────┐</p>
+<p>│ Storage Layer  │ │ Prediction AI  │</p>
+<p>│ SQLite/KV/Postg│ │ Models         │</p>
+<p>└────────────────┘ └───────────────┘</p>
+
+<p>---</p>
+
+<h1>16.2 Trust Flow Diagram</h1>
+
+<p>User Action ──► Module ──► Trust Engine ──► Score Update ──► Discord Feedback</p>
+<p>│</p>
+<p>▼</p>
+<p>Explanation Log</p>
+
+<h3>Case Example:</h3>
+<p>User rage-spams → Tilt Engine flags → Degen Trust Engine adjusts score → User sees <code>/trust explain</code>.</p>
+
+<p>---</p>
+
+<h1>16.3 Casino Trust Engine Diagram</h1>
+
+<p>┌───────────────────────┐</p>
+<p>│ RTP / Fairness Checks │</p>
+<p>└───────────┬───────────┘</p>
+<p>▼</p>
+<p>┌───────────────────────┐</p>
+<p>│ Bonus/Nerf Patterns   │</p>
+<p>└───────────┬───────────┘</p>
+<p>▼</p>
+<p>┌───────────────────────┐</p>
+<p>│ FreeSpinScan Signals  │</p>
+<p>└───────────┬───────────┘</p>
+<p>▼</p>
+<p>┌──────────────────────────────────┐</p>
+<p>│      Casino Trust Engine AI       │</p>
+<p>│  Score = weighted blend of inputs │</p>
+<p>└─────────────────┬────────────────┘</p>
+<p>▼</p>
+<p>Trust Score Output</p>
+
+<p>---</p>
+
+<h1>16.4 Degen Trust Engine Diagram</h1>
+
+<p>┌────────────────┬────────────────┬─────────────────┐</p>
+<p>│ Tilt Signals   │ Scam Reports   │ Chat Behavior   │</p>
+<p>└────────┬───────┴─────┬─────────┴───────────┬────┘</p>
+<p>▼             ▼                     ▼</p>
+<p>┌──────────────────────────────────────────────────┐</p>
+<p>│               Degen Trust AI Engine              │</p>
+<p>│ - Calculates deltas                              │</p>
+<p>│ - Prevents abuse                                 │</p>
+<p>│ - Explains decisions                             │</p>
+<p>└──────────────────┬───────────────────────────────┘</p>
+<p>▼</p>
+<p>Trust Score + Explanation</p>
+
+<p>---</p>
+
+<h1>16.5 Module Dependency Diagram</h1>
+
+<p>JustTheTip ─────┐</p>
+<p>SusLink ─────────┤──► Trust Engines ◄─── CollectClock</p>
+<p>FreeSpinScan ────┘ ▲</p>
+<p>│</p>
+<p>QualifyFirst │</p>
+<p>DA&D │</p>
+<p>Tilt Engine ──────┘</p>
+
+<p>Modules do NOT depend on each other — only on the Trust Engines.</p>
+
+<p>---</p>
+
+<h1>16.6 Data Flow Through TiltCheck (Full Example)</h1>
+
+<h3>Example: Submitting a free spins link.</h3>
+
+<p>User ──/submit──► Bot</p>
+<p>│</p>
+<p>▼</p>
+<p>Command Hub</p>
+<p>│</p>
+<p>▼</p>
+<p>FreeSpinScan</p>
+<p>│</p>
+<p>(calls SusLink)</p>
+<p>│</p>
+<p>▼</p>
+<p>Risk Evaluated</p>
+<p>│</p>
+<p>▼</p>
+<p>Mod Approval Queue</p>
+<p>│</p>
+<p>▼</p>
+<p>Approved → Posted to correct channel</p>
+<p>│</p>
+<p>▼</p>
+<p>Casino Trust Engine logs reliability event</p>
+
+<p>---</p>
+
+<h1>16.7 Poker Module Architecture</h1>
+
+<p>(poker commands)</p>
+<p>│</p>
+<p>▼</p>
+<p>Lobby System</p>
+<p>│</p>
+<p>▼</p>
+<p>Match Engine ───► Fairness Watchdog AI</p>
+<p>│</p>
+<p>▼</p>
+<p>Non-Custodial Escrow</p>
+<p>│</p>
+<p>▼</p>
+<p>Winner Payout</p>
+
+<p>---</p>
+
+<h1>16.8 Funding Intelligence Agent Flow</h1>
+
+<p>Startup Grants →───────────────────────────┐</p>
+<p>Hackathons →───────────────────────────────┤</p>
+<p>Credits →──────────────────────────────────┤</p>
+<p>Accelerators →─────────────────────────────┤</p>
+<p>Community Bounties →───────────────────────┘</p>
+<p>▼</p>
+<p>Funding Intelligence Agent</p>
+<p>▼</p>
+<p>Prioritized Output List</p>
+<p>▼</p>
+<p>Application Steps + Deadline</p>
+
+<p>---</p>
+
+<h1>16.9 Developer Workflow Diagram</h1>
+
+<p>edit → commit → push → GitHub Actions → deploy (Cloudflare/Supabase)</p>
+
+<p>---</p>
+
+<h1>End of <code>16-diagrams.md</code></h1>
+</main><footer style="padding:40px 24px;text-align:center;font-size:.75rem;color:#666;border-top:1px solid #222">TiltCheck Docs • Non-custodial • Signals only.</footer></body></html>

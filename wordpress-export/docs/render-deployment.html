@@ -1,0 +1,272 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"/><title>Render Deployment Guide - TiltCheck</title><meta name="description" content="This repository uses a **unified container** approach for Render deployment. All services (Nginx reverse proxy, landing, dashboard) run in a single container orchestrated by `super"/><link rel="stylesheet" href="/styles/base.css"/><style>body{background:#0a0a0a;color:#e0e0e0;font-family:Inter,system-ui,sans-serif;margin:0;padding:0}main{max-width:900px;margin:0 auto;padding:40px 18px;line-height:1.7}a{color:#00d4aa;text-decoration:none}a:hover{text-decoration:underline}.page-hero{padding:54px 24px 32px;background:linear-gradient(135deg,#121212,#181818);border-bottom:1px solid #222}.page-hero h1{margin:0 0 10px;font-size:2.4rem;background:linear-gradient(135deg,#00d4aa,#00a8ff);-webkit-background-clip:text;color:transparent}.lede{color:#aaa;font-size:1.05rem;max-width:760px}pre{background:#181818;padding:14px 16px;border:1px solid #222;border-radius:8px;overflow:auto;font-size:.85rem}code{font-family:ui-monospace,Monaco,Consolas,monospace;color:#00a8ff}.breadcrumb{font-size:.7rem;letter-spacing:.12em;text-transform:uppercase;color:#888;margin:0 0 12px}.nav-inline{display:flex;gap:20px;align-items:center;font-size:.8rem;padding:10px 20px;background:#111;border-bottom:1px solid #222}nav a{color:#aaa}nav a[aria-current="page"]{color:#00d4aa;font-weight:600}</style></head><body><nav class="nav-inline"><a href="/" >Home</a><a href="/docs/index.html" aria-current="page">Docs</a><a href="/dashboard">Dashboard</a><a href="/about.html">About</a></nav><header class="page-hero"><div class="breadcrumb">Docs / Render Deployment Guide</div><h1>Render Deployment Guide</h1><p class="lede">This repository uses a **unified container** approach for Render deployment. All services (Nginx reverse proxy, landing, dashboard) run in a single container orchestrated by `super</p></header><main id="content"><h1>Render Deployment Guide</h1>
+
+<h2>Overview</h2>
+<p>This repository uses a <strong>unified container</strong> approach for Render deployment. All services (Nginx reverse proxy, landing, dashboard) run in a single container orchestrated by <code>supervisord</code>.</p>
+
+<p><strong>Note</strong>: Discord bot and trust-rollup services are disabled by default (require additional dependencies). This web-only deployment includes landing pages + dashboard API.</p>
+
+<h2>Quick Deploy</h2>
+
+<p><a href="https://render.com/images/deploy-to-render-button.svg">![Deploy to Render</a>](https://api.render.com/deploy/srv-d4fd8o8dl3ps73csbk0g?key=TcUjS-BJrdo)</p>
+
+<p>Click the button above to deploy directly, or use the manual steps below.</p>
+
+<p>---</p>
+
+<h2>Prerequisites</h2>
+<p>1. Render account (free tier works initially).</p>
+<p>2. GitHub repo connected to Render.</p>
+<p>3. Environment variables configured (see below).</p>
+
+<h2>Deployment Steps</h2>
+
+<h3>1. Create New Web Service (Manual)</h3>
+<ul>
+<li>Dashboard → <strong>New</strong> → <strong>Web Service</strong></li>
+<li>Connect your GitHub repo: <code>jmenichole/tiltcheck-monorepo</code></li>
+<li><strong>Name</strong>: <code>tiltcheck-unified</code> (or your choice)</li>
+<li><strong>Region</strong>: Choose closest to your users (US West/East recommended)</li>
+<li><strong>Branch</strong>: <code>main</code></li>
+<li><strong>Root Directory</strong>: Leave blank (uses repo root)</li>
+<li><strong>Runtime</strong>: Docker</li>
+<li><strong>Dockerfile Path</strong>: <code>Dockerfile.render</code> (without <code>./</code> prefix)</li>
+</ul>
+
+<h3>2. Configure Build & Deploy Settings</h3>
+<ul>
+<li><strong>Build Command</strong>: (leave empty; Docker handles build)</li>
+<li><strong>Start Command</strong>: (leave empty; Dockerfile CMD uses supervisord)</li>
+<li><strong>Health Check Path</strong>: <code>/proxy-health</code></li>
+<li><strong>Instance Type</strong>: Starter (512MB) or Standard (2GB recommended for production)</li>
+</ul>
+
+<p><strong>Direct Deploy URL</strong>: <code>https://api.render.com/deploy/srv-d4fd8o8dl3ps73csbk0g?key=TcUjS-BJrdo</code></p>
+
+<h3>3. Environment Variables</h3>
+<p>Add these in Render dashboard under <strong>Environment</strong>:</p>
+
+<p><strong>Required for Web-Only Deployment</strong>:</p>
+<pre class="code-block" data-lang=""><code>
+NODE_ENV=production
+</code></pre>
+
+<p><strong>Optional (Dashboard Configuration)</strong>:</p>
+<pre class="code-block" data-lang=""><code>
+DASHBOARD_POLL_MS=30000
+DASHBOARD_EVENTS_KEEP_DAYS=7
+</code></pre>
+
+<p><strong>Discord Bot</strong> (currently disabled; re-enable after fixing dependencies):</p>
+<pre class="code-block" data-lang=""><code>
+DISCORD_TOKEN=your_bot_token_here
+DISCORD_CLIENT_ID=your_client_id
+DISCORD_GUILD_ID=your_guild_id (optional for guild commands)
+SUSLINK_AUTO_SCAN=true
+TRUST_THRESHOLD=60
+</code></pre>
+
+<p><strong>Solana / JustTheTip</strong> (if bot enabled):</p>
+<pre class="code-block" data-lang=""><code>
+SOLANA_RPC_URL=https://api.mainnet-beta.solana.com
+JUSTTHETIP_FEE_WALLET=your_solana_wallet_address
+</code></pre>
+
+<p><strong>Paths</strong> (defaults work; override if needed):</p>
+<pre class="code-block" data-lang=""><code>
+PENDING_TIPS_STORE_PATH=/tmp/pending-tips.json
+TRIVIA_STORE_PATH=/tmp/trivia-store.json
+LANDING_LOG_PATH=/tmp/landing-requests.log
+</code></pre>
+
+<h3>4. Custom Domain Setup (tiltcheck.me)</h3>
+<ul>
+<li>In Render service settings → <strong>Custom Domains</strong> → Add <code>tiltcheck.me</code></li>
+<li>Render will provide DNS instructions:</li>
+<p>- <strong>CNAME</strong>: <code>tiltcheck.me</code> → <code>tiltcheck-unified.onrender.com</code> (or your service URL)</p>
+<p>- For apex domain (<code>it.com</code>), use ALIAS/ANAME if your registrar supports it</p>
+<li>Wait for DNS propagation (5-20 min typically)</li>
+<li>Render auto-issues Let's Encrypt certificate (no manual certbot needed)</li>
+</ul>
+
+<h3>5. Deploy</h3>
+<ul>
+<li>Click <strong>Create Web Service</strong> (or use deploy button at top)</li>
+<li>Render will:</li>
+<p>1. Build Docker image from <code>Dockerfile.render</code></p>
+<p>2. Start container with <code>supervisord</code> orchestrating processes (Nginx, landing, dashboard)</p>
+<p>3. Health check <code>/proxy-health</code> every 30s</p>
+<p>4. Auto-redeploy on GitHub pushes to <code>main</code></p>
+</ul>
+
+<h3>6. Verify Deployment</h3>
+<p>Once live, test endpoints:</p>
+<pre class="code-block" data-lang="bash"><code>
+curl https://tiltcheck.me/proxy-health
+# Expected: {&quot;status&quot;:&quot;ok&quot;,&quot;proxy&quot;:&quot;nginx&quot;,&quot;render&quot;:true}
+
+curl https://tiltcheck.me/
+# Expected: Landing page HTML
+
+curl https://tiltcheck.me/api/health
+# Expected: {&quot;lastSnapshotTs&quot;:null,...}
+</code></pre>
+
+<h2>Process Architecture</h2>
+<p><code>supervisord</code> orchestrates three processes (web-only deployment):</p>
+<ul>
+<li><strong>nginx</strong>: Reverse proxy (listens on port 8080 internally, Render maps to external port)</li>
+<li><strong>landing</strong>: Express server (port 3000 internal, serves marketing pages + metrics)</li>
+<li><strong>dashboard</strong>: Dashboard API (port 5055 internal, events + health endpoints)</li>
+</ul>
+
+<p><strong>Disabled</strong> (can re-enable after adding dependencies):</p>
+<ul>
+<li><strong>bot</strong>: Discord bot (needs <code>@solana/web3.js</code>, trust-engines build)</li>
+<li><strong>rollup</strong>: Trust rollup service (needs additional workspace builds)</li>
+</ul>
+
+<p>All services communicate via localhost; Nginx is the sole external entry point.</p>
+
+<h2>Logs & Monitoring</h2>
+<ul>
+<li><strong>Logs</strong>: View in Render dashboard → your service → <strong>Logs</strong> tab</li>
+<li><strong>Metrics</strong>: Render provides CPU, RAM, request count</li>
+<li><strong>Custom Metrics</strong>: Access <code>/metrics</code> endpoint (landing service aggregates paths/UAs)</li>
+<li><strong>Structured Logs</strong>: Nginx outputs JSON to stdout (Render captures automatically)</li>
+</ul>
+
+<h2>Scaling</h2>
+<ul>
+<li><strong>Vertical</strong>: Upgrade instance type (Standard 2GB → 4GB)</li>
+<li><strong>Horizontal</strong>: Render doesn't support horizontal scaling for single containers with stateful processes (bot). Consider splitting services if needed.</li>
+</ul>
+
+<h2>Troubleshooting</h2>
+
+<h3>Build Fails</h3>
+<ul>
+<li>Check <code>pnpm-lock.yaml</code> is committed</li>
+<li>Verify all <code>package.json</code> files exist for workspace packages</li>
+<li>Inspect build logs for missing dependencies</li>
+</ul>
+
+<h3>Health Check Fails</h3>
+<ul>
+<li>Ensure Nginx starts (check logs for port binding errors)</li>
+<li>Render maps container port 8080 to external dynamic port automatically</li>
+<li>Test locally: <code>docker build -f Dockerfile.render -t tiltcheck-render . &amp;&amp; docker run -p 8888:8080 tiltcheck-render</code></li>
+<li>Verify <code>/proxy-health</code> returns <code>{&quot;status&quot;:&quot;ok&quot;,&quot;proxy&quot;:&quot;nginx&quot;,&quot;render&quot;:true}</code></li>
+</ul>
+
+<h3>Discord Bot Not Connecting</h3>
+<ul>
+<li>Verify <code>DISCORD_TOKEN</code> is correct</li>
+<li>Check bot has required intents enabled in Discord Developer Portal</li>
+<li>Inspect logs for connection errors</li>
+</ul>
+
+<h3>Dashboard 404</h3>
+<ul>
+<li>Ensure dashboard built successfully (<code>pnpm run build</code> in build logs)</li>
+<li>Check <code>services/dashboard/dist/server.js</code> exists in image (not <code>index.js</code>)</li>
+<li>Verify dashboard process started (supervisord logs show all processes)</li>
+<li>Dashboard API is at <code>/api/*</code> routes, not <code>/dashboard/</code> (static UI not included)</li>
+</ul>
+
+<h2>Local Testing</h2>
+<p>Test the unified container locally:</p>
+<pre class="code-block" data-lang="bash"><code>
+# Build
+docker build -f Dockerfile.render -t tiltcheck-render .
+
+# Run (minimal web-only config)
+docker run -d --name tiltcheck-test -p 8888:8080 tiltcheck-render
+
+# Test endpoints
+curl http://localhost:8888/proxy-health
+# Expected: {&quot;status&quot;:&quot;ok&quot;,&quot;proxy&quot;:&quot;nginx&quot;,&quot;render&quot;:true}
+
+curl http://localhost:8888/api/health
+# Expected: {&quot;lastSnapshotTs&quot;:null,...}
+
+curl http://localhost:8888/
+# Expected: Landing page HTML
+
+# Clean up
+docker rm -f tiltcheck-test
+</code></pre>
+
+<h2>Optional: render.yaml Blueprint</h2>
+<p>For Infrastructure-as-Code, use <code>render.yaml</code> (see <code>render.yaml</code> in repo root). This allows:</p>
+<ul>
+<li>Version-controlled service config</li>
+<li>Automated environment sync</li>
+<li>Multi-environment deployments</li>
+</ul>
+
+<p>To use:</p>
+<p>1. Push <code>render.yaml</code> to repo</p>
+<p>2. Render dashboard → <strong>Blueprint</strong> → select repo</p>
+<p>3. Auto-provisions services from YAML</p>
+
+<h2>Security Notes</h2>
+<ul>
+<li><strong>No Public Ports</strong>: Only Nginx port exposed; internal services on localhost</li>
+<li><strong>HTTPS</strong>: Render handles TLS termination; all traffic encrypted</li>
+<li><strong>Secrets</strong>: Use Render environment variables (not committed to repo)</li>
+<li><strong>Rate Limiting</strong>: Nginx enforces 30 req/min per IP (adjust in <code>nginx.render.conf</code> if needed)</li>
+<li><strong>Headers</strong>: HSTS, CSP, X-Frame-Options enforced by landing server + Nginx</li>
+</ul>
+
+<h2>Cost Estimate</h2>
+<ul>
+<li><strong>Starter (512MB)</strong>: Free for 750 hours/month (sleeps after 15min inactivity)</li>
+<li><strong>Standard (2GB)</strong>: ~$25/month (always-on, better for production)</li>
+<li><strong>Database</strong>: Not needed currently (file-based storage in <code>/tmp</code> or Railway volumes)</li>
+<li><strong>Bandwidth</strong>: 100GB included; overage $0.10/GB</li>
+</ul>
+
+<h2>Re-enabling Discord Bot & Rollup</h2>
+
+<p>The bot and rollup services are disabled to avoid build failures. To re-enable:</p>
+
+<p>1. <strong>Add Missing Dependencies</strong>:</p>
+<p>```bash</p>
+<p># In apps/discord-bot/package.json, add:</p>
+<p>"@solana/web3.js": "^1.95.0",</p>
+<p>"@tiltcheck/trust-engines": "workspace:*"</p>
+<p>```</p>
+
+<p>2. <strong>Build Trust Engines</strong>:</p>
+<p>```dockerfile</p>
+<p># In Dockerfile.render, add before dashboard build:</p>
+<p>cd /app/services/trust-engines && pnpm run build && \</p>
+<p>```</p>
+
+<p>3. <strong>Uncomment in supervisord.conf</strong>:</p>
+<p>```ini</p>
+<p>[program:bot]</p>
+<p>command=/usr/local/bin/node /app/apps/discord-bot/dist/index.js</p>
+<p>...</p>
+
+<p>[program:rollup]</p>
+<p>command=/usr/local/bin/node /app/services/trust-rollup/dist/server.js</p>
+<p>...</p>
+<p>```</p>
+
+<p>4. <strong>Rebuild &amp; Redeploy</strong>:</p>
+<p>```bash</p>
+<p>git add -A</p>
+<p>git commit -m "Enable bot + rollup services"</p>
+<p>git push origin main</p>
+<p>```</p>
+
+<h2>Next Steps</h2>
+<ul>
+<li>Use Railway Volumes or persistent storage if needed (currently using <code>/tmp</code> for logs)</li>
+<li>Integrate external log sink (Loki, Datadog) for long-term retention</li>
+<li>Set up monitoring alerts (Render Notifications or webhooks)</li>
+<li>Enable auto-deploy previews for PRs</li>
+<li>Complete bot dependency fixes and re-enable Discord commands</li>
+</ul>
+</main><footer style="padding:40px 24px;text-align:center;font-size:.75rem;color:#666;border-top:1px solid #222">TiltCheck Docs • Non-custodial • Signals only.</footer></body></html>
