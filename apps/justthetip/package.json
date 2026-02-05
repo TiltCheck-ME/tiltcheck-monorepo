@@ -9,6 +9,12 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@magic-ext/solana": "^25.0.0",
+    "@magic-sdk/react": "^22.0.0",
+    "@solana/wallet-adapter-base": "^0.9.23",
+    "@solana/wallet-adapter-react": "^0.15.35",
+    "@solana/wallet-adapter-wallets": "^0.19.32",
+    "@solana/web3.js": "^1.87.6",
     "@tiltcheck/api-client": "workspace:*",
     "@tiltcheck/auth": "workspace:*",
     "@tiltcheck/types": "workspace:*",
