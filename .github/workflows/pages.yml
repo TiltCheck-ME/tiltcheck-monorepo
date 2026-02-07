@@ -37,14 +37,13 @@ jobs:
       - name: Prepare out directory
         run: |
           mkdir out
-          rsync -av --delete services/landing/public/ out/
+          rsync -av --delete wordpress-export/ out/
           mkdir -p out/docs-md
           rsync -av docs/tiltcheck/ out/docs-md/
           # Add Auto-Claimer web app
           mkdir -p out/auto-claimer
           rsync -av apps/web/dist/ out/auto-claimer/
-          # Add CNAME if present in repo root or public
-          if [ -f services/landing/public/CNAME ]; then cp services/landing/public/CNAME out/CNAME; fi
+          # CNAME is already in wordpress-export
           echo "Build artifacts prepared"
 
       - name: Publish to gh-pages
