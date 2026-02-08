@@ -102,18 +102,14 @@ export default function UserDashboardContent() {
   // Determine tilt level color
   const tiltLevel = stats.averageTiltScore;
   let bgColor = 'from-green-900 to-green-800';
-  let statusEmoji = '😊';
   if (tiltLevel > 5) {
     bgColor = 'from-yellow-900 to-yellow-800';
-    statusEmoji = '😐';
   }
   if (tiltLevel > 7) {
     bgColor = 'from-orange-900 to-orange-800';
-    statusEmoji = '😠';
   }
   if (tiltLevel > 9) {
     bgColor = 'from-red-900 to-red-800';
-    statusEmoji = '😡';
   }
 
   return (
@@ -135,13 +131,12 @@ export default function UserDashboardContent() {
                 <span className="text-3xl text-slate-300 ml-2">/10</span>
               </div>
             </div>
-            <div className="text-6xl">{statusEmoji}</div>
           </div>
           <p className="text-slate-200">
-            {tiltLevel < 3 && '✨ You\'re in a great mindset!'}
-            {tiltLevel >= 3 && tiltLevel < 6 && '⚠️ Consider taking a break soon'}
-            {tiltLevel >= 6 && tiltLevel < 8 && '🚨 High tilt detected - time for a break'}
-            {tiltLevel >= 8 && '🛑 Critical tilt level - stop playing now'}
+            {tiltLevel < 3 && 'Mindset: Excellent'}
+            {tiltLevel >= 3 && tiltLevel < 6 && 'Status: Warning - Consider taking a break'}
+            {tiltLevel >= 6 && tiltLevel < 8 && 'Status: High Tilt Detected'}
+            {tiltLevel >= 8 && 'Status: Critical Tilt - Stop playing'}
           </p>
         </div>
 
@@ -150,23 +145,23 @@ export default function UserDashboardContent() {
           <StatCard
             label="Total Events"
             value={stats.totalEvents}
-            icon="📊"
+            icon="TOTAL"
           />
           <StatCard
             label="Max Score (7d)"
             value={stats.maxTiltScore.toFixed(1)}
-            icon="📈"
+            icon="MAX"
             unit="/10"
           />
           <StatCard
             label="Events (24h)"
             value={stats.eventsLast24h}
-            icon="⏰"
+            icon="RECENT"
           />
           <StatCard
             label="Events (7d)"
             value={stats.eventsLast7d}
-            icon="📅"
+            icon="WEEKLY"
           />
           <StatCard
             label="Last Event"
@@ -175,12 +170,12 @@ export default function UserDashboardContent() {
                 ? new Date(stats.lastEventAt).toLocaleDateString()
                 : 'Never'
             }
-            icon="🕐"
+            icon="TIME"
           />
           <StatCard
             label="Status"
             value={tiltLevel > 7 ? 'High Tilt' : 'Normal'}
-            icon={tiltLevel > 7 ? '⚠️' : '✅'}
+            icon="STATUS"
           />
         </div>
 
@@ -214,8 +209,8 @@ export default function UserDashboardContent() {
                       </div>
                     </div>
                     <div className="text-right">
-                      <div className="text-2xl">
-                        {event.tilt_score > 7 ? '😡' : event.tilt_score > 5 ? '😠' : '😐'}
+                      <div className="text-xs font-bold text-[#6B7280]">
+                        {event.tilt_score > 7 ? 'HIGH' : event.tilt_score > 5 ? 'MEDIUM' : 'LOW'}
                       </div>
                     </div>
                   </div>
@@ -227,12 +222,12 @@ export default function UserDashboardContent() {
 
         {/* Tips */}
         <div className="mt-8 bg-blue-900/20 border border-blue-700 rounded-lg p-6">
-          <h3 className="text-lg font-bold text-blue-300 mb-3">💡 Tips to Manage Tilt</h3>
+          <h3 className="text-lg font-bold text-blue-300 mb-3">TIPS TO MANAGE TILT</h3>
           <ul className="space-y-2 text-slate-300">
-            <li>✓ Take a 10-minute break when tilt reaches 6+</li>
-            <li>✓ Set a daily loss limit before playing</li>
-            <li>✓ Track your emotions in the TiltCheck app</li>
-            <li>✓ Use the 5-minute rule: wait 5 mins before re-entering</li>
+            <li>Take a 10-minute break when tilt reaches 6+</li>
+            <li>Set a daily loss limit before playing</li>
+            <li>Track your emotions in the TiltCheck app</li>
+            <li>Use the 5-minute rule: wait 5 mins before re-entering</li>
           </ul>
         </div>
       </div>
