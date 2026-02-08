@@ -5,7 +5,7 @@
 
 import { eventRouter } from '@tiltcheck/event-router';
 import { pricingOracle } from '@tiltcheck/pricing-oracle';
-import { v4 as uuidv4 } from 'uuid';
+import { randomUUID } from 'crypto';
 import { getSolscanUrl } from './utils.js';
 
 // Wallet types supported
@@ -44,6 +44,40 @@ export class JustTheTipModule {
   private wallets: Map<string, Wallet> = new Map();
   private tips: Map<string, Tip> = new Map();
   private pendingTips: Map<string, string[]> = new Map(); // recipientId -> tipIds[]
+
+  constructor() {
+    this.setupEventSubscriptions();
+    this.initializeSystemWallets().catch(console.error);
+  }
+
+  private setupEventSubscriptions(): void {
+    // Listen for tip send requests from other modules
+    eventRouter.subscribe(
+      'tip.send',
+      async (event: TiltCheckEvent) => {
+        const { senderId, recipientId, amount, currency } = event.data as any;
+        try {
+          await this.initiateTip(senderId, recipientId, amount, currency || 'USD');
+          console.log(`[JustTheTip] Processed tip.send event: ${senderId} -> ${recipientId} (${amount} ${currency || 'USD'})`);
+        } catch (error) {
+          console.error(`[JustTheTip] Failed to process tip.send event:`, error);
+        }
+      },
+      'justthetip'
+    );
+  }
+
+  /**
+   * Initialize system-owned wallets (Treasury, etc.)
+   */
+  private async initializeSystemWallets(): Promise<void> {
+    // Register the platform treasury wallet if not already present
+    if (!this.wallets.has('TREASURY')) {
+      const treasuryAddress = process.env.TREASURY_WALLET_PUBLIC || 'TREAS1111111111111111111111111111111111111111';
+      await this.registerWallet('TREASURY', treasuryAddress, 'other');
+      console.log(`[JustTheTip] System treasury wallet initialized: ${treasuryAddress}`);
+    }
+  }
 
   /**
    * Register a wallet for a user
@@ -162,13 +196,13 @@ export class JustTheTipModule {
 
     // Create tip
     const tip: Tip = {
-      id: uuidv4(),
+      id: randomUUID(),
       senderId,
       recipientId,
       usdAmount: currency === 'USD' ? amount : amount * pricingOracle.getUsdPrice('SOL'),
       solAmount,
       status: 'pending',
-      reference: uuidv4(),
+      reference: randomUUID(),
       createdAt: Date.now(),
     };
 

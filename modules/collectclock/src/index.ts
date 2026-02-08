@@ -110,6 +110,23 @@ const defaultConfig: CollectClockConfig = {
   maxUserHistoryEntries: 1000, // Max history entries per user
 };
 
+export interface StaticBonusData {
+  brand: string;
+  bonus: string;
+  url: string;
+  verified: string;
+  code: string | null;
+}
+
+export interface StaticDropData {
+  lastUpdated: string;
+  drops: Array<{
+    date: string;
+    time: string;
+    amount: number | null;
+  }>;
+}
+
 export class CollectClockService {
   private casinos: Map<string, CasinoBonusState> = new Map();
   private cfg: CollectClockConfig;
@@ -123,6 +140,33 @@ export class CollectClockService {
     this.cfg = { ...defaultConfig, ...(config || {}) };
     if (!this.cfg.logger && process.env.COLLECTCLOCK_LOG_ERRORS === '1') {
       this.cfg.logger = console;
+    }
+  }
+
+  /**
+   * Initialize casinos from static JSON data files
+   */
+  initializeFromStaticData(bonusData: StaticBonusData[], dropData?: StaticDropData) {
+    for (const data of bonusData) {
+      // Try to parse amount from bonus string if possible, otherwise default to 1
+      let amount = 1;
+      const amountMatch = data.bonus.match(/(\d+(?:\.\d+)?)\s*(?:SC|Sweeps|Cash)/i);
+      if (amountMatch) {
+        amount = parseFloat(amountMatch[1]);
+      }
+
+      // Check if already registered
+      if (!this.casinos.has(data.brand)) {
+        this.registerCasino(data.brand, amount);
+      } else {
+        this.updateBonus(data.brand, amount);
+      }
+    }
+
+    // Drops data could be used to populate history or predictions
+    if (dropData) {
+      // For now we just log it or could use it to refine prediction basis
+      this.cfg.logger?.info?.(`Loaded ${dropData.drops.length} historical drops for analysis`);
     }
   }
 
@@ -273,6 +317,13 @@ export class CollectClockService {
 
   getCasinoState(casinoName: string): CasinoBonusState | undefined {
     return this.casinos.get(casinoName);
+  }
+
+  /**
+   * Get all registered casino names
+   */
+  getCasinos(): string[] {
+    return Array.from(this.casinos.keys());
   }
 
   getPersistedHistory(casinoName: string): { amount: number; updatedAt: number }[] {
