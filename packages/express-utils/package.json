@@ -4,17 +4,8 @@
   "description": "Shared Express middleware and utilities for TiltCheck services",
   "main": "src/index.js",
   "type": "commonjs",
-  "scripts": {
-    "test": "vitest"
-  },
-  "keywords": ["express", "middleware", "logging", "security", "metrics"],
-  "author": "TiltCheck",
-  "private": true,
-  "license": "UNLICENSED",
   "dependencies": {
     "express": "^4.18.2"
-  },
-  "devDependencies": {
-    "vitest": "^1.6.1"
   }
 }
+

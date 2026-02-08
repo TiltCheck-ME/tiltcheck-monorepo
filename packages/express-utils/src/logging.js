@@ -78,3 +78,4 @@ function initLogging(logPath) {
 }
 
 module.exports = { initLogging };
+
