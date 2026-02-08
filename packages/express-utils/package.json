@@ -9,6 +9,7 @@
   },
   "keywords": ["express", "middleware", "logging", "security", "metrics"],
   "author": "TiltCheck",
+  "private": true,
   "license": "UNLICENSED",
   "dependencies": {
     "express": "^4.18.2"
