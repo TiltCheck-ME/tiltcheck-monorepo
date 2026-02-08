@@ -10,12 +10,12 @@ import { Client, GatewayIntentBits, Partials } from 'discord.js';
 import http from 'http';
 import fs from 'fs';
 import { config, validateConfig } from './config.js';
-import { CommandHandler, EventHandler, registerDMHandler, initializeTiltEventsHandler } from './handlers/index.js';
+import { CommandHandler, EventHandler, registerDMHandler, initializeTiltEventsHandler, initializeCollectClock } from './handlers/index.js';
 import { initializeAlertService } from './services/alert-service.js';
 import { TrustAlertsHandler } from './handlers/trust-alerts-handler.js';
 
 // Import modules to initialize them
-import '@tiltcheck/suslink';
+// import '@tiltcheck/suslink';
 import { startTrustAdapter } from '@tiltcheck/discord-utils/trust-adapter';
 
 async function main() {
@@ -59,28 +59,33 @@ async function main() {
   console.log('✅ [Alerts] Alert service ready\n');
 
   // Initialize trust alerts handler to post events to Discord
-  console.log('📊 [Trust] Initializing trust alerts handler...');
-  TrustAlertsHandler.initialize();
-  console.log('✅ [Trust] Trust alerts subscribed\n');
+  console.log('📊 [Trust] Skipped - Trust alerts disabled');
+  // TrustAlertsHandler.initialize();
+  // console.log('✅ [Trust] Trust alerts subscribed\n');
 
   // Initialize tilt events handler to persist to backend
-  console.log('💾 [Tilt] Initializing tilt events persistence...');
-  initializeTiltEventsHandler();
-  console.log('✅ [Tilt] Tilt events handler ready\n');
+  console.log('💾 [Tilt] Skipped - Tilt events handler disabled');
+  // initializeTiltEventsHandler();
+  // console.log('✅ [Tilt] Tilt events handler ready\n');
 
   // Register DM handler for natural language assistance
   console.log('💬 [DM] Registering direct message handler...');
   registerDMHandler(client);
   console.log('✅ [DM] DM handler ready\n');
 
+  // Initialize CollectClock
+  initializeCollectClock();
+
   // Start trust adapter to listen for trust events and log formatted output
-  console.log('📈 [Adapter] Starting trust adapter...');
+  console.log('📈 [Adapter] Skipped - Trust adapter disabled');
+  /*
   startTrustAdapter({
     onFormatted: (formatted: string) => {
       console.log('  📡 [TrustAdapter]', formatted);
     },
   });
   console.log('✅ [Adapter] Trust adapter ready\n');
+  */
 
   // Load commands
   console.log('⚡ [Commands] Loading slash commands...');
