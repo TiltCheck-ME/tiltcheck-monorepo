@@ -1,8 +1,10 @@
-name: Deploy GitHub Pages
-# Deploys the TiltCheck landing page to GitHub Pages
+name: Deploy TiltCheck Pages to GitHub Pages
+# Deploys all static HTML pages from wordpress-export to tiltcheck.me
 
 on:
   push:
+    branches: [ main ]
+  pull_request:
     branches: [ main ]
   workflow_dispatch:
 
@@ -14,6 +16,19 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Verify required directories and files
+        run: |
+          if [ ! -d "wordpress-export" ]; then
+            echo "Error: wordpress-export directory not found"
+            exit 1
+          fi
+          if [ ! -f "wordpress-export/CNAME" ]; then
+            echo "Warning: CNAME file not found in wordpress-export"
+          fi
+          if [ ! -d "docs/tiltcheck" ]; then
+            echo "Warning: docs/tiltcheck directory not found, skipping docs copy"
+          fi
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -33,20 +48,25 @@ jobs:
           cd apps/web
           pnpm build
           cd ../..
+        continue-on-error: true  # Don't fail deployment if auto-claimer build fails
 
       - name: Prepare out directory
         run: |
-          mkdir out
+          mkdir -p out
           rsync -av --delete wordpress-export/ out/
           mkdir -p out/docs-md
-          rsync -av docs/tiltcheck/ out/docs-md/
-          # Add Auto-Claimer web app
-          mkdir -p out/auto-claimer
-          rsync -av apps/web/dist/ out/auto-claimer/
-          # CNAME is already in wordpress-export
+          if [ -d "docs/tiltcheck" ]; then
+            rsync -av docs/tiltcheck/ out/docs-md/
+          fi
+          # Add Auto-Claimer web app if build succeeded
+          if [ -d "apps/web/dist" ]; then
+            mkdir -p out/auto-claimer
+            rsync -av apps/web/dist/ out/auto-claimer/
+          fi
           echo "Build artifacts prepared"
 
       - name: Publish to gh-pages
+        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
