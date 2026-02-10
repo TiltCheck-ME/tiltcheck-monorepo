@@ -16,13 +16,21 @@ cache:
 
 before_script:
   - corepack enable
-  - corepack prepare pnpm@10.0.0 --activate
+  - corepack prepare pnpm@10.29.1 --activate
   - pnpm config set store-dir .pnpm-store
   - pnpm install --frozen-lockfile
 
 build-test:
   stage: build-test
   script:
+    # Mirroring the core build steps from GitHub Actions for reliability
+    - |
+      pnpm --filter @tiltcheck/types run build
+      pnpm --filter @tiltcheck/config run build
+      pnpm --filter @tiltcheck/esm-utils run build
+      pnpm --filter @tiltcheck/database run build
+      pnpm --filter @tiltcheck/shared build
+      pnpm --filter @tiltcheck/auth build
     - pnpm build
     - pnpm lint || echo "Lint failed but continuing"
     - pnpm test || echo "Tests failed but continuing"
