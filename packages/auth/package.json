@@ -13,7 +13,7 @@
   },
   "dependencies": {
     "@noble/ed25519": "^2.0.0",
-    "bs58": "^5.0.0",
+    "bs58": "^6.0.0",
     "jose": "^5.2.0"
   },
   "devDependencies": {
