@@ -1,7 +1,7 @@
 # Build stage
 FROM node:20-alpine AS builder
 
-RUN npm install -g pnpm@9
+RUN npm install -g pnpm@10
 ENV CI=true
 WORKDIR /app
 
@@ -70,7 +70,7 @@ RUN pnpm -r build
 # Runtime stage
 FROM node:20-alpine
 
-RUN npm install -g pnpm@9
+RUN npm install -g pnpm@10
 ENV CI=true
 WORKDIR /app
 

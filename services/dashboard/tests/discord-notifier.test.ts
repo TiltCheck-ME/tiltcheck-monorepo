@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { DiscordNotifier } from '../src/discord-notifier';
-import type { RiskAlert } from '../src/state';
+import { DiscordNotifier } from '../src/discord-notifier.js';
+import type { RiskAlert } from '../src/state.js';
 
 // Mock global fetch
 global.fetch = vi.fn();

@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { emitDomainTrustFromScan } from '../src/trust-domain';
+import { emitDomainTrustFromScan } from '../src/trust-domain.js';
 import { eventRouter } from '@tiltcheck/event-router';
 import type { LinkScanResult } from '@tiltcheck/types';
 

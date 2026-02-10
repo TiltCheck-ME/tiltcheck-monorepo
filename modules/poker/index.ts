@@ -1,9 +1,6 @@
 /**
- * Poker Module Placeholder
- * Future: Full Texas Hold'em implementation
+ * Poker Module - Texas Hold'em for Discord
+ * Entry point
  */
 
-export function createPokerGame() {
-  // TODO: Implement poker game logic
-  return { status: 'not_implemented' };
-}
+export * from './src/index.js';

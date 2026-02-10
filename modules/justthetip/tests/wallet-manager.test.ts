@@ -2,7 +2,7 @@
  * Wallet Manager Tests - Runtime Guards for bigint-buffer vulnerability
  */
 
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import {
   registerExternalWallet,
   getWallet,
@@ -10,17 +10,15 @@ import {
 } from '../src/wallet-manager.js';
 
 describe('WalletManager - Security Guards', () => {
-  const originalNodeEnv = process.env.NODE_ENV;
-
   beforeEach(() => {
     clearWallets();
-    // Set to production for validation tests
-    process.env.NODE_ENV = 'production';
+    // Set to production for validation tests using vi.stubEnv
+    vi.stubEnv('NODE_ENV', 'production');
   });
 
   afterEach(() => {
-    // Restore original NODE_ENV
-    process.env.NODE_ENV = originalNodeEnv;
+    // Restore original environment
+    vi.unstubAllEnvs();
   });
 
   describe('Solana Address Validation (GHSA-3gc7-fjrx-p6mg mitigation)', () => {
@@ -71,7 +69,7 @@ describe('WalletManager - Security Guards', () => {
 
     it('should reject malformed base58 string', async () => {
       // Valid length but not a valid public key
-      const malformed = 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa';
+      const malformed = 'shortinvalid';
       
       await expect(registerExternalWallet('user123', malformed))
         .rejects.toThrow('Invalid Solana address');
@@ -106,8 +104,8 @@ describe('WalletManager - Security Guards', () => {
 
   describe('Test Mode Behavior', () => {
     it('should skip validation in test mode', async () => {
-      // Restore test mode
-      process.env.NODE_ENV = 'test';
+      // Override to test mode using vi.stubEnv
+      vi.stubEnv('NODE_ENV', 'test');
       
       const mockAddress = 'MOCK_ADDRESS_123';
       

@@ -10,7 +10,7 @@ import {
   type UserProfile,
   type SurveyMeta,
   type EventPublisher,
-} from '../src/engine';
+} from '../src/engine.js';
 
 describe('QualifyFirst Engine', () => {
   describe('predictSurveyMatch', () => {

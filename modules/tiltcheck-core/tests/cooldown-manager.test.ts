@@ -6,7 +6,7 @@ import {
   getCooldownStatus,
   recordViolation,
   getViolationHistory,
-} from '../src/cooldown-manager';
+} from '../src/cooldown-manager.js';
 import { eventRouter } from '@tiltcheck/event-router';
 
 describe('Cooldown Manager', () => {

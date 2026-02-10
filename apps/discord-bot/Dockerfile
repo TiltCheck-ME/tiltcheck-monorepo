@@ -2,7 +2,7 @@
 FROM node:20-alpine AS builder
 
 # Install pnpm matching lockfileVersion 9
-RUN npm install -g pnpm@9
+RUN npm install -g pnpm@10
 
 # Set CI environment variable to avoid pnpm TTY issues
 ENV CI=true
@@ -89,7 +89,7 @@ RUN pnpm -r build
 FROM node:20-alpine
 
 # Install pnpm matching lockfileVersion 9
-RUN npm install -g pnpm@9
+RUN npm install -g pnpm@10
 
 # Set CI environment variable to avoid pnpm TTY issues
 ENV CI=true

@@ -4,7 +4,7 @@
  * This demonstrates the event flow when a user submits a promo link
  */
 
-import { eventRouter } from '../src/event-router';
+import { eventRouter } from '../src/event-router.js';
 import type { LinkScanResult } from '@tiltcheck/types';
 
 // ============================================

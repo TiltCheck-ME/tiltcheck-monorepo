@@ -3,7 +3,7 @@
 
 FROM node:20-alpine
 
-RUN npm install -g pnpm@9
+RUN npm install -g pnpm@10
 ENV CI=true
 ENV NODE_ENV=production
 

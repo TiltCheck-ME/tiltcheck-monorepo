@@ -26,6 +26,16 @@ export interface LockVaultRecord {
   extendedCount: number;
 }
 
+export interface AutoVaultSettings {
+  percentage: number;
+  apiKey: string;
+}
+
+export interface ReloadSchedule {
+  amountRaw: string;
+  interval: 'daily' | 'weekly' | 'monthly';
+}
+
 function now() { return Date.now(); }
 function generateId() { return `${Date.now()}-${Math.random().toString(36).slice(2,9)}`; }
 
@@ -55,7 +65,11 @@ class VaultManager {
 
   private persist() {
     try {
-      const payload = JSON.stringify({ vaults: Array.from(this.vaults.values()) }, null, 2);
+      const payload = JSON.stringify({
+        vaults: Array.from(this.vaults.values()),
+        autoVaults: Object.fromEntries(this.autoVaults),
+        reloadSchedules: Object.fromEntries(this.reloadSchedules)
+      }, null, 2);
       const dir = path.dirname(this.persistencePath);
       if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
       fs.writeFileSync(this.persistencePath, payload, 'utf-8');
@@ -72,6 +86,12 @@ class VaultManager {
         this.vaults.set(v.id, v);
         if (!this.byUser.has(v.userId)) this.byUser.set(v.userId, new Set());
         this.byUser.get(v.userId)!.add(v.id);
+      }
+      for (const [userId, settings] of Object.entries(raw.autoVaults || {})) {
+        this.autoVaults.set(userId, settings as AutoVaultSettings);
+      }
+      for (const [userId, schedule] of Object.entries(raw.reloadSchedules || {})) {
+        this.reloadSchedules.set(userId, schedule as ReloadSchedule);
       }
       console.log(`[LockVault] Loaded ${this.vaults.size} vaults`);
     } catch (err) {
@@ -151,7 +171,27 @@ class VaultManager {
   get(vaultId: string): LockVaultRecord | undefined { return this.vaults.get(vaultId); }
 
   clearAll(): void { // test helper
-    this.vaults.clear(); this.byUser.clear();
+    this.vaults.clear(); this.byUser.clear(); this.autoVaults.clear(); this.reloadSchedules.clear();
+  }
+
+  setAutoVault(userId: string, percentage: number, apiKey: string): void {
+    if (percentage < 0 || percentage > 100) throw new Error('Percentage must be between 0 and 100');
+    this.autoVaults.set(userId, { percentage, apiKey });
+    this.schedulePersist();
+  }
+
+  getAutoVault(userId: string): AutoVaultSettings | null {
+    return this.autoVaults.get(userId) || null;
+  }
+
+  setReloadSchedule(userId: string, amountRaw: string, interval: 'daily' | 'weekly' | 'monthly'): void {
+    if (!['daily', 'weekly', 'monthly'].includes(interval)) throw new Error('Interval must be "daily", "weekly", or "monthly"');
+    this.reloadSchedules.set(userId, { amountRaw, interval });
+    this.schedulePersist();
+  }
+
+  getReloadSchedule(userId: string): ReloadSchedule | null {
+    return this.reloadSchedules.get(userId) || null;
   }
 }
 
@@ -161,3 +201,7 @@ export function lockVault(input: LockVaultInput) { return vaultManager.lock(inpu
 export function unlockVault(userId: string, vaultId: string) { return vaultManager.unlock(userId, vaultId); }
 export function extendVault(userId: string, vaultId: string, additionalRaw: string) { return vaultManager.extend(userId, vaultId, additionalRaw); }
 export function getVaultStatus(userId: string) { return vaultManager.status(userId); }
+export function setAutoVault(userId: string, percentage: number, apiKey: string) { return vaultManager.setAutoVault(userId, percentage, apiKey); }
+export function getAutoVault(userId: string) { return vaultManager.getAutoVault(userId); }
+export function setReloadSchedule(userId: string, amountRaw: string, interval: 'daily' | 'weekly' | 'monthly') { return vaultManager.setReloadSchedule(userId, amountRaw, interval); }
+export function getReloadSchedule(userId: string) { return vaultManager.getReloadSchedule(userId); }

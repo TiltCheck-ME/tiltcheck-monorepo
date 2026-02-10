@@ -9,3 +9,4 @@ packages:
 
 ignoredBuiltDependencies:
   - puppeteer
+  - '@gsknnft/bigint-buffer'

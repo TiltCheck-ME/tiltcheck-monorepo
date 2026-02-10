@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { freespinscan } from '../src/index';
+import { freespinscan } from '../src/index.js';
 
 describe('FreeSpinScan approval/denial workflow', () => {
   beforeEach(() => {

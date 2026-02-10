@@ -1,0 +1,680 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>About TiltCheck - The Degen Transparency Layer</title>
+  <meta name="description" content="TiltCheck is a modular, AI-assisted ecosystem built to bring transparency, tools, and automation to degen communities.">
+  <link rel="canonical" href="https://tiltcheck.me/about">
+  <link rel="stylesheet" href="/styles/theme.css">
+  <link rel="stylesheet" href="/styles/main.css">
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#00FFC6">
+  <style>
+    /* About page specific styles */
+    .about-hero {
+      background: linear-gradient(180deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
+      padding: clamp(4rem, 10vw, 6rem) var(--container-padding);
+      text-align: center;
+      border-bottom: 1px solid rgba(0, 255, 198, 0.2);
+    }
+    .about-hero h1 {
+      font-size: var(--text-4xl);
+      font-weight: var(--weight-black);
+      font-family: var(--font-display);
+      margin-bottom: var(--space-md);
+      color: var(--text-primary);
+    }
+    .about-hero p {
+      font-size: var(--text-xl);
+      color: var(--text-muted);
+      max-width: 700px;
+      margin: 0 auto;
+    }
+    .content-section {
+      padding: clamp(3rem, 6vw, 4rem) var(--container-padding);
+    }
+    .content-section.alt-bg {
+      background: var(--bg-secondary);
+    }
+    .section-title {
+      font-size: var(--text-3xl);
+      font-weight: var(--weight-black);
+      font-family: var(--font-display);
+      color: var(--text-primary);
+      text-align: center;
+      margin-bottom: var(--space-xl);
+    }
+    .section-text {
+      font-size: var(--text-lg);
+      color: var(--text-secondary);
+      max-width: 900px;
+      margin: 0 auto var(--space-lg);
+      line-height: var(--leading-relaxed);
+      text-align: center;
+    }
+    .section-accent {
+      font-size: var(--text-xl);
+      color: var(--color-primary);
+      max-width: 900px;
+      margin: var(--space-xl) auto;
+      line-height: var(--leading-relaxed);
+      font-weight: var(--weight-semibold);
+      text-align: center;
+    }
+    .philosophy-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: var(--space-lg);
+      margin-top: var(--space-xl);
+      max-width: 1200px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    .philosophy-card {
+      background: var(--glass-bg);
+      border: 1px solid rgba(0, 255, 198, 0.1);
+      border-radius: var(--radius-sm);
+      padding: var(--space-xl);
+      border-left: 3px solid var(--color-primary);
+      transition: border-color var(--transition-base);
+    }
+    .philosophy-card:hover {
+      border-color: rgba(0, 255, 198, 0.4);
+    }
+    .philosophy-card h3 {
+      color: var(--color-primary);
+      margin-bottom: var(--space-sm);
+      font-size: var(--text-lg);
+      font-weight: var(--weight-semibold);
+    }
+    .philosophy-card p {
+      color: var(--text-secondary);
+      line-height: var(--leading-relaxed);
+    }
+    .feature-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: var(--space-md);
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    .feature-card {
+      background: var(--glass-bg);
+      border: 1px solid rgba(0, 255, 198, 0.1);
+      border-radius: var(--radius-sm);
+      padding: var(--space-lg);
+      border-left: 2px solid var(--color-primary);
+    }
+    .feature-card h3 {
+      color: var(--text-primary);
+      font-size: var(--text-lg);
+      font-weight: var(--weight-semibold);
+      margin-bottom: var(--space-xs);
+    }
+    .feature-card p {
+      color: var(--text-secondary);
+      font-size: var(--text-base);
+    }
+    .legal-alert-box {
+      background: rgba(255, 82, 82, 0.1);
+      border: 2px solid var(--color-error);
+      border-radius: var(--radius-md);
+      padding: var(--space-xl);
+      margin: var(--space-2xl) auto;
+      max-width: 800px;
+    }
+    .legal-alert-box h3 {
+      color: var(--color-error);
+      margin-bottom: var(--space-md);
+      font-size: var(--text-xl);
+    }
+    .legal-alert-box p {
+      color: var(--text-secondary);
+    }
+    .trigger-list {
+      background: var(--bg-card);
+      border-radius: var(--radius-sm);
+      padding: var(--space-xl);
+      margin: var(--space-xl) auto;
+      max-width: 800px;
+    }
+    .trigger-list h4 {
+      color: var(--color-primary);
+      margin-bottom: var(--space-md);
+      font-size: var(--text-lg);
+    }
+    .trigger-list ul {
+      list-style: none;
+    }
+    .trigger-list li {
+      padding: var(--space-md) 0;
+      color: var(--text-secondary);
+      border-bottom: 1px solid var(--border-subtle);
+    }
+    .trigger-list li:last-child {
+      border-bottom: none;
+    }
+    .trigger-list strong {
+      color: var(--color-primary);
+      display: block;
+      margin-bottom: var(--space-xs);
+    }
+    .quote-box {
+      background: var(--bg-card);
+      border-left: 4px solid var(--color-primary);
+      padding: var(--space-lg);
+      border-radius: var(--radius-sm);
+      margin: var(--space-xl) auto;
+      max-width: 800px;
+    }
+    .quote-box p {
+      color: var(--text-secondary);
+      font-style: italic;
+      line-height: var(--leading-relaxed);
+    }
+    .founder-section {
+      background: linear-gradient(180deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
+      padding: clamp(4rem, 8vw, 5rem) var(--container-padding);
+      text-align: center;
+    }
+    .founder-section h2 {
+      font-size: var(--text-3xl);
+      font-weight: var(--weight-black);
+      margin-bottom: var(--space-lg);
+      color: var(--text-primary);
+    }
+    .founder-section p {
+      font-size: var(--text-lg);
+      color: var(--text-secondary);
+      max-width: 800px;
+      margin: 0 auto var(--space-md);
+      line-height: var(--leading-relaxed);
+    }
+    .founder-section a {
+      color: var(--color-primary);
+      text-decoration: none;
+    }
+    .cta-section {
+      padding: clamp(4rem, 8vw, 5rem) var(--container-padding);
+      text-align: center;
+      background: var(--bg-secondary);
+    }
+    .cta-section h2 {
+      font-size: var(--text-2xl);
+      color: var(--text-primary);
+      margin-bottom: var(--space-md);
+    }
+    .cta-button {
+      display: inline-block;
+      background: var(--color-primary);
+      color: var(--bg-primary);
+      padding: var(--space-md) var(--space-xl);
+      border-radius: var(--radius-sm);
+      font-weight: var(--weight-bold);
+      text-decoration: none;
+      transition: opacity var(--transition-base);
+    }
+    .cta-button:hover {
+      opacity: 0.9;
+    }
+  </style>
+</head>
+<body>
+  <a href="#main-content" class="skip-link">Skip to main content</a>
+
+  <!-- Top Navigation -->
+  <nav class="top-nav" role="navigation" aria-label="Primary navigation">
+    <a href="/" class="nav-logo">
+      <img src="/assets/logo/logocurrent.png" alt="TiltCheck" width="32" height="32">
+      <span>TiltCheck</span>
+    </a>
+    <a href="/">Home</a>
+    <a href="/casinos.html">Casinos</a>
+    <a href="/degen-trust.html">Degens</a>
+    <a href="/dashboard">Dashboard</a>
+    <a href="/about.html" aria-current="page">About</a>
+    <div class="nav-dropdown" role="navigation" aria-label="Education & Help">
+      <button class="nav-dropbtn" aria-haspopup="true" aria-expanded="false">Education & Help</button>
+      <div class="nav-dropdown-content">
+        <a href="/getting-started.html">Getting Started</a>
+        <a href="/how-it-works.html">How It Works</a>
+        <a href="/faq.html">FAQ</a>
+        <a href="/glossary.html">Glossary</a>
+        <a href="/responsible-gambling.html">Responsible Gambling</a>
+      </div>
+    </div>
+    <div class="nav-dropdown" role="navigation" aria-label="Legal & Compliance">
+      <button class="nav-dropbtn" aria-haspopup="true" aria-expanded="false">Legal</button>
+      <div class="nav-dropdown-content">
+        <a href="/privacy.html">Privacy Policy</a>
+        <a href="/terms.html">Terms of Service</a>
+        <a href="/responsible-gambling.html">Responsible Gambling</a>
+      </div>
+    </div>
+    <a href="/contact.html">Contact</a>
+    <a href="#" class="discord-login-btn">
+      <svg width="18" height="18" viewBox="0 0 71 55" fill="currentColor" style="vertical-align: middle; margin-right: 6px;">
+        <path d="M60.1 4.9C55.6 2.8 50.7 1.3 45.7.4c-.1 0-.2 0-.2.1-.6 1.1-1.3 2.6-1.8 3.7-5.5-.8-10.9-.8-16.3 0-.5-1.2-1.2-2.6-1.9-3.7 0-.1-.1-.1-.2-.1-5.1.9-9.9 2.4-14.4 4.5 0 0 0 0-.1.1C1.6 18.7-.9 32.1.3 45.4v.2c6.1 4.5 12 7.2 17.8 9 .1 0 .2 0 .2-.1 1.4-1.9 2.6-3.8 3.6-5.9.1-.1 0-.3-.1-.3-1.9-.7-3.8-1.6-5.5-2.6-.1-.1-.1-.3 0-.4.4-.3.7-.6 1.1-.9 0 0 .1-.1.2 0 11.6 5.3 24.2 5.3 35.7 0h.2c.4.3.7.6 1.1.9.1.1.1.3 0 .4-1.8 1-3.6 1.9-5.5 2.6-.1.1-.2.2-.1.3 1 2.1 2.3 4 3.6 5.9.1.1.1.1.2.1 5.8-1.8 11.7-4.5 17.8-9v-.2c1.5-15.3-2.5-28.6-10.5-40.4 0 0 0 0-.1-.1zM23.7 37.3c-3.5 0-6.4-3.2-6.4-7.2s2.8-7.2 6.4-7.2c3.6 0 6.4 3.2 6.4 7.2 0 4-2.9 7.2-6.4 7.2zm23.6 0c-3.5 0-6.4-3.2-6.4-7.2s2.8-7.2 6.4-7.2c3.6 0 6.4 3.2 6.4 7.2 0 4-2.9 7.2-6.4 7.2z"/>
+      </svg>
+      Login
+    </a>
+    <button class="hamburger-btn" aria-label="Open menu" aria-expanded="false" onclick="toggleMobileNav()">
+      <span class="hamburger-icon"></span>
+    </button>
+  </nav>
+
+  <!-- Mobile Navigation Overlay -->
+  <div class="mobile-nav" id="mobileNav" aria-hidden="true">
+    <div class="mobile-nav-links">
+      <a href="/">Home</a>
+      <a href="/casinos.html">Casinos</a>
+      <a href="/degen-trust.html">Degens</a>
+      <a href="/dashboard">Dashboard</a>
+      <a href="/about.html">About</a>
+      <a href="/how-it-works.html">How It Works</a>
+      <a href="/faq.html">FAQ</a>
+      <a href="/contact.html">Contact</a>
+    </div>
+    <div class="mobile-nav-section">
+      <h3>Legal</h3>
+      <a href="/privacy.html">Privacy Policy</a>
+      <a href="/terms.html">Terms of Service</a>
+      <a href="/responsible-gambling.html">Responsible Gambling</a>
+    </div>
+    <div class="mobile-nav-section">
+      <a href="#" class="discord-login-btn" style="background: #5865F2; color: white; padding: 12px 20px; border-radius: 8px; text-align: center; font-weight: 600; text-decoration: none; display: block; margin-top: 20px;">
+        <svg width="20" height="20" viewBox="0 0 71 55" fill="none" xmlns="http://www.w3.org/2000/svg" style="vertical-align: middle; margin-right: 8px;">
+          <path d="M60.1045 4.8978C55.5792 2.8214 50.7265 1.2916 45.6527 0.41542C45.5603 0.39851 45.468 0.440769 45.4204 0.525289C44.7963 1.6353 44.105 3.0834 43.6209 4.2216C38.1637 3.4046 32.7345 3.4046 27.3892 4.2216C26.905 3.0581 26.1886 1.6353 25.5617 0.525289C25.5141 0.443589 25.4218 0.40133 25.3294 0.41542C20.2584 1.2888 15.4057 2.8186 10.8776 4.8978C10.8384 4.9147 10.8048 4.9429 10.7825 4.9795C1.57795 18.7309 -0.943561 32.1443 0.293408 45.3914C0.299005 45.4562 0.335386 45.5182 0.385761 45.5576C6.45866 50.0174 12.3413 52.7249 18.1147 54.5195C18.2071 54.5477 18.305 54.5139 18.3638 54.4378C19.7295 52.5728 20.9469 50.6063 21.9907 48.5383C22.0523 48.4172 21.9935 48.2735 21.8676 48.2256C19.9366 47.4931 18.0979 46.6 16.3292 45.5858C16.1893 45.5041 16.1781 45.304 16.3068 45.2082C16.679 44.9293 17.0513 44.6391 17.4067 44.3461C17.471 44.2926 17.5606 44.2813 17.6362 44.3151C29.2558 49.6202 41.8354 49.6202 53.3179 44.3151C53.3935 44.2785 53.4831 44.2898 53.5502 44.3433C53.9057 44.6363 54.2779 44.9293 54.6529 45.2082C54.7816 45.304 54.7732 45.5041 54.6333 45.5858C52.8646 46.6197 51.0259 47.4931 49.0921 48.2228C48.9662 48.2707 48.9102 48.4172 48.9718 48.5383C50.038 50.6034 51.2554 52.5699 52.5959 54.435C52.6519 54.5139 52.7526 54.5477 52.845 54.5195C58.6464 52.7249 64.529 50.0174 70.6019 45.5576C70.6551 45.5182 70.6887 45.459 70.6943 45.3942C72.1747 30.0791 68.2147 16.7757 60.1968 4.9823C60.1772 4.9429 60.1437 4.9147 60.1045 4.8978ZM23.7259 37.3253C20.2276 37.3253 17.3451 34.1136 17.3451 30.1693C17.3451 26.225 20.1717 23.0133 23.7259 23.0133C27.308 23.0133 30.1626 26.2532 30.1066 30.1693C30.1066 34.1136 27.28 37.3253 23.7259 37.3253ZM47.3178 37.3253C43.8196 37.3253 40.9371 34.1136 40.9371 30.1693C40.9371 26.225 43.7636 23.0133 47.3178 23.0133C50.9 23.0133 53.7545 26.2532 53.6986 30.1693C53.6986 34.1136 50.9 37.3253 47.3178 37.3253Z" fill="currentColor"/>
+        </svg>
+        Login with Discord
+      </a>
+    </div>
+  </div>
+
+  <main id="main-content">
+    <section class="about-hero">
+      <div class="container">
+        <h1>About TiltCheck</h1>
+        <p>The Degen Transparency Layer</p>
+      </div>
+    </section>
+
+    <section class="content-section">
+      <div class="container">
+        <h2 class="section-title">What Is TiltCheck?</h2>
+        <p class="section-text">
+          TiltCheck is a modular, AI-assisted ecosystem built to fix the issues every degen community deals with:
+          scam links, sketchy promos, nerfed bonuses, confusing payouts, trust issues between users, 
+          zero transparency from casinos, tilt spirals, and mods burning out trying to manage chaos.
+        </p>
+        <p class="section-text">
+          Instead of pretending degens will magically behave or quit gambling, 
+          TiltCheck brings transparency, tools, and automation to the space.
+        </p>
+        <p class="section-accent">
+          This isn't another casino.<br>
+          This isn't a bankroll scheme.<br>
+          This is the Degen Transparency Layer.
+        </p>
+      </div>
+    </section>
+
+    <section class="content-section alt-bg">
+      <div class="container">
+        <h2 class="section-title">The Core Philosophy</h2>
+        <p class="section-text">TiltCheck is built on five principles:</p>
+        
+        <div class="philosophy-grid">
+        <div class="philosophy-card">
+          <h3>1. Made for Degens. By Degens.™</h3>
+          <p>No judgment. No moralizing. Just tools that actually help.</p>
+        </div>
+
+        <div class="philosophy-card">
+          <h3>2. Non-Custodial Always</h3>
+          <p>Users keep their keys, wallets, and money. TiltCheck takes zero custody — ever.</p>
+        </div>
+
+        <div class="philosophy-card">
+          <h3>3. Transparency Over Guesswork</h3>
+          <p>Casino trust scores. User trust scores. Fairness signals. Bonus nerf detection. Explainable scoring.</p>
+        </div>
+
+        <div class="philosophy-card">
+          <h3>4. Modular, Organic Growth</h3>
+          <p>Each module stands alone and plugs into the ecosystem: JustTheTip, SusLink, CollectClock, FreeSpinScan, Tilt Engine, DA&D, etc.</p>
+        </div>
+
+        <div class="philosophy-card">
+          <h3>5. Built for Chaos Reduction</h3>
+          <p>The goal isn't to stop degeneracy — it's to make the chaos smarter, safer, and way more fun.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="content-section">
+      <div class="container">
+        <h2 class="section-title">The Ecosystem at a Glance</h2>
+        <p class="section-text">
+          TiltCheck is made of interconnected modules that share a trust layer. Every module helps reduce chaos and increase clarity.
+        </p>
+        
+        <div class="feature-grid">
+          <div class="feature-card">
+            <h3>Casino Trust Engine</h3>
+            <p>Tracks fairness, payouts, nerfs, promos, and compliance across the entire ecosystem.</p>
+          </div>
+
+          <div class="feature-card">
+            <h3>Degen Trust Engine</h3>
+            <p>Non-judgmental reputation system around behavior, good faith, accountability, and scam detection.</p>
+          </div>
+
+          <div class="feature-card">
+            <h3>JustTheTip</h3>
+            <p>Non-custodial tips, swaps, and airdrops with flat fee structure.</p>
+          </div>
+
+          <div class="feature-card">
+            <h3>SusLink</h3>
+            <p>AI-powered link scanner that detects scam sites and impersonation.</p>
+          </div>
+
+          <div class="feature-card">
+            <h3>CollectClock</h3>
+            <p>Bonus logging, nerf detection, and prediction engine.</p>
+          </div>
+        </div>
+
+        <div class="feature-item">
+          <div>
+            <h3>FreeSpinScan</h3>
+            <p>Promo automation with auto-classification and mod approval queue.</p>
+          </div>
+        </div>
+
+        <div class="feature-item">
+          <div>
+            <h3>Tilt Engine</h3>
+            <p>Behavior analysis and gentle cooldown nudges without shame.</p>
+          </div>
+        </div>
+
+        <div class="feature-item">
+          <div>
+            <h3>Accountability Wallet</h3>
+            <p>Opt-in vaults and phone-a-friend withdraw controls.</p>
+          </div>
+        </div>
+
+        <div class="feature-item">
+          <div>
+            <h3>DA&D</h3>
+            <p>Degens Against Decency — AI-powered card game for communities.</p>
+          </div>
+        </div>
+
+        <div class="feature-item">
+          <div>
+            <h3>QualifyFirst</h3>
+            <p>Survey routing with zero screen-outs (future).</p>
+          </div>
+        </div>
+
+        <div class="feature-item">
+          <div>
+            <h3>Arena</h3>
+            <p>Poker and games platform (future).</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="features-section">
+    <div class="container">
+      <h2>Why Build This?</h2>
+      <p style="font-size: 1.15rem; color: #ccc; max-width: 900px; margin: 0 auto 30px; line-height: 1.8;">
+        Because no one else is building tools — they're only building casinos.
+      </p>
+      <p style="font-size: 1.15rem; color: #ccc; max-width: 900px; margin: 0 auto 30px; line-height: 1.8;">
+        Degens needed: fair insight, safety systems, mod tools, transparency, prediction, automation, 
+        non-custodial protection, and a sense of community trust.
+      </p>
+      <p style="font-size: 1.3rem; color: #00d4aa; max-width: 900px; margin: 30px auto; line-height: 1.8; font-weight: 600; text-align: center;">
+        TiltCheck is the first system designed to actually deliver that.
+      </p>
+    </div>
+  </section>
+
+  <section class="features-section section-dark">
+    <div class="container">
+      <h2>Legal Rights Detection</h2>
+      <p style="text-align: center; color: #888; margin-bottom: 20px; font-style: italic;">
+        (This is the section that makes casinos sweat.)
+      </p>
+      <p style="font-size: 1.15rem; color: #ccc; max-width: 900px; margin: 0 auto 30px; line-height: 1.8;">
+        The Casino Trust Engine doesn't just track fairness — it also checks when a casino may be violating 
+        payout timelines, bonus conditions, fraud regulations, AML/KYC requirements, consumer protection laws, 
+        provable fairness commitments, and withdrawal rights.
+      </p>
+
+      <div class="legal-alert-box">
+        <h3>Legal Rights Alert</h3>
+        <p style="color: #ddd; margin-bottom: 20px;">
+          "Based on your region and this pattern of behavior, you may have grounds for a regulatory complaint or legal action."
+        </p>
+        <p style="color: #888; font-size: 0.95rem; font-style: italic;">
+          This is not legal advice. It's legal awareness — grounded in public regulations.
+        </p>
+      </div>
+
+      <div class="trigger-list">
+        <h4>What Triggers a Legal Rights Alert?</h4>
+        <ul style="list-style: none; margin-top: 15px;">
+          <li style="padding: 12px 0; border-bottom: 1px solid #222; color: #ccc;">
+            <strong style="color: #00d4aa;">Repeated or excessive payout delays</strong><br>
+            "Your 48-hour payout took 11 days (x3 times)."
+          </li>
+          <li style="padding: 12px 0; border-bottom: 1px solid #222; color: #ccc;">
+            <strong style="color: #00d4aa;">Unfair bonus conditions not disclosed upfront</strong><br>
+            Nerfs, hidden rollover jumps, silently removed bonuses.
+          </li>
+          <li style="padding: 12px 0; border-bottom: 1px solid #222; color: #ccc;">
+            <strong style="color: #00d4aa;">Denial of withdrawal without cause</strong>
+          </li>
+          <li style="padding: 12px 0; border-bottom: 1px solid #222; color: #ccc;">
+            <strong style="color: #00d4aa;">Blocked support access</strong><br>
+            Casino blocks a user from chat → automatic red flag.
+          </li>
+          <li style="padding: 12px 0; border-bottom: 1px solid #222; color: #ccc;">
+            <strong style="color: #00d4aa;">Refusal to audit gameplay</strong><br>
+            If provable fairness logs mismatch expectations.
+          </li>
+          <li style="padding: 12px 0; color: #ccc;">
+            <strong style="color: #00d4aa;">Violation of regional gambling rules</strong><br>
+            (Future: region-aware triggers.)
+          </li>
+        </ul>
+      </div>
+
+      <h3 style="color: #fff; margin-top: 50px; margin-bottom: 20px;">What TiltCheck Provides</h3>
+      <p style="font-size: 1.1rem; color: #ccc; max-width: 900px; margin: 0 auto 30px; line-height: 1.8;">
+        TiltCheck generates a plain-language rights summary, such as:
+      </p>
+      <div style="background: #1a1a1a; border-left: 4px solid #00d4aa; padding: 20px; border-radius: 8px; margin: 20px auto; max-width: 800px;">
+        <p style="color: #ddd; font-style: italic; line-height: 1.7;">
+          "This pattern may violate consumer protection laws related to payouts.
+          Recommended next step: request an audit or file a dispute with [Authority].
+          Save all chats and payout logs."
+        </p>
+      </div>
+
+      <p style="font-size: 1.1rem; color: #ccc; max-width: 900px; margin: 30px auto 20px; line-height: 1.8;">
+        It also attaches: evidence chain, timestamps, nerf history, payout history, flagged conversations, and support screenshots (if linked).
+      </p>
+      <p style="font-size: 1.1rem; color: #ccc; max-width: 900px; margin: 0 auto 30px; line-height: 1.8;">
+        Users get a complete package to take to: casino arbitration, Kahnawake, Curacao Gaming, MGA, FTC (for US consumers), 
+        or a lawyer — depending on region (future automated detection).
+      </p>
+
+      <h3 style="color: #fff; margin-top: 50px; margin-bottom: 20px;">Why This Is a Game-Changer</h3>
+      <p style="font-size: 1.15rem; color: #ccc; max-width: 900px; margin: 0 auto 30px; line-height: 1.8;">
+        Most casinos assume players won't pay for a lawyer, understand their rights, know deadlines, or know what counts as a violation.
+      </p>
+      <p style="font-size: 1.3rem; color: #00d4aa; max-width: 900px; margin: 30px auto; line-height: 1.8; font-weight: 600; text-align: center;">
+        TiltCheck flips that power dynamic.
+      </p>
+      <p style="font-size: 1.15rem; color: #ccc; max-width: 900px; margin: 0 auto 30px; line-height: 1.8;">
+        It turns technical casino behavior into plain English "here's what they're doing" alerts, with receipts.
+      </p>
+      <p style="font-size: 1.2rem; color: #fff; max-width: 900px; margin: 30px auto; line-height: 1.8; font-weight: 600; text-align: center;">
+        Casinos can't bully you if you know what they're allowed to do.
+      </p>
+    </div>
+  </section>
+
+  <section class="founder-section">
+    <div class="container">
+      <h2>The Founder</h2>
+      <p>
+        TiltCheck was created by <a href="https://github.com/jmenichole" style="color: #00d4aa; text-decoration: none;">jmenichole</a> — 
+        a builder and problem-solver who has spent years inside degen communities.
+      </p>
+      <p>Not as an outsider. As a participant. As a mod. As someone who genuinely understands the pain points.</p>
+      <p style="font-weight: 600; color: #00d4aa; font-size: 1.3rem; margin-top: 30px;">
+        TiltCheck is the toolkit she wished existed the entire time.
+      </p>
+    </div>
+  </section>
+
+  <section class="cta-section">
+    <div class="container">
+      <h2>Mission Statement</h2>
+      <p style="font-size: 1.3rem; color: #00d4aa; max-width: 900px; margin: 20px auto 40px; font-weight: 600;">
+        TiltCheck exists to make degen spaces safer, clearer, and smarter — without killing the fun.
+      </p>
+      <a href="https://discord.gg/s6NNfPHxMS" class="cta-button">Join Discord →</a>
+    </div>
+  </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div>
+          <h3>TiltCheck</h3>
+          <p>Protecting degens from tilt-induced disaster.</p>
+          <p style="margin-top: var(--space-md); font-size: var(--text-sm);">
+            <a href="/responsible-gambling" style="color: var(--color-warning);">🎰 Responsible Gambling Resources</a>
+          </p>
+        </div>
+        <div>
+          <h4>Product</h4>
+          <ul>
+            <li><a href="/">Home</a></li>
+            <li><a href="/how-it-works">How It Works</a></li>
+            <li><a href="/trust-explained">Trust System</a></li>
+            <li><a href="/faq">FAQ</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4>Company</h4>
+          <ul>
+            <li><a href="/about">About</a></li>
+            <li><a href="/contact">Contact</a></li>
+            <li><a href="https://github.com/jmenichole/tiltcheck-monorepo" target="_blank" rel="noopener">GitHub</a></li>
+            <li><a href="https://discord.gg/s6NNfPHxMS" target="_blank" rel="noopener">Discord</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4>Legal</h4>
+          <ul>
+            <li><a href="/privacy">Privacy Policy</a></li>
+            <li><a href="/terms">Terms of Service</a></li>
+            <li><a href="/responsible-gambling">Responsible Gambling</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <div class="footer-social" style="display: flex; justify-content: center; gap: 1.5rem; margin-bottom: 1rem; flex-wrap: wrap;">
+          <a href="https://discord.gg/s6NNfPHxMS" target="_blank" rel="noopener" title="TiltCheck Discord" style="color: var(--text-muted);">
+            <svg width="24" height="24" viewBox="0 0 71 55" fill="currentColor"><path d="M60.1 4.9C55.6 2.8 50.7 1.3 45.7.4c-.1 0-.2 0-.2.1-.6 1.1-1.3 2.6-1.8 3.7-5.5-.8-10.9-.8-16.3 0-.5-1.2-1.2-2.6-1.9-3.7 0-.1-.1-.1-.2-.1-5.1.9-9.9 2.4-14.4 4.5 0 0 0 0-.1.1C1.6 18.7-.9 32.1.3 45.4v.2c6.1 4.5 12 7.2 17.8 9 .1 0 .2 0 .2-.1 1.4-1.9 2.6-3.8 3.6-5.9.1-.1 0-.3-.1-.3-1.9-.7-3.8-1.6-5.5-2.6-.1-.1-.1-.3 0-.4.4-.3.7-.6 1.1-.9 0 0 .1-.1.2 0 11.6 5.3 24.2 5.3 35.7 0h.2c.4.3.7.6 1.1.9.1.1.1.3 0 .4-1.8 1-3.6 1.9-5.5 2.6-.1.1-.2.2-.1.3 1 2.1 2.3 4 3.6 5.9.1.1.1.1.2.1 5.8-1.8 11.7-4.5 17.8-9v-.2c1.5-15.3-2.5-28.6-10.5-40.4 0 0 0 0-.1-.1zM23.7 37.3c-3.5 0-6.4-3.2-6.4-7.2s2.8-7.2 6.4-7.2c3.6 0 6.4 3.2 6.4 7.2 0 4-2.9 7.2-6.4 7.2zm23.6 0c-3.5 0-6.4-3.2-6.4-7.2s2.8-7.2 6.4-7.2c3.6 0 6.4 3.2 6.4 7.2 0 4-2.9 7.2-6.4 7.2z"/></svg>
+          </a>
+          <a href="https://x.com/tilt_check" target="_blank" rel="noopener" title="@tilt_check on X" style="color: var(--text-muted);">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+          </a>
+          <a href="https://linkedin.com/in/jmenichole0" target="_blank" rel="noopener" title="LinkedIn" style="color: var(--text-muted);">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
+          </a>
+          <a href="https://ko-fi.com/jmenichole0" target="_blank" rel="noopener" title="Support on Ko-fi" style="color: var(--text-muted);">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M23.881 8.948c-.773-4.085-4.859-4.593-4.859-4.593H.723c-.604 0-.679.798-.679.798s-.082 7.324-.022 11.822c.164 2.424 2.586 2.672 2.586 2.672s8.267-.023 11.966-.049c2.438-.426 2.683-2.566 2.658-3.734 4.352.24 7.422-2.831 6.649-6.916zm-11.062 3.511c-1.246 1.453-4.011 3.976-4.011 3.976s-.121.119-.31.023c-.076-.057-.108-.09-.108-.09-.443-.441-3.368-3.049-4.034-3.954-.709-.965-1.041-2.7-.091-3.71.951-1.01 3.005-1.086 4.363.407 0 0 1.565-1.782 3.468-.963 1.904.82 1.832 3.011.723 4.311zm6.173.478c-.928.116-1.682.028-1.682.028V7.284h1.77s1.971.551 1.971 2.638c0 1.913-.985 2.667-2.059 3.015z"/></svg>
+          </a>
+        </div>
+        <p style="margin-bottom: 0.5rem;">
+          <a href="https://github.com/jmenichole/Portfolio" target="_blank" rel="noopener" style="color: var(--color-primary);">made for degens by degens ❤️</a>
+        </p>
+        <p>
+          Built by <a href="https://github.com/jmenichole" target="_blank" rel="noopener">jmenichole</a> • 
+          TiltCheck Ecosystem © 2024–2025 • 
+          <a href="https://ko-fi.com/jmenichole0" target="_blank" rel="noopener">Support</a>
+        </p>
+      </div>
+    </div>
+  </footer>
+  <script>
+    // Mobile Navigation Toggle
+    function toggleMobileNav() {
+      const btn = document.querySelector('.hamburger-btn');
+      const nav = document.getElementById('mobileNav');
+      const isOpen = btn.classList.toggle('open');
+      nav.classList.toggle('open', isOpen);
+      btn.setAttribute('aria-expanded', isOpen);
+      nav.setAttribute('aria-hidden', !isOpen);
+      document.body.style.overflow = isOpen ? 'hidden' : '';
+    }
+    
+    // Close mobile nav on link click
+    document.querySelectorAll('.mobile-nav a').forEach(link => {
+      link.addEventListener('click', () => {
+        const nav = document.getElementById('mobileNav');
+        if (nav.classList.contains('open')) {
+          toggleMobileNav();
+        }
+      });
+    });
+    
+    // Close on escape key
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && document.querySelector('.mobile-nav.open')) {
+        toggleMobileNav();
+      }
+    });
+    
+    // Dropdown toggle for accessibility
+    document.querySelectorAll('.nav-dropdown .nav-dropbtn').forEach(btn => {
+      const content = btn.nextElementSibling;
+      btn.addEventListener('click', () => {
+        const expanded = btn.getAttribute('aria-expanded') === 'true';
+        btn.setAttribute('aria-expanded', String(!expanded));
+        content.style.display = expanded ? 'none' : 'block';
+      });
+      btn.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+          btn.setAttribute('aria-expanded', 'false');
+          content.style.display = 'none';
+          btn.blur();
+        }
+      });
+      document.addEventListener('click', (e) => {
+        if (!btn.parentElement.contains(e.target)) {
+          btn.setAttribute('aria-expanded', 'false');
+          content.style.display = 'none';
+        }
+      });
+    });
+  </script>
+  <script src="/scripts/auth.js"></script>
+</body>
+</html>

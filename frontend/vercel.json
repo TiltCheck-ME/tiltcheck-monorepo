@@ -1,6 +1,5 @@
 {
   "version": 2,
-  "name": "tiltcheck-frontend",
   "builds": [
     {
       "src": "package.json",
@@ -20,3 +19,4 @@
   "buildCommand": "npm install",
   "outputDirectory": "public"
 }
+

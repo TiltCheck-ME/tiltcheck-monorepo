@@ -8,17 +8,7 @@
   <link rel="stylesheet" href="../styles/tool-page.css" />
 </head>
 <body>
-  <nav class="navbar">
-    <div class="container">
-      <a href="/" class="logo">TiltCheck</a>
-      <div class="nav-links">
-        <a href="/#tools">Tools</a>
-        <a href="/dashboard">Dashboard</a>
-        <a href="https://discord.gg/s6NNfPHxMS" class="cta-small">Join Discord</a>
-        <a href="#" class="discord-login-btn" style="background: #5865F2; color: white; padding: 8px 16px; border-radius: 6px; text-decoration: none; font-weight: 600; margin-left: 8px;">Login</a>
-      </div>
-    </div>
-  </nav>
+  <div id="shared-nav"></div>
 
   <header class="tool-header">
     <div class="container">
@@ -27,31 +17,16 @@
       <p class="tool-tagline">Degens Against Decency (Discord Party Game)</p>
       <p class="built-by">
         <a href="https://jmenichole.github.io/Portfolio/" target="_blank" rel="noopener">made for degens by degens</a>
-      </p>
-      <span class="status-badge status-live">Live (Separate Bot)</span>
-    </div>
-  </header>
-
-  <section class="tool-overview">
-    <div class="container">
-      <div class="two-column">
-        <div>
-          <h2>What is it?</h2>
-          <p><strong>TL;DR:</strong> Cards Against Humanity for Discord, but crypto-themed. Submit cards, vote for the funniest, win points. Separate bot so it doesn't clutter your main server.</p>
-          <p>DA&D is a fill-the-blank card game where one player's prompt card meets everyone else's answer cards. Judge picks the most unhinged response. Rotating roles, anonymous voting, and degen-themed card packs. Perfect for Discord communities that appreciate dark humor.</p>
-        </div>
-        <div class="feature-box">
-          <h3>Live Features</h3>
-          <ul>
-            <li>🃏 White/Black card system with "Degen Starter Pack"</li>
-            <li>🎮 Full game flow: create → join → start → play → vote → score</li>
+      <div id="shared-footer"></div>
+    </body>
+    <script src="/scripts/components-loader.js"></script>
+    </html>
             <li>🔄 Rotating dealer role each round</li>
             <li>👥 2-10 players per game</li>
             <li>🎯 Anonymous card submission and voting</li>
             <li>🏆 Round-based scoring with leaderboards</li>
             <li>🎲 Includes Poker game integration</li>
-            <li>🌐 Play on Web with Discord login</li>
-            <li>🤖 Also available as a dedicated Discord bot</li>
+            <li>🤖 Dedicated Discord bot (doesn't clutter TiltCheck bot)</li>
           </ul>
         </div>
       </div>
@@ -165,18 +140,6 @@
         <p><strong>Why this works:</strong> Cards Against Humanity gameplay meets crypto degen culture. The "Degen Starter Pack" includes 100+ cards themed around casino gambling, crypto trading, and the absolute degeneracy of Discord financial communities.</p>
       </div>
 
-      <div style="margin-top: 2rem; padding: 2rem; background: rgba(0, 212, 170, 0.1); border: 1px solid #00d4aa; border-radius: 8px;">
-        <h3>🌐 Play on Web</h3>
-        <p>Don't want to use Discord? Play DA&D directly in your browser with the <strong>TiltCheck Game Arena</strong>!</p>
-        <ul style="margin-left: 2rem; margin-top: 0.5rem;">
-          <li><strong>Cross-Platform:</strong> Your stats sync across web and Discord</li>
-          <li><strong>Discord Login:</strong> Same identity everywhere in the TiltCheck ecosystem</li>
-          <li><strong>Real-time:</strong> WebSocket-powered live gameplay</li>
-          <li><strong>Leaderboards:</strong> Unified rankings across all platforms</li>
-        </ul>
-        <p style="margin-top: 1rem;"><a href="/play/" style="color: #00d4aa; font-weight: 600;">Launch Game Arena →</a></p>
-      </div>
-
       <div style="margin-top: 2rem; padding: 2rem; background: rgba(255,255,255,0.05); border-radius: 8px;">
         <h3>Why a Separate Bot?</h3>
         <p>DA&D runs on its own dedicated Discord bot instead of being part of the main TiltCheck bot. Here's why:</p>
@@ -208,11 +171,8 @@
   <section class="cta-section">
     <div class="container">
       <h2>Ready to play?</h2>
-      <p>Play in your browser or invite the DA&D bot to your Discord server.</p>
-      <div style="display: flex; gap: 16px; justify-content: center; flex-wrap: wrap;">
-        <a href="/play/" class="cta-button" style="background: linear-gradient(135deg, #00d4aa, #00a8ff);">🎮 Play on Web →</a>
-        <a href="https://discord.gg/s6NNfPHxMS" class="cta-button" style="background: #5865F2;">Get DA&D Bot →</a>
-      </div>
+      <p>Invite the DA&D bot to your Discord server and start a game.</p>
+      <a href="https://discord.gg/tiltcheck" class="cta-button">Get DA&D Bot →</a>
     </div>
   </section>
 
@@ -222,6 +182,14 @@
       <p class="built-by">Built by <a href="https://github.com/jmenichole">jmenichole</a> • TiltCheck © 2024–2025</p>
     </div>
   </footer>
-  <script src="/scripts/auth.js"></script>
 </body>
+<div id="shared-footer"></div>
+<script>
+  (function(){
+    const navMount = document.getElementById('shared-nav');
+    const footerMount = document.getElementById('shared-footer');
+    if (navMount) { fetch('/components/nav.html').then(r=>r.text()).then(html=>{ navMount.innerHTML = html; }).catch(()=>{}); }
+    if (footerMount) { fetch('/components/footer.html').then(r=>r.text()).then(html=>{ footerMount.innerHTML = html; }).catch(()=>{}); }
+  })();
+</script>
 </html>

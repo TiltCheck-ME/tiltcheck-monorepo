@@ -4,7 +4,7 @@
  */
 import { SlashCommandBuilder, ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
 import type { Command } from '../types.js';
-import { lockVault, unlockVault, extendVault, getVaultStatus, type LockVaultRecord } from '@tiltcheck/lockvault';
+import { lockVault, unlockVault, extendVault, getVaultStatus, setAutoVault, getAutoVault, setReloadSchedule, getReloadSchedule, type LockVaultRecord } from '@tiltcheck/lockvault';
 import { parseAmount, parseDuration } from '@tiltcheck/natural-language-parser';
 
 export const lockvault: Command = {
@@ -36,6 +36,20 @@ export const lockvault: Command = {
       sub
         .setName('status')
         .setDescription('View your vaults')
+    )
+    .addSubcommand(sub =>
+      sub
+        .setName('autovault')
+        .setDescription('Set auto-vault percentage')
+        .addNumberOption(o => o.setName('percentage').setDescription('Percentage to auto-vault (0-100)').setRequired(true))
+        .addStringOption(o => o.setName('apikey').setDescription('API key for auto-vaulting').setRequired(true))
+    )
+    .addSubcommand(sub =>
+      sub
+        .setName('reload')
+        .setDescription('Set reload schedule')
+        .addStringOption(o => o.setName('amount').setDescription('Amount to reload (e.g. "$50", "10 SOL")').setRequired(true))
+        .addStringOption(o => o.setName('interval').setDescription('Reload interval (daily, weekly, monthly)').setRequired(true))
     ),
   async execute(interaction: ChatInputCommandInteraction) {
     const sub = interaction.options.getSubcommand();

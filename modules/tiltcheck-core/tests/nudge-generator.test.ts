@@ -6,8 +6,8 @@ import {
   getCooldownMessage,
   getViolationMessage,
   type NudgeMessage,
-} from '../src/nudge-generator';
-import type { TiltSignal } from '../src/types';
+} from '../src/nudge-generator.js';
+import type { TiltSignal } from '../src/types.js';
 
 describe('Nudge Generator', () => {
   describe('getNudgeMessage', () => {

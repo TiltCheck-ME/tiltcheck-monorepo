@@ -21,6 +21,7 @@ export default defineConfig({
       '@tiltcheck/pricing-oracle': r('services/pricing-oracle/src/index.ts'),
       '@tiltcheck/collectclock': r('modules/collectclock/src/index.ts'),
       '@tiltcheck/ai-client': r('packages/ai-client/src/index.ts'),
+      '@tiltcheck/stake': r('modules/stake/src/index.ts'),
     },
   },
   test: {
@@ -85,6 +86,8 @@ export default defineConfig({
         // Services requiring external dependencies or infrastructure
         'services/casino-data-api/**', // CLI tool for casino data collection
         'services/game-arena/**', // Game server requiring WebSocket setup
+        'services/dashboard/**', // Dashboard service - requires database and Discord context
+        'services/webhook-receiver/**', // Webhook receiver service - requires database and external webhooks
         // PWA/client-side code - needs browser environment
         'services/gameplay-analyzer/src/pwa/**',
         'services/gameplay-analyzer/src/provably-fair/index.ts',

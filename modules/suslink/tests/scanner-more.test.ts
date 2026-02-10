@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { LinkScanner } from '../src/scanner';
+import { LinkScanner } from '../src/scanner.js';
 
 describe('LinkScanner extras', () => {
   const scanner = new LinkScanner();

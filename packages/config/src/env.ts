@@ -25,7 +25,7 @@ export const jwtConfigSchema = z.object({
 export const serviceJwtConfigSchema = z.object({
   SERVICE_JWT_SECRET: z.string().min(32, 'SERVICE_JWT_SECRET must be at least 32 characters'),
   SERVICE_ID: z.string().min(1, 'SERVICE_ID is required'),
-  ALLOWED_SERVICES: z.string().transform((val) => val.split(',').filter(Boolean)).default(''),
+  ALLOWED_SERVICES: z.string().transform((val: string) => val.split(',').filter(Boolean)).default(''),
 });
 
 /**
@@ -46,22 +46,22 @@ export const databaseConfigSchema = z.object({
     (url) => url.startsWith('postgres://') || url.startsWith('postgresql://'),
     'NEON_DATABASE_URL must be a valid PostgreSQL connection string'
   ),
-  DATABASE_SSL: z.string().transform((val) => val === 'true').default('true'),
-  DATABASE_POOL_SIZE: z.string().transform((val) => parseInt(val, 10) || 10).default('10'),
+  DATABASE_SSL: z.string().transform((val: string) => val === 'true').default('true'),
+  DATABASE_POOL_SIZE: z.string().transform((val: string) => parseInt(val, 10) || 10).default('10'),
 });
 
 /**
  * Supabase Configuration Schema (for storage only) - base shape
  */
-const supabaseBaseShape = {
+export const supabaseConfigSchemaBase = z.object({
   SUPABASE_URL: z.string().url('SUPABASE_URL must be a valid URL').optional(),
   SUPABASE_ANON_KEY: z.string().optional(),
-};
+});
 
 /**
- * Supabase Configuration Schema (for storage only)
+ * Supabase Configuration Schema (for storage only) with validation
  */
-export const supabaseConfigSchema = z.object(supabaseBaseShape).refine(
+export const supabaseConfigSchema = supabaseConfigSchemaBase.refine(
   (data) => {
     // If one is provided, both must be provided
     if (data.SUPABASE_URL || data.SUPABASE_ANON_KEY) {
@@ -76,7 +76,7 @@ export const supabaseConfigSchema = z.object(supabaseBaseShape).refine(
  * Server Configuration Schema
  */
 export const serverConfigSchema = z.object({
-  PORT: z.string().transform((val) => parseInt(val, 10) || 3000).default('3000'),
+  PORT: z.string().transform((val: string) => parseInt(val, 10) || 3000).default('3000'),
   HOST: z.string().default('0.0.0.0'),
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
   LOG_LEVEL: z.enum(['debug', 'info', 'warn', 'error']).default('info'),
@@ -88,8 +88,8 @@ export const serverConfigSchema = z.object({
 export const cookieConfigSchema = z.object({
   SESSION_COOKIE_NAME: z.string().default('tiltcheck_session'),
   COOKIE_DOMAIN: z.string().default('.tiltcheck.me'),
-  COOKIE_SECURE: z.string().transform((val) => val === 'true').default('true'),
-  COOKIE_MAX_AGE: z.string().transform((val) => parseInt(val, 10) || 604800).default('604800'), // 7 days
+  COOKIE_SECURE: z.string().transform((val: string) => val === 'true').default('true'),
+  COOKIE_MAX_AGE: z.string().transform((val: string) => parseInt(val, 10) || 604800).default('604800'), // 7 days
 });
 
 /**
@@ -101,7 +101,7 @@ export const fullConfigSchema = z.object({
   ...databaseConfigSchema.shape,
   ...serverConfigSchema.shape,
   ...cookieConfigSchema.shape,
-  ...supabaseBaseShape,
+  ...supabaseConfigSchemaBase.shape,
   ...serviceJwtConfigSchema.shape,
 });
 
@@ -242,11 +242,13 @@ export function validateAllConfig(env: Record<string, string | undefined> = proc
 export function createPartialValidator<K extends keyof FullEnvConfig>(
   keys: K[]
 ): (env?: Record<string, string | undefined>) => Pick<FullEnvConfig, K> {
+  type ShapeType = (typeof fullConfigSchema)['shape'];
+  const configShape = fullConfigSchema.shape as ShapeType;
   const shape: Record<string, z.ZodTypeAny> = {};
   
   for (const key of keys) {
-    if (key in fullConfigSchema.shape) {
-      shape[key] = (fullConfigSchema.shape as Record<string, z.ZodTypeAny>)[key];
+    if (key in configShape) {
+      shape[key] = configShape[key as keyof ShapeType] as z.ZodTypeAny;
     }
   }
   

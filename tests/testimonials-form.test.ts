@@ -26,27 +26,27 @@ describe('Testimonials Page', () => {
     it('should have disabled attribute on form', () => {
       const form = document.querySelector('#feedback-form');
       expect(form).toBeTruthy();
-      expect(form.getAttribute('aria-disabled')).toBe('true');
+      expect(form!.getAttribute('aria-disabled')).toBe('true');
     });
 
     it('should have disabled textarea', () => {
       const textarea = document.querySelector('#fb-message');
       
       expect(textarea).toBeTruthy();
-      expect(textarea.hasAttribute('disabled')).toBe(true);
+      expect(textarea!.hasAttribute('disabled')).toBe(true);
     });
 
     it('should have disabled submit button', () => {
       const submitBtn = document.querySelector('#feedback-form button[type="submit"]');
       expect(submitBtn).toBeTruthy();
-      expect(submitBtn.hasAttribute('disabled')).toBe(true);
+      expect(submitBtn!.hasAttribute('disabled')).toBe(true);
     });
 
     it('should display notice about Discord channel requirement', () => {
       const formSection = document.querySelector('[aria-labelledby="feedback-heading"]');
       expect(formSection).toBeTruthy();
       
-      const text = formSection.textContent.toLowerCase();
+      const text = formSection!.textContent.toLowerCase();
       expect(text).toContain('discord');
       expect(text).toContain('disabled');
     });

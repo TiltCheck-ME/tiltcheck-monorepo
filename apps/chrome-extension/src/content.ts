@@ -196,7 +196,7 @@ function handleSpinEvent(spinData: any, session: any) {
     // Check for tilt immediately after bet
     const tiltSigns = tiltDetector.detectAllTiltSigns();
     const tiltRisk = tiltDetector.getTiltRiskScore();
-    const indicators = tiltSigns.map(sign => sign.message);
+    const indicators = tiltSigns.map(sign => sign.description);
     
     // Update sidebar tilt score
     (window as any).TiltGuardSidebar?.updateTilt(tiltRisk, indicators);
@@ -232,7 +232,7 @@ function startTiltMonitoring() {
     
     const tiltSigns = tiltDetector.detectAllTiltSigns();
     const tiltRisk = tiltDetector.getTiltRiskScore();
-    const indicators = tiltSigns.map(sign => sign.message);
+    const indicators = tiltSigns.map(sign => sign.description);
     
     // Update sidebar
     (window as any).TiltGuardSidebar?.updateTilt(tiltRisk, indicators);
@@ -737,12 +737,12 @@ async function getUserId(): Promise<string> {
       // Try to get from chrome storage
       chrome.storage.local.get(['tiltguard_user_id'], (result) => {
         if (result.tiltguard_user_id) {
-          resolve(result.tiltguard_user_id);
+          resolve(result.tiltguard_user_id as string);
         } else {
           // Generate new user ID
           const newId = `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
           chrome.storage.local.set({ tiltguard_user_id: newId });
-          resolve(newId);
+          resolve(newId as string);
         }
       });
     } catch (_e) {

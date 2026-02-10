@@ -7,7 +7,7 @@
  * Run with: npx tsx apps/discord-bot/examples/test-bot.ts
  */
 
-import { CommandHandler } from '../src/handlers/commands';
+import { CommandHandler } from '../src/handlers/commands.js';
 import { eventRouter } from '@tiltcheck/event-router';
 import { suslink } from '@tiltcheck/suslink';
 import {

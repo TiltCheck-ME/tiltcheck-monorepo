@@ -4,7 +4,7 @@
  * Run with: npx tsx modules/suslink/examples/test-scanner.ts
  */
 
-import { suslink } from '../src/index';
+import { suslink } from '../src/index.js';
 
 const testUrls = [
   // Safe links

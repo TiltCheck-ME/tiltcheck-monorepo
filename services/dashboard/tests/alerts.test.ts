@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { addRiskAlert, dashboardState } from '../src/state';
+import { addRiskAlert, dashboardState } from '../src/state.js';
 
 describe('risk alerts', () => {
   it('adds domain-delta alert when threshold met', () => {

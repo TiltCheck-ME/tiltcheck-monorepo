@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { formatSnapshotSummary } from '../src/trust-consumer';
+import { formatSnapshotSummary } from '../src/trust-consumer.js';
 
 describe('FreeSpinsChannelBot snapshot formatter', () => {
   it('formats worst domains and top casinos', () => {

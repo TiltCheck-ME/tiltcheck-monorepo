@@ -11,7 +11,7 @@
  */
 
 import { eventRouter } from '@tiltcheck/event-router';
-import { v4 as uuidv4 } from 'uuid';
+import { randomUUID } from 'crypto';
 import type { TiltCheckEvent } from '@tiltcheck/types';
 
 // User profile traits (opt-in data)
@@ -32,8 +32,8 @@ export interface Survey {
   description: string;
   estimatedMinutes: number;
   payoutUSD: number;
-  requiredTraits: Map<string, string | number | boolean>;
-  excludedTraits: Map<string, string | number | boolean>;
+  requiredTraits: Map<string, string | number | boolean> | Record<string, string | number | boolean>;
+  excludedTraits: Map<string, string | number | boolean> | Record<string, string | number | boolean>;
   source: string; // 'affiliate' | 'partner' | 'user-submitted'
   createdAt: number;
 }
@@ -83,6 +83,32 @@ export class QualifyFirstModule {
       async (event: TiltCheckEvent) => {
         const result = event.data as SurveyResult;
         await this.recordSurveyResult(result);
+      },
+      'qualifyfirst'
+    );
+
+    // Phase 1: Wire survey results to JustTheTip payouts
+    eventRouter.subscribe(
+      'survey.result.recorded',
+      async (event: TiltCheckEvent) => {
+        const { userId, status, payout } = event.data as any;
+        
+        // Only trigger payout for completed surveys with a positive payout
+        if (status === 'completed' && payout && payout > 0) {
+          await eventRouter.publish('tip.send', 'qualifyfirst', {
+            senderId: 'TREASURY', // Use dedicated treasury identity
+            recipientId: userId,
+            amount: payout,
+            currency: 'USD',
+            metadata: {
+              source: 'qualifyfirst',
+              surveyId: event.data.surveyId,
+              type: 'payout'
+            }
+          }, userId);
+          
+          console.log(`[QualifyFirst] Triggered payout tip for user ${userId}: $${payout}`);
+        }
       },
       'qualifyfirst'
     );
@@ -161,7 +187,7 @@ export class QualifyFirstModule {
   async addSurvey(survey: Omit<Survey, 'id' | 'createdAt'>): Promise<Survey> {
     const newSurvey: Survey = {
       ...survey,
-      id: uuidv4(),
+      id: randomUUID(),
       createdAt: Date.now(),
       requiredTraits: new Map(Object.entries(survey.requiredTraits || {})),
       excludedTraits: new Map(Object.entries(survey.excludedTraits || {})),
@@ -215,11 +241,19 @@ export class QualifyFirstModule {
     let matchScore = 50; // Start at neutral
     const reasoning: string[] = [];
 
+    // Normalize traits to Maps if they're Records
+    const requiredTraits = survey.requiredTraits instanceof Map 
+      ? survey.requiredTraits 
+      : new Map(Object.entries(survey.requiredTraits));
+    const excludedTraits = survey.excludedTraits instanceof Map 
+      ? survey.excludedTraits 
+      : new Map(Object.entries(survey.excludedTraits));
+
     // Check required traits
     let requiredMatches = 0;
-    const requiredTotal = survey.requiredTraits.size;
+    const requiredTotal = requiredTraits.size;
 
-    for (const [key, value] of survey.requiredTraits) {
+    for (const [key, value] of requiredTraits) {
       const userValue = profile.traits.get(key);
       if (userValue === value) {
         requiredMatches++;
@@ -236,7 +270,7 @@ export class QualifyFirstModule {
     }
 
     // Check excluded traits (disqualifiers)
-    for (const [key, value] of survey.excludedTraits) {
+    for (const [key, value] of excludedTraits) {
       const userValue = profile.traits.get(key);
       if (userValue === value) {
         matchScore = 0;

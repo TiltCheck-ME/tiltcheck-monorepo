@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { analyzeMessages, calculateTiltScore, analyzeMessagesWithAI } from '../src/message-analyzer';
-import type { MessageActivity, TiltSignal } from '../src/types';
+import { analyzeMessages, calculateTiltScore, analyzeMessagesWithAI } from '../src/message-analyzer.js';
+import type { MessageActivity, TiltSignal } from '../src/types.js';
 
 describe('Message Analyzer', () => {
   describe('analyzeMessages', () => {

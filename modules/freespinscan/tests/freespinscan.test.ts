@@ -1,10 +1,10 @@
 import { describe, it, expect } from 'vitest';
-import { freespinscan } from '../src/index';
+import { freespinscan } from '../src/index.js';
 
 describe('FreeSpinScan module', () => {
   it('subscribes to promo.submitted event (smoke)', async () => {
     await expect(async () => {
-      await import('../src');
+      await import('../src/index.js');
       // Simulate event
       // eventRouter.publish('promo.submitted', 'test', { promoCode: 'FS2025', casino: 'stake' }, 'user-1');
     }).not.toThrow();

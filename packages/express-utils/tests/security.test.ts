@@ -55,7 +55,7 @@ describe('API Security Utilities', () => {
   });
 
   describe('RateLimiter', () => {
-    let limiter;
+    let limiter: RateLimiter;
 
     beforeEach(() => {
       limiter = new RateLimiter(3, 1000); // 3 requests per second
@@ -103,7 +103,7 @@ describe('API Security Utilities', () => {
   });
 
   describe('CircuitBreaker', () => {
-    let breaker;
+    let breaker: CircuitBreaker;
 
     beforeEach(() => {
       breaker = new CircuitBreaker({
@@ -113,7 +113,7 @@ describe('API Security Utilities', () => {
     });
 
     it('should start in CLOSED state', () => {
-      expect(breaker.getState().state).toBe('CLOSED');
+      expect((breaker.getState() as any).state).toBe('CLOSED');
     });
 
     it('should allow calls when CLOSED', async () => {
@@ -123,7 +123,7 @@ describe('API Security Utilities', () => {
 
     it('should track successful calls', async () => {
       await breaker.call(async () => 'success');
-      expect(breaker.getState().successes).toBe(1);
+      expect((breaker.getState() as any).successes).toBe(1);
     });
 
     it('should open circuit after failure threshold', async () => {
@@ -131,11 +131,11 @@ describe('API Security Utilities', () => {
       
       // First failure
       await expect(breaker.call(failingFn)).rejects.toThrow('API error');
-      expect(breaker.getState().state).toBe('CLOSED');
+      expect((breaker.getState() as any).state).toBe('CLOSED');
       
       // Second failure - should open circuit
       await expect(breaker.call(failingFn)).rejects.toThrow('API error');
-      expect(breaker.getState().state).toBe('OPEN');
+      expect((breaker.getState() as any).state).toBe('OPEN');
     });
 
     it('should reject calls when OPEN', async () => {
@@ -152,21 +152,21 @@ describe('API Security Utilities', () => {
       // Should transition to HALF_OPEN and allow call
       const result = await breaker.call(async () => 'success');
       expect(result).toBe('success');
-      expect(breaker.getState().state).toBe('CLOSED');
+      expect((breaker.getState() as any).state).toBe('CLOSED');
     });
 
     it('should close circuit on success in HALF_OPEN', async () => {
       breaker.forceHalfOpen();
       
       await breaker.call(async () => 'success');
-      expect(breaker.getState().state).toBe('CLOSED');
+      expect((breaker.getState() as any).state).toBe('CLOSED');
     });
 
     it('should re-open circuit on failure in HALF_OPEN', async () => {
       breaker.forceHalfOpen();
       
       await expect(breaker.call(async () => { throw new Error('fail'); })).rejects.toThrow();
-      expect(breaker.getState().state).toBe('OPEN');
+      expect((breaker.getState() as any).state).toBe('OPEN');
     });
   });
 
@@ -233,7 +233,7 @@ describe('API Security Utilities', () => {
   describe('sanitizeError', () => {
     it('should hide internal error details', () => {
       const error = new Error('Database connection failed at 192.168.1.100:5432');
-      const sanitized = sanitizeError(error);
+      const sanitized = sanitizeError(error) as any;
       
       expect(sanitized.message).not.toContain('192.168.1.100');
       expect(sanitized.error).toBe('An error occurred');
@@ -241,14 +241,14 @@ describe('API Security Utilities', () => {
 
     it('should preserve safe error messages', () => {
       const error = new Error('Rate limit exceeded');
-      const sanitized = sanitizeError(error);
+      const sanitized = sanitizeError(error) as any;
       
       expect(sanitized.message).toBe('Rate limit exceeded');
     });
 
     it('should include timestamp', () => {
       const error = new Error('Some error');
-      const sanitized = sanitizeError(error);
+      const sanitized = sanitizeError(error) as any;
       
       expect(sanitized.timestamp).toBeDefined();
     });
@@ -263,7 +263,7 @@ describe('API Security Utilities', () => {
         email: 'user@example.com'
       };
       
-      const redacted = redactSensitiveData(data);
+      const redacted = redactSensitiveData(data) as any;
       
       expect(redacted.userId).toBe('123');
       expect(redacted.email).toBe('user@example.com');
@@ -284,7 +284,7 @@ describe('API Security Utilities', () => {
         normalField: 'visible'
       };
       
-      const redacted = redactSensitiveData(data, ['customSecret']);
+      const redacted = redactSensitiveData(data, ['customSecret']) as any;
       
       expect(redacted.customSecret).toBe('[REDACTED]');
       expect(redacted.normalField).toBe('visible');

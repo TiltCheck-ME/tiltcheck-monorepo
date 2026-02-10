@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TiltCheck Trust Gauges</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      background: #0a0a0a;
+      color: #e0e0e0;
+      padding: 40px 20px;
+      line-height: 1.6;
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 48px;
+    }
+
+    .title {
+      font-size: 2.5rem;
+      font-weight: 700;
+      margin-bottom: 12px;
+      background: linear-gradient(135deg, #00d4aa 0%, #00a8ff 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .subtitle {
+      font-size: 1.1rem;
+      color: #888;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 32px;
+      margin-bottom: 48px;
+    }
+
+    .gauge-card {
+      background: #1a1a1a;
+      border: 1px solid #222;
+      border-radius: 12px;
+      padding: 32px;
+      transition: all 0.3s ease;
+    }
+
+    .gauge-card:hover {
+      border-color: #00d4aa;
+      box-shadow: 0 8px 32px rgba(0, 212, 170, 0.15);
+    }
+
+    .card-title {
+      font-size: 1.2rem;
+      font-weight: 600;
+      margin-bottom: 24px;
+      color: #00d4aa;
+    }
+
+    .gauge-wrapper {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+    }
+
+    /* Circular Gauge */
+    .circular-gauge {
+      position: relative;
+      width: 180px;
+      height: 180px;
+    }
+
+    .circular-gauge svg {
+      transform: rotate(-90deg);
+      filter: drop-shadow(0 0 8px rgba(0, 212, 170, 0.3));
+    }
+
+    .gauge-bg {
+      fill: none;
+      stroke: rgba(255, 255, 255, 0.08);
+      stroke-width: 12;
+    }
+
+    .gauge-fill {
+      fill: none;
+      stroke-width: 12;
+      stroke-linecap: round;
+      transition: stroke-dashoffset 1s ease;
+    }
+
+    .gauge-ticks line {
+      stroke: rgba(255, 255, 255, 0.2);
+      stroke-width: 2;
+    }
+
+    .gauge-center {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      text-align: center;
+    }
+
+    .gauge-value {
+      font-size: 2.5rem;
+      font-weight: 700;
+      line-height: 1;
+      margin-bottom: 4px;
+    }
+
+    .gauge-label {
+      font-size: 0.8rem;
+      opacity: 0.6;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    /* Horizontal Bar */
+    .horizontal-bar {
+      width: 100%;
+      height: 48px;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 24px;
+      position: relative;
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .bar-fill {
+      height: 100%;
+      border-radius: 24px;
+      transition: width 1s ease;
+    }
+
+    .bar-ticks {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      justify-content: space-between;
+      padding: 0 8px;
+    }
+
+    .bar-tick {
+      width: 1px;
+      height: 16px;
+      background: rgba(255, 255, 255, 0.2);
+      margin-top: 16px;
+    }
+
+    .bar-label {
+      margin-top: 12px;
+      font-size: 0.9rem;
+      opacity: 0.6;
+      text-align: center;
+    }
+
+    /* Pill Badge */
+    .pill-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 24px;
+      border-radius: 100px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      border: 1px solid;
+    }
+
+    .pill-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      box-shadow: 0 0 8px currentColor;
+    }
+
+    .state-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+      width: 100%;
+    }
+
+    /* Sparkline */
+    .sparkline-container {
+      width: 100%;
+      height: 60px;
+    }
+
+    .sparkline {
+      width: 100%;
+      height: 100%;
+    }
+
+    .sparkline-path {
+      fill: none;
+      stroke-width: 2.5;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      filter: drop-shadow(0 0 4px currentColor);
+    }
+
+    .sparkline-area {
+      opacity: 0.15;
+    }
+
+    .sparkline-dot {
+      filter: drop-shadow(0 0 6px currentColor);
+    }
+
+    /* States */
+    .state-stable { color: #00d4aa; }
+    .state-improving { color: #00ff88; }
+    .state-declining { color: #ff6b6b; }
+    .state-unknown { color: #888; }
+
+    .download-section {
+      text-align: center;
+      background: #1a1a1a;
+      border: 1px solid #00d4aa33;
+      border-radius: 12px;
+      padding: 32px;
+      margin-top: 48px;
+    }
+
+    .download-title {
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin-bottom: 12px;
+      color: #00d4aa;
+    }
+
+    .download-desc {
+      font-size: 1rem;
+      color: #888;
+      margin-bottom: 24px;
+      line-height: 1.6;
+    }
+
+    code {
+      background: #0f0f0f;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-family: 'Courier New', monospace;
+      color: #00d4aa;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1 class="title">TiltCheck Trust Gauges</h1>
+      <p class="subtitle">Dashboard UI Component Pack</p>
+    </div>
+
+    <div class="grid" id="gauges-grid"></div>
+
+    <div class="download-section">
+      <h2 class="download-title">Usage Instructions</h2>
+      <p class="download-desc">
+        Right-click on any gauge component and select <code>Inspect Element</code> to copy the SVG or HTML.<br>
+        All components are pure HTML/CSS/SVG — no external dependencies required.<br>
+        Colors align with TiltCheck brand: stable (#00d4aa), improving (#00ff88), declining (#ff6b6b), unknown (#888).
+      </p>
+    </div>
+  </div>
+
+  <script>
+    function createCircularGauge(value, state) {
+      const radius = 80;
+      const circumference = 2 * Math.PI * radius;
+      const offset = circumference - (value / 100) * circumference;
+
+      const colors = {
+        stable: '#00d4aa',
+        improving: '#00ff88',
+        declining: '#ff6b6b',
+        unknown: '#888'
+      };
+
+      const color = colors[state];
+
+      return `
+        <div class="circular-gauge">
+          <svg width="180" height="180" viewBox="0 0 180 180">
+            <circle class="gauge-bg" cx="90" cy="90" r="${radius}"/>
+            <g class="gauge-ticks">
+              ${Array.from({length: 12}, (_, i) => {
+                const angle = (i * 30) * (Math.PI / 180);
+                const x1 = 90 + (radius - 8) * Math.cos(angle);
+                const y1 = 90 + (radius - 8) * Math.sin(angle);
+                const x2 = 90 + (radius + 2) * Math.cos(angle);
+                const y2 = 90 + (radius + 2) * Math.sin(angle);
+                return `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}"/>`;
+              }).join('')}
+            </g>
+            <circle 
+              class="gauge-fill state-${state}" 
+              cx="90" 
+              cy="90" 
+              r="${radius}"
+              stroke="${color}"
+              stroke-dasharray="${circumference}"
+              stroke-dashoffset="${offset}"
+            />
+          </svg>
+          <div class="gauge-center">
+            <div class="gauge-value state-${state}" style="color: ${color}">${value}%</div>
+            <div class="gauge-label">${state}</div>
+          </div>
+        </div>
+      `;
+    }
+
+    function createHorizontalBar(value, state) {
+      const colors = {
+        stable: 'linear-gradient(90deg, #00b894 0%, #00d4aa 100%)',
+        improving: 'linear-gradient(90deg, #00dd77 0%, #00ff88 100%)',
+        declining: 'linear-gradient(90deg, #dd4444 0%, #ff6b6b 100%)',
+        unknown: 'linear-gradient(90deg, #666 0%, #888 100%)'
+      };
+
+      return `
+        <div class="gauge-wrapper">
+          <div class="horizontal-bar">
+            <div class="bar-fill state-${state}" style="width: ${value}%; background: ${colors[state]}"></div>
+            <div class="bar-ticks">
+              ${Array.from({length: 5}, () => '<div class="bar-tick"></div>').join('')}
+            </div>
+          </div>
+          <div class="bar-label">${value}% · ${state}</div>
+        </div>
+      `;
+    }
+
+    function createPillBadge(value, state) {
+      const colors = {
+        stable: { bg: 'rgba(0, 212, 170, 0.1)', border: 'rgba(0, 212, 170, 0.3)', text: '#00d4aa' },
+        improving: { bg: 'rgba(0, 255, 136, 0.1)', border: 'rgba(0, 255, 136, 0.3)', text: '#00ff88' },
+        declining: { bg: 'rgba(255, 107, 107, 0.1)', border: 'rgba(255, 107, 107, 0.3)', text: '#ff6b6b' },
+        unknown: { bg: 'rgba(136, 136, 136, 0.1)', border: 'rgba(136, 136, 136, 0.3)', text: '#888' }
+      };
+
+      return `
+        <div class="state-grid">
+          ${['stable', 'improving', 'declining', 'unknown'].map(s => `
+            <div class="pill-badge" style="background: ${colors[s].bg}; border-color: ${colors[s].border}; color: ${colors[s].text}">
+              <div class="pill-dot" style="background: ${colors[s].text}"></div>
+              <span>${s}</span>
+            </div>
+          `).join('')}
+        </div>
+      `;
+    }
+
+    function createSparkline(state) {
+      const dataPatterns = {
+        stable: [45, 47, 46, 48, 47, 49, 48, 50, 49, 48],
+        improving: [40, 42, 45, 48, 52, 55, 58, 62, 65, 70],
+        declining: [70, 68, 65, 62, 58, 55, 52, 48, 45, 42],
+        unknown: [50, 45, 55, 48, 58, 52, 62, 55, 60, 54]
+      };
+
+      const data = dataPatterns[state];
+      const width = 280;
+      const height = 60;
+      const padding = 4;
+      const max = Math.max(...data);
+      const min = Math.min(...data);
+      const range = max - min || 1;
+
+      const points = data.map((val, i) => {
+        const x = padding + (i / (data.length - 1)) * (width - padding * 2);
+        const y = height - padding - ((val - min) / range) * (height - padding * 2);
+        return `${x},${y}`;
+      }).join(' ');
+
+      const areaPoints = `${padding},${height} ${points} ${width - padding},${height}`;
+
+      const colors = {
+        stable: '#00d4aa',
+        improving: '#00ff88',
+        declining: '#ff6b6b',
+        unknown: '#888'
+      };
+
+      const color = colors[state];
+      const lastPoint = data[data.length - 1];
+      const lastX = width - padding;
+      const lastY = height - padding - ((lastPoint - min) / range) * (height - padding * 2);
+
+      return `
+        <div class="sparkline-container">
+          <svg class="sparkline" viewBox="0 0 ${width} ${height}">
+            <polygon class="sparkline-area state-${state}" points="${areaPoints}" fill="${color}"/>
+            <polyline class="sparkline-path state-${state}" points="${points}" stroke="${color}"/>
+            <circle class="sparkline-dot state-${state}" cx="${lastX}" cy="${lastY}" r="4" fill="${color}"/>
+          </svg>
+        </div>
+      `;
+    }
+
+    function renderGauges() {
+      const grid = document.getElementById('gauges-grid');
+
+      const gaugeConfigs = [
+        { title: 'Circular Gauge · Stable', content: createCircularGauge(75, 'stable') },
+        { title: 'Circular Gauge · Improving', content: createCircularGauge(85, 'improving') },
+        { title: 'Circular Gauge · Declining', content: createCircularGauge(45, 'declining') },
+        { title: 'Circular Gauge · Unknown', content: createCircularGauge(60, 'unknown') },
+        { title: 'Horizontal Bar · Stable', content: createHorizontalBar(75, 'stable') },
+        { title: 'Horizontal Bar · Improving', content: createHorizontalBar(85, 'improving') },
+        { title: 'Horizontal Bar · Declining', content: createHorizontalBar(45, 'declining') },
+        { title: 'Horizontal Bar · Unknown', content: createHorizontalBar(60, 'unknown') },
+        { title: 'Pill Badges · All States', content: createPillBadge(75, 'stable') },
+        { title: 'Sparkline · Stable', content: createSparkline('stable') },
+        { title: 'Sparkline · Improving', content: createSparkline('improving') },
+        { title: 'Sparkline · Declining', content: createSparkline('declining') },
+        { title: 'Sparkline · Unknown', content: createSparkline('unknown') }
+      ];
+
+      grid.innerHTML = gaugeConfigs.map(({ title, content }) => `
+        <div class="gauge-card">
+          <h3 class="card-title">${title}</h3>
+          ${content}
+        </div>
+      `).join('');
+    }
+
+    renderGauges();
+  </script>
+</body>
+</html>

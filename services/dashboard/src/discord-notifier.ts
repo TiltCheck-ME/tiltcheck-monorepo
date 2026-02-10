@@ -4,7 +4,7 @@
  * Sends risk alerts and anomalies to Discord channels via webhooks.
  */
 
-import type { RiskAlert } from './state';
+import type { RiskAlert } from './state.js';
 
 export interface DiscordWebhookConfig {
   url?: string;

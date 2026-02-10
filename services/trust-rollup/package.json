@@ -19,10 +19,12 @@
   },
   "dependencies": {
     "@tiltcheck/event-router": "workspace:*",
-    "@tiltcheck/types": "workspace:*"
+    "@tiltcheck/types": "workspace:*",
+    "zod": "^3.25.76"
   },
   "devDependencies": {
+    "tsx": "^4.7.0",
     "typescript": "^5.4.0",
-    "tsx": "^4.7.0"
+    "@types/bcryptjs": "^2.4.6"
   }
 }

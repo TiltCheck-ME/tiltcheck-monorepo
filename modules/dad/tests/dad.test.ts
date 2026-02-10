@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { DADModule, dad } from '../src/index';
+import { DADModule, dad } from '../src/index.js';
 import { eventRouter } from '@tiltcheck/event-router';
 
 describe('DA&D Module', () => {

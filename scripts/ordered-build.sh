@@ -9,6 +9,7 @@ pnpm --filter @tiltcheck/types build
 pnpm --filter @tiltcheck/config build
 pnpm --filter @tiltcheck/esm-utils build
 pnpm --filter @tiltcheck/analytics build
+pnpm --filter @tiltcheck/shared build
 
 # Stage 2: Services that depend on core packages
 echo "📦 Stage 2: Core services..."
@@ -24,6 +25,7 @@ pnpm --filter @tiltcheck/db build
 pnpm --filter @tiltcheck/natural-language-parser build
 pnpm --filter @tiltcheck/discord-utils build
 pnpm --filter @tiltcheck/identity-core build
+pnpm --filter @tiltcheck/cli build
 pnpm --filter @tiltcheck/supabase-auth build
 
 echo "⏳ Waiting for Stage 3 to complete..."

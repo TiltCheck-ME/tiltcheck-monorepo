@@ -1,0 +1,58 @@
+<svg xmlns="http://www.w3.org/2000/svg" style="display:none">
+  <symbol id="icon-just-the-tip" viewBox="0 0 48 48" stroke="#eee" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="24" cy="24" r="3" fill="#00d4aa" />
+    <path d="M10 34 L18 26" />
+    <path d="M18 34 L10 26" />
+    <path d="M30 14 L38 22" />
+    <path d="M38 14 L30 22" />
+    <path d="M19 27 L29 21" />
+  </symbol>
+  <symbol id="icon-sus-link" viewBox="0 0 48 48" stroke="#eee" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M18 30c-3 3-3 6 0 9 3 3 6 3 9 0l5-5" />
+    <path d="M30 18c3-3 3-6 0-9-3-3-6-3-9 0l-5 5" />
+    <path d="M22 26l4-4" />
+    <path d="M28 20l3-3" />
+    <path d="M17 31l3-3" />
+    <circle cx="34" cy="14" r="2" fill="#00d4aa" />
+    <circle cx="14" cy="34" r="2" fill="#00d4aa" />
+  </symbol>
+  <symbol id="icon-collect-clock" viewBox="0 0 48 48" stroke="#eee" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="22" cy="22" r="10" />
+    <path d="M22 22l0-6" />
+    <path d="M22 22l5 3" />
+    <rect x="28" y="26" width="12" height="10" rx="2" />
+    <path d="M30 28h8" />
+    <circle cx="22" cy="22" r="2" fill="#00d4aa" />
+  </symbol>
+  <symbol id="icon-freespin-scan" viewBox="0 0 48 48" stroke="#eee" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="24" cy="24" r="12" />
+    <circle cx="24" cy="24" r="6" />
+    <path d="M12 24h6M30 24h6M24 12v6M24 30v6" />
+    <path d="M18 36c8 0 14-6 14-14" />
+    <path d="M24 24l9 2" />
+    <circle cx="33" cy="26" r="2" fill="#00d4aa" />
+  </symbol>
+  <symbol id="icon-tilt-engine" viewBox="0 0 48 48" stroke="#eee" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <ellipse cx="24" cy="24" rx="14" ry="10" transform="rotate(-15 24 24)" />
+    <circle cx="24" cy="24" r="4" />
+    <circle cx="24" cy="24" r="2" fill="#00d4aa" />
+    <path d="M10 24h4M34 24h4" />
+  </symbol>
+  <symbol id="icon-dand" viewBox="0 0 48 48" stroke="#eee" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="12" y="8" width="20" height="32" rx="3" />
+    <circle cx="16" cy="14" r="3" />
+    <circle cx="26" cy="30" r="2" fill="#00d4aa" />
+    <circle cx="22" cy="26" r="2" fill="#00d4aa" />
+    <circle cx="28" cy="24" r="2" fill="#00d4aa" />
+  </symbol>
+  <symbol id="icon-accountability-wallet" viewBox="0 0 48 48" stroke="#eee" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="10" y="16" width="28" height="18" rx="3" />
+    <path d="M10 22h28" />
+    <path d="M24 16v-4" />
+    <path d="M20 16v-4" />
+    <path d="M28 16v-4" />
+    <path d="M30 22l-4 4-4-4" />
+    <circle cx="26" cy="26" r="2" fill="#00d4aa" />
+    <path d="M32 16h2" />
+  </symbol>
+</svg>
