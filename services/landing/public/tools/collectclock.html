@@ -8,17 +8,7 @@
   <link rel="stylesheet" href="../styles/tool-page.css" />
 </head>
 <body>
-  <nav class="navbar">
-    <div class="container">
-      <a href="/" class="logo">TiltCheck</a>
-      <div class="nav-links">
-        <a href="/#tools">Tools</a>
-        <a href="/dashboard">Dashboard</a>
-        <a href="https://discord.gg/s6NNfPHxMS" class="cta-small">Join Discord</a>
-        <a href="#" class="discord-login-btn" style="background: #5865F2; color: white; padding: 8px 16px; border-radius: 6px; text-decoration: none; font-weight: 600; margin-left: 8px;">Login</a>
-      </div>
-    </div>
-  </nav>
+  <div id="shared-nav"></div>
 
   <header class="tool-header">
     <div class="container">
@@ -27,24 +17,10 @@
       <p class="tool-tagline">Bonus cycle tracking & nerf detection</p>
       <p class="built-by">
         <a href="https://jmenichole.github.io/Portfolio/" target="_blank" rel="noopener">made for degens by degens</a>
-      </p>
-      <span class="status-badge status-beta">Beta</span>
-    </div>
-  </header>
-
-  <section class="tool-overview">
-    <div class="container">
-      <div class="two-column">
-        <div>
-          <h2>What is it?</h2>
-          <p>CollectClock watches daily casino bonuses and detects silent nerfs and timing pattern shifts.</p>
-          <p>No spreadsheets. No guessing when the casino changed the rules. Just automated tracking and signal alerts.</p>
-        </div>
-        <div class="feature-box">
-          <h3>Key Features</h3>
-          <ul>
-            <li>🕒 Daily bonus timestamp logging</li>
-            <li>📉 Nerf & value delta detection</li>
+      <div id="shared-footer"></div>
+    </body>
+    <script src="/scripts/components-loader.js"></script>
+    </html>
             <li>🔁 Cycle pattern modeling</li>
             <li>⚠️ Alerting on anomalies</li>
             <li>📊 Historical value trend charting</li>
@@ -147,6 +123,5 @@
       <p class="built-by">Built by <a href="https://github.com/jmenichole">jmenichole</a> • TiltCheck © 2024–2025</p>
     </div>
   </footer>
-  <script src="/scripts/auth.js"></script>
 </body>
 </html>
