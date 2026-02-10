@@ -53,15 +53,15 @@ export const databaseConfigSchema = z.object({
 /**
  * Supabase Configuration Schema (for storage only) - base shape
  */
-const supabaseBaseShape = {
+export const supabaseConfigSchemaBase = z.object({
   SUPABASE_URL: z.string().url('SUPABASE_URL must be a valid URL').optional(),
   SUPABASE_ANON_KEY: z.string().optional(),
-};
+});
 
 /**
- * Supabase Configuration Schema (for storage only)
+ * Supabase Configuration Schema (for storage only) with validation
  */
-export const supabaseConfigSchema = z.object(supabaseBaseShape).refine(
+export const supabaseConfigSchema = supabaseConfigSchemaBase.refine(
   (data) => {
     // If one is provided, both must be provided
     if (data.SUPABASE_URL || data.SUPABASE_ANON_KEY) {
@@ -101,7 +101,7 @@ export const fullConfigSchema = z.object({
   ...databaseConfigSchema.shape,
   ...serverConfigSchema.shape,
   ...cookieConfigSchema.shape,
-  ...supabaseBaseShape,
+  ...supabaseConfigSchemaBase.shape,
   ...serviceJwtConfigSchema.shape,
 });
 
@@ -242,11 +242,13 @@ export function validateAllConfig(env: Record<string, string | undefined> = proc
 export function createPartialValidator<K extends keyof FullEnvConfig>(
   keys: K[]
 ): (env?: Record<string, string | undefined>) => Pick<FullEnvConfig, K> {
+  type ShapeType = (typeof fullConfigSchema)['shape'];
+  const configShape = fullConfigSchema.shape as ShapeType;
   const shape: Record<string, z.ZodTypeAny> = {};
   
   for (const key of keys) {
-    if (key in fullConfigSchema.shape) {
-      shape[key] = (fullConfigSchema.shape as Record<string, z.ZodTypeAny>)[key];
+    if (key in configShape) {
+      shape[key] = configShape[key as keyof ShapeType] as z.ZodTypeAny;
     }
   }
   

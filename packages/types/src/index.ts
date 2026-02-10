@@ -592,7 +592,10 @@ export type EventType =
   | 'transaction.confirmed'
   | 'transaction.failed'
   | 'fairness.pump.detected'
-  | 'fairness.cluster.detected';
+  | 'fairness.cluster.detected'
+  | 'prize.created'
+  | 'prize.distributed'
+  | 'prize.failed';
 
 export interface TiltCheckEvent<T = any> {
   id: string;
