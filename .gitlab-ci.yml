@@ -34,6 +34,7 @@ build-test:
     - pnpm build
     - pnpm lint || echo "Lint failed but continuing"
     - pnpm test || echo "Tests failed but continuing"
+    - mkdir -p coverage
   artifacts:
     when: always
     paths:
