@@ -1,0 +1,333 @@
+/**
+ * Styles for TiltCheck Auto-Claimer
+ */
+
+:root {
+  --primary-color: #7c3aed;
+  --success-color: #10b981;
+  --warning-color: #f59e0b;
+  --danger-color: #ef4444;
+  --bg-color: #0f0f0f;
+  --card-bg: #1a1a1a;
+  --text-color: #ffffff;
+  --text-muted: #9ca3af;
+  --border-color: #2a2a2a;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  line-height: 1.6;
+}
+
+.app {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+header {
+  text-align: center;
+  margin-bottom: 3rem;
+}
+
+header h1 {
+  font-size: 2.5rem;
+  margin-bottom: 0.5rem;
+  background: linear-gradient(135deg, var(--primary-color), #ec4899);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+header p {
+  color: var(--text-muted);
+  font-size: 1.1rem;
+}
+
+.api-key-form {
+  max-width: 600px;
+  margin: 0 auto;
+  background: var(--card-bg);
+  padding: 2rem;
+  border-radius: 12px;
+  border: 1px solid var(--border-color);
+}
+
+.api-key-form h2 {
+  margin-bottom: 1rem;
+}
+
+.api-key-form p {
+  margin-bottom: 1rem;
+  color: var(--text-muted);
+}
+
+.warning {
+  background: rgba(245, 158, 11, 0.1);
+  border-left: 3px solid var(--warning-color);
+  padding: 1rem;
+  margin: 1rem 0;
+  border-radius: 4px;
+  color: var(--warning-color) !important;
+}
+
+form {
+  margin: 2rem 0;
+}
+
+input[type='password'],
+input[type='text'] {
+  width: 100%;
+  padding: 1rem;
+  background: var(--bg-color);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  color: var(--text-color);
+  font-size: 1rem;
+  margin-bottom: 1rem;
+}
+
+input:focus {
+  outline: none;
+  border-color: var(--primary-color);
+}
+
+button {
+  width: 100%;
+  padding: 1rem;
+  background: var(--primary-color);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+button:hover {
+  opacity: 0.9;
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+button.danger {
+  background: var(--danger-color);
+  margin-top: 1rem;
+}
+
+.error {
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid var(--danger-color);
+  color: var(--danger-color);
+  padding: 1rem;
+  border-radius: 8px;
+  margin-top: 1rem;
+}
+
+.info {
+  margin-top: 2rem;
+  padding-top: 2rem;
+  border-top: 1px solid var(--border-color);
+}
+
+.info h3 {
+  margin-bottom: 1rem;
+  color: var(--text-color);
+}
+
+.info ol {
+  padding-left: 1.5rem;
+  color: var(--text-muted);
+}
+
+.info li {
+  margin-bottom: 0.5rem;
+}
+
+.dashboard {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.status-section {
+  background: var(--card-bg);
+  padding: 2rem;
+  border-radius: 12px;
+  border: 1px solid var(--border-color);
+}
+
+.status-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.card {
+  background: var(--bg-color);
+  padding: 1.5rem;
+  border-radius: 8px;
+  text-align: center;
+  border: 1px solid var(--border-color);
+}
+
+.card-value {
+  font-size: 2.5rem;
+  font-weight: bold;
+  margin-bottom: 0.5rem;
+}
+
+.card-label {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+.card.total .card-value {
+  color: var(--primary-color);
+}
+
+.card.claimed .card-value {
+  color: var(--success-color);
+}
+
+.card.skipped .card-value {
+  color: var(--warning-color);
+}
+
+.card.failed .card-value {
+  color: var(--danger-color);
+}
+
+.card.processing .card-value {
+  color: #3b82f6;
+}
+
+.history-section {
+  background: var(--card-bg);
+  padding: 2rem;
+  border-radius: 12px;
+  border: 1px solid var(--border-color);
+}
+
+.filter-bar {
+  margin: 1rem 0;
+}
+
+select {
+  padding: 0.5rem 1rem;
+  background: var(--bg-color);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  color: var(--text-color);
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+.history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.history-item {
+  background: var(--bg-color);
+  padding: 1rem;
+  border-radius: 8px;
+  border-left: 3px solid var(--border-color);
+}
+
+.history-item.claimed {
+  border-left-color: var(--success-color);
+}
+
+.history-item.skipped {
+  border-left-color: var(--warning-color);
+}
+
+.history-item.failed {
+  border-left-color: var(--danger-color);
+}
+
+.history-code {
+  font-size: 1.2rem;
+  font-weight: bold;
+  margin-bottom: 0.5rem;
+}
+
+.history-status {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  border-radius: 4px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  margin-bottom: 0.5rem;
+}
+
+.history-item.claimed .history-status {
+  background: rgba(16, 185, 129, 0.2);
+  color: var(--success-color);
+}
+
+.history-item.skipped .history-status {
+  background: rgba(245, 158, 11, 0.2);
+  color: var(--warning-color);
+}
+
+.history-item.failed .history-status {
+  background: rgba(239, 68, 68, 0.2);
+  color: var(--danger-color);
+}
+
+.history-reason {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  margin-bottom: 0.5rem;
+}
+
+.history-reward {
+  color: var(--success-color);
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.history-time {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+
+.actions {
+  display: flex;
+  justify-content: center;
+  margin-top: 2rem;
+}
+
+@media (max-width: 768px) {
+  .app {
+    padding: 1rem;
+  }
+
+  header h1 {
+    font-size: 2rem;
+  }
+
+  .status-cards {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}

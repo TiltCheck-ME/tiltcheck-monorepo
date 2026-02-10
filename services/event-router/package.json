@@ -10,11 +10,6 @@
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js",
       "default": "./dist/index.js"
-    },
-    "./event-router": {
-      "types": "./dist/event-router.d.ts",
-      "import": "./dist/event-router.js",
-      "default": "./dist/event-router.js"
     }
   },
   "scripts": {
@@ -30,6 +25,7 @@
   "devDependencies": {
     "@types/node": "^24.10.1",
     "tsx": "^4.7.0",
-    "typescript": "^5.3.0"
+    "typescript": "^5.3.0",
+    "@types/bcryptjs": "^2.4.6"
   }
 }

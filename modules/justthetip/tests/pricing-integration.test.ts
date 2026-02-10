@@ -1,8 +1,8 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { JustTheTipModule } from '../src/index';
+import { JustTheTipModule } from '../src/index.js';
 import { pricingOracle } from '@tiltcheck/pricing-oracle';
 import { eventRouter } from '@tiltcheck/event-router';
-import { clearWallets } from '../src/wallet-manager';
+import { clearWallets } from '../src/wallet-manager.js';
 
 describe('JustTheTip Pricing Integration', () => {
   let mod: JustTheTipModule;

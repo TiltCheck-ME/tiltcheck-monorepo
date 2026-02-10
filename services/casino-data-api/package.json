@@ -11,8 +11,7 @@
     "dev": "tsx watch src/index.ts",
     "build": "tsc -p tsconfig.json",
     "start": "node dist/index.js",
-    "cli": "tsx src/cli.ts",
-    "prepare": "npm run build 2>/dev/null || true"
+    "cli": "tsx src/cli.ts"
   },
   "keywords": ["tiltcheck", "casino-data", "api", "ai-agent"],
   "dependencies": {

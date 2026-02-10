@@ -2,7 +2,7 @@
 FROM node:20-alpine AS builder
 
 # Install pnpm matching lockfileVersion 9
-RUN npm install -g pnpm@9
+RUN npm install -g pnpm@10
 
 # Set CI environment variable to avoid pnpm TTY issues
 ENV CI=true
@@ -39,7 +39,7 @@ RUN pnpm -r build
 FROM node:20-alpine
 
 # Install pnpm matching lockfileVersion 9
-RUN npm install -g pnpm@9
+RUN npm install -g pnpm@10
 
 # Set CI environment variable to avoid pnpm TTY issues
 ENV CI=true
@@ -84,11 +84,11 @@ RUN mkdir -p /app/data
 # Set working directory for backend
 WORKDIR /app/backend
 
-# Expose port 7071 as specified
-EXPOSE 7071
+# Expose port 8080 (Railway default)
+EXPOSE 8080
 
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
-  CMD node -e "require('http').get('http://localhost:7071/health', (r) => {if (r.statusCode !== 200) throw new Error(r.statusCode)})" || exit 1
+  CMD node -e "const port = process.env.PORT || 7071; require('http').get('http://localhost:' + port + '/health', (r) => {if (r.statusCode !== 200) throw new Error(r.statusCode)})" || exit 1
 
 # Start application
 CMD ["node", "dist/server.js"]

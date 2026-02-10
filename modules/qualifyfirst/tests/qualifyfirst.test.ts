@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { QualifyFirstModule, qualifyFirst } from '../src/index';
+import { QualifyFirstModule, qualifyFirst } from '../src/index.js';
 import { eventRouter } from '@tiltcheck/event-router';
 
 describe('QualifyFirst Module', () => {
@@ -69,7 +69,7 @@ describe('QualifyFirst Module', () => {
         estimatedMinutes: 10,
         payoutUSD: 5.00,
         requiredTraits: { hasPets: true },
-        excludedTraits: {},
+        excludedTraits: new Map(),
         source: 'partner',
       });
 
@@ -93,7 +93,7 @@ describe('QualifyFirst Module', () => {
         estimatedMinutes: 10,
         payoutUSD: 5.00,
         requiredTraits: { hasPets: true },
-        excludedTraits: {},
+        excludedTraits: new Map(),
         source: 'partner',
       });
 
@@ -112,8 +112,8 @@ describe('QualifyFirst Module', () => {
         description: 'Survey for everyone',
         estimatedMinutes: 5,
         payoutUSD: 2.00,
-        requiredTraits: {},
-        excludedTraits: {},
+        requiredTraits: new Map(),
+        excludedTraits: new Map(),
         source: 'user-submitted',
       });
     });
@@ -169,7 +169,7 @@ describe('QualifyFirst Module', () => {
         estimatedMinutes: 20,
         payoutUSD: 10.00,
         requiredTraits: { medicalComfort: true },
-        excludedTraits: {},
+        excludedTraits: new Map(),
         source: 'partner',
       });
 
@@ -202,8 +202,8 @@ describe('QualifyFirst Module', () => {
         description: 'Test',
         estimatedMinutes: 10,
         payoutUSD: 5.00,
-        requiredTraits: {},
-        excludedTraits: {},
+        requiredTraits: new Map(),
+        excludedTraits: new Map(),
         source: 'partner',
       });
 
@@ -236,8 +236,8 @@ describe('QualifyFirst Module', () => {
         description: 'Test',
         estimatedMinutes: 10,
         payoutUSD: 5.00,
-        requiredTraits: {},
-        excludedTraits: {},
+        requiredTraits: new Map(),
+        excludedTraits: new Map(),
         source: 'partner',
       });
 
@@ -268,8 +268,8 @@ describe('QualifyFirst Module', () => {
         description: 'Test 1',
         estimatedMinutes: 10,
         payoutUSD: 5.00,
-        requiredTraits: {},
-        excludedTraits: {},
+        requiredTraits: new Map(),
+        excludedTraits: new Map(),
         source: 'partner',
       });
 
@@ -278,8 +278,8 @@ describe('QualifyFirst Module', () => {
         description: 'Test 2',
         estimatedMinutes: 10,
         payoutUSD: 7.00,
-        requiredTraits: {},
-        excludedTraits: {},
+        requiredTraits: new Map(),
+        excludedTraits: new Map(),
         source: 'partner',
       });
 

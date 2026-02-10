@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chrome Extension Subscription - TiltCheck</title>
+  <link rel="stylesheet" href="/styles/theme.css">
+  <link rel="stylesheet" href="/styles/main.css">
+  <link rel="icon" type="image/svg+xml" href="/assets/logo/favicon-white.svg">
+  <link rel="icon" type="image/png" sizes="32x32" href="/assets/logo/favicon.png">
+  <link rel="icon" type="image/x-icon" href="/assets/logo/favicon.ico">
+  <link rel="apple-touch-icon" sizes="180x180" href="/assets/logo/tiltcheck-logo-192.png">
+  <style>
+    .subscription-container {
+      max-width: 800px;
+      margin: 80px auto 40px;
+      padding: 0 20px;
+    }
+
+    .subscription-hero {
+      text-align: center;
+      margin-bottom: 50px;
+    }
+
+    .subscription-hero h1 {
+      font-size: 2.5rem;
+      color: #00d4aa;
+      margin-bottom: 12px;
+    }
+
+    .subscription-hero p {
+      font-size: 1.2rem;
+      color: #888;
+    }
+
+    .pricing-card {
+      background: #1a1f24;
+      border: 2px solid #00d4aa;
+      border-radius: 16px;
+      padding: 40px;
+      margin-bottom: 30px;
+    }
+
+    .pricing-header {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    .price {
+      font-size: 3rem;
+      color: #00d4aa;
+      font-weight: 700;
+      margin: 16px 0;
+    }
+
+    .price small {
+      font-size: 1.2rem;
+      color: #888;
+      font-weight: 400;
+    }
+
+    .trial-badge {
+      display: inline-block;
+      background: #ff6b6b;
+      color: white;
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-weight: 600;
+      font-size: 0.9rem;
+      margin-bottom: 12px;
+    }
+
+    .features-list {
+      list-style: none;
+      margin: 30px 0;
+    }
+
+    .features-list li {
+      padding: 12px 0;
+      border-bottom: 1px solid #2a2f34;
+      color: #eee;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .features-list li:last-child {
+      border-bottom: none;
+    }
+
+    .subscribe-btn {
+      width: 100%;
+      padding: 18px;
+      background: #00d4aa;
+      color: #0a0e13;
+      border: none;
+      border-radius: 8px;
+      font-size: 1.2rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .subscribe-btn:hover {
+      background: #00ffcc;
+      transform: translateY(-2px);
+    }
+
+    .subscribe-btn:disabled {
+      background: #2a2f34;
+      color: #666;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .subscription-status {
+      background: #0f1419;
+      border-left: 4px solid #00d4aa;
+      padding: 20px;
+      border-radius: 8px;
+      margin-bottom: 30px;
+    }
+
+    .subscription-status.trial {
+      border-color: #ff6b6b;
+    }
+
+    .subscription-status.active {
+      border-color: #00d4aa;
+    }
+
+    .subscription-status.expired {
+      border-color: #ffa500;
+    }
+
+    .faq {
+      margin-top: 50px;
+    }
+
+    .faq h2 {
+      color: #00d4aa;
+      margin-bottom: 24px;
+    }
+
+    .faq-item {
+      background: #1a1f24;
+      padding: 20px;
+      border-radius: 8px;
+      margin-bottom: 16px;
+    }
+
+    .faq-item h3 {
+      color: #00d4aa;
+      font-size: 1.1rem;
+      margin-bottom: 8px;
+    }
+
+    .faq-item p {
+      color: #ccc;
+      line-height: 1.6;
+    }
+  </style>
+</head>
+<body>
+  <!-- Top Navigation -->
+  <nav class="top-nav" role="navigation" aria-label="Primary navigation">
+    <a href="/">Home</a>
+    <a href="/casinos.html">Casinos</a>
+    <a href="/degen-trust.html">Degens</a>
+    <a href="/dashboard">Dashboard</a>
+    <a href="/about.html">About</a>
+    <a href="#" class="discord-login-btn" class="discord-login-btn" style="background: #5865F2; color: white; padding: 8px 16px; border-radius: 6px; text-decoration: none; font-weight: 600; margin-left: auto;">
+      Login
+    </a>
+  </nav>
+
+  <div class="subscription-container">
+    <div class="subscription-hero">
+      <h1>🔌 TiltCheck Chrome Extension</h1>
+      <p>Real-time tilt detection and casino safety while you browse</p>
+    </div>
+
+    <!-- Subscription Status -->
+    <div id="subscription-status" style="display: none;"></div>
+
+    <!-- Pricing Card -->
+    <div class="pricing-card">
+      <div class="pricing-header">
+        <div class="trial-badge">🎁 14-Day Free Trial</div>
+        <div class="price">$5<small>/month</small></div>
+        <p style="color: #888; font-size: 1.1rem;">Cancel anytime, no commitments</p>
+      </div>
+
+      <ul class="features-list">
+        <li>✅ Real-time casino trust scores on any site</li>
+        <li>✅ Automatic SusLink scanning for phishing protection</li>
+        <li>✅ Tilt detection alerts while browsing gambling sites</li>
+        <li>✅ One-click access to TiltCheck tools</li>
+        <li>✅ Sync with your Discord bot activity</li>
+        <li>✅ Browser notification for sus links</li>
+        <li>✅ Priority support</li>
+      </ul>
+
+      <button id="subscribe-btn" class="subscribe-btn">Start 14-Day Free Trial</button>
+      
+      <p style="text-align: center; color: #666; font-size: 0.9rem; margin-top: 16px;">
+        Free trial includes all premium features. $5/month after trial ends.
+      </p>
+    </div>
+
+    <!-- Founder Exception Notice -->
+    <div id="founder-notice" style="display: none; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 12px; padding: 24px; text-align: center; margin-bottom: 30px;">
+      <h3 style="color: white; font-size: 1.4rem; margin-bottom: 8px;">👑 Founder Access</h3>
+      <p style="color: rgba(255, 255, 255, 0.9); font-size: 1.1rem;">
+        As the founder, you have permanent premium access to all TiltCheck features at no cost.
+      </p>
+    </div>
+
+    <!-- FAQ Section -->
+    <div class="faq">
+      <h2>❓ Frequently Asked Questions</h2>
+
+      <div class="faq-item">
+        <h3>How does the free trial work?</h3>
+        <p>
+          Get full access to all Chrome extension features for 14 days, no credit card required. 
+          After the trial, you'll be prompted to subscribe at $5/month to continue using the extension.
+        </p>
+      </div>
+
+      <div class="faq-item">
+        <h3>What happens after the trial ends?</h3>
+        <p>
+          The extension will prompt you to subscribe. If you choose not to subscribe, 
+          you'll still have access to basic features, but advanced real-time scanning and 
+          notifications will be disabled.
+        </p>
+      </div>
+
+      <div class="faq-item">
+        <h3>Can I cancel anytime?</h3>
+        <p>
+          Absolutely! Cancel from your settings page at any time. Your access continues until 
+          the end of your current billing period, no refunds for partial months.
+        </p>
+      </div>
+
+      <div class="faq-item">
+        <h3>Is my payment information secure?</h3>
+        <p>
+          We use Stripe for all payment processing. TiltCheck never sees or stores your 
+          credit card information. All transactions are encrypted and PCI-compliant.
+        </p>
+      </div>
+
+      <div class="faq-item">
+        <h3>Do I need a Discord account?</h3>
+        <p>
+          Yes, the Chrome extension syncs with your TiltCheck Discord account to provide 
+          personalized tilt detection and trust scores based on your activity.
+        </p>
+      </div>
+
+      <div class="faq-item">
+        <h3>What about the Discord bot?</h3>
+        <p>
+          The TiltCheck Discord bot is completely free and will always be free. 
+          The Chrome extension is a premium add-on for users who want browser-based protection.
+        </p>
+      </div>
+    </div>
+
+    <div style="text-align: center; margin-top: 50px; padding: 30px; background: #1a1f24; border-radius: 12px;">
+      <p style="color: #888; margin-bottom: 12px;">Need help or have questions?</p>
+      <a href="/contact.html" style="color: #00d4aa; font-weight: 600; text-decoration: underline;">Contact Support</a>
+    </div>
+  </div>
+
+  <script src="https://js.stripe.com/v3/"></script>
+  <script src="/scripts/auth.js"></script>
+  <script>
+    // Stripe public key (will be loaded from API)
+    let stripe = null;
+
+    // Initialize Stripe when the page loads
+    async function initStripe() {
+      try {
+        const response = await fetch('/api/stripe/config');
+        if (response.ok) {
+          const config = await response.json();
+          if (config.publicKey) {
+            stripe = Stripe(config.publicKey);
+          }
+        }
+      } catch (error) {
+        console.warn('Could not initialize Stripe:', error);
+      }
+    }
+
+    // Check subscription status
+    async function checkSubscription() {
+      const user = window.tiltCheckAuth?.getUser();
+      
+      if (!user) {
+        document.getElementById('subscribe-btn').textContent = 'Login to Subscribe';
+        document.getElementById('subscribe-btn').onclick = () => {
+          window.location.href = '/play/';
+        };
+        return;
+      }
+
+      // Founder/premium users get free access (configured server-side)
+      // Check with the subscription API which handles founder exceptions
+      try {
+        const response = await fetch(`/api/stripe/subscription-status?userId=${encodeURIComponent(user.id)}&username=${encodeURIComponent(user.username || '')}`);
+        if (response.ok) {
+          const data = await response.json();
+          if (data.ok && data.subscription) {
+            // Handle founder status from server
+            if (data.subscription.status === 'founder') {
+              document.getElementById('founder-notice').style.display = 'block';
+              document.getElementById('subscribe-btn').style.display = 'none';
+              document.querySelector('.pricing-card').style.opacity = '0.6';
+              return;
+            }
+            updateUIWithSubscription(data.subscription);
+            return;
+          }
+        }
+      } catch (error) {
+        console.warn('Could not fetch subscription status from server:', error);
+      }
+
+      // Fallback to localStorage
+      const sub = getSubscriptionStatus(user.id);
+      updateUIWithSubscription(sub);
+    }
+
+    function updateUIWithSubscription(sub) {
+      if (sub.status === 'trial') {
+        showSubscriptionStatus('trial', `Trial ends in ${sub.daysRemaining} days`);
+        document.getElementById('subscribe-btn').textContent = 'Subscribe Now';
+        document.getElementById('subscribe-btn').onclick = handleSubscribe;
+      } else if (sub.status === 'active') {
+        showSubscriptionStatus('active', 'Active subscription - thank you! 💚');
+        document.getElementById('subscribe-btn').textContent = 'Manage Subscription';
+        document.getElementById('subscribe-btn').onclick = () => {
+          window.location.href = '/settings.html#subscription';
+        };
+      } else if (sub.status === 'expired') {
+        showSubscriptionStatus('expired', 'Trial expired - subscribe to continue');
+        document.getElementById('subscribe-btn').textContent = 'Subscribe Now';
+        document.getElementById('subscribe-btn').onclick = handleSubscribe;
+      } else if (sub.status === 'cancelled') {
+        showSubscriptionStatus('expired', 'Subscription cancelled');
+        document.getElementById('subscribe-btn').textContent = 'Resubscribe';
+        document.getElementById('subscribe-btn').onclick = handleSubscribe;
+      } else {
+        document.getElementById('subscribe-btn').textContent = 'Start Free Trial';
+        document.getElementById('subscribe-btn').onclick = handleSubscribe;
+      }
+    }
+
+    function showSubscriptionStatus(status, message) {
+      const statusDiv = document.getElementById('subscription-status');
+      statusDiv.style.display = 'block';
+      statusDiv.className = `subscription-status ${status}`;
+      statusDiv.innerHTML = `
+        <div style="font-weight: 600; color: #00d4aa; margin-bottom: 4px;">
+          ${status === 'trial' ? '🎁 Trial Active' : status === 'active' ? '✅ Subscribed' : '⚠️ Trial Expired'}
+        </div>
+        <div style="color: #ccc;">${message}</div>
+      `;
+    }
+
+    function getSubscriptionStatus(userId) {
+      const key = `subscription_${userId}`;
+      const saved = localStorage.getItem(key);
+      
+      if (!saved) {
+        // New user - start trial
+        const trialEnd = new Date();
+        trialEnd.setDate(trialEnd.getDate() + 14);
+        
+        const sub = {
+          status: 'trial',
+          trialEnd: trialEnd.toISOString(),
+          daysRemaining: 14
+        };
+        
+        localStorage.setItem(key, JSON.stringify(sub));
+        return sub;
+      }
+
+      const sub = JSON.parse(saved);
+      
+      // Calculate days remaining in trial
+      if (sub.status === 'trial') {
+        const now = new Date();
+        const end = new Date(sub.trialEnd);
+        const diffTime = end - now;
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        
+        sub.daysRemaining = Math.max(0, diffDays);
+        
+        if (sub.daysRemaining === 0) {
+          sub.status = 'expired';
+          localStorage.setItem(key, JSON.stringify(sub));
+        }
+      }
+      
+      return sub;
+    }
+
+    // Handle subscription button click
+    async function handleSubscribe() {
+      const user = window.tiltCheckAuth?.getUser();
+      
+      if (!user) {
+        window.location.href = '/play/';
+        return;
+      }
+
+      const btn = document.getElementById('subscribe-btn');
+      btn.disabled = true;
+      btn.textContent = 'Loading...';
+
+      try {
+        // Create checkout session on the server
+        const response = await fetch('/api/stripe/create-checkout-session', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            userId: user.id,
+            email: user.email,
+            username: user.username
+          })
+        });
+
+        const data = await response.json();
+
+        if (!data.ok) {
+          throw new Error(data.error || 'Failed to create checkout session');
+        }
+
+        // If we have a Stripe instance, redirect to checkout
+        if (stripe && data.sessionId) {
+          const result = await stripe.redirectToCheckout({ sessionId: data.sessionId });
+          if (result.error) {
+            throw new Error(result.error.message);
+          }
+        } else if (data.url) {
+          // Fallback: use the URL directly
+          window.location.href = data.url;
+        } else {
+          throw new Error('Stripe not configured. Please try again later.');
+        }
+      } catch (error) {
+        console.error('Subscription error:', error);
+        alert('Failed to start subscription: ' + error.message);
+        btn.disabled = false;
+        checkSubscription(); // Reset button text
+      }
+    }
+
+    // Check for success/cancel from Stripe redirect
+    function checkUrlParams() {
+      const params = new URLSearchParams(window.location.search);
+      const success = params.get('success');
+      const cancelled = params.get('cancelled');
+
+      if (success === 'true') {
+        const user = window.tiltCheckAuth?.getUser();
+        if (user) {
+          // Update local storage with active subscription
+          const key = `subscription_${user.id}`;
+          const sub = JSON.parse(localStorage.getItem(key) || '{}');
+          sub.status = 'active';
+          sub.activatedAt = new Date().toISOString();
+          localStorage.setItem(key, JSON.stringify(sub));
+        }
+        
+        showSubscriptionStatus('active', 'Subscription successful! Thank you for subscribing! 💚');
+        document.getElementById('subscribe-btn').textContent = 'Manage Subscription';
+        document.getElementById('subscribe-btn').onclick = () => {
+          window.location.href = '/settings.html#subscription';
+        };
+        
+        // Clean up URL
+        window.history.replaceState({}, '', window.location.pathname);
+      } else if (cancelled === 'true') {
+        showSubscriptionStatus('expired', 'Subscription was cancelled. You can try again anytime.');
+        // Clean up URL
+        window.history.replaceState({}, '', window.location.pathname);
+      }
+    }
+
+    // Initialize
+    document.addEventListener('DOMContentLoaded', () => {
+      initStripe();
+      checkUrlParams();
+    });
+
+    // Load subscription status when auth is ready
+    if (window.tiltCheckAuth) {
+      setTimeout(checkSubscription, 500);
+    } else {
+      window.addEventListener('load', () => {
+        setTimeout(checkSubscription, 500);
+      });
+    }
+  </script>
+</body>
+</html>

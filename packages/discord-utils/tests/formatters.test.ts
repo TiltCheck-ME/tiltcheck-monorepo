@@ -19,7 +19,7 @@ import {
   strikethrough,
   quote,
   spoiler,
-} from '../src/formatters';
+} from '../src/formatters.js';
 
 describe('discord-utils/formatters', () => {
   it('formatUrl truncates long urls', () => {

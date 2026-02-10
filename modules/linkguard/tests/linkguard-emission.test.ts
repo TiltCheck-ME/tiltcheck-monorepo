@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { emitDomainTrustFromLinkGuard, overrideLinkGuardDomain } from '../src/index';
+import { emitDomainTrustFromLinkGuard, overrideLinkGuardDomain } from '../src/index.js';
 import { eventRouter } from '@tiltcheck/event-router';
 
 describe('LinkGuard emission helper', () => {

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { pricingOracle, fetchJupiterPrice, fetchJupiterPrices } from '../src';
+import { pricingOracle, fetchJupiterPrice, fetchJupiterPrices } from '../src/index.js';
 import { eventRouter } from '@tiltcheck/event-router';
 
 describe('PricingOracle', () => {

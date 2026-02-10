@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { eventRouter } from '@tiltcheck/event-router';
-import { CollectClockService } from '../../collectclock/src/index';
+import { CollectClockService } from '../../collectclock/src/index.js';
 import '../src'; // ensure TrustEngines subscriptions active
 
 describe('Integration: CollectClock → TrustEngines', () => {

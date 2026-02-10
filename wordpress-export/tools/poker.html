@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Poker - Discord Texas Hold'em | TiltCheck</title>
+  <meta name="description" content="Play Texas Hold'em directly in Discord with turn-based actions, table management, and stat tracking." />
+  <link rel="stylesheet" href="../styles/tool-page.css" />
+</head>
+<body>
+  <nav class="navbar">
+    <div class="container">
+      <a href="/" class="logo">TiltCheck</a>
+      <div class="nav-links">
+        <a href="/#tools">Tools</a>
+        <a href="/dashboard">Dashboard</a>
+        <a href="https://discord.gg/s6NNfPHxMS" class="cta-small">Join Discord</a>
+        <a href="#" class="discord-login-btn" style="background: #5865F2; color: white; padding: 8px 16px; border-radius: 6px; text-decoration: none; font-weight: 600; margin-left: 8px;">Login</a>
+      </div>
+    </div>
+  </nav>
+
+  <header class="tool-header">
+    <div class="container">
+      <div class="tool-icon-large">🃏</div>
+      <h1>Poker (Hold'em)</h1>
+      <p class="tool-tagline">Full table logic in Discord</p>
+      <p class="built-by">
+        <a href="https://jmenichole.github.io/Portfolio/" target="_blank" rel="noopener">made for degens by degens</a>
+      </p>
+      <span class="status-badge status-soon">Coming Soon</span>
+    </div>
+  </header>
+
+  <section class="tool-overview">
+    <div class="container">
+      <div class="two-column">
+        <div>
+          <h2>What is it?</h2>
+          <p>Spin up a Texas Hold'em table in any channel. Invite friends. Play structured hands with betting rounds and automated pot resolution.</p>
+          <p>Designed for casual stat-tracked social play—not casino rake extraction.</p>
+        </div>
+        <div class="feature-box">
+          <h3>Planned Features</h3>
+          <ul>
+            <li>🪑 Dynamic table creation</li>
+            <li>🎮 Turn-based betting UI (buttons)</li>
+            <li>💬 Action summaries per street</li>
+            <li>📊 Player stats & win rates</li>
+            <li>🃏 Hand history archive</li>
+            <li>🏆 Session leaderboard</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="commands-section">
+    <div class="container">
+      <h2>Planned Commands</h2>
+      <div class="commands-grid">
+        <div class="command-card"><div class="command-name">/poker create</div><p>Create a new table and seat players</p><div class="command-example"><code>/poker create name:FridayNight</code></div></div>
+        <div class="command-card"><div class="command-name">/poker join</div><p>Seat yourself at an open table</p><div class="command-example"><code>/poker join table:FridayNight</code></div></div>
+        <div class="command-card"><div class="command-name">/poker start</div><p>Begin dealing a new hand</p><div class="command-example"><code>/poker start</code></div></div>
+        <div class="command-card"><div class="command-name">/poker stats</div><p>View personal lifetime & session stats</p><div class="command-example"><code>/poker stats</code></div></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="how-it-works">
+    <div class="container">
+      <h2>Game Flow</h2>
+      <div class="steps">
+        <div class="step"><div class="step-number">1</div><div class="step-content"><h3>Create table</h3><p>Command spawns a managed game context.</p></div></div>
+        <div class="step"><div class="step-number">2</div><div class="step-content"><h3>Deal + preflop</h3><p>Players receive hole cards; actions rotate.</p></div></div>
+        <div class="step"><div class="step-number">3</div><div class="step-content"><h3>Bet rounds</h3><p>Flop → Turn → River with structured options.</p></div></div>
+        <div class="step"><div class="step-number">4</div><div class="step-content"><h3>Showdown</h3><p>Best hand auto-evaluated; pot distributed.</p></div></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="tech-section">
+    <div class="container">
+      <h2>Technical Targets</h2>
+      <div class="tech-grid">
+        <div class="tech-item"><h4>Engine</h4><p>Deterministic deck + seat ordering</p></div>
+        <div class="tech-item"><h4>State</h4><p>In-memory session w/ persistence fallback</p></div>
+        <div class="tech-item"><h4>Actions</h4><p>Button + slash hybrid interactions</p></div>
+        <div class="tech-item"><h4>Evaluation</h4><p>Optimized 7-card rank resolver</p></div>
+        <div class="tech-item"><h4>Moderation</h4><p>Timeout autofold & AFK handling</p></div>
+        <div class="tech-item"><h4>Roadmap</h4><p>Later: tournaments & multi-table</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="cta-section">
+    <div class="container">
+      <h2>Want to test early builds?</h2>
+      <p>Join Discord and get flagged for Poker alpha access.</p>
+      <a href="https://discord.gg/tiltcheck" class="cta-button">Join Discord →</a>
+    </div>
+  </section>
+
+  <footer>
+    <div class="container">
+      <p><a href="/">Home</a> • <a href="/#tools">All Tools</a> • <a href="https://discord.gg/tiltcheck">Discord</a> • <a href="https://github.com/jmenichole/tiltcheck-monorepo">GitHub</a></p>
+      <p class="built-by">Built by <a href="https://github.com/jmenichole">jmenichole</a> • TiltCheck © 2024–2025</p>
+    </div>
+  </footer>
+  <script src="/scripts/auth.js"></script>
+</body>
+</html>

@@ -10,123 +10,46 @@ on:
   workflow_dispatch:
 
 jobs:
-  deploy:
-    name: Deploy to Production
+  build:
+    name: Build and Test
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: '10.0.0'
+
       - name: Setup Node.js
         uses: actions/setup-node@v6
         with:
           node-version: '20'
-
-      - name: Enable Corepack
-        run: corepack enable
-
-      - name: Activate pnpm 9 (lockfile v9)
-        run: corepack prepare pnpm@9.0.0 --activate
+          cache: 'pnpm'
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile --no-link-workspace-packages
+        run: pnpm install --frozen-lockfile
 
       - name: Build packages
-        run: pnpm run build
-
-      - name: Configure Docker PATH
         run: |
-          # Add Docker CLI to PATH if installed in $HOME/.docker/bin
-          if [ -d "$HOME/.docker/bin" ] && [[ ":$PATH:" != *":$HOME/.docker/bin:"* ]]; then
-            echo "$HOME/.docker/bin" >> $GITHUB_PATH
-          fi
+          pnpm --filter @tiltcheck/types build
+          pnpm --filter @tiltcheck/config build
+          pnpm --filter @tiltcheck/esm-utils build
+          pnpm --filter @tiltcheck/database build
+          pnpm --filter @tiltcheck/discord-utils build
 
-      - name: Build Docker image
+      - name: Build Discord bot
+        run: pnpm --filter @tiltcheck/discord-bot build
+
+      - name: Verify Docker build (without push)
         run: |
           docker build -f apps/discord-bot/Dockerfile -t tiltcheck-bot:${{ github.sha }} .
-          docker tag tiltcheck-bot:${{ github.sha }} tiltcheck-bot:latest
+          echo "✅ Docker image builds successfully"
 
-      - name: Validate Docker Hub credentials
-        if: github.event_name != 'pull_request'
-        env:
-          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
-          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
-        run: bash scripts/validate-docker-credentials.sh
-
-      - name: Log in to Docker Hub
-        if: github.event_name != 'pull_request'
-        uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
-
-      - name: Push to Docker Hub
-        if: github.event_name != 'pull_request'
+      - name: Deployment status
         run: |
-          docker tag tiltcheck-bot:latest ${{ secrets.DOCKER_USERNAME }}/tiltcheck-bot:latest
-          docker tag tiltcheck-bot:latest ${{ secrets.DOCKER_USERNAME }}/tiltcheck-bot:${{ github.sha }}
-          docker push ${{ secrets.DOCKER_USERNAME }}/tiltcheck-bot:latest
-          docker push ${{ secrets.DOCKER_USERNAME }}/tiltcheck-bot:${{ github.sha }}
-
-      - name: Deploy to server
-        if: github.event_name != 'pull_request'
-        uses: appleboy/ssh-action@v1.2.4
-        with:
-          host: ${{ secrets.DEPLOY_HOST }}
-          username: ${{ secrets.DEPLOY_USER }}
-          key: ${{ secrets.DEPLOY_SSH_KEY }}
-          script: |
-            cd /opt/tiltcheck
-            docker compose pull discord-bot
-            docker compose up -d discord-bot
-            docker system prune -f
-
-      - name: Verify deployment health
-        if: github.event_name != 'pull_request'
-        uses: appleboy/ssh-action@v1.2.4
-        with:
-          host: ${{ secrets.DEPLOY_HOST }}
-          username: ${{ secrets.DEPLOY_USER }}
-          key: ${{ secrets.DEPLOY_SSH_KEY }}
-          script: |
-            echo "Waiting for discord-bot to be ready..."
-            MAX_ATTEMPTS=30
-            ATTEMPT=0
-            
-            while [ $ATTEMPT -lt $MAX_ATTEMPTS ]; do
-              ATTEMPT=$((ATTEMPT + 1))
-              echo "Attempt $ATTEMPT/$MAX_ATTEMPTS..."
-              
-              # Check if container is running
-              if ! docker ps | grep -q tiltcheck-bot; then
-                echo "Error: discord-bot container is not running"
-                docker ps -a | grep tiltcheck-bot || true
-                docker logs tiltcheck-bot --tail 50 || true
-                exit 1
-              fi
-              
-              # Check health endpoint using curl (fallback to wget if curl not available)
-              HEALTH_RESPONSE=$(docker exec tiltcheck-bot sh -c 'curl -sf http://localhost:8081/health 2>/dev/null || wget -q -O - http://localhost:8081/health 2>/dev/null' || echo "")
-              
-              if [ -n "$HEALTH_RESPONSE" ]; then
-                echo "Health response: $HEALTH_RESPONSE"
-                
-                # Check if ready field is true
-                if echo "$HEALTH_RESPONSE" | grep -q '"ready":true'; then
-                  echo "✅ Discord bot is healthy and ready!"
-                  exit 0
-                else
-                  echo "Bot is not ready yet, waiting..."
-                fi
-              else
-                echo "Health endpoint not responding yet..."
-              fi
-              
-              sleep 2
-            done
-            
-            echo "❌ Deployment verification failed: discord-bot did not become ready within timeout"
-            docker logs tiltcheck-bot --tail 100
-            exit 1
+          echo "ℹ️  Build successful!"
+          echo "ℹ️  Railway will automatically deploy from main branch"
+          echo "ℹ️  Check Railway dashboard for deployment status"

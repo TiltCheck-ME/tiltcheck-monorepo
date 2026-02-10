@@ -6,6 +6,7 @@
  * - Solana Pay QR code signing
  * - Direct wallet-to-wallet transfers
  * - Multi-send airdrops
+ * - Prize distribution for trivia/games
  * - Token swaps via Jupiter aggregator
  * - Native LTC deposits with auto-swap to Solana tokens
  * - Flat $0.07 fee (non-custodial)
@@ -48,6 +49,19 @@ export {
   trackTransaction,
   cleanupPendingTransactions,
 } from './transaction-monitor.js';
+
+// Prize distribution exports
+export {
+  createPrizeDistribution,
+  monitorPrizeDistribution,
+  getPrizeDistribution,
+  getHostDistributions,
+  getDistributionLogs,
+  isAdmin,
+  cleanupExpiredDistributions,
+  clearPrizeDistributions,
+} from './prize-distribution.js';
+export type { PrizeDistribution, TransactionLog } from './prize-distribution.js';
 
 // Swap engine exports (Jupiter integration)
 export {

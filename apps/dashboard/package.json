@@ -12,15 +12,20 @@
     "@tanstack/react-query": "^5.90.12",
     "@tiltcheck/api-client": "workspace:*",
     "@tiltcheck/auth": "workspace:*",
+    "@tiltcheck/collectclock": "workspace:*",
+    "@tiltcheck/qualifyfirst": "workspace:*",
+    "@tiltcheck/walletcheck": "workspace:*",
+    "@tiltcheck/suslink": "workspace:*",
+    "@tiltcheck/logger": "workspace:*",
     "@tiltcheck/shared": "workspace:*",
     "@tiltcheck/types": "workspace:*",
     "next": "16.0.10",
-    "react": "^18.2.0",
+    "react": "^19.2.1",
     "react-dom": "^18.2.0"
   },
   "devDependencies": {
     "@types/node": "^20.10.0",
-    "@types/react": "^18.2.0",
+    "@types/react": "^19.2.7",
     "@types/react-dom": "^18.2.0",
     "typescript": "^5.3.0"
   }

@@ -5,7 +5,7 @@
  * Exposes game arena, multiplayer games, and real-time WebSocket connections.
  * Uses @tiltcheck/supabase-auth for Discord OAuth via Supabase.
  * 
- * Deployed as a separate service via Spaceship Hyperlift on port 7071.
+ * Deployed on Railway using PORT env var (default: 8080).
  */
 
 import express from 'express';
@@ -19,6 +19,7 @@ import { config, validateConfig } from './config.js';
 import { GameManager } from './game-manager.js';
 import { statsService } from './stats-service.js';
 import tiltRoutes from './routes/tilt.js';
+import claimRoutes from './routes/claim.js';
 import {
   createAuthClient,
   type SupabaseAuthClient,
@@ -355,6 +356,9 @@ app.get('/api/stats/:discordId', async (req, res) => {
 
 // Tilt events API routes
 app.use('/api/tilt', tiltRoutes);
+
+// Claim API routes for TiltCheck Auto-Claimer
+app.use('/api/claim', claimRoutes);
 
 // Game archive AI analysis routes (admin only)
 import gameArchiveRoutes from './routes/admin/game-archive.js';

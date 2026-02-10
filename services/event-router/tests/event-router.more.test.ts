@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { eventRouter } from '../src';
+import { eventRouter } from '../src/index.js';
 
 describe('EventRouter edge cases', () => {
   it('filters history by type, source, and userId', async () => {
