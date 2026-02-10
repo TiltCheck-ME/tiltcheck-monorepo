@@ -17,10 +17,26 @@ jobs:
         uses: actions/setup-node@v6
         with:
           node-version: 20
+
       - name: Enable Corepack
         run: corepack enable
+
       - name: Activate pnpm 9 (lockfile v9)
         run: corepack prepare pnpm@9.0.0 --activate
+
+      - name: Get pnpm store directory
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+
+      - name: Cache pnpm dependencies
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-
+
       - name: Install deps (frozen lockfile)
         run: pnpm install --frozen-lockfile --no-link-workspace-packages
         env:
@@ -81,10 +97,26 @@ jobs:
         uses: actions/setup-node@v6
         with:
           node-version: 20
+
       - name: Enable Corepack
         run: corepack enable
+
       - name: Activate pnpm 9 (lockfile v9)
         run: corepack prepare pnpm@9.0.0 --activate
+
+      - name: Get pnpm store directory
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+
+      - name: Cache pnpm dependencies
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-
+
       - name: Install deps (frozen lockfile)
         run: pnpm install --frozen-lockfile --no-link-workspace-packages
         env:
@@ -111,10 +143,26 @@ jobs:
         uses: actions/setup-node@v6
         with:
           node-version: 20
+
       - name: Enable Corepack
         run: corepack enable
+
       - name: Activate pnpm 9 (lockfile v9)
         run: corepack prepare pnpm@9.0.0 --activate
+
+      - name: Get pnpm store directory
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+
+      - name: Cache pnpm dependencies
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-
+
       - name: Install deps (frozen lockfile)
         run: pnpm install --frozen-lockfile --no-link-workspace-packages
         env:
