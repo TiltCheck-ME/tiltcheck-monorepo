@@ -35,8 +35,10 @@ build-test:
     - pnpm lint || echo "Lint failed but continuing"
     - pnpm test || echo "Tests failed but continuing"
     - mkdir -p coverage
+    - echo "Pipeline run at $(date)" > coverage/pipeline-info.txt
   artifacts:
     when: always
+    optional: true
     paths:
       - coverage/
     expire_in: 1 week
