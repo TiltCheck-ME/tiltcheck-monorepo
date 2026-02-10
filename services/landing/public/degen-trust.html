@@ -34,6 +34,7 @@
   </style>
 </head>
 <body>
+  <div id="shared-nav"></div>
   <nav class="navbar">
     <div class="container">
       <a href="/" class="logo">TiltCheck</a>
@@ -187,6 +188,7 @@
     </div>
   </section>
 
+  <div id="shared-footer"></div>
   <footer>
     <div class="container">
       <p>
@@ -216,5 +218,13 @@
     </div>
   </footer>
   <script src="/scripts/auth.js"></script>
+  <script>
+    (function(){
+      const navMount = document.getElementById('shared-nav');
+      const footerMount = document.getElementById('shared-footer');
+      if (navMount) { fetch('/components/nav.html').then(r=>r.text()).then(html=>{ navMount.innerHTML = html; }).catch(()=>{}); }
+      if (footerMount) { fetch('/components/footer.html').then(r=>r.text()).then(html=>{ footerMount.innerHTML = html; }).catch(()=>{}); }
+    })();
+  </script>
 </body>
 </html>
