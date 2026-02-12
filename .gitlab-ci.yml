@@ -16,7 +16,7 @@ cache:
 
 before_script:
   - corepack enable
-  - corepack prepare pnpm@10.29.1 --activate
+  - corepack prepare pnpm@9.0.0 --activate
   - pnpm config set store-dir .pnpm-store
   - pnpm install --frozen-lockfile
 
@@ -29,17 +29,10 @@ build-test:
   script:
     - mkdir -p coverage
     - echo "Pipeline run at $(date)" > coverage/pipeline-info.txt
-    # Mirroring the core build steps from GitHub Actions for reliability
-    - |
-      pnpm --filter @tiltcheck/types run build
-      pnpm --filter @tiltcheck/config run build
-      pnpm --filter @tiltcheck/esm-utils run build
-      pnpm --filter @tiltcheck/database run build
-      pnpm --filter @tiltcheck/shared build
-      pnpm --filter @tiltcheck/auth build
+    # pnpm build runs scripts/ordered-build.sh which handles all dependencies correctly
     - pnpm build
-    - pnpm lint || echo "Lint failed but continuing"
-    - pnpm test || echo "Tests failed but continuing"
+    - pnpm lint
+    - pnpm test
     - |
       if [ ! -f coverage/index.html ] && [ ! -f coverage/lcov.info ]; then
         echo "No coverage files found, creating placeholder" > coverage/no-coverage.txt

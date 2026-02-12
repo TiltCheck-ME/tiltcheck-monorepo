@@ -47,6 +47,7 @@ export {
 
 export {
   trackTransaction,
+  trackTransactionByReference,
   cleanupPendingTransactions,
 } from './transaction-monitor.js';
 

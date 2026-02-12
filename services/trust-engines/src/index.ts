@@ -20,6 +20,7 @@
  */
 
 import { eventRouter } from '@tiltcheck/event-router';
+import { db } from '@tiltcheck/database';
 import type { TiltCheckEvent, TrustCasinoUpdateEvent } from '@tiltcheck/types';
 import fs from 'fs';
 import path from 'path';
@@ -418,6 +419,10 @@ export class TrustEnginesService {
     );
 
     this.log('info', `Degen ${userId} score: ${previousScore} → ${record.score} (${category}: ${reason})`);
+    
+    // Persist to database
+    void db.updateTrustScore(userId, record.score);
+    
     this.persist();
   }
 

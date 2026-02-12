@@ -11,8 +11,9 @@ import {
   getWalletBalance,
   hasWallet,
   createTipWithFeeRequest,
+  trackTransactionByReference,
+  getPendingTips,
 } from '@tiltcheck/justthetip';
-// TODO: Import trackTransaction once we can extract signatures from user wallet responses
 import { parseAmount, formatAmount } from '@tiltcheck/natural-language-parser';
 import { isOnCooldown } from '@tiltcheck/tiltcheck-core';
 import { Connection } from '@solana/web3.js';
@@ -144,12 +145,32 @@ async function handleWallet(interaction: ChatInputCommandInteraction) {
 
     await interaction.reply({ embeds: [embed], ephemeral: true });
   } else if (action === 'register-magic') {
-    await interaction.reply({
-      content: '❌ **Magic Link Not Supported**\n\n' +
-        'We use Solana Pay QR codes for signing instead of Magic Link.\n' +
-        'Please use `/justthetip wallet register-external` to connect your Phantom or Solflare wallet.',
-      ephemeral: true,
-    });
+    if (db.isConnected()) {
+      const identity = await db.getDegenIdentity(interaction.user.id);
+      if (identity?.magic_address) {
+        await interaction.reply({
+          content: `✅ You already have a **Degen Identity** wallet linked:\n\`${identity.magic_address}\``,
+          ephemeral: true,
+        });
+        return;
+      }
+    }
+
+    const dashboardUrl = process.env.DASHBOARD_URL || 'https://tiltcheck.me/dashboard';
+    const linkUrl = `${dashboardUrl}?action=link-magic&userId=${interaction.user.id}`;
+    
+    const embed = new EmbedBuilder()
+      .setColor(0x8A2BE2)
+      .setTitle('✨ Register with Magic Link')
+      .setDescription('Connect your email to create a secure **Soft-Custody** wallet for tipping and vaulting.')
+      .addFields(
+        { name: 'Step 1', value: `[Click here to open Dashboard](${linkUrl})` },
+        { name: 'Step 2', value: 'Login with your Email' },
+        { name: 'Step 3', value: 'Link your Discord account' }
+      )
+      .setFooter({ text: 'TiltCheck • Trust & Safety' });
+
+    await interaction.reply({ embeds: [embed], ephemeral: true });
   } else if (action === 'register-external') {
     const address = interaction.options.getString('address');
     
@@ -253,29 +274,40 @@ async function handleTip(interaction: ChatInputCommandInteraction) {
 
   // Check if recipient has wallet
   const recipientWallet = getWallet(recipient.id);
+  const senderWallet = getWallet(interaction.user.id);
   
+  if (!senderWallet) {
+    throw new Error('Sender wallet not found');
+  }
+
   if (!recipientWallet) {
     await interaction.editReply({
       content: `⚠️ ${recipient} doesn't have a wallet registered yet.\n` +
         'Your tip will be held for 24 hours. They can claim it by registering a wallet.',
     });
-    // TODO: Create pending tip
+    
+    // We can't really "hold" a non-custodial tip without the sender signing something,
+    // so we just log it as a pending intent for now.
     return;
   }
 
   // Generate Solana Pay deep link
   try {
-    const senderWallet = getWallet(interaction.user.id);
-    if (!senderWallet) {
-      throw new Error('Sender wallet not found');
-    }
-
-    const { url } = await createTipWithFeeRequest(
+    const { url, reference } = await createTipWithFeeRequest(
       connection,
       senderWallet.address,
       recipientWallet.address,
       parsedAmount.value,
       `TiltCheck Tip to ${recipient.username}`
+    );
+
+    // Track the transaction by reference
+    trackTransactionByReference(
+      reference,
+      interaction.user.id,
+      'tip',
+      parsedAmount.value,
+      recipient.id
     );
 
     // Create button with Solana Pay deep link
@@ -345,12 +377,27 @@ async function handleBalance(interaction: ChatInputCommandInteraction) {
 }
 
 async function handlePending(interaction: ChatInputCommandInteraction) {
-  await interaction.reply({
-    content: '📋 **Pending Tips**\n\n' +
-      'Feature coming soon!\n' +
-      'You\'ll be able to see tips sent to you before you registered a wallet.',
-    ephemeral: true,
-  });
+  const pending = getPendingTips(interaction.user.id);
   
-  // TODO: Integrate with getPendingTips from justthetip module
+  if (pending.length === 0) {
+    await interaction.reply({
+      content: '📋 You have no pending tips.',
+      ephemeral: true,
+    });
+    return;
+  }
+
+  const embed = new EmbedBuilder()
+    .setColor(0x0099FF)
+    .setTitle('📋 Pending Tips')
+    .setDescription('These tips were sent to you before you registered your wallet.')
+    .addFields(
+      pending.map(tip => ({
+        name: `${tip.amount} SOL`,
+        value: `From: <@${tip.senderId}>\nExpires: <t:${Math.floor(tip.expiresAt / 1000)}:R>`,
+        inline: false
+      }))
+    );
+
+  await interaction.reply({ embeds: [embed], ephemeral: true });
 }

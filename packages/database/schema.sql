@@ -16,6 +16,12 @@ CREATE TABLE IF NOT EXISTS user_stats (
   total_wins INTEGER DEFAULT 0 NOT NULL,
   total_score INTEGER DEFAULT 0 NOT NULL,
   
+  -- Analytics stats
+  wagered_amount_sol DECIMAL DEFAULT 0 NOT NULL,
+  deposited_amount_sol DECIMAL DEFAULT 0 NOT NULL,
+  lost_amount_sol DECIMAL DEFAULT 0 NOT NULL,
+  profit_sol DECIMAL DEFAULT 0 NOT NULL,
+  
   -- Degens Against Decency stats
   dad_games INTEGER DEFAULT 0 NOT NULL,
   dad_wins INTEGER DEFAULT 0 NOT NULL,
@@ -91,6 +97,48 @@ CREATE INDEX IF NOT EXISTS idx_game_history_type ON game_history(game_type);
 CREATE INDEX IF NOT EXISTS idx_game_history_platform ON game_history(platform);
 CREATE INDEX IF NOT EXISTS idx_game_history_completed ON game_history(completed_at DESC);
 CREATE INDEX IF NOT EXISTS idx_game_history_players ON game_history USING GIN(player_ids);
+
+-- Degen Identities Table
+-- Links Discord profiles to on-chain actions and Magic wallets
+CREATE TABLE IF NOT EXISTS degen_identities (
+  discord_id TEXT PRIMARY KEY REFERENCES user_stats(discord_id) ON DELETE CASCADE,
+  magic_address TEXT UNIQUE,
+  primary_external_address TEXT UNIQUE,
+  tos_accepted BOOLEAN DEFAULT false NOT NULL,
+  tos_nft_minted BOOLEAN DEFAULT false NOT NULL,
+  tos_nft_paid BOOLEAN DEFAULT false NOT NULL,
+  tos_nft_signature TEXT,
+  nft_savings_sol DECIMAL DEFAULT 0 NOT NULL,
+  trust_score FLOAT DEFAULT 50.0 NOT NULL,
+  identity_metadata JSONB DEFAULT '{}'::jsonb NOT NULL,
+  created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL,
+  updated_at TIMESTAMPTZ DEFAULT NOW() NOT NULL
+);
+
+-- Indexes for degen_identities
+CREATE INDEX IF NOT EXISTS idx_degen_identities_magic_address ON degen_identities(magic_address);
+CREATE INDEX IF NOT EXISTS idx_degen_identities_trust_score ON degen_identities(trust_score DESC);
+
+-- Trigger for degen_identities updated_at
+CREATE TRIGGER update_degen_identities_updated_at 
+  BEFORE UPDATE ON degen_identities 
+  FOR EACH ROW 
+  EXECUTE FUNCTION update_updated_at_column();
+
+-- RLS for degen_identities
+ALTER TABLE degen_identities ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Public read access for degen_identities" 
+  ON degen_identities FOR SELECT 
+  USING (true);
+
+CREATE POLICY "Service role can insert degen_identities" 
+  ON degen_identities FOR INSERT 
+  WITH CHECK (auth.role() = 'service_role');
+
+CREATE POLICY "Service role can update degen_identities" 
+  ON degen_identities FOR UPDATE 
+  USING (auth.role() = 'service_role');
 
 -- Triggers for updated_at
 CREATE OR REPLACE FUNCTION update_updated_at_column()

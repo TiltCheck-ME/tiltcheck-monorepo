@@ -20,6 +20,12 @@ export interface UserStats {
   total_wins: number;
   total_score: number;
   
+  // Analytics
+  wagered_amount_sol: number;
+  deposited_amount_sol: number;
+  lost_amount_sol: number;
+  profit_sol: number;
+  
   // DA&D stats
   dad_games: number;
   dad_wins: number;
@@ -48,6 +54,30 @@ export interface GameHistory {
   
   duration: number | null; // seconds
   completed_at: string;
+}
+
+export interface UserPreferences {
+  discord_id: string;
+  email_notifications: boolean;
+  tilt_warnings: boolean;
+  trust_updates: boolean;
+  weekly_digest: boolean;
+  updated_at: string;
+}
+
+export interface DegenIdentity {
+  discord_id: string;
+  magic_address: string | null;
+  primary_external_address: string | null;
+  tos_accepted: boolean;
+  tos_nft_minted: boolean;
+  tos_nft_paid: boolean;
+  tos_nft_signature: string | null;
+  nft_savings_sol: number;
+  trust_score: number;
+  identity_metadata: Record<string, any>;
+  created_at: string;
+  updated_at: string;
 }
 
 export class DatabaseClient {
@@ -230,6 +260,49 @@ export class DatabaseClient {
     return data as UserStats;
   }
 
+  async updateUserAnalytics(
+    discordId: string,
+    updates: {
+      wagered?: number;
+      deposited?: number;
+      lost?: number;
+      profit?: number;
+    }
+  ): Promise<UserStats | null> {
+    if (!this.supabase) return null;
+
+    const { data: stats, error: fetchError } = await this.supabase
+      .from('user_stats')
+      .select('*')
+      .eq('discord_id', discordId)
+      .single();
+
+    if (fetchError) return null;
+
+    const currentStats = stats as UserStats;
+    const increment: Partial<UserStats> = {
+      wagered_amount_sol: currentStats.wagered_amount_sol + (updates.wagered || 0),
+      deposited_amount_sol: currentStats.deposited_amount_sol + (updates.deposited || 0),
+      lost_amount_sol: currentStats.lost_amount_sol + (updates.lost || 0),
+      profit_sol: currentStats.profit_sol + (updates.profit || 0),
+      updated_at: new Date().toISOString()
+    };
+
+    const { data, error } = await this.supabase
+      .from('user_stats')
+      .update(increment)
+      .eq('discord_id', discordId)
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error updating analytics:', error);
+      return null;
+    }
+
+    return data as UserStats;
+  }
+
   /**
    * Get leaderboard
    */
@@ -309,10 +382,181 @@ export class DatabaseClient {
   }
 
   /**
+   * Get user preferences
+   */
+  async getUserPreferences(discordId: string): Promise<UserPreferences | null> {
+    if (!this.supabase) return null;
+
+    const { data, error } = await this.supabase
+      .from('user_preferences')
+      .select('*')
+      .eq('discord_id', discordId)
+      .single();
+
+    if (error && error.code !== 'PGRST116') {
+      console.error('Error fetching user preferences:', error);
+      return null;
+    }
+
+    return data as UserPreferences | null;
+  }
+
+  /**
+   * Update user preferences
+   */
+  async updateUserPreferences(discordId: string, preferences: Partial<Omit<UserPreferences, 'discord_id' | 'updated_at'>>): Promise<UserPreferences | null> {
+    if (!this.supabase) return null;
+
+    const { data, error } = await this.supabase
+      .from('user_preferences')
+      .upsert({
+        discord_id: discordId,
+        ...preferences,
+        updated_at: new Date().toISOString(),
+      })
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error updating user preferences:', error);
+      return null;
+    }
+
+    return data as UserPreferences;
+  }
+
+  /**
    * Get Supabase client for direct queries
    */
   getClient(): SupabaseClient | null {
     return this.supabase;
+  }
+
+  /**
+   * Get or create Degen Identity
+   */
+  async getDegenIdentity(discordId: string): Promise<DegenIdentity | null> {
+    if (!this.supabase) return null;
+
+    const { data, error } = await this.supabase
+      .from('degen_identities')
+      .select('*')
+      .eq('discord_id', discordId)
+      .single();
+
+    if (error && error.code !== 'PGRST116') {
+      console.error('Error fetching degen identity:', error);
+      return null;
+    }
+
+    return data as DegenIdentity | null;
+  }
+
+  /**
+   * Upsert Degen Identity
+   */
+  async upsertDegenIdentity(identity: Partial<DegenIdentity> & { discord_id: string }): Promise<DegenIdentity | null> {
+    if (!this.supabase) return null;
+
+    const { data, error } = await this.supabase
+      .from('degen_identities')
+      .upsert({
+        ...identity,
+        updated_at: new Date().toISOString(),
+      })
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error upserting degen identity:', error);
+      return null;
+    }
+
+    return data as DegenIdentity;
+  }
+
+  /**
+   * Update trust score
+   */
+  async updateTrustScore(discordId: string, trustScore: number): Promise<boolean> {
+    if (!this.supabase) return false;
+
+    const { error } = await this.supabase
+      .from('degen_identities')
+      .update({ trust_score: trustScore, updated_at: new Date().toISOString() })
+      .eq('discord_id', discordId);
+
+    if (error) {
+      console.error('Error updating trust score:', error);
+      return false;
+    }
+
+    return true;
+  }
+
+  /**
+   * Mint ToS NFT (Mock/Record)
+   */
+  async mintTosNft(discordId: string): Promise<boolean> {
+    if (!this.supabase) return false;
+
+    const { error } = await this.supabase
+      .from('degen_identities')
+      .update({ 
+        tos_nft_minted: true, 
+        updated_at: new Date().toISOString() 
+      })
+      .eq('discord_id', discordId);
+
+    if (error) {
+      console.error('Error recording NFT mint:', error);
+      return false;
+    }
+
+    return true;
+  }
+
+  async markNftPaid(discordId: string, signature: string): Promise<boolean> {
+    if (!this.supabase) return false;
+
+    const { error } = await this.supabase
+      .from('degen_identities')
+      .update({ 
+        tos_nft_paid: true,
+        tos_nft_signature: signature,
+        updated_at: new Date().toISOString() 
+      })
+      .eq('discord_id', discordId);
+
+    if (error) {
+      console.error('Error marking NFT paid:', error);
+      return false;
+    }
+
+    return true;
+  }
+
+  async updateNftSavings(discordId: string, amountSol: number): Promise<number> {
+    if (!this.supabase) return 0;
+
+    const { data: identity } = await this.supabase
+      .from('degen_identities')
+      .select('nft_savings_sol')
+      .eq('discord_id', discordId)
+      .single();
+
+    const currentSavings = Number(identity?.nft_savings_sol || 0);
+    const newSavings = currentSavings + amountSol;
+
+    await this.supabase
+      .from('degen_identities')
+      .update({ 
+        nft_savings_sol: newSavings, 
+        updated_at: new Date().toISOString() 
+      })
+      .eq('discord_id', discordId);
+
+    return newSavings;
   }
 
   /**
