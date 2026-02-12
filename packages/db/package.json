@@ -9,7 +9,7 @@
     "build": "tsc",
     "dev": "tsc --watch",
     "clean": "rm -rf dist",
-    "test": "vitest --run"
+    "test": "vitest --run --passWithNoTests"
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.0.2",

@@ -15,7 +15,8 @@
   "scripts": {
     "build": "tsc -b",
     "dev": "tsx src/index.ts",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "vitest --run --passWithNoTests tests"
   },
   "dependencies": {
     "@tiltcheck/event-router": "workspace:*",
@@ -25,6 +26,8 @@
   "devDependencies": {
     "tsx": "^4.7.0",
     "typescript": "^5.4.0",
-    "@types/bcryptjs": "^2.4.6"
+    "@types/bcryptjs": "^2.4.6",
+    "vitest": "^4.0.18"
   }
 }
+

@@ -25,7 +25,10 @@ export const jwtConfigSchema = z.object({
 export const serviceJwtConfigSchema = z.object({
   SERVICE_JWT_SECRET: z.string().min(32, 'SERVICE_JWT_SECRET must be at least 32 characters'),
   SERVICE_ID: z.string().min(1, 'SERVICE_ID is required'),
-  ALLOWED_SERVICES: z.string().transform((val: string) => val.split(',').filter(Boolean)).default(''),
+  ALLOWED_SERVICES: z
+    .string()
+    .transform((val: string) => val.split(',').filter(Boolean))
+    .default([]),
 });
 
 /**

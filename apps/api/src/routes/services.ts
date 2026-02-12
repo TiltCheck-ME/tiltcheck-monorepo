@@ -46,16 +46,13 @@ router.get('/health', (_req, res) => {
 router.post('/forward/:service', async (req, res) => {
   const { service: targetService } = req.params;
   const callerService = (req as any).service;
-  
-  // In a real implementation, this would forward to the target service
-  // with the caller's credentials and add X-User-Id, X-Roles headers
-  
-  res.json({
-    success: true,
-    message: `Request would be forwarded to ${targetService}`,
+
+  res.status(501).json({
+    success: false,
+    code: 'FORWARD_NOT_IMPLEMENTED',
+    message: 'Service forwarding is not implemented for beta',
     caller: callerService?.id,
     target: targetService,
-    body: req.body,
   });
 });
 
