@@ -34,7 +34,19 @@ export class FreeSpinScanModule {
     return this.submissions.filter(s => s.status === status);
   }
 
-  // Mod approval/denial
+  // Mod approval/denial (aliased for API consistency)
+  async approvePromo(submissionId: number, modId: string) {
+    return this.approveSubmission(submissionId, modId);
+  }
+
+  async denyPromo(submissionId: number, modId: string, reason?: string) {
+    return this.denySubmission(submissionId, modId, reason);
+  }
+
+  getPendingPromos(): any[] {
+    return this.getSubmissions('pending');
+  }
+
   async approveSubmission(submissionId: number, modId: string) {
     const submission = this.submissions.find(s => s.id === submissionId);
     if (!submission) throw new Error('Submission not found');

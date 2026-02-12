@@ -10,7 +10,14 @@ import { Client, GatewayIntentBits, Partials } from 'discord.js';
 import http from 'http';
 import fs from 'fs';
 import { config, validateConfig } from './config.js';
-import { CommandHandler, EventHandler, registerDMHandler, initializeTiltEventsHandler, initializeCollectClock } from './handlers/index.js';
+import { 
+  CommandHandler, 
+  EventHandler, 
+  registerDMHandler, 
+  initializeTiltEventsHandler, 
+  initializeCollectClock,
+  startBonusNotifier
+} from './handlers/index.js';
 import { initializeAlertService } from './services/alert-service.js';
 import { TrustAlertsHandler } from './handlers/trust-alerts-handler.js';
 
@@ -64,9 +71,9 @@ async function main() {
   // console.log('✅ [Trust] Trust alerts subscribed\n');
 
   // Initialize tilt events handler to persist to backend
-  console.log('💾 [Tilt] Skipped - Tilt events handler disabled');
-  // initializeTiltEventsHandler();
-  // console.log('✅ [Tilt] Tilt events handler ready\n');
+  console.log('💾 [Tilt] Initializing tilt events handler...');
+  initializeTiltEventsHandler();
+  console.log('✅ [Tilt] Tilt events handler ready\n');
 
   // Register DM handler for natural language assistance
   console.log('💬 [DM] Registering direct message handler...');
@@ -75,6 +82,7 @@ async function main() {
 
   // Initialize CollectClock
   initializeCollectClock();
+  startBonusNotifier(client);
 
   // Start trust adapter to listen for trust events and log formatted output
   console.log('📈 [Adapter] Skipped - Trust adapter disabled');

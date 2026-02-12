@@ -757,6 +757,75 @@ async function getUserId(): Promise<string> {
   });
 }
 
+// Listen for messages from popup
+chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
+  console.log('[TiltGuard] Message received:', message.type);
+
+  switch (message.type) {
+    case 'start_analysis':
+      startMonitoring().then(() => {
+        sendResponse({ success: true, sessionId });
+      }).catch(err => {
+        sendResponse({ success: false, error: err.message });
+      });
+      return true;
+
+    case 'stop_analysis':
+      stopMonitoring();
+      sendResponse({ success: true });
+      break;
+
+    case 'get_license_verification':
+      sendResponse(casinoVerification || { error: 'Not verified' });
+      break;
+
+    case 'get_tilt_status':
+      if (tiltDetector) {
+        sendResponse({
+          tiltRisk: tiltDetector.getTiltRiskScore(),
+          tiltSigns: tiltDetector.detectAllTiltSigns(),
+          sessionSummary: tiltDetector.getSessionSummary()
+        });
+      } else {
+        sendResponse({ error: 'Monitoring not active' });
+      }
+      break;
+
+    case 'get_session_stats':
+      if (tiltDetector) {
+        sendResponse(tiltDetector.getSessionSummary());
+      } else {
+        sendResponse({ error: 'Monitoring not active' });
+      }
+      break;
+
+    case 'get_pending_intervention':
+      if (interventionQueue.length > 0) {
+        sendResponse({ intervention: interventionQueue.shift() });
+      } else {
+        sendResponse({ intervention: null });
+      }
+      break;
+
+    case 'start_cooldown':
+      startCooldown(message.duration || 300000);
+      sendResponse({ success: true });
+      break;
+
+    case 'request_report':
+      if (tiltDetector) {
+        sendResponse({ success: true, report: (tiltDetector as any).generateReport ? (tiltDetector as any).generateReport() : { summary: tiltDetector.getSessionSummary() } });
+      } else {
+        sendResponse({ error: 'No data to report' });
+      }
+      break;
+
+    default:
+      sendResponse({ error: 'Unknown message type' });
+  }
+  return true;
+});
+
 // Initialize on load
 initialize();
 

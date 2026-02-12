@@ -51,6 +51,8 @@ function parseDuration(raw: string): number {
 class VaultManager {
   private vaults = new Map<string, LockVaultRecord>();
   private byUser = new Map<string, Set<string>>();
+  private autoVaults = new Map<string, AutoVaultSettings>();
+  private reloadSchedules = new Map<string, ReloadSchedule>();
   private persistencePath = process.env.LOCKVAULT_STORE_PATH || 'data/lockvault.json';
   private persistDebounce?: NodeJS.Timeout;
 

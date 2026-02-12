@@ -20,9 +20,15 @@ before_script:
   - pnpm config set store-dir .pnpm-store
   - pnpm install --frozen-lockfile
 
+after_script:
+  - mkdir -p coverage
+  - echo "Pipeline run at $(date)" > coverage/pipeline-info.txt
+
 build-test:
   stage: build-test
   script:
+    - mkdir -p coverage
+    - echo "Pipeline run at $(date)" > coverage/pipeline-info.txt
     # Mirroring the core build steps from GitHub Actions for reliability
     - |
       pnpm --filter @tiltcheck/types run build
@@ -34,11 +40,12 @@ build-test:
     - pnpm build
     - pnpm lint || echo "Lint failed but continuing"
     - pnpm test || echo "Tests failed but continuing"
-    - mkdir -p coverage
-    - echo "Pipeline run at $(date)" > coverage/pipeline-info.txt
+    - |
+      if [ ! -f coverage/index.html ] && [ ! -f coverage/lcov.info ]; then
+        echo "No coverage files found, creating placeholder" > coverage/no-coverage.txt
+      fi
   artifacts:
     when: always
-    optional: true
     paths:
       - coverage/
     expire_in: 1 week
