@@ -114,9 +114,9 @@ If bot doesn't respond, check logs for auth errors.
 ---
 
 ## 📚 Full Documentation
-- [DEPLOYMENT.md](./DEPLOYMENT.md) - Complete deployment guide
-- [docs/tiltcheck/](./docs/tiltcheck/) - Architecture & design docs
-- [MIGRATION.md](./MIGRATION.md) - Module migration guide
+- **[DEPLOYMENT.md](./docs/DEPLOYMENT.md)** - Complete deployment guide
+- **[docs/tiltcheck/](./docs/tiltcheck/)** - Architecture & design docs
+- **[GITHUB-AUTOMATION-SETUP.md](./docs/GITHUB-AUTOMATION-SETUP.md)** - Automation setup guide
 
 ---
 

@@ -78,8 +78,8 @@ TiltCheck includes comprehensive automation for security, reliability, and maint
 
 **Quick Start:**
 - Most automations are already active and require no setup
-- See [AUTOMATION-SETUP.md](./AUTOMATION-SETUP.md) for configuration guide
-- See [AUTOMATION-REFERENCE.md](./AUTOMATION-REFERENCE.md) for quick reference
+- See [GITHUB-AUTOMATION-SETUP.md](./docs/GITHUB-AUTOMATION-SETUP.md) for configuration guide
+- See [GITHUB-AUTOMATION-REFERENCE.md](./docs/GITHUB-AUTOMATION-REFERENCE.md) for quick reference
 
 ---
 
@@ -87,27 +87,13 @@ TiltCheck includes comprehensive automation for security, reliability, and maint
 
 ```
 tiltcheck-monorepo/
-├── docs/tiltcheck/          # Complete system documentation
-│   ├── 0-intro.md           # Ecosystem introduction
-│   ├── 1-brand.md           # Brand identity
-│   ├── 2-founder-voice.md   # Communication style
-│   ├── 3-ecosystem-overview.md
-│   ├── 4-tools-overview.md
-│   ├── 5-tool-specs-1.md    # JustTheTip, SusLink, CollectClock
-│   ├── 6-tool-specs-2.md    # FreeSpinScan, QualifyFirst
-│   ├── 7-tool-specs-3.md    # DA&D, TiltCheck Core, Funding Intelligence
-│   ├── 8-trust-engines.md   # Casino + Degen trust engines
-│   ├── 9-architecture.md    # System architecture
-│   ├── 10-data-models.md    # Database schemas
-│   ├── 11-system-prompts.md # AI behavior models
-│   ├── 12-apis.md           # API specifications
-│   ├── 13-discord-bots.md   # Discord bot architecture
-│   ├── 14-poker-module.md   # Future poker module
-│   ├── 15-future-roadmap.md # Development roadmap
-│   └── 16-diagrams.md       # System diagrams
-├── .github/
-│   ├── agents/              # Custom Copilot Agent
-│   └── workflows/           # CI/CD workflows
+├── apps/                    # User-facing applications (bot, web, dashboard)
+├── services/                # Backend infrastructure and core services
+├── modules/                 # Business logic modules (suslink, justthetip, etc.)
+├── packages/                # Shared libraries and utilities
+├── docs/                    # Documentation
+│   ├── history/             # Historical reports and one-off project docs
+│   └── tiltcheck/           # Core ecosystem specifications
 ├── scripts/                 # Utility / CI scripts
 ├── CONTRIBUTING.md          # Contribution guidelines
 ├── CHANGELOG.md             # Version history
@@ -247,11 +233,11 @@ Artifacts are written to `dist/components/` (including Lighthouse reports). See 
 
 Documentation is the single source of truth.  
 Start with:
-- `SETUP.md` for monorepo setup
-- `docs/tiltcheck/0-intro.md` for ecosystem overview
-- `docs/tiltcheck/9-architecture.md` for system design
-- `services/event-router/README.md` for event system
-- `docs/tiltcheck/13-discord-bots.md` for Discord integration
+- **[SETUP.md](./docs/SETUP.md)** for monorepo setup
+- **[docs/tiltcheck/0-intro.md](./docs/tiltcheck/0-intro.md)** for ecosystem overview
+- **[docs/tiltcheck/9-architecture.md](./docs/tiltcheck/9-architecture.md)** for system design
+- **[services/event-router/README.md](./services/event-router/README.md)** for event system
+- **[docs/tiltcheck/13-discord-bots.md](./docs/tiltcheck/13-discord-bots.md)** for Discord integration
 
 ### Questions?
 

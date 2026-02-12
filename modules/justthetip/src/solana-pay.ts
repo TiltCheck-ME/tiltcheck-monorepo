@@ -3,7 +3,7 @@
  * Generate payment requests that users sign with their own wallets
  */
 
-import { PublicKey, Transaction, SystemProgram, Connection } from '@solana/web3.js';
+import { PublicKey, Transaction, SystemProgram, Connection, Keypair } from '@solana/web3.js';
 import { encodeURL, createQR } from '@solana/pay';
 import BigNumber from 'bignumber.js';
 
@@ -14,6 +14,7 @@ export interface SolanaPayRequest {
   url: string;
   qrCode: string; // Base64 encoded PNG
   transaction: Transaction;
+  reference?: string; // Reference public key for tracking
 }
 
 /**
@@ -28,13 +29,15 @@ export async function createTransferRequest(
   amountSOL: number,
   label?: string,
   message?: string,
-): Promise<{ url: string; qrCode: string }> {
+): Promise<{ url: string; qrCode: string; reference: string }> {
   const recipient = new PublicKey(recipientAddress);
+  const reference = new Keypair().publicKey;
 
   // Create Solana Pay URL
   const url = encodeURL({
     recipient,
     amount: new BigNumber(amountSOL),
+    reference,
     label: label || 'TiltCheck Tip',
     message: message || `Sending ${amountSOL} SOL`,
   });
@@ -51,6 +54,7 @@ export async function createTransferRequest(
   return {
     url: url.toString(),
     qrCode: qrBase64,
+    reference: reference.toBase58(),
   };
 }
 
@@ -64,7 +68,7 @@ export async function createTipWithFeeRequest(
   recipientAddress: string,
   amountSOL: number,
   label?: string,
-): Promise<{ url: string; qrCode: string; signature?: string }> {
+): Promise<{ url: string; qrCode: string; reference: string }> {
   if (!FEE_WALLET) {
     console.warn('[SolanaPay] No fee wallet configured - fee will not be collected');
     // Fall back to simple transfer without fee
@@ -74,6 +78,7 @@ export async function createTipWithFeeRequest(
   const sender = new PublicKey(senderAddress);
   const recipient = new PublicKey(recipientAddress);
   const feeAccount = new PublicKey(FEE_WALLET);
+  const reference = new Keypair().publicKey;
 
   // Build transaction with tip + fee
   const transaction = new Transaction();
@@ -95,6 +100,13 @@ export async function createTipWithFeeRequest(
       lamports: Math.floor(FLAT_FEE_SOL * 1e9),
     })
   );
+
+  // Add reference to the first instruction for tracking
+  transaction.instructions[0].keys.push({
+    pubkey: reference,
+    isSigner: false,
+    isWritable: false,
+  });
 
   // Get recent blockhash
   const { blockhash } = await connection.getLatestBlockhash();
@@ -123,6 +135,7 @@ export async function createTipWithFeeRequest(
   return {
     url,
     qrCode: qrBase64,
+    reference: reference.toBase58(),
   };
 }
 
