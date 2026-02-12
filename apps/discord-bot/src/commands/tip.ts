@@ -1641,12 +1641,31 @@ async function handleDistribute(interaction: ChatInputCommandInteraction) {
   const totalRaw = interaction.options.getString('total', true);
   const context = (interaction.options.getString('context') || 'custom') as 'trivia' | 'airdrop' | 'custom';
 
-  // Parse total prize amount
-  const totalPrize = parseFloat(totalRaw);
-  if (isNaN(totalPrize) || totalPrize <= 0) {
+  // Use enhanced NLP parser for total prize amount
+  const parseResult = parseAmountNL(totalRaw);
+  if (!parseResult.success || !parseResult.data) {
     await interaction.editReply({
-      content: '❌ Invalid total amount. Provide a positive SOL value like `0.5` or `1`.',
+      content: `❌ ${parseResult.error || 'Invalid total amount.'}\n\nProvide a value like "0.5", "1 sol", or "$100".`,
     });
+    return;
+  }
+
+  const parsedAmount = parseResult.data;
+  let totalPrize = parsedAmount.value;
+
+  // Convert USD to SOL if needed
+  if (parsedAmount.currency === 'USD') {
+    try {
+      const solPrice = pricingOracle.getUsdPrice('SOL');
+      totalPrize = parsedAmount.value / solPrice;
+    } catch {
+      await interaction.editReply({ content: '❌ Unable to get current SOL price. Please try again or specify amount in SOL.' });
+      return;
+    }
+  }
+
+  if (totalPrize <= 0) {
+    await interaction.editReply({ content: '❌ Invalid total amount. Provide a positive value.' });
     return;
   }
 

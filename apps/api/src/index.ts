@@ -16,6 +16,7 @@ import { tipRouter } from './routes/tip.js';
 import { healthRouter } from './routes/health.js';
 import { errorHandler, notFoundHandler } from './middleware/error.js';
 import { requestLogger } from './middleware/logger.js';
+import { csrfProtection } from './middleware/csrf.js';
 
 const app = express();
 
@@ -74,6 +75,9 @@ app.use(express.urlencoded({ extended: true }));
 
 // Request logging
 app.use(requestLogger);
+
+// CSRF protection for non-GET requests
+app.use(csrfProtection);
 
 // Rate limiting (global fallback)
 const globalLimiter = rateLimit({

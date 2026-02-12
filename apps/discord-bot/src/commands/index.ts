@@ -30,7 +30,7 @@ export { walletcheck } from './walletcheck.js';
 // Support, trust dashboard, and tilt monitoring
 // export { support } from './support.js';
 // export { trustDashboard as trust } from './trust.js';
-// export { tiltcheck } from './tiltcheck.js';
+export { tiltcheck } from './tiltcheck.js';
 // export { data as dashboardData, execute as dashboardExecute } from './dashboard.js';
 
 // Cooldown and vault management

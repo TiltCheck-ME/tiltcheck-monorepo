@@ -12,6 +12,7 @@
 
 import { Client, Message, ChannelType } from 'discord.js';
 import { aiClient } from '@tiltcheck/ai-client';
+import { trackMessage } from '@tiltcheck/tiltcheck-core';
 import { hasWallet, getWallet, getSupportedTokens } from '@tiltcheck/justthetip';
 
 // Keywords for intent detection (fallback when AI is unavailable)
@@ -33,6 +34,9 @@ export async function handleDirectMessage(_client: Client, message: Message): Pr
 
   const userId = message.author.id;
   const content = message.content.toLowerCase().trim();
+
+  // Track message for tilt detection
+  trackMessage(userId, message.content, message.channelId);
 
   console.log(`[DM Handler] Received DM from ${message.author.tag}: ${content.substring(0, 50)}...`);
 

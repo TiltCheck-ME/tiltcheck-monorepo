@@ -105,19 +105,17 @@ export class CollectClockService {
     state.lastUpdated = Date.now();
     state.history.push({ amount: newAmount, updatedAt: state.lastUpdated });
 
+    // Prune in-memory history if exceeding max
+    if (this.cfg.maxHistoryEntries && state.history.length > this.cfg.maxHistoryEntries) {
+      state.history.splice(0, state.history.length - this.cfg.maxHistoryEntries);
+    }
+
     // External persistence if configured
     if (this.cfg.persistenceDir) {
       try {
         if (!fs.existsSync(this.cfg.persistenceDir)) fs.mkdirSync(this.cfg.persistenceDir, { recursive: true });
         const filePath = path.join(this.cfg.persistenceDir, `${casinoName}.json`);
-        const existing: any[] = fs.existsSync(filePath) ? JSON.parse(fs.readFileSync(filePath, 'utf8')) : [];
-        existing.push({ amount: newAmount, updatedAt: state.lastUpdated });
-        // Prune oldest if exceeding max
-        if (this.cfg.maxHistoryEntries && existing.length > this.cfg.maxHistoryEntries) {
-          const excess = existing.length - this.cfg.maxHistoryEntries;
-          existing.splice(0, excess);
-        }
-        this.writePersistent(filePath, existing);
+        this.writePersistent(filePath, state.history);
       } catch {}
     }
 

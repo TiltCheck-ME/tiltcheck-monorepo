@@ -3,18 +3,22 @@ import { lockvault } from '../../src/commands/lockvault.js';
 
 // Mock dependencies
 vi.mock('discord.js', () => ({
-  SlashCommandBuilder: vi.fn().mockReturnValue({
-    setName: vi.fn().mockReturnThis(),
-    setDescription: vi.fn().mockReturnThis(),
-    addSubcommand: vi.fn().mockReturnThis(),
+  SlashCommandBuilder: vi.fn().mockImplementation(function() {
+    return {
+      setName: vi.fn().mockReturnThis(),
+      setDescription: vi.fn().mockReturnThis(),
+      addSubcommand: vi.fn().mockReturnThis(),
+    };
   }),
   ChatInputCommandInteraction: vi.fn(),
-  EmbedBuilder: vi.fn().mockReturnValue({
-    setColor: vi.fn().mockReturnThis(),
-    setTitle: vi.fn().mockReturnThis(),
-    setDescription: vi.fn().mockReturnThis(),
-    addFields: vi.fn().mockReturnThis(),
-    setFooter: vi.fn().mockReturnThis(),
+  EmbedBuilder: vi.fn().mockImplementation(function() {
+    return {
+      setColor: vi.fn().mockReturnThis(),
+      setTitle: vi.fn().mockReturnThis(),
+      setDescription: vi.fn().mockReturnThis(),
+      addFields: vi.fn().mockReturnThis(),
+      setFooter: vi.fn().mockReturnThis(),
+    };
   }),
 }));
 
