@@ -6,6 +6,7 @@
 import { eventRouter } from '@tiltcheck/event-router';
 import { pricingOracle } from '@tiltcheck/pricing-oracle';
 import { randomUUID } from 'crypto';
+import type { TiltCheckEvent } from '@tiltcheck/types';
 import { getSolscanUrl } from './utils.js';
 
 // Wallet types supported
@@ -53,14 +54,14 @@ export class JustTheTipModule {
   private setupEventSubscriptions(): void {
     // Listen for tip send requests from other modules
     eventRouter.subscribe(
-      'tip.send',
+      'tip.requested',
       async (event: TiltCheckEvent) => {
         const { senderId, recipientId, amount, currency } = event.data as any;
         try {
           await this.initiateTip(senderId, recipientId, amount, currency || 'USD');
-          console.log(`[JustTheTip] Processed tip.send event: ${senderId} -> ${recipientId} (${amount} ${currency || 'USD'})`);
+          console.log(`[JustTheTip] Processed tip.requested event: ${senderId} -> ${recipientId} (${amount} ${currency || 'USD'})`);
         } catch (error) {
-          console.error(`[JustTheTip] Failed to process tip.send event:`, error);
+          console.error(`[JustTheTip] Failed to process tip.requested event:`, error);
         }
       },
       'justthetip'
