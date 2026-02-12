@@ -14,6 +14,8 @@ import { authRouter } from './routes/auth.js';
 import { servicesRouter } from './routes/services.js';
 import { tipRouter } from './routes/tip.js';
 import { healthRouter } from './routes/health.js';
+import { safetyRouter } from './routes/safety.js';
+import { affiliateRouter } from './routes/affiliate.js';
 import { errorHandler, notFoundHandler } from './middleware/error.js';
 import { requestLogger } from './middleware/logger.js';
 import { csrfProtection } from './middleware/csrf.js';
@@ -104,6 +106,12 @@ app.use('/services', servicesRouter);
 
 // JustTheTip tipping routes
 app.use('/tip', tipRouter);
+
+// Safety module routes
+app.use('/safety', safetyRouter);
+
+// Affiliate trust routes
+app.use('/affiliate', affiliateRouter);
 
 // ============================================================================
 // Error Handling

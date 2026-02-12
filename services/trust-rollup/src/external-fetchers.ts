@@ -7,14 +7,13 @@
  * - AskGamblers API for player complaints
  * - Public gaming commission databases for licensing verification
  * 
- * Falls back to mock data when APIs are unavailable or not configured.
+ * Does not fabricate trust data. If a source is unavailable, data is omitted.
  */
 
 // Configuration for external APIs
 const CASINO_GURU_API_KEY = process.env.CASINO_GURU_API_KEY;
 const ASKGAMBLERS_API_KEY = process.env.ASKGAMBLERS_API_KEY;
-// Force mock data via env var, or use mock when no API keys are configured
-const FORCE_MOCK_DATA = process.env.USE_MOCK_TRUST_DATA === 'true';
+const TRUST_FETCH_TIMEOUT_MS = parseInt(process.env.TRUST_FETCH_TIMEOUT_MS || '5000', 10);
 
 // Simple fetch wrapper with timeout - handles abort correctly
 async function fetchWithTimeout(url: string, options: RequestInit = {}, timeoutMs = 5000): Promise<Response> {
@@ -62,7 +61,7 @@ export interface CasinoExternalData {
     reputation: 'good' | 'neutral' | 'poor';
     source: string;
   };
-  dataSource: 'api' | 'mock';
+  dataSource: 'api' | 'unavailable';
   fetchedAt: number;
 }
 
@@ -80,14 +79,13 @@ const casinoDomains: Record<string, string> = {
 
 /**
  * Fetch RTP data from external sources
- * Uses CasinoGuru API when available, falls back to mock
+ * Uses CasinoGuru API when available
  */
 export async function fetchRTPData(casinoName: string): Promise<CasinoExternalData['rtpData']> {
   const normalizedName = casinoName.toLowerCase().replace(/\s+/g, '');
   const displayName = casinoDomains[normalizedName] || normalizedName;
   
-  // Try real API if configured and not forced to use mock
-  if (CASINO_GURU_API_KEY && !FORCE_MOCK_DATA) {
+  if (CASINO_GURU_API_KEY) {
     try {
       const response = await fetchWithTimeout(
         `https://api.casino.guru/v1/casinos/${encodeURIComponent(displayName)}/rtp`,
@@ -96,7 +94,8 @@ export async function fetchRTPData(casinoName: string): Promise<CasinoExternalDa
             'Authorization': `Bearer ${CASINO_GURU_API_KEY}`,
             'Accept': 'application/json'
           }
-        }
+        },
+        TRUST_FETCH_TIMEOUT_MS
       );
       
       if (response.ok) {
@@ -118,30 +117,18 @@ export async function fetchRTPData(casinoName: string): Promise<CasinoExternalDa
       console.warn(`[TrustRollup] Failed to fetch RTP data for ${casinoName}:`, (error as Error).message);
     }
   }
-  
-  // Mock fallback with source tracking
-  const mockData: Record<string, CasinoExternalData['rtpData']> = {
-    'stake.com': { claimed: 96.5, verified: 96.2, confidence: 0.85, source: 'mock' },
-    'duelbits.com': { claimed: 97.0, verified: 96.8, confidence: 0.75, source: 'mock' },
-    'rollbit.com': { claimed: 96.0, confidence: 0.5, source: 'mock' },
-    'shuffle.com': { claimed: 96.8, verified: 96.5, confidence: 0.80, source: 'mock' },
-    'roobet.com': { claimed: 95.5, verified: 94.8, confidence: 0.70, source: 'mock' },
-    'bc.game': { claimed: 97.2, verified: 96.9, confidence: 0.75, source: 'mock' },
-  };
-
-  return mockData[normalizedName] || { claimed: 96.0, confidence: 0.3, source: 'mock' };
+  return undefined;
 }
 
 /**
  * Fetch payout speed data from community sources
- * Uses AskGamblers API when available, falls back to mock
+ * Uses AskGamblers API when available
  */
 export async function fetchPayoutData(casinoName: string): Promise<CasinoExternalData['payoutData']> {
   const normalizedName = casinoName.toLowerCase().replace(/\s+/g, '');
   const displayName = casinoDomains[normalizedName] || normalizedName;
   
-  // Try real API if configured and not forced to use mock
-  if (ASKGAMBLERS_API_KEY && !FORCE_MOCK_DATA) {
+  if (ASKGAMBLERS_API_KEY) {
     try {
       const response = await fetchWithTimeout(
         `https://api.askgamblers.com/v1/casinos/${encodeURIComponent(displayName)}/reviews`,
@@ -150,7 +137,8 @@ export async function fetchPayoutData(casinoName: string): Promise<CasinoExterna
             'Authorization': `Bearer ${ASKGAMBLERS_API_KEY}`,
             'Accept': 'application/json'
           }
-        }
+        },
+        TRUST_FETCH_TIMEOUT_MS
       );
       
       if (response.ok) {
@@ -170,148 +158,27 @@ export async function fetchPayoutData(casinoName: string): Promise<CasinoExterna
       console.warn(`[TrustRollup] Failed to fetch payout data for ${casinoName}:`, (error as Error).message);
     }
   }
-  
-  // Mock fallback with expanded data
-  const mockData: Record<string, CasinoExternalData['payoutData']> = {
-    'stake.com': { averageHours: 2, complaints: 5, source: 'mock' },
-    'duelbits.com': { averageHours: 4, complaints: 12, source: 'mock' },
-    'rollbit.com': { averageHours: 24, complaints: 45, source: 'mock' },
-    'shuffle.com': { averageHours: 6, complaints: 8, source: 'mock' },
-    'roobet.com': { averageHours: 12, complaints: 25, source: 'mock' },
-    'bc.game': { averageHours: 3, complaints: 10, source: 'mock' },
-  };
-
-  return mockData[normalizedName] || { 
-    averageHours: 48, 
-    complaints: 0, 
-    source: 'mock' 
-  };
+  return undefined;
 }
 
 /**
  * Fetch current bonus terms
- * Uses casino affiliate APIs when configured, falls back to mock
+ * Placeholder for affiliate APIs.
+ * In beta, this returns no bonus data unless a real source is implemented.
  */
 export async function fetchBonusData(casinoName: string): Promise<CasinoExternalData['bonusData']> {
-  const normalizedName = casinoName.toLowerCase().replace(/\s+/g, '');
-  
-  // Real API integration could be added here for affiliate networks
-  // For now, use mock data with source tracking
-  
-  const mockData: Record<string, CasinoExternalData['bonusData']> = {
-    'stake.com': { 
-      currentOffer: '200% deposit bonus',
-      wageringRequirement: 40,
-      maxWithdrawal: 10000,
-      restrictive: false,
-      source: 'mock'
-    },
-    'duelbits.com': { 
-      currentOffer: '100% + 100 free spins',
-      wageringRequirement: 50,
-      maxWithdrawal: 5000,
-      restrictive: true,
-      source: 'mock'
-    },
-    'shuffle.com': {
-      currentOffer: 'Weekly rakeback up to 10%',
-      wageringRequirement: 0,
-      restrictive: false,
-      source: 'mock'
-    },
-    'roobet.com': {
-      currentOffer: 'No deposit bonus available',
-      wageringRequirement: 0,
-      restrictive: false,
-      source: 'mock'
-    },
-    'bc.game': {
-      currentOffer: 'Up to 4 BTC welcome bonus',
-      wageringRequirement: 60,
-      maxWithdrawal: 100000,
-      restrictive: true,
-      source: 'mock'
-    },
-  };
-
-  return mockData[normalizedName] || {
-    currentOffer: 'unknown',
-    restrictive: false,
-    source: 'mock'
-  };
+  void casinoName;
+  return undefined;
 }
 
 /**
  * Fetch compliance/licensing data
- * Checks public gaming authority databases when configured
+ * Placeholder for compliance authority integrations.
+ * In beta, this returns no compliance data unless a real source is implemented.
  */
 export async function fetchComplianceData(casinoName: string): Promise<CasinoExternalData['complianceData']> {
-  const normalizedName = casinoName.toLowerCase().replace(/\s+/g, '');
-  
-  // Real implementation could check:
-  // - Curacao eGaming: https://www.curacao-egaming.com/
-  // - Malta Gaming Authority: https://www.mga.org.mt/
-  // - UK Gambling Commission: https://www.gamblingcommission.gov.uk/
-  // For now, use curated mock data based on publicly known casino information
-  // Note: License numbers below are examples based on public information and should be verified
-  
-  const mockData: Record<string, CasinoExternalData['complianceData']> = {
-    'stake.com': { 
-      licensed: true, 
-      licenseJurisdiction: 'Curacao',
-      licenseNumber: 'Antillephone N.V. (8048/JAZ)',
-      kycRequired: true,
-      reputation: 'good',
-      source: 'mock'
-    },
-    'duelbits.com': { 
-      licensed: true, 
-      licenseJurisdiction: 'Curacao',
-      licenseNumber: 'Antillephone N.V.',
-      kycRequired: true,
-      reputation: 'neutral',
-      source: 'mock'
-    },
-    'rollbit.com': { 
-      licensed: true, 
-      licenseJurisdiction: 'Curacao',
-      licenseNumber: 'Antillephone N.V.',
-      kycRequired: false,
-      reputation: 'neutral',
-      source: 'mock'
-    },
-    'shuffle.com': {
-      licensed: true,
-      licenseJurisdiction: 'Curacao',
-      licenseNumber: 'Antillephone N.V.',
-      kycRequired: true,
-      reputation: 'good',
-      source: 'mock'
-    },
-    'roobet.com': {
-      licensed: true,
-      licenseJurisdiction: 'Curacao',
-      licenseNumber: 'Antillephone N.V.',
-      kycRequired: false,
-      reputation: 'neutral',
-      source: 'mock'
-    },
-    'bc.game': {
-      licensed: true,
-      licenseJurisdiction: 'Curacao',
-      licenseNumber: 'Antillephone N.V.',
-      kycRequired: true,
-      reputation: 'neutral',
-      source: 'mock'
-    },
-  };
-
-  return mockData[normalizedName] || {
-    licensed: false,
-    kycRequired: true,
-    reputation: 'neutral',
-    source: 'mock'
-  };
+  void casinoName;
+  return undefined;
 }
 
 /**
@@ -333,7 +200,7 @@ export async function fetchCasinoExternalData(casinoName: string): Promise<Casin
     complianceData?.source
   ].filter(Boolean);
   
-  const hasRealData = sources.some(s => s !== 'mock');
+  const hasRealData = sources.length > 0;
 
   return {
     casinoName,
@@ -341,7 +208,7 @@ export async function fetchCasinoExternalData(casinoName: string): Promise<Casin
     payoutData,
     bonusData,
     complianceData,
-    dataSource: hasRealData ? 'api' : 'mock',
+    dataSource: hasRealData ? 'api' : 'unavailable',
     fetchedAt: Date.now(),
   };
 }

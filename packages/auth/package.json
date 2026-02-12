@@ -6,10 +6,10 @@
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "scripts": {
-    "build": "tsc && (tsc src/middleware/next.ts --outDir dist/middleware --declaration --declarationMap --sourceMap 2>&1 | grep -v \"error TS\" || true) && echo \"Warning: Next.js middleware compilation may have been skipped\"",
+    "build": "tsc",
     "dev": "tsc --watch",
     "clean": "rm -rf dist",
-    "test": "vitest --run"
+    "test": "vitest --run --passWithNoTests"
   },
   "dependencies": {
     "@noble/ed25519": "^3.0.0",

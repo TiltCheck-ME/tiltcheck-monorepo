@@ -25,13 +25,14 @@ router.get('/', (_req, res) => {
  * Readiness check (for Kubernetes)
  */
 router.get('/ready', (_req, res) => {
-  // In a real implementation, check database connectivity, etc.
   const checks = {
-    database: true, // Would actually check DB connection
-    redis: true,    // Would check Redis if used
+    databaseConfigured: Boolean(process.env.NEON_DATABASE_URL),
+    jwtConfigured: Boolean(process.env.JWT_SECRET),
+    redisConfigured: process.env.REDIS_URL ? true : null,
   };
   
-  const allHealthy = Object.values(checks).every(Boolean);
+  const requiredChecks = [checks.databaseConfigured, checks.jwtConfigured];
+  const allHealthy = requiredChecks.every(Boolean);
   
   res.status(allHealthy ? 200 : 503).json({
     status: allHealthy ? 'ready' : 'not ready',

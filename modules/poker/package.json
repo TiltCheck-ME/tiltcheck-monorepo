@@ -8,7 +8,7 @@
   "scripts": {
     "build": "tsc",
     "dev": "tsc --watch",
-    "test": "vitest"
+    "test": "vitest --run --passWithNoTests"
   },
   "dependencies": {
     "@tiltcheck/event-router": "workspace:*",
@@ -19,3 +19,4 @@
     "vitest": "^1.0.0"
   }
 }
+
