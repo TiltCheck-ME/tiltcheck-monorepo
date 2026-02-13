@@ -61,6 +61,7 @@ describe('lockvault command', () => {
         getSubcommand: vi.fn(),
         getString: vi.fn(),
         getNumber: vi.fn(),
+        getBoolean: vi.fn(),
       },
       reply: vi.fn(),
     };
@@ -208,12 +209,13 @@ describe('lockvault command', () => {
   describe('autovault subcommand', () => {
     it('should set auto-vault successfully', async () => {
       mockInteraction.options.getSubcommand.mockReturnValue('autovault');
-      mockInteraction.options.getNumber.mockReturnValue(20);
-      mockInteraction.options.getString.mockReturnValue('api_key_123');
+      mockInteraction.options.getNumber.mockImplementation((name: string) => (name === 'percentage' ? 20 : undefined));
+      mockInteraction.options.getString.mockImplementation((name: string) => (name === 'apikey' ? 'api_key_123' : undefined));
+      mockInteraction.options.getBoolean.mockReturnValue(false);
 
       await lockvault.execute(mockInteraction);
 
-      expect(setAutoVault).toHaveBeenCalledWith('123', 20, 'api_key_123');
+      expect(setAutoVault).toHaveBeenCalledWith('123', expect.objectContaining({ percentage: 20, apiKey: 'api_key_123', currency: 'SOL', saveForNft: false }));
       expect(mockInteraction.reply).toHaveBeenCalledWith({
         embeds: [expect.any(Object)],
         ephemeral: true,
@@ -222,7 +224,9 @@ describe('lockvault command', () => {
 
     it('should reject invalid percentage', async () => {
       mockInteraction.options.getSubcommand.mockReturnValue('autovault');
-      mockInteraction.options.getNumber.mockReturnValue(150);
+      mockInteraction.options.getNumber.mockImplementation((name: string) => (name === 'percentage' ? 150 : undefined));
+      mockInteraction.options.getString.mockReturnValue('api_key_123');
+      mockInteraction.options.getBoolean.mockReturnValue(false);
 
       await lockvault.execute(mockInteraction);
 

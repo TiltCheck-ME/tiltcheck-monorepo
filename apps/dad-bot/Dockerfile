@@ -44,7 +44,6 @@ COPY modules/freespinschannelbot/package.json ./modules/freespinschannelbot/
 COPY modules/triviadrops/package.json ./modules/triviadrops/
 COPY modules/poker/package.json ./modules/poker/
 COPY modules/tiltcheck-core/package.json ./modules/tiltcheck-core/
-COPY modules/natural-language-parser/package.json ./modules/natural-language-parser/
 COPY modules/lockvault/package.json ./modules/lockvault/
 COPY modules/dad/package.json ./modules/dad/
 COPY modules/linkguard/package.json ./modules/linkguard/
@@ -113,7 +112,6 @@ COPY modules/freespinschannelbot/package.json ./modules/freespinschannelbot/
 COPY modules/triviadrops/package.json ./modules/triviadrops/
 COPY modules/poker/package.json ./modules/poker/
 COPY modules/tiltcheck-core/package.json ./modules/tiltcheck-core/
-COPY modules/natural-language-parser/package.json ./modules/natural-language-parser/
 COPY modules/lockvault/package.json ./modules/lockvault/
 COPY modules/dad/package.json ./modules/dad/
 COPY modules/linkguard/package.json ./modules/linkguard/
