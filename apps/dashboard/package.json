@@ -19,7 +19,7 @@
     "@tiltcheck/logger": "workspace:*",
     "@tiltcheck/shared": "workspace:*",
     "@tiltcheck/types": "workspace:*",
-    "next": "16.0.10",
+    "next": "15.5.11",
     "react": "^19.2.1",
     "react-dom": "^18.2.0"
   },
