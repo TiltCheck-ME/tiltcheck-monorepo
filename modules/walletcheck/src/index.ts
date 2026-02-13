@@ -1,5 +1,5 @@
 import { ethers } from 'ethers';
-import { Logger } from '@tiltcheck/logger';
+import { createLogger } from '@tiltcheck/logger';
 
 export interface TransactionAttempt {
   timestamp: string;
@@ -37,7 +37,7 @@ export interface WalletSecurityReport {
 
 export class WalletCheckService {
   private provider: ethers.JsonRpcProvider;
-  private logger = new Logger('WalletCheck');
+  private logger = createLogger({ name: 'WalletCheck' });
   private lastBalances: Map<string, string> = new Map();
 
   constructor(rpcUrl: string = 'https://cloudflare-eth.com') {
