@@ -1,9 +1,0 @@
-{
-  "name": "@tiltcheck/natural-language-parser",
-  "version": "0.1.0",
-  "main": "index.ts",
-  "type": "module",
-  "private": true,
-  "description": "Natural language parsing module",
-  "dependencies": {}
-}

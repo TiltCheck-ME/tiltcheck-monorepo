@@ -8,12 +8,15 @@
     "dev": "tsx watch src/index.ts",
     "build": "tsc",
     "start": "node dist/index.js",
-    "clean": "rm -rf dist"
+    "clean": "rm -rf dist",
+    "test": "vitest --run --passWithNoTests tests"
   },
   "dependencies": {
     "@tiltcheck/auth": "workspace:*",
     "@tiltcheck/config": "workspace:*",
     "@tiltcheck/db": "workspace:*",
+    "@tiltcheck/event-types": "workspace:*",
+    "@tiltcheck/trust-score-types": "workspace:*",
     "bcryptjs": "^3.0.3",
     "cors": "^2.8.5",
     "express": "^4.18.2",
@@ -29,6 +32,8 @@
     "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^20.10.0",
     "tsx": "^4.7.0",
-    "typescript": "^5.3.0"
+    "typescript": "^5.3.0",
+    "vitest": "^4.0.18"
   }
 }
+

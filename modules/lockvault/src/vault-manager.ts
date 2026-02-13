@@ -1,6 +1,7 @@
 import { Keypair } from '@solana/web3.js';
 import { eventRouter } from '@tiltcheck/event-router';
 import { parseAmount } from '@tiltcheck/natural-language-parser';
+import { db } from '@tiltcheck/database';
 import fs from 'fs';
 import path from 'path';
 
@@ -15,7 +16,8 @@ export interface LockVaultInput {
 export interface LockVaultRecord {
   id: string;
   userId: string;
-  vaultAddress: string; // ephemeral magic-like wallet
+  vaultAddress: string;
+  vaultType: 'disposable' | 'magic';
   createdAt: number;
   unlockAt: number;
   lockedAmountSOL: number; // normalized to SOL
@@ -27,7 +29,10 @@ export interface LockVaultRecord {
 }
 
 export interface AutoVaultSettings {
-  percentage: number;
+  percentage?: number; // % of wins
+  threshold?: number; // vault everything over this balance
+  currency: 'USD' | 'SOL';
+  saveForNft: boolean; // if true, contribute to NFT savings goal
   apiKey: string;
 }
 
@@ -51,6 +56,8 @@ function parseDuration(raw: string): number {
 class VaultManager {
   private vaults = new Map<string, LockVaultRecord>();
   private byUser = new Map<string, Set<string>>();
+  private autoVaults = new Map<string, AutoVaultSettings>();
+  private reloadSchedules = new Map<string, ReloadSchedule>();
   private persistencePath = process.env.LOCKVAULT_STORE_PATH || 'data/lockvault.json';
   private persistDebounce?: NodeJS.Timeout;
 
@@ -99,28 +106,50 @@ class VaultManager {
     }
   }
 
-  lock(input: LockVaultInput): LockVaultRecord {
+  async lock(input: LockVaultInput): Promise<LockVaultRecord> {
     const amountParse = parseAmount(input.amountRaw);
     if (!amountParse.success || !amountParse.data) throw new Error(amountParse.error || 'Unable to parse amount');
     const parsedValue = amountParse.data.value;
     const isAll = amountParse.data.isAll;
     // For MVP treat USD as SOL 1:1 if currency was USD; real impl would convert via oracle
-    const amountSOL = isAll ? 0 : parsedValue; // 0 signals "all" snapshot for UI; not executing transfer here
+    const amountSOL = isAll ? 0 : parsedValue; 
     const durationMs = parseDuration(input.durationRaw);
     if (durationMs < 10 * 60 * 1000) throw new Error('Minimum lock is 10m');
     if (durationMs > 30 * 24 * 60 * 60 * 1000) throw new Error('Maximum lock is 30d');
 
-    const keypair = Keypair.generate();
+    // Check for Degen Identity (Magic Wallet)
+    let vaultAddress = '';
+    let vaultType: 'disposable' | 'magic' = 'disposable';
+
+    try {
+      if (db.isConnected()) {
+        const identity = await db.getDegenIdentity(input.userId);
+        if (identity?.magic_address) {
+          vaultAddress = identity.magic_address;
+          vaultType = 'magic';
+        }
+      }
+    } catch (err) {
+      console.error('[LockVault] Identity check failed, falling back to disposable', err);
+    }
+
+    if (!vaultAddress) {
+      const keypair = Keypair.generate();
+      vaultAddress = keypair.publicKey.toBase58();
+      vaultType = 'disposable';
+    }
+
     const record: LockVaultRecord = {
       id: generateId(),
       userId: input.userId,
-      vaultAddress: keypair.publicKey.toBase58(),
+      vaultAddress,
+      vaultType,
       createdAt: now(),
       unlockAt: now() + durationMs,
       lockedAmountSOL: amountSOL,
       originalInput: input.amountRaw,
       status: 'locked',
-      history: [{ ts: now(), action: 'locked', note: `duration=${input.durationRaw}` }],
+      history: [{ ts: now(), action: 'locked', note: `duration=${input.durationRaw}, type=${vaultType}` }],
       reason: input.reason,
       extendedCount: 0,
     };
@@ -130,7 +159,14 @@ class VaultManager {
     this.byUser.get(record.userId)!.add(record.id);
     this.schedulePersist();
 
-    void eventRouter.publish('vault.locked', 'lockvault', { id: record.id, userId: record.userId, unlockAt: record.unlockAt, amountSOL: record.lockedAmountSOL });
+    void eventRouter.publish('vault.locked', 'lockvault', { 
+      id: record.id, 
+      userId: record.userId, 
+      unlockAt: record.unlockAt, 
+      amountSOL: record.lockedAmountSOL,
+      vaultType: record.vaultType,
+      vaultAddress: record.vaultAddress
+    });
     return record;
   }
 
@@ -174,10 +210,34 @@ class VaultManager {
     this.vaults.clear(); this.byUser.clear(); this.autoVaults.clear(); this.reloadSchedules.clear();
   }
 
-  setAutoVault(userId: string, percentage: number, apiKey: string): void {
-    if (percentage < 0 || percentage > 100) throw new Error('Percentage must be between 0 and 100');
-    this.autoVaults.set(userId, { percentage, apiKey });
+  setAutoVault(userId: string, settings: AutoVaultSettings): void {
+    if (settings.percentage !== undefined && (settings.percentage < 0 || settings.percentage > 100)) throw new Error('Percentage must be between 0 and 100');
+    this.autoVaults.set(userId, settings);
     this.schedulePersist();
+  }
+
+  async processBalanceUpdate(userId: string, balance: number, currency: 'USD' | 'SOL') {
+    const settings = this.autoVaults.get(userId);
+    if (!settings) return;
+
+    if (settings.threshold !== undefined && balance > settings.threshold) {
+      const overage = balance - settings.threshold;
+      console.log(`[LockVault] Auto-vaulting overage: ${overage} ${currency} for user ${userId}`);
+      
+      // If saving for NFT, contribute to goal
+      if (settings.saveForNft && db.isConnected()) {
+        const amountSol = currency === 'SOL' ? overage : overage / 100; // Mock conversion
+        await db.updateNftSavings(userId, amountSol);
+      }
+
+      await this.lock({ 
+        userId, 
+        amountRaw: `${overage} ${currency}`, 
+        durationRaw: '24h', 
+        reason: settings.saveForNft ? 'Auto-vault (NFT Savings)' : 'Auto-vault (threshold)',
+        currencyHint: currency
+      });
+    }
   }
 
   getAutoVault(userId: string): AutoVaultSettings | null {
@@ -197,11 +257,12 @@ class VaultManager {
 
 export const vaultManager = new VaultManager();
 
-export function lockVault(input: LockVaultInput) { return vaultManager.lock(input); }
+export async function lockVault(input: LockVaultInput) { return vaultManager.lock(input); }
 export function unlockVault(userId: string, vaultId: string) { return vaultManager.unlock(userId, vaultId); }
 export function extendVault(userId: string, vaultId: string, additionalRaw: string) { return vaultManager.extend(userId, vaultId, additionalRaw); }
 export function getVaultStatus(userId: string) { return vaultManager.status(userId); }
-export function setAutoVault(userId: string, percentage: number, apiKey: string) { return vaultManager.setAutoVault(userId, percentage, apiKey); }
+export function setAutoVault(userId: string, settings: AutoVaultSettings) { return vaultManager.setAutoVault(userId, settings); }
+export async function processVaultBalanceUpdate(userId: string, balance: number, currency: 'USD' | 'SOL') { return vaultManager.processBalanceUpdate(userId, balance, currency); }
 export function getAutoVault(userId: string) { return vaultManager.getAutoVault(userId); }
 export function setReloadSchedule(userId: string, amountRaw: string, interval: 'daily' | 'weekly' | 'monthly') { return vaultManager.setReloadSchedule(userId, amountRaw, interval); }
 export function getReloadSchedule(userId: string) { return vaultManager.getReloadSchedule(userId); }

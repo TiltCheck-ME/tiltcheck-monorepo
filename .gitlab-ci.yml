@@ -1,0 +1,44 @@
+image: node:20
+
+stages:
+  - build-test
+
+variables:
+  PNPM_HOME: ".pnpm-store"
+
+cache:
+  key:
+    files:
+      - pnpm-lock.yaml
+  paths:
+    - .pnpm-store
+    - node_modules
+
+before_script:
+  - corepack enable
+  - corepack prepare pnpm@9.0.0 --activate
+  - pnpm config set store-dir .pnpm-store
+  - pnpm install --frozen-lockfile
+
+after_script:
+  - mkdir -p coverage
+  - echo "Pipeline run at $(date)" > coverage/pipeline-info.txt
+
+build-test:
+  stage: build-test
+  script:
+    - mkdir -p coverage
+    - echo "Pipeline run at $(date)" > coverage/pipeline-info.txt
+    # pnpm build runs scripts/ordered-build.sh which handles all dependencies correctly
+    - pnpm build
+    - pnpm lint
+    - pnpm test
+    - |
+      if [ ! -f coverage/index.html ] && [ ! -f coverage/lcov.info ]; then
+        echo "No coverage files found, creating placeholder" > coverage/no-coverage.txt
+      fi
+  artifacts:
+    when: always
+    paths:
+      - coverage/
+    expire_in: 1 week

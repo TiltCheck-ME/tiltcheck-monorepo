@@ -4,11 +4,29 @@
  */
 
 import { Router } from 'express';
+import rateLimit from 'express-rate-limit';
 import { sessionAuth } from '@tiltcheck/auth/middleware/express';
 import { verifySolanaSignature, verifySessionCookie, type JWTConfig } from '@tiltcheck/auth';
 import { createTip, findTipById, updateTipStatus, findUserByDiscordId } from '@tiltcheck/db';
 
 const router = Router();
+
+// Rate limiting for financial operations
+const tipLimiter = rateLimit({
+  windowMs: 1 * 60 * 1000, // 1 minute
+  max: 10, // 10 tips per minute
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Too many tipping requests', code: 'RATE_LIMIT_EXCEEDED' },
+});
+
+const verifyLimiter = rateLimit({
+  windowMs: 1 * 60 * 1000, // 1 minute
+  max: 30, // 30 verifications per minute
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Too many verification requests', code: 'RATE_LIMIT_EXCEEDED' },
+});
 
 function getJWTConfig(): JWTConfig {
   return {
@@ -23,7 +41,7 @@ function getJWTConfig(): JWTConfig {
  * POST /tip/verify
  * Verify a tipping request (Discord user + wallet signature + session)
  */
-router.post('/verify', sessionAuth(), async (req, res) => {
+router.post('/verify', verifyLimiter, sessionAuth(), async (req, res) => {
   try {
     const { recipientDiscordId, amount, currency, signature, message, publicKey } = req.body;
     const auth = req.auth;
@@ -87,7 +105,7 @@ router.post('/verify', sessionAuth(), async (req, res) => {
  * POST /tip/create
  * Create a new tip
  */
-router.post('/create', sessionAuth(), async (req, res) => {
+router.post('/create', tipLimiter, sessionAuth(), async (req, res) => {
   try {
     const { recipientDiscordId, recipientWallet, amount, currency, message: tipMessage } = req.body;
     const auth = req.auth;
@@ -138,7 +156,7 @@ router.post('/create', sessionAuth(), async (req, res) => {
  * POST /tip/:id/complete
  * Mark a tip as completed with transaction signature
  */
-router.post('/:id/complete', sessionAuth(), async (req, res) => {
+router.post('/:id/complete', tipLimiter, sessionAuth(), async (req, res) => {
   try {
     const { id } = req.params;
     const { txSignature } = req.body;

@@ -4,7 +4,7 @@ import type { ClaimerDatabase, ClaimHistory } from '../src/types.js';
 
 // Mock BullMQ
 vi.mock('bullmq', () => ({
-  Worker: vi.fn().mockImplementation((queueName, processor, options) => {
+  Worker: vi.fn().mockImplementation(function(queueName, processor, options) {
     return {
       on: vi.fn(),
       close: vi.fn().mockResolvedValue(undefined),
@@ -15,20 +15,22 @@ vi.mock('bullmq', () => ({
 
 // Mock the Stake module
 vi.mock('@tiltcheck/stake', () => ({
-  StakeClient: vi.fn().mockImplementation(() => ({
-    checkEligibility: vi.fn().mockResolvedValue({
-      eligible: true,
-      reason: 'Eligible',
-    }),
-    claimCode: vi.fn().mockResolvedValue({
-      success: true,
-      reward: {
-        type: 'bonus',
-        amount: 10,
-        currency: 'USD',
-      },
-    }),
-  })),
+  StakeClient: vi.fn().mockImplementation(function() {
+    return {
+      checkEligibility: vi.fn().mockResolvedValue({
+        eligible: true,
+        reason: 'Eligible',
+      }),
+      claimCode: vi.fn().mockResolvedValue({
+        success: true,
+        reward: {
+          type: 'bonus',
+          amount: 10,
+          currency: 'USD',
+        },
+      }),
+    };
+  }),
 }));
 
 describe('ClaimWorker', () => {
@@ -115,13 +117,15 @@ describe('ClaimWorker', () => {
 
   it('should handle user not eligible', async () => {
     const { StakeClient } = await import('@tiltcheck/stake');
-    vi.mocked(StakeClient).mockImplementationOnce(() => ({
-      checkEligibility: vi.fn().mockResolvedValue({
-        eligible: false,
-        reason: 'Already claimed',
-      }),
-      claimCode: vi.fn(),
-    }) as any);
+    vi.mocked(StakeClient).mockImplementationOnce(function() {
+      return {
+        checkEligibility: vi.fn().mockResolvedValue({
+          eligible: false,
+          reason: 'Already claimed',
+        }),
+        claimCode: vi.fn(),
+      } as any;
+    });
 
     const job = {
       id: 'job-4',
@@ -143,15 +147,17 @@ describe('ClaimWorker', () => {
 
   it('should handle claim failure', async () => {
     const { StakeClient } = await import('@tiltcheck/stake');
-    vi.mocked(StakeClient).mockImplementationOnce(() => ({
-      checkEligibility: vi.fn().mockResolvedValue({
-        eligible: true,
-      }),
-      claimCode: vi.fn().mockResolvedValue({
-        success: false,
-        error: 'Code expired',
-      }),
-    }) as any);
+    vi.mocked(StakeClient).mockImplementationOnce(function() {
+      return {
+        checkEligibility: vi.fn().mockResolvedValue({
+          eligible: true,
+        }),
+        claimCode: vi.fn().mockResolvedValue({
+          success: false,
+          error: 'Code expired',
+        }),
+      } as any;
+    });
 
     const job = {
       id: 'job-5',
@@ -173,19 +179,21 @@ describe('ClaimWorker', () => {
 
   it('should save reward information on successful claim', async () => {
     const { StakeClient } = await import('@tiltcheck/stake');
-    vi.mocked(StakeClient).mockImplementationOnce(() => ({
-      checkEligibility: vi.fn().mockResolvedValue({
-        eligible: true,
-      }),
-      claimCode: vi.fn().mockResolvedValue({
-        success: true,
-        reward: {
-          type: 'freespins',
-          amount: 50,
-          currency: 'spins',
-        },
-      }),
-    }) as any);
+    vi.mocked(StakeClient).mockImplementationOnce(function() {
+      return {
+        checkEligibility: vi.fn().mockResolvedValue({
+          eligible: true,
+        }),
+        claimCode: vi.fn().mockResolvedValue({
+          success: true,
+          reward: {
+            type: 'freespins',
+            amount: 50,
+            currency: 'spins',
+          },
+        }),
+      } as any;
+    });
 
     const job = {
       id: 'job-6',

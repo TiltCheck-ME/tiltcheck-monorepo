@@ -25,7 +25,10 @@ export const jwtConfigSchema = z.object({
 export const serviceJwtConfigSchema = z.object({
   SERVICE_JWT_SECRET: z.string().min(32, 'SERVICE_JWT_SECRET must be at least 32 characters'),
   SERVICE_ID: z.string().min(1, 'SERVICE_ID is required'),
-  ALLOWED_SERVICES: z.string().transform((val: string) => val.split(',').filter(Boolean)).default(''),
+  ALLOWED_SERVICES: z
+    .string()
+    .transform((val: string) => val.split(',').filter(Boolean))
+    .default([]),
 });
 
 /**
@@ -46,8 +49,8 @@ export const databaseConfigSchema = z.object({
     (url) => url.startsWith('postgres://') || url.startsWith('postgresql://'),
     'NEON_DATABASE_URL must be a valid PostgreSQL connection string'
   ),
-  DATABASE_SSL: z.string().transform((val: string) => val === 'true').default('true'),
-  DATABASE_POOL_SIZE: z.string().transform((val: string) => parseInt(val, 10) || 10).default('10'),
+  DATABASE_SSL: z.string().default('true').transform((val: string) => val === 'true'),
+  DATABASE_POOL_SIZE: z.string().default('10').transform((val: string) => parseInt(val, 10) || 10),
 });
 
 /**
@@ -76,7 +79,7 @@ export const supabaseConfigSchema = supabaseConfigSchemaBase.refine(
  * Server Configuration Schema
  */
 export const serverConfigSchema = z.object({
-  PORT: z.string().transform((val: string) => parseInt(val, 10) || 3000).default('3000'),
+  PORT: z.string().default('3000').transform((val: string) => parseInt(val, 10) || 3000),
   HOST: z.string().default('0.0.0.0'),
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
   LOG_LEVEL: z.enum(['debug', 'info', 'warn', 'error']).default('info'),
@@ -88,8 +91,8 @@ export const serverConfigSchema = z.object({
 export const cookieConfigSchema = z.object({
   SESSION_COOKIE_NAME: z.string().default('tiltcheck_session'),
   COOKIE_DOMAIN: z.string().default('.tiltcheck.me'),
-  COOKIE_SECURE: z.string().transform((val: string) => val === 'true').default('true'),
-  COOKIE_MAX_AGE: z.string().transform((val: string) => parseInt(val, 10) || 604800).default('604800'), // 7 days
+  COOKIE_SECURE: z.string().default('true').transform((val: string) => val === 'true'),
+  COOKIE_MAX_AGE: z.string().default('604800').transform((val: string) => parseInt(val, 10) || 604800), // 7 days
 });
 
 /**

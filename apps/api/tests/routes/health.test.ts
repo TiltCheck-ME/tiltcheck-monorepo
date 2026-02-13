@@ -7,7 +7,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 describe('Health Routes', () => {
   beforeEach(() => {
-    // TODO: Setup test environment
+    // Setup hook for future route-level integration harness.
   });
 
   describe('GET /health', () => {

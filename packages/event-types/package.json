@@ -1,7 +1,7 @@
 {
   "name": "@tiltcheck/event-types",
   "version": "0.1.0",
-  "description": "TODO: Add description",
+  "description": "Shared typed event contracts for TiltCheck event routing",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",

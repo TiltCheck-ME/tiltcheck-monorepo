@@ -64,8 +64,21 @@ data/casino-trust.json
 data/domain-trust-scores.json
 data/lockvault.json
 data/justthetip-wallets.json
-=======
 age.agekey
 data/sessions.json
 apps/discord-bot/data/sessions.json
 .vercel
+
+# Local generated build output in source trees
+packages/*/src/*.js
+packages/*/src/*.js.map
+packages/*/src/*.d.ts
+packages/*/src/*.d.ts.map
+services/*/src/*.js
+services/*/src/*.js.map
+services/*/src/*.d.ts
+services/*/src/*.d.ts.map
+
+# Local runtime data dirs
+modules/lockvault/data/
+services/trust-engines/data/
