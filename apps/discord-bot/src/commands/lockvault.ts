@@ -147,6 +147,10 @@ export const lockvault: Command = {
           await interaction.reply({ content: '❌ Must specify either percentage or threshold.', ephemeral: true });
           return;
         }
+        if (percentage !== undefined && (percentage < 0 || percentage > 100)) {
+          await interaction.reply({ content: '❌ Percentage must be between 0 and 100.', ephemeral: true });
+          return;
+        }
 
         setAutoVault(interaction.user.id, { percentage, threshold, currency, saveForNft, apiKey: apikey });
         const embed = new EmbedBuilder()
