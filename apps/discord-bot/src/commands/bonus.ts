@@ -32,6 +32,29 @@ export const bonus: Command = {
       sub
         .setName('timers')
         .setDescription('View all your active bonus timers')
+    )
+    .addSubcommand(sub =>
+      sub
+        .setName('notify')
+        .setDescription('Manage your bonus notifications')
+        .addStringOption(opt =>
+          opt
+            .setName('casino')
+            .setDescription('Name of the casino')
+            .setRequired(true)
+            .setAutocomplete(true)
+        )
+        .addBooleanOption(opt =>
+          opt
+            .setName('enabled')
+            .setDescription('Enable or disable notifications for this casino')
+            .setRequired(true)
+        )
+    )
+    .addSubcommand(sub =>
+      sub
+        .setName('stats')
+        .setDescription('View your bonus claim statistics')
     ),
 
   async execute(interaction: ChatInputCommandInteraction) {
@@ -49,6 +72,12 @@ export const bonus: Command = {
         break;
       case 'timers':
         await handleTimers(interaction);
+        break;
+      case 'notify':
+        await handleNotify(interaction);
+        break;
+      case 'stats':
+        await handleStats(interaction);
         break;
       default:
         await interaction.reply({ content: '❌ Unknown subcommand', ephemeral: true });
@@ -117,6 +146,63 @@ async function handleReady(interaction: ChatInputCommandInteraction) {
     );
 
   await interaction.reply({ embeds: [embed] });
+}
+
+async function handleNotify(interaction: ChatInputCommandInteraction) {
+  const casino = interaction.options.getString('casino', true);
+  const enabled = interaction.options.getBoolean('enabled', true);
+
+  if (enabled) {
+    collectclock.subscribeNotifications(interaction.user.id, casino, {
+      notifyOnReady: true,
+      notifyOnNerf: true,
+      discordDM: true
+    });
+    await interaction.reply({ 
+      content: `🔔 Notifications **enabled** for **${casino}**. We'll DM you when your bonus is ready!`,
+      ephemeral: true 
+    });
+  } else {
+    collectclock.unsubscribeNotifications(interaction.user.id, casino);
+    await interaction.reply({ 
+      content: `🔕 Notifications **disabled** for **${casino}**.`,
+      ephemeral: true 
+    });
+  }
+}
+
+async function handleStats(interaction: ChatInputCommandInteraction) {
+  const stats = collectclock.getUserBonusStats(interaction.user.id);
+
+  if (stats.totalClaims === 0) {
+    await interaction.reply({ 
+      content: '📊 You haven\'t claimed any bonuses yet! Start claiming to see your stats.',
+      ephemeral: true 
+    });
+    return;
+  }
+
+  const embed = new EmbedBuilder()
+    .setColor(0xF1C40F)
+    .setTitle('📊 Your Bonus Statistics')
+    .addFields(
+      { name: 'Total Claims', value: `${stats.totalClaims}`, inline: true },
+      { name: 'Total Value', value: `${stats.totalAmount.toFixed(2)} SC`, inline: true },
+    );
+
+  const topCasinos = Object.entries(stats.casinoBreakdown)
+    .sort((a, b) => b[1].claims - a[1].claims)
+    .slice(0, 5);
+
+  if (topCasinos.length > 0) {
+    let breakdownText = '';
+    topCasinos.forEach(([name, data]) => {
+      breakdownText += `**${name}**: ${data.claims} claims (${data.amount.toFixed(2)} SC)\n`;
+    });
+    embed.addFields({ name: 'Top Casinos', value: breakdownText });
+  }
+
+  await interaction.reply({ embeds: [embed], ephemeral: true });
 }
 
 async function handleClaim(interaction: ChatInputCommandInteraction) {

@@ -1,16 +1,19 @@
 {
   "name": "@tiltcheck/trust-score-types",
   "version": "0.1.0",
-  "description": "TODO: Add description",
+  "description": "Shared trust scoring models and weighted score calculation utilities",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "scripts": {
     "build": "tsc",
     "dev": "tsc --watch",
-    "clean": "rm -rf dist"
+    "clean": "rm -rf dist",
+    "test": "vitest --run --passWithNoTests tests/trust-score.test.ts"
   },
   "devDependencies": {
-    "typescript": "^5.3.0"
+    "typescript": "^5.3.0",
+    "vitest": "^4.0.18"
   }
 }
+

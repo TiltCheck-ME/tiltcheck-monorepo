@@ -84,14 +84,17 @@ export async function query<T = Record<string, unknown>>(
   params?: unknown[]
 ): Promise<T[]> {
   const client = getClient();
+  const execute = client as unknown as (
+    queryText: string,
+    queryParams?: unknown[]
+  ) => Promise<unknown>;
   
   if (params && params.length > 0) {
-    // Use tagged template literal with parameters
-    const result = await client(sql, params);
+    const result = await execute(sql, params);
     return result as T[];
   }
   
-  const result = await client(sql);
+  const result = await execute(sql);
   return result as T[];
 }
 

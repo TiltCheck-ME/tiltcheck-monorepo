@@ -40,9 +40,12 @@ export const lockvault: Command = {
     .addSubcommand(sub =>
       sub
         .setName('autovault')
-        .setDescription('Set auto-vault percentage')
-        .addNumberOption(o => o.setName('percentage').setDescription('Percentage to auto-vault (0-100)').setRequired(true))
-        .addStringOption(o => o.setName('apikey').setDescription('API key for auto-vaulting').setRequired(true))
+        .setDescription('Set auto-vault configuration')
+        .addNumberOption(o => o.setName('percentage').setDescription('Percentage of wins to auto-vault (0-100)'))
+        .addNumberOption(o => o.setName('threshold').setDescription('Vault everything over this balance amount'))
+        .addStringOption(o => o.setName('currency').setDescription('Currency for threshold (SOL/USD)').addChoices({ name: 'SOL', value: 'SOL' }, { name: 'USD', value: 'USD' }))
+        .addBooleanOption(o => o.setName('savefornft').setDescription('Automatically save vaulted funds for your Identity NFT fee'))
+        .addStringOption(o => o.setName('apikey').setDescription('API key for casino integration').setRequired(true))
     )
     .addSubcommand(sub =>
       sub
@@ -68,11 +71,11 @@ export const lockvault: Command = {
           await interaction.reply({ content: `❌ ${parsedDuration.error}`, ephemeral: true });
           return;
         }
-        const vault = lockVault({ userId: interaction.user.id, amountRaw, durationRaw, reason });
+        const vault = await lockVault({ userId: interaction.user.id, amountRaw, durationRaw, reason });
         const embed = new EmbedBuilder()
           .setColor(0x8A2BE2)
           .setTitle('🔒 Vault Locked')
-          .setDescription('Funds moved to disposable time-locked vault wallet')
+          .setDescription(vault.vaultType === 'magic' ? 'Funds secured in your Degen Identity (Magic) wallet' : 'Funds moved to disposable time-locked vault wallet')
           .addFields(
             { name: 'Vault ID', value: vault.id, inline: false },
             { name: 'Vault Wallet', value: `
@@ -116,14 +119,53 @@ export const lockvault: Command = {
         }
       } else if (sub === 'status') {
         const vaults = getVaultStatus(interaction.user.id);
-        if (vaults.length === 0) {
-          await interaction.reply({ content: 'ℹ️ No active vaults.', ephemeral: true });
+        const autoVault = getAutoVault(interaction.user.id);
+        const reloadSchedule = getReloadSchedule(interaction.user.id);
+
+        if (vaults.length === 0 && !autoVault && !reloadSchedule) {
+          await interaction.reply({ content: 'ℹ️ No active vaults, auto-vault, or reload schedule.', ephemeral: true });
           return;
         }
+
         const embed = new EmbedBuilder()
           .setColor(0x1E90FF)
           .setTitle('📊 Your Vaults')
-          .setDescription(vaults.map((v: LockVaultRecord) => `• **${v.id}** – ${v.status} – unlocks <t:${Math.floor(v.unlockAt/1000)}:R> – ${v.lockedAmountSOL===0? 'ALL' : v.lockedAmountSOL.toFixed(4)+' SOL'}`).join('\n'));
+          .setDescription(
+            (vaults.length > 0 ? vaults.map((v: LockVaultRecord) => `• **${v.id}** – ${v.status} – unlocks <t:${Math.floor(v.unlockAt/1000)}:R> – ${v.lockedAmountSOL===0? 'ALL' : v.lockedAmountSOL.toFixed(4)+' SOL'}`).join('\n') : 'No active vaults.') +
+            (autoVault ? `\n\n**Auto-Vault:** ${autoVault.percentage}% active` : '') +
+            (reloadSchedule ? `\n**Reload:** ${reloadSchedule.amountRaw} ${reloadSchedule.interval}` : '')
+          );
+        await interaction.reply({ embeds: [embed], ephemeral: true });
+      } else if (sub === 'autovault') {
+        const percentage = interaction.options.getNumber('percentage') || undefined;
+        const threshold = interaction.options.getNumber('threshold') || undefined;
+        const currency = (interaction.options.getString('currency') as 'SOL' | 'USD') || 'SOL';
+        const saveForNft = interaction.options.getBoolean('savefornft') || false;
+        const apikey = interaction.options.getString('apikey', true);
+
+        if (percentage === undefined && threshold === undefined) {
+          await interaction.reply({ content: '❌ Must specify either percentage or threshold.', ephemeral: true });
+          return;
+        }
+
+        setAutoVault(interaction.user.id, { percentage, threshold, currency, saveForNft, apiKey: apikey });
+        const embed = new EmbedBuilder()
+          .setColor(0x00FFFF)
+          .setTitle('⚙️ Auto-Vault Configured')
+          .setDescription(`Auto-vault active: ${percentage ? percentage + '% of wins' : ''} ${threshold ? 'Everything over ' + threshold + ' ' + currency : ''} ${saveForNft ? '\n🎯 **Target:** Saving for Identity NFT' : ''}`);
+        await interaction.reply({ embeds: [embed], ephemeral: true });
+      } else if (sub === 'reload') {
+        const amount = interaction.options.getString('amount', true);
+        const interval = interaction.options.getString('interval', true) as any;
+        if (!['daily', 'weekly', 'monthly'].includes(interval)) {
+          await interaction.reply({ content: '❌ Interval must be "daily", "weekly", or "monthly".', ephemeral: true });
+          return;
+        }
+        setReloadSchedule(interaction.user.id, amount, interval);
+        const embed = new EmbedBuilder()
+          .setColor(0xFFA500)
+          .setTitle('📅 Reload Scheduled')
+          .setDescription(`Scheduled ${amount} reload every ${interval}.`);
         await interaction.reply({ embeds: [embed], ephemeral: true });
       } else {
         await interaction.reply({ content: 'Unknown subcommand', ephemeral: true });

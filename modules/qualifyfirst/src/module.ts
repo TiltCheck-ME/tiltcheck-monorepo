@@ -95,7 +95,7 @@ export class QualifyFirstModule {
         
         // Only trigger payout for completed surveys with a positive payout
         if (status === 'completed' && payout && payout > 0) {
-          await eventRouter.publish('tip.send', 'qualifyfirst', {
+          await eventRouter.publish('tip.requested', 'qualifyfirst', {
             senderId: 'TREASURY', // Use dedicated treasury identity
             recipientId: userId,
             amount: payout,

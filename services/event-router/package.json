@@ -17,7 +17,7 @@
     "build": "tsc",
     "start": "node dist/index.js",
     "clean": "rm -rf dist",
-    "test": "echo \"Tests coming soon\""
+    "test": "vitest --run --passWithNoTests tests"
   },
   "dependencies": {
     "@tiltcheck/types": "workspace:*"
@@ -26,6 +26,8 @@
     "@types/node": "^24.10.1",
     "tsx": "^4.7.0",
     "typescript": "^5.3.0",
-    "@types/bcryptjs": "^2.4.6"
+    "@types/bcryptjs": "^2.4.6",
+    "vitest": "^4.0.18"
   }
 }
+

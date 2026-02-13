@@ -7,7 +7,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 describe('Auth Routes', () => {
   beforeEach(() => {
-    // TODO: Setup test environment
+    // Setup hook for future route-level integration harness.
     // - Mock Express app
     // - Mock Discord OAuth
     // - Mock JWT service

@@ -181,7 +181,7 @@ async function updateTiltDisplay(tiltData) {
     showIntervention({
       type: 'cooldown',
       message: aiResult.data.interventionSuggestions?.[0] || 'Consider taking a break',
-      duration: aiResult.data.cooldownDuration || 300
+      duration: (aiResult.data.cooldownDuration || 300) * 1000
     });
   }
 }

@@ -10,18 +10,20 @@ const SOLANA_RPC_URL = process.env.SOLANA_RPC_URL || 'https://api.mainnet-beta.s
 const connection = new Connection(SOLANA_RPC_URL, 'confirmed');
 
 interface PendingTransaction {
-  signature: string;
+  signature?: string;
+  reference?: string;
   userId: string;
   type: 'tip' | 'airdrop';
   amount: number;
   recipientId?: string;
   timestamp: number;
+  retryCount?: number;
 }
 
-const pendingTransactions = new Map<string, PendingTransaction>();
+const pendingTransactions = new Map<string, PendingTransaction>(); // key: signature OR reference
 
 /**
- * Track a transaction for confirmation
+ * Track a transaction for confirmation by signature
  */
 export function trackTransaction(
   signature: string,
@@ -37,23 +39,50 @@ export function trackTransaction(
     amount,
     recipientId,
     timestamp: Date.now(),
+    retryCount: 0,
   });
 
   // Start monitoring
   monitorTransaction(signature).catch(error => {
-    console.error(`[TransactionMonitor] Failed to monitor ${signature}:`, error);
+    console.error(`[TransactionMonitor] Failed to monitor signature ${signature}:`, error);
   });
 }
 
 /**
- * Monitor a transaction until confirmed or failed
+ * Track a transaction for confirmation by reference public key
+ */
+export function trackTransactionByReference(
+  reference: string,
+  userId: string,
+  type: 'tip' | 'airdrop',
+  amount: number,
+  recipientId?: string
+): void {
+  pendingTransactions.set(reference, {
+    reference,
+    userId,
+    type,
+    amount,
+    recipientId,
+    timestamp: Date.now(),
+    retryCount: 0,
+  });
+
+  // Start monitoring
+  monitorTransactionByReference(reference).catch(error => {
+    console.error(`[TransactionMonitor] Failed to monitor reference ${reference}:`, error);
+  });
+}
+
+/**
+ * Monitor a transaction until confirmed or failed by signature
  */
 async function monitorTransaction(signature: string): Promise<void> {
   const tx = pendingTransactions.get(signature);
   if (!tx) return;
 
   try {
-    console.log(`[TransactionMonitor] Monitoring ${signature}...`);
+    console.log(`[TransactionMonitor] Monitoring signature ${signature}...`);
 
     // Wait for confirmation (30s timeout)
     const confirmation = await connection.confirmTransaction(signature, 'confirmed');
@@ -76,36 +105,74 @@ async function monitorTransaction(signature: string): Promise<void> {
 
     // Transaction succeeded
     console.log(`[TransactionMonitor] ✅ ${signature} confirmed!`);
-
-    if (tx.type === 'tip') {
-      void eventRouter.publish('tip.confirmed', 'justthetip', {
-        signature,
-        userId: tx.userId,
-        recipientId: tx.recipientId,
-        amount: tx.amount,
-        timestamp: Date.now(),
-      });
-    } else {
-      void eventRouter.publish('airdrop.confirmed', 'justthetip', {
-        signature,
-        userId: tx.userId,
-        amount: tx.amount,
-        timestamp: Date.now(),
-      });
-    }
-
+    handleConfirmedTransaction(signature, tx);
     pendingTransactions.delete(signature);
   } catch (error) {
     console.error(`[TransactionMonitor] Error monitoring ${signature}:`, error);
     
-    // Retry after 5 seconds (max 3 retries)
-    const retryCount = (tx as any).retryCount || 0;
-    if (retryCount < 3) {
-      (tx as any).retryCount = retryCount + 1;
+    // Retry
+    if ((tx.retryCount || 0) < 3) {
+      tx.retryCount = (tx.retryCount || 0) + 1;
       setTimeout(() => monitorTransaction(signature), 5000);
     } else {
       pendingTransactions.delete(signature);
     }
+  }
+}
+
+/**
+ * Monitor a transaction until confirmed by reference
+ */
+async function monitorTransactionByReference(reference: string): Promise<void> {
+  const tx = pendingTransactions.get(reference);
+  if (!tx) return;
+
+  try {
+    console.log(`[TransactionMonitor] Polling for reference ${reference}...`);
+    const refPubKey = new PublicKey(reference);
+
+    // Look for transactions with this reference
+    const signatures = await connection.getSignaturesForAddress(refPubKey, { limit: 1 }, 'confirmed');
+
+    if (signatures.length > 0) {
+      const signature = signatures[0].signature;
+      console.log(`[TransactionMonitor] ✅ Found transaction for reference ${reference}: ${signature}`);
+      
+      handleConfirmedTransaction(signature, tx);
+      pendingTransactions.delete(reference);
+      return;
+    }
+
+    // Still pending, retry after 5 seconds (up to 20 times = 100 seconds)
+    if ((tx.retryCount || 0) < 20) {
+      tx.retryCount = (tx.retryCount || 0) + 1;
+      setTimeout(() => monitorTransactionByReference(reference), 5000);
+    } else {
+      console.log(`[TransactionMonitor] Timeout waiting for reference ${reference}`);
+      pendingTransactions.delete(reference);
+    }
+  } catch (error) {
+    console.error(`[TransactionMonitor] Error polling reference ${reference}:`, error);
+    setTimeout(() => monitorTransactionByReference(reference), 5000);
+  }
+}
+
+function handleConfirmedTransaction(signature: string, tx: PendingTransaction) {
+  if (tx.type === 'tip') {
+    void eventRouter.publish('tip.confirmed', 'justthetip', {
+      signature,
+      userId: tx.userId,
+      recipientId: tx.recipientId,
+      amount: tx.amount,
+      timestamp: Date.now(),
+    });
+  } else {
+    void eventRouter.publish('airdrop.confirmed', 'justthetip', {
+      signature,
+      userId: tx.userId,
+      amount: tx.amount,
+      timestamp: Date.now(),
+    });
   }
 }
 

@@ -8,7 +8,7 @@ import { Client, Events } from 'discord.js';
 import { eventRouter } from '@tiltcheck/event-router';
 import { extractUrls, ModNotifier, createModNotifier } from '@tiltcheck/discord-utils';
 // import { suslink } from '@tiltcheck/suslink';
-import { trackMessage } from '@tiltcheck/tiltcheck-core';
+import { trackMessage, isOnCooldown, recordViolation } from '@tiltcheck/tiltcheck-core';
 import { config } from '../config.js';
 import type { CommandHandler } from './commands.js';
 import { checkAndOnboard, handleOnboardingInteraction, needsOnboarding } from './onboarding.js';
@@ -66,6 +66,16 @@ export class EventHandler {
 
       if (!interaction.isChatInputCommand()) return;
 
+      // Check for cooldown
+      if (isOnCooldown(interaction.user.id)) {
+        recordViolation(interaction.user.id);
+        await interaction.reply({ 
+          content: '🛑 **Cooldown Active**\nYou are currently on cooldown to prevent tilt-driven decisions. Please take a break and try again later!', 
+          ephemeral: true 
+        });
+        return;
+      }
+
       // Check if user needs onboarding (first-time user)
       if (needsOnboarding(interaction.user.id)) {
         // Send welcome DM in background (don't block command execution)
@@ -108,13 +118,18 @@ export class EventHandler {
     });
 
     // Message create (auto-scan links if enabled)
-    /*
-    if (config.suslinkAutoScan) {
-      this.client.on(Events.MessageCreate, async (message) => {
+    this.client.on(Events.MessageCreate, async (message) => {
+      if (message.author.bot) return;
+
+      // Track message for tilt detection
+      trackMessage(message.author.id, message.content, message.channelId);
+
+      /*
+      if (config.suslinkAutoScan) {
         // ... (existing code)
-      });
-    }
-    */
+      }
+      */
+    });
 
     console.log('[EventHandler] Discord events registered');
   }
@@ -156,26 +171,59 @@ export class EventHandler {
    * Subscribe to Event Router events
    */
   subscribeToEvents(): void {
-    /*
-    // Subscribe to link flagged events (high-risk links)
-    eventRouter.subscribe(
-      'link.flagged',
-      // ... (existing code)
-    );
-
     // Subscribe to tilt detected events (warn users on cooldown)
     eventRouter.subscribe(
       'tilt.detected',
-      // ... (existing code)
+      async (event: TiltCheckEvent) => {
+        try {
+          const { userId, reason, severity, tiltScore } = event.data;
+          
+          // Get the user from client
+          const user = await this.client.users.fetch(userId);
+          if (!user) return;
+
+          // Send a warning DM
+          const warningMessage = severity >= 4 
+            ? `⚠️ **Tilt Warning: Automatic Cooldown Started**\nOur system detected significant tilt signals (${reason}). To protect your funds, we've initiated a short cooldown. Take a breather! 🧘`
+            : `⚠️ **Tilt Warning**\nWe've detected some tilt signals (${reason}, score: ${tiltScore.toFixed(1)}). Remember to stay disciplined and take a break if you're feeling frustrated!`;
+
+          await user.send(warningMessage).catch(() => {
+            console.log(`[Bot] Could not send tilt warning DM to ${user.tag} (DMs might be closed)`);
+          });
+        } catch (error) {
+          console.error('[Bot] Error handling tilt.detected event:', error);
+        }
+      },
+      'discord-bot'
     );
 
     // Subscribe to cooldown violation events
     eventRouter.subscribe(
       'cooldown.violated',
-      // ... (existing code)
-    );
-    */
+      async (event: TiltCheckEvent) => {
+        try {
+          const { userId, violationCount, expiresAt } = event.data;
+          
+          const user = await this.client.users.fetch(userId);
+          if (!user) return;
 
-    console.log('[EventHandler] Event Router subscriptions registration skipped (only JustTheTip mode)');
+          const remainingMs = expiresAt - Date.now();
+          const remainingMin = Math.ceil(remainingMs / 60000);
+
+          const violationMessage = violationCount >= 3
+            ? `🛑 **Cooldown Violation**\nYou are still on cooldown for another ${remainingMin} minutes. Because of repeated violations, your cooldown has been extended. Please take this time to cool off.`
+            : `🛑 **Cooldown Active**\nYou are currently on cooldown for another ${remainingMin} minutes. Take a break from betting/chatting to clear your head!`;
+
+          await user.send(violationMessage).catch(() => {
+             // Silently fail if DM fails - user is already spamming
+          });
+        } catch (error) {
+          console.error('[Bot] Error handling cooldown.violated event:', error);
+        }
+      },
+      'discord-bot'
+    );
+
+    console.log('[EventHandler] Event Router subscriptions active');
   }
 }

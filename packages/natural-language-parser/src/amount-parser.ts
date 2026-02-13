@@ -11,10 +11,23 @@ const USD_PATTERNS = /\$|usd|dollar|dollars|buck|bucks|cash/i;
 const SOL_PATTERNS = /sol|solana/i;
 const ALL_PATTERNS = /^(all|everything|max|full balance)$/i;
 
+// Sanity limits
+const MAX_SOL_AMOUNT = 1000;
+const MAX_USD_AMOUNT = 10000;
+const MAX_INPUT_LENGTH = 100;
+
 /**
  * Parse amount from natural language input
  */
 export function parseAmount(input: string): ParseResult<ParsedAmount> {
+  // Prevent excessive input length
+  if (input.length > MAX_INPUT_LENGTH) {
+    return {
+      success: false,
+      error: 'Input text is too long',
+    };
+  }
+
   const trimmed = input.trim();
   
   // Check for "all" variations
@@ -60,6 +73,21 @@ export function parseAmount(input: string): ParseResult<ParsedAmount> {
   } else if (SOL_PATTERNS.test(trimmed)) {
     currency = 'SOL';
     confidence = 0.95;
+  }
+
+  // Apply sanity limits
+  if (currency === 'SOL' && value > MAX_SOL_AMOUNT) {
+    return {
+      success: false,
+      error: `Amount exceeds sanity limit of ${MAX_SOL_AMOUNT} SOL. If this is intentional, please send in multiple smaller batches or use the web dashboard.`,
+    };
+  }
+
+  if (currency === 'USD' && value > MAX_USD_AMOUNT) {
+    return {
+      success: false,
+      error: `Amount exceeds sanity limit of $${MAX_USD_AMOUNT} USD.`,
+    };
   }
 
   // Check for ambiguity - if just a number with no currency indicator
