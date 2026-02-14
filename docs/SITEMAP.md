@@ -5,7 +5,6 @@
 - **[QualifyFirst](/qualify)**: Earn crypto rewards by completing tasks.
 - **[CollectClock](/bonus)**: Bonus cycle tracking and timer monitoring.
 - **[Wallet Check](/wallet-check)**: Security scanner for EIP7702 and malicious approvals.
-- **[Bet Check](/bet-check)**: Fairness verification and betting analytics.
 - **[Safety (TiltGuard)](/safety)**: Chrome extension and Discord bot safety tools.
 - **[JustTheTip](/justthetip)**: Non-custodial Discord tipping service.
 - **[User Profile](/user)**: Manage linked accounts and earnings.
