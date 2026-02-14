@@ -34,7 +34,6 @@ export default function RootLayout({
                   <Link href="/qualify" className="hover:text-[#00FFC6] transition-colors">Earn</Link>
                   <Link href="/bonus" className="hover:text-[#00FFC6] transition-colors">Timers</Link>
                   <Link href="/wallet-check" className="hover:text-[#00FFC6] transition-colors">Security</Link>
-                  <Link href="/bet-check" className="hover:text-[#00FFC6] transition-colors">Bet Check</Link>
                   <Link href="/safety" className="hover:text-[#00FFC6] transition-colors">Safety</Link>
                 </div>
               </div>
