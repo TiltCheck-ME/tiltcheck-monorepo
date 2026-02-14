@@ -195,13 +195,13 @@ router.get('/profile/:userId', (req, res) => {
     userId,
     profile: {
       trustLevel,
-      riskScore: 100 - trustBreakdown.finalScore, // Invert trust for risk
+      riskScore: 100 - trustBreakdown.score, // Invert trust for risk
       onCooldown: tiltStatus.onCooldown,
       lossStreak: tiltStatus.lossStreak,
       recentSignals: tiltStatus.recentSignals,
-      recommendation: trustLevel === 'high-risk' || tiltStatus.onCooldown 
+      recommendation: (100 - trustBreakdown.score) > 60 || tiltStatus.onCooldown 
         ? 'INTERVENE_IMMEDIATELY' 
-        : trustLevel === 'low' 
+        : (100 - trustBreakdown.score) > 40 
           ? 'MONITOR_CLOSELY' 
           : 'NORMAL_PLAY',
     }
