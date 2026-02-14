@@ -15,6 +15,8 @@ import { servicesRouter } from './routes/services.js';
 import { tipRouter } from './routes/tip.js';
 import { healthRouter } from './routes/health.js';
 import { rgaasRouter } from './routes/rgaas.js';
+import { affiliateRouter } from './routes/affiliate.js';
+import { safetyRouter } from './routes/safety.js';
 import { errorHandler, notFoundHandler } from './middleware/error.js';
 import { requestLogger } from './middleware/logger.js';
 import { csrfProtection } from './middleware/csrf.js';
@@ -108,6 +110,9 @@ app.use('/tip', tipRouter);
 
 // RGaaS (Responsible Gaming as a Service) routes
 app.use('/rgaas', rgaasRouter);
+
+// Safety routes
+app.use('/safety', safetyRouter);
 
 // Affiliate trust routes
 app.use('/affiliate', affiliateRouter);
