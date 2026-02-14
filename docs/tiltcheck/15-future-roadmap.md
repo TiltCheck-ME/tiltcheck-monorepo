@@ -33,7 +33,7 @@ TiltCheck’s roadmap assumes scrappy resourcefulness.
 
 ---
 
-# 15.2 Phase 1 — Core Launch (MVP)
+# 15.2 Phase 1 — Core Launch (MVP) & RGaaS Pivot
 
 ### **Modules included:**
 - JustTheTip (non-custodial tipping)
@@ -43,8 +43,7 @@ TiltCheck’s roadmap assumes scrappy resourcefulness.
 - Base casino trust engine
 - Basic degen trust score
 - TiltCheck Core (tilt nudges + cooldown commands)
-- NFT identity (optional, minimal)
-- Agent-ready architecture
+- **RGaaS API (Initial Release)**: Exposing SusLink, Trust, and Tilt as a service.
 
 ### **Discord-first release:**
 Focus on:
@@ -52,6 +51,7 @@ Focus on:
 - reliable scanning  
 - simple tipping  
 - smooth mod workflow  
+- **Early developer access to RGaaS APIs**
 
 ### **Outcomes:**
 - community stability  
@@ -59,6 +59,7 @@ Focus on:
 - cleaner promo channels  
 - safer tipping  
 - early trust signals  
+- **Foundational API layer for ecosystem expansion**
 
 ---
 
@@ -173,16 +174,17 @@ TiltCheck stays ethical, funny, and user-respecting.
 
 ---
 
-# 15.8 Phase 7 — Optional Public API & Developer Ecosystem
+# 15.8 Phase 7 — Public API & Developer Ecosystem (Accelerated)
 
 Expose:
+- RGaaS unified signals (Tilt, Trust, Risk)
 - trust signals  
 - bonus trackers  
 - fairness patterns  
 - DA&D card pack generator  
 - tipping module wrappers  
 
-This enables third-party bots and services.
+This enables third-party bots and services. The RGaaS pivot accelerated this phase to provide the foundational infrastructure for the entire ecosystem.
 
 ---
 

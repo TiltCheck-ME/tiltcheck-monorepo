@@ -88,15 +88,6 @@ export default function DashboardHome() {
               icon="SECURITY"
             />
 
-            {/* Bet Check */}
-            <ToolCard
-              title="BET CHECK"
-              description="Verify provably fair seeds and analyze betting performance trends."
-              href="/bet-check"
-              status="BETA"
-              icon="VERIFY"
-            />
-
             {/* TiltGuard */}
             <ToolCard
               title="TILTGUARD"

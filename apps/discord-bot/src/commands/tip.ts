@@ -114,13 +114,6 @@ export const tip: Command = {
         .setName('balance')
         .setDescription('Check your wallet balance')
     )
-    // Pending tips
-    .addSubcommand(sub =>
-      sub
-        .setName('pending')
-        .setDescription('View pending tips sent to you')
-    )
-    // Vault lock
     .addSubcommand(sub =>
       sub
         .setName('lock')
@@ -274,7 +267,6 @@ export const tip: Command = {
             '• `/tip airdrop` - Send SOL to multiple users or create public claim\n' +
             '• `/tip wallet` - Manage your wallet\n' +
             '• `/tip balance` - Check your balance\n' +
-            '• `/tip pending` - View pending tips\n' +
             '• `/tip lock` - Lock SOL in vault\n' +
             '• `/tip unlock` - Unlock vault\n' +
             '• `/tip extend` - Extend vault lock\n' +
@@ -301,9 +293,6 @@ export const tip: Command = {
           break;
         case 'balance':
           await handleBalance(interaction);
-          break;
-        case 'pending':
-          await handlePending(interaction);
           break;
         case 'lock':
           await handleVaultLock(interaction);
@@ -741,15 +730,6 @@ async function handleBalance(interaction: ChatInputCommandInteraction) {
   }
 }
 
-async function handlePending(interaction: ChatInputCommandInteraction) {
-  await interaction.reply({
-    content: '📋 **Pending Tips**\n\n' +
-      'Feature coming soon!\n' +
-      'You\'ll be able to see tips sent to you before you registered a wallet.',
-    ephemeral: true,
-  });
-}
-
 // ==================== VAULT HANDLERS ====================
 
 async function handleVaultLock(interaction: ChatInputCommandInteraction) {
@@ -771,7 +751,7 @@ async function handleVaultLock(interaction: ChatInputCommandInteraction) {
   }
 
   try {
-    const vault = lockVault({ userId: interaction.user.id, amountRaw, durationRaw, reason });
+    const vault = await lockVault({ userId: interaction.user.id, amountRaw, durationRaw, reason });
     const embed = new EmbedBuilder()
       .setColor(0x8A2BE2)
       .setTitle('🔒 Vault Locked')
