@@ -29,6 +29,7 @@ import { lockVault, unlockVault, extendVault, getVaultStatus, type LockVaultReco
 import { parseAmountNL, formatAmount, parseDurationNL, parseCategory } from '@tiltcheck/natural-language-parser';
 import { pricingOracle } from '@tiltcheck/pricing-oracle';
 import { isOnCooldown } from '@tiltcheck/tiltcheck-core';
+import { db } from '@tiltcheck/database';
 import { Connection } from '@solana/web3.js';
 
 // Active public airdrops - messageId -> airdrop data
@@ -654,15 +655,38 @@ async function handleWallet(interaction: ChatInputCommandInteraction) {
 
     await interaction.reply({ embeds: [embed], ephemeral: true });
   } else if (action === 'register-magic') {
-    await interaction.reply({
-      content: '🪄 **Magic Wallet**\n\n' +
-        'Magic wallets are disposable, temporary wallets perfect for:\n' +
-        '• Users on cooldown who want to limit spending\n' +
-        '• Quick, anonymous tips\n' +
-        '• Testing without using your main wallet\n\n' +
-        '*Coming soon! For now, use Register (External) to connect your Phantom or Solflare wallet.*',
-      ephemeral: true,
-    });
+    // Check if user already has a Degen Identity with magic address
+    if (db.isConnected()) {
+      try {
+        const identity = await db.getDegenIdentity(interaction.user.id);
+        if (identity?.magic_address) {
+          await interaction.reply({
+            content: `✅ You already have a **Degen Identity** wallet linked:\n\`${identity.magic_address}\``,
+            ephemeral: true,
+          });
+          return;
+        }
+      } catch (err) {
+        console.error('[TIP] Failed to check Degen Identity:', err);
+      }
+    }
+
+    // Provide link to dashboard for Magic wallet registration
+    const dashboardUrl = process.env.DASHBOARD_URL || 'https://tiltcheck.me/dashboard';
+    const linkUrl = `${dashboardUrl}?action=link-magic&userId=${interaction.user.id}`;
+    
+    const embed = new EmbedBuilder()
+      .setColor(0x8A2BE2)
+      .setTitle('✨ Register with Magic Link')
+      .setDescription('Connect your email to create a secure **Soft-Custody** wallet for tipping and vaulting.')
+      .addFields(
+        { name: 'Step 1', value: `[Click here to open Dashboard](${linkUrl})` },
+        { name: 'Step 2', value: 'Login with your Email' },
+        { name: 'Step 3', value: 'Link your Discord account' }
+      )
+      .setFooter({ text: 'TiltCheck • Trust & Safety' });
+
+    await interaction.reply({ embeds: [embed], ephemeral: true });
   } else if (action === 'register-external') {
     const address = interaction.options.getString('address');
     
