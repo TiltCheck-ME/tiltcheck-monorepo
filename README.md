@@ -47,6 +47,19 @@ Every module is Discord-first, non-custodial, and optimized for low-cost serverl
 
 ---
 
+## 🚀 RGaaS Pivot: Responsible Gaming as a Service
+
+TiltCheck has expanded from a consumer toolset into a **Responsible Gaming as a Service (RGaaS)** provider. We expose our core intelligence engines via a unified API for 3rd-party integration:
+
+- **Tilt Detection API**: Behavioral risk analysis for active sessions.
+- **Trust Scoring API**: Real-time reputation checks for casinos and users.
+- **Link Scanning API**: Instant threat detection for gambling-related URLs.
+- **Risk Profiling**: Unified behavioral snapshots for immediate intervention.
+
+See [16. RGaaS Pivot Docs](./docs/tiltcheck/16-rgaas-pivot.md) for full integration details.
+
+---
+
 ## Core Principles
 
 1. **Modularity** — Every tool stands alone
