@@ -36,8 +36,9 @@ jobs:
 
   build-bot:
     name: Build Discord Bot
-    needs: detect-changes
-    if: needs.detect-changes.outputs.bot-changed == 'true' || github.event_name == 'workflow_dispatch'
+    # NOTE: detect-changes job is disabled, so we run unconditionally when manually triggered
+    # This workflow is intentionally disabled - use deploy-bot.yml for production
+    if: github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
