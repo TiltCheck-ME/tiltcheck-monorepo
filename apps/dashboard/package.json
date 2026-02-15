@@ -13,20 +13,20 @@
     "@tiltcheck/api-client": "workspace:*",
     "@tiltcheck/auth": "workspace:*",
     "@tiltcheck/collectclock": "workspace:*",
-    "@tiltcheck/qualifyfirst": "workspace:*",
-    "@tiltcheck/walletcheck": "workspace:*",
-    "@tiltcheck/suslink": "workspace:*",
     "@tiltcheck/logger": "workspace:*",
+    "@tiltcheck/qualifyfirst": "workspace:*",
     "@tiltcheck/shared": "workspace:*",
+    "@tiltcheck/suslink": "workspace:*",
     "@tiltcheck/types": "workspace:*",
-    "next": "15.5.11",
-    "react": "^19.2.1",
-    "react-dom": "^18.2.0"
+    "@tiltcheck/walletcheck": "workspace:*",
+    "next": "15.1.7",
+    "react": "18.3.1",
+    "react-dom": "18.3.1"
   },
   "devDependencies": {
     "@types/node": "^20.10.0",
-    "@types/react": "^19.2.7",
-    "@types/react-dom": "^18.2.0",
+    "@types/react": "^18.3.1",
+    "@types/react-dom": "^18.3.1",
     "typescript": "^5.3.0"
   }
 }
