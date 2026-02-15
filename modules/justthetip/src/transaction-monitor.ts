@@ -3,7 +3,7 @@
  * Listens for Solana transaction confirmations
  */
 
-import { Connection } from '@solana/web3.js';
+import { Connection, PublicKey } from '@solana/web3.js';
 import { eventRouter } from '@tiltcheck/event-router';
 
 const SOLANA_RPC_URL = process.env.SOLANA_RPC_URL || 'https://api.mainnet-beta.solana.com';

@@ -1,0 +1,61 @@
+warning: in the working copy of 'apps/discord-bot/src/commands/tip.ts', LF will be replaced by CRLF the next time Git touches it
+[1mdiff --git a/apps/discord-bot/src/commands/tip.ts b/apps/discord-bot/src/commands/tip.ts[m
+[1mindex 4fca64a..66f823d 100644[m
+[1m--- a/apps/discord-bot/src/commands/tip.ts[m
+[1m+++ b/apps/discord-bot/src/commands/tip.ts[m
+[36m@@ -29,6 +29,7 @@[m [mimport { lockVault, unlockVault, extendVault, getVaultStatus, type LockVaultReco[m
+ import { parseAmountNL, formatAmount, parseDurationNL, parseCategory } from '@tiltcheck/natural-language-parser';[m
+ import { pricingOracle } from '@tiltcheck/pricing-oracle';[m
+ import { isOnCooldown } from '@tiltcheck/tiltcheck-core';[m
+[32m+[m[32mimport { db } from '@tiltcheck/database';[m
+ import { Connection } from '@solana/web3.js';[m
+ [m
+ // Active public airdrops - messageId -> airdrop data[m
+[36m@@ -654,15 +655,38 @@[m [masync function handleWallet(interaction: ChatInputCommandInteraction) {[m
+ [m
+     await interaction.reply({ embeds: [embed], ephemeral: true });[m
+   } else if (action === 'register-magic') {[m
+[31m-    await interaction.reply({[m
+[31m-      content: '🪄 **Magic Wallet**\n\n' +[m
+[31m-        'Magic wallets are disposable, temporary wallets perfect for:\n' +[m
+[31m-        '• Users on cooldown who want to limit spending\n' +[m
+[31m-        '• Quick, anonymous tips\n' +[m
+[31m-        '• Testing without using your main wallet\n\n' +[m
+[31m-        '*Coming soon! For now, use Register (External) to connect your Phantom or Solflare wallet.*',[m
+[31m-      ephemeral: true,[m
+[31m-    });[m
+[32m+[m[32m    // Check if user already has a Degen Identity with magic address[m
+[32m+[m[32m    if (db.isConnected()) {[m
+[32m+[m[32m      try {[m
+[32m+[m[32m        const identity = await db.getDegenIdentity(interaction.user.id);[m
+[32m+[m[32m        if (identity?.magic_address) {[m
+[32m+[m[32m          await interaction.reply({[m
+[32m+[m[32m            content: `✅ You already have a **Degen Identity** wallet linked:\n\`${identity.magic_address}\``,[m
+[32m+[m[32m            ephemeral: true,[m
+[32m+[m[32m          });[m
+[32m+[m[32m          return;[m
+[32m+[m[32m        }[m
+[32m+[m[32m      } catch (err) {[m
+[32m+[m[32m        console.error('[TIP] Failed to check Degen Identity:', err);[m
+[32m+[m[32m      }[m
+[32m+[m[32m    }[m
+[32m+[m
+[32m+[m[32m    // Provide link to dashboard for Magic wallet registration[m
+[32m+[m[32m    const dashboardUrl = process.env.DASHBOARD_URL || 'https://tiltcheck.me/dashboard';[m
+[32m+[m[32m    const linkUrl = `${dashboardUrl}?action=link-magic&userId=${interaction.user.id}`;[m
+[32m+[m[41m    [m
+[32m+[m[32m    const embed = new EmbedBuilder()[m
+[32m+[m[32m      .setColor(0x8A2BE2)[m
+[32m+[m[32m      .setTitle('✨ Register with Magic Link')[m
+[32m+[m[32m      .setDescription('Connect your email to create a secure **Soft-Custody** wallet for tipping and vaulting.')[m
+[32m+[m[32m      .addFields([m
+[32m+[m[32m        { name: 'Step 1', value: `[Click here to open Dashboard](${linkUrl})` },[m
+[32m+[m[32m        { name: 'Step 2', value: 'Login with your Email' },[m
+[32m+[m[32m        { name: 'Step 3', value: 'Link your Discord account' }[m
+[32m+[m[32m      )[m
+[32m+[m[32m      .setFooter({ text: 'TiltCheck • Trust & Safety' });[m
+[32m+[m
+[32m+[m[32m    await interaction.reply({ embeds: [embed], ephemeral: true });[m
+   } else if (action === 'register-external') {[m
+     const address = interaction.options.getString('address');[m
+     [m

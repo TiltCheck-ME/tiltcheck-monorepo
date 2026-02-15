@@ -11,13 +11,13 @@
     "test": "vitest --run --passWithNoTests"
   },
   "dependencies": {
-    "express": "^4.19.0",
+    "@tiltcheck/event-router": "workspace:*",
     "@tiltcheck/types": "workspace:*",
-    "@tiltcheck/event-router": "workspace:*"
+    "express": "^4.19.0",
+    "next": "15.1.7"
   },
   "devDependencies": {
     "@types/express": "^4.17.21",
     "tsx": "^4.7.0"
   }
 }
-

@@ -35,7 +35,7 @@ export { tiltcheck } from './tiltcheck.js';
 
 // Cooldown and vault management
 // export { cooldown, tilt } from './cooldown.js';
-// export { lockvault } from './lockvault.js';
+export { lockvault } from './lockvault.js';
 
 // Entertainment
 // export { triviadrop } from './triviadrop.js';

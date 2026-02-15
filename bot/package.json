@@ -1,5 +1,5 @@
 {
-  "name": "@tiltcheck/bot",
+  "name": "@tiltcheck/bot-worker",
   "version": "0.1.0",
   "description": "TiltCheck Discord bot - Worker service",
   "type": "module",

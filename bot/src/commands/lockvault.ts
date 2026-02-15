@@ -54,7 +54,7 @@ export const lockvault: Command = {
           await interaction.reply({ content: `❌ ${parsedDuration.error}`, ephemeral: true });
           return;
         }
-        const vault = lockVault({ userId: interaction.user.id, amountRaw, durationRaw, reason });
+        const vault = await lockVault({ userId: interaction.user.id, amountRaw, durationRaw, reason });
         const embed = new EmbedBuilder()
           .setColor(0x8A2BE2)
           .setTitle('🔒 Vault Locked')
