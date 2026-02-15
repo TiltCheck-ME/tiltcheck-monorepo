@@ -1,4 +1,4 @@
-import { SlashCommandBuilder, ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
+import { SlashCommandBuilder, ChatInputCommandInteraction, EmbedBuilder, AutocompleteInteraction } from 'discord.js';
 import { collectclock } from '@tiltcheck/collectclock';
 import type { Command } from '../types.js';
 
@@ -84,7 +84,7 @@ export const bonus: Command = {
     }
   },
 
-  async autocomplete(interaction) {
+  async autocomplete(interaction: AutocompleteInteraction) {
     const focusedValue = interaction.options.getFocused();
     const casinos = collectclock.getCasinos();
     

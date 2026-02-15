@@ -16,10 +16,11 @@ export const walletcheck: Command = {
 
     // Validate address format
     if (!/^0x[a-fA-F0-9]{40}$/.test(address)) {
-      return interaction.reply({ 
+      await interaction.reply({ 
         content: '❌ Invalid EVM address format. Please provide a valid 0x... address.',
         ephemeral: true 
       });
+      return;
     }
 
     await interaction.deferReply();

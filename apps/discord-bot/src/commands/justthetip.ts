@@ -16,6 +16,7 @@ import {
 } from '@tiltcheck/justthetip';
 import { parseAmount, formatAmount } from '@tiltcheck/natural-language-parser';
 import { isOnCooldown } from '@tiltcheck/tiltcheck-core';
+import { db } from '@tiltcheck/database';
 import { Connection } from '@solana/web3.js';
 
 const SOLANA_RPC_URL = process.env.SOLANA_RPC_URL || 'https://api.mainnet-beta.solana.com';
