@@ -9,6 +9,7 @@ on:
 jobs:
   build-test:
     runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' || github.event_name == 'pull_request'
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -26,43 +27,17 @@ jobs:
       - name: Install deps
         run: pnpm install --frozen-lockfile
       
-      - name: Build core packages
-        run: |
-          pnpm --filter @tiltcheck/types run build
-          pnpm --filter @tiltcheck/config run build
-          pnpm --filter @tiltcheck/esm-utils run build
-          pnpm --filter @tiltcheck/database run build
-          pnpm --filter @tiltcheck/shared run build
-          pnpm --filter @tiltcheck/api-client run build
-          pnpm --filter @tiltcheck/auth run build
-          pnpm --filter @tiltcheck/event-router run build
-          pnpm --filter @tiltcheck/discord-utils run build
-          pnpm --filter @tiltcheck/cli run build
-          pnpm --filter @tiltcheck/pricing-oracle run build
-          pnpm --filter @tiltcheck/trust-rollup run build
-      
-      - name: Build services/dashboard
-        run: pnpm --filter "./services/dashboard" run build
-        continue-on-error: true
-      
-      - name: Build apps/dashboard
-        run: pnpm --filter "./apps/dashboard" run build
-        continue-on-error: true
-      
-      - name: Build apps/web
-        run: pnpm --filter "@tiltcheck/web" run build
+      - name: Build monorepo
+        run: bash scripts/ordered-build.sh
       
       - name: Lint
-        run: pnpm lint || echo "Lint failed but continuing"
-        continue-on-error: true
+        run: pnpm lint
       
       - name: Run tests
-        run: pnpm test || echo "Tests failed but continuing"
-        continue-on-error: true
+        run: pnpm test
       
       - name: Generate coverage
-        run: pnpm coverage || echo "Coverage failed but continuing"
-        continue-on-error: true
+        run: pnpm coverage
       
       - name: Upload coverage artifact
         uses: actions/upload-artifact@v4

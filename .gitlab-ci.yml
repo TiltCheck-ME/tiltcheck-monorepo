@@ -20,10 +20,6 @@ before_script:
   - pnpm config set store-dir .pnpm-store
   - pnpm install --frozen-lockfile
 
-after_script:
-  - mkdir -p coverage
-  - echo "Pipeline run at $(date)" > coverage/pipeline-info.txt
-
 build-test:
   stage: build-test
   script:
@@ -33,6 +29,8 @@ build-test:
     - pnpm build
     - pnpm lint
     - pnpm test
+    - mkdir -p coverage
+    - echo "Pipeline run at $(date)" > coverage/pipeline-info.txt
     - |
       if [ ! -f coverage/index.html ] && [ ! -f coverage/lcov.info ]; then
         echo "No coverage files found, creating placeholder" > coverage/no-coverage.txt
