@@ -57,10 +57,10 @@ jobs:
 
       - name: Start services
         env:
-          DISCORD_TOKEN: ${{ secrets.DISCORD_TOKEN }}
-          DISCORD_CLIENT_ID: ${{ secrets.DISCORD_CLIENT_ID }}
-          DISCORD_GUILD_ID: ${{ secrets.DISCORD_GUILD_ID }}
-          SKIP_DISCORD_LOGIN: 'false'
+          DISCORD_TOKEN: ${{ secrets.DISCORD_TOKEN || 'placeholder' }}
+          DISCORD_CLIENT_ID: ${{ secrets.DISCORD_CLIENT_ID || 'placeholder' }}
+          DISCORD_GUILD_ID: ${{ secrets.DISCORD_GUILD_ID || 'placeholder' }}
+          SKIP_DISCORD_LOGIN: 'true'
         run: docker compose up -d discord-bot trust-rollup
 
       - name: Wait briefly for startup

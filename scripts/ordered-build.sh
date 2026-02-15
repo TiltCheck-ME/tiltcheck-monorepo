@@ -18,15 +18,15 @@ pnpm --filter @tiltcheck/pricing-oracle build
 
 # Stage 3: Extended packages
 echo "📦 Stage 3: Extended packages..."
-pnpm --filter @tiltcheck/ai-client build
-pnpm --filter @tiltcheck/auth build
-pnpm --filter @tiltcheck/database build
-pnpm --filter @tiltcheck/db build
-pnpm --filter @tiltcheck/natural-language-parser build
-pnpm --filter @tiltcheck/discord-utils build
-pnpm --filter @tiltcheck/identity-core build
-pnpm --filter @tiltcheck/cli build
-pnpm --filter @tiltcheck/supabase-auth build
+pnpm --filter @tiltcheck/ai-client build &
+pnpm --filter @tiltcheck/auth build &
+pnpm --filter @tiltcheck/database build &
+pnpm --filter @tiltcheck/db build &
+pnpm --filter @tiltcheck/natural-language-parser build &
+pnpm --filter @tiltcheck/discord-utils build &
+pnpm --filter @tiltcheck/identity-core build &
+pnpm --filter @tiltcheck/cli build &
+pnpm --filter @tiltcheck/supabase-auth build &
 
 echo "⏳ Waiting for Stage 3 to complete..."
 wait
