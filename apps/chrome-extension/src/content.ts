@@ -1,3 +1,19 @@
+/*
+ * TODO: Feature Implementation List
+ * - Implement SusLink checker link check for known scam reports on public info.
+ * - Implement report button for casino updates (payout schedule, bonus change).
+ * - Create onboarding interview (business, casino, degen, developer).
+ * - Add phone a friend/buddy notification toggle.
+ * - Degen accountability streaming channels.
+ * - Discord help/support/report tickets.
+ * - Autovault via API key.
+ * - Withdraw to lock timer wallet.
+ * - Custom balance notification for withdraws (e.g., Power Bill).
+ * - Pattern tracking setup via natural language.
+ * - Zero balance intervention (suggest surveys).
+ * - Smart harm reduction observation tips.
+ */
+
 /**
  * Enhanced Content Script - TiltGuard + License Verification
  * 
@@ -37,6 +53,10 @@ import { CasinoDataExtractor, AnalyzerClient } from './extractor.js';
 import { TiltDetector } from './tilt-detector.js';
 import { CasinoLicenseVerifier } from './license-verifier.js';
 import './sidebar.js';
+import { Analyzer } from './analyzer';
+import { WalletBridge } from './wallet-bridge';
+import { SolanaProvider } from '../../../packages/utils/src/SolanaProvider';
+import { FairnessService } from '../../../packages/utils/src/FairnessService';
 
 // Configuration
 const ANALYZER_WS_URL = 'wss://api.tiltcheck.me/analyzer';
@@ -50,10 +70,187 @@ let sessionId: string | null = null;
 let stopObserving: (() => void) | null = null;
 let isMonitoring = false;
 let casinoVerification: any = null;
+let analyzer: Analyzer | null = null;
+let solana: SolanaProvider | null = null;
+let bridge: WalletBridge | null = null;
+let fairness: FairnessService | null = null;
 
 // Intervention state
 let cooldownEndTime: number | null = null;
 const interventionQueue: any[] = [];
+
+/**
+ * Visual Picker for selecting elements
+ */
+class VisualPicker {
+  private overlay: HTMLElement | null = null;
+  private active = false;
+  private callback: ((selector: string) => void) | null = null;
+
+  start(callback: (selector: string) => void) {
+    if (this.active) return;
+    this.active = true;
+    this.callback = callback;
+    
+    // Create overlay for highlighting
+    this.overlay = document.createElement('div');
+    this.overlay.style.cssText = `
+      position: fixed;
+      pointer-events: none;
+      background: rgba(0, 255, 136, 0.2);
+      border: 2px solid #00ff88;
+      z-index: 2147483647;
+      transition: all 0.1s;
+      display: none;
+      border-radius: 4px;
+    `;
+    document.body.appendChild(this.overlay);
+
+    document.addEventListener('mousemove', this.onHover, true);
+    document.addEventListener('click', this.onClick, true);
+    document.body.style.cursor = 'crosshair';
+  }
+
+  stop() {
+    this.active = false;
+    this.callback = null;
+    if (this.overlay) this.overlay.remove();
+    document.removeEventListener('mousemove', this.onHover, true);
+    document.removeEventListener('click', this.onClick, true);
+    document.body.style.cursor = '';
+  }
+
+  private onHover = (e: MouseEvent) => {
+    if (!this.overlay) return;
+    const target = e.target as HTMLElement;
+    if (target === this.overlay || target.closest('#tiltguard-sidebar')) return;
+
+    const rect = target.getBoundingClientRect();
+    this.overlay.style.display = 'block';
+    this.overlay.style.top = rect.top + 'px';
+    this.overlay.style.left = rect.left + 'px';
+    this.overlay.style.width = rect.width + 'px';
+    this.overlay.style.height = rect.height + 'px';
+  }
+
+  private onClick = (e: MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    const target = e.target as HTMLElement;
+    if (target.closest('#tiltguard-sidebar')) return;
+
+    const selector = this.generateSelector(target);
+    if (this.callback) this.callback(selector);
+    this.stop();
+  }
+
+  private generateSelector(el: HTMLElement): string {
+    // 1. ID (if valid and unique)
+    if (el.id && /^[a-z][a-z0-9_-]*$/i.test(el.id) && document.querySelectorAll(`#${el.id}`).length === 1) {
+      return `#${el.id}`;
+    }
+
+    // 2. Data Attributes (High priority for testing/scraping)
+    const dataAttrs = ['data-test', 'data-testid', 'data-qa', 'data-automation-id'];
+    for (const attr of dataAttrs) {
+      if (el.hasAttribute(attr)) {
+        return `[${attr}="${el.getAttribute(attr)}"]`;
+      }
+    }
+
+    // 3. Unique Class Combination
+    if (el.className && typeof el.className === 'string') {
+      const classes = el.className.trim().split(/\s+/).filter(c => c && !c.includes(':'));
+      if (classes.length > 0) {
+        // Try single classes
+        for (const cls of classes) {
+          if (document.querySelectorAll(`.${cls}`).length === 1) return `.${cls}`;
+        }
+      }
+    }
+
+    // 4. Fallback: Path with nth-of-type
+    const path: string[] = [];
+    let current: HTMLElement | null = el;
+    
+    while (current && current !== document.body && current !== document.documentElement) {
+      let selector = current.tagName.toLowerCase();
+      
+      if (current.id && /^[a-z][a-z0-9_-]*$/i.test(current.id)) {
+        selector = `#${current.id}`;
+        path.unshift(selector);
+        break; // Stop at ID
+      } else {
+        // Calculate nth-of-type
+        let sibling = current;
+        let nth = 1;
+        while (sibling.previousElementSibling) {
+          sibling = sibling.previousElementSibling as HTMLElement;
+          if (sibling.tagName === current.tagName) nth++;
+        }
+        
+        if (nth > 1) selector += `:nth-of-type(${nth})`;
+      }
+      
+      path.unshift(selector);
+      current = current.parentElement;
+    }
+    
+    return path.join(' > ');
+  }
+}
+
+/**
+ * Highlighter for testing selectors
+ */
+class Highlighter {
+  private overlay: HTMLElement | null = null;
+  
+  highlight(selector: string) {
+    this.clear();
+    try {
+      const el = document.querySelector(selector) as HTMLElement;
+      if (!el) {
+        console.warn('[TiltCheck] Element not found for highlighting');
+        return;
+      }
+      
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      
+      const rect = el.getBoundingClientRect();
+      this.overlay = document.createElement('div');
+      this.overlay.style.cssText = `
+        position: fixed;
+        top: ${rect.top}px;
+        left: ${rect.left}px;
+        width: ${rect.width}px;
+        height: ${rect.height}px;
+        background: rgba(0, 255, 136, 0.2);
+        border: 2px solid #00ff88;
+        z-index: 2147483647;
+        pointer-events: none;
+        transition: all 0.3s;
+        border-radius: 4px;
+        box-shadow: 0 0 15px rgba(0, 255, 136, 0.4);
+      `;
+      document.body.appendChild(this.overlay);
+      
+      // Remove after 2 seconds
+      setTimeout(() => this.clear(), 2000);
+      
+    } catch (e) {
+      console.error('Invalid selector', e);
+    }
+  }
+  
+  clear() {
+    if (this.overlay) {
+      this.overlay.remove();
+      this.overlay = null;
+    }
+  }
+}
 
 /**
  * Initialize on page load
@@ -73,6 +270,49 @@ function initialize() {
   
   // Update sidebar with license info
   (window as any).TiltGuardSidebar?.updateLicense(casinoVerification);
+
+  // Initialize Fairness Tools
+  analyzer = new Analyzer();
+  bridge = new WalletBridge();
+  solana = new SolanaProvider();
+  fairness = new FairnessService();
+  setupFairnessListeners();
+
+  // Setup Visual Picker Listener
+  const picker = new VisualPicker();
+  window.addEventListener('tg-start-picker', ((e: CustomEvent) => {
+    picker.start((selector) => {
+      // Send result back to sidebar via event
+      window.dispatchEvent(new CustomEvent('tg-picker-result', { detail: { field: e.detail.field, selector } }));
+    });
+  }) as EventListener);
+
+  // Setup Highlighter Listener
+  const highlighter = new Highlighter();
+  window.addEventListener('tg-test-selector', ((e: CustomEvent) => {
+    highlighter.highlight(e.detail.selector);
+  }) as EventListener);
+
+  // Setup Fairness Calculator Listener
+  window.addEventListener('tg-calc-fairness', (async (e: CustomEvent) => {
+    if (!fairness) return;
+    const { serverSeed, clientSeed, nonce } = e.detail;
+    try {
+      const hash = await fairness.verifyCasinoResult(serverSeed, clientSeed, parseInt(nonce));
+      const float = fairness.hashToFloat(hash);
+      
+      window.dispatchEvent(new CustomEvent('tg-fairness-result', { 
+        detail: { 
+          hash, 
+          float,
+          dice: fairness.getDiceResult(float),
+          limbo: fairness.getLimboResult(float)
+        } 
+      }));
+    } catch (err) {
+      console.error('Fairness calc error', err);
+    }
+  }) as EventListener);
   
   // Setup start button
   const startBtn = document.getElementById('tg-start-btn');
@@ -111,6 +351,7 @@ async function startMonitoring() {
   
   // Get initial balance
   extractor = new CasinoDataExtractor();
+  await extractor.initialize();
   const initialBalance = extractor.extractBalance() || 100; // Default if can't extract
   
   console.log('[TiltGuard] Initial balance:', initialBalance);
@@ -128,8 +369,10 @@ async function startMonitoring() {
     console.log('[TiltGuard] Analyzer backend offline - tilt monitoring only');
   }
   
-  // Generate session ID
-  sessionId = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  // Generate session ID using cryptographically secure random
+  const randomBytes = new Uint32Array(1);
+  crypto.getRandomValues(randomBytes);
+  sessionId = `session_${Date.now()}_${randomBytes[0].toString(36)}`;
   const userId = await getUserId();
   const casinoId = detectCasinoId();
   const gameId = detectGameId();
@@ -145,7 +388,13 @@ async function startMonitoring() {
     
     console.log('[TiltGuard] Spin detected:', spinData);
     
-    handleSpinEvent(spinData, { sessionId: sessionId!, userId, casinoId, gameId });
+    // Check if sessionId is valid before using
+    if (!sessionId) {
+      console.warn('[TiltGuard] Session not started, cannot record spin');
+      return;
+    }
+    
+    handleSpinEvent(spinData, { sessionId, userId, casinoId, gameId });
   });
   
   console.log('[TiltGuard] Monitoring started successfully');
@@ -184,12 +433,17 @@ function handleSpinEvent(spinData: any, session: any) {
   if (tiltDetector) {
     tiltDetector.recordBet(bet, payout);
     
+    // Get session summary for accurate stats
+    const sessionSummary = tiltDetector.getSessionSummary();
+    
     // Update sidebar stats
+    // Note: sessionSummary.duration is the session duration in ms
+    // netProfit represents total winnings (payouts - bets)
     const stats = {
-      startTime: Date.now() - (tiltDetector as any).sessionStartTime || Date.now(),
-      totalBets: (tiltDetector as any).bets?.length || 0,
-      totalWagered: (tiltDetector as any).totalWagered || 0,
-      totalWins: (tiltDetector as any).totalWagered + (payout - bet) || 0
+      startTime: Date.now() - (sessionSummary.duration || 0),
+      totalBets: sessionSummary.totalBets || 0,
+      totalWagered: sessionSummary.totalWagered || 0,
+      totalWins: sessionSummary.netProfit || 0
     };
     (window as any).TiltGuardSidebar?.updateStats(stats);
     
@@ -216,10 +470,53 @@ function handleSpinEvent(spinData: any, session: any) {
       userId: session.userId,
       bet,
       payout,
+      gameResult: spinData.gameResult,
       symbols: spinData.symbols,
       bonusRound: spinData.bonusActive,
       freeSpins: (spinData.freeSpins || 0) > 0
     });
+  }
+
+  // Check for Zero Balance Intervention
+  checkZeroBalance(spinData.balance);
+
+  // Auto-increment Nonce for Fairness Verifier
+  const currentNonce = parseInt(localStorage.getItem('tiltcheck_nonce') || '0');
+  const nextNonce = currentNonce + 1;
+  localStorage.setItem('tiltcheck_nonce', nextNonce.toString());
+  
+  // Notify Sidebar (Visual Indicator)
+  window.dispatchEvent(new CustomEvent('tg-nonce-update', { detail: { nonce: nextNonce, source: 'spin' } }));
+  
+  // Update Status Bar
+  window.dispatchEvent(new CustomEvent('tg-status-update', { detail: { message: 'Analyzing spin...', type: 'thinking' } }));
+
+  // Verify Provably Fair (Check Yourself)
+  verifySpinFairness(spinData, session.gameId);
+}
+
+/**
+ * Check if balance hit zero and suggest surveys
+ */
+let zeroBalanceTriggered = false;
+function checkZeroBalance(balance: number | null) {
+  if (balance === null) return;
+
+  // If balance is 0 (or very close to it) and we haven't triggered yet
+  if (balance < 0.05 && !zeroBalanceTriggered) {
+    zeroBalanceTriggered = true;
+    
+    // Show intervention
+    showInteractiveNotification(
+      "📉 Balance hit zero. Want to earn $5-10 quickly with a survey?",
+      [
+        { text: "Earn Crypto", action: () => { window.open('https://tiltcheck.me/tools/qualifyfirst.html', '_blank'); } },
+        { text: "No thanks", action: () => {} }
+      ]
+    );
+  } else if (balance > 1.0) {
+    // Reset trigger if they deposit or win
+    zeroBalanceTriggered = false;
   }
 }
 
@@ -250,6 +547,7 @@ function startTiltMonitoring() {
     // Check for critical tilt
     if (tiltRisk >= 80) {
       triggerEmergencyStop('Critical tilt detected!');
+      (window as any).TiltGuardSidebar?.notifyBuddy('critical_tilt', { risk: tiltRisk });
     }
   }, 5000); // Check every 5 seconds
 }
@@ -294,6 +592,12 @@ function handleInterventions(interventions: any[]) {
     chrome.runtime.sendMessage({
       type: 'intervention',
       data: intervention
+    });
+    
+    // Notify Buddy
+    (window as any).TiltGuardSidebar?.notifyBuddy('intervention', { 
+      type: intervention.type,
+      data: intervention.data 
     });
   }
 }
@@ -757,6 +1061,134 @@ async function getUserId(): Promise<string> {
   });
 }
 
+/**
+ * Setup listeners for "Play" button to capture commitment
+ */
+function setupFairnessListeners() {
+  const observer = new MutationObserver((mutations) => {
+    // Generic selector for bet buttons - refine per casino
+    const playBtns = document.querySelectorAll('[data-testid="bet-button"], .bet-button, button[class*="bet"]');
+    
+    playBtns.forEach((btn) => {
+      if (btn instanceof HTMLElement && !btn.dataset.tiltCheckAttached) {
+        btn.dataset.tiltCheckAttached = "true";
+        btn.addEventListener('click', async () => {
+          try {
+            if (!solana || !bridge) return;
+            
+            // 1. Fetch Entropy (Solana Block Hash)
+            const blockHash = await solana.getLatestBlockHash();
+            
+            // 2. Get User Identity (Mocked - in prod get from storage/bridge)
+            const discordId = await getUserId(); 
+            const clientSeed = localStorage.getItem('tiltcheck_client_seed') || 'default-seed';
+
+            // 3. Store commitment for the upcoming result
+            sessionStorage.setItem('tiltcheck_pending_commitment', JSON.stringify({
+              blockHash,
+              discordId,
+              clientSeed,
+              timestamp: Date.now()
+            }));
+            
+            console.log(`[TiltCheck] Commitment Locked: ${blockHash.substring(0, 8)}...`);
+            
+            // Optional: Send Memo to Solana (requires wallet connection)
+            // await bridge.connect();
+            // await solana.sendCommitmentMemo(bridge, discordId, clientSeed, detectGameId());
+            
+          } catch (err) {
+            console.error("[TiltCheck] Commitment Error:", err);
+          }
+        });
+      }
+    });
+  });
+
+  observer.observe(document.body, { childList: true, subtree: true });
+}
+
+/**
+ * Verify the fairness of a finished spin
+ */
+async function verifySpinFairness(spinData: any, gameId: string) {
+  if (!fairness || !analyzer) return;
+
+  const storedCommitment = sessionStorage.getItem('tiltcheck_pending_commitment');
+  if (!storedCommitment) return; // No commitment made for this spin
+
+  try {
+    const commitment = JSON.parse(storedCommitment);
+    
+    // Clear immediately to prevent reusing for next spin
+    sessionStorage.removeItem('tiltcheck_pending_commitment');
+
+    // 1. Calculate the "Source of Truth" from the commitment
+    const expectedHash = await fairness.generateHash(
+      commitment.blockHash,
+      commitment.discordId,
+      commitment.clientSeed
+    );
+    const expectedFloat = fairness.hashToFloat(expectedHash);
+
+    // 2. Normalize based on Game ID
+    let expectedResult: number | string = expectedFloat;
+    let gameType = 'standard';
+
+    if (gameId.includes('dice')) {
+      gameType = 'dice';
+      expectedResult = fairness.getDiceResult(expectedFloat);
+    } else if (gameId.includes('limbo') || gameId.includes('crash')) {
+      gameType = 'limbo';
+      expectedResult = fairness.getLimboResult(expectedFloat);
+    } else if (gameId.includes('plinko')) {
+      gameType = 'plinko';
+      // Default to 16 rows if unknown, or extract from spinData if available
+      const rows = spinData.rows || 16; 
+      expectedResult = fairness.getPlinkoPath(expectedHash, rows).join(',');
+    }
+
+    console.log(`[TiltCheck] 🎲 Fair Result Calculated (${gameType}):`, expectedResult);
+    console.log(`[TiltCheck] 🔑 Server Hash:`, expectedHash);
+
+    // 3. Verify against Casino Data
+    // If the casino provided the hash in the metadata, we can verify strictly
+    if (spinData.hash) {
+      const isHashValid = spinData.hash === expectedHash;
+      if (isHashValid) {
+        window.dispatchEvent(new CustomEvent('tg-status-update', { detail: { message: 'Fairness Verified (Hash Match)', type: 'success' } }));
+        showNotification("✅ Fair Game Verified (Hash Match)", "success");
+      } else {
+        showNotification("⚠️ Fairness Hash Mismatch!", "error");
+        console.warn(`[TiltCheck] Hash Mismatch! Expected: ${expectedHash}, Got: ${spinData.hash}`);
+      }
+    } else if (spinData.gameResult !== null && spinData.gameResult !== undefined) {
+      // Automated check against scraped result
+      const resultVal = Number(spinData.gameResult);
+      
+      // Only compare if expectedResult is a number (skip Plinko paths for now)
+      if (typeof expectedResult === 'number') {
+        // Use a reasonable tolerance (e.g. 0.05 for dice/crash rounding)
+        if (Math.abs(resultVal - expectedResult) < 0.05) {
+           window.dispatchEvent(new CustomEvent('tg-status-update', { detail: { message: `Fairness Verified (Result: ${resultVal})`, type: 'success' } }));
+           showNotification(`✅ Fair Game Verified (Result: ${resultVal})`, "success");
+           console.log(`[TiltCheck] ✅ Scraped result ${resultVal} matches expected ${expectedResult}`);
+        } else {
+           console.warn(`[TiltCheck] ⚠️ Result Mismatch! Expected: ${expectedResult}, Scraped: ${resultVal}`);
+        }
+      }
+    } else {
+      // If no hash provided, we rely on the user checking the console or UI overlay
+      // In a full implementation, we would use Analyzer.waitForResult() here to scrape the visual result
+      console.log(`[TiltCheck] Visual Verify: Does the screen show ${expectedResult}?`);
+      window.dispatchEvent(new CustomEvent('tg-status-update', { detail: { message: `Visual Check: Expecting ${expectedResult}`, type: 'info' } }));
+    }
+    
+  } catch (err) {
+    console.error("[TiltCheck] Verification Error:", err);
+  }
+}
+
 // Listen for messages from popup
 chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
   console.log('[TiltGuard] Message received:', message.type);
@@ -817,6 +1249,16 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
         sendResponse({ success: true, report: (tiltDetector as any).generateReport ? (tiltDetector as any).generateReport() : { summary: tiltDetector.getSessionSummary() } });
       } else {
         sendResponse({ error: 'No data to report' });
+      }
+      break;
+
+    case 'validate_selector':
+      try {
+        const el = document.querySelector(message.selector);
+        const value = el ? (el instanceof HTMLInputElement ? el.value : el.textContent || '').trim().substring(0, 50) : null;
+        sendResponse({ found: !!el, value: value || 'Empty' });
+      } catch (e) {
+        sendResponse({ found: false, error: 'Invalid selector' });
       }
       break;
 

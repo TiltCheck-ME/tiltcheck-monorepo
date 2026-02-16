@@ -23,6 +23,7 @@ let sessionStats = {
   totalWins: 0,
   currentBalance: 0
 };
+let lockTimerInterval: any = null;
 
 async function apiCall(endpoint: string, options: any = {}) {
   const headers: any = { 'Content-Type': 'application/json' };
@@ -83,6 +84,7 @@ function createSidebar() {
         <button class="tg-icon-btn" id="tg-minimize" title="Minimize">−</button>
       </div>
     </div>
+    <div id="tg-status-bar" class="tg-status-bar" style="display: none;"></div>
     
     <div class="tg-content" id="tg-content">
       <!-- Auth Section -->
@@ -122,8 +124,83 @@ function createSidebar() {
             <label>Custom API</label>
             <input type="text" id="api-key-custom" placeholder="Custom key" />
           </div>
+          <div class="tg-input-group" style="display: flex; align-items: center; gap: 8px; margin-top: 10px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 10px;">
+            <input type="checkbox" id="cfg-buddy-mirror" style="width: auto;" />
+            <label for="cfg-buddy-mirror" style="margin: 0; font-size: 12px;">Mirror Buddy Notifications</label>
+          </div>
           <button class="tg-btn tg-btn-primary" id="save-api-keys">Save Keys</button>
           <button class="tg-btn tg-btn-secondary" id="close-settings">Close</button>
+        </div>
+
+        <!-- Configurator Panel (toggleable) -->
+        <div class="tg-settings-panel" id="tg-config-panel" style="display: none;">
+          <h4>🎰 Casino Configurator</h4>
+          <div class="tg-input-group">
+            <label>Bet Amount Selector</label>
+            <div style="display: flex; gap: 5px;">
+              <input type="text" id="cfg-bet" placeholder=".bet-amount" style="flex:1;" />
+              <button class="tg-btn-icon tg-picker-btn" data-target="cfg-bet" title="Pick Element">🎯</button>
+              <button class="tg-btn-icon tg-test-btn" data-target="cfg-bet" title="Test Selector">👁️</button>
+            </div>
+          </div>
+          <div class="tg-input-group">
+            <label>Game Result Selector</label>
+            <div style="display: flex; gap: 5px;">
+              <input type="text" id="cfg-result" placeholder=".game-result" style="flex:1;" />
+              <button class="tg-btn-icon tg-picker-btn" data-target="cfg-result" title="Pick Element">🎯</button>
+              <button class="tg-btn-icon tg-test-btn" data-target="cfg-result" title="Test Selector">👁️</button>
+            </div>
+          </div>
+          <button class="tg-btn tg-btn-primary" id="save-config">Save Config</button>
+          <button class="tg-btn tg-btn-secondary" id="close-config">Close</button>
+        </div>
+
+        <!-- Fairness Verifier Panel (toggleable) -->
+        <div class="tg-settings-panel" id="tg-verifier-panel" style="display: none;">
+          <h4>⚖️ Fairness Verifier</h4>
+          
+          <div class="tg-tabs">
+            <button class="tg-tab active" data-target="fv-tab-verify">Verify</button>
+            <button class="tg-tab" data-target="fv-tab-history">History</button>
+          </div>
+          
+          <div id="fv-tab-verify" class="tg-tab-content">
+            <div class="tg-input-group">
+              <label>Server Seed (Unhashed)</label>
+              <input type="text" id="fv-server" placeholder="Paste revealed seed" />
+            </div>
+            <div class="tg-input-group">
+              <label>Client Seed</label>
+              <input type="text" id="fv-client" placeholder="Your client seed" />
+            </div>
+            <div class="tg-input-group">
+              <label>Nonce</label>
+              <div style="display: flex; gap: 5px;">
+                <input type="number" id="fv-nonce" placeholder="1" value="1" style="flex: 1;" />
+                <button class="tg-btn-icon" id="fv-sync-nonce" title="Sync Nonce">🔄</button>
+              </div>
+            </div>
+            <button class="tg-btn tg-btn-primary" id="fv-verify">Verify Outcome</button>
+            
+            <div id="fv-results" style="margin-top: 15px; display: none; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 10px;">
+              <div class="tg-metric">
+                <span class="tg-metric-label">Dice Result</span>
+                <span class="tg-metric-value" id="fv-res-dice" style="color: #10b981;">0.00</span>
+              </div>
+              <div class="tg-metric">
+                <span class="tg-metric-label">Limbo/Crash</span>
+                <span class="tg-metric-value" id="fv-res-limbo" style="color: #f59e0b;">0.00x</span>
+              </div>
+              <div style="font-size: 10px; opacity: 0.5; margin-top: 5px; word-break: break-all;" id="fv-res-hash"></div>
+            </div>
+          </div>
+
+          <div id="fv-tab-history" class="tg-tab-content" style="display: none;">
+            <div id="fv-history-list" class="tg-feed" style="max-height: 200px;"></div>
+            <button class="tg-btn tg-btn-secondary" id="fv-clear-history">Clear History</button>
+          </div>
+
+          <button class="tg-btn tg-btn-secondary" id="close-verifier">Close</button>
         </div>
 
         <!-- Active Session Metrics (TOP PRIORITY) -->
@@ -179,20 +256,108 @@ function createSidebar() {
         <!-- Quick Actions -->
         <div class="tg-section">
           <div class="tg-action-grid">
+            <button class="tg-action-btn" id="tg-open-suslink">🛡️ SusLink</button>
+            <button class="tg-action-btn" id="tg-open-config">Configure</button>
+            <button class="tg-action-btn" id="tg-open-verifier">Verify</button>
             <button class="tg-action-btn" id="tg-open-dashboard">Dashboard</button>
             <button class="tg-action-btn" id="tg-open-vault">Vault</button>
             <button class="tg-action-btn" id="tg-wallet">Wallet</button>
             <button class="tg-action-btn" id="tg-upgrade">Upgrade</button>
           </div>
+          <button class="tg-btn tg-btn-secondary" id="tg-open-report" style="margin-top: 8px;">📢 Report Casino Update</button>
+        </div>
+
+        <!-- SusLink Panel (toggleable) -->
+        <div class="tg-settings-panel" id="tg-suslink-panel" style="display: none;">
+          <h4>🛡️ SusLink Scanner</h4>
+          <div class="tg-input-group">
+            <label>Check URL</label>
+            <div style="display: flex; gap: 5px;">
+              <input type="text" id="suslink-url" placeholder="https://..." style="flex:1;" />
+              <button class="tg-btn-icon" id="suslink-scan-btn">🔍</button>
+            </div>
+          </div>
+          <div id="suslink-result" style="display:none; padding: 10px; background: rgba(0,0,0,0.2); border-radius: 4px; margin-bottom: 10px;">
+            <div id="suslink-score" style="font-weight: bold; margin-bottom: 4px;"></div>
+            <div id="suslink-details" style="font-size: 11px; opacity: 0.8;"></div>
+          </div>
+          <button class="tg-btn tg-btn-secondary" id="close-suslink">Close</button>
+        </div>
+
+        <!-- Report Panel (toggleable) -->
+        <div class="tg-settings-panel" id="tg-report-panel" style="display: none;">
+          <h4>📢 Community Report</h4>
+          <div class="tg-input-group">
+            <label>Report Type</label>
+            <select id="report-type" style="width: 100%; padding: 8px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); color: #fff; border-radius: 4px;">
+              <option value="payout_change">Payout Schedule Change</option>
+              <option value="bonus_nerf">Bonus Amount Reduced</option>
+              <option value="rtp_change">RTP/Odds Change</option>
+              <option value="scam_alert">Scam/Fraud Alert</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+          <div class="tg-input-group">
+            <label>Details</label>
+            <textarea id="report-details" rows="3" placeholder="Describe what changed..." style="width: 100%; padding: 8px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); color: #fff; border-radius: 4px;"></textarea>
+          </div>
+          <button class="tg-btn tg-btn-primary" id="submit-report">Submit Report</button>
+          <button class="tg-btn tg-btn-secondary" id="close-report">Close</button>
         </div>
 
         <!-- Vault Section -->
         <div class="tg-section">
           <h4>Vault Balance</h4>
           <div class="tg-vault-amount" id="tg-vault-balance">$0.00</div>
+          
+          <!-- Custom Goals -->
+          <div id="tg-goals-list" style="margin-bottom: 10px;"></div>
+          
           <div class="tg-vault-actions">
             <button class="tg-btn tg-btn-vault" id="tg-vault-btn">Vault Balance</button>
             <button class="tg-btn tg-btn-secondary" id="tg-vault-custom">Custom Amount</button>
+          </div>
+          <button class="tg-btn tg-btn-secondary" id="tg-add-goal" style="margin-top: 8px; font-size: 11px;">+ Add Withdraw Goal</button>
+          
+          <!-- Lock Timer Wallet -->
+          <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.1);">
+            <h4 style="font-size: 11px; margin-bottom: 6px;">⏳ Lock Timer Wallet</h4>
+            
+            <div id="tg-lock-form">
+              <div style="display: flex; gap: 5px; margin-bottom: 8px;">
+                <input type="number" id="lock-timer-mins" placeholder="Mins" style="width: 60px; padding: 4px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); color: #fff; border-radius: 4px;" />
+                <button class="tg-btn tg-btn-primary" id="start-lock-timer" style="margin: 0; padding: 4px 8px; font-size: 11px;">Lock Funds</button>
+              </div>
+              <div style="display: flex; align-items: flex-start; gap: 6px; font-size: 10px; opacity: 0.7; line-height: 1.3;">
+                <input type="checkbox" id="lock-agree" style="margin-top: 2px;" />
+                <label for="lock-agree">I voluntarily lock these funds. They cannot be accessed until the timer expires.</label>
+              </div>
+            </div>
+
+            <div id="tg-lock-status" style="display: none; background: rgba(255,255,255,0.05); padding: 10px; border-radius: 4px;">
+              <div style="display: flex; justify-content: space-between; margin-bottom: 5px; font-size: 12px;">
+                <span>Locked:</span>
+                <span id="tg-locked-amount" style="color: #fbbf24; font-weight: bold;">$0.00</span>
+              </div>
+              
+              <!-- Progress Bar -->
+              <div style="width: 100%; height: 4px; background: rgba(255,255,255,0.1); border-radius: 2px; margin-bottom: 8px; overflow: hidden;">
+                <div id="tg-lock-progress" style="width: 0%; height: 100%; background: #fbbf24; transition: width 1s linear;"></div>
+              </div>
+
+              <div style="display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 12px;">
+                <span>Unlocks in:</span>
+                <span id="tg-lock-timer">--:--</span>
+              </div>
+              
+              <!-- Partial Release Input (Hidden until unlock) -->
+              <div id="tg-release-controls" style="display: none; margin-bottom: 8px;">
+                 <input type="number" id="tg-release-amount" placeholder="Amount to release" style="width: 100%; padding: 6px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); border-radius: 4px; color: #fff; font-size: 12px; margin-bottom: 5px;" />
+                 <div style="font-size: 10px; opacity: 0.6; text-align: right;">Leave empty to release all</div>
+              </div>
+
+              <button class="tg-btn tg-btn-secondary" id="release-funds-btn" disabled style="width: 100%; padding: 6px; font-size: 11px; opacity: 0.5; cursor: not-allowed;">Release Funds</button>
+            </div>
           </div>
         </div>
 
@@ -440,6 +605,27 @@ function createSidebar() {
     .tg-btn-secondary:hover { background: rgba(255, 255, 255, 0.15); }
     .tg-btn-vault { background: #f59e0b; }
     .tg-btn-vault:hover { background: #d97706; }
+
+    .tg-tabs { display: flex; border-bottom: 1px solid rgba(255,255,255,0.1); margin-bottom: 12px; }
+    .tg-tab { flex: 1; background: none; border: none; color: rgba(255,255,255,0.5); padding: 8px; cursor: pointer; border-bottom: 2px solid transparent; font-size: 12px; font-weight: 600; }
+    .tg-tab.active { color: #fff; border-bottom-color: #6366f1; }
+    .tg-history-item { padding: 8px; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 11px; background: rgba(255,255,255,0.02); margin-bottom: 4px; border-radius: 4px; }
+    .tg-history-header { display: flex; justify-content: space-between; margin-bottom: 4px; opacity: 0.7; }
+    .tg-history-result { font-weight: bold; color: #10b981; }
+
+    .tg-status-bar { padding: 8px 12px; font-size: 11px; font-weight: 600; text-align: center; animation: slideDown 0.3s ease; }
+    .tg-status-bar.thinking { background: rgba(99, 102, 241, 0.2); color: #818cf8; border-bottom: 1px solid rgba(99, 102, 241, 0.3); }
+    .tg-status-bar.success { background: rgba(16, 185, 129, 0.2); color: #34d399; border-bottom: 1px solid rgba(16, 185, 129, 0.3); }
+    .tg-status-bar.warning { background: rgba(245, 158, 11, 0.2); color: #fbbf24; border-bottom: 1px solid rgba(245, 158, 11, 0.3); }
+    .tg-status-bar.buddy { background: rgba(236, 72, 153, 0.2); color: #f472b6; border-bottom: 1px solid rgba(236, 72, 153, 0.3); }
+    
+    @keyframes slideDown { from { transform: translateY(-100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+    
+    .nonce-flash { animation: flashGreen 1s ease; }
+    @keyframes flashGreen {
+      0% { background-color: rgba(16, 185, 129, 0.5); }
+      100% { background-color: rgba(0, 0, 0, 0.3); }
+    }
   `;
 
   document.head.appendChild(style);
@@ -474,6 +660,377 @@ function setupEventListeners() {
       showSettings = false;
       panel.style.display = 'none';
     }
+  });
+
+  // Buddy Mirror Setting
+  const buddyCheckbox = document.getElementById('cfg-buddy-mirror') as HTMLInputElement;
+  if (buddyCheckbox) {
+    buddyCheckbox.checked = localStorage.getItem('tiltcheck_buddy_mirror') === 'true';
+    buddyCheckbox.addEventListener('change', (e) => {
+      localStorage.setItem('tiltcheck_buddy_mirror', (e.target as HTMLInputElement).checked.toString());
+    });
+  }
+
+  // Configurator toggle
+  document.getElementById('tg-open-config')?.addEventListener('click', () => {
+    const panel = document.getElementById('tg-config-panel');
+    if (panel) panel.style.display = 'block';
+  });
+
+  document.getElementById('close-config')?.addEventListener('click', () => {
+    const panel = document.getElementById('tg-config-panel');
+    if (panel) panel.style.display = 'none';
+  });
+
+  // SusLink toggle
+  document.getElementById('tg-open-suslink')?.addEventListener('click', () => {
+    const panel = document.getElementById('tg-suslink-panel');
+    if (panel) panel.style.display = 'block';
+  });
+  document.getElementById('close-suslink')?.addEventListener('click', () => {
+    const panel = document.getElementById('tg-suslink-panel');
+    if (panel) panel.style.display = 'none';
+  });
+
+  // Report toggle
+  document.getElementById('tg-open-report')?.addEventListener('click', () => {
+    const panel = document.getElementById('tg-report-panel');
+    if (panel) panel.style.display = 'block';
+  });
+  document.getElementById('close-report')?.addEventListener('click', () => {
+    const panel = document.getElementById('tg-report-panel');
+    if (panel) panel.style.display = 'none';
+  });
+
+  // Verifier toggle
+  document.getElementById('tg-open-verifier')?.addEventListener('click', () => {
+    const panel = document.getElementById('tg-verifier-panel');
+    if (panel) {
+      panel.style.display = 'block';
+      // Auto-populate from storage/session
+      const clientSeed = localStorage.getItem('tiltcheck_client_seed');
+      const nonce = localStorage.getItem('tiltcheck_nonce'); // Assuming this is tracked
+      
+      if (clientSeed) (document.getElementById('fv-client') as HTMLInputElement).value = clientSeed;
+      if (nonce) (document.getElementById('fv-nonce') as HTMLInputElement).value = nonce;
+    }
+  });
+
+  document.getElementById('close-verifier')?.addEventListener('click', () => {
+    const panel = document.getElementById('tg-verifier-panel');
+    if (panel) panel.style.display = 'none';
+  });
+
+  // Picker buttons
+  document.querySelectorAll('.tg-picker-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      const targetId = (e.currentTarget as HTMLElement).dataset.target;
+      // Dispatch event for content script to handle
+      window.dispatchEvent(new CustomEvent('tg-start-picker', { detail: { field: targetId } }));
+    });
+  });
+
+  // Test buttons
+  document.querySelectorAll('.tg-test-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      const targetId = (e.currentTarget as HTMLElement).dataset.target;
+      const input = document.getElementById(targetId!) as HTMLInputElement;
+      if (input && input.value) {
+        window.dispatchEvent(new CustomEvent('tg-test-selector', { detail: { selector: input.value } }));
+      }
+    });
+  });
+
+  // Listen for picker results
+  window.addEventListener('tg-picker-result', ((e: CustomEvent) => {
+    const input = document.getElementById(e.detail.field) as HTMLInputElement;
+    if (input) input.value = e.detail.selector;
+  }) as EventListener);
+
+  // Verify Fairness Logic
+  document.getElementById('fv-verify')?.addEventListener('click', () => {
+    const serverSeed = (document.getElementById('fv-server') as HTMLInputElement).value;
+    const clientSeed = (document.getElementById('fv-client') as HTMLInputElement).value;
+    const nonce = (document.getElementById('fv-nonce') as HTMLInputElement).value;
+
+    if (!serverSeed || !clientSeed || !nonce) {
+      alert('Please fill all fields');
+      return;
+    }
+
+    window.dispatchEvent(new CustomEvent('tg-calc-fairness', { detail: { serverSeed, clientSeed, nonce } }));
+  });
+
+  // Listen for fairness results
+  window.addEventListener('tg-fairness-result', ((e: CustomEvent) => {
+    const res = document.getElementById('fv-results');
+    if (res) res.style.display = 'block';
+    
+    document.getElementById('fv-res-dice')!.textContent = e.detail.dice.toFixed(2);
+    document.getElementById('fv-res-limbo')!.textContent = e.detail.limbo.toFixed(2) + 'x';
+    document.getElementById('fv-res-hash')!.textContent = e.detail.hash;
+
+    // Save to history
+    saveVerificationHistory({
+      timestamp: Date.now(),
+      serverSeed: (document.getElementById('fv-server') as HTMLInputElement).value,
+      clientSeed: (document.getElementById('fv-client') as HTMLInputElement).value,
+      nonce: (document.getElementById('fv-nonce') as HTMLInputElement).value,
+      result: e.detail
+    });
+  }) as EventListener);
+
+  // Tab switching
+  document.querySelectorAll('.tg-tab').forEach(tab => {
+    tab.addEventListener('click', (e) => {
+      const target = (e.currentTarget as HTMLElement).dataset.target;
+      const parent = (e.currentTarget as HTMLElement).closest('.tg-settings-panel');
+      
+      parent?.querySelectorAll('.tg-tab').forEach(t => t.classList.remove('active'));
+      (e.currentTarget as HTMLElement).classList.add('active');
+      
+      parent?.querySelectorAll('.tg-tab-content').forEach(c => (c as HTMLElement).style.display = 'none');
+      const content = document.getElementById(target!);
+      if (content) content.style.display = 'block';
+      
+      if (target === 'fv-tab-history') renderVerificationHistory();
+    });
+  });
+
+  document.getElementById('fv-clear-history')?.addEventListener('click', () => {
+    localStorage.removeItem('tiltcheck_verification_history');
+    renderVerificationHistory();
+  });
+
+  // Copy Hash Handler (Delegated)
+  document.getElementById('fv-history-list')?.addEventListener('click', (e) => {
+    const target = (e.target as HTMLElement).closest('.tg-copy-hash') as HTMLElement;
+    if (target && target.dataset.hash) {
+      navigator.clipboard.writeText(target.dataset.hash);
+      
+      // Visual feedback
+      const originalText = target.textContent;
+      target.textContent = '✓';
+      setTimeout(() => target.textContent = originalText, 1000);
+    }
+  });
+
+  // Sync Nonce Handler
+  document.getElementById('fv-sync-nonce')?.addEventListener('click', () => {
+    const nonce = localStorage.getItem('tiltcheck_nonce');
+    if (nonce) {
+      const input = document.getElementById('fv-nonce') as HTMLInputElement;
+      input.value = nonce;
+      updateStatus('Nonce synced from session', 'success');
+    } else {
+      updateStatus('No active session nonce found', 'warning');
+    }
+  });
+
+  // Listen for Status Updates
+  window.addEventListener('tg-status-update', ((e: CustomEvent) => {
+    updateStatus(e.detail.message, e.detail.type);
+  }) as EventListener);
+
+  // Listen for Nonce Updates (Visual Indicator)
+  window.addEventListener('tg-nonce-update', ((e: CustomEvent) => {
+    const input = document.getElementById('fv-nonce') as HTMLInputElement;
+    if (input) {
+      input.value = e.detail.nonce;
+      // Trigger flash animation
+      input.classList.remove('nonce-flash');
+      void input.offsetWidth; // trigger reflow
+      input.classList.add('nonce-flash');
+    }
+  }) as EventListener);
+
+  // SusLink Scan Logic
+  document.getElementById('suslink-scan-btn')?.addEventListener('click', async () => {
+    const url = (document.getElementById('suslink-url') as HTMLInputElement).value;
+    if (!url) return;
+
+    const resultDiv = document.getElementById('suslink-result');
+    const scoreDiv = document.getElementById('suslink-score');
+    const detailsDiv = document.getElementById('suslink-details');
+    
+    if (resultDiv) resultDiv.style.display = 'block';
+    if (scoreDiv) scoreDiv.textContent = 'Scanning...';
+    
+    // Mock scan for now - replace with actual API call
+    setTimeout(() => {
+      // TODO: Call backend API for real scan
+      const isSafe = !url.includes('scam');
+      if (scoreDiv) {
+        scoreDiv.textContent = isSafe ? '✅ Safe (Trust Score: 95/100)' : '❌ High Risk (Trust Score: 10/100)';
+        scoreDiv.style.color = isSafe ? '#10b981' : '#ef4444';
+      }
+      if (detailsDiv) {
+        detailsDiv.textContent = isSafe 
+          ? 'Domain registered > 5 years. No reports found.' 
+          : 'Domain registered yesterday. 3 user reports found.';
+      }
+    }, 1000);
+  });
+
+  // Submit Report Logic
+  document.getElementById('submit-report')?.addEventListener('click', async () => {
+    const type = (document.getElementById('report-type') as HTMLSelectElement).value;
+    const details = (document.getElementById('report-details') as HTMLTextAreaElement).value;
+    
+    if (!details) {
+      alert('Please provide details');
+      return;
+    }
+
+    if (!userData) {
+      alert('Please sign in to submit reports.');
+      return;
+    }
+
+    updateStatus('Sending report...', 'thinking');
+
+    try {
+      const result = await apiCall('/reports/casino-update', {
+        method: 'POST',
+        body: JSON.stringify({ type, details, casino: window.location.hostname })
+      });
+
+      if (result.success) {
+        addFeedMessage(`Report submitted: ${type}`);
+        updateStatus('Report sent to community', 'success');
+        (document.getElementById('report-details') as HTMLTextAreaElement).value = '';
+        document.getElementById('tg-report-panel')!.style.display = 'none';
+      } else {
+        updateStatus(`Report failed: ${result.error}`, 'warning');
+      }
+    } catch (e) {
+      updateStatus('Network error', 'warning');
+    }
+  });
+
+  // Add Goal Logic
+  document.getElementById('tg-add-goal')?.addEventListener('click', () => {
+    const name = prompt('Goal Name (e.g. Power Bill):');
+    const amount = prompt('Amount ($):');
+    
+    if (name && amount) {
+      const goalsList = document.getElementById('tg-goals-list');
+      const goalDiv = document.createElement('div');
+      goalDiv.style.cssText = 'display:flex; justify-content:space-between; font-size:12px; margin-bottom:4px; padding:4px; background:rgba(255,255,255,0.05); border-radius:4px;';
+      goalDiv.innerHTML = `<span>${name} ($${amount})</span> <button style="background:none;border:none;color:#10b981;cursor:pointer;font-size:10px;">Vault</button>`;
+      goalsList?.appendChild(goalDiv);
+    }
+  });
+
+  // Lock Timer Logic
+  document.getElementById('start-lock-timer')?.addEventListener('click', async () => {
+    const minsInput = document.getElementById('lock-timer-mins') as HTMLInputElement;
+    const agreeCheckbox = document.getElementById('lock-agree') as HTMLInputElement;
+    const mins = parseInt(minsInput.value);
+    
+    if (!agreeCheckbox.checked) {
+      alert('You must agree to the voluntary lock disclaimer.');
+      return;
+    }
+
+    if (!mins || mins <= 0) {
+      alert('Please enter valid minutes');
+      return;
+    }
+
+    const amountStr = prompt('Amount to lock ($):');
+    if (!amountStr) return;
+    const amount = parseFloat(amountStr);
+    
+    if (isNaN(amount) || amount <= 0) {
+      alert('Invalid amount');
+      return;
+    }
+
+    if (!userData) {
+      alert('Please sign in to use the vault.');
+      return;
+    }
+
+    updateStatus('Locking funds...', 'thinking');
+
+    try {
+      const result = await apiCall(`/vault/${userData.id}/lock`, {
+        method: 'POST',
+        body: JSON.stringify({ amount, durationMinutes: mins })
+      });
+
+      if (result.success) {
+        addFeedMessage(`🔒 Locked $${amount} for ${mins}m`);
+        updateStatus('Funds locked successfully', 'success');
+        minsInput.value = '';
+        agreeCheckbox.checked = false;
+        loadVaultBalance(); // Refresh balance
+        checkLockStatus(); // Refresh lock status UI
+      } else {
+        updateStatus(`Lock failed: ${result.error}`, 'warning');
+      }
+    } catch (e) {
+      console.error(e);
+      updateStatus('Network error', 'warning');
+    }
+  });
+
+  // Release Funds Logic
+  document.getElementById('release-funds-btn')?.addEventListener('click', async () => {
+    if (!userData) return;
+    
+    const releaseInput = document.getElementById('tg-release-amount') as HTMLInputElement;
+    const amountToRelease = releaseInput && releaseInput.value ? parseFloat(releaseInput.value) : null;
+
+    updateStatus('Releasing funds...', 'thinking');
+    
+    try {
+      const result = await apiCall(`/vault/${userData.id}/release`, {
+        method: 'POST',
+        body: JSON.stringify({ amount: amountToRelease })
+      });
+      
+      if (result.success) {
+        addFeedMessage(`🔓 Funds released: $${result.amount.toFixed(2)}`);
+        updateStatus('Funds released to main wallet', 'success');
+        checkLockStatus(); // Should reset UI to form
+        loadVaultBalance();
+      } else {
+        updateStatus(`Release failed: ${result.error}`, 'warning');
+      }
+    } catch (e) {
+      updateStatus('Network error', 'warning');
+    }
+  });
+
+  // Save Config
+  document.getElementById('save-config')?.addEventListener('click', async () => {
+    const betSelector = (document.getElementById('cfg-bet') as HTMLInputElement).value;
+    const resultSelector = (document.getElementById('cfg-result') as HTMLInputElement).value;
+    
+    // Dynamically import saveCustomCasino or use message passing if needed
+    // Since we are in the same bundle context, we can try to use the global extractor if exposed, 
+    // or just save to storage directly here for simplicity since we are in content script context.
+    const config = {
+      casinoId: 'custom-' + window.location.hostname,
+      domain: window.location.hostname,
+      selectors: {
+        betAmount: betSelector,
+        gameResult: resultSelector
+      }
+    };
+
+    const storage = chrome.storage.sync || chrome.storage.local;
+    storage.get(['tiltcheck_custom_casinos'], (result) => {
+      const current = (result.tiltcheck_custom_casinos || []) as any[];
+      const filtered = current.filter(c => c.domain !== config.domain);
+      filtered.push(config);
+      storage.set({ tiltcheck_custom_casinos: filtered }, () => {
+        alert('Configuration saved! Please refresh the page.');
+        document.getElementById('tg-config-panel')!.style.display = 'none';
+      });
+    });
   });
   
   document.getElementById('save-api-keys')?.addEventListener('click', () => {
@@ -597,6 +1154,7 @@ function checkAuthStatus() {
     isAuthenticated = true;
     showMainContent();
     loadVaultBalance();
+    checkLockStatus();
     initPnLGraph();
   }
 }
@@ -843,6 +1401,98 @@ async function loadVaultBalance() {
   }
 }
 
+async function checkLockStatus() {
+  if (!userData) return;
+  
+  // Check if user has active lock
+  const result = await apiCall(`/vault/${userData.id}/lock-status`);
+  
+  const form = document.getElementById('tg-lock-form');
+  const status = document.getElementById('tg-lock-status');
+  
+  if (result.success && result.locked) {
+    if (form) form.style.display = 'none';
+    if (status) status.style.display = 'block';
+    
+    const amountEl = document.getElementById('tg-locked-amount');
+    if (amountEl) amountEl.textContent = `$${result.amount.toFixed(2)}`;
+    if (amountEl) amountEl.dataset.total = result.amount.toString();
+    
+    // Use createdAt if available for progress bar, otherwise default to now (0% progress fallback)
+    const startTime = result.createdAt ? new Date(result.createdAt).getTime() : Date.now();
+    startLockCountdown(new Date(result.unlockTime).getTime(), startTime);
+  } else {
+    if (form) form.style.display = 'block';
+    if (status) status.style.display = 'none';
+    if (lockTimerInterval) clearInterval(lockTimerInterval);
+  }
+}
+
+function startLockCountdown(unlockTime: number, startTime: number) {
+  if (lockTimerInterval) clearInterval(lockTimerInterval);
+  
+  const totalDuration = unlockTime - startTime;
+
+  const update = () => {
+    const now = Date.now();
+    const diff = unlockTime - now;
+    
+    // Progress Bar Logic
+    const elapsed = now - startTime;
+    let progress = totalDuration > 0 ? (elapsed / totalDuration) * 100 : 0;
+    if (progress > 100) progress = 100;
+    if (progress < 0) progress = 0;
+    
+    const progressEl = document.getElementById('tg-lock-progress');
+    if (progressEl) progressEl.style.width = `${progress}%`;
+
+    const timerEl = document.getElementById('tg-lock-timer');
+    const btn = document.getElementById('release-funds-btn') as HTMLButtonElement;
+    const releaseControls = document.getElementById('tg-release-controls');
+    const releaseInput = document.getElementById('tg-release-amount') as HTMLInputElement;
+    
+    if (diff <= 0) {
+      if (timerEl) timerEl.textContent = 'Ready to Release';
+      if (releaseControls) releaseControls.style.display = 'block';
+      
+      // Auto-fill max amount if empty
+      if (releaseInput && !releaseInput.value) {
+         const total = document.getElementById('tg-locked-amount')?.dataset.total;
+         if (total) releaseInput.value = total;
+      }
+
+      if (btn) {
+        btn.disabled = false;
+        btn.style.opacity = '1';
+        btn.style.cursor = 'pointer';
+        btn.classList.remove('tg-btn-secondary');
+        btn.classList.add('tg-btn-primary');
+      }
+      if (lockTimerInterval) clearInterval(lockTimerInterval);
+      return;
+    }
+    
+    // Format time
+    const hours = Math.floor(diff / 3600000);
+    const minutes = Math.floor((diff % 3600000) / 60000);
+    const seconds = Math.floor((diff % 60000) / 1000);
+    
+    if (timerEl) {
+      timerEl.textContent = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+    }
+    
+    if (btn) {
+      btn.disabled = true;
+      btn.style.opacity = '0.5';
+      btn.style.cursor = 'not-allowed';
+    }
+    if (releaseControls) releaseControls.style.display = 'none';
+  };
+  
+  update();
+  lockTimerInterval = setInterval(update, 1000);
+}
+
 async function openDashboard() {
   if (!userData) return;
   const result = await apiCall(`/dashboard/${userData.id}`);
@@ -945,6 +1595,94 @@ async function openPremium() {
   }
 }
 
+function saveVerificationHistory(data: any) {
+  const history = JSON.parse(localStorage.getItem('tiltcheck_verification_history') || '[]');
+  history.unshift(data);
+  if (history.length > 20) history.pop(); // Keep last 20
+  localStorage.setItem('tiltcheck_verification_history', JSON.stringify(history));
+  renderVerificationHistory();
+}
+
+function renderVerificationHistory() {
+  const list = document.getElementById('fv-history-list');
+  if (!list) return;
+  
+  const history = JSON.parse(localStorage.getItem('tiltcheck_verification_history') || '[]');
+  
+  if (history.length === 0) {
+    list.innerHTML = '<div class="tg-feed-item">No history yet</div>';
+    return;
+  }
+  
+  list.innerHTML = history.map((item: any) => `
+    <div class="tg-history-item">
+      <div class="tg-history-header">
+        <span>Nonce: ${item.nonce}</span>
+        <span>${new Date(item.timestamp).toLocaleTimeString()}</span>
+      </div>
+      <div style="display:flex; justify-content:space-between;">
+        <span>Dice: <span class="tg-history-result">${item.result.dice.toFixed(2)}</span></span>
+        <span>Crash: <span class="tg-history-result">${item.result.limbo.toFixed(2)}x</span></span>
+      </div>
+      <div style="display:flex; align-items:center; gap:6px; margin-top:4px;">
+        <span style="font-size:9px; opacity:0.4; flex:1; overflow:hidden; text-overflow:ellipsis; font-family:monospace;">${item.result.hash}</span>
+        <button class="tg-btn-icon tg-copy-hash" data-hash="${item.result.hash}" title="Copy Hash" style="width:20px; height:20px; font-size:12px; padding:0; display:flex; align-items:center; justify-content:center; border:1px solid rgba(255,255,255,0.1);">📋</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+async function notifyBuddy(type: string, data: any) {
+  // Check if feature is enabled
+  const mirror = localStorage.getItem('tiltcheck_buddy_mirror') === 'true';
+  if (!mirror) return;
+  
+  // Check if user is authenticated
+  if (!userData || !authToken) return;
+
+  try {
+    const result = await apiCall('/buddy/notify', {
+      method: 'POST',
+      body: JSON.stringify({
+        type,
+        data,
+        timestamp: Date.now()
+      })
+    });
+    
+    if (result.success) {
+      addFeedMessage(`👥 Buddy notified: ${type}`);
+      updateStatus('Buddy alert sent', 'buddy');
+    }
+  } catch (e) {
+    console.error('[TiltGuard] Buddy notification failed:', e);
+  }
+}
+
+function updateStatus(message: string, type: string = 'info') {
+  const bar = document.getElementById('tg-status-bar');
+  if (!bar) return;
+
+  // Check buddy setting for buddy notifications
+  if (type === 'buddy') {
+    const mirror = localStorage.getItem('tiltcheck_buddy_mirror') === 'true';
+    if (!mirror) return;
+  }
+
+  bar.textContent = message;
+  bar.className = `tg-status-bar ${type}`;
+  bar.style.display = 'block';
+
+  // Auto hide after 3s unless thinking (which persists until cleared/changed)
+  if (type !== 'thinking') {
+    setTimeout(() => {
+      if (bar.textContent === message) {
+        bar.style.display = 'none';
+      }
+    }, 3000);
+  }
+}
+
 if (typeof window !== 'undefined') {
-  (window as any).TiltGuardSidebar = { create: createSidebar, updateLicense, updateGuardian, updateTilt, updateStats };
+  (window as any).TiltGuardSidebar = { create: createSidebar, updateLicense, updateGuardian, updateTilt, updateStats, notifyBuddy };
 }

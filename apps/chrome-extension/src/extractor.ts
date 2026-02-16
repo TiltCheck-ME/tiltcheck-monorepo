@@ -17,12 +17,14 @@ export interface CasinoSelector {
     freeSpinsCounter?: string;
     multiplier?: string;
     gameTitle?: string;
+    gameResult?: string;
   };
   extractors?: {
     // Custom extraction functions for complex cases
     extractBet?: (doc: Document) => number | null;
     extractWin?: (doc: Document) => number | null;
     extractSymbols?: (doc: Document) => string[] | null;
+    extractResult?: (doc: Document) => number | null;
   };
 }
 
@@ -38,7 +40,8 @@ export const CASINO_SELECTORS: CasinoSelector[] = [
       symbols: '.reel-symbol, [data-symbol], [class*="symbol"]',
       bonusIndicator: '.free-spins-active, [data-bonus="true"], [class*="freeSpins"]',
       freeSpinsCounter: '.free-spins-count, [class*="freeSpinsCount"]',
-      gameTitle: '.game-title, [data-game-name], [class*="gameTitle"]'
+      gameTitle: '.game-title, [data-game-name], [class*="gameTitle"]',
+      gameResult: '[data-test="dice-result"], .dice-result, [class*="resultValue"], .crash-payout'
     }
   },
   {
@@ -51,7 +54,8 @@ export const CASINO_SELECTORS: CasinoSelector[] = [
       symbols: '.reel-symbol, [data-symbol], [class*="symbol"]',
       bonusIndicator: '.free-spins-active, [data-bonus="true"], [class*="freeSpins"]',
       freeSpinsCounter: '.free-spins-count, [class*="freeSpinsCount"]',
-      gameTitle: '.game-title, [data-game-name], [class*="gameTitle"]'
+      gameTitle: '.game-title, [data-game-name], [class*="gameTitle"]',
+      gameResult: '[data-test="dice-result"], .dice-result, [class*="resultValue"], .crash-payout'
     }
   },
   {
@@ -62,7 +66,16 @@ export const CASINO_SELECTORS: CasinoSelector[] = [
       winAmount: '.win-display, .payout-amount, [class*="winAmount"]',
       balance: '.user-balance, [class*="userBalance"], [class*="balance"]',
       symbols: '.slot-symbol, [class*="reelSymbol"]',
-      bonusIndicator: '.bonus-round-active, [class*="bonusActive"]'
+      bonusIndicator: '.bonus-round-active, [class*="bonusActive"]',
+      gameResult: '.crash-payout, .multiplier-display'
+    },
+    extractors: {
+      extractResult: (doc: Document) => {
+        const el = doc.querySelector('.crash-payout, .multiplier-display');
+        if (!el || !el.textContent) return null;
+        // Handle "2.50x" format common in Crash games by removing 'x'
+        return parseFloat(el.textContent.replace(/x/i, '').trim());
+      }
     }
   },
   {
@@ -122,7 +135,8 @@ export const CASINO_SELECTORS: CasinoSelector[] = [
       betAmount: '[data-bet], .bet, .bet-amount, input[name="bet"], [class*="betAmount"], [class*="bet-input"]',
       winAmount: '[data-win], .win, .win-amount, .payout, [class*="winAmount"], [class*="payout"]',
       balance: '[data-balance], .balance, .user-balance, [class*="balance"], [class*="wallet"]',
-      symbols: '[data-symbol], .symbol, .reel-symbol, [class*="symbol"], [class*="reel"]'
+      symbols: '[data-symbol], .symbol, .reel-symbol, [class*="symbol"], [class*="reel"]',
+      gameResult: '[data-result], .game-result, .result-value, .outcome'
     }
   }
 ];
@@ -141,12 +155,35 @@ export class CasinoDataExtractor {
   }
   
   /**
-   * Detect which casino we're on
+   * Initialize with custom user configurations
    */
-  private detectCasino(domain?: string): void {
+  async initialize(): Promise<void> {
+    return new Promise((resolve) => {
+      try {
+        // Use sync storage for cross-device persistence
+        const storage = chrome.storage.sync || chrome.storage.local;
+        storage.get(['tiltcheck_custom_casinos'], (result) => {
+          const custom = (result.tiltcheck_custom_casinos || []) as CasinoSelector[];
+          this.detectCasino(undefined, custom);
+          resolve();
+        });
+      } catch (e) {
+        console.warn('[TiltCheck] Failed to load custom casinos:', e);
+        resolve();
+      }
+    });
+  }
+
+  /**
+   * Detect which casino we're on, prioritizing custom user configs
+   */
+  private detectCasino(domain?: string, customSelectors: CasinoSelector[] = []): void {
     const currentDomain = domain || window.location.hostname;
     
-    this.casinoConfig = CASINO_SELECTORS.find(config => 
+    // Merge: Custom selectors take precedence over defaults
+    const allSelectors = [...customSelectors, ...CASINO_SELECTORS];
+
+    this.casinoConfig = allSelectors.find(config => 
       currentDomain.includes(config.domain) || config.domain === '*'
     ) || CASINO_SELECTORS.find(c => c.casinoId === 'generic')!;
     
@@ -309,12 +346,31 @@ export class CasinoDataExtractor {
   }
   
   /**
+   * Extract game result (e.g. dice roll)
+   */
+  extractGameResult(doc: Document = document): number | null {
+    if (!this.casinoConfig) return null;
+    
+    // Try custom extractor first
+    if (this.casinoConfig.extractors?.extractResult) {
+      return this.casinoConfig.extractors.extractResult(doc);
+    }
+    
+    const selector = this.casinoConfig.selectors.gameResult;
+    if (!selector) return null;
+    
+    const text = this.extractText(selector, doc);
+    return this.parseNumeric(text);
+  }
+
+  /**
    * Attempt to extract a complete spin event
    */
   extractSpinEvent(doc: Document = document): {
     bet: number | null;
     win: number | null;
     balance: number | null;
+    gameResult: number | null;
     symbols: string[] | null;
     bonusActive: boolean;
     freeSpins: number | null;
@@ -341,6 +397,7 @@ export class CasinoDataExtractor {
     const bonusActive = this.isBonusActive(doc);
     const freeSpins = this.extractFreeSpinsCount(doc);
     const gameTitle = this.extractGameTitle(doc);
+    const gameResult = this.extractGameResult(doc);
     
     // Detect spin completion by balance change
     if (balance !== null && this.previousBalance !== null) {
@@ -355,6 +412,7 @@ export class CasinoDataExtractor {
           bet: bet !== null ? bet : Math.abs(balanceChange) - (win || 0),
           win: win !== null ? win : 0,
           balance,
+          gameResult,
           symbols,
           bonusActive,
           freeSpins,
@@ -405,6 +463,27 @@ export class CasinoDataExtractor {
       console.log('[TiltCheck] Stopped DOM observation');
     };
   }
+}
+
+/**
+ * Helper to save a custom casino configuration
+ * Use this from your Popup or Options UI to save user inputs
+ */
+export function saveCustomCasino(config: CasinoSelector): Promise<void> {
+  return new Promise((resolve, reject) => {
+    try {
+      const storage = chrome.storage.sync || chrome.storage.local;
+      storage.get(['tiltcheck_custom_casinos'], (result) => {
+        const current = (result.tiltcheck_custom_casinos || []) as CasinoSelector[];
+        // Remove existing with same ID to allow updates
+        const filtered = current.filter(c => c.casinoId !== config.casinoId);
+        filtered.push(config);
+        storage.set({ tiltcheck_custom_casinos: filtered }, () => resolve());
+      });
+    } catch (e) {
+      reject(e);
+    }
+  });
 }
 
 /**
@@ -474,6 +553,7 @@ export class AnalyzerClient {
     userId: string;
     bet: number;
     payout: number;
+    gameResult?: number | null;
     symbols?: string[];
     bonusRound?: boolean;
     freeSpins?: boolean;
