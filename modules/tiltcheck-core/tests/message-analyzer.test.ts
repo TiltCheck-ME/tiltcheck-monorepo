@@ -1,3 +1,13 @@
+// Mock the AI client module to prevent timeout issues
+vi.mock('@tiltcheck/ai-client', () => ({
+  aiClient: {
+    detectTilt: vi.fn().mockResolvedValue({
+      success: false,
+      error: 'AI client not available in test',
+    }),
+  },
+}));
+
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { analyzeMessages, calculateTiltScore, analyzeMessagesWithAI } from '../src/message-analyzer.js';
 import type { MessageActivity, TiltSignal } from '../src/types.js';
