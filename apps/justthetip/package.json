@@ -16,7 +16,7 @@
     "@tiltcheck/api-client": "workspace:*",
     "@tiltcheck/auth": "workspace:*",
     "@tiltcheck/types": "workspace:*",
-    "next": "15.5.10",
+    "next": "16.1.6",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"
   },

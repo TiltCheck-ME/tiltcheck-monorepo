@@ -82,3 +82,10 @@ services/*/src/*.d.ts.map
 # Local runtime data dirs
 modules/lockvault/data/
 services/trust-engines/data/
+
+# Security - SSH Keys
+*.pem
+*.key
+*.pub
+id_rsa*
+id_ecdsa*
