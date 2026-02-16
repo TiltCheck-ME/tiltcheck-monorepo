@@ -42,25 +42,25 @@
   },
   "devDependencies": {
     "@types/bcryptjs": "^3.0.0",
-    "@types/jsdom": "^21.1.0",
-    "@types/node": "^24.10.1",
-    "@types/supertest": "^6.0.2",
-    "@typescript-eslint/eslint-plugin": "^8.9.0",
-    "@typescript-eslint/parser": "^8.9.0",
+    "@types/jsdom": "^21.1.7",
+    "@types/node": "^24.10.13",
+    "@types/supertest": "^6.0.3",
+    "@typescript-eslint/eslint-plugin": "^8.55.0",
+    "@typescript-eslint/parser": "^8.55.0",
     "@vitest/coverage-v8": "^4.0.18",
-    "eslint": "^9.12.0",
-    "eslint-config-prettier": "^9.1.0",
+    "eslint": "^9.39.2",
+    "eslint-config-prettier": "^9.1.2",
     "http-server": "^14.1.1",
     "jsdom": "^25.0.1",
-    "lighthouse": "^12.0.0",
+    "lighthouse": "^12.8.2",
     "lunr": "^2.3.9",
-    "pa11y": "^9.0.1",
-    "prettier": "^3.1.0",
-    "puppeteer": "^24.31.0",
+    "pa11y": "^9.1.0",
+    "prettier": "^3.8.1",
+    "puppeteer": "^24.37.3",
     "sharp": "^0.34.5",
-    "supertest": "^7.0.0",
-    "typescript": "^5.3.0",
-    "typescript-eslint": "^8.9.0",
+    "supertest": "^7.2.2",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.55.0",
     "vitest": "^4.0.18"
   },
   "pnpm": {
@@ -82,5 +82,10 @@
       "sharp",
       "utf-8-validate"
     ]
+  },
+  "dependencies": {
+    "ci-test": "^0.1.11",
+    "commonjs": "^0.0.1",
+    "ollama": "^0.6.3"
   }
 }
