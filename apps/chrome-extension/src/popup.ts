@@ -55,6 +55,14 @@ const startBtn = document.getElementById('startBtn');
 const stopBtn = document.getElementById('stopBtn');
 const vaultBtn = document.getElementById('vaultBtn');
 const reportBtn = document.getElementById('reportBtn');
+// Configurator Elements
+const configBtn = document.getElementById('configBtn');
+const configPanel = document.getElementById('configPanel');
+const cfgCancel = document.getElementById('cfgCancel');
+const cfgSave = document.getElementById('cfgSave');
+const cfgDomain = document.getElementById('cfgDomain') as HTMLInputElement;
+const cfgBet = document.getElementById('cfgBet') as HTMLInputElement;
+const cfgResult = document.getElementById('cfgResult') as HTMLInputElement;
 
 /**
  * Send message to content script
@@ -360,11 +368,93 @@ async function viewFullReport() {
   chrome.tabs.create({ url });
 }
 
+/**
+ * Configurator Logic
+ */
+function openConfigurator() {
+  configPanel.classList.remove('hidden');
+  
+  // Auto-fill domain
+  chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+    if (tabs[0]?.url) {
+      const url = new URL(tabs[0].url);
+      cfgDomain.value = url.hostname;
+    }
+  });
+}
+
+function closeConfigurator() {
+  configPanel.classList.add('hidden');
+}
+
+async function testSelector(inputId) {
+  const input = document.getElementById(inputId) as HTMLInputElement;
+  const msgEl = document.getElementById(`msg-${inputId}`);
+  const selector = input.value;
+
+  if (!selector) {
+    msgEl.textContent = 'Enter a selector';
+    msgEl.className = 'validation-msg invalid';
+    return;
+  }
+
+  msgEl.textContent = 'Testing...';
+  msgEl.className = 'validation-msg';
+
+  const response = await sendMessage({ 
+    type: 'validate_selector', 
+    selector 
+  });
+
+  if (response.found) {
+    msgEl.textContent = `✅ Found: "${response.value}"`;
+    msgEl.className = 'validation-msg valid';
+  } else {
+    msgEl.textContent = '❌ Element not found';
+    msgEl.className = 'validation-msg invalid';
+  }
+}
+
+function saveConfiguration() {
+  const config = {
+    casinoId: 'custom-' + Date.now(),
+    domain: cfgDomain.value,
+    selectors: {
+      betAmount: cfgBet.value,
+      gameResult: cfgResult.value
+      // Add others as needed
+    }
+  };
+
+  chrome.storage.local.get(['tiltcheck_custom_casinos'], (result) => {
+    const current = result.tiltcheck_custom_casinos || [];
+    // Remove existing for this domain to avoid duplicates
+    const filtered = current.filter(c => c.domain !== config.domain);
+    filtered.push(config);
+    
+    chrome.storage.local.set({ tiltcheck_custom_casinos: filtered }, () => {
+      alert('Configuration saved! Please refresh the page.');
+      closeConfigurator();
+    });
+  });
+}
+
 // Event Listeners
 if (startBtn) startBtn.addEventListener('click', startGuardian);
 if (stopBtn) stopBtn.addEventListener('click', stopGuardian);
 if (vaultBtn) vaultBtn.addEventListener('click', openVault);
 if (reportBtn) reportBtn.addEventListener('click', viewFullReport);
+if (configBtn) configBtn.addEventListener('click', openConfigurator);
+if (cfgCancel) cfgCancel.addEventListener('click', closeConfigurator);
+if (cfgSave) cfgSave.addEventListener('click', saveConfiguration);
+
+// Test buttons delegation
+document.querySelectorAll('.test-btn').forEach(btn => {
+  btn.addEventListener('click', (e) => {
+    const targetId = (e.target as HTMLElement).dataset.target;
+    if (targetId) testSelector(targetId);
+  });
+});
 
 // Initial status check
 refreshStatus();
