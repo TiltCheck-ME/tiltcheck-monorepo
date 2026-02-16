@@ -9,6 +9,7 @@ import {
   type BreathalyzerEvaluatedPayload,
   type SentimentFlaggedPayload,
 } from '@tiltcheck/event-types';
+import { LinkScanner } from '@tiltcheck/suslink';
 import { evaluateBreathalyzer, evaluateSentiment } from '../lib/safety.js';
 
 const router = Router();
@@ -108,6 +109,48 @@ router.post('/anti-tilt/evaluate', (req, res) => {
     result,
     event,
   });
+});
+
+/**
+ * POST /safety/suslink/scan
+ * Scan a URL for suspicious patterns using the SusLink engine.
+ */
+router.post('/suslink/scan', async (req, res) => {
+  const { url } = req.body ?? {};
+
+  if (!url || typeof url !== 'string') {
+    res.status(400).json({ error: 'url is required', code: 'INVALID_URL' });
+    return;
+  }
+
+  try {
+    const parsed = new URL(url);
+    if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
+      res.status(400).json({ error: 'URL must use http:// or https://', code: 'INVALID_PROTOCOL' });
+      return;
+    }
+  } catch {
+    res.status(400).json({ error: 'Invalid URL format', code: 'INVALID_URL_FORMAT' });
+    return;
+  }
+
+  try {
+    const scanner = new LinkScanner();
+    const result = await scanner.scan(url);
+
+    res.json({
+      success: true,
+      result: {
+        url: result.url,
+        riskLevel: result.riskLevel,
+        reason: result.reason,
+        scannedAt: result.scannedAt,
+      },
+    });
+  } catch (err) {
+    console.error('[Safety API] SusLink scan error:', err instanceof Error ? err.message : err);
+    res.status(500).json({ error: 'Scan failed', code: 'SCAN_FAILED' });
+  }
 });
 
 export { router as safetyRouter };

@@ -1,0 +1,25 @@
+[
+  [
+    "history-test.com",
+    {
+      "score": 74,
+      "fairnessScore": 75,
+      "payoutScore": 75,
+      "bonusScore": 69,
+      "userReportScore": 75,
+      "freespinScore": 75,
+      "complianceScore": 75,
+      "supportScore": 75,
+      "history": [
+        {
+          "timestamp": 1770868605788,
+          "delta": -1,
+          "reason": "Bonus nerf detected (-30.0%)",
+          "severity": 3,
+          "category": "bonusScore"
+        }
+      ],
+      "lastUpdated": 1770868605788
+    }
+  ]
+]
