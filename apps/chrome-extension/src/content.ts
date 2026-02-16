@@ -1,30 +1,18 @@
--implement suslink checker link check for known scam reports on public info from search engine results for extension , if no known information is found begin building scoring from scratch and ask user to confirm info -give user credit for trust score creation in the casino trust score index for that casino card if this doesnt exist add a tab for it from home page of website, discord slash command, collect clock card for matching casino links for see trust score footer per card. inform if risks are found and suggest alternate method or security measures to put in place 
-
--implement report button for casino updates with options ie; report payout schedule change, bonus amount change, etc which will  publish an update to the discord channel for casino update reports (server id      channel id      ) and after it is verified as true and relevant to scoring applied to the update of the casino trust score. 
-
-- create an onboarding interview to best determine how tiltcheck can help each sign up (business, casino, degen, developer etc) with ai generated questions that use every answer to determine the best next question to ask, save info to profile and database and use it to generate tutorial with highlighted features based on answers. 
-
-- add phone a friend option/buddy notification on off toggle to sidebar for discord notification and implement set up section for trusted user ids in profile or interview. 
-
--degen accountability streaming channe 2l in discord server   channel id (i'll add later in env when discord updates)
-channel 2 (i'll add id later also)
--list channel types/names that should be added to the discord server, also roles and rules
-
--discord help/support/report tickets (channel id added later) automated system bot 
-
--autovault via api key where api key will allow this setup in sidepannel 
-
--withdraw to lock timer wallet that is discarded after timer is up and funds are moved out of it (suggest this after 4x balance start win or user set amount) 
-
--add custom balance notification for withdraws ie; power bill $200 <link to payment> <withdraw button> , trashbags $10 <link to product or buy now button/cart> <withdraw button>
-
--prompt user to setup pattern tracking, balance alerts, and other relevant custom feature variables using natural language interpretation or with guided setup
-
--ask questions if clarity is needed, suggest more efficient method if one exists as long as it maintains low overhead and user safety methodology. if a tool or feature doesnt fit the ecosystem or mission suggest removal or alternate route. add events to event router if need be, dont duplicate features already existing. 
-
--when balance hits zero suggest surverys they match for or microtasks if availible
-
--provide smart harm reduction observation tips and cool down periods when user needs to check themselves 
+/*
+ * TODO: Feature Implementation List
+ * - Implement SusLink checker link check for known scam reports on public info.
+ * - Implement report button for casino updates (payout schedule, bonus change).
+ * - Create onboarding interview (business, casino, degen, developer).
+ * - Add phone a friend/buddy notification toggle.
+ * - Degen accountability streaming channels.
+ * - Discord help/support/report tickets.
+ * - Autovault via API key.
+ * - Withdraw to lock timer wallet.
+ * - Custom balance notification for withdraws (e.g., Power Bill).
+ * - Pattern tracking setup via natural language.
+ * - Zero balance intervention (suggest surveys).
+ * - Smart harm reduction observation tips.
+ */
 
 /**
  * Enhanced Content Script - TiltGuard + License Verification
@@ -381,8 +369,10 @@ async function startMonitoring() {
     console.log('[TiltGuard] Analyzer backend offline - tilt monitoring only');
   }
   
-  // Generate session ID
-  sessionId = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  // Generate session ID using cryptographically secure random
+  const randomBytes = new Uint32Array(1);
+  crypto.getRandomValues(randomBytes);
+  sessionId = `session_${Date.now()}_${randomBytes[0].toString(36)}`;
   const userId = await getUserId();
   const casinoId = detectCasinoId();
   const gameId = detectGameId();
@@ -398,7 +388,13 @@ async function startMonitoring() {
     
     console.log('[TiltGuard] Spin detected:', spinData);
     
-    handleSpinEvent(spinData, { sessionId: sessionId!, userId, casinoId, gameId });
+    // Check if sessionId is valid before using
+    if (!sessionId) {
+      console.warn('[TiltGuard] Session not started, cannot record spin');
+      return;
+    }
+    
+    handleSpinEvent(spinData, { sessionId, userId, casinoId, gameId });
   });
   
   console.log('[TiltGuard] Monitoring started successfully');
@@ -437,12 +433,17 @@ function handleSpinEvent(spinData: any, session: any) {
   if (tiltDetector) {
     tiltDetector.recordBet(bet, payout);
     
+    // Get session summary for accurate stats
+    const sessionSummary = tiltDetector.getSessionSummary();
+    
     // Update sidebar stats
+    // Note: sessionSummary.duration is the session duration in ms
+    // netProfit represents total winnings (payouts - bets)
     const stats = {
-      startTime: Date.now() - (tiltDetector as any).sessionStartTime || Date.now(),
-      totalBets: (tiltDetector as any).bets?.length || 0,
-      totalWagered: (tiltDetector as any).totalWagered || 0,
-      totalWins: (tiltDetector as any).totalWagered + (payout - bet) || 0
+      startTime: Date.now() - (sessionSummary.duration || 0),
+      totalBets: sessionSummary.totalBets || 0,
+      totalWagered: sessionSummary.totalWagered || 0,
+      totalWins: sessionSummary.netProfit || 0
     };
     (window as any).TiltGuardSidebar?.updateStats(stats);
     
