@@ -1,99 +1,65 @@
-# TiltCheck Auto-Claimer Web Frontend
+# TiltCheck Landing Site
 
-Web interface for users to submit their Stake API keys and view claim results.
+Public-facing landing pages for the TiltCheck ecosystem.
 
-## Features
+## Structure
 
-- Simple, single-page interface
-- Secure API key submission (keys never exposed to client after submission)
-- Real-time claim status updates
-- Claim history with filtering (claimed/skipped/failed)
-- Responsive design
-- No login required (userId-based sessions)
+```
+public/
+├── index.html          # Main landing page
+├── about.html          # About page with legal info
+├── styles/            # CSS files
+│   └── base.css       # Base styles
+├── assets/            # Images, icons
+├── components/        # Reusable UI fragments
+│   ├── index.html
+│   └── trust-gauges.html
+└── tools/             # Tool-specific pages
+```
 
 ## Development
 
+**Local preview:**
 ```bash
-# Install dependencies (from monorepo root)
-pnpm install
+# Serve at http://localhost:8090
+pnpm a11y:serve:landing
 
-# Start dev server
-pnpm dev
-
-# Build for production
-pnpm build
-
-# Preview production build
-pnpm preview
+# Or use any static server
+npx http-server public -p 8090 -c-1
 ```
 
-## Environment Variables
-
-Create `.env` file:
-
+**Accessibility audits:**
 ```bash
-# Backend API URL (for production deployment)
-VITE_API_URL=https://api.tiltcheck.com
+# Run Pa11y + Lighthouse on index.html
+pnpm a11y:audit:landing
+
+# View Lighthouse report
+cat ../../../dist/landing-lighthouse-accessibility.json | jq '.categories.accessibility.score'
 ```
 
-In development, API requests are proxied to `http://localhost:8080`.
+## Standards
 
-## Usage Flow
+- **Contrast**: WCAG AA (4.5:1 normal text, 3.0:1 large)
+- **Mobile-first**: Responsive breakpoints at 680px, 768px
+- **Semantic HTML**: Proper heading hierarchy, landmarks, alt text
+- **Performance**: Minimal dependencies, inline critical CSS
 
-1. User visits the page
-2. User enters their Stake API key
-3. Frontend submits key to `/api/claim/submit`
-4. Backend returns a userId
-5. Frontend stores userId in localStorage
-6. Frontend polls `/api/claim/status/:userId` for updates
-7. User can view detailed history at `/api/claim/history/:userId`
+## Colors
 
-## Security
+- Background: `#0a0a0a`
+- Surface: `#1a1a1a`
+- Text primary: `#e0e0e0`
+- Footer text: `#999` (6.95:1 contrast ratio)
+- Accent: `#00d4aa` (cyan)
+- Accent alt: `#00a8ff` (blue)
 
-- API keys are submitted once and stored encrypted server-side
-- Frontend never stores API keys (only userId)
-- All claims are processed server-side
-- HTTPS required in production
-- CORS configured for allowed origins
+## Quick Edits
 
-## Deployment
+- Hero copy: `index.html` line ~70
+- Footer links: `index.html` line ~467
+- Tool cards: `index.html` line ~300
+- Mobile breakpoints: `index.html` line ~208
 
-### Static Hosting (GitHub Pages / Vercel)
+---
 
-```bash
-pnpm build
-# Upload dist/ folder to static hosting
-```
-
-### Railway
-
-The backend server can serve the static frontend:
-
-```bash
-# Build frontend
-cd apps/web
-pnpm build
-
-# Copy to backend public folder
-cp -r dist/* ../../backend/public/
-
-# Deploy backend (will serve frontend)
-cd ../../backend
-railway up
-```
-
-## Project Structure
-
-```
-apps/web/
-├── public/          # Static assets
-├── src/
-│   ├── App.tsx      # Main app component
-│   ├── main.tsx     # Entry point
-│   ├── api.ts       # API client
-│   └── types.ts     # TypeScript types
-├── index.html       # HTML template
-├── package.json
-├── tsconfig.json
-└── vite.config.ts
-```
+Built by @jmenichole • TiltCheck © 2024–2025
