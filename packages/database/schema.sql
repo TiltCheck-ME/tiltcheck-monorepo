@@ -98,9 +98,9 @@ CREATE INDEX IF NOT EXISTS idx_game_history_platform ON game_history(platform);
 CREATE INDEX IF NOT EXISTS idx_game_history_completed ON game_history(completed_at DESC);
 CREATE INDEX IF NOT EXISTS idx_game_history_players ON game_history USING GIN(player_ids);
 
--- Degen Identities Table
+-- Trust Identities Table (formerly Degen Identities)
 -- Links Discord profiles to on-chain actions and Magic wallets
-CREATE TABLE IF NOT EXISTS degen_identities (
+CREATE TABLE IF NOT EXISTS trust_identities (
   discord_id TEXT PRIMARY KEY REFERENCES user_stats(discord_id) ON DELETE CASCADE,
   magic_address TEXT UNIQUE,
   primary_external_address TEXT UNIQUE,
@@ -115,30 +115,58 @@ CREATE TABLE IF NOT EXISTS degen_identities (
   updated_at TIMESTAMPTZ DEFAULT NOW() NOT NULL
 );
 
--- Indexes for degen_identities
-CREATE INDEX IF NOT EXISTS idx_degen_identities_magic_address ON degen_identities(magic_address);
-CREATE INDEX IF NOT EXISTS idx_degen_identities_trust_score ON degen_identities(trust_score DESC);
+-- Indexes for trust_identities
+CREATE INDEX IF NOT EXISTS idx_trust_identities_magic_address ON trust_identities(magic_address);
+CREATE INDEX IF NOT EXISTS idx_trust_identities_trust_score ON trust_identities(trust_score DESC);
 
--- Trigger for degen_identities updated_at
-CREATE TRIGGER update_degen_identities_updated_at 
-  BEFORE UPDATE ON degen_identities 
+-- Trigger for trust_identities updated_at
+CREATE TRIGGER update_trust_identities_updated_at 
+  BEFORE UPDATE ON trust_identities 
   FOR EACH ROW 
   EXECUTE FUNCTION update_updated_at_column();
 
--- RLS for degen_identities
-ALTER TABLE degen_identities ENABLE ROW LEVEL SECURITY;
+-- RLS for trust_identities
+ALTER TABLE trust_identities ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "Public read access for degen_identities" 
-  ON degen_identities FOR SELECT 
+CREATE POLICY "Public read access for trust_identities" 
+  ON trust_identities FOR SELECT 
   USING (true);
 
-CREATE POLICY "Service role can insert degen_identities" 
-  ON degen_identities FOR INSERT 
+CREATE POLICY "Service role can insert trust_identities" 
+  ON trust_identities FOR INSERT 
   WITH CHECK (auth.role() = 'service_role');
 
-CREATE POLICY "Service role can update degen_identities" 
-  ON degen_identities FOR UPDATE 
+CREATE POLICY "Service role can update trust_identities" 
+  ON trust_identities FOR UPDATE 
   USING (auth.role() = 'service_role');
+
+-- Mod Logs Table
+-- Tracks disciplinary actions against users (scammers, rain farmers, etc.)
+CREATE TABLE IF NOT EXISTS mod_logs (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  target_user_id TEXT NOT NULL,
+  moderator_id TEXT NOT NULL,
+  action_type TEXT NOT NULL CHECK (action_type IN ('warn', 'mute', 'kick', 'ban', 'flag_scammer', 'flag_farmer')),
+  reason TEXT NOT NULL,
+  evidence_url TEXT, -- Link to screenshot or message link
+  witness_statement TEXT, -- Optional second opinion or witness
+  created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL
+);
+
+-- Indexes for mod_logs
+CREATE INDEX IF NOT EXISTS idx_mod_logs_target ON mod_logs(target_user_id);
+CREATE INDEX IF NOT EXISTS idx_mod_logs_action ON mod_logs(action_type);
+
+-- RLS for mod_logs
+ALTER TABLE mod_logs ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Public read access for mod_logs" 
+  ON mod_logs FOR SELECT 
+  USING (true);
+
+CREATE POLICY "Service role can insert mod_logs" 
+  ON mod_logs FOR INSERT 
+  WITH CHECK (auth.role() = 'service_role');
 
 -- Triggers for updated_at
 CREATE OR REPLACE FUNCTION update_updated_at_column()
