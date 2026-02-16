@@ -462,7 +462,7 @@ importers:
         version: 4.21.2
       express-session:
         specifier: ^1.18.0
-        version: 1.18.2
+        version: 1.19.0
       ioredis:
         specifier: ^5.4.1
         version: 5.9.2
@@ -1234,7 +1234,7 @@ importers:
         version: 4.21.2
       express-session:
         specifier: ^1.18.0
-        version: 1.18.2
+        version: 1.19.0
       passport:
         specifier: ^0.7.0
         version: 0.7.0
@@ -1333,7 +1333,7 @@ importers:
         version: 4.21.2
       express-session:
         specifier: ^1.18.0
-        version: 1.18.2
+        version: 1.19.0
       socket.io:
         specifier: ^4.7.0
         version: 4.8.1(bufferutil@4.1.0)(utf-8-validate@5.0.10)
@@ -1565,7 +1565,7 @@ importers:
         version: 8.2.1(express@4.21.2)
       express-session:
         specifier: ^1.18.0
-        version: 1.18.2
+        version: 1.19.0
       jsonwebtoken:
         specifier: ^9.0.3
         version: 9.0.3
@@ -5870,8 +5870,8 @@ packages:
     peerDependencies:
       express: '>= 4.11'
 
-  express-session@1.18.2:
-    resolution: {integrity: sha512-SZjssGQC7TzTs9rpPDuUrR23GNZ9+2+IkA/+IJWmvQilTr5OSliEHGF+D9scbIpdC6yGtTI0/VhaHoVes2AN/A==}
+  express-session@1.19.0:
+    resolution: {integrity: sha512-0csaMkGq+vaiZTmSMMGkfdCOabYv192VbytFypcvI0MANrp+4i/7yEkJ0sbAEhycQjntaKGzYfjfXQyVb7BHMA==}
     engines: {node: '>= 0.8.0'}
 
   express@4.21.2:
@@ -15075,7 +15075,7 @@ snapshots:
       express: 4.22.1
       ip-address: 10.0.1
 
-  express-session@1.18.2:
+  express-session@1.19.0:
     dependencies:
       cookie: 0.7.2
       cookie-signature: 1.0.7
