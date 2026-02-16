@@ -919,8 +919,8 @@ importers:
         specifier: workspace:*
         version: link:../shared
       commander:
-        specifier: ^12.0.0
-        version: 12.1.0
+        specifier: ^14.0.3
+        version: 14.0.3
     devDependencies:
       '@types/node':
         specifier: ^20.10.0
@@ -1177,8 +1177,8 @@ importers:
   services/casino-data-api:
     dependencies:
       commander:
-        specifier: ^12.1.0
-        version: 12.1.0
+        specifier: ^14.0.3
+        version: 14.0.3
       cors:
         specifier: ^2.8.5
         version: 2.8.5
