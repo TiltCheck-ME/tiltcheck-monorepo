@@ -1,11 +1,7 @@
 packages:
   - apps/*
   - modules/*
-  - services/*
   - packages/*
-  - frontend
-  - backend
-  - bot
 
 ignoredBuiltDependencies:
   - puppeteer
