@@ -1,4 +1,18 @@
+// Import vi for mocking
+import { vi } from 'vitest';
+
+// Mock the AI client module to prevent timeout issues
+vi.mock('@tiltcheck/ai-client', () => ({
+  aiClient: {
+    surveyMatching: vi.fn().mockResolvedValue({
+      success: false,
+      error: 'AI client not available in test',
+    }),
+  },
+}));
+
 import { describe, it, expect } from 'vitest';
+
 import {
   predictSurveyMatch,
   routeSurveys,

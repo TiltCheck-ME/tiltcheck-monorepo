@@ -56,3 +56,5 @@ export { justthetip } from './justthetip.js';
 // Blocklist management commands (mod only)
 // export { blockdomain, unblockdomain } from './blocklist.js';
 
+export { default as report } from './report.js';
+
