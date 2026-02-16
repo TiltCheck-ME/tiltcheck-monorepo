@@ -308,3 +308,34 @@ COMMENT ON COLUMN user_stats.discord_id IS 'Discord user ID - primary key for cr
 COMMENT ON COLUMN user_stats.total_score IS 'Combined score from all games (primarily DA&D points)';
 COMMENT ON COLUMN game_history.platform IS 'Platform where game was played: web or discord';
 COMMENT ON COLUMN game_history.player_ids IS 'Array of Discord IDs of all players in the game';
+
+-- Newsletter Subscribers Table
+CREATE TABLE IF NOT EXISTS newsletter_subscribers (
+  email_hash TEXT PRIMARY KEY, -- SHA-256 hash of email for privacy
+  subscribed_at TIMESTAMPTZ DEFAULT NOW() NOT NULL,
+  unsubscribed_at TIMESTAMPTZ
+);
+
+-- Stripe Subscriptions Table
+CREATE TABLE IF NOT EXISTS subscriptions (
+  user_id TEXT PRIMARY KEY, -- Can be Discord ID or other identifier
+  stripe_customer_id TEXT UNIQUE,
+  stripe_subscription_id TEXT UNIQUE,
+  status TEXT NOT NULL, -- active, trialing, cancelled, expired, founder
+  trial_end TIMESTAMPTZ,
+  current_period_start TIMESTAMPTZ,
+  current_period_end TIMESTAMPTZ,
+  cancel_at_period_end BOOLEAN DEFAULT false NOT NULL,
+  created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL,
+  updated_at TIMESTAMPTZ DEFAULT NOW() NOT NULL
+);
+
+-- Indexes for subscriptions
+CREATE INDEX IF NOT EXISTS idx_subscriptions_stripe_id ON subscriptions(stripe_subscription_id);
+CREATE INDEX IF NOT EXISTS idx_subscriptions_customer_id ON subscriptions(stripe_customer_id);
+
+-- Trigger for subscriptions updated_at
+CREATE TRIGGER update_subscriptions_updated_at 
+  BEFORE UPDATE ON subscriptions 
+  FOR EACH ROW 
+  EXECUTE FUNCTION update_updated_at_column();

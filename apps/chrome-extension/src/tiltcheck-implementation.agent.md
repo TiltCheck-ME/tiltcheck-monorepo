@@ -41,4 +41,12 @@ tools:
     description: Run shell commands.
   - name: apply_diff
     type: apply_diff
-    description: Apply code changes.
+    description: Apply code changes.  - name: read_file
+    type: read_file
+    description: Read the content of a file.
+  - name: write_file
+    type: write_file
+    description: Write content to a file.
+  - name: list_files
+    type: list_files
+    description: List files in a directory.
