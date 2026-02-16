@@ -1,5 +1,9 @@
+/**
+ * @vitest-environment jsdom
+ */
+
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
-import { Analyzer } from './analyzer';
+import { Analyzer } from './analyzer.js';
 
 // Mock the FairnessService to avoid crypto dependencies in DOM tests
 vi.mock('../../../packages/utils/src/FairnessService', () => {
