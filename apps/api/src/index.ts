@@ -17,11 +17,19 @@ import { healthRouter } from './routes/health.js';
 import { rgaasRouter } from './routes/rgaas.js';
 import { affiliateRouter } from './routes/affiliate.js';
 import { safetyRouter } from './routes/safety.js';
+import { newsletterRouter } from './routes/newsletter.js';
+import { stripeRouter, handleStripeWebhook } from './routes/stripe.js';
+import modRouter from './routes/mod.js';
 import { errorHandler, notFoundHandler } from './middleware/error.js';
 import { requestLogger } from './middleware/logger.js';
 import { csrfProtection } from './middleware/csrf.js';
 
 const app = express();
+
+// ============================================================================
+// Stripe Webhook (MUST be before body parsers)
+// ============================================================================
+app.post('/stripe/webhook', express.raw({ type: 'application/json' }), handleStripeWebhook);
 
 // ============================================================================
 // Global Middleware
@@ -116,6 +124,15 @@ app.use('/safety', safetyRouter);
 
 // Affiliate trust routes
 app.use('/affiliate', affiliateRouter);
+
+// Newsletter routes
+app.use('/newsletter', newsletterRouter);
+
+// Stripe billing routes
+app.use('/stripe', stripeRouter);
+
+// Moderation routes
+app.use('/mod', modRouter);
 
 // ============================================================================
 // Error Handling
