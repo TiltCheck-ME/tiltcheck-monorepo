@@ -1,0 +1,912 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"/><title>5. Tool Specifications (Part 1) - TiltCheck</title><meta name="description" content="© 2024–2025 TiltCheck Ecosystem (Created by jmenichole). All Rights Reserved."/><link rel="stylesheet" href="/styles/base.css"/><style>body{background:#0a0a0a;color:#e0e0e0;font-family:Inter,system-ui,sans-serif;margin:0;padding:0}main{max-width:900px;margin:0 auto;padding:40px 18px;line-height:1.7}a{color:#00d4aa;text-decoration:none}a:hover{text-decoration:underline}.page-hero{padding:54px 24px 32px;background:linear-gradient(135deg,#121212,#181818);border-bottom:1px solid #222}.page-hero h1{margin:0 0 10px;font-size:2.4rem;background:linear-gradient(135deg,#00d4aa,#00a8ff);-webkit-background-clip:text;color:transparent}.lede{color:#aaa;font-size:1.05rem;max-width:760px}pre{background:#181818;padding:14px 16px;border:1px solid #222;border-radius:8px;overflow:auto;font-size:.85rem}code{font-family:ui-monospace,Monaco,Consolas,monospace;color:#00a8ff}.breadcrumb{font-size:.7rem;letter-spacing:.12em;text-transform:uppercase;color:#888;margin:0 0 12px}.nav-inline{display:flex;gap:20px;align-items:center;font-size:.8rem;padding:10px 20px;background:#111;border-bottom:1px solid #222}nav a{color:#aaa}nav a[aria-current="page"]{color:#00d4aa;font-weight:600}</style></head><body><nav class="nav-inline"><a href="/" >Home</a><a href="/docs/index.html" aria-current="page">Docs</a><a href="/dashboard">Dashboard</a><a href="/about.html">About</a></nav><header class="page-hero"><div class="breadcrumb">Docs / 5. Tool Specifications (Part 1)</div><h1>5. Tool Specifications (Part 1)</h1><p class="lede">© 2024–2025 TiltCheck Ecosystem (Created by jmenichole). All Rights Reserved.</p></header><main id="content"><p>© 2024–2025 TiltCheck Ecosystem (Created by jmenichole). All Rights Reserved.</p>
+
+<h1>5. Tool Specifications (Part 1)</h1>
+<p>This document covers the detailed specifications for the first three TiltCheck modules:</p>
+
+<p>1. <strong>JustTheTip</strong> – non-custodial tipping & airdrops</p>
+<p>2. <strong>SusLink</strong> – link scanning & risk detection</p>
+<p>3. <strong>CollectClock</strong> – daily bonus tracking & nerf analysis</p>
+
+<p>Each tool is modular, Discord-driven, and built to operate independently while sharing optional insights with the trust engines.</p>
+
+<p>---</p>
+
+<h1>5.1 JustTheTip — Non-Custodial Tipping & Airdrops</h1>
+
+<h2>5.1.1 Purpose & Philosophy</h2>
+<p>JustTheTip exists because custodial bots are unreliable, legally risky, and frequently lose user funds.</p>
+<p>TiltCheck solves this by staying <strong>fully non-custodial</strong>:</p>
+
+<ul>
+<li>The platform NEVER holds balances</li>
+<li>Users tip directly wallet-to-wallet</li>
+<li>Fees are flat, predictable, and taken <em>before</em> the action</li>
+<li>Crypto remains under user ownership at all times</li>
+</ul>
+
+<p>This eliminates the “bot ate my money” chaos that plagues most tipping systems.</p>
+
+<p>---</p>
+
+<h2>5.1.2 Core Functions</h2>
+
+<h3><strong>1. Tip → Direct Send</strong></h3>
+<p>User tips another user by providing:</p>
+<ul>
+<li>target wallet (or Discord user → mapped wallet)</li>
+<li>asset type</li>
+<li>amount</li>
+</ul>
+
+<p>Flow:</p>
+<p>User → /tip @user <amount> <token></p>
+<p>System → calculates flat fee</p>
+<p>System → deducts fee</p>
+<p>System → user approves wallet transaction</p>
+<p>Blockchain processes send</p>
+<p>Discord → confirmation</p>
+
+
+<h3><strong>2. Airdrop → Multi-Send</strong></h3>
+<p>Mass sends with flat fee per action (not per user).</p>
+
+<h3><strong>3. Optional Swap → Jupiter Integration</strong></h3>
+<p>After fee deduction, user may perform an on-chain swap.</p>
+
+<p>Swap is:</p>
+<ul>
+<li>optional</li>
+<li>available only when liquidity is healthy</li>
+<li>always non-custodial (contract handles balances)</li>
+</ul>
+
+<p><strong>No swapping fees except the base flat fee for the action.</strong></p>
+
+<p>---</p>
+
+<h2>5.1.3 Fee Structure</h2>
+
+<h3><strong>Flat Fee Only</strong></h3>
+<p>No percentages.</p>
+<p>No dynamic scaling.</p>
+<p>No special tiers.</p>
+
+<p>Default recommended:</p>
+<ul>
+<li><strong>$0.07</strong> per tip/airdrop/withdraw (USD equivalent)</li>
+<li>Gas is separate and unavoidable (fractions of a cent on Solana)</li>
+</ul>
+
+<h3><strong>Legal Reason:</strong></h3>
+<p>Flat fees avoid triggering “money transmitter” classifications.</p>
+
+<p>---</p>
+
+<h2>5.1.4 Wallet System</h2>
+
+<p>TiltCheck must NEVER store user keys.</p>
+
+<p>Supported:</p>
+<ul>
+<li>Magic.link non-custodial wallets tied to Discord ID</li>
+<li>User-submitted existing wallets</li>
+<li>No custodial balances held by TiltCheck</li>
+</ul>
+
+<p>Mapping:</p>
+
+<h3><strong>2. Airdrop → Multi-Send</strong></h3>
+<p>Mass sends with flat fee per action (not per user).</p>
+
+<h3><strong>3. Optional Swap → Jupiter Integration</strong></h3>
+<p>After fee deduction, user may perform an on-chain swap.</p>
+
+<p>Swap is:</p>
+<ul>
+<li>optional</li>
+<li>available only when liquidity is healthy</li>
+<li>always non-custodial (contract handles balances)</li>
+</ul>
+
+<p><strong>No swapping fees except the base flat fee for the action.</strong></p>
+
+<p>---</p>
+
+<h2>5.1.3 Fee Structure</h2>
+
+<h3><strong>Flat Fee Only</strong></h3>
+<p>No percentages.</p>
+<p>No dynamic scaling.</p>
+<p>No special tiers.</p>
+
+<p>Default recommended:</p>
+<ul>
+<li><strong>$0.07</strong> per tip/airdrop/withdraw (USD equivalent)</li>
+<li>Gas is separate and unavoidable (fractions of a cent on Solana)</li>
+</ul>
+
+<h3><strong>Legal Reason:</strong></h3>
+<p>Flat fees avoid triggering “money transmitter” classifications.</p>
+
+<p>---</p>
+
+<h2>5.1.4 Wallet System</h2>
+
+<p>TiltCheck must NEVER store user keys.</p>
+
+<p>Supported:</p>
+<ul>
+<li>Magic.link non-custodial wallets tied to Discord ID</li>
+<li>User-submitted existing wallets</li>
+<li>No custodial balances held by TiltCheck</li>
+</ul>
+
+<p>Mapping:</p>
+<ul>
+<li>Discord ID ↔ Magic wallet address</li>
+</ul>
+
+
+<p>Stored metadata:</p>
+
+<p>discord_id</p>
+<p>wallet_address</p>
+<p>created_at</p>
+<p>updated_at</p>
+<p>trust_score_linked (optional)</p>
+
+
+<p>---</p>
+
+<h2>5.1.5 Discord Commands</h2>
+
+<p>/tip @user <amount> <token></p>
+<p>/airdrop <amount> <token> <list or role></p>
+<p>/swap <amount> <from-token> <to-token></p>
+<p>/setwallet <address></p>
+<p>/mywallet</p>
+
+
+<p>---</p>
+
+<h2>5.1.6 Integration With Trust Engines</h2>
+<p>(Two-way optional)</p>
+
+<ul>
+<li>Reports high-risk user behavior</li>
+<li>Receives warnings about users with low trust score</li>
+<li>Can warn users if a casino token is involved in a swap with suspicious metrics</li>
+</ul>
+
+<p>---</p>
+
+<h1>5.2 SusLink — Link Scanning & Scam Detection</h1>
+
+<h2>5.2.1 Purpose</h2>
+<p>Degen servers are full of:</p>
+
+<ul>
+<li>fake promos</li>
+<li>phishing links</li>
+<li>malware redirects</li>
+<li>impersonation domains</li>
+<li>throwaway scam URLs</li>
+</ul>
+
+<p>SusLink scans and scores links automatically.</p>
+
+<p>---</p>
+
+<h2>5.2.2 Inputs</h2>
+
+<p>Users submit:</p>
+<ul>
+<li>raw URL</li>
+<li>optional context (“free spins”, “casino login”, etc.)</li>
+</ul>
+
+<p>Bots may auto-scan messages containing URLs.</p>
+
+<p>---</p>
+
+<h2>5.2.3 Data Pipeline</h2>
+
+<p>SusLink performs:</p>
+
+<h3>1. <strong>Domain Reputation Check</strong></h3>
+<ul>
+<li>Newly registered domain flag</li>
+<li>Blacklist checks</li>
+<li>TLD risk analysis</li>
+<li>Subdomain spoof detection</li>
+</ul>
+
+<h3>2. <strong>Redirect Chain Walk</strong></h3>
+<p>Follows link until final destination, checks for:</p>
+<ul>
+<li>mismatched content type</li>
+<li>malicious JS</li>
+<li>tracker payloads</li>
+<li>invisible redirects</li>
+</ul>
+
+<h3>3. <strong>Heuristic Pattern Scoring</strong></h3>
+<p>Flags:</p>
+<ul>
+<li>repeated scam keywords</li>
+<li>casino impersonations</li>
+<li>misleading paths (e.g. “/bonus-free-spins/claim-now”)</li>
+<li>crypto drainers</li>
+<li>wallet connect spoofers</li>
+</ul>
+
+<h3>4. <strong>AI Context Evaluation</strong></h3>
+<p>Assesses:</p>
+<ul>
+<li>relevance</li>
+<li>safety</li>
+<li>predicted user intent</li>
+<li>likelihood of abuse</li>
+</ul>
+
+<p>---</p>
+
+<h2>5.2.4 Risk Levels</h2>
+<p>Risk is returned as:</p>
+
+<ul>
+<li><strong>Safe</strong></li>
+<li><strong>Suspicious</strong></li>
+<li><strong>High Risk</strong></li>
+<li><strong>Critical</strong></li>
+</ul>
+
+<p>Used by:</p>
+<ul>
+<li>FreeSpinScan</li>
+<li>Moderation tools</li>
+<li>Casino Trust Engine (if casino URL involved)</li>
+</ul>
+
+<p>---</p>
+
+<h2>5.2.5 Discord Commands</h2>
+
+
+<p>---</p>
+
+<h2>5.1.6 Integration With Trust Engines</h2>
+<p>(Two-way optional)</p>
+
+<ul>
+<li>Reports high-risk user behavior</li>
+<li>Receives warnings about users with low trust score</li>
+<li>Can warn users if a casino token is involved in a swap with suspicious metrics</li>
+</ul>
+
+<p>---</p>
+
+<h1>5.2 SusLink — Link Scanning & Scam Detection</h1>
+
+<h2>5.2.1 Purpose</h2>
+<p>Degen servers are full of:</p>
+
+<ul>
+<li>fake promos</li>
+<li>phishing links</li>
+<li>malware redirects</li>
+<li>impersonation domains</li>
+<li>throwaway scam URLs</li>
+</ul>
+
+<p>SusLink scans and scores links automatically.</p>
+
+<p>---</p>
+
+<h2>5.2.2 Inputs</h2>
+
+<p>Users submit:</p>
+<ul>
+<li>raw URL</li>
+<li>optional context (“free spins”, “casino login”, etc.)</li>
+</ul>
+
+<p>Bots may auto-scan messages containing URLs.</p>
+
+<p>---</p>
+
+<h2>5.2.3 Data Pipeline</h2>
+
+<p>SusLink performs:</p>
+
+<h3>1. <strong>Domain Reputation Check</strong></h3>
+<ul>
+<li>Newly registered domain flag</li>
+<li>Blacklist checks</li>
+<li>TLD risk analysis</li>
+<li>Subdomain spoof detection</li>
+</ul>
+
+<h3>2. <strong>Redirect Chain Walk</strong></h3>
+<p>Follows link until final destination, checks for:</p>
+<ul>
+<li>mismatched content type</li>
+<li>malicious JS</li>
+<li>tracker payloads</li>
+<li>invisible redirects</li>
+</ul>
+
+<h3>3. <strong>Heuristic Pattern Scoring</strong></h3>
+<p>Flags:</p>
+<ul>
+<li>repeated scam keywords</li>
+<li>casino impersonations</li>
+<li>misleading paths (e.g. “/bonus-free-spins/claim-now”)</li>
+<li>crypto drainers</li>
+<li>wallet connect spoofers</li>
+</ul>
+
+<h3>4. <strong>AI Context Evaluation</strong></h3>
+<p>Assesses:</p>
+<ul>
+<li>relevance</li>
+<li>safety</li>
+<li>predicted user intent</li>
+<li>likelihood of abuse</li>
+</ul>
+
+<p>---</p>
+
+<h2>5.2.4 Risk Levels</h2>
+<p>Risk is returned as:</p>
+
+<ul>
+<li><strong>Safe</strong></li>
+<li><strong>Suspicious</strong></li>
+<li><strong>High Risk</strong></li>
+<li><strong>Critical</strong></li>
+</ul>
+
+<p>Used by:</p>
+<ul>
+<li>FreeSpinScan</li>
+<li>Moderation tools</li>
+<li>Casino Trust Engine (if casino URL involved)</li>
+</ul>
+
+<p>---</p>
+
+<h2>5.2.5 Discord Commands</h2>
+
+
+<p>---</p>
+
+<h2>5.1.6 Integration With Trust Engines</h2>
+<p>(Two-way optional)</p>
+
+<ul>
+<li>Reports high-risk user behavior</li>
+<li>Receives warnings about users with low trust score</li>
+<li>Can warn users if a casino token is involved in a swap with suspicious metrics</li>
+</ul>
+
+<p>---</p>
+
+<h1>5.2 SusLink — Link Scanning & Scam Detection</h1>
+
+<h2>5.2.1 Purpose</h2>
+<p>Degen servers are full of:</p>
+
+<ul>
+<li>fake promos</li>
+<li>phishing links</li>
+<li>malware redirects</li>
+<li>impersonation domains</li>
+<li>throwaway scam URLs</li>
+</ul>
+
+<p>SusLink scans and scores links automatically.</p>
+
+<p>---</p>
+
+<h2>5.2.2 Inputs</h2>
+
+<p>Users submit:</p>
+<ul>
+<li>raw URL</li>
+<li>optional context (“free spins”, “casino login”, etc.)</li>
+</ul>
+
+<p>Bots may auto-scan messages containing URLs.</p>
+
+<p>---</p>
+
+<h2>5.2.3 Data Pipeline</h2>
+
+<p>SusLink performs:</p>
+
+<h3>1. <strong>Domain Reputation Check</strong></h3>
+<ul>
+<li>Newly registered domain flag</li>
+<li>Blacklist checks</li>
+<li>TLD risk analysis</li>
+<li>Subdomain spoof detection</li>
+</ul>
+
+<h3>2. <strong>Redirect Chain Walk</strong></h3>
+<p>Follows link until final destination, checks for:</p>
+<ul>
+<li>mismatched content type</li>
+<li>malicious JS</li>
+<li>tracker payloads</li>
+<li>invisible redirects</li>
+</ul>
+
+<h3>3. <strong>Heuristic Pattern Scoring</strong></h3>
+<p>Flags:</p>
+<ul>
+<li>repeated scam keywords</li>
+<li>casino impersonations</li>
+<li>misleading paths (e.g. “/bonus-free-spins/claim-now”)</li>
+<li>crypto drainers</li>
+<li>wallet connect spoofers</li>
+</ul>
+
+<h3>4. <strong>AI Context Evaluation</strong></h3>
+<p>Assesses:</p>
+<ul>
+<li>relevance</li>
+<li>safety</li>
+<li>predicted user intent</li>
+<li>likelihood of abuse</li>
+</ul>
+
+<p>---</p>
+
+<h2>5.2.4 Risk Levels</h2>
+<p>Risk is returned as:</p>
+
+<ul>
+<li><strong>Safe</strong></li>
+<li><strong>Suspicious</strong></li>
+<li><strong>High Risk</strong></li>
+<li><strong>Critical</strong></li>
+</ul>
+
+<p>Used by:</p>
+<ul>
+<li>FreeSpinScan</li>
+<li>Moderation tools</li>
+<li>Casino Trust Engine (if casino URL involved)</li>
+</ul>
+
+<p>---</p>
+
+<h2>5.2.5 Discord Commands</h2>
+
+
+<p>---</p>
+
+<h2>5.1.6 Integration With Trust Engines</h2>
+<p>(Two-way optional)</p>
+
+<ul>
+<li>Reports high-risk user behavior</li>
+<li>Receives warnings about users with low trust score</li>
+<li>Can warn users if a casino token is involved in a swap with suspicious metrics</li>
+</ul>
+
+<p>---</p>
+
+<h1>5.2 SusLink — Link Scanning & Scam Detection</h1>
+
+<h2>5.2.1 Purpose</h2>
+<p>Degen servers are full of:</p>
+
+<ul>
+<li>fake promos</li>
+<li>phishing links</li>
+<li>malware redirects</li>
+<li>impersonation domains</li>
+<li>throwaway scam URLs</li>
+</ul>
+
+<p>SusLink scans and scores links automatically.</p>
+
+<p>---</p>
+
+<h2>5.2.2 Inputs</h2>
+
+<p>Users submit:</p>
+<ul>
+<li>raw URL</li>
+<li>optional context (“free spins”, “casino login”, etc.)</li>
+</ul>
+
+<p>Bots may auto-scan messages containing URLs.</p>
+
+<p>---</p>
+
+<h2>5.2.3 Data Pipeline</h2>
+
+<p>SusLink performs:</p>
+
+<h3>1. <strong>Domain Reputation Check</strong></h3>
+<ul>
+<li>Newly registered domain flag</li>
+<li>Blacklist checks</li>
+<li>TLD risk analysis</li>
+<li>Subdomain spoof detection</li>
+</ul>
+
+<h3>2. <strong>Redirect Chain Walk</strong></h3>
+<p>Follows link until final destination, checks for:</p>
+<ul>
+<li>mismatched content type</li>
+<li>malicious JS</li>
+<li>tracker payloads</li>
+<li>invisible redirects</li>
+</ul>
+
+<h3>3. <strong>Heuristic Pattern Scoring</strong></h3>
+<p>Flags:</p>
+<ul>
+<li>repeated scam keywords</li>
+<li>casino impersonations</li>
+<li>misleading paths (e.g. “/bonus-free-spins/claim-now”)</li>
+<li>crypto drainers</li>
+<li>wallet connect spoofers</li>
+</ul>
+
+<h3>4. <strong>AI Context Evaluation</strong></h3>
+<p>Assesses:</p>
+<ul>
+<li>relevance</li>
+<li>safety</li>
+<li>predicted user intent</li>
+<li>likelihood of abuse</li>
+</ul>
+
+<p>---</p>
+
+<h2>5.2.4 Risk Levels</h2>
+<p>Risk is returned as:</p>
+
+<ul>
+<li><strong>Safe</strong></li>
+<li><strong>Suspicious</strong></li>
+<li><strong>High Risk</strong></li>
+<li><strong>Critical</strong></li>
+</ul>
+
+<p>Used by:</p>
+<ul>
+<li>FreeSpinScan</li>
+<li>Moderation tools</li>
+<li>Casino Trust Engine (if casino URL involved)</li>
+</ul>
+
+<p>---</p>
+
+<h2>5.2.5 Discord Commands</h2>
+
+<p>/scan <url></p>
+<p>/risk <url></p>
+<p>/linkinfo <url></p>
+
+
+
+<p>Bot can optionally auto-scan all links.</p>
+
+<p>---</p>
+
+<h1>5.3 CollectClock — Bonus Tracking & Nerf Analysis</h1>
+
+<h2>5.3.1 Purpose</h2>
+<p>Casinos change bonuses without transparency:</p>
+
+<ul>
+<li>daily bonus amounts</li>
+<li>cooldown windows</li>
+<li>region rules</li>
+<li>spin value</li>
+<li>minimum wager</li>
+<li>total payout</li>
+</ul>
+
+<p>CollectClock provides clear, predictable bonus visibility.</p>
+
+<p>---</p>
+
+<h2>5.3.2 Core Features</h2>
+
+<h3><strong>1. Countdown Timers</strong></h3>
+<p>User gets timers for:</p>
+<ul>
+<li>next bonus</li>
+<li>streak bonuses</li>
+<li>deposit bonuses</li>
+<li>regional promos</li>
+</ul>
+
+<h3><strong>2. Nerf Detection</strong></h3>
+<p>Detects when casinos silently reduce:</p>
+
+<ul>
+<li>daily SC amounts</li>
+<li>free spin values</li>
+<li>eligibility scores</li>
+<li>min deposits</li>
+</ul>
+
+<p>Example:</p>
+<ul>
+<li>“1.00 SC daily bonus → 0.10 SC today”</li>
+<p>→ flagged and logged</p>
+</ul>
+
+<h3><strong>3. Bonus Pattern Prediction</strong></h3>
+<p>Uses:</p>
+<ul>
+<li>user reports</li>
+<li>collected timestamps</li>
+<li>casino behavior trends</li>
+<li>machine learning pattern detection</li>
+</ul>
+
+<p>Predicts:</p>
+<ul>
+<li>frequency</li>
+<li>typical time window</li>
+<li>cycles (e.g., peak days)</li>
+<li>probability of reversion after a nerf</li>
+</ul>
+
+<h3><strong>4. User-Customizable Bonus Categories</strong></h3>
+<p>Supports:</p>
+<ul>
+<li>casinos without APIs</li>
+<li>user-defined bonus timers</li>
+<li>manual verification (if autoscan unsupported)</li>
+</ul>
+
+<p>---</p>
+
+<h2>5.3.3 Inputs</h2>
+
+<p>Users may submit:</p>
+<ul>
+<li>bonus timestamp</li>
+<li>bonus amount</li>
+<li>notes (“nerfed today from 1.0 → 0.2”)</li>
+</ul>
+
+<p>Bot may scrape:</p>
+<ul>
+<li>casino daily bonus pages</li>
+<li>timestamped user reports</li>
+</ul>
+
+<p>---</p>
+
+<h2>5.3.4 Discord Commands</h2>
+
+
+<p>Bot can optionally auto-scan all links.</p>
+
+<p>---</p>
+
+<h1>5.3 CollectClock — Bonus Tracking & Nerf Analysis</h1>
+
+<h2>5.3.1 Purpose</h2>
+<p>Casinos change bonuses without transparency:</p>
+
+<ul>
+<li>daily bonus amounts</li>
+<li>cooldown windows</li>
+<li>region rules</li>
+<li>spin value</li>
+<li>minimum wager</li>
+<li>total payout</li>
+</ul>
+
+<p>CollectClock provides clear, predictable bonus visibility.</p>
+
+<p>---</p>
+
+<h2>5.3.2 Core Features</h2>
+
+<h3><strong>1. Countdown Timers</strong></h3>
+<p>User gets timers for:</p>
+<ul>
+<li>next bonus</li>
+<li>streak bonuses</li>
+<li>deposit bonuses</li>
+<li>regional promos</li>
+</ul>
+
+<h3><strong>2. Nerf Detection</strong></h3>
+<p>Detects when casinos silently reduce:</p>
+
+<ul>
+<li>daily SC amounts</li>
+<li>free spin values</li>
+<li>eligibility scores</li>
+<li>min deposits</li>
+</ul>
+
+<p>Example:</p>
+<ul>
+<li>“1.00 SC daily bonus → 0.10 SC today”</li>
+<p>→ flagged and logged</p>
+</ul>
+
+<h3><strong>3. Bonus Pattern Prediction</strong></h3>
+<p>Uses:</p>
+<ul>
+<li>user reports</li>
+<li>collected timestamps</li>
+<li>casino behavior trends</li>
+<li>machine learning pattern detection</li>
+</ul>
+
+<p>Predicts:</p>
+<ul>
+<li>frequency</li>
+<li>typical time window</li>
+<li>cycles (e.g., peak days)</li>
+<li>probability of reversion after a nerf</li>
+</ul>
+
+<h3><strong>4. User-Customizable Bonus Categories</strong></h3>
+<p>Supports:</p>
+<ul>
+<li>casinos without APIs</li>
+<li>user-defined bonus timers</li>
+<li>manual verification (if autoscan unsupported)</li>
+</ul>
+
+<p>---</p>
+
+<h2>5.3.3 Inputs</h2>
+
+<p>Users may submit:</p>
+<ul>
+<li>bonus timestamp</li>
+<li>bonus amount</li>
+<li>notes (“nerfed today from 1.0 → 0.2”)</li>
+</ul>
+
+<p>Bot may scrape:</p>
+<ul>
+<li>casino daily bonus pages</li>
+<li>timestamped user reports</li>
+</ul>
+
+<p>---</p>
+
+<h2>5.3.4 Discord Commands</h2>
+
+
+<p>Bot can optionally auto-scan all links.</p>
+
+<p>---</p>
+
+<h1>5.3 CollectClock — Bonus Tracking & Nerf Analysis</h1>
+
+<h2>5.3.1 Purpose</h2>
+<p>Casinos change bonuses without transparency:</p>
+
+<ul>
+<li>daily bonus amounts</li>
+<li>cooldown windows</li>
+<li>region rules</li>
+<li>spin value</li>
+<li>minimum wager</li>
+<li>total payout</li>
+</ul>
+
+<p>CollectClock provides clear, predictable bonus visibility.</p>
+
+<p>---</p>
+
+<h2>5.3.2 Core Features</h2>
+
+<h3><strong>1. Countdown Timers</strong></h3>
+<p>User gets timers for:</p>
+<ul>
+<li>next bonus</li>
+<li>streak bonuses</li>
+<li>deposit bonuses</li>
+<li>regional promos</li>
+</ul>
+
+<h3><strong>2. Nerf Detection</strong></h3>
+<p>Detects when casinos silently reduce:</p>
+
+<ul>
+<li>daily SC amounts</li>
+<li>free spin values</li>
+<li>eligibility scores</li>
+<li>min deposits</li>
+</ul>
+
+<p>Example:</p>
+<ul>
+<li>“1.00 SC daily bonus → 0.10 SC today”</li>
+<p>→ flagged and logged</p>
+</ul>
+
+<h3><strong>3. Bonus Pattern Prediction</strong></h3>
+<p>Uses:</p>
+<ul>
+<li>user reports</li>
+<li>collected timestamps</li>
+<li>casino behavior trends</li>
+<li>machine learning pattern detection</li>
+</ul>
+
+<p>Predicts:</p>
+<ul>
+<li>frequency</li>
+<li>typical time window</li>
+<li>cycles (e.g., peak days)</li>
+<li>probability of reversion after a nerf</li>
+</ul>
+
+<h3><strong>4. User-Customizable Bonus Categories</strong></h3>
+<p>Supports:</p>
+<ul>
+<li>casinos without APIs</li>
+<li>user-defined bonus timers</li>
+<li>manual verification (if autoscan unsupported)</li>
+</ul>
+
+<p>---</p>
+
+<h2>5.3.3 Inputs</h2>
+
+<p>Users may submit:</p>
+<ul>
+<li>bonus timestamp</li>
+<li>bonus amount</li>
+<li>notes (“nerfed today from 1.0 → 0.2”)</li>
+</ul>
+
+<p>Bot may scrape:</p>
+<ul>
+<li>casino daily bonus pages</li>
+<li>timestamped user reports</li>
+</ul>
+
+<p>---</p>
+
+<h2>5.3.4 Discord Commands</h2>
+
+<p>bonus</p>
+<p>/bonus set <casino> <amount></p>
+<p>/bonus history <casino></p>
+<p>/bonus predict <casino></p>
+<p>/bonus nerfs</p>
+
+
+<p>---</p>
+
+<h2>5.3.5 Integration With Trust Engines</h2>
+
+<p>CollectClock feeds:</p>
+
+<ul>
+<li><strong>bonus reliability</strong></li>
+<li><strong>nerf frequency</strong></li>
+<li><strong>payout irregularities</strong></li>
+<li><strong>user frustration patterns</strong></li>
+<li><strong>missed claims due to server failures</strong></li>
+</ul>
+
+<p>This heavily influences <strong>Casino Trust Score</strong>.</p>
+
+<p>---</p>
+
+<h1>End of <code>5-tool-specs-1.md</code></h1>
+</main><footer style="padding:40px 24px;text-align:center;font-size:.75rem;color:#666;border-top:1px solid #222">TiltCheck Docs • Non-custodial • Signals only.</footer></body></html>

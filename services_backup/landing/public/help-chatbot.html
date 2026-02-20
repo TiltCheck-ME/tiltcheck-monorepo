@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="TiltCheck AI Help Chatbot - Get instant answers about tilt detection, casino trust scores, Discord bot commands, and crypto tipping.">
+  <meta name="theme-color" content="#00d4aa">
+  <title>AI Help Chatbot - TiltCheck</title>
+  <link rel="stylesheet" href="/styles/theme.css">
+  <link rel="stylesheet" href="/styles/main.css">
+  <link rel="manifest" href="/manifest.json">
+  <link rel="icon" type="image/svg+xml" href="/assets/logo/favicon-white.svg">
+  <style>
+    main {
+      padding: 4rem 2rem;
+      max-width: 900px;
+      margin: 0 auto;
+      min-height: 100vh;
+    }
+
+    .breadcrumb {
+      color: var(--color-text-secondary);
+      margin-bottom: 2rem;
+      font-size: 0.875rem;
+    }
+
+    .breadcrumb a {
+      color: var(--color-primary);
+      text-decoration: none;
+    }
+
+    h1 {
+      font-size: 2rem;
+      margin-bottom: 1rem;
+      color: white;
+    }
+
+    .subtitle {
+      color: var(--color-text-secondary);
+      margin-bottom: 2rem;
+      font-size: 1rem;
+    }
+
+    .chatbot-container {
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid rgba(0, 212, 170, 0.2);
+      border-radius: 1rem;
+      padding: 2rem;
+      display: flex;
+      flex-direction: column;
+      height: 600px;
+      max-height: 80vh;
+    }
+
+    .messages {
+      flex: 1;
+      overflow-y: auto;
+      margin-bottom: 1.5rem;
+      padding-right: 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .message {
+      display: flex;
+      gap: 0.75rem;
+      animation: fadeIn 0.3s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .message.user {
+      justify-content: flex-end;
+    }
+
+    .message-content {
+      max-width: 70%;
+      padding: 0.75rem 1rem;
+      border-radius: 0.75rem;
+      line-height: 1.5;
+      word-wrap: break-word;
+    }
+
+    .message.assistant .message-content {
+      background: rgba(0, 212, 170, 0.1);
+      border: 1px solid rgba(0, 212, 170, 0.3);
+      color: var(--color-text-secondary);
+    }
+
+    .message.user .message-content {
+      background: var(--color-primary);
+      color: #1a1a2e;
+      font-weight: 500;
+    }
+
+    .message-icon {
+      font-size: 1.25rem;
+      margin-top: 0.25rem;
+    }
+
+    .input-area {
+      display: flex;
+      gap: 0.75rem;
+    }
+
+    .chat-input {
+      flex: 1;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(0, 212, 170, 0.2);
+      color: white;
+      padding: 0.75rem 1rem;
+      border-radius: 0.5rem;
+      font-size: 0.95rem;
+      transition: all 0.3s ease;
+    }
+
+    .chat-input:focus {
+      outline: none;
+      border-color: var(--color-primary);
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    .send-btn {
+      background: var(--color-primary);
+      color: #1a1a2e;
+      border: none;
+      border-radius: 0.5rem;
+      padding: 0.75rem 1.5rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .send-btn:hover {
+      background: #00a8ff;
+      transform: translateY(-2px);
+    }
+
+    .send-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .typing-indicator {
+      display: flex;
+      gap: 0.3rem;
+    }
+
+    .typing-dot {
+      width: 0.4rem;
+      height: 0.4rem;
+      background: rgba(0, 212, 170, 0.6);
+      border-radius: 50%;
+      animation: typing 1.4s infinite;
+    }
+
+    .typing-dot:nth-child(2) {
+      animation-delay: 0.2s;
+    }
+
+    .typing-dot:nth-child(3) {
+      animation-delay: 0.4s;
+    }
+
+    @keyframes typing {
+      0%, 60%, 100% { opacity: 0.3; }
+      30% { opacity: 1; }
+    }
+
+    .quick-prompts {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 0.75rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .quick-prompt-btn {
+      background: rgba(0, 212, 170, 0.1);
+      border: 1px solid rgba(0, 212, 170, 0.3);
+      color: var(--color-primary);
+      padding: 0.5rem 1rem;
+      border-radius: 0.5rem;
+      cursor: pointer;
+      font-size: 0.85rem;
+      transition: all 0.3s ease;
+    }
+
+    .quick-prompt-btn:hover {
+      background: rgba(0, 212, 170, 0.2);
+      border-color: var(--color-primary);
+    }
+
+    .info-box {
+      background: rgba(255, 193, 7, 0.05);
+      border-left: 3px solid rgba(255, 193, 7, 0.5);
+      padding: 1rem;
+      border-radius: 0.5rem;
+      margin-bottom: 1.5rem;
+      font-size: 0.9rem;
+      color: var(--color-text-secondary);
+    }
+
+    @media (max-width: 768px) {
+      main {
+        padding: 2rem 1rem;
+      }
+
+      h1 {
+        font-size: 1.5rem;
+      }
+
+      .chatbot-container {
+        height: 500px;
+        padding: 1.5rem;
+      }
+
+      .message-content {
+        max-width: 85%;
+      }
+
+      .quick-prompts {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main id="main-content">
+    <nav class="breadcrumb">
+      <a href="/">Home</a> / <span>AI Help Chatbot</span>
+    </nav>
+
+    <h1>🤖 TiltCheck AI Help Assistant</h1>
+    <p class="subtitle">Get instant answers about tilt detection, casino trust scores, Discord bot commands, crypto tipping, and more.</p>
+
+    <div class="info-box">
+      💡 <strong>Tip:</strong> Ask anything about TiltCheck! Try "How do casino trust scores work?" or "What Discord commands are available?"
+    </div>
+
+    <div class="quick-prompts">
+      <button class="quick-prompt-btn" onclick="sendMessage('How do casino trust scores work?')">Trust Scores</button>
+      <button class="quick-prompt-btn" onclick="sendMessage('What are the Discord bot commands?')">Bot Commands</button>
+      <button class="quick-prompt-btn" onclick="sendMessage('How does tilt detection work?')">Tilt Detection</button>
+      <button class="quick-prompt-btn" onclick="sendMessage('Tell me about JustTheTip tipping')">JustTheTip</button>
+      <button class="quick-prompt-btn" onclick="sendMessage('How do I get started?')">Getting Started</button>
+      <button class="quick-prompt-btn" onclick="sendMessage('What is SusLink?')">SusLink</button>
+    </div>
+
+    <div class="chatbot-container">
+      <div class="messages" id="messages">
+        <div class="message assistant">
+          <div class="message-icon">🤖</div>
+          <div class="message-content">
+            <strong>Welcome to TiltCheck AI Help!</strong><br>
+            I'm here to help you understand everything about the TiltCheck ecosystem. Ask me about trust scores, bot commands, tilt detection, or any other feature. What would you like to know?
+          </div>
+        </div>
+      </div>
+
+      <div class="input-area">
+        <input 
+          type="text" 
+          id="message-input" 
+          class="chat-input" 
+          placeholder="Ask anything about TiltCheck..."
+          onkeypress="if(event.key==='Enter') sendMessage()"
+        >
+        <button class="send-btn" id="send-btn" onclick="sendMessage()">Send</button>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    const messagesContainer = document.getElementById('messages');
+    const messageInput = document.getElementById('message-input');
+    const sendBtn = document.getElementById('send-btn');
+
+    // AI Knowledge Base
+    const knowledge = {
+      'casino trust': {
+        question: /casino trust|trust score/i,
+        answer: `Casino Trust Scores are calculated based on 5 key metrics:\n\n📊 **Fairness (20%)** - RTP verification, license check, payout rates\n💬 **Support (20%)** - Response time, ratings, complaint resolution\n💰 **Payouts (20%)** - Speed, completion rate, withdrawal disputes\n⚖️ **Compliance (20%)** - Jurisdiction, licensing, reputation\n🎁 **Bonus Quality (20%)** - Terms fairness, wagering limits\n\nScores range from 0-100, updated every 6 hours. You can view all monitored casinos at https://tiltcheck.me/casinos`
+      },
+      'discord commands': {
+        question: /discord|command|bot/i,
+        answer: `Popular TiltCheck Discord Bot Commands:\n\n/scan <url> - Scan a URL with SusLink\n/trust casino <name> - Check casino trust score\n/trust user <@user> - Check degen trust score\n/triviadrop start - Play trivia with rewards\n/qualify - Get survey recommendations\n/justthetip - Send non-custodial crypto tips\n/submit-promo - Submit promos to FreeSpinScan\n\nJoin our Discord: https://discord.gg/s6NNfPHxMS`
+      },
+      'tilt detection': {
+        question: /tilt|detection|emotion/i,
+        answer: `Tilt Detection uses AI to analyze your gameplay behavior:\n\n🎮 **Real-time Monitoring** - Tracks your chat, bet patterns, and session duration\n😤 **Emotion Analysis** - Detects frustration, tilt, or risky behavior\n⏸️ **Smart Interventions** - Cooldowns, session limits, vault locks\n📊 **Analytics** - Personal tilt score, risk patterns, improvement tracking\n\nUse the TiltCheck Chrome Extension on supported casinos to activate real-time protection.`
+      },
+      'justthetip': {
+        question: /justthetip|tip|tipping|crypto tip/i,
+        answer: `JustTheTip is TiltCheck's non-custodial crypto tipping system:\n\n💸 **Send Tips** - Send SOL, USDC, or other tokens to friends\n🔐 **Non-Custodial** - You control your wallet, we never hold funds\n⚡ **Instant** - Tips settle on Solana blockchain in seconds\n🎁 **Rewards** - Earn trust score boosts by sending tips\n💰 **Track Tips** - View all tips sent/received in your dashboard\n\nUse /justthetip in Discord to get started!`
+      },
+      'suslink': {
+        question: /suslink|link|scan|scam|malware/i,
+        answer: `SusLink is your personal link scanner for casino safety:\n\n🔍 **URL Analysis** - Detects phishing, malware, scams\n⚠️ **Risk Scoring** - 0-100 risk level for any casino link\n🌐 **Domain Verification** - Checks domain age, SSL, reputation\n📱 **Real-time Alerts** - Warns you before you click suspicious links\n✅ **Community Reports** - Crowdsourced risk data from users\n\nUse /scan <url> in Discord or visit https://tiltcheck.me/extension`
+      },
+      'getting started': {
+        question: /start|begin|how do i|tutorial/i,
+        answer: `Getting Started with TiltCheck:\n\n1. **Join Discord** - https://discord.gg/s6NNfPHxMS\n2. **Install Extension** - Get TiltCheck Chrome Extension\n3. **Set Up Dashboard** - Visit https://tiltcheck.me/dashboard\n4. **Explore Tools** - Try SusLink, Trust Scores, Trivia\n5. **Enable Tilt Detection** - Activate on supported casinos\n6. **Connect Wallet** - For JustTheTip tipping features\n\nEverything is free! Check the FAQ for more details: https://tiltcheck.me/faq`
+      },
+      'extension': {
+        question: /extension|chrome|install|sidebar/i,
+        answer: `TiltCheck Chrome Extension Features:\n\n📌 **Sidebar UI** - Injected on casino sites for easy access\n👤 **Quick Auth** - Login with Discord or guest account\n💰 **Session Stats** - Real-time P/L, balance, session time\n😤 **Tilt Score** - Live tilt detection and warnings\n🔐 **Vault Controls** - Lock funds when tilt detected\n🎮 **Game Info** - RTP, paylines, bonus info per game\n\nDownload: https://tiltcheck.me/extension`
+      },
+      'trust system': {
+        question: /trust|degen trust|user trust/i,
+        answer: `TiltCheck Trust System:\n\n🏆 **Casino Trust** - Rates how trustworthy casinos are (0-100)\n👤 **Degen Trust** - Community scores for users based on behavior\n📊 **Trust Deltas** - Shows score changes over time\n🔄 **Real-time Updates** - Changes instantly as events occur\n📈 **Transparent** - All scoring logic is explainable\n\nView trust scores at https://tiltcheck.me/trust or /trust commands in Discord`
+      },
+      'premium': {
+        question: /premium|paid|subscription|upgrade/i,
+        answer: `TiltCheck is currently FREE! All features are available at no cost:\n\n✅ Casino trust scores\n✅ SusLink URL scanning\n✅ Discord bot commands\n✅ JustTheTip tipping\n✅ Tilt detection\n✅ Trust analytics\n✅ Chrome extension\n\nWe may add optional premium features in the future, but the core platform is and will remain free forever.`
+      },
+      'default': {
+        question: /.*/,
+        answer: `I'm here to help! I can answer questions about:\n\n🏆 Casino Trust Scores\n💬 Discord Bot Commands\n🎮 Tilt Detection & Prevention\n💸 JustTheTip Crypto Tipping\n🔍 SusLink Link Scanning\n📱 Chrome Extension\n✅ Getting Started\n\nWhat would you like to know more about?`
+      }
+    };
+
+    function findAnswer(userMessage) {
+      for (const key in knowledge) {
+        if (knowledge[key].question.test(userMessage)) {
+          return knowledge[key].answer;
+        }
+      }
+      return knowledge['default'].answer;
+    }
+
+    function addMessage(text, isUser) {
+      const messageEl = document.createElement('div');
+      messageEl.className = `message ${isUser ? 'user' : 'assistant'}`;
+      
+      const icon = isUser ? '👤' : '🤖';
+      const content = document.createElement('div');
+      content.className = 'message-content';
+      
+      if (isUser) {
+        content.textContent = text;
+      } else {
+        content.innerHTML = text.replace(/\n\n/g, '<br><br>').replace(/\n/g, '<br>');
+      }
+      
+      messageEl.innerHTML = `<div class="message-icon">${icon}</div>`;
+      messageEl.appendChild(content);
+      messagesContainer.appendChild(messageEl);
+      messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    }
+
+    function showTyping() {
+      const messageEl = document.createElement('div');
+      messageEl.className = 'message assistant';
+      messageEl.id = 'typing-indicator';
+      messageEl.innerHTML = `
+        <div class="message-icon">🤖</div>
+        <div class="message-content">
+          <div class="typing-indicator">
+            <div class="typing-dot"></div>
+            <div class="typing-dot"></div>
+            <div class="typing-dot"></div>
+          </div>
+        </div>
+      `;
+      messagesContainer.appendChild(messageEl);
+      messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    }
+
+    function removeTyping() {
+      const typing = document.getElementById('typing-indicator');
+      if (typing) typing.remove();
+    }
+
+    function sendMessage(message) {
+      const text = message || messageInput.value.trim();
+      if (!text) return;
+
+      addMessage(text, true);
+      messageInput.value = '';
+      sendBtn.disabled = true;
+
+      showTyping();
+
+      // Simulate AI thinking (150-500ms)
+      setTimeout(() => {
+        removeTyping();
+        const answer = findAnswer(text);
+        addMessage(answer, false);
+        sendBtn.disabled = false;
+        messageInput.focus();
+      }, Math.random() * 350 + 150);
+    }
+
+    messageInput.focus();
+  </script>
+</body>
+</html>

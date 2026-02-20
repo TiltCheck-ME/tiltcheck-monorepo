@@ -1,0 +1,9 @@
+{
+  "name": "@tiltcheck/landing-page",
+  "version": "0.1.0",
+  "private": true,
+  "description": "TiltCheck Marketing Landing Page (Static)",
+  "scripts": {
+    "build": "echo 'Static site, no build needed'"
+  }
+}
