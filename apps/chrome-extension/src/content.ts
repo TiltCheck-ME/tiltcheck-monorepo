@@ -980,8 +980,12 @@ function showNotification(message: string, type: 'success' | 'warning' | 'error'
 function detectCasinoId(): string {
   const hostname = window.location.hostname.toLowerCase();
   
-  // Use isDomain for secure domain matching
-  if (isDomain(hostname, 'stake.com') || isDomain(hostname, 'stake.us')) return 'stake';
+  // Use isDomain for secure domain matching (includes Stake mirror domains)
+  if (isDomain(hostname, 'stake.com') || isDomain(hostname, 'stake.us') ||
+      isDomain(hostname, 'stake.bet') || isDomain(hostname, 'stake.games') ||
+      isDomain(hostname, 'staketr.com') || isDomain(hostname, 'staketr2.com') ||
+      isDomain(hostname, 'staketr3.com') || isDomain(hostname, 'staketr4.com') ||
+      isDomain(hostname, 'stake.bz') || isDomain(hostname, 'stake.pet')) return 'stake';
   if (isDomain(hostname, 'roobet.com')) return 'roobet';
   if (isDomain(hostname, 'bc.game')) return 'bc-game';
   if (isDomain(hostname, 'duelbits.com')) return 'duelbits';
