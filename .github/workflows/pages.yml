@@ -22,10 +22,9 @@ jobs:
       - name: Verify required directories and files
         run: |
           if [ ! -d "wordpress-export" ]; then
-            echo "Error: wordpress-export directory not found"
-            exit 1
+            echo "Warning: wordpress-export directory not found, skipping static pages"
           fi
-          if [ ! -f "wordpress-export/CNAME" ]; then
+          if [ -d "wordpress-export" ] && [ ! -f "wordpress-export/CNAME" ]; then
             echo "Warning: CNAME file not found in wordpress-export"
           fi
           if [ ! -d "docs/tiltcheck" ]; then
@@ -55,7 +54,9 @@ jobs:
       - name: Prepare out directory
         run: |
           mkdir -p out
-          rsync -av --delete wordpress-export/ out/
+          if [ -d "wordpress-export" ]; then
+            rsync -av --delete wordpress-export/ out/
+          fi
           mkdir -p out/docs-md
           if [ -d "docs/tiltcheck" ]; then
             rsync -av docs/tiltcheck/ out/docs-md/
