@@ -10,7 +10,7 @@ const isCI = process.env.CI === 'true';
 export default defineConfig({
   resolve: {
     alias: {
-      '@tiltcheck/event-router': r('services/event-router/src/index.ts'),
+      '@tiltcheck/event-router': r('packages/event-router/src/index.ts'),
       '@tiltcheck/types': r('packages/types/src/index.ts'),
       '@tiltcheck/discord-utils': r('packages/discord-utils/src/index.ts'),
       '@tiltcheck/database': r('packages/database/src/index.ts'),
@@ -18,7 +18,7 @@ export default defineConfig({
       '@tiltcheck/identity-core': r('packages/identity-core/src/index.ts'),
       '@tiltcheck/config': r('packages/config/src/index.ts'),
       '@tiltcheck/natural-language-parser': r('packages/natural-language-parser/src/index.ts'),
-      '@tiltcheck/pricing-oracle': r('services/pricing-oracle/src/index.ts'),
+      '@tiltcheck/pricing-oracle': r('apps/pricing-oracle/src/index.ts'),
       '@tiltcheck/collectclock': r('modules/collectclock/src/index.ts'),
       '@tiltcheck/ai-client': r('packages/ai-client/src/index.ts'),
       '@tiltcheck/stake': r('modules/stake/src/index.ts'),
@@ -26,7 +26,7 @@ export default defineConfig({
       '@tiltcheck/freespinscan': r('modules/freespinscan/src/index.ts'),
       '@tiltcheck/tiltcheck-core': r('modules/tiltcheck-core/src/index.ts'),
       '@tiltcheck/triviadrops': r('modules/triviadrops/index.ts'),
-      '@tiltcheck/trust-engines': r('services/trust-engines/src/index.ts'),
+      '@tiltcheck/trust-engines': r('packages/trust-engines/src/index.ts'),
       '@tiltcheck/justthetip': r('modules/justthetip/src/index.ts'),
       '@tiltcheck/poker': r('modules/poker/index.ts'),
       '@tiltcheck/qualifyfirst': r('modules/qualifyfirst/src/index.ts'),
@@ -39,14 +39,12 @@ export default defineConfig({
       'tests/**/*.test.{ts,tsx}',
       'apps/**/*.test.{ts,tsx}',
       'modules/**/*.test.{ts,tsx}',
-      'services/**/*.test.{ts,tsx}',
       'packages/**/*.test.{ts,tsx}',
     ],
     exclude: [
       'node_modules',
       'apps/**/node_modules/**',
       'modules/**/node_modules/**',
-      'services/**/node_modules/**',
       'packages/**/node_modules/**',
       '**/dist/**',
       '**/.*/**',
@@ -62,7 +60,6 @@ export default defineConfig({
       include: [
         'apps/**/src/**/*.{ts,tsx}',
         'modules/**/src/**/*.{ts,tsx}',
-        'services/**/src/**/*.{ts,tsx}',
         'packages/**/src/**/*.{ts,tsx}',
       ],
       exclude: [

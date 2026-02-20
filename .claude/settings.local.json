@@ -11,7 +11,22 @@
       "Bash(pip show:*)",
       "WebFetch(domain:gitlab.com)",
       "Bash(pnpm build:*)",
-      "Bash(pnpm lint:*)"
+      "Bash(pnpm lint:*)",
+      "Bash(done)",
+      "Bash(ls:*)",
+      "Bash(npx esbuild --version)",
+      "Bash(node scripts/bundle-bot.mjs:*)",
+      "Bash(git status:*)",
+      "Bash(git reset:*)",
+      "Bash(pnpm install)",
+      "Bash(gh run list:*)",
+      "Bash(gh run view:*)",
+      "Bash(gh api:*)",
+      "Bash(gh pr list:*)",
+      "Bash(for branch in beta-hardening-trust-tilt blackboxai/fix-failing-tests ci/analyzers-workflow-rebased dependabot/npm_and_yarn/dev-dependencies-2fbd32e6bf dependabot/npm_and_yarn/next-16.0.10 feat/components-tests-a11y-ecosystem flyio-new-files jmenichole-patch-1 landing-shared-loader-fallbacks remove/domain-deploy-configs)",
+      "Bash(do echo \"=== $branch ===\")",
+      "Bash(for branch in beta-hardening-trust-tilt blackboxai/fix-failing-tests dependabot/npm_and_yarn/dev-dependencies-2fbd32e6bf dependabot/npm_and_yarn/next-16.0.10)",
+      "Bash(do echo \"Deleting $branch...\")"
     ]
   }
 }
