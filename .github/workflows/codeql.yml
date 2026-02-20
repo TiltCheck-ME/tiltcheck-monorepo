@@ -47,11 +47,10 @@ jobs:
       with:
         node-version: '20'
 
-    - name: Enable pnpm
-      run: corepack enable
-
-    - name: Activate pnpm 9
-      run: corepack prepare pnpm@9.0.0 --activate
+    - name: Install pnpm
+      uses: pnpm/action-setup@v4
+      with:
+        version: 10.0.0
 
     - name: Install dependencies
       run: pnpm install --frozen-lockfile --no-link-workspace-packages || pnpm install --no-frozen-lockfile --no-link-workspace-packages

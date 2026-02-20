@@ -1,68 +1,36 @@
-# Build stage
+# TiltCheck Trust Rollup - Standalone Container
+# Build from monorepo root: docker build -f apps/trust-rollup/Dockerfile .
+
 FROM node:20-alpine AS builder
 
-# Install pnpm (lockfileVersion 9 alignment)
 RUN npm install -g pnpm@10
-
-# Set CI environment variable to avoid pnpm TTY issues
 ENV CI=true
 
 WORKDIR /app
 
-# Copy package files
-COPY package.json pnpm-workspace.yaml pnpm-lock.yaml ./
-COPY packages/types/package.json ./packages/types/
-COPY packages/config/package.json ./packages/config/
-COPY services/event-router/package.json ./services/event-router/
-COPY services/trust-rollup/package.json ./services/trust-rollup/
+# Copy workspace config
+COPY package.json pnpm-workspace.yaml pnpm-lock.yaml .npmrc tsconfig.json ./
 
-    # Install dependencies
-    RUN pnpm install
+# Copy workspace sources
+COPY packages/ ./packages/
+COPY modules/ ./modules/
+COPY apps/trust-rollup/ ./apps/trust-rollup/
 
-    # Copy source code
-    COPY packages/ ./packages/
-    COPY services/event-router/ ./services/event-router/
-    COPY services/trust-rollup/ ./services/trust-rollup/
-    COPY tsconfig.json ./
-
-# Build packages
-RUN pnpm run -C packages/types build && \
-    pnpm run -C packages/config build && \
-    pnpm run -C services/event-router build && \
-    pnpm run -C services/trust-rollup build
+# Install and build
+RUN NODE_ENV=development pnpm install --no-frozen-lockfile
+RUN pnpm -r build
 
 # Production stage
 FROM node:20-alpine
 
-# Install pnpm (lockfileVersion 9 alignment)
 RUN npm install -g pnpm@10
-
-# Set CI environment variable to avoid pnpm TTY issues
 ENV CI=true
+ENV NODE_ENV=production
 
 WORKDIR /app
 
-# Copy package files
-COPY package.json pnpm-workspace.yaml pnpm-lock.yaml ./
-COPY packages/types/package.json ./packages/types/
-COPY packages/config/package.json ./packages/config/
-COPY services/event-router/package.json ./services/event-router/
-COPY services/trust-rollup/package.json ./services/trust-rollup/
-
-# Install production dependencies only (--ignore-scripts to skip prepare scripts that need tsc)
-RUN pnpm install --prod --ignore-scripts
-
-# Copy built files from builder
-COPY --from=builder /app/packages/types/dist ./packages/types/dist
-COPY --from=builder /app/packages/config/dist ./packages/config/dist
-COPY --from=builder /app/services/event-router/dist ./services/event-router/dist
-COPY --from=builder /app/services/trust-rollup/dist ./services/trust-rollup/dist
-
-# Create data directory
+COPY --from=builder /app /app
+RUN pnpm prune --prod
 RUN mkdir -p /app/data
 
-# Set working directory
-WORKDIR /app/services/trust-rollup
-
-# Start application
-CMD ["node", "dist/index.js"]
+CMD ["node", "apps/trust-rollup/dist/index.js"]

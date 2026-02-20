@@ -25,13 +25,12 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v6
         with:
-          node-version: '18'
+          node-version: '20'
 
-      - name: Enable Corepack
-        run: corepack enable
-
-      - name: Activate pnpm 9
-        run: corepack prepare pnpm@9.0.0 --activate
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.0.0
 
       - name: Get pnpm store directory
         shell: bash
@@ -63,13 +62,12 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v6
         with:
-          node-version: '18'
+          node-version: '20'
 
-      - name: Enable Corepack
-        run: corepack enable
-
-      - name: Activate pnpm 9
-        run: corepack prepare pnpm@9.0.0 --activate
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.0.0
 
       - name: Get pnpm store directory
         shell: bash
@@ -105,13 +103,12 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v6
         with:
-          node-version: '18'
+          node-version: '20'
 
-      - name: Enable Corepack
-        run: corepack enable
-
-      - name: Activate pnpm 9
-        run: corepack prepare pnpm@9.0.0 --activate
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.0.0
 
       - name: Get pnpm store directory
         shell: bash
@@ -152,7 +149,7 @@ jobs:
           pnpm --filter @tiltcheck/cli build
           pnpm --filter @tiltcheck/supabase-auth build
           echo "Building remaining workspace packages..."
-          pnpm -r --filter './modules/**' --filter './services/**' --filter './packages/**' --if-present build
+          pnpm -r --filter './modules/**' --filter './packages/**' --filter './apps/**' --if-present build
 
       - name: TypeScript type check
         run: pnpm exec tsc --noEmit --skipLibCheck
@@ -167,13 +164,12 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v6
         with:
-          node-version: '18'
+          node-version: '20'
 
-      - name: Enable Corepack
-        run: corepack enable
-
-      - name: Activate pnpm 9
-        run: corepack prepare pnpm@9.0.0 --activate
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.0.0
 
       - name: Get pnpm store directory
         shell: bash
@@ -219,13 +215,12 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v6
         with:
-          node-version: '18'
+          node-version: '20'
 
-      - name: Enable Corepack
-        run: corepack enable
-
-      - name: Activate pnpm 9
-        run: corepack prepare pnpm@9.0.0 --activate
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.0.0
 
       - name: Get pnpm store directory
         shell: bash
@@ -277,7 +272,7 @@ jobs:
         uses: actions/upload-artifact@v4.4.3
         with:
           name: dashboard-build
-          path: services/dashboard/dist
+          path: apps/dashboard/dist
           retention-days: 7
 
   security-audit:
@@ -290,13 +285,12 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v6
         with:
-          node-version: '18'
+          node-version: '20'
 
-      - name: Enable Corepack
-        run: corepack enable
-
-      - name: Activate pnpm 9
-        run: corepack prepare pnpm@9.0.0 --activate
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.0.0
 
       - name: Get pnpm store directory
         shell: bash
@@ -362,13 +356,12 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v6
         with:
-          node-version: '18'
+          node-version: '20'
 
-      - name: Enable Corepack
-        run: corepack enable
-
-      - name: Activate pnpm 9
-        run: corepack prepare pnpm@9.0.0 --activate
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.0.0
 
       - name: Check for outdated dependencies
         run: pnpm -r outdated --format json > outdated-report.json || true

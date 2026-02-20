@@ -1,6 +1,33 @@
-# Unified Discord Bots Container (Render Deployment)
-# Runs all Discord bots: dad-bot, discord-bot, JustTheTip in one container
+# TiltCheck Discord Bots Container
+# Runs discord-bot + dad-bot in one container
 
+FROM node:20-alpine AS build
+
+RUN npm install -g pnpm@10
+ENV CI=true
+
+WORKDIR /app
+
+# Copy workspace config
+COPY package.json pnpm-workspace.yaml pnpm-lock.yaml .npmrc tsconfig.json ./
+
+# Copy all workspace package.json files needed by the bots
+COPY packages/ ./packages/
+COPY modules/ ./modules/
+COPY apps/discord-bot/ ./apps/discord-bot/
+COPY apps/dad-bot/ ./apps/dad-bot/
+COPY apps/pricing-oracle/ ./apps/pricing-oracle/
+
+# Install dependencies
+RUN NODE_ENV=development pnpm install --no-frozen-lockfile
+
+# Build everything
+RUN pnpm -r build
+
+# Prune dev deps
+RUN pnpm prune --prod
+
+# Production stage
 FROM node:20-alpine
 
 RUN npm install -g pnpm@10
@@ -9,55 +36,18 @@ ENV NODE_ENV=production
 
 WORKDIR /app
 
-# Copy workspace files
-COPY package.json pnpm-workspace.yaml pnpm-lock.yaml .npmrc tsconfig.json ./
+# Copy built app from build stage
+COPY --from=build /app /app
 
-# Copy bot package.json files
-COPY apps/dad-bot/package.json ./apps/dad-bot/
-COPY apps/discord-bot/package.json ./apps/discord-bot/
-COPY bot/package.json ./bot/
-
-# Copy package dependencies
-COPY packages/types/package.json ./packages/types/
-COPY packages/config/package.json ./packages/config/
-COPY packages/database/package.json ./packages/database/
-COPY packages/discord-utils/package.json ./packages/discord-utils/
-COPY packages/esm-utils/package.json ./packages/esm-utils/
-COPY packages/supabase-auth/package.json ./packages/supabase-auth/
-COPY services/event-router/package.json ./services/event-router/
-
-# Copy all source code
-COPY apps/dad-bot/ ./apps/dad-bot/
-COPY apps/discord-bot/ ./apps/discord-bot/
-COPY bot/ ./bot/
-COPY packages/ ./packages/
-COPY services/event-router/ ./services/event-router/
-
-# Install dependencies
-RUN pnpm install --frozen-lockfile
-
-# Build all bots and dependencies
-RUN pnpm -r --filter @tiltcheck/dad-bot --filter @tiltcheck/discord-bot --filter @tiltcheck/bot build
-
-# Install production dependencies only
-RUN pnpm install --prod --frozen-lockfile --ignore-scripts
-
-# Create data directory for persistence
+# Create data directory
 RUN mkdir -p /app/data
 
-# Start script that runs all three bots in parallel
+# Start script that runs both bots
 RUN cat > /app/start-bots.sh << 'BOTEOF'
 #!/bin/sh
 set -e
 
 echo "Starting TiltCheck Discord Bots..."
-
-# Start all bots in background
-if [ -f ./apps/dad-bot/dist/index.js ]; then
-  echo "Starting DA&D Bot..."
-  node ./apps/dad-bot/dist/index.js &
-  DAD_PID=$!
-fi
 
 if [ -f ./apps/discord-bot/dist/index.js ]; then
   echo "Starting Main Discord Bot..."
@@ -65,20 +55,17 @@ if [ -f ./apps/discord-bot/dist/index.js ]; then
   DISCORD_PID=$!
 fi
 
-if [ -f ./bot/dist/index.js ]; then
-  echo "Starting JustTheTip Bot..."
-  node ./bot/dist/index.js &
-  JTT_PID=$!
+if [ -f ./apps/dad-bot/dist/index.js ]; then
+  echo "Starting DA&D Bot..."
+  node ./apps/dad-bot/dist/index.js &
+  DAD_PID=$!
 fi
 
-# Keep container alive and handle signals
-trap 'echo "Shutting down bots..."; kill $DAD_PID $DISCORD_PID $JTT_PID 2>/dev/null; exit 0' SIGTERM SIGINT
+trap 'echo "Shutting down bots..."; kill $DISCORD_PID $DAD_PID 2>/dev/null; exit 0' SIGTERM SIGINT
 
 wait
-
 BOTEOF
 
 RUN chmod +x /app/start-bots.sh
 
-# No ports exposed (Discord bots connect via WebSocket to Discord)
 CMD ["/app/start-bots.sh"]
