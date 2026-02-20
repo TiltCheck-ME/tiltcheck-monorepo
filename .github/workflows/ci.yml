@@ -51,5 +51,5 @@ jobs:
         uses: vercel/repository-dispatch/actions/status@v1
         if: always()
         with:
-          name: Vercel - tiltcheck-monorepo: CI
+          name: "Vercel - tiltcheck-monorepo: CI"
         continue-on-error: true
