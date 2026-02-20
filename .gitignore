@@ -10,6 +10,7 @@ package-lock.json
 
 # Build outputs
 dist/
+dist-bundle/
 !services/casino-data-api/dist/
 build/
 .next/

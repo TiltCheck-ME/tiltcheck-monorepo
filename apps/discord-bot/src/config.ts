@@ -6,8 +6,7 @@
 
 import dotenv from 'dotenv';
 import path from 'path';
-import { dirname } from '@tiltcheck/esm-utils';
-import { 
+import {
   getEnvVar, 
   getDiscordToken, 
   getBoolEnv, 
@@ -15,20 +14,20 @@ import {
   DISCORD_TOKEN_ENV_VARS 
 } from '@tiltcheck/config';
 
-// Emulate __dirname in ESM via shared utility
-const __dirname = dirname(import.meta.url);
+// Use process.cwd() for .env resolution (works in both monorepo and bundled deploys)
+// In monorepo: cwd is the monorepo root
+// In bundled deploy: cwd is wherever you run the bot from (set via PM2/systemd)
+const rootDir = process.env.TILTCHECK_ROOT || process.cwd();
 
-// Load .env files - try .env.local first (root), then .env (root), then .env in app dir
-// __dirname is apps/discord-bot/src, so we need to go up 3 levels to reach monorepo root
-const rootEnvLocal = path.resolve(__dirname, '../../../.env.local');
-const rootEnv = path.resolve(__dirname, '../../../.env');
-const appEnvLocal = path.resolve(__dirname, '../.env.local');
-const appEnv = path.resolve(__dirname, '../.env');
+const rootEnvLocal = path.resolve(rootDir, '.env.local');
+const rootEnv = path.resolve(rootDir, '.env');
+const appEnvLocal = path.resolve(rootDir, 'apps/discord-bot/.env.local');
+const appEnv = path.resolve(rootDir, 'apps/discord-bot/.env');
 
 // Debug: Log the paths we're trying to load
 if (process.env.DEBUG_ENV_LOADING) {
   console.log('[Config] Attempting to load .env files from:');
-  console.log('  __dirname:', __dirname);
+  console.log('  rootDir:', rootDir);
   console.log('  rootEnvLocal:', rootEnvLocal);
   console.log('  rootEnv:', rootEnv);
   console.log('  appEnvLocal:', appEnvLocal);

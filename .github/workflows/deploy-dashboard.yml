@@ -4,7 +4,7 @@ on:
   push:
     branches: [main]
     paths:
-      - 'services/dashboard/**'
+      - 'apps/dashboard/**'
       - 'packages/**'
       - '.github/workflows/deploy-dashboard.yml'
   workflow_dispatch:
@@ -42,11 +42,11 @@ jobs:
           pnpm --filter @tiltcheck/pricing-oracle build
           pnpm --filter @tiltcheck/trust-rollup build
 
-      - name: Build dashboard (services/dashboard - Express server)
-        run: pnpm --filter "./services/dashboard" build
+      - name: Build dashboard (apps/dashboard - Express server)
+        run: pnpm --filter "./apps/dashboard" build
 
       - name: Run tests
-        run: pnpm --filter "./services/dashboard" test
+        run: pnpm --filter "./apps/dashboard" test
         continue-on-error: true
 
       - name: Verify Dockerfile

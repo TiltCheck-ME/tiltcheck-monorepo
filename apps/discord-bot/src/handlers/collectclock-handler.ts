@@ -1,11 +1,10 @@
 import { collectclock, StaticBonusData, StaticDropData } from '@tiltcheck/collectclock';
 import fs from 'fs';
 import path from 'path';
-import { fileURLToPath } from 'url';
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-// Correct path to data directory relative to apps/discord-bot/dist/handlers
-const DATA_DIR = path.resolve(__dirname, '../../../../data');
+// Use process.cwd() for data resolution (works in both monorepo and bundled deploys)
+const rootDir = process.env.TILTCHECK_ROOT || process.cwd();
+const DATA_DIR = path.resolve(rootDir, 'data');
 
 /**
  * Initialize CollectClock service with static data
