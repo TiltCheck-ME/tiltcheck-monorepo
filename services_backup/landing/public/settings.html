@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Settings - TiltCheck</title>
+  <meta name="description" content="Manage your TiltCheck account settings and preferences">
+  <link rel="stylesheet" href="/styles/theme.css">
+  <link rel="stylesheet" href="/styles/main.css">
+  <link rel="icon" type="image/svg+xml" href="/assets/logo/favicon-white.svg">
+  <link rel="icon" type="image/png" sizes="32x32" href="/assets/logo/favicon.png">
+  <link rel="icon" type="image/x-icon" href="/assets/logo/favicon.ico">
+  <link rel="apple-touch-icon" sizes="180x180" href="/assets/logo/tiltcheck-logo-192.png">
+  <style>
+    .settings-container {
+      max-width: 900px;
+      margin: 80px auto 40px;
+      padding: 0 20px;
+    }
+
+    .settings-header {
+      margin-bottom: 40px;
+    }
+
+    .settings-header h1 {
+      font-size: 2.5rem;
+      color: #00d4aa;
+      margin-bottom: 8px;
+    }
+
+    .settings-header p {
+      color: #888;
+      font-size: 1.1rem;
+    }
+
+    .settings-section {
+      background: #1a1f24;
+      border: 1px solid #2a2f34;
+      border-radius: 12px;
+      padding: 30px;
+      margin-bottom: 24px;
+    }
+
+    .settings-section h2 {
+      font-size: 1.5rem;
+      color: #00d4aa;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .setting-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px 0;
+      border-bottom: 1px solid #2a2f34;
+    }
+
+    .setting-item:last-child {
+      border-bottom: none;
+    }
+
+    .setting-info {
+      flex: 1;
+    }
+
+    .setting-info h3 {
+      font-size: 1.1rem;
+      color: #eee;
+      margin-bottom: 4px;
+    }
+
+    .setting-info p {
+      font-size: 0.9rem;
+      color: #888;
+      margin: 0;
+    }
+
+    .setting-control {
+      margin-left: 20px;
+    }
+
+    .toggle-switch {
+      position: relative;
+      width: 56px;
+      height: 28px;
+      background: #2a2f34;
+      border-radius: 14px;
+      cursor: pointer;
+      transition: background 0.3s;
+      border: 2px solid #444;
+    }
+
+    .toggle-switch.active {
+      background: #00d4aa;
+      border-color: #00d4aa;
+    }
+
+    .toggle-switch::after {
+      content: '';
+      position: absolute;
+      width: 20px;
+      height: 20px;
+      background: white;
+      border-radius: 50%;
+      top: 2px;
+      left: 2px;
+      transition: transform 0.3s;
+    }
+
+    .toggle-switch.active::after {
+      transform: translateX(28px);
+    }
+
+    .btn {
+      padding: 10px 20px;
+      border-radius: 6px;
+      border: none;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.2s;
+    }
+
+    .btn-primary {
+      background: #00d4aa;
+      color: #0a0e13;
+    }
+
+    .btn-primary:hover {
+      background: #00ffcc;
+    }
+
+    .btn-secondary {
+      background: #2a2f34;
+      color: #eee;
+      border: 1px solid #444;
+    }
+
+    .btn-secondary:hover {
+      background: #3a3f44;
+    }
+
+    .btn-danger {
+      background: #ff4444;
+      color: white;
+    }
+
+    .btn-danger:hover {
+      background: #ff6666;
+    }
+
+    .connected-account {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px;
+      background: #0f1419;
+      border-radius: 8px;
+      margin-top: 12px;
+    }
+
+    .connected-account img {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+    }
+
+    .connected-account-info {
+      flex: 1;
+    }
+
+    .connected-account-info strong {
+      color: #00d4aa;
+      display: block;
+    }
+
+    .connected-account-info small {
+      color: #888;
+    }
+
+    select, input[type="text"], input[type="email"] {
+      background: #0f1419;
+      border: 1px solid #2a2f34;
+      color: #eee;
+      padding: 10px 12px;
+      border-radius: 6px;
+      font-size: 1rem;
+      min-width: 200px;
+    }
+
+    select:focus, input:focus {
+      outline: none;
+      border-color: #00d4aa;
+    }
+
+    .save-indicator {
+      display: none;
+      color: #00d4aa;
+      font-size: 0.9rem;
+      margin-left: 12px;
+    }
+
+    .save-indicator.visible {
+      display: inline-block;
+    }
+  </style>
+</head>
+<body>
+  <!-- Top Navigation -->
+  <nav class="top-nav" role="navigation" aria-label="Primary navigation">
+    <a href="/">Home</a>
+    <a href="/casinos.html">Casinos</a>
+    <a href="/degen-trust.html">Degens</a>
+    <a href="/dashboard">Dashboard</a>
+    <a href="/about.html">About</a>
+    <a href="#" class="discord-login-btn" class="discord-login-btn" style="background: #5865F2; color: white; padding: 8px 16px; border-radius: 6px; text-decoration: none; font-weight: 600; margin-left: auto;">
+      <svg width="20" height="20" viewBox="0 0 71 55" fill="none" xmlns="http://www.w3.org/2000/svg" style="vertical-align: middle; margin-right: 6px;">
+        <path d="M60.1045 4.8978C55.5792 2.8214 50.7265 1.2916 45.6527 0.41542C45.5603 0.39851 45.468 0.440769 45.4204 0.525289C44.7963 1.6353 44.105 3.0834 43.6209 4.2216C38.1637 3.4046 32.7345 3.4046 27.3892 4.2216C26.905 3.0581 26.1886 1.6353 25.5617 0.525289C25.5141 0.443589 25.4218 0.40133 25.3294 0.41542C20.2584 1.2888 15.4057 2.8186 10.8776 4.8978C10.8384 4.9147 10.8048 4.9429 10.7825 4.9795C1.57795 18.7309 -0.943561 32.1443 0.293408 45.3914C0.299005 45.4562 0.335386 45.5182 0.385761 45.5576C6.45866 50.0174 12.3413 52.7249 18.1147 54.5195C18.2071 54.5477 18.305 54.5139 18.3638 54.4378C19.7295 52.5728 20.9469 50.6063 21.9907 48.5383C22.0523 48.4172 21.9935 48.2735 21.8676 48.2256C19.9366 47.4931 18.0979 46.6 16.3292 45.5858C16.1893 45.5041 16.1781 45.304 16.3068 45.2082C16.679 44.9293 17.0513 44.6391 17.4067 44.3461C17.471 44.2926 17.5606 44.2813 17.6362 44.3151C29.2558 49.6202 41.8354 49.6202 53.3179 44.3151C53.3935 44.2785 53.4831 44.2898 53.5502 44.3433C53.9057 44.6363 54.2779 44.9293 54.6529 45.2082C54.7816 45.304 54.7732 45.5041 54.6333 45.5858C52.8646 46.6197 51.0259 47.4931 49.0921 48.2228C48.9662 48.2707 48.9102 48.4172 48.9718 48.5383C50.038 50.6034 51.2554 52.5699 52.5959 54.435C52.6519 54.5139 52.7526 54.5477 52.845 54.5195C58.6464 52.7249 64.529 50.0174 70.6019 45.5576C70.6551 45.5182 70.6887 45.459 70.6943 45.3942C72.1747 30.0791 68.2147 16.7757 60.1968 4.9823C60.1772 4.9429 60.1437 4.9147 60.1045 4.8978ZM23.7259 37.3253C20.2276 37.3253 17.3451 34.1136 17.3451 30.1693C17.3451 26.225 20.1717 23.0133 23.7259 23.0133C27.308 23.0133 30.1626 26.2532 30.1066 30.1693C30.1066 34.1136 27.28 37.3253 23.7259 37.3253ZM47.3178 37.3253C43.8196 37.3253 40.9371 34.1136 40.9371 30.1693C40.9371 26.225 43.7636 23.0133 47.3178 23.0133C50.9 23.0133 53.7545 26.2532 53.6986 30.1693C53.6986 34.1136 50.9 37.3253 47.3178 37.3253Z" fill="currentColor"/>
+      </svg>
+      Login
+    </a>
+  </nav>
+
+  <div class="settings-container">
+    <div class="settings-header">
+      <h1>⚙️ Settings</h1>
+      <p>Manage your account preferences and integrations</p>
+    </div>
+
+    <!-- Account Section -->
+    <div class="settings-section">
+      <h2>👤 Account</h2>
+      
+      <div class="setting-item">
+        <div class="setting-info">
+          <h3>Connected Account</h3>
+          <p>Your Discord account is linked to TiltCheck</p>
+        </div>
+      </div>
+
+      <div id="discord-account" class="connected-account" style="display: none;">
+        <img id="account-avatar" src="" alt="Discord Avatar">
+        <div class="connected-account-info">
+          <strong id="account-username">Loading...</strong>
+          <small>Connected via Discord OAuth</small>
+        </div>
+        <button class="btn btn-secondary btn-sm" onclick="disconnectDiscord()">Disconnect</button>
+      </div>
+
+      <div id="no-account" style="display: none; padding: 20px; text-align: center; color: #888;">
+        <p>No account connected. <a href="#" class="discord-login-btn" style="color: #00d4aa;">Login with Discord</a></p>
+      </div>
+    </div>
+
+    <!-- Notifications Section -->
+    <div class="settings-section">
+      <h2>🔔 Notifications</h2>
+      
+      <div class="setting-item">
+        <div class="setting-info">
+          <h3>Tilt Alerts</h3>
+          <p>Get notified when TiltCheck detects you might be tilting</p>
+        </div>
+        <div class="setting-control">
+          <div class="toggle-switch active" data-setting="tilt-alerts" onclick="toggleSetting(this)"></div>
+        </div>
+      </div>
+
+      <div class="setting-item">
+        <div class="setting-info">
+          <h3>SusLink Warnings</h3>
+          <p>Receive alerts when suspicious links are detected</p>
+        </div>
+        <div class="setting-control">
+          <div class="toggle-switch active" data-setting="suslink-alerts" onclick="toggleSetting(this)"></div>
+        </div>
+      </div>
+
+      <div class="setting-item">
+        <div class="setting-info">
+          <h3>Tip Notifications</h3>
+          <p>Get notified when you receive tips via JustTheTip</p>
+        </div>
+        <div class="setting-control">
+          <div class="toggle-switch active" data-setting="tip-notifications" onclick="toggleSetting(this)"></div>
+        </div>
+      </div>
+
+      <div class="setting-item">
+        <div class="setting-info">
+          <h3>Game Arena Updates</h3>
+          <p>Notifications for game invites and results</p>
+        </div>
+        <div class="setting-control">
+          <div class="toggle-switch active" data-setting="game-notifications" onclick="toggleSetting(this)"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Privacy Section -->
+    <div class="settings-section">
+      <h2>🔒 Privacy</h2>
+      
+      <div class="setting-item">
+        <div class="setting-info">
+          <h3>Profile Visibility</h3>
+          <p>Who can see your TiltCheck profile and stats</p>
+        </div>
+        <div class="setting-control">
+          <select id="profile-visibility" onchange="saveProfileVisibility()">
+            <option value="public">Everyone</option>
+            <option value="friends">Friends Only</option>
+            <option value="private">Private</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="setting-item">
+        <div class="setting-info">
+          <h3>Trust Score Visibility</h3>
+          <p>Show your Degen Trust score publicly</p>
+        </div>
+        <div class="setting-control">
+          <div class="toggle-switch active" data-setting="trust-score-public" onclick="toggleSetting(this)"></div>
+        </div>
+      </div>
+
+      <div class="setting-item">
+        <div class="setting-info">
+          <h3>Analytics</h3>
+          <p>Help improve TiltCheck by sharing anonymous usage data</p>
+        </div>
+        <div class="setting-control">
+          <div class="toggle-switch active" data-setting="analytics-enabled" onclick="toggleSetting(this)"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Integrations Section -->
+    <div class="settings-section">
+      <h2>⚡ Integrations</h2>
+      
+      <div class="setting-item">
+        <div class="setting-info">
+          <h3>Discord Bot Integration</h3>
+          <p>Sync your Discord activity with TiltCheck</p>
+        </div>
+        <div class="setting-control">
+          <button class="btn btn-secondary">Configure</button>
+        </div>
+      </div>
+
+      <div class="setting-item">
+        <div class="setting-info">
+          <h3>Wallet Connection</h3>
+          <p>Link your Solana wallet for JustTheTip</p>
+        </div>
+        <div class="setting-control">
+          <button class="btn btn-primary" onclick="connectWallet()">Connect Wallet</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Subscription Section -->
+    <div class="settings-section" id="subscription">
+      <h2>💳 Subscription</h2>
+      
+      <div class="setting-item">
+        <div class="setting-info">
+          <h3>Chrome Extension</h3>
+          <p id="subscription-status-text">Loading subscription status...</p>
+        </div>
+        <div class="setting-control">
+          <button class="btn btn-primary" id="manage-subscription-btn" onclick="manageSubscription()">Manage</button>
+        </div>
+      </div>
+
+      <div id="subscription-details" style="display: none; margin-top: 20px; padding: 20px; background: #0f1419; border-radius: 8px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+          <div>
+            <div style="font-weight: 600; color: #00d4aa;">Status</div>
+            <div id="sub-status-display" style="color: #eee; margin-top: 4px;">--</div>
+          </div>
+          <div style="text-align: right;">
+            <div style="font-weight: 600; color: #00d4aa;">Next Billing</div>
+            <div id="sub-next-billing" style="color: #eee; margin-top: 4px;">--</div>
+          </div>
+        </div>
+        <div style="border-top: 1px solid #2a2f34; padding-top: 12px; margin-top: 12px;">
+          <button class="btn btn-danger" onclick="cancelSubscription()">Cancel Subscription</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Danger Zone -->
+    <div class="settings-section" style="border-color: #ff4444;">
+      <h2 style="color: #ff4444;">⚠️ Danger Zone</h2>
+      
+      <div class="setting-item">
+        <div class="setting-info">
+          <h3>Delete Account</h3>
+          <p>Permanently delete your TiltCheck account and all associated data</p>
+        </div>
+        <div class="setting-control">
+          <button class="btn btn-danger" onclick="confirmDeleteAccount()">Delete Account</button>
+        </div>
+      </div>
+    </div>
+
+    <div style="text-align: center; margin-top: 40px; color: #888;">
+      <p>
+        <span id="save-status" class="save-indicator">✓ Settings saved</span>
+      </p>
+      <p style="margin-top: 12px;">
+        <a href="/privacy.html" style="color: #00d4aa;">Privacy Policy</a> • 
+        <a href="/terms.html" style="color: #00d4aa;">Terms of Service</a>
+      </p>
+    </div>
+  </div>
+
+  <script src="/scripts/auth.js"></script>
+  <script>
+    // Settings management
+    let settings = {};
+
+    // Load user settings on page load
+    async function loadSettings() {
+      const user = window.tiltCheckAuth?.getUser();
+      
+      if (user) {
+        // Show account info
+        document.getElementById('discord-account').style.display = 'flex';
+        document.getElementById('no-account').style.display = 'none';
+        document.getElementById('account-username').textContent = user.username;
+        
+        const avatarImg = document.getElementById('account-avatar');
+        if (user.avatar) {
+          if (user.avatar.startsWith('http')) {
+            avatarImg.src = user.avatar;
+          } else {
+            avatarImg.src = `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png?size=128`;
+          }
+        } else {
+          const defaultIndex = parseInt(user.id) % 5;
+          avatarImg.src = `https://cdn.discordapp.com/embed/avatars/${defaultIndex}.png`;
+        }
+
+        // Load settings from localStorage
+        const saved = localStorage.getItem('tiltcheck_settings');
+        if (saved) {
+          settings = JSON.parse(saved);
+          applySettings();
+        }
+      } else {
+        document.getElementById('discord-account').style.display = 'none';
+        document.getElementById('no-account').style.display = 'block';
+      }
+    }
+
+    function applySettings() {
+      // Apply toggle switches
+      document.querySelectorAll('.toggle-switch').forEach(toggle => {
+        const settingKey = toggle.getAttribute('data-setting');
+        if (settings[settingKey] === false) {
+          toggle.classList.remove('active');
+        }
+      });
+
+      // Apply profile visibility
+      if (settings['profile-visibility']) {
+        document.getElementById('profile-visibility').value = settings['profile-visibility'];
+      }
+    }
+
+    function toggleSetting(element) {
+      const settingKey = element.getAttribute('data-setting');
+      const isActive = element.classList.contains('active');
+      
+      element.classList.toggle('active');
+      settings[settingKey] = !isActive;
+      
+      saveSettings();
+    }
+
+    function saveSettings() {
+      localStorage.setItem('tiltcheck_settings', JSON.stringify(settings));
+      showSaveIndicator();
+    }
+
+    function saveProfileVisibility() {
+      const value = document.getElementById('profile-visibility').value;
+      settings['profile-visibility'] = value;
+      saveSettings();
+    }
+
+    function showSaveIndicator() {
+      const indicator = document.getElementById('save-status');
+      indicator.classList.add('visible');
+      setTimeout(() => {
+        indicator.classList.remove('visible');
+      }, 2000);
+    }
+
+    function connectWallet() {
+      alert('Wallet connection coming soon! This will integrate with Phantom/Solflare for Solana tips.');
+    }
+
+    function disconnectDiscord() {
+      if (confirm('Are you sure you want to disconnect your Discord account? You will be logged out.')) {
+        window.location.href = '/play/auth/logout';
+      }
+    }
+
+    function confirmDeleteAccount() {
+      const confirmation = prompt('This action cannot be undone. Type "DELETE" to confirm:');
+      if (confirmation === 'DELETE') {
+        alert('Account deletion is not yet implemented. Please contact support for account deletion requests.');
+      }
+    }
+
+    function manageSubscription() {
+      window.location.href = '/chrome-extension-subscription.html';
+    }
+
+    async function cancelSubscription() {
+      const user = window.tiltCheckAuth?.getUser();
+      if (!user) {
+        alert('Please login to cancel your subscription.');
+        return;
+      }
+
+      if (!confirm('Are you sure you want to cancel your subscription? You will lose access at the end of your current billing period.')) {
+        return;
+      }
+
+      const cancelBtn = document.querySelector('.btn-danger[onclick="cancelSubscription()"]');
+      if (cancelBtn) {
+        cancelBtn.disabled = true;
+        cancelBtn.textContent = 'Cancelling...';
+      }
+
+      try {
+        const response = await fetch('/api/stripe/cancel-subscription', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ userId: user.id })
+        });
+
+        const data = await response.json();
+
+        if (data.ok) {
+          // Update local storage
+          const key = `subscription_${user.id}`;
+          const sub = JSON.parse(localStorage.getItem(key) || '{}');
+          sub.status = 'cancelled';
+          sub.cancelledAt = new Date().toISOString();
+          localStorage.setItem(key, JSON.stringify(sub));
+
+          document.getElementById('subscription-status-text').textContent = 'Cancelled - access until end of billing period';
+          document.getElementById('subscription-details').style.display = 'none';
+          
+          if (cancelBtn) {
+            cancelBtn.textContent = 'Cancelled';
+          }
+
+          alert('Your subscription has been cancelled. You will have access until the end of your current billing period.');
+        } else {
+          throw new Error(data.error || 'Failed to cancel subscription');
+        }
+      } catch (error) {
+        console.error('Cancel subscription error:', error);
+        alert('Failed to cancel subscription: ' + error.message);
+        if (cancelBtn) {
+          cancelBtn.disabled = false;
+          cancelBtn.textContent = 'Cancel Subscription';
+        }
+      }
+    }
+
+    async function loadSubscriptionStatus() {
+      const user = window.tiltCheckAuth?.getUser();
+      
+      if (!user) {
+        document.getElementById('subscription-status-text').textContent = 'Login to manage subscription';
+        document.getElementById('manage-subscription-btn').textContent = 'Login';
+        return;
+      }
+
+      // Try to get subscription from server first (handles founder status)
+      try {
+        const response = await fetch(`/api/stripe/subscription-status?userId=${encodeURIComponent(user.id)}&username=${encodeURIComponent(user.username || '')}`);
+        if (response.ok) {
+          const data = await response.json();
+          if (data.ok && data.subscription) {
+            // Handle founder status from server
+            if (data.subscription.status === 'founder') {
+              document.getElementById('subscription-status-text').textContent = 'Founder - Lifetime Premium Access 👑';
+              document.getElementById('manage-subscription-btn').style.display = 'none';
+              return;
+            }
+            updateSubscriptionUI(data.subscription);
+            return;
+          }
+        }
+      } catch (error) {
+        console.warn('Could not fetch subscription status from server:', error);
+      }
+
+      // Fallback to localStorage
+      const sub = getSubscriptionData(user.id);
+      updateSubscriptionUI(sub);
+    }
+
+    function updateSubscriptionUI(sub) {
+      if (sub.status === 'trial') {
+        document.getElementById('subscription-status-text').textContent = `Free trial (${sub.daysRemaining} days remaining)`;
+        document.getElementById('manage-subscription-btn').textContent = 'Subscribe';
+      } else if (sub.status === 'active') {
+        document.getElementById('subscription-status-text').textContent = 'Active - $5/month';
+        document.getElementById('manage-subscription-btn').textContent = 'Manage';
+        document.getElementById('subscription-details').style.display = 'block';
+        document.getElementById('sub-status-display').textContent = 'Active';
+        
+        if (sub.currentPeriodEnd) {
+          const nextBilling = new Date(sub.currentPeriodEnd);
+          document.getElementById('sub-next-billing').textContent = nextBilling.toLocaleDateString();
+        } else {
+          const nextBilling = new Date();
+          nextBilling.setMonth(nextBilling.getMonth() + 1);
+          document.getElementById('sub-next-billing').textContent = nextBilling.toLocaleDateString();
+        }
+      } else if (sub.status === 'cancelled') {
+        document.getElementById('subscription-status-text').textContent = 'Cancelled - access until end of billing period';
+        document.getElementById('manage-subscription-btn').textContent = 'Resubscribe';
+        document.getElementById('subscription-details').style.display = 'none';
+      } else {
+        document.getElementById('subscription-status-text').textContent = 'Not subscribed';
+        document.getElementById('manage-subscription-btn').textContent = 'Start Trial';
+      }
+    }
+
+    function getSubscriptionData(userId) {
+      const key = `subscription_${userId}`;
+      const saved = localStorage.getItem(key);
+      
+      if (!saved) {
+        return { status: 'none' };
+      }
+
+      const sub = JSON.parse(saved);
+      
+      if (sub.status === 'trial') {
+        const now = new Date();
+        const end = new Date(sub.trialEnd);
+        const diffTime = end - now;
+        sub.daysRemaining = Math.max(0, Math.ceil(diffTime / (1000 * 60 * 60 * 24)));
+      }
+      
+      return sub;
+    }
+
+    // Load settings when auth is ready
+    if (window.tiltCheckAuth) {
+      setTimeout(() => {
+        loadSettings();
+        loadSubscriptionStatus();
+      }, 500);
+    } else {
+      window.addEventListener('load', () => {
+        setTimeout(() => {
+          loadSettings();
+          loadSubscriptionStatus();
+        }, 500);
+      });
+    }
+  </script>
+</body>
+</html>

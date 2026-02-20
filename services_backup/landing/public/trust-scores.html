@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Casino Trust Score Grades</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="styles/main.css">
+  <style>
+    table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
+    th, td { border: 1px solid #2a2f34; padding: 8px; }
+    th { background: #0f1419; color: #00d4aa; }
+  </style>
+</head>
+<body>
+  <div id="shared-nav"></div>
+  <h1>Casino Trust Score Grades</h1>
+  <p>This page displays the latest trust scores for casinos, updated automatically from the TiltCheck trust engine.</p>
+  <div id="trust-scores">
+    <p>Loading trust scores...</p>
+  </div>
+  <script>
+    // Fetch trust-rollups.json and display casino trust scores
+    fetch('/data/trust-rollups.json')
+      .then(response => response.json())
+      .then(data => {
+        const container = document.getElementById('trust-scores');
+        const batches = data.batches || [];
+        let latestBatch = batches[batches.length - 1];
+        if (!latestBatch || !latestBatch.casino || !latestBatch.casino.casinos) {
+          container.innerHTML = '<p>No casino trust scores found yet. Learn how trust works in <a href="/trust-explained.html">Trust Explained</a>.</p>';
+          return;
+        }
+        const casinos = latestBatch.casino.casinos;
+        if (Object.keys(casinos).length === 0) {
+          container.innerHTML = '<p>No casino trust scores available yet. Check back soon or read <a href="/trust-explained.html">Trust Explained</a>.</p>';
+          return;
+        }
+        let html = '<table><thead><tr><th>Casino</th><th>Trust Score</th><th>Events</th><th>Last Severity</th></tr></thead><tbody>';
+        for (const [name, info] of Object.entries(casinos)) {
+          html += `<tr><td>${name}</td><td>${info.lastScore ?? 'N/A'}</td><td>${info.events ?? 'N/A'}</td><td>${info.lastSeverity ?? 'N/A'}</td></tr>`;
+        }
+        html += '</tbody></table>';
+        container.innerHTML = html;
+      })
+      .catch(err => {
+        document.getElementById('trust-scores').innerHTML = '<p>Error loading trust scores.</p>';
+      });
+  </script>
+</body>
+<div id="shared-footer"></div>
+<script>
+  (function(){
+    const navMount = document.getElementById('shared-nav');
+    const footerMount = document.getElementById('shared-footer');
+    if (navMount) { fetch('/components/nav.html').then(r=>r.text()).then(html=>{ navMount.innerHTML = html; }).catch(()=>{}); }
+    if (footerMount) { fetch('/components/footer.html').then(r=>r.text()).then(html=>{ footerMount.innerHTML = html; }).catch(()=>{}); }
+  })();
+</script>
+</html>

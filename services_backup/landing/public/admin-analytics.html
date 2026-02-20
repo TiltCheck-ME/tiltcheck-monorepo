@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TiltCheck Admin | Analytics</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
+            background: #0a0a0a;
+            color: #00ff41;
+            overflow-x: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(45deg, #001100, #002200);
+            border-bottom: 2px solid #00ff41;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 0 20px #00ff4150;
+        }
+        
+        .logo { font-size: 1.5rem; font-weight: bold; text-shadow: 0 0 10px #00ff41; }
+        .user-info { display: flex; align-items: center; gap: 1rem; }
+        .status-dot { width: 12px; height: 12px; border-radius: 50%; background: #00ff41; animation: pulse 2s infinite; box-shadow: 0 0 10px #00ff41; }
+        
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+        
+        .main-grid { display: grid; grid-template-columns: 280px 1fr; min-height: calc(100vh - 80px); }
+        .sidebar { background: #111; border-right: 1px solid #00ff41; padding: 2rem 1rem; overflow-y: auto; }
+        .nav-group { margin-bottom: 2rem; }
+        .nav-title { color: #00ff41; font-size: 0.9rem; font-weight: bold; margin-bottom: 1rem; text-transform: uppercase; letter-spacing: 1px; }
+        .nav-link { display: block; padding: 0.75rem 1rem; color: #888; text-decoration: none; border-radius: 4px; margin-bottom: 0.5rem; transition: all 0.3s ease; border: 1px solid transparent; }
+        .nav-link:hover, .nav-link.active { background: #002200; color: #00ff41; border-color: #00ff41; box-shadow: 0 0 10px #00ff4130; }
+        .nav-link .status { float: right; font-size: 0.8rem; }
+        
+        .content { padding: 2rem; overflow-y: auto; background: #0a0a0a; }
+        
+        .panel { background: #111; border: 1px solid #00ff41; border-radius: 8px; padding: 1.5rem; margin-bottom: 1.5rem; box-shadow: 0 0 20px #00ff4120; }
+        .panel-title { color: #00ff41; font-size: 1.2rem; margin-bottom: 1rem; display: flex; justify-content: space-between; align-items: center; }
+        .panel-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; }
+        
+        .metric-card { background: #0a0a0a; border: 1px solid #333; border-radius: 8px; padding: 1.25rem; text-align: center; }
+        .metric-value { font-size: 2.5rem; font-weight: bold; color: #00ff41; text-shadow: 0 0 10px #00ff41; }
+        .metric-label { font-size: 0.85rem; color: #888; margin-top: 0.5rem; }
+        .metric-change { font-size: 0.8rem; margin-top: 0.5rem; }
+        .metric-up { color: #00ff41; }
+        .metric-down { color: #ff4444; }
+        
+        .chart-placeholder { background: #0a0a0a; border: 1px solid #333; border-radius: 8px; padding: 2rem; text-align: center; min-height: 200px; display: flex; flex-direction: column; justify-content: center; align-items: center; }
+        .chart-placeholder span { font-size: 3rem; margin-bottom: 1rem; }
+        
+        .table-container { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 0.75rem; text-align: left; border-bottom: 1px solid #333; }
+        th { color: #00ff41; background: #0a0a0a; font-weight: bold; }
+        td { color: #ccc; }
+        tr:hover { background: #001100; }
+        
+        .btn { background: transparent; border: 1px solid #00ff41; color: #00ff41; padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer; transition: all 0.3s ease; text-decoration: none; display: inline-block; font-family: inherit; font-size: 0.9rem; }
+        .btn:hover { background: #00ff41; color: #000; box-shadow: 0 0 15px #00ff41; }
+        
+        @media (max-width: 768px) { .main-grid { grid-template-columns: 1fr; } .sidebar { display: none; } }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="logo">🎮 TiltCheck Admin</div>
+        <div class="user-info">
+            <div class="status-dot"></div>
+            <span>jmenichole</span>
+            <span>|</span>
+            <span id="current-time"></span>
+        </div>
+    </header>
+    
+    <div class="main-grid">
+        <nav class="sidebar">
+            <div class="nav-group">
+                <div class="nav-title">📊 Admin Pages</div>
+                <a href="/control-room" class="nav-link">🎮 Control Room <span class="status">●</span></a>
+                <a href="/admin/ecosystem-status" class="nav-link">📊 Ecosystem Status <span class="status">●</span></a>
+                <a href="/admin/analytics" class="nav-link active">📈 Analytics <span class="status">●</span></a>
+            </div>
+            
+            <div class="nav-group">
+                <div class="nav-title">🔧 Quick Links</div>
+                <a href="/admin/sitemap" class="nav-link">🗺️ Site Map API <span class="status">●</span></a>
+                <a href="/admin/status" class="nav-link">⚙️ Service Status API <span class="status">●</span></a>
+                <a href="/admin/logs" class="nav-link">📝 System Logs <span class="status">●</span></a>
+            </div>
+            
+            <div class="nav-group">
+                <div class="nav-title">🌐 Public Site</div>
+                <a href="/" class="nav-link">🏠 Homepage</a>
+                <a href="/dashboard" class="nav-link">📊 Trust Dashboard</a>
+                <a href="/#tools" class="nav-link">🛠️ Tools</a>
+            </div>
+        </nav>
+        
+        <main class="content">
+            <div class="panel">
+                <div class="panel-title">
+                    <span>📈 Overview Metrics</span>
+                    <button class="btn" onclick="refreshMetrics()">Refresh</button>
+                </div>
+                <div class="panel-grid">
+                    <div class="metric-card">
+                        <div class="metric-value" id="total-requests">--</div>
+                        <div class="metric-label">Total Requests</div>
+                        <div class="metric-change metric-up">↑ Live</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value" id="uptime">--</div>
+                        <div class="metric-label">Server Uptime</div>
+                        <div class="metric-change metric-up">↑ Running</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value" id="memory-usage">--</div>
+                        <div class="metric-label">Memory Usage (MB)</div>
+                        <div class="metric-change">RSS</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value" id="heap-usage">--</div>
+                        <div class="metric-label">Heap Used (MB)</div>
+                        <div class="metric-change">V8 Heap</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="panel">
+                <div class="panel-title">
+                    <span>🔥 Top Paths (by request count)</span>
+                </div>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Path</th>
+                                <th>Requests</th>
+                                <th>% of Total</th>
+                            </tr>
+                        </thead>
+                        <tbody id="top-paths">
+                            <tr><td colspan="3" style="text-align: center; color: #666;">Loading...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <div class="panel">
+                <div class="panel-title">
+                    <span>🌐 User Agents</span>
+                </div>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>User Agent</th>
+                                <th>Requests</th>
+                            </tr>
+                        </thead>
+                        <tbody id="top-uas">
+                            <tr><td colspan="2" style="text-align: center; color: #666;">Loading...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <div class="panel">
+                <div class="panel-title">
+                    <span>📊 Traffic Over Time</span>
+                </div>
+                <div class="chart-placeholder">
+                    <span>📈</span>
+                    <p style="color: #888;">Chart visualization coming soon</p>
+                    <p style="color: #666; font-size: 0.8rem;">Connect to a time-series database for historical data</p>
+                </div>
+            </div>
+            
+            <div class="panel">
+                <div class="panel-title">
+                    <span>🎯 Service Status</span>
+                </div>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Service</th>
+                                <th>Port</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="services-status">
+                            <tr><td colspan="3" style="text-align: center; color: #666;">Loading...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+    
+    <script>
+        function updateTime() {
+            const now = new Date();
+            document.getElementById('current-time').textContent = now.toLocaleTimeString();
+        }
+        setInterval(updateTime, 1000);
+        updateTime();
+        
+        async function refreshMetrics() {
+            try {
+                // Fetch metrics from landing service
+                const metricsRes = await fetch('/metrics');
+                if (metricsRes.ok) {
+                    const metrics = await metricsRes.json();
+                    
+                    // Update top paths
+                    const topPathsEl = document.getElementById('top-paths');
+                    if (metrics.topPaths && metrics.topPaths.length > 0) {
+                        const total = metrics.topPaths.reduce((sum, p) => sum + p[1], 0);
+                        topPathsEl.innerHTML = metrics.topPaths.slice(0, 10).map(([path, count]) => `
+                            <tr>
+                                <td><code>${path}</code></td>
+                                <td>${count}</td>
+                                <td>${((count/total)*100).toFixed(1)}%</td>
+                            </tr>
+                        `).join('');
+                    }
+                    
+                    // Update top UAs
+                    const topUAsEl = document.getElementById('top-uas');
+                    if (metrics.topUAs && metrics.topUAs.length > 0) {
+                        topUAsEl.innerHTML = metrics.topUAs.slice(0, 5).map(([ua, count]) => `
+                            <tr>
+                                <td style="max-width: 400px; overflow: hidden; text-overflow: ellipsis;">${ua.substring(0, 80)}...</td>
+                                <td>${count}</td>
+                            </tr>
+                        `).join('');
+                    }
+                }
+                
+                // Fetch admin status
+                const statusRes = await fetch('/admin/status');
+                if (statusRes.ok) {
+                    const status = await statusRes.json();
+                    
+                    // Update metric cards
+                    document.getElementById('total-requests').textContent = status.metrics?.requests || 0;
+                    document.getElementById('uptime').textContent = formatUptime(status.metrics?.uptime || 0);
+                    
+                    if (status.metrics?.memory) {
+                        document.getElementById('memory-usage').textContent = (status.metrics.memory.rss / 1024 / 1024).toFixed(1);
+                        document.getElementById('heap-usage').textContent = (status.metrics.memory.heapUsed / 1024 / 1024).toFixed(1);
+                    }
+                    
+                    // Update services
+                    const servicesEl = document.getElementById('services-status');
+                    if (status.services && status.services.length > 0) {
+                        servicesEl.innerHTML = status.services.map(s => `
+                            <tr>
+                                <td>${s.name}</td>
+                                <td>${s.port || '-'}</td>
+                                <td style="color: ${s.status === 'online' ? '#00ff41' : '#ff4444'}; font-weight: bold;">${s.status.toUpperCase()}</td>
+                            </tr>
+                        `).join('');
+                    }
+                }
+            } catch (error) {
+                console.error('Failed to refresh metrics:', error);
+            }
+        }
+        
+        function formatUptime(seconds) {
+            const h = Math.floor(seconds / 3600);
+            const m = Math.floor((seconds % 3600) / 60);
+            const s = Math.floor(seconds % 60);
+            return `${h}h ${m}m ${s}s`;
+        }
+        
+        // Initial load and auto-refresh
+        refreshMetrics();
+        setInterval(refreshMetrics, 30000);
+    </script>
+</body>
+</html>

@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git stash:*)",
+      "Bash(git checkout:*)",
+      "Bash(git pull:*)",
+      "Bash(git worktree remove:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Bash(pip show:*)",
+      "WebFetch(domain:gitlab.com)",
+      "Bash(pnpm build:*)",
+      "Bash(pnpm lint:*)"
+    ]
+  }
+}
