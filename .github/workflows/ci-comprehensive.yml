@@ -137,6 +137,8 @@ jobs:
           pnpm --filter @tiltcheck/analytics build
           pnpm --filter @tiltcheck/shared build
           pnpm --filter @tiltcheck/event-router build
+          pnpm --filter @tiltcheck/event-types build
+          pnpm --filter @tiltcheck/trust-score-types build
           pnpm --filter @tiltcheck/pricing-oracle build
           echo "Building extended packages..."
           pnpm --filter @tiltcheck/ai-client build
@@ -188,6 +190,16 @@ jobs:
         run: pnpm install --frozen-lockfile --no-link-workspace-packages
         env:
           PUPPETEER_SKIP_DOWNLOAD: 'true'
+
+      - name: Build workspace packages
+        run: |
+          pnpm --filter @tiltcheck/types build
+          pnpm --filter @tiltcheck/config build
+          pnpm --filter @tiltcheck/esm-utils build
+          pnpm --filter @tiltcheck/event-router build
+          pnpm --filter @tiltcheck/event-types build
+          pnpm --filter @tiltcheck/trust-score-types build
+          pnpm -r --filter './modules/**' --filter './packages/**' --if-present build
 
       - name: Run tests
         run: pnpm test
