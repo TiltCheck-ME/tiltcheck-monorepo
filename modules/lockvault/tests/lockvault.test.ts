@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { vaultManager } from '../src/vault-manager.js';
-import { eventRouter } from '../../../services/event-router/src/event-router.js';
+import { eventRouter } from '@tiltcheck/event-router';
 
 // Helper to count events of a type
 function countEvents(type: string) {
