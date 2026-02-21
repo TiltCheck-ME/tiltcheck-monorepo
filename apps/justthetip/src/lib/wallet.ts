@@ -71,8 +71,8 @@ export async function isWalletConnected(): Promise<boolean> {
  */
 export async function getConnectedWalletAddress(): Promise<string | null> {
   try {
-    const metadata = await magic.user.getMetadata();
-    return metadata.publicAddress || null;
+    const metadata = await magic.user.getInfo();
+    return metadata.wallets?.solana?.publicAddress || null;
   } catch {
     return null;
   }
