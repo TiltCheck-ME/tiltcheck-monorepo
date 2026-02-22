@@ -90,4 +90,9 @@ export {
 } from './ltc-bridge.js';
 export type { LtcDepositRequest, LtcSwapQuote, LtcDepositStatus, LtcOutputToken } from './ltc-bridge.js';
 
-console.log('[JustTheTip] Module loaded - Non-custodial tipping ready');
+// Credit system exports (custodial model)
+export { CreditManager, FLAT_FEE_LAMPORTS, MIN_DEPOSIT_LAMPORTS } from './credit-manager.js';
+export { DepositMonitor } from './deposit-monitor.js';
+export { AutoRefundScheduler } from './auto-refund.js';
+
+console.log('[JustTheTip] Module loaded - Non-custodial + custodial tipping ready');
