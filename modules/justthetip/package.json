@@ -14,6 +14,7 @@
     "@solana/spl-token": "^0.4.9",
     "@solana/web3.js": "^1.95.8",
     "@tiltcheck/config": "workspace:*",
+    "@tiltcheck/database": "workspace:*",
     "@tiltcheck/event-router": "workspace:*",
     "@tiltcheck/natural-language-parser": "workspace:*",
     "@tiltcheck/pricing-oracle": "workspace:*",

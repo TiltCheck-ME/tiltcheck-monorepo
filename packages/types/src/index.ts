@@ -595,7 +595,13 @@ export type EventType =
   | 'fairness.cluster.detected'
   | 'prize.created'
   | 'prize.distributed'
-  | 'prize.failed';
+  | 'prize.failed'
+  | 'credit.deposited'
+  | 'credit.tip_sent'
+  | 'credit.airdrop_sent'
+  | 'credit.withdrawn'
+  | 'credit.refunded'
+  | 'credit.pending_tip_created';
 
 export interface TiltCheckEvent<T = any> {
   id: string;

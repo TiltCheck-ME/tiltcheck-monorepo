@@ -65,6 +65,45 @@ export interface UserPreferences {
   updated_at: string;
 }
 
+export interface CreditBalance {
+  discord_id: string;
+  balance_lamports: number;
+  wallet_address: string | null;
+  last_activity_at: string;
+  refund_mode: 'reset-on-activity' | 'hard-expiry';
+  hard_expiry_at: string | null;
+  inactivity_days: number;
+  total_deposited_lamports: number;
+  total_withdrawn_lamports: number;
+  total_tipped_lamports: number;
+  total_fees_lamports: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CreditTransaction {
+  id: string;
+  discord_id: string;
+  type: string;
+  amount_lamports: number;
+  balance_after_lamports: number;
+  counterparty_id: string | null;
+  on_chain_signature: string | null;
+  memo: string | null;
+  created_at: string;
+}
+
+export interface PendingTip {
+  id: string;
+  sender_id: string;
+  recipient_id: string;
+  amount_lamports: number;
+  fee_lamports: number;
+  expires_at: string;
+  status: 'pending' | 'claimed' | 'refunded' | 'expired';
+  created_at: string;
+}
+
 export interface DegenIdentity {
   discord_id: string;
   magic_address: string | null;
@@ -557,6 +596,248 @@ export class DatabaseClient {
       .eq('discord_id', discordId);
 
     return newSavings;
+  }
+
+  // ============================================================
+  // Credit System Methods
+  // ============================================================
+
+  async creditBalance(
+    discordId: string,
+    amountLamports: number,
+    type: string,
+    opts?: { memo?: string; counterpartyId?: string; signature?: string }
+  ): Promise<{ newBalance: number; txId: string } | null> {
+    if (!this.supabase) return null;
+
+    const { data, error } = await this.supabase.rpc('credit_balance', {
+      p_discord_id: discordId,
+      p_amount: amountLamports,
+      p_type: type,
+      p_memo: opts?.memo ?? null,
+      p_counterparty_id: opts?.counterpartyId ?? null,
+      p_signature: opts?.signature ?? null,
+    });
+
+    if (error) {
+      console.error('[DB] Error crediting balance:', error);
+      return null;
+    }
+
+    const row = Array.isArray(data) ? data[0] : data;
+    return { newBalance: row.new_balance, txId: row.tx_id };
+  }
+
+  async debitBalance(
+    discordId: string,
+    amountLamports: number,
+    type: string,
+    opts?: { memo?: string; counterpartyId?: string; signature?: string }
+  ): Promise<{ newBalance: number; txId: string } | null> {
+    if (!this.supabase) return null;
+
+    const { data, error } = await this.supabase.rpc('debit_balance', {
+      p_discord_id: discordId,
+      p_amount: amountLamports,
+      p_type: type,
+      p_memo: opts?.memo ?? null,
+      p_counterparty_id: opts?.counterpartyId ?? null,
+      p_signature: opts?.signature ?? null,
+    });
+
+    if (error) {
+      console.error('[DB] Error debiting balance:', error);
+      return null;
+    }
+
+    const row = Array.isArray(data) ? data[0] : data;
+    return { newBalance: row.new_balance, txId: row.tx_id };
+  }
+
+  async getCreditBalance(discordId: string): Promise<CreditBalance | null> {
+    if (!this.supabase) return null;
+
+    const { data, error } = await this.supabase
+      .from('credit_balances')
+      .select('*')
+      .eq('discord_id', discordId)
+      .single();
+
+    if (error && error.code !== 'PGRST116') {
+      console.error('[DB] Error fetching credit balance:', error);
+      return null;
+    }
+
+    return data as CreditBalance | null;
+  }
+
+  async registerCreditWallet(discordId: string, walletAddress: string): Promise<boolean> {
+    if (!this.supabase) return false;
+
+    const { error } = await this.supabase
+      .from('credit_balances')
+      .upsert({
+        discord_id: discordId,
+        wallet_address: walletAddress,
+        last_activity_at: new Date().toISOString(),
+      }, { onConflict: 'discord_id' });
+
+    if (error) {
+      console.error('[DB] Error registering credit wallet:', error);
+      return false;
+    }
+    return true;
+  }
+
+  async updateRefundSettings(
+    discordId: string,
+    settings: { refundMode?: string; hardExpiryAt?: string | null; inactivityDays?: number }
+  ): Promise<boolean> {
+    if (!this.supabase) return false;
+
+    const update: Record<string, any> = {};
+    if (settings.refundMode !== undefined) update.refund_mode = settings.refundMode;
+    if (settings.hardExpiryAt !== undefined) update.hard_expiry_at = settings.hardExpiryAt;
+    if (settings.inactivityDays !== undefined) update.inactivity_days = settings.inactivityDays;
+
+    const { error } = await this.supabase
+      .from('credit_balances')
+      .update(update)
+      .eq('discord_id', discordId);
+
+    if (error) {
+      console.error('[DB] Error updating refund settings:', error);
+      return false;
+    }
+    return true;
+  }
+
+  async getCreditTransactions(discordId: string, limit: number = 20): Promise<CreditTransaction[]> {
+    if (!this.supabase) return [];
+
+    const { data, error } = await this.supabase
+      .from('credit_transactions')
+      .select('*')
+      .eq('discord_id', discordId)
+      .order('created_at', { ascending: false })
+      .limit(limit);
+
+    if (error) {
+      console.error('[DB] Error fetching credit transactions:', error);
+      return [];
+    }
+
+    return data as CreditTransaction[];
+  }
+
+  async getStaleBalances(thresholdMs: number): Promise<CreditBalance[]> {
+    if (!this.supabase) return [];
+
+    const cutoff = new Date(Date.now() - thresholdMs).toISOString();
+
+    const { data, error } = await this.supabase
+      .from('credit_balances')
+      .select('*')
+      .gt('balance_lamports', 0)
+      .lt('last_activity_at', cutoff);
+
+    if (error) {
+      console.error('[DB] Error fetching stale balances:', error);
+      return [];
+    }
+
+    return data as CreditBalance[];
+  }
+
+  async createPendingTip(tip: {
+    senderId: string;
+    recipientId: string;
+    amountLamports: number;
+    feeLamports: number;
+    expiresAt: string;
+  }): Promise<PendingTip | null> {
+    if (!this.supabase) return null;
+
+    const { data, error } = await this.supabase
+      .from('pending_tips')
+      .insert({
+        sender_id: tip.senderId,
+        recipient_id: tip.recipientId,
+        amount_lamports: tip.amountLamports,
+        fee_lamports: tip.feeLamports,
+        expires_at: tip.expiresAt,
+      })
+      .select()
+      .single();
+
+    if (error) {
+      console.error('[DB] Error creating pending tip:', error);
+      return null;
+    }
+    return data as PendingTip;
+  }
+
+  async getPendingTipsForRecipient(recipientId: string): Promise<PendingTip[]> {
+    if (!this.supabase) return [];
+
+    const { data, error } = await this.supabase
+      .from('pending_tips')
+      .select('*')
+      .eq('recipient_id', recipientId)
+      .eq('status', 'pending');
+
+    if (error) {
+      console.error('[DB] Error fetching pending tips:', error);
+      return [];
+    }
+    return data as PendingTip[];
+  }
+
+  async claimPendingTip(tipId: string): Promise<boolean> {
+    if (!this.supabase) return false;
+
+    const { error } = await this.supabase
+      .from('pending_tips')
+      .update({ status: 'claimed' })
+      .eq('id', tipId)
+      .eq('status', 'pending');
+
+    if (error) {
+      console.error('[DB] Error claiming pending tip:', error);
+      return false;
+    }
+    return true;
+  }
+
+  async getExpiredPendingTips(): Promise<PendingTip[]> {
+    if (!this.supabase) return [];
+
+    const { data, error } = await this.supabase
+      .from('pending_tips')
+      .select('*')
+      .eq('status', 'pending')
+      .lt('expires_at', new Date().toISOString());
+
+    if (error) {
+      console.error('[DB] Error fetching expired tips:', error);
+      return [];
+    }
+    return data as PendingTip[];
+  }
+
+  async markPendingTipRefunded(tipId: string): Promise<boolean> {
+    if (!this.supabase) return false;
+
+    const { error } = await this.supabase
+      .from('pending_tips')
+      .update({ status: 'refunded' })
+      .eq('id', tipId);
+
+    if (error) {
+      console.error('[DB] Error marking tip refunded:', error);
+      return false;
+    }
+    return true;
   }
 
   /**

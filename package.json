@@ -12,6 +12,7 @@
   },
   "scripts": {
     "dev": "pnpm --parallel --recursive dev",
+    "dev:bots": "pnpm --parallel --filter @tiltcheck/discord-bot --filter @tiltcheck/dad-bot --filter @tiltcheck/justthetip-bot dev",
     "build": "pnpm -r --filter !. build",
     "build:ordered": "bash scripts/ordered-build.sh",
     "build:legacy": "pnpm -r --workspace-concurrency=1 build",
@@ -40,6 +41,7 @@
     "audit:images": "node scripts/audit-images.js",
     "audit:a11y:landing": "node scripts/a11y-regression-landing.js",
     "ci:landing": "vitest --run landing-image-integration.test.ts && pnpm audit:images && pnpm audit:a11y:landing",
+    "ci:validate": "node scripts/validate-and-fix-ci.cjs",
     "optimize:images": "node scripts/optimize-images.js",
     "lighthouse:landing": "node scripts/run-lighthouse.js",
     "build:search-index": "node scripts/build-search-index.js",

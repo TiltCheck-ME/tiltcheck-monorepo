@@ -642,6 +642,67 @@ importers:
         specifier: ^5.3.0
         version: 5.9.3
 
+  apps/justthetip-bot:
+    dependencies:
+      '@solana/web3.js':
+        specifier: ^1.95.0
+        version: 1.98.4(bufferutil@4.1.0)(encoding@0.1.13)(typescript@5.9.3)(utf-8-validate@5.0.10)
+      '@tiltcheck/config':
+        specifier: workspace:*
+        version: link:../../packages/config
+      '@tiltcheck/database':
+        specifier: workspace:*
+        version: link:../../packages/database
+      '@tiltcheck/discord-utils':
+        specifier: workspace:*
+        version: link:../../packages/discord-utils
+      '@tiltcheck/esm-utils':
+        specifier: workspace:*
+        version: link:../../packages/esm-utils
+      '@tiltcheck/event-router':
+        specifier: workspace:*
+        version: link:../../packages/event-router
+      '@tiltcheck/justthetip':
+        specifier: workspace:*
+        version: link:../../modules/justthetip
+      '@tiltcheck/lockvault':
+        specifier: workspace:*
+        version: link:../../modules/lockvault
+      '@tiltcheck/natural-language-parser':
+        specifier: workspace:*
+        version: link:../../packages/natural-language-parser
+      '@tiltcheck/pricing-oracle':
+        specifier: workspace:*
+        version: link:../pricing-oracle
+      '@tiltcheck/tiltcheck-core':
+        specifier: workspace:*
+        version: link:../../modules/tiltcheck-core
+      '@tiltcheck/types':
+        specifier: workspace:*
+        version: link:../../packages/types
+      '@tiltcheck/walletcheck':
+        specifier: workspace:*
+        version: link:../../modules/walletcheck
+      bs58:
+        specifier: ^6.0.0
+        version: 6.0.0
+      discord.js:
+        specifier: ^14.14.1
+        version: 14.25.1(bufferutil@4.1.0)(utf-8-validate@5.0.10)
+      dotenv:
+        specifier: ^16.3.1
+        version: 16.6.1
+    devDependencies:
+      '@types/node':
+        specifier: ^25.2.3
+        version: 25.3.0
+      tsx:
+        specifier: ^4.7.0
+        version: 4.21.0
+      typescript:
+        specifier: ^5.3.0
+        version: 5.9.3
+
   apps/pricing-oracle:
     dependencies:
       '@tiltcheck/event-router':
@@ -885,6 +946,9 @@ importers:
       '@tiltcheck/config':
         specifier: workspace:*
         version: link:../../packages/config
+      '@tiltcheck/database':
+        specifier: workspace:*
+        version: link:../../packages/database
       '@tiltcheck/event-router':
         specifier: workspace:*
         version: link:../../packages/event-router

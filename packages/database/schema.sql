@@ -335,7 +335,266 @@ CREATE INDEX IF NOT EXISTS idx_subscriptions_stripe_id ON subscriptions(stripe_s
 CREATE INDEX IF NOT EXISTS idx_subscriptions_customer_id ON subscriptions(stripe_customer_id);
 
 -- Trigger for subscriptions updated_at
-CREATE TRIGGER update_subscriptions_updated_at 
-  BEFORE UPDATE ON subscriptions 
-  FOR EACH ROW 
+CREATE TRIGGER update_subscriptions_updated_at
+  BEFORE UPDATE ON subscriptions
+  FOR EACH ROW
   EXECUTE FUNCTION update_updated_at_column();
+
+-- Beta Signups Table
+-- Stores beta program registrations from the web signup form
+CREATE TABLE IF NOT EXISTS beta_signups (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  email TEXT NOT NULL UNIQUE,
+  discord_username TEXT,
+  interests TEXT[],
+  experience_level TEXT,
+  feedback_preference TEXT,
+  referral_source TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL
+);
+
+-- Indexes for beta_signups
+CREATE INDEX IF NOT EXISTS idx_beta_signups_created ON beta_signups(created_at DESC);
+
+-- RLS for beta_signups
+ALTER TABLE beta_signups ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Anon can insert beta_signups"
+  ON beta_signups FOR INSERT
+  WITH CHECK (true);
+
+CREATE POLICY "Service role can read beta_signups"
+  ON beta_signups FOR SELECT
+  USING (auth.role() = 'service_role');
+
+-- Vault Analytics Table
+-- Lightweight anonymous usage analytics for the Auto-Vault userscript (opt-in only)
+CREATE TABLE IF NOT EXISTS vault_analytics (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  event TEXT NOT NULL CHECK (event IN ('start', 'stop')),
+  script_version TEXT NOT NULL,
+  site_domain TEXT NOT NULL,
+  created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL
+);
+
+-- Indexes for vault_analytics
+CREATE INDEX IF NOT EXISTS idx_vault_analytics_event ON vault_analytics(event);
+CREATE INDEX IF NOT EXISTS idx_vault_analytics_created ON vault_analytics(created_at DESC);
+
+-- RLS for vault_analytics
+ALTER TABLE vault_analytics ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Anon can insert vault_analytics"
+  ON vault_analytics FOR INSERT
+  WITH CHECK (true);
+
+CREATE POLICY "Service role can read vault_analytics"
+  ON vault_analytics FOR SELECT
+  USING (auth.role() = 'service_role');
+
+-- ============================================================
+-- JustTheTip Credit System Tables
+-- Custodial credit balance model for low-friction tipping
+-- ============================================================
+
+-- Credit Balances — one row per user
+CREATE TABLE IF NOT EXISTS credit_balances (
+  discord_id TEXT PRIMARY KEY,
+  balance_lamports BIGINT DEFAULT 0 NOT NULL CHECK (balance_lamports >= 0),
+  wallet_address TEXT,
+  last_activity_at TIMESTAMPTZ DEFAULT NOW() NOT NULL,
+  refund_mode TEXT DEFAULT 'reset-on-activity' NOT NULL CHECK (refund_mode IN ('reset-on-activity', 'hard-expiry')),
+  hard_expiry_at TIMESTAMPTZ,
+  inactivity_days INTEGER DEFAULT 7 NOT NULL,
+  total_deposited_lamports BIGINT DEFAULT 0 NOT NULL,
+  total_withdrawn_lamports BIGINT DEFAULT 0 NOT NULL,
+  total_tipped_lamports BIGINT DEFAULT 0 NOT NULL,
+  total_fees_lamports BIGINT DEFAULT 0 NOT NULL,
+  created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL,
+  updated_at TIMESTAMPTZ DEFAULT NOW() NOT NULL
+);
+
+-- Indexes for credit_balances
+CREATE INDEX IF NOT EXISTS idx_credit_balances_last_activity ON credit_balances(last_activity_at);
+CREATE INDEX IF NOT EXISTS idx_credit_balances_wallet ON credit_balances(wallet_address);
+
+-- Trigger for credit_balances updated_at
+CREATE TRIGGER update_credit_balances_updated_at
+  BEFORE UPDATE ON credit_balances
+  FOR EACH ROW
+  EXECUTE FUNCTION update_updated_at_column();
+
+-- RLS for credit_balances
+ALTER TABLE credit_balances ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Public read access for credit_balances"
+  ON credit_balances FOR SELECT
+  USING (true);
+
+CREATE POLICY "Service role can insert credit_balances"
+  ON credit_balances FOR INSERT
+  WITH CHECK (auth.role() = 'service_role');
+
+CREATE POLICY "Service role can update credit_balances"
+  ON credit_balances FOR UPDATE
+  USING (auth.role() = 'service_role');
+
+-- Credit Transactions — immutable audit log
+CREATE TABLE IF NOT EXISTS credit_transactions (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  discord_id TEXT NOT NULL,
+  type TEXT NOT NULL CHECK (type IN (
+    'deposit', 'tip_send', 'tip_receive', 'airdrop_send', 'airdrop_receive',
+    'withdraw', 'refund', 'fee', 'pending_hold', 'pending_release', 'pending_refund'
+  )),
+  amount_lamports BIGINT NOT NULL,
+  balance_after_lamports BIGINT NOT NULL,
+  counterparty_id TEXT,
+  on_chain_signature TEXT,
+  memo TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL
+);
+
+-- Indexes for credit_transactions
+CREATE INDEX IF NOT EXISTS idx_credit_tx_discord_id ON credit_transactions(discord_id);
+CREATE INDEX IF NOT EXISTS idx_credit_tx_type ON credit_transactions(type);
+CREATE INDEX IF NOT EXISTS idx_credit_tx_created ON credit_transactions(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_credit_tx_signature ON credit_transactions(on_chain_signature);
+
+-- RLS for credit_transactions
+ALTER TABLE credit_transactions ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Public read access for credit_transactions"
+  ON credit_transactions FOR SELECT
+  USING (true);
+
+CREATE POLICY "Service role can insert credit_transactions"
+  ON credit_transactions FOR INSERT
+  WITH CHECK (auth.role() = 'service_role');
+
+-- Pending Tips — tips held for walletless recipients
+CREATE TABLE IF NOT EXISTS pending_tips (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  sender_id TEXT NOT NULL,
+  recipient_id TEXT NOT NULL,
+  amount_lamports BIGINT NOT NULL,
+  fee_lamports BIGINT DEFAULT 0 NOT NULL,
+  expires_at TIMESTAMPTZ NOT NULL,
+  status TEXT DEFAULT 'pending' NOT NULL CHECK (status IN ('pending', 'claimed', 'refunded', 'expired')),
+  created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL
+);
+
+-- Indexes for pending_tips
+CREATE INDEX IF NOT EXISTS idx_pending_tips_recipient ON pending_tips(recipient_id);
+CREATE INDEX IF NOT EXISTS idx_pending_tips_sender ON pending_tips(sender_id);
+CREATE INDEX IF NOT EXISTS idx_pending_tips_status ON pending_tips(status);
+CREATE INDEX IF NOT EXISTS idx_pending_tips_expires ON pending_tips(expires_at);
+
+-- RLS for pending_tips
+ALTER TABLE pending_tips ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Public read access for pending_tips"
+  ON pending_tips FOR SELECT
+  USING (true);
+
+CREATE POLICY "Service role can insert pending_tips"
+  ON pending_tips FOR INSERT
+  WITH CHECK (auth.role() = 'service_role');
+
+CREATE POLICY "Service role can update pending_tips"
+  ON pending_tips FOR UPDATE
+  USING (auth.role() = 'service_role');
+
+-- ============================================================
+-- Atomic RPC Functions for Credit System
+-- ============================================================
+
+-- credit_balance: atomically upsert balance and log transaction
+CREATE OR REPLACE FUNCTION credit_balance(
+  p_discord_id TEXT,
+  p_amount BIGINT,
+  p_type TEXT,
+  p_memo TEXT DEFAULT NULL,
+  p_counterparty_id TEXT DEFAULT NULL,
+  p_signature TEXT DEFAULT NULL
+) RETURNS TABLE (new_balance BIGINT, tx_id UUID) AS $$
+DECLARE
+  v_balance BIGINT;
+  v_tx_id UUID;
+BEGIN
+  -- Upsert credit balance with row lock
+  INSERT INTO credit_balances (discord_id, balance_lamports, last_activity_at)
+  VALUES (p_discord_id, p_amount, NOW())
+  ON CONFLICT (discord_id) DO UPDATE SET
+    balance_lamports = credit_balances.balance_lamports + p_amount,
+    last_activity_at = NOW()
+  RETURNING balance_lamports INTO v_balance;
+
+  -- Update lifetime stats based on type
+  IF p_type = 'deposit' THEN
+    UPDATE credit_balances SET total_deposited_lamports = total_deposited_lamports + p_amount WHERE discord_id = p_discord_id;
+  ELSIF p_type = 'tip_receive' OR p_type = 'airdrop_receive' OR p_type = 'pending_release' THEN
+    -- No lifetime stat for receives (tracked on sender side)
+    NULL;
+  END IF;
+
+  -- Log the transaction
+  INSERT INTO credit_transactions (discord_id, type, amount_lamports, balance_after_lamports, counterparty_id, on_chain_signature, memo)
+  VALUES (p_discord_id, p_type, p_amount, v_balance, p_counterparty_id, p_signature, p_memo)
+  RETURNING id INTO v_tx_id;
+
+  RETURN QUERY SELECT v_balance, v_tx_id;
+END;
+$$ LANGUAGE plpgsql;
+
+-- debit_balance: atomically deduct balance with sufficient-funds check
+CREATE OR REPLACE FUNCTION debit_balance(
+  p_discord_id TEXT,
+  p_amount BIGINT,
+  p_type TEXT,
+  p_memo TEXT DEFAULT NULL,
+  p_counterparty_id TEXT DEFAULT NULL,
+  p_signature TEXT DEFAULT NULL
+) RETURNS TABLE (new_balance BIGINT, tx_id UUID) AS $$
+DECLARE
+  v_balance BIGINT;
+  v_tx_id UUID;
+BEGIN
+  -- Lock the row and check balance
+  SELECT balance_lamports INTO v_balance
+  FROM credit_balances
+  WHERE discord_id = p_discord_id
+  FOR UPDATE;
+
+  IF NOT FOUND THEN
+    RAISE EXCEPTION 'No credit balance found for user %', p_discord_id;
+  END IF;
+
+  IF v_balance < p_amount THEN
+    RAISE EXCEPTION 'Insufficient balance: have % lamports, need %', v_balance, p_amount;
+  END IF;
+
+  -- Deduct
+  v_balance := v_balance - p_amount;
+  UPDATE credit_balances SET
+    balance_lamports = v_balance,
+    last_activity_at = NOW()
+  WHERE discord_id = p_discord_id;
+
+  -- Update lifetime stats based on type
+  IF p_type = 'tip_send' OR p_type = 'airdrop_send' THEN
+    UPDATE credit_balances SET total_tipped_lamports = total_tipped_lamports + p_amount WHERE discord_id = p_discord_id;
+  ELSIF p_type = 'withdraw' OR p_type = 'refund' THEN
+    UPDATE credit_balances SET total_withdrawn_lamports = total_withdrawn_lamports + p_amount WHERE discord_id = p_discord_id;
+  ELSIF p_type = 'fee' THEN
+    UPDATE credit_balances SET total_fees_lamports = total_fees_lamports + p_amount WHERE discord_id = p_discord_id;
+  END IF;
+
+  -- Log the transaction (negative amount for debits)
+  INSERT INTO credit_transactions (discord_id, type, amount_lamports, balance_after_lamports, counterparty_id, on_chain_signature, memo)
+  VALUES (p_discord_id, p_type, -p_amount, v_balance, p_counterparty_id, p_signature, p_memo)
+  RETURNING id INTO v_tx_id;
+
+  RETURN QUERY SELECT v_balance, v_tx_id;
+END;
+$$ LANGUAGE plpgsql;
