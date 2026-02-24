@@ -6,8 +6,7 @@
 
 import dotenv from 'dotenv';
 import path from 'path';
-import { dirname } from '@tiltcheck/esm-utils';
-import { 
+import {
   getEnvVar, 
   getDiscordToken, 
   getBoolEnv, 
@@ -15,11 +14,14 @@ import {
   DISCORD_TOKEN_ENV_VARS 
 } from '@tiltcheck/config';
 
-// Emulate __dirname in ESM via shared utility
-const __dirname = dirname(import.meta.url);
+// Use process.cwd() for .env resolution (works in both monorepo and bundled deploys)
+const rootDir = process.env.TILTCHECK_ROOT || process.cwd();
 
-// Load .env file relative to project root (one level up)
-dotenv.config({ path: path.join(__dirname, '../.env') });
+// Load .env.local first (preferred for local dev), then .env as fallback
+dotenv.config({ path: path.resolve(rootDir, 'apps/dad-bot/.env.local') });
+dotenv.config({ path: path.resolve(rootDir, 'apps/dad-bot/.env') });
+dotenv.config({ path: path.resolve(rootDir, '.env.local') });
+dotenv.config({ path: path.resolve(rootDir, '.env') });
 
 export interface ModNotificationConfig {
   /** Channel ID for mod notifications */

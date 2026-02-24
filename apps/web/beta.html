@@ -6,6 +6,7 @@
   <title>Join TiltCheck Beta - Get Early Access</title>
   <meta name="description" content="Sign up for TiltCheck beta and help shape the future of responsible gambling tools. Get early access to features, provide feedback, and earn rewards.">
   <link rel="stylesheet" href="/styles/main.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
   <style>
     :root {
       --gradient-primary: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
@@ -512,7 +513,18 @@
         <div class="success-message" id="success-message">
           <div class="icon">🎉</div>
           <h3>You're In!</h3>
-          <p>Check your email for next steps. Join our Discord for immediate access to beta channels.</p>
+          <p>Welcome to the beta! Follow the steps below to get started with Auto-Vault.</p>
+
+          <div style="text-align: left; margin: 20px 0; padding: 20px; background: rgba(255,255,255,0.03); border: 1px solid var(--border-subtle); border-radius: 12px;">
+            <h4 style="margin-bottom: 12px;">Get Started with Auto-Vault</h4>
+            <ol style="list-style: decimal; padding-left: 20px; color: var(--text-secondary); line-height: 2;">
+              <li>Install <a href="https://www.tampermonkey.net/" target="_blank" style="color: #6366f1;">Tampermonkey</a> for your browser</li>
+              <li><a href="https://raw.githubusercontent.com/TiltCheck-ME/tiltcheck-monorepo/main/TiltCheck-Auto-Vault.user.js" style="color: #6366f1;">Click here to install the Auto-Vault userscript</a></li>
+              <li>Visit Stake and the TiltCheck widget will appear in the top-right corner</li>
+              <li>Configure your vault percentage and click <strong style="color: var(--text-primary);">Start</strong></li>
+            </ol>
+          </div>
+
           <a href="https://discord.gg/tiltcheck" class="discord-btn" style="display: inline-flex;">
             Join Discord Server
           </a>
@@ -553,43 +565,44 @@
   </footer>
 
   <script>
+    // Supabase client — anon key is safe to expose (RLS restricts to INSERT only)
+    const SUPABASE_URL = 'https://your-project.supabase.co'; // TODO: replace with actual project URL
+    const SUPABASE_ANON_KEY = 'your-anon-key'; // TODO: replace with actual anon key
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
     // Handle form submission
     document.getElementById('beta-form').addEventListener('submit', async (e) => {
       e.preventDefault();
-      
+
       const btn = document.getElementById('submit-btn');
       btn.disabled = true;
       btn.textContent = 'Signing up...';
 
       const formData = new FormData(e.target);
-      const data = {
+      const row = {
         email: formData.get('email'),
-        discord: formData.get('discord'),
+        discord_username: formData.get('discord') || null,
         interests: formData.getAll('interests'),
-        experience: formData.get('experience'),
-        feedbackStyle: formData.get('feedback-style'),
-        referrer: document.referrer,
-        source: new URLSearchParams(window.location.search).get('ref') || 'direct',
+        experience_level: formData.get('experience') || null,
+        feedback_preference: formData.get('feedback-style') || null,
+        referral_source: new URLSearchParams(window.location.search).get('ref') || 'direct',
       };
 
       try {
-        const response = await fetch('/api/beta/signup', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(data),
-        });
+        const { error } = await supabase.from('beta_signups').insert(row);
 
-        if (response.ok) {
-          document.getElementById('beta-form').style.display = 'none';
-          document.getElementById('success-message').classList.add('show');
-          
-          // Track signup
-          if (window.tiltcheckAnalytics) {
-            window.tiltcheckAnalytics.trackEvent('beta_signup', data);
+        if (error) {
+          if (error.code === '23505') {
+            // Unique constraint on email — treat as success (already signed up)
+            document.getElementById('beta-form').style.display = 'none';
+            document.getElementById('success-message').classList.add('show');
+            return;
           }
-        } else {
-          throw new Error('Signup failed');
+          throw error;
         }
+
+        document.getElementById('beta-form').style.display = 'none';
+        document.getElementById('success-message').classList.add('show');
       } catch (error) {
         alert('Something went wrong. Please try again or join via Discord.');
         btn.disabled = false;
@@ -618,38 +631,6 @@
     }, 50);
   </script>
 
-  <!-- Analytics -->
-  <script>
-    // Initialize TiltCheck Analytics
-    (function() {
-      window.tiltcheckAnalytics = {
-        trackEvent: function(type, data) {
-          fetch('/api/analytics', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              events: [{
-                id: 'evt_' + Date.now(),
-                type: type,
-                timestamp: Date.now(),
-                sessionId: sessionStorage.getItem('tc_session') || (sessionStorage.setItem('tc_session', 'sess_' + Date.now()) || sessionStorage.getItem('tc_session')),
-                page: window.location.pathname,
-                data: data
-              }],
-              siteId: 'tiltcheck'
-            })
-          }).catch(() => {});
-        }
-      };
-      
-      // Track page view
-      window.tiltcheckAnalytics.trackEvent('pageview', {
-        path: window.location.pathname,
-        referrer: document.referrer,
-        title: document.title
-      });
-    })();
-  </script>
   <script src="/scripts/auth.js"></script>
 </body>
 </html>
