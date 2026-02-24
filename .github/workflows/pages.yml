@@ -1,11 +1,16 @@
-name: Deploy TiltCheck Pages to GitHub Pages
-# Deploys all static HTML pages from wordpress-export to tiltcheck.me
+name: Deploy Static Site to GitHub Pages
+# Deploys apps/web (static HTML) to tiltcheck.me via GitHub Pages
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
+    paths:
+      - 'apps/web/**'
+      - '.github/workflows/pages.yml'
   pull_request:
-    branches: [ main ]
+    branches: [main]
+    paths:
+      - 'apps/web/**'
   workflow_dispatch:
 
 jobs:
@@ -19,54 +24,20 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Verify required directories and files
+      - name: Verify static site exists
         run: |
-          if [ ! -d "wordpress-export" ]; then
-            echo "Warning: wordpress-export directory not found, skipping static pages"
+          if [ ! -f "apps/web/index.html" ]; then
+            echo "❌ apps/web/index.html not found"
+            exit 1
           fi
-          if [ -d "wordpress-export" ] && [ ! -f "wordpress-export/CNAME" ]; then
-            echo "Warning: CNAME file not found in wordpress-export"
-          fi
-          if [ ! -d "docs/tiltcheck" ]; then
-            echo "Warning: docs/tiltcheck directory not found, skipping docs copy"
-          fi
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v6
-        with:
-          node-version: '20'
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 10.0.0
-
-      - name: Install dependencies
-        run: pnpm install --no-frozen-lockfile
-
-      - name: Build Auto-Claimer web frontend
-        run: |
-          cd apps/web
-          pnpm build
-          cd ../..
-        continue-on-error: true  # Don't fail deployment if auto-claimer build fails
+          echo "✅ Static site found"
+          echo "Pages: $(find apps/web -name '*.html' | wc -l) HTML files"
 
       - name: Prepare out directory
         run: |
           mkdir -p out
-          if [ -d "wordpress-export" ]; then
-            rsync -av --delete wordpress-export/ out/
-          fi
-          mkdir -p out/docs-md
-          if [ -d "docs/tiltcheck" ]; then
-            rsync -av docs/tiltcheck/ out/docs-md/
-          fi
-          # Add Auto-Claimer web app if build succeeded
-          if [ -d "apps/web/dist" ]; then
-            mkdir -p out/auto-claimer
-            rsync -av apps/web/dist/ out/auto-claimer/
-          fi
-          echo "Build artifacts prepared"
+          rsync -av --exclude='node_modules' --exclude='package.json' apps/web/ out/
+          echo "✅ Copied $(find out -name '*.html' | wc -l) HTML files to out/"
 
       - name: Publish to gh-pages
         if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'

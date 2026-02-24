@@ -16,6 +16,8 @@
 // @match        https://stake.us/*
 // @match        https://stake.pet/*
 // @run-at       document-end
+// @downloadURL  https://raw.githubusercontent.com/TiltCheck-ME/tiltcheck-monorepo/main/TiltCheck-Auto-Vault.user.js
+// @updateURL    https://raw.githubusercontent.com/TiltCheck-ME/tiltcheck-monorepo/main/TiltCheck-Auto-Vault.user.js
 // @namespace    TiltCheck Auto-Vault
 // ==/UserScript==
 
@@ -64,7 +66,8 @@
             saveAmount: 0.1,
             bigWinThreshold: 5,
             bigWinMultiplier: 3,
-            checkInterval: 90000
+            checkInterval: 90000,
+            analyticsOptIn: false
         };
     }
 
@@ -77,6 +80,32 @@
     var BIG_WIN_THRESHOLD = config.bigWinThreshold;
     var BIG_WIN_MULTIPLIER = config.bigWinMultiplier;
     var CHECK_INTERVAL = config.checkInterval;
+
+    // --- Analytics (opt-in, default OFF) ---
+    var SUPABASE_URL = 'https://your-project.supabase.co'; // TODO: replace with actual project URL
+    var SUPABASE_ANON_KEY = 'your-anon-key'; // TODO: replace with actual anon key
+    var SCRIPT_VERSION = '1.0';
+
+    function sendAnalyticsPing(event) {
+        if (!config.analyticsOptIn) return;
+        try {
+            fetch(SUPABASE_URL + '/rest/v1/vault_analytics', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'apikey': SUPABASE_ANON_KEY,
+                    'Authorization': 'Bearer ' + SUPABASE_ANON_KEY
+                },
+                body: JSON.stringify({
+                    event: event,
+                    script_version: SCRIPT_VERSION,
+                    site_domain: hostname
+                })
+            });
+        } catch (e) {
+            // Silent fail — analytics should never break the script
+        }
+    }
 
     // --- Site detection ---
     var hostname = window.location.hostname;
@@ -808,6 +837,10 @@
             + '  <span class="tc-label">Check Interval (sec)</span>'
             + '  <input type="number" id="vaultCheckInterval" min="10" step="1" value="' + params.checkInterval + '">'
             + '</div>'
+            + '<div class="tc-row">'
+            + '  <span class="tc-label">Share anonymous stats</span>'
+            + '  <input type="checkbox" id="vaultAnalyticsOptIn"' + (config.analyticsOptIn ? ' checked' : '') + ' style="accent-color:' + BRAND.colors.primary + '; width:16px; height:16px; cursor:pointer;">'
+            + '</div>'
             + '<div class="tc-btn-row">'
             + '  <button class="tc-btn primary" id="vaultStartBtn">Start</button>'
             + '  <button class="tc-btn danger" id="vaultStopBtn" disabled>Stop</button>'
@@ -996,6 +1029,10 @@
             if (isNaN(v) || v < 10) v = 10;
             setParams({checkInterval: v});
             this.value = v;
+        };
+        content.querySelector('#vaultAnalyticsOptIn').onchange = function() {
+            config.analyticsOptIn = this.checked;
+            saveConfig(config);
         };
 
         document.body.appendChild(widget);
@@ -1230,6 +1267,7 @@
         if (running) return;
         isScriptInitialized = true;
         running = true;
+        sendAnalyticsPing('start');
         logActivity(pickFlavor(FLAVOR.start), 'success');
         logActivity('Watching ' + getCurrency().toUpperCase() + ' on ' + (isStakeUS ? 'Stake.us' : 'Stake.com'), 'info');
         if (!vaultDisplay) vaultDisplay = new VaultDisplay();
@@ -1257,6 +1295,7 @@
     }
     function stopVaultScript() {
         if (!running) return;
+        sendAnalyticsPing('stop');
         running = false;
         isScriptInitialized = false;
         if (vaultInterval) clearInterval(vaultInterval);

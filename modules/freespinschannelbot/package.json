@@ -2,6 +2,7 @@
   "name": "@tiltcheck/freespinschannelbot",
   "version": "1.0.0",
   "description": "Free spins channel bot with trust event formatting",
+  "type": "module",
   "main": "dist/trust-consumer.js",
   "types": "dist/trust-consumer.d.ts",
   "scripts": {
