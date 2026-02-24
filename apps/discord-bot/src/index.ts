@@ -20,6 +20,8 @@ import {
 } from './handlers/index.js';
 import { initializeAlertService } from './services/alert-service.js';
 import { TrustAlertsHandler } from './handlers/trust-alerts-handler.js';
+import { ensureTelemetryIndex } from './services/elastic-telemetry.js';
+import { startTiltAgentLoop } from './services/tilt-agent.js';
 
 // Import modules to initialize them
 // import '@tiltcheck/suslink';
@@ -74,6 +76,26 @@ async function main() {
   console.log('💾 [Tilt] Initializing tilt events handler...');
   initializeTiltEventsHandler();
   console.log('✅ [Tilt] Tilt events handler ready\n');
+
+  // Elastic: ensure index mapping exists (no-op when ELASTIC_URL is unset)
+  console.log('📡 [Elastic] Ensuring telemetry index...');
+  await ensureTelemetryIndex();
+  console.log('✅ [Elastic] Telemetry index ready\n');
+
+  // Start the 5-minute tilt agent scan loop
+  console.log('🤖 [TiltAgent] Starting background scan loop...');
+  startTiltAgentLoop(async (userId, message, severity) => {
+    // Send a DM to the user via Discord
+    try {
+      const user = await client.users.fetch(userId);
+      const emoji = severity === 'high' ? '🛑' : severity === 'medium' ? '⚠️' : '👀';
+      await user.send(`${emoji} **TiltCheck Intervention**\n\n${message}`);
+      console.log(`[TiltAgent] 📨 Intervention DM sent to ${userId} (${severity})`);
+    } catch (err) {
+      console.error(`[TiltAgent] Failed to DM user ${userId}:`, err);
+    }
+  });
+  console.log('✅ [TiltAgent] Scan loop active\n');
 
   // Register DM handler for natural language assistance
   console.log('💬 [DM] Registering direct message handler...');

@@ -62,7 +62,8 @@
       "Bash(echo:*)",
       "Bash(for f in /c/Users/jmeni/tiltcheck-monorepo/apps/*/package.json)",
       "Bash(pnpm turbo:*)",
-      "Bash(cat:*)"
+      "Bash(cat:*)",
+      "Bash(node scripts/seed-elastic-demo.mjs:*)"
     ]
   }
 }

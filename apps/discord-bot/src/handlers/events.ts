@@ -13,6 +13,8 @@ import { config } from '../config.js';
 import type { CommandHandler } from './commands.js';
 import { checkAndOnboard, handleOnboardingInteraction, needsOnboarding } from './onboarding.js';
 import type { TiltCheckEvent } from '@tiltcheck/types';
+import { trackMessageEvent, trackCommandEvent } from '../services/elastic-telemetry.js';
+import { markUserActive } from '../services/tilt-agent.js';
 
 export class EventHandler {
   private modNotifier: ModNotifier;
@@ -93,6 +95,15 @@ export class EventHandler {
         return;
       }
 
+      // Track command usage in Elastic
+      trackCommandEvent({
+        userId: interaction.user.id,
+        guildId: interaction.guildId ?? undefined,
+        commandName: interaction.commandName,
+        isDM: !interaction.guildId,
+      });
+      markUserActive(interaction.user.id);
+
       try {
         await command.execute(interaction);
         console.log(
@@ -121,8 +132,17 @@ export class EventHandler {
     this.client.on(Events.MessageCreate, async (message) => {
       if (message.author.bot) return;
 
-      // Track message for tilt detection
+      // Track message for tilt detection (existing core)
       trackMessage(message.author.id, message.content, message.channelId);
+
+      // Stream to Elastic telemetry
+      trackMessageEvent({
+        userId: message.author.id,
+        guildId: message.guildId ?? undefined,
+        channelId: message.channelId,
+        isDM: !message.guildId,
+      });
+      markUserActive(message.author.id);
 
       /*
       if (config.suslinkAutoScan) {

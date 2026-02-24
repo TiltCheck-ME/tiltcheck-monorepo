@@ -6,6 +6,7 @@
  */
 
 import { eventRouter } from '@tiltcheck/event-router';
+import { trackTiltDetected } from '../services/elastic-telemetry.js';
 
 const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:3000';
 
@@ -47,6 +48,13 @@ export function initializeTiltEventsHandler(): void {
         if (result.success) {
           console.log(`[TiltHandler] 📊 Tilt event stored for user ${tiltData.userId} (score: ${tiltData.tiltScore})`);
         }
+
+        // Mirror to Elastic telemetry index
+        await trackTiltDetected({
+          userId: tiltData.userId,
+          tiltScore: tiltData.tiltScore ?? 0,
+          signals: tiltData.signals ?? [],
+        });
       } catch (error) {
         console.error('[TiltHandler] Error posting tilt event to backend:', error);
       }
