@@ -1,92 +1,129 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 
+interface ServiceStatus {
+  name: string;
+  status: 'online' | 'degraded' | 'offline' | 'checking';
+  latency?: number;
+  detail?: string;
+}
+
+const statusDot: Record<string, string> = {
+  online: '#4CAF50', degraded: '#FFC107', offline: '#ef4444', checking: '#6B7280',
+};
+const statusLabel: Record<string, string> = {
+  online: 'ONLINE', degraded: 'DEGRADED', offline: 'OFFLINE', checking: 'CHECKING...',
+};
+
 export default function SystemHealthPage() {
+  const [services, setServices] = useState<ServiceStatus[]>([
+    { name: 'Dashboard API', status: 'checking' },
+    { name: 'Casino Data API', status: 'checking' },
+    { name: 'QualifyFirst Service', status: 'checking' },
+    { name: 'Control Room', status: 'checking' },
+  ]);
+  const [lastChecked, setLastChecked] = useState('');
+  const [checking, setChecking] = useState(false);
+
+  const checkHealth = async () => {
+    setChecking(true);
+    const checks: ServiceStatus[] = [];
+
+    try {
+      const t = Date.now();
+      const res = await fetch('/api/health');
+      const data = await res.json();
+      checks.push({ name: 'Dashboard API', status: res.ok ? 'online' : 'degraded', latency: Date.now() - t, detail: data.version ? `v${data.version}` : undefined });
+    } catch { checks.push({ name: 'Dashboard API', status: 'offline', detail: 'Unreachable' }); }
+
+    try {
+      const t = Date.now();
+      const res = await fetch('/api/bonus');
+      checks.push({ name: 'Casino Data API', status: res.ok ? 'online' : 'degraded', latency: Date.now() - t, detail: res.ok ? 'Serving data' : `HTTP ${res.status}` });
+    } catch { checks.push({ name: 'Casino Data API', status: 'offline', detail: 'Unreachable' }); }
+
+    try {
+      const t = Date.now();
+      const res = await fetch('/api/qualify');
+      checks.push({ name: 'QualifyFirst Service', status: res.ok ? 'online' : 'degraded', latency: Date.now() - t, detail: res.ok ? 'Survey matching active' : `HTTP ${res.status}` });
+    } catch { checks.push({ name: 'QualifyFirst Service', status: 'offline', detail: 'Unreachable' }); }
+
+    try {
+      const t = Date.now();
+      await fetch('http://localhost:3001/', { mode: 'no-cors' });
+      checks.push({ name: 'Control Room', status: 'online', latency: Date.now() - t, detail: 'Port 3001 reachable' });
+    } catch { checks.push({ name: 'Control Room', status: 'offline', detail: 'Port 3001 unreachable' }); }
+
+    setServices(checks);
+    setLastChecked(new Date().toLocaleTimeString());
+    setChecking(false);
+  };
+
+  useEffect(() => { checkHealth(); }, []);
+
+  const allOnline = services.every(s => s.status === 'online');
+  const anyOffline = services.some(s => s.status === 'offline');
+  const overallColor = anyOffline ? '#ef4444' : allOnline ? '#00FFC6' : '#FFC107';
+  const overallLabel = anyOffline ? 'DEGRADED' : allOnline ? 'ALL SYSTEMS GO' : 'CHECKING';
+
   return (
-    <main className="min-h-screen p-8 bg-gradient-to-br from-slate-900 to-slate-800">
-      <div className="max-w-4xl mx-auto">
-        {/* Breadcrumb */}
-        <div className="mb-6 text-slate-400">
-          <Link href="/dashboard" className="hover:text-white">
-            Dashboard
-          </Link>
-          <span className="mx-2">/</span>
-          <span className="text-white">System Health</span>
-        </div>
+    <main className="min-h-screen bg-[#0E0E0F] pt-12 pb-20">
+      <div className="container mx-auto px-6 max-w-4xl">
+        <header className="mb-12">
+          <Link href="/" className="text-[#00FFC6] text-xs font-bold tracking-widest hover:underline mb-4 inline-block">← RETURN TO HUB</Link>
+          <h1 className="text-4xl md:text-5xl font-black font-space text-white tracking-tight mb-2">SYSTEM HEALTH</h1>
+          <p className="text-[#6B7280]">Live status of all TiltCheck services</p>
+        </header>
 
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-white mb-2">❤️ System Health</h1>
-          <p className="text-slate-400">Monitor service status and system performance</p>
-          <p className="text-slate-500 text-sm mt-2">(Admin role required)</p>
-        </div>
-
-        {/* Coming Soon Card */}
-        <div className="bg-gradient-to-br from-green-900/40 to-emerald-900/40 rounded-lg p-12 text-center border border-slate-700 mb-8">
-          <div className="text-6xl mb-4">🔨</div>
-          <h2 className="text-2xl font-semibold text-white mb-2">Feature in Development</h2>
-          <p className="text-slate-300 mb-6">
-            The system health dashboard is being built. This will show real-time monitoring of all TiltCheck services,
-            API uptime, database status, and performance metrics.
-          </p>
-          <div className="flex gap-4 justify-center">
-            <Link
-              href="/dashboard"
-              className="px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors"
-            >
-              ← Back to Dashboard
-            </Link>
-            <a
-              href="https://github.com/jmenichole/tiltcheck-monorepo"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="px-6 py-3 bg-slate-700 text-white font-semibold rounded-lg hover:bg-slate-600 transition-colors"
-            >
-              View on GitHub
-            </a>
+        {/* Overall banner */}
+        <div className="bg-[#1A1F24] rounded-xl border p-6 mb-8 flex items-center justify-between"
+          style={{ borderColor: `${overallColor}40` }}>
+          <div className="flex items-center gap-4">
+            <span className="w-4 h-4 rounded-full animate-pulse" style={{ backgroundColor: overallColor }} />
+            <span className="text-2xl font-black font-space" style={{ color: overallColor }}>{overallLabel}</span>
+          </div>
+          <div className="text-right text-xs text-[#6B7280]">
+            {lastChecked && <div>Last checked: {lastChecked}</div>}
+            <button onClick={checkHealth} disabled={checking}
+              className="mt-1 text-[#00FFC6] font-bold hover:underline disabled:opacity-50">
+              {checking ? 'CHECKING...' : 'REFRESH'}
+            </button>
           </div>
         </div>
 
-        {/* Info Sections */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="bg-slate-800 rounded-lg p-6 border border-slate-700">
-            <h3 className="text-lg font-semibold text-white mb-3 flex items-center gap-2">
-              <span>📊</span> Monitored Services
-            </h3>
-            <ul className="text-slate-400 space-y-2">
-              <li>• Frontend (Vercel CDN)</li>
-              <li>• Backend API (Railway)</li>
-              <li>• Database (Supabase)</li>
-              <li>• Discord Bot (Railway)</li>
-              <li>• Cache layer (Redis)</li>
-            </ul>
-          </div>
-
-          <div className="bg-slate-800 rounded-lg p-6 border border-slate-700">
-            <h3 className="text-lg font-semibold text-white mb-3 flex items-center gap-2">
-              <span>📈</span> Metrics Tracked
-            </h3>
-            <ul className="text-slate-400 space-y-2">
-              <li>• API response times</li>
-              <li>• Error rates</li>
-              <li>• Database connections</li>
-              <li>• Memory usage</li>
-              <li>• Uptime percentage</li>
-            </ul>
-          </div>
+        {/* Service cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+          {services.map(svc => (
+            <div key={svc.name} className="bg-[#1A1F24] rounded-xl border border-[#00FFC6]/10 p-6 flex items-center justify-between">
+              <div>
+                <div className="text-xs font-bold tracking-widest text-[#6B7280] mb-1">SERVICE</div>
+                <div className="text-white font-black font-space text-lg">{svc.name}</div>
+                {svc.detail && <div className="text-xs text-[#6B7280] mt-1">{svc.detail}</div>}
+              </div>
+              <div className="text-right">
+                <div className="flex items-center gap-2 justify-end mb-1">
+                  <span className="w-2 h-2 rounded-full" style={{ backgroundColor: statusDot[svc.status] }} />
+                  <span className="text-xs font-bold" style={{ color: statusDot[svc.status] }}>{statusLabel[svc.status]}</span>
+                </div>
+                {svc.latency !== undefined && <div className="text-xs text-[#6B7280]">{svc.latency}ms</div>}
+              </div>
+            </div>
+          ))}
         </div>
 
-        {/* Current Status (Placeholder) */}
-        <div className="mt-8 bg-slate-800 rounded-lg p-6 border border-slate-700">
-          <h3 className="text-lg font-semibold text-white mb-4">Live Status</h3>
-          <p className="text-slate-400 text-sm mb-4">Status dashboard will appear here once the feature is deployed.</p>
-          <a
-            href="/admin/status"
-            className="text-blue-400 hover:text-blue-300 underline"
-          >
-            View Current Public Status →
-          </a>
+        {/* Port map */}
+        <div className="bg-[#1A1F24] rounded-xl border border-[#00FFC6]/10 p-8">
+          <h2 className="text-xs font-bold tracking-[0.2em] text-[#6B7280] mb-6 uppercase">Port Map</h2>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+            {[['Dashboard','3000'],['Control Room','3001'],['QualifyFirst','3003'],['Casino API','6002']].map(([label, port]) => (
+              <div key={port} className="bg-[#0E0E0F] rounded-lg p-4 border border-[#00FFC6]/5">
+                <div className="text-[#00FFC6] font-black font-space text-xl mb-1">:{port}</div>
+                <div className="text-[#6B7280] text-xs font-bold tracking-widest">{label}</div>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     </main>
