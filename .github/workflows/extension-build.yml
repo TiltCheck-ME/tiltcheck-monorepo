@@ -57,7 +57,7 @@ jobs:
           ls -lh tiltcheck-extension.zip
 
       - name: Upload extension artifact
-        uses: actions/upload-artifact@v4.4.3
+        uses: actions/upload-artifact@v6
         with:
           name: chrome-extension-package
           path: apps/chrome-extension/tiltcheck-extension.zip
@@ -70,7 +70,7 @@ jobs:
           cat extension-hash.txt
 
       - name: Upload hash
-        uses: actions/upload-artifact@v4.4.3
+        uses: actions/upload-artifact@v6
         with:
           name: extension-hash
           path: apps/chrome-extension/extension-hash.txt

@@ -267,21 +267,21 @@ jobs:
           key: ${{ runner.os }}-build-${{ github.sha }}
 
       - name: Upload Discord Bot build artifacts
-        uses: actions/upload-artifact@v4.4.3
+        uses: actions/upload-artifact@v6
         with:
           name: discord-bot-build
           path: apps/discord-bot/dist
           retention-days: 7
 
       - name: Upload API build artifacts
-        uses: actions/upload-artifact@v4.4.3
+        uses: actions/upload-artifact@v6
         with:
           name: api-build
           path: apps/api/dist
           retention-days: 7
 
       - name: Upload Dashboard build artifacts
-        uses: actions/upload-artifact@v4.4.3
+        uses: actions/upload-artifact@v6
         with:
           name: dashboard-build
           path: apps/dashboard/dist
@@ -330,7 +330,7 @@ jobs:
         run: pnpm audit --json > audit-report.json || true
 
       - name: Upload audit report
-        uses: actions/upload-artifact@v4.4.3
+        uses: actions/upload-artifact@v6
         with:
           name: security-audit-report
           path: audit-report.json
@@ -379,7 +379,7 @@ jobs:
         run: pnpm -r outdated --format json > outdated-report.json || true
 
       - name: Upload outdated report
-        uses: actions/upload-artifact@v4.4.3
+        uses: actions/upload-artifact@v6
         with:
           name: outdated-dependencies
           path: outdated-report.json
@@ -392,7 +392,7 @@ jobs:
           cat duplicates.txt
 
       - name: Upload duplicates report
-        uses: actions/upload-artifact@v4.4.3
+        uses: actions/upload-artifact@v6
         with:
           name: duplicate-dependencies
           path: duplicates.txt
