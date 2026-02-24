@@ -3,6 +3,22 @@ node_modules/
 .pnpm-store/
 package-lock.json
 
+# Archives & exports
+*.zip
+*.tar.gz
+*.tar
+*.gz
+
+# Text files (allow known docs explicitly)
+*.txt
+!**/README.txt
+
+# AI chat logs and exports
+*chat-export*
+*conversation-export*
+claude-export*
+chatgpt-export*
+
 # Environment
 .env
 .env.local
