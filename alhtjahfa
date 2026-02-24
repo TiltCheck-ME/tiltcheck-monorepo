@@ -1,0 +1,141 @@
+Next steps — on the server:
+
+  1. Push your local commits to remote (if you haven't already):        
+  git push origin main
+  2. SSH into your server and clone/pull the repo:
+  cd /home/jme
+  git clone https://gitlab.com/jmenichole1/tiltcheck-monorepo.git       
+  cd tiltcheck-monorepo
+  3. Install deps and build:
+  npm install -g pnpm pm2
+  pnpm install
+  pnpm --filter @tiltcheck/dashboard build
+  pnpm --filter @tiltcheck/casino-data-api build
+  4. Copy static site to Apache:
+  cp -r apps/web/* /home/jme/public_html/
+  5. Create .env files for apps that need secrets (control-room needs   
+  Discord OAuth keys at minimum)
+  6. Start everything with PM2:
+  pm2 start ecosystem.config.cjs
+  pm2 save
+  pm2 startup
+  7. Set up Virtualmin reverse proxy rules as laid out earlierOn the server, for each app run:                                                                                                        
+  cp apps/dashboard/.env.example apps/dashboard/.env.local              
+  cp apps/control-room/.env.example apps/control-room/.env
+  cp apps/casino-api/.env.example apps/casino-api/.env                    cp apps/qualifyfirst-service/.env.example                             
+  apps/qualifyfirst-service/.env
+
+  Then fill in the real values. The one that needs the most attention is
+   control-room — you'll need to go to the
+  https://discord.com/developers/applications, create an OAuth2 app, and
+   grab DISCORD_CLIENT_ID and DISCORD_CLIENT_SECRET. Also generate real 
+  secrets:
+
+  openssl rand -hex 32  # use output for SESSION_SECRET
+  openssl rand -hex 32  # use output for CASINO_API_KEY /
+  TILTCHECK_API_KEY  Task List
+                                                                          
+  3. Create apps/api-gateway (the RGaaS pivot)
+  - Unified Express router that exposes SusLink, Trust Score, and Casino
+   data to 3rd-party devs
+  - Route api.tiltcheck.me to it on the VPS
+
+  4. Connect QualifyFirst AI layer
+  - Currently uses deterministic heuristics
+  - Wire in OpenAI via the existing apps/ai-gateway for survey matching 
+  suggestions
+
+  5. Trust Engines real-time data ingestion
+  - trust-rollup has the scaffold (casino-source-provider.ts already    
+  fetches)
+  - Need to verify the actual data pipeline is wired end-to-end
+This is exactly the clarity we needed. With these answers, we can now map out the precise architecture and logic flows for each module.
+
+Here is the finalized blueprint for your ecosystem. You can use this as your definitive guide when building out each feature.
+
+---
+
+### 1. 🪙 JustTheTip (Tipping & Swaps)
+
+* **The Logic Flow:** 1. User types `/tip @username 10 USDC` in Discord.
+2. Bot checks the user's non-custodial Magic.link wallet balance.
+3. Bot executes the transfer. It routes `10 USDC` to `@username` and routes the `[Flat Fee Amount]` to your environment variable `TREASURY_WALLET_ADDRESS`.
+* **Web UI Verdict:** **Yes, a Web UI is highly recommended.** While tipping happens in Discord, users *hate* managing private keys, viewing transaction history, or adjusting swap slippage via Discord commands. Your `apps/dashboard` should have a "Wallet" tab where users log in via Discord to view their balances, export their keys securely, and see their tip history.
+
+### 2. 🔗 SusLink (AI Link Scanner)
+
+* **The Logic Flow:**
+1. **Listener:** Bot reads every message in the server. If it contains a `http/https` regex, it intercepts it.
+2. **Scan:** URL is passed to the AI/Scanner API.
+3. **Action (If Scam):**
+* Bot instantly `message.delete()`.
+* Bot sends a rich embed to the `#mod-logs` channel showing who posted it and the malicious URL (in a non-clickable code block).
+* Bot updates the user's profile in your Supabase database: `scam_strikes += 1`.
+* **Penalty Check:** If `scam_strikes >= 3`, the bot automatically assigns the Discord role `[Scam Risk]` (which you should configure in Discord to revoke image/link posting permissions).
+
+
+
+
+
+### 3. ⏰ CollectClock (Bonus Tracker)
+
+* **The Architecture:** You need a dedicated background worker (`services/scrapers`).
+* **The Logic Flow:**
+1. A Node.js script uses the Twitter API and Telegram API (or lightweight scrapers) to constantly listen to official Casino channels (e.g., Stake, Rollbit).
+2. When a new post matches promo keywords, it extracts the code.
+3. It checks your database to ensure it hasn't been posted yet.
+4. It pushes a formatted embed to your Discord `#bonus-drops` channel.
+
+
+
+### 4. 📋 QualifyFirst (AI Survey Router)
+
+* **The AI Model Solution:** Since you need free/cheap, you should use **Google Gemini 1.5 Flash** (has a very generous free tier) or **Groq / Llama 3** (blazing fast and incredibly cheap). Avoid OpenAI (GPT-4) for this, as it will eat your budget instantly.
+* **The Logic Flow:**
+1. **Onboarding:** Users log into your Web Dashboard and fill out a demographic profile (Age, Location, Gaming Habits). This saves to your Supabase DB.
+2. **Ingestion:** A new survey arrives with criteria (e.g., "Males, 25-34, play slots").
+3. **Matching:** The AI quickly cross-references the survey criteria against your database of user profiles.
+4. **Routing:** The bot DMs only the highly-matched users: *"New survey available, 95% match, guaranteed not to screen out."*
+
+
+
+### 5. 🏛️ Casino Trust Engine
+
+* **The Logic Flow (Statistic Mismatches):**
+1. You build a simple scraper to pull the "Claimed RTP" (Return to Player) from casino websites.
+2. You use your Discord bot (and eventually the DA&D game or web dashboard) to allow users to log their session results (Deposit vs. Cashout).
+3. **The Math:** The engine aggregates community data. If a casino claims a 98% RTP, but 500 logged community sessions show an actual return of 62%, the Trust Engine detects the "mismatch."
+4. The Casino's Trust Score drops, and the bot issues a warning when users mention that casino.
+
+
+
+### 6. 🧠 TiltCheck Core (Behavioral Risk)
+
+* **The Architecture:** This requires monitoring three separate data streams:
+1. **Discord Chat Stream:** Bot listens for high-tilt sentiment keywords: *"rinsed", "busted", "scam", "0 balance", "chasing"*.
+2. **On-Chain Stream:** Your backend monitors the user's connected wallet address. If it detects "Rapid Depos" (e.g., 4 transfers to a known casino hot-wallet in under 30 minutes), it flags it.
+3. **Browser Extension Stream (Phase 2):** Your `tiltcheck-extension` monitors the DOM of casino sites for rapid clicking or aggressively increasing bet sizes.
+
+
+* **The Action:** If the combined "Tilt Score" passes 80/100, the bot intervenes (e.g., DMs the user to take a breath, or triggers Accountabilibuddy to ping their friend).
+
+### 7. 🎮 DA&D (Degens Against Decency)
+
+* **The Architecture:** You are building two frontends with one shared backend.
+* **Web Arena:** A real-time web app using WebSockets (`Socket.io`) inside your `apps/dashboard`. Users can join lobbies, see live card plays, and create private rooms.
+* **Discord Arena:** A text-based, turn-based version using Discord's interactive Buttons and Dropdown menus.
+* *Note:* Keeping them non-cross-platform is smart. The web version is fast-paced; the Discord version is asynchronous.
+* **Timeline:** Keep this strictly in **Phase 3**. Do not build this until tools 1 through 6 are live and generating traffic.
+
+
+
+---
+
+### Your Immediate Next Steps (To-Do List)
+
+Now that the map is clear, here is what you need to do to clean up the repo and start building:
+
+1. **Delete the Bloat:** Go into your repository and delete `deprecated`, `wordpress-export`, all the `.zip` files, and consolidate your 5 `.env` files into one `.env.example`.
+2. **Database Setup:** Go to Supabase, create a project, and build two tables: `users` (for the profile DB / scam strikes) and `transactions` (for the tipping history).
+3. **Start with SusLink:** It's the easiest to finish. Write the Discord message listener, connect it to the DB for the 3-strike rule, and set up the role assignment logic.
+
