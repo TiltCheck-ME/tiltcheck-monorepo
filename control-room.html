@@ -1,0 +1,1499 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TiltCheck Control Room | Admin Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
+            background: #0a0a0a;
+            color: #00ff41;
+            overflow-x: hidden;
+        }
+        
+        .matrix-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            opacity: 0.1;
+            z-index: -1;
+        }
+        
+        .header {
+            background: linear-gradient(45deg, #001100, #002200);
+            border-bottom: 2px solid #00ff41;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 0 20px #00ff4150;
+        }
+        
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            text-shadow: 0 0 10px #00ff41;
+        }
+        
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .status-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #00ff41;
+            animation: pulse 2s infinite;
+            box-shadow: 0 0 10px #00ff41;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+        
+        .main-grid {
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            height: calc(100vh - 80px);
+        }
+        
+        .sidebar {
+            background: #111;
+            border-right: 1px solid #00ff41;
+            padding: 2rem 1rem;
+            overflow-y: auto;
+        }
+        
+        .nav-group {
+            margin-bottom: 2rem;
+        }
+        
+        .nav-title {
+            color: #00ff41;
+            font-size: 0.9rem;
+            font-weight: bold;
+            margin-bottom: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .nav-link {
+            display: block;
+            padding: 0.75rem 1rem;
+            color: #888;
+            text-decoration: none;
+            border-radius: 4px;
+            margin-bottom: 0.5rem;
+            transition: all 0.3s ease;
+            border: 1px solid transparent;
+        }
+        
+        .nav-link:hover, .nav-link.active {
+            background: #002200;
+            color: #00ff41;
+            border-color: #00ff41;
+            box-shadow: 0 0 10px #00ff4130;
+        }
+        
+        .nav-link .status {
+            float: right;
+            font-size: 0.8rem;
+        }
+        
+        .content {
+            padding: 2rem;
+            overflow-y: auto;
+        }
+        
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+        
+        .panel {
+            background: #111;
+            border: 1px solid #00ff41;
+            border-radius: 8px;
+            padding: 1.5rem;
+            box-shadow: 0 0 20px #00ff4120;
+        }
+        
+        .panel-title {
+            color: #00ff41;
+            font-size: 1.1rem;
+            font-weight: bold;
+            margin-bottom: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .panel-content {
+            color: #ccc;
+        }
+        
+        .metric {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #333;
+        }
+        
+        .metric:last-child {
+            border-bottom: none;
+        }
+        
+        .metric-value {
+            color: #00ff41;
+            font-weight: bold;
+        }
+        
+        .service-list {
+            list-style: none;
+        }
+        
+        .service-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.5rem;
+            margin-bottom: 0.5rem;
+            background: #0a0a0a;
+            border-radius: 4px;
+            border-left: 3px solid #00ff41;
+        }
+        
+        .service-status {
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+        
+        .status-online {
+            background: #00ff41;
+            color: #000;
+        }
+        
+        .status-offline {
+            background: #ff4444;
+            color: #fff;
+        }
+        
+        .btn {
+            background: transparent;
+            border: 1px solid #00ff41;
+            color: #00ff41;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            font-family: inherit;
+            font-size: 0.9rem;
+        }
+        
+        .btn:hover {
+            background: #00ff41;
+            color: #000;
+            box-shadow: 0 0 15px #00ff41;
+        }
+        
+        .btn-danger {
+            border-color: #ff4444;
+            color: #ff4444;
+        }
+        
+        .btn-danger:hover {
+            background: #ff4444;
+            color: #fff;
+            box-shadow: 0 0 15px #ff4444;
+        }
+        
+        .terminal {
+            background: #000;
+            border: 1px solid #00ff41;
+            border-radius: 4px;
+            padding: 1rem;
+            margin-top: 1rem;
+            max-height: 300px;
+            overflow-y: auto;
+            font-size: 0.85rem;
+        }
+        
+        .terminal-line {
+            margin-bottom: 0.25rem;
+        }
+        
+        .timestamp {
+            color: #666;
+            margin-right: 0.5rem;
+        }
+        
+        .iframe-container {
+            background: #000;
+            border: 1px solid #00ff41;
+            border-radius: 8px;
+            height: 600px;
+            overflow: hidden;
+        }
+        
+        .iframe-container iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+        
+        /* Site Map Styles */
+        .sitemap-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            height: calc(100vh - 200px);
+            overflow-y: auto;
+        }
+        
+        .sitemap-section {
+            background: #111;
+            border: 1px solid #333;
+            border-radius: 8px;
+            padding: 1rem;
+        }
+        
+        .sitemap-section h3 {
+            color: #00ff41;
+            margin-bottom: 1rem;
+            font-size: 1.1rem;
+            border-bottom: 1px solid #333;
+            padding-bottom: 0.5rem;
+        }
+        
+        .sitemap-tree {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+        
+        .sitemap-tree li {
+            margin-bottom: 0.5rem;
+            position: relative;
+        }
+        
+        .sitemap-tree li::before {
+            content: '├─ ';
+            color: #666;
+            margin-right: 0.5rem;
+        }
+        
+        .sitemap-tree li:last-child::before {
+            content: '└─ ';
+        }
+        
+        .sitemap-link {
+            color: #aaa;
+            text-decoration: none;
+            font-size: 0.9rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+        }
+        
+        .sitemap-link:hover {
+            color: #00ff41;
+            background: #002200;
+            text-decoration: none;
+        }
+        
+        .sitemap-status {
+            font-size: 0.7rem;
+            padding: 2px 6px;
+            border-radius: 3px;
+            margin-left: auto;
+        }
+        
+        .status-live {
+            background: #002200;
+            color: #00ff41;
+            border: 1px solid #00ff41;
+        }
+        
+        .status-dev {
+            background: #332200;
+            color: #ffaa00;
+            border: 1px solid #ffaa00;
+        }
+        
+        .status-broken {
+            background: #330000;
+            color: #ff4444;
+            border: 1px solid #ff4444;
+        }
+        
+        .sitemap-stats {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1rem;
+            margin-bottom: 2rem;
+            padding: 1rem;
+            background: #0a0a0a;
+            border-radius: 8px;
+            border: 1px solid #333;
+        }
+        
+        .stat-item {
+            text-align: center;
+        }
+        
+        .stat-number {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #00ff41;
+            display: block;
+        }
+        
+        .stat-label {
+            font-size: 0.8rem;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .sitemap-search {
+            margin-bottom: 1rem;
+            position: sticky;
+            top: 0;
+            background: #111;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #333;
+        }
+        
+        .sitemap-search input {
+            width: 100%;
+            background: #000;
+            border: 1px solid #00ff41;
+            color: #00ff41;
+            padding: 0.5rem;
+            border-radius: 4px;
+            font-family: inherit;
+        }
+        
+        .sitemap-search input::placeholder {
+            color: #666;
+        }
+        
+        .sitemap-loading {
+            text-align: center;
+            padding: 3rem;
+            color: #666;
+            font-style: italic;
+        }
+        
+        .nested-tree {
+            margin-left: 1.5rem;
+            margin-top: 0.5rem;
+            padding-left: 1rem;
+            border-left: 1px solid #333;
+        }
+    </style>
+</head>
+<body>
+    <div class="matrix-bg" id="matrix"></div>
+    
+    <header class="header">
+        <div class="logo">🎮 TiltCheck Control Room</div>
+        <div class="user-info">
+            <div class="status-dot"></div>
+            <span>jmenichole</span>
+            <span>|</span>
+            <span id="current-time"></span>
+        </div>
+    </header>
+    
+    <div class="main-grid">
+        <nav class="sidebar">
+            <div class="nav-group">
+                <div class="nav-title">🎯 Core Services</div>
+                <a href="#overview" class="nav-link active" onclick="showPanel('overview')">
+                    📊 Overview <span class="status">●</span>
+                </a>
+                <a href="#dashboard" class="nav-link" onclick="showPanel('dashboard')">
+                    📈 Trust Dashboard <span class="status">●</span>
+                </a>
+                <a href="#analyzer" class="nav-link" onclick="showPanel('analyzer')">
+                    🎮 Gameplay Analyzer <span class="status">●</span>
+                </a>
+                <a href="#enhanced" class="nav-link" onclick="showPanel('enhanced')">
+                    🤖 Enhanced Analyzer <span class="status">○</span>
+                </a>
+                <a href="#screen" class="nav-link" onclick="showPanel('screen')">
+                    📸 Screen Analyzer <span class="status">○</span>
+                </a>
+            </div>
+            
+            <div class="nav-group">
+                <div class="nav-title">🔧 Admin Tools</div>
+                <a href="#discord" class="nav-link" onclick="showPanel('discord')">
+                    💬 Discord Bot Control <span class="status">●</span>
+                </a>
+                <a href="#collect-clock" class="nav-link" onclick="showPanel('collect-clock')">
+                    ⏰ Collect Clock Manager <span class="status">●</span>
+                </a>
+                <a href="#justthetip" class="nav-link" onclick="showPanel('justthetip')">
+                    💰 JustTheTip Manager <span class="status">●</span>
+                </a>
+                <a href="#trust-engine" class="nav-link" onclick="showPanel('trust-engine')">
+                    ⚖️ Trust Engine <span class="status">●</span>
+                </a>
+            </div>
+            
+            <div class="nav-group">
+                <div class="nav-title">📊 Monitoring</div>
+                <a href="#logs" class="nav-link" onclick="showPanel('logs')">
+                    📝 System Logs <span class="status">●</span>
+                </a>
+                <a href="#metrics" class="nav-link" onclick="showPanel('metrics')">
+                    📈 Performance Metrics <span class="status">●</span>
+                </a>
+                <a href="#alerts" class="nav-link" onclick="showPanel('alerts')">
+                    🚨 Alerts & Warnings <span class="status">○</span>
+                </a>
+            </div>
+            
+            <div class="nav-group">
+                <div class="nav-title">🌐 External Access</div>
+                <a href="#sitemap" class="nav-link" onclick="showPanel('sitemap')">
+                    🗺️ Site Map <span class="status">●</span>
+                </a>
+                <a href="#public-urls" class="nav-link" onclick="showPanel('public-urls')">
+                    🔗 Public URLs <span class="status">●</span>
+                </a>
+                <a href="#domain-config" class="nav-link" onclick="showPanel('domain-config')">
+                    🌍 Domain Config <span class="status">●</span>
+                </a>
+            </div>
+            
+            <div class="nav-group">
+                <div class="nav-title">📊 Admin Pages</div>
+                <a href="/admin/ecosystem-status" class="nav-link">
+                    📊 Ecosystem Status <span class="status">●</span>
+                </a>
+                <a href="/admin/analytics" class="nav-link">
+                    📈 Analytics <span class="status">●</span>
+                </a>
+            </div>
+        </nav>
+        
+        <main class="content">
+            <!-- Overview Panel -->
+            <div id="overview" class="panel-view">
+                <div class="dashboard-grid">
+                    <div class="panel">
+                        <div class="panel-title">
+                            🎯 System Status
+                            <button class="btn" onclick="refreshStatus()">Refresh</button>
+                        </div>
+                        <div class="panel-content">
+                            <ul class="service-list" id="service-list">
+                                <li class="service-item">
+                                    <span>Discord Bot</span>
+                                    <span class="service-status status-online">ONLINE</span>
+                                </li>
+                                <li class="service-item">
+                                    <span>Trust Dashboard</span>
+                                    <span class="service-status status-online">ONLINE</span>
+                                </li>
+                                <li class="service-item">
+                                    <span>Gameplay Analyzer</span>
+                                    <span class="service-status status-online">ONLINE</span>
+                                </li>
+                                <li class="service-item">
+                                    <span>Trust Rollup</span>
+                                    <span class="service-status status-online">ONLINE</span>
+                                </li>
+                                <li class="service-item">
+                                    <span>Landing Page</span>
+                                    <span class="service-status status-online">ONLINE</span>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <div class="panel">
+                        <div class="panel-title">📊 Real-time Metrics</div>
+                        <div class="panel-content">
+                            <div class="metric">
+                                <span>Active Discord Users</span>
+                                <span class="metric-value">1</span>
+                            </div>
+                            <div class="metric">
+                                <span>Total Commands Today</span>
+                                <span class="metric-value">23</span>
+                            </div>
+                            <div class="metric">
+                                <span>Trust Score Calculations</span>
+                                <span class="metric-value">1.2k</span>
+                            </div>
+                            <div class="metric">
+                                <span>Casinos Tracked</span>
+                                <span class="metric-value">1</span>
+                            </div>
+                            <div class="metric">
+                                <span>Uptime</span>
+                                <span class="metric-value">2h 34m</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="panel">
+                        <div class="panel-title">🔗 Quick Actions</div>
+                        <div class="panel-content" style="display: flex; flex-direction: column; gap: 1rem;">
+                            <button class="btn" onclick="window.open('http://localhost:5055', '_blank')">
+                                📊 Open Trust Dashboard
+                            </button>
+                            <button class="btn" onclick="window.open('http://localhost:7072', '_blank')">
+                                🎮 Open Gameplay Analyzer
+                            </button>
+                            <button class="btn" onclick="window.open('http://localhost:8080', '_blank')">
+                                🏠 Open Landing Page
+                            </button>
+                            <button class="btn btn-danger" onclick="confirmRestart()">
+                                🔄 Restart All Services
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="panel">
+                        <div class="panel-title">📝 Recent Activity</div>
+                        <div class="panel-content">
+                            <div class="terminal">
+                                <div class="terminal-line">
+                                    <span class="timestamp">[23:58:12]</span>
+                                    <span>Discord command: /play crown-coins</span>
+                                </div>
+                                <div class="terminal-line">
+                                    <span class="timestamp">[23:57:45]</span>
+                                    <span>Trust score updated: crown-coins → 78.5</span>
+                                </div>
+                                <div class="terminal-line">
+                                    <span class="timestamp">[23:56:23]</span>
+                                    <span>Casino approved: crowncoins</span>
+                                </div>
+                                <div class="terminal-line">
+                                    <span class="timestamp">[23:55:01]</span>
+                                    <span>PM2 process restarted: discord-bot</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Dashboard Panel -->
+            <div id="dashboard" class="panel-view" style="display: none;">
+                <div class="panel">
+                    <div class="panel-title">
+                        📈 Trust Dashboard
+                        <a href="http://localhost:5055" target="_blank" class="btn">Open in New Tab</a>
+                    </div>
+                    <div class="panel-content">
+                        <div class="iframe-container">
+                            <iframe src="http://localhost:5055"></iframe>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Analyzer Panel -->
+            <div id="analyzer" class="panel-view" style="display: none;">
+                <div class="panel">
+                    <div class="panel-title">
+                        🎮 Gameplay Analyzer
+                        <a href="http://localhost:7072" target="_blank" class="btn">Open in New Tab</a>
+                    </div>
+                    <div class="panel-content">
+                        <div class="iframe-container">
+                            <iframe src="http://localhost:7072"></iframe>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Public URLs Panel -->
+            <div id="public-urls" class="panel-view" style="display: none;">
+                <div class="panel">
+                    <div class="panel-title">🔗 Public URL Configuration</div>
+                    <div class="panel-content">
+                        <div class="metric">
+                            <span>🏠 Homepage</span>
+                            <span class="metric-value">https://tiltcheck.me</span>
+                        </div>
+                        <div class="metric">
+                            <span>📊 Trust Dashboard</span>
+                            <span class="metric-value">https://tiltcheck.me/dashboard/</span>
+                        </div>
+                        <div class="metric">
+                            <span>🎮 Gameplay Analyzer</span>
+                            <span class="metric-value">https://tiltcheck.me/analyzer/</span>
+                        </div>
+                        <div class="metric">
+                            <span>🤖 Enhanced Analyzer</span>
+                            <span class="metric-value">https://tiltcheck.me/enhanced/</span>
+                        </div>
+                        <div class="metric">
+                            <span>📸 Screen Analyzer</span>
+                            <span class="metric-value">https://tiltcheck.me/screen/</span>
+                        </div>
+                        <div class="metric">
+                            <span>⚙️ Trust API</span>
+                            <span class="metric-value">https://tiltcheck.me/trust-api/</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Site Map Panel -->
+            <div id="sitemap" class="panel-view" style="display: none;">
+                <div class="panel">
+                    <div class="panel-title">
+                        🗺️ TiltCheck Ecosystem Site Map
+                        <button class="btn" onclick="refreshSiteMap()">Refresh</button>
+                        <button class="btn" onclick="exportSiteMap()">Export</button>
+                        <button class="btn" onclick="checkAllHealth()">Health Check</button>
+                        <button class="btn" onclick="toggleViewMode()">Toggle View</button>
+                    </div>
+                    <div class="panel-content">
+                        <div id="sitemap-container">
+                            <!-- Site Map will be populated here -->
+                            <div class="sitemap-loading">
+                                Loading site architecture...
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Other panels would go here -->
+            <div id="discord" class="panel-view" style="display: none;">
+                <div class="panel">
+                    <div class="panel-title">💬 Discord Bot Control</div>
+                    <div class="panel-content">
+                        <p>Discord bot management interface coming soon...</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Logs Panel -->
+            <div id="logs" class="panel-view" style="display: none;">
+                <div class="panel">
+                    <div class="panel-title">
+                        📜 Live Server Logs
+                        <button class="btn" onclick="refreshLogs()">Refresh</button>
+                        <button class="btn" onclick="toggleAutoRefresh()">Auto: <span id="auto-status">OFF</span></button>
+                        <select id="log-tail" onchange="refreshLogs()">
+                            <option value="25">Last 25</option>
+                            <option value="50" selected>Last 50</option>
+                            <option value="100">Last 100</option>
+                            <option value="250">Last 250</option>
+                        </select>
+                    </div>
+                    <div class="panel-content">
+                        <div id="logs-container" style="max-height: 600px; overflow-y: auto; font-family: 'Courier New', monospace; font-size: 12px; background: #000; color: #0f0; padding: 10px; border-radius: 4px;">
+                            <div class="logs-loading">Loading logs...</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    
+    <script>
+        // Matrix background effect
+        const canvas = document.createElement('canvas');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        document.getElementById('matrix').appendChild(canvas);
+        
+        const ctx = canvas.getContext('2d');
+        const chars = '01';
+        const fontSize = 14;
+        const columns = canvas.width / fontSize;
+        const drops = [];
+        
+        for (let i = 0; i < columns; i++) {
+            drops[i] = 1;
+        }
+        
+        function drawMatrix() {
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            ctx.fillStyle = '#00ff41';
+            ctx.font = fontSize + 'px monospace';
+            
+            for (let i = 0; i < drops.length; i++) {
+                const text = chars[Math.floor(Math.random() * chars.length)];
+                ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+                
+                if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
+                    drops[i] = 0;
+                }
+                drops[i]++;
+            }
+        }
+        
+        setInterval(drawMatrix, 33);
+        
+        // Update time
+        function updateTime() {
+            const now = new Date();
+            document.getElementById('current-time').textContent = now.toLocaleTimeString();
+        }
+        setInterval(updateTime, 1000);
+        updateTime();
+        
+        // Panel management
+        function showPanel(panelId) {
+            // Hide all panels
+            document.querySelectorAll('.panel-view').forEach(panel => {
+                panel.style.display = 'none';
+            });
+            
+            // Remove active class from all nav links
+            document.querySelectorAll('.nav-link').forEach(link => {
+                link.classList.remove('active');
+            });
+            
+            // Show selected panel
+            document.getElementById(panelId).style.display = 'block';
+            
+            // Add active class to clicked link
+            event.target.classList.add('active');
+        }
+        
+        // Real API integration
+        async function refreshStatus() {
+            try {
+                const key = new URLSearchParams(window.location.search).get('key') || 'tiltcheck-admin-2024';
+                const response = await fetch(`/admin/status?key=${key}`);
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    updateServiceList(data.services);
+                    updateMetrics(data.metrics);
+                } else {
+                    console.error('Failed to fetch status:', response.status);
+                }
+            } catch (error) {
+                console.error('Error fetching status:', error);
+            }
+        }
+        
+        function updateServiceList(services) {
+            const serviceList = document.getElementById('service-list');
+            serviceList.innerHTML = services.map(service => `
+                <li class="service-item">
+                    <span>${service.name}${service.port ? ` :${service.port}` : ''}</span>
+                    <span class="service-status ${service.status === 'online' ? 'status-online' : 'status-offline'}">
+                        ${service.status.toUpperCase()}
+                    </span>
+                </li>
+            `).join('');
+        }
+        
+        function updateMetrics(metrics) {
+            // Update metrics in the overview panel
+            const metricElements = document.querySelectorAll('.metric-value');
+            if (metricElements.length >= 5) {
+                metricElements[2].textContent = metrics.requests || '0';
+                metricElements[4].textContent = formatUptime(metrics.uptime || 0);
+            }
+        }
+        
+        function formatUptime(seconds) {
+            const hours = Math.floor(seconds / 3600);
+            const minutes = Math.floor((seconds % 3600) / 60);
+            return `${hours}h ${minutes}m`;
+        }
+        
+        // Auto-refresh status every 30 seconds
+        setInterval(refreshStatus, 30000);
+        
+        // Initial load
+        setTimeout(refreshStatus, 1000);
+        
+        function confirmRestart() {
+            if (confirm('Are you sure you want to restart all services? This may cause brief downtime.')) {
+                alert('Services restarting... This would normally trigger PM2 restart commands.');
+            }
+        }
+        
+        // Resize canvas on window resize
+        window.addEventListener('resize', () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        });
+        
+        // Site Map Functionality
+        const siteMapData = {
+            stats: {
+                totalPages: 48,
+                livePages: 42,
+                devPages: 4,
+                brokenPages: 2
+            },
+            structure: {
+                'Main Site': {
+                    '/': { title: 'Homepage', status: 'live' },
+                    '/about.html': { title: 'About TiltCheck', status: 'live' },
+                    '/casinos.html': { title: 'Casino Directory', status: 'live' },
+                    '/trust.html': { title: 'Trust Dashboard', status: 'live' },
+                    '/degen-trust.html': { title: 'Degen Trust Engine', status: 'live' },
+                    '/control-room': { title: 'Admin Control Room', status: 'live' }
+                },
+                'Tools Suite': {
+                    '/tools/justthetip.html': { title: 'JustTheTip - Solana Tips', status: 'live' },
+                    '/tools/suslink.html': { title: 'SusLink - URL Scanner', status: 'live' },
+                    '/tools/collectclock.html': { title: 'CollectClock - Time Tracking', status: 'live' },
+                    '/tools/freespinscan.html': { title: 'FreeSpinScan - Bonus Tracker', status: 'live' },
+                    '/tools/tiltcheck-core.html': { title: 'TiltCheck Core', status: 'live' },
+                    '/tools/poker.html': { title: 'Poker Analytics', status: 'dev' },
+                    '/tools/triviadrops.html': { title: 'TriviaDrops - Rewards', status: 'live' },
+                    '/tools/qualifyfirst.html': { title: 'QualifyFirst - Verification', status: 'dev' },
+                    '/tools/daad.html': { title: 'DA&D - Decision Analytics', status: 'live' }
+                },
+                'Trust Dashboard': {
+                    '/dashboard/': { title: 'Main Dashboard', status: 'live' },
+                    '/dashboard/experimental.html': { title: 'Experimental View', status: 'live' },
+                    '/dashboard/components/': { title: 'Component Library', status: 'live' },
+                    '/dashboard/components/trust-panel.html': { title: 'Trust Panel Component', status: 'live' },
+                    '/dashboard/components/logo.html': { title: 'Logo Component', status: 'live' },
+                    '/dashboard/components/transparency-hero.html': { title: 'Transparency Hero', status: 'live' },
+                    '/dashboard/components/ecosystem.html': { title: 'Ecosystem Overview', status: 'live' },
+                    '/dashboard/components/degen-trust-engine.html': { title: 'Trust Engine UI', status: 'live' }
+                },
+                'Documentation': {
+                    '/docs/': { title: 'Documentation Index', status: 'live' },
+                    '/docs/intro.html': { title: 'Introduction', status: 'live' },
+                    '/docs/architecture.html': { title: 'System Architecture', status: 'live' },
+                    '/docs/apis.html': { title: 'API Reference', status: 'live' },
+                    '/docs/discord-bots.html': { title: 'Discord Bot Guide', status: 'live' },
+                    '/docs/render-deployment.html': { title: 'Deployment Guide', status: 'live' },
+                    '/docs/dashboard-design.html': { title: 'Dashboard Design', status: 'live' },
+                    '/docs/dashboard-enhancements.html': { title: 'Dashboard Enhancements', status: 'live' },
+                    '/docs/trust-engines.html': { title: 'Trust Engines', status: 'live' },
+                    '/docs/trust-migration.html': { title: 'Trust Migration', status: 'live' },
+                    '/docs/data-models.html': { title: 'Data Models', status: 'live' },
+                    '/docs/coding-standards.html': { title: 'Coding Standards', status: 'live' },
+                    '/docs/testing-strategy.html': { title: 'Testing Strategy', status: 'live' },
+                    '/docs/brand.html': { title: 'Brand Guidelines', status: 'live' },
+                    '/docs/founder-voice.html': { title: 'Founder Voice & Tone', status: 'live' },
+                    '/docs/system-prompts.html': { title: 'AI System Prompts', status: 'live' },
+                    '/docs/tools-overview.html': { title: 'Tools Overview', status: 'live' },
+                    '/docs/tool-specs-1.html': { title: 'Tool Specs Part 1', status: 'live' },
+                    '/docs/tool-specs-2.html': { title: 'Tool Specs Part 2', status: 'live' },
+                    '/docs/tool-specs-3.html': { title: 'Tool Specs Part 3', status: 'live' },
+                    '/docs/poker-module.html': { title: 'Poker Module', status: 'live' },
+                    '/docs/migration-checklist.html': { title: 'Migration Checklist', status: 'live' },
+                    '/docs/linkguard-integration.html': { title: 'LinkGuard Integration', status: 'live' },
+                    '/docs/components-audits.html': { title: 'Component Audits', status: 'live' },
+                    '/docs/design-prompts.html': { title: 'Design Prompts', status: 'live' },
+                    '/docs/design-prompts-replies.html': { title: 'Design Prompt Replies', status: 'live' },
+                    '/docs/ecosystem-overview.html': { title: 'Ecosystem Overview', status: 'live' },
+                    '/docs/future-roadmap.html': { title: 'Future Roadmap', status: 'live' },
+                    '/docs/diagrams.html': { title: 'System Diagrams', status: 'live' },
+                    '/docs/branch-protection.html': { title: 'Branch Protection', status: 'live' }
+                },
+                'API Endpoints': {
+                    '/api/health': { title: 'Health Check', status: 'live' },
+                    '/api/rollups/latest': { title: 'Latest Trust Rollups', status: 'live' },
+                    '/api/domains': { title: 'Domain Trust Scores', status: 'live' },
+                    '/api/degens': { title: 'User Trust Scores', status: 'live' },
+                    '/api/severity': { title: 'Severity Buckets', status: 'live' },
+                    '/api/evidence/package': { title: 'Evidence Package', status: 'dev' },
+                    '/api/legal-rights/evaluate': { title: 'Legal Rights Heuristic', status: 'dev' },
+                    '/admin/status': { title: 'Admin Status (Protected)', status: 'live' },
+                    '/admin/sitemap': { title: 'Site Map API (Protected)', status: 'live' },
+                    '/user/api/user/:id': { title: 'User Dashboard API', status: 'live' },
+                    '/casino-api/api/casinos': { title: 'Casino Data Collection API', status: 'live' }
+                },
+                'System Status': {
+                    'Discord Bot': { title: 'TiltCheck#8564', status: 'live' },
+                    'Trust Dashboard Service': { title: 'Port 5055', status: 'live' },
+                    'User Dashboard Service': { title: 'Port 6001', status: 'live' },
+                    'Casino Data API': { title: 'Port 6002', status: 'live' },
+                    'Landing Service': { title: 'Port 3000', status: 'live' },
+                    'Gameplay Analyzer': { title: 'Port 7072', status: 'broken' },
+                    'Enhanced Analyzer': { title: 'AI Service', status: 'dev' },
+                    'Screen Analyzer': { title: 'Computer Vision', status: 'broken' },
+                    'Trust Rollup Service': { title: 'Port 8082', status: 'live' },
+                    'Event Router': { title: 'Message Bus', status: 'live' }
+                }
+            }
+        };
+        
+        function refreshSiteMap() {
+            // Try to fetch real-time data from API
+            const key = new URLSearchParams(window.location.search).get('key') || 'tiltcheck-admin-2024';
+            
+            fetch(`/admin/sitemap?key=${key}`)
+                .then(response => {
+                    if (response.ok) {
+                        return response.json();
+                    } else {
+                        throw new Error('API not available');
+                    }
+                })
+                .then(data => {
+                    // Update site map data with real API response
+                    Object.assign(siteMapData, data);
+                    renderSiteMap();
+                    console.log('Site map refreshed from API');
+                })
+                .catch(error => {
+                    // Fallback to static data
+                    console.warn('API unavailable, using static data:', error);
+                    renderSiteMap();
+                });
+        }
+        
+        function exportSiteMap() {
+            // Show export options
+            const format = prompt('Export format:\\n1. txt (default)\\n2. xml (sitemap.xml)\\n3. json\\n4. csv\\n\\nEnter 1, 2, 3, or 4:', '1');
+            
+            let data, filename, mimeType;
+            const timestamp = Date.now();
+            
+            switch(format) {
+                case '2':
+                    data = generateSiteMapXML();
+                    filename = `tiltcheck-sitemap-${timestamp}.xml`;
+                    mimeType = 'text/xml';
+                    break;
+                case '3':
+                    data = JSON.stringify(siteMapData, null, 2);
+                    filename = `tiltcheck-sitemap-${timestamp}.json`;
+                    mimeType = 'application/json';
+                    break;
+                case '4':
+                    data = generateSiteMapCSV();
+                    filename = `tiltcheck-sitemap-${timestamp}.csv`;
+                    mimeType = 'text/csv';
+                    break;
+                default:
+                    data = generateSitemapText();
+                    filename = `tiltcheck-sitemap-${timestamp}.txt`;
+                    mimeType = 'text/plain';
+            }
+            
+            const blob = new Blob([data], { type: mimeType });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+        
+        function generateSiteMapCSV() {
+            let csv = 'Section,Path,Title,Status,Last Checked\\n';
+            
+            Object.entries(siteMapData.structure).forEach(([section, pages]) => {
+                Object.entries(pages).forEach(([path, info]) => {
+                    const lastChecked = info.lastChecked ? new Date(info.lastChecked).toISOString() : 'N/A';
+                    csv += `"${section}","${path}","${info.title}","${info.status}","${lastChecked}"\\n`;
+                });
+            });
+            
+            return csv;
+        }
+        
+        function generateSitemapText() {
+            let text = 'TiltCheck Ecosystem Site Map\\n';
+            text += '================================\\n\\n';
+            text += `Generated: ${new Date().toISOString()}\\n`;
+            text += `Total Pages: ${siteMapData.stats.totalPages}\\n`;
+            text += `Live: ${siteMapData.stats.livePages} | Dev: ${siteMapData.stats.devPages} | Broken: ${siteMapData.stats.brokenPages}\\n\\n`;
+            
+            Object.entries(siteMapData.structure).forEach(([section, pages]) => {
+                text += `${section}:\\n`;
+                Object.entries(pages).forEach(([path, info]) => {
+                    const status = info.status.toUpperCase();
+                    text += `  ${path} - ${info.title} [${status}]\\n`;
+                });
+                text += '\\n';
+            });
+            
+            return text;
+        }
+        
+        function renderSiteMap() {
+            const container = document.getElementById('sitemap-container');
+            if (!container) return;
+            
+            // Create stats section
+            const statsHtml = `
+                <div class="sitemap-stats">
+                    <div class="stat-item">
+                        <span class="stat-number">${siteMapData.stats.totalPages}</span>
+                        <span class="stat-label">Total Pages</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number">${siteMapData.stats.livePages}</span>
+                        <span class="stat-label">Live</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number">${siteMapData.stats.devPages}</span>
+                        <span class="stat-label">Development</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number">${siteMapData.stats.brokenPages}</span>
+                        <span class="stat-label">Issues</span>
+                    </div>
+                </div>
+            `;
+            
+            // Create search and controls
+            const controlsHtml = `
+                <div class="sitemap-search">
+                    <input type="text" placeholder="Search pages..." onkeyup="filterSiteMap(this.value)">
+                </div>
+                <div class="sitemap-controls" style="margin-bottom: 1rem; display: flex; gap: 1rem; justify-content: center;">
+                    <button class="btn" onclick="openAllInTabs()" title="Open all live pages in new tabs">Open All Live</button>
+                    <button class="btn" onclick="copyUrls()" title="Copy all URLs to clipboard">Copy URLs</button>
+                    <button class="btn" onclick="showStats()" title="Show detailed statistics">Show Stats</button>
+                </div>
+            `;
+            
+            // Create sections based on view mode
+            let sectionsHtml;
+            if (siteMapViewMode === 'compact') {
+                // Compact view: all pages in one list
+                sectionsHtml = renderCompactView();
+            } else {
+                // Detailed view: organized by sections
+                sectionsHtml = renderDetailedView();
+            }
+            
+            container.innerHTML = `
+                ${statsHtml}
+                ${controlsHtml}
+                <div class="sitemap-container">
+                    ${sectionsHtml}
+                </div>
+            `;
+        }
+        
+        function renderDetailedView() {
+            return Object.entries(siteMapData.structure).map(([section, pages]) => {
+                const pagesHtml = Object.entries(pages).map(([path, info]) => {
+                    const statusClass = info.status === 'live' ? 'status-live' : 
+                                      info.status === 'dev' ? 'status-dev' : 'status-broken';
+                    
+                    const fullUrl = path.startsWith('/api/') || path.startsWith('/admin/') ? 
+                                  `https://tiltcheck.me${path}` : 
+                                  path.includes('://') ? path :
+                                  `https://tiltcheck.me${path}`;
+                    
+                    const lastChecked = info.lastChecked ? 
+                                      new Date(info.lastChecked).toLocaleTimeString() : '';
+                    
+                    return `
+                        <li class="sitemap-item" data-path="${path}" data-title="${info.title}">
+                            <a href="${fullUrl}" class="sitemap-link" target="_blank">
+                                ${getPageIcon(section, path)} ${info.title}
+                                <span class="sitemap-status ${statusClass}" title="Last checked: ${lastChecked}">${info.status.toUpperCase()}</span>
+                            </a>
+                        </li>
+                    `;
+                }).join('');
+                
+                const statusCounts = getStatusCounts(pages);
+                
+                return `
+                    <div class="sitemap-section">
+                        <h3>${getSectionIcon(section)} ${section} 
+                            <span style="font-size: 0.7rem; color: #666; font-weight: normal;">
+                                (${statusCounts.live}/${statusCounts.total})
+                            </span>
+                        </h3>
+                        <ul class="sitemap-tree">
+                            ${pagesHtml}
+                        </ul>
+                    </div>
+                `;
+            }).join('');
+        }
+        
+        function renderCompactView() {
+            const allPages = [];
+            Object.entries(siteMapData.structure).forEach(([section, pages]) => {
+                Object.entries(pages).forEach(([path, info]) => {
+                    allPages.push({ section, path, ...info });
+                });
+            });
+            
+            // Sort by status (live first) then alphabetically
+            allPages.sort((a, b) => {
+                if (a.status !== b.status) {
+                    const statusOrder = { 'live': 0, 'dev': 1, 'broken': 2 };
+                    return statusOrder[a.status] - statusOrder[b.status];
+                }
+                return a.title.localeCompare(b.title);
+            });
+            
+            const pagesHtml = allPages.map(page => {
+                const statusClass = page.status === 'live' ? 'status-live' : 
+                                  page.status === 'dev' ? 'status-dev' : 'status-broken';
+                
+                const fullUrl = page.path.startsWith('/api/') || page.path.startsWith('/admin/') ? 
+                              `https://tiltcheck.me${page.path}` : 
+                              page.path.includes('://') ? page.path :
+                              `https://tiltcheck.me${page.path}`;
+                
+                return `
+                    <li class="sitemap-item" data-path="${page.path}" data-title="${page.title}">
+                        <a href="${fullUrl}" class="sitemap-link" target="_blank">
+                            ${getPageIcon(page.section, page.path)} ${page.title}
+                            <span style="font-size: 0.7rem; color: #666; margin-left: 0.5rem;">[${page.section}]</span>
+                            <span class="sitemap-status ${statusClass}">${page.status.toUpperCase()}</span>
+                        </a>
+                    </li>
+                `;
+            }).join('');
+            
+            return `
+                <div class="sitemap-section">
+                    <h3>🗂️ All Pages (Compact View)</h3>
+                    <ul class="sitemap-tree">
+                        ${pagesHtml}
+                    </ul>
+                </div>
+            `;
+        }
+        
+        function getStatusCounts(pages) {
+            const counts = { live: 0, dev: 0, broken: 0, total: 0 };
+            Object.values(pages).forEach(page => {
+                counts[page.status]++;
+                counts.total++;
+            });
+            return counts;
+        }
+        
+        function copyUrls() {
+            const urls = [];
+            Object.values(siteMapData.structure).forEach(section => {
+                Object.entries(section).forEach(([path, info]) => {
+                    if (path.startsWith('/')) {
+                        urls.push(`https://tiltcheck.me${path} - ${info.title}`);
+                    }
+                });
+            });
+            
+            navigator.clipboard.writeText(urls.join('\\n')).then(() => {
+                alert(`Copied ${urls.length} URLs to clipboard!`);
+            }).catch(() => {
+                // Fallback for older browsers
+                const textarea = document.createElement('textarea');
+                textarea.value = urls.join('\\n');
+                document.body.appendChild(textarea);
+                textarea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textarea);
+                alert(`Copied ${urls.length} URLs to clipboard!`);
+            });
+        }
+        
+        function showStats() {
+            let stats = 'TiltCheck Ecosystem Statistics\\n\\n';
+            
+            Object.entries(siteMapData.structure).forEach(([section, pages]) => {
+                const counts = getStatusCounts(pages);
+                stats += `${section}:\\n`;
+                stats += `  Total: ${counts.total}\\n`;
+                stats += `  Live: ${counts.live}\\n`;
+                stats += `  Dev: ${counts.dev}\\n`;
+                stats += `  Broken: ${counts.broken}\\n\\n`;
+            });
+            
+            if (siteMapData.deployment) {
+                stats += `Deployment Info:\\n`;
+                stats += `  Environment: ${siteMapData.deployment.environment}\\n`;
+                stats += `  Uptime: ${Math.floor(siteMapData.deployment.uptime / 3600)}h ${Math.floor((siteMapData.deployment.uptime % 3600) / 60)}m\\n`;
+                stats += `  Requests: ${siteMapData.deployment.requests}\\n`;
+                stats += `  Memory: ${Math.round(siteMapData.deployment.memory.used / 1024 / 1024)}MB\\n`;
+            }
+            
+            alert(stats);
+        }
+        
+        function getPageIcon(section, path) {
+            if (section === 'API Endpoints') return '🔌';
+            if (section === 'System Status') return '⚙️';
+            if (section === 'Documentation') return '📖';
+            if (section === 'Tools Suite') return '🛠️';
+            if (section === 'Trust Dashboard') return '📊';
+            if (path === '/') return '🏠';
+            if (path.includes('admin') || path.includes('control')) return '🔐';
+            return '📄';
+        }
+        
+        function getSectionIcon(section) {
+            const icons = {
+                'Main Site': '🏠',
+                'Tools Suite': '🛠️',
+                'Trust Dashboard': '📊',
+                'Documentation': '📚',
+                'API Endpoints': '🔌',
+                'System Status': '⚙️'
+            };
+            return icons[section] || '📁';
+        }
+        
+        function filterSiteMap(query) {
+            const items = document.querySelectorAll('.sitemap-item');
+            const sections = document.querySelectorAll('.sitemap-section');
+            
+            if (!query.trim()) {
+                items.forEach(item => item.style.display = 'block');
+                sections.forEach(section => section.style.display = 'block');
+                return;
+            }
+            
+            const searchTerm = query.toLowerCase();
+            
+            sections.forEach(section => {
+                let hasVisibleItems = false;
+                const sectionItems = section.querySelectorAll('.sitemap-item');
+                
+                sectionItems.forEach(item => {
+                    const path = item.dataset.path.toLowerCase();
+                    const title = item.dataset.title.toLowerCase();
+                    const matches = path.includes(searchTerm) || title.includes(searchTerm);
+                    
+                    item.style.display = matches ? 'block' : 'none';
+                    if (matches) hasVisibleItems = true;
+                });
+                
+                section.style.display = hasVisibleItems ? 'block' : 'none';
+            });
+        }
+        
+        // Initialize site map when panel is first shown
+        let siteMapInitialized = false;
+        let siteMapViewMode = 'detailed'; // 'detailed' or 'compact'
+        const originalShowPanel = showPanel;
+        
+        showPanel = function(panelId) {
+            originalShowPanel(panelId);
+            
+            if (panelId === 'sitemap' && !siteMapInitialized) {
+                setTimeout(() => {
+                    renderSiteMap();
+                    siteMapInitialized = true;
+                }, 100);
+            }
+        };
+        
+        function checkAllHealth() {
+            const button = event.target;
+            button.textContent = 'Checking...';
+            button.disabled = true;
+            
+            // Simulate health checking - in production this would ping all endpoints
+            setTimeout(() => {
+                // Update some random statuses to demonstrate functionality
+                const sections = Object.keys(siteMapData.structure);
+                sections.forEach(section => {
+                    if (section !== 'System Services') { // Don't modify system services
+                        const pages = Object.keys(siteMapData.structure[section]);
+                        pages.forEach(page => {
+                            // 90% chance of being live, 8% dev, 2% broken
+                            const rand = Math.random();
+                            if (rand > 0.98) {
+                                siteMapData.structure[section][page].status = 'broken';
+                            } else if (rand > 0.9) {
+                                siteMapData.structure[section][page].status = 'dev';
+                            } else {
+                                siteMapData.structure[section][page].status = 'live';
+                            }
+                            siteMapData.structure[section][page].lastChecked = Date.now();
+                        });
+                    }
+                });
+                
+                // Recalculate stats
+                let live = 0, dev = 0, broken = 0;
+                Object.values(siteMapData.structure).forEach(section => {
+                    Object.values(section).forEach(page => {
+                        if (page.status === 'live') live++;
+                        else if (page.status === 'dev') dev++;
+                        else broken++;
+                    });
+                });
+                
+                siteMapData.stats = {
+                    totalPages: live + dev + broken,
+                    livePages: live,
+                    devPages: dev,
+                    brokenPages: broken
+                };
+                
+                renderSiteMap();
+                button.textContent = 'Health Check';
+                button.disabled = false;
+            }, 2000);
+        }
+        
+        function toggleViewMode() {
+            siteMapViewMode = siteMapViewMode === 'detailed' ? 'compact' : 'detailed';
+            renderSiteMap();
+            event.target.textContent = `${siteMapViewMode === 'detailed' ? 'Compact' : 'Detailed'} View`;
+        }
+        
+        function openAllInTabs() {
+            if (!confirm('This will open many tabs. Are you sure?')) return;
+            
+            Object.values(siteMapData.structure).forEach(section => {
+                Object.entries(section).forEach(([path, info]) => {
+                    if (info.status === 'live' && path.startsWith('/')) {
+                        const fullUrl = `https://tiltcheck.me${path}`;
+                        window.open(fullUrl, '_blank');
+                    }
+                });
+            });
+        }
+        
+        function generateSiteMapXML() {
+            let xml = '<?xml version="1.0" encoding="UTF-8"?>\\n';
+            xml += '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\\n';
+            
+            Object.values(siteMapData.structure).forEach(section => {
+                Object.entries(section).forEach(([path, info]) => {
+                    if (info.status === 'live' && path.startsWith('/')) {
+                        xml += '  <url>\\n';
+                        xml += `    <loc>https://tiltcheck.me${path}</loc>\\n`;
+                        xml += `    <lastmod>${new Date().toISOString().split('T')[0]}</lastmod>\\n`;
+                        xml += '    <changefreq>weekly</changefreq>\\n';
+                        xml += '    <priority>0.8</priority>\\n';
+                        xml += '  </url>\\n';
+                    }
+                });
+            });
+            
+            xml += '</urlset>';
+            return xml;
+        }
+        
+        // Log Viewer Functions
+        let autoRefreshInterval = null;
+        
+        function refreshLogs() {
+            const key = new URLSearchParams(window.location.search).get('key') || 'tiltcheck-admin-2024';
+            const tail = document.getElementById('log-tail')?.value || 50;
+            const container = document.getElementById('logs-container');
+            
+            if (!container) return;
+            
+            container.innerHTML = '<div class="logs-loading">Loading logs...</div>';
+            
+            fetch(`/admin/logs?key=${key}&tail=${tail}`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    const logs = data.logs || [];
+                    
+                    if (!logs || logs.length === 0) {
+                        container.innerHTML = '<div style="color: #888; padding: 10px;">No logs available</div>';
+                        return;
+                    }
+                    
+                    let html = '<table style="width: 100%; border-collapse: collapse;">';
+                    html += '<thead><tr style="background: #001100; border-bottom: 2px solid #00ff41;">';
+                    html += '<th style="padding: 8px; text-align: left;">Timestamp</th>';
+                    html += '<th style="padding: 8px; text-align: left;">Method</th>';
+                    html += '<th style="padding: 8px; text-align: left;">Path</th>';
+                    html += '<th style="padding: 8px; text-align: left;">IP</th>';
+                    html += '<th style="padding: 8px; text-align: left;">User-Agent</th>';
+                    html += '</tr></thead>';
+                    html += '<tbody>';
+                    
+                    logs.forEach((log, idx) => {
+                        const bgColor = idx % 2 === 0 ? '#000' : '#001100';
+                        const methodColor = log.method === 'GET' ? '#0f0' : log.method === 'POST' ? '#ff0' : '#f80';
+                        
+                        html += `<tr style="background: ${bgColor}; border-bottom: 1px solid #003300;">`;
+                        html += `<td style="padding: 6px; color: #888;">${new Date(log.ts).toLocaleString()}</td>`;
+                        html += `<td style="padding: 6px; color: ${methodColor}; font-weight: bold;">${log.method || 'N/A'}</td>`;
+                        html += `<td style="padding: 6px; color: #0ff;">${log.path || 'N/A'}</td>`;
+                        html += `<td style="padding: 6px; color: #f0f;">${log.ip || 'N/A'}</td>`;
+                        html += `<td style="padding: 6px; color: #888; font-size: 10px;">${(log.ua || 'N/A').substring(0, 60)}...</td>`;
+                        html += '</tr>';
+                    });
+                    
+                    html += '</tbody></table>';
+                    container.innerHTML = html;
+                    
+                    // Auto-scroll to bottom
+                    container.scrollTop = container.scrollHeight;
+                })
+                .catch(error => {
+                    container.innerHTML = `<div style="color: #f00; padding: 10px;">Error loading logs: ${error.message}</div>`;
+                    console.error('Log fetch error:', error);
+                });
+        }
+        
+        function toggleAutoRefresh() {
+            const statusEl = document.getElementById('auto-status');
+            
+            if (autoRefreshInterval) {
+                clearInterval(autoRefreshInterval);
+                autoRefreshInterval = null;
+                statusEl.textContent = 'OFF';
+                statusEl.style.color = '#888';
+            } else {
+                refreshLogs(); // Immediate refresh
+                autoRefreshInterval = setInterval(refreshLogs, 5000); // Every 5 seconds
+                statusEl.textContent = 'ON';
+                statusEl.style.color = '#0f0';
+            }
+        }
+        
+        // Hook into showPanel to refresh logs when panel is shown
+        const originalShowPanel = showPanel;
+        showPanel = function(panelId) {
+            originalShowPanel(panelId);
+            
+            if (panelId === 'logs') {
+                setTimeout(() => refreshLogs(), 100);
+            }
+        };
+    </script>
+  <script src="/scripts/auth.js"></script>
+</body>
+</html>

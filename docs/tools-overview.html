@@ -1,0 +1,273 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"/><title>4. TiltCheck Tools Overview - TiltCheck</title><meta name="description" content="© 2024–2025 TiltCheck Ecosystem (Created by jmenichole). All Rights Reserved."/><link rel="stylesheet" href="/styles/base.css"/><style>body{background:#0a0a0a;color:#e0e0e0;font-family:Inter,system-ui,sans-serif;margin:0;padding:0}main{max-width:900px;margin:0 auto;padding:40px 18px;line-height:1.7}a{color:#00d4aa;text-decoration:none}a:hover{text-decoration:underline}.page-hero{padding:54px 24px 32px;background:linear-gradient(135deg,#121212,#181818);border-bottom:1px solid #222}.page-hero h1{margin:0 0 10px;font-size:2.4rem;background:linear-gradient(135deg,#00d4aa,#00a8ff);-webkit-background-clip:text;color:transparent}.lede{color:#aaa;font-size:1.05rem;max-width:760px}pre{background:#181818;padding:14px 16px;border:1px solid #222;border-radius:8px;overflow:auto;font-size:.85rem}code{font-family:ui-monospace,Monaco,Consolas,monospace;color:#00a8ff}.breadcrumb{font-size:.7rem;letter-spacing:.12em;text-transform:uppercase;color:#888;margin:0 0 12px}.nav-inline{display:flex;gap:20px;align-items:center;font-size:.8rem;padding:10px 20px;background:#111;border-bottom:1px solid #222}nav a{color:#aaa}nav a[aria-current="page"]{color:#00d4aa;font-weight:600}</style></head><body><nav class="nav-inline"><a href="/" >Home</a><a href="/docs/index.html" aria-current="page">Docs</a><a href="/dashboard">Dashboard</a><a href="/about.html">About</a></nav><header class="page-hero"><div class="breadcrumb">Docs / 4. TiltCheck Tools Overview</div><h1>4. TiltCheck Tools Overview</h1><p class="lede">© 2024–2025 TiltCheck Ecosystem (Created by jmenichole). All Rights Reserved.</p></header><main id="content"><p>© 2024–2025 TiltCheck Ecosystem (Created by jmenichole). All Rights Reserved.</p>
+
+<h1>4. TiltCheck Tools Overview</h1>
+
+<p>TiltCheck is composed of eight primary user-facing tools and two global trust engines.</p>
+<p>Each tool solves a specific frustration in the degen ecosystem: tipping, swapping, scam links, bonus cycles, free spins, survey screening, community games, and tilt management.</p>
+
+<p>This document provides a top-level overview of each tool — what it does, why it exists, and how it fits into the overall architecture.</p>
+
+<p>---</p>
+
+<h1>4.1 JustTheTip</h1>
+<p><strong>Non-custodial tipping, airdrops, and micro-sends with optional swapping.</strong></p>
+
+<h3>Purpose:</h3>
+<p>Solve the problems of:</p>
+<ul>
+<li>custodial bots losing user funds</li>
+<li>swap bots running out of liquidity</li>
+<li>tip bots failing to deliver</li>
+<li>inconsistent fees</li>
+<li>confusion about gas + platform fees</li>
+</ul>
+
+<h3>Core Features:</h3>
+<ul>
+<li>Non-custodial wallet via Magic or user-supplied address</li>
+<li>Tip users directly</li>
+<li>Airdrops to many users</li>
+<li>Flat fee system (founder-set)</li>
+<li>Optional swap via Jupiter after fee deduction</li>
+<li>No balance custody (no legal exposure)</li>
+<li>Discord-first UI</li>
+<p>- Real-time pricing via in-memory oracle (event driven)</p>
+<p>- Hardened swap quoting: slippage & fee breakdown</p>
+<p>- Failure path detection (swap.failed)</p>
+</ul>
+
+<h3>Why It Exists:</h3>
+<p>Degen tipping bots fail constantly.</p>
+<p>JustTheTip fixes the liquidity and custody problems without becoming a custodial service.</p>
+
+<h3>Pricing & Swap Hardening Additions:</h3>
+<p>The module now integrates a lightweight in-memory Pricing Oracle that:</p>
+<ul>
+<li>Publishes <code>price.updated</code> events on every price change (payload includes token, oldPrice, newPrice, updatedAt, stale flag)</li>
+<li>Tracks update timestamps and exposes <code>isStale(token)</code></li>
+<li>Applies a default TTL of 5 minutes; prices older than this are considered stale</li>
+<li>Supports <code>refreshPrice(token, fetcher)</code> for external integration hooks (fetcher returns Promise<number>)</li>
+</ul>
+
+<p>Swap quotes now include:</p>
+<ul>
+<li><code>slippageBps</code>: Maximum tolerated slippage (basis points)</li>
+<li><code>minOutputAmount</code>: Minimum acceptable output after slippage tolerance</li>
+<li><code>platformFeeBps</code>: Founder/platform fee applied to output</li>
+<li><code>networkFeeLamports</code>: Simulated network fee (converted to SOL)</li>
+<li><code>finalOutputAfterFees</code>: Output after deducting platform + network fees</li>
+<li>Centralized defaults provided via <code>swapDefaults</code> (<code>slippageBps</code>, <code>platformFeeBps</code>, <code>networkFeeLamports</code>) and overrideable per tip.</li>
+</ul>
+
+<p>Events emitted by JustTheTip:</p>
+<ul>
+<li><code>tip.initiated</code>, <code>tip.completed</code>, <code>tip.pending.resolved</code></li>
+<li><code>wallet.registered</code>, <code>wallet.disconnected</code></li>
+<li><code>swap.quote</code>, <code>swap.completed</code>, <code>swap.failed</code></li>
+<li><code>price.updated</code> (oracle service)</li>
+</ul>
+
+<p>Failure Handling:</p>
+<p>During execution the realized output is compared to <code>minOutputAmount</code>. If it falls below tolerance, a <code>swap.failed</code> event is published with reason <code>Slippage exceeded tolerance</code>.</p>
+
+<p>These enhancements provide clearer transparency on pricing, fees, and swap reliability while enabling downstream listeners to react to stale pricing conditions or failed executions.</p>
+
+<p>---</p>
+
+<h1>4.2 SusLink</h1>
+<p><strong>AI-powered link scanning + reputation scoring.</strong></p>
+
+<h3>Purpose:</h3>
+<p>Protect degens from:</p>
+<ul>
+<li>scam links</li>
+<li>fake promo sites</li>
+<li>malicious redirects</li>
+<li>phishing attempts</li>
+<li>burner domains</li>
+<li>impersonation</li>
+</ul>
+
+<h3>Core Features:</h3>
+<ul>
+<li>URL pattern analysis</li>
+<li>Domain reputation checks</li>
+<li>Redirect chain inspection</li>
+<li>Active prediction scoring</li>
+<li>Optional integration with FreeSpinScan & CollectClock</li>
+</ul>
+
+<h3>Why It Exists:</h3>
+<p>Degen Discord servers are full of bad links.</p>
+<p>SusLink reduces mod overhead and protects users automatically.</p>
+
+<p>---</p>
+
+<h1>4.3 CollectClock</h1>
+<p><strong>Daily bonus tracking, countdown timers, nerf detection, and casino reliability signals.</strong></p>
+
+<h3>Purpose:</h3>
+<p>Fix:</p>
+<ul>
+<li>inconsistent daily bonus timers</li>
+<li>hidden bonus nerfs</li>
+<li>users forgetting claims</li>
+<li>missing data on casino promo behavior</li>
+</ul>
+
+<h3>Core Features:</h3>
+<ul>
+<li>Bonus countdown timers</li>
+<li>User-customizable tracking</li>
+<li>Network-wide bonus DB</li>
+<li>Automatic nerf flagging (e.g., 1SC → 0.10SC)</li>
+<li>Predictive bonus cycle modeling</li>
+<li>Casino Trust Engine integration</li>
+</ul>
+
+<h3>Why It Exists:</h3>
+<p>Bonus cycles are chaotic.</p>
+<p>CollectClock brings clarity and predictive intelligence to daily claims.</p>
+
+<p>---</p>
+
+<h1>4.4 FreeSpinScan</h1>
+<p><strong>Free spin &amp; promo submission, validation, mod approval, prediction.</strong></p>
+
+<h3>Purpose:</h3>
+<p>Replace:</p>
+<ul>
+<li>chaotic promo channels</li>
+<li>constant “don’t chat here” mod spam</li>
+<li>mismatched links</li>
+<li>nonsense submissions</li>
+</ul>
+
+<h3>Core Features:</h3>
+<ul>
+<li><code>/submit &lt;link&gt; &lt;bonus type&gt; &lt;notes&gt;</code></li>
+<li>Automatic SusLink scan</li>
+<li>Casino/bonus category tagging</li>
+<li>Mod approval workflow</li>
+<li>Auto-posting to correct channel</li>
+<li>Prediction engine for future drops</li>
+</ul>
+
+<h3>Why It Exists:</h3>
+<p>Every casino community has a messy bonus channel.</p>
+<p>FreeSpinScan fixes it with structure + AI validation.</p>
+
+<p>---</p>
+
+<h1>4.5 QualifyFirst</h1>
+<p><strong>AI-powered user targeting for paid survey routing and screen-out avoidance.</strong></p>
+
+<h3>Purpose:</h3>
+<p>Help users reach surveys they will <em>actually qualify for</em>.</p>
+<p>Avoid screen-outs.</p>
+<p>Avoid time waste.</p>
+
+<h3>Core Features:</h3>
+<ul>
+<li>Behavioral profile building</li>
+<li>Quick popup questions</li>
+<li>Routing to high-match surveys</li>
+<li>Optional integration with external survey platforms</li>
+<li>Optional in-house survey creation (future)</li>
+</ul>
+
+<h3>Why It Exists:</h3>
+<p>Survey sites waste users’ time with screen-outs.</p>
+<p>QualifyFirst predicts matches before users click.</p>
+
+<p>---</p>
+
+<h1>4.6 DA&D — Degens Against Decency</h1>
+<p><strong>An AI-powered Cards Against Humanity-style game.</strong></p>
+
+<h3>Purpose:</h3>
+<p>Give degens a fun, social, chaotic game to play within:</p>
+
+<ul>
+<li>Discord</li>
+<li>TiltCheck Arena</li>
+<li>future web UI</li>
+</ul>
+
+<h3>Core Features:</h3>
+<ul>
+<li>Dynamic card generation</li>
+<li>Community packs</li>
+<li>Voting</li>
+<li>Scoring</li>
+<li>Seasonal pack rotation</li>
+<li>Optional casino-themed expansion</li>
+</ul>
+
+<h3>Why It Exists:</h3>
+<p>Every degen community needs fun between tilts.</p>
+
+<p>---</p>
+
+<h1>4.7 TiltCheck Core (Tilt Detection)</h1>
+<p><strong>Behavior analysis + cooldown nudges + accountability tools.</strong></p>
+
+<h3>Purpose:</h3>
+<p>Detect:</p>
+<ul>
+<li>aggressive betting patterns</li>
+<li>rapid spin behavior</li>
+<li>Discord chat signs of tilt</li>
+<li>risky user decisions</li>
+</ul>
+
+<h3>Core Features:</h3>
+<ul>
+<li>Vault locking</li>
+<li>Cooldown suggestions</li>
+<li>“Phone-a-friend” notifications</li>
+<li>Accountabilibuddy double-wallet withdrawals</li>
+<li>Discord-based trust score signals</li>
+</ul>
+
+<h3>Why It Exists:</h3>
+<p>Nobody thinks clearly on tilt.</p>
+<p>TiltCheck helps users slow down <em>without policing them</em>.</p>
+
+<p>---</p>
+
+<h1>4.8 Funding Intelligence Layer (Agent-Only)</h1>
+<p><strong>The brain that finds money, support, and resources for the founder.</strong></p>
+
+<h3>Purpose:</h3>
+<p>Support founder survival by detecting:</p>
+
+<ul>
+<li>grants</li>
+<li>startup credits</li>
+<li>cloud credits</li>
+<li>accelerator applications</li>
+<li>hackathons</li>
+<li>dev competitions</li>
+<li>bounties</li>
+<li>sponsorships</li>
+</ul>
+
+<h3>Core Features:</h3>
+<ul>
+<li>Query free tools</li>
+<li>Match by project type</li>
+<li>Evaluate eligibility</li>
+<li>Track deadlines</li>
+<li>Surface best options</li>
+<li>Keep everything free-tier whenever possible</li>
+</ul>
+
+<h3>Why It Exists:</h3>
+<p>Solo founders need support.</p>
+<p>TiltCheck’s agent should constantly look for funding paths.</p>
+
+<p>---</p>
+
+<h1>End of <code>4-tools-overview.md</code></h1>
+</main><footer style="padding:40px 24px;text-align:center;font-size:.75rem;color:#666;border-top:1px solid #222">TiltCheck Docs • Non-custodial • Signals only.</footer></body></html>

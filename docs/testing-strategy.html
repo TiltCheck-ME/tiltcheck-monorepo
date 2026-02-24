@@ -1,0 +1,56 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"/><title>TiltCheck Testing Strategy - TiltCheck</title><meta name="description" content="- Catch regressions early with fast unit tests."/><link rel="stylesheet" href="/styles/base.css"/><style>body{background:#0a0a0a;color:#e0e0e0;font-family:Inter,system-ui,sans-serif;margin:0;padding:0}main{max-width:900px;margin:0 auto;padding:40px 18px;line-height:1.7}a{color:#00d4aa;text-decoration:none}a:hover{text-decoration:underline}.page-hero{padding:54px 24px 32px;background:linear-gradient(135deg,#121212,#181818);border-bottom:1px solid #222}.page-hero h1{margin:0 0 10px;font-size:2.4rem;background:linear-gradient(135deg,#00d4aa,#00a8ff);-webkit-background-clip:text;color:transparent}.lede{color:#aaa;font-size:1.05rem;max-width:760px}pre{background:#181818;padding:14px 16px;border:1px solid #222;border-radius:8px;overflow:auto;font-size:.85rem}code{font-family:ui-monospace,Monaco,Consolas,monospace;color:#00a8ff}.breadcrumb{font-size:.7rem;letter-spacing:.12em;text-transform:uppercase;color:#888;margin:0 0 12px}.nav-inline{display:flex;gap:20px;align-items:center;font-size:.8rem;padding:10px 20px;background:#111;border-bottom:1px solid #222}nav a{color:#aaa}nav a[aria-current="page"]{color:#00d4aa;font-weight:600}</style></head><body><nav class="nav-inline"><a href="/" >Home</a><a href="/docs/index.html" aria-current="page">Docs</a><a href="/dashboard">Dashboard</a><a href="/about.html">About</a></nav><header class="page-hero"><div class="breadcrumb">Docs / TiltCheck Testing Strategy</div><h1>TiltCheck Testing Strategy</h1><p class="lede">- Catch regressions early with fast unit tests.</p></header><main id="content"><h1>TiltCheck Testing Strategy</h1>
+
+<h2>Goals</h2>
+<ul>
+<li>Catch regressions early with fast unit tests.</li>
+<li>Validate event flows with lightweight integration tests.</li>
+<li>Keep tests cheap to run (no real network or wallets).</li>
+</ul>
+
+<h2>Stack</h2>
+<ul>
+<li>Test runner: Vitest (root config)</li>
+<li>Env: Node</li>
+<li>Coverage: V8</li>
+</ul>
+
+<h2>Conventions</h2>
+<ul>
+<li>Test files: <code>&lt;strong&gt;/tests/&lt;/strong&gt;/*.test.ts</code></li>
+<li>Unit tests: close to implementation (e.g., <code>modules/suslink/tests/</code>)</li>
+<li>Integration tests: use the real <code>eventRouter</code> and in-memory data</li>
+</ul>
+
+<h2>Patterns</h2>
+<ul>
+<li>Prefer dependency-free logic in modules; mock only boundaries.</li>
+<li>For event flows, publish events and assert on <code>eventRouter.getHistory()</code>.</li>
+<li>Avoid timeouts; prefer deterministic sequences and small <code>setTimeout(0)</code> waits.</li>
+</ul>
+
+<h2>Examples</h2>
+<ul>
+<li>SusLink: Validate <code>LinkScanner.quickCheck</code> and <code>scan</code> risk outputs.</li>
+<li>Event Router: Subscribe, publish, ensure history captured and handlers fire.</li>
+</ul>
+
+<h2>Commands</h2>
+<pre class="code-block" data-lang="bash"><code>
+pnpm test         # run all tests once
+pnpm test:watch   # watch mode
+pnpm coverage     # generate coverage report
+</code></pre>
+
+<h2>What Not To Do</h2>
+<ul>
+<li>No live HTTP or Discord calls in tests.</li>
+<li>No filesystem writes outside temp dirs.</li>
+<li>No secret or token usage.</li>
+</ul>
+
+<h2>Future</h2>
+<ul>
+<li>Add factories for common test events.</li>
+<li>Add contract tests for new modules via shared fixtures.</li>
+</ul>
+</main><footer style="padding:40px 24px;text-align:center;font-size:.75rem;color:#666;border-top:1px solid #222">TiltCheck Docs • Non-custodial • Signals only.</footer></body></html>

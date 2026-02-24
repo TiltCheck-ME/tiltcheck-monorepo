@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Join TiltCheck Beta - Get Early Access</title>
+  <meta name="description" content="Sign up for TiltCheck beta and help shape the future of responsible gambling tools. Get early access to features, provide feedback, and earn rewards.">
+  <link rel="stylesheet" href="/styles/main.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <style>
+    :root {
+      --gradient-primary: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+      --gradient-success: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      --bg-dark: #0f1419;
+      --bg-card: #1a1f26;
+      --border-subtle: rgba(255, 255, 255, 0.1);
+      --text-primary: #ffffff;
+      --text-secondary: rgba(255, 255, 255, 0.7);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: var(--bg-dark);
+      color: var(--text-primary);
+      min-height: 100vh;
+    }
+
+    .hero {
+      background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(139, 92, 246, 0.1) 100%);
+      padding: 60px 20px;
+      text-align: center;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .hero h1 {
+      font-size: 2.5rem;
+      margin-bottom: 15px;
+      background: var(--gradient-primary);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .hero p {
+      font-size: 1.2rem;
+      color: var(--text-secondary);
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    .beta-badge {
+      display: inline-block;
+      background: var(--gradient-primary);
+      color: white;
+      padding: 4px 12px;
+      border-radius: 12px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      margin-bottom: 15px;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 40px 20px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 40px;
+      align-items: start;
+    }
+
+    @media (max-width: 768px) {
+      .grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 16px;
+      padding: 30px;
+    }
+
+    .card h2 {
+      font-size: 1.5rem;
+      margin-bottom: 20px;
+    }
+
+    .benefits-list {
+      list-style: none;
+    }
+
+    .benefits-list li {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .benefits-list li:last-child {
+      border-bottom: none;
+    }
+
+    .benefits-list .icon {
+      font-size: 1.5rem;
+      flex-shrink: 0;
+    }
+
+    .benefits-list h4 {
+      font-size: 1rem;
+      margin-bottom: 4px;
+    }
+
+    .benefits-list p {
+      font-size: 0.9rem;
+      color: var(--text-secondary);
+    }
+
+    .signup-form {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .form-group label {
+      font-size: 0.9rem;
+      font-weight: 500;
+    }
+
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+      padding: 12px 16px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border-subtle);
+      border-radius: 8px;
+      color: var(--text-primary);
+      font-size: 1rem;
+      transition: border-color 0.2s;
+    }
+
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus {
+      outline: none;
+      border-color: #6366f1;
+    }
+
+    .form-group input::placeholder {
+      color: rgba(255, 255, 255, 0.4);
+    }
+
+    .checkbox-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .checkbox-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 16px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--border-subtle);
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .checkbox-item:hover {
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    .checkbox-item input {
+      accent-color: #6366f1;
+    }
+
+    .checkbox-item.selected {
+      background: rgba(99, 102, 241, 0.2);
+      border-color: #6366f1;
+    }
+
+    .submit-btn {
+      padding: 16px;
+      background: var(--gradient-primary);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .submit-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4);
+    }
+
+    .submit-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .discord-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      padding: 14px;
+      background: #5865F2;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-decoration: none;
+    }
+
+    .discord-btn:hover {
+      background: #4752c4;
+    }
+
+    .divider {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      color: var(--text-secondary);
+      font-size: 0.9rem;
+    }
+
+    .divider::before,
+    .divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border-subtle);
+    }
+
+    .success-message {
+      display: none;
+      text-align: center;
+      padding: 40px;
+    }
+
+    .success-message.show {
+      display: block;
+    }
+
+    .success-message .icon {
+      font-size: 4rem;
+      margin-bottom: 20px;
+    }
+
+    .success-message h3 {
+      font-size: 1.5rem;
+      margin-bottom: 10px;
+      color: #10b981;
+    }
+
+    .success-message p {
+      color: var(--text-secondary);
+      margin-bottom: 20px;
+    }
+
+    .stats-row {
+      display: flex;
+      justify-content: center;
+      gap: 40px;
+      padding: 30px 0;
+      border-top: 1px solid var(--border-subtle);
+      margin-top: 40px;
+    }
+
+    .stat {
+      text-align: center;
+    }
+
+    .stat .number {
+      font-size: 2rem;
+      font-weight: 700;
+      background: var(--gradient-primary);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .stat .label {
+      font-size: 0.9rem;
+      color: var(--text-secondary);
+    }
+
+    .faq-section {
+      padding: 60px 20px;
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    .faq-section h2 {
+      text-align: center;
+      font-size: 1.8rem;
+      margin-bottom: 40px;
+    }
+
+    .faq-list {
+      max-width: 700px;
+      margin: 0 auto;
+    }
+
+    .faq-item {
+      border-bottom: 1px solid var(--border-subtle);
+      padding: 20px 0;
+    }
+
+    .faq-item h4 {
+      font-size: 1.1rem;
+      margin-bottom: 10px;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .faq-item p {
+      color: var(--text-secondary);
+      line-height: 1.6;
+    }
+
+    footer {
+      text-align: center;
+      padding: 40px 20px;
+      color: var(--text-secondary);
+      font-size: 0.9rem;
+    }
+
+    footer a {
+      color: #6366f1;
+      text-decoration: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="hero">
+    <span class="beta-badge">🚀 Open Beta</span>
+    <h1>Join the TiltCheck Beta Program</h1>
+    <p>Help us build the future of responsible gambling tools. Get early access, shape features, and earn rewards for your feedback.</p>
+  </div>
+
+  <div class="container">
+    <div class="grid">
+      <!-- Benefits -->
+      <div class="card">
+        <h2>Why Join Beta?</h2>
+        <ul class="benefits-list">
+          <li>
+            <span class="icon">🎁</span>
+            <div>
+              <h4>Early Access</h4>
+              <p>Be the first to try new features like TiltGuard, CollectClock, and the browser extension.</p>
+            </div>
+          </li>
+          <li>
+            <span class="icon">💬</span>
+            <div>
+              <h4>Direct Input</h4>
+              <p>Your feedback directly shapes product decisions. We actually listen and implement suggestions.</p>
+            </div>
+          </li>
+          <li>
+            <span class="icon">🏆</span>
+            <div>
+              <h4>Beta Rewards</h4>
+              <p>Earn exclusive badges, early supporter status, and bonus features for active participation.</p>
+            </div>
+          </li>
+          <li>
+            <span class="icon">🔒</span>
+            <div>
+              <h4>Priority Support</h4>
+              <p>Get fast, direct access to the dev team through our Discord beta channel.</p>
+            </div>
+          </li>
+          <li>
+            <span class="icon">🛡️</span>
+            <div>
+              <h4>Shape Safety Features</h4>
+              <p>Help us build better tilt detection, intervention timing, and protection tools.</p>
+            </div>
+          </li>
+        </ul>
+
+        <div class="stats-row">
+          <div class="stat">
+            <div class="number" id="beta-count">247</div>
+            <div class="label">Beta Testers</div>
+          </div>
+          <div class="stat">
+            <div class="number">89%</div>
+            <div class="label">Satisfaction</div>
+          </div>
+          <div class="stat">
+            <div class="number">42</div>
+            <div class="label">Features Shipped</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sign Up Form -->
+      <div class="card" id="signup-card">
+        <h2>Sign Up for Beta</h2>
+        
+        <form class="signup-form" id="beta-form">
+          <!-- Discord OAuth -->
+          <a href="/api/auth/discord?beta=true" class="discord-btn">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M20.317 4.492c-1.53-.69-3.17-1.2-4.885-1.49a.075.075 0 0 0-.079.036c-.21.369-.444.85-.608 1.23a18.566 18.566 0 0 0-5.487 0 12.36 12.36 0 0 0-.617-1.23A.077.077 0 0 0 8.562 3c-1.714.29-3.354.8-4.885 1.491a.07.07 0 0 0-.032.027C.533 9.093-.32 13.555.099 17.961a.08.08 0 0 0 .031.055 20.03 20.03 0 0 0 5.993 2.98.078.078 0 0 0 .084-.026c.462-.62.874-1.275 1.226-1.963.021-.04.001-.088-.041-.104a13.201 13.201 0 0 1-1.872-.878.075.075 0 0 1-.008-.125c.126-.093.252-.19.372-.287a.075.075 0 0 1 .078-.01c3.927 1.764 8.18 1.764 12.061 0a.075.075 0 0 1 .079.009c.12.098.245.195.372.288a.075.075 0 0 1-.006.125c-.598.344-1.22.635-1.873.877a.075.075 0 0 0-.041.105c.36.687.772 1.341 1.225 1.962a.077.077 0 0 0 .084.028 19.963 19.963 0 0 0 6.002-2.981.076.076 0 0 0 .032-.054c.5-5.094-.838-9.52-3.549-13.442a.06.06 0 0 0-.031-.028zM8.02 15.278c-1.182 0-2.157-1.069-2.157-2.38 0-1.312.956-2.38 2.157-2.38 1.21 0 2.176 1.077 2.157 2.38 0 1.312-.956 2.38-2.157 2.38zm7.975 0c-1.183 0-2.157-1.069-2.157-2.38 0-1.312.955-2.38 2.157-2.38 1.21 0 2.176 1.077 2.157 2.38 0 1.312-.946 2.38-2.157 2.38z"/>
+            </svg>
+            Sign up with Discord
+          </a>
+
+          <div class="divider">or use email</div>
+
+          <div class="form-group">
+            <label for="email">Email Address *</label>
+            <input type="email" id="email" name="email" placeholder="your@email.com" required>
+          </div>
+
+          <div class="form-group">
+            <label for="discord-username">Discord Username (optional)</label>
+            <input type="text" id="discord-username" name="discord" placeholder="username#0000">
+          </div>
+
+          <div class="form-group">
+            <label>What interests you? *</label>
+            <div class="checkbox-group">
+              <label class="checkbox-item">
+                <input type="checkbox" name="interests" value="extension">
+                Browser Extension
+              </label>
+              <label class="checkbox-item">
+                <input type="checkbox" name="interests" value="discord-bot">
+                Discord Bot
+              </label>
+              <label class="checkbox-item">
+                <input type="checkbox" name="interests" value="tilt-detection">
+                Tilt Detection
+              </label>
+              <label class="checkbox-item">
+                <input type="checkbox" name="interests" value="bonus-tracking">
+                Bonus Tracking
+              </label>
+              <label class="checkbox-item">
+                <input type="checkbox" name="interests" value="trust-scores">
+                Trust Scores
+              </label>
+              <label class="checkbox-item">
+                <input type="checkbox" name="interests" value="games">
+                Games (DA&D, Poker)
+              </label>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="experience">Gambling Experience</label>
+            <select id="experience" name="experience">
+              <option value="">Select...</option>
+              <option value="casual">Casual (< 1 year)</option>
+              <option value="regular">Regular (1-3 years)</option>
+              <option value="experienced">Experienced (3+ years)</option>
+              <option value="recovering">In Recovery</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="feedback-style">How would you prefer to give feedback?</label>
+            <select id="feedback-style" name="feedback-style">
+              <option value="in-app">In-app feedback widget</option>
+              <option value="discord">Discord discussions</option>
+              <option value="surveys">Periodic surveys</option>
+              <option value="calls">Video calls with team</option>
+            </select>
+          </div>
+
+          <label class="checkbox-item" style="margin-top: 10px;">
+            <input type="checkbox" name="terms" required>
+            I agree to the <a href="/terms.html" style="color: #6366f1;">Terms of Service</a> and <a href="/privacy.html" style="color: #6366f1;">Privacy Policy</a>
+          </label>
+
+          <button type="submit" class="submit-btn" id="submit-btn">Join Beta Program</button>
+        </form>
+
+        <!-- Success Message -->
+        <div class="success-message" id="success-message">
+          <div class="icon">🎉</div>
+          <h3>You're In!</h3>
+          <p>Welcome to the beta! Follow the steps below to get started with Auto-Vault.</p>
+
+          <div style="text-align: left; margin: 20px 0; padding: 20px; background: rgba(255,255,255,0.03); border: 1px solid var(--border-subtle); border-radius: 12px;">
+            <h4 style="margin-bottom: 12px;">Get Started with Auto-Vault</h4>
+            <ol style="list-style: decimal; padding-left: 20px; color: var(--text-secondary); line-height: 2;">
+              <li>Install <a href="https://www.tampermonkey.net/" target="_blank" style="color: #6366f1;">Tampermonkey</a> for your browser</li>
+              <li><a href="https://raw.githubusercontent.com/TiltCheck-ME/tiltcheck-monorepo/main/TiltCheck-Auto-Vault.user.js" style="color: #6366f1;">Click here to install the Auto-Vault userscript</a></li>
+              <li>Visit Stake and the TiltCheck widget will appear in the top-right corner</li>
+              <li>Configure your vault percentage and click <strong style="color: var(--text-primary);">Start</strong></li>
+            </ol>
+          </div>
+
+          <a href="https://discord.gg/tiltcheck" class="discord-btn" style="display: inline-flex;">
+            Join Discord Server
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FAQ Section -->
+  <section class="faq-section">
+    <h2>Frequently Asked Questions</h2>
+    <div class="faq-list">
+      <div class="faq-item">
+        <h4>What does beta testing involve?</h4>
+        <p>As a beta tester, you'll get early access to new features before public release. We ask that you use the tools, report bugs, and share your honest feedback through our in-app widget or Discord.</p>
+      </div>
+      <div class="faq-item">
+        <h4>Is there any cost to join?</h4>
+        <p>No! Beta access is completely free. We're grateful for your time and feedback, which is why we offer rewards and perks to active testers.</p>
+      </div>
+      <div class="faq-item">
+        <h4>How do I provide feedback?</h4>
+        <p>We've built a feedback widget right into our tools. You can also share feedback in our Discord beta channel, or schedule video calls with the team for detailed discussions.</p>
+      </div>
+      <div class="faq-item">
+        <h4>What data do you collect?</h4>
+        <p>We collect anonymous usage data and click heatmaps to improve the product. All data is processed internally - we never share with third parties. See our Privacy Policy for details.</p>
+      </div>
+      <div class="faq-item">
+        <h4>Can I invite friends?</h4>
+        <p>Yes! We have a referral program. Share your unique link and both you and your friend get bonus rewards when they join.</p>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <p>© 2024 TiltCheck. <a href="/privacy.html">Privacy</a> · <a href="/terms.html">Terms</a> · <a href="/">Home</a></p>
+  </footer>
+
+  <script>
+    // Supabase client — anon key is safe to expose (RLS restricts to INSERT only)
+    const SUPABASE_URL = 'https://your-project.supabase.co'; // TODO: replace with actual project URL
+    const SUPABASE_ANON_KEY = 'your-anon-key'; // TODO: replace with actual anon key
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    // Handle form submission
+    document.getElementById('beta-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const btn = document.getElementById('submit-btn');
+      btn.disabled = true;
+      btn.textContent = 'Signing up...';
+
+      const formData = new FormData(e.target);
+      const row = {
+        email: formData.get('email'),
+        discord_username: formData.get('discord') || null,
+        interests: formData.getAll('interests'),
+        experience_level: formData.get('experience') || null,
+        feedback_preference: formData.get('feedback-style') || null,
+        referral_source: new URLSearchParams(window.location.search).get('ref') || 'direct',
+      };
+
+      try {
+        const { error } = await supabase.from('beta_signups').insert(row);
+
+        if (error) {
+          if (error.code === '23505') {
+            // Unique constraint on email — treat as success (already signed up)
+            document.getElementById('beta-form').style.display = 'none';
+            document.getElementById('success-message').classList.add('show');
+            return;
+          }
+          throw error;
+        }
+
+        document.getElementById('beta-form').style.display = 'none';
+        document.getElementById('success-message').classList.add('show');
+      } catch (error) {
+        alert('Something went wrong. Please try again or join via Discord.');
+        btn.disabled = false;
+        btn.textContent = 'Join Beta Program';
+      }
+    });
+
+    // Handle checkbox styling
+    document.querySelectorAll('.checkbox-item input[type="checkbox"]').forEach(checkbox => {
+      checkbox.addEventListener('change', () => {
+        checkbox.closest('.checkbox-item').classList.toggle('selected', checkbox.checked);
+      });
+    });
+
+    // Animate beta count
+    const betaCount = document.getElementById('beta-count');
+    let count = 200;
+    const targetCount = 247;
+    const interval = setInterval(() => {
+      count += Math.ceil((targetCount - count) / 10);
+      betaCount.textContent = count;
+      if (count >= targetCount) {
+        clearInterval(interval);
+        betaCount.textContent = targetCount;
+      }
+    }, 50);
+  </script>
+
+  <script src="/scripts/auth.js"></script>
+</body>
+</html>
