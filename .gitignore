@@ -33,6 +33,9 @@ build/
 out/
 *.tsbuildinfo
 
+# Turbo cache
+.turbo/
+
 # Environment files
 .env
 .env.local
