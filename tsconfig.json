@@ -1,9 +1,8 @@
 {
-  "extends": "../../tsconfig.json",
   "compilerOptions": {
     "outDir": "./dist",
     "rootDir": "./src",
-    "composite": true,
+    "skipLibCheck": true,
     "module": "NodeNext"
   },
   "include": [
