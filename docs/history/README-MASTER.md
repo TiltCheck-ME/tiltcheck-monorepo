@@ -129,9 +129,15 @@ docker-compose up           # Docker containers
 ### Required Environment Variables
 
 ```bash
-# Discord
-DISCORD_TOKEN=              # Bot token
-DISCORD_CLIENT_ID=          # OAuth client ID
+# Discord Bots
+# Main TiltCheck Bot
+TILT_DISCORD_TOKEN=         # Bot token
+TILT_DISCORD_CLIENT_ID=     # OAuth client ID
+
+# JustTheTip Bot
+TIP_DISCORD_TOKEN=          # Bot token
+TIP_DISCORD_CLIENT_ID=      # OAuth client ID
+
 DISCORD_CLIENT_SECRET=      # OAuth client secret
 
 # Database
@@ -232,7 +238,6 @@ Non-custodial SOL tipping system.
 - Direct wallet-to-wallet transfers
 - Optional fee: 0.0007 SOL
 - No escrow or custody
-- LTC swap integration (via ChangeNOW API or mocks)
 
 **Tech:** @solana/web3.js, TypeScript
 

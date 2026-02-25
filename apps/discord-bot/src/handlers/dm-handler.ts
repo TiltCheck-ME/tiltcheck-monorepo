@@ -17,7 +17,6 @@ import { hasWallet, getWallet, getSupportedTokens } from '@tiltcheck/justthetip'
 
 // Keywords for intent detection (fallback when AI is unavailable)
 const SWAP_KEYWORDS = ['swap', 'exchange', 'convert', 'trade'];
-const LTC_KEYWORDS = ['ltc', 'litecoin', 'lite coin'];
 const TIP_KEYWORDS = ['tip', 'send', 'give', 'transfer'];
 const WALLET_KEYWORDS = ['wallet', 'register', 'connect', 'setup'];
 const HELP_KEYWORDS = ['help', 'how', 'what', 'can i', 'guide', 'tutorial'];
@@ -73,15 +72,12 @@ async function getAIResponse(userId: string, question: string): Promise<string |
       walletAddress: wallet?.address ? `${wallet.address.substring(0, 8)}...` : null,
       availableCommands: [
         '/tip swap - Swap Solana tokens',
-        '/tip ltc deposit - Deposit native LTC',
-        '/tip ltc quote - Get LTC swap rates',
         '/tip wallet - Manage your wallet',
         '/tip send - Send a tip',
         '/tip balance - Check balance',
         '/tip tokens - List supported tokens',
       ],
       supportedTokens: getSupportedTokens(),
-      ltcOutputs: ['SOL', 'USDC', 'USDT'],
     });
 
     if (response.success && response.data) {
@@ -108,14 +104,6 @@ async function getAIResponse(userId: string, question: string): Promise<string |
  */
 async function getRuleBasedResponse(userId: string, content: string): Promise<string> {
   const hasUserWallet = hasWallet(userId);
-
-  // LTC-related questions
-  if (containsAny(content, LTC_KEYWORDS)) {
-    if (containsAny(content, SWAP_KEYWORDS)) {
-      return getLtcSwapGuide(hasUserWallet);
-    }
-    return getLtcDepositGuide(hasUserWallet);
-  }
 
   // Swap questions (Solana tokens)
   if (containsAny(content, SWAP_KEYWORDS)) {
@@ -149,59 +137,6 @@ function containsAny(content: string, keywords: string[]): boolean {
 }
 
 /**
- * Guide for swapping LTC to Solana tokens
- */
-function getLtcSwapGuide(hasWallet: boolean): string {
-  let guide = `🪙 **How to Swap LTC (Litecoin) for Solana Tokens**\n\n`;
-
-  if (!hasWallet) {
-    guide += `⚠️ **First, you need to register a wallet!**\n`;
-    guide += `Use \`/tip wallet\` → **Register (External)** and enter your Solana wallet address.\n\n`;
-  }
-
-  guide += `**Step 1: Get your LTC deposit address**\n`;
-  guide += `\`/tip ltc action:deposit output:SOL\`\n\n`;
-  guide += `This gives you a unique LTC address. Send your Litecoin there!\n\n`;
-
-  guide += `**Step 2: Choose your output token**\n`;
-  guide += `• **SOL** - Solana (default)\n`;
-  guide += `• **USDC** - USD Coin (stablecoin)\n`;
-  guide += `• **USDT** - Tether (stablecoin)\n\n`;
-
-  guide += `**Step 3: Check the rate first (optional)**\n`;
-  guide += `\`/tip ltc action:quote output:SOL\`\n\n`;
-
-  guide += `**Step 4: Wait for conversion (~15-30 min)**\n`;
-  guide += `Check status with: \`/tip ltc action:status\`\n\n`;
-
-  guide += `💡 Your Solana tokens will be sent directly to your registered wallet!`;
-
-  return guide;
-}
-
-/**
- * Guide for depositing LTC
- */
-function getLtcDepositGuide(hasWallet: boolean): string {
-  let guide = `🪙 **Depositing LTC (Litecoin)**\n\n`;
-
-  if (!hasWallet) {
-    guide += `⚠️ **First, you need to register a wallet!**\n`;
-    guide += `Use \`/tip wallet\` → **Register (External)** and enter your Solana wallet address.\n\n`;
-  }
-
-  guide += `To deposit LTC and receive Solana tokens:\n\n`;
-  guide += `1️⃣ \`/tip ltc action:deposit\` - Get your deposit address\n`;
-  guide += `2️⃣ Send LTC from your Litecoin wallet to that address\n`;
-  guide += `3️⃣ Wait ~15-30 minutes for confirmation\n`;
-  guide += `4️⃣ Receive SOL (or USDC/USDT) in your Solana wallet!\n\n`;
-
-  guide += `💡 **Tip:** Check rates first with \`/tip ltc action:quote\``;
-
-  return guide;
-}
-
-/**
  * Guide for swapping Solana tokens
  */
 function getSwapGuide(hasWallet: boolean): string {
@@ -219,10 +154,7 @@ function getSwapGuide(hasWallet: boolean): string {
   guide += `SOL, USDC, USDT, BONK, JUP, RAY, ORCA, WBTC, WETH\n\n`;
 
   guide += `**View all tokens:**\n`;
-  guide += `\`/tip tokens\`\n\n`;
-
-  guide += `**For LTC (Litecoin):**\n`;
-  guide += `Use \`/tip ltc action:deposit\` to deposit native LTC`;
+  guide += `\`/tip tokens\``;
 
   return guide;
 }
@@ -270,7 +202,6 @@ function getWalletGuide(hasWallet: boolean): string {
     `That's it! Now you can:\n` +
     `• Send and receive tips\n` +
     `• Swap tokens via Jupiter\n` +
-    `• Deposit LTC and receive Solana tokens\n` +
     `• Lock funds in time-locked vaults`;
 }
 
@@ -280,8 +211,6 @@ function getWalletGuide(hasWallet: boolean): string {
 function getGeneralHelp(): string {
   return `👋 **Hi! I'm the JustTheTip Bot**\n\n` +
     `I can help you with:\n\n` +
-    `🪙 **LTC Deposits** - Deposit Litecoin, receive Solana tokens\n` +
-    `\`/tip ltc action:deposit\`\n\n` +
     `💱 **Token Swaps** - Swap between Solana tokens via Jupiter\n` +
     `\`/tip swap from:TOKEN to:TOKEN amount:X\`\n\n` +
     `💸 **Tipping** - Send SOL to other users\n` +
@@ -289,7 +218,6 @@ function getGeneralHelp(): string {
     `💳 **Wallet** - Set up your Solana wallet\n` +
     `\`/tip wallet\`\n\n` +
     `**Just ask me anything!** For example:\n` +
-    `• "How do I swap LTC for SOL?"\n` +
     `• "I want to tip someone"\n` +
     `• "What tokens can I swap?"\n\n` +
     `Or use \`/tip\` for all commands!`;

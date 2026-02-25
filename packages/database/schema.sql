@@ -151,6 +151,36 @@ CREATE TABLE IF NOT EXISTS mod_logs (
   evidence_url TEXT, -- Link to screenshot or message link
   witness_statement TEXT, -- Optional second opinion or witness
   created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL
+);CREATE TABLE IF NOT EXISTS user_stats(
+  discord_id TEXT PRIMARY KEY,
+  username TEXT NOT NULL,
+  avatar TEXT,
+  
+  -- Global stats
+  total_games INTEGER DEFAULT 0 NOT NULL,
+  total_wins INTEGER DEFAULT 0 NOT NULL,
+  total_score INTEGER DEFAULT 0 NOT NULL,
+  
+  -- Analytics stats
+  wagered_amount_sol DECIMAL DEFAULT 0 NOT NULL,
+  deposited_amount_sol DECIMAL DEFAULT 0 NOT NULL,
+  lost_amount_sol DECIMAL DEFAULT 0 NOT NULL,
+  profit_sol DECIMAL DEFAULT 0 NOT NULL,
+  
+  -- Degens Against Decency stats
+  dad_games INTEGER DEFAULT 0 NOT NULL,
+  dad_wins INTEGER DEFAULT 0 NOT NULL,
+  dad_score INTEGER DEFAULT 0 NOT NULL,
+  
+  -- Poker stats
+  poker_games INTEGER DEFAULT 0 NOT NULL,
+  poker_wins INTEGER DEFAULT 0 NOT NULL,
+  poker_chips_won INTEGER DEFAULT 0 NOT NULL,
+  
+  -- Metadata
+  last_played_at TIMESTAMPTZ DEFAULT NOW(),
+  created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL,
+  updated_at TIMESTAMPTZ DEFAULT NOW() NOT NULL
 );
 
 -- Indexes for mod_logs

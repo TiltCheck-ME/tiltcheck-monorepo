@@ -57,4 +57,4 @@ export { justthetip } from './justthetip.js';
 // export { blockdomain, unblockdomain } from './blocklist.js';
 
 export { default as report } from './report.js';
-
+export { casino } from './casino.js';

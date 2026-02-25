@@ -25,7 +25,7 @@ import { startTiltAgentLoop } from './services/tilt-agent.js';
 
 // Import modules to initialize them
 // import '@tiltcheck/suslink';
-import { startTrustAdapter } from '@tiltcheck/discord-utils/trust-adapter';
+// import { startTrustAdapter } from '@tiltcheck/discord-utils/trust-adapter';
 
 async function main() {
   const startTime = Date.now();

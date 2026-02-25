@@ -88,8 +88,8 @@ SUPPORT_CHANNEL_ID=1447524748069306489
 2. **Update with your values:**
    ```bash
    # Required
-   DISCORD_TOKEN=your_token_from_discord_developers
-   DISCORD_CLIENT_ID=1445916179163250860
+   TIP_DISCORD_TOKEN=your_token_from_discord_developers
+   TIP_DISCORD_CLIENT_ID=1445916179163250860
    DISCORD_GUILD_ID=1446973117472964620
    
    # Optional but recommended for alerts

@@ -64,8 +64,18 @@ If deploying the Discord bot separately or as part of the monorepo:
 
 | Variable | Example Value | Description |
 |----------|---------------|-------------|
-| `DISCORD_TOKEN` | `MTAx...your_token` | Bot token from Discord Developer Portal |
-| `DISCORD_CLIENT_ID` | `1234567890123456789` | Application client ID from Discord |
+| `TILT_DISCORD_TOKEN` | `MTAx...` | Main TiltCheck Bot token |
+| `TILT_DISCORD_CLIENT_ID` | `1234...` | Main TiltCheck Client ID |
+| `TIP_DISCORD_TOKEN` | `MTAx...` | JustTheTip Bot token |
+| `TIP_DISCORD_CLIENT_ID` | `1234...` | JustTheTip Client ID |
+| `PORT` | `8080` | Health check port (Hyperlift requires 8080) |
+| `NODE_ENV` | `production` | Environment setting |
+| Variable | Example Value | Description |
+|----------|---------------|-------------|
+| `TILT_DISCORD_TOKEN` | `MTAx...` | Main TiltCheck Bot token |
+| `TILT_DISCORD_CLIENT_ID` | `1234...` | Main TiltCheck Client ID |
+| `TIP_DISCORD_TOKEN` | `MTAx...` | JustTheTip Bot token |
+| `TIP_DISCORD_CLIENT_ID` | `1234...` | JustTheTip Client ID |
 | `PORT` | `8080` | Health check port (Hyperlift requires 8080) |
 | `NODE_ENV` | `production` | Environment setting |
 
@@ -281,9 +291,11 @@ PORT=8080
 NODE_ENV=production
 PUBLIC_BASE_URL=https://tiltcheck.me
 
-# Discord
-DISCORD_TOKEN=your_bot_token
-DISCORD_CLIENT_ID=your_client_id
+# Discord Bots
+TILT_DISCORD_TOKEN=your_tilt_bot_token
+TILT_DISCORD_CLIENT_ID=your_tilt_client_id
+TIP_DISCORD_TOKEN=your_tip_bot_token
+TIP_DISCORD_CLIENT_ID=your_tip_client_id
 DISCORD_CLIENT_SECRET=your_client_secret
 DISCORD_GUILD_ID=your_server_id
 DISCORD_WEBHOOK_URL=your_webhook_url

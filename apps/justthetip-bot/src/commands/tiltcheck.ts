@@ -12,7 +12,7 @@ import {
 export const tiltcheck: Command = {
   data: new SlashCommandBuilder()
     .setName('tiltcheck')
-    .setDescription('Check tilt status and manage cooldowns')
+    .setDescription('Check if you\'re spiraling (Tilt Status)')
     .setContexts(
       InteractionContextType.Guild,
       InteractionContextType.BotDM
@@ -59,19 +59,19 @@ async function handleTiltStatus(interaction: ChatInputCommandInteraction) {
 
   const embed = new EmbedBuilder()
     .setColor(status.onCooldown ? 0xFF6B6B : 0x00CED1)
-    .setTitle('📊 Tilt Status');
+    .setTitle('📊 Mental State');
 
   if (status.onCooldown && cooldownStatus && cooldownStatus.endsAt) {
     const remaining = Math.ceil((cooldownStatus.endsAt - Date.now()) / 60000);
     const reason = cooldownStatus.reason || 'Unknown';
-    embed.setDescription('⏸️ On cooldown')
+    embed.setDescription('⏸️ You\'re Tilted (Cooldown)')
       .addFields(
         { name: 'Time Remaining', value: `${remaining} minutes`, inline: true },
         { name: 'Reason', value: reason, inline: true },
         { name: 'Violations', value: `${cooldownStatus.violationCount}`, inline: true },
       );
   } else {
-    embed.setDescription('✅ No active cooldown')
+    embed.setDescription('✅ Zen Mode')
       .addFields(
         { name: 'Recent Signals', value: `${status.recentSignals.length} (last hour)`, inline: true },
         { name: 'Status', value: status.recentSignals.length >= 3 ? '⚠️ Elevated' : '✅ Normal', inline: true },
@@ -88,7 +88,7 @@ async function handleTiltStatus(interaction: ChatInputCommandInteraction) {
     });
   }
 
-  embed.setFooter({ text: 'Use /tiltcheck cooldown to take a voluntary break' });
+  embed.setFooter({ text: 'Use /tiltcheck cooldown if you need to touch grass' });
 
   await interaction.reply({ embeds: [embed], ephemeral: true });
 }
@@ -108,8 +108,8 @@ async function handleTiltHistory(interaction: ChatInputCommandInteraction) {
 
   const embed = new EmbedBuilder()
     .setColor(0x0099FF)
-    .setTitle('📈 Tilt History')
-    .setDescription(`Activity tracking for ${interaction.user.username}`);
+    .setTitle('📈 The Spiral History')
+    .setDescription(`Receipts for ${interaction.user.username}`);
 
   if (recentMessages.length > 0) {
     const messageCount = recentMessages.length;
@@ -143,7 +143,7 @@ async function handleTiltHistory(interaction: ChatInputCommandInteraction) {
     });
   }
 
-  embed.setFooter({ text: 'TiltCheck keeps you safe from yourself' });
+  embed.setFooter({ text: 'TiltCheck • We keep receipts' });
 
   await interaction.reply({ embeds: [embed], ephemeral: true });
 }
@@ -180,8 +180,8 @@ async function handleCooldown(interaction: ChatInputCommandInteraction) {
 
   const embed = new EmbedBuilder()
     .setColor(0x00CED1)
-    .setTitle('⏸️ Cooldown Started')
-    .setDescription(`Taking a ${duration}-minute break. Smart move.`)
+    .setTitle('⏸️ Touch Grass Mode Activated')
+    .setDescription(`Taking a ${duration}-minute break. Don't come back until you're sane.`)
     .addFields(
       { name: 'Duration', value: `${duration} minutes`, inline: true },
       { name: 'Expires', value: `<t:${Math.floor((Date.now() + duration * 60000) / 1000)}:R>`, inline: true },

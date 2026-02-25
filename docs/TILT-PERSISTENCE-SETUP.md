@@ -262,6 +262,21 @@ If all these work, the entire system is integrated! ✅
 - Verify table appears in Table Editor
 - Check column names match exactly (case-sensitive)
 
+### Issue: "function update_updated_at_colomn() does not exist"
+
+**Solution:**
+This is caused by a typo in the migration script (`colomn` vs `column`) or the function not being defined before the trigger. Run this SQL in Supabase to fix it:
+
+```sql
+CREATE OR REPLACE FUNCTION update_updated_at_column()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = now();
+    RETURN NEW;
+END;
+$$ language 'plpgsql';
+```
+
 ### Issue: Bot command doesn't work
 
 **Solution:**
@@ -381,4 +396,3 @@ Refer to:
 - API docs: `/docs/TILT-EVENTS-API.md`
 - Feature docs: `/docs/USER-DASHBOARD.md`
 - Migration file: `/docs/migrations/001-tilt-events.sql`
-

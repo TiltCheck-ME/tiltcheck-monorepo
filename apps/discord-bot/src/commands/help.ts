@@ -37,10 +37,8 @@ export const help: Command = {
       {
         name: '💱 /tip swap - Crypto Swaps',
         value:
-          '`/tip swap quote` - Get swap rates\n' +
-          '`/tip swap deposit` - Start a swap (LTC → SOL)\n' +
-          '`/tip swap status` - Check swap progress\n' +
-          'Powered by ChangeNow • Non-custodial',
+          '`/tip swap` - Swap tokens via Jupiter\n' +
+          'Powered by Jupiter • Non-custodial',
         inline: false,
       },
       {
@@ -78,7 +76,7 @@ export const help: Command = {
           '✅ Flat $0.07 fee per tip\n' +
           '✅ Direct wallet-to-wallet transfers\n' +
           '✅ Time-locked vaults for self-control\n' +
-          '✅ Cross-chain swaps via ChangeNow',
+          '✅ Best rates via Jupiter Aggregator',
         inline: false,
       }
     );

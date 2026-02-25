@@ -1,4 +1,4 @@
-import { SlashCommandBuilder, ChatInputCommandInteraction, EmbedBuilder, Colors } from 'discord.js';
+bonsai import { SlashCommandBuilder, ChatInputCommandInteraction, EmbedBuilder, Colors } from 'discord.js';
 import { WalletCheckService } from '@tiltcheck/walletcheck';
 import type { Command } from '../types.js';
 
@@ -38,7 +38,8 @@ export const walletcheck: Command = {
           { name: 'Balance', value: `${report.details.ethBalance} ETH`, inline: true },
           { name: 'Status', value: report.isCompromised ? '🚨 COMPROMISED' : '✅ SECURE', inline: true }
         )
-        .setTimestamp();
+        .setTimestamp()
+        .setFooter({ text: 'Powered by TiltCheck Security Engine' });
 
       if (report.threats.length > 0) {
         embed.addFields({ name: '⚠️ Detected Threats', value: report.threats.map(t => `• ${t}`).join('\n') });

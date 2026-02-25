@@ -41,11 +41,11 @@ export const lockvault: Command = {
       sub
         .setName('autovault')
         .setDescription('Set auto-vault configuration')
+        .addStringOption(o => o.setName('apikey').setDescription('API key for casino integration').setRequired(true))
         .addNumberOption(o => o.setName('percentage').setDescription('Percentage of wins to auto-vault (0-100)'))
         .addNumberOption(o => o.setName('threshold').setDescription('Vault everything over this balance amount'))
         .addStringOption(o => o.setName('currency').setDescription('Currency for threshold (SOL/USD)').addChoices({ name: 'SOL', value: 'SOL' }, { name: 'USD', value: 'USD' }))
         .addBooleanOption(o => o.setName('savefornft').setDescription('Automatically save vaulted funds for your Identity NFT fee'))
-        .addStringOption(o => o.setName('apikey').setDescription('API key for casino integration').setRequired(true))
     )
     .addSubcommand(sub =>
       sub

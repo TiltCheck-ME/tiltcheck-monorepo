@@ -13,9 +13,9 @@ export const help: Command = {
   async execute(interaction: ChatInputCommandInteraction) {
     const embed = new EmbedBuilder()
       .setColor(0x00BFFF)
-      .setTitle('JustTheTip — Credit-Based Tipping')
+      .setTitle('JustTheTip — How to Degen')
       .setDescription(
-        'Send SOL tips instantly using your credit balance. No signing needed per transaction!\n\n' +
+        'Send SOL instantly. Custodial (fast) or Non-Custodial (safe). Pick your poison.\n\n' +
         '**Getting Started:**\n' +
         '1. Register your wallet: `/tip wallet register-external`\n' +
         '2. Deposit SOL: `/tip deposit` (sends you a deposit code)\n' +
@@ -59,7 +59,7 @@ export const help: Command = {
             'Pending tips to walletless users expire after 7 days.',
         },
       )
-      .setFooter({ text: 'JustTheTip — Powered by TiltCheck' });
+      .setFooter({ text: 'JustTheTip — Powered by Degens' });
 
     await interaction.reply({ embeds: [embed], ephemeral: true });
   },
