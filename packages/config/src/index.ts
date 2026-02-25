@@ -12,6 +12,13 @@
  * Includes severity calculations, environment utilities, and Zod-validated configs.
  */
 
+// Re-export startup validation (validate.ts)
+export {
+  EnvSchema,
+  type ValidatedEnv,
+  validateEnv as validateEnvAtStartup,
+} from './validate.js';
+
 // Re-export environment validation
 export {
   // Schemas

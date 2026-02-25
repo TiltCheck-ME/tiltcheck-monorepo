@@ -1,13 +1,13 @@
 /**
  * © 2024–2025 TiltCheck Ecosystem. All Rights Reserved.
  * Created by jmenichole (https://github.com/jmenichole)
- * 
+ *
  * This file is part of the TiltCheck project.
  * For licensing information, see LICENSE file in the project root.
  */
 /**
  * Discord Embed Builders
- * 
+ *
  * Consistent embed formatting for TiltCheck bot messages.
  */
 
@@ -247,4 +247,57 @@ export function bonusEmbed(data: {
   });
 
   return embed;
+}
+
+/**
+ * Standardized embed factory functions with TiltCheck branding.
+ * These provide a consistent footer ("TiltCheck") and timestamp for all status embeds.
+ */
+
+/**
+ * Create a success embed with green color and TiltCheck footer.
+ */
+export function createSuccessEmbed(title: string, description: string): EmbedBuilder {
+  return new EmbedBuilder()
+    .setColor(Colors.SUCCESS as ColorResolvable)
+    .setTitle(title)
+    .setDescription(description)
+    .setFooter({ text: 'TiltCheck' })
+    .setTimestamp();
+}
+
+/**
+ * Create an error embed with red color and TiltCheck footer.
+ */
+export function createErrorEmbed(title: string, description: string): EmbedBuilder {
+  return new EmbedBuilder()
+    .setColor(Colors.DANGER as ColorResolvable)
+    .setTitle(title)
+    .setDescription(description)
+    .setFooter({ text: 'TiltCheck' })
+    .setTimestamp();
+}
+
+/**
+ * Create a warning embed with yellow/orange color and TiltCheck footer.
+ */
+export function createWarningEmbed(title: string, description: string): EmbedBuilder {
+  return new EmbedBuilder()
+    .setColor(Colors.HIGH_RISK as ColorResolvable)
+    .setTitle(title)
+    .setDescription(description)
+    .setFooter({ text: 'TiltCheck' })
+    .setTimestamp();
+}
+
+/**
+ * Create an info embed with blue color and TiltCheck footer.
+ */
+export function createInfoEmbed(title: string, description: string): EmbedBuilder {
+  return new EmbedBuilder()
+    .setColor(Colors.INFO as ColorResolvable)
+    .setTitle(title)
+    .setDescription(description)
+    .setFooter({ text: 'TiltCheck' })
+    .setTimestamp();
 }

@@ -41,3 +41,4 @@ export * from './sentry.js';
 export * from './metrics.js';
 export * from './logflare.js';
 export * from './correlation-id.js';
+export * from './alerts.js';

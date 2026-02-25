@@ -14,6 +14,7 @@
 import { Collection } from 'discord.js';
 import type { Command, CommandCollection } from '../types.js';
 import * as commands from '../commands/index.js';
+import { loadCommands as dynamicLoadCommands } from '../commands/loader.js';
 
 export class CommandHandler {
   private commands: CommandCollection;
@@ -60,5 +61,19 @@ export class CommandHandler {
    */
   getCommandData() {
     return this.getAllCommands().map((cmd) => cmd.data.toJSON());
+  }
+
+  /**
+   * Dynamically discover and load all command files from the commands/
+   * directory using the fs.readdir-based loader. This supplements (and
+   * may replace) the static `loadCommands()` barrel import approach.
+   *
+   * After this resolves, the internal collection is replaced with the
+   * dynamically-discovered set.
+   */
+  async loadCommandsDynamic(): Promise<void> {
+    const discovered = await dynamicLoadCommands();
+    this.commands = discovered as unknown as CommandCollection;
+    console.log(`  [CommandHandler] Dynamic load complete – ${this.commands.size} command(s) active`);
   }
 }

@@ -48,7 +48,8 @@
     "lighthouse:landing": "node scripts/run-lighthouse.js",
     "build:search-index": "node scripts/build-search-index.js",
     "lighthouse:ci": "node scripts/lighthouse-ci.js",
-    "changelog": "npx tsx scripts/generate-changelog.ts"
+    "changelog": "npx tsx scripts/generate-changelog.ts",
+    "audit:deps": "npx tsx scripts/audit-deps.ts"
   },
   "devDependencies": {
     "@types/bcryptjs": "^3.0.0",

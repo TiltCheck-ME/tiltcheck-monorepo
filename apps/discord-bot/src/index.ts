@@ -17,13 +17,14 @@ import { Client, GatewayIntentBits, Partials } from 'discord.js';
 import http from 'http';
 import fs from 'fs';
 import { config, validateConfig } from './config.js';
-import { 
-  CommandHandler, 
-  EventHandler, 
-  registerDMHandler, 
-  initializeTiltEventsHandler, 
+import {
+  CommandHandler,
+  EventHandler,
+  registerDMHandler,
+  initializeTiltEventsHandler,
   initializeCollectClock,
-  startBonusNotifier
+  startBonusNotifier,
+  handleClientError,
 } from './handlers/index.js';
 import { initializeAlertService } from './services/alert-service.js';
 import { TrustAlertsHandler } from './handlers/trust-alerts-handler.js';
