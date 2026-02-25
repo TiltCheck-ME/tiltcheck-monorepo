@@ -37,20 +37,20 @@ export class FairnessService {
     const messageData = encoder.encode(`${discordId}${clientSeed}`);
 
     // Import key for HMAC-SHA256
-    const key = await crypto.subtle.importKey(
+    const key = await ((crypto.subtle || (crypto as any).webcrypto.subtle).importKey(
       'raw',
-      keyData,
+      keyData as any,
       { name: 'HMAC', hash: 'SHA-256' },
       false,
       ['sign']
-    );
+    ));
 
     // Sign the message
-    const signature = await crypto.subtle.sign(
+    const signature = await ((crypto.subtle || (crypto as any).webcrypto.subtle).sign(
       'HMAC',
       key,
-      messageData
-    );
+      messageData as any
+    ));
 
     return this.bufferToHex(signature);
   }
@@ -138,6 +138,38 @@ export class FairnessService {
   ): Promise<boolean> {
     const calculatedHash = await this.generateHash(solanaBlockHash, discordId, clientSeed);
     return calculatedHash === reportedHash;
+  }
+
+  /**
+   * Verifies a standard casino result (Unhashed Server Seed).
+   * Used for the "Fairness Verifier" tool to check past bets.
+   * 
+   * Standard Algo: HMAC_SHA256(serverSeed, clientSeed:nonce)
+   */
+  async verifyCasinoResult(
+    serverSeed: string,
+    clientSeed: string,
+    nonce: number
+  ): Promise<string> {
+    const encoder = new TextEncoder();
+    const keyData = encoder.encode(serverSeed);
+    const messageData = encoder.encode(`${clientSeed}:${nonce}`);
+
+    const key = await ((crypto.subtle || (crypto as any).webcrypto.subtle).importKey(
+      'raw',
+      keyData as any,
+      { name: 'HMAC', hash: 'SHA-256' },
+      false,
+      ['sign']
+    ));
+
+    const signature = await ((crypto.subtle || (crypto as any).webcrypto.subtle).sign(
+      'HMAC',
+      key,
+      messageData as any
+    ));
+
+    return this.bufferToHex(signature);
   }
 
   private bufferToHex(buffer: ArrayBuffer): string {

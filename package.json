@@ -1,15 +1,17 @@
 {
-  "name": "@tiltcheck/event-types",
-  "version": "0.1.0",
+  "name": "tiltcheck-monorepo",
+  "version": "1.0.0",
   "private": true,
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
-  "type": "module",
-  "files": [
-    "dist"
-  ],
+  "packageManager": "pnpm@10.29.1",
   "scripts": {
-    "build": "tsc",
-    "dev": "tsc -w"
+    "build": "turbo run build",
+    "dev": "turbo run dev",
+    "test": "turbo run test",
+    "lint": "turbo run lint",
+    "clean": "turbo run clean",
+    "format": "prettier --write \"**/*.{ts,tsx,md}\""
+  },
+  "devDependencies": {
+    "turbo": "^2.8.11"
   }
 }
