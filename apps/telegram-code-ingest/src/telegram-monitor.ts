@@ -1,13 +1,14 @@
 /**
  * © 2024–2025 TiltCheck Ecosystem. All Rights Reserved.
  * Created by jmenichole (https://github.com/jmenichole)
- * 
+ *
  * This file is part of the TiltCheck project.
  * For licensing information, see LICENSE file in the project root.
  */
+// v0.1.0 — 2026-02-25
 /**
  * Telegram Monitor - Polls channels for new messages and extracts codes
- * 
+ *
  * NOTE: This uses a polling approach. For production, consider:
  * - MTProto client (telegram) for real-time updates
  * - Bot API with webhooks
@@ -80,27 +81,27 @@ export class TelegramMonitor {
 
   /**
    * Poll a single channel for new messages
-   * 
+   *
    * NOTE: This is a placeholder implementation
    * In production, replace with actual Telegram API calls:
-   * 
+   *
    * ```typescript
    * import { TelegramClient } from 'telegram';
-   * 
+   *
    * const client = new TelegramClient(
    *   new StringSession(this.config.sessionString),
    *   this.config.apiId,
    *   this.config.apiHash,
    *   { connectionRetries: 5 }
    * );
-   * 
+   *
    * await client.connect();
-   * 
+   *
    * const messages = await client.getMessages(channel, {
    *   limit: 10,
    *   offsetId: lastMessageId,
    * });
-   * 
+   *
    * for (const message of messages) {
    *   await this.processMessage(channel, message.id, message.text);
    * }
@@ -109,9 +110,14 @@ export class TelegramMonitor {
   private async pollChannel(channel: string): Promise<void> {
     console.log(`[TelegramMonitor] Polling ${channel}...`);
 
-    // Placeholder: In production, fetch actual messages from Telegram
-    // For now, simulate finding no new messages
+    // Placeholder: In production, fetch actual messages from Telegram via MTProto
+    // This would require telegram client library and authentication
+    // For now, simulate finding no new messages (poll continues)
     const messages: Array<{ id: string; text: string }> = [];
+
+    if (messages.length === 0) {
+      console.log(`[TelegramMonitor] No new messages in ${channel}`);
+    }
 
     for (const message of messages) {
       // Emit generic event for message received

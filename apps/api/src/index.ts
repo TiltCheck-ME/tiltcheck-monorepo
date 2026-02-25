@@ -1,13 +1,14 @@
 /**
  * © 2024–2025 TiltCheck Ecosystem. All Rights Reserved.
  * Created by jmenichole (https://github.com/jmenichole)
- * 
+ *
  * This file is part of the TiltCheck project.
  * For licensing information, see LICENSE file in the project root.
  */
+// v0.1.0 — 2026-02-25
 /**
  * @tiltcheck/api - Central API Gateway
- * 
+ *
  * The single entry point for all TiltCheck API calls.
  * Handles authentication, session management, and request forwarding.
  */
