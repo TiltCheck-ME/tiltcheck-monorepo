@@ -15,7 +15,7 @@ updates:
       - "github-actions"
     reviewers:
       - "jmenichole"
-    open-pull-requests-limit: 5
+    open-pull-requests-limit: 1
 
   # pnpm workspace (root)
   - package-ecosystem: "npm"
@@ -29,52 +29,14 @@ updates:
       - "npm"
     reviewers:
       - "jmenichole"
-    open-pull-requests-limit: 10
+    open-pull-requests-limit: 1
     versioning-strategy: increase-if-necessary
     groups:
-      # Group dev dependencies together
-      dev-dependencies:
-        dependency-type: "development"
-        update-types:
-          - "minor"
-          - "patch"
-      # Group production dependencies by category
-      typescript-ecosystem:
+      # Group EVERYTHING into a single weekly pull request
+      # This prevents merge conflicts in the pnpm-lock.yaml
+      all-dependencies:
         patterns:
-          - "typescript*"
-          - "@types/*"
-          - "ts-*"
-      testing-tools:
-        patterns:
-          - "vitest*"
-          - "@vitest/*"
-          - "jest*"
-          - "supertest"
-          - "jsdom"
-      eslint-prettier:
-        patterns:
-          - "eslint*"
-          - "prettier*"
-          - "@typescript-eslint/*"
-      build-tools:
-        patterns:
-          - "esbuild"
-          - "vite*"
-          - "rollup*"
-
-  # Discord bot
-  - package-ecosystem: "npm"
-    directory: "/apps/discord-bot"
-    schedule:
-      interval: "weekly"
-      day: "monday"
-      time: "05:00"
-    labels:
-      - "dependencies"
-      - "discord-bot"
-    reviewers:
-      - "jmenichole"
-    open-pull-requests-limit: 5
+          - "*"
 
   # Docker dependencies
   - package-ecosystem: "docker"
@@ -88,4 +50,4 @@ updates:
       - "docker"
     reviewers:
       - "jmenichole"
-    open-pull-requests-limit: 3
+    open-pull-requests-limit: 1

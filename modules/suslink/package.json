@@ -36,12 +36,12 @@
     "test": "echo \"Tests coming soon\""
   },
   "dependencies": {
-    "@tiltcheck/types": "workspace:*",
+    "@tiltcheck/config": "workspace:*",
     "@tiltcheck/event-router": "workspace:*",
-    "@tiltcheck/config": "workspace:*"
+    "@tiltcheck/types": "workspace:*"
   },
   "devDependencies": {
-    "@types/node": "^25.2.3",
+    "@types/node": "^25.3.0",
     "tsx": "^4.7.0",
     "typescript": "^5.3.0"
   }

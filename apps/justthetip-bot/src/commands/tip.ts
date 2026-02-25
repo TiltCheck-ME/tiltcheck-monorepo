@@ -1,4 +1,11 @@
 /**
+ * © 2024–2025 TiltCheck Ecosystem. All Rights Reserved.
+ * Created by jmenichole (https://github.com/jmenichole)
+ * 
+ * This file is part of the TiltCheck project.
+ * For licensing information, see LICENSE file in the project root.
+ */
+/**
  * Tip Command — Credit-based custodial tipping
  *
  * All subcommands operate on credit balances managed by the bot wallet.
@@ -1119,98 +1126,6 @@ async function handleVaultEmergencyUnlock(interaction: ChatInputCommandInteracti
   }
 }
 
-async function handleVaultEmergencyUnlock(interaction: ChatInputCommandInteraction) {
-  await interaction.deferReply({ ephemeral: true });
-  const id = interaction.options.getString('id', true);
-
-  const vaults = getVaultStatus(interaction.user.id);
-  const vault = vaults.find(v => v.id === id);
-
-  if (!vault) {
-    await interaction.editReply({ content: '❌ Vault not found.' });
-    return;
-  }
-
-  if (vault.status !== 'locked') {
-    await interaction.editReply({ content: '❌ Vault is not locked.' });
-    return;
-  }
-
-  const feePercent = 0.20;
-  const feeAmount = vault.lockedAmountSOL * feePercent;
-  const returnAmount = vault.lockedAmountSOL - feeAmount;
-
-  const confirmEmbed = new EmbedBuilder()
-    .setColor(0xFF0000)
-    .setTitle('🚨 EMERGENCY UNLOCK 🚨')
-    .setDescription(
-      `You are breaking the glass. This hurts.\n\n` +
-      `**Vault:** ${vault.id}\n` +
-      `**Locked:** ${vault.lockedAmountSOL.toFixed(4)} SOL\n` +
-      `**Penalty (20%):** -${feeAmount.toFixed(4)} SOL\n` +
-      `**You Get:** ${returnAmount.toFixed(4)} SOL\n\n` +
-      `*Where should we send the scraps?*`
-    );
-
-  const toBalanceBtn = new ButtonBuilder()
-    .setCustomId('emergency_balance')
-    .setLabel('Credit Balance')
-    .setStyle(ButtonStyle.Danger);
-
-  const toWalletBtn = new ButtonBuilder()
-    .setCustomId('emergency_wallet')
-    .setLabel('External Wallet')
-    .setStyle(ButtonStyle.Danger);
-
-  const cancelBtn = new ButtonBuilder()
-    .setCustomId('emergency_cancel')
-    .setLabel('Cancel')
-    .setStyle(ButtonStyle.Secondary);
-
-  const row = new ActionRowBuilder<ButtonBuilder>().addComponents(toBalanceBtn, toWalletBtn, cancelBtn);
-
-  const msg = await interaction.editReply({ embeds: [confirmEmbed], components: [row] });
-
-  try {
-    const confirmation = await msg.awaitMessageComponent({
-      filter: i => i.user.id === interaction.user.id,
-      time: 30000,
-      componentType: ComponentType.Button,
-    });
-
-    if (confirmation.customId === 'emergency_cancel') {
-      await confirmation.update({ content: '❌ Emergency unlock cancelled. Good choice.', embeds: [], components: [] });
-      return;
-    }
-
-    await confirmation.deferUpdate();
-
-    // Perform unlock logic
-    unlockVault(interaction.user.id, id);
-
-    // Deduct fee and credit remainder
-    // Note: In a real implementation, we'd move funds from the vault wallet.
-    // Here we simulate by crediting the user's balance with the remainder (if to balance)
-    // or sending to wallet.
-    
-    if (confirmation.customId === 'emergency_balance') {
-      await creditManager.deposit(interaction.user.id, returnAmount * LAMPORTS_PER_SOL, { memo: `emergency unlock ${id}` });
-      await interaction.editReply({ content: `✅ Vault unlocked. **${returnAmount.toFixed(4)} SOL** credited to balance.`, embeds: [], components: [] });
-    } else {
-      const bal = await creditManager.getBalance(interaction.user.id);
-      if (bal?.wallet_address) {
-        await botWallet.sendSOL(bal.wallet_address, returnAmount * LAMPORTS_PER_SOL);
-        await interaction.editReply({ content: `✅ Vault unlocked. **${returnAmount.toFixed(4)} SOL** sent to \`${bal.wallet_address}\`.`, embeds: [], components: [] });
-      } else {
-        await creditManager.deposit(interaction.user.id, returnAmount * LAMPORTS_PER_SOL, { memo: `emergency unlock (no wallet)` });
-        await interaction.editReply({ content: `⚠️ No external wallet found. Credited to balance instead.`, embeds: [], components: [] });
-      }
-    }
-  } catch (err) {
-    await interaction.editReply({ content: `❌ Error: ${(err as Error).message}`, embeds: [], components: [] });
-  }
-}
-
 async function handleVaultExtend(interaction: ChatInputCommandInteraction) {
   await interaction.deferReply({ ephemeral: true });
   const id = interaction.options.getString('id', true);
@@ -1472,11 +1387,11 @@ async function handleAdminSetup(interaction: ChatInputCommandInteraction) {
   await interaction.deferReply({ ephemeral: true });
 
   const channels = {
-    welcome: process.env.DISCORD_CHANNEL_WELCOME,
-    announcements: process.env.DISCORD_CHANNEL_ANNOUNCEMENTS,
-    rules: process.env.DISCORD_CHANNEL_RULES,
-    support: process.env.DISCORD_CHANNEL_SUPPORT,
-    howto: process.env.DISCORD_CHANNEL_HOWTO,
+    welcome: process.env.TIP_DISCORD_WELCOME_CHANNEL_ID,
+    announcements: process.env.TIP_DISCORD_ANNOUNCEMENT_CHANNEL_ID,
+    rules: process.env.TIP_DISCORD_RULES_CHANNEL_ID,
+    support: process.env.SUPPORT_CHANNEL_ID,
+    howto: process.env.TIP_DISCORD_HOW_TO_USE_BOT_CHANNEL_ID,
   };
 
   const guild = interaction.guild;
@@ -1621,7 +1536,7 @@ async function handleSupportTicketSubmit(interaction: ModalSubmitInteraction) {
 
     await thread.members.add(interaction.user.id);
 
-    const adminRole = process.env.DISCORD_ADMIN_ROLE_ID ? `<@&${process.env.DISCORD_ADMIN_ROLE_ID}>` : '@here';
+    const adminRole = process.env.MOD_ROLE_ID ? `<@&${process.env.MOD_ROLE_ID}>` : '@here';
     const owner = process.env.DISCORD_OWNER_ID ? `<@${process.env.DISCORD_OWNER_ID}>` : '';
 
     const embed = new EmbedBuilder()

@@ -1,4 +1,12 @@
 #!/usr/bin/env bash
+# ================================================================
+# © 2024–2025 TiltCheck Ecosystem. All Rights Reserved.
+# Created by jmenichole (https://github.com/jmenichole)
+# 
+# This file is part of the TiltCheck project.
+# For licensing information, see LICENSE file in the project root.
+# ================================================================
+
 # TiltCheck Railway Deployment Verification Script
 # Verifies all services are healthy and production-ready on Railway
 
