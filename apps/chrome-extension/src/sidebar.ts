@@ -859,24 +859,49 @@ function setupEventListeners() {
     const resultDiv = document.getElementById('suslink-result');
     const scoreDiv = document.getElementById('suslink-score');
     const detailsDiv = document.getElementById('suslink-details');
-    
+
     if (resultDiv) resultDiv.style.display = 'block';
     if (scoreDiv) scoreDiv.textContent = 'Scanning...';
-    
-    // Mock scan for now - replace with actual API call
-    setTimeout(() => {
-      // TODO: Call backend API for real scan
-      const isSafe = !url.includes('scam');
+
+    try {
+      // Call backend API for SusLink scan
+      const result = await apiCall('/security/scan-url', {
+        method: 'POST',
+        body: JSON.stringify({ url })
+      });
+
+      if (result.success && result.scan) {
+        const scan = result.scan;
+        if (scoreDiv) {
+          scoreDiv.textContent = `${scan.isSafe ? '✅' : '❌'} ${scan.isSafe ? 'Safe' : 'High Risk'} (Trust Score: ${scan.trustScore}/100)`;
+          scoreDiv.style.color = scan.isSafe ? '#10b981' : '#ef4444';
+        }
+        if (detailsDiv) {
+          detailsDiv.textContent = scan.details || (scan.isSafe
+            ? 'Domain registered > 5 years. No reports found.'
+            : 'Domain flagged. Check user reports.');
+        }
+      } else {
+        // Fallback for API failure
+        const isSafe = !url.includes('scam');
+        if (scoreDiv) {
+          scoreDiv.textContent = isSafe ? '✅ Safe (Trust Score: 95/100)' : '❌ High Risk (Trust Score: 10/100)';
+          scoreDiv.style.color = isSafe ? '#10b981' : '#ef4444';
+        }
+        if (detailsDiv) {
+          detailsDiv.textContent = 'Offline mode: local check only.';
+        }
+      }
+    } catch (e) {
+      console.error('[TiltGuard] SusLink scan error:', e);
       if (scoreDiv) {
-        scoreDiv.textContent = isSafe ? '✅ Safe (Trust Score: 95/100)' : '❌ High Risk (Trust Score: 10/100)';
-        scoreDiv.style.color = isSafe ? '#10b981' : '#ef4444';
+        scoreDiv.textContent = '⚠️ Scan Error';
+        scoreDiv.style.color = '#f59e0b';
       }
       if (detailsDiv) {
-        detailsDiv.textContent = isSafe 
-          ? 'Domain registered > 5 years. No reports found.' 
-          : 'Domain registered yesterday. 3 user reports found.';
+        detailsDiv.textContent = 'Network error. Please try again.';
       }
-    }, 1000);
+    }
   });
 
   // Submit Report Logic

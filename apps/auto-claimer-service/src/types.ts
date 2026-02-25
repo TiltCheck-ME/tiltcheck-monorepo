@@ -83,8 +83,11 @@ export interface ClaimerConfig {
  */
 export interface ClaimerDatabase {
   getUserApiKey(userId: string): Promise<string | null>;
+  storeUserApiKey(userId: string, apiKey: string): Promise<void>;
   saveClaimHistory(history: ClaimHistory): Promise<void>;
   getClaimHistory(userId: string, limit?: number): Promise<ClaimHistory[]>;
   checkRateLimit(userId: string): Promise<boolean>;
   incrementRateLimit(userId: string): Promise<void>;
+  close?(): Promise<void>;
+  deleteUserData?(userId: string): Promise<void>;
 }

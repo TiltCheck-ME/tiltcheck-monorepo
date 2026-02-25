@@ -76,17 +76,17 @@ export async function sendToLogflare(event: LogEvent): Promise<void> {
  */
 export function createLogflareLogger(serviceName: string) {
   return {
-    debug: (message: string, meta?: Record<string, any>) => {
-      sendToLogflare({ level: 'debug', message, service: serviceName, ...meta });
+    debug: async (message: string, meta?: Record<string, any>) => {
+      await sendToLogflare({ level: 'debug', message, service: serviceName, ...meta });
     },
-    info: (message: string, meta?: Record<string, any>) => {
-      sendToLogflare({ level: 'info', message, service: serviceName, ...meta });
+    info: async (message: string, meta?: Record<string, any>) => {
+      await sendToLogflare({ level: 'info', message, service: serviceName, ...meta });
     },
-    warn: (message: string, meta?: Record<string, any>) => {
-      sendToLogflare({ level: 'warn', message, service: serviceName, ...meta });
+    warn: async (message: string, meta?: Record<string, any>) => {
+      await sendToLogflare({ level: 'warn', message, service: serviceName, ...meta });
     },
-    error: (message: string, meta?: Record<string, any>) => {
-      sendToLogflare({ level: 'error', message, service: serviceName, ...meta });
+    error: async (message: string, meta?: Record<string, any>) => {
+      await sendToLogflare({ level: 'error', message, service: serviceName, ...meta });
     },
   };
 }
