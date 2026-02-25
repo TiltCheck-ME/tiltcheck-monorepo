@@ -67,7 +67,13 @@
       "Bash(pnpm --filter @tiltcheck/esm-utils build:*)",
       "WebFetch(domain:www.stakeclub.com)",
       "Bash(else)",
-      "Bash(fi)"
+      "Bash(fi)",
+      "Bash(__NEW_LINE_f35bee625453782f__ echo \"=== Packages with no dist ===\")",
+      "Bash(for d in /c/Users/jmeni/tiltcheck-monorepo/packages/*/)",
+      "Bash(do [ ! -d \"$ddist\" ])",
+      "Bash(__NEW_LINE_24bba5bec9be35c7__ echo \"=== Apps with no dist ===\")",
+      "Bash(for d in /c/Users/jmeni/tiltcheck-monorepo/apps/*/)",
+      "Bash(__NEW_LINE_35cb9f0f7da7cfdc__ echo \"=== Total packages ===\")"
     ]
   }
 }

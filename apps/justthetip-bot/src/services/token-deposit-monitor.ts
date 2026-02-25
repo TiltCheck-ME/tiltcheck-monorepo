@@ -165,7 +165,11 @@ export class TokenDepositMonitor {
         console.error(
           `[TokenDepositMonitor] Swap failed for ${pendingDeposit.discordId}: ${swapResult.error}`
         );
-        // TODO: Consider refunding the tokens back to the user's registered wallet
+        // NOTE: Refund logic not implemented in beta. Requires:
+        // 1. Storing user's registered withdrawal wallet on registration
+        // 2. Parsing TokenSwapService error for refund eligibility
+        // 3. Implementing safe transfer back with fee recovery
+        // For now, log the event and alert ops team for manual recovery.
         return;
       }
 

@@ -1,24 +1,25 @@
+// v0.1.0 — 2026-02-25
 /**
  * © 2024–2025 TiltCheck Ecosystem. All Rights Reserved.
  * Created by jmenichole (https://github.com/jmenichole)
- * 
+ *
  * This file is part of the TiltCheck project.
  * For licensing information, see LICENSE file in the project root.
  */
 /*
- * TODO: Feature Implementation List
- * - Implement SusLink checker link check for known scam reports on public info.
- * - Implement report button for casino updates (payout schedule, bonus change).
- * - Create onboarding interview (business, casino, degen, developer).
- * - Add phone a friend/buddy notification toggle.
- * - Degen accountability streaming channels.
- * - Discord help/support/report tickets.
- * - Autovault via API key.
- * - Withdraw to lock timer wallet.
- * - Custom balance notification for withdraws (e.g., Power Bill).
- * - Pattern tracking setup via natural language.
- * - Zero balance intervention (suggest surveys).
- * - Smart harm reduction observation tips.
+ * Future Feature List (Post-Beta)
+ * - SusLink integration: Check casino against known scam reports
+ * - Report submission: Players can flag casino updates (payout schedules, bonus terms)
+ * - Onboarding interviews: Support for business, casino, degen, developer profiles
+ * - Buddy system: Phone-a-friend notification toggles and alerts
+ * - Accountability streaming: Integration with streaming platforms for accountability checks
+ * - Discord support: Help tickets and community-driven support channels
+ * - Autovault: API-key-based automatic vault deposits at thresholds
+ * - Lock wallet integration: Withdraw-to-lock-timer patterns for security
+ * - Custom balance alerts: Personalized notifications (e.g., Power Bill equivalent)
+ * - Pattern learning: Natural language setup for personal betting patterns
+ * - Zero balance intervention: Suggest alternative income opportunities
+ * - Harm reduction tips: Smart suggestions based on session data
  */
 
 /**
