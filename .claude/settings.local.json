@@ -63,7 +63,9 @@
       "Bash(for f in /c/Users/jmeni/tiltcheck-monorepo/apps/*/package.json)",
       "Bash(pnpm turbo:*)",
       "Bash(cat:*)",
-      "Bash(node scripts/seed-elastic-demo.mjs:*)"
+      "Bash(node scripts/seed-elastic-demo.mjs:*)",
+      "Bash(pnpm --filter @tiltcheck/esm-utils build:*)",
+      "WebFetch(domain:www.stakeclub.com)"
     ]
   }
 }

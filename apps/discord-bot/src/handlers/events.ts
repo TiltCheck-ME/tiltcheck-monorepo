@@ -22,6 +22,7 @@ import { checkAndOnboard, handleOnboardingInteraction, needsOnboarding } from '.
 import type { TiltCheckEvent } from '@tiltcheck/types';
 import { trackMessageEvent, trackCommandEvent } from '../services/elastic-telemetry.js';
 import { markUserActive } from '../services/tilt-agent.js';
+import { handleCommandError } from './error.js';
 
 export class EventHandler {
   private modNotifier: ModNotifier;
@@ -117,21 +118,7 @@ export class EventHandler {
           `[Bot] ${interaction.user.tag} used /${interaction.commandName}`
         );
       } catch (error) {
-        console.error(
-          `[Bot] Error executing ${interaction.commandName}:`,
-          error
-        );
-
-        const errorMessage = {
-          content: 'There was an error executing this command!',
-          ephemeral: true,
-        };
-
-        if (interaction.replied || interaction.deferred) {
-          await interaction.followUp(errorMessage);
-        } else {
-          await interaction.reply(errorMessage);
-        }
+        await handleCommandError(error, interaction);
       }
     });
 

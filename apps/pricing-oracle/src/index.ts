@@ -7,8 +7,12 @@
  */
 import { eventRouter } from '@tiltcheck/event-router';
 import type { PriceUpdateEvent } from '@tiltcheck/types';
+import { priceCache } from './cache.js';
 
 const JUPITER_PRICE_API = 'https://price.jup.ag/v4/price';
+
+/** TTL applied when caching individual Jupiter price responses (30 s). */
+const JUPITER_CACHE_TTL_MS = 30_000;
 
 export interface JupiterPriceResponse {
   data: {
@@ -29,20 +33,25 @@ export interface JupiterPriceResponse {
  * @returns The current USD price
  */
 export async function fetchJupiterPrice(tokenSymbol: string): Promise<number> {
+  const cacheKey = `jupiter:${tokenSymbol}`;
+  const cached = priceCache.get<number>(cacheKey);
+  if (cached !== undefined) return cached;
+
   const url = `${JUPITER_PRICE_API}?ids=${encodeURIComponent(tokenSymbol)}`;
   const response = await fetch(url);
-  
+
   if (!response.ok) {
     throw new Error(`Jupiter API request failed: ${response.status} ${response.statusText}`);
   }
-  
+
   const data = (await response.json()) as JupiterPriceResponse;
   const tokenData = data.data[tokenSymbol];
-  
+
   if (!tokenData) {
     throw new Error(`Price not found for token: ${tokenSymbol}`);
   }
-  
+
+  priceCache.set(cacheKey, tokenData.price, JUPITER_CACHE_TTL_MS);
   return tokenData.price;
 }
 
@@ -53,24 +62,38 @@ export async function fetchJupiterPrice(tokenSymbol: string): Promise<number> {
  *          Check result keys to determine which tokens were successfully fetched.
  */
 export async function fetchJupiterPrices(tokenSymbols: string[]): Promise<Record<string, number>> {
-  const ids = tokenSymbols.map(s => encodeURIComponent(s)).join(',');
+  const prices: Record<string, number> = {};
+
+  // Serve any tokens already in the cache without a network round-trip.
+  const uncached = tokenSymbols.filter(symbol => {
+    const hit = priceCache.get<number>(`jupiter:${symbol}`);
+    if (hit !== undefined) {
+      prices[symbol] = hit;
+      return false;
+    }
+    return true;
+  });
+
+  if (uncached.length === 0) return prices;
+
+  const ids = uncached.map(s => encodeURIComponent(s)).join(',');
   const url = `${JUPITER_PRICE_API}?ids=${ids}`;
   const response = await fetch(url);
-  
+
   if (!response.ok) {
     throw new Error(`Jupiter API request failed: ${response.status} ${response.statusText}`);
   }
-  
+
   const data = (await response.json()) as JupiterPriceResponse;
-  const prices: Record<string, number> = {};
-  
-  for (const symbol of tokenSymbols) {
+
+  for (const symbol of uncached) {
     const tokenData = data.data[symbol];
     if (tokenData) {
       prices[symbol] = tokenData.price;
+      priceCache.set(`jupiter:${symbol}`, tokenData.price, JUPITER_CACHE_TTL_MS);
     }
   }
-  
+
   return prices;
 }
 
@@ -155,3 +178,5 @@ class InMemoryPriceOracle implements PriceOracle {
 }
 
 export const pricingOracle: PriceOracle = new InMemoryPriceOracle();
+
+export { priceCache, TtlCache } from './cache.js';
