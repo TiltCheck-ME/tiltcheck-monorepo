@@ -4,7 +4,11 @@
     "outDir": "./dist",
     "rootDir": "./src",
     "composite": true,
-    "module": "NodeNext"
+    "module": "NodeNext",
+    "types": [
+      "chrome"
+    ],
+    "strict": false
   },
   "include": [
     "src/**/*.ts"
