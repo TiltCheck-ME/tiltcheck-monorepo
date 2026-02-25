@@ -73,7 +73,7 @@ export class SentryMonitor {
   }
 
   /** Capture a message with a given severity level. */
-  static captureMessage(message: string, level: Sentry.Severity = 'info'): void {
+  static captureMessage(message: string, level: Sentry.Severity = 'info' as Sentry.Severity): void {
     Sentry.captureMessage(message, level);
   }
 

@@ -172,6 +172,36 @@ export interface CasinoGrade {
 }
 
 // ============================================================================
+// Audit Log Types
+// ============================================================================
+
+/**
+ * Audit log record in the database
+ */
+export interface AuditLog {
+  id: string;
+  admin_id: string;
+  action: string;
+  target_type: string;
+  target_id: string | null;
+  metadata: Record<string, unknown>;
+  ip_address: string | null;
+  created_at: Date;
+}
+
+/**
+ * Create audit log payload
+ */
+export interface CreateAuditLogPayload {
+  admin_id: string;
+  action: string;
+  target_type: string;
+  target_id?: string;
+  metadata?: Record<string, unknown>;
+  ip_address?: string;
+}
+
+// ============================================================================
 // Query Result Types
 // ============================================================================
 

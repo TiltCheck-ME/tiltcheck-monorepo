@@ -16,6 +16,7 @@ import type { TelegramConfig, PromoCode, CodeDatabase } from './types.js';
 import { detectCodes, extractWagerRequirement } from './code-detector.js';
 import { randomUUID } from 'crypto';
 import input from 'input';
+import { eventRouter } from '@tiltcheck/event-router';
 
 /**
  * Real Telegram monitor using MTProto
@@ -40,7 +41,7 @@ export class RealTelegramMonitor {
 
     // Initialize session
     const session = new StringSession(this.config.sessionString || '');
-    
+
     // Create client
     this.client = new TelegramClient(
       session,
@@ -61,7 +62,7 @@ export class RealTelegramMonitor {
     });
 
     console.log('[TelegramClient] Client connected successfully');
-    
+
     // Save session string for future use
     const sessionString = this.client.session.save();
     if (!this.config.sessionString) {
@@ -106,7 +107,7 @@ export class RealTelegramMonitor {
       // Get chat information
       const chat = await event.getChat();
       const chatUsername = chat.username;
-      
+
       // Check if message is from one of our monitored channels
       const channelName = `@${chatUsername}`;
       if (!this.config.channels.includes(channelName)) {
@@ -115,14 +116,21 @@ export class RealTelegramMonitor {
 
       // Create unique message ID
       const messageId = `${chat.id}_${message.id}`;
-      
+
       // Skip if already processed
       if (this.processedMessages.has(messageId)) {
         return;
       }
-      
+
       this.processedMessages.add(messageId);
-      
+
+      // Emit generic event for message received
+      eventRouter.publish('telegram.message.received', 'telegram-code-ingest', {
+        channel: channelName,
+        messageId,
+        text: message.text,
+      });
+
       // Process the message
       await this.processMessage(channelName, messageId, message.text);
     } catch (error) {
@@ -194,11 +202,11 @@ export class RealTelegramMonitor {
   private emitCodeDetected(code: PromoCode): void {
     console.log(`[TelegramClient] Event: code.detected - ${code.code}`);
 
-    // TODO: Integrate with @tiltcheck/event-router
-    // eventRouter.emit('code.detected', {
-    //   code: code.code,
-    //   source: code.sourceChannel,
-    //   detectedAt: code.detectedAt.toISOString(),
-    // });
+    eventRouter.publish('code.detected', 'telegram-code-ingest', {
+      code: code.code,
+      source: code.sourceChannel,
+      detectedAt: code.detectedAt.toISOString(),
+      metadata: code.metadata,
+    });
   }
 }

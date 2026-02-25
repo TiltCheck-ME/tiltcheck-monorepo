@@ -74,8 +74,16 @@ export {
 
 /**
  * Sleep for a specified number of milliseconds
+ * @deprecated Use delay instead
  */
 export function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+/**
+ * Delay execution for a specified number of milliseconds
+ */
+export function delay(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
@@ -91,24 +99,24 @@ export async function retry<T>(
   } = {}
 ): Promise<T> {
   const { maxAttempts = 3, baseDelay = 1000, maxDelay = 10000 } = options;
-  
+
   let lastError: Error | undefined;
-  
+
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
     try {
       return await fn();
     } catch (error) {
       lastError = error instanceof Error ? error : new Error(String(error));
-      
+
       if (attempt === maxAttempts) {
         break;
       }
-      
+
       const delay = Math.min(baseDelay * Math.pow(2, attempt - 1), maxDelay);
       await sleep(delay);
     }
   }
-  
+
   throw lastError;
 }
 
@@ -120,7 +128,7 @@ export function debounce<T extends (...args: unknown[]) => unknown>(
   ms: number
 ): (...args: Parameters<T>) => void {
   let timeoutId: NodeJS.Timeout | undefined;
-  
+
   return (...args: Parameters<T>) => {
     if (timeoutId) {
       clearTimeout(timeoutId);
@@ -137,7 +145,7 @@ export function throttle<T extends (...args: unknown[]) => unknown>(
   ms: number
 ): (...args: Parameters<T>) => void {
   let lastCall = 0;
-  
+
   return (...args: Parameters<T>) => {
     const now = Date.now();
     if (now - lastCall >= ms) {
@@ -218,10 +226,10 @@ export function parseDuration(duration: string): number {
   if (!match) {
     throw new ValidationError(`Invalid duration format: ${duration}`, 'duration');
   }
-  
+
   const value = parseInt(match[1], 10);
   const unit = match[2];
-  
+
   const multipliers: Record<string, number> = {
     s: 1000,
     m: 60 * 1000,
@@ -229,6 +237,29 @@ export function parseDuration(duration: string): number {
     d: 24 * 60 * 60 * 1000,
     w: 7 * 24 * 60 * 60 * 1000,
   };
-  
+
   return value * multipliers[unit];
+}
+
+/**
+ * Format lamports (bigint) to a SOL string
+ */
+export function formatSol(lamports: bigint): string {
+  const s = lamports.toString();
+  if (s.length <= 9) {
+    const padded = s.padStart(9, '0');
+    const fractionalPart = padded.replace(/0+$/, '');
+    return fractionalPart.length > 0 ? `0.${fractionalPart}` : '0';
+  }
+  const integerPart = s.slice(0, -9);
+  const fractionalPart = s.slice(-9).replace(/0+$/, '');
+  return fractionalPart.length > 0 ? `${integerPart}.${fractionalPart}` : integerPart;
+}
+
+/**
+ * Truncate a wallet address for display (e.g. Abc1...xyz2)
+ */
+export function truncateWallet(address: string, chars = 4): string {
+  if (address.length <= chars * 2 + 3) return address;
+  return `${address.slice(0, chars)}...${address.slice(-chars)}`;
 }

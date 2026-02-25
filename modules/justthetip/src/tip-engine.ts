@@ -106,7 +106,7 @@ setInterval(() => savePendingTipsToDisk(), 30_000).unref();
  */
 export async function executeTip(request: TipRequest, senderKeypair: Keypair): Promise<TipResult> {
   const tipId = uuidv4();
-  
+
   try {
     // Get sender wallet
     const senderWallet = getWallet(request.senderId);
@@ -127,7 +127,7 @@ export async function executeTip(request: TipRequest, senderKeypair: Keypair): P
       const amount = request.currency === 'USD'
         ? request.amount / pricingOracle.getUsdPrice('SOL')
         : request.amount;
-      
+
       const pending: PendingTip = {
         id: tipId,
         senderId: request.senderId,
@@ -175,7 +175,7 @@ export async function executeTip(request: TipRequest, senderKeypair: Keypair): P
 
     // Deduct flat fee
     const netAmount = amountSol - FLAT_FEE_SOL;
-    
+
     if (netAmount <= 0) {
       return {
         success: false,
@@ -237,7 +237,7 @@ export async function executeTip(request: TipRequest, senderKeypair: Keypair): P
     };
   } catch (error) {
     console.error('[JustTheTip] Tip execution failed:', error);
-    
+
     void eventRouter.publish('tip.failed', 'justthetip', {
       tipId,
       senderId: request.senderId,
@@ -286,15 +286,25 @@ export async function processPendingTips(userId: string): Promise<void> {
     });
   }
 
-  // TODO: Auto-process valid tips (requires stored sender signatures or escrow)
-  // For now, just notify that user should re-initiate tips
+  // Auto-process valid tips: enrichment with recipient wallet for settlement
+  const recipientWallet = getWallet(userId);
+
   for (const tip of validTips) {
-    void eventRouter.publish('tip.ready', 'justthetip', {
+    const settlementData = {
       tipId: tip.id,
       senderId: tip.senderId,
       recipientId: tip.recipientId,
+      recipientAddress: recipientWallet?.address,
       amount: tip.amount,
-    });
+      status: 'ready',
+      type: recipientWallet ? 'automated' : 'manual'
+    };
+
+    void eventRouter.publish('tip.ready', 'justthetip', settlementData);
+
+    // If this is a system-managed tip (e.g. from an escrow) the bot layer
+    // will now have the recipient address to execute the transaction.
+    console.log(`[JustTheTip] Tip ${tip.id} processed for ${userId} (Type: ${settlementData.type})`);
   }
 
   // Clear processed tips

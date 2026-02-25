@@ -17,6 +17,7 @@
 import type { TelegramConfig, PromoCode, CodeDatabase } from './types.js';
 import { detectCodes, extractWagerRequirement } from './code-detector.js';
 import { randomUUID } from 'crypto';
+import { eventRouter } from '@tiltcheck/event-router';
 
 /**
  * Telegram channel monitor
@@ -113,6 +114,13 @@ export class TelegramMonitor {
     const messages: Array<{ id: string; text: string }> = [];
 
     for (const message of messages) {
+      // Emit generic event for message received
+      eventRouter.publish('telegram.message.received', 'telegram-code-ingest', {
+        channel,
+        messageId: message.id,
+        text: message.text,
+      });
+
       await this.processMessage(channel, message.id, message.text);
     }
   }
@@ -191,11 +199,11 @@ export class TelegramMonitor {
   private emitCodeDetected(code: PromoCode): void {
     console.log(`[TelegramMonitor] Event: code.detected - ${code.code}`);
 
-    // TODO: Integrate with @tiltcheck/event-router
-    // eventRouter.emit('code.detected', {
-    //   code: code.code,
-    //   source: code.sourceChannel,
-    //   detectedAt: code.detectedAt.toISOString(),
-    // });
+    eventRouter.publish('code.detected', 'telegram-code-ingest', {
+      code: code.code,
+      source: code.sourceChannel,
+      detectedAt: code.detectedAt.toISOString(),
+      metadata: code.metadata,
+    });
   }
 }

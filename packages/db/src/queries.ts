@@ -22,6 +22,8 @@ import type {
   CreateTipPayload,
   Casino,
   CasinoGrade,
+  AuditLog,
+  CreateAuditLogPayload,
   PaginationParams,
   PaginatedResult,
 } from './types.js';
@@ -68,7 +70,7 @@ export async function createUser(payload: CreateUserPayload): Promise<User | nul
     created_at: new Date(),
     updated_at: new Date(),
   };
-  
+
   return insert<User>('users', data);
 }
 
@@ -80,7 +82,7 @@ export async function updateUser(id: string, payload: UpdateUserPayload): Promis
     ...payload,
     updated_at: new Date(),
   };
-  
+
   return update<User>('users', id, data);
 }
 
@@ -93,7 +95,7 @@ export async function findOrCreateUserByDiscord(
   discordAvatar?: string
 ): Promise<User> {
   const existing = await findUserByDiscordId(discordId);
-  
+
   if (existing) {
     // Update username/avatar if changed
     if (existing.discord_username !== discordUsername || existing.discord_avatar !== discordAvatar) {
@@ -106,18 +108,18 @@ export async function findOrCreateUserByDiscord(
     }
     return existing;
   }
-  
+
   const newUser = await createUser({
     discord_id: discordId,
     discord_username: discordUsername,
     discord_avatar: discordAvatar,
     roles: ['user'],
   });
-  
+
   if (!newUser) {
     throw new Error('Failed to create user');
   }
-  
+
   return newUser;
 }
 
@@ -130,7 +132,7 @@ export async function linkWalletToUser(userId: string, walletAddress: string): P
   if (existingUser && existingUser.id !== userId) {
     throw new Error('Wallet is already linked to another account');
   }
-  
+
   return updateUser(userId, { wallet_address: walletAddress });
 }
 
@@ -172,7 +174,7 @@ export async function createMagicLink(
   expiresInMinutes: number = 15
 ): Promise<MagicLink | null> {
   const expiresAt = new Date(Date.now() + expiresInMinutes * 60 * 1000);
-  
+
   return insert<MagicLink>('magic_links', {
     email,
     token_hash: tokenHash,
@@ -192,7 +194,7 @@ export async function findValidMagicLink(tokenHash: string): Promise<MagicLink |
     AND used_at IS NULL
     LIMIT 1
   `;
-  
+
   return queryOne<MagicLink>(sql, [tokenHash]);
 }
 
@@ -237,7 +239,7 @@ export async function findValidSession(tokenHash: string): Promise<Session | nul
     AND expires_at > NOW()
     LIMIT 1
   `;
-  
+
   return queryOne<Session>(sql, [tokenHash]);
 }
 
@@ -286,15 +288,15 @@ export async function updateTipStatus(
   txSignature?: string
 ): Promise<Tip | null> {
   const data: Partial<Tip> = { status };
-  
+
   if (txSignature) {
     data.tx_signature = txSignature;
   }
-  
+
   if (status === 'completed') {
     data.completed_at = new Date();
   }
-  
+
   return update<Tip>('tips', id, data);
 }
 
@@ -306,23 +308,23 @@ export async function getTipsBySender(
   pagination?: PaginationParams
 ): Promise<PaginatedResult<Tip>> {
   const { limit = 20, offset = 0, orderBy = 'created_at', orderDir = 'desc' } = pagination || {};
-  
+
   const sql = `
     SELECT * FROM tips 
     WHERE sender_id = $1 
     ORDER BY ${orderBy} ${orderDir}
     LIMIT $2 OFFSET $3
   `;
-  
+
   const countSql = 'SELECT COUNT(*) as count FROM tips WHERE sender_id = $1';
-  
+
   const [rows, countResult] = await Promise.all([
     query<Tip>(sql, [senderId, limit, offset]),
     queryOne<{ count: string }>(countSql, [senderId]),
   ]);
-  
+
   const total = parseInt(countResult?.count ?? '0', 10);
-  
+
   return {
     rows,
     total,
@@ -340,23 +342,23 @@ export async function getTipsByRecipient(
   pagination?: PaginationParams
 ): Promise<PaginatedResult<Tip>> {
   const { limit = 20, offset = 0, orderBy = 'created_at', orderDir = 'desc' } = pagination || {};
-  
+
   const sql = `
     SELECT * FROM tips 
     WHERE recipient_discord_id = $1 
     ORDER BY ${orderBy} ${orderDir}
     LIMIT $2 OFFSET $3
   `;
-  
+
   const countSql = 'SELECT COUNT(*) as count FROM tips WHERE recipient_discord_id = $1';
-  
+
   const [rows, countResult] = await Promise.all([
     query<Tip>(sql, [recipientDiscordId, limit, offset]),
     queryOne<{ count: string }>(countSql, [recipientDiscordId]),
   ]);
-  
+
   const total = parseInt(countResult?.count ?? '0', 10);
-  
+
   return {
     rows,
     total,
@@ -398,22 +400,22 @@ export async function getCasinos(
   pagination?: PaginationParams
 ): Promise<PaginatedResult<Casino>> {
   const { limit = 20, offset = 0, orderBy = 'name', orderDir = 'asc' } = pagination || {};
-  
+
   const sql = `
     SELECT * FROM casinos 
     ORDER BY ${orderBy} ${orderDir}
     LIMIT $1 OFFSET $2
   `;
-  
+
   const countSql = 'SELECT COUNT(*) as count FROM casinos';
-  
+
   const [rows, countResult] = await Promise.all([
     query<Casino>(sql, [limit, offset]),
     queryOne<{ count: string }>(countSql),
   ]);
-  
+
   const total = parseInt(countResult?.count ?? '0', 10);
-  
+
   return {
     rows,
     total,
@@ -440,12 +442,61 @@ export async function addCasinoGrade(
     notes,
     created_at: new Date(),
   });
-  
+
   // Update casino's current grade
   await update('casinos', casinoId, {
     grade,
     updated_at: new Date(),
   });
-  
+
   return gradeRecord;
+}
+
+// ============================================================================
+// Audit Log Queries
+// ============================================================================
+
+/**
+ * Create an audit log entry
+ */
+export async function createAuditLog(payload: CreateAuditLogPayload): Promise<AuditLog | null> {
+  return insert<AuditLog>('audit_logs', {
+    ...payload,
+    metadata: payload.metadata || {},
+    created_at: new Date(),
+  });
+}
+
+/**
+ * Get audit logs for a specific admin
+ */
+export async function getAuditLogsByAdmin(
+  adminId: string,
+  pagination?: PaginationParams
+): Promise<PaginatedResult<AuditLog>> {
+  const { limit = 50, offset = 0, orderBy = 'created_at', orderDir = 'desc' } = pagination || {};
+
+  const sql = `
+    SELECT * FROM audit_logs 
+    WHERE admin_id = $1 
+    ORDER BY ${orderBy} ${orderDir}
+    LIMIT $2 OFFSET $3
+  `;
+
+  const countSql = 'SELECT COUNT(*) as count FROM audit_logs WHERE admin_id = $1';
+
+  const [rows, countResult] = await Promise.all([
+    query<AuditLog>(sql, [adminId, limit, offset]),
+    queryOne<{ count: string }>(countSql, [adminId]),
+  ]);
+
+  const total = parseInt(countResult?.count ?? '0', 10);
+
+  return {
+    rows,
+    total,
+    limit,
+    offset,
+    hasMore: offset + rows.length < total,
+  };
 }

@@ -9,16 +9,53 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 
 /**
- * Derive a directory path equivalent of __dirname in ESM modules.
+ * Returns the directory name of the current module.
+ * Equivalent to __dirname in CommonJS.
+ * 
+ * Usage: const __dirname = getDirname(import.meta.url);
  */
-export function dirname(metaUrl: string): string {
-  return path.dirname(fileURLToPath(metaUrl));
+export function getDirname(importMetaUrl: string): string {
+  return path.dirname(fileURLToPath(importMetaUrl));
 }
 
 /**
- * Convenience helper returning both filename and dirname.
+ * Returns the file name of the current module.
+ * Equivalent to __filename in CommonJS.
+ * 
+ * Usage: const __filename = getFilename(import.meta.url);
  */
-export function fileMeta(metaUrl: string) {
-  const filename = fileURLToPath(metaUrl);
-  return { filename, dirname: path.dirname(filename) };
+export function getFilename(importMetaUrl: string): string {
+  return fileURLToPath(importMetaUrl);
 }
+
+/**
+ * Resolves a sequence of paths or path segments into an absolute path.
+ * 
+ * Usage: const configPath = resolvePath(getDirname(import.meta.url), 'config.json');
+ */
+export function resolvePath(...segments: string[]): string {
+  return path.resolve(...segments);
+}
+
+/**
+ * Helper to get all ESM path utilities at once for a module.
+ * 
+ * Usage: const { __dirname, __filename, resolve } = getHelpers(import.meta.url);
+ */
+export function getHelpers(importMetaUrl: string) {
+  const __filename = getFilename(importMetaUrl);
+  const __dirname = path.dirname(__filename);
+
+  return {
+    __filename,
+    __dirname,
+    resolve: (...segments: string[]) => path.resolve(__dirname, ...segments)
+  };
+}
+
+// Backwards compatibility for early adopters
+export const dirname = getDirname;
+export const fileMeta = (metaUrl: string) => ({
+  filename: getFilename(metaUrl),
+  dirname: getDirname(metaUrl)
+});
