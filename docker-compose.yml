@@ -1,10 +1,8 @@
-# TiltCheck Docker Compose
-# Deploy core services with: docker-compose up -d
-# For bots only: docker-compose up -d discord-bot dad-bot
+version: '3.8'
 
 services:
   # ===========================================
-  # DISCORD BOTS
+  # CORE SERVICES (Backend)
   # ===========================================
 
   discord-bot:
@@ -12,87 +10,134 @@ services:
       context: .
       dockerfile: apps/discord-bot/Dockerfile
     container_name: tiltcheck-bot
+    restart: unless-stopped
     environment:
       - NODE_ENV=production
       - DISCORD_TOKEN=${DISCORD_TOKEN}
       - DISCORD_CLIENT_ID=${DISCORD_CLIENT_ID}
-      - DISCORD_GUILD_ID=${DISCORD_GUILD_ID}
-      - DASHBOARD_URL=${DASHBOARD_URL:-https://tiltcheck.app/dashboard}
-      - BACKEND_URL=${BACKEND_URL:-http://api:3001}
-      - SUSLINK_AUTO_SCAN=${SUSLINK_AUTO_SCAN:-true}
-      - TRUST_THRESHOLD=${TRUST_THRESHOLD:-60}
+      - SUPABASE_URL=${SUPABASE_URL}
+      - SUPABASE_SERVICE_ROLE_KEY=${SUPABASE_SERVICE_ROLE_KEY}
       - DISCORD_BOT_HEALTH_PORT=8081
-    volumes:
-      - ./data:/app/data
-    restart: unless-stopped
+    ports:
+      - "8081:8081"
     networks:
       - tiltcheck
     healthcheck:
-      test: ["CMD-SHELL", "test -f /tmp/bot-ready || exit 1"]
-      interval: 10s
-      timeout: 5s
-      retries: 30
-      start_period: 60s
-
-  dad-bot:
-    build:
-      context: .
-      dockerfile: apps/discord-bot/Dockerfile
-    container_name: tiltcheck-dad-bot
-    entrypoint: ["node", "apps/dad-bot/dist/index.js"]
-    environment:
-      - NODE_ENV=production
-      - DISCORD_TOKEN=${DAD_DISCORD_TOKEN}
-      - DISCORD_CLIENT_ID=${DAD_DISCORD_CLIENT_ID}
-      - DISCORD_GUILD_ID=${DAD_DISCORD_GUILD_ID}
-      - DAD_BOT_HEALTH_PORT=8082
-    volumes:
-      - ./data:/app/data
-    restart: unless-stopped
-    networks:
-      - tiltcheck
-
-  # ===========================================
-  # API & SERVICES
-  # ===========================================
+      test: [ "CMD", "curl", "-f", "http://localhost:8081/health" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
   api:
     build:
       context: .
-      dockerfile: apps/discord-bot/Dockerfile
+      dockerfile: apps/api/Dockerfile
     container_name: tiltcheck-api
-    entrypoint: ["node", "apps/api/dist/index.js"]
-    expose:
-      - "3001"
+    restart: unless-stopped
     environment:
       - NODE_ENV=production
       - PORT=3001
-    volumes:
-      - ./data:/app/data
+      - SUPABASE_URL=${SUPABASE_URL}
+      - SUPABASE_SERVICE_ROLE_KEY=${SUPABASE_SERVICE_ROLE_KEY}
+      - JWT_SECRET=${JWT_SECRET}
+      - DISCORD_CLIENT_ID=${DISCORD_CLIENT_ID}
+      - DISCORD_CLIENT_SECRET=${DISCORD_CLIENT_SECRET}
+      - DISCORD_REDIRECT_URI=${DISCORD_REDIRECT_URI}
+    ports:
+      - "3001:3001"
+    networks:
+      - tiltcheck
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:3001/health" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  dashboard:
+    build:
+      context: .
+      dockerfile: services/dashboard/Dockerfile
+    container_name: tiltcheck-dashboard
     restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+      - PORT=5055
+      - SUPABASE_URL=${SUPABASE_URL}
+      - SUPABASE_SERVICE_ROLE_KEY=${SUPABASE_SERVICE_ROLE_KEY}
+    ports:
+      - "5055:5055"
+    networks:
+      - tiltcheck
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:5055/health" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  control-room:
+    build:
+      context: .
+      dockerfile: services/control-room/Dockerfile
+    container_name: tiltcheck-control-room
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+      - PORT=3001
+      - SESSION_SECRET=${SESSION_SECRET}
+      - DISCORD_CLIENT_ID=${DISCORD_CLIENT_ID}
+      - DISCORD_CLIENT_SECRET=${DISCORD_CLIENT_SECRET}
+      - DISCORD_CALLBACK_URL=${DISCORD_CALLBACK_URL}
+    ports:
+      - "3002:3001"
+    networks:
+      - tiltcheck
+
+  landing:
+    build:
+      context: .
+      dockerfile: services/landing/Dockerfile
+    container_name: tiltcheck-landing
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+      - PORT=8080
+    ports:
+      - "8080:8080"
+    networks:
+      - tiltcheck
+
+  # ===========================================
+  # ADDITIONAL SERVICES
+  # ===========================================
+
+  dad-bot:
+    build:
+      context: .
+      dockerfile: apps/dad-bot/Dockerfile
+    container_name: tiltcheck-dad-bot
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+      - DISCORD_TOKEN=${DAD_DISCORD_TOKEN}
+      - DAD_BOT_HEALTH_PORT=8082
+    ports:
+      - "8082:8082"
     networks:
       - tiltcheck
 
   trust-rollup:
     build:
       context: .
-      dockerfile: apps/discord-bot/Dockerfile
+      dockerfile: apps/trust-rollup/Dockerfile
     container_name: tiltcheck-rollup
-    entrypoint: ["node", "apps/trust-rollup/dist/index.js"]
+    restart: unless-stopped
     environment:
       - NODE_ENV=production
       - TRUST_ROLLUP_HEALTH_PORT=8083
-    volumes:
-      - ./data:/app/data
-    restart: unless-stopped
+    ports:
+      - "8083:8083"
     networks:
       - tiltcheck
-    healthcheck:
-      test: ["CMD-SHELL", "test -f /tmp/rollup-ready || exit 1"]
-      interval: 10s
-      timeout: 5s
-      retries: 30
-      start_period: 60s
 
 networks:
   tiltcheck:

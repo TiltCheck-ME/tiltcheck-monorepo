@@ -1,34 +1,16 @@
 {
+  "extends": "../../tsconfig.json",
   "compilerOptions": {
-    "target": "ES2022",
-    "module": "NodeNext",
-    "lib": ["ES2022", "DOM", "DOM.Iterable"],
-    "moduleResolution": "nodenext",
-    "resolveJsonModule": true,
-    "allowJs": true,
-    "checkJs": false,
     "outDir": "./dist",
-    "rootDir": ".",
-    "strict": true,
-    "esModuleInterop": true,
-    "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true,
-    "declaration": true,
-    "declarationMap": true,
-    "sourceMap": true,
-    "noUnusedLocals": false,
-    "noUnusedParameters": true,
-    "noImplicitReturns": true,
-    "noFallthroughCasesInSwitch": true,
-    "allowSyntheticDefaultImports": true,
-    "isolatedModules": true,
-    "jsx": "preserve"
+    "rootDir": "./src",
+    "composite": true,
+    "module": "NodeNext"
   },
   "include": [
-    "*.ts",
-    "tests/**/*",
-    "scripts/**/*",
-    "{packages,services,modules,apps}/*/{dist,tests,examples}/**/*"
+    "src/**/*.ts"
   ],
-  "exclude": ["node_modules", "dist", "build", "eslint.config.js"]
+  "exclude": [
+    "node_modules",
+    "dist"
+  ]
 }
