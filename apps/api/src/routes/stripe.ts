@@ -157,13 +157,14 @@ export async function handleStripeWebhook(req: any, res: any) {
 
         if (userId && subId) {
           const subscription = await stripe.subscriptions.retrieve(subId);
+          const sub = subscription as any;
           const data = {
             user_id: userId,
             stripe_customer_id: session.customer as string,
             stripe_subscription_id: subId,
             status: subscription.status,
-            current_period_start: new Date(subscription.current_period_start * 1000),
-            current_period_end: new Date(subscription.current_period_end * 1000),
+            current_period_start: new Date(sub.current_period_start * 1000),
+            current_period_end: new Date(sub.current_period_end * 1000),
           };
 
           const existing = await findOneBy<Subscription>('subscriptions', 'user_id', userId);
@@ -178,14 +179,15 @@ export async function handleStripeWebhook(req: any, res: any) {
       case 'customer.subscription.updated':
       case 'customer.subscription.deleted': {
         const subscription = event.data.object as Stripe.Subscription;
+        const sub = subscription as any;
         const subId = subscription.id;
-        
+
         const existing = await findOneBy<Subscription>('subscriptions', 'stripe_subscription_id', subId);
         if (existing) {
           await update('subscriptions', existing.user_id, {
             status: subscription.status,
-            current_period_start: new Date(subscription.current_period_start * 1000),
-            current_period_end: new Date(subscription.current_period_end * 1000),
+            current_period_start: new Date(sub.current_period_start * 1000),
+            current_period_end: new Date(sub.current_period_end * 1000),
             cancel_at_period_end: subscription.cancel_at_period_end,
           }, 'user_id');
         }

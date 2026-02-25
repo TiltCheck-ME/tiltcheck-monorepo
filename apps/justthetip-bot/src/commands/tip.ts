@@ -306,7 +306,7 @@ async function handleDepositToken(interaction: ChatInputCommandInteraction) {
 
   // Generate a deposit code using the main monitor (ensures JTT-XXXX format and uniqueness)
   const code = depositMonitor.generateDepositCode(interaction.user.id);
-  
+
   // Register with token monitor so it watches for SPL transfers with this memo
   tokenDepositMonitor.registerDepositCode(code, interaction.user.id);
 
@@ -406,7 +406,7 @@ async function handleSend(interaction: ChatInputCommandInteraction) {
     const signature = await botWallet.sendSOL(recipientWallet, netAmount);
 
     // Credit recipient's balance record for tracking
-    await creditManager.deposit(recipient.id, 0, { memo: 'tip received (on-chain)' }).catch(() => {});
+    await creditManager.deposit(recipient.id, 0, { memo: 'tip received (on-chain)' }).catch(() => { });
 
     const embed = new EmbedBuilder()
       .setColor(0x00FF00)
@@ -543,8 +543,8 @@ async function handlePublicAirdrop(
   // Check balance for at least one claim (optional pre-check)
   const balance = await creditManager.getBalance(interaction.user.id);
   if ((balance?.balance_lamports ?? 0) < amountLamports) {
-     await interaction.editReply({ content: '❌ Insufficient funds to start this airdrop.' });
-     return;
+    await interaction.editReply({ content: '❌ Insufficient funds to start this airdrop.' });
+    return;
   }
 
   const embed = new EmbedBuilder()
@@ -578,7 +578,7 @@ async function handlePublicAirdrop(
 
 async function handleAirdropClaim(interaction: ButtonInteraction) {
   const airdrop = activeAirdrops.get(interaction.message.id);
-  
+
   if (!airdrop) {
     await interaction.reply({ content: '❌ This airdrop has expired or is invalid.', ephemeral: true });
     return;
@@ -612,17 +612,17 @@ async function handleAirdropClaim(interaction: ButtonInteraction) {
     // Credit claimer (Try on-chain first if wallet exists, else internal)
     const claimerBal = await creditManager.getBalance(interaction.user.id);
     if (claimerBal?.wallet_address) {
-       try {
-         await botWallet.sendSOL(claimerBal.wallet_address, netAmount);
-         await interaction.editReply({ content: `✅ Yoink! Sent to your wallet: \`${claimerBal.wallet_address}\`` });
-       } catch (e) {
-         // Fallback to internal
-         await creditManager.deposit(interaction.user.id, netAmount, { memo: 'airdrop claim (fallback)' });
-         await interaction.editReply({ content: `✅ Yoink! Credited to your internal balance (on-chain send failed).` });
-       }
+      try {
+        await botWallet.sendSOL(claimerBal.wallet_address, netAmount);
+        await interaction.editReply({ content: `✅ Yoink! Sent to your wallet: \`${claimerBal.wallet_address}\`` });
+      } catch (e) {
+        // Fallback to internal
+        await creditManager.deposit(interaction.user.id, netAmount, { memo: 'airdrop claim (fallback)' });
+        await interaction.editReply({ content: `✅ Yoink! Credited to your internal balance (on-chain send failed).` });
+      }
     } else {
-       await creditManager.deposit(interaction.user.id, netAmount, { memo: 'airdrop claim' });
-       await interaction.editReply({ content: `✅ Yoink! Added to your stash.` });
+      await creditManager.deposit(interaction.user.id, netAmount, { memo: 'airdrop claim' });
+      await interaction.editReply({ content: `✅ Yoink! Added to your stash.` });
     }
 
     airdrop.claimedBy.add(interaction.user.id);
@@ -635,12 +635,12 @@ async function handleAirdropClaim(interaction: ButtonInteraction) {
     );
 
     if (claimedCount >= airdrop.totalSlots) {
-       embed.setColor(0x808080); // Grey out
-       const row = ActionRowBuilder.from(interaction.message.components[0] as any);
-       row.components[0].setDisabled(true);
-       await interaction.message.edit({ embeds: [embed], components: [row as any] });
+      embed.setColor(0x808080); // Grey out
+      const row = ActionRowBuilder.from(interaction.message.components[0] as any);
+      (row.components[0] as any).setDisabled(true);
+      await interaction.message.edit({ embeds: [embed], components: [row as any] });
     } else {
-       await interaction.message.edit({ embeds: [embed] });
+      await interaction.message.edit({ embeds: [embed] });
     }
   } catch (err) {
     await interaction.editReply({ content: `❌ Claim failed: ${err instanceof Error ? err.message : 'Insufficient funds in host wallet?'}` });
@@ -703,10 +703,12 @@ async function handleBalance(interaction: ChatInputCommandInteraction) {
       { name: 'Total Deposited', value: `${(balance.total_deposited_lamports / LAMPORTS_PER_SOL).toFixed(4)} SOL`, inline: true },
       { name: 'Total Tipped', value: `${(balance.total_tipped_lamports / LAMPORTS_PER_SOL).toFixed(4)} SOL`, inline: true },
       { name: 'Total Fees', value: `${(balance.total_fees_lamports / LAMPORTS_PER_SOL).toFixed(4)} SOL`, inline: true },
-      { name: 'Refund Mode', value: balance.refund_mode === 'reset-on-activity'
-        ? `Reset on activity (${balance.inactivity_days}d)`
-        : `Hard expiry${balance.hard_expiry_at ? ` (<t:${Math.floor(new Date(balance.hard_expiry_at).getTime() / 1000)}:R>)` : ''}`,
-        inline: true },
+      {
+        name: 'Refund Mode', value: balance.refund_mode === 'reset-on-activity'
+          ? `Reset on activity (${balance.inactivity_days}d)`
+          : `Hard expiry${balance.hard_expiry_at ? ` (<t:${Math.floor(new Date(balance.hard_expiry_at).getTime() / 1000)}:R>)` : ''}`,
+        inline: true
+      },
     );
   }
 
@@ -1107,7 +1109,7 @@ async function handleVaultEmergencyUnlock(interaction: ChatInputCommandInteracti
     // Note: In a real implementation, we'd move funds from the vault wallet.
     // Here we simulate by crediting the user's balance with the remainder (if to balance)
     // or sending to wallet.
-    
+
     if (confirmation.customId === 'emergency_balance') {
       await creditManager.deposit(interaction.user.id, returnAmount * LAMPORTS_PER_SOL, { memo: `emergency unlock ${id}` });
       await interaction.editReply({ content: `✅ Vault unlocked. **${returnAmount.toFixed(4)} SOL** credited to balance.`, embeds: [], components: [] });
@@ -1206,10 +1208,10 @@ async function handleTrivia(interaction: ChatInputCommandInteraction) {
   const required = amountLamports + FLAT_FEE_LAMPORTS;
 
   if (available < required) {
-    await interaction.editReply({ 
+    await interaction.editReply({
       content: `❌ Insufficient funds.\n` +
-               `Required: ${(required / LAMPORTS_PER_SOL).toFixed(4)} SOL (Prize + Fee)\n` +
-               `Available: ${(available / LAMPORTS_PER_SOL).toFixed(4)} SOL` 
+        `Required: ${(required / LAMPORTS_PER_SOL).toFixed(4)} SOL (Prize + Fee)\n` +
+        `Available: ${(available / LAMPORTS_PER_SOL).toFixed(4)} SOL`
     });
     return;
   }
@@ -1227,21 +1229,22 @@ async function handleTrivia(interaction: ChatInputCommandInteraction) {
   await interaction.editReply({ embeds: [embed] });
 
   const filter = (m: Message) => !m.author.bot && m.author.id !== interaction.user.id && m.content.toLowerCase().trim() === answer.toLowerCase().trim();
-  const collector = interaction.channel?.createMessageCollector({ filter, time: duration * 1000, max: 1 });
+  const channel = interaction.channel as any;
+  const collector = channel?.createMessageCollector?.({ filter, time: duration * 1000, max: 1 });
 
   if (!collector) return;
 
-  collector.on('collect', async (m) => {
+  collector.on('collect', async (m: any) => {
     try {
       const { netAmount } = await creditManager.deductForTip(interaction.user.id, m.author.id, amountLamports);
       await creditManager.deposit(m.author.id, netAmount, { memo: 'trivia win' });
-      await interaction.followUp(`🎉 **${m.author}** nailed it! The answer was **${answer}**.\nPrize of **${formatAmount(parseResult.data)}** has been credited!`);
+      await interaction.followUp(`🎉 **${m.author}** nailed it! The answer was **${answer}**.\nPrize of **${formatAmount(parseResult.data!)}** has been credited!`);
     } catch (err) {
       await interaction.followUp(`🎉 **${m.author}** nailed it! But I couldn't process the payment from the host: ${err instanceof Error ? err.message : 'Unknown error'}`);
     }
   });
 
-  collector.on('end', (collected, reason) => {
+  collector.on('end', (collected: any, reason: any) => {
     if (reason === 'time' && collected.size === 0) {
       interaction.followUp(`⏰ Silence... really? The answer was **${answer}**.`);
     }
@@ -1479,7 +1482,7 @@ async function handleAdminSetup(interaction: ChatInputCommandInteraction) {
           `**Don't DM mods.** Open a ticket below.\n` +
           `We'll get to you when we get to you (usually fast).`
         );
-      
+
       const btn = new ButtonBuilder()
         .setCustomId('jtt_ticket_create')
         .setLabel('🎫 Open Ticket')
@@ -1517,7 +1520,7 @@ async function handleSupportTicketSubmit(interaction: ModalSubmitInteraction) {
   await interaction.deferReply({ ephemeral: true });
   const reason = interaction.fields.getTextInputValue('ticket_reason');
   const guild = interaction.guild;
-  
+
   if (!guild) return;
 
   const channel = interaction.channel as TextChannel;
@@ -1549,9 +1552,9 @@ async function handleSupportTicketSubmit(interaction: ModalSubmitInteraction) {
       )
       .setFooter({ text: 'JustTheTip Support' });
 
-    await thread.send({ 
-      content: `🚨 **Support Request** ${adminRole} ${owner}`, 
-      embeds: [embed] 
+    await thread.send({
+      content: `🚨 **Support Request** ${adminRole} ${owner}`,
+      embeds: [embed]
     });
 
     await interaction.editReply({ content: `✅ Ticket created: ${thread}` });
