@@ -855,10 +855,16 @@ function triggerEmergencyStop(reason: string) {
  * Open vault interface (integrate with LockVault)
  */
 function openVaultInterface(amount: number) {
-  // TODO: Integrate with LockVault module
+  // Send vault request to background script for processing
   chrome.runtime.sendMessage({
     type: 'open_vault',
     data: { suggestedAmount: amount }
+  }, (response) => {
+    if (response?.success) {
+      showNotification('✓ Vault interface opened', 'success');
+    } else if (response?.error) {
+      showNotification(`✗ Vault error: ${response.error}`, 'error');
+    }
   });
 }
 

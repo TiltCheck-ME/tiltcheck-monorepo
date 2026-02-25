@@ -94,6 +94,20 @@ export class InMemoryClaimerDatabase implements ClaimerDatabase {
       this.rateLimits.set(userId, limit);
     }
   }
+
+  async deleteUserData(userId: string): Promise<void> {
+    this.apiKeys.delete(userId);
+    this.claimHistory.delete(userId);
+    this.rateLimits.delete(userId);
+    console.log(`[DB] Deleted all data for user: ${userId}`);
+  }
+
+  async close(): Promise<void> {
+    this.apiKeys.clear();
+    this.claimHistory.clear();
+    this.rateLimits.clear();
+    console.log('[DB] In-memory database closed');
+  }
 }
 
 /**
