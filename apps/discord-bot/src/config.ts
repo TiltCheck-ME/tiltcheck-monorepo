@@ -90,9 +90,9 @@ export interface BotConfig {
 
 export const config: BotConfig = {
   // Discord (supports both DISCORD_TOKEN and DISCORD_BOT_TOKEN)
-  discordToken: getDiscordToken(),
-  clientId: getEnvVar('DISCORD_CLIENT_ID'),
-  guildId: getEnvVar('DISCORD_GUILD_ID', false),
+  discordToken: process.env.TILT_DISCORD_TOKEN || process.env.TIP_DISCORD_TOKEN || getDiscordToken(),
+  clientId: process.env.TILT_DISCORD_CLIENT_ID || process.env.TIP_DISCORD_CLIENT_ID || getEnvVar('DISCORD_CLIENT_ID'),
+  guildId: process.env.TILT_DISCORD_GUILD_ID || process.env.TIP_DISCORD_GUILD_ID || getEnvVar('DISCORD_GUILD_ID', false),
 
   // Environment
   nodeEnv: (process.env.NODE_ENV || 'development') as BotConfig['nodeEnv'],
@@ -125,6 +125,21 @@ export const config: BotConfig = {
 // Validate config
 export function validateConfig(): void {
   if (!config.discordToken) {
+    console.error('[Config] ❌ No Discord token found in environment variables.');
+    console.error('[Config] Checked: TILT_DISCORD_TOKEN, TIP_DISCORD_TOKEN, DISCORD_TOKEN');
+    
+    console.error('[Config] Debugging keys in process.env:');
+    const relatedKeys = Object.keys(process.env).filter(k => k.includes('DISCORD') || k.includes('TOKEN'));
+    if (relatedKeys.length === 0) {
+        console.error('  (No related keys found)');
+    } else {
+        relatedKeys.forEach(k => {
+            const val = process.env[k];
+            const status = val && val.trim().length > 0 ? '✅ Set' : '❌ Empty';
+            console.error(`  - ${k}: ${status}`);
+        });
+    }
+
     throw new Error(
       `${DISCORD_TOKEN_ENV_VARS.join(' or ')} is required. Please check your .env file.`
     );

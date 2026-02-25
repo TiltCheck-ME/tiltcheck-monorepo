@@ -18,7 +18,7 @@ export const ping: Command = {
     const latency = sent.createdTimestamp - interaction.createdTimestamp;
 
     const embed = successEmbed(
-      '🏓 Pong!',
+      '🏓 Pong! We live.',
       `Bot latency: ${latency}ms\nWebSocket: ${interaction.client.ws.ping}ms`
     );
 

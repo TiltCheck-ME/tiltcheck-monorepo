@@ -25,7 +25,7 @@ const connection = new Connection(SOLANA_RPC_URL, 'confirmed');
 export const justthetip: Command = {
   data: new SlashCommandBuilder()
     .setName('justthetip')
-    .setDescription('Non-custodial Solana tipping')
+    .setDescription('Direct wallet-to-wallet tipping (no middleman)')
     .addSubcommand(sub =>
       sub
         .setName('wallet')
@@ -82,7 +82,7 @@ export const justthetip: Command = {
 
       if (!subcommand) {
         await interaction.reply({
-          content: '❌ Please specify a subcommand:\n' +
+          content: '❌ Bro, what do you want? Pick a subcommand:\n' +
             '• `/justthetip wallet` - Manage your wallet\n' +
             '• `/justthetip tip` - Send a tip\n' +
             '• `/justthetip balance` - Check balance\n' +
@@ -129,7 +129,7 @@ async function handleWallet(interaction: ChatInputCommandInteraction) {
     
     if (!wallet) {
       await interaction.reply({
-        content: '❌ No wallet registered. Use `/justthetip wallet register-external`',
+        content: '❌ No wallet? NGMI. Use `/justthetip wallet register-external`',
         ephemeral: true,
       });
       return;
@@ -137,7 +137,7 @@ async function handleWallet(interaction: ChatInputCommandInteraction) {
 
     const embed = new EmbedBuilder()
       .setColor(0x00FF00)
-      .setTitle('💳 Your Wallet')
+      .setTitle('💳 The Stash')
       .addFields(
         { name: 'Address', value: `\`${wallet.address}\``, inline: false },
         { name: 'Type', value: wallet.type, inline: true },
@@ -162,8 +162,8 @@ async function handleWallet(interaction: ChatInputCommandInteraction) {
     
     const embed = new EmbedBuilder()
       .setColor(0x8A2BE2)
-      .setTitle('✨ Register with Magic Link')
-      .setDescription('Connect your email to create a secure **Soft-Custody** wallet for tipping and vaulting.')
+      .setTitle('✨ Magic Link (Normie Mode)')
+      .setDescription('Connect your email to create a secure **Soft-Custody** wallet. Good for beginners, bad for maxis.')
       .addFields(
         { name: 'Step 1', value: `[Click here to open Dashboard](${linkUrl})` },
         { name: 'Step 2', value: 'Login with your Email' },
@@ -190,13 +190,13 @@ async function handleWallet(interaction: ChatInputCommandInteraction) {
       
       const embed = new EmbedBuilder()
         .setColor(0x00FF00)
-        .setTitle('✅ Wallet Registered!')
-        .setDescription('Your external wallet has been connected')
+        .setTitle('✅ Wallet Linked')
+        .setDescription('Your wallet is connected. You are ready to ape.')
         .addFields(
           { name: 'Address', value: `\`${wallet.address}\``, inline: false },
           { name: 'Type', value: 'External', inline: true },
         )
-        .setFooter({ text: 'You can now send and receive tips!' });
+        .setFooter({ text: 'Funds SAFU.' });
 
       await interaction.reply({ embeds: [embed], ephemeral: true });
     } catch (error) {
@@ -214,7 +214,7 @@ async function handleTip(interaction: ChatInputCommandInteraction) {
   // Check if sender is on cooldown
   if (isOnCooldown(interaction.user.id)) {
     await interaction.editReply({
-      content: '🚫 You\'re on cooldown and cannot send tips right now. Take a break.',
+      content: '🚫 You\'re on cooldown. Go touch grass.',
     });
     return;
   }
@@ -222,7 +222,7 @@ async function handleTip(interaction: ChatInputCommandInteraction) {
   // Check sender has wallet
   if (!hasWallet(interaction.user.id)) {
     await interaction.editReply({
-      content: '❌ You need to register a wallet first!\n' +
+      content: '❌ No wallet? NGMI. Link one first.\n' +
         'Use `/justthetip wallet register-external` to connect your Solana wallet.',
     });
     return;
@@ -234,7 +234,7 @@ async function handleTip(interaction: ChatInputCommandInteraction) {
   // Don't allow self-tipping
   if (recipient.id === interaction.user.id) {
     await interaction.editReply({
-      content: '❌ You cannot tip yourself!',
+      content: '❌ Stop playing with yourself. Tip someone else.',
     });
     return;
   }
@@ -256,7 +256,7 @@ async function handleTip(interaction: ChatInputCommandInteraction) {
   if (parseResult.needsConfirmation && parseResult.confirmationPrompt) {
     const confirmButton = new ButtonBuilder()
       .setCustomId(`tip_confirm_sol_${recipient.id}_${parsedAmount.value}`)
-      .setLabel(`Yes, ${parsedAmount.value} SOL`)
+      .setLabel(`Send It (${parsedAmount.value} SOL)`)
       .setStyle(ButtonStyle.Success);
 
     const cancelButton = new ButtonBuilder()
@@ -267,7 +267,7 @@ async function handleTip(interaction: ChatInputCommandInteraction) {
     const row = new ActionRowBuilder<ButtonBuilder>().addComponents(confirmButton, cancelButton);
 
     await interaction.editReply({
-      content: `⚠️ **Confirmation Needed**\n\n${parseResult.confirmationPrompt}`,
+      content: `⚠️ **Hol' up**\n\n${parseResult.confirmationPrompt}`,
       components: [row],
     });
     return;
@@ -283,8 +283,8 @@ async function handleTip(interaction: ChatInputCommandInteraction) {
 
   if (!recipientWallet) {
     await interaction.editReply({
-      content: `⚠️ ${recipient} doesn't have a wallet registered yet.\n` +
-        'Your tip will be held for 24 hours. They can claim it by registering a wallet.',
+      content: `⚠️ **${recipient}** is walletless (NGMI).\n` +
+        'Tip held for 24h. Tell them to register or it expires.',
     });
     
     // We can't really "hold" a non-custodial tip without the sender signing something,
@@ -313,7 +313,7 @@ async function handleTip(interaction: ChatInputCommandInteraction) {
 
     // Create button with Solana Pay deep link
     const payButton = new ButtonBuilder()
-      .setLabel('💸 Open in Wallet')
+      .setLabel('💸 Sign Transaction')
       .setStyle(ButtonStyle.Link)
       .setURL(url);
 
@@ -321,19 +321,19 @@ async function handleTip(interaction: ChatInputCommandInteraction) {
 
     const embed = new EmbedBuilder()
       .setColor(0x00FF00)
-      .setTitle('💸 Tip Ready to Send')
+      .setTitle('💸 Send It')
       .setDescription(
         `**Recipient:** ${recipient}\n` +
         `**Amount:** ${formatAmount(parsedAmount)}\n` +
         `**Fee:** 0.0007 SOL (~$0.07)\n\n` +
-        '**Tap the button below** to open in your wallet:\n' +
+        '**Smash the button** to sign in your wallet:\n' +
         '• Phantom\n' +
         '• Solflare\n' +
         '• Backpack\n' +
         '• Any Solana wallet\n\n' +
         'Your device will ask which wallet to use! 📱'
       )
-      .setFooter({ text: 'Powered by Solana Pay' });
+      .setFooter({ text: 'Powered by Solana Pay • Don\'t fade it' });
 
     await interaction.editReply({ 
       embeds: [embed],
@@ -352,7 +352,7 @@ async function handleBalance(interaction: ChatInputCommandInteraction) {
 
   if (!hasWallet(interaction.user.id)) {
     await interaction.editReply({
-      content: '❌ No wallet registered. Use `/justthetip wallet register-external`',
+      content: '❌ No wallet? NGMI. Use `/justthetip wallet register-external`',
     });
     return;
   }
@@ -363,7 +363,7 @@ async function handleBalance(interaction: ChatInputCommandInteraction) {
 
     const embed = new EmbedBuilder()
       .setColor(0x0099FF)
-      .setTitle('💰 Wallet Balance')
+      .setTitle('💰 The Stash')
       .addFields(
         { name: 'Balance', value: `${balance.toFixed(6)} SOL`, inline: true },
         { name: 'Address', value: `\`${wallet?.address}\``, inline: false },
@@ -382,7 +382,7 @@ async function handlePending(interaction: ChatInputCommandInteraction) {
   
   if (pending.length === 0) {
     await interaction.reply({
-      content: '📋 You have no pending tips.',
+      content: '📋 No free money waiting for you.',
       ephemeral: true,
     });
     return;
@@ -390,8 +390,8 @@ async function handlePending(interaction: ChatInputCommandInteraction) {
 
   const embed = new EmbedBuilder()
     .setColor(0x0099FF)
-    .setTitle('📋 Pending Tips')
-    .setDescription('These tips were sent to you before you registered your wallet.')
+    .setTitle('📋 Free Money (Pending)')
+    .setDescription('Tips sent while you were walletless. Claim them now.')
     .addFields(
       pending.map(tip => ({
         name: `${tip.amount} SOL`,

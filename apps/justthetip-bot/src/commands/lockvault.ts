@@ -10,11 +10,11 @@ import { parseAmount, parseDuration } from '@tiltcheck/natural-language-parser';
 export const lockvault: Command = {
   data: new SlashCommandBuilder()
     .setName('vault')
-    .setDescription('Lock / manage time-locked vaults')
+    .setDescription('Diamond hand your bags (forced HODL)')
     .addSubcommand(sub =>
       sub
         .setName('lock')
-        .setDescription('Create a time-locked vault')
+        .setDescription('Lock funds away (Anti-Paperhand)')
         .addStringOption(o => o.setName('amount').setDescription('Amount (e.g. "$100", "5 SOL", "all")').setRequired(true))
         .addStringOption(o => o.setName('duration').setDescription('Lock duration (e.g. 24h, 3d, 90m)').setRequired(true))
         .addStringOption(o => o.setName('reason').setDescription('Optional reason (anti-tilt, savings, etc.)'))
@@ -22,20 +22,20 @@ export const lockvault: Command = {
     .addSubcommand(sub =>
       sub
         .setName('unlock')
-        .setDescription('Unlock a vault (after expiry)')
+        .setDescription('Unlock a vault (if you survived the wait)')
         .addStringOption(o => o.setName('id').setDescription('Vault ID').setRequired(true))
     )
     .addSubcommand(sub =>
       sub
         .setName('extend')
-        .setDescription('Extend a locked vault duration')
+        .setDescription('Extend the pain (lock longer)')
         .addStringOption(o => o.setName('id').setDescription('Vault ID').setRequired(true))
         .addStringOption(o => o.setName('additional').setDescription('Additional duration (e.g. 12h, 2d)').setRequired(true))
     )
     .addSubcommand(sub =>
       sub
         .setName('status')
-        .setDescription('View your vaults')
+        .setDescription('View your forced savings')
     )
     .addSubcommand(sub =>
       sub
@@ -50,7 +50,7 @@ export const lockvault: Command = {
     .addSubcommand(sub =>
       sub
         .setName('reload')
-        .setDescription('Set reload schedule')
+        .setDescription('Set degen allowance schedule')
         .addStringOption(o => o.setName('amount').setDescription('Amount to reload (e.g. "$50", "10 SOL")').setRequired(true))
         .addStringOption(o => o.setName('interval').setDescription('Reload interval (daily, weekly, monthly)').setRequired(true))
     ),
@@ -74,8 +74,8 @@ export const lockvault: Command = {
         const vault = await lockVault({ userId: interaction.user.id, amountRaw, durationRaw, reason });
         const embed = new EmbedBuilder()
           .setColor(0x8A2BE2)
-          .setTitle('🔒 Vault Locked')
-          .setDescription(vault.vaultType === 'magic' ? 'Funds secured in your Degen Identity (Magic) wallet' : 'Funds moved to disposable time-locked vault wallet')
+          .setTitle('🔒 Locked & Loaded')
+          .setDescription(vault.vaultType === 'magic' ? 'Funds secured in your Degen Identity. You can\'t touch them.' : 'Funds moved to disposable vault. SAFU.')
           .addFields(
             { name: 'Vault ID', value: vault.id, inline: false },
             { name: 'Vault Wallet', value: `
@@ -83,7 +83,7 @@ export const lockvault: Command = {
             { name: 'Unlocks', value: `<t:${Math.floor(vault.unlockAt/1000)}:R>`, inline: true },
             { name: 'Amount (SOL eq)', value: vault.lockedAmountSOL === 0 ? 'ALL (snapshot)' : vault.lockedAmountSOL.toFixed(4), inline: true },
           )
-          .setFooter({ text: reason ? `Reason: ${reason}` : 'Use /vault status to view all vaults' });
+          .setFooter({ text: reason ? `Reason: ${reason}` : 'Future you will thank present you' });
         await interaction.reply({ embeds: [embed], ephemeral: true });
       } else if (sub === 'unlock') {
         const id = interaction.options.getString('id', true);
@@ -91,7 +91,7 @@ export const lockvault: Command = {
           const vault = unlockVault(interaction.user.id, id);
           const embed = new EmbedBuilder()
             .setColor(0x00AA00)
-            .setTitle('✅ Vault Unlocked')
+            .setTitle('🔓 The Hodl is Over')
             .addFields(
               { name: 'Vault ID', value: vault.id },
               { name: 'Released', value: `${vault.lockedAmountSOL === 0 ? 'ALL' : vault.lockedAmountSOL.toFixed(4)} SOL eq` },
@@ -107,7 +107,7 @@ export const lockvault: Command = {
           const vault = extendVault(interaction.user.id, id, additional);
           const embed = new EmbedBuilder()
             .setColor(0xFFD700)
-            .setTitle('⏫ Vault Extended')
+            .setTitle('⏳ Kicking the Can')
             .addFields(
               { name: 'Vault ID', value: vault.id },
               { name: 'New Unlock', value: `<t:${Math.floor(vault.unlockAt/1000)}:R>` },
@@ -129,7 +129,7 @@ export const lockvault: Command = {
 
         const embed = new EmbedBuilder()
           .setColor(0x1E90FF)
-          .setTitle('📊 Your Vaults')
+          .setTitle('🔐 Forced Savings')
           .setDescription(
             (vaults.length > 0 ? vaults.map((v: LockVaultRecord) => `• **${v.id}** – ${v.status} – unlocks <t:${Math.floor(v.unlockAt/1000)}:R> – ${v.lockedAmountSOL===0? 'ALL' : v.lockedAmountSOL.toFixed(4)+' SOL'}`).join('\n') : 'No active vaults.') +
             (autoVault ? `\n\n**Auto-Vault:** ${autoVault.percentage}% active` : '') +
@@ -155,7 +155,7 @@ export const lockvault: Command = {
         setAutoVault(interaction.user.id, { percentage, threshold, currency, saveForNft, apiKey: apikey });
         const embed = new EmbedBuilder()
           .setColor(0x00FFFF)
-          .setTitle('⚙️ Auto-Vault Configured')
+          .setTitle('⚙️ Auto-Save (Anti-Rekt Mode)')
           .setDescription(`Auto-vault active: ${percentage ? percentage + '% of wins' : ''} ${threshold ? 'Everything over ' + threshold + ' ' + currency : ''} ${saveForNft ? '\n🎯 **Target:** Saving for Identity NFT' : ''}`);
         await interaction.reply({ embeds: [embed], ephemeral: true });
       } else if (sub === 'reload') {
@@ -168,7 +168,7 @@ export const lockvault: Command = {
         setReloadSchedule(interaction.user.id, amount, interval);
         const embed = new EmbedBuilder()
           .setColor(0xFFA500)
-          .setTitle('📅 Reload Scheduled')
+          .setTitle('📅 Degen Allowance Set')
           .setDescription(`Scheduled ${amount} reload every ${interval}.`);
         await interaction.reply({ embeds: [embed], ephemeral: true });
       } else {

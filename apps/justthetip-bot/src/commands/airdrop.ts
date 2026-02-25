@@ -16,7 +16,7 @@ const connection = new Connection(SOLANA_RPC_URL, 'confirmed');
 export const airdrop: Command = {
   data: new SlashCommandBuilder()
     .setName('airdrop')
-    .setDescription('Send a tip to multiple users (multi-transfer)')
+    .setDescription('Make it rain on multiple degens (multi-transfer)')
     .addStringOption(opt =>
       opt
         .setName('recipients')
@@ -33,7 +33,7 @@ export const airdrop: Command = {
     await interaction.deferReply();
 
     if (!hasWallet(interaction.user.id)) {
-      await interaction.editReply({ content: '❌ You need to register a wallet first using `/justthetip wallet register-external`.' });
+      await interaction.editReply({ content: '❌ No wallet? NGMI. Register first.' });
       return;
     }
 
@@ -66,7 +66,7 @@ export const airdrop: Command = {
     }
 
     if (amountPerRecipientSOL <= 0) {
-      await interaction.editReply({ content: '❌ Invalid amount. Provide a positive value like `$5` or `0.05 sol`.' });
+      await interaction.editReply({ content: '❌ That amount is dust. Send something real.' });
       return;
     }
 
@@ -79,7 +79,7 @@ export const airdrop: Command = {
     }
 
     if (userIds.length === 0) {
-      await interaction.editReply({ content: '❌ No valid user mentions found. Use space-separated mentions like `@Alice @Bob`.' });
+      await interaction.editReply({ content: '❌ Who are you sending to? Ghosts? Tag some people.' });
       return;
     }
 
@@ -98,7 +98,7 @@ export const airdrop: Command = {
     }
 
     if (walletAddresses.length === 0) {
-      await interaction.editReply({ content: '❌ None of the mentioned users have registered wallets yet.' });
+      await interaction.editReply({ content: '❌ None of these degens have wallets. Tell them to register.' });
       return;
     }
 
@@ -111,7 +111,7 @@ export const airdrop: Command = {
       );
 
       const payButton = new ButtonBuilder()
-        .setLabel('🚀 Open Airdrop in Wallet')
+        .setLabel('🚀 Sign Transaction')
         .setStyle(ButtonStyle.Link)
         .setURL(url);
 
@@ -127,15 +127,15 @@ export const airdrop: Command = {
 
       const embed = new EmbedBuilder()
         .setColor(0x8844ff)
-        .setTitle('🚀 Airdrop Ready')
+        .setTitle('🚀 Airdrop Loaded')
         .setDescription(
           `**Recipients:** ${walletAddresses.length}\n` +
           `**Amount Each:** ${amountDisplay}\n` +
           `**Total (excluding fee):** ${totalSOL.toFixed(4)} SOL\n` +
           `**Fee:** ${feeText}\n\n` +
-          'Tap the button below to open the unsigned transaction in your wallet and approve the multi-transfer.'
+          'Smash the button to sign. Gas is cheap, you aren\'t.'
         )
-        .setFooter({ text: 'Powered by Solana Pay multi-transfer' });
+        .setFooter({ text: 'Powered by Solana Pay • Make it rain' });
 
       let missingNote = '';
       if (missingWallets.length > 0) {
