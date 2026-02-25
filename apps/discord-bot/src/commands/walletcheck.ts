@@ -5,7 +5,7 @@
  * This file is part of the TiltCheck project.
  * For licensing information, see LICENSE file in the project root.
  */
-bonsai import { SlashCommandBuilder, ChatInputCommandInteraction, EmbedBuilder, Colors } from 'discord.js';
+import { SlashCommandBuilder, ChatInputCommandInteraction, EmbedBuilder, Colors } from 'discord.js';
 import { WalletCheckService } from '@tiltcheck/walletcheck';
 import type { Command } from '../types.js';
 
@@ -23,9 +23,9 @@ export const walletcheck: Command = {
 
     // Validate address format
     if (!/^0x[a-fA-F0-9]{40}$/.test(address)) {
-      await interaction.reply({ 
+      await interaction.reply({
         content: '❌ Invalid EVM address format. Please provide a valid 0x... address.',
-        ephemeral: true 
+        ephemeral: true
       });
       return;
     }
@@ -59,8 +59,8 @@ export const walletcheck: Command = {
       await interaction.editReply({ embeds: [embed] });
 
     } catch (error) {
-      await interaction.editReply({ 
-        content: '❌ Failed to perform wallet scan. Please ensure the address is correct and try again.' 
+      await interaction.editReply({
+        content: '❌ Failed to perform wallet scan. Please ensure the address is correct and try again.'
       });
     }
   }

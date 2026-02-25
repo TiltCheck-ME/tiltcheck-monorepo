@@ -52,7 +52,7 @@ export function isCasinoURL(url: string): boolean {
   if (!isValidURL(url)) return false;
   const parsed = new URL(url);
   const hostname = parsed.hostname.toLowerCase();
-  
+
   const knownCasinos = [
     'stake.com',
     'roobet.com',
@@ -62,7 +62,7 @@ export function isCasinoURL(url: string): boolean {
     'gamdom.com',
     'betfury.io',
   ];
-  
+
   return knownCasinos.some(casino => hostname === casino || hostname.endsWith('.' + casino));
 }
 
@@ -82,6 +82,41 @@ export function isValidUsername(username: string): boolean {
   if (!username) return false;
   const usernameRegex = /^[a-zA-Z0-9._]{2,32}$/;
   return usernameRegex.test(username);
+}
+
+/**
+ * Validates an Ethereum (EVM) address
+ * Hex string, 42 characters starting with 0x
+ */
+export function isValidEthereumAddress(address: string): boolean {
+  if (!address) return false;
+  const ethRegex = /^0x[a-fA-F0-9]{40}$/;
+  return ethRegex.test(address);
+}
+
+/**
+ * Validates a transaction hash
+ * Supports EVM (64 hex characters) and Solana (Base58 signatures)
+ */
+export function isValidTransactionHash(hash: string, network: 'evm' | 'solana' = 'solana'): boolean {
+  if (!hash) return false;
+  if (network === 'evm') {
+    const evmHashRegex = /^0x[a-fA-F0-9]{64}$/;
+    return evmHashRegex.test(hash);
+  } else {
+    // Solana signatures are Base58 encoded and usually 87-88 characters
+    const solanaHashRegex = /^[1-9A-HJ-NP-Za-km-z]{32,128}$/;
+    return solanaHashRegex.test(hash);
+  }
+}
+
+/**
+ * Validates a multiplier for betting/casino logic
+ * Must be a positive number greater than 0
+ */
+export function isValidMultiplier(multiplier: number | string): boolean {
+  const num = typeof multiplier === 'string' ? parseFloat(multiplier) : multiplier;
+  return !isNaN(num) && num > 0;
 }
 
 /**

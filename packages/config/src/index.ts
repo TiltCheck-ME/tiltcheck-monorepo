@@ -20,10 +20,12 @@ export {
   discordConfigSchema,
   databaseConfigSchema,
   supabaseConfigSchema,
+  blockchainConfigSchema,
   serverConfigSchema,
   cookieConfigSchema,
   fullConfigSchema,
-  
+  env,
+
   // Types
   type JWTEnvConfig,
   type ServiceJWTEnvConfig,
@@ -34,7 +36,7 @@ export {
   type CookieEnvConfig,
   type FullEnvConfig,
   type ValidationResult,
-  
+
   // Validation functions
   validateEnv,
   getJWTConfig,
@@ -46,7 +48,7 @@ export {
   getCookieConfig,
   validateAllConfig,
   createPartialValidator,
-  
+
   // Service-specific configs
   getAPIConfig,
   getDashboardConfig,

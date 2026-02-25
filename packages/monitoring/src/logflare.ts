@@ -25,7 +25,7 @@
  * ```
  */
 
-interface LogEvent {
+export interface LogEvent {
   level: 'debug' | 'info' | 'warn' | 'error';
   message: string;
   service: string;
@@ -120,14 +120,35 @@ export class BatchLogSender {
    * Flush all buffered logs
    */
   async flush(): Promise<void> {
-    // TODO: Implement batch log sending
     if (this.buffer.length === 0) {
       return;
     }
 
-    console.log(`[Logflare] Flushing ${this.buffer.length} log events`);
+    const apiKey = process.env.LOGFLARE_API_KEY;
+    const sourceId = process.env.LOGFLARE_SOURCE_ID;
+    if (!apiKey) {
+      // No API key, drop logs silently.
+      this.buffer = [];
+      return;
+    }
+
+    const payload = sourceId ? { source: sourceId, logs: this.buffer } : { logs: this.buffer };
+    try {
+      await fetch('https://api.logflare.app/logs', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${apiKey}`,
+        },
+        body: JSON.stringify(payload),
+      });
+    } catch (err) {
+      console.error('[Logflare] Failed to flush logs:', err);
+    }
+    // Clear buffer after attempt
     this.buffer = [];
   }
+
 
   /**
    * Start automatic flush timer

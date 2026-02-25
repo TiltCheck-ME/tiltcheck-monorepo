@@ -20,6 +20,7 @@
  */
 
 import type { RiskLevel, LinkScanResult } from '@tiltcheck/types';
+import { isCasinoURL } from '@tiltcheck/validator';
 
 // AI Gateway client for enhanced moderation
 let aiClient: any = null;
@@ -28,12 +29,10 @@ let aiClient: any = null;
 async function getAIClient() {
   if (!aiClient) {
     try {
-      // TODO: Re-enable when ai-client package is built
-      // const module = await import('@tiltcheck/ai-client');
-      // aiClient = module.aiClient;
-      console.log('[SusLink] AI client not available, using heuristic only');
-    } catch {
-      console.log('[SusLink] AI client not available, using heuristic only');
+      const module = await import('@tiltcheck/ai-client');
+      aiClient = module.aiClient;
+    } catch (error) {
+      console.log('[SusLink] AI client not available, using heuristic only:', error);
     }
   }
   return aiClient;
@@ -76,11 +75,11 @@ export class LinkScanner {
    */
   async scan(url: string): Promise<LinkScanResult> {
     const startTime = Date.now();
-    
+
     try {
       // Parse URL
       const parsedUrl = new URL(url);
-      
+
       // Run all checks
       const checks = {
         tld: this.checkTLD(parsedUrl),
@@ -120,7 +119,7 @@ export class LinkScanner {
    */
   private checkTLD(url: URL): { risky: boolean; reason?: string } {
     const hostname = url.hostname.toLowerCase();
-    
+
     for (const tld of RISKY_TLDS) {
       if (hostname.endsWith(tld)) {
         return { risky: true, reason: `High-risk TLD: ${tld}` };
@@ -135,7 +134,7 @@ export class LinkScanner {
    */
   private checkKeywords(url: URL): { risky: boolean; reason?: string } {
     const fullUrl = url.href.toLowerCase();
-    
+
     for (const keyword of SCAM_KEYWORDS) {
       if (fullUrl.includes(keyword)) {
         return { risky: true, reason: `Suspicious keyword: "${keyword}"` };
@@ -154,13 +153,13 @@ export class LinkScanner {
     // Check for typosquatting or impersonation
     for (const casino of KNOWN_CASINOS) {
       const casinoBase = casino.replace('.com', '').replace('.game', '');
-      
+
       // If hostname contains casino name but isn't exact match
       if (hostname.includes(casinoBase) && hostname !== casino) {
         // Examples: stakee.com, stake-free.com, stake.xyz
-        return { 
-          risky: true, 
-          reason: `Possible impersonation of ${casino}` 
+        return {
+          risky: true,
+          reason: `Possible impersonation of ${casino}`
         };
       }
     }
@@ -244,13 +243,13 @@ export class LinkScanner {
   quickCheck(url: string): RiskLevel {
     try {
       const parsedUrl = new URL(url);
-      
+
       // Quick TLD check
       if (this.checkTLD(parsedUrl).risky) return 'high';
-      
+
       // Quick keyword check
       if (this.checkKeywords(parsedUrl).risky) return 'suspicious';
-      
+
       return 'safe';
     } catch {
       return 'critical';
@@ -261,29 +260,52 @@ export class LinkScanner {
    * AI-enhanced scan using AI Gateway for content moderation
    * Provides more accurate scam detection and reasoning
    */
-  async scanWithAI(url: string): Promise<LinkScanResult & { 
+  async scanWithAI(url: string): Promise<LinkScanResult & {
     aiEnhanced?: boolean;
     aiConfidence?: number;
     suggestedAction?: string;
+    safeMode?: boolean;
   }> {
     // First, run heuristic scan
     const heuristicResult = await this.scan(url);
-    
+
+    // Safe Mode fallback: Use isCasinoURL validator to refine heuristic if AI is down
+    const safeModeHeuristic = () => {
+      const isCasino = isCasinoURL(url);
+      if (isCasino && heuristicResult.riskLevel === 'safe') {
+        return {
+          ...heuristicResult,
+          riskLevel: 'suspicious' as RiskLevel,
+          reason: 'Known casino domain detected via validator',
+          safeMode: true
+        };
+      }
+      return { ...heuristicResult, safeMode: true };
+    };
+
     const client = await getAIClient();
-    
+
     if (client) {
       try {
-        const aiResult = await client.moderate(url, {
+        // Set a timeout for the AI request to trigger safe mode
+        const aiPromise = client.moderate(url, {
           url,
           contentType: 'url',
         });
 
+        // Simple 5s timeout racing with the AI call
+        const timeoutPromise = new Promise((_, reject) =>
+          setTimeout(() => reject(new Error('AI Request Timeout')), 5000)
+        );
+
+        const aiResult = await Promise.race([aiPromise, timeoutPromise]) as any;
+
         if (aiResult.success && aiResult.data) {
           const aiData = aiResult.data;
-          
+
           // Merge AI insights with heuristic results
           let finalRiskLevel: RiskLevel = heuristicResult.riskLevel;
-          
+
           // AI can upgrade risk level if it detects something heuristics missed
           if (aiData.isScam && finalRiskLevel === 'safe') {
             finalRiskLevel = 'suspicious';
@@ -296,7 +318,7 @@ export class LinkScanner {
           }
 
           const aiReason = aiData.reasoning || '';
-          const combinedReason = aiReason 
+          const combinedReason = aiReason
             ? `${heuristicResult.reason}. AI: ${aiReason}`
             : heuristicResult.reason;
 
@@ -311,11 +333,44 @@ export class LinkScanner {
           };
         }
       } catch (error) {
-        console.log('[SusLink] AI scan failed, using heuristic only:', error);
+        console.warn('[SusLink] Safe Mode triggered: AI scan failed or timed out. Using heuristic fallback.', error);
+        return safeModeHeuristic();
       }
     }
 
-    // Return heuristic-only result
-    return heuristicResult;
+    // Return heuristic-only result (Safe Mode)
+    return safeModeHeuristic();
+  }
+
+  /**
+   * Submit feedback to the AI to improve scanning accuracy
+   */
+  async submitFeedback(data: {
+    url: string;
+    userReportedRisk: RiskLevel;
+    actualStatus: 'malicious' | 'safe';
+    comments?: string;
+  }): Promise<boolean> {
+    const client = await getAIClient();
+    if (!client) return false;
+
+    try {
+      const response = await client.submitFeedback({
+        application: 'moderation',
+        originalRequest: {
+          application: 'moderation',
+          prompt: data.url,
+          context: { url: data.url },
+        },
+        actualOutcome: data.actualStatus,
+        userCorrected: true,
+        comments: `User reported as ${data.userReportedRisk}. ${data.comments || ''}`,
+      });
+
+      return response.success;
+    } catch (error) {
+      console.error('[SusLink] Failed to submit AI feedback:', error);
+      return false;
+    }
   }
 }

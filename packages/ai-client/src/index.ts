@@ -19,7 +19,7 @@
  * 7. User Support
  */
 
-export type AIApplication = 
+export type AIApplication =
   | 'survey-matching'
   | 'card-generation'
   | 'moderation'
@@ -182,16 +182,16 @@ export class AIClient {
     }
 
     let lastError: Error | null = null;
-    
+
     for (let attempt = 0; attempt <= this.config.retries; attempt++) {
       try {
         const response = await this.makeRequest<T>(request);
-        
+
         // Cache successful responses
         if (response.success) {
           this.cache.set(cacheKey, { response: response as AIResponse, timestamp: Date.now() });
         }
-        
+
         return response;
       } catch (error) {
         lastError = error as Error;
@@ -236,7 +236,7 @@ export class AIClient {
       return await response.json() as AIResponse<T>;
     } catch (error) {
       clearTimeout(timeoutId);
-      
+
       if ((error as Error).name === 'AbortError') {
         throw new Error('Request timeout');
       }
@@ -334,6 +334,26 @@ export class AIClient {
       application: 'support',
       prompt: question,
       context: context as Record<string, unknown>,
+    });
+  }
+
+  /**
+   * Submit feedback for an AI response to improve future performance
+   */
+  async submitFeedback(options: {
+    application: AIApplication;
+    originalRequest: AIRequest;
+    actualOutcome: unknown;
+    userCorrected?: boolean;
+    rating?: number; // 1-5
+    comments?: string;
+  }): Promise<AIResponse<{ feedbackId: string }>> {
+    return this.request<{ feedbackId: string }>({
+      application: options.application,
+      context: {
+        feedback: true,
+        ...options,
+      },
     });
   }
 

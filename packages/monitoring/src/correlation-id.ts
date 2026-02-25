@@ -33,12 +33,14 @@
 
 import type { Request, Response, NextFunction } from 'express';
 import 'express';
+import { v4 as uuidv4 } from 'uuid';
+import { getLogger, createRequestLogger, type Logger } from '@tiltcheck/logger';
 
 // Extend Express Request type to include correlation ID
 declare module 'express' {
   export interface Request {
     id?: string;
-    log?: any; // Would be pino.Logger in real implementation
+    log?: Logger;
   }
 }
 
@@ -46,8 +48,7 @@ declare module 'express' {
  * Generate a unique correlation ID
  */
 function generateCorrelationId(): string {
-  // TODO: Use uuid or similar for production
-  return `req_${Date.now()}_${Math.random().toString(36).slice(2, 11)}`;
+  return uuidv4();
 }
 
 /**
@@ -62,22 +63,19 @@ export function correlationIdMiddleware(options?: {
   const idGenerator = options?.generateId || generateCorrelationId;
 
   return (req: Request, res: Response, next: NextFunction) => {
-    // TODO: Implement correlation ID middleware
-    // - Check for existing correlation ID in headers
-    // - Generate new ID if not present
-    // - Attach to req.id
-    // - Create child logger with requestId
-    // - Add correlation ID to response headers
-    
-    // Get or generate correlation ID
-    const correlationId = req.get(headerName) || idGenerator();
-    
+    // Get existing correlation ID from headers or generate a new one
+    const correlationId = (req.get(headerName) as string) || idGenerator();
+
+    // Attach to request object
     req.id = correlationId;
+    req.headers[headerName] = correlationId;
+
+    // Ensure the ID is present in the response headers
     res.setHeader(headerName, correlationId);
-    
-    // TODO: Create child logger with correlation ID
-    // req.log = logger.child({ requestId: correlationId });
-    
+
+    // Create child logger with correlation ID for request tracing
+    req.log = createRequestLogger(getLogger(), correlationId);
+
     next();
   };
 }

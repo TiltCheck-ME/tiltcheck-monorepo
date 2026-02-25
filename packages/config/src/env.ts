@@ -52,12 +52,17 @@ export const discordConfigSchema = z.object({
  * Neon/PostgreSQL Database Configuration Schema
  */
 export const databaseConfigSchema = z.object({
-  NEON_DATABASE_URL: z.string().min(1, 'NEON_DATABASE_URL is required').refine(
-    (url) => url.startsWith('postgres://') || url.startsWith('postgresql://'),
-    'NEON_DATABASE_URL must be a valid PostgreSQL connection string'
-  ),
+  DATABASE_URL: z.string().optional(),
+  NEON_DATABASE_URL: z.string().optional(),
   DATABASE_SSL: z.string().default('true').transform((val: string) => val === 'true'),
   DATABASE_POOL_SIZE: z.string().default('10').transform((val: string) => parseInt(val, 10) || 10),
+});
+
+/**
+ * Blockchain Configuration Schema
+ */
+export const blockchainConfigSchema = z.object({
+  SOLANA_RPC_URL: z.string().url('SOLANA_RPC_URL must be a valid URL'),
 });
 
 /**
@@ -113,6 +118,10 @@ export const fullConfigSchema = z.object({
   ...cookieConfigSchema.shape,
   ...supabaseConfigSchemaBase.shape,
   ...serviceJwtConfigSchema.shape,
+  ...blockchainConfigSchema.shape,
+}).refine(data => data.DATABASE_URL || data.NEON_DATABASE_URL, {
+  message: "Either DATABASE_URL or NEON_DATABASE_URL must be provided",
+  path: ["DATABASE_URL"]
 });
 
 // ============================================================================
@@ -149,16 +158,16 @@ export function validateEnv<T extends z.ZodSchema>(
   env: Record<string, string | undefined> = process.env
 ): ValidationResult<z.infer<T>> {
   const result = schema.safeParse(env);
-  
+
   if (result.success) {
     return { success: true, data: result.data };
   }
-  
+
   const errors = result.error.issues.map((issue) => {
     const path = issue.path.join('.');
     return `${path}: ${issue.message}`;
   });
-  
+
   return { success: false, errors };
 }
 
@@ -255,15 +264,15 @@ export function createPartialValidator<K extends keyof FullEnvConfig>(
   type ShapeType = (typeof fullConfigSchema)['shape'];
   const configShape = fullConfigSchema.shape as ShapeType;
   const shape: Record<string, z.ZodTypeAny> = {};
-  
+
   for (const key of keys) {
     if (key in configShape) {
       shape[key] = configShape[key as keyof ShapeType] as z.ZodTypeAny;
     }
   }
-  
+
   const schema = z.object(shape);
-  
+
   return (env = process.env) => {
     const result = schema.safeParse(env);
     if (!result.success) {
@@ -327,3 +336,44 @@ export function getBotConfig(env: Record<string, string | undefined> = process.e
     server: getServerConfig(env),
   };
 }
+
+/**
+ * Master Environment Object
+ * Strictly validated against the full schema. 
+ * This will cause the process to exit early with a clear error if critical config is missing.
+ */
+let validatedEnv: FullEnvConfig;
+
+try {
+  // Use safeParse to provide better error messages if validation fails
+  const result = fullConfigSchema.safeParse(process.env);
+
+  if (!result.success) {
+    const issues = result.error.issues.map(
+      (issue) => `  - ${issue.path.join('.') || 'root'}: ${issue.message}`
+    ).join('\n');
+
+    console.error(`\n❌ [Config] Environment Variable Validation Failed:\n${issues}\n`);
+
+    // In production or development, we should fail fast for missing critical config
+    if (process.env.NODE_ENV !== 'test') {
+      console.error('Core service cannot start without valid configuration. Exiting...\n');
+      // We don't call process.exit(1) here directly to allow the importing module 
+      // to handle it if they want, but typically this will lead to a crash anyway.
+      throw new Error('Environment validation failed');
+    }
+
+    // In tests, we might want to continue even with missing envs (use defaults)
+    validatedEnv = result.data as any; // Cast as any because it might be partial
+  } else {
+    validatedEnv = result.data;
+  }
+} catch (error) {
+  if (process.env.NODE_ENV !== 'test') {
+    throw error;
+  }
+  // Fallback for tests if needed
+  validatedEnv = {} as FullEnvConfig;
+}
+
+export const env = validatedEnv;

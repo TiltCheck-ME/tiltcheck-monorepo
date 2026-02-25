@@ -529,13 +529,13 @@ export type EventType =
   | 'tip.pending'
   | 'tip.pending.resolved'
   | 'tip.sent'
-    | 'tip.confirmed'
+  | 'tip.confirmed'
   | 'tip.completed'
   | 'tip.failed'
   | 'tip.expired'
   | 'tip.ready'
   | 'airdrop.requested'
-    | 'airdrop.confirmed'
+  | 'airdrop.confirmed'
   | 'airdrop.completed'
   | 'airdrop.failed'
   | 'swap.requested'
@@ -601,7 +601,10 @@ export type EventType =
   | 'credit.airdrop_sent'
   | 'credit.withdrawn'
   | 'credit.refunded'
-  | 'credit.pending_tip_created';
+  | 'credit.pending_tip_created'
+  | 'code.detected'
+  | 'telegram.message.received';
+
 
 export interface TiltCheckEvent<T = any> {
   id: string;
@@ -634,7 +637,9 @@ export type ModuleId =
   | 'identity-core'
   | 'gameplay-analyzer'
   | 'linkguard'
-  | 'test-suite';
+  | 'test-suite'
+  | 'telegram-code-ingest';
+
 
 // ============================================
 // User & Identity Types

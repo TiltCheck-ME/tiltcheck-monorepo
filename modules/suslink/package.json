@@ -36,9 +36,11 @@
     "test": "echo \"Tests coming soon\""
   },
   "dependencies": {
+    "@tiltcheck/ai-client": "workspace:*",
     "@tiltcheck/config": "workspace:*",
     "@tiltcheck/event-router": "workspace:*",
-    "@tiltcheck/types": "workspace:*"
+    "@tiltcheck/types": "workspace:*",
+    "@tiltcheck/validator": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "^25.3.0",
