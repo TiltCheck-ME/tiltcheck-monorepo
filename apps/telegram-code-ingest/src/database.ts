@@ -1,13 +1,14 @@
 /**
  * © 2024–2025 TiltCheck Ecosystem. All Rights Reserved.
  * Created by jmenichole (https://github.com/jmenichole)
- * 
+ *
  * This file is part of the TiltCheck project.
  * For licensing information, see LICENSE file in the project root.
  */
+// v0.1.0 — 2026-02-25
 /**
  * Database abstraction for code storage
- * 
+ *
  * NOTE: This is a placeholder implementation. In production, use:
  * - PostgreSQL with pg library
  * - SQLite with better-sqlite3
@@ -46,6 +47,14 @@ export class InMemoryCodeDatabase implements CodeDatabase {
       this.codes.set(code, existing);
       console.log(`[DB] Updated code ${code} status to: ${status}`);
     }
+  }
+
+  /**
+   * Close connection (no-op for in-memory)
+   */
+  async close(): Promise<void> {
+    this.codes.clear();
+    console.log('[DB] In-memory database cleared');
   }
 }
 

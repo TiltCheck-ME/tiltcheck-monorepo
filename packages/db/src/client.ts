@@ -1,7 +1,8 @@
+// v0.1.0 — 2026-02-25
 /**
  * © 2024–2025 TiltCheck Ecosystem. All Rights Reserved.
  * Created by jmenichole (https://github.com/jmenichole)
- * 
+ *
  * This file is part of the TiltCheck project.
  * For licensing information, see LICENSE file in the project root.
  */
@@ -219,17 +220,6 @@ function createClientFromExecutor(executor: (sql: string, params?: unknown[]) =>
 const defaultClient = createClientFromExecutor(query);
 
 /**
- * Execute a query and return the first row
- */
-export async function queryOne<T = Record<string, unknown>>(
-  sql: string,
-  params?: unknown[]
-): Promise<T | null> {
-  const rows = await query<T>(sql, params);
-  return rows[0] ?? null;
-}
-
-/**
  * Execute an insert and return the inserted row
  */
 export async function insert<T = Record<string, unknown>>(
@@ -363,4 +353,3 @@ export async function withTransaction<T>(
 }
 
 export type { NeonQueryFunction, PoolClient };
-```

@@ -65,7 +65,9 @@
       "Bash(cat:*)",
       "Bash(node scripts/seed-elastic-demo.mjs:*)",
       "Bash(pnpm --filter @tiltcheck/esm-utils build:*)",
-      "WebFetch(domain:www.stakeclub.com)"
+      "WebFetch(domain:www.stakeclub.com)",
+      "Bash(else)",
+      "Bash(fi)"
     ]
   }
 }

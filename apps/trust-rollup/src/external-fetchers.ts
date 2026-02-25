@@ -1,19 +1,20 @@
+// v0.1.0 — 2026-02-25
 /**
  * © 2024–2025 TiltCheck Ecosystem. All Rights Reserved.
  * Created by jmenichole (https://github.com/jmenichole)
- * 
+ *
  * This file is part of the TiltCheck project.
  * For licensing information, see LICENSE file in the project root.
  */
 /**
  * External Data Fetchers
  * Fetches casino data from external sources to feed Trust Engines
- * 
+ *
  * This module integrates with:
  * - CasinoGuru API for RTP and review data
  * - AskGamblers API for player complaints
  * - Public gaming commission databases for licensing verification
- * 
+ *
  * Does not fabricate trust data. If a source is unavailable, data is omitted.
  */
 
@@ -175,6 +176,8 @@ export async function fetchPayoutData(casinoName: string): Promise<CasinoExterna
  */
 export async function fetchBonusData(casinoName: string): Promise<CasinoExternalData['bonusData']> {
   void casinoName;
+  // TODO: Integrate with affiliate bonus tracking APIs when available
+  // For now, returns undefined to avoid fabricating data
   return undefined;
 }
 
@@ -185,6 +188,8 @@ export async function fetchBonusData(casinoName: string): Promise<CasinoExternal
  */
 export async function fetchComplianceData(casinoName: string): Promise<CasinoExternalData['complianceData']> {
   void casinoName;
+  // TODO: Integrate with gaming authority databases (Malta MGA, UK Gambling Commission, etc.)
+  // For now, returns undefined to avoid fabricating licensing claims
   return undefined;
 }
 
