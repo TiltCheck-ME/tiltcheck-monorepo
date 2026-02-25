@@ -11,5 +11,11 @@
   "scripts": {
     "build": "tsc",
     "dev": "tsc -w"
+  },
+  "devDependencies": {
+    "@types/chrome": "^0.1.37"
+  },
+  "dependencies": {
+    "@tiltcheck/utils": "workspace:*"
   }
 }

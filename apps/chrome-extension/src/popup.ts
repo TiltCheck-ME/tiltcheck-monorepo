@@ -74,7 +74,7 @@ const cfgResult = document.getElementById('cfgResult') as HTMLInputElement;
 /**
  * Send message to content script
  */
-function sendMessage(message) {
+function sendMessage(message: any): Promise<any> {
   return new Promise((resolve) => {
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
       if (tabs[0]) {
@@ -93,13 +93,13 @@ function sendMessage(message) {
  */
 async function callAIGateway(application, data) {
   const gatewayUrl = `${AI_GATEWAY_URL}/api/ai`;
-  
+
   // Validate URL is from a trusted domain
   if (!isValidAIGatewayURL(gatewayUrl)) {
     console.error('[TiltGuard] Untrusted AI Gateway URL blocked');
     return { success: false, error: 'Untrusted AI Gateway URL' };
   }
-  
+
   try {
     const response = await fetch(gatewayUrl, {
       method: 'POST',
@@ -110,7 +110,7 @@ async function callAIGateway(application, data) {
         context: data.context || {}
       })
     });
-    
+
     if (response.ok) {
       return await response.json();
     }
@@ -153,10 +153,10 @@ async function updateTiltDisplay(tiltData) {
   if (!tiltData) return;
 
   tiltSection.classList.remove('hidden');
-  
+
   const score = tiltData.tiltRisk || tiltData.tiltScore || 0;
   tiltScore.textContent = `${Math.round(score)}/100`;
-  
+
   // Color-code the tilt score
   tiltScore.className = 'tilt-score';
   if (score >= 60) {
@@ -164,7 +164,7 @@ async function updateTiltDisplay(tiltData) {
   } else if (score >= 30) {
     tiltScore.classList.add('warning');
   }
-  
+
   // Try AI Gateway for enhanced tilt detection
   const aiResult = await callAIGateway('tilt-detection', {
     context: {
@@ -173,24 +173,24 @@ async function updateTiltDisplay(tiltData) {
       losses: tiltData.losses || 0
     }
   });
-  
+
   // Update indicators
-  const indicators = aiResult.success 
-    ? aiResult.data.indicators 
+  const indicators = aiResult.success
+    ? aiResult.data.indicators
     : (tiltData.tiltSigns || []).map(s => s.message || s);
-  
+
   tiltIndicators.innerHTML = indicators.map(indicator => {
-    const severity = indicator.toLowerCase().includes('critical') ? 'critical' 
+    const severity = indicator.toLowerCase().includes('critical') ? 'critical'
       : indicator.toLowerCase().includes('high') ? 'high'
-      : indicator.toLowerCase().includes('medium') ? 'medium' 
-      : 'low';
+        : indicator.toLowerCase().includes('medium') ? 'medium'
+          : 'low';
     return `
       <div class="tilt-indicator ${severity}">
         <div class="tilt-indicator-title">${indicator}</div>
       </div>
     `;
   }).join('');
-  
+
   // Show intervention if AI recommends cooldown
   if (aiResult.success && aiResult.data.cooldownRecommended) {
     showIntervention({
@@ -206,7 +206,7 @@ async function updateTiltDisplay(tiltData) {
  */
 function showIntervention(intervention) {
   interventionBox.classList.remove('hidden');
-  
+
   if (intervention.type === 'cooldown' || intervention.severity === 'critical') {
     interventionBox.classList.add('critical');
     interventionIcon.textContent = '🛑';
@@ -214,15 +214,15 @@ function showIntervention(intervention) {
     interventionBox.classList.remove('critical');
     interventionIcon.textContent = '⚠️';
   }
-  
+
   interventionMessage.textContent = intervention.message;
-  
+
   interventionPrimary.textContent = intervention.primaryAction || 'Take Break';
   interventionPrimary.onclick = () => {
     sendMessage({ type: 'start_cooldown', duration: intervention.duration || 300000 });
     interventionBox.classList.add('hidden');
   };
-  
+
   interventionSecondary.textContent = 'Dismiss';
   interventionSecondary.onclick = () => {
     interventionBox.classList.add('hidden');
@@ -234,40 +234,40 @@ function showIntervention(intervention) {
  */
 function updateSessionStats(stats) {
   if (!stats) return;
-  
+
   sessionStats.classList.remove('hidden');
-  
+
   // Duration
   const duration = stats.duration || Math.floor((Date.now() - stats.startTime) / 1000);
   const minutes = Math.floor(duration / 60);
   statDuration.textContent = `${minutes}m`;
-  
+
   // Bets
   statBets.textContent = stats.totalBets || 0;
-  
+
   // Profit/Loss
   const profit = (stats.totalWon || 0) - (stats.totalWagered || 0);
   statProfit.textContent = `$${profit.toFixed(2)}`;
   statProfit.className = 'stat-value ' + (profit >= 0 ? '' : 'negative');
-  
+
   // ROI
-  const roi = stats.totalWagered > 0 
-    ? ((profit / stats.totalWagered) * 100).toFixed(1) 
+  const roi = stats.totalWagered > 0
+    ? ((profit / stats.totalWagered) * 100).toFixed(1)
     : 0;
   statROI.textContent = `${roi}%`;
-  statROI.className = 'stat-value ' + (roi >= 0 ? '' : 'negative');
-  
+  statROI.className = 'stat-value ' + (Number(roi) >= 0 ? '' : 'negative');
+
   // RTP
-  const rtp = stats.totalWagered > 0 
-    ? ((stats.totalWon / stats.totalWagered) * 100).toFixed(1) 
+  const rtp = stats.totalWagered > 0
+    ? ((stats.totalWon / stats.totalWagered) * 100).toFixed(1)
     : 0;
   statRTP.textContent = `${rtp}%`;
-  
+
   // Verdict
-  if (rtp < 90) {
+  if (Number(rtp) < 90) {
     statVerdict.textContent = 'COLD';
     statVerdict.className = 'stat-value negative';
-  } else if (rtp > 100) {
+  } else if (Number(rtp) > 100) {
     statVerdict.textContent = 'HOT';
     statVerdict.className = 'stat-value';
   } else {
@@ -281,17 +281,17 @@ function updateSessionStats(stats) {
  */
 async function startGuardian() {
   const result = await sendMessage({ type: 'start_analysis' });
-  
+
   if (result.success || !result.error) {
     isMonitoring = true;
     currentSessionId = result.sessionId || `session_${Date.now()}`;
-    
+
     startBtn.classList.add('hidden');
     stopBtn.classList.remove('hidden');
-    
+
     // Start periodic updates
     updateInterval = setInterval(refreshStatus, 3000);
-    
+
     // Initial update
     await refreshStatus();
   } else {
@@ -304,18 +304,18 @@ async function startGuardian() {
  */
 async function stopGuardian() {
   const result = await sendMessage({ type: 'stop_analysis' });
-  
+
   isMonitoring = false;
   currentSessionId = null;
-  
+
   startBtn.classList.remove('hidden');
   stopBtn.classList.add('hidden');
-  
+
   if (updateInterval) {
     clearInterval(updateInterval);
     updateInterval = null;
   }
-  
+
   // Hide dynamic sections
   tiltSection.classList.add('hidden');
   interventionBox.classList.add('hidden');
@@ -330,19 +330,19 @@ async function refreshStatus() {
   if (licenseResult && !licenseResult.error) {
     updateLicenseDisplay(licenseResult);
   }
-  
+
   // Get tilt data
   const tiltResult = await sendMessage({ type: 'get_tilt_status' });
   if (tiltResult && !tiltResult.error) {
     await updateTiltDisplay(tiltResult);
   }
-  
+
   // Get session stats
   const statsResult = await sendMessage({ type: 'get_session_stats' });
   if (statsResult && !statsResult.error) {
     updateSessionStats(statsResult);
   }
-  
+
   // Check for interventions
   const interventionResult = await sendMessage({ type: 'get_pending_intervention' });
   if (interventionResult && interventionResult.intervention) {
@@ -362,12 +362,12 @@ function openVault() {
  */
 async function viewFullReport() {
   const result = await sendMessage({ type: 'request_report' });
-  
+
   if (result.error) {
     alert('Failed to get report: ' + result.error);
     return;
   }
-  
+
   // Open report in new tab or show in popup
   const reportData = JSON.stringify(result.report, null, 2);
   const blob = new Blob([reportData], { type: 'application/json' });
@@ -380,7 +380,7 @@ async function viewFullReport() {
  */
 function openConfigurator() {
   configPanel.classList.remove('hidden');
-  
+
   // Auto-fill domain
   chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
     if (tabs[0]?.url) {
@@ -408,9 +408,9 @@ async function testSelector(inputId) {
   msgEl.textContent = 'Testing...';
   msgEl.className = 'validation-msg';
 
-  const response = await sendMessage({ 
-    type: 'validate_selector', 
-    selector 
+  const response = await sendMessage({
+    type: 'validate_selector',
+    selector
   });
 
   if (response.found) {
@@ -433,12 +433,12 @@ function saveConfiguration() {
     }
   };
 
-  chrome.storage.local.get(['tiltcheck_custom_casinos'], (result) => {
-    const current = result.tiltcheck_custom_casinos || [];
+  chrome.storage.local.get(['tiltcheck_custom_casinos'], (result: any) => {
+    const current: any[] = result.tiltcheck_custom_casinos || [];
     // Remove existing for this domain to avoid duplicates
-    const filtered = current.filter(c => c.domain !== config.domain);
+    const filtered = current.filter((c: any) => c.domain !== config.domain);
     filtered.push(config);
-    
+
     chrome.storage.local.set({ tiltcheck_custom_casinos: filtered }, () => {
       alert('Configuration saved! Please refresh the page.');
       closeConfigurator();
