@@ -1,3 +1,10 @@
+/**
+ * © 2024–2025 TiltCheck Ecosystem. All Rights Reserved.
+ * Created by jmenichole (https://github.com/jmenichole)
+ * 
+ * This file is part of the TiltCheck project.
+ * For licensing information, see LICENSE file in the project root.
+ */
 // Casino Trust Dashboard Client (SSE + fallback)
 const API_BASE = location.origin.replace(/:\d+$/, ':' + (window.TRUST_ROLLUP_PORT || '8082'));
 const STREAM_URL = API_BASE + '/api/trust/stream';

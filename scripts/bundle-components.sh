@@ -1,4 +1,12 @@
 #!/usr/bin/env bash
+# ================================================================
+# © 2024–2025 TiltCheck Ecosystem. All Rights Reserved.
+# Created by jmenichole (https://github.com/jmenichole)
+# 
+# This file is part of the TiltCheck project.
+# For licensing information, see LICENSE file in the project root.
+# ================================================================
+
 set -euo pipefail
 # Bundle TiltCheck component HTML files for marketing use.
 # Produces dist/components with both original and minified variants.

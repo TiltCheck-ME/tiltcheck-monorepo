@@ -63,6 +63,10 @@ A unique mechanism where the "Source of Truth" for randomness is externalized.
 - **Linting/Testing:** Handled by GitHub Actions.
 - **Link Scanning:** Delegated to SusLink AI engine.
 
+## General Agent & Developer Workflow Rules
+1. **Date & Version All Edits:** Going forward, whenever an agent or developer edits a file, they MUST include a date and version number in the copyright area (or at the bottom/top of the file if no copyright exists). Example: `// Copyright 2024-2026 TiltCheck | v1.1.0 | Last Edited: 2026-02-25`
+2. **Incomplete Work:** If you find that something is incomplete, not fully built, planned, or thought out, you MUST add it to the `TODO.md` file in the root of the repository so it is tracked for the team.
+
 ### Decide (Needs Approval)
 - **New Casino Integrations:** Requires manual review of selectors.
 - **Fee Structure Changes:** 0.0007 SOL is current standard.
@@ -73,8 +77,8 @@ A unique mechanism where the "Source of Truth" for randomness is externalized.
 - **Legacy CSS:** `base.css` (migrating to `theme.css`).
 
 ## Deployment
-- **Web:** Vercel (PWA).
-- **API:** Railway/Render.
+- **Frontend / Web / Dashboard:** Vercel (100% Free Tier, Next.js/React static apps).
+- **Backend / Discord Bots / API Services:** Virtualmin VPS (IP: 85.209.95.175) using Docker Compose or PM2.
 - **Extension:** Chrome Web Store (Manual load for dev).
 
 ---

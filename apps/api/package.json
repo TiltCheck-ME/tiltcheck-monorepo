@@ -12,22 +12,22 @@
     "test": "vitest --run --passWithNoTests tests"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.45.6",
     "@tiltcheck/auth": "workspace:*",
     "@tiltcheck/config": "workspace:*",
     "@tiltcheck/db": "workspace:*",
     "@tiltcheck/event-types": "workspace:*",
-    "@tiltcheck/trust-score-types": "workspace:*",
-    "@tiltcheck/trust-engines": "workspace:*",
     "@tiltcheck/suslink": "workspace:*",
     "@tiltcheck/tiltcheck-core": "workspace:*",
+    "@tiltcheck/trust-engines": "workspace:*",
+    "@tiltcheck/trust-score-types": "workspace:*",
     "bcryptjs": "^3.0.3",
     "cors": "^2.8.5",
     "express": "^4.18.2",
     "express-rate-limit": "^8.2.1",
     "helmet": "^8.1.0",
     "jsonwebtoken": "^9.0.3",
-    "stripe": "^14.25.0",
-    "@supabase/supabase-js": "^2.45.6"
+    "stripe": "^20.3.1"
   },
   "devDependencies": {
     "@types/bcryptjs": "^3.0.0",
@@ -35,10 +35,9 @@
     "@types/express": "^4.17.21",
     "@types/helmet": "^4.0.0",
     "@types/jsonwebtoken": "^9.0.10",
-    "@types/node": "^25.2.3",
+    "@types/node": "^25.3.0",
     "tsx": "^4.7.0",
     "typescript": "^5.3.0",
     "vitest": "^4.0.18"
   }
 }
-

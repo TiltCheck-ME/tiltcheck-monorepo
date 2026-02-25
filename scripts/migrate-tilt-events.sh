@@ -1,4 +1,12 @@
 #!/bin/bash
+# ================================================================
+# © 2024–2025 TiltCheck Ecosystem. All Rights Reserved.
+# Created by jmenichole (https://github.com/jmenichole)
+# 
+# This file is part of the TiltCheck project.
+# For licensing information, see LICENSE file in the project root.
+# ================================================================
+
 
 # Supabase Migration Helper
 # Run this to execute the tilt_events table migration in Supabase

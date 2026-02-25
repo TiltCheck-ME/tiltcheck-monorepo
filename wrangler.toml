@@ -1,8 +1,0 @@
-name = "tiltcheck-edge"
-main = "src/index.ts"
-compatibility_date = "2024-01-01"
-
-[vars]
-# Add your Solana RPC URL here (e.g. Helius, QuickNode)
-SOLANA_RPC_URL = "https://api.mainnet-beta.solana.com"
-ALLOWED_ORIGIN = "https://tiltcheck.me"

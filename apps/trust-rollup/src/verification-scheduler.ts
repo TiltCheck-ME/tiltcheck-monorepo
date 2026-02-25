@@ -1,4 +1,11 @@
 /**
+ * © 2024–2025 TiltCheck Ecosystem. All Rights Reserved.
+ * Created by jmenichole (https://github.com/jmenichole)
+ * 
+ * This file is part of the TiltCheck project.
+ * For licensing information, see LICENSE file in the project root.
+ */
+/**
  * Casino Verification Scheduler
  * Periodically fetches external casino data and publishes casino.rollup events.
  * Dynamically pulls active casinos from configured sources (trust engine, file, or env).

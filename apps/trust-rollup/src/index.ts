@@ -1,4 +1,11 @@
 /**
+ * © 2024–2025 TiltCheck Ecosystem. All Rights Reserved.
+ * Created by jmenichole (https://github.com/jmenichole)
+ * 
+ * This file is part of the TiltCheck project.
+ * For licensing information, see LICENSE file in the project root.
+ */
+/**
  * Trust Rollup Service
  * Aggregates trust.casino.updated and trust.domain.updated events hourly and publishes rollups.
  * Also fetches external casino data periodically for verification.

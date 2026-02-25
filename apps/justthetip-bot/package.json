@@ -12,25 +12,25 @@
     "clean": "rm -rf dist"
   },
   "dependencies": {
-    "@tiltcheck/justthetip": "workspace:*",
-    "@tiltcheck/lockvault": "workspace:*",
-    "@tiltcheck/tiltcheck-core": "workspace:*",
-    "@tiltcheck/natural-language-parser": "workspace:*",
-    "@tiltcheck/pricing-oracle": "workspace:*",
-    "@tiltcheck/walletcheck": "workspace:*",
-    "@tiltcheck/database": "workspace:*",
+    "@solana/web3.js": "^1.95.0",
     "@tiltcheck/config": "workspace:*",
+    "@tiltcheck/database": "workspace:*",
+    "@tiltcheck/discord-utils": "workspace:*",
     "@tiltcheck/esm-utils": "workspace:*",
     "@tiltcheck/event-router": "workspace:*",
-    "@tiltcheck/discord-utils": "workspace:*",
+    "@tiltcheck/justthetip": "workspace:*",
+    "@tiltcheck/lockvault": "workspace:*",
+    "@tiltcheck/natural-language-parser": "workspace:*",
+    "@tiltcheck/pricing-oracle": "workspace:*",
+    "@tiltcheck/tiltcheck-core": "workspace:*",
     "@tiltcheck/types": "workspace:*",
-    "@solana/web3.js": "^1.95.0",
+    "@tiltcheck/walletcheck": "workspace:*",
     "bs58": "^6.0.0",
     "discord.js": "^14.14.1",
     "dotenv": "^17.3.1"
   },
   "devDependencies": {
-    "@types/node": "^25.2.3",
+    "@types/node": "^25.3.0",
     "tsx": "^4.7.0",
     "typescript": "^5.3.0"
   }

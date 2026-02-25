@@ -1,4 +1,12 @@
 #!/bin/bash
+# ================================================================
+# © 2024–2025 TiltCheck Ecosystem. All Rights Reserved.
+# Created by jmenichole (https://github.com/jmenichole)
+# 
+# This file is part of the TiltCheck project.
+# For licensing information, see LICENSE file in the project root.
+# ================================================================
+
 
 # Fix missing .js extensions in relative imports for ESM compatibility
 # This script adds .js extensions to all relative imports in TypeScript files

@@ -1,4 +1,12 @@
 #!/bin/bash
+# ================================================================
+# © 2024–2025 TiltCheck Ecosystem. All Rights Reserved.
+# Created by jmenichole (https://github.com/jmenichole)
+# 
+# This file is part of the TiltCheck project.
+# For licensing information, see LICENSE file in the project root.
+# ================================================================
+
 # Generate README template for a new TiltCheck module
 MODULE_PATH="$1"
 MODULE_NAME=$(basename "$MODULE_PATH")
