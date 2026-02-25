@@ -38,14 +38,10 @@ interface LogEvent {
  * @param event - Log event object
  */
 export async function sendToLogflare(event: LogEvent): Promise<void> {
-  // TODO: Implement Logflare integration
-  // - Check for process.env.LOGFLARE_API_KEY
-  // - Check for process.env.LOGFLARE_SOURCE_ID
-  // - POST to https://api.logflare.app/logs
-  // - Add timestamp if not present
-  // - Handle errors gracefully (don't crash on log failure)
-  
-  if (!process.env.LOGFLARE_API_KEY) {
+  const apiKey = process.env.LOGFLARE_API_KEY;
+  const sourceId = process.env.LOGFLARE_SOURCE_ID;
+  if (!apiKey) {
+    // Silently ignore if no API key is configured.
     return;
   }
 
@@ -54,8 +50,25 @@ export async function sendToLogflare(event: LogEvent): Promise<void> {
     timestamp: event.timestamp || new Date().toISOString(),
   };
 
-  console.log('[Logflare] Would send:', logEntry);
+  const payload = sourceId ? { source: sourceId, logs: [logEntry] } : { logs: [logEntry] };
+
+  try {
+    await fetch('https://api.logflare.app/logs', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify(payload),
+    });
+  } catch (err) {
+    // Logflare failures should not crash the application.
+    console.error('[Logflare] Failed to send log:', err);
+  }
 }
+
+// Legacy placeholder removed – functionality now provided by BatchLogSender and sendToLogflare.
+
 
 /**
  * Create a Logflare logger for a specific service

@@ -35,49 +35,61 @@
  * Initialize Sentry for error tracking
  * @param serviceName - Name of the service (e.g., 'discord-bot', 'api-gateway')
  */
-export function initSentry(serviceName: string): void {
-  // TODO: Implement Sentry initialization
-  // - Check for process.env.SENTRY_DSN
-  // - Configure environment, serverName, tracesSampleRate
-  // - Set up integrations (Http, Express, etc.)
-  // - Configure beforeSend to filter sensitive data
-  console.warn('[Monitoring] Sentry initialization placeholder for:', serviceName);
-}
+import * as Sentry from '@sentry/node';
 
 /**
- * Capture an exception with Sentry
- * @param error - The error object to capture
- * @param context - Additional context about the error
+ * Sentry error tracking provider.
+ * Provides static methods to initialise Sentry and capture errors / messages.
  */
-export function captureException(error: Error, context?: Record<string, any>): void {
-  // TODO: Implement Sentry.captureException with context
-  console.error('[Monitoring] Error captured:', error.message, context);
+export class SentryMonitor {
+  /** Initialise Sentry for a given service.
+   * @param serviceName Name of the service (used as serverName)
+   * @param dsn Optional DSN; if omitted, reads from process.env.SENTRY_DSN
+   */
+  static init(serviceName: string, dsn?: string): void {
+    const resolvedDsn = dsn ?? process.env.SENTRY_DSN;
+    if (!resolvedDsn) {
+      console.warn('[Sentry] DSN not provided – Sentry is disabled');
+      return;
+    }
+    Sentry.init({
+      dsn: resolvedDsn,
+      environment: process.env.NODE_ENV ?? 'development',
+      serverName: serviceName,
+      tracesSampleRate: 1.0,
+    });
+  }
+
+  /** Capture an exception with optional extra context. */
+  static captureException(error: unknown, context?: Record<string, any>): void {
+    Sentry.withScope((scope) => {
+      if (context) {
+        for (const [key, value] of Object.entries(context)) {
+          scope.setExtra(key, value);
+        }
+      }
+      Sentry.captureException(error);
+    });
+  }
+
+  /** Capture a message with a given severity level. */
+  static captureMessage(message: string, level: Sentry.Severity = 'info'): void {
+    Sentry.captureMessage(message, level);
+  }
+
+  /** Set user context for subsequent events. */
+  static setUser(userId: string, additional?: Record<string, any>): void {
+    Sentry.setUser({ id: userId, ...additional });
+  }
+
+  /** Clear any previously set user context. */
+  static clearUser(): void {
+    Sentry.configureScope((scope) => scope.setUser(null));
+  }
+
+  /** Set arbitrary context data. */
+  static setContext(key: string, value: any): void {
+    Sentry.setContext(key, value);
+  }
 }
 
-/**
- * Capture a message with Sentry
- * @param message - The message to capture
- * @param level - Severity level (info, warning, error)
- */
-export function captureMessage(message: string, level: 'info' | 'warning' | 'error' = 'info'): void {
-  // TODO: Implement Sentry.captureMessage
-  console.log(`[Monitoring] Message captured (${level}):`, message);
-}
-
-/**
- * Set user context for error tracking
- * @param userId - User identifier
- * @param additional - Additional user data
- */
-export function setUser(userId: string, additional?: Record<string, any>): void {
-  // TODO: Implement Sentry.setUser
-  console.log('[Monitoring] User context set:', userId, additional);
-}
-
-/**
- * Clear user context
- */
-export function clearUser(): void {
-  // TODO: Implement Sentry user context clearing
-  console.log('[Monitoring] User context cleared');
-}

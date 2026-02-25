@@ -144,8 +144,8 @@ function createDefaultUserData(discordId: string, username: string, avatar?: str
 // Calculate trust score from game stats (clamped between 0-100)
 function calculateTrustScore(totalWins: number, totalGames: number): number {
   const losses = totalGames - totalWins;
-  const rawScore = TRUST_CONSTANTS.BASE_SCORE + 
-    (totalWins * TRUST_CONSTANTS.WIN_BONUS) - 
+  const rawScore = TRUST_CONSTANTS.BASE_SCORE +
+    (totalWins * TRUST_CONSTANTS.WIN_BONUS) -
     (losses * TRUST_CONSTANTS.LOSS_PENALTY);
   return Math.max(TRUST_CONSTANTS.MIN_SCORE, Math.min(TRUST_CONSTANTS.MAX_SCORE, rawScore));
 }
@@ -174,8 +174,8 @@ async function getUserData(discordId: string): Promise<UserData | null> {
           avatar: dbStats.avatar || getDefaultAvatarUrl(discordId),
           joinedAt: new Date(dbStats.created_at).getTime(),
           trustScore: dbIdentity?.trust_score ?? calculateTrustScore(dbStats.total_wins, dbStats.total_games),
-          tiltLevel: 0, 
-          totalTips: 0, 
+          tiltLevel: 0,
+          totalTips: 0,
           totalTipsValue: 0,
           casinosSeen: dbStats.total_games,
           analytics: {
@@ -185,8 +185,8 @@ async function getUserData(discordId: string): Promise<UserData | null> {
             profit: Number(dbStats.profit_sol)
           },
           degenIdentity: dbIdentity,
-          favoriteTools: ['JustTheTip', 'TrustEngine'], 
-          recentActivity: [], 
+          favoriteTools: ['JustTheTip', 'TrustEngine'],
+          recentActivity: [],
           preferences: dbPrefs ? {
             emailNotifications: dbPrefs.email_notifications,
             tiltWarnings: dbPrefs.tilt_warnings,
@@ -199,7 +199,7 @@ async function getUserData(discordId: string): Promise<UserData | null> {
             weeklyDigest: false
           }
         };
-      
+
         // Cache for future requests
         userCache[discordId] = userData;
         return userData;
@@ -223,8 +223,8 @@ const DISCORD_CONFIG = {
 
 // Health check
 app.get('/health', (_req: Request, res: Response) => {
-  res.json({ 
-    status: 'ok', 
+  res.json({
+    status: 'ok',
     service: 'user-dashboard',
     timestamp: Date.now()
   });
@@ -240,7 +240,7 @@ app.get('/auth/status', (_req: Request, res: Response) => {
       return 'invalid-uri';
     }
   };
-  
+
   res.json({
     service: 'user-dashboard',
     oauth: {
@@ -256,20 +256,21 @@ app.get('/auth/status', (_req: Request, res: Response) => {
 // Discord OAuth flow
 app.get('/auth/discord', (_req: Request, res: Response) => {
   if (!DISCORD_CONFIG.clientId) {
-    return res.status(500).json({ error: 'Discord OAuth not configured' });
+    res.status(500).json({ error: 'Discord OAuth not configured' });
+    return;
   }
-  
+
   const discordAuthUrl = `https://discord.com/api/oauth2/authorize?client_id=${DISCORD_CONFIG.clientId}&redirect_uri=${encodeURIComponent(DISCORD_CONFIG.redirectUri)}&response_type=code&scope=identify%20email`;
   res.redirect(discordAuthUrl);
 });
 
 app.get('/auth/discord/callback', async (req: Request, res: Response) => {
   const { code, error: discordError } = req.query;
-  
+
   if (discordError) {
     return res.redirect(`/dashboard?error=${encodeURIComponent(discordError as string)}`);
   }
-  
+
   if (!code) {
     return res.status(400).json({ error: 'Missing authorization code' });
   }
@@ -308,9 +309,10 @@ app.get('/auth/discord/callback', async (req: Request, res: Response) => {
 });
 
 // NFT Minting Payment (Solana Pay)
-app.post('/api/nft/checkout', authenticateToken, requireUser, async (req: AuthenticatedRequest, res: Response) => {
+app.post('/api/nft/checkout', authenticateToken as any, requireUser as any, async (_req: any, res: Response) => {
   if (!TREASURY_ADDRESS) {
-    return res.status(500).json({ error: 'Treasury address not configured' });
+    res.status(500).json({ error: 'Treasury address not configured' });
+    return;
   }
 
   const reference = new Keypair().publicKey;
@@ -323,9 +325,12 @@ app.post('/api/nft/checkout', authenticateToken, requireUser, async (req: Authen
   res.json({ url, reference: reference.toBase58() });
 });
 
-app.post('/api/nft/verify', authenticateToken, requireUser, async (req: AuthenticatedRequest, res: Response) => {
+app.post('/api/nft/verify', authenticateToken as any, requireUser as any, async (req: any, res: Response) => {
   const { reference, signature } = req.body;
-  if (!reference) return res.status(400).json({ error: 'Missing reference' });
+  if (!reference) {
+    res.status(400).json({ error: 'Missing reference' });
+    return;
+  }
 
   try {
     if (signature) {
@@ -334,7 +339,8 @@ app.post('/api/nft/verify', authenticateToken, requireUser, async (req: Authenti
         if (db.isConnected()) {
           await db.markNftPaid(req.user!.discordId, signature);
         }
-        return res.json({ success: true });
+        res.json({ success: true });
+        return;
       }
     }
     res.json({ success: false, message: 'Payment not yet confirmed' });
@@ -344,10 +350,11 @@ app.post('/api/nft/verify', authenticateToken, requireUser, async (req: Authenti
 });
 
 // Link External Wallet via Signature
-app.post('/api/auth/wallet/link', authenticateToken, requireUser, async (req: AuthenticatedRequest, res: Response) => {
+app.post('/api/auth/wallet/link', authenticateToken as any, requireUser as any, async (req: any, res: Response) => {
   const { address, signature, message } = req.body;
   if (!address || !signature || !message) {
-    return res.status(400).json({ error: 'Missing data' });
+    res.status(400).json({ error: 'Missing data' });
+    return;
   }
 
   try {
@@ -381,9 +388,12 @@ app.post('/api/auth/wallet/link', authenticateToken, requireUser, async (req: Au
 });
 
 // Link Magic Wallet
-app.post('/api/auth/magic/link', authenticateToken, requireUser, async (req: AuthenticatedRequest, res: Response) => {
+app.post('/api/auth/magic/link', authenticateToken as any, requireUser as any, async (req: any, res: Response) => {
   const { didToken } = req.body;
-  if (!didToken) return res.status(400).json({ error: 'Missing DID token' });
+  if (!didToken) {
+    res.status(400).json({ error: 'Missing DID token' });
+    return;
+  }
 
   try {
     magicAdmin.token.validate(didToken);
@@ -404,10 +414,11 @@ app.post('/api/auth/magic/link', authenticateToken, requireUser, async (req: Aut
 });
 
 // Get user profile
-app.get('/api/user/:discordId', authenticateToken, requireUser, async (req: AuthenticatedRequest, res: Response) => {
+app.get('/api/user/:discordId', authenticateToken as any, requireUser as any, async (req: any, res: Response) => {
   const { discordId } = req.params;
   if (req.user!.discordId !== discordId && !isAdmin(req.user!)) {
-    return res.status(403).json({ error: 'Access denied' });
+    res.status(403).json({ error: 'Access denied' });
+    return;
   }
 
   try {
@@ -423,10 +434,13 @@ app.get('/api/user/:discordId', authenticateToken, requireUser, async (req: Auth
 });
 
 // Update user preferences
-app.put('/api/user/:discordId/preferences', authenticateToken, requireUser, async (req: AuthenticatedRequest, res: Response) => {
+app.put('/api/user/:discordId/preferences', authenticateToken as any, requireUser as any, async (req: any, res: Response) => {
   const { discordId } = req.params;
   const { preferences } = req.body;
-  if (req.user!.discordId !== discordId) return res.status(403).json({ error: 'Access denied' });
+  if (req.user!.discordId !== discordId) {
+    res.status(403).json({ error: 'Access denied' });
+    return;
+  }
 
   try {
     let user = await getUserData(discordId);
@@ -448,10 +462,13 @@ app.put('/api/user/:discordId/preferences', authenticateToken, requireUser, asyn
 });
 
 // Activity feed
-app.get('/api/user/:discordId/activity', authenticateToken, requireUser, async (req: AuthenticatedRequest, res: Response) => {
+app.get('/api/user/:discordId/activity', authenticateToken as any, requireUser as any, async (req: any, res: Response) => {
   const { discordId } = req.params;
   const { limit = 10 } = req.query;
-  if (req.user!.discordId !== discordId && !isAdmin(req.user!)) return res.status(403).json({ error: 'Access denied' });
+  if (req.user!.discordId !== discordId && !isAdmin(req.user!)) {
+    res.status(403).json({ error: 'Access denied' });
+    return;
+  }
 
   try {
     const gameHistory = await db.getUserGameHistory(discordId, parseInt(limit as string));
@@ -472,18 +489,24 @@ app.get('/api/user/:discordId/activity', authenticateToken, requireUser, async (
 });
 
 // Trust metrics
-app.get('/api/user/:discordId/trust', authenticateToken, requireUser, trustLimiter, async (req: AuthenticatedRequest, res: Response) => {
+app.get('/api/user/:discordId/trust', authenticateToken as any, requireUser as any, trustLimiter, async (req: any, res: Response) => {
   const { discordId } = req.params;
-  if (req.user!.discordId !== discordId && !isAdmin(req.user!)) return res.status(403).json({ error: 'Access denied' });
+  if (req.user!.discordId !== discordId && !isAdmin(req.user!)) {
+    res.status(403).json({ error: 'Access denied' });
+    return;
+  }
 
   try {
     const user = await getUserData(discordId);
-    if (!user) return res.status(404).json({ error: 'User not found' });
+    if (!user) {
+      res.status(404).json({ error: 'User not found' });
+      return;
+    }
 
     const dbStats = await db.getUserStats(discordId);
     const totalGames = dbStats?.total_games || 0;
     const totalWins = dbStats?.total_wins || 0;
-    
+
     res.json({
       trustScore: user.trustScore,
       tiltLevel: user.tiltLevel,
@@ -501,20 +524,29 @@ app.get('/api/user/:discordId/trust', authenticateToken, requireUser, trustLimit
 });
 
 // Middleware
-function authenticateToken(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+function authenticateToken(req: AuthenticatedRequest, res: Response, next: NextFunction): void {
   const authHeader = req.headers['authorization'];
   const token = authHeader && authHeader.split(' ')[1];
-  if (!token) return res.status(401).json({ error: 'Access token required' });
+  if (!token) {
+    res.status(401).json({ error: 'Access token required' });
+    return;
+  }
 
   jwt.verify(token, JWT_SECRET, (err: any, user: any) => {
-    if (err) return res.status(403).json({ error: 'Invalid token' });
+    if (err) {
+      res.status(403).json({ error: 'Invalid token' });
+      return;
+    }
     req.user = user;
     next();
   });
 }
 
-function requireUser(req: AuthenticatedRequest, res: Response, next: NextFunction) {
-  if (!req.user) return res.status(401).json({ error: 'Unauthorized' });
+function requireUser(req: AuthenticatedRequest, res: Response, next: NextFunction): void {
+  if (!req.user) {
+    res.status(401).json({ error: 'Unauthorized' });
+    return;
+  }
   next();
 }
 
