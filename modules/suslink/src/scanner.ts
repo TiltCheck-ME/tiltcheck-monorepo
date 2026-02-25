@@ -1,7 +1,8 @@
+// v0.1.0 — 2026-02-25
 /**
  * © 2024–2025 TiltCheck Ecosystem. All Rights Reserved.
  * Created by jmenichole (https://github.com/jmenichole)
- * 
+ *
  * This file is part of the TiltCheck project.
  * For licensing information, see LICENSE file in the project root.
  */
@@ -229,12 +230,52 @@ export class LinkScanner {
   }
 
   /**
-   * Follow redirect chain (simplified - would use fetch in real implementation)
+   * Follow redirect chain up to 10 hops to detect redirect-based attacks
+   * Returns the chain of URLs encountered
    */
-  async followRedirects(url: string): Promise<string[]> {
-    // In real implementation, would use fetch with redirect: 'manual'
-    // For now, just return the original URL
-    return [url];
+  async followRedirects(url: string, maxHops = 10): Promise<string[]> {
+    const chain: string[] = [url];
+    let currentUrl = url;
+    let hops = 0;
+
+    while (hops < maxHops) {
+      try {
+        const response = await fetch(currentUrl, {
+          redirect: 'manual',
+          method: 'HEAD',
+          timeout: 5000,
+          headers: {
+            'User-Agent': 'TiltCheck-SusLink/1.0 (+https://tiltcheck.io)',
+          },
+        } as any);
+
+        // Check for redirect status codes (301, 302, 303, 307, 308)
+        if ([301, 302, 303, 307, 308].includes(response.status)) {
+          const location = response.headers.get('location');
+          if (!location) break; // No Location header, stop
+
+          try {
+            // Validate the redirect URL
+            new URL(location);
+            currentUrl = location;
+            chain.push(currentUrl);
+            hops++;
+          } catch {
+            // Invalid redirect URL, stop chain
+            break;
+          }
+        } else {
+          // No redirect, chain complete
+          break;
+        }
+      } catch (error) {
+        // Network error or timeout, return what we have
+        console.debug('[SusLink] Redirect follow stopped:', error);
+        break;
+      }
+    }
+
+    return chain;
   }
 
   /**
