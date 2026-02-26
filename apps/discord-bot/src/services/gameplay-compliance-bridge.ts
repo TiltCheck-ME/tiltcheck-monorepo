@@ -170,6 +170,9 @@ export function initializeGameplayComplianceBridge(discordClient: any): void {
 
   eventRouter.subscribe('fairness.pump.detected', handler, 'discord-bot');
   eventRouter.subscribe('fairness.cluster.detected', handler, 'discord-bot');
+  eventRouter.subscribe('fairness.drift.detected' as any, handler, 'discord-bot');
 
   console.log('[GameplayCompliance] Bridge subscribed to fairness events');
 }
+
+

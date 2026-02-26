@@ -684,7 +684,9 @@ export class GameplayAnalyzerService {
     if (report.clusterAnalysis.detected) {
       await publishEvent(report.clusterAnalysis, 'fairness.cluster.detected');
     }
-    // Note: drift events could be added to the event types if needed
+    if (report.driftAnalysis.detected) {
+      await publishEvent(report.driftAnalysis, 'fairness.drift.detected');
+    }
   }
 
   // ============================================
@@ -809,3 +811,4 @@ export class GameplayAnalyzerService {
 
 // Export singleton instance
 export const gameplayAnalyzer = new GameplayAnalyzerService();
+
