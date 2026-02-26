@@ -80,7 +80,7 @@ export class EventHandler {
             `**Deposit Confirmed**\n\n` +
             `+${solAmount} SOL deposited to your credit balance.\n` +
             `New balance: ${balanceSol} SOL\n\n` +
-            `Use \`/tip send\` to tip or \`/tip withdraw\` to withdraw.`
+            `Now you can fire a tip with \`/tip direct\`, or cash out with \`/tip withdraw\`.`
           );
         } catch (err) {
           console.warn(`[EventHandler] Could not DM user ${discordId}:`, err);

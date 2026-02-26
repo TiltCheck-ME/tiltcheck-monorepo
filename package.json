@@ -11,5 +11,8 @@
   "scripts": {
     "build": "tsc",
     "dev": "tsc -w"
+  },
+  "dependencies": {
+    "@openrouter/sdk": "^0.9.11"
   }
 }

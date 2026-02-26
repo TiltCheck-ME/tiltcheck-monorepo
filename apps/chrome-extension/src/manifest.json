@@ -1,22 +1,39 @@
 {
-  "name": "TiltCheck",
-  "short_name": "TiltCheck",
+  "manifest_version": 3,
+  "name": "TiltCheck Guardian",
+  "version": "1.1.0",
   "description": "Real-time gambling behavior tracker, tilt detection, and bankroll management tools.",
-  "start_url": "/",
-  "display": "standalone",
-  "background_color": "#0f1419",
-  "theme_color": "#0f1419",
-  "orientation": "portrait",
-  "icons": [
+  "permissions": [
+    "storage",
+    "tabs",
+    "activeTab"
+  ],
+  "host_permissions": [
+    "http://*/*",
+    "https://*/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_title": "TiltCheck Guardian",
+    "default_popup": "popup.html"
+  },
+  "content_scripts": [
     {
-      "src": "/icons/icon-192x192.png",
-      "sizes": "192x192",
-      "type": "image/png"
-    },
-    {
-      "src": "/icons/icon-512x512.png",
-      "sizes": "512x512",
-      "type": "image/png"
+      "matches": [
+        "http://*/*",
+        "https://*/*"
+      ],
+      "js": [
+        "content.js"
+      ],
+      "run_at": "document_idle"
     }
-  ]
+  ],
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  }
 }

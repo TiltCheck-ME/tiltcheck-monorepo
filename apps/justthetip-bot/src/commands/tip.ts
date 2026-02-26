@@ -76,43 +76,39 @@ const DAILY_WITHDRAWAL_LIMIT_SOL = 10;
 export const tip: Command = {
   data: new SlashCommandBuilder()
     .setName('tip')
-    .setDescription('Solana tipping, games, and wallet management')
+    .setDescription('Manage credit balance, send tips, and play games')
     // Deposit SOL
     .addSubcommand(sub => sub
       .setName('deposit')
-      .setDescription('Get your personal deposit address to load SOL')
+      .setDescription('Get your personal deposit address to load SOL credit')
     )
     // Deposit any token (auto-swapped to SOL via Jupiter)
     .addSubcommand(sub => sub
       .setName('deposit-token')
-      .setDescription('Deposit tokens (USDC, BONK, etc.) -> auto-swapped to SOL')
+      .setDescription('Deposit tokens to load credit (auto-swapped to SOL)')
       .addStringOption(o => o
         .setName('token')
-        .setDescription('Token to deposit')
+        .setDescription('Token symbol or Solana mint (e.g. USDC or EPjFWd...)')
         .setRequired(true)
-        .addChoices(
-          { name: 'USDC', value: 'USDC' },
-          { name: 'USDT', value: 'USDT' },
-          { name: 'BONK', value: 'BONK' },
-          { name: 'JUP', value: 'JUP' },
-          { name: 'RAY', value: 'RAY' },
-          { name: 'WBTC (Wormhole)', value: 'WBTC' },
-          { name: 'WETH (Wormhole)', value: 'WETH' },
-          { name: 'ORCA', value: 'ORCA' },
-        )
       )
     )
     // Send
     .addSubcommand(sub => sub
+      .setName('direct')
+      .setDescription('Direct tip from your credit balance')
+      .addUserOption(o => o.setName('user').setDescription('User to tip').setRequired(true))
+      .addStringOption(o => o.setName('amount').setDescription('Amount (e.g. "$5", "0.1 sol")').setRequired(true))
+    )
+    .addSubcommand(sub => sub
       .setName('send')
-      .setDescription('Tip SOL to a specific user instantly')
+      .setDescription('Send a tip from your credit balance (alias of /tip direct)')
       .addUserOption(o => o.setName('user').setDescription('User to tip').setRequired(true))
       .addStringOption(o => o.setName('amount').setDescription('Amount (e.g. "$5", "0.1 sol")').setRequired(true))
     )
     // Airdrop
     .addSubcommand(sub => sub
       .setName('airdrop')
-      .setDescription('Distribute SOL: specific users OR public claim button')
+      .setDescription('Distribute from credit: specific users or public claim')
       .addStringOption(o => o.setName('amount').setDescription('Amount per person (e.g. "$1")').setRequired(true))
       .addStringOption(o => o.setName('recipients').setDescription('Mentions (@user1 @user2) OR "public" for a claim button').setRequired(false))
       .addIntegerOption(o => o.setName('slots').setDescription('Max claims (for public airdrop only)').setRequired(false))
@@ -205,7 +201,7 @@ export const tip: Command = {
     // Rain
     .addSubcommand(sub => sub
       .setName('rain')
-      .setDescription('Distribute SOL to the most recent active chatters')
+      .setDescription('Split credit among the most recent active chatters')
       .addStringOption(o => o.setName('amount').setDescription('Total amount to split (e.g. "$10")').setRequired(true))
       .addIntegerOption(o => o.setName('count').setDescription('How many recent users to include (default: 10)').setRequired(false))
     )
@@ -227,6 +223,7 @@ export const tip: Command = {
       switch (sub) {
         case 'deposit': return handleDeposit(interaction);
         case 'deposit-token': return handleDepositToken(interaction);
+        case 'direct': return handleSend(interaction);
         case 'send': return handleSend(interaction);
         case 'airdrop': return handleAirdrop(interaction);
         case 'withdraw': return handleWithdraw(interaction);
@@ -272,13 +269,15 @@ async function handleDeposit(interaction: ChatInputCommandInteraction) {
 
   const embed = new EmbedBuilder()
     .setColor(0x00FF00)
-    .setTitle('📥 Feed the Bot')
+    .setTitle('📥 Load SOL Credit Balance')
     .setDescription(
-      `Send SOL to the address below.\n\n` +
+      `Load your degen ammo by sending SOL to the address below with the memo code.\n\n` +
       `**Address:**\n\`\`\`\n${botWallet.address}\n\`\`\`\n` +
-      `**Minimum deposit:** ${MIN_DEPOSIT_LAMPORTS / LAMPORTS_PER_SOL} SOL`
+      `**Memo code (required):**\n\`\`\`\n${code}\n\`\`\`\n` +
+      `**Minimum deposit:** ${MIN_DEPOSIT_LAMPORTS / LAMPORTS_PER_SOL} SOL\n\n` +
+      `After confirmation, this becomes credit balance. Fire tips with \`/tip direct\`.`
     )
-    .setFooter({ text: 'JustTheTip • Feed me' });
+    .setFooter({ text: 'Load credit first. Then send.' });
 
   await interaction.editReply({ embeds: [embed] });
 }
@@ -296,11 +295,13 @@ async function handleDepositToken(interaction: ChatInputCommandInteraction) {
     return;
   }
 
-  const tokenSymbol = interaction.options.getString('token', true);
+  const tokenInput = interaction.options.getString('token', true).trim();
+  const tokenSymbol = tokenInput.toUpperCase();
   const tokenInfo = DEPOSIT_TOKENS[tokenSymbol];
-
-  if (!tokenInfo) {
-    await interaction.editReply({ content: `❌ Invalid token selected: ${tokenSymbol}` });
+  const selectedMint = tokenInfo?.mint ?? tokenInput;
+  const mintRegex = /^[1-9A-HJ-NP-Za-km-z]{32,44}$/;
+  if (!tokenInfo && !mintRegex.test(selectedMint)) {
+    await interaction.editReply({ content: `❌ Invalid token input: ${tokenInput}` });
     return;
   }
 
@@ -312,15 +313,18 @@ async function handleDepositToken(interaction: ChatInputCommandInteraction) {
 
   const embed = new EmbedBuilder()
     .setColor(0x00FF00)
-    .setTitle(`Deposit ${tokenInfo.name} (${tokenSymbol})`)
+    .setTitle(`Load Credit with ${tokenInfo?.name ?? 'SPL Token'} (${tokenInfo ? tokenSymbol : tokenInput})`)
     .setDescription(
-      `Send **${tokenSymbol}** below.\n` +
+      `Send your token deposit to the bot wallet with the memo code below.\n` +
       `**The Play:**\n` +
-      `1. You send ${tokenSymbol} -> 2. We swap it to SOL (Jupiter) -> 3. We credit your bot balance.\n\n` +
+      `1. You send token -> 2. We swap it to SOL (Jupiter) -> 3. We credit your balance.\n\n` +
       `**Address:**\n\`\`\`\n${botWallet.address}\n\`\`\`\n` +
-      `**Note:** Swap fees and gas apply.`
+      `**Memo code (required):**\n\`\`\`\n${code}\n\`\`\`\n` +
+      `**Token mint:**\n\`\`\`\n${selectedMint}\n\`\`\`\n` +
+      `**Note:** Swap fees and gas apply.\n\n` +
+      `This only loads credit. Actual tip action starts at \`/tip direct\`.`
     )
-    .setFooter({ text: 'JustTheTip • We take (almost) anything' });
+    .setFooter({ text: 'Swap to SOL, credit balance, then tip.' });
 
   await interaction.editReply({ embeds: [embed] });
 }
@@ -722,7 +726,7 @@ async function handleHistory(interaction: ChatInputCommandInteraction) {
   const txs = await creditManager.getTransactionHistory(interaction.user.id, 15);
 
   if (txs.length === 0) {
-    await interaction.editReply({ content: 'Clean slate. No history yet. Use `/tip deposit` to load up.' });
+    await interaction.editReply({ content: 'Clean slate. No history yet. Use `/tip deposit` to fund your credit balance.' });
     return;
   }
 
@@ -1415,8 +1419,8 @@ async function handleAdminSetup(interaction: ChatInputCommandInteraction) {
           `**First Steps:**\n` +
           `1. Read the rules (don't get banned)\n` +
           `2. Link your wallet: \`/tip wallet register-external\`\n` +
-          `3. Deposit funds: \`/tip deposit\`\n` +
-          `4. Start tipping degens.`
+          `3. Deposit to load credit: \`/tip deposit\`\n` +
+          `4. Send tips from credit with \`/tip direct\`.`
         )
         .setImage('https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExbmZ5Z2Z5Z2Z5Z2Z5Z2Z5Z2Z5Z2Z5Z2Z5Z2Z5Z2Z5Z2Z5/ASd0Ukj0y3qMM/giphy.gif');
       await ch.send({ embeds: [embed] });
@@ -1453,13 +1457,14 @@ async function handleAdminSetup(interaction: ChatInputCommandInteraction) {
         .setTitle('📘 How to Degen (Bot Guide)')
         .setDescription(
           `**💰 Tipping**\n` +
-          `\`/tip send @user $5\` - Send money instantly\n` +
-          `\`/tip airdrop $1 @user1 @user2\` - Make it rain\n` +
-          `\`/tip rain $10 5\` - Split $10 among 5 active users\n\n` +
+          `\`/tip direct @user $5\` - Direct tip from your credit balance\n` +
+          `\`/tip airdrop $1 @user1 @user2\` - Airdrop from your credit\n` +
+          `\`/tip rain $10 5\` - Split credit among active users\n\n` +
           `**🏦 Banking**\n` +
-          `\`/tip deposit\` - Get address to load SOL/Tokens\n` +
-          `\`/tip withdraw\` - Cash out to your wallet\n` +
-          `\`/tip balance\` - Check your stash\n\n` +
+          `\`/tip deposit\` - Get address + memo to load credit\n` +
+          `\`/tip deposit-token token:USDC\` - Load credit from tokens via Jupiter\n` +
+          `\`/tip withdraw\` - Withdraw credit to your wallet\n` +
+          `\`/tip balance\` - Check credit balance\n\n` +
           `**🔐 Vaults**\n` +
           `\`/tip lock $50 24h\` - Lock funds so you don't lose them\n\n` +
           `**🎮 Games**\n` +
@@ -1568,3 +1573,4 @@ async function handleSupportTicketSubmit(interaction: ModalSubmitInteraction) {
 (tip as any).handleAirdropClaim = handleAirdropClaim;
 (tip as any).handleSupportTicketCreate = handleSupportTicketCreate;
 (tip as any).handleSupportTicketSubmit = handleSupportTicketSubmit;
+
