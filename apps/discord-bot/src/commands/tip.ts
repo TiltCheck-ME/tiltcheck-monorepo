@@ -1,5 +1,5 @@
-/**
- * © 2024–2025 TiltCheck Ecosystem. All Rights Reserved.
+﻿/**
+ * Â© 2024â€“2025 TiltCheck Ecosystem. All Rights Reserved.
  * Created by jmenichole (https://github.com/jmenichole)
  * 
  * This file is part of the TiltCheck project.
@@ -12,19 +12,17 @@
 
 import { SlashCommandBuilder, ChatInputCommandInteraction, EmbedBuilder, ButtonBuilder, ButtonStyle, ActionRowBuilder } from 'discord.js';
 import type { Command } from '../types.js';
-import { 
+import {
   registerExternalWallet, 
   getWallet, 
   getWalletBalance,
   hasWallet,
-  createTipWithFeeRequest,
-  createAirdropWithFeeRequest,
+  executeTip,
   getSwapQuote,
   createSwapTransaction,
   getSupportedTokens,
   isTokenSupported,
-  // Prize distribution imports
-  createPrizeDistribution,
+  executeAirdrop,
   isAdmin,
 } from '@tiltcheck/justthetip';
 import { lockVault, unlockVault, extendVault, getVaultStatus, type LockVaultRecord } from '@tiltcheck/lockvault';
@@ -32,15 +30,16 @@ import { parseAmountNL, formatAmount, parseDurationNL, parseCategory } from '@ti
 import { pricingOracle } from '@tiltcheck/pricing-oracle';
 import { isOnCooldown } from '@tiltcheck/tiltcheck-core';
 import { db } from '@tiltcheck/database';
-import { Connection } from '@solana/web3.js';
+import { Connection, Keypair } from '@solana/web3.js';
 
 // Active public airdrops - messageId -> airdrop data
 const activeAirdrops = new Map<string, {
   hostId: string;
-  amountPerUser: number;
+  totalPoolSOL: number;
   totalSlots: number;
   claimedBy: Set<string>;
-  paymentUrl: string;
+  pendingBy: Set<string>;
+  claimantsWithWallet: Set<string>;
   createdAt: number;
 }>();
 
@@ -59,6 +58,13 @@ const activeTriviaRounds = new Map<string, {
 
 const SOLANA_RPC_URL = process.env.SOLANA_RPC_URL || 'https://api.mainnet-beta.solana.com';
 const connection = new Connection(SOLANA_RPC_URL, 'confirmed');
+const AIRDROP_CLAIM_EMOJI = '\u{1F381}'; // 🎁
+const TRIVIA_OPTION_EMOJIS = [
+  '\u{1F1E6}', // 🇦
+  '\u{1F1E7}', // 🇧
+  '\u{1F1E8}', // 🇨
+  '\u{1F1E9}', // 🇩
+] as const;
 
 export const tip: Command = {
   data: new SlashCommandBuilder()
@@ -82,7 +88,7 @@ export const tip: Command = {
         .setName('airdrop')
         .setDescription('Send SOL to multiple users or create public claim')
         .addStringOption(opt =>
-          opt.setName('amount').setDescription('Amount per recipient (e.g. "$7", "0.1 sol", "5 bucks")').setRequired(true)
+          opt.setName('amount').setDescription('Amount (targeted: per recipient, public: total pool)').setRequired(true)
         )
         .addStringOption(opt =>
           opt.setName('recipients').setDescription('User mentions (@user1 @user2) or "public" for anyone to claim').setRequired(false)
@@ -233,19 +239,19 @@ export const tip: Command = {
 
       if (!subcommand) {
         await interaction.reply({
-          content: '❌ Please specify a subcommand:\n' +
-            '• `/tip send` - Send SOL to a user\n' +
-            '• `/tip airdrop` - Send SOL to multiple users or create public claim\n' +
-            '• `/tip wallet` - Manage your wallet\n' +
-            '• `/tip balance` - Check your balance\n' +
-            '• `/tip lock` - Lock SOL in vault\n' +
-            '• `/tip unlock` - Unlock vault\n' +
-            '• `/tip extend` - Extend vault lock\n' +
-            '• `/tip vaults` - View vault status\n' +
-            '• `/tip trivia` - Create trivia airdrop\n' +
-            '• `/tip swap` - Swap Solana tokens via Jupiter\n' +
-            '• `/tip tokens` - List supported swap tokens\n' +
-            '• `/tip distribute` - (Admin) Create prize distribution',
+          content: 'âŒ Please specify a subcommand:\n' +
+            'â€¢ `/tip send` - Send SOL to a user\n' +
+            'â€¢ `/tip airdrop` - Send SOL to multiple users or create public claim\n' +
+            'â€¢ `/tip wallet` - Manage your wallet\n' +
+            'â€¢ `/tip balance` - Check your balance\n' +
+            'â€¢ `/tip lock` - Lock SOL in vault\n' +
+            'â€¢ `/tip unlock` - Unlock vault\n' +
+            'â€¢ `/tip extend` - Extend vault lock\n' +
+            'â€¢ `/tip vaults` - View vault status\n' +
+            'â€¢ `/tip trivia` - Create trivia airdrop\n' +
+            'â€¢ `/tip swap` - Swap Solana tokens via Jupiter\n' +
+            'â€¢ `/tip tokens` - List supported swap tokens\n' +
+            'â€¢ `/tip distribute` - (Admin) Create prize distribution',
           ephemeral: true
         });
         return;
@@ -296,9 +302,9 @@ export const tip: Command = {
       const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred';
       
       if (interaction.deferred || interaction.replied) {
-        await interaction.editReply({ content: `❌ Error: ${errorMessage}` });
+        await interaction.editReply({ content: `âŒ Error: ${errorMessage}` });
       } else {
-        await interaction.reply({ content: `❌ Error: ${errorMessage}`, ephemeral: true });
+        await interaction.reply({ content: `âŒ Error: ${errorMessage}`, ephemeral: true });
       }
     }
   },
@@ -311,14 +317,7 @@ async function handleTip(interaction: ChatInputCommandInteraction) {
 
   if (isOnCooldown(interaction.user.id)) {
     await interaction.editReply({
-      content: '🚫 You\'re on cooldown and cannot send tips right now. Take a break.',
-    });
-    return;
-  }
-
-  if (!hasWallet(interaction.user.id)) {
-    await interaction.editReply({
-      content: '❌ You need to register a wallet first!\nUse `/tip wallet` → Register (External) to connect your Solana wallet.',
+      content: 'ðŸš« You\'re on cooldown and cannot send tips right now. Take a break.',
     });
     return;
   }
@@ -327,7 +326,7 @@ async function handleTip(interaction: ChatInputCommandInteraction) {
   const amountInput = interaction.options.getString('amount', true);
 
   if (recipient.id === interaction.user.id) {
-    await interaction.editReply({ content: '❌ You cannot tip yourself!' });
+    await interaction.editReply({ content: 'âŒ You cannot tip yourself!' });
     return;
   }
 
@@ -337,79 +336,57 @@ async function handleTip(interaction: ChatInputCommandInteraction) {
   
   if (!parseResult.success || !parseResult.data) {
     await interaction.editReply({
-      content: `❌ ${parseResult.error}\n\nExamples: "$5", "five bucks", "0.1 sol", "half a sol", "all"`,
+      content: `âŒ ${parseResult.error}\n\nExamples: "$5", "five bucks", "0.1 sol", "half a sol", "all"`,
     });
     return;
   }
 
   const parsedAmount = parseResult.data;
 
-  if (parseResult.needsConfirmation && parseResult.confirmationPrompt) {
-    const confirmButton = new ButtonBuilder()
-      .setCustomId(`tip_confirm_sol_${recipient.id}_${parsedAmount.value}`)
-      .setLabel(`Yes, ${parsedAmount.value} SOL`)
-      .setStyle(ButtonStyle.Success);
-
-    const cancelButton = new ButtonBuilder()
-      .setCustomId('tip_cancel')
-      .setLabel('Cancel')
-      .setStyle(ButtonStyle.Danger);
-
-    const row = new ActionRowBuilder<ButtonBuilder>().addComponents(confirmButton, cancelButton);
-
-    await interaction.editReply({
-      content: `⚠️ **Confirmation Needed**\n\n${parseResult.confirmationPrompt}`,
-      components: [row],
-    });
-    return;
-  }
-
   const recipientWallet = getWallet(recipient.id);
   
   if (!recipientWallet) {
     await interaction.editReply({
-      content: `⚠️ ${recipient} doesn't have a wallet registered yet.\nYour tip will be held for 24 hours. They can claim it by registering a wallet.`,
+      content: `âš ï¸ ${recipient} doesn't have a wallet registered yet.\nThey must set an external wallet via \`/tip wallet\` before receiving payouts.`,
     });
     return;
   }
 
   try {
-    const senderWallet = getWallet(interaction.user.id);
-    if (!senderWallet) throw new Error('Sender wallet not found');
-
-    const { url } = await createTipWithFeeRequest(
-      connection,
-      senderWallet.address,
-      recipientWallet.address,
-      parsedAmount.value,
-      `JustTheTip to ${recipient.username}`
+    const { payerUserId, keypair } = await ensureBotPayerWalletReady();
+    const result = await executeTip(
+      {
+        senderId: payerUserId,
+        recipientId: recipient.id,
+        amount: parsedAmount.value,
+        currency: parsedAmount.currency,
+      },
+      keypair
     );
 
-    const payButton = new ButtonBuilder()
-      .setLabel('💸 Open in Wallet')
-      .setStyle(ButtonStyle.Link)
-      .setURL(url);
-
-    const row = new ActionRowBuilder<ButtonBuilder>().addComponents(payButton);
+    if (!result.success) {
+      await interaction.editReply({
+        content: `âŒ Tip failed: ${result.error || 'Unknown error'}`,
+      });
+      return;
+    }
 
     const embed = new EmbedBuilder()
       .setColor(0x00FF00)
-      .setTitle('💸 Tip Ready to Send')
+      .setTitle('ðŸ’¸ Tip Sent')
       .setDescription(
         `**Recipient:** ${recipient}\n` +
-        `**Amount:** ${formatAmount(parsedAmount)}\n` +
-        `**Fee:** 0.0007 SOL (~$0.07)\n\n` +
-        '**Tap the button below** to open in your wallet:\n' +
-        '• Phantom • Solflare • Backpack\n\n' +
-        'Your device will ask which wallet to use! 📱'
+        `**Amount Sent:** ${result.amount.toFixed(4)} SOL\n` +
+        `**Fee:** ${result.fee.toFixed(4)} SOL\n` +
+        (result.signature ? `\n[View Transaction](https://solscan.io/tx/${result.signature})` : '')
       )
-      .setFooter({ text: 'JustTheTip • Powered by TiltCheck' });
+      .setFooter({ text: 'JustTheTip â€¢ Powered by TiltCheck' });
 
-    await interaction.editReply({ embeds: [embed], components: [row] });
+    await interaction.editReply({ embeds: [embed], components: [] });
 
   } catch (error) {
     await interaction.editReply({
-      content: `❌ Failed to create payment request: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      content: `âŒ Failed to send tip: ${error instanceof Error ? error.message : 'Unknown error'}`,
     });
   }
 }
@@ -418,7 +395,7 @@ async function handleAirdrop(interaction: ChatInputCommandInteraction) {
   await interaction.deferReply();
 
   if (!hasWallet(interaction.user.id)) {
-    await interaction.editReply({ content: '❌ You need to register a wallet first using `/tip wallet`.' });
+    await interaction.editReply({ content: 'âŒ You need to register a wallet first using `/tip wallet`.' });
     return;
   }
 
@@ -432,7 +409,7 @@ async function handleAirdrop(interaction: ChatInputCommandInteraction) {
   
   if (!parseResult.success || !parseResult.data) {
     await interaction.editReply({
-      content: `❌ ${parseResult.error}\n\nExamples: "$5", "five bucks", "0.1 sol", "7 dollars"`,
+      content: `âŒ ${parseResult.error}\n\nExamples: "$5", "five bucks", "0.1 sol", "7 dollars"`,
     });
     return;
   }
@@ -446,13 +423,13 @@ async function handleAirdrop(interaction: ChatInputCommandInteraction) {
       const solPrice = pricingOracle.getUsdPrice('SOL');
       amountPerRecipientSOL = parsedAmount.value / solPrice;
     } catch {
-      await interaction.editReply({ content: '❌ Unable to get current SOL price. Please try again or specify amount in SOL.' });
+      await interaction.editReply({ content: 'âŒ Unable to get current SOL price. Please try again or specify amount in SOL.' });
       return;
     }
   }
 
   if (amountPerRecipientSOL <= 0) {
-    await interaction.editReply({ content: '❌ Invalid amount. Provide a positive value like `$5` or `0.05 sol`.' });
+    await interaction.editReply({ content: 'âŒ Invalid amount. Provide a positive value like `$5` or `0.05 sol`.' });
     return;
   }
 
@@ -460,7 +437,7 @@ async function handleAirdrop(interaction: ChatInputCommandInteraction) {
   const isPublic = !recipientsRaw || recipientsRaw.toLowerCase().trim() === 'public';
 
   if (isPublic) {
-    // Create a public claim airdrop
+    // Public mode uses amount as a total pool, settled at round end.
     await handlePublicAirdrop(interaction, amountPerRecipientSOL, slots, parsedAmount);
     return;
   }
@@ -474,45 +451,37 @@ async function handleAirdrop(interaction: ChatInputCommandInteraction) {
   }
 
   if (userIds.length === 0) {
-    await interaction.editReply({ content: '❌ No valid user mentions found. Use space-separated mentions like `@Alice @Bob`, or use "public" for anyone to claim.' });
+    await interaction.editReply({ content: 'âŒ No valid user mentions found. Use space-separated mentions like `@Alice @Bob`, or use "public" for anyone to claim.' });
     return;
   }
 
-  const senderWallet = getWallet(interaction.user.id);
-  if (!senderWallet) {
-    await interaction.editReply({ content: '❌ Sender wallet not found after registration.' });
-    return;
-  }
-
-  const walletAddresses: string[] = [];
+  const validRecipientIds: string[] = [];
   const missingWallets: string[] = [];
   for (const uid of userIds) {
     const w = getWallet(uid);
-    if (w) walletAddresses.push(w.address); else missingWallets.push(uid);
+    if (w) validRecipientIds.push(uid); else missingWallets.push(uid);
   }
 
-  if (walletAddresses.length === 0) {
-    await interaction.editReply({ content: '❌ None of the mentioned users have registered wallets yet.' });
+  if (validRecipientIds.length === 0) {
+    await interaction.editReply({ content: 'âŒ None of the mentioned users have registered wallets yet.' });
     return;
   }
 
   try {
-    const { url } = await createAirdropWithFeeRequest(
-      connection,
-      senderWallet.address,
-      walletAddresses,
-      amountPerRecipientSOL,
+    const { payerUserId, keypair } = await ensureBotPayerWalletReady();
+    const result = await executeAirdrop(
+      {
+        senderId: payerUserId,
+        recipientIds: validRecipientIds,
+        amountPerUser: amountPerRecipientSOL,
+        currency: 'SOL',
+      },
+      keypair
     );
-
-    const payButton = new ButtonBuilder()
-      .setLabel('🚀 Open Airdrop in Wallet')
-      .setStyle(ButtonStyle.Link)
-      .setURL(url);
-
-    const row = new ActionRowBuilder<ButtonBuilder>().addComponents(payButton);
-
-    const totalSOL = amountPerRecipientSOL * walletAddresses.length;
-    const feeText = process.env.JUSTTHETIP_FEE_WALLET ? '0.0007 SOL' : 'None (fee wallet not configured)';
+    if (!result.success) {
+      await interaction.editReply({ content: `âŒ Airdrop failed: ${result.error || 'Unknown error'}` });
+      return;
+    }
 
     // Display both SOL and USD value if USD was input
     const amountDisplay = parsedAmount.currency === 'USD'
@@ -521,80 +490,77 @@ async function handleAirdrop(interaction: ChatInputCommandInteraction) {
 
     const embed = new EmbedBuilder()
       .setColor(0x8844ff)
-      .setTitle('🚀 Airdrop Ready')
+      .setTitle('ðŸš€ Airdrop Sent')
       .setDescription(
-        `**Recipients:** ${walletAddresses.length}\n` +
+        `**Recipients:** ${result.recipientCount}\n` +
         `**Amount Each:** ${amountDisplay}\n` +
-        `**Total (excluding fee):** ${totalSOL.toFixed(4)} SOL\n` +
-        `**Fee:** ${feeText}\n\n` +
-        'Tap the button below to open the unsigned transaction in your wallet.'
+        `**Total Sent:** ${result.totalAmount.toFixed(4)} SOL\n` +
+        `**Fee:** ${result.fee.toFixed(4)} SOL\n` +
+        (result.signature ? `\n[View Transaction](https://solscan.io/tx/${result.signature})` : '')
       )
-      .setFooter({ text: 'JustTheTip • Powered by TiltCheck' });
+      .setFooter({ text: 'JustTheTip â€¢ Powered by TiltCheck' });
 
     let missingNote = '';
     if (missingWallets.length > 0) {
-      missingNote = `\n⚠️ Skipped ${missingWallets.length} user(s) without wallets.`;
+      missingNote = `\nâš ï¸ Skipped ${missingWallets.length} user(s) without wallets.`;
     }
 
-    await interaction.editReply({ embeds: [embed], components: [row], content: missingNote });
+    await interaction.editReply({ embeds: [embed], components: [], content: missingNote });
   } catch (error) {
-    await interaction.editReply({ content: `❌ Failed to build airdrop transaction: ${error instanceof Error ? error.message : 'Unknown error'}` });
+    await interaction.editReply({ content: `âŒ Failed to send airdrop: ${error instanceof Error ? error.message : 'Unknown error'}` });
   }
 }
 
-async function handlePublicAirdrop(interaction: ChatInputCommandInteraction, amountPerUser: number, slots: number, parsedAmount?: { value: number; currency: 'SOL' | 'USD' }) {
+async function handlePublicAirdrop(interaction: ChatInputCommandInteraction, totalPoolSOL: number, slots: number, parsedAmount?: { value: number; currency: 'SOL' | 'USD' }) {
   const senderWallet = getWallet(interaction.user.id);
   if (!senderWallet) {
-    await interaction.editReply({ content: '❌ Wallet not found.' });
+    await interaction.editReply({ content: 'Error: wallet not found.' });
     return;
   }
 
-  // For public airdrops, we'll create a claimable link that generates payment requests on-demand
-  const feeText = process.env.JUSTTHETIP_FEE_WALLET ? '0.0007 SOL per claim' : 'None';
-
-  const claimButton = new ButtonBuilder()
-    .setCustomId(`airdrop_claim_${interaction.id}`)
-    .setLabel('🎁 Claim Airdrop')
-    .setStyle(ButtonStyle.Success);
-
-  const row = new ActionRowBuilder<ButtonBuilder>().addComponents(claimButton);
-
-  // Display both SOL and USD value if USD was input
   const amountDisplay = parsedAmount && parsedAmount.currency === 'USD'
-    ? `$${parsedAmount.value.toFixed(2)} USD (~${amountPerUser.toFixed(4)} SOL)`
-    : `${amountPerUser.toFixed(4)} SOL`;
+    ? `${parsedAmount.value.toFixed(2)} USD (~${totalPoolSOL.toFixed(4)} SOL)`
+    : `${totalPoolSOL.toFixed(4)} SOL`;
 
   const embed = new EmbedBuilder()
     .setColor(0xFF6B00)
-    .setTitle('🎁 Public Airdrop')
+    .setTitle('Public Airdrop')
     .setDescription(
-      `**Amount per claim:** ${amountDisplay}\n` +
+      `**Total pool:** ${amountDisplay}\n` +
       `**Total slots:** ${slots}\n` +
       `**Claimed:** 0/${slots}\n` +
-      `**Fee:** ${feeText}\n\n` +
-      '**Click the button below to claim!**\n' +
-      'First come, first served. Each user can claim once.'
+      `**Settlement:** pool divided equally by total valid claimants at round end\n\n` +
+      `**React with ${AIRDROP_CLAIM_EMOJI} to claim!**\n` +
+      'First come, first served. One claim per user.'
     )
     .setFooter({ text: `Hosted by ${interaction.user.username} • JustTheTip` });
 
-  const reply = await interaction.editReply({ embeds: [embed], components: [row] });
+  const reply = await interaction.editReply({ embeds: [embed], components: [] });
+  await reply.react(AIRDROP_CLAIM_EMOJI).catch(() => {});
 
-  // Store airdrop data for claim handling
   activeAirdrops.set(reply.id, {
     hostId: interaction.user.id,
-    amountPerUser,
+    totalPoolSOL,
     totalSlots: slots,
     claimedBy: new Set(),
-    paymentUrl: '', // Generated per claim
+    pendingBy: new Set(),
+    claimantsWithWallet: new Set(),
     createdAt: Date.now(),
   });
 
-  // Auto-cleanup after 1 hour
-  setTimeout(() => {
-    activeAirdrops.delete(reply.id);
-  }, 60 * 60 * 1000);
-}
+  const collector = reply.createReactionCollector({
+    time: 60 * 60 * 1000,
+    filter: (reaction, user) => reaction.emoji.name === AIRDROP_CLAIM_EMOJI && !user.bot,
+  });
 
+  collector.on('collect', async (_reaction, user) => {
+    await handleAirdropClaimByReaction(reply, user.id);
+  });
+
+  collector.on('end', async () => {
+    await settlePublicAirdrop(reply.id, reply.channel);
+  });
+}
 async function handleWallet(interaction: ChatInputCommandInteraction) {
   const action = interaction.options.getString('action', true);
 
@@ -603,7 +569,7 @@ async function handleWallet(interaction: ChatInputCommandInteraction) {
     
     if (!wallet) {
       await interaction.reply({
-        content: '❌ No wallet registered. Use `/tip wallet` → Register (External)',
+        content: 'âŒ No wallet registered. Use `/tip wallet` â†’ Register (External)',
         ephemeral: true,
       });
       return;
@@ -611,13 +577,13 @@ async function handleWallet(interaction: ChatInputCommandInteraction) {
 
     const embed = new EmbedBuilder()
       .setColor(0x00FF00)
-      .setTitle('💳 Your Wallet')
+      .setTitle('ðŸ’³ Your Wallet')
       .addFields(
         { name: 'Address', value: `\`${wallet.address}\``, inline: false },
         { name: 'Type', value: wallet.type, inline: true },
         { name: 'Registered', value: `<t:${Math.floor(wallet.registeredAt / 1000)}:R>`, inline: true },
       )
-      .setFooter({ text: 'JustTheTip • Powered by TiltCheck' });
+      .setFooter({ text: 'JustTheTip â€¢ Powered by TiltCheck' });
 
     await interaction.reply({ embeds: [embed], ephemeral: true });
   } else if (action === 'register-magic') {
@@ -627,7 +593,7 @@ async function handleWallet(interaction: ChatInputCommandInteraction) {
         const identity = await db.getDegenIdentity(interaction.user.id);
         if (identity?.magic_address) {
           await interaction.reply({
-            content: `✅ You already have a **Degen Identity** wallet linked:\n\`${identity.magic_address}\``,
+            content: `âœ… You already have a **Degen Identity** wallet linked:\n\`${identity.magic_address}\``,
             ephemeral: true,
           });
           return;
@@ -643,14 +609,14 @@ async function handleWallet(interaction: ChatInputCommandInteraction) {
     
     const embed = new EmbedBuilder()
       .setColor(0x8A2BE2)
-      .setTitle('✨ Register with Magic Link')
+      .setTitle('âœ¨ Register with Magic Link')
       .setDescription('Connect your email to create a secure **Soft-Custody** wallet for tipping and vaulting.')
       .addFields(
         { name: 'Step 1', value: `[Click here to open Dashboard](${linkUrl})` },
         { name: 'Step 2', value: 'Login with your Email' },
         { name: 'Step 3', value: 'Link your Discord account' }
       )
-      .setFooter({ text: 'TiltCheck • Trust & Safety' });
+      .setFooter({ text: 'TiltCheck â€¢ Trust & Safety' });
 
     await interaction.reply({ embeds: [embed], ephemeral: true });
   } else if (action === 'register-external') {
@@ -658,7 +624,7 @@ async function handleWallet(interaction: ChatInputCommandInteraction) {
     
     if (!address) {
       await interaction.reply({
-        content: '❌ Please provide your Solana wallet address:\n' +
+        content: 'âŒ Please provide your Solana wallet address:\n' +
           '`/tip wallet register-external address:<your-address>`\n\n' +
           'Find your address in Phantom, Solflare, or other Solana wallets.',
         ephemeral: true,
@@ -671,7 +637,7 @@ async function handleWallet(interaction: ChatInputCommandInteraction) {
       
       const embed = new EmbedBuilder()
         .setColor(0x00FF00)
-        .setTitle('✅ Wallet Registered!')
+        .setTitle('âœ… Wallet Registered!')
         .setDescription('Your external wallet has been connected')
         .addFields(
           { name: 'Address', value: `\`${wallet.address}\``, inline: false },
@@ -682,7 +648,7 @@ async function handleWallet(interaction: ChatInputCommandInteraction) {
       await interaction.reply({ embeds: [embed], ephemeral: true });
     } catch (error) {
       await interaction.reply({
-        content: `❌ ${error instanceof Error ? error.message : 'Invalid wallet address'}`,
+        content: `âŒ ${error instanceof Error ? error.message : 'Invalid wallet address'}`,
         ephemeral: true,
       });
     }
@@ -694,7 +660,7 @@ async function handleBalance(interaction: ChatInputCommandInteraction) {
 
   if (!hasWallet(interaction.user.id)) {
     await interaction.editReply({
-      content: '❌ No wallet registered. Use `/tip wallet` → Register (External)',
+      content: 'âŒ No wallet registered. Use `/tip wallet` â†’ Register (External)',
     });
     return;
   }
@@ -705,17 +671,17 @@ async function handleBalance(interaction: ChatInputCommandInteraction) {
 
     const embed = new EmbedBuilder()
       .setColor(0x0099FF)
-      .setTitle('💰 Wallet Balance')
+      .setTitle('ðŸ’° Wallet Balance')
       .addFields(
         { name: 'Balance', value: `${balance.toFixed(6)} SOL`, inline: true },
         { name: 'Address', value: `\`${wallet?.address}\``, inline: false },
       )
-      .setFooter({ text: 'JustTheTip • Powered by TiltCheck' });
+      .setFooter({ text: 'JustTheTip â€¢ Powered by TiltCheck' });
 
     await interaction.editReply({ embeds: [embed] });
   } catch (error) {
     await interaction.editReply({
-      content: `❌ Failed to fetch balance: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      content: `âŒ Failed to fetch balance: ${error instanceof Error ? error.message : 'Unknown error'}`,
     });
   }
 }
@@ -730,13 +696,13 @@ async function handleVaultLock(interaction: ChatInputCommandInteraction) {
   // Use enhanced NLP for natural language parsing
   const parsedAmount = parseAmountNL(amountRaw);
   if (!parsedAmount.success || !parsedAmount.data) {
-    await interaction.reply({ content: `❌ ${parsedAmount.error}\n\nExamples: "$100", "fifty bucks", "0.5 sol", "all"`, ephemeral: true });
+    await interaction.reply({ content: `âŒ ${parsedAmount.error}\n\nExamples: "$100", "fifty bucks", "0.5 sol", "all"`, ephemeral: true });
     return;
   }
 
   const parsedDuration = parseDurationNL(durationRaw);
   if (!parsedDuration.success || !parsedDuration.data) {
-    await interaction.reply({ content: `❌ ${parsedDuration.error}\n\nExamples: "24h", "a day", "1 week", "twelve hours"`, ephemeral: true });
+    await interaction.reply({ content: `âŒ ${parsedDuration.error}\n\nExamples: "24h", "a day", "1 week", "twelve hours"`, ephemeral: true });
     return;
   }
 
@@ -744,7 +710,7 @@ async function handleVaultLock(interaction: ChatInputCommandInteraction) {
     const vault = await lockVault({ userId: interaction.user.id, amountRaw, durationRaw, reason });
     const embed = new EmbedBuilder()
       .setColor(0x8A2BE2)
-      .setTitle('🔒 Vault Locked')
+      .setTitle('ðŸ”’ Vault Locked')
       .setDescription('Funds moved to disposable time-locked vault wallet')
       .addFields(
         { name: 'Vault ID', value: vault.id, inline: false },
@@ -755,7 +721,7 @@ async function handleVaultLock(interaction: ChatInputCommandInteraction) {
       .setFooter({ text: reason ? `Reason: ${reason}` : 'Use /tip vaults to view all vaults' });
     await interaction.reply({ embeds: [embed], ephemeral: true });
   } catch (err) {
-    await interaction.reply({ content: `❌ ${(err as Error).message}`, ephemeral: true });
+    await interaction.reply({ content: `âŒ ${(err as Error).message}`, ephemeral: true });
   }
 }
 
@@ -765,15 +731,15 @@ async function handleVaultUnlock(interaction: ChatInputCommandInteraction) {
     const vault = unlockVault(interaction.user.id, id);
     const embed = new EmbedBuilder()
       .setColor(0x00AA00)
-      .setTitle('✅ Vault Unlocked')
+      .setTitle('âœ… Vault Unlocked')
       .addFields(
         { name: 'Vault ID', value: vault.id },
         { name: 'Released', value: `${vault.lockedAmountSOL === 0 ? 'ALL' : vault.lockedAmountSOL.toFixed(4)} SOL eq` },
       )
-      .setFooter({ text: 'JustTheTip • Powered by TiltCheck' });
+      .setFooter({ text: 'JustTheTip â€¢ Powered by TiltCheck' });
     await interaction.reply({ embeds: [embed], ephemeral: true });
   } catch (err) {
-    await interaction.reply({ content: `❌ ${(err as Error).message}`, ephemeral: true });
+    await interaction.reply({ content: `âŒ ${(err as Error).message}`, ephemeral: true });
   }
 }
 
@@ -784,32 +750,32 @@ async function handleVaultExtend(interaction: ChatInputCommandInteraction) {
     const vault = extendVault(interaction.user.id, id, additional);
     const embed = new EmbedBuilder()
       .setColor(0xFFD700)
-      .setTitle('⏫ Vault Extended')
+      .setTitle('â« Vault Extended')
       .addFields(
         { name: 'Vault ID', value: vault.id },
         { name: 'New Unlock', value: `<t:${Math.floor(vault.unlockAt/1000)}:R>` },
         { name: 'Extensions', value: `${vault.extendedCount}` },
       )
-      .setFooter({ text: 'JustTheTip • Powered by TiltCheck' });
+      .setFooter({ text: 'JustTheTip â€¢ Powered by TiltCheck' });
     await interaction.reply({ embeds: [embed], ephemeral: true });
   } catch (err) {
-    await interaction.reply({ content: `❌ ${(err as Error).message}`, ephemeral: true });
+    await interaction.reply({ content: `âŒ ${(err as Error).message}`, ephemeral: true });
   }
 }
 
 async function handleVaultStatus(interaction: ChatInputCommandInteraction) {
   const vaults = getVaultStatus(interaction.user.id);
   if (vaults.length === 0) {
-    await interaction.reply({ content: 'ℹ️ No active vaults.', ephemeral: true });
+    await interaction.reply({ content: 'â„¹ï¸ No active vaults.', ephemeral: true });
     return;
   }
   const embed = new EmbedBuilder()
     .setColor(0x1E90FF)
-    .setTitle('🔒 Your Vaults')
+    .setTitle('ðŸ”’ Your Vaults')
     .setDescription(vaults.map((v: LockVaultRecord) => 
-      `• **${v.id}** – ${v.status} – unlocks <t:${Math.floor(v.unlockAt/1000)}:R> – ${v.lockedAmountSOL===0? 'ALL' : v.lockedAmountSOL.toFixed(4)+' SOL'}`
+      `â€¢ **${v.id}** â€“ ${v.status} â€“ unlocks <t:${Math.floor(v.unlockAt/1000)}:R> â€“ ${v.lockedAmountSOL===0? 'ALL' : v.lockedAmountSOL.toFixed(4)+' SOL'}`
     ).join('\n'))
-    .setFooter({ text: 'JustTheTip • Powered by TiltCheck' });
+    .setFooter({ text: 'JustTheTip â€¢ Powered by TiltCheck' });
   await interaction.reply({ embeds: [embed], ephemeral: true });
 }
 
@@ -854,20 +820,18 @@ const allCategories = ['crypto', 'poker', 'sports', 'general'];
 
 async function handleTriviaDrop(interaction: ChatInputCommandInteraction) {
   const channelId = interaction.channelId;
-  
-  // Check if there's already an active round in this channel
+
   if (activeTriviaRounds.has(channelId)) {
-    await interaction.reply({ 
-      content: '❌ There\'s already an active trivia round in this channel! Wait for it to end.',
-      ephemeral: true 
+    await interaction.reply({
+      content: '? There\'s already an active trivia round in this channel! Wait for it to end.',
+      ephemeral: true
     });
     return;
   }
 
-  // Check if host has a wallet
   if (!hasWallet(interaction.user.id)) {
     await interaction.reply({
-      content: '❌ You need to register a wallet first to host trivia!\nUse `/tip wallet` → Register (External)',
+      content: 'Error: you need to register a wallet first to host trivia.\nUse `/tip wallet` -> Register (External)',
       ephemeral: true,
     });
     return;
@@ -876,38 +840,31 @@ async function handleTriviaDrop(interaction: ChatInputCommandInteraction) {
   const prizeInput = interaction.options.getString('prize', true);
   const timeInput = interaction.options.getString('time') || '15s';
   const categoryInput = interaction.options.getString('category');
-  
-  // Use enhanced NLP for category (handles "crypto stuff", "poker trivia", etc.)
-  // Random category if not specified
-  const category = categoryInput 
-    ? parseCategory(categoryInput) || categoryInput 
+
+  const category = categoryInput
+    ? parseCategory(categoryInput) || categoryInput
     : allCategories[Math.floor(Math.random() * allCategories.length)];
 
-  // Parse prize amount using enhanced NLP
-  // Handles: "$5", "five bucks", "0.1 sol", "half a sol", etc.
   const prizeResult = parseAmountNL(prizeInput);
   if (!prizeResult.success || !prizeResult.data) {
-    await interaction.reply({ 
-      content: `❌ Invalid prize amount: ${prizeResult.error}\n\nExamples: "$5", "five bucks", "0.1 sol", "half a sol"`,
-      ephemeral: true 
+    await interaction.reply({
+      content: `? Invalid prize amount: ${prizeResult.error}\n\nExamples: "$5", "five bucks", "0.1 sol", "half a sol"`,
+      ephemeral: true
     });
     return;
   }
 
-  // Parse time using enhanced NLP
-  // Handles: "15s", "15 secs", "thirty seconds", "1 min", "half a minute", etc.
   const timeResult = parseDurationNL(timeInput);
   let timeLimitMs: number;
-  
+
   if (!timeResult.success || !timeResult.data) {
-    // Try parsing as just a number (assume seconds)
     const numericTime = parseInt(timeInput);
     if (!isNaN(numericTime) && numericTime >= 10 && numericTime <= 120) {
       timeLimitMs = numericTime * 1000;
     } else {
-      await interaction.reply({ 
-        content: `❌ Invalid time format: ${timeResult.error || 'Could not parse'}\n\nExamples: "15s", "thirty seconds", "1 min", "half a minute"`,
-        ephemeral: true 
+      await interaction.reply({
+        content: `Error: invalid time format: ${timeResult.error || 'Could not parse'}\n\nExamples: "15s", "thirty seconds", "1 min", "half a minute"`,
+        ephemeral: true
       });
       return;
     }
@@ -915,18 +872,35 @@ async function handleTriviaDrop(interaction: ChatInputCommandInteraction) {
     timeLimitMs = timeResult.data.milliseconds;
   }
 
-  // Clamp time to reasonable trivia bounds (10s - 2min)
   timeLimitMs = Math.max(10000, Math.min(120000, timeLimitMs));
   const timeLimitSecs = Math.round(timeLimitMs / 1000);
 
   const prizeSOL = prizeResult.data.value;
   const prizeDisplay = formatAmount(prizeResult.data);
 
-  // Get a random question from the category
   const questions = triviaQuestions[category] || triviaQuestions.general;
   const questionData = questions[Math.floor(Math.random() * questions.length)];
 
-  // Store the active round
+  if (!questionData.choices || questionData.choices.length < 4) {
+    await interaction.reply({
+      content: 'Error: trivia question is missing A/B/C/D options. Please try again.',
+      ephemeral: true
+    });
+    return;
+  }
+
+  const correctAnswerIndex = questionData.choices.findIndex(
+    c => c.toLowerCase() === questionData.a.toLowerCase()
+  );
+
+  if (correctAnswerIndex < 0 || correctAnswerIndex > 3) {
+    await interaction.reply({
+      content: 'Error: trivia answer mapping failed. Please try again.',
+      ephemeral: true
+    });
+    return;
+  }
+
   const endTime = Date.now() + timeLimitMs;
   activeTriviaRounds.set(channelId, {
     question: questionData.q,
@@ -940,289 +914,264 @@ async function handleTriviaDrop(interaction: ChatInputCommandInteraction) {
     category,
   });
 
-  // Format time display
-  const timeDisplay = timeLimitSecs >= 60 
+  const timeDisplay = timeLimitSecs >= 60
     ? `${Math.floor(timeLimitSecs / 60)}m ${timeLimitSecs % 60}s`
     : `${timeLimitSecs}s`;
 
-  // Build the question embed
   const embed = new EmbedBuilder()
     .setColor(0xFFD700)
-    .setTitle('🎯 TRIVIA DROP!')
+    .setTitle('TRIVIA DROP')
     .setDescription(`**${questionData.q}**`)
     .addFields(
-      { name: '💰 Prize Pool', value: prizeDisplay, inline: true },
-      { name: '⏱️ Time', value: timeDisplay, inline: true },
-      { name: '📁 Category', value: category.charAt(0).toUpperCase() + category.slice(1), inline: true },
+      { name: 'Prize Pool', value: prizeDisplay, inline: true },
+      { name: 'Time', value: timeDisplay, inline: true },
+      { name: 'Category', value: category.charAt(0).toUpperCase() + category.slice(1), inline: true },
+      {
+        name: 'How To Answer',
+        value: `React with ${TRIVIA_OPTION_EMOJIS.join(' ')} on this message.`
+      },
+      {
+        name: 'Options',
+        value: questionData.choices.map((c, i) => `**${String.fromCharCode(65 + i)}.** ${c}`).join('\n'),
+      }
     )
-    .setFooter({ text: `Hosted by ${interaction.user.username} • Type your answer in chat! • Prize split among all winners` });
+    .setFooter({ text: `Hosted by ${interaction.user.username} • React to answer • Prize split among all winners` });
 
-  if (questionData.choices) {
-    embed.addFields({
-      name: 'Options',
-      value: questionData.choices.map((c, i) => `**${String.fromCharCode(65 + i)}.** ${c}`).join('\n'),
-    });
+  const triviaMessage = await interaction.reply({ embeds: [embed], fetchReply: true });
+
+  for (const emoji of TRIVIA_OPTION_EMOJIS) {
+    await triviaMessage.react(emoji).catch(() => {});
   }
 
-  await interaction.reply({ embeds: [embed] });
-
-  // Set up message collector for answers
-  const channel = interaction.channel;
-  if (!channel || !('createMessageCollector' in channel)) {
-    activeTriviaRounds.delete(channelId);
-    return;
-  }
-
-  const collector = channel.createMessageCollector({
+  const collector = triviaMessage.createReactionCollector({
     time: timeLimitMs,
-    filter: (m) => !m.author.bot,
+    filter: (reaction, user) => TRIVIA_OPTION_EMOJIS.includes(reaction.emoji.name as any) && !user.bot,
   });
 
-  collector.on('collect', (message) => {
+  collector.on('collect', (reaction, user) => {
     const round = activeTriviaRounds.get(channelId);
     if (!round) return;
+    if (user.id === round.hostId) return;
 
-    const userAnswer = message.content.toLowerCase().trim();
-    const correctAnswer = round.answer;
-
-    // Check if answer matches (exact or partial match or choice letter)
-    let isCorrect = userAnswer === correctAnswer || correctAnswer.includes(userAnswer);
-    
-    // Also check choice letters (A, B, C, D) - case insensitive
-    if (!isCorrect && round.choices) {
-      const letterMatch = userAnswer.match(/^([a-d])\.?$/i);
-      if (letterMatch) {
-        const letterIndex = letterMatch[1].toLowerCase().charCodeAt(0) - 97; // a=0, b=1, etc
-        if (letterIndex >= 0 && letterIndex < round.choices.length) {
-          isCorrect = round.choices[letterIndex].toLowerCase() === correctAnswer;
-        }
-      }
-      // Also check if they typed the full answer text
-      if (!isCorrect) {
-        isCorrect = round.choices.some(c => c.toLowerCase() === userAnswer);
-      }
-    }
-
-    if (isCorrect && !round.correctUsers.has(message.author.id)) {
-      round.correctUsers.add(message.author.id);
-      message.react('✅').catch(() => {});
+    const selectedIndex = TRIVIA_OPTION_EMOJIS.indexOf(reaction.emoji.name as any);
+    if (selectedIndex === correctAnswerIndex) {
+      round.correctUsers.add(user.id);
     }
   });
 
   collector.on('end', async () => {
     const round = activeTriviaRounds.get(channelId);
     activeTriviaRounds.delete(channelId);
-    
+
     if (!round) return;
 
     const winners = Array.from(round.correctUsers);
-    const correctAnswerDisplay = round.choices?.find(c => c.toLowerCase() === round.answer) || round.answer;
-    
+    const correctAnswerDisplay = round.choices?.[correctAnswerIndex] || round.answer;
+    const channel = interaction.channel;
+    if (!channel || !('send' in channel)) return;
+
     if (winners.length === 0) {
-      // No winners
       const noWinnerEmbed = new EmbedBuilder()
         .setColor(0xFF0000)
-        .setTitle('⏰ Time\'s Up!')
+        .setTitle('? Time\'s Up!')
         .setDescription(`Nobody got it right!\n\n**Correct answer:** ${correctAnswerDisplay}`)
         .setFooter({ text: 'Prize returned to host • Better luck next time!' });
-      
+
       await channel.send({ embeds: [noWinnerEmbed] });
-    } else {
-      // Split prize among winners
-      const prizePerWinner = round.prize / winners.length;
-      const winnerMentions = winners.map(id => `<@${id}>`).join(', ');
-      
-      const winnerEmbed = new EmbedBuilder()
-        .setColor(0x00FF00)
-        .setTitle('🎉 We Have Winners!')
-        .setDescription(
-          `**Correct answer:** ${correctAnswerDisplay}\n\n` +
-          `**Winners (${winners.length}):** ${winnerMentions}\n\n` +
-          `**Prize per winner:** ${prizePerWinner.toFixed(4)} SOL (~$${(prizePerWinner * 100).toFixed(2)})`
-        )
-        .setFooter({ text: 'JustTheTip • Powered by TiltCheck' });
-      
-      await channel.send({ embeds: [winnerEmbed] });
+      return;
+    }
 
-      // Distribute prizes via Solana Pay
-      try {
-        const result = await createPrizeDistribution(
-          connection,
-          round.hostId,
-          winners,
-          round.prize,
-          'trivia'
-        );
+    const prizePerWinner = round.prize / winners.length;
+    const winnerMentions = winners.map(id => `<@${id}>`).join(', ');
 
-        if (result.success && result.distribution && result.paymentUrl) {
-          // Create button for host to sign the transaction
-          const payButton = new ButtonBuilder()
-            .setLabel('💰 Distribute Prizes')
-            .setStyle(ButtonStyle.Link)
-            .setURL(result.paymentUrl);
+    const winnerEmbed = new EmbedBuilder()
+      .setColor(0x00FF00)
+      .setTitle('We Have Winners')
+      .setDescription(
+        `**Correct answer:** ${correctAnswerDisplay}\n\n` +
+        `**Winners (${winners.length}):** ${winnerMentions}\n\n` +
+        `**Prize per winner:** ${prizePerWinner.toFixed(4)} SOL (~$${(prizePerWinner * 100).toFixed(2)})`
+      )
+      .setFooter({ text: 'JustTheTip • Powered by TiltCheck' });
 
-          const row = new ActionRowBuilder<ButtonBuilder>().addComponents(payButton);
+    await channel.send({ embeds: [winnerEmbed] });
 
-          const distributionEmbed = new EmbedBuilder()
-            .setColor(0xFFD700)
-            .setTitle('💸 Prize Distribution Ready')
-            .setDescription(
-              `**Total Prize:** ${round.prize.toFixed(4)} SOL\n` +
-              `**Winners:** ${winners.length}\n` +
-              `**Per Winner:** ${prizePerWinner.toFixed(4)} SOL\n` +
-              (result.skippedRecipients && result.skippedRecipients.length > 0 
-                ? `\n⚠️ Skipped ${result.skippedRecipients.length} winner(s) without wallets.`
-                : '') +
-              '\n\n**Host:** Click the button below to sign and distribute prizes!'
-            )
-            .setFooter({ text: `Distribution ID: ${result.distribution.id} • JustTheTip` });
+    try {
+      const { payerUserId, keypair } = await ensureBotPayerWalletReady();
+      const result = await executeAirdrop(
+        {
+          senderId: payerUserId,
+          recipientIds: winners,
+          amountPerUser: prizePerWinner,
+          currency: 'SOL',
+        },
+        keypair
+      );
 
-          await channel.send({ 
-            content: `<@${round.hostId}> 📣 Sign to distribute prizes:`, 
-            embeds: [distributionEmbed], 
-            components: [row] 
-          });
-
-          console.log(`[Trivia] Prize distribution created: ${result.distribution.id}`);
-        } else {
-          // Handle distribution creation failure
-          console.error('[Trivia] Failed to create prize distribution:', result.error);
-
-          const errorEmbed = new EmbedBuilder()
-            .setColor(0xFF6600)
-            .setTitle('⚠️ Prize Distribution Issue')
-            .setDescription(
-              `Unable to create automatic prize distribution.\n\n` +
-              `**Reason:** ${result.error || 'Unknown error'}\n\n` +
-              `Host can manually send prizes using \`/tip airdrop\``
-            )
-            .setFooter({ text: 'JustTheTip • Powered by TiltCheck' });
-
-          await channel.send({ embeds: [errorEmbed] });
-        }
-      } catch (error) {
-        console.error('[Trivia] Prize distribution error:', error);
-        
+      if (!result.success) {
         const errorEmbed = new EmbedBuilder()
           .setColor(0xFF6600)
-          .setTitle('⚠️ Prize Distribution Error')
+          .setTitle('Prize Distribution Failed')
           .setDescription(
-            `An error occurred while setting up prize distribution.\n\n` +
-            `**Error:** ${error instanceof Error ? error.message : 'Unknown error'}\n\n` +
-            `Host can manually send prizes using \`/tip airdrop\``
+            `Unable to settle trivia payout.\n\n` +
+            `**Reason:** ${result.error || 'Unknown error'}`
           )
           .setFooter({ text: 'JustTheTip • Powered by TiltCheck' });
-
         await channel.send({ embeds: [errorEmbed] });
+        return;
       }
+
+      const settledEmbed = new EmbedBuilder()
+        .setColor(0x00AA00)
+        .setTitle('Trivia Payout Settled')
+        .setDescription(
+          `**Winners Paid:** ${result.recipientCount}\n` +
+          `**Amount Each:** ${prizePerWinner.toFixed(4)} SOL\n` +
+          `**Total Sent:** ${result.totalAmount.toFixed(4)} SOL` +
+          (result.signature ? `\n[View Transaction](https://solscan.io/tx/${result.signature})` : '')
+        )
+        .setFooter({ text: 'Settled from bot wallet • JustTheTip' });
+
+      await channel.send({ embeds: [settledEmbed] });
+    } catch (error) {
+      const errorEmbed = new EmbedBuilder()
+        .setColor(0xFF6600)
+        .setTitle('Prize Distribution Error')
+        .setDescription(
+          `An error occurred while settling trivia payout.\n\n` +
+          `**Error:** ${error instanceof Error ? error.message : 'Unknown error'}`
+        )
+        .setFooter({ text: 'JustTheTip • Powered by TiltCheck' });
+
+      await channel.send({ embeds: [errorEmbed] });
     }
   });
 }
-
 // ==================== AIRDROP CLAIM HANDLER ====================
 
-export async function handleAirdropClaim(interaction: any, messageId: string) {
-  const airdrop = activeAirdrops.get(messageId);
-  
-  if (!airdrop) {
-    await interaction.reply({ content: '❌ This airdrop has expired or is no longer available.', ephemeral: true });
-    return;
-  }
+async function handleAirdropClaimByReaction(airdropMessage: any, userId: string) {
+  const airdrop = activeAirdrops.get(airdropMessage.id);
+  if (!airdrop) return;
 
-  const userId = interaction.user.id;
+  if (airdrop.claimedBy.has(userId) || airdrop.pendingBy.has(userId)) return;
+  if (airdrop.claimedBy.size >= airdrop.totalSlots) return;
 
-  // Check if user already claimed
-  if (airdrop.claimedBy.has(userId)) {
-    await interaction.reply({ content: '❌ You have already claimed this airdrop!', ephemeral: true });
-    return;
-  }
-
-  // Check if slots are full
-  if (airdrop.claimedBy.size >= airdrop.totalSlots) {
-    await interaction.reply({ content: '❌ All airdrop slots have been claimed!', ephemeral: true });
-    return;
-  }
-
-  // Check if claimer has a wallet
   const claimerWallet = getWallet(userId);
   if (!claimerWallet) {
-    await interaction.reply({ 
-      content: '❌ You need to register a wallet first using `/tip wallet` before claiming airdrops.', 
-      ephemeral: true 
-    });
+    await airdropMessage.channel?.send(`<@${userId}> you need a wallet first: use \`/tip wallet\` -> Register (External).`).catch(() => {});
     return;
   }
 
-  // Get host wallet
-  const hostWallet = getWallet(airdrop.hostId);
-  if (!hostWallet) {
-    await interaction.reply({ content: '❌ Host wallet not found.', ephemeral: true });
-    return;
-  }
+  airdrop.pendingBy.add(userId);
 
   try {
-    // Create a single-recipient airdrop (which is just a tip with a button)
-    const { url } = await createTipWithFeeRequest(
-      connection,
-      hostWallet.address,
-      claimerWallet.address,
-      airdrop.amountPerUser
-    );
-
-    // Mark as claimed
     airdrop.claimedBy.add(userId);
+    airdrop.claimantsWithWallet.add(userId);
 
-    const payButton = new ButtonBuilder()
-      .setLabel('💰 Complete Payment in Wallet')
-      .setStyle(ButtonStyle.Link)
-      .setURL(url);
-
-    const row = new ActionRowBuilder<ButtonBuilder>().addComponents(payButton);
-
-    await interaction.reply({ 
-      content: `✅ **Claim Reserved!**\n\nAmount: ${airdrop.amountPerUser} SOL\n\nThe host needs to approve the payment. Click the button below to send them a payment request.`, 
-      components: [row],
-      ephemeral: true 
-    });
-
-    // Update the original message to show new claim count
     const claimed = airdrop.claimedBy.size;
-    const remaining = airdrop.totalSlots - claimed;
+    const remaining = Math.max(0, airdrop.totalSlots - claimed);
+    const estimatedPerUser = claimed > 0 ? airdrop.totalPoolSOL / claimed : 0;
 
     const updatedEmbed = new EmbedBuilder()
       .setColor(remaining > 0 ? 0xFF6B00 : 0x666666)
-      .setTitle(remaining > 0 ? '🎁 Public Airdrop' : '✅ Airdrop Completed')
+      .setTitle(remaining > 0 ? 'Public Airdrop' : 'Airdrop Completed')
       .setDescription(
-        `**Amount per claim:** ${airdrop.amountPerUser} SOL\n` +
+        `**Total pool:** ${airdrop.totalPoolSOL.toFixed(4)} SOL\n` +
         `**Total slots:** ${airdrop.totalSlots}\n` +
         `**Claimed:** ${claimed}/${airdrop.totalSlots}\n` +
-        `**Fee:** ${process.env.JUSTTHETIP_FEE_WALLET ? '0.0007 SOL per claim' : 'None'}\n\n` +
-        (remaining > 0 
-          ? '**Click the button below to claim!**\nFirst come, first served. Each user can claim once.'
-          : '**All slots claimed!** Thanks for participating.')
+        `**Estimated split now:** ${estimatedPerUser.toFixed(4)} SOL each\n\n` +
+        (remaining > 0
+          ? `**React with ${AIRDROP_CLAIM_EMOJI} to claim!**\nFinal split = pool / valid claimants at close.`
+          : '**All slots claimed! Thanks for participating.')
       )
-      .setFooter({ text: `Hosted by ${interaction.message.embeds[0]?.footer?.text?.split(' • ')[0] || 'Unknown'} • JustTheTip` });
+      .setFooter({ text: `Hosted by ${airdropMessage.embeds?.[0]?.footer?.text?.split(' • ')[0] || 'Unknown'} • JustTheTip` });
 
-    const claimButton = new ButtonBuilder()
-      .setCustomId(`airdrop_claim_${messageId}`)
-      .setLabel('🎁 Claim Airdrop')
-      .setStyle(ButtonStyle.Success)
-      .setDisabled(remaining === 0);
+    await airdropMessage.edit({ embeds: [updatedEmbed], components: [] }).catch(() => {});
 
-    const buttonRow = new ActionRowBuilder<ButtonBuilder>().addComponents(claimButton);
-
-    await interaction.message.edit({ embeds: [updatedEmbed], components: [buttonRow] });
-
+    await airdropMessage.channel?.send(
+      `<@${userId}> claim recorded. Final payout settles automatically when the drop closes.`
+    ).catch(() => {});
   } catch (error) {
-    // Remove the claim if payment request failed
-    airdrop.claimedBy.delete(userId);
-    await interaction.reply({ 
-      content: `❌ Failed to create payment request: ${error instanceof Error ? error.message : 'Unknown error'}`, 
-      ephemeral: true 
-    });
+    await airdropMessage.channel?.send(`<@${userId}> claim failed: ${error instanceof Error ? error.message : 'Unknown error'}`).catch(() => {});
+  } finally {
+    airdrop.pendingBy.delete(userId);
   }
 }
 
+function getBotPayerKeypair(): Keypair {
+  const raw = process.env.JUSTTHETIP_BOT_WALLET_PRIVATE_KEY;
+  if (!raw) {
+    throw new Error('JUSTTHETIP_BOT_WALLET_PRIVATE_KEY is not configured');
+  }
+
+  const trimmed = raw.trim();
+  try {
+    const arr = JSON.parse(trimmed);
+    if (!Array.isArray(arr)) throw new Error('not array');
+    return Keypair.fromSecretKey(Uint8Array.from(arr));
+  } catch {
+    throw new Error('JUSTTHETIP_BOT_WALLET_PRIVATE_KEY must be a JSON array secret key');
+  }
+}
+
+async function ensureBotPayerWalletReady(): Promise<{ payerUserId: string; keypair: Keypair }> {
+  const payerUserId = process.env.AIRDROP_PAYER_USER_ID || 'TREASURY_BOT';
+  const payerPublic = process.env.JUSTTHETIP_BOT_WALLET_PUBLIC_KEY || process.env.TREASURY_WALLET_PUBLIC;
+  if (!payerPublic) {
+    throw new Error('Missing JUSTTHETIP_BOT_WALLET_PUBLIC_KEY or TREASURY_WALLET_PUBLIC');
+  }
+
+  if (!hasWallet(payerUserId)) {
+    try {
+      await registerExternalWallet(payerUserId, payerPublic);
+    } catch {
+      // Ignore duplicate-registration races.
+    }
+  }
+
+  const keypair = getBotPayerKeypair();
+  return { payerUserId, keypair };
+}
+
+async function settlePublicAirdrop(messageId: string, channel: any): Promise<void> {
+  const airdrop = activeAirdrops.get(messageId);
+  if (!airdrop) return;
+
+  activeAirdrops.delete(messageId);
+
+  const claimants = Array.from(airdrop.claimantsWithWallet);
+  if (claimants.length === 0) {
+    await channel?.send('Public airdrop closed with no valid claimants. No payout executed.').catch(() => {});
+    return;
+  }
+
+  const amountPerUser = airdrop.totalPoolSOL / claimants.length;
+
+  try {
+    const { payerUserId, keypair } = await ensureBotPayerWalletReady();
+    const result = await executeAirdrop(
+      {
+        senderId: payerUserId,
+        recipientIds: claimants,
+        amountPerUser,
+        currency: 'SOL',
+      },
+      keypair
+    );
+
+    if (!result.success) {
+      await channel?.send(`Airdrop settlement failed: ${result.error || 'Unknown error'}`).catch(() => {});
+      return;
+    }
+
+    await channel?.send(
+      `Public airdrop settled: ${claimants.length} users paid ${amountPerUser.toFixed(4)} SOL each from bot wallet.` +
+      (result.signature ? `\nTx: https://solscan.io/tx/${result.signature}` : '')
+    ).catch(() => {});
+  } catch (error) {
+    await channel?.send(`Airdrop settlement error: ${error instanceof Error ? error.message : 'Unknown error'}`).catch(() => {});
+  }
+}
 // ==================== SWAP HANDLERS ====================
 
 async function handleSwap(interaction: ChatInputCommandInteraction) {
@@ -1231,7 +1180,7 @@ async function handleSwap(interaction: ChatInputCommandInteraction) {
   // Check user has wallet
   if (!hasWallet(interaction.user.id)) {
     await interaction.editReply({
-      content: '❌ You need to register a wallet first!\nUse `/tip wallet` → Register (External) to connect your Solana wallet.',
+      content: 'âŒ You need to register a wallet first!\nUse `/tip wallet` â†’ Register (External) to connect your Solana wallet.',
     });
     return;
   }
@@ -1243,14 +1192,14 @@ async function handleSwap(interaction: ChatInputCommandInteraction) {
   // Validate tokens
   if (!isTokenSupported(fromToken)) {
     await interaction.editReply({
-      content: `❌ Unsupported input token: ${fromToken}\n\n**Supported tokens:** ${getSupportedTokens().join(', ')}\n\n💡 Use \`/tip tokens\` to see all supported tokens.`,
+      content: `âŒ Unsupported input token: ${fromToken}\n\n**Supported tokens:** ${getSupportedTokens().join(', ')}\n\nðŸ’¡ Use \`/tip tokens\` to see all supported tokens.`,
     });
     return;
   }
 
   if (!isTokenSupported(toToken)) {
     await interaction.editReply({
-      content: `❌ Unsupported output token: ${toToken}\n\n**Supported tokens:** ${getSupportedTokens().join(', ')}\n\n💡 Use \`/tip tokens\` to see all supported tokens.`,
+      content: `âŒ Unsupported output token: ${toToken}\n\n**Supported tokens:** ${getSupportedTokens().join(', ')}\n\nðŸ’¡ Use \`/tip tokens\` to see all supported tokens.`,
     });
     return;
   }
@@ -1259,7 +1208,7 @@ async function handleSwap(interaction: ChatInputCommandInteraction) {
   const amount = parseFloat(amountStr);
   if (isNaN(amount) || amount <= 0) {
     await interaction.editReply({
-      content: '❌ Invalid amount. Please enter a positive number.',
+      content: 'âŒ Invalid amount. Please enter a positive number.',
     });
     return;
   }
@@ -1270,7 +1219,7 @@ async function handleSwap(interaction: ChatInputCommandInteraction) {
 
     if (!quoteResult.success || !quoteResult.quote) {
       await interaction.editReply({
-        content: `❌ ${quoteResult.error || 'Failed to get swap quote'}`,
+        content: `âŒ ${quoteResult.error || 'Failed to get swap quote'}`,
       });
       return;
     }
@@ -1280,7 +1229,7 @@ async function handleSwap(interaction: ChatInputCommandInteraction) {
     // Create swap transaction
     const wallet = getWallet(interaction.user.id);
     if (!wallet) {
-      await interaction.editReply({ content: '❌ Wallet not found.' });
+      await interaction.editReply({ content: 'âŒ Wallet not found.' });
       return;
     }
 
@@ -1288,41 +1237,41 @@ async function handleSwap(interaction: ChatInputCommandInteraction) {
 
     if (!swapResult.success || !swapResult.url) {
       await interaction.editReply({
-        content: `❌ ${swapResult.error || 'Failed to create swap transaction'}`,
+        content: `âŒ ${swapResult.error || 'Failed to create swap transaction'}`,
       });
       return;
     }
 
     // Create swap button
     const swapButton = new ButtonBuilder()
-      .setLabel('💱 Execute Swap in Wallet')
+      .setLabel('ðŸ’± Execute Swap in Wallet')
       .setStyle(ButtonStyle.Link)
       .setURL(swapResult.url);
 
     const row = new ActionRowBuilder<ButtonBuilder>().addComponents(swapButton);
 
     // Build response embed
-    const priceImpactEmoji = (priceImpactPct || 0) < 1 ? '✅' : (priceImpactPct || 0) < 3 ? '⚠️' : '🔴';
+    const priceImpactEmoji = (priceImpactPct || 0) < 1 ? 'âœ…' : (priceImpactPct || 0) < 3 ? 'âš ï¸' : 'ðŸ”´';
     
     const embed = new EmbedBuilder()
       .setColor(0x9945FF) // Jupiter purple
-      .setTitle('💱 Swap Ready')
+      .setTitle('ðŸ’± Swap Ready')
       .setDescription(
-        `**Swap ${amount} ${fromToken} → ${toToken}**\n\n` +
-        `📥 Input: ${amount} ${fromToken}\n` +
-        `📤 Output: ~${outputAmount?.toFixed(6)} ${toToken}\n` +
-        `💱 Rate: 1 ${fromToken} ≈ ${((outputAmount || 0) / amount).toFixed(6)} ${toToken}\n` +
+        `**Swap ${amount} ${fromToken} â†’ ${toToken}**\n\n` +
+        `ðŸ“¥ Input: ${amount} ${fromToken}\n` +
+        `ðŸ“¤ Output: ~${outputAmount?.toFixed(6)} ${toToken}\n` +
+        `ðŸ’± Rate: 1 ${fromToken} â‰ˆ ${((outputAmount || 0) / amount).toFixed(6)} ${toToken}\n` +
         `${priceImpactEmoji} Price Impact: ${(priceImpactPct || 0).toFixed(2)}%\n\n` +
-        (routeDescription ? `🛤️ Route: ${routeDescription}\n\n` : '') +
+        (routeDescription ? `ðŸ›¤ï¸ Route: ${routeDescription}\n\n` : '') +
         '**Tap the button below to execute the swap in your wallet!**'
       )
-      .setFooter({ text: 'Powered by Jupiter • JustTheTip' });
+      .setFooter({ text: 'Powered by Jupiter â€¢ JustTheTip' });
 
     await interaction.editReply({ embeds: [embed], components: [row] });
   } catch (error) {
     console.error('[TIP SWAP] Error:', error);
     await interaction.editReply({
-      content: `❌ Swap failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      content: `âŒ Swap failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
     });
   }
 }
@@ -1332,12 +1281,12 @@ async function handleTokens(interaction: ChatInputCommandInteraction) {
   
   const embed = new EmbedBuilder()
     .setColor(0x9945FF)
-    .setTitle('💱 Supported Swap Tokens')
+    .setTitle('ðŸ’± Supported Swap Tokens')
     .setDescription(
       '**Solana Tokens (Jupiter Swap):**\n' +
-      tokens.map(t => `• **${t}**`).join('\n')
+      tokens.map(t => `â€¢ **${t}**`).join('\n')
     )
-    .setFooter({ text: 'Powered by Jupiter • JustTheTip' });
+    .setFooter({ text: 'Powered by Jupiter â€¢ JustTheTip' });
 
   await interaction.reply({ embeds: [embed], ephemeral: true });
 }
@@ -1350,7 +1299,7 @@ async function handleDistribute(interaction: ChatInputCommandInteraction) {
   // Check if user is admin
   if (!isAdmin(interaction.user.id)) {
     await interaction.editReply({
-      content: '❌ Only admins can trigger prize distributions.\n\n' +
+      content: 'âŒ Only admins can trigger prize distributions.\n\n' +
         'If you want to send SOL to multiple users, use `/tip airdrop` instead.',
     });
     return;
@@ -1359,7 +1308,7 @@ async function handleDistribute(interaction: ChatInputCommandInteraction) {
   // Check if user has wallet
   if (!hasWallet(interaction.user.id)) {
     await interaction.editReply({
-      content: '❌ You need to register a wallet first!\nUse `/tip wallet` → Register (External) to connect your Solana wallet.',
+      content: 'âŒ You need to register a wallet first!\nUse `/tip wallet` â†’ Register (External) to connect your Solana wallet.',
     });
     return;
   }
@@ -1372,7 +1321,7 @@ async function handleDistribute(interaction: ChatInputCommandInteraction) {
   const parseResult = parseAmountNL(totalRaw);
   if (!parseResult.success || !parseResult.data) {
     await interaction.editReply({
-      content: `❌ ${parseResult.error || 'Invalid total amount.'}\n\nProvide a value like "0.5", "1 sol", or "$100".`,
+      content: `âŒ ${parseResult.error || 'Invalid total amount.'}\n\nProvide a value like "0.5", "1 sol", or "$100".`,
     });
     return;
   }
@@ -1386,13 +1335,13 @@ async function handleDistribute(interaction: ChatInputCommandInteraction) {
       const solPrice = pricingOracle.getUsdPrice('SOL');
       totalPrize = parsedAmount.value / solPrice;
     } catch {
-      await interaction.editReply({ content: '❌ Unable to get current SOL price. Please try again or specify amount in SOL.' });
+      await interaction.editReply({ content: 'âŒ Unable to get current SOL price. Please try again or specify amount in SOL.' });
       return;
     }
   }
 
   if (totalPrize <= 0) {
-    await interaction.editReply({ content: '❌ Invalid total amount. Provide a positive value.' });
+    await interaction.editReply({ content: 'âŒ Invalid total amount. Provide a positive value.' });
     return;
   }
 
@@ -1406,67 +1355,60 @@ async function handleDistribute(interaction: ChatInputCommandInteraction) {
 
   if (recipientIds.length === 0) {
     await interaction.editReply({
-      content: '❌ No valid user mentions found. Use space-separated mentions like `@Alice @Bob`.',
+      content: 'âŒ No valid user mentions found. Use space-separated mentions like `@Alice @Bob`.',
     });
     return;
   }
 
   try {
-    const result = await createPrizeDistribution(
-      connection,
-      interaction.user.id,
-      recipientIds,
-      totalPrize,
-      context
+    const { payerUserId, keypair } = await ensureBotPayerWalletReady();
+    const amountPerRecipient = totalPrize / recipientIds.length;
+
+    const result = await executeAirdrop(
+      {
+        senderId: payerUserId,
+        recipientIds,
+        amountPerUser: amountPerRecipient,
+        currency: 'SOL',
+      },
+      keypair
     );
 
-    if (!result.success || !result.distribution || !result.paymentUrl) {
+    if (!result.success) {
       await interaction.editReply({
-        content: `❌ Failed to create prize distribution: ${result.error || 'Unknown error'}`,
+        content: `âŒ Failed to settle distribution: ${result.error || 'Unknown error'}`,
       });
       return;
     }
 
-    const prizePerRecipient = result.distribution.prizePerRecipient;
-    const recipientCount = result.distribution.recipientIds.length;
-
-    // Create button for signing the transaction
-    const payButton = new ButtonBuilder()
-      .setLabel('💰 Sign & Distribute')
-      .setStyle(ButtonStyle.Link)
-      .setURL(result.paymentUrl);
-
-    const row = new ActionRowBuilder<ButtonBuilder>().addComponents(payButton);
-
     const embed = new EmbedBuilder()
       .setColor(0x00AA00)
-      .setTitle('💸 Prize Distribution Ready')
+      .setTitle('ðŸ’¸ Prize Distribution Settled')
       .setDescription(
-        `**Total Prize:** ${totalPrize.toFixed(4)} SOL\n` +
-        `**Recipients:** ${recipientCount}\n` +
-        `**Per Recipient:** ${prizePerRecipient.toFixed(4)} SOL\n` +
+        `**Total Prize:** ${result.totalAmount.toFixed(4)} SOL\n` +
+        `**Recipients:** ${result.recipientCount}\n` +
+        `**Per Recipient:** ${amountPerRecipient.toFixed(4)} SOL\n` +
         `**Context:** ${context.charAt(0).toUpperCase() + context.slice(1)}\n` +
-        `**Fee:** ${process.env.JUSTTHETIP_FEE_WALLET ? '0.0007 SOL' : 'None (fee wallet not configured)'}\n\n` +
-        (result.skippedRecipients && result.skippedRecipients.length > 0
-          ? `⚠️ Skipped ${result.skippedRecipients.length} user(s) without wallets.\n\n`
-          : '') +
-        '**Click the button below to sign and distribute prizes!**'
+        `**Fee:** ${result.fee.toFixed(4)} SOL` +
+        (result.signature ? `\n[View Transaction](https://solscan.io/tx/${result.signature})` : '')
       )
-      .setFooter({ text: `Distribution ID: ${result.distribution.id} • JustTheTip` });
+      .setFooter({ text: 'Settled from bot wallet â€¢ JustTheTip' });
 
     await interaction.editReply({
       embeds: [embed],
-      components: [row],
+      components: [],
     });
 
-    console.log(`[TIP DISTRIBUTE] Created distribution ${result.distribution.id} for ${recipientCount} recipients`);
+    console.log(`[TIP DISTRIBUTE] Settled distribution for ${result.recipientCount} recipients`);
   } catch (error) {
     console.error('[TIP DISTRIBUTE] Error:', error);
     await interaction.editReply({
-      content: `❌ Failed to create distribution: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      content: `âŒ Failed to settle distribution: ${error instanceof Error ? error.message : 'Unknown error'}`,
     });
   }
 }
 
-// Attach the handler to the tip command export
-(tip as any).handleAirdropClaim = handleAirdropClaim;
+
+
+
+

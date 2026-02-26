@@ -15,6 +15,8 @@ import http from 'http';
 import { config, validateConfig } from './config.js';
 import { CommandHandler, EventHandler } from './handlers/index.js';
 import { BotWalletService } from './services/bot-wallet.js';
+import { TokenSwapService } from './services/token-swap.js';
+import { TokenDepositMonitor } from './services/token-deposit-monitor.js';
 import {
   CreditManager,
   DepositMonitor,
@@ -56,6 +58,20 @@ async function main() {
       console.log(`[Bot] Deposit confirmed: ${discordId} +${amountLamports / 1e9} SOL`);
     },
   });
+  const tokenSwapService = new TokenSwapService(config.botWalletPrivateKey, connection);
+  const tokenDepositMonitor = new TokenDepositMonitor(
+    connection,
+    botWallet.address,
+    creditManager,
+    tokenSwapService,
+    {
+      onSwapDeposit: (discordId, inputToken, outputLamports, _signature) => {
+        console.log(
+          `[Bot] Token deposit confirmed: ${discordId} +${outputLamports / 1e9} SOL from ${inputToken} swap`
+        );
+      },
+    }
+  );
   const autoRefund = new AutoRefundScheduler(
     creditManager,
     async (walletAddress, amountLamports) => {
@@ -69,7 +85,7 @@ async function main() {
   );
 
   // Inject dependencies into tip command
-  setCreditDeps(creditManager, depositMonitor, botWallet);
+  setCreditDeps(creditManager, depositMonitor, botWallet, tokenDepositMonitor);
 
   // Initialize Discord client
   const client = new Client({
@@ -89,6 +105,7 @@ async function main() {
 
   // Start services
   depositMonitor.start();
+  tokenDepositMonitor.start();
   autoRefund.start();
 
   console.log('[Bot] Logging in to Discord...');

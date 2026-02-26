@@ -49,12 +49,22 @@ export default {
     await interaction.deferReply({ ephemeral: true });
 
     try {
+      const backendUrl = process.env.BACKEND_URL;
+      const internalApiSecret = process.env.INTERNAL_API_SECRET;
+
+      if (!backendUrl) {
+        throw new Error('BACKEND_URL is not configured');
+      }
+      if (!internalApiSecret) {
+        throw new Error('INTERNAL_API_SECRET is not configured');
+      }
+
       // Send to your backend API which handles the DB insertion
-      const response = await fetch(`${process.env.BACKEND_URL}/api/mod/report`, {
+      const response = await fetch(`${backendUrl}/api/mod/report`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${process.env.DISCORD_TOKEN}` // Secure server-to-server comms
+          'Authorization': `Bearer ${internalApiSecret}`,
         },
         body: JSON.stringify({
           targetId: target.id,

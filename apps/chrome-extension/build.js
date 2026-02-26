@@ -77,6 +77,7 @@ async function build() {
   const staticFiles = [
     { src: 'src/manifest.json', dest: 'dist/manifest.json' },
     { src: 'src/popup.html', dest: 'dist/popup.html' },
+    { src: 'src/background.js', dest: 'dist/background.js' },
   ];
 
   for (const file of staticFiles) {

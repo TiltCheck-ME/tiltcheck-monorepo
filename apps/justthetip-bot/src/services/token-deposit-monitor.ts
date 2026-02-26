@@ -24,13 +24,12 @@ import {
   type ConfirmedSignatureInfo,
   type ParsedTransactionWithMeta,
 } from '@solana/web3.js';
-import { type CreditManager } from '@tiltcheck/justthetip';
+import { type CreditManager, MIN_DEPOSIT_LAMPORTS } from '@tiltcheck/justthetip';
 import { TokenSwapService, DEPOSIT_TOKENS } from './token-swap.js';
 
 const POLL_INTERVAL_MS = 20_000; // 20 seconds (offset from SOL monitor's 15s)
 const DEPOSIT_CODE_EXPIRY_MS = 60 * 60 * 1000; // 1 hour
 const DEPOSIT_CODE_PREFIX = 'JTT-';
-const MIN_DEPOSIT_USD_CENTS = 100; // $1.00 minimum
 
 interface PendingDeposit {
   discordId: string;
@@ -45,7 +44,7 @@ export class TokenDepositMonitor {
   private swapService: TokenSwapService;
   private pendingDeposits: Map<string, PendingDeposit> = new Map();
   private processedSignatures: Set<string> = new Set();
-  private lastSignature: string | undefined;
+  private lastSignatureByAddress: Map<string, string> = new Map();
   private pollTimer: ReturnType<typeof setInterval> | null = null;
   private onSwapDeposit?: (discordId: string, inputToken: string, outputLamports: number, signature: string) => void;
 
@@ -94,21 +93,42 @@ export class TokenDepositMonitor {
 
   private async poll(): Promise<void> {
     try {
-      const opts: { limit: number; until?: string } = { limit: 30 };
-      if (this.lastSignature) {
-        opts.until = this.lastSignature;
+      const watchedAddresses = await this.getWatchedAddresses();
+      const bySignature = new Map<string, ConfirmedSignatureInfo>();
+
+      for (const address of watchedAddresses) {
+        const addressKey = address.toBase58();
+        const opts: { limit: number; until?: string } = { limit: 30 };
+        const lastSignature = this.lastSignatureByAddress.get(addressKey);
+        if (lastSignature) {
+          opts.until = lastSignature;
+        }
+
+        const signatures: ConfirmedSignatureInfo[] = await this.connection.getSignaturesForAddress(
+          address,
+          opts
+        );
+
+        if (!signatures.length) continue;
+        this.lastSignatureByAddress.set(addressKey, signatures[0].signature);
+
+        for (const sig of signatures) {
+          if (!bySignature.has(sig.signature)) {
+            bySignature.set(sig.signature, sig);
+          }
+        }
       }
 
-      const signatures: ConfirmedSignatureInfo[] = await this.connection.getSignaturesForAddress(
-        this.botWalletAddress,
-        opts
-      );
+      if (!bySignature.size) return;
 
-      if (!signatures.length) return;
-      this.lastSignature = signatures[0].signature;
+      // Process oldest -> newest
+      const signatures = Array.from(bySignature.values()).sort((a, b) => {
+        const aTime = a.blockTime ?? 0;
+        const bTime = b.blockTime ?? 0;
+        return aTime - bTime;
+      });
 
-      // Process oldest → newest
-      for (const sig of signatures.reverse()) {
+      for (const sig of signatures) {
         if (this.processedSignatures.has(sig.signature)) continue;
         if (sig.err) continue;
         await this.processTransaction(sig.signature);
@@ -123,6 +143,23 @@ export class TokenDepositMonitor {
     } catch (err) {
       console.error('[TokenDepositMonitor] Poll error:', err);
     }
+  }
+
+  private async getWatchedAddresses(): Promise<PublicKey[]> {
+    const addresses = new Map<string, PublicKey>();
+    addresses.set(this.botWalletAddress.toBase58(), this.botWalletAddress);
+
+    const tokenProgramId = new PublicKey('TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA');
+    const tokenAccounts = await this.connection.getParsedTokenAccountsByOwner(
+      this.botWalletAddress,
+      { programId: tokenProgramId }
+    );
+
+    for (const account of tokenAccounts.value) {
+      addresses.set(account.pubkey.toBase58(), account.pubkey);
+    }
+
+    return Array.from(addresses.values());
   }
 
   private async processTransaction(signature: string): Promise<void> {
@@ -173,6 +210,14 @@ export class TokenDepositMonitor {
         return;
       }
 
+      if (swapResult.outputLamports < MIN_DEPOSIT_LAMPORTS) {
+        console.warn(
+          `[TokenDepositMonitor] Swap output below minimum for ${pendingDeposit.discordId}: ` +
+          `${swapResult.outputLamports / 1e9} SOL`
+        );
+        return;
+      }
+
       // Credit the SOL proceeds to the user's balance
       await this.creditManager.deposit(pendingDeposit.discordId, swapResult.outputLamports, {
         signature: swapResult.signature,
@@ -206,18 +251,10 @@ export class TokenDepositMonitor {
     const preTokenBalances = tx.meta?.preTokenBalances;
     if (!tokenBalances || !preTokenBalances) return null;
 
-    const keys = tx.transaction.message.accountKeys;
     const botAddress = this.botWalletAddress.toBase58();
 
     for (const post of tokenBalances) {
-      const accountKey = keys[post.accountIndex];
-      const ownerAddress =
-        post.owner ??
-        (typeof accountKey === 'object' && 'owner' in accountKey
-          ? (accountKey as { owner?: string }).owner
-          : undefined);
-
-      if (ownerAddress !== botAddress) continue;
+      if (post.owner !== botAddress) continue;
 
       // Find the pre-balance for this account
       const pre = preTokenBalances.find((b) => b.accountIndex === post.accountIndex);
@@ -227,10 +264,7 @@ export class TokenDepositMonitor {
 
       if (delta <= 0) continue; // Balance didn't increase
 
-      // Only process supported tokens
       const mint = post.mint;
-      if (!Object.values(DEPOSIT_TOKENS).some((t) => t.mint === mint)) continue;
-
       return { mint, amount: delta };
     }
 
@@ -266,3 +300,4 @@ export class TokenDepositMonitor {
     return null;
   }
 }
+

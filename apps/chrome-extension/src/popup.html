@@ -1,24 +1,12 @@
 <!DOCTYPE html>
-<!--
-  © 2024–2025 TiltCheck Ecosystem. All Rights Reserved.
-  Created by jmenichole (https://github.com/jmenichole)
-  
-  This file is part of the TiltCheck project.
-  For licensing information, see LICENSE file in the project root.
--->
-
 <html>
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>TiltCheck Guardian</title>
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-    
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
     body {
       width: 400px;
       min-height: 500px;
@@ -27,60 +15,44 @@
       color: #fff;
       overflow-x: hidden;
     }
-    
+
     .header {
       background: linear-gradient(135deg, #00ff88 0%, #00ccff 100%);
       padding: 15px 20px;
       text-align: center;
       box-shadow: 0 4px 12px rgba(0, 255, 136, 0.3);
     }
-    
+
     .header h1 {
       font-size: 20px;
       font-weight: bold;
       color: #000;
       margin-bottom: 3px;
     }
-    
+
     .header p {
       font-size: 11px;
       color: #003;
       opacity: 0.8;
     }
-    
-    /* License Verification Section */
-    .license-status {
+
+    .license-status,
+    .tilt-monitor,
+    .session-stats {
       padding: 15px 20px;
       border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .license-status {
       background: rgba(0, 0, 0, 0.2);
     }
-    
-    .license-badge {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      margin-bottom: 8px;
-    }
-    
-    .license-icon {
-      font-size: 24px;
-    }
-    
-    .license-text {
-      flex: 1;
-    }
-    
-    .license-title {
-      font-size: 12px;
-      font-weight: 600;
-      margin-bottom: 3px;
-    }
-    
-    .license-details {
-      font-size: 10px;
-      color: rgba(255, 255, 255, 0.7);
-    }
-    
+
+    .license-badge { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+    .license-icon { font-size: 24px; }
+    .license-text { flex: 1; }
+    .license-title { font-size: 12px; font-weight: 600; margin-bottom: 3px; }
+    .license-details { font-size: 10px; color: rgba(255, 255, 255, 0.7); }
+
     .license-warning {
       background: rgba(255, 56, 56, 0.2);
       border-left: 3px solid #ff3838;
@@ -89,25 +61,10 @@
       margin-top: 10px;
       border-radius: 4px;
     }
-    
-    /* Tilt Monitor Section */
-    .tilt-monitor {
-      padding: 15px 20px;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    }
-    
-    .tilt-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 12px;
-    }
-    
-    .tilt-title {
-      font-size: 13px;
-      font-weight: 600;
-    }
-    
+
+    .tilt-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+    .tilt-title { font-size: 13px; font-weight: 600; }
+
     .tilt-score {
       background: linear-gradient(135deg, #00ff88 0%, #00ccff 100%);
       color: #000;
@@ -116,22 +73,12 @@
       font-size: 11px;
       font-weight: bold;
     }
-    
-    .tilt-score.warning {
-      background: linear-gradient(135deg, #ffaa00 0%, #ff8800 100%);
-    }
-    
-    .tilt-score.danger {
-      background: linear-gradient(135deg, #ff3838 0%, #cc0000 100%);
-      color: #fff;
-    }
-    
-    .tilt-indicators {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-    
+
+    .tilt-score.warning { background: linear-gradient(135deg, #ffaa00 0%, #ff8800 100%); }
+    .tilt-score.danger { background: linear-gradient(135deg, #ff3838 0%, #cc0000 100%); color: #fff; }
+
+    .tilt-indicators { display: flex; flex-direction: column; gap: 8px; }
+
     .tilt-indicator {
       background: rgba(255, 255, 255, 0.05);
       padding: 8px 10px;
@@ -139,70 +86,26 @@
       border-left: 3px solid;
       font-size: 11px;
     }
-    
-    .tilt-indicator.low {
-      border-color: #00ff88;
-    }
-    
-    .tilt-indicator.medium {
-      border-color: #ffaa00;
-    }
-    
-    .tilt-indicator.high {
-      border-color: #ff8800;
-    }
-    
-    .tilt-indicator.critical {
-      border-color: #ff3838;
-    }
-    
-    .tilt-indicator-title {
-      font-weight: 600;
-      margin-bottom: 3px;
-    }
-    
-    .tilt-indicator-desc {
-      color: rgba(255, 255, 255, 0.7);
-      font-size: 10px;
-    }
-    
-    /* Intervention Section */
+
+    .tilt-indicator.low { border-color: #00ff88; }
+    .tilt-indicator.medium { border-color: #ffaa00; }
+    .tilt-indicator.high { border-color: #ff8800; }
+    .tilt-indicator.critical { border-color: #ff3838; }
+    .tilt-indicator-title { font-weight: 600; }
+
     .intervention {
       background: rgba(255, 170, 0, 0.15);
       border: 2px solid #ffaa00;
       padding: 12px;
       margin: 15px 20px;
       border-radius: 8px;
-      animation: pulse-border 2s infinite;
     }
-    
-    .intervention.critical {
-      background: rgba(255, 56, 56, 0.15);
-      border-color: #ff3838;
-    }
-    
-    @keyframes pulse-border {
-      0%, 100% { border-color: #ffaa00; }
-      50% { border-color: #ff8800; }
-    }
-    
-    .intervention-icon {
-      font-size: 20px;
-      margin-bottom: 8px;
-    }
-    
-    .intervention-message {
-      font-size: 12px;
-      font-weight: 600;
-      margin-bottom: 10px;
-      line-height: 1.4;
-    }
-    
-    .intervention-actions {
-      display: flex;
-      gap: 8px;
-    }
-    
+
+    .intervention.critical { background: rgba(255, 56, 56, 0.15); border-color: #ff3838; }
+    .intervention-icon { font-size: 20px; margin-bottom: 8px; }
+    .intervention-message { font-size: 12px; font-weight: 600; margin-bottom: 10px; line-height: 1.4; }
+    .intervention-actions { display: flex; gap: 8px; }
+
     .intervention-btn {
       flex: 1;
       padding: 8px;
@@ -212,66 +115,21 @@
       font-weight: 600;
       cursor: pointer;
     }
-    
-    .intervention-btn.primary {
-      background: linear-gradient(135deg, #00ff88 0%, #00ccff 100%);
-      color: #000;
-    }
-    
-    .intervention-btn.secondary {
-      background: rgba(255, 255, 255, 0.1);
-      color: #fff;
-    }
-    
-    /* Session Stats */
-    .session-stats {
-      padding: 15px 20px;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    }
-    
-    .stats-title {
-      font-size: 13px;
-      font-weight: 600;
-      margin-bottom: 10px;
-    }
-    
-    .stats-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-    }
-    
-    .stat-box {
-      background: rgba(255, 255, 255, 0.05);
-      padding: 10px;
-      border-radius: 6px;
-    }
-    
-    .stat-label {
-      font-size: 10px;
-      color: rgba(255, 255, 255, 0.6);
-      margin-bottom: 4px;
-    }
-    
-    .stat-value {
-      font-size: 14px;
-      font-weight: 700;
-      color: #00ff88;
-    }
-    
-    .stat-value.negative {
-      color: #ff3838;
-    }
-    
-    .stat-value.neutral {
-      color: #ffaa00;
-    }
-    
-    /* Controls */
-    .controls {
-      padding: 15px 20px;
-    }
-    
+
+    .intervention-btn.primary { background: linear-gradient(135deg, #00ff88 0%, #00ccff 100%); color: #000; }
+    .intervention-btn.secondary { background: rgba(255, 255, 255, 0.1); color: #fff; }
+
+    .stats-title { font-size: 13px; font-weight: 600; margin-bottom: 10px; }
+    .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+    .stat-box { background: rgba(255, 255, 255, 0.05); padding: 10px; border-radius: 6px; }
+    .stat-label { font-size: 10px; color: rgba(255, 255, 255, 0.6); margin-bottom: 4px; }
+    .stat-value { font-size: 14px; font-weight: 700; color: #00ff88; }
+    .stat-value.negative { color: #ff3838; }
+    .stat-value.neutral { color: #ffaa00; }
+
+    .controls { padding: 15px 20px; }
+
     .btn {
       width: 100%;
       padding: 12px;
@@ -282,135 +140,164 @@
       cursor: pointer;
       margin-bottom: 8px;
     }
-    
-    .btn-primary {
-      background: linear-gradient(135deg, #00ff88 0%, #00ccff 100%);
-      color: #000;
-    }
-    
-    .btn-danger {
-      background: #ff3838;
-      color: #fff;
-    }
-    
+
+    .btn-primary { background: linear-gradient(135deg, #00ff88 0%, #00ccff 100%); color: #000; }
+    .btn-danger { background: #ff3838; color: #fff; }
     .btn-secondary {
       background: rgba(255, 255, 255, 0.1);
       color: #fff;
       border: 1px solid rgba(255, 255, 255, 0.2);
     }
-    
-    .hidden {
-      display: none;
+
+    .config-panel {
+      margin: 0 20px 15px;
+      padding: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 8px;
+      background: rgba(0, 0, 0, 0.25);
     }
-    
-    /* Scrollable container */
+
+    .config-title { font-size: 12px; font-weight: 600; margin-bottom: 10px; }
+    .config-group { margin-bottom: 10px; }
+
+    .config-group label {
+      display: block;
+      font-size: 11px;
+      margin-bottom: 4px;
+      color: rgba(255, 255, 255, 0.9);
+    }
+
+    .config-group input {
+      width: 100%;
+      padding: 8px;
+      border-radius: 6px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      background: rgba(255, 255, 255, 0.08);
+      color: #fff;
+      font-size: 11px;
+    }
+
+    .test-btn {
+      margin-top: 6px;
+      width: 100%;
+      padding: 6px;
+      border-radius: 6px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      background: rgba(255, 255, 255, 0.08);
+      color: #fff;
+      font-size: 11px;
+      cursor: pointer;
+    }
+
+    .validation-msg {
+      margin-top: 4px;
+      font-size: 10px;
+      color: rgba(255, 255, 255, 0.7);
+      min-height: 12px;
+    }
+
+    .validation-msg.valid { color: #00ff88; }
+    .validation-msg.invalid { color: #ff6b6b; }
+
+    .config-actions { display: flex; gap: 8px; margin-top: 10px; }
+    .config-actions button { flex: 1; }
+
+    .hidden { display: none; }
+
     .scrollable {
-      max-height: 400px;
+      max-height: 480px;
       overflow-y: auto;
     }
-    
-    .scrollable::-webkit-scrollbar {
-      width: 6px;
-    }
-    
-    .scrollable::-webkit-scrollbar-track {
-      background: rgba(255, 255, 255, 0.05);
-    }
-    
-    .scrollable::-webkit-scrollbar-thumb {
-      background: rgba(0, 255, 136, 0.5);
-      border-radius: 3px;
-    }
+
+    .scrollable::-webkit-scrollbar { width: 6px; }
+    .scrollable::-webkit-scrollbar-track { background: rgba(255, 255, 255, 0.05); }
+    .scrollable::-webkit-scrollbar-thumb { background: rgba(0, 255, 136, 0.5); border-radius: 3px; }
   </style>
 </head>
 <body>
   <div class="header">
-    <h1>🛡️ TiltCheck Guardian</h1>
-    <p>Real-time Protection & Analysis</p>
+    <h1>TiltCheck Guardian</h1>
+    <p>Real-time Protection and Analysis</p>
   </div>
-  
+
   <div class="scrollable">
-    <!-- License Verification -->
     <div class="license-status" id="licenseSection">
       <div class="license-badge">
-        <div class="license-icon" id="licenseIcon">🔍</div>
+        <div class="license-icon" id="licenseIcon">Checking</div>
         <div class="license-text">
           <div class="license-title" id="licenseTitle">Checking license...</div>
           <div class="license-details" id="licenseDetails">-</div>
         </div>
       </div>
-      <div class="license-warning hidden" id="licenseWarning">
-        ⚠️ Warning message goes here
-      </div>
+      <div class="license-warning hidden" id="licenseWarning">Warning message goes here</div>
     </div>
-    
-    <!-- Tilt Monitor -->
+
     <div class="tilt-monitor hidden" id="tiltSection">
       <div class="tilt-header">
-        <div class="tilt-title">🧠 Tilt Monitor</div>
+        <div class="tilt-title">Tilt Monitor</div>
         <div class="tilt-score" id="tiltScore">0/100</div>
       </div>
-      <div class="tilt-indicators" id="tiltIndicators">
-        <!-- Dynamic tilt indicators -->
-      </div>
+      <div class="tilt-indicators" id="tiltIndicators"></div>
     </div>
-    
-    <!-- Interventions -->
+
     <div class="intervention hidden" id="interventionBox">
-      <div class="intervention-icon" id="interventionIcon">⚠️</div>
-      <div class="intervention-message" id="interventionMessage">
-        Message goes here
-      </div>
+      <div class="intervention-icon" id="interventionIcon">!</div>
+      <div class="intervention-message" id="interventionMessage">Message goes here</div>
       <div class="intervention-actions">
-        <button class="intervention-btn primary" id="interventionPrimary">
-          Take Action
-        </button>
-        <button class="intervention-btn secondary" id="interventionSecondary">
-          Dismiss
-        </button>
+        <button class="intervention-btn primary" id="interventionPrimary">Take Action</button>
+        <button class="intervention-btn secondary" id="interventionSecondary">Dismiss</button>
       </div>
     </div>
-    
-    <!-- Session Stats -->
+
     <div class="session-stats hidden" id="sessionStats">
-      <div class="stats-title">📊 Session Overview</div>
+      <div class="stats-title">Session Overview</div>
       <div class="stats-grid">
-        <div class="stat-box">
-          <div class="stat-label">Duration</div>
-          <div class="stat-value" id="statDuration">0m</div>
-        </div>
-        <div class="stat-box">
-          <div class="stat-label">Total Bets</div>
-          <div class="stat-value" id="statBets">0</div>
-        </div>
-        <div class="stat-box">
-          <div class="stat-label">Net P/L</div>
-          <div class="stat-value" id="statProfit">$0.00</div>
-        </div>
-        <div class="stat-box">
-          <div class="stat-label">ROI</div>
-          <div class="stat-value" id="statROI">0%</div>
-        </div>
-        <div class="stat-box">
-          <div class="stat-label">RTP</div>
-          <div class="stat-value" id="statRTP">0%</div>
-        </div>
-        <div class="stat-box">
-          <div class="stat-label">Verdict</div>
-          <div class="stat-value" id="statVerdict">-</div>
-        </div>
+        <div class="stat-box"><div class="stat-label">Duration</div><div class="stat-value" id="statDuration">0m</div></div>
+        <div class="stat-box"><div class="stat-label">Total Bets</div><div class="stat-value" id="statBets">0</div></div>
+        <div class="stat-box"><div class="stat-label">Net P/L</div><div class="stat-value" id="statProfit">$0.00</div></div>
+        <div class="stat-box"><div class="stat-label">ROI</div><div class="stat-value" id="statROI">0%</div></div>
+        <div class="stat-box"><div class="stat-label">RTP</div><div class="stat-value" id="statRTP">0%</div></div>
+        <div class="stat-box"><div class="stat-label">Verdict</div><div class="stat-value" id="statVerdict">-</div></div>
       </div>
     </div>
-    
-    <!-- Controls -->
+
     <div class="controls">
       <button class="btn btn-primary" id="startBtn">Start Guardian</button>
       <button class="btn btn-danger hidden" id="stopBtn">Stop Session</button>
-      <button class="btn btn-secondary" id="vaultBtn">💰 Vault Balance</button>
-      <button class="btn btn-secondary" id="reportBtn">📊 Full Report</button>
+      <button class="btn btn-secondary" id="vaultBtn">Vault Balance</button>
+      <button class="btn btn-secondary" id="reportBtn">Full Report</button>
+      <button class="btn btn-secondary" id="configBtn">Custom Site Config</button>
+    </div>
+
+    <div class="config-panel hidden" id="configPanel">
+      <div class="config-title">Site Selector Configurator</div>
+
+      <div class="config-group">
+        <label for="cfgDomain">Domain</label>
+        <input id="cfgDomain" type="text" placeholder="example.com" />
+      </div>
+
+      <div class="config-group">
+        <label for="cfgBet">Bet Amount Selector</label>
+        <input id="cfgBet" type="text" placeholder=".bet-amount" />
+        <button class="test-btn" data-target="cfgBet" type="button">Test Bet Selector</button>
+        <div class="validation-msg" id="msg-cfgBet"></div>
+      </div>
+
+      <div class="config-group">
+        <label for="cfgResult">Game Result Selector</label>
+        <input id="cfgResult" type="text" placeholder=".game-result" />
+        <button class="test-btn" data-target="cfgResult" type="button">Test Result Selector</button>
+        <div class="validation-msg" id="msg-cfgResult"></div>
+      </div>
+
+      <div class="config-actions">
+        <button class="btn btn-secondary" id="cfgCancel" type="button">Cancel</button>
+        <button class="btn btn-primary" id="cfgSave" type="button">Save</button>
+      </div>
     </div>
   </div>
-  
+
   <script src="popup.js"></script>
 </body>
 </html>

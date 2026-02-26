@@ -239,15 +239,19 @@ export class LinkScanner {
     let hops = 0;
 
     while (hops < maxHops) {
+      let timeoutId: ReturnType<typeof setTimeout> | undefined;
       try {
+        const controller = new AbortController();
+        timeoutId = setTimeout(() => controller.abort(), 5000);
         const response = await fetch(currentUrl, {
           redirect: 'manual',
           method: 'HEAD',
-          timeout: 5000,
+          signal: controller.signal,
           headers: {
             'User-Agent': 'TiltCheck-SusLink/1.0 (+https://tiltcheck.io)',
           },
-        } as any);
+        });
+        clearTimeout(timeoutId);
 
         // Check for redirect status codes (301, 302, 303, 307, 308)
         if ([301, 302, 303, 307, 308].includes(response.status)) {
@@ -272,6 +276,8 @@ export class LinkScanner {
         // Network error or timeout, return what we have
         console.debug('[SusLink] Redirect follow stopped:', error);
         break;
+      } finally {
+        if (timeoutId) clearTimeout(timeoutId);
       }
     }
 

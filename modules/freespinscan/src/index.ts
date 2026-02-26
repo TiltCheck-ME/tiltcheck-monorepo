@@ -141,13 +141,18 @@ export class FreeSpinScanModule {
   private async onPromoSubmitted(event: TiltCheckEvent) {
     const submission = event.data as any;
     console.log('[FreeSpinScan] promo.submitted', submission.url, submission.bonusType, submission.suslinkScore);
-    // If risk is high/critical, flag for mod review
-    if (submission.suslinkScore === 'high' || submission.suslinkScore === 'critical') {
-      await eventRouter.publish('promo.flagged' as any, 'freespinscan', submission, submission.userId);
-    }
-    // Placeholder: auto-approve safe promos
-    if (submission.suslinkScore === 'safe' || submission.suslinkScore === 'suspicious') {
+
+    // Only auto-approve explicitly safe promos.
+    if (submission.suslinkScore === 'safe') {
+      submission.status = 'approved';
       await eventRouter.publish('promo.approved' as any, 'freespinscan', submission, submission.userId);
+      return;
+    }
+
+    // Suspicious and higher-risk promos must be reviewed by moderators.
+    if (submission.suslinkScore === 'suspicious' || submission.suslinkScore === 'high' || submission.suslinkScore === 'critical') {
+      submission.status = 'pending';
+      await eventRouter.publish('promo.flagged' as any, 'freespinscan', submission, submission.userId);
     }
   }
 }
