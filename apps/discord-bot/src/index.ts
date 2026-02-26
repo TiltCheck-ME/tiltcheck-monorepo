@@ -19,6 +19,8 @@ import { initializeAlertService } from './services/alert-service.js';
 import { TrustAlertsHandler } from './handlers/trust-alerts-handler.js';
 import { ensureTelemetryIndex } from './services/elastic-telemetry.js';
 import { startTiltAgentLoop } from './services/tilt-agent.js';
+import { startRegulationsNotifier } from './services/regulations-notifier.js';
+import { initializeGameplayComplianceBridge } from './services/gameplay-compliance-bridge.js';
 
 import '@tiltcheck/suslink';
 import { startTrustAdapter } from '@tiltcheck/discord-utils/trust-adapter';
@@ -84,6 +86,23 @@ async function main() {
     }
   });
   console.log('[TiltAgent] Scan loop active\n');
+  if (process.env.ELASTIC_URL && process.env.ELASTIC_API_KEY) {
+    const regsChannelId = process.env.REGULATIONS_ALERTS_CHANNEL_ID || '1447524353263665252';
+    const regsGuildId = process.env.REGULATIONS_ALERTS_GUILD_ID || '1446973117472964620';
+
+    startRegulationsNotifier(client, {
+      elasticUrl: process.env.ELASTIC_URL,
+      elasticApiKey: process.env.ELASTIC_API_KEY,
+      channelId: regsChannelId,
+      guildId: regsGuildId,
+      intervalMs: Number(process.env.REGULATIONS_NOTIFIER_INTERVAL_MS || 6 * 60 * 60 * 1000),
+      maxRowsInMessage: Number(process.env.REGULATIONS_NOTIFIER_MAX_ROWS || 15),
+    });
+  } else {
+    console.log('[Regulations] Skipping notifier (Elastic not configured)');
+  }
+
+  initializeGameplayComplianceBridge(client);
 
   console.log('[DM] Registering direct message handler...');
   registerDMHandler(client);
@@ -189,3 +208,5 @@ main().catch((error) => {
   console.error('[Bot] Fatal error:', error);
   process.exit(1);
 });
+
+
