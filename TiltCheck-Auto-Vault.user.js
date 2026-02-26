@@ -28,7 +28,7 @@
 // @namespace    TiltCheck Auto-Vault
 // ==/UserScript==
 
-(function() {
+(function () {
     'use strict';
 
     // --- TiltCheck Brand Config ---
@@ -89,8 +89,8 @@
     var CHECK_INTERVAL = config.checkInterval;
 
     // --- Analytics (opt-in, default OFF) ---
-    var SUPABASE_URL = 'https://your-project.supabase.co'; // TODO: replace with actual project URL
-    var SUPABASE_ANON_KEY = 'your-anon-key'; // TODO: replace with actual anon key
+    var SUPABASE_URL = 'https://ypyvqddzrdjzfdwhcacb.supabase.co';
+    var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlweXZxZGR6cmRqemZkd2hjYWNiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM4OTAxNTQsImV4cCI6MjA3OTQ2NjE1NH0.kBS0yEK1rKz3MMYZOfFZl76K-EccpzOj6XZnz5KvAE0';
     var SCRIPT_VERSION = '1.0';
 
     function sendAnalyticsPing(event) {
@@ -136,7 +136,7 @@
         console.log('[TiltCheck Vault]', message);
         if (onLogUpdate) onLogUpdate(entry);
     }
-    var log = function() {
+    var log = function () {
         var args = Array.prototype.slice.call(arguments);
         logActivity(args.join(' '), 'info');
     };
@@ -201,7 +201,7 @@
             'x-language': 'en'
         };
     }
-    StakeApi.prototype.call = function(body, opName) {
+    StakeApi.prototype.call = function (body, opName) {
         var self = this;
         var headers = {};
         for (var k in self.headers) headers[k] = self.headers[k];
@@ -214,25 +214,25 @@
             method: 'POST',
             mode: 'cors',
             cache: 'no-cache'
-        }).then(function(res) {
+        }).then(function (res) {
             if (!res.ok) {
                 log('API call failed with status ' + res.status + ': ' + res.statusText);
                 return { error: true, status: res.status, message: res.statusText };
             }
             return res.json();
-        }).catch(function(e) {
+        }).catch(function (e) {
             log('API call failed:', e);
             return { error: true, message: e.message, type: 'network' };
         });
     };
-    StakeApi.prototype.getBalances = function() {
+    StakeApi.prototype.getBalances = function () {
         var q = {
             query: 'query UserBalances { user { id balances { available { amount currency } vault { amount currency } } } }',
             variables: {}
         };
         return this.call(JSON.stringify(q), 'UserBalances');
     };
-    StakeApi.prototype.depositToVault = function(currency, amount) {
+    StakeApi.prototype.depositToVault = function (currency, amount) {
         var q = {
             query: 'mutation CreateVaultDeposit($currency: CurrencyEnum!, $amount: Float!) { createVaultDeposit(currency: $currency, amount: $amount) { id amount currency user { id balances { available { amount currency } vault { amount currency } } } __typename } }',
             variables: { currency: currency, amount: amount }
@@ -260,39 +260,39 @@
         this._load();
         this.render();
     }
-    VaultDisplay.prototype._storageKey = function() {
+    VaultDisplay.prototype._storageKey = function () {
         var c = (this._currency || getCurrency() || '').toLowerCase();
         return 'tiltcheck-vaulted-session:' + c;
     };
-    VaultDisplay.prototype._load = function() {
+    VaultDisplay.prototype._load = function () {
         try {
             var raw = sessionStorage.getItem(this._storageKey());
             var v = parseFloat(raw);
             if (!isNaN(v) && v >= 0) this._vaulted = v;
-        } catch (e) {}
+        } catch (e) { }
     };
-    VaultDisplay.prototype._save = function() {
+    VaultDisplay.prototype._save = function () {
         try {
             sessionStorage.setItem(this._storageKey(), String(this._vaulted));
-        } catch (e) {}
+        } catch (e) { }
     };
-    VaultDisplay.prototype.setCurrency = function(currency) {
+    VaultDisplay.prototype.setCurrency = function (currency) {
         this._currency = (currency || getCurrency() || '').toLowerCase();
         this._load();
         this.render();
     };
-    VaultDisplay.prototype.render = function() {
+    VaultDisplay.prototype.render = function () {
         if (!this._el) return;
         this._el.innerText = (this._vaulted || 0).toFixed(8);
     };
-    VaultDisplay.prototype.update = function(amount) {
+    VaultDisplay.prototype.update = function (amount) {
         var add = +amount;
         if (isNaN(add) || add <= 0) return;
         this._vaulted = (this._vaulted || 0) + add;
         this._save();
         this.render();
     };
-    VaultDisplay.prototype.reset = function() {
+    VaultDisplay.prototype.reset = function () {
         this._vaulted = 0;
         this._save();
         this.render();
@@ -389,7 +389,7 @@
                         return val;
                     }
                 }
-            } catch (e) {}
+            } catch (e) { }
         }
         if (curCode) {
             var apiVal = getCurrentBalance._api ? getCurrentBalance._api[curCode] : undefined;
@@ -408,7 +408,7 @@
         if (saved) {
             try {
                 var data = JSON.parse(saved);
-                return data.filter(function(ts) { return Date.now() - ts < RATE_LIMIT_WINDOW; });
+                return data.filter(function (ts) { return Date.now() - ts < RATE_LIMIT_WINDOW; });
             } catch (e) {
                 log('Failed to load rate limit data:', e);
             }
@@ -424,14 +424,14 @@
 
     function canVaultNow() {
         var now = Date.now();
-        vaultActionTimestamps = vaultActionTimestamps.filter(function(ts) { return now - ts < RATE_LIMIT_WINDOW; });
+        vaultActionTimestamps = vaultActionTimestamps.filter(function (ts) { return now - ts < RATE_LIMIT_WINDOW; });
         saveRateLimitData(vaultActionTimestamps);
         return vaultActionTimestamps.length < RATE_LIMIT_MAX;
     }
 
     function getVaultCountLastHour() {
         var now = Date.now();
-        vaultActionTimestamps = vaultActionTimestamps.filter(function(ts) { return now - ts < RATE_LIMIT_WINDOW; });
+        vaultActionTimestamps = vaultActionTimestamps.filter(function (ts) { return now - ts < RATE_LIMIT_WINDOW; });
         return vaultActionTimestamps.length;
     }
 
@@ -878,7 +878,7 @@
 
         var logInner = logPanel.querySelector('#tcLogInner');
 
-        logToggle.onclick = function() {
+        logToggle.onclick = function () {
             logToggle.classList.toggle('open');
             logPanel.classList.toggle('open');
         };
@@ -938,37 +938,37 @@
             }
         }
 
-        minBtn.onclick = function(e) {
+        minBtn.onclick = function (e) {
             e.stopPropagation();
             setViewMode(currentViewMode === 'mini' ? 'full' : 'mini');
             minBtn.textContent = currentViewMode === 'mini' ? '+' : '−';
             minBtn.title = currentViewMode === 'mini' ? 'Expand' : 'Minimize';
         };
 
-        stealthBtn.onclick = function(e) {
+        stealthBtn.onclick = function (e) {
             e.stopPropagation();
             setViewMode('stealth');
         };
 
-        stealthDot.onclick = function() {
+        stealthDot.onclick = function () {
             setViewMode('full');
             minBtn.textContent = '−';
         };
 
-        closeBtn.onclick = function() {
+        closeBtn.onclick = function () {
             widget.remove();
             stealthDot.remove();
         };
 
         var isDragging = false, dragOffsetX = 0, dragOffsetY = 0;
-        header.addEventListener('mousedown', function(e) {
+        header.addEventListener('mousedown', function (e) {
             if (e.target.closest('.tc-header-btns')) return;
             isDragging = true;
             dragOffsetX = e.clientX - widget.getBoundingClientRect().left;
             dragOffsetY = e.clientY - widget.getBoundingClientRect().top;
             e.preventDefault();
         });
-        document.addEventListener('mousemove', function(e) {
+        document.addEventListener('mousemove', function (e) {
             if (!isDragging) return;
             var newLeft = e.clientX - dragOffsetX;
             var newTop = e.clientY - dragOffsetY;
@@ -978,7 +978,7 @@
             widget.style.top = newTop + 'px';
             widget.style.right = 'auto';
         });
-        document.addEventListener('mouseup', function() { isDragging = false; });
+        document.addEventListener('mouseup', function () { isDragging = false; });
 
         var startBtn = content.querySelector('#vaultStartBtn');
         var stopBtn = content.querySelector('#vaultStopBtn');
@@ -1001,43 +1001,43 @@
             widget.classList.toggle('running', isRunning);
         }
 
-        startBtn.onclick = function() {
+        startBtn.onclick = function () {
             setRunningState(true);
             startCallback();
             updateVaultCountUI();
         };
-        stopBtn.onclick = function() {
+        stopBtn.onclick = function () {
             setRunningState(false);
             stopCallback();
             updateVaultCountUI();
         };
 
-        content.querySelector('#vaultSaveAmount').onchange = function() {
+        content.querySelector('#vaultSaveAmount').onchange = function () {
             var v = parseFloat(this.value);
             if (isNaN(v) || v < 0) v = 0;
             if (v > 1) v = 1;
-            setParams({saveAmount: v});
+            setParams({ saveAmount: v });
             this.value = v;
         };
-        content.querySelector('#vaultBigWinThreshold').onchange = function() {
+        content.querySelector('#vaultBigWinThreshold').onchange = function () {
             var v = parseFloat(this.value);
             if (isNaN(v) || v < 1) v = 1;
-            setParams({bigWinThreshold: v});
+            setParams({ bigWinThreshold: v });
             this.value = v;
         };
-        content.querySelector('#vaultBigWinMultiplier').onchange = function() {
+        content.querySelector('#vaultBigWinMultiplier').onchange = function () {
             var v = parseFloat(this.value);
             if (isNaN(v) || v < 1) v = 1;
-            setParams({bigWinMultiplier: v});
+            setParams({ bigWinMultiplier: v });
             this.value = v;
         };
-        content.querySelector('#vaultCheckInterval').onchange = function() {
+        content.querySelector('#vaultCheckInterval').onchange = function () {
             var v = parseInt(this.value, 10);
             if (isNaN(v) || v < 10) v = 10;
-            setParams({checkInterval: v});
+            setParams({ checkInterval: v });
             this.value = v;
         };
-        content.querySelector('#vaultAnalyticsOptIn').onchange = function() {
+        content.querySelector('#vaultAnalyticsOptIn').onchange = function () {
             config.analyticsOptIn = this.checked;
             saveConfig(config);
         };
@@ -1045,7 +1045,7 @@
         document.body.appendChild(widget);
 
         return {
-            setStatus: function(txt, color) {},
+            setStatus: function (txt, color) { },
             setRunning: setRunningState,
             updateVaultCount: updateVaultCountUI
         };
@@ -1073,17 +1073,17 @@
             if (!stakeApi) stakeApi = new StakeApi();
             var cur = (activeCurrency || getCurrency() || '').toLowerCase();
             if (!cur) return;
-            stakeApi.getBalances().then(function(resp) {
+            stakeApi.getBalances().then(function (resp) {
                 var balances = resp && resp.data && resp.data.user ? resp.data.user.balances : undefined;
                 if (!Array.isArray(balances)) return;
-                var bal = balances.find(function(x) { return x && x.available && x.available.currency && x.available.currency.toLowerCase() === cur; });
+                var bal = balances.find(function (x) { return x && x.available && x.available.currency && x.available.currency.toLowerCase() === cur; });
                 var amt = bal ? bal.available.amount : undefined;
                 var n = typeof amt === 'number' ? amt : parseFloat(amt);
                 if (isNaN(n) || n < 0) return;
                 if (!getCurrentBalance._api) getCurrentBalance._api = {};
                 getCurrentBalance._api[cur] = n;
             });
-        } catch (e) {}
+        } catch (e) { }
     };
 
     function startApiBalancePolling() {
@@ -1187,7 +1187,7 @@
     function initializeBalance() {
         updateCurrentBalance();
         var tries = 0;
-        var intv = setInterval(function() {
+        var intv = setInterval(function () {
             updateCurrentBalance();
             if (++tries >= BALANCE_INIT_RETRIES) {
                 clearInterval(intv);
@@ -1318,7 +1318,7 @@
     }
 
     // --- UI Widget setup (floaty) ---
-    setTimeout(function() {
+    setTimeout(function () {
         if (!uiWidget) {
             if (!vaultDisplay) vaultDisplay = new VaultDisplay();
             uiWidget = createVaultFloatyUI(

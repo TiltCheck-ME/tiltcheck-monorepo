@@ -36,7 +36,7 @@ interface TiltEvent {
 
 export default function UserDashboardContent() {
   const searchParams = useSearchParams();
-  const userId = searchParams.get('userId') || 'demo';
+  const userId = searchParams.get('userId');
 
   const [stats, setStats] = useState<TiltStats | null>(null);
   const [events, setEvents] = useState<TiltEvent[]>([]);
@@ -45,6 +45,10 @@ export default function UserDashboardContent() {
 
   useEffect(() => {
     const fetchData = async () => {
+      if (!userId) {
+        setLoading(false);
+        return;
+      }
       try {
         setLoading(true);
         const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3000';
@@ -93,13 +97,13 @@ export default function UserDashboardContent() {
     );
   }
 
-  if (error || !stats) {
+  if (!userId || error || !stats) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-900 to-slate-800 p-6">
         <div className="max-w-4xl mx-auto">
           <div className="bg-red-900/20 border border-red-700 rounded-lg p-6 text-center">
             <h2 className="text-xl font-bold text-red-400 mb-2">Unable to Load Dashboard</h2>
-            <p className="text-slate-300">{error || 'No data available'}</p>
+            <p className="text-slate-300">{!userId ? 'User ID is missing from the URL parameters' : (error || 'No data available')}</p>
           </div>
         </div>
       </div>

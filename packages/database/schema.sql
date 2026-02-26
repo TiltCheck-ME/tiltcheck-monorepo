@@ -628,3 +628,68 @@ BEGIN
   RETURN QUERY SELECT v_balance, v_tx_id;
 END;
 $$ LANGUAGE plpgsql;
+
+-- ============================================================
+-- Safety & Accountability System
+-- ============================================================
+
+-- User Buddies (Phone a Friend System)
+-- Allows a user to link a "buddy" who is notified during high-risk activity
+CREATE TABLE IF NOT EXISTS user_buddies (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  user_id TEXT REFERENCES user_stats(discord_id) ON DELETE CASCADE,
+  buddy_id TEXT REFERENCES user_stats(discord_id) ON DELETE CASCADE,
+  status TEXT DEFAULT 'pending' CHECK (status IN ('pending', 'accepted', 'declined', 'removed')),
+  alert_thresholds JSONB DEFAULT '{"tilt_score_exceeds": 80, "losses_in_24h_sol": 5.0, "zero_balance_reached": true}'::jsonb,
+  created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL,
+  updated_at TIMESTAMPTZ DEFAULT NOW() NOT NULL,
+  UNIQUE(user_id, buddy_id)
+);
+
+-- Indexes for user_buddies
+CREATE INDEX IF NOT EXISTS idx_user_buddies_user ON user_buddies(user_id);
+CREATE INDEX IF NOT EXISTS idx_user_buddies_buddy ON user_buddies(buddy_id);
+
+-- Trigger for user_buddies updated_at
+CREATE TRIGGER update_user_buddies_updated_at 
+  BEFORE UPDATE ON user_buddies 
+  FOR EACH ROW 
+  EXECUTE FUNCTION update_updated_at_column();
+
+-- RLS for user_buddies
+ALTER TABLE user_buddies ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Users can read own buddy links"
+  ON user_buddies FOR SELECT
+  USING (auth.uid()::text = user_id OR auth.uid()::text = buddy_id);
+
+CREATE POLICY "Service role can manage user_buddies"
+  ON user_buddies FOR ALL
+  USING (auth.role() = 'service_role');
+
+-- Zero Balance Tasks
+-- Tracks cooling off tasks prompts when a user hits zero balance
+CREATE TABLE IF NOT EXISTS zero_balance_tasks (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  discord_id TEXT REFERENCES user_stats(discord_id) ON DELETE CASCADE,
+  task_type TEXT NOT NULL CHECK (task_type IN ('cooling_period', 'tutorial_quiz', 'responsible_gaming_read')),
+  status TEXT DEFAULT 'pending' CHECK (status IN ('pending', 'completed', 'bypassed')),
+  expires_at TIMESTAMPTZ NOT NULL,
+  completed_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL
+);
+
+-- Indexes for zero_balance_tasks
+CREATE INDEX IF NOT EXISTS idx_zero_balance_tasks_user ON zero_balance_tasks(discord_id);
+CREATE INDEX IF NOT EXISTS idx_zero_balance_tasks_status ON zero_balance_tasks(status);
+
+-- RLS for zero_balance_tasks
+ALTER TABLE zero_balance_tasks ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Public read access for zero_balance_tasks"
+  ON zero_balance_tasks FOR SELECT
+  USING (true);
+
+CREATE POLICY "Service role can manage zero_balance_tasks"
+  ON zero_balance_tasks FOR ALL
+  USING (auth.role() = 'service_role');

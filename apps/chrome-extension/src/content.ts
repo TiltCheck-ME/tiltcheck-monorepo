@@ -63,7 +63,7 @@ import { CasinoLicenseVerifier } from './license-verifier.js';
 import './sidebar.js';
 import { Analyzer } from './analyzer.js';
 import { WalletBridge } from './wallet-bridge.js';
-import { SolanaProvider } from './SolanaProvider.js';
+import { SolanaProvider } from '@tiltcheck/utils';
 import { FairnessService } from './FairnessService.js';
 
 // Configuration

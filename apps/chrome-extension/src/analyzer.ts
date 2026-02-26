@@ -5,7 +5,7 @@
  * This file is part of the TiltCheck project.
  * For licensing information, see LICENSE file in the project root.
  */
-import { FairnessService } from '../../../packages/utils/src/FairnessService';
+import { FairnessService } from './FairnessService.js';
 
 export interface GameResult {
   value: number; // The normalized result (0.0 - 1.0)
@@ -90,7 +90,7 @@ export class Analyzer {
 
     // Otherwise, compare the derived float value (Weak Proof, subject to rounding)
     const expectedFloat = this.fairness.hashToFloat(expectedHash);
-    
+
     // Use a small epsilon for float comparison
     const epsilon = 0.00001;
     const isValid = Math.abs(expectedFloat - result.value) < epsilon;

@@ -45,6 +45,10 @@ router.get('/subscription-status', async (req, res) => {
     return;
   }
 
+  const FOUNDER_USERNAMES = (process.env.FOUNDER_USERNAMES || 'jmenichole')
+    .split(',')
+    .map((u) => u.trim().toLowerCase());
+
   // Founder check — lifetime access
   if (
     username &&

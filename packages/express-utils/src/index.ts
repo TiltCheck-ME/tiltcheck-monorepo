@@ -148,9 +148,7 @@ export function requestLogger() {
     const startTime = Date.now();
     const ip = req.ip || req.socket.remoteAddress || 'unknown';
 
-    // Hook into the res.end to capture response status
-    const originalEnd = res.end;
-    res.end = function (...args: any[]) {
+    res.on('finish', () => {
       const duration = Date.now() - startTime;
       const status = res.statusCode;
 
@@ -163,9 +161,7 @@ export function requestLogger() {
         ip,
         timestamp: new Date().toISOString(),
       });
-
-      originalEnd.apply(res, args);
-    };
+    });
 
     next();
   };
@@ -243,8 +239,7 @@ export function corsMiddleware(options?: CorsOptions) {
 export {
   AsyncHandler,
   AppError,
-  ErrorResponse,
-  CorsOptions,
+  ErrorResponse
 };
 
 export default {

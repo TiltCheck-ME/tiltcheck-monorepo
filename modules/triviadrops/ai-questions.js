@@ -14,19 +14,33 @@
  * Current implementation: Uses expanded question bank
  * Future: Replace with Vercel AI SDK generateText() or similar
  */
-export function generateAIQuestion(request) {
-    // TODO: Replace with actual AI generation
-    // Example with Vercel AI SDK:
-    // import { generateText } from 'ai';
-    // const result = await generateText({
-    //   model: openai('gpt-4'),
-    //   prompt: `Generate a ${request.difficulty} trivia question about ${request.category}...`,
-    // });
-    // For now, return from expanded bank
+import { generateText } from 'ai';
+import { openai } from '@ai-sdk/openai';
+
+export async function generateAIQuestion(request) {
+    if (!isAIAvailable()) {
+        const questions = getExpandedQuestionBank(request.category, request.difficulty);
+        return questions[Math.floor(Math.random() * questions.length)];
+    }
+
+    try {
+        const result = await generateText({
+            model: openai('gpt-4o'),
+            prompt: `Generate a multiple choice trivia question about ${request.category || 'general'} at ${request.difficulty || 'medium'} difficulty. Return ONLY a valid JSON object with this exact structure (no markdown, no backticks, no extra text): {"question": "The question text", "choices": ["Choice A", "Choice B", "Choice C", "Choice D"], "answer": "The exact text of the correct choice", "category": "${request.category || 'general'}", "difficulty": "${request.difficulty || 'medium'}"}. Do NOT format as a code block.`,
+        });
+
+        const parsed = JSON.parse(result.text.trim());
+        if (parsed.question && Array.isArray(parsed.choices) && parsed.choices.length === 4 && parsed.answer) {
+            return parsed;
+        }
+    } catch (error) {
+        console.error('[TriviaDrops] AI Generation Failed, falling back to static bank:', error);
+    }
+
     const questions = getExpandedQuestionBank(request.category, request.difficulty);
-    const selected = questions[Math.floor(Math.random() * questions.length)];
-    return selected;
+    return questions[Math.floor(Math.random() * questions.length)];
 }
+
 function getExpandedQuestionBank(category, difficulty) {
     const allQuestions = [
         // Crypto - Easy
@@ -177,7 +191,6 @@ function getExpandedQuestionBank(category, difficulty) {
  * Future: Check for API keys and model availability
  */
 export function isAIAvailable() {
-    // TODO: Check for OPENAI_API_KEY or VERCEL_AI_SDK config
-    return false; // Currently using static bank only
+    return !!process.env.OPENAI_API_KEY;
 }
 //# sourceMappingURL=ai-questions.js.map

@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 /**
  * © 2024–2025 TiltCheck Ecosystem. All Rights Reserved.
  * Created by jmenichole (https://github.com/jmenichole)
@@ -5,7 +6,6 @@
  * This file is part of the TiltCheck project.
  * For licensing information, see LICENSE file in the project root.
  */
-#!/usr/bin/env node
 /**
  * TiltCheck Casino Data Collection CLI
  * 
@@ -66,7 +66,7 @@ program
   .action(async (options) => {
     try {
       let casinoData: CasinoSubmission;
-      
+
       if (options.file) {
         const filePath = path.resolve(options.file);
         const fileContent = await fs.readFile(filePath, 'utf-8');
@@ -83,13 +83,13 @@ program
           }
         };
       }
-      
+
       const apiUrl = options.apiUrl || API_BASE;
       const apiKey = options.apiKey || API_KEY;
-      
+
       console.log(`📤 Submitting casino data for: ${casinoData.name}`);
       console.log(`🎯 API endpoint: ${apiUrl}/api/casinos/${casinoData.id}`);
-      
+
       const response = await fetch(`${apiUrl}/api/casinos/${casinoData.id}`, {
         method: 'POST',
         headers: {
@@ -98,17 +98,17 @@ program
         },
         body: JSON.stringify(casinoData)
       });
-      
+
       if (!response.ok) {
         const error = await response.text();
         throw new Error(`API request failed: ${response.status} ${response.statusText}\n${error}`);
       }
-      
+
       const result = await response.json() as ApiResponse;
       console.log('✅ Casino data submitted successfully!');
       console.log(`📊 Casino ID: ${result.casinoId || 'N/A'}`);
       console.log(`⏰ Timestamp: ${result.timestamp ? new Date(result.timestamp).toLocaleString() : 'N/A'}`);
-      
+
     } catch (error) {
       console.error('❌ Failed to submit casino data:');
       console.error(error instanceof Error ? error.message : String(error));
@@ -127,16 +127,16 @@ program
       const filePath = path.resolve(options.file);
       const fileContent = await fs.readFile(filePath, 'utf-8');
       const casinos = JSON.parse(fileContent);
-      
+
       if (!Array.isArray(casinos)) {
         throw new Error('File must contain an array of casino objects');
       }
-      
+
       const apiUrl = options.apiUrl || API_BASE;
       const apiKey = options.apiKey || API_KEY;
-      
+
       console.log(`📤 Submitting ${casinos.length} casinos in bulk...`);
-      
+
       const response = await fetch(`${apiUrl}/api/casinos/bulk`, {
         method: 'POST',
         headers: {
@@ -145,23 +145,23 @@ program
         },
         body: JSON.stringify({ casinos })
       });
-      
+
       if (!response.ok) {
         const error = await response.text();
         throw new Error(`API request failed: ${response.status} ${response.statusText}\n${error}`);
       }
-      
+
       const result = await response.json() as ApiResponse;
       console.log('✅ Bulk submission completed!');
       console.log(`📊 Updated: ${result.updated || 0} casinos`);
-      
+
       if (result.errors && result.errors.length > 0) {
         console.log(`⚠️  Errors: ${result.errors.length}`);
         result.errors.forEach((error: any) => {
           console.log(`   ${error.casino || 'Unknown'}: ${error.error || 'Unknown error'}`);
         });
       }
-      
+
     } catch (error) {
       console.error('❌ Failed to submit bulk data:');
       console.error(error instanceof Error ? error.message : String(error));
@@ -181,28 +181,28 @@ program
     try {
       const apiUrl = options.apiUrl || API_BASE;
       const apiKey = options.apiKey || API_KEY;
-      
+
       let query = `limit=${options.limit}`;
       if (options.status) query += `&status=${options.status}`;
       if (options.regulator) query += `&regulator=${options.regulator}`;
-      
+
       console.log(`🔍 Fetching casino list...`);
-      
+
       const response = await fetch(`${apiUrl}/api/casinos?${query}`, {
         headers: {
           'X-API-Key': apiKey
         }
       });
-      
+
       if (!response.ok) {
         const error = await response.text();
         throw new Error(`API request failed: ${response.status} ${response.statusText}\n${error}`);
       }
-      
+
       const result = await response.json() as ApiResponse;
       console.log(`📋 Found ${result.count || 0} casinos`);
       console.log('');
-      
+
       if (result.casinos && result.casinos.length > 0) {
         result.casinos.forEach((casino: any, index: number) => {
           console.log(`${index + 1}. ${casino.name || 'Unknown'} (${casino.id || 'No ID'})`);
@@ -216,7 +216,7 @@ program
       } else {
         console.log('No casinos found.');
       }
-      
+
     } catch (error) {
       console.error('❌ Failed to list casinos:');
       console.error(error instanceof Error ? error.message : String(error));
@@ -234,50 +234,50 @@ program
     try {
       const apiUrl = options.apiUrl || API_BASE;
       const apiKey = options.apiKey || API_KEY;
-      
+
       console.log(`🔍 Fetching data for casino: ${options.casinoId}`);
-      
+
       const response = await fetch(`${apiUrl}/api/casinos/${options.casinoId}`, {
         headers: {
           'X-API-Key': apiKey
         }
       });
-      
+
       if (!response.ok) {
         const error = await response.text();
         throw new Error(`API request failed: ${response.status} ${response.statusText}\n${error}`);
       }
-      
+
       const casino = await response.json() as any;
-      
+
       console.log('');
       console.log(`🎰 ${casino.name || 'Unknown'} (${casino.id || 'No ID'})`);
       console.log('═'.repeat(50));
       console.log(`URL: ${casino.baseURL || 'No URL'}`);
       console.log(`Status: ${casino.basicInfo?.status || 'Unknown'}`);
       console.log('');
-      
+
       if (casino.basicInfo?.regulator) {
         console.log(`Regulator: ${casino.basicInfo.regulator}`);
       }
-      
+
       if (casino.basicInfo?.founded) {
         console.log(`Founded: ${casino.basicInfo.founded}`);
       }
-      
+
       if (casino.regulatory?.licenses?.length) {
         console.log('Licenses:');
         casino.regulatory.licenses.forEach((license: any) => {
           console.log(`  - ${license.authority || 'Unknown'}: ${license.number || 'N/A'}`);
         });
       }
-      
+
       if (casino.security) {
         console.log('Security:');
         console.log(`  SSL: ${casino.security.ssl ? '✅' : '❌'}`);
         console.log(`  2FA: ${casino.security.twoFactorAuth ? '✅' : '❌'}`);
       }
-      
+
     } catch (error) {
       console.error('❌ Failed to get casino data:');
       console.error(error instanceof Error ? error.message : String(error));
@@ -362,7 +362,7 @@ program
           problemGamblingSupport: 'GamCare, BeGambleAware'
         }
       };
-      
+
       let output = '';
       if (options.format === 'yaml') {
         // Simple YAML-like output
@@ -376,7 +376,7 @@ program
       } else {
         output = JSON.stringify(template, null, 2);
       }
-      
+
       if (options.output) {
         await fs.writeFile(options.output, output, 'utf-8');
         console.log(`✅ Template written to: ${options.output}`);
@@ -385,7 +385,7 @@ program
         console.log('═'.repeat(50));
         console.log(output);
       }
-      
+
     } catch (error) {
       console.error('❌ Failed to generate template:');
       console.error(error instanceof Error ? error.message : String(error));
@@ -400,21 +400,21 @@ program
   .action(async (options) => {
     try {
       const apiUrl = options.apiUrl || API_BASE;
-      
+
       console.log(`🔍 Checking API status at: ${apiUrl}`);
-      
+
       const response = await fetch(`${apiUrl}/api/health`);
-      
+
       if (!response.ok) {
         throw new Error(`API request failed: ${response.status} ${response.statusText}`);
       }
-      
+
       const status = await response.json() as any;
-      
+
       console.log('✅ API Status: Online');
       console.log(`📊 Version: ${status.version || 'Unknown'}`);
       console.log(`⏰ Timestamp: ${new Date().toLocaleString()}`);
-      
+
     } catch (error) {
       console.error('❌ API Status: Offline');
       console.error(error instanceof Error ? error.message : String(error));

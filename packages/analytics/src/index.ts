@@ -10,13 +10,19 @@
  * Lightweight analytics wrapper for event tracking and user identification.
  */
 
-// Re-export client-side tracker for direct use
-export {
+import {
   AnalyticsTracker,
   initAnalytics,
   getTracker,
   type TrackerConfig
 } from './client.js';
+
+export {
+  AnalyticsTracker,
+  initAnalytics,
+  getTracker,
+  type TrackerConfig
+};
 
 export interface AnalyticsProvider {
   track(event: string, properties?: Record<string, any>): void;
@@ -27,7 +33,7 @@ export interface AnalyticsProvider {
  * Adapter to make AnalyticsTracker work as an AnalyticsProvider
  */
 class TrackerProvider implements AnalyticsProvider {
-  constructor(private tracker: InstanceType<typeof AnalyticsTracker>) {}
+  constructor(private tracker: InstanceType<typeof AnalyticsTracker>) { }
 
   track(event: string, properties?: Record<string, any>): void {
     this.tracker.trackEvent(event, properties);

@@ -357,8 +357,8 @@ try {
 
     // In production or development, we should fail fast for missing critical config
     if (process.env.NODE_ENV !== 'test') {
-      console.error('Core service cannot start without valid configuration. Exiting...\n');
-      // We don't call process.exit(1) here directly to allow the importing module 
+      console.error('Core service cannot start without valid configuration. Exiting...\\n');
+      // We don't call process.exit(1) here directly to allow the importing module
       // to handle it if they want, but typically this will lead to a crash anyway.
       throw new Error('Environment validation failed');
     }
@@ -377,3 +377,5 @@ try {
 }
 
 export const env = validatedEnv;
+
+

@@ -1,7 +1,7 @@
 {
   "name": "@tiltcheck/api-response-types",
   "version": "0.1.0",
-  "description": "TODO: Add description",
+  "description": "Standardized API response types and interfaces for TiltCheck",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
