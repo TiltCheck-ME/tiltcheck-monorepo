@@ -359,3 +359,10 @@ See `SECURITY.md` for reporting vulnerabilities.
 ---
 
 **TiltCheck — Made for Degens. By Degens.**
+
+---
+
+## License
+
+This project is licensed under **AGPL-3.0-only**. See LICENSE.
+
