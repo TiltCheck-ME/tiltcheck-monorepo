@@ -1,39 +1,206 @@
 [
   {
-    "regulation_id": "US-NJ-IGAMING-LICENSE-001",
+    "regulation_id": "US-NV-IGAMING-CURRENT-001",
+    "jurisdiction": {
+      "country": "US",
+      "state_code": "NV",
+      "state_name": "Nevada"
+    },
+    "topic": "igaming",
+    "subtopic": "general_status",
+    "status": "legal",
+    "effective_date": "2013-02-21",
+    "last_reviewed_at": "2026-01-01",
+    "next_review_due": "2026-12-31",
+    "summary": "Online poker is legal and regulated in Nevada.",
+    "requirements": [],
+    "penalties": {
+      "civil": "",
+      "criminal": "",
+      "license_impact": ""
+    },
+    "citations": [
+      {
+        "citation": "NRS 463",
+        "source_url": "https://gaming.nv.gov/",
+        "publisher": "",
+        "published_at": "2013-02-21"
+      }
+    ],
+    "source_quality": "primary",
+    "tags": [
+      "igaming",
+      "primary"
+    ]
+  },
+  {
+    "regulation_id": "US-NV-SPORTSBOOK-CURRENT-001",
+    "jurisdiction": {
+      "country": "US",
+      "state_code": "NV",
+      "state_name": "Nevada"
+    },
+    "topic": "sportsbook",
+    "subtopic": "general_status",
+    "status": "legal",
+    "effective_date": "1949-01-01",
+    "last_reviewed_at": "2026-01-01",
+    "next_review_due": "2026-12-31",
+    "summary": "Sports betting is fully legal and regulated.",
+    "requirements": [],
+    "penalties": {
+      "civil": "",
+      "criminal": "",
+      "license_impact": ""
+    },
+    "citations": [
+      {
+        "citation": "NRS 463",
+        "source_url": "https://gaming.nv.gov/",
+        "publisher": "",
+        "published_at": "1949-01-01"
+      }
+    ],
+    "source_quality": "primary",
+    "tags": [
+      "sportsbook",
+      "primary"
+    ]
+  },
+  {
+    "regulation_id": "US-NJ-IGAMING-CURRENT-001",
     "jurisdiction": {
       "country": "US",
       "state_code": "NJ",
       "state_name": "New Jersey"
     },
     "topic": "igaming",
-    "subtopic": "operator_licensing",
+    "subtopic": "general_status",
     "status": "legal",
-    "effective_date": "2025-01-01",
-    "last_reviewed_at": "2026-02-26",
-    "next_review_due": "2026-03-26",
-    "summary": "Operators must hold active licensure and maintain approved controls.",
-    "requirements": [
-      {
-        "key": "license_required",
-        "value": "Operator must hold active state licensure.",
-        "applies_to": "operator"
-      }
-    ],
+    "effective_date": "2013-11-26",
+    "last_reviewed_at": "2026-01-01",
+    "next_review_due": "2026-12-31",
+    "summary": "Online casino gaming is fully legal and regulated in New Jersey.",
+    "requirements": [],
     "penalties": {
-      "civil": "Statutory fines per violation.",
-      "criminal": "Unlicensed gambling facilitation may trigger criminal liability.",
-      "license_impact": "Suspension or revocation possible."
+      "civil": "",
+      "criminal": "",
+      "license_impact": ""
     },
     "citations": [
       {
-        "citation": "N.J. Admin. Code 13:69",
-        "source_url": "https://www.nj.gov/oag/ge/docs/regs/13_69G.pdf",
-        "publisher": "New Jersey Division of Gaming Enforcement",
-        "published_at": "2025-12-15"
+        "citation": "N.J.S.A. 5:12-1",
+        "source_url": "https://www.njoag.gov/",
+        "publisher": "",
+        "published_at": "2013-11-26"
       }
     ],
     "source_quality": "primary",
-    "tags": ["igaming", "licensing", "primary"]
+    "tags": [
+      "igaming",
+      "primary"
+    ]
+  },
+  {
+    "regulation_id": "US-NJ-SPORTSBOOK-CURRENT-001",
+    "jurisdiction": {
+      "country": "US",
+      "state_code": "NJ",
+      "state_name": "New Jersey"
+    },
+    "topic": "sportsbook",
+    "subtopic": "general_status",
+    "status": "legal",
+    "effective_date": "2018-06-11",
+    "last_reviewed_at": "2026-01-01",
+    "next_review_due": "2026-12-31",
+    "summary": "Sportsbook is legal.",
+    "requirements": [],
+    "penalties": {
+      "civil": "",
+      "criminal": "",
+      "license_impact": ""
+    },
+    "citations": [
+      {
+        "citation": "N.J.S.A. 5:12A-1",
+        "source_url": "https://www.njoag.gov/",
+        "publisher": "",
+        "published_at": "2018-06-11"
+      }
+    ],
+    "source_quality": "primary",
+    "tags": [
+      "sportsbook",
+      "primary"
+    ]
+  },
+  {
+    "regulation_id": "US-TX-IGAMING-CURRENT-001",
+    "jurisdiction": {
+      "country": "US",
+      "state_code": "TX",
+      "state_name": "Texas"
+    },
+    "topic": "igaming",
+    "subtopic": "general_status",
+    "status": "prohibited",
+    "effective_date": "1990-01-01",
+    "last_reviewed_at": "2026-01-01",
+    "next_review_due": "2026-12-31",
+    "summary": "All forms of online casino gaming are strictly prohibited in Texas.",
+    "requirements": [],
+    "penalties": {
+      "civil": "",
+      "criminal": "",
+      "license_impact": ""
+    },
+    "citations": [
+      {
+        "citation": "Texas Penal Code 47.01",
+        "source_url": "https://statutes.capitol.texas.gov/",
+        "publisher": "",
+        "published_at": "1990-01-01"
+      }
+    ],
+    "source_quality": "primary",
+    "tags": [
+      "igaming",
+      "primary"
+    ]
+  },
+  {
+    "regulation_id": "US-TX-SPORTSBOOK-CURRENT-001",
+    "jurisdiction": {
+      "country": "US",
+      "state_code": "TX",
+      "state_name": "Texas"
+    },
+    "topic": "sportsbook",
+    "subtopic": "general_status",
+    "status": "prohibited",
+    "effective_date": "1990-01-01",
+    "last_reviewed_at": "2026-01-01",
+    "next_review_due": "2026-12-31",
+    "summary": "All forms of sports betting are strictly prohibited in Texas.",
+    "requirements": [],
+    "penalties": {
+      "civil": "",
+      "criminal": "",
+      "license_impact": ""
+    },
+    "citations": [
+      {
+        "citation": "Texas Penal Code 47.01",
+        "source_url": "https://statutes.capitol.texas.gov/",
+        "publisher": "",
+        "published_at": "1990-01-01"
+      }
+    ],
+    "source_quality": "primary",
+    "tags": [
+      "sportsbook",
+      "primary"
+    ]
   }
 ]

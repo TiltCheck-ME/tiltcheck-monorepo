@@ -1,0 +1,415 @@
+﻿{
+    "metadata":  {
+                     "version":  1,
+                     "description":  "Template map for primary regulator/legal sources by US state",
+                     "required_fields":  [
+                                             "primary_regulator_name",
+                                             "primary_regulator_url",
+                                             "statutes_portal_url",
+                                             "enforcement_portal_url"
+                                         ],
+                     "updated_at":  "2026-02-26"
+                 },
+    "states":  {
+                   "AL":  {
+                              "state_name":  "Alabama",
+                              "primary_regulator_name":  "",
+                              "primary_regulator_url":  "",
+                              "statutes_portal_url":  "",
+                              "enforcement_portal_url":  "",
+                              "notes":  ""
+                          },
+                   "AK":  {
+                              "state_name":  "Alaska",
+                              "primary_regulator_name":  "",
+                              "primary_regulator_url":  "",
+                              "statutes_portal_url":  "",
+                              "enforcement_portal_url":  "",
+                              "notes":  ""
+                          },
+                   "AZ":  {
+                              "state_name":  "Arizona",
+                              "primary_regulator_name":  "",
+                              "primary_regulator_url":  "",
+                              "statutes_portal_url":  "",
+                              "enforcement_portal_url":  "",
+                              "notes":  ""
+                          },
+                   "AR":  {
+                              "state_name":  "Arkansas",
+                              "primary_regulator_name":  "",
+                              "primary_regulator_url":  "",
+                              "statutes_portal_url":  "",
+                              "enforcement_portal_url":  "",
+                              "notes":  ""
+                          },
+                   "CA":  {
+                              "state_name":  "California",
+                              "primary_regulator_name":  "",
+                              "primary_regulator_url":  "",
+                              "statutes_portal_url":  "",
+                              "enforcement_portal_url":  "",
+                              "notes":  ""
+                          },
+                   "CO":  {
+                              "state_name":  "Colorado",
+                              "primary_regulator_name":  "",
+                              "primary_regulator_url":  "",
+                              "statutes_portal_url":  "",
+                              "enforcement_portal_url":  "",
+                              "notes":  ""
+                          },
+                   "CT":  {
+                              "state_name":  "Connecticut",
+                              "primary_regulator_name":  "",
+                              "primary_regulator_url":  "",
+                              "statutes_portal_url":  "",
+                              "enforcement_portal_url":  "",
+                              "notes":  ""
+                          },
+                   "DE":  {
+                              "state_name":  "Delaware",
+                              "primary_regulator_name":  "",
+                              "primary_regulator_url":  "",
+                              "statutes_portal_url":  "",
+                              "enforcement_portal_url":  "",
+                              "notes":  ""
+                          },
+                   "FL":  {
+                              "state_name":  "Florida",
+                              "primary_regulator_name":  "",
+                              "primary_regulator_url":  "",
+                              "statutes_portal_url":  "",
+                              "enforcement_portal_url":  "",
+                              "notes":  ""
+                          },
+                   "GA":  {
+                              "state_name":  "Georgia",
+                              "primary_regulator_name":  "",
+                              "primary_regulator_url":  "",
+                              "statutes_portal_url":  "",
+                              "enforcement_portal_url":  "",
+                              "notes":  ""
+                          },
+                   "HI":  {
+                              "state_name":  "Hawaii",
+                              "primary_regulator_name":  "",
+                              "primary_regulator_url":  "",
+                              "statutes_portal_url":  "",
+                              "enforcement_portal_url":  "",
+                              "notes":  ""
+                          },
+                   "ID":  {
+                              "state_name":  "Idaho",
+                              "primary_regulator_name":  "",
+                              "primary_regulator_url":  "",
+                              "statutes_portal_url":  "",
+                              "enforcement_portal_url":  "",
+                              "notes":  ""
+                          },
+                   "IL":  {
+                              "state_name":  "Illinois",
+                              "primary_regulator_name":  "",
+                              "primary_regulator_url":  "",
+                              "statutes_portal_url":  "",
+                              "enforcement_portal_url":  "",
+                              "notes":  ""
+                          },
+                   "IN":  {
+                              "state_name":  "Indiana",
+                              "primary_regulator_name":  "",
+                              "primary_regulator_url":  "",
+                              "statutes_portal_url":  "",
+                              "enforcement_portal_url":  "",
+                              "notes":  ""
+                          },
+                   "IA":  {
+                              "state_name":  "Iowa",
+                              "primary_regulator_name":  "",
+                              "primary_regulator_url":  "",
+                              "statutes_portal_url":  "",
+                              "enforcement_portal_url":  "",
+                              "notes":  ""
+                          },
+                   "KS":  {
+                              "state_name":  "Kansas",
+                              "primary_regulator_name":  "",
+                              "primary_regulator_url":  "",
+                              "statutes_portal_url":  "",
+                              "enforcement_portal_url":  "",
+                              "notes":  ""
+                          },
+                   "KY":  {
+                              "state_name":  "Kentucky",
+                              "primary_regulator_name":  "",
+                              "primary_regulator_url":  "",
+                              "statutes_portal_url":  "",
+                              "enforcement_portal_url":  "",
+                              "notes":  ""
+                          },
+                   "LA":  {
+                              "state_name":  "Louisiana",
+                              "primary_regulator_name":  "",
+                              "primary_regulator_url":  "",
+                              "statutes_portal_url":  "",
+                              "enforcement_portal_url":  "",
+                              "notes":  ""
+                          },
+                   "ME":  {
+                              "state_name":  "Maine",
+                              "primary_regulator_name":  "",
+                              "primary_regulator_url":  "",
+                              "statutes_portal_url":  "",
+                              "enforcement_portal_url":  "",
+                              "notes":  ""
+                          },
+                   "MD":  {
+                              "state_name":  "Maryland",
+                              "primary_regulator_name":  "",
+                              "primary_regulator_url":  "",
+                              "statutes_portal_url":  "",
+                              "enforcement_portal_url":  "",
+                              "notes":  ""
+                          },
+                   "MA":  {
+                              "state_name":  "Massachusetts",
+                              "primary_regulator_name":  "",
+                              "primary_regulator_url":  "",
+                              "statutes_portal_url":  "",
+                              "enforcement_portal_url":  "",
+                              "notes":  ""
+                          },
+                   "MI":  {
+                              "state_name":  "Michigan",
+                              "primary_regulator_name":  "",
+                              "primary_regulator_url":  "",
+                              "statutes_portal_url":  "",
+                              "enforcement_portal_url":  "",
+                              "notes":  ""
+                          },
+                   "MN":  {
+                              "state_name":  "Minnesota",
+                              "primary_regulator_name":  "",
+                              "primary_regulator_url":  "",
+                              "statutes_portal_url":  "",
+                              "enforcement_portal_url":  "",
+                              "notes":  ""
+                          },
+                   "MS":  {
+                              "state_name":  "Mississippi",
+                              "primary_regulator_name":  "",
+                              "primary_regulator_url":  "",
+                              "statutes_portal_url":  "",
+                              "enforcement_portal_url":  "",
+                              "notes":  ""
+                          },
+                   "MO":  {
+                              "state_name":  "Missouri",
+                              "primary_regulator_name":  "",
+                              "primary_regulator_url":  "",
+                              "statutes_portal_url":  "",
+                              "enforcement_portal_url":  "",
+                              "notes":  ""
+                          },
+                   "MT":  {
+                              "state_name":  "Montana",
+                              "primary_regulator_name":  "",
+                              "primary_regulator_url":  "",
+                              "statutes_portal_url":  "",
+                              "enforcement_portal_url":  "",
+                              "notes":  ""
+                          },
+                   "NE":  {
+                              "state_name":  "Nebraska",
+                              "primary_regulator_name":  "",
+                              "primary_regulator_url":  "",
+                              "statutes_portal_url":  "",
+                              "enforcement_portal_url":  "",
+                              "notes":  ""
+                          },
+                   "NV":  {
+                              "state_name":  "Nevada",
+                              "primary_regulator_name":  "",
+                              "primary_regulator_url":  "",
+                              "statutes_portal_url":  "",
+                              "enforcement_portal_url":  "",
+                              "notes":  ""
+                          },
+                   "NH":  {
+                              "state_name":  "New Hampshire",
+                              "primary_regulator_name":  "",
+                              "primary_regulator_url":  "",
+                              "statutes_portal_url":  "",
+                              "enforcement_portal_url":  "",
+                              "notes":  ""
+                          },
+                   "NJ":  {
+                              "state_name":  "New Jersey",
+                              "primary_regulator_name":  "",
+                              "primary_regulator_url":  "",
+                              "statutes_portal_url":  "",
+                              "enforcement_portal_url":  "",
+                              "notes":  ""
+                          },
+                   "NM":  {
+                              "state_name":  "New Mexico",
+                              "primary_regulator_name":  "",
+                              "primary_regulator_url":  "",
+                              "statutes_portal_url":  "",
+                              "enforcement_portal_url":  "",
+                              "notes":  ""
+                          },
+                   "NY":  {
+                              "state_name":  "New York",
+                              "primary_regulator_name":  "",
+                              "primary_regulator_url":  "",
+                              "statutes_portal_url":  "",
+                              "enforcement_portal_url":  "",
+                              "notes":  ""
+                          },
+                   "NC":  {
+                              "state_name":  "North Carolina",
+                              "primary_regulator_name":  "",
+                              "primary_regulator_url":  "",
+                              "statutes_portal_url":  "",
+                              "enforcement_portal_url":  "",
+                              "notes":  ""
+                          },
+                   "ND":  {
+                              "state_name":  "North Dakota",
+                              "primary_regulator_name":  "",
+                              "primary_regulator_url":  "",
+                              "statutes_portal_url":  "",
+                              "enforcement_portal_url":  "",
+                              "notes":  ""
+                          },
+                   "OH":  {
+                              "state_name":  "Ohio",
+                              "primary_regulator_name":  "",
+                              "primary_regulator_url":  "",
+                              "statutes_portal_url":  "",
+                              "enforcement_portal_url":  "",
+                              "notes":  ""
+                          },
+                   "OK":  {
+                              "state_name":  "Oklahoma",
+                              "primary_regulator_name":  "",
+                              "primary_regulator_url":  "",
+                              "statutes_portal_url":  "",
+                              "enforcement_portal_url":  "",
+                              "notes":  ""
+                          },
+                   "OR":  {
+                              "state_name":  "Oregon",
+                              "primary_regulator_name":  "",
+                              "primary_regulator_url":  "",
+                              "statutes_portal_url":  "",
+                              "enforcement_portal_url":  "",
+                              "notes":  ""
+                          },
+                   "PA":  {
+                              "state_name":  "Pennsylvania",
+                              "primary_regulator_name":  "",
+                              "primary_regulator_url":  "",
+                              "statutes_portal_url":  "",
+                              "enforcement_portal_url":  "",
+                              "notes":  ""
+                          },
+                   "RI":  {
+                              "state_name":  "Rhode Island",
+                              "primary_regulator_name":  "",
+                              "primary_regulator_url":  "",
+                              "statutes_portal_url":  "",
+                              "enforcement_portal_url":  "",
+                              "notes":  ""
+                          },
+                   "SC":  {
+                              "state_name":  "South Carolina",
+                              "primary_regulator_name":  "",
+                              "primary_regulator_url":  "",
+                              "statutes_portal_url":  "",
+                              "enforcement_portal_url":  "",
+                              "notes":  ""
+                          },
+                   "SD":  {
+                              "state_name":  "South Dakota",
+                              "primary_regulator_name":  "",
+                              "primary_regulator_url":  "",
+                              "statutes_portal_url":  "",
+                              "enforcement_portal_url":  "",
+                              "notes":  ""
+                          },
+                   "TN":  {
+                              "state_name":  "Tennessee",
+                              "primary_regulator_name":  "",
+                              "primary_regulator_url":  "",
+                              "statutes_portal_url":  "",
+                              "enforcement_portal_url":  "",
+                              "notes":  ""
+                          },
+                   "TX":  {
+                              "state_name":  "Texas",
+                              "primary_regulator_name":  "",
+                              "primary_regulator_url":  "",
+                              "statutes_portal_url":  "",
+                              "enforcement_portal_url":  "",
+                              "notes":  ""
+                          },
+                   "UT":  {
+                              "state_name":  "Utah",
+                              "primary_regulator_name":  "",
+                              "primary_regulator_url":  "",
+                              "statutes_portal_url":  "",
+                              "enforcement_portal_url":  "",
+                              "notes":  ""
+                          },
+                   "VT":  {
+                              "state_name":  "Vermont",
+                              "primary_regulator_name":  "",
+                              "primary_regulator_url":  "",
+                              "statutes_portal_url":  "",
+                              "enforcement_portal_url":  "",
+                              "notes":  ""
+                          },
+                   "VA":  {
+                              "state_name":  "Virginia",
+                              "primary_regulator_name":  "",
+                              "primary_regulator_url":  "",
+                              "statutes_portal_url":  "",
+                              "enforcement_portal_url":  "",
+                              "notes":  ""
+                          },
+                   "WA":  {
+                              "state_name":  "Washington",
+                              "primary_regulator_name":  "",
+                              "primary_regulator_url":  "",
+                              "statutes_portal_url":  "",
+                              "enforcement_portal_url":  "",
+                              "notes":  ""
+                          },
+                   "WV":  {
+                              "state_name":  "West Virginia",
+                              "primary_regulator_name":  "",
+                              "primary_regulator_url":  "",
+                              "statutes_portal_url":  "",
+                              "enforcement_portal_url":  "",
+                              "notes":  ""
+                          },
+                   "WI":  {
+                              "state_name":  "Wisconsin",
+                              "primary_regulator_name":  "",
+                              "primary_regulator_url":  "",
+                              "statutes_portal_url":  "",
+                              "enforcement_portal_url":  "",
+                              "notes":  ""
+                          },
+                   "WY":  {
+                              "state_name":  "Wyoming",
+                              "primary_regulator_name":  "",
+                              "primary_regulator_url":  "",
+                              "statutes_portal_url":  "",
+                              "enforcement_portal_url":  "",
+                              "notes":  ""
+                          }
+               }
+}

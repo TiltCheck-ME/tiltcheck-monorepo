@@ -356,7 +356,7 @@ try {
     console.error(`\n❌ [Config] Environment Variable Validation Failed:\n${issues}\n`);
 
     // In production or development, we should fail fast for missing critical config
-    if (process.env.NODE_ENV !== 'test') {
+    if (process.env.NODE_ENV !== 'test' && process.env.SKIP_ENV_VALIDATION !== '1' && process.env.SKIP_ENV_VALIDATION !== 'true') {
       console.error('Core service cannot start without valid configuration. Exiting...\\n');
       // We don't call process.exit(1) here directly to allow the importing module
       // to handle it if they want, but typically this will lead to a crash anyway.

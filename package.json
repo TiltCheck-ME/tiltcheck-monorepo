@@ -5,7 +5,7 @@
   "type": "module",
   "description": "TiltCheck Ecosystem - Built by a degen, for degens",
   "author": "jmenichole",
-  "license": "UNLICENSED",
+  "license": "AGPL-3.0-only",
   "packageManager": "pnpm@10.0.0",
   "engines": {
     "node": ">=18.0.0",
@@ -53,7 +53,9 @@
     "ingest:regulations": "node scripts/ingest-regulations-us.mjs",
     "ingest:regulations:bootstrap": "node scripts/ingest-regulations-us.mjs --bootstrap",
     "sync:regulations": "node scripts/sync-regulations-us.mjs",
-    "sync:regulations:dry": "node scripts/sync-regulations-us.mjs --dry-run"
+    "sync:regulations:dry": "node scripts/sync-regulations-us.mjs --dry-run",
+    "convert:regulations": "node scripts/convert-regulations-csv.mjs",
+    "draft:regulations": "node scripts/generate-regulations-draft.mjs"
   },
   "devDependencies": {
     "@types/bcryptjs": "^3.0.0",

@@ -1,0 +1,730 @@
+{
+  "generated_at": "2026-02-26T23:16:43.992Z",
+  "input": "C:\\Users\\jmeni\\tiltcheck-monorepo\\data\\regulations\\regulations-tracker-template.csv",
+  "output": "C:\\Users\\jmeni\\tiltcheck-monorepo\\data\\regulations-us.primary.json",
+  "total_rows": 150,
+  "converted_rows": 6,
+  "skipped_rows": 144,
+  "skipped": [
+    {
+      "regulation_id": "US-AL-IGAMING-CURRENT-001",
+      "state_code": "AL",
+      "topic": "igaming"
+    },
+    {
+      "regulation_id": "US-AL-SPORTSBOOK-CURRENT-001",
+      "state_code": "AL",
+      "topic": "sportsbook"
+    },
+    {
+      "regulation_id": "US-AL-SWEEPSTAKES-CURRENT-001",
+      "state_code": "AL",
+      "topic": "sweepstakes"
+    },
+    {
+      "regulation_id": "US-AK-IGAMING-CURRENT-001",
+      "state_code": "AK",
+      "topic": "igaming"
+    },
+    {
+      "regulation_id": "US-AK-SPORTSBOOK-CURRENT-001",
+      "state_code": "AK",
+      "topic": "sportsbook"
+    },
+    {
+      "regulation_id": "US-AK-SWEEPSTAKES-CURRENT-001",
+      "state_code": "AK",
+      "topic": "sweepstakes"
+    },
+    {
+      "regulation_id": "US-AZ-IGAMING-CURRENT-001",
+      "state_code": "AZ",
+      "topic": "igaming"
+    },
+    {
+      "regulation_id": "US-AZ-SPORTSBOOK-CURRENT-001",
+      "state_code": "AZ",
+      "topic": "sportsbook"
+    },
+    {
+      "regulation_id": "US-AZ-SWEEPSTAKES-CURRENT-001",
+      "state_code": "AZ",
+      "topic": "sweepstakes"
+    },
+    {
+      "regulation_id": "US-AR-IGAMING-CURRENT-001",
+      "state_code": "AR",
+      "topic": "igaming"
+    },
+    {
+      "regulation_id": "US-AR-SPORTSBOOK-CURRENT-001",
+      "state_code": "AR",
+      "topic": "sportsbook"
+    },
+    {
+      "regulation_id": "US-AR-SWEEPSTAKES-CURRENT-001",
+      "state_code": "AR",
+      "topic": "sweepstakes"
+    },
+    {
+      "regulation_id": "US-CA-IGAMING-CURRENT-001",
+      "state_code": "CA",
+      "topic": "igaming"
+    },
+    {
+      "regulation_id": "US-CA-SPORTSBOOK-CURRENT-001",
+      "state_code": "CA",
+      "topic": "sportsbook"
+    },
+    {
+      "regulation_id": "US-CA-SWEEPSTAKES-CURRENT-001",
+      "state_code": "CA",
+      "topic": "sweepstakes"
+    },
+    {
+      "regulation_id": "US-CO-IGAMING-CURRENT-001",
+      "state_code": "CO",
+      "topic": "igaming"
+    },
+    {
+      "regulation_id": "US-CO-SPORTSBOOK-CURRENT-001",
+      "state_code": "CO",
+      "topic": "sportsbook"
+    },
+    {
+      "regulation_id": "US-CO-SWEEPSTAKES-CURRENT-001",
+      "state_code": "CO",
+      "topic": "sweepstakes"
+    },
+    {
+      "regulation_id": "US-CT-IGAMING-CURRENT-001",
+      "state_code": "CT",
+      "topic": "igaming"
+    },
+    {
+      "regulation_id": "US-CT-SPORTSBOOK-CURRENT-001",
+      "state_code": "CT",
+      "topic": "sportsbook"
+    },
+    {
+      "regulation_id": "US-CT-SWEEPSTAKES-CURRENT-001",
+      "state_code": "CT",
+      "topic": "sweepstakes"
+    },
+    {
+      "regulation_id": "US-DE-IGAMING-CURRENT-001",
+      "state_code": "DE",
+      "topic": "igaming"
+    },
+    {
+      "regulation_id": "US-DE-SPORTSBOOK-CURRENT-001",
+      "state_code": "DE",
+      "topic": "sportsbook"
+    },
+    {
+      "regulation_id": "US-DE-SWEEPSTAKES-CURRENT-001",
+      "state_code": "DE",
+      "topic": "sweepstakes"
+    },
+    {
+      "regulation_id": "US-FL-IGAMING-CURRENT-001",
+      "state_code": "FL",
+      "topic": "igaming"
+    },
+    {
+      "regulation_id": "US-FL-SPORTSBOOK-CURRENT-001",
+      "state_code": "FL",
+      "topic": "sportsbook"
+    },
+    {
+      "regulation_id": "US-FL-SWEEPSTAKES-CURRENT-001",
+      "state_code": "FL",
+      "topic": "sweepstakes"
+    },
+    {
+      "regulation_id": "US-GA-IGAMING-CURRENT-001",
+      "state_code": "GA",
+      "topic": "igaming"
+    },
+    {
+      "regulation_id": "US-GA-SPORTSBOOK-CURRENT-001",
+      "state_code": "GA",
+      "topic": "sportsbook"
+    },
+    {
+      "regulation_id": "US-GA-SWEEPSTAKES-CURRENT-001",
+      "state_code": "GA",
+      "topic": "sweepstakes"
+    },
+    {
+      "regulation_id": "US-HI-IGAMING-CURRENT-001",
+      "state_code": "HI",
+      "topic": "igaming"
+    },
+    {
+      "regulation_id": "US-HI-SPORTSBOOK-CURRENT-001",
+      "state_code": "HI",
+      "topic": "sportsbook"
+    },
+    {
+      "regulation_id": "US-HI-SWEEPSTAKES-CURRENT-001",
+      "state_code": "HI",
+      "topic": "sweepstakes"
+    },
+    {
+      "regulation_id": "US-ID-IGAMING-CURRENT-001",
+      "state_code": "ID",
+      "topic": "igaming"
+    },
+    {
+      "regulation_id": "US-ID-SPORTSBOOK-CURRENT-001",
+      "state_code": "ID",
+      "topic": "sportsbook"
+    },
+    {
+      "regulation_id": "US-ID-SWEEPSTAKES-CURRENT-001",
+      "state_code": "ID",
+      "topic": "sweepstakes"
+    },
+    {
+      "regulation_id": "US-IL-IGAMING-CURRENT-001",
+      "state_code": "IL",
+      "topic": "igaming"
+    },
+    {
+      "regulation_id": "US-IL-SPORTSBOOK-CURRENT-001",
+      "state_code": "IL",
+      "topic": "sportsbook"
+    },
+    {
+      "regulation_id": "US-IL-SWEEPSTAKES-CURRENT-001",
+      "state_code": "IL",
+      "topic": "sweepstakes"
+    },
+    {
+      "regulation_id": "US-IN-IGAMING-CURRENT-001",
+      "state_code": "IN",
+      "topic": "igaming"
+    },
+    {
+      "regulation_id": "US-IN-SPORTSBOOK-CURRENT-001",
+      "state_code": "IN",
+      "topic": "sportsbook"
+    },
+    {
+      "regulation_id": "US-IN-SWEEPSTAKES-CURRENT-001",
+      "state_code": "IN",
+      "topic": "sweepstakes"
+    },
+    {
+      "regulation_id": "US-IA-IGAMING-CURRENT-001",
+      "state_code": "IA",
+      "topic": "igaming"
+    },
+    {
+      "regulation_id": "US-IA-SPORTSBOOK-CURRENT-001",
+      "state_code": "IA",
+      "topic": "sportsbook"
+    },
+    {
+      "regulation_id": "US-IA-SWEEPSTAKES-CURRENT-001",
+      "state_code": "IA",
+      "topic": "sweepstakes"
+    },
+    {
+      "regulation_id": "US-KS-IGAMING-CURRENT-001",
+      "state_code": "KS",
+      "topic": "igaming"
+    },
+    {
+      "regulation_id": "US-KS-SPORTSBOOK-CURRENT-001",
+      "state_code": "KS",
+      "topic": "sportsbook"
+    },
+    {
+      "regulation_id": "US-KS-SWEEPSTAKES-CURRENT-001",
+      "state_code": "KS",
+      "topic": "sweepstakes"
+    },
+    {
+      "regulation_id": "US-KY-IGAMING-CURRENT-001",
+      "state_code": "KY",
+      "topic": "igaming"
+    },
+    {
+      "regulation_id": "US-KY-SPORTSBOOK-CURRENT-001",
+      "state_code": "KY",
+      "topic": "sportsbook"
+    },
+    {
+      "regulation_id": "US-KY-SWEEPSTAKES-CURRENT-001",
+      "state_code": "KY",
+      "topic": "sweepstakes"
+    },
+    {
+      "regulation_id": "US-LA-IGAMING-CURRENT-001",
+      "state_code": "LA",
+      "topic": "igaming"
+    },
+    {
+      "regulation_id": "US-LA-SPORTSBOOK-CURRENT-001",
+      "state_code": "LA",
+      "topic": "sportsbook"
+    },
+    {
+      "regulation_id": "US-LA-SWEEPSTAKES-CURRENT-001",
+      "state_code": "LA",
+      "topic": "sweepstakes"
+    },
+    {
+      "regulation_id": "US-ME-IGAMING-CURRENT-001",
+      "state_code": "ME",
+      "topic": "igaming"
+    },
+    {
+      "regulation_id": "US-ME-SPORTSBOOK-CURRENT-001",
+      "state_code": "ME",
+      "topic": "sportsbook"
+    },
+    {
+      "regulation_id": "US-ME-SWEEPSTAKES-CURRENT-001",
+      "state_code": "ME",
+      "topic": "sweepstakes"
+    },
+    {
+      "regulation_id": "US-MD-IGAMING-CURRENT-001",
+      "state_code": "MD",
+      "topic": "igaming"
+    },
+    {
+      "regulation_id": "US-MD-SPORTSBOOK-CURRENT-001",
+      "state_code": "MD",
+      "topic": "sportsbook"
+    },
+    {
+      "regulation_id": "US-MD-SWEEPSTAKES-CURRENT-001",
+      "state_code": "MD",
+      "topic": "sweepstakes"
+    },
+    {
+      "regulation_id": "US-MA-IGAMING-CURRENT-001",
+      "state_code": "MA",
+      "topic": "igaming"
+    },
+    {
+      "regulation_id": "US-MA-SPORTSBOOK-CURRENT-001",
+      "state_code": "MA",
+      "topic": "sportsbook"
+    },
+    {
+      "regulation_id": "US-MA-SWEEPSTAKES-CURRENT-001",
+      "state_code": "MA",
+      "topic": "sweepstakes"
+    },
+    {
+      "regulation_id": "US-MI-IGAMING-CURRENT-001",
+      "state_code": "MI",
+      "topic": "igaming"
+    },
+    {
+      "regulation_id": "US-MI-SPORTSBOOK-CURRENT-001",
+      "state_code": "MI",
+      "topic": "sportsbook"
+    },
+    {
+      "regulation_id": "US-MI-SWEEPSTAKES-CURRENT-001",
+      "state_code": "MI",
+      "topic": "sweepstakes"
+    },
+    {
+      "regulation_id": "US-MN-IGAMING-CURRENT-001",
+      "state_code": "MN",
+      "topic": "igaming"
+    },
+    {
+      "regulation_id": "US-MN-SPORTSBOOK-CURRENT-001",
+      "state_code": "MN",
+      "topic": "sportsbook"
+    },
+    {
+      "regulation_id": "US-MN-SWEEPSTAKES-CURRENT-001",
+      "state_code": "MN",
+      "topic": "sweepstakes"
+    },
+    {
+      "regulation_id": "US-MS-IGAMING-CURRENT-001",
+      "state_code": "MS",
+      "topic": "igaming"
+    },
+    {
+      "regulation_id": "US-MS-SPORTSBOOK-CURRENT-001",
+      "state_code": "MS",
+      "topic": "sportsbook"
+    },
+    {
+      "regulation_id": "US-MS-SWEEPSTAKES-CURRENT-001",
+      "state_code": "MS",
+      "topic": "sweepstakes"
+    },
+    {
+      "regulation_id": "US-MO-IGAMING-CURRENT-001",
+      "state_code": "MO",
+      "topic": "igaming"
+    },
+    {
+      "regulation_id": "US-MO-SPORTSBOOK-CURRENT-001",
+      "state_code": "MO",
+      "topic": "sportsbook"
+    },
+    {
+      "regulation_id": "US-MO-SWEEPSTAKES-CURRENT-001",
+      "state_code": "MO",
+      "topic": "sweepstakes"
+    },
+    {
+      "regulation_id": "US-MT-IGAMING-CURRENT-001",
+      "state_code": "MT",
+      "topic": "igaming"
+    },
+    {
+      "regulation_id": "US-MT-SPORTSBOOK-CURRENT-001",
+      "state_code": "MT",
+      "topic": "sportsbook"
+    },
+    {
+      "regulation_id": "US-MT-SWEEPSTAKES-CURRENT-001",
+      "state_code": "MT",
+      "topic": "sweepstakes"
+    },
+    {
+      "regulation_id": "US-NE-IGAMING-CURRENT-001",
+      "state_code": "NE",
+      "topic": "igaming"
+    },
+    {
+      "regulation_id": "US-NE-SPORTSBOOK-CURRENT-001",
+      "state_code": "NE",
+      "topic": "sportsbook"
+    },
+    {
+      "regulation_id": "US-NE-SWEEPSTAKES-CURRENT-001",
+      "state_code": "NE",
+      "topic": "sweepstakes"
+    },
+    {
+      "regulation_id": "US-NV-SWEEPSTAKES-CURRENT-001",
+      "state_code": "NV",
+      "topic": "sweepstakes"
+    },
+    {
+      "regulation_id": "US-NH-IGAMING-CURRENT-001",
+      "state_code": "NH",
+      "topic": "igaming"
+    },
+    {
+      "regulation_id": "US-NH-SPORTSBOOK-CURRENT-001",
+      "state_code": "NH",
+      "topic": "sportsbook"
+    },
+    {
+      "regulation_id": "US-NH-SWEEPSTAKES-CURRENT-001",
+      "state_code": "NH",
+      "topic": "sweepstakes"
+    },
+    {
+      "regulation_id": "US-NJ-SWEEPSTAKES-CURRENT-001",
+      "state_code": "NJ",
+      "topic": "sweepstakes"
+    },
+    {
+      "regulation_id": "US-NM-IGAMING-CURRENT-001",
+      "state_code": "NM",
+      "topic": "igaming"
+    },
+    {
+      "regulation_id": "US-NM-SPORTSBOOK-CURRENT-001",
+      "state_code": "NM",
+      "topic": "sportsbook"
+    },
+    {
+      "regulation_id": "US-NM-SWEEPSTAKES-CURRENT-001",
+      "state_code": "NM",
+      "topic": "sweepstakes"
+    },
+    {
+      "regulation_id": "US-NY-IGAMING-CURRENT-001",
+      "state_code": "NY",
+      "topic": "igaming"
+    },
+    {
+      "regulation_id": "US-NY-SPORTSBOOK-CURRENT-001",
+      "state_code": "NY",
+      "topic": "sportsbook"
+    },
+    {
+      "regulation_id": "US-NY-SWEEPSTAKES-CURRENT-001",
+      "state_code": "NY",
+      "topic": "sweepstakes"
+    },
+    {
+      "regulation_id": "US-NC-IGAMING-CURRENT-001",
+      "state_code": "NC",
+      "topic": "igaming"
+    },
+    {
+      "regulation_id": "US-NC-SPORTSBOOK-CURRENT-001",
+      "state_code": "NC",
+      "topic": "sportsbook"
+    },
+    {
+      "regulation_id": "US-NC-SWEEPSTAKES-CURRENT-001",
+      "state_code": "NC",
+      "topic": "sweepstakes"
+    },
+    {
+      "regulation_id": "US-ND-IGAMING-CURRENT-001",
+      "state_code": "ND",
+      "topic": "igaming"
+    },
+    {
+      "regulation_id": "US-ND-SPORTSBOOK-CURRENT-001",
+      "state_code": "ND",
+      "topic": "sportsbook"
+    },
+    {
+      "regulation_id": "US-ND-SWEEPSTAKES-CURRENT-001",
+      "state_code": "ND",
+      "topic": "sweepstakes"
+    },
+    {
+      "regulation_id": "US-OH-IGAMING-CURRENT-001",
+      "state_code": "OH",
+      "topic": "igaming"
+    },
+    {
+      "regulation_id": "US-OH-SPORTSBOOK-CURRENT-001",
+      "state_code": "OH",
+      "topic": "sportsbook"
+    },
+    {
+      "regulation_id": "US-OH-SWEEPSTAKES-CURRENT-001",
+      "state_code": "OH",
+      "topic": "sweepstakes"
+    },
+    {
+      "regulation_id": "US-OK-IGAMING-CURRENT-001",
+      "state_code": "OK",
+      "topic": "igaming"
+    },
+    {
+      "regulation_id": "US-OK-SPORTSBOOK-CURRENT-001",
+      "state_code": "OK",
+      "topic": "sportsbook"
+    },
+    {
+      "regulation_id": "US-OK-SWEEPSTAKES-CURRENT-001",
+      "state_code": "OK",
+      "topic": "sweepstakes"
+    },
+    {
+      "regulation_id": "US-OR-IGAMING-CURRENT-001",
+      "state_code": "OR",
+      "topic": "igaming"
+    },
+    {
+      "regulation_id": "US-OR-SPORTSBOOK-CURRENT-001",
+      "state_code": "OR",
+      "topic": "sportsbook"
+    },
+    {
+      "regulation_id": "US-OR-SWEEPSTAKES-CURRENT-001",
+      "state_code": "OR",
+      "topic": "sweepstakes"
+    },
+    {
+      "regulation_id": "US-PA-IGAMING-CURRENT-001",
+      "state_code": "PA",
+      "topic": "igaming"
+    },
+    {
+      "regulation_id": "US-PA-SPORTSBOOK-CURRENT-001",
+      "state_code": "PA",
+      "topic": "sportsbook"
+    },
+    {
+      "regulation_id": "US-PA-SWEEPSTAKES-CURRENT-001",
+      "state_code": "PA",
+      "topic": "sweepstakes"
+    },
+    {
+      "regulation_id": "US-RI-IGAMING-CURRENT-001",
+      "state_code": "RI",
+      "topic": "igaming"
+    },
+    {
+      "regulation_id": "US-RI-SPORTSBOOK-CURRENT-001",
+      "state_code": "RI",
+      "topic": "sportsbook"
+    },
+    {
+      "regulation_id": "US-RI-SWEEPSTAKES-CURRENT-001",
+      "state_code": "RI",
+      "topic": "sweepstakes"
+    },
+    {
+      "regulation_id": "US-SC-IGAMING-CURRENT-001",
+      "state_code": "SC",
+      "topic": "igaming"
+    },
+    {
+      "regulation_id": "US-SC-SPORTSBOOK-CURRENT-001",
+      "state_code": "SC",
+      "topic": "sportsbook"
+    },
+    {
+      "regulation_id": "US-SC-SWEEPSTAKES-CURRENT-001",
+      "state_code": "SC",
+      "topic": "sweepstakes"
+    },
+    {
+      "regulation_id": "US-SD-IGAMING-CURRENT-001",
+      "state_code": "SD",
+      "topic": "igaming"
+    },
+    {
+      "regulation_id": "US-SD-SPORTSBOOK-CURRENT-001",
+      "state_code": "SD",
+      "topic": "sportsbook"
+    },
+    {
+      "regulation_id": "US-SD-SWEEPSTAKES-CURRENT-001",
+      "state_code": "SD",
+      "topic": "sweepstakes"
+    },
+    {
+      "regulation_id": "US-TN-IGAMING-CURRENT-001",
+      "state_code": "TN",
+      "topic": "igaming"
+    },
+    {
+      "regulation_id": "US-TN-SPORTSBOOK-CURRENT-001",
+      "state_code": "TN",
+      "topic": "sportsbook"
+    },
+    {
+      "regulation_id": "US-TN-SWEEPSTAKES-CURRENT-001",
+      "state_code": "TN",
+      "topic": "sweepstakes"
+    },
+    {
+      "regulation_id": "US-TX-SWEEPSTAKES-CURRENT-001",
+      "state_code": "TX",
+      "topic": "sweepstakes"
+    },
+    {
+      "regulation_id": "US-UT-IGAMING-CURRENT-001",
+      "state_code": "UT",
+      "topic": "igaming"
+    },
+    {
+      "regulation_id": "US-UT-SPORTSBOOK-CURRENT-001",
+      "state_code": "UT",
+      "topic": "sportsbook"
+    },
+    {
+      "regulation_id": "US-UT-SWEEPSTAKES-CURRENT-001",
+      "state_code": "UT",
+      "topic": "sweepstakes"
+    },
+    {
+      "regulation_id": "US-VT-IGAMING-CURRENT-001",
+      "state_code": "VT",
+      "topic": "igaming"
+    },
+    {
+      "regulation_id": "US-VT-SPORTSBOOK-CURRENT-001",
+      "state_code": "VT",
+      "topic": "sportsbook"
+    },
+    {
+      "regulation_id": "US-VT-SWEEPSTAKES-CURRENT-001",
+      "state_code": "VT",
+      "topic": "sweepstakes"
+    },
+    {
+      "regulation_id": "US-VA-IGAMING-CURRENT-001",
+      "state_code": "VA",
+      "topic": "igaming"
+    },
+    {
+      "regulation_id": "US-VA-SPORTSBOOK-CURRENT-001",
+      "state_code": "VA",
+      "topic": "sportsbook"
+    },
+    {
+      "regulation_id": "US-VA-SWEEPSTAKES-CURRENT-001",
+      "state_code": "VA",
+      "topic": "sweepstakes"
+    },
+    {
+      "regulation_id": "US-WA-IGAMING-CURRENT-001",
+      "state_code": "WA",
+      "topic": "igaming"
+    },
+    {
+      "regulation_id": "US-WA-SPORTSBOOK-CURRENT-001",
+      "state_code": "WA",
+      "topic": "sportsbook"
+    },
+    {
+      "regulation_id": "US-WA-SWEEPSTAKES-CURRENT-001",
+      "state_code": "WA",
+      "topic": "sweepstakes"
+    },
+    {
+      "regulation_id": "US-WV-IGAMING-CURRENT-001",
+      "state_code": "WV",
+      "topic": "igaming"
+    },
+    {
+      "regulation_id": "US-WV-SPORTSBOOK-CURRENT-001",
+      "state_code": "WV",
+      "topic": "sportsbook"
+    },
+    {
+      "regulation_id": "US-WV-SWEEPSTAKES-CURRENT-001",
+      "state_code": "WV",
+      "topic": "sweepstakes"
+    },
+    {
+      "regulation_id": "US-WI-IGAMING-CURRENT-001",
+      "state_code": "WI",
+      "topic": "igaming"
+    },
+    {
+      "regulation_id": "US-WI-SPORTSBOOK-CURRENT-001",
+      "state_code": "WI",
+      "topic": "sportsbook"
+    },
+    {
+      "regulation_id": "US-WI-SWEEPSTAKES-CURRENT-001",
+      "state_code": "WI",
+      "topic": "sweepstakes"
+    },
+    {
+      "regulation_id": "US-WY-IGAMING-CURRENT-001",
+      "state_code": "WY",
+      "topic": "igaming"
+    },
+    {
+      "regulation_id": "US-WY-SPORTSBOOK-CURRENT-001",
+      "state_code": "WY",
+      "topic": "sportsbook"
+    },
+    {
+      "regulation_id": "US-WY-SWEEPSTAKES-CURRENT-001",
+      "state_code": "WY",
+      "topic": "sweepstakes"
+    }
+  ]
+}
