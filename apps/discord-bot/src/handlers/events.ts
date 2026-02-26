@@ -14,9 +14,21 @@ import type { CommandHandler } from './commands.js';
 import { checkAndOnboard, handleOnboardingInteraction, needsOnboarding } from './onboarding.js';
 import type { TiltCheckEvent } from '@tiltcheck/types';
 import { trackMessageEvent, trackCommandEvent } from '../services/elastic-telemetry.js';
-import { markUserActive } from '../services/tilt-agent.js';
+import { markUserActive, type TiltAgentContext } from '../services/tilt-agent.js';
 import { handleCommandError } from './error.js';
 import { dispatchButtonInteraction } from './button-handlers.js';
+
+function getTiltAgentContext(): TiltAgentContext | undefined {
+  const stateCode = process.env.TILT_AGENT_DEFAULT_STATE_CODE?.trim().toUpperCase();
+  const regulationTopic = process.env.TILT_AGENT_DEFAULT_REG_TOPIC?.trim().toLowerCase();
+
+  if (!stateCode && !regulationTopic) return undefined;
+
+  return {
+    stateCode,
+    regulationTopic,
+  };
+}
 
 export class EventHandler {
   private modNotifier: ModNotifier;
@@ -86,7 +98,7 @@ export class EventHandler {
         commandName: interaction.commandName,
         isDM: !interaction.guildId,
       });
-      markUserActive(interaction.user.id);
+      markUserActive(interaction.user.id, getTiltAgentContext());
 
       try {
         await command.execute(interaction);
@@ -107,7 +119,7 @@ export class EventHandler {
         channelId: message.channelId,
         isDM: !message.guildId,
       });
-      markUserActive(message.author.id);
+      markUserActive(message.author.id, getTiltAgentContext());
 
       if (!config.suslinkAutoScan) return;
 
@@ -277,3 +289,4 @@ export class EventHandler {
     console.log('[EventHandler] Event Router subscriptions active');
   }
 }
+

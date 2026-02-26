@@ -10,11 +10,17 @@ import {
   runReasoningAndRetrieval,
   type InterventionDecision,
 } from './reasoning-retrieval.js';
+import { getStateTopicStatus } from './regulations-retrieval.js';
 
 // ---------------------------------------------------------------------------
 // Types
 // ---------------------------------------------------------------------------
 
+
+export interface TiltAgentContext {
+  stateCode?: string;
+  regulationTopic?: string;
+}
 export interface TiltAnalysis {
   userId: string;
   isActing: boolean;
@@ -216,6 +222,53 @@ function mapDecisionToMetrics(decision: InterventionDecision): TiltAnalysis['met
   };
 }
 
+function applyRegulatoryGuardrail(
+  analysis: TiltAnalysis,
+  status: string,
+  stateCode: string,
+  topic: string,
+): TiltAnalysis {
+  if (!analysis.isActing) return analysis;
+
+  const normalized = status.toLowerCase();
+  if (normalized !== 'prohibited' && normalized !== 'restricted') {
+    return analysis;
+  }
+
+  const guardrailLine =
+    normalized === 'prohibited'
+      ? `Regulatory note: ${topic} appears prohibited in ${stateCode}.`
+      : `Regulatory note: ${topic} appears restricted in ${stateCode}.`;
+
+  return {
+    ...analysis,
+    severity: 'high',
+    message: `${analysis.message}\n\n${guardrailLine} Use compliance-safe options only.`,
+  };
+}
+
+async function enrichWithRegulations(
+  client: ESClient,
+  analysis: TiltAnalysis,
+  context?: TiltAgentContext,
+): Promise<TiltAnalysis> {
+  const stateCode = context?.stateCode?.trim().toUpperCase();
+  const topic = (context?.regulationTopic?.trim().toLowerCase() || 'igaming');
+
+  if (!stateCode || !analysis.isActing) return analysis;
+
+  try {
+    const rows = await getStateTopicStatus(client, stateCode, topic);
+    const status = rows[0]?.status;
+    if (!status) return analysis;
+
+    return applyRegulatoryGuardrail(analysis, status, stateCode, topic);
+  } catch (err) {
+    console.warn(`[TiltAgent] regulation enrichment failed for ${analysis.userId}:`, err);
+    return analysis;
+  }
+}
+
 // ---------------------------------------------------------------------------
 // Public API
 // ---------------------------------------------------------------------------
@@ -278,7 +331,7 @@ async function analyseUserLegacy(client: ESClient, userId: string): Promise<Tilt
  * Primary path: reasoning-retrieval module.
  * Fallback path: legacy query + scoring if the new retrieval query fails.
  */
-export async function analyseUser(userId: string): Promise<TiltAnalysis> {
+export async function analyseUser(userId: string, context?: TiltAgentContext): Promise<TiltAnalysis> {
   const noop: TiltAnalysis = {
     userId,
     isActing: false,
@@ -316,13 +369,15 @@ export async function analyseUser(userId: string): Promise<TiltAnalysis> {
 
     const message = agentMsg ?? buildMessage(severity, flags);
 
-    return {
+    const baseAnalysis: TiltAnalysis = {
       userId,
       isActing: true,
       severity,
       message,
       metrics,
     };
+
+    return await enrichWithRegulations(client, baseAnalysis, context);
   } catch (err) {
     console.warn(
       `[TiltAgent] reasoning retrieval failed for ${userId}; using legacy fallback`,
@@ -330,7 +385,8 @@ export async function analyseUser(userId: string): Promise<TiltAnalysis> {
     );
 
     try {
-      return await analyseUserLegacy(client, userId);
+      const legacy = await analyseUserLegacy(client, userId);
+      return await enrichWithRegulations(client, legacy, context);
     } catch (legacyErr) {
       console.error(`[TiltAgent] analyseUser(${userId}) failed:`, legacyErr);
       return noop;
@@ -343,10 +399,40 @@ export async function analyseUser(userId: string): Promise<TiltAnalysis> {
 // ---------------------------------------------------------------------------
 
 const SCAN_INTERVAL_MS = 5 * 60 * 1000;
-const recentUsers = new Set<string>();
+const recentUsers = new Map<string, TiltAgentContext>();
+const userContexts = new Map<string, TiltAgentContext>();
 
-export function markUserActive(userId: string): void {
-  recentUsers.add(userId);
+export function markUserActive(userId: string, context?: TiltAgentContext): void {
+  const stored = userContexts.get(userId);
+  const resolved = stored ?? context;
+  const existing = recentUsers.get(userId) ?? {};
+  recentUsers.set(userId, { ...existing, ...(resolved ?? {}) });
+}
+
+export function setUserTiltAgentContext(
+  userId: string,
+  context: TiltAgentContext,
+): TiltAgentContext {
+  const normalized: TiltAgentContext = {
+    stateCode: context.stateCode?.trim().toUpperCase(),
+    regulationTopic: context.regulationTopic?.trim().toLowerCase(),
+  };
+
+  userContexts.set(userId, normalized);
+
+  const existingRecent = recentUsers.get(userId) ?? {};
+  recentUsers.set(userId, { ...existingRecent, ...normalized });
+
+  return normalized;
+}
+
+export function getUserTiltAgentContext(userId: string): TiltAgentContext | undefined {
+  return userContexts.get(userId);
+}
+
+export function clearUserTiltAgentContext(userId: string): void {
+  userContexts.delete(userId);
+  recentUsers.delete(userId);
 }
 
 export function startTiltAgentLoop(
@@ -357,11 +443,11 @@ export function startTiltAgentLoop(
   ) => Promise<void>,
 ): NodeJS.Timeout {
   const timer = setInterval(async () => {
-    const batch = [...recentUsers];
+    const batch = [...recentUsers.entries()];
     recentUsers.clear();
 
-    for (const userId of batch) {
-      const analysis = await analyseUser(userId);
+    for (const [userId, context] of batch) {
+      const analysis = await analyseUser(userId, context);
       if (analysis.isActing) {
         await onIntervene(userId, analysis.message, analysis.severity).catch(
           (err) =>
@@ -374,3 +460,10 @@ export function startTiltAgentLoop(
   console.log('[TiltAgent] background scan loop started (every 5 min)');
   return timer;
 }
+
+
+
+
+
+
+

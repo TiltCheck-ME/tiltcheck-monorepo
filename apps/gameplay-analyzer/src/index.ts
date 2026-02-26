@@ -59,3 +59,15 @@ export type {
   CooldownState,
   SidebarEvent,
 } from './sidebar/index.js';
+
+// Gameplay Compliance
+export { evaluateGameplayCompliance } from './gameplay-compliance.js';
+export type {
+  ComplianceSeverity,
+  ComplianceFlagCode,
+  GameplayComplianceContext,
+  RegulationSnapshot,
+  ComplianceFlag,
+  GameplayComplianceResult,
+} from './gameplay-compliance.js';
+
