@@ -1,0 +1,6 @@
+name = "tiltcheck-edge-workers"
+main = "src/index.ts"
+compatibility_date = "2024-02-22"
+
+[observability]
+enabled = true

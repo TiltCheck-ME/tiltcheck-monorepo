@@ -68,6 +68,10 @@ export {
   verifyToken,
 } from './crypto.js';
 
+// Game Services
+export { SolanaProvider } from './SolanaProvider.js';
+export { FairnessService } from './FairnessService.js';
+
 // ============================================================================
 // General Utilities
 // ============================================================================

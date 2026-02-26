@@ -547,6 +547,7 @@ export type EventType =
   | 'price.updated'
   | 'link.scanned'
   | 'link.flagged'
+  | 'link.feedback'
   | 'promo.submitted'
   | 'promo.approved'
   | 'promo.denied'

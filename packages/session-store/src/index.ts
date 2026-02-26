@@ -186,8 +186,9 @@ export async function createSessionStore(opts: SessionStoreOptions = {}): Promis
   if (redisUrl) {
     try {
       // Dynamic import keeps ioredis optional at bundle time.
-      const { default: Redis } = await import('ioredis');
-      const client = new Redis(redisUrl, {
+      const ioredis = await import('ioredis');
+      const RedisClass = ioredis.default || (ioredis as any).Redis || ioredis;
+      const client = new (RedisClass as any)(redisUrl, {
         lazyConnect: true,
         enableReadyCheck: true,
       });

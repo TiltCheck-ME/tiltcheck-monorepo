@@ -1,5 +1,5 @@
-/**
- * © 2024–2025 TiltCheck Ecosystem. All Rights Reserved.
+﻿/**
+ * Â© 2024â€“2025 TiltCheck Ecosystem. All Rights Reserved.
  * Created by jmenichole (https://github.com/jmenichole)
  * 
  * This file is part of the TiltCheck project.
@@ -13,13 +13,37 @@
 
 import dotenv from 'dotenv';
 import path from 'path';
-import {
-  getEnvVar, 
-  getDiscordToken, 
-  getBoolEnv, 
-  getNumberEnv,
-  DISCORD_TOKEN_ENV_VARS 
-} from '@tiltcheck/config';
+
+const DISCORD_TOKEN_ENV_VARS = ['DISCORD_TOKEN', 'DISCORD_BOT_TOKEN'] as const;
+
+function getEnvVar(key: string, required = true): string {
+  const value = process.env[key];
+  if (!value && required) {
+    throw new Error(`Missing required environment variable: ${key}`);
+  }
+  return value || '';
+}
+
+function getDiscordToken(): string {
+  for (const envVar of DISCORD_TOKEN_ENV_VARS) {
+    const value = process.env[envVar];
+    if (value) return value;
+  }
+  return '';
+}
+
+function getBoolEnv(key: string, defaultValue = false): boolean {
+  const value = process.env[key];
+  if (!value) return defaultValue;
+  return value.toLowerCase() === 'true' || value === '1';
+}
+
+function getNumberEnv(key: string, defaultValue: number): number {
+  const value = process.env[key];
+  if (!value) return defaultValue;
+  const parsed = parseInt(value, 10);
+  return isNaN(parsed) ? defaultValue : parsed;
+}
 
 // Use process.cwd() for .env resolution (works in both monorepo and bundled deploys)
 // In monorepo: cwd is the monorepo root
@@ -132,19 +156,19 @@ export const config: BotConfig = {
 // Validate config
 export function validateConfig(): void {
   if (!config.discordToken) {
-    console.error('[Config] ❌ No Discord token found in environment variables.');
+    console.error('[Config] âŒ No Discord token found in environment variables.');
     console.error('[Config] Checked: TILT_DISCORD_TOKEN, TIP_DISCORD_TOKEN, DISCORD_TOKEN');
-    
+
     console.error('[Config] Debugging keys in process.env:');
     const relatedKeys = Object.keys(process.env).filter(k => k.includes('DISCORD') || k.includes('TOKEN'));
     if (relatedKeys.length === 0) {
-        console.error('  (No related keys found)');
+      console.error('  (No related keys found)');
     } else {
-        relatedKeys.forEach(k => {
-            const val = process.env[k];
-            const status = val && val.trim().length > 0 ? '✅ Set' : '❌ Empty';
-            console.error(`  - ${k}: ${status}`);
-        });
+      relatedKeys.forEach(k => {
+        const val = process.env[k];
+        const status = val && val.trim().length > 0 ? 'âœ… Set' : 'âŒ Empty';
+        console.error(`  - ${k}: ${status}`);
+      });
     }
 
     throw new Error(
@@ -161,16 +185,14 @@ export function validateConfig(): void {
   console.log('[Config] Configuration loaded successfully');
   console.log(`[Config] Environment: ${config.nodeEnv}`);
   console.log(`[Config] Auto-scan links: ${config.suslinkAutoScan}`);
-  
-  // Log alert channels
+
   if (config.alertChannels.trustAlertsChannelId) {
     console.log(`[Config] Trust alerts channel: ${config.alertChannels.trustAlertsChannelId}`);
   }
   if (config.alertChannels.supportChannelId) {
     console.log(`[Config] Support tickets channel: ${config.alertChannels.supportChannelId}`);
   }
-  
-  // Log mod notifications
+
   console.log(`[Config] Mod notifications: ${config.modNotifications.enabled ? 'enabled' : 'disabled'}`);
   if (config.modNotifications.enabled && config.modNotifications.modChannelId) {
     console.log(`[Config] Mod channel: ${config.modNotifications.modChannelId}`);

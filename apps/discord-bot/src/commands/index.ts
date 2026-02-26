@@ -65,3 +65,4 @@ export { justthetip } from './justthetip.js';
 
 export { default as report } from './report.js';
 export { casino } from './casino.js';
+export { buddy } from './buddy.js';

@@ -1,7 +1,7 @@
 {
   "name": "@tiltcheck/retry-utility",
   "version": "0.1.0",
-  "description": "TODO: Add description",
+  "description": "Robust retry and backoff utilities for TiltCheck",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",

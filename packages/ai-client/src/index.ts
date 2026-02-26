@@ -26,7 +26,8 @@ export type AIApplication =
   | 'tilt-detection'
   | 'nl-commands'
   | 'recommendations'
-  | 'support';
+  | 'support'
+  | 'onboarding';
 
 export interface AIRequest {
   application: AIApplication;
@@ -142,6 +143,25 @@ export interface SupportData {
   }>;
   suggestedFollowUps: string[];
   escalateToHuman: boolean;
+}
+
+export interface OnboardingData {
+  interviewQuestions: Array<{
+    id: string;
+    question: string;
+    options?: string[]; // If predefined options
+    expectedType: 'text' | 'choice' | 'boolean';
+    purpose: string; // What this question helps personalize
+  }>;
+  personalizedTutorialPaths: Array<{
+    moduleId: string;
+    title: string;
+    description: string;
+    relevanceScore: number;
+    estimatedMinutes: number;
+  }>;
+  gamingPersona: string;
+  recommendedRiskLevel: 'conservative' | 'moderate' | 'degen';
 }
 
 export interface AIClientConfig {
@@ -334,6 +354,20 @@ export class AIClient {
       application: 'support',
       prompt: question,
       context: context as Record<string, unknown>,
+    });
+  }
+
+  /**
+   * Convenience method for generating a tailored onboarding interview and tutorial path
+   */
+  async generateOnboardingInterview(userProfile?: {
+    walletAge?: number;
+    previousExperience?: string;
+    platform?: 'web' | 'discord';
+  }): Promise<AIResponse<OnboardingData>> {
+    return this.request<OnboardingData>({
+      application: 'onboarding',
+      context: userProfile as Record<string, unknown>,
     });
   }
 

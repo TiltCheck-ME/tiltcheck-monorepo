@@ -1,23 +1,15 @@
 /**
- * © 2024–2025 TiltCheck Ecosystem. All Rights Reserved.
- * Created by jmenichole (https://github.com/jmenichole)
- * 
- * This file is part of the TiltCheck project.
- * For licensing information, see LICENSE file in the project root.
- */
-/**
  * Tilt Agent Service
  *
- * Queries Elasticsearch via ES|QL to detect tilt patterns, then
- * calls the Elastic AI Agent (or falls back to direct rule-based
- * analysis) to produce a human-readable intervention message.
- *
- * The agent is invoked:
- *  1. Every 5 minutes for users who have been active recently
- *  2. Immediately when a high-risk command fires (e.g. /lockvault)
+ * Runs retrieval + reasoning for user tilt detection and returns
+ * intervention-ready messages for the DM flow.
  */
 
 import { Client as ESClient } from '@elastic/elasticsearch';
+import {
+  runReasoningAndRetrieval,
+  type InterventionDecision,
+} from './reasoning-retrieval.js';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -25,12 +17,12 @@ import { Client as ESClient } from '@elastic/elasticsearch';
 
 export interface TiltAnalysis {
   userId: string;
-  isActing: boolean;           // true when intervention should be sent
+  isActing: boolean;
   severity: 'low' | 'medium' | 'high';
-  message: string;             // ready-to-send Discord DM text
+  message: string;
   metrics: {
     messagesLastHour: number;
-    messagesBaseline: number;  // hourly avg over past 24 h
+    messagesBaseline: number;
     tipsLastHour: number;
     tipsBaseline: number;
     avgSentimentLastHour: number;
@@ -40,19 +32,10 @@ export interface TiltAnalysis {
 }
 
 // ---------------------------------------------------------------------------
-// ES|QL queries
+// Legacy ES|QL fallback queries (kept for compatibility)
 // ---------------------------------------------------------------------------
 
-/**
- * Returns a compact behavioural summary for a single user:
- *   - message count + avg sentiment for the last 60 min
- *   - same metrics as a rolling 24 h baseline (divided to hourly avg)
- *   - total SOL tipped in the last 60 min
- *   - highest tilt_score recorded in the last 60 min
- */
-function buildTiltQuery(userId: string): string {
-  // ES|QL does not support subqueries, so we run two queries and merge
-  // in application code. This is the 60-min window query.
+function buildLegacyTiltQuery(userId: string): string {
   return `
     FROM tiltcheck-telemetry
     | WHERE user_id == "${userId}"
@@ -61,13 +44,11 @@ function buildTiltQuery(userId: string): string {
         msgs          = COUNT(*) WHERE action == "message_sent",
         avg_sentiment = AVG(sentiment),
         tips_sent     = COUNT(*) WHERE action == "tip_sent",
-        sol_out       = SUM(amount_sol) WHERE action == "tip_sent",
         max_tilt      = MAX(tilt_score)
   `.trim();
 }
 
-function buildBaselineQuery(userId: string): string {
-  // 24 h window — divide counts by 24 in app code to get hourly baseline
+function buildLegacyBaselineQuery(userId: string): string {
   return `
     FROM tiltcheck-telemetry
     | WHERE user_id == "${userId}"
@@ -79,17 +60,11 @@ function buildBaselineQuery(userId: string): string {
   `.trim();
 }
 
-// ---------------------------------------------------------------------------
-// ES|QL execution helper
-// ---------------------------------------------------------------------------
-
 async function runEsql(
   client: ESClient,
-  query: string
+  query: string,
 ): Promise<Record<string, number | null>> {
   const resp = await client.esql.query({ query, format: 'json' });
-
-  // ES|QL returns { columns: [...], rows: [[...]] }
   const columns: Array<{ name: string }> = (resp as any).columns ?? [];
   const rows: Array<Array<number | null>> = (resp as any).rows ?? [];
 
@@ -100,7 +75,7 @@ async function runEsql(
 }
 
 // ---------------------------------------------------------------------------
-// Tilt scoring logic (rule-based fallback / complement to AI agent)
+// Rule/message helpers
 // ---------------------------------------------------------------------------
 
 function scoreActivity(metrics: TiltAnalysis['metrics']): {
@@ -122,64 +97,67 @@ function scoreActivity(metrics: TiltAnalysis['metrics']): {
   const sentimentDrop =
     metrics.avgSentimentBaseline - metrics.avgSentimentLastHour;
 
-  if (msgRatio > 3) flags.push(`message volume is ${msgRatio.toFixed(1)}x your normal rate`);
-  if (tipRatio > 2) flags.push(`tip frequency is ${tipRatio.toFixed(1)}x your normal rate`);
-  if (sentimentDrop > 0.4) flags.push(`your tone has dropped significantly (${sentimentDrop.toFixed(2)} shift)`);
-  if (metrics.maxTiltScoreLastHour >= 70) flags.push(`tilt score hit ${metrics.maxTiltScoreLastHour}/100`);
+  if (msgRatio > 3) {
+    flags.push(`message volume is ${msgRatio.toFixed(1)}x your normal rate`);
+  }
+  if (tipRatio > 2) {
+    flags.push(`tip frequency is ${tipRatio.toFixed(1)}x your normal rate`);
+  }
+  if (sentimentDrop > 0.4) {
+    flags.push(
+      `your tone has dropped significantly (${sentimentDrop.toFixed(2)} shift)`,
+    );
+  }
+  if (metrics.maxTiltScoreLastHour >= 70) {
+    flags.push(`tilt score hit ${metrics.maxTiltScoreLastHour}/100`);
+  }
 
   let severity: TiltAnalysis['severity'] = 'low';
-  if (flags.length >= 3 || metrics.maxTiltScoreLastHour >= 85) severity = 'high';
-  else if (flags.length >= 2 || metrics.maxTiltScoreLastHour >= 60) severity = 'medium';
+  if (flags.length >= 3 || metrics.maxTiltScoreLastHour >= 85) {
+    severity = 'high';
+  } else if (flags.length >= 2 || metrics.maxTiltScoreLastHour >= 60) {
+    severity = 'medium';
+  }
 
   return { severity, flags };
 }
 
 function buildMessage(
   severity: TiltAnalysis['severity'],
-  flags: string[]
+  flags: string[],
 ): string {
   if (!flags.length) {
-    return "You're looking good. No signs of tilt detected right now.";
+    return 'You are looking stable right now. No clear tilt patterns detected.';
   }
 
   const intro: Record<TiltAnalysis['severity'], string> = {
-    low:    "👀 Just a heads-up:",
-    medium: "⚠️ Hey, pump the brakes for a second.",
-    high:   "🛑 TiltCheck stepping in.",
+    low: 'Quick heads-up:',
+    medium: 'Pause for a second.',
+    high: 'TiltCheck stepping in.',
   };
 
   const outro: Record<TiltAnalysis['severity'], string> = {
-    low:    "Keep an eye on it.",
-    medium: "Take 10 minutes away from the screen. Seriously.",
-    high:   "Step away now. Use `/lockvault` if you need a hard stop.",
+    low: 'Keep an eye on this pattern.',
+    medium: 'Take a 10 minute break before the next action.',
+    high: 'Step away now and use /lockvault if you need a hard stop.',
   };
 
-  const flagList = flags.map(f => `• ${f}`).join('\n');
-  return `${intro[severity]}\n\nI'm seeing some patterns worth flagging:\n${flagList}\n\n${outro[severity]}`;
+  const flagList = flags.map((f) => `- ${f}`).join('\n');
+  return `${intro[severity]}\n\nI am seeing the following:\n${flagList}\n\n${outro[severity]}`;
 }
-
-// ---------------------------------------------------------------------------
-// Optional: call Elastic AI assistant via chat completions endpoint
-// ---------------------------------------------------------------------------
 
 async function callElasticAgent(
   metrics: TiltAnalysis['metrics'],
-  flags: string[]
+  flags: string[],
 ): Promise<string | null> {
   const endpoint = process.env.ELASTIC_AGENT_ENDPOINT;
-  const apiKey   = process.env.ELASTIC_API_KEY;
+  const apiKey = process.env.ELASTIC_API_KEY;
 
   if (!endpoint || !apiKey || !flags.length) return null;
 
-  const systemPrompt = `You are TiltCheck, a blunt, non-judgmental accountability buddy for online gamblers.
-You receive a JSON summary of a user's recent activity and a list of anomaly flags.
-Write a SHORT (3–5 sentence) Discord DM that:
-- Acknowledges the specific flags
-- Tells them to take a break
-- Does NOT lecture or moralize
-- Uses plain language, no jargon`;
-
-  const userContent = JSON.stringify({ metrics, flags });
+  const systemPrompt = `You are TiltCheck, an accountability buddy for online gamblers.
+Write a short Discord DM (3-5 sentences) that acknowledges the concrete anomalies,
+asks them to pause, and avoids moralizing.`;
 
   try {
     const resp = await fetch(`${endpoint}/api/chat`, {
@@ -189,21 +167,53 @@ Write a SHORT (3–5 sentence) Discord DM that:
         Authorization: `ApiKey ${apiKey}`,
       },
       body: JSON.stringify({
-        model: 'gpt-4o',   // swap for whatever model is wired to your Elastic deployment
+        model: 'gpt-4o',
         messages: [
           { role: 'system', content: systemPrompt },
-          { role: 'user',   content: userContent },
+          { role: 'user', content: JSON.stringify({ metrics, flags }) },
         ],
         max_tokens: 200,
       }),
     });
 
     if (!resp.ok) return null;
-    const data = await resp.json() as any;
+    const data = (await resp.json()) as any;
     return data?.choices?.[0]?.message?.content ?? null;
   } catch {
     return null;
   }
+}
+
+function reasonCodeToText(code: string): string {
+  const map: Record<string, string> = {
+    TILT_SCORE_SPIKE_200_PERCENT: 'tilt score jumped to over 200% of baseline',
+    TILT_SCORE_SPIKE_150_PERCENT: 'tilt score jumped to over 150% of baseline',
+    TILT_SCORE_ELEVATED_120_PERCENT: 'tilt score is elevated above baseline',
+    EVENT_COUNT_SPIKE_300_PERCENT: 'activity volume spiked to over 300% of baseline',
+    EVENT_COUNT_SPIKE_200_PERCENT: 'activity volume spiked to over 200% of baseline',
+  };
+
+  return map[code] ?? code;
+}
+
+function mapDecisionToSeverity(
+  severity: InterventionDecision['severity'],
+): TiltAnalysis['severity'] {
+  if (severity === 'HIGH') return 'high';
+  if (severity === 'MEDIUM') return 'medium';
+  return 'low';
+}
+
+function mapDecisionToMetrics(decision: InterventionDecision): TiltAnalysis['metrics'] {
+  return {
+    messagesLastHour: decision.metrics.last1h.messageEvents,
+    messagesBaseline: decision.metrics.baseline24h.messageEvents / 24,
+    tipsLastHour: decision.metrics.last1h.tipEvents,
+    tipsBaseline: decision.metrics.baseline24h.tipEvents / 24,
+    avgSentimentLastHour: 0,
+    avgSentimentBaseline: 0,
+    maxTiltScoreLastHour: decision.metrics.last1h.avgTiltScore,
+  };
 }
 
 // ---------------------------------------------------------------------------
@@ -215,7 +225,7 @@ let _esClient: ESClient | null = null;
 function getEsClient(): ESClient | null {
   if (_esClient) return _esClient;
 
-  const url    = process.env.ELASTIC_URL;
+  const url = process.env.ELASTIC_URL;
   const apiKey = process.env.ELASTIC_API_KEY;
   if (!url || !apiKey) return null;
 
@@ -223,10 +233,50 @@ function getEsClient(): ESClient | null {
   return _esClient;
 }
 
+async function analyseUserLegacy(client: ESClient, userId: string): Promise<TiltAnalysis> {
+  const noop: TiltAnalysis = {
+    userId,
+    isActing: false,
+    severity: 'low',
+    message: '',
+    metrics: {
+      messagesLastHour: 0,
+      messagesBaseline: 0,
+      tipsLastHour: 0,
+      tipsBaseline: 0,
+      avgSentimentLastHour: 0,
+      avgSentimentBaseline: 0,
+      maxTiltScoreLastHour: 0,
+    },
+  };
+
+  const [recent, baseline] = await Promise.all([
+    runEsql(client, buildLegacyTiltQuery(userId)),
+    runEsql(client, buildLegacyBaselineQuery(userId)),
+  ]);
+
+  const metrics: TiltAnalysis['metrics'] = {
+    messagesLastHour: (recent.msgs ?? 0) as number,
+    messagesBaseline: ((baseline.msgs_24h ?? 0) as number) / 24,
+    tipsLastHour: (recent.tips_sent ?? 0) as number,
+    tipsBaseline: ((baseline.tips_24h ?? 0) as number) / 24,
+    avgSentimentLastHour: (recent.avg_sentiment ?? 0) as number,
+    avgSentimentBaseline: (baseline.avg_sentiment_24h ?? 0) as number,
+    maxTiltScoreLastHour: (recent.max_tilt ?? 0) as number,
+  };
+
+  const { severity, flags } = scoreActivity(metrics);
+  if (!flags.length) return noop;
+
+  const agentMsg = await callElasticAgent(metrics, flags);
+  const message = agentMsg ?? buildMessage(severity, flags);
+
+  return { userId, isActing: true, severity, message, metrics };
+}
+
 /**
- * Analyse a single user's recent behaviour and return an intervention
- * decision + message. Safe to call frequently — returns isActing=false
- * when Elastic is not configured or the user shows no signs of tilt.
+ * Primary path: reasoning-retrieval module.
+ * Fallback path: legacy query + scoring if the new retrieval query fails.
  */
 export async function analyseUser(userId: string): Promise<TiltAnalysis> {
   const noop: TiltAnalysis = {
@@ -249,35 +299,42 @@ export async function analyseUser(userId: string): Promise<TiltAnalysis> {
   if (!client) return noop;
 
   try {
-    const [recent, baseline] = await Promise.all([
-      runEsql(client, buildTiltQuery(userId)),
-      runEsql(client, buildBaselineQuery(userId)),
-    ]);
+    const decision = await runReasoningAndRetrieval(client, userId);
 
-    const metrics: TiltAnalysis['metrics'] = {
-      messagesLastHour:       (recent.msgs              ?? 0) as number,
-      messagesBaseline:       ((baseline.msgs_24h ?? 0) as number) / 24,
-      tipsLastHour:           (recent.tips_sent          ?? 0) as number,
-      tipsBaseline:           ((baseline.tips_24h ?? 0)  as number) / 24,
-      avgSentimentLastHour:   (recent.avg_sentiment       ?? 0) as number,
-      avgSentimentBaseline:   (baseline.avg_sentiment_24h ?? 0) as number,
-      maxTiltScoreLastHour:   (recent.max_tilt            ?? 0) as number,
-    };
+    if (decision.action === 'none') {
+      return noop;
+    }
 
-    const { severity, flags } = scoreActivity(metrics);
-    const isActing = flags.length > 0;
+    const severity = mapDecisionToSeverity(decision.severity);
+    const metrics = mapDecisionToMetrics(decision);
+    const flags = decision.reason_codes.map(reasonCodeToText);
 
-    // Try the AI agent first; fall back to rule-based message
-    const agentMsg = isActing
-      ? await callElasticAgent(metrics, flags)
-      : null;
+    const agentMsg =
+      decision.action === 'send_dm_intervention'
+        ? await callElasticAgent(metrics, flags)
+        : null;
 
     const message = agentMsg ?? buildMessage(severity, flags);
 
-    return { userId, isActing, severity, message, metrics };
+    return {
+      userId,
+      isActing: true,
+      severity,
+      message,
+      metrics,
+    };
   } catch (err) {
-    console.error(`[TiltAgent] analyseUser(${userId}) failed:`, err);
-    return noop;
+    console.warn(
+      `[TiltAgent] reasoning retrieval failed for ${userId}; using legacy fallback`,
+      err,
+    );
+
+    try {
+      return await analyseUserLegacy(client, userId);
+    } catch (legacyErr) {
+      console.error(`[TiltAgent] analyseUser(${userId}) failed:`, legacyErr);
+      return noop;
+    }
   }
 }
 
@@ -285,20 +342,19 @@ export async function analyseUser(userId: string): Promise<TiltAnalysis> {
 // Periodic background scan
 // ---------------------------------------------------------------------------
 
-const SCAN_INTERVAL_MS = 5 * 60 * 1000;   // 5 minutes
-const recentUsers = new Set<string>();      // populated by ingestEvent callers
+const SCAN_INTERVAL_MS = 5 * 60 * 1000;
+const recentUsers = new Set<string>();
 
 export function markUserActive(userId: string): void {
   recentUsers.add(userId);
 }
 
-/**
- * Start the background scan loop.
- * Pass `onIntervene` — the bot will call it with the DM text whenever
- * TiltCheck decides to intervene.
- */
 export function startTiltAgentLoop(
-  onIntervene: (userId: string, message: string, severity: TiltAnalysis['severity']) => Promise<void>
+  onIntervene: (
+    userId: string,
+    message: string,
+    severity: TiltAnalysis['severity'],
+  ) => Promise<void>,
 ): NodeJS.Timeout {
   const timer = setInterval(async () => {
     const batch = [...recentUsers];
@@ -308,12 +364,13 @@ export function startTiltAgentLoop(
       const analysis = await analyseUser(userId);
       if (analysis.isActing) {
         await onIntervene(userId, analysis.message, analysis.severity).catch(
-          err => console.error(`[TiltAgent] onIntervene(${userId}) failed:`, err)
+          (err) =>
+            console.error(`[TiltAgent] onIntervene(${userId}) failed:`, err),
         );
       }
     }
   }, SCAN_INTERVAL_MS);
 
-  console.log('[TiltAgent] ✅ Background scan loop started (every 5 min)');
+  console.log('[TiltAgent] background scan loop started (every 5 min)');
   return timer;
 }
