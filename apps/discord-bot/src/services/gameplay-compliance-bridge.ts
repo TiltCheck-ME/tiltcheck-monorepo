@@ -2,6 +2,7 @@ import { eventRouter } from '@tiltcheck/event-router';
 import type { TiltCheckEvent, GameplayAnomalyEvent } from '@tiltcheck/types';
 import { Client as ESClient } from '@elastic/elasticsearch';
 import { getStateTopicStatus } from './regulations-retrieval.js';
+import { getUserTiltAgentContext, hydrateUserTiltAgentContext } from './tilt-agent.js';
 
 type ComplianceSeverity = 'info' | 'warning' | 'critical';
 
@@ -157,8 +158,13 @@ export function initializeGameplayComplianceBridge(discordClient: any): void {
     const data = evt.data;
     if (!data?.userId) return;
 
-    const stateCode = DEFAULT_STATE;
-    const topic = DEFAULT_TOPIC;
+    let context = getUserTiltAgentContext(data.userId);
+    if (!context) {
+      context = await hydrateUserTiltAgentContext(data.userId);
+    }
+
+    const stateCode = context?.stateCode ?? DEFAULT_STATE;
+    const topic = context?.regulationTopic ?? DEFAULT_TOPIC;
     const regulation = await getRegulationSnapshot(esClient, stateCode, topic);
 
     const compliance = evaluateGameplayComplianceLite(data, regulation);
@@ -174,5 +180,6 @@ export function initializeGameplayComplianceBridge(discordClient: any): void {
 
   console.log('[GameplayCompliance] Bridge subscribed to fairness events');
 }
+
 
 
