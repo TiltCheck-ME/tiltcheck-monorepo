@@ -1,76 +1,53 @@
-# TiltCheck Troubleshooting Guide
+# Troubleshooting Guide
 
-This guide covers common issues and their solutions when deploying, running, or developing the TiltCheck monorepo.
+This guide covers common issues and their solutions when working on the TiltCheck Ecosystem monorepo.
 
-## 1. Node & pnpm Issues
+## 1. Local Development (pnpm)
 
-**Issue**: `pnpm install` fails or hangs indefinitely.
+**Issue: Dependencies fail to map correctly in Turborepo or during builds.**
 
-- **Solution**:
-  - Delete `node_modules` in the root and run `pnpm store prune` before retrying `pnpm install`.
-  - Ensure you are using the correct Node version specified in `.nvmrc` or `package.json` (typically v18 or v20). Use `nvm use` if applicable.
+- **Description:** Sometimes `pnpm install` throws caching or workspace mapping errors.
+- **Solution:** Stop all running servers, delete the `node_modules` folders, and run a fresh installation:
 
-**Issue**: `Cannot find module X` or `Module not found X` during build.
+  ```bash
+  rm -rf node_modules
+  pnpm i --ignore-scripts
+  ```
 
-- **Solution**:
-  - Ensure you have built the workspace dependencies first. Run `pnpm turbo run build` from the root.
-  - Check the `tsconfig.json` of the package exhibiting the error to ensure `paths` and `references` are set correctly.
+**Issue: `Type Error: module not found` in the Browser Extension.**
 
-## 2. Discord Bot Connectivity
+- **Description:** Typescript might throw relative module not found errors when it compiles with `moduleResolution: Node16/NodeNext`.
+- **Solution:** Verify that your file imports are using `.js` extensions for local module resolution (e.g. `import { Something } from './file.js';`), or map directly to external dependencies (`@tiltcheck/utils`). Do not omit the extension when doing relative imports inside the Chrome Extension `content.ts`.
 
-**Issue**: The bot starts but does not appear online in Discord.
+## 2. API / Bot Issues
 
-- **Solution**:
-  - Verify your `TILT_DISCORD_BOT_TOKEN` in `.env` is correct.
-  - Ensure the bot has been invited to the server (`TILT_DISCORD_GUILD_ID`) with the correct permissions.
-  - Check if the Discord API is experiencing an outage at [discordstatus.com](https://discordstatus.com/).
+**Issue: Invalid API Key or Unauthorized Error in the Discord Bot**
 
-**Issue**: Slash commands are not registering.
+- **Description:** Your bot will not authenticate with the Discord API.
+- **Solution:** Double check your `.env` variables `TIP_DISCORD_BOT_TOKEN` or `TILT_DISCORD_BOT_TOKEN` (depending on the package you are working on). They **must** be present without trailing whitespace or quotes. Make sure they correspond to the correct `CLIENT_ID`.
 
-- **Solution**:
-  - Run the designated command registration script usually found in the bot's `scripts/` directory (e.g., `pnpm run register-commands`).
-  - Ensure your `TILT_DISCORD_CLIENT_ID` is correct.
-  - Note that global commands can take up to an hour to propagate in Discord, while guild-specific commands (using `TILT_DISCORD_GUILD_ID`) update immediately.
+**Issue: TiltGuard Backend Services fail to respond / CORS Errors**
 
-## 3. Database & Supabase Connectivity
+- **Description:** Making requests from the web app or Chrome Extension results in an immediate Network Error or CORS restriction block.
+- **Solution:**
+  1. Ensure your backend is running (`pnpm --filter @tiltcheck/api dev`).
+  2. Verify that `ALLOWED_ORIGINS` in your `.env` contains the protocol + domain generating the request (`http://localhost:3000` or the Chrome extension ID origin).
+  3. Ensure `NODE_ENV=development` allows loose cross-origin rules in your local network.
 
-**Issue**: `Error connecting to the database` or silent failures during query execution.
+## 3. Storage / Database (Supabase)
 
-- **Solution**:
-  - Verify `SUPABASE_URL` and `SUPABASE_ANON_KEY`/`SUPABASE_SERVICE_ROLE_KEY` are correct in your `.env`.
-  - Check if your local or remote database is accepting connections (e.g., firewall issues, IP allowlisting).
-  - Ensure the user/service role has appropriate row-level security (RLS) policies configured in Supabase.
+**Issue: Database schema mismatches or missing tables.**
 
-**Issue**: Migrations fail to apply.
+- **Description:** Your application calls a method returning a 404 or `relation does not exist` from Supabase.
+- **Solution:** Validate that your `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` point to the correct instance (staging vs. local vs. production) where the latest SQL migrations have been executed.
 
-- **Solution**:
-  - Review the migration logs for syntax errors in your SQL files.
-  - If using Prisma or Drizzle, ensure your schema matches the remote database state or run a baseline migration.
+## 4. Environment Variables
 
-## 4. Script Execution & Tooling
+**Issue: The platform crashes on startup claiming "No Configuration Found".**
 
-**Issue**: `pnpm turbo run X` fails due to cache issues.
+- **Description:** Many modules rely on strong validation during startup.
+- **Solution:** Check the `docs/ENV-VARIABLES.md` file against your local `.env`. If a variable is marked as required (e.g. `JWT_SECRET`), the application may fail to start immediately.
 
-- **Solution**:
-  - Add the `--force` flag to ignore the cache: `pnpm turbo run build --force`.
-  - Alternatively, manually clear the `.turbo` folder in the root or specific workspace packages.
+### Need more help?
 
-**Issue**: Environment variables are not being picked up by a script.
-
-- **Solution**:
-  - Ensure you are using a tool like `dotenv-cli` or `cross-env` in your `package.json` scripts.
-  - Verify that the specific `.env` file (e.g., `.env.local` vs `.env.production`) is being loaded based on your `NODE_ENV`.
-
-## 5. Development Server Issues
-
-**Issue**: Cannot access `http://localhost:3000` (Next.js Dashboard or Apps).
-
-- **Solution**:
-  - Check if another service is already running on port 3000. Use `lsof -i :3000` (Mac/Linux) or `netstat -ano | findstr :3000` (Windows) to identify the process.
-  - Change the port by running `PORT=3001 pnpm run dev` or updating the port in the script configuration.
-
-**Issue**: CORS Errors when API calls are made from the frontend.
-
-- **Solution**:
-  - Verify that `ALLOWED_ORIGINS` in your `.env` includes the URL you are testing from (e.g., `http://localhost:3000`).
-  - Ensure that the backend server is configured to parse the `ALLOWED_ORIGINS` array correctly.
+Reach out to the `#dev-help` channel in the official Discord Server or open a GitHub Issue describing your trace logs in detail.
