@@ -11,6 +11,11 @@ import {
   type InterventionDecision,
 } from './reasoning-retrieval.js';
 import { getStateTopicStatus } from './regulations-retrieval.js';
+import {
+  clearTiltAgentContext,
+  loadTiltAgentContext,
+  saveTiltAgentContext,
+} from './tilt-agent-context-store.js';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -407,6 +412,10 @@ export function markUserActive(userId: string, context?: TiltAgentContext): void
   const resolved = stored ?? context;
   const existing = recentUsers.get(userId) ?? {};
   recentUsers.set(userId, { ...existing, ...(resolved ?? {}) });
+
+  if (!stored) {
+    void hydrateUserTiltAgentContext(userId);
+  }
 }
 
 export function setUserTiltAgentContext(
@@ -423,6 +432,7 @@ export function setUserTiltAgentContext(
   const existingRecent = recentUsers.get(userId) ?? {};
   recentUsers.set(userId, { ...existingRecent, ...normalized });
 
+  void saveTiltAgentContext(userId, normalized);
   return normalized;
 }
 
@@ -433,6 +443,20 @@ export function getUserTiltAgentContext(userId: string): TiltAgentContext | unde
 export function clearUserTiltAgentContext(userId: string): void {
   userContexts.delete(userId);
   recentUsers.delete(userId);
+  void clearTiltAgentContext(userId);
+}
+
+export async function hydrateUserTiltAgentContext(userId: string): Promise<TiltAgentContext | undefined> {
+  const existing = userContexts.get(userId);
+  if (existing) return existing;
+
+  const loaded = await loadTiltAgentContext(userId);
+  if (!loaded) return undefined;
+
+  userContexts.set(userId, loaded);
+  const pending = recentUsers.get(userId) ?? {};
+  recentUsers.set(userId, { ...pending, ...loaded });
+  return loaded;
 }
 
 export function startTiltAgentLoop(
@@ -460,6 +484,7 @@ export function startTiltAgentLoop(
   console.log('[TiltAgent] background scan loop started (every 5 min)');
   return timer;
 }
+
 
 
 

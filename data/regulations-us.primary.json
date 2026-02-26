@@ -1,0 +1,39 @@
+[
+  {
+    "regulation_id": "US-NJ-IGAMING-LICENSE-001",
+    "jurisdiction": {
+      "country": "US",
+      "state_code": "NJ",
+      "state_name": "New Jersey"
+    },
+    "topic": "igaming",
+    "subtopic": "operator_licensing",
+    "status": "legal",
+    "effective_date": "2025-01-01",
+    "last_reviewed_at": "2026-02-26",
+    "next_review_due": "2026-03-26",
+    "summary": "Operators must hold active licensure and maintain approved controls.",
+    "requirements": [
+      {
+        "key": "license_required",
+        "value": "Operator must hold active state licensure.",
+        "applies_to": "operator"
+      }
+    ],
+    "penalties": {
+      "civil": "Statutory fines per violation.",
+      "criminal": "Unlicensed gambling facilitation may trigger criminal liability.",
+      "license_impact": "Suspension or revocation possible."
+    },
+    "citations": [
+      {
+        "citation": "N.J. Admin. Code 13:69",
+        "source_url": "https://www.nj.gov/oag/ge/docs/regs/13_69G.pdf",
+        "publisher": "New Jersey Division of Gaming Enforcement",
+        "published_at": "2025-12-15"
+      }
+    ],
+    "source_quality": "primary",
+    "tags": ["igaming", "licensing", "primary"]
+  }
+]
