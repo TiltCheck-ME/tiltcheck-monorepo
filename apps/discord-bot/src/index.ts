@@ -18,6 +18,7 @@ import {
 import { initializeAlertService } from './services/alert-service.js';
 import { TrustAlertsHandler } from './handlers/trust-alerts-handler.js';
 import { ensureTelemetryIndex } from './services/elastic-telemetry.js';
+import { ensureTiltAgentContextIndex } from './services/tilt-agent-context-store.js';
 import { startTiltAgentLoop } from './services/tilt-agent.js';
 import { startRegulationsNotifier } from './services/regulations-notifier.js';
 import { initializeGameplayComplianceBridge } from './services/gameplay-compliance-bridge.js';
@@ -73,6 +74,10 @@ async function main() {
   console.log('[Elastic] Ensuring telemetry index...');
   await ensureTelemetryIndex();
   console.log('[Elastic] Telemetry index ready\n');
+
+  console.log('[Elastic] Ensuring tilt-agent context index...');
+  await ensureTiltAgentContextIndex();
+  console.log('[Elastic] Tilt-agent context index ready\n');
 
   console.log('[TiltAgent] Starting background scan loop...');
   startTiltAgentLoop(async (userId, message, severity) => {
@@ -208,5 +213,6 @@ main().catch((error) => {
   console.error('[Bot] Fatal error:', error);
   process.exit(1);
 });
+
 
 
