@@ -60,7 +60,7 @@ export const config: BotConfig = {
   // Discord (supports both DISCORD_TOKEN and DISCORD_BOT_TOKEN)
   discordToken: process.env.TIP_DISCORD_BOT_TOKEN || getDiscordToken(),
   clientId: process.env.TIP_DISCORD_CLIENT_ID || getEnvVar('DISCORD_CLIENT_ID', false),
-  guildId: getEnvVar('DISCORD_GUILD_ID', false),
+  guildId: process.env.TIP_DISCORD_GUILD_ID || getEnvVar('DISCORD_GUILD_ID', false),
 
   // Environment
   nodeEnv: (process.env.NODE_ENV || 'development') as BotConfig['nodeEnv'],
