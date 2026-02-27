@@ -31,7 +31,7 @@ ENV NODE_ENV=production
 WORKDIR /app
 
 COPY --from=builder /app /app
-RUN pnpm prune --prod
+# pnpm prune --prod
 RUN mkdir -p /app/data
 
 CMD ["node", "apps/dad-bot/dist/index.js"]

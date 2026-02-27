@@ -24,7 +24,7 @@ RUN NODE_ENV=development pnpm install --no-frozen-lockfile
 RUN pnpm -r build
 
 # Prune dev dependencies
-RUN pnpm prune --prod
+# pnpm prune --prod
 
 # Production stage
 FROM node:20-alpine
