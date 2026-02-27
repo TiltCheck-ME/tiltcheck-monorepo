@@ -12,7 +12,7 @@
 
 import { Router } from 'express';
 import rateLimit from 'express-rate-limit';
-import { sessionAuth } from '@tiltcheck/auth/middleware/express';
+import { sessionAuth, type AuthContext } from '@tiltcheck/auth/middleware/express';
 import { verifySolanaSignature, verifySessionCookie, type JWTConfig } from '@tiltcheck/auth';
 import { createTip, findTipById, updateTipStatus, findUserByDiscordId } from '@tiltcheck/db';
 
@@ -51,38 +51,38 @@ function getJWTConfig(): JWTConfig {
 router.post('/verify', verifyLimiter, sessionAuth(), async (req, res) => {
   try {
     const { recipientDiscordId, amount, currency, signature, message, publicKey } = req.body;
-    const auth = req.auth;
-    
+    const auth = (req as any).auth as AuthContext;
+
     if (!auth) {
       res.status(401).json({ error: 'Not authenticated' });
       return;
     }
-    
+
     // Validate required fields
     if (!recipientDiscordId || !amount || !currency) {
       res.status(400).json({ error: 'Missing required fields: recipientDiscordId, amount, currency' });
       return;
     }
-    
+
     // Verify wallet signature if provided
     if (signature && message && publicKey) {
       const signatureResult = await verifySolanaSignature({ message, signature, publicKey });
-      
+
       if (!signatureResult.valid) {
         res.status(400).json({ error: 'Invalid wallet signature', details: signatureResult.error });
         return;
       }
-      
+
       // Verify the public key matches the user's linked wallet
       if (auth.walletAddress && auth.walletAddress !== publicKey) {
         res.status(400).json({ error: 'Wallet address mismatch' });
         return;
       }
     }
-    
+
     // Check if recipient exists
     const recipient = await findUserByDiscordId(recipientDiscordId);
-    
+
     res.json({
       valid: true,
       sender: {
@@ -115,18 +115,18 @@ router.post('/verify', verifyLimiter, sessionAuth(), async (req, res) => {
 router.post('/create', tipLimiter, sessionAuth(), async (req, res) => {
   try {
     const { recipientDiscordId, recipientWallet, amount, currency, message: tipMessage } = req.body;
-    const auth = req.auth;
-    
+    const auth = (req as any).auth as AuthContext;
+
     if (!auth) {
       res.status(401).json({ error: 'Not authenticated' });
       return;
     }
-    
+
     if (!recipientDiscordId || !amount || !currency) {
       res.status(400).json({ error: 'Missing required fields' });
       return;
     }
-    
+
     // Create the tip record
     const tip = await createTip({
       sender_id: auth.userId,
@@ -136,12 +136,12 @@ router.post('/create', tipLimiter, sessionAuth(), async (req, res) => {
       currency,
       message: tipMessage,
     });
-    
+
     if (!tip) {
       res.status(500).json({ error: 'Failed to create tip' });
       return;
     }
-    
+
     res.json({
       success: true,
       tip: {
@@ -167,30 +167,30 @@ router.post('/:id/complete', tipLimiter, sessionAuth(), async (req, res) => {
   try {
     const { id } = req.params;
     const { txSignature } = req.body;
-    const auth = req.auth;
-    
+    const auth = (req as any).auth as AuthContext;
+
     if (!auth) {
       res.status(401).json({ error: 'Not authenticated' });
       return;
     }
-    
+
     // Get the tip
     const tip = await findTipById(id);
-    
+
     if (!tip) {
       res.status(404).json({ error: 'Tip not found' });
       return;
     }
-    
+
     // Verify the sender owns this tip
     if (tip.sender_id !== auth.userId) {
       res.status(403).json({ error: 'Not authorized to complete this tip' });
       return;
     }
-    
+
     // Update tip status
     const updatedTip = await updateTipStatus(id, 'completed', txSignature);
-    
+
     res.json({
       success: true,
       tip: updatedTip,
@@ -208,21 +208,21 @@ router.post('/:id/complete', tipLimiter, sessionAuth(), async (req, res) => {
 router.get('/:id', sessionAuth(undefined, { required: false }), async (req, res) => {
   try {
     const { id } = req.params;
-    
+
     const tip = await findTipById(id);
-    
+
     if (!tip) {
       res.status(404).json({ error: 'Tip not found' });
       return;
     }
-    
+
     // Only return full details if authenticated and is sender/recipient
-    const auth = req.auth;
+    const auth = (req as any).auth as AuthContext;
     const isParticipant = auth && (
-      tip.sender_id === auth.userId || 
+      tip.sender_id === auth.userId ||
       tip.recipient_discord_id === auth.discordId
     );
-    
+
     if (isParticipant) {
       res.json({ tip });
     } else {
