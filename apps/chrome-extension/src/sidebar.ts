@@ -1,4 +1,4 @@
-﻿/**
+﻿﻿/**
  * Â© 2024â€“2025 TiltCheck Ecosystem. All Rights Reserved.
  * Created by jmenichole (https://github.com/jmenichole)
  * 
@@ -11,11 +11,8 @@
  * Integrates with AI Gateway for intelligent tilt detection
  */
 
-import { isStakeDomain, AutoVaultEngine, type LogEntry, type AutoVaultCallbacks } from './autovault.js';
-import { startFairnessTutorial, shouldShowTutorial } from './fairness-tutorial.js';
-
 const API_BASE = 'http://localhost:3001';
-const AI_GATEWAY_URL = 'http://localhost:3333';
+const AI_GATEWAY_URL = 'https://ai-gateway.tiltcheck.me';
 let authToken: string | null = null;
 let showSettings = false;
 let apiKeys: any = {
@@ -281,7 +278,6 @@ function createSidebar() {
             <button class="tg-action-btn" id="tg-open-suslink">ðŸ›¡ï¸ SusLink</button>
             <button class="tg-action-btn" id="tg-open-config">Configure</button>
             <button class="tg-action-btn" id="tg-open-verifier">Verify</button>
-            <button class="tg-action-btn" id="tg-learn-fairness">Learn</button>
             <button class="tg-action-btn" id="tg-open-dashboard">Dashboard</button>
             <button class="tg-action-btn" id="tg-open-vault">Vault</button>
             <button class="tg-action-btn" id="tg-wallet">Wallet</button>
@@ -380,59 +376,6 @@ function createSidebar() {
               </div>
 
               <button class="tg-btn tg-btn-secondary" id="release-funds-btn" disabled style="width: 100%; padding: 6px; font-size: 11px; opacity: 0.5; cursor: not-allowed;">Release Funds</button>
-            </div>
-          </div>
-        </div>
-
-        <!-- AutoVault Section (Stake only) -->
-        <div class="tg-section" id="tg-autovault-section" style="display: none;">
-          <h4 style="display: flex; align-items: center; gap: 6px;">
-            <span class="av-status-dot" id="av-status-dot"></span>
-            AutoVault
-          </h4>
-
-          <div style="display: flex; gap: 6px; margin-bottom: 10px;">
-            <button class="tg-btn tg-btn-primary" id="av-start-btn" style="flex: 1; margin: 0; padding: 6px;">Start</button>
-            <button class="tg-btn tg-btn-secondary" id="av-stop-btn" style="flex: 1; margin: 0; padding: 6px;" disabled>Stop</button>
-          </div>
-
-          <div class="av-config">
-            <div class="av-config-row">
-              <span class="av-config-label">Save %</span>
-              <input type="number" id="av-save-pct" class="av-config-input" min="1" max="100" step="1" value="10" />
-            </div>
-            <div class="av-config-row">
-              <span class="av-config-label">Big Win Threshold</span>
-              <input type="number" id="av-bigwin-threshold" class="av-config-input" min="1" step="0.1" value="5" />
-            </div>
-            <div class="av-config-row">
-              <span class="av-config-label">Big Win Multiplier</span>
-              <input type="number" id="av-bigwin-multiplier" class="av-config-input" min="1" step="0.1" value="3" />
-            </div>
-            <div class="av-config-row">
-              <span class="av-config-label">Check Interval (sec)</span>
-              <input type="number" id="av-check-interval" class="av-config-input" min="10" step="1" value="90" />
-            </div>
-          </div>
-
-          <div class="av-stats">
-            <div class="av-stat">
-              <span class="av-stat-label">Session Vaulted</span>
-              <span class="av-stat-value" id="av-session-vaulted">0.00000000</span>
-            </div>
-            <div class="av-stat">
-              <span class="av-stat-label">Actions/hr</span>
-              <span class="av-stat-value" id="av-vault-count">0/50</span>
-            </div>
-          </div>
-
-          <div class="av-log-toggle" id="av-log-toggle">
-            <span class="av-log-toggle-text">Activity Log</span>
-            <span class="av-log-toggle-icon" id="av-log-toggle-icon">&#9660;</span>
-          </div>
-          <div class="av-log" id="av-log">
-            <div class="av-log-inner" id="av-log-inner">
-              <div class="av-log-empty">No activity yet...</div>
             </div>
           </div>
         </div>
@@ -702,128 +645,12 @@ function createSidebar() {
       0% { background-color: rgba(16, 185, 129, 0.5); }
       100% { background-color: rgba(0, 0, 0, 0.3); }
     }
-
-    /* AutoVault Styles */
-    .av-status-dot {
-      width: 8px; height: 8px; border-radius: 50%;
-      background: #4a5568; display: inline-block;
-      transition: background 0.2s;
-    }
-    .av-status-dot.running { background: #10b981; }
-
-    .av-config { display: flex; flex-direction: column; gap: 6px; margin-bottom: 10px; }
-    .av-config-row { display: flex; align-items: center; justify-content: space-between; }
-    .av-config-label { color: #94a3b8; font-size: 11px; }
-    .av-config-input {
-      background: rgba(0,0,0,0.3); color: #e2e8f0;
-      border: 1px solid rgba(255,255,255,0.1); border-radius: 4px;
-      padding: 4px 6px; font-size: 11px; width: 60px; text-align: right;
-    }
-    .av-config-input:focus { outline: none; border-color: #6366f1; }
-
-    .av-stats {
-      display: flex; justify-content: space-between;
-      padding: 8px 0; border-top: 1px solid rgba(255,255,255,0.1);
-      margin-bottom: 8px;
-    }
-    .av-stat { display: flex; flex-direction: column; gap: 2px; }
-    .av-stat-label { color: #64748b; font-size: 10px; text-transform: uppercase; }
-    .av-stat-value { color: #10b981; font-weight: 600; font-size: 12px; font-variant-numeric: tabular-nums; }
-
-    .av-log-toggle {
-      display: flex; align-items: center; justify-content: space-between;
-      padding: 6px 0; cursor: pointer; user-select: none;
-      border-top: 1px solid rgba(255,255,255,0.1);
-    }
-    .av-log-toggle:hover .av-log-toggle-text { color: #94a3b8; }
-    .av-log-toggle-text { font-size: 10px; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; }
-    .av-log-toggle-icon { font-size: 10px; color: #64748b; transition: transform 0.2s; }
-    .av-log-toggle.open .av-log-toggle-icon { transform: rotate(180deg); }
-
-    .av-log { max-height: 0; overflow: hidden; transition: max-height 0.25s ease-out; }
-    .av-log.open { max-height: 150px; }
-    .av-log-inner {
-      max-height: 150px; overflow-y: auto;
-      font-family: 'Monaco', 'Consolas', monospace; font-size: 10px; line-height: 1.4;
-    }
-    .av-log-inner::-webkit-scrollbar { width: 4px; }
-    .av-log-inner::-webkit-scrollbar-track { background: transparent; }
-    .av-log-inner::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 2px; }
-    .av-log-entry { padding: 2px 0; color: #64748b; display: flex; gap: 6px; }
-    .av-log-entry.success { color: #10b981; }
-    .av-log-entry.profit { color: #10b981; }
-    .av-log-entry.bigwin { color: #fbbf24; }
-    .av-log-entry.warning { color: #f59e0b; }
-    .av-log-entry.error { color: #ef4444; }
-    .av-log-time { color: #475569; flex-shrink: 0; }
-    .av-log-empty { color: #475569; font-style: italic; text-align: center; padding: 8px; }
-
-    /* Fairness Tutorial Overlay */
-    #pf-tutorial-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 100; pointer-events: none; }
-    .pf-tutorial-backdrop { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.7); pointer-events: auto; }
-    .pf-tutorial-spotlight {
-      position: absolute;
-      border: 2px solid #6366f1;
-      border-radius: 6px;
-      box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.7), 0 0 12px rgba(99, 102, 241, 0.5);
-      pointer-events: none;
-      transition: all 0.3s ease;
-      z-index: 101;
-    }
-    .pf-tutorial-card {
-      position: absolute;
-      left: 16px;
-      right: 16px;
-      background: #1a1f26;
-      border: 1px solid rgba(99, 102, 241, 0.4);
-      border-radius: 8px;
-      padding: 16px;
-      pointer-events: auto;
-      z-index: 102;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
-      transition: top 0.3s ease, transform 0.3s ease;
-    }
-    .pf-tutorial-card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
-    .pf-tutorial-step-label { font-size: 11px; color: #6366f1; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
-    .pf-tutorial-skip { background: none; border: none; color: rgba(255,255,255,0.4); font-size: 11px; cursor: pointer; padding: 2px 6px; }
-    .pf-tutorial-skip:hover { color: rgba(255,255,255,0.7); }
-    .pf-tutorial-title { margin: 0 0 8px 0; font-size: 15px; font-weight: 600; color: #fff; }
-    .pf-tutorial-body { margin: 0 0 16px 0; font-size: 12px; line-height: 1.6; color: rgba(255,255,255,0.7); }
-    .pf-tutorial-footer { display: flex; justify-content: space-between; align-items: center; }
-    .pf-tutorial-dots { display: flex; gap: 6px; }
-    .pf-tutorial-dot { width: 8px; height: 8px; border-radius: 50%; background: rgba(255,255,255,0.2); cursor: pointer; transition: all 0.2s; }
-    .pf-tutorial-dot.active { background: #6366f1; transform: scale(1.2); }
-    .pf-tutorial-dot.completed { background: rgba(99, 102, 241, 0.5); }
-    .pf-tutorial-nav { display: flex; gap: 8px; }
-    .pf-tutorial-btn {
-      background: rgba(99, 102, 241, 0.2);
-      border: 1px solid rgba(99, 102, 241, 0.4);
-      color: #a5b4fc;
-      padding: 6px 14px;
-      border-radius: 4px;
-      font-size: 12px;
-      font-weight: 500;
-      cursor: pointer;
-      transition: all 0.15s;
-    }
-    .pf-tutorial-btn:hover { background: rgba(99, 102, 241, 0.3); border-color: rgba(99, 102, 241, 0.6); }
-    .pf-tutorial-next { background: #6366f1; border-color: #6366f1; color: #fff; }
-    .pf-tutorial-next:hover { background: #5558e3; }
   `;
 
   document.head.appendChild(style);
   document.body.appendChild(sidebar);
   setupEventListeners();
   checkAuthStatus();
-  initAutoVault();
-
-  // Auto-launch fairness tutorial on first visit
-  shouldShowTutorial().then((show) => {
-    if (show) {
-      setTimeout(() => startFairnessTutorial(), 2000);
-    }
-  });
-
   return sidebar;
 }
 
@@ -911,11 +738,6 @@ function setupEventListeners() {
   document.getElementById('close-verifier')?.addEventListener('click', () => {
     const panel = document.getElementById('tg-verifier-panel');
     if (panel) panel.style.display = 'none';
-  });
-
-  // Learn Provably Fair tutorial
-  document.getElementById('tg-learn-fairness')?.addEventListener('click', () => {
-    startFairnessTutorial();
   });
 
   // Picker buttons
@@ -1271,6 +1093,14 @@ function setupEventListeners() {
     }
   });
 
+  document.getElementById('tg-guest-mode')?.addEventListener('click', () => {
+    userData = { username: 'Guest', tier: 'free', id: 'guest' };
+    authToken = 'guest-token';
+    isAuthenticated = true;
+    showMainContent();
+    addFeedMessage('Guest mode active (Local)');
+  });
+
   document.getElementById('tg-discord-login')?.addEventListener('click', async () => {
     // Open Discord OAuth in new window
     const width = 500;
@@ -1279,7 +1109,7 @@ function setupEventListeners() {
     const top = window.screenY + (window.outerHeight - height) / 2;
 
     const authWindow = window.open(
-      `${API_BASE}/auth/discord/login?source=extension`,
+      'https://discord.com/oauth2/authorize?client_id=1445916179163250860&permissions=2252352254102592&response_type=code&redirect_uri=http%3A%2F%2Flocalhost%3A3001%2Fauth%2Fdiscord%2Fcallback&integration_type=0&scope=identify+email+bot+dm_channels.messages.read+messages.read+applications.store.update+dm_channels.read+presences.read+lobbies.write+applications.entitlements+applications.commands',
       'Discord Login',
       `width=${width},height=${height},left=${left},top=${top}`
     );
@@ -1885,146 +1715,6 @@ function updateStatus(message: string, type: string = 'info') {
   }
 }
 
-// --- AutoVault Integration ---
-
-function initAutoVault() {
-  if (!isStakeDomain()) return;
-
-  const section = document.getElementById('tg-autovault-section');
-  if (!section) return;
-  section.style.display = 'block';
-
-  const startBtn = document.getElementById('av-start-btn') as HTMLButtonElement;
-  const stopBtn = document.getElementById('av-stop-btn') as HTMLButtonElement;
-  const statusDot = document.getElementById('av-status-dot');
-  const savePctInput = document.getElementById('av-save-pct') as HTMLInputElement;
-  const bigWinThresholdInput = document.getElementById('av-bigwin-threshold') as HTMLInputElement;
-  const bigWinMultiplierInput = document.getElementById('av-bigwin-multiplier') as HTMLInputElement;
-  const checkIntervalInput = document.getElementById('av-check-interval') as HTMLInputElement;
-  const sessionVaultedEl = document.getElementById('av-session-vaulted');
-  const vaultCountEl = document.getElementById('av-vault-count');
-  const logToggle = document.getElementById('av-log-toggle');
-  const logPanel = document.getElementById('av-log');
-  const logInner = document.getElementById('av-log-inner');
-
-  const formatTime = (date: Date): string => {
-    const h = date.getHours().toString().padStart(2, '0');
-    const m = date.getMinutes().toString().padStart(2, '0');
-    const s = date.getSeconds().toString().padStart(2, '0');
-    return `${h}:${m}:${s}`;
-  };
-
-  const callbacks: AutoVaultCallbacks = {
-    onLogEntry: (entry: LogEntry) => {
-      if (!logInner) return;
-      const empty = logInner.querySelector('.av-log-empty');
-      if (empty) empty.remove();
-
-      const div = document.createElement('div');
-      div.className = `av-log-entry ${entry.type}`;
-      div.innerHTML = `<span class="av-log-time">${formatTime(entry.time)}</span><span>${entry.message}</span>`;
-      logInner.insertBefore(div, logInner.firstChild);
-
-      while (logInner.children.length > 30) {
-        logInner.removeChild(logInner.lastChild!);
-      }
-    },
-    onVaultCountUpdate: (count: number, max: number) => {
-      if (!vaultCountEl) return;
-      vaultCountEl.textContent = `${count}/${max}`;
-      vaultCountEl.style.color = count >= max ? '#ef4444' : count >= max * 0.8 ? '#f59e0b' : '#10b981';
-    },
-    onVaultedUpdate: (amount: number, currency: string) => {
-      if (sessionVaultedEl) {
-        sessionVaultedEl.textContent = `${amount.toFixed(8)} ${currency.toUpperCase()}`;
-      }
-    },
-    onRunningChange: (running: boolean) => {
-      if (statusDot) statusDot.classList.toggle('running', running);
-      if (startBtn) startBtn.disabled = running;
-      if (stopBtn) stopBtn.disabled = !running;
-    }
-  };
-
-  const engine = new AutoVaultEngine(callbacks);
-  (window as any).__autoVaultEngine = engine;
-
-  // Populate config inputs from engine defaults
-  const cfg = engine.getConfig();
-  if (savePctInput) savePctInput.value = String(Math.round(cfg.saveAmount * 100));
-  if (bigWinThresholdInput) bigWinThresholdInput.value = String(cfg.bigWinThreshold);
-  if (bigWinMultiplierInput) bigWinMultiplierInput.value = String(cfg.bigWinMultiplier);
-  if (checkIntervalInput) checkIntervalInput.value = String(cfg.checkInterval);
-
-  // Button handlers
-  startBtn?.addEventListener('click', () => engine.start());
-  stopBtn?.addEventListener('click', () => engine.stop());
-
-  // Config input handlers
-  savePctInput?.addEventListener('change', () => {
-    let v = parseInt(savePctInput.value, 10);
-    if (isNaN(v) || v < 1) v = 1;
-    if (v > 100) v = 100;
-    savePctInput.value = String(v);
-    engine.setConfig({ saveAmount: v / 100 });
-  });
-
-  bigWinThresholdInput?.addEventListener('change', () => {
-    let v = parseFloat(bigWinThresholdInput.value);
-    if (isNaN(v) || v < 1) v = 1;
-    bigWinThresholdInput.value = String(v);
-    engine.setConfig({ bigWinThreshold: v });
-  });
-
-  bigWinMultiplierInput?.addEventListener('change', () => {
-    let v = parseFloat(bigWinMultiplierInput.value);
-    if (isNaN(v) || v < 1) v = 1;
-    bigWinMultiplierInput.value = String(v);
-    engine.setConfig({ bigWinMultiplier: v });
-  });
-
-  checkIntervalInput?.addEventListener('change', () => {
-    let v = parseInt(checkIntervalInput.value, 10);
-    if (isNaN(v) || v < 10) v = 10;
-    checkIntervalInput.value = String(v);
-    engine.setConfig({ checkInterval: v });
-  });
-
-  // Log toggle
-  logToggle?.addEventListener('click', () => {
-    logToggle.classList.toggle('open');
-    logPanel?.classList.toggle('open');
-  });
-}
-
 if (typeof window !== 'undefined') {
   (window as any).TiltCheckSidebar = { create: createSidebar, updateLicense, updateGuardian, updateTilt, updateStats, notifyBuddy };
 }
-
-function bootstrapSidebar(): void {
-  // Only render in top-level browsing context.
-  if (window.top !== window) return;
-
-  const mount = () => {
-    if (document.getElementById('tiltcheck-sidebar')) return;
-    try {
-      createSidebar();
-    } catch (error) {
-      console.error('[TiltCheck] Sidebar bootstrap failed:', error);
-    }
-  };
-
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', mount, { once: true });
-  } else {
-    mount();
-  }
-}
-
-if (typeof window !== 'undefined') {
-  bootstrapSidebar();
-}
-
-
-
-
