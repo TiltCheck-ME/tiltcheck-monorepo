@@ -1,5 +1,5 @@
-# TiltCheck Trust Rollup - Standalone Container
-# Build from monorepo root: docker build -f apps/trust-rollup/Dockerfile .
+# TiltCheck API - Standalone Container
+# Build from monorepo root: docker build -f apps/api/Dockerfile .
 
 FROM node:20-alpine AS build
 
@@ -14,7 +14,7 @@ COPY package.json pnpm-workspace.yaml pnpm-lock.yaml .npmrc tsconfig.json ./
 # Copy all workspace sources needed
 COPY packages/ ./packages/
 COPY modules/ ./modules/
-COPY apps/trust-rollup/ ./apps/trust-rollup/
+COPY apps/api/ ./apps/api/
 
 # Install dependencies
 RUN NODE_ENV=development pnpm install --no-frozen-lockfile
@@ -36,6 +36,9 @@ WORKDIR /app
 
 COPY --from=build /app /app
 
-EXPOSE 8083
+EXPOSE 3001
 
-CMD ["node", "apps/trust-rollup/dist/index.js"]
+HEALTHCHECK --interval=30s --timeout=5s --retries=3 \
+  CMD node apps/api/healthcheck.js || exit 1
+
+CMD ["node", "apps/api/dist/index.js"]

@@ -14,11 +14,11 @@
 import dotenv from 'dotenv';
 import path from 'path';
 import {
-  getEnvVar, 
-  getDiscordToken, 
-  getBoolEnv, 
+  getEnvVar,
+  getDiscordToken,
+  getBoolEnv,
   getNumberEnv,
-  DISCORD_TOKEN_ENV_VARS 
+  DISCORD_TOKEN_ENV_VARS
 } from '@tiltcheck/config';
 
 // Use process.cwd() for .env resolution (works in both monorepo and bundled deploys)
@@ -68,9 +68,9 @@ export interface BotConfig {
 
 export const config: BotConfig = {
   // Discord (supports both DISCORD_TOKEN and DISCORD_BOT_TOKEN)
-  discordToken: getDiscordToken(),
-  clientId: getEnvVar('DISCORD_CLIENT_ID'),
-  guildId: getEnvVar('DISCORD_GUILD_ID', false),
+  discordToken: process.env.DAD_DISCORD_BOT_TOKEN || getDiscordToken(),
+  clientId: process.env.DAD_DISCORD_CLIENT_ID || getEnvVar('DISCORD_CLIENT_ID', false),
+  guildId: process.env.DAD_DISCORD_GUILD_ID || getEnvVar('DISCORD_GUILD_ID', false),
 
   // Environment
   nodeEnv: (process.env.NODE_ENV || 'development') as BotConfig['nodeEnv'],
