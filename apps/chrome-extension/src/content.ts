@@ -48,16 +48,15 @@ function isDomain(hostname: string, domain: string): boolean {
 const hostname = window.location.hostname.toLowerCase();
 const pathname = window.location.pathname.toLowerCase();
 const isDiscordAuthRoute = pathname.startsWith('/auth/discord');
+
 const isExcludedDomain =
   isDomain(hostname, 'discord.com') ||
   (hostname === 'localhost' && window.location.port === '3333') ||
-  ((hostname === 'localhost' && window.location.port === '3001') && isDiscordAuthRoute) ||
+  (hostname === 'localhost' && window.location.port === '3001' && isDiscordAuthRoute) ||
   (isDomain(hostname, 'api.tiltcheck.me') && isDiscordAuthRoute);
 
 if (isExcludedDomain) {
   console.log('[TiltCheck] Skipping - excluded domain:', hostname);
-  // Exit immediately - don't load anything
-  throw new Error('TiltCheck: Excluded domain');
 }
 
 // Only import and run on allowed casino sites
@@ -71,7 +70,7 @@ import { SolanaProvider } from '@tiltcheck/utils';
 import { FairnessService } from './FairnessService.js';
 
 // Configuration
-const ANALYZER_WS_URL = 'ws://localhost:3001/analyzer';
+const ANALYZER_WS_URL = 'wss://api.tiltcheck.me/analyzer';
 
 // State
 let extractor: CasinoDataExtractor | null = null;
@@ -1004,12 +1003,8 @@ function showNotification(message: string, type: 'success' | 'warning' | 'error'
 function detectCasinoId(): string {
   const hostname = window.location.hostname.toLowerCase();
 
-  // Use isDomain for secure domain matching (includes Stake mirror domains)
-  if (isDomain(hostname, 'stake.com') || isDomain(hostname, 'stake.us') ||
-      isDomain(hostname, 'stake.bet') || isDomain(hostname, 'stake.games') ||
-      isDomain(hostname, 'staketr.com') || isDomain(hostname, 'staketr2.com') ||
-      isDomain(hostname, 'staketr3.com') || isDomain(hostname, 'staketr4.com') ||
-      isDomain(hostname, 'stake.bz') || isDomain(hostname, 'stake.pet')) return 'stake';
+  // Use isDomain for secure domain matching
+  if (isDomain(hostname, 'stake.com') || isDomain(hostname, 'stake.us')) return 'stake';
   if (isDomain(hostname, 'roobet.com')) return 'roobet';
   if (isDomain(hostname, 'bc.game')) return 'bc-game';
   if (isDomain(hostname, 'duelbits.com')) return 'duelbits';
@@ -1280,29 +1275,6 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
       }
       break;
 
-    case 'toggle_sidebar': {
-      const sidebar = document.getElementById('tiltcheck-sidebar');
-      if (!sidebar) {
-        sendResponse({ success: false, error: 'Sidebar not found' });
-        break;
-      }
-
-      const SIDEBAR_WIDTH = 340;
-      const MINIMIZED_WIDTH = 40;
-      const isMinimized = sidebar.classList.toggle('minimized');
-      document.body.classList.toggle('tiltcheck-minimized', isMinimized);
-
-      const width = isMinimized ? MINIMIZED_WIDTH : SIDEBAR_WIDTH;
-      const offset = `${width}px`;
-      document.documentElement.style.marginRight = offset;
-      document.documentElement.style.transition = 'margin-right 0.3s ease';
-      document.body.style.marginRight = offset;
-      document.body.style.transition = 'margin-right 0.3s ease';
-
-      sendResponse({ success: true, minimized: isMinimized });
-      break;
-    }
-
     case 'validate_selector':
       try {
         const el = document.querySelector(message.selector);
@@ -1320,6 +1292,8 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
 });
 
 // Initialize on load
-initialize();
+if (!isExcludedDomain) {
+  initialize();
+}
 
 console.log('[TiltGuard] Content script loaded');
