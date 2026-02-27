@@ -42,9 +42,9 @@ export const serviceJwtConfigSchema = z.object({
  * Discord OAuth Configuration Schema
  */
 export const discordConfigSchema = z.object({
-  DISCORD_CLIENT_ID: z.string().min(1, 'DISCORD_CLIENT_ID is required'),
-  DISCORD_CLIENT_SECRET: z.string().min(1, 'DISCORD_CLIENT_SECRET is required'),
-  DISCORD_REDIRECT_URI: z.string().url('DISCORD_REDIRECT_URI must be a valid URL'),
+  DISCORD_CLIENT_ID: z.string().optional(),
+  DISCORD_CLIENT_SECRET: z.string().optional(),
+  DISCORD_REDIRECT_URI: z.string().optional(),
   DISCORD_BOT_TOKEN: z.string().optional(),
 });
 
