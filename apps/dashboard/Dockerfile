@@ -15,6 +15,7 @@ COPY package.json pnpm-workspace.yaml pnpm-lock.yaml .npmrc tsconfig.json ./
 COPY packages/ ./packages/
 COPY modules/ ./modules/
 COPY apps/dashboard/ ./apps/dashboard/
+COPY apps/pricing-oracle/ ./apps/pricing-oracle/
 
 # Install dependencies
 RUN NODE_ENV=development pnpm install --no-frozen-lockfile
