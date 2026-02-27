@@ -353,7 +353,9 @@ export class AutoVaultEngine {
         if (result['autovault-config']) {
           try {
             const saved = result['autovault-config'];
-            this.config = { ...DEFAULT_CONFIG, ...saved };
+            if (saved && typeof saved === 'object' && !Array.isArray(saved)) {
+              this.config = { ...DEFAULT_CONFIG, ...saved };
+            }
           } catch {
             // use defaults
           }

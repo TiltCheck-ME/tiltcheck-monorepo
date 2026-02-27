@@ -11,8 +11,8 @@
  * Integrates with AI Gateway for intelligent tilt detection
  */
 
-import { isStakeDomain, AutoVaultEngine, type LogEntry, type AutoVaultCallbacks } from './autovault';
-import { startFairnessTutorial, shouldShowTutorial } from './fairness-tutorial';
+import { isStakeDomain, AutoVaultEngine, type LogEntry, type AutoVaultCallbacks } from './autovault.js';
+import { startFairnessTutorial, shouldShowTutorial } from './fairness-tutorial.js';
 
 const API_BASE = 'https://api.tiltcheck.me';
 const AI_GATEWAY_URL = 'https://ai-gateway.tiltcheck.me';
