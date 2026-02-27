@@ -162,7 +162,7 @@ export default function OnboardingPage() {
                         <div className={`h-[2px] flex-1 mx-2 ${(['INTERVIEW', 'SAFETY', 'COMPLETE'] as Step[]).includes(currentStep) ? 'bg-[#00FFC6]' : 'bg-[#1A1F24]'}`} />
                         <ProgressStep active={currentStep === 'INTERVIEW'} completed={(['SAFETY', 'COMPLETE'] as Step[]).includes(currentStep)} label="INTERVIEW" />
                         <div className={`h-[2px] flex-1 mx-2 ${(['SAFETY', 'COMPLETE'] as Step[]).includes(currentStep) ? 'bg-[#00FFC6]' : 'bg-[#1A1F24]'}`} />
-                        <ProgressStep active={currentStep === 'SAFETY'} completed={currentStep === 'COMPLETE'} label="SAFETY" />
+                        <ProgressStep active={currentStep === 'SAFETY'} completed={(currentStep as string) === 'COMPLETE'} label="SAFETY" />
                     </div>
                 )}
 
@@ -253,8 +253,8 @@ export default function OnboardingPage() {
                                     {chatMessages.map((msg, idx) => (
                                         <div key={idx} className={`flex ${msg.role === 'assistant' ? 'justify-start' : 'justify-end'} animate-in fade-in slide-in-from-bottom-2 duration-300`}>
                                             <div className={`max-w-[85%] p-3 rounded-xl text-sm leading-relaxed ${msg.role === 'assistant'
-                                                    ? 'bg-[#1A1F24] text-[#00FFC6] rounded-tl-none border border-[#00FFC6]/10 shadow-lg'
-                                                    : 'bg-gradient-to-r from-[#00FFC6] to-[#00C2FF] text-[#0E0E0F] font-bold rounded-tr-none shadow-md'
+                                                ? 'bg-[#1A1F24] text-[#00FFC6] rounded-tl-none border border-[#00FFC6]/10 shadow-lg'
+                                                : 'bg-gradient-to-r from-[#00FFC6] to-[#00C2FF] text-[#0E0E0F] font-bold rounded-tr-none shadow-md'
                                                 }`}>
                                                 {msg.role === 'assistant' ? (
                                                     <span dangerouslySetInnerHTML={{ __html: msg.content.replace(/\*\*(.*?)\*\*/g, '<strong class="text-white">$1</strong>') }} />
@@ -386,8 +386,8 @@ function ProgressStep({ active, completed, label }: { active: boolean; completed
     return (
         <div className="flex flex-col items-center">
             <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-xs mb-2 transition-all duration-500 border-2 ${completed ? 'bg-[#00FFC6] border-[#00FFC6] text-[#0E0E0F]' :
-                    active ? 'bg-[#111316] border-[#00FFC6] text-[#00FFC6] shadow-[0_0_15px_rgba(0,255,198,0.3)]' :
-                        'bg-[#111316] border-[#1A1F24] text-[#6B7280]'
+                active ? 'bg-[#111316] border-[#00FFC6] text-[#00FFC6] shadow-[0_0_15px_rgba(0,255,198,0.3)]' :
+                    'bg-[#111316] border-[#1A1F24] text-[#6B7280]'
                 }`}>
                 {completed ? (
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
