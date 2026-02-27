@@ -6,7 +6,7 @@
  * For licensing information, see LICENSE file in the project root.
  */
 /**
- * Popup script for TiltCheck Guardian browser extension
+ * Popup script for TiltCheck browser extension
  * Updated to work with the new popup.html UI layout
  */
 
@@ -62,6 +62,17 @@ const startBtn = document.getElementById('startBtn');
 const stopBtn = document.getElementById('stopBtn');
 const vaultBtn = document.getElementById('vaultBtn');
 const reportBtn = document.getElementById('reportBtn');
+
+// Auth Elements
+const authSection = document.getElementById('authSection');
+const userProfile = document.getElementById('userProfile');
+const userAvatar = document.getElementById('userAvatar') as HTMLImageElement;
+const userName = document.getElementById('userName');
+const onboardingStatus = document.getElementById('onboardingStatus');
+const loginBtn = document.getElementById('loginBtn');
+const onboardingPrompt = document.getElementById('onboardingPrompt');
+const finishSetupBtn = document.getElementById('finishSetupBtn');
+
 // Configurator Elements
 const configBtn = document.getElementById('configBtn');
 const configPanel = document.getElementById('configPanel');
@@ -70,6 +81,101 @@ const cfgSave = document.getElementById('cfgSave');
 const cfgDomain = document.getElementById('cfgDomain') as HTMLInputElement;
 const cfgBet = document.getElementById('cfgBet') as HTMLInputElement;
 const cfgResult = document.getElementById('cfgResult') as HTMLInputElement;
+
+// State
+let authToken: string | null = null;
+let userData: any = null;
+
+/**
+ * Initialize Authentication State
+ */
+async function initAuth() {
+  const result = await chrome.storage.local.get(['authToken', 'userData']);
+  if (result.authToken) {
+    authToken = result.authToken as string;
+    userData = result.userData;
+    updateAuthUI();
+    checkOnboardingStatus();
+  }
+}
+
+/**
+ * Update Auth UI based on state
+ */
+function updateAuthUI() {
+  if (authToken && userData) {
+    loginBtn.classList.add('hidden');
+    userProfile.classList.remove('hidden');
+    userName.textContent = userData.username || 'User';
+    userAvatar.src = userData.avatar || '';
+  } else {
+    loginBtn.classList.remove('hidden');
+    userProfile.classList.add('hidden');
+  }
+}
+
+/**
+ * Check Onboarding Status from API
+ */
+async function checkOnboardingStatus() {
+  if (!authToken) return;
+
+  try {
+    const response = await fetch(`${AI_GATEWAY_URL.replace('ai-gateway', 'api')}/user/onboarding`, {
+      headers: {
+        'Authorization': `Bearer ${authToken}`
+      }
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+      if (data.isOnboarded) {
+        onboardingStatus.textContent = 'ONBOARDED';
+        onboardingStatus.classList.add('complete');
+        onboardingPrompt?.classList.add('hidden');
+      } else {
+        onboardingStatus.textContent = 'PENDING';
+        onboardingStatus.classList.remove('complete');
+        onboardingPrompt?.classList.remove('hidden');
+      }
+
+      // Sync risk level to extension settings
+      if (data.riskLevel) {
+        chrome.storage.local.set({ riskLevel: data.riskLevel });
+      }
+    }
+  } catch (error) {
+    console.error('[TiltGuard] Failed to fetch onboarding status:', error);
+  }
+}
+
+/**
+ * Start Discord OAuth Login
+ */
+function startLogin() {
+  const loginUrl = `${AI_GATEWAY_URL.replace('ai-gateway', 'api')}/auth/discord/login?source=extension`;
+  window.open(loginUrl, 'TiltCheck Login', 'width=500,height=700');
+}
+
+/**
+ * Redirect to dashboard onboarding
+ */
+function goToOnboarding() {
+  chrome.tabs.create({ url: 'https://dashboard.tiltcheck.me/onboarding' });
+}
+
+// Listen for broadcast message from login window
+window.addEventListener('message', (event) => {
+  if (event.data?.type === 'discord-auth') {
+    authToken = event.data.token;
+    userData = event.data.user;
+
+    chrome.storage.local.set({ authToken, userData }, () => {
+      updateAuthUI();
+      checkOnboardingStatus();
+    });
+  }
+});
 
 /**
  * Send message to content script
@@ -454,6 +560,8 @@ if (reportBtn) reportBtn.addEventListener('click', viewFullReport);
 if (configBtn) configBtn.addEventListener('click', openConfigurator);
 if (cfgCancel) cfgCancel.addEventListener('click', closeConfigurator);
 if (cfgSave) cfgSave.addEventListener('click', saveConfiguration);
+if (loginBtn) loginBtn.addEventListener('click', startLogin);
+if (finishSetupBtn) finishSetupBtn.addEventListener('click', goToOnboarding);
 
 // Test buttons delegation
 document.querySelectorAll('.test-btn').forEach(btn => {
@@ -465,6 +573,7 @@ document.querySelectorAll('.test-btn').forEach(btn => {
 
 // Initial status check
 refreshStatus();
+initAuth();
 
 // Listen for messages from content script
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {

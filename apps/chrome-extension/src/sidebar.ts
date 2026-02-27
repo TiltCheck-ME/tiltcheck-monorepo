@@ -6,12 +6,12 @@
  * For licensing information, see LICENSE file in the project root.
  */
 /**
- * TiltGuard Sidebar - Fully Functional UI
+ * TiltCheck Sidebar - Fully Functional UI
  * Features: Discord auth, vault, dashboard, wallet, session export, premium upgrades
  * Integrates with AI Gateway for intelligent tilt detection
  */
 
-const API_BASE = 'https://api.tiltcheck.me';
+const API_BASE = 'http://localhost:3001';
 const AI_GATEWAY_URL = 'https://ai-gateway.tiltcheck.me';
 let authToken: string | null = null;
 let showSettings = false;
@@ -27,7 +27,7 @@ let sessionStats = {
   startTime: Date.now(),
   totalBets: 0,
   totalWagered: 0,
-  totalWins: 0,
+  totalWon: 0,
   currentBalance: 0
 };
 let lockTimerInterval: any = null;
@@ -35,7 +35,7 @@ let lockTimerInterval: any = null;
 async function apiCall(endpoint: string, options: any = {}) {
   const headers: any = { 'Content-Type': 'application/json' };
   if (authToken) headers['Authorization'] = `Bearer ${authToken}`;
-  
+
   try {
     const response = await fetch(`${API_BASE}${endpoint}`, {
       ...options,
@@ -55,7 +55,7 @@ async function callAIGateway(application: string, data: any = {}) {
   try {
     const response = await fetch(`${AI_GATEWAY_URL}/api/ai`, {
       method: 'POST',
-      headers: { 
+      headers: {
         'Content-Type': 'application/json',
         ...(authToken ? { 'Authorization': `Bearer ${authToken}` } : {})
       },
@@ -65,27 +65,27 @@ async function callAIGateway(application: string, data: any = {}) {
         context: data.context || {}
       })
     });
-    
+
     if (response.ok) {
       return await response.json();
     }
-    console.log('[TiltGuard] AI Gateway request failed, using local fallback');
+    console.log('[TiltCheck] AI Gateway request failed, using local fallback');
     return { success: false, error: 'Request failed' };
   } catch (error) {
-    console.log('[TiltGuard] AI Gateway offline, using local fallback');
+    console.log('[TiltCheck] AI Gateway offline, using local fallback');
     return { success: false, error: 'Network error' };
   }
 }
 
 function createSidebar() {
-  const existing = document.getElementById('tiltguard-sidebar');
+  const existing = document.getElementById('tiltcheck-sidebar');
   if (existing) existing.remove();
 
   const sidebar = document.createElement('div');
-  sidebar.id = 'tiltguard-sidebar';
+  sidebar.id = 'tiltcheck-sidebar';
   sidebar.innerHTML = `
     <div class="tg-header">
-      <div class="tg-logo">TiltGuard</div>
+      <div class="tg-logo">TiltCheck</div>
       <div class="tg-header-actions">
         <button class="tg-icon-btn" id="tg-settings" title="Settings">⚙</button>
         <button class="tg-icon-btn" id="tg-minimize" title="Minimize">−</button>
@@ -651,7 +651,7 @@ function setupEventListeners() {
     document.body.style.marginRight = isMin ? '40px' : '340px';
     if (btn) btn.textContent = isMin ? '+' : '−';
   });
-  
+
   // Settings toggle
   document.getElementById('tg-settings')?.addEventListener('click', () => {
     const panel = document.getElementById('tg-settings-panel');
@@ -660,7 +660,7 @@ function setupEventListeners() {
       panel.style.display = showSettings ? 'block' : 'none';
     }
   });
-  
+
   document.getElementById('close-settings')?.addEventListener('click', () => {
     const panel = document.getElementById('tg-settings-panel');
     if (panel) {
@@ -717,7 +717,7 @@ function setupEventListeners() {
       // Auto-populate from storage/session
       const clientSeed = localStorage.getItem('tiltcheck_client_seed');
       const nonce = localStorage.getItem('tiltcheck_nonce'); // Assuming this is tracked
-      
+
       if (clientSeed) (document.getElementById('fv-client') as HTMLInputElement).value = clientSeed;
       if (nonce) (document.getElementById('fv-nonce') as HTMLInputElement).value = nonce;
     }
@@ -772,7 +772,7 @@ function setupEventListeners() {
   window.addEventListener('tg-fairness-result', ((e: CustomEvent) => {
     const res = document.getElementById('fv-results');
     if (res) res.style.display = 'block';
-    
+
     document.getElementById('fv-res-dice')!.textContent = e.detail.dice.toFixed(2);
     document.getElementById('fv-res-limbo')!.textContent = e.detail.limbo.toFixed(2) + 'x';
     document.getElementById('fv-res-hash')!.textContent = e.detail.hash;
@@ -792,14 +792,14 @@ function setupEventListeners() {
     tab.addEventListener('click', (e) => {
       const target = (e.currentTarget as HTMLElement).dataset.target;
       const parent = (e.currentTarget as HTMLElement).closest('.tg-settings-panel');
-      
+
       parent?.querySelectorAll('.tg-tab').forEach(t => t.classList.remove('active'));
       (e.currentTarget as HTMLElement).classList.add('active');
-      
+
       parent?.querySelectorAll('.tg-tab-content').forEach(c => (c as HTMLElement).style.display = 'none');
       const content = document.getElementById(target!);
       if (content) content.style.display = 'block';
-      
+
       if (target === 'fv-tab-history') renderVerificationHistory();
     });
   });
@@ -814,7 +814,7 @@ function setupEventListeners() {
     const target = (e.target as HTMLElement).closest('.tg-copy-hash') as HTMLElement;
     if (target && target.dataset.hash) {
       navigator.clipboard.writeText(target.dataset.hash);
-      
+
       // Visual feedback
       const originalText = target.textContent;
       target.textContent = '✓';
@@ -908,7 +908,7 @@ function setupEventListeners() {
   document.getElementById('submit-report')?.addEventListener('click', async () => {
     const type = (document.getElementById('report-type') as HTMLSelectElement).value;
     const details = (document.getElementById('report-details') as HTMLTextAreaElement).value;
-    
+
     if (!details) {
       alert('Please provide details');
       return;
@@ -944,7 +944,7 @@ function setupEventListeners() {
   document.getElementById('tg-add-goal')?.addEventListener('click', () => {
     const name = prompt('Goal Name (e.g. Power Bill):');
     const amount = prompt('Amount ($):');
-    
+
     if (name && amount) {
       const goalsList = document.getElementById('tg-goals-list');
       const goalDiv = document.createElement('div');
@@ -959,7 +959,7 @@ function setupEventListeners() {
     const minsInput = document.getElementById('lock-timer-mins') as HTMLInputElement;
     const agreeCheckbox = document.getElementById('lock-agree') as HTMLInputElement;
     const mins = parseInt(minsInput.value);
-    
+
     if (!agreeCheckbox.checked) {
       alert('You must agree to the voluntary lock disclaimer.');
       return;
@@ -973,7 +973,7 @@ function setupEventListeners() {
     const amountStr = prompt('Amount to lock ($):');
     if (!amountStr) return;
     const amount = parseFloat(amountStr);
-    
+
     if (isNaN(amount) || amount <= 0) {
       alert('Invalid amount');
       return;
@@ -1011,18 +1011,18 @@ function setupEventListeners() {
   // Release Funds Logic
   document.getElementById('release-funds-btn')?.addEventListener('click', async () => {
     if (!userData) return;
-    
+
     const releaseInput = document.getElementById('tg-release-amount') as HTMLInputElement;
     const amountToRelease = releaseInput && releaseInput.value ? parseFloat(releaseInput.value) : null;
 
     updateStatus('Releasing funds...', 'thinking');
-    
+
     try {
       const result = await apiCall(`/vault/${userData.id}/release`, {
         method: 'POST',
         body: JSON.stringify({ amount: amountToRelease })
       });
-      
+
       if (result.success) {
         addFeedMessage(`🔓 Funds released: $${result.amount.toFixed(2)}`);
         updateStatus('Funds released to main wallet', 'success');
@@ -1040,7 +1040,7 @@ function setupEventListeners() {
   document.getElementById('save-config')?.addEventListener('click', async () => {
     const betSelector = (document.getElementById('cfg-bet') as HTMLInputElement).value;
     const resultSelector = (document.getElementById('cfg-result') as HTMLInputElement).value;
-    
+
     // Dynamically import saveCustomCasino or use message passing if needed
     // Since we are in the same bundle context, we can try to use the global extractor if exposed, 
     // or just save to storage directly here for simplicity since we are in content script context.
@@ -1064,57 +1064,57 @@ function setupEventListeners() {
       });
     });
   });
-  
+
   document.getElementById('save-api-keys')?.addEventListener('click', () => {
     const openai = (document.getElementById('api-key-openai') as HTMLInputElement)?.value;
     const anthropic = (document.getElementById('api-key-anthropic') as HTMLInputElement)?.value;
     const custom = (document.getElementById('api-key-custom') as HTMLInputElement)?.value;
-    
+
     apiKeys = { openai, anthropic, custom };
     localStorage.setItem('tiltguard_api_keys', JSON.stringify(apiKeys));
     addFeedMessage('API keys saved');
-    
+
     const panel = document.getElementById('tg-settings-panel');
     if (panel) {
       showSettings = false;
       panel.style.display = 'none';
     }
   });
-  
+
   document.getElementById('tg-discord-login')?.addEventListener('click', async () => {
     // Open Discord OAuth in new window
     const width = 500;
     const height = 700;
     const left = window.screenX + (window.outerWidth - width) / 2;
     const top = window.screenY + (window.outerHeight - height) / 2;
-    
+
     const authWindow = window.open(
-      `${API_BASE}/auth/discord`,
+      `${API_BASE}/auth/discord/login?source=extension`,
       'Discord Login',
       `width=${width},height=${height},left=${left},top=${top}`
     );
-    
+
     // Listen for auth response
     const handleMessage = (event: MessageEvent) => {
       if (event.data.type === 'discord-auth' && event.data.token) {
         authToken = event.data.token;
         userData = event.data.user;
         isAuthenticated = true;
-        localStorage.setItem('tiltguard_auth', JSON.stringify(userData));
-        localStorage.setItem('tiltguard_token', authToken || '');
+        localStorage.setItem('tiltcheck_auth', JSON.stringify(userData));
+        localStorage.setItem('tiltcheck_token', authToken || '');
         showMainContent();
         addFeedMessage(`Authenticated as ${userData.username}`);
         window.removeEventListener('message', handleMessage);
-        
+
         // Close auth window if still open
         if (authWindow && !authWindow.closed) {
           authWindow.close();
         }
       }
     };
-    
+
     window.addEventListener('message', handleMessage);
-    
+
     // Fallback: check if window was closed without completing auth
     const checkClosed = setInterval(() => {
       if (authWindow && authWindow.closed) {
@@ -1126,13 +1126,13 @@ function setupEventListeners() {
       }
     }, 1000);
   });
-  
+
   document.getElementById('tg-guest-mode')?.addEventListener('click', continueAsGuest);
-  document.getElementById('tg-logout')?.addEventListener('click', () => { 
-    localStorage.removeItem('tiltguard_auth'); 
+  document.getElementById('tg-logout')?.addEventListener('click', () => {
+    localStorage.removeItem('tiltguard_auth');
     localStorage.removeItem('tiltguard_token');
     authToken = null;
-    location.reload(); 
+    location.reload();
   });
   document.getElementById('tg-open-dashboard')?.addEventListener('click', openDashboard);
   document.getElementById('tg-open-vault')?.addEventListener('click', openVault);
@@ -1161,7 +1161,7 @@ function checkAuthStatus() {
   const stored = localStorage.getItem('tiltguard_auth');
   const token = localStorage.getItem('tiltguard_token');
   const keys = localStorage.getItem('tiltguard_api_keys');
-  
+
   if (keys) {
     apiKeys = JSON.parse(keys);
     // Populate settings fields
@@ -1173,13 +1173,13 @@ function checkAuthStatus() {
       }
     }, 100);
   }
-  
+
   // Require authentication
   if (!stored || !token) {
     console.log('🎮 TiltGuard: Authentication required');
     return;
   }
-  
+
   if (stored && token) {
     userData = JSON.parse(stored);
     authToken = token;
@@ -1196,7 +1196,7 @@ async function continueAsGuest() {
     method: 'POST',
     body: JSON.stringify({ username: 'Guest' })
   });
-  
+
   if (result.success) {
     authToken = result.token;
     userData = result.user;
@@ -1213,14 +1213,14 @@ async function continueAsGuest() {
 function addFeedMessage(message: string) {
   const feed = document.getElementById('tg-message-feed');
   if (!feed) return;
-  
+
   const item = document.createElement('div');
   item.className = 'tg-feed-item';
   const time = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
   item.textContent = `[${time}] ${message}`;
-  
+
   feed.insertBefore(item, feed.firstChild);
-  
+
   // Keep only last 10 messages
   while (feed.children.length > 10) {
     feed.removeChild(feed.lastChild!);
@@ -1232,10 +1232,10 @@ const pnlHistory: number[] = [];
 function initPnLGraph() {
   const canvas = document.getElementById('pnl-canvas') as HTMLCanvasElement;
   if (!canvas) return;
-  
+
   const ctx = canvas.getContext('2d');
   if (!ctx) return;
-  
+
   // Initial empty graph
   drawPnLGraph(ctx, canvas);
 }
@@ -1243,14 +1243,14 @@ function initPnLGraph() {
 function drawPnLGraph(ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement) {
   const width = canvas.width;
   const height = canvas.height;
-  
+
   // Clear
   ctx.clearRect(0, 0, width, height);
-  
+
   // Background
   ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
   ctx.fillRect(0, 0, width, height);
-  
+
   // Zero line
   ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
   ctx.lineWidth = 1;
@@ -1258,7 +1258,7 @@ function drawPnLGraph(ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement) 
   ctx.moveTo(0, height / 2);
   ctx.lineTo(width, height / 2);
   ctx.stroke();
-  
+
   if (pnlHistory.length < 2) {
     // No data message
     ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
@@ -1267,30 +1267,30 @@ function drawPnLGraph(ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement) 
     ctx.fillText('No data yet', width / 2, height / 2);
     return;
   }
-  
+
   // Calculate scale
   const max = Math.max(...pnlHistory, 0);
   const min = Math.min(...pnlHistory, 0);
   const range = max - min || 1;
-  
+
   // Draw line
   ctx.strokeStyle = pnlHistory[pnlHistory.length - 1] >= 0 ? '#10b981' : '#ef4444';
   ctx.lineWidth = 2;
   ctx.beginPath();
-  
+
   pnlHistory.forEach((value, index) => {
     const x = (index / (pnlHistory.length - 1)) * width;
     const y = height - ((value - min) / range) * height;
-    
+
     if (index === 0) {
       ctx.moveTo(x, y);
     } else {
       ctx.lineTo(x, y);
     }
   });
-  
+
   ctx.stroke();
-  
+
   // Current value
   const current = pnlHistory[pnlHistory.length - 1];
   ctx.fillStyle = current >= 0 ? '#10b981' : '#ef4444';
@@ -1318,7 +1318,7 @@ async function vaultCurrentBalance() {
   }
   const confirmed = confirm(`Vault entire balance of $${balance.toFixed(2)}?`);
   if (!confirmed) return;
-  
+
   await depositToVault(balance);
   sessionStats.currentBalance = 0;
 }
@@ -1349,20 +1349,20 @@ async function updateTilt(score: number, _indicators: string[]) {
     if (score >= 60) scoreEl.classList.add('critical');
     else if (score >= 30) scoreEl.classList.add('warning');
   }
-  
+
   // Add to feed if high tilt
   if (score >= 60) {
     addFeedMessage(`⚠️ High tilt detected: ${Math.round(score)}`);
-    
+
     // Get AI-powered intervention suggestions
     const aiResult = await callAIGateway('tilt-detection', {
       context: {
         recentBets: [],
         sessionDuration: Math.floor((Date.now() - sessionStats.startTime) / 60000),
-        losses: Math.max(0, sessionStats.totalWagered - sessionStats.totalWins)
+        losses: Math.max(0, sessionStats.totalWagered - sessionStats.totalWon)
       }
     });
-    
+
     if (aiResult.success && aiResult.data?.interventionSuggestions) {
       aiResult.data.interventionSuggestions.forEach((suggestion: string) => {
         addFeedMessage(`💡 ${suggestion}`);
@@ -1373,12 +1373,12 @@ async function updateTilt(score: number, _indicators: string[]) {
 
 function updateStats(stats: any) {
   sessionStats = { ...sessionStats, ...stats };
-  const duration = Math.floor((Date.now() - stats.startTime) / 1000);
+  const duration = Math.floor((Date.now() - (sessionStats.startTime || Date.now())) / 1000);
   const minutes = Math.floor(duration / 60);
   const seconds = duration % 60;
-  const profit = stats.totalWins - stats.totalWagered;
-  const rtp = stats.totalWagered > 0 ? (stats.totalWins / stats.totalWagered * 100) : 0;
-  
+  const profit = (sessionStats.totalWon || 0) - (sessionStats.totalWagered || 0);
+  const rtp = sessionStats.totalWagered > 0 ? ((sessionStats.totalWon || 0) / sessionStats.totalWagered * 100) : 0;
+
   const updates = {
     'tg-duration': `${minutes}:${seconds.toString().padStart(2, '0')}`,
     'tg-bets': stats.totalBets.toString(),
@@ -1386,7 +1386,7 @@ function updateStats(stats: any) {
     'tg-profit': `$${profit.toFixed(2)}`,
     'tg-rtp': `${rtp.toFixed(1)}%`
   };
-  
+
   Object.entries(updates).forEach(([id, value]) => {
     const el = document.getElementById(id);
     if (el && value) {
@@ -1394,17 +1394,17 @@ function updateStats(stats: any) {
       if (id === 'tg-profit') el.style.color = profit >= 0 ? '#10b981' : '#ef4444';
     }
   });
-  
+
   // Update P/L graph
   pnlHistory.push(profit);
   if (pnlHistory.length > 50) pnlHistory.shift(); // Keep last 50 points
-  
+
   const canvas = document.getElementById('pnl-canvas') as HTMLCanvasElement;
   if (canvas) {
     const ctx = canvas.getContext('2d');
     if (ctx) drawPnLGraph(ctx, canvas);
   }
-  
+
   if (stats.currentBalance !== undefined) sessionStats.currentBalance = stats.currentBalance;
 }
 
@@ -1414,7 +1414,7 @@ async function depositToVault(amount: number) {
     method: 'POST',
     body: JSON.stringify({ amount })
   });
-  
+
   if (result.success) {
     const vaultEl = document.getElementById('tg-vault-balance');
     if (vaultEl) vaultEl.textContent = `$${result.vault.balance.toFixed(2)}`;
@@ -1435,21 +1435,21 @@ async function loadVaultBalance() {
 
 async function checkLockStatus() {
   if (!userData) return;
-  
+
   // Check if user has active lock
   const result = await apiCall(`/vault/${userData.id}/lock-status`);
-  
+
   const form = document.getElementById('tg-lock-form');
   const status = document.getElementById('tg-lock-status');
-  
+
   if (result.success && result.locked) {
     if (form) form.style.display = 'none';
     if (status) status.style.display = 'block';
-    
+
     const amountEl = document.getElementById('tg-locked-amount');
     if (amountEl) amountEl.textContent = `$${result.amount.toFixed(2)}`;
     if (amountEl) amountEl.dataset.total = result.amount.toString();
-    
+
     // Use createdAt if available for progress bar, otherwise default to now (0% progress fallback)
     const startTime = result.createdAt ? new Date(result.createdAt).getTime() : Date.now();
     startLockCountdown(new Date(result.unlockTime).getTime(), startTime);
@@ -1462,19 +1462,19 @@ async function checkLockStatus() {
 
 function startLockCountdown(unlockTime: number, startTime: number) {
   if (lockTimerInterval) clearInterval(lockTimerInterval);
-  
+
   const totalDuration = unlockTime - startTime;
 
   const update = () => {
     const now = Date.now();
     const diff = unlockTime - now;
-    
+
     // Progress Bar Logic
     const elapsed = now - startTime;
     let progress = totalDuration > 0 ? (elapsed / totalDuration) * 100 : 0;
     if (progress > 100) progress = 100;
     if (progress < 0) progress = 0;
-    
+
     const progressEl = document.getElementById('tg-lock-progress');
     if (progressEl) progressEl.style.width = `${progress}%`;
 
@@ -1482,15 +1482,15 @@ function startLockCountdown(unlockTime: number, startTime: number) {
     const btn = document.getElementById('release-funds-btn') as HTMLButtonElement;
     const releaseControls = document.getElementById('tg-release-controls');
     const releaseInput = document.getElementById('tg-release-amount') as HTMLInputElement;
-    
+
     if (diff <= 0) {
       if (timerEl) timerEl.textContent = 'Ready to Release';
       if (releaseControls) releaseControls.style.display = 'block';
-      
+
       // Auto-fill max amount if empty
       if (releaseInput && !releaseInput.value) {
-         const total = document.getElementById('tg-locked-amount')?.dataset.total;
-         if (total) releaseInput.value = total;
+        const total = document.getElementById('tg-locked-amount')?.dataset.total;
+        if (total) releaseInput.value = total;
       }
 
       if (btn) {
@@ -1503,16 +1503,16 @@ function startLockCountdown(unlockTime: number, startTime: number) {
       if (lockTimerInterval) clearInterval(lockTimerInterval);
       return;
     }
-    
+
     // Format time
     const hours = Math.floor(diff / 3600000);
     const minutes = Math.floor((diff % 3600000) / 60000);
     const seconds = Math.floor((diff % 60000) / 1000);
-    
+
     if (timerEl) {
       timerEl.textContent = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
     }
-    
+
     if (btn) {
       btn.disabled = true;
       btn.style.opacity = '0.5';
@@ -1520,7 +1520,7 @@ function startLockCountdown(unlockTime: number, startTime: number) {
     }
     if (releaseControls) releaseControls.style.display = 'none';
   };
-  
+
   update();
   lockTimerInterval = setInterval(update, 1000);
 }
@@ -1532,7 +1532,7 @@ async function openDashboard() {
     addFeedMessage('Dashboard unavailable');
     return;
   }
-  
+
   addFeedMessage('Dashboard opened');
   const data = JSON.stringify(result, null, 2);
   const win = window.open('', 'TiltGuard Dashboard', 'width=800,height=600');
@@ -1558,7 +1558,7 @@ async function openVault() {
     alert('Vault data unavailable');
     return;
   }
-  
+
   const data = JSON.stringify(result.vault, null, 2);
   const win = window.open('', 'TiltGuard Vault', 'width=600,height=500');
   if (win) {
@@ -1583,7 +1583,7 @@ async function openWallet() {
     alert('Wallet data unavailable');
     return;
   }
-  
+
   const data = JSON.stringify(result, null, 2);
   const win = window.open('', 'TiltGuard Wallet', 'width=600,height=500');
   if (win) {
@@ -1607,11 +1607,11 @@ async function openPremium() {
     addFeedMessage('Premium plans unavailable');
     return;
   }
-  
-  const plans = result.plans.map((p: any) => 
+
+  const plans = result.plans.map((p: any) =>
     `${p.name} - $${p.price}/mo\n${p.features.join('\n')}`
   ).join('\n\n');
-  
+
   const upgrade = confirm(`Available Plans:\n\n${plans}\n\nUpgrade to Premium?`);
   if (upgrade && userData) {
     const upgradeResult = await apiCall('/premium/upgrade', {
@@ -1638,14 +1638,14 @@ function saveVerificationHistory(data: any) {
 function renderVerificationHistory() {
   const list = document.getElementById('fv-history-list');
   if (!list) return;
-  
+
   const history = JSON.parse(localStorage.getItem('tiltcheck_verification_history') || '[]');
-  
+
   if (history.length === 0) {
     list.innerHTML = '<div class="tg-feed-item">No history yet</div>';
     return;
   }
-  
+
   list.innerHTML = history.map((item: any) => `
     <div class="tg-history-item">
       <div class="tg-history-header">
@@ -1668,7 +1668,7 @@ async function notifyBuddy(type: string, data: any) {
   // Check if feature is enabled
   const mirror = localStorage.getItem('tiltcheck_buddy_mirror') === 'true';
   if (!mirror) return;
-  
+
   // Check if user is authenticated
   if (!userData || !authToken) return;
 
@@ -1681,7 +1681,7 @@ async function notifyBuddy(type: string, data: any) {
         timestamp: Date.now()
       })
     });
-    
+
     if (result.success) {
       addFeedMessage(`👥 Buddy notified: ${type}`);
       updateStatus('Buddy alert sent', 'buddy');
@@ -1716,5 +1716,5 @@ function updateStatus(message: string, type: string = 'info') {
 }
 
 if (typeof window !== 'undefined') {
-  (window as any).TiltGuardSidebar = { create: createSidebar, updateLicense, updateGuardian, updateTilt, updateStats, notifyBuddy };
+  (window as any).TiltCheckSidebar = { create: createSidebar, updateLicense, updateGuardian, updateTilt, updateStats, notifyBuddy };
 }

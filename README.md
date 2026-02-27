@@ -347,7 +347,7 @@ See `SECURITY.md` for reporting vulnerabilities.
 
 ## License
 
-© 2024–2025 TiltCheck Ecosystem (Created by jmenichole). All Rights Reserved.
+© 2024–2026 TiltCheck Ecosystem (Created by jmenichole). All Rights Reserved.
 
 ---
 
@@ -362,7 +362,6 @@ See `SECURITY.md` for reporting vulnerabilities.
 
 ---
 
-## License
+## Full License Project History
 
 This project is licensed under **AGPL-3.0-only**. See LICENSE.
-

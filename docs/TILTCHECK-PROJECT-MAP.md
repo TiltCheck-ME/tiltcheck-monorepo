@@ -15,6 +15,7 @@ TiltCheck = a real-time behavioral safety system for gamblers. It never exploits
 The project is organized as a pnpm monorepo with the following components:
 
 ### 📱 Applications (`/apps`)
+
 - **discord-bot**: The primary Discord interaction point.
 - **web**: The main web frontend.
 - **dashboard**: Admin and user dashboard applications.
@@ -24,6 +25,7 @@ The project is organized as a pnpm monorepo with the following components:
 - **api**: Central backend API.
 
 ### ⚙️ Services (`/services`)
+
 - **event-router**: Centralized event communication bus.
 - **ai-gateway**: Managed access to AI models (OpenAI, etc.).
 - **trust-engines**: Core logic for casino and user trust scoring.
@@ -34,6 +36,7 @@ The project is organized as a pnpm monorepo with the following components:
 - **reverse-proxy**: Network management and routing.
 
 ### 🧩 Modules (`/modules`)
+
 - **suslink**: Scam link detection and prevention.
 - **collectclock**: Bonus tracking and cycle prediction.
 - **tiltcheck-core**: Core tilt detection and intervention logic.
@@ -46,6 +49,7 @@ The project is organized as a pnpm monorepo with the following components:
 - **lockvault**: Secure data storage for modules.
 
 ### 📦 Packages (`/packages`)
+
 - **types**: Global TypeScript definitions.
 - **config**: Shared configuration management.
 - **utils**: Common utility functions.
@@ -77,4 +81,4 @@ The project is organized as a pnpm monorepo with the following components:
 
 ---
 
-*TiltCheck Ecosystem © 2024–2025 | Created by jmenichole*
+*TiltCheck Ecosystem © 2024–2026 | Created by jmenichole*

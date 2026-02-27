@@ -1,5 +1,5 @@
 /**
- * © 2024–2025 TiltCheck Ecosystem. All Rights Reserved.
+ * © 2024–2026 TiltCheck Ecosystem. All Rights Reserved.
  * Created by jmenichole (https://github.com/jmenichole)
  * 
  * This file is part of the TiltCheck project.

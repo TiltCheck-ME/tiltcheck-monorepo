@@ -26,11 +26,59 @@ import type {
   CreateAuditLogPayload,
   PaginationParams,
   PaginatedResult,
+  UserOnboarding,
+  UpsertOnboardingPayload,
 } from './types.js';
 
 // ============================================================================
 // User Queries
 // ============================================================================
+
+/**
+ * Find user onboarding by Discord ID
+ */
+export async function findOnboardingByDiscordId(discordId: string): Promise<UserOnboarding | null> {
+  return findOneBy<UserOnboarding>('user_onboarding', 'discord_id', discordId);
+}
+
+/**
+ * Upsert user onboarding
+ */
+export async function upsertOnboarding(payload: UpsertOnboardingPayload): Promise<UserOnboarding | null> {
+  const sql = `
+    INSERT INTO user_onboarding (
+      discord_id, is_onboarded, has_accepted_terms, risk_level, 
+      cooldown_enabled, daily_limit, notifications_tips, 
+      notifications_trivia, notifications_promos, updated_at
+    ) 
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW())
+    ON CONFLICT (discord_id) DO UPDATE SET
+      is_onboarded = COALESCE($2, user_onboarding.is_onboarded),
+      has_accepted_terms = COALESCE($3, user_onboarding.has_accepted_terms),
+      risk_level = COALESCE($4, user_onboarding.risk_level),
+      cooldown_enabled = COALESCE($5, user_onboarding.cooldown_enabled),
+      daily_limit = COALESCE($6, user_onboarding.daily_limit),
+      notifications_tips = COALESCE($7, user_onboarding.notifications_tips),
+      notifications_trivia = COALESCE($8, user_onboarding.notifications_trivia),
+      notifications_promos = COALESCE($9, user_onboarding.notifications_promos),
+      updated_at = NOW()
+    RETURNING *
+  `;
+
+  const values = [
+    payload.discord_id,
+    payload.is_onboarded ?? null,
+    payload.has_accepted_terms ?? null,
+    payload.risk_level ?? null,
+    payload.cooldown_enabled ?? null,
+    payload.daily_limit ?? null,
+    payload.notifications_tips ?? null,
+    payload.notifications_trivia ?? null,
+    payload.notifications_promos ?? null,
+  ];
+
+  return queryOne<UserOnboarding>(sql, values);
+}
 
 /**
  * Find user by ID

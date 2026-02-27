@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "TiltCheck Guardian",
+  "name": "TiltCheck",
   "version": "1.1.0",
   "description": "Real-time gambling behavior tracker, tilt detection, and bankroll management tools.",
   "permissions": [
@@ -16,7 +16,7 @@
     "service_worker": "background.js"
   },
   "action": {
-    "default_title": "TiltCheck Guardian",
+    "default_title": "TiltCheck",
     "default_popup": "popup.html"
   },
   "content_scripts": [

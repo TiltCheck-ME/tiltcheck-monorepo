@@ -9,6 +9,7 @@ import * as esbuild from 'esbuild';
 import { promises as fs } from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { polyfillNode } from 'esbuild-plugin-polyfill-node';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -17,11 +18,11 @@ const isWatch = process.argv.includes('--watch');
 async function copyDir(src, dest) {
   await fs.mkdir(dest, { recursive: true });
   const entries = await fs.readdir(src, { withFileTypes: true });
-  
+
   for (const entry of entries) {
     const srcPath = path.join(src, entry.name);
     const destPath = path.join(dest, entry.name);
-    
+
     if (entry.isDirectory()) {
       await copyDir(srcPath, destPath);
     } else {
@@ -31,12 +32,17 @@ async function copyDir(src, dest) {
 }
 
 async function build() {
-  console.log('🔨 Building TiltGuard Browser Extension v1.1.0...');
+  const manifestPath = path.join(__dirname, 'src/manifest.json');
+  const manifestContent = await fs.readFile(manifestPath, 'utf8');
+  const manifest = JSON.parse(manifestContent);
+  const version = manifest.version;
+
+  console.log(`🔨 Building TiltCheck Browser Extension v${version}...`);
 
   // Clean dist directory (but preserve icons if they exist)
   const distPath = path.join(__dirname, 'dist');
   const iconsPath = path.join(distPath, 'icons');
-  
+
   // Check if icons exist before cleaning
   let hasIcons = false;
   try {
@@ -59,6 +65,17 @@ async function build() {
     target: 'chrome100',
     sourcemap: true,
     minify: false,
+    plugins: [],
+    alias: {
+      crypto: 'crypto-browserify',
+      stream: 'stream-browserify',
+      vm: 'vm-browserify',
+      buffer: 'buffer',
+    },
+    define: {
+      global: 'window',
+      process: '{"env":{}}',
+    },
   });
 
   // Build popup script
@@ -71,6 +88,17 @@ async function build() {
     target: 'chrome100',
     sourcemap: true,
     minify: false,
+    plugins: [],
+    alias: {
+      crypto: 'crypto-browserify',
+      stream: 'stream-browserify',
+      vm: 'vm-browserify',
+      buffer: 'buffer',
+    },
+    define: {
+      global: 'window',
+      process: '{"env":{}}',
+    },
   });
 
   // Copy static files

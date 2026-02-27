@@ -1,5 +1,5 @@
 /**
- * © 2024–2025 TiltCheck Ecosystem. All Rights Reserved.
+ * © 2024–2026 TiltCheck Ecosystem. All Rights Reserved.
  * Created by jmenichole (https://github.com/jmenichole)
  * 
  * This file is part of the TiltCheck project.
@@ -25,9 +25,9 @@ import {
   type JWTConfig,
   type DiscordOAuthConfig,
 } from '@tiltcheck/auth';
-import { 
-  findOrCreateUserByDiscord, 
-  findUserByEmail, 
+import {
+  findOrCreateUserByDiscord,
+  findUserByEmail,
   createUser,
   updateUser,
   findUserById,
@@ -90,13 +90,13 @@ function getJWTSecret(): string {
  */
 function generateJWT(userId: string, email: string, roles: string[]): string {
   const secret = getJWTSecret();
-  
+
   const token = jwt.sign(
     { userId, email, roles },
     secret,
     { expiresIn: '7d' }
   );
-  
+
   return token;
 }
 
@@ -111,66 +111,66 @@ function generateJWT(userId: string, email: string, roles: string[]): string {
 router.post('/register', authLimiter, async (req, res) => {
   try {
     const { email, password } = req.body;
-    
+
     // Validate input
     if (!email || !password) {
-      res.status(400).json({ 
-        error: 'Email and password are required', 
-        code: 'MISSING_FIELDS' 
+      res.status(400).json({
+        error: 'Email and password are required',
+        code: 'MISSING_FIELDS'
       });
       return;
     }
-    
+
     // Validate email format
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
-      res.status(400).json({ 
-        error: 'Invalid email format', 
-        code: 'INVALID_EMAIL' 
+      res.status(400).json({
+        error: 'Invalid email format',
+        code: 'INVALID_EMAIL'
       });
       return;
     }
-    
+
     // Validate password length
     if (password.length < 6) {
-      res.status(400).json({ 
-        error: 'Password must be at least 6 characters', 
-        code: 'INVALID_PASSWORD' 
+      res.status(400).json({
+        error: 'Password must be at least 6 characters',
+        code: 'INVALID_PASSWORD'
       });
       return;
     }
-    
+
     // Check if user already exists
     const existingUser = await findUserByEmail(email);
     if (existingUser) {
-      res.status(409).json({ 
-        error: 'User with this email already exists', 
-        code: 'USER_EXISTS' 
+      res.status(409).json({
+        error: 'User with this email already exists',
+        code: 'USER_EXISTS'
       });
       return;
     }
-    
+
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
-    
+
     // Create user
     const user = await createUser({
       email,
       hashed_password: hashedPassword,
       roles: ['user'],
     });
-    
+
     if (!user) {
-      res.status(500).json({ 
-        error: 'Failed to create user', 
-        code: 'CREATE_FAILED' 
+      res.status(500).json({
+        error: 'Failed to create user',
+        code: 'CREATE_FAILED'
       });
       return;
     }
-    
+
     // Generate JWT
     const token = generateJWT(user.id, user.email!, user.roles);
-    
+
     res.status(201).json({
       success: true,
       token,
@@ -193,42 +193,42 @@ router.post('/register', authLimiter, async (req, res) => {
 router.post('/login', authLimiter, async (req, res) => {
   try {
     const { email, password } = req.body;
-    
+
     // Validate input
     if (!email || !password) {
-      res.status(400).json({ 
-        error: 'Email and password are required', 
-        code: 'MISSING_FIELDS' 
+      res.status(400).json({
+        error: 'Email and password are required',
+        code: 'MISSING_FIELDS'
       });
       return;
     }
-    
+
     // Find user by email
     const user = await findUserByEmail(email);
     if (!user || !user.hashed_password) {
-      res.status(401).json({ 
-        error: 'Invalid credentials', 
-        code: 'INVALID_CREDENTIALS' 
+      res.status(401).json({
+        error: 'Invalid credentials',
+        code: 'INVALID_CREDENTIALS'
       });
       return;
     }
-    
+
     // Verify password
     const isValidPassword = await bcrypt.compare(password, user.hashed_password);
     if (!isValidPassword) {
-      res.status(401).json({ 
-        error: 'Invalid credentials', 
-        code: 'INVALID_CREDENTIALS' 
+      res.status(401).json({
+        error: 'Invalid credentials',
+        code: 'INVALID_CREDENTIALS'
       });
       return;
     }
-    
+
     // Update last login
     await updateUser(user.id, { last_login_at: new Date() });
-    
+
     // Generate JWT
     const token = generateJWT(user.id, user.email!, user.roles);
-    
+
     res.json({
       success: true,
       token,
@@ -245,21 +245,55 @@ router.post('/login', authLimiter, async (req, res) => {
 });
 
 /**
+ * POST /auth/guest
+ * Start a guest session without full authentication
+ */
+router.post('/guest', async (req, res) => {
+  try {
+    const { username } = req.body;
+    const guestUsername = username || `Guest_${Math.floor(Math.random() * 10000)}`;
+    const guestId = `guest_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+
+    // Generate a guest JWT
+    const secret = getJWTSecret();
+    const token = jwt.sign(
+      { userId: guestId, username: guestUsername, roles: ['guest'], isGuest: true },
+      secret,
+      { expiresIn: '1d' }
+    );
+
+    res.json({
+      success: true,
+      token,
+      user: {
+        id: guestId,
+        username: guestUsername,
+        roles: ['guest'],
+        isGuest: true,
+      },
+    });
+  } catch (error) {
+    console.error('[Auth] Guest login error:', error);
+    res.status(500).json({ error: 'Failed to start guest session' });
+  }
+});
+
+/**
  * GET /auth/discord/login
  * Initiates Discord OAuth flow
  */
 router.get('/discord/login', authLimiter, (req, res) => {
   try {
     const config = getDiscordConfig();
-    
+
     if (!config.clientId) {
       res.status(500).json({ error: 'Discord OAuth not configured' });
       return;
     }
-    
+
     // Generate state for CSRF protection
     const state = generateOAuthState();
-    
+
     // Store state in a short-lived cookie
     res.cookie('oauth_state', state, {
       httpOnly: true,
@@ -267,7 +301,7 @@ router.get('/discord/login', authLimiter, (req, res) => {
       sameSite: 'lax',
       maxAge: 10 * 60 * 1000, // 10 minutes
     });
-    
+
     // Store redirect URL if provided
     const redirectUrl = req.query.redirect as string;
     if (redirectUrl) {
@@ -278,7 +312,18 @@ router.get('/discord/login', authLimiter, (req, res) => {
         maxAge: 10 * 60 * 1000,
       });
     }
-    
+
+    // Store source if provided (e.g., 'extension')
+    const source = req.query.source as string;
+    if (source) {
+      res.cookie('oauth_source', source, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        maxAge: 10 * 60 * 1000,
+      });
+    }
+
     const authUrl = getDiscordAuthUrl(config, state);
     res.redirect(authUrl);
   } catch (error) {
@@ -295,39 +340,39 @@ router.get('/discord/callback', authLimiter, async (req, res) => {
   try {
     const { code, state } = req.query;
     const storedState = req.cookies?.oauth_state;
-    
+
     // Verify state
     if (!state || state !== storedState) {
       res.status(400).json({ error: 'Invalid OAuth state' });
       return;
     }
-    
+
     // Clear state cookie
     res.clearCookie('oauth_state');
-    
+
     if (!code || typeof code !== 'string') {
       res.status(400).json({ error: 'Missing authorization code' });
       return;
     }
-    
+
     const discordConfig = getDiscordConfig();
     const jwtConfig = getJWTConfig();
-    
+
     // Exchange code for tokens and get user info
     const result = await verifyDiscordOAuth(code, discordConfig);
-    
+
     if (!result.valid || !result.user) {
       res.status(401).json({ error: result.error || 'Discord authentication failed' });
       return;
     }
-    
+
     // Find or create user in database
     const user = await findOrCreateUserByDiscord(
       result.user.id,
       result.user.username,
       result.user.avatar || undefined
     );
-    
+
     // Create session
     const { cookie } = await createSession(user.id, jwtConfig, {
       type: 'user',
@@ -335,14 +380,45 @@ router.get('/discord/callback', authLimiter, async (req, res) => {
       discordUsername: result.user.username,
       roles: user.roles,
     });
-    
+
     // Set session cookie
     res.setHeader('Set-Cookie', cookie);
-    
+
+    // Check if source was extension
+    const source = req.cookies?.oauth_source;
+    res.clearCookie('oauth_source');
+
+    if (source === 'extension') {
+      // Generate JWT for the user to pass back directly
+      const token = generateJWT(user.id, user.email || `${user.id}@discord.com`, user.roles);
+
+      // Return a small HTML page that posts message to opener
+      res.send(`
+        <html>
+          <body>
+            <script>
+              const userData = ${JSON.stringify({ id: user.id, username: user.discord_username, avatar: user.discord_avatar })};
+              window.opener.postMessage({ 
+                type: 'discord-auth', 
+                token: '${token}',
+                user: userData
+              }, '*');
+              setTimeout(() => window.close(), 1000);
+            </script>
+            <div style="font-family: sans-serif; text-align: center; margin-top: 50px;">
+              <h2>Authenticated!</h2>
+              <p>Closing terminal...</p>
+            </div>
+          </body>
+        </html>
+      `);
+      return;
+    }
+
     // Redirect to stored URL or default
     const redirectUrl = req.cookies?.oauth_redirect || 'https://justthetip.tiltcheck.me';
     res.clearCookie('oauth_redirect');
-    
+
     res.redirect(redirectUrl);
   } catch (error) {
     console.error('[Auth] Discord callback error:', error);
@@ -361,11 +437,11 @@ router.get('/me', async (req, res) => {
     if (authHeader && authHeader.startsWith('Bearer ')) {
       const token = authHeader.split(' ')[1];
       const secret = getJWTSecret();
-      
+
       try {
         const payload = jwt.verify(token, secret) as { userId: string; email: string; roles: string[] };
         const user = await findUserById(payload.userId);
-        
+
         if (user) {
           res.json({
             userId: user.id,
@@ -383,20 +459,20 @@ router.get('/me', async (req, res) => {
         // Token invalid, try session cookie
       }
     }
-    
+
     // Fallback to session cookie (Discord OAuth)
     const jwtConfig = getJWTConfig();
     const cookieHeader = req.headers.cookie;
-    
+
     const result = await verifySessionCookie(cookieHeader, jwtConfig);
-    
+
     if (!result.valid || !result.session) {
       res.status(401).json({ error: 'Not authenticated', code: 'UNAUTHORIZED' });
       return;
     }
-    
+
     const session = result.session;
-    
+
     res.json({
       userId: session.userId,
       type: session.type,
