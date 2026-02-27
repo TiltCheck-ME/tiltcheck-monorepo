@@ -58,7 +58,7 @@ services:
       - PORT=5055
       - SKIP_ENV_VALIDATION=1
     ports:
-      - "5055:5055"
+      - "5055:3000"
     networks:
       - tiltcheck
     healthcheck:
@@ -94,7 +94,7 @@ services:
       - PORT=8080
       - SKIP_ENV_VALIDATION=1
     ports:
-      - "8080:8080"
+      - "8080:80"
     networks:
       - tiltcheck
 
