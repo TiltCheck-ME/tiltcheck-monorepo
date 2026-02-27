@@ -1,0 +1,458 @@
+[33mcommit 74319a1b75508966c6fe9dc4a3e534aaf485fa6f[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mbeta-hardening-trust-tilt[m[33m, [m[1;31morigin/beta-hardening-trust-tilt[m[33m)[m
+Author: BLACKBOXAI <j.chapman7@yahoo.com>
+Date:   Sun Feb 15 21:31:17 2026 -0600
+
+    pwa setup, sidepanel updates, phone a freind, wrangler worker geolocation
+
+[33mcommit 49cf5b5180513e407c3994279efebe90d2dcf8ae[m
+Author: BLACKBOXAI <j.chapman7@yahoo.com>
+Date:   Sun Feb 15 19:51:56 2026 -0600
+
+    feat rename degen identity, add ios prompt, fix landing page
+
+[33mcommit 3b7160deae3a765e0e99c4cf64bbb92323c62664[m[33m ([m[1;31mgitlab/main[m[33m, [m[1;31mgitlab/HEAD[m[33m)[m
+Author: BLACKBOXAI <j.chapman7@yahoo.com>
+Date:   Sun Feb 15 09:22:57 2026 -0600
+
+    "chore_final_dependency_sync_and_cleanup"
+
+[33mcommit 270116330a0db5021c1bce272b8eb58d609601f4[m
+Author: BLACKBOXAI <j.chapman7@yahoo.com>
+Date:   Sun Feb 15 09:18:15 2026 -0600
+
+    "chore_update_lockfile_to_match_pinned_deps"
+
+[33mcommit 5638518150a6cf15fd26d481fba1ada691c38b56[m
+Author: BLACKBOXAI <j.chapman7@yahoo.com>
+Date:   Sun Feb 15 09:12:57 2026 -0600
+
+    "fix_pin_pnpm_and_react_deps"
+
+[33mcommit dbc1e656be6127379355cf862ca472e357cb431a[m[33m ([m[1;31mgitlab/beta-hardening-trust-tilt[m[33m)[m
+Merge: 5b0d132 f5d27d6
+Author: BLACKBOXAI <j.chapman7@yahoo.com>
+Date:   Sun Feb 15 09:08:24 2026 -0600
+
+    Merge remote-tracking branch 'gitlab/main' into beta-hardening-trust-tilt
+
+[33mcommit 5b0d1327785058fb9591b0951c660b5c4a987edb[m
+Merge: a97d7ab 368407c
+Author: BLACKBOXAI <j.chapman7@yahoo.com>
+Date:   Sun Feb 15 09:08:09 2026 -0600
+
+    Merge remote-tracking branch 'origin/main' into beta-hardening-trust-tilt
+
+[33mcommit a97d7ab65e13e7209ed054b0d73855d6a6f6500a[m
+Author: BLACKBOXAI <j.chapman7@yahoo.com>
+Date:   Sun Feb 15 09:07:51 2026 -0600
+
+    "ci_stabilize_pipelines_and_optimize_build"
+
+[33mcommit 200902ace8f8b1915b6ef3045a287bbabffd07e3[m
+Author: BLACKBOXAI <j.chapman7@yahoo.com>
+Date:   Sat Feb 14 17:30:13 2026 -0600
+
+    fix: disable bot-redeploy workflow to prevent pipeline failures
+    
+    The workflow was failing because detect-changes job is disabled (if: false)
+    but build-bot depends on it and tries to access its outputs.
+    
+    This change makes build-bot only run on workflow_dispatch (manual trigger)
+    to prevent pipeline failures on push events.
+
+[33mcommit aba572caa2dd8224e77dadb4e6604404e9ccbbc7[m
+Author: BLACKBOXAI <j.chapman7@yahoo.com>
+Date:   Sat Feb 14 17:20:10 2026 -0600
+
+    fix: pin React to 18.2.0 to fix TypeScript build errors
+
+[33mcommit 368407cfde4369919c1d10766ec97f084f2cdfaf[m
+Merge: 0fc4d4d 3725cc9
+Author: Jamie Vargas <j.chapman7@yahoo.com>
+Date:   Sat Feb 14 17:08:07 2026 -0600
+
+    Merge pull request #275 from TiltCheck-ME/beta-hardening-trust-tilt
+    
+    Fix Magic wallet registration in tip command
+
+[33mcommit 3725cc9ecb5d8c018ab056b806199542cc07e3bb[m
+Author: BLACKBOXAI <j.chapman7@yahoo.com>
+Date:   Sat Feb 14 17:06:30 2026 -0600
+
+    Fix Magic wallet registration in tip command
+    
+    - Updated register-magic to check for existing Degen Identity
+    - Added db import from @tiltcheck/database
+    - Now shows proper dashboard link instead of 'Coming soon!'
+
+[33mcommit 0fc4d4d07830708ac9873f288a4c8caa52d6d064[m
+Merge: 3a7e563 254b0b9
+Author: Jamie Vargas <j.chapman7@yahoo.com>
+Date:   Sat Feb 14 13:13:40 2026 -0600
+
+    Merge pull request #274 from TiltCheck-ME/beta-hardening-trust-tilt
+    
+    Remove non-working pending tips feature from tip command
+
+[33mcommit 254b0b946cbf18f0e814f3df8be5071ec9ee611c[m
+Author: BLACKBOXAI <j.chapman7@yahoo.com>
+Date:   Sat Feb 14 13:12:57 2026 -0600
+
+    Remove non-working pending tips feature from tip command
+    
+    - Removed the pending subcommand from the tip command builder
+    - Removed the pending line from help text
+    - Removed the switch case for pending in execute function
+    - Removed the handlePending function
+    
+    The pending tips feature was not implemented and just showed 'Feature coming soon!', so it was removed to clean up the command.
+
+[33mcommit f69ce69642aa33a2e7128d17f4a0d6b6d2e897eb[m
+Author: BLACKBOXAI <j.chapman7@yahoo.com>
+Date:   Sat Feb 14 01:42:11 2026 -0600
+
+    cleanup-api-routes
+
+[33mcommit 50581b794196766502d18255e81f3dc848101d51[m
+Author: BLACKBOXAI <j.chapman7@yahoo.com>
+Date:   Sat Feb 14 01:39:16 2026 -0600
+
+    cleanup
+
+[33mcommit 3a7e563b3a1be01b6efd2f1419050c83bbe5923c[m
+Merge: 4bee438 8b34d00
+Author: Jamie Vargas <j.chapman7@yahoo.com>
+Date:   Thu Feb 12 22:26:26 2026 -0600
+
+    Merge pull request #273 from TiltCheck-ME/beta-hardening-trust-tilt
+    
+    Beta hardening trust tilt
+
+[33mcommit 8b34d001bafccc0f741ca5eaf82786eb75582d54[m
+Author: BLACKBOXAI <j.chapman7@yahoo.com>
+Date:   Thu Feb 12 22:26:05 2026 -0600
+
+    Refactor Dockerfile to streamline build process and enhance performance; update dependencies for improved compatibility.
+
+[33mcommit 24e6d2a2ebefdad648f73219ec57794bd7a451d4[m
+Author: BLACKBOXAI <j.chapman7@yahoo.com>
+Date:   Thu Feb 12 22:25:57 2026 -0600
+
+    Update Next.js configuration to ignore ESLint and TypeScript build errors; upgrade Next.js to version 15.5.12.
+
+[33mcommit 4bee4380e60c2118c682910da2daf412d39215a6[m
+Merge: 96536c1 e7e1bbc
+Author: Jamie Vargas <j.chapman7@yahoo.com>
+Date:   Thu Feb 12 22:11:25 2026 -0600
+
+    Merge pull request #272 from TiltCheck-ME/beta-hardening-trust-tilt
+    
+    Remove natural-language-parser from Dockerfiles and update lockvault …
+
+[33mcommit e7e1bbcb6a9657cf0cffbc733de878befacd02c0[m
+Author: BLACKBOXAI <j.chapman7@yahoo.com>
+Date:   Thu Feb 12 22:10:56 2026 -0600
+
+    Remove natural-language-parser from Dockerfiles and update lockvault command to validate percentage input. Refactor tests to handle async operations and improve mock implementations.
+
+[33mcommit 96536c154471583132b89664739a0c421dacf61c[m
+Merge: 325a4c5 4f16eff
+Author: Jamie Vargas <j.chapman7@yahoo.com>
+Date:   Thu Feb 12 22:03:24 2026 -0600
+
+    Merge pull request #271 from TiltCheck-ME/beta-hardening-trust-tilt
+    
+    Beta hardening trust tilt
+
+[33mcommit 4f16eff8032449018cb86c61964accb3158282e3[m
+Merge: fff7513 325a4c5
+Author: BLACKBOXAI <j.chapman7@yahoo.com>
+Date:   Thu Feb 12 22:03:02 2026 -0600
+
+    Merge origin/main into beta-hardening-trust-tilt
+
+[33mcommit fff7513fbcbe3e79f805387d737de66667285834[m
+Author: BLACKBOXAI <j.chapman7@yahoo.com>
+Date:   Thu Feb 12 21:58:48 2026 -0600
+
+    Update pnpm-lock.yaml to add new dependencies and update existing ones. Added '@magic-sdk/admin', '@solana/web3.js', '@tiltcheck/database', bs58, tweetnacl, and tsx. Updated versions for '@types/node', ethereum-cryptography, and '@scure/bip32', '@scure/bip39'.
+
+[33mcommit 77d194704a00b2dd323019f87d14c39ff814fb7c[m
+Author: BLACKBOXAI <j.chapman7@yahoo.com>
+Date:   Thu Feb 12 21:58:08 2026 -0600
+
+    Refactor logger initialization in WalletCheckService to use createLogger from @tiltcheck/logger
+
+[33mcommit 9db7d7067d54f3659528496f3cc6dbfe230005b7[m
+Author: BLACKBOXAI <j.chapman7@yahoo.com>
+Date:   Thu Feb 12 21:23:47 2026 -0600
+
+    allow-empty
+
+[33mcommit 95be27b5e606406c6be588f2f1c2c81937149392[m
+Author: BLACKBOXAI <j.chapman7@yahoo.com>
+Date:   Thu Feb 12 02:20:05 2026 -0600
+
+    "feat-link-trust-score"
+
+[33mcommit 5b749fec3b2343539ba9f0742591f22a09276c1a[m
+Author: BLACKBOXAI <j.chapman7@yahoo.com>
+Date:   Wed Feb 11 22:10:51 2026 -0600
+
+    Fix tip event contract usage in JustTheTip and QualifyFirst
+
+[33mcommit 55fcd0fcbda971c31191fffe4ba2c2bf6579e61b[m
+Author: BLACKBOXAI <j.chapman7@yahoo.com>
+Date:   Wed Feb 11 22:00:35 2026 -0600
+
+    Harden gitignore for beta: remove conflict marker and ignore local build artifacts
+
+[33mcommit 272651bf17495176c8b014fa104412ed32c883bc[m
+Author: BLACKBOXAI <j.chapman7@yahoo.com>
+Date:   Wed Feb 11 21:58:13 2026 -0600
+
+    Beta hardening: trust/tilt APIs, typed events, and no-mock trust rollups
+
+[33mcommit 6caf6b2807d034904ad0ea9208780ccee90f1963[m[33m ([m[1;31morigin/dependabot/npm_and_yarn/next-16.0.10[m[33m, [m[1;32mdependabot/npm_and_yarn/next-16.0.10[m[33m)[m
+Author: BLACKBOXAI <j.chapman7@yahoo.com>
+Date:   Wed Feb 11 19:31:59 2026 -0600
+
+    updates to nlp for ai gateway
+
+[33mcommit f5d27d6081a17c563dff4b6c962f8c74614d163b[m
+Merge: 6c0d71e dbb1362
+Author: Jamie Vargas <j.chapman7@yahoo.com>
+Date:   Wed Feb 11 22:41:46 2026 +0000
+
+    Merge branch 'dependabot/github_actions/actions/setup-node-6' into 'main'
+    
+    build(deps): bump actions/setup-node from 4 to 6
+    
+    See merge request jmenichole1/tiltcheck-monorepo!197
+
+[33mcommit dbb1362a89dc75b178bc4a9c922970fb838ced5f[m
+Author: Placeholder github Source User <dependabotbot_placeholder_xwgg61@noreply.gitlab.com>
+Date:   Wed Feb 11 22:41:46 2026 +0000
+
+    build(deps): bump actions/setup-node from 4 to 6
+
+[33mcommit 6c0d71efda5e9766cd070889ba8392ad39367523[m
+Merge: 6ee9fbd fdf1c9d
+Author: Jamie Vargas <j.chapman7@yahoo.com>
+Date:   Wed Feb 11 22:40:38 2026 +0000
+
+    Merge branch 'dependabot/github_actions/codecov/codecov-action-5' into 'main'
+    
+    build(deps): bump codecov/codecov-action from 3 to 5
+    
+    See merge request jmenichole1/tiltcheck-monorepo!196
+
+[33mcommit fdf1c9d8510e3e44937c255edbf2c18742b7e25f[m
+Author: Placeholder github Source User <dependabotbot_placeholder_xwgg61@noreply.gitlab.com>
+Date:   Wed Feb 11 22:40:37 2026 +0000
+
+    build(deps): bump codecov/codecov-action from 3 to 5
+
+[33mcommit ab64dd12a4449f1a7a54640f1b83351048fe1953[m
+Author: BLACKBOXAI <j.chapman7@yahoo.com>
+Date:   Tue Feb 10 15:19:54 2026 -0600
+
+    Ensure coverage directory has a file for GitLab CI artifacts upload
+
+[33mcommit 0da14b7e4689ac420ca193a218eb850780d5290d[m
+Author: BLACKBOXAI <j.chapman7@yahoo.com>
+Date:   Tue Feb 10 15:12:25 2026 -0600
+
+    Fix GitLab CI artifacts upload by ensuring coverage directory exists
+
+[33mcommit 238f7fb85fb2c98c70963c121fc34685c3462e10[m[33m ([m[1;31mgitlab/dependabot/npm_and_yarn/next-16.0.10[m[33m)[m
+Author: BLACKBOXAI <j.chapman7@yahoo.com>
+Date:   Tue Feb 10 13:12:16 2026 -0600
+
+    "ci-update-gitlab-pnpm-version"
+
+[33mcommit fffc6e2350112c80aaf4e36b789f4bec574d672d[m
+Author: BLACKBOXAI <j.chapman7@yahoo.com>
+Date:   Tue Feb 10 13:03:56 2026 -0600
+
+    "ci-add-gitlab-pipeline-redundancy"
+
+[33mcommit 325a4c538d3d49ef0ecd245ed72f430dc75614c7[m[33m ([m[1;32mmain[m[33m)[m
+Merge: d479454 a4df649
+Author: Jamie Vargas <j.chapman7@yahoo.com>
+Date:   Tue Feb 10 12:59:57 2026 -0600
+
+    Merge pull request #268 from TiltCheck-ME/dependabot/npm_and_yarn/next-15.5.11
+    
+    build(deps): bump next from 15.5.10 to 15.5.11
+
+[33mcommit d4794546fb14c86766dc98ce30a83ea3a7e51ee3[m
+Merge: 6126779 dc07925
+Author: Jamie Vargas <j.chapman7@yahoo.com>
+Date:   Tue Feb 10 12:59:04 2026 -0600
+
+    Merge pull request #269 from TiltCheck-ME/revert-267-dependabot/npm_and_yarn/next-16.0.10
+    
+    Revert "fix-ci-store-path"
+
+[33mcommit dc079255d4ecccabed9ebbfdc80f0da72c963921[m
+Author: Jamie Vargas <j.chapman7@yahoo.com>
+Date:   Tue Feb 10 12:58:42 2026 -0600
+
+    Revert "fix-ci-store-path"
+
+[33mcommit 412d4a0f50e3bb5f1900d45e84614fbff2e82624[m
+Author: BLACKBOXAI <j.chapman7@yahoo.com>
+Date:   Tue Feb 10 12:57:38 2026 -0600
+
+    "chore-update-pnpm-lock"
+
+[33mcommit a4df649752c461594f06f72c52dbbb53161805d5[m
+Author: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>
+Date:   Tue Feb 10 18:55:22 2026 +0000
+
+    build(deps): bump next from 15.5.10 to 15.5.11
+    
+    Bumps [next](https://github.com/vercel/next.js) from 15.5.10 to 15.5.11.
+    - [Release notes](https://github.com/vercel/next.js/releases)
+    - [Changelog](https://github.com/vercel/next.js/blob/canary/release.js)
+    - [Commits](https://github.com/vercel/next.js/compare/v15.5.10...v15.5.11)
+    
+    ---
+    updated-dependencies:
+    - dependency-name: next
+      dependency-version: 15.5.11
+      dependency-type: direct:production
+    ...
+    
+    Signed-off-by: dependabot[bot] <support@github.com>
+
+[33mcommit 612677929c500817fda90f57071e0a0f77592d7a[m
+Merge: a4d69e4 a73f917
+Author: Jamie Vargas <j.chapman7@yahoo.com>
+Date:   Tue Feb 10 12:54:04 2026 -0600
+
+    Merge pull request #266 from TiltCheck-ME/dependabot/npm_and_yarn/jws-4.0.1
+    
+    build(deps): bump jws from 3.2.2 to 4.0.1
+
+[33mcommit a4d69e4fb5fee208091b1184cee65bf25d1b7f36[m
+Merge: 477b0ac 749a40f
+Author: Jamie Vargas <j.chapman7@yahoo.com>
+Date:   Tue Feb 10 12:53:29 2026 -0600
+
+    Merge pull request #265 from TiltCheck-ME/dependabot/npm_and_yarn/pm2-6.0.14
+    
+    build(deps): bump pm2 from 6.0.9 to 6.0.14
+
+[33mcommit 477b0ac33b8d03af9448aff7f9888e1af22df852[m
+Merge: 3ffecf2 eba5f36
+Author: Jamie Vargas <j.chapman7@yahoo.com>
+Date:   Tue Feb 10 12:52:31 2026 -0600
+
+    Merge pull request #264 from TiltCheck-ME/dependabot/npm_and_yarn/systeminformation-5.30.7
+    
+    build(deps): bump systeminformation from 5.27.11 to 5.30.7
+
+[33mcommit 3ffecf251742a2d86abbb59d099517aacce502d5[m
+Merge: 93c7d3a 1510b2b
+Author: Jamie Vargas <j.chapman7@yahoo.com>
+Date:   Tue Feb 10 12:50:49 2026 -0600
+
+    Merge pull request #263 from TiltCheck-ME/dependabot/npm_and_yarn/apps/bet-check-frontend/npm_and_yarn-cbd3fc731d
+    
+    build(deps): bump the npm_and_yarn group across 3 directories with 1 update
+
+[33mcommit 93c7d3a9017b51a2f21962fe4c7b247d30c4012d[m
+Merge: 6ee9fbd c46628a
+Author: Jamie Vargas <j.chapman7@yahoo.com>
+Date:   Tue Feb 10 12:49:48 2026 -0600
+
+    Merge pull request #267 from TiltCheck-ME/dependabot/npm_and_yarn/next-16.0.10
+    
+    fix-ci-store-path
+
+[33mcommit c46628af46767aa988123f57661d3cca4186d249[m
+Merge: 86ec7c3 6ee9fbd
+Author: BLACKBOXAI <j.chapman7@yahoo.com>
+Date:   Tue Feb 10 12:48:06 2026 -0600
+
+    "merge-resolve-conflicts"
+
+[33mcommit 86ec7c3bc8cc6939087c701d564c0b1388fc518f[m
+Author: BLACKBOXAI <j.chapman7@yahoo.com>
+Date:   Tue Feb 10 12:44:23 2026 -0600
+
+    "fix-ci-store-path"
+
+[33mcommit 841375bc8818ce74de972bacb6451fdcffa33b85[m
+Author: BLACKBOXAI <j.chapman7@yahoo.com>
+Date:   Tue Feb 10 12:37:25 2026 -0600
+
+    "ci_caching"
+
+[33mcommit 6ee9fbdb8f6e720655e30b0a0c39d3c284c3992a[m[33m ([m[1;31mgitlab/147-solana-pay-prize-distribution-for-justthetip[m[33m)[m
+Merge: d4acf8b d440ef3
+Author: BLACKBOXAI <j.chapman7@yahoo.com>
+Date:   Tue Feb 10 12:08:37 2026 -0600
+
+    Merge remote-tracking branch 'origin/landing-shared-loader-fallbacks'
+    
+    # Conflicts:
+    #       frontend/public/index.html
+    #       services/landing/public/about.html
+    #       services/landing/public/contact.html
+    #       services/landing/public/how-it-works.html
+    #       services/landing/public/index.html
+    #       services/landing/public/newsletter.html
+    #       services/landing/public/press-kit.html
+    #       services/landing/public/scripts/auth.js
+    #       services/landing/public/terms.html
+    #       services/landing/public/tools/collectclock.html
+    #       services/landing/public/tools/daad.html
+    #       services/landing/public/tools/justthetip.html
+    #       services/landing/public/tools/poker.html
+    #       services/landing/public/tools/qualifyfirst.html
+    #       services/landing/public/tools/suslink.html
+    #       services/landing/public/tools/tiltcheck-core.html
+    #       services/landing/public/tools/triviadrops.html
+
+[33mcommit a73f9177771445983b6f67b786347e80ecf39943[m
+Author: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>
+Date:   Tue Feb 10 17:57:40 2026 +0000
+
+    build(deps): bump jws from 3.2.2 to 4.0.1
+    
+    Bumps [jws](https://github.com/brianloveswords/node-jws) from 3.2.2 to 4.0.1.
+    - [Release notes](https://github.com/brianloveswords/node-jws/releases)
+    - [Changelog](https://github.com/auth0/node-jws/blob/master/CHANGELOG.md)
+    - [Commits](https://github.com/brianloveswords/node-jws/compare/v3.2.2...v4.0.1)
+    
+    ---
+    updated-dependencies:
+    - dependency-name: jws
+      dependency-version: 4.0.1
+      dependency-type: indirect
+    ...
+    
+    Signed-off-by: dependabot[bot] <support@github.com>
+
+[33mcommit 749a40feb54ab346d69f746aa5e924eeaef72611[m
+Author: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>
+Date:   Tue Feb 10 17:56:25 2026 +0000
+
+    build(deps): bump pm2 from 6.0.9 to 6.0.14
+    
+    Bumps [pm2](https://github.com/Unitech/pm2) from 6.0.9 to 6.0.14.
+    - [Release notes](https://github.com/Unitech/pm2/releases)
+    - [Changelog](https://github.com/Unitech/pm2/blob/master/CHANGELOG.md)
+    - [Commits](https://github.com/Unitech/pm2/compare/v6.0.9...v6.0.14)
+    
+    ---
+    updated-dependencies:
+    - dependency-name: pm2
+      dependency-version: 6.0.14
+      dependency-type: direct:production
+    ...
+    
+    Signed-off-by: dependabot[bot] <support@github.com>
