@@ -12,7 +12,7 @@
  */
 
 import { SlashCommandBuilder, ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
-import { dad } from '@tiltcheck/dad';
+import { dad, type Player } from '@tiltcheck/dad';
 import { successEmbed, errorEmbed } from '@tiltcheck/discord-utils';
 import type { Command } from '../types.js';
 
@@ -76,7 +76,7 @@ export const join: Command = {
 
     try {
       const games = dad.getChannelGames(channelId);
-      
+
       if (games.length === 0) {
         await interaction.reply({
           embeds: [errorEmbed('No game', 'No active game in this channel. Start one with `/play`')],
@@ -117,7 +117,7 @@ export const startgame: Command = {
 
     try {
       const games = dad.getChannelGames(channelId);
-      
+
       if (games.length === 0) {
         await interaction.reply({
           embeds: [errorEmbed('No game', 'No active game in this channel.')],
@@ -163,7 +163,7 @@ export const hand: Command = {
 
     try {
       const games = dad.getChannelGames(channelId);
-      
+
       if (games.length === 0) {
         await interaction.reply({
           embeds: [errorEmbed('No game', 'No active game in this channel.')],
@@ -221,7 +221,7 @@ export const submit: Command = {
 
     try {
       const games = dad.getChannelGames(channelId);
-      
+
       if (games.length === 0) {
         await interaction.reply({
           embeds: [errorEmbed('No game', 'No active game in this channel.')],
@@ -282,7 +282,7 @@ export const vote: Command = {
 
     try {
       const games = dad.getChannelGames(channelId);
-      
+
       if (games.length === 0) {
         await interaction.reply({
           embeds: [errorEmbed('No game', 'No active game in this channel.')],
@@ -318,7 +318,7 @@ export const scores: Command = {
 
     try {
       const games = dad.getChannelGames(channelId);
-      
+
       if (games.length === 0) {
         await interaction.reply({
           embeds: [errorEmbed('No game', 'No active game in this channel.')],
@@ -329,10 +329,10 @@ export const scores: Command = {
 
       const game = games[0];
       const sortedPlayers = Array.from(game.players.values())
-        .sort((a, b) => b.score - a.score);
+        .sort((a: Player, b: Player) => b.score - a.score);
 
       const leaderboard = sortedPlayers
-        .map((p, i) => `${i + 1}. **${p.username}**: ${p.score} point${p.score !== 1 ? 's' : ''}`)
+        .map((p: any, i) => `${i + 1}. **${p.username}**: ${p.score} point${p.score !== 1 ? 's' : ''}`)
         .join('\n');
 
       const embed = new EmbedBuilder()
