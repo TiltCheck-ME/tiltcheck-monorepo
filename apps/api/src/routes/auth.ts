@@ -291,8 +291,10 @@ router.get('/discord/login', authLimiter, (req, res) => {
       return;
     }
 
-    // Generate state for CSRF protection
-    const state = generateOAuthState();
+    // Generate state for CSRF protection. Prefix helps recover source in callback if cookies are blocked.
+    const source = req.query.source as string | undefined;
+    const statePrefix = source === 'extension' ? 'ext_' : 'web_';
+    const state = `${statePrefix}${generateOAuthState()}`;
 
     // Store state in a short-lived cookie
     res.cookie('oauth_state', state, {
@@ -314,7 +316,6 @@ router.get('/discord/login', authLimiter, (req, res) => {
     }
 
     // Store source if provided (e.g., 'extension')
-    const source = req.query.source as string;
     if (source) {
       res.cookie('oauth_source', source, {
         httpOnly: true,
@@ -340,9 +341,22 @@ router.get('/discord/callback', authLimiter, async (req, res) => {
   try {
     const { code, state } = req.query;
     const storedState = req.cookies?.oauth_state;
+    const stateValue = typeof state === 'string' ? state : '';
+    const sourceFromState = stateValue.startsWith('ext_') ? 'extension' : undefined;
+    const sourceFromCookie = req.cookies?.oauth_source;
+    const source = sourceFromCookie || sourceFromState;
+    const isLocalDev =
+      process.env.NODE_ENV !== 'production' &&
+      (req.hostname === 'localhost' || req.hostname === '127.0.0.1');
 
-    // Verify state
-    if (!state || state !== storedState) {
+    // Verify state:
+    // - normal: query state must match cookie
+    // - local extension fallback: allow if state cookie is missing but state indicates extension source
+    const stateValid =
+      !!stateValue &&
+      (stateValue === storedState || (!storedState && isLocalDev && source === 'extension'));
+
+    if (!stateValid) {
       res.status(400).json({ error: 'Invalid OAuth state' });
       return;
     }
@@ -385,7 +399,6 @@ router.get('/discord/callback', authLimiter, async (req, res) => {
     res.setHeader('Set-Cookie', cookie);
 
     // Check if source was extension
-    const source = req.cookies?.oauth_source;
     res.clearCookie('oauth_source');
 
     if (source === 'extension') {
