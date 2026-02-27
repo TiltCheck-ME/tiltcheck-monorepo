@@ -77,6 +77,21 @@ export const CASINO_SELECTORS: CasinoSelector[] = [
       gameResult: '[data-test="dice-result"], .dice-result, [class*="resultValue"], .crash-payout'
     }
   },
+  // Stake mirror domains - same selectors as stake.com
+  ...['stake.bet', 'stake.games', 'staketr.com', 'staketr2.com', 'staketr3.com', 'staketr4.com', 'stake.bz', 'stake.pet'].map(domain => ({
+    casinoId: 'stake' as const,
+    domain,
+    selectors: {
+      betAmount: '[data-test="bet-amount"], .bet-amount, [class*="betAmount"]',
+      winAmount: '[data-test="win-amount"], .win-amount, [class*="winAmount"]',
+      balance: '[data-test="balance"], .balance, [class*="balance-value"]',
+      symbols: '.reel-symbol, [data-symbol], [class*="symbol"]',
+      bonusIndicator: '.free-spins-active, [data-bonus="true"], [class*="freeSpins"]',
+      freeSpinsCounter: '.free-spins-count, [class*="freeSpinsCount"]',
+      gameTitle: '.game-title, [data-game-name], [class*="gameTitle"]',
+      gameResult: '[data-test="dice-result"], .dice-result, [class*="resultValue"], .crash-payout'
+    }
+  })),
   {
     casinoId: 'roobet',
     domain: 'roobet.com',
