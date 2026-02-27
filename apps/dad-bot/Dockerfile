@@ -14,8 +14,7 @@ COPY package.json pnpm-workspace.yaml pnpm-lock.yaml .npmrc tsconfig.json ./
 # Copy workspace sources
 COPY packages/ ./packages/
 COPY modules/ ./modules/
-COPY apps/dad-bot/ ./apps/dad-bot/
-COPY apps/pricing-oracle/ ./apps/pricing-oracle/
+COPY apps/ ./apps/
 
 # Install and build
 RUN NODE_ENV=development pnpm install --no-frozen-lockfile

@@ -11,11 +11,10 @@ WORKDIR /app
 # Copy workspace config
 COPY package.json pnpm-workspace.yaml pnpm-lock.yaml .npmrc tsconfig.json ./
 
-# Copy all workspace sources needed
+# Copy all workspace sources
 COPY packages/ ./packages/
 COPY modules/ ./modules/
-COPY apps/trust-rollup/ ./apps/trust-rollup/
-COPY apps/pricing-oracle/ ./apps/pricing-oracle/
+COPY apps/ ./apps/
 
 # Install dependencies
 RUN NODE_ENV=development pnpm install --no-frozen-lockfile
