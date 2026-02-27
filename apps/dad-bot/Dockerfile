@@ -5,6 +5,7 @@ FROM node:20-alpine AS builder
 
 RUN npm install -g pnpm@10
 ENV CI=true
+ENV SKIP_ENV_VALIDATION=1
 
 WORKDIR /app
 
