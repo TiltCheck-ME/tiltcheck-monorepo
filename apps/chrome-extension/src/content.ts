@@ -46,9 +46,13 @@ function isDomain(hostname: string, domain: string): boolean {
 
 // Early exit if on Discord or localhost API - BEFORE any imports or code runs
 const hostname = window.location.hostname.toLowerCase();
+const pathname = window.location.pathname.toLowerCase();
+const isDiscordAuthRoute = pathname.startsWith('/auth/discord');
 const isExcludedDomain =
   isDomain(hostname, 'discord.com') ||
-  (hostname === 'localhost' && window.location.port === '3333');
+  (hostname === 'localhost' && window.location.port === '3333') ||
+  ((hostname === 'localhost' && window.location.port === '3001') && isDiscordAuthRoute) ||
+  (isDomain(hostname, 'api.tiltcheck.me') && isDiscordAuthRoute);
 
 if (isExcludedDomain) {
   console.log('[TiltCheck] Skipping - excluded domain:', hostname);
