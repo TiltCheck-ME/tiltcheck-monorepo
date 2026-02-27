@@ -14,8 +14,8 @@
 import { isStakeDomain, AutoVaultEngine, type LogEntry, type AutoVaultCallbacks } from './autovault.js';
 import { startFairnessTutorial, shouldShowTutorial } from './fairness-tutorial.js';
 
-const API_BASE = 'https://api.tiltcheck.me';
-const AI_GATEWAY_URL = 'https://ai-gateway.tiltcheck.me';
+const API_BASE = 'http://localhost:3001';
+const AI_GATEWAY_URL = 'http://localhost:3333';
 let authToken: string | null = null;
 let showSettings = false;
 let apiKeys: any = {
@@ -1999,6 +1999,30 @@ function initAutoVault() {
 
 if (typeof window !== 'undefined') {
   (window as any).TiltCheckSidebar = { create: createSidebar, updateLicense, updateGuardian, updateTilt, updateStats, notifyBuddy };
+}
+
+function bootstrapSidebar(): void {
+  // Only render in top-level browsing context.
+  if (window.top !== window) return;
+
+  const mount = () => {
+    if (document.getElementById('tiltcheck-sidebar')) return;
+    try {
+      createSidebar();
+    } catch (error) {
+      console.error('[TiltCheck] Sidebar bootstrap failed:', error);
+    }
+  };
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', mount, { once: true });
+  } else {
+    mount();
+  }
+}
+
+if (typeof window !== 'undefined') {
+  bootstrapSidebar();
 }
 
 

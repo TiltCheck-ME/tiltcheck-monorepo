@@ -16,8 +16,7 @@
     "service_worker": "background.js"
   },
   "action": {
-    "default_title": "TiltCheck",
-    "default_popup": "popup.html"
+    "default_title": "TiltCheck"
   },
   "content_scripts": [
     {

@@ -67,7 +67,7 @@ import { SolanaProvider } from '@tiltcheck/utils';
 import { FairnessService } from './FairnessService.js';
 
 // Configuration
-const ANALYZER_WS_URL = 'wss://api.tiltcheck.me/analyzer';
+const ANALYZER_WS_URL = 'ws://localhost:3001/analyzer';
 
 // State
 let extractor: CasinoDataExtractor | null = null;
@@ -1275,6 +1275,29 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
         sendResponse({ error: 'No data to report' });
       }
       break;
+
+    case 'toggle_sidebar': {
+      const sidebar = document.getElementById('tiltcheck-sidebar');
+      if (!sidebar) {
+        sendResponse({ success: false, error: 'Sidebar not found' });
+        break;
+      }
+
+      const SIDEBAR_WIDTH = 340;
+      const MINIMIZED_WIDTH = 40;
+      const isMinimized = sidebar.classList.toggle('minimized');
+      document.body.classList.toggle('tiltcheck-minimized', isMinimized);
+
+      const width = isMinimized ? MINIMIZED_WIDTH : SIDEBAR_WIDTH;
+      const offset = `${width}px`;
+      document.documentElement.style.marginRight = offset;
+      document.documentElement.style.transition = 'margin-right 0.3s ease';
+      document.body.style.marginRight = offset;
+      document.body.style.transition = 'margin-right 0.3s ease';
+
+      sendResponse({ success: true, minimized: isMinimized });
+      break;
+    }
 
     case 'validate_selector':
       try {
