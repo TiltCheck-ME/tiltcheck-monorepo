@@ -1,5 +1,4 @@
-version: '3.8'
-
+# TiltCheck Monorepo Docker Compose
 services:
   # ===========================================
   # CORE SERVICES (Backend)
@@ -11,12 +10,9 @@ services:
       dockerfile: apps/discord-bot/Dockerfile
     container_name: tiltcheck-bot
     restart: unless-stopped
+    env_file: .env
     environment:
       - NODE_ENV=production
-      - DISCORD_TOKEN=${DISCORD_TOKEN}
-      - DISCORD_CLIENT_ID=${DISCORD_CLIENT_ID}
-      - SUPABASE_URL=${SUPABASE_URL}
-      - SUPABASE_SERVICE_ROLE_KEY=${SUPABASE_SERVICE_ROLE_KEY}
       - DISCORD_BOT_HEALTH_PORT=8081
     ports:
       - "8081:8081"
@@ -34,15 +30,10 @@ services:
       dockerfile: apps/api/Dockerfile
     container_name: tiltcheck-api
     restart: unless-stopped
+    env_file: .env
     environment:
       - NODE_ENV=production
       - PORT=3001
-      - SUPABASE_URL=${SUPABASE_URL}
-      - SUPABASE_SERVICE_ROLE_KEY=${SUPABASE_SERVICE_ROLE_KEY}
-      - JWT_SECRET=${JWT_SECRET}
-      - DISCORD_CLIENT_ID=${DISCORD_CLIENT_ID}
-      - DISCORD_CLIENT_SECRET=${DISCORD_CLIENT_SECRET}
-      - DISCORD_REDIRECT_URI=${DISCORD_REDIRECT_URI}
     ports:
       - "3001:3001"
     networks:
@@ -59,11 +50,10 @@ services:
       dockerfile: apps/dashboard/Dockerfile
     container_name: tiltcheck-dashboard
     restart: unless-stopped
+    env_file: .env
     environment:
       - NODE_ENV=production
       - PORT=5055
-      - SUPABASE_URL=${SUPABASE_URL}
-      - SUPABASE_SERVICE_ROLE_KEY=${SUPABASE_SERVICE_ROLE_KEY}
     ports:
       - "5055:5055"
     networks:
@@ -80,13 +70,10 @@ services:
       dockerfile: apps/control-room/Dockerfile
     container_name: tiltcheck-control-room
     restart: unless-stopped
+    env_file: .env
     environment:
       - NODE_ENV=production
       - PORT=3001
-      - SESSION_SECRET=${SESSION_SECRET}
-      - DISCORD_CLIENT_ID=${DISCORD_CLIENT_ID}
-      - DISCORD_CLIENT_SECRET=${DISCORD_CLIENT_SECRET}
-      - DISCORD_CALLBACK_URL=${DISCORD_CALLBACK_URL}
     ports:
       - "3002:3001"
     networks:
@@ -116,9 +103,9 @@ services:
       dockerfile: apps/dad-bot/Dockerfile
     container_name: tiltcheck-dad-bot
     restart: unless-stopped
+    env_file: .env
     environment:
       - NODE_ENV=production
-      - DISCORD_TOKEN=${DAD_DISCORD_TOKEN}
       - DAD_BOT_HEALTH_PORT=8082
     ports:
       - "8082:8082"
@@ -131,6 +118,7 @@ services:
       dockerfile: apps/trust-rollup/Dockerfile
     container_name: tiltcheck-rollup
     restart: unless-stopped
+    env_file: .env
     environment:
       - NODE_ENV=production
       - TRUST_ROLLUP_HEALTH_PORT=8083
