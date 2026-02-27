@@ -51,7 +51,7 @@ export class SolanaProvider {
     const instruction = new TransactionInstruction({
       keys: [{ pubkey: wallet.publicKey, isSigner: true, isWritable: true }],
       programId: this.memoProgramId,
-      data: Buffer.from(new TextEncoder().encode(memoContent)),
+      data: new TextEncoder().encode(memoContent) as any,
     });
 
     const transaction = new Transaction().add(instruction);
