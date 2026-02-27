@@ -25,6 +25,21 @@ Given the constraints (financial/app store) and the need for scalability:
 2.  Go to **SQL Editor** and run the schema migration scripts located in `packages/database/schema.sql` (ensure this file exists with your table definitions).
 3.  Go to **Project Settings > API** and copy the `SUPABASE_URL` and `SUPABASE_ANON_KEY`.
 
+#### Core Schema (SQL)
+Run this in the Supabase SQL Editor to create the users table:
+
+```sql
+CREATE TABLE IF NOT EXISTS users (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  discord_id TEXT UNIQUE NOT NULL,
+  username TEXT NOT NULL,
+  avatar_url TEXT,
+  tier TEXT DEFAULT 'free',
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  last_login TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+```
+
 ### Step 2: Backend Deployment (Railway/Heroku)
 1.  Connect your GitHub repo to Railway.
 2.  Set the **Root Directory** to `apps/backend` (or wherever your server entry point is).

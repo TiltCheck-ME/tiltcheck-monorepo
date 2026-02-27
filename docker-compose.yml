@@ -56,7 +56,7 @@ services:
   dashboard:
     build:
       context: .
-      dockerfile: services/dashboard/Dockerfile
+      dockerfile: apps/dashboard/Dockerfile
     container_name: tiltcheck-dashboard
     restart: unless-stopped
     environment:
@@ -77,7 +77,7 @@ services:
   control-room:
     build:
       context: .
-      dockerfile: services/control-room/Dockerfile
+      dockerfile: apps/control-room/Dockerfile
     container_name: tiltcheck-control-room
     restart: unless-stopped
     environment:
@@ -95,7 +95,7 @@ services:
   landing:
     build:
       context: .
-      dockerfile: services/landing/Dockerfile
+      dockerfile: apps/web/Dockerfile
     container_name: tiltcheck-landing
     restart: unless-stopped
     environment:

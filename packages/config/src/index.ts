@@ -101,7 +101,13 @@ export const severityConfig: SeverityConfig = {
 // ============================================================
 
 /** Environment variable names for Discord bot token (in order of preference) */
-export const DISCORD_TOKEN_ENV_VARS = ['DISCORD_TOKEN', 'DISCORD_BOT_TOKEN'] as const;
+export const DISCORD_TOKEN_ENV_VARS = [
+  'TILT_DISCORD_BOT_TOKEN',
+  'TIP_DISCORD_BOT_TOKEN',
+  'DAD_DISCORD_BOT_TOKEN',
+  'DISCORD_TOKEN',
+  'DISCORD_BOT_TOKEN'
+] as const;
 
 /**
  * Get a required environment variable
