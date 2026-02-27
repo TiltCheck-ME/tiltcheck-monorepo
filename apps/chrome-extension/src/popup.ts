@@ -13,6 +13,7 @@
 // Local dev endpoints
 const API_BASE_URL = 'http://localhost:3001';
 const AI_GATEWAY_URL = 'http://localhost:3333';
+const WEB_APP_URL = 'http://localhost:3000'; // Assuming your Next.js app runs here
 
 // Trusted domain whitelist for AI Gateway
 const TRUSTED_AI_DOMAINS = [
@@ -110,6 +111,11 @@ function updateAuthUI() {
     userProfile.classList.remove('hidden');
     userName.textContent = userData.username || 'User';
     userAvatar.src = userData.avatar || '';
+
+    // Check if Discord ID is missing and prompt for it
+    if (!userData.discordId) {
+      showDiscordIdInput();
+    }
   } else {
     loginBtn.classList.remove('hidden');
     userProfile.classList.add('hidden');
@@ -152,10 +158,59 @@ async function checkOnboardingStatus() {
 }
 
 /**
+ * Show input to manually enter Discord ID
+ */
+function showDiscordIdInput() {
+  const existing = document.getElementById('discord-id-container');
+  if (existing) return;
+
+  const container = document.createElement('div');
+  container.id = 'discord-id-container';
+  container.style.cssText = 'margin-top: 10px; padding: 8px; background: rgba(255,255,255,0.05); border-radius: 6px; border: 1px solid rgba(251, 191, 36, 0.3);';
+  
+  container.innerHTML = `
+    <div style="font-size: 11px; color: #fbbf24; margin-bottom: 6px; display: flex; align-items: center; gap: 4px;">
+      <span>⚠️</span> Missing Discord ID
+    </div>
+    <div style="display: flex; gap: 4px;">
+      <input type="text" id="manual-discord-id" placeholder="Enter ID (e.g. 1234...)" style="flex: 1; padding: 6px; border-radius: 4px; border: 1px solid #444; background: #222; color: white; font-size: 12px;">
+      <button id="save-discord-id" style="padding: 6px 10px; background: #10b981; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 11px; font-weight: bold;">Save</button>
+    </div>
+  `;
+
+  userProfile.appendChild(container);
+
+  document.getElementById('save-discord-id')?.addEventListener('click', async () => {
+    const input = document.getElementById('manual-discord-id') as HTMLInputElement;
+    const id = input.value.trim();
+    if (id) {
+      // Update local state immediately
+      userData.discordId = id;
+      chrome.storage.local.set({ userData });
+      
+      // Attempt to sync to backend
+      try {
+        // This endpoint needs to exist in your API
+        await fetch(`${API_BASE_URL}/user/profile`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${authToken}` },
+          body: JSON.stringify({ discordId: id })
+        });
+        container.remove();
+      } catch (e) {
+        console.error('Failed to sync Discord ID to server', e);
+        // Keep local change but maybe show error? For now just remove input as it's saved locally.
+        container.remove();
+      }
+    }
+  });
+}
+
+/**
  * Start Discord OAuth Login
  */
 function startLogin() {
-  // Use the specific TiltCheck OAuth URL with correct Client ID
+  // Use the specific TiltCheck OAuth URL with correct Client ID, redirecting to local API
   const loginUrl = 'https://discord.com/oauth2/authorize?client_id=1445916179163250860&permissions=2252352254102592&response_type=code&redirect_uri=http%3A%2F%2Flocalhost%3A3001%2Fauth%2Fdiscord%2Fcallback&integration_type=0&scope=identify+email+bot+dm_channels.messages.read+messages.read+applications.store.update+dm_channels.read+presences.read+lobbies.write+applications.entitlements+applications.commands';
   window.open(loginUrl, 'TiltCheck Login', 'width=500,height=700');
 }
