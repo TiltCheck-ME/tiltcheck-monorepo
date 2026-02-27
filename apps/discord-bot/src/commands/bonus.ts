@@ -94,7 +94,7 @@ export const bonus: Command = {
   async autocomplete(interaction: AutocompleteInteraction) {
     const focusedValue = interaction.options.getFocused();
     const casinos = collectclock.getCasinos();
-    
+
     const filtered = casinos.filter(c => c.toLowerCase().includes(focusedValue.toLowerCase())).slice(0, 25);
     await interaction.respond(filtered.map(c => ({ name: c, value: c })));
   }
@@ -102,7 +102,7 @@ export const bonus: Command = {
 
 async function handleList(interaction: ChatInputCommandInteraction) {
   const casinos = collectclock.getCasinos();
-  
+
   const embed = new EmbedBuilder()
     .setColor(0x00FF00)
     .setTitle('🎰 Available Casino Bonuses')
@@ -110,13 +110,13 @@ async function handleList(interaction: ChatInputCommandInteraction) {
 
   // Limit to 25 fields (Discord limit)
   const displayCasinos = casinos.slice(0, 24);
-  
+
   displayCasinos.forEach(c => {
     const state = collectclock.getCasinoState(c);
-    embed.addFields({ 
-      name: c, 
-      value: state ? `${state.currentAmount} SC / Daily` : 'Daily Bonus', 
-      inline: true 
+    embed.addFields({
+      name: c,
+      value: state ? `${state.currentAmount} SC / Daily` : 'Daily Bonus',
+      inline: true
     });
   });
 
@@ -133,7 +133,7 @@ async function handleReady(interaction: ChatInputCommandInteraction) {
   const ready = collectclock.getReadyTimers(interaction.user.id);
 
   if (ready.length === 0) {
-    await interaction.reply({ 
+    await interaction.reply({
       content: '⌛ No bonuses ready yet! Check back later or use `/bonus timers` to see when they reset.',
       ephemeral: true
     });
@@ -165,15 +165,15 @@ async function handleNotify(interaction: ChatInputCommandInteraction) {
       notifyOnNerf: true,
       discordDM: true
     });
-    await interaction.reply({ 
+    await interaction.reply({
       content: `🔔 Notifications **enabled** for **${casino}**. We'll DM you when your bonus is ready!`,
-      ephemeral: true 
+      ephemeral: true
     });
   } else {
     collectclock.unsubscribeNotifications(interaction.user.id, casino);
-    await interaction.reply({ 
+    await interaction.reply({
       content: `🔕 Notifications **disabled** for **${casino}**.`,
-      ephemeral: true 
+      ephemeral: true
     });
   }
 }
@@ -182,9 +182,9 @@ async function handleStats(interaction: ChatInputCommandInteraction) {
   const stats = collectclock.getUserBonusStats(interaction.user.id);
 
   if (stats.totalClaims === 0) {
-    await interaction.reply({ 
+    await interaction.reply({
       content: '📊 You haven\'t claimed any bonuses yet! Start claiming to see your stats.',
-      ephemeral: true 
+      ephemeral: true
     });
     return;
   }
@@ -198,12 +198,12 @@ async function handleStats(interaction: ChatInputCommandInteraction) {
     );
 
   const topCasinos = Object.entries(stats.casinoBreakdown)
-    .sort((a, b) => b[1].claims - a[1].claims)
+    .sort((a: [string, any], b: [string, any]) => b[1].claims - a[1].claims)
     .slice(0, 5);
 
   if (topCasinos.length > 0) {
     let breakdownText = '';
-    topCasinos.forEach(([name, data]) => {
+    topCasinos.forEach(([name, data]: [string, any]) => {
       breakdownText += `**${name}**: ${data.claims} claims (${data.amount.toFixed(2)} SC)\n`;
     });
     embed.addFields({ name: 'Top Casinos', value: breakdownText });
@@ -214,10 +214,10 @@ async function handleStats(interaction: ChatInputCommandInteraction) {
 
 async function handleClaim(interaction: ChatInputCommandInteraction) {
   const casino = interaction.options.getString('casino', true);
-  
+
   try {
     const claim = collectclock.claimBonus(casino, interaction.user.id);
-    
+
     const embed = new EmbedBuilder()
       .setColor(0x00CED1)
       .setTitle('💰 Bonus Claimed!')
@@ -230,9 +230,9 @@ async function handleClaim(interaction: ChatInputCommandInteraction) {
 
     await interaction.reply({ embeds: [embed] });
   } catch (error: any) {
-    await interaction.reply({ 
+    await interaction.reply({
       content: `❌ Could not claim bonus: ${error.message}`,
-      ephemeral: true 
+      ephemeral: true
     });
   }
 }
@@ -241,7 +241,7 @@ async function handleTimers(interaction: ChatInputCommandInteraction) {
   const timers = collectclock.getUserTimers(interaction.user.id);
 
   if (timers.length === 0) {
-    await interaction.reply({ 
+    await interaction.reply({
       content: '📊 You haven\'t claimed any bonuses yet! Use `/bonus claim` to start tracking.',
       ephemeral: true
     });
