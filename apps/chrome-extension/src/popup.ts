@@ -10,14 +10,16 @@
  * Updated to work with the new popup.html UI layout
  */
 
-// AI Gateway URL - validated trusted domain
-const AI_GATEWAY_URL = 'https://ai-gateway.tiltcheck.me';
+// Local dev endpoints
+const API_BASE_URL = 'http://localhost:3001';
+const AI_GATEWAY_URL = 'http://localhost:3333';
 
 // Trusted domain whitelist for AI Gateway
 const TRUSTED_AI_DOMAINS = [
   'ai-gateway.tiltcheck.me',
   'api.tiltcheck.me',
-  'localhost'
+  'localhost',
+  '127.0.0.1'
 ];
 
 /**
@@ -121,7 +123,7 @@ async function checkOnboardingStatus() {
   if (!authToken) return;
 
   try {
-    const response = await fetch(`${AI_GATEWAY_URL.replace('ai-gateway', 'api')}/user/onboarding`, {
+    const response = await fetch(`${API_BASE_URL}/user/onboarding`, {
       headers: {
         'Authorization': `Bearer ${authToken}`
       }
@@ -153,8 +155,7 @@ async function checkOnboardingStatus() {
  * Start Discord OAuth Login
  */
 function startLogin() {
-  const apiBase = AI_GATEWAY_URL.replace('ai-gateway', 'api');
-  const loginUrl = `${apiBase}/auth/discord/login?source=extension`;
+  const loginUrl = `${API_BASE_URL}/auth/discord/login?source=extension`;
   window.open(loginUrl, 'TiltCheck Login', 'width=500,height=700');
 }
 
