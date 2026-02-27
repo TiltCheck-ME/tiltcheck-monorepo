@@ -1,36 +1,25 @@
+// v0.1.0 — 2026-02-25
 /**
- * Shared event types for the TiltCheck ecosystem.
+ * © 2024–2025 TiltCheck Ecosystem. All Rights Reserved.
+ * Created by jmenichole (https://github.com/jmenichole)
+ *
+ * This file is part of the TiltCheck project.
+ * For licensing information, see LICENSE file in the project root.
  */
 
-export interface TiltCheckEvent<T = any> {
-  id: string;
-  type: string;
-  payload: T;
-  timestamp: Date;
-  source: string;
-  correlationId?: string;
-}
+import { Request, Response, NextFunction } from 'express';
 
-export interface UserEventPayload {
-  userId: string;
-  guildId?: string;
-  action: string;
-  metadata?: Record<string, any>;
-}
+export const asyncHandler = (fn: Function) => (req: Request, res: Response, next: NextFunction) => {
+    Promise.resolve(fn(req, res, next)).catch(next);
+};
 
-export interface SystemEventPayload {
-  service: string;
-  status: 'up' | 'down' | 'degraded';
-  message?: string;
-}
+export const notFoundHandler = (req: Request, res: Response) => {
+    res.status(404).json({ error: 'Not Found' });
+};
+
+export type Middleware = (req: Request, res: Response, next: NextFunction) => void;
 
 /**
  * Runtime constant to ensure this file is emitted as a module.
- * This fixes the 'isolatedModules' build error.
  */
-export const EventTopics = {
-  USER_ACTION: 'user.action',
-  SYSTEM_STATUS: 'system.status',
-  TILT_DETECTED: 'tilt.detected',
-  TRUST_SCORE_UPDATED: 'trust.score.updated'
-} as const;
+export const EXPRESS_UTILS_VERSION = '0.1.0';

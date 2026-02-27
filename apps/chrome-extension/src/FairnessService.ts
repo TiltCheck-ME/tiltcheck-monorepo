@@ -37,20 +37,20 @@ export class FairnessService {
     const messageData = encoder.encode(`${discordId}${clientSeed}`);
 
     // Import key for HMAC-SHA256
-    const key = await crypto.subtle.importKey(
+    const key = await ((crypto.subtle || (crypto as any).webcrypto.subtle).importKey(
       'raw',
       keyData as any,
       { name: 'HMAC', hash: 'SHA-256' },
       false,
       ['sign']
-    );
+    ));
 
     // Sign the message
-    const signature = await crypto.subtle.sign(
+    const signature = await ((crypto.subtle || (crypto as any).webcrypto.subtle).sign(
       'HMAC',
       key,
       messageData as any
-    );
+    ));
 
     return this.bufferToHex(signature as ArrayBuffer);
   }
@@ -152,19 +152,19 @@ export class FairnessService {
     const keyData = encoder.encode(serverSeed);
     const messageData = encoder.encode(`${clientSeed}:${nonce}`);
 
-    const key = await crypto.subtle.importKey(
+    const key = await ((crypto.subtle || (crypto as any).webcrypto.subtle).importKey(
       'raw',
       keyData as any,
       { name: 'HMAC', hash: 'SHA-256' },
       false,
       ['sign']
-    );
+    ));
 
-    const signature = await crypto.subtle.sign(
+    const signature = await ((crypto.subtle || (crypto as any).webcrypto.subtle).sign(
       'HMAC',
       key,
       messageData as any
-    );
+    ));
 
     return this.bufferToHex(signature as ArrayBuffer);
   }
