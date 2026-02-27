@@ -1,5 +1,5 @@
-/**
- * © 2024–2025 TiltCheck Ecosystem. All Rights Reserved.
+﻿/**
+ * Â© 2024â€“2025 TiltCheck Ecosystem. All Rights Reserved.
  * Created by jmenichole (https://github.com/jmenichole)
  * 
  * This file is part of the TiltCheck project.
@@ -23,6 +23,8 @@ let apiKeys: any = {
 
 let isAuthenticated = false;
 let userData: any = null;
+const SIDEBAR_WIDTH = 340;
+const MINIMIZED_WIDTH = 40;
 let sessionStats = {
   startTime: Date.now(),
   totalBets: 0,
@@ -31,6 +33,16 @@ let sessionStats = {
   currentBalance: 0
 };
 let lockTimerInterval: any = null;
+
+function applyPageOffset(width: number) {
+  const offset = `${width}px`;
+
+  // Some sites anchor layout to <html>, others to <body>. Set both so content shifts reliably.
+  document.documentElement.style.marginRight = offset;
+  document.documentElement.style.transition = 'margin-right 0.3s ease';
+  document.body.style.marginRight = offset;
+  document.body.style.transition = 'margin-right 0.3s ease';
+}
 
 async function apiCall(endpoint: string, options: any = {}) {
   const headers: any = { 'Content-Type': 'application/json' };
@@ -87,8 +99,8 @@ function createSidebar() {
     <div class="tg-header">
       <div class="tg-logo">TiltCheck</div>
       <div class="tg-header-actions">
-        <button class="tg-icon-btn" id="tg-settings" title="Settings">⚙</button>
-        <button class="tg-icon-btn" id="tg-minimize" title="Minimize">−</button>
+        <button class="tg-icon-btn" id="tg-settings" title="Settings">âš™</button>
+        <button class="tg-icon-btn" id="tg-minimize" title="Minimize">âˆ’</button>
       </div>
     </div>
     <div id="tg-status-bar" class="tg-status-bar" style="display: none;"></div>
@@ -113,7 +125,7 @@ function createSidebar() {
             <span id="tg-username">Guest</span>
             <span class="tg-tier" id="tg-user-tier">Free</span>
           </div>
-          <button class="tg-btn-icon" id="tg-logout" title="Logout">×</button>
+          <button class="tg-btn-icon" id="tg-logout" title="Logout">Ã—</button>
         </div>
 
         <!-- Settings Panel (toggleable) -->
@@ -141,21 +153,21 @@ function createSidebar() {
 
         <!-- Configurator Panel (toggleable) -->
         <div class="tg-settings-panel" id="tg-config-panel" style="display: none;">
-          <h4>🎰 Casino Configurator</h4>
+          <h4>ðŸŽ° Casino Configurator</h4>
           <div class="tg-input-group">
             <label>Bet Amount Selector</label>
             <div style="display: flex; gap: 5px;">
               <input type="text" id="cfg-bet" placeholder=".bet-amount" style="flex:1;" />
-              <button class="tg-btn-icon tg-picker-btn" data-target="cfg-bet" title="Pick Element">🎯</button>
-              <button class="tg-btn-icon tg-test-btn" data-target="cfg-bet" title="Test Selector">👁️</button>
+              <button class="tg-btn-icon tg-picker-btn" data-target="cfg-bet" title="Pick Element">ðŸŽ¯</button>
+              <button class="tg-btn-icon tg-test-btn" data-target="cfg-bet" title="Test Selector">ðŸ‘ï¸</button>
             </div>
           </div>
           <div class="tg-input-group">
             <label>Game Result Selector</label>
             <div style="display: flex; gap: 5px;">
               <input type="text" id="cfg-result" placeholder=".game-result" style="flex:1;" />
-              <button class="tg-btn-icon tg-picker-btn" data-target="cfg-result" title="Pick Element">🎯</button>
-              <button class="tg-btn-icon tg-test-btn" data-target="cfg-result" title="Test Selector">👁️</button>
+              <button class="tg-btn-icon tg-picker-btn" data-target="cfg-result" title="Pick Element">ðŸŽ¯</button>
+              <button class="tg-btn-icon tg-test-btn" data-target="cfg-result" title="Test Selector">ðŸ‘ï¸</button>
             </div>
           </div>
           <button class="tg-btn tg-btn-primary" id="save-config">Save Config</button>
@@ -164,7 +176,7 @@ function createSidebar() {
 
         <!-- Fairness Verifier Panel (toggleable) -->
         <div class="tg-settings-panel" id="tg-verifier-panel" style="display: none;">
-          <h4>⚖️ Fairness Verifier</h4>
+          <h4>âš–ï¸ Fairness Verifier</h4>
           
           <div class="tg-tabs">
             <button class="tg-tab active" data-target="fv-tab-verify">Verify</button>
@@ -184,7 +196,7 @@ function createSidebar() {
               <label>Nonce</label>
               <div style="display: flex; gap: 5px;">
                 <input type="number" id="fv-nonce" placeholder="1" value="1" style="flex: 1;" />
-                <button class="tg-btn-icon" id="fv-sync-nonce" title="Sync Nonce">🔄</button>
+                <button class="tg-btn-icon" id="fv-sync-nonce" title="Sync Nonce">ðŸ”„</button>
               </div>
             </div>
             <button class="tg-btn tg-btn-primary" id="fv-verify">Verify Outcome</button>
@@ -214,7 +226,7 @@ function createSidebar() {
         <div class="tg-metrics-card">
           <div class="tg-metrics-header">
             <h3>Active Session</h3>
-            <div class="tg-guardian-indicator" id="tg-guardian-indicator">●</div>
+            <div class="tg-guardian-indicator" id="tg-guardian-indicator">â—</div>
           </div>
           <div class="tg-metrics-grid">
             <div class="tg-metric">
@@ -263,7 +275,7 @@ function createSidebar() {
         <!-- Quick Actions -->
         <div class="tg-section">
           <div class="tg-action-grid">
-            <button class="tg-action-btn" id="tg-open-suslink">🛡️ SusLink</button>
+            <button class="tg-action-btn" id="tg-open-suslink">ðŸ›¡ï¸ SusLink</button>
             <button class="tg-action-btn" id="tg-open-config">Configure</button>
             <button class="tg-action-btn" id="tg-open-verifier">Verify</button>
             <button class="tg-action-btn" id="tg-open-dashboard">Dashboard</button>
@@ -271,17 +283,17 @@ function createSidebar() {
             <button class="tg-action-btn" id="tg-wallet">Wallet</button>
             <button class="tg-action-btn" id="tg-upgrade">Upgrade</button>
           </div>
-          <button class="tg-btn tg-btn-secondary" id="tg-open-report" style="margin-top: 8px;">📢 Report Casino Update</button>
+          <button class="tg-btn tg-btn-secondary" id="tg-open-report" style="margin-top: 8px;">ðŸ“¢ Report Casino Update</button>
         </div>
 
         <!-- SusLink Panel (toggleable) -->
         <div class="tg-settings-panel" id="tg-suslink-panel" style="display: none;">
-          <h4>🛡️ SusLink Scanner</h4>
+          <h4>ðŸ›¡ï¸ SusLink Scanner</h4>
           <div class="tg-input-group">
             <label>Check URL</label>
             <div style="display: flex; gap: 5px;">
               <input type="text" id="suslink-url" placeholder="https://..." style="flex:1;" />
-              <button class="tg-btn-icon" id="suslink-scan-btn">🔍</button>
+              <button class="tg-btn-icon" id="suslink-scan-btn">ðŸ”</button>
             </div>
           </div>
           <div id="suslink-result" style="display:none; padding: 10px; background: rgba(0,0,0,0.2); border-radius: 4px; margin-bottom: 10px;">
@@ -293,7 +305,7 @@ function createSidebar() {
 
         <!-- Report Panel (toggleable) -->
         <div class="tg-settings-panel" id="tg-report-panel" style="display: none;">
-          <h4>📢 Community Report</h4>
+          <h4>ðŸ“¢ Community Report</h4>
           <div class="tg-input-group">
             <label>Report Type</label>
             <select id="report-type" style="width: 100%; padding: 8px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); color: #fff; border-radius: 4px;">
@@ -328,7 +340,7 @@ function createSidebar() {
           
           <!-- Lock Timer Wallet -->
           <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.1);">
-            <h4 style="font-size: 11px; margin-bottom: 6px;">⏳ Lock Timer Wallet</h4>
+            <h4 style="font-size: 11px; margin-bottom: 6px;">â³ Lock Timer Wallet</h4>
             
             <div id="tg-lock-form">
               <div style="display: flex; gap: 5px; margin-bottom: 8px;">
@@ -382,11 +394,11 @@ function createSidebar() {
 
   const style = document.createElement('style');
   style.textContent = `
-    #tiltguard-sidebar {
+    #tiltcheck-sidebar {
       position: fixed !important;
       top: 0 !important;
       right: 0 !important;
-      width: 340px;
+      width: ${SIDEBAR_WIDTH}px;
       height: 100vh;
       background: #0f1419;
       color: #e1e8ed;
@@ -397,11 +409,11 @@ function createSidebar() {
       transition: transform 0.2s ease;
       border-left: 1px solid rgba(255, 255, 255, 0.1);
     }
-    #tiltguard-sidebar.minimized { transform: translateX(300px); width: 40px; }
-    body.tiltguard-minimized { margin-right: 40px !important; }
-    #tiltguard-sidebar::-webkit-scrollbar { width: 6px; }
-    #tiltguard-sidebar::-webkit-scrollbar-track { background: transparent; }
-    #tiltguard-sidebar::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.2); border-radius: 3px; }
+    #tiltcheck-sidebar.minimized { transform: translateX(${SIDEBAR_WIDTH - MINIMIZED_WIDTH}px); width: ${MINIMIZED_WIDTH}px; }
+    body.tiltcheck-minimized { margin-right: ${MINIMIZED_WIDTH}px !important; }
+    #tiltcheck-sidebar::-webkit-scrollbar { width: 6px; }
+    #tiltcheck-sidebar::-webkit-scrollbar-track { background: transparent; }
+    #tiltcheck-sidebar::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.2); border-radius: 3px; }
     
     .tg-header {
       background: #000;
@@ -644,12 +656,12 @@ function createSidebar() {
 
 function setupEventListeners() {
   document.getElementById('tg-minimize')?.addEventListener('click', () => {
-    const sidebar = document.getElementById('tiltguard-sidebar');
+    const sidebar = document.getElementById('tiltcheck-sidebar');
     const btn = document.getElementById('tg-minimize');
     const isMin = sidebar?.classList.toggle('minimized');
-    document.body.classList.toggle('tiltguard-minimized', isMin);
-    document.body.style.marginRight = isMin ? '40px' : '340px';
-    if (btn) btn.textContent = isMin ? '+' : '−';
+    document.body.classList.toggle('tiltcheck-minimized', !!isMin);
+    applyPageOffset(isMin ? MINIMIZED_WIDTH : SIDEBAR_WIDTH);
+    if (btn) btn.textContent = isMin ? '+' : 'âˆ’';
   });
 
   // Settings toggle
@@ -817,7 +829,7 @@ function setupEventListeners() {
 
       // Visual feedback
       const originalText = target.textContent;
-      target.textContent = '✓';
+      target.textContent = 'âœ“';
       setTimeout(() => target.textContent = originalText, 1000);
     }
   });
@@ -873,7 +885,7 @@ function setupEventListeners() {
       if (result.success && result.scan) {
         const scan = result.scan;
         if (scoreDiv) {
-          scoreDiv.textContent = `${scan.isSafe ? '✅' : '❌'} ${scan.isSafe ? 'Safe' : 'High Risk'} (Trust Score: ${scan.trustScore}/100)`;
+          scoreDiv.textContent = `${scan.isSafe ? 'âœ…' : 'âŒ'} ${scan.isSafe ? 'Safe' : 'High Risk'} (Trust Score: ${scan.trustScore}/100)`;
           scoreDiv.style.color = scan.isSafe ? '#10b981' : '#ef4444';
         }
         if (detailsDiv) {
@@ -885,7 +897,7 @@ function setupEventListeners() {
         // Fallback for API failure
         const isSafe = !url.includes('scam');
         if (scoreDiv) {
-          scoreDiv.textContent = isSafe ? '✅ Safe (Trust Score: 95/100)' : '❌ High Risk (Trust Score: 10/100)';
+          scoreDiv.textContent = isSafe ? 'âœ… Safe (Trust Score: 95/100)' : 'âŒ High Risk (Trust Score: 10/100)';
           scoreDiv.style.color = isSafe ? '#10b981' : '#ef4444';
         }
         if (detailsDiv) {
@@ -895,7 +907,7 @@ function setupEventListeners() {
     } catch (e) {
       console.error('[TiltGuard] SusLink scan error:', e);
       if (scoreDiv) {
-        scoreDiv.textContent = '⚠️ Scan Error';
+        scoreDiv.textContent = 'âš ï¸ Scan Error';
         scoreDiv.style.color = '#f59e0b';
       }
       if (detailsDiv) {
@@ -993,7 +1005,7 @@ function setupEventListeners() {
       });
 
       if (result.success) {
-        addFeedMessage(`🔒 Locked $${amount} for ${mins}m`);
+        addFeedMessage(`ðŸ”’ Locked $${amount} for ${mins}m`);
         updateStatus('Funds locked successfully', 'success');
         minsInput.value = '';
         agreeCheckbox.checked = false;
@@ -1024,7 +1036,7 @@ function setupEventListeners() {
       });
 
       if (result.success) {
-        addFeedMessage(`🔓 Funds released: $${result.amount.toFixed(2)}`);
+        addFeedMessage(`ðŸ”“ Funds released: $${result.amount.toFixed(2)}`);
         updateStatus('Funds released to main wallet', 'success');
         checkLockStatus(); // Should reset UI to form
         loadVaultBalance();
@@ -1127,7 +1139,6 @@ function setupEventListeners() {
     }, 1000);
   });
 
-  document.getElementById('tg-guest-mode')?.addEventListener('click', continueAsGuest);
   document.getElementById('tg-logout')?.addEventListener('click', () => {
     localStorage.removeItem('tiltguard_auth');
     localStorage.removeItem('tiltguard_token');
@@ -1176,7 +1187,7 @@ function checkAuthStatus() {
 
   // Require authentication
   if (!stored || !token) {
-    console.log('🎮 TiltGuard: Authentication required');
+    console.log('ðŸŽ® TiltGuard: Authentication required');
     return;
   }
 
@@ -1188,25 +1199,6 @@ function checkAuthStatus() {
     loadVaultBalance();
     checkLockStatus();
     initPnLGraph();
-  }
-}
-
-async function continueAsGuest() {
-  const result = await apiCall('/auth/guest', {
-    method: 'POST',
-    body: JSON.stringify({ username: 'Guest' })
-  });
-
-  if (result.success) {
-    authToken = result.token;
-    userData = result.user;
-    isAuthenticated = true;
-    localStorage.setItem('tiltguard_auth', JSON.stringify(userData));
-    localStorage.setItem('tiltguard_token', authToken || '');
-    showMainContent();
-    addFeedMessage('Guest session started');
-  } else {
-    alert('Failed to start guest session');
   }
 }
 
@@ -1326,9 +1318,9 @@ async function vaultCurrentBalance() {
 function updateLicense(verification: any) {
   // License verification can be shown in feed
   if (verification.isLegitimate) {
-    addFeedMessage(`✓ Licensed: ${verification.licenseInfo?.authority || 'Verified'}`);
+    addFeedMessage(`âœ“ Licensed: ${verification.licenseInfo?.authority || 'Verified'}`);
   } else {
-    addFeedMessage(`⚠ ${verification.verdict || 'Unlicensed'}`);
+    addFeedMessage(`âš  ${verification.verdict || 'Unlicensed'}`);
   }
 }
 
@@ -1352,7 +1344,7 @@ async function updateTilt(score: number, _indicators: string[]) {
 
   // Add to feed if high tilt
   if (score >= 60) {
-    addFeedMessage(`⚠️ High tilt detected: ${Math.round(score)}`);
+    addFeedMessage(`âš ï¸ High tilt detected: ${Math.round(score)}`);
 
     // Get AI-powered intervention suggestions
     const aiResult = await callAIGateway('tilt-detection', {
@@ -1365,7 +1357,7 @@ async function updateTilt(score: number, _indicators: string[]) {
 
     if (aiResult.success && aiResult.data?.interventionSuggestions) {
       aiResult.data.interventionSuggestions.forEach((suggestion: string) => {
-        addFeedMessage(`💡 ${suggestion}`);
+        addFeedMessage(`ðŸ’¡ ${suggestion}`);
       });
     }
   }
@@ -1543,7 +1535,7 @@ async function openDashboard() {
         <style>body{font-family:monospace;padding:20px;background:#0f1419;color:#e1e8ed;}pre{background:#1a1f26;padding:15px;border-radius:6px;border:1px solid rgba(255,255,255,0.1);}</style>
         </head>
         <body>
-          <h1>🎯 TiltGuard Dashboard</h1>
+          <h1>ðŸŽ¯ TiltGuard Dashboard</h1>
           <pre>${data}</pre>
         </body>
       </html>
@@ -1568,7 +1560,7 @@ async function openVault() {
         <style>body{font-family:monospace;padding:20px;background:#1a1a2e;color:white;}pre{background:#16213e;padding:15px;border-radius:8px;}</style>
         </head>
         <body>
-          <h1>🔒 TiltGuard Vault</h1>
+          <h1>ðŸ”’ TiltGuard Vault</h1>
           <pre>${data}</pre>
         </body>
       </html>
@@ -1593,7 +1585,7 @@ async function openWallet() {
         <style>body{font-family:monospace;padding:20px;background:#1a1a2e;color:white;}pre{background:#16213e;padding:15px;border-radius:8px;}</style>
         </head>
         <body>
-          <h1>💰 TiltGuard Wallet</h1>
+          <h1>ðŸ’° TiltGuard Wallet</h1>
           <pre>${data}</pre>
         </body>
       </html>
@@ -1658,7 +1650,7 @@ function renderVerificationHistory() {
       </div>
       <div style="display:flex; align-items:center; gap:6px; margin-top:4px;">
         <span style="font-size:9px; opacity:0.4; flex:1; overflow:hidden; text-overflow:ellipsis; font-family:monospace;">${item.result.hash}</span>
-        <button class="tg-btn-icon tg-copy-hash" data-hash="${item.result.hash}" title="Copy Hash" style="width:20px; height:20px; font-size:12px; padding:0; display:flex; align-items:center; justify-content:center; border:1px solid rgba(255,255,255,0.1);">📋</button>
+        <button class="tg-btn-icon tg-copy-hash" data-hash="${item.result.hash}" title="Copy Hash" style="width:20px; height:20px; font-size:12px; padding:0; display:flex; align-items:center; justify-content:center; border:1px solid rgba(255,255,255,0.1);">ðŸ“‹</button>
       </div>
     </div>
   `).join('');
@@ -1683,7 +1675,7 @@ async function notifyBuddy(type: string, data: any) {
     });
 
     if (result.success) {
-      addFeedMessage(`👥 Buddy notified: ${type}`);
+      addFeedMessage(`ðŸ‘¥ Buddy notified: ${type}`);
       updateStatus('Buddy alert sent', 'buddy');
     }
   } catch (e) {
@@ -1718,3 +1710,7 @@ function updateStatus(message: string, type: string = 'info') {
 if (typeof window !== 'undefined') {
   (window as any).TiltCheckSidebar = { create: createSidebar, updateLicense, updateGuardian, updateTilt, updateStats, notifyBuddy };
 }
+
+
+
+
