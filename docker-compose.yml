@@ -127,6 +127,21 @@ services:
     networks:
       - tiltcheck
 
+  justthetip-bot:
+    build:
+      context: .
+      dockerfile: apps/justthetip-bot/Dockerfile
+    container_name: justthetip-bot
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      - NODE_ENV=production
+      - JTT_BOT_HEALTH_PORT=8084
+    ports:
+      - "8084:8084"
+    networks:
+      - tiltcheck
+
 networks:
   tiltcheck:
     driver: bridge
