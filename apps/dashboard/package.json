@@ -1,32 +1,35 @@
-{
-  "name": "@tiltcheck/dashboard",
-  "version": "0.1.0",
-  "private": true,
-  "scripts": {
-    "dev": "next dev -p 3000",
-    "build": "next build",
-    "start": "next start -p 3000",
-    "lint": "next lint"
-  },
-  "dependencies": {
-    "@tanstack/react-query": "^5.90.12",
-    "@tiltcheck/api-client": "workspace:*",
-    "@tiltcheck/auth": "workspace:*",
-    "@tiltcheck/collectclock": "workspace:*",
-    "@tiltcheck/logger": "workspace:*",
-    "@tiltcheck/qualifyfirst": "workspace:*",
-    "@tiltcheck/shared": "workspace:*",
-    "@tiltcheck/suslink": "workspace:*",
-    "@tiltcheck/types": "workspace:*",
-    "@tiltcheck/walletcheck": "workspace:*",
-    "next": "16.1.6",
-    "react": "18.3.1",
-    "react-dom": "18.3.1"
-  },
-  "devDependencies": {
-    "@types/node": "^25.3.0",
-    "@types/react": "^18.3.1",
-    "@types/react-dom": "^18.3.1",
-    "typescript": "^5.3.0"
-  }
+﻿{
+    "name":  "@tiltcheck/dashboard",
+    "version":  "0.1.0",
+    "private":  true,
+    "scripts":  {
+                    "dev":  "next dev -p 3000",
+                    "build":  "next build",
+                    "start":  "next start -p 3000",
+                    "lint":  "next lint"
+                },
+    "dependencies":  {
+                         "@tanstack/react-query":  "^5.90.12",
+                         "@tiltcheck/api-client":  "workspace:*",
+                         "@tiltcheck/auth":  "workspace:*",
+                         "@tiltcheck/collectclock":  "workspace:*",
+                         "@tiltcheck/logger":  "workspace:*",
+                         "@tiltcheck/qualifyfirst":  "workspace:*",
+                         "@tiltcheck/shared":  "workspace:*",
+                         "@tiltcheck/suslink":  "workspace:*",
+                         "@tiltcheck/types":  "workspace:*",
+                         "@tiltcheck/walletcheck":  "workspace:*",
+                         "next":  "16.1.6",
+                         "react":  "18.3.1",
+                         "react-dom":  "18.3.1",
+                         "better-auth":  "^1.3.6",
+                         "@better-auth/passkey":  "^1.3.6"
+                     },
+    "devDependencies":  {
+                            "@types/node":  "^25.3.0",
+                            "@types/react":  "^18.3.1",
+                            "@types/react-dom":  "^18.3.1",
+                            "typescript":  "^5.3.0"
+                        }
 }
+
