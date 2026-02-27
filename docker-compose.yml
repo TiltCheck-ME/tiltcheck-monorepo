@@ -149,6 +149,11 @@ services:
       - "8084:8084"
     networks:
       - tiltcheck
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8084/health" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
 networks:
   tiltcheck:
