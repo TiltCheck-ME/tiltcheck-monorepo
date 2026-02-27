@@ -11,14 +11,23 @@ import { createClient } from '@supabase/supabase-js';
 const router = Router();
 
 // Initialize Supabase client
-// Ensure these environment variables are set in your backend deployment
 const supabaseUrl = process.env.SUPABASE_URL || '';
-const supabaseKey = process.env.SUPABASE_SERVICE_KEY || ''; // Use Service Key for write access
-const supabase = createClient(supabaseUrl, supabaseKey);
+const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_KEY || '';
+
+let supabase: any;
+if (supabaseUrl && supabaseKey) {
+  supabase = createClient(supabaseUrl, supabaseKey);
+} else {
+  console.warn('⚠️ [API] Supabase credentials missing. Moderation routes will be limited.');
+}
 
 router.post('/report', async (req, res) => {
   try {
     const { targetId, moderatorId, actionType, reason, evidenceUrl } = req.body;
+
+    if (!supabase) {
+      return res.status(503).json({ error: 'Moderation service unavailable (unconfigured)' });
+    }
 
     // Basic validation
     if (!targetId || !moderatorId || !actionType || !reason) {

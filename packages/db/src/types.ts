@@ -202,6 +202,42 @@ export interface CreateAuditLogPayload {
 }
 
 // ============================================================================
+// Onboarding Types
+// ============================================================================
+
+/**
+ * User onboarding record
+ */
+export interface UserOnboarding {
+  discord_id: string;
+  is_onboarded: boolean;
+  has_accepted_terms: boolean;
+  risk_level: 'conservative' | 'moderate' | 'degen';
+  cooldown_enabled: boolean;
+  daily_limit: number | null;
+  notifications_tips: boolean;
+  notifications_trivia: boolean;
+  notifications_promos: boolean;
+  joined_at: Date;
+  updated_at: Date;
+}
+
+/**
+ * Onboarding update payload
+ */
+export interface UpsertOnboardingPayload {
+  discord_id: string;
+  is_onboarded?: boolean;
+  has_accepted_terms?: boolean;
+  risk_level?: 'conservative' | 'moderate' | 'degen';
+  cooldown_enabled?: boolean;
+  daily_limit?: number | null;
+  notifications_tips?: boolean;
+  notifications_trivia?: boolean;
+  notifications_promos?: boolean;
+}
+
+// ============================================================================
 // Query Result Types
 // ============================================================================
 

@@ -1,11 +1,16 @@
 <!DOCTYPE html>
 <html>
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TiltCheck Guardian</title>
+  <title>TiltCheck</title>
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
 
     body {
       width: 400px;
@@ -47,11 +52,31 @@
       background: rgba(0, 0, 0, 0.2);
     }
 
-    .license-badge { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
-    .license-icon { font-size: 24px; }
-    .license-text { flex: 1; }
-    .license-title { font-size: 12px; font-weight: 600; margin-bottom: 3px; }
-    .license-details { font-size: 10px; color: rgba(255, 255, 255, 0.7); }
+    .license-badge {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+
+    .license-icon {
+      font-size: 24px;
+    }
+
+    .license-text {
+      flex: 1;
+    }
+
+    .license-title {
+      font-size: 12px;
+      font-weight: 600;
+      margin-bottom: 3px;
+    }
+
+    .license-details {
+      font-size: 10px;
+      color: rgba(255, 255, 255, 0.7);
+    }
 
     .license-warning {
       background: rgba(255, 56, 56, 0.2);
@@ -62,8 +87,17 @@
       border-radius: 4px;
     }
 
-    .tilt-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
-    .tilt-title { font-size: 13px; font-weight: 600; }
+    .tilt-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .tilt-title {
+      font-size: 13px;
+      font-weight: 600;
+    }
 
     .tilt-score {
       background: linear-gradient(135deg, #00ff88 0%, #00ccff 100%);
@@ -74,10 +108,20 @@
       font-weight: bold;
     }
 
-    .tilt-score.warning { background: linear-gradient(135deg, #ffaa00 0%, #ff8800 100%); }
-    .tilt-score.danger { background: linear-gradient(135deg, #ff3838 0%, #cc0000 100%); color: #fff; }
+    .tilt-score.warning {
+      background: linear-gradient(135deg, #ffaa00 0%, #ff8800 100%);
+    }
 
-    .tilt-indicators { display: flex; flex-direction: column; gap: 8px; }
+    .tilt-score.danger {
+      background: linear-gradient(135deg, #ff3838 0%, #cc0000 100%);
+      color: #fff;
+    }
+
+    .tilt-indicators {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
 
     .tilt-indicator {
       background: rgba(255, 255, 255, 0.05);
@@ -87,11 +131,25 @@
       font-size: 11px;
     }
 
-    .tilt-indicator.low { border-color: #00ff88; }
-    .tilt-indicator.medium { border-color: #ffaa00; }
-    .tilt-indicator.high { border-color: #ff8800; }
-    .tilt-indicator.critical { border-color: #ff3838; }
-    .tilt-indicator-title { font-weight: 600; }
+    .tilt-indicator.low {
+      border-color: #00ff88;
+    }
+
+    .tilt-indicator.medium {
+      border-color: #ffaa00;
+    }
+
+    .tilt-indicator.high {
+      border-color: #ff8800;
+    }
+
+    .tilt-indicator.critical {
+      border-color: #ff3838;
+    }
+
+    .tilt-indicator-title {
+      font-weight: 600;
+    }
 
     .intervention {
       background: rgba(255, 170, 0, 0.15);
@@ -101,10 +159,27 @@
       border-radius: 8px;
     }
 
-    .intervention.critical { background: rgba(255, 56, 56, 0.15); border-color: #ff3838; }
-    .intervention-icon { font-size: 20px; margin-bottom: 8px; }
-    .intervention-message { font-size: 12px; font-weight: 600; margin-bottom: 10px; line-height: 1.4; }
-    .intervention-actions { display: flex; gap: 8px; }
+    .intervention.critical {
+      background: rgba(255, 56, 56, 0.15);
+      border-color: #ff3838;
+    }
+
+    .intervention-icon {
+      font-size: 20px;
+      margin-bottom: 8px;
+    }
+
+    .intervention-message {
+      font-size: 12px;
+      font-weight: 600;
+      margin-bottom: 10px;
+      line-height: 1.4;
+    }
+
+    .intervention-actions {
+      display: flex;
+      gap: 8px;
+    }
 
     .intervention-btn {
       flex: 1;
@@ -116,19 +191,57 @@
       cursor: pointer;
     }
 
-    .intervention-btn.primary { background: linear-gradient(135deg, #00ff88 0%, #00ccff 100%); color: #000; }
-    .intervention-btn.secondary { background: rgba(255, 255, 255, 0.1); color: #fff; }
+    .intervention-btn.primary {
+      background: linear-gradient(135deg, #00ff88 0%, #00ccff 100%);
+      color: #000;
+    }
 
-    .stats-title { font-size: 13px; font-weight: 600; margin-bottom: 10px; }
-    .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .intervention-btn.secondary {
+      background: rgba(255, 255, 255, 0.1);
+      color: #fff;
+    }
 
-    .stat-box { background: rgba(255, 255, 255, 0.05); padding: 10px; border-radius: 6px; }
-    .stat-label { font-size: 10px; color: rgba(255, 255, 255, 0.6); margin-bottom: 4px; }
-    .stat-value { font-size: 14px; font-weight: 700; color: #00ff88; }
-    .stat-value.negative { color: #ff3838; }
-    .stat-value.neutral { color: #ffaa00; }
+    .stats-title {
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 10px;
+    }
 
-    .controls { padding: 15px 20px; }
+    .stats-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .stat-box {
+      background: rgba(255, 255, 255, 0.05);
+      padding: 10px;
+      border-radius: 6px;
+    }
+
+    .stat-label {
+      font-size: 10px;
+      color: rgba(255, 255, 255, 0.6);
+      margin-bottom: 4px;
+    }
+
+    .stat-value {
+      font-size: 14px;
+      font-weight: 700;
+      color: #00ff88;
+    }
+
+    .stat-value.negative {
+      color: #ff3838;
+    }
+
+    .stat-value.neutral {
+      color: #ffaa00;
+    }
+
+    .controls {
+      padding: 15px 20px;
+    }
 
     .btn {
       width: 100%;
@@ -141,8 +254,16 @@
       margin-bottom: 8px;
     }
 
-    .btn-primary { background: linear-gradient(135deg, #00ff88 0%, #00ccff 100%); color: #000; }
-    .btn-danger { background: #ff3838; color: #fff; }
+    .btn-primary {
+      background: linear-gradient(135deg, #00ff88 0%, #00ccff 100%);
+      color: #000;
+    }
+
+    .btn-danger {
+      background: #ff3838;
+      color: #fff;
+    }
+
     .btn-secondary {
       background: rgba(255, 255, 255, 0.1);
       color: #fff;
@@ -157,8 +278,15 @@
       background: rgba(0, 0, 0, 0.25);
     }
 
-    .config-title { font-size: 12px; font-weight: 600; margin-bottom: 10px; }
-    .config-group { margin-bottom: 10px; }
+    .config-title {
+      font-size: 12px;
+      font-weight: 600;
+      margin-bottom: 10px;
+    }
+
+    .config-group {
+      margin-bottom: 10px;
+    }
 
     .config-group label {
       display: block;
@@ -196,28 +324,145 @@
       min-height: 12px;
     }
 
-    .validation-msg.valid { color: #00ff88; }
-    .validation-msg.invalid { color: #ff6b6b; }
+    .validation-msg.valid {
+      color: #00ff88;
+    }
 
-    .config-actions { display: flex; gap: 8px; margin-top: 10px; }
-    .config-actions button { flex: 1; }
+    .validation-msg.invalid {
+      color: #ff6b6b;
+    }
 
-    .hidden { display: none; }
+    .config-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .config-actions button {
+      flex: 1;
+    }
+
+    .hidden {
+      display: none;
+    }
 
     .scrollable {
       max-height: 480px;
       overflow-y: auto;
     }
 
-    .scrollable::-webkit-scrollbar { width: 6px; }
-    .scrollable::-webkit-scrollbar-track { background: rgba(255, 255, 255, 0.05); }
-    .scrollable::-webkit-scrollbar-thumb { background: rgba(0, 255, 136, 0.5); border-radius: 3px; }
+    .scrollable::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    .scrollable::-webkit-scrollbar-track {
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    .scrollable::-webkit-scrollbar-thumb {
+      background: rgba(0, 255, 136, 0.5);
+      border-radius: 3px;
+    }
+  </style>
+  .auth-section {
+  padding: 10px 20px;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .user-profile {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  }
+
+  .user-avatar {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 1px solid #00ff88;
+  }
+
+  .user-name {
+  font-size: 11px;
+  font-weight: 600;
+  }
+
+  .onboarding-status {
+  font-size: 9px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: rgba(255, 170, 0, 0.2);
+  color: #ffaa00;
+  font-weight: bold;
+  }
+
+  .onboarding-status.complete {
+  background: rgba(0, 255, 136, 0.2);
+  color: #00ff88;
+  }
+
+  .onboarding-prompt {
+  margin: 10px 20px;
+  padding: 12px;
+  background: linear-gradient(135deg, rgba(0, 255, 136, 0.1) 0%, rgba(0, 204, 255, 0.1) 100%);
+  border: 1px solid rgba(0, 255, 136, 0.3);
+  border-radius: 8px;
+  text-align: center;
+  }
+
+  .onboarding-prompt p {
+  font-size: 11px;
+  margin-bottom: 8px;
+  color: #00ff88;
+  }
+
+  .finish-setup-btn {
+  width: 100%;
+  padding: 6px;
+  background: #00ff88;
+  color: #000;
+  border: none;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: bold;
+  cursor: pointer;
+  }
+
+  .login-btn {
+  padding: 6px 12px;
+  background: #5865f2;
+  color: #fff;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: bold;
+  border: none;
+  cursor: pointer;
+  }
   </style>
 </head>
+
 <body>
   <div class="header">
-    <h1>TiltCheck Guardian</h1>
+    <h1>TiltCheck</h1>
     <p>Real-time Protection and Analysis</p>
+  </div>
+
+  <div class="auth-section" id="authSection">
+    <div class="user-profile hidden" id="userProfile">
+      <img src="" class="user-avatar" id="userAvatar" />
+      <span class="user-name" id="userName">Not Logged In</span>
+      <span class="onboarding-status" id="onboardingStatus">PENDING</span>
+    </div>
+    <button class="login-btn" id="loginBtn">Connect Discord</button>
+  </div>
+
+  <div class="onboarding-prompt hidden" id="onboardingPrompt">
+    <p>Complete your AI interview to unlock personalized protection!</p>
+    <button class="finish-setup-btn" id="finishSetupBtn">Finish Setup</button>
   </div>
 
   <div class="scrollable">
@@ -252,17 +497,35 @@
     <div class="session-stats hidden" id="sessionStats">
       <div class="stats-title">Session Overview</div>
       <div class="stats-grid">
-        <div class="stat-box"><div class="stat-label">Duration</div><div class="stat-value" id="statDuration">0m</div></div>
-        <div class="stat-box"><div class="stat-label">Total Bets</div><div class="stat-value" id="statBets">0</div></div>
-        <div class="stat-box"><div class="stat-label">Net P/L</div><div class="stat-value" id="statProfit">$0.00</div></div>
-        <div class="stat-box"><div class="stat-label">ROI</div><div class="stat-value" id="statROI">0%</div></div>
-        <div class="stat-box"><div class="stat-label">RTP</div><div class="stat-value" id="statRTP">0%</div></div>
-        <div class="stat-box"><div class="stat-label">Verdict</div><div class="stat-value" id="statVerdict">-</div></div>
+        <div class="stat-box">
+          <div class="stat-label">Duration</div>
+          <div class="stat-value" id="statDuration">0m</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-label">Total Bets</div>
+          <div class="stat-value" id="statBets">0</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-label">Net P/L</div>
+          <div class="stat-value" id="statProfit">$0.00</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-label">ROI</div>
+          <div class="stat-value" id="statROI">0%</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-label">RTP</div>
+          <div class="stat-value" id="statRTP">0%</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-label">Verdict</div>
+          <div class="stat-value" id="statVerdict">-</div>
+        </div>
       </div>
     </div>
 
     <div class="controls">
-      <button class="btn btn-primary" id="startBtn">Start Guardian</button>
+      <button class="btn btn-primary" id="startBtn">Start Monitoring</button>
       <button class="btn btn-danger hidden" id="stopBtn">Stop Session</button>
       <button class="btn btn-secondary" id="vaultBtn">Vault Balance</button>
       <button class="btn btn-secondary" id="reportBtn">Full Report</button>
@@ -300,4 +563,5 @@
 
   <script src="popup.js"></script>
 </body>
+
 </html>

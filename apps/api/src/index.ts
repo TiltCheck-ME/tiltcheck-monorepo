@@ -1,11 +1,11 @@
 /**
- * © 2024–2025 TiltCheck Ecosystem. All Rights Reserved.
+ * © 2024–2026 TiltCheck Ecosystem. All Rights Reserved.
  * Created by jmenichole (https://github.com/jmenichole)
  *
  * This file is part of the TiltCheck project.
  * For licensing information, see LICENSE file in the project root.
  */
-// v0.1.0 — 2026-02-25
+// v1.1.0 — 2026-02-26
 /**
  * @tiltcheck/api - Central API Gateway
  *
@@ -27,6 +27,7 @@ import { affiliateRouter } from './routes/affiliate.js';
 import { safetyRouter } from './routes/safety.js';
 import { newsletterRouter } from './routes/newsletter.js';
 import { stripeRouter, handleStripeWebhook } from './routes/stripe.js';
+import { userRouter } from './routes/user.js';
 import modRouter from './routes/mod.js';
 import { errorHandler, notFoundHandler } from './middleware/error.js';
 import { requestLogger } from './middleware/logger.js';
@@ -60,20 +61,20 @@ app.use(cors({
       'https://bot.tiltcheck.me',
       /^https:\/\/.*\.tiltcheck\.me$/,
     ];
-    
+
     // Allow requests with no origin (like mobile apps or curl)
     if (!origin) {
       callback(null, true);
       return;
     }
-    
+
     const isAllowed = allowedOrigins.some((allowed) => {
       if (allowed instanceof RegExp) {
         return allowed.test(origin);
       }
       return allowed === origin;
     });
-    
+
     if (isAllowed) {
       callback(null, true);
     } else if (process.env.NODE_ENV === 'development') {
@@ -138,6 +139,9 @@ app.use('/newsletter', newsletterRouter);
 
 // Stripe billing routes
 app.use('/stripe', stripeRouter);
+
+// User and onboarding routes
+app.use('/user', userRouter);
 
 // Moderation routes
 app.use('/mod', modRouter);

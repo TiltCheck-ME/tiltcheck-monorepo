@@ -1,4 +1,4 @@
-// v0.1.0 — 2026-02-25
+// v1.1.0 — 2026-02-26
 /**
  * © 2024–2025 TiltCheck Ecosystem. All Rights Reserved.
  * Created by jmenichole (https://github.com/jmenichole)
@@ -23,7 +23,7 @@
  */
 
 /**
- * Enhanced Content Script - TiltGuard + License Verification
+ * Enhanced Content Script - TiltCheck + License Verification
  * 
  * Monitors:
  * - Casino license legitimacy
@@ -51,13 +51,13 @@ const isExcludedDomain =
   (hostname === 'localhost' && window.location.port === '3333');
 
 if (isExcludedDomain) {
-  console.log('[TiltGuard] Skipping - excluded domain:', hostname);
+  console.log('[TiltCheck] Skipping - excluded domain:', hostname);
   // Exit immediately - don't load anything
-  throw new Error('TiltGuard: Excluded domain');
+  throw new Error('TiltCheck: Excluded domain');
 }
 
 // Only import and run on allowed casino sites
-import { CasinoDataExtractor, AnalyzerClient } from './extractor.js';
+import { CasinoDataExtractor, AnalyzerClient, SpinEvent } from './extractor.js';
 import { TiltDetector } from './tilt-detector.js';
 import { CasinoLicenseVerifier } from './license-verifier.js';
 import './sidebar.js';
@@ -146,7 +146,7 @@ class VisualPicker {
     e.stopPropagation();
 
     const target = e.target as HTMLElement;
-    if (target.closest('#tiltguard-sidebar')) return;
+    if (target.closest('#tiltcheck-sidebar')) return;
 
     const selector = this.generateSelector(target);
     if (this.callback) this.callback(selector);
@@ -264,20 +264,20 @@ class Highlighter {
  * Initialize on page load
  */
 function initialize() {
-  console.log('[TiltGuard] Initializing on:', window.location.hostname);
+  console.log('[TiltCheck] Initializing on:', window.location.hostname);
 
   // Create sidebar UI
-  const sidebar = (window as any).TiltGuardSidebar?.create();
-  console.log('[TiltGuard] Sidebar created:', !!sidebar);
+  const sidebar = (window as any).TiltCheckSidebar?.create();
+  console.log('[TiltCheck] Sidebar created:', !!sidebar);
 
   // Check casino license
   licenseVerifier = new CasinoLicenseVerifier();
   casinoVerification = licenseVerifier.verifyCasino();
 
-  console.log('[TiltGuard] License verification:', casinoVerification);
+  console.log('[TiltCheck] License verification:', casinoVerification);
 
   // Update sidebar with license info
-  (window as any).TiltGuardSidebar?.updateLicense(casinoVerification);
+  (window as any).TiltCheckSidebar?.updateLicense(casinoVerification);
 
   // Initialize Fairness Tools
   analyzer = new Analyzer();
@@ -351,10 +351,10 @@ function initialize() {
 async function startMonitoring() {
   if (isMonitoring) return;
 
-  console.log('[TiltGuard] Starting monitoring...');
+  console.log('[TiltCheck] Starting monitoring...');
 
   // Update UI
-  (window as any).TiltGuardSidebar?.updateGuardian(true);
+  (window as any).TiltCheckSidebar?.updateGuardian(true);
   isMonitoring = true;
 
   // Get initial balance
@@ -364,8 +364,14 @@ async function startMonitoring() {
 
   console.log('[TiltGuard] Initial balance:', initialBalance);
 
+  // Get risk level from storage (synced from onboarding)
+  const storageResult = await chrome.storage.local.get(['riskLevel']);
+  const riskLevel = (storageResult.riskLevel as 'conservative' | 'moderate' | 'degen') || 'moderate';
+
+  console.log('[TiltGuard] Using risk profile:', riskLevel);
+
   // Initialize tilt detector
-  tiltDetector = new TiltDetector(initialBalance);
+  tiltDetector = new TiltDetector(initialBalance, riskLevel);
 
   // Initialize analyzer client
   client = new AnalyzerClient(ANALYZER_WS_URL);
@@ -433,7 +439,7 @@ function stopMonitoring() {
 /**
  * Handle spin event
  */
-function handleSpinEvent(spinData: any, session: any) {
+function handleSpinEvent(spinData: SpinEvent, session: { sessionId: string, userId: string, casinoId: string, gameId: string }) {
   const bet = spinData.bet || 0;
   const payout = spinData.win || 0;
 
@@ -448,10 +454,10 @@ function handleSpinEvent(spinData: any, session: any) {
     // Note: sessionSummary.duration is the session duration in ms
     // netProfit represents total winnings (payouts - bets)
     const stats = {
-      startTime: Date.now() - (sessionSummary.duration || 0),
+      startTime: sessionSummary.startTime || Date.now(),
       totalBets: sessionSummary.totalBets || 0,
       totalWagered: sessionSummary.totalWagered || 0,
-      totalWins: sessionSummary.netProfit || 0
+      totalWon: sessionSummary.totalWon || 0
     };
     (window as any).TiltGuardSidebar?.updateStats(stats);
 
@@ -678,7 +684,7 @@ function blockBettingUI(block: boolean) {
  */
 function showCooldownOverlay(duration: number) {
   const overlay = document.createElement('div');
-  overlay.id = 'tiltguard-cooldown-overlay';
+  overlay.id = 'tiltcheck-cooldown-overlay';
   overlay.style.cssText = `
     position: fixed;
     top: 0;
@@ -728,7 +734,7 @@ function updateCooldownOverlay(remaining: number) {
  * Remove cooldown overlay
  */
 function removeCooldownOverlay() {
-  const overlay = document.getElementById('tiltguard-cooldown-overlay');
+  const overlay = document.getElementById('tiltcheck-cooldown-overlay');
   if (overlay) overlay.remove();
 }
 

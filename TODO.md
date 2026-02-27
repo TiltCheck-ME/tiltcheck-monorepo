@@ -1,4 +1,4 @@
-<!-- Copyright 2024-2026 TiltCheck | v1.1.0 | Last Edited: 2026-02-25 -->
+<!-- Copyright 2024-2026 TiltCheck | v1.1.0 | Last Edited: 2026-02-26 -->
 
 # TiltCheck TODO & Incomplete Work List
 
@@ -15,9 +15,9 @@ This list tracks any feature, plan, or concept that is **incomplete**, **not ful
 - [x] **Onboarding & Personalization:** AI-driven onboarding interview + tutorials.
 - [x] **Safety & Accountability:** "Phone a Friend" buddy system, Zero Balance tasks.
 
-## Status: Completed Bug Fixes
+## Bug Fixes TODO List
 
-# Bug Fixes TODO List
+- [x] **Chrome Extension Build:** Resolved Node.js polyfill errors for browser environment.
 
 ## Priority 1: index.ts (Cloudflare Worker) - Bug Fixes
 
