@@ -28,6 +28,9 @@ import { safetyRouter } from './routes/safety.js';
 import { newsletterRouter } from './routes/newsletter.js';
 import { stripeRouter, handleStripeWebhook } from './routes/stripe.js';
 import { userRouter } from './routes/user.js';
+import { aiRouter } from './routes/ai.js';
+import { pricingRouter } from './routes/pricing.js';
+import { casinoRouter } from './routes/casino.js';
 import modRouter from './routes/mod.js';
 import { errorHandler, notFoundHandler } from './middleware/error.js';
 import { requestLogger } from './middleware/logger.js';
@@ -142,6 +145,11 @@ app.use('/stripe', stripeRouter);
 
 // User and onboarding routes
 app.use('/user', userRouter);
+
+// Consolidated Utility Routes
+app.use('/ai', aiRouter);
+app.use('/pricing', pricingRouter);
+app.use('/casino', casinoRouter);
 
 // Moderation routes
 app.use('/mod', modRouter);

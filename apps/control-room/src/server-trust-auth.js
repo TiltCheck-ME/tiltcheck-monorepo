@@ -1,23 +1,17 @@
 /**
  * © 2024–2025 TiltCheck Ecosystem. All Rights Reserved.
  * Created by jmenichole (https://github.com/jmenichole)
- * 
- * This file is part of the TiltCheck project.
- * For licensing information, see LICENSE file in the project root.
+ *
+ * TiltCheck Control Room — Docker-aware admin dashboard
  */
 import express from 'express';
 import session from 'express-session';
-import passport from 'passport';
-import { Strategy as DiscordStrategy } from 'passport-discord';
 import { createServer } from 'http';
 import { WebSocketServer } from 'ws';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { exec } from 'child_process';
+import { exec, spawn } from 'child_process';
 import { promisify } from 'util';
-import fs from 'fs/promises';
-import { PublicKey } from '@solana/web3.js';
-import nacl from 'tweetnacl';
 
 const execAsync = promisify(exec);
 const __filename = fileURLToPath(import.meta.url);
@@ -27,477 +21,318 @@ const app = express();
 const server = createServer(app);
 const wss = new WebSocketServer({ server });
 
-const PORT = process.env.CONTROL_ROOM_PORT || 3001;
+const PORT = process.env.CONTROL_ROOM_PORT || process.env.PORT || 3001;
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'admin123';
 
-// Trust System Configuration
-// const TRUST_NFT_COLLECTION = process.env.TRUST_NFT_COLLECTION || 'your_nft_collection_address';
-const REQUIRED_TRUST_LEVEL = process.env.REQUIRED_TRUST_LEVEL || 'admin'; // admin, moderator, viewer
-const SOLANA_RPC_URL = process.env.SOLANA_RPC_URL || 'https://api.mainnet-beta.solana.com';
+// Known containers in the TiltCheck stack
+const KNOWN_CONTAINERS = [
+  { name: 'discord-bot',    label: 'Discord Bot',       icon: '🤖' },
+  { name: 'dad-bot',        label: 'Dad Bot',           icon: '👨' },
+  { name: 'justthetip',     label: 'JustTheTip Bot',    icon: '💸' },
+  { name: 'api',            label: 'API',               icon: '🔌' },
+  { name: 'dashboard',      label: 'Dashboard',         icon: '📊' },
+  { name: 'user-dashboard', label: 'User Dashboard',    icon: '👤' },
+  { name: 'control-room',   label: 'Control Room',      icon: '🎛️'  },
+  { name: 'game-arena',     label: 'Game Arena',        icon: '🎮' },
+  { name: 'trust-rollup',   label: 'Trust Rollup',      icon: '🔒' },
+  { name: 'landing',        label: 'Landing Page',      icon: '🌐' },
+  { name: 'auto-claimer',   label: 'Auto Claimer',      icon: '⚡' },
+  { name: 'reverse-proxy',  label: 'Reverse Proxy',     icon: '🔀' },
+  { name: 'redis',          label: 'Redis',             icon: '🗄️'  },
+];
 
-// Mock trust database (replace with real DB)
-const trustedUsers = new Map();
-const walletRegistry = new Map();
-
-// Middleware
+// ─── Middleware ────────────────────────────────────────────────────────────────
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(session({
   secret: process.env.SESSION_SECRET || 'tiltcheck-control-room-secret',
   resave: false,
   saveUninitialized: false,
-  cookie: { 
-    secure: process.env.NODE_ENV === 'production',
-    maxAge: 24 * 60 * 60 * 1000 // 24 hours
-  }
+  cookie: {
+    secure: false,
+    maxAge: 24 * 60 * 60 * 1000,
+  },
 }));
-app.use(passport.initialize());
-app.use(passport.session());
 app.use(express.static(path.join(__dirname, '../public')));
 
-// Discord OAuth Strategy
-passport.use(new DiscordStrategy({
-    clientID: process.env.DISCORD_CLIENT_ID || 'your-client-id',
-    clientSecret: process.env.DISCORD_CLIENT_SECRET || 'your-client-secret',
-    callbackURL: process.env.DISCORD_CALLBACK_URL || 'http://localhost:3001/auth/discord/callback',
-    scope: ['identify', 'email']
-  },
-  async (accessToken, refreshToken, profile, done) => {
-    try {
-      // Check if user has trust credentials
-      const trustData = await checkUserTrust(profile.id);
-      
-      if (!trustData.isTrusted) {
-        return done(null, false, { message: 'Insufficient trust level for Control Room access' });
-      }
-      
-      const user = {
-        id: profile.id,
-        username: profile.username,
-        discriminator: profile.discriminator,
-        avatar: profile.avatar,
-        email: profile.email,
-        trustLevel: trustData.level,
-        walletAddress: trustData.walletAddress,
-        nftBadge: trustData.nftBadge
-      };
-      
-      trustedUsers.set(profile.id, user);
-      return done(null, user);
-    } catch (error) {
-      return done(error);
-    }
-  }
-));
-
-passport.serializeUser((user, done) => {
-  done(null, user.id);
-});
-
-passport.deserializeUser((id, done) => {
-  const user = trustedUsers.get(id);
-  done(null, user || null);
-});
-
-// Trust verification system
-async function checkUserTrust(discordId) {
-  // Step 1: Check if user has registered wallet
-  const walletInfo = walletRegistry.get(discordId);
-  
-  if (!walletInfo) {
-    return { isTrusted: false, reason: 'No wallet registered' };
-  }
-  
-  // Step 2: Verify wallet ownership (signature must be valid)
-  if (!walletInfo.verified) {
-    return { isTrusted: false, reason: 'Wallet not verified' };
-  }
-  
-  // Step 3: Check for NFT badge (Trust System Badge)
-  const nftBadge = await checkNFTOwnership(walletInfo.address);
-  
-  if (!nftBadge) {
-    return { isTrusted: false, reason: 'No Trust System Badge NFT found' };
-  }
-  
-  // Step 4: Determine trust level from NFT metadata
-  const trustLevel = nftBadge.attributes?.find(attr => attr.trait_type === 'role')?.value || 'viewer';
-  
-  // Step 5: Check if trust level meets requirement
-  const levelHierarchy = { viewer: 1, moderator: 2, admin: 3 };
-  const userLevel = levelHierarchy[trustLevel] || 0;
-  const requiredLevel = levelHierarchy[REQUIRED_TRUST_LEVEL] || 3;
-  
-  if (userLevel < requiredLevel) {
-    return { 
-      isTrusted: false, 
-      reason: `Insufficient trust level (have: ${trustLevel}, need: ${REQUIRED_TRUST_LEVEL})`
-    };
-  }
-  
-  return {
-    isTrusted: true,
-    level: trustLevel,
-    walletAddress: walletInfo.address,
-    nftBadge: nftBadge
-  };
-}
-
-async function checkNFTOwnership(walletAddress) {
-  try {
-    // Query Solana for NFTs owned by wallet in Trust NFT Collection
-    // This is a simplified version - production should use Metaplex or similar
-    
-    const response = await fetch(SOLANA_RPC_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        jsonrpc: '2.0',
-        id: 1,
-        method: 'getTokenAccountsByOwner',
-        params: [
-          walletAddress,
-          { programId: 'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA' },
-          { encoding: 'jsonParsed' }
-        ]
-      })
-    });
-    
-    await response.json();
-    
-    // Check if any token accounts match our Trust NFT Collection
-    // Production version should verify collection address and metadata
-    
-    // For now, return mock badge for testing
-    if (process.env.NODE_ENV === 'development') {
-      return {
-        mint: 'mock-nft-mint',
-        attributes: [
-          { trait_type: 'role', value: 'admin' },
-          { trait_type: 'trust_score', value: 100 }
-        ]
-      };
-    }
-    
-    // Production: Parse actual NFT data
-    return null;
-  } catch (error) {
-    console.error('NFT check error:', error);
-    return null;
-  }
-}
-
-// Auth routes
-app.get('/auth/discord', passport.authenticate('discord'));
-
-app.get('/auth/discord/callback',
-  passport.authenticate('discord', { failureRedirect: '/access-denied' }),
-  (req, res) => {
-    res.redirect('/');
-  }
-);
-
-app.get('/access-denied', (req, res) => {
-  res.send(`
-    <!DOCTYPE html>
-    <html>
-    <head>
-      <title>Access Denied</title>
-      <style>
-        body { font-family: sans-serif; text-align: center; padding: 50px; background: #0d1117; color: #c9d1d9; }
-        .error { background: #161b22; padding: 2rem; border-radius: 8px; max-width: 500px; margin: 0 auto; }
-        h1 { color: #f85149; }
-        a { color: #58a6ff; text-decoration: none; }
-      </style>
-    </head>
-    <body>
-      <div class="error">
-        <h1>🚫 Access Denied</h1>
-        <p>You do not have sufficient trust credentials to access the Control Room.</p>
-        <p><strong>Requirements:</strong></p>
-        <ul style="text-align: left; max-width: 300px; margin: 1rem auto;">
-          <li>✅ Discord account</li>
-          <li>✅ Registered JustTheTip wallet</li>
-          <li>✅ Verified wallet signature</li>
-          <li>✅ Trust System Badge NFT (${REQUIRED_TRUST_LEVEL} level)</li>
-        </ul>
-        <p><a href="/">← Back to login</a></p>
-      </div>
-    </body>
-    </html>
-  `);
-});
-
-app.get('/auth/logout', (req, res) => {
-  req.logout(() => {
-    res.redirect('/');
-  });
-});
-
-app.get('/api/auth/me', (req, res) => {
-  if (!req.isAuthenticated()) {
-    return res.status(401).json({ error: 'Not authenticated' });
-  }
-  
-  res.json({ 
-    user: req.user,
-    authenticated: true 
-  });
-});
-
-// Wallet registration endpoint
-app.post('/api/wallet/register', async (req, res) => {
-  if (!req.isAuthenticated()) {
-    return res.status(401).json({ error: 'Not authenticated' });
-  }
-  
-  const { walletAddress, signature, message } = req.body;
-  
-  try {
-    // Verify signature
-    const messageBytes = new TextEncoder().encode(message);
-    const signatureBytes = Buffer.from(signature, 'base64');
-    const publicKey = new PublicKey(walletAddress);
-    
-    const verified = nacl.sign.detached.verify(
-      messageBytes,
-      signatureBytes,
-      publicKey.toBytes()
-    );
-    
-    if (!verified) {
-      return res.status(400).json({ error: 'Invalid signature' });
-    }
-    
-    // Register wallet
-    walletRegistry.set(req.user.id, {
-      address: walletAddress,
-      verified: true,
-      registeredAt: new Date().toISOString()
-    });
-    
-    // Re-check trust status
-    const trustData = await checkUserTrust(req.user.id);
-    
-    res.json({
-      success: true,
-      wallet: walletAddress,
-      trustStatus: trustData
-    });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
-
-// Auth middleware for protected routes
 const requireAuth = (req, res, next) => {
-  if (req.isAuthenticated()) {
-    return next();
-  }
+  if (req.session.authenticated) return next();
   res.status(401).json({ error: 'Unauthorized' });
 };
 
-const requireTrustLevel = (level) => {
-  return (req, res, next) => {
-    if (!req.isAuthenticated()) {
-      return res.status(401).json({ error: 'Unauthorized' });
-    }
-    
-    const levelHierarchy = { viewer: 1, moderator: 2, admin: 3 };
-    const userLevel = levelHierarchy[req.user.trustLevel] || 0;
-    const requiredLevel = levelHierarchy[level] || 3;
-    
-    if (userLevel < requiredLevel) {
-      return res.status(403).json({ 
-        error: 'Insufficient trust level',
-        have: req.user.trustLevel,
-        need: level
-      });
-    }
-    
-    next();
-  };
-};
+// ─── Auth ──────────────────────────────────────────────────────────────────────
+app.post('/api/auth/login', (req, res) => {
+  const { password } = req.body;
+  if (password === ADMIN_PASSWORD) {
+    req.session.authenticated = true;
+    res.json({ success: true });
+  } else {
+    res.status(401).json({ error: 'Invalid password' });
+  }
+});
 
-// System monitoring routes (require auth)
+app.post('/api/auth/logout', (req, res) => {
+  req.session.destroy();
+  res.json({ success: true });
+});
+
+app.get('/api/auth/status', (req, res) => {
+  res.json({ authenticated: !!req.session.authenticated });
+});
+
+// ─── Docker Helpers ────────────────────────────────────────────────────────────
+function sanitizeContainer(name) {
+  if (typeof name !== 'string') return null;
+  return /^[a-zA-Z0-9_-]+$/.test(name) ? name : null;
+}
+
+async function getDockerContainers() {
+  try {
+    const { stdout } = await execAsync(
+      'docker ps -a --format "{{.Names}}|{{.Status}}|{{.Image}}|{{.Ports}}|{{.ID}}"'
+    );
+    const map = new Map();
+    stdout.trim().split('\n').filter(Boolean).forEach(line => {
+      const [name, status, image, ports, id] = line.split('|');
+      map.set(name, { name, status, image, ports, id });
+    });
+    return map;
+  } catch {
+    return new Map();
+  }
+}
+
+async function getDockerStats() {
+  try {
+    const { stdout } = await execAsync(
+      'docker stats --no-stream --format "{{.Name}}|{{.CPUPerc}}|{{.MemUsage}}|{{.MemPerc}}|{{.NetIO}}|{{.BlockIO}}"'
+    );
+    const map = new Map();
+    stdout.trim().split('\n').filter(Boolean).forEach(line => {
+      const [name, cpu, mem, memPerc, net, block] = line.split('|');
+      map.set(name, { cpu, mem, memPerc, net, block });
+    });
+    return map;
+  } catch {
+    return new Map();
+  }
+}
+
+// ─── System Status ─────────────────────────────────────────────────────────────
 app.get('/api/system/status', requireAuth, async (req, res) => {
   try {
-    const services = [
-      'event-router', 'trust-engines', 'logging', 'pricing-oracle',
-      'trust-rollup', 'reverse-proxy', 'landing', 'dashboard',
-      'qualifyfirst', 'ai-gateway', 'collectclock', 'control-room', 'user-dashboard'
-    ];
-    
-    const status = await Promise.all(services.map(async (service) => {
-      try {
-        const { stdout } = await execAsync(`pgrep -f "services/${service}" || echo "0"`);
-        const pid = stdout.trim();
-        return {
-          name: service,
-          status: pid !== '0' ? 'running' : 'stopped',
-          pid: pid !== '0' ? pid : null
-        };
-      } catch {
-        return { name: service, status: 'unknown', pid: null };
+    const [containers, statsMap] = await Promise.all([
+      getDockerContainers(),
+      getDockerStats(),
+    ]);
+
+    const known = new Set(KNOWN_CONTAINERS.map(c => c.name));
+    const services = KNOWN_CONTAINERS.map(({ name, label, icon }) => {
+      const info = containers.get(name);
+      const stats = statsMap.get(name);
+      const isRunning = info?.status?.toLowerCase().startsWith('up');
+      return {
+        name, label, icon,
+        status: info ? (isRunning ? 'running' : 'stopped') : 'missing',
+        statusText: info?.status || 'not found',
+        image: info?.image || null,
+        ports: info?.ports || null,
+        id: info?.id ? info.id.substring(0, 12) : null,
+        cpu: stats?.cpu || null,
+        mem: stats?.mem || null,
+        memPerc: stats?.memPerc || null,
+        net: stats?.net || null,
+        block: stats?.block || null,
+      };
+    });
+
+    // Include extra unlisted containers
+    containers.forEach((info, name) => {
+      if (!known.has(name)) {
+        const stats = statsMap.get(name);
+        const isRunning = info.status?.toLowerCase().startsWith('up');
+        services.push({
+          name, label: name, icon: '📦',
+          status: isRunning ? 'running' : 'stopped',
+          statusText: info.status,
+          image: info.image,
+          ports: info.ports,
+          id: info.id ? info.id.substring(0, 12) : null,
+          cpu: stats?.cpu || null,
+          mem: stats?.mem || null,
+          memPerc: stats?.memPerc || null,
+          net: stats?.net || null,
+          block: stats?.block || null,
+        });
       }
-    }));
-    
-    res.json({ services: status });
+    });
+
+    res.json({ services, timestamp: new Date().toISOString() });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
 
+// ─── System Metrics ────────────────────────────────────────────────────────────
 app.get('/api/system/metrics', requireAuth, async (req, res) => {
   try {
-    const { stdout: loadAvg } = await execAsync('uptime');
-    const { stdout: memInfo } = await execAsync('free -m');
-    const { stdout: diskInfo } = await execAsync('df -h /');
-    
+    const results = await Promise.allSettled([
+      execAsync('uptime -p 2>/dev/null || uptime'),
+      execAsync('cat /proc/loadavg 2>/dev/null || sysctl -n vm.loadavg'),
+      execAsync("free -m 2>/dev/null | awk 'NR==2{printf \"%sMB / %sMB (%.0f%%)\", $3,$2,$3*100/$2}'"),
+      execAsync("df -h / | awk 'NR==2{print $3\"/\"$2\" (\"$5\")'"),
+      execAsync('docker version --format "{{.Server.Version}}" 2>/dev/null'),
+    ]);
+
+    const val = (r) => r.status === 'fulfilled' ? r.value.stdout?.trim() : 'N/A';
+
+    let running = 0, stopped = 0, total = 0;
+    try {
+      const { stdout } = await execAsync('docker ps -a --format "{{.Status}}"');
+      const lines = stdout.trim().split('\n').filter(Boolean);
+      total = lines.length;
+      running = lines.filter(s => s.toLowerCase().startsWith('up')).length;
+      stopped = total - running;
+    } catch { /* ignore */ }
+
     res.json({
-      loadAverage: loadAvg.match(/load average: (.+)/)?.[1] || 'N/A',
-      memory: memInfo,
-      disk: diskInfo,
-      timestamp: new Date().toISOString()
+      uptime: val(results[0]),
+      loadAverage: val(results[1]),
+      memory: val(results[2]),
+      disk: val(results[3]),
+      dockerVersion: val(results[4]),
+      containers: { total, running, stopped },
+      timestamp: new Date().toISOString(),
     });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
 
-// Process management routes (require admin)
-app.post('/api/process/restart/:service', requireTrustLevel('admin'), async (req, res) => {
+// ─── Container Actions ─────────────────────────────────────────────────────────
+app.post('/api/container/:action/:name', requireAuth, async (req, res) => {
+  const { action, name } = req.params;
+  const safe = sanitizeContainer(name);
+  if (!safe) return res.status(400).json({ error: 'Invalid container name' });
+
+  const allowed = ['restart', 'stop', 'start', 'kill'];
+  if (!allowed.includes(action)) return res.status(400).json({ error: 'Invalid action' });
+
   try {
-    const { service } = req.params;
-    const servicePath = path.join(__dirname, '../../', service);
-    
-    // Kill existing process
-    await execAsync(`pkill -f "services/${service}" || true`);
-    
-    // Start new process
-    await execAsync(`cd ${servicePath} && npm start &`);
-    
-    // Log admin action
-    console.log(`[ADMIN ACTION] ${req.user.username} restarted ${service}`);
-    
-    res.json({ success: true, message: `${service} restarted` });
+    const { stdout, stderr } = await execAsync(`docker ${action} ${safe}`);
+    console.log(`[CONTROL ROOM] docker ${action} ${safe}`);
+    res.json({ success: true, output: (stdout + stderr).trim() });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
 
-app.post('/api/process/kill-all', requireTrustLevel('admin'), async (req, res) => {
+app.post('/api/containers/restart-all', requireAuth, async (req, res) => {
   try {
-    await execAsync('pkill -f "services/" || true');
-    
-    // Log admin action
-    console.log(`[ADMIN ACTION] ${req.user.username} killed all services`);
-    
-    res.json({ success: true, message: 'All services killed' });
+    const names = KNOWN_CONTAINERS.map(c => c.name).join(' ');
+    const { stdout } = await execAsync(`docker restart ${names} 2>&1`);
+    res.json({ success: true, output: stdout.trim() });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
 
-app.get('/api/process/logs/:service', requireAuth, async (req, res) => {
+// ─── Container Logs (REST) ─────────────────────────────────────────────────────
+app.get('/api/logs/:name', requireAuth, async (req, res) => {
+  const safe = sanitizeContainer(req.params.name);
+  if (!safe) return res.status(400).json({ error: 'Invalid container name' });
+
+  const lines = Math.min(parseInt(req.query.lines) || 150, 500);
   try {
-    const { service } = req.params;
-    const logPath = path.join(__dirname, '../../', service, 'logs', 'app.log');
-    
-    try {
-      const logs = await fs.readFile(logPath, 'utf-8');
-      res.json({ logs: logs.split('\n').slice(-100).join('\n') });
-    } catch {
-      res.json({ logs: 'No logs available' });
-    }
+    const { stdout } = await execAsync(`docker logs --tail ${lines} --timestamps ${safe} 2>&1`);
+    res.json({ logs: stdout.trim(), container: safe });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: error.message, logs: '' });
   }
 });
 
-// Documentation routes (require auth)
-app.get('/api/docs/list', requireAuth, async (req, res) => {
-  try {
-    const docsPath = path.join(__dirname, '../../../docs');
-    const files = await fs.readdir(docsPath);
-    const docs = files.filter(f => f.endsWith('.md'));
-    res.json({ documents: docs });
-  } catch (error) {
-    res.status(500).json({ error: error.message, documents: [] });
-  }
-});
+// ─── Live Log Stream (SSE) ─────────────────────────────────────────────────────
+app.get('/api/logs/:name/stream', requireAuth, (req, res) => {
+  const safe = sanitizeContainer(req.params.name);
+  if (!safe) return res.status(400).json({ error: 'Invalid container name' });
 
-app.get('/api/docs/:filename', requireAuth, async (req, res) => {
-  try {
-    const { filename } = req.params;
-    const docPath = path.join(__dirname, '../../../docs', filename);
-    const content = await fs.readFile(docPath, 'utf-8');
-    res.json({ content });
-  } catch (error) {
-    res.status(404).json({ error: 'Document not found' });
-  }
-});
-
-// AI Terminal route (require moderator+)
-app.post('/api/ai/chat', requireTrustLevel('moderator'), async (req, res) => {
-  const { message } = req.body;
-  
-  // Log moderator action
-  console.log(`[AI TERMINAL] ${req.user.username}: ${message}`);
-  
-  res.json({
-    response: `AI Terminal: I received your request: "${message}". This would be processed by the AI Gateway to generate code changes or execute commands.`,
-    suggestions: [
-      'Show system status',
-      'Restart all services',
-      'View error logs'
-    ]
-  });
-});
-
-// Command usage feed (SSE) - require auth
-app.get('/api/feed/commands', requireAuth, (req, res) => {
   res.setHeader('Content-Type', 'text/event-stream');
   res.setHeader('Cache-Control', 'no-cache');
   res.setHeader('Connection', 'keep-alive');
-  
-  const interval = setInterval(() => {
-    const data = {
-      timestamp: new Date().toISOString(),
-      command: ['/tip', '/qualify', '/play', '/scan'][Math.floor(Math.random() * 4)],
-      user: `user${Math.floor(Math.random() * 100)}`,
-      module: ['justthetip', 'qualifyfirst', 'dad', 'suslink'][Math.floor(Math.random() * 4)]
-    };
-    res.write(`data: ${JSON.stringify(data)}\n\n`);
+  res.flushHeaders();
+
+  const child = spawn('docker', ['logs', '--follow', '--tail', '50', '--timestamps', safe], {
+    stdio: ['ignore', 'pipe', 'pipe'],
+  });
+
+  const send = (chunk) => {
+    chunk.toString().split('\n').filter(Boolean).forEach(line => {
+      res.write(`data: ${JSON.stringify({ line })}\n\n`);
+    });
+  };
+
+  child.stdout.on('data', send);
+  child.stderr.on('data', send);
+  child.on('error', (err) => {
+    res.write(`data: ${JSON.stringify({ line: `[error] ${err.message}` })}\n\n`);
+  });
+
+  req.on('close', () => child.kill());
+});
+
+// ─── Docker Compose Actions ────────────────────────────────────────────────────
+app.post('/api/compose/:action', requireAuth, async (req, res) => {
+  const { action } = req.params;
+  const allowed = ['up', 'down', 'ps', 'pull'];
+  if (!allowed.includes(action)) return res.status(400).json({ error: 'Invalid action' });
+
+  const composeDir = process.env.COMPOSE_DIR || '/app';
+  try {
+    const cmd = action === 'up'
+      ? `cd ${composeDir} && docker compose up -d 2>&1`
+      : `cd ${composeDir} && docker compose ${action} 2>&1`;
+    const { stdout } = await execAsync(cmd);
+    res.json({ success: true, output: stdout.trim() });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// ─── WebSocket — live stats broadcast every 5s ─────────────────────────────────
+let statsInterval = null;
+
+function startStatsBroadcast() {
+  if (statsInterval) return;
+  statsInterval = setInterval(async () => {
+    if (wss.clients.size === 0) return;
+    try {
+      const [containers, statsMap] = await Promise.all([getDockerContainers(), getDockerStats()]);
+      const payload = JSON.stringify({
+        type: 'stats',
+        containers: Object.fromEntries(containers),
+        stats: Object.fromEntries(statsMap),
+        ts: Date.now(),
+      });
+      wss.clients.forEach(ws => { if (ws.readyState === 1) ws.send(payload); });
+    } catch { /* ignore */ }
   }, 5000);
-  
-  req.on('close', () => {
-    clearInterval(interval);
+}
+
+wss.on('connection', (ws) => {
+  startStatsBroadcast();
+  ws.on('close', () => {
+    if (wss.clients.size === 0 && statsInterval) {
+      clearInterval(statsInterval);
+      statsInterval = null;
+    }
   });
 });
 
-// WebSocket for real-time updates
-wss.on('connection', (ws, req) => {
-  // Only allow authenticated WebSocket connections
-  // In production, verify session/token here
-  console.log('Control room client connected');
-  
-  ws.on('message', (message) => {
-    try {
-      const data = JSON.parse(message);
-      console.log('Received:', data);
-      ws.send(JSON.stringify({ type: 'ack', data }));
-    } catch (error) {
-      console.error('WebSocket error:', error);
-    }
-  });
-  
-  ws.on('close', () => {
-    console.log('Control room client disconnected');
-  });
-});
+// ─── Health ────────────────────────────────────────────────────────────────────
+app.get('/health', (req, res) => res.json({ status: 'ok', port: PORT }));
 
 server.listen(PORT, () => {
   console.log(`🎛️  Control Room running on port ${PORT}`);
-  console.log(`🔒 Trust System Auth: Discord + Wallet + NFT Badge`);
-  console.log(`📛 Required Trust Level: ${REQUIRED_TRUST_LEVEL}`);
+  console.log(`🐳 Docker-aware monitoring enabled`);
+  console.log(`🔒 Set ADMIN_PASSWORD env var (default: admin123 — change this!)`);
 });
