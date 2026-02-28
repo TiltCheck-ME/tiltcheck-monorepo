@@ -10,58 +10,247 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Casino Trust Score Grades</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="styles/main.css">
+  <title>Casino Trust Score Grades - TiltCheck</title>
+  <meta name="description" content="Live casino trust scores tracked by the TiltCheck Casino Trust Engine. Fairness, payouts, compliance, and bonus nerf data.">
+  <meta name="theme-color" content="#00FFC6">
+  <link rel="stylesheet" href="/styles/theme.css">
+  <link rel="stylesheet" href="/styles/main.css">
   <style>
-    table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
-    th, td { border: 1px solid #2a2f34; padding: 8px; }
-    th { background: #0f1419; color: #00d4aa; }
+    .trust-scores-hero {
+      background: linear-gradient(180deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
+      padding: clamp(3rem, 6vw, 4rem) var(--container-padding);
+      text-align: center;
+      border-bottom: 1px solid rgba(0, 255, 198, 0.12);
+    }
+    .trust-scores-hero h1 {
+      font-size: var(--text-3xl);
+      font-weight: var(--weight-black);
+      font-family: var(--font-display);
+      color: var(--text-primary);
+      margin-bottom: var(--space-md);
+    }
+    .trust-scores-hero p {
+      color: var(--text-secondary);
+      font-size: var(--text-base);
+      max-width: 600px;
+      margin: 0 auto;
+      line-height: var(--leading-relaxed);
+    }
+    .trust-scores-content {
+      padding: clamp(2rem, 4vw, 3rem) var(--container-padding);
+      max-width: var(--container-max);
+      margin: 0 auto;
+    }
+    #trust-scores-loading {
+      text-align: center;
+      padding: var(--space-3xl);
+      color: var(--text-muted);
+    }
+    .trust-table-wrapper {
+      overflow-x: auto;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border-subtle);
+    }
+    .trust-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: var(--text-sm);
+    }
+    .trust-table thead th {
+      background: var(--bg-tertiary);
+      color: var(--color-primary);
+      padding: var(--space-md) var(--space-lg);
+      text-align: left;
+      font-weight: var(--weight-semibold);
+      font-family: var(--font-mono);
+      font-size: var(--text-xs);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      white-space: nowrap;
+      border-bottom: 1px solid var(--border-emphasis);
+    }
+    .trust-table tbody td {
+      padding: var(--space-md) var(--space-lg);
+      border-bottom: 1px solid var(--border-subtle);
+      color: var(--text-secondary);
+      vertical-align: middle;
+    }
+    .trust-table tbody tr:last-child td {
+      border-bottom: none;
+    }
+    .trust-table tbody tr:hover td {
+      background: var(--bg-secondary);
+    }
+    .casino-name {
+      color: var(--text-primary);
+      font-weight: var(--weight-semibold);
+    }
+    .score-cell {
+      font-family: var(--font-mono);
+      font-weight: var(--weight-bold);
+    }
+    .score-high { color: var(--color-positive); }
+    .score-mid { color: var(--color-caution); }
+    .score-low { color: var(--color-danger); }
+    .events-cell {
+      font-family: var(--font-mono);
+      color: var(--text-muted);
+    }
+    .severity-badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 2px 10px;
+      border-radius: var(--radius-sm);
+      font-size: var(--text-xs);
+      font-weight: var(--weight-semibold);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      font-family: var(--font-mono);
+    }
+    .severity-low { background: rgba(76,175,80,0.12); color: var(--color-positive); border: 1px solid var(--color-positive); }
+    .severity-medium { background: rgba(255,193,7,0.12); color: var(--color-caution); border: 1px solid var(--color-caution); }
+    .severity-high { background: rgba(255,82,82,0.12); color: var(--color-danger); border: 1px solid var(--color-danger); }
+    .severity-unknown { background: rgba(107,114,128,0.12); color: var(--text-muted); border: 1px solid var(--border-emphasis); }
+    .empty-state {
+      text-align: center;
+      padding: var(--space-3xl) var(--container-padding);
+      color: var(--text-muted);
+    }
+    .empty-state p {
+      margin-bottom: var(--space-md);
+    }
+    .meta-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: var(--space-md);
+      margin-bottom: var(--space-lg);
+      color: var(--text-muted);
+      font-size: var(--text-xs);
+      font-family: var(--font-mono);
+    }
   </style>
 </head>
 <body>
+  <a href="#scores-main" class="skip-link">Skip to main content</a>
   <div id="shared-nav"></div>
-  <h1>Casino Trust Score Grades</h1>
-  <p>This page displays the latest trust scores for casinos, updated automatically from the TiltCheck trust engine.</p>
-  <div id="trust-scores">
-    <p>Loading trust scores...</p>
-  </div>
+
+  <main id="scores-main">
+    <header class="trust-scores-hero">
+      <div class="container">
+        <h1>Casino Trust Scores</h1>
+        <p>Live trust data from the TiltCheck Casino Trust Engine. Updated automatically as events are tracked across the ecosystem.</p>
+      </div>
+    </header>
+
+    <section class="trust-scores-content" aria-labelledby="scores-table-title">
+      <div class="meta-bar" id="scores-meta" aria-live="polite">
+        <span>Loading data…</span>
+      </div>
+
+      <div id="trust-scores">
+        <div id="trust-scores-loading">
+          <p>⏳ Loading trust scores…</p>
+        </div>
+      </div>
+
+      <p style="margin-top: var(--space-2xl); color: var(--text-muted); font-size: var(--text-xs); text-align: center;">
+        Trust scores are computed from on-chain signals, payout data, community reports, and compliance checks.
+        <a href="/trust-explained.html" style="color: var(--color-primary);">Learn how scoring works →</a>
+      </p>
+    </section>
+  </main>
+
+  <div id="shared-footer"></div>
+
   <script>
-    // Fetch trust-rollups.json and display casino trust scores
-    fetch('/data/trust-rollups.json')
-      .then(response => response.json())
-      .then(data => {
-        const container = document.getElementById('trust-scores');
-        const batches = data.batches || [];
-        let latestBatch = batches[batches.length - 1];
-        if (!latestBatch || !latestBatch.casino || !latestBatch.casino.casinos) {
-          container.innerHTML = '<p>No casino trust scores found yet. Learn how trust works in <a href="/trust-explained.html">Trust Explained</a>.</p>';
-          return;
-        }
-        const casinos = latestBatch.casino.casinos;
-        if (Object.keys(casinos).length === 0) {
-          container.innerHTML = '<p>No casino trust scores available yet. Check back soon or read <a href="/trust-explained.html">Trust Explained</a>.</p>';
-          return;
-        }
-        let html = '<table><thead><tr><th>Casino</th><th>Trust Score</th><th>Events</th><th>Last Severity</th></tr></thead><tbody>';
-        for (const [name, info] of Object.entries(casinos)) {
-          html += `<tr><td>${name}</td><td>${info.lastScore ?? 'N/A'}</td><td>${info.events ?? 'N/A'}</td><td>${info.lastSeverity ?? 'N/A'}</td></tr>`;
-        }
-        html += '</tbody></table>';
-        container.innerHTML = html;
-      })
-      .catch(err => {
-        document.getElementById('trust-scores').innerHTML = '<p>Error loading trust scores.</p>';
-      });
+    (function () {
+      const container = document.getElementById('trust-scores');
+      const meta = document.getElementById('scores-meta');
+
+      function severityClass(s) {
+        if (!s) return 'severity-unknown';
+        const sl = String(s).toLowerCase();
+        if (sl === 'low') return 'severity-low';
+        if (sl === 'medium') return 'severity-medium';
+        if (sl === 'high' || sl === 'critical') return 'severity-high';
+        return 'severity-unknown';
+      }
+
+      function scoreClass(score) {
+        const n = parseFloat(score);
+        if (isNaN(n)) return '';
+        if (n >= 80) return 'score-high';
+        if (n >= 50) return 'score-mid';
+        return 'score-low';
+      }
+
+      fetch('/data/trust-rollups.json')
+        .then(r => {
+          if (!r.ok) throw new Error('Not found');
+          return r.json();
+        })
+        .then(data => {
+          const batches = data.batches || [];
+          const latestBatch = batches[batches.length - 1];
+
+          if (!latestBatch?.casino?.casinos || Object.keys(latestBatch.casino.casinos).length === 0) {
+            container.innerHTML = `
+              <div class="empty-state">
+                <p>No casino trust scores yet.</p>
+                <p><a href="/trust-explained.html" style="color: var(--color-primary);">Learn how trust scoring works →</a></p>
+              </div>`;
+            meta.textContent = 'No data available yet.';
+            return;
+          }
+
+          const casinos = latestBatch.casino.casinos;
+          const count = Object.keys(casinos).length;
+          meta.innerHTML = `<span><strong style="color:var(--text-primary);">${count}</strong> casinos tracked</span><span>Batch: ${latestBatch.id || '—'}</span>`;
+
+          let rows = '';
+          for (const [name, info] of Object.entries(casinos)) {
+            const score = info.lastScore ?? 'N/A';
+            const events = info.events ?? '—';
+            const severity = info.lastSeverity ?? null;
+            rows += `
+              <tr>
+                <td class="casino-name">${name}</td>
+                <td class="score-cell ${scoreClass(score)}">${score}</td>
+                <td class="events-cell">${events}</td>
+                <td><span class="severity-badge ${severityClass(severity)}">${severity || 'Unknown'}</span></td>
+              </tr>`;
+          }
+
+          container.innerHTML = `
+            <div class="trust-table-wrapper">
+              <table class="trust-table" aria-label="Casino trust scores">
+                <thead>
+                  <tr>
+                    <th scope="col">Casino</th>
+                    <th scope="col">Trust Score</th>
+                    <th scope="col">Events</th>
+                    <th scope="col">Last Severity</th>
+                  </tr>
+                </thead>
+                <tbody>${rows}</tbody>
+              </table>
+            </div>`;
+        })
+        .catch(() => {
+          container.innerHTML = `
+            <div class="empty-state">
+              <p>Trust score data isn't available yet — the engine is warming up.</p>
+              <p><a href="/casinos.html" style="color: var(--color-primary);">View the Casino Directory →</a></p>
+            </div>`;
+          meta.textContent = 'Data unavailable.';
+        });
+    })();
   </script>
+
+  <script src="/scripts/components-loader.js"></script>
+  <script src="/scripts/auth.js"></script>
 </body>
-<div id="shared-footer"></div>
-<script>
-  (function(){
-    const navMount = document.getElementById('shared-nav');
-    const footerMount = document.getElementById('shared-footer');
-    if (navMount) { fetch('/components/nav.html').then(r=>r.text()).then(html=>{ navMount.innerHTML = html; }).catch(()=>{}); }
-    if (footerMount) { fetch('/components/footer.html').then(r=>r.text()).then(html=>{ footerMount.innerHTML = html; }).catch(()=>{}); }
-  })();
-</script>
 </html>
