@@ -10,10 +10,10 @@
  * Updated to work with the new popup.html UI layout
  */
 
-// Local dev endpoints
-const API_BASE_URL = 'http://localhost:3001';
-const AI_GATEWAY_URL = 'http://localhost:3333';
-const WEB_APP_URL = 'http://localhost:3000'; // Assuming your Next.js app runs here
+// Production endpoints — override with TILTCHECK_API_URL env at build time if needed
+const API_BASE_URL = 'https://api.tiltcheck.me';
+const AI_GATEWAY_URL = 'https://ai-gateway.tiltcheck.me';
+const WEB_APP_URL = 'https://tiltcheck.me';
 
 // Trusted domain whitelist for AI Gateway
 const TRUSTED_AI_DOMAINS = [
@@ -210,8 +210,7 @@ function showDiscordIdInput() {
  * Start Discord OAuth Login
  */
 function startLogin() {
-  // Use the specific TiltCheck OAuth URL with correct Client ID, redirecting to local API
-  const loginUrl = 'https://discord.com/oauth2/authorize?client_id=1445916179163250860&permissions=2252352254102592&response_type=code&redirect_uri=http%3A%2F%2Flocalhost%3A3001%2Fauth%2Fdiscord%2Fcallback&integration_type=0&scope=identify+email+bot+dm_channels.messages.read+messages.read+applications.store.update+dm_channels.read+presences.read+lobbies.write+applications.entitlements+applications.commands';
+  const loginUrl = 'https://discord.com/oauth2/authorize?client_id=1445916179163250860&permissions=2252352254102592&response_type=code&redirect_uri=https%3A%2F%2Fapi.tiltcheck.me%2Fauth%2Fdiscord%2Fcallback&integration_type=0&scope=identify+email+bot+dm_channels.messages.read+messages.read+applications.store.update+dm_channels.read+presences.read+lobbies.write+applications.entitlements+applications.commands';
   window.open(loginUrl, 'TiltCheck Login', 'width=500,height=700');
 }
 

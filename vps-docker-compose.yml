@@ -1,0 +1,204 @@
+services:
+  discord-bot:
+    build:
+      context: .
+      dockerfile: apps/discord-bot/Dockerfile
+    container_name: discord-bot
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      - SKIP_ENV_VALIDATION=1
+    networks:
+      - tiltcheck-network
+
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    container_name: api
+    ports:
+      - "3001:3001"
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      - SKIP_ENV_VALIDATION=1
+      - PORT=3001
+    healthcheck:
+      test: [ "CMD", "wget", "-qO-", "http://localhost:3001/health/check" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - tiltcheck-network
+
+  dashboard:
+    build:
+      context: .
+      dockerfile: apps/dashboard/Dockerfile
+    container_name: dashboard
+    ports:
+      - "5055:3000"
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      - SKIP_ENV_VALIDATION=1
+      - PORT=3000
+    healthcheck:
+      test: [ "CMD", "wget", "-qO-", "http://localhost:3000/api/health" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - tiltcheck-network
+
+  control-room:
+    build:
+      context: .
+      dockerfile: apps/control-room/Dockerfile
+    container_name: control-room
+    ports:
+      - "3002:3001"
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      - SKIP_ENV_VALIDATION=1
+      - PORT=3001
+    networks:
+      - tiltcheck-network
+
+  landing:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+    container_name: landing
+    ports:
+      - "8080:80"
+    restart: unless-stopped
+    healthcheck:
+      test: [ "CMD", "wget", "-qO-", "http://localhost:80/status.html || exit 0" ]
+      interval: 60s
+      timeout: 5s
+      retries: 3
+    networks:
+      - tiltcheck-network
+
+  dad-bot:
+    build:
+      context: .
+      dockerfile: apps/dad-bot/Dockerfile
+    container_name: dad-bot
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      - SKIP_ENV_VALIDATION=1
+    networks:
+      - tiltcheck-network
+
+  trust-rollup:
+    build:
+      context: .
+      dockerfile: apps/trust-rollup/Dockerfile
+    container_name: trust-rollup
+    ports:
+      - "8082:8082"
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      - SKIP_ENV_VALIDATION=1
+      - PORT=8082
+    networks:
+      - tiltcheck-network
+
+  justthetip:
+    build:
+      context: .
+      dockerfile: apps/justthetip-bot/Dockerfile
+    container_name: justthetip
+    ports:
+      - "1501:3002"
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      - SKIP_ENV_VALIDATION=1
+      - PORT=3002
+    healthcheck:
+      test: [ "CMD", "wget", "-qO-", "http://localhost:3002/health" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - tiltcheck-network
+
+  user-dashboard:
+    build:
+      context: .
+      dockerfile: apps/user-dashboard/Dockerfile
+    container_name: user-dashboard
+    ports:
+      - "6001:6001"
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      - SKIP_ENV_VALIDATION=1
+      - PORT=6001
+    networks:
+      - tiltcheck-network
+
+  game-arena:
+    build:
+      context: .
+      dockerfile: apps/game-arena/Dockerfile
+    container_name: game-arena
+    ports:
+      - "7071:3010"
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      - SKIP_ENV_VALIDATION=1
+      - PORT=3010
+    networks:
+      - tiltcheck-network
+
+  redis:
+    image: redis:alpine
+    container_name: redis
+    restart: unless-stopped
+    networks:
+      - tiltcheck-network
+
+  auto-claimer:
+    build:
+      context: .
+      dockerfile: apps/auto-claimer-service/Dockerfile
+    container_name: auto-claimer
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      - SKIP_ENV_VALIDATION=1
+      - REDIS_URL=redis://redis:6379
+    depends_on:
+      - redis
+    networks:
+      - tiltcheck-network
+
+  reverse-proxy:
+    build:
+      context: .
+      dockerfile: apps/reverse-proxy/Dockerfile
+    container_name: reverse-proxy
+    ports:
+      - "80:80"
+      - "443:443"
+    restart: unless-stopped
+    depends_on:
+      - landing
+      - api
+      - dashboard
+      - user-dashboard
+      - game-arena
+    networks:
+      - tiltcheck-network
+
+networks:
+  tiltcheck-network:
+    driver: bridge
