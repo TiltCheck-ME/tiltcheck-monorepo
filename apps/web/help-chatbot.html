@@ -242,11 +242,11 @@
       <a href="/">Home</a> / <span>AI Help Chatbot</span>
     </nav>
 
-    <h1>🤖 TiltCheck AI Help Assistant</h1>
+    <h1> TiltCheck AI Help Assistant</h1>
     <p class="subtitle">Get instant answers about tilt detection, casino trust scores, Discord bot commands, crypto tipping, and more.</p>
 
     <div class="info-box">
-      💡 <strong>Tip:</strong> Ask anything about TiltCheck! Try "How do casino trust scores work?" or "What Discord commands are available?"
+       <strong>Tip:</strong> Ask anything about TiltCheck! Try "How do casino trust scores work?" or "What Discord commands are available?"
     </div>
 
     <div class="quick-prompts">
@@ -261,7 +261,7 @@
     <div class="chatbot-container">
       <div class="messages" id="messages">
         <div class="message assistant">
-          <div class="message-icon">🤖</div>
+          <div class="message-icon"></div>
           <div class="message-content">
             <strong>Welcome to TiltCheck AI Help!</strong><br>
             I'm here to help you understand everything about the TiltCheck ecosystem. Ask me about trust scores, bot commands, tilt detection, or any other feature. What would you like to know?
@@ -291,7 +291,7 @@
     const knowledge = {
       'casino trust': {
         question: /casino trust|trust score/i,
-        answer: `Casino Trust Scores are calculated based on 5 key metrics:\n\n📊 **Fairness (20%)** - RTP verification, license check, payout rates\n💬 **Support (20%)** - Response time, ratings, complaint resolution\n💰 **Payouts (20%)** - Speed, completion rate, withdrawal disputes\n⚖️ **Compliance (20%)** - Jurisdiction, licensing, reputation\n🎁 **Bonus Quality (20%)** - Terms fairness, wagering limits\n\nScores range from 0-100, updated every 6 hours. You can view all monitored casinos at https://tiltcheck.me/casinos`
+        answer: `Casino Trust Scores are calculated based on 5 key metrics:\n\n **Fairness (20%)** - RTP verification, license check, payout rates\n **Support (20%)** - Response time, ratings, complaint resolution\n **Payouts (20%)** - Speed, completion rate, withdrawal disputes\n **Compliance (20%)** - Jurisdiction, licensing, reputation\n **Bonus Quality (20%)** - Terms fairness, wagering limits\n\nScores range from 0-100, updated every 6 hours. You can view all monitored casinos at https://tiltcheck.me/casinos`
       },
       'discord commands': {
         question: /discord|command|bot/i,
@@ -299,15 +299,15 @@
       },
       'tilt detection': {
         question: /tilt|detection|emotion/i,
-        answer: `Tilt Detection uses AI to analyze your gameplay behavior:\n\n🎮 **Real-time Monitoring** - Tracks your chat, bet patterns, and session duration\n😤 **Emotion Analysis** - Detects frustration, tilt, or risky behavior\n⏸️ **Smart Interventions** - Cooldowns, session limits, vault locks\n📊 **Analytics** - Personal tilt score, risk patterns, improvement tracking\n\nUse the TiltCheck Chrome Extension on supported casinos to activate real-time protection.`
+        answer: `Tilt Detection uses AI to analyze your gameplay behavior:\n\n **Real-time Monitoring** - Tracks your chat, bet patterns, and session duration\n **Emotion Analysis** - Detects frustration, tilt, or risky behavior\n **Smart Interventions** - Cooldowns, session limits, vault locks\n **Analytics** - Personal tilt score, risk patterns, improvement tracking\n\nUse the TiltCheck Chrome Extension on supported casinos to activate real-time protection.`
       },
       'justthetip': {
         question: /justthetip|tip|tipping|crypto tip/i,
-        answer: `JustTheTip is TiltCheck's non-custodial crypto tipping system:\n\n💸 **Send Tips** - Send SOL, USDC, or other tokens to friends\n🔐 **Non-Custodial** - You control your wallet, we never hold funds\n⚡ **Instant** - Tips settle on Solana blockchain in seconds\n🎁 **Rewards** - Earn trust score boosts by sending tips\n💰 **Track Tips** - View all tips sent/received in your dashboard\n\nUse /justthetip in Discord to get started!`
+        answer: `JustTheTip is TiltCheck's non-custodial crypto tipping system:\n\n **Send Tips** - Send SOL, USDC, or other tokens to friends\n **Non-Custodial** - You control your wallet, we never hold funds\n **Instant** - Tips settle on Solana blockchain in seconds\n **Rewards** - Earn trust score boosts by sending tips\n **Track Tips** - View all tips sent/received in your dashboard\n\nUse /justthetip in Discord to get started!`
       },
       'suslink': {
         question: /suslink|link|scan|scam|malware/i,
-        answer: `SusLink is your personal link scanner for casino safety:\n\n🔍 **URL Analysis** - Detects phishing, malware, scams\n⚠️ **Risk Scoring** - 0-100 risk level for any casino link\n🌐 **Domain Verification** - Checks domain age, SSL, reputation\n📱 **Real-time Alerts** - Warns you before you click suspicious links\n✅ **Community Reports** - Crowdsourced risk data from users\n\nUse /scan <url> in Discord or visit https://tiltcheck.me/extension`
+        answer: `SusLink is your personal link scanner for casino safety:\n\n **URL Analysis** - Detects phishing, malware, scams\n **Risk Scoring** - 0-100 risk level for any casino link\n **Domain Verification** - Checks domain age, SSL, reputation\n **Real-time Alerts** - Warns you before you click suspicious links\n **Community Reports** - Crowdsourced risk data from users\n\nUse /scan <url> in Discord or visit https://tiltcheck.me/extension`
       },
       'getting started': {
         question: /start|begin|how do i|tutorial/i,
@@ -315,19 +315,19 @@
       },
       'extension': {
         question: /extension|chrome|install|sidebar/i,
-        answer: `TiltCheck Chrome Extension Features:\n\n📌 **Sidebar UI** - Injected on casino sites for easy access\n👤 **Quick Auth** - Login with Discord or guest account\n💰 **Session Stats** - Real-time P/L, balance, session time\n😤 **Tilt Score** - Live tilt detection and warnings\n🔐 **Vault Controls** - Lock funds when tilt detected\n🎮 **Game Info** - RTP, paylines, bonus info per game\n\nDownload: https://tiltcheck.me/extension`
+        answer: `TiltCheck Chrome Extension Features:\n\n **Sidebar UI** - Injected on casino sites for easy access\n **Quick Auth** - Login with Discord or guest account\n **Session Stats** - Real-time P/L, balance, session time\n **Tilt Score** - Live tilt detection and warnings\n **Vault Controls** - Lock funds when tilt detected\n **Game Info** - RTP, paylines, bonus info per game\n\nDownload: https://tiltcheck.me/extension`
       },
       'trust system': {
         question: /trust|degen trust|user trust/i,
-        answer: `TiltCheck Trust System:\n\n🏆 **Casino Trust** - Rates how trustworthy casinos are (0-100)\n👤 **Degen Trust** - Community scores for users based on behavior\n📊 **Trust Deltas** - Shows score changes over time\n🔄 **Real-time Updates** - Changes instantly as events occur\n📈 **Transparent** - All scoring logic is explainable\n\nView trust scores at https://tiltcheck.me/trust or /trust commands in Discord`
+        answer: `TiltCheck Trust System:\n\n **Casino Trust** - Rates how trustworthy casinos are (0-100)\n **Degen Trust** - Community scores for users based on behavior\n **Trust Deltas** - Shows score changes over time\n **Real-time Updates** - Changes instantly as events occur\n **Transparent** - All scoring logic is explainable\n\nView trust scores at https://tiltcheck.me/trust or /trust commands in Discord`
       },
       'premium': {
         question: /premium|paid|subscription|upgrade/i,
-        answer: `TiltCheck is currently FREE! All features are available at no cost:\n\n✅ Casino trust scores\n✅ SusLink URL scanning\n✅ Discord bot commands\n✅ JustTheTip tipping\n✅ Tilt detection\n✅ Trust analytics\n✅ Chrome extension\n\nWe may add optional premium features in the future, but the core platform is and will remain free forever.`
+        answer: `TiltCheck is currently FREE! All features are available at no cost:\n\n Casino trust scores\n SusLink URL scanning\n Discord bot commands\n JustTheTip tipping\n Tilt detection\n Trust analytics\n Chrome extension\n\nWe may add optional premium features in the future, but the core platform is and will remain free forever.`
       },
       'default': {
         question: /.*/,
-        answer: `I'm here to help! I can answer questions about:\n\n🏆 Casino Trust Scores\n💬 Discord Bot Commands\n🎮 Tilt Detection & Prevention\n💸 JustTheTip Crypto Tipping\n🔍 SusLink Link Scanning\n📱 Chrome Extension\n✅ Getting Started\n\nWhat would you like to know more about?`
+        answer: `I'm here to help! I can answer questions about:\n\n Casino Trust Scores\n Discord Bot Commands\n Tilt Detection & Prevention\n JustTheTip Crypto Tipping\n SusLink Link Scanning\n Chrome Extension\n Getting Started\n\nWhat would you like to know more about?`
       }
     };
 
@@ -344,7 +344,7 @@
       const messageEl = document.createElement('div');
       messageEl.className = `message ${isUser ? 'user' : 'assistant'}`;
       
-      const icon = isUser ? '👤' : '🤖';
+      const icon = isUser ? '' : '';
       const content = document.createElement('div');
       content.className = 'message-content';
       
@@ -365,7 +365,7 @@
       messageEl.className = 'message assistant';
       messageEl.id = 'typing-indicator';
       messageEl.innerHTML = `
-        <div class="message-icon">🤖</div>
+        <div class="message-icon"></div>
         <div class="message-content">
           <div class="typing-indicator">
             <div class="typing-dot"></div>

@@ -273,7 +273,7 @@
 
   <header class="tool-header">
     <div class="container">
-      <div class="tool-icon-large">🔗</div>
+      <div class="tool-icon-large"></div>
       <h1>SusLink</h1>
       <p class="tool-tagline">AI-powered scam detection before you click</p>
       <span class="status-badge status-live">Live</span>
@@ -338,12 +338,12 @@
         <div class="feature-box">
           <h3>Key Features</h3>
           <ul>
-            <li>🤖 AI-powered scam detection</li>
-            <li>🔍 Checks URL patterns and domain reputation</li>
-            <li>🚨 Real-time risk assessment</li>
-            <li>🎣 Phishing site detection</li>
-            <li>👥 Impersonation flagging</li>
-            <li>⚡ Instant scanning</li>
+            <li> AI-powered scam detection</li>
+            <li> Checks URL patterns and domain reputation</li>
+            <li> Real-time risk assessment</li>
+            <li> Phishing site detection</li>
+            <li> Impersonation flagging</li>
+            <li> Instant scanning</li>
           </ul>
         </div>
       </div>
@@ -356,37 +356,37 @@
       <div class="detection-grid">
         
         <div class="detection-card">
-          <div class="detection-icon">🎣</div>
+          <div class="detection-icon"></div>
           <h3>Phishing Sites</h3>
           <p>Fake casino clones, wallet drainers, and crypto scams that steal credentials</p>
         </div>
 
         <div class="detection-card">
-          <div class="detection-icon">🔀</div>
+          <div class="detection-icon"></div>
           <h3>Redirect Chains</h3>
           <p>Links that bounce you through multiple domains to hide their true destination</p>
         </div>
 
         <div class="detection-card">
-          <div class="detection-icon">👤</div>
+          <div class="detection-icon"></div>
           <h3>Impersonation</h3>
           <p>Sites pretending to be legitimate casinos or crypto platforms</p>
         </div>
 
         <div class="detection-card">
-          <div class="detection-icon">🔒</div>
+          <div class="detection-icon"></div>
           <h3>SSL Issues</h3>
           <p>Missing or invalid security certificates that indicate sketchy sites</p>
         </div>
 
         <div class="detection-card">
-          <div class="detection-icon">🌐</div>
+          <div class="detection-icon"></div>
           <h3>Suspicious Domains</h3>
           <p>Newly registered domains, typosquatting, and known scam patterns</p>
         </div>
 
         <div class="detection-card">
-          <div class="detection-icon">💰</div>
+          <div class="detection-icon"></div>
           <h3>Wallet Drainers</h3>
           <p>Sites designed to trick you into signing malicious crypto transactions</p>
         </div>
@@ -400,7 +400,7 @@
     <div class="container">
       <h2>Coming Soon: Email Spam Check</h2>
       <div class="coming-soon-content">
-        <div class="coming-soon-icon">📧</div>
+        <div class="coming-soon-icon"></div>
         <p class="coming-soon-description">
           Forward suspicious emails to <strong>check@suslink.tiltcheck.me</strong> and get an instant spam analysis. 
           We'll scan for phishing attempts, malicious links, and scam patterns — then reply with a detailed report.
@@ -457,19 +457,19 @@
       <div class="three-column">
         
         <div class="risk-card risk-safe">
-          <div class="risk-icon">✅</div>
+          <div class="risk-icon"></div>
           <h3>Safe</h3>
           <p>Legitimate sites with clean history, valid SSL, and no suspicious patterns. No alert posted.</p>
         </div>
 
         <div class="risk-card risk-suspicious">
-          <div class="risk-icon">⚠️</div>
+          <div class="risk-icon"></div>
           <h3>Suspicious</h3>
           <p>Some red flags detected. Warning posted with reasons. Proceed with caution.</p>
         </div>
 
         <div class="risk-card risk-dangerous">
-          <div class="risk-icon">🚨</div>
+          <div class="risk-icon"></div>
           <h3>Dangerous</h3>
           <p>High-confidence scam or phishing site. Strong warning posted. Do not click.</p>
         </div>
@@ -567,10 +567,10 @@
       const donateWidget = document.getElementById('donateWidget');
 
       const riskConfig = {
-        safe: { icon: '✅', title: 'Safe', description: 'No suspicious patterns detected' },
-        suspicious: { icon: '⚠️', title: 'Suspicious', description: 'Some red flags detected' },
-        high: { icon: '🚨', title: 'High Risk', description: 'Multiple red flags detected' },
-        critical: { icon: '🛑', title: 'Critical', description: 'Likely scam or phishing attempt' }
+        safe: { icon: '', title: 'Safe', description: 'No suspicious patterns detected' },
+        suspicious: { icon: '', title: 'Suspicious', description: 'Some red flags detected' },
+        high: { icon: '', title: 'High Risk', description: 'Multiple red flags detected' },
+        critical: { icon: '', title: 'Critical', description: 'Likely scam or phishing attempt' }
       };
 
       form.addEventListener('submit', async (e) => {
@@ -610,7 +610,7 @@
             donateWidget.classList.add('visible');
           } else {
             // Error response
-            resultIcon.textContent = '❌';
+            resultIcon.textContent = '';
             resultTitle.textContent = 'Scan Failed';
             resultUrl.textContent = url;
             resultReason.textContent = data.error || 'Unable to scan this URL. Please check the format and try again.';
@@ -620,7 +620,7 @@
           }
         } catch (err) {
           console.error('Scan error:', err);
-          resultIcon.textContent = '❌';
+          resultIcon.textContent = '';
           resultTitle.textContent = 'Error';
           resultUrl.textContent = url;
           resultReason.textContent = 'Network error. Please check your connection and try again.';
@@ -638,7 +638,7 @@
         const val = urlInput.value.trim();
         if (val && !val.startsWith('http://') && !val.startsWith('https://')) {
           // Show error state to prompt user to add protocol
-          resultIcon.textContent = 'ℹ️';
+          resultIcon.textContent = '';
           resultTitle.textContent = 'Add Protocol';
           resultUrl.textContent = val;
           resultReason.textContent = 'Please add http:// or https:// to the beginning of your URL.';

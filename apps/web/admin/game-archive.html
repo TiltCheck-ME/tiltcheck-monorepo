@@ -223,7 +223,7 @@
 </head>
 <body>
   <div class="admin-container">
-    <h1>🎰 Game Archive AI Analysis</h1>
+    <h1> Game Archive AI Analysis</h1>
     <p style="color: var(--text-secondary); margin-bottom: 32px;">
       Upload your personal gambling data to get AI-powered pattern insights, win/loss analysis, and tilt detection.
     </p>
@@ -343,13 +343,13 @@
         const result = await response.json();
 
         if (response.ok) {
-          uploadStatus.innerHTML = `<div class="success">✅ ${result.sessions_uploaded} sessions uploaded successfully!</div>`;
+          uploadStatus.innerHTML = `<div class="success"> ${result.sessions_uploaded} sessions uploaded successfully!</div>`;
           loadInsights();
         } else {
-          uploadStatus.innerHTML = `<div class="error">❌ ${result.error}</div>`;
+          uploadStatus.innerHTML = `<div class="error"> ${result.error}</div>`;
         }
       } catch (err) {
-        uploadStatus.innerHTML = `<div class="error">❌ Upload failed: ${err.message}</div>`;
+        uploadStatus.innerHTML = `<div class="error"> Upload failed: ${err.message}</div>`;
       }
     }
 
@@ -360,7 +360,7 @@
       const endDate = document.getElementById('end-date').value;
 
       if (!apiKey || !startDate || !endDate) {
-        uploadStatus.innerHTML = '<div class="error">❌ Please fill in all Stake import fields</div>';
+        uploadStatus.innerHTML = '<div class="error"> Please fill in all Stake import fields</div>';
         return;
       }
 
@@ -379,13 +379,13 @@
         const result = await response.json();
 
         if (response.ok) {
-          uploadStatus.innerHTML = `<div class="success">✅ ${result.sessions_imported} sessions imported from Stake!</div>`;
+          uploadStatus.innerHTML = `<div class="success"> ${result.sessions_imported} sessions imported from Stake!</div>`;
           loadInsights();
         } else {
-          uploadStatus.innerHTML = `<div class="error">❌ ${result.error}</div>`;
+          uploadStatus.innerHTML = `<div class="error"> ${result.error}</div>`;
         }
       } catch (err) {
-        uploadStatus.innerHTML = `<div class="error">❌ Import failed: ${err.message}</div>`;
+        uploadStatus.innerHTML = `<div class="error"> Import failed: ${err.message}</div>`;
       }
     });
 
@@ -408,7 +408,7 @@
           insightsContainer.innerHTML = '<p class="loading">No insights available yet. Upload data to begin analysis.</p>';
         }
       } catch (err) {
-        insightsContainer.innerHTML = `<div class="error">❌ Failed to load insights: ${err.message}</div>`;
+        insightsContainer.innerHTML = `<div class="error"> Failed to load insights: ${err.message}</div>`;
       }
     }
 
@@ -446,7 +446,7 @@
               <span class="insight-confidence">${confidencePercent}% confidence • ${insight.data_points} sessions</span>
             </div>
             <div class="insight-description">${insight.description}</div>
-            ${insight.recommendation ? `<div class="insight-recommendation">💡 ${insight.recommendation}</div>` : ''}
+            ${insight.recommendation ? `<div class="insight-recommendation"> ${insight.recommendation}</div>` : ''}
           </div>
         `;
       }).join('');

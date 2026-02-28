@@ -112,7 +112,7 @@
             
             <div class="grid">
                 <div class="card">
-                    <h3>🎯 Trust Score</h3>
+                    <h3> Trust Score</h3>
                     <div class="trust-score" id="trustScore">--</div>
                     <div class="metric">
                         <span>Tilt Level</span>
@@ -129,7 +129,7 @@
                 </div>
                 
                 <div class="card">
-                    <h3>💰 JustTheTip Stats</h3>
+                    <h3> JustTheTip Stats</h3>
                     <div class="metric">
                         <span>Total Tips Sent</span>
                         <span class="metric-value" id="totalTips">--</span>
@@ -150,7 +150,7 @@
                 </div>
 
                 <div class="card">
-                    <h3>📈 Advanced Analytics</h3>
+                    <h3> Advanced Analytics</h3>
                     <div class="metric">
                         <span>Total Wagered</span>
                         <span class="metric-value" id="wageredAmount">--</span>
@@ -166,7 +166,7 @@
                 </div>
 
                 <div class="card" id="nftCard">
-                    <h3>🆔 Degen Identity NFT</h3>
+                    <h3> Degen Identity NFT</h3>
                     <div id="nftStatus">Checking status...</div>
                     <div id="savingsSection" style="display: none; margin-top: 1rem;">
                         <p style="font-size: 0.8rem; color: #888; margin-bottom: 0.5rem;">Identity Savings Progress (Goal: 0.05 SOL)</p>
@@ -187,7 +187,7 @@
                 </div>
                 
                 <div class="card">
-                    <h3>⚙️ Preferences</h3>
+                    <h3> Preferences</h3>
                     <div style="display: flex; flex-direction: column; gap: 0.5rem;">
                         <label style="display: flex; align-items: center; gap: 0.5rem;">
                             <input type="checkbox" id="emailNotifications"> Email Notifications
@@ -204,7 +204,7 @@
             </div>
             
             <div class="card">
-                <h3>📊 Recent Activity</h3>
+                <h3> Recent Activity</h3>
                 <div id="activityFeed">
                     Loading activities...
                 </div>
@@ -308,12 +308,12 @@
             const savingsSection = document.getElementById('savingsSection');
             
             if (user.degenIdentity?.tos_nft_paid) {
-                nftStatus.textContent = '✅ Minted (Verified)';
+                nftStatus.textContent = ' Minted (Verified)';
                 nftStatus.style.color = '#00d4aa';
                 mintSection.style.display = 'none';
                 savingsSection.style.display = 'none';
             } else {
-                nftStatus.textContent = '❌ Not Minted';
+                nftStatus.textContent = ' Not Minted';
                 nftStatus.style.color = '#ff4444';
                 mintSection.style.display = 'block';
                 
@@ -388,7 +388,7 @@
                     const verifyData = await verifyRes.json();
                     if (verifyData.success) {
                         clearInterval(interval);
-                        document.getElementById('paymentStatus').textContent = '✅ Payment Verified!';
+                        document.getElementById('paymentStatus').textContent = ' Payment Verified!';
                         setTimeout(() => location.reload(), 2000);
                     }
                 }, 5000);
@@ -424,13 +424,13 @@
         function formatActivity(activity) {
             switch (activity.type) {
                 case 'tip':
-                    return `💰 Tipped ${activity.amount} SOL to ${activity.to}`;
+                    return ` Tipped ${activity.amount} SOL to ${activity.to}`;
                 case 'scan':
-                    return `🔍 Scanned ${activity.url} - ${activity.result}`;
+                    return ` Scanned ${activity.url} - ${activity.result}`;
                 case 'play':
-                    return `🎮 Played at ${activity.casino}`;
+                    return ` Played at ${activity.casino}`;
                 default:
-                    return `📝 ${activity.type}`;
+                    return ` ${activity.type}`;
             }
         }
         
