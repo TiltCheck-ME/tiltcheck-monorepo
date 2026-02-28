@@ -36,6 +36,7 @@ let sessionStats = {
 };
 let lockTimerInterval: any = null;
 let lastProfit = 0;
+let casinoThemesIntervalId: ReturnType<typeof setInterval> | null = null;
 
 const CASINO_THEMES: Record<string, { label: string; accent: string }> = {
   'stake.us': { label: 'Stake.us', accent: '#4ade80' },
@@ -103,7 +104,13 @@ async function callAIGateway(application: string, data: any = {}) {
 
 function createSidebar() {
   const existing = document.getElementById('tiltcheck-sidebar');
-  if (existing) existing.remove();
+  if (existing) {
+    existing.remove();
+  }
+  if (casinoThemesIntervalId) {
+    clearInterval(casinoThemesIntervalId);
+    casinoThemesIntervalId = null;
+  }
 
   const sidebar = document.createElement('div');
   sidebar.id = 'tiltcheck-sidebar';
@@ -796,7 +803,7 @@ function createSidebar() {
   document.body.appendChild(sidebar);
   updateSessionSiteLabel();
   void refreshCasinoThemes();
-  setInterval(refreshCasinoThemes, 15 * 60 * 1000);
+  casinoThemesIntervalId = setInterval(refreshCasinoThemes, 15 * 60 * 1000);
   setupEventListeners();
   checkAuthStatus();
   return sidebar;
@@ -1381,7 +1388,7 @@ function setupEventListeners() {
     const top = window.screenY + (window.outerHeight - height) / 2;
 
     const authWindow = window.open(
-      getDiscordLoginUrl('extension_sidebar'),
+      getDiscordLoginUrl('extension'),
       'Discord Login',
       `width=${width},height=${height},left=${left},top=${top}`
     );
@@ -1532,7 +1539,14 @@ function renderGoals(goals: VaultGoal[]) {
   goals.forEach((goal, idx) => {
     const goalDiv = document.createElement('div');
     goalDiv.style.cssText = 'display:flex; justify-content:space-between; font-size:12px; margin-bottom:4px; padding:4px; background:rgba(255,255,255,0.05); border-radius:4px;';
-    goalDiv.innerHTML = `<span>${goal.name} ($${goal.amount})</span> <button data-idx="${idx}" style="background:none;border:none;color:#10b981;cursor:pointer;font-size:10px;">Vault</button>`;
+    const label = document.createElement('span');
+    label.textContent = `${goal.name} ($${goal.amount})`;
+    const btn = document.createElement('button');
+    btn.dataset.idx = String(idx);
+    btn.textContent = 'Vault';
+    btn.style.cssText = 'background:none;border:none;color:#10b981;cursor:pointer;font-size:10px;';
+    goalDiv.appendChild(label);
+    goalDiv.appendChild(btn);
     goalsList.appendChild(goalDiv);
   });
 }

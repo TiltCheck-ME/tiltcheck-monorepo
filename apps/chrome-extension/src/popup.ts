@@ -211,7 +211,7 @@ function showDiscordIdInput() {
  * Start Discord OAuth Login
  */
 function startLogin() {
-  const loginUrl = getDiscordLoginUrl('extension_popup');
+  const loginUrl = getDiscordLoginUrl('extension');
   window.open(loginUrl, 'TiltCheck Login', 'width=500,height=700');
 }
 
