@@ -1,5 +1,5 @@
-﻿﻿/**
- * Â© 2024â€“2025 TiltCheck Ecosystem. All Rights Reserved.
+/**
+ *  20242025 TiltCheck Ecosystem. All Rights Reserved.
  * Created by jmenichole (https://github.com/jmenichole)
  * 
  * This file is part of the TiltCheck project.
@@ -35,6 +35,16 @@ let sessionStats = {
   currentBalance: 0
 };
 let lockTimerInterval: any = null;
+let lastProfit = 0;
+
+const CASINO_THEMES: Record<string, { label: string; accent: string }> = {
+  'stake.us': { label: 'Stake.us', accent: '#4ade80' },
+  'stake.com': { label: 'Stake.com', accent: '#4ade80' },
+  'roobet.com': { label: 'Roobet', accent: '#f97316' },
+  'bc.game': { label: 'BC.Game', accent: '#f59e0b' },
+  'rollbit.com': { label: 'Rollbit', accent: '#f472b6' },
+};
+let dynamicCasinoThemes: Record<string, { label: string; accent: string }> = {};
 
 function applyPageOffset(width: number) {
   const offset = `${width}px`;
@@ -99,10 +109,10 @@ function createSidebar() {
   sidebar.id = 'tiltcheck-sidebar';
   sidebar.innerHTML = `
     <div class="tg-header">
-      <div class="tg-logo">TiltCheck</div>
+      <div class="tg-logo"><span class="tg-logo-mark">T</span>TiltCheck</div>
       <div class="tg-header-actions">
-        <button class="tg-icon-btn" id="tg-settings" title="Settings">âš™</button>
-        <button class="tg-icon-btn" id="tg-minimize" title="Minimize">âˆ’</button>
+        <button class="tg-icon-btn" id="tg-settings" title="Settings">Settings</button>
+        <button class="tg-icon-btn" id="tg-minimize" title="Minimize">-</button>
       </div>
     </div>
     <div id="tg-status-bar" class="tg-status-bar" style="display: none;"></div>
@@ -127,7 +137,18 @@ function createSidebar() {
             <span id="tg-username">Guest</span>
             <span class="tg-tier" id="tg-user-tier">Free</span>
           </div>
-          <button class="tg-btn-icon" id="tg-logout" title="Logout">Ã—</button>
+          <button class="tg-btn-icon" id="tg-logout" title="Logout">x</button>
+        </div>
+
+        <!-- Quick Safety -->
+        <div class="tg-section tg-emergency">
+          <div class="tg-emergency-header">
+            <div>
+              <div class="tg-emergency-title">Emergency Lock</div>
+              <div class="tg-emergency-sub">One-click 15 min break</div>
+            </div>
+            <button class="tg-btn tg-btn-danger" id="tg-emergency-lock">Take a 15-min Break</button>
+          </div>
         </div>
 
         <!-- Settings Panel (toggleable) -->
@@ -155,21 +176,21 @@ function createSidebar() {
 
         <!-- Configurator Panel (toggleable) -->
         <div class="tg-settings-panel" id="tg-config-panel" style="display: none;">
-          <h4>ðŸŽ° Casino Configurator</h4>
+          <h4>Casino Configurator</h4>
           <div class="tg-input-group">
             <label>Bet Amount Selector</label>
             <div style="display: flex; gap: 5px;">
               <input type="text" id="cfg-bet" placeholder=".bet-amount" style="flex:1;" />
-              <button class="tg-btn-icon tg-picker-btn" data-target="cfg-bet" title="Pick Element">ðŸŽ¯</button>
-              <button class="tg-btn-icon tg-test-btn" data-target="cfg-bet" title="Test Selector">ðŸ‘ï¸</button>
+              <button class="tg-btn-icon tg-picker-btn" data-target="cfg-bet" title="Pick Element">Pick</button>
+              <button class="tg-btn-icon tg-test-btn" data-target="cfg-bet" title="Test Selector">Test</button>
             </div>
           </div>
           <div class="tg-input-group">
             <label>Game Result Selector</label>
             <div style="display: flex; gap: 5px;">
               <input type="text" id="cfg-result" placeholder=".game-result" style="flex:1;" />
-              <button class="tg-btn-icon tg-picker-btn" data-target="cfg-result" title="Pick Element">ðŸŽ¯</button>
-              <button class="tg-btn-icon tg-test-btn" data-target="cfg-result" title="Test Selector">ðŸ‘ï¸</button>
+              <button class="tg-btn-icon tg-picker-btn" data-target="cfg-result" title="Pick Element">Pick</button>
+              <button class="tg-btn-icon tg-test-btn" data-target="cfg-result" title="Test Selector">Test</button>
             </div>
           </div>
           <button class="tg-btn tg-btn-primary" id="save-config">Save Config</button>
@@ -178,7 +199,7 @@ function createSidebar() {
 
         <!-- Fairness Verifier Panel (toggleable) -->
         <div class="tg-settings-panel" id="tg-verifier-panel" style="display: none;">
-          <h4>âš–ï¸ Fairness Verifier</h4>
+          <h4>Fairness Verifier</h4>
           
           <div class="tg-tabs">
             <button class="tg-tab active" data-target="fv-tab-verify">Verify</button>
@@ -198,7 +219,7 @@ function createSidebar() {
               <label>Nonce</label>
               <div style="display: flex; gap: 5px;">
                 <input type="number" id="fv-nonce" placeholder="1" value="1" style="flex: 1;" />
-                <button class="tg-btn-icon" id="fv-sync-nonce" title="Sync Nonce">ðŸ”„</button>
+                <button class="tg-btn-icon" id="fv-sync-nonce" title="Sync Nonce">Sync</button>
               </div>
             </div>
             <button class="tg-btn tg-btn-primary" id="fv-verify">Verify Outcome</button>
@@ -227,8 +248,11 @@ function createSidebar() {
         <!-- Active Session Metrics (TOP PRIORITY) -->
         <div class="tg-metrics-card">
           <div class="tg-metrics-header">
-            <h3>Active Session</h3>
-            <div class="tg-guardian-indicator" id="tg-guardian-indicator">â—</div>
+            <div>
+              <h3>Active Session</h3>
+              <div class="tg-session-site" id="tg-session-site">Unknown</div>
+            </div>
+            <div class="tg-guardian-indicator" id="tg-guardian-indicator"></div>
           </div>
           <div class="tg-metrics-grid">
             <div class="tg-metric">
@@ -252,7 +276,7 @@ function createSidebar() {
               <span class="tg-metric-value" id="tg-rtp">--</span>
             </div>
             <div class="tg-metric">
-              <span class="tg-metric-label">Tilt</span>
+              <span class="tg-metric-label">Tilt <span class="tg-help" data-tip="Calculated from wager frequency and bet-size volatility.">?</span></span>
               <span class="tg-metric-value tg-tilt-value" id="tg-score-value">0</span>
             </div>
           </div>
@@ -277,7 +301,7 @@ function createSidebar() {
         <!-- Quick Actions -->
         <div class="tg-section">
           <div class="tg-action-grid">
-            <button class="tg-action-btn" id="tg-open-suslink">ðŸ›¡ï¸ SusLink</button>
+            <button class="tg-action-btn" id="tg-open-suslink">SusLink</button>
             <button class="tg-action-btn" id="tg-open-config">Configure</button>
             <button class="tg-action-btn" id="tg-open-verifier">Verify</button>
             <button class="tg-action-btn" id="tg-open-dashboard">Dashboard</button>
@@ -285,17 +309,17 @@ function createSidebar() {
             <button class="tg-action-btn" id="tg-wallet">Wallet</button>
             <button class="tg-action-btn" id="tg-upgrade">Upgrade</button>
           </div>
-          <button class="tg-btn tg-btn-secondary" id="tg-open-report" style="margin-top: 8px;">ðŸ“¢ Report Casino Update</button>
+          <button class="tg-btn tg-btn-secondary" id="tg-open-report" style="margin-top: 8px;">Report Casino Update</button>
         </div>
 
         <!-- SusLink Panel (toggleable) -->
         <div class="tg-settings-panel" id="tg-suslink-panel" style="display: none;">
-          <h4>ðŸ›¡ï¸ SusLink Scanner</h4>
+          <h4>SusLink Scanner</h4>
           <div class="tg-input-group">
             <label>Check URL</label>
             <div style="display: flex; gap: 5px;">
               <input type="text" id="suslink-url" placeholder="https://..." style="flex:1;" />
-              <button class="tg-btn-icon" id="suslink-scan-btn">ðŸ”</button>
+              <button class="tg-btn-icon" id="suslink-scan-btn">Scan</button>
             </div>
           </div>
           <div id="suslink-result" style="display:none; padding: 10px; background: rgba(0,0,0,0.2); border-radius: 4px; margin-bottom: 10px;">
@@ -307,7 +331,7 @@ function createSidebar() {
 
         <!-- Report Panel (toggleable) -->
         <div class="tg-settings-panel" id="tg-report-panel" style="display: none;">
-          <h4>ðŸ“¢ Community Report</h4>
+          <h4>Community Report</h4>
           <div class="tg-input-group">
             <label>Report Type</label>
             <select id="report-type" style="width: 100%; padding: 8px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); color: #fff; border-radius: 4px;">
@@ -332,6 +356,13 @@ function createSidebar() {
           <div class="tg-vault-amount" id="tg-vault-balance">$0.00</div>
           
           <!-- Custom Goals -->
+          <div class="tg-goal-progress" id="tg-goal-progress" style="display: none;">
+            <div class="tg-goal-label" id="tg-goal-label">Goal</div>
+            <div class="tg-goal-bar">
+              <div class="tg-goal-fill" id="tg-goal-fill" style="width: 0%;"></div>
+            </div>
+            <div class="tg-goal-meta" id="tg-goal-meta">$0 / $0</div>
+          </div>
           <div id="tg-goals-list" style="margin-bottom: 10px;"></div>
           
           <div class="tg-vault-actions">
@@ -342,7 +373,7 @@ function createSidebar() {
           
           <!-- Lock Timer Wallet -->
           <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.1);">
-            <h4 style="font-size: 11px; margin-bottom: 6px;">â³ Lock Timer Wallet</h4>
+            <h4 style="font-size: 11px; margin-bottom: 6px;">Lock Timer Wallet</h4>
             
             <div id="tg-lock-form">
               <div style="display: flex; gap: 5px; margin-bottom: 8px;">
@@ -388,6 +419,8 @@ function createSidebar() {
         </div>
       </div>
     </div>
+
+    <div class="tg-toast" id="tg-toast" style="display:none;"></div>
   `;
 
   // Push page content to make room for sidebar
@@ -402,10 +435,10 @@ function createSidebar() {
       right: 0 !important;
       width: ${SIDEBAR_WIDTH}px;
       height: 100vh;
-      background: #0f1419;
-      color: #e1e8ed;
+      background: #0a0a0a;
+      color: #e6e6e6;
       z-index: 2147483647 !important;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
       box-shadow: -2px 0 8px rgba(0, 0, 0, 0.3);
       overflow-y: auto;
       transition: transform 0.2s ease;
@@ -418,7 +451,7 @@ function createSidebar() {
     #tiltcheck-sidebar::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.2); border-radius: 3px; }
     
     .tg-header {
-      background: #000;
+      background: linear-gradient(180deg, rgba(99,102,241,0.18), rgba(10,10,10,0));
       padding: 14px 16px;
       display: flex;
       justify-content: space-between;
@@ -430,9 +463,24 @@ function createSidebar() {
     }
     .tg-logo {
       font-size: 15px;
-      font-weight: 600;
+      font-weight: 700;
       color: #fff;
-      letter-spacing: 0.5px;
+      letter-spacing: 0.4px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .tg-logo-mark {
+      width: 24px;
+      height: 24px;
+      border-radius: 7px;
+      background: linear-gradient(135deg, #6366f1, #8b5cf6);
+      color: #fff;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 13px;
     }
     .tg-header-actions { display: flex; gap: 6px; }
     .tg-icon-btn {
@@ -449,8 +497,12 @@ function createSidebar() {
     .tg-icon-btn:hover { background: rgba(255, 255, 255, 0.1); border-color: rgba(255, 255, 255, 0.3); }
     
     .tg-content { padding: 12px; }
-    .tg-section { margin-bottom: 12px; padding: 14px; background: rgba(255, 255, 255, 0.03); border-radius: 6px; border: 1px solid rgba(255, 255, 255, 0.05); }
-    .tg-section h4 { margin: 0 0 10px 0; font-size: 13px; font-weight: 600; color: rgba(255, 255, 255, 0.7); text-transform: uppercase; letter-spacing: 0.5px; }
+    .tg-section { margin-bottom: 12px; padding: 14px; background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(10px); border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.1); }
+    .tg-section h4 { margin: 0 0 10px 0; font-size: 13px; font-weight: 700; color: rgba(255, 255, 255, 0.7); text-transform: uppercase; letter-spacing: 0.05em; }
+    .tg-emergency { border: 1px solid rgba(239, 68, 68, 0.35); background: rgba(239, 68, 68, 0.08); }
+    .tg-emergency-header { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+    .tg-emergency-title { font-weight: 700; font-size: 13px; }
+    .tg-emergency-sub { font-size: 11px; opacity: 0.7; margin-top: 2px; }
     
     .tg-auth-prompt { text-align: center; padding: 40px 20px; }
     .tg-auth-prompt h3 { font-size: 18px; margin-bottom: 8px; font-weight: 600; }
@@ -482,10 +534,11 @@ function createSidebar() {
     .tg-btn-icon:hover { color: rgba(255, 255, 255, 0.8); }
     
     .tg-settings-panel {
-      background: #1a1f26;
+      background: rgba(255, 255, 255, 0.03);
+      backdrop-filter: blur(10px);
       padding: 16px;
       margin-bottom: 12px;
-      border-radius: 6px;
+      border-radius: 12px;
       border: 1px solid rgba(255, 255, 255, 0.1);
     }
     .tg-settings-panel h4 { margin: 0 0 12px 0; font-size: 13px; }
@@ -504,8 +557,9 @@ function createSidebar() {
     
     .tg-metrics-card {
       background: rgba(255, 255, 255, 0.03);
+      backdrop-filter: blur(10px);
       border: 1px solid rgba(255, 255, 255, 0.1);
-      border-radius: 6px;
+      border-radius: 12px;
       padding: 14px;
       margin-bottom: 12px;
     }
@@ -520,6 +574,7 @@ function createSidebar() {
       font-size: 14px;
       font-weight: 600;
     }
+    .tg-session-site { font-size: 11px; opacity: 0.6; margin-top: 2px; }
     .tg-guardian-indicator {
       width: 10px;
       height: 10px;
@@ -541,11 +596,44 @@ function createSidebar() {
       gap: 4px;
     }
     .tg-metric-label {
-      font-size: 11px;
-      opacity: 0.5;
+      font-size: 10px;
+      opacity: 0.65;
       text-transform: uppercase;
-      letter-spacing: 0.5px;
+      letter-spacing: 0.05em;
     }
+    .tg-help {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      margin-left: 4px;
+      font-size: 10px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      color: rgba(255, 255, 255, 0.7);
+      position: relative;
+      cursor: help;
+    }
+    .tg-help::after {
+      content: attr(data-tip);
+      position: absolute;
+      bottom: 20px;
+      right: 0;
+      background: rgba(0, 0, 0, 0.9);
+      color: #fff;
+      padding: 6px 8px;
+      border-radius: 6px;
+      font-size: 10px;
+      white-space: nowrap;
+      opacity: 0;
+      transform: translateY(4px);
+      pointer-events: none;
+      transition: opacity 0.15s ease, transform 0.15s ease;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      z-index: 50;
+    }
+    .tg-help:hover::after { opacity: 1; transform: translateY(0); }
     .tg-metric-value {
       font-size: 15px;
       font-weight: 600;
@@ -584,10 +672,10 @@ function createSidebar() {
     }
     .tg-action-btn {
       background: rgba(255, 255, 255, 0.05);
-      border: 1px solid rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.12);
       color: #e1e8ed;
       padding: 10px;
-      border-radius: 4px;
+      border-radius: 10px;
       cursor: pointer;
       font-size: 12px;
       font-weight: 500;
@@ -602,6 +690,11 @@ function createSidebar() {
       margin-bottom: 12px;
       font-variant-numeric: tabular-nums;
     }
+    .tg-goal-progress { margin-bottom: 10px; }
+    .tg-goal-label { font-size: 11px; opacity: 0.7; margin-bottom: 6px; }
+    .tg-goal-bar { height: 6px; background: rgba(255,255,255,0.08); border-radius: 999px; overflow: hidden; }
+    .tg-goal-fill { height: 100%; background: linear-gradient(90deg, #22c55e, #10b981); width: 0%; transition: width 0.4s ease; }
+    .tg-goal-meta { font-size: 10px; opacity: 0.6; margin-top: 4px; }
     .tg-vault-actions {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -613,7 +706,7 @@ function createSidebar() {
       padding: 10px;
       margin-top: 6px;
       border: none;
-      border-radius: 4px;
+      border-radius: 10px;
       color: white;
       font-weight: 500;
       cursor: pointer;
@@ -622,10 +715,60 @@ function createSidebar() {
     }
     .tg-btn-primary { background: #6366f1; }
     .tg-btn-primary:hover { background: #5558e3; }
-    .tg-btn-secondary { background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); }
+    .tg-btn-secondary { background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.12); }
     .tg-btn-secondary:hover { background: rgba(255, 255, 255, 0.15); }
     .tg-btn-vault { background: #f59e0b; }
     .tg-btn-vault:hover { background: #d97706; }
+    .tg-btn-danger { background: #ef4444; }
+    .tg-btn-danger:hover { background: #dc2626; }
+    #tg-discord-login { background: #5865F2; border: 1px solid rgba(255,255,255,0.12); }
+    #tg-discord-login:hover { background: #4d5ae9; }
+
+    .tg-toast {
+      position: fixed;
+      right: 16px;
+      bottom: 16px;
+      background: rgba(255, 255, 255, 0.06);
+      backdrop-filter: blur(10px);
+      color: #e6e6e6;
+      border: 1px solid rgba(255,255,255,0.12);
+      border-left: 3px solid #6366f1;
+      padding: 10px 12px;
+      border-radius: 10px;
+      font-size: 12px;
+      max-width: 260px;
+      z-index: 2147483647;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.35);
+      animation: toastIn 0.2s ease;
+    }
+    @keyframes toastIn {
+      from { transform: translateY(6px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    #tiltcheck-sidebar.tilt-warn {
+      box-shadow: -2px 0 12px rgba(245, 158, 11, 0.35);
+      border-left-color: rgba(245, 158, 11, 0.6);
+      animation: pulseBorder 2.2s ease-in-out infinite;
+    }
+    #tiltcheck-sidebar.tilt-critical {
+      background: rgba(127, 29, 29, 0.85);
+      box-shadow: -2px 0 16px rgba(239, 68, 68, 0.45);
+      border-left-color: rgba(239, 68, 68, 0.7);
+    }
+    #tiltcheck-sidebar.tilt-critical .tg-emergency { border-color: rgba(239, 68, 68, 0.8); }
+    #tiltcheck-sidebar.tilt-critical #tg-emergency-lock { animation: shake 0.6s ease-in-out infinite; }
+
+    @keyframes pulseBorder {
+      0% { border-left-color: rgba(245, 158, 11, 0.3); box-shadow: -2px 0 8px rgba(245, 158, 11, 0.15); }
+      50% { border-left-color: rgba(245, 158, 11, 0.75); box-shadow: -2px 0 14px rgba(245, 158, 11, 0.35); }
+      100% { border-left-color: rgba(245, 158, 11, 0.3); box-shadow: -2px 0 8px rgba(245, 158, 11, 0.15); }
+    }
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-2px); }
+      75% { transform: translateX(2px); }
+    }
 
     .tg-tabs { display: flex; border-bottom: 1px solid rgba(255,255,255,0.1); margin-bottom: 12px; }
     .tg-tab { flex: 1; background: none; border: none; color: rgba(255,255,255,0.5); padding: 8px; cursor: pointer; border-bottom: 2px solid transparent; font-size: 12px; font-weight: 600; }
@@ -651,9 +794,68 @@ function createSidebar() {
 
   document.head.appendChild(style);
   document.body.appendChild(sidebar);
+  updateSessionSiteLabel();
+  void refreshCasinoThemes();
+  setInterval(refreshCasinoThemes, 15 * 60 * 1000);
   setupEventListeners();
   checkAuthStatus();
   return sidebar;
+}
+
+function deriveAccent(label: string): string {
+  let hash = 0;
+  for (let i = 0; i < label.length; i += 1) {
+    hash = (hash << 5) - hash + label.charCodeAt(i);
+    hash |= 0;
+  }
+  const hue = Math.abs(hash) % 360;
+  return `hsl(${hue}, 70%, 55%)`;
+}
+
+async function refreshCasinoThemes() {
+  try {
+    const res = await fetch(`${API_BASE}/bonus/casinos`);
+    if (!res.ok) return;
+    const data = await res.json();
+    const casinos = Array.isArray(data.casinos) ? data.casinos : data;
+    const mapped: Record<string, { label: string; accent: string }> = {};
+    casinos.forEach((item: any) => {
+      const url = item.url || item.baseURL || '';
+      if (!url) return;
+      try {
+        const host = new URL(url).hostname.replace(/^www\./, '');
+        const label = item.brand || item.name || host;
+        mapped[host] = { label, accent: deriveAccent(label) };
+      } catch {
+        // Ignore malformed URLs
+      }
+    });
+    if (Object.keys(mapped).length > 0) {
+      dynamicCasinoThemes = mapped;
+      updateSessionSiteLabel();
+    }
+  } catch {
+    // ignore
+  }
+}
+
+function updateSessionSiteLabel() {
+  const el = document.getElementById('tg-session-site');
+  if (!el) return;
+  const host = (window.location.hostname || 'unknown').replace(/^www\./, '');
+  const theme = dynamicCasinoThemes[host] || CASINO_THEMES[host];
+  el.textContent = `${theme?.label || host} active session`;
+
+  const sidebar = document.getElementById('tiltcheck-sidebar');
+  if (sidebar) {
+    if (theme) {
+      sidebar.style.borderLeftColor = theme.accent;
+      sidebar.style.boxShadow = `-2px 0 14px ${theme.accent}33`;
+    } else {
+      sidebar.style.borderLeftColor = 'rgba(255, 255, 255, 0.1)';
+      sidebar.style.boxShadow = '-2px 0 8px rgba(0, 0, 0, 0.3)';
+    }
+  }
 }
 
 function setupEventListeners() {
@@ -663,7 +865,7 @@ function setupEventListeners() {
     const isMin = sidebar?.classList.toggle('minimized');
     document.body.classList.toggle('tiltcheck-minimized', !!isMin);
     applyPageOffset(isMin ? MINIMIZED_WIDTH : SIDEBAR_WIDTH);
-    if (btn) btn.textContent = isMin ? '+' : 'âˆ’';
+    if (btn) btn.textContent = isMin ? '+' : '-';
   });
 
   // Settings toggle
@@ -717,6 +919,15 @@ function setupEventListeners() {
   document.getElementById('tg-open-report')?.addEventListener('click', () => {
     const panel = document.getElementById('tg-report-panel');
     if (panel) panel.style.display = 'block';
+  });
+
+  // Emergency lock: 15 min break
+  document.getElementById('tg-emergency-lock')?.addEventListener('click', () => {
+    const minsInput = document.getElementById('lock-timer-mins') as HTMLInputElement;
+    const agreeCheckbox = document.getElementById('lock-agree') as HTMLInputElement;
+    if (minsInput) minsInput.value = '15';
+    if (agreeCheckbox) agreeCheckbox.checked = true;
+    document.getElementById('start-lock-timer')?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
   });
   document.getElementById('close-report')?.addEventListener('click', () => {
     const panel = document.getElementById('tg-report-panel');
@@ -831,7 +1042,7 @@ function setupEventListeners() {
 
       // Visual feedback
       const originalText = target.textContent;
-      target.textContent = 'âœ“';
+      target.textContent = '';
       setTimeout(() => target.textContent = originalText, 1000);
     }
   });
@@ -887,7 +1098,7 @@ function setupEventListeners() {
       if (result.success && result.scan) {
         const scan = result.scan;
         if (scoreDiv) {
-          scoreDiv.textContent = `${scan.isSafe ? 'âœ…' : 'âŒ'} ${scan.isSafe ? 'Safe' : 'High Risk'} (Trust Score: ${scan.trustScore}/100)`;
+          scoreDiv.textContent = `${scan.isSafe ? 'OK' : 'X'} ${scan.isSafe ? 'Safe' : 'High Risk'} (Trust Score: ${scan.trustScore}/100)`;
           scoreDiv.style.color = scan.isSafe ? '#10b981' : '#ef4444';
         }
         if (detailsDiv) {
@@ -899,7 +1110,7 @@ function setupEventListeners() {
         // Fallback for API failure
         const isSafe = !url.includes('scam');
         if (scoreDiv) {
-          scoreDiv.textContent = isSafe ? 'âœ… Safe (Trust Score: 95/100)' : 'âŒ High Risk (Trust Score: 10/100)';
+          scoreDiv.textContent = isSafe ? 'OK Safe (Trust Score: 95/100)' : 'X High Risk (Trust Score: 10/100)';
           scoreDiv.style.color = isSafe ? '#10b981' : '#ef4444';
         }
         if (detailsDiv) {
@@ -909,7 +1120,7 @@ function setupEventListeners() {
     } catch (e) {
       console.error('[TiltGuard] SusLink scan error:', e);
       if (scoreDiv) {
-        scoreDiv.textContent = 'âš ï¸ Scan Error';
+        scoreDiv.textContent = 'Scan Error';
         scoreDiv.style.color = '#f59e0b';
       }
       if (detailsDiv) {
@@ -960,12 +1171,21 @@ function setupEventListeners() {
     const amount = prompt('Amount ($):');
 
     if (name && amount) {
-      const goalsList = document.getElementById('tg-goals-list');
-      const goalDiv = document.createElement('div');
-      goalDiv.style.cssText = 'display:flex; justify-content:space-between; font-size:12px; margin-bottom:4px; padding:4px; background:rgba(255,255,255,0.05); border-radius:4px;';
-      goalDiv.innerHTML = `<span>${name} ($${amount})</span> <button style="background:none;border:none;color:#10b981;cursor:pointer;font-size:10px;">Vault</button>`;
-      goalsList?.appendChild(goalDiv);
+      const goals = loadGoals();
+      goals.push({ name, amount: Number(amount) });
+      saveGoals(goals);
+      renderGoals(goals);
+      updateGoalProgress(sessionStats.currentBalance || 0);
     }
+  });
+
+  document.getElementById('tg-goals-list')?.addEventListener('click', (e) => {
+    const btn = (e.target as HTMLElement).closest('button') as HTMLButtonElement | null;
+    if (!btn || !btn.dataset.idx) return;
+    const goals = loadGoals();
+    const goal = goals[Number(btn.dataset.idx)];
+    if (!goal || !userData) return;
+    depositToVault(goal.amount);
   });
 
   // Lock Timer Logic
@@ -1007,7 +1227,7 @@ function setupEventListeners() {
       });
 
       if (result.success) {
-        addFeedMessage(`ðŸ”’ Locked $${amount} for ${mins}m`);
+        addFeedMessage(`Locked $${amount} for ${mins}m`);
         updateStatus('Funds locked successfully', 'success');
         minsInput.value = '';
         agreeCheckbox.checked = false;
@@ -1038,7 +1258,7 @@ function setupEventListeners() {
       });
 
       if (result.success) {
-        addFeedMessage(`ðŸ”“ Funds released: $${result.amount.toFixed(2)}`);
+        addFeedMessage(`Funds released: $${result.amount.toFixed(2)}`);
         updateStatus('Funds released to main wallet', 'success');
         checkLockStatus(); // Should reset UI to form
         loadVaultBalance();
@@ -1096,7 +1316,7 @@ function setupEventListeners() {
   });
 
   document.getElementById('tg-guest-mode')?.addEventListener('click', () => {
-    // Demo mode — shows full UI with fake data
+    // Demo mode - shows full UI with fake data
     userData = { username: 'DegenDemo', tier: 'premium', id: 'demo' };
     authToken = 'demo-token';
     isAuthenticated = true;
@@ -1106,8 +1326,8 @@ function setupEventListeners() {
     updateGuardian(true);
 
     // Populate with impressive demo data
-    addFeedMessage('🚀 Demo Mode Active — Experience TiltCheck Premium');
-    addFeedMessage('✅ Licensed Casino: Stake.com (Verified)');
+    addFeedMessage('Demo Mode Active - Experience TiltCheck Premium');
+    addFeedMessage('Licensed Casino: Stake.com (Verified)');
 
     // Fake session stats
     sessionStats = {
@@ -1123,28 +1343,28 @@ function setupEventListeners() {
     pnlHistory = [0, 50, 30, 120, 80, 250, 190, 420, 380, 590];
     initPnLGraph();
 
-    addFeedMessage('💰 Current Session: +$590.00 (ROI: 47.2%)');
+    addFeedMessage('Current Session: +$590.00 (ROI: 47.2%)');
 
     // Delayed simulations to 'wow' the user
     setTimeout(() => {
-      addFeedMessage('🔍 Scanning patterns...');
+      addFeedMessage('Scanning patterns...');
       updateTilt(15, ['consistent bet sizing', 'normal heart rate (simulated)']);
     }, 2000);
 
     setTimeout(() => {
-      addFeedMessage('⚠️ Behavioral change detected: Increased click frequency');
+      addFeedMessage('Behavioral change detected: Increased click frequency');
       updateTilt(45, ['rapid clicking', 'emotional pattern recognized']);
     }, 5000);
 
     setTimeout(() => {
-      addFeedMessage('🚨 CRITICAL TILT DETECTED: 82/100');
+      addFeedMessage('CRITICAL TILT DETECTED: 82/100');
       updateTilt(82, ['chasing losses pattern', 'high-risk bet sizing', 'session fatigue']);
-      addFeedMessage('💡 AI Intervention: Suggesting 15-minute cooldown to protect your profit.');
+      addFeedMessage('AI Intervention: Suggesting 15-minute cooldown to protect your profit.');
     }, 8000);
 
     // After 60 seconds, nudge them to sign up
     setTimeout(() => {
-      addFeedMessage('⚡ Ready to use the real thing? Sign in with Discord to monitor your actual sessions.');
+      addFeedMessage('Ready to use the real thing? Sign in with Discord to monitor your actual sessions.');
       const authSection = document.getElementById('tg-auth-section');
       if (authSection) {
         authSection.style.display = 'block';
@@ -1172,8 +1392,8 @@ function setupEventListeners() {
         authToken = event.data.token;
         userData = event.data.user;
         isAuthenticated = true;
-        localStorage.setItem('tiltcheck_auth', JSON.stringify(userData));
-        localStorage.setItem('tiltcheck_token', authToken || '');
+        localStorage.setItem('tiltguard_auth', JSON.stringify(userData));
+        localStorage.setItem('tiltguard_token', authToken || '');
         showMainContent();
         addFeedMessage(`Authenticated as ${userData.username}`);
         window.removeEventListener('message', handleMessage);
@@ -1247,7 +1467,7 @@ function checkAuthStatus() {
 
   // Require authentication
   if (!stored || !token) {
-    console.log('ðŸŽ® TiltGuard: Authentication required');
+    console.log('TiltGuard: Authentication required');
     return;
   }
 
@@ -1256,6 +1476,8 @@ function checkAuthStatus() {
     authToken = token;
     isAuthenticated = true;
     showMainContent();
+    renderGoals(loadGoals());
+    updateGoalProgress(sessionStats.currentBalance || 0);
     loadVaultBalance();
     checkLockStatus();
     initPnLGraph();
@@ -1277,6 +1499,61 @@ function addFeedMessage(message: string) {
   while (feed.children.length > 10) {
     feed.removeChild(feed.lastChild!);
   }
+}
+
+function showToast(message: string, durationMs: number = 4000) {
+  const toast = document.getElementById('tg-toast');
+  if (!toast) return;
+  toast.textContent = message;
+  toast.style.display = 'block';
+  setTimeout(() => {
+    if (toast.textContent === message) toast.style.display = 'none';
+  }, durationMs);
+}
+
+type VaultGoal = { name: string; amount: number };
+
+function loadGoals(): VaultGoal[] {
+  try {
+    return JSON.parse(localStorage.getItem('tiltcheck_vault_goals') || '[]');
+  } catch {
+    return [];
+  }
+}
+
+function saveGoals(goals: VaultGoal[]) {
+  localStorage.setItem('tiltcheck_vault_goals', JSON.stringify(goals));
+}
+
+function renderGoals(goals: VaultGoal[]) {
+  const goalsList = document.getElementById('tg-goals-list');
+  if (!goalsList) return;
+  goalsList.innerHTML = '';
+  goals.forEach((goal, idx) => {
+    const goalDiv = document.createElement('div');
+    goalDiv.style.cssText = 'display:flex; justify-content:space-between; font-size:12px; margin-bottom:4px; padding:4px; background:rgba(255,255,255,0.05); border-radius:4px;';
+    goalDiv.innerHTML = `<span>${goal.name} ($${goal.amount})</span> <button data-idx="${idx}" style="background:none;border:none;color:#10b981;cursor:pointer;font-size:10px;">Vault</button>`;
+    goalsList.appendChild(goalDiv);
+  });
+}
+
+function updateGoalProgress(balance: number) {
+  const goals = loadGoals();
+  const progressWrap = document.getElementById('tg-goal-progress');
+  const label = document.getElementById('tg-goal-label');
+  const fill = document.getElementById('tg-goal-fill') as HTMLDivElement | null;
+  const meta = document.getElementById('tg-goal-meta');
+  if (!progressWrap || !label || !fill || !meta) return;
+  if (goals.length === 0) {
+    progressWrap.style.display = 'none';
+    return;
+  }
+  const goal = goals[0];
+  const pct = Math.min(100, (balance / Math.max(goal.amount, 1)) * 100);
+  progressWrap.style.display = 'block';
+  label.textContent = `${goal.name} goal`;
+  fill.style.width = `${pct}%`;
+  meta.textContent = `$${balance.toFixed(2)} / $${goal.amount.toFixed(2)}`;
 }
 
 let pnlHistory: number[] = [];
@@ -1378,9 +1655,9 @@ async function vaultCurrentBalance() {
 function updateLicense(verification: any) {
   // License verification can be shown in feed
   if (verification.isLegitimate) {
-    addFeedMessage(`âœ“ Licensed: ${verification.licenseInfo?.authority || 'Verified'}`);
+    addFeedMessage(`Licensed: ${verification.licenseInfo?.authority || 'Verified'}`);
   } else {
-    addFeedMessage(`âš  ${verification.verdict || 'Unlicensed'}`);
+    addFeedMessage(`Warning: ${verification.verdict || 'Unlicensed'}`);
   }
 }
 
@@ -1402,9 +1679,16 @@ async function updateTilt(score: number, _indicators: string[]) {
     else if (score >= 30) scoreEl.classList.add('warning');
   }
 
+  const sidebar = document.getElementById('tiltcheck-sidebar');
+  if (sidebar) {
+    sidebar.classList.remove('tilt-warn', 'tilt-critical');
+    if (score >= 71) sidebar.classList.add('tilt-critical');
+    else if (score >= 41) sidebar.classList.add('tilt-warn');
+  }
+
   // Add to feed if high tilt
   if (score >= 60) {
-    addFeedMessage(`âš ï¸ High tilt detected: ${Math.round(score)}`);
+    addFeedMessage(`High tilt detected: ${Math.round(score)}`);
 
     // Get AI-powered intervention suggestions
     const aiResult = await callAIGateway('tilt-detection', {
@@ -1417,7 +1701,7 @@ async function updateTilt(score: number, _indicators: string[]) {
 
     if (aiResult.success && aiResult.data?.interventionSuggestions) {
       aiResult.data.interventionSuggestions.forEach((suggestion: string) => {
-        addFeedMessage(`ðŸ’¡ ${suggestion}`);
+        addFeedMessage(`Tip: ${suggestion}`);
       });
     }
   }
@@ -1458,6 +1742,12 @@ function updateStats(stats: any) {
   }
 
   if (stats.currentBalance !== undefined) sessionStats.currentBalance = stats.currentBalance;
+
+  // Win-to-vault nudge
+  if (profit - lastProfit >= 50) {
+    showToast('Huge win! Move $50 to the Vault to secure it?');
+  }
+  lastProfit = profit;
 }
 
 async function depositToVault(amount: number) {
@@ -1482,6 +1772,7 @@ async function loadVaultBalance() {
   if (result.vault) {
     const vaultEl = document.getElementById('tg-vault-balance');
     if (vaultEl) vaultEl.textContent = `$${result.vault.balance.toFixed(2)}`;
+    updateGoalProgress(result.vault.balance || 0);
   }
 }
 
@@ -1595,7 +1886,7 @@ async function openDashboard() {
         <style>body{font-family:monospace;padding:20px;background:#0f1419;color:#e1e8ed;}pre{background:#1a1f26;padding:15px;border-radius:6px;border:1px solid rgba(255,255,255,0.1);}</style>
         </head>
         <body>
-          <h1>ðŸŽ¯ TiltGuard Dashboard</h1>
+          <h1>TiltGuard Dashboard</h1>
           <pre>${data}</pre>
         </body>
       </html>
@@ -1620,7 +1911,7 @@ async function openVault() {
         <style>body{font-family:monospace;padding:20px;background:#1a1a2e;color:white;}pre{background:#16213e;padding:15px;border-radius:8px;}</style>
         </head>
         <body>
-          <h1>ðŸ”’ TiltGuard Vault</h1>
+          <h1>TiltGuard Vault</h1>
           <pre>${data}</pre>
         </body>
       </html>
@@ -1645,7 +1936,7 @@ async function openWallet() {
         <style>body{font-family:monospace;padding:20px;background:#1a1a2e;color:white;}pre{background:#16213e;padding:15px;border-radius:8px;}</style>
         </head>
         <body>
-          <h1>ðŸ’° TiltGuard Wallet</h1>
+          <h1>TiltGuard Wallet</h1>
           <pre>${data}</pre>
         </body>
       </html>
@@ -1710,7 +2001,7 @@ function renderVerificationHistory() {
       </div>
       <div style="display:flex; align-items:center; gap:6px; margin-top:4px;">
         <span style="font-size:9px; opacity:0.4; flex:1; overflow:hidden; text-overflow:ellipsis; font-family:monospace;">${item.result.hash}</span>
-        <button class="tg-btn-icon tg-copy-hash" data-hash="${item.result.hash}" title="Copy Hash" style="width:20px; height:20px; font-size:12px; padding:0; display:flex; align-items:center; justify-content:center; border:1px solid rgba(255,255,255,0.1);">ðŸ“‹</button>
+        <button class="tg-btn-icon tg-copy-hash" data-hash="${item.result.hash}" title="Copy Hash" style="width:20px; height:20px; font-size:12px; padding:0; display:flex; align-items:center; justify-content:center; border:1px solid rgba(255,255,255,0.1);">Copy</button>
       </div>
     </div>
   `).join('');
@@ -1735,7 +2026,7 @@ async function notifyBuddy(type: string, data: any) {
     });
 
     if (result.success) {
-      addFeedMessage(`ðŸ‘¥ Buddy notified: ${type}`);
+      addFeedMessage(`Buddy notified: ${type}`);
       updateStatus('Buddy alert sent', 'buddy');
     }
   } catch (e) {
@@ -1770,3 +2061,4 @@ function updateStatus(message: string, type: string = 'info') {
 if (typeof window !== 'undefined') {
   (window as any).TiltCheckSidebar = { create: createSidebar, updateLicense, updateGuardian, updateTilt, updateStats, notifyBuddy };
 }
+
