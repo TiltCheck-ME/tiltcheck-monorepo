@@ -32,7 +32,7 @@ export { help } from './help.js';
 // export { suslinkCmd as suslink } from './suslink.js';
 export { tip } from './tip.js';
 export { bonus } from './bonus.js';
-export { walletcheck } from './walletcheck.js';
+// wallet-check merged into suslink scam detection tool
 
 // Support, trust dashboard, and tilt monitoring
 // export { support } from './support.js';

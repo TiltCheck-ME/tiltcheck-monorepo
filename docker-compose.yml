@@ -1,160 +1,184 @@
-# TiltCheck Monorepo Docker Compose
 services:
-  # ===========================================
-  # CORE SERVICES (Backend)
-  # ===========================================
-
   discord-bot:
     build:
       context: .
       dockerfile: apps/discord-bot/Dockerfile
-    container_name: tiltcheck-bot
+    container_name: discord-bot
     restart: unless-stopped
     env_file: .env
     environment:
-      - NODE_ENV=production
-      - DISCORD_BOT_HEALTH_PORT=8081
       - SKIP_ENV_VALIDATION=1
-    ports:
-      - "8081:8081"
+      - PORT=8081
+      - DISCORD_BOT_HEALTH_PORT=8081
     networks:
-      - tiltcheck
-    healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:8081/health" ]
-      interval: 30s
-      timeout: 10s
-      retries: 3
+      - tiltcheck-network
 
   api:
     build:
       context: .
       dockerfile: apps/api/Dockerfile
-    container_name: tiltcheck-api
+    container_name: api
+    ports:
+      - "3001:3001"
     restart: unless-stopped
     env_file: .env
     environment:
-      - NODE_ENV=production
-      - PORT=3001
       - SKIP_ENV_VALIDATION=1
-    ports:
-      - "3001:3001"
-    networks:
-      - tiltcheck
+      - PORT=3001
     healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:3001/health" ]
+      test: [ "CMD", "wget", "-qO-", "http://localhost:3001/health" ]
       interval: 30s
       timeout: 10s
       retries: 3
+    networks:
+      - tiltcheck-network
 
   dashboard:
     build:
       context: .
       dockerfile: apps/dashboard/Dockerfile
-    container_name: tiltcheck-dashboard
+    container_name: dashboard
+    ports:
+      - "5055:3000"
     restart: unless-stopped
     env_file: .env
     environment:
-      - NODE_ENV=production
-      - PORT=5055
       - SKIP_ENV_VALIDATION=1
-    ports:
-      - "5055:3000"
-    networks:
-      - tiltcheck
+      - PORT=3000
     healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:5055/health" ]
+      test: [ "CMD", "wget", "-qO-", "http://localhost:3000/api/health" ]
       interval: 30s
       timeout: 10s
       retries: 3
+    networks:
+      - tiltcheck-network
 
   control-room:
     build:
       context: .
       dockerfile: apps/control-room/Dockerfile
-    container_name: tiltcheck-control-room
+    container_name: control-room
+    ports:
+      - "3002:3001"
     restart: unless-stopped
     env_file: .env
     environment:
-      - NODE_ENV=production
-      - PORT=3001
       - SKIP_ENV_VALIDATION=1
-    ports:
-      - "3002:3001"
+      - PORT=3001
     networks:
-      - tiltcheck
+      - tiltcheck-network
 
   landing:
     build:
       context: .
       dockerfile: apps/web/Dockerfile
-    container_name: tiltcheck-landing
-    restart: unless-stopped
-    environment:
-      - NODE_ENV=production
-      - PORT=8080
-      - SKIP_ENV_VALIDATION=1
+    container_name: landing
     ports:
       - "8080:80"
+    restart: unless-stopped
+    healthcheck:
+      test: [ "CMD", "wget", "-qO-", "http://localhost:80/status.html || exit 0" ]
+      interval: 60s
+      timeout: 5s
+      retries: 3
     networks:
-      - tiltcheck
-
-  # ===========================================
-  # ADDITIONAL SERVICES
-  # ===========================================
+      - tiltcheck-network
 
   dad-bot:
     build:
       context: .
       dockerfile: apps/dad-bot/Dockerfile
-    container_name: tiltcheck-dad-bot
+    container_name: dad-bot
     restart: unless-stopped
     env_file: .env
     environment:
-      - NODE_ENV=production
-      - DAD_BOT_HEALTH_PORT=8082
       - SKIP_ENV_VALIDATION=1
-    ports:
-      - "8082:8082"
     networks:
-      - tiltcheck
+      - tiltcheck-network
 
   trust-rollup:
     build:
       context: .
       dockerfile: apps/trust-rollup/Dockerfile
-    container_name: tiltcheck-rollup
+    container_name: trust-rollup
+    ports:
+      - "8082:8082"
     restart: unless-stopped
     env_file: .env
     environment:
-      - NODE_ENV=production
-      - TRUST_ROLLUP_HEALTH_PORT=8083
       - SKIP_ENV_VALIDATION=1
-    ports:
-      - "8083:8083"
+      - PORT=8082
     networks:
-      - tiltcheck
+      - tiltcheck-network
 
-  justthetip-bot:
+  justthetip:
     build:
       context: .
       dockerfile: apps/justthetip-bot/Dockerfile
-    container_name: justthetip-bot
+    container_name: justthetip
+    ports:
+      - "1501:3002"
     restart: unless-stopped
     env_file: .env
     environment:
-      - NODE_ENV=production
-      - JTT_BOT_HEALTH_PORT=8084
       - SKIP_ENV_VALIDATION=1
-    ports:
-      - "8084:8084"
-    networks:
-      - tiltcheck
+      - PORT=3002
     healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:8084/health" ]
+      test: [ "CMD", "wget", "-qO-", "http://localhost:3002/health" ]
       interval: 30s
       timeout: 10s
       retries: 3
+    networks:
+      - tiltcheck-network
+
+  user-dashboard:
+    build:
+      context: .
+      dockerfile: apps/user-dashboard/Dockerfile
+    container_name: user-dashboard
+    ports:
+      - "6001:6001"
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      - SKIP_ENV_VALIDATION=1
+      - PORT=6001
+    networks:
+      - tiltcheck-network
+
+  game-arena:
+    build:
+      context: .
+      dockerfile: apps/game-arena/Dockerfile
+    container_name: game-arena
+    ports:
+      - "7071:3010"
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      - SKIP_ENV_VALIDATION=1
+      - PORT=3010
+    networks:
+      - tiltcheck-network
+
+  reverse-proxy:
+    build:
+      context: .
+      dockerfile: apps/reverse-proxy/Dockerfile
+    container_name: reverse-proxy
+    ports:
+      - "80:80"
+      - "443:443"
+    restart: unless-stopped
+    depends_on:
+      - landing
+      - api
+      - dashboard
+      - user-dashboard
+      - game-arena
+    networks:
+      - tiltcheck-network
 
 networks:
-  tiltcheck:
+  tiltcheck-network:
     driver: bridge
