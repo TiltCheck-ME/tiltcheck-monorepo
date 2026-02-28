@@ -73,7 +73,9 @@
       "Bash(do [ ! -d \"$ddist\" ])",
       "Bash(__NEW_LINE_24bba5bec9be35c7__ echo \"=== Apps with no dist ===\")",
       "Bash(for d in /c/Users/jmeni/tiltcheck-monorepo/apps/*/)",
-      "Bash(__NEW_LINE_35cb9f0f7da7cfdc__ echo \"=== Total packages ===\")"
+      "Bash(__NEW_LINE_35cb9f0f7da7cfdc__ echo \"=== Total packages ===\")",
+      "Bash(head -20 echo \"===\" grep -A3 \"discordToken\\\\|clientId\\\\|BOT_TOKEN\\\\|CLIENT_ID\" /c/Users/jmeni/tiltcheck-monorepo/apps/justthetip-bot/src/config.ts)",
+      "WebFetch(domain:github.com)"
     ]
   }
 }

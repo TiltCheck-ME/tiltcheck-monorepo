@@ -113,7 +113,7 @@ function createSidebar() {
           <p>Authenticate to sync data and access vault</p>
           <button class="tg-btn tg-btn-primary" id="tg-discord-login">Discord Login</button>
           <div class="tg-auth-divider">or</div>
-          <button class="tg-btn tg-btn-secondary" id="tg-guest-mode">Guest Mode</button>
+          <button class="tg-btn tg-btn-secondary" id="tg-guest-mode">Try Demo Mode</button>
         </div>
       </div>
 
@@ -1094,11 +1094,22 @@ function setupEventListeners() {
   });
 
   document.getElementById('tg-guest-mode')?.addEventListener('click', () => {
-    userData = { username: 'Guest', tier: 'free', id: 'guest' };
-    authToken = 'guest-token';
+    // Demo mode — shows full UI with fake data, prompts signup after 60s
+    userData = { username: 'Demo User', tier: 'demo', id: 'demo' };
+    authToken = 'demo-token';
     isAuthenticated = true;
     showMainContent();
-    addFeedMessage('Guest mode active (Local)');
+    addFeedMessage('👀 Demo mode — sign in with Discord to save your data and access all features.');
+
+    // After 60 seconds, nudge them to sign up
+    setTimeout(() => {
+      addFeedMessage('⚡ Ready to go full degen? Sign in with Discord to unlock vault, tilt tracking, and more.');
+      const authSection = document.getElementById('tg-auth-section');
+      if (authSection) {
+        authSection.style.display = 'block';
+        authSection.scrollIntoView({ behavior: 'smooth' });
+      }
+    }, 60000);
   });
 
   document.getElementById('tg-discord-login')?.addEventListener('click', async () => {
@@ -1109,7 +1120,7 @@ function setupEventListeners() {
     const top = window.screenY + (window.outerHeight - height) / 2;
 
     const authWindow = window.open(
-      'https://discord.com/oauth2/authorize?client_id=1445916179163250860&permissions=2252352254102592&response_type=code&redirect_uri=http%3A%2F%2Flocalhost%3A3001%2Fauth%2Fdiscord%2Fcallback&integration_type=0&scope=identify+email+bot+dm_channels.messages.read+messages.read+applications.store.update+dm_channels.read+presences.read+lobbies.write+applications.entitlements+applications.commands',
+      'https://discord.com/oauth2/authorize?client_id=1445916179163250860&permissions=2252352254102592&response_type=code&redirect_uri=https%3A%2F%2Fapi.tiltcheck.me%2Fauth%2Fdiscord%2Fcallback&integration_type=0&scope=identify+email+bot+dm_channels.messages.read+messages.read+applications.store.update+dm_channels.read+presences.read+lobbies.write+applications.entitlements+applications.commands',
       'Discord Login',
       `width=${width},height=${height},left=${left},top=${top}`
     );
