@@ -10,10 +10,11 @@
  * Updated to work with the new popup.html UI layout
  */
 
-// Production endpoints — override with TILTCHECK_API_URL env at build time if needed
-const API_BASE_URL = 'https://api.tiltcheck.me';
-const AI_GATEWAY_URL = 'https://ai-gateway.tiltcheck.me';
-const WEB_APP_URL = 'https://tiltcheck.me';
+import { EXT_CONFIG, getDiscordLoginUrl } from './config.js';
+
+const API_BASE_URL = EXT_CONFIG.API_BASE_URL;
+const AI_GATEWAY_URL = EXT_CONFIG.AI_GATEWAY_URL;
+const WEB_APP_URL = EXT_CONFIG.WEB_APP_URL;
 
 // Trusted domain whitelist for AI Gateway
 const TRUSTED_AI_DOMAINS = [
@@ -167,7 +168,7 @@ function showDiscordIdInput() {
   const container = document.createElement('div');
   container.id = 'discord-id-container';
   container.style.cssText = 'margin-top: 10px; padding: 8px; background: rgba(255,255,255,0.05); border-radius: 6px; border: 1px solid rgba(251, 191, 36, 0.3);';
-  
+
   container.innerHTML = `
     <div style="font-size: 11px; color: #fbbf24; margin-bottom: 6px; display: flex; align-items: center; gap: 4px;">
       <span>⚠️</span> Missing Discord ID
@@ -187,7 +188,7 @@ function showDiscordIdInput() {
       // Update local state immediately
       userData.discordId = id;
       chrome.storage.local.set({ userData });
-      
+
       // Attempt to sync to backend
       try {
         // This endpoint needs to exist in your API
@@ -210,7 +211,7 @@ function showDiscordIdInput() {
  * Start Discord OAuth Login
  */
 function startLogin() {
-  const loginUrl = 'https://discord.com/oauth2/authorize?client_id=1445916179163250860&response_type=code&redirect_uri=https%3A%2F%2Fapi.tiltcheck.me%2Fauth%2Fdiscord%2Fcallback&scope=identify+email+activities.write+lobbies.write';
+  const loginUrl = getDiscordLoginUrl('extension_popup');
   window.open(loginUrl, 'TiltCheck Login', 'width=500,height=700');
 }
 

@@ -184,7 +184,7 @@
 
   <div class="subscription-container">
     <div class="subscription-hero">
-      <h1>🔌 TiltCheck Chrome Extension</h1>
+      <h1> TiltCheck Chrome Extension</h1>
       <p>Real-time tilt detection and casino safety while you browse</p>
     </div>
 
@@ -194,19 +194,19 @@
     <!-- Pricing Card -->
     <div class="pricing-card">
       <div class="pricing-header">
-        <div class="trial-badge">🎁 14-Day Free Trial</div>
+        <div class="trial-badge"> 14-Day Free Trial</div>
         <div class="price">$5<small>/month</small></div>
         <p style="color: #888; font-size: 1.1rem;">Cancel anytime, no commitments</p>
       </div>
 
       <ul class="features-list">
-        <li>✅ Real-time casino trust scores on any site</li>
-        <li>✅ Automatic SusLink scanning for phishing protection</li>
-        <li>✅ Tilt detection alerts while browsing gambling sites</li>
-        <li>✅ One-click access to TiltCheck tools</li>
-        <li>✅ Sync with your Discord bot activity</li>
-        <li>✅ Browser notification for sus links</li>
-        <li>✅ Priority support</li>
+        <li> Real-time casino trust scores on any site</li>
+        <li> Automatic SusLink scanning for phishing protection</li>
+        <li> Tilt detection alerts while browsing gambling sites</li>
+        <li> One-click access to TiltCheck tools</li>
+        <li> Sync with your Discord bot activity</li>
+        <li> Browser notification for sus links</li>
+        <li> Priority support</li>
       </ul>
 
       <button id="subscribe-btn" class="subscribe-btn">Start 14-Day Free Trial</button>
@@ -218,7 +218,7 @@
 
     <!-- Founder Exception Notice -->
     <div id="founder-notice" style="display: none; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 12px; padding: 24px; text-align: center; margin-bottom: 30px;">
-      <h3 style="color: white; font-size: 1.4rem; margin-bottom: 8px;">👑 Founder Access</h3>
+      <h3 style="color: white; font-size: 1.4rem; margin-bottom: 8px;"> Founder Access</h3>
       <p style="color: rgba(255, 255, 255, 0.9); font-size: 1.1rem;">
         As the founder, you have permanent premium access to all TiltCheck features at no cost.
       </p>
@@ -226,7 +226,7 @@
 
     <!-- FAQ Section -->
     <div class="faq">
-      <h2>❓ Frequently Asked Questions</h2>
+      <h2> Frequently Asked Questions</h2>
 
       <div class="faq-item">
         <h3>How does the free trial work?</h3>
@@ -350,7 +350,7 @@
         document.getElementById('subscribe-btn').textContent = 'Subscribe Now';
         document.getElementById('subscribe-btn').onclick = handleSubscribe;
       } else if (sub.status === 'active') {
-        showSubscriptionStatus('active', 'Active subscription - thank you! 💚');
+        showSubscriptionStatus('active', 'Active subscription - thank you! ');
         document.getElementById('subscribe-btn').textContent = 'Manage Subscription';
         document.getElementById('subscribe-btn').onclick = () => {
           window.location.href = '/settings.html#subscription';
@@ -375,7 +375,7 @@
       statusDiv.className = `subscription-status ${status}`;
       statusDiv.innerHTML = `
         <div style="font-weight: 600; color: #00d4aa; margin-bottom: 4px;">
-          ${status === 'trial' ? '🎁 Trial Active' : status === 'active' ? '✅ Subscribed' : '⚠️ Trial Expired'}
+          ${status === 'trial' ? ' Trial Active' : status === 'active' ? ' Subscribed' : ' Trial Expired'}
         </div>
         <div style="color: #ccc;">${message}</div>
       `;
@@ -490,7 +490,7 @@
           localStorage.setItem(key, JSON.stringify(sub));
         }
         
-        showSubscriptionStatus('active', 'Subscription successful! Thank you for subscribing! 💚');
+        showSubscriptionStatus('active', 'Subscription successful! Thank you for subscribing! ');
         document.getElementById('subscribe-btn').textContent = 'Manage Subscription';
         document.getElementById('subscribe-btn').onclick = () => {
           window.location.href = '/settings.html#subscription';

@@ -134,11 +134,11 @@ class TiltCheckAuth {
     menuItems.style.cssText = 'padding: 8px 0;';
     
     const items = [
-      { label: '🎮 Game Arena', href: '/play/arena' },
-      { label: '👤 Profile', href: '/play/profile.html' },
-      { label: '⚙️ Settings', href: '/settings.html' },
-      { label: '📊 Dashboard', href: '/dashboard' },
-      { label: '🚪 Logout', href: '#', id: 'logout-link' }
+      { label: 'Game Arena', href: '/play/arena' },
+      { label: 'Profile', href: '/play/profile.html' },
+      { label: 'Settings', href: '/settings.html' },
+      { label: 'Dashboard', href: '/dashboard' },
+      { label: 'Logout', href: '#', id: 'logout-link' }
     ];
 
     items.forEach(item => {

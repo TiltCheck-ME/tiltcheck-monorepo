@@ -11,8 +11,10 @@
  * Integrates with AI Gateway for intelligent tilt detection
  */
 
-const API_BASE = 'http://localhost:3001';
-const AI_GATEWAY_URL = 'https://ai-gateway.tiltcheck.me';
+import { EXT_CONFIG, getDiscordLoginUrl } from './config.js';
+
+const API_BASE = EXT_CONFIG.API_BASE_URL;
+const AI_GATEWAY_URL = EXT_CONFIG.AI_GATEWAY_URL;
 let authToken: string | null = null;
 let showSettings = false;
 let apiKeys: any = {
@@ -113,7 +115,7 @@ function createSidebar() {
           <p>Authenticate to sync data and access vault</p>
           <button class="tg-btn tg-btn-primary" id="tg-discord-login">Discord Login</button>
           <div class="tg-auth-divider">or</div>
-          <button class="tg-btn tg-btn-secondary" id="tg-guest-mode">Try Demo Mode</button>
+          <button class="tg-btn tg-btn-secondary" id="tg-guest-mode">Demo</button>
         </div>
       </div>
 
@@ -1094,16 +1096,55 @@ function setupEventListeners() {
   });
 
   document.getElementById('tg-guest-mode')?.addEventListener('click', () => {
-    // Demo mode — shows full UI with fake data, prompts signup after 60s
-    userData = { username: 'Demo User', tier: 'demo', id: 'demo' };
+    // Demo mode — shows full UI with fake data
+    userData = { username: 'DegenDemo', tier: 'premium', id: 'demo' };
     authToken = 'demo-token';
     isAuthenticated = true;
     showMainContent();
-    addFeedMessage('👀 Demo mode — sign in with Discord to save your data and access all features.');
+
+    // Simulate active state
+    updateGuardian(true);
+
+    // Populate with impressive demo data
+    addFeedMessage('🚀 Demo Mode Active — Experience TiltCheck Premium');
+    addFeedMessage('✅ Licensed Casino: Stake.com (Verified)');
+
+    // Fake session stats
+    sessionStats = {
+      startTime: Date.now() - 4500000, // 75 mins ago
+      totalBets: 142,
+      totalWagered: 1250,
+      totalWon: 1840,
+      currentBalance: 590
+    };
+    updateStats(sessionStats);
+
+    // Populate graph with some history
+    pnlHistory = [0, 50, 30, 120, 80, 250, 190, 420, 380, 590];
+    initPnLGraph();
+
+    addFeedMessage('💰 Current Session: +$590.00 (ROI: 47.2%)');
+
+    // Delayed simulations to 'wow' the user
+    setTimeout(() => {
+      addFeedMessage('🔍 Scanning patterns...');
+      updateTilt(15, ['consistent bet sizing', 'normal heart rate (simulated)']);
+    }, 2000);
+
+    setTimeout(() => {
+      addFeedMessage('⚠️ Behavioral change detected: Increased click frequency');
+      updateTilt(45, ['rapid clicking', 'emotional pattern recognized']);
+    }, 5000);
+
+    setTimeout(() => {
+      addFeedMessage('🚨 CRITICAL TILT DETECTED: 82/100');
+      updateTilt(82, ['chasing losses pattern', 'high-risk bet sizing', 'session fatigue']);
+      addFeedMessage('💡 AI Intervention: Suggesting 15-minute cooldown to protect your profit.');
+    }, 8000);
 
     // After 60 seconds, nudge them to sign up
     setTimeout(() => {
-      addFeedMessage('⚡ Ready to go full degen? Sign in with Discord to unlock vault, tilt tracking, and more.');
+      addFeedMessage('⚡ Ready to use the real thing? Sign in with Discord to monitor your actual sessions.');
       const authSection = document.getElementById('tg-auth-section');
       if (authSection) {
         authSection.style.display = 'block';
@@ -1120,7 +1161,7 @@ function setupEventListeners() {
     const top = window.screenY + (window.outerHeight - height) / 2;
 
     const authWindow = window.open(
-      'https://discord.com/oauth2/authorize?client_id=1445916179163250860&response_type=code&redirect_uri=https%3A%2F%2Fapi.tiltcheck.me%2Fauth%2Fdiscord%2Fcallback&scope=identify+email+activities.write+lobbies.write',
+      getDiscordLoginUrl('extension_sidebar'),
       'Discord Login',
       `width=${width},height=${height},left=${left},top=${top}`
     );
@@ -1238,7 +1279,7 @@ function addFeedMessage(message: string) {
   }
 }
 
-const pnlHistory: number[] = [];
+let pnlHistory: number[] = [];
 
 function initPnLGraph() {
   const canvas = document.getElementById('pnl-canvas') as HTMLCanvasElement;

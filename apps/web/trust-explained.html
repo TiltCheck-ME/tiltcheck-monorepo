@@ -1,93 +1,33 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="dark">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Trust System Explained - TiltCheck Casino Ratings</title>
-  <meta name="description" content="Understand how TiltCheck's trust scoring system evaluates casinos, detects scams, and protects your deposits.">
+  <meta name="description"
+    content="Understand how TiltCheck's trust scoring system evaluates casinos, detects scams, and protects your deposits.">
   <link rel="canonical" href="https://tiltcheck.me/trust-explained">
   <link rel="stylesheet" href="/styles/theme.css">
   <link rel="stylesheet" href="/styles/main.css">
   <link rel="manifest" href="/manifest.json">
   <meta name="theme-color" content="#7c3aed">
 </head>
+
 <body>
   <a href="#main-content" class="skip-link">Skip to main content</a>
 
-  <!-- Top Navigation -->
-  <nav class="top-nav" role="navigation" aria-label="Primary navigation">
-    <a href="/" class="nav-logo">
-      <img src="/assets/logo/logocurrent.png" alt="TiltCheck" width="32" height="32">
-      <span>TiltCheck</span>
-    </a>
-    <a href="/">Home</a>
-    <a href="/casinos.html">Casinos</a>
-    <a href="/degen-trust.html">Degens</a>
-    <a href="/dashboard">Dashboard</a>
-    <a href="/about.html">About</a>
-    <div class="nav-dropdown" role="navigation" aria-label="Education & Help">
-      <button class="nav-dropbtn" aria-haspopup="true" aria-expanded="false">Education & Help</button>
-      <div class="nav-dropdown-content">
-        <a href="/getting-started.html">Getting Started</a>
-        <a href="/how-it-works.html">How It Works</a>
-        <a href="/faq.html">FAQ</a>
-        <a href="/glossary.html">Glossary</a>
-        <a href="/responsible-gambling.html">Responsible Gambling</a>
-      </div>
-    </div>
-    <div class="nav-dropdown" role="navigation" aria-label="Legal & Compliance">
-      <button class="nav-dropbtn" aria-haspopup="true" aria-expanded="false">Legal</button>
-      <div class="nav-dropdown-content">
-        <a href="/privacy.html">Privacy Policy</a>
-        <a href="/terms.html">Terms of Service</a>
-        <a href="/responsible-gambling.html">Responsible Gambling</a>
-      </div>
-    </div>
-    <a href="/contact.html">Contact</a>
-    <a href="#" class="discord-login-btn">
-      <svg width="18" height="18" viewBox="0 0 71 55" fill="currentColor" style="vertical-align: middle; margin-right: 6px;">
-        <path d="M60.1 4.9C55.6 2.8 50.7 1.3 45.7.4c-.1 0-.2 0-.2.1-.6 1.1-1.3 2.6-1.8 3.7-5.5-.8-10.9-.8-16.3 0-.5-1.2-1.2-2.6-1.9-3.7 0-.1-.1-.1-.2-.1-5.1.9-9.9 2.4-14.4 4.5 0 0 0 0-.1.1C1.6 18.7-.9 32.1.3 45.4v.2c6.1 4.5 12 7.2 17.8 9 .1 0 .2 0 .2-.1 1.4-1.9 2.6-3.8 3.6-5.9.1-.1 0-.3-.1-.3-1.9-.7-3.8-1.6-5.5-2.6-.1-.1-.1-.3 0-.4.4-.3.7-.6 1.1-.9 0 0 .1-.1.2 0 11.6 5.3 24.2 5.3 35.7 0h.2c.4.3.7.6 1.1.9.1.1.1.3 0 .4-1.8 1-3.6 1.9-5.5 2.6-.1.1-.2.2-.1.3 1 2.1 2.3 4 3.6 5.9.1.1.1.1.2.1 5.8-1.8 11.7-4.5 17.8-9v-.2c1.5-15.3-2.5-28.6-10.5-40.4 0 0 0 0-.1-.1zM23.7 37.3c-3.5 0-6.4-3.2-6.4-7.2s2.8-7.2 6.4-7.2c3.6 0 6.4 3.2 6.4 7.2 0 4-2.9 7.2-6.4 7.2zm23.6 0c-3.5 0-6.4-3.2-6.4-7.2s2.8-7.2 6.4-7.2c3.6 0 6.4 3.2 6.4 7.2 0 4-2.9 7.2-6.4 7.2z"/>
-      </svg>
-      Login
-    </a>
-    <button class="hamburger-btn" aria-label="Open menu" aria-expanded="false" onclick="toggleMobileNav()">
-      <span class="hamburger-icon"></span>
-    </button>
-  </nav>
-
-  <!-- Mobile Navigation Overlay -->
-  <div class="mobile-nav" id="mobileNav" aria-hidden="true">
-    <div class="mobile-nav-links">
-      <a href="/">Home</a>
-      <a href="/casinos.html">Casinos</a>
-      <a href="/degen-trust.html">Degens</a>
-      <a href="/dashboard">Dashboard</a>
-      <a href="/about.html">About</a>
-      <a href="/how-it-works.html">How It Works</a>
-      <a href="/faq.html">FAQ</a>
-      <a href="/contact.html">Contact</a>
-    </div>
-    <div class="mobile-nav-section">
-      <h3>Legal</h3>
-      <a href="/privacy.html">Privacy Policy</a>
-      <a href="/terms.html">Terms of Service</a>
-      <a href="/responsible-gambling.html">Responsible Gambling</a>
-    </div>
-    <div class="mobile-nav-section">
-      <a href="#" class="discord-login-btn" style="display: block; text-align: center; margin-top: 20px;">
-        Login with Discord
-      </a>
-    </div>
-  </div>
+  <div id="shared-nav"></div>
 
   <main id="main-content" class="container" style="padding-top: 2rem;">
     <article class="content-page">
       <h1>Trust System Explained</h1>
-      
+
       <section>
         <h2>Why Casino Trust Scores Matter</h2>
         <p>
-          When you're tilted, you're vulnerable. Scam casinos <strong>know this</strong> and target frustrated players with promises of "guaranteed wins" and "instant deposits."
+          When you're tilted, you're vulnerable. Scam casinos <strong>know this</strong> and target frustrated players
+          with promises of "guaranteed wins" and "instant deposits."
         </p>
         <p>
           TiltCheck's trust system protects you by flagging sketchy sites <em>before</em> you deposit.
@@ -105,7 +45,7 @@
 
         <h3>1. Domain Age & Registration</h3>
         <ul>
-          <li>Brand new domains (< 6 months) get penalized</li>
+          <li>Brand new domains (&lt; 6 months) get penalized</li>
           <li>Privacy-protected WHOIS records raise red flags</li>
           <li>Domains registered in known scam-heavy regions get scrutinized</li>
         </ul>
@@ -185,10 +125,10 @@
           When you post a casino link in Discord, TiltCheck instantly checks its trust score:
         </p>
         <ul>
-          <li><strong>Score 80+:</strong> ✅ Casino looks legit</li>
-          <li><strong>Score 60-79:</strong> ⚠️ Be cautious, check reviews</li>
-          <li><strong>Score 40-59:</strong> 🚨 Warning: mixed reputation</li>
-          <li><strong>Score below 40:</strong> 🛑 DANGER: likely scam, link blocked</li>
+          <li><strong>Score 80+:</strong> Casino looks legit</li>
+          <li><strong>Score 60-79:</strong> Be cautious, check reviews</li>
+          <li><strong>Score 40-59:</strong> Warning: mixed reputation</li>
+          <li><strong>Score below 40:</strong> DANGER: likely scam, link blocked</li>
         </ul>
       </section>
 
@@ -221,107 +161,9 @@
     </article>
   </main>
 
-  <footer class="site-footer">
-    <div class="container">
-      <div class="footer-grid">
-        <div>
-          <h3>TiltCheck</h3>
-          <p>Protecting degens from tilt-induced disaster.</p>
-          <p style="margin-top: var(--space-md); font-size: var(--text-sm);">
-            <a href="/responsible-gambling" style="color: var(--color-warning);">🎰 Responsible Gambling Resources</a>
-          </p>
-        </div>
-        <div>
-          <h4>Product</h4>
-          <ul>
-            <li><a href="/">Home</a></li>
-            <li><a href="/how-it-works">How It Works</a></li>
-            <li><a href="/trust-explained">Trust System</a></li>
-            <li><a href="/faq">FAQ</a></li>
-          </ul>
-        </div>
-        <div>
-          <h4>Company</h4>
-          <ul>
-            <li><a href="/about">About</a></li>
-            <li><a href="/contact">Contact</a></li>
-            <li><a href="https://github.com/jmenichole/tiltcheck-monorepo" target="_blank" rel="noopener">GitHub</a></li>
-            <li><a href="https://discord.gg/s6NNfPHxMS" target="_blank" rel="noopener">Discord</a></li>
-          </ul>
-        </div>
-        <div>
-          <h4>Legal</h4>
-          <ul>
-            <li><a href="/privacy">Privacy Policy</a></li>
-            <li><a href="/terms">Terms of Service</a></li>
-            <li><a href="/responsible-gambling">Responsible Gambling</a></li>
-          </ul>
-        </div>
-      </div>
-      <div class="footer-bottom">
-        <p style="margin-bottom: 0.5rem;">
-          <a href="https://github.com/jmenichole/Portfolio" target="_blank" rel="noopener" style="color: var(--color-primary);">made for degens by degens ❤️</a>
-        </p>
-        <p>
-          Built by <a href="https://github.com/jmenichole" target="_blank" rel="noopener">jmenichole</a> • 
-          TiltCheck Ecosystem © 2024–2025 • 
-          <a href="https://ko-fi.com/jmenichole0" target="_blank" rel="noopener">Support</a>
-        </p>
-      </div>
-    </div>
-  </footer>
-  <script>
-    // Mobile Navigation Toggle
-    function toggleMobileNav() {
-      const btn = document.querySelector('.hamburger-btn');
-      const nav = document.getElementById('mobileNav');
-      const isOpen = btn.classList.toggle('open');
-      nav.classList.toggle('open', isOpen);
-      btn.setAttribute('aria-expanded', isOpen);
-      nav.setAttribute('aria-hidden', !isOpen);
-      document.body.style.overflow = isOpen ? 'hidden' : '';
-    }
-    
-    // Close mobile nav on link click
-    document.querySelectorAll('.mobile-nav a').forEach(link => {
-      link.addEventListener('click', () => {
-        const nav = document.getElementById('mobileNav');
-        if (nav.classList.contains('open')) {
-          toggleMobileNav();
-        }
-      });
-    });
-    
-    // Close on escape key
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape' && document.querySelector('.mobile-nav.open')) {
-        toggleMobileNav();
-      }
-    });
-    
-    // Dropdown toggle for accessibility
-    document.querySelectorAll('.nav-dropdown .nav-dropbtn').forEach(btn => {
-      const content = btn.nextElementSibling;
-      btn.addEventListener('click', () => {
-        const expanded = btn.getAttribute('aria-expanded') === 'true';
-        btn.setAttribute('aria-expanded', String(!expanded));
-        content.style.display = expanded ? 'none' : 'block';
-      });
-      btn.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape') {
-          btn.setAttribute('aria-expanded', 'false');
-          content.style.display = 'none';
-          btn.blur();
-        }
-      });
-      document.addEventListener('click', (e) => {
-        if (!btn.parentElement.contains(e.target)) {
-          btn.setAttribute('aria-expanded', 'false');
-          content.style.display = 'none';
-        }
-      });
-    });
-  </script>
+  <div id="shared-footer"></div>
+  <script src="/scripts/components-loader.js"></script>
   <script src="/scripts/auth.js"></script>
 </body>
+
 </html>

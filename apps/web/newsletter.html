@@ -74,7 +74,7 @@
         const res = await fetch('/api/newsletter/subscribe', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(data) });
         const j = await res.json();
         if(j.ok){
-          if(j.duplicate){ statusEl.textContent='Already subscribed ✔'; statusEl.className='status ok'; }
+          if(j.duplicate){ statusEl.textContent='Already subscribed '; statusEl.className='status ok'; }
           else { statusEl.textContent='Subscribed! Welcome.'; statusEl.className='status ok'; form.reset(); }
         } else {
           statusEl.textContent = j.error || 'Subscription failed.'; statusEl.className='status err';

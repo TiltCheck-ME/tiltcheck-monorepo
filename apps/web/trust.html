@@ -8,13 +8,18 @@
 -->
 
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
   <title>TiltCheck - Casino Trust Dashboard</title>
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
     :root {
       --primary: #00d4aa;
       --secondary: #00a8ff;
@@ -30,9 +35,9 @@
       --gradient: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
     }
 
-    body { 
+    body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-      background: var(--dark); 
+      background: var(--dark);
       color: var(--text);
       line-height: 1.6;
     }
@@ -44,7 +49,7 @@
       padding: 1rem 0;
       border-bottom: 1px solid var(--light-gray);
     }
-    
+
     .nav-container {
       max-width: 1200px;
       margin: 0 auto;
@@ -53,7 +58,7 @@
       align-items: center;
       padding: 0 2rem;
     }
-    
+
     .nav-logo {
       font-size: 1.5rem;
       font-weight: 900;
@@ -63,23 +68,23 @@
       background-clip: text;
       text-decoration: none;
     }
-    
+
     .nav-menu {
       display: flex;
       list-style: none;
       gap: 2rem;
     }
-    
+
     .nav-link {
       color: var(--text);
       text-decoration: none;
       transition: color 0.3s ease;
     }
-    
+
     .nav-link:hover {
       color: var(--primary);
     }
-    
+
     .nav-link.active {
       color: var(--primary);
     }
@@ -146,8 +151,15 @@
     }
 
     @keyframes pulse {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.5; }
+
+      0%,
+      100% {
+        opacity: 1;
+      }
+
+      50% {
+        opacity: 0.5;
+      }
     }
 
     .toolbar {
@@ -222,7 +234,8 @@
       border-collapse: collapse;
     }
 
-    th, td {
+    th,
+    td {
       padding: 1rem;
       text-align: left;
       border-bottom: 1px solid var(--light-gray);
@@ -281,14 +294,40 @@
       letter-spacing: 0.5px;
     }
 
-    .b-critical { background: var(--danger); color: white; }
-    .b-high { background: #ff8c37; color: white; }
-    .b-elevated { background: var(--warning); color: black; }
-    .b-watch { background: #5972a8; color: white; }
-    .b-low { background: var(--success); color: white; }
+    .b-critical {
+      background: var(--danger);
+      color: white;
+    }
 
-    .delta-pos { color: var(--success); font-weight: 600; }
-    .delta-neg { color: var(--danger); font-weight: 600; }
+    .b-high {
+      background: #ff8c37;
+      color: white;
+    }
+
+    .b-elevated {
+      background: var(--warning);
+      color: black;
+    }
+
+    .b-watch {
+      background: #5972a8;
+      color: white;
+    }
+
+    .b-low {
+      background: var(--success);
+      color: white;
+    }
+
+    .delta-pos {
+      color: var(--success);
+      font-weight: 600;
+    }
+
+    .delta-neg {
+      color: var(--danger);
+      font-weight: 600;
+    }
 
     .score-cell {
       font-weight: 700;
@@ -320,43 +359,34 @@
       .nav-menu {
         display: none;
       }
-      
+
       .container {
         padding: 1rem;
       }
-      
+
       .toolbar {
         flex-direction: column;
         align-items: stretch;
       }
-      
+
       .dashboard-header h1 {
         font-size: 2rem;
       }
-      
+
       table {
         font-size: 0.8rem;
       }
-      
-      th, td {
+
+      th,
+      td {
         padding: 0.75rem 0.5rem;
       }
     }
   </style>
 </head>
+
 <body>
-  <!-- Navigation -->
-  <nav class="navbar">
-    <div class="nav-container">
-      <a href="/" class="nav-logo">🎮 TiltCheck</a>
-      <ul class="nav-menu">
-        <li><a href="/" class="nav-link">Home</a></li>
-        <li><a href="/dashboard" class="nav-link active">Trust Dashboard</a></li>
-        <li><a href="/#features" class="nav-link">Features</a></li>
-        <li><a href="/#tools" class="nav-link">Tools</a></li>
-      </ul>
-    </div>
-  </nav>
+  <div id="shared-nav"></div>
 
   <div class="container">
     <div class="dashboard-header">
@@ -379,20 +409,20 @@
         <label for="filterScore">Minimum Trust Score</label>
         <input id="filterScore" type="number" min="0" max="100" value="0" placeholder="0-100" />
       </div>
-      
+
       <div class="filter-group">
         <label for="filterRisk">Risk Level</label>
         <select id="filterRisk">
           <option value="">All Risk Levels</option>
-          <option value="critical">🔴 Critical</option>
-          <option value="high">🟠 High</option>
-          <option value="elevated">🟡 Elevated</option>
-          <option value="watch">🔵 Watch</option>
-          <option value="low">🟢 Low</option>
+          <option value="critical">Critical</option>
+          <option value="high">High</option>
+          <option value="elevated">Elevated</option>
+          <option value="watch">Watch</option>
+          <option value="low">Low</option>
         </select>
       </div>
-      
-      <button id="refreshBtn" class="btn" type="button">🔄 Refresh Data</button>
+
+      <button id="refreshBtn" class="btn" type="button">Refresh Data</button>
     </div>
 
     <div class="trust-table-container">
@@ -410,7 +440,7 @@
         <tbody id="trustTableBody">
           <tr>
             <td colspan="6" class="empty-state">
-              <h3>🔄 Loading Trust Data</h3>
+              <h3> Loading Trust Data</h3>
               <p>Fetching real-time casino trust metrics...</p>
             </td>
           </tr>
@@ -418,26 +448,12 @@
       </table>
     </div>
 
-    <div class="footer">
-      <p>&copy; 2024-2025 TiltCheck Trust Engine | Real-time analysis | <a href="/" style="color: var(--primary);">Back to Home</a></p>
-    </div>
   </div>
-  <table aria-describedby="status" aria-label="Casino trust scoreboard">
-    <thead>
-      <tr>
-        <th scope="col">Casino</th>
-        <th scope="col">Score</th>
-        <th scope="col">Δ</th>
-        <th scope="col">Risk</th>
-        <th scope="col">Volatility</th>
-        <th scope="col">Nerfs 24h</th>
-        <th scope="col">Reasons</th>
-        <th scope="col">Action</th>
-      </tr>
-    </thead>
-    <tbody id="trustBody"></tbody>
-  </table>
+
+  <div id="shared-footer"></div>
+  <script src="/scripts/components-loader.js"></script>
   <script src="trust-dashboard.js" type="module"></script>
   <script src="/scripts/auth.js"></script>
 </body>
+
 </html>

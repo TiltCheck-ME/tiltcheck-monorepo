@@ -70,6 +70,7 @@
     }
   </style>
 </head>
+
 <body>
   <a href="#main-content" class="skip-link">Skip to main content</a>
 
@@ -176,12 +177,7 @@
     <div class="container">
       <div class="header-content">
         <div class="logo-group">
-          <svg class="logo-icon" viewBox="0 0 200 200" aria-label="TiltCheck logo" role="img">
-            <circle cx="100" cy="100" r="88" fill="none" stroke="#222" stroke-width="4" />
-            <path d="M140 60 A60 60 0 1 1 140 140" fill="none" stroke="#00d4aa" stroke-width="16"
-              stroke-linecap="round" />
-            <circle cx="140" cy="100" r="10" fill="#00a8ff" />
-          </svg>
+          <img class="logo-icon" src="/assets/logo/logocurrent.svg" alt="TiltCheck logo" width="48" height="48">
           <h1 class="logo-text">TiltCheck</h1>
         </div>
         <a href="/dashboard" class="btn btn-primary">Launch App</a>
@@ -195,18 +191,8 @@
     <!-- Hero Section -->
     <section class="hero" aria-labelledby="hero-title">
       <div class="container">
-        <!-- Decorative hero background image (non-essential) -->
-        <picture>
-          <source
-            srcset="/assets/images/dark-gradient-hero-background-layered-radial-neon-teal-and-purple-energy-waves-soft-gold-sparks-minimal-abstract-pattern-high-resolution-texture-for-overlay-use.avif"
-            type="image/avif">
-          <source
-            srcset="/assets/images/dark-gradient-hero-background-layered-radial-neon-teal-and-purple-energy-waves-soft-gold-sparks-minimal-abstract-pattern-high-resolution-texture-for-overlay-use.webp"
-            type="image/webp">
-          <img
-            src="/assets/images/dark-gradient-hero-background-layered-radial-neon-teal-and-purple-energy-waves-soft-gold-sparks-minimal-abstract-pattern-high-resolution-texture-for-overlay-use.jpg"
-            alt="" class="hero-bg-img" loading="eager" decoding="async" aria-hidden="true" fetchpriority="high">
-        </picture>
+        <!-- CSS handles hero background -->
+
         <h2 id="hero-title">The Degen Transparency Layer</h2>
         <p class="hero-description">
           Tools, trust engines, predictions, and safety systems that make degen communities
@@ -228,15 +214,15 @@
         <!-- Hero Stats -->
         <div class="hero-stats" role="region" aria-label="Platform features">
           <div class="stat">
-            <span class="stat-number">🛡️</span>
+            <span class="stat-number">&mdash;</span>
             <span class="stat-label">Scam Protection</span>
           </div>
           <div class="stat">
-            <span class="stat-number">📊</span>
+            <span class="stat-number">&mdash;</span>
             <span class="stat-label">Trust Scores</span>
           </div>
           <div class="stat">
-            <span class="stat-number">⚡</span>
+            <span class="stat-number">&mdash;</span>
             <span class="stat-label">Non-Custodial</span>
           </div>
         </div>
@@ -282,96 +268,72 @@
         <div class="tools-grid">
 
           <a class="tool-card" data-tool="justthetip" href="/tools/justthetip.html">
-            <picture>
-              <source srcset="/assets/icons/tools/justthetip.avif" type="image/avif">
-              <source srcset="/assets/icons/tools/justthetip.webp" type="image/webp">
-              <img class="tool-icon" width="56" height="56" loading="lazy" decoding="async"
-                alt="Wallet accountability concept icon">
-            </picture>
+            <img class="tool-icon" width="56" height="56" src="/assets/icons/just-the-tip.svg" loading="lazy"
+              decoding="async" alt="Wallet accountability concept icon">
+
             <h3>JustTheTip</h3>
             <p>Non-custodial Solana tipping, airdrops, and swaps. Flat fee. No balance custody. No legal exposure.</p>
             <span class="tool-status status-live">Live</span>
           </a>
 
           <a class="tool-card" data-tool="suslink" href="/tools/suslink.html">
-            <picture>
-              <source srcset="/assets/icons/tools/suslink.avif" type="image/avif">
-              <source srcset="/assets/icons/tools/suslink.webp" type="image/webp">
-              <img class="tool-icon" width="56" height="56" loading="lazy" decoding="async"
-                alt="Link scanning security visualization">
-            </picture>
+            <img class="tool-icon" width="56" height="56" src="/assets/icons/sus-link.svg" loading="lazy"
+              decoding="async" alt="Link scanning security visualization">
+
             <h3>SusLink</h3>
             <p>AI-powered link scanner that detects scam sites, redirects, and impersonation before you click.</p>
             <span class="tool-status status-live">Live</span>
           </a>
 
           <a class="tool-card" data-tool="collectclock" href="/tools/collectclock.html">
-            <picture>
-              <source srcset="/assets/icons/tools/collectclock.avif" type="image/avif">
-              <source srcset="/assets/icons/tools/collectclock.webp" type="image/webp">
-              <img class="tool-icon" width="56" height="56" loading="lazy" decoding="async"
-                alt="Holographic bonus tracking dashboard">
-            </picture>
+            <img class="tool-icon" width="56" height="56" src="/assets/icons/collect-clock.svg" loading="lazy"
+              decoding="async" alt="Holographic bonus tracking dashboard">
+
             <h3>CollectClock</h3>
             <p>Daily bonus tracker with nerf detection and bonus cycle prediction. Know when casinos change terms.</p>
             <span class="tool-status status-beta">Beta</span>
           </a>
 
           <a class="tool-card" data-tool="freespinscan" href="/tools/freespinscan.html">
-            <picture>
-              <source srcset="/assets/icons/tools/freespinscan.avif" type="image/avif">
-              <source srcset="/assets/icons/tools/freespinscan.webp" type="image/webp">
-              <img class="tool-icon" width="56" height="56" loading="lazy" decoding="async"
-                alt="Holographic roulette wheel scan">
-            </picture>
+            <img class="tool-icon" width="56" height="56" src="/assets/icons/freespin-scan.svg" loading="lazy"
+              decoding="async" alt="Holographic roulette wheel scan">
+
             <h3>FreeSpinScan</h3>
             <p>Promo submission system with auto-classification, mod approval queue, and prediction engine.</p>
             <span class="tool-status status-beta">Beta</span>
           </a>
 
           <a class="tool-card" data-tool="poker" href="/tools/poker.html">
-            <picture>
-              <source srcset="/assets/icons/tools/poker.avif" type="image/avif">
-              <source srcset="/assets/icons/tools/poker.webp" type="image/webp">
-              <img class="tool-icon" width="56" height="56" loading="lazy" decoding="async"
-                alt="Cyber transparency analytics dashboard">
-            </picture>
+            <img class="tool-icon" width="56" height="56" src="/assets/icons/icons-sprite.svg" loading="lazy"
+              decoding="async" alt="Cyber transparency analytics dashboard">
+
             <h3>Poker</h3>
             <p>Texas Hold'em poker directly in Discord. Play with friends, track stats, climb leaderboards.</p>
             <span class="tool-status status-soon">Coming Soon</span>
           </a>
 
           <a class="tool-card" data-tool="tiltcheck-core" href="/tools/tiltcheck-core.html">
-            <picture>
-              <source srcset="/assets/icons/tools/tiltcheck-core.avif" type="image/avif">
-              <source srcset="/assets/icons/tools/tiltcheck-core.webp" type="image/webp">
-              <img class="tool-icon" width="56" height="56" loading="lazy" decoding="async"
-                alt="Trust network nodes mesh">
-            </picture>
+            <img class="tool-icon" width="56" height="56" src="/assets/icons/tilt-engine.svg" loading="lazy"
+              decoding="async" alt="Trust network nodes mesh">
+
             <h3>TiltCheck Core</h3>
             <p>Behavior analysis, cooldown nudges, and accountability tools. Helps you slow down without policing.</p>
             <span class="tool-status status-beta">Beta</span>
           </a>
 
           <a class="tool-card" data-tool="qualifyfirst" href="/tools/qualifyfirst.html">
-            <picture>
-              <source srcset="/assets/icons/tools/qualifyfirst.avif" type="image/avif">
-              <source srcset="/assets/icons/tools/qualifyfirst.webp" type="image/webp">
-              <img class="tool-icon" width="56" height="56" loading="lazy" decoding="async"
-                alt="Performance bar chart icon">
-            </picture>
+            <img class="tool-icon" width="56" height="56" src="/assets/icons/icons-sprite.svg" loading="lazy"
+              decoding="async" alt="Performance bar chart icon">
+
             <h3>QualifyFirst</h3>
             <p>AI survey router that pre-screens users to prevent screen-outs and wasted time.</p>
             <span class="tool-status status-soon">Coming Soon</span>
           </a>
 
           <a class="tool-card" data-tool="daad" href="/tools/daad.html">
-            <picture>
-              <source srcset="/assets/icons/tools/daad.avif" type="image/avif">
-              <source srcset="/assets/icons/tools/daad.webp" type="image/webp">
-              <img class="tool-icon" width="56" height="56" loading="lazy" decoding="async"
-                alt="Shield lock security icon">
-            </picture>
+            <img class="tool-icon" width="56" height="56" src="/assets/icons/dand.svg" loading="lazy" decoding="async"
+              alt="Shield lock security icon">
+
             <h3>DA&D</h3>
             <p>Degens Against Decency. AI-powered Cards Against Humanity-style game for degen communities.</p>
             <span class="tool-status status-soon">Coming Soon</span>
@@ -387,136 +349,72 @@
         <h2 id="why-title" class="section-title">Why TiltCheck Exists</h2>
         <div class="features-list">
           <div class="feature-item">
-            <picture>
-              <source
-                srcset="/assets/images/Minimal%20flat-icon%20style,%20black%20background%20circle,%20neon%20teal%20outline,%20gold%20fill,%20icon%20of%20a%20shield%20with%20lock%20(for%20security%20section),%20simple%20and%20clean,%20512%C3%97512%20px,%20vector%20look.avif"
-                type="image/avif">
-              <source
-                srcset="/assets/images/Minimal%20flat-icon%20style,%20black%20background%20circle,%20neon%20teal%20outline,%20gold%20fill,%20icon%20of%20a%20shield%20with%20lock%20(for%20security%20section),%20simple%20and%20clean,%20512%C3%97512%20px,%20vector%20look.webp"
-                type="image/webp">
-              <img class="feature-icon" width="60" height="60" loading="lazy" decoding="async"
-                src="/assets/images/Minimal%20flat-icon%20style,%20black%20background%20circle,%20neon%20teal%20outline,%20gold%20fill,%20icon%20of%20a%20shield%20with%20lock%20(for%20security%20section),%20simple%20and%20clean,%20512%C3%97512%20px,%20vector%20look.jpg"
-                alt="Shield lock security icon">
-            </picture>
+            <img class="feature-icon" width="60" height="60" src="/assets/icons/accountability-wallet.svg"
+              loading="lazy" decoding="async" alt="Shield lock security icon">
+
             <div>
               <h3>Scam links</h3>
               <p>Detect phishing, redirects, and impersonation before clicks happen.</p>
             </div>
           </div>
           <div class="feature-item">
-            <picture>
-              <source
-                srcset="/assets/images/Massive%20holographic%20roulette%20wheel%20floating%20in%20a%20dark%20cyber-lab,%20neon%20teal%20and%20purple%20data%20streams%20scanning%20it,%20gold%20scan%20lines,%20dramatic%20shadows,%20cinematic%20sci-fi%20realism,%204K%20render.avif"
-                type="image/avif">
-              <source
-                srcset="/assets/images/Massive%20holographic%20roulette%20wheel%20floating%20in%20a%20dark%20cyber-lab,%20neon%20teal%20and%20purple%20data%20streams%20scanning%20it,%20gold%20scan%20lines,%20dramatic%20shadows,%20cinematic%20sci-fi%20realism,%204K%20render.webp"
-                type="image/webp">
-              <img class="feature-icon" width="60" height="60" loading="lazy" decoding="async"
-                src="/assets/images/Massive%20holographic%20roulette%20wheel%20floating%20in%20a%20dark%20cyber-lab,%20neon%20teal%20and%20purple%20data%20streams%20scanning%20it,%20gold%20scan%20lines,%20dramatic%20shadows,%20cinematic%20sci-fi%20realism,%204K%20render.jpg"
-                alt="Roulette wheel scan icon">
-            </picture>
+            <img class="feature-icon" width="60" height="60" src="/assets/icons/freespin-scan.svg" loading="lazy"
+              decoding="async" alt="Roulette wheel scan icon">
+
             <div>
               <h3>Nerfed bonuses</h3>
               <p>Track promos, nerfs, and terms changes across casinos.</p>
             </div>
           </div>
           <div class="feature-item">
-            <picture>
-              <source
-                srcset="/assets/images/Neon%20purple%20bar%20chart%20icon%20with%20teal%20upward%20arrow,%20thin%20gold%20highlight,%20black%20circular%20badge,%20simple%20vector.avif"
-                type="image/avif">
-              <source
-                srcset="/assets/images/Neon%20purple%20bar%20chart%20icon%20with%20teal%20upward%20arrow,%20thin%20gold%20highlight,%20black%20circular%20badge,%20simple%20vector.webp"
-                type="image/webp">
-              <img class="feature-icon" width="60" height="60" loading="lazy" decoding="async"
-                src="/assets/images/Neon%20purple%20bar%20chart%20icon%20with%20teal%20upward%20arrow,%20thin%20gold%20highlight,%20black%20circular%20badge,%20simple%20vector.jpg"
-                alt="Bar chart icon">
-            </picture>
+            <img class="feature-icon" width="60" height="60" src="/assets/icons/icons-sprite.svg" loading="lazy"
+              decoding="async" alt="Bar chart icon">
+
             <div>
               <h3>Confusing payouts</h3>
               <p>Clarity on fees, timelines, and real-world payout behavior.</p>
             </div>
           </div>
           <div class="feature-item">
-            <picture>
-              <source
-                srcset="/assets/images/Futuristic%20command%20war-room%20overview,%20curved%20holo%20displays,%20analytical%20graphs,%20teal%20data%20beams%20scanning%20reels,%20purple%20edge%20glows,%20gold%20signal%20pulses,%20refined%20and%20professional%20(no%20characters),%20cinematic%20top-down%20angle.avif"
-                type="image/avif">
-              <source
-                srcset="/assets/images/Futuristic%20command%20war-room%20overview,%20curved%20holo%20displays,%20analytical%20graphs,%20teal%20data%20beams%20scanning%20reels,%20purple%20edge%20glows,%20gold%20signal%20pulses,%20refined%20and%20professional%20(no%20characters),%20cinematic%20top-down%20angle.webp"
-                type="image/webp">
-              <img class="feature-icon" width="60" height="60" loading="lazy" decoding="async"
-                src="/assets/images/Futuristic%20command%20war-room%20overview,%20curved%20holo%20displays,%20analytical%20graphs,%20teal%20data%20beams%20scanning%20reels,%20purple%20edge%20glows,%20gold%20signal%20pulses,%20refined%20and%20professional%20(no%20characters),%20cinematic%20top-down%20angle.jpg"
-                alt="War-room analytics icon">
-            </picture>
+            <img class="feature-icon" width="60" height="60" src="/assets/icons/tilt-engine.svg" loading="lazy"
+              decoding="async" alt="War-room analytics icon">
+
             <div>
               <h3>Mod chaos</h3>
               <p>Auto-reviewed promos, consistent rules, fewer disputes.</p>
             </div>
           </div>
           <div class="feature-item">
-            <picture>
-              <source
-                srcset="/assets/images/Abstract%20trust%20network%20mesh,%20glowing%20neon%20teal%20nodes%20connected%20by%20thin%20purple%20links,%20one%20gold-highlighted%20anomaly%20node,%20deep%20black%20gradient%20background,%20subtle%20circuit%20traces,%20modern%20and%20clean,%20minimal%20noise.avif"
-                type="image/avif">
-              <source
-                srcset="/assets/images/Abstract%20trust%20network%20mesh,%20glowing%20neon%20teal%20nodes%20connected%20by%20thin%20purple%20links,%20one%20gold-highlighted%20anomaly%20node,%20deep%20black%20gradient%20background,%20subtle%20circuit%20traces,%20modern%20and%20clean,%20minimal%20noise.webp"
-                type="image/webp">
-              <img class="feature-icon" width="60" height="60" loading="lazy" decoding="async"
-                src="/assets/images/Abstract%20trust%20network%20mesh,%20glowing%20neon%20teal%20nodes%20connected%20by%20thin%20purple%20links,%20one%20gold-highlighted%20anomaly%20node,%20deep%20black%20gradient%20background,%20subtle%20circuit%20traces,%20modern%20and%20clean,%20minimal%20noise.jpg"
-                alt="Trust mesh icon">
-            </picture>
+            <img class="feature-icon" width="60" height="60" src="/assets/icons/tilt-engine.svg" loading="lazy"
+              decoding="async" alt="Trust mesh icon">
+
             <div>
               <h3>Tilt spirals</h3>
               <p>Gentle cooldown nudges and accountability tools — no shame.</p>
             </div>
           </div>
           <div class="feature-item">
-            <picture>
-              <source
-                srcset="/assets/images/Ultra-wide%20cyber-punk%20transparency%20dashboard,%20holographic%20panels%20analyzing%20slot%20fairness%20deltas,%20neon%20teal%20_%20electric%20blue%20light%20shafts,%20faint%20purple%20matrix%20code,%20subtle%20gold%20accent%20lines,%20dark%20cinematic%20atmosphere,%20high%20detail,%20soft%20volumetric%20glow.avif"
-                type="image/avif">
-              <source
-                srcset="/assets/images/Ultra-wide%20cyber-punk%20transparency%20dashboard,%20holographic%20panels%20analyzing%20slot%20fairness%20deltas,%20neon%20teal%20_%20electric%20blue%20light%20shafts,%20faint%20purple%20matrix%20code,%20subtle%20gold%20accent%20lines,%20dark%20cinematic%20atmosphere,%20high%20detail,%20soft%20volumetric%20glow.webp"
-                type="image/webp">
-              <img class="feature-icon" width="60" height="60" loading="lazy" decoding="async"
-                src="/assets/images/Ultra-wide%20cyber-punk%20transparency%20dashboard,%20holographic%20panels%20analyzing%20slot%20fairness%20deltas,%20neon%20teal%20_%20electric%20blue%20light%20shafts,%20faint%20purple%20matrix%20code,%20subtle%20gold%20accent%20lines,%20dark%20cinematic%20atmosphere,%20high%20detail,%20soft%20volumetric%20glow.jpg"
-                alt="Transparency dashboard icon">
-            </picture>
+            <img class="feature-icon" width="60" height="60" src="/assets/icons/icons-sprite.svg" loading="lazy"
+              decoding="async" alt="Transparency dashboard icon">
+
             <div>
               <h3>Shady casinos</h3>
               <p>Signals for fairness, compliance, and user outcomes.</p>
             </div>
           </div>
           <div class="feature-item">
-            <picture>
-              <source
-                srcset="/assets/images/Abstract%20trust%20network%20mesh,%20glowing%20neon%20teal%20nodes%20connected%20by%20thin%20purple%20links,%20one%20gold-highlighted%20anomaly%20node,%20deep%20black%20gradient%20background,%20subtle%20circuit%20traces,%20modern%20and%20clean,%20minimal%20noise.avif"
-                type="image/avif">
-              <source
-                srcset="/assets/images/Abstract%20trust%20network%20mesh,%20glowing%20neon%20teal%20nodes%20connected%20by%20thin%20purple%20links,%20one%20gold-highlighted%20anomaly%20node,%20deep%20black%20gradient%20background,%20subtle%20circuit%20traces,%20modern%20and%20clean,%20minimal%20noise.webp"
-                type="image/webp">
-              <img class="feature-icon" width="60" height="60" loading="lazy" decoding="async"
-                src="/assets/images/Abstract%20trust%20network%20mesh,%20glowing%20neon%20teal%20nodes%20connected%20by%20thin%20purple%20links,%20one%20gold-highlighted%20anomaly%20node,%20deep%20black%20gradient%20background,%20subtle%20circuit%20traces,%20modern%20and%20clean,%20minimal%20noise.jpg"
-                alt="Trust nodes icon">
-            </picture>
+            <img class="feature-icon" width="60" height="60" src="/assets/icons/tilt-engine.svg" loading="lazy"
+              decoding="async" alt="Trust nodes icon">
+
             <div>
               <h3>Zero transparency</h3>
               <p>Explainable scoring and open modules.</p>
             </div>
           </div>
           <div class="feature-item">
-            <picture>
-              <source
-                srcset="/assets/images/Wallet%20lock%20accountability%20concept_%20two%20hands%20separated%20by%20a%20transparent%20shield%20with%20a%20glowing%20teal%20lock,%20minimal,%20abstract,%20no%20faces.avif"
-                type="image/avif">
-              <source
-                srcset="/assets/images/Wallet%20lock%20accountability%20concept_%20two%20hands%20separated%20by%20a%20transparent%20shield%20with%20a%20glowing%20teal%20lock,%20minimal,%20abstract,%20no%20faces.webp"
-                type="image/webp">
-              <img class="feature-icon" width="60" height="60" loading="lazy" decoding="async"
-                src="/assets/images/Wallet%20lock%20accountability%20concept_%20two%20hands%20separated%20by%20a%20transparent%20shield%20with%20a%20glowing%20teal%20lock,%20minimal,%20abstract,%20no%20faces.jpg"
-                alt="Wallet lock icon">
-            </picture>
+            <img class="feature-icon" width="60" height="60" src="/assets/icons/accountability-wallet.svg"
+              loading="lazy" decoding="async" alt="Wallet lock icon">
+
             <div>
               <h3>No accountability tools</h3>
               <p>Opt-in vaults, phone-a-friend withdraws, and trust signals.</p>
@@ -542,7 +440,8 @@
           <div class="hiw-step">
             <div class="hiw-step-number">2</div>
             <h3>Plug In Your Tools</h3>
-            <p>Enable SusLink for link scanning, CollectClock for bonuses, JustTheTip for tipping — pick what you need.</p>
+            <p>Enable SusLink for link scanning, CollectClock for bonuses, JustTheTip for tipping — pick what you need.
+            </p>
             <a href="#tools" class="hiw-link">Explore Tools →</a>
           </div>
           <div class="hiw-connector" aria-hidden="true"></div>
@@ -560,31 +459,36 @@
     <section class="trust-engines-section" aria-labelledby="trust-title">
       <div class="container">
         <h2 id="trust-title" class="section-title">Trust Engines</h2>
-        <p class="section-subtitle-text">Two interlocking trust systems that give communities real signal — not vibes.</p>
+        <p class="section-subtitle-text">Two interlocking trust systems that give communities real signal — not vibes.
+        </p>
         <div class="trust-engines-grid">
           <div class="trust-engine-card">
-            <div class="trust-engine-icon">🏛️</div>
+            <div class="trust-engine-icon"></div>
             <h3>Casino Trust Engine</h3>
-            <p>Tracks fairness, payouts, bonus nerfs, promo terms, and compliance across the ecosystem. Every score is explainable and auditable.</p>
+            <p>Tracks fairness, payouts, bonus nerfs, promo terms, and compliance across the ecosystem. Every score is
+              explainable and auditable.</p>
             <ul class="trust-engine-signals">
               <li><span class="signal-dot signal-green"></span>Fairness deltas &amp; RTP tracking</li>
               <li><span class="signal-dot signal-green"></span>Payout timeline monitoring</li>
               <li><span class="signal-dot signal-yellow"></span>Bonus nerf &amp; term change detection</li>
               <li><span class="signal-dot signal-red"></span>Legal rights alert triggers</li>
             </ul>
-            <a href="/casinos.html" class="btn btn-secondary" style="margin-top: auto; align-self: flex-start;">View Casino Data →</a>
+            <a href="/casinos.html" class="btn btn-secondary" style="margin-top: auto; align-self: flex-start;">View
+              Casino Data →</a>
           </div>
           <div class="trust-engine-card">
-            <div class="trust-engine-icon">🧠</div>
+            <div class="trust-engine-icon"></div>
             <h3>Degen Trust Engine</h3>
-            <p>Non-judgmental reputation built on real behavior — generosity, accountability, tilt patterns, scam flags. Recovers automatically. No shame.</p>
+            <p>Non-judgmental reputation built on real behavior — generosity, accountability, tilt patterns, scam flags.
+              Recovers automatically. No shame.</p>
             <ul class="trust-engine-signals">
               <li><span class="signal-dot signal-green"></span>Tilt indicators (auto-decay)</li>
               <li><span class="signal-dot signal-green"></span>Accountability tool bonuses</li>
               <li><span class="signal-dot signal-yellow"></span>Community-weighted reports</li>
               <li><span class="signal-dot signal-red"></span>Verified scam detection (−15)</li>
             </ul>
-            <a href="/degen-trust.html" class="btn btn-secondary" style="margin-top: auto; align-self: flex-start;">Learn More →</a>
+            <a href="/degen-trust.html" class="btn btn-secondary"
+              style="margin-top: auto; align-self: flex-start;">Learn More →</a>
           </div>
         </div>
 
@@ -618,12 +522,16 @@
         <div class="discord-cta-inner">
           <div class="discord-cta-text">
             <h2 id="discord-cta-title">Built in Discord. For Discord communities.</h2>
-            <p>Every tool lives where degens already are. No new apps. No logins. Just slash commands and instant signal.</p>
+            <p>Every tool lives where degens already are. No new apps. No logins. Just slash commands and instant
+              signal.</p>
           </div>
           <div class="discord-cta-actions">
             <a href="https://discord.gg/s6NNfPHxMS" class="btn btn-discord" target="_blank" rel="noopener noreferrer">
-              <svg width="22" height="22" viewBox="0 0 71 55" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                <path d="M60.1045 4.8978C55.5792 2.8214 50.7265 1.2916 45.6527 0.41542C45.5603 0.39851 45.468 0.440769 45.4204 0.525289C44.7963 1.6353 44.105 3.0834 43.6209 4.2216C38.1637 3.4046 32.7345 3.4046 27.3892 4.2216C26.905 3.0581 26.1886 1.6353 25.5617 0.525289C25.5141 0.443589 25.4218 0.40133 25.3294 0.41542C20.2584 1.2888 15.4057 2.8186 10.8776 4.8978C10.8384 4.9147 10.8048 4.9429 10.7825 4.9795C1.57795 18.7309 -0.943561 32.1443 0.293408 45.3914C0.299005 45.4562 0.335386 45.5182 0.385761 45.5576C6.45866 50.0174 12.3413 52.7249 18.1147 54.5195C18.2071 54.5477 18.305 54.5139 18.3638 54.4378C19.7295 52.5728 20.9469 50.6063 21.9907 48.5383C22.0523 48.4172 21.9935 48.2735 21.8676 48.2256C19.9366 47.4931 18.0979 46.6 16.3292 45.5858C16.1893 45.5041 16.1781 45.304 16.3068 45.2082C16.679 44.9293 17.0513 44.6391 17.4067 44.3461C17.471 44.2926 17.5606 44.2813 17.6362 44.3151C29.2558 49.6202 41.8354 49.6202 53.3179 44.3151C53.3935 44.2785 53.4831 44.2898 53.5502 44.3433C53.9057 44.6363 54.2779 44.9293 54.6529 45.2082C54.7816 45.304 54.7732 45.5041 54.6333 45.5858C52.8646 46.6197 51.0259 47.4931 49.0921 48.2228C48.9662 48.2707 48.9102 48.4172 48.9718 48.5383C50.038 50.6034 51.2554 52.5699 52.5959 54.435C52.6519 54.5139 52.7526 54.5477 52.845 54.5195C58.6464 52.7249 64.529 50.0174 70.6019 45.5576C70.6551 45.5182 70.6887 45.459 70.6943 45.3942C72.1747 30.0791 68.2147 16.7757 60.1968 4.9823C60.1772 4.9429 60.1437 4.9147 60.1045 4.8978ZM23.7259 37.3253C20.2276 37.3253 17.3451 34.1136 17.3451 30.1693C17.3451 26.225 20.1717 23.0133 23.7259 23.0133C27.308 23.0133 30.1626 26.2532 30.1066 30.1693C30.1066 34.1136 27.28 37.3253 23.7259 37.3253ZM47.3178 37.3253C43.8196 37.3253 40.9371 34.1136 40.9371 30.1693C40.9371 26.225 43.7636 23.0133 47.3178 23.0133C50.9 23.0133 53.7545 26.2532 53.6986 30.1693C53.6986 34.1136 50.9 37.3253 47.3178 37.3253Z" fill="currentColor"/>
+              <svg width="22" height="22" viewBox="0 0 71 55" fill="none" xmlns="http://www.w3.org/2000/svg"
+                aria-hidden="true">
+                <path
+                  d="M60.1045 4.8978C55.5792 2.8214 50.7265 1.2916 45.6527 0.41542C45.5603 0.39851 45.468 0.440769 45.4204 0.525289C44.7963 1.6353 44.105 3.0834 43.6209 4.2216C38.1637 3.4046 32.7345 3.4046 27.3892 4.2216C26.905 3.0581 26.1886 1.6353 25.5617 0.525289C25.5141 0.443589 25.4218 0.40133 25.3294 0.41542C20.2584 1.2888 15.4057 2.8186 10.8776 4.8978C10.8384 4.9147 10.8048 4.9429 10.7825 4.9795C1.57795 18.7309 -0.943561 32.1443 0.293408 45.3914C0.299005 45.4562 0.335386 45.5182 0.385761 45.5576C6.45866 50.0174 12.3413 52.7249 18.1147 54.5195C18.2071 54.5477 18.305 54.5139 18.3638 54.4378C19.7295 52.5728 20.9469 50.6063 21.9907 48.5383C22.0523 48.4172 21.9935 48.2735 21.8676 48.2256C19.9366 47.4931 18.0979 46.6 16.3292 45.5858C16.1893 45.5041 16.1781 45.304 16.3068 45.2082C16.679 44.9293 17.0513 44.6391 17.4067 44.3461C17.471 44.2926 17.5606 44.2813 17.6362 44.3151C29.2558 49.6202 41.8354 49.6202 53.3179 44.3151C53.3935 44.2785 53.4831 44.2898 53.5502 44.3433C53.9057 44.6363 54.2779 44.9293 54.6529 45.2082C54.7816 45.304 54.7732 45.5041 54.6333 45.5858C52.8646 46.6197 51.0259 47.4931 49.0921 48.2228C48.9662 48.2707 48.9102 48.4172 48.9718 48.5383C50.038 50.6034 51.2554 52.5699 52.5959 54.435C52.6519 54.5139 52.7526 54.5477 52.845 54.5195C58.6464 52.7249 64.529 50.0174 70.6019 45.5576C70.6551 45.5182 70.6887 45.459 70.6943 45.3942C72.1747 30.0791 68.2147 16.7757 60.1968 4.9823C60.1772 4.9429 60.1437 4.9147 60.1045 4.8978ZM23.7259 37.3253C20.2276 37.3253 17.3451 34.1136 17.3451 30.1693C17.3451 26.225 20.1717 23.0133 23.7259 23.0133C27.308 23.0133 30.1626 26.2532 30.1066 30.1693C30.1066 34.1136 27.28 37.3253 23.7259 37.3253ZM47.3178 37.3253C43.8196 37.3253 40.9371 34.1136 40.9371 30.1693C40.9371 26.225 43.7636 23.0133 47.3178 23.0133C50.9 23.0133 53.7545 26.2532 53.6986 30.1693C53.6986 34.1136 50.9 37.3253 47.3178 37.3253Z"
+                  fill="currentColor" />
               </svg>
               Join the Discord
             </a>
@@ -658,53 +566,8 @@
       requestIdleCallback(() => document.body.appendChild(toggle));
     })();
 
-    // KPI population with animation
-    (function () {
-      const seeds = {
-        kpiFairness: 128,
-        kpiLinksBlocked: 342,
-        kpiBonuses: 57,
-        kpiPromos: 214,
-        kpiTilt: 89,
-        kpiLocks: 34,
-        kpiLookups: 473
-      };
-
-      function animateValue(id, start, end, duration) {
-        const element = document.getElementById(id);
-        if (!element) return;
-
-        const range = end - start;
-        const increment = end > start ? 1 : -1;
-        const stepTime = Math.abs(Math.floor(duration / range));
-        let current = start;
-
-        const timer = setInterval(() => {
-          current += increment;
-          element.textContent = current.toString();
-          if (current === end) {
-            clearInterval(timer);
-          }
-        }, stepTime);
-      }
-
-      // Trigger animations when visible
-      const observer = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-          if (entry.isIntersecting) {
-            Object.entries(seeds).forEach(([id, val]) => {
-              animateValue(id, 0, val, 1500);
-            });
-            observer.disconnect();
-          }
-        });
-      }, { threshold: 0.3 });
-
-      const kpiStrip = document.querySelector('.kpi-strip');
-      if (kpiStrip) {
-        observer.observe(kpiStrip);
-      }
-    })();
+    // KPI strip — values will be populated from real API data
+    // TODO: Wire up to /api/stats endpoint when available
 
     // Intersection Observer for fade-in animations
     if ('IntersectionObserver' in window) {
@@ -828,6 +691,6 @@
   </script>
   <script src="/scripts/components-loader.js"></script>
   <script src="/scripts/auth.js"></script>
-  </body>
+</body>
 
 </html>
