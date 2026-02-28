@@ -10,12 +10,332 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Getting Started - TiltCheck</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="styles/main.css">
+  <title>Getting Started - TiltCheck</title>
+  <meta name="description" content="Get started with TiltCheck. Connect your Discord, pick your tools, and bring transparency to your casino community in minutes.">
+  <meta name="theme-color" content="#00FFC6">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles/theme.css">
+  <link rel="stylesheet" href="/styles/main.css">
+  <style>
+    .gs-hero {
+      background: linear-gradient(180deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
+      padding: clamp(3rem, 6vw, 5rem) var(--container-padding);
+      text-align: center;
+      border-bottom: 1px solid rgba(0, 255, 198, 0.12);
+    }
+    .gs-hero h1 {
+      font-size: var(--text-3xl);
+      font-weight: var(--weight-black);
+      font-family: var(--font-display);
+      color: var(--text-primary);
+      margin-bottom: var(--space-md);
+      letter-spacing: -0.02em;
+    }
+    .gs-hero p {
+      color: var(--text-secondary);
+      font-size: var(--text-lg);
+      max-width: 680px;
+      margin: 0 auto var(--space-xl);
+      line-height: var(--leading-relaxed);
+    }
+    .gs-section {
+      padding: clamp(2.5rem, 5vw, 4rem) var(--container-padding);
+    }
+    .gs-section:nth-child(even) {
+      background: var(--bg-secondary);
+    }
+    .gs-container {
+      max-width: 860px;
+      margin: 0 auto;
+    }
+    .gs-section h2 {
+      font-size: var(--text-2xl);
+      font-weight: var(--weight-bold);
+      font-family: var(--font-display);
+      color: var(--text-primary);
+      margin-bottom: var(--space-xl);
+    }
+    .gs-step-list {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-lg);
+    }
+    .gs-step {
+      display: flex;
+      gap: var(--space-xl);
+      align-items: flex-start;
+      padding: var(--space-xl);
+      background: var(--glass-bg);
+      border: 1px solid rgba(0, 255, 198, 0.1);
+      border-radius: var(--radius-md);
+      transition: border-color var(--transition-base);
+    }
+    .gs-step:hover {
+      border-color: rgba(0, 255, 198, 0.3);
+    }
+    .gs-step-num {
+      width: 44px;
+      height: 44px;
+      background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+      color: var(--bg-primary);
+      border-radius: var(--radius-sm);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: var(--text-lg);
+      font-weight: var(--weight-black);
+      font-family: var(--font-display);
+      flex-shrink: 0;
+    }
+    .gs-step-body h3 {
+      font-size: var(--text-lg);
+      font-weight: var(--weight-bold);
+      font-family: var(--font-display);
+      color: var(--text-primary);
+      margin-bottom: var(--space-sm);
+    }
+    .gs-step-body p {
+      color: var(--text-secondary);
+      line-height: var(--leading-relaxed);
+      margin: 0 0 var(--space-sm);
+    }
+    .gs-step-body code {
+      background: var(--bg-card);
+      color: var(--color-primary);
+      padding: 2px 8px;
+      border-radius: var(--radius-xs);
+      font-family: var(--font-mono);
+      font-size: 0.9em;
+      border: 1px solid rgba(0, 255, 198, 0.15);
+    }
+    .gs-step-body a {
+      color: var(--color-primary);
+      text-decoration: none;
+      font-weight: var(--weight-semibold);
+    }
+    .gs-step-body a:hover {
+      text-decoration: underline;
+    }
+    .tool-quicklinks {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: var(--space-md);
+      margin-top: var(--space-md);
+    }
+    .tool-ql {
+      display: flex;
+      align-items: center;
+      gap: var(--space-md);
+      padding: var(--space-md) var(--space-lg);
+      background: var(--bg-card);
+      border: 1px solid rgba(0, 255, 198, 0.1);
+      border-radius: var(--radius-sm);
+      text-decoration: none;
+      transition: border-color var(--transition-base), background var(--transition-base);
+    }
+    .tool-ql:hover {
+      border-color: rgba(0, 255, 198, 0.35);
+      background: var(--bg-elevated);
+    }
+    .tool-ql-icon { font-size: 1.5rem; flex-shrink: 0; }
+    .tool-ql-info strong {
+      display: block;
+      color: var(--text-primary);
+      font-size: var(--text-sm);
+      font-weight: var(--weight-semibold);
+    }
+    .tool-ql-info span {
+      font-size: var(--text-xs);
+      color: var(--text-muted);
+    }
+    .faq-list {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-md);
+    }
+    .faq-q {
+      font-weight: var(--weight-semibold);
+      color: var(--text-primary);
+      margin-bottom: var(--space-xs);
+      font-size: var(--text-base);
+    }
+    .faq-a {
+      color: var(--text-secondary);
+      line-height: var(--leading-relaxed);
+      font-size: var(--text-sm);
+      margin: 0;
+    }
+    .faq-entry {
+      padding: var(--space-lg);
+      background: var(--glass-bg);
+      border: 1px solid var(--border-subtle);
+      border-left: 3px solid var(--color-primary);
+      border-radius: var(--radius-sm);
+    }
+    @media (max-width: 600px) {
+      .gs-step { flex-direction: column; gap: var(--space-md); }
+    }
+  </style>
 </head>
 <body>
-  <h1>Getting Started with TiltCheck</h1>
-  <p>TiltCheck is your transparency layer for casino communities. Get started by connecting your Discord, exploring our trust engines, and learning how to use our non-custodial tools for tipping, scam detection, and bonus tracking. See our <a href="/tutorials.html">tutorials</a> for step-by-step guides.</p>
+  <a href="#gs-main" class="skip-link">Skip to main content</a>
+  <div id="shared-nav"></div>
+
+  <main id="gs-main">
+    <header class="gs-hero">
+      <div class="container">
+        <h1>Getting Started with TiltCheck</h1>
+        <p>From zero to full transparency in minutes. No new apps. No KYC. Just Discord, your tools, and real signal.</p>
+        <a href="https://discord.gg/s6NNfPHxMS" class="btn btn-primary" target="_blank" rel="noopener">Join the Discord →</a>
+      </div>
+    </header>
+
+    <!-- Step-by-step setup -->
+    <section class="gs-section" aria-labelledby="setup-title">
+      <div class="gs-container">
+        <h2 id="setup-title">Setup in 3 Steps</h2>
+        <div class="gs-step-list">
+
+          <div class="gs-step">
+            <div class="gs-step-num">1</div>
+            <div class="gs-step-body">
+              <h3>Join &amp; Add TiltCheck to Your Server</h3>
+              <p>Click <strong>Join the Discord</strong> to enter the TiltCheck community, or invite the TiltCheck Safety Bot directly to your own casino/degen Discord server.</p>
+              <p>The bot is free to add. No sign-ups. No waitlist.</p>
+              <a href="https://discord.gg/s6NNfPHxMS" target="_blank" rel="noopener">Join Discord →</a>
+            </div>
+          </div>
+
+          <div class="gs-step">
+            <div class="gs-step-num">2</div>
+            <div class="gs-step-body">
+              <h3>Enable Your Tools</h3>
+              <p>Each tool activates through Discord slash commands. Try these to start:</p>
+              <ul style="list-style: none; margin: var(--space-sm) 0; display: flex; flex-direction: column; gap: 6px;">
+                <li><code>/tiltcheck status</code> — check your tilt score &amp; cooldown state</li>
+                <li><code>/scan https://sketchy-link.com</code> — SusLink scan any URL</li>
+                <li><code>/tip @friend 0.5</code> — JustTheTip non-custodial SOL tip</li>
+                <li><code>/casino domain:example.com</code> — casino trust engine lookup</li>
+              </ul>
+              <a href="/tutorials.html">View all command tutorials →</a>
+            </div>
+          </div>
+
+          <div class="gs-step">
+            <div class="gs-step-num">3</div>
+            <div class="gs-step-body">
+              <h3>Explore the Dashboard &amp; Trust Data</h3>
+              <p>Log in with Discord to access your trust score, wallet history, and community reports. Casino trust data is public — no login needed.</p>
+              <div style="display: flex; gap: var(--space-md); flex-wrap: wrap; margin-top: var(--space-sm);">
+                <a href="/dashboard" class="btn btn-primary" style="font-size: var(--text-sm); padding: 0.5rem 1.25rem;">Open Dashboard</a>
+                <a href="/casinos.html" class="btn btn-secondary" style="font-size: var(--text-sm); padding: 0.5rem 1.25rem;">View Casino Data</a>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- Tool links -->
+    <section class="gs-section" aria-labelledby="tools-title">
+      <div class="gs-container">
+        <h2 id="tools-title">Pick Your Tools</h2>
+        <div class="tool-quicklinks">
+          <a href="/tools/suslink.html" class="tool-ql">
+            <span class="tool-ql-icon">🔗</span>
+            <div class="tool-ql-info">
+              <strong>SusLink</strong>
+              <span>AI scam &amp; link scanner</span>
+            </div>
+          </a>
+          <a href="/tools/justthetip.html" class="tool-ql">
+            <span class="tool-ql-icon">🪙</span>
+            <div class="tool-ql-info">
+              <strong>JustTheTip</strong>
+              <span>Non-custodial SOL tipping</span>
+            </div>
+          </a>
+          <a href="/tools/collectclock.html" class="tool-ql">
+            <span class="tool-ql-icon">🕐</span>
+            <div class="tool-ql-info">
+              <strong>CollectClock</strong>
+              <span>Bonus tracker &amp; nerf detection</span>
+            </div>
+          </a>
+          <a href="/tools/freespinscan.html" class="tool-ql">
+            <span class="tool-ql-icon">🎰</span>
+            <div class="tool-ql-info">
+              <strong>FreeSpinScan</strong>
+              <span>Promo auto-classification</span>
+            </div>
+          </a>
+          <a href="/tools/tiltcheck-core.html" class="tool-ql">
+            <span class="tool-ql-icon">🧠</span>
+            <div class="tool-ql-info">
+              <strong>TiltCheck Core</strong>
+              <span>Tilt engine &amp; accountability</span>
+            </div>
+          </a>
+          <a href="/degen-trust.html" class="tool-ql">
+            <span class="tool-ql-icon">📊</span>
+            <div class="tool-ql-info">
+              <strong>Trust Engine</strong>
+              <span>Casino &amp; degen reputation</span>
+            </div>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- FAQ -->
+    <section class="gs-section" aria-labelledby="faq-title">
+      <div class="gs-container">
+        <h2 id="faq-title">Common Questions</h2>
+        <div class="faq-list">
+          <div class="faq-entry">
+            <p class="faq-q">Do I need to create an account?</p>
+            <p class="faq-a">No account creation required. Connect your Discord to access personalized features — everything else is available without login.</p>
+          </div>
+          <div class="faq-entry">
+            <p class="faq-q">Is JustTheTip actually non-custodial?</p>
+            <p class="faq-a">Yes. TiltCheck never holds your funds. You sign transactions with your own wallet (Phantom, Solflare, x402). If TiltCheck disappeared tomorrow, your wallet is unaffected. See the <a href="/tools/justthetip.html">full technical breakdown</a>.</p>
+          </div>
+          <div class="faq-entry">
+            <p class="faq-q">What does a trust score actually measure?</p>
+            <p class="faq-a">Casino trust scores track fairness, payout behavior, bonus nerfs, and compliance. Degen trust scores track community behavior, accountability tool usage, and scam flags — with automatic recovery. Read the full breakdown on <a href="/degen-trust.html">Degen Trust</a> and <a href="/trust-explained.html">Trust Explained</a>.</p>
+          </div>
+          <div class="faq-entry">
+            <p class="faq-q">Can I use TiltCheck without a crypto wallet?</p>
+            <p class="faq-a">Yes. SusLink, trust scores, casino data, tilt tracking, and CollectClock work without any wallet. JustTheTip tipping requires a Solana wallet to send or receive SOL.</p>
+          </div>
+          <div class="faq-entry">
+            <p class="faq-q">Where do I get help?</p>
+            <p class="faq-a">Join the <a href="https://discord.gg/s6NNfPHxMS" target="_blank" rel="noopener">Discord server</a> for community support, or visit the <a href="/help.html">Help Center</a> and <a href="/faq.html">full FAQ</a>.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CTA -->
+    <section class="gs-section" aria-labelledby="cta-title" style="text-align: center;">
+      <div class="gs-container">
+        <h2 id="cta-title" style="font-family: var(--font-display);">Ready to degen smarter?</h2>
+        <p style="color: var(--text-secondary); margin-bottom: var(--space-xl);">Join thousands of degens already using TiltCheck to protect their communities.</p>
+        <div style="display: flex; gap: var(--space-md); justify-content: center; flex-wrap: wrap;">
+          <a href="https://discord.gg/s6NNfPHxMS" class="btn btn-primary" target="_blank" rel="noopener">Join Discord</a>
+          <a href="/about.html" class="btn btn-secondary">Read the Mission</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div id="shared-footer"></div>
+
+  <script src="/scripts/components-loader.js"></script>
+  <script src="/scripts/auth.js"></script>
 </body>
 </html>

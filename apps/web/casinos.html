@@ -26,21 +26,9 @@
   </style>
 </head>
 <body>
-  <nav class="navbar">
-    <div class="container" style="padding:0;">
-      <a href="/" class="logo">TiltCheck</a>
-      <div class="nav-links">
-        <a href="/#tools">Tools</a>
-        <a href="/about.html">About</a>
-        <a href="/casinos.html" aria-current="page">Casinos</a>
-        <a href="/degen-trust.html">Degens</a>
-        <a href="/docs/index.html">Docs</a>
-        <a href="/dashboard">Dashboard</a>
-        <a href="https://discord.gg/s6NNfPHxMS" class="cta-small">Join Discord</a>
-        <a href="#" class="discord-login-btn" style="background: #5865F2; color: white; padding: 8px 16px; border-radius: 6px; text-decoration: none; font-weight: 600; margin-left: 8px;">Login</a>
-      </div>
-    </div>
-  </nav>
+  <a href="#casinos-main" class="skip-link">Skip to main content</a>
+  <div id="shared-nav"></div>
+  <main id="casinos-main">
   <div class="container">
     <h1>Casino Trust Engine</h1>
     <div class="trust-card">
@@ -182,6 +170,9 @@
         }));
     })();
     </script>
+  </main>
+  <div id="shared-footer"></div>
+  <script src="/scripts/components-loader.js"></script>
   <script src="/scripts/auth.js"></script>
 </body>
 </html>
