@@ -38,6 +38,25 @@
   <!-- Stylesheets -->
   <link rel="stylesheet" href="/styles/theme.css">
   <link rel="stylesheet" href="/styles/main.css">
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            'degen-black': '#0d1117',
+            'degen-gray': '#161b22',
+            'degen-green': '#00ffaa',
+            'degen-red': '#ff4b4b',
+          },
+          boxShadow: {
+            'neon': '0 0 15px rgba(0, 255, 170, 0.3)',
+          }
+        }
+      }
+    }
+  </script>
   <style>
     /* Respect reduced motion preferences */
     @media (prefers-reduced-motion: reduce) {
@@ -172,17 +191,47 @@
     </div>
   </div>
 
-  <!-- Header -->
-  <header class="site-header">
-    <div class="container">
-      <div class="header-content">
-        <div class="logo-group">
-          <img class="logo-icon" src="/assets/logo/logocurrent.svg" alt="TiltCheck logo" width="48" height="48">
-          <h1 class="logo-text">TiltCheck</h1>
+  <!-- Header - Tailwind -->
+  <header class="sticky top-0 z-50 bg-[#0d1117]/95 backdrop-blur-md border-b border-[#30363d]">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between h-16">
+        <!-- Logo -->
+        <a href="/" class="flex items-center gap-3">
+          <img class="w-10 h-10" src="/assets/logo/logocurrent.svg" alt="TiltCheck logo">
+          <span class="text-lg font-bold text-white">TiltCheck</span>
+        </a>
+        <!-- Desktop Nav -->
+        <nav class="hidden md:flex items-center gap-6">
+          <a href="/#tools" class="text-gray-300 hover:text-[#00ffaa] transition-colors">Tools</a>
+          <a href="/casinos.html" class="text-gray-300 hover:text-[#00ffaa] transition-colors">Casinos</a>
+          <a href="/trust-scores.html" class="text-gray-300 hover:text-[#00ffaa] transition-colors">Trust Scores</a>
+          <a href="/dashboard" class="text-gray-300 hover:text-[#00ffaa] transition-colors">Dashboard</a>
+        </nav>
+        <!-- CTA + Mobile Menu Button -->
+        <div class="flex items-center gap-3">
+          <a href="/dashboard" class="hidden sm:block bg-[#00ffaa] hover:bg-[#00e699] text-black font-semibold px-4 py-2 rounded-lg transition-colors text-sm">
+            Launch App
+          </a>
+          <!-- Mobile menu button -->
+          <button id="mobile-menu-btn" class="md:hidden text-gray-300 p-2" aria-label="Toggle menu">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+            </svg>
+          </button>
         </div>
-        <a href="/dashboard" class="btn btn-primary">Launch App</a>
       </div>
-      <p class="tagline">The Degen Transparency Layer</p>
+    </div>
+    <!-- Mobile Menu -->
+    <div id="mobile-menu" class="hidden md:hidden bg-[#0d1117] border-t border-[#30363d]">
+      <div class="px-4 py-3 space-y-2">
+        <a href="/#tools" class="block py-2 text-gray-300 hover:text-[#00ffaa]">Tools</a>
+        <a href="/casinos.html" class="block py-2 text-gray-300 hover:text-[#00ffaa]">Casinos</a>
+        <a href="/trust-scores.html" class="block py-2 text-gray-300 hover:text-[#00ffaa]">Trust Scores</a>
+        <a href="/dashboard" class="block py-2 text-gray-300 hover:text-[#00ffaa]">Dashboard</a>
+        <a href="/dashboard" class="block w-full text-center bg-[#00ffaa] text-black font-semibold px-4 py-2 rounded-lg mt-4">
+          Launch App
+        </a>
+      </div>
     </div>
   </header>
 
@@ -262,81 +311,83 @@
     </section>
 
     <!-- Tools Section -->
-    <section class="tools-section" id="tools" aria-labelledby="tools-title">
-      <div class="container">
-        <h2 id="tools-title" class="section-title">The Tools</h2>
-        <div class="tools-grid">
+    <section id="tools" class="py-20 bg-[#0a0a0a]">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <h2 class="text-3xl md:text-4xl font-bold text-white text-center mb-4">The Tools</h2>
+        <p class="text-gray-400 text-center mb-12 max-w-2xl mx-auto">Smart tools for casino communities. Scam detection, tipping, bonuses, tilt prevention, and trivia — all in Discord.</p>
 
-          <a class="tool-card" data-tool="justthetip" href="/tools/justthetip.html">
-            <img class="tool-icon" width="56" height="56" src="/assets/icons/just-the-tip.svg" loading="lazy"
-              decoding="async" alt="Wallet accountability concept icon">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
 
-            <h3>JustTheTip</h3>
-            <p>Non-custodial Solana tipping, airdrops, and swaps. Flat fee. No balance custody. No legal exposure.</p>
-            <span class="tool-status status-live">Live</span>
+          <a href="/tools/justthetip.html" class="group bg-[#161b22] border border-[#30363d] rounded-xl p-6 hover:border-[#00ffaa] transition-all duration-300 hover:-translate-y-1">
+            <div class="mb-4">
+              <img class="w-14 h-14" src="/assets/icons/just-the-tip.svg" alt="JustTheTip icon">
+            </div>
+            <h3 class="text-xl font-semibold text-white group-hover:text-[#00ffaa] transition-colors">JustTheTip</h3>
+            <p class="text-gray-400 text-sm mt-2 mb-4">Non-custodial Solana tipping, airdrops, and swaps. Flat fee. No balance custody.</p>
+            <span class="inline-block bg-[#00ffaa]/20 text-[#00ffaa] text-xs font-medium px-3 py-1 rounded-full">Live</span>
           </a>
 
-          <a class="tool-card" data-tool="suslink" href="/tools/suslink.html">
-            <img class="tool-icon" width="56" height="56" src="/assets/icons/sus-link.svg" loading="lazy"
-              decoding="async" alt="Link scanning security visualization">
-
-            <h3>SusLink</h3>
-            <p>AI-powered link scanner that detects scam sites, redirects, and impersonation before you click.</p>
-            <span class="tool-status status-live">Live</span>
+          <a href="/tools/suslink.html" class="group bg-[#161b22] border border-[#30363d] rounded-xl p-6 hover:border-[#00ffaa] transition-all duration-300 hover:-translate-y-1">
+            <div class="mb-4">
+              <img class="w-14 h-14" src="/assets/icons/sus-link.svg" alt="SusLink icon">
+            </div>
+            <h3 class="text-xl font-semibold text-white group-hover:text-[#00ffaa] transition-colors">SusLink</h3>
+            <p class="text-gray-400 text-sm mt-2 mb-4">AI-powered link scanner that detects scam sites, redirects, and impersonation.</p>
+            <span class="inline-block bg-[#00ffaa]/20 text-[#00ffaa] text-xs font-medium px-3 py-1 rounded-full">Live</span>
           </a>
 
-          <a class="tool-card" data-tool="collectclock" href="/tools/collectclock.html">
-            <img class="tool-icon" width="56" height="56" src="/assets/icons/collect-clock.svg" loading="lazy"
-              decoding="async" alt="Holographic bonus tracking dashboard">
-
-            <h3>CollectClock</h3>
-            <p>Daily bonus tracker with nerf detection and bonus cycle prediction. Know when casinos change terms.</p>
-            <span class="tool-status status-beta">Beta</span>
+          <a href="/tools/collectclock.html" class="group bg-[#161b22] border border-[#30363d] rounded-xl p-6 hover:border-[#00ffaa] transition-all duration-300 hover:-translate-y-1">
+            <div class="mb-4">
+              <img class="w-14 h-14" src="/assets/icons/collect-clock.svg" alt="CollectClock icon">
+            </div>
+            <h3 class="text-xl font-semibold text-white group-hover:text-[#00ffaa] transition-colors">CollectClock</h3>
+            <p class="text-gray-400 text-sm mt-2 mb-4">Daily bonus tracker with nerf detection and bonus cycle prediction.</p>
+            <span class="inline-block bg-purple-500/20 text-purple-400 text-xs font-medium px-3 py-1 rounded-full">Beta</span>
           </a>
 
-          <a class="tool-card" data-tool="freespinscan" href="/tools/freespinscan.html">
-            <img class="tool-icon" width="56" height="56" src="/assets/icons/freespin-scan.svg" loading="lazy"
-              decoding="async" alt="Holographic roulette wheel scan">
-
-            <h3>FreeSpinScan</h3>
-            <p>Promo submission system with auto-classification, mod approval queue, and prediction engine.</p>
-            <span class="tool-status status-beta">Beta</span>
+          <a href="/tools/freespinscan.html" class="group bg-[#161b22] border border-[#30363d] rounded-xl p-6 hover:border-[#00ffaa] transition-all duration-300 hover:-translate-y-1">
+            <div class="mb-4">
+              <img class="w-14 h-14" src="/assets/icons/freespin-scan.svg" alt="FreeSpinScan icon">
+            </div>
+            <h3 class="text-xl font-semibold text-white group-hover:text-[#00ffaa] transition-colors">FreeSpinScan</h3>
+            <p class="text-gray-400 text-sm mt-2 mb-4">Promo submission system with auto-classification and prediction engine.</p>
+            <span class="inline-block bg-purple-500/20 text-purple-400 text-xs font-medium px-3 py-1 rounded-full">Beta</span>
           </a>
 
-          <a class="tool-card" data-tool="poker" href="/tools/poker.html">
-            <img class="tool-icon" width="56" height="56" src="/assets/icons/icons-sprite.svg" loading="lazy"
-              decoding="async" alt="Cyber transparency analytics dashboard">
-
-            <h3>Poker</h3>
-            <p>Texas Hold'em poker directly in Discord. Play with friends, track stats, climb leaderboards.</p>
-            <span class="tool-status status-soon">Coming Soon</span>
+          <a href="/tools/tiltcheck-core.html" class="group bg-[#161b22] border border-[#30363d] rounded-xl p-6 hover:border-[#00ffaa] transition-all duration-300 hover:-translate-y-1">
+            <div class="mb-4">
+              <img class="w-14 h-14" src="/assets/icons/tilt-engine.svg" alt="TiltCheck Core icon">
+            </div>
+            <h3 class="text-xl font-semibold text-white group-hover:text-[#00ffaa] transition-colors">TiltCheck Core</h3>
+            <p class="text-gray-400 text-sm mt-2 mb-4">Behavior analysis, cooldown nudges, and accountability tools.</p>
+            <span class="inline-block bg-purple-500/20 text-purple-400 text-xs font-medium px-3 py-1 rounded-full">Beta</span>
           </a>
 
-          <a class="tool-card" data-tool="tiltcheck-core" href="/tools/tiltcheck-core.html">
-            <img class="tool-icon" width="56" height="56" src="/assets/icons/tilt-engine.svg" loading="lazy"
-              decoding="async" alt="Trust network nodes mesh">
-
-            <h3>TiltCheck Core</h3>
-            <p>Behavior analysis, cooldown nudges, and accountability tools. Helps you slow down without policing.</p>
-            <span class="tool-status status-beta">Beta</span>
+          <a href="/tools/poker.html" class="group bg-[#161b22] border border-[#30363d] rounded-xl p-6 hover:border-[#00ffaa] transition-all duration-300 hover:-translate-y-1 opacity-60">
+            <div class="mb-4">
+              <img class="w-14 h-14" src="/assets/icons/icons-sprite.svg" alt="Poker icon">
+            </div>
+            <h3 class="text-xl font-semibold text-white group-hover:text-[#00ffaa] transition-colors">Poker</h3>
+            <p class="text-gray-400 text-sm mt-2 mb-4">Texas Hold'em poker directly in Discord. Play with friends.</p>
+            <span class="inline-block bg-gray-500/20 text-gray-400 text-xs font-medium px-3 py-1 rounded-full">Coming Soon</span>
           </a>
 
-          <a class="tool-card" data-tool="qualifyfirst" href="/tools/qualifyfirst.html">
-            <img class="tool-icon" width="56" height="56" src="/assets/icons/icons-sprite.svg" loading="lazy"
-              decoding="async" alt="Performance bar chart icon">
-
-            <h3>QualifyFirst</h3>
-            <p>AI survey router that pre-screens users to prevent screen-outs and wasted time.</p>
-            <span class="tool-status status-soon">Coming Soon</span>
+          <a href="/tools/qualifyfirst.html" class="group bg-[#161b22] border border-[#30363d] rounded-xl p-6 hover:border-[#00ffaa] transition-all duration-300 hover:-translate-y-1 opacity-60">
+            <div class="mb-4">
+              <img class="w-14 h-14" src="/assets/icons/icons-sprite.svg" alt="QualifyFirst icon">
+            </div>
+            <h3 class="text-xl font-semibold text-white group-hover:text-[#00ffaa] transition-colors">QualifyFirst</h3>
+            <p class="text-gray-400 text-sm mt-2 mb-4">AI survey router that pre-screens users to prevent screen-outs.</p>
+            <span class="inline-block bg-gray-500/20 text-gray-400 text-xs font-medium px-3 py-1 rounded-full">Coming Soon</span>
           </a>
 
-          <a class="tool-card" data-tool="daad" href="/tools/daad.html">
-            <img class="tool-icon" width="56" height="56" src="/assets/icons/dand.svg" loading="lazy" decoding="async"
-              alt="Shield lock security icon">
-
-            <h3>DA&D</h3>
-            <p>Degens Against Decency. AI-powered Cards Against Humanity-style game for degen communities.</p>
-            <span class="tool-status status-soon">Coming Soon</span>
+          <a href="/tools/daad.html" class="group bg-[#161b22] border border-[#30363d] rounded-xl p-6 hover:border-[#00ffaa] transition-all duration-300 hover:-translate-y-1 opacity-60">
+            <div class="mb-4">
+              <img class="w-14 h-14" src="/assets/icons/dand.svg" alt="DA&D icon">
+            </div>
+            <h3 class="text-xl font-semibold text-white group-hover:text-[#00ffaa] transition-colors">DA&D</h3>
+            <p class="text-gray-400 text-sm mt-2 mb-4">AI-powered Cards Against Humanity-style game for degen communities.</p>
+            <span class="inline-block bg-gray-500/20 text-gray-400 text-xs font-medium px-3 py-1 rounded-full">Coming Soon</span>
           </a>
 
         </div>
@@ -691,6 +742,16 @@
   </script>
   <script src="/scripts/components-loader.js"></script>
   <script src="/scripts/auth.js"></script>
+  <script>
+    // Mobile menu toggle
+    const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+    const mobileMenu = document.getElementById('mobile-menu');
+    if (mobileMenuBtn && mobileMenu) {
+      mobileMenuBtn.addEventListener('click', () => {
+        mobileMenu.classList.toggle('hidden');
+      });
+    }
+  </script>
 </body>
 
 </html>
