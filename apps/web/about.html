@@ -22,21 +22,6 @@
   </script>
   <link rel="stylesheet" href="/styles/base.css">
   <link rel="stylesheet" href="/styles/tool-page.css">
-  <!-- Tailwind CSS -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          colors: {
-            'degen-black': '#0d1117',
-            'degen-gray': '#161b22',
-            'degen-green': '#00ffaa',
-          }
-        }
-      }
-    }
-  </script>
   <style>
     .about-hero {
       background: var(--gradient-hero);
@@ -147,15 +132,15 @@
         </a>
         <nav class="hidden md:flex items-center gap-6">
           <div class="relative group">
-            <button class="text-gray-300 hover:text-[#00ffaa] flex items-center gap-1">
+            <button id="tools-dropdown-btn" class="text-gray-300 hover:text-[#00ffaa] flex items-center gap-1" aria-haspopup="true" aria-expanded="false" aria-controls="tools-dropdown">
               Tools <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
             </button>
-            <div class="absolute top-full left-0 mt-2 w-56 bg-[#161b22] border border-[#30363d] rounded-lg shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50">
-              <a href="/tools/justthetip.html" class="block px-4 py-3 text-gray-300 hover:text-[#00ffaa]">JustTheTip</a>
-              <a href="/tools/suslink.html" class="block px-4 py-3 text-gray-300 hover:text-[#00ffaa]">SusLink</a>
-              <a href="/tools/collectclock.html" class="block px-4 py-3 text-gray-300 hover:text-[#00ffaa]">CollectClock</a>
-              <a href="/tools/freespinscan.html" class="block px-4 py-3 text-gray-300 hover:text-[#00ffaa]">FreeSpinScan</a>
-              <a href="/tools/tiltcheck-core.html" class="block px-4 py-3 text-gray-300 hover:text-[#00ffaa]">TiltCheck Core</a>
+            <div id="tools-dropdown" class="absolute top-full left-0 mt-2 w-56 bg-[#161b22] border border-[#30363d] rounded-lg shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50" role="menu">
+              <a href="/tools/justthetip.html" class="block px-4 py-3 text-gray-300 hover:text-[#00ffaa]" role="menuitem">JustTheTip</a>
+              <a href="/tools/suslink.html" class="block px-4 py-3 text-gray-300 hover:text-[#00ffaa]" role="menuitem">SusLink</a>
+              <a href="/tools/collectclock.html" class="block px-4 py-3 text-gray-300 hover:text-[#00ffaa]" role="menuitem">CollectClock</a>
+              <a href="/tools/freespinscan.html" class="block px-4 py-3 text-gray-300 hover:text-[#00ffaa]" role="menuitem">FreeSpinScan</a>
+              <a href="/tools/tiltcheck-core.html" class="block px-4 py-3 text-gray-300 hover:text-[#00ffaa]" role="menuitem">TiltCheck Core</a>
             </div>
           </div>
           <a href="/casinos.html" class="text-gray-300 hover:text-[#00ffaa]">Casinos</a>
@@ -172,11 +157,26 @@
     </div>
     <div id="mobile-menu" class="hidden md:hidden bg-[#0d1117] border-t border-[#30363d]">
       <div class="px-4 py-3 space-y-1">
+        <div class="py-2 border-b border-[#30363d]">
+          <span class="text-xs text-gray-500 uppercase tracking-wide">Tools</span>
+        </div>
         <a href="/tools/justthetip.html" class="block py-2 text-gray-300">JustTheTip</a>
         <a href="/tools/suslink.html" class="block py-2 text-gray-300">SusLink</a>
         <a href="/tools/collectclock.html" class="block py-2 text-gray-300">CollectClock</a>
-        <a href="/casinos.html" class="block py-2 text-gray-300">Casinos</a>
-        <a href="/dashboard" class="block py-2 text-gray-300">Dashboard</a>
+        <a href="/tools/freespinscan.html" class="block py-2 text-gray-300">FreeSpinScan</a>
+        <a href="/tools/tiltcheck-core.html" class="block py-2 text-gray-300">TiltCheck Core</a>
+        <div class="py-2 border-b border-[#30363d] mt-2">
+          <span class="text-xs text-gray-500 uppercase tracking-wide">Platform</span>
+        </div>
+        <a href="/casinos.html" class="block py-2 text-gray-300 hover:text-[#00ffaa]">Casinos</a>
+        <a href="/trust-scores.html" class="block py-2 text-gray-300 hover:text-[#00ffaa]">Trust Scores</a>
+        <a href="/dashboard" class="block py-2 text-gray-300 hover:text-[#00ffaa]">Dashboard</a>
+        <a href="/dashboard" class="block w-full text-center bg-[#00ffaa] text-black font-semibold px-4 py-3 rounded-lg mt-4">
+          Launch App
+        </a>
+        <a href="/dashboard" class="block w-full text-center bg-[#00ffaa] text-black font-semibold px-4 py-3 rounded-lg mt-4">
+          Launch App
+        </a>
       </div>
     </div>
   </header>
@@ -454,5 +454,41 @@
   <div id="shared-footer"></div>
   <script src="/scripts/components-loader.js"></script>
   <script src="/scripts/auth.js"></script>
+  <script>
+    // Tools dropdown accessibility
+    (function() {
+      const btn = document.getElementById('tools-dropdown-btn');
+      const menu = document.getElementById('tools-dropdown');
+      if (!btn || !menu) return;
+      let isOpen = false;
+      function toggle() {
+        isOpen = !isOpen;
+        btn.setAttribute('aria-expanded', isOpen);
+        menu.style.opacity = isOpen ? '1' : '0';
+        menu.style.visibility = isOpen ? 'visible' : 'hidden';
+        if (isOpen) menu.querySelector('a')?.focus();
+      }
+      btn.addEventListener('click', toggle);
+      btn.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(); }
+        if (e.key === 'Escape' && isOpen) toggle();
+      });
+      menu.querySelectorAll('a').forEach(link => {
+        link.addEventListener('keydown', (e) => {
+          if (e.key === 'Escape') { toggle(); btn.focus(); }
+        });
+      });
+    })();
+    // Mobile menu toggle
+    (function() {
+      const btn = document.getElementById('mobile-menu-btn');
+      const menu = document.getElementById('mobile-menu');
+      if (btn && menu) {
+        btn.addEventListener('click', () => {
+          menu.classList.toggle('hidden');
+        });
+      }
+    })();
+  </script>
 </body>
 </html>
