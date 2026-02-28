@@ -11,10 +11,10 @@
  * Dedicated bot for Degens Against Decency game and Poker.
  */
 
-import { Client, GatewayIntentBits } from 'discord.js';
+import { Client, GatewayIntentBits, Partials } from 'discord.js';
 import http from 'http';
 import { config, validateConfig } from './config.js';
-import { CommandHandler, EventHandler } from './handlers/index.js';
+import { CommandHandler, EventHandler, registerDMHandler } from './handlers/index.js';
 
 async function main() {
   console.log('='.repeat(50));
@@ -29,7 +29,9 @@ async function main() {
       GatewayIntentBits.Guilds,
       GatewayIntentBits.GuildMessages,
       GatewayIntentBits.MessageContent,
+      GatewayIntentBits.DirectMessages,
     ],
+    partials: [Partials.Channel],
   });
 
   const commandHandler = new CommandHandler();
@@ -38,6 +40,7 @@ async function main() {
   commandHandler.loadCommands();
   eventHandler.registerDiscordEvents();
   eventHandler.subscribeToEvents();
+  registerDMHandler(client);
 
   console.log('[Bot] Logging in to Discord...');
   await client.login(config.discordToken);

@@ -29,5 +29,3 @@ export {
   getUserTiltHistory,
   getUserTiltStats,
 } from './tilt-events-handler.js';
-export { initializeCollectClock } from './collectclock-handler.js';
-export { startBonusNotifier } from './bonus-notifier.js';

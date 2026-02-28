@@ -41,7 +41,7 @@ export class EventHandler {
           console.log(`[Bot] ${interaction.user.tag} used /${interaction.commandName}`);
         } catch (error) {
           console.error(`[Bot] Error executing ${interaction.commandName}:`, error);
-          const errorMessage = { content: 'There was an error executing this command!', ephemeral: true };
+          const errorMessage = { content: 'That transaction idea failed. Try again in a sec.', ephemeral: true };
           if (interaction.replied || interaction.deferred) {
             await interaction.followUp(errorMessage);
           } else {
@@ -78,9 +78,9 @@ export class EventHandler {
           const balanceSol = (newBalance / 1e9).toFixed(4);
           await user.send(
             `**Deposit Confirmed**\n\n` +
-            `+${solAmount} SOL deposited to your credit balance.\n` +
+            `+${solAmount} SOL hit your credit balance.\n` +
             `New balance: ${balanceSol} SOL\n\n` +
-            `Now you can fire a tip with \`/tip direct\`, or cash out with \`/tip withdraw\`.`
+            `Next moves: \`/tip direct\` to tip, or \`/tip withdraw\` to cash out.`
           );
         } catch (err) {
           console.warn(`[EventHandler] Could not DM user ${discordId}:`, err);
@@ -101,7 +101,7 @@ export class EventHandler {
             `**You have a pending tip!**\n\n` +
             `<@${senderId}> sent you ${solAmount} SOL.\n\n` +
             `Register a wallet with \`/tip wallet register-external\` to claim it.\n` +
-            `The tip expires in 7 days if unclaimed.`
+            `Claim window is 7 days, then it expires.`
           );
         } catch (err) {
           console.warn(`[EventHandler] Could not DM user ${recipientId}:`, err);

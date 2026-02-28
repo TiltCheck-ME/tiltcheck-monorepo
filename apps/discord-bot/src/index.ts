@@ -1,6 +1,6 @@
 /**
- * JustTheTip Discord Bot
- * Main entry point for the Discord bot.
+ * TiltCheck Discord Bot
+ * Main entry point for the safety and moderation bot.
  */
 
 import { Client, GatewayIntentBits, Partials } from 'discord.js';
@@ -12,8 +12,6 @@ import {
   EventHandler,
   registerDMHandler,
   initializeTiltEventsHandler,
-  initializeCollectClock,
-  startBonusNotifier,
 } from './handlers/index.js';
 import { initializeAlertService } from './services/alert-service.js';
 import { TrustAlertsHandler } from './handlers/trust-alerts-handler.js';
@@ -29,7 +27,7 @@ import { startTrustAdapter } from '@tiltcheck/discord-utils/trust-adapter';
 async function main() {
   const startTime = Date.now();
   console.log('\n' + '='.repeat(60));
-  console.log('JustTheTip Discord Bot - Powered by TiltCheck');
+  console.log('TiltCheck Discord Bot - Powered by TiltCheck');
   console.log('='.repeat(60));
   console.log(`Started at: ${new Date().toLocaleString()}`);
   console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
@@ -112,9 +110,6 @@ async function main() {
   console.log('[DM] Registering direct message handler...');
   registerDMHandler(client);
   console.log('[DM] DM handler ready\n');
-
-  initializeCollectClock();
-  startBonusNotifier(client);
 
   console.log('[Adapter] Starting trust adapter...');
   startTrustAdapter({

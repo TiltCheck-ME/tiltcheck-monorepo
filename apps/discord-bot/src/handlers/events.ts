@@ -74,7 +74,7 @@ export class EventHandler {
       if (isOnCooldown(interaction.user.id)) {
         recordViolation(interaction.user.id);
         await interaction.reply({
-          content: 'Cooldown active. Please take a short break and try again later.',
+          content: 'Cooldown is active. Quick breather, then run it back.',
           ephemeral: true
         });
         return;
@@ -132,7 +132,7 @@ export class EventHandler {
           const result = await suslink.scanUrl(url, message.author.id);
           if (result.riskLevel === 'high' || result.riskLevel === 'critical') {
             await message.reply(
-              `Suspicious link detected (${result.riskLevel}): ${url}\nReason: ${result.reason}`
+              `Heads up: sketchy link detected (${result.riskLevel})\n${url}\nReason: ${result.reason}`
             ).catch(() => {});
           }
         } catch (error) {
@@ -225,8 +225,8 @@ export class EventHandler {
 
           const scoreText = typeof tiltScore === 'number' ? tiltScore.toFixed(1) : 'n/a';
           const warningMessage = severity >= 4
-            ? `Tilt warning: automatic cooldown started. Reason: ${reason}.`
-            : `Tilt warning: detected (${reason}, score: ${scoreText}).`;
+            ? `Tilt warning: auto-cooldown started. Reason: ${reason}.`
+            : `Tilt warning: detected (${reason}, score: ${scoreText}). Play it calm.`;
 
           await user.send(warningMessage).catch(() => {
             console.log(`[Bot] Could not send tilt warning DM to ${user.tag}`);
@@ -253,8 +253,8 @@ export class EventHandler {
           const remainingMin = Math.ceil(remainingMs / 60000);
 
           const violationMessage = violationCount >= 3
-            ? `Cooldown violation. Remaining: ${remainingMin} minutes. Cooldown has been extended.`
-            : `Cooldown active. Remaining: ${remainingMin} minutes.`;
+            ? `Cooldown violation. ${remainingMin} minutes left, and it got extended.`
+            : `Cooldown still active. ${remainingMin} minutes left.`;
 
           await user.send(violationMessage).catch(() => {});
 

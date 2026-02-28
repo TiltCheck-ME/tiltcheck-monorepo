@@ -16,58 +16,8 @@ export class WalletBridge {
   private isConnected: boolean = false;
 
   constructor() {
-    this.injectScript();
+    // page-bridge.js runs in MAIN world via manifest — no inline injection needed
     this.listenForResponses();
-  }
-
-  /**
-   * Injects a small script into the page to proxy wallet requests.
-   */
-  private injectScript() {
-    const script = document.createElement('script');
-    script.textContent = `
-      window.addEventListener('message', async (event) => {
-        // Only accept messages from our extension
-        if (event.data.source !== 'TILTCHECK_EXT') return;
-
-        if (event.data.type === 'CONNECT') {
-          if (window.solana) {
-            try {
-              const resp = await window.solana.connect();
-              window.postMessage({ 
-                source: 'TILTCHECK_PAGE', 
-                type: 'CONNECTED', 
-                publicKey: resp.publicKey.toString() 
-              }, '*');
-            } catch (err) {
-              console.error('TiltCheck Wallet Error:', err);
-            }
-          }
-        }
-
-        if (event.data.type === 'SIGN_AND_SEND') {
-          try {
-            // Deserialize transaction (simplified for demo)
-            // In prod, you'd deserialize the Buffer/Uint8Array
-            const { transactionBase64 } = event.data;
-            const buffer = Uint8Array.from(atob(transactionBase64), c => c.charCodeAt(0));
-            const transaction = window.solanaWeb3.Transaction.from(buffer);
-
-            const { signature } = await window.solana.signAndSendTransaction(transaction);
-            
-            window.postMessage({
-              source: 'TILTCHECK_PAGE',
-              type: 'TX_SENT',
-              signature
-            }, '*');
-          } catch (err) {
-            console.error('TiltCheck Sign Error:', err);
-          }
-        }
-      });
-    `;
-    (document.head || document.documentElement).appendChild(script);
-    script.remove();
   }
 
   private listenForResponses() {

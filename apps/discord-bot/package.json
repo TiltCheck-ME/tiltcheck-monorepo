@@ -16,7 +16,6 @@
   },
   "dependencies": {
     "@elastic/elasticsearch": "^8.19.1",
-    "@tiltcheck/collectclock": "workspace:*",
     "@tiltcheck/config": "workspace:*",
     "@tiltcheck/database": "workspace:*",
     "@tiltcheck/discord-utils": "workspace:*",

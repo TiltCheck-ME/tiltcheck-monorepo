@@ -9,11 +9,11 @@
  * JustTheTip Bot — Custodial Credit-Based Solana Tipping
  */
 
-import { Client, GatewayIntentBits } from 'discord.js';
+import { Client, GatewayIntentBits, Partials } from 'discord.js';
 import { Connection } from '@solana/web3.js';
 import http from 'http';
 import { config, validateConfig } from './config.js';
-import { CommandHandler, EventHandler } from './handlers/index.js';
+import { CommandHandler, EventHandler, registerDMHandler } from './handlers/index.js';
 import { BotWalletService } from './services/bot-wallet.js';
 import { TokenSwapService } from './services/token-swap.js';
 import { TokenDepositMonitor } from './services/token-deposit-monitor.js';
@@ -93,7 +93,9 @@ async function main() {
       GatewayIntentBits.Guilds,
       GatewayIntentBits.GuildMessages,
       GatewayIntentBits.MessageContent,
+      GatewayIntentBits.DirectMessages,
     ],
+    partials: [Partials.Channel],
   });
 
   const commandHandler = new CommandHandler();
@@ -102,6 +104,7 @@ async function main() {
   commandHandler.loadCommands();
   eventHandler.registerDiscordEvents();
   eventHandler.subscribeToEvents();
+  registerDMHandler(client);
 
   // Start services
   depositMonitor.start();

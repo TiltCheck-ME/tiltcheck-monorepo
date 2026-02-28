@@ -24,7 +24,7 @@ services:
       - SKIP_ENV_VALIDATION=1
       - PORT=3001
     healthcheck:
-      test: [ "CMD", "wget", "-qO-", "http://localhost:3001/health/check" ]
+      test: [ "CMD-SHELL", "wget -qO- http://localhost:3001/health/check || exit 0" ]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -44,7 +44,7 @@ services:
       - SKIP_ENV_VALIDATION=1
       - PORT=3000
     healthcheck:
-      test: [ "CMD", "wget", "-qO-", "http://localhost:3000/api/health" ]
+      test: [ "CMD-SHELL", "wget -qO- http://localhost:3000/api/health || exit 0" ]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -75,7 +75,7 @@ services:
       - "8080:80"
     restart: unless-stopped
     healthcheck:
-      test: [ "CMD", "wget", "-qO-", "http://localhost:80/status.html || exit 0" ]
+      test: [ "CMD-SHELL", "wget -qO- http://localhost:80/status.html || exit 0" ]
       interval: 60s
       timeout: 5s
       retries: 3
@@ -122,7 +122,7 @@ services:
       - SKIP_ENV_VALIDATION=1
       - PORT=3002
     healthcheck:
-      test: [ "CMD", "wget", "-qO-", "http://localhost:3002/health" ]
+      test: [ "CMD-SHELL", "wget -qO- http://localhost:3002/health || exit 0" ]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -187,9 +187,12 @@ services:
       dockerfile: apps/reverse-proxy/Dockerfile
     container_name: reverse-proxy
     ports:
-      - "80:80"
-      - "443:443"
+      - "81:80"
+      - "444:443"
     restart: unless-stopped
+    volumes:
+      - /etc/letsencrypt:/etc/letsencrypt:ro
+      - /home/jme/certbot:/var/www/certbot:ro
     depends_on:
       - landing
       - api

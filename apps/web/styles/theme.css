@@ -26,6 +26,7 @@
   /* Backgrounds - Dark base */
   --bg-primary: #0E0E0F; /* Deep terminal black */
   --bg-secondary: #111316; /* Slightly elevated */
+  --bg-tertiary: #161B22; /* Mid-level surface (tables, code blocks) */
   --bg-card: #1A1F24; /* Elevated surfaces (cards, modals) */
   --bg-elevated: #1A1F24;
   --bg-input: #111316;
@@ -38,6 +39,7 @@
   
   /* Borders & dividers - Sharp edges, neon 1px borders */
   --border-subtle: #1F2937;
+  --border-default: #2D3748;
   --border-emphasis: #374151;
   --border-glow: rgba(0, 255, 198, 0.3);
   --border-neon: 1px solid rgba(0, 255, 198, 0.4);
@@ -106,6 +108,7 @@
   --glass-backdrop: blur(8px);
   
   /* Border radius - Sharp edges */
+  --radius-xs: 2px;
   --radius-sm: 4px;
   --radius-md: 6px;
   --radius-lg: 8px;
