@@ -14,17 +14,19 @@
 -->
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Game Arena - Degens Against Decency</title>
   <link rel="stylesheet" href="/styles/main.css" />
 </head>
+
 <body>
   <div class="arena-container">
     <header class="arena-header">
       <div>
-        <h1> Game Arena</h1>
+        <h1>Game Arena</h1>
         <p>Join a game or create your own</p>
       </div>
       <div class="user-panel">
@@ -32,7 +34,8 @@
         <div>
           <div id="user-name">Loading...</div>
           <a href="profile.html" class="secondary-button">Profile</a>
-          <a href="#integrations" class="secondary-button" onclick="window.location.href='profile.html#integrations'"> Integrations</a>
+          <a href="#integrations" class="secondary-button"
+            onclick="window.location.href='profile.html#integrations'">Integrations</a>
           <button id="logout-btn" class="secondary-button">Logout</button>
         </div>
       </div>
@@ -41,7 +44,7 @@
     <div class="lobby">
       <div class="games-section">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-          <h2> Available Games</h2>
+          <h2>Available Games</h2>
           <div id="lobby-stats" class="lobby-stats">
             <span class="stat-item">
               <span class="stat-label">Active Games:</span>
@@ -59,7 +62,7 @@
       </div>
 
       <div class="create-game-section">
-        <h2> Create New Game</h2>
+        <h2>Create New Game</h2>
         <form id="create-game-form">
           <div class="form-group">
             <label for="game-type">Game Type:</label>
@@ -98,10 +101,11 @@
     <!-- Onboarding Modal -->
     <div id="onboarding-modal" class="modal">
       <div class="modal-content onboarding-content">
-        <h2> Welcome to Degens Against Decency!</h2>
+        <h2>Welcome to Degens Against Decency!</h2>
         <div class="onboarding-step active" data-step="1">
           <h3>Step 1: How to Play</h3>
-          <p>Degens Against Decency is a hilarious party game where players match answer cards to fill in the blank on question cards. The Card Czar picks the funniest combo!</p>
+          <p>Degens Against Decency is a hilarious party game where players match answer cards to fill in the blank on
+            question cards. The Card Czar picks the funniest combo!</p>
           <ul>
             <li>Each round, one player is the Card Czar</li>
             <li>Other players submit their funniest answer cards</li>
@@ -124,7 +128,8 @@
         </div>
         <div class="onboarding-step" data-step="3">
           <h3>Step 3: Bot Players</h3>
-          <p>Don't have enough players? No problem! Our AI bots will automatically join to ensure you have the minimum 3 players needed.</p>
+          <p>Don't have enough players? No problem! Our AI bots will automatically join to ensure you have the minimum 3
+            players needed.</p>
           <ul>
             <li>Bots join automatically when you start a game with less than 3 players</li>
             <li>They play just like real players</li>
@@ -141,4 +146,5 @@
   <script src="/socket.io/socket.io.js"></script>
   <script src="/scripts/arena.js"></script>
 </body>
+
 </html>
