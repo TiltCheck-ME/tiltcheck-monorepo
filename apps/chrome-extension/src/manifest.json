@@ -28,6 +28,17 @@
         "content.js"
       ],
       "run_at": "document_idle"
+    },
+    {
+      "matches": [
+        "http://*/*",
+        "https://*/*"
+      ],
+      "js": [
+        "page-bridge.js"
+      ],
+      "world": "MAIN",
+      "run_at": "document_idle"
     }
   ],
   "icons": {

@@ -18,7 +18,6 @@
  * globally otherwise).
  */
 
-import fs from 'fs';
 import path from 'path';
 import { fileURLToPath, pathToFileURL } from 'url';
 import { Collection, REST, Routes } from 'discord.js';
@@ -33,70 +32,34 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 /**
- * Reads every .ts / .js file in the commands directory (excluding this
- * loader itself and the barrel index), attempts to import each one, and
- * registers any module that exposes a valid `data` + `execute` pair.
+ * Loads commands from the barrel index (index.ts) rather than scanning
+ * the directory. This ensures only explicitly exported commands are
+ * registered — command files that exist on disk but aren't exported
+ * from the index will be ignored.
  *
  * @returns A discord.js Collection keyed by command name.
  */
 export async function loadCommands(): Promise<Collection<string, Command>> {
   const collection = new Collection<string, Command>();
 
-  // Files we must skip to avoid circular imports or non-command modules
-  const SKIP_FILES = new Set(['loader.ts', 'loader.js', 'index.ts', 'index.js']);
-
-  let entries: string[];
+  let mod: Record<string, unknown>;
   try {
-    entries = await fs.promises.readdir(__dirname);
+    const indexPath = pathToFileURL(path.join(__dirname, 'index.js')).href;
+    mod = await import(indexPath);
   } catch (err) {
-    console.error('[CommandLoader] Failed to read commands directory:', err);
+    console.error('[CommandLoader] Failed to import command index:', err);
     return collection;
   }
 
-  const commandFiles = entries.filter((file) => {
-    if (SKIP_FILES.has(file)) return false;
-    return file.endsWith('.ts') || file.endsWith('.js');
-  });
-
-  const results = await Promise.allSettled(
-    commandFiles.map(async (file) => {
-      const filePath = path.join(__dirname, file);
-      // pathToFileURL ensures compatibility on Windows and with ESM loaders
-      const fileUrl = pathToFileURL(filePath).href;
-
-      let mod: Record<string, unknown>;
-      try {
-        mod = await import(fileUrl);
-      } catch (importErr) {
-        console.warn(`[CommandLoader] Could not import ${file}:`, importErr);
-        return;
+  for (const [key, candidate] of Object.entries(mod)) {
+    if (isCommand(candidate)) {
+      const name: string = (candidate.data as { name: string }).name;
+      if (collection.has(name)) {
+        console.warn(`[CommandLoader] Duplicate command name "${name}" (export: ${key}) – skipping`);
+        continue;
       }
-
-      // A command module may export the command directly as named export
-      // (e.g. `export const ping`) or as a default export.
-      // We check every exported value for the required shape.
-      const candidates = Object.values(mod);
-
-      for (const candidate of candidates) {
-        if (isCommand(candidate)) {
-          const name: string = (candidate.data as { name: string }).name;
-          if (collection.has(name)) {
-            console.warn(
-              `[CommandLoader] Duplicate command name "${name}" in ${file} – skipping`
-            );
-            continue;
-          }
-          collection.set(name, candidate);
-          console.log(`  [CommandLoader] Loaded /${name} from ${file}`);
-        }
-      }
-    })
-  );
-
-  // Surface any unexpected rejections from the allSettled batch
-  for (const result of results) {
-    if (result.status === 'rejected') {
-      console.error('[CommandLoader] Unexpected error while loading a command file:', result.reason);
+      collection.set(name, candidate);
+      console.log(`  [CommandLoader] Loaded /${name}`);
     }
   }
 

@@ -298,7 +298,8 @@ body {
   overflow: hidden;
 }
 
-.hero h1 {
+.hero h1,
+.hero h2 {
   font-size: var(--text-4xl);
   font-weight: var(--weight-black);
   font-family: var(--font-display);
@@ -309,7 +310,8 @@ body {
   position: relative;
 }
 
-.hero h1::after {
+.hero h1::after,
+.hero h2::after {
   content: '';
   position: absolute;
   bottom: -10px;

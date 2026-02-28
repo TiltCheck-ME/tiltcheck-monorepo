@@ -15,6 +15,14 @@ import {
   getUserTiltStatus,
   getUserActivity,
 } from '@tiltcheck/tiltcheck-core';
+import { suslinkCmd } from './suslink.js';
+import { buddy } from './buddy.js';
+import { casino } from './casino.js';
+import report from './report.js';
+import { setstate } from './setstate.js';
+import { ping } from './ping.js';
+import { help } from './help.js';
+import { PermissionFlagsBits } from 'discord.js';
 
 export const tiltcheck: Command = {
   data: new SlashCommandBuilder()
@@ -23,6 +31,12 @@ export const tiltcheck: Command = {
     .setContexts(
       InteractionContextType.Guild,
       InteractionContextType.BotDM
+    )
+    .addSubcommand((sub) =>
+      sub.setName('help').setDescription('Show command map and routing')
+    )
+    .addSubcommand((sub) =>
+      sub.setName('ping').setDescription('Check if the bot is responsive')
     )
     .addSubcommand(sub =>
       sub.setName('status')
@@ -42,10 +56,199 @@ export const tiltcheck: Command = {
     .addSubcommand(sub =>
       sub.setName('diagnostics')
         .setDescription('Show system diagnostics (Admin Only)')
+    )
+    .addSubcommand((sub) =>
+      sub
+        .setName('casino')
+        .setDescription('Get trust and fairness data for a casino')
+        .addStringOption((opt) =>
+          opt
+            .setName('domain')
+            .setDescription('Casino domain (e.g., stake.com)')
+            .setRequired(true),
+        ),
+    )
+    .addSubcommandGroup((group) =>
+      group
+        .setName('suslink')
+        .setDescription('Link scanning & promo management')
+        .addSubcommand((sub) =>
+          sub
+            .setName('scan')
+            .setDescription('Scan a URL for suspicious patterns')
+            .addStringOption((opt) =>
+              opt.setName('url').setDescription('The URL to scan').setRequired(true),
+            ),
+        )
+        .addSubcommand((sub) =>
+          sub
+            .setName('submit')
+            .setDescription('Submit a free spin or promo link for review')
+            .addStringOption((opt) =>
+              opt.setName('url').setDescription('Promo URL').setRequired(true),
+            )
+            .addStringOption((opt) =>
+              opt
+                .setName('bonustype')
+                .setDescription('Bonus type (e.g., free_spins, deposit)')
+                .setRequired(true),
+            )
+            .addStringOption((opt) =>
+              opt.setName('casino').setDescription('Casino name').setRequired(true),
+            )
+            .addStringOption((opt) =>
+              opt.setName('notes').setDescription('Additional notes (optional)').setRequired(false),
+            ),
+        )
+        .addSubcommand((sub) =>
+          sub
+            .setName('approve')
+            .setDescription('Approve a pending promo submission (mods only)')
+            .addIntegerOption((opt) =>
+              opt.setName('id').setDescription('Submission ID').setRequired(true),
+            ),
+        )
+        .addSubcommand((sub) =>
+          sub
+            .setName('deny')
+            .setDescription('Deny a pending promo submission (mods only)')
+            .addIntegerOption((opt) =>
+              opt.setName('id').setDescription('Submission ID').setRequired(true),
+            )
+            .addStringOption((opt) =>
+              opt.setName('reason').setDescription('Reason for denial (optional)').setRequired(false),
+            ),
+        )
+        .addSubcommand((sub) =>
+          sub.setName('pending').setDescription('View pending promo submissions (mods only)'),
+        ),
+    )
+    .addSubcommandGroup((group) =>
+      group
+        .setName('buddy')
+        .setDescription('Accountability buddy system')
+        .addSubcommand((sub) =>
+          sub
+            .setName('add')
+            .setDescription('Link a buddy to alert them when you tilt')
+            .addUserOption((opt) =>
+              opt.setName('user').setDescription('The user you want to add as a buddy').setRequired(true),
+            ),
+        )
+        .addSubcommand((sub) =>
+          sub
+            .setName('remove')
+            .setDescription('Remove a buddy')
+            .addUserOption((opt) =>
+              opt.setName('user').setDescription('The buddy to remove').setRequired(true),
+            ),
+        )
+        .addSubcommand((sub) => sub.setName('list').setDescription('List your current buddies'))
+        .addSubcommand((sub) =>
+          sub
+            .setName('test')
+            .setDescription('Send a test alert to your buddy')
+            .addUserOption((opt) =>
+              opt.setName('buddy').setDescription('The buddy to test alert').setRequired(true),
+            ),
+        ),
+    )
+    .addSubcommand((sub) =>
+      sub
+        .setName('report')
+        .setDescription('Log a disciplinary action or report a user')
+        .addUserOption((option) =>
+          option.setName('target').setDescription('The user to report').setRequired(true),
+        )
+        .addStringOption((option) =>
+          option
+            .setName('action')
+            .setDescription('Type of action taken')
+            .setRequired(true)
+            .addChoices(
+              { name: 'Warning', value: 'warn' },
+              { name: 'Mute', value: 'mute' },
+              { name: 'Kick', value: 'kick' },
+              { name: 'Ban', value: 'ban' },
+              { name: 'Flag Scammer', value: 'flag_scammer' },
+              { name: 'Flag Rain Farmer', value: 'flag_farmer' },
+            ),
+        )
+        .addStringOption((option) =>
+          option.setName('reason').setDescription('Reason for the action').setRequired(true),
+        )
+        .addStringOption((option) =>
+          option
+            .setName('evidence')
+            .setDescription('Link to screenshot or message (optional)')
+            .setRequired(false),
+        ),
+    )
+    .addSubcommand((sub) =>
+      sub
+        .setName('setstate')
+        .setDescription('Optional: set your state context for regulation-aware TiltCheck analysis')
+        .addStringOption((opt) =>
+          opt.setName('state').setDescription('Two-letter US state code, e.g., NJ').setRequired(false),
+        )
+        .addStringOption((opt) =>
+          opt
+            .setName('topic')
+            .setDescription('Regulation topic')
+            .addChoices(
+              { name: 'iGaming', value: 'igaming' },
+              { name: 'Sportsbook', value: 'sportsbook' },
+              { name: 'Sweepstakes', value: 'sweepstakes' },
+            )
+            .setRequired(false),
+        )
+        .addBooleanOption((opt) =>
+          opt.setName('clear').setDescription('Clear your saved state/topic context').setRequired(false),
+        ),
     ),
   async execute(interaction: ChatInputCommandInteraction) {
+    const group = interaction.options.getSubcommandGroup(false);
     const subcommand = interaction.options.getSubcommand();
-    
+
+    if (subcommand === 'help') {
+      await help.execute(interaction);
+      return;
+    }
+
+    if (subcommand === 'ping') {
+      await ping.execute(interaction);
+      return;
+    }
+
+    if (subcommand === 'casino') {
+      await casino.execute(interaction);
+      return;
+    }
+
+    if (subcommand === 'setstate') {
+      await setstate.execute(interaction);
+      return;
+    }
+
+    if (subcommand === 'report') {
+      if (!interaction.memberPermissions?.has(PermissionFlagsBits.ModerateMembers)) {
+        await interaction.reply({ content: 'Mods only. This is not a toy.', ephemeral: true });
+        return;
+      }
+      await report.execute(interaction);
+      return;
+    }
+
+    if (group === 'suslink') {
+      await suslinkCmd.execute(interaction);
+      return;
+    }
+
+    if (group === 'buddy') {
+      await buddy.execute(interaction);
+      return;
+    }
+
     if (subcommand === 'status') {
       await handleTiltStatus(interaction);
     } else if (subcommand === 'history') {

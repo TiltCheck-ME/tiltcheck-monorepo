@@ -76,7 +76,9 @@ const DAILY_WITHDRAWAL_LIMIT_SOL = 10;
 export const tip: Command = {
   data: new SlashCommandBuilder()
     .setName('tip')
-    .setDescription('Manage credit balance, send tips, and play games')
+    .setDescription('Primary flow: custodial credit balance (deposit, tip, withdraw)')
+    .addSubcommand((sub) => sub.setName('help').setDescription('Explain how this bot works'))
+    .addSubcommand((sub) => sub.setName('ping').setDescription('Check if the bot is responsive'))
     // Deposit SOL
     .addSubcommand(sub => sub
       .setName('deposit')
@@ -95,20 +97,20 @@ export const tip: Command = {
     // Send
     .addSubcommand(sub => sub
       .setName('direct')
-      .setDescription('Direct tip from your credit balance')
+      .setDescription('Send from your custodial credit balance')
       .addUserOption(o => o.setName('user').setDescription('User to tip').setRequired(true))
       .addStringOption(o => o.setName('amount').setDescription('Amount (e.g. "$5", "0.1 sol")').setRequired(true))
     )
     .addSubcommand(sub => sub
       .setName('send')
-      .setDescription('Send a tip from your credit balance (alias of /tip direct)')
+      .setDescription('Alias of /tip direct (custodial credit)')
       .addUserOption(o => o.setName('user').setDescription('User to tip').setRequired(true))
       .addStringOption(o => o.setName('amount').setDescription('Amount (e.g. "$5", "0.1 sol")').setRequired(true))
     )
     // Airdrop
     .addSubcommand(sub => sub
       .setName('airdrop')
-      .setDescription('Distribute from credit: specific users or public claim')
+      .setDescription('Distribute custodial credit: specific users or public claim')
       .addStringOption(o => o.setName('amount').setDescription('Amount per person (e.g. "$1")').setRequired(true))
       .addStringOption(o => o.setName('recipients').setDescription('Mentions (@user1 @user2) OR "public" for a claim button').setRequired(false))
       .addIntegerOption(o => o.setName('slots').setDescription('Max claims (for public airdrop only)').setRequired(false))
@@ -131,7 +133,7 @@ export const tip: Command = {
     // Wallet
     .addSubcommand(sub => sub
       .setName('wallet')
-      .setDescription('Link an external Solana wallet for withdrawals')
+      .setDescription('Manage withdrawal wallet used by custodial flow')
       .addStringOption(o => o
         .setName('action')
         .setDescription('Wallet action')
@@ -221,6 +223,8 @@ export const tip: Command = {
     try {
       const sub = interaction.options.getSubcommand();
       switch (sub) {
+        case 'help': return handleHelp(interaction);
+        case 'ping': return handlePing(interaction);
         case 'deposit': return handleDeposit(interaction);
         case 'deposit-token': return handleDepositToken(interaction);
         case 'direct': return handleSend(interaction);
@@ -256,6 +260,52 @@ export const tip: Command = {
 };
 
 // ==================== HANDLERS ====================
+
+async function handlePing(interaction: ChatInputCommandInteraction) {
+  await interaction.reply({ content: 'pong', ephemeral: true });
+}
+
+async function handleHelp(interaction: ChatInputCommandInteraction) {
+  const embed = new EmbedBuilder()
+    .setColor(0x00BFFF)
+    .setTitle('JustTheTip - Custodial Credit Flow')
+    .setDescription(
+      'This bot uses a custodial credit balance. You deposit to the bot wallet, then spend from your internal balance.\n\n' +
+      '**Quick start:**\n' +
+      '1. `/tip wallet action:register-external`\n' +
+      '2. `/tip deposit` (or `/tip deposit-token token:USDC`)\n' +
+      '3. Transfer using the memo code\n' +
+      '4. `/tip balance`\n' +
+      '5. `/tip direct @user $5`\n\n' +
+      'Translation: load ammo, then fire responsibly.'
+    )
+    .addFields(
+      {
+        name: 'Send Tips',
+        value:
+          '`/tip direct @user $5` - Send from credit balance\n' +
+          '`/tip airdrop` - Multi-send or public claim\n' +
+          '`/tip rain` - Split among active chatters',
+      },
+      {
+        name: 'Banking',
+        value:
+          '`/tip deposit` - Get deposit address + memo code\n' +
+          '`/tip withdraw` - Cash out to your wallet\n' +
+          '`/tip history` - Recent transactions',
+      },
+      {
+        name: 'Self-Control',
+        value:
+          '`/tip lock $50 24h` - Lock funds\n' +
+          '`/tip vaults` - See active locks\n' +
+          '`/tip emergency-unlock` - Break glass (fee applies)',
+      },
+    )
+    .setFooter({ text: 'Keep it degen, not reckless.' });
+
+  await interaction.reply({ embeds: [embed], ephemeral: true });
+}
 
 async function handleDeposit(interaction: ChatInputCommandInteraction) {
   await interaction.deferReply({ ephemeral: true });

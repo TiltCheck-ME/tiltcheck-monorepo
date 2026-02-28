@@ -11,12 +11,21 @@ Discord bot for the TiltCheck ecosystem.
 
 ## Available Commands
 
+- `/tiltcheck` - Tilt status, history, and cooldown tools
+- `/suslink` - URL scan and promo moderation workflow
+- `/casino` - Trust/fairness lookup for casino domains
+- `/buddy` - Accountability buddy management
+- `/report` - Safety/moderation report logging
+- `/setstate` - Optional state/topic context for regulation-aware responses
 - `/ping` - Check bot status
-- `/help` - Show available commands
-- `/scan <url>` - Scan a URL for suspicious patterns
-- `/trust casino <name>` - Show casino reputation breakdown
-- `/trust user [@user]` - Show user trust level & behavior history
-- `/trust explain` - Learn how trust scoring works
+- `/help` - Show command routing and feature summary
+
+## Bot Split
+
+- `@tiltcheck/discord-bot` (this app): safety and moderation commands
+- `@tiltcheck/justthetip-bot`: tipping, wallet, vault, airdrop commands
+- `@tiltcheck/dad-bot`: DA&D and poker commands
+- `collectclock` bot (external to this repo): bonus timer commands
 
 ## Setup
 

@@ -74,7 +74,7 @@ export class EventHandler {
         );
 
         const errorMessage = {
-          content: 'There was an error executing this command!',
+          content: 'That play bricked. Try again in a sec.',
           ephemeral: true,
         };
 
@@ -162,7 +162,7 @@ export class EventHandler {
             `⚠️ **Tilt Warning**\n\n` +
             `Reason: ${reason}\n` +
             `Severity: ${severity}\n\n` +
-            `You've been placed on a 15-minute cooldown. Take a break. 🧘`
+            `You got put on a 15-minute cooldown. Quick reset, then back in.`
           );
         } catch (error) {
           console.warn(`[EventHandler] Could not DM user ${userId}:`, error);
@@ -194,9 +194,9 @@ export class EventHandler {
           const user = await this.client.users.fetch(userId);
           await user.send(
             `🚫 **Cooldown Violation**\n\n` +
-            `You tried to ${action} while on cooldown.\n` +
-            `Your cooldown has been extended to ${newDuration} minutes.\n\n` +
-            `Seriously, take a break. We're trying to help.`
+            `You tried to ${action} while cooldown was active.\n` +
+            `Cooldown is now ${newDuration} minutes.\n\n` +
+            `Not a roast, just risk control.`
           );
         } catch (error) {
           console.warn(`[EventHandler] Could not DM user ${userId}:`, error);

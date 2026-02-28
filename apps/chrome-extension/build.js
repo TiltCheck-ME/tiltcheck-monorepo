@@ -101,6 +101,19 @@ async function build() {
     },
   });
 
+  // Build page-bridge script (runs in MAIN world for wallet access)
+  await esbuild.build({
+    entryPoints: [path.join(__dirname, 'src/page-bridge.ts')],
+    bundle: true,
+    outfile: path.join(__dirname, 'dist/page-bridge.js'),
+    format: 'iife',
+    platform: 'browser',
+    target: 'chrome100',
+    sourcemap: true,
+    minify: false,
+    plugins: [],
+  });
+
   // Copy static files
   const staticFiles = [
     { src: 'src/manifest.json', dest: 'dist/manifest.json' },

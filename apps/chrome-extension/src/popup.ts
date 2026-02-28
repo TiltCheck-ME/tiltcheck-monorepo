@@ -210,7 +210,7 @@ function showDiscordIdInput() {
  * Start Discord OAuth Login
  */
 function startLogin() {
-  const loginUrl = 'https://discord.com/oauth2/authorize?client_id=1445916179163250860&permissions=2252352254102592&response_type=code&redirect_uri=https%3A%2F%2Fapi.tiltcheck.me%2Fauth%2Fdiscord%2Fcallback&integration_type=0&scope=identify+email+bot+dm_channels.messages.read+messages.read+applications.store.update+dm_channels.read+presences.read+lobbies.write+applications.entitlements+applications.commands';
+  const loginUrl = 'https://discord.com/oauth2/authorize?client_id=1445916179163250860&response_type=code&redirect_uri=https%3A%2F%2Fapi.tiltcheck.me%2Fauth%2Fdiscord%2Fcallback&scope=identify+email+activities.write+lobbies.write';
   window.open(loginUrl, 'TiltCheck Login', 'width=500,height=700');
 }
 
