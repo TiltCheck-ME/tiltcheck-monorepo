@@ -8,111 +8,165 @@
 -->
 
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TiltCheck User Dashboard</title>
     <script src="https://auth.magic.link/sdk/no-modal/solana"></script>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { 
-            font-family: 'Inter', system-ui, sans-serif; 
-            background: #0a0a0a; 
-            color: #e0e0e0; 
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', system-ui, sans-serif;
+            background: #0a0a0a;
+            color: #e0e0e0;
             line-height: 1.6;
         }
-        .container { max-width: 1200px; margin: 0 auto; padding: 2rem; }
-        .header { 
-            background: linear-gradient(135deg, #00d4aa, #00a8ff); 
-            padding: 2rem; 
-            border-radius: 12px; 
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #00d4aa, #00a8ff);
+            padding: 2rem;
+            border-radius: 12px;
             margin-bottom: 2rem;
         }
-        .header h1 { font-size: 2.5rem; margin-bottom: 0.5rem; }
-        .header p { font-size: 1.1rem; opacity: 0.9; }
-        .grid { 
-            display: grid; 
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); 
-            gap: 2rem; 
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
             margin-bottom: 2rem;
         }
-        .card { 
-            background: #111; 
-            border: 1px solid #333; 
-            border-radius: 12px; 
+
+        .card {
+            background: #111;
+            border: 1px solid #333;
+            border-radius: 12px;
             padding: 1.5rem;
             transition: all 0.3s ease;
         }
-        .card:hover { border-color: #00d4aa; transform: translateY(-2px); }
-        .card h3 { color: #00d4aa; margin-bottom: 1rem; font-size: 1.3rem; }
-        .metric { 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center; 
+
+        .card:hover {
+            border-color: #00d4aa;
+            transform: translateY(-2px);
+        }
+
+        .card h3 {
+            color: #00d4aa;
+            margin-bottom: 1rem;
+            font-size: 1.3rem;
+        }
+
+        .metric {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
             margin-bottom: 0.75rem;
             padding: 0.5rem 0;
             border-bottom: 1px solid #222;
         }
-        .metric:last-child { border-bottom: none; margin-bottom: 0; }
-        .metric-value { 
-            font-weight: bold; 
-            color: #00d4aa; 
+
+        .metric:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+        }
+
+        .metric-value {
+            font-weight: bold;
+            color: #00d4aa;
             font-size: 1.1rem;
         }
-        .trust-score { 
-            font-size: 3rem; 
-            font-weight: bold; 
-            color: #00d4aa; 
+
+        .trust-score {
+            font-size: 3rem;
+            font-weight: bold;
+            color: #00d4aa;
             text-align: center;
             margin-bottom: 1rem;
         }
-        .activity-item { 
-            padding: 0.75rem; 
-            background: #0a0a0a; 
-            border-radius: 8px; 
+
+        .activity-item {
+            padding: 0.75rem;
+            background: #0a0a0a;
+            border-radius: 8px;
             margin-bottom: 0.5rem;
             border-left: 4px solid #00d4aa;
         }
-        .activity-time { font-size: 0.85rem; color: #888; }
-        .btn { 
-            background: #00d4aa; 
-            color: #000; 
-            border: none; 
-            padding: 0.75rem 1.5rem; 
-            border-radius: 8px; 
-            cursor: pointer; 
+
+        .activity-time {
+            font-size: 0.85rem;
+            color: #888;
+        }
+
+        .btn {
+            background: #00d4aa;
+            color: #000;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            cursor: pointer;
             font-weight: bold;
             transition: all 0.3s ease;
         }
-        .btn:hover { background: #00b89a; }
-        .loading { text-align: center; padding: 2rem; color: #666; }
-        .error { 
-            background: #330000; 
-            border: 1px solid #ff4444; 
-            padding: 1rem; 
-            border-radius: 8px; 
+
+        .btn:hover {
+            background: #00b89a;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            color: #666;
+        }
+
+        .error {
+            background: #330000;
+            border: 1px solid #ff4444;
+            padding: 1rem;
+            border-radius: 8px;
             color: #ff8888;
             margin-bottom: 2rem;
         }
     </style>
 </head>
+
 <body>
     <div class="container">
         <div id="loading" class="loading">
             Loading your TiltCheck dashboard...
         </div>
-        
+
         <div id="error" class="error" style="display: none;"></div>
-        
+
         <div id="dashboard" style="display: none;">
             <div class="header">
                 <h1>Welcome back, <span id="username">User</span>!</h1>
                 <p>Your personalized TiltCheck ecosystem dashboard</p>
             </div>
-            
+
             <div class="grid">
                 <div class="card">
-                    <h3> Trust Score</h3>
+                    <h3>Trust Score</h3>
                     <div class="trust-score" id="trustScore">--</div>
                     <div class="metric">
                         <span>Tilt Level</span>
@@ -127,9 +181,9 @@
                         <span class="metric-value" id="community">--</span>
                     </div>
                 </div>
-                
+
                 <div class="card">
-                    <h3> JustTheTip Stats</h3>
+                    <h3>JustTheTip Stats</h3>
                     <div class="metric">
                         <span>Total Tips Sent</span>
                         <span class="metric-value" id="totalTips">--</span>
@@ -143,14 +197,17 @@
                         <span class="metric-value" id="casinosSeen">--</span>
                     </div>
                     <div style="margin-top: 1rem; border-top: 1px solid #222; padding-top: 1rem;">
-                        <p style="font-size: 0.8rem; color: #888; margin-bottom: 0.5rem;">Linked External Wallet (Trust/Phantom)</p>
-                        <div id="externalWalletDisplay" style="font-family: monospace; font-size: 0.8rem; margin-bottom: 0.5rem;">None</div>
-                        <button class="btn" style="width: 100%;" onclick="linkExternalWallet()">Link Trust Wallet</button>
+                        <p style="font-size: 0.8rem; color: #888; margin-bottom: 0.5rem;">Linked External Wallet
+                            (Trust/Phantom)</p>
+                        <div id="externalWalletDisplay"
+                            style="font-family: monospace; font-size: 0.8rem; margin-bottom: 0.5rem;">None</div>
+                        <button class="btn" style="width: 100%;" onclick="linkExternalWallet()">Link Trust
+                            Wallet</button>
                     </div>
                 </div>
 
                 <div class="card">
-                    <h3> Advanced Analytics</h3>
+                    <h3>Advanced Analytics</h3>
                     <div class="metric">
                         <span>Total Wagered</span>
                         <span class="metric-value" id="wageredAmount">--</span>
@@ -166,28 +223,35 @@
                 </div>
 
                 <div class="card" id="nftCard">
-                    <h3> Degen Identity NFT</h3>
+                    <h3>Degen Identity NFT</h3>
                     <div id="nftStatus">Checking status...</div>
                     <div id="savingsSection" style="display: none; margin-top: 1rem;">
-                        <p style="font-size: 0.8rem; color: #888; margin-bottom: 0.5rem;">Identity Savings Progress (Goal: 0.05 SOL)</p>
-                        <div style="width: 100%; background: #222; border-radius: 10px; height: 12px; margin-bottom: 0.5rem;">
-                            <div id="savingsProgress" style="width: 0%; background: #00d4aa; height: 100%; border-radius: 10px; transition: width 0.5s ease;"></div>
+                        <p style="font-size: 0.8rem; color: #888; margin-bottom: 0.5rem;">Identity Savings Progress
+                            (Goal: 0.05 SOL)</p>
+                        <div
+                            style="width: 100%; background: #222; border-radius: 10px; height: 12px; margin-bottom: 0.5rem;">
+                            <div id="savingsProgress"
+                                style="width: 0%; background: #00d4aa; height: 100%; border-radius: 10px; transition: width 0.5s ease;">
+                            </div>
                         </div>
                         <div id="savingsAmount" style="font-size: 0.8rem; text-align: right;">0 / 0.05 SOL</div>
                     </div>
                     <div id="mintSection" style="display: none; margin-top: 1rem;">
-                        <p style="font-size: 0.9rem; color: #888; margin-bottom: 1rem;">Mint your official Degen Identity NFT to unlock advanced analytics and higher trust caps.</p>
+                        <p style="font-size: 0.9rem; color: #888; margin-bottom: 1rem;">Mint your official Degen
+                            Identity NFT to unlock advanced analytics and higher trust caps.</p>
                         <button id="mintNowBtn" class="btn" onclick="startMinting()">Mint for 0.05 SOL</button>
                     </div>
                     <div id="paymentSection" style="display: none; margin-top: 1rem; text-align: center;">
                         <p>Scan with your Solana wallet:</p>
-                        <div id="solanaPayLink" style="word-break: break-all; font-family: monospace; font-size: 0.8rem; background: #000; padding: 0.5rem; margin: 0.5rem 0;"></div>
+                        <div id="solanaPayLink"
+                            style="word-break: break-all; font-family: monospace; font-size: 0.8rem; background: #000; padding: 0.5rem; margin: 0.5rem 0;">
+                        </div>
                         <div id="paymentStatus">Waiting for payment...</div>
                     </div>
                 </div>
-                
+
                 <div class="card">
-                    <h3> Preferences</h3>
+                    <h3>Preferences</h3>
                     <div style="display: flex; flex-direction: column; gap: 0.5rem;">
                         <label style="display: flex; align-items: center; gap: 0.5rem;">
                             <input type="checkbox" id="emailNotifications"> Email Notifications
@@ -202,9 +266,9 @@
                     </div>
                 </div>
             </div>
-            
+
             <div class="card">
-                <h3> Recent Activity</h3>
+                <h3>Recent Activity</h3>
                 <div id="activityFeed">
                     Loading activities...
                 </div>
@@ -218,11 +282,11 @@
         });
 
         let currentUser = null;
-        
+
         // Get token from URL or localStorage
         const urlParams = new URLSearchParams(window.location.search);
         const token = urlParams.get('token') || localStorage.getItem('tiltcheck-token');
-        
+
         if (!token) {
             window.location.href = '/auth/discord';
         } else {
@@ -238,7 +302,7 @@
                         const didToken = await magic.auth.loginWithEmailOTP({ email });
                         await fetch('/api/auth/magic/link', {
                             method: 'POST',
-                            headers: { 
+                            headers: {
                                 'Content-Type': 'application/json',
                                 'Authorization': `Bearer ${token}`
                             },
@@ -252,38 +316,38 @@
             }
             loadDashboard();
         }
-        
+
         async function loadDashboard() {
             try {
                 // Decode JWT to get user info
                 const payload = JSON.parse(atob(token.split('.')[1]));
                 currentUser = payload;
-                
+
                 document.getElementById('username').textContent = payload.username;
-                
+
                 // Load user data
                 await Promise.all([
                     loadUserProfile(),
                     loadTrustMetrics(),
                     loadActivity()
                 ]);
-                
+
                 document.getElementById('loading').style.display = 'none';
                 document.getElementById('dashboard').style.display = 'block';
-                
+
             } catch (error) {
                 showError('Failed to load dashboard: ' + error.message);
             }
         }
-        
+
         async function loadUserProfile() {
             const response = await apiRequest(`/api/user/${currentUser.discordId}`);
             const user = await response.json();
-            
+
             document.getElementById('totalTips').textContent = user.totalTips;
             document.getElementById('totalValue').textContent = user.totalTipsValue + ' SOL';
             document.getElementById('casinosSeen').textContent = user.casinosSeen;
-            
+
             if (user.degenIdentity?.primary_external_address) {
                 document.getElementById('externalWalletDisplay').textContent = user.degenIdentity.primary_external_address;
             }
@@ -296,7 +360,7 @@
                 plElem.textContent = (pl >= 0 ? '+' : '') + pl.toFixed(2) + ' SOL';
                 plElem.style.color = pl >= 0 ? '#00d4aa' : '#ff4444';
             }
-            
+
             // Set preferences
             document.getElementById('emailNotifications').checked = user.preferences.emailNotifications;
             document.getElementById('tiltWarnings').checked = user.preferences.tiltWarnings;
@@ -306,17 +370,17 @@
             const nftStatus = document.getElementById('nftStatus');
             const mintSection = document.getElementById('mintSection');
             const savingsSection = document.getElementById('savingsSection');
-            
+
             if (user.degenIdentity?.tos_nft_paid) {
-                nftStatus.textContent = ' Minted (Verified)';
+                nftStatus.textContent = 'Minted (Verified)';
                 nftStatus.style.color = '#00d4aa';
                 mintSection.style.display = 'none';
                 savingsSection.style.display = 'none';
             } else {
-                nftStatus.textContent = ' Not Minted';
+                nftStatus.textContent = 'Not Minted';
                 nftStatus.style.color = '#ff4444';
                 mintSection.style.display = 'block';
-                
+
                 // Progress
                 const savings = user.degenIdentity?.nft_savings_sol || 0;
                 if (savings > 0) {
@@ -324,7 +388,7 @@
                     const percent = Math.min(100, (savings / 0.05) * 100);
                     document.getElementById('savingsProgress').style.width = percent + '%';
                     document.getElementById('savingsAmount').textContent = `${savings.toFixed(4)} / 0.05 SOL`;
-                    
+
                     if (savings >= 0.05) {
                         document.getElementById('mintNowBtn').textContent = 'Claim Your NFT (Savings Ready!)';
                         document.getElementById('mintNowBtn').style.background = 'linear-gradient(90deg, #00d4aa, #00a8ff)';
@@ -345,17 +409,17 @@
                 const message = `Link TiltCheck Identity to: ${address}`;
                 const encodedMessage = new TextEncoder().encode(message);
                 const signedMessage = await window.solana.signMessage(encodedMessage, "utf8");
-                
+
                 const response = await fetch('/api/auth/wallet/link', {
                     method: 'POST',
-                    headers: { 
+                    headers: {
                         'Content-Type': 'application/json',
                         'Authorization': `Bearer ${token}`
                     },
-                    body: JSON.stringify({ 
-                        address, 
-                        signature: btoa(String.fromCharCode(...signedMessage.signature)), 
-                        message 
+                    body: JSON.stringify({
+                        address,
+                        signature: btoa(String.fromCharCode(...signedMessage.signature)),
+                        message
                     })
                 });
 
@@ -375,11 +439,11 @@
             try {
                 const response = await apiRequest('/api/nft/checkout', { method: 'POST' });
                 const data = await response.json();
-                
+
                 document.getElementById('mintSection').style.display = 'none';
                 document.getElementById('paymentSection').style.display = 'block';
                 document.getElementById('solanaPayLink').textContent = data.url;
-                
+
                 const interval = setInterval(async () => {
                     const verifyRes = await apiRequest('/api/nft/verify', {
                         method: 'POST',
@@ -388,7 +452,7 @@
                     const verifyData = await verifyRes.json();
                     if (verifyData.success) {
                         clearInterval(interval);
-                        document.getElementById('paymentStatus').textContent = ' Payment Verified!';
+                        document.getElementById('paymentStatus').textContent = 'Payment Verified!';
                         setTimeout(() => location.reload(), 2000);
                     }
                 }, 5000);
@@ -396,63 +460,63 @@
                 alert('Checkout failed: ' + err.message);
             }
         }
-        
+
         async function loadTrustMetrics() {
             const response = await apiRequest(`/api/user/${currentUser.discordId}/trust`);
             const trust = await response.json();
-            
+
             document.getElementById('trustScore').textContent = trust.trustScore.toFixed(1);
             document.getElementById('tiltLevel').textContent = trust.tiltLevel;
             document.getElementById('consistency').textContent = trust.factors.consistency + '%';
             document.getElementById('community').textContent = trust.factors.community + '%';
         }
-        
+
         async function loadActivity() {
             const response = await apiRequest(`/api/user/${currentUser.discordId}/activity?limit=5`);
             const data = await response.json();
-            
+
             const activityHtml = data.activities.map(activity => `
                 <div class="activity-item">
                     <div>${formatActivity(activity)}</div>
                     <div class="activity-time">${new Date(activity.timestamp).toLocaleString()}</div>
                 </div>
             `).join('');
-            
+
             document.getElementById('activityFeed').innerHTML = activityHtml || '<p>No recent activity</p>';
         }
-        
+
         function formatActivity(activity) {
             switch (activity.type) {
                 case 'tip':
-                    return ` Tipped ${activity.amount} SOL to ${activity.to}`;
+                    return `Tipped ${activity.amount} SOL to ${activity.to}`;
                 case 'scan':
-                    return ` Scanned ${activity.url} - ${activity.result}`;
+                    return `Scanned ${activity.url} - ${activity.result}`;
                 case 'play':
-                    return ` Played at ${activity.casino}`;
+                    return `Played at ${activity.casino}`;
                 default:
-                    return ` ${activity.type}`;
+                    return `${activity.type}`;
             }
         }
-        
+
         async function savePreferences() {
             const preferences = {
                 emailNotifications: document.getElementById('emailNotifications').checked,
                 tiltWarnings: document.getElementById('tiltWarnings').checked,
                 trustUpdates: document.getElementById('trustUpdates').checked
             };
-            
+
             try {
                 await apiRequest(`/api/user/${currentUser.discordId}/preferences`, {
                     method: 'PUT',
                     body: JSON.stringify({ preferences })
                 });
-                
+
                 alert('Preferences saved successfully!');
             } catch (error) {
                 alert('Failed to save preferences: ' + error.message);
             }
         }
-        
+
         async function apiRequest(url, options = {}) {
             const response = await fetch(url, {
                 headers: {
@@ -462,23 +526,24 @@
                 },
                 ...options
             });
-            
+
             if (!response.ok) {
                 throw new Error(`API request failed: ${response.statusText}`);
             }
-            
+
             return response;
         }
-        
+
         function showError(message) {
             document.getElementById('loading').style.display = 'none';
             document.getElementById('error').style.display = 'block';
             document.getElementById('error').textContent = message;
         }
-        
+
         if (urlParams.get('token')) {
             window.history.replaceState({}, document.title, window.location.pathname);
         }
     </script>
 </body>
+
 </html>

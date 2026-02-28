@@ -8,6 +8,7 @@
 -->
 
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -21,7 +22,8 @@
       padding: 20px;
     }
 
-    .upload-card, .insights-card {
+    .upload-card,
+    .insights-card {
       background: var(--bg-secondary);
       border: 1px solid var(--border-subtle);
       border-radius: 12px;
@@ -221,9 +223,10 @@
     }
   </style>
 </head>
+
 <body>
   <div class="admin-container">
-    <h1> Game Archive AI Analysis</h1>
+    <h1>Game Archive AI Analysis</h1>
     <p style="color: var(--text-secondary); margin-bottom: 32px;">
       Upload your personal gambling data to get AI-powered pattern insights, win/loss analysis, and tilt detection.
     </p>
@@ -235,7 +238,8 @@
       </div>
 
       <div id="upload-zone" class="upload-zone">
-        <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin: 0 auto 16px; color: var(--text-muted);">
+        <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+          style="margin: 0 auto 16px; color: var(--text-muted);">
           <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
           <polyline points="17 8 12 3 7 8"></polyline>
           <line x1="12" y1="3" x2="12" y2="15"></line>
@@ -343,13 +347,13 @@
         const result = await response.json();
 
         if (response.ok) {
-          uploadStatus.innerHTML = `<div class="success"> ${result.sessions_uploaded} sessions uploaded successfully!</div>`;
+          uploadStatus.innerHTML = `<div class="success">${result.sessions_uploaded} sessions uploaded successfully!</div>`;
           loadInsights();
         } else {
-          uploadStatus.innerHTML = `<div class="error"> ${result.error}</div>`;
+          uploadStatus.innerHTML = `<div class="error">${result.error}</div>`;
         }
       } catch (err) {
-        uploadStatus.innerHTML = `<div class="error"> Upload failed: ${err.message}</div>`;
+        uploadStatus.innerHTML = `<div class="error">Upload failed: ${err.message}</div>`;
       }
     }
 
@@ -379,13 +383,13 @@
         const result = await response.json();
 
         if (response.ok) {
-          uploadStatus.innerHTML = `<div class="success"> ${result.sessions_imported} sessions imported from Stake!</div>`;
+          uploadStatus.innerHTML = `<div class="success">${result.sessions_imported} sessions imported from Stake!</div>`;
           loadInsights();
         } else {
-          uploadStatus.innerHTML = `<div class="error"> ${result.error}</div>`;
+          uploadStatus.innerHTML = `<div class="error">${result.error}</div>`;
         }
       } catch (err) {
-        uploadStatus.innerHTML = `<div class="error"> Import failed: ${err.message}</div>`;
+        uploadStatus.innerHTML = `<div class="error">Import failed: ${err.message}</div>`;
       }
     });
 
@@ -408,7 +412,7 @@
           insightsContainer.innerHTML = '<p class="loading">No insights available yet. Upload data to begin analysis.</p>';
         }
       } catch (err) {
-        insightsContainer.innerHTML = `<div class="error"> Failed to load insights: ${err.message}</div>`;
+        insightsContainer.innerHTML = `<div class="error">Failed to load insights: ${err.message}</div>`;
       }
     }
 
@@ -446,7 +450,7 @@
               <span class="insight-confidence">${confidencePercent}% confidence • ${insight.data_points} sessions</span>
             </div>
             <div class="insight-description">${insight.description}</div>
-            ${insight.recommendation ? `<div class="insight-recommendation"> ${insight.recommendation}</div>` : ''}
+            ${insight.recommendation ? `<div class="insight-recommendation">${insight.recommendation}</div>` : ''}
           </div>
         `;
       }).join('');
@@ -461,4 +465,5 @@
     loadInsights();
   </script>
 </body>
+
 </html>

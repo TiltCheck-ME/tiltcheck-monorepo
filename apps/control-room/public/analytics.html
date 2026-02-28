@@ -8,6 +8,7 @@
 -->
 
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -27,7 +28,11 @@
       --accent-red: #ef4444;
     }
 
-    * { margin: 0; padding: 0; box-sizing: border-box; }
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
 
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
@@ -84,7 +89,7 @@
       gap: 20px;
       padding: 0 30px;
       border-bottom: 1px solid var(--border-subtle);
-      background: rgba(0,0,0,0.3);
+      background: rgba(0, 0, 0, 0.3);
     }
 
     .nav-tabs a {
@@ -137,8 +142,13 @@
       margin-top: 5px;
     }
 
-    .stat-card .change.positive { color: var(--accent-green); }
-    .stat-card .change.negative { color: var(--accent-red); }
+    .stat-card .change.positive {
+      color: var(--accent-green);
+    }
+
+    .stat-card .change.negative {
+      color: var(--accent-red);
+    }
 
     /* Charts Grid */
     .charts-grid {
@@ -149,7 +159,9 @@
     }
 
     @media (max-width: 1024px) {
-      .charts-grid { grid-template-columns: 1fr; }
+      .charts-grid {
+        grid-template-columns: 1fr;
+      }
     }
 
     .chart-card {
@@ -169,7 +181,7 @@
 
     .chart-area {
       height: 250px;
-      background: rgba(0,0,0,0.2);
+      background: rgba(0, 0, 0, 0.2);
       border-radius: 8px;
       display: flex;
       align-items: center;
@@ -238,9 +250,17 @@
       border-radius: 50%;
     }
 
-    .legend-dot.cold { background: #3b82f6; }
-    .legend-dot.warm { background: #f59e0b; }
-    .legend-dot.hot { background: #ef4444; }
+    .legend-dot.cold {
+      background: #3b82f6;
+    }
+
+    .legend-dot.warm {
+      background: #f59e0b;
+    }
+
+    .legend-dot.hot {
+      background: #ef4444;
+    }
 
     .heatmap-preview {
       position: relative;
@@ -307,7 +327,9 @@
     }
 
     @media (max-width: 768px) {
-      .feedback-grid { grid-template-columns: 1fr; }
+      .feedback-grid {
+        grid-template-columns: 1fr;
+      }
     }
 
     .feedback-card {
@@ -361,8 +383,15 @@
     }
 
     @keyframes pulse {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.5; }
+
+      0%,
+      100% {
+        opacity: 1;
+      }
+
+      50% {
+        opacity: 0.5;
+      }
     }
 
     /* Beta Users Section */
@@ -425,9 +454,10 @@
     }
   </style>
 </head>
+
 <body>
   <header>
-    <h1> Analytics Dashboard</h1>
+    <h1>Analytics Dashboard</h1>
     <div class="header-actions">
       <div class="realtime-indicator">
         <span class="realtime-dot"></span>
@@ -504,11 +534,26 @@
               </tr>
             </thead>
             <tbody id="top-pages">
-              <tr><td>/</td><td>1,234</td></tr>
-              <tr><td>/beta</td><td>567</td></tr>
-              <tr><td>/tools</td><td>345</td></tr>
-              <tr><td>/casinos</td><td>234</td></tr>
-              <tr><td>/trust</td><td>189</td></tr>
+              <tr>
+                <td>/</td>
+                <td>1,234</td>
+              </tr>
+              <tr>
+                <td>/beta</td>
+                <td>567</td>
+              </tr>
+              <tr>
+                <td>/tools</td>
+                <td>345</td>
+              </tr>
+              <tr>
+                <td>/casinos</td>
+                <td>234</td>
+              </tr>
+              <tr>
+                <td>/trust</td>
+                <td>189</td>
+              </tr>
             </tbody>
           </table>
         </div>
@@ -548,7 +593,8 @@
           <div class="heatmap-overlay" id="heatmap-overlay">
             <!-- Heat points will be dynamically generated -->
           </div>
-          <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; color: var(--text-secondary);">
+          <div
+            style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; color: var(--text-secondary);">
             <p style="font-size: 1.2rem; margin-bottom: 10px;"> Heatmap Preview</p>
             <p style="font-size: 0.9rem;">Click data visualization for selected page</p>
           </div>
@@ -608,7 +654,11 @@
         </thead>
         <tbody id="beta-users-list">
           <tr>
-            <td><div style="display: flex; align-items: center; gap: 10px;"><div class="user-avatar">JD</div> johndoe</div></td>
+            <td>
+              <div style="display: flex; align-items: center; gap: 10px;">
+                <div class="user-avatar">JD</div> johndoe
+              </div>
+            </td>
             <td>john@example.com</td>
             <td>Dec 1</td>
             <td>45</td>
@@ -616,7 +666,11 @@
             <td><span class="status-badge active">Active</span></td>
           </tr>
           <tr>
-            <td><div style="display: flex; align-items: center; gap: 10px;"><div class="user-avatar">AK</div> alice_k</div></td>
+            <td>
+              <div style="display: flex; align-items: center; gap: 10px;">
+                <div class="user-avatar">AK</div> alice_k
+              </div>
+            </td>
             <td>alice@example.com</td>
             <td>Nov 28</td>
             <td>32</td>
@@ -624,7 +678,11 @@
             <td><span class="status-badge active">Active</span></td>
           </tr>
           <tr>
-            <td><div style="display: flex; align-items: center; gap: 10px;"><div class="user-avatar">BT</div> bob_trader</div></td>
+            <td>
+              <div style="display: flex; align-items: center; gap: 10px;">
+                <div class="user-avatar">BT</div> bob_trader
+              </div>
+            </td>
             <td>bob@example.com</td>
             <td>Nov 15</td>
             <td>12</td>
@@ -643,7 +701,7 @@
         e.preventDefault();
         document.querySelectorAll('.nav-tabs a').forEach(t => t.classList.remove('active'));
         tab.classList.add('active');
-        
+
         // Could scroll to section or show/hide sections
       });
     });
@@ -662,7 +720,7 @@
     function generateHeatmapPoints() {
       const overlay = document.getElementById('heatmap-overlay');
       overlay.innerHTML = '';
-      
+
       // Sample click data - would come from API
       const clicks = [
         { x: 50, y: 15, count: 120, intensity: 'hot' },
@@ -681,18 +739,18 @@
         point.className = 'heat-point';
         point.style.left = click.x + '%';
         point.style.top = click.y + '%';
-        
+
         const size = Math.min(80, 20 + click.count / 2);
         point.style.width = size + 'px';
         point.style.height = size + 'px';
-        
+
         const colors = {
           hot: 'radial-gradient(circle, rgba(239, 68, 68, 0.8) 0%, rgba(239, 68, 68, 0) 70%)',
           warm: 'radial-gradient(circle, rgba(245, 158, 11, 0.7) 0%, rgba(245, 158, 11, 0) 70%)',
           cold: 'radial-gradient(circle, rgba(59, 130, 246, 0.6) 0%, rgba(59, 130, 246, 0) 70%)'
         };
         point.style.background = colors[click.intensity];
-        
+
         overlay.appendChild(point);
       });
     }
@@ -732,4 +790,5 @@
     }, 5000);
   </script>
 </body>
+
 </html>
