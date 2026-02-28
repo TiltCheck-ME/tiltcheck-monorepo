@@ -202,13 +202,35 @@
         </a>
         <!-- Desktop Nav -->
         <nav class="hidden md:flex items-center gap-6">
-          <a href="/#tools" class="text-gray-300 hover:text-[#00ffaa] transition-colors">Tools</a>
+          <!-- Tools Dropdown -->
+          <div class="relative group">
+            <button class="text-gray-300 hover:text-[#00ffaa] transition-colors flex items-center gap-1">
+              Tools
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+              </svg>
+            </button>
+            <div class="absolute top-full left-0 mt-2 w-56 bg-[#161b22] border border-[#30363d] rounded-lg shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50">
+              <a href="/tools/justthetip.html" class="block px-4 py-3 text-gray-300 hover:text-[#00ffaa] hover:bg-[#0d1117]">JustTheTip</a>
+              <a href="/tools/suslink.html" class="block px-4 py-3 text-gray-300 hover:text-[#00ffaa] hover:bg-[#0d1117]">SusLink</a>
+              <a href="/tools/collectclock.html" class="block px-4 py-3 text-gray-300 hover:text-[#00ffaa] hover:bg-[#0d1117]">CollectClock</a>
+              <a href="/tools/freespinscan.html" class="block px-4 py-3 text-gray-300 hover:text-[#00ffaa] hover:bg-[#0d1117]">FreeSpinScan</a>
+              <a href="/tools/tiltcheck-core.html" class="block px-4 py-3 text-gray-300 hover:text-[#00ffaa] hover:bg-[#0d1117]">TiltCheck Core</a>
+              <a href="/tools/qualifyfirst.html" class="block px-4 py-3 text-gray-400 hover:text-[#00ffaa] hover:bg-[#0d1117]">QualifyFirst (Soon)</a>
+              <a href="/tools/daad.html" class="block px-4 py-3 text-gray-400 hover:text-[#00ffaa] hover:bg-[#0d1117]">DA&D (Soon)</a>
+            </div>
+          </div>
           <a href="/casinos.html" class="text-gray-300 hover:text-[#00ffaa] transition-colors">Casinos</a>
           <a href="/trust-scores.html" class="text-gray-300 hover:text-[#00ffaa] transition-colors">Trust Scores</a>
           <a href="/dashboard" class="text-gray-300 hover:text-[#00ffaa] transition-colors">Dashboard</a>
         </nav>
         <!-- CTA + Mobile Menu Button -->
         <div class="flex items-center gap-3">
+          <button id="theme-toggle" class="hidden sm:block text-gray-300 hover:text-[#00ffaa] p-2" aria-label="Toggle theme">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path>
+            </svg>
+          </button>
           <a href="/dashboard" class="hidden sm:block bg-[#00ffaa] hover:bg-[#00e699] text-black font-semibold px-4 py-2 rounded-lg transition-colors text-sm">
             Launch App
           </a>
@@ -223,12 +245,22 @@
     </div>
     <!-- Mobile Menu -->
     <div id="mobile-menu" class="hidden md:hidden bg-[#0d1117] border-t border-[#30363d]">
-      <div class="px-4 py-3 space-y-2">
-        <a href="/#tools" class="block py-2 text-gray-300 hover:text-[#00ffaa]">Tools</a>
+      <div class="px-4 py-3 space-y-1">
+        <div class="py-2 border-b border-[#30363d]">
+          <span class="text-xs text-gray-500 uppercase tracking-wide">Tools</span>
+        </div>
+        <a href="/tools/justthetip.html" class="block py-2 text-gray-300 hover:text-[#00ffaa]">JustTheTip</a>
+        <a href="/tools/suslink.html" class="block py-2 text-gray-300 hover:text-[#00ffaa]">SusLink</a>
+        <a href="/tools/collectclock.html" class="block py-2 text-gray-300 hover:text-[#00ffaa]">CollectClock</a>
+        <a href="/tools/freespinscan.html" class="block py-2 text-gray-300 hover:text-[#00ffaa]">FreeSpinScan</a>
+        <a href="/tools/tiltcheck-core.html" class="block py-2 text-gray-300 hover:text-[#00ffaa]">TiltCheck Core</a>
+        <div class="py-2 border-b border-[#30363d] mt-2">
+          <span class="text-xs text-gray-500 uppercase tracking-wide">Platform</span>
+        </div>
         <a href="/casinos.html" class="block py-2 text-gray-300 hover:text-[#00ffaa]">Casinos</a>
         <a href="/trust-scores.html" class="block py-2 text-gray-300 hover:text-[#00ffaa]">Trust Scores</a>
         <a href="/dashboard" class="block py-2 text-gray-300 hover:text-[#00ffaa]">Dashboard</a>
-        <a href="/dashboard" class="block w-full text-center bg-[#00ffaa] text-black font-semibold px-4 py-2 rounded-lg mt-4">
+        <a href="/dashboard" class="block w-full text-center bg-[#00ffaa] text-black font-semibold px-4 py-3 rounded-lg mt-4">
           Launch App
         </a>
       </div>
@@ -238,74 +270,19 @@
   <!-- Main Content -->
   <main id="main-content">
     <!-- Hero Section -->
-    <section class="hero" aria-labelledby="hero-title">
-      <div class="container">
-        <!-- CSS handles hero background -->
-
-        <h2 id="hero-title">The Degen Transparency Layer</h2>
-        <p class="hero-description">
-          Tools, trust engines, predictions, and safety systems that make degen communities
-          smarter, safer, and actually fun again.
+    <section class="py-20 px-4 text-center bg-gradient-to-b from-[#0d1117] to-[#0a0a0a]">
+      <div class="max-w-4xl mx-auto">
+        <h1 class="text-4xl md:text-6xl font-bold text-white mb-6">The Degen Transparency Layer</h1>
+        <p class="text-xl text-gray-400 mb-10 max-w-2xl mx-auto">
+          Tools, trust engines, predictions, and safety systems that make degen communities smarter, safer, and actually fun again.
         </p>
-
-        <div class="cta-group">
-          <a href="/dashboard" class="btn btn-primary">
+        <div class="flex flex-col sm:flex-row gap-4 justify-center">
+          <a href="/dashboard" class="bg-[#00ffaa] hover:bg-[#00e699] text-black font-bold px-8 py-4 rounded-xl text-lg transition-colors">
             Launch TiltCheck
           </a>
-          <a href="https://discord.gg/s6NNfPHxMS" class="btn btn-secondary" target="_blank" rel="noopener noreferrer">
-            Join the Discord
+          <a href="https://discord.gg/s6NNfPHxMS" class="border border-[#00ffaa] text-[#00ffaa] hover:bg-[#00ffaa]/10 font-semibold px-8 py-4 rounded-xl text-lg transition-colors" target="_blank" rel="noopener">
+            Join Discord
           </a>
-          <button class="btn btn-secondary btn-disabled" aria-disabled="true" title="Coming soon">
-            View Trust Scores (soon)
-          </button>
-        </div>
-
-        <!-- Hero Stats -->
-        <div class="hero-stats" role="region" aria-label="Platform features">
-          <div class="stat">
-            <span class="stat-number">&mdash;</span>
-            <span class="stat-label">Scam Protection</span>
-          </div>
-          <div class="stat">
-            <span class="stat-number">&mdash;</span>
-            <span class="stat-label">Trust Scores</span>
-          </div>
-          <div class="stat">
-            <span class="stat-number">&mdash;</span>
-            <span class="stat-label">Non-Custodial</span>
-          </div>
-        </div>
-
-        <!-- KPI Metrics Strip -->
-        <div class="kpi-strip" role="region" aria-label="Real-time metrics">
-          <div class="kpi" aria-label="Casino fairness deltas tracked">
-            <span class="kpi-label">Fairness Deltas</span>
-            <strong id="kpiFairness" class="kpi-value">--</strong>
-          </div>
-          <div class="kpi" aria-label="Scam links blocked by SusLink">
-            <span class="kpi-label">Links Blocked</span>
-            <strong id="kpiLinksBlocked" class="kpi-value">--</strong>
-          </div>
-          <div class="kpi" aria-label="Bonuses catalogued by CollectClock">
-            <span class="kpi-label">Bonuses Tracked</span>
-            <strong id="kpiBonuses" class="kpi-value">--</strong>
-          </div>
-          <div class="kpi" aria-label="Promos classified by FreeSpinScan">
-            <span class="kpi-label">Promos Classified</span>
-            <strong id="kpiPromos" class="kpi-value">--</strong>
-          </div>
-          <div class="kpi" aria-label="Tilt events predicted">
-            <span class="kpi-label">Tilt Predictions</span>
-            <strong id="kpiTilt" class="kpi-value">--</strong>
-          </div>
-          <div class="kpi" aria-label="Wallet locks triggered">
-            <span class="kpi-label">Wallet Locks</span>
-            <strong id="kpiLocks" class="kpi-value">--</strong>
-          </div>
-          <div class="kpi" aria-label="Trust score lookups">
-            <span class="kpi-label">Trust Lookups</span>
-            <strong id="kpiLookups" class="kpi-value">--</strong>
-          </div>
         </div>
       </div>
     </section>
@@ -336,59 +313,65 @@
             <span class="inline-block bg-[#00ffaa]/20 text-[#00ffaa] text-xs font-medium px-3 py-1 rounded-full">Live</span>
           </a>
 
-          <a href="/tools/collectclock.html" class="group bg-[#161b22] border border-[#30363d] rounded-xl p-6 hover:border-[#00ffaa] transition-all duration-300 hover:-translate-y-1">
+          <a href="/tools/collectclock.html" class="group bg-[#161b22] border-2 border-dashed border-purple-500/50 rounded-xl p-6 hover:border-purple-400 transition-all duration-300 hover:-translate-y-1">
             <div class="mb-4">
               <img class="w-14 h-14" src="/assets/icons/collect-clock.svg" alt="CollectClock icon">
             </div>
-            <h3 class="text-xl font-semibold text-white group-hover:text-[#00ffaa] transition-colors">CollectClock</h3>
+            <h3 class="text-xl font-semibold text-white group-hover:text-purple-400 transition-colors">CollectClock</h3>
             <p class="text-gray-400 text-sm mt-2 mb-4">Daily bonus tracker with nerf detection and bonus cycle prediction.</p>
             <span class="inline-block bg-purple-500/20 text-purple-400 text-xs font-medium px-3 py-1 rounded-full">Beta</span>
           </a>
 
-          <a href="/tools/freespinscan.html" class="group bg-[#161b22] border border-[#30363d] rounded-xl p-6 hover:border-[#00ffaa] transition-all duration-300 hover:-translate-y-1">
+          <a href="/tools/freespinscan.html" class="group bg-[#161b22] border-2 border-dashed border-purple-500/50 rounded-xl p-6 hover:border-purple-400 transition-all duration-300 hover:-translate-y-1">
             <div class="mb-4">
               <img class="w-14 h-14" src="/assets/icons/freespin-scan.svg" alt="FreeSpinScan icon">
             </div>
-            <h3 class="text-xl font-semibold text-white group-hover:text-[#00ffaa] transition-colors">FreeSpinScan</h3>
+            <h3 class="text-xl font-semibold text-white group-hover:text-purple-400 transition-colors">FreeSpinScan</h3>
             <p class="text-gray-400 text-sm mt-2 mb-4">Promo submission system with auto-classification and prediction engine.</p>
             <span class="inline-block bg-purple-500/20 text-purple-400 text-xs font-medium px-3 py-1 rounded-full">Beta</span>
           </a>
 
-          <a href="/tools/tiltcheck-core.html" class="group bg-[#161b22] border border-[#30363d] rounded-xl p-6 hover:border-[#00ffaa] transition-all duration-300 hover:-translate-y-1">
+          <a href="/tools/tiltcheck-core.html" class="group bg-[#161b22] border-2 border-dashed border-purple-500/50 rounded-xl p-6 hover:border-purple-400 transition-all duration-300 hover:-translate-y-1">
             <div class="mb-4">
               <img class="w-14 h-14" src="/assets/icons/tilt-engine.svg" alt="TiltCheck Core icon">
             </div>
-            <h3 class="text-xl font-semibold text-white group-hover:text-[#00ffaa] transition-colors">TiltCheck Core</h3>
+            <h3 class="text-xl font-semibold text-white group-hover:text-purple-400 transition-colors">TiltCheck Core</h3>
             <p class="text-gray-400 text-sm mt-2 mb-4">Behavior analysis, cooldown nudges, and accountability tools.</p>
             <span class="inline-block bg-purple-500/20 text-purple-400 text-xs font-medium px-3 py-1 rounded-full">Beta</span>
           </a>
 
-          <a href="/tools/poker.html" class="group bg-[#161b22] border border-[#30363d] rounded-xl p-6 hover:border-[#00ffaa] transition-all duration-300 hover:-translate-y-1 opacity-60">
-            <div class="mb-4">
-              <img class="w-14 h-14" src="/assets/icons/icons-sprite.svg" alt="Poker icon">
+          <div class="group bg-[#161b22] border border-[#30363d] rounded-xl p-6 opacity-50 cursor-not-allowed relative overflow-hidden">
+            <div class="absolute inset-0 bg-[#0d1117]/50 flex items-center justify-center">
+              <span class="bg-gray-800 text-gray-300 px-3 py-1 rounded-full text-sm font-medium">Coming Soon</span>
             </div>
-            <h3 class="text-xl font-semibold text-white group-hover:text-[#00ffaa] transition-colors">Poker</h3>
+            <div class="mb-4">
+              <img class="w-14 h-14 grayscale" src="/assets/icons/icons-sprite.svg" alt="Poker icon">
+            </div>
+            <h3 class="text-xl font-semibold text-white">Poker</h3>
             <p class="text-gray-400 text-sm mt-2 mb-4">Texas Hold'em poker directly in Discord. Play with friends.</p>
-            <span class="inline-block bg-gray-500/20 text-gray-400 text-xs font-medium px-3 py-1 rounded-full">Coming Soon</span>
-          </a>
+          </div>
 
-          <a href="/tools/qualifyfirst.html" class="group bg-[#161b22] border border-[#30363d] rounded-xl p-6 hover:border-[#00ffaa] transition-all duration-300 hover:-translate-y-1 opacity-60">
-            <div class="mb-4">
-              <img class="w-14 h-14" src="/assets/icons/icons-sprite.svg" alt="QualifyFirst icon">
+          <div class="group bg-[#161b22] border border-[#30363d] rounded-xl p-6 opacity-50 cursor-not-allowed relative overflow-hidden">
+            <div class="absolute inset-0 bg-[#0d1117]/50 flex items-center justify-center">
+              <span class="bg-gray-800 text-gray-300 px-3 py-1 rounded-full text-sm font-medium">Coming Soon</span>
             </div>
-            <h3 class="text-xl font-semibold text-white group-hover:text-[#00ffaa] transition-colors">QualifyFirst</h3>
+            <div class="mb-4">
+              <img class="w-14 h-14 grayscale" src="/assets/icons/icons-sprite.svg" alt="QualifyFirst icon">
+            </div>
+            <h3 class="text-xl font-semibold text-white">QualifyFirst</h3>
             <p class="text-gray-400 text-sm mt-2 mb-4">AI survey router that pre-screens users to prevent screen-outs.</p>
-            <span class="inline-block bg-gray-500/20 text-gray-400 text-xs font-medium px-3 py-1 rounded-full">Coming Soon</span>
-          </a>
+          </div>
 
-          <a href="/tools/daad.html" class="group bg-[#161b22] border border-[#30363d] rounded-xl p-6 hover:border-[#00ffaa] transition-all duration-300 hover:-translate-y-1 opacity-60">
-            <div class="mb-4">
-              <img class="w-14 h-14" src="/assets/icons/dand.svg" alt="DA&D icon">
+          <div class="group bg-[#161b22] border border-[#30363d] rounded-xl p-6 opacity-50 cursor-not-allowed relative overflow-hidden">
+            <div class="absolute inset-0 bg-[#0d1117]/50 flex items-center justify-center">
+              <span class="bg-gray-800 text-gray-300 px-3 py-1 rounded-full text-sm font-medium">Coming Soon</span>
             </div>
-            <h3 class="text-xl font-semibold text-white group-hover:text-[#00ffaa] transition-colors">DA&D</h3>
+            <div class="mb-4">
+              <img class="w-14 h-14 grayscale" src="/assets/icons/dand.svg" alt="DA&D icon">
+            </div>
+            <h3 class="text-xl font-semibold text-white">DA&D</h3>
             <p class="text-gray-400 text-sm mt-2 mb-4">AI-powered Cards Against Humanity-style game for degen communities.</p>
-            <span class="inline-block bg-gray-500/20 text-gray-400 text-xs font-medium px-3 py-1 rounded-full">Coming Soon</span>
-          </a>
+          </div>
 
         </div>
       </div>
@@ -598,23 +581,19 @@
 
   <!-- Scripts -->
   <script>
-    // Theme switcher (default / degen edition)
+    // Theme switcher - uses header button
     (function () {
-      const toggle = document.createElement('button');
-      toggle.textContent = 'Theme';
-      toggle.className = 'btn btn-secondary';
-      toggle.type = 'button';
-      toggle.style.position = 'fixed';
-      toggle.style.bottom = '1rem';
-      toggle.style.right = '1rem';
-      toggle.setAttribute('aria-label', 'Toggle theme variant');
+      const toggle = document.getElementById('theme-toggle');
+      if (!toggle) return;
       let mode = 'default';
       toggle.addEventListener('click', () => {
         mode = mode === 'default' ? 'degen' : 'default';
         document.documentElement.setAttribute('data-theme', mode);
         try { localStorage.setItem('tc-theme', mode); } catch (e) { }
       });
-      requestIdleCallback(() => document.body.appendChild(toggle));
+      // Restore saved theme
+      const saved = localStorage.getItem('tc-theme');
+      if (saved) document.documentElement.setAttribute('data-theme', saved);
     })();
 
     // KPI strip — values will be populated from real API data
