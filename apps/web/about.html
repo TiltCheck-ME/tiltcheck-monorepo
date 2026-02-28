@@ -5,11 +5,38 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>About TiltCheck - The Degen Transparency Layer</title>
   <meta name="description" content="TiltCheck is a modular, AI-assisted ecosystem built to bring transparency, tools, and automation to degen communities.">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            'degen-black': '#0d1117',
+            'degen-gray': '#161b22',
+            'degen-green': '#00ffaa',
+          }
+        }
+      }
+    }
+  </script>
   <link rel="stylesheet" href="/styles/base.css">
   <link rel="stylesheet" href="/styles/tool-page.css">
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            'degen-black': '#0d1117',
+            'degen-gray': '#161b22',
+            'degen-green': '#00ffaa',
+          }
+        }
+      }
+    }
+  </script>
   <style>
     .about-hero {
       background: var(--gradient-hero);
@@ -109,17 +136,52 @@
 </head>
 <body>
   <a href="#about-main" class="skip-link">Skip to main content</a>
-  <div id="shared-nav"></div>
 
-  <main id="about-main">
-  <header class="about-hero">
-    <div class="container">
-      <h1>About TiltCheck</h1>
-      <p>The Degen Transparency Layer</p>
+  <!-- Header -->
+  <header class="sticky top-0 z-50 bg-[#0d1117]/95 backdrop-blur-md border-b border-[#30363d]">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between h-16">
+        <a href="/" class="flex items-center gap-3">
+          <img class="w-10 h-10" src="/assets/logo/logocurrent.svg" alt="TiltCheck logo">
+          <span class="text-lg font-bold text-white">TiltCheck</span>
+        </a>
+        <nav class="hidden md:flex items-center gap-6">
+          <div class="relative group">
+            <button class="text-gray-300 hover:text-[#00ffaa] flex items-center gap-1">
+              Tools <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+            </button>
+            <div class="absolute top-full left-0 mt-2 w-56 bg-[#161b22] border border-[#30363d] rounded-lg shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50">
+              <a href="/tools/justthetip.html" class="block px-4 py-3 text-gray-300 hover:text-[#00ffaa]">JustTheTip</a>
+              <a href="/tools/suslink.html" class="block px-4 py-3 text-gray-300 hover:text-[#00ffaa]">SusLink</a>
+              <a href="/tools/collectclock.html" class="block px-4 py-3 text-gray-300 hover:text-[#00ffaa]">CollectClock</a>
+              <a href="/tools/freespinscan.html" class="block px-4 py-3 text-gray-300 hover:text-[#00ffaa]">FreeSpinScan</a>
+              <a href="/tools/tiltcheck-core.html" class="block px-4 py-3 text-gray-300 hover:text-[#00ffaa]">TiltCheck Core</a>
+            </div>
+          </div>
+          <a href="/casinos.html" class="text-gray-300 hover:text-[#00ffaa]">Casinos</a>
+          <a href="/trust-scores.html" class="text-gray-300 hover:text-[#00ffaa]">Trust Scores</a>
+          <a href="/dashboard" class="text-gray-300 hover:text-[#00ffaa]">Dashboard</a>
+        </nav>
+        <div class="flex items-center gap-3">
+          <a href="/dashboard" class="hidden sm:block bg-[#00ffaa] hover:bg-[#00e699] text-black font-semibold px-4 py-2 rounded-lg text-sm">Launch App</a>
+          <button id="mobile-menu-btn" class="md:hidden text-gray-300 p-2" aria-label="Toggle menu">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+    <div id="mobile-menu" class="hidden md:hidden bg-[#0d1117] border-t border-[#30363d]">
+      <div class="px-4 py-3 space-y-1">
+        <a href="/tools/justthetip.html" class="block py-2 text-gray-300">JustTheTip</a>
+        <a href="/tools/suslink.html" class="block py-2 text-gray-300">SusLink</a>
+        <a href="/tools/collectclock.html" class="block py-2 text-gray-300">CollectClock</a>
+        <a href="/casinos.html" class="block py-2 text-gray-300">Casinos</a>
+        <a href="/dashboard" class="block py-2 text-gray-300">Dashboard</a>
+      </div>
     </div>
   </header>
 
-  <section class="tool-overview">
+  <main id="about-main" class="bg-[#0d1117] min-h-screen">
     <div class="container">
       <h2>What Is TiltCheck?</h2>
       <p style="font-size: 1.15rem; color: #ccc; max-width: 900px; margin: 0 auto 30px; line-height: 1.8;">
