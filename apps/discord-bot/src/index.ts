@@ -169,7 +169,7 @@ async function main() {
   const healthServer = http.createServer((req, res) => {
     if (req.url === '/health') {
       const body = JSON.stringify({
-        service: 'justthetip-bot',
+        service: 'discord-bot',
         ready,
         uptime: Math.round((Date.now() - startTime) / 1000),
         commands: commandHandler.getAllCommands().length
