@@ -17,12 +17,18 @@ import { initializeAlertService } from './services/alert-service.js';
 import { TrustAlertsHandler } from './handlers/trust-alerts-handler.js';
 import { ensureTelemetryIndex } from './services/elastic-telemetry.js';
 import { ensureTiltAgentContextIndex } from './services/tilt-agent-context-store.js';
-import { startTiltAgentLoop } from './services/tilt-agent.js';
-import { startRegulationsNotifier } from './services/regulations-notifier.js';
+import { startTiltAgentLoop, stopTiltAgentLoop } from './services/tilt-agent.js';
+import { startRegulationsNotifier, stopRegulationsNotifier } from './services/regulations-notifier.js';
 import { initializeGameplayComplianceBridge } from './services/gameplay-compliance-bridge.js';
 
-import '@tiltcheck/suslink';
 import { startTrustAdapter } from '@tiltcheck/discord-utils/trust-adapter';
+import { Connection } from '@solana/web3.js';
+import { DatabaseClient } from '@tiltcheck/database';
+import { CreditManager, DepositMonitor, AutoRefundScheduler } from '@tiltcheck/justthetip';
+import { BotWalletService } from './services/tipping/bot-wallet.js';
+import { TokenSwapService } from './services/tipping/token-swap.js';
+import { TokenDepositMonitor } from './services/tipping/token-deposit-monitor.js';
+import { setCreditDeps } from './commands/tip.js';
 
 async function main() {
   const startTime = Date.now();
@@ -188,20 +194,67 @@ async function main() {
     }
     throw err;
   });
+
+  // Tipping & Solana Consolidation
+  let autoRefund: AutoRefundScheduler | undefined;
+  let dMonitor: DepositMonitor | undefined;
+  let tdMonitor: TokenDepositMonitor | undefined;
+
+  if (config.botWalletPrivateKey) {
+    console.log('[Tipping] Initializing consolidated credit system...');
+    const solConnection = new Connection(config.solanaRpcUrl, 'confirmed');
+    const botWallet = new BotWalletService(config.botWalletPrivateKey, solConnection);
+
+    const dbClient = new DatabaseClient({
+      url: config.supabaseUrl,
+      apiKey: config.supabaseServiceRoleKey,
+    });
+
+    const cm = new CreditManager(dbClient);
+    dMonitor = new DepositMonitor(solConnection, botWallet.address, cm);
+
+    const swapService = new TokenSwapService(config.botWalletPrivateKey, solConnection);
+    tdMonitor = new TokenDepositMonitor(solConnection, botWallet.address, cm, swapService);
+
+    autoRefund = new AutoRefundScheduler(cm, botWallet.sendSOL.bind(botWallet), 12 * 60 * 60 * 1000);
+
+    setCreditDeps(cm, dMonitor, botWallet, tdMonitor);
+
+    dMonitor.start();
+    tdMonitor.start();
+    autoRefund.start();
+    console.log('[Tipping] Credit system active\n');
+  }
+
+  const shutdown = async () => {
+    console.log('\n[Bot] Shutting down gracefully...');
+
+    stopTiltAgentLoop();
+    stopRegulationsNotifier();
+
+    if (autoRefund) autoRefund.stop();
+    if (dMonitor) dMonitor.stop();
+    if (tdMonitor) tdMonitor.stop();
+
+    if (healthServer.listening) {
+      healthServer.close();
+    }
+
+    if (client.isReady()) {
+      console.log('[Bot] Destroying Discord client...');
+      await client.destroy();
+    }
+
+    console.log('[Bot] Shutdown complete.');
+    process.exit(0);
+  };
+
+  process.on('SIGINT', shutdown);
+  process.on('SIGTERM', shutdown);
 }
 
 process.on('unhandledRejection', (error) => {
   console.error('[Bot] Unhandled rejection:', error);
-});
-
-process.on('SIGINT', () => {
-  console.log('\n[Bot] Shutting down gracefully...');
-  process.exit(0);
-});
-
-process.on('SIGTERM', () => {
-  console.log('\n[Bot] Shutting down gracefully...');
-  process.exit(0);
 });
 
 main().catch((error) => {

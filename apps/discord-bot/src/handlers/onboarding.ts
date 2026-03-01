@@ -1,15 +1,14 @@
 /**
- * Onboarding System for JustTheTip Bot
- * Handles first-time user welcome, wallet setup, and preferences
- * 
+ * Onboarding System for TiltCheck Safety Bot
+ * Handles first-time user welcome and safety preferences
+ *
  * Storage: Uses Supabase (free tier) with in-memory cache for fast reads.
  * Falls back to memory-only if Supabase is not configured.
  */
-
-import { 
-  EmbedBuilder, 
-  ButtonBuilder, 
-  ButtonStyle, 
+import {
+  EmbedBuilder,
+  ButtonBuilder,
+  ButtonStyle,
   ActionRowBuilder,
   User,
   MessageComponentInteraction,
@@ -39,7 +38,6 @@ interface UserPreferences {
   userId: string;
   discordId: string;
   joinedAt: number;
-  walletAddress?: string;
   notifications: {
     tips: boolean;
     trivia: boolean;
@@ -76,7 +74,7 @@ async function loadOnboardingData(): Promise<void> {
         if (row.is_onboarded) {
           onboardedUsers.add(row.discord_id);
         }
-        
+
         const prefs: UserPreferences = {
           userId: row.discord_id,
           discordId: row.discord_id,
@@ -198,32 +196,30 @@ export async function sendWelcomeDM(user: User): Promise<boolean> {
   try {
     const dmChannel = await user.createDM();
 
-    // Welcome embed with mascot personality
     const welcomeEmbed = new EmbedBuilder()
       .setColor(0x00D4AA)
-      .setTitle('🎰 Yo! Welcome to the Degen Fam!')
+      .setTitle('Welcome to TiltCheck')
       .setDescription(
-        `Hey **${user.username}**! I'm **JustTheTip** - your non-custodial tipping sidekick, powered by TiltCheck.\n\n` +
+        `Hi **${user.username}**. I'm **TiltCheck** - a safety bot for responsible play in Discord.\n\n` +
         `I'm here to help you:\n` +
-        `• 💸 **Send & receive SOL tips** in Discord\n` +
-        `• 🔒 **Lock funds in vaults** when you're feeling tilted\n` +
-        `• 🎯 **Play trivia** and win crypto\n` +
-        `• 🔗 **Stay safe** with link scanning\n\n` +
-        `**The best part?** I never hold your funds. Your keys, your crypto. Always.\n\n` +
-        `Ready to join the ecosystem? Let's get you set up! 👇`
+        `- Scan links and spot scams\n` +
+        `- Check casino trust and fairness signals\n` +
+        `- Start cooldowns when you need a break\n` +
+        `- Get safety nudges based on your risk level\n\n` +
+        `This bot does not custody funds. Tips and wallets live in **JustTheTip**.\n\n` +
+        `Ready to set up your safety preferences?`
       )
       .setThumbnail('https://tiltcheck.me/assets/logo/favicon-white.svg')
-      .setFooter({ text: 'JustTheTip Bot • Powered by TiltCheck • Est. 2024' });
+      .setFooter({ text: 'TiltCheck Safety Bot - Powered by TiltCheck - Est. 2024' });
 
-    // Action buttons
     const getStartedBtn = new ButtonBuilder()
       .setCustomId('onboard_start')
-      .setLabel('🚀 Let\'s Go!')
+      .setLabel('Get Started')
       .setStyle(ButtonStyle.Success);
 
     const learnMoreBtn = new ButtonBuilder()
       .setCustomId('onboard_learn')
-      .setLabel('📖 Tell Me More')
+      .setLabel('Learn More')
       .setStyle(ButtonStyle.Secondary);
 
     const maybeLaterBtn = new ButtonBuilder()
@@ -252,41 +248,29 @@ export async function handleOnboardingInteraction(
     case 'onboard_start':
       await showTermsAndConditions(interaction);
       break;
-    
+
     case 'onboard_learn':
       await showLearnMore(interaction);
       break;
-    
+
     case 'onboard_later':
       await interaction.update({
-        content: '👋 No worries! When you\'re ready, just use any `/tip` command and I\'ll help you get set up.\n\n*Pro tip: The sooner you register, the sooner you can start receiving tips!*',
+        content: 'No worries. When you are ready, run `/tiltcheck status` or `/help` to get started.',
         embeds: [],
         components: [],
       });
       break;
 
     case 'onboard_accept_terms':
-      await showWalletSetup(interaction);
+      await showPreferences(interaction);
       break;
 
     case 'onboard_decline_terms':
       await interaction.update({
-        content: '😅 No problem! You can always come back later. Just use `/tip wallet` when you\'re ready.',
+        content: 'All good. You can come back any time with `/tiltcheck status` or `/help`.',
         embeds: [],
         components: [],
       });
-      break;
-
-    case 'onboard_wallet_external':
-      await showExternalWalletInstructions(interaction);
-      break;
-
-    case 'onboard_wallet_magic':
-      await showMagicWalletInfo(interaction);
-      break;
-
-    case 'onboard_wallet_skip':
-      await showPreferences(interaction, undefined);
       break;
 
     case 'onboard_complete':
@@ -306,30 +290,28 @@ export async function handleOnboardingInteraction(
 async function showTermsAndConditions(interaction: MessageComponentInteraction): Promise<void> {
   const termsEmbed = new EmbedBuilder()
     .setColor(0x00D4AA)
-    .setTitle('📜 Quick Legal Stuff (Promise It\'s Short)')
+    .setTitle('Quick Terms')
     .setDescription(
-      `Before we proceed, here's what you're agreeing to:\n\n` +
-      `**✅ Non-Custodial**\n` +
-      `We NEVER hold your funds. You sign every transaction with your own wallet.\n\n` +
-      `**✅ Flat Fee**\n` +
-      `0.0007 SOL (~$0.07) per tip goes to development. That's it.\n\n` +
-      `**✅ Your Responsibility**\n` +
-      `You're responsible for your own gambling decisions. We provide tools to help you stay in control (cooldowns, vaults), but ultimately it's on you.\n\n` +
-      `**✅ No Financial Advice**\n` +
-      `Nothing here is financial advice. We're degens helping degens.\n\n` +
-      `**✅ Privacy**\n` +
-      `We store your Discord ID and wallet address. That's it. No KYC, no personal data harvesting.\n\n` +
-      `By continuing, you agree to use JustTheTip responsibly. 🤝`
+      `Before we proceed:\n\n` +
+      `**Safety First**\n` +
+      `TiltCheck provides tools like cooldowns and trust checks to help you stay in control.\n\n` +
+      `**Your Responsibility**\n` +
+      `You are responsible for your own decisions. Use these tools responsibly.\n\n` +
+      `**No Financial Advice**\n` +
+      `Nothing here is financial advice.\n\n` +
+      `**Privacy**\n` +
+      `We store your Discord ID and safety preferences only.\n\n` +
+      `By continuing, you agree to use TiltCheck responsibly.`
     );
 
   const acceptBtn = new ButtonBuilder()
     .setCustomId('onboard_accept_terms')
-    .setLabel('✅ I Accept')
+    .setLabel('I Accept')
     .setStyle(ButtonStyle.Success);
 
   const declineBtn = new ButtonBuilder()
     .setCustomId('onboard_decline_terms')
-    .setLabel('❌ Decline')
+    .setLabel('Decline')
     .setStyle(ButtonStyle.Danger);
 
   const row = new ActionRowBuilder<ButtonBuilder>()
@@ -344,37 +326,29 @@ async function showTermsAndConditions(interaction: MessageComponentInteraction):
 async function showLearnMore(interaction: MessageComponentInteraction): Promise<void> {
   const learnEmbed = new EmbedBuilder()
     .setColor(0x00D4AA)
-    .setTitle('📖 What is JustTheTip?')
+    .setTitle('What is TiltCheck')
     .setDescription(
-      `**JustTheTip** is a non-custodial Solana tipping bot for Discord, part of the **TiltCheck** ecosystem.\n\n` +
-      `### 🎯 What Can You Do?\n\n` +
-      `**💸 Tip SOL**\n` +
-      `Send crypto directly to other Discord users. No middleman, no custody.\n` +
-      `\`/tip send @friend $5\`\n\n` +
-      `**🚀 Airdrops**\n` +
-      `Send to multiple people at once.\n` +
-      `\`/tip airdrop @user1 @user2 0.1\`\n\n` +
-      `**🔒 Vault Lock**\n` +
-      `Feeling tilted? Lock your funds for a set time. Can't touch them until it expires.\n` +
-      `\`/tip lock $100 24h\`\n\n` +
-      `**🎯 Trivia Drops**\n` +
-      `Host trivia games with prizes. Winners split the pot!\n` +
-      `\`/tip trivia $5 30s\`\n\n` +
-      `**🔗 Link Scanning**\n` +
-      `Check if a casino/crypto link is legit or a scam.\n` +
-      `\`/suslink scan <url>\`\n\n` +
-      `### 🏆 The TiltCheck Ecosystem\n` +
-      `JustTheTip is just one part of TiltCheck - a suite of tools for degen communities including trust scores, bonus tracking, and more!`
+      `**TiltCheck** is a safety bot for responsible play in Discord.\n\n` +
+      `**Check your status**\n` +
+      `/tiltcheck status\n\n` +
+      `**Start a cooldown**\n` +
+      `/tiltcheck cooldown 30\n\n` +
+      `**Scan a link**\n` +
+      `/tiltcheck suslink scan url:<url>\n\n` +
+      `**Check a casino**\n` +
+      `/tiltcheck casino domain:<domain>\n\n` +
+      `**Ecosystem**\n` +
+      `Tips and wallets are handled by **JustTheTip**. Bonus timers and promos live in **CollectClock**.`
     )
-    .setFooter({ text: 'Ready to get started? Click below!' });
+    .setFooter({ text: 'Ready to get started? Click below.' });
 
   const startBtn = new ButtonBuilder()
     .setCustomId('onboard_start')
-    .setLabel('🚀 Set Me Up!')
+    .setLabel('Set Me Up')
     .setStyle(ButtonStyle.Success);
 
   const websiteBtn = new ButtonBuilder()
-    .setLabel('🌐 Visit Website')
+    .setLabel('Visit Website')
     .setStyle(ButtonStyle.Link)
     .setURL('https://tiltcheck.me');
 
@@ -385,11 +359,10 @@ async function showLearnMore(interaction: MessageComponentInteraction): Promise<
 }
 
 /**
- * Show wallet setup options
+ * Show preferences setup (via interaction update)
  */
-async function showWalletSetup(interaction: MessageComponentInteraction): Promise<void> {
-  // Initialize user preferences
-  const prefs: UserPreferences = {
+async function showPreferences(interaction: MessageComponentInteraction): Promise<void> {
+  const prefs: UserPreferences = userPreferences.get(interaction.user.id) ?? {
     userId: interaction.user.id,
     discordId: interaction.user.id,
     joinedAt: Date.now(),
@@ -400,114 +373,17 @@ async function showWalletSetup(interaction: MessageComponentInteraction): Promis
   };
   userPreferences.set(interaction.user.id, prefs);
 
-  const walletEmbed = new EmbedBuilder()
-    .setColor(0x00D4AA)
-    .setTitle('💳 Let\'s Connect Your Wallet')
-    .setDescription(
-      `To send and receive tips, you need a Solana wallet connected.\n\n` +
-      `**Option 1: External Wallet (Recommended)**\n` +
-      `Connect your existing Phantom, Solflare, or Backpack wallet. You keep full control.\n\n` +
-      `**Option 2: Magic Wallet (Coming Soon)**\n` +
-      `We'll create a disposable wallet for you - perfect for users on cooldown or who want extra separation.\n\n` +
-      `**Option 3: Skip for Now**\n` +
-      `You can still use some features, but won't be able to send/receive tips until you connect a wallet.`
-    );
-
-  const externalBtn = new ButtonBuilder()
-    .setCustomId('onboard_wallet_external')
-    .setLabel('🔗 Connect External Wallet')
-    .setStyle(ButtonStyle.Primary);
-
-  const magicBtn = new ButtonBuilder()
-    .setCustomId('onboard_wallet_magic')
-    .setLabel('✨ Magic Wallet (Soon)')
-    .setStyle(ButtonStyle.Secondary)
-    .setDisabled(true);
-
-  const skipBtn = new ButtonBuilder()
-    .setCustomId('onboard_wallet_skip')
-    .setLabel('⏭️ Skip for Now')
-    .setStyle(ButtonStyle.Secondary);
-
-  const row = new ActionRowBuilder<ButtonBuilder>()
-    .addComponents(externalBtn, magicBtn, skipBtn);
-
-  await interaction.update({ embeds: [walletEmbed], components: [row] });
-}
-
-/**
- * Show external wallet connection instructions
- */
-async function showExternalWalletInstructions(interaction: MessageComponentInteraction): Promise<void> {
-  const instructionsEmbed = new EmbedBuilder()
-    .setColor(0x00D4AA)
-    .setTitle('🔗 Connect Your Solana Wallet')
-    .setDescription(
-      `**How to connect your wallet:**\n\n` +
-      `**Step 1:** Open your Solana wallet (Phantom, Solflare, Backpack, etc.)\n\n` +
-      `**Step 2:** Copy your wallet address\n` +
-      `• In Phantom: Tap your address at the top to copy\n` +
-      `• In Solflare: Click the copy icon next to your address\n\n` +
-      `**Step 3:** Use the command below in any server with JustTheTip:\n\n` +
-      `\`/tip wallet register-external address:YOUR_ADDRESS\`\n\n` +
-      `Your address looks like:\n` +
-      `\`7xKXtg2CW87d97TXJSDpbD5jBkheTqA83TZRuJosgAsU\`\n\n` +
-      `⚠️ **Make sure you use your PUBLIC address, not your private key!**`
-    )
-    .setFooter({ text: 'Once registered, you can send and receive tips!' });
-
-  const continueBtn = new ButtonBuilder()
-    .setCustomId('onboard_wallet_skip')
-    .setLabel('✅ Got It - Continue Setup')
-    .setStyle(ButtonStyle.Success);
-
-  const row = new ActionRowBuilder<ButtonBuilder>().addComponents(continueBtn);
-
-  await interaction.update({ embeds: [instructionsEmbed], components: [row] });
-}
-
-/**
- * Show magic wallet info
- */
-async function showMagicWalletInfo(interaction: MessageComponentInteraction): Promise<void> {
-  const magicEmbed = new EmbedBuilder()
-    .setColor(0x8A2BE2)
-    .setTitle('✨ Magic Wallets - Coming Soon!')
-    .setDescription(
-      `**Magic Wallets** are disposable, temporary wallets perfect for:\n\n` +
-      `• 🎰 **Tilted degens** who want to limit their spending\n` +
-      `• 🔒 **Extra security** - separate from your main wallet\n` +
-      `• ⚡ **Quick setup** - no external wallet needed\n\n` +
-      `We're still building this feature. For now, please connect an external wallet or skip this step.\n\n` +
-      `*Want to be notified when Magic Wallets launch? We'll ping you!*`
-    );
-
-  const backBtn = new ButtonBuilder()
-    .setCustomId('onboard_accept_terms')
-    .setLabel('← Back to Wallet Options')
-    .setStyle(ButtonStyle.Secondary);
-
-  const row = new ActionRowBuilder<ButtonBuilder>().addComponents(backBtn);
-
-  await interaction.update({ embeds: [magicEmbed], components: [row] });
-}
-
-/**
- * Show preferences setup (via interaction update)
- */
-async function showPreferences(interaction: MessageComponentInteraction, _walletAddress?: string): Promise<void> {
   const prefsEmbed = new EmbedBuilder()
     .setColor(0x00D4AA)
-    .setTitle('⚙️ Set Your Preferences')
+    .setTitle('Set Your Preferences')
     .setDescription(
-      `Almost done! Let's customize your experience.\n\n` +
-      `**🔔 Notifications**\n` +
-      `What do you want to be notified about?\n\n` +
-      `**🎚️ Risk Level**\n` +
-      `This affects default cooldown suggestions and vault recommendations.`
+      `Almost done. Customize your experience.\n\n` +
+      `**Notifications**\n` +
+      `Choose what you want to be notified about.\n\n` +
+      `**Risk Level**\n` +
+      `This affects default cooldown suggestions and safety nudges.`
     );
 
-  // Notification preferences
   const notifSelect = new StringSelectMenuBuilder()
     .setCustomId('onboard_pref_notifications')
     .setPlaceholder('Select notification preferences')
@@ -516,39 +392,35 @@ async function showPreferences(interaction: MessageComponentInteraction, _wallet
     .addOptions(
       new StringSelectMenuOptionBuilder()
         .setLabel('Tip Notifications')
-        .setDescription('Get notified when you receive tips')
+        .setDescription('Get notified when you receive tips (JustTheTip)')
         .setValue('tips')
-        .setEmoji('💸')
         .setDefault(true),
       new StringSelectMenuOptionBuilder()
         .setLabel('Trivia Alerts')
         .setDescription('Get pinged when trivia drops start')
-        .setValue('trivia')
-        .setEmoji('🎯'),
+        .setValue('trivia'),
       new StringSelectMenuOptionBuilder()
         .setLabel('Promo Updates')
         .setDescription('Hear about new promos and bonuses')
         .setValue('promos')
-        .setEmoji('🎁'),
     );
 
   const notifRow = new ActionRowBuilder<StringSelectMenuBuilder>()
     .addComponents(notifSelect);
 
-  // Risk level buttons
   const conservativeBtn = new ButtonBuilder()
     .setCustomId('onboard_pref_risk_conservative')
-    .setLabel('🐢 Conservative')
+    .setLabel('Conservative')
     .setStyle(ButtonStyle.Secondary);
 
   const moderateBtn = new ButtonBuilder()
     .setCustomId('onboard_pref_risk_moderate')
-    .setLabel('⚖️ Moderate')
+    .setLabel('Moderate')
     .setStyle(ButtonStyle.Primary);
 
   const degenBtn = new ButtonBuilder()
     .setCustomId('onboard_pref_risk_degen')
-    .setLabel('🔥 Full Degen')
+    .setLabel('Full Degen')
     .setStyle(ButtonStyle.Danger);
 
   const riskRow = new ActionRowBuilder<ButtonBuilder>()
@@ -556,15 +428,15 @@ async function showPreferences(interaction: MessageComponentInteraction, _wallet
 
   const completeBtn = new ButtonBuilder()
     .setCustomId('onboard_complete')
-    .setLabel('✅ Complete Setup')
+    .setLabel('Complete Setup')
     .setStyle(ButtonStyle.Success);
 
   const completeRow = new ActionRowBuilder<ButtonBuilder>()
     .addComponents(completeBtn);
 
-  await interaction.update({ 
-    embeds: [prefsEmbed], 
-    components: [notifRow, riskRow, completeRow] 
+  await interaction.update({
+    embeds: [prefsEmbed],
+    components: [notifRow, riskRow, completeRow],
   });
 }
 
@@ -574,28 +446,27 @@ async function showPreferences(interaction: MessageComponentInteraction, _wallet
 export async function showPreferencesMessage(channel: DMChannel, _userId: string): Promise<void> {
   const prefsEmbed = new EmbedBuilder()
     .setColor(0x00D4AA)
-    .setTitle('⚙️ Set Your Preferences')
+    .setTitle('Set Your Preferences')
     .setDescription(
-      `Almost done! Let's customize your experience.\n\n` +
-      `**🎚️ Pick your risk level:**\n` +
-      `🐢 Conservative - More cooldown reminders, lower limits suggested\n` +
-      `⚖️ Moderate - Balanced approach (default)\n` +
-      `🔥 Full Degen - No hand-holding, you know what you're doing`
+      `Almost done. Pick your risk level:\n\n` +
+      `Conservative - More cooldown reminders, lower limits suggested\n` +
+      `Moderate - Balanced approach (default)\n` +
+      `Full Degen - Minimal hand-holding`
     );
 
   const conservativeBtn = new ButtonBuilder()
     .setCustomId('onboard_pref_risk_conservative')
-    .setLabel('🐢 Conservative')
+    .setLabel('Conservative')
     .setStyle(ButtonStyle.Secondary);
 
   const moderateBtn = new ButtonBuilder()
     .setCustomId('onboard_pref_risk_moderate')
-    .setLabel('⚖️ Moderate')
+    .setLabel('Moderate')
     .setStyle(ButtonStyle.Primary);
 
   const degenBtn = new ButtonBuilder()
     .setCustomId('onboard_pref_risk_degen')
-    .setLabel('🔥 Full Degen')
+    .setLabel('Full Degen')
     .setStyle(ButtonStyle.Danger);
 
   const riskRow = new ActionRowBuilder<ButtonBuilder>()
@@ -603,15 +474,15 @@ export async function showPreferencesMessage(channel: DMChannel, _userId: string
 
   const completeBtn = new ButtonBuilder()
     .setCustomId('onboard_complete')
-    .setLabel('✅ Complete Setup')
+    .setLabel('Complete Setup')
     .setStyle(ButtonStyle.Success);
 
   const completeRow = new ActionRowBuilder<ButtonBuilder>()
     .addComponents(completeBtn);
 
-  await channel.send({ 
-    embeds: [prefsEmbed], 
-    components: [riskRow, completeRow] 
+  await channel.send({
+    embeds: [prefsEmbed],
+    components: [riskRow, completeRow],
   });
 }
 
@@ -633,12 +504,18 @@ async function handlePreferenceSelection(interaction: MessageComponentInteractio
   } else if (interaction.customId.startsWith('onboard_pref_risk_')) {
     const risk = interaction.customId.replace('onboard_pref_risk_', '') as 'conservative' | 'moderate' | 'degen';
     prefs.riskLevel = risk;
-    
+
     // Set cooldown based on risk level
     prefs.cooldownEnabled = risk !== 'degen';
-    
+
+    const message = risk === 'degen'
+      ? 'No limits. You are in control.'
+      : risk === 'conservative'
+        ? 'Playing it safe. Cooldowns will be suggested more often.'
+        : 'Balanced approach selected.';
+
     await interaction.reply({
-      content: `Risk level set to **${risk}**! ${risk === 'degen' ? '🔥 No limits!' : risk === 'conservative' ? '🐢 Playing it safe!' : '⚖️ Balanced approach!'}`,
+      content: `Risk level set to **${risk}**. ${message}`,
       ephemeral: true,
     });
   }
@@ -651,35 +528,40 @@ async function handlePreferenceSelection(interaction: MessageComponentInteractio
  */
 async function completeOnboarding(interaction: MessageComponentInteraction): Promise<void> {
   const prefs = userPreferences.get(interaction.user.id);
-  
+
   markOnboarded(interaction.user.id);
+
+  const notifications = [
+    prefs?.notifications.tips ? 'Tips (JustTheTip)' : null,
+    prefs?.notifications.trivia ? 'Trivia' : null,
+    prefs?.notifications.promos ? 'Promos' : null,
+  ].filter(Boolean).join(', ') || 'None';
 
   const completedEmbed = new EmbedBuilder()
     .setColor(0x00FF00)
-    .setTitle('🎉 You\'re All Set!')
+    .setTitle('You are all set')
     .setDescription(
-      `Welcome to the TiltCheck ecosystem, **${interaction.user.username}**!\n\n` +
+      `Welcome to TiltCheck, **${interaction.user.username}**.\n\n` +
       `**Your Setup:**\n` +
-      `💳 Wallet: ${prefs?.walletAddress ? `\`${prefs.walletAddress.slice(0, 8)}...${prefs.walletAddress.slice(-8)}\`` : 'Not connected yet'}\n` +
-      `🎚️ Risk Level: ${prefs?.riskLevel || 'Moderate'}\n` +
-      `🔔 Notifications: ${prefs?.notifications.tips ? 'Tips' : ''} ${prefs?.notifications.trivia ? 'Trivia' : ''} ${prefs?.notifications.promos ? 'Promos' : ''}\n\n` +
+      `- Risk Level: ${prefs?.riskLevel || 'Moderate'}\n` +
+      `- Notifications: ${notifications}\n\n` +
       `**Quick Commands:**\n` +
-      `\`/tip send @user $5\` - Send a tip\n` +
-      `\`/tip trivia $5 15s\` - Start trivia\n` +
-      `\`/tip balance\` - Check balance\n` +
-      `\`/help\` - Full command list\n\n` +
-      `🏆 **Your Degen ID:** Coming soon! We're working on NFT-based IDs for verified ecosystem members.\n\n` +
-      `Questions? Use \`/support\` or join our Discord!`
+      `/tiltcheck status - Check your safety state\n` +
+      `/tiltcheck cooldown 30 - Start a 30 minute break\n` +
+      `/tiltcheck suslink scan url:<url> - Scan a link\n` +
+      `/tiltcheck casino domain:<domain> - Check casino trust\n` +
+      `/help - Full command list\n\n` +
+      `Questions? Use /support or join our Discord.`
     )
-    .setFooter({ text: 'JustTheTip Bot • Powered by TiltCheck • Let\'s get tipping!' });
+    .setFooter({ text: 'TiltCheck Safety Bot - Powered by TiltCheck - Stay safe out there.' });
 
   const discordBtn = new ButtonBuilder()
-    .setLabel('🎮 Join TiltCheck Discord')
+    .setLabel('Join TiltCheck Discord')
     .setStyle(ButtonStyle.Link)
     .setURL('https://discord.gg/s6NNfPHxMS');
 
   const websiteBtn = new ButtonBuilder()
-    .setLabel('🌐 Visit Website')
+    .setLabel('Visit Website')
     .setStyle(ButtonStyle.Link)
     .setURL('https://tiltcheck.me');
 

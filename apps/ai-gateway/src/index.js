@@ -41,12 +41,14 @@ async function initEventRouter() {
  */
 class AIGatewayService {
   constructor() {
+
     this.cache = new Map();
     this.cacheTimeout = 3600000; // 1 hour
+    this.maxCacheSize = 1000;    // Hard cap to prevent memory bloat
     this.openai = null;
     this.useMock = true;
     this.model = process.env.OPENAI_MODEL || 'gpt-4o-mini';
-    
+
     // Initialize OpenAI client if API key is available
     if (process.env.OPENAI_API_KEY) {
       this.openai = new OpenAI({
@@ -57,6 +59,9 @@ class AIGatewayService {
     } else {
       console.log('[AIGateway] No OPENAI_API_KEY found, using mock responses');
     }
+
+    // Automatic periodic cleanup every 15 minutes
+    this.cleanupTimer = setInterval(() => this.clearExpiredCache(), 900000);
   }
 
   /**
@@ -75,7 +80,7 @@ class AIGatewayService {
       console.log('[AIGateway] Running without event router integration');
       return;
     }
-    
+
     // Listen for AI requests from other modules
     eventRouter.subscribe(
       'ai.request',
@@ -143,14 +148,14 @@ class AIGatewayService {
     // Check cache first
     const cacheKey = this.getCacheKey(request);
     const cached = this.cache.get(cacheKey);
-    
+
     if (cached && Date.now() - cached.timestamp < this.cacheTimeout) {
       return { ...cached.response, cached: true };
     }
 
     // Route to appropriate application
     let response;
-    
+
     switch (request.application) {
       case 'survey-matching':
         response = await this.surveyMatching(request);
@@ -180,8 +185,14 @@ class AIGatewayService {
         };
     }
 
+
     // Cache successful responses
     if (response.success) {
+      if (this.cache.size >= this.maxCacheSize) {
+        // Evict oldest entry (first key in Map iterator)
+        const oldestKey = this.cache.keys().next().value;
+        this.cache.delete(oldestKey);
+      }
       this.cache.set(cacheKey, { response, timestamp: Date.now() });
     }
 
@@ -194,7 +205,7 @@ class AIGatewayService {
    */
   async surveyMatching(request) {
     const { context } = request;
-    
+
     const systemPrompt = `You are a survey matching AI. Analyze user profiles against survey requirements and provide match analysis. 
 Always respond with valid JSON containing: matchConfidence (0-1), matchLevel (low/medium/high), reasoning (array of strings), 
 recommendedActions (array of strings), estimatedCompletionTime (minutes), screenOutRisk (low/medium/high).`;
@@ -318,7 +329,7 @@ Make them funny, edgy, and relevant to crypto/gambling culture.`;
    */
   async moderation(request) {
     const { prompt, context } = request;
-    
+
     const systemPrompt = `You are a content moderation AI for a crypto/gambling community. Analyze content for scams, spam, toxicity, and malicious intent.
 Always respond with valid JSON containing: isSafe (boolean), isScam (boolean), isSpam (boolean), toxicityScore (0-1), 
 categories (object with scam/spam/inappropriate/malicious scores 0-1), confidence (0-1), reasoning (string), 
@@ -373,7 +384,7 @@ Analyze for scams, spam, and inappropriate content.`;
    */
   async tiltDetection(request) {
     const { context } = request;
-    
+
     const systemPrompt = `You are a responsible gambling AI that detects tilt (emotional gambling) patterns. Analyze betting behavior and emotional indicators.
 Always respond with valid JSON containing: tiltScore (0-100), riskLevel (low/moderate/high/critical), indicators (array of strings),
 patterns (object with chasingLosses/increasingStakes/timeSpentGambling/emotionalState), interventionSuggestions (array),
@@ -440,7 +451,7 @@ Assess tilt risk and suggest interventions.`;
    */
   async naturalLanguageCommands(request) {
     const { prompt } = request;
-    
+
     const systemPrompt = `You are a natural language command parser for a Discord bot. Parse user messages into executable commands.
 Available commands: /justthetip (tip users), /scan (check links), /qualify (survey matching), /trust (check trust scores), /play (games).
 Always respond with valid JSON containing: intent (string), confidence (0-1), command (string starting with /), 
@@ -491,7 +502,7 @@ Identify the intent and extract parameters.`;
    */
   async recommendations(request) {
     const { context } = request;
-    
+
     const systemPrompt = `You are a personalization AI for a crypto/gambling community. Recommend surveys, games, and promotions based on user profiles.
 Always respond with valid JSON containing: surveys (array with id/title/match/reasoning/estimatedPayout/estimatedMinutes),
 promos (array with id/casino/type/relevance/reasoning), games (array with game/reason/confidence), nextBestAction (string).`;
@@ -547,7 +558,7 @@ Suggest relevant surveys, promos, and games.`;
    */
   async support(request) {
     const { prompt, context } = request;
-    
+
     const systemPrompt = `You are a helpful support AI for TiltCheck, a crypto/gambling community platform. Answer user questions about:
 - Survey earnings and withdrawals (via QualifyFirst)
 - Tipping (via JustTheTip) 

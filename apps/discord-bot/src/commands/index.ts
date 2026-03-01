@@ -22,5 +22,8 @@
  */
 
 export { tiltcheck } from './tiltcheck.js';
+export { tip } from './tip.js';
+export { dad } from './dad.js';
+export { poker } from './poker.js';
 // Single-entry UX: everything routes through /tiltcheck now.
 

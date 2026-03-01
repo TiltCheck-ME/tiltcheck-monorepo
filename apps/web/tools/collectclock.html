@@ -1,25 +1,64 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>CollectClock - Bonus Cycle Intelligence | TiltCheck</title>
-  <meta name="description" content="Track daily casino bonuses, detect nerfs, and predict cycle changes before they happen." />
+  <meta name="description"
+    content="Track daily casino bonuses, detect nerfs, and predict cycle changes before they happen." />
   <link rel="stylesheet" href="../styles/tool-page.css" />
 </head>
+
 <body>
   <div id="shared-nav"></div>
 
+
   <header class="tool-header">
     <div class="container">
-      <div class="tool-icon-large"></div>
-      <h1>CollectClock</h1>
+      <div class="tool-icon-large">⏰</div>
+      <h1 class="text-gradient-emerald">CollectClock</h1>
       <p class="tool-tagline">Bonus cycle tracking & nerf detection</p>
       <p class="built-by">
         <a href="https://jmenichole.github.io/Portfolio/" target="_blank" rel="noopener">made for degens by degens</a>
       </p>
     </div>
   </header>
+
+  <!-- Nerf Ticker -->
+  <div class="glass-panel" style="border-width: 1px 0; padding: 10px 0; overflow: hidden; white-space: nowrap;">
+    <div class="container" style="display: flex; align-items: center; gap: 20px;">
+      <span class="status-badge status-live pulse-primary" style="padding: 2px 8px; font-size: 0.7rem;">LIVE NERF
+        FEED</span>
+      <div id="nerfTicker"
+        style="display: inline-block; animation: scroll-left 30s linear infinite; color: #DBDEE1; font-family: 'JetBrains Mono', monospace; font-size: 0.9rem;">
+        <span style="color: #FF5252;">●</span> SlottyVegas: Daily Reload reduced from 5% to 3% (2h ago)
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        <span style="color: #FFC107;">●</span> Stake: New wager req on Weekly Boost (+2x)
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        <span style="color: #FF5252;">●</span> Roobet: Monthly cashback cap implemented
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        <span style="color: #00FFC6;">●</span> BC.Game: Bonus refresh window shifted +4h
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        <span style="color: #FF5252;">●</span> SlottyVegas: Daily Reload reduced from 5% to 3% (2h ago)
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        <span style="color: #FFC107;">●</span> Stake: New wager req on Weekly Boost (+2x)
+      </div>
+    </div>
+  </div>
+
+  <style>
+    @keyframes scroll-left {
+      0% {
+        transform: translateX(0);
+      }
+
+      100% {
+        transform: translateX(-50%);
+      }
+    }
+  </style>
+
 
   <section class="features-section">
     <div class="container">
@@ -85,10 +124,10 @@
         </div>
         <div class="step">
           <div class="step-number">3</div>
-            <div class="step-content">
-              <h3>Detect shifts</h3>
-              <p>Compares deltas vs rolling baseline & confidence bands.</p>
-            </div>
+          <div class="step-content">
+            <h3>Detect shifts</h3>
+            <p>Compares deltas vs rolling baseline & confidence bands.</p>
+          </div>
         </div>
         <div class="step">
           <div class="step-number">4</div>
@@ -105,12 +144,30 @@
     <div class="container">
       <h2>Technical Details</h2>
       <div class="tech-grid">
-        <div class="tech-item"><h4>Storage</h4><p>Time-series rows (timestamp, value, source)</p></div>
-        <div class="tech-item"><h4>Detection</h4><p>Z-score + change point logic</p></div>
-        <div class="tech-item"><h4>Prediction</h4><p>Clustered intervals + drift monitor</p></div>
-        <div class="tech-item"><h4>Alerts</h4><p>Discord embeds & role pings</p></div>
-        <div class="tech-item"><h4>Privacy</h4><p>No user tracking; aggregate only</p></div>
-        <div class="tech-item"><h4>Status</h4><p>Beta tuning for thresholds</p></div>
+        <div class="tech-item">
+          <h4>Storage</h4>
+          <p>Time-series rows (timestamp, value, source)</p>
+        </div>
+        <div class="tech-item">
+          <h4>Detection</h4>
+          <p>Z-score + change point logic</p>
+        </div>
+        <div class="tech-item">
+          <h4>Prediction</h4>
+          <p>Clustered intervals + drift monitor</p>
+        </div>
+        <div class="tech-item">
+          <h4>Alerts</h4>
+          <p>Discord embeds & role pings</p>
+        </div>
+        <div class="tech-item">
+          <h4>Privacy</h4>
+          <p>No user tracking; aggregate only</p>
+        </div>
+        <div class="tech-item">
+          <h4>Status</h4>
+          <p>Beta tuning for thresholds</p>
+        </div>
       </div>
     </div>
   </section>
@@ -126,4 +183,5 @@
   <div id="shared-footer"></div>
   <script src="/scripts/components-loader.js"></script>
 </body>
+
 </html>

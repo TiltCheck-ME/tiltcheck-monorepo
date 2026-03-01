@@ -459,14 +459,19 @@ export async function hydrateUserTiltAgentContext(userId: string): Promise<TiltA
   return loaded;
 }
 
+
+let scanTimer: NodeJS.Timeout | null = null;
+
 export function startTiltAgentLoop(
   onIntervene: (
     userId: string,
     message: string,
     severity: TiltAnalysis['severity'],
   ) => Promise<void>,
-): NodeJS.Timeout {
-  const timer = setInterval(async () => {
+): void {
+  if (scanTimer) return;
+
+  scanTimer = setInterval(async () => {
     const batch = [...recentUsers.entries()];
     recentUsers.clear();
 
@@ -482,13 +487,12 @@ export function startTiltAgentLoop(
   }, SCAN_INTERVAL_MS);
 
   console.log('[TiltAgent] background scan loop started (every 5 min)');
-  return timer;
 }
 
-
-
-
-
-
-
-
+export function stopTiltAgentLoop(): void {
+  if (scanTimer) {
+    clearInterval(scanTimer);
+    scanTimer = null;
+    console.log('[TiltAgent] background scan loop stopped');
+  }
+}

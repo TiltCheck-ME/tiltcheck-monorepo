@@ -50,35 +50,55 @@ async function main() {
   http.createServer((req, res) => {
     if (req.url === '/health') {
       res.writeHead(200, { 'Content-Type': 'application/json' });
-      res.end(JSON.stringify({ 
-        status: 'ok', 
+      res.end(JSON.stringify({
+        status: 'ok',
         bot: 'dad-bot',
-        ready: client.isReady() 
+        ready: client.isReady()
       }));
     } else {
       res.writeHead(404);
       res.end();
+
+      console.log('[Bot] Logging in to Discord...');
+      await client.login(config.discordToken);
+
+      // Health check endpoint
+      const HEALTH_PORT = process.env.DAD_BOT_HEALTH_PORT || '8082';
+      http.createServer((req, res) => {
+        if (req.url === '/health') {
+          res.writeHead(200, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({
+            status: 'ok',
+            bot: 'dad-bot',
+            ready: client.isReady()
+          }));
+        } else {
+          res.writeHead(404);
+          res.end();
+        }
+      }).listen(HEALTH_PORT, () => {
+        console.log(`[Bot] Health server listening on ${HEALTH_PORT}`);
+      });
+
+      const shutdown = async () => {
+        console.log('\n[Bot] Shutting down gracefully...');
+        if (client.isReady()) {
+          console.log('[Bot] Destroying Discord client...');
+          await client.destroy();
+        }
+        console.log('[Bot] Shutdown complete.');
+        process.exit(0);
+      };
+
+      process.on('SIGINT', shutdown);
+      process.on('SIGTERM', shutdown);
     }
-  }).listen(HEALTH_PORT, () => {
-    console.log(`[Bot] Health server listening on ${HEALTH_PORT}`);
-  });
-}
 
-process.on('unhandledRejection', (error) => {
-  console.error('[Bot] Unhandled rejection:', error);
-});
+    process.on('unhandledRejection', (error) => {
+      console.error('[Bot] Unhandled rejection:', error);
+    });
 
-process.on('SIGINT', () => {
-  console.log('\n[Bot] Shutting down gracefully...');
-  process.exit(0);
-});
-
-process.on('SIGTERM', () => {
-  console.log('\n[Bot] Shutting down gracefully...');
-  process.exit(0);
-});
-
-main().catch((error) => {
-  console.error('[Bot] Fatal error:', error);
-  process.exit(1);
-});
+    main().catch((error) => {
+      console.error('[Bot] Fatal error:', error);
+      process.exit(1);
+    });

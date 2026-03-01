@@ -8,11 +8,13 @@
 -->
 
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Casino Trust Score Grades - TiltCheck</title>
-  <meta name="description" content="Live casino trust scores tracked by the TiltCheck Casino Trust Engine. Fairness, payouts, compliance, and bonus nerf data.">
+  <meta name="description"
+    content="Live casino trust scores tracked by the TiltCheck Casino Trust Engine. Fairness, payouts, compliance, and bonus nerf data.">
   <meta name="theme-color" content="#00FFC6">
   <link rel="stylesheet" href="/styles/theme.css">
   <link rel="stylesheet" href="/styles/main.css">
@@ -23,6 +25,7 @@
       text-align: center;
       border-bottom: 1px solid rgba(0, 255, 198, 0.12);
     }
+
     .trust-scores-hero h1 {
       font-size: var(--text-3xl);
       font-weight: var(--weight-black);
@@ -30,6 +33,7 @@
       color: var(--text-primary);
       margin-bottom: var(--space-md);
     }
+
     .trust-scores-hero p {
       color: var(--text-secondary);
       font-size: var(--text-base);
@@ -37,26 +41,31 @@
       margin: 0 auto;
       line-height: var(--leading-relaxed);
     }
+
     .trust-scores-content {
       padding: clamp(2rem, 4vw, 3rem) var(--container-padding);
       max-width: var(--container-max);
       margin: 0 auto;
     }
+
     #trust-scores-loading {
       text-align: center;
       padding: var(--space-3xl);
       color: var(--text-muted);
     }
+
     .trust-table-wrapper {
       overflow-x: auto;
       border-radius: var(--radius-md);
       border: 1px solid var(--border-subtle);
     }
+
     .trust-table {
       width: 100%;
       border-collapse: collapse;
       font-size: var(--text-sm);
     }
+
     .trust-table thead th {
       background: var(--bg-tertiary);
       color: var(--color-primary);
@@ -70,33 +79,49 @@
       white-space: nowrap;
       border-bottom: 1px solid var(--border-emphasis);
     }
+
     .trust-table tbody td {
       padding: var(--space-md) var(--space-lg);
       border-bottom: 1px solid var(--border-subtle);
       color: var(--text-secondary);
       vertical-align: middle;
     }
+
     .trust-table tbody tr:last-child td {
       border-bottom: none;
     }
+
     .trust-table tbody tr:hover td {
       background: var(--bg-secondary);
     }
+
     .casino-name {
       color: var(--text-primary);
       font-weight: var(--weight-semibold);
     }
+
     .score-cell {
       font-family: var(--font-mono);
       font-weight: var(--weight-bold);
     }
-    .score-high { color: var(--color-positive); }
-    .score-mid { color: var(--color-caution); }
-    .score-low { color: var(--color-danger); }
+
+    .score-high {
+      color: var(--color-positive);
+    }
+
+    .score-mid {
+      color: var(--color-caution);
+    }
+
+    .score-low {
+      color: var(--color-danger);
+    }
+
     .events-cell {
       font-family: var(--font-mono);
       color: var(--text-muted);
     }
+
     .severity-badge {
       display: inline-flex;
       align-items: center;
@@ -108,18 +133,41 @@
       letter-spacing: 0.05em;
       font-family: var(--font-mono);
     }
-    .severity-low { background: rgba(76,175,80,0.12); color: var(--color-positive); border: 1px solid var(--color-positive); }
-    .severity-medium { background: rgba(255,193,7,0.12); color: var(--color-caution); border: 1px solid var(--color-caution); }
-    .severity-high { background: rgba(255,82,82,0.12); color: var(--color-danger); border: 1px solid var(--color-danger); }
-    .severity-unknown { background: rgba(107,114,128,0.12); color: var(--text-muted); border: 1px solid var(--border-emphasis); }
+
+    .severity-low {
+      background: rgba(76, 175, 80, 0.12);
+      color: var(--color-positive);
+      border: 1px solid var(--color-positive);
+    }
+
+    .severity-medium {
+      background: rgba(255, 193, 7, 0.12);
+      color: var(--color-caution);
+      border: 1px solid var(--color-caution);
+    }
+
+    .severity-high {
+      background: rgba(255, 82, 82, 0.12);
+      color: var(--color-danger);
+      border: 1px solid var(--color-danger);
+    }
+
+    .severity-unknown {
+      background: rgba(107, 114, 128, 0.12);
+      color: var(--text-muted);
+      border: 1px solid var(--border-emphasis);
+    }
+
     .empty-state {
       text-align: center;
       padding: var(--space-3xl) var(--container-padding);
       color: var(--text-muted);
     }
+
     .empty-state p {
       margin-bottom: var(--space-md);
     }
+
     .meta-bar {
       display: flex;
       justify-content: space-between;
@@ -133,17 +181,90 @@
     }
   </style>
 </head>
+
 <body>
   <a href="#scores-main" class="skip-link">Skip to main content</a>
   <div id="shared-nav"></div>
 
   <main id="scores-main">
+
     <header class="trust-scores-hero">
       <div class="container">
-        <h1>Casino Trust Scores</h1>
-        <p>Live trust data from the TiltCheck Casino Trust Engine. Updated automatically as events are tracked across the ecosystem.</p>
+        <h1 class="text-gradient-emerald">Casino Trust Scores</h1>
+        <p>Live trust data from the TiltCheck Casino Trust Engine. Updated automatically as events are tracked across
+          the ecosystem.</p>
       </div>
     </header>
+
+    <!-- Interactive Trust Simulator -->
+    <section class="trust-simulator container" style="margin-top: 40px; margin-bottom: 60px;">
+      <div class="glass-panel" id="trustSimBoard"
+        style="border-radius: 16px; padding: 40px; text-align: center; transition: all 0.5s ease;">
+        <h2 style="margin-bottom: 20px; color: #fff;">Visualizing the Trust Scale</h2>
+        <p style="color: #6B7280; margin-bottom: 30px;">Slide to see how we classify casino safety based on real-world
+          signals.</p>
+
+        <div style="max-width: 600px; margin: 0 auto;">
+          <input type="range" id="trustSlider" min="0" max="100" value="85"
+            style="width: 100%; height: 8px; border-radius: 4px; appearance: none; background: #374151; cursor: pointer; outline: none; margin-bottom: 40px;">
+
+          <div id="simBadgeContainer" style="display: flex; flex-direction: column; align-items: center; gap: 20px;">
+            <div id="simScoreDisplay"
+              style="font-size: 5rem; font-weight: 900; font-family: 'Space Grotesk', sans-serif;">85</div>
+            <div id="simBadge" class="severity-badge" style="font-size: 1.2rem; padding: 8px 24px;">HIGH TRUST</div>
+            <div id="simDesc" style="color: #B8C4CE; max-width: 400px; line-height: 1.6;">Verifiably fair, fast payouts,
+              and transparent terms. Minimal risk.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <script>
+      (function () {
+        const slider = document.getElementById('trustSlider');
+        const board = document.getElementById('trustSimBoard');
+        const scoreDisplay = document.getElementById('simScoreDisplay');
+        const badge = document.getElementById('simBadge');
+        const desc = document.getElementById('simDesc');
+
+        const configs = [
+          { threshold: 40, label: 'HIGH RISK', color: '#FF5252', desc: 'Critical issues detected. Possible exit scam, withheld payouts, or falsified RTP.', glitch: true },
+          { threshold: 60, label: 'CAUTION', color: '#FFC107', desc: 'Frequent bonus nerfs and slow support. Proceed with caution.', glitch: false },
+          { threshold: 80, label: 'NEUTRAL', color: '#6B7280', desc: 'Standard operations. Some community complaints but overall stable.', glitch: false },
+          { threshold: 95, label: 'HIGH TRUST', color: '#00FFC6', desc: 'Verifiably fair, fast payouts, and transparent terms. Minimal risk.', glitch: false },
+          { threshold: 101, label: 'EMERALD GRADE', color: '#10B981', desc: 'Gold standard. Instant payouts, open-source provably fair modules, and zero-nerf history.', glitch: false, glow: true }
+        ];
+
+        slider.addEventListener('input', () => {
+          const val = parseInt(slider.value);
+          scoreDisplay.textContent = val;
+
+          const conf = configs.find(c => val < c.threshold);
+
+          badge.textContent = conf.label;
+          badge.style.borderColor = conf.color;
+          badge.style.color = conf.color;
+          badge.style.background = conf.color + '1F';
+          scoreDisplay.style.color = conf.color;
+          desc.textContent = conf.desc;
+
+          if (conf.glitch) {
+            board.classList.add('glitch-hover');
+            board.style.boxShadow = `0 0 40px ${conf.color}44`;
+          } else {
+            board.classList.remove('glitch-hover');
+            board.style.boxShadow = conf.glow ? `0 0 50px ${conf.color}66` : '0 8px 32px 0 rgba(0, 0, 0, 0.37)';
+          }
+
+          if (conf.glow) {
+            scoreDisplay.style.textShadow = `0 0 20px ${conf.color}`;
+          } else {
+            scoreDisplay.style.textShadow = 'none';
+          }
+        });
+      })();
+    </script>
+
 
     <section class="trust-scores-content" aria-labelledby="scores-table-title">
       <div class="meta-bar" id="scores-meta" aria-live="polite">
@@ -253,4 +374,5 @@
   <script src="/scripts/components-loader.js"></script>
   <script src="/scripts/auth.js"></script>
 </body>
+
 </html>

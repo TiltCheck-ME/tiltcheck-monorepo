@@ -13,10 +13,16 @@ export interface RegulationsNotifierConfig {
 
 const DEFAULT_INTERVAL_MS = 6 * 60 * 60 * 1000;
 
+
+let notifierTimer: NodeJS.Timeout | null = null;
+let initialTimeout: NodeJS.Timeout | null = null;
+
 export function startRegulationsNotifier(
   client: Client,
   cfg: RegulationsNotifierConfig,
-): NodeJS.Timeout {
+): void {
+  if (notifierTimer) return;
+
   const esClient = new ESClient({ node: cfg.elasticUrl, auth: { apiKey: cfg.elasticApiKey } });
   const intervalMs = cfg.intervalMs ?? DEFAULT_INTERVAL_MS;
   const maxRows = cfg.maxRowsInMessage ?? 15;
@@ -66,14 +72,26 @@ export function startRegulationsNotifier(
     }
   };
 
-  setTimeout(() => {
+  initialTimeout = setTimeout(() => {
     tick().catch(() => undefined);
   }, 20_000);
 
-  const timer = setInterval(() => {
+  notifierTimer = setInterval(() => {
     tick().catch(() => undefined);
   }, intervalMs);
 
   console.log(`[Regulations] Notifier started (interval ${intervalMs}ms)`);
-  return timer;
 }
+
+export function stopRegulationsNotifier(): void {
+  if (initialTimeout) {
+    clearTimeout(initialTimeout);
+    initialTimeout = null;
+  }
+  if (notifierTimer) {
+    clearInterval(notifierTimer);
+    notifierTimer = null;
+    console.log('[Regulations] Notifier stopped');
+  }
+}
+

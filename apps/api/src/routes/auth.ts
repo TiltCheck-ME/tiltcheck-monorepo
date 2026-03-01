@@ -405,10 +405,28 @@ router.get('/discord/callback', authLimiter, async (req, res) => {
       // Generate JWT for the user to pass back directly
       const token = generateJWT(user.id, user.email || `${user.id}@discord.com`, user.roles);
 
-      // Return a small HTML page that posts message to opener
+      // Branded callback page that posts message to opener
       res.send(`
         <html>
+          <head>
+            <meta charset="UTF-8" />
+            <title>TiltCheck - Authenticating</title>
+            <style>
+              body { margin:0; display:flex; align-items:center; justify-content:center; height:100vh; background:#0a0a0a; color:#e6e6e6; font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+              .card { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 28px 32px; text-align:center; }
+              .logo { font-weight: 800; letter-spacing: 0.4px; margin-bottom: 8px; }
+              .spinner { width: 22px; height: 22px; border: 2px solid rgba(255,255,255,0.2); border-top-color: #6366f1; border-radius: 50%; margin: 12px auto; animation: spin 1s linear infinite; }
+              @keyframes spin { to { transform: rotate(360deg); } }
+              .hint { font-size: 12px; opacity: 0.6; }
+            </style>
+          </head>
           <body>
+            <div class="card">
+              <div class="logo">TiltCheck</div>
+              <div>Authenticating...</div>
+              <div class="spinner"></div>
+              <div class="hint">This window will close automatically.</div>
+            </div>
             <script>
               const userData = ${JSON.stringify({ id: user.id, username: user.discord_username, avatar: user.discord_avatar })};
               window.opener.postMessage({ 
@@ -418,10 +436,6 @@ router.get('/discord/callback', authLimiter, async (req, res) => {
               }, '*');
               setTimeout(() => window.close(), 1000);
             </script>
-            <div style="font-family: sans-serif; text-align: center; margin-top: 50px;">
-              <h2>Authenticated!</h2>
-              <p>Closing terminal...</p>
-            </div>
           </body>
         </html>
       `);
