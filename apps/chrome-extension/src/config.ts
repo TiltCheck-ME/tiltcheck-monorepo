@@ -19,7 +19,7 @@ export const EXT_CONFIG = {
 export function getDiscordLoginUrl(source = 'extension') {
     const url = new URL(`${EXT_CONFIG.API_BASE_URL}/auth/discord/login`);
     // The API handles OAuth + callback and posts a message back to the extension window.
-    url.searchParams.set('source', 'extension');
+    url.searchParams.set('source', source);
     // Preserve the caller info for debugging/analytics (not required by API).
     if (source && source !== 'extension') {
         url.searchParams.set('source_detail', source);

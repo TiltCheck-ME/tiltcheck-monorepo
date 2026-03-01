@@ -115,7 +115,7 @@ async function main() {
   await client.login(config.discordToken);
 
   // Health check endpoint
-  http.createServer((req, res) => {
+  const healthServer = http.createServer((req, res) => {
     if (req.url === '/health') {
       res.writeHead(200, { 'Content-Type': 'application/json' });
       res.end(JSON.stringify({
@@ -131,21 +131,36 @@ async function main() {
   }).listen(config.healthPort, () => {
     console.log(`[Bot] Health server listening on ${config.healthPort}`);
   });
+
+  process.on('unhandledRejection', (error) => {
+    console.error('[Bot] Unhandled rejection:', error);
+  });
+
+  const shutdown = async () => {
+    console.log('\n[Bot] Shutting down gracefully...');
+
+    // Stop services
+    depositMonitor.stop();
+    tokenDepositMonitor.stop();
+    autoRefund.stop();
+
+    // Close health server
+    healthServer.close(() => {
+      console.log('[Bot] Health server closed.');
+    });
+
+    if (client.isReady()) {
+      console.log('[Bot] Destroying Discord client...');
+      await client.destroy();
+    }
+
+    console.log('[Bot] Shutdown complete.');
+    process.exit(0);
+  };
+
+  process.on('SIGINT', shutdown);
+  process.on('SIGTERM', shutdown);
 }
-
-process.on('unhandledRejection', (error) => {
-  console.error('[Bot] Unhandled rejection:', error);
-});
-
-process.on('SIGINT', () => {
-  console.log('\n[Bot] Shutting down gracefully...');
-  process.exit(0);
-});
-
-process.on('SIGTERM', () => {
-  console.log('\n[Bot] Shutting down gracefully...');
-  process.exit(0);
-});
 
 main().catch((error) => {
   console.error('[Bot] Fatal error:', error);

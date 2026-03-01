@@ -59,10 +59,17 @@ const CASINO_SNAPSHOTS: Map<string, CasinoTrustSnapshot> = new Map();
 const REASONS: Map<string, string[]> = new Map();
 const SOURCES: Map<string, Set<string>> = new Map();
 const WINDOW_MS = 24 * 60 * 60 * 1000;
+const MAX_EVENTS_PER_WINDOW = 2000; // Hard cap per casino to prevent OOM
+const MAX_REASONS_RETAINED = 50;
 
 function pruneWindow(arr: CasinoRealTimeWindowEvent[]) {
   const cutoff = Date.now() - WINDOW_MS;
+  // Prune by time
   while (arr.length && arr[0].ts < cutoff) arr.shift();
+  // Prune by size (keep most recent)
+  if (arr.length > MAX_EVENTS_PER_WINDOW) {
+    arr.splice(0, arr.length - MAX_EVENTS_PER_WINDOW);
+  }
 }
 
 function stdDev(nums: number[]): number {
@@ -169,11 +176,18 @@ eventRouter.subscribe('trust.casino.updated', (evt: TiltCheckEvent<TrustCasinoUp
   if (reason) {
     const arr = REASONS.get(casinoName) || [];
     arr.push(reason);
+    if (arr.length > MAX_REASONS_RETAINED) arr.shift();
     REASONS.set(casinoName, arr);
   }
   if (source) {
     if (!SOURCES.has(casinoName)) SOURCES.set(casinoName, new Set());
-    SOURCES.get(casinoName)!.add(source);
+    const set = SOURCES.get(casinoName)!;
+    set.add(source);
+    // Cap unique sources per casino (highly unlikely to hit 100, but safe)
+    if (set.size > 100) {
+      const first = set.values().next().value;
+      if (first) set.delete(first);
+    }
   }
   recomputeSnapshot(casinoName, newScore ?? 0, previousScore, severity);
   broadcastSnapshots();

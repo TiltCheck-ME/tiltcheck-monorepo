@@ -117,6 +117,16 @@ export interface BotConfig {
 
   // Mod notifications
   modNotifications: ModNotificationConfig;
+
+  // Solana & Tipping (Migrated from JustTheTip)
+  solanaRpcUrl: string;
+  botWalletPrivateKey: string;
+  feeWallet?: string;
+  jttHealthPort: number;
+
+  // Database / Supabase
+  supabaseUrl?: string;
+  supabaseServiceRoleKey?: string;
 }
 
 export const config: BotConfig = {
@@ -151,6 +161,16 @@ export const config: BotConfig = {
     maxNotificationsPerWindow: getNumberEnv('MOD_MAX_NOTIFICATIONS_PER_WINDOW', 10),
     dedupeWindowMs: getNumberEnv('MOD_DEDUPE_WINDOW_MS', 300000),
   },
+
+  // Solana & Tipping
+  solanaRpcUrl: process.env.SOLANA_RPC_URL || 'https://api.mainnet-beta.solana.com',
+  botWalletPrivateKey: getEnvVar('JUSTTHETIP_BOT_WALLET_PRIVATE_KEY', false),
+  feeWallet: getEnvVar('JUSTTHETIP_FEE_WALLET', false),
+  jttHealthPort: getNumberEnv('JTT_BOT_HEALTH_PORT', 8083),
+
+  // Database / Supabase
+  supabaseUrl: getEnvVar('SUPABASE_URL', false),
+  supabaseServiceRoleKey: getEnvVar('SUPABASE_SERVICE_ROLE_KEY', false),
 };
 
 // Validate config
@@ -196,5 +216,9 @@ export function validateConfig(): void {
   console.log(`[Config] Mod notifications: ${config.modNotifications.enabled ? 'enabled' : 'disabled'}`);
   if (config.modNotifications.enabled && config.modNotifications.modChannelId) {
     console.log(`[Config] Mod channel: ${config.modNotifications.modChannelId}`);
+  }
+
+  if (config.botWalletPrivateKey) {
+    console.log('[Config] Bot wallet: configured (Consolidated Tipping active)');
   }
 }
