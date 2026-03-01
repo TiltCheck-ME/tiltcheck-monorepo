@@ -10,40 +10,48 @@ This document provides a top-level overview of each tool — what it does, why i
 ---
 
 # 4.1 JustTheTip
-**Non-custodial tipping, airdrops, and micro-sends with optional swapping.**
 
-### Purpose:
+**Custodial tipping, airdrops, and micro-sends via a central bot-wallet.**
+
+### Purpose
+
 Solve the problems of:
+
 - custodial bots losing user funds  
 - swap bots running out of liquidity  
 - tip bots failing to deliver  
 - inconsistent fees  
 - confusion about gas + platform fees  
 
-### Core Features:
-- Non-custodial wallet via Magic or user-supplied address  
-- Tip users directly  
-- Airdrops to many users  
-- Flat fee system (founder-set)  
-- Optional swap via Jupiter after fee deduction  
-- No balance custody (no legal exposure)  
-- Discord-first UI  
- - Real-time pricing via in-memory oracle (event driven)  
- - Hardened swap quoting: slippage & fee breakdown  
- - Failure path detection (swap.failed)  
+### Core Features
 
-### Why It Exists:
-Degen tipping bots fail constantly.  
-JustTheTip fixes the liquidity and custody problems without becoming a custodial service.
+- Central bot-wallet that holds deposited crypto and credits users with SOL balance
+- Users register a Solana address to receive payouts
+- Tip users directly from the bot-wallet (internal credit -> on-chain transfer)
+- Airdrops from the bot-wallet to multiple recipients
+- Flat-fee system (founder-set) with optional swap via Jupiter
+- Custodial - the bot holds user funds in its pool, eliminating liquidity-risk of pure P2P bots
+- Discord-first UI
+- Real-time pricing via in-memory oracle (event driven)  
+- Hardened swap quoting: slippage & fee breakdown  
+- Failure path detection (swap.failed)  
 
-### Pricing & Swap Hardening Additions:
+### Why It Exists
+
+Degen tipping bots lose funds or run out of liquidity.  
+**JustTheTip now centralizes liquidity in a custodial bot-wallet**, removing the need for each user to hold funds on-chain while still providing fast, low-fee SOL payouts.
+
+### Pricing & Swap Hardening Additions
+
 The module now integrates a lightweight in-memory Pricing Oracle that:
+
 - Publishes `price.updated` events on every price change (payload includes token, oldPrice, newPrice, updatedAt, stale flag)
 - Tracks update timestamps and exposes `isStale(token)`
 - Applies a default TTL of 5 minutes; prices older than this are considered stale
 - Supports `refreshPrice(token, fetcher)` for external integration hooks (fetcher returns Promise<number>)
 
 Swap quotes now include:
+
 - `slippageBps`: Maximum tolerated slippage (basis points)
 - `minOutputAmount`: Minimum acceptable output after slippage tolerance
 - `platformFeeBps`: Founder/platform fee applied to output
@@ -52,6 +60,7 @@ Swap quotes now include:
 - Centralized defaults provided via `swapDefaults` (`slippageBps`, `platformFeeBps`, `networkFeeLamports`) and overrideable per tip.
 
 Events emitted by JustTheTip:
+
 - `tip.initiated`, `tip.completed`, `tip.pending.resolved`
 - `wallet.registered`, `wallet.disconnected`
 - `swap.quote`, `swap.completed`, `swap.failed`
@@ -65,10 +74,13 @@ These enhancements provide clearer transparency on pricing, fees, and swap relia
 ---
 
 # 4.2 SusLink
+
 **AI-powered link scanning + reputation scoring.**
 
-### Purpose:
+### Purpose
+
 Protect degens from:
+
 - scam links  
 - fake promo sites  
 - malicious redirects  
@@ -76,30 +88,36 @@ Protect degens from:
 - burner domains  
 - impersonation  
 
-### Core Features:
+### Core Features
+
 - URL pattern analysis  
 - Domain reputation checks  
 - Redirect chain inspection  
 - Active prediction scoring  
 - Optional integration with FreeSpinScan & CollectClock  
 
-### Why It Exists:
+### Why It Exists
+
 Degen Discord servers are full of bad links.  
 SusLink reduces mod overhead and protects users automatically.
 
 ---
 
 # 4.3 CollectClock
+
 **Daily bonus tracking, countdown timers, nerf detection, and casino reliability signals.**
 
-### Purpose:
+### Purpose
+
 Fix:
+
 - inconsistent daily bonus timers  
 - hidden bonus nerfs  
 - users forgetting claims  
 - missing data on casino promo behavior  
 
-### Core Features:
+### Core Features
+
 - Bonus countdown timers  
 - User-customizable tracking  
 - Network-wide bonus DB  
@@ -107,68 +125,27 @@ Fix:
 - Predictive bonus cycle modeling  
 - Casino Trust Engine integration  
 
-### Why It Exists:
+### Why It Exists
+
 Bonus cycles are chaotic.  
 CollectClock brings clarity and predictive intelligence to daily claims.
 
 ---
 
-# 4.4 FreeSpinScan
-**Free spin & promo submission, validation, mod approval, prediction.**
-
-### Purpose:
-Replace:
-- chaotic promo channels  
-- constant “don’t chat here” mod spam  
-- mismatched links  
-- nonsense submissions  
-
-### Core Features:
-- `/submit <link> <bonus type> <notes>`  
-- Automatic SusLink scan  
-- Casino/bonus category tagging  
-- Mod approval workflow  
-- Auto-posting to correct channel  
-- Prediction engine for future drops  
-
-### Why It Exists:
-Every casino community has a messy bonus channel.  
-FreeSpinScan fixes it with structure + AI validation.
-
----
-
-# 4.5 QualifyFirst
-**AI-powered user targeting for paid survey routing and screen-out avoidance.**
-
-### Purpose:
-Help users reach surveys they will *actually qualify for*.  
-Avoid screen-outs.  
-Avoid time waste.
-
-### Core Features:
-- Behavioral profile building  
-- Quick popup questions  
-- Routing to high-match surveys  
-- Optional integration with external survey platforms  
-- Optional in-house survey creation (future)  
-
-### Why It Exists:
-Survey sites waste users’ time with screen-outs.  
-QualifyFirst predicts matches before users click.
-
----
-
 # 4.6 DA&D — Degens Against Decency
+
 **An AI-powered Cards Against Humanity-style game.**
 
-### Purpose:
+### Purpose
+
 Give degens a fun, social, chaotic game to play within:
 
 - Discord  
 - TiltCheck Arena  
 - future web UI  
 
-### Core Features:
+### Core Features
+
 - Dynamic card generation  
 - Community packs  
 - Voting  
@@ -176,29 +153,35 @@ Give degens a fun, social, chaotic game to play within:
 - Seasonal pack rotation  
 - Optional casino-themed expansion  
 
-### Why It Exists:
+### Why It Exists
+
 Every degen community needs fun between tilts.
 
 ---
 
 # 4.7 TiltCheck Core (Tilt Detection)
+
 **Behavior analysis + cooldown nudges + accountability tools.**
 
-### Purpose:
+### Purpose
+
 Detect:
+
 - aggressive betting patterns  
 - rapid spin behavior  
 - Discord chat signs of tilt  
 - risky user decisions  
 
-### Core Features:
+### Core Features
+
 - Vault locking  
 - Cooldown suggestions  
 - "Phone-a-friend" notifications  
 - Accountabilibuddy double-wallet withdrawals  
 - Discord-based trust score signals  
 
-### Tilt Detection Heuristics:
+### Tilt Detection Heuristics
+
 TiltCheck Core implements several heuristics to detect tilt behavior:
 
 1. **Loss Streak Detection** — Tracks consecutive losses across tips, games, and bets. A loss streak of 3+ triggers tilt warnings with increasing severity.
@@ -213,49 +196,24 @@ TiltCheck Core implements several heuristics to detect tilt behavior:
 
 4. **Bad Beat Detection** — Listens to `game.completed` events and identifies unlikely losses (bad beats). A < 5% probability loss triggers high severity tilt warnings.
 
-### Event Router Integration:
+### Event Router Integration
+
 TiltCheck Core emits and subscribes to events:
 
 **Emitted Events:**
+
 - `tilt.detected` — When tilt score exceeds threshold (includes userId, reason, severity, signals)
 - `cooldown.violated` — When a user on cooldown attempts to continue
 
 **Subscribed Events:**
+
 - `tip.failed` — Tracks failed tip attempts as potential losses
 - `game.completed` — Processes game results for winners/losers and bad beats
 
-### Why It Exists:
+### Why It Exists
+
 Nobody thinks clearly on tilt.  
 TiltCheck helps users slow down *without policing them*.
-
----
-
-# 4.8 Funding Intelligence Layer (Agent-Only)
-**The brain that finds money, support, and resources for the founder.**
-
-### Purpose:
-Support founder survival by detecting:
-
-- grants  
-- startup credits  
-- cloud credits  
-- accelerator applications  
-- hackathons  
-- dev competitions  
-- bounties  
-- sponsorships  
-
-### Core Features:
-- Query free tools  
-- Match by project type  
-- Evaluate eligibility  
-- Track deadlines  
-- Surface best options  
-- Keep everything free-tier whenever possible  
-
-### Why It Exists:
-Solo founders need support.  
-TiltCheck’s agent should constantly look for funding paths.
 
 ---
 
