@@ -15,9 +15,7 @@ scp .env $remoteTarget
 
 # 2. Build the remote command
 # We use semicolons for multiple commands on the remote Linux server
-$c1 = "cd " + $REMOTE_PATH
-$c2 = "git pull origin main"
-$c3 = "docker compose pull"
+$c2 = "git fetch origin && git reset --hard origin/main"
 $c4 = "docker compose up -d --build"
 $c5 = "docker image prune -f"
 
