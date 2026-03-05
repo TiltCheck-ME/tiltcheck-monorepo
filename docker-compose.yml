@@ -8,7 +8,7 @@ services:
     deploy:
       resources:
         limits:
-          memory: 512M
+          memory: 256M
     env_file: .env
     environment:
       - SKIP_ENV_VALIDATION=1
@@ -28,7 +28,7 @@ services:
     deploy:
       resources:
         limits:
-          memory: 512M
+          memory: 256M
     env_file: .env
     environment:
       - SKIP_ENV_VALIDATION=1
@@ -52,7 +52,7 @@ services:
     deploy:
       resources:
         limits:
-          memory: 512M
+          memory: 256M
     env_file: .env
     environment:
       - SKIP_ENV_VALIDATION=1
@@ -76,7 +76,7 @@ services:
     deploy:
       resources:
         limits:
-          memory: 512M
+          memory: 256M
     env_file: .env
     environment:
       - SKIP_ENV_VALIDATION=1
@@ -95,7 +95,7 @@ services:
     deploy:
       resources:
         limits:
-          memory: 256M
+          memory: 128M
     healthcheck:
       test: [ "CMD-SHELL", "wget -qO- http://localhost:80/status.html || exit 0" ]
       interval: 60s
@@ -115,7 +115,7 @@ services:
     deploy:
       resources:
         limits:
-          memory: 512M
+          memory: 256M
     env_file: .env
     environment:
       - SKIP_ENV_VALIDATION=1
@@ -134,7 +134,7 @@ services:
     deploy:
       resources:
         limits:
-          memory: 512M
+          memory: 256M
     env_file: .env
     environment:
       - SKIP_ENV_VALIDATION=1
@@ -153,7 +153,7 @@ services:
     deploy:
       resources:
         limits:
-          memory: 512M
+          memory: 256M
     env_file: .env
     environment:
       - SKIP_ENV_VALIDATION=1
