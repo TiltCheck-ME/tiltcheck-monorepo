@@ -22,8 +22,13 @@ dotenv.config();
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const FULL_MODE = process.argv.includes('--full');
 
+// Also load from monorepo root .env as fallback (so you don't need a separate .env here)
+dotenv.config({ path: path.join(__dirname, '..', '..', '.env'), override: false });
+
+
 // ── Config ───────────────────────────────────────────────────────────────────
 const CHANNEL_URL = process.env.WATCH_CHANNEL_URL || '';
+const WATCH_KEYWORDS = process.env.WATCH_KEYWORDS ? process.env.WATCH_KEYWORDS.split(',').map(k => k.trim().toLowerCase()) : [];
 const LOG_FILE = path.join(__dirname, 'messages.jsonl');
 const REPORT_FILE = path.join(__dirname, 'reports.md');
 const SESSION_FILE = path.join(__dirname, '.session.json');
@@ -183,46 +188,45 @@ async function callProvider(provider, text, toSendCount) {
 }
 
 async function analyseMessages(messages) {
-    const toSend = sampleForGPT(messages);
-    if (toSend.length < messages.length) {
-        console.log(chalk.gray(`  Sampled ${toSend.length} representative messages from ${messages.length} total.`));
+    // Split messages into chunks of GPT_MAX_MESSAGES
+    const chunks = [];
+    for (let i = 0; i < messages.length; i += GPT_MAX_MESSAGES) {
+        chunks.push(messages.slice(i, i + GPT_MAX_MESSAGES));
     }
 
-    const text = toSend
-        .map(m => `[${new Date(m.timestamp).toLocaleString()}] ${m.author}: ${m.content.slice(0, 400)}`)
-        .join('\n');
+    console.log(chalk.cyan(`\nProcessing ${messages.length} messages in ${chunks.length} analytical chunks...\n`));
 
-    // PROVIDER=all → run every provider that has a key configured
-    if (PROVIDER === 'all') {
-        const eligible = Object.values(PROVIDERS).filter(p =>
-            p.apiKey && (p.apiKey !== 'ollama' || p.label === 'Ollama (local)')
-        );
+    const finalReports = [];
 
-        if (eligible.length === 0) {
-            console.log(chalk.yellow('No providers configured. Set at least one API key in .env.'));
-            return null;
+    for (let idx = 0; idx < chunks.length; idx++) {
+        const chunk = chunks[idx];
+        const text = chunk
+            .map(m => `[${new Date(m.timestamp).toLocaleString()}] ${m.author}: ${m.content.slice(0, 400)}`)
+            .join('\n');
+
+        console.log(chalk.yellow(`\n[Chunk ${idx + 1}/${chunks.length}] Analysing ${chunk.length} messages...`));
+
+        let chunkReport = '';
+        if (PROVIDER === 'all') {
+            const eligible = Object.values(PROVIDERS).filter(p =>
+                p.apiKey && (p.apiKey !== 'ollama' || p.label === 'Ollama (local)')
+            );
+            const results = await Promise.all(eligible.map(p => callProvider(p, text, chunk.length)));
+            const sections = eligible
+                .map((p, i) => results[i] ? `\n---\n#### 🤖 ${p.label}\n${results[i]}` : null)
+                .filter(Boolean);
+            chunkReport = sections.join('\n');
+        } else {
+            chunkReport = await callProvider(ai, text, chunk.length);
         }
 
-        console.log(chalk.cyan(`\nRunning all ${eligible.length} providers in parallel on ${toSend.length} messages...\n`));
-
-        const results = await Promise.all(eligible.map(p => callProvider(p, text, toSend.length)));
-
-        const sections = eligible
-            .map((p, i) => results[i] ? `\n\n---\n### 🤖 ${p.label} — ${p.model}\n\n${results[i]}` : null)
-            .filter(Boolean);
-
-        if (sections.length === 0) return null;
-        return `# Community Intelligence Report — ${new Date().toLocaleString()}\n_${toSend.length} messages · ${eligible.length} models_\n${sections.join('\n')}`;
+        if (chunkReport) {
+            finalReports.push(`### Batch ${idx + 1} Analysis\n${chunkReport}`);
+        }
     }
 
-    // Single provider mode
-    if (!ai.apiKey && PROVIDER !== 'ollama') {
-        console.log(chalk.yellow(`No API key set for ${ai.label}. Skipping analysis — messages saved to log.`));
-        return null;
-    }
-
-    console.log(chalk.cyan(`\nAnalysing ${toSend.length} messages via ${ai.label} (${ai.model})...`));
-    return callProvider(ai, text, toSend.length);
+    if (finalReports.length === 0) return null;
+    return `# Community Intelligence Report — ${new Date().toLocaleString()}\n_Total: ${messages.length} messages in ${chunks.length} batches_\n\n${finalReports.join('\n\n---\n\n')}`;
 }
 
 // ── Report output ─────────────────────────────────────────────────────────────
@@ -312,19 +316,23 @@ async function run() {
     let hitCheckpoint = false;
     let scrollPasses = 0;
     let noNewCount = 0;
+    let lastOldestId = null;
 
     while (!hitCheckpoint) {
         scrollPasses++;
 
         // Scrape currently visible messages
-        const visible = await page.evaluate(() => {
+        const { filtered, oldestIdSeen } = await page.evaluate((keywords) => {
             const items = document.querySelectorAll('ol[data-list-id="chat-messages"] > li[id^="chat-messages-"]');
+
+            // Track the oldest item in the DOM to see if we're actually moving
+            const oldestIdSeen = items.length > 0 ? items[0].id : null;
 
             // Regex to detect emoji-only content (unicode emoji + discord :name: syntax + whitespace)
             const emojiOnlyRe = /^[\s\u00A9\u00AE\u200d\u2000-\u3300\uD800-\uDFFF\uFE0F\u20E3:a-z0-9_]+$/i;
             const customEmojiRe = /^(\s*<a?:\w+:\d+>\s*|\s*:\w+:\s*)*$/; // Discord custom emoji markup
 
-            return Array.from(items).flatMap(li => {
+            const filtered = Array.from(items).flatMap(li => {
                 const idParts = li.id.split('-');
                 const messageId = idParts[idParts.length - 1];
 
@@ -345,27 +353,31 @@ async function run() {
                 // Filter: skip if content is empty (image/sticker/GIF only)
                 if (!rawContent) return [];
 
-                // Filter: skip emoji-only messages (just 🎰🔥 etc, no real words)
-                // Strip all emoji-like characters and see if anything substantive remains
+                // Filter: skip emoji-only messages
                 const stripped = rawContent
                     .replace(/[\u{1F000}-\u{1FFFF}\u{2600}-\u{27BF}\u{FE00}-\u{FEFF}\u{200B}-\u{200D}\uFFFE\uFFFF]/gu, '')
                     .replace(/:[a-z0-9_]+:/gi, '')   // :custom_emoji:
                     .replace(/\s+/g, '')
                     .trim();
-                if (stripped.length < 3) return []; // less than 3 real chars = noise
+                if (stripped.length < 3) return [];
 
-                // Filter: numbers only (bet amounts, counts, etc — no analytical value)
+                // Filter: numbers only
                 if (/^\d[\d,.\s]*$/.test(rawContent.trim())) return [];
 
-                // Filter: thank-you noise and short filler replies
+                // Filter: thank-you noise
                 const fillerRe = /^(ty+|tyty|thx+|thank(s| you| u)|yw|np|no ?prob(lem)?|good luck|gl|hf|gz|grats?|congrats?|gg|lol+|lmao|lmfao|ok+|okay|yep|yup|nope|sure|cool|nice+|👍|🙏|❤️|💪|🔥|🎉|f+|rip)\W*$/i;
                 if (fillerRe.test(rawContent.trim())) return [];
 
-
-                // Filter: skip embed-only messages (content is just a URL with no surrounding text)
+                // Filter: skip embed-only messages
                 const hasEmbed = !!li.querySelector('[class*="embedWrapper"], [class*="embed"]');
                 const isUrlOnly = /^https?:\/\/\S+$/.test(rawContent);
                 if (hasEmbed && isUrlOnly) return [];
+
+                // Hybrid Filter: Match keywords OR collect long/substantive stories
+                const isSubstantive = rawContent.length > 120; // Long posts are usually valuable
+                const hasKeyword = keywords && keywords.length > 0 && keywords.some(k => rawContent.toLowerCase().includes(k));
+
+                if (!hasKeyword && !isSubstantive) return [];
 
                 const author = li.querySelector('h3 [class*="username"]')?.textContent?.trim()
                     ?? li.querySelector('[class*="username"]')?.textContent?.trim()
@@ -373,10 +385,12 @@ async function run() {
 
                 return [{ messageId, timestamp, content: rawContent, author }];
             });
-        });
 
-        let newCount = 0;
-        for (const msg of visible) {
+            return { filtered, oldestIdSeen };
+        }, WATCH_KEYWORDS);
+
+        let newMatchCount = 0;
+        for (const msg of filtered) {
             if (collected.has(msg.messageId)) continue;
 
             // Stop at message cap
@@ -393,31 +407,35 @@ async function run() {
             }
 
             collected.set(msg.messageId, msg);
-            newCount++;
+            newMatchCount++;
         }
 
-        process.stdout.write(chalk.gray(`\r  Pass ${scrollPasses} — ${collected.size} messages collected so far...   `));
+        process.stdout.write(chalk.gray(`\r  Pass ${scrollPasses} — ${collected.size} matches found so far...   `));
 
         if (hitCheckpoint) break;
 
-        if (newCount === 0) {
+        // Check if the scroll actually moved by looking at the oldest ID in the DOM
+        if (oldestIdSeen === lastOldestId) {
             noNewCount++;
-            if (noNewCount >= 3) {
-                // Nothing new after 3 scroll attempts — assume we've hit the top
+            if (noNewCount >= 10) {
+                console.log(chalk.gray('\n  Chat stopped moving after 10 retries. Reached top.'));
                 break;
             }
+            await page.waitForTimeout(1000 * noNewCount);
         } else {
             noNewCount = 0;
+            lastOldestId = oldestIdSeen;
         }
 
-        // Scroll the message list upward to load older messages
+        // Scroll upward
         await page.evaluate(() => {
             const list = document.querySelector('ol[data-list-id="chat-messages"]');
-            if (list) list.scrollTop = 0;
+            if (list) { list.scrollTop = 0; }
         });
+        await page.keyboard.press('Home');
 
-        // Wait for Discord to load more messages
-        await page.waitForTimeout(1500);
+        // Wait for Discord to load more messages — slower for reliability
+        await page.waitForTimeout(2000);
     }
 
     await context.storageState({ path: SESSION_FILE });
