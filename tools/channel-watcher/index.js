@@ -24,18 +24,48 @@ const FULL_MODE = process.argv.includes('--full');
 
 // ── Config ───────────────────────────────────────────────────────────────────
 const CHANNEL_URL = process.env.WATCH_CHANNEL_URL || '';
-const OPENAI_API_KEY = process.env.OPENAI_API_KEY || '';
 const LOG_FILE = path.join(__dirname, 'messages.jsonl');
 const REPORT_FILE = path.join(__dirname, 'reports.md');
 const SESSION_FILE = path.join(__dirname, '.session.json');
 const CHECKPOINT = path.join(__dirname, '.checkpoint.json');
 
-// Scrape limits — stops scroll when either is hit
+// Scrape limits
 const MAX_MESSAGES = parseInt(process.env.MAX_MESSAGES || '400', 10);
 const LOOKBACK_HOURS = parseInt(process.env.LOOKBACK_HOURS || '48', 10);
-// GPT cap — smart-samples if collected > this (keeps costs down)
 const GPT_MAX_MESSAGES = parseInt(process.env.GPT_MAX_MESSAGES || '300', 10);
 
+// ── AI Provider config ───────────────────────────────────────────────────────
+// PROVIDER options: ollama | groq | gemini | openai
+const PROVIDER = (process.env.PROVIDER || 'ollama').toLowerCase();
+
+const PROVIDERS = {
+    ollama: {
+        baseUrl: process.env.OLLAMA_URL || 'http://localhost:11434/v1',
+        apiKey: 'ollama',   // Ollama ignores the key but the header must exist
+        model: process.env.AI_MODEL || 'llama3.2',
+        label: 'Ollama (local)',
+    },
+    groq: {
+        baseUrl: 'https://api.groq.com/openai/v1',
+        apiKey: process.env.GROQ_API_KEY || '',
+        model: process.env.AI_MODEL || 'llama-3.3-70b-versatile',
+        label: 'Groq (free cloud)',
+    },
+    gemini: {
+        baseUrl: 'https://generativelanguage.googleapis.com/v1beta/openai',
+        apiKey: process.env.GEMINI_API_KEY || '',
+        model: process.env.AI_MODEL || 'gemini-2.0-flash',
+        label: 'Google Gemini (free tier)',
+    },
+    openai: {
+        baseUrl: 'https://api.openai.com/v1',
+        apiKey: process.env.OPENAI_API_KEY || '',
+        model: process.env.AI_MODEL || 'gpt-4o-mini',
+        label: 'OpenAI',
+    },
+};
+
+const ai = PROVIDERS[PROVIDER] ?? PROVIDERS.ollama;
 
 const GPT_SYSTEM_PROMPT = `You are a community intelligence analyst for TiltCheck, a responsible gambling platform.
 You are given a batch of Discord messages scraped from a gambling community server.
@@ -114,12 +144,45 @@ function sampleForGPT(messages) {
     return [...messages.slice(0, head), ...midSample, ...messages.slice(-tail)];
 }
 
-async function analyseMessages(messages) {
-    if (!OPENAI_API_KEY) {
-        console.log(chalk.yellow('No OPENAI_API_KEY set — skipping analysis, messages saved to log.'));
+// Run one provider's analysis
+async function callProvider(provider, text, toSendCount) {
+    if (!provider.apiKey && provider.label !== 'Ollama (local)') return null;
+
+    console.log(chalk.cyan(`  → ${provider.label} (${provider.model})...`));
+
+    try {
+        const res = await fetch(`${provider.baseUrl}/chat/completions`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${provider.apiKey}`,
+            },
+            body: JSON.stringify({
+                model: provider.model,
+                messages: [
+                    { role: 'system', content: GPT_SYSTEM_PROMPT },
+                    { role: 'user', content: `Here are the messages:\n\n${text}` },
+                ],
+                temperature: 0.3,
+                max_tokens: 2500,
+            }),
+        });
+
+        if (!res.ok) {
+            console.error(chalk.red(`  ✗ ${provider.label} error:`), res.status, await res.text().catch(() => ''));
+            return null;
+        }
+        const data = await res.json();
+        const content = data.choices?.[0]?.message?.content ?? null;
+        if (content) console.log(chalk.green(`  ✓ ${provider.label} done`));
+        return content;
+    } catch (err) {
+        console.error(chalk.red(`  ✗ ${provider.label} failed:`), err.message);
         return null;
     }
+}
 
+async function analyseMessages(messages) {
     const toSend = sampleForGPT(messages);
     if (toSend.length < messages.length) {
         console.log(chalk.gray(`  Sampled ${toSend.length} representative messages from ${messages.length} total.`));
@@ -129,31 +192,37 @@ async function analyseMessages(messages) {
         .map(m => `[${new Date(m.timestamp).toLocaleString()}] ${m.author}: ${m.content.slice(0, 400)}`)
         .join('\n');
 
-    console.log(chalk.cyan(`\nSending ${toSend.length} messages to GPT-4o-mini...`));
+    // PROVIDER=all → run every provider that has a key configured
+    if (PROVIDER === 'all') {
+        const eligible = Object.values(PROVIDERS).filter(p =>
+            p.apiKey && (p.apiKey !== 'ollama' || p.label === 'Ollama (local)')
+        );
 
-    const res = await fetch('https://api.openai.com/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${OPENAI_API_KEY}`,
-        },
-        body: JSON.stringify({
-            model: 'gpt-4o-mini',
-            messages: [
-                { role: 'system', content: GPT_SYSTEM_PROMPT },
-                { role: 'user', content: `Here are the messages:\n\n${text}` },
-            ],
-            temperature: 0.3,
-            max_tokens: 2500,
-        }),
-    });
+        if (eligible.length === 0) {
+            console.log(chalk.yellow('No providers configured. Set at least one API key in .env.'));
+            return null;
+        }
 
-    if (!res.ok) {
-        console.error(chalk.red('OpenAI error:'), await res.text());
+        console.log(chalk.cyan(`\nRunning all ${eligible.length} providers in parallel on ${toSend.length} messages...\n`));
+
+        const results = await Promise.all(eligible.map(p => callProvider(p, text, toSend.length)));
+
+        const sections = eligible
+            .map((p, i) => results[i] ? `\n\n---\n### 🤖 ${p.label} — ${p.model}\n\n${results[i]}` : null)
+            .filter(Boolean);
+
+        if (sections.length === 0) return null;
+        return `# Community Intelligence Report — ${new Date().toLocaleString()}\n_${toSend.length} messages · ${eligible.length} models_\n${sections.join('\n')}`;
+    }
+
+    // Single provider mode
+    if (!ai.apiKey && PROVIDER !== 'ollama') {
+        console.log(chalk.yellow(`No API key set for ${ai.label}. Skipping analysis — messages saved to log.`));
         return null;
     }
-    const data = await res.json();
-    return data.choices?.[0]?.message?.content ?? null;
+
+    console.log(chalk.cyan(`\nAnalysing ${toSend.length} messages via ${ai.label} (${ai.model})...`));
+    return callProvider(ai, text, toSend.length);
 }
 
 // ── Report output ─────────────────────────────────────────────────────────────
