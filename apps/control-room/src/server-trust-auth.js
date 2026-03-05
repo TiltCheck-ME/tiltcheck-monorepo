@@ -27,8 +27,6 @@ const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'admin123';
 // Known containers in the TiltCheck stack
 const KNOWN_CONTAINERS = [
   { name: 'discord-bot', label: 'Discord Bot', icon: '🤖' },
-  { name: 'dad-bot', label: 'Dad Bot', icon: '👨' },
-  { name: 'justthetip', label: 'JustTheTip Bot', icon: '💸' },
   { name: 'api', label: 'API', icon: '🔌' },
   { name: 'dashboard', label: 'Dashboard', icon: '📊' },
   { name: 'user-dashboard', label: 'User Dashboard', icon: '👤' },

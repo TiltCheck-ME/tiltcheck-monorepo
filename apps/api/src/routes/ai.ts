@@ -1,33 +1,19 @@
 /**
  * © 2024–2026 TiltCheck Ecosystem. All Rights Reserved.
- * Created by jmenichole (https://github.com/jmenichole)
+ * AI routes — gateway consolidated into discord-bot TiltAgent.
+ * These HTTP endpoints are no longer active.
  */
 import { Router } from 'express';
-import { aiGateway } from '@tiltcheck/ai-gateway';
 
 const router = Router();
 
-// Generic AI processing endpoint
-router.post('/process', async (req, res) => {
-    try {
-        const response = await aiGateway.process(req.body);
-        res.json(response);
-    } catch (error: any) {
-        res.status(500).json({ success: false, error: error.message });
-    }
-});
-
-// App-specific shortcuts
-const apps = ['survey-matching', 'card-generation', 'moderation', 'tilt-detection', 'nl-commands', 'recommendations', 'support'];
-
-apps.forEach(app => {
-    router.post(`/${app}`, async (req, res) => {
-        try {
-            const response = await aiGateway.process({ application: app, ...req.body });
-            res.json(response);
-        } catch (error: any) {
-            res.status(500).json({ success: false, error: error.message });
-        }
+// AI processing is now handled directly inside the discord-bot's TiltAgent.
+// These routes are stubbed out and return a helpful message instead of crashing.
+router.all('/*', (_req, res) => {
+    res.status(410).json({
+        success: false,
+        error: 'AI Gateway has been consolidated into the discord-bot service.',
+        message: 'Use the Discord bot commands for AI-powered features.',
     });
 });
 
