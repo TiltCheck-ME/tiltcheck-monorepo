@@ -285,6 +285,14 @@ async function run() {
                     .trim();
                 if (stripped.length < 3) return []; // less than 3 real chars = noise
 
+                // Filter: numbers only (bet amounts, counts, etc — no analytical value)
+                if (/^\d[\d,.\s]*$/.test(rawContent.trim())) return [];
+
+                // Filter: thank-you noise and short filler replies
+                const fillerRe = /^(ty+|tyty|thx+|thank(s| you| u)|yw|np|no ?prob(lem)?|good luck|gl|hf|gz|grats?|congrats?|gg|lol+|lmao|lmfao|ok+|okay|yep|yup|nope|sure|cool|nice+|👍|🙏|❤️|💪|🔥|🎉|f+|rip)\W*$/i;
+                if (fillerRe.test(rawContent.trim())) return [];
+
+
                 // Filter: skip embed-only messages (content is just a URL with no surrounding text)
                 const hasEmbed = !!li.querySelector('[class*="embedWrapper"], [class*="embed"]');
                 const isUrlOnly = /^https?:\/\/\S+$/.test(rawContent);
