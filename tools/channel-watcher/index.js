@@ -30,6 +30,13 @@ const REPORT_FILE = path.join(__dirname, 'reports.md');
 const SESSION_FILE = path.join(__dirname, '.session.json');
 const CHECKPOINT = path.join(__dirname, '.checkpoint.json');
 
+// Scrape limits — stops scroll when either is hit
+const MAX_MESSAGES = parseInt(process.env.MAX_MESSAGES || '400', 10);
+const LOOKBACK_HOURS = parseInt(process.env.LOOKBACK_HOURS || '48', 10);
+// GPT cap — smart-samples if collected > this (keeps costs down)
+const GPT_MAX_MESSAGES = parseInt(process.env.GPT_MAX_MESSAGES || '300', 10);
+
+
 const GPT_SYSTEM_PROMPT = `You are a community intelligence analyst for TiltCheck, a responsible gambling platform.
 You are given a batch of Discord messages scraped from a gambling community server.
 
@@ -75,18 +82,54 @@ function saveCheckpoint(newestTimestamp, newestId) {
     }, null, 2));
 }
 
-// ── GPT Analysis ──────────────────────────────────────────────────────────────
+// ── Smart sampling — keeps oldest, newest, and even middle spread ───────────
+function sampleMessages(messages, limit) {
+    if (messages.length <= limit) return messages;
+
+    const headCount = Math.floor(limit * 0.20); // oldest 20%
+    const tailCount = Math.floor(limit * 0.20); // newest 20%
+    const midCount = limit - headCount - tailCount;
+
+    const head = messages.slice(0, headCount);
+    const tail = messages.slice(-tailCount);
+    const middle = messages.slice(headCount, messages.length - tailCount);
+
+    // Evenly sample from the middle section
+    const step = Math.max(1, Math.floor(middle.length / midCount));
+    const midSample = middle.filter((_, i) => i % step === 0).slice(0, midCount);
+
+    return [...head, ...midSample, ...tail];
+}
+
+// Sample messages to stay within GPT token limits.
+// Preserves the oldest 20%, newest 20%, and evenly samples the middle 60%.
+function sampleForGPT(messages) {
+    if (messages.length <= GPT_MAX_MESSAGES) return messages;
+    const head = Math.floor(GPT_MAX_MESSAGES * 0.20);
+    const tail = Math.floor(GPT_MAX_MESSAGES * 0.20);
+    const mid = GPT_MAX_MESSAGES - head - tail;
+    const middle = messages.slice(head, messages.length - tail);
+    const step = Math.max(1, Math.floor(middle.length / mid));
+    const midSample = middle.filter((_, i) => i % step === 0).slice(0, mid);
+    return [...messages.slice(0, head), ...midSample, ...messages.slice(-tail)];
+}
+
 async function analyseMessages(messages) {
     if (!OPENAI_API_KEY) {
         console.log(chalk.yellow('No OPENAI_API_KEY set — skipping analysis, messages saved to log.'));
         return null;
     }
 
-    const text = messages
-        .map(m => `[${new Date(m.timestamp).toLocaleString()}] ${m.author}: ${m.content.slice(0, 500)}`)
+    const toSend = sampleForGPT(messages);
+    if (toSend.length < messages.length) {
+        console.log(chalk.gray(`  Sampled ${toSend.length} representative messages from ${messages.length} total.`));
+    }
+
+    const text = toSend
+        .map(m => `[${new Date(m.timestamp).toLocaleString()}] ${m.author}: ${m.content.slice(0, 400)}`)
         .join('\n');
 
-    console.log(chalk.cyan(`\nSending ${messages.length} messages to GPT-4o-mini...`));
+    console.log(chalk.cyan(`\nSending ${toSend.length} messages to GPT-4o-mini...`));
 
     const res = await fetch('https://api.openai.com/v1/chat/completions', {
         method: 'POST',
@@ -140,14 +183,18 @@ async function run() {
     const checkpoint = loadCheckpoint();
     const stopAt = checkpoint?.lastTimestamp ? new Date(checkpoint.lastTimestamp) : null;
 
+    // Effective cutoff: the more recent of checkpoint OR LOOKBACK_HOURS ago
+    const lookbackCutoff = new Date(Date.now() - LOOKBACK_HOURS * 60 * 60 * 1000);
+    const effectiveCutoff = FULL_MODE ? null
+        : (stopAt && stopAt > lookbackCutoff ? stopAt : lookbackCutoff);
+
     console.log(chalk.bold.green('\n🎰 TiltCheck Channel Scraper\n'));
     if (FULL_MODE) {
-        console.log(chalk.yellow('Mode: FULL — scraping entire channel history'));
-    } else if (stopAt) {
-        console.log(chalk.white(`Mode: INCREMENTAL — scraping since ${stopAt.toLocaleString()}`));
+        console.log(chalk.yellow('Mode: FULL — scraping entire visible history'));
     } else {
-        console.log(chalk.white('Mode: FIRST RUN — scraping all available history'));
+        console.log(chalk.white(`Mode: since ${effectiveCutoff.toLocaleString()}`));
     }
+    console.log(chalk.white(`Limits: max ${MAX_MESSAGES} messages | ${LOOKBACK_HOURS}h lookback | GPT cap ${GPT_MAX_MESSAGES}`))
     console.log(chalk.white(`Channel: ${CHANNEL_URL}\n`));
 
     const storageState = existsSync(SESSION_FILE) ? SESSION_FILE : undefined;
@@ -203,26 +250,67 @@ async function run() {
         // Scrape currently visible messages
         const visible = await page.evaluate(() => {
             const items = document.querySelectorAll('ol[data-list-id="chat-messages"] > li[id^="chat-messages-"]');
-            return Array.from(items).map(li => {
-                const idParts = li.id.split('-'); // chat-messages-CHANNELID-MESSAGEID
+
+            // Regex to detect emoji-only content (unicode emoji + discord :name: syntax + whitespace)
+            const emojiOnlyRe = /^[\s\u00A9\u00AE\u200d\u2000-\u3300\uD800-\uDFFF\uFE0F\u20E3:a-z0-9_]+$/i;
+            const customEmojiRe = /^(\s*<a?:\w+:\d+>\s*|\s*:\w+:\s*)*$/; // Discord custom emoji markup
+
+            return Array.from(items).flatMap(li => {
+                const idParts = li.id.split('-');
                 const messageId = idParts[idParts.length - 1];
-                // Timestamp in the <time> element
+
+                // Filter: skip bot messages (have a bot tag badge)
+                const isBot = !!li.querySelector('[class*="botTag"], [class*="systemTag"]');
+                if (isBot) return [];
+
+                // Filter: skip system messages (join/leave/pin notifications)
+                const isSystem = !!li.querySelector('[class*="systemMessage"]');
+                if (isSystem) return [];
+
                 const timeEl = li.querySelector('time[datetime]');
                 const timestamp = timeEl?.getAttribute('datetime') ?? null;
-                const content = li.querySelector('[class*="messageContent"]')?.textContent?.trim() ?? '';
+
+                const contentEl = li.querySelector('[class*="messageContent"]');
+                const rawContent = contentEl?.textContent?.trim() ?? '';
+
+                // Filter: skip if content is empty (image/sticker/GIF only)
+                if (!rawContent) return [];
+
+                // Filter: skip emoji-only messages (just 🎰🔥 etc, no real words)
+                // Strip all emoji-like characters and see if anything substantive remains
+                const stripped = rawContent
+                    .replace(/[\u{1F000}-\u{1FFFF}\u{2600}-\u{27BF}\u{FE00}-\u{FEFF}\u{200B}-\u{200D}\uFFFE\uFFFF]/gu, '')
+                    .replace(/:[a-z0-9_]+:/gi, '')   // :custom_emoji:
+                    .replace(/\s+/g, '')
+                    .trim();
+                if (stripped.length < 3) return []; // less than 3 real chars = noise
+
+                // Filter: skip embed-only messages (content is just a URL with no surrounding text)
+                const hasEmbed = !!li.querySelector('[class*="embedWrapper"], [class*="embed"]');
+                const isUrlOnly = /^https?:\/\/\S+$/.test(rawContent);
+                if (hasEmbed && isUrlOnly) return [];
+
                 const author = li.querySelector('h3 [class*="username"]')?.textContent?.trim()
                     ?? li.querySelector('[class*="username"]')?.textContent?.trim()
                     ?? '';
-                return { messageId, timestamp, content, author };
-            }).filter(m => m.content && m.messageId);
+
+                return [{ messageId, timestamp, content: rawContent, author }];
+            });
         });
 
         let newCount = 0;
         for (const msg of visible) {
             if (collected.has(msg.messageId)) continue;
 
-            // Check if we've reached our last checkpoint
-            if (stopAt && msg.timestamp && new Date(msg.timestamp) <= stopAt) {
+            // Stop at message cap
+            if (collected.size >= MAX_MESSAGES) {
+                console.log(chalk.yellow(`\n  Reached MAX_MESSAGES limit (${MAX_MESSAGES}). Stopping.`));
+                hitCheckpoint = true;
+                break;
+            }
+
+            // Stop if older than our cutoff
+            if (effectiveCutoff && msg.timestamp && new Date(msg.timestamp) <= effectiveCutoff) {
                 hitCheckpoint = true;
                 break;
             }
