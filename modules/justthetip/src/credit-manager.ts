@@ -18,7 +18,7 @@ import path from 'path';
 
 // Fee configuration
 export const FLAT_FEE_LAMPORTS = 700_000; // 0.0007 SOL
-export const MIN_DEPOSIT_LAMPORTS = 10_000_000; // 0.01 SOL
+export const MIN_DEPOSIT_LAMPORTS = 100_000; // 0.0001 SOL
 
 // Fallback file path
 const FALLBACK_DIR = path.join(process.cwd(), 'data');
