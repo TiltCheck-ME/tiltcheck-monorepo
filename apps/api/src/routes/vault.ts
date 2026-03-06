@@ -62,8 +62,10 @@ router.get('/:userId/lock-status', authMiddleware, async (req, res) => {
 
   const locks = getVaultStatus(userId);
   const activeLock = locks.find(v => v.status === 'locked' || v.status === 'extended');
+  const unlockableLock = locks.find(v => v.status === 'unlocked' && Date.now() >= v.unlockAt);
+  const displayLock = activeLock || unlockableLock;
 
-  if (!activeLock) {
+  if (!displayLock) {
     res.json({ success: true, locked: false });
     return;
   }
@@ -71,11 +73,12 @@ router.get('/:userId/lock-status', authMiddleware, async (req, res) => {
   res.json({
     success: true,
     locked: true,
-    amount: activeLock.lockedAmountSOL, // Extension primarily displays USD but the record stores normalized SOL. 
-    // For consistency with extension expectations:
-    unlockTime: new Date(activeLock.unlockAt).toISOString(),
-    createdAt: new Date(activeLock.createdAt).toISOString(),
-    id: activeLock.id
+    amount: displayLock.lockedAmountSOL,
+    amountUnit: 'SOL',
+    unlockTime: new Date(displayLock.unlockAt).toISOString(),
+    createdAt: new Date(displayLock.createdAt).toISOString(),
+    id: displayLock.id,
+    readyToRelease: Date.now() >= displayLock.unlockAt
   });
 });
 
@@ -93,12 +96,13 @@ router.post('/:userId/deposit', authMiddleware, async (req, res) => {
     return;
   }
 
-  if (amount === undefined || isNaN(amount) || amount <= 0) {
+  const parsedAmount = Number(amount);
+  if (!Number.isFinite(parsedAmount) || parsedAmount <= 0) {
     res.status(400).json({ error: 'Invalid amount' });
     return;
   }
 
-  const newBalance = depositToVault(userId, amount);
+  const newBalance = depositToVault(userId, parsedAmount);
   res.json({
     success: true,
     vault: {
@@ -121,11 +125,22 @@ router.post('/:userId/lock', authMiddleware, async (req, res) => {
     return;
   }
 
+  const parsedAmount = Number(amount);
+  const parsedDurationMinutes = Number(durationMinutes);
+  if (!Number.isFinite(parsedAmount) || parsedAmount <= 0) {
+    res.status(400).json({ error: 'Invalid amount' });
+    return;
+  }
+  if (!Number.isFinite(parsedDurationMinutes) || parsedDurationMinutes <= 0) {
+    res.status(400).json({ error: 'Invalid durationMinutes' });
+    return;
+  }
+
   try {
     const record = await lockVault({
       userId,
-      amountRaw: `${amount} USD`,
-      durationRaw: `${durationMinutes}m`,
+      amountRaw: `${parsedAmount} USD`,
+      durationRaw: `${Math.trunc(parsedDurationMinutes)}m`,
       reason: reason || 'Manual Lock',
       currencyHint: 'USD'
     });
@@ -153,13 +168,21 @@ router.post('/:userId/release', authMiddleware, async (req, res) => {
     return;
   }
 
+  if (vaultId !== undefined && (typeof vaultId !== 'string' || vaultId.trim().length === 0)) {
+    res.status(400).json({ error: 'Invalid vaultId' });
+    return;
+  }
+
   try {
-    let targetVaultId = vaultId;
+    let targetVaultId = typeof vaultId === 'string' ? vaultId.trim() : vaultId;
     
     // If no vaultId provided, find the first unlockable one
     if (!targetVaultId) {
       const locks = getVaultStatus(userId);
-      const ready = locks.find(v => v.status === 'locked' && Date.now() >= v.unlockAt);
+      const ready = locks.find(v =>
+        (v.status === 'locked' || v.status === 'extended' || v.status === 'unlocked') &&
+        Date.now() >= v.unlockAt
+      );
       if (!ready) {
         res.status(400).json({ error: 'No vaults ready for release' });
         return;
@@ -172,6 +195,7 @@ router.post('/:userId/release', authMiddleware, async (req, res) => {
     res.json({
       success: true,
       amount: record.lockedAmountSOL,
+      amountUnit: 'SOL',
       vault: record
     });
   } catch (error: any) {

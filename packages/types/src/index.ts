@@ -589,6 +589,7 @@ export type EventType =
   | 'vault.extended'
   | 'vault.expired'
   | 'vault.reload_due'
+  | 'vault.auto_withdraw_requested'
   | 'transaction.created'
   | 'transaction.approved'
   | 'transaction.submitted'
