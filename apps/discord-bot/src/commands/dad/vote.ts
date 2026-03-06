@@ -9,7 +9,7 @@
 import { SlashCommandBuilder, ChatInputCommandInteraction } from 'discord.js';
 import { dad } from '@tiltcheck/dad';
 import { successEmbed, errorEmbed } from '@tiltcheck/discord-utils';
-import type { Command } from '../types.js';
+import type { Command } from '../../types.js';
 
 export const vote: Command = {
   data: new SlashCommandBuilder()

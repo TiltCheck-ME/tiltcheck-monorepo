@@ -294,7 +294,8 @@ async function handleVaultUnlock(interaction: ChatInputCommandInteraction) {
   const id = interaction.options.getString('id', true);
   try {
     const vault = unlockVault(interaction.user.id, id);
-    await interaction.reply({ content: `✅ Vault ${id} unlocked!`, ephemeral: true });
+    const released = vault.lockedAmountSOL === 0 ? 'ALL' : `${vault.lockedAmountSOL.toFixed(4)} SOL`;
+    await interaction.reply({ content: `✅ Vault ${id} unlocked. Released: ${released}`, ephemeral: true });
   } catch (err) {
     await interaction.reply({ content: `❌ Unlock failed: ${err instanceof Error ? err.message : err}`, ephemeral: true });
   }
@@ -306,7 +307,11 @@ async function handleVaultStatus(interaction: ChatInputCommandInteraction) {
     await interaction.reply({ content: 'No active vaults.', ephemeral: true });
     return;
   }
-  const list = vaults.map((v: any) => `• ${v.id}: ${v.status}, unlocks <t:${Math.floor(v.unlockAt / 1000)}:R>`).join('\n');
+  const list = vaults.map((v: any) => {
+    const ready = Date.now() >= v.unlockAt ? 'ready' : 'waiting';
+    const amount = v.lockedAmountSOL === 0 ? 'ALL' : `${Number(v.lockedAmountSOL || 0).toFixed(4)} SOL`;
+    return `• ${v.id}: ${v.status} (${ready}), unlocks <t:${Math.floor(v.unlockAt / 1000)}:R>, amount ${amount}`;
+  }).join('\n');
   await interaction.reply({ content: `🔐 **Your Vaults:**\n${list}`, ephemeral: true });
 }
 
