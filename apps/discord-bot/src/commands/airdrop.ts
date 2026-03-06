@@ -14,7 +14,7 @@ import { SlashCommandBuilder, ChatInputCommandInteraction, EmbedBuilder, ButtonB
 import type { Command } from '../types.js';
 import { hasWallet, getWallet, createAirdropWithFeeRequest } from '@tiltcheck/justthetip';
 import { parseAmountNL, formatAmount } from '@tiltcheck/natural-language-parser';
-import { pricingOracle } from '@tiltcheck/pricing-oracle';
+import { getUsdPriceSync } from '@tiltcheck/utils';
 import { Connection } from '@solana/web3.js';
 
 const SOLANA_RPC_URL = process.env.SOLANA_RPC_URL || 'https://api.mainnet-beta.solana.com';
@@ -64,7 +64,7 @@ export const airdrop: Command = {
     let amountPerRecipientSOL = parsedAmount.value;
     if (parsedAmount.currency === 'USD') {
       try {
-        const solPrice = pricingOracle.getUsdPrice('SOL');
+        const solPrice = getUsdPriceSync('SOL');
         amountPerRecipientSOL = parsedAmount.value / solPrice;
       } catch {
         await interaction.editReply({ content: '❌ Unable to get current SOL price. Please try again or specify amount in SOL.' });

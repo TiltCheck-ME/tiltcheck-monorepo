@@ -15,6 +15,7 @@ import rateLimit from 'express-rate-limit';
 import { sessionAuth, type AuthContext } from '@tiltcheck/auth/middleware/express';
 import { verifySolanaSignature, verifySessionCookie, type JWTConfig } from '@tiltcheck/auth';
 import { createTip, findTipById, updateTipStatus, findUserByDiscordId } from '@tiltcheck/db';
+import { getJWTConfig } from '../middleware/auth.js';
 
 const router = Router();
 
@@ -35,14 +36,6 @@ const verifyLimiter = rateLimit({
   message: { error: 'Too many verification requests', code: 'RATE_LIMIT_EXCEEDED' },
 });
 
-function getJWTConfig(): JWTConfig {
-  return {
-    secret: process.env.JWT_SECRET || '',
-    issuer: process.env.JWT_ISSUER || 'tiltcheck.me',
-    audience: process.env.JWT_AUDIENCE || 'tiltcheck.me',
-    expiresIn: process.env.JWT_EXPIRES_IN || '7d',
-  };
-}
 
 /**
  * POST /tip/verify

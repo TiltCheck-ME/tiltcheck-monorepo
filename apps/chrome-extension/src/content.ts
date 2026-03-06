@@ -1,25 +1,9 @@
-// v1.1.0 — 2026-02-26
 /**
  * © 2024–2025 TiltCheck Ecosystem. All Rights Reserved.
  * Created by jmenichole (https://github.com/jmenichole)
  *
  * This file is part of the TiltCheck project.
  * For licensing information, see LICENSE file in the project root.
- */
-/*
- * Future Feature List (Post-Beta)
- * - SusLink integration: Check casino against known scam reports
- * - Report submission: Players can flag casino updates (payout schedules, bonus terms)
- * - Onboarding interviews: Support for business, casino, degen, developer profiles
- * - Buddy system: Phone-a-friend notification toggles and alerts
- * - Accountability streaming: Integration with streaming platforms for accountability checks
- * - Discord support: Help tickets and community-driven support channels
- * - Autovault: API-key-based automatic vault deposits at thresholds
- * - Lock wallet integration: Withdraw-to-lock-timer patterns for security
- * - Custom balance alerts: Personalized notifications (e.g., Power Bill equivalent)
- * - Pattern learning: Natural language setup for personal betting patterns
- * - Zero balance intervention: Suggest alternative income opportunities
- * - Harm reduction tips: Smart suggestions based on session data
  */
 
 /**
@@ -434,7 +418,7 @@ function stopMonitoring() {
   }
 
   isMonitoring = false;
-  (window as any).TiltGuardSidebar?.updateGuardian(false);
+  (window as any).TiltCheckSidebar?.updateGuardian(false);
 
   console.log('[TiltGuard] Monitoring stopped');
 }
@@ -462,7 +446,7 @@ function handleSpinEvent(spinData: SpinEvent, session: { sessionId: string, user
       totalWagered: sessionSummary.totalWagered || 0,
       totalWon: sessionSummary.totalWon || 0
     };
-    (window as any).TiltGuardSidebar?.updateStats(stats);
+    (window as any).TiltCheckSidebar?.updateStats(stats);
 
     // Check for tilt immediately after bet
     const tiltSigns = tiltDetector.detectAllTiltSigns();
@@ -470,7 +454,7 @@ function handleSpinEvent(spinData: SpinEvent, session: { sessionId: string, user
     const indicators = tiltSigns.map(sign => sign.description);
 
     // Update sidebar tilt score
-    (window as any).TiltGuardSidebar?.updateTilt(tiltRisk, indicators);
+    (window as any).TiltCheckSidebar?.updateTilt(tiltRisk, indicators);
 
     const interventions = tiltDetector.generateInterventions();
     if (interventions.length > 0) {
@@ -549,7 +533,7 @@ function startTiltMonitoring() {
     const indicators = tiltSigns.map(sign => sign.description);
 
     // Update sidebar
-    (window as any).TiltGuardSidebar?.updateTilt(tiltRisk, indicators);
+    (window as any).TiltCheckSidebar?.updateTilt(tiltRisk, indicators);
 
     // Send to popup
     chrome.runtime.sendMessage({
@@ -564,7 +548,7 @@ function startTiltMonitoring() {
     // Check for critical tilt
     if (tiltRisk >= 80) {
       triggerEmergencyStop('Critical tilt detected!');
-      (window as any).TiltGuardSidebar?.notifyBuddy('critical_tilt', { risk: tiltRisk });
+      (window as any).TiltCheckSidebar?.notifyBuddy('critical_tilt', { risk: tiltRisk });
     }
   }, 5000); // Check every 5 seconds
 }
@@ -612,7 +596,7 @@ function handleInterventions(interventions: any[]) {
     });
 
     // Notify Buddy
-    (window as any).TiltGuardSidebar?.notifyBuddy('intervention', {
+    (window as any).TiltCheckSidebar?.notifyBuddy('intervention', {
       type: intervention.type,
       data: intervention.data
     });

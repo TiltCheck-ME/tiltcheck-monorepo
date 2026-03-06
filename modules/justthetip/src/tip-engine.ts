@@ -19,11 +19,168 @@ import {
   Keypair,
 } from '@solana/web3.js';
 import { eventRouter } from '@tiltcheck/event-router';
-import { pricingOracle } from '@tiltcheck/pricing-oracle';
+import { getUsdPriceSync } from '@tiltcheck/utils';
 import { getWallet } from './wallet-manager.js';
 import { v4 as uuidv4 } from 'uuid';
-import fs from 'fs';
-import path from 'path';
+
+const SOLANA_RPC_URL = process.env.SOLANA_RPC_URL || 'https://api.mainnet-beta.solana.com';
+const FLAT_FEE_SOL = 0.0007; // ~$0.07 at $100/SOL
+
+const connection = new Connection(SOLANA_RPC_URL, 'confirmed');
+
+export interface TipRequest {
+  senderId: string;
+  recipientId: string;
+  amount: number; // SOL or USD depending on currency
+  currency: 'SOL' | 'USD';
+  isAll?: boolean; // Send full balance
+}
+
+export interface TipResult {
+  success: boolean;
+  tipId: string;
+  signature?: string;
+  amount: number; // Actual SOL sent
+  fee: number; // Fee deducted
+  error?: string;
+}
+
+/**
+ * Execute tip (non-custodial, requires sender signature)
+ * If the recipient does not have a registered Solana wallet, returns an error
+ * with instructions to register — tips are NOT held or queued.
+ */
+export async function executeTip(request: TipRequest, senderKeypair: Keypair): Promise<TipResult> {
+  const tipId = uuidv4();
+
+  try {
+    // Get sender wallet
+    const senderWallet = getWallet(request.senderId);
+    if (!senderWallet) {
+      return {
+        success: false,
+        tipId,
+        amount: 0,
+        fee: 0,
+        error: 'Sender wallet not registered',
+      };
+    }
+
+    // Get recipient wallet — no pending queue: recipient must be registered first
+    const recipientWallet = getWallet(request.recipientId);
+    if (!recipientWallet) {
+      return {
+        success: false,
+        tipId,
+        amount: 0,
+        fee: 0,
+        error: [
+          '❌ Recipient does not have a Solana wallet registered.',
+          'Ask them to register with `/justthetip wallet register-external <address>` or',
+          'via the TiltCheck dashboard at https://tiltcheck.me/dashboard.',
+        ].join('\n'),
+      };
+    }
+
+    // Convert to SOL if needed
+    let amountSol = request.amount;
+    if (request.currency === 'USD') {
+      const solPrice = getUsdPriceSync('SOL');
+      if (!solPrice || solPrice <= 0) {
+        throw new Error('Unable to get current SOL price. Please try again later.');
+      }
+      amountSol = request.amount / solPrice;
+    }
+
+    // Handle "all" - get sender balance
+    if (request.isAll) {
+      const senderPubkey = new PublicKey(senderWallet.address);
+      const balance = await connection.getBalance(senderPubkey);
+      amountSol = (balance / LAMPORTS_PER_SOL) - FLAT_FEE_SOL - 0.001; // Reserve for rent + gas
+    }
+
+    // Deduct flat fee
+    const netAmount = amountSol - FLAT_FEE_SOL;
+
+    if (netAmount <= 0) {
+      return {
+        success: false,
+        tipId,
+        amount: 0,
+        fee: FLAT_FEE_SOL,
+        error: 'Amount too small after fee deduction',
+      };
+    }
+
+    // Create transfer transaction
+    const senderPubkey = new PublicKey(senderWallet.address);
+    const recipientPubkey = new PublicKey(recipientWallet.address);
+
+    const transaction = new Transaction().add(
+      SystemProgram.transfer({
+        fromPubkey: senderPubkey,
+        toPubkey: recipientPubkey,
+        lamports: Math.floor(netAmount * LAMPORTS_PER_SOL),
+      })
+    );
+
+    // Get recent blockhash
+    const { blockhash } = await connection.getLatestBlockhash('confirmed');
+    transaction.recentBlockhash = blockhash;
+    transaction.feePayer = senderPubkey;
+
+    // Sign transaction
+    transaction.sign(senderKeypair);
+
+    // Send transaction
+    const signature = await connection.sendRawTransaction(transaction.serialize(), {
+      skipPreflight: false,
+      preflightCommitment: 'confirmed',
+    });
+
+    // Confirm transaction
+    await connection.confirmTransaction(signature, 'confirmed');
+
+    // Emit success event
+    void eventRouter.publish('tip.sent', 'justthetip', {
+      tipId,
+      senderId: request.senderId,
+      recipientId: request.recipientId,
+      amount: netAmount,
+      fee: FLAT_FEE_SOL,
+      signature,
+      currency: request.currency,
+    });
+
+    console.log(`[JustTheTip] Tip sent: ${netAmount} SOL from ${request.senderId} to ${request.recipientId}`);
+
+    return {
+      success: true,
+      tipId,
+      signature,
+      amount: netAmount,
+      fee: FLAT_FEE_SOL,
+    };
+  } catch (error) {
+    console.error('[JustTheTip] Tip execution failed:', error);
+
+    void eventRouter.publish('tip.failed', 'justthetip', {
+      tipId,
+      senderId: request.senderId,
+      recipientId: request.recipientId,
+      error: error instanceof Error ? error.message : 'Unknown error',
+    });
+
+    return {
+      success: false,
+      tipId,
+      amount: 0,
+      fee: 0,
+      error: error instanceof Error ? error.message : 'Transaction failed',
+    };
+  }
+}
+
 
 const SOLANA_RPC_URL = process.env.SOLANA_RPC_URL || 'https://api.mainnet-beta.solana.com';
 const FLAT_FEE_SOL = 0.0007; // ~$0.07 at $100/SOL
@@ -124,9 +281,16 @@ export async function executeTip(request: TipRequest, senderKeypair: Keypair): P
     const recipientWallet = getWallet(request.recipientId);
     if (!recipientWallet) {
       // Create pending tip
-      const amount = request.currency === 'USD'
-        ? request.amount / pricingOracle.getUsdPrice('SOL')
-        : request.amount;
+      let amount: number;
+      if (request.currency === 'USD') {
+        const solPrice = getUsdPriceSync('SOL');
+        if (!solPrice || solPrice <= 0) {
+          throw new Error('Unable to get current SOL price. Please try again later.');
+        }
+        amount = request.amount / solPrice;
+      } else {
+        amount = request.amount;
+      }
 
       const pending: PendingTip = {
         id: tipId,
@@ -163,7 +327,11 @@ export async function executeTip(request: TipRequest, senderKeypair: Keypair): P
     // Convert to SOL if needed
     let amountSol = request.amount;
     if (request.currency === 'USD') {
-      amountSol = request.amount / pricingOracle.getUsdPrice('SOL');
+      const solPrice = getUsdPriceSync('SOL');
+      if (!solPrice || solPrice <= 0) {
+        throw new Error('Unable to get current SOL price. Please try again later.');
+      }
+      amountSol = request.amount / solPrice;
     }
 
     // Handle "all" - get sender balance

@@ -32,6 +32,7 @@ import { aiRouter } from './routes/ai.js';
 import { pricingRouter } from './routes/pricing.js';
 import { casinoRouter } from './routes/casino.js';
 import { bonusRouter } from './routes/bonus.js';
+import { vaultRouter } from './routes/vault.js';
 import modRouter from './routes/mod.js';
 import { errorHandler, notFoundHandler } from './middleware/error.js';
 import { requestLogger } from './middleware/logger.js';
@@ -152,6 +153,7 @@ app.use('/ai', aiRouter);
 app.use('/pricing', pricingRouter);
 app.use('/casino', casinoRouter);
 app.use('/bonus', bonusRouter);
+app.use('/vault', vaultRouter);
 
 // Moderation routes
 app.use('/mod', modRouter);

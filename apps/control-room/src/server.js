@@ -70,7 +70,7 @@ app.get('/api/auth/status', (req, res) => {
 app.get('/api/system/status', requireAuth, async (req, res) => {
   try {
     const services = [
-      'event-router', 'trust-engines', 'logging', 'pricing-oracle',
+      'event-router', 'trust-engines', 'logging',
       'trust-rollup', 'reverse-proxy', 'landing', 'dashboard',
       'qualifyfirst', 'ai-gateway', 'collectclock', 'control-room', 'user-dashboard'
     ];

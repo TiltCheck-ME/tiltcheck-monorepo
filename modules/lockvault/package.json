@@ -22,8 +22,8 @@
     "@solana/web3.js": "^1.95.0",
     "@tiltcheck/event-router": "workspace:*",
     "@tiltcheck/natural-language-parser": "workspace:*",
-    "@tiltcheck/pricing-oracle": "workspace:*",
-    "@tiltcheck/types": "workspace:*"
+    "@tiltcheck/types": "workspace:*",
+    "@tiltcheck/utils": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "^25.3.0",

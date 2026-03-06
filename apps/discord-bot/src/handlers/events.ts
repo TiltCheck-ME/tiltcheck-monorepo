@@ -133,7 +133,7 @@ export class EventHandler {
           if (result.riskLevel === 'high' || result.riskLevel === 'critical') {
             await message.reply(
               `Heads up: sketchy link detected (${result.riskLevel})\n${url}\nReason: ${result.reason}`
-            ).catch(() => {});
+            ).catch(() => { });
           }
         } catch (error) {
           console.error('[EventHandler] Auto-scan failed:', error);
@@ -256,7 +256,7 @@ export class EventHandler {
             ? `Cooldown violation. ${remainingMin} minutes left, and it got extended.`
             : `Cooldown still active. ${remainingMin} minutes left.`;
 
-          await user.send(violationMessage).catch(() => {});
+          await user.send(violationMessage).catch(() => { });
 
           await this.handleModAction('cooldown.violated', {
             ...event.data,
@@ -282,6 +282,48 @@ export class EventHandler {
       'scam.reported',
       async (event: TiltCheckEvent) => {
         await this.handleModAction('scam.reported', event.data);
+      },
+      'discord-bot'
+    );
+
+    // LockVault Subscriptions
+    eventRouter.subscribe(
+      'vault.expired',
+      async (event: TiltCheckEvent) => {
+        const { userId, id, address, amountSOL } = event.data;
+        const user = await this.client.users.fetch(userId).catch(() => null);
+        if (user) {
+          const amountText = amountSOL === 0 ? 'all funds' : `${amountSOL.toFixed(4)} SOL eq`;
+          await user.send(`🔓 **Vault Unlocked!**\n\nYour vault \`${id}\` (${amountText}) is now ready for withdrawal.\nUse \`/vault unlock id:${id}\` to release it.\n\nAddress: \`${address}\``).catch(() => { });
+        }
+      },
+      'discord-bot'
+    );
+
+    eventRouter.subscribe(
+      'vault.reload_due',
+      async (event: TiltCheckEvent) => {
+        const { userId, amountRaw, interval } = event.data;
+        const user = await this.client.users.fetch(userId).catch(() => null);
+        if (user) {
+          await user.send(`📅 **Vault Reload Due (${interval})**\n\nTime for your scheduled lock of **${amountRaw}**.\nRun \`/vault lock amount:${amountRaw} duration:24h\` to stay on track.`).catch(() => { });
+        }
+      },
+      'discord-bot'
+    );
+
+    eventRouter.subscribe(
+      'vault.locked',
+      async (event: TiltCheckEvent) => {
+        const { userId, id, vaultType, vaultAddress, amountSOL } = event.data;
+        // Only DM if it's potentially an auto-vault (not explicitly created by command reply)
+        // For simplicity, we can just DM every lock as a "secure receipt", or only for magic/auto.
+        const user = await this.client.users.fetch(userId).catch(() => null);
+        if (user) {
+          const typeText = vaultType === 'magic' ? 'your Degen Identity' : 'a disposable vault';
+          const amountText = amountSOL === 0 ? 'ALL' : amountSOL.toFixed(4);
+          await user.send(`🔒 **Vault Locked**\n\nFunds secured in ${typeText}.\n- **ID:** \`${id}\`\n- **Target:** \`${amountText} SOL eq\`\n- **Address:** \`${vaultAddress}\`\n\nUse \`/vault status\` to view your locks.`).catch(() => { });
+        }
       },
       'discord-bot'
     );

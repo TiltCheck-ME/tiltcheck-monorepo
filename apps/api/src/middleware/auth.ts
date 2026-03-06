@@ -14,6 +14,23 @@
 import type { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import { findUserById } from '@tiltcheck/db';
+import type { JWTConfig } from '@tiltcheck/auth';
+
+/**
+ * Get unified JWT configuration
+ */
+export function getJWTConfig(): JWTConfig {
+  const secret = process.env.JWT_SECRET || '';
+  if (!secret && process.env.NODE_ENV !== 'test') {
+    throw new Error('[FATAL] JWT_SECRET env var is required for signatures');
+  }
+  return {
+    secret,
+    issuer: process.env.JWT_ISSUER || 'tiltcheck.me',
+    audience: process.env.JWT_AUDIENCE || 'tiltcheck.me',
+    expiresIn: process.env.JWT_EXPIRES_IN || '7d',
+  };
+}
 
 /**
  * JWT payload structure

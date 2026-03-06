@@ -32,7 +32,7 @@ import {
   updateUser,
   findUserById,
 } from '@tiltcheck/db';
-import { authMiddleware } from '../middleware/auth.js';
+import { authMiddleware, getJWTConfig } from '../middleware/auth.js';
 
 const router = Router();
 

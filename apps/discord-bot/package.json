@@ -25,15 +25,14 @@
     "@tiltcheck/lockvault": "workspace:*",
     "@tiltcheck/natural-language-parser": "workspace:*",
     "@tiltcheck/poker": "workspace:*",
-    "@tiltcheck/pricing-oracle": "workspace:*",
     "@tiltcheck/suslink": "workspace:*",
+    "@tiltcheck/utils": "workspace:*",
     "@tiltcheck/tiltcheck-core": "workspace:*",
     "@tiltcheck/triviadrops": "workspace:*",
     "@tiltcheck/trust-engines": "workspace:*",
     "@tiltcheck/types": "workspace:*",
     "discord.js": "^14.14.1",
-    "dotenv": "^17.3.1",
-    "@tiltcheck/gameplay-analyzer": "workspace:*"
+    "dotenv": "^17.3.1"
   },
   "devDependencies": {
     "@types/node": "^25.3.0",

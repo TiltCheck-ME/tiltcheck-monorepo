@@ -131,8 +131,6 @@ function createSidebar() {
           <h3>Sign In</h3>
           <p>Authenticate to sync data and access vault</p>
           <button class="tg-btn tg-btn-primary" id="tg-discord-login">Discord Login</button>
-          <div class="tg-auth-divider">or</div>
-          <button class="tg-btn tg-btn-secondary" id="tg-guest-mode">Demo</button>
         </div>
       </div>
 
@@ -163,15 +161,15 @@ function createSidebar() {
           <h4>API Keys</h4>
           <div class="tg-input-group">
             <label>OpenAI Key</label>
-            <input type="password" id="api-key-openai" placeholder="sk-..." />
+            <input type="password" id="api-key-openai" />
           </div>
           <div class="tg-input-group">
             <label>Anthropic Key</label>
-            <input type="password" id="api-key-anthropic" placeholder="sk-ant-..." />
+            <input type="password" id="api-key-anthropic" />
           </div>
           <div class="tg-input-group">
             <label>Custom API</label>
-            <input type="text" id="api-key-custom" placeholder="Custom key" />
+            <input type="text" id="api-key-custom" />
           </div>
           <div class="tg-input-group" style="display: flex; align-items: center; gap: 8px; margin-top: 10px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 10px;">
             <input type="checkbox" id="cfg-buddy-mirror" style="width: auto;" />
@@ -325,7 +323,7 @@ function createSidebar() {
           <div class="tg-input-group">
             <label>Check URL</label>
             <div style="display: flex; gap: 5px;">
-              <input type="text" id="suslink-url" placeholder="https://..." style="flex:1;" />
+              <input type="text" id="suslink-url" style="flex:1;" />
               <button class="tg-btn-icon" id="suslink-scan-btn">Scan</button>
             </div>
           </div>
@@ -351,7 +349,7 @@ function createSidebar() {
           </div>
           <div class="tg-input-group">
             <label>Details</label>
-            <textarea id="report-details" rows="3" placeholder="Describe what changed..." style="width: 100%; padding: 8px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); color: #fff; border-radius: 4px;"></textarea>
+            <textarea id="report-details" rows="3" style="width: 100%; padding: 8px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); color: #fff; border-radius: 4px;"></textarea>
           </div>
           <button class="tg-btn tg-btn-primary" id="submit-report">Submit Report</button>
           <button class="tg-btn tg-btn-secondary" id="close-report">Close</button>
@@ -384,7 +382,7 @@ function createSidebar() {
             
             <div id="tg-lock-form">
               <div style="display: flex; gap: 5px; margin-bottom: 8px;">
-                <input type="number" id="lock-timer-mins" placeholder="Mins" style="width: 60px; padding: 4px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); color: #fff; border-radius: 4px;" />
+                <input type="number" id="lock-timer-mins" style="width: 60px; padding: 4px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); color: #fff; border-radius: 4px;" />
                 <button class="tg-btn tg-btn-primary" id="start-lock-timer" style="margin: 0; padding: 4px 8px; font-size: 11px;">Lock Funds</button>
               </div>
               <div style="display: flex; align-items: flex-start; gap: 6px; font-size: 10px; opacity: 0.7; line-height: 1.3;">
@@ -1312,7 +1310,7 @@ function setupEventListeners() {
     const custom = (document.getElementById('api-key-custom') as HTMLInputElement)?.value;
 
     apiKeys = { openai, anthropic, custom };
-    localStorage.setItem('tiltguard_api_keys', JSON.stringify(apiKeys));
+    localStorage.setItem('tiltcheck_api_keys', JSON.stringify(apiKeys));
     addFeedMessage('API keys saved');
 
     const panel = document.getElementById('tg-settings-panel');
@@ -1322,63 +1320,7 @@ function setupEventListeners() {
     }
   });
 
-  document.getElementById('tg-guest-mode')?.addEventListener('click', () => {
-    // Demo mode - shows full UI with fake data
-    userData = { username: 'DegenDemo', tier: 'premium', id: 'demo' };
-    authToken = 'demo-token';
-    isAuthenticated = true;
-    showMainContent();
 
-    // Simulate active state
-    updateGuardian(true);
-
-    // Populate with impressive demo data
-    addFeedMessage('Demo Mode Active - Experience TiltCheck Premium');
-    addFeedMessage('Licensed Casino: Stake.com (Verified)');
-
-    // Fake session stats
-    sessionStats = {
-      startTime: Date.now() - 4500000, // 75 mins ago
-      totalBets: 142,
-      totalWagered: 1250,
-      totalWon: 1840,
-      currentBalance: 590
-    };
-    updateStats(sessionStats);
-
-    // Populate graph with some history
-    pnlHistory = [0, 50, 30, 120, 80, 250, 190, 420, 380, 590];
-    initPnLGraph();
-
-    addFeedMessage('Current Session: +$590.00 (ROI: 47.2%)');
-
-    // Delayed simulations to 'wow' the user
-    setTimeout(() => {
-      addFeedMessage('Scanning patterns...');
-      updateTilt(15, ['consistent bet sizing', 'normal heart rate (simulated)']);
-    }, 2000);
-
-    setTimeout(() => {
-      addFeedMessage('Behavioral change detected: Increased click frequency');
-      updateTilt(45, ['rapid clicking', 'emotional pattern recognized']);
-    }, 5000);
-
-    setTimeout(() => {
-      addFeedMessage('CRITICAL TILT DETECTED: 82/100');
-      updateTilt(82, ['chasing losses pattern', 'high-risk bet sizing', 'session fatigue']);
-      addFeedMessage('AI Intervention: Suggesting 15-minute cooldown to protect your profit.');
-    }, 8000);
-
-    // After 60 seconds, nudge them to sign up
-    setTimeout(() => {
-      addFeedMessage('Ready to use the real thing? Sign in with Discord to monitor your actual sessions.');
-      const authSection = document.getElementById('tg-auth-section');
-      if (authSection) {
-        authSection.style.display = 'block';
-        authSection.scrollIntoView({ behavior: 'smooth' });
-      }
-    }, 60000);
-  });
 
   document.getElementById('tg-discord-login')?.addEventListener('click', async () => {
     // Open Discord OAuth in new window
@@ -1399,8 +1341,8 @@ function setupEventListeners() {
         authToken = event.data.token;
         userData = event.data.user;
         isAuthenticated = true;
-        localStorage.setItem('tiltguard_auth', JSON.stringify(userData));
-        localStorage.setItem('tiltguard_token', authToken || '');
+        localStorage.setItem('tiltcheck_auth', JSON.stringify(userData));
+        localStorage.setItem('tiltcheck_token', authToken || '');
         showMainContent();
         addFeedMessage(`Authenticated as ${userData.username}`);
         window.removeEventListener('message', handleMessage);
@@ -1427,8 +1369,8 @@ function setupEventListeners() {
   });
 
   document.getElementById('tg-logout')?.addEventListener('click', () => {
-    localStorage.removeItem('tiltguard_auth');
-    localStorage.removeItem('tiltguard_token');
+    localStorage.removeItem('tiltcheck_auth');
+    localStorage.removeItem('tiltcheck_token');
     authToken = null;
     location.reload();
   });
@@ -1456,9 +1398,9 @@ function setupEventListeners() {
 }
 
 function checkAuthStatus() {
-  const stored = localStorage.getItem('tiltguard_auth');
-  const token = localStorage.getItem('tiltguard_token');
-  const keys = localStorage.getItem('tiltguard_api_keys');
+  const stored = localStorage.getItem('tiltcheck_auth');
+  const token = localStorage.getItem('tiltcheck_token');
+  const keys = localStorage.getItem('tiltcheck_api_keys');
 
   if (keys) {
     apiKeys = JSON.parse(keys);

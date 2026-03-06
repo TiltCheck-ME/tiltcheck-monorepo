@@ -21,7 +21,6 @@
     "@tiltcheck/db": "workspace:*",
     "@tiltcheck/event-router": "workspace:*",
     "@tiltcheck/types": "workspace:*",
-    "@tiltcheck/qualifyfirst": "workspace:*",
     "@tiltcheck/justthetip": "workspace:*",
     "express-rate-limit": "^8.2.1",
     "@magic-sdk/admin": "^2.0.0",

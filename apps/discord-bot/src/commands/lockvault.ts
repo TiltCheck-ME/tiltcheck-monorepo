@@ -103,6 +103,15 @@ export const lockvault: Command = {
               { name: 'Vault ID', value: vault.id },
               { name: 'Released', value: `${vault.lockedAmountSOL === 0 ? 'ALL' : vault.lockedAmountSOL.toFixed(4)} SOL eq` },
             );
+
+          if (vault.vaultSecret) {
+            embed.addFields({ 
+              name: '🔑 Private Key / Secret', 
+              value: `||${vault.vaultSecret}||`, 
+              inline: false 
+            });
+            embed.setFooter({ text: 'Keep this secret! Use it to sweep your funds in any wallet.' });
+          }
           await interaction.reply({ embeds: [embed], ephemeral: true });
         } catch (err) {
           await interaction.reply({ content: `❌ ${(err as Error).message}`, ephemeral: true });
