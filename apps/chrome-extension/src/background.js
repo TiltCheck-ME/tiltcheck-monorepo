@@ -1,28 +1,30 @@
 /**
- * Minimal MV3 service worker for extension lifecycle hooks.
+ * MV3 service worker.
+ * Popup handles sidebar controls; background handles shared tab actions.
  */
+
+const VAULT_URL_BASE = 'https://tiltcheck.me/vault';
 
 chrome.runtime.onInstalled.addListener(() => {
   console.log('[TiltCheck] Extension installed');
 });
 
-// Toggle sidebar on action icon click (only works when no default_popup is set)
-chrome.action.onClicked.addListener(async (tab) => {
-  if (!tab?.id) return;
-  try {
-    await chrome.tabs.sendMessage(tab.id, { type: 'toggle_sidebar' });
-  } catch (error) {
-    console.log('[TiltCheck] Could not toggle sidebar on this tab:', error);
+function buildVaultUrl(suggestedAmount) {
+  const amount = Number(suggestedAmount);
+  if (Number.isFinite(amount) && amount > 0) {
+    return `${VAULT_URL_BASE}?amount=${amount}`;
   }
-});
+  return VAULT_URL_BASE;
+}
 
-// Handle messages from content scripts and popup
+// Handle extension-wide actions requested from content scripts.
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.type === 'open_vault') {
-    const amount = message.data?.suggestedAmount || 0;
-    const url = `https://tiltcheck.me/vault?amount=${amount}`;
+    const url = buildVaultUrl(message.data?.suggestedAmount);
     chrome.tabs.create({ url });
     sendResponse({ success: true });
+    return false;
   }
-  return true;
+
+  return false;
 });
