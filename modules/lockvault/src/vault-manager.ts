@@ -16,12 +16,25 @@ import { createCipheriv, createDecipheriv, randomBytes } from 'crypto';
 
 // Vault secret encryption key - REQUIRED for disposable vaults in production
 const VAULT_ENC_KEY_HEX = process.env.VAULT_ENCRYPTION_KEY || '';
-const VAULT_ENC_KEY = VAULT_ENC_KEY_HEX
-  ? Buffer.from(VAULT_ENC_KEY_HEX, 'hex')
-  : null;
+const VAULT_ALLOW_PLAINTEXT = process.env.LOCKVAULT_ALLOW_PLAINTEXT === 'true';
 
-if (!VAULT_ENC_KEY && process.env.NODE_ENV !== 'test') {
-  console.warn('[LockVault] WARNING: VAULT_ENCRYPTION_KEY not set. Vault secrets stored unencrypted. Set a 32-byte hex key in production.');
+function parseVaultEncryptionKey(hexKey: string): Buffer | null {
+  if (!hexKey) return null;
+  const normalized = hexKey.trim();
+  if (!/^[0-9a-fA-F]{64}$/.test(normalized)) {
+    throw new Error('[LockVault] VAULT_ENCRYPTION_KEY must be exactly 64 hex characters (32 bytes).');
+  }
+  return Buffer.from(normalized, 'hex');
+}
+
+const VAULT_ENC_KEY = parseVaultEncryptionKey(VAULT_ENC_KEY_HEX);
+
+if (!VAULT_ENC_KEY) {
+  if (process.env.NODE_ENV === 'production') {
+    throw new Error('[LockVault] VAULT_ENCRYPTION_KEY must be set in production (32-byte hex).');
+  } else if (process.env.NODE_ENV !== 'test' && !VAULT_ALLOW_PLAINTEXT) {
+    console.warn('[LockVault] WARNING: VAULT_ENCRYPTION_KEY not set. Vault secrets stored unencrypted. Set LOCKVAULT_ALLOW_PLAINTEXT=true only for local development.');
+  }
 }
 
 function encryptSecret(plain: string): string {
@@ -128,7 +141,10 @@ class VaultManager {
       }, null, 2);
       const dir = path.dirname(this.persistencePath);
       if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-      fs.writeFileSync(this.persistencePath, payload, 'utf-8');
+      // Write atomically to reduce corruption risk on crashes.
+      const tmpPath = `${this.persistencePath}.tmp`;
+      fs.writeFileSync(tmpPath, payload, 'utf-8');
+      fs.renameSync(tmpPath, this.persistencePath);
     } catch (err) {
       console.error('[LockVault] Persist failed', err);
     }
@@ -166,7 +182,7 @@ class VaultManager {
     // Convert USD to SOL if needed using oracle
     let amountSOL = 0;
     if (isAll) {
-      amountSOL = 0;
+      throw new Error('Locking "all" is not currently supported.');
     } else if (input.currencyHint === 'USD' || amountParse.data.currency === 'USD') {
       const solPrice = getUsdPriceSync('SOL');
       if (!solPrice || solPrice <= 0) {
@@ -175,6 +191,9 @@ class VaultManager {
       amountSOL = parsedValue / solPrice;
     } else {
       amountSOL = parsedValue;
+    }
+    if (!Number.isFinite(amountSOL) || amountSOL <= 0) {
+      throw new Error('Lock amount must be a positive number.');
     }
     const durationMs = parseDuration(input.durationRaw);
     if (durationMs < 10 * 60 * 1000) throw new Error('Minimum lock is 10m');
@@ -240,17 +259,27 @@ class VaultManager {
   unlock(userId: string, vaultId: string): LockVaultRecord {
     const vault = this.vaults.get(vaultId);
     if (!vault || vault.userId !== userId) throw new Error('Vault not found');
-    if (vault.status === 'unlocked') throw new Error('Vault already unlocked');
-    if (now() < vault.unlockAt) {
-      throw new Error(`Cannot unlock yet. Remaining ${(vault.unlockAt - now()) / 1000 | 0}s`);
+    const nowTs = now();
+    if (nowTs < vault.unlockAt) {
+      throw new Error(`Cannot unlock yet. Remaining ${(vault.unlockAt - nowTs) / 1000 | 0}s`);
     }
-    vault.status = 'unlocked';
-    vault.history.push({ ts: now(), action: 'unlocked' });
+    // If a background task already auto-unlocked this vault, make unlock() idempotent and just return the decrypted secret.
+    if (vault.status !== 'unlocked') {
+      vault.status = 'unlocked';
+      vault.history.push({ ts: nowTs, action: 'unlocked' });
+      this.schedulePersist();
+      void eventRouter.publish('vault.unlocked', 'lockvault', { id: vault.id, userId: vault.userId });
+    }
     // Decrypt secret before returning to caller so they can use it
     const result = { ...vault };
-    if (result.vaultSecret) result.vaultSecret = decryptSecret(result.vaultSecret);
-    this.schedulePersist();
-    void eventRouter.publish('vault.unlocked', 'lockvault', { id: vault.id, userId: vault.userId });
+    if (result.vaultSecret) {
+      try {
+        result.vaultSecret = decryptSecret(result.vaultSecret);
+      } catch (err) {
+        console.error('[LockVault] Failed to decrypt vault secret during unlock', err);
+        throw new Error('Vault secret is unreadable. Contact support for recovery.');
+      }
+    }
     return result;
   }
 
@@ -277,6 +306,9 @@ class VaultManager {
   get(vaultId: string): LockVaultRecord | undefined { return this.vaults.get(vaultId); }
 
   deposit(userId: string, amount: number): number {
+    if (!Number.isFinite(amount) || amount <= 0) {
+      throw new Error('Deposit amount must be a positive finite number.');
+    }
     const current = this.generalBalances.get(userId) || 0;
     const next = current + amount;
     this.generalBalances.set(userId, next);
@@ -289,7 +321,7 @@ class VaultManager {
   }
 
   clearAll(): void { // test helper
-    this.vaults.clear(); this.byUser.clear(); this.autoVaults.clear(); this.reloadSchedules.clear();
+    this.vaults.clear(); this.byUser.clear(); this.autoVaults.clear(); this.reloadSchedules.clear(); this.generalBalances.clear();
   }
 
   setAutoVault(userId: string, settings: AutoVaultSettings): void {
@@ -361,7 +393,7 @@ class VaultManager {
   private processExpiredVaults() {
     const t = now();
     for (const vault of this.vaults.values()) {
-      if (vault.status === 'locked' && t >= vault.unlockAt) {
+      if ((vault.status === 'locked' || vault.status === 'extended') && t >= vault.unlockAt) {
         // Auto-unlock the vault (funds are accessible, no action required from user)
         vault.status = 'unlocked';
         vault.history.push({ ts: t, action: 'auto-unlocked', note: 'Timer expired — funds available to claim or withdraw' });
@@ -379,14 +411,23 @@ class VaultManager {
 
         // If user opted into autoWithdraw, request it — the bot/API layer handles the actual transfer
         if (vault.autoWithdraw) {
-          const decryptedSecret = vault.vaultSecret ? decryptSecret(vault.vaultSecret) : undefined;
+          let secretDecryptError = false;
+          if (vault.vaultSecret) {
+            try {
+              // Validate decryptability without emitting or storing plaintext outside this scope.
+              decryptSecret(vault.vaultSecret);
+            } catch (err) {
+              secretDecryptError = true;
+              console.error(`[LockVault] Unable to decrypt secret for auto-withdraw vault ${vault.id}`, err);
+            }
+          }
           void eventRouter.publish('vault.auto_withdraw_requested', 'lockvault', {
             id: vault.id,
             userId: vault.userId,
             vaultAddress: vault.vaultAddress,
             vaultType: vault.vaultType,
             amountSOL: vault.lockedAmountSOL,
-            vaultSecret: decryptedSecret, // Decrypted for the withdrawal handler
+            secretDecryptError,
           });
           console.log(`[LockVault] Auto-withdraw requested for vault ${vault.id} (user ${vault.userId})`);
         }
