@@ -26,12 +26,6 @@ interface ToolRecommendation {
 }
 
 const ALL_TOOLS: Record<string, ToolRecommendation> = {
-    qualifyfirst: {
-        id: 'qualifyfirst',
-        name: 'QualifyFirst',
-        description: 'Earn instant crypto by completing pre-screened surveys.',
-        icon: '🎯'
-    },
     tiltguard: {
         id: 'tiltguard',
         name: 'TiltGuard',
@@ -124,8 +118,7 @@ export default function OnboardingPage() {
             } else if (interviewProgress === 2) {
                 // Response to earning question
                 if (lowerMsg.includes('yes') || lowerMsg.includes('earning') || lowerMsg.includes('earn') || lowerMsg.includes('tasks')) {
-                    assistantResponse = "Perfect. **QualifyFirst** is your best friend. It pre-qualifies you for surveys so you never waste time. We're done! I've built your tool profile. Ready to see the results?";
-                    setRecommendedTools(prev => [...prev, 'qualifyfirst']);
+                    assistantResponse = "Got it. For now we'll stick with core tools like JustTheTip, SusLink, and CollectClock. I've finalized your safety net profile. Ready to see the results?";
                 } else {
                     assistantResponse = "Got it, strictly utility. I've finalized your safety net profile. Click below to see your recommended tools!";
                 }

@@ -22,11 +22,10 @@ const INTEGRATIONS = [
 
 const INITIAL_FEATURES = [
   { label: 'Wallet Check', description: 'EIP7702 and approval scanning', enabled: true },
-  { label: 'QualifyFirst', description: 'Survey matching and rewards', enabled: true },
   { label: 'CollectClock', description: 'Bonus cycle tracking', enabled: true },
   { label: 'SusLink Scanner', description: 'Malicious link detection', enabled: true },
   { label: 'AI Gateway', description: 'OpenAI-powered features', enabled: false },
-  { label: 'Telegram Ingest', description: 'Code drop monitoring', enabled: false },
+  { label: 'Telegram Ingest (Archived)', description: 'Legacy code drop monitoring (deprecated)', enabled: false },
 ];
 
 export default function AdminSettingsPage() {
