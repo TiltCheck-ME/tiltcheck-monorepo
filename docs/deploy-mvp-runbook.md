@@ -65,6 +65,7 @@ What it does:
 - pulls latest `main`
 - runs `docker compose up -d --build`
 - prunes old images
+- runs beta-tool smoke checks against landing (`/beta.html` + core `/tools/*` pages)
 
 Current VPS target and path (from script):
 
@@ -126,6 +127,12 @@ docker compose logs -f
 
 - Home and key MVP pages load.
 - No archived features shown as active in user-facing MVP paths.
+- Beta testing surfaces load:
+  - `/beta.html`
+  - `/tools/justthetip.html`
+  - `/tools/suslink.html`
+  - `/tools/collectclock.html`
+  - `/tools/tiltcheck-core.html`
 
 ### Extension
 
