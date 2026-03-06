@@ -525,7 +525,7 @@
             style="text-align: left; margin: 20px 0; padding: 20px; background: rgba(255,255,255,0.03); border: 1px solid var(--border-subtle); border-radius: 12px;">
             <h4 style="margin-bottom: 12px;">Get Started with Auto-Vault</h4>
             <ol style="list-style: decimal; padding-left: 20px; color: var(--text-secondary); line-height: 2;">
-              <li>Install <a href="https://www.tampermonkey.net/" target="_blank"
+              <li>Install <a href="https://www.tampermonkey.net/" target="_blank" rel="noopener"
                   style="color: #6366f1;">Tampermonkey</a> for your browser</li>
               <li><a
                   href="https://raw.githubusercontent.com/TiltCheck-ME/tiltcheck-monorepo/main/TiltCheck-Auto-Vault.user.js"
@@ -585,7 +585,7 @@
     // Supabase client — anon key is safe to expose (RLS restricts to INSERT only)
     const SUPABASE_URL = 'https://your-project.supabase.co'; // TODO: replace with actual project URL
     const SUPABASE_ANON_KEY = 'your-anon-key'; // TODO: replace with actual anon key
-    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     // Handle form submission
     document.getElementById('beta-form').addEventListener('submit', async (e) => {
@@ -606,7 +606,7 @@
       };
 
       try {
-        const { error } = await supabase.from('beta_signups').insert(row);
+        const { error } = await supabaseClient.from('beta_signups').insert(row);
 
         if (error) {
           if (error.code === '23505') {
