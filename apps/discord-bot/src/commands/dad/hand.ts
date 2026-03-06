@@ -9,7 +9,7 @@
 import { SlashCommandBuilder, ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
 import { dad } from '@tiltcheck/dad';
 import { errorEmbed } from '@tiltcheck/discord-utils';
-import type { Command } from '../types.js';
+import type { Command } from '../../types.js';
 
 export const hand: Command = {
   data: new SlashCommandBuilder()
