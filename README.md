@@ -34,12 +34,10 @@ TiltCheck is a suite of independent but interoperable tools that help casino com
 
 - **reduce scams** (SusLink)
 - **track bonuses** (CollectClock)
-- **validate promos** (FreeSpinScan)
 - **tip safely** (JustTheTip)
 - **detect tilt** (TiltCheck Core)
 - **score casinos** (Casino Trust Engine)
 - **score users** (Degen Trust Engine)
-- **route surveys** (QualifyFirst)
 - **play games** (DA&D)
 - **stay accountable** (Accountabilibuddy)
 
@@ -133,19 +131,15 @@ AI-powered link scanner that detects scam sites, redirects, and impersonation.
 
 Daily bonus tracker with nerf detection and bonus cycle prediction.
 
-### 🎁 **FreeSpinScan**
+### 🎁 **FreeSpinScan** *(archived concept)*
 
-Promo submission system with auto-classification, mod approval queue, and prediction engine.
+Historical promo submission system with auto-classification, mod approval queue, and prediction engine.  
+Removed from the current MVP roadmap but preserved in the codebase/docs for future reference.
 
-### 📋 **QualifyFirst**
+### 📋 **QualifyFirst** *(archived concept)*
 
-AI survey router that pre-screens users to prevent screen-outs and wasted time.
-\n+Phase 1 implementation (module `@tiltcheck/qualifyfirst`):
-
-- Deterministic heuristic scoring (no external AI yet)
-- Emits events: `survey.match.predicted`, `survey.route.generated`
-- Transparent reasons & risk flags (no bypass of legit exclusion criteria)
-- Ready for Phase 2 adaptive weighting & trust integration
+Historical AI survey router that pre-screened users to prevent screen-outs and wasted time.  
+No longer an active project; referenced only as an archived design.
 
 ### 🎮 **DA&D (Degens Against Decency)**
 
@@ -310,7 +304,7 @@ It's built by someone who understands the problems firsthand.
 
 ### Phase 1 — Core Launch (MVP)
 
-- JustTheTip, SusLink, CollectClock, FreeSpinScan
+- JustTheTip, SusLink, CollectClock
 - Basic trust engines
 - TiltCheck Core
 - Discord bot
@@ -319,7 +313,6 @@ It's built by someone who understands the problems firsthand.
 
 - Prediction models
 - Advanced trust scoring
-- QualifyFirst
 - Accountabilibuddy
 
 ### Phase 3 — TiltCheck Arena

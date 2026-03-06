@@ -35,15 +35,16 @@ TiltCheck’s roadmap assumes scrappy resourcefulness.
 
 # 15.2 Phase 1 — Core Launch (MVP) & RGaaS Pivot
 
-### **Modules included:**
+### **Modules included (current focus):**
 - JustTheTip (non-custodial tipping)
 - SusLink (URL scanner)
 - CollectClock (bonus logging + nerf detection)
-- FreeSpinScan (promo submission + classification)
 - Base casino trust engine
 - Basic degen trust score
-- TiltCheck Core (tilt nudges + cooldown commands)
+- TiltCheck Core (tilt nudges + cooldown commands, Discord + Chrome extension + web integration)
 - **RGaaS API (Initial Release)**: Exposing SusLink, Trust, and Tilt as a service.
+
+> **Note:** FreeSpinScan was previously listed as a Phase 1 module but has been **removed from the active roadmap** and is treated as an archived concept, not an MVP requirement.
 
 ### **Discord-first release:**
 Focus on:
@@ -66,13 +67,15 @@ Focus on:
 # 15.3 Phase 2 — Intelligence Expansion
 
 ### **Additions:**
-- FreeSpinScan prediction engine  
 - CollectClock bonus cycle prediction  
 - Advanced casino trust scoring  
 - Advanced degen trust scorer  
 - AI-based fairness watchdog (beta)  
-- QualifyFirst survey router  
 - Accountabilibuddy wallet + phone-a-friend  
+
+Archived concepts (no longer planned for near-term delivery):
+- FreeSpinScan prediction engine  
+- QualifyFirst survey router  
 
 ### **Goal:**
 Turn TiltCheck into a *smart ecosystem* that reacts to behavior and casino patterns in real time.

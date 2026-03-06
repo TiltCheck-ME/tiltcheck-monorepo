@@ -80,7 +80,6 @@ class SidebarNavigation {
             <li><a href="/degen-trust.html">Degen Trust</a></li>
             <li><a href="/extension.html">TiltGuard Extension</a></li>
             <li><a href="/tools/tiltcheck-core.html">TiltCheck Core</a></li>
-            <li><a href="/tools/qualifyfirst.html">QualifyFirst</a></li>
             <li><a href="/tools/suslink.html">SusLink</a></li>
             <li><a href="/tools/daad.html">DA&D</a></li>
             <li><a href="/tools/triviadrops.html">TriviaDrops</a></li>
