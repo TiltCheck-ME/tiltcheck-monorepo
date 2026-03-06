@@ -28,13 +28,13 @@ router.post('/report', async (req, res) => {
   try {
     const { targetId, moderatorId, actionType, reason, evidenceUrl } = req.body;
 
+    if (!supabase) {
+      return res.status(503).json({ error: 'Moderation service unavailable (unconfigured)' });
+    }
+
     // Basic validation
     if (!targetId || !moderatorId || !actionType || !reason) {
       return res.status(400).json({ error: 'Missing required fields' });
-    }
-
-    if (!supabase) {
-      return res.status(503).json({ error: 'Moderation service unavailable (unconfigured)' });
     }
 
     // Insert into mod_logs table
