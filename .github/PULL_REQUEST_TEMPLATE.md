@@ -30,8 +30,8 @@ Related to #
 - [ ] JustTheTip
 - [ ] SusLink
 - [ ] CollectClock
-- [ ] FreeSpinScan
-- [ ] QualifyFirst
+- [ ] (Archived) FreeSpinScan
+- [ ] (Archived) QualifyFirst
 - [ ] TiltCheck Core
 - [ ] Trust Engines
 - [ ] Dashboard

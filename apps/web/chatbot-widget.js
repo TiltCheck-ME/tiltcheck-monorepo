@@ -31,7 +31,7 @@
     },
     'discord commands': {
       keywords: /discord|command|bot|\/|slash/i,
-      answer: `Popular TiltCheck Discord Bot Commands:\n\n/scan <url> - Scan a URL with SusLink\n/trust casino <name> - Check casino trust score\n/trust user <@user> - Check degen trust score\n/triviadrop start - Play trivia with rewards\n/qualify - Get survey recommendations\n/justthetip - Send non-custodial crypto tips\n/submit-promo - Submit promos to FreeSpinScan\n/help - Show all commands\n\nJoin our Discord: https://discord.gg/s6NNfPHxMS`
+      answer: `Popular TiltCheck Discord Bot Commands:\n\n/scan <url> - Scan a URL with SusLink\n/trust casino <name> - Check casino trust score\n/trust user <@user> - Check degen trust score\n/triviadrop start - Play trivia with rewards\n/justthetip - Send non-custodial crypto tips\n/tiltcheck status - Check your tilt status\n/help - Show all commands\n\nJoin our Discord: https://discord.gg/s6NNfPHxMS`
     },
     'tilt detection': {
       keywords: /tilt|tilt detection|emotion|risky|cooldown/i,
