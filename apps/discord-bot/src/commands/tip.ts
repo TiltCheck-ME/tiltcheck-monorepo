@@ -1,4 +1,4 @@
-﻿/**
+/**
  * © 2024–2025 TiltCheck Ecosystem. All Rights Reserved.
  * Created by jmenichole (https://github.com/jmenichole)
  * 
@@ -26,7 +26,7 @@ import {
 } from '@tiltcheck/justthetip';
 import { lockVault, unlockVault, extendVault, getVaultStatus, type LockVaultRecord } from '@tiltcheck/lockvault';
 import { parseAmountNL, formatAmount, parseDurationNL } from '@tiltcheck/natural-language-parser';
-import { pricingOracle } from '@tiltcheck/pricing-oracle';
+import { getUsdPriceSync } from '@tiltcheck/utils';
 import { isOnCooldown } from '@tiltcheck/tiltcheck-core';
 import { LAMPORTS_PER_SOL } from '@solana/web3.js';
 import type { BotWalletService } from '../services/tipping/bot-wallet.js';
@@ -217,7 +217,7 @@ async function handleSend(interaction: ChatInputCommandInteraction) {
     return;
   }
 
-  const solPrice = pricingOracle.getUsdPrice('SOL');
+  const solPrice = getUsdPriceSync('SOL');
   const amountLamports = parse.data.currency === 'USD'
     ? Math.floor((parse.data.value / solPrice) * LAMPORTS_PER_SOL)
     : Math.floor(parse.data.value * LAMPORTS_PER_SOL);

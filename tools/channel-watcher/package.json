@@ -6,7 +6,12 @@
     "main": "index.js",
     "scripts": {
         "start": "node index.js",
-        "full": "node index.js --full"
+        "full": "node index.js --full",
+        "live": "node index.js --live",
+        "10m": "node index.js --live --duration=10",
+        "history": "node index.js --full",
+        "analyze": "node analyze-log.js",
+        "analyze:lore": "node analyze-log.js --lore"
     },
     "dependencies": {
         "playwright": "^1.41.0",

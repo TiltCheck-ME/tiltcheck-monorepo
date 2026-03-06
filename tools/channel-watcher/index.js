@@ -21,6 +21,11 @@ dotenv.config();
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const FULL_MODE = process.argv.includes('--full');
+// --live flag overrides LIVE_WATCH in .env; npm run live sets it, npm run history keeps it off
+const LIVE_WATCH_FLAG = process.argv.includes('--live');
+const durationArg = process.argv.find(arg => arg.startsWith('--duration='));
+const WATCH_DURATION_MINS = durationArg ? parseInt(durationArg.split('=')[1], 10) : null;
+const SKIP_HISTORY = WATCH_DURATION_MINS !== null || process.argv.includes('--skip-history');
 
 // Also load from monorepo root .env as fallback (so you don't need a separate .env here)
 dotenv.config({ path: path.join(__dirname, '..', '..', '.env'), override: false });
@@ -31,6 +36,7 @@ const CHANNEL_URL = process.env.WATCH_CHANNEL_URL || '';
 const WATCH_KEYWORDS = process.env.WATCH_KEYWORDS ? process.env.WATCH_KEYWORDS.split(',').map(k => k.trim().toLowerCase()) : [];
 const LOG_FILE = path.join(__dirname, 'messages.jsonl');
 const REPORT_FILE = path.join(__dirname, 'reports.md');
+const CITATIONS_FILE = path.join(__dirname, 'citations.md');
 const SESSION_FILE = path.join(__dirname, '.session.json');
 const CHECKPOINT = path.join(__dirname, '.checkpoint.json');
 
@@ -38,6 +44,12 @@ const CHECKPOINT = path.join(__dirname, '.checkpoint.json');
 const MAX_MESSAGES = parseInt(process.env.MAX_MESSAGES || '400', 10);
 const LOOKBACK_HOURS = parseInt(process.env.LOOKBACK_HOURS || '48', 10);
 const GPT_MAX_MESSAGES = parseInt(process.env.GPT_MAX_MESSAGES || '300', 10);
+const LIVE_WATCH = LIVE_WATCH_FLAG || process.env.LIVE_WATCH === 'true';
+const LIVE_REPORT_INTERVAL_MINS = parseInt(process.env.LIVE_REPORT_INTERVAL_MINS || '15', 10);
+const LIVE_REPORT_BATCH_SIZE = parseInt(process.env.LIVE_REPORT_BATCH_SIZE || '20', 10);
+const SAMPLE_MODE = process.env.SAMPLE_MODE === 'true';
+const SAMPLE_SKIP_PASSES = parseInt(process.env.SAMPLE_SKIP_PASSES || '40', 10);
+const JUMP_TO_DATE = process.env.JUMP_TO_DATE || null; // e.g. '2024-03-01'
 
 // ── AI Provider config ───────────────────────────────────────────────────────
 // PROVIDER options: ollama | groq | gemini | openai
@@ -230,12 +242,33 @@ async function analyseMessages(messages) {
 }
 
 // ── Report output ─────────────────────────────────────────────────────────────
-function saveAndPrintReport(report, messageCount, fromTimestamp) {
-    const header = `\n\n---\n## Report — ${new Date().toLocaleString()}\n_${messageCount} messages analysed${fromTimestamp ? ` since ${new Date(fromTimestamp).toLocaleString()}` : ' (full history)'}_\n\n`;
+function saveAndPrintReport(report, messageCount, fromTimestamp, messages = []) {
+    const runAt = new Date();
+    const runAtStr = runAt.toLocaleString('en-US', { dateStyle: 'full', timeStyle: 'medium' });
+    const runAtISO = runAt.toISOString();
+    const fromStr = fromTimestamp
+        ? `since ${new Date(fromTimestamp).toLocaleString('en-US', { dateStyle: 'short', timeStyle: 'short' })}`
+        : 'full history';
+
+    // ── Save the intelligence report ─────────────────────────────────────────
+    const header = `\n\n---\n## 📊 Report — ${runAtStr}\n> **Generated:** ${runAtISO}  \n> **Messages analysed:** ${messageCount} (${fromStr})\n\n`;
     appendFileSync(REPORT_FILE, header + report);
+
+    // ── Save citations (source messages) ─────────────────────────────────────
+    if (messages.length > 0) {
+        const citationHeader = `\n\n---\n## 📎 Citations — ${runAtStr}\n> Source messages for the report generated at ${runAtISO}  \n> These are the raw messages the AI analysed.\n\n`;
+        const citationRows = messages.map((m, idx) => {
+            const ts = m.timestamp ? new Date(m.timestamp).toLocaleString('en-US', { dateStyle: 'short', timeStyle: 'short' }) : 'unknown';
+            const tag = m.hasKeyword ? '🔥' : '📢';
+            return `**[${idx + 1}]** ${tag} \`${ts}\` **${m.author || 'unknown'}**: ${m.content}`;
+        }).join('\n\n');
+        appendFileSync(CITATIONS_FILE, citationHeader + citationRows + '\n');
+        console.log(chalk.gray(`   Citations saved to citations.md`));
+    }
 
     console.log('\n' + chalk.bold.cyan('═'.repeat(64)));
     console.log(chalk.bold.cyan('  📊 TILTCHECK COMMUNITY INTELLIGENCE REPORT'));
+    console.log(chalk.bold.cyan(`  ${runAtStr}`));
     console.log(chalk.bold.cyan('═'.repeat(64)));
     report.split('\n').forEach(line => {
         if (/^#{1,3} /.test(line)) console.log(chalk.bold.yellow('\n' + line));
@@ -269,6 +302,13 @@ async function run() {
     }
     console.log(chalk.white(`Limits: max ${MAX_MESSAGES} messages | ${LOOKBACK_HOURS}h lookback | GPT cap ${GPT_MAX_MESSAGES}`))
     console.log(chalk.white(`Channel: ${CHANNEL_URL}\n`));
+
+    console.log(chalk.cyan('🚀 Available Commands:'));
+    console.log(chalk.white('   npm run history       — Scrape history since last run (deep dive)'));
+    console.log(chalk.white('   npm run live          — Watch channel in real-time'));
+    console.log(chalk.white('   npm run 10m           — Watch for 10 min then analyze and exit'));
+    console.log(chalk.white('   npm run analyze       — Run intelligence report on collected logs'));
+    console.log(chalk.white('   npm run analyze:lore  — Run business + comedy lore reports\n'));
 
     const storageState = existsSync(SESSION_FILE) ? SESSION_FILE : undefined;
 
@@ -307,6 +347,34 @@ async function run() {
         process.exit(1);
     });
 
+    // --- Time Jump Feature ---
+    if (JUMP_TO_DATE && FULL_MODE) {
+        console.log(chalk.magenta(`\n🚀 Teleporting to ${JUMP_TO_DATE}...`));
+        try {
+            // Click Search
+            await page.keyboard.press('Control+F');
+            await page.waitForTimeout(500);
+            await page.keyboard.type(`during: ${JUMP_TO_DATE}`);
+            await page.keyboard.press('Enter');
+
+            // Wait for results
+            await page.waitForSelector('[class*="searchResultGroup"]', { timeout: 10000 });
+            console.log(chalk.gray('   Searching...'));
+
+            // Click the newest result in that range
+            const jumpButton = page.locator('[class*="searchResultGroup"] [class*="jumpButton"]').first();
+            if (await jumpButton.isVisible()) {
+                await jumpButton.click();
+                console.log(chalk.green('   Teleport successful. Initializing buffer...'));
+                await page.waitForTimeout(3000);
+            } else {
+                console.log(chalk.yellow('   No messages found for that date. Starting normally.'));
+            }
+        } catch (err) {
+            console.log(chalk.red(`   Teleport failed: ${err.message}. Starting normally.`));
+        }
+    }
+
     // Wait for initial messages to render
     await page.waitForTimeout(2000);
 
@@ -317,6 +385,11 @@ async function run() {
     let scrollPasses = 0;
     let noNewCount = 0;
     let lastOldestId = null;
+
+    if (SKIP_HISTORY) {
+        console.log(chalk.cyan('Skipping history catch-up. Jumping straight to live...'));
+        hitCheckpoint = true;
+    }
 
     while (!hitCheckpoint) {
         scrollPasses++;
@@ -389,6 +462,10 @@ async function run() {
             return { filtered, oldestIdSeen };
         }, WATCH_KEYWORDS);
 
+        // Track the current "time progress"
+        const oldestTimestampSeen = filtered.length > 0 ? new Date(Math.min(...filtered.map(m => new Date(m.timestamp).getTime()))) : null;
+        const progressStr = oldestTimestampSeen ? oldestTimestampSeen.toLocaleString() : 'Recent';
+
         let newMatchCount = 0;
         for (const msg of filtered) {
             if (collected.has(msg.messageId)) continue;
@@ -408,64 +485,203 @@ async function run() {
 
             collected.set(msg.messageId, msg);
             newMatchCount++;
+
+            // LIVE LOGGING: Save to disk IMMEDIATELY so you never lose progress
+            appendFileSync(LOG_FILE, JSON.stringify(msg) + '\n');
         }
 
-        process.stdout.write(chalk.gray(`\r  Pass ${scrollPasses} — ${collected.size} matches found so far...   `));
+        process.stdout.write(chalk.gray(`\r  Pass ${scrollPasses} — Back to ${progressStr} — Found ${collected.size} matches...    `));
 
         if (hitCheckpoint) break;
 
         // Check if the scroll actually moved by looking at the oldest ID in the DOM
         if (oldestIdSeen === lastOldestId) {
             noNewCount++;
-            if (noNewCount >= 10) {
-                console.log(chalk.gray('\n  Chat stopped moving after 10 retries. Reached top.'));
+            if (noNewCount >= 15) { // Increased patience to 15
+                console.log(chalk.gray(`\n  Chat window stopped moving after 15 retries at ${progressStr}. Reached top or got stuck.`));
                 break;
             }
-            await page.waitForTimeout(1000 * noNewCount);
+
+            // If stuck, try a "kick" — scroll down a bit then back up hard
+            if (noNewCount === 5) {
+                await page.evaluate(() => {
+                    const list = document.querySelector('ol[data-list-id="chat-messages"]');
+                    if (list) list.scrollTop = 500;
+                });
+                await page.waitForTimeout(500);
+            }
+
+            await page.waitForTimeout(1500 * noNewCount);
         } else {
             noNewCount = 0;
             lastOldestId = oldestIdSeen;
         }
 
-        // Scroll upward
+        // --- Aggressive Human-like Scroll ---
         await page.evaluate(() => {
             const list = document.querySelector('ol[data-list-id="chat-messages"]');
-            if (list) { list.scrollTop = 0; }
+            if (list) {
+                // Try three ways to trigger a load
+                list.scrollTop = 0;
+            }
         });
-        await page.keyboard.press('Home');
 
-        // Wait for Discord to load more messages — slower for reliability
-        await page.waitForTimeout(2000);
+        // SAMPLE MODE: Every X passes, jump back hard
+        if (SAMPLE_MODE && scrollPasses % 15 === 0) {
+            console.log(chalk.magenta(`\n  [SAMPLE MODE] Jumping back in time...`));
+            for (let i = 0; i < SAMPLE_SKIP_PASSES; i++) {
+                await page.keyboard.press('PageUp');
+                if (i % 5 === 0) await page.waitForTimeout(100);
+            }
+        } else {
+            await page.keyboard.press('PageUp');
+            await page.waitForTimeout(100);
+            await page.keyboard.press('Home');
+        }
+
+        // Wait with jitter
+        const waitTime = 2000 + Math.random() * 1000;
+        await page.waitForTimeout(waitTime);
     }
-
-    await context.storageState({ path: SESSION_FILE });
-    await browser.close();
 
     const messages = Array.from(collected.values())
         .filter(m => m.timestamp)
         .sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
 
-    if (messages.length === 0) {
-        console.log(chalk.yellow('\n\nNo new messages found since last checkpoint.'));
+    await context.storageState({ path: SESSION_FILE });
+
+    if (messages.length > 0) {
+        // Save checkpoint at the newest message timestamp
+        const newest = messages[messages.length - 1];
+        saveCheckpoint(newest.timestamp, newest.messageId);
+
+        console.log(chalk.green(`\n\n✅ Collected ${messages.length} messages.`));
+        console.log(chalk.gray(`   Checkpoint saved at ${new Date(newest.timestamp).toLocaleString()}\n`));
+
+        // Initial Analysis from history
+        const report = await analyseMessages(messages);
+        if (report) {
+            saveAndPrintReport(report, messages.length, stopAt?.toISOString(), messages);
+        }
+    } else {
+        console.log(chalk.gray('\n\nNo history messages matching keywords found.'));
+    }
+
+    if (!LIVE_WATCH) {
+        await browser.close();
         process.exit(0);
     }
 
-    // Save checkpoint at the newest message timestamp
-    const newest = messages[messages.length - 1];
-    saveCheckpoint(newest.timestamp, newest.messageId);
+    // --- Transition to LIVE WATCH MODE ---
+    console.log(chalk.bold.magenta('\n📡 Transitioning to LIVE WATCH MODE...'));
+    console.log(chalk.gray(`   Waiting for new messages in ${CHANNEL_URL}\n`));
 
-    console.log(chalk.green(`\n\n✅ Collected ${messages.length} messages.`));
-    console.log(chalk.gray(`   Checkpoint saved at ${new Date(newest.timestamp).toLocaleString()}\n`));
+    // Scroll to the bottom to see new ones
+    await page.evaluate(() => {
+        const list = document.querySelector('ol[data-list-id="chat-messages"]');
+        if (list) list.scrollTop = list.scrollHeight;
+    });
 
-    // Append to log
-    messages.forEach(m => appendFileSync(LOG_FILE, JSON.stringify(m) + '\n'));
+    let liveBuffer = [];
+    let lastAnalysisTime = Date.now();
+    let liveStartTime = Date.now();
 
-    // Analyse
-    const report = await analyseMessages(messages);
-    if (report) {
-        saveAndPrintReport(report, messages.length, stopAt?.toISOString());
+    while (true) {
+        // Scrape new messages at the bottom
+        const { found } = await page.evaluate((keywords) => {
+            const items = document.querySelectorAll('ol[data-list-id="chat-messages"] > li[id^="chat-messages-"]');
+            const recentlyFound = [];
+
+            // Get the last 10 items in the DOM and check them
+            const lastFew = Array.from(items).slice(-10);
+
+            for (const li of lastFew) {
+                const idParts = li.id.split('-');
+                const messageId = idParts[idParts.length - 1];
+
+                const isBot = !!li.querySelector('[class*="botTag"], [class*="systemTag"]');
+                const isSystem = !!li.querySelector('[class*="systemMessage"]');
+                if (isBot || isSystem) continue;
+
+                const timeEl = li.querySelector('time[datetime]');
+                const timestamp = timeEl?.getAttribute('datetime') ?? null;
+                const contentEl = li.querySelector('[class*="messageContent"]');
+                const rawContent = contentEl?.textContent?.trim() ?? '';
+                if (!rawContent) continue;
+
+                // Substantive or keyword
+                const isSubstantive = rawContent.length > 120;
+                const hasKeyword = keywords && keywords.length > 0 && keywords.some(k => rawContent.toLowerCase().includes(k));
+
+                if (hasKeyword || isSubstantive) {
+                    const author = li.querySelector('h3 [class*="username"]')?.textContent?.trim()
+                        ?? li.querySelector('[class*="username"]')?.textContent?.trim()
+                        ?? '';
+                    recentlyFound.push({ messageId, timestamp, content: rawContent, author, hasKeyword });
+                }
+            }
+            return { found: recentlyFound };
+        }, WATCH_KEYWORDS);
+
+        for (const msg of found) {
+            if (collected.has(msg.messageId)) continue;
+
+            collected.set(msg.messageId, msg);
+            liveBuffer.push(msg);
+
+            // Log to terminal instantly
+            const marker = msg.hasKeyword ? chalk.bold.red('🔥 TRIGGER:') : chalk.bold.blue('📢 STORY:');
+            console.log(`\n${marker} ${chalk.bold(msg.author)} at ${new Date(msg.timestamp).toLocaleTimeString()}`);
+            console.log(chalk.white(`  "${msg.content}"`));
+
+            // Audible beep for high-priority keywords
+            if (msg.hasKeyword) process.stdout.write('\x07');
+
+            // Append to log immediately so nothing is lost
+            appendFileSync(LOG_FILE, JSON.stringify(msg) + '\n');
+            saveCheckpoint(msg.timestamp, msg.messageId);
+        }
+
+        const elapsedTotal = (Date.now() - liveStartTime) / 1000 / 60;
+        const elapsedSinceReport = (Date.now() - lastAnalysisTime) / 1000 / 60;
+        
+        const shouldRunAnalysis = liveBuffer.length >= LIVE_REPORT_BATCH_SIZE || (liveBuffer.length > 0 && elapsedSinceReport >= LIVE_REPORT_INTERVAL_MINS);
+
+        if (shouldRunAnalysis) {
+            console.log(chalk.yellow(`\n\n[LIVE] Running batch analysis on ${liveBuffer.length} new messages...`));
+            const liveReport = await analyseMessages(liveBuffer);
+            if (liveReport) {
+                saveAndPrintReport(liveReport, liveBuffer.length, liveBuffer[0].timestamp, liveBuffer);
+            }
+            liveBuffer = [];
+            lastAnalysisTime = Date.now();
+        }
+
+        if (WATCH_DURATION_MINS && elapsedTotal >= WATCH_DURATION_MINS) {
+            console.log(chalk.bold.magenta(`\n⏱️ Reached duration limit (${WATCH_DURATION_MINS}m). Analyzing remaining buffer and exiting...`));
+            if (liveBuffer.length > 0) {
+                const liveReport = await analyseMessages(liveBuffer);
+                if (liveReport) {
+                    saveAndPrintReport(liveReport, liveBuffer.length, liveBuffer[0].timestamp, liveBuffer);
+                }
+            } else {
+                console.log(chalk.gray('  Buffer is empty. No new analysis needed.'));
+            }
+            break;
+        }
+
+        // Maintain bottom position
+        await page.evaluate(() => {
+            const list = document.querySelector('ol[data-list-id="chat-messages"]');
+            if (list && (list.scrollHeight - list.scrollTop - list.clientHeight) < 200) {
+                list.scrollTop = list.scrollHeight;
+            }
+        });
+
+        await page.waitForTimeout(5000); // Check every 5 seconds
     }
-
+    
+    await browser.close();
     process.exit(0);
 }
 

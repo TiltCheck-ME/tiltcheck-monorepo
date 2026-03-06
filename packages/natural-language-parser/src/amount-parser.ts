@@ -14,7 +14,7 @@
 import type { ParsedAmount, ParseResult } from './types.js';
 
 // Common currency synonyms
-const USD_PATTERNS = /\$|usd|dollar|dollars|buck|bucks|cash/i;
+const USD_PATTERNS = /\$|usd|dollar|dollars|buck|bucks|cash|usdc|usdt/i;
 const SOL_PATTERNS = /sol|solana/i;
 const ALL_PATTERNS = /^(all|everything|max|full balance)$/i;
 

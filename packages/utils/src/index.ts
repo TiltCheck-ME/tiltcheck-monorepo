@@ -71,6 +71,7 @@ export {
 // Game Services
 export { SolanaProvider } from './SolanaProvider.js';
 export { FairnessService } from './FairnessService.js';
+export { getPriceUsd, getUsdPriceSync, setUsdPrice } from './pricing.js';
 
 // ============================================================================
 // General Utilities

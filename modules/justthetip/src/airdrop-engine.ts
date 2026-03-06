@@ -19,7 +19,7 @@ import {
   Keypair,
 } from '@solana/web3.js';
 import { eventRouter } from '@tiltcheck/event-router';
-import { pricingOracle } from '@tiltcheck/pricing-oracle';
+import { getUsdPriceSync } from '@tiltcheck/utils';
 import { getWallet } from './wallet-manager.js';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -95,7 +95,11 @@ export async function executeAirdrop(request: AirdropRequest, senderKeypair: Key
     // Convert to SOL if needed
     let amountPerUserSol = request.amountPerUser;
     if (request.currency === 'USD') {
-      amountPerUserSol = request.amountPerUser / pricingOracle.getUsdPrice('SOL');
+      const solPrice = getUsdPriceSync('SOL');
+      if (!solPrice || solPrice <= 0) {
+        throw new Error('Unable to get current SOL price. Please try again later.');
+      }
+      amountPerUserSol = request.amountPerUser / solPrice;
     }
 
     const totalAmount = amountPerUserSol * validRecipients.length + FLAT_FEE_SOL;

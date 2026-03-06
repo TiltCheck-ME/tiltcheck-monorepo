@@ -587,6 +587,8 @@ export type EventType =
   | 'vault.locked'
   | 'vault.unlocked'
   | 'vault.extended'
+  | 'vault.expired'
+  | 'vault.reload_due'
   | 'transaction.created'
   | 'transaction.approved'
   | 'transaction.submitted'
@@ -623,11 +625,8 @@ export type ModuleId =
   | 'tiltcheck-core'
   | 'suslink'
   | 'collectclock'
-  | 'freespinscan'
   | 'justthetip'
-  | 'qualifyfirst'
   | 'dad'
-  | 'pricing-oracle'
   | 'trust-engine-casino'
   | 'trust-engine-degen'
   | 'trust-rollup'
@@ -862,23 +861,7 @@ export interface BonusPredictionGeneratedEvent {
   volatilityScore?: number; // normalized 0-1 (higher = more volatile)
 }
 
-// ============================================
-// Promo Types (FreeSpinScan)
-// ============================================
 
-export interface PromoSubmission {
-  id: number;
-  url: string;
-  userId: string;
-  casinoName: string;
-  bonusType: string;
-  notes?: string;
-  suslinkScore?: number;
-  status: 'pending' | 'approved' | 'denied';
-  createdAt: Date;
-  reviewedAt?: Date;
-  reviewedBy?: string;
-}
 
 // ============================================
 // Tilt Detection Types

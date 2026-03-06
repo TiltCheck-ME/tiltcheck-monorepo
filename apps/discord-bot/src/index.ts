@@ -29,6 +29,7 @@ import { BotWalletService } from './services/tipping/bot-wallet.js';
 import { TokenSwapService } from './services/tipping/token-swap.js';
 import { TokenDepositMonitor } from './services/tipping/token-deposit-monitor.js';
 import { setCreditDeps } from './commands/tip.js';
+import { startLockVaultBackgroundTasks, stopLockVaultBackgroundTasks } from '@tiltcheck/lockvault';
 
 async function main() {
   const startTime = Date.now();
@@ -112,6 +113,9 @@ async function main() {
   }
 
   initializeGameplayComplianceBridge(client);
+
+  console.log('[LockVault] Starting background timer tasks...');
+  startLockVaultBackgroundTasks();
 
   console.log('[DM] Registering direct message handler...');
   registerDMHandler(client);
@@ -231,6 +235,7 @@ async function main() {
 
     stopTiltAgentLoop();
     stopRegulationsNotifier();
+    stopLockVaultBackgroundTasks();
 
     if (autoRefund) autoRefund.stop();
     if (dMonitor) dMonitor.stop();

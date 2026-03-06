@@ -15,9 +15,7 @@
  * - Multi-send airdrops
  * - Prize distribution for trivia/games
  * - Token swaps via Jupiter aggregator
- * - Native LTC deposits with auto-swap to Solana tokens
  * - Flat $0.07 fee (non-custodial)
- * - Pending tips for unregistered users
  */
 
 // Export module singleton and class (primary interface)
@@ -37,8 +35,6 @@ export {
 
 export {
   executeTip,
-  getPendingTips,
-  processPendingTips,
 } from './tip-engine.js';
 
 export {
@@ -84,18 +80,6 @@ export {
   SUPPORTED_TOKENS,
 } from './swap-engine.js';
 export type { SwapQuoteResult, SwapExecutionResult } from './swap-engine.js';
-
-// LTC Bridge exports (Native LTC to Solana tokens)
-export {
-  getLtcSwapQuote,
-  createLtcDepositAddress,
-  getLtcDepositStatus,
-  getUserPendingDeposits,
-  formatLtcDepositInstructions,
-  getSupportedLtcOutputs,
-  LTC_SWAP_OUTPUTS,
-} from './ltc-bridge.js';
-export type { LtcDepositRequest, LtcSwapQuote, LtcDepositStatus, LtcOutputToken } from './ltc-bridge.js';
 
 // Credit system exports (custodial model)
 export { CreditManager, FLAT_FEE_LAMPORTS, MIN_DEPOSIT_LAMPORTS } from './credit-manager.js';
