@@ -17,6 +17,9 @@ const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABAS
 let supabase: any;
 if (supabaseUrl && supabaseKey) {
   supabase = createClient(supabaseUrl, supabaseKey);
+} else if (process.env.NODE_ENV === 'test') {
+  // Enable route-level behavior tests without requiring real Supabase env vars.
+  supabase = createClient('http://localhost', 'test-service-role-key');
 } else {
   console.warn('⚠️ [API] Supabase credentials missing. Moderation routes will be limited.');
 }
@@ -25,13 +28,13 @@ router.post('/report', async (req, res) => {
   try {
     const { targetId, moderatorId, actionType, reason, evidenceUrl } = req.body;
 
-    if (!supabase) {
-      return res.status(503).json({ error: 'Moderation service unavailable (unconfigured)' });
-    }
-
     // Basic validation
     if (!targetId || !moderatorId || !actionType || !reason) {
       return res.status(400).json({ error: 'Missing required fields' });
+    }
+
+    if (!supabase) {
+      return res.status(503).json({ error: 'Moderation service unavailable (unconfigured)' });
     }
 
     // Insert into mod_logs table
