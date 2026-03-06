@@ -69,10 +69,44 @@ let analyzer: Analyzer | null = null;
 let solana: SolanaProvider | null = null;
 let bridge: WalletBridge | null = null;
 let fairness: FairnessService | null = null;
+let tiltMonitoringInterval: ReturnType<typeof setInterval> | null = null;
 
 // Intervention state
 let cooldownEndTime: number | null = null;
-const interventionQueue: any[] = [];
+
+function setSidebarVisibility(visible: boolean): boolean {
+  const sidebar = document.getElementById('tiltcheck-sidebar');
+  if (!sidebar) return false;
+  sidebar.style.display = visible ? 'block' : 'none';
+
+  if (visible) {
+    document.body.style.marginRight = '340px';
+    document.documentElement.style.marginRight = '340px';
+  } else {
+    document.body.style.marginRight = '0px';
+    document.documentElement.style.marginRight = '0px';
+  }
+
+  return visible;
+}
+
+function toggleSidebarVisibility(): boolean {
+  const sidebar = document.getElementById('tiltcheck-sidebar');
+  if (!sidebar) {
+    const created = (window as any).TiltCheckSidebar?.create();
+    return !!created;
+  }
+  const currentlyVisible = sidebar.style.display !== 'none';
+  return setSidebarVisibility(!currentlyVisible);
+}
+
+function getSidebarState() {
+  const sidebar = document.getElementById('tiltcheck-sidebar');
+  return {
+    exists: !!sidebar,
+    visible: !!sidebar && sidebar.style.display !== 'none',
+  };
+}
 
 /**
  * Visual Picker for selecting elements
@@ -309,27 +343,11 @@ function initialize() {
     }
   }) as EventListener);
 
-  // Setup start button
-  const startBtn = document.getElementById('tg-start-btn');
-  if (startBtn) {
-    startBtn.addEventListener('click', () => {
-      if (isMonitoring) {
-        stopMonitoring();
-      } else {
-        startMonitoring();
-      }
-    });
-  }
+  // Sidebar-first mode: start monitoring automatically.
+  void startMonitoring().catch((err) => {
+    console.warn('[TiltCheck] Auto-start monitoring failed:', err);
+  });
 
-  // Send verification to popup
-  try {
-    chrome.runtime.sendMessage({
-      type: 'license_verification',
-      data: casinoVerification
-    });
-  } catch (e) {
-    console.log('[TiltGuard] Could not send message to popup:', e);
-  }
 }
 
 /**
@@ -415,6 +433,10 @@ function stopMonitoring() {
   if (client) {
     client.disconnect();
     client = null;
+  }
+  if (tiltMonitoringInterval) {
+    clearInterval(tiltMonitoringInterval);
+    tiltMonitoringInterval = null;
   }
 
   isMonitoring = false;
@@ -511,7 +533,7 @@ function checkZeroBalance(balance: number | null) {
     showInteractiveNotification(
       "📉 Balance hit zero. Want to earn $5-10 quickly with a survey?",
       [
-        { text: "Earn Crypto", action: () => { window.open('https://tiltcheck.me/tools/qualifyfirst.html', '_blank'); } },
+        { text: "Open Vault", action: () => { openVaultInterface(0); } },
         { text: "No thanks", action: () => { } }
       ]
     );
@@ -525,7 +547,10 @@ function checkZeroBalance(balance: number | null) {
  * Periodic tilt monitoring
  */
 function startTiltMonitoring() {
-  setInterval(() => {
+  if (tiltMonitoringInterval) {
+    clearInterval(tiltMonitoringInterval);
+  }
+  tiltMonitoringInterval = setInterval(() => {
     if (!tiltDetector || !isMonitoring) return;
 
     const tiltSigns = tiltDetector.detectAllTiltSigns();
@@ -534,16 +559,6 @@ function startTiltMonitoring() {
 
     // Update sidebar
     (window as any).TiltCheckSidebar?.updateTilt(tiltRisk, indicators);
-
-    // Send to popup
-    chrome.runtime.sendMessage({
-      type: 'tilt_update',
-      data: {
-        tiltRisk,
-        tiltSigns,
-        sessionSummary: tiltDetector.getSessionSummary()
-      }
-    });
 
     // Check for critical tilt
     if (tiltRisk >= 80) {
@@ -585,15 +600,6 @@ function handleInterventions(interventions: any[]) {
         showBreakPrompt();
         break;
     }
-
-    // Queue for popup
-    interventionQueue.push(intervention);
-
-    // Send to popup
-    chrome.runtime.sendMessage({
-      type: 'intervention',
-      data: intervention
-    });
 
     // Notify Buddy
     (window as any).TiltCheckSidebar?.notifyBuddy('intervention', {
@@ -1196,77 +1202,35 @@ async function verifySpinFairness(spinData: any, gameId: string) {
   }
 }
 
-// Listen for messages from popup
+// Listen for extension messages
 chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
   console.log('[TiltGuard] Message received:', message.type);
 
+  // Keep excluded domains isolated even if content script is injected.
+  if (isExcludedDomain && message.type !== 'get_sidebar_state') {
+    sendResponse({ error: 'Feature disabled on this domain' });
+    return true;
+  }
+
   switch (message.type) {
-    case 'start_analysis':
-      startMonitoring().then(() => {
-        sendResponse({ success: true, sessionId });
-      }).catch(err => {
-        sendResponse({ success: false, error: err.message });
-      });
-      return true;
-
-    case 'stop_analysis':
-      stopMonitoring();
-      sendResponse({ success: true });
+    case 'toggle_sidebar': {
+      const visible = toggleSidebarVisibility();
+      sendResponse({ success: true, visible });
       break;
+    }
 
-    case 'get_license_verification':
-      sendResponse(casinoVerification || { error: 'Not verified' });
-      break;
-
-    case 'get_tilt_status':
-      if (tiltDetector) {
-        sendResponse({
-          tiltRisk: tiltDetector.getTiltRiskScore(),
-          tiltSigns: tiltDetector.detectAllTiltSigns(),
-          sessionSummary: tiltDetector.getSessionSummary()
-        });
-      } else {
-        sendResponse({ error: 'Monitoring not active' });
+    case 'open_sidebar': {
+      const sidebar = document.getElementById('tiltcheck-sidebar');
+      if (!sidebar) {
+        (window as any).TiltCheckSidebar?.create();
       }
+      const visible = setSidebarVisibility(true);
+      sendResponse({ success: true, visible });
       break;
+    }
 
-    case 'get_session_stats':
-      if (tiltDetector) {
-        sendResponse(tiltDetector.getSessionSummary());
-      } else {
-        sendResponse({ error: 'Monitoring not active' });
-      }
-      break;
-
-    case 'get_pending_intervention':
-      if (interventionQueue.length > 0) {
-        sendResponse({ intervention: interventionQueue.shift() });
-      } else {
-        sendResponse({ intervention: null });
-      }
-      break;
-
-    case 'start_cooldown':
-      startCooldown(message.duration || 300000);
-      sendResponse({ success: true });
-      break;
-
-    case 'request_report':
-      if (tiltDetector) {
-        sendResponse({ success: true, report: (tiltDetector as any).generateReport ? (tiltDetector as any).generateReport() : { summary: tiltDetector.getSessionSummary() } });
-      } else {
-        sendResponse({ error: 'No data to report' });
-      }
-      break;
-
-    case 'validate_selector':
-      try {
-        const el = document.querySelector(message.selector);
-        const value = el ? (el instanceof HTMLInputElement ? el.value : el.textContent || '').trim().substring(0, 50) : null;
-        sendResponse({ found: !!el, value: value || 'Empty' });
-      } catch (e) {
-        sendResponse({ found: false, error: 'Invalid selector' });
-      }
+    case 'get_sidebar_state':
+      sendResponse(getSidebarState());
       break;
 
     default:

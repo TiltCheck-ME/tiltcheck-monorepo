@@ -15,6 +15,13 @@ import { EXT_CONFIG, getDiscordLoginUrl } from './config.js';
 
 const API_BASE = EXT_CONFIG.API_BASE_URL;
 const AI_GATEWAY_URL = EXT_CONFIG.AI_GATEWAY_URL;
+const TRUSTED_AUTH_ORIGIN = (() => {
+  try {
+    return new URL(getDiscordLoginUrl('extension')).origin;
+  } catch {
+    return null;
+  }
+})();
 let authToken: string | null = null;
 let showSettings = false;
 let apiKeys: any = {
@@ -37,6 +44,8 @@ let sessionStats = {
 let lockTimerInterval: any = null;
 let lastProfit = 0;
 let casinoThemesIntervalId: ReturnType<typeof setInterval> | null = null;
+let vaultRefreshIntervalId: ReturnType<typeof setInterval> | null = null;
+let buddyMirrorEnabled = false;
 
 const CASINO_THEMES: Record<string, { label: string; accent: string }> = {
   'stake.us': { label: 'Stake.us', accent: '#4ade80' },
@@ -46,6 +55,33 @@ const CASINO_THEMES: Record<string, { label: string; accent: string }> = {
   'rollbit.com': { label: 'Rollbit', accent: '#f472b6' },
 };
 let dynamicCasinoThemes: Record<string, { label: string; accent: string }> = {};
+
+function escapeHtml(value: unknown): string {
+  return String(value ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function getStorage(keys: string[] | string): Promise<Record<string, any>> {
+  return new Promise((resolve) => {
+    chrome.storage.local.get(keys, (result) => resolve(result || {}));
+  });
+}
+
+function setStorage(values: Record<string, any>): Promise<void> {
+  return new Promise((resolve) => {
+    chrome.storage.local.set(values, () => resolve());
+  });
+}
+
+function removeStorage(keys: string[] | string): Promise<void> {
+  return new Promise((resolve) => {
+    chrome.storage.local.remove(keys, () => resolve());
+  });
+}
 
 function applyPageOffset(width: number) {
   const offset = `${width}px`;
@@ -110,6 +146,10 @@ function createSidebar() {
   if (casinoThemesIntervalId) {
     clearInterval(casinoThemesIntervalId);
     casinoThemesIntervalId = null;
+  }
+  if (vaultRefreshIntervalId) {
+    clearInterval(vaultRefreshIntervalId);
+    vaultRefreshIntervalId = null;
   }
 
   const sidebar = document.createElement('div');
@@ -393,8 +433,8 @@ function createSidebar() {
 
             <div id="tg-lock-status" style="display: none; background: rgba(255,255,255,0.05); padding: 10px; border-radius: 4px;">
               <div style="display: flex; justify-content: space-between; margin-bottom: 5px; font-size: 12px;">
-                <span>Locked:</span>
-                <span id="tg-locked-amount" style="color: #fbbf24; font-weight: bold;">$0.00</span>
+                <span>Locked (SOL):</span>
+                <span id="tg-locked-amount" style="color: #fbbf24; font-weight: bold;">0.0000 SOL</span>
               </div>
               
               <!-- Progress Bar -->
@@ -409,11 +449,18 @@ function createSidebar() {
               
               <!-- Partial Release Input (Hidden until unlock) -->
               <div id="tg-release-controls" style="display: none; margin-bottom: 8px;">
-                 <input type="number" id="tg-release-amount" placeholder="Amount to release" style="width: 100%; padding: 6px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); border-radius: 4px; color: #fff; font-size: 12px; margin-bottom: 5px;" />
-                 <div style="font-size: 10px; opacity: 0.6; text-align: right;">Leave empty to release all</div>
+                 <input type="number" id="tg-release-amount" placeholder="Amount to release (SOL)" style="width: 100%; padding: 6px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); border-radius: 4px; color: #fff; font-size: 12px; margin-bottom: 5px;" />
+                 <div style="font-size: 10px; opacity: 0.6; text-align: right;">Leave empty to release all (SOL)</div>
               </div>
 
               <button class="tg-btn tg-btn-secondary" id="release-funds-btn" disabled style="width: 100%; padding: 6px; font-size: 11px; opacity: 0.5; cursor: not-allowed;">Release Funds</button>
+            </div>
+          </div>
+
+          <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.1);">
+            <h4 style="font-size: 11px; margin-bottom: 6px;">Vault Timeline</h4>
+            <div id="tg-vault-timeline" class="tg-vault-timeline">
+              <div class="tg-vault-timeline-empty">No vault events yet.</div>
             </div>
           </div>
         </div>
@@ -787,6 +834,21 @@ function createSidebar() {
     .tg-status-bar.success { background: rgba(16, 185, 129, 0.2); color: #34d399; border-bottom: 1px solid rgba(16, 185, 129, 0.3); }
     .tg-status-bar.warning { background: rgba(245, 158, 11, 0.2); color: #fbbf24; border-bottom: 1px solid rgba(245, 158, 11, 0.3); }
     .tg-status-bar.buddy { background: rgba(236, 72, 153, 0.2); color: #f472b6; border-bottom: 1px solid rgba(236, 72, 153, 0.3); }
+
+    .tg-vault-timeline { max-height: 180px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; }
+    .tg-vault-timeline-item {
+      font-size: 11px;
+      line-height: 1.35;
+      padding: 8px;
+      border-radius: 6px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .tg-vault-timeline-row { display: flex; justify-content: space-between; gap: 8px; }
+    .tg-vault-timeline-action { font-weight: 600; color: #fbbf24; }
+    .tg-vault-timeline-time { opacity: 0.7; font-size: 10px; white-space: nowrap; }
+    .tg-vault-timeline-meta { opacity: 0.75; margin-top: 2px; font-size: 10px; }
+    .tg-vault-timeline-empty { opacity: 0.6; font-size: 11px; padding: 8px; background: rgba(255,255,255,0.03); border-radius: 6px; }
     
     @keyframes slideDown { from { transform: translateY(-100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
     
@@ -803,7 +865,7 @@ function createSidebar() {
   void refreshCasinoThemes();
   casinoThemesIntervalId = setInterval(refreshCasinoThemes, 15 * 60 * 1000);
   setupEventListeners();
-  checkAuthStatus();
+  void checkAuthStatus();
   return sidebar;
 }
 
@@ -893,9 +955,25 @@ function setupEventListeners() {
   // Buddy Mirror Setting
   const buddyCheckbox = document.getElementById('cfg-buddy-mirror') as HTMLInputElement;
   if (buddyCheckbox) {
-    buddyCheckbox.checked = localStorage.getItem('tiltcheck_buddy_mirror') === 'true';
+    void (async () => {
+      const settings = await getStorage(['buddyMirrorEnabled']);
+      if (typeof settings.buddyMirrorEnabled === 'boolean') {
+        buddyMirrorEnabled = settings.buddyMirrorEnabled;
+      } else {
+        // One-time migration from localStorage legacy key.
+        const legacyMirror = localStorage.getItem('tiltcheck_buddy_mirror');
+        if (legacyMirror !== null) {
+          buddyMirrorEnabled = legacyMirror === 'true';
+          await setStorage({ buddyMirrorEnabled });
+          localStorage.removeItem('tiltcheck_buddy_mirror');
+        }
+      }
+      buddyCheckbox.checked = buddyMirrorEnabled;
+    })();
+
     buddyCheckbox.addEventListener('change', (e) => {
-      localStorage.setItem('tiltcheck_buddy_mirror', (e.target as HTMLInputElement).checked.toString());
+      buddyMirrorEnabled = (e.target as HTMLInputElement).checked;
+      void setStorage({ buddyMirrorEnabled });
     });
   }
 
@@ -1209,7 +1287,7 @@ function setupEventListeners() {
       return;
     }
 
-    const amountStr = prompt('Amount to lock ($):');
+    const amountStr = prompt('Amount to lock (USD):');
     if (!amountStr) return;
     const amount = parseFloat(amountStr);
 
@@ -1232,7 +1310,8 @@ function setupEventListeners() {
       });
 
       if (result.success) {
-        addFeedMessage(`Locked $${amount} for ${mins}m`);
+        const lockedSol = Number(result.vault?.lockedAmountSOL || 0);
+        addFeedMessage(`Locked ${lockedSol.toFixed(4)} SOL (${amount.toFixed(2)} USD input) for ${mins}m`);
         updateStatus('Funds locked successfully', 'success');
         minsInput.value = '';
         agreeCheckbox.checked = false;
@@ -1263,7 +1342,7 @@ function setupEventListeners() {
       });
 
       if (result.success) {
-        addFeedMessage(`Funds released: $${result.amount.toFixed(2)}`);
+        addFeedMessage(`Funds released: ${Number(result.amount || 0).toFixed(4)} SOL`);
         updateStatus('Funds released to main wallet', 'success');
         checkLockStatus(); // Should reset UI to form
         loadVaultBalance();
@@ -1310,7 +1389,7 @@ function setupEventListeners() {
     const custom = (document.getElementById('api-key-custom') as HTMLInputElement)?.value;
 
     apiKeys = { openai, anthropic, custom };
-    localStorage.setItem('tiltcheck_api_keys', JSON.stringify(apiKeys));
+    void setStorage({ apiKeys });
     addFeedMessage('API keys saved');
 
     const panel = document.getElementById('tg-settings-panel');
@@ -1337,12 +1416,12 @@ function setupEventListeners() {
 
     // Listen for auth response
     const handleMessage = (event: MessageEvent) => {
+      if (!TRUSTED_AUTH_ORIGIN || event.origin !== TRUSTED_AUTH_ORIGIN) return;
       if (event.data.type === 'discord-auth' && event.data.token) {
         authToken = event.data.token;
         userData = event.data.user;
         isAuthenticated = true;
-        localStorage.setItem('tiltcheck_auth', JSON.stringify(userData));
-        localStorage.setItem('tiltcheck_token', authToken || '');
+        void setStorage({ authToken, userData });
         showMainContent();
         addFeedMessage(`Authenticated as ${userData.username}`);
         window.removeEventListener('message', handleMessage);
@@ -1369,8 +1448,7 @@ function setupEventListeners() {
   });
 
   document.getElementById('tg-logout')?.addEventListener('click', () => {
-    localStorage.removeItem('tiltcheck_auth');
-    localStorage.removeItem('tiltcheck_token');
+    void removeStorage(['authToken', 'userData']);
     authToken = null;
     location.reload();
   });
@@ -1397,31 +1475,43 @@ function setupEventListeners() {
   document.getElementById('tg-upgrade')?.addEventListener('click', openPremium);
 }
 
-function checkAuthStatus() {
-  const stored = localStorage.getItem('tiltcheck_auth');
-  const token = localStorage.getItem('tiltcheck_token');
-  const keys = localStorage.getItem('tiltcheck_api_keys');
-
-  if (keys) {
-    apiKeys = JSON.parse(keys);
-    // Populate settings fields
-    setTimeout(() => {
-      if (document.getElementById('api-key-openai')) {
-        (document.getElementById('api-key-openai') as HTMLInputElement).value = apiKeys.openai || '';
-        (document.getElementById('api-key-anthropic') as HTMLInputElement).value = apiKeys.anthropic || '';
-        (document.getElementById('api-key-custom') as HTMLInputElement).value = apiKeys.custom || '';
+async function checkAuthStatus() {
+  const storedAuth = await getStorage(['authToken', 'userData']);
+  const storedUser = storedAuth.userData || null;
+  const token = storedAuth.authToken || null;
+  const storedSettings = await getStorage(['apiKeys']);
+  if (storedSettings.apiKeys) {
+    apiKeys = storedSettings.apiKeys;
+  } else {
+    // One-time migration from localStorage legacy key.
+    const legacyKeys = localStorage.getItem('tiltcheck_api_keys');
+    if (legacyKeys) {
+      try {
+        apiKeys = JSON.parse(legacyKeys);
+        await setStorage({ apiKeys });
+      } catch {
+        apiKeys = { openai: '', anthropic: '', custom: '' };
       }
-    }, 100);
+      localStorage.removeItem('tiltcheck_api_keys');
+    }
   }
+  // Populate settings fields
+  setTimeout(() => {
+    if (document.getElementById('api-key-openai')) {
+      (document.getElementById('api-key-openai') as HTMLInputElement).value = apiKeys.openai || '';
+      (document.getElementById('api-key-anthropic') as HTMLInputElement).value = apiKeys.anthropic || '';
+      (document.getElementById('api-key-custom') as HTMLInputElement).value = apiKeys.custom || '';
+    }
+  }, 100);
 
   // Require authentication
-  if (!stored || !token) {
+  if (!storedUser || !token) {
     console.log('TiltGuard: Authentication required');
     return;
   }
 
-  if (stored && token) {
-    userData = JSON.parse(stored);
+  if (storedUser && token) {
+    userData = storedUser;
     authToken = token;
     isAuthenticated = true;
     showMainContent();
@@ -1430,6 +1520,10 @@ function checkAuthStatus() {
     loadVaultBalance();
     checkLockStatus();
     initPnLGraph();
+    vaultRefreshIntervalId = setInterval(() => {
+      loadVaultBalance();
+      checkLockStatus();
+    }, 30_000);
   }
 }
 
@@ -1729,7 +1823,85 @@ async function loadVaultBalance() {
     const vaultEl = document.getElementById('tg-vault-balance');
     if (vaultEl) vaultEl.textContent = `$${result.vault.balance.toFixed(2)}`;
     updateGoalProgress(result.vault.balance || 0);
+    renderVaultTimeline(Array.isArray(result.vault.locks) ? result.vault.locks : []);
   }
+}
+
+function formatTimelineAction(action: string): string {
+  switch (action) {
+    case 'locked': return 'Lock created';
+    case 'extended': return 'Lock extended';
+    case 'auto-unlocked': return 'Auto-unlocked (timer expired)';
+    case 'unlocked': return 'Released';
+    case 'emergency-unlocked': return 'Emergency unlock';
+    default: return action.replace(/-/g, ' ');
+  }
+}
+
+function formatRelativeTime(ts: number): string {
+  const diffMs = Date.now() - ts;
+  const sec = Math.floor(diffMs / 1000);
+  if (sec < 60) return `${sec}s ago`;
+  const min = Math.floor(sec / 60);
+  if (min < 60) return `${min}m ago`;
+  const hrs = Math.floor(min / 60);
+  if (hrs < 24) return `${hrs}h ago`;
+  const days = Math.floor(hrs / 24);
+  return `${days}d ago`;
+}
+
+function shortVaultId(vaultId: string): string {
+  if (!vaultId) return 'unknown';
+  if (vaultId.length <= 10) return vaultId;
+  return `${vaultId.slice(0, 6)}...${vaultId.slice(-4)}`;
+}
+
+function renderVaultTimeline(locks: any[]) {
+  const container = document.getElementById('tg-vault-timeline');
+  if (!container) return;
+
+  const events: Array<{ ts: number; action: string; note?: string; vaultId: string; amount: number }> = [];
+  for (const lock of locks) {
+    const lockHistory = Array.isArray(lock.history) ? lock.history : [];
+    for (const event of lockHistory) {
+      if (!event || typeof event.ts !== 'number' || typeof event.action !== 'string') continue;
+      events.push({
+        ts: event.ts,
+        action: event.action,
+        note: event.note,
+        vaultId: String(lock.id || ''),
+        amount: Number(lock.lockedAmountSOL || 0),
+      });
+    }
+  }
+
+  events.sort((a, b) => b.ts - a.ts);
+  const topEvents = events.slice(0, 20);
+
+  if (topEvents.length === 0) {
+    container.innerHTML = '<div class="tg-vault-timeline-empty">No vault events yet.</div>';
+    return;
+  }
+
+  container.innerHTML = topEvents.map((event) => {
+    const action = escapeHtml(formatTimelineAction(event.action));
+    const relative = escapeHtml(formatRelativeTime(event.ts));
+    const absolute = escapeHtml(new Date(event.ts).toLocaleString());
+    const metaParts = [
+      `Vault ${escapeHtml(shortVaultId(event.vaultId))}`,
+      `Amount: ${escapeHtml(event.amount.toFixed(4))} SOL`,
+      event.note ? escapeHtml(event.note) : '',
+    ].filter(Boolean);
+    return `
+      <div class="tg-vault-timeline-item" title="${absolute}">
+        <div class="tg-vault-timeline-row">
+          <span class="tg-vault-timeline-action">${action}</span>
+          <span class="tg-vault-timeline-time">${relative}</span>
+        </div>
+        <div class="tg-vault-timeline-meta">${metaParts.join(' • ')}</div>
+      </div>
+    `;
+  }).join('');
 }
 
 async function checkLockStatus() {
@@ -1746,7 +1918,7 @@ async function checkLockStatus() {
     if (status) status.style.display = 'block';
 
     const amountEl = document.getElementById('tg-locked-amount');
-    if (amountEl) amountEl.textContent = `$${result.amount.toFixed(2)}`;
+    if (amountEl) amountEl.textContent = `${Number(result.amount || 0).toFixed(4)} SOL`;
     if (amountEl) amountEl.dataset.total = result.amount.toString();
 
     // Use createdAt if available for progress bar, otherwise default to now (0% progress fallback)
@@ -1833,7 +2005,7 @@ async function openDashboard() {
   }
 
   addFeedMessage('Dashboard opened');
-  const data = JSON.stringify(result, null, 2);
+  const data = escapeHtml(JSON.stringify(result, null, 2));
   const win = window.open('', 'TiltGuard Dashboard', 'width=800,height=600');
   if (win) {
     win.document.write(`
@@ -1858,7 +2030,7 @@ async function openVault() {
     return;
   }
 
-  const data = JSON.stringify(result.vault, null, 2);
+  const data = escapeHtml(JSON.stringify(result.vault, null, 2));
   const win = window.open('', 'TiltGuard Vault', 'width=600,height=500');
   if (win) {
     win.document.write(`
@@ -1883,7 +2055,7 @@ async function openWallet() {
     return;
   }
 
-  const data = JSON.stringify(result, null, 2);
+  const data = escapeHtml(JSON.stringify(result, null, 2));
   const win = window.open('', 'TiltGuard Wallet', 'width=600,height=500');
   if (win) {
     win.document.write(`
@@ -1948,16 +2120,16 @@ function renderVerificationHistory() {
   list.innerHTML = history.map((item: any) => `
     <div class="tg-history-item">
       <div class="tg-history-header">
-        <span>Nonce: ${item.nonce}</span>
-        <span>${new Date(item.timestamp).toLocaleTimeString()}</span>
+        <span>Nonce: ${escapeHtml(item.nonce)}</span>
+        <span>${escapeHtml(new Date(item.timestamp).toLocaleTimeString())}</span>
       </div>
       <div style="display:flex; justify-content:space-between;">
-        <span>Dice: <span class="tg-history-result">${item.result.dice.toFixed(2)}</span></span>
-        <span>Crash: <span class="tg-history-result">${item.result.limbo.toFixed(2)}x</span></span>
+        <span>Dice: <span class="tg-history-result">${escapeHtml(Number(item.result?.dice || 0).toFixed(2))}</span></span>
+        <span>Crash: <span class="tg-history-result">${escapeHtml(Number(item.result?.limbo || 0).toFixed(2))}x</span></span>
       </div>
       <div style="display:flex; align-items:center; gap:6px; margin-top:4px;">
-        <span style="font-size:9px; opacity:0.4; flex:1; overflow:hidden; text-overflow:ellipsis; font-family:monospace;">${item.result.hash}</span>
-        <button class="tg-btn-icon tg-copy-hash" data-hash="${item.result.hash}" title="Copy Hash" style="width:20px; height:20px; font-size:12px; padding:0; display:flex; align-items:center; justify-content:center; border:1px solid rgba(255,255,255,0.1);">Copy</button>
+        <span style="font-size:9px; opacity:0.4; flex:1; overflow:hidden; text-overflow:ellipsis; font-family:monospace;">${escapeHtml(item.result?.hash)}</span>
+        <button class="tg-btn-icon tg-copy-hash" data-hash="${escapeHtml(item.result?.hash)}" title="Copy Hash" style="width:20px; height:20px; font-size:12px; padding:0; display:flex; align-items:center; justify-content:center; border:1px solid rgba(255,255,255,0.1);">Copy</button>
       </div>
     </div>
   `).join('');
@@ -1965,8 +2137,7 @@ function renderVerificationHistory() {
 
 async function notifyBuddy(type: string, data: any) {
   // Check if feature is enabled
-  const mirror = localStorage.getItem('tiltcheck_buddy_mirror') === 'true';
-  if (!mirror) return;
+  if (!buddyMirrorEnabled) return;
 
   // Check if user is authenticated
   if (!userData || !authToken) return;
@@ -1996,8 +2167,7 @@ function updateStatus(message: string, type: string = 'info') {
 
   // Check buddy setting for buddy notifications
   if (type === 'buddy') {
-    const mirror = localStorage.getItem('tiltcheck_buddy_mirror') === 'true';
-    if (!mirror) return;
+    if (!buddyMirrorEnabled) return;
   }
 
   bar.textContent = message;
