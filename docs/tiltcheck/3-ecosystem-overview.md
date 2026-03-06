@@ -64,9 +64,9 @@ TiltCheck does not try to “fix” degens — it tries to make them safer and s
 
 ---
 
-# 3.2 Major Modules in the Ecosystem
+# 3.2 Major Modules in the Ecosystem (Current MVP Focus)
 
-The ecosystem consists of eight major tools and two trust engines:
+The current MVP focuses on a smaller set of core tools and trust engines that are actively maintained:
 
 1. **JustTheTip**  
    → non-custodial tipping + optional swapping via Jupiter
@@ -77,28 +77,27 @@ The ecosystem consists of eight major tools and two trust engines:
 3. **CollectClock**  
    → daily bonus tracking, countdown timers, nerf detection
 
-4. **FreeSpinScan**  
-   → free spin / promo submission & validation, mod approval, prediction
-
-5. **QualifyFirst**  
-   → survey routing, screening, profile-based matching
-
-6. **DA&D – Degens Against Decency**  
+4. **DA&D – Degens Against Decency**  
    → AI-powered card game for Discord
 
-7. **TiltCheck Core**  
-   → tilt detection, vault locks, accountabilibuddy support
+5. **TiltCheck Core**  
+   → tilt detection, cooldown nudges, Discord + Chrome extension signals
 
-8. **Funding Intelligence Layer** (Agent-only)  
+6. **Funding Intelligence Layer** (Agent-only)  
    → detects grants, hackathons, credits, startup programs
 
 Plus the two central scoring engines:
 
-9. **Casino Trust Engine**  
+7. **Casino Trust Engine**  
    → fairness, payout delays, user reports, bonus reliability
 
-10. **Degen Trust Engine**  
+8. **Degen Trust Engine**  
    → behavior-based reputation for users across the ecosystem
+
+Archived / paused modules (not in current MVP scope but kept in repo history for reference):
+
+- **FreeSpinScan** — promo submission & validation (removed from active roadmap)  
+- **QualifyFirst** — survey routing & screening (paused; not an MVP requirement)
 
 ---
 
@@ -183,11 +182,11 @@ The ecosystem consists of eight major tools and two trust engines:
 3. **CollectClock**  
    → daily bonus tracking, countdown timers, nerf detection
 
-4. **FreeSpinScan**  
-   → free spin / promo submission & validation, mod approval, prediction
+4. **FreeSpinScan** *(archived)*  
+   → historical free spin / promo submission & validation, mod approval, prediction (removed from active roadmap)
 
-5. **QualifyFirst**  
-   → survey routing, screening, profile-based matching
+5. **QualifyFirst** *(archived)*  
+   → historical survey routing, screening, profile-based matching (paused; not an MVP requirement)
 
 6. **DA&D – Degens Against Decency**  
    → AI-powered card game for Discord
@@ -211,26 +210,26 @@ Plus the two central scoring engines:
 # 3.3 How Modules Interact (High-Level)
 
 ┌─────────────────────┐
-│ Discord UI │
+│ Discord + Web + Ext │
 └───────────┬─────────┘
 ▼
 ┌─────────────────────┐
-│ Command Router │
+│ Command / Event Bus │
 └───────────┬─────────┘
 ┌───┼──────────┬───────┐
-▼ ▼ ▼ ▼
-JustTheTip SusLink CollectClock FreeSpinScan
-│ │ │ │
-▼ ▼ ▼ ▼
-Swap API | Bonus Cycles Promo DB
-│ │ │ │
-▼ ▼ ▼ ▼
+▼   ▼          ▼
+JustTheTip  SusLink  CollectClock
+│    │          │
+▼    ▼          ▼
+Swap API | Link Scan | Bonus Cycles
+│    │          │
+▼    ▼          ▼
 ┌────────────── Trust Engines ──────────────┐
-│ Casino Trust + Degen Trust │
+│ Casino Trust + Degen Trust + Tilt Core   │
 └───────────────────────────────────────────┘
 
 
-Each module reports signals to the trust engines, which then inform:
+Each active module reports signals to the trust engines, which then inform:
 
 - user warnings  
 - cooldown actions  

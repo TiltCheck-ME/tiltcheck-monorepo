@@ -1,12 +1,14 @@
 © 2024–2025 TiltCheck Ecosystem (Created by jmenichole). All Rights Reserved.
 
 # 6. Tool Specifications (Part 2)
-This document covers two key TiltCheck modules:
+> **Status:** Archived design docs — both FreeSpinScan and QualifyFirst are **removed from the current MVP scope** and are not considered active projects. These specs are kept for historical and future-reference purposes only.
 
-1. **FreeSpinScan** — promo submission, validation, prediction  
-2. **QualifyFirst** — AI-powered survey routing without screen-outs  
+This document covers two legacy TiltCheck modules that are currently paused:
 
-Both modules reduce noise, save time, and prevent user frustration in high-traffic degen communities.
+1. **FreeSpinScan** — promo submission, validation, prediction *(archived)*  
+2. **QualifyFirst** — AI-powered survey routing without screen-outs *(archived)*  
+
+They are **not** part of the present MVP deliverables (web, Chrome extension, Discord bot + TiltCheck Core).
 
 ---
 
