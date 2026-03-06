@@ -1049,6 +1049,10 @@ function detectGameId(): string {
  * Get user ID from storage or generate one
  */
 async function getUserId(): Promise<string> {
+  const createUserId = () => {
+    const rand = crypto.getRandomValues(new Uint32Array(1))[0].toString(36);
+    return `user_${Date.now()}_${rand}`;
+  };
   return new Promise((resolve) => {
     try {
       // Try to get from chrome storage
@@ -1057,7 +1061,7 @@ async function getUserId(): Promise<string> {
           resolve(result.tiltguard_user_id as string);
         } else {
           // Generate new user ID
-          const newId = `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+          const newId = createUserId();
           chrome.storage.local.set({ tiltguard_user_id: newId });
           resolve(newId as string);
         }
@@ -1066,7 +1070,7 @@ async function getUserId(): Promise<string> {
       // Fallback to localStorage if chrome.storage is not available
       let userId = localStorage.getItem('tiltguard_user_id');
       if (!userId) {
-        userId = `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+        userId = createUserId();
         localStorage.setItem('tiltguard_user_id', userId);
       }
       resolve(userId);
