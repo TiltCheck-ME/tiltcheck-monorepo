@@ -1,20 +1,26 @@
-# MVP Deploy Cheat Sheet
+# MVP Deploy Cheat Sheet (VPS-Free)
 
 ```bash
 # 1) Local gates
 pnpm --filter @tiltcheck/lockvault test && pnpm --filter @tiltcheck/api test && pnpm --filter @tiltcheck/discord-bot build && pnpm --filter @tiltcheck/core build && pnpm --filter @tiltcheck/landing-page build
 
-# 2) Deploy to VPS
-bash deploy-vps.sh
+# 2) Deploy web (Vercel)
+# - Deploy project rooted at apps/web
+# - Domain should point to that deployment
 
-# 3) Quick VPS checks
-ssh jme@85.209.95.175 "cd /home/jme/tiltcheck-monorepo && docker compose ps && docker compose logs --tail=120 api discord-bot landing reverse-proxy"
+# 3) Deploy runtime services (Railway or Render)
+# - apps/api
+# - apps/discord-bot
+# - apps/trust-rollup (if needed)
 
 # 4) API health
-ssh jme@85.209.95.175 "curl -fsS http://localhost:3001/health"
+curl -fsS https://api.tiltcheck.me/health
 
-# 5) Live logs (optional)
-ssh jme@85.209.95.175 "cd /home/jme/tiltcheck-monorepo && docker compose logs -f"
+# 5) Beta tool smoke checks
+bash scripts/mvp-beta-tools-smoke.sh https://tiltcheck.me
+
+# 6) Optional local fallback (single host)
+docker compose -f docker-compose.mvp.yml up -d --build
 ```
 
 ## Manual Smoke (5 minutes)
@@ -24,13 +30,14 @@ ssh jme@85.209.95.175 "cd /home/jme/tiltcheck-monorepo && docker compose logs -f
 - Vault timeline shows created/extended/auto-unlocked events.
 - Discord `/vault status` and `/vault unlock` respond correctly.
 - Web home/getting-started/extension pages load and reflect MVP.
+- Beta pages load: `/beta.html`, `/tools/justthetip.html`, `/tools/suslink.html`, `/tools/collectclock.html`, `/tools/tiltcheck-core.html`.
 
 ## Emergency Rollback
 
 ```bash
-ssh jme@85.209.95.175
-cd /home/jme/tiltcheck-monorepo
-git log --oneline -n 20
-git checkout <known_good_commit>
-docker compose up -d --build
+# Web: rollback in Vercel UI to previous deployment
+# Runtime: rollback in Railway/Render to previous deployment
+# Optional fallback host only:
+docker compose -f docker-compose.mvp.yml down
+docker compose -f docker-compose.mvp.yml up -d --build
 ```
