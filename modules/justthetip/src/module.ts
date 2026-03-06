@@ -52,6 +52,7 @@ interface Tip {
 export class JustTheTipModule {
   private wallets: Map<string, Wallet> = new Map();
   private tips: Map<string, Tip> = new Map();
+  private pendingTips: Map<string, string[]> = new Map();
 
   constructor() {
     this.setupEventSubscriptions();
@@ -103,12 +104,7 @@ export class JustTheTipModule {
     this.wallets.set(userId, wallet);
 
     // Emit appropriate event
-    await eventRouter.publish(
-      isUpdate ? 'wallet.updated' : 'wallet.registered',
-      'justthetip',
-      { userId, address, type },
-      userId
-    );
+    await eventRouter.publish('wallet.registered', 'justthetip', { userId, address, type, isUpdate }, userId);
 
     if (isUpdate) {
       console.log(`[JustTheTip] Wallet updated for ${userId}: ${address}`);
@@ -406,6 +402,7 @@ export class JustTheTipModule {
   clearState(): void {
     this.wallets.clear();
     this.tips.clear();
+    this.pendingTips.clear();
   }
 }
 
