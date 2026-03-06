@@ -955,6 +955,9 @@ function setupEventListeners() {
   // Buddy Mirror Setting
   const buddyCheckbox = document.getElementById('cfg-buddy-mirror') as HTMLInputElement;
   if (buddyCheckbox) {
+    let buddyMirrorTouched = false;
+    buddyCheckbox.checked = buddyMirrorEnabled;
+
     void (async () => {
       const settings = await getStorage(['buddyMirrorEnabled']);
       if (typeof settings.buddyMirrorEnabled === 'boolean') {
@@ -968,10 +971,14 @@ function setupEventListeners() {
           localStorage.removeItem('tiltcheck_buddy_mirror');
         }
       }
-      buddyCheckbox.checked = buddyMirrorEnabled;
+      // Avoid clobbering a user toggle that happened before async hydration finished.
+      if (!buddyMirrorTouched) {
+        buddyCheckbox.checked = buddyMirrorEnabled;
+      }
     })();
 
     buddyCheckbox.addEventListener('change', (e) => {
+      buddyMirrorTouched = true;
       buddyMirrorEnabled = (e.target as HTMLInputElement).checked;
       void setStorage({ buddyMirrorEnabled });
     });
@@ -1918,8 +1925,9 @@ async function checkLockStatus() {
     if (status) status.style.display = 'block';
 
     const amountEl = document.getElementById('tg-locked-amount');
-    if (amountEl) amountEl.textContent = `${Number(result.amount || 0).toFixed(4)} SOL`;
-    if (amountEl) amountEl.dataset.total = result.amount.toString();
+    const amountValue = Number(result?.amount ?? 0);
+    if (amountEl) amountEl.textContent = `${amountValue.toFixed(4)} SOL`;
+    if (amountEl) amountEl.dataset.total = amountValue.toString();
 
     // Use createdAt if available for progress bar, otherwise default to now (0% progress fallback)
     const startTime = result.createdAt ? new Date(result.createdAt).getTime() : Date.now();
