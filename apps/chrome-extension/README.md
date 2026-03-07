@@ -11,6 +11,15 @@ TiltGuard is a Chrome extension that helps casino players:
 - Verify casino licensing
 - Get real-time interventions when tilt is detected
 
+## Authentication & Demo Mode
+
+TiltGuard supports two runtime modes:
+
+- **Authenticated mode** (Discord OAuth): full API-backed flows with persisted account/session data.
+- **Demo mode** (no login): automatically enabled when no auth token is present, with mock responses for core sidebar interactions so users can explore the product before connecting Discord.
+
+OAuth source integrity is validated server-side using signed state prefixes (extension vs web origin) during callback handling.
+
 ## Version
 
 **Current Version:** 1.1.0
@@ -60,11 +69,11 @@ apps/chrome-extension/
 ### For Developers
 
 ```bash
-# From the apps/chrome-extension directory
-npm install
+# From repository root
+pnpm install
 
 # Build the extension
-npm run build
+pnpm -C apps/chrome-extension build
 
 # Load the dist/ folder in Chrome
 ```
@@ -93,6 +102,7 @@ Generic selectors also work on many other casino sites.
 - **Real-time Metrics**: Displays P/L, RTP, and tilt score
 - **Cooldown Periods**: Blocks betting when critical tilt is detected
 - **Real-world Comparisons**: Shows what your profit could buy
+- **Demo Mode**: Full sidebar walkthrough without mandatory login
 
 ## Changelog
 
@@ -103,6 +113,11 @@ Generic selectors also work on many other casino sites.
 - Improved selector coverage for existing casinos
 - Added helper functions for better detection
 - Updated manifest with icons configuration
+
+### Unreleased
+- Added no-login demo mode defaults in popup/sidebar
+- Added mock API responses for demo vault/dashboard/session flows
+- Hardened extension OAuth callback handling via source/state validation
 
 ### v1.0.0
 - Initial release

@@ -356,3 +356,33 @@ March Subscription Link
 **[149]** `2026-03-04T11:59:55.474Z` **Leda**: i doubt she was doing that honestly she probably was doing nothing and just wanted to worry u, but either way u guys obv have a lot to work out or not
 
 **[150]** `2026-03-04T12:17:07.033Z` **SWALD BANKMAN-FRIED**: you can also create a paypal invoice, open it in an incognito window, and pay your own invoice with your chime card for the exact amount of your spot me
+
+
+---
+## 📎 Citations — Saturday, March 7, 2026 at 12:42:36 AM
+> Source messages for the report generated at 2026-03-07T06:42:36.426Z  
+> These are the raw messages the AI analysed.
+
+**[1]** 📢 `3/6/26, 11:56 PM` **Droopy**: I'm cheating.  But they just put my account under review so I'm probably not getting away with it. I'll just try another wall lol
+
+**[2]** 🔥 `3/7/26, 12:30 AM` **unknown**: !wenweekly
+
+**[3]** 🔥 `3/7/26, 12:32 AM` **Psychee5150**: lol was spinning while typing and got into a bonus
+
+**[4]** 🔥 `3/7/26, 12:33 AM` **unknown**: well i should sleep now to be awake for weekly
+
+**[5]** 🔥 `3/7/26, 12:33 AM` **Rezzy**: i think my weekly shoulddd be juiced because i have 50000 wager on slots only
+
+**[6]** 🔥 `3/7/26, 12:33 AM` **unknown**: i forgot about the bonus
+
+**[7]** 📢 `3/7/26, 12:36 AM` **TweekinTiki**: @Lindsaymb013  totally realized i might have privacy settings stopping dms so ping me if you chose to dm and it wont allow ya
+
+**[8]** 📢 `3/7/26, 12:39 AM` **Rezzy**: so far my bday gift is 
+
+dinner from my parents hopefully
+
+the prada loafers i got myself, or i guess im getting 2 pairs
+
+some chrome hearts jewelry/clothing
+
+maybe a handbag?

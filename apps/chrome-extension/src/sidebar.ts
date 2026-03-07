@@ -62,6 +62,7 @@ const DEMO_USER = {
   username: 'DemoDegen',
   tier: 'premium',
   avatar: null,
+  isDemo: true,
 };
 
 let demoVaultBalance = 142.75;
@@ -1616,8 +1617,9 @@ function setupEventListeners() {
     const handleMessage = (event: MessageEvent) => {
       if (!TRUSTED_AUTH_ORIGIN || event.origin !== TRUSTED_AUTH_ORIGIN) return;
       if (event.data.type === 'discord-auth' && event.data.token) {
+        demoMode = false;
         authToken = event.data.token;
-        userData = event.data.user;
+        userData = { ...event.data.user, isDemo: false };
         isAuthenticated = true;
         void setStorage({ authToken, userData });
         showMainContent();
@@ -1719,6 +1721,7 @@ async function checkAuthStatus() {
   }
 
   if (storedUser && token) {
+    demoMode = false;
     userData = storedUser;
     authToken = token;
     isAuthenticated = true;

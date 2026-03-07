@@ -1,0 +1,143 @@
+/**
+ * © 2024–2026 TiltCheck Ecosystem. All Rights Reserved.
+ * Created by jmenichole (https://github.com/jmenichole)
+ */
+(function () {
+  const PANELS_EL = document.getElementById('daily-degen-comic-panels');
+  const DAY_EL = document.getElementById('daily-degen-comic-day');
+  const MOOD_EL = document.getElementById('daily-degen-comic-mood');
+  const SUBTITLE_EL = document.getElementById('daily-degen-comic-subtitle');
+  const CREDIT_EL = document.getElementById('daily-degen-comic-credit');
+  const UPDATED_EL = document.getElementById('daily-degen-comic-updated');
+  const ARCHIVE_LIST_EL = document.getElementById('daily-degen-comic-archive-list');
+
+  if (!PANELS_EL || !DAY_EL || !MOOD_EL || !SUBTITLE_EL) return;
+
+  const REFRESH_MS = 5 * 60 * 1000;
+
+  function escapeHtml(value) {
+    return String(value || '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
+  }
+
+  function formatDate(day) {
+    if (!day) return 'No comic yet';
+    const date = new Date(`${day}T00:00:00Z`);
+    if (Number.isNaN(date.getTime())) return day;
+    return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+  }
+
+  function formatTimestamp(ts) {
+    if (!ts) return '--';
+    const date = new Date(ts);
+    if (Number.isNaN(date.getTime())) return ts;
+    return date.toLocaleString(undefined, {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit',
+    });
+  }
+
+  function renderPanels(comic) {
+    const panels = Array.isArray(comic?.panels) ? comic.panels.slice(0, 3) : [];
+    if (panels.length === 0) {
+      PANELS_EL.innerHTML = `
+        <article class="degen-comic-panel">
+          <h3 class="text-white text-lg font-semibold">No panel data yet</h3>
+          <p class="text-gray-400 text-sm mt-2">Try generating today's payload from \`tools/channel-watcher/messages.jsonl\`.</p>
+        </article>
+      `;
+      return;
+    }
+
+    PANELS_EL.innerHTML = panels.map((panel) => `
+      <article class="degen-comic-panel">
+        <h3 class="text-white text-lg font-semibold">${escapeHtml(panel.title || 'Untitled panel')}</h3>
+        <p class="text-[#c6d4ef] text-sm mt-2">${escapeHtml(panel.caption || '')}</p>
+        <blockquote class="degen-comic-quote">"${escapeHtml(panel.quote || '')}"</blockquote>
+      </article>
+    `).join('');
+  }
+
+  function renderCredits(comic) {
+    if (!CREDIT_EL) return;
+    const artist = escapeHtml(comic?.credits?.visualInspiration || 'samoxic');
+    const artistUrl = escapeHtml(comic?.credits?.visualInspirationUrl || 'https://pheverdream.github.io/The-Book-of-SealStats/');
+    const creator = escapeHtml(comic?.credits?.creator || 'jmenichole');
+    CREDIT_EL.innerHTML = `Visual inspiration credit: <a href="${artistUrl}" target="_blank" rel="noopener" class="text-[#8dc0ff] hover:text-[#b5d6ff]">${artist}'s SealStats render</a>. TiltCheck adaptation by <span class="text-[#b6ffe7]">${creator}</span>.`;
+  }
+
+  function renderUpdatedAt(comic) {
+    if (!UPDATED_EL) return;
+    UPDATED_EL.textContent = `Last updated: ${formatTimestamp(comic?.generatedAt)}`;
+  }
+
+  function renderArchive(comic, archiveFallback) {
+    if (!ARCHIVE_LIST_EL) return;
+    const recent = Array.isArray(comic?.archiveRecent) && comic.archiveRecent.length > 0
+      ? comic.archiveRecent
+      : (Array.isArray(archiveFallback) ? archiveFallback : []);
+    const currentDate = comic?.date || null;
+    const previous = recent
+      .filter((item) => item && item.date !== currentDate)
+      .slice(0, 8);
+
+    if (previous.length === 0) {
+      ARCHIVE_LIST_EL.innerHTML = '<li>No archived strips yet.</li>';
+      return;
+    }
+
+    ARCHIVE_LIST_EL.innerHTML = previous.map((item) => {
+      const day = escapeHtml(formatDate(item.date || ''));
+      const mood = escapeHtml(item.mood || 'Degen weather: volatile');
+      const line = escapeHtml(item.oneLiner || item.subtitle || item.title || '');
+      return `<li><strong>${day}</strong> - ${mood}${line ? ` - ${line}` : ''}</li>`;
+    }).join('');
+  }
+
+  async function loadArchiveFallback() {
+    try {
+      const response = await fetch(`/daily-degen-comic-archive.json?v=${Date.now()}`, { cache: 'no-store' });
+      if (!response.ok) return [];
+      const payload = await response.json();
+      if (Array.isArray(payload)) return payload;
+      return Array.isArray(payload?.items) ? payload.items : [];
+    } catch {
+      return [];
+    }
+  }
+
+  async function loadComic() {
+    try {
+      const response = await fetch(`/daily-degen-comic.json?v=${Date.now()}`, { cache: 'no-store' });
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      const comic = await response.json();
+
+      DAY_EL.textContent = formatDate(comic.date);
+      MOOD_EL.textContent = comic.mood ? `Mood: ${comic.mood}` : '';
+      SUBTITLE_EL.textContent = comic.subtitle || 'Daily comic from channel logs.';
+      renderPanels(comic);
+      renderCredits(comic);
+      renderUpdatedAt(comic);
+      const archiveFallback = await loadArchiveFallback();
+      renderArchive(comic, archiveFallback);
+    } catch {
+      DAY_EL.textContent = 'No comic yet';
+      MOOD_EL.textContent = '';
+      SUBTITLE_EL.textContent = 'Run comic generator to publish the daily storyline.';
+      renderPanels({ panels: [] });
+      renderCredits({});
+      renderUpdatedAt({});
+      renderArchive({}, []);
+    }
+  }
+
+  loadComic();
+  setInterval(loadComic, REFRESH_MS);
+})();

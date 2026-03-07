@@ -242,7 +242,7 @@ async function analyseMessages(messages) {
 }
 
 // ── Report output ─────────────────────────────────────────────────────────────
-function saveAndPrintReport(report, messageCount, fromTimestamp, messages = []) {
+async function saveAndPrintReport(report, messageCount, fromTimestamp, messages = []) {
     const runAt = new Date();
     const runAtStr = runAt.toLocaleString('en-US', { dateStyle: 'full', timeStyle: 'medium' });
     const runAtISO = runAt.toISOString();
@@ -561,7 +561,7 @@ async function run() {
         // Initial Analysis from history
         const report = await analyseMessages(messages);
         if (report) {
-            saveAndPrintReport(report, messages.length, stopAt?.toISOString(), messages);
+            await saveAndPrintReport(report, messages.length, stopAt?.toISOString(), messages);
         }
     } else {
         console.log(chalk.gray('\n\nNo history messages matching keywords found.'));
@@ -651,7 +651,7 @@ async function run() {
             console.log(chalk.yellow(`\n\n[LIVE] Running batch analysis on ${liveBuffer.length} new messages...`));
             const liveReport = await analyseMessages(liveBuffer);
             if (liveReport) {
-                saveAndPrintReport(liveReport, liveBuffer.length, liveBuffer[0].timestamp, liveBuffer);
+                await saveAndPrintReport(liveReport, liveBuffer.length, liveBuffer[0].timestamp, liveBuffer);
             }
             liveBuffer = [];
             lastAnalysisTime = Date.now();
@@ -662,7 +662,7 @@ async function run() {
             if (liveBuffer.length > 0) {
                 const liveReport = await analyseMessages(liveBuffer);
                 if (liveReport) {
-                    saveAndPrintReport(liveReport, liveBuffer.length, liveBuffer[0].timestamp, liveBuffer);
+                    await saveAndPrintReport(liveReport, liveBuffer.length, liveBuffer[0].timestamp, liveBuffer);
                 }
             } else {
                 console.log(chalk.gray('  Buffer is empty. No new analysis needed.'));
