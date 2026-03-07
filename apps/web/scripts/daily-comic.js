@@ -94,7 +94,7 @@
     }
 
     ARCHIVE_LIST_EL.innerHTML = previous.map((item) => {
-      const day = formatDate(item.date || '');
+      const day = escapeHtml(formatDate(item.date || ''));
       const mood = escapeHtml(item.mood || 'Degen weather: volatile');
       const line = escapeHtml(item.oneLiner || item.subtitle || item.title || '');
       return `<li><strong>${day}</strong> - ${mood}${line ? ` - ${line}` : ''}</li>`;
