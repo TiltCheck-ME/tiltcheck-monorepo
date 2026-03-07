@@ -9,7 +9,8 @@
     "dev": "node --env-file=../../.env --watch src/index.js",
     "start": "node src/index.js",
     "deploy:cloudrun": "bash ./deploy-cloud-run.sh",
-    "deploy:cloudrun:ps": "powershell -NoProfile -ExecutionPolicy Bypass -File ./deploy-cloud-run.ps1"
+    "deploy:cloudrun:ps": "powershell -NoProfile -ExecutionPolicy Bypass -File ./deploy-cloud-run.ps1",
+    "smoke:cloud": "node ./smoke-test-cloud.js"
   },
   "dependencies": {
     "@google-cloud/storage": "^7.17.2",
