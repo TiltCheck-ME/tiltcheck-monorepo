@@ -31,6 +31,8 @@ A second autonomous job runs on **merge request pipelines** and:
 4. optionally adds constrained LLM summary bullets
 5. pushes docs changes back to the MR source branch
 
+When enabled, the same docs job can also run on **push pipelines** and auto-open an MR if deleted code files are detected.
+
 ## Files added
 
 - `.gitlab-ci.yml` - scheduled bot pipeline job
@@ -141,6 +143,8 @@ Create CI/CD variables in your GitLab project:
   - `DOCS_AGENT_LLM_API_KEY`
   - optional `DOCS_AGENT_LLM_API_URL`
   - optional `DOCS_AGENT_LLM_MODEL`
+- optional: `DOCS_AGENT_AUTO_OPEN_MR_ON_DELETION=1` (push pipelines)
+- optional: `DOCS_AGENT_API_TOKEN` (or fallback `GITLAB_API_TOKEN`) to create MRs from push pipelines
 
 Then create a pipeline schedule. The job runs when:
 
@@ -151,6 +155,7 @@ Then create a pipeline schedule. The job runs when:
 The docs job runs when:
 
 - `CI_PIPELINE_SOURCE == merge_request_event`, or
+- `CI_PIPELINE_SOURCE == push` and `DOCS_AGENT_AUTO_OPEN_MR_ON_DELETION == 1`, or
 - `RUN_DOCS_AGENT == 1`
 
 ## Hackathon pitch angle
@@ -171,6 +176,8 @@ This is a "low-risk autonomous maintainer":
 - `--apply` is idempotent (repeat run results in no additional changes).
 - MR pipeline docs-agent updates only marker-owned README/docs sections.
 - `artifacts/docs-agent-report.json` captures mapping, touched files, and LLM fallback state.
+- Deleted code files produce follow-up suggestions in marker-owned sections and JSON report.
+- Optional push-mode auto MR opens when deletion follow-ups are detected.
 
 ## Local prototype smoke test results
 

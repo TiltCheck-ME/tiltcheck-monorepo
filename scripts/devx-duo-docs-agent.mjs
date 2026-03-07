@@ -10,6 +10,7 @@
  *   node scripts/devx-duo-docs-agent.mjs --check
  *   node scripts/devx-duo-docs-agent.mjs --apply
  *   node scripts/devx-duo-docs-agent.mjs --check --changed-file apps/web/src/main.ts
+ *   node scripts/devx-duo-docs-agent.mjs --check --changed-file apps/web/src/main.ts --deleted-file apps/web/src/legacy.ts
  *   node scripts/devx-duo-docs-agent.mjs --apply --config scripts/duo-docs-agent.config.json
  */
 import fs from 'node:fs';
@@ -104,9 +105,11 @@ function detectDiffRange() {
 
 function detectChangedFiles() {
   const explicitFiles = repeatedArgValues('--changed-file').map(toPosix);
+  const explicitDeletedFiles = repeatedArgValues('--deleted-file').map(toPosix);
   if (explicitFiles.length > 0) {
     return {
       files: uniq(explicitFiles),
+      deletedFiles: uniq(explicitDeletedFiles),
       range: { base: 'manual', head: 'manual', source: 'manual_args' },
       mode: 'manual',
     };
@@ -114,22 +117,87 @@ function detectChangedFiles() {
 
   const range = detectDiffRange();
   try {
-    const raw = run(`git diff --name-only ${range.base} ${range.head}`);
-    const files = raw
-      .split(/\r?\n/)
-      .map((line) => toPosix(line.trim()))
-      .filter(Boolean);
-    return { files: uniq(files), range, mode: 'git_diff' };
-  } catch {
-    const raw = run('git status --porcelain');
-    const files = raw
+    const raw = run(`git diff --name-status ${range.base} ${range.head}`);
+    const lines = raw
       .split(/\r?\n/)
       .map((line) => line.trim())
-      .filter(Boolean)
-      .map((line) => toPosix(line.slice(3).trim()))
       .filter(Boolean);
-    return { files: uniq(files), range: { ...range, source: 'git_status' }, mode: 'git_status' };
+    const files = [];
+    const deletedFiles = [];
+    for (const line of lines) {
+      const [statusRaw, fileRaw] = line.split(/\s+/, 2);
+      const status = String(statusRaw || '').toUpperCase();
+      const file = toPosix(String(fileRaw || '').trim());
+      if (!file) {
+        continue;
+      }
+      files.push(file);
+      if (status === 'D') {
+        deletedFiles.push(file);
+      }
+    }
+    return { files: uniq(files), deletedFiles: uniq(deletedFiles), range, mode: 'git_diff' };
+  } catch {
+    const raw = run('git status --porcelain');
+    const lines = raw
+      .split(/\r?\n/)
+      .map((line) => line.trim())
+      .filter(Boolean);
+    const files = [];
+    const deletedFiles = [];
+    for (const line of lines) {
+      const status = line.slice(0, 2).trim().toUpperCase();
+      const file = toPosix(line.slice(3).trim());
+      if (!file) {
+        continue;
+      }
+      files.push(file);
+      if (status.includes('D')) {
+        deletedFiles.push(file);
+      }
+    }
+    return {
+      files: uniq(files),
+      deletedFiles: uniq(deletedFiles),
+      range: { ...range, source: 'git_status' },
+      mode: 'git_status',
+    };
   }
+}
+
+function isCodePath(filePath, cfg) {
+  const prefixes = cfg.deletions?.codePrefixes || [];
+  return prefixes.some((prefix) => filePath.startsWith(prefix));
+}
+
+function suggestDeletionDocs(cfg, deletedCodeFiles) {
+  const rules = cfg.deletions?.suggestionRules || [];
+  const maxSuggestions = cfg.deletions?.maxSuggestedDocsShown || 12;
+  const suggestions = [];
+
+  for (const file of deletedCodeFiles) {
+    for (const rule of rules) {
+      if (!file.startsWith(rule.codePrefix || '')) {
+        continue;
+      }
+      for (const docPath of rule.suggestDocs || []) {
+        suggestions.push({
+          deletedFile: file,
+          suggestedDoc: docPath,
+          reason: `code-prefix:${rule.codePrefix}`,
+        });
+      }
+    }
+  }
+
+  const uniqueSuggestions = uniq(suggestions.map((entry) => `${entry.deletedFile}::${entry.suggestedDoc}`))
+    .slice(0, maxSuggestions)
+    .map((key) => {
+      const [deletedFile, suggestedDoc] = key.split('::');
+      const reason = suggestions.find((entry) => entry.deletedFile === deletedFile && entry.suggestedDoc === suggestedDoc)?.reason || 'mapping';
+      return { deletedFile, suggestedDoc, reason };
+    });
+  return uniqueSuggestions;
 }
 
 function classifyAreas(files) {
@@ -262,6 +330,7 @@ function buildDeterministicSection(sectionCfg, context, llmSummary) {
   lines.push(`- Generated for ref: \`${generationRef}\``);
   lines.push(`- Diff source: \`${context.range.base}..${context.range.head}\` (${context.range.source})`);
   lines.push(`- Changed files detected: **${context.changedFiles.length}**`);
+  lines.push(`- Deleted code files detected: **${context.deletedCodeFiles.length}**`);
 
   const areaLabel = context.areas.length > 0
     ? context.areas.map((entry) => `\`${entry.area}\` (${entry.count})`).join(', ')
@@ -283,6 +352,29 @@ function buildDeterministicSection(sectionCfg, context, llmSummary) {
         lines.push(`- ...and ${context.changedFiles.length - shown.length} more.`);
       }
     }
+    lines.push('');
+  }
+
+  if (context.deletedCodeFiles.length > 0) {
+    const maxDeletedFilesShown = context.maxDeletedFilesShown || 8;
+    const shownDeleted = context.deletedCodeFiles.slice(0, maxDeletedFilesShown);
+    lines.push('#### Deletion follow-up suggestions');
+    for (const file of shownDeleted) {
+      lines.push(`- Deleted code file: \`${file}\``);
+    }
+    if (context.deletedCodeFiles.length > shownDeleted.length) {
+      lines.push(`- ...and ${context.deletedCodeFiles.length - shownDeleted.length} more deleted files.`);
+    }
+
+    if (context.deletionSuggestions.length > 0) {
+      lines.push('- Candidate docs to update/archive/remove:');
+      for (const suggestion of context.deletionSuggestions) {
+        lines.push(`  - \`${suggestion.suggestedDoc}\` (because \`${suggestion.deletedFile}\`)`);
+      }
+    } else {
+      lines.push('- No mapped docs candidates found in policy. Review manually.');
+    }
+    lines.push('- Optional CI auto-MR: set `DOCS_AGENT_AUTO_OPEN_MR_ON_DELETION=1`.');
     lines.push('');
   }
 
@@ -320,9 +412,15 @@ function writeReport(filePath, report) {
 
 async function main() {
   const cfg = loadConfig();
-  const { files, range, mode } = detectChangedFiles();
+  const { files, deletedFiles, range, mode } = detectChangedFiles();
   const filteredFiles = files.filter((file) => !file.startsWith('docs/'));
   const changedFiles = uniq(filteredFiles.length > 0 ? filteredFiles : files);
+  const deletedCodeFiles = uniq(
+    (deletedFiles || [])
+      .filter((file) => !file.startsWith('docs/'))
+      .filter((file) => isCodePath(file, cfg))
+  );
+  const deletionSuggestions = suggestDeletionDocs(cfg, deletedCodeFiles);
   const areas = classifyAreas(changedFiles);
   const { matchedRules, targets } = resolveTargets(cfg, changedFiles);
 
@@ -346,6 +444,8 @@ async function main() {
     const payload = {
       targetSection: target.sectionId,
       changedFiles,
+      deletedCodeFiles,
+      deletionSuggestions,
       touchedAreas: areas,
       matchedRules,
     };
@@ -357,7 +457,18 @@ async function main() {
       included: Boolean(llmResult.content),
     });
 
-    const sectionBody = buildDeterministicSection(sectionCfg, { range, changedFiles, areas }, llmResult.content);
+    const sectionBody = buildDeterministicSection(
+      sectionCfg,
+      {
+        range,
+        changedFiles,
+        deletedCodeFiles,
+        deletionSuggestions,
+        maxDeletedFilesShown: cfg.deletions?.maxDeletedFilesShown || 8,
+        areas,
+      },
+      llmResult.content
+    );
     const updated = updateSection(existing, sectionCfg, sectionBody);
     const changed = updated !== existing;
 
@@ -382,6 +493,9 @@ async function main() {
     range,
     changedFiles: changedFiles.slice(0, cfg.maxChangedFilesInReport || 60),
     changedFilesTotal: changedFiles.length,
+    deletedCodeFiles: deletedCodeFiles.slice(0, cfg.deletions?.maxDeletedFilesShown || 8),
+    deletedCodeFilesTotal: deletedCodeFiles.length,
+    deletionSuggestions,
     matchedRules,
     updates,
     llm: llmEvents,

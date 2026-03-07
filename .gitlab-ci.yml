@@ -49,9 +49,10 @@ devx_duo_docs_agent:
   image: node:20
   rules:
     - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+    - if: '$CI_PIPELINE_SOURCE == "push" && $DOCS_AGENT_AUTO_OPEN_MR_ON_DELETION == "1"'
     - if: '$RUN_DOCS_AGENT == "1"'
   before_script:
-    - apt-get update && apt-get install -y git
+    - apt-get update && apt-get install -y git curl
   script:
     - node scripts/devx-duo-docs-agent.mjs --apply --config scripts/duo-docs-agent.config.json --report-file artifacts/docs-agent-report.json
     - |
@@ -81,6 +82,31 @@ devx_duo_docs_agent:
     - 'git commit -m "docs(duo-agent): sync README/docs from MR changes"'
     - git remote set-url origin "https://oauth2:${DOCS_AGENT_PUSH_TOKEN}@${CI_SERVER_HOST}/${CI_PROJECT_PATH}.git"
     - git push origin "HEAD:${CI_COMMIT_REF_NAME}"
+    - |
+      if [ "${CI_PIPELINE_SOURCE}" = "push" ] && [ "${DOCS_AGENT_AUTO_OPEN_MR_ON_DELETION:-0}" = "1" ]; then
+        DELETED_COUNT="$(node -e "const fs=require('fs'); const r=JSON.parse(fs.readFileSync('artifacts/docs-agent-report.json','utf8')); process.stdout.write(String(r.deletedCodeFilesTotal||0));")"
+        if [ "${DELETED_COUNT}" -gt 0 ]; then
+          API_TOKEN="${DOCS_AGENT_API_TOKEN:-${GITLAB_API_TOKEN:-}}"
+          if [ -z "${API_TOKEN}" ]; then
+            echo "Missing API token for auto MR creation. Set DOCS_AGENT_API_TOKEN or GITLAB_API_TOKEN."
+            exit 1
+          fi
+          OPEN_COUNT="$(curl --silent --header "PRIVATE-TOKEN: ${API_TOKEN}" "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/merge_requests?state=opened&source_branch=${CI_COMMIT_REF_NAME}&target_branch=${CI_DEFAULT_BRANCH}" | node -e "let b='';process.stdin.on('data',d=>b+=d);process.stdin.on('end',()=>{try{const a=JSON.parse(b);process.stdout.write(String(Array.isArray(a)?a.length:0));}catch{process.stdout.write('0');}});")"
+          if [ "${OPEN_COUNT}" -eq 0 ]; then
+            curl --fail --request POST \
+              --header "PRIVATE-TOKEN: ${API_TOKEN}" \
+              --data "source_branch=${CI_COMMIT_REF_NAME}" \
+              --data "target_branch=${CI_DEFAULT_BRANCH}" \
+              --data-urlencode "title=docs(duo-agent): deletion follow-up updates for ${CI_COMMIT_REF_NAME}" \
+              --data-urlencode "description=Auto-created because deleted code files were detected and docs follow-up updates were generated." \
+              "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/merge_requests"
+          else
+            echo "Open MR already exists for ${CI_COMMIT_REF_NAME} -> ${CI_DEFAULT_BRANCH}, skipping create."
+          fi
+        else
+          echo "No deleted code files detected, skipping auto MR creation."
+        fi
+      fi
   artifacts:
     when: always
     paths:

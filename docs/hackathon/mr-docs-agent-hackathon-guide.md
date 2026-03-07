@@ -40,6 +40,12 @@ Prompt template for optional LLM summary:
 4. Optionally add short LLM summary bullets (if enabled via env vars).
 5. Emit JSON report with what changed and why.
 
+When deleted code files are detected, the agent now also emits:
+
+- deleted file counts
+- mapped documentation follow-up suggestions
+- optional auto-MR trigger context for push pipelines
+
 ---
 
 ## 3) GitLab CI setup instructions
@@ -59,12 +65,15 @@ The CI job is already defined in `.gitlab-ci.yml` as `devx_duo_docs_agent`.
 - `DOCS_AGENT_LLM_API_KEY`
 - `DOCS_AGENT_LLM_API_URL` (optional override)
 - `DOCS_AGENT_LLM_MODEL` (optional override)
+- `DOCS_AGENT_AUTO_OPEN_MR_ON_DELETION=1` (enable push-mode auto MR creation)
+- `DOCS_AGENT_API_TOKEN` (or `GITLAB_API_TOKEN`) to call MR API in push mode
 
 ### Trigger behavior
 
 The job runs when either is true:
 
 - `CI_PIPELINE_SOURCE == "merge_request_event"`
+- `CI_PIPELINE_SOURCE == "push"` and `DOCS_AGENT_AUTO_OPEN_MR_ON_DELETION == "1"`
 - `RUN_DOCS_AGENT == "1"`
 
 ---
@@ -115,6 +124,15 @@ I validated behavior in **check mode** (non-destructive):
    - Observed:
      - matched expected behavior.
 
+3. Simulated deletion + suggestion scenario:
+   - Command:
+     - `node scripts/devx-duo-docs-agent.mjs --check --config scripts/duo-docs-agent.config.json --changed-file apps/web/src/main.ts --deleted-file apps/web/src/legacy-widget.ts`
+   - Expected:
+     - non-zero check result (`2`) for docs updates
+     - report/preview includes deletion follow-up suggestions
+   - Observed:
+     - matched expected behavior.
+
 ---
 
 ## 6) Manual end-to-end test checklist (MR pipeline)
@@ -131,6 +149,13 @@ Use this if you want full GitLab validation including commit/push:
    - Confirm `artifacts/docs-agent-report.json` is present.
 6. Re-run pipeline without additional code changes.
    - Confirm idempotence (no additional docs delta).
+
+### Push-mode auto MR path (optional)
+
+1. Set `DOCS_AGENT_AUTO_OPEN_MR_ON_DELETION=1`.
+2. Ensure API token exists (`DOCS_AGENT_API_TOKEN` or `GITLAB_API_TOKEN`).
+3. Push a branch commit that deletes code under configured prefixes (`apps/`, `packages/`, `modules/`, `services/`).
+4. Confirm pipeline updates docs and creates an MR if one does not already exist.
 
 ---
 

@@ -115,5 +115,53 @@
     "defaultModel": "gpt-4o-mini",
     "maxOutputChars": 900,
     "promptTemplateFile": "scripts/prompts/docs-summary.md"
+  },
+  "deletions": {
+    "codePrefixes": [
+      "apps/",
+      "packages/",
+      "modules/",
+      "services/"
+    ],
+    "suggestionRules": [
+      {
+        "codePrefix": "apps/",
+        "suggestDocs": [
+          "README.md",
+          "docs/SETUP.md",
+          "docs/LOCAL-SETUP.md",
+          "docs/hackathon/gitlab-duo-agent-mvp.md"
+        ]
+      },
+      {
+        "codePrefix": "packages/",
+        "suggestDocs": [
+          "README.md",
+          "docs/ARCHITECTURE-BLUEPRINT.md",
+          "docs/SETUP.md",
+          "docs/hackathon/gitlab-duo-agent-mvp.md"
+        ]
+      },
+      {
+        "codePrefix": "modules/",
+        "suggestDocs": [
+          "README.md",
+          "docs/tiltcheck/index.md",
+          "docs/ARCHITECTURE-BLUEPRINT.md",
+          "docs/hackathon/gitlab-duo-agent-mvp.md"
+        ]
+      },
+      {
+        "codePrefix": "services/",
+        "suggestDocs": [
+          "README.md",
+          "docs/ARCHITECTURE-BLUEPRINT.md",
+          "docs/SETUP.md",
+          "docs/hackathon/gitlab-duo-agent-mvp.md"
+        ]
+      }
+    ],
+    "maxDeletedFilesShown": 8,
+    "maxSuggestedDocsShown": 12
   }
 }
