@@ -52,7 +52,7 @@
     "eslint-config-prettier": "^9.1.2",
     "http-server": "^14.1.1",
     "jsdom": "^28.1.0",
-    "lighthouse": "^12.8.2",
+    "lighthouse": "^13.0.3",
     "lunr": "^2.3.9",
     "pa11y": "^9.1.0",
     "prettier": "^3.8.1",
