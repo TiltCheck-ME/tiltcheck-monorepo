@@ -53,12 +53,6 @@ What this does automatically:
 - Runs `npm run comic:daily` to refresh `apps/web/daily-degen-comic.json`
 - Stops VM when finished (even if watcher errors)
 
-To push each generated report into TiltCheck API storage, also set these in `.env`:
-
-- `COMMUNITY_INTEL_API_URL=https://your-api-host`
-- `COMMUNITY_INTEL_INGEST_KEY=...` (must match API env)
-- Optional: `COMMUNITY_INTEL_SEND_MESSAGES=false` for summary-only ingest
-
 Optional flags:
 
 ```powershell
