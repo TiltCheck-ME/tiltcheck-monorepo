@@ -578,8 +578,8 @@
                     <div class="panel">
                         <div class="panel-title">Quick Actions</div>
                         <div class="panel-content" style="display: flex; flex-direction: column; gap: 1rem;">
-                            <button class="btn" onclick="window.open('/dashboard/', '_blank')">
-                                Open Trust Dashboard
+                            <button class="btn" onclick="window.open('/login.html', '_blank')">
+                                Open Account Hub
                             </button>
                             <button class="btn" onclick="window.open('/analyzer/', '_blank')">
                                 Open Gameplay Analyzer
@@ -623,12 +623,12 @@
             <div id="dashboard" class="panel-view" style="display: none;">
                 <div class="panel">
                     <div class="panel-title">
-                        Trust Dashboard
-                        <a href="/dashboard/" target="_blank" class="btn">Open in New Tab</a>
+                        Account Hub
+                        <a href="/login.html" target="_blank" class="btn">Open in New Tab</a>
                     </div>
                     <div class="panel-content">
                         <div class="iframe-container">
-                            <iframe src="/dashboard/"></iframe>
+                            <iframe src="/login.html"></iframe>
                         </div>
                     </div>
                 </div>
@@ -659,8 +659,8 @@
                             <span class="metric-value">https://tiltcheck.me</span>
                         </div>
                         <div class="metric">
-                            <span>Trust Dashboard</span>
-                            <span class="metric-value">https://tiltcheck.me/dashboard/</span>
+                            <span>Account Hub</span>
+                            <span class="metric-value">https://tiltcheck.me/login.html</span>
                         </div>
                         <div class="metric">
                             <span>Gameplay Analyzer</span>
@@ -885,22 +885,18 @@
                 },
                 'Tools Suite': {
                     '/tools/justthetip.html': { title: 'JustTheTip - Solana Tips', status: 'live' },
-                    '/tools/suslink.html': { title: 'SusLink - URL Scanner', status: 'live' },
-                    '/tools/collectclock.html': { title: 'CollectClock - Time Tracking', status: 'live' },
-                    '/tools/tiltcheck-core.html': { title: 'TiltCheck Core', status: 'live' },
+                    '/tools/suslink.html': { title: 'LinkCheck - URL Scanner', status: 'live' },
+                    '/tools/collectclock.html': { title: 'BonusCheck - Time Tracking', status: 'live' },
+                    '/tools/tiltcheck-core.html': { title: 'Gameplay Fairness Analyzer', status: 'live' },
                     '/tools/poker.html': { title: 'Poker Analytics', status: 'dev' },
                     '/tools/triviadrops.html': { title: 'TriviaDrops - Rewards', status: 'live' },
                     '/tools/daad.html': { title: 'DA&D - Decision Analytics', status: 'live' }
                 },
-                'Trust Dashboard': {
-                    '/dashboard/': { title: 'Main Dashboard', status: 'live' },
-                    '/dashboard/experimental.html': { title: 'Experimental View', status: 'live' },
-                    '/dashboard/components/': { title: 'Component Library', status: 'live' },
-                    '/dashboard/components/trust-panel.html': { title: 'Trust Panel Component', status: 'live' },
-                    '/dashboard/components/logo.html': { title: 'Logo Component', status: 'live' },
-                    '/dashboard/components/transparency-hero.html': { title: 'Transparency Hero', status: 'live' },
-                    '/dashboard/components/ecosystem.html': { title: 'Ecosystem Overview', status: 'live' },
-                    '/dashboard/components/degen-trust-engine.html': { title: 'Trust Engine UI', status: 'live' }
+                'Account Hub': {
+                    '/login.html': { title: 'Discord Login', status: 'live' },
+                    '/play/profile.html': { title: 'Profile Hub', status: 'live' },
+                    '/trust.html': { title: 'Trust Dashboard', status: 'live' },
+                    '/degen-trust.html': { title: 'Degen Trust Engine', status: 'live' }
                 },
                 'Documentation': {
                     '/docs/': { title: 'Documentation Index', status: 'live' },
