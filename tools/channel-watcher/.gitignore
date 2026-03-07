@@ -2,4 +2,7 @@
 .checkpoint.json
 messages.jsonl
 reports.md
+citations.md
+reports_business.md
+reports_lore.md
 node_modules/

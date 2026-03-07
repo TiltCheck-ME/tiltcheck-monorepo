@@ -162,7 +162,7 @@ router.post('/trust/degen-intel', async (req, res) => {
     // Feed degen trust engine via existing event bus
     await eventRouter.publish(
       'tilt.detected',
-      'api-gateway',
+      'tiltcheck',
       {
         userId: syntheticCommunityUser,
         severity,
