@@ -28,7 +28,6 @@ export default function SystemHealthPage() {
   const [services, setServices] = useState<ServiceStatus[]>([
     { name: 'Dashboard API', status: 'checking' },
     { name: 'Casino Data API', status: 'checking' },
-    { name: 'QualifyFirst Service', status: 'checking' },
     { name: 'Control Room', status: 'checking' },
   ]);
   const [lastChecked, setLastChecked] = useState('');
@@ -50,12 +49,6 @@ export default function SystemHealthPage() {
       const res = await fetch('/api/bonus');
       checks.push({ name: 'Casino Data API', status: res.ok ? 'online' : 'degraded', latency: Date.now() - t, detail: res.ok ? 'Serving data' : `HTTP ${res.status}` });
     } catch { checks.push({ name: 'Casino Data API', status: 'offline', detail: 'Unreachable' }); }
-
-    try {
-      const t = Date.now();
-      const res = await fetch('/api/qualify');
-      checks.push({ name: 'QualifyFirst Service', status: res.ok ? 'online' : 'degraded', latency: Date.now() - t, detail: res.ok ? 'Survey matching active' : `HTTP ${res.status}` });
-    } catch { checks.push({ name: 'QualifyFirst Service', status: 'offline', detail: 'Unreachable' }); }
 
     try {
       const t = Date.now();
@@ -124,7 +117,7 @@ export default function SystemHealthPage() {
         <div className="bg-[#1A1F24] rounded-xl border border-[#00FFC6]/10 p-8">
           <h2 className="text-xs font-bold tracking-[0.2em] text-[#6B7280] mb-6 uppercase">Port Map</h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
-            {[['Dashboard','3000'],['Control Room','3001'],['QualifyFirst','3003'],['Casino API','6002']].map(([label, port]) => (
+          {[['Dashboard','3000'],['Control Room','3001'],['Casino API','6002']].map(([label, port]) => (
               <div key={port} className="bg-[#0E0E0F] rounded-lg p-4 border border-[#00FFC6]/5">
                 <div className="text-[#00FFC6] font-black font-space text-xl mb-1">:{port}</div>
                 <div className="text-[#6B7280] text-xs font-bold tracking-widest">{label}</div>

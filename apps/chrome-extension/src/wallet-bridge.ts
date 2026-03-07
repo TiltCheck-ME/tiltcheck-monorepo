@@ -22,6 +22,7 @@ export class WalletBridge {
 
   private listenForResponses() {
     window.addEventListener('message', (event) => {
+      if (event.source !== window) return;
       if (event.data.source !== 'TILTCHECK_PAGE') return;
 
       if (event.data.type === 'CONNECTED') {
@@ -48,16 +49,24 @@ export class WalletBridge {
     const serialized = transaction.serialize({ requireAllSignatures: false });
     const base64 = btoa(String.fromCharCode(...serialized));
 
+    const requestId = `tx-${Date.now()}-${crypto.getRandomValues(new Uint32Array(1))[0].toString(36)}`;
     return new Promise((resolve, reject) => {
+      const timeoutId = window.setTimeout(() => {
+        window.removeEventListener('message', handler);
+        reject(new Error('Wallet transaction request timed out'));
+      }, 15000);
+
       const handler = (event: MessageEvent) => {
+        if (event.source !== window) return;
         if (event.data.source !== 'TILTCHECK_PAGE') return;
-        if (event.data.type === 'TX_SENT') {
+        if (event.data.type === 'TX_SENT' && event.data.requestId === requestId) {
+          window.clearTimeout(timeoutId);
           window.removeEventListener('message', handler);
           resolve(event.data.signature);
         }
       };
       window.addEventListener('message', handler);
-      window.postMessage({ source: 'TILTCHECK_EXT', type: 'SIGN_AND_SEND', transactionBase64: base64 }, '*');
+      window.postMessage({ source: 'TILTCHECK_EXT', type: 'SIGN_AND_SEND', transactionBase64: base64, requestId }, '*');
     });
   }
 }

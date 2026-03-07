@@ -9,20 +9,40 @@
     "activeTab"
   ],
   "host_permissions": [
-    "http://*/*",
-    "https://*/*"
+    "https://*.stake.com/*",
+    "https://*.stake.us/*",
+    "https://*.roobet.com/*",
+    "https://*.bc.game/*",
+    "https://*.rollbit.com/*",
+    "https://*.shuffle.com/*",
+    "https://*.gamdom.com/*",
+    "https://*.csgoempire.com/*",
+    "https://*.tiltcheck.me/*",
+    "https://api.tiltcheck.me/*",
+    "http://localhost/*",
+    "http://127.0.0.1/*"
   ],
   "background": {
     "service_worker": "background.js"
   },
   "action": {
-    "default_title": "TiltCheck"
+    "default_title": "TiltCheck",
+    "default_popup": "popup.html"
   },
   "content_scripts": [
     {
       "matches": [
-        "http://*/*",
-        "https://*/*"
+        "https://*.stake.com/*",
+        "https://*.stake.us/*",
+        "https://*.roobet.com/*",
+        "https://*.bc.game/*",
+        "https://*.rollbit.com/*",
+        "https://*.shuffle.com/*",
+        "https://*.gamdom.com/*",
+        "https://*.csgoempire.com/*",
+        "https://*.tiltcheck.me/*",
+        "http://localhost/*",
+        "http://127.0.0.1/*"
       ],
       "js": [
         "content.js"
@@ -31,8 +51,17 @@
     },
     {
       "matches": [
-        "http://*/*",
-        "https://*/*"
+        "https://*.stake.com/*",
+        "https://*.stake.us/*",
+        "https://*.roobet.com/*",
+        "https://*.bc.game/*",
+        "https://*.rollbit.com/*",
+        "https://*.shuffle.com/*",
+        "https://*.gamdom.com/*",
+        "https://*.csgoempire.com/*",
+        "https://*.tiltcheck.me/*",
+        "http://localhost/*",
+        "http://127.0.0.1/*"
       ],
       "js": [
         "page-bridge.js"

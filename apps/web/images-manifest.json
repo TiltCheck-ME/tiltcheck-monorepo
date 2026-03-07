@@ -15,10 +15,10 @@
       "name": "CollectClock",
       "description": "Bonus tracking and cooldown manager"
     },
-    "freespinscan": {
-      "icon": "/assets/icons/freespin-scan.svg",
-      "name": "FreeSpinScan",
-      "description": "Free spin and promo verification"
+    "extension": {
+      "icon": "/assets/icons/accountability-wallet.svg",
+      "name": "Chrome Extension",
+      "description": "In-page sidebar with vault timer transparency"
     },
     "poker": {
       "icon": "/assets/icons/icons-sprite.svg",
@@ -29,11 +29,6 @@
       "icon": "/assets/icons/tilt-engine.svg",
       "name": "TiltCheck Core",
       "description": "Tilt detection and management"
-    },
-    "qualifyfirst": {
-      "icon": "/assets/icons/icons-sprite.svg",
-      "name": "QualifyFirst",
-      "description": "User qualification system"
     },
     "daad": {
       "icon": "/assets/icons/dand.svg",

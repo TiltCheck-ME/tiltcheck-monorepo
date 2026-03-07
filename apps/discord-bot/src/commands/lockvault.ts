@@ -88,7 +88,7 @@ export const lockvault: Command = {
             { name: 'Vault Wallet', value: `
 \`${vault.vaultAddress}\``, inline: false },
             { name: 'Unlocks', value: `<t:${Math.floor(vault.unlockAt/1000)}:R>`, inline: true },
-            { name: 'Amount (SOL eq)', value: vault.lockedAmountSOL === 0 ? 'ALL (snapshot)' : vault.lockedAmountSOL.toFixed(4), inline: true },
+            { name: 'Amount (SOL, normalized)', value: vault.lockedAmountSOL === 0 ? 'ALL (snapshot)' : `${vault.lockedAmountSOL.toFixed(4)} SOL`, inline: true },
           )
           .setFooter({ text: reason ? `Reason: ${reason}` : 'Use /vault status to view all vaults' });
         await interaction.reply({ embeds: [embed], ephemeral: true });
@@ -101,7 +101,7 @@ export const lockvault: Command = {
             .setTitle('✅ Vault Unlocked')
             .addFields(
               { name: 'Vault ID', value: vault.id },
-              { name: 'Released', value: `${vault.lockedAmountSOL === 0 ? 'ALL' : vault.lockedAmountSOL.toFixed(4)} SOL eq` },
+              { name: 'Released (SOL)', value: `${vault.lockedAmountSOL === 0 ? 'ALL' : `${vault.lockedAmountSOL.toFixed(4)} SOL`}` },
             );
 
           if (vault.vaultSecret) {
@@ -147,7 +147,11 @@ export const lockvault: Command = {
           .setColor(0x1E90FF)
           .setTitle('📊 Your Vaults')
           .setDescription(
-            (vaults.length > 0 ? vaults.map((v: LockVaultRecord) => `• **${v.id}** – ${v.status} – unlocks <t:${Math.floor(v.unlockAt/1000)}:R> – ${v.lockedAmountSOL===0? 'ALL' : v.lockedAmountSOL.toFixed(4)+' SOL'}`).join('\n') : 'No active vaults.') +
+            (vaults.length > 0 ? vaults.map((v: LockVaultRecord) => {
+              const ready = Date.now() >= v.unlockAt ? 'ready' : 'waiting';
+              const amount = v.lockedAmountSOL === 0 ? 'ALL' : `${v.lockedAmountSOL.toFixed(4)} SOL`;
+              return `• **${v.id}** – ${v.status} (${ready}) – unlocks <t:${Math.floor(v.unlockAt/1000)}:R> – ${amount}`;
+            }).join('\n') : 'No active vaults.') +
             (autoVault ? `\n\n**Auto-Vault:** ${autoVault.percentage}% active` : '') +
             (reloadSchedule ? `\n**Reload:** ${reloadSchedule.amountRaw} ${reloadSchedule.interval}` : '')
           );

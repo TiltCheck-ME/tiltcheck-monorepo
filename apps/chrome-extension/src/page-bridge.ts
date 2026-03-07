@@ -18,6 +18,7 @@ declare global {
 }
 
 window.addEventListener('message', async (event) => {
+  if (event.source !== window) return;
   // Only accept messages from our extension
   if (event.data.source !== 'TILTCHECK_EXT') return;
 
@@ -38,7 +39,7 @@ window.addEventListener('message', async (event) => {
 
   if (event.data.type === 'SIGN_AND_SEND') {
     try {
-      const { transactionBase64 } = event.data;
+      const { transactionBase64, requestId } = event.data;
       const buffer = Uint8Array.from(atob(transactionBase64), c => c.charCodeAt(0));
       const transaction = window.solanaWeb3.Transaction.from(buffer);
 
@@ -47,7 +48,8 @@ window.addEventListener('message', async (event) => {
       window.postMessage({
         source: 'TILTCHECK_PAGE',
         type: 'TX_SENT',
-        signature
+        signature,
+        requestId
       }, '*');
     } catch (err) {
       console.error('TiltCheck Sign Error:', err);
