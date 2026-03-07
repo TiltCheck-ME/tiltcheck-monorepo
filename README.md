@@ -28,6 +28,15 @@ It just gives them a smarter, safer, and more transparent way to play.
 
 ---
 
+## Recent Product/Platform Updates (Mar 2026)
+
+- **OAuth callback hardening:** `/auth/discord/callback` now derives auth source from the signed `state` value (`ext_` / `web_`) and rejects cookie/state source mismatches.
+- **Extension no-login usability:** the Chrome extension can run in a built-in **demo mode** when no Discord token is present, with mock responses for core sidebar actions.
+- **Web dashboard auth gate:** `/dashboard/` now redirects unauthenticated users into the Discord login flow and sends authenticated users to `/play/profile.html`.
+- **Static asset packaging fix:** `apps/web` build now copies non-Vite static files into `dist/` so icon/logo and legacy page assets ship correctly.
+
+---
+
 ## What Is TiltCheck?
 
 TiltCheck is a suite of independent but interoperable tools that help casino communities:
@@ -170,7 +179,7 @@ pnpm install
 
 # Configure Discord bot and dashboard
 cp apps/discord-bot/.env.example apps/discord-bot/.env
-cp services/dashboard/.env.example services/dashboard/.env
+cp apps/dashboard/.env.example apps/dashboard/.env
 # Edit .env files with your Discord credentials
 
 # Start dashboard (terminal 1)
@@ -178,6 +187,9 @@ pnpm --filter @tiltcheck/dashboard dev
 
 # Start Discord bot (terminal 2)
 pnpm --filter discord-bot dev
+
+# Optional: run landing/web app (terminal 3)
+pnpm -C apps/web dev
 
 # Test in Discord
 # /ping
