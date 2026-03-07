@@ -32,6 +32,7 @@ type IngestBody = {
 };
 
 let tablesEnsured = false;
+let ensureTablesInFlight: Promise<void> | null = null;
 
 function asStringArray(value: unknown): string[] {
   if (!Array.isArray(value)) return [];
@@ -74,57 +75,69 @@ function hasValidIngestKey(req: Request): boolean {
 
 async function ensureTables(): Promise<void> {
   if (tablesEnsured) return;
+  if (ensureTablesInFlight) {
+    await ensureTablesInFlight;
+    return;
+  }
 
-  await query(`
-    CREATE TABLE IF NOT EXISTS community_intel_reports (
-      id BIGSERIAL PRIMARY KEY,
-      source TEXT NOT NULL,
-      channel_url TEXT,
-      provider TEXT,
-      model TEXT,
-      started_at TIMESTAMPTZ,
-      ended_at TIMESTAMPTZ,
-      message_count INTEGER NOT NULL DEFAULT 0,
-      report_markdown TEXT NOT NULL,
-      pain_points JSONB NOT NULL DEFAULT '[]'::jsonb,
-      friction_moments JSONB NOT NULL DEFAULT '[]'::jsonb,
-      safety_signals JSONB NOT NULL DEFAULT '[]'::jsonb,
-      community_needs JSONB NOT NULL DEFAULT '[]'::jsonb,
-      opportunities JSONB NOT NULL DEFAULT '[]'::jsonb,
-      metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
-      received_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-    )
-  `);
+  ensureTablesInFlight = (async () => {
+    await query(`
+      CREATE TABLE IF NOT EXISTS community_intel_reports (
+        id BIGSERIAL PRIMARY KEY,
+        source TEXT NOT NULL,
+        channel_url TEXT,
+        provider TEXT,
+        model TEXT,
+        started_at TIMESTAMPTZ,
+        ended_at TIMESTAMPTZ,
+        message_count INTEGER NOT NULL DEFAULT 0,
+        report_markdown TEXT NOT NULL,
+        pain_points JSONB NOT NULL DEFAULT '[]'::jsonb,
+        friction_moments JSONB NOT NULL DEFAULT '[]'::jsonb,
+        safety_signals JSONB NOT NULL DEFAULT '[]'::jsonb,
+        community_needs JSONB NOT NULL DEFAULT '[]'::jsonb,
+        opportunities JSONB NOT NULL DEFAULT '[]'::jsonb,
+        metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
+        received_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      )
+    `);
 
-  await query(`
-    CREATE TABLE IF NOT EXISTS community_intel_messages (
-      id BIGSERIAL PRIMARY KEY,
-      report_id BIGINT NOT NULL REFERENCES community_intel_reports(id) ON DELETE CASCADE,
-      message_id TEXT,
-      timestamp TIMESTAMPTZ,
-      author TEXT,
-      content TEXT,
-      is_keyword_trigger BOOLEAN NOT NULL DEFAULT FALSE,
-      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-    )
-  `);
+    await query(`
+      CREATE TABLE IF NOT EXISTS community_intel_messages (
+        id BIGSERIAL PRIMARY KEY,
+        report_id BIGINT NOT NULL REFERENCES community_intel_reports(id) ON DELETE CASCADE,
+        message_id TEXT,
+        timestamp TIMESTAMPTZ,
+        author TEXT,
+        content TEXT,
+        is_keyword_trigger BOOLEAN NOT NULL DEFAULT FALSE,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      )
+    `);
 
-  await query(`
-    CREATE INDEX IF NOT EXISTS idx_community_intel_reports_received_at
-      ON community_intel_reports (received_at DESC)
-  `);
+    await query(`
+      CREATE INDEX IF NOT EXISTS idx_community_intel_reports_received_at
+        ON community_intel_reports (received_at DESC)
+    `);
 
-  await query(`
-    CREATE INDEX IF NOT EXISTS idx_community_intel_reports_source
-      ON community_intel_reports (source)
-  `);
+    await query(`
+      CREATE INDEX IF NOT EXISTS idx_community_intel_reports_source
+        ON community_intel_reports (source)
+    `);
 
-  await query(`
-    CREATE INDEX IF NOT EXISTS idx_community_intel_messages_report_id
-      ON community_intel_messages (report_id)
-  `);
+    await query(`
+      CREATE INDEX IF NOT EXISTS idx_community_intel_messages_report_id
+        ON community_intel_messages (report_id)
+    `);
 
-  tablesEnsured = true;
+    tablesEnsured = true;
+  })();
+
+  try {
+    await ensureTablesInFlight;
+  } finally {
+    ensureTablesInFlight = null;
+  }
 }
 
 router.post('/ingest', async (req, res) => {
