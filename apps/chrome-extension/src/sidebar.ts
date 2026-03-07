@@ -1,11 +1,27 @@
 /**
- * TiltGuard Sidebar - Fully Functional UI
+ *  20242025 TiltCheck Ecosystem. All Rights Reserved.
+ * Created by jmenichole (https://github.com/jmenichole)
+ * 
+ * This file is part of the TiltCheck project.
+ * For licensing information, see LICENSE file in the project root.
+ */
+/**
+ * TiltCheck Sidebar - Fully Functional UI
  * Features: Discord auth, vault, dashboard, wallet, session export, premium upgrades
  * Integrates with AI Gateway for intelligent tilt detection
  */
 
-const API_BASE = 'https://api.tiltcheck.me';
-const AI_GATEWAY_URL = 'https://ai-gateway.tiltcheck.me';
+import { EXT_CONFIG, getDiscordLoginUrl } from './config.js';
+
+const API_BASE = EXT_CONFIG.API_BASE_URL;
+const AI_GATEWAY_URL = EXT_CONFIG.AI_GATEWAY_URL;
+const TRUSTED_AUTH_ORIGIN = (() => {
+  try {
+    return new URL(getDiscordLoginUrl('extension')).origin;
+  } catch {
+    return null;
+  }
+})();
 let authToken: string | null = null;
 let showSettings = false;
 let apiKeys: any = {
@@ -16,19 +32,71 @@ let apiKeys: any = {
 
 let isAuthenticated = false;
 let userData: any = null;
+const SIDEBAR_WIDTH = 340;
+const MINIMIZED_WIDTH = 40;
 let sessionStats = {
   startTime: Date.now(),
   totalBets: 0,
   totalWagered: 0,
-  totalWins: 0,
+  totalWon: 0,
   currentBalance: 0
 };
 let lockTimerInterval: any = null;
+let lastProfit = 0;
+let casinoThemesIntervalId: ReturnType<typeof setInterval> | null = null;
+let vaultRefreshIntervalId: ReturnType<typeof setInterval> | null = null;
+let buddyMirrorEnabled = false;
+
+const CASINO_THEMES: Record<string, { label: string; accent: string }> = {
+  'stake.us': { label: 'Stake.us', accent: '#4ade80' },
+  'stake.com': { label: 'Stake.com', accent: '#4ade80' },
+  'roobet.com': { label: 'Roobet', accent: '#f97316' },
+  'bc.game': { label: 'BC.Game', accent: '#f59e0b' },
+  'rollbit.com': { label: 'Rollbit', accent: '#f472b6' },
+};
+let dynamicCasinoThemes: Record<string, { label: string; accent: string }> = {};
+
+function escapeHtml(value: unknown): string {
+  return String(value ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function getStorage(keys: string[] | string): Promise<Record<string, any>> {
+  return new Promise((resolve) => {
+    chrome.storage.local.get(keys, (result) => resolve(result || {}));
+  });
+}
+
+function setStorage(values: Record<string, any>): Promise<void> {
+  return new Promise((resolve) => {
+    chrome.storage.local.set(values, () => resolve());
+  });
+}
+
+function removeStorage(keys: string[] | string): Promise<void> {
+  return new Promise((resolve) => {
+    chrome.storage.local.remove(keys, () => resolve());
+  });
+}
+
+function applyPageOffset(width: number) {
+  const offset = `${width}px`;
+
+  // Some sites anchor layout to <html>, others to <body>. Set both so content shifts reliably.
+  document.documentElement.style.marginRight = offset;
+  document.documentElement.style.transition = 'margin-right 0.3s ease';
+  document.body.style.marginRight = offset;
+  document.body.style.transition = 'margin-right 0.3s ease';
+}
 
 async function apiCall(endpoint: string, options: any = {}) {
   const headers: any = { 'Content-Type': 'application/json' };
   if (authToken) headers['Authorization'] = `Bearer ${authToken}`;
-  
+
   try {
     const response = await fetch(`${API_BASE}${endpoint}`, {
       ...options,
@@ -48,7 +116,7 @@ async function callAIGateway(application: string, data: any = {}) {
   try {
     const response = await fetch(`${AI_GATEWAY_URL}/api/ai`, {
       method: 'POST',
-      headers: { 
+      headers: {
         'Content-Type': 'application/json',
         ...(authToken ? { 'Authorization': `Bearer ${authToken}` } : {})
       },
@@ -58,30 +126,40 @@ async function callAIGateway(application: string, data: any = {}) {
         context: data.context || {}
       })
     });
-    
+
     if (response.ok) {
       return await response.json();
     }
-    console.log('[TiltGuard] AI Gateway request failed, using local fallback');
+    console.log('[TiltCheck] AI Gateway request failed, using local fallback');
     return { success: false, error: 'Request failed' };
   } catch (error) {
-    console.log('[TiltGuard] AI Gateway offline, using local fallback');
+    console.log('[TiltCheck] AI Gateway offline, using local fallback');
     return { success: false, error: 'Network error' };
   }
 }
 
 function createSidebar() {
-  const existing = document.getElementById('tiltguard-sidebar');
-  if (existing) existing.remove();
+  const existing = document.getElementById('tiltcheck-sidebar');
+  if (existing) {
+    existing.remove();
+  }
+  if (casinoThemesIntervalId) {
+    clearInterval(casinoThemesIntervalId);
+    casinoThemesIntervalId = null;
+  }
+  if (vaultRefreshIntervalId) {
+    clearInterval(vaultRefreshIntervalId);
+    vaultRefreshIntervalId = null;
+  }
 
   const sidebar = document.createElement('div');
-  sidebar.id = 'tiltguard-sidebar';
+  sidebar.id = 'tiltcheck-sidebar';
   sidebar.innerHTML = `
     <div class="tg-header">
-      <div class="tg-logo">TiltGuard</div>
+      <div class="tg-logo"><span class="tg-logo-mark">T</span>TiltCheck</div>
       <div class="tg-header-actions">
-        <button class="tg-icon-btn" id="tg-settings" title="Settings">⚙</button>
-        <button class="tg-icon-btn" id="tg-minimize" title="Minimize">−</button>
+        <button class="tg-icon-btn" id="tg-settings" title="Settings">Settings</button>
+        <button class="tg-icon-btn" id="tg-minimize" title="Minimize">-</button>
       </div>
     </div>
     <div id="tg-status-bar" class="tg-status-bar" style="display: none;"></div>
@@ -93,8 +171,6 @@ function createSidebar() {
           <h3>Sign In</h3>
           <p>Authenticate to sync data and access vault</p>
           <button class="tg-btn tg-btn-primary" id="tg-discord-login">Discord Login</button>
-          <div class="tg-auth-divider">or</div>
-          <button class="tg-btn tg-btn-secondary" id="tg-guest-mode">Guest Mode</button>
         </div>
       </div>
 
@@ -106,7 +182,18 @@ function createSidebar() {
             <span id="tg-username">Guest</span>
             <span class="tg-tier" id="tg-user-tier">Free</span>
           </div>
-          <button class="tg-btn-icon" id="tg-logout" title="Logout">×</button>
+          <button class="tg-btn-icon" id="tg-logout" title="Logout">x</button>
+        </div>
+
+        <!-- Quick Safety -->
+        <div class="tg-section tg-emergency">
+          <div class="tg-emergency-header">
+            <div>
+              <div class="tg-emergency-title">Emergency Lock</div>
+              <div class="tg-emergency-sub">One-click 15 min break</div>
+            </div>
+            <button class="tg-btn tg-btn-danger" id="tg-emergency-lock">Take a 15-min Break</button>
+          </div>
         </div>
 
         <!-- Settings Panel (toggleable) -->
@@ -114,15 +201,15 @@ function createSidebar() {
           <h4>API Keys</h4>
           <div class="tg-input-group">
             <label>OpenAI Key</label>
-            <input type="password" id="api-key-openai" placeholder="sk-..." />
+            <input type="password" id="api-key-openai" />
           </div>
           <div class="tg-input-group">
             <label>Anthropic Key</label>
-            <input type="password" id="api-key-anthropic" placeholder="sk-ant-..." />
+            <input type="password" id="api-key-anthropic" />
           </div>
           <div class="tg-input-group">
             <label>Custom API</label>
-            <input type="text" id="api-key-custom" placeholder="Custom key" />
+            <input type="text" id="api-key-custom" />
           </div>
           <div class="tg-input-group" style="display: flex; align-items: center; gap: 8px; margin-top: 10px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 10px;">
             <input type="checkbox" id="cfg-buddy-mirror" style="width: auto;" />
@@ -134,21 +221,21 @@ function createSidebar() {
 
         <!-- Configurator Panel (toggleable) -->
         <div class="tg-settings-panel" id="tg-config-panel" style="display: none;">
-          <h4>🎰 Casino Configurator</h4>
+          <h4>Casino Configurator</h4>
           <div class="tg-input-group">
             <label>Bet Amount Selector</label>
             <div style="display: flex; gap: 5px;">
               <input type="text" id="cfg-bet" placeholder=".bet-amount" style="flex:1;" />
-              <button class="tg-btn-icon tg-picker-btn" data-target="cfg-bet" title="Pick Element">🎯</button>
-              <button class="tg-btn-icon tg-test-btn" data-target="cfg-bet" title="Test Selector">👁️</button>
+              <button class="tg-btn-icon tg-picker-btn" data-target="cfg-bet" title="Pick Element">Pick</button>
+              <button class="tg-btn-icon tg-test-btn" data-target="cfg-bet" title="Test Selector">Test</button>
             </div>
           </div>
           <div class="tg-input-group">
             <label>Game Result Selector</label>
             <div style="display: flex; gap: 5px;">
               <input type="text" id="cfg-result" placeholder=".game-result" style="flex:1;" />
-              <button class="tg-btn-icon tg-picker-btn" data-target="cfg-result" title="Pick Element">🎯</button>
-              <button class="tg-btn-icon tg-test-btn" data-target="cfg-result" title="Test Selector">👁️</button>
+              <button class="tg-btn-icon tg-picker-btn" data-target="cfg-result" title="Pick Element">Pick</button>
+              <button class="tg-btn-icon tg-test-btn" data-target="cfg-result" title="Test Selector">Test</button>
             </div>
           </div>
           <button class="tg-btn tg-btn-primary" id="save-config">Save Config</button>
@@ -157,7 +244,7 @@ function createSidebar() {
 
         <!-- Fairness Verifier Panel (toggleable) -->
         <div class="tg-settings-panel" id="tg-verifier-panel" style="display: none;">
-          <h4>⚖️ Fairness Verifier</h4>
+          <h4>Fairness Verifier</h4>
           
           <div class="tg-tabs">
             <button class="tg-tab active" data-target="fv-tab-verify">Verify</button>
@@ -177,7 +264,7 @@ function createSidebar() {
               <label>Nonce</label>
               <div style="display: flex; gap: 5px;">
                 <input type="number" id="fv-nonce" placeholder="1" value="1" style="flex: 1;" />
-                <button class="tg-btn-icon" id="fv-sync-nonce" title="Sync Nonce">🔄</button>
+                <button class="tg-btn-icon" id="fv-sync-nonce" title="Sync Nonce">Sync</button>
               </div>
             </div>
             <button class="tg-btn tg-btn-primary" id="fv-verify">Verify Outcome</button>
@@ -206,8 +293,11 @@ function createSidebar() {
         <!-- Active Session Metrics (TOP PRIORITY) -->
         <div class="tg-metrics-card">
           <div class="tg-metrics-header">
-            <h3>Active Session</h3>
-            <div class="tg-guardian-indicator" id="tg-guardian-indicator">●</div>
+            <div>
+              <h3>Active Session</h3>
+              <div class="tg-session-site" id="tg-session-site">Unknown</div>
+            </div>
+            <div class="tg-guardian-indicator" id="tg-guardian-indicator"></div>
           </div>
           <div class="tg-metrics-grid">
             <div class="tg-metric">
@@ -231,7 +321,7 @@ function createSidebar() {
               <span class="tg-metric-value" id="tg-rtp">--</span>
             </div>
             <div class="tg-metric">
-              <span class="tg-metric-label">Tilt</span>
+              <span class="tg-metric-label">Tilt <span class="tg-help" data-tip="Calculated from wager frequency and bet-size volatility.">?</span></span>
               <span class="tg-metric-value tg-tilt-value" id="tg-score-value">0</span>
             </div>
           </div>
@@ -256,7 +346,7 @@ function createSidebar() {
         <!-- Quick Actions -->
         <div class="tg-section">
           <div class="tg-action-grid">
-            <button class="tg-action-btn" id="tg-open-suslink">🛡️ SusLink</button>
+            <button class="tg-action-btn" id="tg-open-suslink">SusLink</button>
             <button class="tg-action-btn" id="tg-open-config">Configure</button>
             <button class="tg-action-btn" id="tg-open-verifier">Verify</button>
             <button class="tg-action-btn" id="tg-open-dashboard">Dashboard</button>
@@ -264,17 +354,17 @@ function createSidebar() {
             <button class="tg-action-btn" id="tg-wallet">Wallet</button>
             <button class="tg-action-btn" id="tg-upgrade">Upgrade</button>
           </div>
-          <button class="tg-btn tg-btn-secondary" id="tg-open-report" style="margin-top: 8px;">📢 Report Casino Update</button>
+          <button class="tg-btn tg-btn-secondary" id="tg-open-report" style="margin-top: 8px;">Report Casino Update</button>
         </div>
 
         <!-- SusLink Panel (toggleable) -->
         <div class="tg-settings-panel" id="tg-suslink-panel" style="display: none;">
-          <h4>🛡️ SusLink Scanner</h4>
+          <h4>SusLink Scanner</h4>
           <div class="tg-input-group">
             <label>Check URL</label>
             <div style="display: flex; gap: 5px;">
-              <input type="text" id="suslink-url" placeholder="https://..." style="flex:1;" />
-              <button class="tg-btn-icon" id="suslink-scan-btn">🔍</button>
+              <input type="text" id="suslink-url" style="flex:1;" />
+              <button class="tg-btn-icon" id="suslink-scan-btn">Scan</button>
             </div>
           </div>
           <div id="suslink-result" style="display:none; padding: 10px; background: rgba(0,0,0,0.2); border-radius: 4px; margin-bottom: 10px;">
@@ -286,7 +376,7 @@ function createSidebar() {
 
         <!-- Report Panel (toggleable) -->
         <div class="tg-settings-panel" id="tg-report-panel" style="display: none;">
-          <h4>📢 Community Report</h4>
+          <h4>Community Report</h4>
           <div class="tg-input-group">
             <label>Report Type</label>
             <select id="report-type" style="width: 100%; padding: 8px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); color: #fff; border-radius: 4px;">
@@ -299,7 +389,7 @@ function createSidebar() {
           </div>
           <div class="tg-input-group">
             <label>Details</label>
-            <textarea id="report-details" rows="3" placeholder="Describe what changed..." style="width: 100%; padding: 8px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); color: #fff; border-radius: 4px;"></textarea>
+            <textarea id="report-details" rows="3" style="width: 100%; padding: 8px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); color: #fff; border-radius: 4px;"></textarea>
           </div>
           <button class="tg-btn tg-btn-primary" id="submit-report">Submit Report</button>
           <button class="tg-btn tg-btn-secondary" id="close-report">Close</button>
@@ -311,6 +401,13 @@ function createSidebar() {
           <div class="tg-vault-amount" id="tg-vault-balance">$0.00</div>
           
           <!-- Custom Goals -->
+          <div class="tg-goal-progress" id="tg-goal-progress" style="display: none;">
+            <div class="tg-goal-label" id="tg-goal-label">Goal</div>
+            <div class="tg-goal-bar">
+              <div class="tg-goal-fill" id="tg-goal-fill" style="width: 0%;"></div>
+            </div>
+            <div class="tg-goal-meta" id="tg-goal-meta">$0 / $0</div>
+          </div>
           <div id="tg-goals-list" style="margin-bottom: 10px;"></div>
           
           <div class="tg-vault-actions">
@@ -321,11 +418,11 @@ function createSidebar() {
           
           <!-- Lock Timer Wallet -->
           <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.1);">
-            <h4 style="font-size: 11px; margin-bottom: 6px;">⏳ Lock Timer Wallet</h4>
+            <h4 style="font-size: 11px; margin-bottom: 6px;">Lock Timer Wallet</h4>
             
             <div id="tg-lock-form">
               <div style="display: flex; gap: 5px; margin-bottom: 8px;">
-                <input type="number" id="lock-timer-mins" placeholder="Mins" style="width: 60px; padding: 4px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); color: #fff; border-radius: 4px;" />
+                <input type="number" id="lock-timer-mins" style="width: 60px; padding: 4px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); color: #fff; border-radius: 4px;" />
                 <button class="tg-btn tg-btn-primary" id="start-lock-timer" style="margin: 0; padding: 4px 8px; font-size: 11px;">Lock Funds</button>
               </div>
               <div style="display: flex; align-items: flex-start; gap: 6px; font-size: 10px; opacity: 0.7; line-height: 1.3;">
@@ -336,8 +433,8 @@ function createSidebar() {
 
             <div id="tg-lock-status" style="display: none; background: rgba(255,255,255,0.05); padding: 10px; border-radius: 4px;">
               <div style="display: flex; justify-content: space-between; margin-bottom: 5px; font-size: 12px;">
-                <span>Locked:</span>
-                <span id="tg-locked-amount" style="color: #fbbf24; font-weight: bold;">$0.00</span>
+                <span>Locked (SOL):</span>
+                <span id="tg-locked-amount" style="color: #fbbf24; font-weight: bold;">0.0000 SOL</span>
               </div>
               
               <!-- Progress Bar -->
@@ -352,11 +449,18 @@ function createSidebar() {
               
               <!-- Partial Release Input (Hidden until unlock) -->
               <div id="tg-release-controls" style="display: none; margin-bottom: 8px;">
-                 <input type="number" id="tg-release-amount" placeholder="Amount to release" style="width: 100%; padding: 6px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); border-radius: 4px; color: #fff; font-size: 12px; margin-bottom: 5px;" />
-                 <div style="font-size: 10px; opacity: 0.6; text-align: right;">Leave empty to release all</div>
+                 <input type="number" id="tg-release-amount" placeholder="Amount to release (SOL)" style="width: 100%; padding: 6px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); border-radius: 4px; color: #fff; font-size: 12px; margin-bottom: 5px;" />
+                 <div style="font-size: 10px; opacity: 0.6; text-align: right;">Leave empty to release all (SOL)</div>
               </div>
 
               <button class="tg-btn tg-btn-secondary" id="release-funds-btn" disabled style="width: 100%; padding: 6px; font-size: 11px; opacity: 0.5; cursor: not-allowed;">Release Funds</button>
+            </div>
+          </div>
+
+          <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.1);">
+            <h4 style="font-size: 11px; margin-bottom: 6px;">Vault Timeline</h4>
+            <div id="tg-vault-timeline" class="tg-vault-timeline">
+              <div class="tg-vault-timeline-empty">No vault events yet.</div>
             </div>
           </div>
         </div>
@@ -367,6 +471,8 @@ function createSidebar() {
         </div>
       </div>
     </div>
+
+    <div class="tg-toast" id="tg-toast" style="display:none;"></div>
   `;
 
   // Push page content to make room for sidebar
@@ -375,29 +481,29 @@ function createSidebar() {
 
   const style = document.createElement('style');
   style.textContent = `
-    #tiltguard-sidebar {
+    #tiltcheck-sidebar {
       position: fixed !important;
       top: 0 !important;
       right: 0 !important;
-      width: 340px;
+      width: ${SIDEBAR_WIDTH}px;
       height: 100vh;
-      background: #0f1419;
-      color: #e1e8ed;
+      background: #0a0a0a;
+      color: #e6e6e6;
       z-index: 2147483647 !important;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
       box-shadow: -2px 0 8px rgba(0, 0, 0, 0.3);
       overflow-y: auto;
       transition: transform 0.2s ease;
       border-left: 1px solid rgba(255, 255, 255, 0.1);
     }
-    #tiltguard-sidebar.minimized { transform: translateX(300px); width: 40px; }
-    body.tiltguard-minimized { margin-right: 40px !important; }
-    #tiltguard-sidebar::-webkit-scrollbar { width: 6px; }
-    #tiltguard-sidebar::-webkit-scrollbar-track { background: transparent; }
-    #tiltguard-sidebar::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.2); border-radius: 3px; }
+    #tiltcheck-sidebar.minimized { transform: translateX(${SIDEBAR_WIDTH - MINIMIZED_WIDTH}px); width: ${MINIMIZED_WIDTH}px; }
+    body.tiltcheck-minimized { margin-right: ${MINIMIZED_WIDTH}px !important; }
+    #tiltcheck-sidebar::-webkit-scrollbar { width: 6px; }
+    #tiltcheck-sidebar::-webkit-scrollbar-track { background: transparent; }
+    #tiltcheck-sidebar::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.2); border-radius: 3px; }
     
     .tg-header {
-      background: #000;
+      background: linear-gradient(180deg, rgba(99,102,241,0.18), rgba(10,10,10,0));
       padding: 14px 16px;
       display: flex;
       justify-content: space-between;
@@ -409,9 +515,24 @@ function createSidebar() {
     }
     .tg-logo {
       font-size: 15px;
-      font-weight: 600;
+      font-weight: 700;
       color: #fff;
-      letter-spacing: 0.5px;
+      letter-spacing: 0.4px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .tg-logo-mark {
+      width: 24px;
+      height: 24px;
+      border-radius: 7px;
+      background: linear-gradient(135deg, #6366f1, #8b5cf6);
+      color: #fff;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 13px;
     }
     .tg-header-actions { display: flex; gap: 6px; }
     .tg-icon-btn {
@@ -428,8 +549,12 @@ function createSidebar() {
     .tg-icon-btn:hover { background: rgba(255, 255, 255, 0.1); border-color: rgba(255, 255, 255, 0.3); }
     
     .tg-content { padding: 12px; }
-    .tg-section { margin-bottom: 12px; padding: 14px; background: rgba(255, 255, 255, 0.03); border-radius: 6px; border: 1px solid rgba(255, 255, 255, 0.05); }
-    .tg-section h4 { margin: 0 0 10px 0; font-size: 13px; font-weight: 600; color: rgba(255, 255, 255, 0.7); text-transform: uppercase; letter-spacing: 0.5px; }
+    .tg-section { margin-bottom: 12px; padding: 14px; background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(10px); border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.1); }
+    .tg-section h4 { margin: 0 0 10px 0; font-size: 13px; font-weight: 700; color: rgba(255, 255, 255, 0.7); text-transform: uppercase; letter-spacing: 0.05em; }
+    .tg-emergency { border: 1px solid rgba(239, 68, 68, 0.35); background: rgba(239, 68, 68, 0.08); }
+    .tg-emergency-header { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+    .tg-emergency-title { font-weight: 700; font-size: 13px; }
+    .tg-emergency-sub { font-size: 11px; opacity: 0.7; margin-top: 2px; }
     
     .tg-auth-prompt { text-align: center; padding: 40px 20px; }
     .tg-auth-prompt h3 { font-size: 18px; margin-bottom: 8px; font-weight: 600; }
@@ -461,10 +586,11 @@ function createSidebar() {
     .tg-btn-icon:hover { color: rgba(255, 255, 255, 0.8); }
     
     .tg-settings-panel {
-      background: #1a1f26;
+      background: rgba(255, 255, 255, 0.03);
+      backdrop-filter: blur(10px);
       padding: 16px;
       margin-bottom: 12px;
-      border-radius: 6px;
+      border-radius: 12px;
       border: 1px solid rgba(255, 255, 255, 0.1);
     }
     .tg-settings-panel h4 { margin: 0 0 12px 0; font-size: 13px; }
@@ -483,8 +609,9 @@ function createSidebar() {
     
     .tg-metrics-card {
       background: rgba(255, 255, 255, 0.03);
+      backdrop-filter: blur(10px);
       border: 1px solid rgba(255, 255, 255, 0.1);
-      border-radius: 6px;
+      border-radius: 12px;
       padding: 14px;
       margin-bottom: 12px;
     }
@@ -499,6 +626,7 @@ function createSidebar() {
       font-size: 14px;
       font-weight: 600;
     }
+    .tg-session-site { font-size: 11px; opacity: 0.6; margin-top: 2px; }
     .tg-guardian-indicator {
       width: 10px;
       height: 10px;
@@ -520,11 +648,44 @@ function createSidebar() {
       gap: 4px;
     }
     .tg-metric-label {
-      font-size: 11px;
-      opacity: 0.5;
+      font-size: 10px;
+      opacity: 0.65;
       text-transform: uppercase;
-      letter-spacing: 0.5px;
+      letter-spacing: 0.05em;
     }
+    .tg-help {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      margin-left: 4px;
+      font-size: 10px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      color: rgba(255, 255, 255, 0.7);
+      position: relative;
+      cursor: help;
+    }
+    .tg-help::after {
+      content: attr(data-tip);
+      position: absolute;
+      bottom: 20px;
+      right: 0;
+      background: rgba(0, 0, 0, 0.9);
+      color: #fff;
+      padding: 6px 8px;
+      border-radius: 6px;
+      font-size: 10px;
+      white-space: nowrap;
+      opacity: 0;
+      transform: translateY(4px);
+      pointer-events: none;
+      transition: opacity 0.15s ease, transform 0.15s ease;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      z-index: 50;
+    }
+    .tg-help:hover::after { opacity: 1; transform: translateY(0); }
     .tg-metric-value {
       font-size: 15px;
       font-weight: 600;
@@ -563,10 +724,10 @@ function createSidebar() {
     }
     .tg-action-btn {
       background: rgba(255, 255, 255, 0.05);
-      border: 1px solid rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.12);
       color: #e1e8ed;
       padding: 10px;
-      border-radius: 4px;
+      border-radius: 10px;
       cursor: pointer;
       font-size: 12px;
       font-weight: 500;
@@ -581,6 +742,11 @@ function createSidebar() {
       margin-bottom: 12px;
       font-variant-numeric: tabular-nums;
     }
+    .tg-goal-progress { margin-bottom: 10px; }
+    .tg-goal-label { font-size: 11px; opacity: 0.7; margin-bottom: 6px; }
+    .tg-goal-bar { height: 6px; background: rgba(255,255,255,0.08); border-radius: 999px; overflow: hidden; }
+    .tg-goal-fill { height: 100%; background: linear-gradient(90deg, #22c55e, #10b981); width: 0%; transition: width 0.4s ease; }
+    .tg-goal-meta { font-size: 10px; opacity: 0.6; margin-top: 4px; }
     .tg-vault-actions {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -592,7 +758,7 @@ function createSidebar() {
       padding: 10px;
       margin-top: 6px;
       border: none;
-      border-radius: 4px;
+      border-radius: 10px;
       color: white;
       font-weight: 500;
       cursor: pointer;
@@ -601,10 +767,60 @@ function createSidebar() {
     }
     .tg-btn-primary { background: #6366f1; }
     .tg-btn-primary:hover { background: #5558e3; }
-    .tg-btn-secondary { background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); }
+    .tg-btn-secondary { background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.12); }
     .tg-btn-secondary:hover { background: rgba(255, 255, 255, 0.15); }
     .tg-btn-vault { background: #f59e0b; }
     .tg-btn-vault:hover { background: #d97706; }
+    .tg-btn-danger { background: #ef4444; }
+    .tg-btn-danger:hover { background: #dc2626; }
+    #tg-discord-login { background: #5865F2; border: 1px solid rgba(255,255,255,0.12); }
+    #tg-discord-login:hover { background: #4d5ae9; }
+
+    .tg-toast {
+      position: fixed;
+      right: 16px;
+      bottom: 16px;
+      background: rgba(255, 255, 255, 0.06);
+      backdrop-filter: blur(10px);
+      color: #e6e6e6;
+      border: 1px solid rgba(255,255,255,0.12);
+      border-left: 3px solid #6366f1;
+      padding: 10px 12px;
+      border-radius: 10px;
+      font-size: 12px;
+      max-width: 260px;
+      z-index: 2147483647;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.35);
+      animation: toastIn 0.2s ease;
+    }
+    @keyframes toastIn {
+      from { transform: translateY(6px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    #tiltcheck-sidebar.tilt-warn {
+      box-shadow: -2px 0 12px rgba(245, 158, 11, 0.35);
+      border-left-color: rgba(245, 158, 11, 0.6);
+      animation: pulseBorder 2.2s ease-in-out infinite;
+    }
+    #tiltcheck-sidebar.tilt-critical {
+      background: rgba(127, 29, 29, 0.85);
+      box-shadow: -2px 0 16px rgba(239, 68, 68, 0.45);
+      border-left-color: rgba(239, 68, 68, 0.7);
+    }
+    #tiltcheck-sidebar.tilt-critical .tg-emergency { border-color: rgba(239, 68, 68, 0.8); }
+    #tiltcheck-sidebar.tilt-critical #tg-emergency-lock { animation: shake 0.6s ease-in-out infinite; }
+
+    @keyframes pulseBorder {
+      0% { border-left-color: rgba(245, 158, 11, 0.3); box-shadow: -2px 0 8px rgba(245, 158, 11, 0.15); }
+      50% { border-left-color: rgba(245, 158, 11, 0.75); box-shadow: -2px 0 14px rgba(245, 158, 11, 0.35); }
+      100% { border-left-color: rgba(245, 158, 11, 0.3); box-shadow: -2px 0 8px rgba(245, 158, 11, 0.15); }
+    }
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-2px); }
+      75% { transform: translateX(2px); }
+    }
 
     .tg-tabs { display: flex; border-bottom: 1px solid rgba(255,255,255,0.1); margin-bottom: 12px; }
     .tg-tab { flex: 1; background: none; border: none; color: rgba(255,255,255,0.5); padding: 8px; cursor: pointer; border-bottom: 2px solid transparent; font-size: 12px; font-weight: 600; }
@@ -618,6 +834,21 @@ function createSidebar() {
     .tg-status-bar.success { background: rgba(16, 185, 129, 0.2); color: #34d399; border-bottom: 1px solid rgba(16, 185, 129, 0.3); }
     .tg-status-bar.warning { background: rgba(245, 158, 11, 0.2); color: #fbbf24; border-bottom: 1px solid rgba(245, 158, 11, 0.3); }
     .tg-status-bar.buddy { background: rgba(236, 72, 153, 0.2); color: #f472b6; border-bottom: 1px solid rgba(236, 72, 153, 0.3); }
+
+    .tg-vault-timeline { max-height: 180px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; }
+    .tg-vault-timeline-item {
+      font-size: 11px;
+      line-height: 1.35;
+      padding: 8px;
+      border-radius: 6px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .tg-vault-timeline-row { display: flex; justify-content: space-between; gap: 8px; }
+    .tg-vault-timeline-action { font-weight: 600; color: #fbbf24; }
+    .tg-vault-timeline-time { opacity: 0.7; font-size: 10px; white-space: nowrap; }
+    .tg-vault-timeline-meta { opacity: 0.75; margin-top: 2px; font-size: 10px; }
+    .tg-vault-timeline-empty { opacity: 0.6; font-size: 11px; padding: 8px; background: rgba(255,255,255,0.03); border-radius: 6px; }
     
     @keyframes slideDown { from { transform: translateY(-100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
     
@@ -630,21 +861,80 @@ function createSidebar() {
 
   document.head.appendChild(style);
   document.body.appendChild(sidebar);
+  updateSessionSiteLabel();
+  void refreshCasinoThemes();
+  casinoThemesIntervalId = setInterval(refreshCasinoThemes, 15 * 60 * 1000);
   setupEventListeners();
-  checkAuthStatus();
+  void checkAuthStatus();
   return sidebar;
+}
+
+function deriveAccent(label: string): string {
+  let hash = 0;
+  for (let i = 0; i < label.length; i += 1) {
+    hash = (hash << 5) - hash + label.charCodeAt(i);
+    hash |= 0;
+  }
+  const hue = Math.abs(hash) % 360;
+  return `hsl(${hue}, 70%, 55%)`;
+}
+
+async function refreshCasinoThemes() {
+  try {
+    const res = await fetch(`${API_BASE}/bonus/casinos`);
+    if (!res.ok) return;
+    const data = await res.json();
+    const casinos = Array.isArray(data.casinos) ? data.casinos : data;
+    const mapped: Record<string, { label: string; accent: string }> = {};
+    casinos.forEach((item: any) => {
+      const url = item.url || item.baseURL || '';
+      if (!url) return;
+      try {
+        const host = new URL(url).hostname.replace(/^www\./, '');
+        const label = item.brand || item.name || host;
+        mapped[host] = { label, accent: deriveAccent(label) };
+      } catch {
+        // Ignore malformed URLs
+      }
+    });
+    if (Object.keys(mapped).length > 0) {
+      dynamicCasinoThemes = mapped;
+      updateSessionSiteLabel();
+    }
+  } catch {
+    // ignore
+  }
+}
+
+function updateSessionSiteLabel() {
+  const el = document.getElementById('tg-session-site');
+  if (!el) return;
+  const host = (window.location.hostname || 'unknown').replace(/^www\./, '');
+  const theme = dynamicCasinoThemes[host] || CASINO_THEMES[host];
+  el.textContent = `${theme?.label || host} active session`;
+
+  const sidebar = document.getElementById('tiltcheck-sidebar');
+  if (sidebar) {
+    if (theme) {
+      sidebar.style.borderLeftColor = theme.accent;
+      sidebar.style.boxShadow = `-2px 0 14px ${theme.accent}33`;
+    } else {
+      sidebar.style.borderLeftColor = 'rgba(255, 255, 255, 0.1)';
+      sidebar.style.boxShadow = '-2px 0 8px rgba(0, 0, 0, 0.3)';
+    }
+  }
 }
 
 function setupEventListeners() {
   document.getElementById('tg-minimize')?.addEventListener('click', () => {
-    const sidebar = document.getElementById('tiltguard-sidebar');
+    const sidebar = document.getElementById('tiltcheck-sidebar');
     const btn = document.getElementById('tg-minimize');
     const isMin = sidebar?.classList.toggle('minimized');
-    document.body.classList.toggle('tiltguard-minimized', isMin);
-    document.body.style.marginRight = isMin ? '40px' : '340px';
-    if (btn) btn.textContent = isMin ? '+' : '−';
+    document.body.classList.toggle('tiltcheck-minimized', !!isMin);
+    applyPageOffset(isMin ? MINIMIZED_WIDTH : SIDEBAR_WIDTH);
+    if (btn) btn.textContent = isMin ? '+' : '-';
   });
-  
+
   // Settings toggle
   document.getElementById('tg-settings')?.addEventListener('click', () => {
     const panel = document.getElementById('tg-settings-panel');
@@ -653,7 +943,7 @@ function setupEventListeners() {
       panel.style.display = showSettings ? 'block' : 'none';
     }
   });
-  
+
   document.getElementById('close-settings')?.addEventListener('click', () => {
     const panel = document.getElementById('tg-settings-panel');
     if (panel) {
@@ -665,9 +955,32 @@ function setupEventListeners() {
   // Buddy Mirror Setting
   const buddyCheckbox = document.getElementById('cfg-buddy-mirror') as HTMLInputElement;
   if (buddyCheckbox) {
-    buddyCheckbox.checked = localStorage.getItem('tiltcheck_buddy_mirror') === 'true';
+    let buddyMirrorTouched = false;
+    buddyCheckbox.checked = buddyMirrorEnabled;
+
+    void (async () => {
+      const settings = await getStorage(['buddyMirrorEnabled']);
+      if (typeof settings.buddyMirrorEnabled === 'boolean') {
+        buddyMirrorEnabled = settings.buddyMirrorEnabled;
+      } else {
+        // One-time migration from localStorage legacy key.
+        const legacyMirror = localStorage.getItem('tiltcheck_buddy_mirror');
+        if (legacyMirror !== null) {
+          buddyMirrorEnabled = legacyMirror === 'true';
+          await setStorage({ buddyMirrorEnabled });
+          localStorage.removeItem('tiltcheck_buddy_mirror');
+        }
+      }
+      // Avoid clobbering a user toggle that happened before async hydration finished.
+      if (!buddyMirrorTouched) {
+        buddyCheckbox.checked = buddyMirrorEnabled;
+      }
+    })();
+
     buddyCheckbox.addEventListener('change', (e) => {
-      localStorage.setItem('tiltcheck_buddy_mirror', (e.target as HTMLInputElement).checked.toString());
+      buddyMirrorTouched = true;
+      buddyMirrorEnabled = (e.target as HTMLInputElement).checked;
+      void setStorage({ buddyMirrorEnabled });
     });
   }
 
@@ -697,6 +1010,15 @@ function setupEventListeners() {
     const panel = document.getElementById('tg-report-panel');
     if (panel) panel.style.display = 'block';
   });
+
+  // Emergency lock: 15 min break
+  document.getElementById('tg-emergency-lock')?.addEventListener('click', () => {
+    const minsInput = document.getElementById('lock-timer-mins') as HTMLInputElement;
+    const agreeCheckbox = document.getElementById('lock-agree') as HTMLInputElement;
+    if (minsInput) minsInput.value = '15';
+    if (agreeCheckbox) agreeCheckbox.checked = true;
+    document.getElementById('start-lock-timer')?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+  });
   document.getElementById('close-report')?.addEventListener('click', () => {
     const panel = document.getElementById('tg-report-panel');
     if (panel) panel.style.display = 'none';
@@ -710,7 +1032,7 @@ function setupEventListeners() {
       // Auto-populate from storage/session
       const clientSeed = localStorage.getItem('tiltcheck_client_seed');
       const nonce = localStorage.getItem('tiltcheck_nonce'); // Assuming this is tracked
-      
+
       if (clientSeed) (document.getElementById('fv-client') as HTMLInputElement).value = clientSeed;
       if (nonce) (document.getElementById('fv-nonce') as HTMLInputElement).value = nonce;
     }
@@ -765,7 +1087,7 @@ function setupEventListeners() {
   window.addEventListener('tg-fairness-result', ((e: CustomEvent) => {
     const res = document.getElementById('fv-results');
     if (res) res.style.display = 'block';
-    
+
     document.getElementById('fv-res-dice')!.textContent = e.detail.dice.toFixed(2);
     document.getElementById('fv-res-limbo')!.textContent = e.detail.limbo.toFixed(2) + 'x';
     document.getElementById('fv-res-hash')!.textContent = e.detail.hash;
@@ -785,14 +1107,14 @@ function setupEventListeners() {
     tab.addEventListener('click', (e) => {
       const target = (e.currentTarget as HTMLElement).dataset.target;
       const parent = (e.currentTarget as HTMLElement).closest('.tg-settings-panel');
-      
+
       parent?.querySelectorAll('.tg-tab').forEach(t => t.classList.remove('active'));
       (e.currentTarget as HTMLElement).classList.add('active');
-      
+
       parent?.querySelectorAll('.tg-tab-content').forEach(c => (c as HTMLElement).style.display = 'none');
       const content = document.getElementById(target!);
       if (content) content.style.display = 'block';
-      
+
       if (target === 'fv-tab-history') renderVerificationHistory();
     });
   });
@@ -807,10 +1129,10 @@ function setupEventListeners() {
     const target = (e.target as HTMLElement).closest('.tg-copy-hash') as HTMLElement;
     if (target && target.dataset.hash) {
       navigator.clipboard.writeText(target.dataset.hash);
-      
+
       // Visual feedback
       const originalText = target.textContent;
-      target.textContent = '✓';
+      target.textContent = '';
       setTimeout(() => target.textContent = originalText, 1000);
     }
   });
@@ -852,31 +1174,56 @@ function setupEventListeners() {
     const resultDiv = document.getElementById('suslink-result');
     const scoreDiv = document.getElementById('suslink-score');
     const detailsDiv = document.getElementById('suslink-details');
-    
+
     if (resultDiv) resultDiv.style.display = 'block';
     if (scoreDiv) scoreDiv.textContent = 'Scanning...';
-    
-    // Mock scan for now - replace with actual API call
-    setTimeout(() => {
-      // TODO: Call backend API for real scan
-      const isSafe = !url.includes('scam');
+
+    try {
+      // Call backend API for SusLink scan
+      const result = await apiCall('/security/scan-url', {
+        method: 'POST',
+        body: JSON.stringify({ url })
+      });
+
+      if (result.success && result.scan) {
+        const scan = result.scan;
+        if (scoreDiv) {
+          scoreDiv.textContent = `${scan.isSafe ? 'OK' : 'X'} ${scan.isSafe ? 'Safe' : 'High Risk'} (Trust Score: ${scan.trustScore}/100)`;
+          scoreDiv.style.color = scan.isSafe ? '#10b981' : '#ef4444';
+        }
+        if (detailsDiv) {
+          detailsDiv.textContent = scan.details || (scan.isSafe
+            ? 'Domain registered > 5 years. No reports found.'
+            : 'Domain flagged. Check user reports.');
+        }
+      } else {
+        // Fallback for API failure
+        const isSafe = !url.includes('scam');
+        if (scoreDiv) {
+          scoreDiv.textContent = isSafe ? 'OK Safe (Trust Score: 95/100)' : 'X High Risk (Trust Score: 10/100)';
+          scoreDiv.style.color = isSafe ? '#10b981' : '#ef4444';
+        }
+        if (detailsDiv) {
+          detailsDiv.textContent = 'Offline mode: local check only.';
+        }
+      }
+    } catch (e) {
+      console.error('[TiltGuard] SusLink scan error:', e);
       if (scoreDiv) {
-        scoreDiv.textContent = isSafe ? '✅ Safe (Trust Score: 95/100)' : '❌ High Risk (Trust Score: 10/100)';
-        scoreDiv.style.color = isSafe ? '#10b981' : '#ef4444';
+        scoreDiv.textContent = 'Scan Error';
+        scoreDiv.style.color = '#f59e0b';
       }
       if (detailsDiv) {
-        detailsDiv.textContent = isSafe 
-          ? 'Domain registered > 5 years. No reports found.' 
-          : 'Domain registered yesterday. 3 user reports found.';
+        detailsDiv.textContent = 'Network error. Please try again.';
       }
-    }, 1000);
+    }
   });
 
   // Submit Report Logic
   document.getElementById('submit-report')?.addEventListener('click', async () => {
     const type = (document.getElementById('report-type') as HTMLSelectElement).value;
     const details = (document.getElementById('report-details') as HTMLTextAreaElement).value;
-    
+
     if (!details) {
       alert('Please provide details');
       return;
@@ -912,14 +1259,23 @@ function setupEventListeners() {
   document.getElementById('tg-add-goal')?.addEventListener('click', () => {
     const name = prompt('Goal Name (e.g. Power Bill):');
     const amount = prompt('Amount ($):');
-    
+
     if (name && amount) {
-      const goalsList = document.getElementById('tg-goals-list');
-      const goalDiv = document.createElement('div');
-      goalDiv.style.cssText = 'display:flex; justify-content:space-between; font-size:12px; margin-bottom:4px; padding:4px; background:rgba(255,255,255,0.05); border-radius:4px;';
-      goalDiv.innerHTML = `<span>${name} ($${amount})</span> <button style="background:none;border:none;color:#10b981;cursor:pointer;font-size:10px;">Vault</button>`;
-      goalsList?.appendChild(goalDiv);
+      const goals = loadGoals();
+      goals.push({ name, amount: Number(amount) });
+      saveGoals(goals);
+      renderGoals(goals);
+      updateGoalProgress(sessionStats.currentBalance || 0);
     }
+  });
+
+  document.getElementById('tg-goals-list')?.addEventListener('click', (e) => {
+    const btn = (e.target as HTMLElement).closest('button') as HTMLButtonElement | null;
+    if (!btn || !btn.dataset.idx) return;
+    const goals = loadGoals();
+    const goal = goals[Number(btn.dataset.idx)];
+    if (!goal || !userData) return;
+    depositToVault(goal.amount);
   });
 
   // Lock Timer Logic
@@ -927,7 +1283,7 @@ function setupEventListeners() {
     const minsInput = document.getElementById('lock-timer-mins') as HTMLInputElement;
     const agreeCheckbox = document.getElementById('lock-agree') as HTMLInputElement;
     const mins = parseInt(minsInput.value);
-    
+
     if (!agreeCheckbox.checked) {
       alert('You must agree to the voluntary lock disclaimer.');
       return;
@@ -938,10 +1294,10 @@ function setupEventListeners() {
       return;
     }
 
-    const amountStr = prompt('Amount to lock ($):');
+    const amountStr = prompt('Amount to lock (USD):');
     if (!amountStr) return;
     const amount = parseFloat(amountStr);
-    
+
     if (isNaN(amount) || amount <= 0) {
       alert('Invalid amount');
       return;
@@ -961,7 +1317,8 @@ function setupEventListeners() {
       });
 
       if (result.success) {
-        addFeedMessage(`🔒 Locked $${amount} for ${mins}m`);
+        const lockedSol = Number(result.vault?.lockedAmountSOL || 0);
+        addFeedMessage(`Locked ${lockedSol.toFixed(4)} SOL (${amount.toFixed(2)} USD input) for ${mins}m`);
         updateStatus('Funds locked successfully', 'success');
         minsInput.value = '';
         agreeCheckbox.checked = false;
@@ -979,20 +1336,20 @@ function setupEventListeners() {
   // Release Funds Logic
   document.getElementById('release-funds-btn')?.addEventListener('click', async () => {
     if (!userData) return;
-    
+
     const releaseInput = document.getElementById('tg-release-amount') as HTMLInputElement;
     const amountToRelease = releaseInput && releaseInput.value ? parseFloat(releaseInput.value) : null;
 
     updateStatus('Releasing funds...', 'thinking');
-    
+
     try {
       const result = await apiCall(`/vault/${userData.id}/release`, {
         method: 'POST',
         body: JSON.stringify({ amount: amountToRelease })
       });
-      
+
       if (result.success) {
-        addFeedMessage(`🔓 Funds released: $${result.amount.toFixed(2)}`);
+        addFeedMessage(`Funds released: ${Number(result.amount || 0).toFixed(4)} SOL`);
         updateStatus('Funds released to main wallet', 'success');
         checkLockStatus(); // Should reset UI to form
         loadVaultBalance();
@@ -1008,7 +1365,7 @@ function setupEventListeners() {
   document.getElementById('save-config')?.addEventListener('click', async () => {
     const betSelector = (document.getElementById('cfg-bet') as HTMLInputElement).value;
     const resultSelector = (document.getElementById('cfg-result') as HTMLInputElement).value;
-    
+
     // Dynamically import saveCustomCasino or use message passing if needed
     // Since we are in the same bundle context, we can try to use the global extractor if exposed, 
     // or just save to storage directly here for simplicity since we are in content script context.
@@ -1032,57 +1389,59 @@ function setupEventListeners() {
       });
     });
   });
-  
+
   document.getElementById('save-api-keys')?.addEventListener('click', () => {
     const openai = (document.getElementById('api-key-openai') as HTMLInputElement)?.value;
     const anthropic = (document.getElementById('api-key-anthropic') as HTMLInputElement)?.value;
     const custom = (document.getElementById('api-key-custom') as HTMLInputElement)?.value;
-    
+
     apiKeys = { openai, anthropic, custom };
-    localStorage.setItem('tiltguard_api_keys', JSON.stringify(apiKeys));
+    void setStorage({ apiKeys });
     addFeedMessage('API keys saved');
-    
+
     const panel = document.getElementById('tg-settings-panel');
     if (panel) {
       showSettings = false;
       panel.style.display = 'none';
     }
   });
-  
+
+
+
   document.getElementById('tg-discord-login')?.addEventListener('click', async () => {
     // Open Discord OAuth in new window
     const width = 500;
     const height = 700;
     const left = window.screenX + (window.outerWidth - width) / 2;
     const top = window.screenY + (window.outerHeight - height) / 2;
-    
+
     const authWindow = window.open(
-      `${API_BASE}/auth/discord`,
+      getDiscordLoginUrl('extension'),
       'Discord Login',
       `width=${width},height=${height},left=${left},top=${top}`
     );
-    
+
     // Listen for auth response
     const handleMessage = (event: MessageEvent) => {
+      if (!TRUSTED_AUTH_ORIGIN || event.origin !== TRUSTED_AUTH_ORIGIN) return;
       if (event.data.type === 'discord-auth' && event.data.token) {
         authToken = event.data.token;
         userData = event.data.user;
         isAuthenticated = true;
-        localStorage.setItem('tiltguard_auth', JSON.stringify(userData));
-        localStorage.setItem('tiltguard_token', authToken || '');
+        void setStorage({ authToken, userData });
         showMainContent();
         addFeedMessage(`Authenticated as ${userData.username}`);
         window.removeEventListener('message', handleMessage);
-        
+
         // Close auth window if still open
         if (authWindow && !authWindow.closed) {
           authWindow.close();
         }
       }
     };
-    
+
     window.addEventListener('message', handleMessage);
-    
+
     // Fallback: check if window was closed without completing auth
     const checkClosed = setInterval(() => {
       if (authWindow && authWindow.closed) {
@@ -1094,13 +1453,11 @@ function setupEventListeners() {
       }
     }, 1000);
   });
-  
-  document.getElementById('tg-guest-mode')?.addEventListener('click', continueAsGuest);
-  document.getElementById('tg-logout')?.addEventListener('click', () => { 
-    localStorage.removeItem('tiltguard_auth'); 
-    localStorage.removeItem('tiltguard_token');
+
+  document.getElementById('tg-logout')?.addEventListener('click', () => {
+    void removeStorage(['authToken', 'userData']);
     authToken = null;
-    location.reload(); 
+    location.reload();
   });
   document.getElementById('tg-open-dashboard')?.addEventListener('click', openDashboard);
   document.getElementById('tg-open-vault')?.addEventListener('click', openVault);
@@ -1125,85 +1482,146 @@ function setupEventListeners() {
   document.getElementById('tg-upgrade')?.addEventListener('click', openPremium);
 }
 
-function checkAuthStatus() {
-  const stored = localStorage.getItem('tiltguard_auth');
-  const token = localStorage.getItem('tiltguard_token');
-  const keys = localStorage.getItem('tiltguard_api_keys');
-  
-  if (keys) {
-    apiKeys = JSON.parse(keys);
-    // Populate settings fields
-    setTimeout(() => {
-      if (document.getElementById('api-key-openai')) {
-        (document.getElementById('api-key-openai') as HTMLInputElement).value = apiKeys.openai || '';
-        (document.getElementById('api-key-anthropic') as HTMLInputElement).value = apiKeys.anthropic || '';
-        (document.getElementById('api-key-custom') as HTMLInputElement).value = apiKeys.custom || '';
+async function checkAuthStatus() {
+  const storedAuth = await getStorage(['authToken', 'userData']);
+  const storedUser = storedAuth.userData || null;
+  const token = storedAuth.authToken || null;
+  const storedSettings = await getStorage(['apiKeys']);
+  if (storedSettings.apiKeys) {
+    apiKeys = storedSettings.apiKeys;
+  } else {
+    // One-time migration from localStorage legacy key.
+    const legacyKeys = localStorage.getItem('tiltcheck_api_keys');
+    if (legacyKeys) {
+      try {
+        apiKeys = JSON.parse(legacyKeys);
+        await setStorage({ apiKeys });
+      } catch {
+        apiKeys = { openai: '', anthropic: '', custom: '' };
       }
-    }, 100);
+      localStorage.removeItem('tiltcheck_api_keys');
+    }
   }
-  
+  // Populate settings fields
+  setTimeout(() => {
+    if (document.getElementById('api-key-openai')) {
+      (document.getElementById('api-key-openai') as HTMLInputElement).value = apiKeys.openai || '';
+      (document.getElementById('api-key-anthropic') as HTMLInputElement).value = apiKeys.anthropic || '';
+      (document.getElementById('api-key-custom') as HTMLInputElement).value = apiKeys.custom || '';
+    }
+  }, 100);
+
   // Require authentication
-  if (!stored || !token) {
-    console.log('🎮 TiltGuard: Authentication required');
+  if (!storedUser || !token) {
+    console.log('TiltGuard: Authentication required');
     return;
   }
-  
-  if (stored && token) {
-    userData = JSON.parse(stored);
+
+  if (storedUser && token) {
+    userData = storedUser;
     authToken = token;
     isAuthenticated = true;
     showMainContent();
+    renderGoals(loadGoals());
+    updateGoalProgress(sessionStats.currentBalance || 0);
     loadVaultBalance();
     checkLockStatus();
     initPnLGraph();
-  }
-}
-
-async function continueAsGuest() {
-  const result = await apiCall('/auth/guest', {
-    method: 'POST',
-    body: JSON.stringify({ username: 'Guest' })
-  });
-  
-  if (result.success) {
-    authToken = result.token;
-    userData = result.user;
-    isAuthenticated = true;
-    localStorage.setItem('tiltguard_auth', JSON.stringify(userData));
-    localStorage.setItem('tiltguard_token', authToken || '');
-    showMainContent();
-    addFeedMessage('Guest session started');
-  } else {
-    alert('Failed to start guest session');
+    vaultRefreshIntervalId = setInterval(() => {
+      loadVaultBalance();
+      checkLockStatus();
+    }, 30_000);
   }
 }
 
 function addFeedMessage(message: string) {
   const feed = document.getElementById('tg-message-feed');
   if (!feed) return;
-  
+
   const item = document.createElement('div');
   item.className = 'tg-feed-item';
   const time = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
   item.textContent = `[${time}] ${message}`;
-  
+
   feed.insertBefore(item, feed.firstChild);
-  
+
   // Keep only last 10 messages
   while (feed.children.length > 10) {
     feed.removeChild(feed.lastChild!);
   }
 }
 
-const pnlHistory: number[] = [];
+function showToast(message: string, durationMs: number = 4000) {
+  const toast = document.getElementById('tg-toast');
+  if (!toast) return;
+  toast.textContent = message;
+  toast.style.display = 'block';
+  setTimeout(() => {
+    if (toast.textContent === message) toast.style.display = 'none';
+  }, durationMs);
+}
+
+type VaultGoal = { name: string; amount: number };
+
+function loadGoals(): VaultGoal[] {
+  try {
+    return JSON.parse(localStorage.getItem('tiltcheck_vault_goals') || '[]');
+  } catch {
+    return [];
+  }
+}
+
+function saveGoals(goals: VaultGoal[]) {
+  localStorage.setItem('tiltcheck_vault_goals', JSON.stringify(goals));
+}
+
+function renderGoals(goals: VaultGoal[]) {
+  const goalsList = document.getElementById('tg-goals-list');
+  if (!goalsList) return;
+  goalsList.innerHTML = '';
+  goals.forEach((goal, idx) => {
+    const goalDiv = document.createElement('div');
+    goalDiv.style.cssText = 'display:flex; justify-content:space-between; font-size:12px; margin-bottom:4px; padding:4px; background:rgba(255,255,255,0.05); border-radius:4px;';
+    const label = document.createElement('span');
+    label.textContent = `${goal.name} ($${goal.amount})`;
+    const btn = document.createElement('button');
+    btn.dataset.idx = String(idx);
+    btn.textContent = 'Vault';
+    btn.style.cssText = 'background:none;border:none;color:#10b981;cursor:pointer;font-size:10px;';
+    goalDiv.appendChild(label);
+    goalDiv.appendChild(btn);
+    goalsList.appendChild(goalDiv);
+  });
+}
+
+function updateGoalProgress(balance: number) {
+  const goals = loadGoals();
+  const progressWrap = document.getElementById('tg-goal-progress');
+  const label = document.getElementById('tg-goal-label');
+  const fill = document.getElementById('tg-goal-fill') as HTMLDivElement | null;
+  const meta = document.getElementById('tg-goal-meta');
+  if (!progressWrap || !label || !fill || !meta) return;
+  if (goals.length === 0) {
+    progressWrap.style.display = 'none';
+    return;
+  }
+  const goal = goals[0];
+  const pct = Math.min(100, (balance / Math.max(goal.amount, 1)) * 100);
+  progressWrap.style.display = 'block';
+  label.textContent = `${goal.name} goal`;
+  fill.style.width = `${pct}%`;
+  meta.textContent = `$${balance.toFixed(2)} / $${goal.amount.toFixed(2)}`;
+}
+
+let pnlHistory: number[] = [];
 
 function initPnLGraph() {
   const canvas = document.getElementById('pnl-canvas') as HTMLCanvasElement;
   if (!canvas) return;
-  
+
   const ctx = canvas.getContext('2d');
   if (!ctx) return;
-  
+
   // Initial empty graph
   drawPnLGraph(ctx, canvas);
 }
@@ -1211,14 +1629,14 @@ function initPnLGraph() {
 function drawPnLGraph(ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement) {
   const width = canvas.width;
   const height = canvas.height;
-  
+
   // Clear
   ctx.clearRect(0, 0, width, height);
-  
+
   // Background
   ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
   ctx.fillRect(0, 0, width, height);
-  
+
   // Zero line
   ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
   ctx.lineWidth = 1;
@@ -1226,7 +1644,7 @@ function drawPnLGraph(ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement) 
   ctx.moveTo(0, height / 2);
   ctx.lineTo(width, height / 2);
   ctx.stroke();
-  
+
   if (pnlHistory.length < 2) {
     // No data message
     ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
@@ -1235,30 +1653,30 @@ function drawPnLGraph(ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement) 
     ctx.fillText('No data yet', width / 2, height / 2);
     return;
   }
-  
+
   // Calculate scale
   const max = Math.max(...pnlHistory, 0);
   const min = Math.min(...pnlHistory, 0);
   const range = max - min || 1;
-  
+
   // Draw line
   ctx.strokeStyle = pnlHistory[pnlHistory.length - 1] >= 0 ? '#10b981' : '#ef4444';
   ctx.lineWidth = 2;
   ctx.beginPath();
-  
+
   pnlHistory.forEach((value, index) => {
     const x = (index / (pnlHistory.length - 1)) * width;
     const y = height - ((value - min) / range) * height;
-    
+
     if (index === 0) {
       ctx.moveTo(x, y);
     } else {
       ctx.lineTo(x, y);
     }
   });
-  
+
   ctx.stroke();
-  
+
   // Current value
   const current = pnlHistory[pnlHistory.length - 1];
   ctx.fillStyle = current >= 0 ? '#10b981' : '#ef4444';
@@ -1286,7 +1704,7 @@ async function vaultCurrentBalance() {
   }
   const confirmed = confirm(`Vault entire balance of $${balance.toFixed(2)}?`);
   if (!confirmed) return;
-  
+
   await depositToVault(balance);
   sessionStats.currentBalance = 0;
 }
@@ -1294,9 +1712,9 @@ async function vaultCurrentBalance() {
 function updateLicense(verification: any) {
   // License verification can be shown in feed
   if (verification.isLegitimate) {
-    addFeedMessage(`✓ Licensed: ${verification.licenseInfo?.authority || 'Verified'}`);
+    addFeedMessage(`Licensed: ${verification.licenseInfo?.authority || 'Verified'}`);
   } else {
-    addFeedMessage(`⚠ ${verification.verdict || 'Unlicensed'}`);
+    addFeedMessage(`Warning: ${verification.verdict || 'Unlicensed'}`);
   }
 }
 
@@ -1317,23 +1735,30 @@ async function updateTilt(score: number, _indicators: string[]) {
     if (score >= 60) scoreEl.classList.add('critical');
     else if (score >= 30) scoreEl.classList.add('warning');
   }
-  
+
+  const sidebar = document.getElementById('tiltcheck-sidebar');
+  if (sidebar) {
+    sidebar.classList.remove('tilt-warn', 'tilt-critical');
+    if (score >= 71) sidebar.classList.add('tilt-critical');
+    else if (score >= 41) sidebar.classList.add('tilt-warn');
+  }
+
   // Add to feed if high tilt
   if (score >= 60) {
-    addFeedMessage(`⚠️ High tilt detected: ${Math.round(score)}`);
-    
+    addFeedMessage(`High tilt detected: ${Math.round(score)}`);
+
     // Get AI-powered intervention suggestions
     const aiResult = await callAIGateway('tilt-detection', {
       context: {
         recentBets: [],
         sessionDuration: Math.floor((Date.now() - sessionStats.startTime) / 60000),
-        losses: Math.max(0, sessionStats.totalWagered - sessionStats.totalWins)
+        losses: Math.max(0, sessionStats.totalWagered - sessionStats.totalWon)
       }
     });
-    
+
     if (aiResult.success && aiResult.data?.interventionSuggestions) {
       aiResult.data.interventionSuggestions.forEach((suggestion: string) => {
-        addFeedMessage(`💡 ${suggestion}`);
+        addFeedMessage(`Tip: ${suggestion}`);
       });
     }
   }
@@ -1341,12 +1766,12 @@ async function updateTilt(score: number, _indicators: string[]) {
 
 function updateStats(stats: any) {
   sessionStats = { ...sessionStats, ...stats };
-  const duration = Math.floor((Date.now() - stats.startTime) / 1000);
+  const duration = Math.floor((Date.now() - (sessionStats.startTime || Date.now())) / 1000);
   const minutes = Math.floor(duration / 60);
   const seconds = duration % 60;
-  const profit = stats.totalWins - stats.totalWagered;
-  const rtp = stats.totalWagered > 0 ? (stats.totalWins / stats.totalWagered * 100) : 0;
-  
+  const profit = (sessionStats.totalWon || 0) - (sessionStats.totalWagered || 0);
+  const rtp = sessionStats.totalWagered > 0 ? ((sessionStats.totalWon || 0) / sessionStats.totalWagered * 100) : 0;
+
   const updates = {
     'tg-duration': `${minutes}:${seconds.toString().padStart(2, '0')}`,
     'tg-bets': stats.totalBets.toString(),
@@ -1354,7 +1779,7 @@ function updateStats(stats: any) {
     'tg-profit': `$${profit.toFixed(2)}`,
     'tg-rtp': `${rtp.toFixed(1)}%`
   };
-  
+
   Object.entries(updates).forEach(([id, value]) => {
     const el = document.getElementById(id);
     if (el && value) {
@@ -1362,18 +1787,24 @@ function updateStats(stats: any) {
       if (id === 'tg-profit') el.style.color = profit >= 0 ? '#10b981' : '#ef4444';
     }
   });
-  
+
   // Update P/L graph
   pnlHistory.push(profit);
   if (pnlHistory.length > 50) pnlHistory.shift(); // Keep last 50 points
-  
+
   const canvas = document.getElementById('pnl-canvas') as HTMLCanvasElement;
   if (canvas) {
     const ctx = canvas.getContext('2d');
     if (ctx) drawPnLGraph(ctx, canvas);
   }
-  
+
   if (stats.currentBalance !== undefined) sessionStats.currentBalance = stats.currentBalance;
+
+  // Win-to-vault nudge
+  if (profit - lastProfit >= 50) {
+    showToast('Huge win! Move $50 to the Vault to secure it?');
+  }
+  lastProfit = profit;
 }
 
 async function depositToVault(amount: number) {
@@ -1382,7 +1813,7 @@ async function depositToVault(amount: number) {
     method: 'POST',
     body: JSON.stringify({ amount })
   });
-  
+
   if (result.success) {
     const vaultEl = document.getElementById('tg-vault-balance');
     if (vaultEl) vaultEl.textContent = `$${result.vault.balance.toFixed(2)}`;
@@ -1398,26 +1829,106 @@ async function loadVaultBalance() {
   if (result.vault) {
     const vaultEl = document.getElementById('tg-vault-balance');
     if (vaultEl) vaultEl.textContent = `$${result.vault.balance.toFixed(2)}`;
+    updateGoalProgress(result.vault.balance || 0);
+    renderVaultTimeline(Array.isArray(result.vault.locks) ? result.vault.locks : []);
   }
+}
+
+function formatTimelineAction(action: string): string {
+  switch (action) {
+    case 'locked': return 'Lock created';
+    case 'extended': return 'Lock extended';
+    case 'auto-unlocked': return 'Auto-unlocked (timer expired)';
+    case 'unlocked': return 'Released';
+    case 'emergency-unlocked': return 'Emergency unlock';
+    default: return action.replace(/-/g, ' ');
+  }
+}
+
+function formatRelativeTime(ts: number): string {
+  const diffMs = Date.now() - ts;
+  const sec = Math.floor(diffMs / 1000);
+  if (sec < 60) return `${sec}s ago`;
+  const min = Math.floor(sec / 60);
+  if (min < 60) return `${min}m ago`;
+  const hrs = Math.floor(min / 60);
+  if (hrs < 24) return `${hrs}h ago`;
+  const days = Math.floor(hrs / 24);
+  return `${days}d ago`;
+}
+
+function shortVaultId(vaultId: string): string {
+  if (!vaultId) return 'unknown';
+  if (vaultId.length <= 10) return vaultId;
+  return `${vaultId.slice(0, 6)}...${vaultId.slice(-4)}`;
+}
+
+function renderVaultTimeline(locks: any[]) {
+  const container = document.getElementById('tg-vault-timeline');
+  if (!container) return;
+
+  const events: Array<{ ts: number; action: string; note?: string; vaultId: string; amount: number }> = [];
+  for (const lock of locks) {
+    const lockHistory = Array.isArray(lock.history) ? lock.history : [];
+    for (const event of lockHistory) {
+      if (!event || typeof event.ts !== 'number' || typeof event.action !== 'string') continue;
+      events.push({
+        ts: event.ts,
+        action: event.action,
+        note: event.note,
+        vaultId: String(lock.id || ''),
+        amount: Number(lock.lockedAmountSOL || 0),
+      });
+    }
+  }
+
+  events.sort((a, b) => b.ts - a.ts);
+  const topEvents = events.slice(0, 20);
+
+  if (topEvents.length === 0) {
+    container.innerHTML = '<div class="tg-vault-timeline-empty">No vault events yet.</div>';
+    return;
+  }
+
+  container.innerHTML = topEvents.map((event) => {
+    const action = escapeHtml(formatTimelineAction(event.action));
+    const relative = escapeHtml(formatRelativeTime(event.ts));
+    const absolute = escapeHtml(new Date(event.ts).toLocaleString());
+    const metaParts = [
+      `Vault ${escapeHtml(shortVaultId(event.vaultId))}`,
+      `Amount: ${escapeHtml(event.amount.toFixed(4))} SOL`,
+      event.note ? escapeHtml(event.note) : '',
+    ].filter(Boolean);
+    return `
+      <div class="tg-vault-timeline-item" title="${absolute}">
+        <div class="tg-vault-timeline-row">
+          <span class="tg-vault-timeline-action">${action}</span>
+          <span class="tg-vault-timeline-time">${relative}</span>
+        </div>
+        <div class="tg-vault-timeline-meta">${metaParts.join(' • ')}</div>
+      </div>
+    `;
+  }).join('');
 }
 
 async function checkLockStatus() {
   if (!userData) return;
-  
+
   // Check if user has active lock
   const result = await apiCall(`/vault/${userData.id}/lock-status`);
-  
+
   const form = document.getElementById('tg-lock-form');
   const status = document.getElementById('tg-lock-status');
-  
+
   if (result.success && result.locked) {
     if (form) form.style.display = 'none';
     if (status) status.style.display = 'block';
-    
+
     const amountEl = document.getElementById('tg-locked-amount');
-    if (amountEl) amountEl.textContent = `$${result.amount.toFixed(2)}`;
-    if (amountEl) amountEl.dataset.total = result.amount.toString();
-    
+    const amountValue = Number(result?.amount ?? 0);
+    if (amountEl) amountEl.textContent = `${amountValue.toFixed(4)} SOL`;
+    if (amountEl) amountEl.dataset.total = amountValue.toString();
+
     // Use createdAt if available for progress bar, otherwise default to now (0% progress fallback)
     const startTime = result.createdAt ? new Date(result.createdAt).getTime() : Date.now();
     startLockCountdown(new Date(result.unlockTime).getTime(), startTime);
@@ -1430,19 +1941,19 @@ async function checkLockStatus() {
 
 function startLockCountdown(unlockTime: number, startTime: number) {
   if (lockTimerInterval) clearInterval(lockTimerInterval);
-  
+
   const totalDuration = unlockTime - startTime;
 
   const update = () => {
     const now = Date.now();
     const diff = unlockTime - now;
-    
+
     // Progress Bar Logic
     const elapsed = now - startTime;
     let progress = totalDuration > 0 ? (elapsed / totalDuration) * 100 : 0;
     if (progress > 100) progress = 100;
     if (progress < 0) progress = 0;
-    
+
     const progressEl = document.getElementById('tg-lock-progress');
     if (progressEl) progressEl.style.width = `${progress}%`;
 
@@ -1450,15 +1961,15 @@ function startLockCountdown(unlockTime: number, startTime: number) {
     const btn = document.getElementById('release-funds-btn') as HTMLButtonElement;
     const releaseControls = document.getElementById('tg-release-controls');
     const releaseInput = document.getElementById('tg-release-amount') as HTMLInputElement;
-    
+
     if (diff <= 0) {
       if (timerEl) timerEl.textContent = 'Ready to Release';
       if (releaseControls) releaseControls.style.display = 'block';
-      
+
       // Auto-fill max amount if empty
       if (releaseInput && !releaseInput.value) {
-         const total = document.getElementById('tg-locked-amount')?.dataset.total;
-         if (total) releaseInput.value = total;
+        const total = document.getElementById('tg-locked-amount')?.dataset.total;
+        if (total) releaseInput.value = total;
       }
 
       if (btn) {
@@ -1471,16 +1982,16 @@ function startLockCountdown(unlockTime: number, startTime: number) {
       if (lockTimerInterval) clearInterval(lockTimerInterval);
       return;
     }
-    
+
     // Format time
     const hours = Math.floor(diff / 3600000);
     const minutes = Math.floor((diff % 3600000) / 60000);
     const seconds = Math.floor((diff % 60000) / 1000);
-    
+
     if (timerEl) {
       timerEl.textContent = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
     }
-    
+
     if (btn) {
       btn.disabled = true;
       btn.style.opacity = '0.5';
@@ -1488,7 +1999,7 @@ function startLockCountdown(unlockTime: number, startTime: number) {
     }
     if (releaseControls) releaseControls.style.display = 'none';
   };
-  
+
   update();
   lockTimerInterval = setInterval(update, 1000);
 }
@@ -1500,9 +2011,9 @@ async function openDashboard() {
     addFeedMessage('Dashboard unavailable');
     return;
   }
-  
+
   addFeedMessage('Dashboard opened');
-  const data = JSON.stringify(result, null, 2);
+  const data = escapeHtml(JSON.stringify(result, null, 2));
   const win = window.open('', 'TiltGuard Dashboard', 'width=800,height=600');
   if (win) {
     win.document.write(`
@@ -1511,7 +2022,7 @@ async function openDashboard() {
         <style>body{font-family:monospace;padding:20px;background:#0f1419;color:#e1e8ed;}pre{background:#1a1f26;padding:15px;border-radius:6px;border:1px solid rgba(255,255,255,0.1);}</style>
         </head>
         <body>
-          <h1>🎯 TiltGuard Dashboard</h1>
+          <h1>TiltGuard Dashboard</h1>
           <pre>${data}</pre>
         </body>
       </html>
@@ -1526,8 +2037,8 @@ async function openVault() {
     alert('Vault data unavailable');
     return;
   }
-  
-  const data = JSON.stringify(result.vault, null, 2);
+
+  const data = escapeHtml(JSON.stringify(result.vault, null, 2));
   const win = window.open('', 'TiltGuard Vault', 'width=600,height=500');
   if (win) {
     win.document.write(`
@@ -1536,7 +2047,7 @@ async function openVault() {
         <style>body{font-family:monospace;padding:20px;background:#1a1a2e;color:white;}pre{background:#16213e;padding:15px;border-radius:8px;}</style>
         </head>
         <body>
-          <h1>🔒 TiltGuard Vault</h1>
+          <h1>TiltGuard Vault</h1>
           <pre>${data}</pre>
         </body>
       </html>
@@ -1551,8 +2062,8 @@ async function openWallet() {
     alert('Wallet data unavailable');
     return;
   }
-  
-  const data = JSON.stringify(result, null, 2);
+
+  const data = escapeHtml(JSON.stringify(result, null, 2));
   const win = window.open('', 'TiltGuard Wallet', 'width=600,height=500');
   if (win) {
     win.document.write(`
@@ -1561,7 +2072,7 @@ async function openWallet() {
         <style>body{font-family:monospace;padding:20px;background:#1a1a2e;color:white;}pre{background:#16213e;padding:15px;border-radius:8px;}</style>
         </head>
         <body>
-          <h1>💰 TiltGuard Wallet</h1>
+          <h1>TiltGuard Wallet</h1>
           <pre>${data}</pre>
         </body>
       </html>
@@ -1575,11 +2086,11 @@ async function openPremium() {
     addFeedMessage('Premium plans unavailable');
     return;
   }
-  
-  const plans = result.plans.map((p: any) => 
+
+  const plans = result.plans.map((p: any) =>
     `${p.name} - $${p.price}/mo\n${p.features.join('\n')}`
   ).join('\n\n');
-  
+
   const upgrade = confirm(`Available Plans:\n\n${plans}\n\nUpgrade to Premium?`);
   if (upgrade && userData) {
     const upgradeResult = await apiCall('/premium/upgrade', {
@@ -1606,27 +2117,27 @@ function saveVerificationHistory(data: any) {
 function renderVerificationHistory() {
   const list = document.getElementById('fv-history-list');
   if (!list) return;
-  
+
   const history = JSON.parse(localStorage.getItem('tiltcheck_verification_history') || '[]');
-  
+
   if (history.length === 0) {
     list.innerHTML = '<div class="tg-feed-item">No history yet</div>';
     return;
   }
-  
+
   list.innerHTML = history.map((item: any) => `
     <div class="tg-history-item">
       <div class="tg-history-header">
-        <span>Nonce: ${item.nonce}</span>
-        <span>${new Date(item.timestamp).toLocaleTimeString()}</span>
+        <span>Nonce: ${escapeHtml(item.nonce)}</span>
+        <span>${escapeHtml(new Date(item.timestamp).toLocaleTimeString())}</span>
       </div>
       <div style="display:flex; justify-content:space-between;">
-        <span>Dice: <span class="tg-history-result">${item.result.dice.toFixed(2)}</span></span>
-        <span>Crash: <span class="tg-history-result">${item.result.limbo.toFixed(2)}x</span></span>
+        <span>Dice: <span class="tg-history-result">${escapeHtml(Number(item.result?.dice || 0).toFixed(2))}</span></span>
+        <span>Crash: <span class="tg-history-result">${escapeHtml(Number(item.result?.limbo || 0).toFixed(2))}x</span></span>
       </div>
       <div style="display:flex; align-items:center; gap:6px; margin-top:4px;">
-        <span style="font-size:9px; opacity:0.4; flex:1; overflow:hidden; text-overflow:ellipsis; font-family:monospace;">${item.result.hash}</span>
-        <button class="tg-btn-icon tg-copy-hash" data-hash="${item.result.hash}" title="Copy Hash" style="width:20px; height:20px; font-size:12px; padding:0; display:flex; align-items:center; justify-content:center; border:1px solid rgba(255,255,255,0.1);">📋</button>
+        <span style="font-size:9px; opacity:0.4; flex:1; overflow:hidden; text-overflow:ellipsis; font-family:monospace;">${escapeHtml(item.result?.hash)}</span>
+        <button class="tg-btn-icon tg-copy-hash" data-hash="${escapeHtml(item.result?.hash)}" title="Copy Hash" style="width:20px; height:20px; font-size:12px; padding:0; display:flex; align-items:center; justify-content:center; border:1px solid rgba(255,255,255,0.1);">Copy</button>
       </div>
     </div>
   `).join('');
@@ -1634,9 +2145,8 @@ function renderVerificationHistory() {
 
 async function notifyBuddy(type: string, data: any) {
   // Check if feature is enabled
-  const mirror = localStorage.getItem('tiltcheck_buddy_mirror') === 'true';
-  if (!mirror) return;
-  
+  if (!buddyMirrorEnabled) return;
+
   // Check if user is authenticated
   if (!userData || !authToken) return;
 
@@ -1649,9 +2159,9 @@ async function notifyBuddy(type: string, data: any) {
         timestamp: Date.now()
       })
     });
-    
+
     if (result.success) {
-      addFeedMessage(`👥 Buddy notified: ${type}`);
+      addFeedMessage(`Buddy notified: ${type}`);
       updateStatus('Buddy alert sent', 'buddy');
     }
   } catch (e) {
@@ -1665,8 +2175,7 @@ function updateStatus(message: string, type: string = 'info') {
 
   // Check buddy setting for buddy notifications
   if (type === 'buddy') {
-    const mirror = localStorage.getItem('tiltcheck_buddy_mirror') === 'true';
-    if (!mirror) return;
+    if (!buddyMirrorEnabled) return;
   }
 
   bar.textContent = message;
@@ -1684,5 +2193,6 @@ function updateStatus(message: string, type: string = 'info') {
 }
 
 if (typeof window !== 'undefined') {
-  (window as any).TiltGuardSidebar = { create: createSidebar, updateLicense, updateGuardian, updateTilt, updateStats, notifyBuddy };
+  (window as any).TiltCheckSidebar = { create: createSidebar, updateLicense, updateGuardian, updateTilt, updateStats, notifyBuddy };
 }
+

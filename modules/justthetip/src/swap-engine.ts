@@ -1,4 +1,11 @@
 /**
+ * © 2024–2025 TiltCheck Ecosystem. All Rights Reserved.
+ * Created by jmenichole (https://github.com/jmenichole)
+ * 
+ * This file is part of the TiltCheck project.
+ * For licensing information, see LICENSE file in the project root.
+ */
+/**
  * Swap Engine - Jupiter Integration for Token Swaps
  * 
  * Allows users to swap between supported Solana tokens (including wrapped assets)
@@ -14,7 +21,7 @@
 import { Connection } from '@solana/web3.js';
 import { createQR } from '@solana/pay';
 import { eventRouter } from '@tiltcheck/event-router';
-import { pricingOracle } from '@tiltcheck/pricing-oracle';
+import { getUsdPriceSync } from '@tiltcheck/utils';
 import { v4 as uuidv4 } from 'uuid';
 import { swapDefaults } from './config.js';
 import type { SwapQuote } from '@tiltcheck/types';
@@ -447,7 +454,7 @@ export function formatSwapQuote(
  */
 export function getTokenPriceUsd(symbol: string): number | undefined {
   try {
-    return pricingOracle.getUsdPrice(symbol.toUpperCase());
+    return getUsdPriceSync(symbol.toUpperCase());
   } catch {
     return undefined;
   }

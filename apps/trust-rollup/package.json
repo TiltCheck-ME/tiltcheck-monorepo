@@ -21,7 +21,7 @@
   "dependencies": {
     "@tiltcheck/event-router": "workspace:*",
     "@tiltcheck/types": "workspace:*",
-    "zod": "^3.25.76"
+    "zod": "^4.3.6"
   },
   "devDependencies": {
     "tsx": "^4.7.0",

@@ -1,4 +1,11 @@
 /**
+ * © 2024–2025 TiltCheck Ecosystem. All Rights Reserved.
+ * Created by jmenichole (https://github.com/jmenichole)
+ * 
+ * This file is part of the TiltCheck project.
+ * For licensing information, see LICENSE file in the project root.
+ */
+/**
  * Shared Authentication Script for TiltCheck
  * Checks auth status and updates navigation across all pages
  */
@@ -127,11 +134,11 @@ class TiltCheckAuth {
     menuItems.style.cssText = 'padding: 8px 0;';
     
     const items = [
-      { label: '🎮 Game Arena', href: '/play/arena' },
-      { label: '👤 Profile', href: '/play/profile.html' },
-      { label: '⚙️ Settings', href: '/settings.html' },
-      { label: '📊 Dashboard', href: '/dashboard' },
-      { label: '🚪 Logout', href: '#', id: 'logout-link' }
+      { label: 'Game Arena', href: '/play/arena' },
+      { label: 'Profile', href: '/play/profile.html' },
+      { label: 'Settings', href: '/settings.html' },
+      { label: 'Dashboard', href: '/dashboard' },
+      { label: 'Logout', href: '#', id: 'logout-link' }
     ];
 
     items.forEach(item => {

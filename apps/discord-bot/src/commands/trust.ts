@@ -1,4 +1,11 @@
 /**
+ * © 2024–2025 TiltCheck Ecosystem. All Rights Reserved.
+ * Created by jmenichole (https://github.com/jmenichole)
+ * 
+ * This file is part of the TiltCheck project.
+ * For licensing information, see LICENSE file in the project root.
+ */
+/**
  * Trust Commands
  * 
  * Display trust scores from Casino Trust Engine and Degen Trust Engine.
@@ -81,7 +88,7 @@ async function showCasinoTrust(interaction: ChatInputCommandInteraction) {
       { name: '💰 Payout', value: `${breakdown.payoutScore}/100`, inline: true },
       { name: '🎁 Bonus', value: `${breakdown.bonusScore}/100`, inline: true },
       { name: '👥 User Reports', value: `${breakdown.userReportScore}/100`, inline: true },
-      { name: '🎟️ Freespins', value: `${breakdown.freespinScore}/100`, inline: true },
+      { name: '🎟️ Promo Integrity', value: `${breakdown.freespinScore}/100`, inline: true },
       { name: '📋 Compliance', value: `${breakdown.complianceScore}/100`, inline: true },
       { name: '\u200b', value: '\u200b', inline: true },
       { name: '🤝 Support', value: `${breakdown.supportScore}/100`, inline: true },

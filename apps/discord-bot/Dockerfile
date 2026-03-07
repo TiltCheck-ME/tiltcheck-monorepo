@@ -5,17 +5,17 @@ FROM node:20-alpine AS build
 
 RUN npm install -g pnpm@10
 ENV CI=true
+ENV SKIP_ENV_VALIDATION=1
 
 WORKDIR /app
 
 # Copy workspace config
 COPY package.json pnpm-workspace.yaml pnpm-lock.yaml .npmrc tsconfig.json ./
 
-# Copy all workspace sources needed by the bot
+# Copy all workspace sources
 COPY packages/ ./packages/
 COPY modules/ ./modules/
-COPY apps/discord-bot/ ./apps/discord-bot/
-COPY apps/pricing-oracle/ ./apps/pricing-oracle/
+COPY apps/ ./apps/
 
 # Install dependencies
 RUN NODE_ENV=development pnpm install --no-frozen-lockfile
@@ -24,7 +24,7 @@ RUN NODE_ENV=development pnpm install --no-frozen-lockfile
 RUN pnpm -r build
 
 # Prune dev dependencies
-RUN pnpm prune --prod
+# pnpm prune --prod
 
 # Production stage
 FROM node:20-alpine

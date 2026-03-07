@@ -1,3 +1,10 @@
+/**
+ * © 2024–2025 TiltCheck Ecosystem. All Rights Reserved.
+ * Created by jmenichole (https://github.com/jmenichole)
+ * 
+ * This file is part of the TiltCheck project.
+ * For licensing information, see LICENSE file in the project root.
+ */
 import express from 'express';
 import session from 'express-session';
 import { createServer } from 'http';
@@ -63,7 +70,7 @@ app.get('/api/auth/status', (req, res) => {
 app.get('/api/system/status', requireAuth, async (req, res) => {
   try {
     const services = [
-      'event-router', 'trust-engines', 'logging', 'pricing-oracle',
+      'event-router', 'trust-engines', 'logging',
       'trust-rollup', 'reverse-proxy', 'landing', 'dashboard',
       'qualifyfirst', 'ai-gateway', 'collectclock', 'control-room', 'user-dashboard'
     ];

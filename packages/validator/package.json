@@ -1,7 +1,7 @@
 {
   "name": "@tiltcheck/validator",
   "version": "0.1.0",
-  "description": "TODO: Add description",
+  "description": "Shared validation utilities and schemas for TiltCheck",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",

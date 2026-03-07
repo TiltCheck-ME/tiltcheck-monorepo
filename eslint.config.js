@@ -1,3 +1,10 @@
+/**
+ * © 2024–2025 TiltCheck Ecosystem. All Rights Reserved.
+ * Created by jmenichole (https://github.com/jmenichole)
+ * 
+ * This file is part of the TiltCheck project.
+ * For licensing information, see LICENSE file in the project root.
+ */
 // Flat ESLint config for ESLint v9+
 // Minimal, type-check free setup for TS/JS across the monorepo
 import eslint from '@eslint/js';

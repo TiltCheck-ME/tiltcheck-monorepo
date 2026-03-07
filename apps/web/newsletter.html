@@ -1,10 +1,18 @@
 <!doctype html>
+<!--
+  © 2024–2025 TiltCheck Ecosystem. All Rights Reserved.
+  Created by jmenichole (https://github.com/jmenichole)
+  
+  This file is part of the TiltCheck project.
+  For licensing information, see LICENSE file in the project root.
+-->
+
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <title>Newsletter Signup – TiltCheck</title>
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <link rel="canonical" href="/newsletter" />
+  <link rel="canonical" href="/newsletter.html" />
   <meta name="description" content="Receive occasional updates on new trust tools, anti-tilt features, and safety improvements." />
   <link rel="stylesheet" href="/styles/main.css" />
   <style>
@@ -66,7 +74,7 @@
         const res = await fetch('/api/newsletter/subscribe', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(data) });
         const j = await res.json();
         if(j.ok){
-          if(j.duplicate){ statusEl.textContent='Already subscribed ✔'; statusEl.className='status ok'; }
+          if(j.duplicate){ statusEl.textContent='Already subscribed '; statusEl.className='status ok'; }
           else { statusEl.textContent='Subscribed! Welcome.'; statusEl.className='status ok'; form.reset(); }
         } else {
           statusEl.textContent = j.error || 'Subscription failed.'; statusEl.className='status err';

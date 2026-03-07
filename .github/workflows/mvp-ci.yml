@@ -1,0 +1,60 @@
+name: MVP CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+jobs:
+  strict-typecheck:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Typecheck API (strict)
+        run: pnpm -C apps/api exec tsc --noEmit
+      - name: Typecheck LockVault (strict)
+        run: pnpm -C modules/lockvault exec tsc --noEmit
+
+  extension-checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Build extension
+        run: pnpm -C apps/chrome-extension build
+      - name: Run extension unit tests
+        run: pnpm -C apps/chrome-extension exec vitest --run tests/unit/message-contracts.test.ts
+
+  vault-api-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Run vault route tests
+        run: pnpm -C apps/api exec vitest --run tests/routes/vault.test.ts

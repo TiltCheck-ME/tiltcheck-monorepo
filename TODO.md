@@ -1,4 +1,23 @@
-# Bug Fixes TODO List
+<!-- Copyright 2024-2026 TiltCheck | v1.1.0 | Last Edited: 2026-02-26 -->
+
+# TiltCheck TODO & Incomplete Work List
+
+This list tracks any feature, plan, or concept that is **incomplete**, **not fully built**, **not planned**, or **not well thought out**.
+*As per ecosystem guidelines, ALL team members/agents MUST append items here when encountering incomplete functionality.*
+
+## High-Level Features (Pending Definition/Implementation)
+
+- [x] **Cloudflare Workers Use Cases:**
+  - [x] Geo-Compliance edge worker to block restricted jurisdictions.
+  - [x] Edge high-speed nonce generation.
+  - [x] Image Optimization resizing.
+  - [x] Event Router webhooks.
+- [x] **Onboarding & Personalization:** AI-driven onboarding interview + tutorials.
+- [x] **Safety & Accountability:** "Phone a Friend" buddy system, Zero Balance tasks.
+
+## Bug Fixes TODO List
+
+- [x] **Chrome Extension Build:** Resolved Node.js polyfill errors for browser environment.
 
 ## Priority 1: index.ts (Cloudflare Worker) - Bug Fixes
 

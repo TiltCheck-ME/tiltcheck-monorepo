@@ -16,17 +16,17 @@ export default function DashboardHome() {
             </span>
           </h1>
           <p className="text-lg md:text-xl text-[#6B7280] max-w-3xl mx-auto mb-10 leading-relaxed">
-            Smart tools for casino communities. Scam detection, tipping, bonuses, 
+            Smart tools for casino communities. Scam detection, tipping, bonuses,
             tilt prevention, and trivia — all integrated into one ecosystem.
           </p>
           <div className="flex flex-wrap justify-center gap-4">
-            <Link 
-              href="/dashboard"
+            <Link
+              href="/onboarding"
               className="px-8 py-4 bg-[#00FFC6] text-[#0E0E0F] rounded font-bold text-lg hover:opacity-90 transition-all shadow-[0_0_20px_rgba(0,255,198,0.2)]"
             >
-              OPEN DASHBOARD
+              GET STARTED
             </Link>
-            <Link 
+            <Link
               href="https://discord.gg/s6NNfPHxMS"
               className="px-8 py-4 border border-[#00FFC6] text-[#00FFC6] rounded font-bold text-lg hover:bg-[#00FFC6]/5 transition-all"
             >
@@ -50,7 +50,7 @@ export default function DashboardHome() {
             <span className="w-12 h-[2px] bg-[#00FFC6]" />
             ECOSYSTEM TOOLS
           </h2>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {/* QualifyFirst */}
             <ToolCard
@@ -158,7 +158,7 @@ function ToolCard({
   };
 
   return (
-    <Link 
+    <Link
       href={href}
       className="group bg-[#1A1F24]/80 border border-[#00FFC6]/5 p-8 rounded-lg hover:border-[#00FFC6]/30 transition-all flex flex-col backdrop-blur-sm"
     >

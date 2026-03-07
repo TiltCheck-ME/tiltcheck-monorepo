@@ -1,12 +1,20 @@
+// v0.1.0 — 2026-02-25
+/**
+ * © 2024–2025 TiltCheck Ecosystem. All Rights Reserved.
+ * Created by jmenichole (https://github.com/jmenichole)
+ *
+ * This file is part of the TiltCheck project.
+ * For licensing information, see LICENSE file in the project root.
+ */
 /**
  * External Data Fetchers
  * Fetches casino data from external sources to feed Trust Engines
- * 
+ *
  * This module integrates with:
  * - CasinoGuru API for RTP and review data
  * - AskGamblers API for player complaints
  * - Public gaming commission databases for licensing verification
- * 
+ *
  * Does not fabricate trust data. If a source is unavailable, data is omitted.
  */
 
@@ -168,6 +176,14 @@ export async function fetchPayoutData(casinoName: string): Promise<CasinoExterna
  */
 export async function fetchBonusData(casinoName: string): Promise<CasinoExternalData['bonusData']> {
   void casinoName;
+  // TODO: Affiliate APIs Required
+  // Need integration with casino affiliate tracking APIs (e.g., AskGamblers, CasinoNewsDaily)
+  // These APIs provide real-time bonus offer tracking, wagering requirements, and max withdrawal caps.
+  // For now, returns undefined to avoid fabricating data. When APIs are available:
+  // 1. Query casino_name against affiliate database
+  // 2. Extract current offer, wagering multiplier, max withdrawal
+  // 3. Classify bonus terms as "standard" or "restrictive" based on industry norms
+  // 4. Cache results for 24 hours to minimize API calls
   return undefined;
 }
 
@@ -178,6 +194,17 @@ export async function fetchBonusData(casinoName: string): Promise<CasinoExternal
  */
 export async function fetchComplianceData(casinoName: string): Promise<CasinoExternalData['complianceData']> {
   void casinoName;
+  // TODO: Gaming Authority APIs Required
+  // Requires integration with regulatory body databases:
+  // - Malta MGA (MaltaGaming Authority): License registry query API
+  // - UK Gambling Commission: Industry register API
+  // - Gibraltar Gambling Commission: License verification endpoint
+  // - Curacao GTECH: License lookup for crypto casinos
+  // For now, returns undefined to avoid fabricating licensing claims. When APIs available:
+  // 1. Extract domain from casinoName
+  // 2. Query each authority database for matching license
+  // 3. Retrieve jurisdiction, license number, KYC requirements, reputation score
+  // 4. Cache for 7 days (rarely changes)
   return undefined;
 }
 

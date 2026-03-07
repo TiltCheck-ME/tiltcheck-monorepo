@@ -529,13 +529,13 @@ export type EventType =
   | 'tip.pending'
   | 'tip.pending.resolved'
   | 'tip.sent'
-    | 'tip.confirmed'
+  | 'tip.confirmed'
   | 'tip.completed'
   | 'tip.failed'
   | 'tip.expired'
   | 'tip.ready'
   | 'airdrop.requested'
-    | 'airdrop.confirmed'
+  | 'airdrop.confirmed'
   | 'airdrop.completed'
   | 'airdrop.failed'
   | 'swap.requested'
@@ -547,6 +547,7 @@ export type EventType =
   | 'price.updated'
   | 'link.scanned'
   | 'link.flagged'
+  | 'link.feedback'
   | 'promo.submitted'
   | 'promo.approved'
   | 'promo.denied'
@@ -586,6 +587,9 @@ export type EventType =
   | 'vault.locked'
   | 'vault.unlocked'
   | 'vault.extended'
+  | 'vault.expired'
+  | 'vault.reload_due'
+  | 'vault.auto_withdraw_requested'
   | 'transaction.created'
   | 'transaction.approved'
   | 'transaction.submitted'
@@ -601,7 +605,11 @@ export type EventType =
   | 'credit.airdrop_sent'
   | 'credit.withdrawn'
   | 'credit.refunded'
-  | 'credit.pending_tip_created';
+  | 'credit.pending_tip_created'
+  | 'code.detected'
+  | 'telegram.message.received'
+  | 'user.balance.depleted';
+
 
 export interface TiltCheckEvent<T = any> {
   id: string;
@@ -618,11 +626,8 @@ export type ModuleId =
   | 'tiltcheck-core'
   | 'suslink'
   | 'collectclock'
-  | 'freespinscan'
   | 'justthetip'
-  | 'qualifyfirst'
   | 'dad'
-  | 'pricing-oracle'
   | 'trust-engine-casino'
   | 'trust-engine-degen'
   | 'trust-rollup'
@@ -634,7 +639,9 @@ export type ModuleId =
   | 'identity-core'
   | 'gameplay-analyzer'
   | 'linkguard'
-  | 'test-suite';
+  | 'test-suite'
+  | 'telegram-code-ingest';
+
 
 // ============================================
 // User & Identity Types
@@ -648,6 +655,10 @@ export interface User {
   trustScore: number; // 0-100
   nftId?: string;
   notes?: string;
+  /** Display name shown in UI (falls back to Discord username if not set) */
+  displayName?: string;
+  /** Avatar URL (CDN or Discord avatar URL) */
+  avatar?: string;
 }
 
 export interface WalletMapping {
@@ -851,23 +862,7 @@ export interface BonusPredictionGeneratedEvent {
   volatilityScore?: number; // normalized 0-1 (higher = more volatile)
 }
 
-// ============================================
-// Promo Types (FreeSpinScan)
-// ============================================
 
-export interface PromoSubmission {
-  id: number;
-  url: string;
-  userId: string;
-  casinoName: string;
-  bonusType: string;
-  notes?: string;
-  suslinkScore?: number;
-  status: 'pending' | 'approved' | 'denied';
-  createdAt: Date;
-  reviewedAt?: Date;
-  reviewedBy?: string;
-}
 
 // ============================================
 // Tilt Detection Types
@@ -937,3 +932,96 @@ export interface EventSubscription {
   handler: EventHandler;
   moduleId: ModuleId;
 }
+
+// ============================================
+// Branded Primitive Types
+// ============================================
+
+/**
+ * Branded string type for wallet addresses (Solana base58 or EVM hex).
+ * Prevents accidental assignment of arbitrary strings in wallet-sensitive code.
+ *
+ * @example
+ * const addr = '4Nd1m...' as WalletAddress;
+ * function transfer(to: WalletAddress) { ... }
+ */
+export type WalletAddress = string & { readonly __brand: 'WalletAddress' };
+
+/**
+ * Helper to cast a raw string to WalletAddress.
+ * Use at trust boundaries (e.g. after on-chain validation or user input parsing).
+ */
+export function toWalletAddress(raw: string): WalletAddress {
+  return raw as WalletAddress;
+}
+
+// ============================================
+// Domain Session Type
+// ============================================
+
+/**
+ * Application-level session (not the DB row, not the JWT payload).
+ * Used by session-store consumers and cross-package session passing.
+ *
+ * - `id`        - Unique session identifier (UUID)
+ * - `userId`    - The owner's user ID
+ * - `createdAt` - When the session was created
+ * - `expiresAt` - When the session expires
+ * - `data`      - Arbitrary session metadata (e.g. nonce, csrf, preferences)
+ */
+export interface Session {
+  id: string;
+  userId: string;
+  createdAt: Date;
+  expiresAt: Date;
+  data?: Record<string, unknown>;
+}
+
+// ============================================
+// Price / Oracle Types
+// ============================================
+
+/**
+ * A single price observation for a token at a point in time.
+ * Distinct from PriceUpdateEvent (which is an event-bus message);
+ * PricePoint is a plain data snapshot suitable for caching, storage, and charting.
+ *
+ * - `symbol`    - Token symbol (e.g. 'SOL', 'BONK', 'USDC')
+ * - `price`     - USD price as a number
+ * - `timestamp` - Unix epoch milliseconds when the price was observed
+ * - `source`    - Optional data source identifier (e.g. 'jupiter', 'coingecko')
+ */
+export interface PricePoint {
+  symbol: string;
+  price: number;
+  timestamp: number;
+  source?: string;
+}
+
+// ============================================
+// Generic Event Payload Wrapper
+// ============================================
+
+/**
+ * Lightweight generic envelope for event payloads.
+ * Useful for transport layers, webhooks, and non-TiltCheckEvent contexts
+ * where the full TiltCheckEvent structure is unnecessary.
+ *
+ * @template T - The payload type
+ *
+ * @example
+ * const msg: EventPayload<PricePoint> = {
+ *   event: 'price.updated',
+ *   payload: { symbol: 'SOL', price: 142.5, timestamp: Date.now() },
+ *   timestamp: Date.now(),
+ * };
+ */
+export interface EventPayload<T> {
+  /** Event name / discriminator (e.g. 'price.updated', 'user.created') */
+  event: string;
+  /** The event data */
+  payload: T;
+  /** Unix epoch milliseconds when the payload was produced */
+  timestamp: number;
+}
+

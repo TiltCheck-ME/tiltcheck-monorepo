@@ -1,4 +1,11 @@
 /**
+ * © 2024–2025 TiltCheck Ecosystem. All Rights Reserved.
+ * Created by jmenichole (https://github.com/jmenichole)
+ * 
+ * This file is part of the TiltCheck project.
+ * For licensing information, see LICENSE file in the project root.
+ */
+/**
  * JWT Authentication Middleware
  * 
  * Verifies JWT tokens from Authorization header and attaches user to req.user
@@ -7,6 +14,23 @@
 import type { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import { findUserById } from '@tiltcheck/db';
+import type { JWTConfig } from '@tiltcheck/auth';
+
+/**
+ * Get unified JWT configuration
+ */
+export function getJWTConfig(): JWTConfig {
+  const secret = process.env.JWT_SECRET || '';
+  if (!secret && process.env.NODE_ENV !== 'test') {
+    throw new Error('[FATAL] JWT_SECRET env var is required for signatures');
+  }
+  return {
+    secret,
+    issuer: process.env.JWT_ISSUER || 'tiltcheck.me',
+    audience: process.env.JWT_AUDIENCE || 'tiltcheck.me',
+    expiresIn: process.env.JWT_EXPIRES_IN || '7d',
+  };
+}
 
 /**
  * JWT payload structure

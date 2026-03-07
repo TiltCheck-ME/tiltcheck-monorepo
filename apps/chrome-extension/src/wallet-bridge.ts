@@ -1,3 +1,10 @@
+/**
+ * © 2024–2025 TiltCheck Ecosystem. All Rights Reserved.
+ * Created by jmenichole (https://github.com/jmenichole)
+ * 
+ * This file is part of the TiltCheck project.
+ * For licensing information, see LICENSE file in the project root.
+ */
 import { PublicKey, Transaction, Connection } from '@solana/web3.js';
 
 /**
@@ -9,62 +16,13 @@ export class WalletBridge {
   private isConnected: boolean = false;
 
   constructor() {
-    this.injectScript();
+    // page-bridge.js runs in MAIN world via manifest — no inline injection needed
     this.listenForResponses();
-  }
-
-  /**
-   * Injects a small script into the page to proxy wallet requests.
-   */
-  private injectScript() {
-    const script = document.createElement('script');
-    script.textContent = `
-      window.addEventListener('message', async (event) => {
-        // Only accept messages from our extension
-        if (event.data.source !== 'TILTCHECK_EXT') return;
-
-        if (event.data.type === 'CONNECT') {
-          if (window.solana) {
-            try {
-              const resp = await window.solana.connect();
-              window.postMessage({ 
-                source: 'TILTCHECK_PAGE', 
-                type: 'CONNECTED', 
-                publicKey: resp.publicKey.toString() 
-              }, '*');
-            } catch (err) {
-              console.error('TiltCheck Wallet Error:', err);
-            }
-          }
-        }
-
-        if (event.data.type === 'SIGN_AND_SEND') {
-          try {
-            // Deserialize transaction (simplified for demo)
-            // In prod, you'd deserialize the Buffer/Uint8Array
-            const { transactionBase64 } = event.data;
-            const buffer = Uint8Array.from(atob(transactionBase64), c => c.charCodeAt(0));
-            const transaction = window.solanaWeb3.Transaction.from(buffer);
-
-            const { signature } = await window.solana.signAndSendTransaction(transaction);
-            
-            window.postMessage({
-              source: 'TILTCHECK_PAGE',
-              type: 'TX_SENT',
-              signature
-            }, '*');
-          } catch (err) {
-            console.error('TiltCheck Sign Error:', err);
-          }
-        }
-      });
-    `;
-    (document.head || document.documentElement).appendChild(script);
-    script.remove();
   }
 
   private listenForResponses() {
     window.addEventListener('message', (event) => {
+      if (event.source !== window) return;
       if (event.data.source !== 'TILTCHECK_PAGE') return;
 
       if (event.data.type === 'CONNECTED') {
@@ -91,16 +49,24 @@ export class WalletBridge {
     const serialized = transaction.serialize({ requireAllSignatures: false });
     const base64 = btoa(String.fromCharCode(...serialized));
 
+    const requestId = `tx-${Date.now()}-${crypto.getRandomValues(new Uint32Array(1))[0].toString(36)}`;
     return new Promise((resolve, reject) => {
+      const timeoutId = window.setTimeout(() => {
+        window.removeEventListener('message', handler);
+        reject(new Error('Wallet transaction request timed out'));
+      }, 15000);
+
       const handler = (event: MessageEvent) => {
+        if (event.source !== window) return;
         if (event.data.source !== 'TILTCHECK_PAGE') return;
-        if (event.data.type === 'TX_SENT') {
+        if (event.data.type === 'TX_SENT' && event.data.requestId === requestId) {
+          window.clearTimeout(timeoutId);
           window.removeEventListener('message', handler);
           resolve(event.data.signature);
         }
       };
       window.addEventListener('message', handler);
-      window.postMessage({ source: 'TILTCHECK_EXT', type: 'SIGN_AND_SEND', transactionBase64: base64 }, '*');
+      window.postMessage({ source: 'TILTCHECK_EXT', type: 'SIGN_AND_SEND', transactionBase64: base64, requestId }, '*');
     });
   }
 }
