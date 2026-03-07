@@ -15,6 +15,7 @@
         "analyze": "node analyze-log.js",
         "analyze:lore": "node analyze-log.js --lore",
         "comic:daily": "node generate-daily-comic.js",
+        "comic:publish": "node publish-comic-to-cloud.js",
         "session:create": "node create-session.js"
     },
     "dependencies": {
