@@ -20,6 +20,21 @@ jobs:
           cache: pnpm
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
+      - name: Build workspace packages required for typecheck
+        run: |
+          pnpm -r \
+            --filter @tiltcheck/db \
+            --filter @tiltcheck/auth \
+            --filter @tiltcheck/trust-score-types \
+            --filter @tiltcheck/event-types \
+            --filter @tiltcheck/trust-engines \
+            --filter @tiltcheck/suslink \
+            --filter @tiltcheck/lockvault \
+            --filter @tiltcheck/event-router \
+            --filter @tiltcheck/ai-client \
+            --filter @tiltcheck/types \
+            --filter @tiltcheck/utils \
+            build
       - name: Typecheck API (strict)
         run: pnpm -C apps/api exec tsc --noEmit
       - name: Typecheck LockVault (strict)
@@ -38,6 +53,11 @@ jobs:
           cache: pnpm
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
+      - name: Build workspace packages required for extension
+        run: |
+          pnpm -r \
+            --filter @tiltcheck/utils \
+            build
       - name: Build extension
         run: pnpm -C apps/chrome-extension build
       - name: Run extension unit tests
@@ -56,5 +76,20 @@ jobs:
           cache: pnpm
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
+      - name: Build workspace packages required for API tests
+        run: |
+          pnpm -r \
+            --filter @tiltcheck/db \
+            --filter @tiltcheck/auth \
+            --filter @tiltcheck/trust-score-types \
+            --filter @tiltcheck/event-types \
+            --filter @tiltcheck/trust-engines \
+            --filter @tiltcheck/suslink \
+            --filter @tiltcheck/lockvault \
+            --filter @tiltcheck/event-router \
+            --filter @tiltcheck/ai-client \
+            --filter @tiltcheck/types \
+            --filter @tiltcheck/utils \
+            build
       - name: Run vault route tests
         run: pnpm -C apps/api exec vitest --run tests/routes/vault.test.ts
