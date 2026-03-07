@@ -1,65 +1,52 @@
 # Contributing to TiltCheck
 
-Thank you for your interest in contributing!  
-TiltCheck is built by a solo founder (jmenichole), and contributions are welcomed.
+Thank you for contributing to TiltCheck.
 
----
+## Core contribution rules
 
-# Guidelines
+1. Keep modules independent and use shared interfaces/event routing.
+2. Follow the architecture docs in `docs/tiltcheck/`.
+3. Never introduce custodial behavior or hidden fund custody paths.
+4. Keep changes focused, testable, and well-scoped.
 
-## 1. Use the Copilot Agent
-The custom agent is trained on the entire docs folder.  
-Ask it questions like:
-- “Where should this module live?”
-- “Does this respect the event router?”
-- “Is this non-custodial?”
-- “Does this break the flat-fee rule?”
+## Open source + private runtime boundary
 
-## 2. Keep Modules Independent
-No direct imports between modules.  
-Use the Event Router.
+TiltCheck code is open source. Production runtime internals are private.
 
-## 3. Follow the Architecture
-`/docs/tiltcheck/` is the single source of truth.
+- Allowed in PRs:
+  - source code
+  - docs
+  - infra templates
+  - `.env.example` placeholders
+- Never commit:
+  - real credentials/tokens
+  - production secret values
+  - private key material
 
-## 4. Never Introduce Custody
-TiltCheck must not hold user funds.
+See `docs/governance/OSS-RUNTIME-BOUNDARY.md` for policy details.
 
-## 5. Keep Fees Flat
-Always use the current approved flat-fee (default 0.07 SOL).
+## Pull request expectations
 
-## 6. Ask Clear Questions
-When opening issues or PRs:
-- What problem is this solving?
-- Where should it live?
-- Is this MVP or polished?
+- Explain the problem and why the approach was chosen.
+- Note any architecture or deployment impact.
+- Document test coverage and manual verification steps.
+- Use the PR template security checklist.
 
-## 7. Keep Things Cheap
-Optimize for:
-- Cloudflare
-- Supabase free tier
-- lightweight architecture
-- small code footprint
+## Security and disclosure
 
-## 8. Be Degen-Friendly
-Do NOT:
-- shame users
-- moralize
-- discourage fun
+If your change touches auth, payments, trust scoring, or external APIs, include:
 
-Do:
-- keep safety first
-- use humor when appropriate
-- focus on clarity
+- threat/risk notes
+- validation/sanitization notes
+- rollback notes if behavior regresses
 
-## 9. Follow Community Standards
-- no harassment  
-- no slurs  
-- no doxxing  
-- no targeted insults  
+For vulnerability disclosure, follow `SECURITY.md` and avoid public disclosure before coordinated fix.
 
----
+## Community standards
 
-# License
-TiltCheck © 2024–2025  
-All Rights Reserved unless otherwise specified.
+- No harassment, slurs, doxxing, or targeted abuse.
+- Keep communication direct, respectful, and practical.
+
+## License
+
+Project licensing is defined by repository license files and notices.
