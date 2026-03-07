@@ -1,0 +1,18 @@
+{
+  "name": "@tiltcheck/comic-generator",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Cloud comic generation service for Daily Degen Comic",
+  "main": "src/index.js",
+  "scripts": {
+    "dev": "node --env-file=../../.env --watch src/index.js",
+    "start": "node src/index.js"
+  },
+  "dependencies": {
+    "@google-cloud/storage": "^7.17.2",
+    "cors": "^2.8.5",
+    "dotenv": "^17.3.1",
+    "express": "^4.21.2"
+  }
+}

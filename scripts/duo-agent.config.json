@@ -1,0 +1,20 @@
+{
+  "gitignore": {
+    "file": ".gitignore",
+    "entries": [
+      ".github/workflows/",
+      ".github/actions/",
+      "data/degen-intel-events.jsonl",
+      "apps/api/data/degen-intel-events.jsonl",
+      "tools/channel-watcher/citations.md",
+      "tools/channel-watcher/reports_business.md",
+      "tools/channel-watcher/reports_lore.md"
+    ]
+  },
+  "untrackFiles": [
+    ".github/workflows/mvp-ci.yml",
+    "tools/channel-watcher/citations.md",
+    "tools/channel-watcher/reports_business.md",
+    "tools/channel-watcher/reports_lore.md"
+  ]
+}
