@@ -6,6 +6,7 @@
   "description": "TiltCheck Ecosystem - Built by a degen, for degens",
   "author": "jmenichole",
   "license": "UNLICENSED",
+  "packageManager": "pnpm@10.29.1",
   "engines": {
     "node": ">=18.0.0",
     "pnpm": ">=9.0.0"
@@ -39,7 +40,11 @@
     "optimize:images": "node scripts/optimize-images.js",
     "lighthouse:landing": "node scripts/run-lighthouse.js",
     "build:search-index": "node scripts/build-search-index.js",
-    "lighthouse:ci": "node scripts/lighthouse-ci.js"
+    "lighthouse:ci": "node scripts/lighthouse-ci.js",
+    "knip": "knip",
+    "knip:report": "knip --reporter github-actions --no-progress --no-exit-code",
+    "knip:ci": "knip --no-progress --production --include unresolved --include binaries",
+    "deadcode": "pnpm knip"
   },
   "devDependencies": {
     "@types/bcryptjs": "^3.0.0",
@@ -53,6 +58,7 @@
     "eslint-config-prettier": "^9.1.2",
     "http-server": "^14.1.1",
     "jsdom": "^28.1.0",
+    "knip": "^5.86.0",
     "lighthouse": "^13.0.3",
     "lunr": "^2.3.9",
     "pa11y": "^9.1.0",
