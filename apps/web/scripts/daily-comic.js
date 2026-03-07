@@ -67,10 +67,37 @@
 
   function renderCredits(comic) {
     if (!CREDIT_EL) return;
-    const artist = escapeHtml(comic?.credits?.visualInspiration || 'samoxic');
-    const artistUrl = escapeHtml(comic?.credits?.visualInspirationUrl || 'https://pheverdream.github.io/The-Book-of-SealStats/');
-    const creator = escapeHtml(comic?.credits?.creator || 'jmenichole');
-    CREDIT_EL.innerHTML = `Visual inspiration credit: <a href="${artistUrl}" target="_blank" rel="noopener" class="text-[#8dc0ff] hover:text-[#b5d6ff]">${artist}'s SealStats render</a>. TiltCheck adaptation by <span class="text-[#b6ffe7]">${creator}</span>.`;
+    const artist = String(comic?.credits?.visualInspiration || 'samoxic');
+    const creator = String(comic?.credits?.creator || 'jmenichole');
+    const rawArtistUrl = String(comic?.credits?.visualInspirationUrl || 'https://pheverdream.github.io/The-Book-of-SealStats/');
+
+    let safeArtistUrl = 'https://pheverdream.github.io/The-Book-of-SealStats/';
+    try {
+      const parsed = new URL(rawArtistUrl, window.location.origin);
+      if (parsed.protocol === 'https:' || parsed.protocol === 'http:') {
+        safeArtistUrl = parsed.href;
+      }
+    } catch {
+      // Keep fallback URL when input is invalid.
+    }
+
+    CREDIT_EL.textContent = '';
+    CREDIT_EL.append('Visual inspiration credit: ');
+
+    const link = document.createElement('a');
+    link.className = 'text-[#8dc0ff] hover:text-[#b5d6ff]';
+    link.setAttribute('href', safeArtistUrl);
+    link.setAttribute('target', '_blank');
+    link.setAttribute('rel', 'noopener');
+    link.textContent = `${artist}'s SealStats render`;
+    CREDIT_EL.append(link);
+
+    CREDIT_EL.append('. TiltCheck adaptation by ');
+    const creatorSpan = document.createElement('span');
+    creatorSpan.className = 'text-[#b6ffe7]';
+    creatorSpan.textContent = creator;
+    CREDIT_EL.append(creatorSpan);
+    CREDIT_EL.append('.');
   }
 
   function renderUpdatedAt(comic) {
