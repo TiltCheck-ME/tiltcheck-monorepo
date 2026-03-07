@@ -19,9 +19,10 @@ const loginBtn = document.getElementById('loginBtn') as HTMLButtonElement;
 const vaultBtn = document.getElementById('vaultBtn') as HTMLButtonElement;
 const dashboardBtn = document.getElementById('dashboardBtn') as HTMLButtonElement;
 
-type AuthUser = { username?: string } | null;
+type AuthUser = { username?: string; isDemo?: boolean } | null;
 let authToken: string | null = null;
 let userData: AuthUser = null;
+const DEMO_USER: AuthUser = { username: 'Demo Mode', isDemo: true };
 const trustedAuthOrigin = (() => {
   try {
     return new URL(getDiscordLoginUrl('extension')).origin;
@@ -55,6 +56,9 @@ function renderAuthStatus() {
     const username = userData.username || 'connected';
     authStatus.textContent = `Account: ${username}`;
     loginBtn.textContent = 'Reconnect Discord';
+  } else if (userData?.isDemo) {
+    authStatus.textContent = 'Account: demo mode';
+    loginBtn.textContent = 'Connect Discord (Optional)';
   } else {
     authStatus.textContent = 'Account: not connected';
     loginBtn.textContent = 'Connect Discord';
@@ -102,7 +106,7 @@ function openDashboard() {
 async function initAuth() {
   const result = await chrome.storage.local.get(['authToken', 'userData']);
   authToken = (result.authToken as string) || null;
-  userData = (result.userData as AuthUser) || null;
+  userData = (result.userData as AuthUser) || DEMO_USER;
   renderAuthStatus();
 }
 
