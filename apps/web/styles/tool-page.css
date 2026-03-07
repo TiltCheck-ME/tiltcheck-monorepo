@@ -43,7 +43,7 @@ body {
   font-size: 1.5rem;
   font-weight: 900;
   font-family: 'Space Grotesk', 'Inter', sans-serif;
-  background: linear-gradient(135deg, #00FFC6 0%, #00C2FF 100%);
+  background: linear-gradient(135deg, #00FFC6 0%, #8B5CF6 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -480,7 +480,7 @@ body {
 }
 
 .step-number {
-  background: linear-gradient(135deg, #00FFC6 0%, #00C2FF 100%);
+  background: linear-gradient(135deg, #00FFC6 0%, #8B5CF6 100%);
   color: #0E0E0F;
   width: 48px;
   height: 48px;
