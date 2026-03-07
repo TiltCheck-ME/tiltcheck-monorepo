@@ -44,5 +44,20 @@ gcloud run deploy comic-generator \
 ```
 
 Set secrets via Secret Manager for:
+
 - `GEMINI_API_KEY`
 - `COMIC_INGEST_KEY` (optional but recommended)
+
+## One-command deploy
+
+From repo root:
+
+```bash
+COMIC_GCS_BUCKET=<your-bucket> GEMINI_API_KEY=<your-key> COMIC_INGEST_KEY=<your-shared-key> npm --prefix packages/comic-generator run deploy:cloudrun
+```
+
+Notes:
+
+- If `PROJECT_ID` is not passed, the script uses your current `gcloud` project.
+- Override defaults with env vars: `PROJECT_ID`, `REGION`, `SERVICE_NAME`, `ALLOW_UNAUTH`.
+- After deploy, it prints `COMIC_API_URL` for `tools/channel-watcher/.env`.
