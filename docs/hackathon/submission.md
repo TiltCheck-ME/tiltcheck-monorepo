@@ -1,5 +1,8 @@
 # Elasticsearch Agent Builder Hackathon Submission
 
+## Related Guides
+- GitLab Duo MR Docs Agent guide: [mr-docs-agent-hackathon-guide.md](./mr-docs-agent-hackathon-guide.md)
+
 ## Project
 TiltCheck Intervention Agent
 
