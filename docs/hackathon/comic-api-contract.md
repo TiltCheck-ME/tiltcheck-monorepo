@@ -5,7 +5,6 @@ This contract defines how channel logs are converted into a generated comic stri
 ## Endpoint: `POST /v1/comic/generate`
 
 Generates a daily strip and persists:
-
 - `current.json` (latest strip)
 - `archive.json` (all prior strips, newest first)
 - panel image assets
@@ -102,7 +101,6 @@ Generates a daily strip and persists:
 - `communityId` (optional, default `tiltcheck-discord`)
 
 ### Success (current)
-
 - Returns latest `current.json`.
 
 ## Endpoint: `GET /v1/comic/archive`
@@ -113,7 +111,6 @@ Generates a daily strip and persists:
 - `limit` (optional, default `20`, max `100`)
 
 ### Success (archive)
-
 - Returns array newest first.
 
 ## Storage Layout (Cloud Storage)
