@@ -1,0 +1,19 @@
+---
+description: Infra and migration caution for safe solo deployment operations
+globs: {infra/gcp/**/*,scripts/gcp/**/*,docs/migration/**/*}
+alwaysApply: false
+---
+
+# Infra and Migration Caution
+
+- Prefer incremental, single-service rollout over multi-service jumps.
+- Keep cost controls visible (budget alerting and spend guardrails).
+- Document assumptions and rollback steps for each infra change.
+- Do not hardcode credentials; use secret manager and placeholders only.
+- Update migration logs when milestones or runbooks change.
+
+## Quick pass/fail check
+
+- [ ] Change is incremental with rollback path
+- [ ] No credentials or secret values introduced
+- [ ] Cost and migration documentation updated as needed

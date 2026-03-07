@@ -1,12 +1,22 @@
 /**
  * MV3 service worker.
- * Popup handles sidebar controls; background handles shared tab actions.
+ * Sidebar-first controls and shared tab actions.
  */
 
 const VAULT_URL_BASE = 'https://tiltcheck.me/vault';
 
 chrome.runtime.onInstalled.addListener(() => {
   console.log('[TiltCheck] Extension installed');
+});
+
+chrome.action.onClicked.addListener((tab) => {
+  if (!tab?.id) return;
+
+  chrome.tabs.sendMessage(tab.id, { type: 'toggle_sidebar' }, () => {
+    if (chrome.runtime.lastError) {
+      console.log('[TiltCheck] Sidebar unavailable on this tab:', chrome.runtime.lastError.message);
+    }
+  });
 });
 
 function buildVaultUrl(suggestedAmount) {

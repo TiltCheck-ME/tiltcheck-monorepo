@@ -1,6 +1,7 @@
 # TiltCheck Security Policy
 
 TiltCheck follows a minimal attack surface philosophy:
+
 - no custodial systems  
 - no private key storage  
 - no sensitive personal data  
@@ -12,6 +13,7 @@ TiltCheck follows a minimal attack surface philosophy:
 - **[IP Allowlist Deployment](./docs/security/DEPLOY_IP_ALLOWLIST.md)** — Admin panel protection
 
 ## Supported Versions
+
 Active version: `main` branch.
 
 ## Third-Party API Security
@@ -43,9 +45,11 @@ See [`packages/express-utils/README.md`](./packages/express-utils/README.md) for
 
 ### Transitive Dependencies
 
-| Advisory | Package | Severity | Status | Mitigation |
-|----------|---------|----------|--------|------------|
-| [GHSA-3gc7-fjrx-p6mg](https://github.com/advisories/GHSA-3gc7-fjrx-p6mg) | `bigint-buffer@1.1.5` | High | Tracking Upstream | Runtime guards implemented |
+- Advisory: [GHSA-3gc7-fjrx-p6mg](https://github.com/advisories/GHSA-3gc7-fjrx-p6mg)
+- Package: `bigint-buffer@1.1.5`
+- Severity: High
+- Status: Tracking upstream
+- Mitigation: Runtime guards implemented
 
 #### GHSA-3gc7-fjrx-p6mg: bigint-buffer Integer Overflow
 
@@ -56,6 +60,7 @@ See [`packages/express-utils/README.md`](./packages/express-utils/README.md) for
 TiltCheck does not directly invoke bigint-buffer functions. Usage occurs inside SPL Token layout utilities. User-provided data is limited to validated base58 Solana addresses.
 
 **Mitigations Implemented:**
+
 - ✅ Runtime guard added in `modules/justthetip/src/wallet-manager.ts`
   - Base58 charset validation (no 0, O, I, l characters)
   - Address length validation (32-44 characters)
@@ -68,13 +73,25 @@ TiltCheck does not directly invoke bigint-buffer functions. Usage occurs inside 
 Monitoring for patched release of `@solana/buffer-layout-utils` or removal of bigint-buffer dependency.
 
 **Next Steps:**
+
 - Monitor upstream repositories for security patches
 - Upgrade dependency chain when fix released
 - Track progress in issue [#15](https://github.com/jmenichole/tiltcheck-monorepo/issues/15)
 
+## Open source boundary and secrets
+
+TiltCheck is open source, but production runtime secrets remain private.
+
+- never commit live credentials
+- use GCP Secret Manager for production secrets
+- rotate any leaked secret immediately
+
+Reference: `docs/governance/OSS-RUNTIME-BOUNDARY.md`
+
 ## Reporting a Vulnerability
 
 If you discover:
+
 - security exploit  
 - trust engine bypass  
 - unauthorized transaction flow  
@@ -85,15 +102,23 @@ If you discover:
 
 Contact privately:
 
-**Email:** jme@tiltcheck.me  
+**Email:** [jme@tiltcheck.me](mailto:jme@tiltcheck.me)  
 **Discord:** (to be added)
 
 Do NOT open a public issue for security vulnerabilities.
 
 ## Handling Timeline
-- Acknowledge within 48 hours  
-- Investigate within 7 days  
-- Patch within 14 days if confirmed  
-- Credit given unless anonymity requested  
 
-TiltCheck Ecosystem © 2024–2025  
+- Acknowledge within 48 hours
+- Investigate within 7 days
+- Patch within 14 days if confirmed
+- Credit given unless anonymity requested
+
+## Coordinated disclosure workflow
+
+1. Report privately through channels above.
+2. Maintainer acknowledges and assigns severity.
+3. Fix is prepared in private if needed.
+4. Public disclosure follows patch or mitigation release.
+
+TiltCheck Ecosystem © 2024–2025
