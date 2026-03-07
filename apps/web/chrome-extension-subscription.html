@@ -323,7 +323,7 @@
         const response = await fetch(`/api/stripe/subscription-status?userId=${encodeURIComponent(user.id)}&username=${encodeURIComponent(user.username || '')}`);
         if (response.ok) {
           const data = await response.json();
-          if (data.ok && data.subscription) {
+          if ((data.ok ?? data.success) && data.subscription) {
             // Handle founder status from server
             if (data.subscription.status === 'founder') {
               document.getElementById('founder-notice').style.display = 'block';
@@ -438,7 +438,8 @@
         const response = await fetch('/api/stripe/create-checkout-session', {
           method: 'POST',
           headers: {
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest'
           },
           body: JSON.stringify({
             userId: user.id,
@@ -449,7 +450,7 @@
 
         const data = await response.json();
 
-        if (!data.ok) {
+        if (!(data.ok ?? data.success)) {
           throw new Error(data.error || 'Failed to create checkout session');
         }
 

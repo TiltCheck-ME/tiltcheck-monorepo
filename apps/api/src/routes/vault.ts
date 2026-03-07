@@ -60,23 +60,29 @@ router.get('/:userId/lock-status', authMiddleware, async (req, res) => {
     return;
   }
 
+  const now = Date.now();
   const locks = getVaultStatus(userId);
   const activeLock = locks.find(v => v.status === 'locked' || v.status === 'extended');
+  const readyUnlockedLock = !activeLock
+    ? locks.find(v => v.status === 'unlocked' && now >= v.unlockAt)
+    : undefined;
 
-  if (!activeLock) {
-    res.json({ success: true, locked: false });
+  const lock = activeLock || readyUnlockedLock;
+  if (!lock) {
+    res.json({ success: true, locked: false, readyToRelease: false });
     return;
   }
 
   res.json({
     success: true,
-    locked: true,
-    amount: activeLock.lockedAmountSOL,
+    locked: lock.status === 'locked' || lock.status === 'extended',
+    status: lock.status,
+    amount: lock.lockedAmountSOL,
     amountUnit: 'SOL',
-    unlockTime: new Date(activeLock.unlockAt).toISOString(),
-    createdAt: new Date(activeLock.createdAt).toISOString(),
-    id: activeLock.id,
-    readyToRelease: Date.now() >= activeLock.unlockAt
+    unlockTime: new Date(lock.unlockAt).toISOString(),
+    createdAt: new Date(lock.createdAt).toISOString(),
+    id: lock.id,
+    readyToRelease: now >= lock.unlockAt
   });
 });
 

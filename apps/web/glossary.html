@@ -1,21 +1,44 @@
 <!DOCTYPE html>
 <!--
-  © 2024–2025 TiltCheck Ecosystem. All Rights Reserved.
+  © 2024-2025 TiltCheck Ecosystem. All Rights Reserved.
   Created by jmenichole (https://github.com/jmenichole)
-  
+
   This file is part of the TiltCheck project.
   For licensing information, see LICENSE file in the project root.
 -->
-
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Glossary - TiltCheck</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="styles/main.css">
+  <title>Glossary - TiltCheck</title>
+  <meta name="description" content="Plain-language definitions for TiltCheck terms, trust scoring, scam detection, and degen safety workflows.">
+  <link rel="canonical" href="https://tiltcheck.me/glossary.html">
+  <link rel="stylesheet" href="/styles/theme.css">
+  <link rel="stylesheet" href="/styles/main.css">
+  <style>
+    .glossary-grid { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); margin-top: 20px; }
+    .term-card { background: #12161d; border: 1px solid #243042; border-radius: 10px; padding: 14px; }
+    .term-card h2 { font-size: 1rem; margin: 0 0 8px; color: #00d4aa; }
+    .term-card p { margin: 0; color: #9fb3c8; line-height: 1.55; }
+  </style>
 </head>
-<body>
-  <h1>TiltCheck Glossary</h1>
-  <p>Find definitions for key terms like “degen,” “trust score,” “non-custodial,” “airdrop,” and more. This glossary helps you understand the language of casino transparency and safety.</p>
+<body class="content-page">
+  <a href="#main-content" class="skip-link">Skip to main content</a>
+  <div id="shared-nav"></div>
+  <main id="main-content" class="container">
+    <h1>TiltCheck Glossary</h1>
+    <p>Quick definitions for common TiltCheck language so users, mods, and builders stay aligned.</p>
+    <div class="glossary-grid">
+      <article class="term-card"><h2>Trust Score</h2><p>Numeric confidence signal based on transparency, evidence, and community-confirmed behavior.</p></article>
+      <article class="term-card"><h2>LinkCheck</h2><p>URL scanner that flags scam domains, impersonation, and suspicious redirects before clicks happen.</p></article>
+      <article class="term-card"><h2>BonusCheck</h2><p>Bonus monitoring layer for nerf detection, term changes, and promo reliability tracking.</p></article>
+      <article class="term-card"><h2>Gameplay Fairness Analyzer</h2><p>Session-level fairness and behavior signals that surface anomalies and tilt-risk indicators.</p></article>
+      <article class="term-card"><h2>VaultLock</h2><p>Time-based wallet protection flow used to reduce impulsive withdrawals and lock profit windows.</p></article>
+      <article class="term-card"><h2>Degen Trust</h2><p>Community accountability signal built from verifiable behavior, not social clout.</p></article>
+    </div>
+  </main>
+  <div id="shared-footer"></div>
+  <script src="/scripts/components-loader.js"></script>
+  <script src="/scripts/auth.js"></script>
 </body>
 </html>

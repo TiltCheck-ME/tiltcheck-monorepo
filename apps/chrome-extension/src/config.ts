@@ -13,13 +13,29 @@ export const EXT_CONFIG = {
     DISCORD_REDIRECT_URI: 'https://api.tiltcheck.me/auth/discord/callback'
 };
 
+function getExtensionRuntimeOrigin(): string | undefined {
+    try {
+        const runtimeUrl = chrome?.runtime?.getURL?.('');
+        if (!runtimeUrl) return undefined;
+        return new URL(runtimeUrl).origin;
+    } catch {
+        return undefined;
+    }
+}
+
 /**
  * Generate the Discord Login URL
  */
-export function getDiscordLoginUrl(source = 'extension') {
+export function getDiscordLoginUrl(source = 'extension', openerOrigin?: string) {
     const url = new URL(`${EXT_CONFIG.API_BASE_URL}/auth/discord/login`);
     // The API handles OAuth + callback and posts a message back to the extension window.
     url.searchParams.set('source', source);
+    if (source === 'extension') {
+        const extensionOrigin = openerOrigin || getExtensionRuntimeOrigin();
+        if (extensionOrigin) {
+            url.searchParams.set('opener_origin', extensionOrigin);
+        }
+    }
     // Preserve the caller info for debugging/analytics (not required by API).
     if (source && source !== 'extension') {
         url.searchParams.set('source_detail', source);

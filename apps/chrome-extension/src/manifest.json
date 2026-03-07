@@ -9,7 +9,9 @@
     "activeTab"
   ],
   "host_permissions": [
+    "https://stake.com/*",
     "https://*.stake.com/*",
+    "https://stake.us/*",
     "https://*.stake.us/*",
     "https://*.roobet.com/*",
     "https://*.bc.game/*",
@@ -32,7 +34,9 @@
   "content_scripts": [
     {
       "matches": [
+        "https://stake.com/*",
         "https://*.stake.com/*",
+        "https://stake.us/*",
         "https://*.stake.us/*",
         "https://*.roobet.com/*",
         "https://*.bc.game/*",
@@ -51,7 +55,9 @@
     },
     {
       "matches": [
+        "https://stake.com/*",
         "https://*.stake.com/*",
+        "https://stake.us/*",
         "https://*.stake.us/*",
         "https://*.roobet.com/*",
         "https://*.bc.game/*",

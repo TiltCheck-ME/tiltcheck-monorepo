@@ -14,6 +14,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <link rel="canonical" href="/newsletter.html" />
   <meta name="description" content="Receive occasional updates on new trust tools, anti-tilt features, and safety improvements." />
+  <link rel="stylesheet" href="/styles/theme.css" />
   <link rel="stylesheet" href="/styles/main.css" />
   <style>
     form.newsletter { max-width:480px; margin:2rem auto; background:#111; padding:1.25rem 1.5rem; border:1px solid #222; border-radius:8px; }
@@ -28,6 +29,7 @@
   </style>
 </head>
 <body class="content-page">
+<a href="#main-content" class="skip-link">Skip to main content</a>
 <div id="shared-nav"></div>
 <nav class="breadcrumbs"></nav>
 <header class="site-header">
@@ -36,7 +38,7 @@
     <p>Low-noise updates about new tools, safety features, and trust ecosystem improvements. No spam, no selling emails.</p>
   </div>
 </header>
-<main>
+<main id="main-content">
   <form class="newsletter" id="newsletter-form" aria-labelledby="newsletter-heading">
     <h2 id="newsletter-heading" style="margin-top:0">Stay Informed</h2>
     <label for="email">Email address</label>
@@ -71,7 +73,11 @@
       const fd = new FormData(form);
       const data = Object.fromEntries(fd.entries());
       try {
-        const res = await fetch('/api/newsletter/subscribe', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(data) });
+        const res = await fetch('/api/newsletter/subscribe', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+          body: JSON.stringify(data)
+        });
         const j = await res.json();
         if(j.ok){
           if(j.duplicate){ statusEl.textContent='Already subscribed '; statusEl.className='status ok'; }
@@ -90,7 +96,11 @@
       unsubStatus.textContent='Processing…'; unsubStatus.className='status';
       const fd = new FormData(unsubForm); const data = Object.fromEntries(fd.entries());
       try {
-        const res = await fetch('/api/newsletter/unsubscribe', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(data) });
+        const res = await fetch('/api/newsletter/unsubscribe', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+          body: JSON.stringify(data)
+        });
         const j = await res.json();
         if(j.ok){ unsubStatus.textContent='Unsubscribed. You will no longer receive updates.'; unsubStatus.className='status ok'; unsubForm.reset(); }
         else { unsubStatus.textContent=j.error||'Unsubscribe failed.'; unsubStatus.className='status err'; }
