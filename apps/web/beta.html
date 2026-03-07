@@ -307,31 +307,14 @@
       margin-bottom: 20px;
     }
 
-    .stats-row {
-      display: flex;
-      justify-content: center;
-      gap: 40px;
-      padding: 30px 0;
-      border-top: 1px solid var(--border-subtle);
+    .integrity-note {
       margin-top: 40px;
-    }
-
-    .stat {
-      text-align: center;
-    }
-
-    .stat .number {
-      font-size: 2rem;
-      font-weight: 700;
-      background: var(--gradient-primary);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-    }
-
-    .stat .label {
-      font-size: 0.9rem;
+      padding: 16px 18px;
+      border-left: 3px solid #10b981;
+      background: rgba(16, 185, 129, 0.08);
+      border-radius: 8px;
       color: var(--text-secondary);
+      line-height: 1.55;
     }
 
     .faq-section {
@@ -444,7 +427,7 @@
             <span class="icon"></span>
             <div>
               <h4>Early Access</h4>
-              <p>Be the first to try new features like TiltGuard, CollectClock, and the browser extension.</p>
+              <p>Be the first to try new features like Gameplay Fairness Analyzer, BonusCheck, and the Chrome extension.</p>
             </div>
           </li>
           <li>
@@ -477,20 +460,10 @@
           </li>
         </ul>
 
-        <div class="stats-row">
-          <div class="stat">
-            <div class="number" id="beta-count">247</div>
-            <div class="label">Beta Testers</div>
-          </div>
-          <div class="stat">
-            <div class="number">89%</div>
-            <div class="label">Satisfaction</div>
-          </div>
-          <div class="stat">
-            <div class="number">42</div>
-            <div class="label">Features Shipped</div>
-          </div>
-        </div>
+        <p class="integrity-note">
+          We do not publish placeholder or estimated metrics. Public beta numbers will be shown only after they are
+          measurable and verifiable.
+        </p>
       </div>
 
       <!-- Sign Up Form -->
@@ -690,18 +663,6 @@
       });
     });
 
-    // Animate beta count
-    const betaCount = document.getElementById('beta-count');
-    let count = 200;
-    const targetCount = 247;
-    const interval = setInterval(() => {
-      count += Math.ceil((targetCount - count) / 10);
-      betaCount.textContent = count;
-      if (count >= targetCount) {
-        clearInterval(interval);
-        betaCount.textContent = targetCount;
-      }
-    }, 50);
   </script>
 
   <script src="/scripts/components-loader.js"></script>

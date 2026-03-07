@@ -255,7 +255,7 @@
     <header class="gs-hero">
       <div class="container">
         <h1>Getting Started with TiltCheck</h1>
-        <p>From zero to full transparency in minutes. No new apps. No KYC. Just Discord, your tools, and real signal.</p>
+        <p>From zero to full transparency in minutes. No KYC. Use Discord, Chrome Extension, or the mobile PWA.</p>
         <a href="https://discord.gg/s6NNfPHxMS" class="btn btn-primary" target="_blank" rel="noopener">Join the Discord →</a>
       </div>
     </header>
@@ -280,24 +280,28 @@
             <div class="gs-step-num">2</div>
             <div class="gs-step-body">
               <h3>Enable Your Tools</h3>
-              <p>Each tool activates through Discord slash commands. Try these to start:</p>
+              <p>Use TiltCheck your way: Discord commands, Chrome Extension, or mobile PWA. Try these Discord commands to start:</p>
               <ul class="gs-command-list">
                 <li><code>/tiltcheck status</code> — check your tilt score &amp; cooldown state</li>
-                <li><code>/scan https://sketchy-link.com</code> — SusLink scan any URL</li>
+                <li><code>/scan https://sketchy-link.com</code> — LinkCheck scan any URL</li>
                 <li><code>/tip @friend 0.5</code> — JustTheTip non-custodial SOL tip</li>
-                <li><code>/casino domain:example.com</code> — casino trust engine lookup</li>
+                <li><code>/casino domain:example.com</code> — Casino Trust lookup + fairness context</li>
               </ul>
-              <a href="/tutorials.html">View all command tutorials →</a>
+              <div class="gs-cta-row">
+                <a href="/tutorials.html">View all command tutorials →</a>
+                <a href="/extension.html">Install Chrome Extension →</a>
+                <a href="/extension.html#pwa-install">Install Mobile PWA →</a>
+              </div>
             </div>
           </div>
 
           <div class="gs-step">
             <div class="gs-step-num">3</div>
             <div class="gs-step-body">
-              <h3>Explore the Dashboard &amp; Trust Data</h3>
-              <p>Log in with Discord to access your trust score, wallet history, and community reports. Casino trust data is public — no login needed.</p>
+              <h3>Explore Your Account Hub &amp; Trust Data</h3>
+              <p>Login with Discord to access your account hub, wallet history, and community reports. Casino trust data is public — no login needed.</p>
               <div class="gs-cta-row">
-                <a href="/dashboard" class="btn btn-primary gs-btn-sm">Open Dashboard</a>
+                <a href="/login.html" class="btn btn-primary gs-btn-sm">Login with Discord</a>
                 <a href="/casinos.html" class="btn btn-secondary gs-btn-sm">View Casino Data</a>
               </div>
             </div>
@@ -313,23 +317,23 @@
         <h2 id="tools-title">Pick Your Tools</h2>
         <div class="tool-quicklinks">
           <a href="/tools/suslink.html" class="tool-ql">
-            <img class="tool-ql-icon" src="/assets/icons/sus-link.svg" alt="SusLink">
+            <img class="tool-ql-icon" src="/assets/icons/freespin-scan.svg" alt="LinkCheck">
             <div class="tool-ql-info">
-              <strong>SusLink</strong>
-              <span>AI scam &amp; link scanner</span>
+              <strong>LinkCheck</strong>
+              <span>Scam &amp; link scanner</span>
             </div>
           </a>
           <a href="/tools/justthetip.html" class="tool-ql">
             <img class="tool-ql-icon" src="/assets/icons/just-the-tip.svg" alt="JustTheTip">
             <div class="tool-ql-info">
               <strong>JustTheTip</strong>
-              <span>Non-custodial SOL tipping</span>
+              <span>Wallet-routed SOL tipping</span>
             </div>
           </a>
           <a href="/tools/collectclock.html" class="tool-ql">
-            <img class="tool-ql-icon" src="/assets/icons/collect-clock.svg" alt="CollectClock">
+            <img class="tool-ql-icon" src="/assets/icons/collect-clock.svg" alt="BonusCheck">
             <div class="tool-ql-info">
-              <strong>CollectClock</strong>
+              <strong>BonusCheck</strong>
               <span>Bonus tracker &amp; nerf detection</span>
             </div>
           </a>
@@ -337,14 +341,21 @@
             <img class="tool-ql-icon" src="/assets/icons/accountability-wallet.svg" alt="Chrome Extension">
             <div class="tool-ql-info">
               <strong>Chrome Extension</strong>
-              <span>Sidebar vault timer + tilt monitoring</span>
+              <span>Real-time sidebar + vault controls</span>
             </div>
           </a>
           <a href="/tools/tiltcheck-core.html" class="tool-ql">
-            <img class="tool-ql-icon" src="/assets/icons/tilt-engine.svg" alt="TiltCheck Core">
+            <img class="tool-ql-icon" src="/assets/icons/tilt-engine.svg" alt="Gameplay Fairness Analyzer">
             <div class="tool-ql-info">
-              <strong>TiltCheck Core</strong>
-              <span>Tilt engine &amp; accountability</span>
+              <strong>Gameplay Fairness Analyzer</strong>
+              <span>Fairness signals + tilt analytics</span>
+            </div>
+          </a>
+          <a href="/extension.html#pwa-install" class="tool-ql">
+            <img class="tool-ql-icon" src="/assets/icons/accountability-wallet.svg" alt="VaultLock and AutoVaulter">
+            <div class="tool-ql-info">
+              <strong>VaultLock &amp; AutoVaulter</strong>
+              <span>Protect profits with lock automation</span>
             </div>
           </a>
           <a href="/degen-trust.html" class="tool-ql">
@@ -368,8 +379,8 @@
             <p class="faq-a">No account creation required. Connect your Discord to access personalized features — everything else is available without login.</p>
           </div>
           <div class="faq-entry">
-            <p class="faq-q">Is JustTheTip actually non-custodial?</p>
-            <p class="faq-a">Yes. TiltCheck never holds your funds. You sign transactions with your own wallet (Phantom, Solflare, x402). If TiltCheck disappeared tomorrow, your wallet is unaffected. See the <a href="/tools/justthetip.html">full technical breakdown</a>.</p>
+            <p class="faq-q">What is the current JustTheTip custody model?</p>
+            <p class="faq-a">JustTheTip flow is being updated. For current behavior and rollout notes, check the <a href="/tools/justthetip.html">JustTheTip page</a> and release notes before relying on it for live funds.</p>
           </div>
           <div class="faq-entry">
             <p class="faq-q">What does a trust score actually measure?</p>
@@ -377,7 +388,7 @@
           </div>
           <div class="faq-entry">
             <p class="faq-q">Can I use TiltCheck without a crypto wallet?</p>
-            <p class="faq-a">Yes. SusLink, trust scores, casino data, tilt tracking, and CollectClock work without any wallet. JustTheTip tipping requires a Solana wallet to send or receive SOL.</p>
+            <p class="faq-a">Yes. LinkCheck, BonusCheck, trust scores, casino data, and gameplay analysis work without any wallet. JustTheTip flows still require a compatible wallet when funds move.</p>
           </div>
           <div class="faq-entry">
             <p class="faq-q">Where do I get help?</p>

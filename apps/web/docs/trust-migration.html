@@ -45,11 +45,11 @@ trust.casino.updated: {
 <p>2. If only user trust updates are emitted, no change; still consume unified casino events for UI.</p>
 <p>3. Add parser that expects <code>delta</code> & severity when computing aggregate risk badges.</p>
 
-<h3>B. CollectClock (external repo)</h3>
-<p>1. Ensure nerf emissions already send severity; include <code>source</code> and optionally set <code>delta: undefined</code> (CollectClock does not change score directly). Alternatively omit <code>newScore</code>/<code>previousScore</code> for non-score impacting events.</p>
+<h3>B. BonusCheck (external repo)</h3>
+<p>1. Ensure nerf emissions already send severity; include <code>source</code> and optionally set <code>delta: undefined</code> (BonusCheck does not change score directly). Alternatively omit <code>newScore</code>/<code>previousScore</code> for non-score impacting events.</p>
 <p>2. Confirm compatibility: downstream must treat missing <code>newScore</code> gracefully.</p>
 
-<h3>C. LinkGaurd (SusLink)</h3>
+<h3>C. LinkGuard (LinkCheck)</h3>
 <p>1. Replace any <code>{ domain, score }</code> trust payload with unified schema including <code>previousScore</code>, <code>newScore</code>, <code>delta</code>.</p>
 <p>2. Compute severity: map riskLevel → severity (e.g. critical=4, high=3, suspicious=2, safe=1).</p>
 <p>3. Apply penalty using severityScale if TrustEngines is centralized; otherwise emit event without score math and let TrustEngines handle the adjustment.</p>
@@ -58,7 +58,7 @@ trust.casino.updated: {
 <p>1. Update message templating: show <code>Δscore</code> using <code>delta</code> with color (red negative, green positive).</p>
 <p>2. Add severity emoji mapping (1=, 5=) if severity present.</p>
 
-<h3>E. TiltCheck Core</h3>
+<h3>E. Gameplay Fairness Analyzer</h3>
 <p>1. Centralize <code>severityScale</code> default in a shared config (<code>packages/config/trust.ts</code>).</p>
 <p>2. Export helper <code>computeSeverity(percentDrop: number): number</code>.</p>
 <p>3. Provide TypeScript types import path: <code>@tiltcheck/types</code> for TrustCasinoUpdateEvent.</p>
@@ -71,8 +71,8 @@ trust.casino.updated: {
 <h3>New Env Flags</h3>
 <p>| Service | Flag | Purpose |</p>
 <p>|---------|------|---------|</p>
-<p>| CollectClock | <code>COLLECTCLOCK_LOG_ERRORS=1</code> | Enable console logger fallback |</p>
-<p>| CollectClock | <code>COLLECTCLOCK_LOG_DIR=/path</code> | Persistence + rotation log directory |</p>
+<p>| BonusCheck | <code>COLLECTCLOCK_LOG_ERRORS=1</code> | Enable console logger fallback |</p>
+<p>| BonusCheck | <code>COLLECTCLOCK_LOG_DIR=/path</code> | Persistence + rotation log directory |</p>
 <p>| TrustEngines | <code>TRUST_ENGINES_LOG_ERRORS=1</code> | Enable console logger fallback |</p>
 <p>| TrustEngines | <code>TRUST_ENGINES_LOG_DIR=/path</code> | Trust logs directory |</p>
 
@@ -92,7 +92,7 @@ penalty = -severityScale[severity-1]
 <p>| Phase | Tests |</p>
 <p>|-------|-------|</p>
 <p>| Unit | Event emission payload shape per repo (snapshot + field presence). |</p>
-<p>| Integration | CollectClock nerf → TrustEngines score delta & dual event emission. |</p>
+<p>| Integration | BonusCheck nerf → TrustEngines score delta & dual event emission. |</p>
 <p>| Bot Rendering | FreeSpinsChannelBot message formatting with positive & negative deltas. |</p>
 <p>| Regression | Ensure legacy consumers (if any) adapted; search for <code>data.domain</code> or <code>data.score</code> usages. |</p>
 
@@ -118,7 +118,7 @@ function normalizeOldCasinoEvent(evt: any): TrustCasinoUpdateEvent {
 <h2>7. Rollout Strategy</h2>
 <p>1. Prepare migration branches concurrently in each repo.</p>
 <p>2. Implement compatibility adapter where necessary.</p>
-<p>3. Deploy CollectClock & TrustEngines first (emit new schema).</p>
+<p>3. Deploy BonusCheck & TrustEngines first (emit new schema).</p>
 <p>4. Update consumer bots / dashboards.</p>
 <p>5. Remove legacy field usage & adapter after 1 release cycle.</p>
 

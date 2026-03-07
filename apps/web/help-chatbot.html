@@ -255,7 +255,7 @@
       <button class="quick-prompt-btn" onclick="sendMessage('How does tilt detection work?')">Tilt Detection</button>
       <button class="quick-prompt-btn" onclick="sendMessage('Tell me about JustTheTip tipping')">JustTheTip</button>
       <button class="quick-prompt-btn" onclick="sendMessage('How do I get started?')">Getting Started</button>
-      <button class="quick-prompt-btn" onclick="sendMessage('What is SusLink?')">SusLink</button>
+      <button class="quick-prompt-btn" onclick="sendMessage('What is LinkCheck?')">LinkCheck</button>
     </div>
 
     <div class="chatbot-container">
@@ -295,7 +295,7 @@
       },
       'discord commands': {
         question: /discord|command|bot/i,
-        answer: `Popular TiltCheck Discord Bot Commands:\n\n/scan <url> - Scan a URL with SusLink\n/trust casino <name> - Check casino trust score\n/trust user <@user> - Check degen trust score\n/triviadrop start - Play trivia with rewards\n/justthetip - Send non-custodial crypto tips\n/tiltcheck status - Check your tilt status\n/help - Show all commands\n\nJoin our Discord: https://discord.gg/s6NNfPHxMS`
+        answer: `Popular TiltCheck Discord Bot Commands:\n\n/scan <url> - Scan a URL with LinkCheck\n/trust casino <name> - Check casino trust score\n/trust user <@user> - Check degen trust score\n/triviadrop start - Play trivia with rewards\n/justthetip - Send non-custodial crypto tips\n/tiltcheck status - Check your tilt status\n/help - Show all commands\n\nJoin our Discord: https://discord.gg/s6NNfPHxMS`
       },
       'tilt detection': {
         question: /tilt|detection|emotion/i,
@@ -305,13 +305,13 @@
         question: /justthetip|tip|tipping|crypto tip/i,
         answer: `JustTheTip is TiltCheck's non-custodial crypto tipping system:\n\n **Send Tips** - Send SOL, USDC, or other tokens to friends\n **Non-Custodial** - You control your wallet, we never hold funds\n **Instant** - Tips settle on Solana blockchain in seconds\n **Rewards** - Earn trust score boosts by sending tips\n **Track Tips** - View all tips sent/received in your dashboard\n\nUse /justthetip in Discord to get started!`
       },
-      'suslink': {
-        question: /suslink|link|scan|scam|malware/i,
-        answer: `SusLink is your personal link scanner for casino safety:\n\n **URL Analysis** - Detects phishing, malware, scams\n **Risk Scoring** - 0-100 risk level for any casino link\n **Domain Verification** - Checks domain age, SSL, reputation\n **Real-time Alerts** - Warns you before you click suspicious links\n **Community Reports** - Crowdsourced risk data from users\n\nUse /scan <url> in Discord or visit https://tiltcheck.me/extension`
+      'linkcheck': {
+        question: /linkcheck|suslink|link|scan|scam|malware/i,
+        answer: `LinkCheck is your personal link scanner for casino safety:\n\n **URL Analysis** - Detects phishing, malware, scams\n **Risk Scoring** - 0-100 risk level for any casino link\n **Domain Verification** - Checks domain age, SSL, reputation\n **Real-time Alerts** - Warns you before you click suspicious links\n **Community Reports** - Crowdsourced risk data from users\n\nUse /scan <url> in Discord or visit https://tiltcheck.me/extension`
       },
       'getting started': {
         question: /start|begin|how do i|tutorial/i,
-        answer: `Getting Started with TiltCheck:\n\n1. **Join Discord** - https://discord.gg/s6NNfPHxMS\n2. **Install Extension** - Get TiltCheck Chrome Extension\n3. **Set Up Dashboard** - Visit https://tiltcheck.me/dashboard\n4. **Explore Tools** - Try SusLink, Trust Scores, Trivia\n5. **Enable Tilt Detection** - Activate on supported casinos\n6. **Connect Wallet** - For JustTheTip tipping features\n\nEverything is free! Check the FAQ for more details: https://tiltcheck.me/faq`
+        answer: `Getting Started with TiltCheck:\n\n1. **Join Discord** - https://discord.gg/s6NNfPHxMS\n2. **Install Extension** - Get TiltCheck Chrome Extension\n3. **Login with Discord** - https://tiltcheck.me/login.html\n4. **Explore Tools** - Try LinkCheck, BonusCheck, and Gameplay Fairness Analyzer\n5. **Enable Tilt Detection** - Activate on supported casinos\n6. **Connect Wallet** - For JustTheTip tipping features\n\nEverything is free! Check the FAQ for more details: https://tiltcheck.me/faq`
       },
       'extension': {
         question: /extension|chrome|install|sidebar/i,
@@ -323,11 +323,11 @@
       },
       'premium': {
         question: /premium|paid|subscription|upgrade/i,
-        answer: `TiltCheck is currently FREE! All features are available at no cost:\n\n Casino trust scores\n SusLink URL scanning\n Discord bot commands\n JustTheTip tipping\n Tilt detection\n Trust analytics\n Chrome extension\n\nWe may add optional premium features in the future, but the core platform is and will remain free forever.`
+        answer: `TiltCheck is currently FREE! All core features are available at no cost:\n\n Casino trust scores\n LinkCheck URL scanning\n Discord bot commands\n JustTheTip tipping\n Tilt detection\n Trust analytics\n Chrome extension\n\nWe may add optional premium features in the future, but the core platform is and will remain free forever.`
       },
       'default': {
         question: /.*/,
-        answer: `I'm here to help! I can answer questions about:\n\n Casino Trust Scores\n Discord Bot Commands\n Tilt Detection & Prevention\n JustTheTip Crypto Tipping\n SusLink Link Scanning\n Chrome Extension\n Getting Started\n\nWhat would you like to know more about?`
+        answer: `I'm here to help! I can answer questions about:\n\n Casino Trust Scores\n Discord Bot Commands\n Tilt Detection & Prevention\n JustTheTip Crypto Tipping\n LinkCheck Scanning\n BonusCheck Tracking\n Chrome Extension\n Getting Started\n\nWhat would you like to know more about?`
       }
     };
 

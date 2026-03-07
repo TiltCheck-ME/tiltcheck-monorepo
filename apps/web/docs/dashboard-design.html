@@ -21,7 +21,7 @@
 <p>| Source | File / Stream | Purpose |</p>
 <p>|--------|---------------|---------|</p>
 <p>| trust-rollup service | <code>data/trust-rollups.json</code> | Hourly aggregate deltas (domain + casino) |</p>
-<p>| SusLink / LinkGuard | <code>data/domain-trust-scores.json</code> | Current domain scores baseline |</p>
+<p>| LinkCheck / LinkGuard | <code>data/domain-trust-scores.json</code> | Current domain scores baseline |</p>
 <p>| JustTheTip | <code>data/justthetip-user-trust.json</code> (if present) | User (degen) trust scores |</p>
 <p>| Event Router (in-memory) | SSE/WebSocket bridge | Live push of <code>trust.*.updated</code> events |</p>
 <p>| Event Router (throttle responder) | <code>trust.state.snapshot</code> events | On-demand snapshot summary |</p>

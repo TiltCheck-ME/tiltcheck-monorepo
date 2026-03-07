@@ -22,7 +22,6 @@ import {
   verifySessionCookie,
   getDiscordAvatarUrl,
   generateOAuthState,
-  type JWTConfig,
   type DiscordOAuthConfig,
 } from '@tiltcheck/auth';
 import {
@@ -32,7 +31,7 @@ import {
   updateUser,
   findUserById,
 } from '@tiltcheck/db';
-import { authMiddleware } from '../middleware/auth.js';
+import { authMiddleware, getJWTConfig } from '../middleware/auth.js';
 
 const router = Router();
 
@@ -40,20 +39,25 @@ const router = Router();
 // Configuration
 // ============================================================================
 
-function getJWTConfig(): JWTConfig {
-  return {
-    secret: process.env.JWT_SECRET || '',
-    issuer: process.env.JWT_ISSUER || 'tiltcheck.me',
-    audience: process.env.JWT_AUDIENCE || 'tiltcheck.me',
-    expiresIn: process.env.JWT_EXPIRES_IN || '7d',
-  };
-}
-
 function getDiscordConfig(): DiscordOAuthConfig {
+  const clientId =
+    process.env.TILT_DISCORD_CLIENT_ID ||
+    process.env.DISCORD_CLIENT_ID ||
+    '';
+  const clientSecret =
+    process.env.TILT_DISCORD_CLIENT_SECRET ||
+    process.env.DISCORD_CLIENT_SECRET ||
+    '';
+  const redirectUri =
+    process.env.TILT_DISCORD_REDIRECT_URI ||
+    process.env.DISCORD_REDIRECT_URI ||
+    process.env.DISCORD_CALLBACK_URL ||
+    'https://api.tiltcheck.me/auth/discord/callback';
+
   return {
-    clientId: process.env.DISCORD_CLIENT_ID || '',
-    clientSecret: process.env.DISCORD_CLIENT_SECRET || '',
-    redirectUri: process.env.DISCORD_REDIRECT_URI || 'https://api.tiltcheck.me/auth/discord/callback',
+    clientId,
+    clientSecret,
+    redirectUri,
     scopes: ['identify', 'email'],
   };
 }
@@ -443,7 +447,7 @@ router.get('/discord/callback', authLimiter, async (req, res) => {
     }
 
     // Redirect to stored URL or default
-    const redirectUrl = req.cookies?.oauth_redirect || 'https://justthetip.tiltcheck.me';
+    const redirectUrl = req.cookies?.oauth_redirect || 'https://tiltcheck.me/play/profile.html';
     res.clearCookie('oauth_redirect');
 
     res.redirect(redirectUrl);
