@@ -2,6 +2,10 @@
 
 Passively watches a Discord channel from your logged-in browser session, then runs scheduled GPT-4o analysis to surface pain points, friction, and community insights — no keyword lists needed.
 
+## Brand voice
+
+For tone, phrasing, and output style rules, see [BRAND_GUIDELINES.md](./BRAND_GUIDELINES.md).
+
 ## How it works
 
 1. Opens Discord web in a real browser using your saved login
