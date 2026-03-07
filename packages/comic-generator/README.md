@@ -56,6 +56,15 @@ From repo root:
 COMIC_GCS_BUCKET=<your-bucket> GEMINI_API_KEY=<your-key> COMIC_INGEST_KEY=<your-shared-key> npm --prefix packages/comic-generator run deploy:cloudrun
 ```
 
+Windows PowerShell:
+
+```powershell
+$env:COMIC_GCS_BUCKET="<your-bucket>"
+$env:GEMINI_API_KEY="<your-key>"
+$env:COMIC_INGEST_KEY="<your-shared-key>"
+npm --prefix packages/comic-generator run deploy:cloudrun:ps
+```
+
 Notes:
 
 - If `PROJECT_ID` is not passed, the script uses your current `gcloud` project.
