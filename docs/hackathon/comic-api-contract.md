@@ -96,19 +96,21 @@ Generates a daily strip and persists:
 
 ## Endpoint: `GET /v1/comic/current`
 
-### Query
+### Query (current)
+
 - `communityId` (optional, default `tiltcheck-discord`)
 
-### Success
+### Success (current)
 - Returns latest `current.json`.
 
 ## Endpoint: `GET /v1/comic/archive`
 
-### Query
+### Query (archive)
+
 - `communityId` (optional)
 - `limit` (optional, default `20`, max `100`)
 
-### Success
+### Success (archive)
 - Returns array newest first.
 
 ## Storage Layout (Cloud Storage)
