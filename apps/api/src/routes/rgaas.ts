@@ -12,6 +12,8 @@
  */
 
 import { Router } from 'express';
+import { appendFileSync, existsSync, mkdirSync } from 'node:fs';
+import path from 'node:path';
 import {
   createEvent,
   type BreathalyzerEvaluatedPayload,
@@ -19,6 +21,7 @@ import {
 } from '@tiltcheck/event-types';
 import { evaluateBreathalyzer, evaluateSentiment } from '../lib/safety.js';
 import { trustEngines } from '@tiltcheck/trust-engines';
+import { eventRouter } from '@tiltcheck/event-router';
 import { suslink } from '@tiltcheck/suslink';
 import { getUserTiltStatus } from '@tiltcheck/tiltcheck-core';
 
@@ -119,6 +122,92 @@ router.post('/anti-tilt/evaluate', (req, res) => {
     result,
     event,
   });
+});
+
+/**
+ * POST /rgaas/trust/degen-intel
+ * Ingest watcher community report into local trust pipeline (no Elastic required).
+ */
+router.post('/trust/degen-intel', async (req, res) => {
+  const requiredKey = (process.env.COMMUNITY_INTEL_INGEST_KEY || '').trim();
+  if (requiredKey) {
+    const provided = String(req.headers['x-community-intel-key'] || '');
+    if (provided !== requiredKey) {
+      res.status(401).json({ error: 'Unauthorized', code: 'INVALID_INGEST_KEY' });
+      return;
+    }
+  }
+
+  const source = String(req.body?.source || 'channel-watcher');
+  const report = String(req.body?.report || '').trim();
+  const messageCount = Number(req.body?.messageCount || 0);
+  const runAtISO = String(req.body?.runAtISO || new Date().toISOString());
+  const signals = req.body?.signals && typeof req.body.signals === 'object' ? req.body.signals : {};
+  const samples = Array.isArray(req.body?.samples) ? req.body.samples.slice(-50) : [];
+
+  if (!report) {
+    res.status(400).json({ error: 'report is required', code: 'INVALID_REPORT' });
+    return;
+  }
+
+  const signalNum = (value: unknown): number =>
+    typeof value === 'number' && Number.isFinite(value) ? value : 0;
+  const tiltSignalStrength =
+    signalNum((signals as Record<string, unknown>).distressSignals) +
+    signalNum((signals as Record<string, unknown>).scamSignals);
+  const severity = Math.max(1, Math.min(5, Math.round(tiltSignalStrength / 3) || 1));
+  const syntheticCommunityUser = `community:${source}`;
+
+  try {
+    // Feed degen trust engine via existing event bus
+    await eventRouter.publish(
+      'tilt.detected',
+      'tiltcheck',
+      {
+        userId: syntheticCommunityUser,
+        severity,
+        reason: 'Community watcher intelligence ingest',
+        reportExcerpt: report.slice(0, 400),
+        messageCount,
+      },
+      syntheticCommunityUser,
+      { source, runAtISO }
+    );
+
+    // Persist raw intelligence to local JSONL for your own retrieval/indexing jobs.
+    const outDir = path.join(process.cwd(), 'data');
+    if (!existsSync(outDir)) {
+      mkdirSync(outDir, { recursive: true });
+    }
+    const outFile = path.join(outDir, 'degen-intel-events.jsonl');
+    const row = {
+      timestamp: new Date().toISOString(),
+      source,
+      runAtISO,
+      messageCount,
+      severity,
+      signals,
+      report,
+      samples,
+    };
+    appendFileSync(outFile, `${JSON.stringify(row)}\n`);
+
+    const trustLevel = trustEngines.getTrustLevel(trustEngines.getDegenScore(syntheticCommunityUser));
+    res.json({
+      success: true,
+      ingested: true,
+      communityUserId: syntheticCommunityUser,
+      severity,
+      trustLevel,
+      outputFile: 'data/degen-intel-events.jsonl',
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: 'Failed to ingest degen trust intelligence',
+      message: error instanceof Error ? error.message : String(error),
+    });
+  }
 });
 
 /**

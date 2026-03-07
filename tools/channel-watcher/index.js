@@ -50,6 +50,10 @@ const LIVE_REPORT_BATCH_SIZE = parseInt(process.env.LIVE_REPORT_BATCH_SIZE || '2
 const SAMPLE_MODE = process.env.SAMPLE_MODE === 'true';
 const SAMPLE_SKIP_PASSES = parseInt(process.env.SAMPLE_SKIP_PASSES || '40', 10);
 const JUMP_TO_DATE = process.env.JUMP_TO_DATE || null; // e.g. '2024-03-01'
+const DEV_UPDATES_WEBHOOK_URL = process.env.DEV_UPDATES_WEBHOOK_URL || process.env.DISCORD_WEBHOOK_URL || '';
+const TRUST_ENGINE_INGEST_URL = process.env.TRUST_ENGINE_INGEST_URL || '';
+const TRUST_ENGINE_INGEST_KEY = process.env.COMMUNITY_INTEL_INGEST_KEY || '';
+const DISCORD_MESSAGE_LIMIT = 1800;
 
 // ── AI Provider config ───────────────────────────────────────────────────────
 // PROVIDER options: ollama | groq | gemini | openai
@@ -241,6 +245,118 @@ async function analyseMessages(messages) {
     return `# Community Intelligence Report — ${new Date().toLocaleString()}\n_Total: ${messages.length} messages in ${chunks.length} batches_\n\n${finalReports.join('\n\n---\n\n')}`;
 }
 
+function chunkText(text, maxLen = DISCORD_MESSAGE_LIMIT) {
+    if (!text) return [];
+    const normalized = String(text).replace(/\r\n/g, '\n');
+    const chunks = [];
+    let remaining = normalized;
+
+    while (remaining.length > maxLen) {
+        let splitAt = remaining.lastIndexOf('\n', maxLen);
+        if (splitAt < Math.floor(maxLen * 0.6)) splitAt = maxLen;
+        chunks.push(remaining.slice(0, splitAt).trim());
+        remaining = remaining.slice(splitAt).trim();
+    }
+    if (remaining) chunks.push(remaining);
+    return chunks;
+}
+
+async function postDiscordUpdate(content) {
+    if (!DEV_UPDATES_WEBHOOK_URL) return false;
+
+    try {
+        const res = await fetch(DEV_UPDATES_WEBHOOK_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                content,
+                allowed_mentions: { parse: [] },
+            }),
+        });
+        if (!res.ok) {
+            const bodyText = await res.text().catch(() => '');
+            console.error(chalk.red(`Discord webhook failed: ${res.status} ${bodyText}`));
+            return false;
+        }
+        return true;
+    } catch (err) {
+        console.error(chalk.red('Discord webhook request failed:'), err.message);
+        return false;
+    }
+}
+
+async function sendReportToDiscord({ report, messageCount, fromStr, runAtISO }) {
+    if (!DEV_UPDATES_WEBHOOK_URL) return;
+
+    const intro = [
+        `📡 TiltCheck channel watcher update`,
+        `Generated: ${runAtISO}`,
+        `Messages analysed: ${messageCount} (${fromStr})`,
+    ].join('\n');
+
+    const reportChunks = chunkText(report);
+    const totalParts = reportChunks.length + 1;
+    const payloads = [
+        `${intro}\nPart 1/${totalParts}`,
+        ...reportChunks.map((chunk, idx) => `Part ${idx + 2}/${totalParts}\n\`\`\`\n${chunk}\n\`\`\``),
+    ];
+
+    for (const payload of payloads) {
+        const sent = await postDiscordUpdate(payload);
+        if (!sent) break;
+    }
+}
+
+function deriveTrustSignals(reportText) {
+    const text = String(reportText || '').toLowerCase();
+    const count = (re) => (text.match(re) || []).length;
+    return {
+        scamSignals: count(/\b(scam|scammed|fraud|rigged|fake)\b/g),
+        distressSignals: count(/\b(tilt|tilted|addict|addiction|chasing|broke|rinsed|lost)\b/g),
+        frictionSignals: count(/\b(confus|stuck|unclear|bug|issue|broken|support)\b/g),
+        opportunitySignals: count(/\b(opportunit|build|feature|needs?|request|help)\b/g),
+    };
+}
+
+async function sendReportToTrustEngine({ report, messageCount, fromTimestamp, runAtISO, messages }) {
+    if (!TRUST_ENGINE_INGEST_URL) return;
+
+    const signals = deriveTrustSignals(report);
+    const payload = {
+        source: 'channel-watcher',
+        runAtISO,
+        fromTimestamp: fromTimestamp || null,
+        messageCount,
+        report,
+        signals,
+        samples: (Array.isArray(messages) ? messages : []).slice(-25).map((m) => ({
+            timestamp: m?.timestamp || null,
+            author: String(m?.author || '').slice(0, 80),
+            content: String(m?.content || '').slice(0, 280),
+        })),
+    };
+
+    try {
+        const headers = { 'Content-Type': 'application/json' };
+        if (TRUST_ENGINE_INGEST_KEY) {
+            headers['x-community-intel-key'] = TRUST_ENGINE_INGEST_KEY;
+        }
+        const res = await fetch(TRUST_ENGINE_INGEST_URL, {
+            method: 'POST',
+            headers,
+            body: JSON.stringify(payload),
+        });
+        if (!res.ok) {
+            const bodyText = await res.text().catch(() => '');
+            console.error(chalk.red(`Trust engine ingest failed: ${res.status} ${bodyText}`));
+            return;
+        }
+        console.log(chalk.gray('   Trust engine ingest accepted.'));
+    } catch (err) {
+        console.error(chalk.red('Trust engine ingest request failed:'), err.message);
+    }
+}
+
 // ── Report output ─────────────────────────────────────────────────────────────
 async function saveAndPrintReport(report, messageCount, fromTimestamp, messages = []) {
     const runAt = new Date();
@@ -265,6 +381,20 @@ async function saveAndPrintReport(report, messageCount, fromTimestamp, messages 
         appendFileSync(CITATIONS_FILE, citationHeader + citationRows + '\n');
         console.log(chalk.gray(`   Citations saved to citations.md`));
     }
+
+    await sendReportToDiscord({
+        report,
+        messageCount,
+        fromStr,
+        runAtISO,
+    });
+    await sendReportToTrustEngine({
+        report,
+        messageCount,
+        fromTimestamp,
+        runAtISO,
+        messages,
+    });
 
     console.log('\n' + chalk.bold.cyan('═'.repeat(64)));
     console.log(chalk.bold.cyan('  📊 TILTCHECK COMMUNITY INTELLIGENCE REPORT'));
