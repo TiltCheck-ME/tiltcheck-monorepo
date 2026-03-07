@@ -78,4 +78,11 @@ describe('Auth callback state/source validation', () => {
     expect(response.status).toBe(400);
     expect(response.body.error).toBe('Invalid OAuth state');
   });
+
+  it('forwards OAuth callback params from /login to /callback', async () => {
+    const response = await request(app).get('/auth/discord/login?code=abc123&state=ext_mock');
+
+    expect(response.status).toBe(302);
+    expect(response.headers.location).toBe('/auth/discord/callback?code=abc123&state=ext_mock');
+  });
 });

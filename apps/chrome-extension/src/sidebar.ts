@@ -47,6 +47,8 @@ let casinoThemesIntervalId: ReturnType<typeof setInterval> | null = null;
 let vaultRefreshIntervalId: ReturnType<typeof setInterval> | null = null;
 let buddyMirrorEnabled = false;
 let demoMode = false;
+const SIDEBAR_PREFS_KEY = 'sidebarUiPrefs';
+let showAdvancedTools = false;
 
 const CASINO_THEMES: Record<string, { label: string; accent: string }> = {
   'stake.us': { label: 'Stake.us', accent: '#4ade80' },
@@ -167,7 +169,7 @@ function mockApiCall(endpoint: string, options: any = {}) {
     const amount = Number(body.amount || 0);
     const minutes = Number(body.durationMinutes || 0);
     if (!Number.isFinite(amount) || amount <= 0 || !Number.isFinite(minutes) || minutes <= 0) {
-      return { success: false, error: 'Invalid lock request (demo)' };
+      return { success: false, error: 'Lock request looks invalid in demo mode.' };
     }
     demoLockRecord = {
       id: `demo-lock-${now}`,
@@ -182,9 +184,9 @@ function mockApiCall(endpoint: string, options: any = {}) {
 
   const releaseMatch = endpoint.match(/^\/vault\/[^/]+\/release$/);
   if (releaseMatch && method === 'POST') {
-    if (!demoLockRecord) return { success: false, error: 'No vaults ready for release' };
+    if (!demoLockRecord) return { success: false, error: 'No demo vault is ready to release yet.' };
     if ((demoLockRecord.status === 'locked' || demoLockRecord.status === 'extended') && now < demoLockRecord.unlockAt) {
-      return { success: false, error: 'No vaults ready for release' };
+      return { success: false, error: 'No demo vault is ready to release yet.' };
     }
     demoLockRecord.status = 'unlocked';
     demoLockRecord.history.push({ ts: now, action: 'unlocked', note: 'released in demo mode' });
@@ -194,7 +196,7 @@ function mockApiCall(endpoint: string, options: any = {}) {
   const depositMatch = endpoint.match(/^\/vault\/[^/]+\/deposit$/);
   if (depositMatch && method === 'POST') {
     const amount = Number(body.amount || 0);
-    if (!Number.isFinite(amount) || amount <= 0) return { success: false, error: 'Invalid amount' };
+    if (!Number.isFinite(amount) || amount <= 0) return { success: false, error: 'Amount looks invalid.' };
     demoVaultBalance += amount;
     return { success: true, vault: { balance: Number(demoVaultBalance.toFixed(2)) } };
   }
@@ -268,6 +270,79 @@ function applyPageOffset(width: number) {
   document.body.style.transition = 'margin-right 0.3s ease';
 }
 
+function setSidebarVisibility(visible: boolean) {
+  const sidebar = document.getElementById('tiltcheck-sidebar');
+  if (!sidebar) return;
+  sidebar.style.display = visible ? 'block' : 'none';
+  if (!visible) {
+    applyPageOffset(0);
+    return;
+  }
+  const width = sidebar.classList.contains('minimized') ? MINIMIZED_WIDTH : SIDEBAR_WIDTH;
+  applyPageOffset(width);
+}
+
+async function updateSidebarPrefs(partial: Record<string, any>) {
+  const result = await getStorage([SIDEBAR_PREFS_KEY]);
+  const existing = result[SIDEBAR_PREFS_KEY] || {};
+  await setStorage({ [SIDEBAR_PREFS_KEY]: { ...existing, ...partial } });
+}
+
+function setSidebarMinimized(minimized: boolean, persist = true) {
+  const sidebar = document.getElementById('tiltcheck-sidebar');
+  if (!sidebar) return;
+  const btn = document.getElementById('tg-minimize');
+  sidebar.classList.toggle('minimized', minimized);
+  document.body.classList.toggle('tiltcheck-minimized', minimized);
+  applyPageOffset(minimized ? MINIMIZED_WIDTH : SIDEBAR_WIDTH);
+  if (btn) {
+    btn.textContent = minimized ? 'Expand' : 'Minimize';
+    btn.setAttribute('title', minimized ? 'Expand panel' : 'Minimize panel');
+  }
+  if (persist) {
+    void updateSidebarPrefs({ minimized });
+  }
+}
+
+function setAdvancedToolsVisibility(show: boolean, persist = true) {
+  showAdvancedTools = show;
+  const sidebar = document.getElementById('tiltcheck-sidebar');
+  const toggleBtn = document.getElementById('tg-toggle-advanced') as HTMLButtonElement | null;
+  if (!sidebar) return;
+
+  sidebar.classList.toggle('tg-show-advanced', show);
+  if (toggleBtn) {
+    toggleBtn.textContent = show ? 'Hide Pro Tools' : 'Show Pro Tools';
+    toggleBtn.setAttribute('aria-pressed', show ? 'true' : 'false');
+  }
+
+  if (!show) {
+    const advancedPanels = ['tg-settings-panel', 'tg-config-panel', 'tg-verifier-panel', 'tg-report-panel'];
+    advancedPanels.forEach((panelId) => {
+      const panel = document.getElementById(panelId);
+      if (panel) panel.style.display = 'none';
+    });
+    showSettings = false;
+  }
+
+  if (persist) {
+    void updateSidebarPrefs({ showAdvanced: show });
+  }
+}
+
+async function restoreSidebarPreferences() {
+  const result = await getStorage([SIDEBAR_PREFS_KEY]);
+  const prefs = result[SIDEBAR_PREFS_KEY];
+  if (typeof prefs?.minimized === 'boolean') {
+    setSidebarMinimized(prefs.minimized, false);
+  }
+  if (typeof prefs?.showAdvanced === 'boolean') {
+    setAdvancedToolsVisibility(prefs.showAdvanced, false);
+  } else {
+    setAdvancedToolsVisibility(false, false);
+  }
+}
+
 async function apiCall(endpoint: string, options: any = {}) {
   if (demoMode) {
     return mockApiCall(endpoint, options);
@@ -283,7 +358,7 @@ async function apiCall(endpoint: string, options: any = {}) {
     return await response.json();
   } catch (error) {
     console.error('API Error:', error);
-    return { error: 'Network error' };
+    return { error: 'Network issue. Try again.' };
   }
 }
 
@@ -323,10 +398,10 @@ async function callAIGateway(application: string, data: any = {}) {
       return await response.json();
     }
     console.log('[TiltCheck] AI Gateway request failed, using local fallback');
-    return { success: false, error: 'Request failed' };
+    return { success: false, error: 'Request did not complete. Try again.' };
   } catch (error) {
     console.log('[TiltCheck] AI Gateway offline, using local fallback');
-    return { success: false, error: 'Network error' };
+    return { success: false, error: 'Network issue. Try again.' };
   }
 }
 
@@ -350,8 +425,9 @@ function createSidebar() {
     <div class="tg-header">
       <div class="tg-logo"><span class="tg-logo-mark">T</span>TiltCheck</div>
       <div class="tg-header-actions">
-        <button class="tg-icon-btn" id="tg-settings" title="Settings">Settings</button>
-        <button class="tg-icon-btn" id="tg-minimize" title="Minimize">-</button>
+        <button class="tg-header-btn tg-advanced-only" id="tg-settings" title="Open settings panel">Settings</button>
+        <button class="tg-header-btn" id="tg-minimize" title="Minimize panel">Minimize</button>
+        <button class="tg-header-btn" id="tg-hide" title="Hide panel">Hide</button>
       </div>
     </div>
     <div id="tg-status-bar" class="tg-status-bar" style="display: none;"></div>
@@ -360,9 +436,10 @@ function createSidebar() {
       <!-- Auth Section -->
       <div class="tg-section" id="tg-auth-section">
         <div class="tg-auth-prompt">
-          <h3>Sign In</h3>
-          <p>Authenticate to sync data and access vault</p>
-          <button class="tg-btn tg-btn-primary" id="tg-discord-login">Discord Login</button>
+          <h3>Welcome to TiltCheck</h3>
+          <p>Demo is instant. Connect Discord when you want synced vault history and buddy alerts. No lectures, just better signals.</p>
+          <button class="tg-btn tg-btn-primary" id="tg-discord-login">Connect with Discord</button>
+          <div class="tg-auth-divider">You can stay in demo mode if you prefer</div>
         </div>
       </div>
 
@@ -376,20 +453,25 @@ function createSidebar() {
           </div>
           <button class="tg-btn-icon" id="tg-logout" title="Logout">x</button>
         </div>
+        <div class="tg-account-strip">
+          <span id="tg-account-text">Demo mode is live</span>
+          <button class="tg-btn tg-btn-primary tg-btn-inline" id="tg-connect-discord-inline">Connect Discord</button>
+        </div>
+        <div class="tg-focus-note">Quick tip: keep this minimized while you play, then expand when you want a clean reality check.</div>
 
         <!-- Quick Safety -->
         <div class="tg-section tg-emergency">
           <div class="tg-emergency-header">
             <div>
               <div class="tg-emergency-title">Emergency Lock</div>
-              <div class="tg-emergency-sub">One-click 15 min break</div>
+              <div class="tg-emergency-sub">Immediate cool-down if things feel off</div>
             </div>
-            <button class="tg-btn tg-btn-danger" id="tg-emergency-lock">Take a 15-min Break</button>
+            <button class="tg-btn tg-btn-danger" id="tg-emergency-lock">Start 15-Min Break</button>
           </div>
         </div>
 
         <!-- Settings Panel (toggleable) -->
-        <div class="tg-settings-panel" id="tg-settings-panel" style="display: none;">
+        <div class="tg-settings-panel tg-advanced-only" id="tg-settings-panel" style="display: none;">
           <h4>API Keys</h4>
           <div class="tg-input-group">
             <label>OpenAI Key</label>
@@ -412,8 +494,8 @@ function createSidebar() {
         </div>
 
         <!-- Configurator Panel (toggleable) -->
-        <div class="tg-settings-panel" id="tg-config-panel" style="display: none;">
-          <h4>Casino Configurator</h4>
+        <div class="tg-settings-panel tg-advanced-only" id="tg-config-panel" style="display: none;">
+          <h4>Site Mapper</h4>
           <div class="tg-input-group">
             <label>Bet Amount Selector</label>
             <div style="display: flex; gap: 5px;">
@@ -434,9 +516,9 @@ function createSidebar() {
           <button class="tg-btn tg-btn-secondary" id="close-config">Close</button>
         </div>
 
-        <!-- Fairness Verifier Panel (toggleable) -->
-        <div class="tg-settings-panel" id="tg-verifier-panel" style="display: none;">
-          <h4>Fairness Verifier</h4>
+        <!-- Fairness Panel (toggleable) -->
+        <div class="tg-settings-panel tg-advanced-only" id="tg-verifier-panel" style="display: none;">
+          <h4>Fairness Check</h4>
           
           <div class="tg-tabs">
             <button class="tg-tab active" data-target="fv-tab-verify">Verify</button>
@@ -529,24 +611,26 @@ function createSidebar() {
 
         <!-- Message Feed -->
         <div class="tg-section">
-          <h4>Activity Feed</h4>
+          <h4>Live Signals</h4>
           <div class="tg-feed" id="tg-message-feed">
-            <div class="tg-feed-item">Monitoring active...</div>
+            <div class="tg-feed-item">Monitoring active. No fluff.</div>
           </div>
         </div>
 
         <!-- Quick Actions -->
         <div class="tg-section">
+          <h4>Quick Tools</h4>
+          <button class="tg-btn tg-btn-secondary tg-advanced-toggle" id="tg-toggle-advanced" aria-pressed="false">Show Pro Tools</button>
           <div class="tg-action-grid">
-            <button class="tg-action-btn" id="tg-open-suslink">SusLink</button>
-            <button class="tg-action-btn" id="tg-open-config">Configure</button>
-            <button class="tg-action-btn" id="tg-open-verifier">Verify</button>
-            <button class="tg-action-btn" id="tg-open-dashboard">Dashboard</button>
-            <button class="tg-action-btn" id="tg-open-vault">Vault</button>
-            <button class="tg-action-btn" id="tg-wallet">Wallet</button>
-            <button class="tg-action-btn" id="tg-upgrade">Upgrade</button>
+            <button class="tg-action-btn" id="tg-open-suslink">Scan Link</button>
+            <button class="tg-action-btn tg-advanced-only" id="tg-open-config">Site Setup</button>
+            <button class="tg-action-btn tg-advanced-only" id="tg-open-verifier">Fairness Check</button>
+            <button class="tg-action-btn" id="tg-open-dashboard">Open Dashboard</button>
+            <button class="tg-action-btn" id="tg-open-vault">Open Vault</button>
+            <button class="tg-action-btn tg-advanced-only" id="tg-wallet">Wallet Status</button>
+            <button class="tg-action-btn tg-advanced-only" id="tg-upgrade">Unlock Premium</button>
           </div>
-          <button class="tg-btn tg-btn-secondary" id="tg-open-report" style="margin-top: 8px;">Report Casino Update</button>
+          <button class="tg-btn tg-btn-secondary tg-advanced-only" id="tg-open-report" style="margin-top: 8px;">Report Site Change</button>
         </div>
 
         <!-- SusLink Panel (toggleable) -->
@@ -567,10 +651,10 @@ function createSidebar() {
         </div>
 
         <!-- Report Panel (toggleable) -->
-        <div class="tg-settings-panel" id="tg-report-panel" style="display: none;">
-          <h4>Community Report</h4>
+        <div class="tg-settings-panel tg-advanced-only" id="tg-report-panel" style="display: none;">
+          <h4>Community Signal</h4>
           <div class="tg-input-group">
-            <label>Report Type</label>
+            <label>Signal Type</label>
             <select id="report-type" style="width: 100%; padding: 8px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); color: #fff; border-radius: 4px;">
               <option value="payout_change">Payout Schedule Change</option>
               <option value="bonus_nerf">Bonus Amount Reduced</option>
@@ -583,7 +667,7 @@ function createSidebar() {
             <label>Details</label>
             <textarea id="report-details" rows="3" style="width: 100%; padding: 8px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); color: #fff; border-radius: 4px;"></textarea>
           </div>
-          <button class="tg-btn tg-btn-primary" id="submit-report">Submit Report</button>
+          <button class="tg-btn tg-btn-primary" id="submit-report">Send Signal</button>
           <button class="tg-btn tg-btn-secondary" id="close-report">Close</button>
         </div>
 
@@ -652,7 +736,7 @@ function createSidebar() {
           <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.1);">
             <h4 style="font-size: 11px; margin-bottom: 6px;">Vault Timeline</h4>
             <div id="tg-vault-timeline" class="tg-vault-timeline">
-              <div class="tg-vault-timeline-empty">No vault events yet.</div>
+              <div class="tg-vault-timeline-empty">No vault activity yet. Your wins will show up here.</div>
             </div>
           </div>
         </div>
@@ -661,6 +745,7 @@ function createSidebar() {
         <div class="tg-section">
           <button class="tg-btn tg-btn-secondary" id="tg-export-session">Export Session</button>
         </div>
+        <div class="tg-brand-footer">Made for degens, by degens.</div>
       </div>
     </div>
 
@@ -668,25 +753,33 @@ function createSidebar() {
   `;
 
   // Push page content to make room for sidebar
-  document.body.style.marginRight = '340px';
-  document.body.style.transition = 'margin-right 0.3s ease';
+  applyPageOffset(SIDEBAR_WIDTH);
 
   const style = document.createElement('style');
   style.textContent = `
     #tiltcheck-sidebar {
+      --tg-bg: #0b0f17;
+      --tg-surface: rgba(255, 255, 255, 0.04);
+      --tg-surface-strong: rgba(255, 255, 255, 0.08);
+      --tg-border: rgba(255, 255, 255, 0.12);
+      --tg-text: #e7ecf7;
+      --tg-muted: rgba(231, 236, 247, 0.74);
+      --tg-accent-purple: #6366f1;
+      --tg-accent-purple-2: #7c3aed;
+      --tg-accent-green: #10b981;
       position: fixed !important;
       top: 0 !important;
       right: 0 !important;
       width: ${SIDEBAR_WIDTH}px;
       height: 100vh;
-      background: #0a0a0a;
-      color: #e6e6e6;
+      background: var(--tg-bg);
+      color: var(--tg-text);
       z-index: 2147483647 !important;
       font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
       box-shadow: -2px 0 8px rgba(0, 0, 0, 0.3);
       overflow-y: auto;
       transition: transform 0.2s ease;
-      border-left: 1px solid rgba(255, 255, 255, 0.1);
+      border-left: 1px solid var(--tg-border);
     }
     #tiltcheck-sidebar.minimized { transform: translateX(${SIDEBAR_WIDTH - MINIMIZED_WIDTH}px); width: ${MINIMIZED_WIDTH}px; }
     body.tiltcheck-minimized { margin-right: ${MINIMIZED_WIDTH}px !important; }
@@ -695,12 +788,12 @@ function createSidebar() {
     #tiltcheck-sidebar::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.2); border-radius: 3px; }
     
     .tg-header {
-      background: linear-gradient(180deg, rgba(99,102,241,0.18), rgba(10,10,10,0));
+      background: linear-gradient(180deg, rgba(99,102,241,0.22), rgba(11,15,23,0));
       padding: 14px 16px;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      border-bottom: 1px solid var(--tg-border);
       position: sticky;
       top: 0;
       z-index: 10;
@@ -718,7 +811,7 @@ function createSidebar() {
       width: 24px;
       height: 24px;
       border-radius: 7px;
-      background: linear-gradient(135deg, #6366f1, #8b5cf6);
+      background: linear-gradient(135deg, var(--tg-accent-purple), var(--tg-accent-purple-2));
       color: #fff;
       display: inline-flex;
       align-items: center;
@@ -726,23 +819,26 @@ function createSidebar() {
       font-weight: 800;
       font-size: 13px;
     }
-    .tg-header-actions { display: flex; gap: 6px; }
-    .tg-icon-btn {
-      background: transparent;
-      border: 1px solid rgba(255, 255, 255, 0.2);
-      color: #e1e8ed;
-      width: 28px;
-      height: 28px;
-      border-radius: 4px;
+    .tg-header-actions { display: flex; gap: 6px; align-items: center; }
+    .tg-header-btn {
+      background: var(--tg-surface);
+      border: 1px solid var(--tg-border);
+      color: var(--tg-text);
+      min-height: 30px;
+      padding: 0 10px;
+      border-radius: 999px;
       cursor: pointer;
-      font-size: 14px;
+      font-size: 11px;
+      font-weight: 600;
       transition: all 0.15s;
+      white-space: nowrap;
     }
-    .tg-icon-btn:hover { background: rgba(255, 255, 255, 0.1); border-color: rgba(255, 255, 255, 0.3); }
+    .tg-header-btn:hover { background: var(--tg-surface-strong); border-color: rgba(99, 102, 241, 0.48); }
+    #tiltcheck-sidebar:not(.tg-show-advanced) .tg-advanced-only { display: none !important; }
     
     .tg-content { padding: 12px; }
-    .tg-section { margin-bottom: 12px; padding: 14px; background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(10px); border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.1); }
-    .tg-section h4 { margin: 0 0 10px 0; font-size: 13px; font-weight: 700; color: rgba(255, 255, 255, 0.7); text-transform: uppercase; letter-spacing: 0.05em; }
+    .tg-section { margin-bottom: 12px; padding: 14px; background: var(--tg-surface); backdrop-filter: blur(8px); border-radius: 12px; border: 1px solid var(--tg-border); box-shadow: 0 6px 14px rgba(0,0,0,0.16); }
+    .tg-section h4 { margin: 0 0 10px 0; font-size: 12px; font-weight: 700; color: var(--tg-muted); text-transform: uppercase; letter-spacing: 0.06em; }
     .tg-emergency { border: 1px solid rgba(239, 68, 68, 0.35); background: rgba(239, 68, 68, 0.08); }
     .tg-emergency-header { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
     .tg-emergency-title { font-weight: 700; font-size: 13px; }
@@ -750,7 +846,7 @@ function createSidebar() {
     
     .tg-auth-prompt { text-align: center; padding: 40px 20px; }
     .tg-auth-prompt h3 { font-size: 18px; margin-bottom: 8px; font-weight: 600; }
-    .tg-auth-prompt p { font-size: 13px; opacity: 0.6; margin-bottom: 24px; }
+    .tg-auth-prompt p { font-size: 13px; opacity: 0.8; margin-bottom: 16px; line-height: 1.45; }
     .tg-auth-divider { margin: 14px 0; text-align: center; opacity: 0.4; font-size: 12px; }
     
     .tg-user-bar {
@@ -761,6 +857,28 @@ function createSidebar() {
       background: rgba(255, 255, 255, 0.03);
       border-bottom: 1px solid rgba(255, 255, 255, 0.05);
       margin-bottom: 12px;
+    }
+    .tg-account-strip {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin: -6px 0 12px;
+      padding: 8px 10px;
+      background: rgba(99, 102, 241, 0.14);
+      border: 1px solid rgba(99, 102, 241, 0.46);
+      border-radius: 10px;
+      font-size: 11px;
+      line-height: 1.35;
+    }
+    .tg-focus-note {
+      margin: -4px 0 12px;
+      padding: 8px 10px;
+      font-size: 11px;
+      opacity: 0.78;
+      border-left: 2px solid rgba(16, 185, 129, 0.55);
+      background: rgba(16, 185, 129, 0.08);
+      border-radius: 0 8px 8px 0;
     }
     .tg-user-info { display: flex; gap: 8px; align-items: center; font-size: 13px; }
     .tg-tier { padding: 2px 8px; background: rgba(99, 102, 241, 0.2); border-radius: 3px; font-size: 11px; color: #818cf8; }
@@ -823,7 +941,7 @@ function createSidebar() {
       width: 10px;
       height: 10px;
       border-radius: 50%;
-      background: #10b981;
+      background: var(--tg-accent-green);
       color: transparent;
       font-size: 0;
     }
@@ -883,7 +1001,7 @@ function createSidebar() {
       font-weight: 600;
       font-variant-numeric: tabular-nums;
     }
-    .tg-tilt-value { color: #10b981; }
+    .tg-tilt-value { color: var(--tg-accent-green); }
     .tg-tilt-value.warning { color: #f59e0b; }
     .tg-tilt-value.critical { color: #ef4444; }
     
@@ -898,7 +1016,7 @@ function createSidebar() {
     }
     
     .tg-feed {
-      max-height: 120px;
+      max-height: 148px;
       overflow-y: auto;
       font-size: 12px;
     }
@@ -914,23 +1032,30 @@ function createSidebar() {
       grid-template-columns: repeat(2, 1fr);
       gap: 8px;
     }
+    .tg-advanced-toggle {
+      margin-top: 0;
+      margin-bottom: 8px;
+      font-size: 11px;
+      padding: 8px 10px;
+    }
     .tg-action-btn {
-      background: rgba(255, 255, 255, 0.05);
-      border: 1px solid rgba(255, 255, 255, 0.12);
-      color: #e1e8ed;
+      background: var(--tg-surface);
+      border: 1px solid var(--tg-border);
+      color: var(--tg-text);
       padding: 10px;
       border-radius: 10px;
       cursor: pointer;
       font-size: 12px;
-      font-weight: 500;
+      font-weight: 600;
       transition: all 0.15s;
+      text-align: left;
     }
-    .tg-action-btn:hover { background: rgba(255, 255, 255, 0.08); border-color: rgba(255, 255, 255, 0.2); }
+    .tg-action-btn:hover { background: var(--tg-surface-strong); border-color: rgba(99, 102, 241, 0.45); transform: translateY(-1px); }
     
     .tg-vault-amount {
       font-size: 24px;
       font-weight: 700;
-      color: #fbbf24;
+      color: var(--tg-accent-green);
       margin-bottom: 12px;
       font-variant-numeric: tabular-nums;
     }
@@ -957,16 +1082,23 @@ function createSidebar() {
       transition: all 0.15s;
       font-size: 13px;
     }
-    .tg-btn-primary { background: #6366f1; }
+    .tg-btn-inline {
+      width: auto;
+      margin-top: 0;
+      padding: 6px 10px;
+      font-size: 11px;
+      white-space: nowrap;
+    }
+    .tg-btn-primary { background: var(--tg-accent-purple); }
     .tg-btn-primary:hover { background: #5558e3; }
-    .tg-btn-secondary { background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.12); }
-    .tg-btn-secondary:hover { background: rgba(255, 255, 255, 0.15); }
-    .tg-btn-vault { background: #f59e0b; }
-    .tg-btn-vault:hover { background: #d97706; }
+    .tg-btn-secondary { background: var(--tg-surface); border: 1px solid var(--tg-border); }
+    .tg-btn-secondary:hover { background: var(--tg-surface-strong); border-color: rgba(99, 102, 241, 0.45); }
+    .tg-btn-vault { background: var(--tg-accent-green); color: #07281f; font-weight: 700; }
+    .tg-btn-vault:hover { background: #0da271; }
     .tg-btn-danger { background: #ef4444; }
     .tg-btn-danger:hover { background: #dc2626; }
-    #tg-discord-login { background: #5865F2; border: 1px solid rgba(255,255,255,0.12); }
-    #tg-discord-login:hover { background: #4d5ae9; }
+    #tg-discord-login, #tg-connect-discord-inline { background: var(--tg-accent-purple); border: 1px solid rgba(255,255,255,0.12); }
+    #tg-discord-login:hover, #tg-connect-discord-inline:hover { background: #4d5ae9; }
 
     .tg-toast {
       position: fixed;
@@ -974,9 +1106,9 @@ function createSidebar() {
       bottom: 16px;
       background: rgba(255, 255, 255, 0.06);
       backdrop-filter: blur(10px);
-      color: #e6e6e6;
+      color: var(--tg-text);
       border: 1px solid rgba(255,255,255,0.12);
-      border-left: 3px solid #6366f1;
+      border-left: 3px solid var(--tg-accent-purple);
       padding: 10px 12px;
       border-radius: 10px;
       font-size: 12px;
@@ -1041,6 +1173,15 @@ function createSidebar() {
     .tg-vault-timeline-time { opacity: 0.7; font-size: 10px; white-space: nowrap; }
     .tg-vault-timeline-meta { opacity: 0.75; margin-top: 2px; font-size: 10px; }
     .tg-vault-timeline-empty { opacity: 0.6; font-size: 11px; padding: 8px; background: rgba(255,255,255,0.03); border-radius: 6px; }
+    .tg-brand-footer {
+      margin: 2px 0 16px;
+      text-align: center;
+      font-size: 10px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--tg-muted);
+      opacity: 0.75;
+    }
     
     @keyframes slideDown { from { transform: translateY(-100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
     
@@ -1057,6 +1198,7 @@ function createSidebar() {
   void refreshCasinoThemes();
   casinoThemesIntervalId = setInterval(refreshCasinoThemes, 15 * 60 * 1000);
   setupEventListeners();
+  void restoreSidebarPreferences();
   void checkAuthStatus();
   return sidebar;
 }
@@ -1117,14 +1259,87 @@ function updateSessionSiteLabel() {
   }
 }
 
+function syncAccountUi() {
+  const accountText = document.getElementById('tg-account-text');
+  const connectBtn = document.getElementById('tg-connect-discord-inline') as HTMLButtonElement | null;
+  const logoutBtn = document.getElementById('tg-logout') as HTMLButtonElement | null;
+  if (!accountText || !connectBtn || !logoutBtn) return;
+
+  if (demoMode || !authToken) {
+    accountText.textContent = 'Demo mode is live. Connect Discord if you want synced history and vault progress.';
+    connectBtn.textContent = 'Connect Discord';
+    connectBtn.style.display = 'inline-flex';
+    logoutBtn.style.display = 'none';
+    return;
+  }
+
+  accountText.textContent = `Connected as ${userData?.username || 'TiltCheck user'}`;
+  connectBtn.textContent = 'Reconnect';
+  connectBtn.style.display = 'inline-flex';
+  logoutBtn.style.display = 'inline-flex';
+}
+
+function startDiscordLoginFlow() {
+  // Open Discord OAuth in new window
+  const width = 500;
+  const height = 700;
+  const left = window.screenX + (window.outerWidth - width) / 2;
+  const top = window.screenY + (window.outerHeight - height) / 2;
+
+  const authWindow = window.open(
+    getDiscordLoginUrl('extension'),
+    'Discord Login',
+    `width=${width},height=${height},left=${left},top=${top}`
+  );
+
+  // Listen for auth response
+  const handleMessage = (event: MessageEvent) => {
+    if (!TRUSTED_AUTH_ORIGIN || event.origin !== TRUSTED_AUTH_ORIGIN) return;
+    if (event.data.type === 'discord-auth' && event.data.token) {
+      demoMode = false;
+      authToken = event.data.token;
+      userData = { ...event.data.user, isDemo: false };
+      isAuthenticated = true;
+      void setStorage({ authToken, userData });
+      showMainContent();
+      syncAccountUi();
+      addFeedMessage(`Connected: ${userData.username}`);
+      window.removeEventListener('message', handleMessage);
+
+      // Close auth window if still open
+      if (authWindow && !authWindow.closed) {
+        authWindow.close();
+      }
+    }
+  };
+
+  window.addEventListener('message', handleMessage);
+
+  // Fallback: check if window was closed without completing auth
+  const checkClosed = setInterval(() => {
+    if (authWindow && authWindow.closed) {
+      clearInterval(checkClosed);
+      window.removeEventListener('message', handleMessage);
+      if (!isAuthenticated) {
+        addFeedMessage('Discord connect closed');
+      }
+    }
+  }, 1000);
+}
+
 function setupEventListeners() {
   document.getElementById('tg-minimize')?.addEventListener('click', () => {
     const sidebar = document.getElementById('tiltcheck-sidebar');
-    const btn = document.getElementById('tg-minimize');
-    const isMin = sidebar?.classList.toggle('minimized');
-    document.body.classList.toggle('tiltcheck-minimized', !!isMin);
-    applyPageOffset(isMin ? MINIMIZED_WIDTH : SIDEBAR_WIDTH);
-    if (btn) btn.textContent = isMin ? '+' : '-';
+    const isMinimized = !!sidebar?.classList.contains('minimized');
+    setSidebarMinimized(!isMinimized);
+  });
+
+  document.getElementById('tg-hide')?.addEventListener('click', () => {
+    setSidebarVisibility(false);
+  });
+
+  document.getElementById('tg-toggle-advanced')?.addEventListener('click', () => {
+    setAdvancedToolsVisibility(!showAdvancedTools);
   });
 
   // Settings toggle
@@ -1268,7 +1483,7 @@ function setupEventListeners() {
     const nonce = (document.getElementById('fv-nonce') as HTMLInputElement).value;
 
     if (!serverSeed || !clientSeed || !nonce) {
-      alert('Please fill all fields');
+      alert('Fill all fields first.');
       return;
     }
 
@@ -1335,9 +1550,9 @@ function setupEventListeners() {
     if (nonce) {
       const input = document.getElementById('fv-nonce') as HTMLInputElement;
       input.value = nonce;
-      updateStatus('Nonce synced from session', 'success');
+      updateStatus('Nonce synced from this session', 'success');
     } else {
-      updateStatus('No active session nonce found', 'warning');
+      updateStatus('No active nonce yet. Spin once and retry.', 'warning');
     }
   });
 
@@ -1385,7 +1600,7 @@ function setupEventListeners() {
         }
         if (detailsDiv) {
           detailsDiv.textContent = scan.details || (scan.isSafe
-            ? 'Domain registered > 5 years. No reports found.'
+            ? 'Domain age looks solid (>5 years). No reports found.'
             : 'Domain flagged. Check user reports.');
         }
       } else {
@@ -1406,7 +1621,7 @@ function setupEventListeners() {
         scoreDiv.style.color = '#f59e0b';
       }
       if (detailsDiv) {
-        detailsDiv.textContent = 'Network error. Please try again.';
+        detailsDiv.textContent = 'Network issue. Try again.';
       }
     }
   });
@@ -1417,16 +1632,16 @@ function setupEventListeners() {
     const details = (document.getElementById('report-details') as HTMLTextAreaElement).value;
 
     if (!details) {
-      alert('Please provide details');
+      alert('Add a quick note first.');
       return;
     }
 
     if (!userData) {
-      alert('Please sign in to submit reports.');
+      alert('Connect Discord to send signals.');
       return;
     }
 
-    updateStatus('Sending report...', 'thinking');
+    updateStatus('Sending signal...', 'thinking');
 
     try {
       const result = await apiCall('/reports/casino-update', {
@@ -1435,15 +1650,15 @@ function setupEventListeners() {
       });
 
       if (result.success) {
-        addFeedMessage(`Report submitted: ${type}`);
-        updateStatus('Report sent to community', 'success');
+        addFeedMessage(`Signal sent: ${type}`);
+        updateStatus('Signal shared with community', 'success');
         (document.getElementById('report-details') as HTMLTextAreaElement).value = '';
         document.getElementById('tg-report-panel')!.style.display = 'none';
       } else {
-        updateStatus(`Report failed: ${result.error}`, 'warning');
+        updateStatus(`Signal did not send: ${result.error}`, 'warning');
       }
     } catch (e) {
-      updateStatus('Network error', 'warning');
+      updateStatus('Network issue. Try again.', 'warning');
     }
   });
 
@@ -1477,12 +1692,12 @@ function setupEventListeners() {
     const mins = parseInt(minsInput.value);
 
     if (!agreeCheckbox.checked) {
-      alert('You must agree to the voluntary lock disclaimer.');
+      alert('Please confirm the voluntary lock disclaimer.');
       return;
     }
 
     if (!mins || mins <= 0) {
-      alert('Please enter valid minutes');
+      alert('Enter valid minutes.');
       return;
     }
 
@@ -1491,12 +1706,12 @@ function setupEventListeners() {
     const amount = parseFloat(amountStr);
 
     if (isNaN(amount) || amount <= 0) {
-      alert('Invalid amount');
+      alert('Amount looks invalid.');
       return;
     }
 
     if (!userData) {
-      alert('Please sign in to use the vault.');
+      alert('Connect Discord to use vault.');
       return;
     }
 
@@ -1511,17 +1726,17 @@ function setupEventListeners() {
       if (result.success) {
         const lockedSol = Number(result.vault?.lockedAmountSOL || 0);
         addFeedMessage(`Locked ${lockedSol.toFixed(4)} SOL (${amount.toFixed(2)} USD input) for ${mins}m`);
-        updateStatus('Funds locked successfully', 'success');
+        updateStatus('Funds locked.', 'success');
         minsInput.value = '';
         agreeCheckbox.checked = false;
         loadVaultBalance(); // Refresh balance
         checkLockStatus(); // Refresh lock status UI
       } else {
-        updateStatus(`Lock failed: ${result.error}`, 'warning');
+        updateStatus(`Lock did not start: ${result.error}`, 'warning');
       }
     } catch (e) {
       console.error(e);
-      updateStatus('Network error', 'warning');
+      updateStatus('Network issue. Try again.', 'warning');
     }
   });
 
@@ -1542,14 +1757,14 @@ function setupEventListeners() {
 
       if (result.success) {
         addFeedMessage(`Funds released: ${Number(result.amount || 0).toFixed(4)} SOL`);
-        updateStatus('Funds released to main wallet', 'success');
+        updateStatus('Funds released to wallet.', 'success');
         checkLockStatus(); // Should reset UI to form
         loadVaultBalance();
       } else {
-        updateStatus(`Release failed: ${result.error}`, 'warning');
+        updateStatus(`Release did not complete: ${result.error}`, 'warning');
       }
     } catch (e) {
-      updateStatus('Network error', 'warning');
+      updateStatus('Network issue. Try again.', 'warning');
     }
   });
 
@@ -1576,7 +1791,7 @@ function setupEventListeners() {
       const filtered = current.filter(c => c.domain !== config.domain);
       filtered.push(config);
       storage.set({ tiltcheck_custom_casinos: filtered }, () => {
-        alert('Configuration saved! Please refresh the page.');
+        alert('Site map saved. Refresh to apply.');
         document.getElementById('tg-config-panel')!.style.display = 'none';
       });
     });
@@ -1600,52 +1815,8 @@ function setupEventListeners() {
 
 
 
-  document.getElementById('tg-discord-login')?.addEventListener('click', async () => {
-    // Open Discord OAuth in new window
-    const width = 500;
-    const height = 700;
-    const left = window.screenX + (window.outerWidth - width) / 2;
-    const top = window.screenY + (window.outerHeight - height) / 2;
-
-    const authWindow = window.open(
-      getDiscordLoginUrl('extension'),
-      'Discord Login',
-      `width=${width},height=${height},left=${left},top=${top}`
-    );
-
-    // Listen for auth response
-    const handleMessage = (event: MessageEvent) => {
-      if (!TRUSTED_AUTH_ORIGIN || event.origin !== TRUSTED_AUTH_ORIGIN) return;
-      if (event.data.type === 'discord-auth' && event.data.token) {
-        demoMode = false;
-        authToken = event.data.token;
-        userData = { ...event.data.user, isDemo: false };
-        isAuthenticated = true;
-        void setStorage({ authToken, userData });
-        showMainContent();
-        addFeedMessage(`Authenticated as ${userData.username}`);
-        window.removeEventListener('message', handleMessage);
-
-        // Close auth window if still open
-        if (authWindow && !authWindow.closed) {
-          authWindow.close();
-        }
-      }
-    };
-
-    window.addEventListener('message', handleMessage);
-
-    // Fallback: check if window was closed without completing auth
-    const checkClosed = setInterval(() => {
-      if (authWindow && authWindow.closed) {
-        clearInterval(checkClosed);
-        window.removeEventListener('message', handleMessage);
-        if (!isAuthenticated) {
-          addFeedMessage('Discord login cancelled');
-        }
-      }
-    }, 1000);
-  });
+  document.getElementById('tg-discord-login')?.addEventListener('click', startDiscordLoginFlow);
+  document.getElementById('tg-connect-discord-inline')?.addEventListener('click', startDiscordLoginFlow);
 
   document.getElementById('tg-logout')?.addEventListener('click', () => {
     void removeStorage(['authToken', 'userData']);
@@ -1709,6 +1880,7 @@ async function checkAuthStatus() {
     console.log('TiltGuard: no auth found, enabling demo mode');
     enableDemoMode();
     showMainContent();
+    syncAccountUi();
     renderGoals(loadGoals());
     updateGoalProgress(sessionStats.currentBalance || 0);
     updateStats(sessionStats);
@@ -1716,7 +1888,7 @@ async function checkAuthStatus() {
     loadVaultBalance();
     checkLockStatus();
     initPnLGraph();
-    addFeedMessage('Demo mode active (no login required)');
+    addFeedMessage('Demo mode on. Connect anytime for sync.');
     return;
   }
 
@@ -1726,6 +1898,7 @@ async function checkAuthStatus() {
     authToken = token;
     isAuthenticated = true;
     showMainContent();
+    syncAccountUi();
     renderGoals(loadGoals());
     updateGoalProgress(sessionStats.currentBalance || 0);
     loadVaultBalance();
@@ -1850,11 +2023,11 @@ function drawPnLGraph(ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement) 
   ctx.stroke();
 
   if (pnlHistory.length < 2) {
-    // No data message
+    // Empty state
     ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
     ctx.font = '12px sans-serif';
     ctx.textAlign = 'center';
-    ctx.fillText('No data yet', width / 2, height / 2);
+    ctx.fillText('No session trend yet', width / 2, height / 2);
     return;
   }
 
@@ -1896,14 +2069,15 @@ function showMainContent() {
   const tier = document.getElementById('tg-user-tier')!;
   username.textContent = userData.username || 'Guest';
   tier.textContent = userData.tier === 'premium' ? 'Premium' : 'Free';
+  syncAccountUi();
   initPnLGraph();
-  addFeedMessage('Session started');
+  addFeedMessage('Guardian live. Watching for tilt.');
 }
 
 async function vaultCurrentBalance() {
   const balance = sessionStats.currentBalance || 0;
   if (balance <= 0) {
-    addFeedMessage('No balance to vault');
+    addFeedMessage('No balance to vault right now.');
     return;
   }
   const confirmed = confirm(`Vault entire balance of $${balance.toFixed(2)}?`);
@@ -1916,9 +2090,9 @@ async function vaultCurrentBalance() {
 function updateLicense(verification: any) {
   // License verification can be shown in feed
   if (verification.isLegitimate) {
-    addFeedMessage(`Licensed: ${verification.licenseInfo?.authority || 'Verified'}`);
+    addFeedMessage(`License verified: ${verification.licenseInfo?.authority || 'Verified'}`);
   } else {
-    addFeedMessage(`Warning: ${verification.verdict || 'Unlicensed'}`);
+    addFeedMessage(`Heads up: ${verification.verdict || 'Unlicensed'}`);
   }
 }
 
@@ -1927,7 +2101,7 @@ function updateGuardian(active: boolean) {
   if (indicator) {
     indicator.className = active ? 'tg-guardian-indicator' : 'tg-guardian-indicator inactive';
   }
-  addFeedMessage(active ? 'Guardian activated' : 'Guardian deactivated');
+  addFeedMessage(active ? 'Guardian on' : 'Guardian off');
 }
 
 async function updateTilt(score: number, _indicators: string[]) {
@@ -1949,7 +2123,7 @@ async function updateTilt(score: number, _indicators: string[]) {
 
   // Add to feed if high tilt
   if (score >= 60) {
-    addFeedMessage(`High tilt detected: ${Math.round(score)}`);
+    addFeedMessage(`Tilt spike detected: ${Math.round(score)}`);
 
     // Get AI-powered intervention suggestions
     const aiResult = await callAIGateway('tilt-detection', {
@@ -1962,7 +2136,7 @@ async function updateTilt(score: number, _indicators: string[]) {
 
     if (aiResult.success && aiResult.data?.interventionSuggestions) {
       aiResult.data.interventionSuggestions.forEach((suggestion: string) => {
-        addFeedMessage(`Tip: ${suggestion}`);
+        addFeedMessage(`Suggestion: ${suggestion}`);
       });
     }
   }
@@ -2006,7 +2180,7 @@ function updateStats(stats: any) {
 
   // Win-to-vault nudge
   if (profit - lastProfit >= 50) {
-    showToast('Huge win! Move $50 to the Vault to secure it?');
+    showToast('Nice hit. Move $50 to Vault to lock it in?');
   }
   lastProfit = profit;
 }
@@ -2023,7 +2197,7 @@ async function depositToVault(amount: number) {
     if (vaultEl) vaultEl.textContent = `$${result.vault.balance.toFixed(2)}`;
     addFeedMessage(`Vaulted $${amount.toFixed(2)}`);
   } else {
-    addFeedMessage(`Vault error: ${result.error}`);
+    addFeedMessage(`Vault update paused: ${result.error}`);
   }
 }
 
@@ -2090,7 +2264,7 @@ function renderVaultTimeline(locks: any[]) {
   const topEvents = events.slice(0, 20);
 
   if (topEvents.length === 0) {
-    container.innerHTML = '<div class="tg-vault-timeline-empty">No vault events yet.</div>';
+    container.innerHTML = '<div class="tg-vault-timeline-empty">No vault activity yet. Your wins will show up here.</div>';
     return;
   }
 
@@ -2212,7 +2386,7 @@ async function openDashboard() {
   if (!userData) return;
   const result = await apiCall(`/dashboard/${userData.id}`);
   if (result.error) {
-    addFeedMessage('Dashboard unavailable');
+    addFeedMessage('Dashboard unavailable right now.');
     return;
   }
 
@@ -2238,7 +2412,7 @@ async function openVault() {
   if (!userData) return;
   const result = await apiCall(`/vault/${userData.id}`);
   if (result.error) {
-    alert('Vault data unavailable');
+    alert('Vault data is unavailable right now. Try again shortly.');
     return;
   }
 
@@ -2263,7 +2437,7 @@ async function openWallet() {
   if (!userData) return;
   const result = await apiCall(`/wallet/${userData.id}`);
   if (result.error) {
-    alert('Wallet data unavailable');
+    alert('Wallet data is unavailable right now. Try again shortly.');
     return;
   }
 
@@ -2287,7 +2461,7 @@ async function openWallet() {
 async function openPremium() {
   const result = await apiCall('/premium/plans');
   if (result.error) {
-    addFeedMessage('Premium plans unavailable');
+    addFeedMessage('Premium plans unavailable right now.');
     return;
   }
 
@@ -2305,7 +2479,7 @@ async function openPremium() {
       userData.tier = 'premium';
       const tierEl = document.getElementById('tg-user-tier');
       if (tierEl) tierEl.textContent = 'Premium';
-      addFeedMessage('Upgraded to Premium');
+      addFeedMessage('Premium unlocked.');
     }
   }
 }
@@ -2325,7 +2499,7 @@ function renderVerificationHistory() {
   const history = JSON.parse(localStorage.getItem('tiltcheck_verification_history') || '[]');
 
   if (history.length === 0) {
-    list.innerHTML = '<div class="tg-feed-item">No history yet</div>';
+    list.innerHTML = '<div class="tg-feed-item">No fairness history yet. Verify a result to start.</div>';
     return;
   }
 
@@ -2365,8 +2539,8 @@ async function notifyBuddy(type: string, data: any) {
     });
 
     if (result.success) {
-      addFeedMessage(`Buddy notified: ${type}`);
-      updateStatus('Buddy alert sent', 'buddy');
+      addFeedMessage(`Buddy ping sent: ${type}`);
+      updateStatus('Buddy ping sent', 'buddy');
     }
   } catch (e) {
     console.error('[TiltGuard] Buddy notification failed:', e);

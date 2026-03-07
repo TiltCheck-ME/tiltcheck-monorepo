@@ -70,6 +70,8 @@ let solana: SolanaProvider | null = null;
 let bridge: WalletBridge | null = null;
 let fairness: FairnessService | null = null;
 let tiltMonitoringInterval: ReturnType<typeof setInterval> | null = null;
+const FULL_SIDEBAR_WIDTH = 340;
+const MINIMIZED_SIDEBAR_WIDTH = 40;
 
 // Intervention state
 let cooldownEndTime: number | null = null;
@@ -79,9 +81,11 @@ function setSidebarVisibility(visible: boolean): boolean {
   if (!sidebar) return false;
   sidebar.style.display = visible ? 'block' : 'none';
 
+  const offset = sidebar.classList.contains('minimized') ? MINIMIZED_SIDEBAR_WIDTH : FULL_SIDEBAR_WIDTH;
+
   if (visible) {
-    document.body.style.marginRight = '340px';
-    document.documentElement.style.marginRight = '340px';
+    document.body.style.marginRight = `${offset}px`;
+    document.documentElement.style.marginRight = `${offset}px`;
   } else {
     document.body.style.marginRight = '0px';
     document.documentElement.style.marginRight = '0px';
@@ -289,6 +293,8 @@ function initialize() {
 
   // Create sidebar UI
   const sidebar = (window as any).TiltCheckSidebar?.create();
+  // Keep the sidebar available but hidden by default.
+  setSidebarVisibility(false);
   console.log('[TiltCheck] Sidebar created:', !!sidebar);
 
   // Check casino license

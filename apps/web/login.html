@@ -36,6 +36,7 @@
 
     .login-card {
       background: rgba(255, 255, 255, 0.05);
+      -webkit-backdrop-filter: blur(10px);
       backdrop-filter: blur(10px);
       border: 1px solid rgba(0, 212, 170, 0.2);
       border-radius: 1rem;
@@ -247,7 +248,7 @@
       </div>
 
       <p style="color: var(--color-text-secondary); margin-bottom: 1rem; font-size: 0.875rem;">
-        Your session will persist automatically. We use Supabase OAuth for secure authentication.
+        Your session will persist automatically. We use TiltCheck's Discord OAuth flow for secure authentication.
       </p>
 
       <div class="security-note">
@@ -266,22 +267,19 @@
 
   <!-- Auth Script -->
   <script>
-    document.getElementById('discord-login-btn')?.addEventListener('click', async () => {
-      try {
-        // Check if auth.js is available from other pages
-        if (window.tiltCheckAuth?.loginWithDiscord) {
-          await window.tiltCheckAuth.loginWithDiscord();
-        } else {
-          // Fallback: Generate OAuth URL via Supabase
-          const supabaseUrl = 'https://ypyvqddzrdjzfdwhcacb.supabase.co';
-          const redirectUrl = `${window.location.origin}/`;
-          const oauthUrl = `${supabaseUrl}/auth/v1/authorize?provider=discord&redirect_to=${encodeURIComponent(redirectUrl)}`;
-          window.location.href = oauthUrl;
-        }
-      } catch (error) {
-        console.error('Auth error:', error);
-        alert('Login failed. Please try again.');
+    function resolveNextPath() {
+      const params = new URLSearchParams(window.location.search);
+      const nextParam = params.get('next');
+      if (nextParam && nextParam.startsWith('/')) {
+        return nextParam;
       }
+      return '/play/profile.html';
+    }
+
+    document.getElementById('discord-login-btn')?.addEventListener('click', () => {
+      const nextPath = resolveNextPath();
+      const redirect = encodeURIComponent(`${window.location.origin}${nextPath}`);
+      window.location.href = `/api/auth/discord/login?redirect=${redirect}`;
     });
   </script>
 </body>

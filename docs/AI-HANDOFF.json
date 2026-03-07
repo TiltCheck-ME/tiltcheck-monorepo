@@ -1,0 +1,77 @@
+{
+  "lastUpdated": "2026-03-07",
+  "repo": "tiltcheck-monorepo",
+  "objective": "Migrate project hosting to GCP while preserving open-source code posture.",
+  "strategy": {
+    "region": "us-central1",
+    "approach": "compute-first-then-full-gcp-by-milestone",
+    "deadlinePolicy": "no-fixed-day-deadline"
+  },
+  "budget": {
+    "mode": "credit-safe-hybrid-cap",
+    "maxUsd": 300,
+    "thresholdsUsd": [120, 200, 260, 300],
+    "exceptionPolicy": "Emergency rollback/safety actions allowed beyond hard stop."
+  },
+  "decisions": [
+    {
+      "id": "DEC-20260307-01",
+      "topic": "Primary GCP region",
+      "status": "approved",
+      "value": "us-central1"
+    },
+    {
+      "id": "DEC-20260307-02",
+      "topic": "Data strategy",
+      "status": "approved",
+      "value": "Option A now, full-GCP by milestones"
+    },
+    {
+      "id": "DEC-20260307-03",
+      "topic": "Budget cap policy",
+      "status": "approved",
+      "value": "Hybrid cap with hard stop at $300 for normal activity"
+    }
+  ],
+  "constraints": [
+    "No assumptions where ambiguity exists; ask first.",
+    "Keep repo/license open source.",
+    "Keep production secrets private in GCP Secret Manager.",
+    "Use milestone checkpoints with short logs."
+  ],
+  "activePlanFile": "c:\\Users\\jmeni\\.cursor\\plans\\gcp-migration-cost-plan_b4c8417e.plan.md",
+  "nextSessionPrompt": "Continue using docs/AI-HANDOFF.md and docs/AI-HANDOFF.json as source of truth. Respect approved decisions DEC-20260307-01/02/03. Ask before resolving any ambiguity. Propose the next single milestone and expected cost impact first.",
+  "activeTodos": [
+    "confirm-production-services",
+    "define-gcp-foundation",
+    "implement-compute-migration",
+    "choose-data-strategy",
+    "run-cost-validation-pilot",
+    "add-oss-governance",
+    "enforce-clarity-gates",
+    "solo-cadence-checkpoints",
+    "enforce-credit-safe-mode"
+  ],
+  "milestoneTemplate": {
+    "id": "MS-YYYYMMDD-XX",
+    "scopeCompleted": "",
+    "decisionsMade": [],
+    "currentState": "",
+    "blockers": [],
+    "nextMilestone": "",
+    "riskWatch": [],
+    "costNote": "",
+    "timestampLocal": ""
+  },
+  "sessionNotes": [
+    {
+      "date": "2026-03-07",
+      "notes": [
+        "Created migration plan with OSS governance track.",
+        "Added no-assumption protocol and decision log.",
+        "Selected milestone-only solo cadence.",
+        "Added $300 hybrid credit-safe mode."
+      ]
+    }
+  ]
+}
