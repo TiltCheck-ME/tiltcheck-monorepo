@@ -9,9 +9,13 @@
         "full": "node index.js --full",
         "live": "node index.js --live",
         "10m": "node index.js --live --duration=10",
+        "cloud": "powershell -ExecutionPolicy Bypass -File ./run-cloud-watcher.ps1",
+        "cloud:schedule": "powershell -ExecutionPolicy Bypass -File ./register-cloud-watcher-task.ps1",
         "history": "node index.js --full",
         "analyze": "node analyze-log.js",
-        "analyze:lore": "node analyze-log.js --lore"
+        "analyze:lore": "node analyze-log.js --lore",
+        "comic:daily": "node generate-daily-comic.js",
+        "session:create": "node create-session.js"
     },
     "dependencies": {
         "playwright": "^1.41.0",

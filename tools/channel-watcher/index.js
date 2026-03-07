@@ -50,6 +50,14 @@ const LIVE_REPORT_BATCH_SIZE = parseInt(process.env.LIVE_REPORT_BATCH_SIZE || '2
 const SAMPLE_MODE = process.env.SAMPLE_MODE === 'true';
 const SAMPLE_SKIP_PASSES = parseInt(process.env.SAMPLE_SKIP_PASSES || '40', 10);
 const JUMP_TO_DATE = process.env.JUMP_TO_DATE || null; // e.g. '2024-03-01'
+const RUN_STARTED_AT = new Date().toISOString();
+
+// Optional backend ingest for TiltCheck analytics
+const COMMUNITY_INTEL_API_URL = (process.env.COMMUNITY_INTEL_API_URL || '').trim();
+const COMMUNITY_INTEL_INGEST_KEY = (process.env.COMMUNITY_INTEL_INGEST_KEY || '').trim();
+const COMMUNITY_INTEL_SOURCE = (process.env.COMMUNITY_INTEL_SOURCE || 'channel-watcher').trim();
+const COMMUNITY_INTEL_SEND_MESSAGES = process.env.COMMUNITY_INTEL_SEND_MESSAGES !== 'false';
+const COMMUNITY_INTEL_MAX_MESSAGES = parseInt(process.env.COMMUNITY_INTEL_MAX_MESSAGES || '150', 10);
 
 // ── AI Provider config ───────────────────────────────────────────────────────
 // PROVIDER options: ollama | groq | gemini | openai
@@ -241,8 +249,89 @@ async function analyseMessages(messages) {
     return `# Community Intelligence Report — ${new Date().toLocaleString()}\n_Total: ${messages.length} messages in ${chunks.length} batches_\n\n${finalReports.join('\n\n---\n\n')}`;
 }
 
+function extractSection(report, heading) {
+    if (!report) return [];
+    const escaped = heading.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const regex = new RegExp(`##\\s+${escaped}[\\s\\S]*?(?=\\n##\\s+|$)`, 'i');
+    const match = report.match(regex);
+    if (!match) return [];
+
+    return match[0]
+        .split('\n')
+        .map(line => line.trim())
+        .filter(line => line && !line.startsWith('## '))
+        .map(line => line.replace(/^[-*]\s+/, '').replace(/^\d+\.\s+/, '').trim())
+        .filter(Boolean)
+        .slice(0, 20);
+}
+
+async function sendCommunityIntelReport({ report, messageCount, fromTimestamp, messages = [] }) {
+    if (!COMMUNITY_INTEL_API_URL || !COMMUNITY_INTEL_INGEST_KEY) return;
+
+    const endpoint = `${COMMUNITY_INTEL_API_URL.replace(/\/$/, '')}/community-intel/ingest`;
+    const rangeStart = fromTimestamp || messages[0]?.timestamp || null;
+    const rangeEnd = messages[messages.length - 1]?.timestamp || null;
+    const messagePayload = COMMUNITY_INTEL_SEND_MESSAGES
+        ? messages.slice(0, COMMUNITY_INTEL_MAX_MESSAGES).map(m => ({
+            messageId: m.messageId,
+            timestamp: m.timestamp,
+            author: m.author,
+            content: (m.content || '').slice(0, 1000),
+            hasKeyword: Boolean(m.hasKeyword),
+        }))
+        : [];
+
+    const payload = {
+        source: COMMUNITY_INTEL_SOURCE,
+        channelUrl: CHANNEL_URL,
+        provider: PROVIDER,
+        model: PROVIDER === 'all' ? 'multiple' : ai.model,
+        messageCount,
+        reportMarkdown: report,
+        painPoints: extractSection(report, 'Pain Points'),
+        frictionMoments: extractSection(report, 'Friction Moments'),
+        safetySignals: extractSection(report, 'Scam & Safety Signals'),
+        communityNeeds: extractSection(report, 'Community Needs'),
+        opportunities: extractSection(report, 'TiltCheck Opportunities'),
+        rangeStart,
+        rangeEnd,
+        messages: messagePayload,
+        metadata: {
+            runStartedAt: RUN_STARTED_AT,
+            runEndedAt: new Date().toISOString(),
+            fullMode: FULL_MODE,
+            liveWatch: LIVE_WATCH,
+            lookbackHours: LOOKBACK_HOURS,
+            gptMaxMessages: GPT_MAX_MESSAGES,
+        },
+    };
+
+    try {
+        const res = await fetch(endpoint, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Requested-With': 'tiltcheck-channel-watcher',
+                'x-community-intel-key': COMMUNITY_INTEL_INGEST_KEY,
+            },
+            body: JSON.stringify(payload),
+        });
+
+        if (!res.ok) {
+            const text = await res.text().catch(() => '');
+            console.log(chalk.yellow(`⚠️ Community ingest failed (${res.status}): ${text || res.statusText}`));
+            return;
+        }
+
+        const data = await res.json().catch(() => ({}));
+        console.log(chalk.green(`   Community ingest saved (reportId=${data.reportId ?? 'unknown'})`));
+    } catch (err) {
+        console.log(chalk.yellow(`⚠️ Community ingest unreachable: ${err.message}`));
+    }
+}
+
 // ── Report output ─────────────────────────────────────────────────────────────
-function saveAndPrintReport(report, messageCount, fromTimestamp, messages = []) {
+async function saveAndPrintReport(report, messageCount, fromTimestamp, messages = []) {
     const runAt = new Date();
     const runAtStr = runAt.toLocaleString('en-US', { dateStyle: 'full', timeStyle: 'medium' });
     const runAtISO = runAt.toISOString();
@@ -277,6 +366,13 @@ function saveAndPrintReport(report, messageCount, fromTimestamp, messages = []) 
     });
     console.log(chalk.bold.cyan('\n' + '═'.repeat(64)));
     console.log(chalk.green(`\n✅ Report saved to ${REPORT_FILE}`));
+
+    await sendCommunityIntelReport({
+        report,
+        messageCount,
+        fromTimestamp,
+        messages,
+    });
 }
 
 // ── Main scraper ──────────────────────────────────────────────────────────────
@@ -561,7 +657,7 @@ async function run() {
         // Initial Analysis from history
         const report = await analyseMessages(messages);
         if (report) {
-            saveAndPrintReport(report, messages.length, stopAt?.toISOString(), messages);
+            await saveAndPrintReport(report, messages.length, stopAt?.toISOString(), messages);
         }
     } else {
         console.log(chalk.gray('\n\nNo history messages matching keywords found.'));
@@ -651,7 +747,7 @@ async function run() {
             console.log(chalk.yellow(`\n\n[LIVE] Running batch analysis on ${liveBuffer.length} new messages...`));
             const liveReport = await analyseMessages(liveBuffer);
             if (liveReport) {
-                saveAndPrintReport(liveReport, liveBuffer.length, liveBuffer[0].timestamp, liveBuffer);
+                await saveAndPrintReport(liveReport, liveBuffer.length, liveBuffer[0].timestamp, liveBuffer);
             }
             liveBuffer = [];
             lastAnalysisTime = Date.now();
@@ -662,7 +758,7 @@ async function run() {
             if (liveBuffer.length > 0) {
                 const liveReport = await analyseMessages(liveBuffer);
                 if (liveReport) {
-                    saveAndPrintReport(liveReport, liveBuffer.length, liveBuffer[0].timestamp, liveBuffer);
+                    await saveAndPrintReport(liveReport, liveBuffer.length, liveBuffer[0].timestamp, liveBuffer);
                 }
             } else {
                 console.log(chalk.gray('  Buffer is empty. No new analysis needed.'));
