@@ -14,8 +14,8 @@
   <title>Getting Started - TiltCheck</title>
   <meta name="description" content="Get started with TiltCheck. Connect your Discord, pick your tools, and bring transparency to your casino community in minutes.">
   <meta name="theme-color" content="#00FFC6">
-  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
-  <link rel="icon" type="image/x-icon" href="/favicon.ico">
+  <link rel="apple-touch-icon" href="/assets/logo/apple-touch-icon.png">
+  <link rel="icon" type="image/x-icon" href="/assets/logo/favicon.ico">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -23,13 +23,30 @@
   <link rel="stylesheet" href="/styles/main.css">
   <style>
     .gs-hero {
-      background: linear-gradient(180deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
-      padding: clamp(3rem, 6vw, 5rem) var(--container-padding);
+      position: relative;
+      overflow: hidden;
+      background:
+        radial-gradient(circle at 18% -12%, rgba(79, 156, 251, 0.2), transparent 48%),
+        radial-gradient(circle at 82% 0%, rgba(0, 212, 170, 0.16), transparent 50%),
+        linear-gradient(180deg, #0d1117 0%, #0b111a 78%, #0a0f17 100%);
+      padding: clamp(3.5rem, 6.5vw, 5.5rem) var(--container-padding);
       text-align: center;
-      border-bottom: 1px solid rgba(0, 255, 198, 0.12);
+      border-bottom: 1px solid rgba(79, 156, 251, 0.2);
+    }
+    .gs-hero::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: url("/assets/logo/logocurrent.svg") center 12% / 520px no-repeat;
+      opacity: 0.035;
+      pointer-events: none;
+    }
+    .gs-hero > .container {
+      position: relative;
+      z-index: 1;
     }
     .gs-hero h1 {
-      font-size: var(--text-3xl);
+      font-size: clamp(2rem, 4.4vw, 3.15rem);
       font-weight: var(--weight-black);
       font-family: var(--font-display);
       color: var(--text-primary);
@@ -38,8 +55,8 @@
     }
     .gs-hero p {
       color: var(--text-secondary);
-      font-size: var(--text-lg);
-      max-width: 680px;
+      font-size: clamp(1.05rem, 2vw, 1.3rem);
+      max-width: 760px;
       margin: 0 auto var(--space-xl);
       line-height: var(--leading-relaxed);
     }
@@ -70,13 +87,15 @@
       gap: var(--space-xl);
       align-items: flex-start;
       padding: var(--space-xl);
-      background: var(--glass-bg);
-      border: 1px solid rgba(0, 255, 198, 0.1);
-      border-radius: var(--radius-md);
-      transition: border-color var(--transition-base);
+      background: linear-gradient(165deg, rgba(22, 27, 34, 0.74), rgba(15, 20, 29, 0.9));
+      border: 1px solid rgba(79, 156, 251, 0.18);
+      border-radius: 1rem;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+      transition: border-color var(--transition-base), transform var(--transition-fast);
     }
     .gs-step:hover {
-      border-color: rgba(0, 255, 198, 0.3);
+      border-color: rgba(79, 156, 251, 0.4);
+      transform: translateY(-2px);
     }
     .gs-step-num {
       width: 44px;
@@ -132,17 +151,24 @@
       align-items: center;
       gap: var(--space-md);
       padding: var(--space-md) var(--space-lg);
-      background: var(--bg-card);
-      border: 1px solid rgba(0, 255, 198, 0.1);
-      border-radius: var(--radius-sm);
+      background: linear-gradient(165deg, rgba(22, 27, 34, 0.76), rgba(14, 20, 30, 0.92));
+      border: 1px solid rgba(79, 156, 251, 0.2);
+      border-radius: 0.85rem;
       text-decoration: none;
-      transition: border-color var(--transition-base), background var(--transition-base);
+      transition: border-color var(--transition-base), background var(--transition-base), transform var(--transition-fast);
     }
     .tool-ql:hover {
-      border-color: rgba(0, 255, 198, 0.35);
+      border-color: rgba(79, 156, 251, 0.5);
       background: var(--bg-elevated);
+      transform: translateY(-1px);
     }
-    .tool-ql-icon { font-size: 1.5rem; flex-shrink: 0; }
+    .tool-ql-icon {
+      width: 1.5rem;
+      height: 1.5rem;
+      flex-shrink: 0;
+      object-fit: contain;
+      opacity: 0.9;
+    }
     .tool-ql-info strong {
       display: block;
       color: var(--text-primary);
@@ -174,8 +200,47 @@
       padding: var(--space-lg);
       background: var(--glass-bg);
       border: 1px solid var(--border-subtle);
-      border-left: 3px solid var(--color-primary);
+      border-left: 3px solid #4f9cfb;
       border-radius: var(--radius-sm);
+    }
+    .gs-command-list {
+      list-style: none;
+      margin: var(--space-sm) 0;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .gs-cta-row {
+      display: flex;
+      gap: var(--space-md);
+      flex-wrap: wrap;
+      margin-top: var(--space-sm);
+    }
+    .gs-btn-sm {
+      font-size: var(--text-sm);
+      padding: 0.5rem 1.25rem;
+    }
+    .gs-final-cta {
+      text-align: center;
+    }
+    .gs-final-cta .gs-container {
+      background: linear-gradient(160deg, rgba(21, 27, 38, 0.86), rgba(13, 19, 30, 0.96));
+      border: 1px solid rgba(79, 156, 251, 0.24);
+      border-radius: 1rem;
+      padding: clamp(1.5rem, 3vw, 2rem);
+    }
+    .gs-cta-title {
+      font-family: var(--font-display);
+    }
+    .gs-cta-copy {
+      color: var(--text-secondary);
+      margin-bottom: var(--space-xl);
+    }
+    .gs-cta-actions {
+      display: flex;
+      gap: var(--space-md);
+      justify-content: center;
+      flex-wrap: wrap;
     }
     @media (max-width: 600px) {
       .gs-step { flex-direction: column; gap: var(--space-md); }
@@ -216,7 +281,7 @@
             <div class="gs-step-body">
               <h3>Enable Your Tools</h3>
               <p>Each tool activates through Discord slash commands. Try these to start:</p>
-              <ul style="list-style: none; margin: var(--space-sm) 0; display: flex; flex-direction: column; gap: 6px;">
+              <ul class="gs-command-list">
                 <li><code>/tiltcheck status</code> — check your tilt score &amp; cooldown state</li>
                 <li><code>/scan https://sketchy-link.com</code> — SusLink scan any URL</li>
                 <li><code>/tip @friend 0.5</code> — JustTheTip non-custodial SOL tip</li>
@@ -231,9 +296,9 @@
             <div class="gs-step-body">
               <h3>Explore the Dashboard &amp; Trust Data</h3>
               <p>Log in with Discord to access your trust score, wallet history, and community reports. Casino trust data is public — no login needed.</p>
-              <div style="display: flex; gap: var(--space-md); flex-wrap: wrap; margin-top: var(--space-sm);">
-                <a href="/dashboard" class="btn btn-primary" style="font-size: var(--text-sm); padding: 0.5rem 1.25rem;">Open Dashboard</a>
-                <a href="/casinos.html" class="btn btn-secondary" style="font-size: var(--text-sm); padding: 0.5rem 1.25rem;">View Casino Data</a>
+              <div class="gs-cta-row">
+                <a href="/dashboard" class="btn btn-primary gs-btn-sm">Open Dashboard</a>
+                <a href="/casinos.html" class="btn btn-secondary gs-btn-sm">View Casino Data</a>
               </div>
             </div>
           </div>
@@ -248,42 +313,42 @@
         <h2 id="tools-title">Pick Your Tools</h2>
         <div class="tool-quicklinks">
           <a href="/tools/suslink.html" class="tool-ql">
-            <span class="tool-ql-icon"></span>
+            <img class="tool-ql-icon" src="/assets/icons/sus-link.svg" alt="SusLink">
             <div class="tool-ql-info">
               <strong>SusLink</strong>
               <span>AI scam &amp; link scanner</span>
             </div>
           </a>
           <a href="/tools/justthetip.html" class="tool-ql">
-            <span class="tool-ql-icon"></span>
+            <img class="tool-ql-icon" src="/assets/icons/just-the-tip.svg" alt="JustTheTip">
             <div class="tool-ql-info">
               <strong>JustTheTip</strong>
               <span>Non-custodial SOL tipping</span>
             </div>
           </a>
           <a href="/tools/collectclock.html" class="tool-ql">
-            <span class="tool-ql-icon"></span>
+            <img class="tool-ql-icon" src="/assets/icons/collect-clock.svg" alt="CollectClock">
             <div class="tool-ql-info">
               <strong>CollectClock</strong>
               <span>Bonus tracker &amp; nerf detection</span>
             </div>
           </a>
           <a href="/extension.html" class="tool-ql">
-            <span class="tool-ql-icon"></span>
+            <img class="tool-ql-icon" src="/assets/icons/accountability-wallet.svg" alt="Chrome Extension">
             <div class="tool-ql-info">
               <strong>Chrome Extension</strong>
               <span>Sidebar vault timer + tilt monitoring</span>
             </div>
           </a>
           <a href="/tools/tiltcheck-core.html" class="tool-ql">
-            <span class="tool-ql-icon"></span>
+            <img class="tool-ql-icon" src="/assets/icons/tilt-engine.svg" alt="TiltCheck Core">
             <div class="tool-ql-info">
               <strong>TiltCheck Core</strong>
               <span>Tilt engine &amp; accountability</span>
             </div>
           </a>
           <a href="/degen-trust.html" class="tool-ql">
-            <span class="tool-ql-icon"></span>
+            <img class="tool-ql-icon" src="/assets/icons/tilt-engine.svg" alt="Trust Engine">
             <div class="tool-ql-info">
               <strong>Trust Engine</strong>
               <span>Casino &amp; degen reputation</span>
@@ -323,11 +388,11 @@
     </section>
 
     <!-- CTA -->
-    <section class="gs-section" aria-labelledby="cta-title" style="text-align: center;">
+    <section class="gs-section gs-final-cta" aria-labelledby="cta-title">
       <div class="gs-container">
-        <h2 id="cta-title" style="font-family: var(--font-display);">Ready to degen smarter?</h2>
-        <p style="color: var(--text-secondary); margin-bottom: var(--space-xl);">Join thousands of degens already using TiltCheck to protect their communities.</p>
-        <div style="display: flex; gap: var(--space-md); justify-content: center; flex-wrap: wrap;">
+        <h2 id="cta-title" class="gs-cta-title">Ready to degen smarter?</h2>
+        <p class="gs-cta-copy">Join thousands of degens already using TiltCheck to protect their communities.</p>
+        <div class="gs-cta-actions">
           <a href="https://discord.gg/s6NNfPHxMS" class="btn btn-primary" target="_blank" rel="noopener">Join Discord</a>
           <a href="/about.html" class="btn btn-secondary">Read the Mission</a>
         </div>

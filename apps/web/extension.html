@@ -5,42 +5,65 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>TiltGuard Extension & Gameplay Analyzer - TiltCheck</title>
   <meta name="description" content="Install the TiltGuard Chrome Extension for automatic gameplay analysis, tilt detection, and casino session tracking. Available for Chrome, Firefox, and mobile PWA.">
-  <link rel="canonical" href="https://tiltcheck.me/extension">
+  <link rel="canonical" href="https://tiltcheck.me/extension.html">
   <link rel="stylesheet" href="/styles/theme.css">
   <link rel="stylesheet" href="/styles/main.css">
   <link rel="manifest" href="/manifest.json">
   <meta name="theme-color" content="#7c3aed">
-  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
-  <link rel="icon" type="image/x-icon" href="/favicon.ico">
+  <link rel="apple-touch-icon" href="/assets/logo/apple-touch-icon.png">
+  <link rel="icon" type="image/x-icon" href="/assets/logo/favicon.ico">
+  <style>
+    .extension-hero {
+      position: relative;
+      overflow: hidden;
+      background:
+        radial-gradient(circle at 16% -10%, rgba(79, 156, 251, 0.2), transparent 48%),
+        radial-gradient(circle at 84% 0%, rgba(124, 58, 237, 0.2), transparent 52%),
+        linear-gradient(180deg, #0d1117 0%, #0b111a 100%);
+      border: 1px solid rgba(79, 156, 251, 0.24);
+      border-radius: 1rem;
+      padding: clamp(1.25rem, 3vw, 2rem);
+      margin-bottom: 1.5rem;
+    }
+    .extension-hero::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: url("/assets/logo/logocurrent.svg") center 14% / 420px no-repeat;
+      opacity: 0.035;
+      pointer-events: none;
+    }
+    .extension-hero > * { position: relative; z-index: 1; }
+    .ext-tools-grid { margin-top: 2rem; }
+    .ext-info-box {
+      background: var(--color-surface-2);
+      border-left: 4px solid var(--accent-primary);
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+      border-radius: 0.75rem;
+    }
+    .ext-warning-box {
+      background: var(--warning-bg);
+      border-left: 4px solid var(--warning);
+      padding: 1.5rem;
+      margin-top: 2rem;
+      border-radius: 0.75rem;
+    }
+  </style>
 </head>
 <body>
+  <a href="#main-content" class="skip-link">Skip to main content</a>
+  <div id="shared-nav"></div>
   <nav class="breadcrumbs"></nav>
-  
-  <header class="site-header">
-    <div class="container">
-      <a href="/" class="logo">TiltCheck</a>
-      <nav class="top-nav" role="navigation" aria-label="Primary navigation">
-        <a href="/">Home</a>
-        <a href="/casinos.html">Casinos</a>
-        <a href="/degen-trust.html">Degens</a>
-        <a href="/dashboard">Dashboard</a>
-        <a href="/about.html">About</a>
-        <a href="https://discord.gg/s6NNfPHxMS" class="btn btn-primary btn-nav" target="_blank" rel="noopener">Join Discord</a>
-        <button class="hamburger-btn" aria-label="Toggle menu" aria-expanded="false">
-          <span></span>
-          <span></span>
-          <span></span>
-        </button>
-      </nav>
-    </div>
-  </header>
 
-  <main class="container content-page">
+  <main id="main-content" class="container content-page">
     <article>
-      <h1>TiltGuard Extension & Gameplay Analyzer</h1>
-      <p class="lede">
-        Automatic gameplay tracking, tilt detection, and session analysis — right in your browser or on your phone.
-      </p>
+      <section class="extension-hero">
+        <h1>TiltGuard Extension & Gameplay Analyzer</h1>
+        <p class="lede">
+          Automatic gameplay tracking, tilt detection, and session analysis — right in your browser or on your phone.
+        </p>
+      </section>
 
       <section>
         <h2>Choose Your Method</h2>
@@ -48,7 +71,7 @@
           We give you options! Pick the approach that works best for your setup:
         </p>
         
-        <div class="tools-grid" style="margin-top: 2rem;">
+        <div class="tools-grid ext-tools-grid">
           <div class="tool-card">
             <div class="tool-icon"></div>
             <h3>Browser Extension</h3>
@@ -86,7 +109,7 @@
       <section id="extension-install">
         <h2>Browser Extension Installation</h2>
         
-        <div class="info-box" style="background: var(--card-bg); border-left: 4px solid var(--accent-primary); padding: 1.5rem; margin-bottom: 2rem;">
+        <div class="info-box ext-info-box">
           <p><strong>Current Version:</strong> TiltGuard v1.1.0 (Feb 26, 2026)</p>
           <p><strong>Supported Casinos:</strong> Stake.com, Stake.us, Roobet, BC.Game, Duelbits, Rollbit, Shuffle, Gamdom + generic support</p>
         </div>
@@ -174,7 +197,7 @@
           <li>We'll verify each bet cryptographically and flag anomalies</li>
         </ol>
 
-        <div class="info-box" style="background: var(--warning-bg); border-left: 4px solid var(--warning); padding: 1.5rem; margin-top: 2rem;">
+        <div class="info-box ext-warning-box">
           <p><strong>Privacy Note:</strong> All verification happens locally in your browser. Seeds and bet data never leave your device.</p>
         </div>
       </section>
@@ -259,55 +282,8 @@
     </article>
   </main>
 
-  <footer class="site-footer">
-    <div class="container">
-      <div class="footer-grid">
-        <div>
-          <h3>TiltCheck</h3>
-          <p>Protecting degens from tilt-induced disaster.</p>
-        </div>
-        <div>
-          <h4>Product</h4>
-          <ul>
-            <li><a href="/">Home</a></li>
-            <li><a href="/how-it-works.html">How It Works</a></li>
-            <li><a href="/trust-explained.html">Trust System</a></li>
-            <li><a href="/casinos.html">Casino Trust Scores</a></li>
-            <li><a href="/degen-trust.html">Degen Trust Scores</a></li>
-            <li><a href="/faq.html">FAQ</a></li>
-            <li><a href="/dashboard">Dashboard</a></li>
-          </ul>
-        </div>
-        <div>
-          <h4>Resources</h4>
-          <ul>
-            <li><a href="/press-kit.html">Press Kit</a></li>
-            <li><a href="/newsletter.html">Newsletter</a></li>
-            <li><a href="/docs/">Developer Docs</a></li>
-            <li><a href="/site-map.html">Site Map</a></li>
-            <li><a href="/search.html">Search</a></li>
-          </ul>
-        </div>
-        <div>
-          <h4>Company</h4>
-          <ul>
-            <li><a href="/about.html">About</a></li>
-            <li><a href="/contact.html">Contact</a></li>
-            <li><a href="https://github.com/jmenichole/tiltcheck-monorepo" target="_blank" rel="noopener">GitHub</a></li>
-            <li><a href="https://discord.gg/s6NNfPHxMS" target="_blank" rel="noopener">Discord</a></li>
-          </ul>
-          <h4 style="margin-top: 1.5rem;">Legal</h4>
-          <ul>
-            <li><a href="/privacy.html">Privacy Policy</a></li>
-            <li><a href="/terms.html">Terms of Service</a></li>
-          </ul>
-        </div>
-      </div>
-      <div class="footer-bottom">
-        <p>&copy; 2024–2026 TiltCheck Ecosystem. Created by jmenichole.</p>
-      </div>
-    </div>
-  </footer>
+  <div id="shared-footer"></div>
 </body>
 <script src="/breadcrumbs.js" defer></script>
+<script src="/scripts/components-loader.js"></script>
 </html>

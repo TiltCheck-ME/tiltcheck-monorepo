@@ -5,6 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>About TiltCheck - The Degen Transparency Layer</title>
   <meta name="description" content="TiltCheck is a modular, AI-assisted ecosystem built to bring transparency, tools, and automation to degen communities.">
+  <meta name="theme-color" content="#4f9cfb">
+  <link rel="apple-touch-icon" href="/assets/logo/apple-touch-icon.png">
+  <link rel="icon" type="image/x-icon" href="/assets/logo/favicon.ico">
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
@@ -24,10 +27,27 @@
   <link rel="stylesheet" href="/styles/tool-page.css">
   <style>
     .about-hero {
-      background: var(--gradient-hero);
+      position: relative;
+      overflow: hidden;
+      background:
+        radial-gradient(circle at 16% -12%, rgba(79, 156, 251, 0.2), transparent 48%),
+        radial-gradient(circle at 84% 2%, rgba(0, 212, 170, 0.16), transparent 54%),
+        var(--gradient-hero);
       padding: 70px 10px 50px;
       text-align: center;
-      border-bottom: 2px solid var(--color-accent);
+      border-bottom: 1px solid rgba(79, 156, 251, 0.28);
+    }
+    .about-hero::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: url("/assets/logo/logocurrent.svg") center 12% / 520px no-repeat;
+      opacity: 0.035;
+      pointer-events: none;
+    }
+    .about-hero > .container {
+      position: relative;
+      z-index: 1;
     }
     .about-hero h1 {
       font-size: 3rem;
@@ -47,12 +67,13 @@
       margin-top: 30px;
     }
     .philosophy-card {
-      background: var(--color-surface-2);
-      border: 1px solid var(--color-border);
-      border-radius: var(--radius-md);
+      background: linear-gradient(165deg, rgba(22, 27, 34, 0.76), rgba(15, 20, 29, 0.92));
+      border: 1px solid rgba(79, 156, 251, 0.2);
+      border-radius: 1rem;
       padding: 22px;
-      border-left: 4px solid var(--color-accent);
+      border-left: 4px solid #4f9cfb;
       margin-bottom: 8px;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
     }
     .philosophy-card h3 {
       color: var(--color-accent);
@@ -101,7 +122,9 @@
       background: var(--color-surface-1);
     }
     .founder-section {
-      background: var(--gradient-hero);
+      background:
+        radial-gradient(circle at 22% -10%, rgba(79, 156, 251, 0.15), transparent 48%),
+        var(--gradient-hero);
       padding: 80px 20px;
       text-align: center;
     }
@@ -117,81 +140,130 @@
       margin: 0 auto 15px;
       line-height: 1.8;
     }
+    .about-copy {
+      font-size: 1.15rem;
+      color: #ccc;
+      max-width: 900px;
+      margin: 0 auto 30px;
+      line-height: 1.8;
+    }
+    .about-emphasis {
+      font-size: 1.3rem;
+      color: #00d4aa;
+      max-width: 900px;
+      margin: 30px auto;
+      line-height: 1.8;
+      font-weight: 600;
+      text-align: center;
+    }
+    .about-subtle {
+      text-align: center;
+      color: #888;
+      margin-bottom: 40px;
+    }
+    .about-subtle-wide {
+      text-align: center;
+      color: #888;
+      margin-bottom: 40px;
+      max-width: 800px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    .accent-link {
+      color: #00d4aa;
+      text-decoration: none;
+    }
+    .legal-italic-note {
+      text-align: center;
+      color: #888;
+      margin-bottom: 20px;
+      font-style: italic;
+    }
+    .legal-trigger-list {
+      list-style: none;
+      margin-top: 15px;
+    }
+    .legal-trigger-list li {
+      padding: 12px 0;
+      border-bottom: 1px solid #222;
+      color: #ccc;
+    }
+    .legal-trigger-list li:last-child {
+      border-bottom: none;
+    }
+    .legal-trigger-list strong {
+      color: #00d4aa;
+    }
+    .legal-subhead {
+      color: #fff;
+      margin-top: 50px;
+      margin-bottom: 20px;
+    }
+    .about-copy-sm {
+      font-size: 1.1rem;
+      color: #ccc;
+      max-width: 900px;
+      margin: 0 auto 30px;
+      line-height: 1.8;
+    }
+    .about-copy-sm-tight {
+      font-size: 1.1rem;
+      color: #ccc;
+      max-width: 900px;
+      margin: 30px auto 20px;
+      line-height: 1.8;
+    }
+    .quote-box {
+      background: #1a1a1a;
+      border-left: 4px solid #00d4aa;
+      padding: 20px;
+      border-radius: 8px;
+      margin: 20px auto;
+      max-width: 800px;
+    }
+    .quote-box p {
+      color: #ddd;
+      font-style: italic;
+      line-height: 1.7;
+    }
+    .legal-callout {
+      color: #fff;
+      max-width: 900px;
+      margin: 30px auto;
+      line-height: 1.8;
+      font-weight: 600;
+      text-align: center;
+      font-size: 1.2rem;
+    }
+    .legal-note {
+      color: #ddd;
+      margin-bottom: 20px;
+    }
+    .legal-disclaimer {
+      color: #888;
+      font-size: 0.95rem;
+      font-style: italic;
+    }
   </style>
 </head>
 <body>
   <a href="#about-main" class="skip-link">Skip to main content</a>
-
-  <!-- Header -->
-  <header class="sticky top-0 z-50 bg-[#0d1117]/95 backdrop-blur-md border-b border-[#30363d]">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="flex items-center justify-between h-16">
-        <a href="/" class="flex items-center gap-3">
-          <img class="w-10 h-10" src="/assets/logo/logocurrent.svg" alt="TiltCheck logo">
-          <span class="text-lg font-bold text-white">TiltCheck</span>
-        </a>
-        <nav class="hidden md:flex items-center gap-6">
-          <div class="relative group">
-            <button id="tools-dropdown-btn" class="text-gray-300 hover:text-[#00ffaa] flex items-center gap-1" aria-haspopup="true" aria-expanded="false" aria-controls="tools-dropdown">
-              Tools <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-            </button>
-            <div id="tools-dropdown" class="absolute top-full left-0 mt-2 w-56 bg-[#161b22] border border-[#30363d] rounded-lg shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50" role="menu">
-              <a href="/tools/justthetip.html" class="block px-4 py-3 text-gray-300 hover:text-[#00ffaa]" role="menuitem">JustTheTip</a>
-              <a href="/tools/suslink.html" class="block px-4 py-3 text-gray-300 hover:text-[#00ffaa]" role="menuitem">SusLink</a>
-              <a href="/tools/collectclock.html" class="block px-4 py-3 text-gray-300 hover:text-[#00ffaa]" role="menuitem">CollectClock</a>
-              <a href="/tools/tiltcheck-core.html" class="block px-4 py-3 text-gray-300 hover:text-[#00ffaa]" role="menuitem">TiltCheck Core</a>
-            </div>
-          </div>
-          <a href="/casinos.html" class="text-gray-300 hover:text-[#00ffaa]">Casinos</a>
-          <a href="/trust-scores.html" class="text-gray-300 hover:text-[#00ffaa]">Trust Scores</a>
-          <a href="/dashboard" class="text-gray-300 hover:text-[#00ffaa]">Dashboard</a>
-        </nav>
-        <div class="flex items-center gap-3">
-          <a href="/dashboard" class="hidden sm:block bg-[#00ffaa] hover:bg-[#00e699] text-black font-semibold px-4 py-2 rounded-lg text-sm">Launch App</a>
-          <button id="mobile-menu-btn" class="md:hidden text-gray-300 p-2" aria-label="Toggle menu">
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
-          </button>
-        </div>
-      </div>
-    </div>
-    <div id="mobile-menu" class="hidden md:hidden bg-[#0d1117] border-t border-[#30363d]">
-      <div class="px-4 py-3 space-y-1">
-        <div class="py-2 border-b border-[#30363d]">
-          <span class="text-xs text-gray-500 uppercase tracking-wide">Tools</span>
-        </div>
-        <a href="/tools/justthetip.html" class="block py-2 text-gray-300">JustTheTip</a>
-        <a href="/tools/suslink.html" class="block py-2 text-gray-300">SusLink</a>
-        <a href="/tools/collectclock.html" class="block py-2 text-gray-300">CollectClock</a>
-        <a href="/tools/tiltcheck-core.html" class="block py-2 text-gray-300">TiltCheck Core</a>
-        <div class="py-2 border-b border-[#30363d] mt-2">
-          <span class="text-xs text-gray-500 uppercase tracking-wide">Platform</span>
-        </div>
-        <a href="/casinos.html" class="block py-2 text-gray-300 hover:text-[#00ffaa]">Casinos</a>
-        <a href="/trust-scores.html" class="block py-2 text-gray-300 hover:text-[#00ffaa]">Trust Scores</a>
-        <a href="/dashboard" class="block py-2 text-gray-300 hover:text-[#00ffaa]">Dashboard</a>
-        <a href="/dashboard" class="block w-full text-center bg-[#00ffaa] text-black font-semibold px-4 py-3 rounded-lg mt-4">
-          Launch App
-        </a>
-        <a href="/dashboard" class="block w-full text-center bg-[#00ffaa] text-black font-semibold px-4 py-3 rounded-lg mt-4">
-          Launch App
-        </a>
-      </div>
-    </div>
-  </header>
+  <div id="shared-nav"></div>
 
   <main id="about-main" class="bg-[#0d1117] min-h-screen">
+  <section class="about-hero">
     <div class="container">
       <h2>What Is TiltCheck?</h2>
-      <p style="font-size: 1.15rem; color: #ccc; max-width: 900px; margin: 0 auto 30px; line-height: 1.8;">
+      <p class="about-copy">
         TiltCheck is a modular, AI-assisted ecosystem built to fix the issues every degen community deals with:
         scam links, sketchy promos, nerfed bonuses, confusing payouts, trust issues between users, 
         zero transparency from casinos, tilt spirals, and mods burning out trying to manage chaos.
       </p>
-      <p style="font-size: 1.15rem; color: #ccc; max-width: 900px; margin: 0 auto 30px; line-height: 1.8;">
+      <p class="about-copy">
         Instead of pretending degens will magically behave or quit gambling, 
         TiltCheck brings transparency, tools, and automation to the space.
       </p>
-      <p style="font-size: 1.3rem; color: #00d4aa; max-width: 900px; margin: 30px auto; line-height: 1.8; font-weight: 600;">
+      <p class="about-emphasis">
         This isn't another casino.<br>
         This isn't a bankroll scheme.<br>
         This is the Degen Transparency Layer.
@@ -202,7 +274,7 @@
   <section class="features-section">
     <div class="container">
       <h2>The Core Philosophy</h2>
-      <p style="text-align: center; color: #888; margin-bottom: 40px;">TiltCheck is built on five principles:</p>
+      <p class="about-subtle">TiltCheck is built on five principles:</p>
       
       <div class="philosophy-grid">
         <div class="philosophy-card">
@@ -236,7 +308,7 @@
   <section class="features-section section-dark">
     <div class="container">
       <h2>The Ecosystem at a Glance</h2>
-      <p style="text-align: center; color: #888; margin-bottom: 40px; max-width: 800px; margin-left: auto; margin-right: auto;">
+      <p class="about-subtle-wide">
         TiltCheck is made of interconnected modules that share a trust layer. Every module helps reduce chaos and increase clarity.
       </p>
       
@@ -322,14 +394,14 @@
   <section class="features-section">
     <div class="container">
       <h2>Why Build This?</h2>
-      <p style="font-size: 1.15rem; color: #ccc; max-width: 900px; margin: 0 auto 30px; line-height: 1.8;">
+      <p class="about-copy">
         Because no one else is building tools — they're only building casinos.
       </p>
-      <p style="font-size: 1.15rem; color: #ccc; max-width: 900px; margin: 0 auto 30px; line-height: 1.8;">
+      <p class="about-copy">
         Degens needed: fair insight, safety systems, mod tools, transparency, prediction, automation, 
         non-custodial protection, and a sense of community trust.
       </p>
-      <p style="font-size: 1.3rem; color: #00d4aa; max-width: 900px; margin: 30px auto; line-height: 1.8; font-weight: 600; text-align: center;">
+      <p class="about-emphasis">
         TiltCheck is the first system designed to actually deliver that.
       </p>
     </div>
@@ -338,10 +410,10 @@
   <section class="features-section section-dark">
     <div class="container">
       <h2>Legal Rights Detection</h2>
-      <p style="text-align: center; color: #888; margin-bottom: 20px; font-style: italic;">
+      <p class="legal-italic-note">
         (This is the section that makes casinos sweat.)
       </p>
-      <p style="font-size: 1.15rem; color: #ccc; max-width: 900px; margin: 0 auto 30px; line-height: 1.8;">
+      <p class="about-copy">
         The Casino Trust Engine doesn't just track fairness — it also checks when a casino may be violating 
         payout timelines, bonus conditions, fraud regulations, AML/KYC requirements, consumer protection laws, 
         provable fairness commitments, and withdrawal rights.
@@ -349,74 +421,74 @@
 
       <div class="legal-alert-box">
         <h3>Legal Rights Alert</h3>
-        <p style="color: #ddd; margin-bottom: 20px;">
+        <p class="legal-note">
           "Based on your region and this pattern of behavior, you may have grounds for a regulatory complaint or legal action."
         </p>
-        <p style="color: #888; font-size: 0.95rem; font-style: italic;">
+        <p class="legal-disclaimer">
           This is not legal advice. It's legal awareness — grounded in public regulations.
         </p>
       </div>
 
       <div class="trigger-list">
         <h4>What Triggers a Legal Rights Alert?</h4>
-        <ul style="list-style: none; margin-top: 15px;">
-          <li style="padding: 12px 0; border-bottom: 1px solid #222; color: #ccc;">
-            <strong style="color: #00d4aa;">Repeated or excessive payout delays</strong><br>
+        <ul class="legal-trigger-list">
+          <li>
+            <strong>Repeated or excessive payout delays</strong><br>
             "Your 48-hour payout took 11 days (x3 times)."
           </li>
-          <li style="padding: 12px 0; border-bottom: 1px solid #222; color: #ccc;">
-            <strong style="color: #00d4aa;">Unfair bonus conditions not disclosed upfront</strong><br>
+          <li>
+            <strong>Unfair bonus conditions not disclosed upfront</strong><br>
             Nerfs, hidden rollover jumps, silently removed bonuses.
           </li>
-          <li style="padding: 12px 0; border-bottom: 1px solid #222; color: #ccc;">
-            <strong style="color: #00d4aa;">Denial of withdrawal without cause</strong>
+          <li>
+            <strong>Denial of withdrawal without cause</strong>
           </li>
-          <li style="padding: 12px 0; border-bottom: 1px solid #222; color: #ccc;">
-            <strong style="color: #00d4aa;">Blocked support access</strong><br>
+          <li>
+            <strong>Blocked support access</strong><br>
             Casino blocks a user from chat → automatic red flag.
           </li>
-          <li style="padding: 12px 0; border-bottom: 1px solid #222; color: #ccc;">
-            <strong style="color: #00d4aa;">Refusal to audit gameplay</strong><br>
+          <li>
+            <strong>Refusal to audit gameplay</strong><br>
             If provable fairness logs mismatch expectations.
           </li>
-          <li style="padding: 12px 0; color: #ccc;">
-            <strong style="color: #00d4aa;">Violation of regional gambling rules</strong><br>
+          <li>
+            <strong>Violation of regional gambling rules</strong><br>
             (Future: region-aware triggers.)
           </li>
         </ul>
       </div>
 
-      <h3 style="color: #fff; margin-top: 50px; margin-bottom: 20px;">What TiltCheck Provides</h3>
-      <p style="font-size: 1.1rem; color: #ccc; max-width: 900px; margin: 0 auto 30px; line-height: 1.8;">
+      <h3 class="legal-subhead">What TiltCheck Provides</h3>
+      <p class="about-copy-sm">
         TiltCheck generates a plain-language rights summary, such as:
       </p>
-      <div style="background: #1a1a1a; border-left: 4px solid #00d4aa; padding: 20px; border-radius: 8px; margin: 20px auto; max-width: 800px;">
-        <p style="color: #ddd; font-style: italic; line-height: 1.7;">
+      <div class="quote-box">
+        <p>
           "This pattern may violate consumer protection laws related to payouts.
           Recommended next step: request an audit or file a dispute with [Authority].
           Save all chats and payout logs."
         </p>
       </div>
 
-      <p style="font-size: 1.1rem; color: #ccc; max-width: 900px; margin: 30px auto 20px; line-height: 1.8;">
+      <p class="about-copy-sm-tight">
         It also attaches: evidence chain, timestamps, nerf history, payout history, flagged conversations, and support screenshots (if linked).
       </p>
-      <p style="font-size: 1.1rem; color: #ccc; max-width: 900px; margin: 0 auto 30px; line-height: 1.8;">
+      <p class="about-copy-sm">
         Users get a complete package to take to: casino arbitration, Kahnawake, Curacao Gaming, MGA, FTC (for US consumers), 
         or a lawyer — depending on region (future automated detection).
       </p>
 
-      <h3 style="color: #fff; margin-top: 50px; margin-bottom: 20px;">Why This Is a Game-Changer</h3>
-      <p style="font-size: 1.15rem; color: #ccc; max-width: 900px; margin: 0 auto 30px; line-height: 1.8;">
+      <h3 class="legal-subhead">Why This Is a Game-Changer</h3>
+      <p class="about-copy">
         Most casinos assume players won't pay for a lawyer, understand their rights, know deadlines, or know what counts as a violation.
       </p>
-      <p style="font-size: 1.3rem; color: #00d4aa; max-width: 900px; margin: 30px auto; line-height: 1.8; font-weight: 600; text-align: center;">
+      <p class="about-emphasis">
         TiltCheck flips that power dynamic.
       </p>
-      <p style="font-size: 1.15rem; color: #ccc; max-width: 900px; margin: 0 auto 30px; line-height: 1.8;">
+      <p class="about-copy">
         It turns technical casino behavior into plain English "here's what they're doing" alerts, with receipts.
       </p>
-      <p style="font-size: 1.2rem; color: #fff; max-width: 900px; margin: 30px auto; line-height: 1.8; font-weight: 600; text-align: center;">
+      <p class="legal-callout">
         Casinos can't bully you if you know what they're allowed to do.
       </p>
     </div>
@@ -426,11 +498,11 @@
     <div class="container">
       <h2>The Founder</h2>
       <p>
-        TiltCheck was created by <a href="https://github.com/jmenichole" style="color: #00d4aa; text-decoration: none;">jmenichole</a> — 
+        TiltCheck was created by <a href="https://github.com/jmenichole" class="accent-link">jmenichole</a> — 
         a builder and problem-solver who has spent years inside degen communities.
       </p>
       <p>Not as an outsider. As a participant. As a mod. As someone who genuinely understands the pain points.</p>
-      <p style="font-weight: 600; color: #00d4aa; font-size: 1.3rem; margin-top: 30px;">
+      <p class="about-emphasis">
         TiltCheck is the toolkit she wished existed the entire time.
       </p>
     </div>
@@ -439,7 +511,7 @@
   <section class="cta-section">
     <div class="container">
       <h2>Mission Statement</h2>
-      <p style="font-size: 1.3rem; color: #00d4aa; max-width: 900px; margin: 20px auto 40px; font-weight: 600;">
+      <p class="about-emphasis">
         TiltCheck exists to make degen spaces safer, clearer, and smarter — without killing the fun.
       </p>
       <a href="https://discord.gg/s6NNfPHxMS" class="cta-button">Join Discord →</a>
@@ -450,41 +522,5 @@
   <div id="shared-footer"></div>
   <script src="/scripts/components-loader.js"></script>
   <script src="/scripts/auth.js"></script>
-  <script>
-    // Tools dropdown accessibility
-    (function() {
-      const btn = document.getElementById('tools-dropdown-btn');
-      const menu = document.getElementById('tools-dropdown');
-      if (!btn || !menu) return;
-      let isOpen = false;
-      function toggle() {
-        isOpen = !isOpen;
-        btn.setAttribute('aria-expanded', isOpen);
-        menu.style.opacity = isOpen ? '1' : '0';
-        menu.style.visibility = isOpen ? 'visible' : 'hidden';
-        if (isOpen) menu.querySelector('a')?.focus();
-      }
-      btn.addEventListener('click', toggle);
-      btn.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(); }
-        if (e.key === 'Escape' && isOpen) toggle();
-      });
-      menu.querySelectorAll('a').forEach(link => {
-        link.addEventListener('keydown', (e) => {
-          if (e.key === 'Escape') { toggle(); btn.focus(); }
-        });
-      });
-    })();
-    // Mobile menu toggle
-    (function() {
-      const btn = document.getElementById('mobile-menu-btn');
-      const menu = document.getElementById('mobile-menu');
-      if (btn && menu) {
-        btn.addEventListener('click', () => {
-          menu.classList.toggle('hidden');
-        });
-      }
-    })();
-  </script>
 </body>
 </html>
