@@ -62,6 +62,41 @@ function getDiscordConfig(): DiscordOAuthConfig {
   };
 }
 
+function getAllowedExtensionOrigins(): string[] {
+  const fromEnv = (process.env.ALLOWED_EXTENSION_ORIGINS || '')
+    .split(',')
+    .map((value) => value.trim())
+    .filter(Boolean);
+  const fromId = process.env.CHROME_EXTENSION_ID
+    ? [`chrome-extension://${process.env.CHROME_EXTENSION_ID}`]
+    : [];
+  return Array.from(new Set([...fromEnv, ...fromId]));
+}
+
+function isAllowedExtensionOrigin(origin: string): boolean {
+  if (!origin || !origin.startsWith('chrome-extension://')) {
+    return false;
+  }
+  const allowlist = getAllowedExtensionOrigins();
+  return allowlist.includes(origin);
+}
+
+function isAllowedOAuthRedirect(redirectUrl: string): boolean {
+  try {
+    const parsed = new URL(redirectUrl);
+    const host = parsed.hostname.toLowerCase();
+    const isLocalHost = host === 'localhost' || host === '127.0.0.1';
+    const isTiltcheck = host === 'tiltcheck.me' || host.endsWith('.tiltcheck.me');
+
+    if (isLocalHost) {
+      return parsed.protocol === 'http:' || parsed.protocol === 'https:';
+    }
+    return isTiltcheck && parsed.protocol === 'https:';
+  } catch {
+    return false;
+  }
+}
+
 // ============================================================================
 // Rate Limiting
 // ============================================================================
@@ -311,6 +346,10 @@ router.get('/discord/login', authLimiter, (req, res) => {
     // Store redirect URL if provided
     const redirectUrl = req.query.redirect as string;
     if (redirectUrl) {
+      if (!isAllowedOAuthRedirect(redirectUrl)) {
+        res.status(400).json({ error: 'Invalid redirect URL' });
+        return;
+      }
       res.cookie('oauth_redirect', redirectUrl, {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
@@ -322,6 +361,20 @@ router.get('/discord/login', authLimiter, (req, res) => {
     // Store source if provided (e.g., 'extension')
     if (source) {
       res.cookie('oauth_source', source, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        maxAge: 10 * 60 * 1000,
+      });
+    }
+
+    if (source === 'extension') {
+      const openerOrigin = req.query.opener_origin as string | undefined;
+      if (!openerOrigin || !isAllowedExtensionOrigin(openerOrigin)) {
+        res.status(400).json({ error: 'Invalid extension origin' });
+        return;
+      }
+      res.cookie('oauth_opener_origin', openerOrigin, {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'lax',
@@ -346,9 +399,8 @@ router.get('/discord/callback', authLimiter, async (req, res) => {
     const { code, state } = req.query;
     const storedState = req.cookies?.oauth_state;
     const stateValue = typeof state === 'string' ? state : '';
-    const sourceFromState = stateValue.startsWith('ext_') ? 'extension' : undefined;
     const sourceFromCookie = req.cookies?.oauth_source;
-    const source = sourceFromCookie || sourceFromState;
+    const source = sourceFromCookie;
     const isLocalDev =
       process.env.NODE_ENV !== 'production' &&
       (req.hostname === 'localhost' || req.hostname === '127.0.0.1');
@@ -406,8 +458,15 @@ router.get('/discord/callback', authLimiter, async (req, res) => {
     res.clearCookie('oauth_source');
 
     if (source === 'extension') {
+      const openerOrigin = req.cookies?.oauth_opener_origin;
+      if (!openerOrigin || !isAllowedExtensionOrigin(openerOrigin)) {
+        res.status(400).json({ error: 'Invalid extension callback origin' });
+        return;
+      }
+
       // Generate JWT for the user to pass back directly
       const token = generateJWT(user.id, user.email || `${user.id}@discord.com`, user.roles);
+      res.clearCookie('oauth_opener_origin');
 
       // Branded callback page that posts message to opener
       res.send(`
@@ -437,7 +496,7 @@ router.get('/discord/callback', authLimiter, async (req, res) => {
                 type: 'discord-auth', 
                 token: '${token}',
                 user: userData
-              }, '*');
+              }, ${JSON.stringify(openerOrigin)});
               setTimeout(() => window.close(), 1000);
             </script>
           </body>
@@ -447,8 +506,12 @@ router.get('/discord/callback', authLimiter, async (req, res) => {
     }
 
     // Redirect to stored URL or default
-    const redirectUrl = req.cookies?.oauth_redirect || 'https://tiltcheck.me/play/profile.html';
+    const storedRedirectUrl = req.cookies?.oauth_redirect;
+    const redirectUrl = storedRedirectUrl && isAllowedOAuthRedirect(storedRedirectUrl)
+      ? storedRedirectUrl
+      : 'https://tiltcheck.me/play/profile.html';
     res.clearCookie('oauth_redirect');
+    res.clearCookie('oauth_opener_origin');
 
     res.redirect(redirectUrl);
   } catch (error) {

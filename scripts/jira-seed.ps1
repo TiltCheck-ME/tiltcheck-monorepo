@@ -64,6 +64,22 @@ function Try-ParseErrorBody($ErrorRecord) {
     if ($null -ne $ErrorRecord.ErrorDetails -and -not [string]::IsNullOrWhiteSpace($ErrorRecord.ErrorDetails.Message)) {
         return $ErrorRecord.ErrorDetails.Message
     }
+    try {
+        $response = $ErrorRecord.Exception.Response
+        if ($null -ne $response) {
+            $stream = $response.GetResponseStream()
+            if ($null -ne $stream) {
+                $reader = New-Object System.IO.StreamReader($stream)
+                $body = $reader.ReadToEnd()
+                if (-not [string]::IsNullOrWhiteSpace($body)) {
+                    return $body
+                }
+            }
+        }
+    }
+    catch {
+        # Fall through to generic message.
+    }
     return $ErrorRecord.Exception.Message
 }
 
@@ -124,15 +140,30 @@ function Get-IssueTypeId([string]$TypeName) {
         return $match.id
     }
 
-    if ($TypeName -eq "Tech Debt" -or $TypeName -eq "Spike") {
-        $fallback = $script:IssueTypeCache | Where-Object { $_.name -eq "Task" } | Select-Object -First 1
+    # Fallback strategy for customized Jira instances:
+    # Try common equivalents first, then Task/Story, then first available type.
+    $fallbackCandidates = switch ($TypeName) {
+        "Bug"       { @("Defect", "Task", "Story") }
+        "Spike"     { @("Research", "Task", "Story") }
+        "Tech Debt" { @("Task", "Story") }
+        default     { @("Task", "Story") }
+    }
+
+    foreach ($name in $fallbackCandidates) {
+        $fallback = $script:IssueTypeCache | Where-Object { $_.name -eq $name } | Select-Object -First 1
         if ($null -ne $fallback) {
-            Write-WarnLine "Issue type '$TypeName' not found, falling back to 'Task'."
+            Write-WarnLine "Issue type '$TypeName' not found, falling back to '$name'."
             return $fallback.id
         }
     }
 
-    throw "Issue type '$TypeName' not found in Jira."
+    $any = $script:IssueTypeCache | Select-Object -First 1
+    if ($null -ne $any) {
+        Write-WarnLine "Issue type '$TypeName' not found, falling back to first available issue type '$($any.name)'."
+        return $any.id
+    }
+
+    throw "Issue type '$TypeName' not found in Jira, and no fallback issue types are available."
 }
 
 function New-FieldsObject {
@@ -189,24 +220,78 @@ function Create-IssueWithEpicFallback {
         fields = New-FieldsObject -Item $Item -EpicKey $EpicKey
     }
 
-    try {
-        return Invoke-JiraApi -Method "POST" -Path "issue" -Body $body
-    }
-    catch {
-        if ([string]::IsNullOrWhiteSpace($EpicKey)) {
-            throw
+    $attemptBodies = @($body)
+    if (-not [string]::IsNullOrWhiteSpace($EpicKey)) {
+        $attemptBodies += @{
+            fields = New-FieldsObject -Item $Item -EpicKey $EpicKey -UseEpicLinkFallback
         }
+    }
 
-        $errorBody = Try-ParseErrorBody -ErrorRecord $_
-        if ($errorBody -match "parent" -or $errorBody -match "hierarchy" -or $errorBody -match "cannot be set") {
-            Write-WarnLine "Parent linking failed for '$($Item.Summary)'. Retrying with Epic Link field."
-            $fallbackBody = @{
-                fields = New-FieldsObject -Item $Item -EpicKey $EpicKey -UseEpicLinkFallback
-            }
-            return Invoke-JiraApi -Method "POST" -Path "issue" -Body $fallbackBody
-        }
-        throw
+    # Some Jira projects restrict these fields. We'll retry with reduced payloads.
+    $withoutComponents = @{
+        fields = New-FieldsObject -Item $Item -EpicKey $EpicKey
     }
+    $withoutComponents.fields.Remove("components") | Out-Null
+    $attemptBodies += $withoutComponents
+
+    if (-not [string]::IsNullOrWhiteSpace($EpicKey)) {
+        $withoutComponentsEpicLink = @{
+            fields = New-FieldsObject -Item $Item -EpicKey $EpicKey -UseEpicLinkFallback
+        }
+        $withoutComponentsEpicLink.fields.Remove("components") | Out-Null
+        $attemptBodies += $withoutComponentsEpicLink
+    }
+
+    $withoutPriority = @{
+        fields = New-FieldsObject -Item $Item -EpicKey $EpicKey
+    }
+    $withoutPriority.fields.Remove("priority") | Out-Null
+    $attemptBodies += $withoutPriority
+
+    if (-not [string]::IsNullOrWhiteSpace($EpicKey)) {
+        $withoutPriorityEpicLink = @{
+            fields = New-FieldsObject -Item $Item -EpicKey $EpicKey -UseEpicLinkFallback
+        }
+        $withoutPriorityEpicLink.fields.Remove("priority") | Out-Null
+        $attemptBodies += $withoutPriorityEpicLink
+    }
+
+    $withoutBoth = @{
+        fields = New-FieldsObject -Item $Item -EpicKey $EpicKey
+    }
+    $withoutBoth.fields.Remove("components") | Out-Null
+    $withoutBoth.fields.Remove("priority") | Out-Null
+    $attemptBodies += $withoutBoth
+
+    if (-not [string]::IsNullOrWhiteSpace($EpicKey)) {
+        $withoutBothEpicLink = @{
+            fields = New-FieldsObject -Item $Item -EpicKey $EpicKey -UseEpicLinkFallback
+        }
+        $withoutBothEpicLink.fields.Remove("components") | Out-Null
+        $withoutBothEpicLink.fields.Remove("priority") | Out-Null
+        $attemptBodies += $withoutBothEpicLink
+    }
+
+    $lastError = $null
+    for ($i = 0; $i -lt $attemptBodies.Count; $i++) {
+        try {
+            if ($i -gt 0) {
+                Write-WarnLine "Retrying '$($Item.Summary)' with payload variant #$($i + 1)."
+            }
+            return Invoke-JiraApi -Method "POST" -Path "issue" -Body $attemptBodies[$i]
+        }
+        catch {
+            $lastError = $_
+            $errorBody = Try-ParseErrorBody -ErrorRecord $_
+            Write-WarnLine "Create attempt #$($i + 1) failed for '$($Item.Summary)': $errorBody"
+        }
+    }
+
+    if ($null -ne $lastError) {
+        throw $lastError
+    }
+
+    throw "Unknown failure creating '$($Item.Summary)'."
 }
 
 Throw-IfMissingAuth
@@ -368,6 +453,16 @@ if (-not $DryRun) {
 $epicKeyMap = @{}
 if (-not [string]::IsNullOrWhiteSpace($ExistingEpicKey)) {
     Write-Info "Using existing epic key for all roadmap items: $ExistingEpicKey"
+    if (-not $DryRun) {
+        try {
+            $existingEpic = Invoke-JiraApi -Method "GET" -Path "issue/${ExistingEpicKey}?fields=issuetype,summary,project"
+            Write-Ok "Existing epic resolved: $ExistingEpicKey ($($existingEpic.fields.summary))"
+        }
+        catch {
+            $err = Try-ParseErrorBody -ErrorRecord $_
+            throw "Failed to resolve existing epic key '$ExistingEpicKey': $err"
+        }
+    }
     foreach ($epic in $epics) {
         $epicKeyMap[$epic.Summary] = $ExistingEpicKey
     }

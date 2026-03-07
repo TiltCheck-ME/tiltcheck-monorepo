@@ -25,6 +25,29 @@ export const csrfProtection = (req: Request, res: Response, next: NextFunction) 
   const csrfHeader = req.headers['x-requested-with'] || req.headers['x-csrf-token'];
 
   if (!csrfHeader) {
+    const authHeader = req.headers.authorization;
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      return next();
+    }
+
+    const originOrReferer = req.headers.origin || req.headers.referer;
+    if (typeof originOrReferer === 'string') {
+      try {
+        const parsed = new URL(originOrReferer);
+        const originHost = parsed.hostname.toLowerCase();
+        const requestHost = (req.hostname || '').toLowerCase();
+        const isLocal = originHost === 'localhost' || originHost === '127.0.0.1';
+        const isTiltcheckHost = originHost === 'tiltcheck.me' || originHost.endsWith('.tiltcheck.me');
+        const isSameHost = !!requestHost && originHost === requestHost;
+
+        if (isSameHost || isLocal || isTiltcheckHost) {
+          return next();
+        }
+      } catch {
+        // fall through to rejection
+      }
+    }
+
     return res.status(403).json({
       error: 'CSRF protection triggered: Missing required security header',
       code: 'CSRF_MISSING_HEADER'

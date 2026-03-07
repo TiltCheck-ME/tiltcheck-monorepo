@@ -35,6 +35,7 @@ describe('Payment Routes (Placeholder)', () => {
             const response = await request(app).get('/payments/config');
             expect(response.status).toBe(200);
             expect(response.body.success).toBe(true);
+            expect(response.body.ok).toBe(true);
             expect(response.body.publicKey).toBeNull();
             expect(response.body.provider).toBe('placeholder');
         });
@@ -45,6 +46,7 @@ describe('Payment Routes (Placeholder)', () => {
             const response = await request(app).get('/payments/subscription-status');
             expect(response.status).toBe(400);
             expect(response.body.success).toBe(false);
+            expect(response.body.ok).toBe(false);
         });
 
         it('should return founder status for a recognised founder username', async () => {
@@ -79,12 +81,14 @@ describe('Payment Routes (Placeholder)', () => {
     });
 
     describe('POST /payments/create-checkout-session', () => {
-        it('should return 501 not implemented', async () => {
+        it('should return 503 when payments are not configured', async () => {
             const response = await request(app)
                 .post('/payments/create-checkout-session')
                 .send({ userId: 'user-123' });
-            expect(response.status).toBe(501);
+            expect(response.status).toBe(503);
             expect(response.body.success).toBe(false);
+            expect(response.body.ok).toBe(false);
+            expect(response.body.code).toBe('PAYMENTS_NOT_CONFIGURED');
         });
     });
 

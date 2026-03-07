@@ -24,6 +24,10 @@ app.use('/services', servicesRouter);
 describe('Services Routes', () => {
     beforeEach(() => {
         vi.clearAllMocks();
+        vi.unstubAllGlobals();
+        process.env.SERVICE_FORWARD_TARGETS = JSON.stringify({
+            'auth-service': 'https://auth.internal.tiltcheck.me'
+        });
     });
 
     describe('POST /services/internal', () => {
@@ -48,14 +52,52 @@ describe('Services Routes', () => {
     });
 
     describe('POST /services/forward/:service', () => {
-        it('should return 501 not implemented', async () => {
-            const response = await request(app).post('/services/forward/auth-service').send();
-            expect(response.status).toBe(501);
-            expect(response.body.success).toBe(false);
-            expect(response.body.code).toBe('FORWARD_NOT_IMPLEMENTED');
-            expect(response.body.message).toBe('Service forwarding is not implemented for beta');
+        it('should forward request to allowlisted target service', async () => {
+            const fetchMock = vi.fn().mockResolvedValue({
+                ok: true,
+                status: 200,
+                text: async () => JSON.stringify({ ok: true, from: 'auth-service' })
+            });
+            vi.stubGlobal('fetch', fetchMock);
+
+            const response = await request(app)
+                .post('/services/forward/auth-service')
+                .send({ ping: true });
+
+            expect(response.status).toBe(200);
+            expect(response.body.success).toBe(true);
+            expect(response.body.forwarded).toBe(true);
             expect(response.body.caller).toBe('mock-service');
             expect(response.body.target).toBe('auth-service');
+            expect(response.body.response).toEqual({ ok: true, from: 'auth-service' });
+            expect(fetchMock).toHaveBeenCalledTimes(1);
+            expect(fetchMock.mock.calls[0]?.[0]).toBe('https://auth.internal.tiltcheck.me/');
+        });
+
+        it('should preserve query string when forwarding', async () => {
+            const fetchMock = vi.fn().mockResolvedValue({
+                ok: true,
+                status: 200,
+                text: async () => JSON.stringify({ ok: true })
+            });
+            vi.stubGlobal('fetch', fetchMock);
+
+            const response = await request(app)
+                .post('/services/forward/auth-service?mode=sync&attempt=1')
+                .send({ ping: true });
+
+            expect(response.status).toBe(200);
+            expect(fetchMock).toHaveBeenCalledTimes(1);
+            expect(fetchMock.mock.calls[0]?.[0]).toBe('https://auth.internal.tiltcheck.me/?mode=sync&attempt=1');
+        });
+
+        it('should reject non-allowlisted target service', async () => {
+            const response = await request(app).post('/services/forward/unknown-service').send();
+            expect(response.status).toBe(400);
+            expect(response.body.success).toBe(false);
+            expect(response.body.code).toBe('FORWARD_TARGET_NOT_ALLOWED');
+            expect(response.body.caller).toBe('mock-service');
+            expect(response.body.target).toBe('unknown-service');
         });
     });
 });

@@ -247,7 +247,7 @@
       </div>
 
       <p style="color: var(--color-text-secondary); margin-bottom: 1rem; font-size: 0.875rem;">
-        Your session will persist automatically. We use Supabase OAuth for secure authentication.
+        Your session will persist automatically. We use TiltCheck Discord OAuth for secure authentication.
       </p>
 
       <div class="security-note">
@@ -264,18 +264,18 @@
     </div>
   </main>
 
+  <script src="/scripts/auth.js"></script>
   <!-- Auth Script -->
   <script>
     document.getElementById('discord-login-btn')?.addEventListener('click', async () => {
       try {
         // Check if auth.js is available from other pages
         if (window.tiltCheckAuth?.loginWithDiscord) {
-          await window.tiltCheckAuth.loginWithDiscord();
+          window.tiltCheckAuth.loginWithDiscord();
         } else {
-          // Fallback: Generate OAuth URL via Supabase
-          const supabaseUrl = 'https://ypyvqddzrdjzfdwhcacb.supabase.co';
-          const redirectUrl = `${window.location.origin}/`;
-          const oauthUrl = `${supabaseUrl}/auth/v1/authorize?provider=discord&redirect_to=${encodeURIComponent(redirectUrl)}`;
+          // Fallback: route through API OAuth endpoint directly
+          const redirectUrl = `${window.location.origin}/play/profile.html`;
+          const oauthUrl = `/api/auth/discord/login?redirect=${encodeURIComponent(redirectUrl)}`;
           window.location.href = oauthUrl;
         }
       } catch (error) {

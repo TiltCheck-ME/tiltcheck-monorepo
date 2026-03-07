@@ -215,6 +215,7 @@ class TiltCheckAuth {
     try {
       await fetch('/play/auth/logout', {
         method: 'POST',
+        headers: { 'X-Requested-With': 'XMLHttpRequest' },
         credentials: 'include'
       });
       window.location.reload();
