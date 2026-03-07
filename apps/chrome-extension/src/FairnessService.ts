@@ -1,4 +1,11 @@
 /**
+ * © 2024–2025 TiltCheck Ecosystem. All Rights Reserved.
+ * Created by jmenichole (https://github.com/jmenichole)
+ * 
+ * This file is part of the TiltCheck project.
+ * For licensing information, see LICENSE file in the project root.
+ */
+/**
  * FairnessService
  * Core component of the TiltCheck "Check Yourself" Ecosystem.
  *
@@ -22,30 +29,30 @@ export class FairnessService {
     clientSeed: string
   ): Promise<string> {
     const encoder = new TextEncoder();
-    
+
     // The Solana Block Hash is used as the Key (Salt)
     const keyData = encoder.encode(solanaBlockHash);
-    
+
     // The Message combines the User Identity and their chosen Seed
     const messageData = encoder.encode(`${discordId}${clientSeed}`);
 
     // Import key for HMAC-SHA256
-    const key = await crypto.subtle.importKey(
+    const key = await ((crypto.subtle || (crypto as any).webcrypto.subtle).importKey(
       'raw',
-      keyData,
+      keyData as any,
       { name: 'HMAC', hash: 'SHA-256' },
       false,
       ['sign']
-    );
+    ));
 
     // Sign the message
-    const signature = await crypto.subtle.sign(
+    const signature = await ((crypto.subtle || (crypto as any).webcrypto.subtle).sign(
       'HMAC',
       key,
-      messageData
-    );
+      messageData as any
+    ));
 
-    return this.bufferToHex(signature);
+    return this.bufferToHex(signature as ArrayBuffer);
   }
 
   /**
@@ -58,7 +65,7 @@ export class FairnessService {
     // Take first 8 hex characters (4 bytes)
     const subHash = hexHash.substring(0, 8);
     const intValue = parseInt(subHash, 16);
-    
+
     // Divide by 2^32 to get a float between 0 and 1
     return intValue / 0xffffffff;
   }
@@ -87,10 +94,10 @@ export class FairnessService {
   getLimboResult(float: number, houseEdge: number = 0.01): number {
     // Avoid division by zero
     if (float === 1) return 1000000; // Cap at max payout
-    
+
     // Calculate multiplier
     const multiplier = (1 - houseEdge) / (1 - float);
-    
+
     // Standard floor to 2 decimals
     return Math.floor(multiplier * 100) / 100;
   }
@@ -131,6 +138,35 @@ export class FairnessService {
   ): Promise<boolean> {
     const calculatedHash = await this.generateHash(solanaBlockHash, discordId, clientSeed);
     return calculatedHash === reportedHash;
+  }
+
+  /**
+   * Verifies standard casino game fairness using server seed, client seed, and nonce.
+   */
+  async verifyCasinoResult(
+    serverSeed: string,
+    clientSeed: string,
+    nonce: number
+  ): Promise<string> {
+    const encoder = new TextEncoder();
+    const keyData = encoder.encode(serverSeed);
+    const messageData = encoder.encode(`${clientSeed}:${nonce}`);
+
+    const key = await ((crypto.subtle || (crypto as any).webcrypto.subtle).importKey(
+      'raw',
+      keyData as any,
+      { name: 'HMAC', hash: 'SHA-256' },
+      false,
+      ['sign']
+    ));
+
+    const signature = await ((crypto.subtle || (crypto as any).webcrypto.subtle).sign(
+      'HMAC',
+      key,
+      messageData as any
+    ));
+
+    return this.bufferToHex(signature as ArrayBuffer);
   }
 
   private bufferToHex(buffer: ArrayBuffer): string {

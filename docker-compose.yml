@@ -1,99 +1,191 @@
-# TiltCheck Docker Compose
-# Deploy core services with: docker-compose up -d
-# For bots only: docker-compose up -d discord-bot dad-bot
-
 services:
-  # ===========================================
-  # DISCORD BOTS
-  # ===========================================
-
   discord-bot:
     build:
       context: .
       dockerfile: apps/discord-bot/Dockerfile
-    container_name: tiltcheck-bot
+    container_name: discord-bot
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+    env_file: .env
     environment:
-      - NODE_ENV=production
-      - DISCORD_TOKEN=${DISCORD_TOKEN}
-      - DISCORD_CLIENT_ID=${DISCORD_CLIENT_ID}
-      - DISCORD_GUILD_ID=${DISCORD_GUILD_ID}
-      - DASHBOARD_URL=${DASHBOARD_URL:-https://tiltcheck.app/dashboard}
-      - BACKEND_URL=${BACKEND_URL:-http://api:3001}
-      - SUSLINK_AUTO_SCAN=${SUSLINK_AUTO_SCAN:-true}
-      - TRUST_THRESHOLD=${TRUST_THRESHOLD:-60}
+      - SKIP_ENV_VALIDATION=1
+      - PORT=8081
       - DISCORD_BOT_HEALTH_PORT=8081
-    volumes:
-      - ./data:/app/data
-    restart: unless-stopped
     networks:
-      - tiltcheck
-    healthcheck:
-      test: ["CMD-SHELL", "test -f /tmp/bot-ready || exit 1"]
-      interval: 10s
-      timeout: 5s
-      retries: 30
-      start_period: 60s
-
-  dad-bot:
-    build:
-      context: .
-      dockerfile: apps/discord-bot/Dockerfile
-    container_name: tiltcheck-dad-bot
-    entrypoint: ["node", "apps/dad-bot/dist/index.js"]
-    environment:
-      - NODE_ENV=production
-      - DISCORD_TOKEN=${DAD_DISCORD_TOKEN}
-      - DISCORD_CLIENT_ID=${DAD_DISCORD_CLIENT_ID}
-      - DISCORD_GUILD_ID=${DAD_DISCORD_GUILD_ID}
-      - DAD_BOT_HEALTH_PORT=8082
-    volumes:
-      - ./data:/app/data
-    restart: unless-stopped
-    networks:
-      - tiltcheck
-
-  # ===========================================
-  # API & SERVICES
-  # ===========================================
+      - tiltcheck-network
 
   api:
     build:
       context: .
-      dockerfile: apps/discord-bot/Dockerfile
-    container_name: tiltcheck-api
-    entrypoint: ["node", "apps/api/dist/index.js"]
-    expose:
-      - "3001"
-    environment:
-      - NODE_ENV=production
-      - PORT=3001
-    volumes:
-      - ./data:/app/data
+      dockerfile: apps/api/Dockerfile
+    container_name: api
+    ports:
+      - "3001:3001"
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+    env_file: .env
+    environment:
+      - SKIP_ENV_VALIDATION=1
+      - PORT=3001
+    healthcheck:
+      test: [ "CMD", "wget", "-qO-", "http://localhost:3001/health" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
     networks:
-      - tiltcheck
+      - tiltcheck-network
+
+  dashboard:
+    build:
+      context: .
+      dockerfile: apps/dashboard/Dockerfile
+    container_name: dashboard
+    ports:
+      - "5055:3000"
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+    env_file: .env
+    environment:
+      - SKIP_ENV_VALIDATION=1
+      - PORT=3000
+    healthcheck:
+      test: [ "CMD", "wget", "-qO-", "http://localhost:3000/api/health" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - tiltcheck-network
+
+  control-room:
+    build:
+      context: .
+      dockerfile: apps/control-room/Dockerfile
+    container_name: control-room
+    ports:
+      - "3002:3001"
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+    env_file: .env
+    environment:
+      - SKIP_ENV_VALIDATION=1
+      - PORT=3001
+    networks:
+      - tiltcheck-network
+
+  landing:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+    container_name: landing
+    ports:
+      - "8080:80"
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 128M
+    healthcheck:
+      test: [ "CMD-SHELL", "wget -qO- http://localhost:80/status.html || exit 0" ]
+      interval: 60s
+      timeout: 5s
+      retries: 3
+    networks:
+      - tiltcheck-network
 
   trust-rollup:
     build:
       context: .
-      dockerfile: apps/discord-bot/Dockerfile
-    container_name: tiltcheck-rollup
-    entrypoint: ["node", "apps/trust-rollup/dist/index.js"]
-    environment:
-      - NODE_ENV=production
-      - TRUST_ROLLUP_HEALTH_PORT=8083
-    volumes:
-      - ./data:/app/data
+      dockerfile: apps/trust-rollup/Dockerfile
+    container_name: trust-rollup
+    ports:
+      - "8082:8082"
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+    env_file: .env
+    environment:
+      - SKIP_ENV_VALIDATION=1
+      - PORT=8082
     networks:
-      - tiltcheck
-    healthcheck:
-      test: ["CMD-SHELL", "test -f /tmp/rollup-ready || exit 1"]
-      interval: 10s
-      timeout: 5s
-      retries: 30
-      start_period: 60s
+      - tiltcheck-network
+
+  user-dashboard:
+    build:
+      context: .
+      dockerfile: apps/user-dashboard/Dockerfile
+    container_name: user-dashboard
+    ports:
+      - "6001:6001"
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+    env_file: .env
+    environment:
+      - SKIP_ENV_VALIDATION=1
+      - PORT=6001
+    networks:
+      - tiltcheck-network
+
+  game-arena:
+    build:
+      context: .
+      dockerfile: apps/game-arena/Dockerfile
+    container_name: game-arena
+    ports:
+      - "7071:3010"
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+    env_file: .env
+    environment:
+      - SKIP_ENV_VALIDATION=1
+      - PORT=3010
+    networks:
+      - tiltcheck-network
+
+  reverse-proxy:
+    build:
+      context: .
+      dockerfile: apps/reverse-proxy/Dockerfile
+    container_name: reverse-proxy
+    ports:
+      - "81:80"
+      - "444:443"
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 128M
+    volumes:
+      - /etc/letsencrypt:/etc/letsencrypt:ro
+      - /home/jme/certbot:/var/www/certbot:ro
+    depends_on:
+      - landing
+      - api
+      - dashboard
+      - user-dashboard
+      - game-arena
+    networks:
+      - tiltcheck-network
 
 networks:
-  tiltcheck:
+  tiltcheck-network:
     driver: bridge

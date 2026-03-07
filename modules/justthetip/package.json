@@ -17,8 +17,8 @@
     "@tiltcheck/database": "workspace:*",
     "@tiltcheck/event-router": "workspace:*",
     "@tiltcheck/natural-language-parser": "workspace:*",
-    "@tiltcheck/pricing-oracle": "workspace:*",
     "@tiltcheck/types": "workspace:*",
+    "@tiltcheck/utils": "workspace:*",
     "bignumber.js": "^9.3.1",
     "uuid": "^13.0.0"
   },

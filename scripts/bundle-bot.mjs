@@ -22,6 +22,8 @@ const DIST = path.join(ROOT, 'dist-bundle');
 
 // External packages that must NOT be bundled (native modules, WASM, large deps)
 const EXTERNAL = [
+  // Elastic
+  '@elastic/elasticsearch',
   // Discord
   'discord.js',
   // Environment

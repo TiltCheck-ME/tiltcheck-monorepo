@@ -1,4 +1,11 @@
 /**
+ * © 2024–2025 TiltCheck Ecosystem. All Rights Reserved.
+ * Created by jmenichole (https://github.com/jmenichole)
+ * 
+ * This file is part of the TiltCheck project.
+ * For licensing information, see LICENSE file in the project root.
+ */
+/**
  * TiltCheck AI Gateway Client
  * 
  * Shared client for making requests to the AI Gateway service.
@@ -12,14 +19,15 @@
  * 7. User Support
  */
 
-export type AIApplication = 
+export type AIApplication =
   | 'survey-matching'
   | 'card-generation'
   | 'moderation'
   | 'tilt-detection'
   | 'nl-commands'
   | 'recommendations'
-  | 'support';
+  | 'support'
+  | 'onboarding';
 
 export interface AIRequest {
   application: AIApplication;
@@ -137,6 +145,25 @@ export interface SupportData {
   escalateToHuman: boolean;
 }
 
+export interface OnboardingData {
+  interviewQuestions: Array<{
+    id: string;
+    question: string;
+    options?: string[]; // If predefined options
+    expectedType: 'text' | 'choice' | 'boolean';
+    purpose: string; // What this question helps personalize
+  }>;
+  personalizedTutorialPaths: Array<{
+    moduleId: string;
+    title: string;
+    description: string;
+    relevanceScore: number;
+    estimatedMinutes: number;
+  }>;
+  gamingPersona: string;
+  recommendedRiskLevel: 'conservative' | 'moderate' | 'degen';
+}
+
 export interface AIClientConfig {
   baseUrl?: string;
   timeout?: number;
@@ -175,16 +202,16 @@ export class AIClient {
     }
 
     let lastError: Error | null = null;
-    
+
     for (let attempt = 0; attempt <= this.config.retries; attempt++) {
       try {
         const response = await this.makeRequest<T>(request);
-        
+
         // Cache successful responses
         if (response.success) {
           this.cache.set(cacheKey, { response: response as AIResponse, timestamp: Date.now() });
         }
-        
+
         return response;
       } catch (error) {
         lastError = error as Error;
@@ -229,7 +256,7 @@ export class AIClient {
       return await response.json() as AIResponse<T>;
     } catch (error) {
       clearTimeout(timeoutId);
-      
+
       if ((error as Error).name === 'AbortError') {
         throw new Error('Request timeout');
       }
@@ -327,6 +354,40 @@ export class AIClient {
       application: 'support',
       prompt: question,
       context: context as Record<string, unknown>,
+    });
+  }
+
+  /**
+   * Convenience method for generating a tailored onboarding interview and tutorial path
+   */
+  async generateOnboardingInterview(userProfile?: {
+    walletAge?: number;
+    previousExperience?: string;
+    platform?: 'web' | 'discord';
+  }): Promise<AIResponse<OnboardingData>> {
+    return this.request<OnboardingData>({
+      application: 'onboarding',
+      context: userProfile as Record<string, unknown>,
+    });
+  }
+
+  /**
+   * Submit feedback for an AI response to improve future performance
+   */
+  async submitFeedback(options: {
+    application: AIApplication;
+    originalRequest: AIRequest;
+    actualOutcome: unknown;
+    userCorrected?: boolean;
+    rating?: number; // 1-5
+    comments?: string;
+  }): Promise<AIResponse<{ feedbackId: string }>> {
+    return this.request<{ feedbackId: string }>({
+      application: options.application,
+      context: {
+        feedback: true,
+        ...options,
+      },
     });
   }
 

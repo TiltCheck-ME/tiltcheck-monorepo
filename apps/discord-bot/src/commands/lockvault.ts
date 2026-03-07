@@ -1,4 +1,11 @@
 /**
+ * © 2024–2025 TiltCheck Ecosystem. All Rights Reserved.
+ * Created by jmenichole (https://github.com/jmenichole)
+ * 
+ * This file is part of the TiltCheck project.
+ * For licensing information, see LICENSE file in the project root.
+ */
+/**
  * LockVault Commands
  * Time-lock funds using disposable Magic-like vault wallets.
  */
@@ -41,11 +48,11 @@ export const lockvault: Command = {
       sub
         .setName('autovault')
         .setDescription('Set auto-vault configuration')
+        .addStringOption(o => o.setName('apikey').setDescription('API key for casino integration').setRequired(true))
         .addNumberOption(o => o.setName('percentage').setDescription('Percentage of wins to auto-vault (0-100)'))
         .addNumberOption(o => o.setName('threshold').setDescription('Vault everything over this balance amount'))
         .addStringOption(o => o.setName('currency').setDescription('Currency for threshold (SOL/USD)').addChoices({ name: 'SOL', value: 'SOL' }, { name: 'USD', value: 'USD' }))
         .addBooleanOption(o => o.setName('savefornft').setDescription('Automatically save vaulted funds for your Identity NFT fee'))
-        .addStringOption(o => o.setName('apikey').setDescription('API key for casino integration').setRequired(true))
     )
     .addSubcommand(sub =>
       sub
@@ -81,7 +88,7 @@ export const lockvault: Command = {
             { name: 'Vault Wallet', value: `
 \`${vault.vaultAddress}\``, inline: false },
             { name: 'Unlocks', value: `<t:${Math.floor(vault.unlockAt/1000)}:R>`, inline: true },
-            { name: 'Amount (SOL eq)', value: vault.lockedAmountSOL === 0 ? 'ALL (snapshot)' : vault.lockedAmountSOL.toFixed(4), inline: true },
+            { name: 'Amount (SOL, normalized)', value: vault.lockedAmountSOL === 0 ? 'ALL (snapshot)' : `${vault.lockedAmountSOL.toFixed(4)} SOL`, inline: true },
           )
           .setFooter({ text: reason ? `Reason: ${reason}` : 'Use /vault status to view all vaults' });
         await interaction.reply({ embeds: [embed], ephemeral: true });
@@ -94,8 +101,17 @@ export const lockvault: Command = {
             .setTitle('✅ Vault Unlocked')
             .addFields(
               { name: 'Vault ID', value: vault.id },
-              { name: 'Released', value: `${vault.lockedAmountSOL === 0 ? 'ALL' : vault.lockedAmountSOL.toFixed(4)} SOL eq` },
+              { name: 'Released (SOL)', value: `${vault.lockedAmountSOL === 0 ? 'ALL' : `${vault.lockedAmountSOL.toFixed(4)} SOL`}` },
             );
+
+          if (vault.vaultSecret) {
+            embed.addFields({ 
+              name: '🔑 Private Key / Secret', 
+              value: `||${vault.vaultSecret}||`, 
+              inline: false 
+            });
+            embed.setFooter({ text: 'Keep this secret! Use it to sweep your funds in any wallet.' });
+          }
           await interaction.reply({ embeds: [embed], ephemeral: true });
         } catch (err) {
           await interaction.reply({ content: `❌ ${(err as Error).message}`, ephemeral: true });
@@ -131,7 +147,11 @@ export const lockvault: Command = {
           .setColor(0x1E90FF)
           .setTitle('📊 Your Vaults')
           .setDescription(
-            (vaults.length > 0 ? vaults.map((v: LockVaultRecord) => `• **${v.id}** – ${v.status} – unlocks <t:${Math.floor(v.unlockAt/1000)}:R> – ${v.lockedAmountSOL===0? 'ALL' : v.lockedAmountSOL.toFixed(4)+' SOL'}`).join('\n') : 'No active vaults.') +
+            (vaults.length > 0 ? vaults.map((v: LockVaultRecord) => {
+              const ready = Date.now() >= v.unlockAt ? 'ready' : 'waiting';
+              const amount = v.lockedAmountSOL === 0 ? 'ALL' : `${v.lockedAmountSOL.toFixed(4)} SOL`;
+              return `• **${v.id}** – ${v.status} (${ready}) – unlocks <t:${Math.floor(v.unlockAt/1000)}:R> – ${amount}`;
+            }).join('\n') : 'No active vaults.') +
             (autoVault ? `\n\n**Auto-Vault:** ${autoVault.percentage}% active` : '') +
             (reloadSchedule ? `\n**Reload:** ${reloadSchedule.amountRaw} ${reloadSchedule.interval}` : '')
           );

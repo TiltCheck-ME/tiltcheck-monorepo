@@ -1,3 +1,10 @@
+/**
+ * © 2024–2025 TiltCheck Ecosystem. All Rights Reserved.
+ * Created by jmenichole (https://github.com/jmenichole)
+ * 
+ * This file is part of the TiltCheck project.
+ * For licensing information, see LICENSE file in the project root.
+ */
 import { defineConfig } from 'vitest/config';
 import { fileURLToPath } from 'url';
 import path from 'path';
@@ -18,18 +25,16 @@ export default defineConfig({
       '@tiltcheck/identity-core': r('packages/identity-core/src/index.ts'),
       '@tiltcheck/config': r('packages/config/src/index.ts'),
       '@tiltcheck/natural-language-parser': r('packages/natural-language-parser/src/index.ts'),
-      '@tiltcheck/pricing-oracle': r('apps/pricing-oracle/src/index.ts'),
+      '@tiltcheck/utils': r('packages/utils/src/index.ts'),
       '@tiltcheck/collectclock': r('modules/collectclock/src/index.ts'),
       '@tiltcheck/ai-client': r('packages/ai-client/src/index.ts'),
       '@tiltcheck/stake': r('modules/stake/src/index.ts'),
       '@tiltcheck/lockvault': r('modules/lockvault/src/index.ts'),
-      '@tiltcheck/freespinscan': r('modules/freespinscan/src/index.ts'),
       '@tiltcheck/tiltcheck-core': r('modules/tiltcheck-core/src/index.ts'),
       '@tiltcheck/triviadrops': r('modules/triviadrops/index.ts'),
       '@tiltcheck/trust-engines': r('packages/trust-engines/src/index.ts'),
       '@tiltcheck/justthetip': r('modules/justthetip/src/index.ts'),
       '@tiltcheck/poker': r('modules/poker/index.ts'),
-      '@tiltcheck/qualifyfirst': r('modules/qualifyfirst/src/index.ts'),
       '@tiltcheck/walletcheck': r('modules/walletcheck/src/index.ts'),
       '@tiltcheck/esm-utils': r('packages/esm-utils/src/index.ts'),
     },

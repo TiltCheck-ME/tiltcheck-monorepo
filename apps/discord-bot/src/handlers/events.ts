@@ -1,18 +1,34 @@
 /**
  * Event Handler
- * 
+ *
  * Manages Discord client events and Event Router subscriptions.
  */
 
 import { Client, Events } from 'discord.js';
 import { eventRouter } from '@tiltcheck/event-router';
-import { extractUrls, ModNotifier, createModNotifier } from '@tiltcheck/discord-utils';
-// import { suslink } from '@tiltcheck/suslink';
+import { extractUrls, ModNotifier, createModNotifier, ModNotificationEventType } from '@tiltcheck/discord-utils';
+import { suslink } from '@tiltcheck/suslink';
 import { trackMessage, isOnCooldown, recordViolation } from '@tiltcheck/tiltcheck-core';
 import { config } from '../config.js';
 import type { CommandHandler } from './commands.js';
 import { checkAndOnboard, handleOnboardingInteraction, needsOnboarding } from './onboarding.js';
 import type { TiltCheckEvent } from '@tiltcheck/types';
+import { trackMessageEvent, trackCommandEvent } from '../services/elastic-telemetry.js';
+import { markUserActive, type TiltAgentContext } from '../services/tilt-agent.js';
+import { handleCommandError } from './error.js';
+import { dispatchButtonInteraction } from './button-handlers.js';
+
+function getTiltAgentContext(): TiltAgentContext | undefined {
+  const stateCode = process.env.TILT_AGENT_DEFAULT_STATE_CODE?.trim().toUpperCase();
+  const regulationTopic = process.env.TILT_AGENT_DEFAULT_REG_TOPIC?.trim().toLowerCase();
+
+  if (!stateCode && !regulationTopic) return undefined;
+
+  return {
+    stateCode,
+    regulationTopic,
+  };
+}
 
 export class EventHandler {
   private modNotifier: ModNotifier;
@@ -21,7 +37,6 @@ export class EventHandler {
     private client: Client,
     private commandHandler: CommandHandler
   ) {
-    // Initialize mod notifier with config
     this.modNotifier = createModNotifier({
       modChannelId: config.modNotifications.modChannelId,
       modRoleId: config.modNotifications.modRoleId,
@@ -32,24 +47,15 @@ export class EventHandler {
     });
   }
 
-  /**
-   * Register all Discord event handlers
-   */
   registerDiscordEvents(): void {
-    // Ready event
     this.client.once(Events.ClientReady, (client) => {
       console.log(`[Bot] Ready! Logged in as ${client.user.tag}`);
       console.log(`[Bot] Serving ${client.guilds.cache.size} guilds`);
-      
-      // Set the client on the mod notifier once ready
       this.modNotifier.setClient(client);
     });
 
-    // Interaction create (slash commands)
     this.client.on(Events.InteractionCreate, async (interaction) => {
-      // Handle button interactions
       if (interaction.isButton()) {
-        // Check for onboarding buttons first
         if (interaction.customId.startsWith('onboard_')) {
           await handleOnboardingInteraction(interaction);
           return;
@@ -58,7 +64,6 @@ export class EventHandler {
         return;
       }
 
-      // Handle select menu interactions (for onboarding preferences)
       if (interaction.isStringSelectMenu() && interaction.customId.startsWith('onboard_')) {
         await handleOnboardingInteraction(interaction);
         return;
@@ -66,130 +71,168 @@ export class EventHandler {
 
       if (!interaction.isChatInputCommand()) return;
 
-      // Check for cooldown
       if (isOnCooldown(interaction.user.id)) {
         recordViolation(interaction.user.id);
-        await interaction.reply({ 
-          content: '🛑 **Cooldown Active**\nYou are currently on cooldown to prevent tilt-driven decisions. Please take a break and try again later!', 
-          ephemeral: true 
+        await interaction.reply({
+          content: 'Cooldown is active. Quick breather, then run it back.',
+          ephemeral: true
         });
         return;
       }
 
-      // Check if user needs onboarding (first-time user)
       if (needsOnboarding(interaction.user.id)) {
-        // Send welcome DM in background (don't block command execution)
         checkAndOnboard(interaction.user).catch(err => {
           console.error('[Bot] Failed to send welcome DM:', err);
         });
       }
 
       const command = this.commandHandler.getCommand(interaction.commandName);
-
       if (!command) {
-        console.warn(
-          `[Bot] Unknown command: ${interaction.commandName}`
-        );
+        console.warn(`[Bot] Unknown command: ${interaction.commandName}`);
         return;
       }
 
+      trackCommandEvent({
+        userId: interaction.user.id,
+        guildId: interaction.guildId ?? undefined,
+        commandName: interaction.commandName,
+        isDM: !interaction.guildId,
+      });
+      markUserActive(interaction.user.id, getTiltAgentContext());
+
       try {
         await command.execute(interaction);
-        console.log(
-          `[Bot] ${interaction.user.tag} used /${interaction.commandName}`
-        );
+        console.log(`[Bot] ${interaction.user.tag} used /${interaction.commandName}`);
       } catch (error) {
-        console.error(
-          `[Bot] Error executing ${interaction.commandName}:`,
-          error
-        );
-
-        const errorMessage = {
-          content: 'There was an error executing this command!',
-          ephemeral: true,
-        };
-
-        if (interaction.replied || interaction.deferred) {
-          await interaction.followUp(errorMessage);
-        } else {
-          await interaction.reply(errorMessage);
-        }
+        await handleCommandError(error, interaction);
       }
     });
 
-    // Message create (auto-scan links if enabled)
     this.client.on(Events.MessageCreate, async (message) => {
       if (message.author.bot) return;
 
-      // Track message for tilt detection
       trackMessage(message.author.id, message.content, message.channelId);
 
-      /*
-      if (config.suslinkAutoScan) {
-        // ... (existing code)
+      trackMessageEvent({
+        userId: message.author.id,
+        guildId: message.guildId ?? undefined,
+        channelId: message.channelId,
+        isDM: !message.guildId,
+      });
+      markUserActive(message.author.id, getTiltAgentContext());
+
+      if (!config.suslinkAutoScan) return;
+
+      const urls = extractUrls(message.content);
+      if (urls.length === 0) return;
+
+      const uniqueUrls = Array.from(new Set(urls)).slice(0, 3);
+      for (const url of uniqueUrls) {
+        try {
+          const result = await suslink.scanUrl(url, message.author.id);
+          if (result.riskLevel === 'high' || result.riskLevel === 'critical') {
+            await message.reply(
+              `Heads up: sketchy link detected (${result.riskLevel})\n${url}\nReason: ${result.reason}`
+            ).catch(() => { });
+          }
+        } catch (error) {
+          console.error('[EventHandler] Auto-scan failed:', error);
+        }
       }
-      */
     });
 
     console.log('[EventHandler] Discord events registered');
   }
 
-  /**
-   * Handle button interactions
-   */
   private async handleButtonInteraction(interaction: any): Promise<void> {
     const customId = interaction.customId;
 
-    // Handle airdrop claim buttons
-    if (customId.startsWith('airdrop_claim_')) {
-      const messageId = interaction.message.id;
-      
-      // Import the airdrop handler from tip command
-      // This is a workaround - ideally we'd have a shared button handler registry
-      try {
-        const tipCommand = this.commandHandler.getCommand('tip');
-        if (tipCommand && 'handleAirdropClaim' in tipCommand) {
-          await (tipCommand as any).handleAirdropClaim(interaction, messageId);
-        } else {
-          await interaction.reply({ content: '❌ Airdrop claim handler not found.', ephemeral: true });
-        }
-      } catch (error) {
-        console.error('[EventHandler] Airdrop claim error:', error);
-        await interaction.reply({ 
-          content: `❌ Failed to process claim: ${error instanceof Error ? error.message : 'Unknown error'}`, 
-          ephemeral: true 
-        });
-      }
+    try {
+      const handled = await dispatchButtonInteraction(customId, interaction);
+      if (handled) return;
+    } catch (error) {
+      console.error('[EventHandler] Button handler error:', error);
+      await interaction.reply({
+        content: `Failed to process button action: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        ephemeral: true
+      });
       return;
     }
 
-    // Unknown button
-    await interaction.reply({ content: '❌ Unknown button action.', ephemeral: true });
+    await interaction.reply({ content: 'Unknown button action.', ephemeral: true });
   }
 
-  /**
-   * Subscribe to Event Router events
-   */
+  private async handleModAction(type: ModNotificationEventType, data: any): Promise<void> {
+    if (!this.modNotifier.isEnabled()) return;
+
+    try {
+      console.log(`[EventHandler] Routing mod action for ${type}`);
+
+      switch (type) {
+        case 'tilt.detected':
+          await this.modNotifier.notifyTiltDetected({
+            userId: data.userId,
+            reason: data.reason,
+            severity: data.severity,
+            channelId: data.channelId,
+            guildId: data.guildId,
+          });
+          break;
+        case 'cooldown.violated':
+          await this.modNotifier.notifyCooldownViolation({
+            userId: data.userId,
+            action: data.action || 'cooldown_violation',
+            newDuration: data.newDuration || 5,
+            channelId: data.channelId,
+          });
+          break;
+        case 'link.flagged':
+          await this.modNotifier.notifyLinkFlagged({
+            url: data.url,
+            riskLevel: data.riskLevel,
+            userId: data.userId,
+            channelId: data.channelId,
+            guildId: data.guildId,
+            reason: data.reason,
+          });
+          break;
+        case 'scam.reported':
+          await this.modNotifier.notify({
+            type: 'scam.reported',
+            userId: data.userId,
+            title: 'Scam Reported',
+            description: data.description || 'A potential scam has been reported.',
+            severity: 4,
+            channelId: data.channelId,
+            guildId: data.guildId,
+          });
+          break;
+      }
+    } catch (error) {
+      console.error(`[EventHandler] Error in handleModAction for ${type}:`, error);
+    }
+  }
+
   subscribeToEvents(): void {
-    // Subscribe to tilt detected events (warn users on cooldown)
     eventRouter.subscribe(
       'tilt.detected',
       async (event: TiltCheckEvent) => {
         try {
           const { userId, reason, severity, tiltScore } = event.data;
-          
-          // Get the user from client
+
           const user = await this.client.users.fetch(userId);
           if (!user) return;
 
-          // Send a warning DM
-          const warningMessage = severity >= 4 
-            ? `⚠️ **Tilt Warning: Automatic Cooldown Started**\nOur system detected significant tilt signals (${reason}). To protect your funds, we've initiated a short cooldown. Take a breather! 🧘`
-            : `⚠️ **Tilt Warning**\nWe've detected some tilt signals (${reason}, score: ${tiltScore.toFixed(1)}). Remember to stay disciplined and take a break if you're feeling frustrated!`;
+          const scoreText = typeof tiltScore === 'number' ? tiltScore.toFixed(1) : 'n/a';
+          const warningMessage = severity >= 4
+            ? `Tilt warning: auto-cooldown started. Reason: ${reason}.`
+            : `Tilt warning: detected (${reason}, score: ${scoreText}). Play it calm.`;
 
           await user.send(warningMessage).catch(() => {
-            console.log(`[Bot] Could not send tilt warning DM to ${user.tag} (DMs might be closed)`);
+            console.log(`[Bot] Could not send tilt warning DM to ${user.tag}`);
           });
+
+          await this.handleModAction('tilt.detected', event.data);
         } catch (error) {
           console.error('[Bot] Error handling tilt.detected event:', error);
         }
@@ -197,25 +240,28 @@ export class EventHandler {
       'discord-bot'
     );
 
-    // Subscribe to cooldown violation events
     eventRouter.subscribe(
       'cooldown.violated',
       async (event: TiltCheckEvent) => {
         try {
           const { userId, violationCount, expiresAt } = event.data;
-          
+
           const user = await this.client.users.fetch(userId);
           if (!user) return;
 
-          const remainingMs = expiresAt - Date.now();
+          const remainingMs = expiresAt ? expiresAt - Date.now() : 0;
           const remainingMin = Math.ceil(remainingMs / 60000);
 
           const violationMessage = violationCount >= 3
-            ? `🛑 **Cooldown Violation**\nYou are still on cooldown for another ${remainingMin} minutes. Because of repeated violations, your cooldown has been extended. Please take this time to cool off.`
-            : `🛑 **Cooldown Active**\nYou are currently on cooldown for another ${remainingMin} minutes. Take a break from betting/chatting to clear your head!`;
+            ? `Cooldown violation. ${remainingMin} minutes left, and it got extended.`
+            : `Cooldown still active. ${remainingMin} minutes left.`;
 
-          await user.send(violationMessage).catch(() => {
-             // Silently fail if DM fails - user is already spamming
+          await user.send(violationMessage).catch(() => { });
+
+          await this.handleModAction('cooldown.violated', {
+            ...event.data,
+            action: 'message_sent_on_cooldown',
+            newDuration: remainingMin > 0 ? remainingMin : 5
           });
         } catch (error) {
           console.error('[Bot] Error handling cooldown.violated event:', error);
@@ -224,6 +270,65 @@ export class EventHandler {
       'discord-bot'
     );
 
+    eventRouter.subscribe(
+      'link.flagged',
+      async (event: TiltCheckEvent) => {
+        await this.handleModAction('link.flagged', event.data);
+      },
+      'discord-bot'
+    );
+
+    eventRouter.subscribe(
+      'scam.reported',
+      async (event: TiltCheckEvent) => {
+        await this.handleModAction('scam.reported', event.data);
+      },
+      'discord-bot'
+    );
+
+    // LockVault Subscriptions
+    eventRouter.subscribe(
+      'vault.expired',
+      async (event: TiltCheckEvent) => {
+        const { userId, id, address, amountSOL } = event.data;
+        const user = await this.client.users.fetch(userId).catch(() => null);
+        if (user) {
+          const amountText = amountSOL === 0 ? 'all funds' : `${amountSOL.toFixed(4)} SOL eq`;
+          await user.send(`🔓 **Vault Unlocked!**\n\nYour vault \`${id}\` (${amountText}) is now ready for withdrawal.\nUse \`/vault unlock id:${id}\` to release it.\n\nAddress: \`${address}\``).catch(() => { });
+        }
+      },
+      'discord-bot'
+    );
+
+    eventRouter.subscribe(
+      'vault.reload_due',
+      async (event: TiltCheckEvent) => {
+        const { userId, amountRaw, interval } = event.data;
+        const user = await this.client.users.fetch(userId).catch(() => null);
+        if (user) {
+          await user.send(`📅 **Vault Reload Due (${interval})**\n\nTime for your scheduled lock of **${amountRaw}**.\nRun \`/vault lock amount:${amountRaw} duration:24h\` to stay on track.`).catch(() => { });
+        }
+      },
+      'discord-bot'
+    );
+
+    eventRouter.subscribe(
+      'vault.locked',
+      async (event: TiltCheckEvent) => {
+        const { userId, id, vaultType, vaultAddress, amountSOL } = event.data;
+        // Only DM if it's potentially an auto-vault (not explicitly created by command reply)
+        // For simplicity, we can just DM every lock as a "secure receipt", or only for magic/auto.
+        const user = await this.client.users.fetch(userId).catch(() => null);
+        if (user) {
+          const typeText = vaultType === 'magic' ? 'your Degen Identity' : 'a disposable vault';
+          const amountText = amountSOL === 0 ? 'ALL' : amountSOL.toFixed(4);
+          await user.send(`🔒 **Vault Locked**\n\nFunds secured in ${typeText}.\n- **ID:** \`${id}\`\n- **Target:** \`${amountText} SOL eq\`\n- **Address:** \`${vaultAddress}\`\n\nUse \`/vault status\` to view your locks.`).catch(() => { });
+        }
+      },
+      'discord-bot'
+    );
+
     console.log('[EventHandler] Event Router subscriptions active');
   }
 }
+

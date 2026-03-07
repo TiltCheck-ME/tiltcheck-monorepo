@@ -1,5 +1,7 @@
 # TiltCheck Auto-Claimer Implementation Summary
 
+> **Status:** Archived subsystem — the Telegram-based Auto-Claimer is **no longer an active part of the TiltCheck MVP**. This document is retained as an implementation record and reference only. It should not be considered an in-scope feature for current planning or deployment.
+
 ## Project Overview
 
 The TiltCheck Auto-Claimer is a complete system that automatically claims Stake promo codes from public Telegram channels based on user eligibility and wager requirements. Users submit their API keys via a web interface, and the system handles the rest server-side.

@@ -1,4 +1,11 @@
 /**
+ * © 2024–2025 TiltCheck Ecosystem. All Rights Reserved.
+ * Created by jmenichole (https://github.com/jmenichole)
+ * 
+ * This file is part of the TiltCheck project.
+ * For licensing information, see LICENSE file in the project root.
+ */
+/**
  * Supabase Auth Types
  * Type definitions for authentication functionality
  */
@@ -26,7 +33,7 @@ export interface AuthUser {
   /** Phone verification status */
   phoneConfirmed: boolean;
   /** Authentication provider used */
-  provider?: AuthProvider;
+  provider?: AuthProvider | 'email';
   /** User metadata from provider */
   userMetadata: Record<string, any>;
   /** App-specific metadata */
@@ -156,7 +163,7 @@ export interface AuthError {
 /**
  * Auth state change event types
  */
-export type AuthChangeEvent = 
+export type AuthChangeEvent =
   | 'INITIAL_SESSION'
   | 'SIGNED_IN'
   | 'SIGNED_OUT'
@@ -194,7 +201,7 @@ export interface AuthConfig {
 export function mapSupabaseUser(user: SupabaseUser): AuthUser {
   const identities = user.identities || [];
   const discordIdentity = identities.find(i => i.provider === 'discord');
-  
+
   return {
     id: user.id,
     email: user.email,

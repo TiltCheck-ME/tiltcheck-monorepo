@@ -1,4 +1,12 @@
 <!DOCTYPE html>
+<!--
+  © 2024–2025 TiltCheck Ecosystem. All Rights Reserved.
+  Created by jmenichole (https://github.com/jmenichole)
+  
+  This file is part of the TiltCheck project.
+  For licensing information, see LICENSE file in the project root.
+-->
+
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -225,13 +233,13 @@
 
   <div class="settings-container">
     <div class="settings-header">
-      <h1>⚙️ Settings</h1>
+      <h1>Settings</h1>
       <p>Manage your account preferences and integrations</p>
     </div>
 
     <!-- Account Section -->
     <div class="settings-section">
-      <h2>👤 Account</h2>
+      <h2>Account</h2>
       
       <div class="setting-item">
         <div class="setting-info">
@@ -256,7 +264,7 @@
 
     <!-- Notifications Section -->
     <div class="settings-section">
-      <h2>🔔 Notifications</h2>
+      <h2>Notifications</h2>
       
       <div class="setting-item">
         <div class="setting-info">
@@ -301,7 +309,7 @@
 
     <!-- Privacy Section -->
     <div class="settings-section">
-      <h2>🔒 Privacy</h2>
+      <h2>Privacy</h2>
       
       <div class="setting-item">
         <div class="setting-info">
@@ -340,7 +348,7 @@
 
     <!-- Integrations Section -->
     <div class="settings-section">
-      <h2>⚡ Integrations</h2>
+      <h2>Integrations</h2>
       
       <div class="setting-item">
         <div class="setting-info">
@@ -365,7 +373,7 @@
 
     <!-- Subscription Section -->
     <div class="settings-section" id="subscription">
-      <h2>💳 Subscription</h2>
+      <h2>Subscription</h2>
       
       <div class="setting-item">
         <div class="setting-info">
@@ -396,7 +404,7 @@
 
     <!-- Danger Zone -->
     <div class="settings-section" style="border-color: #ff4444;">
-      <h2 style="color: #ff4444;">⚠️ Danger Zone</h2>
+      <h2 style="color: #ff4444;">Danger Zone</h2>
       
       <div class="setting-item">
         <div class="setting-info">
@@ -411,7 +419,7 @@
 
     <div style="text-align: center; margin-top: 40px; color: #888;">
       <p>
-        <span id="save-status" class="save-indicator">✓ Settings saved</span>
+        <span id="save-status" class="save-indicator"> Settings saved</span>
       </p>
       <p style="margin-top: 12px;">
         <a href="/privacy.html" style="color: #00d4aa;">Privacy Policy</a> • 
@@ -598,7 +606,7 @@
           if (data.ok && data.subscription) {
             // Handle founder status from server
             if (data.subscription.status === 'founder') {
-              document.getElementById('subscription-status-text').textContent = 'Founder - Lifetime Premium Access 👑';
+              document.getElementById('subscription-status-text').textContent = 'Founder - Lifetime Premium Access ';
               document.getElementById('manage-subscription-btn').style.display = 'none';
               return;
             }

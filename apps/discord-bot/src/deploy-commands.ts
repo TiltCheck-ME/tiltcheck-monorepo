@@ -1,4 +1,11 @@
 /**
+ * © 2024–2025 TiltCheck Ecosystem. All Rights Reserved.
+ * Created by jmenichole (https://github.com/jmenichole)
+ * 
+ * This file is part of the TiltCheck project.
+ * For licensing information, see LICENSE file in the project root.
+ */
+/**
  * Command Deployment Script
  * 
  * Registers slash commands with Discord API.
@@ -10,6 +17,11 @@ import { CommandHandler } from './handlers/commands.js';
 
 async function deployCommands() {
   try {
+    console.log('[Deploy] Pre-flight check...');
+    console.log(`  - Client ID: ${config.clientId}`);
+    console.log(`  - Guild ID: ${config.guildId || 'Not set (Global deploy)'}`);
+    if (!config.clientId || !config.discordToken) throw new Error('Missing Client ID or Bot Token in config!');
+
     console.log('[Deploy] Loading commands...');
 
     // Create CommandHandler to load commands

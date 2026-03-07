@@ -1,4 +1,11 @@
 /**
+ * © 2024–2025 TiltCheck Ecosystem. All Rights Reserved.
+ * Created by jmenichole (https://github.com/jmenichole)
+ * 
+ * This file is part of the TiltCheck project.
+ * For licensing information, see LICENSE file in the project root.
+ */
+/**
  * TiltCheck Database Client
  * Supabase integration for user stats, game history, and leaderboards
  */
@@ -116,6 +123,16 @@ export interface DegenIdentity {
   trust_score: number;
   identity_metadata: Record<string, any>;
   created_at: string;
+  updated_at: string;
+}
+
+export interface CasinoData {
+  domain: string;
+  name: string;
+  license_info: any;
+  claimed_rtp: number | null;
+  verified_rtp: number | null;
+  status: string;
   updated_at: string;
 }
 
@@ -596,6 +613,28 @@ export class DatabaseClient {
       .eq('discord_id', discordId);
 
     return newSavings;
+  }
+
+  /**
+   * Get casino data by domain
+   */
+  async getCasino(domain: string): Promise<CasinoData | null> {
+    if (!this.supabase) return null;
+
+    const { data, error } = await this.supabase
+      .from('casino_data')
+      .select('*')
+      .eq('domain', domain)
+      .single();
+
+    if (error) {
+      if (error.code !== 'PGRST116') { // PGRST116 is "Row not found"
+        console.error('Error fetching casino data:', error);
+      }
+      return null;
+    }
+
+    return data as CasinoData;
   }
 
   // ============================================================

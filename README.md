@@ -34,12 +34,10 @@ TiltCheck is a suite of independent but interoperable tools that help casino com
 
 - **reduce scams** (SusLink)
 - **track bonuses** (CollectClock)
-- **validate promos** (FreeSpinScan)
 - **tip safely** (JustTheTip)
 - **detect tilt** (TiltCheck Core)
 - **score casinos** (Casino Trust Engine)
 - **score users** (Degen Trust Engine)
-- **route surveys** (QualifyFirst)
 - **play games** (DA&D)
 - **stay accountable** (Accountabilibuddy)
 
@@ -71,6 +69,7 @@ See [16. RGaaS Pivot Docs](./docs/tiltcheck/16-rgaas-pivot.md) for full integrat
 ## Branch Protection & Required Checks
 
 TiltCheck protects `main` with required status checks:
+
 - `components-a11y` (shared components: bundle, contrast, a11y)
 - `landing-a11y` (landing pages: a11y)
 - `Analyze Code` (CodeQL security scanning)
@@ -90,6 +89,7 @@ TiltCheck includes comprehensive automation for security, reliability, and maint
 - **💚 Health Monitoring:** Production service health checks every 6 hours
 
 **Quick Start:**
+
 - Most automations are already active and require no setup
 - See [GITHUB-AUTOMATION-SETUP.md](./docs/GITHUB-AUTOMATION-SETUP.md) for configuration guide
 - See [GITHUB-AUTOMATION-REFERENCE.md](./docs/GITHUB-AUTOMATION-REFERENCE.md) for quick reference
@@ -119,36 +119,42 @@ tiltcheck-monorepo/
 ## Modules Overview
 
 ### 🪙 **JustTheTip**
+
 Non-custodial tipping, airdrops, and swaps.  
 Flat fee only. No custody. No balance storage.
 
 ### 🔗 **SusLink**
+
 AI-powered link scanner that detects scam sites, redirects, and impersonation.
 
 ### ⏰ **CollectClock**
+
 Daily bonus tracker with nerf detection and bonus cycle prediction.
 
-### 🎁 **FreeSpinScan**
-Promo submission system with auto-classification, mod approval queue, and prediction engine.
+### 🎁 **FreeSpinScan** *(archived concept)*
 
-### 📋 **QualifyFirst**
-AI survey router that pre-screens users to prevent screen-outs and wasted time.
-\n+Phase 1 implementation (module `@tiltcheck/qualifyfirst`):
-- Deterministic heuristic scoring (no external AI yet)
-- Emits events: `survey.match.predicted`, `survey.route.generated`
-- Transparent reasons & risk flags (no bypass of legit exclusion criteria)
-- Ready for Phase 2 adaptive weighting & trust integration
+Historical promo submission system with auto-classification, mod approval queue, and prediction engine.  
+Removed from the current MVP roadmap but preserved in the codebase/docs for future reference.
+
+### 📋 **QualifyFirst** *(archived concept)*
+
+Historical AI survey router that pre-screened users to prevent screen-outs and wasted time.  
+No longer an active project; referenced only as an archived design.
 
 ### 🎮 **DA&D (Degens Against Decency)**
+
 AI-powered card game built for degen communities.
 
 ### 🧠 **TiltCheck Core**
+
 Tilt detection, cooldown nudges, and accountability tools.
 
 ### 🤝 **Accountabilibuddy**
+
 Shared wallet notifications and "phone-a-friend" tilt intervention.
 
 ### 🏛️ **Trust Engines**
+
 - **Casino Trust Engine** — Scores casinos based on RTP, bonus nerfs, payout delays, etc.
 - **Degen Trust Engine** — Scores users based on behavior patterns, tilt signals, and community actions.
 
@@ -207,12 +213,15 @@ bash scripts/verify-railway-deployment.sh
 ```
 
 **Production Guides:**
+
 - **[Railway Deployment Guide](./docs/RAILWAY-DEPLOYMENT-GUIDE.md)** - Complete Railway setup and configuration
 - **[Production Deployment Checklist](./docs/PRODUCTION-DEPLOYMENT-CHECKLIST.md)** - Pre-deployment verification
 - **[Post-Deployment Checklist](./docs/POST-DEPLOYMENT-CHECKLIST.md)** - Post-deployment verification and monitoring setup
 - **[Production Runbook](./docs/PRODUCTION-RUNBOOK.md)** - Operational procedures and common tasks
 - **[Production Monitoring](./docs/PRODUCTION-MONITORING.md)** - Monitoring and alerting setup
 - **[Production Troubleshooting](./docs/PRODUCTION-TROUBLESHOOTING.md)** - Problem diagnosis and resolution
+- **[General Troubleshooting](./docs/TROUBLESHOOTING.md)** - Common monorepo issues and solutions
+- **[Environment Variables](./docs/ENV-VARIABLES.md)** - Complete reference of .env configuration
 - **[AI Gateway Production](./docs/AI-GATEWAY-PRODUCTION.md)** - OpenAI integration and cost optimization
 - **[Trust Rollup Production](./docs/TRUST-ROLLUP-PRODUCTION.md)** - Real casino data integration
 
@@ -246,6 +255,7 @@ Artifacts are written to `dist/components/` (including Lighthouse reports). See 
 
 Documentation is the single source of truth.  
 Start with:
+
 - **[SETUP.md](./docs/SETUP.md)** for monorepo setup
 - **[docs/tiltcheck/0-intro.md](./docs/tiltcheck/0-intro.md)** for ecosystem overview
 - **[docs/tiltcheck/9-architecture.md](./docs/tiltcheck/9-architecture.md)** for system design
@@ -255,6 +265,7 @@ Start with:
 ### Questions?
 
 The custom Copilot Agent can answer questions like:
+
 - "How does the Event Router work?"
 - "How does JustTheTip avoid custody?"
 - "Where should I add a new Discord command?"
@@ -278,6 +289,7 @@ The custom Copilot Agent can answer questions like:
 ## Development Philosophy
 
 TiltCheck is intentionally:
+
 - **scrappy** (no over-engineering)
 - **cheap** (free-tier optimized)
 - **modular** (independent tools)
@@ -291,18 +303,20 @@ It's built by someone who understands the problems firsthand.
 ## Roadmap
 
 ### Phase 1 — Core Launch (MVP)
-- JustTheTip, SusLink, CollectClock, FreeSpinScan
+
+- JustTheTip, SusLink, CollectClock
 - Basic trust engines
 - TiltCheck Core
 - Discord bot
 
 ### Phase 2 — Intelligence Expansion
+
 - Prediction models
 - Advanced trust scoring
-- QualifyFirst
 - Accountabilibuddy
 
 ### Phase 3 — TiltCheck Arena
+
 - Web UI
 - Casino dashboards
 - DA&D game arena
@@ -315,6 +329,7 @@ See `15-future-roadmap.md` for full details.
 ## Security
 
 TiltCheck follows a minimal attack surface philosophy:
+
 - No custodial systems
 - No private key storage
 - No sensitive personal data
@@ -325,15 +340,21 @@ See `SECURITY.md` for reporting vulnerabilities.
 
 ## License
 
-© 2024–2025 TiltCheck Ecosystem (Created by jmenichole). All Rights Reserved.
+© 2024–2026 TiltCheck Ecosystem (Created by jmenichole). All Rights Reserved.
 
 ---
 
 ## Contact
 
 **Founder:** jmenichole  
-**Security:** jme@tiltcheck.me
+**Security:** <jme@tiltcheck.me>
 
 ---
 
 **TiltCheck — Made for Degens. By Degens.**
+
+---
+
+## Full License Project History
+
+This project is licensed under **AGPL-3.0-only**. See LICENSE.

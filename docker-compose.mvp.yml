@@ -1,0 +1,109 @@
+services:
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    container_name: api-mvp
+    restart: unless-stopped
+    ports:
+      - "3001:3001"
+    env_file: .env
+    environment:
+      - SKIP_ENV_VALIDATION=1
+      - PORT=3001
+    mem_limit: 512m
+    mem_reservation: 256m
+    cpus: 1.0
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    networks:
+      - tiltcheck-network
+
+  discord-bot:
+    build:
+      context: .
+      dockerfile: apps/discord-bot/Dockerfile
+    container_name: discord-bot-mvp
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      - SKIP_ENV_VALIDATION=1
+      - PORT=8081
+      - DISCORD_BOT_HEALTH_PORT=8081
+    mem_limit: 384m
+    mem_reservation: 192m
+    cpus: 0.75
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8081/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    networks:
+      - tiltcheck-network
+
+  landing:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+    container_name: landing-mvp
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+    mem_limit: 192m
+    mem_reservation: 96m
+    cpus: 0.50
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:80/status.html || exit 1"]
+      interval: 60s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    logging:
+      driver: json-file
+      options:
+        max-size: "5m"
+        max-file: "3"
+    networks:
+      - tiltcheck-network
+
+  trust-rollup:
+    build:
+      context: .
+      dockerfile: apps/trust-rollup/Dockerfile
+    container_name: trust-rollup-mvp
+    restart: unless-stopped
+    ports:
+      - "8082:8082"
+    env_file: .env
+    environment:
+      - SKIP_ENV_VALIDATION=1
+      - PORT=8082
+    mem_limit: 256m
+    mem_reservation: 128m
+    cpus: 0.50
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    networks:
+      - tiltcheck-network
+
+networks:
+  tiltcheck-network:
+    driver: bridge

@@ -1,4 +1,11 @@
 /**
+ * © 2024–2025 TiltCheck Ecosystem. All Rights Reserved.
+ * Created by jmenichole (https://github.com/jmenichole)
+ * 
+ * This file is part of the TiltCheck project.
+ * For licensing information, see LICENSE file in the project root.
+ */
+/**
  * RGaaS Routes - /rgaas/*
  * Responsible Gaming as a Service.
  * Tilt detection, sentiment analysis, trust scoring, and link scanning.

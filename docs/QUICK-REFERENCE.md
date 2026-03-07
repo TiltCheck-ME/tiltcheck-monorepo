@@ -49,12 +49,14 @@ tiltcheck-monorepo/
 ## 🎯 Creating a New Module
 
 1. **Create directory**
+
    ```bash
    mkdir -p modules/my-module/src
    cd modules/my-module
    ```
 
 2. **Create `package.json`**
+
    ```json
    {
      "name": "@tiltcheck/my-module",
@@ -73,6 +75,7 @@ tiltcheck-monorepo/
    ```
 
 3. **Create `tsconfig.json`**
+
    ```json
    {
      "extends": "../../tsconfig.json",
@@ -85,6 +88,7 @@ tiltcheck-monorepo/
    ```
 
 4. **Create module class** (`src/module.ts`)
+
    ```typescript
    import { eventRouter } from '@tiltcheck/event-router';
    import type { TiltCheckEvent } from '@tiltcheck/types';
@@ -120,11 +124,13 @@ tiltcheck-monorepo/
    ```
 
 5. **Create index** (`src/index.ts`)
+
    ```typescript
    export * from './module';
    ```
 
 6. **Install and build**
+
    ```bash
    npx pnpm install
    npx pnpm --filter @tiltcheck/my-module build
@@ -196,6 +202,7 @@ const stats = eventRouter.getStats();
 ## 🛠️ Common Patterns
 
 ### Scan a link (SusLink)
+
 ```typescript
 import { suslink } from '@tiltcheck/suslink';
 
@@ -204,6 +211,7 @@ console.log(result.riskLevel); // 'safe' | 'suspicious' | 'high' | 'critical'
 ```
 
 ### React to scan results
+
 ```typescript
 eventRouter.subscribe(
   'link.scanned',
@@ -218,6 +226,7 @@ eventRouter.subscribe(
 ```
 
 ### Chain multiple modules
+
 ```typescript
 // Module A publishes
 await eventRouter.publish('step.one', 'module-a', { data });
@@ -237,18 +246,21 @@ eventRouter.subscribe('step.two', async (event) => {
 ## 🐛 Debugging Tips
 
 1. **Check event flow**
+
    ```typescript
    const history = eventRouter.getHistory();
    console.log(history);
    ```
 
 2. **Check subscriptions**
+
    ```typescript
    const stats = eventRouter.getStats();
    console.log(stats); // Shows all active subscriptions
    ```
 
 3. **Add logging**
+
    ```typescript
    eventRouter.subscribe('event.type', async (event) => {
      console.log('Received:', event);
@@ -257,6 +269,7 @@ eventRouter.subscribe('step.two', async (event) => {
    ```
 
 4. **Test in isolation**
+
    ```bash
    npx tsx modules/my-module/examples/test.ts
    ```
@@ -268,12 +281,13 @@ eventRouter.subscribe('step.two', async (event) => {
 @tiltcheck/event-router    # Required by all modules
 @tiltcheck/suslink         # Optional: if you need link scanning
 @tiltcheck/discord-utils   # Optional: Discord embed/formatting helpers
-@tiltcheck/database        # TODO: shared DB schemas
+@tiltcheck/database        # Shared Supabase schemas for user stats, game history, and leaderboards
 ```
 
 ## 🚨 Gotchas
 
 1. **Always use package names in imports**
+
    ```typescript
    // ✅ Good
    import { eventRouter } from '@tiltcheck/event-router';
@@ -283,12 +297,14 @@ eventRouter.subscribe('step.two', async (event) => {
    ```
 
 2. **Build before running**
+
    ```bash
    # If you see "Cannot find module" errors
    npx pnpm build
    ```
 
 3. **Event timing**
+
    ```typescript
    // Events are async - wait for processing
    await eventRouter.publish('event', 'source', data);
@@ -296,6 +312,7 @@ eventRouter.subscribe('step.two', async (event) => {
    ```
 
 4. **Module IDs must match types**
+
    ```typescript
    // Must be in ModuleId type (packages/types/src/index.ts)
    eventRouter.subscribe('event', handler, 'valid-module-id');

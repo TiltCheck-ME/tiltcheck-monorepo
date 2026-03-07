@@ -25,13 +25,9 @@ User-facing dashboard for account and profile management across the TiltCheck ec
 - Wallet verification status
 - Balance overview
 
-### QualifyFirst Integration
-- Survey profile editor
-- Trait management
-- Earnings tracker
-- Withdrawal requests ($5 minimum)
-- Match history
-- Screen-out tracking
+### QualifyFirst Integration (Archived)
+- Historical survey profile editor and earnings tracker
+- No longer part of current MVP; UI has been removed
 
 ### Transaction History
 - Tips sent & received
@@ -98,7 +94,6 @@ pnpm start
 
 The user dashboard integrates with:
 - **JustTheTip** - Wallet service for tips/withdrawals
-- **QualifyFirst** - Survey profile and earnings
 - **DA&D** - Game stats
 - **Event Router** - Real-time updates
 - **Discord** - OAuth authentication
@@ -117,8 +112,7 @@ This dashboard follows TiltCheck's non-custodial architecture:
 ### First Time Setup
 1. Login with Discord
 2. Add your wallet (x402 recommended)
-3. Set up QualifyFirst profile
-4. Configure preferences
+3. Configure preferences
 
 ### Managing Wallets
 1. Go to Wallets tab
@@ -126,12 +120,6 @@ This dashboard follows TiltCheck's non-custodial architecture:
 3. Enter address and provider
 4. Verify ownership (signature)
 5. Set as primary if desired
-
-### Withdrawing Earnings
-1. Complete surveys on QualifyFirst PWA
-2. Check earnings in dashboard
-3. Request withdrawal (min $5.00)
-4. Funds sent to primary wallet within 24h
 
 ### Viewing Activity
 - All cross-module activity in Activity tab

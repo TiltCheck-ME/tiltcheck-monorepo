@@ -1,3 +1,11 @@
+// v0.1.0 — 2026-02-25
+/**
+ * © 2024–2025 TiltCheck Ecosystem. All Rights Reserved.
+ * Created by jmenichole (https://github.com/jmenichole)
+ *
+ * This file is part of the TiltCheck project.
+ * For licensing information, see LICENSE file in the project root.
+ */
 /**
  * SusLink Module
  * 
@@ -5,7 +13,7 @@
  * 
  * Subscribes to:
  * - promo.submitted → scans submitted links
- * - Any event with URLs in metadata
+ * - link.feedback → processes user feedback for AI self-training
  * 
  * Publishes:
  * - link.scanned → scan results
@@ -34,7 +42,40 @@ export class SusLinkModule {
       'suslink'
     );
 
+    // Subscribe to user feedback for AI self-training
+    eventRouter.subscribe(
+      'link.feedback',
+      this.handleLinkFeedback.bind(this),
+      'suslink'
+    );
+
     console.log('[SusLink] Subscribed to events');
+  }
+
+  /**
+   * Handle user feedback for link scans
+   * Useful for AI self-training and improving accuracy
+   */
+  private async handleLinkFeedback(event: TiltCheckEvent): Promise<void> {
+    const { url, userReportedRisk, actualStatus, comments } = event.data;
+
+    if (!url || !actualStatus) {
+      console.warn('[SusLink] Feedback event missing required data');
+      return;
+    }
+
+    console.log(`[SusLink] Processing feedback for ${url} (Actual: ${actualStatus})`);
+
+    const success = await this.scanner.submitFeedback({
+      url,
+      userReportedRisk,
+      actualStatus,
+      comments
+    });
+
+    if (success) {
+      console.log(`[SusLink] Feedback relayed to AI Gateway for training ✅`);
+    }
   }
 
   /**
@@ -50,8 +91,8 @@ export class SusLinkModule {
 
     console.log(`[SusLink] Scanning promo URL: ${url}`);
 
-    // Perform scan
-    const result = await this.scanner.scan(url);
+    // Perform AI-enhanced scan
+    const result = await this.scanner.scanWithAI(url);
 
     await this.publishScanResult(result, event.userId);
   }
@@ -60,7 +101,7 @@ export class SusLinkModule {
    * Manual scan API (can be called directly for testing)
    */
   async scanUrl(url: string, userId?: string) {
-    const result = await this.scanner.scan(url);
+    const result = await this.scanner.scanWithAI(url);
     await this.publishScanResult(result, userId);
     return result;
   }
