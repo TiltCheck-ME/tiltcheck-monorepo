@@ -57,6 +57,12 @@ npm run comic:publish
 
 Or run your cloud watcher automation, which triggers comic generation and publish when `COMIC_API_URL` is set.
 
+1) Run one-command cloud smoke test after deploy:
+
+```bash
+COMIC_API_URL=<your-cloud-run-url> COMIC_API_INGEST_KEY=<your-shared-key> npm --prefix packages/comic-generator run smoke:cloud
+```
+
 ## Environment Variables
 
 ### `packages/comic-generator`
@@ -149,6 +155,7 @@ Expected:
 
 - logs `Cloud comic publish success`
 - cloud current/archive endpoints reflect latest day context
+- optional full endpoint smoke test also passes via `npm --prefix packages/comic-generator run smoke:cloud`
 
 ## Troubleshooting
 
