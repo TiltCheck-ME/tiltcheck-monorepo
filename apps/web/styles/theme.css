@@ -14,35 +14,35 @@
 :root {
   /* === Color Palette === */
   /* Primary brand colors - Neon accents */
-  --color-primary: #00FFC6; /* Neon cyan */
-  --color-primary-dark: #00C2A0;
-  --color-primary-light: #33FFD4;
+  --color-primary: #22d3a6; /* Refined emerald-cyan */
+  --color-primary-dark: #0f9f7f;
+  --color-primary-light: #5be7c2;
   
   /* Secondary accents */
-  --color-secondary: #00C2FF; /* Electric blue */
-  --color-accent: #FF38A8; /* Rare pink accent */
+  --color-secondary: #4f9cfb; /* Professional blue accent */
+  --color-accent: #d946ef; /* Magenta accent */
   --color-gold: #ffd700; /* Gold highlight */
   
   /* Backgrounds - Dark base */
-  --bg-primary: #0E0E0F; /* Deep terminal black */
-  --bg-secondary: #111316; /* Slightly elevated */
-  --bg-tertiary: #161B22; /* Mid-level surface (tables, code blocks) */
-  --bg-card: #1A1F24; /* Elevated surfaces (cards, modals) */
+  --bg-primary: #0f1218; /* Deep charcoal */
+  --bg-secondary: #141922; /* Elevated canvas */
+  --bg-tertiary: #1b2230; /* Mid-level surface */
+  --bg-card: #1f2837; /* Card surface */
   --bg-elevated: #1A1F24;
   --bg-input: #111316;
   
   /* Text colors */
   --text-primary: #ffffff;
-  --text-secondary: #B8C4CE;
-  --text-muted: #6B7280;
+  --text-secondary: #c4ced8;
+  --text-muted: #8a97a8;
   --text-disabled: #4B5563;
   
   /* Borders & dividers - Sharp edges, neon 1px borders */
-  --border-subtle: #1F2937;
-  --border-default: #2D3748;
-  --border-emphasis: #374151;
-  --border-glow: rgba(0, 255, 198, 0.3);
-  --border-neon: 1px solid rgba(0, 255, 198, 0.4);
+  --border-subtle: #293244;
+  --border-default: #344158;
+  --border-emphasis: #415171;
+  --border-glow: rgba(34, 211, 166, 0.25);
+  --border-neon: 1px solid rgba(34, 211, 166, 0.35);
   
   /* Status/semantic colors */
   --color-positive: #4CAF50; /* Positive RTP / Fair */
@@ -109,10 +109,10 @@
   
   /* Border radius - Sharp edges */
   --radius-xs: 2px;
-  --radius-sm: 4px;
-  --radius-md: 6px;
-  --radius-lg: 8px;
-  --radius-xl: 10px;
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 18px;
   --radius-full: 9999px;
   
   /* Transitions - No bouncy animations, only fade/opacity/slide */

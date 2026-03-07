@@ -68,7 +68,7 @@ class SidebarNavigation {
           <ul>
             <li><a href="/">Home</a></li>
             <li><a href="/#tools">Tools</a></li>
-            <li><a href="/control-room.html">Dashboard</a></li>
+            <li><a href="/getting-started.html">Getting Started</a></li>
             <li><a href="/about.html">About</a></li>
           </ul>
         </div>
@@ -81,8 +81,9 @@ class SidebarNavigation {
             <li><a href="/extension.html">TiltGuard Extension</a></li>
             <li><a href="/tools/tiltcheck-core.html">TiltCheck Core</a></li>
             <li><a href="/tools/suslink.html">SusLink</a></li>
-            <li><a href="/tools/daad.html">DA&D</a></li>
-            <li><a href="/tools/triviadrops.html">TriviaDrops</a></li>
+            <li><a href="/tools/justthetip.html">JustTheTip</a></li>
+            <li><a href="/tools/collectclock.html">CollectClock</a></li>
+            <li><a href="/beta.html">Beta Program</a></li>
           </ul>
         </div>
 
@@ -112,13 +113,13 @@ class SidebarNavigation {
           <ul>
             <li><a href="/privacy.html">Privacy Policy</a></li>
             <li><a href="/terms.html">Terms of Service</a></li>
-            <li><a href="/legal-compliance.html">Legal & Compliance</a></li>
+            <li><a href="/compliance.html">Legal & Compliance</a></li>
           </ul>
         </div>
       </div>
 
       <div class="sidebar-footer">
-        <a href="/dashboard" class="btn-nav-primary">Dashboard</a>
+        <a href="/getting-started.html" class="btn-nav-primary">Get Started</a>
         <a href="https://discord.gg/s6NNfPHxMS" class="btn-nav-secondary" target="_blank" rel="noopener">Join Discord</a>
       </div>
     `;
