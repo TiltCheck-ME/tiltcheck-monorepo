@@ -36,6 +36,9 @@ This mode is designed for your use case: run for a short window, then shut down 
    - `GCP_VM_NAME=...`
    - `GCP_VM_ZONE=...`
    - `GCP_PROJECT_ID=...` (optional if your gcloud default project is already correct)
+   - `DEV_UPDATES_WEBHOOK_URL=...` (optional, posts each generated report to Discord)
+   - `TRUST_ENGINE_INGEST_URL=...` (optional, sends each report into your internal trust pipeline)
+   - `COMMUNITY_INTEL_INGEST_KEY=...` (optional key header for trust ingest auth)
 2. Make sure `gcloud auth login` is done on your machine.
 3. Run:
 
@@ -52,6 +55,8 @@ What this does automatically:
 - Runs watcher in live mode for 10 minutes
 - Runs `npm run comic:daily` to refresh `apps/web/daily-degen-comic.json`
 - Stops VM when finished (even if watcher errors)
+- Posts generated reports to your Discord webhook when `DEV_UPDATES_WEBHOOK_URL` is configured
+- Sends generated report payloads to `TRUST_ENGINE_INGEST_URL` when configured
 
 Optional flags:
 
