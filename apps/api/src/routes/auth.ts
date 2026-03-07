@@ -399,18 +399,29 @@ router.get('/discord/callback', authLimiter, async (req, res) => {
     const { code, state } = req.query;
     const storedState = req.cookies?.oauth_state;
     const stateValue = typeof state === 'string' ? state : '';
+    const sourceFromState = stateValue.startsWith('ext_')
+      ? 'extension'
+      : stateValue.startsWith('web_')
+        ? 'web'
+        : undefined;
     const sourceFromCookie = req.cookies?.oauth_source;
-    const source = sourceFromCookie;
+    const source = sourceFromState;
     const isLocalDev =
       process.env.NODE_ENV !== 'production' &&
       (req.hostname === 'localhost' || req.hostname === '127.0.0.1');
 
+    // Optional integrity check: if both exist, cookie source must match state source.
+    if (sourceFromCookie && sourceFromState && sourceFromCookie !== sourceFromState) {
+      res.status(400).json({ error: 'Invalid OAuth source' });
+      return;
+    }
+
     // Verify state:
     // - normal: query state must match cookie
-    // - local extension fallback: allow if state cookie is missing but state indicates extension source
+    // - local extension fallback: allow if state cookie is missing and state itself indicates extension source
     const stateValid =
       !!stateValue &&
-      (stateValue === storedState || (!storedState && isLocalDev && source === 'extension'));
+      (stateValue === storedState || (!storedState && isLocalDev && sourceFromState === 'extension'));
 
     if (!stateValid) {
       res.status(400).json({ error: 'Invalid OAuth state' });
