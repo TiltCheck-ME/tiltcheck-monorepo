@@ -70,3 +70,18 @@ Notes:
 - If `PROJECT_ID` is not passed, the script uses your current `gcloud` project.
 - Override defaults with env vars: `PROJECT_ID`, `REGION`, `SERVICE_NAME`, `ALLOW_UNAUTH`.
 - After deploy, it prints `COMIC_API_URL` for `tools/channel-watcher/.env`.
+
+## One-command cloud smoke test
+
+From repo root (after deploy):
+
+```bash
+COMIC_API_URL=<your-cloud-run-url> COMIC_API_INGEST_KEY=<your-shared-key> npm --prefix packages/comic-generator run smoke:cloud
+```
+
+The smoke test checks, in order:
+
+- `GET /health`
+- `POST /v1/comic/generate`
+- `GET /v1/comic/current`
+- `GET /v1/comic/archive`
