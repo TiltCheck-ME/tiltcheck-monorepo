@@ -151,6 +151,36 @@ CREATE TABLE IF NOT EXISTS mod_logs (
   evidence_url TEXT, -- Link to screenshot or message link
   witness_statement TEXT, -- Optional second opinion or witness
   created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL
+);CREATE TABLE IF NOT EXISTS user_stats(
+  discord_id TEXT PRIMARY KEY,
+  username TEXT NOT NULL,
+  avatar TEXT,
+  
+  -- Global stats
+  total_games INTEGER DEFAULT 0 NOT NULL,
+  total_wins INTEGER DEFAULT 0 NOT NULL,
+  total_score INTEGER DEFAULT 0 NOT NULL,
+  
+  -- Analytics stats
+  wagered_amount_sol DECIMAL DEFAULT 0 NOT NULL,
+  deposited_amount_sol DECIMAL DEFAULT 0 NOT NULL,
+  lost_amount_sol DECIMAL DEFAULT 0 NOT NULL,
+  profit_sol DECIMAL DEFAULT 0 NOT NULL,
+  
+  -- Degens Against Decency stats
+  dad_games INTEGER DEFAULT 0 NOT NULL,
+  dad_wins INTEGER DEFAULT 0 NOT NULL,
+  dad_score INTEGER DEFAULT 0 NOT NULL,
+  
+  -- Poker stats
+  poker_games INTEGER DEFAULT 0 NOT NULL,
+  poker_wins INTEGER DEFAULT 0 NOT NULL,
+  poker_chips_won INTEGER DEFAULT 0 NOT NULL,
+  
+  -- Metadata
+  last_played_at TIMESTAMPTZ DEFAULT NOW(),
+  created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL,
+  updated_at TIMESTAMPTZ DEFAULT NOW() NOT NULL
 );
 
 -- Indexes for mod_logs
@@ -598,3 +628,68 @@ BEGIN
   RETURN QUERY SELECT v_balance, v_tx_id;
 END;
 $$ LANGUAGE plpgsql;
+
+-- ============================================================
+-- Safety & Accountability System
+-- ============================================================
+
+-- User Buddies (Phone a Friend System)
+-- Allows a user to link a "buddy" who is notified during high-risk activity
+CREATE TABLE IF NOT EXISTS user_buddies (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  user_id TEXT REFERENCES user_stats(discord_id) ON DELETE CASCADE,
+  buddy_id TEXT REFERENCES user_stats(discord_id) ON DELETE CASCADE,
+  status TEXT DEFAULT 'pending' CHECK (status IN ('pending', 'accepted', 'declined', 'removed')),
+  alert_thresholds JSONB DEFAULT '{"tilt_score_exceeds": 80, "losses_in_24h_sol": 5.0, "zero_balance_reached": true}'::jsonb,
+  created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL,
+  updated_at TIMESTAMPTZ DEFAULT NOW() NOT NULL,
+  UNIQUE(user_id, buddy_id)
+);
+
+-- Indexes for user_buddies
+CREATE INDEX IF NOT EXISTS idx_user_buddies_user ON user_buddies(user_id);
+CREATE INDEX IF NOT EXISTS idx_user_buddies_buddy ON user_buddies(buddy_id);
+
+-- Trigger for user_buddies updated_at
+CREATE TRIGGER update_user_buddies_updated_at 
+  BEFORE UPDATE ON user_buddies 
+  FOR EACH ROW 
+  EXECUTE FUNCTION update_updated_at_column();
+
+-- RLS for user_buddies
+ALTER TABLE user_buddies ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Users can read own buddy links"
+  ON user_buddies FOR SELECT
+  USING (auth.uid()::text = user_id OR auth.uid()::text = buddy_id);
+
+CREATE POLICY "Service role can manage user_buddies"
+  ON user_buddies FOR ALL
+  USING (auth.role() = 'service_role');
+
+-- Zero Balance Tasks
+-- Tracks cooling off tasks prompts when a user hits zero balance
+CREATE TABLE IF NOT EXISTS zero_balance_tasks (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  discord_id TEXT REFERENCES user_stats(discord_id) ON DELETE CASCADE,
+  task_type TEXT NOT NULL CHECK (task_type IN ('cooling_period', 'tutorial_quiz', 'responsible_gaming_read')),
+  status TEXT DEFAULT 'pending' CHECK (status IN ('pending', 'completed', 'bypassed')),
+  expires_at TIMESTAMPTZ NOT NULL,
+  completed_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL
+);
+
+-- Indexes for zero_balance_tasks
+CREATE INDEX IF NOT EXISTS idx_zero_balance_tasks_user ON zero_balance_tasks(discord_id);
+CREATE INDEX IF NOT EXISTS idx_zero_balance_tasks_status ON zero_balance_tasks(status);
+
+-- RLS for zero_balance_tasks
+ALTER TABLE zero_balance_tasks ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Public read access for zero_balance_tasks"
+  ON zero_balance_tasks FOR SELECT
+  USING (true);
+
+CREATE POLICY "Service role can manage zero_balance_tasks"
+  ON zero_balance_tasks FOR ALL
+  USING (auth.role() = 'service_role');

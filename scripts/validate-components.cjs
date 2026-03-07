@@ -15,54 +15,54 @@ const path = require('path');
 const { JSDOM } = require('jsdom');
 
 const ROOT = path.resolve(__dirname, '..');
-const SRC_DIR = path.join(ROOT, 'services', 'dashboard', 'public', 'components');
+const SRC_DIR = path.join(ROOT, 'apps', 'dashboard', 'public', 'components');
 const SNAP_DIR = path.join(ROOT, 'tests', 'snapshots');
 
-function readHtml(filePath){
+function readHtml(filePath) {
   const html = fs.readFileSync(filePath, 'utf8');
   const dom = new JSDOM(html);
   return dom.window.document;
 }
 
-function ensureDir(dir){
+function ensureDir(dir) {
   if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
 }
 
-function writeSnapshot(name, data){
+function writeSnapshot(name, data) {
   ensureDir(SNAP_DIR);
   fs.writeFileSync(path.join(SNAP_DIR, name), JSON.stringify(data, null, 2) + '\n');
 }
 
-function readSnapshot(name){
+function readSnapshot(name) {
   const p = path.join(SNAP_DIR, name);
   if (!fs.existsSync(p)) return null;
   return JSON.parse(fs.readFileSync(p, 'utf8'));
 }
 
-function assertEqual(actual, expected, msg){
+function assertEqual(actual, expected, msg) {
   const a = JSON.stringify(actual);
   const e = JSON.stringify(expected);
-  if (a !== e){
+  if (a !== e) {
     throw new Error(`${msg}\nExpected: ${e}\nActual:   ${a}`);
   }
 }
 
-function checkBasicParse(doc, fname){
-  if (!doc.documentElement || !doc.querySelector('body')){
+function checkBasicParse(doc, fname) {
+  if (!doc.documentElement || !doc.querySelector('body')) {
     throw new Error(`Failed to parse HTML structure in ${fname}`);
   }
 }
 
-function ecosystemSnapshot(doc){
+function ecosystemSnapshot(doc) {
   const cards = Array.from(doc.querySelectorAll('.cards [role="listitem"] > h3'))
     .map(h => h.textContent.trim());
   return { cards };
 }
 
-function degenEngineSnapshot(doc){
-  const ids = ['trustVal','trustBadge','tiltFill','behFill','accFill'];
+function degenEngineSnapshot(doc) {
+  const ids = ['trustVal', 'trustBadge', 'tiltFill', 'behFill', 'accFill'];
   const missing = ids.filter(id => !doc.getElementById(id));
-  if (missing.length){
+  if (missing.length) {
     throw new Error(`degen-trust-engine missing required ids: ${missing.join(', ')}`);
   }
   const levels = Array.from(doc.querySelectorAll('.levels .lvl .lvl-name'))
@@ -70,31 +70,31 @@ function degenEngineSnapshot(doc){
   return { levels };
 }
 
-function trustPanelSnapshot(doc){
+function trustPanelSnapshot(doc) {
   const metrics = Array.from(doc.querySelectorAll('.metric-label'))
     .map(m => m.textContent.trim());
   return { metrics };
 }
 
-function transparencyHeroSnapshot(doc){
+function transparencyHeroSnapshot(doc) {
   const guarantees = Array.from(doc.querySelectorAll('li strong'))
     .map(g => g.textContent.trim());
   return { guarantees };
 }
 
-function run(){
+function run() {
   const update = process.env.UPDATE_SNAPSHOTS === 'true';
   const files = fs.readdirSync(SRC_DIR).filter(f => f.endsWith('.html'));
 
   let passed = 0;
-  for (const f of files){
+  for (const f of files) {
     const full = path.join(SRC_DIR, f);
     const doc = readHtml(full);
     checkBasicParse(doc, f);
 
-    if (f === 'ecosystem.html'){
+    if (f === 'ecosystem.html') {
       const snap = ecosystemSnapshot(doc);
-      if (update){
+      if (update) {
         writeSnapshot('ecosystem.cards.json', snap);
       } else {
         const expected = readSnapshot('ecosystem.cards.json');
@@ -103,9 +103,9 @@ function run(){
       }
     }
 
-    if (f === 'degen-trust-engine.html'){
+    if (f === 'degen-trust-engine.html') {
       const snap = degenEngineSnapshot(doc);
-      if (update){
+      if (update) {
         writeSnapshot('degen-trust-engine.levels.json', snap);
       } else {
         const expected = readSnapshot('degen-trust-engine.levels.json');
@@ -114,9 +114,9 @@ function run(){
       }
     }
 
-    if (f === 'trust-panel.html'){
+    if (f === 'trust-panel.html') {
       const snap = trustPanelSnapshot(doc);
-      if (update){
+      if (update) {
         writeSnapshot('trust-panel.metrics.json', snap);
       } else {
         const expected = readSnapshot('trust-panel.metrics.json');
@@ -125,9 +125,9 @@ function run(){
       }
     }
 
-    if (f === 'transparency-hero.html'){
+    if (f === 'transparency-hero.html') {
       const snap = transparencyHeroSnapshot(doc);
-      if (update){
+      if (update) {
         writeSnapshot('transparency-hero.guarantees.json', snap);
       } else {
         const expected = readSnapshot('transparency-hero.guarantees.json');

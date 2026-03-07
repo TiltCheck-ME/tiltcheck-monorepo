@@ -1,4 +1,11 @@
 /**
+ * © 2024–2025 TiltCheck Ecosystem. All Rights Reserved.
+ * Created by jmenichole (https://github.com/jmenichole)
+ * 
+ * This file is part of the TiltCheck project.
+ * For licensing information, see LICENSE file in the project root.
+ */
+/**
  * Amount Parser
  * Parses natural language amount inputs
  * Examples: "5 sol", "$5", "5 bucks", "all", "everything"
@@ -7,7 +14,7 @@
 import type { ParsedAmount, ParseResult } from './types.js';
 
 // Common currency synonyms
-const USD_PATTERNS = /\$|usd|dollar|dollars|buck|bucks|cash/i;
+const USD_PATTERNS = /\$|usd|dollar|dollars|buck|bucks|cash|usdc|usdt/i;
 const SOL_PATTERNS = /sol|solana/i;
 const ALL_PATTERNS = /^(all|everything|max|full balance)$/i;
 

@@ -1,4 +1,11 @@
 /**
+ * © 2024–2025 TiltCheck Ecosystem. All Rights Reserved.
+ * Created by jmenichole (https://github.com/jmenichole)
+ * 
+ * This file is part of the TiltCheck project.
+ * For licensing information, see LICENSE file in the project root.
+ */
+/**
  * @tiltcheck/event-types
  * Shared event contracts for the TiltCheck Event Router.
  */
@@ -10,7 +17,10 @@ export type TiltCheckEventName =
   | 'safety.cooldown.triggered'
   | 'safety.sentiment.flagged'
   | 'safety.intervention.triggered'
-  | 'trust.affiliate.score.updated';
+  | 'trust.affiliate.score.updated'
+  | 'identity.wallet.linked'
+  | 'financial.tip.processed'
+  | 'trust.casino.graded';
 
 export interface TiltCheckBaseEvent<
   Name extends TiltCheckEventName,
@@ -22,6 +32,31 @@ export interface TiltCheckBaseEvent<
   occurredAt: string;
   correlationId?: string;
   payload: Payload;
+}
+
+export interface WalletLinkedPayload {
+  userId: string;
+  walletAddress: string;
+  provider: 'magic' | 'phantom' | 'metamask' | 'x402';
+}
+
+export interface TipProcessedPayload {
+  tipId: string;
+  senderId: string;
+  recipientId: string;
+  amount: number;
+  currency: string;
+  signature?: string;
+  status: 'completed' | 'failed';
+}
+
+export interface CasinoGradedPayload {
+  casinoId: string;
+  casinoName: string;
+  grade: 'A+' | 'A' | 'B' | 'C' | 'D' | 'F' | 'S';
+  previousGrade?: string;
+  adminId: string;
+  reason?: string;
 }
 
 export interface PhishingDetectedPayload {
@@ -78,6 +113,10 @@ export interface AffiliateScoreUpdatedPayload {
   sourceCount: number;
 }
 
+export type WalletLinkedEvent = TiltCheckBaseEvent<'identity.wallet.linked', WalletLinkedPayload>;
+export type TipProcessedEvent = TiltCheckBaseEvent<'financial.tip.processed', TipProcessedPayload>;
+export type CasinoGradedEvent = TiltCheckBaseEvent<'trust.casino.graded', CasinoGradedPayload>;
+
 export type TiltCheckEvent =
   | TiltCheckBaseEvent<'security.phishing.detected', PhishingDetectedPayload>
   | TiltCheckBaseEvent<'security.domain.blocked', DomainBlockedPayload>
@@ -85,7 +124,10 @@ export type TiltCheckEvent =
   | TiltCheckBaseEvent<'safety.cooldown.triggered', CooldownTriggeredPayload>
   | TiltCheckBaseEvent<'safety.sentiment.flagged', SentimentFlaggedPayload>
   | TiltCheckBaseEvent<'safety.intervention.triggered', InterventionTriggeredPayload>
-  | TiltCheckBaseEvent<'trust.affiliate.score.updated', AffiliateScoreUpdatedPayload>;
+  | TiltCheckBaseEvent<'trust.affiliate.score.updated', AffiliateScoreUpdatedPayload>
+  | WalletLinkedEvent
+  | TipProcessedEvent
+  | CasinoGradedEvent;
 
 export interface CreateEventInput<
   Name extends TiltCheckEventName,

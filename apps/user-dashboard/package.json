@@ -21,13 +21,12 @@
     "@tiltcheck/db": "workspace:*",
     "@tiltcheck/event-router": "workspace:*",
     "@tiltcheck/types": "workspace:*",
-    "@tiltcheck/qualifyfirst": "workspace:*",
     "@tiltcheck/justthetip": "workspace:*",
-    "express-rate-limit": "^8.2.1",
+    "express-rate-limit": "^8.2.2",
     "@magic-sdk/admin": "^2.0.0",
     "@solana/web3.js": "^1.91.0",
     "tweetnacl": "^1.0.3",
-    "bs58": "^5.0.0"
+    "bs58": "^6.0.0"
   },
   "devDependencies": {
     "tsx": "^4.7.0",

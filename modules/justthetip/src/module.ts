@@ -1,13 +1,21 @@
 /**
+ * © 2024–2025 TiltCheck Ecosystem. All Rights Reserved.
+ * Created by jmenichole (https://github.com/jmenichole)
+ * 
+ * This file is part of the TiltCheck project.
+ * For licensing information, see LICENSE file in the project root.
+ */
+/**
  * JustTheTip Module
  * Provides a singleton interface for the JustTheTip tipping system
  */
 
 import { eventRouter } from '@tiltcheck/event-router';
-import { pricingOracle } from '@tiltcheck/pricing-oracle';
+import { getUsdPriceSync } from '@tiltcheck/utils';
 import { randomUUID } from 'crypto';
 import type { TiltCheckEvent } from '@tiltcheck/types';
 import { getSolscanUrl } from './utils.js';
+import { removeWallet } from './wallet-manager.js';
 
 // Wallet types supported
 export type WalletType = 'x402' | 'magic' | 'phantom' | 'solflare' | 'other';
@@ -44,7 +52,7 @@ interface Tip {
 export class JustTheTipModule {
   private wallets: Map<string, Wallet> = new Map();
   private tips: Map<string, Tip> = new Map();
-  private pendingTips: Map<string, string[]> = new Map(); // recipientId -> tipIds[]
+  private pendingTips: Map<string, string[]> = new Map();
 
   constructor() {
     this.setupEventSubscriptions();
@@ -81,13 +89,10 @@ export class JustTheTipModule {
   }
 
   /**
-   * Register a wallet for a user
+   * Register or update a wallet for a user (upsert — adding or replacing is allowed).
    */
   async registerWallet(userId: string, address: string, type: WalletType): Promise<Wallet> {
-    // Check for duplicate registration
-    if (this.wallets.has(userId)) {
-      throw new Error(`You already have a wallet registered`);
-    }
+    const isUpdate = this.wallets.has(userId);
 
     const wallet: Wallet = {
       userId,
@@ -98,61 +103,42 @@ export class JustTheTipModule {
 
     this.wallets.set(userId, wallet);
 
-    // Emit wallet.registered event
-    await eventRouter.publish('wallet.registered', 'justthetip', {
-      userId,
-      address,
-      type,
-    }, userId);
+    // Emit appropriate event
+    await eventRouter.publish('wallet.registered', 'justthetip', { userId, address, type, isUpdate }, userId);
 
-    // Process any pending tips for this user
-    await this.processPendingTipsForUser(userId);
+    if (isUpdate) {
+      console.log(`[JustTheTip] Wallet updated for ${userId}: ${address}`);
+    }
 
     return wallet;
   }
 
   /**
-   * Disconnect a wallet
+   * Disconnect a wallet — removes from memory and persists removal to Supabase.
    */
-  async disconnectWallet(userId: string): Promise<{ success: boolean; message?: string; pendingTipsCount?: number; wallet?: Wallet }> {
+  async disconnectWallet(userId: string): Promise<{ success: boolean; message?: string; wallet?: Wallet }> {
     const wallet = this.wallets.get(userId);
     if (!wallet) {
       return { success: false, message: "You don't have a wallet registered" };
     }
 
-    // Check for pending tips where user is sender or recipient
-    const pendingAsSender = Array.from(this.tips.values()).filter(
-      tip => tip.senderId === userId && tip.status === 'pending'
-    );
-    // Note: This filters all tips for efficiency with current scale.
-    // For large datasets, consider using the pendingTips Map or adding an index.
-    const pendingAsRecipient = Array.from(this.tips.values()).filter(
-      tip => tip.recipientId === userId && tip.status === 'pending'
-    );
-
-    const totalPending = pendingAsSender.length + pendingAsRecipient.length;
-
-    // Remove wallet
+    // Remove from in-memory map
     this.wallets.delete(userId);
 
-    // Emit wallet.disconnected event
+    // Persist removal to Supabase via wallet-manager
+    try {
+      await removeWallet(userId);
+    } catch (err) {
+      console.error('[JustTheTip] Failed to persist wallet removal to Supabase:', err);
+      // Non-fatal — in-memory removal already done
+    }
+
     await eventRouter.publish('wallet.disconnected', 'justthetip', {
       userId,
       address: wallet.address,
-      pendingTipsCount: totalPending,
     }, userId);
 
-    let message: string | undefined;
-    if (totalPending > 0) {
-      message = `⚠️ Wallet disconnected but you have ${totalPending} pending tip${totalPending > 1 ? 's' : ''}`;
-    }
-
-    return {
-      success: true,
-      pendingTipsCount: totalPending,
-      wallet,
-      message,
-    };
+    return { success: true, wallet };
   }
 
   /**
@@ -179,20 +165,25 @@ export class JustTheTipModule {
       throw new Error('❌ Please register your wallet first using `/register-magic`');
     }
 
-    // Validate amount
-    if (currency === 'USD') {
-      if (amount < MIN_USD_AMOUNT || amount > MAX_USD_AMOUNT) {
-        throw new Error(`❌ Amount must be between $${MIN_USD_AMOUNT.toFixed(2)} and $${MAX_USD_AMOUNT.toFixed(2)} USD`);
-      }
+    const solPrice = getUsdPriceSync('SOL');
+    if (!solPrice || solPrice <= 0) {
+      throw new Error('❌ Unable to get current SOL price. Please try again later.');
     }
 
-    // Convert USD to SOL if needed
-    let solAmount: number | undefined;
+    // Convert and validate amount
+    let solAmount: number;
+    let usdAmount: number;
+    
     if (currency === 'USD') {
-      const solPrice = pricingOracle.getUsdPrice('SOL');
+      usdAmount = amount;
       solAmount = amount / solPrice;
     } else {
       solAmount = amount;
+      usdAmount = amount * solPrice;
+    }
+
+    if (usdAmount < MIN_USD_AMOUNT || usdAmount > MAX_USD_AMOUNT) {
+      throw new Error(`❌ Amount must be between $${MIN_USD_AMOUNT.toFixed(2)} and $${MAX_USD_AMOUNT.toFixed(2)} USD`);
     }
 
     // Create tip
@@ -200,7 +191,7 @@ export class JustTheTipModule {
       id: randomUUID(),
       senderId,
       recipientId,
-      usdAmount: currency === 'USD' ? amount : amount * pricingOracle.getUsdPrice('SOL'),
+      usdAmount,
       solAmount,
       status: 'pending',
       reference: randomUUID(),
@@ -370,8 +361,11 @@ export class JustTheTipModule {
    */
   async initiateTokenTip(senderId: string, recipientId: string, amount: number, token: string) {
     // Get token price from oracle
-    const tokenPrice = pricingOracle.getUsdPrice(token);
-    const solPrice = pricingOracle.getUsdPrice('SOL');
+    const tokenPrice = getUsdPriceSync(token);
+    const solPrice = getUsdPriceSync('SOL');
+    if (!tokenPrice || tokenPrice <= 0 || !solPrice || solPrice <= 0) {
+      throw new Error('❌ Unable to fetch token prices. Please try again later.');
+    }
     
     // Calculate USD value of input token
     const usdValue = amount * tokenPrice;
@@ -400,26 +394,6 @@ export class JustTheTipModule {
     });
 
     return { tip, quote };
-  }
-
-  /**
-   * Process pending tips when a user registers a wallet
-   */
-  private async processPendingTipsForUser(userId: string): Promise<void> {
-    const pendingTipIds = this.pendingTips.get(userId) || [];
-    
-    for (const tipId of pendingTipIds) {
-      const tip = this.tips.get(tipId);
-      if (tip) {
-        await eventRouter.publish('tip.pending.resolved', 'justthetip', {
-          tipId: tip.id,
-          recipientId: userId,
-        }, userId);
-      }
-    }
-
-    // Clear pending tips for this user
-    this.pendingTips.delete(userId);
   }
 
   /**

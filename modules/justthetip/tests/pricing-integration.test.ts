@@ -1,6 +1,13 @@
+/**
+ * © 2024–2025 TiltCheck Ecosystem. All Rights Reserved.
+ * Created by jmenichole (https://github.com/jmenichole)
+ * 
+ * This file is part of the TiltCheck project.
+ * For licensing information, see LICENSE file in the project root.
+ */
 import { describe, it, expect, beforeEach } from 'vitest';
 import { JustTheTipModule } from '../src/index.js';
-import { pricingOracle } from '@tiltcheck/pricing-oracle';
+import { setUsdPrice } from '@tiltcheck/utils';
 import { eventRouter } from '@tiltcheck/event-router';
 import { clearWallets } from '../src/wallet-manager.js';
 
@@ -11,8 +18,8 @@ describe('JustTheTip Pricing Integration', () => {
     clearWallets(); // Clear wallets from previous tests
     mod = new JustTheTipModule();
     eventRouter.clearHistory();
-    pricingOracle.setUsdPrice('SOL', 200);
-    pricingOracle.setUsdPrice('USDC', 1);
+    setUsdPrice('SOL', 200);
+    setUsdPrice('USDC', 1);
     mod.registerWallet('sender', 'senderWallet', 'phantom');
     mod.registerWallet('recipient', 'recipientWallet', 'magic');
   });
@@ -23,7 +30,7 @@ describe('JustTheTip Pricing Integration', () => {
     expect(tip.solAmount).toBeCloseTo(0.1);
 
     // Change SOL price
-    pricingOracle.setUsdPrice('SOL', 250);
+    setUsdPrice('SOL', 250);
     const tip2 = await mod.initiateTip('sender', 'recipient', 20, 'USD');
     // SOL price 250 => 0.08 SOL
     expect(tip2.solAmount).toBeCloseTo(0.08);
@@ -33,7 +40,7 @@ describe('JustTheTip Pricing Integration', () => {
     const { tip } = await mod.initiateTokenTip('sender', 'recipient', 10, 'USDC'); // $10
     expect(tip.solAmount).toBeCloseTo(0.05); // 10 / 200
 
-    pricingOracle.setUsdPrice('SOL', 250);
+    setUsdPrice('SOL', 250);
     const { tip: tip2 } = await mod.initiateTokenTip('sender', 'recipient', 10, 'USDC');
     expect(tip2.solAmount).toBeCloseTo(0.04); // 10 / 250
   });

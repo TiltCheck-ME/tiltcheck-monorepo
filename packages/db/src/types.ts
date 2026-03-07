@@ -1,4 +1,11 @@
 /**
+ * © 2024–2025 TiltCheck Ecosystem. All Rights Reserved.
+ * Created by jmenichole (https://github.com/jmenichole)
+ * 
+ * This file is part of the TiltCheck project.
+ * For licensing information, see LICENSE file in the project root.
+ */
+/**
  * @tiltcheck/db - Type Definitions
  * Database types for the TiltCheck ecosystem
  */
@@ -162,6 +169,72 @@ export interface CasinoGrade {
   grade: string;
   notes: string | null;
   created_at: Date;
+}
+
+// ============================================================================
+// Audit Log Types
+// ============================================================================
+
+/**
+ * Audit log record in the database
+ */
+export interface AuditLog {
+  id: string;
+  admin_id: string;
+  action: string;
+  target_type: string;
+  target_id: string | null;
+  metadata: Record<string, unknown>;
+  ip_address: string | null;
+  created_at: Date;
+}
+
+/**
+ * Create audit log payload
+ */
+export interface CreateAuditLogPayload {
+  admin_id: string;
+  action: string;
+  target_type: string;
+  target_id?: string;
+  metadata?: Record<string, unknown>;
+  ip_address?: string;
+}
+
+// ============================================================================
+// Onboarding Types
+// ============================================================================
+
+/**
+ * User onboarding record
+ */
+export interface UserOnboarding {
+  discord_id: string;
+  is_onboarded: boolean;
+  has_accepted_terms: boolean;
+  risk_level: 'conservative' | 'moderate' | 'degen';
+  cooldown_enabled: boolean;
+  daily_limit: number | null;
+  notifications_tips: boolean;
+  notifications_trivia: boolean;
+  notifications_promos: boolean;
+  joined_at: Date;
+  updated_at: Date;
+}
+
+/**
+ * Onboarding update payload
+ */
+export interface UpsertOnboardingPayload {
+  discord_id: string;
+  is_onboarded?: boolean;
+  has_accepted_terms?: boolean;
+  risk_level?: 'conservative' | 'moderate' | 'degen';
+  cooldown_enabled?: boolean;
+  daily_limit?: number | null;
+  notifications_tips?: boolean;
+  notifications_trivia?: boolean;
+  notifications_promos?: boolean;
 }
 
 // ============================================================================

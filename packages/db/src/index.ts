@@ -1,4 +1,11 @@
 /**
+ * © 2024–2025 TiltCheck Ecosystem. All Rights Reserved.
+ * Created by jmenichole (https://github.com/jmenichole)
+ * 
+ * This file is part of the TiltCheck project.
+ * For licensing information, see LICENSE file in the project root.
+ */
+/**
  * @tiltcheck/db
  * 
  * Neon PostgreSQL database client for the TiltCheck ecosystem.
@@ -46,30 +53,34 @@ export {
   updateUser,
   findOrCreateUserByDiscord,
   linkWalletToUser,
-  
+
+  // Onboarding queries
+  findOnboardingByDiscordId,
+  upsertOnboarding,
+
   // Admin queries
   findAdminById,
   findAdminByEmail,
   isAdminEmail,
-  
+
   // Magic link queries
   createMagicLink,
   findValidMagicLink,
   markMagicLinkUsed,
-  
+
   // Session queries
   createSession,
   findValidSession,
   deleteSession,
   deleteUserSessions,
-  
+
   // Tip queries
   createTip,
   findTipById,
   updateTipStatus,
   getTipsBySender,
   getTipsByRecipient,
-  
+
   // Casino queries
   findCasinoById,
   findCasinoBySlug,
@@ -95,4 +106,6 @@ export type {
   SingleResult,
   PaginationParams,
   PaginatedResult,
+  UserOnboarding,
+  UpsertOnboardingPayload,
 } from './types.js';

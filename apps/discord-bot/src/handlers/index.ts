@@ -1,4 +1,11 @@
 /**
+ * © 2024–2025 TiltCheck Ecosystem. All Rights Reserved.
+ * Created by jmenichole (https://github.com/jmenichole)
+ * 
+ * This file is part of the TiltCheck project.
+ * For licensing information, see LICENSE file in the project root.
+ */
+/**
  * Handler Index
  * 
  * Exports all handlers.
@@ -22,5 +29,3 @@ export {
   getUserTiltHistory,
   getUserTiltStats,
 } from './tilt-events-handler.js';
-export { initializeCollectClock } from './collectclock-handler.js';
-export { startBonusNotifier } from './bonus-notifier.js';

@@ -1,9 +1,23 @@
 /**
+ * © 2024–2025 TiltCheck Ecosystem. All Rights Reserved.
+ * Created by jmenichole (https://github.com/jmenichole)
+ * 
+ * This file is part of the TiltCheck project.
+ * For licensing information, see LICENSE file in the project root.
+ */
+/**
  * @tiltcheck/config
  * 
  * Centralized configuration for the TiltCheck ecosystem.
  * Includes severity calculations, environment utilities, and Zod-validated configs.
  */
+
+// Re-export startup validation (validate.ts)
+export {
+  EnvSchema,
+  type ValidatedEnv,
+  validateEnv as validateEnvAtStartup,
+} from './validate.js';
 
 // Re-export environment validation
 export {
@@ -13,10 +27,12 @@ export {
   discordConfigSchema,
   databaseConfigSchema,
   supabaseConfigSchema,
+  blockchainConfigSchema,
   serverConfigSchema,
   cookieConfigSchema,
   fullConfigSchema,
-  
+  env,
+
   // Types
   type JWTEnvConfig,
   type ServiceJWTEnvConfig,
@@ -27,7 +43,7 @@ export {
   type CookieEnvConfig,
   type FullEnvConfig,
   type ValidationResult,
-  
+
   // Validation functions
   validateEnv,
   getJWTConfig,
@@ -39,7 +55,7 @@ export {
   getCookieConfig,
   validateAllConfig,
   createPartialValidator,
-  
+
   // Service-specific configs
   getAPIConfig,
   getDashboardConfig,
@@ -85,7 +101,13 @@ export const severityConfig: SeverityConfig = {
 // ============================================================
 
 /** Environment variable names for Discord bot token (in order of preference) */
-export const DISCORD_TOKEN_ENV_VARS = ['DISCORD_TOKEN', 'DISCORD_BOT_TOKEN'] as const;
+export const DISCORD_TOKEN_ENV_VARS = [
+  'TILT_DISCORD_BOT_TOKEN',
+  'TIP_DISCORD_BOT_TOKEN',
+  'DAD_DISCORD_BOT_TOKEN',
+  'DISCORD_TOKEN',
+  'DISCORD_BOT_TOKEN'
+] as const;
 
 /**
  * Get a required environment variable

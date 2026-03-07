@@ -1,4 +1,11 @@
 /**
+ * © 2024–2025 TiltCheck Ecosystem. All Rights Reserved.
+ * Created by jmenichole (https://github.com/jmenichole)
+ * 
+ * This file is part of the TiltCheck project.
+ * For licensing information, see LICENSE file in the project root.
+ */
+/**
  * @tiltcheck/db - Query Helpers
  * Typed query functions for common database operations
  */
@@ -15,13 +22,63 @@ import type {
   CreateTipPayload,
   Casino,
   CasinoGrade,
+  AuditLog,
+  CreateAuditLogPayload,
   PaginationParams,
   PaginatedResult,
+  UserOnboarding,
+  UpsertOnboardingPayload,
 } from './types.js';
 
 // ============================================================================
 // User Queries
 // ============================================================================
+
+/**
+ * Find user onboarding by Discord ID
+ */
+export async function findOnboardingByDiscordId(discordId: string): Promise<UserOnboarding | null> {
+  return findOneBy<UserOnboarding>('user_onboarding', 'discord_id', discordId);
+}
+
+/**
+ * Upsert user onboarding
+ */
+export async function upsertOnboarding(payload: UpsertOnboardingPayload): Promise<UserOnboarding | null> {
+  const sql = `
+    INSERT INTO user_onboarding (
+      discord_id, is_onboarded, has_accepted_terms, risk_level, 
+      cooldown_enabled, daily_limit, notifications_tips, 
+      notifications_trivia, notifications_promos, updated_at
+    ) 
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW())
+    ON CONFLICT (discord_id) DO UPDATE SET
+      is_onboarded = COALESCE($2, user_onboarding.is_onboarded),
+      has_accepted_terms = COALESCE($3, user_onboarding.has_accepted_terms),
+      risk_level = COALESCE($4, user_onboarding.risk_level),
+      cooldown_enabled = COALESCE($5, user_onboarding.cooldown_enabled),
+      daily_limit = COALESCE($6, user_onboarding.daily_limit),
+      notifications_tips = COALESCE($7, user_onboarding.notifications_tips),
+      notifications_trivia = COALESCE($8, user_onboarding.notifications_trivia),
+      notifications_promos = COALESCE($9, user_onboarding.notifications_promos),
+      updated_at = NOW()
+    RETURNING *
+  `;
+
+  const values = [
+    payload.discord_id,
+    payload.is_onboarded ?? null,
+    payload.has_accepted_terms ?? null,
+    payload.risk_level ?? null,
+    payload.cooldown_enabled ?? null,
+    payload.daily_limit ?? null,
+    payload.notifications_tips ?? null,
+    payload.notifications_trivia ?? null,
+    payload.notifications_promos ?? null,
+  ];
+
+  return queryOne<UserOnboarding>(sql, values);
+}
 
 /**
  * Find user by ID
@@ -61,7 +118,7 @@ export async function createUser(payload: CreateUserPayload): Promise<User | nul
     created_at: new Date(),
     updated_at: new Date(),
   };
-  
+
   return insert<User>('users', data);
 }
 
@@ -73,7 +130,7 @@ export async function updateUser(id: string, payload: UpdateUserPayload): Promis
     ...payload,
     updated_at: new Date(),
   };
-  
+
   return update<User>('users', id, data);
 }
 
@@ -86,7 +143,7 @@ export async function findOrCreateUserByDiscord(
   discordAvatar?: string
 ): Promise<User> {
   const existing = await findUserByDiscordId(discordId);
-  
+
   if (existing) {
     // Update username/avatar if changed
     if (existing.discord_username !== discordUsername || existing.discord_avatar !== discordAvatar) {
@@ -99,18 +156,18 @@ export async function findOrCreateUserByDiscord(
     }
     return existing;
   }
-  
+
   const newUser = await createUser({
     discord_id: discordId,
     discord_username: discordUsername,
     discord_avatar: discordAvatar,
     roles: ['user'],
   });
-  
+
   if (!newUser) {
     throw new Error('Failed to create user');
   }
-  
+
   return newUser;
 }
 
@@ -123,7 +180,7 @@ export async function linkWalletToUser(userId: string, walletAddress: string): P
   if (existingUser && existingUser.id !== userId) {
     throw new Error('Wallet is already linked to another account');
   }
-  
+
   return updateUser(userId, { wallet_address: walletAddress });
 }
 
@@ -165,7 +222,7 @@ export async function createMagicLink(
   expiresInMinutes: number = 15
 ): Promise<MagicLink | null> {
   const expiresAt = new Date(Date.now() + expiresInMinutes * 60 * 1000);
-  
+
   return insert<MagicLink>('magic_links', {
     email,
     token_hash: tokenHash,
@@ -185,7 +242,7 @@ export async function findValidMagicLink(tokenHash: string): Promise<MagicLink |
     AND used_at IS NULL
     LIMIT 1
   `;
-  
+
   return queryOne<MagicLink>(sql, [tokenHash]);
 }
 
@@ -230,7 +287,7 @@ export async function findValidSession(tokenHash: string): Promise<Session | nul
     AND expires_at > NOW()
     LIMIT 1
   `;
-  
+
   return queryOne<Session>(sql, [tokenHash]);
 }
 
@@ -279,15 +336,15 @@ export async function updateTipStatus(
   txSignature?: string
 ): Promise<Tip | null> {
   const data: Partial<Tip> = { status };
-  
+
   if (txSignature) {
     data.tx_signature = txSignature;
   }
-  
+
   if (status === 'completed') {
     data.completed_at = new Date();
   }
-  
+
   return update<Tip>('tips', id, data);
 }
 
@@ -299,23 +356,23 @@ export async function getTipsBySender(
   pagination?: PaginationParams
 ): Promise<PaginatedResult<Tip>> {
   const { limit = 20, offset = 0, orderBy = 'created_at', orderDir = 'desc' } = pagination || {};
-  
+
   const sql = `
     SELECT * FROM tips 
     WHERE sender_id = $1 
     ORDER BY ${orderBy} ${orderDir}
     LIMIT $2 OFFSET $3
   `;
-  
+
   const countSql = 'SELECT COUNT(*) as count FROM tips WHERE sender_id = $1';
-  
+
   const [rows, countResult] = await Promise.all([
     query<Tip>(sql, [senderId, limit, offset]),
     queryOne<{ count: string }>(countSql, [senderId]),
   ]);
-  
+
   const total = parseInt(countResult?.count ?? '0', 10);
-  
+
   return {
     rows,
     total,
@@ -333,23 +390,23 @@ export async function getTipsByRecipient(
   pagination?: PaginationParams
 ): Promise<PaginatedResult<Tip>> {
   const { limit = 20, offset = 0, orderBy = 'created_at', orderDir = 'desc' } = pagination || {};
-  
+
   const sql = `
     SELECT * FROM tips 
     WHERE recipient_discord_id = $1 
     ORDER BY ${orderBy} ${orderDir}
     LIMIT $2 OFFSET $3
   `;
-  
+
   const countSql = 'SELECT COUNT(*) as count FROM tips WHERE recipient_discord_id = $1';
-  
+
   const [rows, countResult] = await Promise.all([
     query<Tip>(sql, [recipientDiscordId, limit, offset]),
     queryOne<{ count: string }>(countSql, [recipientDiscordId]),
   ]);
-  
+
   const total = parseInt(countResult?.count ?? '0', 10);
-  
+
   return {
     rows,
     total,
@@ -391,22 +448,22 @@ export async function getCasinos(
   pagination?: PaginationParams
 ): Promise<PaginatedResult<Casino>> {
   const { limit = 20, offset = 0, orderBy = 'name', orderDir = 'asc' } = pagination || {};
-  
+
   const sql = `
     SELECT * FROM casinos 
     ORDER BY ${orderBy} ${orderDir}
     LIMIT $1 OFFSET $2
   `;
-  
+
   const countSql = 'SELECT COUNT(*) as count FROM casinos';
-  
+
   const [rows, countResult] = await Promise.all([
     query<Casino>(sql, [limit, offset]),
     queryOne<{ count: string }>(countSql),
   ]);
-  
+
   const total = parseInt(countResult?.count ?? '0', 10);
-  
+
   return {
     rows,
     total,
@@ -433,12 +490,61 @@ export async function addCasinoGrade(
     notes,
     created_at: new Date(),
   });
-  
+
   // Update casino's current grade
   await update('casinos', casinoId, {
     grade,
     updated_at: new Date(),
   });
-  
+
   return gradeRecord;
+}
+
+// ============================================================================
+// Audit Log Queries
+// ============================================================================
+
+/**
+ * Create an audit log entry
+ */
+export async function createAuditLog(payload: CreateAuditLogPayload): Promise<AuditLog | null> {
+  return insert<AuditLog>('audit_logs', {
+    ...payload,
+    metadata: payload.metadata || {},
+    created_at: new Date(),
+  });
+}
+
+/**
+ * Get audit logs for a specific admin
+ */
+export async function getAuditLogsByAdmin(
+  adminId: string,
+  pagination?: PaginationParams
+): Promise<PaginatedResult<AuditLog>> {
+  const { limit = 50, offset = 0, orderBy = 'created_at', orderDir = 'desc' } = pagination || {};
+
+  const sql = `
+    SELECT * FROM audit_logs 
+    WHERE admin_id = $1 
+    ORDER BY ${orderBy} ${orderDir}
+    LIMIT $2 OFFSET $3
+  `;
+
+  const countSql = 'SELECT COUNT(*) as count FROM audit_logs WHERE admin_id = $1';
+
+  const [rows, countResult] = await Promise.all([
+    query<AuditLog>(sql, [adminId, limit, offset]),
+    queryOne<{ count: string }>(countSql, [adminId]),
+  ]);
+
+  const total = parseInt(countResult?.count ?? '0', 10);
+
+  return {
+    rows,
+    total,
+    limit,
+    offset,
+    hasMore: offset + rows.length < total,
+  };
 }

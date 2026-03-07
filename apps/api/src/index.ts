@@ -1,6 +1,14 @@
 /**
+ * © 2024–2026 TiltCheck Ecosystem. All Rights Reserved.
+ * Created by jmenichole (https://github.com/jmenichole)
+ *
+ * This file is part of the TiltCheck project.
+ * For licensing information, see LICENSE file in the project root.
+ */
+// v1.1.0 — 2026-02-26
+/**
  * @tiltcheck/api - Central API Gateway
- * 
+ *
  * The single entry point for all TiltCheck API calls.
  * Handles authentication, session management, and request forwarding.
  */
@@ -19,6 +27,12 @@ import { affiliateRouter } from './routes/affiliate.js';
 import { safetyRouter } from './routes/safety.js';
 import { newsletterRouter } from './routes/newsletter.js';
 import { stripeRouter, handleStripeWebhook } from './routes/stripe.js';
+import { userRouter } from './routes/user.js';
+import { aiRouter } from './routes/ai.js';
+import { pricingRouter } from './routes/pricing.js';
+import { casinoRouter } from './routes/casino.js';
+import { bonusRouter } from './routes/bonus.js';
+import { vaultRouter } from './routes/vault.js';
 import modRouter from './routes/mod.js';
 import { errorHandler, notFoundHandler } from './middleware/error.js';
 import { requestLogger } from './middleware/logger.js';
@@ -52,20 +66,20 @@ app.use(cors({
       'https://bot.tiltcheck.me',
       /^https:\/\/.*\.tiltcheck\.me$/,
     ];
-    
+
     // Allow requests with no origin (like mobile apps or curl)
     if (!origin) {
       callback(null, true);
       return;
     }
-    
+
     const isAllowed = allowedOrigins.some((allowed) => {
       if (allowed instanceof RegExp) {
         return allowed.test(origin);
       }
       return allowed === origin;
     });
-    
+
     if (isAllowed) {
       callback(null, true);
     } else if (process.env.NODE_ENV === 'development') {
@@ -130,6 +144,16 @@ app.use('/newsletter', newsletterRouter);
 
 // Stripe billing routes
 app.use('/stripe', stripeRouter);
+
+// User and onboarding routes
+app.use('/user', userRouter);
+
+// Consolidated Utility Routes
+app.use('/ai', aiRouter);
+app.use('/pricing', pricingRouter);
+app.use('/casino', casinoRouter);
+app.use('/bonus', bonusRouter);
+app.use('/vault', vaultRouter);
 
 // Moderation routes
 app.use('/mod', modRouter);

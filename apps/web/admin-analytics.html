@@ -1,4 +1,12 @@
 <!DOCTYPE html>
+<!--
+  © 2024–2025 TiltCheck Ecosystem. All Rights Reserved.
+  Created by jmenichole (https://github.com/jmenichole)
+  
+  This file is part of the TiltCheck project.
+  For licensing information, see LICENSE file in the project root.
+-->
+
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -69,7 +77,7 @@
 </head>
 <body>
     <header class="header">
-        <div class="logo">🎮 TiltCheck Admin</div>
+        <div class="logo"> TiltCheck Admin</div>
         <div class="user-info">
             <div class="status-dot"></div>
             <span>jmenichole</span>
@@ -81,31 +89,31 @@
     <div class="main-grid">
         <nav class="sidebar">
             <div class="nav-group">
-                <div class="nav-title">📊 Admin Pages</div>
-                <a href="/control-room" class="nav-link">🎮 Control Room <span class="status">●</span></a>
-                <a href="/admin/ecosystem-status" class="nav-link">📊 Ecosystem Status <span class="status">●</span></a>
-                <a href="/admin/analytics" class="nav-link active">📈 Analytics <span class="status">●</span></a>
+                <div class="nav-title"> Admin Pages</div>
+                <a href="/control-room.html" class="nav-link"> Control Room <span class="status">●</span></a>
+                <a href="/admin-status.html" class="nav-link"> Ecosystem Status <span class="status">●</span></a>
+                <a href="/admin-analytics.html" class="nav-link active"> Analytics <span class="status">●</span></a>
             </div>
             
             <div class="nav-group">
-                <div class="nav-title">🔧 Quick Links</div>
-                <a href="/admin/sitemap" class="nav-link">🗺️ Site Map API <span class="status">●</span></a>
-                <a href="/admin/status" class="nav-link">⚙️ Service Status API <span class="status">●</span></a>
-                <a href="/admin/logs" class="nav-link">📝 System Logs <span class="status">●</span></a>
+                <div class="nav-title"> Quick Links</div>
+                <a href="/admin/sitemap" class="nav-link"> Site Map API <span class="status">●</span></a>
+                <a href="/admin/status" class="nav-link"> Service Status API <span class="status">●</span></a>
+                <a href="/admin/logs" class="nav-link"> System Logs <span class="status">●</span></a>
             </div>
             
             <div class="nav-group">
-                <div class="nav-title">🌐 Public Site</div>
-                <a href="/" class="nav-link">🏠 Homepage</a>
-                <a href="/dashboard" class="nav-link">📊 Trust Dashboard</a>
-                <a href="/#tools" class="nav-link">🛠️ Tools</a>
+                <div class="nav-title"> Public Site</div>
+                <a href="/" class="nav-link"> Homepage</a>
+                <a href="/dashboard" class="nav-link"> Trust Dashboard</a>
+                <a href="/#tools" class="nav-link"> Tools</a>
             </div>
         </nav>
         
         <main class="content">
             <div class="panel">
                 <div class="panel-title">
-                    <span>📈 Overview Metrics</span>
+                    <span> Overview Metrics</span>
                     <button class="btn" onclick="refreshMetrics()">Refresh</button>
                 </div>
                 <div class="panel-grid">
@@ -134,7 +142,7 @@
             
             <div class="panel">
                 <div class="panel-title">
-                    <span>🔥 Top Paths (by request count)</span>
+                    <span> Top Paths (by request count)</span>
                 </div>
                 <div class="table-container">
                     <table>
@@ -154,7 +162,7 @@
             
             <div class="panel">
                 <div class="panel-title">
-                    <span>🌐 User Agents</span>
+                    <span> User Agents</span>
                 </div>
                 <div class="table-container">
                     <table>
@@ -173,10 +181,10 @@
             
             <div class="panel">
                 <div class="panel-title">
-                    <span>📊 Traffic Over Time</span>
+                    <span> Traffic Over Time</span>
                 </div>
                 <div class="chart-placeholder">
-                    <span>📈</span>
+                    <span></span>
                     <p style="color: #888;">Chart visualization coming soon</p>
                     <p style="color: #666; font-size: 0.8rem;">Connect to a time-series database for historical data</p>
                 </div>
@@ -184,7 +192,7 @@
             
             <div class="panel">
                 <div class="panel-title">
-                    <span>🎯 Service Status</span>
+                    <span> Service Status</span>
                 </div>
                 <div class="table-container">
                     <table>

@@ -1,4 +1,11 @@
 /**
+ * © 2024–2025 TiltCheck Ecosystem. All Rights Reserved.
+ * Created by jmenichole (https://github.com/jmenichole)
+ * 
+ * This file is part of the TiltCheck project.
+ * For licensing information, see LICENSE file in the project root.
+ */
+/**
  * Integration test: Gameplay Analyzer → Trust Events → CollectClock
  * Verifies that anomaly detection impacts trust scoring and bonus claims
  */

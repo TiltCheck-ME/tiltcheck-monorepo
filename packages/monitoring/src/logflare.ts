@@ -1,4 +1,11 @@
 /**
+ * © 2024–2025 TiltCheck Ecosystem. All Rights Reserved.
+ * Created by jmenichole (https://github.com/jmenichole)
+ * 
+ * This file is part of the TiltCheck project.
+ * For licensing information, see LICENSE file in the project root.
+ */
+/**
  * Logflare Log Transport Integration
  * 
  * This module provides utilities for sending logs to Logflare or similar log aggregation services.
@@ -18,7 +25,7 @@
  * ```
  */
 
-interface LogEvent {
+export interface LogEvent {
   level: 'debug' | 'info' | 'warn' | 'error';
   message: string;
   service: string;
@@ -31,14 +38,10 @@ interface LogEvent {
  * @param event - Log event object
  */
 export async function sendToLogflare(event: LogEvent): Promise<void> {
-  // TODO: Implement Logflare integration
-  // - Check for process.env.LOGFLARE_API_KEY
-  // - Check for process.env.LOGFLARE_SOURCE_ID
-  // - POST to https://api.logflare.app/logs
-  // - Add timestamp if not present
-  // - Handle errors gracefully (don't crash on log failure)
-  
-  if (!process.env.LOGFLARE_API_KEY) {
+  const apiKey = process.env.LOGFLARE_API_KEY;
+  const sourceId = process.env.LOGFLARE_SOURCE_ID;
+  if (!apiKey) {
+    // Silently ignore if no API key is configured.
     return;
   }
 
@@ -47,8 +50,25 @@ export async function sendToLogflare(event: LogEvent): Promise<void> {
     timestamp: event.timestamp || new Date().toISOString(),
   };
 
-  console.log('[Logflare] Would send:', logEntry);
+  const payload = sourceId ? { source: sourceId, logs: [logEntry] } : { logs: [logEntry] };
+
+  try {
+    await fetch('https://api.logflare.app/logs', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify(payload),
+    });
+  } catch (err) {
+    // Logflare failures should not crash the application.
+    console.error('[Logflare] Failed to send log:', err);
+  }
 }
+
+// Legacy placeholder removed – functionality now provided by BatchLogSender and sendToLogflare.
+
 
 /**
  * Create a Logflare logger for a specific service
@@ -56,17 +76,17 @@ export async function sendToLogflare(event: LogEvent): Promise<void> {
  */
 export function createLogflareLogger(serviceName: string) {
   return {
-    debug: (message: string, meta?: Record<string, any>) => {
-      sendToLogflare({ level: 'debug', message, service: serviceName, ...meta });
+    debug: async (message: string, meta?: Record<string, any>) => {
+      await sendToLogflare({ level: 'debug', message, service: serviceName, ...meta });
     },
-    info: (message: string, meta?: Record<string, any>) => {
-      sendToLogflare({ level: 'info', message, service: serviceName, ...meta });
+    info: async (message: string, meta?: Record<string, any>) => {
+      await sendToLogflare({ level: 'info', message, service: serviceName, ...meta });
     },
-    warn: (message: string, meta?: Record<string, any>) => {
-      sendToLogflare({ level: 'warn', message, service: serviceName, ...meta });
+    warn: async (message: string, meta?: Record<string, any>) => {
+      await sendToLogflare({ level: 'warn', message, service: serviceName, ...meta });
     },
-    error: (message: string, meta?: Record<string, any>) => {
-      sendToLogflare({ level: 'error', message, service: serviceName, ...meta });
+    error: async (message: string, meta?: Record<string, any>) => {
+      await sendToLogflare({ level: 'error', message, service: serviceName, ...meta });
     },
   };
 }
@@ -100,14 +120,35 @@ export class BatchLogSender {
    * Flush all buffered logs
    */
   async flush(): Promise<void> {
-    // TODO: Implement batch log sending
     if (this.buffer.length === 0) {
       return;
     }
 
-    console.log(`[Logflare] Flushing ${this.buffer.length} log events`);
+    const apiKey = process.env.LOGFLARE_API_KEY;
+    const sourceId = process.env.LOGFLARE_SOURCE_ID;
+    if (!apiKey) {
+      // No API key, drop logs silently.
+      this.buffer = [];
+      return;
+    }
+
+    const payload = sourceId ? { source: sourceId, logs: this.buffer } : { logs: this.buffer };
+    try {
+      await fetch('https://api.logflare.app/logs', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${apiKey}`,
+        },
+        body: JSON.stringify(payload),
+      });
+    } catch (err) {
+      console.error('[Logflare] Failed to flush logs:', err);
+    }
+    // Clear buffer after attempt
     this.buffer = [];
   }
+
 
   /**
    * Start automatic flush timer

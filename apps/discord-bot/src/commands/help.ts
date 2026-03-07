@@ -1,4 +1,11 @@
 /**
+ * © 2024–2025 TiltCheck Ecosystem. All Rights Reserved.
+ * Created by jmenichole (https://github.com/jmenichole)
+ * 
+ * This file is part of the TiltCheck project.
+ * For licensing information, see LICENSE file in the project root.
+ */
+/**
  * Help Command
  * 
  * Displays available commands and module information.
@@ -11,7 +18,7 @@ import type { Command } from '../types.js';
 export const help: Command = {
   data: new SlashCommandBuilder()
     .setName('help')
-    .setDescription('Show available commands and features')
+    .setDescription('Show safety commands and bot routing')
     .setContexts(
       InteractionContextType.Guild,
       InteractionContextType.BotDM
@@ -19,72 +26,55 @@ export const help: Command = {
 
   async execute(interaction: ChatInputCommandInteraction) {
     const embed = createEmbed(
-      '🪙 JustTheTip Bot',
-      'Non-custodial Solana tipping • Powered by TiltCheck',
+      '🛡️ TiltCheck Safety Bot',
+      'Risk checks, moderation tools, and responsible play utilities',
       Colors.PRIMARY
     );
 
     embed.addFields(
       {
-        name: '💰 /tip - Tipping & Wallet',
+        name: 'Core Safety',
         value:
-          '`/tip send @user <amount>` - Send SOL to a user\n' +
-          '`/tip airdrop @users <amount>` - Multi-user tips\n' +
-          '`/tip wallet` - Register/view your wallet\n' +
-          '`/tip balance` - Check your balance',
+          '`/tiltcheck status` - Check your current tilt state\n' +
+          '`/tiltcheck history` - View your tilt history\n' +
+          '`/tiltcheck cooldown [minutes]` - Start a cooldown',
         inline: false,
       },
       {
-        name: '💱 /tip swap - Crypto Swaps',
+        name: 'Trust And Link Safety',
         value:
-          '`/tip swap quote` - Get swap rates\n' +
-          '`/tip swap deposit` - Start a swap (LTC → SOL)\n' +
-          '`/tip swap status` - Check swap progress\n' +
-          'Powered by ChangeNow • Non-custodial',
+          '`/tiltcheck casino domain:<domain>` - Get trust/fairness data\n' +
+          '`/tiltcheck suslink scan url:<url>` - Scan a suspicious URL\n' +
+          '`/tiltcheck suslink submit url:<url>` - Submit promo links for review',
         inline: false,
       },
       {
-        name: '🔒 /tip - Vault (Time-lock)',
+        name: 'Community And Moderation',
         value:
-          '`/tip lock <amount> <duration>` - Lock funds\n' +
-          '`/tip unlock <id>` - Unlock after expiry\n' +
-          '`/tip vaults` - View your vaults',
+          '`/buddy add @user` - Set up an accountability buddy\n' +
+          '`/report <target> <action> <reason>` - Log a report\n' +
+          '`/setstate state:<XX>` - Save optional region context',
         inline: false,
       },
       {
-        name: '🎯 /tip trivia - Trivia Drops',
+        name: 'Utility',
         value:
-          '`/tip trivia $5 15s` - Start a trivia round\n' +
-          'Random category, prize split among winners!\n' +
-          'Time accepts: "15s", "30 secs", "1 min"',
+          '`/ping` - Health check\n' +
+          '`/help` - Show this command guide',
         inline: false,
       },
       {
-        name: '📊 /trust - Trust Dashboard',
+        name: 'Command Routing',
         value:
-          '`/trust` - Open your personalized trust dashboard\n' +
-          '`/trust casino <name>` - Check casino trust score',
-        inline: false,
-      },
-      {
-        name: '🛠️ Utility',
-        value: '`/ping` - Check bot status\n`/help` - Show this message\n`/support` - Get help',
-        inline: false,
-      },
-      {
-        name: '📊 Features',
-        value:
-          '✅ Non-custodial (you control your funds)\n' +
-          '✅ Flat $0.07 fee per tip\n' +
-          '✅ Direct wallet-to-wallet transfers\n' +
-          '✅ Time-locked vaults for self-control\n' +
-          '✅ Cross-chain swaps via ChangeNow',
+          'Tipping and vault commands are in the JustTheTip bot.\n' +
+          'DA&D and poker commands are in the DA&D bot.\n' +
+          'Bonus timer commands are in your external CollectClock bot.',
         inline: false,
       }
     );
 
     embed.setFooter({
-      text: 'JustTheTip Bot • Powered by TiltCheck',
+      text: 'TiltCheck Safety Bot',
     });
 
     await interaction.reply({ embeds: [embed] });

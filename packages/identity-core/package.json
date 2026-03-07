@@ -12,7 +12,8 @@
   },
   "dependencies": {
     "@tiltcheck/types": "workspace:*",
-    "@tiltcheck/event-router": "workspace:*"
+    "@tiltcheck/event-router": "workspace:*",
+    "@noble/ed25519": "^2.1.0"
   },
   "devDependencies": {
     "typescript": "^5.3.3"
