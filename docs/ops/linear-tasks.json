@@ -1,0 +1,22 @@
+{
+  "tasks": [
+    {
+      "key": "MS-10-FOUNDATION",
+      "title": "Finalize GCP project foundation setup",
+      "description": "Validate project, billing, IAM bootstrap, and budget guardrails for migration wave 1.",
+      "priority": 2
+    },
+    {
+      "key": "MS-20-API-CLOUD-RUN",
+      "title": "Deploy API service to Cloud Run and verify rollback",
+      "description": "Deploy api service with scripts/gcp/deploy-cloud-run-service and validate deploy + rollback notes.",
+      "priority": 2
+    },
+    {
+      "key": "MS-30-LOG-CADENCE",
+      "title": "Maintain milestone and cost logs after each migration slice",
+      "description": "After each meaningful slice, update milestone-log.md and cost-pilot.csv with current risk and next action.",
+      "priority": 3
+    }
+  ]
+}

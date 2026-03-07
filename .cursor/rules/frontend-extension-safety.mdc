@@ -1,0 +1,19 @@
+---
+description: Frontend and extension checks for safety, resilience, and UX quality
+globs: {apps/web/**/*,apps/chrome-extension/**/*}
+alwaysApply: false
+---
+
+# Frontend and Extension Safety
+
+- Treat all external data as untrusted; validate and escape before rendering.
+- Keep extension messaging boundaries explicit (content/background/page bridge).
+- Favor progressive enhancement and graceful fallback when APIs fail.
+- Keep UI changes accessible (labels, focus order, semantic controls).
+- Avoid risky client-side storage of sensitive values.
+
+## Quick pass/fail check
+
+- [ ] Untrusted data is validated/sanitized before use
+- [ ] Extension boundary changes are explicit and minimally privileged
+- [ ] Accessibility and failure-state behavior are covered

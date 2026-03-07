@@ -34,6 +34,8 @@ import {
 import { authMiddleware, getJWTConfig } from '../middleware/auth.js';
 
 const router = Router();
+const DEFAULT_DISCORD_CLIENT_ID = '1445916179163250860';
+const DEFAULT_DISCORD_SCOPES = ['identify', 'identify.premium'];
 
 // ============================================================================
 // Configuration
@@ -43,7 +45,7 @@ function getDiscordConfig(): DiscordOAuthConfig {
   const clientId =
     process.env.TILT_DISCORD_CLIENT_ID ||
     process.env.DISCORD_CLIENT_ID ||
-    '';
+    DEFAULT_DISCORD_CLIENT_ID;
   const clientSecret =
     process.env.TILT_DISCORD_CLIENT_SECRET ||
     process.env.DISCORD_CLIENT_SECRET ||
@@ -58,8 +60,23 @@ function getDiscordConfig(): DiscordOAuthConfig {
     clientId,
     clientSecret,
     redirectUri,
-    scopes: ['identify', 'email'],
+    scopes: DEFAULT_DISCORD_SCOPES,
   };
+}
+
+function getTrustedExtensionOrigin(value: unknown): string | undefined {
+  if (typeof value !== 'string' || !value) return undefined;
+
+  try {
+    const parsed = new URL(value);
+    if (parsed.protocol === 'chrome-extension:') {
+      return parsed.origin;
+    }
+  } catch {
+    // Ignore invalid input; value is optional and best-effort.
+  }
+
+  return undefined;
 }
 
 // ============================================================================
@@ -295,6 +312,23 @@ router.get('/discord/login', authLimiter, (req, res) => {
       return;
     }
 
+    // Compatibility bridge:
+    // If Discord is configured to redirect to /discord/login, forward code/state to callback.
+    const callbackCode = typeof req.query.code === 'string' ? req.query.code : undefined;
+    const callbackState = typeof req.query.state === 'string' ? req.query.state : undefined;
+    if (callbackCode || callbackState || typeof req.query.error === 'string') {
+      const callbackParams = new URLSearchParams();
+      if (callbackCode) callbackParams.set('code', callbackCode);
+      if (callbackState) callbackParams.set('state', callbackState);
+      if (typeof req.query.error === 'string') callbackParams.set('error', req.query.error);
+      if (typeof req.query.error_description === 'string') {
+        callbackParams.set('error_description', req.query.error_description);
+      }
+      const suffix = callbackParams.toString();
+      res.redirect(`/auth/discord/callback${suffix ? `?${suffix}` : ''}`);
+      return;
+    }
+
     // Generate state for CSRF protection. Prefix helps recover source in callback if cookies are blocked.
     const source = req.query.source as string | undefined;
     const statePrefix = source === 'extension' ? 'ext_' : 'web_';
@@ -322,6 +356,17 @@ router.get('/discord/login', authLimiter, (req, res) => {
     // Store source if provided (e.g., 'extension')
     if (source) {
       res.cookie('oauth_source', source, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        maxAge: 10 * 60 * 1000,
+      });
+    }
+
+    // Optional extension opener origin for stricter postMessage targeting.
+    const openerOrigin = getTrustedExtensionOrigin(req.query.opener_origin);
+    if (openerOrigin) {
+      res.cookie('oauth_opener_origin', openerOrigin, {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'lax',
@@ -414,6 +459,12 @@ router.get('/discord/callback', authLimiter, async (req, res) => {
 
     // Check if source was extension
     res.clearCookie('oauth_source');
+    const openerOriginCookie = req.cookies?.oauth_opener_origin;
+    res.clearCookie('oauth_opener_origin');
+    const postMessageTarget =
+      typeof openerOriginCookie === 'string' && openerOriginCookie.startsWith('chrome-extension://')
+        ? openerOriginCookie
+        : '*';
 
     if (source === 'extension') {
       // Generate JWT for the user to pass back directly
@@ -443,11 +494,12 @@ router.get('/discord/callback', authLimiter, async (req, res) => {
             </div>
             <script>
               const userData = ${JSON.stringify({ id: user.id, username: user.discord_username, avatar: user.discord_avatar })};
+              const targetOrigin = ${JSON.stringify(postMessageTarget)};
               window.opener.postMessage({ 
                 type: 'discord-auth', 
                 token: '${token}',
                 user: userData
-              }, '*');
+              }, targetOrigin);
               setTimeout(() => window.close(), 1000);
             </script>
           </body>

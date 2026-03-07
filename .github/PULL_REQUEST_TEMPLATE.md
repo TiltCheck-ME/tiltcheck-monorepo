@@ -1,3 +1,5 @@
+# Pull Request
+
 ## Description
 <!-- Provide a clear and concise description of your changes -->
 
@@ -18,11 +20,21 @@
 Fixes #
 Related to #
 
+## Decision Gates (Required for Ambiguous Changes)
+<!-- Explicitly document decisions for architecture/security/cost ambiguity -->
+- [ ] No ambiguous production-impacting choices left unresolved
+- [ ] Decision log updated (`docs/migration/decision-log.md`) when applicable
+- [ ] Approver noted for any new migration decision (`DEC-*`)
+
+### Decision Entries Added/Updated
+<!-- Example: DEC-20260307-04 -->
+- (none)
+
 ## Changes Made
 <!-- List the key changes in this PR -->
-- 
-- 
-- 
+- (change 1)
+- (change 2)
+- (change 3)
 
 ## Module/Service Affected
 <!-- Check all that apply -->
@@ -50,7 +62,6 @@ Related to #
 ### Test Details
 <!-- Describe specific tests or manual verification steps -->
 
-
 ## Security Checklist
 <!-- Ensure security best practices are followed -->
 - [ ] No secrets or sensitive data in code
@@ -58,6 +69,7 @@ Related to #
 - [ ] Input validation added for user-provided data
 - [ ] Dependencies checked for vulnerabilities
 - [ ] No new high/critical security warnings
+- [ ] No production secrets or credentials committed
 
 ## Performance Impact
 <!-- Describe any performance implications -->
@@ -65,11 +77,10 @@ Related to #
 - [ ] Performance improved
 - [ ] Performance may be affected (details below)
 
-**Details:** 
+**Details:**
 
 ## Breaking Changes
 <!-- If this is a breaking change, describe the impact and migration path -->
-
 
 ## Documentation
 <!-- Check all that apply -->
@@ -91,10 +102,8 @@ Related to #
 ## Screenshots/Videos
 <!-- If applicable, add screenshots or videos to demonstrate changes -->
 
-
 ## Additional Context
 <!-- Any other information that reviewers should know -->
-
 
 ---
 
