@@ -69,4 +69,13 @@ describe('Auth callback state/source validation', () => {
     expect(response.status).toBe(400);
     expect(response.body.error).toBe('Missing authorization code');
   });
+
+  it('does not allow oauth_source cookie alone to bypass missing oauth_state cookie', async () => {
+    const response = await request(app)
+      .get('/auth/discord/callback?state=random_state&code=dummy')
+      .set('Cookie', ['oauth_source=extension']);
+
+    expect(response.status).toBe(400);
+    expect(response.body.error).toBe('Invalid OAuth state');
+  });
 });
