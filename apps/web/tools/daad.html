@@ -15,20 +15,27 @@
       <div class="tool-icon-large"></div>
       <h1>DA&D</h1>
       <p class="tool-tagline">Degens Against Decency (Discord Party Game)</p>
-      <p class="built-by">
-        <a href="https://jmenichole.github.io/Portfolio/" target="_blank" rel="noopener">made for degens by degens</a>
-      <div id="shared-footer"></div>
-    </body>
-    <script src="/scripts/components-loader.js"></script>
-    </html>
-            <li> Rotating dealer role each round</li>
-            <li> 2-10 players per game</li>
-            <li> Anonymous card submission and voting</li>
-            <li> Round-based scoring with leaderboards</li>
-            <li> Includes Poker game integration</li>
-            <li> Dedicated Discord bot (doesn't clutter TiltCheck bot)</li>
-          </ul>
-        </div>
+      <span class="status-badge status-live">Live</span>
+    </div>
+  </header>
+
+  <section class="tool-overview">
+    <div class="container two-column">
+      <div>
+        <h2>What it does</h2>
+        <p>DA&amp;D is a fast, chaotic party game for Discord communities that want laughs without adding moderation headaches.</p>
+        <p>It runs on a dedicated bot so game traffic stays separate from TiltCheck safety and earning workflows.</p>
+      </div>
+      <div class="feature-box">
+        <h3>Core gameplay</h3>
+        <ul>
+          <li>Rotating dealer role each round</li>
+          <li>2 to 10 players per game</li>
+          <li>Anonymous card submission and voting</li>
+          <li>Round-based scoring with leaderboards</li>
+          <li>Includes Poker game integration</li>
+          <li>Dedicated Discord bot for game isolation</li>
+        </ul>
       </div>
     </div>
   </section>
@@ -176,20 +183,7 @@
     </div>
   </section>
 
-  <footer>
-    <div class="container">
-      <p><a href="/">Home</a> • <a href="/#tools">All Tools</a> • <a href="https://discord.gg/tiltcheck">Discord</a> • <a href="https://github.com/jmenichole/tiltcheck-monorepo">GitHub</a></p>
-      <p class="built-by">Built by <a href="https://github.com/jmenichole">jmenichole</a> • TiltCheck © 2024–2025</p>
-    </div>
-  </footer>
+  <div id="shared-footer"></div>
+  <script src="/scripts/components-loader.js"></script>
 </body>
-<div id="shared-footer"></div>
-<script>
-  (function(){
-    const navMount = document.getElementById('shared-nav');
-    const footerMount = document.getElementById('shared-footer');
-    if (navMount) { fetch('/components/nav.html').then(r=>r.text()).then(html=>{ navMount.innerHTML = html; }).catch(()=>{}); }
-    if (footerMount) { fetch('/components/footer.html').then(r=>r.text()).then(html=>{ footerMount.innerHTML = html; }).catch(()=>{}); }
-  })();
-</script>
 </html>
