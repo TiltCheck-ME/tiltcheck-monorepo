@@ -14,6 +14,13 @@
   if (!PANELS_EL || !DAY_EL || !MOOD_EL || !SUBTITLE_EL) return;
 
   const REFRESH_MS = 5 * 60 * 1000;
+  const cloudBaseCandidates = (() => {
+    const explicit = (window.localStorage && localStorage.getItem('tc-comic-api-base')) || '';
+    const fromGlobal = window.TC_COMIC_API_BASE || '';
+    return [explicit, fromGlobal, '/api/comic', '/v1/comic']
+      .map((v) => String(v || '').trim())
+      .filter(Boolean);
+  })();
 
   function escapeHtml(value) {
     return String(value || '')
@@ -139,11 +146,49 @@
     }
   }
 
+  async function tryCloudCurrent() {
+    for (const base of cloudBaseCandidates) {
+      const url = `${base.replace(/\/$/, '')}/current?communityId=tiltcheck-discord&_=${Date.now()}`;
+      try {
+        const response = await fetch(url, { cache: 'no-store' });
+        if (!response.ok) continue;
+        const payload = await response.json();
+        if (payload?.comic) return { comic: payload.comic, base };
+      } catch {
+        // Try next candidate.
+      }
+    }
+    return null;
+  }
+
+  async function tryCloudArchive(base) {
+    if (!base) return [];
+    const url = `${base.replace(/\/$/, '')}/archive?communityId=tiltcheck-discord&limit=12&_=${Date.now()}`;
+    try {
+      const response = await fetch(url, { cache: 'no-store' });
+      if (!response.ok) return [];
+      const payload = await response.json();
+      return Array.isArray(payload?.items) ? payload.items : [];
+    } catch {
+      return [];
+    }
+  }
+
   async function loadComic() {
     try {
-      const response = await fetch(`/daily-degen-comic.json?v=${Date.now()}`, { cache: 'no-store' });
-      if (!response.ok) throw new Error(`HTTP ${response.status}`);
-      const comic = await response.json();
+      const cloud = await tryCloudCurrent();
+      let comic;
+      let archiveFallback = [];
+
+      if (cloud?.comic) {
+        comic = cloud.comic;
+        archiveFallback = await tryCloudArchive(cloud.base);
+      } else {
+        const response = await fetch(`/daily-degen-comic.json?v=${Date.now()}`, { cache: 'no-store' });
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        comic = await response.json();
+        archiveFallback = await loadArchiveFallback();
+      }
 
       DAY_EL.textContent = formatDate(comic.date);
       MOOD_EL.textContent = comic.mood ? `Mood: ${comic.mood}` : '';
@@ -151,7 +196,6 @@
       renderPanels(comic);
       renderCredits(comic);
       renderUpdatedAt(comic);
-      const archiveFallback = await loadArchiveFallback();
       renderArchive(comic, archiveFallback);
     } catch {
       DAY_EL.textContent = 'No comic yet';

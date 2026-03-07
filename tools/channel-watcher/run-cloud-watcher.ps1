@@ -139,6 +139,17 @@ try {
                 Write-Host "⚠️ comic:daily failed (continuing). You can rerun manually: npm run comic:daily"
             } else {
                 Write-Host "✅ Daily Degen Comic payload updated."
+                if ($env:COMIC_API_URL) {
+                    Write-Host "Publishing Daily Degen Comic to cloud endpoint..."
+                    & npm run comic:publish
+                    if ($LASTEXITCODE -ne 0) {
+                        Write-Host "⚠️ comic:publish failed (continuing). Check COMIC_API_URL/COMIC_API_INGEST_KEY."
+                    } else {
+                        Write-Host "✅ Cloud comic publish completed."
+                    }
+                } else {
+                    Write-Host "COMIC_API_URL not configured. Skipping cloud comic publish."
+                }
             }
         } else {
             Write-Host "Skipping comic generation because -SkipComic was set."

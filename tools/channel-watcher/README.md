@@ -54,6 +54,7 @@ What this does automatically:
 - Sets `OLLAMA_URL=http://<vm-ip>:11434/v1`
 - Runs watcher in live mode for 10 minutes
 - Runs `npm run comic:daily` to refresh `apps/web/daily-degen-comic.json`
+- If `COMIC_API_URL` is set, runs `npm run comic:publish` to send latest day context to cloud comic API
 - Stops VM when finished (even if watcher errors)
 - Posts generated reports to your Discord webhook when `DEV_UPDATES_WEBHOOK_URL` is configured
 - Sends generated report payloads to `TRUST_ENGINE_INGEST_URL` when configured
@@ -132,6 +133,17 @@ npm run comic:daily
 This writes `apps/web/daily-degen-comic.json`, which the website can render in a "Daily Degen Comic" section.
 By default it uses your configured Ollama-compatible endpoint (`OLLAMA_URL`) and model (`COMIC_MODEL`), which works with your cloud VM flow.
 It also updates `apps/web/daily-degen-comic-archive.json` so previous strips are preserved.
+
+To publish today’s context to cloud comic generator service:
+
+```bash
+npm run comic:publish
+```
+
+Required env values for cloud publish:
+
+- `COMIC_API_URL=https://<your-cloud-run-service>`
+- optional `COMIC_API_INGEST_KEY=<shared-secret>`
 
 ## No OpenAI key?
 

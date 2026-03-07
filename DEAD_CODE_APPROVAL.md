@@ -1,0 +1,436 @@
+# Dead Code Candidates (Approval Required)
+
+Generated: 2026-03-07T17:37:07.710Z
+Tooling: `knip --reporter json`
+Regenerate: `pnpm dlx knip --no-exit-code --reporter json`
+
+## Summary
+
+- Unused file candidates: **94**
+- Unused export candidates: **50**
+- Unused type candidates: **48**
+- Dependency/unresolved candidates: **123**
+- Duplicate export groups: **6**
+
+> Note: This is a candidate list for approval. Dynamic imports, CLI scripts, static HTML references, and runtime-loaded assets can appear as false positives.
+
+## 1) Unused File Candidates (review before deletion)
+
+### Likely safe (examples/tests/scripts) (34)
+- [ ] `apps/discord-bot/examples/test-bot.ts`
+- [ ] `apps/discord-bot/scripts/clear-commands.ts`
+- [ ] `apps/discord-bot/scripts/deploy-commands.ts`
+- [ ] `apps/discord-bot/scripts/test-justthetip.ts`
+- [ ] `apps/game-arena/public/scripts/arena.js`
+- [ ] `apps/game-arena/public/scripts/auth.js`
+- [ ] `apps/game-arena/public/scripts/game.js`
+- [ ] `apps/game-arena/public/scripts/profile.js`
+- [ ] `apps/web/scripts/auth.js`
+- [ ] `apps/web/scripts/components-loader.js`
+- [ ] `apps/web/scripts/daily-comic.js`
+- [ ] `modules/suslink/examples/integration.ts`
+- [ ] `modules/suslink/examples/test-scanner.ts`
+- [ ] `packages/event-router/examples/basic-flow.ts`
+- [ ] `packages/trust-engines/tests/mocks.ts`
+- [ ] `packages/types/tests/event-factory.ts`
+- [ ] `scripts/audit-deps.ts`
+- [ ] `scripts/build-gitlab-wiki.cjs`
+- [ ] `scripts/build-gitlab-wiki.js`
+- [ ] `scripts/bundle-bot.mjs`
+- [ ] `scripts/check-versions.cjs`
+- [ ] `scripts/convert-markdown.js`
+- [ ] `scripts/convert-regulations-csv.mjs`
+- [ ] `scripts/gen-jtt-wallet.mjs`
+- [ ] `scripts/generate-changelog.ts`
+- [ ] `scripts/generate-dummy-telemetry.mjs`
+- [ ] `scripts/generate-regulations-draft.mjs`
+- [ ] `scripts/ingest-regulations-us.mjs`
+- [ ] `scripts/scrape-casinos.ts`
+- [ ] `scripts/seed-elastic-demo.mjs`
+- [ ] `scripts/sync-regulations-us.mjs`
+- [ ] `scripts/validate-env.ts`
+- [ ] `scripts/workspace-status.ts`
+- [ ] `tests/landing-image-integration.spec.ts`
+
+### Needs manual verification (app/runtime/static files) (60)
+- [ ] `.puppeteerrc.cjs`
+- [ ] `TiltCheck-Auto-Vault.user.js`
+- [ ] `apps/api/healthcheck.js`
+- [ ] `apps/chrome-extension/src/SolanaProvider.ts`
+- [ ] `apps/chrome-extension/src/autovault.ts`
+- [ ] `apps/chrome-extension/src/background.js`
+- [ ] `apps/chrome-extension/src/fairness-tutorial.ts`
+- [ ] `apps/chrome-extension/src/polyfills.js`
+- [ ] `apps/chrome-extension/src/sw.js`
+- [ ] `apps/control-room/public/js/app.js`
+- [ ] `apps/dashboard/src/lib/api-client.ts`
+- [ ] `apps/dashboard/src/lib/query-client.ts`
+- [ ] `apps/discord-bot/healthcheck.js`
+- [ ] `apps/discord-bot/src/clear-broken-commands.ts`
+- [ ] `apps/discord-bot/src/commands/airdrop.ts`
+- [ ] `apps/discord-bot/src/commands/bonus.ts`
+- [ ] `apps/discord-bot/src/commands/cooldown.ts`
+- [ ] `apps/discord-bot/src/commands/dashboard.ts`
+- [ ] `apps/discord-bot/src/commands/justthetip.ts`
+- [ ] `apps/discord-bot/src/commands/scan.ts`
+- [ ] `apps/discord-bot/src/commands/setpromochannel.ts`
+- [ ] `apps/discord-bot/src/commands/support.ts`
+- [ ] `apps/discord-bot/src/commands/terms.ts`
+- [ ] `apps/discord-bot/src/commands/triviadrop.ts`
+- [ ] `apps/discord-bot/src/commands/trust.ts`
+- [ ] `apps/discord-bot/src/handlers/bonus-notifier.ts`
+- [ ] `apps/discord-bot/src/handlers/collectclock-handler.ts`
+- [ ] `apps/discord-bot/src/services/channel-analyzer.ts`
+- [ ] `apps/discord-bot/src/services/solana-agent.ts`
+- [ ] `apps/discord-bot/src/utils/command-contexts.ts`
+- [ ] `apps/user-dashboard/public/js/app.js`
+- [ ] `apps/user-dashboard/src/server.js`
+- [ ] `apps/web/breadcrumbs.js`
+- [ ] `apps/web/chatbot-widget.js`
+- [ ] `apps/web/js/navigation.js`
+- [ ] `apps/web/styles/base.css`
+- [ ] `apps/web/styles/main.css`
+- [ ] `apps/web/styles/sidebar-nav.css`
+- [ ] `apps/web/styles/theme.css`
+- [ ] `apps/web/styles/tool-page.css`
+- [ ] `apps/web/sw.js`
+- [ ] `apps/web/trust-dashboard.js`
+- [ ] `edit_rebase.cjs`
+- [ ] `ios-install.js`
+- [ ] `modules/justthetip/src/justthetip-module.ts`
+- [ ] `modules/triviadrops/ai-questions.d.ts`
+- [ ] `modules/triviadrops/ai-questions.ts`
+- [ ] `modules/triviadrops/index.d.ts`
+- [ ] `packages/express-utils/gameplay-analyzer.ts`
+- [ ] `packages/express-utils/scanner.ts`
+- [ ] `packages/express-utils/triviadrops.ts`
+- [ ] `packages/express-utils/types.ts`
+- [ ] `packages/express-utils/vault.ts`
+- [ ] `packages/identity-core/src/signer.ts`
+- [ ] `tools/channel-watcher/analyze-log.js`
+- [ ] `tools/channel-watcher/create-session.js`
+- [ ] `tools/channel-watcher/generate-daily-comic.js`
+- [ ] `tools/channel-watcher/index.js`
+- [ ] `types.ts`
+- [ ] `verify-env.ts`
+
+## 2) Unused Exports (high-confidence dead code inside live files)
+
+- [ ] `optionalAuthMiddleware` in `apps/api/src/middleware/auth.ts` (line 154)
+- [ ] `APIError` in `apps/api/src/middleware/error.ts` (line 17)
+- [ ] `CASINO_SELECTORS` in `apps/chrome-extension/src/extractor.ts` (line 51)
+- [ ] `saveCustomCasino` in `apps/chrome-extension/src/extractor.ts` (line 496)
+- [ ] `dad` in `apps/discord-bot/src/commands/dad.ts` (line 23)
+- [ ] `dad` in `apps/discord-bot/src/commands/index.ts` (line 26)
+- [ ] `poker` in `apps/discord-bot/src/commands/index.ts` (line 27)
+- [ ] `tiltcheck` in `apps/discord-bot/src/commands/index.ts` (line 24)
+- [ ] `tip` in `apps/discord-bot/src/commands/index.ts` (line 25)
+- [ ] `registerCommands` in `apps/discord-bot/src/commands/loader.ts` (line 84)
+- [ ] `tiltcheck` in `apps/discord-bot/src/commands/tiltcheck.ts` (line 27)
+- [ ] `tip` in `apps/discord-bot/src/commands/tip.ts` (line 60)
+- [ ] `registerButtonHandler` in `apps/discord-bot/src/handlers/button-handlers.ts` (line 5)
+- [ ] `handleDirectMessage` in `apps/discord-bot/src/handlers/dm-handler.ts` (line 9)
+- [ ] `handleClientError` in `apps/discord-bot/src/handlers/error.ts` (line 120)
+- [ ] `checkAndOnboard` in `apps/discord-bot/src/handlers/index.ts` (line 19)
+- [ ] `getUserPreferences` in `apps/discord-bot/src/handlers/index.ts` (line 24)
+- [ ] `getUserTiltHistory` in `apps/discord-bot/src/handlers/index.ts` (line 29)
+- [ ] `getUserTiltStats` in `apps/discord-bot/src/handlers/index.ts` (line 30)
+- [ ] `handleDirectMessage` in `apps/discord-bot/src/handlers/index.ts` (line 16)
+- [ ] `handleOnboardingInteraction` in `apps/discord-bot/src/handlers/index.ts` (line 23)
+- [ ] `markOnboarded` in `apps/discord-bot/src/handlers/index.ts` (line 21)
+- [ ] `needsOnboarding` in `apps/discord-bot/src/handlers/index.ts` (line 20)
+- [ ] `saveUserPreferences` in `apps/discord-bot/src/handlers/index.ts` (line 25)
+- [ ] `sendWelcomeDM` in `apps/discord-bot/src/handlers/index.ts` (line 22)
+- [ ] `TrustAlertsHandler` in `apps/discord-bot/src/handlers/index.ts` (line 17)
+- [ ] `sendWelcomeDM` in `apps/discord-bot/src/handlers/onboarding.ts` (line 195)
+- [ ] `showPreferencesMessage` in `apps/discord-bot/src/handlers/onboarding.ts` (line 446)
+- [ ] `getUserTiltHistory` in `apps/discord-bot/src/handlers/tilt-events-handler.ts` (line 78)
+- [ ] `getUserTiltStats` in `apps/discord-bot/src/handlers/tilt-events-handler.ts` (line 110)
+- [ ] `AlertService` in `apps/discord-bot/src/services/alert-service.ts` (line 35)
+- [ ] `ingestEvent` in `apps/discord-bot/src/services/elastic-telemetry.ts` (line 119)
+- [ ] `trackTipEvent` in `apps/discord-bot/src/services/elastic-telemetry.ts` (line 174)
+- [ ] `buildTiltComparisonEsql` in `apps/discord-bot/src/services/reasoning-retrieval.ts` (line 53)
+- [ ] `evaluateInterventionDecision` in `apps/discord-bot/src/services/reasoning-retrieval.ts` (line 139)
+- [ ] `parseTiltComparisonResponse` in `apps/discord-bot/src/services/reasoning-retrieval.ts` (line 97)
+- [ ] `buildReviewOverdueEsql` in `apps/discord-bot/src/services/regulations-retrieval.ts` (line 58)
+- [ ] `buildStateTopicStatusEsql` in `apps/discord-bot/src/services/regulations-retrieval.ts` (line 45)
+- [ ] `analyseUser` in `apps/discord-bot/src/services/tilt-agent.ts` (line 339)
+- [ ] `StatsService` in `apps/game-arena/src/stats-service.ts` (line 18)
+- [ ] `fetchBonusData` in `apps/trust-rollup/src/external-fetchers.ts` (line 177)
+- [ ] `fetchComplianceData` in `apps/trust-rollup/src/external-fetchers.ts` (line 195)
+- [ ] `fetchPayoutData` in `apps/trust-rollup/src/external-fetchers.ts` (line 135)
+- [ ] `fetchRTPData` in `apps/trust-rollup/src/external-fetchers.ts` (line 92)
+- [ ] `triggerManualVerification` in `apps/trust-rollup/src/verification-scheduler.ts` (line 161)
+- [ ] `getPendingTips` in `modules/justthetip/src/tip-engine.ts` (line 271)
+- [ ] `pendingTipsPersistence` in `modules/justthetip/src/tip-engine.ts` (line 326)
+- [ ] `processPendingTips` in `modules/justthetip/src/tip-engine.ts` (line 278)
+- [ ] `getAllWallets` in `modules/justthetip/src/wallet-manager.ts` (line 261)
+- [ ] `supabaseConfigSchemaBase` in `packages/config/src/env.ts` (line 71)
+
+## 3) Unused Type Exports (safe after type-check + tests)
+
+- [ ] `BreathalyzerInput` in `apps/api/src/lib/safety.ts` (line 10)
+- [ ] `BreathalyzerResult` in `apps/api/src/lib/safety.ts` (line 18)
+- [ ] `SentimentInput` in `apps/api/src/lib/safety.ts` (line 30)
+- [ ] `SentimentResult` in `apps/api/src/lib/safety.ts` (line 36)
+- [ ] `TiltRiskTier` in `apps/api/src/lib/safety.ts` (line 8)
+- [ ] `JWTPayload` in `apps/api/src/middleware/auth.ts` (line 38)
+- [ ] `CommitmentData` in `apps/chrome-extension/src/analyzer.ts` (line 15)
+- [ ] `GameResult` in `apps/chrome-extension/src/analyzer.ts` (line 10)
+- [ ] `CasinoSelector` in `apps/chrome-extension/src/extractor.ts` (line 15)
+- [ ] `CasinoVerification` in `apps/chrome-extension/src/license-verifier.ts` (line 25)
+- [ ] `LicenseInfo` in `apps/chrome-extension/src/license-verifier.ts` (line 15)
+- [ ] `BehaviorEvent` in `apps/chrome-extension/src/tilt-detector.ts` (line 26)
+- [ ] `BetEvent` in `apps/chrome-extension/src/tilt-detector.ts` (line 32)
+- [ ] `InterventionAction` in `apps/chrome-extension/src/tilt-detector.ts` (line 61)
+- [ ] `TiltIndicator` in `apps/chrome-extension/src/tilt-detector.ts` (line 39)
+- [ ] `VaultRecommendation` in `apps/chrome-extension/src/tilt-detector.ts` (line 49)
+- [ ] `AlertChannelsConfig` in `apps/discord-bot/src/config.ts` (line 76)
+- [ ] `BotConfig` in `apps/discord-bot/src/config.ts` (line 98)
+- [ ] `ModNotificationConfig` in `apps/discord-bot/src/config.ts` (line 83)
+- [ ] `ButtonHandler` in `apps/discord-bot/src/handlers/button-handlers.ts` (line 1)
+- [ ] `SupportTicket` in `apps/discord-bot/src/services/alert-service.ts` (line 27)
+- [ ] `TrustAlert` in `apps/discord-bot/src/services/alert-service.ts` (line 19)
+- [ ] `ActionType` in `apps/discord-bot/src/services/elastic-telemetry.ts` (line 23)
+- [ ] `TelemetryEvent` in `apps/discord-bot/src/services/elastic-telemetry.ts` (line 34)
+- [ ] `EsqlJsonResponse` in `apps/discord-bot/src/services/reasoning-retrieval.ts` (line 12)
+- [ ] `WindowMetrics` in `apps/discord-bot/src/services/reasoning-retrieval.ts` (line 17)
+- [ ] `RegulationsNotifierConfig` in `apps/discord-bot/src/services/regulations-notifier.ts` (line 5)
+- [ ] `RegulationReviewRow` in `apps/discord-bot/src/services/regulations-retrieval.ts` (line 15)
+- [ ] `RegulationStatusRow` in `apps/discord-bot/src/services/regulations-retrieval.ts` (line 5)
+- [ ] `TiltAnalysis` in `apps/discord-bot/src/services/tilt-agent.ts` (line 29)
+- [ ] `SwapDepositResult` in `apps/discord-bot/src/services/tipping/token-swap.ts` (line 40)
+- [ ] `ConversationIntent` in `apps/discord-bot/src/utils/conversation-nlp.ts` (line 1)
+- [ ] `AuthenticatedRequest` in `apps/game-arena/src/types.ts` (line 46)
+- [ ] `ExpressUser` in `apps/game-arena/src/types.ts` (line 16)
+- [ ] `UserStats` in `apps/game-arena/src/types.ts` (line 107)
+- [ ] `CasinoExternalData` in `apps/trust-rollup/src/external-fetchers.ts` (line 44)
+- [ ] `RollupBatch` in `apps/trust-rollup/src/rollup-schema.ts` (line 13)
+- [ ] `RollupSnapshotFile` in `apps/trust-rollup/src/rollup-schema.ts` (line 27)
+- [ ] `AirdropRequest` in `modules/justthetip/src/airdrop-engine.ts` (line 31)
+- [ ] `AirdropResult` in `modules/justthetip/src/airdrop-engine.ts` (line 38)
+- [ ] `WalletType` in `modules/justthetip/src/module.ts` (line 21)
+- [ ] `SolanaPayRequest` in `modules/justthetip/src/solana-pay.ts` (line 20)
+- [ ] `TipRequest` in `modules/justthetip/src/tip-engine.ts` (line 32)
+- [ ] `TipResult` in `modules/justthetip/src/tip-engine.ts` (line 40)
+- [ ] `WalletInfo` in `modules/justthetip/src/wallet-manager.ts` (line 36)
+- [ ] `BotWallet` in `modules/justthetip/src/wallet-service.ts` (line 69)
+- [ ] `DomainTrustSnapshot` in `modules/suslink/src/domain-trust-schema.ts` (line 19)
+- [ ] `DomainTrustSnapshotEntry` in `modules/suslink/src/domain-trust-schema.ts` (line 14)
+
+## 4) Package/Import Cleanup Candidates
+
+- [ ] **dependencies** `@better-auth/passkey` referenced by 1 file(s)
+  - `apps/dashboard/package.json`
+- [ ] **dependencies** `@noble/ed25519` referenced by 1 file(s)
+  - `packages/identity-core/package.json`
+- [ ] **dependencies** `@solana/spl-token` referenced by 1 file(s)
+  - `modules/justthetip/package.json`
+- [ ] **dependencies** `@solana/web3.js` referenced by 1 file(s)
+  - `apps/control-room/package.json`
+- [ ] **dependencies** `@tanstack/react-query` referenced by 1 file(s)
+  - `apps/dashboard/package.json`
+- [ ] **dependencies** `@tiltcheck/api-client` referenced by 1 file(s)
+  - `apps/dashboard/package.json`
+- [ ] **dependencies** `@tiltcheck/auth` referenced by 1 file(s)
+  - `apps/dashboard/package.json`
+- [ ] **dependencies** `@tiltcheck/config` referenced by 4 file(s)
+  - `apps/api/package.json`
+  - `apps/discord-bot/package.json`
+  - `modules/justthetip/package.json`
+  - `packages/db/package.json`
+- [ ] **dependencies** `@tiltcheck/db` referenced by 2 file(s)
+  - `apps/game-arena/package.json`
+  - `apps/user-dashboard/package.json`
+- [ ] **dependencies** `@tiltcheck/esm-utils` referenced by 1 file(s)
+  - `apps/discord-bot/package.json`
+- [ ] **dependencies** `@tiltcheck/event-router` referenced by 3 file(s)
+  - `apps/control-room/package.json`
+  - `apps/user-dashboard/package.json`
+  - `packages/identity-core/package.json`
+- [ ] **dependencies** `@tiltcheck/justthetip` referenced by 1 file(s)
+  - `apps/user-dashboard/package.json`
+- [ ] **dependencies** `@tiltcheck/logger` referenced by 1 file(s)
+  - `apps/dashboard/package.json`
+- [ ] **dependencies** `@tiltcheck/natural-language-parser` referenced by 1 file(s)
+  - `modules/justthetip/package.json`
+- [ ] **dependencies** `@tiltcheck/shared` referenced by 1 file(s)
+  - `apps/dashboard/package.json`
+- [ ] **dependencies** `@tiltcheck/suslink` referenced by 1 file(s)
+  - `apps/dashboard/package.json`
+- [ ] **dependencies** `@tiltcheck/triviadrops` referenced by 1 file(s)
+  - `apps/discord-bot/package.json`
+- [ ] **dependencies** `@tiltcheck/trust-engines` referenced by 1 file(s)
+  - `apps/discord-bot/package.json`
+- [ ] **dependencies** `@tiltcheck/types` referenced by 11 file(s)
+  - `apps/control-room/package.json`
+  - `apps/dashboard/package.json`
+  - `apps/user-dashboard/package.json`
+  - `modules/lockvault/package.json`
+  - `modules/poker/package.json`
+  - `modules/stake/package.json`
+  - `modules/triviadrops/package.json`
+  - `packages/database/package.json`
+  - `packages/identity-core/package.json`
+  - `packages/natural-language-parser/package.json`
+  - `packages/supabase-auth/package.json`
+- [ ] **dependencies** `better-auth` referenced by 1 file(s)
+  - `apps/dashboard/package.json`
+- [ ] **dependencies** `ci-test` referenced by 1 file(s)
+  - `package.json`
+- [ ] **dependencies** `commonjs` referenced by 1 file(s)
+  - `package.json`
+- [ ] **dependencies** `dotenv` referenced by 1 file(s)
+  - `apps/api/package.json`
+- [ ] **dependencies** `express-session` referenced by 1 file(s)
+  - `apps/user-dashboard/package.json`
+- [ ] **dependencies** `ollama` referenced by 1 file(s)
+  - `package.json`
+- [ ] **dependencies** `passport` referenced by 2 file(s)
+  - `apps/control-room/package.json`
+  - `apps/user-dashboard/package.json`
+- [ ] **dependencies** `passport-discord` referenced by 2 file(s)
+  - `apps/control-room/package.json`
+  - `apps/user-dashboard/package.json`
+- [ ] **dependencies** `pino-pretty` referenced by 1 file(s)
+  - `packages/logger/package.json`
+- [ ] **dependencies** `pm2` referenced by 1 file(s)
+  - `apps/control-room/package.json`
+- [ ] **dependencies** `stripe` referenced by 1 file(s)
+  - `apps/api/package.json`
+- [ ] **dependencies** `tweetnacl` referenced by 1 file(s)
+  - `apps/control-room/package.json`
+- [ ] **dependencies** `zod` referenced by 1 file(s)
+  - `apps/trust-rollup/package.json`
+- [ ] **devDependencies** `@types/bcryptjs` referenced by 8 file(s)
+  - `apps/api/package.json`
+  - `apps/trust-rollup/package.json`
+  - `package.json`
+  - `packages/config/package.json`
+  - `packages/database/package.json`
+  - `packages/esm-utils/package.json`
+  - `packages/event-router/package.json`
+  - `packages/types/package.json`
+- [ ] **devDependencies** `@types/bs58` referenced by 1 file(s)
+  - `packages/auth/package.json`
+- [ ] **devDependencies** `@types/express-session` referenced by 1 file(s)
+  - `apps/user-dashboard/package.json`
+- [ ] **devDependencies** `@types/helmet` referenced by 1 file(s)
+  - `apps/api/package.json`
+- [ ] **devDependencies** `@types/passport` referenced by 2 file(s)
+  - `apps/control-room/package.json`
+  - `apps/user-dashboard/package.json`
+- [ ] **devDependencies** `@types/uuid` referenced by 2 file(s)
+  - `modules/justthetip/package.json`
+  - `packages/monitoring/package.json`
+- [ ] **devDependencies** `autoprefixer` referenced by 1 file(s)
+  - `apps/web/package.json`
+- [ ] **devDependencies** `buffer` referenced by 1 file(s)
+  - `apps/chrome-extension/package.json`
+- [ ] **devDependencies** `crypto-browserify` referenced by 1 file(s)
+  - `apps/chrome-extension/package.json`
+- [ ] **devDependencies** `http-server` referenced by 1 file(s)
+  - `package.json`
+- [ ] **devDependencies** `lighthouse` referenced by 1 file(s)
+  - `package.json`
+- [ ] **devDependencies** `lunr` referenced by 1 file(s)
+  - `package.json`
+- [ ] **devDependencies** `pa11y` referenced by 1 file(s)
+  - `package.json`
+- [ ] **devDependencies** `postcss` referenced by 1 file(s)
+  - `apps/web/package.json`
+- [ ] **devDependencies** `process` referenced by 1 file(s)
+  - `apps/chrome-extension/package.json`
+- [ ] **devDependencies** `puppeteer` referenced by 1 file(s)
+  - `package.json`
+- [ ] **devDependencies** `sharp` referenced by 1 file(s)
+  - `package.json`
+- [ ] **devDependencies** `stream-browserify` referenced by 1 file(s)
+  - `apps/chrome-extension/package.json`
+- [ ] **devDependencies** `tailwindcss` referenced by 1 file(s)
+  - `apps/web/package.json`
+- [ ] **devDependencies** `vm-browserify` referenced by 1 file(s)
+  - `apps/chrome-extension/package.json`
+- [ ] **optionalPeerDependencies** `@sentry/node` referenced by 1 file(s)
+  - `packages/monitoring/package.json`
+- [ ] **optionalPeerDependencies** `@types/express` referenced by 1 file(s)
+  - `packages/monitoring/package.json`
+- [ ] **optionalPeerDependencies** `express` referenced by 2 file(s)
+  - `packages/auth/package.json`
+  - `packages/monitoring/package.json`
+- [ ] **optionalPeerDependencies** `next` referenced by 1 file(s)
+  - `packages/auth/package.json`
+- [ ] **unlisted** `@eslint/js` referenced by 1 file(s)
+  - `eslint.config.js`
+- [ ] **unlisted** `@sentry/node` referenced by 1 file(s)
+  - `apps/discord-bot/src/handlers/error.ts`
+- [ ] **unlisted** `@solana/web3.js` referenced by 8 file(s)
+  - `apps/chrome-extension/src/wallet-bridge.ts`
+  - `apps/chrome-extension/tests/unit/message-contracts.test.ts`
+  - `apps/discord-bot/src/commands/tip.ts`
+  - `apps/discord-bot/src/index.ts`
+  - `apps/discord-bot/src/services/tipping/bot-wallet.ts`
+  - `apps/discord-bot/src/services/tipping/token-deposit-monitor.ts`
+  - `apps/discord-bot/src/services/tipping/token-swap.ts`
+  - `packages/utils/src/SolanaProvider.ts`
+- [ ] **unlisted** `@supabase/supabase-js` referenced by 2 file(s)
+  - `apps/discord-bot/src/handlers/onboarding.ts`
+  - `modules/justthetip/src/wallet-manager.ts`
+- [ ] **unlisted** `@tiltcheck/ai-client` referenced by 1 file(s)
+  - `modules/dad/src/module.ts`
+- [ ] **unlisted** `@tiltcheck/collectclock` referenced by 1 file(s)
+  - `tests/gameplay-collectclock-integration.test.ts`
+- [ ] **unlisted** `@tiltcheck/dad` referenced by 7 file(s)
+  - `apps/discord-bot/src/commands/dad/hand.ts`
+  - `apps/discord-bot/src/commands/dad/join.ts`
+  - `apps/discord-bot/src/commands/dad/play.ts`
+  - `apps/discord-bot/src/commands/dad/scores.ts`
+  - `apps/discord-bot/src/commands/dad/startgame.ts`
+  - `apps/discord-bot/src/commands/dad/submit.ts`
+  - `apps/discord-bot/src/commands/dad/vote.ts`
+- [ ] **unlisted** `@tiltcheck/database` referenced by 3 file(s)
+  - `apps/game-arena/src/stats-service.ts`
+  - `modules/lockvault/src/vault-manager.ts`
+  - `packages/trust-engines/src/index.ts`
+- [ ] **unlisted** `@tiltcheck/event-router` referenced by 2 file(s)
+  - `apps/api/src/routes/rgaas.ts`
+  - `tests/gameplay-collectclock-integration.test.ts`
+- [ ] **unlisted** `@tiltcheck/identity-core` referenced by 1 file(s)
+  - `tests/gameplay-collectclock-integration.test.ts`
+- [ ] **unlisted** `@tiltcheck/qualifyfirst` referenced by 1 file(s)
+  - `apps/dashboard/src/app/api/qualify/route.ts`
+- [ ] **unlisted** `@tiltcheck/types` referenced by 1 file(s)
+  - `tests/gameplay-collectclock-integration.test.ts`
+- [ ] **unlisted** `@tiltcheck/walletcheck` referenced by 1 file(s)
+  - `apps/discord-bot/tests/commands/walletcheck.test.ts`
+- [ ] **unlisted** `bs58` referenced by 2 file(s)
+  - `apps/discord-bot/src/services/tipping/bot-wallet.ts`
+  - `apps/discord-bot/src/services/tipping/token-swap.ts`
+- [ ] **unlisted** `esbuild` referenced by 1 file(s)
+  - `apps/chrome-extension/build.js`
+- [ ] **unlisted** `express` referenced by 3 file(s)
+  - `index.ts`
+  - `packages/supabase-auth/src/middleware.ts`
+  - `tests/newsletter-api.test.ts`
+- [ ] **unresolved** `../../src/commands/walletcheck.js` referenced by 1 file(s)
+  - `apps/discord-bot/tests/commands/walletcheck.test.ts`
+- [ ] **unresolved** `../src/ltc-bridge.js` referenced by 1 file(s)
+  - `modules/justthetip/tests/ltc-bridge.test.ts`
+- [ ] **unresolved** `eslint-config-next` referenced by 1 file(s)
+  - `apps/dashboard/.eslintrc.json`
+
+## 5) Duplicate Export Candidates
+
+- [ ] `packages/ai-client/src/index.ts`: aiClient, default
+- [ ] `packages/api-client/src/index.ts`: ApiClient, default
+- [ ] `packages/analytics/src/client.ts`: AnalyticsTracker, default
+- [ ] `packages/analytics/src/index.ts`: analytics, default
+- [ ] `packages/esm-utils/src/index.ts`: getDirname, dirname
+- [ ] `packages/logger/src/index.ts`: getLogger, default
+
+## Approval Checklist
+
+- [ ] Confirm each runtime entry file is not launched outside package scripts/tsconfig references.
+- [ ] Confirm static assets/scripts are not referenced by HTML templates at runtime.
+- [ ] Run `pnpm -r build` and `pnpm test` after removals.
+- [ ] Remove candidate in small batches with one commit per logical area.
