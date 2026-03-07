@@ -18,9 +18,9 @@
   --color-primary-dark: #0f9f7f;
   --color-primary-light: #5be7c2;
   
-  /* Secondary accents */
-  --color-secondary: #4f9cfb; /* Professional blue accent */
-  --color-accent: #d946ef; /* Magenta accent */
+  /* Secondary accents (brand: purple + green) */
+  --color-secondary: #8b5cf6; /* Core purple accent */
+  --color-accent: #d946ef; /* Supporting magenta accent */
   --color-gold: #ffd700; /* Gold highlight */
   
   /* Backgrounds - Dark base */
@@ -99,8 +99,8 @@
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
   --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.5);
   --shadow-lg: 0 4px 16px rgba(0, 0, 0, 0.6);
-  --shadow-glow: 0 0 12px rgba(0, 255, 198, 0.2);
-  --shadow-glow-strong: 0 0 20px rgba(0, 255, 198, 0.4);
+  --shadow-glow: 0 0 12px rgba(139, 92, 246, 0.22);
+  --shadow-glow-strong: 0 0 20px rgba(139, 92, 246, 0.4);
   
   /* Glass panel effect */
   --glass-bg: rgba(26, 31, 36, 0.85);
