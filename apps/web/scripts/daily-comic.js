@@ -67,7 +67,6 @@
 
   function renderCredits(comic) {
     if (!CREDIT_EL) return;
-    const artist = String(comic?.credits?.visualInspiration || 'samoxic');
     const creator = String(comic?.credits?.creator || 'jmenichole');
     const rawArtistUrl = String(comic?.credits?.visualInspirationUrl || 'https://pheverdream.github.io/The-Book-of-SealStats/');
 
@@ -89,7 +88,7 @@
     link.setAttribute('href', safeArtistUrl);
     link.setAttribute('target', '_blank');
     link.setAttribute('rel', 'noopener');
-    link.textContent = `${artist}'s SealStats render`;
+    link.textContent = 'Inspiration';
     CREDIT_EL.append(link);
 
     CREDIT_EL.append('. TiltCheck adaptation by ');
