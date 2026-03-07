@@ -22,10 +22,12 @@ class TiltCheckAuth {
       this.showTermsModal();
     }
     await this.waitForNavReady();
+    this.bindLoginButtons();
     this.updateNavigation();
 
     // React to shared component injection if it fires later
     document.addEventListener('tc:componentsLoaded', () => {
+      this.bindLoginButtons();
       this.updateNavigation();
     });
   }
@@ -55,7 +57,31 @@ class TiltCheckAuth {
       // Replace login button with user avatar dropdown
       const avatar = this.createUserAvatar();
       loginButton.replaceWith(avatar);
+    } else if (loginButton.textContent) {
+      loginButton.textContent = 'Login with Discord';
     }
+  }
+
+  bindLoginButtons() {
+    document.querySelectorAll('.discord-login-btn').forEach((el) => {
+      if (el.dataset.authBound === 'true') return;
+      el.dataset.authBound = 'true';
+
+      const href = el.getAttribute('href');
+      if (href && href !== '#') return;
+
+      el.setAttribute('role', 'button');
+      el.addEventListener('click', (event) => {
+        event.preventDefault();
+        this.loginWithDiscord();
+      });
+    });
+  }
+
+  loginWithDiscord(nextPath = '/play/profile.html') {
+    const base = '/api/auth/discord/login';
+    const redirect = encodeURIComponent(`${window.location.origin}${nextPath}`);
+    window.location.href = `${base}?redirect=${redirect}`;
   }
 
   // Wait for shared nav injection to complete or for login button to exist
@@ -137,7 +163,7 @@ class TiltCheckAuth {
       { label: 'Game Arena', href: '/play/arena' },
       { label: 'Profile', href: '/play/profile.html' },
       { label: 'Settings', href: '/settings.html' },
-      { label: 'Dashboard', href: '/dashboard' },
+      { label: 'Dashboard', href: '/play/profile.html' },
       { label: 'Logout', href: '#', id: 'logout-link' }
     ];
 
