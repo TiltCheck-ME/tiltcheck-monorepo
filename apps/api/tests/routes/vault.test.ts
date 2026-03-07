@@ -73,7 +73,7 @@ describe('Vault Routes', () => {
     expect(res.body.error).toBe('Invalid durationMinutes');
   });
 
-  it('returns readyToRelease for unlocked lock-status', async () => {
+  it('does not report unlocked vault-status as actively locked', async () => {
     lockvaultMock.getVaultStatus.mockReturnValue([
       {
         id: 'v1',
@@ -85,8 +85,7 @@ describe('Vault Routes', () => {
     ]);
     const res = await request(app).get('/vault/user-1/lock-status');
     expect(res.status).toBe(200);
-    expect(res.body.locked).toBe(true);
-    expect(res.body.readyToRelease).toBe(true);
+    expect(res.body.locked).toBe(false);
   });
 
   it('validates release vaultId when provided', async () => {

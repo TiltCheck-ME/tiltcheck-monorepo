@@ -23,7 +23,7 @@
 <p>┌───────────┼───────────┬───────────┐</p>
 <p>▼           ▼           ▼           ▼</p>
 <p>┌────────────┐┌──────────┐┌──────────┐┌───────────────┐</p>
-<p>│ JustTheTip ││ SusLink  ││CollectClk││ FreeSpinScan   │</p>
+<p>│ JustTheTip ││ LinkCheck ││BonusCheck││ FreeSpinScan   │</p>
 <p>└─────┬──────┘└────┬─────┘└────┬─────┘└──────┬────────┘</p>
 <p>│            │           │            │</p>
 <p>└────────────┼───────────┼────────────┘</p>
@@ -48,7 +48,7 @@
 <p>Explanation Log</p>
 
 <h3>Case Example:</h3>
-<p>User rage-spams → Tilt Engine flags → Degen Trust Engine adjusts score → User sees <code>/trust explain</code>.</p>
+<p>User rage-spams → Gameplay Fairness Analyzer flags → Degen Trust Engine adjusts score → User sees <code>/trust explain</code>.</p>
 
 <p>---</p>
 
@@ -95,7 +95,7 @@
 <h1>16.5 Module Dependency Diagram</h1>
 
 <p>JustTheTip ─────┐</p>
-<p>SusLink ─────────┤──► Trust Engines ◄─── CollectClock</p>
+<p>LinkCheck ────────┤──► Trust Engines ◄─── BonusCheck</p>
 <p>FreeSpinScan ────┘ ▲</p>
 <p>│</p>
 <p>QualifyFirst │</p>
@@ -118,7 +118,7 @@
 <p>▼</p>
 <p>FreeSpinScan</p>
 <p>│</p>
-<p>(calls SusLink)</p>
+<p>(calls LinkCheck)</p>
 <p>│</p>
 <p>▼</p>
 <p>Risk Evaluated</p>
