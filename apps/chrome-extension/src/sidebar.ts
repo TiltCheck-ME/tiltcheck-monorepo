@@ -46,6 +46,7 @@ let lastProfit = 0;
 let casinoThemesIntervalId: ReturnType<typeof setInterval> | null = null;
 let vaultRefreshIntervalId: ReturnType<typeof setInterval> | null = null;
 let buddyMirrorEnabled = false;
+let demoMode = false;
 
 const CASINO_THEMES: Record<string, { label: string; accent: string }> = {
   'stake.us': { label: 'Stake.us', accent: '#4ade80' },
@@ -55,6 +56,179 @@ const CASINO_THEMES: Record<string, { label: string; accent: string }> = {
   'rollbit.com': { label: 'Rollbit', accent: '#f472b6' },
 };
 let dynamicCasinoThemes: Record<string, { label: string; accent: string }> = {};
+
+const DEMO_USER = {
+  id: 'demo-user-001',
+  username: 'DemoDegen',
+  tier: 'premium',
+  avatar: null,
+};
+
+let demoVaultBalance = 142.75;
+let demoLockRecord: any = {
+  id: 'demo-lock-1',
+  status: 'locked',
+  lockedAmountSOL: 1.2754,
+  createdAt: Date.now() - 7 * 60 * 1000,
+  unlockAt: Date.now() + 8 * 60 * 1000,
+  history: [
+    { ts: Date.now() - 7 * 60 * 1000, action: 'locked', note: 'demo lock initialized' },
+  ],
+};
+
+function parseJsonBody(raw: any): Record<string, any> {
+  if (!raw) return {};
+  if (typeof raw === 'string') {
+    try {
+      return JSON.parse(raw);
+    } catch {
+      return {};
+    }
+  }
+  if (typeof raw === 'object') return raw;
+  return {};
+}
+
+function getDemoLocks() {
+  if (!demoLockRecord) return [];
+  const now = Date.now();
+  if ((demoLockRecord.status === 'locked' || demoLockRecord.status === 'extended') && now >= demoLockRecord.unlockAt) {
+    demoLockRecord.status = 'unlocked';
+    demoLockRecord.history.push({ ts: now, action: 'auto-unlocked', note: 'Demo timer expired' });
+  }
+  return [demoLockRecord];
+}
+
+function mockApiCall(endpoint: string, options: any = {}) {
+  const method = String(options.method || 'GET').toUpperCase();
+  const body = parseJsonBody(options.body);
+  const now = Date.now();
+
+  if (endpoint.startsWith('/security/scan-url')) {
+    const url = String(body.url || '');
+    const risky = /scam|phish|fake|drain/i.test(url);
+    return {
+      success: true,
+      scan: {
+        isSafe: !risky,
+        trustScore: risky ? 18 : 92,
+        details: risky ? 'Mock demo result: suspicious patterns detected.' : 'Mock demo result: no obvious risk indicators.',
+      },
+    };
+  }
+
+  if (endpoint.startsWith('/reports/casino-update')) {
+    return { success: true, id: `demo-report-${now}` };
+  }
+
+  if (endpoint.startsWith('/premium/plans')) {
+    return {
+      success: true,
+      plans: [
+        { name: 'free', price: 0, features: ['Basic alerts', 'Community feed'] },
+        { name: 'premium', price: 5, features: ['Priority alerts', 'Advanced vault controls'] },
+      ],
+    };
+  }
+
+  if (endpoint.startsWith('/premium/upgrade')) {
+    if (userData) userData.tier = 'premium';
+    return { success: true };
+  }
+
+  if (endpoint.startsWith('/buddy/notify')) {
+    return { success: true };
+  }
+
+  if (endpoint.startsWith('/dashboard/')) {
+    return {
+      success: true,
+      demo: true,
+      streakDays: 4,
+      trustDelta: '+12',
+      notes: 'Demo dashboard payload',
+    };
+  }
+
+  if (endpoint.startsWith('/wallet/')) {
+    return {
+      success: true,
+      wallet: {
+        address: 'DemoWallet111111111111111111111111111111111',
+        sol: 3.4821,
+        updatedAt: new Date().toISOString(),
+      },
+    };
+  }
+
+  const lockMatch = endpoint.match(/^\/vault\/[^/]+\/lock$/);
+  if (lockMatch && method === 'POST') {
+    const amount = Number(body.amount || 0);
+    const minutes = Number(body.durationMinutes || 0);
+    if (!Number.isFinite(amount) || amount <= 0 || !Number.isFinite(minutes) || minutes <= 0) {
+      return { success: false, error: 'Invalid lock request (demo)' };
+    }
+    demoLockRecord = {
+      id: `demo-lock-${now}`,
+      status: 'locked',
+      lockedAmountSOL: Math.max(0.05, amount / 100),
+      createdAt: now,
+      unlockAt: now + Math.trunc(minutes) * 60 * 1000,
+      history: [{ ts: now, action: 'locked', note: 'created in demo mode' }],
+    };
+    return { success: true, vault: demoLockRecord };
+  }
+
+  const releaseMatch = endpoint.match(/^\/vault\/[^/]+\/release$/);
+  if (releaseMatch && method === 'POST') {
+    if (!demoLockRecord) return { success: false, error: 'No vaults ready for release' };
+    if ((demoLockRecord.status === 'locked' || demoLockRecord.status === 'extended') && now < demoLockRecord.unlockAt) {
+      return { success: false, error: 'No vaults ready for release' };
+    }
+    demoLockRecord.status = 'unlocked';
+    demoLockRecord.history.push({ ts: now, action: 'unlocked', note: 'released in demo mode' });
+    return { success: true, amount: demoLockRecord.lockedAmountSOL, vault: demoLockRecord };
+  }
+
+  const depositMatch = endpoint.match(/^\/vault\/[^/]+\/deposit$/);
+  if (depositMatch && method === 'POST') {
+    const amount = Number(body.amount || 0);
+    if (!Number.isFinite(amount) || amount <= 0) return { success: false, error: 'Invalid amount' };
+    demoVaultBalance += amount;
+    return { success: true, vault: { balance: Number(demoVaultBalance.toFixed(2)) } };
+  }
+
+  const statusMatch = endpoint.match(/^\/vault\/[^/]+\/lock-status$/);
+  if (statusMatch) {
+    const locks = getDemoLocks();
+    const lock = locks[0];
+    if (!lock) return { success: true, locked: false, readyToRelease: false };
+    return {
+      success: true,
+      locked: lock.status === 'locked' || lock.status === 'extended',
+      status: lock.status,
+      amount: lock.lockedAmountSOL,
+      amountUnit: 'SOL',
+      unlockTime: new Date(lock.unlockAt).toISOString(),
+      createdAt: new Date(lock.createdAt).toISOString(),
+      id: lock.id,
+      readyToRelease: now >= lock.unlockAt,
+    };
+  }
+
+  const vaultMatch = endpoint.match(/^\/vault\/[^/]+$/);
+  if (vaultMatch) {
+    return {
+      success: true,
+      vault: {
+        balance: Number(demoVaultBalance.toFixed(2)),
+        locks: getDemoLocks(),
+      },
+    };
+  }
+
+  return { success: true, demo: true };
+}
 
 function escapeHtml(value: unknown): string {
   return String(value ?? '')
@@ -94,6 +268,9 @@ function applyPageOffset(width: number) {
 }
 
 async function apiCall(endpoint: string, options: any = {}) {
+  if (demoMode) {
+    return mockApiCall(endpoint, options);
+  }
   const headers: any = { 'Content-Type': 'application/json' };
   if (authToken) headers['Authorization'] = `Bearer ${authToken}`;
 
@@ -107,6 +284,20 @@ async function apiCall(endpoint: string, options: any = {}) {
     console.error('API Error:', error);
     return { error: 'Network error' };
   }
+}
+
+function enableDemoMode() {
+  demoMode = true;
+  isAuthenticated = true;
+  authToken = null;
+  userData = { ...DEMO_USER };
+  sessionStats = {
+    startTime: Date.now() - (17 * 60 + 42) * 1000,
+    totalBets: 38,
+    totalWagered: 276.5,
+    totalWon: 301.9,
+    currentBalance: demoVaultBalance,
+  };
 }
 
 /**
@@ -1513,7 +1704,17 @@ async function checkAuthStatus() {
 
   // Require authentication
   if (!storedUser || !token) {
-    console.log('TiltGuard: Authentication required');
+    console.log('TiltGuard: no auth found, enabling demo mode');
+    enableDemoMode();
+    showMainContent();
+    renderGoals(loadGoals());
+    updateGoalProgress(sessionStats.currentBalance || 0);
+    updateStats(sessionStats);
+    void updateTilt(24, ['Demo mode: no live risk analysis']);
+    loadVaultBalance();
+    checkLockStatus();
+    initPnLGraph();
+    addFeedMessage('Demo mode active (no login required)');
     return;
   }
 
