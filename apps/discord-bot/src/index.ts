@@ -220,7 +220,11 @@ async function main() {
     const swapService = new TokenSwapService(config.botWalletPrivateKey, solConnection);
     tdMonitor = new TokenDepositMonitor(solConnection, botWallet.address, cm, swapService);
 
-    autoRefund = new AutoRefundScheduler(cm, botWallet.sendSOL.bind(botWallet), 12 * 60 * 60 * 1000);
+    const autoRefundIntervalMs = Math.max(
+      60_000,
+      Number(process.env.JUSTTHETIP_AUTO_REFUND_INTERVAL_MS || 5 * 60 * 1000)
+    );
+    autoRefund = new AutoRefundScheduler(cm, botWallet.sendSOL.bind(botWallet), autoRefundIntervalMs);
 
     setCreditDeps(cm, dMonitor, botWallet, tdMonitor);
 
