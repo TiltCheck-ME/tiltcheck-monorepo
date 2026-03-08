@@ -84,6 +84,23 @@
       let currentSort = { key: 'data_completeness_score', dir: 'desc' };
 
       function safe(v){ return (v===undefined||v===null)?'':String(v); }
+      function escapeHtml(value){
+        return safe(value)
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;')
+          .replace(/'/g, '&#039;');
+      }
+      function safeHttpUrl(value){
+        const raw = safe(value).trim();
+        if (!raw) return '';
+        try {
+          const parsed = new URL(raw, window.location.origin);
+          if (parsed.protocol === 'http:' || parsed.protocol === 'https:') return parsed.href;
+        } catch {}
+        return '';
+      }
       function boolBadge(v){
         const yes = String(v).toLowerCase()==='true' || v===true;
         return `<span class="badge" style="${yes?'color:#00d4aa;':'color:#ff7a7a;'}">${yes?'Yes':'No'}</span>`;
@@ -110,16 +127,18 @@
       function render(rows){
         const limited = rows.slice(0, 50);
         tbody.innerHTML = limited.map(r => {
-          const name = safe(r.name);
-          const url = safe(r.url);
-          const score = Number.parseFloat(r.data_completeness_score||0).toFixed(2);
-          const rating = (r.avg_rating && r.avg_rating !== '' ? Number.parseFloat(r.avg_rating).toFixed(1) : '—');
+          const name = escapeHtml(r.name);
+          const url = safeHttpUrl(r.url);
+          const scoreNum = Number.parseFloat(r.data_completeness_score||0);
+          const score = Number.isFinite(scoreNum) ? scoreNum.toFixed(2) : '0.00';
+          const ratingNum = Number.parseFloat(r.avg_rating);
+          const rating = (r.avg_rating && r.avg_rating !== '' && Number.isFinite(ratingNum) ? ratingNum.toFixed(1) : '—');
           const ssl = boolBadge(r.has_ssl);
           const tfa = boolBadge(r.two_factor_auth);
-          const fairness = safe(r.fairness_certifications||'');
-          const providers = safe(r.provider_count||'0');
-          const withdraws = safe(r.withdrawal_methods_count||'0');
-          const urlCell = url ? `<a href="${url}" target="_blank" rel="noopener" style="color:#00a8ff;">link</a>` : '—';
+          const fairness = escapeHtml(r.fairness_certifications||'');
+          const providers = escapeHtml(r.provider_count||'0');
+          const withdraws = escapeHtml(r.withdrawal_methods_count||'0');
+          const urlCell = url ? `<a href="${escapeHtml(url)}" target="_blank" rel="noopener" style="color:#00a8ff;">link</a>` : '—';
           return `<tr style="border-bottom:1px solid #222;">
             <td style="padding:8px;">${name}</td>
             <td style="padding:8px;">${urlCell}</td>
@@ -155,7 +174,7 @@
           apply();
         })
         .catch(err => {
-          tbody.innerHTML = `<tr><td colspan="9" style="padding:12px; color:#ff7a7a;">Failed to load latest casino data: ${err.message}</td></tr>`;
+          tbody.innerHTML = `<tr><td colspan="9" style="padding:12px; color:#ff7a7a;">Failed to load latest casino data: ${escapeHtml(err.message)}</td></tr>`;
         });
       searchEl.addEventListener('input', () => apply());
       document.querySelectorAll('#casino-table thead th[data-sort]')

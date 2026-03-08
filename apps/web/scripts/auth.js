@@ -150,10 +150,14 @@ class TiltCheckAuth {
     // User info header
     const userInfo = document.createElement('div');
     userInfo.style.cssText = 'padding: 12px 16px; border-bottom: 1px solid #2a2f34;';
-    userInfo.innerHTML = `
-      <div style="font-weight: 600; color: #00d4aa;">${this.user.username}</div>
-      <div style="font-size: 0.85rem; color: #888;">Logged in via Discord</div>
-    `;
+    const usernameEl = document.createElement('div');
+    usernameEl.style.cssText = 'font-weight: 600; color: #00d4aa;';
+    usernameEl.textContent = this.user.username || '';
+    const loginInfoEl = document.createElement('div');
+    loginInfoEl.style.cssText = 'font-size: 0.85rem; color: #888;';
+    loginInfoEl.textContent = 'Logged in via Discord';
+    userInfo.appendChild(usernameEl);
+    userInfo.appendChild(loginInfoEl);
 
     // Menu items
     const menuItems = document.createElement('div');
@@ -308,5 +312,8 @@ class TiltCheckAuth {
 
 // Initialize auth on page load
 if (typeof window !== 'undefined') {
-  window.tiltCheckAuth = new TiltCheckAuth();
+  window.TiltCheckAuth = TiltCheckAuth;
+  if (!window.__TC_AUTH_DISABLE_AUTO_INIT) {
+    window.tiltCheckAuth = new TiltCheckAuth();
+  }
 }
