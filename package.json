@@ -51,7 +51,8 @@
     "deadcode": "pnpm knip",
     "ops:linear:dry": "node scripts/linear-sync.mjs --dry-run",
     "ops:linear:sync": "node scripts/linear-sync.mjs",
-    "ops:daily": "powershell -ExecutionPolicy Bypass -File ./scripts/daily-ops.ps1"
+    "ops:daily": "powershell -ExecutionPolicy Bypass -File ./scripts/daily-ops.ps1",
+    "ci:deploy:scripts": "bash scripts/check-deploy-scripts.sh"
   },
   "devDependencies": {
     "@types/bcryptjs": "^3.0.0",

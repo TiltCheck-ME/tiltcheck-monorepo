@@ -28,6 +28,8 @@ describe('landing stats strip', () => {
       json: async () => ({
         ok: true,
         stats: {
+          contractVersion: '2026-03-08',
+          updatedAt: '2026-03-08T06:00:00.000Z',
           communitiesProtected: 15,
           scansLast24h: 101,
           highRiskBlocked: 7,
@@ -58,6 +60,35 @@ describe('landing stats strip', () => {
     context.fetch = vi.fn().mockResolvedValue({
       ok: false,
       status: 503,
+    } as Response);
+
+    runScript(dom);
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    expect(dom.window.document.getElementById('api-stats-status')?.textContent).toContain(
+      'temporarily unavailable',
+    );
+  });
+
+  it('falls back when API payload contract is malformed', async () => {
+    const dom = new JSDOM(
+      `<!doctype html><body>
+        <strong id="stat-communities">—</strong>
+        <strong id="stat-scans">—</strong>
+        <strong id="stat-blocked">—</strong>
+        <span id="api-stats-status">Loading...</span>
+      </body>`,
+      { url: 'https://tiltcheck.dev', runScripts: 'outside-only' },
+    );
+    const context = dom.getInternalVMContext() as unknown as { fetch: typeof fetch };
+    context.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        ok: true,
+        stats: {
+          communitiesProtected: 3,
+        },
+      }),
     } as Response);
 
     runScript(dom);

@@ -46,18 +46,30 @@ validate_env_vars_file() {
   done < "$env_file"
 }
 
+PRECHECK_ONLY=0
+if [[ "${1:-}" == "--preflight" ]]; then
+  PRECHECK_ONLY=1
+  shift
+fi
+
 if [[ $# -lt 1 ]]; then
   usage
   exit 1
 fi
 
 SERVICE_NAME="$1"
-PROJECT_ID="${PROJECT_ID:-$(gcloud config get-value project 2>/dev/null || true)}"
+if [[ "$PRECHECK_ONLY" == "1" ]]; then
+  PROJECT_ID="${PROJECT_ID:-${GCLOUD_PROJECT:-}}"
+else
+  PROJECT_ID="${PROJECT_ID:-$(gcloud config get-value project 2>/dev/null || true)}"
+fi
 REGION="${REGION:-us-central1}"
 AR_REPO="${AR_REPO:-tiltcheck-services}"
 SERVICES_FILE="infra/gcp/cloudrun/services.env"
 
-require_cmd gcloud
+if [[ "$PRECHECK_ONLY" != "1" ]]; then
+  require_cmd gcloud
+fi
 
 if [[ -z "$PROJECT_ID" ]]; then
   echo "PROJECT_ID is required." >&2
@@ -92,13 +104,6 @@ fi
 
 IMAGE="us-central1-docker.pkg.dev/${PROJECT_ID}/${AR_REPO}/${NAME}:$(date +%Y%m%d-%H%M%S)"
 RUNTIME_SA="${CLOUD_RUN_RUNTIME_SA:-sa-cloudrun-runtime@${PROJECT_ID}.iam.gserviceaccount.com}"
-
-echo "Building image: $IMAGE"
-gcloud builds submit . \
-  --project "$PROJECT_ID" \
-  --tag "$IMAGE" \
-  --file "$DOCKERFILE"
-
 DEPLOY_ARGS=(
   run deploy "$NAME"
   --project "$PROJECT_ID"
@@ -121,9 +126,24 @@ fi
 ENV_VARS_FILE="${ENV_VARS_FILE:-.env.gcp.${NAME}}"
 if [[ -f "$ENV_VARS_FILE" ]]; then
   validate_env_vars_file "$ENV_VARS_FILE"
-  echo "Applying env vars from $ENV_VARS_FILE"
-  DEPLOY_ARGS+=(--env-vars-file "$ENV_VARS_FILE")
+  if [[ "$PRECHECK_ONLY" == "1" ]]; then
+    echo "Preflight validated env vars file: $ENV_VARS_FILE"
+  else
+    echo "Applying env vars from $ENV_VARS_FILE"
+    DEPLOY_ARGS+=(--env-vars-file "$ENV_VARS_FILE")
+  fi
 fi
+
+if [[ "$PRECHECK_ONLY" == "1" ]]; then
+  echo "Preflight checks passed for Cloud Run service: $NAME"
+  exit 0
+fi
+
+echo "Building image: $IMAGE"
+gcloud builds submit . \
+  --project "$PROJECT_ID" \
+  --tag "$IMAGE" \
+  --file "$DOCKERFILE"
 
 echo "Deploying Cloud Run service: $NAME"
 gcloud "${DEPLOY_ARGS[@]}"

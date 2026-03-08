@@ -19,13 +19,26 @@
     return Number.isFinite(n) && n >= 0 ? n : 0;
   }
 
+  function isValidStatsContract(payload) {
+    return (
+      payload &&
+      payload.ok === true &&
+      payload.stats &&
+      typeof payload.stats.contractVersion === 'string' &&
+      typeof payload.stats.updatedAt === 'string'
+    );
+  }
+
   fetch('/api/stats', { cache: 'no-store' })
     .then((res) => {
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       return res.json();
     })
     .then((payload) => {
-      const stats = payload?.stats || {};
+      if (!isValidStatsContract(payload)) {
+        throw new Error('invalid stats contract');
+      }
+      const stats = payload.stats;
       communitiesEl.textContent = safeNumber(stats.communitiesProtected).toLocaleString();
       scansEl.textContent = safeNumber(stats.scansLast24h).toLocaleString();
       blockedEl.textContent = safeNumber(stats.highRiskBlocked).toLocaleString();
