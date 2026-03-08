@@ -1,0 +1,58 @@
+{
+  "tasks": [
+    {
+      "key": "MVP-P0-WEB-XSS",
+      "title": "Web XSS hardening sweep",
+      "description": "Batch 1 (P0 Security + Stability). Audit apps/web for unsafe dynamic HTML insertion and patch XSS-prone render paths. Replace unsafe innerHTML usage with safe DOM APIs or sanitized rendering. Add targeted malicious payload regression tests. Labels: mvp, p0, security, prod-readiness.",
+      "priority": 1
+    },
+    {
+      "key": "MVP-P0-SUSLINK-VALIDATION",
+      "title": "SusLink URL validation + security tests",
+      "description": "Batch 1 (P0 Security + Stability). Harden URL intake and scanner boundaries in modules/suslink and apps/web/tools/suslink.html. Enforce protocol/length/format checks and add abuse-case tests. Labels: mvp, p0, security, capability-gap.",
+      "priority": 1
+    },
+    {
+      "key": "MVP-P0-DEPLOY-VERIFY-ROLLBACK",
+      "title": "Deploy post-verification + rollback automation",
+      "description": "Batch 1 (P0 Security + Stability). Add fail-fast post-deploy verification and rollback paths for deploy-vps.sh and scripts/deploy-gcloud.sh. Include dry-run docs for rollback. Labels: mvp, p0, infra, security, prod-readiness.",
+      "priority": 1
+    },
+    {
+      "key": "MVP-P0-SECRETS-PREFLIGHT",
+      "title": "Secrets and env preflight guardrail",
+      "description": "Batch 1 (P0 Security + Stability). Add required env-key checks, placeholder blocking, and secret-safe logging to deploy-vps.sh, scripts/deploy-gcloud.sh, and scripts/gcp/deploy-cloud-run-service.sh. Labels: mvp, p0, infra, security, prod-readiness.",
+      "priority": 1
+    },
+    {
+      "key": "MVP-P1-DISCORD-TESTS",
+      "title": "Discord bot command tests from stubs to deterministic coverage",
+      "description": "Batch 2 (Core Behavior). Replace placeholder tests in apps/discord-bot/tests/commands/{scan,ping,tip,trust,tiltcheck}.test.ts with deterministic metadata/happy-path/error-path tests using stable mocks only. Labels: mvp, p1, stubbed, prod-readiness.",
+      "priority": 2
+    },
+    {
+      "key": "MVP-P1-STATS-CONTRACT",
+      "title": "Resolve /api/stats contract (endpoint or fallback UX)",
+      "description": "Batch 2 (Core Behavior). Resolve apps/web/index.html TODO for /api/stats. Either implement endpoint + UI adapter + tests, or remove hard dependency and render explicit fallback UX. Labels: mvp, p1, contract-mismatch, capability-gap.",
+      "priority": 2
+    },
+    {
+      "key": "MVP-P1-TRUST-ROLLUP-FETCHERS",
+      "title": "Trust-rollup external fetcher TODO resolution",
+      "description": "Batch 3 (Readiness). Address affiliate/compliance TODOs in apps/trust-rollup/src/external-fetchers.ts with implementation or feature-flagged degraded mode + telemetry. Labels: mvp, p1, capability-gap, prod-readiness.",
+      "priority": 2
+    },
+    {
+      "key": "MVP-P1-CONTROL-USER-BASELINE-TESTS",
+      "title": "Baseline tests for control-room and user-dashboard",
+      "description": "Batch 3 (Readiness). Replace no-test placeholders with baseline smoke and critical-path tests in apps/control-room and apps/user-dashboard. Labels: mvp, p1, stubbed, prod-readiness.",
+      "priority": 2
+    },
+    {
+      "key": "MVP-P1-EXTENSION-HARNESS",
+      "title": "Chrome extension unit test harness setup",
+      "description": "Batch 3 (Readiness). Implement background/content test environment and replace TODO-only tests in apps/chrome-extension/tests/unit. Labels: mvp, p1, stubbed, prod-readiness.",
+      "priority": 2
+    }
+  ]
+}
