@@ -4,7 +4,7 @@
   "description": "TiltCheck CLI",
   "type": "module",
   "bin": {
-    "tiltcheck": "./dist/index.js"
+    "tiltcheck": "./bin/tiltcheck.cjs"
   },
   "scripts": {
     "build": "tsc",
