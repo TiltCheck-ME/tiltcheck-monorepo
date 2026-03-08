@@ -56,6 +56,20 @@
   <div class="card">
     <div class="status warn" id="authStatus">Account: <strong>not connected</strong></div>
     <button class="btn discord" id="loginBtn">Connect Discord</button>
+    <div class="status" id="walletLockStatus" style="margin-top: 8px;">Wallet Lock: <strong>unlocked</strong></div>
+    <div class="grid" style="margin-top: 8px; grid-template-columns: 1fr auto;">
+      <input
+        id="walletLockMins"
+        type="number"
+        min="1"
+        max="1440"
+        value="30"
+        style="border-radius: 8px; border: 1px solid rgba(255,255,255,0.15); background: #0f172a; color: #eef2ff; padding: 8px;"
+        aria-label="Wallet lock duration in minutes"
+      />
+      <button class="btn secondary" id="lockWalletBtn" style="margin-top: 0; width: auto; padding: 8px 10px;">Lock</button>
+    </div>
+    <button class="btn secondary" id="unlockWalletBtn">Unlock Wallet</button>
     <div class="grid">
       <button class="btn secondary" id="vaultBtn">Open Web Vault</button>
       <button class="btn secondary" id="dashboardBtn">Open Dashboard</button>
