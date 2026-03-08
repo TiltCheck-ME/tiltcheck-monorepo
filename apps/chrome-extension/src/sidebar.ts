@@ -48,6 +48,7 @@ let vaultRefreshIntervalId: ReturnType<typeof setInterval> | null = null;
 let buddyMirrorEnabled = false;
 let demoMode = false;
 const SIDEBAR_PREFS_KEY = 'sidebarUiPrefs';
+const WALLET_LOCK_UNTIL_KEY = 'walletLockUntil';
 let showAdvancedTools = false;
 
 const CASINO_THEMES: Record<string, { label: string; accent: string }> = {
@@ -258,6 +259,28 @@ function removeStorage(keys: string[] | string): Promise<void> {
   return new Promise((resolve) => {
     chrome.storage.local.remove(keys, () => resolve());
   });
+}
+
+function formatLockRemaining(ms: number): string {
+  const totalSec = Math.max(0, Math.ceil(ms / 1000));
+  const hrs = Math.floor(totalSec / 3600);
+  const mins = Math.floor((totalSec % 3600) / 60);
+  const sec = totalSec % 60;
+  if (hrs > 0) return `${hrs}h ${mins}m ${sec}s`;
+  return `${mins}m ${sec}s`;
+}
+
+async function ensureWalletUnlocked(actionLabel: string): Promise<boolean> {
+  const state = await getStorage([WALLET_LOCK_UNTIL_KEY]);
+  const lockUntil = Number(state[WALLET_LOCK_UNTIL_KEY] || 0);
+  if (lockUntil > Date.now()) {
+    const remaining = formatLockRemaining(lockUntil - Date.now());
+    const message = `Wallet lock is active (${remaining}). Unlock in popup to ${actionLabel}.`;
+    updateStatus(message, 'warning');
+    addFeedMessage(message);
+    return false;
+  }
+  return true;
 }
 
 function applyPageOffset(width: number) {
@@ -1687,6 +1710,7 @@ function setupEventListeners() {
 
   // Lock Timer Logic
   document.getElementById('start-lock-timer')?.addEventListener('click', async () => {
+    if (!(await ensureWalletUnlocked('lock funds'))) return;
     const minsInput = document.getElementById('lock-timer-mins') as HTMLInputElement;
     const agreeCheckbox = document.getElementById('lock-agree') as HTMLInputElement;
     const mins = parseInt(minsInput.value);
@@ -1742,6 +1766,7 @@ function setupEventListeners() {
 
   // Release Funds Logic
   document.getElementById('release-funds-btn')?.addEventListener('click', async () => {
+    if (!(await ensureWalletUnlocked('release funds'))) return;
     if (!userData) return;
 
     const releaseInput = document.getElementById('tg-release-amount') as HTMLInputElement;
@@ -2075,6 +2100,7 @@ function showMainContent() {
 }
 
 async function vaultCurrentBalance() {
+  if (!(await ensureWalletUnlocked('vault balance'))) return;
   const balance = sessionStats.currentBalance || 0;
   if (balance <= 0) {
     addFeedMessage('No balance to vault right now.');
@@ -2186,6 +2212,7 @@ function updateStats(stats: any) {
 }
 
 async function depositToVault(amount: number) {
+  if (!(await ensureWalletUnlocked('move funds to vault'))) return;
   if (!userData) return;
   const result = await apiCall(`/vault/${userData.id}/deposit`, {
     method: 'POST',
@@ -2409,6 +2436,7 @@ async function openDashboard() {
 }
 
 async function openVault() {
+  if (!(await ensureWalletUnlocked('open vault'))) return;
   if (!userData) return;
   const result = await apiCall(`/vault/${userData.id}`);
   if (result.error) {
@@ -2434,6 +2462,7 @@ async function openVault() {
 }
 
 async function openWallet() {
+  if (!(await ensureWalletUnlocked('open wallet'))) return;
   if (!userData) return;
   const result = await apiCall(`/wallet/${userData.id}`);
   if (result.error) {
