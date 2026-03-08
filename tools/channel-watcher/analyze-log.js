@@ -17,6 +17,12 @@ const PROVIDER = (process.env.PROVIDER || 'groq').toLowerCase();
 const LORE_MODE = process.argv.includes('--lore'); // Only generate comic lore when asked
 
 const PROVIDERS = {
+    ollama: {
+        baseUrl: process.env.OLLAMA_URL || 'http://localhost:11434/v1',
+        apiKey: 'ollama',
+        model: process.env.AI_MODEL || process.env.OLLAMA_MODEL || 'llama3.2:1b',
+        label: 'Ollama (local)',
+    },
     groq: {
         baseUrl: 'https://api.groq.com/openai/v1',
         apiKey: process.env.GROQ_API_KEY || '',
@@ -36,7 +42,7 @@ const PROVIDERS = {
 };
 
 let currentProviderKey = PROVIDER;
-let currentAi = PROVIDERS[currentProviderKey] || PROVIDERS.groq;
+let currentAi = PROVIDERS[currentProviderKey] || PROVIDERS.ollama;
 
 const BUSINESS_PROMPT = `You are a community intelligence analyst for TiltCheck, a responsible gambling platform.
 Analyze this batch of Discord messages. Write a structured report with these sections:
