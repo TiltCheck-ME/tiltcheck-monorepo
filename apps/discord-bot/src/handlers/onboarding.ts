@@ -334,7 +334,7 @@ async function showLearnMore(interaction: MessageComponentInteraction): Promise<
       `**Start a cooldown**\n` +
       `/tiltcheck cooldown 30\n\n` +
       `**Scan a link**\n` +
-      `/tiltcheck suslink scan url:<url>\n\n` +
+      `/tiltcheck link scan url:<url>\n\n` +
       `**Check a casino**\n` +
       `/tiltcheck casino domain:<domain>\n\n` +
       `**Ecosystem**\n` +
@@ -548,7 +548,7 @@ async function completeOnboarding(interaction: MessageComponentInteraction): Pro
       `**Quick Commands:**\n` +
       `/tiltcheck status - Check your safety state\n` +
       `/tiltcheck cooldown 30 - Start a 30 minute break\n` +
-      `/tiltcheck suslink scan url:<url> - Scan a link\n` +
+      `/tiltcheck link scan url:<url> - Scan a link\n` +
       `/tiltcheck casino domain:<domain> - Check casino trust\n` +
       `/help - Full command list\n\n` +
       `Questions? Use /support or join our Discord.`

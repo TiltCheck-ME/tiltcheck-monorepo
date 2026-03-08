@@ -12,13 +12,11 @@
  *
  * Commands:
  * - /tiltcheck - Tilt monitoring and cooldown
- * - /suslink   - Link scanning, promo management, scam detection
- * - /casino    - Casino trust scores and info
- * - /buddy     - Accountability buddy system
- * - /report    - Report suspicious activity
- * - /setstate  - Set user state (mod)
- * - /ping      - Bot status check
- * - /help      - Help and command info
+ *   - /tiltcheck link scan - Link scanning
+ *   - /tiltcheck casino    - Casino trust scores and info
+ *   - /tiltcheck buddy     - Accountability buddy system
+ *   - /tiltcheck report    - Report suspicious activity
+ *   - /tiltcheck setstate  - Set user state context
  */
 
 export { tiltcheck } from './tiltcheck.js';

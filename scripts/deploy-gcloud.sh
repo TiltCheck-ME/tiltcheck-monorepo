@@ -107,6 +107,16 @@ gcloud compute instances create "$VM_NAME" \
     npm install -g pm2
     # Create app directory
     mkdir -p /opt/tiltcheck
+
+    # Install Ollama
+    curl -fsSL https://ollama.com/install.sh | sh
+
+    # Configure Ollama to listen on all interfaces (port included for newer versions)
+    mkdir -p /etc/systemd/system/ollama.service.d
+    echo "[Service]" > /etc/systemd/system/ollama.service.d/override.conf
+    echo "Environment=\"OLLAMA_HOST=0.0.0.0:11434\"" >> /etc/systemd/system/ollama.service.d/override.conf
+    systemctl daemon-reload
+    systemctl restart ollama
   '
 
 info "Waiting for VM to be ready..."
@@ -159,6 +169,10 @@ if [ -n "$STATIC_IP" ]; then
   info "Static IP: $STATIC_IP"
   info "Point api.tiltcheck.me A record to: $STATIC_IP"
 fi
+
+# Create Firewall rule for Ollama
+info "Opening firewall port 11434 for Ollama..."
+gcloud compute firewall-rules create allow-ollama --allow tcp:11434 --target-tags=tiltcheck --description="Allow Ollama API access" 2>/dev/null || true
 
 info ""
 info "Deployment complete!"

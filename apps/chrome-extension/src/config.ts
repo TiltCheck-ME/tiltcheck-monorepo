@@ -21,7 +21,11 @@ export function getDiscordLoginUrl(source = 'extension') {
     // The API handles OAuth + callback and posts a message back to the extension window.
     url.searchParams.set('source', source);
     if (source === 'extension' && typeof window !== 'undefined' && window.location?.origin) {
-        url.searchParams.set('opener_origin', window.location.origin);
+        const origin = window.location.origin;
+        // opener_origin must be the extension origin; page origins (e.g. stake.us) break callback postMessage routing.
+        if (origin.startsWith('chrome-extension://')) {
+            url.searchParams.set('opener_origin', origin);
+        }
     }
     // Preserve the caller info for debugging/analytics (not required by API).
     if (source && source !== 'extension') {
