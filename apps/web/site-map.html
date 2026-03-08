@@ -112,59 +112,7 @@
       </div>
     </div>
   </footer>
-  <script>
-    // Mobile Navigation Toggle
-    function toggleMobileNav() {
-      const btn = document.querySelector('.hamburger-btn');
-      const nav = document.getElementById('mobileNav');
-      const isOpen = btn.classList.toggle('open');
-      nav.classList.toggle('open', isOpen);
-      btn.setAttribute('aria-expanded', isOpen);
-      nav.setAttribute('aria-hidden', !isOpen);
-      document.body.style.overflow = isOpen ? 'hidden' : '';
-    }
-    
-    // Close mobile nav on link click
-    document.querySelectorAll('.mobile-nav a').forEach(link => {
-      link.addEventListener('click', () => {
-        const nav = document.getElementById('mobileNav');
-        if (nav.classList.contains('open')) {
-          toggleMobileNav();
-        }
-      });
-    });
-    
-    // Close on escape key
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape' && document.querySelector('.mobile-nav.open')) {
-        toggleMobileNav();
-      }
-    });
-    
-    // Dropdown toggle for accessibility
-    document.querySelectorAll('.nav-dropdown .nav-dropbtn').forEach(btn => {
-      const content = btn.nextElementSibling;
-      btn.addEventListener('click', () => {
-        const expanded = btn.getAttribute('aria-expanded') === 'true';
-        btn.setAttribute('aria-expanded', String(!expanded));
-        content.style.display = expanded ? 'none' : 'block';
-      });
-      btn.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape') {
-          btn.setAttribute('aria-expanded', 'false');
-          content.style.display = 'none';
-          btn.blur();
-        }
-      });
-      document.addEventListener('click', (e) => {
-        if (!btn.parentElement.contains(e.target)) {
-          btn.setAttribute('aria-expanded', 'false');
-          content.style.display = 'none';
-        }
-      });
-    });
-  </script>
-  <script src="/scripts/components-loader.js"></script>
+<script src="/scripts/components-loader.js"></script>
   <script src="/scripts/auth.js"></script>
 </body>
 </html>
