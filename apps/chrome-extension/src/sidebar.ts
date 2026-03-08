@@ -239,19 +239,41 @@ function escapeHtml(value: unknown): string {
 
 function getStorage(keys: string[] | string): Promise<Record<string, any>> {
   return new Promise((resolve) => {
-    chrome.storage.local.get(keys, (result) => resolve(result || {}));
+    try {
+      chrome.storage.local.get(keys, (result) => {
+        if (chrome.runtime?.lastError) {
+          console.warn('[TiltCheck] Storage get failed:', chrome.runtime.lastError.message);
+          resolve({});
+          return;
+        }
+        resolve(result || {});
+      });
+    } catch (error) {
+      console.warn('[TiltCheck] Storage get exception:', error);
+      resolve({});
+    }
   });
 }
 
 function setStorage(values: Record<string, any>): Promise<void> {
   return new Promise((resolve) => {
-    chrome.storage.local.set(values, () => resolve());
+    try {
+      chrome.storage.local.set(values, () => resolve());
+    } catch (error) {
+      console.warn('[TiltCheck] Storage set exception:', error);
+      resolve();
+    }
   });
 }
 
 function removeStorage(keys: string[] | string): Promise<void> {
   return new Promise((resolve) => {
-    chrome.storage.local.remove(keys, () => resolve());
+    try {
+      chrome.storage.local.remove(keys, () => resolve());
+    } catch (error) {
+      console.warn('[TiltCheck] Storage remove exception:', error);
+      resolve();
+    }
   });
 }
 
@@ -266,9 +288,12 @@ function formatLockRemaining(ms: number): string {
 
 async function ensureWalletUnlocked(actionLabel: string): Promise<boolean> {
   if (!userData || demoMode) return true;
-  const state = await apiCall(`/vault/${userData.id}/wallet-lock-status`);
-  if (state?.locked) {
-    const remaining = formatLockRemaining(Number(state.remainingMs || 0));
+  const state = await apiCall(`/vault/${userData.id}/lock-status`);
+  const isLocked = state?.locked === true;
+  if (isLocked) {
+    const remainingMs = Number(state?.remainingMs)
+      || Math.max(0, new Date(String(state?.unlockTime || 0)).getTime() - Date.now());
+    const remaining = formatLockRemaining(remainingMs);
     const message = `Wallet lock is active (${remaining}). Unlock in sidebar to ${actionLabel}.`;
     updateStatus(message, 'warning');
     addFeedMessage(message);
@@ -1319,34 +1344,55 @@ function syncAccountUi() {
 
 function startDiscordLoginFlow() {
   const authUrl = getDiscordLoginUrl('extension');
-  chrome.runtime.sendMessage({ type: 'open_auth_tab', url: authUrl }, (response) => {
-    if (chrome.runtime.lastError || !response?.success) {
-      addFeedMessage('Could not open Discord login tab. Try again.');
-      return;
-    }
-
-    const maxPollMs = 5 * 60 * 1000;
-    const startedAt = Date.now();
-    const checkClosed = setInterval(async () => {
-      const stored = await getStorage(['authToken', 'userData']);
-      if (stored?.authToken && stored?.userData) {
-        clearInterval(checkClosed);
-        demoMode = false;
-        authToken = stored.authToken;
-        userData = { ...stored.userData, isDemo: false };
-        isAuthenticated = true;
-        showMainContent();
-        syncAccountUi();
-        addFeedMessage(`Connected: ${userData.username || 'TiltCheck user'}`);
+  try {
+    chrome.runtime.sendMessage({ type: 'open_auth_tab', url: authUrl }, (response) => {
+      if (chrome.runtime.lastError) {
+        const msg = chrome.runtime.lastError.message || 'Could not open Discord login tab.';
+        addFeedMessage(
+          msg.includes('Extension context invalidated')
+            ? 'Extension refreshed mid-login. Reload this tab and retry Connect Discord.'
+            : 'Could not open Discord login tab. Try again.'
+        );
         return;
       }
 
-      if (Date.now() - startedAt > maxPollMs) {
-        clearInterval(checkClosed);
-        addFeedMessage('Discord connect timed out. Try again.');
+      if (!response?.success) {
+        addFeedMessage('Could not open Discord login tab. Try again.');
+        return;
       }
-    }, 1000);
-  });
+
+      const maxPollMs = 5 * 60 * 1000;
+      const startedAt = Date.now();
+      const checkClosed = setInterval(async () => {
+        try {
+          const stored = await getStorage(['authToken', 'userData']);
+          if (stored?.authToken && stored?.userData) {
+            clearInterval(checkClosed);
+            demoMode = false;
+            authToken = stored.authToken;
+            userData = { ...stored.userData, isDemo: false };
+            isAuthenticated = true;
+            showMainContent();
+            syncAccountUi();
+            addFeedMessage(`Connected: ${userData.username || 'TiltCheck user'}`);
+            return;
+          }
+
+          if (Date.now() - startedAt > maxPollMs) {
+            clearInterval(checkClosed);
+            addFeedMessage('Discord connect timed out. Try again.');
+          }
+        } catch (error) {
+          clearInterval(checkClosed);
+          console.warn('[TiltCheck] Discord connect polling failed:', error);
+          addFeedMessage('Discord connect interrupted. Reload the tab and try again.');
+        }
+      }, 1000);
+    });
+  } catch (error) {
+    console.warn('[TiltCheck] Unable to start Discord connect flow:', error);
+    addFeedMessage('Connect failed to start. Reload tab and try again.');
+  }
 }
 
 function setupEventListeners() {
