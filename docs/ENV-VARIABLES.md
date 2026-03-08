@@ -63,6 +63,10 @@ To get started, copy the `.env.example` file to `.env` in the root of the projec
 | Variable | Description | Default / Example |
 |---|---|---|
 | `OPENAI_API_KEY` | OpenAI API key for AI-driven chat/insights | `sk-...` |
+| `AI_PROVIDER` | AI backend selector (`ollama` or gateway default) | `ollama` |
+| `OLLAMA_URL` | OpenAI-compatible Ollama base URL | `http://localhost:11434/v1` |
+| `AI_MODEL` | Shared model name for AI features | `llama3.2:1b` |
+| `OLLAMA_MODEL` | Optional Ollama-specific model override | `llama3.2:1b` |
 
 ## Elasticsearch / Observability
 

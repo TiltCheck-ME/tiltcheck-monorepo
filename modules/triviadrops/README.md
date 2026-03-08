@@ -25,14 +25,22 @@ This module powers the `/triviadrop` Discord command for TiltCheck.
 - 💪 **Grinder** - Play 100 questions
 
 ## AI Question Generation
-Set `OPENAI_API_KEY` in your environment to enable infinite AI-generated questions. Falls back to static bank if unavailable.
+AI questions support AI Gateway/OpenAI and Ollama.
+Set either:
+- `AI_PROVIDER=ollama` with `OLLAMA_URL` (and optional `OLLAMA_MODEL`/`AI_MODEL`)
+- or `OPENAI_API_KEY` / `AI_GATEWAY_URL`
+
+If AI is unavailable, TriviaDrops falls back to the static question bank.
 
 ## Usage
 Imported by the Discord bot. See `apps/discord-bot/src/commands/triviadrop.ts` for command wiring.
 
 ## Configuration
 - `TRIVIA_STORE_PATH` - Path to trivia data store (default: `./data/trivia-store.json`)
-- `OPENAI_API_KEY` - Optional OpenAI API key for AI question generation
+- `AI_PROVIDER` - Optional provider override (`ollama` or gateway default)
+- `OLLAMA_URL` - Optional OpenAI-compatible Ollama endpoint (`http://localhost:11434/v1`)
+- `OLLAMA_MODEL` / `AI_MODEL` - Optional model name (default `llama3.2:1b`)
+- `OPENAI_API_KEY` - Optional OpenAI key (if not using Ollama)
 
 ## Data Structure
 ```typescript

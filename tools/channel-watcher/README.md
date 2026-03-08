@@ -145,6 +145,7 @@ Required env values for cloud publish:
 - `COMIC_API_URL=https://<your-cloud-run-service>`
 - optional `COMIC_API_INGEST_KEY=<shared-secret>`
 
-## No OpenAI key?
+## No API key?
 
-Set `OPENAI_API_KEY=` blank and the watcher will still run and log all messages to file. You can run analysis manually later or paste the log into ChatGPT.
+Set `PROVIDER=ollama` with `OLLAMA_URL` to run keyless via your VM/local model.  
+If cloud providers are unset, the watcher still runs and logs all messages to file for later analysis.
