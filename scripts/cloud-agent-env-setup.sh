@@ -10,7 +10,9 @@
 # Idempotent cloud-agent bootstrap:
 # - ensures pnpm is available
 # - installs workspace deps only when lockfile changed
-# - verifies vitest + jsdom are available for `pnpm vitest --run`
+# - verifies TypeScript + vitest/jsdom toolchain
+# - prebuilds trust-engine dependency graph for `pnpm trust:start`
+# - seeds runtime casino trust state from scrape outputs when available
 
 set -euo pipefail
 
@@ -60,4 +62,26 @@ echo "🔎 Verifying vitest/jsdom toolchain..."
 pnpm vitest --version >/dev/null
 node -e "import('vitest'); import('jsdom');"
 
-echo "✅ Cloud agent environment ready: pnpm + vitest/jsdom available."
+echo "🔎 Verifying TypeScript toolchain..."
+pnpm exec tsc --version >/dev/null
+
+echo "🏗️ Building trust-engine dependency graph..."
+pnpm --filter @tiltcheck/event-router... build >/dev/null
+pnpm --filter @tiltcheck/database... build >/dev/null
+pnpm --filter @tiltcheck/config... build >/dev/null
+pnpm --filter @tiltcheck/trust-engines build >/dev/null
+
+if [[ -f "$ROOT_DIR/data/trust-engine/remaining-sweepstakes-records.v3.json" ]]; then
+  echo "🌱 Seeding runtime trust data from scrape artifacts..."
+  node "$ROOT_DIR/scripts/seed-casino-trust-from-scrape.js" \
+    --include-existing \
+    --output "$SENTINEL_DIR/casino-trust.seeded.json" \
+    --runtime-output "$ROOT_DIR/data/casino-trust.json" >/dev/null
+else
+  echo "ℹ️ No v3 scrape artifact found, skipping trust seed generation."
+fi
+
+echo "🔎 Verifying trust startup command..."
+pnpm trust:start >/dev/null
+
+echo "✅ Cloud agent environment ready: pnpm + TS + trust engine startup validated."
