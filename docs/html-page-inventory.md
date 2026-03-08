@@ -1,14 +1,14 @@
 # HTML Page Inventory
 
-Generated: 2026-03-08T07:32:03.419Z
+Generated: 2026-03-08T07:56:36.131Z
 
 ## Summary
 
-- Total HTML files: **97**
-- production page: **40**
+- Total HTML files: **100**
+- production page: **42**
 - production tool: **7**
 - error page: **3**
-- admin internal: **4**
+- admin internal: **5**
 - docs: **31**
 - component partial: **4**
 - app surface: **8**
@@ -35,6 +35,7 @@ Generated: 2026-03-08T07:32:03.419Z
 | `apps/web/cookie-policy.html` | shared-nav wired | keep (wired) |  |
 | `apps/web/dashboard/index.html` | custom/no-shared-nav | keep (custom auth/system) | Intentional standalone auth/health shell. |
 | `apps/web/degen-trust.html` | shared-nav wired | keep (wired) |  |
+| `apps/web/enhanced/index.html` | shared-nav wired | keep (wired) |  |
 | `apps/web/extension.html` | shared-nav wired | keep (wired) |  |
 | `apps/web/faq.html` | shared-nav wired | keep (wired) |  |
 | `apps/web/getting-started.html` | shared-nav wired | keep (wired) |  |
@@ -50,6 +51,7 @@ Generated: 2026-03-08T07:32:03.419Z
 | `apps/web/privacy.html` | shared-nav wired | keep (wired) |  |
 | `apps/web/responsible-gambling.html` | shared-nav wired | keep (wired) |  |
 | `apps/web/scam-reports.html` | shared-nav wired | keep (wired) |  |
+| `apps/web/screen/index.html` | shared-nav wired | keep (wired) |  |
 | `apps/web/search.html` | shared-nav wired | keep (wired) |  |
 | `apps/web/settings.html` | shared-nav wired | keep (wired) |  |
 | `apps/web/site-map.html` | shared-nav wired | keep (wired) |  |
@@ -83,6 +85,7 @@ Generated: 2026-03-08T07:32:03.419Z
 | `apps/web/admin-analytics.html` | custom/no-shared-nav | keep (internal) |  |
 | `apps/web/admin-status.html` | custom/no-shared-nav | keep (internal) |  |
 | `apps/web/admin/game-archive.html` | custom/no-shared-nav | keep (internal) |  |
+| `apps/web/admin/sitemap/index.html` | shared-nav wired | keep (internal) |  |
 | `apps/web/control-room.html` | custom/no-shared-nav | keep (internal) |  |
 
 ## Error pages
@@ -156,4 +159,4 @@ Generated: 2026-03-08T07:32:03.419Z
 1. Keep all pages marked `keep (wired)` and avoid reintroducing inline `top-nav` markup.
 2. Keep `login`, `auth/callback`, `dashboard/index`, and `status` as standalone system pages unless product wants full marketing nav there.
 3. Optional: add a CI check that fails when new `top-nav` blocks are introduced in `apps/web/*.html`.
-4. Review docs/missing-route-gaps.md for unresolved internal link targets.
+4. Review docs/missing-route-gaps.md for unresolved static page route gaps.
