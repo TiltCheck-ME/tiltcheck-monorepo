@@ -15,7 +15,7 @@ const MAX_QUOTES = 3;
 const ARCHIVE_LIMIT = parseInt(process.env.COMIC_ARCHIVE_LIMIT || '180', 10);
 const COMIC_USE_AI = process.env.COMIC_USE_AI !== 'false';
 const OLLAMA_URL = process.env.OLLAMA_URL || 'http://localhost:11434/v1';
-const COMIC_MODEL = process.env.COMIC_MODEL || process.env.AI_MODEL || 'llama3.2';
+const COMIC_MODEL = process.env.COMIC_MODEL || process.env.AI_MODEL || 'llama3.2:3b';
 const COMIC_CREATOR = process.env.COMIC_CREATOR || 'jmenichole';
 const VISUAL_ARTIST = process.env.COMIC_VISUAL_ARTIST || 'samoxic';
 const VISUAL_INSPIRATION_URL = 'https://pheverdream.github.io/The-Book-of-SealStats/';

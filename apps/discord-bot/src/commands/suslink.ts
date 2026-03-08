@@ -6,7 +6,7 @@
  * For licensing information, see LICENSE file in the project root.
  */
 /**
- * SusLink Command
+ * Link Safety Command
  * Combines link scanning and promo management
  */
 
@@ -15,9 +15,9 @@ import { suslink } from '@tiltcheck/suslink';
 import { linkScanEmbed, errorEmbed, isValidUrl } from '@tiltcheck/discord-utils';
 import type { Command } from '../types.js';
 
-export const suslinkCmd: Command = {
+export const linkCmd: Command = {
   data: new SlashCommandBuilder()
-    .setName('suslink')
+    .setName('link')
     .setDescription('Link scanning for suspicious patterns')
     .addSubcommand(sub =>
       sub
