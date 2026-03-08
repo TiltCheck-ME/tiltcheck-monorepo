@@ -17,10 +17,25 @@ import {
   unlockVault, 
   getVaultStatus, 
   depositToVault, 
-  getVaultBalance 
+  getVaultBalance,
+  setWalletActionLockForUser,
+  clearWalletActionLockForUser,
+  getWalletActionLockStatus
 } from '@tiltcheck/lockvault';
 
 const router = Router();
+
+function walletLockBlockedResponse(userId: string) {
+  const status = getWalletActionLockStatus(userId);
+  if (!status.locked || !status.lockUntil || !status.remainingMs) return null;
+  return {
+    error: 'Wallet lock is active. Try again after the timer expires.',
+    code: 'WALLET_LOCK_ACTIVE',
+    lockUntil: new Date(status.lockUntil).toISOString(),
+    remainingMs: status.remainingMs,
+    reason: status.reason || null,
+  };
+}
 
 /**
  * GET /vault/:userId
@@ -37,13 +52,15 @@ router.get('/:userId', authMiddleware, async (req, res) => {
 
   const balance = getVaultBalance(userId);
   const locks = getVaultStatus(userId);
+  const walletLock = getWalletActionLockStatus(userId);
 
   res.json({
     success: true,
     vault: {
       balance,
-      locks
-    }
+      locks,
+    },
+    walletLock,
   });
 });
 
@@ -81,6 +98,78 @@ router.get('/:userId/lock-status', authMiddleware, async (req, res) => {
 });
 
 /**
+ * GET /vault/:userId/wallet-lock-status
+ * Returns account-level wallet lock state
+ */
+router.get('/:userId/wallet-lock-status', authMiddleware, async (req, res) => {
+  const { userId } = req.params;
+  const auth = (req as AuthRequest).user;
+
+  if (auth?.id !== userId) {
+    res.status(403).json({ error: 'Unauthorized' });
+    return;
+  }
+
+  const status = getWalletActionLockStatus(userId);
+  res.json({
+    success: true,
+    ...status,
+    lockUntil: status.lockUntil ? new Date(status.lockUntil).toISOString() : null,
+  });
+});
+
+/**
+ * POST /vault/:userId/wallet-lock
+ * Set account-level wallet lock timer
+ */
+router.post('/:userId/wallet-lock', authMiddleware, async (req, res) => {
+  const { userId } = req.params;
+  const { durationMinutes, reason } = req.body || {};
+  const auth = (req as AuthRequest).user;
+
+  if (auth?.id !== userId) {
+    res.status(403).json({ error: 'Unauthorized' });
+    return;
+  }
+
+  const mins = Number(durationMinutes);
+  if (!Number.isFinite(mins) || mins <= 0) {
+    res.status(400).json({ error: 'Invalid durationMinutes' });
+    return;
+  }
+  if (mins > 7 * 24 * 60) {
+    res.status(400).json({ error: 'durationMinutes exceeds maximum of 7 days' });
+    return;
+  }
+
+  const record = setWalletActionLockForUser(userId, Math.trunc(mins) * 60 * 1000, typeof reason === 'string' ? reason : undefined);
+  res.json({
+    success: true,
+    locked: true,
+    lockUntil: new Date(record.lockUntil).toISOString(),
+    remainingMs: Math.max(0, record.lockUntil - Date.now()),
+    reason: record.reason || null,
+  });
+});
+
+/**
+ * POST /vault/:userId/wallet-unlock
+ * Clears account-level wallet lock
+ */
+router.post('/:userId/wallet-unlock', authMiddleware, async (req, res) => {
+  const { userId } = req.params;
+  const auth = (req as AuthRequest).user;
+
+  if (auth?.id !== userId) {
+    res.status(403).json({ error: 'Unauthorized' });
+    return;
+  }
+
+  clearWalletActionLockForUser(userId);
+  res.json({ success: true, locked: false });
+});
+
+/**
  * POST /vault/:userId/deposit
  * Add funds to general vault balance
  */
@@ -91,6 +180,12 @@ router.post('/:userId/deposit', authMiddleware, async (req, res) => {
 
   if (auth?.id !== userId) {
     res.status(403).json({ error: 'Unauthorized' });
+    return;
+  }
+
+  const blocked = walletLockBlockedResponse(userId);
+  if (blocked) {
+    res.status(423).json(blocked);
     return;
   }
 
@@ -120,6 +215,12 @@ router.post('/:userId/lock', authMiddleware, async (req, res) => {
 
   if (auth?.id !== userId) {
     res.status(403).json({ error: 'Unauthorized' });
+    return;
+  }
+
+  const blocked = walletLockBlockedResponse(userId);
+  if (blocked) {
+    res.status(423).json(blocked);
     return;
   }
 
@@ -163,6 +264,12 @@ router.post('/:userId/release', authMiddleware, async (req, res) => {
 
   if (auth?.id !== userId) {
     res.status(403).json({ error: 'Unauthorized' });
+    return;
+  }
+
+  const blocked = walletLockBlockedResponse(userId);
+  if (blocked) {
+    res.status(423).json(blocked);
     return;
   }
 

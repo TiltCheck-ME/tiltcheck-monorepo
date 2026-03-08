@@ -48,7 +48,6 @@ let vaultRefreshIntervalId: ReturnType<typeof setInterval> | null = null;
 let buddyMirrorEnabled = false;
 let demoMode = false;
 const SIDEBAR_PREFS_KEY = 'sidebarUiPrefs';
-const WALLET_LOCK_UNTIL_KEY = 'walletLockUntil';
 let showAdvancedTools = false;
 
 const CASINO_THEMES: Record<string, { label: string; accent: string }> = {
@@ -271,10 +270,10 @@ function formatLockRemaining(ms: number): string {
 }
 
 async function ensureWalletUnlocked(actionLabel: string): Promise<boolean> {
-  const state = await getStorage([WALLET_LOCK_UNTIL_KEY]);
-  const lockUntil = Number(state[WALLET_LOCK_UNTIL_KEY] || 0);
-  if (lockUntil > Date.now()) {
-    const remaining = formatLockRemaining(lockUntil - Date.now());
+  if (!userData || demoMode) return true;
+  const state = await apiCall(`/vault/${userData.id}/wallet-lock-status`);
+  if (state?.locked) {
+    const remaining = formatLockRemaining(Number(state.remainingMs || 0));
     const message = `Wallet lock is active (${remaining}). Unlock in popup to ${actionLabel}.`;
     updateStatus(message, 'warning');
     addFeedMessage(message);
