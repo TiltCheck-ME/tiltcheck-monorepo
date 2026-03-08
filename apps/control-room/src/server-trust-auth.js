@@ -9,7 +9,7 @@ import session from 'express-session';
 import { createServer } from 'http';
 import { WebSocketServer } from 'ws';
 import path from 'path';
-import { fileURLToPath } from 'url';
+import { fileURLToPath, pathToFileURL } from 'url';
 import { exec, spawn } from 'child_process';
 import { promisify } from 'util';
 
@@ -328,8 +328,13 @@ wss.on('connection', (ws) => {
 // ─── Health ────────────────────────────────────────────────────────────────────
 app.get('/health', (req, res) => res.json({ status: 'ok', port: PORT }));
 
-server.listen(PORT, () => {
-  console.log(`🎛️  Control Room running on port ${PORT}`);
-  console.log(`🐳 Docker-aware monitoring enabled`);
-  console.log(`🔒 Set ADMIN_PASSWORD env var (default: admin123 — change this!)`);
-});
+const isMainModule = process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href;
+if (isMainModule) {
+  server.listen(PORT, () => {
+    console.log(`🎛️  Control Room running on port ${PORT}`);
+    console.log(`🐳 Docker-aware monitoring enabled`);
+    console.log(`🔒 Set ADMIN_PASSWORD env var (default: admin123 — change this!)`);
+  });
+}
+
+export { app, server, sanitizeContainer };

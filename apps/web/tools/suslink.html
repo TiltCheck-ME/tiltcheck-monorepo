@@ -567,6 +567,8 @@
       const resultReason = document.getElementById('resultReason');
       const resultTimestamp = document.getElementById('resultTimestamp');
       const donateWidget = document.getElementById('donateWidget');
+      const MAX_INPUT_LENGTH = 2048;
+      const ALLOWED_PROTOCOLS = new Set(['http:', 'https:']);
 
       const riskConfig = {
         safe: { icon: '✅', title: 'Safe', description: 'No suspicious patterns detected' },
@@ -575,11 +577,52 @@
         critical: { icon: '🚨', title: 'Critical / Phishing', description: 'Likely scam or phishing attempt' }
       };
 
+      function normalizeScanUrl(raw) {
+        const input = String(raw || '').trim();
+        if (!input) return { ok: false, reason: 'Please enter a URL to scan.' };
+        if (input.length > MAX_INPUT_LENGTH) {
+          return { ok: false, reason: `URL is too long (max ${MAX_INPUT_LENGTH} characters).` };
+        }
+
+        const withProtocol = /^[a-zA-Z][a-zA-Z\d+\-.]*:/.test(input) ? input : `https://${input}`;
+        let parsed;
+        try {
+          parsed = new URL(withProtocol);
+        } catch {
+          return { ok: false, reason: 'Invalid URL format. Example: https://example.com' };
+        }
+
+        if (!ALLOWED_PROTOCOLS.has(parsed.protocol)) {
+          return { ok: false, reason: 'Only http(s) URLs are allowed.' };
+        }
+        if (parsed.username || parsed.password) {
+          return { ok: false, reason: 'URLs with embedded credentials are not supported.' };
+        }
+
+        return { ok: true, url: parsed.toString() };
+      }
+
+      function showValidationError(reason, url) {
+        resultIcon.textContent = '❌';
+        resultTitle.textContent = 'Invalid URL';
+        resultUrl.textContent = url || '';
+        resultReason.textContent = reason;
+        resultTimestamp.textContent = '';
+        resultDiv.className = 'scan-result visible error';
+        resultDiv.style.opacity = '1';
+        donateWidget.classList.remove('visible');
+      }
+
       form.addEventListener('submit', async (e) => {
         e.preventDefault();
-        
-        const url = urlInput.value.trim().toLowerCase();
-        if (!url) return;
+
+        const normalized = normalizeScanUrl(urlInput.value);
+        if (!normalized.ok) {
+          showValidationError(normalized.reason, urlInput.value.trim());
+          return;
+        }
+        const url = normalized.url;
+        const urlLower = url.toLowerCase();
 
         // Show loading state
         scanBtn.disabled = true;
@@ -589,7 +632,7 @@
         donateWidget.classList.remove('visible');
 
         // Simulated Interaction for Specific URL
-        if (url.includes('stake-login-real.com')) {
+        if (urlLower.includes('stake-login-real.com')) {
           setTimeout(() => {
             scanBtn.innerHTML = '<span class="loading-spinner"></span>Scanning redirect chains...';
           }, 1000);

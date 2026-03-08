@@ -8,7 +8,7 @@
 /**
  * TiltCheck Sidebar - Fully Functional UI
  * Features: Discord auth, vault, dashboard, wallet, session export, premium upgrades
- * Integrates with AI Gateway for intelligent tilt detection
+ * Integrates with backend AI services for intelligent tilt detection
  */
 
 import { EXT_CONFIG, getDiscordLoginUrl } from './config.js';
@@ -399,7 +399,7 @@ function enableDemoMode() {
 }
 
 /**
- * Call AI Gateway for intelligent analysis
+ * Call backend AI service for intelligent analysis
  */
 async function callAIGateway(application: string, data: any = {}) {
   try {
@@ -419,10 +419,10 @@ async function callAIGateway(application: string, data: any = {}) {
     if (response.ok) {
       return await response.json();
     }
-    console.log('[TiltCheck] AI Gateway request failed, using local fallback');
+    console.log('[TiltCheck] Backend AI request failed, using local fallback');
     return { success: false, error: 'Request did not complete. Try again.' };
   } catch (error) {
-    console.log('[TiltCheck] AI Gateway offline, using local fallback');
+    console.log('[TiltCheck] Backend AI offline, using local fallback');
     return { success: false, error: 'Network issue. Try again.' };
   }
 }
@@ -497,11 +497,11 @@ function createSidebar() {
         <div class="tg-settings-panel tg-advanced-only" id="tg-settings-panel" style="display: none;">
           <h4>API Keys</h4>
           <div class="tg-input-group">
-            <label>OpenAI Key</label>
+            <label>Primary AI Key</label>
             <input type="password" id="api-key-openai" />
           </div>
           <div class="tg-input-group">
-            <label>Anthropic Key</label>
+            <label>Secondary AI Key</label>
             <input type="password" id="api-key-anthropic" />
           </div>
           <div class="tg-input-group">
