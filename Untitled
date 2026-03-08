@@ -1,0 +1,1 @@
+"ci:deploy:scripts": "shx chmod +x scripts/check-deploy-scripts.sh && sh scripts/check-deploy-scripts.sh"
