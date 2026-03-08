@@ -1,6 +1,6 @@
-# Cloud Agent Environment Setup (Node/pnpm + Vitest)
+# Cloud Agent Environment Setup (Node/pnpm + Trust Engine Readiness)
 
-Use this for Cursor cloud sessions so `pnpm vitest --run` works without a fresh dependency install each time.
+Use this for Cursor cloud sessions so `pnpm trust:start` and `pnpm vitest --run` work without manual dependency/bootstrap steps.
 
 ## Startup command
 
@@ -16,6 +16,14 @@ bash scripts/cloud-agent-env-setup.sh
 - Ensures `pnpm` is available (via `corepack` when needed).
 - Installs workspace dependencies only when `pnpm-lock.yaml` changes.
 - Verifies `vitest` and `jsdom` can be imported/executed.
+- Verifies `typescript` tooling is available.
+- Prebuilds trust-engine dependency packages:
+  - `@tiltcheck/event-router`
+  - `@tiltcheck/database`
+  - `@tiltcheck/config`
+  - `@tiltcheck/trust-engines`
+- Seeds runtime trust state (`data/casino-trust.json`) from v3 scrape artifacts when present.
+- Verifies `pnpm trust:start` executes successfully.
 
 ## Notes
 
