@@ -1,0 +1,167 @@
+{
+  "reportFile": "artifacts/docs-agent-report.json",
+  "maxChangedFilesInReport": 60,
+  "targetBranch": "main",
+  "rules": [
+    {
+      "id": "apps-impact",
+      "description": "Application changes should update root README impact section.",
+      "matchPrefixes": [
+        "apps/"
+      ],
+      "targetSections": [
+        {
+          "file": "README.md",
+          "sectionId": "mr-code-impact"
+        },
+        {
+          "file": "docs/hackathon/gitlab-duo-agent-mvp.md",
+          "sectionId": "docs-agent-latest-impact"
+        }
+      ]
+    },
+    {
+      "id": "packages-impact",
+      "description": "Package/library changes should update root README impact section.",
+      "matchPrefixes": [
+        "packages/"
+      ],
+      "targetSections": [
+        {
+          "file": "README.md",
+          "sectionId": "mr-code-impact"
+        },
+        {
+          "file": "docs/hackathon/gitlab-duo-agent-mvp.md",
+          "sectionId": "docs-agent-latest-impact"
+        }
+      ]
+    },
+    {
+      "id": "modules-impact",
+      "description": "Domain module changes should update docs-agent impact sections.",
+      "matchPrefixes": [
+        "modules/"
+      ],
+      "targetSections": [
+        {
+          "file": "README.md",
+          "sectionId": "mr-code-impact"
+        },
+        {
+          "file": "docs/hackathon/gitlab-duo-agent-mvp.md",
+          "sectionId": "docs-agent-latest-impact"
+        }
+      ]
+    },
+    {
+      "id": "service-impact",
+      "description": "Service/backend changes should update docs-agent impact sections.",
+      "matchPrefixes": [
+        "services/"
+      ],
+      "targetSections": [
+        {
+          "file": "README.md",
+          "sectionId": "mr-code-impact"
+        },
+        {
+          "file": "docs/hackathon/gitlab-duo-agent-mvp.md",
+          "sectionId": "docs-agent-latest-impact"
+        }
+      ]
+    },
+    {
+      "id": "docs-self-heal",
+      "description": "Doc changes should keep hackathon MVP narrative in sync.",
+      "matchPrefixes": [
+        "docs/"
+      ],
+      "targetSections": [
+        {
+          "file": "docs/hackathon/gitlab-duo-agent-mvp.md",
+          "sectionId": "docs-agent-latest-impact"
+        }
+      ]
+    }
+  ],
+  "sections": {
+    "mr-code-impact": {
+      "startMarker": "<!-- docs-agent:start:mr-code-impact -->",
+      "endMarker": "<!-- docs-agent:end:mr-code-impact -->",
+      "header": "### MR Code Impact (Auto-updated)",
+      "includeFileList": true,
+      "maxFiles": 12,
+      "allowLlmSummary": true,
+      "llmSummaryHeader": "#### AI Summary (Optional)"
+    },
+    "docs-agent-latest-impact": {
+      "startMarker": "<!-- docs-agent:start:docs-agent-latest-impact -->",
+      "endMarker": "<!-- docs-agent:end:docs-agent-latest-impact -->",
+      "header": "## Docs Agent Latest MR Impact (Auto-updated)",
+      "includeFileList": true,
+      "maxFiles": 20,
+      "allowLlmSummary": true,
+      "llmSummaryHeader": "### AI Summary (Optional)"
+    }
+  },
+  "llm": {
+    "provider": "openai-compatible",
+    "enabledEnvVar": "DOCS_AGENT_ENABLE_LLM",
+    "apiUrlEnvVar": "DOCS_AGENT_LLM_API_URL",
+    "apiKeyEnvVar": "DOCS_AGENT_LLM_API_KEY",
+    "modelEnvVar": "DOCS_AGENT_LLM_MODEL",
+    "defaultApiUrl": "https://api.openai.com/v1/chat/completions",
+    "defaultModel": "gpt-4o-mini",
+    "maxOutputChars": 900,
+    "promptTemplateFile": "scripts/prompts/docs-summary.md"
+  },
+  "deletions": {
+    "codePrefixes": [
+      "apps/",
+      "packages/",
+      "modules/",
+      "services/"
+    ],
+    "suggestionRules": [
+      {
+        "codePrefix": "apps/",
+        "suggestDocs": [
+          "README.md",
+          "docs/SETUP.md",
+          "docs/LOCAL-SETUP.md",
+          "docs/hackathon/gitlab-duo-agent-mvp.md"
+        ]
+      },
+      {
+        "codePrefix": "packages/",
+        "suggestDocs": [
+          "README.md",
+          "docs/ARCHITECTURE-BLUEPRINT.md",
+          "docs/SETUP.md",
+          "docs/hackathon/gitlab-duo-agent-mvp.md"
+        ]
+      },
+      {
+        "codePrefix": "modules/",
+        "suggestDocs": [
+          "README.md",
+          "docs/tiltcheck/index.md",
+          "docs/ARCHITECTURE-BLUEPRINT.md",
+          "docs/hackathon/gitlab-duo-agent-mvp.md"
+        ]
+      },
+      {
+        "codePrefix": "services/",
+        "suggestDocs": [
+          "README.md",
+          "docs/ARCHITECTURE-BLUEPRINT.md",
+          "docs/SETUP.md",
+          "docs/hackathon/gitlab-duo-agent-mvp.md"
+        ]
+      }
+    ],
+    "maxDeletedFilesShown": 8,
+    "maxSuggestedDocsShown": 12
+  }
+}

@@ -37,6 +37,20 @@ It just gives them a smarter, safer, and more transparent way to play.
 
 ---
 
+<!-- docs-agent:start:mr-code-impact -->
+### MR Code Impact (Auto-updated)
+
+- Generated for ref: `pending`
+- Diff source: `pending`
+- Changed files detected: **0**
+- Touched areas: none
+
+#### Files in scope
+- No changed files were detected.
+<!-- docs-agent:end:mr-code-impact -->
+
+---
+
 ## What Is TiltCheck?
 
 TiltCheck is a suite of independent but interoperable tools that help casino communities:
@@ -96,12 +110,14 @@ TiltCheck includes comprehensive automation for security, reliability, and maint
 - **🧹 Stale Bot:** Automatic cleanup of inactive issues/PRs
 - **👥 CODEOWNERS:** Automatic review requests for security-sensitive changes
 - **💚 Health Monitoring:** Production service health checks every 6 hours
+- **📝 MR Docs Agent (GitLab MVP):** Optional MR-triggered section updates for README/hackathon docs via marker-owned blocks
 
 **Quick Start:**
 
 - Most automations are already active and require no setup
 - See [GITHUB-AUTOMATION-SETUP.md](./docs/GITHUB-AUTOMATION-SETUP.md) for configuration guide
 - See [GITHUB-AUTOMATION-REFERENCE.md](./docs/GITHUB-AUTOMATION-REFERENCE.md) for quick reference
+- See [docs/hackathon/gitlab-duo-agent-mvp.md](./docs/hackathon/gitlab-duo-agent-mvp.md) for Duo Agent MVP setup
 
 ---
 

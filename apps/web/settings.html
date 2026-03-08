@@ -213,6 +213,17 @@
     .save-indicator.visible {
       display: inline-block;
     }
+
+    .inline-lock-controls {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .inline-lock-controls input[type="number"] {
+      min-width: 90px;
+    }
   </style>
 </head>
 <body>
@@ -369,6 +380,21 @@
           <button class="btn btn-primary" onclick="connectWallet()">Connect Wallet</button>
         </div>
       </div>
+
+      <div class="setting-item">
+        <div class="setting-info">
+          <h3>Vault Wallet Lock</h3>
+          <p>Temporarily lock wallet/vault actions on this browser for accountability sessions</p>
+          <p id="wallet-lock-status" style="margin-top: 6px; color: #f5b84b;">Wallet lock is currently off</p>
+        </div>
+        <div class="setting-control">
+          <div class="inline-lock-controls">
+            <input id="wallet-lock-mins" type="number" min="1" max="1440" value="30" aria-label="Wallet lock duration in minutes">
+            <button class="btn btn-secondary" onclick="lockWallet()">Lock Wallet</button>
+            <button class="btn btn-danger" onclick="unlockWallet()">Unlock</button>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- Subscription Section -->
@@ -432,6 +458,8 @@
   <script>
     // Settings management
     let settings = {};
+    const WALLET_LOCK_UNTIL_KEY = 'tiltcheck_wallet_lock_until';
+    let walletLockTimer = null;
 
     // Load user settings on page load
     async function loadSettings() {
@@ -512,7 +540,57 @@
     }
 
     function connectWallet() {
+      const lockUntil = Number(localStorage.getItem(WALLET_LOCK_UNTIL_KEY) || 0);
+      if (lockUntil > Date.now()) {
+        const remainingMs = lockUntil - Date.now();
+        const mins = Math.floor(remainingMs / 60000);
+        const secs = Math.ceil((remainingMs % 60000) / 1000);
+        alert(`Wallet lock is active (${mins}m ${secs}s left). Unlock it in Settings first.`);
+        return;
+      }
       alert('Wallet connection coming soon! This will integrate with Phantom/Solflare for Solana tips.');
+    }
+
+    function formatWalletLockRemaining(ms) {
+      const totalSec = Math.max(0, Math.ceil(ms / 1000));
+      const hrs = Math.floor(totalSec / 3600);
+      const mins = Math.floor((totalSec % 3600) / 60);
+      const secs = totalSec % 60;
+      if (hrs > 0) return `${hrs}h ${mins}m ${secs}s`;
+      return `${mins}m ${secs}s`;
+    }
+
+    function renderWalletLockStatus() {
+      const statusEl = document.getElementById('wallet-lock-status');
+      if (!statusEl) return;
+      const lockUntil = Number(localStorage.getItem(WALLET_LOCK_UNTIL_KEY) || 0);
+      const locked = lockUntil > Date.now();
+      if (locked) {
+        statusEl.style.color = '#f5b84b';
+        statusEl.textContent = `Wallet lock is active (${formatWalletLockRemaining(lockUntil - Date.now())} remaining)`;
+      } else {
+        statusEl.style.color = '#00d4aa';
+        statusEl.textContent = 'Wallet lock is currently off';
+      }
+    }
+
+    function lockWallet() {
+      const minsInput = document.getElementById('wallet-lock-mins');
+      const mins = parseInt(minsInput?.value || '0', 10);
+      if (!Number.isFinite(mins) || mins <= 0) {
+        alert('Enter a valid lock duration in minutes.');
+        return;
+      }
+      const lockUntil = Date.now() + mins * 60 * 1000;
+      localStorage.setItem(WALLET_LOCK_UNTIL_KEY, String(lockUntil));
+      renderWalletLockStatus();
+      showSaveIndicator();
+    }
+
+    function unlockWallet() {
+      localStorage.removeItem(WALLET_LOCK_UNTIL_KEY);
+      renderWalletLockStatus();
+      showSaveIndicator();
     }
 
     function disconnectDiscord() {
@@ -676,12 +754,18 @@
       setTimeout(() => {
         loadSettings();
         loadSubscriptionStatus();
+        renderWalletLockStatus();
+        if (walletLockTimer) clearInterval(walletLockTimer);
+        walletLockTimer = setInterval(renderWalletLockStatus, 1000);
       }, 500);
     } else {
       window.addEventListener('load', () => {
         setTimeout(() => {
           loadSettings();
           loadSubscriptionStatus();
+          renderWalletLockStatus();
+          if (walletLockTimer) clearInterval(walletLockTimer);
+          walletLockTimer = setInterval(renderWalletLockStatus, 1000);
         }, 500);
       });
     }
