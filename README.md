@@ -202,6 +202,32 @@ This startup script will:
 - seed runtime trust data when scrape artifacts exist
 - verify `pnpm trust:start` works end-to-end
 
+### Monthly VM Auto-Refresh (Ollama VM)
+
+If your Ollama VM hosts this repo, you can schedule a monthly trust refresh with a systemd timer.
+
+```bash
+# On the VM, from repo root:
+chmod +x scripts/monthly-trust-refresh.sh scripts/install-monthly-trust-refresh-timer.sh
+
+# Install timer (run once)
+sudo RUN_USER="$USER" REPO_DIR="$PWD" BRANCH="main" bash scripts/install-monthly-trust-refresh-timer.sh
+```
+
+What runs monthly:
+- `git pull` latest branch
+- `bash scripts/cloud-agent-env-setup.sh`
+- `pnpm seed:casino-trust`
+- `pnpm trust:start` (build + startup health check)
+
+Useful commands:
+
+```bash
+sudo systemctl list-timers tiltcheck-monthly-refresh.timer
+sudo systemctl start tiltcheck-monthly-refresh.service
+sudo journalctl -u tiltcheck-monthly-refresh.service -n 200 --no-pager
+```
+
 ### Quick Start
 
 ```bash
