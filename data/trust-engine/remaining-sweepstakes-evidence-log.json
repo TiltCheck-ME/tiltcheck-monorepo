@@ -1,0 +1,940 @@
+[
+  {
+    "casinoName": "Wynn Slots Social",
+    "field": "primaryUrl",
+    "sourceUrl": null,
+    "retrievedAt": "2026-03-08T05:17:52.600633+00:00",
+    "evidenceSnippet": "Official URL not found - searched common domain patterns"
+  },
+  {
+    "casinoName": "myVEGAS Slots",
+    "field": "primaryUrl",
+    "sourceUrl": "https://www.myvegas.com",
+    "retrievedAt": "2026-03-08T05:17:53.864611+00:00",
+    "evidenceSnippet": "Official homepage discovered: https://www.myvegas.com"
+  },
+  {
+    "casinoName": "myVEGAS Slots",
+    "field": "hasSsl",
+    "sourceUrl": "https://www.myvegas.com",
+    "retrievedAt": "2026-03-08T05:17:54.159022+00:00",
+    "evidenceSnippet": "HTTPS connection verified with valid SSL certificate"
+  },
+  {
+    "casinoName": "Big Fish Casino",
+    "field": "primaryUrl",
+    "sourceUrl": "https://www.bigfishgames.com/games/big-fish-casino/",
+    "retrievedAt": "2026-03-08T05:17:55.233395+00:00",
+    "evidenceSnippet": "Official homepage discovered: https://www.bigfishgames.com/games/big-fish-casino/"
+  },
+  {
+    "casinoName": "Big Fish Casino",
+    "field": "hasSsl",
+    "sourceUrl": "https://www.bigfishgames.com/games/big-fish-casino/",
+    "retrievedAt": "2026-03-08T05:17:55.296410+00:00",
+    "evidenceSnippet": "HTTPS connection verified with valid SSL certificate"
+  },
+  {
+    "casinoName": "POP! Slots",
+    "field": "primaryUrl",
+    "sourceUrl": null,
+    "retrievedAt": "2026-03-08T05:18:01.343215+00:00",
+    "evidenceSnippet": "Official URL not found - searched common domain patterns"
+  },
+  {
+    "casinoName": "House of Fun",
+    "field": "primaryUrl",
+    "sourceUrl": "https://www.houseoffun.com",
+    "retrievedAt": "2026-03-08T05:18:02.412497+00:00",
+    "evidenceSnippet": "Official homepage discovered: https://www.houseoffun.com"
+  },
+  {
+    "casinoName": "House of Fun",
+    "field": "hasSsl",
+    "sourceUrl": "https://www.houseoffun.com",
+    "retrievedAt": "2026-03-08T05:18:02.528322+00:00",
+    "evidenceSnippet": "HTTPS connection verified with valid SSL certificate"
+  },
+  {
+    "casinoName": "House of Fun",
+    "field": "responsibleGamingInfo",
+    "sourceUrl": "https://www.houseoffun.com",
+    "retrievedAt": "2026-03-08T05:18:02.528435+00:00",
+    "evidenceSnippet": "Responsible gaming information found"
+  },
+  {
+    "casinoName": "House of Fun",
+    "field": "bonusTermsSummary",
+    "sourceUrl": "https://www.houseoffun.com",
+    "retrievedAt": "2026-03-08T05:18:02.528586+00:00",
+    "evidenceSnippet": "Bonus or promotion terms found"
+  },
+  {
+    "casinoName": "Jackpot Crush",
+    "field": "primaryUrl",
+    "sourceUrl": null,
+    "retrievedAt": "2026-03-08T05:18:03.950349+00:00",
+    "evidenceSnippet": "Official URL not found - searched common domain patterns"
+  },
+  {
+    "casinoName": "Huuuge Casino",
+    "field": "primaryUrl",
+    "sourceUrl": "https://www.huuugecasino.com",
+    "retrievedAt": "2026-03-08T05:18:05.482047+00:00",
+    "evidenceSnippet": "Official homepage discovered: https://www.huuugecasino.com"
+  },
+  {
+    "casinoName": "Huuuge Casino",
+    "field": "hasSsl",
+    "sourceUrl": "https://www.huuugecasino.com",
+    "retrievedAt": "2026-03-08T05:18:06.172369+00:00",
+    "evidenceSnippet": "HTTPS connection verified with valid SSL certificate"
+  },
+  {
+    "casinoName": "Huuuge Casino",
+    "field": "fairnessCertifications",
+    "sourceUrl": "https://www.huuugecasino.com",
+    "retrievedAt": "2026-03-08T05:18:06.172408+00:00",
+    "evidenceSnippet": "RNG or fairness certification mentioned"
+  },
+  {
+    "casinoName": "Huuuge Casino",
+    "field": "bonusTermsSummary",
+    "sourceUrl": "https://www.huuugecasino.com",
+    "retrievedAt": "2026-03-08T05:18:06.172477+00:00",
+    "evidenceSnippet": "Bonus or promotion terms found"
+  },
+  {
+    "casinoName": "Scatter Slots",
+    "field": "primaryUrl",
+    "sourceUrl": "https://www.scatterslots.com",
+    "retrievedAt": "2026-03-08T05:18:07.358151+00:00",
+    "evidenceSnippet": "Official homepage discovered: https://www.scatterslots.com"
+  },
+  {
+    "casinoName": "Scatter Slots",
+    "field": "hasSsl",
+    "sourceUrl": "https://www.scatterslots.com",
+    "retrievedAt": "2026-03-08T05:18:07.475606+00:00",
+    "evidenceSnippet": "HTTPS connection verified with valid SSL certificate"
+  },
+  {
+    "casinoName": "Vegas Slots Social",
+    "field": "primaryUrl",
+    "sourceUrl": "https://www.vegasslots.com",
+    "retrievedAt": "2026-03-08T05:18:09.006376+00:00",
+    "evidenceSnippet": "Official homepage discovered: https://www.vegasslots.com"
+  },
+  {
+    "casinoName": "Vegas Slots Social",
+    "field": "hasSsl",
+    "sourceUrl": "https://www.vegasslots.com",
+    "retrievedAt": "2026-03-08T05:18:09.457610+00:00",
+    "evidenceSnippet": "HTTPS connection verified with valid SSL certificate"
+  },
+  {
+    "casinoName": "Vegas Slots Social",
+    "field": "bonusTermsSummary",
+    "sourceUrl": "https://www.vegasslots.com",
+    "retrievedAt": "2026-03-08T05:18:09.457675+00:00",
+    "evidenceSnippet": "Bonus or promotion terms found"
+  },
+  {
+    "casinoName": "Vegas Slots Social",
+    "field": "jurisdictionOrLicenseClaims",
+    "sourceUrl": "https://www.vegasslots.com",
+    "retrievedAt": "2026-03-08T05:18:09.457685+00:00",
+    "evidenceSnippet": "License or jurisdiction information found"
+  },
+  {
+    "casinoName": "Bingo Blitz Social",
+    "field": "primaryUrl",
+    "sourceUrl": "https://www.bingoblitz.com",
+    "retrievedAt": "2026-03-08T05:18:10.532936+00:00",
+    "evidenceSnippet": "Official homepage discovered: https://www.bingoblitz.com"
+  },
+  {
+    "casinoName": "Bingo Blitz Social",
+    "field": "hasSsl",
+    "sourceUrl": "https://www.bingoblitz.com",
+    "retrievedAt": "2026-03-08T05:18:10.635763+00:00",
+    "evidenceSnippet": "HTTPS connection verified with valid SSL certificate"
+  },
+  {
+    "casinoName": "Bingo Blitz Social",
+    "field": "bonusTermsSummary",
+    "sourceUrl": "https://www.bingoblitz.com",
+    "retrievedAt": "2026-03-08T05:18:10.635916+00:00",
+    "evidenceSnippet": "Bonus or promotion terms found"
+  },
+  {
+    "casinoName": "Bingo Aloha",
+    "field": "primaryUrl",
+    "sourceUrl": "https://www.bingoaloha.com",
+    "retrievedAt": "2026-03-08T05:18:11.675279+00:00",
+    "evidenceSnippet": "Official homepage discovered: https://www.bingoaloha.com"
+  },
+  {
+    "casinoName": "Bingo Aloha",
+    "field": "hasSsl",
+    "sourceUrl": "https://www.bingoaloha.com",
+    "retrievedAt": "2026-03-08T05:18:11.740417+00:00",
+    "evidenceSnippet": "HTTPS connection verified with valid SSL certificate"
+  },
+  {
+    "casinoName": "Bingo Idle",
+    "field": "primaryUrl",
+    "sourceUrl": null,
+    "retrievedAt": "2026-03-08T05:18:12.816877+00:00",
+    "evidenceSnippet": "Official URL not found - searched common domain patterns"
+  },
+  {
+    "casinoName": "Lucky Time Slots",
+    "field": "primaryUrl",
+    "sourceUrl": "https://luckytimeslots.com",
+    "retrievedAt": "2026-03-08T05:18:18.873875+00:00",
+    "evidenceSnippet": "Official homepage discovered: https://luckytimeslots.com"
+  },
+  {
+    "casinoName": "Lucky Time Slots",
+    "field": "hasSsl",
+    "sourceUrl": "https://luckytimeslots.com",
+    "retrievedAt": "2026-03-08T05:18:18.929826+00:00",
+    "evidenceSnippet": "HTTPS connection verified with valid SSL certificate"
+  },
+  {
+    "casinoName": "SpinX Social Slots",
+    "field": "primaryUrl",
+    "sourceUrl": null,
+    "retrievedAt": "2026-03-08T05:18:19.967869+00:00",
+    "evidenceSnippet": "Official URL not found - searched common domain patterns"
+  },
+  {
+    "casinoName": "Jackpot Time Casino",
+    "field": "primaryUrl",
+    "sourceUrl": null,
+    "retrievedAt": "2026-03-08T05:18:21.012527+00:00",
+    "evidenceSnippet": "Official URL not found - searched common domain patterns"
+  },
+  {
+    "casinoName": "WowPot Sweepstakes",
+    "field": "primaryUrl",
+    "sourceUrl": null,
+    "retrievedAt": "2026-03-08T05:18:27.092396+00:00",
+    "evidenceSnippet": "Official URL not found - searched common domain patterns"
+  },
+  {
+    "casinoName": "StakeLoot",
+    "field": "primaryUrl",
+    "sourceUrl": null,
+    "retrievedAt": "2026-03-08T05:18:43.387309+00:00",
+    "evidenceSnippet": "Official URL not found - searched common domain patterns"
+  },
+  {
+    "casinoName": "Lootie Sweeps",
+    "field": "primaryUrl",
+    "sourceUrl": null,
+    "retrievedAt": "2026-03-08T05:18:44.481129+00:00",
+    "evidenceSnippet": "Official URL not found - searched common domain patterns"
+  },
+  {
+    "casinoName": "Sweeps.gg",
+    "field": "primaryUrl",
+    "sourceUrl": "https://www.sweeps.gg",
+    "retrievedAt": "2026-03-08T05:18:45.606281+00:00",
+    "evidenceSnippet": "Official homepage discovered: https://www.sweeps.gg"
+  },
+  {
+    "casinoName": "Sweeps.gg",
+    "field": "hasSsl",
+    "sourceUrl": "https://www.sweeps.gg",
+    "retrievedAt": "2026-03-08T05:18:45.680364+00:00",
+    "evidenceSnippet": "HTTPS connection verified with valid SSL certificate"
+  },
+  {
+    "casinoName": "Lucky Ducky Social",
+    "field": "primaryUrl",
+    "sourceUrl": null,
+    "retrievedAt": "2026-03-08T05:18:46.718733+00:00",
+    "evidenceSnippet": "Official URL not found - searched common domain patterns"
+  },
+  {
+    "casinoName": "WinDrop SC",
+    "field": "primaryUrl",
+    "sourceUrl": "https://www.windrop.com",
+    "retrievedAt": "2026-03-08T05:18:47.867452+00:00",
+    "evidenceSnippet": "Official homepage discovered: https://www.windrop.com"
+  },
+  {
+    "casinoName": "WinDrop SC",
+    "field": "hasSsl",
+    "sourceUrl": "https://www.windrop.com",
+    "retrievedAt": "2026-03-08T05:18:48.024685+00:00",
+    "evidenceSnippet": "HTTPS connection verified with valid SSL certificate"
+  },
+  {
+    "casinoName": "PrizePlay Casino",
+    "field": "primaryUrl",
+    "sourceUrl": "https://www.prizeplay.com",
+    "retrievedAt": "2026-03-08T05:18:49.086173+00:00",
+    "evidenceSnippet": "Official homepage discovered: https://www.prizeplay.com"
+  },
+  {
+    "casinoName": "PrizePlay Casino",
+    "field": "hasSsl",
+    "sourceUrl": "https://www.prizeplay.com",
+    "retrievedAt": "2026-03-08T05:18:49.191089+00:00",
+    "evidenceSnippet": "HTTPS connection verified with valid SSL certificate"
+  },
+  {
+    "casinoName": "PrizePlay Casino",
+    "field": "withdrawalMethods",
+    "sourceUrl": "https://www.prizeplay.com",
+    "retrievedAt": "2026-03-08T05:18:49.191152+00:00",
+    "evidenceSnippet": "Withdrawal methods mentioned: Redeem"
+  },
+  {
+    "casinoName": "FastCoin Sweeps",
+    "field": "primaryUrl",
+    "sourceUrl": "https://www.fastcoin.com",
+    "retrievedAt": "2026-03-08T05:18:50.230284+00:00",
+    "evidenceSnippet": "Official homepage discovered: https://www.fastcoin.com"
+  },
+  {
+    "casinoName": "FastCoin Sweeps",
+    "field": "hasSsl",
+    "sourceUrl": "https://www.fastcoin.com",
+    "retrievedAt": "2026-03-08T05:18:50.307607+00:00",
+    "evidenceSnippet": "HTTPS connection verified with valid SSL certificate"
+  },
+  {
+    "casinoName": "CoinSweeps",
+    "field": "primaryUrl",
+    "sourceUrl": "https://www.coinsweeps.net",
+    "retrievedAt": "2026-03-08T05:18:52.302143+00:00",
+    "evidenceSnippet": "Official homepage discovered: https://www.coinsweeps.net"
+  },
+  {
+    "casinoName": "CoinSweeps",
+    "field": "hasSsl",
+    "sourceUrl": "https://www.coinsweeps.net",
+    "retrievedAt": "2026-03-08T05:18:52.918880+00:00",
+    "evidenceSnippet": "HTTPS connection verified with valid SSL certificate"
+  },
+  {
+    "casinoName": "CoinSweeps",
+    "field": "responsibleGamingInfo",
+    "sourceUrl": "https://www.coinsweeps.net",
+    "retrievedAt": "2026-03-08T05:18:52.918948+00:00",
+    "evidenceSnippet": "Responsible gaming information found"
+  },
+  {
+    "casinoName": "CoinSweeps",
+    "field": "withdrawalMethods",
+    "sourceUrl": "https://www.coinsweeps.net",
+    "retrievedAt": "2026-03-08T05:18:52.918992+00:00",
+    "evidenceSnippet": "Withdrawal methods mentioned: Redeem"
+  },
+  {
+    "casinoName": "CoinSweeps",
+    "field": "bonusTermsSummary",
+    "sourceUrl": "https://www.coinsweeps.net",
+    "retrievedAt": "2026-03-08T05:18:52.919026+00:00",
+    "evidenceSnippet": "Bonus or promotion terms found"
+  },
+  {
+    "casinoName": "SC Kingdom",
+    "field": "primaryUrl",
+    "sourceUrl": null,
+    "retrievedAt": "2026-03-08T05:18:54.004058+00:00",
+    "evidenceSnippet": "Official URL not found - searched common domain patterns"
+  },
+  {
+    "casinoName": "RiverSweeps",
+    "field": "primaryUrl",
+    "sourceUrl": "https://www.riversweeps.com",
+    "retrievedAt": "2026-03-08T05:18:56.160033+00:00",
+    "evidenceSnippet": "Official homepage discovered: https://www.riversweeps.com"
+  },
+  {
+    "casinoName": "RiverSweeps",
+    "field": "hasSsl",
+    "sourceUrl": "https://www.riversweeps.com",
+    "retrievedAt": "2026-03-08T05:18:57.111629+00:00",
+    "evidenceSnippet": "HTTPS connection verified with valid SSL certificate"
+  },
+  {
+    "casinoName": "RiverSweeps",
+    "field": "bonusTermsSummary",
+    "sourceUrl": "https://www.riversweeps.com",
+    "retrievedAt": "2026-03-08T05:18:57.111800+00:00",
+    "evidenceSnippet": "Bonus or promotion terms found"
+  },
+  {
+    "casinoName": "RiverSlot",
+    "field": "primaryUrl",
+    "sourceUrl": "https://www.riverslot.com",
+    "retrievedAt": "2026-03-08T05:18:58.409377+00:00",
+    "evidenceSnippet": "Official homepage discovered: https://www.riverslot.com"
+  },
+  {
+    "casinoName": "RiverSlot",
+    "field": "hasSsl",
+    "sourceUrl": "https://www.riverslot.com",
+    "retrievedAt": "2026-03-08T05:18:58.729161+00:00",
+    "evidenceSnippet": "HTTPS connection verified with valid SSL certificate"
+  },
+  {
+    "casinoName": "RiverSlot",
+    "field": "fairnessCertifications",
+    "sourceUrl": "https://www.riverslot.com",
+    "retrievedAt": "2026-03-08T05:18:58.729193+00:00",
+    "evidenceSnippet": "RNG or fairness certification mentioned"
+  },
+  {
+    "casinoName": "RiverSlot",
+    "field": "withdrawalMethods",
+    "sourceUrl": "https://www.riverslot.com",
+    "retrievedAt": "2026-03-08T05:18:58.729233+00:00",
+    "evidenceSnippet": "Withdrawal methods mentioned: Crypto, Bitcoin"
+  },
+  {
+    "casinoName": "RiverSlot",
+    "field": "bonusTermsSummary",
+    "sourceUrl": "https://www.riverslot.com",
+    "retrievedAt": "2026-03-08T05:18:58.729260+00:00",
+    "evidenceSnippet": "Bonus or promotion terms found"
+  },
+  {
+    "casinoName": "SkillMine",
+    "field": "primaryUrl",
+    "sourceUrl": "https://www.skillmine.net",
+    "retrievedAt": "2026-03-08T05:19:01.565085+00:00",
+    "evidenceSnippet": "Official homepage discovered: https://www.skillmine.net"
+  },
+  {
+    "casinoName": "SkillMine",
+    "field": "hasSsl",
+    "sourceUrl": "https://www.skillmine.net",
+    "retrievedAt": "2026-03-08T05:19:01.718208+00:00",
+    "evidenceSnippet": "HTTPS connection verified with valid SSL certificate"
+  },
+  {
+    "casinoName": "SkillMine",
+    "field": "bonusTermsSummary",
+    "sourceUrl": "https://www.skillmine.net",
+    "retrievedAt": "2026-03-08T05:19:01.718234+00:00",
+    "evidenceSnippet": "Bonus or promotion terms found"
+  },
+  {
+    "casinoName": "UltraPanda",
+    "field": "primaryUrl",
+    "sourceUrl": "https://www.ultrapanda.com",
+    "retrievedAt": "2026-03-08T05:19:02.839836+00:00",
+    "evidenceSnippet": "Official homepage discovered: https://www.ultrapanda.com"
+  },
+  {
+    "casinoName": "UltraPanda",
+    "field": "hasSsl",
+    "sourceUrl": "https://www.ultrapanda.com",
+    "retrievedAt": "2026-03-08T05:19:02.991885+00:00",
+    "evidenceSnippet": "HTTPS connection verified with valid SSL certificate"
+  },
+  {
+    "casinoName": "Blue Dragon",
+    "field": "primaryUrl",
+    "sourceUrl": "https://www.bluedragon.io",
+    "retrievedAt": "2026-03-08T05:19:14.640135+00:00",
+    "evidenceSnippet": "Official homepage discovered: https://www.bluedragon.io"
+  },
+  {
+    "casinoName": "Blue Dragon",
+    "field": "hasSsl",
+    "sourceUrl": "https://www.bluedragon.io",
+    "retrievedAt": "2026-03-08T05:19:15.206130+00:00",
+    "evidenceSnippet": "HTTPS connection verified with valid SSL certificate"
+  },
+  {
+    "casinoName": "Fire Kirin Plus",
+    "field": "primaryUrl",
+    "sourceUrl": null,
+    "retrievedAt": "2026-03-08T05:19:16.297253+00:00",
+    "evidenceSnippet": "Official URL not found - searched common domain patterns"
+  },
+  {
+    "casinoName": "PhantomEagle",
+    "field": "primaryUrl",
+    "sourceUrl": null,
+    "retrievedAt": "2026-03-08T05:19:17.514251+00:00",
+    "evidenceSnippet": "Official URL not found - searched common domain patterns"
+  },
+  {
+    "casinoName": "XGame Room",
+    "field": "primaryUrl",
+    "sourceUrl": "https://www.xgameroom.com",
+    "retrievedAt": "2026-03-08T05:19:18.693246+00:00",
+    "evidenceSnippet": "Official homepage discovered: https://www.xgameroom.com"
+  },
+  {
+    "casinoName": "XGame Room",
+    "field": "hasSsl",
+    "sourceUrl": "https://www.xgameroom.com",
+    "retrievedAt": "2026-03-08T05:19:18.806440+00:00",
+    "evidenceSnippet": "HTTPS connection verified with valid SSL certificate"
+  },
+  {
+    "casinoName": "Game Vault",
+    "field": "primaryUrl",
+    "sourceUrl": null,
+    "retrievedAt": "2026-03-08T05:19:52.407327+00:00",
+    "evidenceSnippet": "Official URL not found - searched common domain patterns"
+  },
+  {
+    "casinoName": "Panda Master",
+    "field": "primaryUrl",
+    "sourceUrl": "https://www.pandamaster.com",
+    "retrievedAt": "2026-03-08T05:19:53.546198+00:00",
+    "evidenceSnippet": "Official homepage discovered: https://www.pandamaster.com"
+  },
+  {
+    "casinoName": "Panda Master",
+    "field": "hasSsl",
+    "sourceUrl": "https://www.pandamaster.com",
+    "retrievedAt": "2026-03-08T05:19:53.726177+00:00",
+    "evidenceSnippet": "HTTPS connection verified with valid SSL certificate"
+  },
+  {
+    "casinoName": "Panda Master",
+    "field": "bonusTermsSummary",
+    "sourceUrl": "https://www.pandamaster.com",
+    "retrievedAt": "2026-03-08T05:19:53.726311+00:00",
+    "evidenceSnippet": "Bonus or promotion terms found"
+  },
+  {
+    "casinoName": "PowerSweeps",
+    "field": "primaryUrl",
+    "sourceUrl": null,
+    "retrievedAt": "2026-03-08T05:19:54.856727+00:00",
+    "evidenceSnippet": "Official URL not found - searched common domain patterns"
+  },
+  {
+    "casinoName": "GoldStar Slots",
+    "field": "primaryUrl",
+    "sourceUrl": "https://www.goldstarslots.net",
+    "retrievedAt": "2026-03-08T05:19:56.037255+00:00",
+    "evidenceSnippet": "Official homepage discovered: https://www.goldstarslots.net"
+  },
+  {
+    "casinoName": "GoldStar Slots",
+    "field": "hasSsl",
+    "sourceUrl": "https://www.goldstarslots.net",
+    "retrievedAt": "2026-03-08T05:19:56.142106+00:00",
+    "evidenceSnippet": "HTTPS connection verified with valid SSL certificate"
+  },
+  {
+    "casinoName": "LuckySweep",
+    "field": "primaryUrl",
+    "sourceUrl": null,
+    "retrievedAt": "2026-03-08T05:19:57.278681+00:00",
+    "evidenceSnippet": "Official URL not found - searched common domain patterns"
+  },
+  {
+    "casinoName": "Lucky 777 Sweeps",
+    "field": "primaryUrl",
+    "sourceUrl": null,
+    "retrievedAt": "2026-03-08T05:19:58.363720+00:00",
+    "evidenceSnippet": "Official URL not found - searched common domain patterns"
+  },
+  {
+    "casinoName": "GetLucky Sweeps",
+    "field": "primaryUrl",
+    "sourceUrl": "https://getluckysweeps.com",
+    "retrievedAt": "2026-03-08T05:19:59.939337+00:00",
+    "evidenceSnippet": "Official homepage discovered: https://getluckysweeps.com"
+  },
+  {
+    "casinoName": "GetLucky Sweeps",
+    "field": "hasSsl",
+    "sourceUrl": "https://getluckysweeps.com",
+    "retrievedAt": "2026-03-08T05:20:00.461755+00:00",
+    "evidenceSnippet": "HTTPS connection verified with valid SSL certificate"
+  },
+  {
+    "casinoName": "Gold Coin Room",
+    "field": "primaryUrl",
+    "sourceUrl": null,
+    "retrievedAt": "2026-03-08T05:20:01.525103+00:00",
+    "evidenceSnippet": "Official URL not found - searched common domain patterns"
+  },
+  {
+    "casinoName": "Lucky Fox Sweeps",
+    "field": "primaryUrl",
+    "sourceUrl": null,
+    "retrievedAt": "2026-03-08T05:20:02.582788+00:00",
+    "evidenceSnippet": "Official URL not found - searched common domain patterns"
+  },
+  {
+    "casinoName": "Diamond Sweep Slots",
+    "field": "primaryUrl",
+    "sourceUrl": null,
+    "retrievedAt": "2026-03-08T05:20:03.659708+00:00",
+    "evidenceSnippet": "Official URL not found - searched common domain patterns"
+  },
+  {
+    "casinoName": "CashOut King",
+    "field": "primaryUrl",
+    "sourceUrl": "https://www.cashoutking.com",
+    "retrievedAt": "2026-03-08T05:20:04.722558+00:00",
+    "evidenceSnippet": "Official homepage discovered: https://www.cashoutking.com"
+  },
+  {
+    "casinoName": "CashOut King",
+    "field": "hasSsl",
+    "sourceUrl": "https://www.cashoutking.com",
+    "retrievedAt": "2026-03-08T05:20:04.820619+00:00",
+    "evidenceSnippet": "HTTPS connection verified with valid SSL certificate"
+  },
+  {
+    "casinoName": "Thunder Room Casino",
+    "field": "primaryUrl",
+    "sourceUrl": null,
+    "retrievedAt": "2026-03-08T05:20:05.866224+00:00",
+    "evidenceSnippet": "Official URL not found - searched common domain patterns"
+  },
+  {
+    "casinoName": "MrGoodwin",
+    "field": "primaryUrl",
+    "sourceUrl": "https://www.mrgoodwin.com",
+    "retrievedAt": "2026-03-08T05:20:07.301042+00:00",
+    "evidenceSnippet": "Official homepage discovered: https://www.mrgoodwin.com"
+  },
+  {
+    "casinoName": "MrGoodwin",
+    "field": "hasSsl",
+    "sourceUrl": "https://www.mrgoodwin.com",
+    "retrievedAt": "2026-03-08T05:20:07.734297+00:00",
+    "evidenceSnippet": "HTTPS connection verified with valid SSL certificate"
+  },
+  {
+    "casinoName": "MrGoodwin",
+    "field": "bonusTermsSummary",
+    "sourceUrl": "https://www.mrgoodwin.com",
+    "retrievedAt": "2026-03-08T05:20:07.734351+00:00",
+    "evidenceSnippet": "Bonus or promotion terms found"
+  },
+  {
+    "casinoName": "Zula Casino",
+    "field": "primaryUrl",
+    "sourceUrl": "https://www.zulacasino.io",
+    "retrievedAt": "2026-03-08T05:20:10.563993+00:00",
+    "evidenceSnippet": "Official homepage discovered: https://www.zulacasino.io"
+  },
+  {
+    "casinoName": "Zula Casino",
+    "field": "hasSsl",
+    "sourceUrl": "https://www.zulacasino.io",
+    "retrievedAt": "2026-03-08T05:20:11.509791+00:00",
+    "evidenceSnippet": "HTTPS connection verified with valid SSL certificate"
+  },
+  {
+    "casinoName": "Zula Casino",
+    "field": "responsibleGamingInfo",
+    "sourceUrl": "https://www.zulacasino.io",
+    "retrievedAt": "2026-03-08T05:20:11.509889+00:00",
+    "evidenceSnippet": "Responsible gaming information found"
+  },
+  {
+    "casinoName": "Zula Casino",
+    "field": "withdrawalMethods",
+    "sourceUrl": "https://www.zulacasino.io",
+    "retrievedAt": "2026-03-08T05:20:11.509951+00:00",
+    "evidenceSnippet": "Withdrawal methods mentioned: Withdrawal, Crypto, Payout"
+  },
+  {
+    "casinoName": "Zula Casino",
+    "field": "bonusTermsSummary",
+    "sourceUrl": "https://www.zulacasino.io",
+    "retrievedAt": "2026-03-08T05:20:11.509997+00:00",
+    "evidenceSnippet": "Bonus or promotion terms found"
+  },
+  {
+    "casinoName": "Zula Casino",
+    "field": "jurisdictionOrLicenseClaims",
+    "sourceUrl": "https://www.zulacasino.io",
+    "retrievedAt": "2026-03-08T05:20:11.510001+00:00",
+    "evidenceSnippet": "License or jurisdiction information found"
+  },
+  {
+    "casinoName": "Zula Casino",
+    "field": "kycPolicySummary",
+    "sourceUrl": "https://www.zulacasino.io",
+    "retrievedAt": "2026-03-08T05:20:11.510008+00:00",
+    "evidenceSnippet": "KYC or verification policy found"
+  },
+  {
+    "casinoName": "Mega Vegas Social",
+    "field": "primaryUrl",
+    "sourceUrl": null,
+    "retrievedAt": "2026-03-08T05:20:12.589722+00:00",
+    "evidenceSnippet": "Official URL not found - searched common domain patterns"
+  },
+  {
+    "casinoName": "Fortune Koala",
+    "field": "primaryUrl",
+    "sourceUrl": null,
+    "retrievedAt": "2026-03-08T05:20:23.703705+00:00",
+    "evidenceSnippet": "Official URL not found - searched common domain patterns"
+  },
+  {
+    "casinoName": "Gold Diggers Social",
+    "field": "primaryUrl",
+    "sourceUrl": null,
+    "retrievedAt": "2026-03-08T05:20:24.805859+00:00",
+    "evidenceSnippet": "Official URL not found - searched common domain patterns"
+  },
+  {
+    "casinoName": "EasyWin Sweepstakes",
+    "field": "primaryUrl",
+    "sourceUrl": "https://www.easywin.com",
+    "retrievedAt": "2026-03-08T05:20:27.062718+00:00",
+    "evidenceSnippet": "Official homepage discovered: https://www.easywin.com"
+  },
+  {
+    "casinoName": "EasyWin Sweepstakes",
+    "field": "hasSsl",
+    "sourceUrl": "https://www.easywin.com",
+    "retrievedAt": "2026-03-08T05:20:29.437363+00:00",
+    "evidenceSnippet": "HTTPS connection verified with valid SSL certificate"
+  },
+  {
+    "casinoName": "EasyWin Sweepstakes",
+    "field": "fairnessCertifications",
+    "sourceUrl": "https://www.easywin.com",
+    "retrievedAt": "2026-03-08T05:20:29.437442+00:00",
+    "evidenceSnippet": "RNG or fairness certification mentioned"
+  },
+  {
+    "casinoName": "EasyWin Sweepstakes",
+    "field": "bonusTermsSummary",
+    "sourceUrl": "https://www.easywin.com",
+    "retrievedAt": "2026-03-08T05:20:29.437515+00:00",
+    "evidenceSnippet": "Bonus or promotion terms found"
+  },
+  {
+    "casinoName": "Prime Wins Social",
+    "field": "primaryUrl",
+    "sourceUrl": "https://www.primewins.com",
+    "retrievedAt": "2026-03-08T05:20:30.485015+00:00",
+    "evidenceSnippet": "Official homepage discovered: https://www.primewins.com"
+  },
+  {
+    "casinoName": "Prime Wins Social",
+    "field": "hasSsl",
+    "sourceUrl": "https://www.primewins.com",
+    "retrievedAt": "2026-03-08T05:20:30.558653+00:00",
+    "evidenceSnippet": "HTTPS connection verified with valid SSL certificate"
+  },
+  {
+    "casinoName": "VegasLit Social",
+    "field": "primaryUrl",
+    "sourceUrl": "https://www.vegaslit.com",
+    "retrievedAt": "2026-03-08T05:20:31.677276+00:00",
+    "evidenceSnippet": "Official homepage discovered: https://www.vegaslit.com"
+  },
+  {
+    "casinoName": "DreamSweeps",
+    "field": "primaryUrl",
+    "sourceUrl": "https://www.dreamsweeps.com",
+    "retrievedAt": "2026-03-08T05:20:37.941928+00:00",
+    "evidenceSnippet": "Official homepage discovered: https://www.dreamsweeps.com"
+  },
+  {
+    "casinoName": "DreamSweeps",
+    "field": "hasSsl",
+    "sourceUrl": "https://www.dreamsweeps.com",
+    "retrievedAt": "2026-03-08T05:20:38.018742+00:00",
+    "evidenceSnippet": "HTTPS connection verified with valid SSL certificate"
+  },
+  {
+    "casinoName": "MaxVegas Social",
+    "field": "primaryUrl",
+    "sourceUrl": null,
+    "retrievedAt": "2026-03-08T05:20:44.122672+00:00",
+    "evidenceSnippet": "Official URL not found - searched common domain patterns"
+  },
+  {
+    "casinoName": "SpinBet Social",
+    "field": "primaryUrl",
+    "sourceUrl": null,
+    "retrievedAt": "2026-03-08T05:20:45.180661+00:00",
+    "evidenceSnippet": "Official URL not found - searched common domain patterns"
+  },
+  {
+    "casinoName": "Big Coin Social",
+    "field": "primaryUrl",
+    "sourceUrl": null,
+    "retrievedAt": "2026-03-08T05:20:46.229111+00:00",
+    "evidenceSnippet": "Official URL not found - searched common domain patterns"
+  },
+  {
+    "casinoName": "Gold Coin Mania",
+    "field": "primaryUrl",
+    "sourceUrl": null,
+    "retrievedAt": "2026-03-08T05:20:47.276787+00:00",
+    "evidenceSnippet": "Official URL not found - searched common domain patterns"
+  },
+  {
+    "casinoName": "SuperCoin Social",
+    "field": "primaryUrl",
+    "sourceUrl": null,
+    "retrievedAt": "2026-03-08T05:20:48.329985+00:00",
+    "evidenceSnippet": "Official URL not found - searched common domain patterns"
+  },
+  {
+    "casinoName": "Royal Sweeps Casino",
+    "field": "primaryUrl",
+    "sourceUrl": "https://www.royalsweepscasino.com",
+    "retrievedAt": "2026-03-08T05:20:49.526883+00:00",
+    "evidenceSnippet": "Official homepage discovered: https://www.royalsweepscasino.com"
+  },
+  {
+    "casinoName": "Royal Sweeps Casino",
+    "field": "hasSsl",
+    "sourceUrl": "https://www.royalsweepscasino.com",
+    "retrievedAt": "2026-03-08T05:20:49.800957+00:00",
+    "evidenceSnippet": "HTTPS connection verified with valid SSL certificate"
+  },
+  {
+    "casinoName": "Royal Sweeps Casino",
+    "field": "withdrawalMethods",
+    "sourceUrl": "https://www.royalsweepscasino.com",
+    "retrievedAt": "2026-03-08T05:20:49.801099+00:00",
+    "evidenceSnippet": "Withdrawal methods mentioned: Crypto, Bitcoin"
+  },
+  {
+    "casinoName": "Royal Sweeps Casino",
+    "field": "bonusTermsSummary",
+    "sourceUrl": "https://www.royalsweepscasino.com",
+    "retrievedAt": "2026-03-08T05:20:49.801136+00:00",
+    "evidenceSnippet": "Bonus or promotion terms found"
+  },
+  {
+    "casinoName": "Royal Sweeps Casino",
+    "field": "jurisdictionOrLicenseClaims",
+    "sourceUrl": "https://www.royalsweepscasino.com",
+    "retrievedAt": "2026-03-08T05:20:49.801148+00:00",
+    "evidenceSnippet": "License or jurisdiction information found"
+  },
+  {
+    "casinoName": "LuckyCharms Casino",
+    "field": "primaryUrl",
+    "sourceUrl": null,
+    "retrievedAt": "2026-03-08T05:20:53.047392+00:00",
+    "evidenceSnippet": "Official URL not found - searched common domain patterns"
+  },
+  {
+    "casinoName": "MegaCoin Casino",
+    "field": "primaryUrl",
+    "sourceUrl": "https://www.megacoincasino.com",
+    "retrievedAt": "2026-03-08T05:20:54.198705+00:00",
+    "evidenceSnippet": "Official homepage discovered: https://www.megacoincasino.com"
+  },
+  {
+    "casinoName": "MegaCoin Casino",
+    "field": "hasSsl",
+    "sourceUrl": "https://www.megacoincasino.com",
+    "retrievedAt": "2026-03-08T05:20:54.345807+00:00",
+    "evidenceSnippet": "HTTPS connection verified with valid SSL certificate"
+  },
+  {
+    "casinoName": "Lucky Streak Social",
+    "field": "primaryUrl",
+    "sourceUrl": null,
+    "retrievedAt": "2026-03-08T05:20:55.405946+00:00",
+    "evidenceSnippet": "Official URL not found - searched common domain patterns"
+  },
+  {
+    "casinoName": "Cash Storm Social",
+    "field": "primaryUrl",
+    "sourceUrl": null,
+    "retrievedAt": "2026-03-08T05:20:56.434197+00:00",
+    "evidenceSnippet": "Official URL not found - searched common domain patterns"
+  },
+  {
+    "casinoName": "Coin Forest",
+    "field": "primaryUrl",
+    "sourceUrl": "https://coinforest.net",
+    "retrievedAt": "2026-03-08T05:21:02.834117+00:00",
+    "evidenceSnippet": "Official homepage discovered: https://coinforest.net"
+  },
+  {
+    "casinoName": "SweepStorm",
+    "field": "primaryUrl",
+    "sourceUrl": null,
+    "retrievedAt": "2026-03-08T05:21:09.047742+00:00",
+    "evidenceSnippet": "Official URL not found - searched common domain patterns"
+  },
+  {
+    "casinoName": "Lucky Panda Sweeps",
+    "field": "primaryUrl",
+    "sourceUrl": null,
+    "retrievedAt": "2026-03-08T05:21:10.077844+00:00",
+    "evidenceSnippet": "Official URL not found - searched common domain patterns"
+  },
+  {
+    "casinoName": "Jewel Sweeps",
+    "field": "primaryUrl",
+    "sourceUrl": null,
+    "retrievedAt": "2026-03-08T05:21:11.126164+00:00",
+    "evidenceSnippet": "Official URL not found - searched common domain patterns"
+  },
+  {
+    "casinoName": "VegasGala SC",
+    "field": "primaryUrl",
+    "sourceUrl": null,
+    "retrievedAt": "2026-03-08T05:21:12.172622+00:00",
+    "evidenceSnippet": "Official URL not found - searched common domain patterns"
+  },
+  {
+    "casinoName": "RichCoin Social",
+    "field": "primaryUrl",
+    "sourceUrl": null,
+    "retrievedAt": "2026-03-08T05:21:13.257368+00:00",
+    "evidenceSnippet": "Official URL not found - searched common domain patterns"
+  },
+  {
+    "casinoName": "Big 777 Sweeps",
+    "field": "primaryUrl",
+    "sourceUrl": null,
+    "retrievedAt": "2026-03-08T05:21:14.323996+00:00",
+    "evidenceSnippet": "Official URL not found - searched common domain patterns"
+  },
+  {
+    "casinoName": "VegasWin Social",
+    "field": "primaryUrl",
+    "sourceUrl": null,
+    "retrievedAt": "2026-03-08T05:21:15.356777+00:00",
+    "evidenceSnippet": "Official URL not found - searched common domain patterns"
+  },
+  {
+    "casinoName": "Diamond 88 Sweeps",
+    "field": "primaryUrl",
+    "sourceUrl": null,
+    "retrievedAt": "2026-03-08T05:21:16.435773+00:00",
+    "evidenceSnippet": "Official URL not found - searched common domain patterns"
+  },
+  {
+    "casinoName": "Thunder Win Casino",
+    "field": "primaryUrl",
+    "sourceUrl": null,
+    "retrievedAt": "2026-03-08T05:21:17.486626+00:00",
+    "evidenceSnippet": "Official URL not found - searched common domain patterns"
+  },
+  {
+    "casinoName": "GalaxySweep Slots",
+    "field": "primaryUrl",
+    "sourceUrl": null,
+    "retrievedAt": "2026-03-08T05:21:18.553103+00:00",
+    "evidenceSnippet": "Official URL not found - searched common domain patterns"
+  }
+]
