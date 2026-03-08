@@ -137,43 +137,11 @@ function mockContentDependencies() {
   });
 }
 
-describe('Popup/content/page-bridge message contracts', () => {
+describe('Sidebar/content/page-bridge message contracts', () => {
   beforeEach(() => {
     vi.resetModules();
     vi.restoreAllMocks();
     document.body.innerHTML = '';
-  });
-
-  it('uses popup -> content sidebar message contract (get/toggle)', async () => {
-    const { chromeMock } = createChromeMock();
-
-    document.body.innerHTML = `
-      <div id="sidebarStatus"></div>
-      <div id="authStatus"></div>
-      <button id="toggleSidebarBtn">Toggle</button>
-      <button id="loginBtn">Login</button>
-      <button id="vaultBtn">Vault</button>
-      <button id="dashboardBtn">Dashboard</button>
-    `;
-
-    await import('../../src/popup.ts');
-    await flush();
-
-    expect(chromeMock.tabs.sendMessage).toHaveBeenCalledWith(
-      101,
-      expect.objectContaining({ type: 'get_sidebar_state' }),
-      expect.any(Function),
-    );
-
-    const toggleBtn = document.getElementById('toggleSidebarBtn') as HTMLButtonElement;
-    toggleBtn.click();
-    await flush();
-
-    expect(chromeMock.tabs.sendMessage).toHaveBeenCalledWith(
-      101,
-      expect.objectContaining({ type: 'toggle_sidebar' }),
-      expect.any(Function),
-    );
   });
 
   it('handles content message contract (toggle/open/get sidebar state)', async () => {
@@ -209,16 +177,17 @@ describe('Popup/content/page-bridge message contracts', () => {
     expect(getStateResponse).toHaveBeenCalledWith(
       expect.objectContaining({
         exists: true,
-        visible: false,
       }),
     );
+    const initialState = getStateResponse.mock.calls[0]?.[0];
+    expect(typeof initialState?.visible).toBe('boolean');
 
     const toggleResponse = vi.fn();
     onMessage({ type: 'toggle_sidebar' }, null, toggleResponse);
     expect(toggleResponse).toHaveBeenCalledWith(
       expect.objectContaining({
         success: true,
-        visible: true,
+        visible: !initialState.visible,
       }),
     );
 

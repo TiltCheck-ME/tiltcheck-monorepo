@@ -35,9 +35,8 @@ apps/chrome-extension/
 ├── src/                # TypeScript source files
 │   ├── manifest.json   # Chrome extension manifest
 │   ├── content.ts      # Main content script
-│   ├── popup.html      # Extension popup UI
-│   ├── popup.js        # Popup script
 │   ├── sidebar.ts      # Sidebar UI component
+│   ├── background.js   # Service worker (icon click + auth tab open)
 │   ├── extractor.ts    # Casino data extraction
 │   ├── tilt-detector.ts # Tilt detection logic
 │   └── license-verifier.ts # Casino license checking
@@ -115,7 +114,8 @@ Generic selectors also work on many other casino sites.
 - Updated manifest with icons configuration
 
 ### Unreleased
-- Added no-login demo mode defaults in popup/sidebar
+- Sidebar-only extension flow (popup UI removed)
+- Added no-login demo mode defaults in sidebar
 - Added mock API responses for demo vault/dashboard/session flows
 - Hardened extension OAuth callback handling via source/state validation
 

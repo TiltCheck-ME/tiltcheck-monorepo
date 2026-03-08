@@ -29,6 +29,22 @@ function buildVaultUrl(suggestedAmount) {
 
 // Handle extension-wide actions requested from content scripts.
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  if (message.type === 'open_auth_tab') {
+    const url = typeof message.url === 'string' ? message.url : null;
+    if (!url) {
+      sendResponse({ success: false, error: 'Missing auth URL' });
+      return false;
+    }
+    chrome.tabs.create({ url }, () => {
+      if (chrome.runtime.lastError) {
+        sendResponse({ success: false, error: chrome.runtime.lastError.message });
+        return;
+      }
+      sendResponse({ success: true });
+    });
+    return true;
+  }
+
   if (message.type === 'open_vault') {
     const url = buildVaultUrl(message.data?.suggestedAmount);
     chrome.tabs.create({ url });
