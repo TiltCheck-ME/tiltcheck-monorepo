@@ -74,7 +74,10 @@ export class AutoRefundScheduler {
         try {
           const signature = await this.sendRefund(balance.wallet_address, balance.balance_lamports);
           if (signature) {
-            await this.creditManager.refund(balance.discord_id, 'auto-refund: inactivity');
+            const reason = balance.refund_mode === 'hard-expiry'
+              ? 'auto-refund: hard-expiry'
+              : 'auto-refund: inactivity';
+            await this.creditManager.refund(balance.discord_id, reason);
             staleRefunded++;
             console.log(
               `[AutoRefund] Refunded ${balance.balance_lamports} lamports to ${balance.discord_id} (${balance.wallet_address.slice(0, 8)}...)`
