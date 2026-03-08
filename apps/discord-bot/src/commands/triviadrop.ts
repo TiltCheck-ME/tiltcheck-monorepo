@@ -77,8 +77,12 @@ export const triviadrop: Command = {
       const difficulty = interaction.options.getString('difficulty') || undefined;
 
       try {
-        // Use AI generation if OPENAI_API_KEY is set
-        const useAI = !!process.env.OPENAI_API_KEY;
+        // Enable AI generation for gateway, OpenAI, or Ollama-backed setups.
+        const useAI =
+          process.env.AI_PROVIDER === 'ollama' ||
+          !!process.env.OLLAMA_URL ||
+          !!process.env.OPENAI_API_KEY ||
+          !!process.env.AI_GATEWAY_URL;
         const question = await startTriviaAsync(guildId, channelId, category, difficulty, useAI);
         
         const embed = new EmbedBuilder()

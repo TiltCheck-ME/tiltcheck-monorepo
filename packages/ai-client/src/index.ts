@@ -44,7 +44,7 @@ export interface AIResponse<T = unknown> {
     completionTokens: number;
     totalTokens: number;
   };
-  source?: 'openai' | 'mock';
+  source?: 'openai' | 'ollama' | 'mock';
   cached?: boolean;
   error?: string;
 }
@@ -169,13 +169,20 @@ export interface AIClientConfig {
   timeout?: number;
   authToken?: string;
   retries?: number;
+  provider?: 'gateway' | 'ollama';
+  ollamaModel?: string;
 }
 
 const DEFAULT_CONFIG: Required<AIClientConfig> = {
-  baseUrl: process.env.AI_GATEWAY_URL || 'https://ai-gateway.tiltcheck.me',
+  baseUrl:
+    process.env.AI_PROVIDER === 'ollama'
+      ? (process.env.OLLAMA_URL || 'http://localhost:11434/v1')
+      : (process.env.AI_GATEWAY_URL || 'https://ai-gateway.tiltcheck.me'),
   timeout: 30000,
   authToken: '',
   retries: 2,
+  provider: process.env.AI_PROVIDER === 'ollama' ? 'ollama' : 'gateway',
+  ollamaModel: process.env.AI_MODEL || process.env.OLLAMA_MODEL || 'llama3.2:1b',
 };
 
 /**
@@ -232,6 +239,10 @@ export class AIClient {
     const timeoutId = setTimeout(() => controller.abort(), this.config.timeout);
 
     try {
+      if (this.config.provider === 'ollama') {
+        return await this.makeOllamaRequest<T>(request, controller.signal);
+      }
+
       const headers: Record<string, string> = {
         'Content-Type': 'application/json',
       };
@@ -261,6 +272,85 @@ export class AIClient {
         throw new Error('Request timeout');
       }
       throw error;
+    }
+  }
+
+  private async makeOllamaRequest<T>(request: AIRequest, signal: AbortSignal): Promise<AIResponse<T>> {
+    const response = await fetch(`${this.config.baseUrl}/chat/completions`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: 'Bearer ollama',
+      },
+      body: JSON.stringify({
+        model: this.config.ollamaModel,
+        temperature: 0.25,
+        max_tokens: 900,
+        messages: [
+          { role: 'system', content: this.buildOllamaSystemPrompt(request.application) },
+          { role: 'user', content: this.buildOllamaUserPrompt(request) },
+        ],
+      }),
+      signal,
+    });
+
+    if (!response.ok) {
+      const body = await response.text().catch(() => '');
+      throw new Error(`Ollama returned ${response.status}: ${body.slice(0, 180)}`);
+    }
+
+    const data = await response.json() as { choices?: Array<{ message?: { content?: string } }> };
+    const content = data?.choices?.[0]?.message?.content?.trim() || '';
+    if (!content) {
+      return { success: false, source: 'ollama', error: 'Empty Ollama response' };
+    }
+
+    const parsed = this.extractJson(content);
+    if (!parsed) {
+      return { success: true, source: 'ollama', text: content };
+    }
+
+    return {
+      success: true,
+      source: 'ollama',
+      text: typeof parsed.text === 'string' ? parsed.text : undefined,
+      data: (parsed.data ?? parsed) as T,
+    };
+  }
+
+  private buildOllamaSystemPrompt(application: AIApplication): string {
+    const appGuidance: Record<AIApplication, string> = {
+      'survey-matching': 'Return matchConfidence, matchLevel, reasoning[], recommendedActions[], estimatedCompletionTime, screenOutRisk.',
+      'card-generation': 'Return whiteCards[] and blackCards[] with concise, non-harmful humor.',
+      moderation: 'Return isSafe, isScam, isSpam, toxicityScore, categories, confidence, reasoning, recommendation, flaggedTerms[], suggestedAction.',
+      'tilt-detection': 'Return tiltScore (0-100), riskLevel, indicators[], patterns{}, interventionSuggestions[], cooldownRecommended, cooldownDuration.',
+      'nl-commands': 'Return intent, confidence, command, parameters, originalText, explanation, executable.',
+      recommendations: 'Return surveys[], promos[], games[], nextBestAction.',
+      support: 'Return answer, confidence, category, relatedArticles[], suggestedFollowUps[], escalateToHuman.',
+      onboarding: 'Return interviewQuestions[], personalizedTutorialPaths[], gamingPersona, recommendedRiskLevel.',
+    };
+
+    return `You are the TiltCheck AI engine for application "${application}". ${appGuidance[application]}
+Return strict JSON only with shape: {"text":"optional short summary","data":{...}}.
+Never include markdown fences.`;
+  }
+
+  private buildOllamaUserPrompt(request: AIRequest): string {
+    return JSON.stringify({
+      application: request.application,
+      prompt: request.prompt || '',
+      context: request.context || {},
+    });
+  }
+
+  private extractJson(content: string): Record<string, unknown> | null {
+    const start = content.indexOf('{');
+    const end = content.lastIndexOf('}');
+    if (start === -1 || end === -1 || end <= start) return null;
+    try {
+      return JSON.parse(content.slice(start, end + 1)) as Record<string, unknown>;
+    } catch {
+      return null;
     }
   }
 
