@@ -266,9 +266,12 @@ function formatLockRemaining(ms: number): string {
 
 async function ensureWalletUnlocked(actionLabel: string): Promise<boolean> {
   if (!userData || demoMode) return true;
-  const state = await apiCall(`/vault/${userData.id}/wallet-lock-status`);
-  if (state?.locked) {
-    const remaining = formatLockRemaining(Number(state.remainingMs || 0));
+  const state = await apiCall(`/vault/${userData.id}/lock-status`);
+  const isLocked = state?.locked === true;
+  if (isLocked) {
+    const remainingMs = Number(state?.remainingMs)
+      || Math.max(0, new Date(String(state?.unlockTime || 0)).getTime() - Date.now());
+    const remaining = formatLockRemaining(remainingMs);
     const message = `Wallet lock is active (${remaining}). Unlock in sidebar to ${actionLabel}.`;
     updateStatus(message, 'warning');
     addFeedMessage(message);
