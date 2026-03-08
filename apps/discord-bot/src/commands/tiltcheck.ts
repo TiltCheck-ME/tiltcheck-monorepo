@@ -15,7 +15,7 @@ import {
   getUserTiltStatus,
   getUserActivity,
 } from '@tiltcheck/tiltcheck-core';
-import { suslinkCmd } from './suslink.js';
+import { linkCmd } from './suslink.js';
 import { buddy } from './buddy.js';
 import { casino } from './casino.js';
 import report from './report.js';
@@ -70,7 +70,7 @@ export const tiltcheck: Command = {
     )
     .addSubcommandGroup((group) =>
       group
-        .setName('suslink')
+        .setName('link')
         .setDescription('Link scanning & promo management')
         .addSubcommand((sub) =>
           sub
@@ -239,8 +239,8 @@ export const tiltcheck: Command = {
       return;
     }
 
-    if (group === 'suslink') {
-      await suslinkCmd.execute(interaction);
+    if (group === 'link') {
+      await linkCmd.execute(interaction);
       return;
     }
 

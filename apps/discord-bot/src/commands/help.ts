@@ -44,8 +44,8 @@ export const help: Command = {
         name: 'Trust And Link Safety',
         value:
           '`/tiltcheck casino domain:<domain>` - Get trust/fairness data\n' +
-          '`/tiltcheck suslink scan url:<url>` - Scan a suspicious URL\n' +
-          '`/tiltcheck suslink submit url:<url>` - Submit promo links for review',
+          '`/tiltcheck link scan url:<url>` - Scan a suspicious URL\n' +
+          '`/tiltcheck link submit url:<url>` - Submit promo links for review',
         inline: false,
       },
       {

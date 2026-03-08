@@ -1,5 +1,5 @@
-﻿/**
- * Â© 2024â€“2025 TiltCheck Ecosystem. All Rights Reserved.
+/**
+ * (c) 2024-2025 TiltCheck Ecosystem. All Rights Reserved.
  * Created by jmenichole (https://github.com/jmenichole)
  * 
  * This file is part of the TiltCheck project.
@@ -176,7 +176,7 @@ export const config: BotConfig = {
 // Validate config
 export function validateConfig(): void {
   if (!config.discordToken) {
-    console.error('[Config] âŒ No Discord token found in environment variables.');
+    console.error('[Config] [ERROR] No Discord token found in environment variables.');
     console.error('[Config] Checked: TILT_DISCORD_TOKEN, TIP_DISCORD_TOKEN, DISCORD_TOKEN');
 
     console.error('[Config] Debugging keys in process.env:');
@@ -186,7 +186,7 @@ export function validateConfig(): void {
     } else {
       relatedKeys.forEach(k => {
         const val = process.env[k];
-        const status = val && val.trim().length > 0 ? 'âœ… Set' : 'âŒ Empty';
+        const status = val && val.trim().length > 0 ? '[OK] Set' : '[ERROR] Empty';
         console.error(`  - ${k}: ${status}`);
       });
     }

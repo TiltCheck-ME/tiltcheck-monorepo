@@ -34,6 +34,7 @@ let isAuthenticated = false;
 let userData: any = null;
 const SIDEBAR_WIDTH = 340;
 const MINIMIZED_WIDTH = 40;
+const SIDEBAR_VISIBILITY_KEY = 'tiltcheck_sidebar_visible';
 let sessionStats = {
   startTime: Date.now(),
   totalBets: 0,
@@ -274,6 +275,11 @@ function setSidebarVisibility(visible: boolean) {
   const sidebar = document.getElementById('tiltcheck-sidebar');
   if (!sidebar) return;
   sidebar.style.display = visible ? 'block' : 'none';
+  try {
+    chrome.storage.local.set({ [SIDEBAR_VISIBILITY_KEY]: visible });
+  } catch {
+    // Ignore storage failures in restricted contexts.
+  }
   if (!visible) {
     applyPageOffset(0);
     return;
@@ -430,6 +436,7 @@ function createSidebar() {
         <button class="tg-header-btn" id="tg-hide" title="Hide panel">Hide</button>
       </div>
     </div>
+    <div id="tg-license-strip" class="tg-license-strip pending">License: scanning current site...</div>
     <div id="tg-status-bar" class="tg-status-bar" style="display: none;"></div>
     
     <div class="tg-content" id="tg-content">
@@ -622,7 +629,7 @@ function createSidebar() {
           <h4>Quick Tools</h4>
           <button class="tg-btn tg-btn-secondary tg-advanced-toggle" id="tg-toggle-advanced" aria-pressed="false">Show Pro Tools</button>
           <div class="tg-action-grid">
-            <button class="tg-action-btn" id="tg-open-suslink">Scan Link</button>
+            <button class="tg-action-btn" id="tg-open-linkcheck">LinkCheck</button>
             <button class="tg-action-btn tg-advanced-only" id="tg-open-config">Site Setup</button>
             <button class="tg-action-btn tg-advanced-only" id="tg-open-verifier">Fairness Check</button>
             <button class="tg-action-btn" id="tg-open-dashboard">Open Dashboard</button>
@@ -633,21 +640,21 @@ function createSidebar() {
           <button class="tg-btn tg-btn-secondary tg-advanced-only" id="tg-open-report" style="margin-top: 8px;">Report Site Change</button>
         </div>
 
-        <!-- SusLink Panel (toggleable) -->
-        <div class="tg-settings-panel" id="tg-suslink-panel" style="display: none;">
-          <h4>SusLink Scanner</h4>
+        <!-- LinkCheck Panel (toggleable) -->
+        <div class="tg-settings-panel" id="tg-linkcheck-panel" style="display: none;">
+          <h4>LinkCheck Scanner</h4>
           <div class="tg-input-group">
             <label>Check URL</label>
             <div style="display: flex; gap: 5px;">
-              <input type="text" id="suslink-url" style="flex:1;" />
-              <button class="tg-btn-icon" id="suslink-scan-btn">Scan</button>
+              <input type="text" id="linkcheck-url" style="flex:1;" />
+              <button class="tg-btn-icon" id="linkcheck-scan-btn">Scan</button>
             </div>
           </div>
-          <div id="suslink-result" style="display:none; padding: 10px; background: rgba(0,0,0,0.2); border-radius: 4px; margin-bottom: 10px;">
-            <div id="suslink-score" style="font-weight: bold; margin-bottom: 4px;"></div>
-            <div id="suslink-details" style="font-size: 11px; opacity: 0.8;"></div>
+          <div id="linkcheck-result" style="display:none; padding: 10px; background: rgba(0,0,0,0.2); border-radius: 4px; margin-bottom: 10px;">
+            <div id="linkcheck-score" style="font-weight: bold; margin-bottom: 4px;"></div>
+            <div id="linkcheck-details" style="font-size: 11px; opacity: 0.8;"></div>
           </div>
-          <button class="tg-btn tg-btn-secondary" id="close-suslink">Close</button>
+          <button class="tg-btn tg-btn-secondary" id="close-linkcheck">Close</button>
         </div>
 
         <!-- Report Panel (toggleable) -->
@@ -1153,6 +1160,20 @@ function createSidebar() {
     .tg-history-header { display: flex; justify-content: space-between; margin-bottom: 4px; opacity: 0.7; }
     .tg-history-result { font-weight: bold; color: #10b981; }
 
+    .tg-license-strip {
+      padding: 8px 12px;
+      font-size: 11px;
+      font-weight: 600;
+      text-align: center;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+      background: rgba(99, 102, 241, 0.12);
+      color: #c7d2fe;
+    }
+    .tg-license-strip.verified { background: rgba(16, 185, 129, 0.18); color: #6ee7b7; }
+    .tg-license-strip.warning { background: rgba(245, 158, 11, 0.18); color: #fcd34d; }
+    .tg-license-strip.risk { background: rgba(239, 68, 68, 0.18); color: #fca5a5; }
+    .tg-license-strip.pending { background: rgba(99, 102, 241, 0.12); color: #c7d2fe; }
+
     .tg-status-bar { padding: 8px 12px; font-size: 11px; font-weight: 600; text-align: center; animation: slideDown 0.3s ease; }
     .tg-status-bar.thinking { background: rgba(99, 102, 241, 0.2); color: #818cf8; border-bottom: 1px solid rgba(99, 102, 241, 0.3); }
     .tg-status-bar.success { background: rgba(16, 185, 129, 0.2); color: #34d399; border-bottom: 1px solid rgba(16, 185, 129, 0.3); }
@@ -1200,6 +1221,7 @@ function createSidebar() {
   setupEventListeners();
   void restoreSidebarPreferences();
   void checkAuthStatus();
+  void runAutoLinkCheck();
   return sidebar;
 }
 
@@ -1280,46 +1302,39 @@ function syncAccountUi() {
 }
 
 function startDiscordLoginFlow() {
-  // Open Discord OAuth in new window
+  // Open extension-hosted auth window so OAuth callback postMessage is not blocked by casino site COOP policies.
   const width = 500;
   const height = 700;
   const left = window.screenX + (window.outerWidth - width) / 2;
   const top = window.screenY + (window.outerHeight - height) / 2;
+  const authUrl = chrome.runtime?.getURL
+    ? chrome.runtime.getURL('popup.html?connect=1')
+    : getDiscordLoginUrl('extension');
 
   const authWindow = window.open(
-    getDiscordLoginUrl('extension'),
-    'Discord Login',
+    authUrl,
+    'TiltCheck Auth',
     `width=${width},height=${height},left=${left},top=${top}`
   );
 
-  // Listen for auth response
-  const handleMessage = (event: MessageEvent) => {
-    if (!TRUSTED_AUTH_ORIGIN || event.origin !== TRUSTED_AUTH_ORIGIN) return;
-    if (event.data.type === 'discord-auth' && event.data.token) {
+  // Poll extension storage while auth window is open.
+  const checkClosed = setInterval(async () => {
+    const stored = await getStorage(['authToken', 'userData']);
+    if (stored?.authToken && stored?.userData) {
+      clearInterval(checkClosed);
       demoMode = false;
-      authToken = event.data.token;
-      userData = { ...event.data.user, isDemo: false };
+      authToken = stored.authToken;
+      userData = stored.userData;
       isAuthenticated = true;
-      void setStorage({ authToken, userData });
       showMainContent();
       syncAccountUi();
-      addFeedMessage(`Connected: ${userData.username}`);
-      window.removeEventListener('message', handleMessage);
-
-      // Close auth window if still open
-      if (authWindow && !authWindow.closed) {
-        authWindow.close();
-      }
+      addFeedMessage(`Connected: ${userData.username || 'TiltCheck user'}`);
+      if (authWindow && !authWindow.closed) authWindow.close();
+      return;
     }
-  };
 
-  window.addEventListener('message', handleMessage);
-
-  // Fallback: check if window was closed without completing auth
-  const checkClosed = setInterval(() => {
     if (authWindow && authWindow.closed) {
       clearInterval(checkClosed);
-      window.removeEventListener('message', handleMessage);
       if (!isAuthenticated) {
         addFeedMessage('Discord connect closed');
       }
@@ -1402,13 +1417,13 @@ function setupEventListeners() {
     if (panel) panel.style.display = 'none';
   });
 
-  // SusLink toggle
-  document.getElementById('tg-open-suslink')?.addEventListener('click', () => {
-    const panel = document.getElementById('tg-suslink-panel');
+  // LinkCheck toggle
+  document.getElementById('tg-open-linkcheck')?.addEventListener('click', () => {
+    const panel = document.getElementById('tg-linkcheck-panel');
     if (panel) panel.style.display = 'block';
   });
-  document.getElementById('close-suslink')?.addEventListener('click', () => {
-    const panel = document.getElementById('tg-suslink-panel');
+  document.getElementById('close-linkcheck')?.addEventListener('click', () => {
+    const panel = document.getElementById('tg-linkcheck-panel');
     if (panel) panel.style.display = 'none';
   });
 
@@ -1573,20 +1588,20 @@ function setupEventListeners() {
     }
   }) as EventListener);
 
-  // SusLink Scan Logic
-  document.getElementById('suslink-scan-btn')?.addEventListener('click', async () => {
-    const url = (document.getElementById('suslink-url') as HTMLInputElement).value;
+  // LinkCheck Scan Logic
+  document.getElementById('linkcheck-scan-btn')?.addEventListener('click', async () => {
+    const url = (document.getElementById('linkcheck-url') as HTMLInputElement).value;
     if (!url) return;
 
-    const resultDiv = document.getElementById('suslink-result');
-    const scoreDiv = document.getElementById('suslink-score');
-    const detailsDiv = document.getElementById('suslink-details');
+    const resultDiv = document.getElementById('linkcheck-result');
+    const scoreDiv = document.getElementById('linkcheck-score');
+    const detailsDiv = document.getElementById('linkcheck-details');
 
     if (resultDiv) resultDiv.style.display = 'block';
     if (scoreDiv) scoreDiv.textContent = 'Scanning...';
 
     try {
-      // Call backend API for SusLink scan
+      // Call backend API for LinkCheck scan
       const result = await apiCall('/security/scan-url', {
         method: 'POST',
         body: JSON.stringify({ url })
@@ -1615,7 +1630,7 @@ function setupEventListeners() {
         }
       }
     } catch (e) {
-      console.error('[TiltGuard] SusLink scan error:', e);
+      console.error('[TiltGuard] LinkCheck scan error:', e);
       if (scoreDiv) {
         scoreDiv.textContent = 'Scan Error';
         scoreDiv.style.color = '#f59e0b';
@@ -1911,6 +1926,27 @@ async function checkAuthStatus() {
   }
 }
 
+async function runAutoLinkCheck() {
+  try {
+    const result = await apiCall('/security/scan-url', {
+      method: 'POST',
+      body: JSON.stringify({ url: window.location.href }),
+    });
+
+    if (result?.success && result.scan) {
+      const isSafe = !!result.scan.isSafe;
+      const trustScore = Number(result.scan.trustScore ?? 0);
+      updateStatus(`LinkCheck: ${isSafe ? 'Safe' : 'Risk'} (${trustScore}/100)`, isSafe ? 'success' : 'warning');
+      addFeedMessage(`LinkCheck ${isSafe ? 'safe' : 'risk'}: ${window.location.hostname} (${trustScore}/100)`);
+      return;
+    }
+
+    updateStatus('LinkCheck: check unavailable', 'warning');
+  } catch {
+    updateStatus('LinkCheck: network unavailable', 'warning');
+  }
+}
+
 function addFeedMessage(message: string) {
   const feed = document.getElementById('tg-message-feed');
   if (!feed) return;
@@ -2088,11 +2124,30 @@ async function vaultCurrentBalance() {
 }
 
 function updateLicense(verification: any) {
-  // License verification can be shown in feed
-  if (verification.isLegitimate) {
-    addFeedMessage(`License verified: ${verification.licenseInfo?.authority || 'Verified'}`);
+  const strip = document.getElementById('tg-license-strip');
+  const info = verification?.licenseInfo || {};
+  const authority = info.issuingAuthority || info.authority || 'Unknown authority';
+  const location = info.location ? ` (${info.location})` : '';
+  const licenseNumber = info.licenseNumber ? ` #${info.licenseNumber}` : '';
+
+  if (strip) {
+    strip.className = 'tg-license-strip';
+    if (verification?.isLegitimate) {
+      strip.classList.add('verified');
+      strip.textContent = `License verified: ${authority}${licenseNumber}${location}`;
+    } else if (verification?.verdict === 'unlicensed') {
+      strip.classList.add('risk');
+      strip.textContent = 'License not found in footer/legal links. Treat this site as high risk.';
+    } else {
+      strip.classList.add('warning');
+      strip.textContent = `License status uncertain: ${authority}${location}`;
+    }
+  }
+
+  if (verification?.isLegitimate) {
+    addFeedMessage(`License verified: ${authority}${licenseNumber}`);
   } else {
-    addFeedMessage(`Heads up: ${verification.verdict || 'Unlicensed'}`);
+    addFeedMessage(`Heads up: ${verification?.warningMessage || verification?.verdict || 'Unlicensed'}`);
   }
 }
 
