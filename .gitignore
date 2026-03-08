@@ -43,6 +43,8 @@ out/
 
 # Logs
 logs/
+!apps/web/admin/logs/
+!apps/web/admin/logs/index.html
 *.log
 npm-debug.log*
 pnpm-debug.log*
