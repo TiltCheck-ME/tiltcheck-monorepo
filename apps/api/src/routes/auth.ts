@@ -17,6 +17,7 @@ import bcrypt from 'bcryptjs';
 import {
   getDiscordAuthUrl,
   verifyDiscordOAuth,
+  exchangeDiscordCode,
   createSession,
   destroySession,
   verifySessionCookie,
@@ -36,6 +37,7 @@ import { authMiddleware, getJWTConfig } from '../middleware/auth.js';
 const router = Router();
 const DEFAULT_DISCORD_CLIENT_ID = '1445916179163250860';
 const DEFAULT_DISCORD_SCOPES = ['identify', 'identify.premium'];
+const DEFAULT_API_DISCORD_CALLBACK = 'https://api.tiltcheck.me/auth/discord/callback';
 
 // ============================================================================
 // Configuration
@@ -54,7 +56,7 @@ function getDiscordConfig(): DiscordOAuthConfig {
     process.env.TILT_DISCORD_REDIRECT_URI ||
     process.env.DISCORD_REDIRECT_URI ||
     process.env.DISCORD_CALLBACK_URL ||
-    'https://api.tiltcheck.me/auth/discord/callback';
+    DEFAULT_API_DISCORD_CALLBACK;
 
   return {
     clientId,
@@ -62,6 +64,69 @@ function getDiscordConfig(): DiscordOAuthConfig {
     redirectUri,
     scopes: DEFAULT_DISCORD_SCOPES,
   };
+}
+
+function resolveDiscordRedirectUriForSource(
+  config: DiscordOAuthConfig,
+  source: string | undefined,
+  req: { hostname?: string }
+): string {
+  if (source !== 'extension') {
+    return config.redirectUri;
+  }
+
+  const host = req.hostname || '';
+  const isLocalDev =
+    process.env.NODE_ENV !== 'production' && (host === 'localhost' || host === '127.0.0.1');
+
+  // Extension OAuth must land on API callback in non-local environments.
+  return isLocalDev ? config.redirectUri : DEFAULT_API_DISCORD_CALLBACK;
+}
+
+function getOAuthSource(req: {
+  query?: { state?: unknown };
+  cookies?: { oauth_source?: unknown };
+}): 'extension' | 'web' | undefined {
+  const stateValue = typeof req.query?.state === 'string' ? req.query.state : '';
+  const sourceFromState = stateValue.startsWith('ext_')
+    ? 'extension'
+    : stateValue.startsWith('web_')
+      ? 'web'
+      : undefined;
+  if (sourceFromState) return sourceFromState;
+  const cookieSource = req.cookies?.oauth_source;
+  return cookieSource === 'extension' || cookieSource === 'web' ? cookieSource : undefined;
+}
+
+function renderExtensionAuthErrorPage(message: string): string {
+  const safeMessage = message
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+  return `
+    <html>
+      <head>
+        <meta charset="UTF-8" />
+        <title>TiltCheck - Discord Connect</title>
+        <style>
+          body { margin:0; display:flex; align-items:center; justify-content:center; height:100vh; background:#0a0a0a; color:#e6e6e6; font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+          .card { max-width: 460px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 28px 32px; }
+          .title { font-weight: 800; letter-spacing: 0.3px; margin-bottom: 10px; }
+          .msg { font-size: 14px; opacity: 0.9; line-height: 1.45; }
+          .hint { margin-top: 12px; font-size: 12px; opacity: 0.65; }
+        </style>
+      </head>
+      <body>
+        <div class="card">
+          <div class="title">TiltCheck Connect Issue</div>
+          <div class="msg">${safeMessage}</div>
+          <div class="hint">Return to your casino tab, then click Connect Discord again.</div>
+        </div>
+      </body>
+    </html>
+  `;
 }
 
 function getTrustedExtensionOrigin(value: unknown): string | undefined {
@@ -89,6 +154,14 @@ const authLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
   message: { error: 'Too many authentication attempts', code: 'RATE_LIMIT_EXCEEDED' },
+});
+
+const activityTokenLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 60,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Too many activity auth attempts', code: 'RATE_LIMIT_EXCEEDED' },
 });
 
 // ============================================================================
@@ -119,6 +192,24 @@ function generateJWT(userId: string, email: string, roles: string[]): string {
   );
 
   return token;
+}
+
+function isAllowedActivityRedirectUri(value: string): boolean {
+  try {
+    const parsed = new URL(value);
+    const host = parsed.hostname.toLowerCase();
+
+    const isHttpsTiltcheck =
+      parsed.protocol === 'https:' &&
+      (host === 'tiltcheck.me' || host === 'www.tiltcheck.me' || host.endsWith('.tiltcheck.me'));
+    const isLocalDev =
+      process.env.NODE_ENV !== 'production' &&
+      (host === 'localhost' || host === '127.0.0.1');
+
+    return isHttpsTiltcheck || isLocalDev;
+  } catch {
+    return false;
+  }
 }
 
 // ============================================================================
@@ -305,7 +396,12 @@ router.post('/guest', async (req, res) => {
  */
 router.get('/discord/login', authLimiter, (req, res) => {
   try {
-    const config = getDiscordConfig();
+    const baseConfig = getDiscordConfig();
+    const source = req.query.source as string | undefined;
+    const config: DiscordOAuthConfig = {
+      ...baseConfig,
+      redirectUri: resolveDiscordRedirectUriForSource(baseConfig, source, req),
+    };
 
     if (!config.clientId) {
       res.status(500).json({ error: 'Discord OAuth not configured' });
@@ -330,7 +426,6 @@ router.get('/discord/login', authLimiter, (req, res) => {
     }
 
     // Generate state for CSRF protection. Prefix helps recover source in callback if cookies are blocked.
-    const source = req.query.source as string | undefined;
     const statePrefix = source === 'extension' ? 'ext_' : 'web_';
     const state = `${statePrefix}${generateOAuthState()}`;
 
@@ -387,6 +482,7 @@ router.get('/discord/login', authLimiter, (req, res) => {
  * Handles Discord OAuth callback
  */
 router.get('/discord/callback', authLimiter, async (req, res) => {
+  const source = getOAuthSource(req);
   try {
     const { code, state } = req.query;
     const storedState = req.cookies?.oauth_state;
@@ -397,7 +493,6 @@ router.get('/discord/callback', authLimiter, async (req, res) => {
         ? 'web'
         : undefined;
     const sourceFromCookie = req.cookies?.oauth_source;
-    const source = sourceFromState;
     const isLocalDev =
       process.env.NODE_ENV !== 'production' &&
       (req.hostname === 'localhost' || req.hostname === '127.0.0.1');
@@ -424,17 +519,31 @@ router.get('/discord/callback', authLimiter, async (req, res) => {
     res.clearCookie('oauth_state');
 
     if (!code || typeof code !== 'string') {
+      if (source === 'extension') {
+        res.status(400).send(renderExtensionAuthErrorPage('Missing authorization code from Discord. Please retry.'));
+        return;
+      }
       res.status(400).json({ error: 'Missing authorization code' });
       return;
     }
 
-    const discordConfig = getDiscordConfig();
+    const baseDiscordConfig = getDiscordConfig();
+    const discordConfig: DiscordOAuthConfig = {
+      ...baseDiscordConfig,
+      redirectUri: resolveDiscordRedirectUriForSource(baseDiscordConfig, source, req),
+    };
     const jwtConfig = getJWTConfig();
 
     // Exchange code for tokens and get user info
     const result = await verifyDiscordOAuth(code, discordConfig);
 
     if (!result.valid || !result.user) {
+      if (source === 'extension') {
+        res
+          .status(401)
+          .send(renderExtensionAuthErrorPage(result.error || 'Discord authentication failed. Please retry.'));
+        return;
+      }
       res.status(401).json({ error: result.error || 'Discord authentication failed' });
       return;
     }
@@ -515,7 +624,74 @@ router.get('/discord/callback', authLimiter, async (req, res) => {
     res.redirect(redirectUrl);
   } catch (error) {
     console.error('[Auth] Discord callback error:', error);
+    if (source === 'extension') {
+      res
+        .status(500)
+        .send(renderExtensionAuthErrorPage('Discord sign-in failed unexpectedly. Please retry in a few seconds.'));
+      return;
+    }
     res.status(500).json({ error: 'Authentication failed' });
+  }
+});
+
+/**
+ * POST /auth/discord/activity/token
+ * Exchange Discord Activity OAuth code for access token.
+ *
+ * Threat/risk notes:
+ * - Redirect URI is validated against trusted hosts.
+ * - Discord client secret is only used server-side.
+ * - Errors are sanitized for clients.
+ */
+router.post('/discord/activity/token', activityTokenLimiter, async (req, res) => {
+  try {
+    const code = typeof req.body?.code === 'string' ? req.body.code.trim() : '';
+    const redirectUriInput =
+      typeof req.body?.redirectUri === 'string' ? req.body.redirectUri.trim() : '';
+
+    if (!code || code.length < 8 || code.length > 2048) {
+      res.status(400).json({ error: 'Invalid authorization code', code: 'INVALID_CODE' });
+      return;
+    }
+
+    if (redirectUriInput && !isAllowedActivityRedirectUri(redirectUriInput)) {
+      res.status(400).json({ error: 'Invalid redirect URI', code: 'INVALID_REDIRECT_URI' });
+      return;
+    }
+
+    const discordConfig = getDiscordConfig();
+    if (!discordConfig.clientId || !discordConfig.clientSecret) {
+      res.status(503).json({ error: 'Discord activity auth unavailable', code: 'NOT_CONFIGURED' });
+      return;
+    }
+
+    const exchangeConfig: DiscordOAuthConfig = {
+      ...discordConfig,
+      redirectUri: redirectUriInput || discordConfig.redirectUri,
+    };
+
+    // Timeout fallback keeps this endpoint responsive if Discord is degraded.
+    const exchangeResult = await Promise.race([
+      exchangeDiscordCode(code, exchangeConfig),
+      new Promise<{ success: false; error: string }>((resolve) => {
+        setTimeout(() => resolve({ success: false, error: 'Discord token exchange timeout' }), 8000);
+      }),
+    ]);
+
+    if (!exchangeResult.success || !exchangeResult.tokens) {
+      res.status(401).json({ error: 'Discord token exchange failed', code: 'DISCORD_EXCHANGE_FAILED' });
+      return;
+    }
+
+    res.json({
+      access_token: exchangeResult.tokens.accessToken,
+      token_type: exchangeResult.tokens.tokenType,
+      expires_in: exchangeResult.tokens.expiresIn,
+      scope: exchangeResult.tokens.scope,
+    });
+  } catch (error) {
+    console.error('[Auth] Discord activity token exchange error:', error);
+    res.status(500).json({ error: 'Activity authentication failed', code: 'ACTIVITY_AUTH_FAILED' });
   }
 });
 
