@@ -35,7 +35,14 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       sendResponse({ success: false, error: 'Missing auth URL' });
       return false;
     }
-    chrome.tabs.create({ url }, () => {
+    const createOptions = { url, active: true };
+    if (typeof sender?.tab?.windowId === 'number') {
+      createOptions.windowId = sender.tab.windowId;
+      if (typeof sender.tab.index === 'number') {
+        createOptions.index = sender.tab.index + 1;
+      }
+    }
+    chrome.tabs.create(createOptions, () => {
       if (chrome.runtime.lastError) {
         sendResponse({ success: false, error: chrome.runtime.lastError.message });
         return;

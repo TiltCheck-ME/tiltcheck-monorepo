@@ -63,7 +63,7 @@ const PROVIDERS = {
     ollama: {
         baseUrl: process.env.OLLAMA_URL || 'http://localhost:11434/v1',
         apiKey: 'ollama',   // Ollama ignores the key but the header must exist
-        model: process.env.AI_MODEL || 'llama3.2:3b',
+        model: process.env.AI_MODEL || process.env.OLLAMA_MODEL || 'llama3.2:1b',
         label: 'Ollama (local)',
     },
     groq: {
