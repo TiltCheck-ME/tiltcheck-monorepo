@@ -13,8 +13,7 @@ browser-extension/
 ├── dist/                 # Built extension files
 │   ├── manifest.json     # Chrome extension manifest
 │   ├── content.js        # Content script (injected into pages)
-│   ├── popup.html        # Extension popup UI
-│   ├── popup.js          # Popup script
+│   ├── background.js     # Service worker (icon click + auth tab open)
 │   └── icons/            # Extension icons
 ├── src/                  # Source files (TypeScript)
 │   ├── content.ts        # Main content script
@@ -22,7 +21,7 @@ browser-extension/
 │   ├── tilt-detector.ts  # Tilt detection logic
 │   ├── license-verifier.ts # Casino license checking
 │   ├── sidebar.ts        # Sidebar UI component
-│   └── popup.ts          # Popup script
+│   └── background.js     # Service worker
 ├── server/               # Backend API server
 │   ├── api.js            # Express API server
 │   └── package.json      # Server dependencies
@@ -118,6 +117,13 @@ Creates and manages the sidebar UI:
 - P/L graph
 - Vault actions
 - Settings panel
+
+### background.js
+
+Service worker responsibilities:
+- Toggle sidebar from extension icon clicks
+- Open Discord auth in a normal browser tab (`open_auth_tab`)
+- Handle shared extension-level actions
 
 ## Backend Server
 

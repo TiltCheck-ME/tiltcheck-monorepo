@@ -104,7 +104,7 @@ Ensure manifest.json includes:
   },
   "permissions": ["activeTab", "storage"],
   "action": {
-    "default_popup": "popup.html",
+    "default_title": "Toggle TiltCheck Sidebar",
     "default_icon": {
       "16": "icons/icon16.png",
       "48": "icons/icon48.png"

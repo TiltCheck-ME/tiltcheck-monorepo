@@ -524,8 +524,14 @@ export class AnalyzerClient {
   private isConnecting: boolean = false;
   private heartbeatTimer: ReturnType<typeof setInterval> | null = null;
   private readonly heartbeatIntervalMs: number = 25000;
+  private readonly onConnectionIssue?: (error: Error) => void;
 
-  constructor(private wsUrl: string) { }
+  constructor(wsUrl: string, onConnectionIssue?: (error: Error) => void) {
+    this.wsUrl = wsUrl;
+    this.onConnectionIssue = onConnectionIssue;
+  }
+
+  private wsUrl: string;
 
   private getReadyStateLabel(state?: number): string {
     switch (state) {
@@ -563,6 +569,19 @@ export class AnalyzerClient {
       url: this.wsUrl,
       readyState: targetState,
     });
+  }
+
+  private toConnectionError(event: unknown, fallbackMessage: string): Error {
+    if (event instanceof Error) {
+      return event;
+    }
+    const closeEvent = event as CloseEvent | undefined;
+    if (closeEvent && typeof closeEvent.code === 'number') {
+      return new Error(
+        `${fallbackMessage} (code=${closeEvent.code}, reason=${closeEvent.reason || 'none'}, clean=${closeEvent.wasClean})`
+      );
+    }
+    return new Error(fallbackMessage);
   }
 
   private stopHeartbeat(): void {
@@ -633,6 +652,11 @@ export class AnalyzerClient {
         if (!settled) {
           settled = true;
           reject(event);
+        } else {
+          // Surface post-open disconnects to caller-owned handling.
+          this.onConnectionIssue?.(
+            this.toConnectionError(event, 'Analyzer connection closed after opening')
+          );
         }
 
         if (this.shouldReconnect) {
@@ -676,6 +700,7 @@ export class AnalyzerClient {
     this.reconnectTimer = setTimeout(() => {
       this.connect().catch(err => {
         this.logSocketEvent('[TiltCheck] Reconnect failed', err);
+        this.onConnectionIssue?.(this.toConnectionError(err, 'Analyzer reconnect attempt failed'));
       });
     }, jitteredDelay);
   }

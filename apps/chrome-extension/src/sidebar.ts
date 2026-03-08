@@ -15,13 +15,6 @@ import { EXT_CONFIG, getDiscordLoginUrl } from './config.js';
 
 const API_BASE = EXT_CONFIG.API_BASE_URL;
 const AI_GATEWAY_URL = EXT_CONFIG.AI_GATEWAY_URL;
-const TRUSTED_AUTH_ORIGIN = (() => {
-  try {
-    return new URL(getDiscordLoginUrl('extension')).origin;
-  } catch {
-    return null;
-  }
-})();
 let authToken: string | null = null;
 let showSettings = false;
 let apiKeys: any = {
@@ -272,11 +265,11 @@ function formatLockRemaining(ms: number): string {
 }
 
 async function ensureWalletUnlocked(actionLabel: string): Promise<boolean> {
-  const state = await getStorage([WALLET_LOCK_UNTIL_KEY]);
-  const lockUntil = Number(state[WALLET_LOCK_UNTIL_KEY] || 0);
-  if (lockUntil > Date.now()) {
-    const remaining = formatLockRemaining(lockUntil - Date.now());
-    const message = `Wallet lock is active (${remaining}). Unlock in popup to ${actionLabel}.`;
+  if (!userData || demoMode) return true;
+  const state = await apiCall(`/vault/${userData.id}/wallet-lock-status`);
+  if (state?.locked) {
+    const remaining = formatLockRemaining(Number(state.remainingMs || 0));
+    const message = `Wallet lock is active (${remaining}). Unlock in sidebar to ${actionLabel}.`;
     updateStatus(message, 'warning');
     addFeedMessage(message);
     return false;
@@ -1325,44 +1318,35 @@ function syncAccountUi() {
 }
 
 function startDiscordLoginFlow() {
-  // Open extension-hosted auth window so OAuth callback postMessage is not blocked by casino site COOP policies.
-  const width = 500;
-  const height = 700;
-  const left = window.screenX + (window.outerWidth - width) / 2;
-  const top = window.screenY + (window.outerHeight - height) / 2;
-  const authUrl = chrome.runtime?.getURL
-    ? chrome.runtime.getURL('popup.html?connect=1')
-    : getDiscordLoginUrl('extension');
-
-  const authWindow = window.open(
-    authUrl,
-    'TiltCheck Auth',
-    `width=${width},height=${height},left=${left},top=${top}`
-  );
-
-  // Poll extension storage while auth window is open.
-  const checkClosed = setInterval(async () => {
-    const stored = await getStorage(['authToken', 'userData']);
-    if (stored?.authToken && stored?.userData) {
-      clearInterval(checkClosed);
-      demoMode = false;
-      authToken = stored.authToken;
-      userData = stored.userData;
-      isAuthenticated = true;
-      showMainContent();
-      syncAccountUi();
-      addFeedMessage(`Connected: ${userData.username || 'TiltCheck user'}`);
-      if (authWindow && !authWindow.closed) authWindow.close();
+  const authUrl = getDiscordLoginUrl('extension');
+  chrome.runtime.sendMessage({ type: 'open_auth_tab', url: authUrl }, (response) => {
+    if (chrome.runtime.lastError || !response?.success) {
+      addFeedMessage('Could not open Discord login tab. Try again.');
       return;
     }
 
-    if (authWindow && authWindow.closed) {
-      clearInterval(checkClosed);
-      if (!isAuthenticated) {
-        addFeedMessage('Discord connect closed');
+    const maxPollMs = 5 * 60 * 1000;
+    const startedAt = Date.now();
+    const checkClosed = setInterval(async () => {
+      const stored = await getStorage(['authToken', 'userData']);
+      if (stored?.authToken && stored?.userData) {
+        clearInterval(checkClosed);
+        demoMode = false;
+        authToken = stored.authToken;
+        userData = { ...stored.userData, isDemo: false };
+        isAuthenticated = true;
+        showMainContent();
+        syncAccountUi();
+        addFeedMessage(`Connected: ${userData.username || 'TiltCheck user'}`);
+        return;
       }
-    }
-  }, 1000);
+
+      if (Date.now() - startedAt > maxPollMs) {
+        clearInterval(checkClosed);
+        addFeedMessage('Discord connect timed out. Try again.');
+      }
+    }, 1000);
+  });
 }
 
 function setupEventListeners() {

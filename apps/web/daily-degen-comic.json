@@ -1,9 +1,9 @@
 {
-  "generatedAt": "2026-03-08T03:12:50.432Z",
+  "generatedAt": "2026-03-08T03:18:32.298Z",
   "timezone": "UTC",
   "date": "2026-03-07",
   "title": "TiltCheck Daily Degen Comic",
-  "subtitle": "Auto-built from today's channel-watcher chat log.",
+  "subtitle": "Auto-built from today's degen highlights.",
   "mood": "Chaotic hype",
   "oneLiner": "",
   "stats": {
@@ -65,16 +65,12 @@
     "visualInspiration": "samoxic",
     "visualInspirationUrl": "https://pheverdream.github.io/The-Book-of-SealStats/"
   },
-  "source": {
-    "logFile": "tools/channel-watcher/messages.jsonl",
-    "generatedBy": "tools/channel-watcher/generate-daily-comic.js"
-  },
   "archiveRecent": [
     {
       "date": "2026-03-07",
-      "generatedAt": "2026-03-08T03:12:50.432Z",
+      "generatedAt": "2026-03-08T03:18:32.298Z",
       "title": "TiltCheck Daily Degen Comic",
-      "subtitle": "Auto-built from today's channel-watcher chat log.",
+      "subtitle": "Auto-built from today's degen highlights.",
       "mood": "Chaotic hype",
       "oneLiner": "",
       "panels": [

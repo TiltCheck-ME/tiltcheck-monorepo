@@ -417,7 +417,16 @@ async function startMonitoring() {
   tiltDetector = new TiltDetector(initialBalance, riskLevel);
 
   // Initialize analyzer client
-  client = new AnalyzerClient(ANALYZER_WS_URL);
+  client = new AnalyzerClient(ANALYZER_WS_URL, (error) => {
+    // Surface post-open disconnect/reconnect failures to UI and logs.
+    console.warn('[TiltGuard] Analyzer connection issue:', error);
+    (window as any).TiltCheckSidebar?.updateGuardian(false);
+    window.dispatchEvent(
+      new CustomEvent('tg-status-update', {
+        detail: { message: 'Analyzer connection dropped. Reconnecting...', type: 'warning' }
+      })
+    );
+  });
 
   try {
     await client.connect();
