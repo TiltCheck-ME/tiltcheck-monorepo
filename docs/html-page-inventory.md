@@ -1,6 +1,6 @@
 # HTML Page Inventory
 
-Generated: 2026-03-08T07:16:27.084Z
+Generated: 2026-03-08T07:26:43.919Z
 
 ## Summary
 
@@ -17,6 +17,7 @@ Generated: 2026-03-08T07:16:27.084Z
 ## Action model
 
 - **Keep (wired)**: production pages already on shared nav + loader, or app-specific shells that are actively served.
+- **Keep (custom auth/system)**: intentionally minimal auth/callback/health pages.
 - **Wire**: page should be public but still uses legacy or custom nav inconsistent with shared pattern.
 - **Archive/Delete candidate**: obsolete or superseded page (keep only if explicitly needed).
 
@@ -25,27 +26,27 @@ Generated: 2026-03-08T07:16:27.084Z
 | File | Wiring | Suggested action | Notes |
 |---|---|---|---|
 | `apps/web/about.html` | shared-nav wired | keep (wired) |  |
-| `apps/web/auth/callback.html` | custom/no-shared-nav | wire |  |
+| `apps/web/auth/callback.html` | custom/no-shared-nav | keep (custom auth/system) | Intentional standalone auth/health shell. |
 | `apps/web/beta.html` | shared-nav wired | keep (wired) |  |
 | `apps/web/casino-reviews.html` | shared-nav wired | keep (wired) |  |
 | `apps/web/casinos.html` | shared-nav wired | keep (wired) |  |
 | `apps/web/chrome-extension-subscription.html` | shared-nav wired | keep (wired) |  |
-| `apps/web/compliance.html` | custom/no-shared-nav | wire |  |
-| `apps/web/component-gallery.html` | custom/no-shared-nav | wire |  |
-| `apps/web/contact.html` | shared mount missing loader | wire |  |
-| `apps/web/cookie-policy.html` | custom/no-shared-nav | wire |  |
-| `apps/web/dashboard/index.html` | custom/no-shared-nav | wire |  |
+| `apps/web/compliance.html` | shared-nav wired | keep (wired) |  |
+| `apps/web/component-gallery.html` | shared-nav wired | keep (wired) |  |
+| `apps/web/contact.html` | shared-nav wired | keep (wired) |  |
+| `apps/web/cookie-policy.html` | shared-nav wired | keep (wired) |  |
+| `apps/web/dashboard/index.html` | custom/no-shared-nav | keep (custom auth/system) | Intentional standalone auth/health shell. |
 | `apps/web/degen-trust.html` | shared-nav wired | keep (wired) |  |
 | `apps/web/extension.html` | shared-nav wired | keep (wired) |  |
 | `apps/web/faq.html` | shared-nav wired | keep (wired) |  |
 | `apps/web/getting-started.html` | shared-nav wired | keep (wired) |  |
-| `apps/web/glossary.html` | custom/no-shared-nav | wire |  |
-| `apps/web/help-chatbot.html` | custom/no-shared-nav | wire |  |
+| `apps/web/glossary.html` | shared-nav wired | keep (wired) |  |
+| `apps/web/help-chatbot.html` | shared-nav wired | keep (wired) |  |
 | `apps/web/help.html` | shared-nav wired | keep (wired) |  |
-| `apps/web/how-it-works.html` | shared mount missing loader | wire |  |
+| `apps/web/how-it-works.html` | shared-nav wired | keep (wired) |  |
 | `apps/web/index.html` | shared-nav wired | keep (wired) |  |
-| `apps/web/licensing.html` | custom/no-shared-nav | wire |  |
-| `apps/web/login.html` | custom/no-shared-nav | wire |  |
+| `apps/web/licensing.html` | shared-nav wired | keep (wired) |  |
+| `apps/web/login.html` | custom/no-shared-nav | keep (custom auth/system) | Intentional standalone auth/health shell. |
 | `apps/web/newsletter.html` | shared-nav wired | keep (wired) |  |
 | `apps/web/press-kit.html` | shared-nav wired | keep (wired) |  |
 | `apps/web/privacy.html` | shared-nav wired | keep (wired) |  |
@@ -54,11 +55,11 @@ Generated: 2026-03-08T07:16:27.084Z
 | `apps/web/search.html` | shared-nav wired | keep (wired) |  |
 | `apps/web/settings.html` | shared-nav wired | keep (wired) |  |
 | `apps/web/site-map.html` | shared-nav wired | keep (wired) |  |
-| `apps/web/stats-dashboard.html` | custom/no-shared-nav | wire |  |
-| `apps/web/status.html` | custom/no-shared-nav | wire |  |
-| `apps/web/terms.html` | shared mount missing loader | wire |  |
+| `apps/web/stats-dashboard.html` | shared-nav wired | keep (wired) |  |
+| `apps/web/status.html` | custom/no-shared-nav | keep (custom auth/system) | Intentional standalone auth/health shell. |
+| `apps/web/terms.html` | shared-nav wired | keep (wired) |  |
 | `apps/web/testimonials.html` | shared-nav wired | keep (wired) |  |
-| `apps/web/transparency-reports.html` | custom/no-shared-nav | wire |  |
+| `apps/web/transparency-reports.html` | shared-nav wired | keep (wired) |  |
 | `apps/web/trust-api.html` | shared-nav wired | keep (wired) |  |
 | `apps/web/trust-explained.html` | shared-nav wired | keep (wired) |  |
 | `apps/web/trust-scores.html` | shared-nav wired | keep (wired) |  |
@@ -162,5 +163,5 @@ Generated: 2026-03-08T07:16:27.084Z
 
 1. Archive or remove `apps/web/index-legacy.html` once confirmed unused in deployment tooling.
 2. Keep all pages marked `keep (wired)` and avoid reintroducing inline `top-nav` markup.
-3. For any page marked `wire`, migrate to `#shared-nav` + `/scripts/components-loader.js`.
+3. Keep `login`, `auth/callback`, `dashboard/index`, and `status` as standalone system pages unless product wants full marketing nav there.
 4. Optional: add a CI check that fails when new `top-nav` blocks are introduced in `apps/web/*.html`.
