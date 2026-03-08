@@ -8,7 +8,7 @@
 /**
  * TiltCheck AI Chatbot Widget
  * Global floating chatbot available on all pages
- * Integrates with OpenAI API via Vercel AI Gateway
+ * Integrates with AI gateway/Ollama-compatible chat endpoints
  */
 
 (function() {
@@ -19,9 +19,15 @@
   const CHATBOT_ID = 'tiltcheck-chatbot-widget';
   const STORAGE_KEY = 'tiltcheck-chat-history';
   const ANALYTICS_KEY = 'tiltcheck-chatbot-analytics';
-  const API_ENDPOINT = process.env.VERCEL_AI_GATEWAY_API_URL || 'https://api.vercel.ai';
-  const API_KEY = process.env.VERCEL_AI_GATEWAY_API_KEY;
-  const ENABLE_AI_GATEWAY = !!API_KEY;  // Only enable if API key present
+  const API_ENDPOINT =
+    process.env.OLLAMA_URL ||
+    process.env.AI_CHAT_ENDPOINT ||
+    process.env.VERCEL_AI_GATEWAY_API_URL ||
+    'https://api.vercel.ai';
+  const API_KEY = process.env.VERCEL_AI_GATEWAY_API_KEY || process.env.AI_CHAT_API_KEY || '';
+  const CHAT_MODEL = process.env.AI_MODEL || process.env.OLLAMA_MODEL || 'llama3.2:1b';
+  const IS_OLLAMA_ENDPOINT = /localhost:11434|\/v1$/i.test(API_ENDPOINT) || !!process.env.OLLAMA_URL;
+  const ENABLE_AI_GATEWAY = IS_OLLAMA_ENDPOINT || !!API_KEY;
 
   // Knowledge base for quick responses
   const KNOWLEDGE_BASE = {
@@ -545,7 +551,7 @@ Be friendly, concise, and factual. Help users with questions about any TiltCheck
           this.saveHistory();
         }, 300);
       } else if (ENABLE_AI_GATEWAY) {
-        // Use AI Gateway for smart responses
+        // Use configured AI endpoint for smart responses
         this.callAIGateway(text);
       } else {
         // Fallback to suggestions
@@ -600,14 +606,22 @@ Be friendly, concise, and factual. Help users with questions about any TiltCheck
       // Context-aware system prompt based on current page
       const contextPrompt = this.getContextPrompt();
       
-      fetch('https://api.vercel.ai/v1/chat/completions', {
+      const normalizedBase = API_ENDPOINT.replace(/\/$/, '').replace(/\/v1$/i, '');
+      const endpoint = `${normalizedBase}/v1/chat/completions`;
+      const headers = {
+        'Content-Type': 'application/json'
+      };
+      if (IS_OLLAMA_ENDPOINT) {
+        headers['Authorization'] = 'Bearer ollama';
+      } else if (API_KEY) {
+        headers['Authorization'] = `Bearer ${API_KEY}`;
+      }
+
+      fetch(endpoint, {
         method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${API_KEY}`,
-          'Content-Type': 'application/json'
-        },
+        headers,
         body: JSON.stringify({
-          model: 'gpt-4o-mini',
+          model: CHAT_MODEL,
           messages: [
             { role: 'system', content: contextPrompt },
             ...this.messages.slice(-10).map(m => ({ role: m.role, content: m.content }))  // Last 10 messages for context
@@ -639,7 +653,7 @@ Be friendly, concise, and factual. Help users with questions about any TiltCheck
         this.trackQuestion(userMessage, 'ai-gateway');
       })
       .catch(error => {
-        console.error('AI Gateway error:', error);
+        console.error('AI chat endpoint error:', error);
         this.removeTyping();
         this.showFallback();
       });

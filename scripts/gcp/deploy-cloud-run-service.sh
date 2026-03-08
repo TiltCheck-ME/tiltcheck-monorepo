@@ -27,6 +27,25 @@ require_cmd() {
   fi
 }
 
+is_placeholder() {
+  local value
+  value="$(echo "${1:-}" | tr '[:upper:]' '[:lower:]' | xargs)"
+  [[ -z "$value" || "$value" == *"changeme"* || "$value" == *"replace-me"* || "$value" == *"your_"* || "$value" == "<"*">" ]]
+}
+
+validate_env_vars_file() {
+  local env_file="$1"
+  while IFS='=' read -r key value; do
+    [[ -z "${key:-}" || "${key:0:1}" == "#" ]] && continue
+    value="${value%\"}"
+    value="${value#\"}"
+    if [[ "$key" =~ (SECRET|TOKEN|KEY|PASSWORD)$ ]] && is_placeholder "$value"; then
+      echo "Refusing deploy: $key appears placeholder/empty in $env_file" >&2
+      exit 1
+    fi
+  done < "$env_file"
+}
+
 if [[ $# -lt 1 ]]; then
   usage
   exit 1
@@ -42,6 +61,10 @@ require_cmd gcloud
 
 if [[ -z "$PROJECT_ID" ]]; then
   echo "PROJECT_ID is required." >&2
+  exit 1
+fi
+if is_placeholder "$PROJECT_ID"; then
+  echo "PROJECT_ID is placeholder/invalid." >&2
   exit 1
 fi
 
@@ -97,6 +120,7 @@ fi
 
 ENV_VARS_FILE="${ENV_VARS_FILE:-.env.gcp.${NAME}}"
 if [[ -f "$ENV_VARS_FILE" ]]; then
+  validate_env_vars_file "$ENV_VARS_FILE"
   echo "Applying env vars from $ENV_VARS_FILE"
   DEPLOY_ARGS+=(--env-vars-file "$ENV_VARS_FILE")
 fi

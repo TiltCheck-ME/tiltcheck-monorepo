@@ -8,7 +8,7 @@
     "build": "tsc",
     "dev": "tsx watch src/index.ts",
     "start": "node dist/index.js",
-    "test": "echo \"No tests yet\" && exit 0"
+    "test": "vitest --run tests/readiness.test.ts"
   },
   "dependencies": {
     "express": "^4.19.0",

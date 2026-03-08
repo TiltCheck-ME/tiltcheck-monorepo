@@ -34,6 +34,7 @@ import { casinoRouter } from './routes/casino.js';
 import { bonusRouter } from './routes/bonus.js';
 import { vaultRouter } from './routes/vault.js';
 import { betaRouter } from './routes/beta.js';
+import { statsRouter } from './routes/stats.js';
 import modRouter from './routes/mod.js';
 import { errorHandler, notFoundHandler } from './middleware/error.js';
 import { requestLogger } from './middleware/logger.js';
@@ -156,6 +157,7 @@ app.use('/casino', casinoRouter);
 app.use('/bonus', bonusRouter);
 app.use('/vault', vaultRouter);
 app.use('/beta', betaRouter);
+app.use('/stats', statsRouter);
 
 // Moderation routes
 app.use('/mod', modRouter);

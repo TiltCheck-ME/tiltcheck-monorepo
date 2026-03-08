@@ -379,6 +379,17 @@
       </div>
     </section>
 
+    <section aria-label="Live ecosystem stats" style="border-top:1px solid rgba(79,156,251,0.25); border-bottom:1px solid rgba(79,156,251,0.2); background:rgba(8,12,20,0.85);">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8" style="padding: 14px 0;">
+        <div style="display:flex; flex-wrap:wrap; gap:18px; align-items:center; justify-content:center; color:#a9bad7; font-size:0.95rem;">
+          <span>Communities protected: <strong id="stat-communities" style="color:#dce8ff;">—</strong></span>
+          <span>Scans (24h): <strong id="stat-scans" style="color:#dce8ff;">—</strong></span>
+          <span>High-risk flagged (24h): <strong id="stat-blocked" style="color:#dce8ff;">—</strong></span>
+          <span id="api-stats-status" style="color:#8cbcff;">Loading live stats…</span>
+        </div>
+      </div>
+    </section>
+
     <!-- Tools Section -->
     <section id="tools" class="tools-surface py-20 md:py-24">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -730,9 +741,6 @@
         if (saved) document.documentElement.setAttribute('data-theme', saved);
       })();
 
-    // KPI strip — values will be populated from real API data
-    // TODO: Wire up to /api/stats endpoint when available
-
     // Intersection Observer for fade-in animations
     if ('IntersectionObserver' in window) {
       const animateOnScroll = new IntersectionObserver((entries) => {
@@ -855,6 +863,7 @@
     })();
   </script>
   <script src="/scripts/daily-comic.js"></script>
+  <script src="/scripts/index-stats.js"></script>
   <script src="/scripts/components-loader.js"></script>
   <script src="/scripts/auth.js"></script>
 </body>
