@@ -72,9 +72,19 @@ let fairness: FairnessService | null = null;
 let tiltMonitoringInterval: ReturnType<typeof setInterval> | null = null;
 const FULL_SIDEBAR_WIDTH = 340;
 const MINIMIZED_SIDEBAR_WIDTH = 40;
+const SIDEBAR_VISIBILITY_KEY = 'tiltcheck_sidebar_visible';
 
 // Intervention state
 let cooldownEndTime: number | null = null;
+
+function refreshLicenseVerification() {
+  if (!licenseVerifier) {
+    licenseVerifier = new CasinoLicenseVerifier();
+  }
+  casinoVerification = licenseVerifier.verifyCasino();
+  (window as any).TiltCheckSidebar?.updateLicense(casinoVerification);
+  return casinoVerification;
+}
 
 function setSidebarVisibility(visible: boolean): boolean {
   const sidebar = document.getElementById('tiltcheck-sidebar');
@@ -94,14 +104,38 @@ function setSidebarVisibility(visible: boolean): boolean {
   return visible;
 }
 
+function persistSidebarVisibility(visible: boolean) {
+  try {
+    chrome.storage.local.set({ [SIDEBAR_VISIBILITY_KEY]: visible });
+  } catch {
+    // Ignore persistence failures; UI still works in-memory.
+  }
+}
+
+async function restoreSidebarVisibility(defaultVisible: boolean) {
+  try {
+    const stored = await chrome.storage.local.get([SIDEBAR_VISIBILITY_KEY]);
+    if (typeof stored[SIDEBAR_VISIBILITY_KEY] === 'boolean') {
+      setSidebarVisibility(stored[SIDEBAR_VISIBILITY_KEY]);
+      return;
+    }
+  } catch {
+    // Fall back to default visibility.
+  }
+  setSidebarVisibility(defaultVisible);
+}
+
 function toggleSidebarVisibility(): boolean {
   const sidebar = document.getElementById('tiltcheck-sidebar');
   if (!sidebar) {
     const created = (window as any).TiltCheckSidebar?.create();
+    if (created) persistSidebarVisibility(true);
     return !!created;
   }
   const currentlyVisible = sidebar.style.display !== 'none';
-  return setSidebarVisibility(!currentlyVisible);
+  const visible = setSidebarVisibility(!currentlyVisible);
+  persistSidebarVisibility(visible);
+  return visible;
 }
 
 function getSidebarState() {
@@ -293,18 +327,16 @@ function initialize() {
 
   // Create sidebar UI
   const sidebar = (window as any).TiltCheckSidebar?.create();
-  // Keep the sidebar available but hidden by default.
-  setSidebarVisibility(false);
+  // Default hidden on TiltCheck-owned pages, visible on supported casino pages.
+  const defaultVisible = !isDomain(hostname, 'tiltcheck.me');
+  void restoreSidebarVisibility(defaultVisible);
   console.log('[TiltCheck] Sidebar created:', !!sidebar);
 
-  // Check casino license
-  licenseVerifier = new CasinoLicenseVerifier();
-  casinoVerification = licenseVerifier.verifyCasino();
-
-  console.log('[TiltCheck] License verification:', casinoVerification);
-
-  // Update sidebar with license info
-  (window as any).TiltCheckSidebar?.updateLicense(casinoVerification);
+  // Check casino license from footer/legal sections and refresh after delayed page content loads.
+  const initialLicenseStatus = refreshLicenseVerification();
+  console.log('[TiltCheck] License verification:', initialLicenseStatus);
+  setTimeout(() => refreshLicenseVerification(), 3000);
+  setTimeout(() => refreshLicenseVerification(), 8000);
 
   // Initialize Fairness Tools
   analyzer = new Analyzer();
@@ -1235,6 +1267,7 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
         (window as any).TiltCheckSidebar?.create();
       }
       const visible = setSidebarVisibility(true);
+      persistSidebarVisibility(true);
       sendResponse({ success: true, visible });
       break;
     }

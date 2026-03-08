@@ -6,8 +6,8 @@
   "main": "dist/index.js",
   "scripts": {
     "build": "tsc",
-    "dev": "tsx watch src/index.ts",
-    "start": "node dist/index.js",
+    "dev": "tsx watch src/bootstrap.ts",
+    "start": "node dist/bootstrap.js",
     "clean": "rm -rf dist",
     "deploy:commands": "tsx src/deploy-commands.ts",
     "clear:global": "tsx src/cleanup-commands.ts --all",
@@ -26,13 +26,14 @@
     "@tiltcheck/natural-language-parser": "workspace:*",
     "@tiltcheck/poker": "workspace:*",
     "@tiltcheck/suslink": "workspace:*",
-    "@tiltcheck/utils": "workspace:*",
     "@tiltcheck/tiltcheck-core": "workspace:*",
     "@tiltcheck/triviadrops": "workspace:*",
     "@tiltcheck/trust-engines": "workspace:*",
     "@tiltcheck/types": "workspace:*",
+    "@tiltcheck/utils": "workspace:*",
     "discord.js": "^14.14.1",
-    "dotenv": "^17.3.1"
+    "dotenv": "^17.3.1",
+    "openai": "^6.27.0"
   },
   "devDependencies": {
     "@types/node": "^25.3.0",

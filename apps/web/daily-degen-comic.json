@@ -1,18 +1,26 @@
 {
-  "generatedAt": "2026-03-07T06:15:44.641Z",
+  "generatedAt": "2026-03-08T03:12:50.432Z",
   "timezone": "UTC",
   "date": "2026-03-07",
   "title": "TiltCheck Daily Degen Comic",
   "subtitle": "Auto-built from today's channel-watcher chat log.",
-  "mood": "Degen weather: volatile",
+  "mood": "Chaotic hype",
   "oneLiner": "",
   "stats": {
-    "messageCount": 1,
-    "uniqueAuthors": 1,
+    "messageCount": 167,
+    "uniqueAuthors": 38,
     "topSpeakers": [
       {
-        "author": "Droopy",
-        "count": 1
+        "author": "anon",
+        "count": 28
+      },
+      {
+        "author": "Psychee5150",
+        "count": 21
+      },
+      {
+        "author": "Michael",
+        "count": 15
       }
     ]
   },
@@ -24,20 +32,30 @@
     },
     {
       "title": "Midday Chaos",
-      "caption": "Droopy posts the main character energy.",
-      "quote": "I'm cheating. But they just put my account under review so I'm probably not getting away with it. I'll just try another wall lol"
+      "caption": "Samoxic posts the main character energy.",
+      "quote": "The fucking audacity of this slot. No no. The fucking audacity. This bitch. Took me over 300 spins with enhanced on to get into the bonus. I lowered my bet to minimum. Went to 200 more spins. So 100 before lowered and 2..."
     },
     {
       "title": "Aftershock",
-      "caption": "Droopy drops the closing line.",
-      "quote": "I'm cheating. But they just put my account under review so I'm probably not getting away with it. I'll just try another wall lol"
+      "caption": "Tesstickled drops the closing line.",
+      "quote": "Wen hr code?"
     }
   ],
   "quotes": [
     {
-      "author": "Droopy",
-      "text": "I'm cheating. But they just put my account under review so I'm probably not getting away with it. I'll just try another wall lol",
-      "timestamp": "2026-03-07T05:56:47.107Z"
+      "author": "tiCky",
+      "text": "anyone have the \"JakeTheDegen\" freeroll password on stake poker? @Guy :3",
+      "timestamp": "2026-03-07T16:31:17.984Z"
+    },
+    {
+      "author": "anon",
+      "text": "i got banned",
+      "timestamp": "2026-03-07T16:40:45.805Z"
+    },
+    {
+      "author": "Tesstickled",
+      "text": "Wen hr code?",
+      "timestamp": "2026-03-07T16:59:03.993Z"
     }
   ],
   "visualPrompt": "SealStats-inspired Discord home vibe: deep navy gradients, neon cyan accents, cinematic glow, and storybook panel framing.",
@@ -54,10 +72,10 @@
   "archiveRecent": [
     {
       "date": "2026-03-07",
-      "generatedAt": "2026-03-07T06:15:44.641Z",
+      "generatedAt": "2026-03-08T03:12:50.432Z",
       "title": "TiltCheck Daily Degen Comic",
       "subtitle": "Auto-built from today's channel-watcher chat log.",
-      "mood": "Degen weather: volatile",
+      "mood": "Chaotic hype",
       "oneLiner": "",
       "panels": [
         {
@@ -67,13 +85,13 @@
         },
         {
           "title": "Midday Chaos",
-          "caption": "Droopy posts the main character energy.",
-          "quote": "I'm cheating. But they just put my account under review so I'm probably not getting away with it. I'll just try another wall lol"
+          "caption": "Samoxic posts the main character energy.",
+          "quote": "The fucking audacity of this slot. No no. The fucking audacity. This bitch. Took me over 300 spins with enhanced on to get into the bonus. I lowered my bet to minimum. Went to 200 more spins. So 100 before lowered and 2..."
         },
         {
           "title": "Aftershock",
-          "caption": "Droopy drops the closing line.",
-          "quote": "I'm cheating. But they just put my account under review so I'm probably not getting away with it. I'll just try another wall lol"
+          "caption": "Tesstickled drops the closing line.",
+          "quote": "Wen hr code?"
         }
       ],
       "credits": {

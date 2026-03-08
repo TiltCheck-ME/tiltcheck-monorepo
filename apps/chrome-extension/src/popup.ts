@@ -183,15 +183,24 @@ window.addEventListener('message', (event) => {
   }
 });
 
-if (toggleSidebarBtn) toggleSidebarBtn.addEventListener('click', toggleSidebar);
-if (loginBtn) loginBtn.addEventListener('click', startDiscordLogin);
-if (vaultBtn) vaultBtn.addEventListener('click', openVault);
-if (dashboardBtn) dashboardBtn.addEventListener('click', openDashboard);
-if (lockWalletBtn) lockWalletBtn.addEventListener('click', () => { void lockWallet(); });
-if (unlockWalletBtn) unlockWalletBtn.addEventListener('click', () => { void unlockWallet(); });
+const popupParams = new URLSearchParams(window.location.search);
+const isConnectMode = popupParams.get('connect') === '1';
 
-void initAuth();
-void refreshSidebarStatus();
-setInterval(() => {
-  if (isWalletLocked()) renderWalletLockStatus();
-}, 1000);
+if (isConnectMode) {
+  // Dedicated auth-bridge mode: redirect this window directly to OAuth.
+  // This avoids showing the launcher UI when login is started from sidebar.
+  window.location.replace(getDiscordLoginUrl('extension'));
+} else {
+  if (toggleSidebarBtn) toggleSidebarBtn.addEventListener('click', toggleSidebar);
+  if (loginBtn) loginBtn.addEventListener('click', startDiscordLogin);
+  if (vaultBtn) vaultBtn.addEventListener('click', openVault);
+  if (dashboardBtn) dashboardBtn.addEventListener('click', openDashboard);
+  if (lockWalletBtn) lockWalletBtn.addEventListener('click', () => { void lockWallet(); });
+  if (unlockWalletBtn) unlockWalletBtn.addEventListener('click', () => { void unlockWallet(); });
+
+  void initAuth();
+  void refreshSidebarStatus();
+  setInterval(() => {
+    if (isWalletLocked()) renderWalletLockStatus();
+  }, 1000);
+}
