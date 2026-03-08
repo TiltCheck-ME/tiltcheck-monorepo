@@ -458,8 +458,9 @@
   <script>
     // Settings management
     let settings = {};
-    const WALLET_LOCK_UNTIL_KEY = 'tiltcheck_wallet_lock_until';
+    const VAULT_API_BASE = window.location.hostname === 'localhost' ? 'http://localhost:3001' : 'https://api.tiltcheck.me';
     let walletLockTimer = null;
+    let walletLockUntilMs = 0;
 
     // Load user settings on page load
     async function loadSettings() {
@@ -539,13 +540,13 @@
       }, 2000);
     }
 
-    function connectWallet() {
-      const lockUntil = Number(localStorage.getItem(WALLET_LOCK_UNTIL_KEY) || 0);
-      if (lockUntil > Date.now()) {
-        const remainingMs = lockUntil - Date.now();
-        const mins = Math.floor(remainingMs / 60000);
-        const secs = Math.ceil((remainingMs % 60000) / 1000);
-        alert(`Wallet lock is active (${mins}m ${secs}s left). Unlock it in Settings first.`);
+    async function connectWallet() {
+      const user = window.tiltCheckAuth?.getUser();
+      if (user) {
+        await refreshWalletLockStatus();
+      }
+      if (walletLockUntilMs > Date.now()) {
+        alert(`Wallet lock is active (${formatWalletLockRemaining(walletLockUntilMs - Date.now())} left). Unlock it in Settings first.`);
         return;
       }
       alert('Wallet connection coming soon! This will integrate with Phantom/Solflare for Solana tips.');
@@ -563,32 +564,95 @@
     function renderWalletLockStatus() {
       const statusEl = document.getElementById('wallet-lock-status');
       if (!statusEl) return;
-      const lockUntil = Number(localStorage.getItem(WALLET_LOCK_UNTIL_KEY) || 0);
-      const locked = lockUntil > Date.now();
+      const locked = walletLockUntilMs > Date.now();
       if (locked) {
         statusEl.style.color = '#f5b84b';
-        statusEl.textContent = `Wallet lock is active (${formatWalletLockRemaining(lockUntil - Date.now())} remaining)`;
+        statusEl.textContent = `Wallet lock is active (${formatWalletLockRemaining(walletLockUntilMs - Date.now())} remaining)`;
       } else {
         statusEl.style.color = '#00d4aa';
         statusEl.textContent = 'Wallet lock is currently off';
       }
     }
 
-    function lockWallet() {
+    async function refreshWalletLockStatus() {
+      const user = window.tiltCheckAuth?.getUser();
+      if (!user) {
+        walletLockUntilMs = 0;
+        renderWalletLockStatus();
+        return;
+      }
+      try {
+        const response = await fetch(`${VAULT_API_BASE}/vault/${encodeURIComponent(user.id)}/wallet-lock-status`, {
+          credentials: 'include'
+        });
+        const data = await response.json();
+        if (response.ok && data.success) {
+          walletLockUntilMs = data.locked && data.lockUntil ? new Date(data.lockUntil).getTime() : 0;
+        } else {
+          walletLockUntilMs = 0;
+        }
+      } catch (_error) {
+        walletLockUntilMs = 0;
+      }
+      renderWalletLockStatus();
+    }
+
+    async function lockWallet() {
+      const user = window.tiltCheckAuth?.getUser();
+      if (!user) {
+        alert('Please login to lock wallet actions.');
+        return;
+      }
       const minsInput = document.getElementById('wallet-lock-mins');
       const mins = parseInt(minsInput?.value || '0', 10);
       if (!Number.isFinite(mins) || mins <= 0) {
         alert('Enter a valid lock duration in minutes.');
         return;
       }
-      const lockUntil = Date.now() + mins * 60 * 1000;
-      localStorage.setItem(WALLET_LOCK_UNTIL_KEY, String(lockUntil));
+      try {
+        const response = await fetch(`${VAULT_API_BASE}/vault/${encodeURIComponent(user.id)}/wallet-lock`, {
+          method: 'POST',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ durationMinutes: mins })
+        });
+        const data = await response.json();
+        if (!response.ok || !data.success) {
+          alert(data.error || 'Could not lock wallet right now.');
+          return;
+        }
+        walletLockUntilMs = data.lockUntil ? new Date(data.lockUntil).getTime() : 0;
+      } catch (error) {
+        alert('Network issue while locking wallet.');
+        return;
+      }
       renderWalletLockStatus();
       showSaveIndicator();
     }
 
-    function unlockWallet() {
-      localStorage.removeItem(WALLET_LOCK_UNTIL_KEY);
+    async function unlockWallet() {
+      const user = window.tiltCheckAuth?.getUser();
+      if (!user) {
+        alert('Please login to unlock wallet actions.');
+        return;
+      }
+      try {
+        const response = await fetch(`${VAULT_API_BASE}/vault/${encodeURIComponent(user.id)}/wallet-unlock`, {
+          method: 'POST',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({})
+        });
+        const data = await response.json();
+        if (!response.ok || !data.success) {
+          alert(data.error || 'Could not unlock wallet right now.');
+          return;
+        }
+        walletLockUntilMs = 0;
+      } catch (_error) {
+        alert('Network issue while unlocking wallet.');
+        return;
+      }
       renderWalletLockStatus();
       showSaveIndicator();
     }
@@ -754,18 +818,18 @@
       setTimeout(() => {
         loadSettings();
         loadSubscriptionStatus();
-        renderWalletLockStatus();
+        void refreshWalletLockStatus();
         if (walletLockTimer) clearInterval(walletLockTimer);
-        walletLockTimer = setInterval(renderWalletLockStatus, 1000);
+        walletLockTimer = setInterval(() => { void refreshWalletLockStatus(); }, 5000);
       }, 500);
     } else {
       window.addEventListener('load', () => {
         setTimeout(() => {
           loadSettings();
           loadSubscriptionStatus();
-          renderWalletLockStatus();
+          void refreshWalletLockStatus();
           if (walletLockTimer) clearInterval(walletLockTimer);
-          walletLockTimer = setInterval(renderWalletLockStatus, 1000);
+          walletLockTimer = setInterval(() => { void refreshWalletLockStatus(); }, 5000);
         }, 500);
       });
     }

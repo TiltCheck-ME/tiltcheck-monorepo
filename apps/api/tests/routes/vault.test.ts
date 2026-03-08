@@ -18,6 +18,9 @@ const lockvaultMock = vi.hoisted(() => ({
   getVaultStatus: vi.fn(),
   depositToVault: vi.fn(),
   getVaultBalance: vi.fn(),
+  setWalletActionLockForUser: vi.fn(),
+  clearWalletActionLockForUser: vi.fn(),
+  getWalletActionLockStatus: vi.fn(),
 }));
 
 vi.mock('@tiltcheck/lockvault', () => lockvaultMock);
@@ -37,6 +40,7 @@ describe('Vault Routes', () => {
     lockvaultMock.depositToVault.mockReturnValue(10);
     lockvaultMock.lockVault.mockResolvedValue({ id: 'v1' });
     lockvaultMock.unlockVault.mockReturnValue({ id: 'v1', lockedAmountSOL: 1.23 });
+    lockvaultMock.getWalletActionLockStatus.mockReturnValue({ locked: false });
   });
 
   it('returns 403 for cross-user access', async () => {
@@ -51,6 +55,7 @@ describe('Vault Routes', () => {
     expect(res.status).toBe(200);
     expect(res.body.vault.balance).toBe(12.5);
     expect(res.body.vault.locks).toHaveLength(1);
+    expect(res.body.walletLock.locked).toBe(false);
   });
 
   it('validates deposit amount', async () => {
@@ -65,6 +70,19 @@ describe('Vault Routes', () => {
     expect(res.status).toBe(200);
     expect(lockvaultMock.depositToVault).toHaveBeenCalledWith('user-1', 10.5);
     expect(res.body.vault.balance).toBe(25);
+  });
+
+  it('blocks deposit when wallet lock is active', async () => {
+    lockvaultMock.getWalletActionLockStatus.mockReturnValue({
+      locked: true,
+      lockUntil: Date.now() + 5 * 60_000,
+      remainingMs: 5 * 60_000,
+      reason: 'focus',
+    });
+    const res = await request(app).post('/vault/user-1/deposit').send({ amount: 10 });
+    expect(res.status).toBe(423);
+    expect(res.body.code).toBe('WALLET_LOCK_ACTIVE');
+    expect(lockvaultMock.depositToVault).not.toHaveBeenCalled();
   });
 
   it('validates lock duration', async () => {
@@ -109,5 +127,34 @@ describe('Vault Routes', () => {
     const res = await request(app).post('/vault/user-1/release').send({});
     expect(res.status).toBe(200);
     expect(lockvaultMock.unlockVault).toHaveBeenCalledWith('user-1', 'v-ready');
+  });
+
+  it('returns wallet lock status for owner', async () => {
+    lockvaultMock.getWalletActionLockStatus.mockReturnValue({
+      locked: true,
+      lockUntil: Date.now() + 60_000,
+      remainingMs: 60_000,
+      reason: 'tilt',
+    });
+    const res = await request(app).get('/vault/user-1/wallet-lock-status');
+    expect(res.status).toBe(200);
+    expect(res.body.locked).toBe(true);
+    expect(typeof res.body.lockUntil).toBe('string');
+  });
+
+  it('sets and clears wallet lock', async () => {
+    lockvaultMock.setWalletActionLockForUser.mockReturnValue({
+      userId: 'user-1',
+      lockUntil: Date.now() + 30 * 60_000,
+      createdAt: Date.now(),
+      reason: 'manual',
+    });
+    const setRes = await request(app).post('/vault/user-1/wallet-lock').send({ durationMinutes: 30, reason: 'manual' });
+    expect(setRes.status).toBe(200);
+    expect(lockvaultMock.setWalletActionLockForUser).toHaveBeenCalled();
+
+    const clearRes = await request(app).post('/vault/user-1/wallet-unlock').send({});
+    expect(clearRes.status).toBe(200);
+    expect(lockvaultMock.clearWalletActionLockForUser).toHaveBeenCalledWith('user-1');
   });
 });

@@ -23,11 +23,10 @@ const walletLockMins = document.getElementById('walletLockMins') as HTMLInputEle
 const lockWalletBtn = document.getElementById('lockWalletBtn') as HTMLButtonElement;
 const unlockWalletBtn = document.getElementById('unlockWalletBtn') as HTMLButtonElement;
 
-type AuthUser = { username?: string; isDemo?: boolean } | null;
+type AuthUser = { id?: string; username?: string; isDemo?: boolean } | null;
 let authToken: string | null = null;
 let userData: AuthUser = null;
 const DEMO_USER: AuthUser = { username: 'Demo Mode', isDemo: true };
-const WALLET_LOCK_UNTIL_KEY = 'walletLockUntil';
 let walletLockUntil = 0;
 const trustedAuthOrigin = (() => {
   try {
@@ -135,19 +134,61 @@ function renderWalletLockStatus() {
 }
 
 async function lockWallet() {
+  if (!authToken || !userData?.id) {
+    window.alert('Connect Discord first to apply a server-enforced wallet lock.');
+    return;
+  }
   const mins = parseInt(walletLockMins?.value || '0', 10);
   if (!Number.isFinite(mins) || mins <= 0) {
     window.alert('Enter a valid lock duration in minutes.');
     return;
   }
-  walletLockUntil = Date.now() + mins * 60 * 1000;
-  await chrome.storage.local.set({ [WALLET_LOCK_UNTIL_KEY]: walletLockUntil });
+  try {
+    const response = await fetch(`${EXT_CONFIG.API_BASE_URL}/vault/${userData.id}/wallet-lock`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${authToken}`,
+      },
+      body: JSON.stringify({ durationMinutes: mins }),
+    });
+    const result = await response.json();
+    if (!response.ok || !result.success) {
+      window.alert(result.error || 'Could not lock wallet right now.');
+      return;
+    }
+    walletLockUntil = result.lockUntil ? new Date(result.lockUntil).getTime() : 0;
+  } catch (_error) {
+    window.alert('Network issue while locking wallet.');
+    return;
+  }
   renderWalletLockStatus();
 }
 
 async function unlockWallet() {
-  walletLockUntil = 0;
-  await chrome.storage.local.remove(WALLET_LOCK_UNTIL_KEY);
+  if (!authToken || !userData?.id) {
+    window.alert('Connect Discord first to unlock.');
+    return;
+  }
+  try {
+    const response = await fetch(`${EXT_CONFIG.API_BASE_URL}/vault/${userData.id}/wallet-unlock`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${authToken}`,
+      },
+      body: JSON.stringify({}),
+    });
+    const result = await response.json();
+    if (!response.ok || !result.success) {
+      window.alert(result.error || 'Could not unlock wallet right now.');
+      return;
+    }
+    walletLockUntil = 0;
+  } catch (_error) {
+    window.alert('Network issue while unlocking wallet.');
+    return;
+  }
   renderWalletLockStatus();
 }
 
@@ -164,12 +205,36 @@ function openDashboard() {
 }
 
 async function initAuth() {
-  const result = await chrome.storage.local.get(['authToken', 'userData', WALLET_LOCK_UNTIL_KEY]);
+  const result = await chrome.storage.local.get(['authToken', 'userData']);
   authToken = (result.authToken as string) || null;
   userData = (result.userData as AuthUser) || DEMO_USER;
-  walletLockUntil = Number(result[WALLET_LOCK_UNTIL_KEY] || 0);
+  if (authToken && userData?.id) {
+    try {
+      const response = await fetch(`${EXT_CONFIG.API_BASE_URL}/vault/${userData.id}/wallet-lock-status`, {
+        headers: { Authorization: `Bearer ${authToken}` },
+      });
+      const status = await response.json();
+      walletLockUntil = status.locked && status.lockUntil ? new Date(status.lockUntil).getTime() : 0;
+    } catch {
+      walletLockUntil = 0;
+    }
+  }
   renderAuthStatus();
   renderWalletLockStatus();
+}
+
+async function refreshWalletLockStatusFromServer() {
+  if (!authToken || !userData?.id) return;
+  try {
+    const response = await fetch(`${EXT_CONFIG.API_BASE_URL}/vault/${userData.id}/wallet-lock-status`, {
+      headers: { Authorization: `Bearer ${authToken}` },
+    });
+    const status = await response.json();
+    walletLockUntil = status.locked && status.lockUntil ? new Date(status.lockUntil).getTime() : 0;
+    renderWalletLockStatus();
+  } catch {
+    // keep last-known status on transient network errors
+  }
 }
 
 window.addEventListener('message', (event) => {
@@ -193,5 +258,8 @@ if (unlockWalletBtn) unlockWalletBtn.addEventListener('click', () => { void unlo
 void initAuth();
 void refreshSidebarStatus();
 setInterval(() => {
-  if (isWalletLocked()) renderWalletLockStatus();
-}, 1000);
+  if (isWalletLocked()) {
+    renderWalletLockStatus();
+  }
+  void refreshWalletLockStatusFromServer();
+}, 5000);
