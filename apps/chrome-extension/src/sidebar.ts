@@ -1340,6 +1340,11 @@ function startDiscordLoginFlow() {
     `width=${width},height=${height},left=${left},top=${top}`
   );
 
+  if (!authWindow) {
+    addFeedMessage('Connect window blocked. Allow pop-ups and try again.');
+    return;
+  }
+
   // Poll extension storage while auth window is open.
   const checkClosed = setInterval(async () => {
     const stored = await getStorage(['authToken', 'userData']);

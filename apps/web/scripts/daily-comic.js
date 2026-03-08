@@ -57,7 +57,7 @@
       PANELS_EL.innerHTML = `
         <article class="degen-comic-panel">
           <h3 class="text-white text-lg font-semibold">No panel data yet</h3>
-          <p class="text-gray-400 text-sm mt-2">Try generating today's payload from \`tools/channel-watcher/messages.jsonl\`.</p>
+          <p class="text-gray-400 text-sm mt-2">Try generating today&apos;s comic payload.</p>
         </article>
       `;
       return;
@@ -192,7 +192,7 @@
 
       DAY_EL.textContent = formatDate(comic.date);
       MOOD_EL.textContent = comic.mood ? `Mood: ${comic.mood}` : '';
-      SUBTITLE_EL.textContent = comic.subtitle || 'Daily comic from channel logs.';
+      SUBTITLE_EL.textContent = comic.subtitle || 'Daily comic from community highlights.';
       renderPanels(comic);
       renderCredits(comic);
       renderUpdatedAt(comic);
