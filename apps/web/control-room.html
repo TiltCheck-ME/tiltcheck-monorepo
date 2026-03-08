@@ -649,6 +649,34 @@
                 </div>
             </div>
 
+            <div id="enhanced" class="panel-view" style="display: none;">
+                <div class="panel">
+                    <div class="panel-title">
+                        Enhanced Analyzer
+                        <a href="/enhanced/" target="_blank" class="btn">Open in New Tab</a>
+                    </div>
+                    <div class="panel-content">
+                        <div class="iframe-container">
+                            <iframe src="/enhanced/"></iframe>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="screen" class="panel-view" style="display: none;">
+                <div class="panel">
+                    <div class="panel-title">
+                        Screen Analyzer
+                        <a href="/screen/" target="_blank" class="btn">Open in New Tab</a>
+                    </div>
+                    <div class="panel-content">
+                        <div class="iframe-container">
+                            <iframe src="/screen/"></iframe>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Public URLs Panel -->
             <div id="public-urls" class="panel-view" style="display: none;">
                 <div class="panel">
@@ -807,7 +835,7 @@
         async function refreshStatus() {
             try {
                 const key = new URLSearchParams(window.location.search).get('key') || 'tiltcheck-admin-2024';
-                const response = await fetch(`/admin/status?key=${key}`);
+                const response = await fetch(`/api/admin/status?key=${key}`);
 
                 if (response.ok) {
                     const data = await response.json();
@@ -938,8 +966,8 @@
                     '/api/severity': { title: 'Severity Buckets', status: 'live' },
                     '/api/evidence/package': { title: 'Evidence Package', status: 'dev' },
                     '/api/legal-rights/evaluate': { title: 'Legal Rights Heuristic', status: 'dev' },
-                    '/admin/status': { title: 'Admin Status (Protected)', status: 'live' },
-                    '/admin/sitemap': { title: 'Site Map API (Protected)', status: 'live' },
+                    '/api/admin/status': { title: 'Admin Status API (Protected)', status: 'dev' },
+                    '/api/admin/sitemap': { title: 'Site Map API (Protected)', status: 'dev' },
                     '/user/api/user/:id': { title: 'User Dashboard API', status: 'live' },
                     '/casino-api/api/casinos': { title: 'Casino Data Collection API', status: 'live' }
                 },
@@ -962,7 +990,7 @@
             // Try to fetch real-time data from API
             const key = new URLSearchParams(window.location.search).get('key') || 'tiltcheck-admin-2024';
 
-            fetch(`/admin/sitemap?key=${key}`)
+            fetch(`/api/admin/sitemap?key=${key}`)
                 .then(response => {
                     if (response.ok) {
                         return response.json();
@@ -1429,7 +1457,7 @@
 
             container.innerHTML = '<div class="logs-loading">Loading logs...</div>';
 
-            fetch(`/admin/logs?key=${key}&tail=${tail}`)
+            fetch(`/api/admin/logs?key=${key}&tail=${tail}`)
                 .then(response => {
                     if (!response.ok) {
                         throw new Error(`HTTP ${response.status}`);
