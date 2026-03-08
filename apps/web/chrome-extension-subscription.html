@@ -170,17 +170,7 @@
   </style>
 </head>
 <body>
-  <!-- Top Navigation -->
-  <nav class="top-nav" role="navigation" aria-label="Primary navigation">
-    <a href="/">Home</a>
-    <a href="/casinos.html">Casinos</a>
-    <a href="/degen-trust.html">Degens</a>
-    <a href="/login.html">Account Hub</a>
-    <a href="/about.html">About</a>
-    <a href="#" class="discord-login-btn" class="discord-login-btn" style="background: #5865F2; color: white; padding: 8px 16px; border-radius: 6px; text-decoration: none; font-weight: 600; margin-left: auto;">
-      Login with Discord
-    </a>
-  </nav>
+  <div id="shared-nav"></div>
 
   <div class="subscription-container">
     <div class="subscription-hero">
@@ -285,6 +275,7 @@
   </div>
 
   <script src="https://js.stripe.com/v3/"></script>
+  <script src="/scripts/components-loader.js"></script>
   <script src="/scripts/auth.js"></script>
   <script>
     // Stripe public key (will be loaded from API)
