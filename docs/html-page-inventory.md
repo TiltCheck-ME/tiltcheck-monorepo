@@ -1,10 +1,10 @@
 # HTML Page Inventory
 
-Generated: 2026-03-08T07:26:43.919Z
+Generated: 2026-03-08T07:32:03.419Z
 
 ## Summary
 
-- Total HTML files: **98**
+- Total HTML files: **97**
 - production page: **40**
 - production tool: **7**
 - error page: **3**
@@ -12,14 +12,12 @@ Generated: 2026-03-08T07:26:43.919Z
 - docs: **31**
 - component partial: **4**
 - app surface: **8**
-- archive candidate: **1**
 
 ## Action model
 
 - **Keep (wired)**: production pages already on shared nav + loader, or app-specific shells that are actively served.
 - **Keep (custom auth/system)**: intentionally minimal auth/callback/health pages.
 - **Wire**: page should be public but still uses legacy or custom nav inconsistent with shared pattern.
-- **Archive/Delete candidate**: obsolete or superseded page (keep only if explicitly needed).
 
 ## Production pages (`apps/web/*.html`)
 
@@ -153,15 +151,9 @@ Generated: 2026-03-08T07:26:43.919Z
 | `apps/user-dashboard/public/dashboard.html` | n/a | keep (app shell) | Served by app-specific service. |
 | `apps/user-dashboard/public/index.html` | n/a | keep (app shell) | Served by app-specific service. |
 
-## Archive/delete candidates
-
-| File | Wiring | Suggested action | Notes |
-|---|---|---|---|
-| `apps/web/index-legacy.html` | legacy inline nav | archive/delete candidate | Legacy homepage superseded by apps/web/index.html |
-
 ## Proposed next steps
 
-1. Archive or remove `apps/web/index-legacy.html` once confirmed unused in deployment tooling.
-2. Keep all pages marked `keep (wired)` and avoid reintroducing inline `top-nav` markup.
-3. Keep `login`, `auth/callback`, `dashboard/index`, and `status` as standalone system pages unless product wants full marketing nav there.
-4. Optional: add a CI check that fails when new `top-nav` blocks are introduced in `apps/web/*.html`.
+1. Keep all pages marked `keep (wired)` and avoid reintroducing inline `top-nav` markup.
+2. Keep `login`, `auth/callback`, `dashboard/index`, and `status` as standalone system pages unless product wants full marketing nav there.
+3. Optional: add a CI check that fails when new `top-nav` blocks are introduced in `apps/web/*.html`.
+4. Review docs/missing-route-gaps.md for unresolved internal link targets.
