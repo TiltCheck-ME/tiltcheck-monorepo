@@ -8,7 +8,7 @@
     "dev": "node src/server-trust-auth.js",
     "start": "node src/server-trust-auth.js",
     "legacy": "node src/server.js",
-    "test": "echo \"No tests yet\" && exit 0"
+    "test": "vitest --run tests/readiness.test.ts"
   },
   "dependencies": {
     "express": "^4.19.0",
