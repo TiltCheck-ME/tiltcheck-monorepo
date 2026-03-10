@@ -1,112 +1,873 @@
 <!DOCTYPE html>
 <!--
-  ? 2024?2026 TiltCheck Ecosystem. All Rights Reserved.
+  © 2024–2026 TiltCheck Ecosystem. All Rights Reserved.
   Created by jmenichole (https://github.com/jmenichole)
   
   This file is part of the TiltCheck project.
   For licensing information, see LICENSE file in the project root.
 -->
+
 <html lang="en">
+
 <head>
+  <!-- Meta Tags -->
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TiltCheck | The Transparency Layer</title>
+  <meta name="description"
+    content="Anti-scam, anti-tilt, anti-bullshit tools for degens. LinkCheck, BonusCheck, Chrome Extension, and Gameplay Fairness Analyzer in one ecosystem.">
+  <meta name="keywords"
+    content="casino tools, discord bot, crypto tipping, scam detection, provably fair, degen tools, casino trust, bonus tracker">
+  <meta name="theme-color" content="#00d4aa">
+  <link rel="apple-touch-icon" href="/assets/logo/apple-touch-icon.png">
+  <link rel="icon" type="image/x-icon" href="/assets/logo/favicon.ico">
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="TiltCheck - The Degen Transparency Layer">
+  <meta property="og:description"
+    content="The Degen Transparency Layer: LinkCheck, BonusCheck, Chrome Extension, VaultLock tools, and Gameplay Fairness Analyzer.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://tiltcheck.me">
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:site" content="@Tilt_check">
+  <meta name="twitter:title" content="TiltCheck - The Degen Transparency Layer">
+  <meta name="twitter:description"
+    content="Anti-scam, anti-tilt, anti-bullshit tools for degens. LinkCheck, BonusCheck, Chrome Extension, and gameplay fairness signals.">
+
+  <title>TiltCheck - The Degen Transparency Layer</title>
+
+  <!-- Stylesheets -->
   <link rel="stylesheet" href="/styles/theme.css">
+  <link rel="stylesheet" href="/styles/main.css">
+  <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
       theme: {
         extend: {
           colors: {
-            'tc-mint': '#00FFC6',
-            'tc-black': '#0E0E0F',
-            'tc-slate': '#111316',
+            'degen-black': '#0d1117',
+            'degen-gray': '#161b22',
+            'degen-green': '#00ffaa',
+            'degen-red': '#ff4b4b',
+          },
+          boxShadow: {
+            'neon': '0 0 15px rgba(0, 255, 170, 0.3)',
           }
         }
       }
     }
   </script>
   <style>
-    body { background-color: #0E0E0F !important; }
-    .hero-gradient {
-      background: radial-gradient(circle at 50% 0%, rgba(0, 255, 198, 0.1) 0%, transparent 50%);
+    /* Respect reduced motion preferences */
+    @media (prefers-reduced-motion: reduce) {
+      * {
+        animation-duration: 0.001ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.001ms !important;
+      }
+    }
+
+    .mobile-section-toggle {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 14px;
+      border: 1px solid #2a2f34;
+      border-radius: 6px;
+      background: #11161b;
+      color: #eee;
+      margin-top: 10px;
+    }
+
+    .mobile-section-toggle[aria-expanded="true"] {
+      background: #151a20;
+    }
+
+    .mobile-section-content {
+      display: none;
+      padding: 6px 10px;
+    }
+
+    .hero-surface {
+      position: relative;
+      overflow: hidden;
+      background:
+        radial-gradient(circle at 22% -15%, rgba(79, 156, 251, 0.3), transparent 48%),
+        radial-gradient(circle at 84% 0%, rgba(0, 212, 170, 0.18), transparent 52%),
+        linear-gradient(180deg, #0d1117 0%, #090d14 72%, #080a10 100%);
+    }
+
+    .hero-surface::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: url("/assets/logo/logocurrent.svg") center 8% / 560px no-repeat;
+      opacity: 0.04;
+      pointer-events: none;
+    }
+
+    .hero-surface > div {
+      position: relative;
+      z-index: 1;
+    }
+
+    .tools-surface {
+      background:
+        radial-gradient(circle at 50% -30%, rgba(79, 156, 251, 0.1), transparent 55%),
+        linear-gradient(180deg, #0a0f17 0%, #090d14 100%);
+    }
+
+    .hero-cta {
+      box-shadow: 0 16px 36px rgba(7, 18, 34, 0.36);
+      transition: transform .2s ease, box-shadow .2s ease, background-color .2s ease, border-color .2s ease;
+    }
+
+    .hero-cta:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 18px 40px rgba(7, 18, 34, 0.42);
+    }
+
+    .tool-card {
+      border-radius: 1rem;
+      background: linear-gradient(165deg, rgba(22, 27, 34, 0.72), rgba(15, 20, 29, 0.9));
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+    }
+
+    .tool-card-disabled {
+      background: linear-gradient(165deg, rgba(22, 27, 34, 0.85), rgba(14, 19, 28, 0.95));
+    }
+
+    .trust-card-cta {
+      margin-top: auto;
+      align-self: flex-start;
+    }
+
+    .degen-comic-section {
+      background:
+        radial-gradient(circle at 18% -10%, rgba(79, 156, 251, 0.22), transparent 48%),
+        radial-gradient(circle at 84% 8%, rgba(0, 255, 170, 0.18), transparent 50%),
+        linear-gradient(180deg, #090d15 0%, #070b12 100%);
+      border-top: 1px solid rgba(79, 156, 251, 0.28);
+    }
+
+    .degen-comic-shell {
+      background: linear-gradient(155deg, rgba(15, 23, 38, 0.92), rgba(9, 14, 24, 0.97));
+      border: 1px solid rgba(79, 156, 251, 0.28);
+      border-radius: 18px;
+      box-shadow: 0 22px 46px rgba(3, 9, 16, 0.56), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+      overflow: hidden;
+    }
+
+    .degen-comic-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 16px;
+      border-bottom: 1px solid rgba(79, 156, 251, 0.28);
+      background: linear-gradient(180deg, rgba(18, 28, 45, 0.88), rgba(13, 20, 34, 0.88));
+    }
+
+    .degen-comic-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      border-radius: 999px;
+      padding: 5px 11px;
+      border: 1px solid rgba(0, 255, 170, 0.34);
+      background: rgba(0, 255, 170, 0.1);
+      color: #b7ffe8;
+      font-size: 0.76rem;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      font-weight: 700;
+    }
+
+    .degen-comic-panels {
+      display: grid;
+      gap: 14px;
+      grid-template-columns: repeat(1, minmax(0, 1fr));
+      padding: 16px;
+    }
+
+    @media (min-width: 900px) {
+      .degen-comic-panels {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+    }
+
+    .degen-comic-panel {
+      border: 1px solid rgba(66, 110, 170, 0.5);
+      border-radius: 14px;
+      background: linear-gradient(165deg, rgba(18, 27, 41, 0.9), rgba(11, 17, 29, 0.96));
+      padding: 14px 14px 16px;
+    }
+
+    .degen-comic-quote {
+      border-left: 3px solid rgba(0, 255, 170, 0.72);
+      padding-left: 10px;
+      margin-top: 10px;
+      color: #dce8ff;
+      font-size: 0.92rem;
+    }
+
+    .degen-comic-meta {
+      color: #92a4c4;
+      font-size: 0.86rem;
+      margin-top: 10px;
+      text-align: center;
+    }
+
+    .degen-comic-archive {
+      margin-top: 14px;
+      border: 1px solid rgba(66, 110, 170, 0.38);
+      border-radius: 12px;
+      background: rgba(10, 15, 26, 0.8);
+      padding: 12px 14px;
+    }
+
+    .degen-comic-archive h3 {
+      color: #dce8ff;
+      margin: 0 0 8px 0;
+      font-size: 0.96rem;
+    }
+
+    .degen-comic-archive-list {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: grid;
+      gap: 8px;
+    }
+
+    .degen-comic-archive-list li {
+      color: #a9bad7;
+      font-size: 0.86rem;
+      border-bottom: 1px dashed rgba(74, 102, 149, 0.35);
+      padding-bottom: 6px;
+    }
+
+    .degen-comic-archive-list li:last-child {
+      border-bottom: none;
+      padding-bottom: 0;
     }
   </style>
 </head>
-<body class="hero-gradient text-white">
+
+<body>
+  <a href="#main-content" class="skip-link">Skip to main content</a>
+
+  <!-- Shared Nav Include -->
   <div id="shared-nav"></div>
 
-  <!-- Hero Section -->
-  <section class="pt-32 pb-20 px-6 max-w-7xl mx-auto text-center">
-    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-tc-mint/30 bg-tc-mint/5 text-tc-mint text-xs font-bold mb-8 tracking-widest uppercase">
-      <span class="w-2 h-2 rounded-full bg-tc-mint animate-pulse"></span>
-      System Active
+  <!-- Mobile Navigation Overlay -->
+  <div class="mobile-nav" id="mobileNav" aria-hidden="true">
+    <div class="mobile-nav-links">
+      <a href="/">Home</a>
+      <a href="/casinos.html">Casinos</a>
+      <a href="/degen-trust.html">Degens</a>
+      <a href="/trust-scores.html">Trust Scores</a>
+      <a href="/getting-started.html">Getting Started</a>
+      <a href="/about.html">About</a>
+      <button class="mobile-section-toggle" aria-expanded="false" aria-controls="mobile-edu">Education &
+        Help<span>▾</span></button>
+      <div id="mobile-edu" class="mobile-section-content" aria-hidden="true">
+        <a href="/how-it-works.html">How It Works</a>
+        <a href="/faq.html">FAQ</a>
+        <a href="/getting-started.html">Getting Started</a>
+        <a href="/tutorials.html">Tutorials</a>
+        <a href="/glossary.html">Glossary</a>
+        <a href="/responsible-gambling.html">Responsible Gambling</a>
+        <a href="/help.html">Help Center</a>
+      </div>
+      <button class="mobile-section-toggle" aria-expanded="false" aria-controls="mobile-trans">Transparency &
+        Data<span>▾</span></button>
+      <div id="mobile-trans" class="mobile-section-content" aria-hidden="true">
+        <a href="/stats-dashboard.html">Stats Dashboard</a>
+        <a href="/casino-reviews.html">Casino Reviews</a>
+        <a href="/scam-reports.html">Scam Reports</a>
+        <a href="/trust-api.html">Trust Score API Docs</a>
+        <a href="/transparency-reports.html">Transparency Reports</a>
+      </div>
+      <button class="mobile-section-toggle" aria-expanded="false" aria-controls="mobile-legal">Legal &
+        Compliance<span>▾</span></button>
+      <div id="mobile-legal" class="mobile-section-content" aria-hidden="true">
+        <a href="/privacy.html">Privacy Policy</a>
+        <a href="/terms.html">Terms of Service</a>
+        <a href="/compliance.html">Compliance Overview</a>
+        <a href="/licensing.html">Licensing Info</a>
+        <a href="/cookie-policy.html">Cookie Policy</a>
+      </div>
+      <a href="/newsletter.html">Newsletter</a>
+      <a href="/press-kit.html">Press Kit</a>
+      <a href="/testimonials.html">Testimonials</a>
+      <a href="/contact.html">Contact</a>
     </div>
-    <h1 class="text-5xl md:text-8xl font-black tracking-tighter mb-6">
-      PLAY <span class="text-tc-mint">SMARTER</span>.<br/>LOSE LESS.
-    </h1>
-    <p class="text-xl text-gray-400 max-w-2xl mx-auto mb-12 leading-relaxed">
-      Anti-tilt monitoring, transparent fairness signals, and secure Solana-powered tools.
-    </p>
-    <div class="flex flex-col sm:flex-row gap-4 justify-center">
-      <a href="https://api.tiltcheck.me/auth/discord" class="btn-primary flex items-center justify-center">Login with Discord</a>
-      <a href="https://discord.gg/s6NNfPHxMS" class="px-8 py-3 rounded-lg border border-white/10 hover:bg-white/5 font-bold transition-all">Join Discord</a>
-    </div>
-  </section>
 
-  <!-- Live Stats Section -->
-  <section class="py-12 border-y border-white/5 bg-tc-slate/30">
-    <div class="max-w-7xl mx-auto px-6 flex flex-wrap justify-center gap-8 text-center">
-      <div>
-        <div class="text-2xl font-bold text-tc-mint" id="stat-communities">--</div>
-        <div class="text-xs text-gray-500 uppercase tracking-widest">Communities</div>
-      </div>
-      <div>
-        <div class="text-2xl font-bold text-tc-mint" id="stat-scans">--</div>
-        <div class="text-xs text-gray-500 uppercase tracking-widest">24h Scans</div>
-      </div>
-      <div>
-        <div class="text-2xl font-bold text-tc-mint" id="stat-blocked">--</div>
-        <div class="text-xs text-gray-500 uppercase tracking-widest">Threats Blocked</div>
-      </div>
-      <div class="w-full text-xs text-gray-600 mt-2" id="api-stats-status">Initializing telemetry...</div>
+    <div class="mobile-nav-section">
+      <h3>Tools</h3>
+      <a href="/tools/justthetip.html">JustTheTip</a>
+      <a href="/tools/suslink.html">LinkCheck</a>
+      <a href="/tools/collectclock.html">BonusCheck</a>
+      <a href="/tools/tiltcheck-core.html">Gameplay Fairness Analyzer</a>
+      <a href="/extension.html">Chrome Extension</a>
+      <a href="/extension.html#pwa-install">VaultLock &amp; AutoVaulter</a>
+      <a href="/beta.html">Beta Program</a>
     </div>
-  </section>
 
-  <!-- Tools Grid -->
-  <section id="tools" class="py-24 px-6 max-w-7xl mx-auto">
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-      <div class="glass-card p-8 flex flex-col">
-        <div class="w-12 h-12 rounded-xl bg-tc-mint/10 flex items-center justify-center text-tc-mint text-2xl mb-6">??</div>
-        <h3 class="text-xl font-bold mb-2">JustTheTip</h3>
-        <p class="text-gray-400 text-sm mb-6 flex-1">Secure Solana tipping and automated airdrops directly in Discord.</p>
-        <a href="/tools/justthetip.html" class="text-tc-mint text-xs font-bold uppercase tracking-widest hover:underline">Explore Tool ?</a>
-      </div>
-      <div class="glass-card p-8 flex flex-col border-tc-mint/40">
-        <div class="w-12 h-12 rounded-xl bg-tc-mint/10 flex items-center justify-center text-tc-mint text-2xl mb-6">??</div>
-        <h3 class="text-xl font-bold mb-2">LinkCheck</h3>
-        <p class="text-gray-400 text-sm mb-6 flex-1">AI-powered link analysis. Detect phishing before you click.</p>
-        <a href="/tools/suslink.html" class="text-tc-mint text-xs font-bold uppercase tracking-widest hover:underline">Scan Now ?</a>
-      </div>
-      <div class="glass-card p-8 flex flex-col">
-        <div class="w-12 h-12 rounded-xl bg-purple-500/10 flex items-center justify-center text-purple-400 text-2xl mb-6">??</div>
-        <h3 class="text-xl font-bold mb-2">BonusCheck</h3>
-        <p class="text-gray-400 text-sm mb-6 flex-1">Real-time bonus drop tracking and predictions.</p>
-        <a href="/tools/collectclock.html" class="text-tc-mint text-xs font-bold uppercase tracking-widest hover:underline">View Drops ?</a>
-      </div>
-      <div class="glass-card p-8 flex flex-col">
-        <div class="w-12 h-12 rounded-xl bg-tc-mint/10 flex items-center justify-center text-tc-mint text-2xl mb-6">??</div>
-        <h3 class="text-xl font-bold mb-2">Extension</h3>
-        <p class="text-gray-400 text-sm mb-6 flex-1">Real-time sidebar and fairness overlays while you play.</p>
-        <a href="/extension.html" class="text-tc-mint text-xs font-bold uppercase tracking-widest hover:underline">Install Now ?</a>
-      </div>
+    <div class="mobile-nav-section">
+      <h3>Resources</h3>
+      <a href="/getting-started.html">Getting Started</a>
+      <a href="/press-kit.html">Press Kit</a>
+      <a href="/contact.html">Contact</a>
+      <a href="/newsletter.html">Newsletter</a>
     </div>
-  </section>
 
+    <div class="mobile-nav-section">
+      <h3>Community</h3>
+      <a href="https://discord.gg/s6NNfPHxMS" target="_blank" rel="noopener">Discord</a>
+      <a href="https://github.com/jmenichole/tiltcheck-monorepo" target="_blank" rel="noopener">GitHub</a>
+      <a href="https://x.com/Tilt_check" target="_blank" rel="noopener">X (Twitter)</a>
+    </div>
+
+    <div class="mobile-nav-section">
+      <a href="/login.html"
+        style="background: #5865F2; color: white; padding: 12px 20px; border-radius: 8px; text-align: center; font-weight: 600; text-decoration: none; display: block; margin-top: 20px;">
+        <svg width="20" height="20" viewBox="0 0 71 55" fill="none" xmlns="http://www.w3.org/2000/svg"
+          style="vertical-align: middle; margin-right: 8px;">
+          <path
+            d="M60.1045 4.8978C55.5792 2.8214 50.7265 1.2916 45.6527 0.41542C45.5603 0.39851 45.468 0.440769 45.4204 0.525289C44.7963 1.6353 44.105 3.0834 43.6209 4.2216C38.1637 3.4046 32.7345 3.4046 27.3892 4.2216C26.905 3.0581 26.1886 1.6353 25.5617 0.525289C25.5141 0.443589 25.4218 0.40133 25.3294 0.41542C20.2584 1.2888 15.4057 2.8186 10.8776 4.8978C10.8384 4.9147 10.8048 4.9429 10.7825 4.9795C1.57795 18.7309 -0.943561 32.1443 0.293408 45.3914C0.299005 45.4562 0.335386 45.5182 0.385761 45.5576C6.45866 50.0174 12.3413 52.7249 18.1147 54.5195C18.2071 54.5477 18.305 54.5139 18.3638 54.4378C19.7295 52.5728 20.9469 50.6063 21.9907 48.5383C22.0523 48.4172 21.9935 48.2735 21.8676 48.2256C19.9366 47.4931 18.0979 46.6 16.3292 45.5858C16.1893 45.5041 16.1781 45.304 16.3068 45.2082C16.679 44.9293 17.0513 44.6391 17.4067 44.3461C17.471 44.2926 17.5606 44.2813 17.6362 44.3151C29.2558 49.6202 41.8354 49.6202 53.3179 44.3151C53.3935 44.2785 53.4831 44.2898 53.5502 44.3433C53.9057 44.6363 54.2779 44.9293 54.6529 45.2082C54.7816 45.304 54.7732 45.5041 54.6333 45.5858C52.8646 46.6197 51.0259 47.4931 49.0921 48.2228C48.9662 48.2707 48.9102 48.4172 48.9718 48.5383C50.038 50.6034 51.2554 52.5699 52.5959 54.435C52.6519 54.5139 52.7526 54.5477 52.845 54.5195C58.6464 52.7249 64.529 50.0174 70.6019 45.5576C70.6551 45.5182 70.6887 45.459 70.6943 45.3942C72.1747 30.0791 68.2147 16.7757 60.1968 4.9823C60.1772 4.9429 60.1437 4.9147 60.1045 4.8978ZM23.7259 37.3253C20.2276 37.3253 17.3451 34.1136 17.3451 30.1693C17.3451 26.225 20.1717 23.0133 23.7259 23.0133C27.308 23.0133 30.1626 26.2532 30.1066 30.1693C30.1066 34.1136 27.28 37.3253 23.7259 37.3253ZM47.3178 37.3253C43.8196 37.3253 40.9371 34.1136 40.9371 30.1693C40.9371 26.225 43.7636 23.0133 47.3178 23.0133C50.9 23.0133 53.7545 26.2532 53.6986 30.1693C53.6986 34.1136 50.9 37.3253 47.3178 37.3253Z"
+            fill="currentColor" />
+        </svg>
+        Login with Discord
+      </a>
+    </div>
+
+    <div class="mobile-nav-section">
+      <h3>Legal & Compliance</h3>
+      <a href="/privacy.html">Privacy Policy</a>
+      <a href="/terms.html">Terms of Service</a>
+      <a href="/compliance.html">Compliance Overview</a>
+      <a href="/licensing.html">Licensing Info</a>
+      <a href="/cookie-policy.html">Cookie Policy</a>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <main id="main-content">
+    <!-- Hero Section -->
+    <section class="hero-surface py-24 md:py-28 px-4 text-center">
+      <div class="max-w-4xl mx-auto">
+        <h1 class="text-5xl md:text-7xl font-bold tracking-tight text-white mb-6">Tools, trust engines, predictions, and safety systems.</h1>
+        <p class="text-base md:text-xl text-[#00ffaa] font-semibold mb-4 max-w-3xl mx-auto">
+          Built for degens who hate losing to the house and to themselves—anti-tilt, anti-scam, anti-bullshit.
+        </p>
+        <p class="text-lg md:text-2xl text-gray-400 leading-relaxed mb-10 max-w-3xl mx-auto">
+          Made for degen communities that want to play smarter, safer, and with less bullshit.
+        </p>
+        <div class="flex flex-col sm:flex-row gap-4 justify-center">
+          <a href="/getting-started.html"
+            class="hero-cta bg-[#00ffaa] hover:bg-[#00e699] text-black font-bold px-8 py-4 rounded-2xl text-lg tracking-wide">
+            Start with TiltCheck
+          </a>
+          <a href="https://discord.gg/s6NNfPHxMS"
+            class="hero-cta border border-[#00ffaa] text-[#00ffaa] hover:bg-[#00ffaa]/10 font-semibold px-8 py-4 rounded-2xl text-lg tracking-wide"
+            target="_blank" rel="noopener">
+            Join Discord
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <section aria-label="Live ecosystem stats" style="border-top:1px solid rgba(79,156,251,0.25); border-bottom:1px solid rgba(79,156,251,0.2); background:rgba(8,12,20,0.85);">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8" style="padding: 14px 0;">
+        <div style="display:flex; flex-wrap:wrap; gap:18px; align-items:center; justify-content:center; color:#a9bad7; font-size:0.95rem;">
+          <span>Communities protected: <strong id="stat-communities" style="color:#dce8ff;">—</strong></span>
+          <span>Scans (24h): <strong id="stat-scans" style="color:#dce8ff;">—</strong></span>
+          <span>High-risk flagged (24h): <strong id="stat-blocked" style="color:#dce8ff;">—</strong></span>
+          <span id="api-stats-status" style="color:#8cbcff;">Loading live stats…</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Tools Section -->
+    <section id="tools" class="tools-surface py-20 md:py-24">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <h2 class="text-4xl md:text-5xl font-bold tracking-tight text-white text-center mb-4">The Tools</h2>
+        <p class="text-gray-400 text-center text-lg mb-12 max-w-3xl mx-auto">Smart tools for casino communities. Scam detection,
+          bonuses, vault controls, gameplay fairness, and tilt prevention across Discord, web, and extension.</p>
+
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+
+          <a href="/tools/justthetip.html"
+            class="tool-card group backdrop-blur-md border border-[#30363d] p-6 hover:border-[#00ffaa] transition-all duration-300 hover:-translate-y-2 hover:shadow-[0_10px_30px_rgba(0,255,170,0.15)]">
+            <div class="mb-4">
+              <img class="w-14 h-14" src="/assets/icons/just-the-tip.svg" alt="JustTheTip icon">
+            </div>
+            <h3 class="text-xl font-semibold text-white group-hover:text-[#00ffaa] transition-colors">JustTheTip</h3>
+            <p class="text-gray-400 text-sm mt-2 mb-4">Non-custodial Solana tipping, airdrops, and swaps. Flat fee. No
+              balance custody.</p>
+            <span
+              class="inline-block bg-[#00ffaa]/20 text-[#00ffaa] text-xs font-medium px-3 py-1 rounded-full pulse-primary">Live</span>
+          </a>
+
+          <a href="/tools/suslink.html"
+            class="tool-card group backdrop-blur-md border border-[#30363d] p-6 hover:border-[#00ffaa] transition-all duration-300 hover:-translate-y-2 hover:shadow-[0_10px_30px_rgba(0,255,170,0.15)]">
+            <div class="mb-4">
+              <img class="w-14 h-14" src="/assets/icons/freespin-scan.svg" alt="LinkCheck icon">
+            </div>
+            <h3 class="text-xl font-semibold text-white group-hover:text-[#00ffaa] transition-colors">LinkCheck</h3>
+            <p class="text-gray-400 text-sm mt-2 mb-4">Scan links fast and flag scam domains, redirects, and
+              impersonation.</p>
+            <span
+              class="inline-block bg-[#00ffaa]/20 text-[#00ffaa] text-xs font-medium px-3 py-1 rounded-full">Live</span>
+          </a>
+
+          <a href="/tools/collectclock.html"
+            class="tool-card group backdrop-blur-md border border-[#4f9cfb66] p-6 hover:border-[#4f9cfb] transition-all duration-300 hover:-translate-y-2 hover:shadow-[0_10px_30px_rgba(79,156,251,0.16)]">
+            <div class="mb-4">
+              <img class="w-14 h-14" src="/assets/icons/collect-clock.svg" alt="CollectClock icon">
+            </div>
+            <h3 class="text-xl font-semibold text-white group-hover:text-[#4f9cfb] transition-colors">BonusCheck</h3>
+            <p class="text-gray-400 text-sm mt-2 mb-4">Daily bonus tracker with nerf detection and bonus cycle
+              prediction.</p>
+            <span
+              class="inline-block bg-[#4f9cfb]/20 text-[#8cbcff] text-xs font-medium px-3 py-1 rounded-full">Beta</span>
+          </a>
+
+
+          <a href="/tools/tiltcheck-core.html"
+            class="tool-card group backdrop-blur-md border border-[#4f9cfb66] p-6 hover:border-[#4f9cfb] transition-all duration-300 hover:-translate-y-2 hover:shadow-[0_10px_30px_rgba(79,156,251,0.16)]">
+            <div class="mb-4">
+              <img class="w-14 h-14" src="/assets/icons/tilt-engine.svg" alt="TiltCheck Core icon">
+            </div>
+            <h3 class="text-xl font-semibold text-white group-hover:text-[#4f9cfb] transition-colors">Gameplay Fairness Analyzer
+            </h3>
+            <p class="text-gray-400 text-sm mt-2 mb-4">Session behavior, fairness signals, and anomaly detection in one analyzer.</p>
+            <span
+              class="inline-block bg-[#4f9cfb]/20 text-[#8cbcff] text-xs font-medium px-3 py-1 rounded-full">Beta</span>
+          </a>
+
+          <a href="/extension.html"
+            class="tool-card group backdrop-blur-md border border-[#00ffaa66] p-6 hover:border-[#00ffaa] transition-all duration-300 hover:-translate-y-2 hover:shadow-[0_10px_30px_rgba(0,255,170,0.15)]">
+            <div class="mb-4">
+              <img class="w-14 h-14" src="/assets/icons/accountability-wallet.svg" alt="Chrome Extension icon">
+            </div>
+            <h3 class="text-xl font-semibold text-white group-hover:text-[#00ffaa] transition-colors">Chrome Extension</h3>
+            <p class="text-gray-400 text-sm mt-2 mb-4">Real-time sidebar, tilt monitoring, and vault controls while you play.</p>
+            <span
+              class="inline-block bg-[#00ffaa]/20 text-[#00ffaa] text-xs font-medium px-3 py-1 rounded-full pulse-primary">Live</span>
+          </a>
+
+
+          <div
+            class="tool-card tool-card-disabled group border border-[#30363d] p-6 opacity-50 cursor-not-allowed relative overflow-hidden">
+            <div class="absolute inset-0 bg-[#0d1117]/50 flex items-center justify-center">
+              <span class="bg-gray-800 text-gray-300 px-3 py-1 rounded-full text-sm font-medium">Coming Soon</span>
+            </div>
+            <div class="mb-4">
+              <img class="w-14 h-14 grayscale" src="/assets/icons/icons-sprite.svg" alt="Poker icon">
+            </div>
+            <h3 class="text-xl font-semibold text-white">Poker</h3>
+            <p class="text-gray-400 text-sm mt-2 mb-4">Texas Hold'em poker directly in Discord. Play with friends.</p>
+          </div>
+
+
+          <div
+            class="tool-card tool-card-disabled group border border-[#30363d] p-6 opacity-50 cursor-not-allowed relative overflow-hidden">
+            <div class="absolute inset-0 bg-[#0d1117]/50 flex items-center justify-center">
+              <span class="bg-gray-800 text-gray-300 px-3 py-1 rounded-full text-sm font-medium">Coming Soon</span>
+            </div>
+            <div class="mb-4">
+              <img class="w-14 h-14 grayscale" src="/assets/icons/dand.svg" alt="DA&D icon">
+            </div>
+            <h3 class="text-xl font-semibold text-white">DA&D</h3>
+            <p class="text-gray-400 text-sm mt-2 mb-4">AI-powered Cards Against Humanity-style game for degen
+              communities.</p>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- Why TiltCheck Section -->
+    <section class="features-section" aria-labelledby="why-title">
+      <div class="container">
+        <h2 id="why-title" class="section-title">Why TiltCheck Exists</h2>
+        <div class="features-list">
+          <div class="feature-item">
+            <img class="feature-icon" width="60" height="60" src="/assets/icons/accountability-wallet.svg"
+              loading="lazy" decoding="async" alt="Shield lock security icon">
+
+            <div>
+              <h3>Scam links</h3>
+              <p>Detect phishing, redirects, and impersonation before clicks happen.</p>
+            </div>
+          </div>
+          <div class="feature-item">
+            <img class="feature-icon" width="60" height="60" src="/assets/icons/accountability-wallet.svg" loading="lazy"
+              decoding="async" alt="Wallet lock timeline icon">
+
+            <div>
+              <h3>Vault lock transparency</h3>
+              <p>Track lock created, extended, and auto-unlocked events in one timeline.</p>
+            </div>
+          </div>
+          <div class="feature-item">
+            <img class="feature-icon" width="60" height="60" src="/assets/icons/icons-sprite.svg" loading="lazy"
+              decoding="async" alt="Bar chart icon">
+
+            <div>
+              <h3>Confusing payouts</h3>
+              <p>Clarity on fees, timelines, and real-world payout behavior.</p>
+            </div>
+          </div>
+          <div class="feature-item">
+            <img class="feature-icon" width="60" height="60" src="/assets/icons/tilt-engine.svg" loading="lazy"
+              decoding="async" alt="War-room analytics icon">
+
+            <div>
+              <h3>Mod chaos</h3>
+              <p>Auto-reviewed promos, consistent rules, fewer disputes.</p>
+            </div>
+          </div>
+          <div class="feature-item">
+            <img class="feature-icon" width="60" height="60" src="/assets/icons/tilt-engine.svg" loading="lazy"
+              decoding="async" alt="Trust mesh icon">
+
+            <div>
+              <h3>Tilt spirals</h3>
+              <p>Gentle cooldown nudges and accountability tools — no shame.</p>
+            </div>
+          </div>
+          <div class="feature-item">
+            <img class="feature-icon" width="60" height="60" src="/assets/icons/icons-sprite.svg" loading="lazy"
+              decoding="async" alt="Transparency dashboard icon">
+
+            <div>
+              <h3>Shady casinos</h3>
+              <p>Signals for fairness, compliance, and user outcomes.</p>
+            </div>
+          </div>
+          <div class="feature-item">
+            <img class="feature-icon" width="60" height="60" src="/assets/icons/tilt-engine.svg" loading="lazy"
+              decoding="async" alt="Trust nodes icon">
+
+            <div>
+              <h3>Zero transparency</h3>
+              <p>Explainable scoring and open modules.</p>
+            </div>
+          </div>
+          <div class="feature-item">
+            <img class="feature-icon" width="60" height="60" src="/assets/icons/accountability-wallet.svg"
+              loading="lazy" decoding="async" alt="Wallet lock icon">
+
+            <div>
+              <h3>No accountability tools</h3>
+              <p>Opt-in vaults, phone-a-friend withdraws, and trust signals.</p>
+            </div>
+          </div>
+        </div>
+        <p class="built-by text-center">TiltCheck fixes all of it with honest signal, clear evidence, and zero fluff.</p>
+      </div>
+    </section>
+
+    <!-- How It Works Section -->
+    <section class="how-it-works-section" aria-labelledby="how-title">
+      <div class="container">
+        <h2 id="how-title" class="section-title">How It Works</h2>
+        <div class="hiw-steps">
+          <div class="hiw-step">
+            <div class="hiw-step-number">1</div>
+            <h3>Join Discord</h3>
+            <p>Add TiltCheck to your casino community Discord server. Instant setup — no KYC, no accounts.</p>
+            <a href="https://discord.gg/s6NNfPHxMS" class="hiw-link" target="_blank" rel="noopener">Join Free →</a>
+          </div>
+          <div class="hiw-connector" aria-hidden="true"></div>
+          <div class="hiw-step">
+            <div class="hiw-step-number">2</div>
+            <h3>Plug In Your Tools</h3>
+            <p>Enable LinkCheck for link scanning, BonusCheck for bonuses, and the Chrome Extension for live overlays —
+              pick what you need.
+            </p>
+            <a href="#tools" class="hiw-link">Explore Tools →</a>
+          </div>
+          <div class="hiw-connector" aria-hidden="true"></div>
+          <div class="hiw-step">
+            <div class="hiw-step-number">3</div>
+            <h3>Get Transparency</h3>
+            <p>Trust scores, scam alerts, bonus nerfs, and cooldown nudges surface automatically — in real time.</p>
+            <a href="/casinos.html" class="hiw-link">See Casino Data →</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Trust Engines Section -->
+    <section class="trust-engines-section" aria-labelledby="trust-title">
+      <div class="container">
+        <h2 id="trust-title" class="section-title">Trust Engines</h2>
+        <p class="section-subtitle-text">Two interlocking trust systems that give communities real signal — not vibes.
+        </p>
+        <div class="trust-engines-grid">
+          <div class="trust-engine-card">
+            <div class="trust-engine-icon"></div>
+            <h3>Casino Trust Engine</h3>
+            <p>Tracks fairness, payouts, bonus nerfs, promo terms, and compliance across the ecosystem. Every score is
+              explainable and auditable.</p>
+            <ul class="trust-engine-signals">
+              <li><span class="signal-dot signal-green"></span>Fairness deltas &amp; RTP tracking</li>
+              <li><span class="signal-dot signal-green"></span>Payout timeline monitoring</li>
+              <li><span class="signal-dot signal-yellow"></span>Bonus nerf &amp; term change detection</li>
+              <li><span class="signal-dot signal-red"></span>Legal rights alert triggers</li>
+            </ul>
+            <a href="/casinos.html" class="btn btn-secondary trust-card-cta">View
+              Casino Data →</a>
+          </div>
+          <div class="trust-engine-card">
+            <div class="trust-engine-icon"></div>
+            <h3>Degen Trust Engine</h3>
+            <p>Non-judgmental reputation built on real behavior — generosity, accountability, tilt patterns, scam flags.
+              Recovers automatically. No shame.</p>
+            <ul class="trust-engine-signals">
+              <li><span class="signal-dot signal-green"></span>Tilt indicators (auto-decay)</li>
+              <li><span class="signal-dot signal-green"></span>Accountability tool bonuses</li>
+              <li><span class="signal-dot signal-yellow"></span>Community-weighted reports</li>
+              <li><span class="signal-dot signal-red"></span>Verified scam detection (−15)</li>
+            </ul>
+            <a href="/degen-trust.html" class="btn btn-secondary trust-card-cta">Learn More →</a>
+          </div>
+        </div>
+
+        <!-- Trust Score Scale -->
+        <div class="trust-scale" role="region" aria-label="Trust score scale">
+          <div class="trust-scale-label">Trust Scale</div>
+          <div class="trust-scale-bar">
+            <div class="trust-scale-segment ts-red" title="High Risk: &lt;40">
+              <span>&lt;40</span><small>High Risk</small>
+            </div>
+            <div class="trust-scale-segment ts-orange" title="Low: 40–59">
+              <span>40–59</span><small>Low</small>
+            </div>
+            <div class="trust-scale-segment ts-yellow" title="Neutral: 60–79">
+              <span>60–79</span><small>Neutral</small>
+            </div>
+            <div class="trust-scale-segment ts-teal" title="High: 80–94">
+              <span>80–94</span><small>High</small>
+            </div>
+            <div class="trust-scale-segment ts-green" title="Very High: 95–100">
+              <span>95+</span><small>Very High</small>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Community + App CTA Banner -->
+    <section class="discord-cta-section" aria-labelledby="discord-cta-title">
+      <div class="container">
+        <div class="discord-cta-inner">
+          <div class="discord-cta-text">
+            <h2 id="discord-cta-title">Built for Discord, extension, and mobile app users.</h2>
+            <p>Run TiltCheck where you play: Discord commands, Chrome Extension overlays, or the mobile PWA.</p>
+          </div>
+          <div class="discord-cta-actions">
+            <a href="https://discord.gg/s6NNfPHxMS" class="btn btn-discord" target="_blank" rel="noopener noreferrer">
+              <svg width="22" height="22" viewBox="0 0 71 55" fill="none" xmlns="http://www.w3.org/2000/svg"
+                aria-hidden="true">
+                <path
+                  d="M60.1045 4.8978C55.5792 2.8214 50.7265 1.2916 45.6527 0.41542C45.5603 0.39851 45.468 0.440769 45.4204 0.525289C44.7963 1.6353 44.105 3.0834 43.6209 4.2216C38.1637 3.4046 32.7345 3.4046 27.3892 4.2216C26.905 3.0581 26.1886 1.6353 25.5617 0.525289C25.5141 0.443589 25.4218 0.40133 25.3294 0.41542C20.2584 1.2888 15.4057 2.8186 10.8776 4.8978C10.8384 4.9147 10.8048 4.9429 10.7825 4.9795C1.57795 18.7309 -0.943561 32.1443 0.293408 45.3914C0.299005 45.4562 0.335386 45.5182 0.385761 45.5576C6.45866 50.0174 12.3413 52.7249 18.1147 54.5195C18.2071 54.5477 18.305 54.5139 18.3638 54.4378C19.7295 52.5728 20.9469 50.6063 21.9907 48.5383C22.0523 48.4172 21.9935 48.2735 21.8676 48.2256C19.9366 47.4931 18.0979 46.6 16.3292 45.5858C16.1893 45.5041 16.1781 45.304 16.3068 45.2082C16.679 44.9293 17.0513 44.6391 17.4067 44.3461C17.471 44.2926 17.5606 44.2813 17.6362 44.3151C29.2558 49.6202 41.8354 49.6202 53.3179 44.3151C53.3935 44.2785 53.4831 44.2898 53.5502 44.3433C53.9057 44.6363 54.2779 44.9293 54.6529 45.2082C54.7816 45.304 54.7732 45.5041 54.6333 45.5858C52.8646 46.6197 51.0259 47.4931 49.0921 48.2228C48.9662 48.2707 48.9102 48.4172 48.9718 48.5383C50.038 50.6034 51.2554 52.5699 52.5959 54.435C52.6519 54.5139 52.7526 54.5477 52.845 54.5195C58.6464 52.7249 64.529 50.0174 70.6019 45.5576C70.6551 45.5182 70.6887 45.459 70.6943 45.3942C72.1747 30.0791 68.2147 16.7757 60.1968 4.9823C60.1772 4.9429 60.1437 4.9147 60.1045 4.8978ZM23.7259 37.3253C20.2276 37.3253 17.3451 34.1136 17.3451 30.1693C17.3451 26.225 20.1717 23.0133 23.7259 23.0133C27.308 23.0133 30.1626 26.2532 30.1066 30.1693C30.1066 34.1136 27.28 37.3253 23.7259 37.3253ZM47.3178 37.3253C43.8196 37.3253 40.9371 34.1136 40.9371 30.1693C40.9371 26.225 43.7636 23.0133 47.3178 23.0133C50.9 23.0133 53.7545 26.2532 53.6986 30.1693C53.6986 34.1136 50.9 37.3253 47.3178 37.3253Z"
+                  fill="currentColor" />
+              </svg>
+              Join the Discord
+            </a>
+            <a href="/about.html" class="btn btn-secondary">Read the Mission →</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="degen-comic-section py-20 md:py-24" aria-labelledby="daily-degen-comic-title">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-8">
+          <h2 id="daily-degen-comic-title" class="text-4xl md:text-5xl font-bold tracking-tight text-white mb-3">Daily Degen Comic</h2>
+          <p id="daily-degen-comic-subtitle" class="text-gray-400 text-lg max-w-3xl mx-auto">Pulling today's funniest storyline from chat logs...</p>
+        </div>
+
+        <div class="degen-comic-shell">
+          <div class="degen-comic-header">
+            <span id="daily-degen-comic-day" class="degen-comic-pill">Loading...</span>
+            <span id="daily-degen-comic-mood" class="text-sm text-[#b6ceff]"></span>
+          </div>
+          <div id="daily-degen-comic-panels" class="degen-comic-panels" aria-live="polite">
+            <article class="degen-comic-panel">
+              <h3 class="text-white text-lg font-semibold">Booting storyline...</h3>
+              <p class="text-gray-400 text-sm mt-2">Run <code>npm run comic:daily</code> in <code>tools/channel-watcher</code> to publish today's comic payload.</p>
+            </article>
+          </div>
+        </div>
+        <p id="daily-degen-comic-credit" class="text-center text-sm text-gray-500 mt-4">
+          Visual inspiration credit: <a href="https://pheverdream.github.io/The-Book-of-SealStats/" target="_blank" rel="noopener" class="text-[#8dc0ff] hover:text-[#b5d6ff]">Inspiration</a>. TiltCheck adaptation by <span class="text-[#b6ffe7]">jmenichole</span>.
+        </p>
+        <p id="daily-degen-comic-updated" class="degen-comic-meta">Last updated: --</p>
+        <div class="degen-comic-archive">
+          <h3>Archive</h3>
+          <ul id="daily-degen-comic-archive-list" class="degen-comic-archive-list">
+            <li>No archived strips yet.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Footer mount for shared include -->
   <div id="shared-footer"></div>
 
+  <!-- Scripts -->
+  <script>
+      // Theme switcher - uses header button
+      (function () {
+        const toggle = document.getElementById('theme-toggle');
+        if (!toggle) return;
+        let mode = 'default';
+        toggle.addEventListener('click', () => {
+          mode = mode === 'default' ? 'degen' : 'default';
+          document.documentElement.setAttribute('data-theme', mode);
+          try { localStorage.setItem('tc-theme', mode); } catch (e) { }
+        });
+        // Restore saved theme
+        const saved = localStorage.getItem('tc-theme');
+        if (saved) document.documentElement.setAttribute('data-theme', saved);
+      })();
+
+    // Intersection Observer for fade-in animations
+    if ('IntersectionObserver' in window) {
+      const animateOnScroll = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            entry.target.style.opacity = '1';
+            entry.target.style.transform = 'translateY(0)';
+          }
+        });
+      }, { threshold: 0.1 });
+
+      // Animate tool cards
+      document.querySelectorAll('.tool-card').forEach((card, index) => {
+        card.style.opacity = '0';
+        card.style.transform = 'translateY(20px)';
+        card.style.transition = `opacity 0.6s ease ${index * 0.1}s, transform 0.6s ease ${index * 0.1}s`;
+        animateOnScroll.observe(card);
+      });
+
+      // Animate feature items
+      document.querySelectorAll('.feature-item').forEach((item, index) => {
+        item.style.opacity = '0';
+        item.style.transform = 'translateX(-20px)';
+        item.style.transition = `opacity 0.6s ease ${index * 0.05}s, transform 0.6s ease ${index * 0.05}s`;
+        animateOnScroll.observe(item);
+      });
+    }
+
+    // Lazy load analytics & register SW
+    window.addEventListener('load', () => {
+      requestIdleCallback(() => {
+        console.log('TiltCheck landing page loaded');
+        if ('serviceWorker' in navigator) {
+          navigator.serviceWorker.register('/sw.js').catch(console.error);
+        }
+        // Persisted theme restore
+        const saved = localStorage.getItem('tc-theme');
+        if (saved) document.documentElement.setAttribute('data-theme', saved);
+        // Dynamic icon injection
+        fetch('/images-manifest.json').then(r => r.json()).then(manifest => {
+          document.querySelectorAll('.tool-card[data-tool] img.tool-icon').forEach(img => {
+            const key = img.closest('.tool-card').getAttribute('data-tool');
+            const entry = manifest.tools[key];
+            // entry may be a string (legacy) or an object with an .icon property
+            const src = typeof entry === 'string' ? entry : entry?.icon;
+            if (src) {
+              img.src = src;
+              img.srcset = `${src} 1x, ${src} 2x`;
+              img.setAttribute('loading', 'lazy');
+              img.setAttribute('decoding', 'async');
+            }
+          });
+        }).catch(() => { });
+      });
+    });
+    // Shared component loader
+
+
+    // Mobile Navigation Toggle
+    function toggleMobileNav() {
+      const btn = document.querySelector('.hamburger-btn');
+      const nav = document.getElementById('mobileNav');
+      if (!btn || !nav) return;
+      const isOpen = btn.classList.toggle('open');
+      nav.classList.toggle('open', isOpen);
+      btn.setAttribute('aria-expanded', isOpen);
+      nav.setAttribute('aria-hidden', !isOpen);
+      document.body.style.overflow = isOpen ? 'hidden' : '';
+    }
+
+    // Close mobile nav on link click
+    document.querySelectorAll('.mobile-nav a').forEach(link => {
+      link.addEventListener('click', () => {
+        toggleMobileNav();
+      });
+    });
+    // Collapsible mobile sections
+    document.querySelectorAll('.mobile-section-toggle').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const targetId = btn.getAttribute('aria-controls');
+        const section = document.getElementById(targetId);
+        const expanded = btn.getAttribute('aria-expanded') === 'true';
+        btn.setAttribute('aria-expanded', String(!expanded));
+        section.style.display = expanded ? 'none' : 'block';
+        section.setAttribute('aria-hidden', String(expanded));
+      });
+    });
+
+    // Close on escape key
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && document.querySelector('.mobile-nav.open')) {
+        toggleMobileNav();
+      }
+    });
+  </script>
+  <script>
+    // Accessible dropdowns: basic keyboard toggle and escape to close
+    (function () {
+      document.querySelectorAll('.nav-dropdown .nav-dropbtn').forEach(btn => {
+        const content = btn.nextElementSibling;
+        btn.addEventListener('click', () => {
+          const expanded = btn.getAttribute('aria-expanded') === 'true';
+          btn.setAttribute('aria-expanded', String(!expanded));
+          content.style.display = expanded ? 'none' : 'block';
+        });
+        btn.addEventListener('keydown', (e) => {
+          if (e.key === 'Escape') {
+            btn.setAttribute('aria-expanded', 'false');
+            content.style.display = 'none';
+            btn.blur();
+          }
+        });
+        document.addEventListener('click', (e) => {
+          if (!btn.parentElement.contains(e.target)) {
+            btn.setAttribute('aria-expanded', 'false');
+            content.style.display = 'none';
+          }
+        });
+      });
+    })();
+  </script>
+  <script src="/scripts/daily-comic.js"></script>
   <script src="/scripts/index-stats.js"></script>
   <script src="/scripts/components-loader.js"></script>
   <script src="/scripts/auth.js"></script>
 </body>
+
 </html>
