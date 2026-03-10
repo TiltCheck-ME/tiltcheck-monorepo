@@ -35,6 +35,14 @@ IMAGE_PROJECT="debian-cloud"
 REMOTE_DIR="/opt/tiltcheck"
 BUNDLE_DIR="dist-bundle"
 MODE="${1:-}"
+PRECHECK_ONLY=0
+
+if [ "$MODE" = "--preflight" ]; then
+  PRECHECK_ONLY=1
+elif [ -n "$MODE" ] && [ "$MODE" != "--update" ]; then
+  echo "Unsupported mode '$MODE'. Use --update or --preflight." >&2
+  exit 1
+fi
 
 # ─── Helpers ────────────────────────────────────────────────
 RED='\033[0;31m'
@@ -89,7 +97,6 @@ remote_verify_pm2() {
 }
 
 # ─── Pre-flight checks ─────────────────────────────────────
-command -v gcloud >/dev/null 2>&1 || error "gcloud CLI not found. Install: https://cloud.google.com/sdk/docs/install"
 
 if [ ! -d "$BUNDLE_DIR" ]; then
   error "dist-bundle/ not found. Run: pnpm bundle:bots"
@@ -105,10 +112,20 @@ if [ -f "$BUNDLE_DIR/.env" ]; then
   validate_env_file "$BUNDLE_DIR/.env"
 fi
 
-PROJECT=$(gcloud config get-value project 2>/dev/null)
-[ -z "$PROJECT" ] && error "No GCloud project set. Run: gcloud config set project YOUR_PROJECT_ID"
+if [ "$PRECHECK_ONLY" = "1" ]; then
+  PROJECT="${PROJECT_ID:-${GCLOUD_PROJECT:-}}"
+else
+  command -v gcloud >/dev/null 2>&1 || error "gcloud CLI not found. Install: https://cloud.google.com/sdk/docs/install"
+  PROJECT="$(gcloud config get-value project 2>/dev/null)"
+fi
+[ -z "$PROJECT" ] && error "No GCloud project set. Set PROJECT_ID/GCLOUD_PROJECT or run: gcloud config set project YOUR_PROJECT_ID"
 validate_project_id "$PROJECT"
 info "Using project: $PROJECT"
+
+if [ "$PRECHECK_ONLY" = "1" ]; then
+  info "Preflight checks passed."
+  exit 0
+fi
 
 # ─── Update-only mode ──────────────────────────────────────
 if [ "$MODE" == "--update" ]; then

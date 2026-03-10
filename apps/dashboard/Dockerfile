@@ -1,6 +1,4 @@
-# TiltCheck Dashboard - Standalone Container
-# Build from monorepo root: docker build -f apps/dashboard/Dockerfile .
-
+# TiltCheck Dashboard - Optimized Container
 FROM node:20-alpine AS build
 
 RUN npm install -g pnpm@10
@@ -12,28 +10,30 @@ WORKDIR /app
 # Copy workspace config
 COPY package.json pnpm-workspace.yaml pnpm-lock.yaml .npmrc tsconfig.json ./
 
-# Copy all workspace sources
+# Copy all sources (needed for workspace resolution)
 COPY packages/ ./packages/
 COPY modules/ ./modules/
-COPY apps/ ./apps/
+COPY apps/dashboard/ ./apps/dashboard/
 
 # Install dependencies
-RUN NODE_ENV=development pnpm install --no-frozen-lockfile
+RUN pnpm install --no-frozen-lockfile
 
-# Build all packages
-RUN pnpm -r build
+# Build Dashboard and its dependencies
+RUN pnpm --filter @tiltcheck/dashboard... build
 
 # Production stage
-FROM node:20-alpine
+FROM node:20-alpine AS runner
 
-RUN npm install -g pnpm@10
-ENV CI=true
 ENV NODE_ENV=production
+ENV PORT=3000
 
 WORKDIR /app
 
-COPY --from=build /app /app
+# Next.js standalone build puts everything in .next/standalone
+COPY --from=build /app/apps/dashboard/.next/standalone ./
+COPY --from=build /app/apps/dashboard/.next/static ./apps/dashboard/.next/static
+COPY --from=build /app/apps/dashboard/public ./apps/dashboard/public
 
 EXPOSE 3000
 
-CMD ["pnpm", "--filter", "@tiltcheck/dashboard", "start"]
+CMD ["node", "apps/dashboard/server.js"]

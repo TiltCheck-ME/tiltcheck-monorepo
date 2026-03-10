@@ -152,4 +152,55 @@ describe('web XSS hardening', () => {
     expect(tbody.innerHTML).toContain('&lt;svg onload=');
     expect((dom.window as unknown as { __xss?: string }).__xss).toBeUndefined();
   });
+
+  it('keeps DAAD lobby render paths free of innerHTML sinks', () => {
+    const html = fs.readFileSync(path.join(repoRoot, 'apps/web/tools/daad.html'), 'utf8');
+    const scriptMatch = html.match(/<script>\s*([\s\S]*?)\s*<\/script>\s*<script src="\/scripts\/components-loader.js"><\/script>/);
+    if (!scriptMatch) {
+      throw new Error('Could not locate DAAD lobby inline script');
+    }
+    const script = scriptMatch[1];
+
+    const renderRoomsBody = script.match(/function renderRooms\(\)\s*\{([\s\S]*?)\n\s*\}/)?.[1] ?? '';
+    const renderFriendsBody = script.match(/function renderFriends\(\)\s*\{([\s\S]*?)\n\s*\}/)?.[1] ?? '';
+    const renderChatBody = script.match(/function renderChat\(\)\s*\{([\s\S]*?)\n\s*\}/)?.[1] ?? '';
+
+    expect(renderRoomsBody).toBeTruthy();
+    expect(renderFriendsBody).toBeTruthy();
+    expect(renderChatBody).toBeTruthy();
+    expect(renderRoomsBody).not.toContain('innerHTML');
+    expect(renderFriendsBody).not.toContain('innerHTML');
+    expect(renderChatBody).not.toContain('innerHTML');
+  });
+
+  it('renders game arena chat payload as text content', async () => {
+    const dom = new JSDOM(
+      '<!doctype html><body><div id="chat-messages"></div></body>',
+      { url: 'https://tiltcheck.dev/game/abc', runScripts: 'outside-only' },
+    );
+    const context = dom.getInternalVMContext() as unknown as {
+      io: () => { on: () => void };
+    };
+    context.io = () => ({ on: () => {} });
+
+    runScriptInDom('apps/game-arena/public/scripts/game.js', dom);
+
+    const GameManager = vm.runInContext('GameManager', dom.getInternalVMContext()) as {
+      prototype: { init: () => Promise<void> | void };
+      new (): { addChatMessage: (message: { username: string; message: string }) => void };
+    };
+    GameManager.prototype.init = () => {};
+    const gameManager = new GameManager();
+    gameManager.addChatMessage({
+      username: `<img src=x onerror="window.__xss='sender'">`,
+      message: `<svg onload="window.__xss='text'"></svg>`,
+    });
+
+    const container = dom.window.document.getElementById('chat-messages') as HTMLDivElement;
+    expect(container.querySelector('img[src="x"]')).toBeNull();
+    expect(container.querySelector('svg')).toBeNull();
+    expect(container.textContent).toContain(`<img src=x onerror="window.__xss='sender'">`);
+    expect(container.textContent).toContain(`<svg onload="window.__xss='text'"></svg>`);
+    expect((dom.window as unknown as { __xss?: string }).__xss).toBeUndefined();
+  });
 });

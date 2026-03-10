@@ -33,6 +33,7 @@
         <img id="user-avatar" src="" alt="User Avatar" />
         <div>
           <div id="user-name">Loading...</div>
+          <a href="https://tiltcheck.me/tools/daad-pricing.html?source=arena-admin" class="cta-button">Upgrade: Play Anywhere $4.99</a>
           <a href="profile.html" class="secondary-button">Profile</a>
           <a href="#integrations" class="secondary-button"
             onclick="window.location.href='profile.html#integrations'">Integrations</a>
@@ -43,7 +44,7 @@
 
     <div class="lobby">
       <div class="games-section">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+        <div class="games-header-row">
           <h2>Available Games</h2>
           <div id="lobby-stats" class="lobby-stats">
             <span class="stat-item">
@@ -85,6 +86,24 @@
 
           <button type="submit" class="cta-button">Create Game</button>
         </form>
+
+        <section class="admin-status-panel" aria-label="Persistence Status">
+          <div class="admin-status-header">
+            <h3>Persistence Health</h3>
+            <button id="refresh-persistence-status" type="button" class="game-action-btn">Refresh</button>
+          </div>
+          <div class="form-group">
+            <label for="admin-status-token">Admin Token (prod only)</label>
+            <input
+              type="password"
+              id="admin-status-token"
+              autocomplete="off"
+              placeholder="Optional x-admin-token"
+            />
+          </div>
+          <div id="persistence-status-message" class="persistence-status-message">Loading status...</div>
+          <div id="persistence-status-grid" class="persistence-status-grid hidden"></div>
+        </section>
       </div>
     </div>
 

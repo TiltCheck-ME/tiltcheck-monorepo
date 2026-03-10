@@ -157,6 +157,63 @@
 <body>
   <a href="#casinos-main" class="skip-link">Skip to main content</a>
   <div id="shared-nav"></div>
+<<<<<<< HEAD
+  <main id="casinos-main">
+  <div class="container">
+    <h1>Casino Trust Engine + Fairness Signals</h1>
+    <div class="trust-card">
+      <h2>What is Casino Trust?</h2>
+      <p>The Casino Trust Engine tracks fairness, payout reliability, bonus nerfs, promo transparency, and compliance across the ecosystem. Scores update in real time and feed the Gameplay Fairness Analyzer context layer.</p>
+      <span class="badge"></span>
+      <span class="badge">Flat Fee</span>
+      <span class="badge">Evidence Export</span>
+    </div>
+    <div class="trust-card">
+      <h2>Casino Trust Signals</h2>
+      <ul>
+        <li><strong>Fairness:</strong> Payouts, RTP, and dispute rates</li>
+        <li><strong>Bonus Nerfs:</strong> Promo changes and cycles</li>
+        <li><strong>Compliance:</strong> KYC, withdrawal, and legal triggers</li>
+        <li><strong>Transparency:</strong> Open logs and explainable scores</li>
+      </ul>
+    </div>
+    <div class="trust-card">
+      <h2>Casino Directory (Live Data Snapshot)</h2>
+      <p style="margin-bottom:8px; color:#b0e0e0;">This table renders the most recent scrape. Download the raw CSV: <a href="/data/casino_data_latest.csv" style="color:#00d4aa;">casino_data_latest.csv</a></p>
+      <div id="meta" style="font-size:0.9rem; color:#9adbd0; margin-bottom:10px;">Last updated: — • Rows: —</div>
+      <div style="display:flex; gap:10px; align-items:center; margin-bottom:10px;">
+        <input id="search" type="search" placeholder="Search casinos..." style="flex:1; background:#111; color:#e0e0e0; border:1px solid #333; border-radius:8px; padding:8px 10px;" />
+        <small style="color:#888;">Showing top 50 by Data Score</small>
+      </div>
+      <div style="overflow:auto;">
+        <table id="casino-table" style="width:100%; border-collapse:collapse; font-size:14px;">
+          <thead>
+            <tr style="border-bottom:1px solid #333;">
+              <th data-sort="name" style="text-align:left; padding:8px; cursor:pointer;">Name ▴▾</th>
+              <th style="text-align:left; padding:8px;">URL</th>
+              <th data-sort="data_completeness_score" style="text-align:right; padding:8px; cursor:pointer;">Data Score ▴▾</th>
+              <th data-sort="avg_rating" style="text-align:right; padding:8px; cursor:pointer;">Avg Rating ▴▾</th>
+              <th style="text-align:center; padding:8px;">SSL</th>
+              <th style="text-align:center; padding:8px;">2FA</th>
+              <th style="text-align:left; padding:8px;">Fairness Certs</th>
+              <th data-sort="provider_count" style="text-align:right; padding:8px; cursor:pointer;">Providers ▴▾</th>
+              <th data-sort="withdrawal_methods_count" style="text-align:right; padding:8px; cursor:pointer;">Withdrawals ▴▾</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+    <script>
+    (function(){
+      const tbody = document.querySelector('#casino-table tbody');
+      const meta = document.getElementById('meta');
+      const searchEl = document.getElementById('search');
+      let allRows = [];
+      let currentSort = { key: 'data_completeness_score', dir: 'desc' };
+=======
+>>>>>>> origin/main
 
   <main id="casinos-main" class="page-wrap">
     <section class="hero" aria-label="BonusCheck casino intelligence">
@@ -310,6 +367,70 @@
           const parsed = window.Papa.parse(csvText, { header: true, skipEmptyLines: true });
           return Array.isArray(parsed.data) ? parsed.data : [];
         }
+<<<<<<< HEAD
+        return maxStr;
+      }
+      function numeric(v){ const n = parseFloat(v); return isNaN(n)? -Infinity : n; }
+      function compare(a,b,key,dir){
+        const numKeys = new Set(['data_completeness_score','avg_rating','provider_count','withdrawal_methods_count']);
+        let aa = a[key], bb = b[key];
+        if (numKeys.has(key)) { aa = numeric(aa); bb = numeric(bb); }
+        else { aa = safe(aa).toLowerCase(); bb = safe(bb).toLowerCase(); }
+        const base = (aa<bb)? -1 : (aa>bb? 1 : 0);
+        return dir==='asc'? base : -base;
+      }
+      function render(rows){
+        const limited = rows.slice(0, 200);
+        tbody.innerHTML = limited.map(r => {
+          const name = escapeHtml(r.name);
+          const url = safeHttpUrl(r.url);
+          const scoreNum = Number.parseFloat(r.data_completeness_score||0);
+          const score = Number.isFinite(scoreNum) ? scoreNum.toFixed(2) : '0.00';
+          const ratingNum = Number.parseFloat(r.avg_rating);
+          const rating = (r.avg_rating && r.avg_rating !== '' && Number.isFinite(ratingNum) ? ratingNum.toFixed(1) : '—');
+          const ssl = boolBadge(r.has_ssl);
+          const tfa = boolBadge(r.two_factor_auth);
+          const fairness = escapeHtml(r.fairness_certifications||'');
+          const providers = escapeHtml(r.provider_count||'0');
+          const withdraws = escapeHtml(r.withdrawal_methods_count||'0');
+          const urlCell = url ? `<a href="${escapeHtml(url)}" target="_blank" rel="noopener" style="color:#00a8ff;">link</a>` : '—';
+          return `<tr style="border-bottom:1px solid #222;">
+            <td style="padding:8px;">${name}</td>
+            <td style="padding:8px;">${urlCell}</td>
+            <td style="padding:8px; text-align:right;">${score}</td>
+            <td style="padding:8px; text-align:right;">${rating}</td>
+            <td style="padding:8px; text-align:center;">${ssl}</td>
+            <td style="padding:8px; text-align:center;">${tfa}</td>
+            <td style="padding:8px;">${fairness || '—'}</td>
+            <td style="padding:8px; text-align:right;">${providers}</td>
+            <td style="padding:8px; text-align:right;">${withdraws}</td>
+          </tr>`;
+        }).join('');
+      }
+      function apply(){
+        const q = searchEl.value.trim().toLowerCase();
+        let rows = allRows.slice();
+        if (q) {
+          rows = rows.filter(r => [r.name, r.url, r.fairness_certifications, r.providers]
+            .some(v => safe(v).toLowerCase().includes(q)));
+        }
+        rows.sort((a,b) => compare(a,b,currentSort.key,currentSort.dir));
+        render(rows);
+      }
+      fetch('/data/casino_data_latest.csv', { cache: 'no-cache' })
+        .then(r => { if(!r.ok) throw new Error('Failed to load CSV'); return r.text(); })
+        .then(csv => new Promise(resolve => Papa.parse(csv, { header: true, skipEmptyLines: true, complete: resolve })))
+        .then(result => {
+          allRows = (result && result.data) ? result.data : [];
+          const last = maxCollectionDate(allRows);
+          const rowsCount = allRows.length;
+          meta.textContent = `Last updated: ${last || '—'} • Rows: ${rowsCount}`;
+          currentSort = { key: 'data_completeness_score', dir: 'desc' };
+          apply();
+        })
+        .catch(err => {
+          tbody.innerHTML = `<tr><td colspan="9" style="padding:12px; color:#ff7a7a;">Failed to load latest casino data: ${escapeHtml(err.message)}</td></tr>`;
+=======
         const lines = csvText.split('\n').filter(Boolean);
         if (!lines.length) return [];
         const headers = lines[0].split(',').map((h) => h.trim());
@@ -320,6 +441,7 @@
             row[header] = cols[index] || '';
           });
           return row;
+>>>>>>> origin/main
         });
       }
 

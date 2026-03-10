@@ -32,7 +32,12 @@ vi.mock('../../src/middleware/auth.js', () => ({
 }));
 
 import { authRouter } from '../../src/routes/auth.js';
+<<<<<<< HEAD
+import { createSession, exchangeDiscordCode, verifyDiscordOAuth } from '@tiltcheck/auth';
+import { findOrCreateUserByDiscord } from '@tiltcheck/db';
+=======
 import { exchangeDiscordCode } from '@tiltcheck/auth';
+>>>>>>> origin/main
 
 const app = express();
 app.use((req, _res, next) => {
@@ -127,4 +132,37 @@ describe('Auth callback state/source validation', () => {
       scope: 'identify',
     });
   });
+<<<<<<< HEAD
+
+  it('fails closed for extension callback when trusted opener origin is missing', async () => {
+    vi.mocked(verifyDiscordOAuth).mockResolvedValueOnce({
+      valid: true,
+      user: {
+        id: 'discord-user-1',
+        username: 'tester',
+        avatar: null,
+      },
+    } as any);
+    vi.mocked(findOrCreateUserByDiscord).mockResolvedValueOnce({
+      id: 'user-1',
+      email: null,
+      roles: ['user'],
+      discord_username: 'tester',
+      discord_avatar: null,
+    } as any);
+    vi.mocked(createSession).mockResolvedValueOnce({
+      cookie: 'session=test; Path=/; HttpOnly',
+      token: 'session-token',
+    } as any);
+
+    const response = await request(app)
+      .get('/auth/discord/callback?state=ext_state_ok&code=abc123')
+      .set('Cookie', ['oauth_state=ext_state_ok', 'oauth_source=extension']);
+
+    expect(response.status).toBe(400);
+    expect(response.headers['content-type']).toContain('text/html');
+    expect(response.text).toContain('Missing trusted extension origin');
+  });
+=======
+>>>>>>> origin/main
 });

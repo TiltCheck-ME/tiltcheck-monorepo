@@ -570,12 +570,19 @@ router.get('/discord/callback', authLimiter, async (req, res) => {
     res.clearCookie('oauth_source');
     const openerOriginCookie = req.cookies?.oauth_opener_origin;
     res.clearCookie('oauth_opener_origin');
-    const postMessageTarget =
-      typeof openerOriginCookie === 'string' && openerOriginCookie.startsWith('chrome-extension://')
-        ? openerOriginCookie
-        : '*';
+    const postMessageTarget = getTrustedExtensionOrigin(openerOriginCookie);
 
     if (source === 'extension') {
+      if (!postMessageTarget) {
+        res
+          .status(400)
+          .send(
+            renderExtensionAuthErrorPage(
+              'Missing trusted extension origin. Close this window and restart Connect Discord from the extension.'
+            )
+          );
+        return;
+      }
       // Generate JWT for the user to pass back directly
       const token = generateJWT(user.id, user.email || `${user.id}@discord.com`, user.roles);
 
@@ -604,12 +611,20 @@ router.get('/discord/callback', authLimiter, async (req, res) => {
             <script>
               const userData = ${JSON.stringify({ id: user.id, username: user.discord_username, avatar: user.discord_avatar })};
               const targetOrigin = ${JSON.stringify(postMessageTarget)};
-              window.opener.postMessage({ 
-                type: 'discord-auth', 
-                token: '${token}',
-                user: userData
-              }, targetOrigin);
-              setTimeout(() => window.close(), 1000);
+              try {
+                if (!window.opener || typeof window.opener.postMessage !== 'function') {
+                  document.querySelector('.hint').textContent = 'Return to your extension tab and retry Connect Discord.';
+                } else {
+                  window.opener.postMessage({
+                    type: 'discord-auth',
+                    token: '${token}',
+                    user: userData
+                  }, targetOrigin);
+                  setTimeout(() => window.close(), 1000);
+                }
+              } catch (_error) {
+                document.querySelector('.hint').textContent = 'Auth handoff failed. Close this window and retry.';
+              }
             </script>
           </body>
         </html>

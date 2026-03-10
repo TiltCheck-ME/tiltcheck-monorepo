@@ -6,6 +6,7 @@ echo "[deploy-check] Running deploy script syntax checks..."
 SCRIPTS=(
   "deploy-vps.sh"
   "scripts/deploy-gcloud.sh"
+  "scripts/deploy-gcloud-rollback.sh"
   "scripts/gcp/deploy-cloud-run-service.sh"
 )
 
