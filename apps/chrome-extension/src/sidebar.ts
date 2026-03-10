@@ -1,4 +1,4 @@
-/**
+﻿/**
  *  20242025 TiltCheck Ecosystem. All Rights Reserved.
  * Created by jmenichole (https://github.com/jmenichole)
  * 
@@ -820,21 +820,21 @@ function createSidebar() {
   const style = document.createElement('style');
   style.textContent = `
     #tiltcheck-sidebar {
-      --tg-bg: #0b0f17;
-      --tg-surface: rgba(255, 255, 255, 0.04);
-      --tg-surface-strong: rgba(255, 255, 255, 0.08);
-      --tg-border: rgba(255, 255, 255, 0.12);
+      --tg-bg: rgba(14, 14, 15, 0.95);
+      --tg-surface: rgba(17, 19, 22, 0.8);
+      --tg-surface-strong: rgba(26, 31, 36, 0.9);
+      --tg-border: rgba(255, 255, 255, 0.08);
       --tg-text: #e7ecf7;
       --tg-muted: rgba(231, 236, 247, 0.74);
-      --tg-accent-purple: #6366f1;
-      --tg-accent-purple-2: #7c3aed;
-      --tg-accent-green: #10b981;
+      --tg-accent-purple: #00FFC6;
+      --tg-accent-purple-2: #00E6B2;
+      --tg-accent-green: #00FFC6;
       position: fixed !important;
       top: 0 !important;
       right: 0 !important;
       width: ${SIDEBAR_WIDTH}px;
       height: 100vh;
-      background: var(--tg-bg);
+      background: var(--tg-bg); backdrop-filter: blur(12px);
       color: var(--tg-text);
       z-index: 2147483647 !important;
       font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
@@ -850,7 +850,7 @@ function createSidebar() {
     #tiltcheck-sidebar::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.2); border-radius: 3px; }
     
     .tg-header {
-      background: linear-gradient(180deg, rgba(99,102,241,0.22), rgba(11,15,23,0));
+      background: linear-gradient(180deg, rgba(0, 255, 198, 0.1), transparent);
       padding: 14px 16px;
       display: flex;
       justify-content: space-between;
@@ -2490,7 +2490,7 @@ function renderVaultTimeline(locks: any[]) {
           <span class="tg-vault-timeline-action">${action}</span>
           <span class="tg-vault-timeline-time">${relative}</span>
         </div>
-        <div class="tg-vault-timeline-meta">${metaParts.join(' • ')}</div>
+        <div class="tg-vault-timeline-meta">${metaParts.join(' â€¢ ')}</div>
       </div>
     `;
   }).join('');
@@ -2782,4 +2782,5 @@ function updateStatus(message: string, type: string = 'info') {
 if (typeof window !== 'undefined') {
   (window as any).TiltCheckSidebar = { create: createSidebar, updateLicense, updateGuardian, updateTilt, updateStats, notifyBuddy };
 }
+
 
