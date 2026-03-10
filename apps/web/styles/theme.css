@@ -161,3 +161,59 @@
   --status-soon: var(--text-muted);
 }
 */
+/* Reset and Base Symmetry */
+* { box-sizing: border-box; }
+.container {
+  max-width: 1200px;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 1.5rem;
+  padding-right: 1.5rem;
+}
+
+/* Button Normalization */
+.btn, .btn-primary, .btn-secondary, .discord-login-btn, .nav-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.5rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  border: none;
+  font-size: 0.875rem;
+  text-decoration: none;
+}
+
+.btn-primary, .discord-login-btn {
+  background-color: var(--color-accent, #00FFC6);
+  color: #000;
+}
+
+.btn-secondary, .nav-pill-ghost {
+  background-color: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #fff;
+}
+
+.btn:hover, .btn-primary:hover, .discord-login-btn:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.1);
+  box-shadow: 0 0 15px rgba(0, 255, 198, 0.3);
+}
+
+/* Section Spacing Symmetry */
+section {
+  padding-top: 5rem;
+  padding-bottom: 5rem;
+}
+
+@media (max-width: 768px) {
+  section {
+    padding-top: 3rem;
+    padding-bottom: 3rem;
+  }
+}
