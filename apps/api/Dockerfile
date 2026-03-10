@@ -1,6 +1,4 @@
-# TiltCheck API - Standalone Container
-# Build from monorepo root: docker build -f apps/api/Dockerfile .
-
+# TiltCheck API - Optimized Container
 FROM node:20-alpine AS build
 
 RUN npm install -g pnpm@10
@@ -12,19 +10,16 @@ WORKDIR /app
 # Copy workspace config
 COPY package.json pnpm-workspace.yaml pnpm-lock.yaml .npmrc tsconfig.json ./
 
-# Copy all workspace sources
+# Copy all sources (needed for workspace resolution)
 COPY packages/ ./packages/
 COPY modules/ ./modules/
-COPY apps/ ./apps/
+COPY apps/api/ ./apps/api/
 
-# Install dependencies
-RUN NODE_ENV=development pnpm install --no-frozen-lockfile
+# Install dependencies for Wave 1
+RUN pnpm install --no-frozen-lockfile
 
-# Build all packages
-RUN pnpm -r build
-
-# Prune dev dependencies
-# pnpm prune --prod
+# Build API and its dependencies ONLY
+RUN pnpm --filter @tiltcheck/api... build
 
 # Production stage
 FROM node:20-alpine
@@ -35,11 +30,9 @@ ENV NODE_ENV=production
 
 WORKDIR /app
 
+# Copy build artifacts
 COPY --from=build /app /app
 
 EXPOSE 3001
-
-HEALTHCHECK --interval=30s --timeout=5s --retries=3 \
-  CMD node apps/api/healthcheck.js || exit 1
 
 CMD ["node", "apps/api/dist/index.js"]

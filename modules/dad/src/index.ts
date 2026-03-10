@@ -23,5 +23,7 @@ export type {
   CardPack, 
   Player, 
   GameRound, 
-  Game 
+  Game,
+  SerializedGameRound,
+  SerializedGameState
 } from './module.js';

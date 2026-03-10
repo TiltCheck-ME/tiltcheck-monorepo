@@ -40,6 +40,11 @@ export const config = {
     maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
   },
 
+  // Admin
+  admin: {
+    statusToken: process.env.GAME_ARENA_ADMIN_TOKEN || '',
+  },
+
   // Redis (optional)
   redis: {
     url: process.env.REDIS_URL,
@@ -50,6 +55,7 @@ export const config = {
     maxGamesPerChannel: 5,
     gameTimeout: 60 * 60 * 1000, // 1 hour
     maxPlayersPerGame: 10,
+    stateFilePath: process.env.GAME_ARENA_STATE_FILE || 'data/game-arena-state.json',
   },
 };
 

@@ -19,9 +19,16 @@
  *   - /tiltcheck setstate  - Set user state context
  */
 
+export { help } from './help.js';
 export { tiltcheck } from './tiltcheck.js';
 export { tip } from './tip.js';
-export { dad } from './dad.js';
+export { airdrop } from './airdrop.js';
+export { lockvault } from './lockvault.js';
+export { casino } from './casino.js';
+export { triviadrop } from './triviadrop.js';
 export { poker } from './poker.js';
+export { support } from './support.js';
+export { terms } from './terms.js';
+export { dashboard } from './dashboard.js';
 // Single-entry UX: everything routes through /tiltcheck now.
 
