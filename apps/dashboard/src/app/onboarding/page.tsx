@@ -8,7 +8,7 @@ import Link from 'next/link';
  * Designed to guide new users through identity connection, wallet setup, and safety preferences.
  * Includes an AI Interview that personalizes tool recommendations.
  * 
- * ?? 2024???2026 TiltCheck | v1.1.0 | Last Edited: 2026-02-26
+ * © 2024–2026 TiltCheck | v1.1.0 | Last Edited: 2026-02-26
  */
 
 type Step = 'WELCOME' | 'IDENTITY' | 'WALLET' | 'INTERVIEW' | 'SAFETY' | 'COMPLETE';
@@ -30,25 +30,25 @@ const ALL_TOOLS: Record<string, ToolRecommendation> = {
         id: 'tiltguard',
         name: 'TiltGuard',
         description: 'Behavioral protection that detects tilt patterns in real-time.',
-        icon: '???????'
+        icon: '🛡️'
     },
     collectclock: {
         id: 'collectclock',
         name: 'CollectClock',
         description: 'Predicts bonus drops and tracks casino term changes.',
-        icon: '???'
+        icon: '⏰'
     },
     suslink: {
         id: 'suslink',
         name: 'SusLink',
         description: 'AI-powered scanner that blocks phishing and scam links.',
-        icon: '????'
+        icon: '🔗'
     },
     justthetip: {
         id: 'justthetip',
         name: 'JustTheTip',
-        description: 'Secure Solana tipping and airdrops directly in Discord.',
-        icon: '????'
+        description: 'Non-custodial tipping and airdrops directly in Discord.',
+        icon: '💸'
     }
 };
 
@@ -98,10 +98,10 @@ export default function OnboardingPage() {
             if (interviewProgress === 0) {
                 // Response to bonus code question
                 if (lowerMsg.includes('discord') || lowerMsg.includes('twitter')) {
-                    assistantResponse = "Makes sense! Since you're active on socials, you're a prime target for phishing. I'm adding **SusLink** to your core tools???it'll scan every link before you click. Next: Do you ever find yourself chasing losses after a bad run?";
+                    assistantResponse = "Makes sense! Since you're active on socials, you're a prime target for phishing. I'm adding **SusLink** to your core tools—it'll scan every link before you click. Next: Do you ever find yourself chasing losses after a bad run?";
                     setRecommendedTools(prev => [...prev, 'suslink']);
                 } else {
-                    assistantResponse = "Manual hunting, respect. That can be tedious though. I recommend check out **CollectClock**???it predicts drops so you don't have to hunt. Do you ever feel 'tilted' or lose track of time during a session?";
+                    assistantResponse = "Manual hunting, respect. That can be tedious though. I recommend check out **CollectClock**—it predicts drops so you don't have to hunt. Do you ever feel 'tilted' or lose track of time during a session?";
                     setRecommendedTools(prev => [...prev, 'collectclock']);
                 }
                 setInterviewProgress(1);
@@ -177,7 +177,7 @@ export default function OnboardingPage() {
                                 onClick={nextStep}
                                 className="w-full py-4 bg-[#00FFC6] text-[#0E0E0F] rounded-lg font-bold text-lg hover:opacity-90 transition-all shadow-[0_0_20px_rgba(0,255,198,0.2)] flex items-center justify-center gap-2"
                             >
-                                GET STARTED <span className="text-xl">???</span>
+                                GET STARTED <span className="text-xl">→</span>
                             </button>
                         </div>
                     )}
@@ -220,12 +220,12 @@ export default function OnboardingPage() {
                     {currentStep === 'WALLET' && (
                         <div className="text-center">
                             <h2 className="text-3xl font-black font-space text-white mb-2 tracking-tight uppercase">Link Wallet</h2>
-                            <p className="text-[#6B7280] mb-10">Connect your Solana wallet to enable Secure Solana tipping, vaults, and verify on-chain randomness.</p>
+                            <p className="text-[#6B7280] mb-10">Connect your Solana wallet to enable non-custodial tipping, vaults, and verify on-chain randomness.</p>
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-                                <WalletOption name="Phantom" icon="????" onClick={() => handleConnect('wallet')} />
-                                <WalletOption name="Solflare" icon="??????" onClick={() => handleConnect('wallet')} />
-                                <WalletOption name="Backpack" icon="????" onClick={() => handleConnect('wallet')} />
+                                <WalletOption name="Phantom" icon="👻" onClick={() => handleConnect('wallet')} />
+                                <WalletOption name="Solflare" icon="☀️" onClick={() => handleConnect('wallet')} />
+                                <WalletOption name="Backpack" icon="🎒" onClick={() => handleConnect('wallet')} />
                                 <button
                                     onClick={nextStep}
                                     className="p-4 bg-transparent border border-[#1A1F24] rounded-xl text-[#6B7280] text-sm hover:border-[#00FFC6]/20 transition-all"
@@ -315,7 +315,7 @@ export default function OnboardingPage() {
                                     onClick={() => setRiskLevel('conservative')}
                                     title="CONSERVATIVE"
                                     description="High protection. Shorter cooldowns, aggressive tilt detection, and daily budget limits."
-                                    icon="????"
+                                    icon="🐢"
                                 />
                                 <RiskCard
                                     level="moderate"
@@ -323,7 +323,7 @@ export default function OnboardingPage() {
                                     onClick={() => setRiskLevel('moderate')}
                                     title="MODERATE"
                                     description="Balanced protection. Smart nudges and notifications when patterns change."
-                                    icon="??????"
+                                    icon="⚖️"
                                 />
                                 <RiskCard
                                     level="degen"
@@ -331,7 +331,7 @@ export default function OnboardingPage() {
                                     onClick={() => setRiskLevel('degen')}
                                     title="FULL DEGEN"
                                     description="Low protection. Minimal nudges, only alerts for severe scam links or drainage attempts."
-                                    icon="????"
+                                    icon="🔥"
                                 />
                             </div>
 
@@ -368,7 +368,7 @@ export default function OnboardingPage() {
 
                 {/* Footer */}
                 <p className="mt-8 text-center text-[#6B7280] text-xs font-bold tracking-[0.2em] uppercase">
-                    ?? 2024???2026 TILTCHECK ECOSYSTEM ??? v1.1.0
+                    © 2024–2026 TILTCHECK ECOSYSTEM • v1.1.0
                 </p>
             </div>
         </main>
