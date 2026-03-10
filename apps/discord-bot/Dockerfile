@@ -1,4 +1,4 @@
-# TiltCheck Discord Bot - Optimized Container
+# TiltCheck Discord Bot - Optimized Container (with Scripts)
 FROM node:20-alpine AS build
 
 RUN npm install -g pnpm@10
@@ -13,12 +13,13 @@ COPY package.json pnpm-workspace.yaml pnpm-lock.yaml .npmrc tsconfig.json ./
 # Copy all sources
 COPY packages/ ./packages/
 COPY modules/ ./modules/
+COPY scripts/ ./scripts/
 COPY apps/discord-bot/ ./apps/discord-bot/
 
-# Install dependencies for Wave 1
+# Install dependencies
 RUN pnpm install --no-frozen-lockfile
 
-# Build Bot and its dependencies ONLY
+# Build
 RUN pnpm --filter @tiltcheck/discord-bot... build
 
 # Production stage
@@ -30,15 +31,10 @@ ENV NODE_ENV=production
 
 WORKDIR /app
 
-# Copy build artifacts
 COPY --from=build /app /app
 
 RUN mkdir -p /app/data
 
 EXPOSE 8081
-
-# Cloud Run doesn't use Docker HEALTHCHECK, but we keep it for consistency
-HEALTHCHECK --interval=30s --timeout=5s --retries=3 \
-  CMD test -f /tmp/bot-ready || exit 1
 
 CMD ["node", "apps/discord-bot/dist/bootstrap.js"]

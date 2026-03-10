@@ -29,7 +29,7 @@
     );
   }
 
-  fetch('/api/stats', { cache: 'no-store' })
+  fetch('https://api.tiltcheck.me/stats', { cache: 'no-store' })
     .then((res) => {
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       return res.json();

@@ -60,7 +60,7 @@ app.use(helmet({
 // CORS configuration for subdomain cookies
 app.use(cors({
   origin: (origin, callback) => {
-    // Allow requests from provisioned production domains
+    // Allow requests from provisioned production domains and Chrome Extension
     const allowedOrigins = [
       'https://tiltcheck.me',
       'https://dashboard.tiltcheck.me',
@@ -74,7 +74,7 @@ app.use(cors({
       return;
     }
 
-    const isAllowed = allowedOrigins.includes(origin);
+    const isAllowed = allowedOrigins.includes(origin) || origin.startsWith('chrome-extension://');
 
     if (isAllowed) {
       callback(null, true);

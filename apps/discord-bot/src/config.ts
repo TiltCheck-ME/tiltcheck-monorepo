@@ -27,7 +27,10 @@ function getEnvVar(key: string, required = true): string {
 function getDiscordToken(): string {
   for (const envVar of DISCORD_TOKEN_ENV_VARS) {
     const value = process.env[envVar];
-    if (value) return value;
+    if (value) {
+      console.log(`[Config] Found token in ${envVar} (Length: ${value.trim().length}, Prefix: ${value.trim().substring(0, 5)}...)`);
+      return value.trim();
+    }
   }
   return '';
 }

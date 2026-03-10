@@ -171,13 +171,14 @@ export const tip: Command = {
 async function handleHelp(interaction: ChatInputCommandInteraction) {
   const embed = new EmbedBuilder()
     .setColor(0x00BFFF)
-    .setTitle('JustTheTip - Credit-Based Tipping')
+    .setTitle('JustTheTip - Solana Tipping Engine')
     .setDescription('Deposit SOL to your credit balance, then tip others instantly!')
     .addFields(
       { name: 'Step 1', value: 'Register your withdrawal wallet: `/tip wallet register-external`' },
       { name: 'Step 2', value: 'Load your balance: `/tip deposit`' },
       { name: 'Step 3', value: 'Send a tip: `/tip send @user $5`' }
-    );
+    )
+    .setFooter({ text: 'Powered by JustTheTip Engine | v1.1.0' });
   await interaction.reply({ embeds: [embed], ephemeral: true });
 }
 
@@ -186,7 +187,8 @@ async function handleDeposit(interaction: ChatInputCommandInteraction) {
   const embed = new EmbedBuilder()
     .setColor(0x00FF00)
     .setTitle('📥 Load SOL Credit')
-    .setDescription(`Send SOL to:\n\`${botWallet.address}\`\n\n**Memo (REQUIRED):**\n\`${code}\``);
+    .setDescription(`Send SOL to:\n\`${botWallet.address}\`\n\n**Memo (REQUIRED):**\n\`${code}\``)
+    .setFooter({ text: 'TiltCheck Payments | JustTheTip' });
   await interaction.reply({ embeds: [embed], ephemeral: true });
 }
 
