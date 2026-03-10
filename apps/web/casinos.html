@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <!--
-  © 2024–2025 TiltCheck Ecosystem. All Rights Reserved.
+  © 2024–2026 TiltCheck Ecosystem. All Rights Reserved.
   Created by jmenichole (https://github.com/jmenichole)
-  
+
   This file is part of the TiltCheck project.
   For licensing information, see LICENSE file in the project root.
 -->
@@ -11,23 +11,153 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Casino Trust Engine + Fairness Signals - TiltCheck</title>
+  <title>BonusCheck Casino Intelligence Base</title>
+  <meta name="description" content="BonusCheck casino intelligence base: browse trust, risk, and fairness context for casinos in the trust engine dataset.">
   <link rel="stylesheet" href="styles/base.css">
   <link rel="stylesheet" href="styles/tool-page.css">
   <style>
-    body { background: #101010; color: #e0e0e0; font-family: Inter, system-ui, sans-serif; }
-    .container { max-width: 900px; margin: 0 auto; padding: 40px 16px; }
-    h1 { font-size: 2.5rem; margin-bottom: 18px; color: #00d4aa; }
-    .trust-card { background: #181818; border: 1px solid #222; border-radius: 12px; padding: 28px; margin-bottom: 24px; }
-    .trust-card h2 { color: #00a8ff; margin-bottom: 10px; font-size: 1.3rem; }
-    .trust-card p { color: #b0e0e0; margin-bottom: 8px; }
-    .score { font-size: 1.7rem; color: #00d4aa; font-weight: 700; }
-    .badge { display: inline-block; background: #222; color: #00d4aa; border-radius: 8px; padding: 4px 12px; font-size: 0.9rem; margin-right: 8px; }
+    :root {
+      --bg: #0d1117;
+      --panel: #131a23;
+      --panel-border: #263242;
+      --text: #e3ecf8;
+      --muted: #93a6c2;
+      --primary: #00d4aa;
+      --accent: #4f9cfb;
+      --danger: #ff6b7b;
+    }
+    body { background: var(--bg); color: var(--text); font-family: Inter, system-ui, sans-serif; margin: 0; }
+    .page-wrap { max-width: 1200px; margin: 0 auto; padding: 2rem 1rem 3rem; }
+    .hero {
+      border: 1px solid var(--panel-border);
+      background: linear-gradient(165deg, rgba(19,26,35,0.95), rgba(10,14,20,0.98));
+      border-radius: 14px;
+      padding: 1.5rem;
+      margin-bottom: 1rem;
+    }
+    h1 { margin: 0 0 0.6rem; color: var(--primary); font-size: clamp(1.8rem, 4.5vw, 2.6rem); }
+    .subtle { color: var(--muted); margin: 0; line-height: 1.5; }
+    .grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+      gap: 1rem;
+      align-items: start;
+    }
+    @media (max-width: 980px) {
+      .grid { grid-template-columns: 1fr; }
+    }
+    .panel {
+      border: 1px solid var(--panel-border);
+      background: var(--panel);
+      border-radius: 14px;
+      padding: 1rem;
+    }
+    .filters {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 0.6rem;
+      margin: 0.8rem 0;
+    }
+    @media (max-width: 900px) {
+      .filters { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+    @media (max-width: 600px) {
+      .filters { grid-template-columns: 1fr; }
+    }
+    label { font-size: 0.85rem; color: var(--muted); display: block; margin-bottom: 0.35rem; }
+    input, select {
+      width: 100%;
+      border: 1px solid #33465f;
+      border-radius: 8px;
+      background: #0f151d;
+      color: var(--text);
+      padding: 0.6rem 0.7rem;
+      box-sizing: border-box;
+    }
+    .meta { color: var(--muted); font-size: 0.85rem; }
+    .list {
+      border: 1px solid #2a394d;
+      border-radius: 10px;
+      overflow: hidden;
+      max-height: 70vh;
+      overflow-y: auto;
+    }
+    .casino-item {
+      padding: 0.8rem;
+      border-bottom: 1px solid #243142;
+      cursor: pointer;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 0.8rem;
+      align-items: center;
+    }
+    .casino-item:last-child { border-bottom: none; }
+    .casino-item:hover, .casino-item:focus-visible { background: #182230; outline: none; }
+    .casino-item[aria-selected="true"] { background: #1b2939; }
+    .casino-name { font-weight: 600; margin: 0 0 0.2rem; }
+    .casino-meta { font-size: 0.82rem; color: var(--muted); display: flex; flex-wrap: wrap; gap: 0.5rem; }
+    .score-pill {
+      border-radius: 999px;
+      padding: 0.25rem 0.6rem;
+      font-size: 0.8rem;
+      border: 1px solid #46658b;
+      color: #c5dcff;
+      white-space: nowrap;
+    }
+    .risk-pill {
+      border-radius: 999px;
+      padding: 0.22rem 0.5rem;
+      font-size: 0.75rem;
+      border: 1px solid transparent;
+      white-space: nowrap;
+    }
+    .risk-low { color: #9ae7cb; border-color: #2a7b62; background: rgba(42,123,98,0.2); }
+    .risk-medium { color: #ffd28c; border-color: #8f6b27; background: rgba(143,107,39,0.2); }
+    .risk-high { color: #ffafba; border-color: #8b3046; background: rgba(139,48,70,0.2); }
+    .details h2 { margin-top: 0; margin-bottom: 0.5rem; color: #d4e5ff; }
+    .detail-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0.75rem;
+      margin-top: 0.8rem;
+    }
+    .detail-card {
+      border: 1px solid #2a394d;
+      border-radius: 10px;
+      padding: 0.7rem;
+      background: #101824;
+    }
+    .detail-label { color: var(--muted); font-size: 0.8rem; margin-bottom: 0.2rem; }
+    .detail-value { color: var(--text); font-weight: 600; font-size: 0.95rem; }
+    .detail-notes {
+      margin-top: 1rem;
+      border: 1px solid #314357;
+      border-radius: 10px;
+      background: #101824;
+      padding: 0.8rem;
+    }
+    .detail-notes h3 { margin: 0 0 0.45rem; font-size: 1rem; color: #b9d4ff; }
+    .detail-notes ul { margin: 0; padding-left: 1.1rem; color: var(--muted); }
+    .detail-notes li { margin-bottom: 0.3rem; }
+    .btn-link {
+      display: inline-block;
+      margin-top: 0.8rem;
+      color: var(--primary);
+      text-decoration: none;
+      border: 1px solid #2b4f44;
+      padding: 0.45rem 0.7rem;
+      border-radius: 8px;
+      background: rgba(0, 212, 170, 0.08);
+      font-size: 0.88rem;
+    }
+    .btn-link:hover { border-color: #3b8f7a; }
+    .warning { color: #ff9ca8; font-size: 0.88rem; }
   </style>
 </head>
 <body>
   <a href="#casinos-main" class="skip-link">Skip to main content</a>
   <div id="shared-nav"></div>
+<<<<<<< HEAD
   <main id="casinos-main">
   <div class="container">
     <h1>Casino Trust Engine + Fairness Signals</h1>
@@ -82,9 +212,100 @@
       const searchEl = document.getElementById('search');
       let allRows = [];
       let currentSort = { key: 'data_completeness_score', dir: 'desc' };
+=======
+>>>>>>> origin/main
 
-      function safe(v){ return (v===undefined||v===null)?'':String(v); }
-      function escapeHtml(value){
+  <main id="casinos-main" class="page-wrap">
+    <section class="hero" aria-label="BonusCheck casino intelligence">
+      <h1>BonusCheck Casino Intelligence Base</h1>
+      <p class="subtle">This page is the base view for casinos in the trust engine dataset. Browse each casino, review risk and trust context, and inspect fairness-related metadata before you play.</p>
+    </section>
+
+    <section class="panel" aria-label="Casino lookup controls">
+      <div class="meta" id="meta">Loading casino intelligence data…</div>
+      <div class="filters">
+        <div>
+          <label for="search-input">Search</label>
+          <input id="search-input" type="search" placeholder="Casino name, category, risk…">
+        </div>
+        <div>
+          <label for="risk-filter">Risk level</label>
+          <select id="risk-filter">
+            <option value="">All risks</option>
+            <option value="low">Low / Low-Medium</option>
+            <option value="medium">Medium / Medium-High</option>
+            <option value="high">High</option>
+          </select>
+        </div>
+        <div>
+          <label for="category-filter">Category</label>
+          <select id="category-filter">
+            <option value="">All categories</option>
+          </select>
+        </div>
+        <div>
+          <label for="score-filter">Min trust score</label>
+          <select id="score-filter">
+            <option value="0">0+</option>
+            <option value="40">40+</option>
+            <option value="60">60+</option>
+            <option value="75">75+</option>
+            <option value="85">85+</option>
+          </select>
+        </div>
+      </div>
+    </section>
+
+    <section class="grid" style="margin-top:1rem;">
+      <div class="panel">
+        <h2 style="margin-top:0;">Casino list</h2>
+        <div class="list" id="casino-list" role="listbox" aria-label="Casino directory"></div>
+      </div>
+      <div class="panel details">
+        <h2 id="detail-name">Select a casino</h2>
+        <p id="detail-summary" class="subtle">Choose a casino from the left to view trust details, risk context, and available fairness signals.</p>
+        <div class="detail-grid" id="detail-grid" hidden></div>
+        <div class="detail-notes" id="detail-notes" hidden>
+          <h3>Trust engine notes</h3>
+          <ul id="detail-notes-list"></ul>
+        </div>
+        <p id="data-warning" class="warning" hidden></p>
+        <a id="detail-link" class="btn-link" href="#" target="_blank" rel="noopener" hidden>Visit casino site</a>
+      </div>
+    </section>
+  </main>
+
+  <div id="shared-footer"></div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+  <script>
+    (function () {
+      const dom = {
+        meta: document.getElementById('meta'),
+        search: document.getElementById('search-input'),
+        risk: document.getElementById('risk-filter'),
+        category: document.getElementById('category-filter'),
+        minScore: document.getElementById('score-filter'),
+        list: document.getElementById('casino-list'),
+        detailName: document.getElementById('detail-name'),
+        detailSummary: document.getElementById('detail-summary'),
+        detailGrid: document.getElementById('detail-grid'),
+        detailNotes: document.getElementById('detail-notes'),
+        detailNotesList: document.getElementById('detail-notes-list'),
+        detailLink: document.getElementById('detail-link'),
+        dataWarning: document.getElementById('data-warning')
+      };
+
+      let allCasinos = [];
+      let visibleCasinos = [];
+      let selectedIndex = 0;
+      const sourceWarnings = [];
+
+      function safe(value) {
+        return value === undefined || value === null ? '' : String(value);
+      }
+
+      function escapeHtml(value) {
         return safe(value)
           .replace(/&/g, '&amp;')
           .replace(/</g, '&lt;')
@@ -92,27 +313,61 @@
           .replace(/"/g, '&quot;')
           .replace(/'/g, '&#039;');
       }
-      function safeHttpUrl(value){
+
+      function normalizedKey(name) {
+        return safe(name).toLowerCase().replace(/[^a-z0-9]+/g, '');
+      }
+
+      function safeHttpUrl(value) {
         const raw = safe(value).trim();
         if (!raw) return '';
         try {
           const parsed = new URL(raw, window.location.origin);
-          if (parsed.protocol === 'http:' || parsed.protocol === 'https:') return parsed.href;
-        } catch {}
+          if (parsed.protocol === 'http:' || parsed.protocol === 'https:') {
+            return parsed.href;
+          }
+        } catch (error) {
+          return '';
+        }
         return '';
       }
-      function boolBadge(v){
-        const yes = String(v).toLowerCase()==='true' || v===true;
-        return `<span class="badge" style="${yes?'color:#00d4aa;':'color:#ff7a7a;'}">${yes?'Yes':'No'}</span>`;
+
+      function gradeToScore(grade) {
+        const map = {
+          'A+': 98, 'A': 95, 'A-': 92,
+          'B+': 88, 'B': 84, 'B-': 80,
+          'C+': 74, 'C': 70, 'C-': 66,
+          'D+': 60, 'D': 55, 'D-': 50,
+          'F': 35
+        };
+        return map[safe(grade).toUpperCase()] || 60;
       }
-      function parseDate(s){ const d = new Date(s||''); return isNaN(d.getTime())? null : d; }
-      function maxCollectionDate(rows){
-        let maxTs = 0; let maxStr = '';
-        for (const r of rows){
-          const d = parseDate(r.collection_date);
-          const ts = d? d.getTime() : 0;
-          if (ts > maxTs){ maxTs = ts; maxStr = d.toISOString(); }
+
+      function normalizeRisk(rawRisk) {
+        const lower = safe(rawRisk).toLowerCase();
+        if (lower.includes('high')) return 'high';
+        if (lower.includes('medium')) return 'medium';
+        return 'low';
+      }
+
+      function riskClass(rawRisk) {
+        const risk = normalizeRisk(rawRisk);
+        if (risk === 'high') return 'risk-high';
+        if (risk === 'medium') return 'risk-medium';
+        return 'risk-low';
+      }
+
+      function parseDate(value) {
+        const date = new Date(value || '');
+        return Number.isNaN(date.getTime()) ? null : date;
+      }
+
+      function parseCsvRows(csvText) {
+        if (window.Papa && typeof window.Papa.parse === 'function') {
+          const parsed = window.Papa.parse(csvText, { header: true, skipEmptyLines: true });
+          return Array.isArray(parsed.data) ? parsed.data : [];
         }
+<<<<<<< HEAD
         return maxStr;
       }
       function numeric(v){ const n = parseFloat(v); return isNaN(n)? -Infinity : n; }
@@ -175,22 +430,271 @@
         })
         .catch(err => {
           tbody.innerHTML = `<tr><td colspan="9" style="padding:12px; color:#ff7a7a;">Failed to load latest casino data: ${escapeHtml(err.message)}</td></tr>`;
+=======
+        const lines = csvText.split('\n').filter(Boolean);
+        if (!lines.length) return [];
+        const headers = lines[0].split(',').map((h) => h.trim());
+        return lines.slice(1).map((line) => {
+          const cols = line.split(',');
+          const row = {};
+          headers.forEach((header, index) => {
+            row[header] = cols[index] || '';
+          });
+          return row;
+>>>>>>> origin/main
         });
-      searchEl.addEventListener('input', () => apply());
-      document.querySelectorAll('#casino-table thead th[data-sort]')
-        .forEach(th => th.addEventListener('click', () => {
-          const key = th.getAttribute('data-sort');
-          if (currentSort.key === key) {
-            currentSort.dir = (currentSort.dir === 'asc') ? 'desc' : 'asc';
-          } else {
-            currentSort = { key, dir: 'asc' };
+      }
+
+      async function fetchJson(path) {
+        const response = await fetch(path, { cache: 'no-cache' });
+        if (!response.ok) throw new Error('Failed to load ' + path);
+        return response.json();
+      }
+
+      async function fetchCsv(path) {
+        const response = await fetch(path, { cache: 'no-cache' });
+        if (!response.ok) throw new Error('Failed to load ' + path);
+        return response.text();
+      }
+
+      function populateCategoryFilter(casinos) {
+        const categories = [...new Set(casinos.map((casino) => safe(casino.category)).filter(Boolean))].sort();
+        dom.category.innerHTML = '<option value="">All categories</option>' +
+          categories.map((category) => '<option value="' + escapeHtml(category) + '">' + escapeHtml(category) + '</option>').join('');
+      }
+
+      function computeTrustScore(baseItem, liveItem) {
+        if (liveItem) {
+          const dataScore = Number.parseFloat(liveItem.data_completeness_score);
+          if (Number.isFinite(dataScore)) {
+            const scaled = dataScore <= 1 ? dataScore * 100 : dataScore;
+            return Math.max(0, Math.min(100, Math.round(scaled)));
           }
-          apply();
-        }));
+        }
+        const gradeScore = gradeToScore(baseItem.grade);
+        const riskPenalty = normalizeRisk(baseItem.risk) === 'high' ? 10 : (normalizeRisk(baseItem.risk) === 'medium' ? 5 : 0);
+        return Math.max(0, Math.min(100, gradeScore - riskPenalty));
+      }
+
+      function buildNotes(item) {
+        const notes = [];
+        notes.push('Category baseline: ' + safe(item.category || 'Uncategorized') + '.');
+        notes.push('Risk band: ' + safe(item.risk || 'Unknown') + '.');
+        if (item.hasSslKnown) {
+          notes.push(item.hasSsl ? 'SSL appears enabled in latest scrape.' : 'SSL was not detected in latest scrape; verify manually.');
+        }
+        if (item.has2faKnown) {
+          notes.push(item.has2fa ? '2FA support appears available.' : '2FA support not detected in latest scrape.');
+        }
+        if (item.fairnessCertifications) {
+          notes.push('Fairness certifications listed: ' + item.fairnessCertifications + '.');
+        }
+        if (item.providerCountKnown) {
+          notes.push('Provider count observed: ' + item.providerCount + '.');
+        }
+        if (item.withdrawalMethodsKnown) {
+          notes.push('Withdrawal methods observed: ' + item.withdrawalMethods + '.');
+        }
+        return notes;
+      }
+
+      function toBool(value) {
+        return safe(value).toLowerCase() === 'true';
+      }
+
+      function detailCard(label, value) {
+        return '<div class="detail-card"><div class="detail-label">' + escapeHtml(label) + '</div><div class="detail-value">' + escapeHtml(value) + '</div></div>';
+      }
+
+      function renderDetails(item) {
+        dom.detailName.textContent = item.name;
+        dom.detailSummary.textContent = 'Trust score ' + item.trustScore + '/100 • ' + safe(item.category) + ' • Risk: ' + safe(item.risk);
+        dom.detailGrid.hidden = false;
+        dom.detailGrid.innerHTML = [
+          detailCard('Trust score', item.trustScore + '/100'),
+          detailCard('Grade', safe(item.grade || 'N/A')),
+          detailCard('Risk', safe(item.risk || 'Unknown')),
+          detailCard('Category', safe(item.category || 'Uncategorized')),
+          detailCard('Average rating', item.avgRatingKnown ? item.avgRating.toFixed(1) : 'N/A'),
+          detailCard('Data completeness', item.dataScoreKnown ? item.dataScore.toFixed(2) : 'N/A'),
+          detailCard('SSL', item.hasSslKnown ? (item.hasSsl ? 'Yes' : 'No') : 'Unknown'),
+          detailCard('2FA', item.has2faKnown ? (item.has2fa ? 'Yes' : 'No') : 'Unknown'),
+          detailCard('Fairness certifications', item.fairnessCertifications || 'N/A'),
+          detailCard('Providers', item.providerCountKnown ? String(item.providerCount) : 'N/A'),
+          detailCard('Withdrawal methods', item.withdrawalMethodsKnown ? String(item.withdrawalMethods) : 'N/A'),
+          detailCard('Last scrape update', item.lastCollectedAt || 'N/A')
+        ].join('');
+
+        const notes = buildNotes(item);
+        dom.detailNotes.hidden = false;
+        dom.detailNotesList.innerHTML = notes.map((note) => '<li>' + escapeHtml(note) + '</li>').join('');
+
+        const trustedUrl = safeHttpUrl(item.url);
+        if (trustedUrl) {
+          dom.detailLink.hidden = false;
+          dom.detailLink.href = trustedUrl;
+        } else {
+          dom.detailLink.hidden = true;
+          dom.detailLink.href = '#';
+        }
+      }
+
+      function renderList() {
+        if (!visibleCasinos.length) {
+          dom.list.innerHTML = '<div class="casino-item"><p class="casino-name">No casinos matched your filters.</p></div>';
+          dom.detailName.textContent = 'No casino selected';
+          dom.detailSummary.textContent = 'Try broadening your search or removing one of the filters.';
+          dom.detailGrid.hidden = true;
+          dom.detailNotes.hidden = true;
+          dom.detailLink.hidden = true;
+          return;
+        }
+
+        if (selectedIndex >= visibleCasinos.length) selectedIndex = 0;
+
+        dom.list.innerHTML = visibleCasinos.map((item, index) => {
+          const selected = index === selectedIndex;
+          return (
+            '<button type="button" class="casino-item" role="option" data-index="' + index + '" aria-selected="' + (selected ? 'true' : 'false') + '">' +
+              '<div>' +
+                '<p class="casino-name">' + escapeHtml(item.name) + '</p>' +
+                '<div class="casino-meta">' +
+                  '<span>' + escapeHtml(item.category) + '</span>' +
+                  '<span class="risk-pill ' + riskClass(item.risk) + '">' + escapeHtml(item.risk) + '</span>' +
+                '</div>' +
+              '</div>' +
+              '<span class="score-pill">' + item.trustScore + '/100</span>' +
+            '</button>'
+          );
+        }).join('');
+
+        dom.list.querySelectorAll('.casino-item').forEach((button) => {
+          button.addEventListener('click', function () {
+            selectedIndex = Number.parseInt(this.getAttribute('data-index') || '0', 10);
+            renderList();
+            renderDetails(visibleCasinos[selectedIndex]);
+          });
+        });
+
+        renderDetails(visibleCasinos[selectedIndex]);
+      }
+
+      function applyFilters() {
+        const query = dom.search.value.trim().toLowerCase();
+        const selectedRisk = dom.risk.value;
+        const selectedCategory = dom.category.value;
+        const minScore = Number.parseInt(dom.minScore.value, 10) || 0;
+        const previouslySelectedName = visibleCasinos[selectedIndex] ? visibleCasinos[selectedIndex].name : '';
+
+        visibleCasinos = allCasinos.filter((item) => {
+          const queryHit = !query || [item.name, item.category, item.risk, item.grade].some((value) => safe(value).toLowerCase().includes(query));
+          const riskHit = !selectedRisk || normalizeRisk(item.risk) === selectedRisk;
+          const categoryHit = !selectedCategory || item.category === selectedCategory;
+          const scoreHit = item.trustScore >= minScore;
+          return queryHit && riskHit && categoryHit && scoreHit;
+        }).sort((a, b) => b.trustScore - a.trustScore || a.name.localeCompare(b.name));
+
+        const selectedAfterFilter = visibleCasinos.findIndex((item) => item.name === previouslySelectedName);
+        selectedIndex = selectedAfterFilter >= 0 ? selectedAfterFilter : 0;
+
+        dom.meta.textContent = 'Showing ' + visibleCasinos.length + ' casinos' +
+          (allCasinos.length ? ' of ' + allCasinos.length : '') +
+          ' • BonusCheck trust intelligence view';
+        renderList();
+      }
+
+      function latestCollectionDate(rows) {
+        let latest = null;
+        rows.forEach((row) => {
+          const date = parseDate(row.collection_date);
+          if (!date) return;
+          if (!latest || date.getTime() > latest.getTime()) latest = date;
+        });
+        return latest ? latest.toISOString() : '';
+      }
+
+      async function loadData() {
+        let baseCasinos = [];
+        let csvRows = [];
+
+        try {
+          const base = await fetchJson('/data/sweepstakes-casinos.json');
+          if (!Array.isArray(base)) throw new Error('Unexpected base data shape');
+          baseCasinos = base;
+        } catch (error) {
+          dom.meta.textContent = 'Failed to load required casino base dataset.';
+          dom.list.innerHTML = '<div class="casino-item"><p class="casino-name">Unable to load /data/sweepstakes-casinos.json</p></div>';
+          return;
+        }
+
+        try {
+          const csv = await fetchCsv('/data/casino_data_latest.csv');
+          csvRows = parseCsvRows(csv);
+        } catch (error) {
+          sourceWarnings.push('Live scrape enrichment unavailable; showing base trust data only.');
+        }
+
+        const csvByKey = new Map();
+        csvRows.forEach((row) => {
+          const key = normalizedKey(row.name);
+          if (key) csvByKey.set(key, row);
+        });
+
+        const lastUpdated = latestCollectionDate(csvRows);
+        allCasinos = baseCasinos.map((item) => {
+          const live = csvByKey.get(normalizedKey(item.name));
+          const trustScore = computeTrustScore(item, live);
+          const dataScore = Number.parseFloat(live && live.data_completeness_score);
+          const avgRating = Number.parseFloat(live && live.avg_rating);
+          const providerCount = Number.parseInt(live && live.provider_count, 10);
+          const withdrawalMethods = Number.parseInt(live && live.withdrawal_methods_count, 10);
+          return {
+            name: safe(item.name),
+            grade: safe(item.grade),
+            risk: safe(item.risk),
+            category: safe(item.category),
+            trustScore,
+            url: safe(live && live.url),
+            dataScore,
+            dataScoreKnown: Number.isFinite(dataScore),
+            avgRating,
+            avgRatingKnown: Number.isFinite(avgRating),
+            hasSsl: toBool(live && live.has_ssl),
+            hasSslKnown: live ? safe(live.has_ssl) !== '' : false,
+            has2fa: toBool(live && live.two_factor_auth),
+            has2faKnown: live ? safe(live.two_factor_auth) !== '' : false,
+            fairnessCertifications: safe(live && live.fairness_certifications),
+            providerCount,
+            providerCountKnown: Number.isFinite(providerCount),
+            withdrawalMethods,
+            withdrawalMethodsKnown: Number.isFinite(withdrawalMethods),
+            lastCollectedAt: safe(live && live.collection_date)
+          };
+        });
+
+        populateCategoryFilter(allCasinos);
+        if (sourceWarnings.length) {
+          dom.dataWarning.hidden = false;
+          dom.dataWarning.textContent = sourceWarnings.join(' ');
+        }
+
+        if (lastUpdated) {
+          dom.meta.textContent = 'Loaded ' + allCasinos.length + ' casinos • Last enrichment update: ' + lastUpdated;
+        } else {
+          dom.meta.textContent = 'Loaded ' + allCasinos.length + ' casinos from trust engine base data';
+        }
+
+        applyFilters();
+      }
+
+      dom.search.addEventListener('input', applyFilters);
+      dom.risk.addEventListener('change', applyFilters);
+      dom.category.addEventListener('change', applyFilters);
+      dom.minScore.addEventListener('change', applyFilters);
+
+      loadData();
     })();
-    </script>
-  </main>
-  <div id="shared-footer"></div>
+  </script>
   <script src="/scripts/components-loader.js"></script>
   <script src="/scripts/auth.js"></script>
 </body>

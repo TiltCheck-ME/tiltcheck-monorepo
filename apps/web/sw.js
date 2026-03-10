@@ -31,8 +31,12 @@ self.addEventListener('fetch', (event) => {
   // Avoid caching API/auth requests.
   if (url.pathname.startsWith('/api/') || url.pathname.startsWith('/play/')) return;
 
-  // For HTML/documents, prefer network so deploys appear immediately.
-  if (event.request.mode === 'navigate' || event.request.destination === 'document') {
+  const acceptHeader = event.request.headers.get('accept') || '';
+  const isHtmlRequest =
+    event.request.mode === 'navigate' || acceptHeader.includes('text/html');
+
+  // Network-first for HTML pages so deployments show up immediately.
+  if (isHtmlRequest) {
     event.respondWith(
       fetch(event.request)
         .then((response) => {
@@ -42,7 +46,11 @@ self.addEventListener('fetch', (event) => {
           }
           return response;
         })
-        .catch(() => caches.match(event.request))
+        .catch(async () => {
+          const cached = await caches.match(event.request);
+          if (cached) return cached;
+          return caches.match('/index.html');
+        })
     );
     return;
   }

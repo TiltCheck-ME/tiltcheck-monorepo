@@ -16,17 +16,6 @@
 <body>
   <div id="shared-nav"></div>
   <nav class="breadcrumbs"></nav>
-  <header class="site-header">
-    <nav class="container">
-      <a href="/" class="logo">TiltCheck</a>
-      <ul class="nav-links">
-        <li><a href="/">Home</a></li>
-        <li><a href="/about.html">About</a></li>
-        <li><a href="/how-it-works.html" aria-current="page">How It Works</a></li>
-        <li><a href="/contact.html">Contact</a></li>
-      </ul>
-    </nav>
-  </header>
 
   <main class="container">
     <article class="content-page">
@@ -148,7 +137,6 @@
     </article>
   </main>
 
-  <div id="shared-footer"></div>
   <footer class="site-footer">
     <div class="container">
       <div class="footer-grid">
@@ -187,12 +175,6 @@
   </footer>
 </body>
 <script src="/breadcrumbs.js" defer></script>
-<script>
-  (function(){
-    const navMount = document.getElementById('shared-nav');
-    const footerMount = document.getElementById('shared-footer');
-    if (navMount) { fetch('/components/nav.html').then(r=>r.text()).then(html=>{ navMount.innerHTML = html; }).catch(()=>{}); }
-    if (footerMount) { fetch('/components/footer.html').then(r=>r.text()).then(html=>{ footerMount.innerHTML = html; }).catch(()=>{}); }
-  })();
-</script>
+<script src="/scripts/components-loader.js"></script>
+<script src="/scripts/auth.js"></script>
 </html>

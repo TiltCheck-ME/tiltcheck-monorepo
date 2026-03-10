@@ -32,8 +32,12 @@ vi.mock('../../src/middleware/auth.js', () => ({
 }));
 
 import { authRouter } from '../../src/routes/auth.js';
+<<<<<<< HEAD
 import { createSession, exchangeDiscordCode, verifyDiscordOAuth } from '@tiltcheck/auth';
 import { findOrCreateUserByDiscord } from '@tiltcheck/db';
+=======
+import { exchangeDiscordCode } from '@tiltcheck/auth';
+>>>>>>> origin/main
 
 const app = express();
 app.use((req, _res, next) => {
@@ -128,6 +132,7 @@ describe('Auth callback state/source validation', () => {
       scope: 'identify',
     });
   });
+<<<<<<< HEAD
 
   it('fails closed for extension callback when trusted opener origin is missing', async () => {
     vi.mocked(verifyDiscordOAuth).mockResolvedValueOnce({
@@ -158,4 +163,6 @@ describe('Auth callback state/source validation', () => {
     expect(response.headers['content-type']).toContain('text/html');
     expect(response.text).toContain('Missing trusted extension origin');
   });
+=======
+>>>>>>> origin/main
 });
