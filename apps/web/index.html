@@ -1,4 +1,11 @@
 <!DOCTYPE html>
+<!--
+  ? 2024?2026 TiltCheck Ecosystem. All Rights Reserved.
+  Created by jmenichole (https://github.com/jmenichole)
+  
+  This file is part of the TiltCheck project.
+  For licensing information, see LICENSE file in the project root.
+-->
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -19,8 +26,14 @@
       }
     }
   </script>
+  <style>
+    body { background-color: #0E0E0F !important; }
+    .hero-gradient {
+      background: radial-gradient(circle at 50% 0%, rgba(0, 255, 198, 0.1) 0%, transparent 50%);
+    }
+  </style>
 </head>
-<body class="bg-[#0E0E0F] text-white">
+<body class="hero-gradient text-white">
   <div id="shared-nav"></div>
 
   <!-- Hero Section -->
@@ -41,7 +54,7 @@
     </div>
   </section>
 
-  <!-- Live Stats Section (Fixed) -->
+  <!-- Live Stats Section -->
   <section class="py-12 border-y border-white/5 bg-tc-slate/30">
     <div class="max-w-7xl mx-auto px-6 flex flex-wrap justify-center gap-8 text-center">
       <div>
@@ -56,6 +69,7 @@
         <div class="text-2xl font-bold text-tc-mint" id="stat-blocked">--</div>
         <div class="text-xs text-gray-500 uppercase tracking-widest">Threats Blocked</div>
       </div>
+      <div class="w-full text-xs text-gray-600 mt-2" id="api-stats-status">Initializing telemetry...</div>
     </div>
   </section>
 
@@ -66,7 +80,7 @@
         <div class="w-12 h-12 rounded-xl bg-tc-mint/10 flex items-center justify-center text-tc-mint text-2xl mb-6">??</div>
         <h3 class="text-xl font-bold mb-2">JustTheTip</h3>
         <p class="text-gray-400 text-sm mb-6 flex-1">Secure Solana tipping and automated airdrops directly in Discord.</p>
-        <a href="/tools/justthetip.html" class="text-tc-mint text-xs font-bold uppercase tracking-widest hover:underline">Explore ?</a>
+        <a href="/tools/justthetip.html" class="text-tc-mint text-xs font-bold uppercase tracking-widest hover:underline">Explore Tool ?</a>
       </div>
       <div class="glass-card p-8 flex flex-col border-tc-mint/40">
         <div class="w-12 h-12 rounded-xl bg-tc-mint/10 flex items-center justify-center text-tc-mint text-2xl mb-6">??</div>
@@ -84,7 +98,7 @@
         <div class="w-12 h-12 rounded-xl bg-tc-mint/10 flex items-center justify-center text-tc-mint text-2xl mb-6">??</div>
         <h3 class="text-xl font-bold mb-2">Extension</h3>
         <p class="text-gray-400 text-sm mb-6 flex-1">Real-time sidebar and fairness overlays while you play.</p>
-        <a href="/extension.html" class="text-tc-mint text-xs font-bold uppercase tracking-widest hover:underline">Install ?</a>
+        <a href="/extension.html" class="text-tc-mint text-xs font-bold uppercase tracking-widest hover:underline">Install Now ?</a>
       </div>
     </div>
   </section>
@@ -93,5 +107,6 @@
 
   <script src="/scripts/index-stats.js"></script>
   <script src="/scripts/components-loader.js"></script>
+  <script src="/scripts/auth.js"></script>
 </body>
 </html>

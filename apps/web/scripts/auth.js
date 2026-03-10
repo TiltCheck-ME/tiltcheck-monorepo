@@ -16,6 +16,30 @@ class TiltCheckAuth {
     this.init();
   }
 
+  getAuthProbeEndpoints() {
+    return [
+      '/api/auth/me',
+      '/auth/me',
+      '/play/api/user',
+      '/api/user',
+    ];
+  }
+
+  normalizeAuthUser(payload) {
+    if (!payload || typeof payload !== 'object') return null;
+
+    const raw = payload.user && typeof payload.user === 'object' ? payload.user : payload;
+    const id = raw.id || raw.userId || raw.discordId || raw.discord_id;
+    if (!id) return null;
+
+    return {
+      id,
+      username: raw.username || raw.discordUsername || raw.discord_username || null,
+      avatar: raw.avatar || raw.discordAvatar || raw.discord_avatar || null,
+      roles: Array.isArray(raw.roles) ? raw.roles : [],
+    };
+  }
+
   async init() {
     await this.checkAuthStatus();
     if (this.user && !this.hasAcceptedTerms()) {
@@ -33,19 +57,28 @@ class TiltCheckAuth {
   }
 
   async checkAuthStatus() {
-    try {
-      // Check game arena auth endpoint
-      const response = await fetch('/play/api/user', {
-        credentials: 'include'
-      });
-      
-      if (response.ok) {
-        this.user = await response.json();
+    // Probe known auth endpoints in priority order.
+    // This avoids false "logged out" states when one surface is unavailable.
+    for (const endpoint of this.getAuthProbeEndpoints()) {
+      try {
+        const response = await fetch(endpoint, {
+          credentials: 'include'
+        });
+
+        if (!response.ok) continue;
+
+        const payload = await response.json();
+        const user = this.normalizeAuthUser(payload);
+        if (user) {
+          this.user = user;
+          return;
+        }
+      } catch (_error) {
+        // Continue probing fallback endpoints.
       }
-    } catch (error) {
-      // User not logged in or game arena not available
-      this.user = null;
     }
+
+    this.user = null;
   }
 
   updateNavigation() {
