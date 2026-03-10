@@ -1,6 +1,6 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <!--
-  ? 2024?2026 TiltCheck Ecosystem. All Rights Reserved.
+  © 2024–2026 TiltCheck Ecosystem. All Rights Reserved.
   Created by jmenichole (https://github.com/jmenichole)
   
   This file is part of the TiltCheck project.
@@ -12,96 +12,99 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>TiltCheck | The Transparency Layer</title>
   <link rel="stylesheet" href="/styles/theme.css">
+  <link rel="stylesheet" href="/styles/main.css">
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
       theme: {
         extend: {
           colors: {
-            'tc-mint': '#00FFC6',
-            'tc-black': '#0E0E0F',
-            'tc-slate': '#111316',
+            'degen-black': '#0d1117',
+            'degen-gray': '#161b22',
+            'degen-green': '#00ffaa',
           }
         }
       }
     }
   </script>
-  <style>
-    body { background-color: #0E0E0F !important; }
-    .hero-gradient {
-      background: radial-gradient(circle at 50% 0%, rgba(0, 255, 198, 0.1) 0%, transparent 50%);
-    }
-  </style>
 </head>
-<body class="hero-gradient text-white">
+<body class="bg-[#0E0E0F] text-white">
   <div id="shared-nav"></div>
 
-  <!-- Hero Section -->
-  <section class="pt-32 pb-20 px-6 max-w-7xl mx-auto text-center">
-    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-tc-mint/30 bg-tc-mint/5 text-tc-mint text-xs font-bold mb-8 tracking-widest uppercase">
-      <span class="w-2 h-2 rounded-full bg-tc-mint animate-pulse"></span>
-      System Active
-    </div>
-    <h1 class="text-5xl md:text-8xl font-black tracking-tighter mb-6">
-      PLAY <span class="text-tc-mint">SMARTER</span>.<br/>LOSE LESS.
-    </h1>
-    <p class="text-xl text-gray-400 max-w-2xl mx-auto mb-12 leading-relaxed">
-      Anti-tilt monitoring, transparent fairness signals, and secure Solana-powered tools.
-    </p>
-    <div class="flex flex-col sm:flex-row gap-4 justify-center">
-      <a href="https://api.tiltcheck.me/auth/discord" class="btn-primary flex items-center justify-center">Login with Discord</a>
-      <a href="https://discord.gg/s6NNfPHxMS" class="px-8 py-3 rounded-lg border border-white/10 hover:bg-white/5 font-bold transition-all">Join Discord</a>
-    </div>
-  </section>
+  <main id="main-content">
+    <!-- Hero Section -->
+    <section class="hero-surface pt-32 pb-20 px-6">
+      <div class="container mx-auto text-center">
+        <h1 class="text-5xl md:text-8xl font-black tracking-tighter mb-6 uppercase">
+          PLAY <span class="text-[#00ffaa]">SMARTER</span>.<br>LOSE LESS.
+        </h1>
+        <p class="text-xl text-gray-400 max-w-2xl mx-auto mb-12 leading-relaxed">
+          Anti-scam, anti-tilt monitoring, transparent fairness signals, and secure Solana-powered tools for casino communities.
+        </p>
+        <div class="flex flex-col sm:flex-row gap-4 justify-center">
+          <a href="/getting-started.html" class="btn btn-primary px-8 py-4 text-lg">Get Started</a>
+          <a href="https://discord.gg/s6NNfPHxMS" class="btn btn-secondary px-8 py-4 text-lg">Join Discord</a>
+        </div>
+      </div>
+    </section>
 
-  <!-- Live Stats Section -->
-  <section class="py-12 border-y border-white/5 bg-tc-slate/30">
-    <div class="max-w-7xl mx-auto px-6 flex flex-wrap justify-center gap-8 text-center">
-      <div>
-        <div class="text-2xl font-bold text-tc-mint" id="stat-communities">--</div>
-        <div class="text-xs text-gray-500 uppercase tracking-widest">Communities</div>
+    <!-- Live Stats Section -->
+    <section class="py-12 border-y border-white/5 bg-[#111316]/30">
+      <div class="max-w-7xl mx-auto px-6 flex flex-wrap justify-center gap-12 text-center">
+        <div>
+          <div class="text-3xl font-black text-[#00ffaa]" id="stat-communities">--</div>
+          <div class="text-xs text-gray-500 uppercase tracking-widest mt-1">Communities</div>
+        </div>
+        <div>
+          <div class="text-3xl font-black text-[#00ffaa]" id="stat-scans">--</div>
+          <div class="text-xs text-gray-500 uppercase tracking-widest mt-1">24h Scans</div>
+        </div>
+        <div>
+          <div class="text-3xl font-black text-[#00ffaa]" id="stat-blocked">--</div>
+          <div class="text-xs text-gray-500 uppercase tracking-widest mt-1">Threats Blocked</div>
+        </div>
       </div>
-      <div>
-        <div class="text-2xl font-bold text-tc-mint" id="stat-scans">--</div>
-        <div class="text-xs text-gray-500 uppercase tracking-widest">24h Scans</div>
-      </div>
-      <div>
-        <div class="text-2xl font-bold text-tc-mint" id="stat-blocked">--</div>
-        <div class="text-xs text-gray-500 uppercase tracking-widest">Threats Blocked</div>
-      </div>
-      <div class="w-full text-xs text-gray-600 mt-2" id="api-stats-status">Initializing telemetry...</div>
-    </div>
-  </section>
+      <div class="text-center text-[10px] text-gray-600 mt-4 uppercase tracking-tighter" id="api-stats-status">Initializing telemetry...</div>
+    </section>
 
-  <!-- Tools Grid -->
-  <section id="tools" class="py-24 px-6 max-w-7xl mx-auto">
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-      <div class="glass-card p-8 flex flex-col">
-        <div class="w-12 h-12 rounded-xl bg-tc-mint/10 flex items-center justify-center text-tc-mint text-2xl mb-6">??</div>
-        <h3 class="text-xl font-bold mb-2">JustTheTip</h3>
-        <p class="text-gray-400 text-sm mb-6 flex-1">Secure Solana tipping and automated airdrops directly in Discord.</p>
-        <a href="/tools/justthetip.html" class="text-tc-mint text-xs font-bold uppercase tracking-widest hover:underline">Explore Tool ?</a>
+    <!-- Tools Grid -->
+    <section id="tools" class="py-24 px-6 max-w-7xl mx-auto">
+      <div class="mb-16">
+        <h2 class="text-4xl font-black mb-4 uppercase">The Toolkit</h2>
+        <p class="text-gray-400">Battle-tested signals across Discord, web, and extension.</p>
       </div>
-      <div class="glass-card p-8 flex flex-col border-tc-mint/40">
-        <div class="w-12 h-12 rounded-xl bg-tc-mint/10 flex items-center justify-center text-tc-mint text-2xl mb-6">??</div>
-        <h3 class="text-xl font-bold mb-2">LinkCheck</h3>
-        <p class="text-gray-400 text-sm mb-6 flex-1">AI-powered link analysis. Detect phishing before you click.</p>
-        <a href="/tools/suslink.html" class="text-tc-mint text-xs font-bold uppercase tracking-widest hover:underline">Scan Now ?</a>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <a href="/tools/justthetip.html" class="tool-card group p-8 border border-white/5 hover:border-[#00ffaa]/50 transition-all flex flex-col glass-card">
+          <div class="w-14 h-14 rounded-xl bg-[#00ffaa]/10 flex items-center justify-center text-2xl mb-6">💰</div>
+          <h3 class="text-xl font-bold mb-2">JustTheTip</h3>
+          <p class="text-gray-400 text-sm mb-6 flex-1">Secure Solana tipping, airdrops, and swaps directly in Discord.</p>
+          <span class="text-[#00ffaa] text-xs font-bold uppercase tracking-widest">Live →</span>
+        </a>
+
+        <a href="/tools/suslink.html" class="tool-card group p-8 border border-white/5 hover:border-[#00ffaa]/50 transition-all flex flex-col glass-card">
+          <div class="w-14 h-14 rounded-xl bg-[#00ffaa]/10 flex items-center justify-center text-2xl mb-6">🔗</div>
+          <h3 class="text-xl font-bold mb-2">LinkCheck</h3>
+          <p class="text-gray-400 text-sm mb-6 flex-1">AI-powered link scanning to detect scams and phishing redirects.</p>
+          <span class="text-[#00ffaa] text-xs font-bold uppercase tracking-widest">Live →</span>
+        </a>
+
+        <a href="/tools/collectclock.html" class="tool-card group p-8 border border-white/5 hover:border-[#4f9cfb]/50 transition-all flex flex-col glass-card">
+          <div class="w-14 h-14 rounded-xl bg-[#4f9cfb]/10 flex items-center justify-center text-2xl mb-6">🕒</div>
+          <h3 class="text-xl font-bold mb-2">BonusCheck</h3>
+          <p class="text-gray-400 text-sm mb-6 flex-1">Bonus drop tracking with nerf detection and window prediction.</p>
+          <span class="text-[#4f9cfb] text-xs font-bold uppercase tracking-widest">Beta →</span>
+        </a>
+
+        <a href="/extension.html" class="tool-card group p-8 border border-white/5 hover:border-[#00ffaa]/50 transition-all flex flex-col glass-card">
+          <div class="w-14 h-14 rounded-xl bg-[#00ffaa]/10 flex items-center justify-center text-2xl mb-6">🧩</div>
+          <h3 class="text-xl font-bold mb-2">Extension</h3>
+          <p class="text-gray-400 text-sm mb-6 flex-1">Real-time sidebar, tilt monitoring, and vault controls while you play.</p>
+          <span class="text-[#00ffaa] text-xs font-bold uppercase tracking-widest">Install →</span>
+        </a>
       </div>
-      <div class="glass-card p-8 flex flex-col">
-        <div class="w-12 h-12 rounded-xl bg-purple-500/10 flex items-center justify-center text-purple-400 text-2xl mb-6">??</div>
-        <h3 class="text-xl font-bold mb-2">BonusCheck</h3>
-        <p class="text-gray-400 text-sm mb-6 flex-1">Real-time bonus drop tracking and predictions.</p>
-        <a href="/tools/collectclock.html" class="text-tc-mint text-xs font-bold uppercase tracking-widest hover:underline">View Drops ?</a>
-      </div>
-      <div class="glass-card p-8 flex flex-col">
-        <div class="w-12 h-12 rounded-xl bg-tc-mint/10 flex items-center justify-center text-tc-mint text-2xl mb-6">??</div>
-        <h3 class="text-xl font-bold mb-2">Extension</h3>
-        <p class="text-gray-400 text-sm mb-6 flex-1">Real-time sidebar and fairness overlays while you play.</p>
-        <a href="/extension.html" class="text-tc-mint text-xs font-bold uppercase tracking-widest hover:underline">Install Now ?</a>
-      </div>
-    </div>
-  </section>
+    </section>
+  </main>
 
   <div id="shared-footer"></div>
 
