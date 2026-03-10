@@ -6,19 +6,11 @@
  * For licensing information, see LICENSE file in the project root.
  */
 import { NextResponse } from 'next/server';
-import { qualifyFirst } from '@tiltcheck/qualifyfirst';
 
 export async function GET(request: Request) {
   try {
-    const { searchParams } = new URL(request.url);
-    const userId = searchParams.get('userId');
-
-    if (!userId) {
-      return NextResponse.json({ error: 'User ID is required' }, { status: 400 });
-    }
-
-    const surveys = await qualifyFirst.matchSurveys(userId);
-    return NextResponse.json(surveys);
+    // qualifyfirst tool was removed, returning empty surveys
+    return NextResponse.json([]);
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }

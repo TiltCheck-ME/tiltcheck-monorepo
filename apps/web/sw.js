@@ -1,4 +1,4 @@
-const CACHE_NAME = 'tiltcheck-static-v1';
+const CACHE_NAME = 'tiltcheck-static-v2';
 const CORE_ASSETS = [
   '/',
   '/index.html',
@@ -30,6 +30,22 @@ self.addEventListener('fetch', (event) => {
 
   // Avoid caching API/auth requests.
   if (url.pathname.startsWith('/api/') || url.pathname.startsWith('/play/')) return;
+
+  // For HTML/documents, prefer network so deploys appear immediately.
+  if (event.request.mode === 'navigate' || event.request.destination === 'document') {
+    event.respondWith(
+      fetch(event.request)
+        .then((response) => {
+          if (response.ok && url.origin === self.location.origin) {
+            const clone = response.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone)).catch(() => {});
+          }
+          return response;
+        })
+        .catch(() => caches.match(event.request))
+    );
+    return;
+  }
 
   event.respondWith(
     caches.match(event.request).then((cached) => {

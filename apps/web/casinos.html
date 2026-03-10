@@ -34,7 +34,7 @@
     <div class="trust-card">
       <h2>What is Casino Trust?</h2>
       <p>The Casino Trust Engine tracks fairness, payout reliability, bonus nerfs, promo transparency, and compliance across the ecosystem. Scores update in real time and feed the Gameplay Fairness Analyzer context layer.</p>
-      <span class="badge">Non-Custodial</span>
+      <span class="badge"></span>
       <span class="badge">Flat Fee</span>
       <span class="badge">Evidence Export</span>
     </div>
@@ -125,7 +125,7 @@
         return dir==='asc'? base : -base;
       }
       function render(rows){
-        const limited = rows.slice(0, 50);
+        const limited = rows.slice(0, 200);
         tbody.innerHTML = limited.map(r => {
           const name = escapeHtml(r.name);
           const url = safeHttpUrl(r.url);

@@ -84,6 +84,10 @@ class GameManager {
       alert(`Error: ${error}`);
     });
 
+    this.socket.on('game-error', (error) => {
+      alert(`Error: ${error}`);
+    });
+
     this.socket.on('disconnect', () => {
       console.log('Disconnected from server');
     });
@@ -125,11 +129,7 @@ class GameManager {
     const sendMessage = () => {
       const message = chatInput.value.trim();
       if (message) {
-        this.socket.emit('chat-message', {
-          gameId: this.gameId,
-          message: message,
-          sender: this.user.username
-        });
+        this.socket.emit('chat-message', message);
         chatInput.value = '';
       }
     };
@@ -187,7 +187,7 @@ class GameManager {
     gameStatus.textContent = this.formatStatus(this.gameState.status);
 
     // Check if game just finished and show feedback survey
-    if (this.gameState.status === 'finished' && this.user && !this.isSpectator) {
+    if ((this.gameState.status === 'finished' || this.gameState.status === 'completed') && this.user && !this.isSpectator) {
       // Show feedback survey after a short delay
       setTimeout(() => {
         if (window.feedbackSurvey) {
@@ -259,7 +259,9 @@ class GameManager {
     const statuses = {
       'waiting': 'Waiting for Players',
       'playing': 'In Progress',
-      'finished': 'Game Finished'
+      'active': 'In Progress',
+      'finished': 'Game Finished',
+      'completed': 'Game Finished'
     };
     return statuses[status] || status;
   }
@@ -268,10 +270,15 @@ class GameManager {
     const chatMessages = document.getElementById('chat-messages');
     const messageElement = document.createElement('div');
     messageElement.className = 'chat-message';
-    messageElement.innerHTML = `
-      <div class="sender">${message.sender}</div>
-      <div class="text">${message.text}</div>
-    `;
+    const sender = message.username || message.sender || 'Player';
+    const text = message.message || message.text || '';
+    const senderElement = document.createElement('div');
+    senderElement.className = 'sender';
+    senderElement.textContent = String(sender);
+    const textElement = document.createElement('div');
+    textElement.className = 'text';
+    textElement.textContent = String(text);
+    messageElement.append(senderElement, textElement);
     
     chatMessages.appendChild(messageElement);
     chatMessages.scrollTop = chatMessages.scrollHeight;
@@ -317,12 +324,12 @@ class DegensGameRenderer extends BaseGameRenderer {
       gameContent.innerHTML = `
         <div class="waiting-area">
           <h2>Waiting for Players</h2>
-          <p>Need at least 3 players to start</p>
+          <p>Need at least 2 players to start</p>
           <p>Current players: ${gameState.players.length}/${gameState.maxPlayers}</p>
         </div>
       `;
       
-      if (gameState.creator.id === this.gameManager.user.id && gameState.players.length >= 2) {
+      if (gameState.players.length >= 2 && !this.gameManager.isSpectator) {
         gameActions.innerHTML = `
           <button class="cta-button" onclick="gameManager.sendGameAction({type: 'start-game'})">
             Start Game
@@ -359,7 +366,7 @@ class DegensGameRenderer extends BaseGameRenderer {
     if (gameState.submissions && gameState.submissions.length > 0) {
       const submissionsHtml = gameState.submissions.map((sub, index) => `
         <div class="submission-card" onclick="gameManager.sendGameAction({type: 'judge-submission', playerId: '${sub.playerId}'})">
-          ${sub.card.text}
+          ${sub.card?.text || sub.cards?.map(card => card.text).join(' / ') || `Submission #${index + 1}`}
         </div>
       `).join('');
 

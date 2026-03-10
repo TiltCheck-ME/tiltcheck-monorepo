@@ -35,6 +35,7 @@ export {
 
 export {
   executeTip,
+  getPendingTips,
 } from './tip-engine.js';
 
 export {

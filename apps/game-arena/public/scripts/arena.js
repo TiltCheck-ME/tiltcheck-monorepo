@@ -20,7 +20,10 @@ class ArenaManager {
     this.games = [];
     this.autoRefreshInterval = null;
     this.timerUpdateInterval = null;
+    this.persistenceRefreshInterval = null;
     this.lastUpdateTime = Date.now();
+    this.persistenceStatus = null;
+    this.persistenceStatusLoading = false;
     this.init();
   }
 
@@ -30,6 +33,8 @@ class ArenaManager {
     this.setupEventListeners();
     this.checkOnboarding();
     this.startAutoRefresh();
+    await this.fetchPersistenceStatus();
+    this.startPersistenceAutoRefresh();
   }
 
   async loadUser() {
@@ -53,22 +58,21 @@ class ArenaManager {
 
     this.socket.on('connect', () => {
       console.log('Connected to server');
-      this.socket.emit('join-lobby', this.user.id);
+      this.socket.emit('join-lobby');
     });
 
-    this.socket.on('lobby-games', (games) => {
-      this.games = games;
+    this.socket.on('lobby-update', (payload) => {
+      this.games = Array.isArray(payload?.games) ? payload.games : [];
       this.lastUpdateTime = Date.now();
       this.renderGames();
       this.showRefreshIndicator();
     });
 
-    this.socket.on('game-created', (game) => {
-      // Redirect to the new game
-      window.location.href = `/game/${game.id}`;
+    this.socket.on('error', (error) => {
+      alert(`Error: ${error}`);
     });
 
-    this.socket.on('error', (error) => {
+    this.socket.on('game-error', (error) => {
       alert(`Error: ${error}`);
     });
   }
@@ -92,6 +96,13 @@ class ArenaManager {
       this.createGame();
     });
 
+    const refreshPersistenceBtn = document.getElementById('refresh-persistence-status');
+    if (refreshPersistenceBtn) {
+      refreshPersistenceBtn.addEventListener('click', () => {
+        this.fetchPersistenceStatus();
+      });
+    }
+
     // Modal close
     const modalClose = document.querySelector('.modal-close');
     const modal = document.getElementById('game-modal');
@@ -105,6 +116,109 @@ class ArenaManager {
         modal.classList.add('hidden');
       }
     });
+  }
+
+  getHealthBadge(status) {
+    const normalized = status === 'good' || status === 'warn' ? status : 'bad';
+    const label = normalized === 'good' ? 'Good' : normalized === 'warn' ? 'Warn' : 'Bad';
+    return `<span class="status-badge ${normalized}">${label}</span>`;
+  }
+
+  formatTimestamp(value) {
+    if (!value) return 'n/a';
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return 'n/a';
+    return date.toLocaleString();
+  }
+
+  classifyPersistenceHealth(status) {
+    const stats = status?.stats || {};
+    if (!status?.snapshotExists || stats.restoreErrorCount > 0 || stats.persistErrorCount > 0) {
+      return 'bad';
+    }
+    if (stats.dadImportFallbackCount > 0) {
+      return 'warn';
+    }
+    return 'good';
+  }
+
+  renderPersistenceStatus(status) {
+    const statusMessage = document.getElementById('persistence-status-message');
+    const statusGrid = document.getElementById('persistence-status-grid');
+    if (!statusMessage || !statusGrid) return;
+
+    const overall = this.classifyPersistenceHealth(status);
+    const stats = status.stats || {};
+
+    statusMessage.innerHTML = `Overall health: ${this.getHealthBadge(overall)}`;
+    statusGrid.classList.remove('hidden');
+    statusGrid.innerHTML = `
+      <div class="persistence-item"><span>Snapshot Exists</span><span>${status.snapshotExists ? 'Yes' : 'No'}</span></div>
+      <div class="persistence-item"><span>Snapshot Size</span><span>${status.snapshotSizeBytes ?? 0} bytes</span></div>
+      <div class="persistence-item"><span>Snapshot Modified</span><span>${this.formatTimestamp(status.snapshotModifiedAt)}</span></div>
+      <div class="persistence-item"><span>Last Saved</span><span>${this.formatTimestamp(stats.lastSavedAt)}</span></div>
+      <div class="persistence-item"><span>Last Restored</span><span>${this.formatTimestamp(stats.lastRestoredAt)}</span></div>
+      <div class="persistence-item"><span>Restored Games</span><span>${stats.restoredGames ?? 0}</span></div>
+      <div class="persistence-item"><span>DA&D Import Success</span><span>${stats.dadImportSuccessCount ?? 0}</span></div>
+      <div class="persistence-item"><span>DA&D Import Fallback</span><span>${stats.dadImportFallbackCount ?? 0}</span></div>
+      <div class="persistence-item"><span>Persist Errors</span><span>${stats.persistErrorCount ?? 0}</span></div>
+      <div class="persistence-item"><span>Restore Errors</span><span>${stats.restoreErrorCount ?? 0}</span></div>
+      <div class="persistence-item"><span>Active Games</span><span>${status.activeGames ?? 0}</span></div>
+      <div class="persistence-item"><span>Tracked Players</span><span>${status.trackedPlayers ?? 0}</span></div>
+    `;
+  }
+
+  async fetchPersistenceStatus() {
+    if (this.persistenceStatusLoading) {
+      return;
+    }
+
+    const statusMessage = document.getElementById('persistence-status-message');
+    const statusGrid = document.getElementById('persistence-status-grid');
+    const tokenInput = document.getElementById('admin-status-token');
+
+    if (!statusMessage || !statusGrid) return;
+    this.persistenceStatusLoading = true;
+    statusMessage.textContent = 'Loading status...';
+    statusGrid.classList.add('hidden');
+
+    const headers = {};
+    const token = tokenInput?.value?.trim();
+    if (token) {
+      headers['x-admin-token'] = token;
+    }
+
+    try {
+      const response = await fetch('/api/admin/persistence-status', { headers });
+      if (response.ok) {
+        const data = await response.json();
+        this.persistenceStatus = data;
+        this.renderPersistenceStatus(data);
+        return;
+      }
+
+      if (response.status === 403) {
+        statusMessage.textContent = 'Admin token required in production. Paste token above and retry.';
+      } else if (response.status === 503) {
+        statusMessage.textContent = 'Admin status endpoint is not configured on server.';
+      } else {
+        statusMessage.textContent = 'Unable to load persistence status.';
+      }
+    } catch (error) {
+      console.error('Failed to fetch persistence status:', error);
+      statusMessage.textContent = 'Request failed. Check network/server and try again.';
+    } finally {
+      this.persistenceStatusLoading = false;
+    }
+  }
+
+  startPersistenceAutoRefresh() {
+    this.persistenceRefreshInterval = setInterval(() => {
+      if (document.hidden) {
+        return;
+      }
+      this.fetchPersistenceStatus();
+    }, 15000);
   }
 
   updateUserDisplay() {
@@ -144,14 +258,14 @@ class ArenaManager {
     // Calculate statistics
     let totalPlayers = 0;
     this.games.forEach(game => {
-      totalPlayers += game.currentPlayers;
+      totalPlayers += game.playerCount || 0;
     });
 
     this.updateLobbyStats(this.games.length, totalPlayers);
 
     gamesList.innerHTML = this.games.map(game => {
-      const isLive = game.status === 'playing';
-      const isFull = game.currentPlayers >= game.maxPlayers;
+      const isLive = game.status === 'active';
+      const isFull = (game.playerCount || 0) >= game.maxPlayers;
       const canJoin = !isFull && game.status === 'waiting';
       const canSpectate = isLive;
       
@@ -162,12 +276,12 @@ class ArenaManager {
           <div class="game-type">${this.formatGameType(game.type)}</div>
           <div class="game-players">
             <span class="player-status-badge ${isLive ? 'in-game' : 'active'}">
-              ${game.currentPlayers}/${game.maxPlayers} players
+              ${game.playerCount || 0}/${game.maxPlayers} players
             </span>
-            ${game.startTime ? `<span class="game-timer">${this.getGameDuration(game.startTime)}</span>` : ''}
+            ${game.startedAt ? `<span class="game-timer">${this.getGameDuration(game.startedAt)}</span>` : ''}
           </div>
           <div class="game-meta">
-            <span>Created by ${game.creator}</span>
+            <span>Created by ${game.hostUsername || 'Host'}</span>
             <span class="game-status ${game.status}">${this.formatStatus(game.status)}</span>
           </div>
           <div class="game-actions-row" onclick="event.stopPropagation()">
@@ -204,8 +318,8 @@ class ArenaManager {
   formatStatus(status) {
     const statuses = {
       'waiting': 'Waiting for Players',
-      'playing': 'In Progress',
-      'finished': 'Finished'
+      'active': 'In Progress',
+      'completed': 'Finished'
     };
     return statuses[status] || status;
   }
@@ -230,10 +344,11 @@ class ArenaManager {
       });
 
       if (response.ok) {
-        const game = await response.json();
+        const payload = await response.json();
+        const game = payload.game;
         
         // If it's a private game, show the invite link
-        if (game.isPrivate && game.inviteLink) {
+        if (game && game.isPrivate && game.inviteLink) {
           const shareInvite = confirm(`Private game created! Click OK to copy the invite link to share with friends.\n\nInvite Link: ${game.inviteLink}`);
           if (shareInvite) {
             navigator.clipboard.writeText(game.inviteLink).then(() => {
@@ -246,7 +361,9 @@ class ArenaManager {
         }
         
         // Redirect to the new game
-        window.location.href = `/game/${game.id}`;
+        if (game && game.id) {
+          window.location.href = `/game/${game.id}`;
+        }
       } else {
         const error = await response.text();
         alert(`Failed to create game: ${error}`);
@@ -261,7 +378,7 @@ class ArenaManager {
     const game = this.games.find(g => g.id === gameId);
     if (!game) return;
 
-    if (game.currentPlayers >= game.maxPlayers) {
+    if ((game.playerCount || 0) >= game.maxPlayers) {
       alert('This game is full!');
       return;
     }
@@ -274,7 +391,7 @@ class ArenaManager {
     const game = this.games.find(g => g.id === gameId);
     if (!game) return;
 
-    if (game.status !== 'playing') {
+    if (game.status !== 'active') {
       alert('This game is not currently in progress.');
       return;
     }
@@ -319,10 +436,10 @@ class ArenaManager {
       const gameId = item.dataset.gameId;
       const game = this.games.find(g => g.id === gameId);
       
-      if (game && game.startTime) {
+      if (game && game.startedAt) {
         const timerElement = item.querySelector('.game-timer');
         if (timerElement) {
-          timerElement.textContent = this.getGameDuration(game.startTime);
+          timerElement.textContent = this.getGameDuration(game.startedAt);
         }
       }
     });
@@ -412,6 +529,10 @@ class ArenaManager {
     if (this.timerUpdateInterval) {
       clearInterval(this.timerUpdateInterval);
       this.timerUpdateInterval = null;
+    }
+    if (this.persistenceRefreshInterval) {
+      clearInterval(this.persistenceRefreshInterval);
+      this.persistenceRefreshInterval = null;
     }
   }
 }

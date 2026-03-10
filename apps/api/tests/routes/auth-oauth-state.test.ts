@@ -5,6 +5,7 @@ import request from 'supertest';
 vi.mock('@tiltcheck/auth', () => ({
   getDiscordAuthUrl: vi.fn(() => 'https://discord.com/oauth2/authorize'),
   verifyDiscordOAuth: vi.fn(),
+  exchangeDiscordCode: vi.fn(),
   createSession: vi.fn(),
   destroySession: vi.fn(() => 'session=; Path=/; HttpOnly'),
   verifySessionCookie: vi.fn(),
@@ -31,6 +32,8 @@ vi.mock('../../src/middleware/auth.js', () => ({
 }));
 
 import { authRouter } from '../../src/routes/auth.js';
+import { createSession, exchangeDiscordCode, verifyDiscordOAuth } from '@tiltcheck/auth';
+import { findOrCreateUserByDiscord } from '@tiltcheck/db';
 
 const app = express();
 app.use((req, _res, next) => {
@@ -50,6 +53,8 @@ app.use('/auth', authRouter);
 describe('Auth callback state/source validation', () => {
   beforeEach(() => {
     process.env.NODE_ENV = 'development';
+    process.env.DISCORD_CLIENT_ID = 'test-client-id';
+    process.env.DISCORD_CLIENT_SECRET = 'test-client-secret';
     vi.clearAllMocks();
   });
 
@@ -67,7 +72,8 @@ describe('Auth callback state/source validation', () => {
 
     // State validation passes; it then fails on missing code.
     expect(response.status).toBe(400);
-    expect(response.body.error).toBe('Missing authorization code');
+    expect(response.headers['content-type']).toContain('text/html');
+    expect(response.text).toContain('Missing authorization code');
   });
 
   it('does not allow oauth_source cookie alone to bypass missing oauth_state cookie', async () => {
@@ -84,5 +90,72 @@ describe('Auth callback state/source validation', () => {
 
     expect(response.status).toBe(302);
     expect(response.headers.location).toBe('/auth/discord/callback?code=abc123&state=ext_mock');
+  });
+
+  it('rejects invalid activity token exchange payload', async () => {
+    const response = await request(app)
+      .post('/auth/discord/activity/token')
+      .send({ code: 'bad' });
+
+    expect(response.status).toBe(400);
+    expect(response.body.code).toBe('INVALID_CODE');
+  });
+
+  it('exchanges activity code and returns Discord token payload', async () => {
+    vi.mocked(exchangeDiscordCode).mockResolvedValueOnce({
+      success: true,
+      tokens: {
+        accessToken: 'mock-access-token',
+        refreshToken: 'mock-refresh-token',
+        tokenType: 'Bearer',
+        expiresIn: 3600,
+        scope: 'identify',
+      },
+    });
+
+    const response = await request(app)
+      .post('/auth/discord/activity/token')
+      .send({
+        code: 'mock-authorization-code-12345',
+        redirectUri: 'http://localhost:5173/tools/daad.html',
+      });
+
+    expect(response.status).toBe(200);
+    expect(response.body).toMatchObject({
+      access_token: 'mock-access-token',
+      token_type: 'Bearer',
+      expires_in: 3600,
+      scope: 'identify',
+    });
+  });
+
+  it('fails closed for extension callback when trusted opener origin is missing', async () => {
+    vi.mocked(verifyDiscordOAuth).mockResolvedValueOnce({
+      valid: true,
+      user: {
+        id: 'discord-user-1',
+        username: 'tester',
+        avatar: null,
+      },
+    } as any);
+    vi.mocked(findOrCreateUserByDiscord).mockResolvedValueOnce({
+      id: 'user-1',
+      email: null,
+      roles: ['user'],
+      discord_username: 'tester',
+      discord_avatar: null,
+    } as any);
+    vi.mocked(createSession).mockResolvedValueOnce({
+      cookie: 'session=test; Path=/; HttpOnly',
+      token: 'session-token',
+    } as any);
+
+    const response = await request(app)
+      .get('/auth/discord/callback?state=ext_state_ok&code=abc123')
+      .set('Cookie', ['oauth_state=ext_state_ok', 'oauth_source=extension']);
+
+    expect(response.status).toBe(400);
+    expect(response.headers['content-type']).toContain('text/html');
+    expect(response.text).toContain('Missing trusted extension origin');
   });
 });
