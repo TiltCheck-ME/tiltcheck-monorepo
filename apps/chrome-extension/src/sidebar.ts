@@ -249,6 +249,11 @@ function escapeHtml(value: unknown): string {
 function getStorage(keys: string[] | string): Promise<Record<string, any>> {
   return new Promise((resolve) => {
     try {
+      if (!chrome.runtime?.id) {
+        console.warn('[TiltCheck] Extension context invalidated. Please refresh the page.');
+        resolve({});
+        return;
+      }
       chrome.storage.local.get(keys, (result) => {
         if (chrome.runtime?.lastError) {
           console.warn('[TiltCheck] Storage get failed:', chrome.runtime.lastError.message);
