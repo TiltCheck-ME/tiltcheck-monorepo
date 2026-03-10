@@ -35,6 +35,19 @@ export const submit: Command = {
       }
 
       const game = games[0];
+      const currentRound = game.rounds[game.rounds.length - 1];
+      if (!currentRound) {
+        throw new Error('No active round');
+      }
+
+      if (currentRound.judgeUserId === userId) {
+        await interaction.reply({
+          embeds: [errorEmbed('Judge turn', 'You are the judge this round. Use `/vote` to pick the winner after submissions reveal.')],
+          ephemeral: true
+        });
+        return;
+      }
+
       const player = game.players.get(userId);
 
       if (!player) {
@@ -55,11 +68,10 @@ export const submit: Command = {
 
       const card = player.hand[cardNumber - 1];
       await dad.submitCards(game.id, userId, [card.id]);
-
-      const currentRound = game.rounds[game.rounds.length - 1];
+      const expectedSubmissions = Math.max(0, game.players.size - 1);
 
       await interaction.reply({
-        embeds: [successEmbed('Card submitted!', `You played: "${card.text}"\n\nWaiting for other players... (${currentRound.submissions.size}/${game.players.size})`)],
+        embeds: [successEmbed('Card submitted!', `You played: "${card.text}"\n\nWaiting for other players... (${currentRound.submissions.size}/${expectedSubmissions})`)],
         ephemeral: true
       });
     } catch (error: any) {

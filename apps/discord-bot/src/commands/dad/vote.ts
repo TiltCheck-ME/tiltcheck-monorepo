@@ -14,7 +14,7 @@ import type { Command } from '../../types.js';
 export const vote: Command = {
   data: new SlashCommandBuilder()
     .setName('vote')
-    .setDescription('Vote for the winning answer this round')
+    .setDescription('Judge picks the winning answer this round')
     .addUserOption(option =>
       option.setName('player').setDescription('The player whose answer you\'re voting for').setRequired(true)
     ),
@@ -36,12 +36,23 @@ export const vote: Command = {
       }
 
       const game = games[0];
-      await dad.vote(game.id, voterId, targetUserId);
-
       const currentRound = game.rounds[game.rounds.length - 1];
+      if (!currentRound) {
+        throw new Error('No active round');
+      }
+
+      if (currentRound.judgeUserId !== voterId) {
+        await interaction.reply({
+          embeds: [errorEmbed('Judge only', 'Only the current round judge can pick the winner.')],
+          ephemeral: true
+        });
+        return;
+      }
+
+      await dad.pickWinner(game.id, voterId, targetUserId);
 
       await interaction.reply({
-        embeds: [successEmbed('Vote cast!', `You voted for ${targetUser.username}'s answer!\n\nVotes: ${currentRound.votes.size}/${game.players.size - 1}`)],
+        embeds: [successEmbed('Winner selected!', `You picked ${targetUser.username} as the winner for round ${currentRound.roundNumber}.`)],
         ephemeral: true
       });
     } catch (error: any) {

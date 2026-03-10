@@ -15,6 +15,14 @@ import { EXT_CONFIG, getDiscordLoginUrl } from './config.js';
 
 const API_BASE = EXT_CONFIG.API_BASE_URL;
 const AI_GATEWAY_URL = EXT_CONFIG.AI_GATEWAY_URL;
+const API_ORIGIN = (() => {
+  try {
+    return new URL(API_BASE).origin;
+  } catch {
+    return 'https://api.tiltcheck.me';
+  }
+})();
+const DISCORD_AUTH_MESSAGE_TYPE = 'discord-auth';
 let authToken: string | null = null;
 let showSettings = false;
 let apiKeys: any = {
@@ -39,6 +47,7 @@ let lockTimerInterval: any = null;
 let lastProfit = 0;
 let casinoThemesIntervalId: ReturnType<typeof setInterval> | null = null;
 let vaultRefreshIntervalId: ReturnType<typeof setInterval> | null = null;
+let discordAuthPollIntervalId: ReturnType<typeof setInterval> | null = null;
 let buddyMirrorEnabled = false;
 let demoMode = false;
 const SIDEBAR_PREFS_KEY = 'sidebarUiPrefs';
@@ -1342,21 +1351,98 @@ function syncAccountUi() {
   logoutBtn.style.display = 'inline-flex';
 }
 
+function clearDiscordAuthPolling() {
+  if (discordAuthPollIntervalId) {
+    clearInterval(discordAuthPollIntervalId);
+    discordAuthPollIntervalId = null;
+  }
+}
+
+async function applyDiscordAuthSuccess(token: string, user: Record<string, any>) {
+  await setStorage({ authToken: token, userData: user });
+  clearDiscordAuthPolling();
+  demoMode = false;
+  authToken = token;
+  userData = { ...user, isDemo: false };
+  isAuthenticated = true;
+  showMainContent();
+  syncAccountUi();
+  addFeedMessage(`Connected: ${userData.username || 'TiltCheck user'}`);
+}
+
+function handleDiscordAuthMessage(event: MessageEvent) {
+  if (event.origin !== API_ORIGIN) return;
+  const data = event.data as { type?: string; token?: unknown; user?: unknown } | null;
+  if (!data || data.type !== DISCORD_AUTH_MESSAGE_TYPE) return;
+  if (typeof data.token !== 'string' || !data.token) return;
+  if (!data.user || typeof data.user !== 'object') return;
+  void applyDiscordAuthSuccess(data.token, data.user as Record<string, any>);
+}
+
 function startDiscordLoginFlow() {
   const authUrl = getDiscordLoginUrl('extension');
+<<<<<<< HEAD
+  const maxPollMs = 5 * 60 * 1000;
+  const startedAt = Date.now();
+  clearDiscordAuthPolling();
+
+  const startStoragePolling = () => {
+    discordAuthPollIntervalId = setInterval(async () => {
+      try {
+        const stored = await getStorage(['authToken', 'userData']);
+        if (stored?.authToken && stored?.userData) {
+          await applyDiscordAuthSuccess(stored.authToken, stored.userData);
+          return;
+        }
+
+        if (Date.now() - startedAt > maxPollMs) {
+          clearDiscordAuthPolling();
+          addFeedMessage('Discord connect timed out. Try again.');
+        }
+      } catch (error) {
+        clearDiscordAuthPolling();
+        console.warn('[TiltCheck] Discord connect polling failed:', error);
+        addFeedMessage('Discord connect interrupted. Reload the tab and try again.');
+      }
+    }, 1000);
+  };
+
+  try {
+    // User-clicked popup preserves window.opener for callback postMessage.
+    const popup = window.open(authUrl, '_blank', 'popup=yes,width=520,height=760');
+    if (popup) {
+      startStoragePolling();
+      return;
+    }
+
+    chrome.runtime.sendMessage({ type: 'open_auth_bridge', url: authUrl }, (response) => {
+=======
   try {
     chrome.runtime.sendMessage({ type: 'open_auth_tab', url: authUrl }, (response) => {
+>>>>>>> origin/main
       if (chrome.runtime.lastError) {
         const msg = chrome.runtime.lastError.message || 'Could not open Discord login tab.';
         addFeedMessage(
           msg.includes('Extension context invalidated')
             ? 'Extension refreshed mid-login. Reload this tab and retry Connect Discord.'
+<<<<<<< HEAD
+            : 'Could not open Discord login helper. Try again.'
+=======
             : 'Could not open Discord login tab. Try again.'
+>>>>>>> origin/main
         );
         return;
       }
 
       if (!response?.success) {
+<<<<<<< HEAD
+        addFeedMessage('Could not open Discord login helper. Try again.');
+        return;
+      }
+
+      addFeedMessage('Opened Discord login helper tab.');
+      startStoragePolling();
+=======
         addFeedMessage('Could not open Discord login tab. Try again.');
         return;
       }
@@ -1388,6 +1474,7 @@ function startDiscordLoginFlow() {
           addFeedMessage('Discord connect interrupted. Reload the tab and try again.');
         }
       }, 1000);
+>>>>>>> origin/main
     });
   } catch (error) {
     console.warn('[TiltCheck] Unable to start Discord connect flow:', error);
@@ -1396,6 +1483,9 @@ function startDiscordLoginFlow() {
 }
 
 function setupEventListeners() {
+  window.removeEventListener('message', handleDiscordAuthMessage as EventListener);
+  window.addEventListener('message', handleDiscordAuthMessage as EventListener);
+
   document.getElementById('tg-minimize')?.addEventListener('click', () => {
     const sidebar = document.getElementById('tiltcheck-sidebar');
     const isMinimized = !!sidebar?.classList.contains('minimized');

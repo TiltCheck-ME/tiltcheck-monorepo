@@ -955,6 +955,13 @@ body::before {
   border: 1px solid rgba(180, 255, 57, 0.2);
 }
 
+.games-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
 .game-list {
   display: grid;
   gap: 15px;
@@ -993,6 +1000,72 @@ body::before {
   padding: 30px;
   border: 1px solid rgba(180, 255, 57, 0.2);
   height: fit-content;
+}
+
+.admin-status-panel {
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid rgba(180, 255, 57, 0.2);
+}
+
+.admin-status-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.admin-status-header h3 {
+  color: var(--brand-teal);
+  font-size: 1rem;
+}
+
+.persistence-status-message {
+  margin-top: 10px;
+  color: var(--text-light);
+  font-size: 0.9rem;
+}
+
+.persistence-status-grid {
+  margin-top: 12px;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
+}
+
+.persistence-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(180, 255, 57, 0.2);
+  font-size: 0.85rem;
+}
+
+.status-badge {
+  border-radius: 999px;
+  padding: 3px 10px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.status-badge.good {
+  color: #0b2d0b;
+  background: #7dff73;
+}
+
+.status-badge.warn {
+  color: #352700;
+  background: #ffd56b;
+}
+
+.status-badge.bad {
+  color: #3a0000;
+  background: #ff8f8f;
 }
 
 .form-group {

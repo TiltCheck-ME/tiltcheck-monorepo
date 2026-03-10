@@ -11,6 +11,7 @@ function setupChromeMock() {
   const chromeMock = {
     runtime: {
       lastError: null as { message: string } | null,
+      getURL: vi.fn((path: string) => `chrome-extension://test-ext-id/${path}`),
       onInstalled: {
         addListener: vi.fn((listener: () => void) => installListeners.push(listener)),
       },
@@ -55,11 +56,38 @@ describe('background service worker', () => {
     );
   });
 
-  it('handles open_auth_tab and open_vault messages', async () => {
+  it('handles open_auth bridge/tab and open_vault messages', async () => {
     const { chromeMock, runtimeListeners } = setupChromeMock();
     await import('../../src/background.js');
 
     const listener = runtimeListeners[0];
+    const bridgeResponse = vi.fn();
+    const bridgeKeepChannel = listener(
+      { type: 'open_auth_bridge', url: 'https://api.tiltcheck.me/auth/discord/login' },
+      { tab: { windowId: 7, index: 2 } },
+      bridgeResponse,
+    );
+    expect(bridgeKeepChannel).toBe(true);
+    expect(chromeMock.tabs.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        url: expect.stringContaining('chrome-extension://test-ext-id/auth-bridge.html?authUrl='),
+        active: true,
+        windowId: 7,
+        index: 3,
+      }),
+      expect.any(Function),
+    );
+    expect(bridgeResponse).toHaveBeenCalledWith({ success: true });
+
+    const invalidBridgeResponse = vi.fn();
+    const invalidBridgeImmediate = listener(
+      { type: 'open_auth_bridge', url: 'https://evil.example/auth/discord/login' },
+      { tab: { windowId: 7, index: 2 } },
+      invalidBridgeResponse,
+    );
+    expect(invalidBridgeImmediate).toBe(false);
+    expect(invalidBridgeResponse).toHaveBeenCalledWith({ success: false, error: 'Invalid auth URL' });
+
     const authResponse = vi.fn();
     const keepChannel = listener(
       { type: 'open_auth_tab', url: 'https://discord.com/oauth2/authorize' },

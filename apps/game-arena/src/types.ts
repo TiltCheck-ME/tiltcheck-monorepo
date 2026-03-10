@@ -87,8 +87,10 @@ export interface CreateGameRequest {
 // WebSocket event types
 export interface ClientToServerEvents {
   'join-lobby': () => void;
+  'request-lobby-update': () => void;
   'leave-lobby': () => void;
   'join-game': (gameId: string) => void;
+  'spectate-game': (gameId: string) => void;
   'leave-game': () => void;
   'game-action': (action: any) => void;
   'chat-message': (message: string) => void;
@@ -97,6 +99,7 @@ export interface ClientToServerEvents {
 export interface ServerToClientEvents {
   'lobby-update': (data: { games: GameLobbyInfo[]; playersOnline: number }) => void;
   'game-update': (gameState: any) => void;
+  'spectator-mode': (enabled: boolean) => void;
   'game-error': (error: string) => void;
   'chat-message': (data: { userId: string; username: string; message: string; timestamp: number }) => void;
   'player-joined': (data: { userId: string; username: string }) => void;

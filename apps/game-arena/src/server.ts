@@ -19,6 +19,8 @@ import { Server as SocketIOServer } from 'socket.io';
 import session from 'express-session';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { RedisStore } from 'connect-redis';
+import { createClient } from 'redis';
 
 import { config, validateConfig } from './config.js';
 import { GameManager } from './game-manager.js';
@@ -57,7 +59,10 @@ const io = new SocketIOServer<ClientToServerEvents, ServerToClientEvents>(httpSe
 });
 
 // Initialize game manager
-const gameManager = new GameManager();
+const gameManager = new GameManager({
+  stateFilePath: config.game.stateFilePath,
+});
+await gameManager.initialize();
 
 // Initialize stats service
 statsService.initialize().catch(err => {
@@ -83,7 +88,29 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, '../public')));
 
 // Session configuration (used to store auth tokens)
+let redisSessionClient: ReturnType<typeof createClient> | null = null;
+let sessionStore: session.Store | undefined;
+
+if (config.redis.url) {
+  try {
+    redisSessionClient = createClient({ url: config.redis.url });
+    redisSessionClient.on('error', (error) => {
+      console.warn('[Session] Redis session client error:', error);
+    });
+    await redisSessionClient.connect();
+    sessionStore = new RedisStore({
+      client: redisSessionClient,
+      prefix: 'arena:sess:',
+    });
+    console.log('✅ Redis session store enabled');
+  } catch (error) {
+    redisSessionClient = null;
+    console.warn('[Session] Redis unavailable, falling back to in-memory sessions:', error);
+  }
+}
+
 const sessionMiddleware = session({
+  ...(sessionStore ? { store: sessionStore } : {}),
   secret: config.session.secret,
   resave: false,
   saveUninitialized: false,
@@ -147,6 +174,27 @@ async function optionalAuth(req: express.Request, _res: express.Response, next: 
   if (req.session.user) {
     req.user = req.session.user;
   }
+  next();
+}
+
+function requireAdmin(req: express.Request, res: express.Response, next: express.NextFunction): void {
+  if (config.isDev) {
+    next();
+    return;
+  }
+
+  const configuredToken = config.admin.statusToken;
+  if (!configuredToken) {
+    res.status(503).json({ error: 'Admin status endpoint is not configured' });
+    return;
+  }
+
+  const providedToken = req.headers['x-admin-token'];
+  if (typeof providedToken !== 'string' || providedToken !== configuredToken) {
+    res.status(403).json({ error: 'Admin token required' });
+    return;
+  }
+
   next();
 }
 
@@ -384,6 +432,16 @@ app.get('/api/history/:discordId', async (req, res) => {
   }
 });
 
+// Admin: persistence health/status
+app.get('/api/admin/persistence-status', requireAuth, requireAdmin, async (_req, res) => {
+  try {
+    const status = await gameManager.getPersistenceStatus();
+    res.json(status);
+  } catch (error: any) {
+    res.status(500).json({ error: error.message || 'Failed to load persistence status' });
+  }
+});
+
 // JustTheTip API routes
 
 // Get tip history for authenticated user
@@ -476,19 +534,19 @@ app.get('/api/tips/history', requireAuth, (req, res) => {
 io.on('connection', (socket) => {
   const session = (socket.request as any).session;
   const authUser: AuthUser | undefined = session?.user;
-
-  if (!authUser) {
-    console.log('❌ Unauthorized WebSocket connection');
-    socket.disconnect();
-    return;
-  }
-
-  const user: DiscordUser = mapAuthUserToDiscordUser(authUser);
-  console.log(`✅ User connected: ${user.username} (${user.id})`);
+  const user: DiscordUser | null = authUser ? mapAuthUserToDiscordUser(authUser) : null;
+  console.log(user ? `✅ User connected: ${user.username} (${user.id})` : '👀 Anonymous lobby watcher connected');
 
   // Join lobby
   socket.on('join-lobby', () => {
     socket.join('lobby');
+    socket.emit('lobby-update', {
+      games: gameManager.getActiveGames(),
+      playersOnline: gameManager.getOnlinePlayerCount(),
+    });
+  });
+
+  socket.on('request-lobby-update', () => {
     socket.emit('lobby-update', {
       games: gameManager.getActiveGames(),
       playersOnline: gameManager.getOnlinePlayerCount(),
@@ -502,6 +560,10 @@ io.on('connection', (socket) => {
 
   // Join game
   socket.on('join-game', async (gameId: string) => {
+    if (!user) {
+      socket.emit('game-error', 'Authentication required');
+      return;
+    }
     try {
       await gameManager.joinGame(gameId, user.id, user.username);
       socket.join(`game:${gameId}`);
@@ -525,8 +587,23 @@ io.on('connection', (socket) => {
     }
   });
 
+  // Spectate game (read-only)
+  socket.on('spectate-game', (gameId: string) => {
+    socket.join(`game:${gameId}`);
+    const gameState = gameManager.getGameState(gameId, user?.id || 'spectator');
+    if (!gameState) {
+      socket.emit('game-error', 'Game not found');
+      return;
+    }
+    socket.emit('spectator-mode', true);
+    socket.emit('game-update', gameState);
+  });
+
   // Leave game
   socket.on('leave-game', async () => {
+    if (!user) {
+      return;
+    }
     await gameManager.leaveGame(user.id);
     
     // Leave all game rooms
@@ -547,6 +624,10 @@ io.on('connection', (socket) => {
 
   // Game action
   socket.on('game-action', async (action: any) => {
+    if (!user) {
+      socket.emit('game-error', 'Authentication required');
+      return;
+    }
     const rooms = Array.from(socket.rooms);
     const gameRoom = rooms.find(room => room.startsWith('game:'));
     
@@ -570,6 +651,17 @@ io.on('connection', (socket) => {
 
   // Chat message
   socket.on('chat-message', (message: string) => {
+    if (!user) {
+      socket.emit('game-error', 'Authentication required');
+      return;
+    }
+    const normalizedMessage = typeof message === 'string' ? message.trim() : '';
+    if (!normalizedMessage) {
+      return;
+    }
+    // Hard cap prevents oversized payload abuse and keeps chat rendering predictable.
+    const safeMessage = normalizedMessage.slice(0, 500);
+
     const rooms = Array.from(socket.rooms);
     const gameRoom = rooms.find(room => room.startsWith('game:'));
     
@@ -577,7 +669,7 @@ io.on('connection', (socket) => {
       io.to(gameRoom).emit('chat-message', {
         userId: user.id,
         username: user.username,
-        message,
+        message: safeMessage,
         timestamp: Date.now(),
       });
     }
@@ -585,8 +677,10 @@ io.on('connection', (socket) => {
 
   // Disconnect
   socket.on('disconnect', async () => {
-    console.log(`❌ User disconnected: ${user.username} (${user.id})`);
-    await gameManager.leaveGame(user.id);
+    if (user) {
+      console.log(`❌ User disconnected: ${user.username} (${user.id})`);
+      await gameManager.leaveGame(user.id);
+    }
 
     // Update lobby
     io.to('lobby').emit('lobby-update', {
@@ -604,6 +698,10 @@ setInterval(() => {
 // Graceful shutdown
 process.on('SIGTERM', async () => {
   console.log('SIGTERM received, closing gracefully...');
+  await gameManager.shutdown();
+  if (redisSessionClient) {
+    await redisSessionClient.quit();
+  }
   io.close();
   httpServer.close();
   process.exit(0);

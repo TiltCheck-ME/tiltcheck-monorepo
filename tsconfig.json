@@ -3,7 +3,10 @@
     "outDir": "./dist",
     "rootDir": "./src",
     "skipLibCheck": true,
-    "module": "NodeNext"
+    "module": "NodeNext",
+    "declaration": true,
+    "esModuleInterop": true,
+    "target": "ESNext"
   },
   "include": [
     "src/**/*.ts"

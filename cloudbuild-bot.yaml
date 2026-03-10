@@ -1,0 +1,5 @@
+steps:
+- name: 'gcr.io/cloud-builders/docker'
+  args: ['build', '-t', 'us-central1-docker.pkg.dev/tiltchcek/tiltcheck/discord-bot:latest', '-f', 'apps/discord-bot/Dockerfile', '.']
+images:
+- 'us-central1-docker.pkg.dev/tiltchcek/tiltcheck/discord-bot:latest'

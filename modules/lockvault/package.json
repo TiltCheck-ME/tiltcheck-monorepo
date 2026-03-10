@@ -22,6 +22,7 @@
     "@solana/web3.js": "^1.95.0",
     "@tiltcheck/event-router": "workspace:*",
     "@tiltcheck/natural-language-parser": "workspace:*",
+    "@tiltcheck/database": "workspace:*",
     "@tiltcheck/types": "workspace:*",
     "@tiltcheck/utils": "workspace:*"
   },
