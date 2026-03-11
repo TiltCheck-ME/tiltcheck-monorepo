@@ -17,23 +17,25 @@ All core services and shadow services successfully migrated to Cloud Run.
 - **Chrome Extension**: Rebuilt and pointed to production API custom domain.
 - **Custom Domains**: Mapped production subdomains via `gcloud beta run domain-mappings`.
 - **Public Access**: Fixed 403 errors by granting `roles/run.invoker` to `allUsers` for Game Arena and Trust Rollup.
-
 ## Recent Fixes
-- **Shadow Service Wave 3 Cleanup**: Successfully deleted legacy `tiltcheck-dashboard` and failing `tiltcheck-command-deployer` from Cloud Run.
-- **Service Verification**: Confirmed `tiltcheck-dad-bot` is no longer in the Cloud Run service list (merged or deleted).
-- **Custom Domain Mappings**: Initiated mappings for `arena.tiltcheck.me`, `rollup.tiltcheck.me`, `control.tiltcheck.me`, and `comic.tiltcheck.me` (DNS setup required).
-- **Secret Management Audit**: Completed a comprehensive audit of all projects. Removed hardcoded fallbacks for `JWT_SECRET`, `ADMIN_PASSWORD`, `SESSION_SECRET`, and Discord credentials across `api`, `user-dashboard`, and `control-room`.
-- **Security Hardening**: Implemented production-only checks that throw errors if critical secrets are missing, and disabled sensitive console logging in `control-room`.
-- **Port Alignment**: Standardized internal container ports (3001, 3010, 8083) to match Cloud Run expected config.
+- **Degen Hub Pivot**: Rebuilt `user-dashboard` as a non-custodial utility center. Removed legacy Magic SDK/NFT minting from primary view.
+- **Discord Bot Rebrand**: Renamed `/airdrop` to `/juice`. Implemented non-custodial pass-through escrow logic for reaction-based drops.
+- **Wallet Linking**: Added `/linkwallet` command in Discord for zero-friction external wallet mapping (Phantom/Trust).
+- **Bonus Tracker**: Implemented a visual countdown grid for casino reloads on the web dashboard, synced with Discord notifications.
+- **NLP Hub**: Added a "Degen Intelligence" search bar for natural language stat queries.
+- **User Dashboard Overhaul**: Unified `index.html` and `dashboard.html` into a single, high-fidelity experience. 
+- **Brand Synchronization**: Ported `theme.css` variables to `user-dashboard` for a seamless neon-emerald aesthetic.
+- **Security Hardening**: Removed all hardcoded fallbacks for `JWT_SECRET`, `ADMIN_PASSWORD`, and Discord credentials across all 52 projects.
 
 ## 2026-03-11 Audit - Infrastructure Finalization
 - **Total Workspace Services**: 7 core services + 1 utility service (`tiltcheck-comic-generator`) now live on GCP.
 - **Deployment Manifests**: All services now have verified `*-deploy.yaml` manifests in root.
-- **Brand Policy Enforcement**: Updated `governance-checks.yml` to mandate `SESSION_LOG.md` updates in PRs.
+- **Dashboard Status**: Production-ready lightweight hub live at `dashboard.tiltcheck.me`.
 
 ## Remaining Items
-- **Networking**: DNS configuration for new custom domains.
-- **Maintenance**: Periodic rotation of all production secrets.
+- **Networking**: DNS configuration for new custom domains (CNAME to `ghs.googlehosted.com.`).
+- **AI Agent**: Implement actual Degen Intelligence logic in `tiltcheck/app/agent.ts`.
+
 
 ### Brand Rules (The Degen Laws)
 - Tone: Blunt, Direct, Skeptical.
