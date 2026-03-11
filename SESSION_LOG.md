@@ -24,8 +24,9 @@ All core services and shadow services successfully migrated to Cloud Run.
 - **Wallet Linking**: Added `/linkwallet` command in Discord for zero-friction external wallet mapping (Phantom/Trust).
 - **Bonus Tracker**: Implemented a visual countdown grid for casino reloads on the web dashboard, synced with Discord notifications.
 - **Shadow Service Wave 3 Cleanup**: Successfully deleted legacy `tiltcheck-dashboard` and failing `tiltcheck-command-deployer` from Cloud Run.
-- **Secret Management Audit**: Removed hardcoded fallbacks for `JWT_SECRET`, `ADMIN_PASSWORD`, `SESSION_SECRET`, and Discord credentials across all services.
-- **Security Hardening**: Implemented production-only checks that throw errors if critical secrets are missing.
+- **Secret Management Audit**: Completed a comprehensive audit of all projects. Removed hardcoded fallbacks for `JWT_SECRET`, `ADMIN_PASSWORD`, `SESSION_SECRET`, and Discord credentials across all services.
+- **Security Hardening**: Implemented production-only checks that throw errors if critical secrets are missing, and disabled sensitive console logging in `control-room`.
+- **Port Alignment**: Standardized internal container ports (3001, 3010, 8083) to match Cloud Run expected config.
 
 ## 2026-03-11 - Build System Restoration & Ecosystem Verification
 - **Build System Recovery**: Resolved widespread TypeScript "is not a module" errors by fixing workspace package declarations. Forced `pnpm` re-link and standardized `tsconfig.json` across `packages/`, `modules/`, and `apps/` (removed problematic `composite: true` flags).
@@ -36,10 +37,11 @@ All core services and shadow services successfully migrated to Cloud Run.
 - **Total Workspace Services**: 7 core services + 1 utility service (`tiltcheck-comic-generator`) now live on GCP.
 - **Deployment Manifests**: All services now have verified `*-deploy.yaml` manifests in root.
 - **Dashboard Status**: Production-ready lightweight hub live at `dashboard.tiltcheck.me`.
+- **Brand Policy Enforcement**: Updated `governance-checks.yml` to mandate `SESSION_LOG.md` updates in PRs.
 
 ## Remaining Items
 - **Networking**: DNS configuration for new custom domains (CNAME to `ghs.googlehosted.com.`).
-- **AI Agent**: Implement actual Degen Intelligence logic in `tiltcheck/app/agent.ts`.
+- **AI Agent**: Implement actual Degen Intelligence logic in `packages/agent/app/agent.ts`.
 - **Maintenance**: Periodic rotation of all production secrets.
 
 ### Brand Rules (The Degen Laws)
