@@ -30,7 +30,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 const app = express();
-const PORT = process.env.USER_DASHBOARD_PORT || 6001;
+const PORT = process.env.PORT || process.env.USER_DASHBOARD_PORT || 6001;
 
 // Rate limiter for sensitive routes
 const trustLimiter = rateLimit({

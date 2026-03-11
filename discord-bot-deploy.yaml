@@ -1,0 +1,67 @@
+# © 2024–2026 TiltCheck Ecosystem. All Rights Reserved.
+# Last Updated: 2026-03-10
+# Deployment Configuration: tiltcheck-bot
+
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  name: tiltcheck-bot
+  labels:
+    cloud.googleapis.com/location: us-central1
+  annotations:
+    run.googleapis.com/ingress: all
+spec:
+  template:
+    metadata:
+      annotations:
+        autoscaling.knative.dev/maxScale: '5'
+    spec:
+      containerConcurrency: 50
+      timeoutSeconds: 300
+      serviceAccountName: 164294266634-compute@developer.gserviceaccount.com
+      containers:
+      - image: us-central1-docker.pkg.dev/tiltchcek/tiltcheck/discord-bot:latest
+        ports:
+        - name: http1
+          containerPort: 8080
+        resources:
+          limits:
+            cpu: 1000m
+            memory: 512Mi
+        env:
+        - name: NODE_ENV
+          value: production
+        - name: SKIP_ENV_VALIDATION
+          value: '1'
+        - name: JWT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: JWT_SECRET
+              key: latest
+        - name: NEON_DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: NEON_DATABASE_URL
+              key: latest
+        - name: DISCORD_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: TILT_DISCORD_BOT_TOKEN
+              key: latest
+        - name: DISCORD_CLIENT_ID
+          valueFrom:
+            secretKeyRef:
+              name: TILT_DISCORD_CLIENT_ID
+              key: latest
+        - name: SOLANA_RPC_URL
+          valueFrom:
+            secretKeyRef:
+              name: SOLANA_RPC_URL
+              key: latest
+        startupProbe:
+          timeoutSeconds: 240
+          periodSeconds: 240
+          failureThreshold: 1
+          tcpSocket:
+            port: 8080
+
