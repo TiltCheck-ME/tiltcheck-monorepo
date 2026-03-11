@@ -821,9 +821,9 @@
         host === "www.tiltcheck.me" ||
         host.endsWith(".tiltcheck.me");
       if (isLocalHost) return "http://localhost:3001";
-      if (isTiltcheckHost) return "https://tiltcheck-api-164294266634.us-central1.run.app";
+      if (isTiltcheckHost) return "https://api.tiltcheck.me";
       // Non-local preview hosts (e.g. Vercel) should still point at live API.
-      return "https://tiltcheck-api-164294266634.us-central1.run.app";
+      return "https://api.tiltcheck.me";
     }
 
     function getWebBaseUrl() {
@@ -1426,4 +1426,5 @@
   <script src="/scripts/components-loader.js"></script>
 </body>
 </html>
+
 

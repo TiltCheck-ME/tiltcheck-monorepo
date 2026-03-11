@@ -310,7 +310,7 @@ if (process.env.ENABLE_CASINO_VERIFICATION !== 'false') {
 }
 
 // Lightweight health server
-const HEALTH_PORT = process.env.TRUST_ROLLUP_HEALTH_PORT || '8082';
+const HEALTH_PORT = process.env.PORT || process.env.TRUST_ROLLUP_HEALTH_PORT || '8082';
 http.createServer((req, res) => {
   if (req.url === '/health') {
     const body = JSON.stringify({ service: 'trust-rollup', ready, windowStart, domainKeys: Object.keys(domainAgg).length, casinoKeys: Object.keys(casinoAgg).length });

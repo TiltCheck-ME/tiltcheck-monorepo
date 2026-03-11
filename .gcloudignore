@@ -1,0 +1,6 @@
+.git
+.github
+node_modules/
+dist/
+# Allow JS files in packages/src for comic-generator
+!packages/comic-generator/src/*.js

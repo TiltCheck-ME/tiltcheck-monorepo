@@ -40,7 +40,7 @@ const trustLimiter = rateLimit({
   legacyHeaders: false,
   message: { error: 'Too many requests, please try again later.' }
 });
-const JWT_SECRET = process.env.JWT_SECRET || 'tiltcheck-user-secret-2024';
+const JWT_SECRET = process.env.JWT_SECRET || (process.env.NODE_ENV === 'production' ? (() => { throw new Error('JWT_SECRET is required in production'); })() : 'tiltcheck-user-secret-2024');
 const magicAdmin = new Magic(process.env.MAGIC_SECRET_KEY);
 const solanaConnection = new Connection(process.env.SOLANA_RPC_URL || 'https://api.mainnet-beta.solana.com', 'confirmed');
 const TREASURY_ADDRESS = process.env.TREASURY_WALLET_ADDRESS;
