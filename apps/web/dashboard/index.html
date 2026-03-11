@@ -52,11 +52,11 @@
     <h1>Dashboard requires Discord login</h1>
     <p>Checking your session now.</p>
     <p>If you are not authenticated, you will be redirected to the login flow.</p>
-    <a href="/login.html?next=%2Fplay%2Fprofile.html">Login with Discord</a>
+    <a href="https://dashboard.tiltcheck.me/login">Login with Discord</a>
   </main>
   <script>
     (async () => {
-      const next = '/play/profile.html';
+      const next = 'https://dashboard.tiltcheck.me';
       const endpoints = ['/api/auth/me', '/auth/me', '/play/api/user', '/api/user'];
 
       for (const endpoint of endpoints) {
@@ -71,7 +71,7 @@
         }
       }
 
-      window.location.replace('/login.html?next=%2Fplay%2Fprofile.html');
+      window.location.replace('https://dashboard.tiltcheck.me/login');
     })();
   </script>
 </body>

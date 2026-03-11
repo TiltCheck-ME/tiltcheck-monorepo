@@ -1,0 +1,777 @@
+--- Service: tiltcheck-api ---
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  annotations:
+    run.googleapis.com/client-name: gcloud
+    run.googleapis.com/client-version: 559.0.0
+    run.googleapis.com/ingress: all
+    run.googleapis.com/ingress-status: all
+    run.googleapis.com/maxScale: '20'
+    run.googleapis.com/operation-id: d9dd4a34-1b52-4539-b561-b9cb633efdc0
+    run.googleapis.com/urls: '["https://tiltcheck-api-164294266634.us-central1.run.app","https://tiltcheck-api-n5ys25omlq-uc.a.run.app"]'
+    serving.knative.dev/creator: jamienichole1010@gmail.com
+    serving.knative.dev/lastModifier: jamienichole1010@gmail.com
+  creationTimestamp: '2026-03-10T02:19:08.205298Z'
+  generation: 27
+  labels:
+    cloud.googleapis.com/location: us-central1
+  name: tiltcheck-api
+  namespace: '164294266634'
+  resourceVersion: AAZMv6EUBq4
+  selfLink: /apis/serving.knative.dev/v1/namespaces/164294266634/services/tiltcheck-api
+  uid: a3cb138a-4f15-4e20-8dab-bbe9e8d57fd2
+spec:
+  template:
+    metadata:
+      annotations:
+        autoscaling.knative.dev/maxScale: '20'
+        run.googleapis.com/client-name: gcloud
+        run.googleapis.com/client-version: 559.0.0
+        run.googleapis.com/cloudsql-instances: tiltchcek:us-central1:tiltcheck-main
+        run.googleapis.com/startup-cpu-boost: 'true'
+      labels:
+        client.knative.dev/nonce: ilqntomeyc
+        run.googleapis.com/startupProbeType: Default
+    spec:
+      containerConcurrency: 80
+      containers:
+      - env:
+        - name: JWT_SECRET
+          valueFrom:
+            secretKeyRef:
+              key: latest
+              name: JWT_SECRET
+        - name: VAULT_ENCRYPTION_KEY
+          valueFrom:
+            secretKeyRef:
+              key: latest
+              name: VAULT_ENCRYPTION_KEY
+        - name: GEMINI_API_KEY
+          valueFrom:
+            secretKeyRef:
+              key: latest
+              name: GEMINI_API_KEY
+        - name: NOTION_INTEGRATION_TOKEN
+          valueFrom:
+            secretKeyRef:
+              key: latest
+              name: NOTION_INTEGRATION_TOKEN
+        - name: NEON_DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              key: latest
+              name: NEON_DATABASE_URL
+        - name: SUPABASE_URL
+          valueFrom:
+            secretKeyRef:
+              key: latest
+              name: SUPABASE_URL
+        - name: SUPABASE_SERVICE_ROLE_KEY
+          valueFrom:
+            secretKeyRef:
+              key: latest
+              name: SUPABASE_SERVICE_ROLE_KEY
+        - name: REDIS_URL
+          valueFrom:
+            secretKeyRef:
+              key: latest
+              name: REDIS_PUBLIC_ENDPOINT
+        - name: DISCORD_CLIENT_ID
+          valueFrom:
+            secretKeyRef:
+              key: latest
+              name: TILT_DISCORD_CLIENT_ID
+        - name: DISCORD_CLIENT_SECRET
+          valueFrom:
+            secretKeyRef:
+              key: latest
+              name: TILT_DISCORD_CLIENT_SECRET
+        - name: SOLANA_RPC_URL
+          valueFrom:
+            secretKeyRef:
+              key: latest
+              name: SOLANA_RPC_URL
+        - name: SERVICE_ID
+          valueFrom:
+            secretKeyRef:
+              key: latest
+              name: SERVICE_ID
+        - name: SERVICE_JWT_SECRET
+          valueFrom:
+            secretKeyRef:
+              key: latest
+              name: SERVICE_JWT_SECRET
+        - name: DISCORD_REDIRECT_URI
+          value: https://api.tiltcheck.me/auth/discord/callback
+        - name: TILT_DISCORD_REDIRECT_URI
+          value: https://api.tiltcheck.me/auth/discord/callback
+        image: us-central1-docker.pkg.dev/tiltchcek/tiltcheck/api:latest
+        ports:
+        - containerPort: 3001
+          name: http1
+        resources:
+          limits:
+            cpu: 1000m
+            memory: 512Mi
+        startupProbe:
+          failureThreshold: 1
+          periodSeconds: 240
+          tcpSocket:
+            port: 3001
+          timeoutSeconds: 240
+      serviceAccountName: 164294266634-compute@developer.gserviceaccount.com
+      timeoutSeconds: 300
+  traffic:
+  - latestRevision: true
+    percent: 100
+status:
+  address:
+    url: https://tiltcheck-api-n5ys25omlq-uc.a.run.app
+  conditions:
+  - lastTransitionTime: '2026-03-11T13:29:45.172654Z'
+    status: 'True'
+    type: Ready
+  - lastTransitionTime: '2026-03-11T13:29:38.452564Z'
+    status: 'True'
+    type: ConfigurationsReady
+  - lastTransitionTime: '2026-03-11T13:29:45.147342Z'
+    status: 'True'
+    type: RoutesReady
+  latestCreatedRevisionName: tiltcheck-api-00027-6cw
+  latestReadyRevisionName: tiltcheck-api-00027-6cw
+  observedGeneration: 27
+  traffic:
+  - latestRevision: true
+    percent: 100
+    revisionName: tiltcheck-api-00027-6cw
+  url: https://tiltcheck-api-n5ys25omlq-uc.a.run.app
+--- Service: tiltcheck-bot ---
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  annotations:
+    run.googleapis.com/client-name: gcloud
+    run.googleapis.com/client-version: 559.0.0
+    run.googleapis.com/ingress: all
+    run.googleapis.com/ingress-status: all
+    run.googleapis.com/maxScale: '20'
+    run.googleapis.com/operation-id: e0f3d173-28c5-4972-b69a-59cc8d51fab9
+    run.googleapis.com/urls: '["https://tiltcheck-bot-164294266634.us-central1.run.app","https://tiltcheck-bot-n5ys25omlq-uc.a.run.app"]'
+    serving.knative.dev/creator: jamienichole1010@gmail.com
+    serving.knative.dev/lastModifier: jamienichole1010@gmail.com
+  creationTimestamp: '2026-03-10T02:39:05.907476Z'
+  generation: 23
+  labels:
+    cloud.googleapis.com/location: us-central1
+  name: tiltcheck-bot
+  namespace: '164294266634'
+  resourceVersion: AAZMusXKptg
+  selfLink: /apis/serving.knative.dev/v1/namespaces/164294266634/services/tiltcheck-bot
+  uid: 2da51118-236c-40f8-8b76-1c98152ce9d2
+spec:
+  template:
+    metadata:
+      annotations:
+        autoscaling.knative.dev/maxScale: '20'
+        run.googleapis.com/client-name: gcloud
+        run.googleapis.com/client-version: 559.0.0
+        run.googleapis.com/cloudsql-instances: tiltchcek:us-central1:tiltcheck-main
+        run.googleapis.com/cpu-throttling: 'false'
+        run.googleapis.com/startup-cpu-boost: 'true'
+      labels:
+        client.knative.dev/nonce: okqdraqeeb
+        run.googleapis.com/startupProbeType: Default
+    spec:
+      containerConcurrency: 80
+      containers:
+      - env:
+        - name: DISCORD_TOKEN
+          valueFrom:
+            secretKeyRef:
+              key: latest
+              name: TILT_DISCORD_BOT_TOKEN
+        - name: JWT_SECRET
+          valueFrom:
+            secretKeyRef:
+              key: latest
+              name: JWT_SECRET
+        - name: SOLANA_RPC_URL
+          valueFrom:
+            secretKeyRef:
+              key: latest
+              name: SOLANA_RPC_URL
+        - name: SERVICE_ID
+          valueFrom:
+            secretKeyRef:
+              key: latest
+              name: SERVICE_ID
+        - name: SERVICE_JWT_SECRET
+          valueFrom:
+            secretKeyRef:
+              key: latest
+              name: SERVICE_JWT_SECRET
+        - name: VAULT_ENCRYPTION_KEY
+          valueFrom:
+            secretKeyRef:
+              key: latest
+              name: VAULT_ENCRYPTION_KEY
+        - name: GEMINI_API_KEY
+          valueFrom:
+            secretKeyRef:
+              key: latest
+              name: GEMINI_API_KEY
+        - name: NOTION_INTEGRATION_TOKEN
+          valueFrom:
+            secretKeyRef:
+              key: latest
+              name: NOTION_INTEGRATION_TOKEN
+        - name: NEON_DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              key: latest
+              name: NEON_DATABASE_URL
+        - name: SUPABASE_URL
+          valueFrom:
+            secretKeyRef:
+              key: latest
+              name: SUPABASE_URL
+        - name: SUPABASE_SERVICE_ROLE_KEY
+          valueFrom:
+            secretKeyRef:
+              key: latest
+              name: SUPABASE_SERVICE_ROLE_KEY
+        - name: OPENAI_API_KEY
+          valueFrom:
+            secretKeyRef:
+              key: latest
+              name: OPENAI_API_KEY
+        - name: BOT_WALLET_PRIVATE_KEY
+          valueFrom:
+            secretKeyRef:
+              key: latest
+              name: JUSTTHETIP_BOT_WALLET_PRIVATE_KEY
+        - name: DISCORD_CLIENT_ID
+          valueFrom:
+            secretKeyRef:
+              key: latest
+              name: TILT_DISCORD_CLIENT_ID
+        - name: DISCORD_GUILD_ID
+          valueFrom:
+            secretKeyRef:
+              key: latest
+              name: TILT_DISCORD_GUILD_ID
+        - name: RESTART_ID
+          value: 20260310-115907
+        image: us-central1-docker.pkg.dev/tiltchcek/tiltcheck/discord-bot:latest
+        ports:
+        - containerPort: 8081
+          name: http1
+        resources:
+          limits:
+            cpu: 1000m
+            memory: 512Mi
+        startupProbe:
+          failureThreshold: 1
+          periodSeconds: 240
+          tcpSocket:
+            port: 8081
+          timeoutSeconds: 240
+      serviceAccountName: 164294266634-compute@developer.gserviceaccount.com
+      timeoutSeconds: 300
+  traffic:
+  - latestRevision: true
+    percent: 100
+status:
+  address:
+    url: https://tiltcheck-bot-n5ys25omlq-uc.a.run.app
+  conditions:
+  - lastTransitionTime: '2026-03-11T07:42:06.284504Z'
+    status: 'True'
+    type: Ready
+  - lastTransitionTime: '2026-03-11T07:41:58.145747Z'
+    status: 'True'
+    type: ConfigurationsReady
+  - lastTransitionTime: '2026-03-11T07:42:06.237143Z'
+    status: 'True'
+    type: RoutesReady
+  latestCreatedRevisionName: tiltcheck-bot-00023-zkm
+  latestReadyRevisionName: tiltcheck-bot-00023-zkm
+  observedGeneration: 23
+  traffic:
+  - latestRevision: true
+    percent: 100
+    revisionName: tiltcheck-bot-00023-zkm
+  url: https://tiltcheck-bot-n5ys25omlq-uc.a.run.app
+--- Service: tiltcheck-command-deployer ---
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  annotations:
+    run.googleapis.com/client-name: gcloud
+    run.googleapis.com/client-version: 559.0.0
+    run.googleapis.com/ingress: all
+    run.googleapis.com/ingress-status: all
+    run.googleapis.com/maxScale: '20'
+    run.googleapis.com/operation-id: 5a693efe-4272-443d-9755-0baff83ed854
+    run.googleapis.com/urls: '["https://tiltcheck-command-deployer-164294266634.us-central1.run.app"]'
+    serving.knative.dev/creator: jamienichole1010@gmail.com
+    serving.knative.dev/lastModifier: jamienichole1010@gmail.com
+  creationTimestamp: '2026-03-10T05:39:43.655673Z'
+  generation: 4
+  labels:
+    cloud.googleapis.com/location: us-central1
+  name: tiltcheck-command-deployer
+  namespace: '164294266634'
+  resourceVersion: AAZMsHXDUv8
+  selfLink: /apis/serving.knative.dev/v1/namespaces/164294266634/services/tiltcheck-command-deployer
+  uid: 7b14e2df-82fe-45fe-8bf7-dc00a0aadd19
+spec:
+  template:
+    metadata:
+      annotations:
+        autoscaling.knative.dev/maxScale: '20'
+        run.googleapis.com/client-name: gcloud
+        run.googleapis.com/client-version: 559.0.0
+        run.googleapis.com/startup-cpu-boost: 'true'
+      labels:
+        client.knative.dev/nonce: ieulzagkxy
+        run.googleapis.com/startupProbeType: Default
+    spec:
+      containerConcurrency: 80
+      containers:
+      - args:
+        - --filter
+        - '@tiltcheck/discord-bot'
+        - run
+        - deploy:commands
+        command:
+        - pnpm
+        env:
+        - name: NEON_DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              key: latest
+              name: NEON_DATABASE_URL
+        image: us-central1-docker.pkg.dev/tiltchcek/tiltcheck/discord-bot:latest
+        ports:
+        - containerPort: 8080
+          name: http1
+        resources:
+          limits:
+            cpu: 1000m
+            memory: 512Mi
+        startupProbe:
+          failureThreshold: 1
+          periodSeconds: 240
+          tcpSocket:
+            port: 8080
+          timeoutSeconds: 240
+      serviceAccountName: 164294266634-compute@developer.gserviceaccount.com
+      timeoutSeconds: 300
+  traffic:
+  - latestRevision: true
+    percent: 100
+status:
+  conditions:
+  - lastTransitionTime: '2026-03-10T19:23:53.327444Z'
+    message: |-
+      Revision 'tiltcheck-command-deployer-00004-7tg' is not ready and cannot serve traffic. The user-provided container failed to start and listen on the port defined provided by the PORT=8080 environment variable within the allocated timeout. This can happen when the container port is misconfigured or if the timeout is too short. The health check timeout can be extended. Logs for this revision might contain more information.
+
+      Logs URL: https://console.cloud.google.com/logs/viewer?project=tiltchcek&resource=cloud_run_revision/service_name/tiltcheck-command-deployer/revision_name/tiltcheck-command-deployer-00004-7tg&advancedFilter=resource.type%3D%22cloud_run_revision%22%0Aresource.labels.service_name%3D%22tiltcheck-command-deployer%22%0Aresource.labels.revision_name%3D%22tiltcheck-command-deployer-00004-7tg%22 
+      For more troubleshooting guidance, see https://cloud.google.com/run/docs/troubleshooting#container-failed-to-start
+    reason: HealthCheckContainerError
+    status: 'False'
+    type: Ready
+  - lastTransitionTime: '2026-03-10T19:23:53.913358Z'
+    message: |-
+      The user-provided container failed to start and listen on the port defined provided by the PORT=8080 environment variable within the allocated timeout. This can happen when the container port is misconfigured or if the timeout is too short. The health check timeout can be extended. Logs for this revision might contain more information.
+
+      Logs URL: https://console.cloud.google.com/logs/viewer?project=tiltchcek&resource=cloud_run_revision/service_name/tiltcheck-command-deployer/revision_name/tiltcheck-command-deployer-00001-fht&advancedFilter=resource.type%3D%22cloud_run_revision%22%0Aresource.labels.service_name%3D%22tiltcheck-command-deployer%22%0Aresource.labels.revision_name%3D%22tiltcheck-command-deployer-00001-fht%22 
+      For more troubleshooting guidance, see https://cloud.google.com/run/docs/troubleshooting#container-failed-to-start
+    reason: Retired
+    status: 'True'
+    type: ConfigurationsReady
+  - lastTransitionTime: '2026-03-10T19:23:53.327444Z'
+    message: |-
+      Revision 'tiltcheck-command-deployer-00004-7tg' is not ready and cannot serve traffic. The user-provided container failed to start and listen on the port defined provided by the PORT=8080 environment variable within the allocated timeout. This can happen when the container port is misconfigured or if the timeout is too short. The health check timeout can be extended. Logs for this revision might contain more information.
+
+      Logs URL: https://console.cloud.google.com/logs/viewer?project=tiltchcek&resource=cloud_run_revision/service_name/tiltcheck-command-deployer/revision_name/tiltcheck-command-deployer-00004-7tg&advancedFilter=resource.type%3D%22cloud_run_revision%22%0Aresource.labels.service_name%3D%22tiltcheck-command-deployer%22%0Aresource.labels.revision_name%3D%22tiltcheck-command-deployer-00004-7tg%22 
+      For more troubleshooting guidance, see https://cloud.google.com/run/docs/troubleshooting#container-failed-to-start
+    reason: HealthCheckContainerError
+    status: 'False'
+    type: RoutesReady
+  latestCreatedRevisionName: tiltcheck-command-deployer-00004-7tg
+  observedGeneration: 4
+--- Service: tiltcheck-control-room ---
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  annotations:
+    run.googleapis.com/ingress: all
+    run.googleapis.com/ingress-status: all
+    run.googleapis.com/maxScale: '5'
+    run.googleapis.com/operation-id: 325024ed-d918-476f-aa82-54ee7c3be7dc
+    run.googleapis.com/urls: '["https://tiltcheck-control-room-164294266634.us-central1.run.app","https://tiltcheck-control-room-n5ys25omlq-uc.a.run.app"]'
+    serving.knative.dev/creator: jamienichole1010@gmail.com
+    serving.knative.dev/lastModifier: jamienichole1010@gmail.com
+  creationTimestamp: '2026-03-10T21:25:10.284578Z'
+  generation: 4
+  labels:
+    cloud.googleapis.com/location: us-central1
+  name: tiltcheck-control-room
+  namespace: '164294266634'
+  resourceVersion: AAZMwAM2rkM
+  selfLink: /apis/serving.knative.dev/v1/namespaces/164294266634/services/tiltcheck-control-room
+  uid: eac0d70c-c41e-40d3-bd79-8b8a0416a032
+spec:
+  template:
+    metadata:
+      annotations:
+        autoscaling.knative.dev/maxScale: '5'
+      labels:
+        run.googleapis.com/startupProbeType: Default
+    spec:
+      containerConcurrency: 20
+      containers:
+      - env:
+        - name: NODE_ENV
+          value: production
+        - name: JWT_SECRET
+          valueFrom:
+            secretKeyRef:
+              key: latest
+              name: JWT_SECRET
+        - name: NEON_DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              key: latest
+              name: NEON_DATABASE_URL
+        - name: ADMIN_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: latest
+              name: ADMIN_PASSWORD
+        image: us-central1-docker.pkg.dev/tiltchcek/tiltcheck/control-room:latest
+        ports:
+        - containerPort: 3001
+          name: http1
+        resources:
+          limits:
+            cpu: 1000m
+            memory: 512Mi
+        startupProbe:
+          failureThreshold: 1
+          periodSeconds: 240
+          tcpSocket:
+            port: 3001
+          timeoutSeconds: 240
+      serviceAccountName: 164294266634-compute@developer.gserviceaccount.com
+      timeoutSeconds: 300
+  traffic:
+  - latestRevision: true
+    percent: 100
+status:
+  address:
+    url: https://tiltcheck-control-room-n5ys25omlq-uc.a.run.app
+  conditions:
+  - lastTransitionTime: '2026-03-11T13:57:11.610947Z'
+    status: 'True'
+    type: Ready
+  - lastTransitionTime: '2026-03-11T13:57:07.176259Z'
+    status: 'True'
+    type: ConfigurationsReady
+  - lastTransitionTime: '2026-03-11T13:57:11.562277Z'
+    status: 'True'
+    type: RoutesReady
+  latestCreatedRevisionName: tiltcheck-control-room-00004-rqt
+  latestReadyRevisionName: tiltcheck-control-room-00004-rqt
+  observedGeneration: 4
+  traffic:
+  - latestRevision: true
+    percent: 100
+    revisionName: tiltcheck-control-room-00004-rqt
+  url: https://tiltcheck-control-room-n5ys25omlq-uc.a.run.app
+--- Service: tiltcheck-game-arena ---
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  annotations:
+    run.googleapis.com/ingress: all
+    run.googleapis.com/ingress-status: all
+    run.googleapis.com/maxScale: '10'
+    run.googleapis.com/operation-id: b51cb100-41ce-449f-b395-6708448541eb
+    run.googleapis.com/urls: '["https://tiltcheck-game-arena-164294266634.us-central1.run.app"]'
+    serving.knative.dev/creator: jamienichole1010@gmail.com
+    serving.knative.dev/lastModifier: jamienichole1010@gmail.com
+  creationTimestamp: '2026-03-10T21:32:54.648870Z'
+  generation: 1
+  labels:
+    cloud.googleapis.com/location: us-central1
+  name: tiltcheck-game-arena
+  namespace: '164294266634'
+  resourceVersion: AAZMskbROPE
+  selfLink: /apis/serving.knative.dev/v1/namespaces/164294266634/services/tiltcheck-game-arena
+  uid: 8d589020-217c-41e2-bb27-608edf7b1f28
+spec:
+  template:
+    metadata:
+      annotations:
+        autoscaling.knative.dev/maxScale: '10'
+        run.googleapis.com/startup-cpu-boost: 'true'
+      labels:
+        run.googleapis.com/startupProbeType: Default
+    spec:
+      containerConcurrency: 100
+      containers:
+      - env:
+        - name: NODE_ENV
+          value: production
+        - name: JWT_SECRET
+          valueFrom:
+            secretKeyRef:
+              key: latest
+              name: JWT_SECRET
+        - name: NEON_DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              key: latest
+              name: NEON_DATABASE_URL
+        - name: SUPABASE_URL
+          valueFrom:
+            secretKeyRef:
+              key: latest
+              name: TILT_SUPABASE_URL
+        - name: SUPABASE_ANON_KEY
+          valueFrom:
+            secretKeyRef:
+              key: latest
+              name: TILT_SUPABASE_ANON_KEY
+        image: us-central1-docker.pkg.dev/tiltchcek/tiltcheck/game-arena:latest
+        ports:
+        - containerPort: 8080
+          name: http1
+        resources:
+          limits:
+            cpu: 2000m
+            memory: 1Gi
+        startupProbe:
+          failureThreshold: 1
+          periodSeconds: 240
+          tcpSocket:
+            port: 8080
+          timeoutSeconds: 240
+      serviceAccountName: 164294266634-compute@developer.gserviceaccount.com
+      timeoutSeconds: 300
+  traffic:
+  - latestRevision: true
+    percent: 100
+status:
+  conditions:
+  - lastTransitionTime: '2026-03-10T21:33:56.183484Z'
+    message: |-
+      Revision 'tiltcheck-game-arena-00001-m92' is not ready and cannot serve traffic. spec.template.spec.containers[0].env[3].value_from.secret_key_ref.name: Permission denied on secret: projects/164294266634/secrets/TILT_SUPABASE_URL/versions/latest for Revision service account 164294266634-compute@developer.gserviceaccount.com. The service account used must be granted the 'Secret Manager Secret Accessor' role (roles/secretmanager.secretAccessor) at the secret, project or higher level.
+      spec.template.spec.containers[0].env[4].value_from.secret_key_ref.name: Permission denied on secret: projects/164294266634/secrets/TILT_SUPABASE_ANON_KEY/versions/latest for Revision service account 164294266634-compute@developer.gserviceaccount.com. The service account used must be granted the 'Secret Manager Secret Accessor' role (roles/secretmanager.secretAccessor) at the secret, project or higher level.
+    reason: SecretsAccessCheckFailed
+    status: 'False'
+    type: Ready
+  - lastTransitionTime: '2026-03-10T21:33:56.161091Z'
+    message: |-
+      spec.template.spec.containers[0].env[3].value_from.secret_key_ref.name: Permission denied on secret: projects/164294266634/secrets/TILT_SUPABASE_URL/versions/latest for Revision service account 164294266634-compute@developer.gserviceaccount.com. The service account used must be granted the 'Secret Manager Secret Accessor' role (roles/secretmanager.secretAccessor) at the secret, project or higher level.
+      spec.template.spec.containers[0].env[4].value_from.secret_key_ref.name: Permission denied on secret: projects/164294266634/secrets/TILT_SUPABASE_ANON_KEY/versions/latest for Revision service account 164294266634-compute@developer.gserviceaccount.com. The service account used must be granted the 'Secret Manager Secret Accessor' role (roles/secretmanager.secretAccessor) at the secret, project or higher level.
+    reason: SecretsAccessCheckFailed
+    status: 'False'
+    type: ConfigurationsReady
+  - lastTransitionTime: '2026-03-10T21:33:56.183484Z'
+    message: |-
+      Revision 'tiltcheck-game-arena-00001-m92' is not ready and cannot serve traffic. spec.template.spec.containers[0].env[3].value_from.secret_key_ref.name: Permission denied on secret: projects/164294266634/secrets/TILT_SUPABASE_URL/versions/latest for Revision service account 164294266634-compute@developer.gserviceaccount.com. The service account used must be granted the 'Secret Manager Secret Accessor' role (roles/secretmanager.secretAccessor) at the secret, project or higher level.
+      spec.template.spec.containers[0].env[4].value_from.secret_key_ref.name: Permission denied on secret: projects/164294266634/secrets/TILT_SUPABASE_ANON_KEY/versions/latest for Revision service account 164294266634-compute@developer.gserviceaccount.com. The service account used must be granted the 'Secret Manager Secret Accessor' role (roles/secretmanager.secretAccessor) at the secret, project or higher level.
+    reason: SecretsAccessCheckFailed
+    status: 'False'
+    type: RoutesReady
+  latestCreatedRevisionName: tiltcheck-game-arena-00001-m92
+  observedGeneration: 1
+--- Service: tiltcheck-user-dashboard ---
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  annotations:
+    run.googleapis.com/client-name: gcloud
+    run.googleapis.com/client-version: 559.0.0
+    run.googleapis.com/ingress: all
+    run.googleapis.com/ingress-status: all
+    run.googleapis.com/maxScale: '10'
+    run.googleapis.com/operation-id: af316864-de39-4c36-bb88-2913369302a1
+    run.googleapis.com/urls: '["https://tiltcheck-user-dashboard-164294266634.us-central1.run.app","https://tiltcheck-user-dashboard-n5ys25omlq-uc.a.run.app"]'
+    serving.knative.dev/creator: jamienichole1010@gmail.com
+    serving.knative.dev/lastModifier: jamienichole1010@gmail.com
+  creationTimestamp: '2026-03-10T19:23:52.771029Z'
+  generation: 6
+  labels:
+    cloud.googleapis.com/location: us-central1
+  name: tiltcheck-user-dashboard
+  namespace: '164294266634'
+  resourceVersion: AAZMv6LC6GU
+  selfLink: /apis/serving.knative.dev/v1/namespaces/164294266634/services/tiltcheck-user-dashboard
+  uid: 9e190b99-f4b7-4aae-bd2b-90b933c455ca
+spec:
+  template:
+    metadata:
+      annotations:
+        autoscaling.knative.dev/maxScale: '10'
+        run.googleapis.com/client-name: gcloud
+        run.googleapis.com/client-version: 559.0.0
+        run.googleapis.com/startup-cpu-boost: 'true'
+      labels:
+        client.knative.dev/nonce: weqrioiohz
+        run.googleapis.com/startupProbeType: Default
+    spec:
+      containerConcurrency: 50
+      containers:
+      - env:
+        - name: JWT_SECRET
+          valueFrom:
+            secretKeyRef:
+              key: latest
+              name: JWT_SECRET
+        - name: NEON_DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              key: latest
+              name: NEON_DATABASE_URL
+        - name: DISCORD_CLIENT_ID
+          valueFrom:
+            secretKeyRef:
+              key: latest
+              name: TILT_DISCORD_CLIENT_ID
+        - name: DISCORD_CLIENT_SECRET
+          valueFrom:
+            secretKeyRef:
+              key: latest
+              name: TILT_DISCORD_CLIENT_SECRET
+        - name: SOLANA_RPC_URL
+          valueFrom:
+            secretKeyRef:
+              key: latest
+              name: SOLANA_RPC_URL
+        - name: DISCORD_REDIRECT_URI
+          value: https://dashboard.tiltcheck.me/auth/discord/callback
+        - name: TILT_DISCORD_REDIRECT_URI
+          value: https://dashboard.tiltcheck.me/auth/discord/callback
+        image: us-central1-docker.pkg.dev/tiltchcek/tiltcheck/user-dashboard:latest
+        ports:
+        - containerPort: 6001
+          name: http1
+        resources:
+          limits:
+            cpu: 1000m
+            memory: 512Mi
+        startupProbe:
+          failureThreshold: 1
+          periodSeconds: 240
+          tcpSocket:
+            port: 6001
+          timeoutSeconds: 240
+      serviceAccountName: 164294266634-compute@developer.gserviceaccount.com
+      timeoutSeconds: 300
+  traffic:
+  - latestRevision: true
+    percent: 100
+status:
+  address:
+    url: https://tiltcheck-user-dashboard-n5ys25omlq-uc.a.run.app
+  conditions:
+  - lastTransitionTime: '2026-03-11T13:30:13.410917Z'
+    status: 'True'
+    type: Ready
+  - lastTransitionTime: '2026-03-11T13:29:58.526964Z'
+    status: 'True'
+    type: ConfigurationsReady
+  - lastTransitionTime: '2026-03-11T13:30:13.365719Z'
+    status: 'True'
+    type: RoutesReady
+  latestCreatedRevisionName: tiltcheck-user-dashboard-00006-v6w
+  latestReadyRevisionName: tiltcheck-user-dashboard-00006-v6w
+  observedGeneration: 6
+  traffic:
+  - latestRevision: true
+    percent: 100
+    revisionName: tiltcheck-user-dashboard-00006-v6w
+  url: https://tiltcheck-user-dashboard-n5ys25omlq-uc.a.run.app
+--- Service: tiltcheck-web ---
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  annotations:
+    run.googleapis.com/client-name: gcloud
+    run.googleapis.com/client-version: 559.0.0
+    run.googleapis.com/ingress: all
+    run.googleapis.com/ingress-status: all
+    run.googleapis.com/maxScale: '20'
+    run.googleapis.com/operation-id: 5c805800-42ed-4a4c-8140-f53bdd40e32f
+    run.googleapis.com/urls: '["https://tiltcheck-web-164294266634.us-central1.run.app","https://tiltcheck-web-n5ys25omlq-uc.a.run.app"]'
+    serving.knative.dev/creator: jamienichole1010@gmail.com
+    serving.knative.dev/lastModifier: jamienichole1010@gmail.com
+  creationTimestamp: '2026-03-10T04:26:49.668127Z'
+  generation: 6
+  labels:
+    cloud.googleapis.com/location: us-central1
+  name: tiltcheck-web
+  namespace: '164294266634'
+  resourceVersion: AAZMvtqGOEk
+  selfLink: /apis/serving.knative.dev/v1/namespaces/164294266634/services/tiltcheck-web
+  uid: e1a26983-4c51-4e70-b0aa-951073a9e51e
+spec:
+  template:
+    metadata:
+      annotations:
+        autoscaling.knative.dev/maxScale: '20'
+        run.googleapis.com/client-name: gcloud
+        run.googleapis.com/client-version: 559.0.0
+        run.googleapis.com/startup-cpu-boost: 'true'
+      labels:
+        client.knative.dev/nonce: wvztfbzwla
+        run.googleapis.com/startupProbeType: Default
+    spec:
+      containerConcurrency: 20
+      containers:
+      - image: us-central1-docker.pkg.dev/tiltchcek/tiltcheck/web:latest
+        ports:
+        - containerPort: 8080
+          name: http1
+        resources:
+          limits:
+            cpu: '2'
+            memory: 1Gi
+        startupProbe:
+          failureThreshold: 1
+          periodSeconds: 240
+          tcpSocket:
+            port: 8080
+          timeoutSeconds: 240
+      serviceAccountName: 164294266634-compute@developer.gserviceaccount.com
+      timeoutSeconds: 300
+  traffic:
+  - latestRevision: true
+    percent: 100
+status:
+  address:
+    url: https://tiltcheck-web-n5ys25omlq-uc.a.run.app
+  conditions:
+  - lastTransitionTime: '2026-03-11T12:34:13.990473Z'
+    status: 'True'
+    type: Ready
+  - lastTransitionTime: '2026-03-11T12:33:52.827975Z'
+    status: 'True'
+    type: ConfigurationsReady
+  - lastTransitionTime: '2026-03-11T12:34:13.960772Z'
+    status: 'True'
+    type: RoutesReady
+  latestCreatedRevisionName: tiltcheck-web-00006-kh9
+  latestReadyRevisionName: tiltcheck-web-00006-kh9
+  observedGeneration: 6
+  traffic:
+  - latestRevision: true
+    percent: 100
+    revisionName: tiltcheck-web-00006-kh9
+  url: https://tiltcheck-web-n5ys25omlq-uc.a.run.app
