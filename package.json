@@ -105,10 +105,5 @@
       "sharp",
       "utf-8-validate"
     ]
-  },
-  "dependencies": {
-    "ci-test": "^0.1.11",
-    "commonjs": "^0.0.1",
-    "ollama": "^0.6.3"
   }
 }

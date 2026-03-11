@@ -1,6 +1,6 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <!--
-  Â© 2024â€“2025 TiltCheck Ecosystem. All Rights Reserved.
+  © 2024–2025 TiltCheck Ecosystem. All Rights Reserved.
   Created by jmenichole (https://github.com/jmenichole)
   
   This file is part of the TiltCheck project.
@@ -257,7 +257,7 @@
       </div>
 
       <div class="footer-links">
-        <a href="/">â† Back Home</a>
+        <a href="/">← Back Home</a>
         <a href="/privacy.html">Privacy</a>
         <a href="/terms.html">Terms</a>
         <a href="/contact.html">Support</a>
@@ -282,10 +282,11 @@
     document.getElementById('discord-login-btn')?.addEventListener('click', () => {
       const nextPath = resolveNextPath();
       const redirect = encodeURIComponent(`${window.location.origin}${nextPath}`);
-      window.location.href = `https://api.tiltcheck.me/auth/discord/login?redirect=${redirect}`;
+      window.location.href = `https://tiltcheck-api-164294266634.us-central1.run.app/auth/discord/login?redirect=${redirect}`;
     });
   </script>
 <div id="shared-footer"></div><div id="shared-footer"></div><script src="/scripts/components-loader.js"></script></body>
 </html>
+
 
 

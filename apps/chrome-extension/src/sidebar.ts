@@ -1386,7 +1386,6 @@ function handleDiscordAuthMessage(event: MessageEvent) {
 
 function startDiscordLoginFlow() {
   const authUrl = getDiscordLoginUrl('extension');
-<<<<<<< HEAD
   const maxPollMs = 5 * 60 * 1000;
   const startedAt = Date.now();
   clearDiscordAuthPolling();
@@ -1421,65 +1420,23 @@ function startDiscordLoginFlow() {
     }
 
     chrome.runtime.sendMessage({ type: 'open_auth_bridge', url: authUrl }, (response) => {
-=======
-  try {
-    chrome.runtime.sendMessage({ type: 'open_auth_tab', url: authUrl }, (response) => {
->>>>>>> origin/main
       if (chrome.runtime.lastError) {
         const msg = chrome.runtime.lastError.message || 'Could not open Discord login tab.';
         addFeedMessage(
           msg.includes('Extension context invalidated')
             ? 'Extension refreshed mid-login. Reload this tab and retry Connect Discord.'
-<<<<<<< HEAD
             : 'Could not open Discord login helper. Try again.'
-=======
-            : 'Could not open Discord login tab. Try again.'
->>>>>>> origin/main
         );
         return;
       }
 
       if (!response?.success) {
-<<<<<<< HEAD
         addFeedMessage('Could not open Discord login helper. Try again.');
         return;
       }
 
       addFeedMessage('Opened Discord login helper tab.');
       startStoragePolling();
-=======
-        addFeedMessage('Could not open Discord login tab. Try again.');
-        return;
-      }
-
-      const maxPollMs = 5 * 60 * 1000;
-      const startedAt = Date.now();
-      const checkClosed = setInterval(async () => {
-        try {
-          const stored = await getStorage(['authToken', 'userData']);
-          if (stored?.authToken && stored?.userData) {
-            clearInterval(checkClosed);
-            demoMode = false;
-            authToken = stored.authToken;
-            userData = { ...stored.userData, isDemo: false };
-            isAuthenticated = true;
-            showMainContent();
-            syncAccountUi();
-            addFeedMessage(`Connected: ${userData.username || 'TiltCheck user'}`);
-            return;
-          }
-
-          if (Date.now() - startedAt > maxPollMs) {
-            clearInterval(checkClosed);
-            addFeedMessage('Discord connect timed out. Try again.');
-          }
-        } catch (error) {
-          clearInterval(checkClosed);
-          console.warn('[TiltCheck] Discord connect polling failed:', error);
-          addFeedMessage('Discord connect interrupted. Reload the tab and try again.');
-        }
-      }, 1000);
->>>>>>> origin/main
     });
   } catch (error) {
     console.warn('[TiltCheck] Unable to start Discord connect flow:', error);
