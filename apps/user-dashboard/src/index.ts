@@ -557,7 +557,7 @@ function isAdmin(user: any): boolean {
 
 // Serve dashboard HTML
 app.get('/dashboard', (_req, res) => {
-  res.sendFile(join(__dirname, '../public/dashboard.html'));
+  res.sendFile(join(__dirname, '../public/index.html'));
 });
 
 const isMainModule = process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href;
