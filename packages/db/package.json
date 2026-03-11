@@ -12,11 +12,12 @@
     "test": "vitest --run --passWithNoTests"
   },
   "dependencies": {
-    "@neondatabase/serverless": "^1.0.2",
+    "pg": "^8.11.3",
     "@tiltcheck/config": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "^25.3.0",
+    "@types/pg": "^8.11.10",
     "typescript": "^5.3.0",
     "vitest": "^4.0.18"
   },

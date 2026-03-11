@@ -1,0 +1,1750 @@
+[
+  [
+    "Wynn Slots Social",
+    {
+      "score": 73,
+      "fairnessScore": 72,
+      "payoutScore": 72,
+      "bonusScore": 74,
+      "userReportScore": 75,
+      "freespinScore": 71,
+      "complianceScore": 70,
+      "supportScore": 71,
+      "history": [
+        {
+          "timestamp": 1772950398229,
+          "delta": -2,
+          "reason": "Seeded from public scrape ingestion dataset",
+          "severity": 1,
+          "category": "score"
+        }
+      ],
+      "lastUpdated": 1772950398229
+    }
+  ],
+  [
+    "myvegas.com",
+    {
+      "score": 75,
+      "fairnessScore": 77,
+      "payoutScore": 73,
+      "bonusScore": 75,
+      "userReportScore": 77,
+      "freespinScore": 72,
+      "complianceScore": 75,
+      "supportScore": 77,
+      "history": [
+        {
+          "timestamp": 1772950398229,
+          "delta": 0,
+          "reason": "Seeded from public scrape ingestion dataset",
+          "severity": 1,
+          "category": "score"
+        }
+      ],
+      "lastUpdated": 1772950398229
+    }
+  ],
+  [
+    "bigfishgames.com",
+    {
+      "score": 75,
+      "fairnessScore": 77,
+      "payoutScore": 73,
+      "bonusScore": 75,
+      "userReportScore": 77,
+      "freespinScore": 72,
+      "complianceScore": 75,
+      "supportScore": 77,
+      "history": [
+        {
+          "timestamp": 1772950398229,
+          "delta": 0,
+          "reason": "Seeded from public scrape ingestion dataset",
+          "severity": 1,
+          "category": "score"
+        }
+      ],
+      "lastUpdated": 1772950398229
+    }
+  ],
+  [
+    "POP! Slots",
+    {
+      "score": 73,
+      "fairnessScore": 72,
+      "payoutScore": 72,
+      "bonusScore": 74,
+      "userReportScore": 75,
+      "freespinScore": 71,
+      "complianceScore": 70,
+      "supportScore": 71,
+      "history": [
+        {
+          "timestamp": 1772950398229,
+          "delta": -2,
+          "reason": "Seeded from public scrape ingestion dataset",
+          "severity": 1,
+          "category": "score"
+        }
+      ],
+      "lastUpdated": 1772950398229
+    }
+  ],
+  [
+    "houseoffun.com",
+    {
+      "score": 80,
+      "fairnessScore": 82,
+      "payoutScore": 76,
+      "bonusScore": 86,
+      "userReportScore": 79,
+      "freespinScore": 78,
+      "complianceScore": 76,
+      "supportScore": 81,
+      "history": [
+        {
+          "timestamp": 1772950398229,
+          "delta": 5,
+          "reason": "Seeded from public scrape ingestion dataset",
+          "severity": 2,
+          "category": "score"
+        }
+      ],
+      "lastUpdated": 1772950398229
+    }
+  ],
+  [
+    "Jackpot Crush",
+    {
+      "score": 73,
+      "fairnessScore": 72,
+      "payoutScore": 72,
+      "bonusScore": 74,
+      "userReportScore": 75,
+      "freespinScore": 71,
+      "complianceScore": 70,
+      "supportScore": 71,
+      "history": [
+        {
+          "timestamp": 1772950398229,
+          "delta": -2,
+          "reason": "Seeded from public scrape ingestion dataset",
+          "severity": 1,
+          "category": "score"
+        }
+      ],
+      "lastUpdated": 1772950398229
+    }
+  ],
+  [
+    "huuugecasino.com",
+    {
+      "score": 82,
+      "fairnessScore": 90,
+      "payoutScore": 76,
+      "bonusScore": 86,
+      "userReportScore": 79,
+      "freespinScore": 78,
+      "complianceScore": 76,
+      "supportScore": 78,
+      "history": [
+        {
+          "timestamp": 1772950398229,
+          "delta": 7,
+          "reason": "Seeded from public scrape ingestion dataset",
+          "severity": 2,
+          "category": "score"
+        }
+      ],
+      "lastUpdated": 1772950398229
+    }
+  ],
+  [
+    "scatterslots.com",
+    {
+      "score": 75,
+      "fairnessScore": 77,
+      "payoutScore": 73,
+      "bonusScore": 75,
+      "userReportScore": 77,
+      "freespinScore": 72,
+      "complianceScore": 75,
+      "supportScore": 77,
+      "history": [
+        {
+          "timestamp": 1772950398229,
+          "delta": 0,
+          "reason": "Seeded from public scrape ingestion dataset",
+          "severity": 1,
+          "category": "score"
+        }
+      ],
+      "lastUpdated": 1772950398229
+    }
+  ],
+  [
+    "vegasslots.com",
+    {
+      "score": 78,
+      "fairnessScore": 77,
+      "payoutScore": 73,
+      "bonusScore": 85,
+      "userReportScore": 78,
+      "freespinScore": 78,
+      "complianceScore": 87,
+      "supportScore": 78,
+      "history": [
+        {
+          "timestamp": 1772950398229,
+          "delta": 3,
+          "reason": "Seeded from public scrape ingestion dataset",
+          "severity": 1,
+          "category": "score"
+        }
+      ],
+      "lastUpdated": 1772950398229
+    }
+  ],
+  [
+    "bingoblitz.com",
+    {
+      "score": 79,
+      "fairnessScore": 78,
+      "payoutScore": 76,
+      "bonusScore": 86,
+      "userReportScore": 79,
+      "freespinScore": 78,
+      "complianceScore": 84,
+      "supportScore": 81,
+      "history": [
+        {
+          "timestamp": 1772950398229,
+          "delta": 4,
+          "reason": "Seeded from public scrape ingestion dataset",
+          "severity": 2,
+          "category": "score"
+        }
+      ],
+      "lastUpdated": 1772950398229
+    }
+  ],
+  [
+    "bingoaloha.com",
+    {
+      "score": 75,
+      "fairnessScore": 77,
+      "payoutScore": 73,
+      "bonusScore": 75,
+      "userReportScore": 77,
+      "freespinScore": 72,
+      "complianceScore": 75,
+      "supportScore": 77,
+      "history": [
+        {
+          "timestamp": 1772950398229,
+          "delta": 0,
+          "reason": "Seeded from public scrape ingestion dataset",
+          "severity": 1,
+          "category": "score"
+        }
+      ],
+      "lastUpdated": 1772950398229
+    }
+  ],
+  [
+    "Bingo Idle",
+    {
+      "score": 73,
+      "fairnessScore": 72,
+      "payoutScore": 72,
+      "bonusScore": 74,
+      "userReportScore": 75,
+      "freespinScore": 71,
+      "complianceScore": 70,
+      "supportScore": 71,
+      "history": [
+        {
+          "timestamp": 1772950398229,
+          "delta": -2,
+          "reason": "Seeded from public scrape ingestion dataset",
+          "severity": 1,
+          "category": "score"
+        }
+      ],
+      "lastUpdated": 1772950398229
+    }
+  ],
+  [
+    "luckytimeslots.com",
+    {
+      "score": 78,
+      "fairnessScore": 78,
+      "payoutScore": 78,
+      "bonusScore": 76,
+      "userReportScore": 78,
+      "freespinScore": 73,
+      "complianceScore": 84,
+      "supportScore": 81,
+      "history": [
+        {
+          "timestamp": 1772950398229,
+          "delta": 3,
+          "reason": "Seeded from public scrape ingestion dataset",
+          "severity": 1,
+          "category": "score"
+        }
+      ],
+      "lastUpdated": 1772950398229
+    }
+  ],
+  [
+    "SpinX Social Slots",
+    {
+      "score": 73,
+      "fairnessScore": 72,
+      "payoutScore": 72,
+      "bonusScore": 74,
+      "userReportScore": 75,
+      "freespinScore": 71,
+      "complianceScore": 70,
+      "supportScore": 71,
+      "history": [
+        {
+          "timestamp": 1772950398229,
+          "delta": -2,
+          "reason": "Seeded from public scrape ingestion dataset",
+          "severity": 1,
+          "category": "score"
+        }
+      ],
+      "lastUpdated": 1772950398229
+    }
+  ],
+  [
+    "Jackpot Time Casino",
+    {
+      "score": 73,
+      "fairnessScore": 72,
+      "payoutScore": 72,
+      "bonusScore": 74,
+      "userReportScore": 75,
+      "freespinScore": 71,
+      "complianceScore": 70,
+      "supportScore": 71,
+      "history": [
+        {
+          "timestamp": 1772950398229,
+          "delta": -2,
+          "reason": "Seeded from public scrape ingestion dataset",
+          "severity": 1,
+          "category": "score"
+        }
+      ],
+      "lastUpdated": 1772950398229
+    }
+  ],
+  [
+    "WowPot Sweepstakes",
+    {
+      "score": 73,
+      "fairnessScore": 72,
+      "payoutScore": 72,
+      "bonusScore": 74,
+      "userReportScore": 75,
+      "freespinScore": 71,
+      "complianceScore": 70,
+      "supportScore": 71,
+      "history": [
+        {
+          "timestamp": 1772950398229,
+          "delta": -2,
+          "reason": "Seeded from public scrape ingestion dataset",
+          "severity": 1,
+          "category": "score"
+        }
+      ],
+      "lastUpdated": 1772950398229
+    }
+  ],
+  [
+    "StakeLoot",
+    {
+      "score": 71,
+      "fairnessScore": 72,
+      "payoutScore": 72,
+      "bonusScore": 74,
+      "userReportScore": 63,
+      "freespinScore": 71,
+      "complianceScore": 70,
+      "supportScore": 71,
+      "history": [
+        {
+          "timestamp": 1772950398229,
+          "delta": -4,
+          "reason": "Seeded from public scrape ingestion dataset",
+          "severity": 2,
+          "category": "score"
+        }
+      ],
+      "lastUpdated": 1772950398229
+    }
+  ],
+  [
+    "Lootie Sweeps",
+    {
+      "score": 73,
+      "fairnessScore": 72,
+      "payoutScore": 72,
+      "bonusScore": 74,
+      "userReportScore": 75,
+      "freespinScore": 71,
+      "complianceScore": 70,
+      "supportScore": 71,
+      "history": [
+        {
+          "timestamp": 1772950398229,
+          "delta": -2,
+          "reason": "Seeded from public scrape ingestion dataset",
+          "severity": 1,
+          "category": "score"
+        }
+      ],
+      "lastUpdated": 1772950398229
+    }
+  ],
+  [
+    "sweeps.gg",
+    {
+      "score": 75,
+      "fairnessScore": 77,
+      "payoutScore": 73,
+      "bonusScore": 75,
+      "userReportScore": 77,
+      "freespinScore": 72,
+      "complianceScore": 75,
+      "supportScore": 77,
+      "history": [
+        {
+          "timestamp": 1772950398229,
+          "delta": 0,
+          "reason": "Seeded from public scrape ingestion dataset",
+          "severity": 1,
+          "category": "score"
+        }
+      ],
+      "lastUpdated": 1772950398229
+    }
+  ],
+  [
+    "Lucky Ducky Social",
+    {
+      "score": 73,
+      "fairnessScore": 72,
+      "payoutScore": 72,
+      "bonusScore": 74,
+      "userReportScore": 75,
+      "freespinScore": 71,
+      "complianceScore": 70,
+      "supportScore": 71,
+      "history": [
+        {
+          "timestamp": 1772950398229,
+          "delta": -2,
+          "reason": "Seeded from public scrape ingestion dataset",
+          "severity": 1,
+          "category": "score"
+        }
+      ],
+      "lastUpdated": 1772950398229
+    }
+  ],
+  [
+    "windrop.com",
+    {
+      "score": 79,
+      "fairnessScore": 78,
+      "payoutScore": 86,
+      "bonusScore": 76,
+      "userReportScore": 78,
+      "freespinScore": 73,
+      "complianceScore": 76,
+      "supportScore": 78,
+      "history": [
+        {
+          "timestamp": 1772950398229,
+          "delta": 4,
+          "reason": "Seeded from public scrape ingestion dataset",
+          "severity": 2,
+          "category": "score"
+        }
+      ],
+      "lastUpdated": 1772950398229
+    }
+  ],
+  [
+    "prizeplay.com",
+    {
+      "score": 76,
+      "fairnessScore": 77,
+      "payoutScore": 75,
+      "bonusScore": 75,
+      "userReportScore": 78,
+      "freespinScore": 73,
+      "complianceScore": 75,
+      "supportScore": 78,
+      "history": [
+        {
+          "timestamp": 1772950398229,
+          "delta": 1,
+          "reason": "Seeded from public scrape ingestion dataset",
+          "severity": 1,
+          "category": "score"
+        }
+      ],
+      "lastUpdated": 1772950398229
+    }
+  ],
+  [
+    "fastcoin.com",
+    {
+      "score": 75,
+      "fairnessScore": 77,
+      "payoutScore": 73,
+      "bonusScore": 75,
+      "userReportScore": 77,
+      "freespinScore": 72,
+      "complianceScore": 75,
+      "supportScore": 77,
+      "history": [
+        {
+          "timestamp": 1772950398229,
+          "delta": 0,
+          "reason": "Seeded from public scrape ingestion dataset",
+          "severity": 1,
+          "category": "score"
+        }
+      ],
+      "lastUpdated": 1772950398229
+    }
+  ],
+  [
+    "coinsweeps.net",
+    {
+      "score": 85,
+      "fairnessScore": 84,
+      "payoutScore": 88,
+      "bonusScore": 87,
+      "userReportScore": 81,
+      "freespinScore": 79,
+      "complianceScore": 92,
+      "supportScore": 85,
+      "history": [
+        {
+          "timestamp": 1772950398229,
+          "delta": 10,
+          "reason": "Seeded from public scrape ingestion dataset",
+          "severity": 3,
+          "category": "score"
+        }
+      ],
+      "lastUpdated": 1772950398229
+    }
+  ],
+  [
+    "SC Kingdom",
+    {
+      "score": 71,
+      "fairnessScore": 72,
+      "payoutScore": 72,
+      "bonusScore": 74,
+      "userReportScore": 63,
+      "freespinScore": 71,
+      "complianceScore": 70,
+      "supportScore": 71,
+      "history": [
+        {
+          "timestamp": 1772950398229,
+          "delta": -4,
+          "reason": "Seeded from public scrape ingestion dataset",
+          "severity": 2,
+          "category": "score"
+        }
+      ],
+      "lastUpdated": 1772950398229
+    }
+  ],
+  [
+    "riversweeps.com",
+    {
+      "score": 79,
+      "fairnessScore": 79,
+      "payoutScore": 79,
+      "bonusScore": 87,
+      "userReportScore": 68,
+      "freespinScore": 79,
+      "complianceScore": 85,
+      "supportScore": 82,
+      "history": [
+        {
+          "timestamp": 1772950398229,
+          "delta": 4,
+          "reason": "Seeded from public scrape ingestion dataset",
+          "severity": 2,
+          "category": "score"
+        }
+      ],
+      "lastUpdated": 1772950398229
+    }
+  ],
+  [
+    "riverslot.com",
+    {
+      "score": 82,
+      "fairnessScore": 91,
+      "payoutScore": 78,
+      "bonusScore": 86,
+      "userReportScore": 67,
+      "freespinScore": 79,
+      "complianceScore": 77,
+      "supportScore": 79,
+      "history": [
+        {
+          "timestamp": 1772950398229,
+          "delta": 7,
+          "reason": "Seeded from public scrape ingestion dataset",
+          "severity": 2,
+          "category": "score"
+        }
+      ],
+      "lastUpdated": 1772950398229
+    }
+  ],
+  [
+    "skillmine.net",
+    {
+      "score": 76,
+      "fairnessScore": 77,
+      "payoutScore": 73,
+      "bonusScore": 85,
+      "userReportScore": 66,
+      "freespinScore": 78,
+      "complianceScore": 75,
+      "supportScore": 78,
+      "history": [
+        {
+          "timestamp": 1772950398229,
+          "delta": 1,
+          "reason": "Seeded from public scrape ingestion dataset",
+          "severity": 1,
+          "category": "score"
+        }
+      ],
+      "lastUpdated": 1772950398229
+    }
+  ],
+  [
+    "ultrapanda.com",
+    {
+      "score": 75,
+      "fairnessScore": 78,
+      "payoutScore": 76,
+      "bonusScore": 76,
+      "userReportScore": 66,
+      "freespinScore": 73,
+      "complianceScore": 76,
+      "supportScore": 78,
+      "history": [
+        {
+          "timestamp": 1772950398229,
+          "delta": 0,
+          "reason": "Seeded from public scrape ingestion dataset",
+          "severity": 1,
+          "category": "score"
+        }
+      ],
+      "lastUpdated": 1772950398229
+    }
+  ],
+  [
+    "bluedragon.io",
+    {
+      "score": 74,
+      "fairnessScore": 77,
+      "payoutScore": 73,
+      "bonusScore": 75,
+      "userReportScore": 65,
+      "freespinScore": 73,
+      "complianceScore": 75,
+      "supportScore": 78,
+      "history": [
+        {
+          "timestamp": 1772950398229,
+          "delta": -1,
+          "reason": "Seeded from public scrape ingestion dataset",
+          "severity": 1,
+          "category": "score"
+        }
+      ],
+      "lastUpdated": 1772950398229
+    }
+  ],
+  [
+    "Fire Kirin Plus",
+    {
+      "score": 71,
+      "fairnessScore": 72,
+      "payoutScore": 72,
+      "bonusScore": 74,
+      "userReportScore": 63,
+      "freespinScore": 71,
+      "complianceScore": 70,
+      "supportScore": 71,
+      "history": [
+        {
+          "timestamp": 1772950398229,
+          "delta": -4,
+          "reason": "Seeded from public scrape ingestion dataset",
+          "severity": 2,
+          "category": "score"
+        }
+      ],
+      "lastUpdated": 1772950398229
+    }
+  ],
+  [
+    "PhantomEagle",
+    {
+      "score": 71,
+      "fairnessScore": 72,
+      "payoutScore": 72,
+      "bonusScore": 74,
+      "userReportScore": 63,
+      "freespinScore": 71,
+      "complianceScore": 70,
+      "supportScore": 71,
+      "history": [
+        {
+          "timestamp": 1772950398229,
+          "delta": -4,
+          "reason": "Seeded from public scrape ingestion dataset",
+          "severity": 2,
+          "category": "score"
+        }
+      ],
+      "lastUpdated": 1772950398229
+    }
+  ],
+  [
+    "xgameroom.com",
+    {
+      "score": 75,
+      "fairnessScore": 78,
+      "payoutScore": 76,
+      "bonusScore": 76,
+      "userReportScore": 66,
+      "freespinScore": 73,
+      "complianceScore": 76,
+      "supportScore": 78,
+      "history": [
+        {
+          "timestamp": 1772950398229,
+          "delta": 0,
+          "reason": "Seeded from public scrape ingestion dataset",
+          "severity": 1,
+          "category": "score"
+        }
+      ],
+      "lastUpdated": 1772950398229
+    }
+  ],
+  [
+    "Game Vault",
+    {
+      "score": 71,
+      "fairnessScore": 72,
+      "payoutScore": 72,
+      "bonusScore": 74,
+      "userReportScore": 63,
+      "freespinScore": 71,
+      "complianceScore": 70,
+      "supportScore": 71,
+      "history": [
+        {
+          "timestamp": 1772950398229,
+          "delta": -4,
+          "reason": "Seeded from public scrape ingestion dataset",
+          "severity": 2,
+          "category": "score"
+        }
+      ],
+      "lastUpdated": 1772950398229
+    }
+  ],
+  [
+    "pandamaster.com",
+    {
+      "score": 78,
+      "fairnessScore": 79,
+      "payoutScore": 78,
+      "bonusScore": 86,
+      "userReportScore": 67,
+      "freespinScore": 79,
+      "complianceScore": 85,
+      "supportScore": 82,
+      "history": [
+        {
+          "timestamp": 1772950398229,
+          "delta": 3,
+          "reason": "Seeded from public scrape ingestion dataset",
+          "severity": 1,
+          "category": "score"
+        }
+      ],
+      "lastUpdated": 1772950398229
+    }
+  ],
+  [
+    "PowerSweeps",
+    {
+      "score": 71,
+      "fairnessScore": 72,
+      "payoutScore": 72,
+      "bonusScore": 74,
+      "userReportScore": 63,
+      "freespinScore": 71,
+      "complianceScore": 70,
+      "supportScore": 71,
+      "history": [
+        {
+          "timestamp": 1772950398229,
+          "delta": -4,
+          "reason": "Seeded from public scrape ingestion dataset",
+          "severity": 2,
+          "category": "score"
+        }
+      ],
+      "lastUpdated": 1772950398229
+    }
+  ],
+  [
+    "goldstarslots.net",
+    {
+      "score": 75,
+      "fairnessScore": 78,
+      "payoutScore": 76,
+      "bonusScore": 76,
+      "userReportScore": 66,
+      "freespinScore": 73,
+      "complianceScore": 76,
+      "supportScore": 78,
+      "history": [
+        {
+          "timestamp": 1772950398229,
+          "delta": 0,
+          "reason": "Seeded from public scrape ingestion dataset",
+          "severity": 1,
+          "category": "score"
+        }
+      ],
+      "lastUpdated": 1772950398229
+    }
+  ],
+  [
+    "LuckySweep",
+    {
+      "score": 71,
+      "fairnessScore": 72,
+      "payoutScore": 72,
+      "bonusScore": 74,
+      "userReportScore": 63,
+      "freespinScore": 71,
+      "complianceScore": 70,
+      "supportScore": 71,
+      "history": [
+        {
+          "timestamp": 1772950398229,
+          "delta": -4,
+          "reason": "Seeded from public scrape ingestion dataset",
+          "severity": 2,
+          "category": "score"
+        }
+      ],
+      "lastUpdated": 1772950398229
+    }
+  ],
+  [
+    "Lucky 777 Sweeps",
+    {
+      "score": 71,
+      "fairnessScore": 72,
+      "payoutScore": 72,
+      "bonusScore": 74,
+      "userReportScore": 63,
+      "freespinScore": 71,
+      "complianceScore": 70,
+      "supportScore": 71,
+      "history": [
+        {
+          "timestamp": 1772950398229,
+          "delta": -4,
+          "reason": "Seeded from public scrape ingestion dataset",
+          "severity": 2,
+          "category": "score"
+        }
+      ],
+      "lastUpdated": 1772950398229
+    }
+  ],
+  [
+    "getluckysweeps.com",
+    {
+      "score": 75,
+      "fairnessScore": 78,
+      "payoutScore": 76,
+      "bonusScore": 76,
+      "userReportScore": 66,
+      "freespinScore": 73,
+      "complianceScore": 76,
+      "supportScore": 78,
+      "history": [
+        {
+          "timestamp": 1772950398229,
+          "delta": 0,
+          "reason": "Seeded from public scrape ingestion dataset",
+          "severity": 1,
+          "category": "score"
+        }
+      ],
+      "lastUpdated": 1772950398229
+    }
+  ],
+  [
+    "Gold Coin Room",
+    {
+      "score": 71,
+      "fairnessScore": 72,
+      "payoutScore": 72,
+      "bonusScore": 74,
+      "userReportScore": 63,
+      "freespinScore": 71,
+      "complianceScore": 70,
+      "supportScore": 71,
+      "history": [
+        {
+          "timestamp": 1772950398229,
+          "delta": -4,
+          "reason": "Seeded from public scrape ingestion dataset",
+          "severity": 2,
+          "category": "score"
+        }
+      ],
+      "lastUpdated": 1772950398229
+    }
+  ],
+  [
+    "Lucky Fox Sweeps",
+    {
+      "score": 71,
+      "fairnessScore": 72,
+      "payoutScore": 72,
+      "bonusScore": 74,
+      "userReportScore": 63,
+      "freespinScore": 71,
+      "complianceScore": 70,
+      "supportScore": 71,
+      "history": [
+        {
+          "timestamp": 1772950398229,
+          "delta": -4,
+          "reason": "Seeded from public scrape ingestion dataset",
+          "severity": 2,
+          "category": "score"
+        }
+      ],
+      "lastUpdated": 1772950398229
+    }
+  ],
+  [
+    "Diamond Sweep Slots",
+    {
+      "score": 71,
+      "fairnessScore": 72,
+      "payoutScore": 72,
+      "bonusScore": 74,
+      "userReportScore": 63,
+      "freespinScore": 71,
+      "complianceScore": 70,
+      "supportScore": 71,
+      "history": [
+        {
+          "timestamp": 1772950398229,
+          "delta": -4,
+          "reason": "Seeded from public scrape ingestion dataset",
+          "severity": 2,
+          "category": "score"
+        }
+      ],
+      "lastUpdated": 1772950398229
+    }
+  ],
+  [
+    "cashoutking.com",
+    {
+      "score": 74,
+      "fairnessScore": 77,
+      "payoutScore": 73,
+      "bonusScore": 75,
+      "userReportScore": 65,
+      "freespinScore": 73,
+      "complianceScore": 75,
+      "supportScore": 78,
+      "history": [
+        {
+          "timestamp": 1772950398229,
+          "delta": -1,
+          "reason": "Seeded from public scrape ingestion dataset",
+          "severity": 1,
+          "category": "score"
+        }
+      ],
+      "lastUpdated": 1772950398229
+    }
+  ],
+  [
+    "Thunder Room Casino",
+    {
+      "score": 71,
+      "fairnessScore": 72,
+      "payoutScore": 72,
+      "bonusScore": 74,
+      "userReportScore": 63,
+      "freespinScore": 71,
+      "complianceScore": 70,
+      "supportScore": 71,
+      "history": [
+        {
+          "timestamp": 1772950398229,
+          "delta": -4,
+          "reason": "Seeded from public scrape ingestion dataset",
+          "severity": 2,
+          "category": "score"
+        }
+      ],
+      "lastUpdated": 1772950398229
+    }
+  ],
+  [
+    "mrgoodwin.com",
+    {
+      "score": 77,
+      "fairnessScore": 78,
+      "payoutScore": 76,
+      "bonusScore": 86,
+      "userReportScore": 67,
+      "freespinScore": 78,
+      "complianceScore": 76,
+      "supportScore": 78,
+      "history": [
+        {
+          "timestamp": 1772950398229,
+          "delta": 2,
+          "reason": "Seeded from public scrape ingestion dataset",
+          "severity": 1,
+          "category": "score"
+        }
+      ],
+      "lastUpdated": 1772950398229
+    }
+  ],
+  [
+    "zulacasino.io",
+    {
+      "score": 84,
+      "fairnessScore": 84,
+      "payoutScore": 84,
+      "bonusScore": 87,
+      "userReportScore": 81,
+      "freespinScore": 79,
+      "complianceScore": 100,
+      "supportScore": 85,
+      "history": [
+        {
+          "timestamp": 1772950398229,
+          "delta": 9,
+          "reason": "Seeded from public scrape ingestion dataset",
+          "severity": 3,
+          "category": "score"
+        }
+      ],
+      "lastUpdated": 1772950398229
+    }
+  ],
+  [
+    "Mega Vegas Social",
+    {
+      "score": 73,
+      "fairnessScore": 72,
+      "payoutScore": 72,
+      "bonusScore": 74,
+      "userReportScore": 75,
+      "freespinScore": 71,
+      "complianceScore": 70,
+      "supportScore": 71,
+      "history": [
+        {
+          "timestamp": 1772950398229,
+          "delta": -2,
+          "reason": "Seeded from public scrape ingestion dataset",
+          "severity": 1,
+          "category": "score"
+        }
+      ],
+      "lastUpdated": 1772950398229
+    }
+  ],
+  [
+    "Fortune Koala",
+    {
+      "score": 73,
+      "fairnessScore": 72,
+      "payoutScore": 72,
+      "bonusScore": 74,
+      "userReportScore": 75,
+      "freespinScore": 71,
+      "complianceScore": 70,
+      "supportScore": 71,
+      "history": [
+        {
+          "timestamp": 1772950398229,
+          "delta": -2,
+          "reason": "Seeded from public scrape ingestion dataset",
+          "severity": 1,
+          "category": "score"
+        }
+      ],
+      "lastUpdated": 1772950398229
+    }
+  ],
+  [
+    "Gold Diggers Social",
+    {
+      "score": 73,
+      "fairnessScore": 72,
+      "payoutScore": 72,
+      "bonusScore": 74,
+      "userReportScore": 75,
+      "freespinScore": 71,
+      "complianceScore": 70,
+      "supportScore": 71,
+      "history": [
+        {
+          "timestamp": 1772950398229,
+          "delta": -2,
+          "reason": "Seeded from public scrape ingestion dataset",
+          "severity": 1,
+          "category": "score"
+        }
+      ],
+      "lastUpdated": 1772950398229
+    }
+  ],
+  [
+    "easywin.com",
+    {
+      "score": 84,
+      "fairnessScore": 91,
+      "payoutScore": 76,
+      "bonusScore": 86,
+      "userReportScore": 79,
+      "freespinScore": 79,
+      "complianceScore": 85,
+      "supportScore": 82,
+      "history": [
+        {
+          "timestamp": 1772950398229,
+          "delta": 9,
+          "reason": "Seeded from public scrape ingestion dataset",
+          "severity": 3,
+          "category": "score"
+        }
+      ],
+      "lastUpdated": 1772950398229
+    }
+  ],
+  [
+    "primewins.com",
+    {
+      "score": 75,
+      "fairnessScore": 77,
+      "payoutScore": 73,
+      "bonusScore": 75,
+      "userReportScore": 77,
+      "freespinScore": 72,
+      "complianceScore": 75,
+      "supportScore": 77,
+      "history": [
+        {
+          "timestamp": 1772950398229,
+          "delta": 0,
+          "reason": "Seeded from public scrape ingestion dataset",
+          "severity": 1,
+          "category": "score"
+        }
+      ],
+      "lastUpdated": 1772950398229
+    }
+  ],
+  [
+    "vegaslit.com",
+    {
+      "score": 74,
+      "fairnessScore": 74,
+      "payoutScore": 73,
+      "bonusScore": 75,
+      "userReportScore": 77,
+      "freespinScore": 72,
+      "complianceScore": 72,
+      "supportScore": 77,
+      "history": [
+        {
+          "timestamp": 1772950398229,
+          "delta": -1,
+          "reason": "Seeded from public scrape ingestion dataset",
+          "severity": 1,
+          "category": "score"
+        }
+      ],
+      "lastUpdated": 1772950398229
+    }
+  ],
+  [
+    "dreamsweeps.com",
+    {
+      "score": 75,
+      "fairnessScore": 77,
+      "payoutScore": 73,
+      "bonusScore": 75,
+      "userReportScore": 77,
+      "freespinScore": 72,
+      "complianceScore": 75,
+      "supportScore": 77,
+      "history": [
+        {
+          "timestamp": 1772950398229,
+          "delta": 0,
+          "reason": "Seeded from public scrape ingestion dataset",
+          "severity": 1,
+          "category": "score"
+        }
+      ],
+      "lastUpdated": 1772950398229
+    }
+  ],
+  [
+    "MaxVegas Social",
+    {
+      "score": 73,
+      "fairnessScore": 72,
+      "payoutScore": 72,
+      "bonusScore": 74,
+      "userReportScore": 75,
+      "freespinScore": 71,
+      "complianceScore": 70,
+      "supportScore": 71,
+      "history": [
+        {
+          "timestamp": 1772950398229,
+          "delta": -2,
+          "reason": "Seeded from public scrape ingestion dataset",
+          "severity": 1,
+          "category": "score"
+        }
+      ],
+      "lastUpdated": 1772950398229
+    }
+  ],
+  [
+    "SpinBet Social",
+    {
+      "score": 73,
+      "fairnessScore": 72,
+      "payoutScore": 72,
+      "bonusScore": 74,
+      "userReportScore": 75,
+      "freespinScore": 71,
+      "complianceScore": 70,
+      "supportScore": 71,
+      "history": [
+        {
+          "timestamp": 1772950398229,
+          "delta": -2,
+          "reason": "Seeded from public scrape ingestion dataset",
+          "severity": 1,
+          "category": "score"
+        }
+      ],
+      "lastUpdated": 1772950398229
+    }
+  ],
+  [
+    "Big Coin Social",
+    {
+      "score": 73,
+      "fairnessScore": 72,
+      "payoutScore": 72,
+      "bonusScore": 74,
+      "userReportScore": 75,
+      "freespinScore": 71,
+      "complianceScore": 70,
+      "supportScore": 71,
+      "history": [
+        {
+          "timestamp": 1772950398229,
+          "delta": -2,
+          "reason": "Seeded from public scrape ingestion dataset",
+          "severity": 1,
+          "category": "score"
+        }
+      ],
+      "lastUpdated": 1772950398229
+    }
+  ],
+  [
+    "Gold Coin Mania",
+    {
+      "score": 73,
+      "fairnessScore": 72,
+      "payoutScore": 72,
+      "bonusScore": 74,
+      "userReportScore": 75,
+      "freespinScore": 71,
+      "complianceScore": 70,
+      "supportScore": 71,
+      "history": [
+        {
+          "timestamp": 1772950398229,
+          "delta": -2,
+          "reason": "Seeded from public scrape ingestion dataset",
+          "severity": 1,
+          "category": "score"
+        }
+      ],
+      "lastUpdated": 1772950398229
+    }
+  ],
+  [
+    "SuperCoin Social",
+    {
+      "score": 73,
+      "fairnessScore": 72,
+      "payoutScore": 72,
+      "bonusScore": 74,
+      "userReportScore": 75,
+      "freespinScore": 71,
+      "complianceScore": 70,
+      "supportScore": 71,
+      "history": [
+        {
+          "timestamp": 1772950398229,
+          "delta": -2,
+          "reason": "Seeded from public scrape ingestion dataset",
+          "severity": 1,
+          "category": "score"
+        }
+      ],
+      "lastUpdated": 1772950398229
+    }
+  ],
+  [
+    "royalsweepscasino.com",
+    {
+      "score": 81,
+      "fairnessScore": 79,
+      "payoutScore": 79,
+      "bonusScore": 87,
+      "userReportScore": 80,
+      "freespinScore": 79,
+      "complianceScore": 97,
+      "supportScore": 82,
+      "history": [
+        {
+          "timestamp": 1772950398229,
+          "delta": 6,
+          "reason": "Seeded from public scrape ingestion dataset",
+          "severity": 2,
+          "category": "score"
+        }
+      ],
+      "lastUpdated": 1772950398229
+    }
+  ],
+  [
+    "LuckyCharms Casino",
+    {
+      "score": 73,
+      "fairnessScore": 72,
+      "payoutScore": 72,
+      "bonusScore": 74,
+      "userReportScore": 75,
+      "freespinScore": 71,
+      "complianceScore": 70,
+      "supportScore": 71,
+      "history": [
+        {
+          "timestamp": 1772950398229,
+          "delta": -2,
+          "reason": "Seeded from public scrape ingestion dataset",
+          "severity": 1,
+          "category": "score"
+        }
+      ],
+      "lastUpdated": 1772950398229
+    }
+  ],
+  [
+    "megacoincasino.com",
+    {
+      "score": 76,
+      "fairnessScore": 77,
+      "payoutScore": 75,
+      "bonusScore": 75,
+      "userReportScore": 78,
+      "freespinScore": 73,
+      "complianceScore": 75,
+      "supportScore": 78,
+      "history": [
+        {
+          "timestamp": 1772950398229,
+          "delta": 1,
+          "reason": "Seeded from public scrape ingestion dataset",
+          "severity": 1,
+          "category": "score"
+        }
+      ],
+      "lastUpdated": 1772950398229
+    }
+  ],
+  [
+    "Lucky Streak Social",
+    {
+      "score": 73,
+      "fairnessScore": 72,
+      "payoutScore": 72,
+      "bonusScore": 74,
+      "userReportScore": 75,
+      "freespinScore": 71,
+      "complianceScore": 70,
+      "supportScore": 71,
+      "history": [
+        {
+          "timestamp": 1772950398229,
+          "delta": -2,
+          "reason": "Seeded from public scrape ingestion dataset",
+          "severity": 1,
+          "category": "score"
+        }
+      ],
+      "lastUpdated": 1772950398229
+    }
+  ],
+  [
+    "Cash Storm Social",
+    {
+      "score": 73,
+      "fairnessScore": 72,
+      "payoutScore": 72,
+      "bonusScore": 74,
+      "userReportScore": 75,
+      "freespinScore": 71,
+      "complianceScore": 70,
+      "supportScore": 71,
+      "history": [
+        {
+          "timestamp": 1772950398229,
+          "delta": -2,
+          "reason": "Seeded from public scrape ingestion dataset",
+          "severity": 1,
+          "category": "score"
+        }
+      ],
+      "lastUpdated": 1772950398229
+    }
+  ],
+  [
+    "coinforest.net",
+    {
+      "score": 75,
+      "fairnessScore": 74,
+      "payoutScore": 77,
+      "bonusScore": 75,
+      "userReportScore": 77,
+      "freespinScore": 73,
+      "complianceScore": 72,
+      "supportScore": 78,
+      "history": [
+        {
+          "timestamp": 1772950398229,
+          "delta": 0,
+          "reason": "Seeded from public scrape ingestion dataset",
+          "severity": 1,
+          "category": "score"
+        }
+      ],
+      "lastUpdated": 1772950398229
+    }
+  ],
+  [
+    "SweepStorm",
+    {
+      "score": 61,
+      "fairnessScore": 57,
+      "payoutScore": 62,
+      "bonusScore": 66,
+      "userReportScore": 63,
+      "freespinScore": 63,
+      "complianceScore": 58,
+      "supportScore": 63,
+      "history": [
+        {
+          "timestamp": 1772950398229,
+          "delta": -14,
+          "reason": "Seeded from public scrape ingestion dataset",
+          "severity": 4,
+          "category": "score"
+        }
+      ],
+      "lastUpdated": 1772950398229
+    }
+  ],
+  [
+    "Lucky Panda Sweeps",
+    {
+      "score": 61,
+      "fairnessScore": 57,
+      "payoutScore": 62,
+      "bonusScore": 66,
+      "userReportScore": 63,
+      "freespinScore": 63,
+      "complianceScore": 58,
+      "supportScore": 63,
+      "history": [
+        {
+          "timestamp": 1772950398229,
+          "delta": -14,
+          "reason": "Seeded from public scrape ingestion dataset",
+          "severity": 4,
+          "category": "score"
+        }
+      ],
+      "lastUpdated": 1772950398229
+    }
+  ],
+  [
+    "Jewel Sweeps",
+    {
+      "score": 61,
+      "fairnessScore": 57,
+      "payoutScore": 62,
+      "bonusScore": 66,
+      "userReportScore": 63,
+      "freespinScore": 63,
+      "complianceScore": 58,
+      "supportScore": 63,
+      "history": [
+        {
+          "timestamp": 1772950398229,
+          "delta": -14,
+          "reason": "Seeded from public scrape ingestion dataset",
+          "severity": 4,
+          "category": "score"
+        }
+      ],
+      "lastUpdated": 1772950398229
+    }
+  ],
+  [
+    "VegasGala SC",
+    {
+      "score": 61,
+      "fairnessScore": 57,
+      "payoutScore": 62,
+      "bonusScore": 66,
+      "userReportScore": 63,
+      "freespinScore": 63,
+      "complianceScore": 58,
+      "supportScore": 63,
+      "history": [
+        {
+          "timestamp": 1772950398229,
+          "delta": -14,
+          "reason": "Seeded from public scrape ingestion dataset",
+          "severity": 4,
+          "category": "score"
+        }
+      ],
+      "lastUpdated": 1772950398229
+    }
+  ],
+  [
+    "RichCoin Social",
+    {
+      "score": 61,
+      "fairnessScore": 57,
+      "payoutScore": 62,
+      "bonusScore": 66,
+      "userReportScore": 63,
+      "freespinScore": 63,
+      "complianceScore": 58,
+      "supportScore": 63,
+      "history": [
+        {
+          "timestamp": 1772950398229,
+          "delta": -14,
+          "reason": "Seeded from public scrape ingestion dataset",
+          "severity": 4,
+          "category": "score"
+        }
+      ],
+      "lastUpdated": 1772950398229
+    }
+  ],
+  [
+    "Big 777 Sweeps",
+    {
+      "score": 61,
+      "fairnessScore": 57,
+      "payoutScore": 62,
+      "bonusScore": 66,
+      "userReportScore": 63,
+      "freespinScore": 63,
+      "complianceScore": 58,
+      "supportScore": 63,
+      "history": [
+        {
+          "timestamp": 1772950398229,
+          "delta": -14,
+          "reason": "Seeded from public scrape ingestion dataset",
+          "severity": 4,
+          "category": "score"
+        }
+      ],
+      "lastUpdated": 1772950398229
+    }
+  ],
+  [
+    "VegasWin Social",
+    {
+      "score": 61,
+      "fairnessScore": 57,
+      "payoutScore": 62,
+      "bonusScore": 66,
+      "userReportScore": 63,
+      "freespinScore": 63,
+      "complianceScore": 58,
+      "supportScore": 63,
+      "history": [
+        {
+          "timestamp": 1772950398229,
+          "delta": -14,
+          "reason": "Seeded from public scrape ingestion dataset",
+          "severity": 4,
+          "category": "score"
+        }
+      ],
+      "lastUpdated": 1772950398229
+    }
+  ],
+  [
+    "Diamond 88 Sweeps",
+    {
+      "score": 61,
+      "fairnessScore": 57,
+      "payoutScore": 62,
+      "bonusScore": 66,
+      "userReportScore": 63,
+      "freespinScore": 63,
+      "complianceScore": 58,
+      "supportScore": 63,
+      "history": [
+        {
+          "timestamp": 1772950398229,
+          "delta": -14,
+          "reason": "Seeded from public scrape ingestion dataset",
+          "severity": 4,
+          "category": "score"
+        }
+      ],
+      "lastUpdated": 1772950398229
+    }
+  ],
+  [
+    "Thunder Win Casino",
+    {
+      "score": 61,
+      "fairnessScore": 57,
+      "payoutScore": 62,
+      "bonusScore": 66,
+      "userReportScore": 63,
+      "freespinScore": 63,
+      "complianceScore": 58,
+      "supportScore": 63,
+      "history": [
+        {
+          "timestamp": 1772950398229,
+          "delta": -14,
+          "reason": "Seeded from public scrape ingestion dataset",
+          "severity": 4,
+          "category": "score"
+        }
+      ],
+      "lastUpdated": 1772950398229
+    }
+  ],
+  [
+    "GalaxySweep Slots",
+    {
+      "score": 61,
+      "fairnessScore": 57,
+      "payoutScore": 62,
+      "bonusScore": 66,
+      "userReportScore": 63,
+      "freespinScore": 63,
+      "complianceScore": 58,
+      "supportScore": 63,
+      "history": [
+        {
+          "timestamp": 1772950398229,
+          "delta": -14,
+          "reason": "Seeded from public scrape ingestion dataset",
+          "severity": 4,
+          "category": "score"
+        }
+      ],
+      "lastUpdated": 1772950398229
+    }
+  ],
+  [
+    "history-test.com",
+    {
+      "score": 74,
+      "fairnessScore": 75,
+      "payoutScore": 75,
+      "bonusScore": 69,
+      "userReportScore": 75,
+      "freespinScore": 75,
+      "complianceScore": 75,
+      "supportScore": 75,
+      "history": [
+        {
+          "timestamp": 1770868605788,
+          "delta": -1,
+          "reason": "Bonus nerf detected (-30.0%)",
+          "severity": 3,
+          "category": "bonusScore"
+        }
+      ],
+      "lastUpdated": 1770868605788
+    }
+  ]
+]

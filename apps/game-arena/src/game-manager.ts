@@ -13,13 +13,223 @@
 
 import { v4 as uuidv4 } from 'uuid';
 import { dad } from '@tiltcheck/dad';
+import type { SerializedGameState } from '@tiltcheck/dad';
 import * as poker from '@tiltcheck/poker';
 import { eventRouter } from '@tiltcheck/event-router';
+import { mkdir, readFile, rename, stat, writeFile } from 'node:fs/promises';
+import path from 'node:path';
 import type { GameLobbyInfo, GameType, Platform } from './types.js';
+
+interface GameArenaSnapshot {
+  version: 1;
+  savedAt: number;
+  games: GameLobbyInfo[];
+  playerGames: Array<{ userId: string; gameId: string }>;
+  playerProfiles: Array<{ userId: string; username: string }>;
+  dadStates: Array<{ lobbyGameId: string; state: SerializedGameState }>;
+}
+
+interface PersistenceStats {
+  lastSavedAt: number | null;
+  lastRestoredAt: number | null;
+  restoredGames: number;
+  dadImportSuccessCount: number;
+  dadImportFallbackCount: number;
+  persistErrorCount: number;
+  restoreErrorCount: number;
+}
 
 export class GameManager {
   private games: Map<string, GameLobbyInfo> = new Map();
   private playerGames: Map<string, string> = new Map(); // userId -> gameId
+  private playerProfiles: Map<string, string> = new Map(); // userId -> username
+  private readonly stateFilePath: string;
+  private persistenceStats: PersistenceStats = {
+    lastSavedAt: null,
+    lastRestoredAt: null,
+    restoredGames: 0,
+    dadImportSuccessCount: 0,
+    dadImportFallbackCount: 0,
+    persistErrorCount: 0,
+    restoreErrorCount: 0,
+  };
+
+  constructor(options: { stateFilePath?: string } = {}) {
+    this.stateFilePath = options.stateFilePath || 'data/game-arena-state.json';
+  }
+
+  async initialize(): Promise<void> {
+    await this.restoreState();
+  }
+
+  private usernameFor(userId: string): string {
+    return this.playerProfiles.get(userId) || `User-${userId.slice(0, 6)}`;
+  }
+
+  private async persistState(): Promise<void> {
+    try {
+      const dadStates: Array<{ lobbyGameId: string; state: SerializedGameState }> = [];
+      for (const game of this.games.values()) {
+        if (game.type !== 'dad') {
+          continue;
+        }
+        const channelId = game.platform === 'web' ? `web-${game.id}` : game.id;
+        const channelGames = dad.getChannelGames(channelId);
+        if (channelGames.length === 0) {
+          continue;
+        }
+        const exported = dad.exportGameState(channelGames[0].id);
+        if (exported) {
+          dadStates.push({ lobbyGameId: game.id, state: exported });
+        }
+      }
+
+      const snapshot: GameArenaSnapshot = {
+        version: 1,
+        savedAt: Date.now(),
+        games: Array.from(this.games.values()),
+        playerGames: Array.from(this.playerGames.entries()).map(([userId, gameId]) => ({ userId, gameId })),
+        playerProfiles: Array.from(this.playerProfiles.entries()).map(([userId, username]) => ({ userId, username })),
+        dadStates,
+      };
+
+      await mkdir(path.dirname(this.stateFilePath), { recursive: true });
+      const tempPath = `${this.stateFilePath}.tmp`;
+      await writeFile(tempPath, JSON.stringify(snapshot), 'utf8');
+      await rename(tempPath, this.stateFilePath);
+      this.persistenceStats.lastSavedAt = Date.now();
+    } catch (error) {
+      this.persistenceStats.persistErrorCount++;
+      console.warn('[GameManager] Failed to persist arena state:', error);
+    }
+  }
+
+  private async restoreState(): Promise<void> {
+    try {
+      const raw = await readFile(this.stateFilePath, 'utf8');
+      const snapshot = JSON.parse(raw) as GameArenaSnapshot;
+
+      if (snapshot.version !== 1) {
+        console.warn('[GameManager] Ignoring unknown snapshot version');
+        return;
+      }
+
+      this.games = new Map(snapshot.games.map((game) => [game.id, game]));
+      this.playerGames = new Map(snapshot.playerGames.map((entry) => [entry.userId, entry.gameId]));
+      this.playerProfiles = new Map(snapshot.playerProfiles.map((entry) => [entry.userId, entry.username]));
+      const dadStatesByLobbyId = new Map(
+        (snapshot.dadStates || []).map((entry) => [entry.lobbyGameId, entry.state])
+      );
+
+      // Rebuild underlying module state so lobby metadata points to real games.
+      for (const game of this.games.values()) {
+        const players = snapshot.playerGames
+          .filter((entry) => entry.gameId === game.id)
+          .map((entry) => ({
+            userId: entry.userId,
+            username: this.usernameFor(entry.userId),
+          }));
+
+        if (!players.some((player) => player.userId === game.hostId)) {
+          players.unshift({ userId: game.hostId, username: game.hostUsername });
+        }
+
+        await this.ensureUnderlyingGame(game, players, dadStatesByLobbyId.get(game.id));
+      }
+
+      await this.persistState();
+      this.persistenceStats.lastRestoredAt = Date.now();
+      this.persistenceStats.restoredGames = this.games.size;
+      console.log(`[GameManager] Restored ${this.games.size} game(s) from snapshot`);
+    } catch (error: any) {
+      this.persistenceStats.restoreErrorCount++;
+      if (error?.code !== 'ENOENT') {
+        console.warn('[GameManager] Failed to restore arena snapshot:', error);
+      }
+    }
+  }
+
+  private async ensureUnderlyingGame(
+    lobbyInfo: GameLobbyInfo,
+    players: Array<{ userId: string; username: string }>,
+    dadSnapshot?: SerializedGameState
+  ): Promise<void> {
+    const channelId = lobbyInfo.platform === 'web' ? `web-${lobbyInfo.id}` : lobbyInfo.id;
+
+    if (lobbyInfo.type === 'dad') {
+      if (dadSnapshot && dadSnapshot.channelId === channelId) {
+        try {
+          dad.importGameState(dadSnapshot);
+          this.persistenceStats.dadImportSuccessCount++;
+          return;
+        } catch (error) {
+          this.persistenceStats.dadImportFallbackCount++;
+          console.warn('[GameManager] Failed to import DA&D snapshot, falling back to reconstruction:', error);
+        }
+      }
+
+      let games = dad.getChannelGames(channelId);
+      if (games.length === 0) {
+        await dad.createGame(channelId, ['degen-starter'], {
+          maxRounds: 10,
+          maxPlayers: lobbyInfo.maxPlayers,
+          submitWindowMs: 60_000,
+        });
+        games = dad.getChannelGames(channelId);
+      }
+      if (games.length === 0) {
+        return;
+      }
+
+      for (const player of players) {
+        try {
+          await dad.joinGame(games[0].id, player.userId, player.username);
+        } catch {
+          // Ignore duplicate joins during restore.
+        }
+      }
+
+      if (lobbyInfo.status === 'active') {
+        try {
+          await dad.startGame(games[0].id);
+        } catch {
+          // Restore fallback if game cannot be restarted.
+          lobbyInfo.status = 'waiting';
+        }
+      }
+      return;
+    }
+
+    if (lobbyInfo.type === 'poker') {
+      let games = poker.getChannelGames(channelId);
+      if (games.length === 0) {
+        poker.createGame(channelId, lobbyInfo.hostId, lobbyInfo.hostUsername, 100, 1, 2);
+        games = poker.getChannelGames(channelId);
+      }
+      if (games.length === 0) {
+        return;
+      }
+
+      for (const player of players) {
+        if (player.userId === lobbyInfo.hostId) {
+          continue;
+        }
+        try {
+          poker.joinGame(games[0].id, player.userId, player.username);
+        } catch {
+          // Ignore duplicate joins during restore.
+        }
+      }
+
+      if (lobbyInfo.status === 'active') {
+        try {
+          poker.startGame(games[0].id);
+        } catch {
+          lobbyInfo.status = 'waiting';
+        }
+      }
+    }
+  }
 
   /**
    * Get all active games in the lobby
@@ -57,10 +267,12 @@ export class GameManager {
     if (gameType === 'dad') {
       // Create DA&D game - use a pseudo channel ID for web games
       const channelId = platform === 'web' ? `web-${gameId}` : gameId;
-      await dad.createGame(channelId, ['degen-starter'], {
+      const dadGame = await dad.createGame(channelId, ['degen-starter'], {
         maxRounds: 10,
         maxPlayers: options.maxPlayers || 10,
+        submitWindowMs: 60_000,
       });
+      await dad.joinGame(dadGame.id, hostId, hostUsername);
     } else if (gameType === 'poker') {
       // Create poker game
       const channelId = platform === 'web' ? `web-${gameId}` : gameId;
@@ -89,6 +301,7 @@ export class GameManager {
 
     this.games.set(gameId, lobbyInfo);
     this.playerGames.set(hostId, gameId);
+    this.playerProfiles.set(hostId, hostUsername);
 
     // Emit event
     await eventRouter.publish('game.created', 'game-arena', {
@@ -97,6 +310,8 @@ export class GameManager {
       platform,
       hostId,
     });
+
+    await this.persistState();
 
     return lobbyInfo;
   }
@@ -109,6 +324,15 @@ export class GameManager {
     userId: string,
     username: string
   ): Promise<void> {
+    const existingGameId = this.playerGames.get(userId);
+    if (existingGameId === gameId) {
+      // Idempotent join for reconnect/reload.
+      return;
+    }
+    if (existingGameId && existingGameId !== gameId) {
+      throw new Error('Leave your current game before joining another');
+    }
+
     const lobbyInfo = this.games.get(gameId);
     if (!lobbyInfo) {
       throw new Error('Game not found');
@@ -139,12 +363,15 @@ export class GameManager {
 
     lobbyInfo.playerCount++;
     this.playerGames.set(userId, gameId);
+    this.playerProfiles.set(userId, username);
 
     await eventRouter.publish('game.player.joined', 'game-arena', {
       gameId,
       userId,
       username,
     });
+
+    await this.persistState();
   }
 
   /**
@@ -172,6 +399,7 @@ export class GameManager {
 
     lobbyInfo.playerCount--;
     this.playerGames.delete(userId);
+    this.playerProfiles.delete(userId);
 
     // If no players left, remove game
     if (lobbyInfo.playerCount === 0) {
@@ -182,6 +410,8 @@ export class GameManager {
       gameId,
       userId,
     });
+
+    await this.persistState();
   }
 
   /**
@@ -219,6 +449,8 @@ export class GameManager {
       type: lobbyInfo.type,
       platform: lobbyInfo.platform,
     });
+
+    await this.persistState();
   }
 
   /**
@@ -234,7 +466,41 @@ export class GameManager {
     if (lobbyInfo.type === 'dad') {
       const channelId = lobbyInfo.platform === 'web' ? `web-${gameId}` : gameId;
       const games = dad.getChannelGames(channelId);
-      return games.length > 0 ? games[0] : null;
+      if (games.length === 0) {
+        return null;
+      }
+      const game = games[0];
+      const round = game.rounds[game.rounds.length - 1];
+      const players = Array.from(game.players.values());
+      const scores: Record<string, number> = {};
+      const playerHands: Record<string, Array<{ id: string; text: string }>> = {};
+      for (const player of players) {
+        scores[player.userId] = player.score;
+        playerHands[player.userId] = player.hand.map((card) => ({ id: card.id, text: card.text }));
+      }
+
+      const revealedSubmissions = (round?.revealedSubmissions || []).map((submission) => ({
+        playerId: submission.userId,
+        cards: submission.cards,
+        card: submission.cards[0],
+      }));
+
+      return {
+        id: game.id,
+        type: 'degens-against-decency',
+        status: game.status === 'completed' ? 'finished' : game.status === 'active' ? 'playing' : 'waiting',
+        maxPlayers: game.maxPlayers,
+        currentRound: game.currentRound,
+        rounds: game.maxRounds,
+        phase: round?.phase || 'submitting',
+        submitDeadlineAt: round?.submitDeadlineAt,
+        players: players.map((player) => ({ id: player.userId, username: player.username })),
+        scores,
+        playerHands,
+        cardCzar: round ? { id: round.judgeUserId, username: game.players.get(round.judgeUserId)?.username || 'Judge' } : null,
+        currentQuestion: round ? { text: round.blackCard.text, blanks: round.blackCard.blanks } : null,
+        submissions: revealedSubmissions,
+      };
     } else if (lobbyInfo.type === 'poker') {
       const channelId = lobbyInfo.platform === 'web' ? `web-${gameId}` : gameId;
       const games = poker.getChannelGames(channelId);
@@ -256,19 +522,34 @@ export class GameManager {
     // Process action in the appropriate game module
     if (lobbyInfo.type === 'dad') {
       // DA&D actions (submit card, vote, etc.)
-      const { type, data } = action;
+      const { type } = action;
+      const data = action.data || {};
       
-      if (type === 'submit-cards') {
+      if (type === 'start-game') {
+        await this.startGame(gameId);
+      } else if (type === 'submit-cards') {
         const channelId = lobbyInfo.platform === 'web' ? `web-${gameId}` : gameId;
         const games = dad.getChannelGames(channelId);
         if (games.length > 0) {
           await dad.submitCards(games[0].id, userId, data.cardIds);
         }
-      } else if (type === 'vote') {
+      } else if (type === 'submit-card') {
         const channelId = lobbyInfo.platform === 'web' ? `web-${gameId}` : gameId;
         const games = dad.getChannelGames(channelId);
         if (games.length > 0) {
-          await dad.vote(games[0].id, userId, data.targetUserId);
+          await dad.submitCards(games[0].id, userId, [action.cardId]);
+        }
+      } else if (type === 'judge-pick' || type === 'vote') {
+        const channelId = lobbyInfo.platform === 'web' ? `web-${gameId}` : gameId;
+        const games = dad.getChannelGames(channelId);
+        if (games.length > 0) {
+          await dad.pickWinner(games[0].id, userId, data.targetUserId);
+        }
+      } else if (type === 'judge-submission') {
+        const channelId = lobbyInfo.platform === 'web' ? `web-${gameId}` : gameId;
+        const games = dad.getChannelGames(channelId);
+        if (games.length > 0) {
+          await dad.pickWinner(games[0].id, userId, action.playerId);
         }
       }
     } else if (lobbyInfo.type === 'poker') {
@@ -298,6 +579,8 @@ export class GameManager {
    * Clean up completed games
    */
   cleanup(): void {
+    dad.advanceAllTimers();
+
     const now = Date.now();
     const timeout = 60 * 60 * 1000; // 1 hour
 
@@ -316,5 +599,46 @@ export class GameManager {
         }
       }
     }
+
+    void this.persistState();
+  }
+
+  async shutdown(): Promise<void> {
+    await this.persistState();
+  }
+
+  async getPersistenceStatus(): Promise<{
+    stateFilePath: string;
+    snapshotExists: boolean;
+    snapshotSizeBytes: number | null;
+    snapshotModifiedAt: number | null;
+    activeGames: number;
+    trackedPlayers: number;
+    stats: PersistenceStats;
+  }> {
+    let snapshotExists = false;
+    let snapshotSizeBytes: number | null = null;
+    let snapshotModifiedAt: number | null = null;
+
+    try {
+      const fileStat = await stat(this.stateFilePath);
+      snapshotExists = true;
+      snapshotSizeBytes = fileStat.size;
+      snapshotModifiedAt = fileStat.mtimeMs;
+    } catch (error: any) {
+      if (error?.code !== 'ENOENT') {
+        console.warn('[GameManager] Failed to stat snapshot file:', error);
+      }
+    }
+
+    return {
+      stateFilePath: this.stateFilePath,
+      snapshotExists,
+      snapshotSizeBytes,
+      snapshotModifiedAt,
+      activeGames: this.games.size,
+      trackedPlayers: this.playerGames.size,
+      stats: { ...this.persistenceStats },
+    };
   }
 }

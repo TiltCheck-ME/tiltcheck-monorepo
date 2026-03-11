@@ -1,145 +1,72 @@
-/**
- * © 2024–2025 TiltCheck Ecosystem. All Rights Reserved.
- * Created by jmenichole (https://github.com/jmenichole)
- * 
- * This file is part of the TiltCheck project.
- * For licensing information, see LICENSE file in the project root.
- */
-/**
- * @file trust.test.ts
- * @description Test suite for trust command (trust score queries)
- * 
- * Tests cover:
- * - Trust score calculation
- * - Casino trust lookup
- * - User trust lookup
- * - Trust data display
- */
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+vi.mock('@tiltcheck/trust-engines', () => ({
+  trustEngines: {
+    getCasinoScore: vi.fn().mockReturnValue(82),
+    getCasinoBreakdown: vi.fn().mockReturnValue({
+      fairnessScore: 80,
+      payoutScore: 85,
+      bonusScore: 70,
+      userReportScore: 75,
+      freespinScore: 78,
+      complianceScore: 84,
+      supportScore: 79,
+      history: [1, 2],
+    }),
+    explainCasinoScore: vi.fn().mockReturnValue(['Stable payouts']),
+    getDegenScore: vi.fn().mockReturnValue(88),
+    getDegenBreakdown: vi.fn().mockReturnValue({
+      behaviorScore: 90,
+      tiltIndicators: 1,
+      accountabilityBonus: 5,
+      scamFlags: 0,
+      communityReports: 2,
+      history: [1],
+    }),
+    getTrustLevel: vi.fn().mockReturnValue('high'),
+    explainDegenScore: vi.fn().mockReturnValue(['Good accountability']),
+  },
+}));
+
+import { trustDashboard } from '../../src/commands/trust.js';
 
 describe('Trust Command', () => {
+  let interaction: any;
+
   beforeEach(() => {
-    // TODO: Setup test environment
-    // - Mock Discord interaction
-    // - Mock trust engines
-    // - Mock database
+    interaction = {
+      user: {
+        id: 'u-1',
+        username: 'alice',
+        displayAvatarURL: vi.fn().mockReturnValue('https://avatar.example'),
+      },
+      options: {
+        getSubcommand: vi.fn().mockReturnValue('explain'),
+        getString: vi.fn().mockReturnValue('stake.com'),
+        getUser: vi.fn().mockReturnValue(null),
+      },
+      reply: vi.fn().mockResolvedValue(undefined),
+    };
   });
 
-  describe('Command Registration', () => {
-    it('should register trust command', () => {
-      // TODO: Verify command registration
-      expect(true).toBe(true);
-    });
-
-    it('should have subcommands for casino and user', () => {
-      // TODO: Verify subcommands exist
-      expect(true).toBe(true);
-    });
+  it('registers trust command with expected subcommands', () => {
+    const json = trustDashboard.data.toJSON();
+    expect(json.name).toBe('trust');
+    const names = (json.options || []).map((opt: any) => opt.name);
+    expect(names).toEqual(expect.arrayContaining(['casino', 'user', 'explain']));
   });
 
-  describe('Casino Trust Lookup', () => {
-    it('should lookup casino by name', () => {
-      // TODO: Test casino name search
-      expect(true).toBe(true);
-    });
-
-    it('should display trust score (0-100)', () => {
-      // TODO: Test score display
-      expect(true).toBe(true);
-    });
-
-    it('should show trust score breakdown', () => {
-      // TODO: Test score component display
-      expect(true).toBe(true);
-    });
-
-    it('should handle casino not found', () => {
-      // TODO: Test unknown casino handling
-      expect(true).toBe(true);
-    });
-
-    it('should cache recent lookups', () => {
-      // TODO: Test caching behavior
-      expect(true).toBe(true);
+  it('executes explain subcommand and replies with embed', async () => {
+    await trustDashboard.execute(interaction);
+    expect(interaction.reply).toHaveBeenCalledWith({
+      embeds: [expect.any(Object)],
     });
   });
 
-  describe('User Trust Lookup', () => {
-    it('should lookup user by Discord ID', () => {
-      // TODO: Test user lookup
-      expect(true).toBe(true);
-    });
-
-    it('should display user trust metrics', () => {
-      // TODO: Test user metrics display
-      expect(true).toBe(true);
-    });
-
-    it('should show trust history', () => {
-      // TODO: Test history display
-      expect(true).toBe(true);
-    });
-
-    it('should handle user not found', () => {
-      // TODO: Test unknown user handling
-      expect(true).toBe(true);
-    });
-  });
-
-  describe('Trust Score Calculation', () => {
-    it('should integrate with trust engines', () => {
-      // TODO: Test trust engine integration
-      expect(true).toBe(true);
-    });
-
-    it('should apply correct weighting to factors', () => {
-      // TODO: Test factor weighting
-      expect(true).toBe(true);
-    });
-
-    it('should update scores periodically', () => {
-      // TODO: Test score refresh
-      expect(true).toBe(true);
-    });
-  });
-
-  describe('Response Formatting', () => {
-    it('should use rich embed for trust display', () => {
-      // TODO: Test embed formatting
-      expect(true).toBe(true);
-    });
-
-    it('should use color coding for trust levels', () => {
-      // TODO: Test color scheme (red/yellow/green)
-      expect(true).toBe(true);
-    });
-
-    it('should include trust indicators/badges', () => {
-      // TODO: Test badge display
-      expect(true).toBe(true);
-    });
-
-    it('should provide actionable recommendations', () => {
-      // TODO: Test recommendation text
-      expect(true).toBe(true);
-    });
-  });
-
-  describe('Error Handling', () => {
-    it('should handle trust engine unavailable', () => {
-      // TODO: Test engine downtime handling
-      expect(true).toBe(true);
-    });
-
-    it('should handle database errors', () => {
-      // TODO: Test DB error handling
-      expect(true).toBe(true);
-    });
-
-    it('should provide graceful fallbacks', () => {
-      // TODO: Test fallback behavior
-      expect(true).toBe(true);
-    });
+  it('executes casino subcommand and includes score text', async () => {
+    interaction.options.getSubcommand.mockReturnValue('casino');
+    await trustDashboard.execute(interaction);
+    const payload = interaction.reply.mock.calls[0][0];
+    expect(payload.embeds[0].data.description).toContain('Overall Score: 82/100');
   });
 });

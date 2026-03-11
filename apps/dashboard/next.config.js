@@ -8,6 +8,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
+  output: 'standalone',
   generateBuildId: async () => {
     console.log('Generating build ID...');
     return 'build-id-' + Date.now();

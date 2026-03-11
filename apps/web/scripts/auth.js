@@ -16,6 +16,30 @@ class TiltCheckAuth {
     this.init();
   }
 
+  getAuthProbeEndpoints() {
+    return [
+      '/api/auth/me',
+      '/auth/me',
+      '/play/api/user',
+      '/api/user',
+    ];
+  }
+
+  normalizeAuthUser(payload) {
+    if (!payload || typeof payload !== 'object') return null;
+
+    const raw = payload.user && typeof payload.user === 'object' ? payload.user : payload;
+    const id = raw.id || raw.userId || raw.discordId || raw.discord_id;
+    if (!id) return null;
+
+    return {
+      id,
+      username: raw.username || raw.discordUsername || raw.discord_username || null,
+      avatar: raw.avatar || raw.discordAvatar || raw.discord_avatar || null,
+      roles: Array.isArray(raw.roles) ? raw.roles : [],
+    };
+  }
+
   async init() {
     await this.checkAuthStatus();
     if (this.user && !this.hasAcceptedTerms()) {
@@ -33,19 +57,28 @@ class TiltCheckAuth {
   }
 
   async checkAuthStatus() {
-    try {
-      // Check game arena auth endpoint
-      const response = await fetch('/play/api/user', {
-        credentials: 'include'
-      });
-      
-      if (response.ok) {
-        this.user = await response.json();
+    // Probe known auth endpoints in priority order.
+    // This avoids false "logged out" states when one surface is unavailable.
+    for (const endpoint of this.getAuthProbeEndpoints()) {
+      try {
+        const response = await fetch(endpoint, {
+          credentials: 'include'
+        });
+
+        if (!response.ok) continue;
+
+        const payload = await response.json();
+        const user = this.normalizeAuthUser(payload);
+        if (user) {
+          this.user = user;
+          return;
+        }
+      } catch (_error) {
+        // Continue probing fallback endpoints.
       }
-    } catch (error) {
-      // User not logged in or game arena not available
-      this.user = null;
     }
+
+    this.user = null;
   }
 
   updateNavigation() {
@@ -150,10 +183,14 @@ class TiltCheckAuth {
     // User info header
     const userInfo = document.createElement('div');
     userInfo.style.cssText = 'padding: 12px 16px; border-bottom: 1px solid #2a2f34;';
-    userInfo.innerHTML = `
-      <div style="font-weight: 600; color: #00d4aa;">${this.user.username}</div>
-      <div style="font-size: 0.85rem; color: #888;">Logged in via Discord</div>
-    `;
+    const usernameEl = document.createElement('div');
+    usernameEl.style.cssText = 'font-weight: 600; color: #00d4aa;';
+    usernameEl.textContent = this.user.username || '';
+    const loginInfoEl = document.createElement('div');
+    loginInfoEl.style.cssText = 'font-size: 0.85rem; color: #888;';
+    loginInfoEl.textContent = 'Logged in via Discord';
+    userInfo.appendChild(usernameEl);
+    userInfo.appendChild(loginInfoEl);
 
     // Menu items
     const menuItems = document.createElement('div');
@@ -308,5 +345,8 @@ class TiltCheckAuth {
 
 // Initialize auth on page load
 if (typeof window !== 'undefined') {
-  window.tiltCheckAuth = new TiltCheckAuth();
+  window.TiltCheckAuth = TiltCheckAuth;
+  if (!window.__TC_AUTH_DISABLE_AUTO_INIT) {
+    window.tiltCheckAuth = new TiltCheckAuth();
+  }
 }

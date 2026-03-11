@@ -95,6 +95,8 @@ async function build() {
   const staticFiles = [
     { src: 'src/manifest.json', dest: 'dist/manifest.json' },
     { src: 'src/background.js', dest: 'dist/background.js' },
+    { src: 'src/auth-bridge.html', dest: 'dist/auth-bridge.html' },
+    { src: 'src/auth-bridge.js', dest: 'dist/auth-bridge.js' },
   ];
 
   for (const file of staticFiles) {

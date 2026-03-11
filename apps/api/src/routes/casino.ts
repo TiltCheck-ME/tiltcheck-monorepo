@@ -7,8 +7,8 @@ import { join } from 'path';
 import fs from 'fs/promises';
 
 const router = Router();
-const DATA_DIR = join(process.cwd(), 'data/casino');
-const CASINO_DATA_PATH = join(DATA_DIR, 'casinos.json');
+const DATA_DIR = join(process.cwd(), 'data');
+const CASINO_DATA_PATH = join(DATA_DIR, 'online-casinos.json');
 
 async function loadCasinos() {
     try {

@@ -3,187 +3,1427 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>DA&D - Degens Against Decency | TiltCheck</title>
-  <meta name="description" content="AI-powered, Cards Against Humanity-style party game tuned for degen Discord communities." />
-  <link rel="stylesheet" href="../styles/tool-page.css" />
+  <title>DA&D Discord Activity Lobby | TiltCheck</title>
+  <meta name="description" content="Degens Against Decency lobby and game arena." />
+  <meta name="discord-client-id" content="1445916179163250860" />
+  <meta name="daad-premium-sku-id" content="guild-premium-monthly" />
+  <style>
+    :root {
+      --bg: #0f1020;
+      --panel: #1a1d37;
+      --panel-soft: #23284b;
+      --text: #f4f7ff;
+      --muted: #b2b7d9;
+      --primary: #6e7cff;
+      --accent: #f861ff;
+      --ok: #60d38c;
+      --warn: #f9be5e;
+      --danger: #ff6b7f;
+      --line: rgba(255, 255, 255, 0.12);
+      --shadow: 0 14px 28px rgba(5, 5, 22, 0.35);
+      --outline: 0 1px 0 #000, 1px 0 0 #000, 0 -1px 0 #000, -1px 0 0 #000;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: "Inter", "Segoe UI", sans-serif;
+      background:
+        linear-gradient(180deg, rgba(10, 12, 25, 0.62), rgba(10, 12, 25, 0.88)),
+        radial-gradient(circle at 14% 0, #1d2041 0, var(--bg) 38%),
+        radial-gradient(circle at 90% 10%, #312865 0, transparent 36%),
+        url("/assets/images/daad/bg-header.png") center center / cover no-repeat fixed,
+        var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    body.activity-mode #shared-nav,
+    body.activity-mode #shared-footer {
+      display: none;
+    }
+
+    body.activity-mode {
+      min-height: 100dvh;
+      overflow: hidden auto;
+    }
+
+    body.activity-mode .lobby-shell {
+      width: calc(100% - 1rem);
+      margin: 0.5rem auto;
+      min-height: calc(100dvh - 1rem);
+      grid-template-columns: 292px 1fr 292px;
+      align-content: start;
+    }
+
+    .lobby-shell {
+      width: min(1320px, calc(100% - 2rem));
+      margin: 2rem auto 2.6rem;
+      display: grid;
+      grid-template-columns: 308px 1fr 308px;
+      gap: 1rem;
+    }
+
+    .activity-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      margin-top: 0.56rem;
+      font-size: 0.72rem;
+      color: #e8ecff;
+      background: rgba(30, 35, 77, 0.8);
+      border: 1px solid rgba(255, 255, 255, 0.26);
+      border-radius: 999px;
+      padding: 0.32rem 0.66rem;
+      text-shadow: var(--outline);
+    }
+
+    .activity-auth-status {
+      margin-top: 0.5rem;
+      font-size: 0.75rem;
+      color: #e4e8ff;
+      text-shadow: var(--outline);
+    }
+
+    .activity-auth-status.ok {
+      color: #9af2bf;
+    }
+
+    .activity-auth-status.warn {
+      color: #ffd99a;
+    }
+
+    .activity-auth-status.error {
+      color: #ff9faf;
+    }
+
+    .activity-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      background: #60d38c;
+      box-shadow: 0 0 8px rgba(96, 211, 140, 0.7);
+    }
+
+    .panel {
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.02));
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      box-shadow: var(--shadow);
+      padding: 1rem;
+      -webkit-backdrop-filter: blur(8px);
+      backdrop-filter: blur(8px);
+    }
+
+    .left-pane,
+    .right-pane {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .title-card {
+      display: flex;
+      align-items: center;
+      gap: 0.9rem;
+      margin-bottom: 0.7rem;
+    }
+
+    .title-card img {
+      width: 52px;
+      height: 52px;
+      border-radius: 12px;
+      background: #0f1020;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      padding: 6px;
+    }
+
+    .banner-logo {
+      width: 158px;
+      height: auto;
+      object-fit: contain;
+      filter: drop-shadow(0 8px 16px rgba(0, 0, 0, 0.42));
+    }
+
+    h1,
+    h2,
+    h3,
+    .section-head,
+    .room-name {
+      text-shadow: var(--outline);
+      letter-spacing: 0.01em;
+    }
+
+    h1 {
+      font-size: 1.5rem;
+      line-height: 1.1;
+    }
+
+    .subtitle {
+      color: var(--muted);
+      margin-top: 0.4rem;
+      font-size: 0.92rem;
+      text-shadow: var(--outline);
+    }
+
+    .row-buttons {
+      display: flex;
+      gap: 0.5rem;
+      margin-top: 1rem;
+      flex-wrap: wrap;
+    }
+
+    button,
+    .chip {
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 11px;
+      padding: 0.5rem 0.82rem;
+      background: linear-gradient(180deg, #3d4691, #2c3373);
+      color: #fff;
+      font-weight: 650;
+      cursor: pointer;
+      transition: transform 120ms ease, opacity 120ms ease, border-color 120ms ease;
+    }
+
+    button:hover,
+    .chip:hover {
+      transform: translateY(-1px);
+      border-color: rgba(255, 255, 255, 0.36);
+    }
+
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.78rem;
+      padding: 0.35rem 0.66rem;
+      background: #272d57;
+    }
+
+    .chip.active {
+      background: linear-gradient(180deg, #f861ff, #cc3fd0);
+      border-color: rgba(255, 255, 255, 0.3);
+      box-shadow: 0 8px 16px rgba(248, 97, 255, 0.2);
+    }
+
+    .filter-group {
+      margin-top: 0.9rem;
+    }
+
+    .filter-group h3 {
+      font-size: 0.86rem;
+      margin-bottom: 0.42rem;
+      color: #dce2ff;
+    }
+
+    .chip-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.38rem;
+    }
+
+    .helper {
+      margin-top: 0.48rem;
+      color: var(--muted);
+      font-size: 0.76rem;
+      line-height: 1.3;
+    }
+
+    .friends-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.8rem;
+    }
+
+    .pill {
+      padding: 0.25rem 0.56rem;
+      border-radius: 999px;
+      font-size: 0.74rem;
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      background: rgba(96, 211, 140, 0.22);
+    }
+
+    .friend-list {
+      display: grid;
+      gap: 0.55rem;
+    }
+
+    .friend {
+      background: var(--panel-soft);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 0.58rem;
+      display: flex;
+      gap: 0.62rem;
+      align-items: center;
+    }
+
+    .avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 10px;
+      display: grid;
+      place-items: center;
+      font-weight: 700;
+      font-size: 0.88rem;
+      background: linear-gradient(155deg, #7d8cff, #f861ff);
+      color: white;
+      text-shadow: var(--outline);
+      flex-shrink: 0;
+    }
+
+    .friend-name {
+      font-size: 0.86rem;
+      font-weight: 620;
+      text-shadow: var(--outline);
+    }
+
+    .friend-status {
+      color: var(--muted);
+      font-size: 0.74rem;
+      margin-top: 0.12rem;
+    }
+
+    .subtitle-spaced {
+      margin-top: 0.9rem;
+    }
+
+    .main-pane {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .rooms-header {
+      display: flex;
+      justify-content: space-between;
+      gap: 0.8rem;
+      align-items: center;
+      margin-bottom: 0.8rem;
+      flex-wrap: wrap;
+    }
+
+    .rooms-headline {
+      font-size: 1.12rem;
+      text-shadow: var(--outline);
+    }
+
+    .sort-row {
+      display: flex;
+      gap: 0.4rem;
+      align-items: center;
+      color: var(--muted);
+      font-size: 0.82rem;
+    }
+
+    select {
+      background: #20264a;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      color: var(--text);
+      padding: 0.35rem 0.58rem;
+      font-size: 0.82rem;
+    }
+
+    .room-list {
+      display: grid;
+      gap: 0.75rem;
+    }
+
+    .room-card {
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.03));
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 0.84rem;
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      gap: 0.8rem;
+      align-items: center;
+      transition: transform 120ms ease, border-color 120ms ease;
+    }
+
+    .room-card:hover {
+      transform: translateY(-1px);
+      border-color: rgba(255, 255, 255, 0.3);
+    }
+
+    .status-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 999px;
+      margin-top: 0.28rem;
+      box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.25);
+    }
+
+    .status-waiting {
+      background: var(--ok);
+    }
+
+    .status-live {
+      background: var(--warn);
+    }
+
+    .status-full {
+      background: var(--danger);
+    }
+
+    .room-meta {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+      color: var(--muted);
+      font-size: 0.74rem;
+      margin-top: 0.3rem;
+    }
+
+    .room-tags {
+      margin-top: 0.4rem;
+      display: flex;
+      gap: 0.28rem;
+      flex-wrap: wrap;
+    }
+
+    .tag {
+      font-size: 0.68rem;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 0.2rem 0.48rem;
+      background: rgba(255, 255, 255, 0.07);
+      text-shadow: var(--outline);
+    }
+
+    .room-action {
+      min-width: 114px;
+      text-align: center;
+      font-size: 0.8rem;
+      padding: 0.55rem 0.72rem;
+      border-radius: 10px;
+      border: 1px solid rgba(255, 255, 255, 0.28);
+      cursor: pointer;
+      background: linear-gradient(180deg, #5f72ff, #4254d5);
+    }
+
+    .room-action.spectate {
+      background: linear-gradient(180deg, #ed74fa, #bf3fcc);
+    }
+
+    .room-action.full {
+      background: #4a4d64;
+      opacity: 0.7;
+      cursor: not-allowed;
+    }
+
+    .chat-body {
+      max-height: 260px;
+      overflow: auto;
+      display: grid;
+      gap: 0.65rem;
+      padding-right: 0.24rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .chat-row {
+      display: flex;
+      gap: 0.56rem;
+      align-items: flex-start;
+    }
+
+    .chat-text {
+      background: var(--panel-soft);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 0.46rem 0.56rem;
+      font-size: 0.83rem;
+      color: #eef1ff;
+      line-height: 1.35;
+    }
+
+    .chat-meta {
+      color: var(--muted);
+      font-size: 0.7rem;
+      margin-bottom: 0.16rem;
+    }
+
+    .chat-input-wrap {
+      display: flex;
+      flex-direction: column;
+      gap: 0.45rem;
+    }
+
+    textarea {
+      resize: none;
+      min-height: 70px;
+      border-radius: 10px;
+      border: 1px solid var(--line);
+      background: #1a1f3f;
+      color: var(--text);
+      padding: 0.52rem 0.62rem;
+      font-size: 0.82rem;
+    }
+
+    .char-count {
+      color: var(--muted);
+      font-size: 0.72rem;
+      text-align: right;
+      text-shadow: var(--outline);
+    }
+
+    .chat-actions {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .emoji-btn {
+      border-radius: 8px;
+      background: #252b57;
+      padding: 0.35rem 0.62rem;
+      font-size: 0.76rem;
+    }
+
+    .toast {
+      position: fixed;
+      right: 1rem;
+      bottom: 1rem;
+      background: #202750;
+      color: #fff;
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      border-radius: 12px;
+      padding: 0.6rem 0.8rem;
+      box-shadow: var(--shadow);
+      transform: translateY(15px);
+      opacity: 0;
+      pointer-events: none;
+      transition: transform 180ms ease, opacity 180ms ease;
+      text-shadow: var(--outline);
+      z-index: 90;
+    }
+
+    .toast.show {
+      transform: translateY(0);
+      opacity: 1;
+    }
+
+    @media (max-width: 1260px) {
+      .lobby-shell {
+        grid-template-columns: 1fr;
+      }
+
+      body.activity-mode .lobby-shell {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 768px) {
+      body {
+        font-size: 15px;
+      }
+
+      .lobby-shell {
+        width: calc(100% - 1rem);
+        margin-top: 1rem;
+      }
+
+      body.activity-mode .lobby-shell {
+        margin-top: 0.5rem;
+      }
+
+      .room-card {
+        grid-template-columns: 1fr;
+      }
+
+      .room-action {
+        width: 100%;
+      }
+    }
+  </style>
 </head>
 <body>
   <div id="shared-nav"></div>
 
-  <header class="tool-header">
-    <div class="container">
-      <div class="tool-icon-large"></div>
-      <h1>DA&D</h1>
-      <p class="tool-tagline">Degens Against Decency (Discord Party Game)</p>
-      <span class="status-badge status-live">Live</span>
-    </div>
-  </header>
+  <main class="lobby-shell">
+    <aside class="left-pane">
+      <section class="panel">
+        <div class="title-card">
+          <img class="banner-logo" src="/assets/images/daad/logo.png" alt="Degens Against Decency logo" />
+          <div>
+            <h1>Game Lobby</h1>
+            <p class="subtitle">Join a room or create your own outrageous card game experience.</p>
+            <span class="activity-chip"><span class="activity-dot"></span>Discord Activity Ready</span>
+            <span class="activity-chip"><span class="activity-dot"></span>Premium Play Anywhere</span>
+            <p id="activity-auth-status" class="activity-auth-status">Not connected to Discord Activity yet.</p>
+          </div>
+        </div>
+        <div class="row-buttons">
+          <button id="create-room-btn" type="button">Create Room</button>
+          <button id="open-arena-btn" type="button">Open Game Arena</button>
+          <button id="connect-discord-btn" type="button">Connect Discord</button>
+          <button id="launch-activity-btn" type="button">Open Activity Mode</button>
+          <button id="upgrade-server-btn" type="button">Upgrade Server</button>
+          <button id="refresh-rooms-btn" type="button">Refresh</button>
+        </div>
+      </section>
 
-  <section class="tool-overview">
-    <div class="container two-column">
-      <div>
-        <h2>What it does</h2>
-        <p>DA&amp;D is a fast, chaotic party game for Discord communities that want laughs without adding moderation headaches.</p>
-        <p>It runs on a dedicated bot so game traffic stays separate from TiltCheck safety and earning workflows.</p>
-      </div>
-      <div class="feature-box">
-        <h3>Core gameplay</h3>
-        <ul>
-          <li>Rotating dealer role each round</li>
-          <li>2 to 10 players per game</li>
-          <li>Anonymous card submission and voting</li>
-          <li>Round-based scoring with leaderboards</li>
-          <li>Includes Poker game integration</li>
-          <li>Dedicated Discord bot for game isolation</li>
-        </ul>
-      </div>
-    </div>
-  </section>
+      <section class="panel">
+        <h2 class="section-head">Filters</h2>
 
-  <section class="commands-section">
-    <div class="container">
-      <h2>Discord Commands (DA&D Bot)</h2>
-      <p><strong>Note:</strong> DA&D runs on its own dedicated bot to keep game commands separate from TiltCheck's earning/safety tools. Invite the DA&D bot to use these commands.</p>
-      <div class="commands-grid">
-        <div class="command-card"><div class="command-name">/play</div><p>Start a new DA&D game in the current channel</p><div class="command-example"><code>/play</code></div></div>
-        <div class="command-card"><div class="command-name">/join</div><p>Join an active game in the channel</p><div class="command-example"><code>/join</code></div></div>
-        <div class="command-card"><div class="command-name">/startgame</div><p>Begin the game once all players have joined</p><div class="command-example"><code>/startgame</code></div></div>
-        <div class="command-card"><div class="command-name">/hand</div><p>View your current hand of cards (DM)</p><div class="command-example"><code>/hand</code></div></div>
-        <div class="command-card"><div class="command-name">/submit</div><p>Submit your card for the current round</p><div class="command-example"><code>/submit card:3</code></div></div>
-        <div class="command-card"><div class="command-name">/vote</div><p>Vote for the funniest answer</p><div class="command-example"><code>/vote player:@username</code></div></div>
-        <div class="command-card"><div class="command-name">/scores</div><p>View current game leaderboard</p><div class="command-example"><code>/scores</code></div></div>
-        <div class="command-card"><div class="command-name">/poker</div><p>Play poker (also in DA&D bot)</p><div class="command-example"><code>/poker</code></div></div>
-      </div>
-    </div>
-  </section>
-
-  <section class="how-it-works">
-    <div class="container">
-      <h2>How It Works - Complete Guide</h2>
-      
-      <div class="steps">
-        <div class="step">
-          <div class="step-number">1</div>
-          <div class="step-content">
-            <h3>Game Setup (Host Creates Game)</h3>
-            <p>Any player can create a game in a Discord channel. Others can join until the host starts the game.</p>
-            <ul style="margin-top: 0.5rem; font-size: 0.9rem;">
-              <li><strong>Command:</strong> <code>/play</code> to create, <code>/join</code> for others</li>
-              <li><strong>Players:</strong> 2-10 players required</li>
-              <li><strong>Card Pack:</strong> Starts with "Degen Starter Pack" (crypto casino themed)</li>
-              <li><strong>Dealing:</strong> Each player gets 7 white cards (answers)</li>
-            </ul>
+        <div class="filter-group">
+          <h3>Room Status</h3>
+          <div class="chip-row" data-filter-group="status">
+            <button class="chip active" data-value="all" type="button">All Rooms</button>
+            <button class="chip" data-value="waiting" type="button">Waiting</button>
+            <button class="chip" data-value="live" type="button">In Progress</button>
+            <button class="chip" data-value="full" type="button">Full</button>
           </div>
         </div>
 
-        <div class="step">
-          <div class="step-number">2</div>
-          <div class="step-content">
-            <h3>Round Begins (Prompt Revealed)</h3>
-            <p>One player is the judge for each round. A black card (prompt with blanks) is revealed to all players.</p>
-            <ul style="margin-top: 0.5rem; font-size: 0.9rem;">
-              <li><strong>Black Card Example:</strong> "When I'm tilting, I _ instead of touching grass."</li>
-              <li><strong>Judge:</strong> Rotates each round so everyone gets a turn</li>
-              <li><strong>Non-judges:</strong> Must submit one white card from their hand</li>
-              <li><strong>Privacy:</strong> Submissions are anonymous until voting</li>
-            </ul>
+        <div class="filter-group">
+          <h3>Room Size</h3>
+          <div class="chip-row" data-filter-group="size">
+            <button class="chip active" data-value="any" type="button">Any Size</button>
+            <button class="chip" data-value="small" type="button">2-4</button>
+            <button class="chip" data-value="medium" type="button">5-6</button>
+            <button class="chip" data-value="large" type="button">7+</button>
           </div>
         </div>
 
-        <div class="step">
-          <div class="step-number">3</div>
-          <div class="step-content">
-            <h3>Players Submit Cards</h3>
-            <p>Each player (except the judge) selects one white card from their hand that best completes the prompt.</p>
-            <ul style="margin-top: 0.5rem; font-size: 0.9rem;">
-              <li><strong>Your Hand:</strong> Use <code>/hand</code> to see your cards in a DM</li>
-              <li><strong>Submit:</strong> <code>/submit card:3</code> to play card #3 from your hand</li>
-              <li><strong>Timer:</strong> 60 seconds to submit (auto-submit random card if timeout)</li>
-              <li><strong>Anonymous:</strong> Judge won't know who submitted which card</li>
-            </ul>
+        <div class="filter-group">
+          <h3>Content Level</h3>
+          <div class="chip-row" data-filter-group="content">
+            <button class="chip active" data-value="all" type="button">All Content</button>
+            <button class="chip" data-value="mild" type="button">Mild</button>
+            <button class="chip" data-value="moderate" type="button">Moderate</button>
+            <button class="chip" data-value="spicy" type="button">Spicy</button>
           </div>
         </div>
 
-        <div class="step">
-          <div class="step-number">4</div>
-          <div class="step-content">
-            <h3>Voting & Scoring</h3>
-            <p>All submitted cards are revealed anonymously. The judge picks the funniest/best answer. Winner gets a point.</p>
-            <ul style="margin-top: 0.5rem; font-size: 0.9rem;">
-              <li><strong>Judge Picks:</strong> <code>/vote player:@username</code> to award point</li>
-              <li><strong>Scoring:</strong> 1 point per round won</li>
-              <li><strong>Leaderboard:</strong> <code>/scores</code> shows current standings</li>
-              <li><strong>Next Round:</strong> Judge role rotates, everyone draws back to 7 cards</li>
-            </ul>
+        <div class="filter-group">
+          <h3>Additional Options</h3>
+          <div class="chip-row">
+            <button class="chip" id="spectator-toggle" type="button" data-on="false">Show Spectator-Friendly</button>
+            <button class="chip" id="private-toggle" type="button" data-on="false">Include Private Rooms</button>
           </div>
+          <p class="helper">Private rooms are included for UI parity; joining still requires room credentials.</p>
         </div>
 
-        <div class="step">
-          <div class="step-number">5</div>
-          <div class="step-content">
-            <h3>Game Continues Until Complete</h3>
-            <p>Play continues through multiple rounds until someone reaches the winning score or the game is manually ended.</p>
-            <ul style="margin-top: 0.5rem; font-size: 0.9rem;">
-              <li><strong>Win Condition:</strong> First to 7 points (configurable)</li>
-              <li><strong>Rounds:</strong> Each player judges at least once before game ends</li>
-              <li><strong>Final Scores:</strong> Winner announced, full leaderboard displayed</li>
-              <li><strong>Stats:</strong> Cards played, rounds won, participation tracked</li>
-            </ul>
+        <div class="filter-group">
+          <h3>Quick Filters</h3>
+          <div class="chip-row">
+            <button class="chip" id="quick-ready" type="button">Quick Join Ready</button>
+            <button class="chip" id="quick-popular" type="button">Popular Rooms</button>
+            <button class="chip" id="quick-spectate" type="button">Spectate Games</button>
           </div>
         </div>
-      </div>
+      </section>
+    </aside>
 
-      <div style="margin-top: 3rem; padding: 2rem; background: rgba(255,255,255,0.05); border-radius: 8px;">
-        <h3>Example Round</h3>
-        <p><strong>Black Card:</strong> "I lost $10K on a _ play. Never touching leverage again."</p>
-        <p><strong>Submissions (anonymous):</strong></p>
-        <ul style="margin-left: 2rem; margin-top: 0.5rem;">
-          <li>1. "100x short on a meme coin"</li>
-          <li>2. "midnight drunk trading"</li>
-          <li>3. "my wife's college fund"</li>
-          <li>4. "revenge trading after a bad beat"</li>
-        </ul>
-        <p style="margin-top: 0.5rem;"><strong>Judge picks:</strong> #3 wins the round. That player gets 1 point.</p>
-        <p><strong>Why this works:</strong> Cards Against Humanity gameplay meets crypto degen culture. The "Degen Starter Pack" includes 100+ cards themed around casino gambling, crypto trading, and the absolute degeneracy of Discord financial communities.</p>
-      </div>
+    <section class="main-pane">
+      <section class="panel">
+        <div class="rooms-header">
+          <h2 class="rooms-headline" id="rooms-title">Available Rooms</h2>
+          <div class="sort-row">
+            <span>Sort by</span>
+            <select id="sort-select" aria-label="Sort available rooms">
+              <option value="newest">Newest First</option>
+              <option value="players">Most Players</option>
+              <option value="alphabetical">Alphabetical</option>
+            </select>
+          </div>
+        </div>
+        <div id="rooms-list" class="room-list" aria-live="polite"></div>
+      </section>
 
-      <div style="margin-top: 2rem; padding: 2rem; background: rgba(255,255,255,0.05); border-radius: 8px;">
-        <h3>Why a Separate Bot?</h3>
-        <p>DA&D runs on its own dedicated Discord bot instead of being part of the main TiltCheck bot. Here's why:</p>
-        <ul style="margin-left: 2rem; margin-top: 0.5rem;">
-          <li><strong>Less Clutter:</strong> Game commands don't mix with earning/safety commands</li>
-          <li><strong>Different Audiences:</strong> Some servers just want games, some just want tips/promos</li>
-          <li><strong>Performance:</strong> Game state management doesn't slow down tipping transactions</li>
-          <li><strong>Permissions:</strong> Game bot can have different permission levels than financial bot</li>
-        </ul>
-        <p style="margin-top: 0.5rem;">Invite whichever bots your community wants. No forced bundles.</p>
-      </div>
-    </div>
-  </section>
+      <section class="panel">
+        <div class="friends-head">
+          <h2 class="section-head">Lobby Chat</h2>
+          <span class="pill" id="chat-count">3</span>
+        </div>
+        <div id="chat-body" class="chat-body"></div>
+        <div class="chat-input-wrap">
+          <textarea id="chat-input" maxlength="200" placeholder="Type a message for the lobby..."></textarea>
+          <div class="char-count"><span id="char-used">0</span>/200 characters</div>
+          <div class="chat-actions">
+            <button class="emoji-btn" type="button" id="emoji-btn">Emoji</button>
+            <button type="button" id="send-chat-btn">Send Message</button>
+          </div>
+        </div>
+      </section>
+    </section>
 
-  <section class="tech-section">
-    <div class="container">
-      <h2>Technical Details</h2>
-      <div class="tech-grid">
-        <div class="tech-item"><h4>Card Packs</h4><p>"Degen Starter Pack" included, custom packs coming</p></div>
-        <div class="tech-item"><h4>Privacy</h4><p>Anonymous submissions until voting</p></div>
-        <div class="tech-item"><h4>Game Flow</h4><p>Create → Join → Start → Play → Vote → Score</p></div>
-        <div class="tech-item"><h4>Players</h4><p>2-10 players per game</p></div>
-        <div class="tech-item"><h4>Architecture</h4><p>Dedicated Discord bot (separate from TiltCheck)</p></div>
-        <div class="tech-item"><h4>Status</h4><p> Live - invite DA&D bot to play</p></div>
-      </div>
-    </div>
-  </section>
-
-  <section class="cta-section">
-    <div class="container">
-      <h2>Ready to play?</h2>
-      <p>Invite the DA&D bot to your Discord server and start a game.</p>
-      <a href="https://discord.gg/tiltcheck" class="cta-button">Get DA&D Bot →</a>
-    </div>
-  </section>
+    <aside class="right-pane">
+      <section class="panel">
+        <div class="friends-head">
+          <h2 class="section-head">Friends</h2>
+          <span class="pill"><span id="friends-online-count">3</span> online</span>
+        </div>
+        <h3 class="subtitle">Online</h3>
+        <div id="online-friends" class="friend-list"></div>
+        <h3 class="subtitle subtitle-spaced">Offline</h3>
+        <div id="offline-friends" class="friend-list"></div>
+        <div class="row-buttons">
+          <button type="button" id="add-friends-btn">Add Friends</button>
+        </div>
+      </section>
+    </aside>
+  </main>
 
   <div id="shared-footer"></div>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <script src="https://cdn.socket.io/4.7.5/socket.io.min.js" crossorigin="anonymous"></script>
+  <script>
+    const rooms = [
+      {
+        name: "Chaos & Laughter Central",
+        code: "#CHAOS1",
+        status: "waiting",
+        host: "ComedyKing",
+        hostLevel: 15,
+        hostedCount: 34,
+        players: 4,
+        maxPlayers: 6,
+        roundTime: 60,
+        toWin: 5,
+        content: "moderate",
+        spectators: true,
+        privateRoom: false,
+        createdMinutesAgo: 2
+      },
+      {
+        name: "Adults Only Mayhem",
+        code: "#SPICY2",
+        status: "live",
+        host: "WildCardWiz",
+        hostLevel: 22,
+        hostedCount: 67,
+        players: 6,
+        maxPlayers: 8,
+        roundTime: 90,
+        toWin: 7,
+        content: "spicy",
+        spectators: true,
+        privateRoom: false,
+        createdMinutesAgo: 5
+      },
+      {
+        name: "Family Fun Time",
+        code: "#CLEAN3",
+        status: "waiting",
+        host: "FamilyGamer",
+        hostLevel: 8,
+        hostedCount: 12,
+        players: 3,
+        maxPlayers: 4,
+        roundTime: 45,
+        toWin: 3,
+        content: "mild",
+        spectators: false,
+        privateRoom: false,
+        createdMinutesAgo: 8
+      },
+      {
+        name: "Quick & Dirty Rounds",
+        code: "#FAST4",
+        status: "full",
+        host: "SpeedDemon",
+        hostLevel: 18,
+        hostedCount: 45,
+        players: 8,
+        maxPlayers: 8,
+        roundTime: 30,
+        toWin: 5,
+        content: "moderate",
+        spectators: true,
+        privateRoom: false,
+        createdMinutesAgo: 12
+      },
+      {
+        name: "Newbie Friendly Zone",
+        code: "#LEARN6",
+        status: "waiting",
+        host: "TeacherBot",
+        hostLevel: 5,
+        hostedCount: 3,
+        players: 1,
+        maxPlayers: 4,
+        roundTime: 120,
+        toWin: 3,
+        content: "mild",
+        spectators: true,
+        privateRoom: true,
+        createdMinutesAgo: 18
+      }
+    ];
+
+    const friends = [
+      { name: "CrazyCardPlayer", status: "In Game Room", online: true },
+      { name: "LaughMaster99", status: "Creating Room", online: true },
+      { name: "WittyPlayer", status: "In Lobby", online: true },
+      { name: "JokeSlinger", status: "Last seen 2 hours ago", online: false },
+      { name: "CardShark2024", status: "Last seen 1 day ago", online: false }
+    ];
+
+    const chatMessages = [
+      { user: "System", text: "Welcome to Degens Against Decency! Have fun and play responsibly.", time: "07:14 AM", system: true },
+      { user: "CrazyCardPlayer", text: "Anyone up for a quick game? Looking for 3 more players!", time: "07:15 AM" },
+      { user: "LaughMaster99", text: "Just finished an epic game! The AI generated some hilarious combinations.", time: "07:16 AM" },
+      { user: "System", text: "WittyPlayer joined the lobby", time: "07:17 AM", system: true },
+      { user: "WittyPlayer", text: "Hey everyone! Ready to get weird with some cards?", time: "07:18 AM" }
+    ];
+
+    const filterState = {
+      status: "all",
+      size: "any",
+      content: "all",
+      spectatorOnly: false,
+      includePrivate: false,
+      sort: "newest"
+    };
+
+    const roomsTitle = document.getElementById("rooms-title");
+    const roomsList = document.getElementById("rooms-list");
+    const onlineFriends = document.getElementById("online-friends");
+    const offlineFriends = document.getElementById("offline-friends");
+    const friendsOnlineCount = document.getElementById("friends-online-count");
+    const chatBody = document.getElementById("chat-body");
+    const chatCount = document.getElementById("chat-count");
+    const toast = document.getElementById("toast");
+    const charUsed = document.getElementById("char-used");
+    const chatInput = document.getElementById("chat-input");
+    const activityAuthStatus = document.getElementById("activity-auth-status");
+    const connectDiscordButton = document.getElementById("connect-discord-btn");
+    const openArenaButton = document.getElementById("open-arena-btn");
+    const upgradeServerButton = document.getElementById("upgrade-server-btn");
+    const params = new URLSearchParams(window.location.search);
+    const isDiscordMode = params.get("mode") === "discord";
+    let discordSdk = null;
+    let discordAuth = null;
+    let liveRooms = [];
+    let lobbySocket = null;
+    const entitlementState = {
+      guildPremium: false
+    };
+
+    function getApiBaseUrl() {
+      const queryBase = params.get("api_base");
+      if (queryBase) return queryBase.replace(/\/$/, "");
+
+      const host = window.location.hostname.toLowerCase();
+      const isLocalHost = host === "localhost" || host === "127.0.0.1" || host.endsWith(".local");
+      const isTiltcheckHost =
+        host === "tiltcheck.me" ||
+        host === "www.tiltcheck.me" ||
+        host.endsWith(".tiltcheck.me");
+      if (isLocalHost) return "http://localhost:3001";
+      if (isTiltcheckHost) return "https://tiltcheck-api-164294266634.us-central1.run.app";
+      // Non-local preview hosts (e.g. Vercel) should still point at live API.
+      return "https://tiltcheck-api-164294266634.us-central1.run.app";
+    }
+
+    function getWebBaseUrl() {
+      const queryBase = params.get("web_base");
+      if (queryBase) return queryBase.replace(/\/$/, "");
+
+      const host = window.location.hostname.toLowerCase();
+      const isLocalHost = host === "localhost" || host === "127.0.0.1" || host.endsWith(".local");
+      if (isLocalHost) return window.location.origin;
+      return "https://tiltcheck.me";
+    }
+
+    function getArenaBaseUrl() {
+      const queryBase = params.get("arena_base");
+      if (queryBase) return queryBase.replace(/\/$/, "");
+
+      const host = window.location.hostname.toLowerCase();
+      const isLocalHost = host === "localhost" || host === "127.0.0.1" || host.endsWith(".local");
+      const isTiltcheckHost =
+        host === "tiltcheck.me" ||
+        host === "www.tiltcheck.me" ||
+        host.endsWith(".tiltcheck.me");
+
+      if (isLocalHost) return "http://localhost:3010";
+      if (isTiltcheckHost) return window.location.origin;
+      // Non-local preview hosts should route gameplay to live arena host.
+      return "https://tiltcheck.me";
+    }
+
+    function setActivityAuthStatus(message, kind) {
+      activityAuthStatus.textContent = message;
+      activityAuthStatus.classList.remove("ok", "warn", "error");
+      if (kind) {
+        activityAuthStatus.classList.add(kind);
+      }
+    }
+
+    function applyEntitlementsToUi() {
+      const privateToggle = document.getElementById("private-toggle");
+      if (!entitlementState.guildPremium) {
+        privateToggle.disabled = true;
+        privateToggle.classList.remove("active");
+        privateToggle.textContent = "Include Private Rooms (Premium)";
+        setActivityAuthStatus("Free tier: standard rooms only. Upgrade unlocks Play Anywhere + premium controls.", "warn");
+      } else {
+        privateToggle.disabled = false;
+        privateToggle.textContent = "Include Private Rooms";
+        setActivityAuthStatus("Guild Premium active: Play Anywhere unlocked across Arena + Activity + Bot.", "ok");
+      }
+    }
+
+    function initial(name) {
+      return name.charAt(0).toUpperCase();
+    }
+
+    function statusText(status) {
+      if (status === "waiting") return "Waiting for Players";
+      if (status === "live") return "Game in Progress";
+      return "Room Full";
+    }
+
+    function isSizeMatch(room, size) {
+      if (size === "any") return true;
+      const players = room.maxPlayers;
+      if (size === "small") return players <= 4;
+      if (size === "medium") return players >= 5 && players <= 6;
+      return players >= 7;
+    }
+
+    function showToast(message) {
+      toast.textContent = message;
+      toast.classList.add("show");
+      window.clearTimeout(showToast.timeoutRef);
+      showToast.timeoutRef = window.setTimeout(() => {
+        toast.classList.remove("show");
+      }, 1600);
+    }
+
+    function clearChildren(node) {
+      while (node.firstChild) {
+        node.removeChild(node.firstChild);
+      }
+    }
+
+    function renderRooms() {
+      const sourceRooms = liveRooms.length > 0 ? liveRooms : rooms;
+      let list = sourceRooms.filter((room) => {
+        const statusMatch = filterState.status === "all" || room.status === filterState.status;
+        const sizeMatch = isSizeMatch(room, filterState.size);
+        const contentMatch = filterState.content === "all" || room.content === filterState.content;
+        const spectatorMatch = !filterState.spectatorOnly || room.spectators;
+        const privateMatch = filterState.includePrivate || !room.privateRoom;
+        return statusMatch && sizeMatch && contentMatch && spectatorMatch && privateMatch;
+      });
+
+      if (filterState.sort === "players") {
+        list = list.sort((a, b) => b.players - a.players);
+      } else if (filterState.sort === "alphabetical") {
+        list = list.sort((a, b) => a.name.localeCompare(b.name));
+      } else {
+        list = list.sort((a, b) => a.createdMinutesAgo - b.createdMinutesAgo);
+      }
+
+      const onlinePlayers = sourceRooms.reduce((sum, room) => sum + room.players, 0);
+      roomsTitle.textContent = "Available Rooms (" + list.length + ") - " + onlinePlayers + " players online";
+
+      clearChildren(roomsList);
+
+      if (list.length === 0) {
+        const emptyPanel = document.createElement("div");
+        emptyPanel.className = "panel";
+        emptyPanel.textContent = "No rooms match your filters right now.";
+        roomsList.appendChild(emptyPanel);
+        return;
+      }
+
+      list.forEach((room) => {
+        const dotClass = room.status === "waiting" ? "status-waiting" : room.status === "live" ? "status-live" : "status-full";
+        const actionClass = room.status === "waiting" ? "" : room.status === "live" ? "spectate" : "full";
+        const actionLabel = room.status === "waiting" ? "Join Room" : room.status === "live" ? "Spectate Game" : "Room Full";
+        const roomCard = document.createElement("article");
+        roomCard.className = "room-card";
+
+        const statusDot = document.createElement("div");
+        statusDot.className = "status-dot " + dotClass;
+        statusDot.setAttribute("aria-hidden", "true");
+        roomCard.appendChild(statusDot);
+
+        const detailWrap = document.createElement("div");
+        const roomName = document.createElement("h3");
+        roomName.className = "room-name";
+        roomName.textContent = room.name;
+        detailWrap.appendChild(roomName);
+
+        const metaTop = document.createElement("div");
+        metaTop.className = "room-meta";
+        const topStatus = document.createElement("span");
+        topStatus.textContent = statusText(room.status);
+        const roomCode = document.createElement("span");
+        roomCode.textContent = "• Room " + room.code;
+        metaTop.append(topStatus, roomCode);
+        detailWrap.appendChild(metaTop);
+
+        const metaHost = document.createElement("div");
+        metaHost.className = "room-meta";
+        const host = document.createElement("span");
+        host.textContent = "Hosted by " + room.host;
+        const hostLevel = document.createElement("span");
+        hostLevel.textContent = "Level " + room.hostLevel + " • " + room.hostedCount + " games hosted";
+        metaHost.append(host, hostLevel);
+        detailWrap.appendChild(metaHost);
+
+        const metaGame = document.createElement("div");
+        metaGame.className = "room-meta";
+        const players = document.createElement("span");
+        players.textContent = room.players + "/" + room.maxPlayers + " players";
+        const roundTime = document.createElement("span");
+        roundTime.textContent = room.roundTime + "s round";
+        const toWin = document.createElement("span");
+        toWin.textContent = room.toWin + " to win";
+        metaGame.append(players, roundTime, toWin);
+        detailWrap.appendChild(metaGame);
+
+        const tags = document.createElement("div");
+        tags.className = "room-tags";
+        const contentTag = document.createElement("span");
+        contentTag.className = "tag";
+        contentTag.textContent = String(room.content || "").toUpperCase() + " CONTENT";
+        tags.appendChild(contentTag);
+        if (room.spectators) {
+          const spectatorTag = document.createElement("span");
+          spectatorTag.className = "tag";
+          spectatorTag.textContent = "SPECTATORS OK";
+          tags.appendChild(spectatorTag);
+        }
+        if (room.privateRoom) {
+          const privateTag = document.createElement("span");
+          privateTag.className = "tag";
+          privateTag.textContent = "PRIVATE";
+          tags.appendChild(privateTag);
+        }
+        const ageTag = document.createElement("span");
+        ageTag.className = "tag";
+        ageTag.textContent = "Created " + room.createdMinutesAgo + " min ago";
+        tags.appendChild(ageTag);
+        detailWrap.appendChild(tags);
+
+        roomCard.appendChild(detailWrap);
+
+        const actionButton = document.createElement("button");
+        actionButton.className = "room-action " + actionClass;
+        actionButton.type = "button";
+        actionButton.setAttribute("data-room", room.code);
+        actionButton.setAttribute("data-action", actionLabel);
+        actionButton.textContent = actionLabel;
+        if (room.status === "full") {
+          actionButton.disabled = true;
+        }
+        roomCard.appendChild(actionButton);
+
+        roomsList.appendChild(roomCard);
+      });
+    }
+
+    async function refreshRoomsFromApi() {
+      try {
+        const response = await fetch(getArenaBaseUrl() + "/api/games", { credentials: "include" });
+        if (!response.ok) {
+          throw new Error("Arena API unavailable");
+        }
+        const payload = await response.json();
+        liveRooms = (payload.games || []).map((game) => ({
+          name: game.type === "dad" ? "DA&D Arena Room" : "Poker Arena Room",
+          code: "#" + String(game.id || "").slice(0, 6).toUpperCase(),
+          status: game.status === "active" ? "live" : game.status === "completed" ? "full" : "waiting",
+          host: game.hostUsername || "Host",
+          hostLevel: 1,
+          hostedCount: 0,
+          players: game.playerCount || 0,
+          maxPlayers: game.maxPlayers || 10,
+          roundTime: 60,
+          toWin: 7,
+          content: "moderate",
+          spectators: true,
+          privateRoom: Boolean(game.isPrivate),
+          createdMinutesAgo: Math.max(1, Math.floor((Date.now() - Number(game.createdAt || Date.now())) / 60000)),
+          gameId: game.id,
+          source: "arena"
+        }));
+        renderRooms();
+      } catch {
+        // Keep fallback seed rooms.
+      }
+    }
+
+    function setupLiveLobbySocket() {
+      if (!window.io) {
+        return;
+      }
+      try {
+        lobbySocket = window.io(getArenaBaseUrl(), {
+          transports: ["websocket", "polling"],
+          withCredentials: true,
+          timeout: 6000
+        });
+
+        lobbySocket.on("connect", () => {
+          lobbySocket.emit("join-lobby");
+          setActivityAuthStatus("Connected to live lobby stream.", "ok");
+        });
+
+        lobbySocket.on("lobby-update", (payload) => {
+          if (!payload || !Array.isArray(payload.games)) {
+            return;
+          }
+          liveRooms = payload.games.map((game) => ({
+            name: game.type === "dad" ? "DA&D Arena Room" : "Poker Arena Room",
+            code: "#" + String(game.id || "").slice(0, 6).toUpperCase(),
+            status: game.status === "active" ? "live" : game.status === "completed" ? "full" : "waiting",
+            host: game.hostUsername || "Host",
+            hostLevel: 1,
+            hostedCount: 0,
+            players: game.playerCount || 0,
+            maxPlayers: game.maxPlayers || 10,
+            roundTime: 60,
+            toWin: 7,
+            content: "moderate",
+            spectators: true,
+            privateRoom: Boolean(game.isPrivate),
+            createdMinutesAgo: Math.max(1, Math.floor((Date.now() - Number(game.createdAt || Date.now())) / 60000)),
+            gameId: game.id,
+            source: "arena"
+          }));
+          renderRooms();
+        });
+
+        lobbySocket.on("disconnect", () => {
+          setActivityAuthStatus("Lobby realtime disconnected, using fallback data.", "warn");
+        });
+      } catch {
+        // Keep fallback seed rooms.
+      }
+    }
+
+    function renderFriends() {
+      const online = friends.filter((friend) => friend.online);
+      const offline = friends.filter((friend) => !friend.online);
+
+      friendsOnlineCount.textContent = String(online.length);
+      clearChildren(onlineFriends);
+      clearChildren(offlineFriends);
+
+      function buildFriendNode(friend) {
+        const friendNode = document.createElement("div");
+        friendNode.className = "friend";
+        const avatar = document.createElement("div");
+        avatar.className = "avatar";
+        avatar.textContent = initial(friend.name);
+        const info = document.createElement("div");
+        const name = document.createElement("div");
+        name.className = "friend-name";
+        name.textContent = friend.name;
+        const status = document.createElement("div");
+        status.className = "friend-status";
+        status.textContent = friend.status;
+        info.append(name, status);
+        friendNode.append(avatar, info);
+        return friendNode;
+      }
+
+      online.forEach((friend) => {
+        onlineFriends.appendChild(buildFriendNode(friend));
+      });
+      offline.forEach((friend) => {
+        offlineFriends.appendChild(buildFriendNode(friend));
+      });
+    }
+
+    function renderChat() {
+      chatCount.textContent = String(chatMessages.filter((message) => !message.system).length);
+      clearChildren(chatBody);
+      chatMessages.forEach((message) => {
+        if (message.system) {
+          const systemMessage = document.createElement("div");
+          systemMessage.className = "chat-meta";
+          systemMessage.textContent = message.text + " - " + message.time;
+          chatBody.appendChild(systemMessage);
+          return;
+        }
+
+        const chatRow = document.createElement("div");
+        chatRow.className = "chat-row";
+        const avatar = document.createElement("div");
+        avatar.className = "avatar";
+        avatar.textContent = initial(message.user);
+        const content = document.createElement("div");
+        const meta = document.createElement("div");
+        meta.className = "chat-meta";
+        meta.textContent = message.user + " - " + message.time;
+        const text = document.createElement("div");
+        text.className = "chat-text";
+        text.textContent = message.text;
+        content.append(meta, text);
+        chatRow.append(avatar, content);
+        chatBody.appendChild(chatRow);
+      });
+      chatBody.scrollTop = chatBody.scrollHeight;
+    }
+
+    function setChipActive(groupNode, value) {
+      const chips = groupNode.querySelectorAll(".chip");
+      chips.forEach((chip) => {
+        const isActive = chip.getAttribute("data-value") === value;
+        chip.classList.toggle("active", isActive);
+      });
+    }
+
+    document.querySelectorAll("[data-filter-group]").forEach((groupNode) => {
+      groupNode.addEventListener("click", (event) => {
+        const target = event.target.closest(".chip");
+        if (!target) return;
+        const key = groupNode.getAttribute("data-filter-group");
+        const value = target.getAttribute("data-value");
+        filterState[key] = value;
+        setChipActive(groupNode, value);
+        renderRooms();
+      });
+    });
+
+    document.getElementById("spectator-toggle").addEventListener("click", (event) => {
+      const button = event.currentTarget;
+      filterState.spectatorOnly = !filterState.spectatorOnly;
+      button.dataset.on = String(filterState.spectatorOnly);
+      button.classList.toggle("active", filterState.spectatorOnly);
+      renderRooms();
+    });
+
+    document.getElementById("private-toggle").addEventListener("click", (event) => {
+      const button = event.currentTarget;
+      filterState.includePrivate = !filterState.includePrivate;
+      button.dataset.on = String(filterState.includePrivate);
+      button.classList.toggle("active", filterState.includePrivate);
+      renderRooms();
+    });
+
+    document.getElementById("sort-select").addEventListener("change", (event) => {
+      filterState.sort = event.target.value;
+      renderRooms();
+    });
+
+    document.getElementById("quick-ready").addEventListener("click", () => {
+      filterState.status = "waiting";
+      filterState.sort = "players";
+      setChipActive(document.querySelector("[data-filter-group=\"status\"]"), "waiting");
+      document.getElementById("sort-select").value = "players";
+      renderRooms();
+      showToast("Quick Join Ready applied");
+    });
+
+    document.getElementById("quick-popular").addEventListener("click", () => {
+      filterState.status = "all";
+      filterState.sort = "players";
+      setChipActive(document.querySelector("[data-filter-group=\"status\"]"), "all");
+      document.getElementById("sort-select").value = "players";
+      renderRooms();
+      showToast("Popular Rooms applied");
+    });
+
+    document.getElementById("quick-spectate").addEventListener("click", () => {
+      filterState.status = "live";
+      filterState.spectatorOnly = true;
+      const spectatorToggle = document.getElementById("spectator-toggle");
+      spectatorToggle.classList.add("active");
+      spectatorToggle.dataset.on = "true";
+      setChipActive(document.querySelector("[data-filter-group=\"status\"]"), "live");
+      renderRooms();
+      showToast("Spectate Games applied");
+    });
+
+    document.getElementById("rooms-list").addEventListener("click", (event) => {
+      const actionButton = event.target.closest(".room-action");
+      if (!actionButton || actionButton.disabled) return;
+      const roomCode = actionButton.getAttribute("data-room");
+      const action = actionButton.getAttribute("data-action");
+      const room = (liveRooms.length > 0 ? liveRooms : rooms).find((candidate) => candidate.code === roomCode);
+      if (room && room.gameId) {
+        window.location.href = getArenaBaseUrl() + "/game/" + room.gameId;
+        return;
+      }
+      showToast(action + " requested for " + roomCode);
+    });
+
+    chatInput.addEventListener("input", () => {
+      charUsed.textContent = String(chatInput.value.length);
+    });
+
+    document.getElementById("emoji-btn").addEventListener("click", () => {
+      chatInput.value += chatInput.value ? " 😈" : "😈";
+      charUsed.textContent = String(chatInput.value.length);
+      chatInput.focus();
+    });
+
+    document.getElementById("send-chat-btn").addEventListener("click", () => {
+      const text = chatInput.value.trim();
+      if (!text) {
+        showToast("Type a message first");
+        return;
+      }
+      chatMessages.push({
+        user: "You",
+        text: text,
+        time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+      });
+      chatInput.value = "";
+      charUsed.textContent = "0";
+      renderChat();
+      showToast("Message sent");
+    });
+
+    document.getElementById("create-room-btn").addEventListener("click", () => {
+      showToast("Create Room flow coming next");
+    });
+
+    openArenaButton.addEventListener("click", () => {
+      window.location.href = getArenaBaseUrl() + "/arena";
+    });
+
+    document.getElementById("refresh-rooms-btn").addEventListener("click", () => {
+      if (lobbySocket && lobbySocket.connected) {
+        lobbySocket.emit("request-lobby-update");
+      }
+      refreshRoomsFromApi();
+      renderRooms();
+      showToast("Rooms refreshed");
+    });
+
+    document.getElementById("launch-activity-btn").addEventListener("click", () => {
+      const url = new URL(window.location.href);
+      url.searchParams.set("mode", "discord");
+      window.location.href = url.toString();
+    });
+
+    async function ensureDiscordSdkReady() {
+      if (discordSdk) return discordSdk;
+
+      const clientId = document
+        .querySelector("meta[name=\"discord-client-id\"]")
+        .getAttribute("content")
+        .trim();
+      if (!clientId) {
+        throw new Error("Missing Discord client ID");
+      }
+
+      const sdkModule = await import("https://esm.sh/@discord/embedded-app-sdk@2.4.0");
+      discordSdk = new sdkModule.DiscordSDK(clientId);
+      await discordSdk.ready();
+      setActivityAuthStatus("Discord frame handshake successful.", "ok");
+      return discordSdk;
+    }
+
+    async function authenticateDiscordActivity() {
+      try {
+        setActivityAuthStatus("Connecting to Discord Activity...", "warn");
+        const sdk = await ensureDiscordSdkReady();
+        const clientId = document
+          .querySelector("meta[name=\"discord-client-id\"]")
+          .getAttribute("content")
+          .trim();
+
+        const authCodeResult = await sdk.commands.authorize({
+          client_id: clientId,
+          response_type: "code",
+          state: "daad_activity",
+          prompt: "none",
+          scope: ["identify"],
+        });
+
+        const tokenResponse = await fetch(getApiBaseUrl() + "/auth/discord/activity/token", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({
+            code: authCodeResult.code,
+            redirectUri: window.location.origin + window.location.pathname,
+          }),
+        });
+
+        if (!tokenResponse.ok) {
+          const errorPayload = await tokenResponse.json().catch(() => ({}));
+          const errorMessage = errorPayload.error || "Token exchange failed";
+          throw new Error(errorMessage);
+        }
+
+        const tokenPayload = await tokenResponse.json();
+        discordAuth = await sdk.commands.authenticate({
+          access_token: tokenPayload.access_token,
+        });
+
+        try {
+          const entitlements = await sdk.commands.getEntitlements();
+          const premiumSkuId = (document
+            .querySelector("meta[name=\"daad-premium-sku-id\"]")
+            .getAttribute("content") || "").trim();
+          entitlementState.guildPremium = Array.isArray(entitlements?.entitlements)
+            && entitlements.entitlements.some((item) => String(item.sku_id || "") === premiumSkuId);
+        } catch {
+          entitlementState.guildPremium = false;
+        }
+        applyEntitlementsToUi();
+
+        const username =
+          (discordAuth && discordAuth.user && discordAuth.user.username) || "Discord user";
+        setActivityAuthStatus("Authenticated as " + username + ".", "ok");
+        showToast("Discord Activity connected");
+      } catch (error) {
+        const message = error instanceof Error ? error.message : "Activity authentication failed";
+        setActivityAuthStatus("Discord Activity auth failed: " + message, "error");
+        showToast("Discord connect failed");
+      }
+    }
+
+    connectDiscordButton.addEventListener("click", () => {
+      authenticateDiscordActivity();
+    });
+
+    upgradeServerButton.addEventListener("click", async () => {
+      if (isDiscordMode && discordSdk) {
+        try {
+          // First-party Discord Activity monetization flow.
+          await discordSdk.commands.openExternalLink({
+            url: getWebBaseUrl() + "/tools/daad-pricing.html?source=discord-activity"
+          });
+          return;
+        } catch {
+          // Fall through to normal navigation.
+        }
+      }
+      window.location.href = getWebBaseUrl() + "/tools/daad-pricing.html?source=lobby";
+    });
+
+    document.getElementById("add-friends-btn").addEventListener("click", () => {
+      showToast("Friends invite modal coming next");
+    });
+
+    if (isDiscordMode) {
+      document.body.classList.add("activity-mode");
+      showToast("Discord Activity mode enabled");
+      authenticateDiscordActivity();
+    } else {
+      setActivityAuthStatus("Open Activity Mode to run inside Discord.", "warn");
+    }
+
+    applyEntitlementsToUi();
+    refreshRoomsFromApi();
+    setupLiveLobbySocket();
+    renderRooms();
+    renderFriends();
+    renderChat();
+  </script>
   <script src="/scripts/components-loader.js"></script>
 </body>
 </html>
+

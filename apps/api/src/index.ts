@@ -34,6 +34,7 @@ import { casinoRouter } from './routes/casino.js';
 import { bonusRouter } from './routes/bonus.js';
 import { vaultRouter } from './routes/vault.js';
 import { betaRouter } from './routes/beta.js';
+import { statsRouter } from './routes/stats.js';
 import modRouter from './routes/mod.js';
 import { errorHandler, notFoundHandler } from './middleware/error.js';
 import { requestLogger } from './middleware/logger.js';
@@ -59,13 +60,16 @@ app.use(helmet({
 // CORS configuration for subdomain cookies
 app.use(cors({
   origin: (origin, callback) => {
-    // Allow requests from tiltcheck.me subdomains
+    // Allow requests from provisioned production domains and Chrome Extension
     const allowedOrigins = [
       'https://tiltcheck.me',
       'https://dashboard.tiltcheck.me',
-      'https://justthetip.tiltcheck.me',
+      'https://api.tiltcheck.me',
       'https://bot.tiltcheck.me',
-      /^https:\/\/.*\.tiltcheck\.me$/,
+      'https://tiltcheck-web-164294266634.us-central1.run.app',
+      'https://tiltcheck-api-164294266634.us-central1.run.app',
+      'https://tiltcheck-bot-164294266634.us-central1.run.app',
+      'https://tiltcheck-user-dashboard-164294266634.us-central1.run.app',
     ];
 
     // Allow requests with no origin (like mobile apps or curl)
@@ -74,18 +78,14 @@ app.use(cors({
       return;
     }
 
-    const isAllowed = allowedOrigins.some((allowed) => {
-      if (allowed instanceof RegExp) {
-        return allowed.test(origin);
-      }
-      return allowed === origin;
-    });
+    const isAllowed = allowedOrigins.includes(origin) || origin.startsWith('chrome-extension://');
 
     if (isAllowed) {
       callback(null, true);
-    } else if (process.env.NODE_ENV === 'development') {
-      // Allow localhost in development
-      callback(null, true);
+    } else if (process.env.NODE_ENV !== 'production') {
+      // Allow local development origins
+      const isLocal = origin.startsWith('http://localhost:') || origin.startsWith('http://127.0.0.1:');
+      callback(null, isLocal);
     } else {
       callback(new Error('Not allowed by CORS'));
     }
@@ -156,6 +156,7 @@ app.use('/casino', casinoRouter);
 app.use('/bonus', bonusRouter);
 app.use('/vault', vaultRouter);
 app.use('/beta', betaRouter);
+app.use('/stats', statsRouter);
 
 // Moderation routes
 app.use('/mod', modRouter);

@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Sitemap - TiltCheck</title>
+  <meta name="description" content="Human-friendly admin sitemap UI for route and health visibility.">
+  <link rel="stylesheet" href="/styles/theme.css">
+  <link rel="stylesheet" href="/styles/main.css">
+  <style>
+    .map-shell { max-width: 1200px; margin: 0 auto; padding: 2rem 1rem; }
+    .map-panel { background: #0d1117; border: 1px solid #30363d; border-radius: 10px; padding: 1rem; }
+    .map-toolbar { display: flex; gap: .75rem; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; }
+    .map-list { list-style: none; margin: 0; padding: 0; display: grid; gap: .4rem; }
+    .map-list a { color: #8cbcff; text-decoration: none; }
+    .map-list a:hover { text-decoration: underline; }
+    .map-muted { color: #8b949e; font-size: .9rem; }
+  </style>
+</head>
+<body>
+  <a href="#main-content" class="skip-link">Skip to main content</a>
+  <div id="shared-nav"></div>
+
+  <main id="main-content" class="map-shell">
+    <h1>Admin Sitemap</h1>
+    <p class="map-muted">Route inventory and quick access panel for admin operations.</p>
+    <section class="map-panel">
+      <div class="map-toolbar">
+        <button class="btn btn-secondary" id="refresh-btn" type="button">Refresh</button>
+        <span id="status" class="map-muted">Idle</span>
+      </div>
+      <ul id="list" class="map-list">
+        <li><a href="/control-room.html">/control-room.html</a></li>
+        <li><a href="/admin-status.html">/admin-status.html</a></li>
+        <li><a href="/admin-analytics.html">/admin-analytics.html</a></li>
+        <li><a href="/admin/logs/">/admin/logs/</a></li>
+        <li><a href="/admin/sitemap/">/admin/sitemap/</a></li>
+        <li><a href="/tools/tiltcheck-core.html">/tools/tiltcheck-core.html</a></li>
+        <li><a href="/enhanced/">/enhanced/</a></li>
+        <li><a href="/screen/">/screen/</a></li>
+      </ul>
+    </section>
+  </main>
+
+  <div id="shared-footer"></div>
+  <script>
+    const statusEl = document.getElementById('status');
+    const listEl = document.getElementById('list');
+    const refreshBtn = document.getElementById('refresh-btn');
+    function setStatus(text) { statusEl.textContent = text; }
+
+    function renderApiSitemap(items) {
+      if (!Array.isArray(items) || !items.length) return false;
+      listEl.innerHTML = items.map((item) => {
+        const path = item.path || item.url || '';
+        if (!path) return '';
+        return `<li><a href="${path}" target="_blank" rel="noopener">${path}</a></li>`;
+      }).join('');
+      return true;
+    }
+
+    async function refreshSitemap() {
+      setStatus('Loading...');
+      const key = encodeURIComponent(new URLSearchParams(window.location.search).get('key') || '');
+      const candidates = [
+        `/api/admin/sitemap${key ? `?key=${key}` : ''}`,
+        `/admin/sitemap${key ? `?key=${key}` : ''}`
+      ];
+      for (const url of candidates) {
+        try {
+          const res = await fetch(url, { credentials: 'include' });
+          if (!res.ok) continue;
+          const data = await res.json();
+          if (renderApiSitemap(data.routes || data.pages || data.items || [])) {
+            setStatus(`Loaded from ${url}`);
+            return;
+          }
+        } catch (_) {}
+      }
+      setStatus('Using static fallback list');
+    }
+
+    refreshBtn.addEventListener('click', refreshSitemap);
+    refreshSitemap();
+  </script>
+  <script src="/scripts/components-loader.js"></script>
+  <script src="/scripts/auth.js"></script>
+</body>
+</html>

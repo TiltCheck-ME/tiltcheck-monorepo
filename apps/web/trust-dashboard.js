@@ -16,6 +16,15 @@ const filterScoreEl = document.getElementById('filterScore');
 const filterRiskEl = document.getElementById('filterRisk');
 const refreshBtn = document.getElementById('refreshBtn');
 
+function escapeHtml(value) {
+  return String(value ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
 function riskBadge(risk) {
   const map = {
     critical: 'b-critical',
@@ -28,7 +37,9 @@ function riskBadge(risk) {
 }
 
 function formatVolatility(v) {
-  return (v * 100).toFixed(0) + '%';
+  const value = Number(v);
+  if (!Number.isFinite(value)) return '0%';
+  return (value * 100).toFixed(0) + '%';
 }
 
 function copyLockCommand(casino, risk) {
@@ -44,20 +55,26 @@ function renderRows(data) {
   const riskFilter = filterRiskEl.value;
   const rows = [];
   for (const snap of data) {
+    const riskLevel = ['critical', 'high', 'elevated', 'watch', 'low'].includes(snap.riskLevel)
+      ? snap.riskLevel
+      : 'low';
     if (snap.currentScore < minScore) continue;
-    if (riskFilter && snap.riskLevel !== riskFilter) continue;
+    if (riskFilter && riskLevel !== riskFilter) continue;
     const deltaClass = snap.scoreDelta > 0 ? 'delta-pos' : snap.scoreDelta < 0 ? 'delta-neg' : '';
-    const reasons = (snap.lastReasons || []).map(r => r.replace(/"/g,'')).slice(-3).join(' • ');
-    const actionBtn = (['high','critical','elevated'].includes(snap.riskLevel))
-      ? `<button type="button" class="cta-btn" aria-label="Lock temptation for ${snap.casinoName}" data-casino="${snap.casinoName}" data-risk="${snap.riskLevel}">Lock Vault</button>`
+    const casinoName = escapeHtml(snap.casinoName);
+    const reasons = (snap.lastReasons || []).map(r => escapeHtml(r)).slice(-3).join(' • ');
+    const actionBtn = (['high','critical','elevated'].includes(riskLevel))
+      ? `<button type="button" class="cta-btn" aria-label="Lock temptation for ${casinoName}" data-casino="${casinoName}" data-risk="${riskLevel}">Lock Vault</button>`
       : '';
-    rows.push(`<tr class="risk-${snap.riskLevel}">
-      <td>${snap.casinoName}</td>
-      <td>${snap.currentScore}</td>
-      <td class="${deltaClass}">${snap.scoreDelta ?? ''}</td>
-      <td>${riskBadge(snap.riskLevel)}</td>
+    const scoreDelta = Number(snap.scoreDelta);
+    const nerfs24h = Number(snap.nerfs24h);
+    rows.push(`<tr class="risk-${riskLevel}">
+      <td>${casinoName}</td>
+      <td>${Number.isFinite(Number(snap.currentScore)) ? Number(snap.currentScore) : ''}</td>
+      <td class="${deltaClass}">${Number.isFinite(scoreDelta) ? scoreDelta : ''}</td>
+      <td>${riskBadge(riskLevel)}</td>
       <td>${formatVolatility(snap.volatility24h)}</td>
-      <td>${snap.nerfs24h}</td>
+      <td>${Number.isFinite(nerfs24h) ? nerfs24h : ''}</td>
       <td>${reasons}</td>
       <td>${actionBtn}</td>
     </tr>`);

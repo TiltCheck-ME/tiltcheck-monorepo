@@ -34,6 +34,7 @@ export const startgame: Command = {
 
       const currentRound = game.rounds[0];
       const blackCard = currentRound.blackCard;
+      const judge = game.players.get(currentRound.judgeUserId);
 
       const embed = new EmbedBuilder()
         .setColor(0xff0000)
@@ -41,10 +42,12 @@ export const startgame: Command = {
         .setDescription('**Round 1 - Black Card:**')
         .addFields(
           { name: '⬛ Prompt', value: blackCard.text, inline: false },
+          { name: '🧑‍⚖️ Judge', value: judge?.username || 'Unknown', inline: true },
           { name: 'Players', value: game.players.size.toString(), inline: true },
-          { name: 'Rounds', value: `1/${game.maxRounds}`, inline: true }
+          { name: 'Rounds', value: `1/${game.maxRounds}`, inline: true },
+          { name: '⏱️ Submit Window', value: `${Math.floor(game.submitWindowMs / 1000)}s`, inline: true }
         )
-        .setFooter({ text: 'Use /hand to see your cards • Submit with /submit' });
+        .setFooter({ text: 'Judge picks winner with /vote • players submit with /submit' });
 
       await interaction.reply({ embeds: [embed] });
     } catch (error: any) {

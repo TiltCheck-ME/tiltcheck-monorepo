@@ -1,6 +1,4 @@
-# TiltCheck Discord Bot - Standalone Container
-# Build from monorepo root: docker build -f apps/discord-bot/Dockerfile .
-
+# TiltCheck Discord Bot - Optimized Container (with Scripts)
 FROM node:20-alpine AS build
 
 RUN npm install -g pnpm@10
@@ -12,19 +10,17 @@ WORKDIR /app
 # Copy workspace config
 COPY package.json pnpm-workspace.yaml pnpm-lock.yaml .npmrc tsconfig.json ./
 
-# Copy all workspace sources
+# Copy all sources
 COPY packages/ ./packages/
 COPY modules/ ./modules/
-COPY apps/ ./apps/
+COPY scripts/ ./scripts/
+COPY apps/discord-bot/ ./apps/discord-bot/
 
 # Install dependencies
-RUN NODE_ENV=development pnpm install --no-frozen-lockfile
+RUN pnpm install --no-frozen-lockfile
 
-# Build all packages
-RUN pnpm -r build
-
-# Prune dev dependencies
-# pnpm prune --prod
+# Build
+RUN pnpm --filter @tiltcheck/discord-bot... build
 
 # Production stage
 FROM node:20-alpine
@@ -41,7 +37,4 @@ RUN mkdir -p /app/data
 
 EXPOSE 8081
 
-HEALTHCHECK --interval=10s --timeout=5s --retries=30 --start-period=60s \
-  CMD test -f /tmp/bot-ready || exit 1
-
-CMD ["node", "apps/discord-bot/dist/index.js"]
+CMD ["node", "apps/discord-bot/dist/bootstrap.js"]

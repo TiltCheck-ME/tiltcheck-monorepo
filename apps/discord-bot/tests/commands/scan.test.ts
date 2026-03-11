@@ -1,140 +1,62 @@
-/**
- * © 2024–2025 TiltCheck Ecosystem. All Rights Reserved.
- * Created by jmenichole (https://github.com/jmenichole)
- * 
- * This file is part of the TiltCheck project.
- * For licensing information, see LICENSE file in the project root.
- */
-/**
- * @file scan.test.ts
- * @description Test suite for scan command (link scanning via SusLink)
- * 
- * Tests cover:
- * - URL scanning
- * - Threat detection
- * - Trust domain checking
- * - Scan result display
- */
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+vi.mock('@tiltcheck/suslink', () => ({
+  suslink: {
+    scanUrl: vi.fn().mockResolvedValue({
+      url: 'https://example.com',
+      riskLevel: 'safe',
+      reason: 'No suspicious patterns detected',
+      scannedAt: new Date('2026-01-01T00:00:00.000Z'),
+    }),
+  },
+}));
+
+vi.mock('@tiltcheck/discord-utils', () => ({
+  isValidUrl: vi.fn((url: string) => /^https?:\/\//.test(url)),
+  errorEmbed: vi.fn((title: string, description: string) => ({ title, description })),
+  linkScanEmbed: vi.fn((payload: unknown) => ({ payload })),
+}));
+
+import { scan } from '../../src/commands/scan.js';
+import { suslink } from '@tiltcheck/suslink';
 
 describe('Scan Command', () => {
+  let interaction: any;
+
   beforeEach(() => {
-    // TODO: Setup test environment
-    // - Mock Discord interaction
-    // - Mock SusLink module
-    // - Mock trust domain service
+    interaction = {
+      user: { id: 'user-1' },
+      options: {
+        getString: vi.fn().mockReturnValue('https://example.com'),
+      },
+      deferReply: vi.fn().mockResolvedValue(undefined),
+      editReply: vi.fn().mockResolvedValue(undefined),
+    };
   });
 
-  describe('Command Registration', () => {
-    it('should register scan command', () => {
-      // TODO: Verify command registration
-      expect(true).toBe(true);
-    });
-
-    it('should have required URL parameter', () => {
-      // TODO: Verify URL parameter exists
-      expect(true).toBe(true);
-    });
+  it('registers scan command with required url option', () => {
+    const json = scan.data.toJSON();
+    expect(json.name).toBe('scan');
+    expect(json.options?.[0]?.name).toBe('url');
+    expect(json.options?.[0]?.required).toBe(true);
   });
 
-  describe('URL Validation', () => {
-    it('should validate URL format', () => {
-      // TODO: Test URL format validation
-      expect(true).toBe(true);
-    });
+  it('returns validation error embed for invalid URL input', async () => {
+    interaction.options.getString.mockReturnValue('not-a-url');
+    await scan.execute(interaction);
 
-    it('should handle various URL protocols', () => {
-      // TODO: Test http, https, etc.
-      expect(true).toBe(true);
-    });
-
-    it('should reject invalid URLs', () => {
-      // TODO: Test malformed URL rejection
-      expect(true).toBe(true);
+    expect(interaction.deferReply).toHaveBeenCalled();
+    expect(interaction.editReply).toHaveBeenCalledWith({
+      embeds: [expect.objectContaining({ title: 'Invalid URL' })],
     });
   });
 
-  describe('Link Scanning', () => {
-    it('should scan URL through SusLink', () => {
-      // TODO: Test SusLink integration
-      expect(true).toBe(true);
-    });
+  it('scans valid URL via suslink and replies with scan embed', async () => {
+    await scan.execute(interaction);
 
-    it('should detect known scam domains', () => {
-      // TODO: Test scam detection
-      expect(true).toBe(true);
-    });
-
-    it('should check against trust domain list', () => {
-      // TODO: Test trust domain checking
-      expect(true).toBe(true);
-    });
-
-    it('should analyze URL patterns', () => {
-      // TODO: Test pattern analysis
-      expect(true).toBe(true);
-    });
-  });
-
-  describe('Scan Results', () => {
-    it('should return safe result for trusted domains', () => {
-      // TODO: Test safe result
-      expect(true).toBe(true);
-    });
-
-    it('should return warning for suspicious links', () => {
-      // TODO: Test warning result
-      expect(true).toBe(true);
-    });
-
-    it('should return danger for known scams', () => {
-      // TODO: Test danger result
-      expect(true).toBe(true);
-    });
-
-    it('should include scan confidence level', () => {
-      // TODO: Test confidence scoring
-      expect(true).toBe(true);
-    });
-  });
-
-  describe('Response Formatting', () => {
-    it('should use color-coded embeds', () => {
-      // TODO: Test embed colors (green/yellow/red)
-      expect(true).toBe(true);
-    });
-
-    it('should include scan details', () => {
-      // TODO: Test scan details display
-      expect(true).toBe(true);
-    });
-
-    it('should provide user recommendations', () => {
-      // TODO: Test recommendation text
-      expect(true).toBe(true);
-    });
-
-    it('should be ephemeral by default', () => {
-      // TODO: Test ephemeral flag
-      expect(true).toBe(true);
-    });
-  });
-
-  describe('Error Handling', () => {
-    it('should handle network errors', () => {
-      // TODO: Test network error handling
-      expect(true).toBe(true);
-    });
-
-    it('should handle scanning service downtime', () => {
-      // TODO: Test service unavailable
-      expect(true).toBe(true);
-    });
-
-    it('should handle timeout errors', () => {
-      // TODO: Test scan timeout
-      expect(true).toBe(true);
+    expect((suslink as any).scanUrl).toHaveBeenCalledWith('https://example.com', 'user-1');
+    expect(interaction.editReply).toHaveBeenCalledWith({
+      embeds: [expect.objectContaining({ payload: expect.objectContaining({ url: 'https://example.com' }) })],
     });
   });
 });

@@ -20,7 +20,7 @@ import { Magic } from '@magic-sdk/admin';
 import { Connection, PublicKey, Keypair } from '@solana/web3.js';
 import nacl from 'tweetnacl';
 import bs58 from 'bs58';
-import { fileURLToPath } from 'url';
+import { fileURLToPath, pathToFileURL } from 'url';
 import { dirname, join } from 'path';
 import { existsSync } from 'fs';
 import type { Request, Response, NextFunction } from 'express';
@@ -30,7 +30,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 const app = express();
-const PORT = process.env.USER_DASHBOARD_PORT || 6001;
+const PORT = process.env.PORT || process.env.USER_DASHBOARD_PORT || 6001;
 
 // Rate limiter for sensitive routes
 const trustLimiter = rateLimit({
@@ -560,6 +560,11 @@ app.get('/dashboard', (_req, res) => {
   res.sendFile(join(__dirname, '../public/dashboard.html'));
 });
 
-app.listen(PORT, () => {
-  console.log(`🎯 User Dashboard service listening on port ${PORT}`);
-});
+const isMainModule = process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href;
+if (isMainModule) {
+  app.listen(PORT, () => {
+    console.log(`🎯 User Dashboard service listening on port ${PORT}`);
+  });
+}
+
+export { app };

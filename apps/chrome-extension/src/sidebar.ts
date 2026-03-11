@@ -1,4 +1,4 @@
-/**
+﻿/**
  *  20242025 TiltCheck Ecosystem. All Rights Reserved.
  * Created by jmenichole (https://github.com/jmenichole)
  * 
@@ -15,6 +15,14 @@ import { EXT_CONFIG, getDiscordLoginUrl } from './config.js';
 
 const API_BASE = EXT_CONFIG.API_BASE_URL;
 const AI_GATEWAY_URL = EXT_CONFIG.AI_GATEWAY_URL;
+const API_ORIGIN = (() => {
+  try {
+    return new URL(API_BASE).origin;
+  } catch {
+    return 'https://api.tiltcheck.me';
+  }
+})();
+const DISCORD_AUTH_MESSAGE_TYPE = 'discord-auth';
 let authToken: string | null = null;
 let showSettings = false;
 let apiKeys: any = {
@@ -39,6 +47,7 @@ let lockTimerInterval: any = null;
 let lastProfit = 0;
 let casinoThemesIntervalId: ReturnType<typeof setInterval> | null = null;
 let vaultRefreshIntervalId: ReturnType<typeof setInterval> | null = null;
+let discordAuthPollIntervalId: ReturnType<typeof setInterval> | null = null;
 let buddyMirrorEnabled = false;
 let demoMode = false;
 const SIDEBAR_PREFS_KEY = 'sidebarUiPrefs';
@@ -239,19 +248,46 @@ function escapeHtml(value: unknown): string {
 
 function getStorage(keys: string[] | string): Promise<Record<string, any>> {
   return new Promise((resolve) => {
-    chrome.storage.local.get(keys, (result) => resolve(result || {}));
+    try {
+      if (!chrome.runtime?.id) {
+        console.warn('[TiltCheck] Extension context invalidated. Please refresh the page.');
+        resolve({});
+        return;
+      }
+      chrome.storage.local.get(keys, (result) => {
+        if (chrome.runtime?.lastError) {
+          console.warn('[TiltCheck] Storage get failed:', chrome.runtime.lastError.message);
+          resolve({});
+          return;
+        }
+        resolve(result || {});
+      });
+    } catch (error) {
+      console.warn('[TiltCheck] Storage get exception:', error);
+      resolve({});
+    }
   });
 }
 
 function setStorage(values: Record<string, any>): Promise<void> {
   return new Promise((resolve) => {
-    chrome.storage.local.set(values, () => resolve());
+    try {
+      chrome.storage.local.set(values, () => resolve());
+    } catch (error) {
+      console.warn('[TiltCheck] Storage set exception:', error);
+      resolve();
+    }
   });
 }
 
 function removeStorage(keys: string[] | string): Promise<void> {
   return new Promise((resolve) => {
-    chrome.storage.local.remove(keys, () => resolve());
+    try {
+      chrome.storage.local.remove(keys, () => resolve());
+    } catch (error) {
+      console.warn('[TiltCheck] Storage remove exception:', error);
+      resolve();
+    }
   });
 }
 
@@ -266,9 +302,12 @@ function formatLockRemaining(ms: number): string {
 
 async function ensureWalletUnlocked(actionLabel: string): Promise<boolean> {
   if (!userData || demoMode) return true;
-  const state = await apiCall(`/vault/${userData.id}/wallet-lock-status`);
-  if (state?.locked) {
-    const remaining = formatLockRemaining(Number(state.remainingMs || 0));
+  const state = await apiCall(`/vault/${userData.id}/lock-status`);
+  const isLocked = state?.locked === true;
+  if (isLocked) {
+    const remainingMs = Number(state?.remainingMs)
+      || Math.max(0, new Date(String(state?.unlockTime || 0)).getTime() - Date.now());
+    const remaining = formatLockRemaining(remainingMs);
     const message = `Wallet lock is active (${remaining}). Unlock in sidebar to ${actionLabel}.`;
     updateStatus(message, 'warning');
     addFeedMessage(message);
@@ -781,21 +820,21 @@ function createSidebar() {
   const style = document.createElement('style');
   style.textContent = `
     #tiltcheck-sidebar {
-      --tg-bg: #0b0f17;
-      --tg-surface: rgba(255, 255, 255, 0.04);
-      --tg-surface-strong: rgba(255, 255, 255, 0.08);
-      --tg-border: rgba(255, 255, 255, 0.12);
+      --tg-bg: rgba(14, 14, 15, 0.95);
+      --tg-surface: rgba(17, 19, 22, 0.8);
+      --tg-surface-strong: rgba(26, 31, 36, 0.9);
+      --tg-border: rgba(255, 255, 255, 0.08);
       --tg-text: #e7ecf7;
       --tg-muted: rgba(231, 236, 247, 0.74);
-      --tg-accent-purple: #6366f1;
-      --tg-accent-purple-2: #7c3aed;
-      --tg-accent-green: #10b981;
+      --tg-accent-purple: #00FFC6;
+      --tg-accent-purple-2: #00E6B2;
+      --tg-accent-green: #00FFC6;
       position: fixed !important;
       top: 0 !important;
       right: 0 !important;
       width: ${SIDEBAR_WIDTH}px;
       height: 100vh;
-      background: var(--tg-bg);
+      background: var(--tg-bg); backdrop-filter: blur(12px);
       color: var(--tg-text);
       z-index: 2147483647 !important;
       font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
@@ -811,7 +850,7 @@ function createSidebar() {
     #tiltcheck-sidebar::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.2); border-radius: 3px; }
     
     .tg-header {
-      background: linear-gradient(180deg, rgba(99,102,241,0.22), rgba(11,15,23,0));
+      background: linear-gradient(180deg, rgba(0, 255, 198, 0.1), transparent);
       padding: 14px 16px;
       display: flex;
       justify-content: space-between;
@@ -1317,39 +1356,98 @@ function syncAccountUi() {
   logoutBtn.style.display = 'inline-flex';
 }
 
+function clearDiscordAuthPolling() {
+  if (discordAuthPollIntervalId) {
+    clearInterval(discordAuthPollIntervalId);
+    discordAuthPollIntervalId = null;
+  }
+}
+
+async function applyDiscordAuthSuccess(token: string, user: Record<string, any>) {
+  await setStorage({ authToken: token, userData: user });
+  clearDiscordAuthPolling();
+  demoMode = false;
+  authToken = token;
+  userData = { ...user, isDemo: false };
+  isAuthenticated = true;
+  showMainContent();
+  syncAccountUi();
+  addFeedMessage(`Connected: ${userData.username || 'TiltCheck user'}`);
+}
+
+function handleDiscordAuthMessage(event: MessageEvent) {
+  if (event.origin !== API_ORIGIN) return;
+  const data = event.data as { type?: string; token?: unknown; user?: unknown } | null;
+  if (!data || data.type !== DISCORD_AUTH_MESSAGE_TYPE) return;
+  if (typeof data.token !== 'string' || !data.token) return;
+  if (!data.user || typeof data.user !== 'object') return;
+  void applyDiscordAuthSuccess(data.token, data.user as Record<string, any>);
+}
+
 function startDiscordLoginFlow() {
   const authUrl = getDiscordLoginUrl('extension');
-  chrome.runtime.sendMessage({ type: 'open_auth_tab', url: authUrl }, (response) => {
-    if (chrome.runtime.lastError || !response?.success) {
-      addFeedMessage('Could not open Discord login tab. Try again.');
+  const maxPollMs = 5 * 60 * 1000;
+  const startedAt = Date.now();
+  clearDiscordAuthPolling();
+
+  const startStoragePolling = () => {
+    discordAuthPollIntervalId = setInterval(async () => {
+      try {
+        const stored = await getStorage(['authToken', 'userData']);
+        if (stored?.authToken && stored?.userData) {
+          await applyDiscordAuthSuccess(stored.authToken, stored.userData);
+          return;
+        }
+
+        if (Date.now() - startedAt > maxPollMs) {
+          clearDiscordAuthPolling();
+          addFeedMessage('Discord connect timed out. Try again.');
+        }
+      } catch (error) {
+        clearDiscordAuthPolling();
+        console.warn('[TiltCheck] Discord connect polling failed:', error);
+        addFeedMessage('Discord connect interrupted. Reload the tab and try again.');
+      }
+    }, 1000);
+  };
+
+  try {
+    // User-clicked popup preserves window.opener for callback postMessage.
+    const popup = window.open(authUrl, '_blank', 'popup=yes,width=520,height=760');
+    if (popup) {
+      startStoragePolling();
       return;
     }
 
-    const maxPollMs = 5 * 60 * 1000;
-    const startedAt = Date.now();
-    const checkClosed = setInterval(async () => {
-      const stored = await getStorage(['authToken', 'userData']);
-      if (stored?.authToken && stored?.userData) {
-        clearInterval(checkClosed);
-        demoMode = false;
-        authToken = stored.authToken;
-        userData = { ...stored.userData, isDemo: false };
-        isAuthenticated = true;
-        showMainContent();
-        syncAccountUi();
-        addFeedMessage(`Connected: ${userData.username || 'TiltCheck user'}`);
+    chrome.runtime.sendMessage({ type: 'open_auth_bridge', url: authUrl }, (response) => {
+      if (chrome.runtime.lastError) {
+        const msg = chrome.runtime.lastError.message || 'Could not open Discord login tab.';
+        addFeedMessage(
+          msg.includes('Extension context invalidated')
+            ? 'Extension refreshed mid-login. Reload this tab and retry Connect Discord.'
+            : 'Could not open Discord login helper. Try again.'
+        );
         return;
       }
 
-      if (Date.now() - startedAt > maxPollMs) {
-        clearInterval(checkClosed);
-        addFeedMessage('Discord connect timed out. Try again.');
+      if (!response?.success) {
+        addFeedMessage('Could not open Discord login helper. Try again.');
+        return;
       }
-    }, 1000);
-  });
+
+      addFeedMessage('Opened Discord login helper tab.');
+      startStoragePolling();
+    });
+  } catch (error) {
+    console.warn('[TiltCheck] Unable to start Discord connect flow:', error);
+    addFeedMessage('Connect failed to start. Reload tab and try again.');
+  }
 }
 
 function setupEventListeners() {
+  window.removeEventListener('message', handleDiscordAuthMessage as EventListener);
+  window.addEventListener('message', handleDiscordAuthMessage as EventListener);
+
   document.getElementById('tg-minimize')?.addEventListener('click', () => {
     const sidebar = document.getElementById('tiltcheck-sidebar');
     const isMinimized = !!sidebar?.classList.contains('minimized');
@@ -2349,7 +2447,7 @@ function renderVaultTimeline(locks: any[]) {
           <span class="tg-vault-timeline-action">${action}</span>
           <span class="tg-vault-timeline-time">${relative}</span>
         </div>
-        <div class="tg-vault-timeline-meta">${metaParts.join(' • ')}</div>
+        <div class="tg-vault-timeline-meta">${metaParts.join(' â€¢ ')}</div>
       </div>
     `;
   }).join('');
@@ -2641,4 +2739,5 @@ function updateStatus(message: string, type: string = 'info') {
 if (typeof window !== 'undefined') {
   (window as any).TiltCheckSidebar = { create: createSidebar, updateLicense, updateGuardian, updateTilt, updateStats, notifyBuddy };
 }
+
 
