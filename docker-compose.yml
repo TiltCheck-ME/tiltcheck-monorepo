@@ -41,30 +41,6 @@ services:
     networks:
       - tiltcheck-network
 
-  dashboard:
-    build:
-      context: .
-      dockerfile: apps/dashboard/Dockerfile
-    container_name: dashboard
-    ports:
-      - "5055:3000"
-    restart: unless-stopped
-    deploy:
-      resources:
-        limits:
-          memory: 256M
-    env_file: .env
-    environment:
-      - SKIP_ENV_VALIDATION=1
-      - PORT=3000
-    healthcheck:
-      test: [ "CMD", "wget", "-qO-", "http://localhost:3000/api/health" ]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-    networks:
-      - tiltcheck-network
-
   control-room:
     build:
       context: .
@@ -180,7 +156,6 @@ services:
     depends_on:
       - landing
       - api
-      - dashboard
       - user-dashboard
       - game-arena
     networks:

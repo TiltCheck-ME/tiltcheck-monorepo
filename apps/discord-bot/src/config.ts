@@ -205,6 +205,16 @@ export function validateConfig(): void {
     );
   }
 
+  const isProd = config.nodeEnv === 'production';
+  if (isProd) {
+    if (!config.botWalletPrivateKey) {
+      console.warn('⚠️  JUSTTHETIP_BOT_WALLET_PRIVATE_KEY not set - tipping will be disabled');
+    }
+    if (!config.supabaseServiceRoleKey) {
+      console.warn('⚠️  SUPABASE_SERVICE_ROLE_KEY not set - database operations may fail');
+    }
+  }
+
   console.log('[Config] Configuration loaded successfully');
   console.log(`[Config] Environment: ${config.nodeEnv}`);
   console.log(`[Config] Auto-scan links: ${config.suslinkAutoScan}`);
