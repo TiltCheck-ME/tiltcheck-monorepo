@@ -69,17 +69,54 @@ const SCAM_KEYWORDS = [
   'suspended',
   'action-required',
 ];
+const MAX_URL_LENGTH = 2048;
+const ALLOWED_PROTOCOLS = new Set(['http:', 'https:']);
 
 export class LinkScanner {
+  private validateInputUrl(rawUrl: string): { valid: true; normalized: string } | { valid: false; reason: string } {
+    const input = String(rawUrl ?? '').trim();
+    if (!input) return { valid: false, reason: 'URL is required' };
+    if (input.length > MAX_URL_LENGTH) {
+      return { valid: false, reason: `URL exceeds maximum length (${MAX_URL_LENGTH})` };
+    }
+    let parsed: URL;
+    try {
+      parsed = new URL(input);
+    } catch {
+      return { valid: false, reason: 'Invalid or malformed URL' };
+    }
+    if (!ALLOWED_PROTOCOLS.has(parsed.protocol)) {
+      return { valid: false, reason: 'Only http(s) URLs are allowed' };
+    }
+    if (!parsed.hostname) {
+      return { valid: false, reason: 'URL must include a valid hostname' };
+    }
+    if (parsed.username || parsed.password) {
+      return { valid: false, reason: 'URLs with embedded credentials are not allowed' };
+    }
+    return { valid: true, normalized: parsed.toString() };
+  }
+
   /**
    * Main scan function
    */
   async scan(url: string): Promise<LinkScanResult> {
     const startTime = Date.now();
+    const originalInput = String(url ?? '').trim();
+    const validation = this.validateInputUrl(url);
+    if (!validation.valid) {
+      const reason = 'reason' in validation ? validation.reason : 'Invalid or malformed URL';
+      return {
+        url: originalInput,
+        riskLevel: 'critical',
+        reason,
+        scannedAt: new Date(),
+      };
+    }
 
     try {
       // Parse URL
-      const parsedUrl = new URL(url);
+      const parsedUrl = new URL(validation.normalized);
 
       // Run all checks
       const checks = {
@@ -95,19 +132,19 @@ export class LinkScanner {
       const reason = this.buildReason(checks);
 
       const result: LinkScanResult = {
-        url,
+        url: originalInput,
         riskLevel,
         reason,
         scannedAt: new Date(),
       };
 
-      console.log(`[SusLink] Scanned ${url} in ${Date.now() - startTime}ms → ${riskLevel}`);
+      console.log(`[SusLink] Scanned ${validation.normalized} in ${Date.now() - startTime}ms → ${riskLevel}`);
 
       return result;
     } catch (_error) {
       // Invalid URL
       return {
-        url,
+        url: String(url ?? ''),
         riskLevel: 'critical',
         reason: 'Invalid or malformed URL',
         scannedAt: new Date(),
@@ -234,8 +271,11 @@ export class LinkScanner {
    * Returns the chain of URLs encountered
    */
   async followRedirects(url: string, maxHops = 10): Promise<string[]> {
-    const chain: string[] = [url];
-    let currentUrl = url;
+    const validation = this.validateInputUrl(url);
+    if (!validation.valid) return [String(url ?? '')];
+
+    const chain: string[] = [validation.normalized];
+    let currentUrl = validation.normalized;
     let hops = 0;
 
     while (hops < maxHops) {
@@ -260,8 +300,9 @@ export class LinkScanner {
 
           try {
             // Validate the redirect URL
-            new URL(location);
-            currentUrl = location;
+            const resolved = new URL(location, currentUrl);
+            if (!ALLOWED_PROTOCOLS.has(resolved.protocol)) break;
+            currentUrl = resolved.toString();
             chain.push(currentUrl);
             hops++;
           } catch {
@@ -288,8 +329,11 @@ export class LinkScanner {
    * Quick risk check without full scan (faster)
    */
   quickCheck(url: string): RiskLevel {
+    const validation = this.validateInputUrl(url);
+    if (!validation.valid) return 'critical';
+
     try {
-      const parsedUrl = new URL(url);
+      const parsedUrl = new URL(validation.normalized);
 
       // Quick TLD check
       if (this.checkTLD(parsedUrl).risky) return 'high';

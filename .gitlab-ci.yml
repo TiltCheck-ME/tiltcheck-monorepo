@@ -1,5 +1,18 @@
 stages:
+  - verify
   - duo-agent
+
+deploy_script_checks:
+  stage: verify
+  image: node:20
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+    - if: '$CI_PIPELINE_SOURCE == "push"'
+  before_script:
+    - corepack enable
+    - corepack prepare pnpm@10.29.1 --activate
+  script:
+    - pnpm run ci:deploy:scripts
 
 devx_duo_autofix:
   stage: duo-agent

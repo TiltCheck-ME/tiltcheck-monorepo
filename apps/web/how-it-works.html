@@ -16,17 +16,6 @@
 <body>
   <div id="shared-nav"></div>
   <nav class="breadcrumbs"></nav>
-  <header class="site-header">
-    <nav class="container">
-      <a href="/" class="logo">TiltCheck</a>
-      <ul class="nav-links">
-        <li><a href="/">Home</a></li>
-        <li><a href="/about.html">About</a></li>
-        <li><a href="/how-it-works.html" aria-current="page">How It Works</a></li>
-        <li><a href="/contact.html">Contact</a></li>
-      </ul>
-    </nav>
-  </header>
 
   <main class="container">
     <article class="content-page">
@@ -112,15 +101,15 @@
       </section>
 
       <section>
-        <h2>6. Non-Custodial Crypto</h2>
+        <h2>6.  Crypto</h2>
         <p>
           TiltCheck <strong>never holds your crypto</strong>. All tipping and payments use direct wallet-to-wallet transfers.
         </p>
         <p>
-          When you tip someone with <code>/tip @user 0.1 SOL</code>, the transaction goes straight from your wallet to theirs. We don't touch it.
+          When you tip someone with <code>/justthetip @user 0.1 SOL</code>, the transaction goes straight from your wallet to theirs. We don't touch it.
         </p>
         <p>
-          <strong>Flat fee:</strong> 0.07 SOL per transaction (no percentages, no custody risk).
+          <strong>Flat fee:</strong> 0.0007 SOL per transaction (no percentages, no custody risk).
         </p>
       </section>
 
@@ -142,13 +131,12 @@
       <section>
         <h2>Ready to Get Started?</h2>
         <p>
-          <a href="/contact.html" class="cta-button">Add TiltCheck to Discord</a>
+          <a href="https://discord.gg/s6NNfPHxMS" class="cta-button" target="_blank" rel="noopener">Join Discord & Add Bot</a>
         </p>
       </section>
     </article>
   </main>
 
-  <div id="shared-footer"></div>
   <footer class="site-footer">
     <div class="container">
       <div class="footer-grid">
@@ -187,12 +175,6 @@
   </footer>
 </body>
 <script src="/breadcrumbs.js" defer></script>
-<script>
-  (function(){
-    const navMount = document.getElementById('shared-nav');
-    const footerMount = document.getElementById('shared-footer');
-    if (navMount) { fetch('/components/nav.html').then(r=>r.text()).then(html=>{ navMount.innerHTML = html; }).catch(()=>{}); }
-    if (footerMount) { fetch('/components/footer.html').then(r=>r.text()).then(html=>{ footerMount.innerHTML = html; }).catch(()=>{}); }
-  })();
-</script>
+<script src="/scripts/components-loader.js"></script>
+<script src="/scripts/auth.js"></script>
 </html>

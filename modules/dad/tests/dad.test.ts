@@ -149,6 +149,8 @@ describe('DA&D Module', () => {
       expect(startedGame.currentRound).toBe(1);
       expect(startedGame.rounds.length).toBe(1);
       expect(startedGame.rounds[0].blackCard).toBeDefined();
+      expect(startedGame.rounds[0].judgeUserId).toBe('user1');
+      expect(startedGame.rounds[0].phase).toBe('submitting');
 
       // Check game started event was emitted
       const events = eventRouter.getHistory();
@@ -179,19 +181,20 @@ describe('DA&D Module', () => {
   describe('Card Submission', () => {
     it('should allow players to submit cards', async () => {
       const game = await module.createGame('channel-1', ['degen-starter']);
-      const player1 = await module.joinGame(game.id, 'user1', 'Player1');
-      await module.joinGame(game.id, 'user2', 'Player2');
+      await module.joinGame(game.id, 'user1', 'Player1');
+      const player2 = await module.joinGame(game.id, 'user2', 'Player2');
       await module.startGame(game.id);
 
-      const cardToSubmit = player1.hand[0];
+      const cardToSubmit = player2.hand[0];
       
-      await module.submitCards(game.id, 'user1', [cardToSubmit.id]);
+      await module.submitCards(game.id, 'user2', [cardToSubmit.id]);
 
       const updatedGame = module.getGame(game.id);
       const round = updatedGame?.rounds[updatedGame.rounds.length - 1];
       
-      expect(round?.submissions.has('user1')).toBe(true);
-      expect(round?.submissions.get('user1')?.[0].id).toBe(cardToSubmit.id);
+      expect(round?.submissions.has('user2')).toBe(true);
+      expect(round?.submissions.get('user2')?.[0].id).toBe(cardToSubmit.id);
+      expect(round?.phase).toBe('revealing');
 
       // Check event was emitted
       const events = eventRouter.getHistory();
@@ -200,8 +203,8 @@ describe('DA&D Module', () => {
 
     it('should require correct number of cards for blanks', async () => {
       const game = await module.createGame('channel-1', ['degen-starter']);
-      const player1 = await module.joinGame(game.id, 'user1', 'Player1');
-      await module.joinGame(game.id, 'user2', 'Player2');
+      await module.joinGame(game.id, 'user1', 'Player1');
+      const player2 = await module.joinGame(game.id, 'user2', 'Player2');
       await module.startGame(game.id);
 
       const updatedGame = module.getGame(game.id);
@@ -211,55 +214,69 @@ describe('DA&D Module', () => {
       // Try to submit wrong number of cards
       if (blanks === 1) {
         await expect(
-          module.submitCards(game.id, 'user1', [player1.hand[0].id, player1.hand[1].id])
+          module.submitCards(game.id, 'user2', [player2.hand[0].id, player2.hand[1].id])
         ).rejects.toThrow('Must submit');
       }
     });
 
     it('should prevent submitting twice in same round', async () => {
       const game = await module.createGame('channel-1', ['degen-starter']);
+      await module.joinGame(game.id, 'user1', 'Player1');
+      await module.joinGame(game.id, 'user2', 'Player2');
+      await module.startGame(game.id);
+
+      const updatedGame = module.getGame(game.id);
+      const player2 = updatedGame?.players.get('user2');
+      expect(player2).toBeDefined();
+      await module.submitCards(game.id, 'user2', [player2!.hand[0].id]);
+
+      await expect(
+        module.submitCards(game.id, 'user2', [player2!.hand[1].id])
+      ).rejects.toThrow('Submission window is closed for this round');
+    });
+
+    it('should prevent judge from submitting', async () => {
+      const game = await module.createGame('channel-1', ['degen-starter']);
       const player1 = await module.joinGame(game.id, 'user1', 'Player1');
       await module.joinGame(game.id, 'user2', 'Player2');
       await module.startGame(game.id);
 
-      await module.submitCards(game.id, 'user1', [player1.hand[0].id]);
-
       await expect(
-        module.submitCards(game.id, 'user1', [player1.hand[1].id])
-      ).rejects.toThrow('Already submitted cards for this round');
+        module.submitCards(game.id, 'user1', [player1.hand[0].id])
+      ).rejects.toThrow('Judge cannot submit cards this round');
     });
   });
 
   describe('Voting', () => {
     it('should allow players to vote', async () => {
       const game = await module.createGame('channel-1', ['degen-starter']);
-      const player1 = await module.joinGame(game.id, 'user1', 'Player1');
+      await module.joinGame(game.id, 'user1', 'Player1');
       const player2 = await module.joinGame(game.id, 'user2', 'Player2');
       await module.startGame(game.id);
 
-      // Both players submit cards
-      await module.submitCards(game.id, 'user1', [player1.hand[0].id]);
+      // Non-judge player submits cards
       await module.submitCards(game.id, 'user2', [player2.hand[0].id]);
 
-      // Player 1 votes for player 2
-      await module.vote(game.id, 'user1', 'user2');
+      // Judge picks winner
+      await module.pickWinner(game.id, 'user1', 'user2');
 
       const updatedGame = module.getGame(game.id);
-      const round = updatedGame?.rounds[updatedGame.rounds.length - 1];
+      const firstRound = updatedGame?.rounds[0];
       
-      expect(round?.votes.has('user1')).toBe(true);
-      expect(round?.votes.get('user1')).toBe('user2');
+      expect(firstRound?.winner).toBe('user2');
+      expect(updatedGame?.players.get('user2')?.score).toBe(1);
     });
 
     it('should prevent voting for yourself', async () => {
       const game = await module.createGame('channel-1', ['degen-starter']);
       await module.joinGame(game.id, 'user1', 'Player1');
-      await module.joinGame(game.id, 'user2', 'Player2');
+      const player2 = await module.joinGame(game.id, 'user2', 'Player2');
       await module.startGame(game.id);
+      await module.submitCards(game.id, 'user2', [player2.hand[0].id]);
 
       await expect(
-        module.vote(game.id, 'user1', 'user1')
-      ).rejects.toThrow('Cannot vote for yourself');
+        module.pickWinner(game.id, 'user1', 'user1')
+      ).rejects.toThrow('Judge cannot pick themselves');
     });
   });
 
@@ -300,6 +317,30 @@ describe('DA&D Module', () => {
       // Get after completion
       channelGames = module.getChannelGames('channel-1');
       expect(channelGames.length).toBe(0);
+    });
+
+    it('should export and import active round state', async () => {
+      const game = await module.createGame('channel-restore', ['degen-starter']);
+      await module.joinGame(game.id, 'user1', 'Player1');
+      const player2 = await module.joinGame(game.id, 'user2', 'Player2');
+      await module.startGame(game.id);
+      await module.submitCards(game.id, 'user2', [player2.hand[0].id]);
+
+      const snapshot = module.exportGameState(game.id);
+      expect(snapshot).toBeDefined();
+
+      const restoredModule = new DADModule();
+      restoredModule.importGameState(snapshot!);
+      const restoredGame = restoredModule.getGameUnsafe(game.id);
+
+      expect(restoredGame).toBeDefined();
+      expect(restoredGame?.status).toBe('active');
+      expect(restoredGame?.players.size).toBe(2);
+      expect(restoredGame?.rounds.length).toBe(1);
+      const restoredRound = restoredGame?.rounds[0];
+      expect(restoredRound?.phase).toBe('revealing');
+      expect(restoredRound?.judgeUserId).toBe('user1');
+      expect(restoredRound?.submissions.has('user2')).toBe(true);
     });
   });
 

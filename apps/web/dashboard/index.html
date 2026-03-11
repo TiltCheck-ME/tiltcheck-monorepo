@@ -57,15 +57,20 @@
   <script>
     (async () => {
       const next = '/play/profile.html';
-      try {
-        const response = await fetch('/play/api/user', { credentials: 'include' });
-        if (response.ok) {
-          window.location.replace(next);
-          return;
+      const endpoints = ['/api/auth/me', '/auth/me', '/play/api/user', '/api/user'];
+
+      for (const endpoint of endpoints) {
+        try {
+          const response = await fetch(endpoint, { credentials: 'include' });
+          if (response.ok) {
+            window.location.replace(next);
+            return;
+          }
+        } catch (_) {
+          // Try the next endpoint.
         }
-      } catch (_) {
-        // Fall through to login redirect.
       }
+
       window.location.replace('/login.html?next=%2Fplay%2Fprofile.html');
     })();
   </script>

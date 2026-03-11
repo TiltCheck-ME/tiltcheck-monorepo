@@ -37,6 +37,7 @@ export default defineConfig({
       '@tiltcheck/poker': r('modules/poker/index.ts'),
       '@tiltcheck/walletcheck': r('modules/walletcheck/src/index.ts'),
       '@tiltcheck/esm-utils': r('packages/esm-utils/src/index.ts'),
+      '@tiltcheck/validator': r('packages/validator/src/index.ts'),
     },
   },
   test: {

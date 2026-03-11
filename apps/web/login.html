@@ -217,8 +217,7 @@
     }
   </style>
 </head>
-<body>
-  <main id="main-content">
+<body><div id="shared-nav"></div><main id="main-content">
     <div class="login-card">
       <div class="login-logo"><img src="/assets/logo/logocurrent.svg" alt="TiltCheck" width="48" height="48"></div>
       
@@ -283,8 +282,11 @@
     document.getElementById('discord-login-btn')?.addEventListener('click', () => {
       const nextPath = resolveNextPath();
       const redirect = encodeURIComponent(`${window.location.origin}${nextPath}`);
-      window.location.href = `/api/auth/discord/login?redirect=${redirect}`;
+      window.location.href = `https://tiltcheck-api-164294266634.us-central1.run.app/auth/discord/login?redirect=${redirect}`;
     });
   </script>
-</body>
+<div id="shared-footer"></div><div id="shared-footer"></div><script src="/scripts/components-loader.js"></script></body>
 </html>
+
+
+

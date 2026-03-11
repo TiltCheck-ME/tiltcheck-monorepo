@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DA&D Guild Premium + Play Anywhere | TiltCheck</title>
+  <meta name="description" content="DA&D Guild Premium plan, Play Anywhere cross-platform feature, entitlement matrix, and rollout map." />
+  <style>
+    :root {
+      --bg: #0d1021;
+      --panel: #1c2349;
+      --line: rgba(255, 255, 255, 0.18);
+      --text: #f2f5ff;
+      --muted: #b7c0e8;
+      --brand: #7c8dff;
+      --accent: #f861ff;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: Inter, "Segoe UI", sans-serif;
+      background: radial-gradient(circle at 20% 0, #222a5a 0, var(--bg) 44%), var(--bg);
+      color: var(--text);
+      padding: 1.2rem;
+    }
+    .shell {
+      max-width: 1080px;
+      margin: 0 auto;
+      display: grid;
+      gap: 1rem;
+    }
+    .panel {
+      background: linear-gradient(180deg, rgba(255,255,255,0.08), rgba(255,255,255,0.03));
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 1rem;
+    }
+    h1, h2 { text-shadow: 0 1px 0 #000, 1px 0 0 #000, -1px 0 0 #000, 0 -1px 0 #000; }
+    h1 { font-size: 1.7rem; }
+    h2 { font-size: 1.1rem; margin-bottom: 0.7rem; }
+    p { color: var(--muted); line-height: 1.5; }
+    .price-row {
+      display: flex;
+      gap: 0.7rem;
+      align-items: center;
+      margin-top: 0.7rem;
+      flex-wrap: wrap;
+    }
+    .price-tag {
+      font-size: 1.3rem;
+      font-weight: 800;
+      color: #fff;
+      background: linear-gradient(180deg, var(--accent), #cd43d2);
+      padding: 0.3rem 0.6rem;
+      border-radius: 10px;
+      border: 1px solid rgba(255,255,255,0.35);
+    }
+    button, .link-btn {
+      border: 1px solid rgba(255,255,255,0.28);
+      border-radius: 10px;
+      background: linear-gradient(180deg, var(--brand), #5568e5);
+      color: #fff;
+      font-weight: 700;
+      padding: 0.48rem 0.74rem;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      overflow: hidden;
+      border-radius: 12px;
+      font-size: 0.9rem;
+    }
+    th, td {
+      border: 1px solid var(--line);
+      padding: 0.58rem;
+      text-align: left;
+      vertical-align: top;
+    }
+    th { background: rgba(124, 141, 255, 0.15); }
+    .ok { color: #9af2bf; font-weight: 700; }
+    .no { color: #ffabb7; font-weight: 700; }
+    ul { margin-left: 1rem; color: var(--muted); }
+    li { margin: 0.24rem 0; }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <section class="panel">
+      <h1>DA&D Guild Premium + Play Anywhere</h1>
+      <p>Monetization model: B2B2C server subscription + creator marketplace revshare + sponsored event nights + premium cross-platform access.</p>
+      <div class="price-row">
+        <span class="price-tag">$4.99 / server / month</span>
+        <button id="upgrade-btn" type="button">Upgrade This Server</button>
+        <a class="link-btn" href="/tools/daad.html?mode=discord">Back to Lobby</a>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Entitlement Matrix</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Capability</th>
+            <th>Free</th>
+            <th>Guild Premium SKU</th>
+            <th>Entitlement Key</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Private branded lobbies</td>
+            <td class="no">No</td>
+            <td class="ok">Yes</td>
+            <td><code>guild-premium-monthly</code></td>
+          </tr>
+          <tr>
+            <td>Larger room limits</td>
+            <td>Up to 10</td>
+            <td class="ok">Up to 30</td>
+            <td><code>guild-premium-monthly</code></td>
+          </tr>
+          <tr>
+            <td>Custom card packs</td>
+            <td class="no">Read-only defaults</td>
+            <td class="ok">Create + publish</td>
+            <td><code>guild-premium-monthly</code></td>
+          </tr>
+          <tr>
+            <td>Moderation filters</td>
+            <td>Basic</td>
+            <td class="ok">Advanced policy controls</td>
+            <td><code>guild-premium-monthly</code></td>
+          </tr>
+          <tr>
+            <td>Guild analytics panel</td>
+            <td class="no">No</td>
+            <td class="ok">Yes</td>
+            <td><code>guild-premium-monthly</code></td>
+          </tr>
+          <tr>
+            <td>Play Anywhere (Arena + Discord Activity + Bot continuity)</td>
+            <td class="no">No</td>
+            <td class="ok">Yes</td>
+            <td><code>guild-premium-monthly</code></td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="panel">
+      <h2>Current Route and Component Map (v1 sprint)</h2>
+      <ul>
+        <li><code>/tools/daad.html</code> - activity lobby UI, entitlement-aware upgrade button.</li>
+        <li><code>/tools/daad.html?mode=discord</code> - premium entitlement check in Discord Activity runtime.</li>
+        <li><code>/tools/daad-pricing.html</code> - pricing and entitlement source of truth.</li>
+        <li><code>apps/game-arena/public/arena.html</code> - one-click server upgrade entry from arena admin/lobby header.</li>
+        <li><code>apps/api/src/routes/auth.ts</code> - activity auth token exchange for SDK auth.</li>
+        <li><code>modules/dad/src/module.ts</code> - authoritative gameplay state machine shared across surfaces.</li>
+      </ul>
+    </section>
+
+    <section class="panel">
+      <h2>Revenue Extensions</h2>
+      <ul>
+        <li>Creator marketplace: 20-30% platform fee on paid pack sales.</li>
+        <li>Sponsored nights: fixed fee + affiliate rev share via tagged sponsored packs/events.</li>
+        <li>Discord Activity entitlements are first-class gate for premium features in-client.</li>
+        <li>Play Anywhere raises retention by letting paid guilds continue sessions across web + activity + bot.</li>
+      </ul>
+    </section>
+  </main>
+
+  <script type="module">
+    const params = new URLSearchParams(window.location.search);
+    const isDiscordMode = params.get("source") === "discord-activity";
+    const upgradeButton = document.getElementById("upgrade-btn");
+    const clientId = "1445916179163250860";
+
+    upgradeButton.addEventListener("click", async () => {
+      if (isDiscordMode) {
+        try {
+          const sdkModule = await import("https://esm.sh/@discord/embedded-app-sdk@2.4.0");
+          const sdk = new sdkModule.DiscordSDK(clientId);
+          await sdk.ready();
+          await sdk.commands.openExternalLink({
+            url: "https://discord.com/developers/applications"
+          });
+          return;
+        } catch {
+          // Fall back to browser checkout route.
+        }
+      }
+
+      window.location.href = "https://tiltcheck.me/tools/daad.html?mode=discord";
+    });
+  </script>
+</body>
+</html>

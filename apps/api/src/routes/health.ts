@@ -11,6 +11,7 @@
  */
 
 import { Router } from 'express';
+import { query } from '@tiltcheck/db';
 
 const router = Router();
 
@@ -29,25 +30,33 @@ router.get('/', (_req, res) => {
 
 /**
  * GET /health/ready
- * Readiness check (for Kubernetes)
+ * Readiness check
  */
-router.get('/ready', (_req, res) => {
+router.get('/ready', async (_req, res) => {
+  let dbConnected = false;
+  try {
+    const result = await query('SELECT 1 as connected');
+    dbConnected = result.length > 0;
+  } catch (err) {
+    console.error('[Health] Database connection failed:', err);
+  }
+
   const checks = {
     databaseConfigured: Boolean(process.env.NEON_DATABASE_URL),
+    databaseConnected: dbConnected,
     jwtConfigured: Boolean(process.env.JWT_SECRET),
-    redisConfigured: process.env.REDIS_URL ? true : null,
+    notionConfigured: Boolean(process.env.NOTION_INTEGRATION_TOKEN),
   };
-  
-  const requiredChecks = [checks.databaseConfigured, checks.jwtConfigured];
+
+  const requiredChecks = [checks.databaseConnected, checks.jwtConfigured];
   const allHealthy = requiredChecks.every(Boolean);
-  
+
   res.status(allHealthy ? 200 : 503).json({
     status: allHealthy ? 'ready' : 'not ready',
     checks,
     timestamp: new Date().toISOString(),
   });
 });
-
 /**
  * GET /health/live
  * Liveness check (for Kubernetes)

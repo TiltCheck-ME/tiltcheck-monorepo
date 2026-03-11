@@ -16,17 +16,6 @@
 <body>
   <div id="shared-nav"></div>
   <nav class="breadcrumbs"></nav>
-  <header class="site-header">
-    <nav class="container">
-      <a href="/" class="logo">TiltCheck</a>
-      <ul class="nav-links">
-        <li><a href="/">Home</a></li>
-        <li><a href="/about.html">About</a></li>
-        <li><a href="/how-it-works.html">How It Works</a></li>
-        <li><a href="/contact.html">Contact</a></li>
-      </ul>
-    </nav>
-  </header>
 
   <main class="container">
     <article class="content-page legal-doc">
@@ -52,7 +41,7 @@
           <li>Tilt detection and behavioral analysis in Discord</li>
           <li>Casino trust scoring and scam warnings</li>
           <li>URL scanning and phishing protection</li>
-          <li>Non-custodial crypto tipping (Solana)</li>
+          <li> crypto tipping (Solana)</li>
         </ul>
         <p>
           <strong>TiltCheck is NOT:</strong>
@@ -108,10 +97,10 @@
       <section>
         <h2>6. Tipping & Payments</h2>
         <p>
-          TiltCheck uses <strong>non-custodial Solana transactions</strong>. Key facts:
+          TiltCheck uses <strong> Solana transactions</strong>. Key facts:
         </p>
         <ul>
-          <li><strong>Flat fee:</strong> 0.07 SOL per transaction (subject to change)</li>
+          <li><strong>Flat fee:</strong> 0.0007 SOL per transaction (subject to change)</li>
           <li><strong>No refunds:</strong> Blockchain transactions are irreversible</li>
           <li><strong>You control your wallet:</strong> We never hold your crypto</li>
           <li><strong>Network fees:</strong> Solana gas fees are separate and paid by you</li>
@@ -288,15 +277,8 @@
       </div>
     </div>
   </footer>
-  <div id="shared-footer"></div>
-  <script>
-    (function(){
-      const navMount = document.getElementById('shared-nav');
-      const footerMount = document.getElementById('shared-footer');
-      if (navMount) { fetch('/components/nav.html').then(r=>r.text()).then(html=>{ navMount.innerHTML = html; }).catch(()=>{}); }
-      if (footerMount) { fetch('/components/footer.html').then(r=>r.text()).then(html=>{ footerMount.innerHTML = html; }).catch(()=>{}); }
-    })();
-  </script>
+  <script src="/scripts/components-loader.js"></script>
+  <script src="/scripts/auth.js"></script>
 </body>
 <script src="/breadcrumbs.js" defer></script>
 </html>
