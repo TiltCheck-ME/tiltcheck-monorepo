@@ -11,7 +11,7 @@ let currentUser = null;
 let userToken = localStorage.getItem('tiltcheck-token');
 
 // Initialize Magic SDK
-const magic = new Magic('pk_live_7CCBBE6E6EF6E6E6', { // Replace with actual key in .env if possible
+const magic = new Magic('pk_live_7CCBBE6E6EF6E6E6', {
     extensions: { 
         solana: new SolanaExtension({ 
             rpcUrl: 'https://api.mainnet-beta.solana.com' 
@@ -21,19 +21,18 @@ const magic = new Magic('pk_live_7CCBBE6E6EF6E6E6', { // Replace with actual key
 
 // === Initialization ===
 window.addEventListener('DOMContentLoaded', async () => {
-    // Check for token in URL (from OAuth callback)
     const urlParams = new URLSearchParams(window.location.search);
     const urlToken = urlParams.get('token');
     
     if (urlToken) {
         userToken = urlToken;
         localStorage.setItem('tiltcheck-token', userToken);
-        // Clean URL
         window.history.replaceState({}, document.title, window.location.pathname);
     }
 
     await checkAuth();
     setupTabListeners();
+    setupNlpListener();
 });
 
 async function checkAuth() {
@@ -69,7 +68,6 @@ function showDashboard() {
     document.getElementById('not-logged-in').style.display = 'none';
     document.getElementById('dashboard').style.display = 'block';
     
-    // Set basic user info
     document.getElementById('user-name').textContent = currentUser.username;
     if (currentUser.avatar) {
         document.getElementById('user-avatar').src = currentUser.avatar.startsWith('http') 
@@ -83,11 +81,8 @@ function setupTabListeners() {
     document.querySelectorAll('.tab').forEach(tab => {
         tab.addEventListener('click', () => {
             const tabName = tab.dataset.tab;
-            
-            // Update UI
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
             document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-            
             tab.classList.add('active');
             document.getElementById(`${tabName}-tab`).classList.add('active');
         });
@@ -99,7 +94,7 @@ async function loadAllData() {
     await Promise.all([
         loadUserProfile(),
         loadTrustMetrics(),
-        loadWallets(),
+        loadBonuses(),
         loadActivity()
     ]);
 }
@@ -109,36 +104,23 @@ async function loadUserProfile() {
         const response = await apiRequest(`/api/user/${currentUser.discordId}`);
         const user = await response.json();
 
-        // Stats
-        document.getElementById('totalTips').textContent = user.totalTips || 0;
-        document.getElementById('totalValue').textContent = (user.totalTipsValue || 0).toFixed(2);
-        document.getElementById('casinosSeen').textContent = user.casinosSeen || 0;
+        // Distribution Stats
+        document.getElementById('totalJuice').textContent = (user.analytics?.totalJuice || 0).toFixed(2) + ' SOL';
+        document.getElementById('totalTipsCaught').textContent = (user.analytics?.totalTipsCaught || 0).toFixed(2) + ' SOL';
+        document.getElementById('eventCount').textContent = user.analytics?.eventCount || 0;
 
-        // Analytics Tab
-        document.getElementById('wageredAmount').textContent = (user.analytics?.wagered || 0).toFixed(2) + ' SOL';
-        document.getElementById('depositedAmount').textContent = (user.analytics?.deposited || 0).toFixed(2) + ' SOL';
-        
-        const pl = user.analytics?.profit || 0;
-        const plElem = document.getElementById('profitLoss');
-        plElem.textContent = (pl >= 0 ? '+' : '') + pl.toFixed(2) + ' SOL';
-        plElem.style.color = pl >= 0 ? 'var(--color-primary)' : '#ff4444';
-
-        // Wallets Display
-        if (user.degenIdentity?.magic_address) {
-            document.getElementById('magicWalletDisplay').textContent = user.degenIdentity.magic_address;
-        }
+        // Wallet
         if (user.degenIdentity?.primary_external_address) {
             document.getElementById('externalWalletDisplay').textContent = user.degenIdentity.primary_external_address;
         }
 
-        // NFT Status
-        updateNftStatus(user.degenIdentity);
-
         // Settings
         if (user.preferences) {
-            document.getElementById('emailNotifications').checked = user.preferences.emailNotifications;
-            document.getElementById('tiltWarnings').checked = user.preferences.tiltWarnings;
-            document.getElementById('trustUpdates').checked = user.preferences.trustUpdates;
+            document.getElementById('notifyBonus').checked = user.preferences.notifyBonus ?? true;
+            document.getElementById('notifyJuice').checked = user.preferences.notifyJuice ?? true;
+            document.getElementById('anonTipping').checked = user.preferences.anonTipping ?? false;
+            document.getElementById('showAnalytics').checked = user.preferences.showAnalytics ?? true;
+            document.getElementById('baseCurrency').value = user.preferences.baseCurrency || 'SOL';
         }
 
     } catch (err) {
@@ -154,183 +136,105 @@ async function loadTrustMetrics() {
         document.getElementById('trustScore').textContent = (trust.trustScore || 0).toFixed(1);
         document.getElementById('tiltLevel').textContent = trust.tiltLevel || 0;
         document.getElementById('consistency').textContent = (trust.factors?.consistency || 0) + '%';
-        document.getElementById('community').textContent = (trust.factors?.community || 0) + '%';
     } catch (err) {
         console.error('Failed to load trust metrics:', err);
     }
 }
 
-async function loadWallets() {
-    // Currently using DegenIdentity for wallets, but can expand to a list
-    const container = document.getElementById('wallets-list');
+// === Bonus Tracker Logic ===
+async function loadBonuses() {
+    const defaultBonuses = [
+        { name: 'Stake Daily', hours: 24, lastClaimed: Date.now() - 1000 * 60 * 60 * 20, icon: '🥩' },
+        { name: 'Shuffle Faucet', hours: 12, lastClaimed: Date.now() - 1000 * 60 * 60 * 13, icon: '🔀' },
+        { name: 'Rollbit Reload', hours: 1, lastClaimed: Date.now() - 1000 * 60 * 30, icon: '🎲' }
+    ];
+
+    const container = document.getElementById('bonusGrid');
     container.innerHTML = '';
 
-    if (currentUser.degenIdentity?.primary_external_address) {
-        container.innerHTML += createWalletCard('External (Phantom/Trust)', currentUser.degenIdentity.primary_external_address, true);
-    }
-    if (currentUser.degenIdentity?.magic_address) {
-        container.innerHTML += createWalletCard('TiltCheck Managed (Magic)', currentUser.degenIdentity.magic_address, !currentUser.degenIdentity.primary_external_address);
-    }
+    defaultBonuses.forEach(bonus => {
+        const card = document.createElement('div');
+        card.className = 'bonus-card';
+        card.onclick = () => claimBonus(bonus.name);
+        
+        const remaining = (bonus.lastClaimed + (bonus.hours * 3600000)) - Date.now();
+        const isReady = remaining <= 0;
 
-    if (!container.innerHTML) {
-        container.innerHTML = '<p style="color: var(--text-muted);">No wallets linked yet.</p>';
-    }
-}
-
-function createWalletCard(provider, address, isPrimary) {
-    return `
-        <div class="wallet-card">
-            <div class="wallet-info">
-                <span style="font-weight: bold; font-size: 0.9rem;">${provider} ${isPrimary ? '<span class="badge-primary">PRIMARY</span>' : ''}</span>
-                <span class="wallet-address">${address}</span>
+        card.innerHTML = `
+            <div class="bonus-logo">${bonus.icon}</div>
+            <div class="bonus-name">${bonus.name}</div>
+            <div class="bonus-timer ${isReady ? 'ready' : ''}" data-remaining="${remaining}" data-interval="${bonus.hours}">
+                ${isReady ? 'READY 🧃' : formatTime(remaining)}
             </div>
-            <button class="btn btn-secondary" style="font-size: 0.7rem; padding: 0.4rem 0.8rem;">Copy</button>
-        </div>
-    `;
+            <div class="bonus-status">${isReady ? 'Click to start timer' : 'Next claim available'}</div>
+        `;
+        container.appendChild(card);
+    });
+
+    startGlobalTimer();
 }
 
+function formatTime(ms) {
+    const hours = Math.floor(ms / 3600000);
+    const mins = Math.floor((ms % 3600000) / 60000);
+    const secs = Math.floor((ms % 60000) / 1000);
+    return `${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+}
+
+function startGlobalTimer() {
+    if (window.bonusInterval) clearInterval(window.bonusInterval);
+    window.bonusInterval = setInterval(() => {
+        document.querySelectorAll('.bonus-timer').forEach(timer => {
+            if (timer.classList.contains('ready')) return;
+            let rem = parseInt(timer.dataset.remaining) - 1000;
+            timer.dataset.remaining = rem;
+            if (rem <= 0) {
+                timer.classList.add('ready');
+                timer.textContent = 'READY 🧃';
+            } else {
+                timer.textContent = formatTime(rem);
+            }
+        });
+    }, 1000);
+}
+
+async function claimBonus(name) {
+    alert(`Starting ${name} timer... Redirecting to casino.`);
+    // In real app, this would hit the API to save lastClaimedAt
+    location.reload(); 
+}
+
+// === Activity Feed ===
 async function loadActivity() {
     try {
         const response = await apiRequest(`/api/user/${currentUser.discordId}/activity?limit=10`);
         const data = await response.json();
-
         const items = data.activities || [];
         const html = items.map(act => `
             <div class="activity-item">
                 <div>
-                    <span style="font-weight: 600;">${formatActivityType(act.type)}</span>
+                    <span style="font-weight: 600;">${act.type === 'juice' ? '🧃 Juice Caught' : '💸 Tip Caught'}</span>
                     <p style="font-size: 0.85rem; color: var(--text-muted);">${act.description || ''}</p>
                 </div>
                 <span class="activity-time">${new Date(act.timestamp).toLocaleDateString()}</span>
             </div>
         `).join('');
 
-        document.getElementById('overviewActivity').innerHTML = html || '<p>No recent activity</p>';
-        document.getElementById('fullActivityFeed').innerHTML = html || '<p>No activity history</p>';
+        document.getElementById('overviewActivity').innerHTML = html || '<p style="color: var(--text-muted);">No recent juice caught.</p>';
+        document.getElementById('fullActivityFeed').innerHTML = html || '<p style="color: var(--text-muted);">No activity history.</p>';
     } catch (err) {
         console.error('Failed to load activity:', err);
-    }
-}
-
-function formatActivityType(type) {
-    const map = { 'tip': '💸 Tip Sent', 'scan': '🔍 Link Scanned', 'play': '🎮 Game Played', 'mint': '🛡️ NFT Minted' };
-    return map[type] || '📌 ' + type;
-}
-
-// === Wallet Linking ===
-async function linkMagicWallet() {
-    const email = prompt('Enter your email for Magic link:');
-    if (!email) return;
-
-    try {
-        const didToken = await magic.auth.loginWithEmailOTP({ email });
-        const res = await apiRequest('/api/auth/magic/link', {
-            method: 'POST',
-            body: JSON.stringify({ didToken })
-        });
-        
-        if (res.ok) {
-            alert('Magic wallet linked successfully!');
-            location.reload();
-        }
-    } catch (err) {
-        alert('Magic link failed: ' + err.message);
-    }
-}
-
-async function linkExternalWallet() {
-    if (!window.solana) {
-        alert('Please install a Solana wallet extension (Phantom, Trust, or Solflare)');
-        return;
-    }
-
-    try {
-        const resp = await window.solana.connect();
-        const address = resp.publicKey.toString();
-        const message = `Link TiltCheck Identity to: ${address}`;
-        const encodedMessage = new TextEncoder().encode(message);
-        const signedMessage = await window.solana.signMessage(encodedMessage, "utf8");
-
-        const res = await apiRequest('/api/auth/wallet/link', {
-            method: 'POST',
-            body: JSON.stringify({
-                address,
-                signature: btoa(String.fromCharCode(...signedMessage.signature)),
-                message
-            })
-        });
-
-        if (res.ok) {
-            alert('External wallet linked!');
-            location.reload();
-        }
-    } catch (err) {
-        alert('Wallet linking failed: ' + err.message);
-    }
-}
-
-// === Identity NFT ===
-function updateNftStatus(identity) {
-    const status = document.getElementById('nftStatus');
-    const mintBtn = document.getElementById('mintNowBtn');
-    const savingsSec = document.getElementById('savingsSection');
-
-    if (identity?.tos_nft_paid) {
-        status.textContent = '🛡️ Identity Verified (NFT Minted)';
-        status.style.color = 'var(--color-primary)';
-        mintBtn.style.display = 'none';
-        savingsSec.style.display = 'none';
-    } else {
-        status.textContent = '❌ Identity Not Verified';
-        status.style.color = '#ff4444';
-        mintBtn.style.display = 'block';
-        
-        const savings = identity?.nft_savings_sol || 0;
-        if (savings > 0) {
-            savingsSec.style.display = 'block';
-            const pct = Math.min(100, (savings / 0.05) * 100);
-            document.getElementById('savingsProgress').style.width = pct + '%';
-            document.getElementById('savingsAmount').textContent = `${savings.toFixed(4)} / 0.05 SOL`;
-            if (savings >= 0.05) mintBtn.textContent = 'Claim Identity NFT (Savings Ready!)';
-        }
-    }
-}
-
-async function startMinting() {
-    try {
-        const res = await apiRequest('/api/nft/checkout', { method: 'POST' });
-        const data = await res.json();
-
-        const modal = document.getElementById('payment-modal');
-        modal.style.display = 'flex';
-        document.getElementById('solanaPayLink').textContent = data.url;
-
-        // Start polling
-        const interval = setInterval(async () => {
-            const vRes = await apiRequest('/api/nft/verify', {
-                method: 'POST',
-                body: JSON.stringify({ reference: data.reference })
-            });
-            const vData = await vRes.json();
-            if (vData.success) {
-                clearInterval(interval);
-                document.getElementById('paymentStatus').textContent = '✅ Payment Verified!';
-                setTimeout(() => location.reload(), 2000);
-            }
-        }, 5000);
-    } catch (err) {
-        alert('Checkout failed: ' + err.message);
     }
 }
 
 // === Settings ===
 async function savePreferences() {
     const preferences = {
-        emailNotifications: document.getElementById('emailNotifications').checked,
-        tiltWarnings: document.getElementById('tiltWarnings').checked,
-        trustUpdates: document.getElementById('trustUpdates').checked,
-        publicProfile: document.getElementById('publicProfile').checked,
-        showAnalytics: document.getElementById('showAnalytics').checked
+        notifyBonus: document.getElementById('notifyBonus').checked,
+        notifyJuice: document.getElementById('notifyJuice').checked,
+        anonTipping: document.getElementById('anonTipping').checked,
+        showAnalytics: document.getElementById('showAnalytics').checked,
+        baseCurrency: document.getElementById('baseCurrency').value
     };
 
     try {
@@ -338,10 +242,45 @@ async function savePreferences() {
             method: 'PUT',
             body: JSON.stringify({ preferences })
         });
-
-        if (res.ok) alert('Preferences updated!');
+        if (res.ok) alert('Degen Settings Synced to Discord! ✅');
     } catch (err) {
-        alert('Failed to save preferences');
+        alert('Sync failed.');
+    }
+}
+
+// === NLP Logic ===
+function setupNlpListener() {
+    const input = document.getElementById('nlpInput');
+    input.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+            const query = input.value;
+            alert(`Agent processing: "${query}"\nThis will generate a custom data view in the next update.`);
+            input.value = '';
+        }
+    });
+}
+
+function runQuickQuery(q) {
+    document.getElementById('nlpInput').value = q;
+    document.getElementById('nlpInput').focus();
+}
+
+// === Wallet Linking ===
+async function linkMagicWallet() {
+    const email = prompt('Enter your email for Magic link:');
+    if (!email) return;
+    try {
+        const didToken = await magic.auth.loginWithEmailOTP({ email });
+        const res = await apiRequest('/api/auth/magic/link', {
+            method: 'POST',
+            body: JSON.stringify({ didToken })
+        });
+        if (res.ok) {
+            alert('Magic wallet linked! Payouts will now go here.');
+            location.reload();
+        }
+    } catch (err) {
+        alert('Magic link failed: ' + err.message);
     }
 }
 
