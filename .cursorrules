@@ -1,0 +1,8 @@
+# TiltCheck Ecosystem Laws - 2026
+
+1. NO EMOJIS. All code, comments, and documentation must be blunt, technical, and free of visual clutter.
+2. FILE HEADERS. Every new or modified file MUST include the 2026 Copyright and Date stamp:
+   "© 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: [YYYY-MM-DD]"
+3. UI FOOTER. Every user-facing interface must include the text: "Made for Degens. By Degens."
+4. ATOMIC DOCS. Documentation updates (READMEs, API docs) must be included in the same commit as the code changes.
+5. DEGEN TONE. Keep communication professional but direct. No fluff. No apologies.

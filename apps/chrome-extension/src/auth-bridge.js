@@ -5,13 +5,13 @@
 
   const params = new URLSearchParams(window.location.search);
   const authUrl = params.get('authUrl');
-  const allowedOrigins = new Set(['https://api.tiltcheck.me', 'http://localhost', 'http://127.0.0.1']);
+  const allowedOrigins = new Set(['https://tiltcheck-api-164294266634.us-central1.run.app', 'http://localhost', 'http://127.0.0.1']);
   const apiOrigin = (() => {
     try {
-      const origin = new URL(authUrl || 'https://api.tiltcheck.me').origin;
-      return allowedOrigins.has(origin) ? origin : 'https://api.tiltcheck.me';
+      const origin = new URL(authUrl || 'https://tiltcheck-api-164294266634.us-central1.run.app').origin;
+      return allowedOrigins.has(origin) ? origin : 'https://tiltcheck-api-164294266634.us-central1.run.app';
     } catch {
-      return 'https://api.tiltcheck.me';
+      return 'https://tiltcheck-api-164294266634.us-central1.run.app';
     }
   })();
 
@@ -82,3 +82,4 @@
 
   openAuthPopup();
 })();
+

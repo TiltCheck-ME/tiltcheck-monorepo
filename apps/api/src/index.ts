@@ -66,6 +66,10 @@ app.use(cors({
       'https://dashboard.tiltcheck.me',
       'https://api.tiltcheck.me',
       'https://bot.tiltcheck.me',
+      'https://tiltcheck-web-164294266634.us-central1.run.app',
+      'https://tiltcheck-api-164294266634.us-central1.run.app',
+      'https://tiltcheck-bot-164294266634.us-central1.run.app',
+      'https://tiltcheck-user-dashboard-164294266634.us-central1.run.app',
     ];
 
     // Allow requests with no origin (like mobile apps or curl)
