@@ -22,7 +22,9 @@ const server = createServer(app);
 const wss = new WebSocketServer({ server });
 
 const PORT = process.env.CONTROL_ROOM_PORT || process.env.PORT || 3001;
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'admin123';
+const isProd = process.env.NODE_ENV === 'production';
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || (isProd ? (() => { throw new Error('ADMIN_PASSWORD is required in production'); })() : 'admin123');
+const SESSION_SECRET = process.env.SESSION_SECRET || (isProd ? (() => { throw new Error('SESSION_SECRET is required in production'); })() : 'tiltcheck-control-room-secret');
 
 // Known containers in the TiltCheck stack
 const KNOWN_CONTAINERS = [
@@ -42,7 +44,7 @@ const KNOWN_CONTAINERS = [
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(session({
-  secret: process.env.SESSION_SECRET || 'tiltcheck-control-room-secret',
+  secret: SESSION_SECRET,
   resave: false,
   saveUninitialized: false,
   cookie: {

@@ -25,7 +25,7 @@ spec:
       - image: us-central1-docker.pkg.dev/tiltchcek/tiltcheck/game-arena:latest
         ports:
         - name: http1
-          containerPort: 8080
+          containerPort: 3010
         resources:
           limits:
             cpu: 2000m
@@ -46,17 +46,22 @@ spec:
         - name: SUPABASE_URL
           valueFrom:
             secretKeyRef:
-              name: TILT_SUPABASE_URL
+              name: SUPABASE_URL
               key: latest
         - name: SUPABASE_ANON_KEY
           valueFrom:
             secretKeyRef:
-              name: TILT_SUPABASE_ANON_KEY
+              name: SUPABASE_ANON_KEY
+              key: latest
+        - name: SESSION_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: SESSION_SECRET
               key: latest
         startupProbe:
           timeoutSeconds: 240
           periodSeconds: 240
           failureThreshold: 1
           tcpSocket:
-            port: 8080
+            port: 3010
 

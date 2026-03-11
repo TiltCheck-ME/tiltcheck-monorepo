@@ -197,10 +197,10 @@ class TiltCheckAuth {
     menuItems.style.cssText = 'padding: 8px 0;';
     
     const items = [
-      { label: 'Game Arena', href: '/play/arena' },
-      { label: 'Profile', href: '/play/profile.html' },
+      { label: 'Game Arena', href: 'https://arena.tiltcheck.me' },
+      { label: 'Profile', href: 'https://dashboard.tiltcheck.me' },
       { label: 'Settings', href: '/settings.html' },
-      { label: 'Dashboard', href: '/play/profile.html' },
+      { label: 'Dashboard', href: 'https://dashboard.tiltcheck.me' },
       { label: 'Logout', href: '#', id: 'logout-link' }
     ];
 

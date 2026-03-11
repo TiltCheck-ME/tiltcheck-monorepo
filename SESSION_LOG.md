@@ -1,51 +1,42 @@
-# SESSION_LOG - 2026-03-10 - Save Point: "Hackathon Prep"
+# SESSION_LOG - 2026-03-11 - Save Point: "Core Infrastructure Complete"
 
-## Current Status: 100% Operational (Readiness)
-Ecosystem fully audited, trimmed, and prepared for 100% live deployment.
+## Current Status: 100% Live (Ecosystem Migrated)
+All core services and shadow services successfully migrated to Cloud Run.
 
-### Prepared Services (Deployment Ready)
-- tiltcheck-api: Central gateway.
-- tiltcheck-web: Static landing page.
-- tiltcheck-dashboard: Main user/admin frontend.
-- tiltcheck-bot: Discord community bot.
-- tiltcheck-dad-bot: Community variant bot.
-- tiltcheck-user-dashboard: Authenticated profile management.
-- tiltcheck-control-room: Admin management panel.
-- tiltcheck-game-arena: Multiplayer Socket.io server.
-- tiltcheck-trust-rollup: Trust Engine aggregator.
+### Live Services (Cloud Run)
+- **tiltcheck-web**: Static landing page (https://tiltcheck.me)
+- **tiltcheck-api**: Central gateway (https://api.tiltcheck.me)
+- **tiltcheck-bot**: Consolidated Discord bot (https://bot.tiltcheck.me) - Always-on CPU.
+- **tiltcheck-user-dashboard**: Profile management (https://dashboard.tiltcheck.me)
+- **tiltcheck-control-room**: Admin management (https://tiltcheck-control-room-164294266634.us-central1.run.app)
+- **tiltcheck-game-arena**: Multiplayer Socket.io (https://tiltcheck-game-arena-164294266634.us-central1.run.app)
+- **tiltcheck-trust-rollup**: Trust Engine aggregator (https://tiltcheck-trust-rollup-164294266634.us-central1.run.app)
 
-### Missing Parts
-- None. All functional code is either live or prepared for deployment.
+### Verified Integrations
+- **OAuth Sync**: Discord OAuth functional across Extension, Web, and Dashboard.
+- **Chrome Extension**: Rebuilt and pointed to production API custom domain.
+- **Custom Domains**: Mapped production subdomains via `gcloud beta run domain-mappings`.
+- **Public Access**: Fixed 403 errors by granting `roles/run.invoker` to `allUsers` for Game Arena and Trust Rollup.
 
-## Brand Rules (The Degen Laws)
+## Recent Fixes
+- **Shadow Service Wave 3 Cleanup**: Successfully deleted legacy `tiltcheck-dashboard` and failing `tiltcheck-command-deployer` from Cloud Run.
+- **Service Verification**: Confirmed `tiltcheck-dad-bot` is no longer in the Cloud Run service list (merged or deleted).
+- **Custom Domain Mappings**: Initiated mappings for `arena.tiltcheck.me`, `rollup.tiltcheck.me`, `control.tiltcheck.me`, and `comic.tiltcheck.me` (DNS setup required).
+- **Secret Management Audit**: Completed a comprehensive audit of all projects. Removed hardcoded fallbacks for `JWT_SECRET`, `ADMIN_PASSWORD`, `SESSION_SECRET`, and Discord credentials across `api`, `user-dashboard`, and `control-room`.
+- **Security Hardening**: Implemented production-only checks that throw errors if critical secrets are missing, and disabled sensitive console logging in `control-room`.
+- **Port Alignment**: Standardized internal container ports (3001, 3010, 8083) to match Cloud Run expected config.
+
+## 2026-03-11 Audit - Infrastructure Finalization
+- **Total Workspace Services**: 7 core services + 1 utility service (`tiltcheck-comic-generator`) now live on GCP.
+- **Deployment Manifests**: All services now have verified `*-deploy.yaml` manifests in root.
+- **Brand Policy Enforcement**: Updated `governance-checks.yml` to mandate `SESSION_LOG.md` updates in PRs.
+
+## Remaining Items
+- **Networking**: DNS configuration for new custom domains.
+- **Maintenance**: Periodic rotation of all production secrets.
+
+### Brand Rules (The Degen Laws)
 - Tone: Blunt, Direct, Skeptical.
 - Footer: "Made for Degens. By Degens." on all UIs.
 - Format: Mandatory 2026 Copyright headers. No emojis.
-
-## Recent Fixes
-- Monorepo Audit: Purged all shadow services. apps/reverse-proxy deleted.
-- 1:1 Cloud Mapping: Every folder in apps/ is now either live or mapped via a root deployment YAML.
-- Regulatory Scout: Implementation complete. Service live in services/regulatory-scout with SusLink integration.
-- Standardized monorepo to moduleResolution: "bundler".
-- Fixed environment validation crashes in apps/dashboard during build.
-- Updated NEON_DATABASE_URL to use new REST API endpoint.
-- Resolved merge conflicts in chrome-extension sidebar.
-- Scaffolding built for @tiltcheck/comic-generator using Vertex AI Imagen.
-
-## Trimmed the Fat - 2026-03-10 Audit
-Surgically removed ecosystem dead weight via deep Knip audit.
-
-### Completed Actions
-- **110+ Unused Files Deleted**: Wiped legacy scripts, entire /scripts directory, and dormant app-specific files (Wave 1-3).
-- **Stale Logs Purged**: Cleared all root build_output*.txt and *.log files.
-- **Redundant Artifacts Cleaned**: Scrubbed src/ directories of compiled .js/.d.ts debris.
-- **Dependency Cleanup (Wave 4)**: Uninstalled 12+ unused packages including ci-test, commonjs, ollama (root), openai (bot), and better-auth (dashboard).
-
-### Remaining Items
-- **60 Orphaned Exports**: Identified unused functions in bot/api. Code remains for now to avoid logic breakage.
-- **Shadow Service Resolution**: apps/discord-bot and apps/user-dashboard are functional but offline.
-
-### Shadow Service Audit
-- Identified 6 services in apps/ with Dockerfiles but no live Cloud Run presence.
-- **discord-bot** is the biggest gap (65 functional files, offline).
-- **reverse-proxy** is dead (no src). Candidate for deletion.
+- **Log Enforcement**: Every PR must include an update to `SESSION_LOG.md`. Missing logs must be auto-generated based on commit history and the PR refreshed with a review request.

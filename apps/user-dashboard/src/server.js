@@ -23,11 +23,14 @@ const users = new Map();
 const wallets = new Map();
 const transactions = new Map();
 
+const isProd = process.env.NODE_ENV === 'production';
+const SESSION_SECRET = process.env.SESSION_SECRET || (isProd ? (() => { throw new Error('SESSION_SECRET is required in production'); })() : 'tiltcheck-user-dashboard-secret');
+
 // Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(session({
-  secret: process.env.SESSION_SECRET || 'tiltcheck-user-dashboard-secret',
+  secret: SESSION_SECRET,
   resave: false,
   saveUninitialized: false,
   cookie: { secure: false } // Set true in production with HTTPS
@@ -38,8 +41,8 @@ app.use(express.static(path.join(__dirname, '../public')));
 
 // Discord OAuth setup
 passport.use(new DiscordStrategy({
-    clientID: process.env.DISCORD_CLIENT_ID || 'your-client-id',
-    clientSecret: process.env.DISCORD_CLIENT_SECRET || 'your-client-secret',
+    clientID: process.env.DISCORD_CLIENT_ID || (isProd ? (() => { throw new Error('DISCORD_CLIENT_ID is required in production'); })() : 'your-client-id'),
+    clientSecret: process.env.DISCORD_CLIENT_SECRET || (isProd ? (() => { throw new Error('DISCORD_CLIENT_SECRET is required in production'); })() : 'your-client-secret'),
     callbackURL: process.env.DISCORD_CALLBACK_URL || 'http://localhost:3002/auth/discord/callback',
     scope: ['identify', 'email']
   },

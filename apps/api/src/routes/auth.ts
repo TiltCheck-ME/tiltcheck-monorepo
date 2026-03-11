@@ -44,6 +44,7 @@ const DEFAULT_API_DISCORD_CALLBACK = 'https://api.tiltcheck.me/auth/discord/call
 // ============================================================================
 
 function getDiscordConfig(): DiscordOAuthConfig {
+  const isProd = process.env.NODE_ENV === 'production';
   const clientId =
     process.env.TILT_DISCORD_CLIENT_ID ||
     process.env.DISCORD_CLIENT_ID ||
@@ -51,7 +52,7 @@ function getDiscordConfig(): DiscordOAuthConfig {
   const clientSecret =
     process.env.TILT_DISCORD_CLIENT_SECRET ||
     process.env.DISCORD_CLIENT_SECRET ||
-    '';
+    (isProd ? (() => { throw new Error('DISCORD_CLIENT_SECRET is required in production'); })() : '');
   const redirectUri =
     process.env.TILT_DISCORD_REDIRECT_URI ||
     process.env.DISCORD_REDIRECT_URI ||
