@@ -1,0 +1,62 @@
+# © 2024–2026 TiltCheck Ecosystem. All Rights Reserved.
+# Last Updated: 2026-03-10
+# Deployment Configuration: tiltcheck-game-arena
+
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  name: tiltcheck-game-arena
+  labels:
+    cloud.googleapis.com/location: us-central1
+  annotations:
+    run.googleapis.com/ingress: all
+    run.googleapis.com/maxScale: '10'
+spec:
+  template:
+    metadata:
+      annotations:
+        autoscaling.knative.dev/maxScale: '10'
+        run.googleapis.com/startup-cpu-boost: 'true'
+    spec:
+      containerConcurrency: 100
+      timeoutSeconds: 300
+      serviceAccountName: 164294266634-compute@developer.gserviceaccount.com
+      containers:
+      - image: us-central1-docker.pkg.dev/tiltchcek/tiltcheck/game-arena:latest
+        ports:
+        - name: http1
+          containerPort: 8080
+        resources:
+          limits:
+            cpu: 2000m
+            memory: 1Gi
+        env:
+        - name: NODE_ENV
+          value: production
+        - name: JWT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: JWT_SECRET
+              key: latest
+        - name: NEON_DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: NEON_DATABASE_URL
+              key: latest
+        - name: SUPABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: TILT_SUPABASE_URL
+              key: latest
+        - name: SUPABASE_ANON_KEY
+          valueFrom:
+            secretKeyRef:
+              name: TILT_SUPABASE_ANON_KEY
+              key: latest
+        startupProbe:
+          timeoutSeconds: 240
+          periodSeconds: 240
+          failureThreshold: 1
+          tcpSocket:
+            port: 8080
+

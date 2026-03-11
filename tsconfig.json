@@ -2,9 +2,11 @@
   "compilerOptions": {
     "outDir": "./dist",
     "rootDir": "./src",
+    "declaration": true,
     "skipLibCheck": true,
     "module": "NodeNext",
-    "declaration": true,
+    "moduleResolution": "NodeNext",
+    "resolveJsonModule": true,
     "esModuleInterop": true,
     "target": "ESNext"
   },

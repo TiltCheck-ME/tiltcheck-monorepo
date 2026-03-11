@@ -3,14 +3,14 @@
  */
 
 export const EXT_CONFIG = {
-    API_BASE_URL: 'https://api.tiltcheck.me',
-    AI_GATEWAY_URL: 'https://api.tiltcheck.me/ai',
-    WEB_APP_URL: 'https://tiltcheck.me',
+    API_BASE_URL: 'https://tiltcheck-api-164294266634.us-central1.run.app',
+    AI_GATEWAY_URL: 'https://tiltcheck-api-164294266634.us-central1.run.app/ai',
+    WEB_APP_URL: 'https://tiltcheck-web-164294266634.us-central1.run.app',
     DISCORD_CLIENT_ID: '1445916179163250860',
     // Keep in sync with API OAuth scope configuration.
     DISCORD_SCOPES: ['identify', 'identify.premium'],
     // The redirect URI must be exactly what is in the Discord Developer Portal
-    DISCORD_REDIRECT_URI: 'https://api.tiltcheck.me/auth/discord/callback'
+    DISCORD_REDIRECT_URI: 'https://tiltcheck-api-164294266634.us-central1.run.app/auth/discord/callback'
 };
 
 /**

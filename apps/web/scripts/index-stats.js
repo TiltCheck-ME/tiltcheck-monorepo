@@ -19,7 +19,7 @@
     return Number.isFinite(n) && n >= 0 ? n : 0;
   }
 
-  fetch('https://api.tiltcheck.me/stats', { cache: 'no-store' })
+  fetch('https://tiltcheck-api-164294266634.us-central1.run.app/stats', { cache: 'no-store' })
     .then((res) => {
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       return res.json();
@@ -35,3 +35,4 @@
       setFallback('Live stats temporarily unavailable — showing static launch view.');
     });
 })();
+

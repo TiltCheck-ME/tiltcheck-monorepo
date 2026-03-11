@@ -1,0 +1,10 @@
+# Agent Starter Pack Configuration
+# This file is used by the 'enhance' command to identify project settings
+
+[project]
+name = "tiltcheck"
+version = "0.39.0"
+language = "typescript"
+base_template = "adk_ts"
+deployment_target = "cloud_run"
+cicd_runner = "google_cloud_build"
