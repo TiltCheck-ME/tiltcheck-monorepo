@@ -1,0 +1,8 @@
+{
+  "track_id": "degen_safety_mvp_20260312",
+  "type": "feature",
+  "status": "new",
+  "created_at": "2026-03-12T03:04:00Z",
+  "updated_at": "2026-03-12T03:04:00Z",
+  "description": "Implement Core Degen-Safety Features (Tilt Check & Wallet Link)"
+}
