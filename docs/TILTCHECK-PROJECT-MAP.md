@@ -16,48 +16,63 @@ The project is organized as a pnpm monorepo with the following components:
 
 ### 📱 Applications (`/apps`)
 
-- **discord-bot**: The primary Discord interaction point.
-- **web**: The main web frontend.
-- **dashboard**: Admin and user dashboard applications.
-- **chrome-extension**: Browser-based safety guard.
-- **dad-bot**: Degens Against Decency game bot.
-- **justthetip**: Financial module application.
 - **api**: Central backend API.
+- **chrome-extension**: Browser-based safety guard.
+- **control-room**: Admin management panel.
+- **discord-bot**: The primary Discord interaction point.
+- **game-arena**: Multiplayer game server and arena.
+- **trust-rollup**: Trust score aggregator and rollup service.
+- **user-dashboard**: User profile and safety management.
+- **web**: The main web frontend.
 
 ### ⚙️ Services (`/services`)
 
-- **event-router**: Centralized event communication bus.
-- **ai-gateway**: Managed access to AI models (OpenAI, etc.).
-- **trust-engines**: Core logic for casino and user trust scoring.
-- **trust-rollup**: Real-time data aggregation for trust scores.
-- **gameplay-analyzer**: Predictive analysis of gambling patterns.
-- **landing**: Ecosystem landing pages.
-- **pricing-oracle**: Real-time price data for assets.
-- **reverse-proxy**: Network management and routing.
+- **regulatory-scout**: Monitors commission filings and regulatory data.
 
 ### 🧩 Modules (`/modules`)
 
-- **suslink**: Scam link detection and prevention.
 - **collectclock**: Bonus tracking and cycle prediction.
-- **tiltcheck-core**: Core tilt detection and intervention logic.
-- **justthetip**: Non-custodial tipping and swapping.
-- **freespinscan**: Promo scanning and validation.
-- **qualifyfirst**: AI-powered survey routing.
 - **dad**: Degens Against Decency card game logic.
-- **poker**: Future poker module implementation.
+- **justthetip**: Non-custodial tipping and financial logic.
 - **linkguard**: Advanced URL protection.
 - **lockvault**: Secure data storage for modules.
+- **poker**: Future poker module implementation.
+- **stake**: Stake-specific integration logic.
+- **suslink**: Scam link detection and prevention.
+- **tiltcheck-core**: Core tilt detection and intervention logic.
+- **triviadrops**: Trivia and engagement drops.
+- **walletcheck**: Wallet validation and safety.
 
 ### 📦 Packages (`/packages`)
 
-- **types**: Global TypeScript definitions.
-- **config**: Shared configuration management.
-- **utils**: Common utility functions.
-- **database**: Shared database schemas and clients.
-- **discord-utils**: Shared helpers for Discord bot development.
+- **agent**: Core agent logic and orchestration.
 - **ai-client**: Unified interface for AI services.
+- **analytics**: Usage and behavioral analytics.
+- **api-client**: Frontend and cross-service API client.
+- **api-response-types**: Shared API response definitions.
+- **auth / auth-flow**: Shared authentication logic.
+- **cli**: Command-line interface tools.
+- **comic-generator**: Visual content generation.
+- **config**: Shared configuration management.
+- **database / db / db-client**: Shared database schemas and clients.
+- **discord-utils**: Shared helpers for Discord bot development.
+- **error-factory**: Unified error handling.
+- **esm-utils**: ESM compatibility helpers.
+- **event-router**: Centralized event communication bus.
 - **event-types**: Shared event definitions.
+- **express-utils**: Utilities for Express-based services.
+- **identity-core**: Identity and profile management.
 - **logger**: Unified logging infrastructure.
+- **monitoring**: Performance and health monitoring.
+- **natural-language-parser**: AI-powered text analysis.
+- **rate-limiter**: API rate limiting logic.
+- **retry-utility**: Robust operation retries.
+- **session-store**: Shared session management.
+- **supabase-auth**: Supabase-specific auth integration.
+- **trust-engines**: Core logic for casino and user trust scoring.
+- **trust-score-types**: Shared trust score definitions.
+- **types**: Global TypeScript definitions.
+- **utils**: Common utility functions.
 - **validator**: Shared data validation logic.
 
 ---

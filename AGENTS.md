@@ -41,7 +41,6 @@ All local apps are accounted for in the Cloud environment. Shadow services have 
 | Service | Status | Verdict |
 | :--- | :--- | :--- |
 | **api** | Live | Functional. |
-| **dashboard** | Live | Functional. |
 | **web** | Live | Functional. |
 | **discord-bot** | Live/YAML | Verified: Powers tiltcheck-bot & dad-bot. |
 | **game-arena** | Deployment Ready | YAML: multiplayer game server. |
