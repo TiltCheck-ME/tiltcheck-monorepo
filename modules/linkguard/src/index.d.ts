@@ -1,3 +1,4 @@
+/* Copyright (c) 2026 TiltCheck. All rights reserved. */
 export interface LinkGuardScanInput {
     domain: string;
     category: 'safe' | 'unknown' | 'suspicious' | 'unsafe' | 'malicious';

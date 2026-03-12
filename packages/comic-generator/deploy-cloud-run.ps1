@@ -1,3 +1,4 @@
+# Copyright (c) 2026 TiltCheck. All rights reserved.
 param(
     [string]$ProjectId = "",
     [string]$Region = "us-central1",

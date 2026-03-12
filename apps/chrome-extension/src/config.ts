@@ -1,3 +1,4 @@
+/* Copyright (c) 2026 TiltCheck. All rights reserved. */
 /**
  * (c) 2024-2025 TiltCheck Ecosystem. All Rights Reserved.
  */

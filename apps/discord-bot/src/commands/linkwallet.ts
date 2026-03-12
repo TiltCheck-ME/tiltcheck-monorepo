@@ -1,10 +1,4 @@
-/**
- * © 2024–2026 TiltCheck Ecosystem. All Rights Reserved.
- * Created by jmenichole (https://github.com/jmenichole)
- * 
- * This file is part of the TiltCheck project.
- * For licensing information, see LICENSE file in the project root.
- */
+/* Copyright (c) 2026 TiltCheck. All rights reserved. */
 
 import { SlashCommandBuilder, ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
 import type { Command } from '../types.js';
@@ -38,8 +32,7 @@ export const linkwallet: Command = {
       if (db.isConnected()) {
         await db.upsertDegenIdentity({
           discord_id: interaction.user.id,
-          primary_external_address: address,
-          username: interaction.user.username // Sync username while we are at it
+          primary_external_address: address
         });
 
         const embed = new EmbedBuilder()

@@ -1,3 +1,4 @@
+/* Copyright (c) 2026 TiltCheck. All rights reserved. */
 import request from 'supertest';
 import { describe, expect, it } from 'vitest';
 import { app, sanitizeContainer } from '../src/server-trust-auth.js';
