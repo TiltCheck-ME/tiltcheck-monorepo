@@ -1,5 +1,5 @@
 {
-  "name": "tiltcheck",
+  "name": "@tiltcheck/agent",
   "version": "1.0.0",
   "description": "AI Agent built with Google ADK (TypeScript)",
   "type": "module",
@@ -25,6 +25,7 @@
   "dependencies": {
     "@google/adk": "^0.3.0",
     "@google/adk-devtools": "^0.3.0",
+    "@tiltcheck/database": "workspace:*",
     "zod": "^4.2.1"
   }
 }
