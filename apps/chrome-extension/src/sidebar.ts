@@ -1,6 +1,6 @@
 /* Copyright (c) 2026 TiltCheck. All rights reserved. */
 ﻿/**
- *  20242025 TiltCheck Ecosystem. All Rights Reserved.
+ * (c) 2024–2026 TiltCheck Ecosystem. All Rights Reserved.
  * Created by jmenichole (https://github.com/jmenichole)
  * 
  * This file is part of the TiltCheck project.
@@ -514,7 +514,7 @@ function createSidebar() {
             <span id="tg-username">Guest</span>
             <span class="tg-tier" id="tg-user-tier">Free</span>
           </div>
-          <button class="tg-btn-icon" id="tg-logout" title="Logout">x</button>
+          <button class="tg-btn-icon" id="tg-logout" title="Logout" aria-label="Logout">&#x00D7;</button>
         </div>
         <div class="tg-account-strip">
           <span id="tg-account-text">Demo mode is live</span>
@@ -748,7 +748,23 @@ function createSidebar() {
             <div class="tg-goal-meta" id="tg-goal-meta">$0 / $0</div>
           </div>
           <div id="tg-goals-list" style="margin-bottom: 10px;"></div>
-          
+
+          <!-- Inline Goal Form (hidden) -->
+          <div id="tg-goal-form-panel" style="display:none; margin-bottom:8px; padding:10px; background:rgba(0,0,0,0.25); border-radius:8px; border:1px solid rgba(255,255,255,0.1);">
+            <div class="tg-input-group">
+              <label>Goal Name</label>
+              <input type="text" id="goal-form-name" placeholder="e.g. Power Bill" />
+            </div>
+            <div class="tg-input-group">
+              <label>Target ($)</label>
+              <input type="number" id="goal-form-amount" placeholder="100" min="1" />
+            </div>
+            <div style="display:flex; gap:6px; margin-top:4px;">
+              <button class="tg-btn tg-btn-primary tg-btn-inline" id="goal-form-save">Save Goal</button>
+              <button class="tg-btn tg-btn-secondary tg-btn-inline" id="goal-form-cancel">Cancel</button>
+            </div>
+          </div>
+
           <div class="tg-vault-actions">
             <button class="tg-btn tg-btn-vault" id="tg-vault-btn">Vault Balance</button>
             <button class="tg-btn tg-btn-secondary" id="tg-vault-custom">Custom Amount</button>
@@ -807,6 +823,34 @@ function createSidebar() {
         <!-- Export -->
         <div class="tg-section">
           <button class="tg-btn tg-btn-secondary" id="tg-export-session">Export Session</button>
+        </div>
+        <!-- Premium Upgrade Panel (hidden) -->
+        <div class="tg-settings-panel" id="tg-premium-panel" style="display:none;">
+          <h4>Unlock Premium</h4>
+          <div style="margin-bottom:8px; padding:10px; background:rgba(255,255,255,0.03); border-radius:8px; border:1px solid rgba(255,255,255,0.08);">
+            <div style="display:flex; justify-content:space-between; margin-bottom:6px;">
+              <span style="font-size:12px; font-weight:700;">Free</span>
+              <span style="font-size:11px; color:var(--tg-muted);">$0/mo</span>
+            </div>
+            <ul style="font-size:11px; opacity:0.55; padding-left:16px; line-height:1.9; margin:0;">
+              <li>Basic tilt alerts</li>
+              <li>Community feed</li>
+            </ul>
+          </div>
+          <div style="margin-bottom:12px; padding:10px; background:rgba(0,255,198,0.05); border-radius:8px; border:1px solid rgba(0,255,198,0.2);">
+            <div style="display:flex; justify-content:space-between; margin-bottom:6px;">
+              <span style="font-size:12px; font-weight:700; color:#00FFC6;">Premium</span>
+              <span style="font-size:11px; color:var(--tg-muted);">$5/mo</span>
+            </div>
+            <ul style="font-size:11px; opacity:0.55; padding-left:16px; line-height:1.9; margin:0;">
+              <li>Priority alerts</li>
+              <li>Advanced vault controls</li>
+              <li>Buddy mirror</li>
+              <li>AI tilt analysis</li>
+            </ul>
+          </div>
+          <button class="tg-btn tg-btn-primary" id="tg-upgrade-confirm">Upgrade Now &#x2192;</button>
+          <button class="tg-btn tg-btn-secondary" id="tg-premium-close">Cancel</button>
         </div>
         <div class="tg-brand-footer">Made for degens, by degens.</div>
       </div>
@@ -1153,7 +1197,7 @@ function createSidebar() {
       white-space: nowrap;
     }
     .tg-btn-primary { background: var(--tg-accent-purple); }
-    .tg-btn-primary:hover { background: #5558e3; }
+    .tg-btn-primary:hover { background: var(--tg-accent-purple-2); }
     .tg-btn-secondary { background: var(--tg-surface); border: 1px solid var(--tg-border); }
     .tg-btn-secondary:hover { background: var(--tg-surface-strong); border-color: rgba(99, 102, 241, 0.45); }
     .tg-btn-vault { background: var(--tg-accent-green); color: #07281f; font-weight: 700; }
@@ -1736,7 +1780,7 @@ function setupEventListeners() {
         }
       }
     } catch (e) {
-      console.error('[TiltGuard] LinkCheck scan error:', e);
+      console.error('[TiltCheck] LinkCheck scan error:', e);
       if (scoreDiv) {
         scoreDiv.textContent = 'Scan Error';
         scoreDiv.style.color = '#f59e0b';
@@ -1785,16 +1829,33 @@ function setupEventListeners() {
 
   // Add Goal Logic
   document.getElementById('tg-add-goal')?.addEventListener('click', () => {
-    const name = prompt('Goal Name (e.g. Power Bill):');
-    const amount = prompt('Amount ($):');
+    const panel = document.getElementById('tg-goal-form-panel');
+    if (panel) panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+  });
 
-    if (name && amount) {
-      const goals = loadGoals();
-      goals.push({ name, amount: Number(amount) });
-      saveGoals(goals);
-      renderGoals(goals);
-      updateGoalProgress(sessionStats.currentBalance || 0);
+  document.getElementById('goal-form-save')?.addEventListener('click', () => {
+    const nameInput = document.getElementById('goal-form-name') as HTMLInputElement;
+    const amountInput = document.getElementById('goal-form-amount') as HTMLInputElement;
+    const name = nameInput?.value?.trim();
+    const amount = parseFloat(amountInput?.value || '');
+    if (!name || isNaN(amount) || amount <= 0) {
+      updateStatus('Enter a valid goal name and amount.', 'warning');
+      return;
     }
+    const goals = loadGoals();
+    goals.push({ name, amount });
+    saveGoals(goals);
+    renderGoals(goals);
+    updateGoalProgress(sessionStats.currentBalance || 0);
+    nameInput.value = '';
+    amountInput.value = '';
+    const panel = document.getElementById('tg-goal-form-panel');
+    if (panel) panel.style.display = 'none';
+  });
+
+  document.getElementById('goal-form-cancel')?.addEventListener('click', () => {
+    const panel = document.getElementById('tg-goal-form-panel');
+    if (panel) panel.style.display = 'none';
   });
 
   document.getElementById('tg-goals-list')?.addEventListener('click', (e) => {
@@ -1962,11 +2023,25 @@ function setupEventListeners() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `tiltguard-session-${Date.now()}.json`;
+    a.download = `tiltcheck-session-${Date.now()}.json`;
     a.click();
     addFeedMessage('Session exported');
   });
-  document.getElementById('tg-upgrade')?.addEventListener('click', openPremium);
+  document.getElementById('tg-upgrade')?.addEventListener('click', () => {
+    const panel = document.getElementById('tg-premium-panel');
+    if (panel) panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+  });
+
+  document.getElementById('tg-upgrade-confirm')?.addEventListener('click', () => {
+    const panel = document.getElementById('tg-premium-panel');
+    if (panel) panel.style.display = 'none';
+    void openPremium();
+  });
+
+  document.getElementById('tg-premium-close')?.addEventListener('click', () => {
+    const panel = document.getElementById('tg-premium-panel');
+    if (panel) panel.style.display = 'none';
+  });
 }
 
 async function checkAuthStatus() {
@@ -2448,7 +2523,7 @@ function renderVaultTimeline(locks: any[]) {
           <span class="tg-vault-timeline-action">${action}</span>
           <span class="tg-vault-timeline-time">${relative}</span>
         </div>
-        <div class="tg-vault-timeline-meta">${metaParts.join(' â€¢ ')}</div>
+        <div class="tg-vault-timeline-meta">${metaParts.join(' \u2022 ')}</div>
       </div>
     `;
   }).join('');
@@ -2548,29 +2623,8 @@ function startLockCountdown(unlockTime: number, startTime: number) {
 }
 
 async function openDashboard() {
-  if (!userData) return;
-  const result = await apiCall(`/dashboard/${userData.id}`);
-  if (result.error) {
-    addFeedMessage('Dashboard unavailable right now.');
-    return;
-  }
-
-  addFeedMessage('Dashboard opened');
-  const data = escapeHtml(JSON.stringify(result, null, 2));
-  const win = window.open('', 'TiltGuard Dashboard', 'width=800,height=600');
-  if (win) {
-    win.document.write(`
-      <html>
-        <head><title>TiltGuard Dashboard</title>
-        <style>body{font-family:monospace;padding:20px;background:#0f1419;color:#e1e8ed;}pre{background:#1a1f26;padding:15px;border-radius:6px;border:1px solid rgba(255,255,255,0.1);}</style>
-        </head>
-        <body>
-          <h1>TiltGuard Dashboard</h1>
-          <pre>${data}</pre>
-        </body>
-      </html>
-    `);
-  }
+  addFeedMessage('Opening Dashboard');
+  window.open(`${EXT_CONFIG.WEB_APP_URL}/user-dashboard`, '_blank');
 }
 
 async function openVault() {
@@ -2578,24 +2632,27 @@ async function openVault() {
   if (!userData) return;
   const result = await apiCall(`/vault/${userData.id}`);
   if (result.error) {
-    alert('Vault data is unavailable right now. Try again shortly.');
+    addFeedMessage('Vault data unavailable. Try again shortly.');
     return;
   }
-
-  const data = escapeHtml(JSON.stringify(result.vault, null, 2));
-  const win = window.open('', 'TiltGuard Vault', 'width=600,height=500');
+  const vault = result.vault || {};
+  const balance = Number(vault.balance || 0).toFixed(2);
+  const locks = Array.isArray(vault.locks) ? vault.locks : [];
+  const activeLocks = locks.filter((l: any) => l.status === 'locked').length;
+  const win = window.open('', 'TiltCheck Vault', 'width=520,height=440,popup=yes');
   if (win) {
-    win.document.write(`
-      <html>
-        <head><title>TiltGuard Vault</title>
-        <style>body{font-family:monospace;padding:20px;background:#1a1a2e;color:white;}pre{background:#16213e;padding:15px;border-radius:8px;}</style>
-        </head>
-        <body>
-          <h1>TiltGuard Vault</h1>
-          <pre>${data}</pre>
-        </body>
-      </html>
-    `);
+    win.document.write(`<!DOCTYPE html><html lang="en"><head><title>TiltCheck \u00B7 Vault</title>
+    <style>*{box-sizing:border-box;margin:0;padding:0;}body{font-family:"Inter",system-ui,sans-serif;background:#0e0e0f;color:#e7ecf7;padding:24px;}h1{font-size:16px;font-weight:700;color:#00FFC6;margin-bottom:4px;}.sub{font-size:11px;opacity:0.45;margin-bottom:20px;letter-spacing:0.04em;}.card{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:18px;margin-bottom:12px;}.lbl{font-size:10px;text-transform:uppercase;letter-spacing:0.1em;opacity:0.5;margin-bottom:6px;}.val{font-size:28px;font-weight:700;color:#00FFC6;font-variant-numeric:tabular-nums;}.row{display:flex;justify-content:space-between;font-size:12px;padding:7px 0;border-bottom:1px solid rgba(255,255,255,0.05);}.row:last-child{border-bottom:none;}.tag{font-size:11px;padding:2px 8px;border-radius:4px;background:rgba(0,255,198,0.1);color:#00FFC6;}a{color:#00FFC6;text-decoration:none;font-size:12px;display:block;text-align:center;margin-top:14px;opacity:0.65;}</style>
+    </head><body>
+    <h1>TiltCheck Vault</h1><div class="sub">Non-Custodial \u00B7 SOL-backed</div>
+    <div class="card"><div class="lbl">Balance</div><div class="val">$${escapeHtml(balance)}</div></div>
+    <div class="card">
+      <div class="row"><span>Active locks</span><span class="tag">${activeLocks}</span></div>
+      <div class="row"><span>Total lock history</span><span>${locks.length}</span></div>
+    </div>
+    <a href="${EXT_CONFIG.WEB_APP_URL}/user-dashboard" target="_blank">Open Full Dashboard \u2192</a>
+    </body></html>`);
+    win.document.close();
   }
 }
 
@@ -2604,24 +2661,26 @@ async function openWallet() {
   if (!userData) return;
   const result = await apiCall(`/wallet/${userData.id}`);
   if (result.error) {
-    alert('Wallet data is unavailable right now. Try again shortly.');
+    addFeedMessage('Wallet data unavailable. Try again shortly.');
     return;
   }
-
-  const data = escapeHtml(JSON.stringify(result, null, 2));
-  const win = window.open('', 'TiltGuard Wallet', 'width=600,height=500');
+  const w = result.wallet || {};
+  const sol = Number(w.sol || 0).toFixed(4);
+  const addr = String(w.address || 'N/A');
+  const short = addr.length > 12 ? `${addr.slice(0, 6)}...${addr.slice(-4)}` : addr;
+  const win = window.open('', 'TiltCheck Wallet', 'width=520,height=360,popup=yes');
   if (win) {
-    win.document.write(`
-      <html>
-        <head><title>TiltGuard Wallet</title>
-        <style>body{font-family:monospace;padding:20px;background:#1a1a2e;color:white;}pre{background:#16213e;padding:15px;border-radius:8px;}</style>
-        </head>
-        <body>
-          <h1>TiltGuard Wallet</h1>
-          <pre>${data}</pre>
-        </body>
-      </html>
-    `);
+    win.document.write(`<!DOCTYPE html><html lang="en"><head><title>TiltCheck \u00B7 Wallet</title>
+    <style>*{box-sizing:border-box;margin:0;padding:0;}body{font-family:"Inter",system-ui,sans-serif;background:#0e0e0f;color:#e7ecf7;padding:24px;}h1{font-size:16px;font-weight:700;color:#00FFC6;margin-bottom:4px;}.sub{font-size:11px;opacity:0.45;margin-bottom:20px;letter-spacing:0.04em;}.card{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:18px;margin-bottom:12px;}.lbl{font-size:10px;text-transform:uppercase;letter-spacing:0.1em;opacity:0.5;margin-bottom:6px;}.val{font-size:26px;font-weight:700;color:#00FFC6;font-variant-numeric:tabular-nums;}.row{display:flex;justify-content:space-between;font-size:12px;padding:7px 0;border-bottom:1px solid rgba(255,255,255,0.05);}.row:last-child{border-bottom:none;}.mono{font-family:monospace;font-size:11px;opacity:0.6;}a{color:#00FFC6;text-decoration:none;font-size:12px;display:block;text-align:center;margin-top:14px;opacity:0.65;}</style>
+    </head><body>
+    <h1>TiltCheck Wallet</h1><div class="sub">Solana \u00B7 Non-Custodial</div>
+    <div class="card"><div class="lbl">Balance</div><div class="val">${escapeHtml(sol)} SOL</div></div>
+    <div class="card">
+      <div class="row"><span>Address</span><span class="mono" title="${escapeHtml(addr)}">${escapeHtml(short)}</span></div>
+    </div>
+    <a href="${EXT_CONFIG.WEB_APP_URL}/user-dashboard" target="_blank">Open Full Dashboard \u2192</a>
+    </body></html>`);
+    win.document.close();
   }
 }
 
@@ -2710,7 +2769,7 @@ async function notifyBuddy(type: string, data: any) {
       updateStatus('Buddy ping sent', 'buddy');
     }
   } catch (e) {
-    console.error('[TiltGuard] Buddy notification failed:', e);
+    console.error('[TiltCheck] Buddy notification failed:', e);
   }
 }
 
