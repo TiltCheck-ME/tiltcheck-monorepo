@@ -1,0 +1,87 @@
+name: Gemini Code Assist
+
+on:
+  pull_request_review_comment:
+    types: [created]
+
+jobs:
+  fix_comment:
+    # This job only runs if the comment body contains the keyword '/fix'
+    if: contains(github.event.comment.body, '/fix')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # Give the workflow permission to write to the repository
+    steps:
+      - name: Checkout PR Branch
+        uses: actions/checkout@v4
+        with:
+          # Check out the head of the PR branch
+          ref: ${{ github.event.pull_request.head.ref }}
+          repository: ${{ github.event.pull_request.head.repo.full_name }}
+          # Use a personal access token (PAT) if you need to trigger subsequent workflows
+          # For basic pushes, the default GITHUB_TOKEN is fine.
+          # token: ${{ secrets.YOUR_PAT }} 
+
+      - name: Generate Fix with Gemini
+        id: generate_fix
+        run: |
+          # Extract the instruction from the comment. 
+          # E.g., for "/fix "Refactor this to a for...of loop"", it extracts "Refactor this to a for...of loop"
+          INSTRUCTION=$(echo "${{ github.event.comment.body }}" | sed -n 's|/fix "\(.*\)"|\1|p')
+          FILE_PATH="${{ github.event.comment.path }}"
+          
+          echo "File to modify: $FILE_PATH"
+          echo "Instruction: $INSTRUCTION"
+
+          # Read the original file content
+          FILE_CONTENT=$(cat $FILE_PATH)
+
+          # Prepare the JSON payload for the Gemini API
+          # The prompt is carefully constructed to ask the model to return *only* the full, raw file content.
+          JSON_PAYLOAD=$(jq -n 
+            --arg instruction "$INSTRUCTION" 
+            --arg file_content "$FILE_CONTENT" 
+            '{
+              "contents": [
+                {
+                  "parts": [
+                    { "text": "You are a code assistant. The user wants to apply the following instruction to the provided file content. Please return ONLY the full, complete, updated file content with no other text, explanation, or markdown code fences.
+
+Instruction: \($instruction)
+
+File Content:
+```
+\($file_content)
+```" }
+                  ]
+                }
+              ]
+            }')
+
+          # Call the Gemini API and store the response
+          API_RESPONSE=$(curl -s -X POST "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${{ secrets.GEMINI_API_KEY }}" 
+            -H "Content-Type: application/json" 
+            -d "$JSON_PAYLOAD")
+
+          # Extract the new file content from the JSON response, removing markdown fences if they exist
+          NEW_CONTENT=$(echo "$API_RESPONSE" | jq -r '.candidates[0].content.parts[0].text' | sed 's/```[a-zA-Z]*//g')
+          
+          # Overwrite the original file with the new content from the AI
+          echo "$NEW_CONTENT" > "$FILE_PATH"
+
+      - name: Commit and Push Changes
+        run: |
+          git config --global user.name 'Gemini Code Assist'
+          git config --global user.email 'code-assist-bot@tiltcheck.me'
+          git add "${{ github.event.comment.path }}"
+          
+          # Check if there are any changes to commit
+          if git diff-index --quiet HEAD; then
+            echo "No changes to commit."
+          else
+            git commit -m "feat(assist): Apply AI fix for comment #${{ github.event.comment.id }}"
+            git push
+          fi
+        env:
+          # The default GITHUB_TOKEN has write permissions because we set it at the job level
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
