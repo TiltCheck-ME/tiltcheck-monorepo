@@ -39,4 +39,4 @@ COPY --from=build /app /app
 
 EXPOSE 3001
 
-CMD ["node", "apps/control-room/dist/index.js"]
+CMD ["node", "apps/control-room/src/server-trust-auth.js"]
