@@ -98,11 +98,18 @@ const getBonusStatus = new FunctionTool<typeof DiscordIdSchema>({
   description: 'Checks which casino bonuses or reloads are ready to be claimed.',
   parameters: DiscordIdSchema,
   execute: async ({ discordId }: DiscordIdParams) => {
-    return [
-      { casino: 'Stake', bonus: 'Daily Reload', status: 'READY', emoji: '🥩' },
-      { casino: 'Shuffle', bonus: 'Faucet', status: 'LOCKED (2h remaining)', emoji: '🔀' },
-      { casino: 'Rollbit', bonus: 'Hourly', status: 'READY', emoji: '🎲' }
+    if (!db.isConnected()) return [
+      { casino: 'Stake', bonus: 'Daily Reload', status: 'DB_DISCONNECTED', emoji: '🥩' },
+      { casino: 'Shuffle', bonus: 'Faucet', status: 'DB_DISCONNECTED', emoji: '🔀' },
+      { casino: 'Rollbit', bonus: 'Hourly', status: 'DB_DISCONNECTED', emoji: '🎲' }
     ];
+
+    const bonusStatus = await db.getBonusStatus(discordId);
+    if (!bonusStatus || bonusStatus.length === 0) {
+      return "No bonus or reload information found for this user.";
+    }
+
+    return bonusStatus;
   },
 });
 
