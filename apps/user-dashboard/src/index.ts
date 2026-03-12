@@ -21,6 +21,8 @@ import { fileURLToPath, pathToFileURL } from 'url';
 import { dirname, join } from 'path';
 import type { Request, Response, NextFunction } from 'express';
 import { db, DegenIdentity } from '@tiltcheck/database';
+import { runner } from '@tiltcheck/agent';
+import { stringifyContent } from '@google/adk';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -236,6 +238,28 @@ app.post('/api/auth/magic/link', authenticateToken as any, async (req: any, res)
     });
   }
   res.json({ success: true, address: metadata.publicAddress });
+});
+
+// === AI Agent Route ===
+app.post('/api/agent/query', authenticateToken as any, async (req: any, res) => {
+  const { query } = req.body;
+  if (!query) return res.status(400).json({ error: 'Missing query' });
+
+  try {
+    let finalResponse = '';
+    const it = runner.runAsync({
+      userInput: `User (Discord ID: ${req.user.discordId}) asks: ${query}`
+    });
+
+    for await (const event of it) {
+      finalResponse = stringifyContent(event);
+    }
+
+    res.json({ response: finalResponse });
+  } catch (err) {
+    console.error('[Agent] Error:', err);
+    res.status(500).json({ error: 'Agent failed to process query' });
+  }
 });
 
 // === Middleware ===

@@ -8,7 +8,9 @@
     "moduleResolution": "NodeNext",
     "resolveJsonModule": true,
     "esModuleInterop": true,
-    "target": "ESNext"
+    "target": "ESNext",
+    "incremental": false,
+    "tsBuildInfoFile": null
   },
   "include": [
     "src/**/*.ts"
