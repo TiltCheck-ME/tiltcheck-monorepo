@@ -1,3 +1,4 @@
+/* Copyright (c) 2026 TiltCheck. All rights reserved. */
 /**
  * TiltCheck Discord Bot
  * Main entry point for the safety and moderation bot.

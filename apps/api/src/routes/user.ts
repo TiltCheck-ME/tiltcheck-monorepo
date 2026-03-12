@@ -1,7 +1,4 @@
-/**
- * © 2024–2026 TiltCheck Ecosystem. All Rights Reserved.
- * Created by jmenichole (https://github.com/jmenichole)
- */
+/* Copyright (c) 2026 TiltCheck. All rights reserved. */
 /**
  * User Routes - /user/*
  * Handles user profile, onboarding status, and preferences

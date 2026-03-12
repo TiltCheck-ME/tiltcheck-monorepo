@@ -1,3 +1,4 @@
+/* Copyright (c) 2026 TiltCheck. All rights reserved. */
 /**
  * Unit tests for packages/db-client/src/query.ts
  *

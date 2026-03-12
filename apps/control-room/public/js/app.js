@@ -1,8 +1,4 @@
-/**
- * © 2024–2025 TiltCheck Ecosystem. All Rights Reserved.
- * Created by jmenichole (https://github.com/jmenichole)
- * TiltCheck Control Room — Frontend
- */
+/* Copyright (c) 2026 TiltCheck. All rights reserved. */
 'use strict';
 
 // ── State ──────────────────────────────────────────────────────────────────────

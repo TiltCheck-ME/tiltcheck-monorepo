@@ -1,3 +1,4 @@
+/* Copyright (c) 2026 TiltCheck. All rights reserved. */
 import { describe, it, expect, vi } from 'vitest';
 import { correlationIdMiddleware } from '../src/correlation-id';
 import type { Request, Response, NextFunction } from 'express';

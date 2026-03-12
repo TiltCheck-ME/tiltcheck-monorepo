@@ -1,11 +1,4 @@
-/**
- * © 2024–2026 TiltCheck Ecosystem. All Rights Reserved.
- * Last Updated: 2026-03-10
- *
- * Regulatory Scout Service
- * Functional logic for monitoring gambling commissions and identifying compliance deltas.
- * Integrates with SusLink (Link Scanning API) for URL verification.
- */
+/* Copyright (c) 2026 TiltCheck. All rights reserved. */
 
 import { SusLinkModule } from '../../modules/suslink/src/suslink.js';
 import type { LinkScanResult } from '@tiltcheck/types';
