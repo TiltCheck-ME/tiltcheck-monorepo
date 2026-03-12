@@ -25,7 +25,7 @@ spec:
       - image: us-central1-docker.pkg.dev/tiltchcek/tiltcheck/user-dashboard:latest
         ports:
         - name: http1
-          containerPort: 8080
+          containerPort: 3001
         resources:
           limits:
             cpu: 1000m
@@ -65,5 +65,5 @@ spec:
           periodSeconds: 240
           failureThreshold: 1
           tcpSocket:
-            port: 8080
+            port: 3001
 

@@ -1,3 +1,4 @@
+/* Copyright (c) 2026 TiltCheck. All rights reserved. */
 import { describe, it, expect, vi } from 'vitest';
 import { eventRouter } from '@tiltcheck/event-router';
 import { initializeGameplayComplianceBridge } from '../../src/services/gameplay-compliance-bridge.js';

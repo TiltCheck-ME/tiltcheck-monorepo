@@ -1,3 +1,4 @@
+/* Copyright (c) 2026 TiltCheck. All rights reserved. */
 import { eventRouter } from '@tiltcheck/event-router';
 import type { TiltCheckEvent, GameplayAnomalyEvent } from '@tiltcheck/types';
 import { Client as ESClient } from '@elastic/elasticsearch';

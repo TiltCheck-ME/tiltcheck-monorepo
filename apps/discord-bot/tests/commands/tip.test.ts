@@ -1,3 +1,4 @@
+/* Copyright (c) 2026 TiltCheck. All rights reserved. */
 import { describe, expect, it, vi } from 'vitest';
 import { tip } from '../../src/commands/tip.js';
 

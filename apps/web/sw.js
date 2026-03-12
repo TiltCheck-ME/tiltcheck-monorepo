@@ -1,3 +1,4 @@
+/* Copyright (c) 2026 TiltCheck. All rights reserved. */
 const CACHE_NAME = 'tiltcheck-static-v2';
 const CORE_ASSETS = [
   '/',

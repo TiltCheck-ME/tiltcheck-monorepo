@@ -1,9 +1,4 @@
-/**
- * © 2024–2025 TiltCheck Ecosystem. All Rights Reserved.
- * Created by jmenichole (https://github.com/jmenichole)
- *
- * TiltCheck Control Room — Docker-aware admin dashboard
- */
+/* Copyright (c) 2026 TiltCheck. All rights reserved. */
 import express from 'express';
 import session from 'express-session';
 import { createServer } from 'http';

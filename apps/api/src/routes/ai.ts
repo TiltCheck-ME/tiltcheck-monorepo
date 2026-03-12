@@ -1,8 +1,4 @@
-/**
- * © 2024–2026 TiltCheck Ecosystem. All Rights Reserved.
- * AI routes — gateway consolidated into discord-bot TiltAgent.
- * These HTTP endpoints are no longer active.
- */
+/* Copyright (c) 2026 TiltCheck. All rights reserved. */
 import { Router } from 'express';
 
 const router = Router();

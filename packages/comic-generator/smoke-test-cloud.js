@@ -1,3 +1,4 @@
+/* Copyright (c) 2026 TiltCheck. All rights reserved. */
 import dotenv from 'dotenv';
 
 dotenv.config();
