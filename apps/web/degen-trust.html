@@ -91,13 +91,61 @@
   <section class="features-section">
     <div class="container">
       <h2>Trust Levels</h2>
-      <ul style="font-size: 1.1rem; color: #ccc; max-width: 900px; margin: 0 auto 30px; line-height: 1.8;">
-        <li><strong style="color: #00d4aa;">VERY HIGH (95–100)</strong><br>Model citizen, smart choices, no tilt storms.</li>
-        <li><strong style="color: #00d4aa;">HIGH (80–94)</strong><br>Normal chaos but handled responsibly.</li>
-        <li><strong style="color: #00d4aa;">NEUTRAL (60–79)</strong><br>Average degen. Erratic but not harmful.</li>
-        <li><strong style="color: #00d4aa;">LOW (40–59)</strong><br>Some issues. Needs accountability tools.</li>
-        <li><strong style="color: #00d4aa;">HIGH RISK (&lt;40)</strong><br>Scams, ghosting, repeated chaos, volatility.</li>
-      </ul>
+      <p style="font-size:1rem; color:#888; text-align:center; margin-bottom:2rem;">Live score ranges — hover to see the breakdown.</p>
+
+      <!-- Visual Trust Scale Bar -->
+      <div style="max-width:860px; margin:0 auto 2.5rem;">
+        <div style="display:flex; border-radius:8px; overflow:hidden; height:72px; border:1px solid #2a2f34;">
+          <div title="HIGH RISK: < 40" style="flex:40; background:linear-gradient(135deg,#FF5252,#c62828); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px; cursor:default; transition:filter 0.2s;" onmouseenter="this.style.filter='brightness(1.2)'" onmouseleave="this.style.filter=''">
+            <span style="font-size:0.8rem; font-weight:900; font-family:monospace; color:#fff;">0–39</span>
+            <span style="font-size:0.55rem; font-weight:700; text-transform:uppercase; letter-spacing:0.04em; color:rgba(255,255,255,0.75);">High Risk</span>
+          </div>
+          <div title="LOW: 40–59" style="flex:20; background:linear-gradient(135deg,#FF8C42,#e65100); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px; cursor:default; transition:filter 0.2s;" onmouseenter="this.style.filter='brightness(1.2)'" onmouseleave="this.style.filter=''">
+            <span style="font-size:0.8rem; font-weight:900; font-family:monospace; color:#fff;">40–59</span>
+            <span style="font-size:0.55rem; font-weight:700; text-transform:uppercase; letter-spacing:0.04em; color:rgba(255,255,255,0.75);">Low</span>
+          </div>
+          <div title="NEUTRAL: 60–79" style="flex:20; background:linear-gradient(135deg,#FFC107,#f57f17); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px; cursor:default; transition:filter 0.2s;" onmouseenter="this.style.filter='brightness(1.2)'" onmouseleave="this.style.filter=''">
+            <span style="font-size:0.8rem; font-weight:900; font-family:monospace; color:rgba(0,0,0,0.8);">60–79</span>
+            <span style="font-size:0.55rem; font-weight:700; text-transform:uppercase; letter-spacing:0.04em; color:rgba(0,0,0,0.65);">Neutral</span>
+          </div>
+          <div title="HIGH: 80–94" style="flex:15; background:linear-gradient(135deg,#00d4aa,#00897b); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px; cursor:default; transition:filter 0.2s;" onmouseenter="this.style.filter='brightness(1.2)'" onmouseleave="this.style.filter=''">
+            <span style="font-size:0.8rem; font-weight:900; font-family:monospace; color:rgba(0,0,0,0.8);">80–94</span>
+            <span style="font-size:0.55rem; font-weight:700; text-transform:uppercase; letter-spacing:0.04em; color:rgba(0,0,0,0.65);">High</span>
+          </div>
+          <div title="VERY HIGH: 95–100" style="flex:6; background:linear-gradient(135deg,#4CAF50,#2e7d32); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px; cursor:default; transition:filter 0.2s;" onmouseenter="this.style.filter='brightness(1.2)'" onmouseleave="this.style.filter=''">
+            <span style="font-size:0.75rem; font-weight:900; font-family:monospace; color:#fff;">95+</span>
+            <span style="font-size:0.5rem; font-weight:700; text-transform:uppercase; letter-spacing:0.03em; color:rgba(255,255,255,0.75);">Elite</span>
+          </div>
+        </div>
+        <div style="display:flex; justify-content:space-between; margin-top:6px;">
+          <span style="font-size:0.7rem; color:#666; font-family:monospace;">0 — Danger</span>
+          <span style="font-size:0.7rem; color:#666; font-family:monospace;">100 — Model Citizen</span>
+        </div>
+      </div>
+
+      <!-- Trust Level Cards -->
+      <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:14px; max-width:900px; margin:0 auto 30px;">
+        <div style="background:rgba(255,82,82,0.08); border:1px solid rgba(255,82,82,0.3); border-radius:10px; padding:20px;">
+          <div style="font-size:0.65rem; font-family:monospace; font-weight:700; text-transform:uppercase; letter-spacing:0.1em; color:#FF5252; margin-bottom:8px;">0 – 39 · HIGH RISK</div>
+          <p style="color:#ccc; font-size:0.9rem; line-height:1.6; margin:0;">Scams, ghosting, repeated chaos, volatility. Community protection mode engaged.</p>
+        </div>
+        <div style="background:rgba(255,140,66,0.08); border:1px solid rgba(255,140,66,0.3); border-radius:10px; padding:20px;">
+          <div style="font-size:0.65rem; font-family:monospace; font-weight:700; text-transform:uppercase; letter-spacing:0.1em; color:#FF8C42; margin-bottom:8px;">40 – 59 · LOW</div>
+          <p style="color:#ccc; font-size:0.9rem; line-height:1.6; margin:0;">Some issues. Needs accountability tools. Recoverable with positive behavior.</p>
+        </div>
+        <div style="background:rgba(255,193,7,0.08); border:1px solid rgba(255,193,7,0.3); border-radius:10px; padding:20px;">
+          <div style="font-size:0.65rem; font-family:monospace; font-weight:700; text-transform:uppercase; letter-spacing:0.1em; color:#FFC107; margin-bottom:8px;">60 – 79 · NEUTRAL</div>
+          <p style="color:#ccc; font-size:0.9rem; line-height:1.6; margin:0;">Average degen. Erratic but not harmful. Standard tilt cycles expected.</p>
+        </div>
+        <div style="background:rgba(0,212,170,0.08); border:1px solid rgba(0,212,170,0.3); border-radius:10px; padding:20px;">
+          <div style="font-size:0.65rem; font-family:monospace; font-weight:700; text-transform:uppercase; letter-spacing:0.1em; color:#00d4aa; margin-bottom:8px;">80 – 94 · HIGH</div>
+          <p style="color:#ccc; font-size:0.9rem; line-height:1.6; margin:0;">Normal chaos but handled responsibly. Uses accountability tools. Trusted.</p>
+        </div>
+        <div style="background:rgba(76,175,80,0.08); border:1px solid rgba(76,175,80,0.3); border-radius:10px; padding:20px;">
+          <div style="font-size:0.65rem; font-family:monospace; font-weight:700; text-transform:uppercase; letter-spacing:0.1em; color:#4CAF50; margin-bottom:8px;">95 – 100 · ELITE</div>
+          <p style="color:#ccc; font-size:0.9rem; line-height:1.6; margin:0;">Model citizen. Smart choices, no tilt storms, community leader behavior.</p>
+        </div>
+      </div>
     </div>
   </section>
 
