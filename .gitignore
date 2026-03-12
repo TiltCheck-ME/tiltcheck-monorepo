@@ -112,9 +112,6 @@ services/trust-engines/data/
 id_rsa*
 id_ecdsa*
 
-# Local policy: disable GitHub automation files
-.github/workflows/
-.github/actions/
 
 # Trust ingest local data
 data/degen-intel-events.jsonl
