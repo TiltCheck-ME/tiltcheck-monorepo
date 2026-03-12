@@ -32,7 +32,8 @@ export const linkwallet: Command = {
       if (db.isConnected()) {
         await db.upsertDegenIdentity({
           discord_id: interaction.user.id,
-          primary_external_address: address
+          primary_external_address: address,
+          username: interaction.user.username // Sync username while we are at it
         });
 
         const embed = new EmbedBuilder()

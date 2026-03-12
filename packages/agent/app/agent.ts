@@ -1,6 +1,6 @@
 /* Copyright (c) 2026 TiltCheck. All rights reserved. */
 
-import { FunctionTool, LlmAgent, Runner, InMemorySessionService } from '@google/adk';
+import { FunctionTool, LlmAgent, Runner, InMemorySessionService, Gemini } from '@google/adk';
 import { z } from 'zod';
 import { db } from '@tiltcheck/database';
 
@@ -81,6 +81,9 @@ const getBonusStatus = new FunctionTool<typeof DiscordIdSchema>({
 export const agent = new LlmAgent({
   name: 'tiltcheck_degen_intelligence',
   description: 'Advanced AI assistant for the TiltCheck ecosystem. Analyzes degen stats, trust scores, and casino bonuses.',
+  model: new Gemini({
+    modelName: 'gemini-1.5-flash',
+  }),
   instruction: `You are the TiltCheck Degen Intelligence Agent (DIA). 
                 Your goal is to provide blunt, data-driven, and slightly skeptical insights to users about their gambling behavior and ecosystem status.
                 

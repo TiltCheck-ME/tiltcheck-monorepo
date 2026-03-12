@@ -43,6 +43,7 @@ describe('Server E2E', () => {
       cwd: rootDir,
       env: { ...process.env, ...dotenvVars },
       stdio: 'pipe',
+      shell: true,
     });
 
     // Capture server output for debugging

@@ -1,4 +1,5 @@
 /* Copyright (c) 2026 TiltCheck. All rights reserved. */
+
 import { computeSeverity, DEFAULT_SEVERITY_SCALE } from '@tiltcheck/config';
 import { eventRouter } from '@tiltcheck/event-router';
 // Category mapping aligned with design doc
