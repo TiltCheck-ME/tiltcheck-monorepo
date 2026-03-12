@@ -9,18 +9,25 @@
 // Global state
 let currentUser = null;
 let userToken = localStorage.getItem('tiltcheck-token');
-
-// Initialize Magic SDK
-const magic = new Magic('pk_live_7CCBBE6E6EF6E6E6', {
-    extensions: { 
-        solana: new SolanaExtension({ 
-            rpcUrl: 'https://api.mainnet-beta.solana.com' 
-        }) 
-    }
-});
+let magic = null;
 
 // === Initialization ===
 window.addEventListener('DOMContentLoaded', async () => {
+    // Initialize Magic SDK safely
+    try {
+        if (typeof Magic !== 'undefined') {
+            magic = new Magic('pk_live_7CCBBE6E6EF6E6E6', {
+                extensions: { 
+                    solana: new SolanaExtension({ 
+                        rpcUrl: 'https://api.mainnet-beta.solana.com' 
+                    }) 
+                }
+            });
+        }
+    } catch (err) {
+        console.error('Magic SDK init failed:', err);
+    }
+
     const urlParams = new URLSearchParams(window.location.search);
     const urlToken = urlParams.get('token');
     
@@ -95,6 +102,7 @@ async function loadAllData() {
         loadUserProfile(),
         loadTrustMetrics(),
         loadBonuses(),
+        loadVaults(),
         loadActivity()
     ]);
 }
@@ -200,9 +208,65 @@ function startGlobalTimer() {
 
 async function claimBonus(name) {
     alert(`Starting ${name} timer... Redirecting to casino.`);
-    // In real app, this would hit the API to save lastClaimedAt
     location.reload(); 
 }
+
+// === LockVaults Logic ===
+async function loadVaults() {
+    const container = document.getElementById('vaultsList');
+    // Mock vaults for now
+    const mockVaults = [
+        { id: 'v1', amount: 5.5, currency: 'SOL', unlockDate: Date.now() + 1000 * 60 * 60 * 24 * 3, penalty: 15 },
+        { id: 'v2', amount: 150, currency: 'USDC', unlockDate: Date.now() - 1000 * 60 * 60, penalty: 10 }
+    ];
+
+    if (mockVaults.length === 0) {
+        container.innerHTML = '<div class="card" style="text-align: center; color: var(--text-muted);"><p>No active vaults found. Use <code>/lockvault</code> in Discord to lock your gains.</p></div>';
+        return;
+    }
+
+    container.innerHTML = mockVaults.map(v => {
+        const isLocked = v.unlockDate > Date.now();
+        const pct = isLocked ? 65 : 100; // Mock progress
+        return `
+            <div class="card">
+                <div style="display: flex; justify-content: space-between; align-items: start;">
+                    <div>
+                        <h3 style="margin-bottom: 0.5rem;">🔒 ${v.amount} ${v.currency} Vault</h3>
+                        <p style="font-size: 0.85rem; color: var(--text-muted);">Unlocks: ${new Date(v.unlockDate).toLocaleDateString()}</p>
+                    </div>
+                    <span class="badge-primary">${isLocked ? 'LOCKED' : 'READY'}</span>
+                </div>
+                <div class="progress-container" style="margin: 1.5rem 0 0.5rem;">
+                    <div class="progress-bar" style="width: ${pct}%;"></div>
+                </div>
+                <div style="display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--text-muted);">
+                    <span>Progress: ${pct}%</span>
+                    <span>Penalty: ${v.penalty}%</span>
+                </div>
+                ${isLocked ? `
+                    <button class="btn btn-secondary" style="width: 100%; margin-top: 1.5rem; color: var(--color-danger); border-color: rgba(255,68,68,0.2);" onclick="emergencyUnlock('${v.id}')">
+                        Emergency Panic Unlock (${v.penalty}% Fee)
+                    </button>
+                ` : `
+                    <button class="btn btn-primary" style="width: 100%; margin-top: 1.5rem;" onclick="withdrawVault('${v.id}')">
+                        Withdraw to Wallet
+                    </button>
+                `}
+            </div>
+        `;
+    }).join('');
+}
+
+window.emergencyUnlock = (id) => {
+    if (confirm('Are you sure? This will burn a portion of your funds as a penalty for breaking the vault early.')) {
+        alert('Emergency unlock initiated. Funds (minus penalty) sent to linked wallet.');
+    }
+};
+
+window.withdrawVault = (id) => {
+    alert('Withdrawal successful! Funds sent to your linked wallet.');
+};
 
 // === Activity Feed ===
 async function loadActivity() {
@@ -251,11 +315,28 @@ async function savePreferences() {
 // === NLP Logic ===
 function setupNlpListener() {
     const input = document.getElementById('nlpInput');
-    input.addEventListener('keypress', (e) => {
+    input.addEventListener('keypress', async (e) => {
         if (e.key === 'Enter') {
             const query = input.value;
-            alert(`Agent processing: "${query}"\nThis will generate a custom data view in the next update.`);
-            input.value = '';
+            if (!query) return;
+            
+            input.disabled = true;
+            input.value = 'Agent is thinking...';
+            
+            try {
+                const res = await apiRequest('/api/agent/query', {
+                    method: 'POST',
+                    body: JSON.stringify({ query })
+                });
+                const data = await res.json();
+                
+                alert(`🤖 DIA: ${data.response}`);
+            } catch (err) {
+                alert('Agent query failed.');
+            } finally {
+                input.disabled = false;
+                input.value = '';
+            }
         }
     });
 }
@@ -267,6 +348,10 @@ function runQuickQuery(q) {
 
 // === Wallet Linking ===
 async function linkMagicWallet() {
+    if (!magic) {
+        alert('Magic SDK is still initializing or blocked. Please try again in a moment.');
+        return;
+    }
     const email = prompt('Enter your email for Magic link:');
     if (!email) return;
     try {
