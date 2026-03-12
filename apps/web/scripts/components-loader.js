@@ -21,9 +21,18 @@
     .then(html => { if (html) mount.innerHTML = html; })
     .catch(()=>{});
 
+  const loadScriptOnce = (src) => {
+    if (document.querySelector(`script[data-tc-src="${src}"]`)) return;
+    const script = document.createElement('script');
+    script.src = src;
+    script.defer = true;
+    script.dataset.tcSrc = src;
+    document.body.appendChild(script);
+  };
+
   const tasks = [];
   if (navMount && !hasExistingPrimaryNav()) {
-    tasks.push(fetchInject('/components/nav.html', navMount));
+    tasks.push(fetchInject('/components/nav.html', navMount).then(() => loadScriptOnce('/scripts/nav.js')));
   }
   if (footerMount) tasks.push(fetchInject('/components/footer.html', footerMount));
 
