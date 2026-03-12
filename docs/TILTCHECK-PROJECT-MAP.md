@@ -14,16 +14,16 @@ TiltCheck = a real-time behavioral safety system for gamblers. It never exploits
 
 The project is organized as a pnpm monorepo with the following components:
 
-### 📱 Applications (`/apps`)
+### 📱 Applications (`/apps`) - All Live on Cloud Run
 
-- **api**: Central backend API.
+- **api**: Central backend API (api.tiltcheck.me).
 - **chrome-extension**: Browser-based safety guard.
 - **control-room**: Admin management panel.
-- **discord-bot**: The primary Discord interaction point.
-- **game-arena**: Multiplayer game server and arena.
+- **discord-bot**: The primary Discord interaction point (bot.tiltcheck.me).
+- **game-arena**: Multiplayer game server (Socket.io).
 - **trust-rollup**: Trust score aggregator and rollup service.
-- **user-dashboard**: User profile and safety management.
-- **web**: The main web frontend.
+- **user-dashboard**: Primary Degen Hub profile entry point (dashboard.tiltcheck.me).
+- **web**: Main landing page (tiltcheck.me).
 
 ### ⚙️ Services (`/services`)
 
@@ -45,14 +45,14 @@ The project is organized as a pnpm monorepo with the following components:
 
 ### 📦 Packages (`/packages`)
 
-- **agent**: Core agent logic and orchestration.
+- **agent**: Degen Intelligence Agent (DIA) built with Google ADK.
 - **ai-client**: Unified interface for AI services.
 - **analytics**: Usage and behavioral analytics.
 - **api-client**: Frontend and cross-service API client.
 - **api-response-types**: Shared API response definitions.
 - **auth / auth-flow**: Shared authentication logic.
 - **cli**: Command-line interface tools.
-- **comic-generator**: Visual content generation.
+- **comic-generator**: Cloud service for Daily Degen Comic generation.
 - **config**: Shared configuration management.
 - **database / db / db-client**: Shared database schemas and clients.
 - **discord-utils**: Shared helpers for Discord bot development.
