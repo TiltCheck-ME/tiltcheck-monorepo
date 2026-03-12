@@ -21,17 +21,31 @@ const getUserAnalytics = new FunctionTool<typeof DiscordIdSchema>({
     if (!db.isConnected()) return "Database disconnected. High-level mock: User has 12 SOL wagered and 4 SOL profit.";
     
     const stats = await db.getUserStats(discordId);
-    if (!stats) return `No stats found for user ${discordId}. They might be new!`;
+    const credits = await db.getCreditBalance(discordId);
+    const recentGames = await db.getUserGameHistory(discordId, 5);
+
+    if (!stats && !credits) return `No stats found for user ${discordId}. They might be new!`;
 
     return {
-      username: stats.username,
-      totalGames: stats.total_games,
-      totalWins: stats.total_wins,
-      wageredSol: stats.wagered_amount_sol,
-      profitSol: stats.profit_sol,
-      depositedSol: stats.deposited_amount_sol,
-      pokerWins: stats.poker_wins,
-      dadWins: stats.dad_wins
+      username: stats?.username || 'Unknown Degen',
+      gaming: {
+        totalGames: stats?.total_games || 0,
+        totalWins: stats?.total_wins || 0,
+        winRate: stats?.total_games ? ((stats.total_wins / stats.total_games) * 100).toFixed(1) + '%' : '0%',
+        pokerWins: stats?.poker_wins || 0,
+        dadWins: stats?.dad_wins || 0
+      },
+      financials: {
+        wageredSol: stats?.wagered_amount_sol || 0,
+        profitSol: stats?.profit_sol || 0,
+        depositedSol: stats?.deposited_amount_sol || 0,
+        currentCreditBalance: credits ? (credits.balance_lamports / 1e9).toFixed(4) + ' SOL' : '0 SOL'
+      },
+      recentActivity: recentGames.map(g => ({
+        type: g.game_type,
+        completedAt: g.completed_at,
+        won: g.winner_id === discordId
+      }))
     };
   },
 });
@@ -48,13 +62,30 @@ const getTrustStanding = new FunctionTool<typeof DiscordIdSchema>({
 
     const identity = await db.getDegenIdentity(discordId);
     const tiltStats = await db.getTiltStats(discordId);
+    const recentTilt = await db.getTiltHistory(discordId, { limit: 3 });
 
+    const trustScore = identity?.trust_score ?? 50;
+    
     return {
-      trustScore: identity?.trust_score ?? 50,
-      tiltLevel: tiltStats.averageTiltScore > 7 ? 'High' : tiltStats.averageTiltScore > 4 ? 'Moderate' : 'Low',
-      lastTiltEvent: tiltStats.lastEventAt,
-      totalFlags: tiltStats.totalEvents,
-      identityVerified: identity?.tos_nft_paid ?? false
+      trustScore,
+      standing: trustScore > 80 ? 'Exemplary' : trustScore > 60 ? 'Stable' : trustScore > 40 ? 'Degenerate' : 'Toxic',
+      tiltAnalysis: {
+        currentLevel: tiltStats.averageTiltScore > 7 ? 'High' : tiltStats.averageTiltScore > 4 ? 'Moderate' : 'Low',
+        averageScore: tiltStats.averageTiltScore,
+        maxScore: tiltStats.maxTiltScore,
+        eventsLast24h: tiltStats.eventsLast24h,
+        lastTiltEvent: tiltStats.lastEventAt
+      },
+      verifications: {
+        identityVerified: identity?.tos_nft_paid ?? false,
+        tosAccepted: identity?.tos_accepted ?? false,
+        nftMinted: identity?.tos_nft_minted ?? false
+      },
+      recentWarnings: recentTilt.map(t => ({
+        score: t.tilt_score,
+        time: t.timestamp,
+        context: t.context
+      }))
     };
   },
 });
@@ -82,7 +113,7 @@ export const agent = new LlmAgent({
   name: 'tiltcheck_degen_intelligence',
   description: 'Advanced AI assistant for the TiltCheck ecosystem. Analyzes degen stats, trust scores, and casino bonuses.',
   model: new Gemini({
-    modelName: 'gemini-1.5-flash',
+    model: 'gemini-1.5-flash',
   }),
   instruction: `You are the TiltCheck Degen Intelligence Agent (DIA). 
                 Your goal is to provide blunt, data-driven, and slightly skeptical insights to users about their gambling behavior and ecosystem status.
