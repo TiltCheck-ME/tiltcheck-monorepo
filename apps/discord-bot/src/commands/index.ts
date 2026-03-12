@@ -14,7 +14,8 @@
 export { help } from './help.js';
 export { tiltcheck } from './tiltcheck.js';
 export { tip } from './tip.js';
-export { airdrop } from './airdrop.js';
+export { juice } from './juice.js';
+export { linkwallet } from './linkwallet.js';
 export { lockvault } from './lockvault.js';
 export { casino } from './casino.js';
 export { triviadrop } from './triviadrop.js';

@@ -22,6 +22,7 @@
     "@tiltcheck/event-router": "workspace:*",
     "@tiltcheck/types": "workspace:*",
     "@tiltcheck/justthetip": "workspace:*",
+    "@tiltcheck/agent": "workspace:*",
     "express-rate-limit": "^8.2.2",
     "@magic-sdk/admin": "^2.0.0",
     "@solana/web3.js": "^1.91.0",
