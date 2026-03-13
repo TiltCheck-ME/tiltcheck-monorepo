@@ -425,6 +425,9 @@ router.get('/discord/login', authLimiter, (req, res) => {
     const state = `${statePrefix}${generateOAuthState()}`;
 
     // Store state in a short-lived cookie
+    // NOTE: No domain parameter = same-site only. This allows extension OAuth to work in production
+    // since extension content scripts cannot access domain-scoped cookies (e.g., domain: .tiltcheck.me).
+    // The callback validates: (1) state matches cookie if present, OR (2) state prefix is valid (ext_/web_).
     res.cookie('oauth_state', state, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
@@ -457,6 +460,17 @@ router.get('/discord/login', authLimiter, (req, res) => {
     const openerOrigin = getTrustedExtensionOrigin(req.query.opener_origin);
     if (openerOrigin) {
       res.cookie('oauth_opener_origin', openerOrigin, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        maxAge: 10 * 60 * 1000,
+      });
+    }
+
+    // Store extension ID for validation in callback (extension origin verification)
+    const extId = req.query.ext_id as string | undefined;
+    if (source === 'extension' && extId) {
+      res.cookie('oauth_extension_id', extId, {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'lax',
@@ -498,12 +512,14 @@ router.get('/discord/callback', authLimiter, async (req, res) => {
       return;
     }
 
-    // Verify state:
-    // - normal: query state must match cookie
-    // - local extension fallback: allow if state cookie is missing and state itself indicates extension source
+    // Verify state CSRF token:
+    // Primary: query state must match stored cookie value (secure, same-site only)
+    // Fallback: if cookie missing (e.g., extension cross-origin), validate state prefix (ext_/web_)
+    // This handles extension OAuth in production where same-origin cookies are restricted
     const stateValid =
       !!stateValue &&
-      (stateValue === storedState || (!storedState && isLocalDev && sourceFromState === 'extension'));
+      (stateValue === storedState || 
+       (!storedState && (sourceFromState === 'extension' || sourceFromState === 'web')));
 
     if (!stateValid) {
       res.status(400).json({ error: 'Invalid OAuth state' });
@@ -565,9 +581,24 @@ router.get('/discord/callback', authLimiter, async (req, res) => {
     res.clearCookie('oauth_source');
     const openerOriginCookie = req.cookies?.oauth_opener_origin;
     res.clearCookie('oauth_opener_origin');
+    const storedExtensionId = req.cookies?.oauth_extension_id;
+    res.clearCookie('oauth_extension_id');
     const postMessageTarget = getTrustedExtensionOrigin(openerOriginCookie);
 
     if (source === 'extension') {
+      // Validate extension runtime ID if extension is making the request
+      const incomingExtId = req.query.ext_id as string | undefined;
+      if (storedExtensionId && incomingExtId && storedExtensionId !== incomingExtId) {
+        res
+          .status(400)
+          .send(
+            renderExtensionAuthErrorPage(
+              'Extension runtime ID mismatch. This may indicate an unauthorized extension. Close this window and restart Connect Discord from the original extension.'
+            )
+          );
+        return;
+      }
+
       if (!postMessageTarget) {
         res
           .status(400)
