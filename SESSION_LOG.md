@@ -19,6 +19,7 @@ All core services and shadow services successfully migrated to Cloud Run.
 - **Public Access**: Fixed 403 errors by granting `roles/run.invoker` to `allUsers` for Game Arena and Trust Rollup.
 
 ## Recent Fixes
+- **OAuth State Cookie Domain Fix** (2026-03-13): Fixed extension OAuth in production by removing domain-scoped cookies. Changed `apps/api/src/routes/auth.ts` to use same-site only cookies and added fallback state validation using state prefix (ext_/web_). Extension content scripts can now access auth state without domain parameter restrictions.
 - **Degen Hub Pivot**: Rebuilt `user-dashboard` as a non-custodial utility center. Unified `index.html` and `dashboard.html` into a single, high-fidelity experience.
 - **Discord Bot Rebrand**: Renamed `/airdrop` to `/juice`. Implemented non-custodial pass-through escrow logic for reaction-based drops.
 - **Wallet Linking**: Added `/linkwallet` command in Discord for zero-friction external wallet mapping (Phantom/Trust).

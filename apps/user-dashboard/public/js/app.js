@@ -2,7 +2,7 @@
 
 // Global state
 let currentUser = null;
-let userToken = localStorage.getItem('tiltcheck-token');
+let userToken = localStorage.getItem('tiltcheck-token') || getCookie('auth_token');
 let magic = null;
 
 // === Initialization ===
@@ -22,19 +22,21 @@ window.addEventListener('DOMContentLoaded', async () => {
         console.error('Magic SDK init failed:', err);
     }
 
-    const urlParams = new URLSearchParams(window.location.search);
-    const urlToken = urlParams.get('token');
-    
-    if (urlToken) {
-        userToken = urlToken;
+    if (userToken) {
         localStorage.setItem('tiltcheck-token', userToken);
-        window.history.replaceState({}, document.title, window.location.pathname);
     }
 
     await checkAuth();
     setupTabListeners();
     setupNlpListener();
 });
+
+function getCookie(name) {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return parts.pop().split(';').shift();
+    return null;
+}
 
 async function checkAuth() {
     if (!userToken) {
