@@ -55,7 +55,7 @@ const getUserAnalytics = new FunctionTool<typeof DiscordIdSchema>({
  */
 const getTrustStanding = new FunctionTool<typeof DiscordIdSchema>({
   name: 'get_trust_standing',
-  description: 'Analyzes a user\'s trust score, tilt level, and behavior consistency.',
+  description: 'Analyzes a user's trust score, tilt level, and behavior consistency.',
   parameters: DiscordIdSchema,
   execute: async ({ discordId }: DiscordIdParams) => {
     if (!db.isConnected()) return "Database disconnected. Mock standing: 85.0 Trust Score, Tilt Level 1.";
