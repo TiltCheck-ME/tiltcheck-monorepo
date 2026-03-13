@@ -1,0 +1,44 @@
+name: Deploy to Cloud Run
+
+on:
+  push:
+    branches: [ main ]
+
+env:
+  PROJECT_ID: tiltchcek
+  REGION: us-central1
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Google Auth
+      uses: 'google-github-actions/auth@v2'
+      with:
+        credentials_json: '${{ secrets.GCP_SA_KEY }}'
+
+    - name: 'Set up Cloud SDK'
+      uses: 'google-github-actions/setup-gcloud@v2'
+
+    - name: 'API: Build and Deploy'
+      run: |
+        gcloud builds submit --config=cloudbuild.yaml .
+        gcloud run deploy tiltcheck-api --image us-central1-docker.pkg.dev/$PROJECT_ID/tiltcheck/api:latest --region $REGION --add-cloudsql-instances=$PROJECT_ID:$REGION:tiltcheck-main --quiet
+
+    - name: 'Bot: Build and Deploy'
+      run: |
+        gcloud builds submit --config=cloudbuild-bot.yaml .
+        gcloud run deploy tiltcheck-bot --image us-central1-docker.pkg.dev/$PROJECT_ID/tiltcheck/discord-bot:latest --region $REGION --add-cloudsql-instances=$PROJECT_ID:$REGION:tiltcheck-main --quiet
+
+    - name: 'Dashboard: Build and Deploy'
+      run: |
+        gcloud builds submit --config=cloudbuild-dashboard.yaml .
+        gcloud run deploy tiltcheck-dashboard --image us-central1-docker.pkg.dev/$PROJECT_ID/tiltcheck/dashboard:latest --region $REGION --quiet
+
+    - name: 'Web: Build and Deploy'
+      run: |
+        gcloud builds submit --config=cloudbuild-web.yaml .
+        gcloud run deploy tiltcheck-web --image us-central1-docker.pkg.dev/$PROJECT_ID/tiltcheck/web:latest --region $REGION --quiet

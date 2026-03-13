@@ -21,39 +21,38 @@ export function hasAcceptedTerms(uid: string): boolean { return loadAcceptances(
 export const terms: Command = {
   data: new SlashCommandBuilder()
     .setName('terms')
-    .setDescription('Legal documents & acceptance')
-    .addSubcommand(s => s.setName('view').setDescription('View Terms & Privacy links'))
-    .addSubcommand(s => s.setName('accept').setDescription('Accept Terms of Service'))
-    .addSubcommand(s => s.setName('status').setDescription('Check your acceptance status')),
+    .setDescription('The boring legal sh** you have to accept.')
+    .addSubcommand(s => s.setName('view').setDescription('Read the fine print that you\'re probably going to ignore.'))
+    .addSubcommand(s => s.setName('accept').setDescription('Promise you won\'t sue us when you lose all your money.'))
+    .addSubcommand(s => s.setName('status').setDescription('See if you\'re already on the hook.')),
   async execute(interaction: ChatInputCommandInteraction) {
     const sub = interaction.options.getSubcommand();
     if (sub === 'view') {
       const embed = new EmbedBuilder()
-        .setTitle('📜 TiltCheck Legal')
-        .setDescription('Read before using tipping features.')
+        .setTitle('The Fine Print. Don\'t Say We Didn\'t Warn You.')
+        .setDescription('Yeah, you have to read this before you can use the fun stuff.')
         .addFields(
-          { name: 'Terms of Service', value: '[Read Terms](https://tiltcheck.me/terms)\n• 18+ required\n• Non-refundable tips (0.07 SOL fee)\n• AS-IS service' },
-          { name: 'Privacy Policy', value: '[Read Privacy](https://tiltcheck.me/privacy)\n• Non-custodial wallets\n• Minimal logs (7 days)\n• No data selling' },
-          { name: 'Acceptance', value: 'Use `/terms accept` after reading.' },
-          { name: 'Contact', value: 'privacy@tiltcheck.me | legal@tiltcheck.me' }
+          { name: 'Terms of Service', value: '[Read Terms](https://tiltcheck.me/terms)\n• You must be 18+. No kids allowed.\n• Tips are final. Don\'t come crying to us.\n• This is all provided AS-IS. If it breaks, it breaks.' },
+          { name: 'Privacy Policy', value: '[Read Privacy](https://tiltcheck.me/privacy)\n• We use non-custodial wallets. Your keys, your crypto.\n• We log the bare minimum and delete it after 7 days.\n• We don\'t sell your data. We have better ways to make money.' },
+          { name: 'Your Next Step', value: 'Use `/terms accept` once you\'ve pretended to read everything.' },
         )
         .setColor(0x00a8ff)
-        .setFooter({ text: 'TiltCheck • Trust, Tipping & Anti-Tilt' });
+        .setFooter({ text: 'TiltCheck • Now you can\'t say you didn\'t know.' });
       await interaction.reply({ embeds: [embed], ephemeral: true });
       return;
     }
     if (sub === 'accept') {
       if (hasAcceptedTerms(interaction.user.id)) {
-        await interaction.reply({ content: '✅ Already accepted. Use `/terms status`.', ephemeral: true });
+        await interaction.reply({ content: 'You\'re already on the hook. We got your signature.', ephemeral: true });
         return;
       }
       const row = new ActionRowBuilder<ButtonBuilder>().addComponents(
-        new ButtonBuilder().setCustomId('terms_accept_confirm').setLabel('I Accept').setStyle(ButtonStyle.Success).setEmoji('✅'),
-        new ButtonBuilder().setCustomId('terms_accept_cancel').setLabel('Cancel').setStyle(ButtonStyle.Secondary)
+        new ButtonBuilder().setCustomId('terms_accept_confirm').setLabel('I Accept, Now Give Me My NFT').setStyle(ButtonStyle.Success),
+        new ButtonBuilder().setCustomId('terms_accept_cancel').setLabel('I\'m Scared').setStyle(ButtonStyle.Secondary)
       );
       const embed = new EmbedBuilder()
-        .setTitle('⚠️ Confirm Acceptance')
-        .setDescription('By clicking I Accept you confirm:\n• You are 18+\n• You read Terms & Privacy\n• Tips are non-refundable\n• You use TiltCheck at your own risk')
+        .setTitle('Cover Our Asses, Click "I Accept"')
+        .setDescription('By clicking the button, you agree you\'re a legal adult who read the terms and won\'t sue us. Simple.')
         .setColor(0xffc107);
       const msg = await interaction.reply({ embeds: [embed], components: [row], ephemeral: true, fetchReply: true });
       try {
@@ -61,7 +60,6 @@ export const terms: Command = {
         if (btn.customId === 'terms_accept_confirm') {
           saveAcceptance({ userId: interaction.user.id, username: interaction.user.username, acceptedAt: new Date().toISOString(), version: VERSION });
           
-          // Link to Degen Identity in Supabase
           if (db.isConnected()) {
             await db.upsertDegenIdentity({ 
               discord_id: interaction.user.id, 
@@ -70,22 +68,22 @@ export const terms: Command = {
             await db.mintTosNft(interaction.user.id);
           }
 
-          await btn.update({ content: '✅ Terms accepted. Your **Degen Identity** NFT has been minted to your TiltCheck profile! You may now use tipping and vaulting features.', embeds: [], components: [] });
+          await btn.update({ content: 'Alright, you\'re in. Your "Degen Identity" NFT is being minted. You can now use the fun sh** like tipping and vaults.', embeds: [], components: [] });
         } else {
-          await btn.update({ content: '❌ Acceptance cancelled. Run `/terms accept` later.', embeds: [], components: [] });
+          await btn.update({ content: 'Fine, be that way. No tipping or vaults for you.', embeds: [], components: [] });
         }
       } catch {
-        await interaction.editReply({ content: '⏱️ Timed out. Run `/terms accept` again.', embeds: [], components: [] });
+        await interaction.editReply({ content: 'You took too long and the button expired. Try again when you\'re feeling decisive.', embeds: [], components: [] });
       }
       return;
     }
     if (sub === 'status') {
       const rec = loadAcceptances().find(a => a.userId === interaction.user.id);
       if (!rec) {
-        await interaction.reply({ content: '⚠️ Not accepted yet. Use `/terms view` then `/terms accept`.', ephemeral: true });
+        await interaction.reply({ content: 'You haven\'t accepted the terms. Use `/terms view` and then `/terms accept` before you can play with the sharp toys.', ephemeral: true });
         return;
       }
-      await interaction.reply({ content: `✅ Accepted ${new Date(rec.acceptedAt).toLocaleString()} (v${rec.version})`, ephemeral: true });
+      await interaction.reply({ content: `Yeah, you accepted on ${new Date(rec.acceptedAt).toLocaleString()} (v${rec.version}). We got you.`, ephemeral: true });
     }
   }
 };
