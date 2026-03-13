@@ -6,7 +6,7 @@
 
 import { Router } from 'express';
 import { authMiddleware } from '../middleware/auth.js';
-import { findOnboardingByDiscordId, upsertOnboarding, findUserById } from '@tiltcheck/db';
+import { findOnboardingByDiscordId, upsertOnboarding } from '@tiltcheck/db';
 
 const router = Router();
 
