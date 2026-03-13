@@ -68,7 +68,7 @@ async function showCasinoTrust(interaction: ChatInputCommandInteraction) {
   const explanations = trustEngines.explainCasinoScore(normalized);
 
   // Score color based on trust level
-  let color = 0x4ec9f0; // Blue (neutral)
+  let color;
   if (score >= 80) color = 0x43b581; // Green (good)
   else if (score >= 60) color = 0xfaa61a; // Yellow (ok)
   else color = 0xf04747; // Red (bad)
