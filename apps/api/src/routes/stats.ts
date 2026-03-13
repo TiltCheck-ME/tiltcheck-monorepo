@@ -1,3 +1,4 @@
+/* Copyright (c) 2026 TiltCheck. All rights reserved. */
 /**
  * /stats route for landing page KPI strip.
  * Aggregates KPIs from repository-backed trust datasets.

@@ -1,3 +1,4 @@
+/* Copyright (c) 2026 TiltCheck. All rights reserved. */
 import { defineConfig } from 'vitest/config';
 import { config } from 'dotenv';
 

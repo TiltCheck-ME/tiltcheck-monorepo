@@ -1,12 +1,4 @@
-/**
- * © 2024–2026 TiltCheck Ecosystem. All Rights Reserved.
- * Shared pricing utility - Jupiter Price API integration.
- * 
- * NOTE: No API key required. Jupiter Price API is free and keyless.
- * It covers all Solana tokens including SOL, USDC, USDT, BONK, etc.
- * Cache TTL is 30 seconds. On cold-start, a configurable fallback is used.
- * Set SOLANA_FALLBACK_PRICE_USD in .env to override the default $80 fallback.
- */
+/* Copyright (c) 2026 TiltCheck. All rights reserved. */
 
 const JUPITER_PRICE_API = 'https://price.jup.ag/v4/price';
 const CACHE_TTL_MS = 30_000; // 30 seconds

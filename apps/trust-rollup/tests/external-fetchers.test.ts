@@ -1,3 +1,4 @@
+/* Copyright (c) 2026 TiltCheck. All rights reserved. */
 import { describe, expect, it } from 'vitest';
 import { calculateTrustDeltas, fetchCasinoExternalData } from '../src/external-fetchers.js';
 

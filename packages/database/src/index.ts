@@ -1,10 +1,4 @@
-/**
- * © 2024–2025 TiltCheck Ecosystem. All Rights Reserved.
- * Created by jmenichole (https://github.com/jmenichole)
- * 
- * This file is part of the TiltCheck project.
- * For licensing information, see LICENSE file in the project root.
- */
+/* Copyright (c) 2026 TiltCheck. All rights reserved. */
 /**
  * TiltCheck Database Client
  * Supabase integration for user stats, game history, and leaderboards
@@ -486,6 +480,16 @@ export class DatabaseClient {
    */
   getClient(): SupabaseClient | null {
     return this.supabase;
+  }
+
+  /**
+   * Execute a raw query
+   */
+  async raw(sql: string): Promise<{ data: any, error: any }> {
+    if (!this.supabase) {
+      return { data: null, error: new Error('Database not connected') };
+    }
+    return this.supabase.rpc('exec', { sql });
   }
 
   /**
@@ -1041,6 +1045,25 @@ export class DatabaseClient {
         eventsLast7d: 0,
       };
     }
+  }
+
+  /**
+   * Get bonus status for a user
+   */
+  async getBonusStatus(discordId: string): Promise<any[] | null> {
+    if (!this.supabase) return null;
+
+    const { data, error } = await this.supabase
+      .from('user_bonus_status')
+      .select('casino, bonus, status')
+      .eq('discord_id', discordId);
+
+    if (error) {
+      console.error('Error fetching bonus status:', error);
+      return null;
+    }
+
+    return data;
   }
 }
 

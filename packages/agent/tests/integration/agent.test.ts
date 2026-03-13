@@ -1,9 +1,10 @@
+/* Copyright (c) 2026 TiltCheck. All rights reserved. */
 import { config } from 'dotenv';
 config();
 
 import { describe, it, expect, beforeEach } from 'vitest';
 import { Runner, InMemorySessionService } from '@google/adk';
-import { rootAgent } from '../../app/agent.js';
+import { agent } from '../../app/agent.js';
 
 describe('Agent Integration', () => {
   let runner: Runner;
@@ -13,7 +14,7 @@ describe('Agent Integration', () => {
     sessionService = new InMemorySessionService();
     runner = new Runner({
       appName: 'test-app',
-      agent: rootAgent,
+      agent,
       sessionService,
     });
   });

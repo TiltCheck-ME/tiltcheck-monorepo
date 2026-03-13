@@ -1,3 +1,4 @@
+/* Copyright (c) 2026 TiltCheck. All rights reserved. */
 /**
  * Fairness Tutorial - Interactive Provably Fair Onboarding
  * Step-by-step walkthrough explaining provably fair verification

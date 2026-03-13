@@ -1,7 +1,4 @@
-/**
- * © 2024–2026 TiltCheck Ecosystem. All Rights Reserved.
- * Pricing routes — Uses shared @tiltcheck/utils for Jupiter Price API.
- */
+/* Copyright (c) 2026 TiltCheck. All rights reserved. */
 import { Router } from 'express';
 import { getPriceUsd } from '@tiltcheck/utils';
 

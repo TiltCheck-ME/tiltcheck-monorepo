@@ -40,15 +40,14 @@ All local apps are accounted for in the Cloud environment. Shadow services have 
 
 | Service | Status | Verdict |
 | :--- | :--- | :--- |
-| **api** | Live | Functional. |
-| **dashboard** | Live | Functional. |
-| **web** | Live | Functional. |
-| **discord-bot** | Live/YAML | Verified: Powers tiltcheck-bot & dad-bot. |
-| **game-arena** | Deployment Ready | YAML: multiplayer game server. |
-| **trust-rollup** | Deployment Ready | YAML: trust score aggregator. |
-| **control-room** | Deployment Ready | YAML: admin management panel. |
-| **user-dashboard** | Deployment Ready | YAML: user profile management. |
-| **chrome-extension** | Browser-Side | Functional: Local/Store tool. |
+| **api** | Live | Functional (Central Gateway). |
+| **web** | Live | Functional (Landing Page). |
+| **discord-bot** | Live | Functional: Powers tiltcheck-bot & dad-bot. |
+| **game-arena** | Live | Functional: Multiplayer Socket.io server. |
+| **trust-rollup** | Live | Functional: Trust Engine aggregator. |
+| **control-room** | Live | Functional: Admin management panel. |
+| **user-dashboard** | Live | Functional: Primary Degen Hub profile entry point. |
+| **chrome-extension** | Browser-Side | Functional: Linked to production API. |
 
 ## 5. Core System Modules
 Functional code located in modules/
@@ -57,6 +56,7 @@ Functional code located in modules/
 | :--- | :--- | :--- |
 | Tilt Detector | modules/tiltcheck-core/ | Logic for monitoring community activity for tilt signals. |
 | JustTheTip | modules/justthetip/ | Logic for intelligent tipping and financial transactions. |
+| Solana Agent | packages/agent/ | Degen Intelligence Agent (DIA) via Google ADK. |
 
 ---
-Last Updated: 2026-03-10
+Last Updated: 2026-03-11

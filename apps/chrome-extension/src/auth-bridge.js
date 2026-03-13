@@ -1,3 +1,4 @@
+/* Copyright (c) 2026 TiltCheck. All rights reserved. */
 (() => {
   const statusEl = document.getElementById('status');
   const openBtn = document.getElementById('open-btn');

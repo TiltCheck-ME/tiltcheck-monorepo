@@ -1,10 +1,4 @@
-/**
- * © 2024–2025 TiltCheck Ecosystem. All Rights Reserved.
- * Created by jmenichole (https://github.com/jmenichole)
- * 
- * This file is part of the TiltCheck project.
- * For licensing information, see LICENSE file in the project root.
- */
+/* Copyright (c) 2026 TiltCheck. All rights reserved. */
 /**
  * Trust Commands
  * 
@@ -74,7 +68,7 @@ async function showCasinoTrust(interaction: ChatInputCommandInteraction) {
   const explanations = trustEngines.explainCasinoScore(normalized);
 
   // Score color based on trust level
-  let color = 0x4ec9f0; // Blue (neutral)
+  let color;
   if (score >= 80) color = 0x43b581; // Green (good)
   else if (score >= 60) color = 0xfaa61a; // Yellow (ok)
   else color = 0xf04747; // Red (bad)
