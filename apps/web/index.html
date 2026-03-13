@@ -4,26 +4,62 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>TiltCheck | The Transparency Layer</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@700&display=swap" rel="stylesheet">
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
+    /* Global Background & Grid Overlay */
     body.degen-background {
       background-color: #0E0E0F;
-      background-image: url('/assets/global-background.jpg');
+      background-image: url('/global-background-v2.jpg');
       background-size: cover;
       background-position: center;
       background-attachment: fixed;
     }
-    body.degen-background::before {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background-image: linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px), linear-gradient(to right, rgba(255,255,255,0.03) 1px, transparent 1px);
-      background-size: 32px 32px;
-      pointer-events: none;
-      z-index: -1;
-    }
     .hide-scrollbar::-webkit-scrollbar { display: none; }
     .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+    /* Neon Hero Styles */
+    .neon {
+      position: relative;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      font-family: 'Space Grotesk', sans-serif;
+      font-weight: 700;
+    }
+    .neon-main {
+      font-size: 110px;
+      color: #fff;
+      text-shadow: 0 0 2px #fff, 0 0 5px #fff, 0 0 10px #00ffaa;
+    }
+    .neon-sub {
+      font-size: 70px;
+      color: #fff;
+      text-shadow: 0 0 2px #fff, 0 0 5px #00ffaa;
+    }
+    .reflection::after {
+      content: attr(data-text);
+      position: absolute;
+      top: 100%;
+      left: 0;
+      width: 100%;
+      transform: scaleY(-1);
+      opacity: 0.2;
+      background: linear-gradient(to bottom, rgba(255, 255, 255, 0.2), transparent);
+      -webkit-background-clip: text;
+      color: transparent;
+      text-shadow: none;
+    }
+    .floor {
+      position: absolute;
+      bottom: -50px;
+      left: 0;
+      width: 100%;
+      height: 100px;
+      background: radial-gradient(ellipse at center, rgba(0,255,170,0.1) 0%, transparent 70%);
+      filter: blur(40px);
+    }
   </style>
   <script>
     tailwind.config = {
@@ -49,30 +85,22 @@
         <span class="font-black text-xl hidden sm:inline">TiltCheck</span>
       </a>
       <div class="hidden md:flex items-center space-x-2">
-        <a href="/features.html" class="text-sm font-medium text-gray-300 hover:text-degen-green px-3 py-2 rounded-md transition-all hover:bg-white/5 hover:shadow-lg hover:shadow-degen-green/20">Features</a>
-        <a href="/how-it-works.html" class="text-sm font-medium text-gray-300 hover:text-degen-green px-3 py-2 rounded-md transition-all hover:bg-white/5 hover:shadow-lg hover:shadow-degen-green/20">How It Works</a>
-        <a href="/about.html" class="text-sm font-medium text-gray-300 hover:text-degen-green px-3 py-2 rounded-md transition-all hover:bg-white/5 hover:shadow-lg hover:shadow-degen-green/20">About</a>
-        <a href="https://github.com/jmenichole/tiltcheck-monorepo" target="_blank" rel="noopener" class="text-sm font-medium text-gray-300 hover:text-degen-green px-3 py-2 rounded-md transition-all hover:bg-white/5 hover:shadow-lg hover:shadow-degen-green/20">GitHub</a>
+        <a href="/features.html" class="text-sm font-medium text-gray-300 hover:text-degen-green px-3 py-2 rounded-md transition-all hover:bg-white/5 hover:shadow-lg hover:shadow-degen-purple/10">Features</a>
+        <a href="/how-it-works.html" class="text-sm font-medium text-gray-300 hover:text-degen-green px-3 py-2 rounded-md transition-all hover:bg-white/5 hover:shadow-lg hover:shadow-degen-purple/10">How It Works</a>
+        <a href="/about.html" class="text-sm font-medium text-gray-300 hover:text-degen-green px-3 py-2 rounded-md transition-all hover:bg-white/5 hover:shadow-lg hover:shadow-degen-purple/10">About</a>
+        <a href="https://github.com/jmenichole/tiltcheck-monorepo" target="_blank" rel="noopener" class="text-sm font-medium text-gray-300 hover:text-degen-green px-3 py-2 rounded-md transition-all hover:bg-white/5 hover:shadow-lg hover:shadow-degen-purple/10">GitHub</a>
       </div>
       <div class="flex items-center space-x-4">
          <a href="https://discord.gg/s6NNfPHxMS" target="_blank" rel="noopener" class="btn btn-secondary text-sm px-4 py-2">Join Discord</a>
-         <a href="/login.html" class="btn btn-primary text-sm px-4 py-2">Login</a>
       </div>
     </nav>
   </header>
 
   <main id="main-content">
-    <section class="hero-surface pt-32 pb-20 px-6 text-center">
-      <h1 class="text-5xl md:text-8xl font-black tracking-tighter mb-6 uppercase">
-        HOUSE ALWAYS WINS? <br><span class="text-degen-green">FUCK THAT.</span>
-      </h1>
-      <p class="text-xl text-gray-300 max-w-3xl mx-auto mb-12 leading-relaxed">
-        Telling us not to gamble isn't going to work. This is a harm reduction 2.0 toolkit that helps you play smarter, not less.
-      </p>
-      <div class="flex flex-col sm:flex-row gap-4 justify-center">
-        <a href="/getting-started.html" class="btn btn-primary px-8 py-4 text-lg">Get Started</a>
-        <a href="https://discord.gg/s6NNfPHxMS" class="btn btn-secondary px-8 py-4 text-lg">Join Discord</a>
-      </div>
+    <section class="hero-surface pt-24 pb-20 px-6 text-center relative">
+        <div class="neon reflection neon-main" data-text="HOUSE ALWAYS WINS?">HOUSE ALWAYS WINS?</div>
+        <div class="neon reflection neon-sub" data-text="FUCK THAT.">FUCK THAT.</div>
+        <div class="floor"></div>
     </section>
 
     <section class="py-12 border-y border-white/5 bg-[#111316]/30">
@@ -112,9 +140,10 @@
               <p class="text-gray-400 text-sm mb-6">Your personal on-chain analyst. Ask it anything about your gameplay in natural language via Discord DM.</p>
             </div>
             <div class="text-xs font-bold uppercase px-2 py-1 rounded-full bg-degen-green text-degen-black self-start">Live</div>
-          </a>          <a href="/extension.html" class="group p-8 rounded-lg border border-white/10 bg-white/5 backdrop-blur-lg hover:border-degen-green/70 hover:-translate-y-2 transition-all flex flex-col justify-between flex-none w-72">
+          </a>
+          <a href="/extension.html" class="group p-8 rounded-lg border border-white/10 bg-white/5 backdrop-blur-lg hover:border-degen-green/70 hover:-translate-y-2 transition-all flex flex-col justify-between flex-none w-72">
             <div>
-              <h3 class="text-xl font-bold mb-2">Guardian Extension</h3>
+              <h3 class="text-xl font-bold mb-2">The House Edge</h3>
               <p class="text-gray-400 text-sm mb-6">A real-time co-pilot that watches for fairness anomalies, detects tilt, and enables harm reduction tools like autovaulting.</p>
             </div>
             <div class="text-xs font-bold uppercase px-2 py-1 rounded-full bg-degen-green text-degen-black self-start">Live</div>
@@ -168,8 +197,7 @@
 
   <footer class="py-16 px-6 text-gray-400 text-sm border-t border-white/10">
     <div class="container mx-auto">
-      <div class="flex flex-wrap justify-between gap-8 mb-12">
-        <div class="w-full lg:w-auto flex flex-wrap gap-8">
+      <div class="flex flex-wrap justify-center gap-8 mb-12">
           <div>
             <h4 class="font-bold text-white uppercase tracking-wider text-xs mb-4">Product</h4>
             <ul class="space-y-2">
@@ -195,7 +223,6 @@
               <li><a href="/terms.html" class="hover:text-white transition-colors">Terms of Service</a></li>
             </ul>
           </div>
-        </div>
       </div>
 
       <div class="border-t border-white/10 pt-8 flex flex-col md:flex-row justify-between items-center text-center md:text-left">
