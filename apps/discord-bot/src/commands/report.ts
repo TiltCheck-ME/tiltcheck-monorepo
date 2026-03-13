@@ -5,15 +5,15 @@ import fetch from 'node-fetch';
 export default {
   data: new SlashCommandBuilder()
     .setName('report')
-    .setDescription('Drop the hammer. Log a disciplinary action on a degen.')
+    .setDescription('Log a disciplinary action or report a user')
     .setDefaultMemberPermissions(PermissionFlagsBits.ModerateMembers)
     .addUserOption(option => 
       option.setName('target')
-        .setDescription('Who\'s the problem?')
+        .setDescription('The user to report')
         .setRequired(true))
     .addStringOption(option =>
       option.setName('action')
-        .setDescription('What\'s the verdict?')
+        .setDescription('Type of action taken')
         .setRequired(true)
         .addChoices(
           { name: 'Warning', value: 'warn' },
@@ -25,11 +25,11 @@ export default {
         ))
     .addStringOption(option =>
       option.setName('reason')
-        .setDescription('What\'s the damage? Be specific.')
+        .setDescription('Reason for the action')
         .setRequired(true))
     .addStringOption(option =>
       option.setName('evidence')
-        .setDescription('Proof or it didn\'t happen (link to screenshot/message)')
+        .setDescription('Link to screenshot or message (optional)')
         .setRequired(false)),
 
   async execute(interaction: any) {
@@ -39,16 +39,21 @@ export default {
     const evidence = interaction.options.getString('evidence');
     const moderator = interaction.user;
 
+    // Defer reply since DB operations might take a moment
     await interaction.deferReply({ ephemeral: true });
 
     try {
       const backendUrl = process.env.BACKEND_URL;
       const internalApiSecret = process.env.INTERNAL_API_SECRET;
 
-      if (!backendUrl || !internalApiSecret) {
-        throw new Error('Backend or API secret not configured. Yell at an admin.');
+      if (!backendUrl) {
+        throw new Error('BACKEND_URL is not configured');
+      }
+      if (!internalApiSecret) {
+        throw new Error('INTERNAL_API_SECRET is not configured');
       }
 
+      // Send to your backend API which handles the DB insertion
       const response = await fetch(`${backendUrl}/api/mod/report`, {
         method: 'POST',
         headers: {
@@ -66,23 +71,19 @@ export default {
       });
 
       if (!response.ok) {
-        throw new Error(`API shat the bed: ${response.statusText}`);
+        throw new Error(`API Error: ${response.statusText}`);
       }
 
       const result = await response.json();
 
       await interaction.editReply({
-        content: `**Done. The verdict is in.**
-**Offender:** ${target.tag}
-**Action:** ${action.toUpperCase().replace('_', ' ')}
-**Case ID:** \`${result.id || 'Pending...'}\``
+        content: `✅ **Report Logged Successfully**\n\n**Target:** ${target.tag}\n**Action:** ${action.toUpperCase().replace('_', ' ')}\n**Case ID:** \`${result.id || 'Pending'}\``
       });
 
     } catch (error) {
       console.error('Report command error:', error);
       await interaction.editReply({
-        content: `**Report failed.** Something is f***ed. Yell at an admin.
-Error: ${error instanceof Error ? error.message : 'Unknown sh**'}`,
+        content: `❌ Failed to log report. Please check the backend connection.`
       });
     }
   }

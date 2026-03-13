@@ -18,7 +18,7 @@
     <div class="container">
       <div class="tool-icon-large">⏰</div>
       <h1 class="text-gradient-emerald">BonusCheck</h1>
-      <p class="tool-tagline">They can't rug you if you see it coming.</p>
+      <p class="tool-tagline">Bonus cycle tracking & nerf detection</p>
     </div>
   </header>
 
@@ -61,8 +61,13 @@
     <div class="container">
       <h2>Features</h2>
       <div class="features-grid">
-        <div class="feature-card" style="padding: 1.5rem; text-align: center; line-height: 1.6;">
-          <p>Remember DingDingDing? It starts with "technical issues," then a "bonus nerf," then your money is gone. BonusCheck is your early warning system. We track every bonus, every day. When a casino's generosity starts to "dip" unexpectedly, we flag it as the first potential sign they're about to pull something shady.</p>
+        <div class="feature-card">
+          <ul>
+            <li> Cycle pattern modeling</li>
+            <li> Alerting on anomalies</li>
+            <li> Historical value trend charting</li>
+            <li> Beta tuning layer</li>
+          </ul>
         </div>
       </div>
     </div>
@@ -103,29 +108,29 @@
         <div class="step">
           <div class="step-number">1</div>
           <div class="step-content">
-            <h3>We record every bonus. Every day.</h3>
-            <p>Our bots grab the timestamp and value for every bonus drop, building a massive dataset of casino behavior.</p>
+            <h3>Ingest bonuses</h3>
+            <p>Daily scrape / API capture stores timestamp + value.</p>
           </div>
         </div>
         <div class="step">
           <div class="step-number">2</div>
           <div class="step-content">
-            <h3>We do the math to learn their pattern.</h3>
-            <p>Our stats engine analyzes the data to figure out the casino's rhythm—their typical refresh times, bonus amounts, and volatility.</p>
+            <h3>Model cycle</h3>
+            <p>Stat engine clusters refresh times & volatility.</p>
           </div>
         </div>
         <div class="step">
           <div class="step-number">3</div>
           <div class="step-content">
-            <h3>We spot when the pattern breaks.</h3>
-            <p>We compare every new bonus against the historical baseline. If something is off—if the amount is nerfed or the timing is weird—we flag it.</p>
+            <h3>Detect shifts</h3>
+            <p>Compares deltas vs rolling baseline & confidence bands.</p>
           </div>
         </div>
         <div class="step">
           <div class="step-number">4</div>
           <div class="step-content">
-            <h3>You get an alert when they get cheap.</h3>
-            <p>If a bonus deviates too far from the norm, we fire off a Discord alert so the whole community knows what's up.</p>
+            <h3>Alert</h3>
+            <p>Pushes Discord embed if nerf or timing deviation crosses threshold.</p>
           </div>
         </div>
       </div>
