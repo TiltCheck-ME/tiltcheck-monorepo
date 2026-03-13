@@ -483,6 +483,16 @@ export class DatabaseClient {
   }
 
   /**
+   * Execute a raw query
+   */
+  async raw(sql: string): Promise<{ data: any, error: any }> {
+    if (!this.supabase) {
+      return { data: null, error: new Error('Database not connected') };
+    }
+    return this.supabase.rpc('exec', { sql });
+  }
+
+  /**
    * Get or create Degen Identity
    */
   async getDegenIdentity(discordId: string): Promise<DegenIdentity | null> {
@@ -1035,6 +1045,25 @@ export class DatabaseClient {
         eventsLast7d: 0,
       };
     }
+  }
+
+  /**
+   * Get bonus status for a user
+   */
+  async getBonusStatus(discordId: string): Promise<any[] | null> {
+    if (!this.supabase) return null;
+
+    const { data, error } = await this.supabase
+      .from('user_bonus_status')
+      .select('casino, bonus, status, emoji')
+      .eq('discord_id', discordId);
+
+    if (error) {
+      console.error('Error fetching bonus status:', error);
+      return null;
+    }
+
+    return data;
   }
 }
 
