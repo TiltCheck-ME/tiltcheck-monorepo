@@ -34,8 +34,6 @@ export interface SentimentResult {
   matchedSignals: string[];
 }
 
-import { aiClient } from '@tiltcheck/ai-client';
-
 export function evaluateBreathalyzer(input: BreathalyzerInput): BreathalyzerResult {
   const events = Math.max(0, input.eventsInWindow);
   const windowMinutes = Math.max(1, input.windowMinutes);
@@ -66,11 +64,10 @@ export function evaluateBreathalyzer(input: BreathalyzerInput): BreathalyzerResu
   };
 }
 
-export async function evaluateSentiment(input: SentimentInput): Promise<SentimentResult> {
+export function evaluateSentiment(input: SentimentInput): SentimentResult {
   const normalized = input.message.toLowerCase();
   const matchedSignals = new Set<string>();
 
-  // 1. Heuristic Scan (Fast, Baseline)
   const highRiskKeywords = [
     'all in',
     'can not stop',
@@ -92,18 +89,18 @@ export async function evaluateSentiment(input: SentimentInput): Promise<Sentimen
     'panic',
   ];
 
-  let heuristicScore = 0;
+  let score = 0;
 
   for (const keyword of highRiskKeywords) {
     if (normalized.includes(keyword)) {
       matchedSignals.add(keyword);
-      heuristicScore += 18;
+      score += 18;
     }
   }
   for (const keyword of moderateKeywords) {
     if (normalized.includes(keyword)) {
       matchedSignals.add(keyword);
-      heuristicScore += 10;
+      score += 10;
     }
   }
 
@@ -111,38 +108,17 @@ export async function evaluateSentiment(input: SentimentInput): Promise<Sentimen
   for (const signal of distressSignals) {
     if (signal.trim()) {
       matchedSignals.add(signal);
-      heuristicScore += 8;
+      score += 8;
     }
   }
 
   if (input.message.includes('!!!')) {
-    heuristicScore += 8;
+    score += 8;
   }
   if (/[A-Z]{4,}/.test(input.message)) {
-    heuristicScore += 6;
+    score += 6;
   }
 
-  // 2. AI Scan (High Precision)
-  let aiScore = 0;
-  try {
-    const aiResult = await aiClient.moderate(input.message, {
-      contentType: 'safety-evaluation'
-    });
-
-    if (aiResult.success && aiResult.data) {
-      const data = aiResult.data as any;
-      if (data.isSafe === false) {
-        aiScore = Math.max(0, (data.toxicityScore || 0) * 100);
-        if (data.categories?.malicious > 0.5) aiScore += 30;
-        if (data.reasoning) matchedSignals.add(`AI: ${data.reasoning}`);
-      }
-    }
-  } catch (err) {
-    console.warn('[Safety] AI sentiment evaluation failed, relying on heuristic', err);
-  }
-
-  // Combine scores (Weighted average or Max)
-  let score = Math.max(heuristicScore, aiScore);
   score = clamp(score);
 
   let severity: SentimentResult['severity'] = 'low';

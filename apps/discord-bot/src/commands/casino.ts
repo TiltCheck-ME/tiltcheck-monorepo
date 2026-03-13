@@ -6,7 +6,7 @@ import type { Command } from '../types.js';
 export const casino: Command = {
   data: new SlashCommandBuilder()
     .setName('casino')
-    .setDescription('Uncover the truth about a casino. Are they legit or just another sh**?')
+    .setDescription('Get trust and fairness data for a casino')
     .addStringOption(option =>
       option
         .setName('domain')
@@ -23,19 +23,19 @@ export const casino: Command = {
 
       if (!data) {
         await interaction.editReply({
-          content: `❌ Well, sh**. Couldn't find any data for **${domain}**. Maybe try a real casino, or check your spelling, degen. Example: \`stake.com\`, \`rollbit.com\`.\n\n(Unless it's an outright sh**, then we won't have data for it, obviously.)`
+          content: `❌ No data found for **${domain}**.\n\nTry domains like \`stake.com\`, \`rollbit.com\`, or \`duelbits.com\`.`
         });
         return;
       }
 
       const embed = new EmbedBuilder()
-        .setTitle(`🎰 ${data.name} (${data.domain}) - The Brutal Truth`)
+        .setTitle(`🎰 ${data.name} (${data.domain})`)
         .setColor(data.status === 'active' ? 0x00FF00 : 0xFF0000)
-        .setDescription(`Don't gamble blind. Here's what we know about ${data.name}'s shananigans.`)
+        .setDescription(`Trust and fairness data for ${data.name}.`)
         .addFields(
-          { name: 'Status', value: data.status === 'active' ? '🟢 Active (for now)' : '🔴 Suspect (avoid like the plague)', inline: true },
-          { name: 'Claimed RTP', value: data.claimed_rtp ? `${data.claimed_rtp}%` : 'N/A (They\'re hiding something)', inline: true },
-          { name: 'Verified RTP', value: data.verified_rtp ? `${data.verified_rtp}%` : 'N/A (Unverified claim = Red flag)', inline: true },
+          { name: 'Status', value: data.status.toUpperCase(), inline: true },
+          { name: 'Claimed RTP', value: data.claimed_rtp ? `${data.claimed_rtp}%` : 'N/A', inline: true },
+          { name: 'Verified RTP', value: data.verified_rtp ? `${data.verified_rtp}%` : 'N/A', inline: true },
         );
 
       if (data.license_info) {
@@ -47,16 +47,16 @@ export const casino: Command = {
           .map(([k, v]) => `• **${k}:** ${v}`)
           .join('\n');
           
-        embed.addFields({ name: '📜 License (The Paperwork)', value: licenseDetails || 'Barely hanging on to a piece of paper, probably offshore.', inline: false });
+        embed.addFields({ name: '📜 License Info', value: licenseDetails || 'No details', inline: false });
       }
 
-      embed.setFooter({ text: 'TiltCheck Trust Engine • We don\'t trust them, so you don\'t have to.' });
+      embed.setFooter({ text: 'TiltCheck Trust Engine • Verified Data' });
       embed.setTimestamp(new Date(data.updated_at));
 
       await interaction.editReply({ embeds: [embed] });
     } catch (error) {
       console.error('[Casino] Error:', error);
-      await interaction.editReply({ content: '❌ Our system just glitched trying to uncover the truth. Try again, degen.' });
+      await interaction.editReply({ content: '❌ Failed to fetch casino data.' });
     }
   }
 };

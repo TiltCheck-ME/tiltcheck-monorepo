@@ -16,7 +16,6 @@
   },
   "dependencies": {
     "@elastic/elasticsearch": "^8.19.1",
-    "@tiltcheck/agent": "workspace:*",
     "@tiltcheck/config": "workspace:*",
     "@tiltcheck/dad": "workspace:*",
     "@tiltcheck/database": "workspace:*",

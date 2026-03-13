@@ -112,7 +112,6 @@ services/trust-engines/data/
 id_rsa*
 id_ecdsa*
 
-
 # Trust ingest local data
 data/degen-intel-events.jsonl
 apps/api/data/degen-intel-events.jsonl
