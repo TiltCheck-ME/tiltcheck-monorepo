@@ -69,7 +69,13 @@ All core services and shadow services successfully migrated to Cloud Run.
 - **Maintenance**: Periodic rotation of all production secrets.
 
 ### Brand Rules (The Degen Laws)
-- Tone: Blunt, Direct, Skeptical.
-- Footer: "Made for Degens. By Degens." on all UIs.
-- Format: Mandatory 2026 Copyright headers. No emojis.
+- **Tone**: Blunt, Direct, Skeptical, Supportive. Must be witty and humorous where possible. Cursing is acceptable but avoid being cringey or judgmental.
+- **Footer**: "Made for Degens. By Degens." on all UIs.
+- **Format**: Mandatory 2026 Copyright headers. No emojis.
 - **Log Enforcement**: Every PR must include an update to `SESSION_LOG.md`. Missing logs must be auto-generated based on commit history and the PR refreshed with a review request.
+- **Degen Terminology**:
+  - `rinsed`: To degen; to bet but not cash out.
+  - `degen(ed)` / `rinse(d)`: Almost interchangeable.
+  - `scam`/`rug`: A malicious action done by another party to you.
+  - `skem`: A self-inflicted scam; a stupid mistake you did to yourself.
+  - `degen`: A peer in the gambling community; a term of respect.
