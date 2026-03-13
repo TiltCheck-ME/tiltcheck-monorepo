@@ -5,18 +5,6 @@
 This list tracks any feature, plan, or concept that is **incomplete**, **not fully built**, **not planned**, or **not well thought out**.
 *As per ecosystem guidelines, ALL team members/agents MUST append items here when encountering incomplete functionality.*
 
-## Proposed Future Features (From 2026-03-12 Session)
-
-- [ ] **BonusCheck 2.0 (Formula Reverse-Engineering):**
-  - Allow users to input their weekly wager, P/L, and collected bonuses.
-  - After receiving the actual bonus, use this data to reverse-engineer the casino's bonus calculation formula.
-  - Use the derived formula to predict future bonuses and flag if the actual amount is "light," proving a change in the casino's formula.
-
-- [ ] **Tilt-Nudge to Voice Chat:**
-  - When the Chrome Extension's `Tilt Detector` identifies a user is tilted, send an event to the backend.
-  - The backend should trigger the Discord Bot to send a DM to the user.
-  - The DM should contain a "nudge" message, encouraging them to join the "Degen Accountability" voice channel for a cooldown.
-
 ## High-Level Features (Pending Definition/Implementation)
 
 - [x] **Cloudflare Workers Use Cases:**

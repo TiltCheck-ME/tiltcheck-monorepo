@@ -8,7 +8,7 @@ import type { Command } from '../../types.js';
 export const hand: Command = {
   data: new SlashCommandBuilder()
     .setName('hand')
-    .setDescription('See what filth you're holding. (Don't f*** it up).'), // MODIFIED
+    .setDescription('View your cards'),
   async execute(interaction: ChatInputCommandInteraction) {
     const channelId = interaction.channelId;
     const userId = interaction.user.id;
@@ -18,7 +18,7 @@ export const hand: Command = {
 
       if (games.length === 0) {
         await interaction.reply({
-          embeds: [errorEmbed('Game Over, Degenerate', 'There's no active game of DAAD in this channel. Are you trying to play with yourself?')], // MODIFIED
+          embeds: [errorEmbed('No game', 'No active game in this channel.')],
           ephemeral: true
         });
         return;
@@ -29,7 +29,7 @@ export const hand: Command = {
 
       if (!player) {
         await interaction.reply({
-          embeds: [errorEmbed('GTFO', 'You're not even in this game, you peon. Use `/dad join` to get in on the action.')], // MODIFIED
+          embeds: [errorEmbed('Not in game', 'You\'re not in this game. Join with `/join`')],
           ephemeral: true
         });
         return;
@@ -37,23 +37,22 @@ export const hand: Command = {
 
       const cardList = player.hand
         .map((card, i) => `**${i + 1}.** ${card.text}`)
-        .join('
-');
+        .join('\n');
 
       const embed = new EmbedBuilder()
         .setColor(0xffffff)
-        .setTitle('🃏 Your Hand of Filth') // MODIFIED
-        .setDescription(cardList || 'Your hand is empty, just like your wallet. Get some cards, degen.') // MODIFIED
+        .setTitle('🃏 Your Hand')
+        .setDescription(cardList || 'No cards')
         .addFields(
           { name: 'Score', value: player.score.toString(), inline: true },
           { name: 'Cards', value: player.hand.length.toString(), inline: true }
         )
-        .setFooter({ text: 'Submit your chosen card with /dad submit <card number>. Don't be a pussy.' }); // MODIFIED
+        .setFooter({ text: 'Submit cards with /submit <card number>' });
 
       await interaction.reply({ embeds: [embed], ephemeral: true });
     } catch (error: any) {
       await interaction.reply({
-        embeds: [errorEmbed('Hand Malfunction', `Well, sh**. Couldn't show your cards: ${error.message}. Blame the dev, not the game.`)], // MODIFIED
+        embeds: [errorEmbed('Failed to show hand', error.message)],
         ephemeral: true
       });
     }

@@ -8,12 +8,12 @@ import type { Command } from '../../types.js';
 export const play: Command = {
   data: new SlashCommandBuilder()
     .setName('play')
-    .setDescription('Unleash the f***ing chaos! Create a new DA&D game lobby.') // MODIFIED
+    .setDescription('Create a new DA&D lobby')
     .addIntegerOption(option =>
-      option.setName('rounds').setDescription('How many rounds of pure degeneracy? (default: 10)').setRequired(false).setMinValue(3).setMaxValue(20) // MODIFIED
+      option.setName('rounds').setDescription('Number of rounds (default: 10)').setRequired(false).setMinValue(3).setMaxValue(20)
     )
     .addIntegerOption(option =>
-      option.setName('maxplayers').setDescription('How many poor souls can join this madness? (default: 10)').setRequired(false).setMinValue(2).setMaxValue(10) // MODIFIED
+      option.setName('maxplayers').setDescription('Max players (default: 10)').setRequired(false).setMinValue(2).setMaxValue(10)
     ),
   async execute(interaction: ChatInputCommandInteraction) {
     const channelId = interaction.channelId;
@@ -24,7 +24,7 @@ export const play: Command = {
       const existingGames = dad.getChannelGames(channelId);
       if (existingGames.length > 0) {
         await interaction.reply({
-          embeds: [errorEmbed('Game Already Brewing, Degenerate', 'Hold your horses! There's already a cesspool of DAAD in this channel. Join with `/dad join` or wait for the current round of f***ery to finish.')], // MODIFIED
+          embeds: [errorEmbed('Game exists', 'There\'s already a game in this channel. Join with `/join` or wait for it to finish.')],
           ephemeral: true
         });
         return;
@@ -34,20 +34,20 @@ export const play: Command = {
 
       const embed = new EmbedBuilder()
         .setColor(0xff00ff)
-        .setTitle('🃏 DA&D Chaos Initiated!') // MODIFIED
-        .setDescription('The arena is open, you sick f***s! **Degens Against Decency** is ready for battle.') // MODIFIED
+        .setTitle('🃏 DA&D Game Created!')
+        .setDescription('**Degens Against Decency** is ready to play!')
         .addFields(
           { name: 'Game ID', value: game.id.slice(0, 8), inline: true },
           { name: 'Rounds', value: rounds.toString(), inline: true },
           { name: 'Max Players', value: maxPlayers.toString(), inline: true },
-          { name: 'Status', value: '⏳ Waiting for more unfortunate souls...', inline: false } // MODIFIED
+          { name: 'Status', value: '⏳ Waiting for players...', inline: false }
         )
-        .setFooter({ text: 'Use `/dad join` to leap into the filth • Use `/dad startgame` to commence the f***ery.' }); // MODIFIED
+        .setFooter({ text: 'Join with /join • Start with /startgame' });
 
       await interaction.reply({ embeds: [embed] });
     } catch (error: any) {
       await interaction.reply({
-        embeds: [errorEmbed('Game Creation Failure', `Well, sh**. Couldn't summon the game: ${error.message}. Maybe try praying to your crypto gods?`)], // MODIFIED
+        embeds: [errorEmbed('Failed to create game', error.message)],
         ephemeral: true
       });
     }
