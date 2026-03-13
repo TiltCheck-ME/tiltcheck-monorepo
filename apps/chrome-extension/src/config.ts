@@ -13,6 +13,14 @@ export const EXT_CONFIG = {
     // The redirect URI must be exactly what is in the Discord Developer Portal
     DISCORD_REDIRECT_URI: 'https://api.tiltcheck.me/auth/discord/callback'
 };
+
+/**
+ * Get the current extension runtime ID
+ */
+export function getExtensionId(): string | undefined {
+    return typeof chrome !== 'undefined' ? chrome.runtime?.id : undefined;
+}
+
 /**
  * Generate the Discord Login URL
  */
@@ -22,9 +30,10 @@ export function getDiscordLoginUrl(source = 'extension') {
     url.searchParams.set('source', source);
     if (source === 'extension') {
         // Content scripts run on page origins, so derive extension origin from runtime id.
-        const runtimeId = typeof chrome !== 'undefined' ? chrome.runtime?.id : undefined;
+        const runtimeId = getExtensionId();
         if (runtimeId) {
             url.searchParams.set('opener_origin', `chrome-extension://${runtimeId}`);
+            url.searchParams.set('ext_id', runtimeId);
         }
     }
     // Preserve the caller info for debugging/analytics (not required by API).

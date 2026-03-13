@@ -1,0 +1,187 @@
+{
+  "version": "1.0.0",
+  "description": "MCP development tools configuration for TiltCheck Chrome Extension",
+  "tools": [
+    {
+      "id": "ext-build",
+      "name": "Build Extension",
+      "command": "pnpm build",
+      "description": "Build the extension with esbuild, bundling content scripts and copying static assets to ./dist",
+      "workingDir": "apps/chrome-extension",
+      "outputs": {
+        "success": "dist/ directory contains ready-to-load extension",
+        "logs": "Console output with version, build steps, and installation instructions"
+      }
+    },
+    {
+      "id": "ext-dev",
+      "name": "Dev Watch Mode",
+      "command": "pnpm dev",
+      "description": "Watch source files and rebuild on changes. Use for rapid iteration during development",
+      "workingDir": "apps/chrome-extension",
+      "outputs": {
+        "watch": "Rebuilds dist/ on file changes"
+      }
+    },
+    {
+      "id": "ext-lint",
+      "name": "Lint Extension",
+      "command": "pnpm --filter @tiltcheck/core lint",
+      "description": "Run ESLint on TypeScript source files",
+      "workingDir": "apps/chrome-extension"
+    },
+    {
+      "id": "ext-test",
+      "name": "Run Tests",
+      "command": "pnpm --filter @tiltcheck/core test",
+      "description": "Run unit tests in tests/unit/ using Vitest",
+      "workingDir": "apps/chrome-extension"
+    },
+    {
+      "id": "ext-test-watch",
+      "name": "Watch Tests",
+      "command": "pnpm --filter @tiltcheck/core test:watch",
+      "description": "Run tests in watch mode for TDD",
+      "workingDir": "apps/chrome-extension"
+    },
+    {
+      "id": "ext-type-check",
+      "name": "Type Check",
+      "command": "pnpm --filter @tiltcheck/core build:tsc",
+      "description": "Run TypeScript compiler to check types without building",
+      "workingDir": "apps/chrome-extension"
+    }
+  ],
+  "workflows": [
+    {
+      "id": "dev-setup",
+      "name": "Local Development Setup",
+      "steps": [
+        {
+          "name": "Install dependencies",
+          "command": "pnpm install"
+        },
+        {
+          "name": "Build extension",
+          "command": "pnpm build",
+          "workingDir": "apps/chrome-extension"
+        },
+        {
+          "name": "Load in Chrome",
+          "manual": true,
+          "instructions": [
+            "1. Open chrome://extensions/",
+            "2. Enable 'Developer mode' (toggle in top right)",
+            "3. Click 'Load unpacked'",
+            "4. Select: C:\\Users\\jmeni\\tiltcheck-monorepo\\apps\\chrome-extension\\dist",
+            "5. Extension will appear in your Chrome toolbar"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "watch-and-reload",
+      "name": "Development Watch + Manual Reload",
+      "steps": [
+        {
+          "name": "Start watch mode in terminal 1",
+          "command": "pnpm dev",
+          "workingDir": "apps/chrome-extension"
+        },
+        {
+          "name": "Reload extension in Chrome",
+          "manual": true,
+          "instructions": [
+            "1. In Chrome, go to chrome://extensions/",
+            "2. Find 'TiltCheck' extension",
+            "3. Click the refresh icon or press F5 after each code change",
+            "Watch terminal shows build progress"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "debug-content-script",
+      "name": "Debug Content Script",
+      "steps": [
+        {
+          "name": "Open page where extension runs",
+          "manual": true,
+          "instructions": ["Navigate to a supported website (e.g., a casino site)"]
+        },
+        {
+          "name": "Inspect content script",
+          "manual": true,
+          "instructions": [
+            "Right-click page → Inspect",
+            "Console will show content script logs (look for [TiltCheck] prefix)",
+            "Content script can access DOM and page globals"
+          ]
+        },
+        {
+          "name": "View extension logs",
+          "manual": true,
+          "instructions": [
+            "Go to chrome://extensions/",
+            "Click 'background page' under TiltCheck extension",
+            "View service worker logs and background message passing"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "validate-manifest",
+      "name": "Validate Manifest",
+      "steps": [
+        {
+          "name": "Check manifest.json structure",
+          "command": "cat apps/chrome-extension/src/manifest.json | jq '.' > /dev/null && echo 'Manifest is valid JSON'",
+          "onWindows": "powershell -Command \"Get-Content apps/chrome-extension/src/manifest.json | ConvertFrom-Json | ConvertTo-Json | Out-Null; Write-Host 'Manifest is valid JSON'\""
+        },
+        {
+          "name": "Required manifest v3 fields",
+          "manual": true,
+          "instructions": [
+            "Verify these fields in manifest.json:",
+            "- 'manifest_version': 3",
+            "- 'name': string",
+            "- 'version': string",
+            "- 'permissions': array",
+            "- 'host_permissions': array",
+            "- 'background': {\"service_worker\": \"background.js\"}",
+            "- 'action': {\"default_popup\": \"...\"} (optional)",
+            "- 'content_scripts': array with 'matches' and 'js'/'css'"
+          ]
+        }
+      ]
+    }
+  ],
+  "debugConfig": {
+    "sourceMapSupport": true,
+    "breakpointAliases": {
+      "contentScript": "dist/content.js",
+      "backgroundWorker": "dist/background.js",
+      "pageBridge": "dist/page-bridge.js"
+    },
+    "logPrefixes": {
+      "contentScript": "[CS]",
+      "backgroundWorker": "[BG]",
+      "pageBridge": "[PB]"
+    }
+  },
+  "testing": {
+    "framework": "vitest",
+    "testDir": "tests/unit",
+    "pattern": "**/*.test.ts",
+    "coverage": {
+      "enabled": true,
+      "include": ["src/**/*.ts"],
+      "exclude": ["**/*.test.ts", "**/node_modules"]
+    }
+  },
+  "documentation": {
+    "setupGuide": "apps/chrome-extension/README.md",
+    "deploymentGuide": "apps/chrome-extension/src/DEPLOYMENT_MANUAL.md",
+    "architectureGuide": "apps/chrome-extension/src/tiltcheck-implementation.agent.md"
+  }
+}
