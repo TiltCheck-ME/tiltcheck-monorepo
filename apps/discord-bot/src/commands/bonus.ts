@@ -81,7 +81,7 @@ export const bonus: Command = {
         await handleStats(interaction);
         break;
       default:
-        await interaction.reply({ content: '❌ Unknown subcommand', ephemeral: true });
+        await interaction.reply({ content: 'Unknown subcommand. Did you have a stroke?', ephemeral: true });
     }
   },
 
@@ -99,7 +99,7 @@ async function handleList(interaction: ChatInputCommandInteraction) {
 
   const embed = new EmbedBuilder()
     .setColor(0x00FF00)
-    .setTitle('🎰 Your Bonus Hitlist')
+    .setTitle('Your Bonus Hitlist')
     .setDescription('Ready to hit those daily bonuses like a degenerate? Pick your poison, then use `/bonus claim <casino>` to kick off the timer. We track the rest, you stack the chips.')
 
   // Limit to 25 fields (Discord limit)
@@ -127,13 +127,13 @@ async function handleReady(interaction: ChatInputCommandInteraction) {
   const ready = collectclock.getReadyTimers(interaction.user.id);
 
   if (ready.length === 0) {
-    await interaction.reply({ content: '⌛ Still waiting on those sweet, sweet reloads. Check back later, or hit `/bonus timers` to see when you can next get your fix.', ephemeral: true });
+    await interaction.reply({ content: 'Still waiting on those sweet, sweet reloads. Check back later, or hit `/bonus timers` to see when you can next get your fix.', ephemeral: true });
     return;
   }
 
   const embed = new EmbedBuilder()
     .setColor(0x00FF00)
-    .setTitle('✅ Get Your F***ing Bonuses!')
+    .setTitle('Get Your F***ing Bonuses!')
     .setDescription('Stop scrolling. Start claiming. These bad boys are ready. Go. Now!')
     .addFields(
       ready.map(t => ({
@@ -157,13 +157,13 @@ async function handleNotify(interaction: ChatInputCommandInteraction) {
       discordDM: true
     });
     await interaction.reply({
-      content: `🔔 Notifications **ENABLED** for **${casino}**. We'll hit you up when that sweet bonus is ripe for the picking. Don't worry, we won't tell your mom.`,
+      content: `Notifications **ENABLED** for **${casino}**. We'll hit you up when that sweet bonus is ripe for the picking. Don't worry, we won't tell your mom.`,
       ephemeral: true
     });
   } else {
     collectclock.unsubscribeNotifications(interaction.user.id, casino);
     await interaction.reply({
-      content: `🔕 Notifications **DISABLED** for **${casino}**. You're on your own, degen. Hope you remember to claim!`,
+      content: `Notifications **DISABLED** for **${casino}**. You're on your own, degen. Hope you remember to claim!`,
       ephemeral: true
     });
   }
@@ -173,13 +173,13 @@ async function handleStats(interaction: ChatInputCommandInteraction) {
   const stats = collectclock.getUserBonusStats(interaction.user.id);
 
   if (stats.totalClaims === 0) {
-    await interaction.reply({ content: '📊 What are you doing with your life? No claims yet? Get in there and start claiming some free money, then check your stats.', ephemeral: true });
+    await interaction.reply({ content: 'What are you doing with your life? No claims yet? Get in there and start claiming some free money, then check your stats.', ephemeral: true });
     return;
   }
 
   const embed = new EmbedBuilder()
     .setColor(0xF1C40F)
-    .setTitle('📊 Your Degen Bonus Report')
+    .setTitle('Your Degen Bonus Report')
     .addFields(
       { name: 'Total Claims', value: `${stats.totalClaims}`, inline: true },
       { name: 'Total Value', value: `${stats.totalAmount.toFixed(2)} SC`, inline: true },
@@ -208,7 +208,7 @@ async function handleClaim(interaction: ChatInputCommandInteraction) {
 
     const embed = new EmbedBuilder()
       .setColor(0x00CED1)
-      .setTitle('💰 BOOM! Bonus Secured!')
+      .setTitle('BOOM! Bonus Secured!')
       .setDescription(`Timer started for **${casino}**. Don't f*** it up.`)
       .addFields(
         { name: 'Claimed At', value: `<t:${Math.floor(claim.claimedAt / 1000)}:f>`, inline: true },
@@ -219,7 +219,7 @@ async function handleClaim(interaction: ChatInputCommandInteraction) {
     await interaction.reply({ embeds: [embed] });
   } catch (error: any) {
     await interaction.reply({
-      content: `❌ Well, sh**. Couldn't claim that bonus for **${casino}**: ${error.message}`,
+      content: `Well, sh**. Couldn't claim that bonus for **${casino}**: ${error.message}`,
       ephemeral: true
     });
   }
@@ -229,17 +229,17 @@ async function handleTimers(interaction: ChatInputCommandInteraction) {
   const timers = collectclock.getUserTimers(interaction.user.id);
 
   if (timers.length === 0) {
-    await interaction.reply({ content: '📊 No active timers? Are you even trying? Use `/bonus claim` to get this party started.', ephemeral: true });
+    await interaction.reply({ content: 'No active timers? Are you even trying? Use `/bonus claim` to get this party started.', ephemeral: true });
     return;
   }
 
   const embed = new EmbedBuilder()
     .setColor(0x0099FF)
-    .setTitle('⏲️ Your Reload Countdown')
+    .setTitle('Your Reload Countdown')
     .setDescription('Here\'s when you can next get your hands on some sweet, sweet bonus action:')
 
   timers.forEach(t => {
-    const status = t.isReady ? '✅ **Ready!**' : `⌛ <t:${Math.floor(t.nextEligibleAt / 1000)}:R>`;
+    const status = t.isReady ? '**Ready!**' : `<t:${Math.floor(t.nextEligibleAt / 1000)}:R>`;
     embed.addFields({
       name: t.casinoName,
       value: status,
