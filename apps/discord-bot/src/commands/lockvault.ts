@@ -11,11 +11,11 @@ import { parseAmount, parseDuration } from '@tiltcheck/natural-language-parser';
 export const lockvault: Command = {
   data: new SlashCommandBuilder()
     .setName('vault')
-    .setDescription('Lock up your degeneracy, manage your vaults, or set up autovault. Don't lose your sh**.') // MODIFIED
+    .setDescription('A time-locked safe for your SOL. Protect your funds from yourself.')
     .addSubcommand(sub =>
       sub
         .setName('lock')
-        .setDescription('Stash your SOL away. Out of sight, out of mind. (Unless you're a degenerate with no self-control).') // MODIFIED
+        .setDescription('Stash your SOL before you do something stupid with it.')
         .addStringOption(o => o.setName('amount').setDescription('How much SOL to lock away from your degenerate self? ("$100", "5 SOL", "all")').setRequired(true)) // MODIFIED
         .addStringOption(o => o.setName('duration').setDescription('How long until you can touch your precious again? (24h, 3d, 90m)').setRequired(true)) // MODIFIED
         .addStringOption(o => o.setName('reason').setDescription('Why are you doing this to yourself? (anti-tilt, savings, because you're an ape, etc.)')) // MODIFIED
@@ -23,7 +23,7 @@ export const lockvault: Command = {
     .addSubcommand(sub =>
       sub
         .setName('unlock')
-        .setDescription('Your sentence is served. Release the f***ing kraken (your SOL).') // MODIFIED
+        .setDescription('Your sentence is served. Time to reclaim your assets.')
         .addStringOption(o => o.setName('id').setDescription('Vault ID').setRequired(true))
     )
     .addSubcommand(sub =>
@@ -41,7 +41,7 @@ export const lockvault: Command = {
     .addSubcommand(sub =>
       sub
         .setName('autovault')
-        .setDescription('Automate your self-control. Set up your autovault to save your stupid ass.') // MODIFIED
+        .setDescription('Let the bot be the responsible one. Set rules to save your winnings from yourself.')
         .addStringOption(o => o.setName('apikey').setDescription('Your casino API key. We ain't holding it, you ape.').setRequired(true)) // MODIFIED
         .addNumberOption(o => o.setName('percentage').setDescription('What percentage of wins to snatch from your greedy hands? (0-100)')) // MODIFIED
         .addNumberOption(o => o.setName('threshold').setDescription('Vault everything once your balance hits this amount. (Good luck with that).')) // MODIFIED
@@ -64,18 +64,18 @@ export const lockvault: Command = {
         const reason = interaction.options.getString('reason') || undefined;
         const parsedAmount = parseAmount(amountRaw);
         if (!parsedAmount.success || !parsedAmount.data) {
-          await interaction.reply({ content: `❌ That amount is as f***ed as your trading strategy: ${parsedAmount.error}`, ephemeral: true }); // MODIFIED
+          await interaction.reply({ content: 'Is that even a number? Try again with an actual amount, like "$100" or "5 SOL".', ephemeral: true });
           return;
         }
         const parsedDuration = parseDuration(durationRaw);
         if (!parsedDuration.success || !parsedDuration.data) {
-          await interaction.reply({ content: `❌ That duration is as f***ed as your attention span: ${parsedDuration.error}`, ephemeral: true }); // MODIFIED
+          await interaction.reply({ content: 'That duration doesn\'t look right. Try something like "1d", "8h", or "90m".', ephemeral: true });
           return;
         }
         const vault = await lockVault({ userId: interaction.user.id, amountRaw, durationRaw, reason });
         const embed = new EmbedBuilder()
           .setColor(0x8A2BE2)
-          .setTitle('🔒 Vault Locked. You're Welcome.') // MODIFIED
+          .setTitle('Vault Locked. You\'re Welcome.') // MODIFIED
           .setDescription(vault.vaultType === 'magic' ? 'Funds secured in your **Degen Identity** (Magic) wallet. Smart move.' : 'Funds moved to a disposable time-locked vault wallet. Don't even think about touching it.') // MODIFIED
           .addFields(
             { name: 'Vault ID', value: vault.id, inline: false },
@@ -92,7 +92,7 @@ export const lockvault: Command = {
           const vault = unlockVault(interaction.user.id, id);
           const embed = new EmbedBuilder()
             .setColor(0x00AA00)
-            .setTitle('✅ Freedom! Vault Unlocked.') // MODIFIED
+            .setTitle('Freedom! Vault Unlocked.') // MODIFIED
             .addFields(
               { name: 'Vault ID', value: vault.id },
               { name: 'Released (SOL) - Go wild. Or don't.', value: `${vault.lockedAmountSOL === 0 ? 'ALL' : `${vault.lockedAmountSOL.toFixed(4)} SOL`}` }, // MODIFIED
@@ -100,7 +100,7 @@ export const lockvault: Command = {
 
           if (vault.vaultSecret) {
             embed.addFields({ 
-              name: '🔑 Your Precious Private Key (Don't F***ing Lose It)', // MODIFIED
+              name: 'Your Precious Private Key (Don\'t F***ing Lose It)', // MODIFIED
               value: `||${vault.vaultSecret}||`, 
               inline: false 
             });
@@ -108,7 +108,7 @@ export const lockvault: Command = {
           }
           await interaction.reply({ embeds: [embed], ephemeral: true });
         } catch (err) {
-          await interaction.reply({ content: `❌ Well, sh**. Couldn't free your funds: ${(err as Error).message}`, ephemeral: true }); // MODIFIED
+          await interaction.reply({ content: `Well, sh**. Couldn't free your funds: ${(err as Error).message}`, ephemeral: true }); // MODIFIED
         }
       } else if (sub === 'extend') {
         const id = interaction.options.getString('id', true);
@@ -117,7 +117,7 @@ export const lockvault: Command = {
           const vault = extendVault(interaction.user.id, id, additional);
           const embed = new EmbedBuilder()
             .setColor(0xFFD700)
-            .setTitle('⏫ Vault Extended. More Time in the Slammer.') // MODIFIED
+            .setTitle('Vault Extended. More Time in the Slammer.') // MODIFIED
             .addFields(
               { name: 'Vault ID', value: vault.id },
               { name: 'New Release Date', value: `<t:${Math.floor(vault.unlockAt/1000)}:R>` }, // MODIFIED
@@ -125,7 +125,7 @@ export const lockvault: Command = {
             );
           await interaction.reply({ embeds: [embed], ephemeral: true });
         } catch (err) {
-          await interaction.reply({ content: `❌ Well, sh**. Couldn't extend your sentence: ${(err as Error).message}`, ephemeral: true }); // MODIFIED
+          await interaction.reply({ content: `Well, sh**. Couldn't extend your sentence: ${(err as Error).message}`, ephemeral: true }); // MODIFIED
         }
       } else if (sub === 'status') {
         const vaults = getVaultStatus(interaction.user.id);
@@ -133,13 +133,13 @@ export const lockvault: Command = {
         const reloadSchedule = getReloadSchedule(interaction.user.id);
 
         if (vaults.length === 0 && !autoVault && !reloadSchedule) {
-          await interaction.reply({ content: 'ℹ️ Nothing to see here. Your vaults are empty, autovault's off, and no reloads scheduled. You're on your own, degen.', ephemeral: true }); // MODIFIED
+          await interaction.reply({ content: 'Nothing to see here. Your vaults are empty, autovault\'s off, and no reloads scheduled. You\'re on your own, degen.', ephemeral: true }); // MODIFIED
           return;
         }
 
         const embed = new EmbedBuilder()
           .setColor(0x1E90FF)
-          .setTitle('📊 Your Vault Report. Don't Panic.') // MODIFIED
+          .setTitle('Your Vault Report. Don\'t Panic.') // MODIFIED
           .setDescription(
             (vaults.length > 0 ? vaults.map((v: LockVaultRecord) => {
               const statusText = Date.now() >= v.unlockAt ? 'free' : 'still locked up'; // MODIFIED
@@ -162,39 +162,39 @@ export const lockvault: Command = {
         const apikey = interaction.options.getString('apikey', true);
 
         if (percentage === undefined && threshold === undefined) {
-          await interaction.reply({ content: '❌ You gotta tell me how to save your ass. Percentage OR threshold, degen.', ephemeral: true }); // MODIFIED
+          await interaction.reply({ content: 'You have to give me a rule to follow. Set a percentage or a threshold.', ephemeral: true });
           return;
         }
         if (percentage !== undefined && (percentage < 0 || percentage > 100)) {
-          await interaction.reply({ content: '❌ Percentage of snatched wins must be between 0 and 100. Don't be an idiot.', ephemeral: true }); // MODIFIED
+          await interaction.reply({ content: 'Percentage has to be between 0 and 100. I know math is hard, but try to keep it in that range.', ephemeral: true });
           return;
         }
 
         setAutoVault(interaction.user.id, { percentage, threshold, currency, saveForNft, apiKey: apikey });
         const embed = new EmbedBuilder()
-          .setColor(0x00FFFF)
-          .setTitle('⚙️ Auto-Vault Activated. Prepare for Self-Control.') // MODIFIED
-          .setDescription(`Auto-vault active: ${percentage ? percentage + '% of your f***ing wins' : ''} ${threshold ? 'Everything over ' + threshold + ' ' + currency : ''} ${saveForNft ? '
-🎯 **Target:** Saving for that sweet Identity NFT. Smart move.' : ''}`); // MODIFIED
+          const embed = new EmbedBuilder()
+            .setColor(0x00FFFF)
+            .setTitle('Auto-Vault Activated. Prepare for Self-Control.') // MODIFIED
+            .setDescription(`Auto-vault active: ${percentage ? percentage + '% of your wins are now safe from you.' : ''} ${threshold ? 'Everything over ' + threshold + ' ' + currency + ' will be stashed.' : ''} ${saveForNft ? '\nSaving for that sweet Identity NFT. Smart move.' : ''}`);
         await interaction.reply({ embeds: [embed], ephemeral: true });
       } else if (sub === 'reload') {
         const amount = interaction.options.getString('amount', true);
         const interval = (interaction.options.getString('interval', true) as 'daily' | 'weekly' | 'monthly');
         if (!['daily', 'weekly', 'monthly'].includes(interval)) {
-          await interaction.reply({ content: '❌ Reload interval is as f***ed as your bankroll. Must be "daily", "weekly", or "monthly".', ephemeral: true }); // MODIFIED
+          await interaction.reply({ content: 'That\'s not a real interval. Use "daily", "weekly", or "monthly".', ephemeral: true });
           return;
         }
         setReloadSchedule(interaction.user.id, amount, interval);
         const embed = new EmbedBuilder()
           .setColor(0xFFA500)
-          .setTitle('📅 Reload Scheduled. Never Go Broke Again. (Maybe.)') // MODIFIED
+          .setTitle('Reload Scheduled. Never Go Broke Again. (Maybe.)') // MODIFIED
           .setDescription(`Scheduled ${amount} reload every ${interval}. Keep that degeneracy fueled, degen.`); // MODIFIED
         await interaction.reply({ embeds: [embed], ephemeral: true });
       } else {
         await interaction.reply({ content: 'Unknown subcommand', ephemeral: true });
       }
     } catch (err) {
-      await interaction.reply({ content: `❌ Well, sh**. An unexpected f***-up occurred: ${(err as Error).message}. Blame the blockchain, or the admin. Or your bad luck.`, ephemeral: true }); // MODIFIED
+      await interaction.reply({ content: `Well, sh**. An unexpected f***-up occurred: ${(err as Error).message}. Blame the blockchain, or the admin. Or your bad luck.`, ephemeral: true }); // MODIFIED
     }
   },
 };

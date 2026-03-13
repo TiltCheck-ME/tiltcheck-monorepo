@@ -53,19 +53,19 @@ export const buddy: Command = {
                 const targetUser = interaction.options.getUser('user')!;
 
                 if (targetUser.id === interaction.user.id) {
-                    await interaction.reply({ content: '❌ Seriously? You can\'t be your own damn buddy. Pick someone else.', ephemeral: true });
+                    await interaction.reply({ content: 'Seriously? You can\'t be your own damn buddy. Pick someone else.', ephemeral: true });
                     return;
                 }
 
                 if (targetUser.bot) {
-                    await interaction.reply({ content: '❌ Bots are for trading, not saving your ass. Pick a human.', ephemeral: true });
+                    await interaction.reply({ content: 'Bots are for trading, not saving your ass. Pick a human.', ephemeral: true });
                     return;
                 }
 
                 // Mock DB Insertion 
                 const embed = new EmbedBuilder()
                     .setColor(0x00CED1)
-                    .setTitle('🤝 Buddy Request Sent. May God Have Mercy On Their Soul.')
+                    .setTitle('Buddy Request Sent. May God Have Mercy On Their Soul.')
                     .setDescription(`We just sent <@${targetUser.id}> a lifeline request. They'll get alerts if you start going full tilt or, god forbid, you empty your wallet.`);
 
                 await interaction.reply({ embeds: [embed], ephemeral: true });
@@ -74,14 +74,14 @@ export const buddy: Command = {
                 const targetUser = interaction.options.getUser('user')!;
 
                 await interaction.reply({
-                    content: `✅ <@${targetUser.id}> has been yeeted from your buddy list. They probably couldn't save you anyway.`,
+                    content: `<@${targetUser.id}> has been yeeted from your buddy list. They probably couldn't save you anyway.`,
                     ephemeral: true
                 });
 
             } else if (subcommand === 'list') {
                 const embed = new EmbedBuilder()
                     .setColor(0x00CED1)
-                    .setTitle('🤝 Who\'s Got Your Back?')
+                    .setTitle('Who\'s Got Your Back?')
                     .setDescription('You\'re flying solo, degen. Maybe find a friend before you lose your sh**.')
                     .setFooter({ text: 'Use /buddy add to rope in a poor soul.' });
 
@@ -91,13 +91,13 @@ export const buddy: Command = {
                 const targetUser = interaction.options.getUser('buddy')!;
 
                 await interaction.reply({
-                    content: `🚨 Sent a mock alert to <@${targetUser.id}>. They're probably ignoring you anyway. (Just a test, chill.)`,
+                    content: `Sent a mock alert to <@${targetUser.id}>. They're probably ignoring you anyway. (Just a test, chill.)`,
                     ephemeral: true
                 });
             }
         } catch (error) {
             console.error('Error executing /buddy command:', error);
-            await interaction.reply({ content: '❌ Well, f***. Something went wrong processing that buddy request. Try again, I guess?', ephemeral: true });
+            await interaction.reply({ content: 'Well, f***. Something went wrong processing that buddy request. Try again, I guess?', ephemeral: true });
         }
     },
 };
