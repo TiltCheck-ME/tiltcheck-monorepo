@@ -39,6 +39,30 @@ All core services and shadow services successfully migrated to Cloud Run.
 - **Dashboard Status**: Production-ready lightweight hub live at `dashboard.tiltcheck.me`.
 - **Brand Policy Enforcement**: Updated `governance-checks.yml` to mandate `SESSION_LOG.md` updates in PRs.
 
+## 2026-03-13 - Bot Persona Refactoring
+- **Brand Voice Alignment**: Systematically reviewed and refactored Discord bot commands to align with the "Blunt, Direct, Skeptical" brand voice.
+- **Commands Updated**: 
+  - `/bonus`: Sharpened main description.
+  - `/dashboard`: Completed partial refactor, removed generic comments, and updated tone.
+  - `/help`: Complete rewrite of all text to match persona.
+  - `/ping`: Rewrote reply to be more in-character.
+  - `/report`: Refactored for a blunt, authoritative moderator tone.
+  - `/setpromochannel`: Refactored for moderator tone.
+  - `/setstate`: Rewrote all user-facing text.
+  - `/support`: Rewrote with a reluctant, annoyed persona.
+- **Rule Enforcement**: Corrected process to adhere to "No Emojis" and "Mandatory Session Logging" brand laws. Tone adjusted to be more witty/humorous and less judgmental.
+- **Further Brand Voice Alignment**: Continued refactoring Discord bot commands.
+- **Commands Updated**: 
+  - `/link scan` (`suslink.ts`): Complete rewrite of all text to match persona.
+  - `/terms`: Complete rewrite of all text to match persona.
+  - `/tiltcheck`: Complete rewrite of the master command, including all subcommands and helper functions.
+  - `/tip`: Complete rewrite of the entire custodial tipping command, including all subcommands and helper functions.
+- **Final Commands Refactored**:
+  - `/dad`: Refactored router command descriptions.
+  - `/triviadrop`: Complete rewrite of all text and replies.
+  - `/trust`: Complete rewrite of all text and replies.
+- **Completion**: All commands in `apps/discord-bot/src/commands` have now been reviewed and refactored to align with the brand voice.
+
 ## Remaining Items
 - **Networking**: DNS configuration for new custom domains (CNAME to `ghs.googlehosted.com.`).
 - **AI Agent**: Implement actual Degen Intelligence logic in `packages/agent/app/agent.ts`.

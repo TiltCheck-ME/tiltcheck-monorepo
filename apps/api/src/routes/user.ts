@@ -6,7 +6,7 @@
 
 import { Router } from 'express';
 import { authMiddleware } from '../middleware/auth.js';
-import { findOnboardingByDiscordId, upsertOnboarding, findUserById } from '@tiltcheck/db';
+import { findOnboardingByDiscordId, upsertOnboarding, findUserById, db } from '@tiltcheck/db';
 
 const router = Router();
 
@@ -92,6 +92,39 @@ router.post('/onboarding', authMiddleware, async (req, res) => {
         console.error('[User API] Update onboarding error:', error);
         res.status(500).json({ error: 'Failed to update onboarding status' });
     }
+});
+
+import { nacl } from 'tweetnacl';
+
+// ... (other routes)
+
+router.post('/wallet', async (req, res) => {
+  const { discordId, publicKey, signature, message } = req.body;
+
+  if (!discordId || !publicKey || !signature || !message) {
+    return res.status(400).json({ error: 'Missing required fields' });
+  }
+
+  try {
+    const messageBytes = new TextEncoder().encode(message);
+    const publicKeyBytes = Buffer.from(publicKey, 'base64');
+    const signatureBytes = Buffer.from(signature, 'hex');
+
+    const isValid = nacl.sign.detached.verify(messageBytes, signatureBytes, publicKeyBytes);
+
+    if (!isValid) {
+      return res.status(400).json({ error: 'Invalid signature' });
+    }
+
+    await db.upsertDegenIdentity({
+      discord_id: discordId,
+      primary_external_address: publicKey,
+    });
+
+    res.status(200).json({ success: true });
+  } catch (error) {
+    res.status(500).json({ error: 'Internal server error' });
+  }
 });
 
 export { router as userRouter };

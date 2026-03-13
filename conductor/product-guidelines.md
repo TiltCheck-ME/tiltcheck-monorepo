@@ -5,9 +5,10 @@ This document outlines the design principles, branding, and user experience guid
 ## 1. Tone of Voice
 
 The brand's tone is **Degen-Friendly**. This means communication should be:
-- **Blunt and Direct:** Get straight to the point. No fluff.
+- **Blunt and Direct:** Get straight to the point. No fluff, no bullshit.
+- **Witty & Funny:** Inject humor and wit as often as possible. The persona should be entertaining, not dry.
 - **Skeptical:** Acknowledge the harsh realities of the space.
-- **Authentic:** Use community slang where appropriate, but don't overdo it.
+- **Authentic:** Use community slang where appropriate. Cursing is encouraged where it feels authentic and fitting for the audience.
 
 We are an accountability buddy, not a corporate entity. We provide sharp, useful insights without moralizing.
 

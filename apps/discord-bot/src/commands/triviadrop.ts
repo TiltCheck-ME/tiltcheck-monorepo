@@ -11,13 +11,13 @@ import {
 export const triviadrop: Command = {
   data: new SlashCommandBuilder()
     .setName('triviadrop')
-    .setDescription('Play on-demand trivia drops')
+    .setDescription('Pop quiz, hotshot. Answer trivia, win points, prove you\'re not an idiot.')
     .addSubcommand(sub =>
       sub.setName('start')
-        .setDescription('Start a new trivia drop')
+        .setDescription('Start a new trivia drop. Let\'s see what you know.')
         .addStringOption(opt =>
           opt.setName('category')
-            .setDescription('Question category (optional)')
+            .setDescription('What flavor of trivia do you want? (optional)')
             .addChoices(
               { name: 'Crypto', value: 'crypto' },
               { name: 'Poker', value: 'poker' },
@@ -30,7 +30,7 @@ export const triviadrop: Command = {
         )
         .addStringOption(opt =>
           opt.setName('difficulty')
-            .setDescription('Question difficulty (optional)')
+            .setDescription('How big is your brain? (optional)')
             .addChoices(
               { name: 'Easy', value: 'easy' },
               { name: 'Medium', value: 'medium' },
@@ -41,17 +41,17 @@ export const triviadrop: Command = {
     )
     .addSubcommand(sub =>
       sub.setName('answer')
-        .setDescription('Submit your answer')
+        .setDescription('Submit your answer. No pressure.')
         .addStringOption(opt =>
-          opt.setName('response').setDescription('Your answer').setRequired(true)
+          opt.setName('response').setDescription('Your guess. Don\'t f*** it up.').setRequired(true)
         )
     )
     .addSubcommand(sub =>
       sub.setName('leaderboard')
-        .setDescription('View trivia leaderboard')
+        .setDescription('See who\'s the biggest brain in the server.')
         .addIntegerOption(opt =>
           opt.setName('limit')
-            .setDescription('Number of top players to show (default: 10)')
+            .setDescription('How many top nerds to show? (default: 10)')
             .setMinValue(5)
             .setMaxValue(25)
             .setRequired(false)
@@ -59,7 +59,7 @@ export const triviadrop: Command = {
     )
     .addSubcommand(sub =>
       sub.setName('stats')
-        .setDescription('View your trivia stats')
+        .setDescription('Check your own stats. See how much you don\'t know.')
     ),
   async execute(interaction: ChatInputCommandInteraction) {
     const subcommand = interaction.options.getSubcommand();
@@ -71,7 +71,6 @@ export const triviadrop: Command = {
       const difficulty = interaction.options.getString('difficulty') || undefined;
 
       try {
-        // Enable AI generation for gateway, OpenAI, or Ollama-backed setups.
         const useAI =
           process.env.AI_PROVIDER === 'ollama' ||
           !!process.env.OLLAMA_URL ||
@@ -81,14 +80,14 @@ export const triviadrop: Command = {
         
         const embed = new EmbedBuilder()
           .setColor(0x00AE86)
-          .setTitle('🎯 TriviaDrops')
+          .setTitle('Pop Quiz, Hotshot!')
           .setDescription(question.question)
           .addFields(
             { name: 'Category', value: question.category || 'General', inline: true },
             { name: 'Difficulty', value: question.difficulty || 'medium', inline: true },
             { name: 'Points', value: question.difficulty === 'hard' ? '30' : question.difficulty === 'medium' ? '20' : '10', inline: true }
           )
-          .setFooter({ text: useAI ? 'AI-Generated Question • Use /triviadrop answer to submit' : 'Use /triviadrop answer to submit your response' })
+          .setFooter({ text: useAI ? 'This question was forged in the fires of AI. Blame the robots if it\'s wrong.' : 'Use /triviadrop answer to submit your response.' })
           .setTimestamp();
 
         if (question.choices && question.choices.length > 0) {
@@ -101,7 +100,7 @@ export const triviadrop: Command = {
         await interaction.reply({ embeds: [embed] });
       } catch (err) {
         console.error('[TriviaDrops] Error starting trivia:', err);
-        await interaction.reply({ content: 'Failed to start trivia. Try again later.', ephemeral: true });
+        await interaction.reply({ content: 'Couldn\'t start the trivia. Something is f***ed. Try again later.', ephemeral: true });
       }
     } else if (subcommand === 'answer') {
       const response = interaction.options.getString('response', true);
@@ -112,32 +111,32 @@ export const triviadrop: Command = {
         const result = checkAnswer(guildId, channelId, userId, username, response);
 
         if (result.correctAnswer === '') {
-          await interaction.reply({ content: '❌ No active trivia in this channel. Use `/triviadrop start` first!', ephemeral: true });
+          await interaction.reply({ content: 'There\'s no active trivia in this channel. Use `/triviadrop start` before you start guessing randomly.', ephemeral: true });
           return;
         }
 
         if (result.correct) {
           const embed = new EmbedBuilder()
             .setColor(0x00FF00)
-            .setTitle('✅ Correct!')
-            .setDescription(`You earned **${result.points} points**!`)
-            .setFooter({ text: `Check your stats with /triviadrop stats` })
+            .setTitle('Correct! Look at the big brain on you.')
+            .setDescription(`You snagged **${result.points} points**!`)
+            .setFooter({ text: `Admire your genius with /triviadrop stats` })
             .setTimestamp();
 
           await interaction.reply({ embeds: [embed] });
         } else {
           const embed = new EmbedBuilder()
             .setColor(0xFF0000)
-            .setTitle('❌ Incorrect')
+            .setTitle('Wrong. So, so wrong.')
             .setDescription(`The correct answer was: **${result.correctAnswer}**`)
-            .setFooter({ text: 'Better luck next time!' })
+            .setFooter({ text: 'Maybe try an easier one next time?' })
             .setTimestamp();
 
           await interaction.reply({ embeds: [embed], ephemeral: true });
         }
       } catch (err) {
         console.error('[TriviaDrops] Error checking answer:', err);
-        await interaction.reply({ content: 'Failed to check answer. Try again.', ephemeral: true });
+        await interaction.reply({ content: 'Failed to check your answer. The bot probably had a stroke.', ephemeral: true });
       }
     } else if (subcommand === 'leaderboard') {
       const limit = interaction.options.getInteger('limit') || 10;
@@ -146,31 +145,31 @@ export const triviadrop: Command = {
         const leaderboard = getLeaderboard(limit);
 
         if (leaderboard.length === 0) {
-          await interaction.reply({ content: '📊 No trivia stats yet. Be the first to play!', ephemeral: true });
+          await interaction.reply({ content: 'The leaderboard is empty. Is anyone even playing this game?', ephemeral: true });
           return;
         }
 
         const embed = new EmbedBuilder()
           .setColor(0xFFD700)
-          .setTitle('🏆 Trivia Leaderboard')
+          .setTitle('The Trivia Gods of this Server')
           .setDescription(
             leaderboard
               .map((entry: { username: string; score: number; totalAttempts: number; correctAnswers: number }, i: number) => {
-                const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `${i + 1}.`;
+                const rank = i + 1;
                 const accuracy = entry.totalAttempts > 0 
                   ? Math.round((entry.correctAnswers / entry.totalAttempts) * 100) 
                   : 0;
-                return `${medal} **${entry.username}** - ${entry.score} pts (${accuracy}% accuracy)`;
+                return `${rank}. **${entry.username}** - ${entry.score} pts (${accuracy}% accuracy)`;
               })
               .join('\n')
           )
-          .setFooter({ text: 'Play /triviadrop start to climb the ranks!' })
+          .setFooter({ text: 'Not on the list? Get gud.' })
           .setTimestamp();
 
         await interaction.reply({ embeds: [embed] });
       } catch (err) {
         console.error('[TriviaDrops] Error fetching leaderboard:', err);
-        await interaction.reply({ content: 'Failed to load leaderboard.', ephemeral: true });
+        await interaction.reply({ content: 'Couldn\'t load the leaderboard. It\'s probably for the best, it would have just made you feel bad.', ephemeral: true });
       }
     } else if (subcommand === 'stats') {
       const userId = interaction.user.id;
@@ -179,7 +178,7 @@ export const triviadrop: Command = {
         const stats = getUserStats(userId);
 
         if (!stats) {
-          await interaction.reply({ content: '📊 No stats yet. Play `/triviadrop start` to get started!', ephemeral: true });
+          await interaction.reply({ content: 'No stats for you. Play a round, then we can talk.', ephemeral: true });
           return;
         }
 
@@ -189,30 +188,30 @@ export const triviadrop: Command = {
 
         const embed = new EmbedBuilder()
           .setColor(0x0099FF)
-          .setTitle('📊 Your Trivia Stats')
+          .setTitle('Your Trivia Report Card')
           .addFields(
             { name: 'Total Score', value: `${stats.score} points`, inline: true },
             { name: 'Correct Answers', value: `${stats.correctAnswers}`, inline: true },
             { name: 'Accuracy', value: `${accuracy}%`, inline: true },
             { name: 'Total Attempts', value: `${stats.totalAttempts}`, inline: true },
-            { name: 'Current Streak', value: `${stats.currentStreak} 🔥`, inline: true },
-            { name: 'Longest Streak', value: `${stats.longestStreak} ⭐`, inline: true }
+            { name: 'Current Streak', value: `${stats.currentStreak}`, inline: true },
+            { name: 'Longest Streak', value: `${stats.longestStreak}`, inline: true }
           )
-          .setFooter({ text: 'Keep playing to improve your score!' })
+          .setFooter({ text: 'The numbers don\'t lie.' })
           .setTimestamp();
 
         if (stats.achievements && stats.achievements.length > 0) {
           const achievementNames: Record<string, string> = {
-            first_correct: '🎯 First Blood',
-            streak_3: '🔥 On Fire',
-            streak_5: '⚡ Unstoppable',
-            streak_10: '👑 Legendary',
-            score_100: '💯 Century',
-            score_500: '⭐ All-Star',
-            score_1000: '🏆 Champion',
-            accuracy_80: '🎓 Scholar',
-            played_50: '🎮 Dedicated',
-            played_100: '💪 Grinder',
+            first_correct: 'First Blood',
+            streak_3: 'On Fire',
+            streak_5: 'Unstoppable',
+            streak_10: 'Legendary',
+            score_100: 'Century',
+            score_500: 'All-Star',
+            score_1000: 'Champion',
+            accuracy_80: 'Scholar',
+            played_50: 'Dedicated',
+            played_100: 'Grinder',
           };
           const achievementList = stats.achievements
             .map((id: string) => achievementNames[id] || id)
@@ -223,10 +222,10 @@ export const triviadrop: Command = {
         await interaction.reply({ embeds: [embed], ephemeral: true });
       } catch (err) {
         console.error('[TriviaDrops] Error fetching stats:', err);
-        await interaction.reply({ content: 'Failed to load stats.', ephemeral: true });
+        await interaction.reply({ content: 'Couldn\'t load your stats. Maybe that\'s a blessing.', ephemeral: true });
       }
     } else {
-      await interaction.reply({ content: 'Unknown subcommand.', ephemeral: true });
+      await interaction.reply({ content: 'Unknown subcommand. Did you have a stroke?', ephemeral: true });
     }
   },
 };

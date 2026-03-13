@@ -17,8 +17,8 @@ describe('safety evaluator', () => {
     expect(result.requiresCooldown).toBe(true);
   });
 
-  it('returns escalation intervention for severe sentiment', () => {
-    const result = evaluateSentiment({
+  it('returns escalation intervention for severe sentiment', async () => {
+    const result = await evaluateSentiment({
       userId: 'user-2',
       message: 'I LOST EVERYTHING and I cannot stop!!! all in now',
       distressSignals: ['panic'],

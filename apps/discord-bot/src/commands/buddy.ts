@@ -5,11 +5,11 @@ import type { Command } from '../types.js';
 export const buddy: Command = {
     data: new SlashCommandBuilder()
         .setName('buddy')
-        .setDescription('Manage your Phone a Friend buddy system')
+        .setDescription('Get an accountability buddy to save you from yourself (or let you know when you\'re being a degenerate)')
         .addSubcommand(sub =>
             sub
                 .setName('add')
-                .setDescription('Link a buddy to alert them when you tilt')
+                .setDescription('Hook up with a buddy to let them know when you\'re about to lose your sh**')
                 .addUserOption(opt =>
                     opt
                         .setName('user')
@@ -20,7 +20,7 @@ export const buddy: Command = {
         .addSubcommand(sub =>
             sub
                 .setName('remove')
-                .setDescription('Remove a buddy')
+                .setDescription('Ditch a buddy. They probably couldn\'t save you anyway.')
                 .addUserOption(opt =>
                     opt
                         .setName('user')
@@ -31,12 +31,12 @@ export const buddy: Command = {
         .addSubcommand(sub =>
             sub
                 .setName('list')
-                .setDescription('List your current buddies')
+                .setDescription('See who\'s got your back (or who you\'re stuck with).')
         )
         .addSubcommand(sub =>
             sub
                 .setName('test')
-                .setDescription('Send a test alert to your buddy')
+                .setDescription('Test if your buddy\'s actually watching. (It\'s a simulation, don\'t panic.)')
                 .addUserOption(opt =>
                     opt
                         .setName('buddy')
@@ -53,20 +53,20 @@ export const buddy: Command = {
                 const targetUser = interaction.options.getUser('user')!;
 
                 if (targetUser.id === interaction.user.id) {
-                    await interaction.reply({ content: '❌ You cannot add yourself as a buddy.', ephemeral: true });
+                    await interaction.reply({ content: '❌ Seriously? You can\'t be your own damn buddy. Pick someone else.', ephemeral: true });
                     return;
                 }
 
                 if (targetUser.bot) {
-                    await interaction.reply({ content: '❌ You cannot add a bot as a buddy.', ephemeral: true });
+                    await interaction.reply({ content: '❌ Bots are for trading, not saving your ass. Pick a human.', ephemeral: true });
                     return;
                 }
 
                 // Mock DB Insertion 
                 const embed = new EmbedBuilder()
                     .setColor(0x00CED1)
-                    .setTitle('🤝 Buddy Request Sent')
-                    .setDescription(`Sent a buddy request to <@${targetUser.id}>.\nThey will receive alerts if you exhibit tilt behavior or your balance reaches zero.`);
+                    .setTitle('🤝 Buddy Request Sent. May God Have Mercy On Their Soul.')
+                    .setDescription(`We just sent <@${targetUser.id}> a lifeline request. They'll get alerts if you start going full tilt or, god forbid, you empty your wallet.`);
 
                 await interaction.reply({ embeds: [embed], ephemeral: true });
 
@@ -74,16 +74,16 @@ export const buddy: Command = {
                 const targetUser = interaction.options.getUser('user')!;
 
                 await interaction.reply({
-                    content: `✅ <@${targetUser.id}> has been removed from your buddy list.`,
+                    content: `✅ <@${targetUser.id}> has been yeeted from your buddy list. They probably couldn't save you anyway.`,
                     ephemeral: true
                 });
 
             } else if (subcommand === 'list') {
                 const embed = new EmbedBuilder()
                     .setColor(0x00CED1)
-                    .setTitle('🤝 Your Buddies')
-                    .setDescription('You currently do not have any active buddies.')
-                    .setFooter({ text: 'Use /buddy add to add a friend' });
+                    .setTitle('🤝 Who\'s Got Your Back?')
+                    .setDescription('You\'re flying solo, degen. Maybe find a friend before you lose your sh**.')
+                    .setFooter({ text: 'Use /buddy add to rope in a poor soul.' });
 
                 await interaction.reply({ embeds: [embed], ephemeral: true });
 
@@ -91,13 +91,13 @@ export const buddy: Command = {
                 const targetUser = interaction.options.getUser('buddy')!;
 
                 await interaction.reply({
-                    content: `🚨 Sent a mock alert to <@${targetUser.id}>. (This is a simulation)`,
+                    content: `🚨 Sent a mock alert to <@${targetUser.id}>. They're probably ignoring you anyway. (Just a test, chill.)`,
                     ephemeral: true
                 });
             }
         } catch (error) {
             console.error('Error executing /buddy command:', error);
-            await interaction.reply({ content: '❌ An error occurred processing your request.', ephemeral: true });
+            await interaction.reply({ content: '❌ Well, f***. Something went wrong processing that buddy request. Try again, I guess?', ephemeral: true });
         }
     },
 };

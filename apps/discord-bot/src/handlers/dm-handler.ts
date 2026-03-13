@@ -5,7 +5,8 @@
 
 import { Client, Events, Message } from 'discord.js';
 import { trackMessage } from '@tiltcheck/tiltcheck-core';
-import { buildPersonaReply, detectConversationIntent } from '../utils/conversation-nlp.js';
+import { runner } from '@tiltcheck/agent';
+import { stringifyContent } from '@google/adk';
 
 export async function handleDirectMessage(_client: Client, message: Message): Promise<void> {
   if (message.author.bot) return;
@@ -13,17 +14,35 @@ export async function handleDirectMessage(_client: Client, message: Message): Pr
 
   trackMessage(message.author.id, message.content, message.channelId);
 
-  const intent = detectConversationIntent(message.content);
-  let reply = buildPersonaReply(intent);
+  try {
+    // Indicate typing while AI processes
+    await message.channel.sendTyping();
 
-  const text = message.content.toLowerCase();
-  if (text.includes('tip') || text.includes('wallet') || text.includes('deposit')) {
-    reply += '\n\nTip flow lives in JustTheTip bot: `/tip` (custodial credit flow).';
-  } else if (text.includes('poker') || text.includes('dad') || text.includes('play')) {
-    reply += '\n\nGame flow lives in DA&D bot: `/dad lobby ...` and `/dad poker ...`.';
+    let finalResponse = '';
+    const it = runner.runAsync({
+      userId: message.author.id,
+      sessionId: `discord-dm-${message.author.id}`,
+      newMessage: {
+        role: 'user',
+        parts: [{ text: message.content }]
+      }
+    });
+
+    for await (const event of it) {
+      if (event.content) {
+        finalResponse = stringifyContent(event.content);
+      }
+    }
+
+    if (finalResponse) {
+      await message.reply({ content: finalResponse });
+    } else {
+      await message.reply('I processed your message but have no specific insight. Try asking about your gaming stats or tilt status!');
+    }
+  } catch (error) {
+    console.error('[DM Handler] AI Agent error:', error);
+    await message.reply('My brain is a bit foggy right now. Try again in a minute, or use `/help` to see available commands.');
   }
-
-  await message.reply({ content: reply });
 }
 
 export function registerDMHandler(client: Client): void {
