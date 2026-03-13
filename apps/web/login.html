@@ -282,7 +282,7 @@
     document.getElementById('discord-login-btn')?.addEventListener('click', () => {
       const nextPath = resolveNextPath();
       const redirect = encodeURIComponent(`${window.location.origin}${nextPath}`);
-      window.location.href = `http://localhost:3001/auth/discord/login?redirect=${redirect}`;
+      window.location.href = `https://api.tiltcheck.me/auth/discord/login?redirect=${redirect}`;
     });
   </script>
 <div id="shared-footer"></div><div id="shared-footer"></div><script src="/scripts/components-loader.js"></script></body>
