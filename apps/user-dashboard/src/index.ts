@@ -5,6 +5,7 @@
 
 import express from 'express';
 import cors from 'cors';
+import cookieParser from 'cookie-parser';
 import jwt from 'jsonwebtoken';
 import rateLimit from 'express-rate-limit';
 import { Magic } from '@magic-sdk/admin';
@@ -37,6 +38,7 @@ const solanaConnection = new Connection(process.env.SOLANA_RPC_URL || 'https://a
 
 // Middleware
 app.use(cors());
+app.use(cookieParser());
 app.use(express.json());
 app.use(express.static(join(__dirname, '../public')));
 
@@ -167,7 +169,13 @@ app.get('/auth/discord/callback', async (req, res) => {
       { expiresIn: '7d' }
     );
 
-    res.redirect(`/dashboard?token=${token}`);
+    res.cookie('auth_token', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
+    res.redirect('/dashboard');
   } catch (err) {
     res.redirect('/?error=auth_failed');
   }
@@ -265,7 +273,18 @@ app.post('/api/agent/query', authenticateToken as any, async (req: any, res) => 
 function authenticateToken(req: AuthenticatedRequest, res: Response, next: NextFunction) {
   const authHeader = req.headers['authorization'];
   const token = authHeader && authHeader.split(' ')[1];
-  if (!token) return res.sendStatus(401);
+  
+  if (!token) {
+    const cookieToken = (req.cookies?.auth_token as string) || null;
+    if (!cookieToken) return res.sendStatus(401);
+    
+    jwt.verify(cookieToken, JWT_SECRET, (err: any, user: any) => {
+      if (err) return res.sendStatus(403);
+      req.user = user;
+      next();
+    });
+    return;
+  }
 
   jwt.verify(token, JWT_SECRET, (err: any, user: any) => {
     if (err) return res.sendStatus(403);

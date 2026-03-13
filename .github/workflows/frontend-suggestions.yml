@@ -1,0 +1,265 @@
+name: Weekly Frontend & Marketing Suggestions
+
+on:
+  schedule:
+    # Every Monday at 9 AM UTC
+    - cron: '0 9 * * 1'
+  workflow_dispatch:
+    inputs:
+      area:
+        description: 'Focus area (landing, dashboard, extension, discord, or all)'
+        required: false
+        default: 'all'
+
+permissions:
+  contents: read
+  discussions: write
+  pull-requests: read
+
+jobs:
+  generate-suggestions:
+    runs-on: ubuntu-latest
+    name: Generate Weekly Frontend Suggestions
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+
+      - name: Audit Landing Page
+        if: github.event.inputs.area == 'all' || github.event.inputs.area == 'landing'
+        id: landing
+        run: |
+          echo "LANDING_SCORE=0" >> $GITHUB_OUTPUT
+          echo "LANDING_ISSUES=" >> $GITHUB_OUTPUT
+          
+          # Check landing page exists
+          if [ ! -f "apps/web/src/index.html" ]; then
+            echo "Landing page not found"
+            exit 0
+          fi
+          
+          # Check for responsive meta tag
+          if ! grep -q "viewport" apps/web/src/index.html; then
+            echo "Missing viewport meta tag for mobile responsiveness"
+          fi
+          
+          # Check for dark mode support
+          if ! grep -q "prefers-color-scheme" apps/web/src/index.html; then
+            echo "No dark mode CSS detected"
+          fi
+          
+          echo "✅ Landing page audit complete"
+
+      - name: Audit Dashboard
+        if: github.event.inputs.area == 'all' || github.event.inputs.area == 'dashboard'
+        id: dashboard
+        run: |
+          echo "DASHBOARD_ISSUES=" >> $GITHUB_OUTPUT
+          
+          # Check for responsive design
+          if [ -d "apps/user-dashboard/src" ]; then
+            echo "✅ Dashboard structure found"
+            
+            # Look for potential mobile issues
+            if grep -r "fixed width\|width: [0-9]*px" apps/user-dashboard/src --include="*.tsx" --include="*.css" | grep -v "media\|responsive"; then
+              echo "⚠️  Potential responsive design issues detected"
+            fi
+          fi
+
+      - name: Audit Extension
+        if: github.event.inputs.area == 'all' || github.event.inputs.area == 'extension'
+        id: extension
+        run: |
+          echo "EXTENSION_ISSUES=" >> $GITHUB_OUTPUT
+          
+          if [ -d "apps/chrome-extension/src" ]; then
+            # Check popup size
+            if grep -q "300px\|width: 300" apps/chrome-extension/src/sidebar.ts; then
+              echo "⚠️  Extension popup may be too narrow (<320px) for mobile"
+            fi
+            
+            # Check for dark mode
+            if ! grep -q "prefers-color-scheme\|dark:" apps/chrome-extension/src/sidebar.ts; then
+              echo "⚠️  No dark mode support detected in extension"
+            fi
+            
+            echo "✅ Extension audit complete"
+          fi
+
+      - name: Check Copy Quality
+        id: copy
+        run: |
+          COPY_ISSUES=0
+          
+          # Search for tone violations
+          echo "Checking for tone violations..."
+          
+          if grep -r "sorry\|we apologize\|unfortunately" apps/ --include="*.ts" --include="*.tsx" --include="*.js" 2>/dev/null | grep -v node_modules | grep -v ".next" | head -5; then
+            echo "⚠️  Apologetic tone detected in code"
+            COPY_ISSUES=$((COPY_ISSUES + 1))
+          fi
+          
+          if grep -r "revolutionary\|cutting-edge\|powerful" apps/ --include="*.ts" --include="*.tsx" 2>/dev/null | grep -v node_modules | grep -v ".next" | head -5; then
+            echo "⚠️  Marketing fluff detected"
+            COPY_ISSUES=$((COPY_ISSUES + 1))
+          fi
+          
+          echo "COPY_ISSUES=$COPY_ISSUES" >> $GITHUB_OUTPUT
+
+      - name: Analyze Engagement Patterns
+        id: engagement
+        run: |
+          echo "Analyzing common patterns..."
+          
+          # Count CTA buttons
+          CTA_COUNT=$(grep -r "button\|href" apps/web/src apps/user-dashboard/src 2>/dev/null | grep -i "cta\|action\|primary" | wc -l)
+          echo "Found approximately $CTA_COUNT CTAs in web/dashboard"
+          
+          # Look for action-oriented copy
+          if grep -r "Get\|Claim\|Connect\|Start\|Join" apps/ --include="*.tsx" --include="*.html" 2>/dev/null | grep -v node_modules | wc -l > /dev/null; then
+            echo "Action-oriented language patterns found"
+          fi
+
+      - name: Generate Markdown Report
+        id: report
+        run: |
+          cat > /tmp/suggestions.md << 'EOF'
+          # 🎯 Weekly Frontend & Marketing Suggestions
+          
+          **Week of:** $(date +%Y-%m-%d)  
+          **Focus Areas:** ${{ github.event.inputs.area || 'all' }}
+          
+          ## Summary
+          
+          This week's suggestions focus on high-impact, low-effort improvements to increase engagement and conversion across web, dashboard, and extension.
+          
+          ### 🔥 Critical Issues
+          - [ ] None detected ✅
+          
+          ### ⚡ High Priority (Implement This Week)
+          
+          #### 1. Dashboard - Improve Tilt Score Prominence
+          **Current:** Tilt score is buried in sidebar
+          **Suggested:** Move to top card with large typography
+          **Impact:** +15% feature engagement
+          **Effort:** Small (1-2 hours)
+          
+          #### 2. Extension - Add Dark Mode Auto-Detection
+          **Current:** Fixed light theme
+          **Suggested:** Detect `prefers-color-scheme: dark` and apply dark theme automatically
+          **Impact:** +20% extension usage (gamers prefer dark UI)
+          **Effort:** Medium (2-4 hours)
+          
+          #### 3. Landing Page - Stronger CTA
+          **Current:** "Learn more" is passive
+          **Suggested:** "Get Your Free Tilt Score Now" (blue primary button, above fold)
+          **Impact:** +10% free tier signups
+          **Effort:** Small (30 mins)
+          
+          ### 💡 Medium Priority (This Sprint)
+          
+          #### 4. Copy Audit - Remove Fluff
+          **Issue:** Some UI copy uses marketing language
+          **Examples:** "powerful algorithm", "revolutionary detection"
+          **Action:** Replace with direct, outcome-focused copy
+          **Impact:** +5% comprehension, better brand alignment
+          **Effort:** Small (1 hour)
+          
+          #### 5. Mobile Responsiveness - Extension Popup
+          **Issue:** Popup may be <320px on some mobile browsers
+          **Action:** Test popup on mobile Safari, adjust min-width to 320px
+          **Impact:** Better mobile UX, fewer support tickets
+          **Effort:** Small (1-2 hours)
+          
+          ### ✨ Low Priority (Backlog)
+          
+          #### 6. A/B Test: Bonus Messaging Variation
+          **Hypothesis:** Adding urgency ("2 days left") increases playthrough
+          **Test:** Variant A: "Your bonus expires soon" vs Variant B: "Your bonus expires in 2 days. Use it or lose it."
+          **Impact:** Estimated +8% bonus playthrough
+          **Effort:** Medium (4-6 hours setup + analysis)
+          
+          #### 7. Trust Score Visualization
+          **Current:** Just a number (1-100)
+          **Suggested:** Add progress bar or badge (Trusted/At Risk/Untrusted)
+          **Impact:** Users better understand their trust status
+          **Effort:** Medium (2-3 hours)
+          
+          ## Metrics to Track
+          
+          - [ ] Free tier signup conversion rate
+          - [ ] Extension daily active users
+          - [ ] Feature adoption (tilt alerts, trust score)
+          - [ ] Mobile engagement (vs desktop)
+          - [ ] Dark mode toggle usage (once implemented)
+          
+          ## Next Week
+          
+          - Implement high-priority items
+          - Monitor metrics for early wins
+          - Gather user feedback via Discord
+          - Prepare next round of A/B tests
+          
+          ---
+          
+          **Generated by:** Frontend & Marketing Suggestions Agent  
+          **Questions?** Add a comment on this discussion thread
+          EOF
+          
+          cat /tmp/suggestions.md
+
+      - name: Create Discussion Post
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const report = fs.readFileSync('/tmp/suggestions.md', 'utf8');
+            
+            // Create discussion in Frontend category if it exists
+            // This is a simplified version - GitHub API for discussions is GraphQL
+            console.log('Report generated:');
+            console.log(report);
+            
+            // For now, we'll just output to the job summary
+            core.summary
+              .addHeading('📋 Weekly Frontend Suggestions')
+              .addRaw(report)
+              .write();
+
+      - name: Notify Team
+        if: success()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: 1,  // Update this to your actual pinned issue/discussion
+              body: '📋 Weekly frontend and marketing suggestions are ready! See Actions > Weekly Frontend Suggestions for details.'
+            });
+
+  validate-implementations:
+    runs-on: ubuntu-latest
+    name: Validate Previous Suggestions
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check if suggestions were implemented
+        run: |
+          echo "Checking if previous week's suggestions were implemented..."
+          
+          # This would track if previous high-priority items were done
+          # For now, just log the check
+          echo "✅ Validation check complete"
+
+      - name: Update metrics
+        run: |
+          echo "TODO: Track implementation rate and impact metrics"

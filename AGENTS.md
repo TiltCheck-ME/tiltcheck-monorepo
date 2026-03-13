@@ -18,6 +18,8 @@ Located in .cursor/agents/
 
 | Name | Path | Description |
 | :--- | :--- | :--- |
+| Brand Law Enforcer | .cursor/agents/brand-law-enforcer.md | **NEW:** Enforces "The Degen Laws" on PRs — brand tone, copyright headers, no secrets, atomic docs. |
+| Frontend & Marketing Suggestions | .cursor/agents/frontend-marketing-suggestions.md | **NEW:** Weekly code update suggestions for web, dashboard, and extension UX/UI improvements. |
 | Casino Scraper | .cursor/agents/casino-public-data-scraper.md | Scrapes public casino data for the Trust Engine. |
 | Daily Issue Finder | .cursor/agents/daily-issue-finder.md | (Merged) Reviews code changes and performs smoke tests on new features. |
 | Regulatory Scout | services/regulatory-scout/ | Functional: Monitors commission filings via SusLink integration. |
@@ -27,10 +29,12 @@ Located in .cursor/agents/
 | Production Auditor | .cursor/agents/production-standards-auditor.md | (Renamed) Ensures codebase remains production-ready and high quality. |
 
 ## 3. Workflow & CI Agents
-Located in .github/agents/
+Located in .github/agents/ and .github/workflows/
 
 | Name | Path | Description |
 | :--- | :--- | :--- |
+| Brand Law Enforcer | .github/agents/brand-law-enforcer.yml | **NEW:** Automated PR reviewer enforcing Degen Laws (tone, headers, no secrets, docs). Blocks critical violations. |
+| Weekly Frontend Suggestions | .github/workflows/frontend-suggestions.yml | **NEW:** Weekly automation (Mondays 9AM UTC) generating UI/UX and copy improvement suggestions. |
 | CI/CD Validator | .github/agents/ci-cd-validator.yml | Validates GitHub Actions and pipelines. |
 | TiltCheck Agent | .github/agents/tiltcheck-agent.yaml | General monorepo task orchestrator. |
 | Scribe Agent | .github/agents/scribe-agent.md | Enforces Zero-Drift policy and project laws. |
@@ -59,4 +63,21 @@ Functional code located in modules/
 | Solana Agent | packages/agent/ | Degen Intelligence Agent (DIA) via Google ADK. |
 
 ---
-Last Updated: 2026-03-11
+Last Updated: 2026-03-13
+
+## Latest Additions (This Session)
+
+### Brand Law Enforcer Agent (ACTIVE)
+- **Purpose:** Automated PR gatekeeper enforcing "The Degen Laws"
+- **Trigger:** Every PR open/update
+- **Critical Checks:** Hardcoded secrets, custodial code, copyright headers
+- **Brand Checks:** Tone (no apologies), no emojis, footer requirement, atomic docs
+- **Action:** Blocks critical violations, requests changes for medium issues
+- **Files:** `.cursor/agents/brand-law-enforcer.md` + `.github/agents/brand-law-enforcer.yml`
+
+### Frontend & Marketing Suggestions Agent (ACTIVE)
+- **Purpose:** Weekly (Mondays 9AM UTC) suggestions for web/extension UX improvements
+- **Focus:** CTA optimization, copy clarity, mobile responsiveness, dark mode, A/B tests
+- **Categories:** Conversion, messaging, visual hierarchy, friction reduction, mobile, dark mode
+- **Target:** +5-15% engagement and conversion improvements
+- **Files:** `.cursor/agents/frontend-marketing-suggestions.md` + `.github/workflows/frontend-suggestions.yml`

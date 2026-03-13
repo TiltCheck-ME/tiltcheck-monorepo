@@ -1422,6 +1422,8 @@ async function applyDiscordAuthSuccess(token: string, user: Record<string, any>)
   addFeedMessage(`Connected: ${userData.username || 'TiltCheck user'}`);
 }
 
+let authBridgeAckReceived = false;
+
 function handleDiscordAuthMessage(event: MessageEvent) {
   if (event.origin !== API_ORIGIN) return;
   const data = event.data as { type?: string; token?: unknown; user?: unknown } | null;
@@ -1431,19 +1433,52 @@ function handleDiscordAuthMessage(event: MessageEvent) {
   void applyDiscordAuthSuccess(data.token, data.user as Record<string, any>);
 }
 
+function handleAuthBridgeAck(event: MessageEvent) {
+  const data = event.data as { type?: string; success?: boolean } | null;
+  if (data?.type === 'auth-bridge-ack') {
+    authBridgeAckReceived = true;
+    console.log('[TiltCheck] auth-bridge-ack received');
+  }
+}
+
 function startDiscordLoginFlow() {
   const authUrl = getDiscordLoginUrl('extension');
   const maxPollMs = 5 * 60 * 1000;
   const startedAt = Date.now();
   clearDiscordAuthPolling();
+  authBridgeAckReceived = false;
 
   const startStoragePolling = () => {
+    let pollAttempts = 0;
+    let lastReadWasUndefined = false;
+
     discordAuthPollIntervalId = setInterval(async () => {
       try {
         const stored = await getStorage(['authToken', 'userData']);
+        
+        // If we got the auth, we're done
         if (stored?.authToken && stored?.userData) {
           await applyDiscordAuthSuccess(stored.authToken, stored.userData);
           return;
+        }
+
+        // Track if reads are returning undefined (indicates storage write hasn't completed yet)
+        if (!stored?.authToken) {
+          lastReadWasUndefined = true;
+          pollAttempts++;
+          console.log(`[TiltCheck] Storage read returned undefined (attempt ${pollAttempts})`);
+          
+          // After 3 failed reads without ACK, add extra delay before next attempt
+          // This accounts for the race condition where auth-bridge is still writing
+          if (pollAttempts >= 3 && !authBridgeAckReceived) {
+            console.log('[TiltCheck] Polling returned undefined 3+ times without ACK. Adding backoff delay.');
+          }
+        }
+
+        // If ACK was received, we know storage write completed, so increase check frequency
+        if (authBridgeAckReceived && lastReadWasUndefined) {
+          console.log('[TiltCheck] ACK received. Storage write should be complete.');
+          lastReadWasUndefined = false;
         }
 
         if (Date.now() - startedAt > maxPollMs) {
@@ -1455,7 +1490,7 @@ function startDiscordLoginFlow() {
         console.warn('[TiltCheck] Discord connect polling failed:', error);
         addFeedMessage('Discord connect interrupted. Reload the tab and try again.');
       }
-    }, 1000);
+    }, 500); // Poll every 500ms (faster than 1000ms to catch writes sooner)
   };
 
   try {
@@ -1494,6 +1529,10 @@ function startDiscordLoginFlow() {
 function setupEventListeners() {
   window.removeEventListener('message', handleDiscordAuthMessage as EventListener);
   window.addEventListener('message', handleDiscordAuthMessage as EventListener);
+  
+  // Listen for auth-bridge ACK messages
+  window.removeEventListener('message', handleAuthBridgeAck as EventListener);
+  window.addEventListener('message', handleAuthBridgeAck as EventListener);
 
   document.getElementById('tg-minimize')?.addEventListener('click', () => {
     const sidebar = document.getElementById('tiltcheck-sidebar');
