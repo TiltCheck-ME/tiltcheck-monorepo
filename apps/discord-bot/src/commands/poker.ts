@@ -11,11 +11,11 @@ import { createGame, joinGame, processAction, getChannelGames, formatCards } fro
 export const poker: Command = {
   data: new SlashCommandBuilder()
     .setName('poker')
-    .setDescription('Play some f***ing Texas Hold'em poker. Don't be a fish.') // MODIFIED
+    .setDescription('Play Texas Hold\'em poker')
     .addSubcommand(sub =>
       sub
         .setName('start')
-        .setDescription('Start a new game and get ready to stack some chips. Or lose them all.') // MODIFIED
+        .setDescription('Start a new poker game')
         .addIntegerOption(opt =>
           opt
             .setName('buyin')
@@ -32,32 +32,32 @@ export const poker: Command = {
     .addSubcommand(sub =>
       sub
         .setName('join')
-        .setDescription('Jump into an active game. Don't be a spectator, you coward.') // MODIFIED
+        .setDescription('Join an active poker game')
     )
     .addSubcommand(sub =>
       sub
         .setName('status')
-        .setDescription('Check the current game status. Who's about to get rekt?') // MODIFIED
+        .setDescription('Check current game status')
     )
     .addSubcommand(sub =>
       sub
         .setName('fold')
-        .setDescription('Fold your sh**ty hand. Don't be a hero.') // MODIFIED
+        .setDescription('Fold your hand')
     )
     .addSubcommand(sub =>
       sub
         .setName('check')
-        .setDescription('Check. (You probably have nothing).') // MODIFIED
+        .setDescription('Check (no bet)')
     )
     .addSubcommand(sub =>
       sub
         .setName('call')
-        .setDescription('Call the current bet. Show them who's boss. Or who's a fish.') // MODIFIED
+        .setDescription('Call the current bet')
     )
     .addSubcommand(sub =>
       sub
         .setName('raise')
-        .setDescription('Raise the f***ing bet. No guts, no glory.') // MODIFIED
+        .setDescription('Raise the bet')
         .addIntegerOption(opt =>
           opt
             .setName('amount')
@@ -68,7 +68,7 @@ export const poker: Command = {
     .addSubcommand(sub =>
       sub
         .setName('allin')
-        .setDescription('Go all-in. Hope you're not bluffing, degen.') // MODIFIED
+        .setDescription('Go all-in')
     ),
 
   async execute(interaction: ChatInputCommandInteraction) {
@@ -108,7 +108,7 @@ async function handleStart(interaction: ChatInputCommandInteraction) {
   
   if (activeGame) {
     await interaction.reply({ 
-      content: '⚠️ There's already a f***ing game in this channel, you ape. Use `/poker join` to get in on the action, or wait for the current bloodbath to end.', // MODIFIED
+      content: '⚠️ There\'s already an active poker game in this channel. Use `/poker join` to join!',
       ephemeral: true 
     });
     return;
@@ -125,18 +125,18 @@ async function handleStart(interaction: ChatInputCommandInteraction) {
 
   const embed = new EmbedBuilder()
     .setColor(0x00FF00)
-    .setTitle('🃏 New Poker Game Started! Let's Get This F***ing Party Started.') // MODIFIED
-    .setDescription(`${interaction.user.username} has opened a new table. Get in here, degens.`) // MODIFIED
+    .setTitle('🃏 New Poker Game Started!')
+    .setDescription(`${interaction.user.username} started a game`)
     .addFields(
       { name: 'Buy-in', value: `${buyIn} chips`, inline: true },
       { name: 'Blinds', value: `${smallBlind}/${bigBlind}`, inline: true },
       { name: 'Players', value: `1/${9}`, inline: true },
     )
-    .setFooter({ text: 'Use /poker join to jump into the fire!' }); // MODIFIED
+    .setFooter({ text: 'Use /poker join to join the game!' });
 
   const startButton = new ButtonBuilder()
     .setCustomId(`poker_start_${game.id}`)
-    .setLabel('Start this f***ing game! (Need 2+ degens)') // MODIFIED
+    .setLabel('Start Game (Need 2+ Players)')
     .setStyle(ButtonStyle.Success)
     .setDisabled(true);
 
@@ -151,7 +151,7 @@ async function handleJoin(interaction: ChatInputCommandInteraction) {
 
   if (!game) {
     await interaction.reply({ 
-      content: '❌ No game waiting for players, you ape. Use `/poker start` to create some f***ing chaos.', // MODIFIED
+      content: '❌ No game waiting for players. Use `/poker start` to create one!',
       ephemeral: true 
     });
     return;
@@ -161,7 +161,7 @@ async function handleJoin(interaction: ChatInputCommandInteraction) {
 
   if (!joined) {
     await interaction.reply({ 
-      content: '❌ Couldn't join the game. Either you're already in, or the table's full of degenerates. Wait your turn.', // MODIFIED
+      content: '❌ Could not join game (already joined or game full)',
       ephemeral: true 
     });
     return;
@@ -169,8 +169,8 @@ async function handleJoin(interaction: ChatInputCommandInteraction) {
 
   const embed = new EmbedBuilder()
     .setColor(0x00FF00)
-    .setTitle('✅ Welcome to the Thunderdome!') // MODIFIED
-    .setDescription(`${interaction.user.username} has entered the arena! Good luck, you'll need it.`) // MODIFIED
+    .setTitle('✅ Joined Poker Game')
+    .setDescription(`${interaction.user.username} joined the game!`)
     .addFields(
       { name: 'Players', value: `${game.players.length}/${9}`, inline: true },
       { name: 'Buy-in', value: `${game.buyIn} chips`, inline: true },
@@ -179,7 +179,7 @@ async function handleJoin(interaction: ChatInputCommandInteraction) {
   if (game.players.length >= 2) {
     const startButton = new ButtonBuilder()
       .setCustomId(`poker_start_${game.id}`)
-      .setLabel('Start this f***ing game!') // MODIFIED
+      .setLabel('Start Game')
       .setStyle(ButtonStyle.Success);
 
     const row = new ActionRowBuilder<ButtonBuilder>().addComponents(startButton);
@@ -195,7 +195,7 @@ async function handleStatus(interaction: ChatInputCommandInteraction) {
 
   if (!game) {
     await interaction.reply({ 
-      content: '❌ No active f***ing game in this channel, degen. Are you trying to play with yourself?', // MODIFIED
+      content: '❌ No active poker game in this channel',
       ephemeral: true 
     });
     return;
@@ -203,7 +203,7 @@ async function handleStatus(interaction: ChatInputCommandInteraction) {
 
   const embed = new EmbedBuilder()
     .setColor(0x0099FF)
-    .setTitle('🃏 State of the Union: Poker Edition') // MODIFIED
+    .setTitle('🃏 Poker Game Status')
     .addFields(
       { name: 'Stage', value: game.stage, inline: true },
       { name: 'Pot', value: `${game.pot} chips`, inline: true },
@@ -222,8 +222,7 @@ async function handleStatus(interaction: ChatInputCommandInteraction) {
     const indicator = i === game.currentPlayerIndex ? '👉' : '  ';
     const status = p.folded ? '(folded)' : p.allIn ? '(all-in)' : '';
     return `${indicator} ${p.username}: ${p.chips} chips ${status}`;
-  }).join('
-');
+  }).join('\n');
 
   embed.addFields({ name: 'Players', value: playerInfo || 'None' });
 
@@ -235,7 +234,7 @@ async function handleStatus(interaction: ChatInputCommandInteraction) {
       await interaction.reply({ embeds: [embed], ephemeral: true });
     } catch {
       await interaction.reply({ 
-        content: '⚠️ Can't see your cards? Enable DMs, you ape! How else are you gonna know what you're holding?', // MODIFIED
+        content: '⚠️ Enable DMs to see your cards!', 
         embeds: [embed], 
         ephemeral: true 
       });
@@ -251,7 +250,7 @@ async function handleAction(interaction: ChatInputCommandInteraction, action: st
 
   if (!game) {
     await interaction.reply({ 
-      content: '❌ No active f***ing game to make a move in. Chill out.', // MODIFIED
+      content: '❌ No active poker game',
       ephemeral: true 
     });
     return;
@@ -267,7 +266,7 @@ async function handleAction(interaction: ChatInputCommandInteraction, action: st
 
   if (!result.success) {
     await interaction.reply({ 
-      content: `❌ You can't do that, you f***ing idiot: ${result.message}`, // MODIFIED
+      content: `❌ ${result.message}`,
       ephemeral: true 
     });
     return;
@@ -281,7 +280,7 @@ async function handleAction(interaction: ChatInputCommandInteraction, action: st
 
   const embed = new EmbedBuilder()
     .setColor(0x00FF00)
-    .setTitle('♠️ The Plot Thickens...') // MODIFIED
+    .setTitle('♠️ Poker Action')
     .setDescription(`${interaction.user.username} ${actionText}`)
     .addFields(
       { name: 'Pot', value: `${game.pot} chips`, inline: true },
@@ -291,7 +290,7 @@ async function handleAction(interaction: ChatInputCommandInteraction, action: st
   // Show updated game state
   if (game.stage === 'showdown' || game.stage === 'complete') {
     // Game ended, show results
-    embed.setTitle('🏆 Game Over, Bitches! Here's a Winner!') // MODIFIED
+    embed.setTitle('🏆 Poker Game Complete!')
       .setColor(0xFFD700);
   }
 

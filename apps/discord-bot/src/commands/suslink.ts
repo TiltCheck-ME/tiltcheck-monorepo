@@ -4,21 +4,21 @@
  * Combines link scanning and promo management
  */
 
-import { SlashCommandBuilder, ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
+import { SlashCommandBuilder, ChatInputCommandInteraction } from 'discord.js';
 import { suslink } from '@tiltcheck/suslink';
-import { isValidUrl } from '@tiltcheck/discord-utils';
+import { linkScanEmbed, errorEmbed, isValidUrl } from '@tiltcheck/discord-utils';
 import type { Command } from '../types.js';
 
 export const linkCmd: Command = {
   data: new SlashCommandBuilder()
     .setName('link')
-    .setDescription('Scan sketchy links before they drain your wallet.')
+    .setDescription('Link scanning for suspicious patterns')
     .addSubcommand(sub =>
       sub
         .setName('scan')
-        .setDescription('Scan a URL before you click it, you ape.')
+        .setDescription('Scan a URL for suspicious patterns')
         .addStringOption(opt =>
-          opt.setName('url').setDescription('The sketchy URL you\'re about to click').setRequired(true)
+          opt.setName('url').setDescription('The URL to scan').setRequired(true)
         )
     ),
 
@@ -30,7 +30,7 @@ export const linkCmd: Command = {
         await handleScan(interaction);
         break;
       default:
-        await interaction.reply({ content: 'Unknown command, try `/link scan`', ephemeral: true });
+        await interaction.reply({ content: 'Unknown command', ephemeral: true });
     }
   },
 };
@@ -41,10 +41,10 @@ async function handleScan(interaction: ChatInputCommandInteraction) {
   const url = interaction.options.getString('url', true);
 
   if (!isValidUrl(url)) {
-    const embed = new EmbedBuilder()
-      .setColor(0xFF0000)
-      .setTitle('That\'s not a f***ing URL, ape.')
-      .setDescription('I need a real URL. You know, `http://` or `https://`. Try again, but this time with a real link.');
+    const embed = errorEmbed(
+      'Invalid URL',
+      'Please provide a valid URL starting with http:// or https://'
+    );
     await interaction.editReply({ embeds: [embed] });
     return;
   }
@@ -52,25 +52,20 @@ async function handleScan(interaction: ChatInputCommandInteraction) {
   try {
     const result = await suslink.scanUrl(url, interaction.user.id);
 
-    let color = 0x00FF00; // Green
-    if (result.riskLevel === 'medium') color = 0xFFD700; // Yellow
-    if (result.riskLevel === 'high') color = 0xFF0000; // Red
+    const embed = linkScanEmbed({
+      url: result.url,
+      riskLevel: result.riskLevel,
+      reason: result.reason,
+      scannedAt: result.scannedAt,
+    });
 
-    const embed = new EmbedBuilder()
-      .setColor(color)
-      .setTitle(`Scan Result: ${result.riskLevel.toUpperCase()}`)
-      .setDescription(`**URL:** ${result.url}`)
-      .addFields({ name: 'The Verdict', value: result.reason || 'Looks clean, but don\'t trust anyone.' })
-      .setFooter({ text: `Scanned at: ${new Date(result.scannedAt).toISOString()}` });
-    
     await interaction.editReply({ embeds: [embed] });
-
   } catch (error) {
     console.error('[SusLink] Scan error:', error);
-    const embed = new EmbedBuilder()
-      .setColor(0xFF0000)
-      .setTitle('Scan F***ed. Try Again.')
-      .setDescription('Something went wrong on our end. The link might be dead, or our scanner is just having a moment. Blame the blockchain.');
+    const embed = errorEmbed(
+      'Scan Failed',
+      'An error occurred while scanning the URL. Please try again.'
+    );
     await interaction.editReply({ embeds: [embed] });
   }
 }

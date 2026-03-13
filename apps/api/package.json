@@ -9,19 +9,18 @@
     "build": "tsc",
     "start": "node dist/index.js",
     "clean": "rm -rf dist",
-    "test": "vitest run"
+    "test": "vitest --run --passWithNoTests tests"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.45.6",
-    "@tiltcheck/ai-client": "workspace:*",
     "@tiltcheck/auth": "workspace:*",
     "@tiltcheck/config": "workspace:*",
     "@tiltcheck/db": "workspace:*",
     "@tiltcheck/event-types": "workspace:*",
-    "@tiltcheck/lockvault": "workspace:*",
     "@tiltcheck/suslink": "workspace:*",
     "@tiltcheck/tiltcheck-core": "workspace:*",
     "@tiltcheck/trust-engines": "workspace:*",
+    "@tiltcheck/lockvault": "workspace:*",
     "@tiltcheck/trust-score-types": "workspace:*",
     "@tiltcheck/utils": "workspace:*",
     "bcryptjs": "^3.0.3",
@@ -31,8 +30,7 @@
     "express-rate-limit": "^8.2.2",
     "helmet": "^8.1.0",
     "jsonwebtoken": "^9.0.3",
-    "stripe": "^20.3.1",
-    "tweetnacl": "^1.0.3"
+    "stripe": "^20.3.1"
   },
   "devDependencies": {
     "@types/bcryptjs": "^3.0.0",

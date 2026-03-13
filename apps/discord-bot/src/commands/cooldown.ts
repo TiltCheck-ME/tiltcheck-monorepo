@@ -18,11 +18,11 @@ import {
 export const cooldown: Command = {
   data: new SlashCommandBuilder()
     .setName('cooldown')
-    .setDescription('Hit the brakes, degen. Start a cooldown before you lose your entire stack.')
+    .setDescription('Start a voluntary cooldown period')
     .addIntegerOption(opt =>
       opt
         .setName('duration')
-        .setDescription('How long do you need to unf**k yourself? (minutes, default: 15)')
+        .setDescription('Duration in minutes (default: 15)')
         .setRequired(false)
     ),
 
@@ -31,7 +31,7 @@ export const cooldown: Command = {
 
     if (duration < 5 || duration > 1440) {
       await interaction.reply({ 
-        content: '❌ Are you trying to cooldown for 3 minutes, you ape? Duration must be between 5 and 1440 minutes (max 24 hours). If you need less than 5, you're beyond help. Just kidding. Mostly.',
+        content: '❌ Duration must be between 5 and 1440 minutes (24 hours)',
         ephemeral: true 
       });
       return;
@@ -44,7 +44,7 @@ export const cooldown: Command = {
       const remaining = status && status.endsAt ? Math.ceil((status.endsAt - Date.now()) / 60000) : 0;
       
       await interaction.reply({ 
-        content: `⏸️ Chill out, degen. You're already on cooldown for ${remaining} more minutes. No shortcuts to sanity. Stay in the penalty box.`,
+        content: `⏸️ You're already on cooldown for ${remaining} more minutes`,
         ephemeral: true 
       });
       return;
@@ -58,13 +58,13 @@ export const cooldown: Command = {
 
     const embed = new EmbedBuilder()
       .setColor(0x00CED1)
-      .setTitle('⏸️ Cooldown Initiated. Don't F*** It Up.')
-      .setDescription(`You've chosen to take a ${duration}-minute break. Good for you. Now actually stick to it, you degenerate.`)
+      .setTitle('⏸️ Cooldown Started')
+      .setDescription(`Taking a ${duration}-minute break. Smart move.`)
       .addFields(
         { name: 'Duration', value: `${duration} minutes`, inline: true },
         { name: 'Expires', value: `<t:${Math.floor((Date.now() + duration * 60000) / 1000)}:R>`, inline: true },
       )
-      .setFooter({ text: 'Violations will extend your cooldown. Don't test us. We see everything.' });
+      .setFooter({ text: 'Violations will extend your cooldown automatically' });
 
     await interaction.reply({ embeds: [embed] });
   },
@@ -73,16 +73,16 @@ export const cooldown: Command = {
 export const tilt: Command = {
   data: new SlashCommandBuilder()
     .setName('tilt')
-    .setDescription('See how deep you're in the hole. Your current tilt status and past f***-ups.')
+    .setDescription('Check your tilt status and history')
     .addSubcommand(sub =>
       sub
         .setName('status')
-        .setDescription('Are you about to blow up? See your current tilt status.')
+        .setDescription('Check your current tilt status')
     )
     .addSubcommand(sub =>
       sub
         .setName('history')
-        .setDescription('Relive your glory... or your biggest tilt spirals.')
+        .setDescription('View your tilt detection history')
     ),
 
   async execute(interaction: ChatInputCommandInteraction) {
@@ -102,22 +102,22 @@ async function handleTiltStatus(interaction: ChatInputCommandInteraction) {
 
   const embed = new EmbedBuilder()
     .setColor(status.onCooldown ? 0xFF6B6B : 0x00CED1)
-    .setTitle('📊 Your Tiltometer Reading');
+    .setTitle('📊 Tilt Status');
 
   if (status.onCooldown && cooldownStatus && cooldownStatus.endsAt) {
     const remaining = Math.ceil((cooldownStatus.endsAt - Date.now()) / 60000);
     const reason = cooldownStatus.reason || 'Unknown';
-    embed.setDescription('⏸️ Still in the penalty box. Did you learn your lesson yet?')
+    embed.setDescription('⏸️ On cooldown')
       .addFields(
         { name: 'Time Remaining', value: `${remaining} minutes`, inline: true },
         { name: 'Reason', value: reason, inline: true },
         { name: 'Violations', value: `${cooldownStatus.violationCount}`, inline: true },
       );
   } else {
-    embed.setDescription('✅ You're not actively self-destructing. Yet. Keep it up, degen.')
+    embed.setDescription('✅ No active cooldown')
       .addFields(
         { name: 'Recent Signals', value: `${status.recentSignals.length} (last hour)`, inline: true },
-        { name: 'Status', value: status.recentSignals.length >= 3 ? '⚠️ Elevated (Brace for impact)' : '✅ Normal (For now)', inline: true },
+        { name: 'Status', value: status.recentSignals.length >= 3 ? '⚠️ Elevated' : '✅ Normal', inline: true },
       );
   }
 
@@ -131,7 +131,7 @@ async function handleTiltStatus(interaction: ChatInputCommandInteraction) {
     });
   }
 
-  embed.setFooter({ text: 'Use /cooldown to prevent further self-sabotage. Or don't. Your money.' });
+  embed.setFooter({ text: 'Use /cooldown to take a voluntary break' });
 
   await interaction.reply({ embeds: [embed], ephemeral: true });
 }
@@ -141,7 +141,7 @@ async function handleTiltHistory(interaction: ChatInputCommandInteraction) {
 
   if (!activity) {
     await interaction.reply({ 
-      content: '📊 Your history is suspiciously clean. No past f***-ups logged. Keep it that way, degen!',
+      content: '📊 No tilt history found. Keep it clean!',
       ephemeral: true 
     });
     return;
@@ -151,8 +151,8 @@ async function handleTiltHistory(interaction: ChatInputCommandInteraction) {
 
   const embed = new EmbedBuilder()
     .setColor(0x0099FF)
-    .setTitle('📈 Your History of Degeneracy')
-    .setDescription(`A peek into ${interaction.user.username}'s past spirals:`);
+    .setTitle('📈 Tilt History')
+    .setDescription(`Activity tracking for ${interaction.user.username}`);
 
   if (recentMessages.length > 0) {
     const messageCount = recentMessages.length;
@@ -186,7 +186,7 @@ async function handleTiltHistory(interaction: ChatInputCommandInteraction) {
     });
   }
 
-  embed.setFooter({ text: 'TiltCheck: Protecting you from your worst impulses since 2026. You're welcome.' });
+  embed.setFooter({ text: 'TiltCheck keeps you safe from yourself' });
 
   await interaction.reply({ embeds: [embed], ephemeral: true });
 }

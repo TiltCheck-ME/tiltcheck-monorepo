@@ -12,15 +12,15 @@ const connection = new Connection(process.env.SOLANA_RPC_URL || 'https://api.mai
 export const juice: Command = {
   data: new SlashCommandBuilder()
     .setName('juice')
-    .setDescription('Unleash the liquid gold! Drop SOL to the quick-reacting degens in this channel.') // MODIFIED
+    .setDescription('Spill some juice! Drop SOL to reactors in this channel.')
     .addStringOption(opt =>
-      opt.setName('amount').setDescription('How much of that sweet, sweet SOL to rain down on the peasants? (e.g. "1 SOL" or "$50")').setRequired(true) // MODIFIED
+      opt.setName('amount').setDescription('Total amount to drop (e.g. "1 SOL" or "$50")').setRequired(true)
     )
     .addIntegerOption(opt =>
-      opt.setName('users').setDescription('Max number of lucky degens who can catch the rain. (Don't be stingy).').setRequired(true) // MODIFIED
+      opt.setName('users').setDescription('Maximum number of users who can claim').setRequired(true)
     )
     .addIntegerOption(opt =>
-      opt.setName('time').setDescription('How long until the free money disappears? Time in seconds. (default 60)').setMinValue(10).setMaxValue(300) // MODIFIED
+      opt.setName('time').setDescription('Time in seconds to collect reactions (default 60)').setMinValue(10).setMaxValue(300)
     ),
 
   async execute(interaction: ChatInputCommandInteraction) {
@@ -33,7 +33,7 @@ export const juice: Command = {
     // 1. Parse Amount
     const parseResult = parseAmountNL(amountRaw);
     if (!parseResult.success || !parseResult.data) {
-      await interaction.editReply({ content: '❌ Your SOL format is as bad as your trading decisions. Use "$10" or "0.5 SOL", degen.' }); // MODIFIED
+      await interaction.editReply({ content: '❌ Invalid amount format. Use "$10" or "0.5 SOL".' });
       return;
     }
 
@@ -43,7 +43,7 @@ export const juice: Command = {
         const price = getUsdPriceSync('SOL');
         totalSol = parseResult.data.value / price;
       } catch {
-        await interaction.editReply({ content: '❌ The market's f***ed, so I can't get a USD price. Specify your drop in SOL, you ape.' }); // MODIFIED
+        await interaction.editReply({ content: '❌ Price feed unavailable. Please specify in SOL.' });
         return;
       }
     }
@@ -56,7 +56,7 @@ export const juice: Command = {
     const solanaPayUrl = `solana:${escrow.publicKey.toBase58()}?amount=${totalSol.toFixed(4)}&label=Juice+Drop&message=Fund+the+Escrow`;
 
     const fundBtn = new ButtonBuilder()
-      .setLabel('🧃 Fund the Damn Juice!') // MODIFIED
+      .setLabel('🧃 Fund the Juice Escrow')
       .setStyle(ButtonStyle.Link)
       .setURL(solanaPayUrl);
 
@@ -64,13 +64,9 @@ export const juice: Command = {
 
     const fundEmbed = new EmbedBuilder()
       .setColor(0x22d3a6)
-      .setTitle('🧃 Prepare the F***ing Juice!') // MODIFIED
-      .setDescription(`You're about to rain down **${totalSol.toFixed(4)} SOL** on ${maxUsers} lucky degens! First, fund this temporary escrow wallet. It's safe, I promise. Probably.
-
-**Escrow Address:** `${escrow.publicKey.toBase58()}`
-
-*This escrow will be emptied immediately after the event ends. No rug pulls here, just good old-fashioned distribution.*`) // MODIFIED
-      .setFooter({ text: 'TiltCheck Non-Custodial Funding • But we're holding it for a second for the greater good.' }); // MODIFIED
+      .setTitle('🧃 Prepare the Juice')
+      .setDescription(`To drop **${totalSol.toFixed(4)} SOL** to ${maxUsers} users, you must first fund the temporary escrow wallet.\n\n**Escrow Address:** \`${escrow.publicKey.toBase58()}\`\n\n*This escrow will be emptied immediately after the event ends.*`)
+      .setFooter({ text: 'TiltCheck Non-Custodial Distribution' });
 
     await interaction.editReply({ embeds: [fundEmbed], components: [fundRow] });
 
@@ -86,19 +82,15 @@ export const juice: Command = {
     }
 
     if (!isFunded) {
-      await interaction.editReply({ content: '❌ You took too long, degen! Escrow funding timed out. Juice drop cancelled. Get it together next time.', components: [] }); // MODIFIED
+      await interaction.editReply({ content: '❌ Escrow funding timed out. Juice drop cancelled.', components: [] });
       return;
     }
 
     // 4. Post the Reaction Message
     const dropEmbed = new EmbedBuilder()
       .setColor(0x8b5cf6)
-      .setTitle('🧃 LIQUID GOLD IS SPILLING! GET SOME, DEGENS!') // MODIFIED
-      .setDescription(`${interaction.user} is about to make it rain **${totalSol.toFixed(4)} SOL**!
-
-React with 🧃 right the f*** now to claim your share before it's gone!
-
-**Limits:** Max ${maxUsers} degens | **Time:** ${timeLimit}s. Don't be a slowpoke.`) // MODIFIED
+      .setTitle('🧃 JUICE IS SPILLING!')
+      .setDescription(`${interaction.user} is dropping **${totalSol.toFixed(4)} SOL**!\n\nReact with 🧃 to claim your share!\n\n**Limits:** Max ${maxUsers} users | **Time:** ${timeLimit}s`)
       .setThumbnail('https://tiltcheck.me/assets/logo/logocurrent.png');
 
     const dropMessage = await interaction.channel?.send({ embeds: [dropEmbed] }) as Message;
@@ -112,12 +104,12 @@ React with 🧃 right the f*** now to claim your share before it's gone!
       const users = collected.first()?.users.cache.filter(u => !u.bot).map(u => u.id) || [];
       
       if (users.length === 0) {
-        await interaction.channel?.send('😢 What? No one caught the juice? This is why we can't have nice things. Returning funds to the spiller...'); // MODIFIED
+        await interaction.channel?.send('😢 No one caught the juice. Returning funds to spiller...');
         // Refund logic here...
         return;
       }
 
-      await interaction.channel?.send(`⌛ Time's up! The feeding frenzy is over. Processing payouts for ${users.length} lucky degens... Don't spend it all in one place. Or do. We don't care.`); // MODIFIED
+      await interaction.channel?.send(`⌛ Timer ended! Processing payouts for ${users.length} degens...`);
 
       // 6. Execute Payouts
       const recipients: string[] = [];
@@ -129,7 +121,7 @@ React with 🧃 right the f*** now to claim your share before it's gone!
       }
 
       if (recipients.length === 0) {
-        await interaction.channel?.send('❌ What the f***? No linked wallets? You can't catch juice with empty pockets! Use `/linkwallet` next time, you degenerate.'); // MODIFIED
+        await interaction.channel?.send('❌ No reactors have linked wallets! Use `/linkwallet` to catch juice next time.');
         return;
       }
 
@@ -148,13 +140,10 @@ React with 🧃 right the f*** now to claim your share before it's gone!
 
       try {
         const signature = await sendAndConfirmTransaction(connection, transaction, [escrow]);
-        await interaction.channel?.send(`✅ **JUICE DISTRIBUTED!** 💸
-${recipients.length} wallets just got f***ing blessed. Go check your bags, degens!
-
-**Tx:** https://solscan.io/tx/${signature}`); // MODIFIED
+        await interaction.channel?.send(`✅ **Juice Distributed!**\nSent to ${recipients.length} wallets.\n\n**Tx:** https://solscan.io/tx/${signature}`);
       } catch (err) {
         console.error('[Juice] Payout error:', err);
-        await interaction.channel?.send('❌ Payout failed! Some sh** went wrong and funds are stuck in escrow. Contact an admin, you lucky f***.'); // MODIFIED
+        await interaction.channel?.send('❌ Payout failed! Funds are stuck in escrow. Contact Admin.');
       }
     });
   },

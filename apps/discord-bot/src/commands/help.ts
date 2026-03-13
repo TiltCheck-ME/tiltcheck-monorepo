@@ -12,7 +12,7 @@ import type { Command } from '../types.js';
 export const help: Command = {
   data: new SlashCommandBuilder()
     .setName('help')
-    .setDescription('Lists all the commands you're probably not using correctly.')
+    .setDescription('Show safety commands and bot routing')
     .setContexts(
       InteractionContextType.Guild,
       InteractionContextType.BotDM
@@ -20,47 +20,55 @@ export const help: Command = {
 
   async execute(interaction: ChatInputCommandInteraction) {
     const embed = createEmbed(
-      'Read the F***ing Manual',
-      'Don\'t DM the admins. All the commands you need to not be a total liability are right here. Use them.',
+      '🛡️ TiltCheck Safety Bot',
+      'Risk checks, moderation tools, and responsible play utilities',
       Colors.PRIMARY
     );
 
     embed.addFields(
       {
-        name: 'Stop Losing Your Sh**',
+        name: 'Core Safety',
         value:
-          '`/tilt` - Check if you\'re about to blow up your account.\n' +
-          '`/cooldown [minutes]` - Hit the brakes before you do something stupid.\n' +
-          '`/dashboard` - See your degen report card.',
+          '`/tiltcheck status` - Check your current tilt state\n' +
+          '`/tiltcheck history` - View your tilt history\n' +
+          '`/tiltcheck cooldown [minutes]` - Start a cooldown',
         inline: false,
       },
       {
-        name: 'Stop Clicking Sh** Links',
+        name: 'Trust And Link Safety',
         value:
-          '`/casino <domain>` - See if a casino is a scam.\n' +
-          '`/scan <url>` - Scan a link before you click it, you ape.',
+          '`/tiltcheck casino domain:<domain>` - Get trust/fairness data\n' +
+          '`/tiltcheck link scan url:<url>` - Scan a suspicious URL\n' +
+          '`/tiltcheck link submit url:<url>` - Submit promo links for review',
         inline: false,
       },
       {
-        name: 'Stop Being a Loner',
+        name: 'Community And Moderation',
         value:
-          '`/buddy add @user` - Get someone to save you from yourself.\n' +
-          '`/report <...>` - Snitch on someone.',
+          '`/buddy add @user` - Set up an accountability buddy\n' +
+          '`/report <target> <action> <reason>` - Log a report\n' +
+          '`/setstate state:<XX>` - Save optional region context',
         inline: false,
       },
       {
-        name: 'The Other Bots',
+        name: 'Utility',
         value:
-          'Still here? Fine. `/ping` checks if the bot is alive.\n' +
-          'Tipping and vaults are in the **JustTheTip** bot.\n' +
-          'Poker is in the **DA&D** bot.\n' +
-          'Bonus timers are in the **CollectClock** bot.',
+          '`/ping` - Health check\n' +
+          '`/help` - Show this command guide',
+        inline: false,
+      },
+      {
+        name: 'Command Routing',
+        value:
+          'Tipping and vault commands are in the JustTheTip bot.\n' +
+          'DA&D and poker commands are in the DA&D bot.\n' +
+          'Bonus timer commands are in your external CollectClock bot.',
         inline: false,
       }
     );
 
     embed.setFooter({
-      text: 'Made for Degens. By Degens. Now go use the commands.',
+      text: 'TiltCheck Safety Bot',
     });
 
     await interaction.reply({ embeds: [embed] });

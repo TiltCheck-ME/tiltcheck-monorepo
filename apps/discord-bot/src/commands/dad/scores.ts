@@ -8,7 +8,7 @@ import type { Command } from '../../types.js';
 export const scores: Command = {
   data: new SlashCommandBuilder()
     .setName('scores')
-    .setDescription('See who's dominating and who's just a goddamn clown. Current DA&D leaderboard.'), // MODIFIED
+    .setDescription('View the current DA&D leaderboard'),
   async execute(interaction: ChatInputCommandInteraction) {
     const channelId = interaction.channelId;
 
@@ -17,7 +17,7 @@ export const scores: Command = {
 
       if (games.length === 0) {
         await interaction.reply({
-          embeds: [errorEmbed('No Game, No Glory, Degenerate', 'There's no active game of DAAD in this channel to rank. Go `/dad play` or `/dad join` some chaos!')], // MODIFIED
+          embeds: [errorEmbed('No game', 'No active game in this channel.')],
           ephemeral: true
         });
         return;
@@ -29,13 +29,12 @@ export const scores: Command = {
 
       const leaderboard = sortedPlayers
         .map((p: any, i) => `${i + 1}. **${p.username}**: ${p.score} point${p.score !== 1 ? 's' : ''}`)
-        .join('
-');
+        .join('\n');
 
       const embed = new EmbedBuilder()
         .setColor(0xffaa00)
-        .setTitle('🏆 DA&D Degenerate Leaderboard') // MODIFIED
-        .setDescription(leaderboard || 'Looks like a ghost town. No one's scored any points yet, you cowards!') // MODIFIED
+        .setTitle('🏆 Leaderboard')
+        .setDescription(leaderboard)
         .addFields(
           { name: 'Round', value: `${game.currentRound}/${game.maxRounds}`, inline: true },
           { name: 'Players', value: game.players.size.toString(), inline: true }
@@ -44,7 +43,7 @@ export const scores: Command = {
       await interaction.reply({ embeds: [embed] });
     } catch (error: any) {
       await interaction.reply({
-        embeds: [errorEmbed('Scoreboard Malfunction', `Well, f***. Couldn't tally up the degeneracy: ${error.message}. Is the game rigged? Probably not. Blame the dev.`)], // MODIFIED
+        embeds: [errorEmbed('Failed to show scores', error.message)],
         ephemeral: true
       });
     }
