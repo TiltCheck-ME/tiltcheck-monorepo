@@ -92,9 +92,6 @@ importers:
       '@supabase/supabase-js':
         specifier: ^2.45.6
         version: 2.97.0(bufferutil@4.1.0)(utf-8-validate@5.0.10)
-      '@tiltcheck/ai-client':
-        specifier: workspace:*
-        version: link:../../packages/ai-client
       '@tiltcheck/auth':
         specifier: workspace:*
         version: link:../../packages/auth
@@ -149,9 +146,6 @@ importers:
       stripe:
         specifier: ^20.3.1
         version: 20.4.1(@types/node@25.3.0)
-      tweetnacl:
-        specifier: ^1.0.3
-        version: 1.0.3
     devDependencies:
       '@types/bcryptjs':
         specifier: ^3.0.0
@@ -263,9 +257,6 @@ importers:
       '@elastic/elasticsearch':
         specifier: ^8.19.1
         version: 8.19.1
-      '@tiltcheck/agent':
-        specifier: workspace:*
-        version: link:../../packages/agent
       '@tiltcheck/config':
         specifier: workspace:*
         version: link:../../packages/config
