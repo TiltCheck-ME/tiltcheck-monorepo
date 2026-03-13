@@ -1,3 +1,4 @@
+/* Copyright (c) 2026 TiltCheck. All rights reserved. */
 /**
  * MV3 service worker.
  * Sidebar-first controls and shared tab actions.

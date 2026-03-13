@@ -1,9 +1,4 @@
-/**
- * © 2024–2025 TiltCheck Ecosystem. All Rights Reserved.
- * Created by jmenichole (https://github.com/jmenichole)
- *
- * Tests for placeholder payment routes (/payments/*)
- */
+/* Copyright (c) 2026 TiltCheck. All rights reserved. */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import request from 'supertest';
 import express from 'express';

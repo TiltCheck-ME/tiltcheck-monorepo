@@ -1,3 +1,4 @@
+/* Copyright (c) 2026 TiltCheck. All rights reserved. */
 /**
  * Onboarding System for TiltCheck Safety Bot
  * Handles first-time user welcome and safety preferences

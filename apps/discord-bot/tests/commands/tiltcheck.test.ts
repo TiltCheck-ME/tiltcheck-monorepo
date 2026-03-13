@@ -1,3 +1,4 @@
+/* Copyright (c) 2026 TiltCheck. All rights reserved. */
 import { describe, expect, it, vi } from 'vitest';
 
 vi.mock('../../src/commands/ping.js', () => ({

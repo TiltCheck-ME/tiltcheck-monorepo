@@ -1,3 +1,4 @@
+/* Copyright (c) 2026 TiltCheck. All rights reserved. */
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 type RuntimeListener = (message: any, sender: any, sendResponse: (response: any) => void) => boolean | void;

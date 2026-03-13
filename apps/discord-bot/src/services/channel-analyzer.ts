@@ -1,13 +1,4 @@
-/**
- * © 2024–2026 TiltCheck Ecosystem. All Rights Reserved.
- * Created by jmenichole (https://github.com/jmenichole)
- *
- * ChannelAnalyzer — Passive gambling community intelligence.
- * 
- * Listens to a configured Discord channel, buffers messages throughout the day,
- * and runs scheduled GPT-4o analysis to surface pain points, scam patterns,
- * tilt signals, and community needs. Posts a structured digest to a report channel.
- */
+/* Copyright (c) 2026 TiltCheck. All rights reserved. */
 
 import { Client, Message, TextChannel, EmbedBuilder } from 'discord.js';
 import OpenAI from 'openai';

@@ -1,3 +1,4 @@
+/* Copyright (c) 2026 TiltCheck. All rights reserved. */
 /**
  * Landing page KPI strip data loader (/api/stats).
  */

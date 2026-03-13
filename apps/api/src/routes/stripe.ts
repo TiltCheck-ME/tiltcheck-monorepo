@@ -1,11 +1,4 @@
-/**
- * © 2024–2025 TiltCheck Ecosystem. All Rights Reserved.
- * Created by jmenichole (https://github.com/jmenichole)
- *
- * Payment Routes - /payments/*
- * PLACEHOLDER: Stripe integration removed. Payment processing is stubbed.
- * Replace with your preferred payment provider when ready.
- */
+/* Copyright (c) 2026 TiltCheck. All rights reserved. */
 
 import { Router } from 'express';
 import { findOneBy } from '@tiltcheck/db';

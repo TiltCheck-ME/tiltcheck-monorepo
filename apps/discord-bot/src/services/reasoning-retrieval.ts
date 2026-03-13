@@ -1,3 +1,4 @@
+/* Copyright (c) 2026 TiltCheck. All rights reserved. */
 import { Client as ESClient } from '@elastic/elasticsearch';
 
 const TELEMETRY_INDEX = 'tiltcheck-telemetry';

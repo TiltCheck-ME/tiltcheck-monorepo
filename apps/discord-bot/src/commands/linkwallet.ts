@@ -1,10 +1,4 @@
-/**
- * © 2024–2026 TiltCheck Ecosystem. All Rights Reserved.
- * Created by jmenichole (https://github.com/jmenichole)
- * 
- * This file is part of the TiltCheck project.
- * For licensing information, see LICENSE file in the project root.
- */
+/* Copyright (c) 2026 TiltCheck. All rights reserved. */
 
 import { SlashCommandBuilder, ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
 import type { Command } from '../types.js';
@@ -45,7 +39,11 @@ export const linkwallet: Command = {
         const embed = new EmbedBuilder()
           .setColor(0x22d3a6)
           .setTitle('🔗 Wallet Linked')
-          .setDescription(`Successfully linked your wallet to the TiltCheck Hub.\n\n**Address:** \`${address}\`\n\nYou are now ready to catch some juice! 🧃`)
+          .setDescription(`Successfully linked your wallet to the TiltCheck Hub.
+
+**Address:** `${address}`
+
+You are now ready to catch some juice! 🧃`)
           .setFooter({ text: 'Manage more settings at dashboard.tiltcheck.me' });
 
         await interaction.editReply({ embeds: [embed] });

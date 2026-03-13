@@ -1,10 +1,4 @@
-/**
- * © 2024–2025 TiltCheck Ecosystem. All Rights Reserved.
- * Created by jmenichole (https://github.com/jmenichole)
- * 
- * This file is part of the TiltCheck project.
- * For licensing information, see LICENSE file in the project root.
- */
+/* Copyright (c) 2026 TiltCheck. All rights reserved. */
 /* Shared component loader: injects nav & footer, emits event */
 (function(){
   const navMount = document.getElementById('shared-nav');
@@ -27,9 +21,18 @@
     .then(html => { if (html) mount.innerHTML = html; })
     .catch(()=>{});
 
+  const loadScriptOnce = (src) => {
+    if (document.querySelector(`script[data-tc-src="${src}"]`)) return;
+    const script = document.createElement('script');
+    script.src = src;
+    script.defer = true;
+    script.dataset.tcSrc = src;
+    document.body.appendChild(script);
+  };
+
   const tasks = [];
   if (navMount && !hasExistingPrimaryNav()) {
-    tasks.push(fetchInject('/components/nav.html', navMount));
+    tasks.push(fetchInject('/components/nav.html', navMount).then(() => loadScriptOnce('/scripts/nav.js')));
   }
   if (footerMount) tasks.push(fetchInject('/components/footer.html', footerMount));
 

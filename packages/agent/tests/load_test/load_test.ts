@@ -1,3 +1,4 @@
+/* Copyright (c) 2026 TiltCheck. All rights reserved. */
 async function runLoadTest() {
   const baseUrl = process.env.STAGING_URL || 'http://localhost:8000';
   const idToken = process.env._ID_TOKEN;

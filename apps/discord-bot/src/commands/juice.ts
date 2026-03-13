@@ -1,10 +1,4 @@
-/**
- * © 2024–2026 TiltCheck Ecosystem. All Rights Reserved.
- * Created by jmenichole (https://github.com/jmenichole)
- * 
- * This file is part of the TiltCheck project.
- * For licensing information, see LICENSE file in the project root.
- */
+/* Copyright (c) 2026 TiltCheck. All rights reserved. */
 
 import { SlashCommandBuilder, ChatInputCommandInteraction, EmbedBuilder, ButtonBuilder, ButtonStyle, ActionRowBuilder, Message } from 'discord.js';
 import type { Command } from '../types.js';
@@ -71,7 +65,11 @@ export const juice: Command = {
     const fundEmbed = new EmbedBuilder()
       .setColor(0x22d3a6)
       .setTitle('🧃 Prepare the Juice')
-      .setDescription(`To drop **${totalSol.toFixed(4)} SOL** to ${maxUsers} users, you must first fund the temporary escrow wallet.\n\n**Escrow Address:** \`${escrow.publicKey.toBase58()}\`\n\n*This escrow will be emptied immediately after the event ends.*`)
+      .setDescription(`To drop **${totalSol.toFixed(4)} SOL** to ${maxUsers} users, you must first fund the temporary escrow wallet.
+
+**Escrow Address:** `${escrow.publicKey.toBase58()}`
+
+*This escrow will be emptied immediately after the event ends.*`)
       .setFooter({ text: 'TiltCheck Non-Custodial Distribution' });
 
     await interaction.editReply({ embeds: [fundEmbed], components: [fundRow] });
@@ -96,7 +94,11 @@ export const juice: Command = {
     const dropEmbed = new EmbedBuilder()
       .setColor(0x8b5cf6)
       .setTitle('🧃 JUICE IS SPILLING!')
-      .setDescription(`${interaction.user} is dropping **${totalSol.toFixed(4)} SOL**!\n\nReact with 🧃 to claim your share!\n\n**Limits:** Max ${maxUsers} users | **Time:** ${timeLimit}s`)
+      .setDescription(`${interaction.user} is dropping **${totalSol.toFixed(4)} SOL**!
+
+React with 🧃 to claim your share!
+
+**Limits:** Max ${maxUsers} users | **Time:** ${timeLimit}s`)
       .setThumbnail('https://tiltcheck.me/assets/logo/logocurrent.png');
 
     const dropMessage = await interaction.channel?.send({ embeds: [dropEmbed] }) as Message;
@@ -146,7 +148,10 @@ export const juice: Command = {
 
       try {
         const signature = await sendAndConfirmTransaction(connection, transaction, [escrow]);
-        await interaction.channel?.send(`✅ **Juice Distributed!**\nSent to ${recipients.length} wallets.\n\n**Tx:** https://solscan.io/tx/${signature}`);
+        await interaction.channel?.send(`✅ **Juice Distributed!**
+Sent to ${recipients.length} wallets.
+
+**Tx:** https://solscan.io/tx/${signature}`);
       } catch (err) {
         console.error('[Juice] Payout error:', err);
         await interaction.channel?.send('❌ Payout failed! Funds are stuck in escrow. Contact Admin.');

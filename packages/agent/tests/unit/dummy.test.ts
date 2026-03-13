@@ -1,3 +1,4 @@
+/* Copyright (c) 2026 TiltCheck. All rights reserved. */
 import { describe, it, expect } from 'vitest';
 
 describe('Dummy Test', () => {

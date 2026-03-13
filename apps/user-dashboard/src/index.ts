@@ -1,10 +1,4 @@
-/**
- * © 2024–2026 TiltCheck Ecosystem. All Rights Reserved.
- * Created by jmenichole (https://github.com/jmenichole)
- * 
- * This file is part of the TiltCheck project.
- * For licensing information, see LICENSE file in the project root.
- */
+/* Copyright (c) 2026 TiltCheck. All rights reserved. */
 /**
  * User Dashboard Service (Degen Hub)
  */
@@ -75,6 +69,7 @@ interface ActivityItem {
 interface UserPreferences {
   notifyBonus: boolean;
   notifyJuice: boolean;
+
   anonTipping: boolean;
   showAnalytics: boolean;
   baseCurrency: string;
@@ -247,7 +242,12 @@ app.post('/api/agent/query', authenticateToken as any, async (req: any, res) => 
   try {
     let finalResponse = '';
     const it = runner.runAsync({
-      userInput: `User (Discord ID: ${req.user.discordId}) asks: ${query}`
+      userId: req.user.discordId,
+      sessionId: 'dashboard-session',
+      newMessage: {
+        role: 'user',
+        parts: [{ text: query }]
+      }
     });
 
     for await (const event of it) {

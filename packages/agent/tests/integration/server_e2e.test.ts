@@ -1,3 +1,4 @@
+/* Copyright (c) 2026 TiltCheck. All rights reserved. */
 import { config, parse } from 'dotenv';
 config();
 
@@ -42,6 +43,7 @@ describe('Server E2E', () => {
       cwd: rootDir,
       env: { ...process.env, ...dotenvVars },
       stdio: 'pipe',
+      shell: true,
     });
 
     // Capture server output for debugging

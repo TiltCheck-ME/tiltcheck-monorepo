@@ -1,3 +1,4 @@
+/* Copyright (c) 2026 TiltCheck. All rights reserved. */
 import { Buffer } from 'buffer';
 import process from 'process';
 

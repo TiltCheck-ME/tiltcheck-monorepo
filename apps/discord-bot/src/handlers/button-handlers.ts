@@ -1,3 +1,4 @@
+/* Copyright (c) 2026 TiltCheck. All rights reserved. */
 export type ButtonHandler = (interaction: any) => Promise<void>;
 
 const buttonHandlers = new Map<string, ButtonHandler>();
