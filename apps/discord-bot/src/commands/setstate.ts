@@ -22,18 +22,18 @@ const VALID_TOPICS = new Set(['igaming', 'sportsbook', 'sweepstakes']);
 export const setstate: Command = {
   data: new SlashCommandBuilder()
     .setName('setstate')
-    .setDescription('Optional: set your state context for regulation-aware TiltCheck analysis')
+    .setDescription('Set your state so we can tell you what you\'re allowed to lose money on.')
     .setContexts(InteractionContextType.Guild, InteractionContextType.BotDM)
     .addStringOption((opt) =>
       opt
         .setName('state')
-        .setDescription('Two-letter US state code, e.g., NJ')
+        .setDescription('Your two-letter state code. Don\'t f*** it up. (e.g., NJ, NY, CA)')
         .setRequired(false),
     )
     .addStringOption((opt) =>
       opt
         .setName('topic')
-        .setDescription('Regulation topic')
+        .setDescription('What\'s your poison? iGaming, Sportsbook, or Sweepstakes?')
         .addChoices(
           { name: 'iGaming', value: 'igaming' },
           { name: 'Sportsbook', value: 'sportsbook' },
@@ -44,7 +44,7 @@ export const setstate: Command = {
     .addBooleanOption((opt) =>
       opt
         .setName('clear')
-        .setDescription('Clear your saved state/topic context')
+        .setDescription('Nuke your saved state/topic context.')
         .setRequired(false),
     ),
 
@@ -54,7 +54,7 @@ export const setstate: Command = {
     if (shouldClear) {
       clearUserTiltAgentContext(interaction.user.id);
       await interaction.reply({
-        content: 'Cleared your saved regulatory context. TiltCheck will run without state enrichment unless set again.',
+        content: 'Context nuked. We\'ll stop judging you by your state.',
         ephemeral: true,
       });
       return;
@@ -67,14 +67,14 @@ export const setstate: Command = {
     if (!stateInput && !topicInput) {
       if (!current) {
         await interaction.reply({
-          content: 'No saved context yet. You can optionally set `state` (and `topic`) any time.',
+          content: 'You haven\'t told us where you live. We\'re not tracking you... yet. Set a state if you want regulation-specific info.',
           ephemeral: true,
         });
         return;
       }
 
       await interaction.reply({
-        content: `Current context: state=${current.stateCode ?? 'unset'}, topic=${current.regulationTopic ?? 'igaming'}.`,
+        content: `Current context: state=${current.stateCode ?? 'unset'}, topic=${current.regulationTopic ?? 'igaming'}. This is how the system judges you.`,
         ephemeral: true,
       });
       return;
@@ -85,7 +85,7 @@ export const setstate: Command = {
 
     if (!nextState || !VALID_STATES.has(nextState)) {
       await interaction.reply({
-        content: `Invalid or missing US state code: ${nextState || '(empty)'}. Example: NJ, NY, CA.`,
+        content: `We use two-letter state codes here, chief. You entered '${nextState || 'nothing'}'. Pretty sure that's not one of them. Try NJ, NY, CA... you get it.`,
         ephemeral: true,
       });
       return;
@@ -93,7 +93,7 @@ export const setstate: Command = {
 
     if (!VALID_TOPICS.has(nextTopic)) {
       await interaction.reply({
-        content: `Invalid topic: ${nextTopic}. Use igaming, sportsbook, or sweepstakes.`,
+        content: `That's not a topic we track. Stick to 'igaming', 'sportsbook', or 'sweepstakes'. Let's not get creative.`,
         ephemeral: true,
       });
       return;
@@ -105,7 +105,7 @@ export const setstate: Command = {
     });
 
     await interaction.reply({
-      content: `Saved context: state=${saved.stateCode}, topic=${saved.regulationTopic}.`,
+      content: `Context saved. We now know where you live. state=${saved.stateCode}, topic=${saved.regulationTopic}.`,
       ephemeral: true,
     });
   },

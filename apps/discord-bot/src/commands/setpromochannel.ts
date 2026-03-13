@@ -19,31 +19,29 @@ export function getPromoChannel(guildId: string): string | undefined {
 export const setpromochannel: Command = {
   data: new SlashCommandBuilder()
     .setName('setpromochannel')
-    .setDescription('Set the channel for promo submissions (mods only)')
+    .setDescription('Set the official shill channel for promo links. (Mods Only)')
     .addChannelOption(option =>
       option
         .setName('channel')
-        .setDescription('The channel to post promo submissions')
+        .setDescription('Which channel are we spamming with promos?')
         .addChannelTypes(ChannelType.GuildText)
         .setRequired(true)
     )
     .setDefaultMemberPermissions(PermissionFlagsBits.ManageChannels) as unknown as SlashCommandBuilder,
 
   async execute(interaction: ChatInputCommandInteraction) {
-    // Check if in a guild
     if (!interaction.guild) {
       await interaction.reply({
-        embeds: [errorEmbed('Server Only', 'This command can only be used in a server.')],
+        content: 'This is a server-only command, you ape.',
         ephemeral: true,
       });
       return;
     }
 
-    // Check permissions
     const member = interaction.member;
-    if (!member || typeof member.permissions === 'string') {
+    if (!member || typeof member.permissions === 'string' || !member.permissions.has(PermissionFlagsBits.ManageChannels)) {
       await interaction.reply({
-        embeds: [errorEmbed('Permission Error', 'Unable to verify permissions.')],
+        content: 'You don\'t have the stones (permissions) for that.',
         ephemeral: true,
       });
       return;
@@ -51,14 +49,10 @@ export const setpromochannel: Command = {
 
     const channel = interaction.options.getChannel('channel', true);
 
-    // Store the promo channel for this guild
     promoChannels.set(interaction.guild.id, channel.id);
 
     await interaction.reply({
-      embeds: [successEmbed(
-        '✅ Promo Channel Set',
-        `Promo submissions will now be posted in <#${channel.id}>`
-      )],
+      content: `Done. The shill zone is now <#${channel.id}>.`,
     });
   },
 };

@@ -9,35 +9,34 @@ const OWNER_MENTION = '<@jmenichole>';
 export const support: Command = {
   data: new SlashCommandBuilder()
     .setName('support')
-    .setDescription('Request help from TiltCheck support')
+    .setDescription('Yell into the void (request help from an admin).')
     .addStringOption(option =>
-      option.setName('topic').setDescription('What do you need help with?').setRequired(false)
+      option.setName('topic').setDescription('What\'s broken now?').setRequired(false)
     )
     .addStringOption(option =>
-      option.setName('message').setDescription('Describe your issue (optional)').setRequired(false)
+      option.setName('message').setDescription('Give us the details. Or don\'t. Your call.').setRequired(false)
     ),
 
   async execute(interaction: ChatInputCommandInteraction) {
-    const topic = interaction.options.getString('topic') || 'General Support';
+    const topic = interaction.options.getString('topic') || 'General F***-up';
     const message = interaction.options.getString('message') || '';
 
-    // Send a message in the support channel pinging the owner
     const guild = interaction.guild;
     if (!guild) {
-      await interaction.reply({ content: '❌ This command can only be used in a server.', ephemeral: true });
+      await interaction.reply({ content: 'Don\'t slide into my DMs. Use this in a real server.', ephemeral: true });
       return;
     }
     const channel = guild.channels.cache.get(SUPPORT_CHANNEL_ID);
     if (!channel || !('send' in channel)) {
-      await interaction.reply({ content: '❌ Support channel not found.', ephemeral: true });
+      await interaction.reply({ content: 'Support channel is missing. Yell at an admin to fix their sh**.', ephemeral: true });
       return;
     }
 
-    // Post to support channel via traditional message
-    const supportMsg = `🔔 **Support Request** from <@${interaction.user.id}> ${OWNER_MENTION}\n📌 **Topic:** ${topic}${message ? `\n💬 **Message:** ${message}` : ''}`;
+    const supportMsg = `**SUPPORT TICKET** from <@${interaction.user.id}> for ${OWNER_MENTION}
+**Topic:** ${topic}
+**Message:** ${message || 'No details. They probably just f***ed up.'}`;
     await (channel as any).send({ content: supportMsg });
 
-    // Also post to support alerts channel via AlertService
     const alertService = getAlertService();
     if (alertService) {
       try {
@@ -53,6 +52,6 @@ export const support: Command = {
       }
     }
 
-    await interaction.reply({ content: '✅ Support request sent! Someone will be with you soon.', ephemeral: true });
+    await interaction.reply({ content: 'Fine. I sent your plea for help to the admins. Don\'t hold your breath.', ephemeral: true });
   },
 };

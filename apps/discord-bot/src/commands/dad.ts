@@ -17,19 +17,19 @@ import { poker } from './poker.js';
 export const dad: Command = {
     data: new SlashCommandBuilder()
         .setName('dad')
-        .setDescription('DA&D lobby + poker table (one command, no clutter)')
+        .setDescription('DA&D and Poker. The two best ways to lose friends and money.')
         .addSubcommandGroup((group) =>
             group
                 .setName('lobby')
-                .setDescription('DA&D lobby controls')
+                .setDescription('The DA&D lobby. Don\'t hold up the game.')
                 .addSubcommand((sub) =>
                     sub
                         .setName('create')
-                        .setDescription('Create a new DA&D lobby')
+                        .setDescription('Start a new DA&D lobby.')
                         .addIntegerOption((opt) =>
                             opt
                                 .setName('rounds')
-                                .setDescription('Number of rounds (default: 10)')
+                                .setDescription('More rounds, more pain. (default: 10)')
                                 .setRequired(false)
                                 .setMinValue(3)
                                 .setMaxValue(20),
@@ -37,23 +37,23 @@ export const dad: Command = {
                         .addIntegerOption((opt) =>
                             opt
                                 .setName('maxplayers')
-                                .setDescription('Max players (default: 10)')
+                                .setDescription('How many friends are you trying to lose? (default: 10)')
                                 .setRequired(false)
                                 .setMinValue(2)
                                 .setMaxValue(10),
                         ),
                 )
-                .addSubcommand((sub) => sub.setName('join').setDescription('Join the active DA&D lobby in this channel'))
-                .addSubcommand((sub) => sub.setName('start').setDescription('Start the current DA&D lobby (2+ players)'))
-                .addSubcommand((sub) => sub.setName('hand').setDescription('View your cards'))
+                .addSubcommand((sub) => sub.setName('join').setDescription('Get in the game before it starts without you.'))
+                .addSubcommand((sub) => sub.setName('start').setDescription('Let\'s f***ing go. (Starts the game).'))
+                .addSubcommand((sub) => sub.setName('hand').setDescription('Look at the sh** cards you were dealt.'))
                 .addSubcommand((sub) =>
                     sub
                         .setName('submit')
-                        .setDescription('Submit a card for the active round')
+                        .setDescription('Play a card. Try to be funny.')
                         .addIntegerOption((opt) =>
                             opt
                                 .setName('card')
-                                .setDescription('Card number from your hand')
+                                .setDescription('The number of the card you\'re playing.')
                                 .setRequired(true)
                                 .setMinValue(1),
                         ),
@@ -61,43 +61,43 @@ export const dad: Command = {
                 .addSubcommand((sub) =>
                     sub
                         .setName('vote')
-                        .setDescription('Vote for the winning answer this round')
+                        .setDescription('Pick a winner. Or vote for yourself, I don\'t care.')
                         .addUserOption((opt) =>
                             opt
                                 .setName('player')
-                                .setDescription("The player whose answer you're voting for")
+                                .setDescription("Who played the least sh** card?")
                                 .setRequired(true),
                         ),
                 )
-                .addSubcommand((sub) => sub.setName('scores').setDescription('View the current DA&D leaderboard')),
+                .addSubcommand((sub) => sub.setName('scores').setDescription('See who\'s winning. It\'s probably not you.')),
         )
         .addSubcommandGroup((group) =>
             group
                 .setName('poker')
-                .setDescription("Texas Hold'em")
+                .setDescription("Texas Hold'em. You know the rules.")
                 .addSubcommand((sub) =>
                     sub
                         .setName('start')
-                        .setDescription('Start a new poker game')
-                        .addIntegerOption((opt) => opt.setName('buyin').setDescription('Buy-in amount (chips)').setRequired(false))
+                        .setDescription('Start a new game. Bring your own money.')
+                        .addIntegerOption((opt) => opt.setName('buyin').setDescription('How much are you willing to lose?').setRequired(false))
                         .addIntegerOption((opt) =>
-                            opt.setName('smallblind').setDescription('Small blind amount').setRequired(false),
+                            opt.setName('smallblind').setDescription('Small blind. If you have to ask, you can\'t afford it.').setRequired(false),
                         ),
                 )
-                .addSubcommand((sub) => sub.setName('join').setDescription('Join an active poker game'))
-                .addSubcommand((sub) => sub.setName('status').setDescription('Check current game status'))
-                .addSubcommand((sub) => sub.setName('fold').setDescription('Fold your hand'))
-                .addSubcommand((sub) => sub.setName('check').setDescription('Check (no bet)'))
-                .addSubcommand((sub) => sub.setName('call').setDescription('Call the current bet'))
+                .addSubcommand((sub) => sub.setName('join').setDescription('Join the poker game.'))
+                .addSubcommand((sub) => sub.setName('status').setDescription('Check the table. See who\'s got the chips.'))
+                .addSubcommand((sub) => sub.setName('fold').setDescription('Fold. Like a little b****.'))
+                .addSubcommand((sub) => sub.setName('check').setDescription('Check. The coward\'s move.'))
+                .addSubcommand((sub) => sub.setName('call').setDescription('Call. Show them you\'re not scared.'))
                 .addSubcommand((sub) =>
                     sub
                         .setName('raise')
-                        .setDescription('Raise the bet')
+                        .setDescription('Raise the bet. Put your money where your mouth is.')
                         .addIntegerOption((opt) =>
-                            opt.setName('amount').setDescription('Amount to raise to').setRequired(true),
+                            opt.setName('amount').setDescription('How much you raising?').setRequired(true),
                         ),
                 )
-                .addSubcommand((sub) => sub.setName('allin').setDescription('Go all-in')),
+                .addSubcommand((sub) => sub.setName('allin').setDescription('All in. Go big or go home.')),
         ),
 
     async execute(interaction: ChatInputCommandInteraction) {

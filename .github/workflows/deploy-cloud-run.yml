@@ -1,0 +1,47 @@
+name: Deploy Cloud Run Service
+
+on:
+  workflow_dispatch:
+    inputs:
+      service_name:
+        description: "Service from infra/gcp/cloudrun/services.env"
+        required: true
+        type: choice
+        options:
+          - api
+          - discord-bot
+          - trust-rollup
+          - web
+          - comic-generator
+      region:
+        description: "GCP region"
+        required: true
+        default: us-central1
+        type: string
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ secrets.GCP_DEPLOYER_SERVICE_ACCOUNT }}
+
+      - name: Setup gcloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Deploy selected service to Cloud Run
+        env:
+          PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+          REGION: ${{ github.event.inputs.region }}
+        run: |
+          bash scripts/gcp/deploy-cloud-run-service.sh "${{ github.event.inputs.service_name }}"
