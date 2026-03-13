@@ -1,10 +1,10 @@
 /* Copyright (c) 2026 TiltCheck. All rights reserved. */
 /**
- * /dashboard
- *
- * The only dashboard that matters. Gives every degen a brutally honest look
- * at their recent performance, tilt score, and f***-ups. 
- * Also the gateway to the full web dashboard, where the real pain lives.
+ * Dashboard Command
+ * 
+ * Slash command: /dashboard
+ * Shows user's tilt stats and recent events in Discord
+ * Provides link to full web dashboard
  */
 
 import {
@@ -22,14 +22,17 @@ const DASHBOARD_URL = process.env.DASHBOARD_URL || 'https://tiltcheck.app/dashbo
 export const dashboard: Command = {
   data: new SlashCommandBuilder()
     .setName('dashboard')
-    .setDescription('See your current state of degeneracy. Tilt stats, recent f***-ups, and more.'), // MODIFIED
+    .setDescription('View your tilt stats and recent events'),
+
   async execute(interaction: any) {
+    // Acknowledge the interaction immediately
     await interaction.deferReply({ ephemeral: true });
 
     const userId = interaction.user.id;
     const username = interaction.user.username;
 
     try {
+      // Fetch user stats and history in parallel
       const [stats, events] = await Promise.all([
         getUserTiltStats(userId),
         getUserTiltHistory(userId, { limit: 5, days: 7 }),
@@ -37,66 +40,73 @@ export const dashboard: Command = {
 
       if (!stats) {
         return await interaction.editReply({
-          content: 'Well, sh**. Couldn\'t fetch your tilt data. The system\'s having a moment. Try again when it\'s not so f***ed.',
+          content: '❌ Could not fetch your tilt data. Try again in a moment.',
         });
       }
 
+      // Determine tilt level emoji and color
       const tiltLevel = stats.averageTiltScore || 0;
+      let emoji = '😊';
       let color = 0x00ff00; // Green
       if (tiltLevel > 5) {
+        emoji = '😐';
         color = 0xffff00; // Yellow
       }
       if (tiltLevel > 7) {
+        emoji = '😟';
         color = 0xff9900; // Orange
       }
       if (tiltLevel > 9) {
+        emoji = '😡';
         color = 0xff0000; // Red
       }
 
+      // Create main stats embed
       const statsEmbed = new EmbedBuilder()
         .setColor(color)
-        .setTitle(`${username}'s Degen Report Card`)
-        .setDescription('A brutal overview of your recent tilt activity and degeneracy.')
+        .setTitle(`${emoji} ${username}'s Tilt Dashboard`)
+        .setDescription('Your recent tilt activity and statistics')
         .addFields([
           {
-            name: 'Average Degeneracy (7-day avg)',
+            name: '📊 Tilt Score (7-day avg)',
             value: `${tiltLevel.toFixed(1)}/10`,
             inline: true,
           },
           {
-            name: 'Max Degeneracy (7-day)',
+            name: '📈 Max Score (7-day)',
             value: `${stats.maxTiltScore}/10`,
             inline: true,
           },
           {
-            name: 'Total F***-ups',
+            name: '🎯 Total Events',
             value: `${stats.totalEvents}`,
             inline: true,
           },
           {
-            name: 'Recent Spirals (Last 24h)',
+            name: '📅 Last 24h Events',
             value: `${stats.eventsLast24h}`,
             inline: true,
           },
           {
-            name: 'Week of Chaos (Last 7d)',
+            name: '📊 Last 7d Events',
             value: `${stats.eventsLast7d}`,
             inline: true,
           },
           {
-            name: 'Last Time You F***ed Up',
+            name: '🕒 Last Event',
             value: stats.lastEventAt
               ? new Date(stats.lastEventAt).toLocaleString()
-              : 'Not enough data to condemn you yet.',
+              : 'No events yet',
             inline: false,
           },
         ])
-        .setFooter({ text: 'Data updates in real-time. We see everything.' })
+        .setFooter({ text: 'Data updates in real-time' })
         .setTimestamp();
 
+      // Create recent events embed if events exist
       const recentEventsEmbed = new EmbedBuilder()
         .setColor(0x5865f2)
-        .setTitle('Your Recent F***-ups (Last 7 Days)')
+        .setTitle('Recent Tilt Events (Last 7 Days)')
         .setDescription(
           events && events.length > 0
             ? events
@@ -108,31 +118,31 @@ export const dashboard: Command = {
                   const signalStr = signals && Array.isArray(signals)
                     ? signals.map((s: any) => s.type).join(', ')
                     : 'unknown';
-                  return `**${idx + 1}.** Score: **${event.tilt_score}/10** | ${signalStr}
-_${new Date(
+                  return `**${idx + 1}.** Score: **${event.tilt_score}/10** | ${signalStr}\n_${new Date(
                     event.timestamp
                   ).toLocaleString()}_`;
                 })
-                .join('
-')
-            : 'Suspiciously quiet. No recent f***-ups detected. Keep it clean... for now.'
+                .join('\n')
+            : 'No recent events detected'
         );
 
+      // Create action buttons
       const actionRow = new ActionRowBuilder<ButtonBuilder>().addComponents(
         new ButtonBuilder()
-          .setLabel('Full Degeneracy Dashboard')
+          .setLabel('Full Dashboard')
           .setURL(`${DASHBOARD_URL}?userId=${userId}`)
           .setStyle(ButtonStyle.Link),
         new ButtonBuilder()
           .setCustomId(`view_history_${userId}`)
-          .setLabel('Relive Your F***-ups')
+          .setLabel('View Full History')
           .setStyle(ButtonStyle.Secondary),
         new ButtonBuilder()
           .setCustomId(`tilt_settings_${userId}`)
-          .setLabel('Fine-Tune Your Self-Destruction')
+          .setLabel('⚙️ Settings')
           .setStyle(ButtonStyle.Secondary)
       );
 
+      // Send embeds with buttons
       await interaction.editReply({
         embeds: [statsEmbed, recentEventsEmbed],
         components: [actionRow],
@@ -140,7 +150,7 @@ _${new Date(
     } catch (error) {
       console.error('[Dashboard Command] Error:', error);
       await interaction.editReply({
-        content: 'Well, sh**. Our system just glitched trying to expose your degeneracy. Try again, degen.',
+        content: '❌ An error occurred while fetching your dashboard. Please try again.',
       });
     }
   }

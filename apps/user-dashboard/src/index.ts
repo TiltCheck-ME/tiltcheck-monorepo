@@ -69,6 +69,7 @@ interface ActivityItem {
 interface UserPreferences {
   notifyBonus: boolean;
   notifyJuice: boolean;
+
   anonTipping: boolean;
   showAnalytics: boolean;
   baseCurrency: string;

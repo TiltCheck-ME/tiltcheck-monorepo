@@ -26,20 +26,20 @@ const connection = new Connection(SOLANA_RPC_URL, 'confirmed');
 export const justthetip: Command = {
   data: new SlashCommandBuilder()
     .setName('justthetip')
-    .setDescription('Non-custodial Solana tipping. We move SOL, not your f***ing private keys.') // MODIFIED
+    .setDescription('Non-custodial Solana tipping')
     .addSubcommand(sub =>
       sub
         .setName('wallet')
-        .setDescription('Manage your degen wallet. View, register, or connect.') // MODIFIED
+        .setDescription('Manage your wallet')
         .addStringOption(opt =>
           opt
             .setName('action')
             .setDescription('Wallet action')
             .setRequired(true)
             .addChoices(
-              { name: 'View (your wallet details)', value: 'view' }, // MODIFIED
-              { name: 'Register (Magic Link: The easy way)', value: 'register-magic' }, // MODIFIED
-              { name: 'Register (External: For the OGs)', value: 'register-external' }, // MODIFIED
+              { name: 'View', value: 'view' },
+              { name: 'Register (Magic Link)', value: 'register-magic' },
+              { name: 'Register (External)', value: 'register-external' },
             )
         )
         .addStringOption(opt =>
@@ -52,7 +52,7 @@ export const justthetip: Command = {
     .addSubcommand(sub =>
       sub
         .setName('tip')
-        .setDescription('Rain down some SOL on another degen. (No bot fees, just blockchain sh**).') // MODIFIED
+        .setDescription('Send a tip to another user')
         .addUserOption(opt =>
           opt
             .setName('user')
@@ -62,19 +62,19 @@ export const justthetip: Command = {
         .addStringOption(opt =>
           opt
             .setName('amount')
-            .setDescription('How much SOL to bless them with? ("5 sol", "$10", "all")') // MODIFIED
+            .setDescription('Amount (e.g., "5 sol", "$10", "all")')
             .setRequired(true)
         )
     )
     .addSubcommand(sub =>
       sub
         .setName('balance')
-        .setDescription('Check your f***ing SOL balance. Hope it's green.') // MODIFIED
+        .setDescription('Check your wallet balance')
     )
     .addSubcommand(sub =>
       sub
         .setName('pending')
-        .setDescription('See who tried to tip you before you had a wallet. Don't miss out.') // MODIFIED
+        .setDescription('View pending tips sent to you')
     ),
 
   async execute(interaction: ChatInputCommandInteraction) {
@@ -83,15 +83,11 @@ export const justthetip: Command = {
 
       if (!subcommand) {
         await interaction.reply({
-          content: '❌ What the f*** do you want? Pick a subcommand:
-' + // MODIFIED
-            '• `/justthetip wallet` - Manage your damn wallet
-' + // MODIFIED
-            '• `/justthetip tip` - Send some free money
-' + // MODIFIED
-            '• `/justthetip balance` - Check your SOL stack
-' + // MODIFIED
-            '• `/justthetip pending` - See who tried to bless you', // MODIFIED
+          content: '❌ Please specify a subcommand:\n' +
+            '• `/justthetip wallet` - Manage your wallet\n' +
+            '• `/justthetip tip` - Send a tip\n' +
+            '• `/justthetip balance` - Check balance\n' +
+            '• `/justthetip pending` - View pending tips',
           ephemeral: true
         });
         return;
@@ -134,7 +130,7 @@ async function handleWallet(interaction: ChatInputCommandInteraction) {
     
     if (!wallet) {
       await interaction.reply({
-        content: '❌ No wallet registered, you ape. Use `/justthetip wallet register-external` to set up your f***ing wallet.', // MODIFIED
+        content: '❌ No wallet registered. Use `/justthetip wallet register-external`',
         ephemeral: true,
       });
       return;
@@ -142,9 +138,9 @@ async function handleWallet(interaction: ChatInputCommandInteraction) {
 
     const embed = new EmbedBuilder()
       .setColor(0x00FF00)
-      .setTitle('💳 Your Wallet. Hope It's Fat.') // MODIFIED
+      .setTitle('💳 Your Wallet')
       .addFields(
-        { name: 'Address', value: ``${wallet.address}``, inline: false },
+        { name: 'Address', value: `\`${wallet.address}\``, inline: false },
         { name: 'Type', value: wallet.type, inline: true },
         { name: 'Registered', value: `<t:${Math.floor(wallet.registeredAt / 1000)}:R>`, inline: true },
       );
@@ -155,8 +151,7 @@ async function handleWallet(interaction: ChatInputCommandInteraction) {
       const identity = await db.getDegenIdentity(interaction.user.id);
       if (identity?.magic_address) {
         await interaction.reply({
-          content: `✅ You already got a **Degen Identity** wallet linked, you forgetful degen:
-`${identity.magic_address}``, // MODIFIED
+          content: `✅ You already have a **Degen Identity** wallet linked:\n\`${identity.magic_address}\``,
           ephemeral: true,
         });
         return;
@@ -168,10 +163,10 @@ async function handleWallet(interaction: ChatInputCommandInteraction) {
     
     const embed = new EmbedBuilder()
       .setColor(0x8A2BE2)
-      .setTitle('✨ Register with Magic Link: The Easy F***ing Way') // MODIFIED
-      .setDescription('Connect your email to create a secure, soft-custody wallet for tipping and vaulting. It's like magic, but for your crypto.') // MODIFIED
+      .setTitle('✨ Register with Magic Link')
+      .setDescription('Connect your email to create a secure **Soft-Custody** wallet for tipping and vaulting.')
       .addFields(
-        { name: 'Step 1', value: `[Click here to open the goddamn Dashboard](${linkUrl})` }, // MODIFIED
+        { name: 'Step 1', value: `[Click here to open Dashboard](${linkUrl})` },
         { name: 'Step 2', value: 'Login with your Email' },
         { name: 'Step 3', value: 'Link your Discord account' }
       )
@@ -183,12 +178,9 @@ async function handleWallet(interaction: ChatInputCommandInteraction) {
     
     if (!address) {
       await interaction.reply({
-        content: '❌ Where's your f***ing address? You need to tell me:
-' + // MODIFIED
-          '`/justthetip wallet register-external address:<your-address>`
-
-' + // MODIFIED
-          'Find it in your Phantom, Solflare, or whatever sketchy wallet you're using.', // MODIFIED
+        content: '❌ Please provide your Solana wallet address:\n' +
+          '`/justthetip wallet register-external address:<your-address>`\n\n' +
+          'Find your address in Phantom, Solflare, or other Solana wallets.',
         ephemeral: true,
       });
       return;
@@ -199,18 +191,18 @@ async function handleWallet(interaction: ChatInputCommandInteraction) {
       
       const embed = new EmbedBuilder()
         .setColor(0x00FF00)
-        .setTitle('✅ Wallet Registered! Get Ready to Ape.') // MODIFIED
-        .setDescription('Your external wallet has been connected. We see you.') // MODIFIED
+        .setTitle('✅ Wallet Registered!')
+        .setDescription('Your external wallet has been connected')
         .addFields(
-          { name: 'Address', value: ``${wallet.address}``, inline: false },
+          { name: 'Address', value: `\`${wallet.address}\``, inline: false },
           { name: 'Type', value: 'External', inline: true },
         )
-        .setFooter({ text: 'You can now send and receive tips! Don't be a cheap f***.' }); // MODIFIED
+        .setFooter({ text: 'You can now send and receive tips!' });
 
       await interaction.reply({ embeds: [embed], ephemeral: true });
     } catch (error) {
       await interaction.reply({
-        content: `❌ Well, sh**. Invalid wallet address or some other f***-up: ${error instanceof Error ? error.message : 'Unknown error'}.`, // MODIFIED
+        content: `❌ ${error instanceof Error ? error.message : 'Invalid wallet address'}`,
         ephemeral: true,
       });
     }
@@ -223,7 +215,7 @@ async function handleTip(interaction: ChatInputCommandInteraction) {
   // Check if sender is on cooldown
   if (isOnCooldown(interaction.user.id)) {
     await interaction.editReply({
-      content: '🚫 You're on cooldown, degen. Can't send tips when you're being a liability. Take a f***ing break.', // MODIFIED
+      content: '🚫 You\'re on cooldown and cannot send tips right now. Take a break.',
     });
     return;
   }
@@ -231,7 +223,8 @@ async function handleTip(interaction: ChatInputCommandInteraction) {
   // Check sender has wallet
   if (!hasWallet(interaction.user.id)) {
     await interaction.editReply({
-      content: '❌ What the f***? No wallet registered? Use `/justthetip wallet register-external` to connect your damn Solana wallet before you try to tip anyone.', // MODIFIED
+      content: '❌ You need to register a wallet first!\n' +
+        'Use `/justthetip wallet register-external` to connect your Solana wallet.',
     });
     return;
   }
@@ -242,7 +235,7 @@ async function handleTip(interaction: ChatInputCommandInteraction) {
   // Don't allow self-tipping
   if (recipient.id === interaction.user.id) {
     await interaction.editReply({
-      content: '❌ Seriously? You can't tip yourself, you narcissistic f***. Pick another degen.', // MODIFIED
+      content: '❌ You cannot tip yourself!',
     });
     return;
   }
@@ -252,11 +245,8 @@ async function handleTip(interaction: ChatInputCommandInteraction) {
   
   if (!parseResult.success || !parseResult.data) {
     await interaction.editReply({
-      content: `❌ Your amount is as f***ed as your trading strategy: ${parseResult.error}
-
-` + // MODIFIED
-        `${parseResult.suggestions?.join('
-') || ''}. Try again, but this time with a valid number.`, // MODIFIED
+      content: `❌ ${parseResult.error}\n\n` +
+        `${parseResult.suggestions?.join('\n') || ''}`,
     });
     return;
   }
@@ -267,7 +257,7 @@ async function handleTip(interaction: ChatInputCommandInteraction) {
   if (parseResult.needsConfirmation && parseResult.confirmationPrompt) {
     const confirmButton = new ButtonBuilder()
       .setCustomId(`tip_confirm_sol_${recipient.id}_${parsedAmount.value}`)
-      .setLabel(`F*** yeah, ${parsedAmount.value} SOL`) // MODIFIED
+      .setLabel(`Yes, ${parsedAmount.value} SOL`)
       .setStyle(ButtonStyle.Success);
 
     const cancelButton = new ButtonBuilder()
@@ -278,9 +268,7 @@ async function handleTip(interaction: ChatInputCommandInteraction) {
     const row = new ActionRowBuilder<ButtonBuilder>().addComponents(confirmButton, cancelButton);
 
     await interaction.editReply({
-      content: `⚠️ **Confirm This S***!**
-
-${parseResult.confirmationPrompt}`, // MODIFIED
+      content: `⚠️ **Confirmation Needed**\n\n${parseResult.confirmationPrompt}`,
       components: [row],
     });
     return;
@@ -296,8 +284,8 @@ ${parseResult.confirmationPrompt}`, // MODIFIED
 
   if (!recipientWallet) {
     await interaction.editReply({
-      content: `⚠️ ${recipient} is rocking empty pockets, no wallet registered.
-Your tip will be held for 24 hours. Tell that degen to link their f***ing wallet!`, // MODIFIED
+      content: `⚠️ ${recipient} doesn't have a wallet registered yet.\n` +
+        'Your tip will be held for 24 hours. They can claim it by registering a wallet.',
     });
     
     // We can't really "hold" a non-custodial tip without the sender signing something,
@@ -334,26 +322,16 @@ Your tip will be held for 24 hours. Tell that degen to link their f***ing wallet
 
     const embed = new EmbedBuilder()
       .setColor(0x00FF00)
-      .setTitle('💸 Tip Ready to F***ing Send!') // MODIFIED
-      .setDescription( // MODIFIED
-        `**Recipient:** ${recipient}
-` +
-        `**Amount:** ${formatAmount(parsedAmount)}
-` +
-        `**Fee:** 0.0007 SOL (~$0.07) (That's cheaper than your mom's taxi ride.)
-
-` +
-        '**Tap the goddamn button below** to open in your wallet:
-' +
-        '• Phantom
-' +
-        '• Solflare
-' +
-        '• Backpack
-' +
-        '• Any f***ing Solana wallet
-
-' +
+      .setTitle('💸 Tip Ready to Send')
+      .setDescription(
+        `**Recipient:** ${recipient}\n` +
+        `**Amount:** ${formatAmount(parsedAmount)}\n` +
+        `**Fee:** 0.0007 SOL (~$0.07)\n\n` +
+        '**Tap the button below** to open in your wallet:\n' +
+        '• Phantom\n' +
+        '• Solflare\n' +
+        '• Backpack\n' +
+        '• Any Solana wallet\n\n' +
         'Your device will ask which wallet to use! 📱'
       )
       .setFooter({ text: 'Powered by Solana Pay' });
@@ -365,7 +343,7 @@ Your tip will be held for 24 hours. Tell that degen to link their f***ing wallet
 
   } catch (error) {
     await interaction.editReply({
-      content: `❌ Well, sh**. Couldn't summon that payment request: ${error instanceof Error ? error.message : 'Unknown error'}. Is the blockchain f***ed? Maybe. Try again.`, // MODIFIED
+      content: `❌ Failed to create payment request: ${error instanceof Error ? error.message : 'Unknown error'}`,
     });
   }
 }
@@ -375,7 +353,7 @@ async function handleBalance(interaction: ChatInputCommandInteraction) {
 
   if (!hasWallet(interaction.user.id)) {
     await interaction.editReply({
-      content: '❌ No wallet registered, you ape. Use `/justthetip wallet register-external` to connect your f***ing wallet.', // MODIFIED
+      content: '❌ No wallet registered. Use `/justthetip wallet register-external`',
     });
     return;
   }
@@ -386,16 +364,16 @@ async function handleBalance(interaction: ChatInputCommandInteraction) {
 
     const embed = new EmbedBuilder()
       .setColor(0x0099FF)
-      .setTitle('💰 Your SOL Stack. Hope It's Fat.') // MODIFIED
+      .setTitle('💰 Wallet Balance')
       .addFields(
         { name: 'Balance', value: `${balance.toFixed(6)} SOL`, inline: true },
-        { name: 'Address', value: ``${wallet?.address}``, inline: false },
+        { name: 'Address', value: `\`${wallet?.address}\``, inline: false },
       );
 
     await interaction.editReply({ embeds: [embed] });
   } catch (error) {
     await interaction.editReply({
-      content: `❌ Well, sh**. Couldn't fetch your f***ing balance: ${error instanceof Error ? error.message : 'Unknown error'}. Is the RPC f***ed? Maybe. Try again.`, // MODIFIED
+      content: `❌ Failed to fetch balance: ${error instanceof Error ? error.message : 'Unknown error'}`,
     });
   }
 }
@@ -405,7 +383,7 @@ async function handlePending(interaction: ChatInputCommandInteraction) {
   
   if (pending.length === 0) {
     await interaction.reply({
-      content: '📋 Your inbox is empty, just like your pockets. No pending tips for you, degen.', // MODIFIED
+      content: '📋 You have no pending tips.',
       ephemeral: true,
     });
     return;
@@ -413,13 +391,12 @@ async function handlePending(interaction: ChatInputCommandInteraction) {
 
   const embed = new EmbedBuilder()
     .setColor(0x0099FF)
-    .setTitle('📋 Pending Tips. Don't F***ing Miss Out.') // MODIFIED
-    .setDescription('These tips were sent to you before you linked your f***ing wallet. Get it together, degen.') // MODIFIED
+    .setTitle('📋 Pending Tips')
+    .setDescription('These tips were sent to you before you registered your wallet.')
     .addFields(
       pending.map(tip => ({
         name: `${tip.amount} SOL`,
-        value: `From: <@${tip.senderId}>
-Expires: <t:${Math.floor(tip.expiresAt / 1000)}:R>`,
+        value: `From: <@${tip.senderId}>\nExpires: <t:${Math.floor(tip.expiresAt / 1000)}:R>`,
         inline: false
       }))
     );

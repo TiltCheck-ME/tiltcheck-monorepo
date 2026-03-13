@@ -12,10 +12,10 @@ import { trustEngines } from '@tiltcheck/trust-engines';
 export const trustDashboard: Command = {
   data: new SlashCommandBuilder()
     .setName('trust')
-    .setDescription('The brutal, unfiltered truth. See who\'s a degen and who\'s a scammer.')
+    .setDescription('View TiltCheck trust scores')
     .addSubcommand(sub =>
       sub.setName('casino')
-        .setDescription('Check if a casino is legit or just another sh**coin.')
+        .setDescription('Check a casino trust score')
         .addStringOption(option =>
           option.setName('name')
             .setDescription('Casino name or domain (e.g., stake.com)')
@@ -24,16 +24,16 @@ export const trustDashboard: Command = {
     )
     .addSubcommand(sub =>
       sub.setName('user')
-        .setDescription('Check a user\'s degen score. Or your own.')
+        .setDescription('Check a user trust score')
         .addUserOption(option =>
           option.setName('user')
-            .setDescription('Who are we judging today? (leave empty for yourself)')
+            .setDescription('User to check (leave empty for yourself)')
             .setRequired(false)
         )
     )
     .addSubcommand(sub =>
       sub.setName('explain')
-        .setDescription('Learn how we separate the saints from the sinners.')
+        .setDescription('Learn how trust scoring works')
     ) as any as SlashCommandBuilder,
 
   async execute(interaction: ChatInputCommandInteraction) {
@@ -59,43 +59,43 @@ export const trustDashboard: Command = {
 
 async function showCasinoTrust(interaction: ChatInputCommandInteraction) {
   const casinoName = interaction.options.getString('name', true);
+  
+  // Normalize casino name
   const normalized = casinoName.toLowerCase().replace(/^https?:\/\/(www\.)?/, '');
   
   const score = trustEngines.getCasinoScore(normalized);
   const breakdown = trustEngines.getCasinoBreakdown(normalized);
   const explanations = trustEngines.explainCasinoScore(normalized);
 
-  let color = 0x718093; // Gray
-  if (score >= 80) color = 0x38A169; // Green
-  else if (score >= 60) color = 0xD69E2E; // Yellow
-  else color = 0xE53E3E; // Red
+  // Score color based on trust level
+  let color;
+  if (score >= 80) color = 0x43b581; // Green (good)
+  else if (score >= 60) color = 0xfaa61a; // Yellow (ok)
+  else color = 0xf04747; // Red (bad)
 
   const embed = new EmbedBuilder()
-    .setTitle(`The Verdict on ${casinoName}`)
+    .setTitle(`🎰 ${casinoName} Trust Score`)
     .setColor(color)
     .setDescription(`**Overall Score: ${score}/100**`)
     .addFields(
-      { name: 'Fairness', value: `${breakdown.fairnessScore}/100`, inline: true },
-      { name: 'Payouts', value: `${breakdown.payoutScore}/100`, inline: true },
-      { name: 'Bonuses', value: `${breakdown.bonusScore}/100`, inline: true },
-      { name: 'User Reports', value: `${breakdown.userReportScore}/100`, inline: true },
-      { name: 'Promo Integrity', value: `${breakdown.freespinScore}/100`, inline: true },
-      { name: 'Compliance', value: `${breakdown.complianceScore}/100`, inline: true },
-      { name: 'Support', value: `${breakdown.supportScore}/100`, inline: true },
+      { name: '⚖️ Fairness', value: `${breakdown.fairnessScore}/100`, inline: true },
+      { name: '💰 Payout', value: `${breakdown.payoutScore}/100`, inline: true },
+      { name: '🎁 Bonus', value: `${breakdown.bonusScore}/100`, inline: true },
+      { name: '👥 User Reports', value: `${breakdown.userReportScore}/100`, inline: true },
+      { name: '🎟️ Promo Integrity', value: `${breakdown.freespinScore}/100`, inline: true },
+      { name: '📋 Compliance', value: `${breakdown.complianceScore}/100`, inline: true },
+      { name: '\u200b', value: '\u200b', inline: true },
+      { name: '🤝 Support', value: `${breakdown.supportScore}/100`, inline: true },
+      { name: '\u200b', value: '\u200b', inline: true },
     )
     .setTimestamp()
-    .setFooter({ text: `Based on ${breakdown.history.length} tracked events. The data doesn't lie.` });
+    .setFooter({ text: `${breakdown.history.length} events tracked` });
 
+  // Add warnings/explanations
   if (explanations.length > 0) {
     embed.addFields({
-      name: 'What This Means',
+      name: '📊 Analysis',
       value: explanations.slice(0, 5).join('\n'),
-      inline: false
-    });
-  } else {
-    embed.addFields({
-      name: 'What This Means',
-      value: 'Not enough data to form a strong opinion. Tread carefully.',
       inline: false
     });
   }
@@ -112,39 +112,46 @@ async function showUserTrust(interaction: ChatInputCommandInteraction) {
   const level = trustEngines.getTrustLevel(score);
   const explanations = trustEngines.explainDegenScore(userId);
 
-  let color = 0x718093; // Gray
-  if (level === 'very-high' || level === 'high') color = 0x38A169; // Green
-  else if (level === 'neutral') color = 0xD69E2E; // Yellow
-  else color = 0xE53E3E; // Red
+  // Score color and emoji based on trust level
+  let color = 0x4ec9f0;
+  let emoji = '😐';
+  if (level === 'very-high') { color = 0x43b581; emoji = '⭐'; }
+  else if (level === 'high') { color = 0x43b581; emoji = '✅'; }
+  else if (level === 'neutral') { color = 0xfaa61a; emoji = '😐'; }
+  else if (level === 'low') { color = 0xf04747; emoji = '⚠️'; }
+  else if (level === 'high-risk') { color = 0xf04747; emoji = '🚨'; }
 
   const embed = new EmbedBuilder()
-    .setTitle(`Degen Report Card: ${targetUser.username}`)
+    .setTitle(`${emoji} ${targetUser.username} Trust Score`)
     .setColor(color)
     .setDescription(`**${score}/100** - ${level.toUpperCase().replace('-', ' ')}`)
     .addFields(
-      { name: 'Behavior Score', value: `${breakdown.behaviorScore}/100`, inline: true },
-      { name: 'Tilt Indicators', value: `${breakdown.tiltIndicators}`, inline: true },
-      { name: 'Accountability', value: `+${breakdown.accountabilityBonus}`, inline: true },
-      { name: 'Scam Flags', value: `${breakdown.scamFlags}`, inline: true },
-      { name: 'Community Reports', value: `${breakdown.communityReports > 0 ? '+' : ''}${breakdown.communityReports}`, inline: true },
+      { name: '🎯 Behavior', value: `${breakdown.behaviorScore}/100`, inline: true },
+      { name: '🔥 Tilt Indicators', value: `${breakdown.tiltIndicators}`, inline: true },
+      { name: '🤝 Accountability', value: `+${breakdown.accountabilityBonus}`, inline: true },
+      { name: '⚠️ Scam Flags', value: `${breakdown.scamFlags}`, inline: true },
+      { name: '💬 Community', value: `${breakdown.communityReports > 0 ? '+' : ''}${breakdown.communityReports}`, inline: true },
+      { name: '\u200b', value: '\u200b', inline: true },
     )
     .setThumbnail(targetUser.displayAvatarURL())
     .setTimestamp()
-    .setFooter({ text: `Based on ${breakdown.history.length} tracked events. Numbers don't lie.` });
+    .setFooter({ text: `${breakdown.history.length} events tracked` });
 
+  // Add insights
   if (explanations.length > 0) {
     embed.addFields({
-      name: 'Insights',
+      name: '📊 Insights',
       value: explanations.slice(0, 6).join('\n'),
       inline: false
     });
   }
 
+  // Privacy note
   const isSelf = targetUser.id === interaction.user.id;
   if (!isSelf) {
     embed.addFields({
-      name: 'A Note on Privacy',
-      value: 'We\'re all degens here. This is for community safety, not to make you feel bad. Or maybe it is.',
+      name: 'ℹ️ Privacy',
+      value: 'Trust scores are visible to help maintain community safety.',
       inline: false
     });
   }
@@ -154,37 +161,42 @@ async function showUserTrust(interaction: ChatInputCommandInteraction) {
 
 async function showExplanation(interaction: ChatInputCommandInteraction) {
   const embed = new EmbedBuilder()
-    .setTitle('The Gospel of Trust According to TiltCheck')
+    .setTitle('📚 How Trust Scoring Works')
     .setColor(0x4ec9f0)
-    .setDescription('This isn\'t about feelings. It\'s about data. Here\'s how we judge everyone, including you.')
+    .setDescription('TiltCheck uses two trust engines to promote safety and transparency:')
     .addFields(
       {
-        name: 'Casino Trust Score (Are they gonna screw you?)',
-        value: 'We watch everything: if they pay out, if their bonuses are real, and what other degens say about them. It\'s all weighted and scored. Simple.',
+        name: '🎰 Casino Trust (0-100)',
+        value: '**30%** Fairness consistency\n**20%** Payout reliability\n**15%** Bonus stability\n**15%** User reports\n**10%** Freespin validation\n**5%** Compliance\n**5%** Support quality',
         inline: false
       },
       {
-        name: 'User Trust Score (Are YOU a liability?)',
-        value: 'We measure your degen level. High scores mean you\'re a trusted member of the community. Low scores mean you\'re probably a walking disaster.',
+        name: '👤 User Trust (0-100)',
+        value: '**Very High (95-100)** - Excellent reputation\n**High (80-94)** - Trusted member\n**Neutral (60-79)** - Normal standing\n**Low (40-59)** - Some concerns\n**High Risk (<40)** - Serious issues',
         inline: false
       },
       {
-        name: 'How to Not Look Like a Total Degenerate',
-        value: '• Use the cooldown and vault tools. It shows you have some self-control.\n• Don\'t be a dick in the community.\n• Tip people. Don\'t be cheap.',
+        name: '✅ What Improves Trust',
+        value: '• Using accountability tools (vault, cooldowns)\n• Completing tips and being generous\n• Good community behavior\n• Following server rules',
         inline: false
       },
       {
-        name: 'How to Tank Your Score',
-        value: '• Act like a maniac (we call it "tilt behavior").\n• Try to cheat your cooldowns.\n• Get flagged as a scammer (this one hurts).',
+        name: '⚠️ What Lowers Trust',
+        value: '• Tilt behavior (temporary, recovers over time)\n• Violating cooldowns\n• Confirmed scams (-15 points)\n• False accusations\n• Repeated rule breaking',
         inline: false
       },
       {
-        name: 'A Note on Privacy',
-        value: 'We don\'t store your personal sh**. This is all based on your behavior here. We\'re not your mom, we\'re just watching.',
+        name: '🔄 Recovery',
+        value: 'Tilt indicators naturally decay at 0.5 points/hour. Trust scores can improve over time with positive behavior.',
+        inline: false
+      },
+      {
+        name: '🔒 Privacy',
+        value: 'No sensitive personal data is stored. Trust is behavioral, not judgmental. Scores are not addiction assessments.',
         inline: false
       }
     )
-    .setFooter({ text: 'The numbers don\'t lie.' });
+    .setFooter({ text: 'TiltCheck Trust Engines - Fair, Transparent, Non-Punitive' });
 
   await interaction.reply({ embeds: [embed] });
 }
