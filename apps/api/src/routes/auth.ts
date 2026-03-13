@@ -30,7 +30,7 @@ import { authMiddleware, getJWTConfig } from '../middleware/auth.js';
 
 const router = Router();
 const DEFAULT_DISCORD_CLIENT_ID = '1445916179163250860';
-const DEFAULT_DISCORD_SCOPES = ['identify', 'identify.premium'];
+const DEFAULT_DISCORD_SCOPES = ['identify'];
 const DEFAULT_API_DISCORD_CALLBACK = 'https://api.tiltcheck.me/auth/discord/callback';
 
 // ============================================================================
@@ -427,8 +427,8 @@ router.get('/discord/login', authLimiter, (req, res) => {
     // Store state in a short-lived cookie
     res.cookie('oauth_state', state, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
+      secure: true, // Required for SameSite=None
+      sameSite: 'none', // Allow cross-domain redirects
       maxAge: 10 * 60 * 1000, // 10 minutes
     });
 
@@ -492,8 +492,16 @@ router.get('/discord/callback', authLimiter, async (req, res) => {
       process.env.NODE_ENV !== 'production' &&
       (req.hostname === 'localhost' || req.hostname === '127.0.0.1');
 
+    console.log('[Auth Debug] Callback received:', {
+      query: req.query,
+      cookies: req.cookies,
+      sourceFromState,
+      isLocalDev,
+    });
+
     // Optional integrity check: if both exist, cookie source must match state source.
     if (sourceFromCookie && sourceFromState && sourceFromCookie !== sourceFromState) {
+      console.log('[Auth Debug] State source mismatch:', { sourceFromCookie, sourceFromState });
       res.status(400).json({ error: 'Invalid OAuth source' });
       return;
     }
@@ -506,6 +514,7 @@ router.get('/discord/callback', authLimiter, async (req, res) => {
       (stateValue === storedState || (!storedState && isLocalDev && sourceFromState === 'extension'));
 
     if (!stateValid) {
+      console.log('[Auth Debug] Invalid state:', { stateValue, storedState });
       res.status(400).json({ error: 'Invalid OAuth state' });
       return;
     }

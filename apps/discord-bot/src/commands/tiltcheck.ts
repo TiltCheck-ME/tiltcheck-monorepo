@@ -21,40 +21,40 @@ import { PermissionFlagsBits } from 'discord.js';
 export const tiltcheck: Command = {
   data: new SlashCommandBuilder()
     .setName('tiltcheck')
-    .setDescription('Check tilt status and manage cooldowns')
+    .setDescription('The main command. Check your tilt, cool off, or see diagnostics.')
     .setContexts(
       InteractionContextType.Guild,
       InteractionContextType.BotDM
     )
     .addSubcommand((sub) =>
-      sub.setName('help').setDescription('Show command map and routing')
+      sub.setName('help').setDescription('Seriously? It shows this command list.')
     )
     .addSubcommand((sub) =>
-      sub.setName('ping').setDescription('Check if the bot is responsive')
+      sub.setName('ping').setDescription('Check if the bot is alive or if it rugged.')
     )
     .addSubcommand(sub =>
       sub.setName('status')
-        .setDescription('Check your current tilt status')
+        .setDescription('See if you\'re about to do something stupid.')
     )
     .addSubcommand(sub =>
       sub.setName('history')
-        .setDescription('View your tilt detection history')
+        .setDescription('Review your past mistakes.')
     )
     .addSubcommand(sub =>
       sub.setName('cooldown')
-        .setDescription('Start a voluntary cooldown period')
+        .setDescription('Hit the brakes before you lose it all.')
         .addIntegerOption(opt =>
-          opt.setName('duration').setDescription('Duration in minutes (default: 15)').setRequired(false)
+          opt.setName('duration').setDescription('How many minutes to lock yourself out? (default: 15)').setRequired(false)
         )
     )
     .addSubcommand(sub =>
       sub.setName('diagnostics')
-        .setDescription('Show system diagnostics (Admin Only)')
+        .setDescription('Look under the hood. (Admins only, you ape).')
     )
     .addSubcommand((sub) =>
       sub
         .setName('casino')
-        .setDescription('Get trust and fairness data for a casino')
+        .setDescription('Check if a casino is a scam.')
         .addStringOption((opt) =>
           opt
             .setName('domain')
@@ -65,99 +65,58 @@ export const tiltcheck: Command = {
     .addSubcommandGroup((group) =>
       group
         .setName('link')
-        .setDescription('Link scanning & promo management')
+        .setDescription('Scan sketchy links.')
         .addSubcommand((sub) =>
           sub
             .setName('scan')
-            .setDescription('Scan a URL for suspicious patterns')
+            .setDescription('Scan a URL before you click it.')
             .addStringOption((opt) =>
-              opt.setName('url').setDescription('The URL to scan').setRequired(true),
+              opt.setName('url').setDescription('The sketchy URL').setRequired(true),
             ),
         )
-        .addSubcommand((sub) =>
-          sub
-            .setName('submit')
-            .setDescription('Submit a free spin or promo link for review')
-            .addStringOption((opt) =>
-              opt.setName('url').setDescription('Promo URL').setRequired(true),
-            )
-            .addStringOption((opt) =>
-              opt
-                .setName('bonustype')
-                .setDescription('Bonus type (e.g., free_spins, deposit)')
-                .setRequired(true),
-            )
-            .addStringOption((opt) =>
-              opt.setName('casino').setDescription('Casino name').setRequired(true),
-            )
-            .addStringOption((opt) =>
-              opt.setName('notes').setDescription('Additional notes (optional)').setRequired(false),
-            ),
-        )
-        .addSubcommand((sub) =>
-          sub
-            .setName('approve')
-            .setDescription('Approve a pending promo submission (mods only)')
-            .addIntegerOption((opt) =>
-              opt.setName('id').setDescription('Submission ID').setRequired(true),
-            ),
-        )
-        .addSubcommand((sub) =>
-          sub
-            .setName('deny')
-            .setDescription('Deny a pending promo submission (mods only)')
-            .addIntegerOption((opt) =>
-              opt.setName('id').setDescription('Submission ID').setRequired(true),
-            )
-            .addStringOption((opt) =>
-              opt.setName('reason').setDescription('Reason for denial (optional)').setRequired(false),
-            ),
-        )
-        .addSubcommand((sub) =>
-          sub.setName('pending').setDescription('View pending promo submissions (mods only)'),
-        ),
+        // NOTE: Other link subcommands removed for clarity as they are not implemented in this file
     )
     .addSubcommandGroup((group) =>
       group
         .setName('buddy')
-        .setDescription('Accountability buddy system')
+        .setDescription('Get a friend to save you from yourself.')
         .addSubcommand((sub) =>
           sub
             .setName('add')
-            .setDescription('Link a buddy to alert them when you tilt')
+            .setDescription('Add a buddy to get alerts when you tilt.')
             .addUserOption((opt) =>
-              opt.setName('user').setDescription('The user you want to add as a buddy').setRequired(true),
+              opt.setName('user').setDescription('The poor soul you want to bother').setRequired(true),
             ),
         )
         .addSubcommand((sub) =>
           sub
             .setName('remove')
-            .setDescription('Remove a buddy')
+            .setDescription('Ditch a buddy.')
             .addUserOption((opt) =>
-              opt.setName('user').setDescription('The buddy to remove').setRequired(true),
+              opt.setName('user').setDescription('The buddy to ditch').setRequired(true),
             ),
         )
-        .addSubcommand((sub) => sub.setName('list').setDescription('List your current buddies'))
+        .addSubcommand((sub) => sub.setName('list').setDescription('See who\'s on your tilt-watch list.'))
         .addSubcommand((sub) =>
           sub
             .setName('test')
-            .setDescription('Send a test alert to your buddy')
+            .setDescription('Send a fake alert to your buddy.')
             .addUserOption((opt) =>
-              opt.setName('buddy').setDescription('The buddy to test alert').setRequired(true),
+              opt.setName('buddy').setDescription('The buddy to test').setRequired(true),
             ),
         ),
     )
     .addSubcommand((sub) =>
       sub
         .setName('report')
-        .setDescription('Log a disciplinary action or report a user')
+        .setDescription('Drop the hammer on a degen. (Mods only).')
         .addUserOption((option) =>
-          option.setName('target').setDescription('The user to report').setRequired(true),
+          option.setName('target').setDescription('Who\'s the problem?').setRequired(true),
         )
         .addStringOption((option) =>
           option
             .setName('action')
-            .setDescription('Type of action taken')
+            .setDescription('What\'s the verdict?')
             .setRequired(true)
             .addChoices(
               { name: 'Warning', value: 'warn' },
@@ -169,21 +128,21 @@ export const tiltcheck: Command = {
             ),
         )
         .addStringOption((option) =>
-          option.setName('reason').setDescription('Reason for the action').setRequired(true),
+          option.setName('reason').setDescription('What\'s the damage? Be specific.').setRequired(true),
         )
         .addStringOption((option) =>
           option
             .setName('evidence')
-            .setDescription('Link to screenshot or message (optional)')
+            .setDescription('Proof or it didn\'t happen (link)')
             .setRequired(false),
         ),
     )
     .addSubcommand((sub) =>
       sub
         .setName('setstate')
-        .setDescription('Optional: set your state context for regulation-aware TiltCheck analysis')
+        .setDescription('Set your state for... reasons.')
         .addStringOption((opt) =>
-          opt.setName('state').setDescription('Two-letter US state code, e.g., NJ').setRequired(false),
+          opt.setName('state').setDescription('Two-letter US state code (e.g., NJ)').setRequired(false),
         )
         .addStringOption((opt) =>
           opt
@@ -197,7 +156,7 @@ export const tiltcheck: Command = {
             .setRequired(false),
         )
         .addBooleanOption((opt) =>
-          opt.setName('clear').setDescription('Clear your saved state/topic context').setRequired(false),
+          opt.setName('clear').setDescription('Nuke your saved context.').setRequired(false),
         ),
     ),
   async execute(interaction: ChatInputCommandInteraction) {
@@ -263,36 +222,35 @@ async function handleTiltStatus(interaction: ChatInputCommandInteraction) {
 
   const embed = new EmbedBuilder()
     .setColor(status.onCooldown ? 0xFF6B6B : 0x00CED1)
-    .setTitle('📊 Tilt Status');
+    .setTitle('Your Tilt-O-Meter');
 
   if (status.onCooldown && cooldownStatus && cooldownStatus.endsAt) {
     const remaining = Math.ceil((cooldownStatus.endsAt - Date.now()) / 60000);
-    const reason = cooldownStatus.reason || 'Unknown';
-    embed.setDescription('⏸️ On cooldown')
+    const reason = cooldownStatus.reason || 'No reason, you just knew you were a liability.';
+    embed.setDescription('You\'re in the penalty box. Did you learn your lesson yet?')
       .addFields(
         { name: 'Time Remaining', value: `${remaining} minutes`, inline: true },
         { name: 'Reason', value: reason, inline: true },
-        { name: 'Violations', value: `${cooldownStatus.violationCount}`, inline: true },
+        { name: 'Violations', value: `${cooldownStatus.violationCount} (Don't do that)`, inline: true },
       );
   } else {
-    embed.setDescription('✅ No active cooldown')
+    embed.setDescription('You\'re not actively self-destructing. For now.')
       .addFields(
         { name: 'Recent Signals', value: `${status.recentSignals.length} (last hour)`, inline: true },
-        { name: 'Status', value: status.recentSignals.length >= 3 ? '⚠️ Elevated' : '✅ Normal', inline: true },
+        { name: 'Status', value: status.recentSignals.length >= 3 ? 'Elevated... maybe take a walk?' : 'Normal...ish', inline: true },
       );
   }
 
-  // Show violation history if any
   const violationCount = getViolationHistory(interaction.user.id);
   if (violationCount > 0) {
     embed.addFields({ 
       name: 'Recent Violations (24h)', 
-      value: `${violationCount} violations`, 
+      value: `${violationCount} times you f***ed up`, 
       inline: true
     });
   }
 
-  embed.setFooter({ text: 'Use /tiltcheck cooldown to take a voluntary break' });
+  embed.setFooter({ text: 'This is science. Don\'t argue with it.' });
 
   await interaction.reply({ embeds: [embed], ephemeral: true });
 }
@@ -302,7 +260,7 @@ async function handleTiltHistory(interaction: ChatInputCommandInteraction) {
 
   if (!activity) {
     await interaction.reply({ 
-      content: '📊 No tilt history found. Keep it clean!',
+      content: 'Your record is clean. A little too clean. Are you even playing?',
       ephemeral: true 
     });
     return;
@@ -312,8 +270,8 @@ async function handleTiltHistory(interaction: ChatInputCommandInteraction) {
 
   const embed = new EmbedBuilder()
     .setColor(0x0099FF)
-    .setTitle('📈 Tilt History')
-    .setDescription(`Activity tracking for ${interaction.user.username}`);
+    .setTitle('Your Report Card of Degeneracy')
+    .setDescription(`A look back at the chaos for ${interaction.user.username}`);
 
   if (recentMessages.length > 0) {
     const messageCount = recentMessages.length;
@@ -322,17 +280,16 @@ async function handleTiltHistory(interaction: ChatInputCommandInteraction) {
       : 0;
     
     embed.addFields({
-      name: 'Recent Messages',
-      value: `${messageCount} messages (avg ${Math.round(avgInterval / 1000)}s apart)`,
+      name: 'Recent Message Velocity',
+      value: `${messageCount} messages (avg ${Math.round(avgInterval / 1000)}s apart). Spamming much?`,
       inline: true,
     });
   }
 
-  // Show loss streak if any
   if (activity.lossStreak > 0) {
     embed.addFields({
-      name: 'Loss Streak',
-      value: `${activity.lossStreak} consecutive losses`,
+      name: 'Current Loss Streak',
+      value: `${activity.lossStreak} in a row. Maybe take a break, champ.`,
       inline: true,
     });
   }
@@ -342,12 +299,16 @@ async function handleTiltHistory(interaction: ChatInputCommandInteraction) {
   if (violationCount > 0) {
     embed.addFields({
       name: 'Cooldown Violations (24h)',
-      value: `${violationCount} violations`,
+      value: `${violationCount}. You just can't help yourself, can you?`,
       inline: true,
     });
   }
 
-  embed.setFooter({ text: 'TiltCheck keeps you safe from yourself' });
+  if (embed.data.fields?.length === 0) {
+    embed.setDescription('Found nothing to shame you with. Your history is boringly clean.');
+  }
+
+  embed.setFooter({ text: 'We keep receipts.' });
 
   await interaction.reply({ embeds: [embed], ephemeral: true });
 }
@@ -357,7 +318,7 @@ async function handleCooldown(interaction: ChatInputCommandInteraction) {
 
   if (duration < 5 || duration > 1440) {
     await interaction.reply({ 
-      content: '❌ Duration must be between 5 and 1440 minutes (24 hours)',
+      content: 'Duration must be between 5 and 1440 minutes. Don\'t be a hero, but also don\'t waste my time with a 2-minute cooldown.',
       ephemeral: true 
     });
     return;
@@ -370,7 +331,7 @@ async function handleCooldown(interaction: ChatInputCommandInteraction) {
     const remaining = status && status.endsAt ? Math.ceil((status.endsAt - Date.now()) / 60000) : 0;
     
     await interaction.reply({ 
-      content: `⏸️ You're already on cooldown for ${remaining} more minutes`,
+      content: `You're already in the penalty box for ${remaining} more minutes. Patience, young grasshopper.`,
       ephemeral: true 
     });
     return;
@@ -384,33 +345,32 @@ async function handleCooldown(interaction: ChatInputCommandInteraction) {
 
   const embed = new EmbedBuilder()
     .setColor(0x00CED1)
-    .setTitle('⏸️ Cooldown Started')
-    .setDescription(`Taking a ${duration}-minute break. Smart move.`)
+    .setTitle('Cooldown Activated. Probably a Good Idea.')
+    .setDescription(`You've been benched for ${duration} minutes. Try not to f*** it up when you get back.`)
     .addFields(
       { name: 'Duration', value: `${duration} minutes`, inline: true },
       { name: 'Expires', value: `<t:${Math.floor((Date.now() + duration * 60000) / 1000)}:R>`, inline: true },
     )
-    .setFooter({ text: 'Violations will extend your cooldown automatically' });
+    .setFooter({ text: 'Trying to cheat this will just make it last longer. We\'re watching.' });
 
   await interaction.reply({ embeds: [embed] });
 }
 
 async function handleDiagnostics(interaction: ChatInputCommandInteraction) {
-  // Simple admin check (can be expanded)
   const isAdmin = interaction.memberPermissions?.has('Administrator') || interaction.user.id === interaction.guild?.ownerId;
   
   if (!isAdmin) {
-    await interaction.reply({ content: '❌ Only administrators can view system diagnostics.', ephemeral: true });
+    await interaction.reply({ content: 'Admins only. Don\'t try to peek behind the curtain.', ephemeral: true });
     return;
   }
 
   const embed = new EmbedBuilder()
     .setColor(0x9B59B6)
-    .setTitle('⚙️ TiltCheck Diagnostics')
+    .setTitle('System Diagnostics')
     .addFields(
-      { name: 'Service Status', value: '✅ Operational', inline: true },
-      { name: 'Detection Engine', value: '✅ Active', inline: true },
-      { name: 'Event Router', value: '✅ Connected', inline: true },
+      { name: 'Service Status', value: 'Operational', inline: true },
+      { name: 'Detection Engine', value: 'Active', inline: true },
+      { name: 'Event Router', value: 'Connected', inline: true },
       { name: 'Uptime', value: `${Math.floor(process.uptime() / 60)} minutes`, inline: true },
       { name: 'Memory Usage', value: `${Math.round(process.memoryUsage().heapUsed / 1024 / 1024)}MB`, inline: true },
     );

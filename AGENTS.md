@@ -56,7 +56,7 @@ Functional code located in modules/
 | :--- | :--- | :--- |
 | Tilt Detector | modules/tiltcheck-core/ | Logic for monitoring community activity for tilt signals. |
 | JustTheTip | modules/justthetip/ | Logic for intelligent tipping and financial transactions. |
-| Solana Agent | packages/agent/ | Degen Intelligence Agent (DIA) via Google ADK. |
+| Solana Agent | packages/agent/ | Degen Intelligence Agent (DIA) via Google ADK. Powers advanced Discord DM interactions and Degen Hub queries. |
 
 ---
 Last Updated: 2026-03-11

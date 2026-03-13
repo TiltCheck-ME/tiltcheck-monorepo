@@ -69,7 +69,7 @@ router.post('/breathalyzer/evaluate', (req, res) => {
  * POST /safety/anti-tilt/evaluate
  * Evaluate user sentiment and decide intervention level.
  */
-router.post('/anti-tilt/evaluate', (req, res) => {
+router.post('/anti-tilt/evaluate', async (req, res) => {
   const { userId, message, distressSignals } = req.body ?? {};
 
   if (!userId || typeof userId !== 'string') {
@@ -85,7 +85,7 @@ router.post('/anti-tilt/evaluate', (req, res) => {
     ? distressSignals.filter((signal): signal is string => typeof signal === 'string')
     : undefined;
 
-  const result = evaluateSentiment({
+  const result = await evaluateSentiment({
     userId,
     message,
     distressSignals: signals,
