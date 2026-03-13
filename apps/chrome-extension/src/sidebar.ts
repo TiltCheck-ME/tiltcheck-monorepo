@@ -852,7 +852,7 @@ function createSidebar() {
           <button class="tg-btn tg-btn-primary" id="tg-upgrade-confirm">Upgrade Now &#x2192;</button>
           <button class="tg-btn tg-btn-secondary" id="tg-premium-close">Cancel</button>
         </div>
-        <div class="tg-brand-footer">Made for degens, by degens.</div>
+        <div class="tg-brand-footer">Made for degens, by degens • © 2026 TiltCheck</div>
       </div>
     </div>
 
@@ -865,15 +865,17 @@ function createSidebar() {
   const style = document.createElement('style');
   style.textContent = `
     #tiltcheck-sidebar {
-      --tg-bg: rgba(14, 14, 15, 0.95);
-      --tg-surface: rgba(17, 19, 22, 0.8);
-      --tg-surface-strong: rgba(26, 31, 36, 0.9);
-      --tg-border: rgba(255, 255, 255, 0.08);
+      --tg-bg: rgba(10, 10, 10, 0.95); /* Deep Black */
+      --tg-surface: rgba(26, 26, 26, 0.8);
+      --tg-surface-strong: rgba(36, 36, 36, 0.9);
+      --tg-border: rgba(255, 255, 255, 0.1);
       --tg-text: #e7ecf7;
       --tg-muted: rgba(231, 236, 247, 0.74);
-      --tg-accent-purple: #00FFC6;
-      --tg-accent-purple-2: #00E6B2;
-      --tg-accent-green: #00FFC6;
+      --tg-primary: #00d4aa; /* Neon Teal */
+      --tg-secondary: #00a8ff; /* Electric Blue */
+      --tg-accent: #a855f7; /* Neon Purple */
+      --tg-danger: #ef4444;
+      --tg-warning: #f59e0b;
       position: fixed !important;
       top: 0 !important;
       right: 0 !important;
@@ -895,7 +897,7 @@ function createSidebar() {
     #tiltcheck-sidebar::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.2); border-radius: 3px; }
     
     .tg-header {
-      background: linear-gradient(180deg, rgba(0, 255, 198, 0.1), transparent);
+      background: linear-gradient(180deg, rgba(0, 212, 170, 0.1), transparent);
       padding: 14px 16px;
       display: flex;
       justify-content: space-between;
@@ -918,7 +920,7 @@ function createSidebar() {
       width: 24px;
       height: 24px;
       border-radius: 7px;
-      background: linear-gradient(135deg, var(--tg-accent-purple), var(--tg-accent-purple-2));
+      background: linear-gradient(135deg, var(--tg-primary), var(--tg-secondary));
       color: #fff;
       display: inline-flex;
       align-items: center;
@@ -940,7 +942,7 @@ function createSidebar() {
       transition: all 0.15s;
       white-space: nowrap;
     }
-    .tg-header-btn:hover { background: var(--tg-surface-strong); border-color: rgba(99, 102, 241, 0.48); }
+    .tg-header-btn:hover { background: var(--tg-surface-strong); border-color: rgba(0, 212, 170, 0.4); }
     #tiltcheck-sidebar:not(.tg-show-advanced) .tg-advanced-only { display: none !important; }
     
     .tg-content { padding: 12px; }
@@ -972,8 +974,8 @@ function createSidebar() {
       gap: 8px;
       margin: -6px 0 12px;
       padding: 8px 10px;
-      background: rgba(99, 102, 241, 0.14);
-      border: 1px solid rgba(99, 102, 241, 0.46);
+      background: rgba(0, 168, 255, 0.1);
+      border: 1px solid rgba(0, 168, 255, 0.3);
       border-radius: 10px;
       font-size: 11px;
       line-height: 1.35;
@@ -983,12 +985,12 @@ function createSidebar() {
       padding: 8px 10px;
       font-size: 11px;
       opacity: 0.78;
-      border-left: 2px solid rgba(16, 185, 129, 0.55);
-      background: rgba(16, 185, 129, 0.08);
+      border-left: 2px solid rgba(0, 212, 170, 0.6);
+      background: rgba(0, 212, 170, 0.08);
       border-radius: 0 8px 8px 0;
     }
     .tg-user-info { display: flex; gap: 8px; align-items: center; font-size: 13px; }
-    .tg-tier { padding: 2px 8px; background: rgba(99, 102, 241, 0.2); border-radius: 3px; font-size: 11px; color: #818cf8; }
+    .tg-tier { padding: 2px 8px; background: rgba(168, 85, 247, 0.2); border-radius: 3px; font-size: 11px; color: #c4b5fd; }
     .tg-btn-icon {
       background: transparent;
       border: none;
@@ -1022,7 +1024,7 @@ function createSidebar() {
       color: #e1e8ed;
       font-size: 12px;
     }
-    .tg-input-group input:focus { outline: none; border-color: rgba(99, 102, 241, 0.5); }
+    .tg-input-group input:focus { outline: none; border-color: var(--tg-primary); }
     
     .tg-metrics-card {
       background: rgba(255, 255, 255, 0.03);
@@ -1048,7 +1050,7 @@ function createSidebar() {
       width: 10px;
       height: 10px;
       border-radius: 50%;
-      background: var(--tg-accent-green);
+      background: var(--tg-primary);
       color: transparent;
       font-size: 0;
     }
@@ -1108,9 +1110,9 @@ function createSidebar() {
       font-weight: 600;
       font-variant-numeric: tabular-nums;
     }
-    .tg-tilt-value { color: var(--tg-accent-green); }
-    .tg-tilt-value.warning { color: #f59e0b; }
-    .tg-tilt-value.critical { color: #ef4444; }
+    .tg-tilt-value { color: var(--tg-primary); }
+    .tg-tilt-value.warning { color: var(--tg-warning); }
+    .tg-tilt-value.critical { color: var(--tg-danger); }
     
     .tg-graph {
       background: rgba(0, 0, 0, 0.2);
@@ -1157,12 +1159,12 @@ function createSidebar() {
       transition: all 0.15s;
       text-align: left;
     }
-    .tg-action-btn:hover { background: var(--tg-surface-strong); border-color: rgba(99, 102, 241, 0.45); transform: translateY(-1px); }
+    .tg-action-btn:hover { background: var(--tg-surface-strong); border-color: var(--tg-primary); transform: translateY(-1px); }
     
     .tg-vault-amount {
       font-size: 24px;
       font-weight: 700;
-      color: var(--tg-accent-green);
+      color: var(--tg-primary);
       margin-bottom: 12px;
       font-variant-numeric: tabular-nums;
     }
@@ -1196,16 +1198,16 @@ function createSidebar() {
       font-size: 11px;
       white-space: nowrap;
     }
-    .tg-btn-primary { background: var(--tg-accent-purple); }
-    .tg-btn-primary:hover { background: var(--tg-accent-purple-2); }
+    .tg-btn-primary { background: var(--tg-primary); color: #000; }
+    .tg-btn-primary:hover { background: #00b390; }
     .tg-btn-secondary { background: var(--tg-surface); border: 1px solid var(--tg-border); }
-    .tg-btn-secondary:hover { background: var(--tg-surface-strong); border-color: rgba(99, 102, 241, 0.45); }
-    .tg-btn-vault { background: var(--tg-accent-green); color: #07281f; font-weight: 700; }
-    .tg-btn-vault:hover { background: #0da271; }
-    .tg-btn-danger { background: #ef4444; }
+    .tg-btn-secondary:hover { background: var(--tg-surface-strong); border-color: var(--tg-secondary); }
+    .tg-btn-vault { background: var(--tg-primary); color: #000; font-weight: 700; }
+    .tg-btn-vault:hover { background: #00b390; }
+    .tg-btn-danger { background: var(--tg-danger); }
     .tg-btn-danger:hover { background: #dc2626; }
-    #tg-discord-login, #tg-connect-discord-inline { background: var(--tg-accent-purple); border: 1px solid rgba(255,255,255,0.12); }
-    #tg-discord-login:hover, #tg-connect-discord-inline:hover { background: #4d5ae9; }
+    #tg-discord-login, #tg-connect-discord-inline { background: var(--tg-accent); border: 1px solid rgba(255,255,255,0.12); color: #fff;}
+    #tg-discord-login:hover, #tg-connect-discord-inline:hover { background: #9333ea; }
 
     .tg-toast {
       position: fixed;
@@ -1215,7 +1217,7 @@ function createSidebar() {
       backdrop-filter: blur(10px);
       color: var(--tg-text);
       border: 1px solid rgba(255,255,255,0.12);
-      border-left: 3px solid var(--tg-accent-purple);
+      border-left: 3px solid var(--tg-accent);
       padding: 10px 12px;
       border-radius: 10px;
       font-size: 12px;
@@ -1231,15 +1233,15 @@ function createSidebar() {
 
     #tiltcheck-sidebar.tilt-warn {
       box-shadow: -2px 0 12px rgba(245, 158, 11, 0.35);
-      border-left-color: rgba(245, 158, 11, 0.6);
+      border-left-color: var(--tg-warning);
       animation: pulseBorder 2.2s ease-in-out infinite;
     }
     #tiltcheck-sidebar.tilt-critical {
       background: rgba(127, 29, 29, 0.85);
       box-shadow: -2px 0 16px rgba(239, 68, 68, 0.45);
-      border-left-color: rgba(239, 68, 68, 0.7);
+      border-left-color: var(--tg-danger);
     }
-    #tiltcheck-sidebar.tilt-critical .tg-emergency { border-color: rgba(239, 68, 68, 0.8); }
+    #tiltcheck-sidebar.tilt-critical .tg-emergency { border-color: var(--tg-danger); }
     #tiltcheck-sidebar.tilt-critical #tg-emergency-lock { animation: shake 0.6s ease-in-out infinite; }
 
     @keyframes pulseBorder {
@@ -1255,10 +1257,10 @@ function createSidebar() {
 
     .tg-tabs { display: flex; border-bottom: 1px solid rgba(255,255,255,0.1); margin-bottom: 12px; }
     .tg-tab { flex: 1; background: none; border: none; color: rgba(255,255,255,0.5); padding: 8px; cursor: pointer; border-bottom: 2px solid transparent; font-size: 12px; font-weight: 600; }
-    .tg-tab.active { color: #fff; border-bottom-color: #6366f1; }
+    .tg-tab.active { color: #fff; border-bottom-color: var(--tg-secondary); }
     .tg-history-item { padding: 8px; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 11px; background: rgba(255,255,255,0.02); margin-bottom: 4px; border-radius: 4px; }
     .tg-history-header { display: flex; justify-content: space-between; margin-bottom: 4px; opacity: 0.7; }
-    .tg-history-result { font-weight: bold; color: #10b981; }
+    .tg-history-result { font-weight: bold; color: var(--tg-primary); }
 
     .tg-license-strip {
       padding: 8px 12px;
@@ -1266,16 +1268,16 @@ function createSidebar() {
       font-weight: 600;
       text-align: center;
       border-bottom: 1px solid rgba(255,255,255,0.1);
-      background: rgba(99, 102, 241, 0.12);
-      color: #c7d2fe;
+      background: rgba(0, 168, 255, 0.1);
+      color: #7dd3fc;
     }
     .tg-license-strip.verified { background: rgba(16, 185, 129, 0.18); color: #6ee7b7; }
     .tg-license-strip.warning { background: rgba(245, 158, 11, 0.18); color: #fcd34d; }
     .tg-license-strip.risk { background: rgba(239, 68, 68, 0.18); color: #fca5a5; }
-    .tg-license-strip.pending { background: rgba(99, 102, 241, 0.12); color: #c7d2fe; }
+    .tg-license-strip.pending { background: rgba(0, 168, 255, 0.1); color: #7dd3fc; }
 
     .tg-status-bar { padding: 8px 12px; font-size: 11px; font-weight: 600; text-align: center; animation: slideDown 0.3s ease; }
-    .tg-status-bar.thinking { background: rgba(99, 102, 241, 0.2); color: #818cf8; border-bottom: 1px solid rgba(99, 102, 241, 0.3); }
+    .tg-status-bar.thinking { background: rgba(0, 168, 255, 0.2); color: #38bdf8; border-bottom: 1px solid rgba(0, 168, 255, 0.3); }
     .tg-status-bar.success { background: rgba(16, 185, 129, 0.2); color: #34d399; border-bottom: 1px solid rgba(16, 185, 129, 0.3); }
     .tg-status-bar.warning { background: rgba(245, 158, 11, 0.2); color: #fbbf24; border-bottom: 1px solid rgba(245, 158, 11, 0.3); }
     .tg-status-bar.buddy { background: rgba(236, 72, 153, 0.2); color: #f472b6; border-bottom: 1px solid rgba(236, 72, 153, 0.3); }

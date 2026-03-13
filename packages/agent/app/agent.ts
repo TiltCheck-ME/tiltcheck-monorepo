@@ -99,9 +99,9 @@ const getBonusStatus = new FunctionTool<typeof DiscordIdSchema>({
   parameters: DiscordIdSchema,
   execute: async ({ discordId }: DiscordIdParams) => {
     if (!db.isConnected()) return [
-      { casino: 'Stake', bonus: 'Daily Reload', status: 'DB_DISCONNECTED', emoji: '🥩' },
-      { casino: 'Shuffle', bonus: 'Faucet', status: 'DB_DISCONNECTED', emoji: '🔀' },
-      { casino: 'Rollbit', bonus: 'Hourly', status: 'DB_DISCONNECTED', emoji: '🎲' }
+      { casino: 'Stake', bonus: 'Daily Reload', status: 'DB_DISCONNECTED' },
+      { casino: 'Shuffle', bonus: 'Daily Rakeback', status: 'DB_DISCONNECTED' },
+      { casino: 'Rollbit', bonus: 'Hourly', status: 'DB_DISCONNECTED' }
     ];
 
     const bonusStatus = await db.getBonusStatus(discordId);

@@ -1055,7 +1055,7 @@ export class DatabaseClient {
 
     const { data, error } = await this.supabase
       .from('user_bonus_status')
-      .select('casino, bonus, status, emoji')
+      .select('casino, bonus, status')
       .eq('discord_id', discordId);
 
     if (error) {

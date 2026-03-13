@@ -62,9 +62,9 @@ describe('Degen Intelligence Agent', () => {
     ]);
 
     db.getBonusStatus = async (discordId: string) => ([
-      { casino: 'Stake', bonus: 'Daily Reload', status: 'READY', emoji: '🥩' },
-      { casino: 'Shuffle', bonus: 'Faucet', status: 'READY', emoji: '🔀' },
-      { casino: 'Rollbit', bonus: 'Hourly', status: 'LOCKED (30m remaining)', emoji: '🎲' }
+      { casino: 'Stake', bonus: 'Daily Reload', status: 'READY' },
+      { casino: 'Shuffle', bonus: 'Daily Rakeback', status: 'READY' },
+      { casino: 'Rollbit', bonus: 'Hourly', status: 'LOCKED (30m remaining)' }
     ]);
     
     await db.connect();
