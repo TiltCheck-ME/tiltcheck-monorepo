@@ -20,7 +20,7 @@
     return Number.isFinite(n) && n >= 0 ? n : 0;
   }
 
-  fetch('http://localhost:3001/stats', { cache: 'no-store' })
+  fetch('https://api.tiltcheck.me/stats', { cache: 'no-store' })
     .then((res) => {
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       return res.json();
