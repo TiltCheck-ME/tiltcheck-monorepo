@@ -48,5 +48,4 @@ All core services and shadow services successfully migrated to Cloud Run.
 - Tone: Blunt, Direct, Skeptical.
 - Footer: "Made for Degens. By Degens." on all UIs.
 - Format: Mandatory 2026 Copyright headers. No emojis.
-- Authenticity: No fake testimonials or social proof. If it's not a real, verifiable fact, we don't say it.
 - **Log Enforcement**: Every PR must include an update to `SESSION_LOG.md`. Missing logs must be auto-generated based on commit history and the PR refreshed with a review request.
