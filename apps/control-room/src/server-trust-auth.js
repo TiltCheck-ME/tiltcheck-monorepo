@@ -18,7 +18,7 @@ const wss = new WebSocketServer({ server });
 
 const PORT = process.env.CONTROL_ROOM_PORT || process.env.PORT || 3001;
 const isProd = process.env.NODE_ENV === 'production';
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || (isProd ? (() => { throw new Error('ADMIN_PASSWORD is required in production'); })() : 'admin123');
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || (isProd ? (() => { throw new Error('ADMIN_PASSWORD is required in production'); })() : (() => { throw new Error('ADMIN_PASSWORD is required - set in .env file'); })());
 const SESSION_SECRET = process.env.SESSION_SECRET || (isProd ? (() => { throw new Error('SESSION_SECRET is required in production'); })() : 'tiltcheck-control-room-secret');
 
 // Known containers in the TiltCheck stack
@@ -206,15 +206,30 @@ app.get('/api/system/metrics', requireAuth, async (req, res) => {
 // ─── Container Actions ─────────────────────────────────────────────────────────
 app.post('/api/container/:action/:name', requireAuth, async (req, res) => {
   const { action, name } = req.params;
-  const safe = sanitizeContainer(name);
-  if (!safe) return res.status(400).json({ error: 'Invalid container name' });
+  const safeName = sanitizeContainer(name);
+  if (!safeName) return res.status(400).json({ error: 'Invalid container name' });
 
-  const allowed = ['restart', 'stop', 'start', 'kill'];
-  if (!allowed.includes(action)) return res.status(400).json({ error: 'Invalid action' });
+  let command;
+  switch (action) {
+    case 'restart':
+      command = `docker restart ${safeName}`;
+      break;
+    case 'stop':
+      command = `docker stop ${safeName}`;
+      break;
+    case 'start':
+      command = `docker start ${safeName}`;
+      break;
+    case 'kill':
+      command = `docker kill ${safeName}`;
+      break;
+    default:
+      return res.status(400).json({ error: 'Invalid action' });
+  }
 
   try {
-    const { stdout, stderr } = await execAsync(`docker ${action} ${safe}`);
-    console.log(`[CONTROL ROOM] docker ${action} ${safe}`);
+    const { stdout, stderr } = await execAsync(command);
+    console.log(`[CONTROL ROOM] Executed: ${command}`);
     res.json({ success: true, output: (stdout + stderr).trim() });
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -330,7 +345,7 @@ if (isMainModule) {
   server.listen(PORT, () => {
     console.log(`🎛️  Control Room running on port ${PORT}`);
     console.log(`🐳 Docker-aware monitoring enabled`);
-    console.log(`🔒 Set ADMIN_PASSWORD env var (default: admin123 — change this!)`);
+    
   });
 }
 

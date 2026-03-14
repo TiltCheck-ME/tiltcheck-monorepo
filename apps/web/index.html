@@ -7,81 +7,12 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@700&display=swap" rel="stylesheet">
-  <script src="https://cdn.tailwindcss.com"></script>
-  <style>
-    /* Global Background & Grid Overlay */
-    body.degen-background {
-      background-color: #0E0E0F;
-      background-image: url('/global-background-v2.jpg');
-      background-size: cover;
-      background-position: center;
-      background-attachment: fixed;
-    }
-    .hide-scrollbar::-webkit-scrollbar { display: none; }
-    .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-
-    /* Neon Hero Styles */
-    .neon {
-      position: relative;
-      text-transform: uppercase;
-      letter-spacing: 2px;
-      font-family: 'Space Grotesk', sans-serif;
-      font-weight: 700;
-    }
-    .neon-main {
-      font-size: 110px;
-      color: #fff;
-      text-shadow: 0 0 2px #fff, 0 0 5px #fff, 0 0 10px #00ffaa;
-    }
-    .neon-sub {
-      font-size: 70px;
-      color: #fff;
-      text-shadow: 0 0 2px #fff, 0 0 5px #00ffaa;
-    }
-    .neon-title {
-      color: #fff;
-      text-shadow: 0 0 2px #fff, 0 0 8px rgba(0, 255, 170, 0.7);
-    }
-    .reflection::after {
-      content: attr(data-text);
-      position: absolute;
-      top: 100%;
-      left: 0;
-      width: 100%;
-      transform: scaleY(-1);
-      opacity: 0.2;
-      background: linear-gradient(to bottom, rgba(255, 255, 255, 0.2), transparent);
-      -webkit-background-clip: text;
-      color: transparent;
-      text-shadow: none;
-    }
-    .floor {
-      position: absolute;
-      bottom: -50px;
-      left: 0;
-      width: 100%;
-      height: 100px;
-      background: radial-gradient(ellipse at center, rgba(0,255,170,0.1) 0%, transparent 70%);
-      filter: blur(40px);
-    }
-  </style>
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          colors: {
-            'degen-black': '#0d1117',
-            'degen-gray': '#161b22',
-            'degen-green': '#00ffaa',
-            'degen-purple': '#a855f7',
-          }
-        }
-      }
-    }
-  </script>
+  <link rel="stylesheet" href="/styles/main.css">
+  
 </head>
 <body class="degen-background text-white">
-
+  <canvas id="glitter-background"></canvas>
+  <div class="content-wrapper">
   <header class="bg-degen-gray/80 backdrop-blur-lg border-b border-white/10 sticky top-0 z-50">
     <nav class="container mx-auto flex items-center justify-between p-4 text-white">
       <a href="/" class="flex items-center space-x-3">
@@ -89,22 +20,27 @@
         <span class="font-black text-xl hidden sm:inline">TiltCheck</span>
       </a>
       <div class="hidden md:flex items-center space-x-2">
-        <a href="/features.html" class="text-sm font-medium text-gray-300 hover:text-degen-green px-3 py-2 rounded-md transition-all hover:bg-white/5 hover:shadow-lg hover:shadow-degen-purple/10">Features</a>
-        <a href="/how-it-works.html" class="text-sm font-medium text-gray-300 hover:text-degen-green px-3 py-2 rounded-md transition-all hover:bg-white/5 hover:shadow-lg hover:shadow-degen-purple/10">How It Works</a>
-        <a href="/about.html" class="text-sm font-medium text-gray-300 hover:text-degen-green px-3 py-2 rounded-md transition-all hover:bg-white/5 hover:shadow-lg hover:shadow-degen-purple/10">About</a>
-        <a href="https://github.com/jmenichole/tiltcheck-monorepo" target="_blank" rel="noopener" class="text-sm font-medium text-gray-300 hover:text-degen-green px-3 py-2 rounded-md transition-all hover:bg-white/5 hover:shadow-lg hover:shadow-degen-purple/10">GitHub</a>
+        <a href="/features.html#agent" class="text-sm font-medium text-gray-300 hover:text-degen-green px-3 py-2 rounded-md transition-all hover:bg-white/5 hover:shadow-lg hover:shadow-degen-purple/10 neon-nav-style">Degen Intelligence Agent</a>
+        <a href="/trust-scores.html" class="text-sm font-medium text-gray-300 hover:text-degen-green px-3 py-2 rounded-md transition-all hover:bg-white/5 hover:shadow-lg hover:shadow-degen-purple/10 neon-nav-style">Casino Trust Scores</a>
+        <a href="/dashboard" class="text-sm font-medium text-gray-300 hover:text-degen-green px-3 py-2 rounded-md transition-all hover:bg-white/5 hover:shadow-lg hover:shadow-degen-purple/10 neon-nav-style">Dashboard</a>
+        <a href="/features.html#status" class="text-sm font-medium text-gray-300 hover:text-degen-green px-3 py-2 rounded-md transition-all hover:bg-white/5 hover:shadow-lg hover:shadow-degen-purple/10 neon-nav-style">Alpha/Beta</a>
+        <a href="https://discord.gg/s6NNfPHxMS" target="_blank" rel="noopener" class="text-sm font-medium text-gray-300 hover:text-degen-green px-3 py-2 rounded-md transition-all hover:bg-white/5 hover:shadow-lg hover:shadow-degen-purple/10 neon-nav-style">Join 3/15/26</a>
       </div>
       <div class="flex items-center space-x-4">
-         <a href="https://discord.gg/s6NNfPHxMS" target="_blank" rel="noopener" class="btn btn-secondary text-sm px-4 py-2">Join Discord</a>
+         <a href="/login.html" class="discord-login-btn btn btn-secondary text-sm px-4 py-2 neon-nav-style">Login with Discord</a>
       </div>
     </nav>
   </header>
 
   <main id="main-content">
-    <section class="hero-surface pt-24 pb-20 px-6 text-center relative">
-        <div class="neon reflection neon-main" data-text="HOUSE ALWAYS WINS?">HOUSE ALWAYS WINS?</div>
-        <div class="neon reflection neon-sub" data-text="FUCK THAT.">FUCK THAT.</div>
-        <div class="floor"></div>
+    <section class="hero-surface pt-12 pb-8 px-6 text-center relative">
+        <div class="mt-12 max-w-3xl mx-auto">
+          <h1 class="neon neon-main" data-text="HOUSE ALWAYS WINS?">HOUSE ALWAYS WINS?</h1>
+          <h2 class="neon neon-sub" data-text="FUCK THAT.">FUCK THAT.</h2>
+          <p class="text-lg md:text-xl text-gray-300 leading-relaxed mt-8">
+            Casinos are ruthless. Your tools should be too. Telling degens to quit won't work—so we engineered harm reduction 2.0 to help you play smarter and tilt less.
+          </p>
+        </div>
     </section>
 
     <section class="py-12 border-y border-white/5 bg-[#111316]/30">
@@ -137,59 +73,59 @@
           <div class="flex items-center"><span class="h-2 w-2 rounded-full bg-degen-green mr-2"></span>Live</div>
           <div class="flex items-center"><span class="h-2 w-2 rounded-full bg-degen-purple mr-2"></span>Alpha/Beta</div>
         </div>
-        <div class="flex overflow-x-auto space-x-6 pb-8 -mx-6 px-6 relative hide-scrollbar">
+        <div class="flex overflow-x-auto space-x-6 pb-8 -mx-6 px-6 relative hide-scrollbar" id="tools-carousel" style="scroll-behavior: smooth;">
           <a href="/features.html#agent" class="group p-8 rounded-lg border border-white/10 bg-white/5 backdrop-blur-lg hover:border-degen-green/70 hover:-translate-y-2 transition-all flex flex-col justify-between flex-none w-72">
             <div>
-              <h3 class="text-xl font-bold mb-2">Degen Intelligence</h3>
+              <h3 class="text-xl font-bold mb-2 neon-tool-name">Degen Intelligence</h3>
               <p class="text-gray-400 text-sm mb-6">Your personal on-chain analyst. Ask it anything about your gameplay in natural language via Discord DM.</p>
             </div>
             <div class="text-xs font-bold uppercase px-2 py-1 rounded-full bg-degen-green text-degen-black self-start">Live</div>
           </a>
           <a href="/extension.html" class="group p-8 rounded-lg border border-white/10 bg-white/5 backdrop-blur-lg hover:border-degen-green/70 hover:-translate-y-2 transition-all flex flex-col justify-between flex-none w-72">
             <div>
-              <h3 class="text-xl font-bold mb-2">The House Edge</h3>
+              <h3 class="text-xl font-bold mb-2 neon-tool-name">The House Edge</h3>
               <p class="text-gray-400 text-sm mb-6">A real-time co-pilot that watches for fairness anomalies, detects tilt, and enables harm reduction tools like autovaulting.</p>
             </div>
             <div class="text-xs font-bold uppercase px-2 py-1 rounded-full bg-degen-green text-degen-black self-start">Live</div>
           </a>
           <a href="/features.html#lockvault" class="group p-8 rounded-lg border border-white/10 bg-white/5 backdrop-blur-lg hover:border-degen-green/70 hover:-translate-y-2 transition-all flex flex-col justify-between flex-none w-72">
             <div>
-              <h3 class="text-xl font-bold mb-2">Wallet Lock</h3>
+              <h3 class="text-xl font-bold mb-2 neon-tool-name">Wallet Lock</h3>
               <p class="text-gray-400 text-sm mb-6">Time-lock your funds so your tilted future-self can't touch them. The ultimate form of self-control.</p>
             </div>
             <div class="text-xs font-bold uppercase px-2 py-1 rounded-full bg-degen-green text-degen-black self-start">Live</div>
           </a>
           <a href="/tools/justthetip.html" class="group p-8 rounded-lg border border-white/10 bg-white/5 backdrop-blur-lg hover:border-degen-green/70 hover:-translate-y-2 transition-all flex flex-col justify-between flex-none w-72">
             <div>
-              <h3 class="text-xl font-bold mb-2">JustTheTip</h3>
+              <h3 class="text-xl font-bold mb-2 neon-tool-name">JustTheTip</h3>
               <p class="text-gray-400 text-sm mb-6">Secure, non-custodial Solana tipping, airdrops, and swaps directly in Discord.</p>
             </div>
             <div class="text-xs font-bold uppercase px-2 py-1 rounded-full bg-degen-green text-degen-black self-start">Live</div>
           </a>
           <a href="/tools/suslink.html" class="group p-8 rounded-lg border border-white/10 bg-white/5 backdrop-blur-lg hover:border-degen-green/70 hover:-translate-y-2 transition-all flex flex-col justify-between flex-none w-72">
             <div>
-              <h3 class="text-xl font-bold mb-2">LinkCheck</h3>
+              <h3 class="text-xl font-bold mb-2 neon-tool-name">LinkCheck</h3>
               <p class="text-gray-400 text-sm mb-6">AI-powered link scanning to detect scams and phishing redirects before you click.</p>
             </div>
             <div class="text-xs font-bold uppercase px-2 py-1 rounded-full bg-degen-green text-degen-black self-start">Live</div>
           </a>
           <a href="/features.html#trust" class="group p-8 rounded-lg border border-white/10 bg-white/5 backdrop-blur-lg hover:border-degen-green/70 hover:-translate-y-2 transition-all flex flex-col justify-between flex-none w-72">
             <div>
-              <h3 class="text-xl font-bold mb-2">Trust Engine</h3>
+              <h3 class="text-xl font-bold mb-2 neon-tool-name">Trust Engine</h3>
               <p class="text-gray-400 text-sm mb-6">Data-driven trust scores for casinos and users, based on real behavior, not paid reviews.</p>
             </div>
             <div class="text-xs font-bold uppercase px-2 py-1 rounded-full bg-degen-green text-degen-black self-start">Live</div>
           </a>
           <a href="/tools/daad.html" class="group p-8 rounded-lg border border-white/10 bg-white/5 backdrop-blur-lg hover:border-degen-green/70 hover:-translate-y-2 transition-all flex flex-col justify-between flex-none w-72">
             <div>
-              <h3 class="text-xl font-bold mb-2">DA&D</h3>
+              <h3 class="text-xl font-bold mb-2 neon-tool-name">DA&D</h3>
               <p class="text-gray-400 text-sm mb-6">Outrageous multiplayer card game playable as a Discord Activity.</p>
             </div>
             <div class="text-xs font-bold uppercase px-2 py-1 rounded-full bg-degen-green text-degen-black self-start">Live</div>
           </a>
           <a href="/tools/collectclock.html" class="group p-8 rounded-lg border border-white/10 bg-white/5 backdrop-blur-lg hover:border-degen-purple/70 hover:-translate-y-2 transition-all flex flex-col justify-between flex-none w-72">
             <div>
-              <h3 class="text-xl font-bold mb-2">BonusCheck</h3>
+              <h3 class="text-xl font-bold mb-2 neon-tool-name">BonusCheck</h3>
               <p class="text-gray-400 text-sm mb-6">Bonus drop tracking with nerf detection and window prediction.</p>
             </div>
             <div class="text-xs font-bold uppercase px-2 py-1 rounded-full bg-degen-purple text-white self-start">Beta</div>
@@ -205,26 +141,53 @@
           <div>
             <h4 class="font-bold text-white uppercase tracking-wider text-xs mb-4">Product</h4>
             <ul class="space-y-2">
-              <li><a href="/features.html" class="hover:text-white transition-colors">Features</a></li>
-              <li><a href="/how-it-works.html" class="hover:text-white transition-colors">How It Works</a></li>
-              <li><a href="/trust-explained.html" class="hover:text-white transition-colors">Trust System</a></li>
-              <li><a href="/faq.html" class="hover:text-white transition-colors">FAQ</a></li>
+              <li><a href="/features.html" class="hover:text-degen-green transition-colors">Features</a></li>
+              <li><a href="/how-it-works.html" class="hover:text-degen-green transition-colors">How It Works</a></li>
+              <li><a href="/trust-explained.html" class="hover:text-degen-green transition-colors">Trust System</a></li>
+              <li><a href="/faq.html" class="hover:text-degen-green transition-colors">FAQ</a></li>
+              <li><a href="/extension.html" class="hover:text-degen-green transition-colors">Chrome Extension</a></li>
+              <li><a href="/beta.html" class="hover:text-degen-green transition-colors">Beta Program</a></li>
+            </ul>
+          </div>
+          <div>
+            <h4 class="font-bold text-white uppercase tracking-wider text-xs mb-4">Tools</h4>
+            <ul class="space-y-2">
+              <li><a href="/tools/justthetip.html" class="hover:text-degen-green transition-colors">JustTheTip</a></li>
+              <li><a href="/tools/suslink.html" class="hover:text-degen-green transition-colors">LinkCheck</a></li>
+              <li><a href="/tools/daad.html" class="hover:text-degen-green transition-colors">DA&D Game</a></li>
+              <li><a href="/tools/collectclock.html" class="hover:text-degen-green transition-colors">BonusCheck</a></li>
+              <li><a href="/trust-api.html" class="hover:text-degen-green transition-colors">Trust API</a></li>
+              <li><a href="/casino-reviews.html" class="hover:text-degen-green transition-colors">Casino Reviews</a></li>
             </ul>
           </div>
           <div>
             <h4 class="font-bold text-white uppercase tracking-wider text-xs mb-4">Company</h4>
             <ul class="space-y-2">
-              <li><a href="/about.html" class="hover:text-white transition-colors">About</a></li>
-              <li><a href="https://github.com/jmenichole/tiltcheck-monorepo" target="_blank" rel="noopener" class="hover:text-white transition-colors">GitHub</a></li>
-              <li><a href="https://discord.gg/s6NNfPHxMS" target="_blank" rel="noopener" class="hover:text-white transition-colors">Discord</a></li>
-              <li><a href="/contact.html" class="hover:text-white transition-colors">Contact</a></li>
+              <li><a href="/about.html" class="hover:text-degen-green transition-colors">About</a></li>
+              <li><a href="https://github.com/jmenichole/tiltcheck-monorepo" target="_blank" rel="noopener" class="hover:text-degen-green transition-colors">GitHub</a></li>
+              <li><a href="https://discord.gg/s6NNfPHxMS" target="_blank" rel="noopener" class="hover:text-degen-green transition-colors">Discord</a></li>
+              <li><a href="/contact.html" class="hover:text-degen-green transition-colors">Contact</a></li>
+              <li><a href="/press-kit.html" class="hover:text-degen-green transition-colors">Press Kit</a></li>
+            </ul>
+          </div>
+          <div>
+            <h4 class="font-bold text-white uppercase tracking-wider text-xs mb-4">Resources</h4>
+            <ul class="space-y-2">
+              <li><a href="/getting-started.html" class="hover:text-degen-green transition-colors">Getting Started</a></li>
+              <li><a href="/tutorials.html" class="hover:text-degen-green transition-colors">Tutorials</a></li>
+              <li><a href="/glossary.html" class="hover:text-degen-green transition-colors">Glossary</a></li>
+              <li><a href="/help.html" class="hover:text-degen-green transition-colors">Help Center</a></li>
+              <li><a href="/scam-reports.html" class="hover:text-degen-green transition-colors">Scam Reports</a></li>
             </ul>
           </div>
           <div>
             <h4 class="font-bold text-white uppercase tracking-wider text-xs mb-4">Legal</h4>
             <ul class="space-y-2">
-              <li><a href="/privacy.html" class="hover:text-white transition-colors">Privacy Policy</a></li>
-              <li><a href="/terms.html" class="hover:text-white transition-colors">Terms of Service</a></li>
+              <li><a href="/privacy.html" class="hover:text-degen-green transition-colors">Privacy Policy</a></li>
+              <li><a href="/terms.html" class="hover:text-degen-green transition-colors">Terms of Service</a></li>
+              <li><a href="/cookie-policy.html" class="hover:text-degen-green transition-colors">Cookie Policy</a></li>
+              <li><a href="/responsible-gambling.html" class="hover:text-degen-green transition-colors">Responsible Gambling</a></li>
+              <li><a href="/compliance.html" class="hover:text-degen-green transition-colors">Compliance</a></li>
             </ul>
           </div>
       </div>
@@ -242,5 +205,8 @@
 
   <script src="/scripts/index-stats.js"></script>
   <script src="/scripts/auth.js"></script>
+  
+  <script src="/scripts/glitter.js" defer></script>
+  </div>
 </body>
 </html>
