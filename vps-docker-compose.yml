@@ -114,26 +114,6 @@ services:
     networks:
       - tiltcheck-network
 
-  reverse-proxy:
-    build:
-      context: .
-      dockerfile: apps/reverse-proxy/Dockerfile
-    container_name: reverse-proxy
-    ports:
-      - "81:80"
-      - "444:443"
-    restart: unless-stopped
-    volumes:
-      - /etc/letsencrypt:/etc/letsencrypt:ro
-      - /home/jme/certbot:/var/www/certbot:ro
-    depends_on:
-      - landing
-      - api
-      - user-dashboard
-      - game-arena
-    networks:
-      - tiltcheck-network
-
 networks:
   tiltcheck-network:
     driver: bridge

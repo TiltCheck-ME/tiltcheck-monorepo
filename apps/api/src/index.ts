@@ -11,6 +11,8 @@ import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
+import http from 'http';
+import { WebSocketServer } from 'ws';
 
 import { authRouter } from './routes/auth.js';
 import { servicesRouter } from './routes/services.js';
@@ -169,9 +171,86 @@ app.use(errorHandler);
 const PORT = parseInt(process.env.PORT || '3001', 10);
 const HOST = process.env.HOST || '0.0.0.0';
 
-app.listen(PORT, HOST, () => {
+const server = http.createServer(app);
+
+// ============================================================================
+// WebSocket Server Setup
+// ============================================================================
+
+const wss = new WebSocketServer({ server, path: '/analyzer' });
+
+wss.on('connection', (ws) => {
+  console.log('[Analyzer] Client connected');
+
+  ws.on('message', (data) => {
+    try {
+      const message = JSON.parse(data.toString());
+
+      switch (message.type) {
+        case 'ping':
+          ws.send(JSON.stringify({ type: 'pong', ts: Date.now() }));
+          break;
+
+        case 'spin':
+          // Process spin data
+          // TODO: Validate spin data structure
+          // TODO: Calculate fairness metrics
+          // TODO: Store in database if needed
+          // TODO: Return analysis
+          ws.send(JSON.stringify({
+            type: 'spin_ack',
+            sessionId: message.data?.sessionId,
+            analyzed: true,
+            metrics: {
+              expectedRTP: 0.96,
+              observedRTP: message.data?.payout / message.data?.bet || 0,
+              anomalies: []
+            }
+          }));
+          break;
+
+        case 'request_report':
+          // Generate fairness report for session
+          // TODO: Pull historical data for sessionId
+          // TODO: Calculate aggregated metrics
+          ws.send(JSON.stringify({
+            type: 'report',
+            sessionId: message.sessionId,
+            report: {
+              totalSpins: 0,
+              averageRTP: 0.96,
+              fairnessScore: 100,
+              concerns: []
+            }
+          }));
+          break;
+
+        default:
+          console.warn('[Analyzer] Unknown message type:', message.type);
+      }
+    } catch (error) {
+      console.error('[Analyzer] Error processing message:', error);
+      ws.send(JSON.stringify({
+        type: 'error',
+        message: 'Failed to process message'
+      }));
+    }
+  });
+
+  ws.on('close', () => {
+    console.log('[Analyzer] Client disconnected');
+  });
+
+  ws.on('error', (error) => {
+    console.error('[Analyzer] WebSocket error:', error);
+  });
+});
+
+server.listen(PORT, HOST, () => {
   console.log(`[API Gateway] Running on http://${HOST}:${PORT}`);
   console.log(`[API Gateway] Environment: ${process.env.NODE_ENV || 'development'}`);
+  console.log(`[Analyzer] WebSocket listening on ws://${HOST}:${PORT}/analyzer`);
 });
 
 export default app;
+export { server };

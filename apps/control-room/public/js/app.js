@@ -134,12 +134,12 @@ function renderContainerGrid(services) {
       '</div>'
     ) : '';
     var actionsHtml = s.status === 'running' ? (
-      '<button class="btn btn-xs btn-warning" onclick="containerAction(\'restart\',\'' + s.name + '\')">&#x21BA; Restart</button>' +
-      '<button class="btn btn-xs btn-danger" onclick="containerAction(\'stop\',\'' + s.name + '\')">&#9632; Stop</button>' +
-      '<button class="btn btn-xs btn-ghost" onclick="openLogs(\'' + s.name + '\')">&#x1F4CB; Logs</button>'
+      '<button class="btn btn-xs btn-warning" onclick="containerAction(\'restart\',\'' + escJs(s.name) + '\')">&#x21BA; Restart</button>' +
+      '<button class="btn btn-xs btn-danger" onclick="containerAction(\'stop\',\'' + escJs(s.name) + '\')">&#9632; Stop</button>' +
+      '<button class="btn btn-xs btn-ghost" onclick="openLogs(\'' + escJs(s.name) + '\')">&#x1F4CB; Logs</button>'
     ) : (
-      '<button class="btn btn-xs btn-primary" onclick="containerAction(\'start\',\'' + s.name + '\')">&#9654; Start</button>' +
-      '<button class="btn btn-xs btn-ghost" onclick="openLogs(\'' + s.name + '\')">&#x1F4CB; Logs</button>'
+      '<button class="btn btn-xs btn-primary" onclick="containerAction(\'start\',\'' + escJs(s.name) + '\')">&#9654; Start</button>' +
+      '<button class="btn btn-xs btn-ghost" onclick="openLogs(\'' + escJs(s.name) + '\')">&#x1F4CB; Logs</button>'
     );
     return '<div class="container-card ' + statusClass(s.status) + '">' +
       '<div class="cc-header">' +
@@ -187,7 +187,7 @@ function buildLogsSidebar() {
   var list = document.getElementById('logs-container-list');
   if (!list || !allServices.length) return;
   list.innerHTML = allServices.map(function(s) {
-    return '<div class="logs-item ' + (s.name === selectedContainer ? 'active' : '') + ' ' + statusClass(s.status) + '" onclick="openLogs(\'' + s.name + '\')">' +
+    return '<div class="logs-item ' + (s.name === selectedContainer ? 'active' : '') + ' ' + statusClass(s.status) + '" onclick="openLogs(\'' + escJs(s.name) + '\')">' +
       '<span>' + (s.icon || '&#x1F4E6;') + '</span>' +
       '<span class="logs-item-name">' + escHtml(s.label) + '</span>' +
       '<span class="logs-item-dot ' + statusClass(s.status) + '"></span>' +
@@ -407,4 +407,11 @@ function escHtml(str) {
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;');
+}
+
+function escJs(str) {
+  if (str == null) return '';
+  return String(str)
+    .replace(/\\/g, '\\\\')
+    .replace(/'/g, "\\'");
 }

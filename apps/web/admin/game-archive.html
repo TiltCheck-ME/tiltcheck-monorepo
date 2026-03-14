@@ -222,6 +222,10 @@
       margin-bottom: 16px;
     }
   </style>
+<link rel="stylesheet" href="/styles/main.css">
+  <script src="/scripts/glitter.js" defer></script>
+<link rel="stylesheet" href="/styles/main.css">
+  <script src="/scripts/glitter.js" defer></script>
 </head>
 
 <body>
@@ -304,6 +308,15 @@
     const stakeImportBtn = document.getElementById('stake-import-btn');
     const refreshInsightsBtn = document.getElementById('refresh-insights-btn');
 
+    function escHtml(str) {
+      if (str == null) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+
     // Drag & drop upload
     uploadZone.addEventListener('click', () => fileInput.click());
 
@@ -347,13 +360,13 @@
         const result = await response.json();
 
         if (response.ok) {
-          uploadStatus.innerHTML = `<div class="success">${result.sessions_uploaded} sessions uploaded successfully!</div>`;
+          uploadStatus.innerHTML = `<div class="success">${escHtml(result.sessions_uploaded)} sessions uploaded successfully!</div>`;
           loadInsights();
         } else {
-          uploadStatus.innerHTML = `<div class="error">${result.error}</div>`;
+          uploadStatus.innerHTML = `<div class="error">${escHtml(result.error)}</div>`;
         }
       } catch (err) {
-        uploadStatus.innerHTML = `<div class="error">Upload failed: ${err.message}</div>`;
+        uploadStatus.innerHTML = `<div class="error">Upload failed: ${escHtml(err.message)}</div>`;
       }
     }
 
@@ -383,13 +396,13 @@
         const result = await response.json();
 
         if (response.ok) {
-          uploadStatus.innerHTML = `<div class="success">${result.sessions_imported} sessions imported from Stake!</div>`;
+          uploadStatus.innerHTML = `<div class="success">${escHtml(result.sessions_imported)} sessions imported from Stake!</div>`;
           loadInsights();
         } else {
-          uploadStatus.innerHTML = `<div class="error">${result.error}</div>`;
+          uploadStatus.innerHTML = `<div class="error">${escHtml(result.error)}</div>`;
         }
       } catch (err) {
-        uploadStatus.innerHTML = `<div class="error">Import failed: ${err.message}</div>`;
+        uploadStatus.innerHTML = `<div class="error">Import failed: ${escHtml(err.message)}</div>`;
       }
     });
 
@@ -412,7 +425,7 @@
           insightsContainer.innerHTML = '<p class="loading">No insights available yet. Upload data to begin analysis.</p>';
         }
       } catch (err) {
-        insightsContainer.innerHTML = `<div class="error">Failed to load insights: ${err.message}</div>`;
+        insightsContainer.innerHTML = `<div class="error">Failed to load insights: ${escHtml(err.message)}</div>`;
       }
     }
 
@@ -421,19 +434,19 @@
       const statsHTML = `
         <div class="stats-grid">
           <div class="stat-card">
-            <div class="stat-value">${data.total_sessions}</div>
+            <div class="stat-value">${escHtml(data.total_sessions)}</div>
             <div class="stat-label">Total Sessions</div>
           </div>
           <div class="stat-card">
-            <div class="stat-value">${data.insights.length}</div>
+            <div class="stat-value">${escHtml(data.insights.length)}</div>
             <div class="stat-label">Patterns Found</div>
           </div>
           <div class="stat-card">
-            <div class="stat-value">${new Date(data.date_range.start).toLocaleDateString()}</div>
+            <div class="stat-value">${escHtml(new Date(data.date_range.start).toLocaleDateString())}</div>
             <div class="stat-label">Start Date</div>
           </div>
           <div class="stat-card">
-            <div class="stat-value">${new Date(data.date_range.end).toLocaleDateString()}</div>
+            <div class="stat-value">${escHtml(new Date(data.date_range.end).toLocaleDateString())}</div>
             <div class="stat-label">End Date</div>
           </div>
         </div>
@@ -446,11 +459,11 @@
         return `
           <div class="insight-item ${isTilt ? 'tilt-warning' : ''}">
             <div class="insight-header">
-              <span class="insight-type">${insight.pattern_type.replace(/_/g, ' ')}</span>
-              <span class="insight-confidence">${confidencePercent}% confidence • ${insight.data_points} sessions</span>
+              <span class="insight-type">${escHtml(insight.pattern_type.replace(/_/g, ' '))}</span>
+              <span class="insight-confidence">${escHtml(confidencePercent)}% confidence • ${escHtml(insight.data_points)} sessions</span>
             </div>
-            <div class="insight-description">${insight.description}</div>
-            ${insight.recommendation ? `<div class="insight-recommendation">${insight.recommendation}</div>` : ''}
+            <div class="insight-description">${escHtml(insight.description)}</div>
+            ${insight.recommendation ? `<div class="insight-recommendation">${escHtml(insight.recommendation)}</div>` : ''}
           </div>
         `;
       }).join('');
