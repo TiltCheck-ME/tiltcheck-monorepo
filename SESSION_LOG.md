@@ -1,7 +1,76 @@
-# SESSION_LOG - 2026-03-11 - Save Point: "Core Infrastructure Complete"
+# SESSION_LOG - 2026-03-13 - Save Point: "Discord OAuth Fixed + Brand Agents Deployed"
 
-## Current Status: 100% Live (Ecosystem Migrated)
-All core services and shadow services successfully migrated to Cloud Run.
+## Current Status: 100% Live (Ecosystem Migrated + OAuth Fixed)
+All core services live, Discord OAuth issues resolved, brand compliance agents deployed.
+
+### Latest Session (2026-03-13)
+
+#### Discord OAuth Login Issues - FIXED ✅
+All 5 critical Discord OAuth problems identified and resolved:
+
+1. **Extension State Validation in Production** ✅
+   - Issue: oauth_state cookie with domain: .tiltcheck.me inaccessible to extension
+   - Fix: Removed domain parameter (same-site only), added fallback state prefix validation (ext_/web_)
+   - File: apps/api/src/routes/auth.ts (lines 428-436, 515-522)
+   - Impact: Extension OAuth now works in production
+
+2. **Token Exposure in User Dashboard** ✅
+   - Issue: JWT passed as URL query parameter, exposed in history/logs
+   - Fix: Set secure HTTP-only cookie instead of URL param
+   - File: apps/user-dashboard/src/index.ts (lines 172-178)
+   - Impact: Tokens no longer exposed in browser history
+
+3. **Extension Storage Race Condition** ✅
+   - Issue: auth-bridge auto-closes before storage write completes, sidebar reads undefined
+   - Fix: Promise-based storage handling with ACK messages and retry logic
+   - File: apps/chrome-extension/src/auth-bridge.js (lines 66-130)
+   - Impact: Auth always succeeds even on slow storage operations
+
+4. **Extension Runtime ID Validation** ✅
+   - Issue: Runtime ID changes on reinstall, causing "Missing trusted extension origin" errors
+   - Fix: Pass ext_id at login, validate on callback, reject mismatches
+   - Files: apps/chrome-extension/src/config.ts, apps/api/src/routes/auth.ts
+   - Impact: Extension reinstalls handled securely
+
+5. **Merge Conflict in Auth Tests** ✅
+   - Issue: Unresolved merge conflict in apps/api/tests/routes/auth-oauth-state.test.ts
+   - Fix: Resolved by keeping all imports (createSession, exchangeDiscordCode, verifyDiscordOAuth, findOrCreateUserByDiscord)
+   - File: apps/api/tests/routes/auth-oauth-state.test.ts (lines 36-37)
+   - Impact: Test suite compiles and runs
+
+#### Brand Law Enforcer Agent - DEPLOYED ✅
+- **Purpose:** Automated PR reviewer enforcing "The Degen Laws" (brand tone, headers, no secrets, atomic docs)
+- **Files:** .cursor/agents/brand-law-enforcer.md + .github/agents/brand-law-enforcer.yml
+- **Authority:** CRITICAL (blocks merge for hardcoded secrets, custodial code)
+- **Activation:** Automatic on all PRs
+- **9 Laws Enforced:**
+  1. No hardcoded secrets (auto-blocks)
+  2. No custodial code patterns (auto-blocks)
+  3. Mandatory copyright headers
+  4. Brand tone compliance (direct, blunt, skeptical)
+  5. No emojis in code/comments
+  6. "Made for Degens. By Degens." footer on all UIs
+  7. Atomic documentation updates
+  8. SESSION_LOG.md updates required
+  9. Test coverage >70% for business logic
+
+#### Frontend & Marketing Suggestions Agent - DEPLOYED ✅
+- **Purpose:** Weekly automation (Mondays 9 AM UTC) generating UI/UX improvement suggestions
+- **Files:** .cursor/agents/frontend-marketing-suggestions.md + .github/workflows/frontend-suggestions.yml
+- **Categories:** CTA optimization, copy clarity, visual hierarchy, friction reduction, mobile, dark mode, A/B tests
+- **Target Impact:** +5-15% engagement/conversion per sprint
+- **Areas Covered:** Landing page, dashboard, extension, Discord bot
+
+#### Chrome Extension Dev Tools - CONFIGURED ✅
+- **MCP Tools Config:** .cursor/agents/mcp-tools.json (build, test, watch, lint, type-check)
+- **VS Code Debugger:** .cursor/agents/vscode-launch-config.json (extension + content script debugging)
+- **Dev Guide:** .cursor/agents/DEV-TOOLS-GUIDE.md (complete workflow guide)
+
+#### Documentation Updated
+- BRAND-LAW-AND-FRONTEND-AGENTS.md - Complete setup guide with examples
+- AGENT-DEPLOYMENT-SUMMARY.md - Team onboarding checklist
+- AGENTS.md - Updated with new agents registered
+- DEPLOYMENT_SUMMARY.txt - Quick reference summary
 
 ### Live Services (Cloud Run)
 - **tiltcheck-web**: Static landing page (https://tiltcheck.me)
