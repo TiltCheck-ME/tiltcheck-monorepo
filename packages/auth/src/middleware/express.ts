@@ -59,7 +59,16 @@ function defaultUnauthorizedHandler(
 export function getJWTConfigFromEnv(): JWTConfig {
   const secret = process.env.JWT_SECRET;
   if (!secret) {
-    throw new Error('JWT_SECRET environment variable is required');
+    if (process.env.NODE_ENV !== 'production') {
+      console.warn('Using default JWT_SECRET for development. Please set JWT_SECRET in .env for production.');
+      return {
+        secret: 'dev-jwt-secret', // Fallback for development
+        issuer: process.env.JWT_ISSUER || 'tiltcheck.me',
+        audience: process.env.JWT_AUDIENCE || 'tiltcheck.me',
+        expiresIn: process.env.JWT_EXPIRES_IN || '7d',
+      };
+    }
+    throw new Error('JWT_SECRET environment variable is required in production');
   }
   
   return {
