@@ -8,10 +8,6 @@ body.degen-background {
   position: relative;
 }
 
-#glitter-background {
-  display: none;
-}
-
 .content-wrapper {
   position: relative;
   z-index: 1;

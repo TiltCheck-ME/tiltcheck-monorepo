@@ -1,1 +1,0 @@
-// This script is intentionally left blank to disable the old glitter animation.
