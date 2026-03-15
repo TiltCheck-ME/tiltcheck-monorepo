@@ -22,12 +22,17 @@ try {
     INGEST_API_KEY = match[1].trim();
   }
 } catch {
-  // .env file might not exist, we'll check for the key later
+  // .env file might not exist
 }
 
 if (!INGEST_API_KEY) {
-  console.error('\x1b[31m%s\x1b[0m', '[ERROR] COMMUNITY_INTEL_INGEST_KEY not found in .env file. Please add it.');
-  process.exit(1);
+  if (process.env.NODE_ENV !== 'production') {
+    INGEST_API_KEY = 'dev-ingest-key'; // Development override
+    console.warn('\x1b[33m%s\x1b[0m', '[WARN] Using development ingest key for agent. Set COMMUNITY_INTEL_INGEST_KEY in .env for production.');
+  } else {
+    console.error('\x1b[31m%s\x1b[0m', '[ERROR] COMMUNITY_INTEL_INGEST_KEY not found in .env file. Please add it.');
+    process.exit(1);
+  }
 }
 
 // --- HELPER FUNCTIONS ---
@@ -149,6 +154,7 @@ async function main() {
       }
 
       console.log(`[INFO]   > Processing email from: ${from} | Subject: ${subject}`);
+      console.log('[AGENT] Debugging Ingest Key. Sending (first 5 chars):', INGEST_API_KEY ? `"${INGEST_API_KEY.substring(0, 5)}..."` : 'Not Set');
 
       // 5. Ingest data into the Trust Engine
       const ingestPayload = {
