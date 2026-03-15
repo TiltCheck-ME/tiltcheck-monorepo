@@ -30,7 +30,7 @@ import { authMiddleware, getJWTConfig } from '../middleware/auth.js';
 
 const router = Router();
 const DEFAULT_DISCORD_CLIENT_ID = '1445916179163250860';
-const DEFAULT_DISCORD_SCOPES = ['identify', 'identify.premium'];
+const DEFAULT_DISCORD_SCOPES = ['identify'];
 const DEFAULT_API_DISCORD_CALLBACK = 'https://api.tiltcheck.me/auth/discord/callback';
 
 // ============================================================================
@@ -40,17 +40,17 @@ const DEFAULT_API_DISCORD_CALLBACK = 'https://api.tiltcheck.me/auth/discord/call
 function getDiscordConfig(): DiscordOAuthConfig {
   const isProd = process.env.NODE_ENV === 'production';
   const clientId =
-    process.env.TILT_DISCORD_CLIENT_ID ||
-    process.env.DISCORD_CLIENT_ID ||
+    process.env.TILT_DISCORD_CLIENT_ID?.trim() ||
+    process.env.DISCORD_CLIENT_ID?.trim() ||
     DEFAULT_DISCORD_CLIENT_ID;
   const clientSecret =
-    process.env.TILT_DISCORD_CLIENT_SECRET ||
-    process.env.DISCORD_CLIENT_SECRET ||
+    process.env.TILT_DISCORD_CLIENT_SECRET?.trim() ||
+    process.env.DISCORD_CLIENT_SECRET?.trim() ||
     (isProd ? (() => { throw new Error('DISCORD_CLIENT_SECRET is required in production'); })() : '');
   const redirectUri =
-    process.env.TILT_DISCORD_REDIRECT_URI ||
-    process.env.DISCORD_REDIRECT_URI ||
-    process.env.DISCORD_CALLBACK_URL ||
+    process.env.TILT_DISCORD_REDIRECT_URI?.trim() ||
+    process.env.DISCORD_REDIRECT_URI?.trim() ||
+    process.env.DISCORD_CALLBACK_URL?.trim() ||
     DEFAULT_API_DISCORD_CALLBACK;
 
   return {
@@ -424,14 +424,16 @@ router.get('/discord/login', authLimiter, (req, res) => {
     const statePrefix = source === 'extension' ? 'ext_' : 'web_';
     const state = `${statePrefix}${generateOAuthState()}`;
 
+    const isSecure = process.env.NODE_ENV === 'production' || req.hostname === 'localhost';
+
     // Store state in a short-lived cookie
     // NOTE: No domain parameter = same-site only. This allows extension OAuth to work in production
     // since extension content scripts cannot access domain-scoped cookies (e.g., domain: .tiltcheck.me).
     // The callback validates: (1) state matches cookie if present, OR (2) state prefix is valid (ext_/web_).
     res.cookie('oauth_state', state, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
+      secure: isSecure,
+      sameSite: isSecure ? 'none' : 'lax',
       maxAge: 10 * 60 * 1000, // 10 minutes
     });
 
@@ -440,8 +442,8 @@ router.get('/discord/login', authLimiter, (req, res) => {
     if (redirectUrl) {
       res.cookie('oauth_redirect', redirectUrl, {
         httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
+        secure: isSecure,
+        sameSite: isSecure ? 'none' : 'lax',
         maxAge: 10 * 60 * 1000,
       });
     }
@@ -450,8 +452,8 @@ router.get('/discord/login', authLimiter, (req, res) => {
     if (source) {
       res.cookie('oauth_source', source, {
         httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
+        secure: isSecure,
+        sameSite: isSecure ? 'none' : 'lax',
         maxAge: 10 * 60 * 1000,
       });
     }
@@ -461,8 +463,8 @@ router.get('/discord/login', authLimiter, (req, res) => {
     if (openerOrigin) {
       res.cookie('oauth_opener_origin', openerOrigin, {
         httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
+        secure: isSecure,
+        sameSite: isSecure ? 'none' : 'lax',
         maxAge: 10 * 60 * 1000,
       });
     }
@@ -472,8 +474,8 @@ router.get('/discord/login', authLimiter, (req, res) => {
     if (source === 'extension' && extId) {
       res.cookie('oauth_extension_id', extId, {
         httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
+        secure: isSecure,
+        sameSite: isSecure ? 'none' : 'lax',
         maxAge: 10 * 60 * 1000,
       });
     }

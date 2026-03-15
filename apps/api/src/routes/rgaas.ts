@@ -124,6 +124,7 @@ router.post('/anti-tilt/evaluate', (req, res) => {
  */
 router.post('/trust/degen-intel', async (req, res) => {
   const requiredKey = (process.env.COMMUNITY_INTEL_INGEST_KEY || '').trim();
+  console.log('API Server sees COMMUNITY_INTEL_INGEST_KEY:', requiredKey ? 'Set' : 'Not Set');
   if (requiredKey) {
     const provided = String(req.headers['x-community-intel-key'] || '');
     if (provided !== requiredKey) {

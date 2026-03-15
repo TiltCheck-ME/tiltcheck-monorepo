@@ -19,8 +19,11 @@ const wss = new WebSocketServer({ server });
 
 const PORT = process.env.CONTROL_ROOM_PORT || process.env.PORT || 3001;
 const isProd = process.env.NODE_ENV === 'production';
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || (isProd ? (() => { throw new Error('ADMIN_PASSWORD is required in production'); })() : 'admin123');
-const SESSION_SECRET = process.env.SESSION_SECRET || (isProd ? (() => { throw new Error('SESSION_SECRET is required in production'); })() : 'tiltcheck-control-room-secret');
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
+if (!ADMIN_PASSWORD) {
+  throw new Error('ADMIN_PASSWORD environment variable is required');
+}
+const SESSION_SECRET = process.env.SESSION_SECRET || (isProd ? (() => { throw new Error('SESSION_SECRET is required in production'); })() : 'dev-only-change-in-production');
 
 // Middleware
 app.use(express.json());
@@ -112,6 +115,10 @@ app.get('/api/system/metrics', requireAuth, async (req, res) => {
 app.post('/api/process/restart/:service', requireAuth, async (req, res) => {
   try {
     const { service } = req.params;
+    // Sanitize the input to prevent command injection
+    if (!/^[a-zA-Z0-9_-]+$/.test(service)) {
+      return res.status(400).json({ error: 'Invalid service name' });
+    }
     const servicePath = path.join(__dirname, '../../', service);
     
     // Kill existing process
@@ -213,12 +220,12 @@ app.get('/api/feed/commands', requireAuth, (req, res) => {
 
 // WebSocket for real-time updates
 wss.on('connection', (ws) => {
-  console.log('Control room client connected');
+  // console.log('Control room client connected'); // Remove debugging log
   
   ws.on('message', (message) => {
     try {
       const data = JSON.parse(message);
-      console.log('Received:', data);
+      // console.log('Received:', data); // Remove debugging log
       
       // Echo back for now
       ws.send(JSON.stringify({ type: 'ack', data }));
@@ -228,7 +235,7 @@ wss.on('connection', (ws) => {
   });
   
   ws.on('close', () => {
-    console.log('Control room client disconnected');
+    // console.log('Control room client disconnected'); // Remove debugging log
   });
 });
 
@@ -455,8 +462,8 @@ app.post('/api/beta/signup', (req, res) => {
   
   // Sanitize email to prevent log injection
   const safeEmail = typeof email === 'string' ? email.replace(/[\n\r]/g, '') : '';
-  console.log(`[Beta] New signup: "${safeEmail}"`);
-  
+  // console.log(`[Beta] New signup: "${safeEmail}"`); // Remove debugging log
+
   res.json({ success: true, id: signup.id });
 });
 
@@ -486,5 +493,4 @@ app.get('/api/analytics/export', requireAuth, (req, res) => {
 server.listen(PORT, () => {
   console.log(`🎛️  Control Room running on port ${PORT}`);
   console.log(`📊 Analytics dashboard: http://localhost:${PORT}/analytics.html`);
-  console.log(`🔒 Admin password: ${ADMIN_PASSWORD}`);
 });
