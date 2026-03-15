@@ -36,7 +36,7 @@ export const config = {
 
   // Session
   session: {
-    secret: process.env.SESSION_SECRET || 'dev-secret-change-in-production',
+    secret: process.env.SESSION_SECRET || '',
     cookieName: 'tiltcheck.arena.sid',
     maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
   },

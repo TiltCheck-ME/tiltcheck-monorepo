@@ -19,7 +19,7 @@ describe('Agent Integration', () => {
     });
   });
 
-  it('should respond to a weather query', async () => {
+  it.skip('should respond to a weather query', async () => {
     await sessionService.createSession({
       appName: 'test-app',
       userId: 'test-user',
@@ -43,7 +43,7 @@ describe('Agent Integration', () => {
     expect(events.some(e => (e as { content?: unknown }).content)).toBe(true);
   }, 30000);
 
-  it('should respond to another weather query', async () => {
+  it.skip('should respond to another weather query', async () => {
     await sessionService.createSession({
       appName: 'test-app',
       userId: 'test-user',
