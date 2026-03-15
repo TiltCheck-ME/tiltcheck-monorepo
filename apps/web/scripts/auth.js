@@ -51,28 +51,27 @@ class TiltCheckAuth {
   }
 
   async checkAuthStatus() {
+    this.user = null; // Assume logged out until proven otherwise
+
     // Probe known auth endpoints in priority order.
     // This avoids false "logged out" states when one surface is unavailable.
-    for (const endpoint of this.getAuthProbeEndpoints()) {
+    const probePromises = this.getAuthProbeEndpoints().map(async (endpoint) => {
       try {
-        const response = await fetch(endpoint, {
-          credentials: 'include'
-        });
-
-        if (!response.ok) continue;
-
-        const payload = await response.json();
-        const user = this.normalizeAuthUser(payload);
-        if (user) {
-          this.user = user;
-          return;
+        const response = await fetch(endpoint, { credentials: 'include' });
+        if (response.ok) {
+          const payload = await response.json();
+          const user = this.normalizeAuthUser(payload);
+          if (user) return user;
         }
       } catch (_error) {
-        // Continue probing fallback endpoints.
+        // Ignore fetch errors and continue.
       }
-    }
+      return null;
+    });
 
-    this.user = null;
+    // Find the first successful probe result.
+    const results = await Promise.all(probePromises);
+    this.user = results.find(user => user !== null) || null;
   }
 
   updateNavigation() {
