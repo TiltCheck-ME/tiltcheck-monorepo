@@ -36,6 +36,12 @@ class TiltCheckAuth {
 
   async init() {
     await this.checkAuthStatus();
+
+    // If user is already logged in and on the login page, redirect them.
+    if (this.user && window.location.pathname.endsWith('/login.html')) {
+      window.location.href = '/play/profile.html'; // Or a dashboard page
+      return; // Stop further execution on this page
+    }
     if (this.user && !this.hasAcceptedTerms()) {
       this.showTermsModal();
     }
@@ -75,17 +81,19 @@ class TiltCheckAuth {
   }
 
   updateNavigation() {
-    const loginButton = document.querySelector('.discord-login-btn, a[href="/play/"]');
+    const loginButtons = document.querySelectorAll('.discord-login-btn, a[href="/play/"]');
     
-    if (!loginButton) return;
+    if (loginButtons.length === 0) return;
 
     if (this.user) {
       // Replace login button with user avatar dropdown
       const avatar = this.createUserAvatar();
-      loginButton.replaceWith(avatar);
-    } else if (loginButton.textContent) {
-      loginButton.textContent = 'Login with Discord';
-    }
+      loginButtons[0].replaceWith(avatar);
+      // Remove any other login buttons
+      for (let i = 1; i < loginButtons.length; i++) {
+        loginButtons[i].remove();
+      }
+    } 
   }
 
   bindLoginButtons() {
@@ -172,6 +180,7 @@ class TiltCheckAuth {
     dropdown.className = 'user-dropdown-menu';
     dropdown.style.cssText = 'display: none; position: absolute; right: 0; top: 50px; background: #1a1f24; border: 1px solid #00d4aa; border-radius: 8px; min-width: 200px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5); z-index: 1000;';
     dropdown.setAttribute('aria-hidden', 'true');
+    dropdown.setAttribute('role', 'menu');
 
     // User info header
     const userInfo = document.createElement('div');
@@ -202,6 +211,7 @@ class TiltCheckAuth {
       link.href = item.href;
       link.textContent = item.label;
       link.style.cssText = 'display: block; padding: 10px 16px; color: #eee; text-decoration: none; transition: background 0.2s;';
+      link.setAttribute('role', 'menuitem');
       link.onmouseenter = () => link.style.background = '#2a2f34';
       link.onmouseleave = () => link.style.background = 'transparent';
       
@@ -232,6 +242,13 @@ class TiltCheckAuth {
         dropdown.style.display = 'none';
         avatarBtn.setAttribute('aria-expanded', 'false');
         dropdown.setAttribute('aria-hidden', 'true');
+      }
+    });
+    
+    // Close on escape key
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && dropdown.style.display === 'block') {
+        avatarBtn.click();
       }
     });
 
@@ -274,10 +291,14 @@ class TiltCheckAuth {
   showTermsModal() {
     const modal = document.createElement('div');
     modal.style.cssText = 'position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.9); display: flex; align-items: center; justify-content: center; z-index: 10000; padding: 20px;';
+    modal.setAttribute('role', 'dialog');
+    modal.setAttribute('aria-modal', 'true');
+    modal.setAttribute('aria-labelledby', 'terms-heading');
     
     modal.innerHTML = `
       <div style="background: #1a1f24; border: 2px solid #00d4aa; border-radius: 12px; max-width: 600px; width: 100%; max-height: 80vh; overflow-y: auto; padding: 30px;">
-        <h2 style="color: #00d4aa; margin-bottom: 20px; font-size: 1.8rem;">⚖️ Terms & Conditions</h2>
+        <h2 id="terms-heading" style="color: #00d4aa; margin-bottom: 20px; font-size: 1.8rem;">
+          <span role="img" aria-label="Scales of justice">⚖️</span> Terms & Conditions</h2>
         <div style="color: #ccc; line-height: 1.6; margin-bottom: 24px;">
           <p style="margin-bottom: 16px;">Welcome to TiltCheck! Before you continue, please review and accept our terms:</p>
           
@@ -318,21 +339,41 @@ class TiltCheckAuth {
 
     document.body.appendChild(modal);
 
-    document.getElementById('terms-accept').onclick = () => {
-      this.acceptTerms();
+    const acceptBtn = document.getElementById('terms-accept');
+    const declineBtn = document.getElementById('terms-decline');
+    const focusableElements = [acceptBtn, declineBtn];
+    let currentFocus = 0;
+    acceptBtn.focus();
+
+    const closeModal = () => {
       document.body.removeChild(modal);
     };
 
-    document.getElementById('terms-decline').onclick = () => {
+    acceptBtn.onclick = () => {
+      this.acceptTerms();
+      closeModal();
+    };
+
+    declineBtn.onclick = () => {
       this.logout();
     };
 
-    // Prevent closing by clicking outside
-    modal.onclick = (e) => {
-      if (e.target === modal) {
-        e.stopPropagation();
+    // Trap focus within the modal
+    modal.addEventListener('keydown', (e) => {
+      if (e.key === 'Tab') {
+        e.preventDefault();
+        currentFocus = (currentFocus + (e.shiftKey ? -1 : 1) + focusableElements.length) % focusableElements.length;
+        focusableElements[currentFocus].focus();
+      } else if (e.key === 'Escape') {
+        // Allow escape to decline/logout as a safety measure
+        declineBtn.click();
       }
-    };
+    });
+
+    // Prevent closing by clicking outside, but allow interaction within the modal content
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) e.stopPropagation();
+    });
   }
 }
 
