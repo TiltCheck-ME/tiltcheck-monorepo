@@ -21,20 +21,6 @@
   <link rel="manifest" href="/manifest.json">
   <link rel="icon" type="image/svg+xml" href="/assets/logo/favicon-white.svg">
   <style>
-    body {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      min-height: 100vh;
-      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-      padding: 1rem;
-    }
-
-    main {
-      width: 100%;
-      max-width: 450px;
-    }
-
     .login-card {
       background: rgba(255, 255, 255, 0.05);
       -webkit-backdrop-filter: blur(10px);
@@ -216,9 +202,8 @@
       }
     }
   </style>
-<script src="/scripts/glitter.js" defer></script>
 </head>
-<body><div id="shared-nav"></div><main id="main-content">
+<body class="login-page-body"><div id="shared-nav"></div><div class="login-content-area"><main id="main-content">
     <div class="login-card">
       <div class="login-logo"><img src="/assets/logo/logocurrent.svg" alt="TiltCheck" width="48" height="48"></div>
       
@@ -264,7 +249,7 @@
         <a href="/contact.html">Support</a>
       </div>
     </div>
-  </main>
+  </main></div>
 
   <!-- Auth Script -->
   <script>
@@ -289,7 +274,7 @@
       window.location.href = `${apiBaseUrl}/auth/discord/login?redirect=${redirect}`;
     });
   </script>
-<div id="shared-footer"></div><div id="shared-footer"></div><script src="/scripts/components-loader.js"></script></body>
+<div id="shared-footer"></div><script src="/scripts/components-loader.js"></script></body>
 </html>
 
 
