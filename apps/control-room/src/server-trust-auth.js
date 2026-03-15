@@ -229,7 +229,7 @@ app.post('/api/container/:action/:name', requireAuth, async (req, res) => {
 
   try {
     const { stdout, stderr } = await execAsync(command);
-    console.log(`[CONTROL ROOM] Executed: ${command}`);
+    // console.log(`[CONTROL ROOM] Executed: ${command}`);
     res.json({ success: true, output: (stdout + stderr).trim() });
   } catch (error) {
     res.status(500).json({ error: error.message });

@@ -7,6 +7,7 @@ let selectedContainer = null;
 let liveLogSource = null;
 let ws = null;
 let allServices = [];
+let refreshIntervalId;
 
 // ── Init ───────────────────────────────────────────────────────────────────────
 window.addEventListener('DOMContentLoaded', async () => {
@@ -33,10 +34,11 @@ function showApp() {
   initTabs();
   connectWS();
   refreshAll();
-  setInterval(refreshAll, 15000);
+  refreshIntervalId = setInterval(refreshAll, 15000);
 }
 
 window.logout = async function () {
+  if (refreshIntervalId) clearInterval(refreshIntervalId);
   await api('/api/auth/logout', 'POST');
   location.reload();
 };

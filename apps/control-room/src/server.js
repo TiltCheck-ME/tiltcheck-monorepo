@@ -220,12 +220,12 @@ app.get('/api/feed/commands', requireAuth, (req, res) => {
 
 // WebSocket for real-time updates
 wss.on('connection', (ws) => {
-  console.log('Control room client connected');
+  // console.log('Control room client connected'); // Remove debugging log
   
   ws.on('message', (message) => {
     try {
       const data = JSON.parse(message);
-      console.log('Received:', data);
+      // console.log('Received:', data); // Remove debugging log
       
       // Echo back for now
       ws.send(JSON.stringify({ type: 'ack', data }));
@@ -235,7 +235,7 @@ wss.on('connection', (ws) => {
   });
   
   ws.on('close', () => {
-    console.log('Control room client disconnected');
+    // console.log('Control room client disconnected'); // Remove debugging log
   });
 });
 
@@ -462,8 +462,8 @@ app.post('/api/beta/signup', (req, res) => {
   
   // Sanitize email to prevent log injection
   const safeEmail = typeof email === 'string' ? email.replace(/[\n\r]/g, '') : '';
-  console.log(`[Beta] New signup: "${safeEmail}"`);
-  
+  // console.log(`[Beta] New signup: "${safeEmail}"`); // Remove debugging log
+
   res.json({ success: true, id: signup.id });
 });
 
