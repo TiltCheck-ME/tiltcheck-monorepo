@@ -4,7 +4,7 @@
  * Checks auth status and updates navigation across all pages
  */
 
-import { createUserAvatar, showTermsModal } from './auth.ui.js';
+import { createUserAvatar, showTermsModal, injectFooter } from './auth.ui.js';
 class TiltCheckAuth {
   constructor() {
     this.user = null;
@@ -63,6 +63,7 @@ class TiltCheckAuth {
     await this.waitForNavReady();
     this.bindLoginButtons();
     this.updateNavigation();
+    injectFooter(); // Inject the standardized footer
 
     // React to shared component injection if it fires later
     document.addEventListener('tc:componentsLoaded', () => {
