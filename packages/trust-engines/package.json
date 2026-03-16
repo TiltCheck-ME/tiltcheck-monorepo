@@ -12,7 +12,9 @@
   "dependencies": {
     "@tiltcheck/types": "workspace:*",
     "@tiltcheck/event-router": "workspace:*",
-    "@tiltcheck/config": "workspace:*"
+    "@tiltcheck/config": "workspace:*",
+    "@tiltcheck/database": "workspace:*",
+    "@tiltcheck/db": "workspace:*"
   },
   "devDependencies": {
     "@tiltcheck/collectclock": "workspace:*",

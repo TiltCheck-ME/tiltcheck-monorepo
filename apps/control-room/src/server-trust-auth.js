@@ -36,6 +36,15 @@ const KNOWN_CONTAINERS = [
 ];
 
 // ─── Middleware ────────────────────────────────────────────────────────────────
+
+// Block common vulnerability scans
+app.use((req, res, next) => {
+  if (req.path === '/xmlrpc.php') {
+    return res.status(404).send('Not Found');
+  }
+  next();
+});
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(session({

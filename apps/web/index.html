@@ -12,193 +12,188 @@
 </head>
 <body class="degen-background text-white">
   <div class="content-wrapper">
-  <header class="bg-degen-gray/80 backdrop-blur-lg border-b border-white/10 sticky top-0 z-50">
-    <nav class="container mx-auto flex items-center justify-between p-4 text-white">
-      <a href="/" class="flex items-center space-x-3">
-        <img src="/assets/logo/logocurrent.svg" alt="TiltCheck" class="h-8 w-8">
-        <span class="font-black text-5xl hidden">TiltCheck</span>
+  <header class="site-header">
+    <nav class="site-nav">
+      <!-- Logo -->
+      <a href="/" class="nav-logo">
+        <img src="/assets/logo/logocurrent.svg" alt="TiltCheck" width="32" height="32">
+        <span class="nav-logo-text">TiltCheck</span>
       </a>
-      <div class="hidden md:flex items-center space-x-2">
-        <a href="/features.html#agent" class="text-sm font-medium text-gray-300 hover:text-degen-green px-3 py-2 rounded-md transition-all hover:bg-white/5 hover:shadow-lg hover:shadow-degen-purple/10 neon-nav-style">Degen Intelligence Agent</a>
-        <a href="/trust-scores.html" class="text-sm font-medium text-gray-300 hover:text-degen-green px-3 py-2 rounded-md transition-all hover:bg-white/5 hover:shadow-lg hover:shadow-degen-purple/10 neon-nav-style">Casino Trust Scores</a>
-        <a href="/dashboard" class="text-sm font-medium text-gray-300 hover:text-degen-green px-3 py-2 rounded-md transition-all hover:bg-white/5 hover:shadow-lg hover:shadow-degen-purple/10 neon-nav-style">Dashboard</a>
-        <a href="/features.html#status" class="text-sm font-medium text-gray-300 hover:text-degen-green px-3 py-2 rounded-md transition-all hover:bg-white/5 hover:shadow-lg hover:shadow-degen-purple/10 neon-nav-style">Alpha/Beta</a>
-        <a href="https://discord.gg/s6NNfPHxMS" target="_blank" rel="noopener" class="text-sm font-medium text-gray-300 hover:text-degen-green px-3 py-2 rounded-md transition-all hover:bg-white/5 hover:shadow-lg hover:shadow-degen-purple/10 neon-nav-style">Join 3/15/26</a>
+      <!-- Desktop Nav Links -->
+      <div class="nav-links">
+        <a href="/features.html#agent" class="nav-link">Degen Intelligence</a>
+        <a href="/trust-scores.html" class="nav-link">Casino Trust</a>
+        <a href="/features.html" class="nav-link">Features</a>
+        <a href="/features.html#status" class="nav-link">Alpha/Beta</a>
       </div>
-      <div class="flex items-center space-x-4">
-         <a href="/login.html" class="discord-login-btn btn btn-secondary text-sm px-4 py-2 neon-nav-style">Login with Discord</a>
+      <!-- CTA -->
+      <div class="nav-cta">
+        <a href="https://discord.gg/s6NNfPHxMS" target="_blank" rel="noopener noreferrer" class="btn btn-secondary">Join Discord</a>
+        <a href="/login.html" class="discord-login-btn btn btn-primary">Login</a>
       </div>
     </nav>
   </header>
 
   <main id="main-content">
-    <section class="hero-surface pt-12 pb-8 px-6 text-center relative">
-        <div class="mt-12 max-w-3xl mx-auto">
+    <section class="hero-surface">
+        <div class="hero-content">
           <h1 class="neon neon-main" data-text="HOUSE ALWAYS WINS?">HOUSE ALWAYS WINS?</h1>
           <h2 class="neon neon-sub" data-text="FUCK THAT.">FUCK THAT.</h2>
-          <p class="text-lg md:text-xl text-gray-300 leading-relaxed mt-8">
+          <p class="hero-body">
             Not anymore. We've built the tools you need to fight back. Let's be real: you're not going to quit. So why do responsible gaming tools treat you like you should? We've embraced the degen spirit and built a toolkit that actually helps you navigate the chaos of online gambling, so you can play longer, smarter, and protect your stack.
           </p>
         </div>
     </section>
 
-    <section class="py-12 border-y border-white/5 bg-[#111316]/30">
-      <div class="max-w-7xl mx-auto px-6 flex flex-wrap justify-center gap-12 text-center">
+    <section class="stats-strip">
+      <div class="stats-strip-inner">
         <div>
-          <div class="text-3xl font-black text-degen-green" id="stat-communities">--</div>
-          <div class="text-xs text-gray-500 uppercase tracking-widest mt-1">Communities</div>
+          <span class="stat-value" id="stat-communities">--</span>
+          <div class="stat-label">Communities</div>
         </div>
         <div>
-          <div class="text-3xl font-black text-degen-green" id="stat-scans">--</div>
-          <div class="text-xs text-gray-500 uppercase tracking-widest mt-1">24h Scans</div>
+          <span class="stat-value" id="stat-scans">--</span>
+          <div class="stat-label">24h Scans</div>
         </div>
         <div>
-          <div class="text-3xl font-black text-degen-green" id="stat-blocked">--</div>
-          <div class="text-xs text-gray-500 uppercase tracking-widest mt-1">Threats Blocked</div>
+          <span class="stat-value" id="stat-blocked">--</span>
+          <div class="stat-label">Threats Blocked</div>
         </div>
       </div>
-      <p class="text-center text-xs text-gray-500 mt-4">
-        *A note on our stats: These numbers are real. We don't inflate stats for marketing bullshit.
-      </p>
+      <p class="stats-note">*A note on our stats: These numbers are real. We don't inflate stats for marketing bullshit.</p>
+      <p class="stats-status"><span id="api-stats-status"></span></p>
     </section>
 
-    <section id="tools" class="py-24 px-6">
-      <div class="container mx-auto">
-        <div class="text-center mb-8">
-          <h2 class="text-4xl font-black uppercase">The Full Degen Toolkit</h2>
-          <p class="text-gray-400 mt-4">Battle-tested signals across Discord, web, and extension.</p>
+    <section id="tools">
+      <div class="container">
+        <div class="tools-header">
+          <h2 class="tools-title">The Full Degen Toolkit</h2>
+          <p class="tools-subtitle">Battle-tested signals across Discord, web, and extension.</p>
         </div>
-        <div class="flex items-center justify-center space-x-4 text-xs text-gray-500 mb-12">
-          <div class="flex items-center"><span class="h-2 w-2 rounded-full bg-degen-green mr-2"></span>Live</div>
-          <div class="flex items-center"><span class="h-2 w-2 rounded-full bg-degen-purple mr-2"></span>Alpha/Beta</div>
+        <div class="tools-legend">
+          <span class="legend-item"><span class="legend-dot green"></span>Live</span>
+          <span class="legend-item"><span class="legend-dot purple"></span>Alpha/Beta</span>
         </div>
-        <div class="flex overflow-x-auto space-x-6 pb-8 -mx-6 px-6 relative hide-scrollbar" id="tools-carousel" style="scroll-behavior: smooth;">
-          <a href="/features.html#agent" class="group p-8 rounded-lg border border-white/10 bg-white/5 backdrop-blur-lg hover:border-degen-green/70 hover:-translate-y-2 transition-all flex flex-col justify-between flex-none w-72">
-            <div>
-              <h3 class="text-xl font-bold mb-2 neon-tool-name">Degen Intelligence</h3>
-              <p class="text-gray-400 text-sm mb-6">Your personal on-chain analyst. Ask it anything about your gameplay in natural language via Discord DM.</p>
+        <div class="flex overflow-x-auto hide-scrollbar" id="tools-carousel" style="gap:1.5rem; padding-bottom:2rem; scroll-behavior:smooth;">
+          <a href="/features.html#agent" class="tool-card">
+            <div class="tool-card-body">
+              <h3 class="neon-tool-name">Degen Intelligence</h3>
+              <p class="tool-card-desc">Your personal on-chain analyst. Ask it anything about your gameplay in natural language via Discord DM.</p>
             </div>
-            <div class="text-xs font-bold uppercase px-2 py-1 rounded-full bg-degen-green text-degen-black self-start">Live</div>
+            <span class="badge-live">Live</span>
           </a>
-          <a href="/extension.html" class="group p-8 rounded-lg border border-white/10 bg-white/5 backdrop-blur-lg hover:border-degen-green/70 hover:-translate-y-2 transition-all flex flex-col justify-between flex-none w-72">
-            <div>
-              <h3 class="text-xl font-bold mb-2 neon-tool-name">The House Edge</h3>
-              <p class="text-gray-400 text-sm mb-6">A real-time co-pilot that watches for fairness anomalies, detects tilt, and enables harm reduction tools like autovaulting.</p>
+          <a href="/extension.html" class="tool-card">
+            <div class="tool-card-body">
+              <h3 class="neon-tool-name">The House Edge</h3>
+              <p class="tool-card-desc">A real-time co-pilot that watches for fairness anomalies, detects tilt, and enables harm reduction tools like autovaulting.</p>
             </div>
-            <div class="text-xs font-bold uppercase px-2 py-1 rounded-full bg-degen-green text-degen-black self-start">Live</div>
+            <span class="badge-live">Live</span>
           </a>
-          <a href="/features.html#lockvault" class="group p-8 rounded-lg border border-white/10 bg-white/5 backdrop-blur-lg hover:border-degen-green/70 hover:-translate-y-2 transition-all flex flex-col justify-between flex-none w-72">
-            <div>
-              <h3 class="text-xl font-bold mb-2 neon-tool-name">Wallet Lock</h3>
-              <p class="text-gray-400 text-sm mb-6">Time-lock your funds so your tilted future-self can't touch them. The ultimate form of self-control.</p>
+          <a href="/features.html#lockvault" class="tool-card">
+            <div class="tool-card-body">
+              <h3 class="neon-tool-name">Wallet Lock</h3>
+              <p class="tool-card-desc">Time-lock your funds so your tilted future-self can't touch them. The ultimate form of self-control.</p>
             </div>
-            <div class="text-xs font-bold uppercase px-2 py-1 rounded-full bg-degen-green text-degen-black self-start">Live</div>
+            <span class="badge-live">Live</span>
           </a>
-          <a href="/tools/justthetip.html" class="group p-8 rounded-lg border border-white/10 bg-white/5 backdrop-blur-lg hover:border-degen-green/70 hover:-translate-y-2 transition-all flex flex-col justify-between flex-none w-72">
-            <div>
-              <h3 class="text-xl font-bold mb-2 neon-tool-name">JustTheTip</h3>
-              <p class="text-gray-400 text-sm mb-6">Secure, non-custodial Solana tipping, airdrops, and swaps directly in Discord.</p>
+          <a href="/tools/justthetip.html" class="tool-card">
+            <div class="tool-card-body">
+              <h3 class="neon-tool-name">JustTheTip</h3>
+              <p class="tool-card-desc">Secure, non-custodial Solana tipping, airdrops, and swaps directly in Discord.</p>
             </div>
-            <div class="text-xs font-bold uppercase px-2 py-1 rounded-full bg-degen-green text-degen-black self-start">Live</div>
+            <span class="badge-live">Live</span>
           </a>
-          <a href="/tools/suslink.html" class="group p-8 rounded-lg border border-white/10 bg-white/5 backdrop-blur-lg hover:border-degen-green/70 hover:-translate-y-2 transition-all flex flex-col justify-between flex-none w-72">
-            <div>
-              <h3 class="text-xl font-bold mb-2 neon-tool-name">LinkCheck</h3>
-              <p class="text-gray-400 text-sm mb-6">AI-powered link scanning to detect scams and phishing redirects before you click.</p>
+          <a href="/tools/suslink.html" class="tool-card">
+            <div class="tool-card-body">
+              <h3 class="neon-tool-name">LinkCheck</h3>
+              <p class="tool-card-desc">AI-powered link scanning to detect scams and phishing redirects before you click.</p>
             </div>
-            <div class="text-xs font-bold uppercase px-2 py-1 rounded-full bg-degen-green text-degen-black self-start">Live</div>
+            <span class="badge-live">Live</span>
           </a>
-          <a href="/features.html#trust" class="group p-8 rounded-lg border border-white/10 bg-white/5 backdrop-blur-lg hover:border-degen-green/70 hover:-translate-y-2 transition-all flex flex-col justify-between flex-none w-72">
-            <div>
-              <h3 class="text-xl font-bold mb-2 neon-tool-name">Trust Engine</h3>
-              <p class="text-gray-400 text-sm mb-6">Data-driven trust scores for casinos and users, based on real behavior, not paid reviews.</p>
+          <a href="/features.html#trust" class="tool-card">
+            <div class="tool-card-body">
+              <h3 class="neon-tool-name">Trust Engine</h3>
+              <p class="tool-card-desc">Data-driven trust scores for casinos and users, based on real behavior, not paid reviews.</p>
             </div>
-            <div class="text-xs font-bold uppercase px-2 py-1 rounded-full bg-degen-green text-degen-black self-start">Live</div>
+            <span class="badge-live">Live</span>
           </a>
-          <a href="/tools/daad.html" class="group p-8 rounded-lg border border-white/10 bg-white/5 backdrop-blur-lg hover:border-degen-green/70 hover:-translate-y-2 transition-all flex flex-col justify-between flex-none w-72">
-            <div>
-              <h3 class="text-xl font-bold mb-2 neon-tool-name">DA&D</h3>
-              <p class="text-gray-400 text-sm mb-6">Outrageous multiplayer card game playable as a Discord Activity.</p>
+          <a href="/tools/daad.html" class="tool-card">
+            <div class="tool-card-body">
+              <h3 class="neon-tool-name">DA&amp;D</h3>
+              <p class="tool-card-desc">Outrageous multiplayer card game playable as a Discord Activity.</p>
             </div>
-            <div class="text-xs font-bold uppercase px-2 py-1 rounded-full bg-degen-green text-degen-black self-start">Live</div>
+            <span class="badge-live">Live</span>
           </a>
-          <a href="/tools/collectclock.html" class="group p-8 rounded-lg border border-white/10 bg-white/5 backdrop-blur-lg hover:border-degen-purple/70 hover:-translate-y-2 transition-all flex flex-col justify-between flex-none w-72">
-            <div>
-              <h3 class="text-xl font-bold mb-2 neon-tool-name">BonusCheck</h3>
-              <p class="text-gray-400 text-sm mb-6">Bonus drop tracking with nerf detection and window prediction.</p>
+          <a href="/tools/collectclock.html" class="tool-card">
+            <div class="tool-card-body">
+              <h3 class="neon-tool-name">BonusCheck</h3>
+              <p class="tool-card-desc">Bonus drop tracking with nerf detection and window prediction.</p>
             </div>
-            <div class="text-xs font-bold uppercase px-2 py-1 rounded-full bg-degen-purple text-white self-start">Beta</div>
+            <span class="badge-beta">Beta</span>
           </a>
         </div>
       </div>
     </section>
   </main>
 
-  <footer class="py-16 px-6 text-gray-400 text-sm border-t border-white/10">
-    <div class="container mx-auto">
-      <div class="flex flex-wrap justify-center gap-8 mb-12">
-          <div>
-            <h4 class="font-bold text-white uppercase tracking-wider text-xs mb-4">Product</h4>
-            <ul class="space-y-2">
-              <li><a href="/features.html" class="hover:text-degen-green transition-colors">Features</a></li>
-              <li><a href="/how-it-works.html" class="hover:text-degen-green transition-colors">How It Works</a></li>
-              <li><a href="/trust-explained.html" class="hover:text-degen-green transition-colors">Trust System</a></li>
-              <li><a href="/faq.html" class="hover:text-degen-green transition-colors">FAQ</a></li>
-              <li><a href="/extension.html" class="hover:text-degen-green transition-colors">Chrome Extension</a></li>
-              <li><a href="/beta.html" class="hover:text-degen-green transition-colors">Beta Program</a></li>
-            </ul>
-          </div>
-          <div>
-            <h4 class="font-bold text-white uppercase tracking-wider text-xs mb-4">Tools</h4>
-            <ul class="space-y-2">
-              <li><a href="/tools/justthetip.html" class="hover:text-degen-green transition-colors">JustTheTip</a></li>
-              <li><a href="/tools/suslink.html" class="hover:text-degen-green transition-colors">LinkCheck</a></li>
-              <li><a href="/tools/daad.html" class="hover:text-degen-green transition-colors">DA&D Game</a></li>
-              <li><a href="/tools/collectclock.html" class="hover:text-degen-green transition-colors">BonusCheck</a></li>
-              <li><a href="/trust-api.html" class="hover:text-degen-green transition-colors">Trust API</a></li>
-              <li><a href="/casino-reviews.html" class="hover:text-degen-green transition-colors">Casino Reviews</a></li>
-            </ul>
-          </div>
-          <div>
-            <h4 class="font-bold text-white uppercase tracking-wider text-xs mb-4">Company</h4>
-            <ul class="space-y-2">
-              <li><a href="/about.html" class="hover:text-degen-green transition-colors">About</a></li>
-              <li><a href="https://github.com/jmenichole/tiltcheck-monorepo" target="_blank" rel="noopener" class="hover:text-degen-green transition-colors">GitHub</a></li>
-              <li><a href="https://discord.gg/s6NNfPHxMS" target="_blank" rel="noopener" class="hover:text-degen-green transition-colors">Discord</a></li>
-              <li><a href="/contact.html" class="hover:text-degen-green transition-colors">Contact</a></li>
-              <li><a href="/press-kit.html" class="hover:text-degen-green transition-colors">Press Kit</a></li>
-            </ul>
-          </div>
-          <div>
-            <h4 class="font-bold text-white uppercase tracking-wider text-xs mb-4">Resources</h4>
-            <ul class="space-y-2">
-              <li><a href="/getting-started.html" class="hover:text-degen-green transition-colors">Getting Started</a></li>
-              <li><a href="/tutorials.html" class="hover:text-degen-green transition-colors">Tutorials</a></li>
-              <li><a href="/glossary.html" class="hover:text-degen-green transition-colors">Glossary</a></li>
-              <li><a href="/help.html" class="hover:text-degen-green transition-colors">Help Center</a></li>
-              <li><a href="/scam-reports.html" class="hover:text-degen-green transition-colors">Scam Reports</a></li>
-            </ul>
-          </div>
-          <div>
-            <h4 class="font-bold text-white uppercase tracking-wider text-xs mb-4">Legal</h4>
-            <ul class="space-y-2">
-              <li><a href="/privacy.html" class="hover:text-degen-green transition-colors">Privacy Policy</a></li>
-              <li><a href="/terms.html" class="hover:text-degen-green transition-colors">Terms of Service</a></li>
-              <li><a href="/cookie-policy.html" class="hover:text-degen-green transition-colors">Cookie Policy</a></li>
-              <li><a href="/responsible-gambling.html" class="hover:text-degen-green transition-colors">Responsible Gambling</a></li>
-              <li><a href="/compliance.html" class="hover:text-degen-green transition-colors">Compliance</a></li>
-            </ul>
-          </div>
+  <footer class="site-footer">
+    <div class="footer-columns">
+      <div class="footer-col">
+        <h4>Product</h4>
+        <ul>
+          <li><a href="/features.html">Features</a></li>
+          <li><a href="/how-it-works.html">How It Works</a></li>
+          <li><a href="/trust-explained.html">Trust System</a></li>
+          <li><a href="/faq.html">FAQ</a></li>
+          <li><a href="/extension.html">Chrome Extension</a></li>
+          <li><a href="/beta.html">Beta Program</a></li>
+        </ul>
       </div>
-
-      <div class="border-t border-white/10 pt-8 flex flex-col md:flex-row justify-between items-center text-center md:text-left">
-        <p class="mb-4 md:mb-0">
-          <span class="text-degen-green font-bold">Made for degens, by degens.</span>
-        </p>
-        <p class="text-gray-500">
-          TiltCheck Ecosystem © 2024–2026
-        </p>
+      <div class="footer-col">
+        <h4>Tools</h4>
+        <ul>
+          <li><a href="/tools/justthetip.html">JustTheTip</a></li>
+          <li><a href="/tools/suslink.html">LinkCheck</a></li>
+          <li><a href="/tools/daad.html">DA&amp;D Game</a></li>
+          <li><a href="/tools/collectclock.html">BonusCheck</a></li>
+          <li><a href="/trust-api.html">Trust API</a></li>
+          <li><a href="/casino-reviews.html">Casino Reviews</a></li>
+        </ul>
       </div>
+      <div class="footer-col">
+        <h4>Company</h4>
+        <ul>
+          <li><a href="/about.html">About</a></li>
+          <li><a href="https://github.com/jmenichole/tiltcheck-monorepo" target="_blank" rel="noopener noreferrer">GitHub</a></li>
+          <li><a href="https://discord.gg/s6NNfPHxMS" target="_blank" rel="noopener noreferrer">Discord</a></li>
+          <li><a href="/contact.html">Contact</a></li>
+          <li><a href="/press-kit.html">Press Kit</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Resources</h4>
+        <ul>
+          <li><a href="/getting-started.html">Getting Started</a></li>
+          <li><a href="/tutorials.html">Tutorials</a></li>
+          <li><a href="/glossary.html">Glossary</a></li>
+          <li><a href="/help.html">Help Center</a></li>
+          <li><a href="/scam-reports.html">Scam Reports</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Legal</h4>
+        <ul>
+          <li><a href="/privacy.html">Privacy Policy</a></li>
+          <li><a href="/terms.html">Terms of Service</a></li>
+          <li><a href="/cookie-policy.html">Cookie Policy</a></li>
+          <li><a href="/responsible-gambling.html">Responsible Gambling</a></li>
+          <li><a href="/compliance.html">Compliance</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p class="footer-tagline">Made for degens, by degens.</p>
+      <p class="footer-copyright">TiltCheck Ecosystem © 2024–2026</p>
     </div>
   </footer>
 

@@ -77,4 +77,29 @@ describe('Discord web auth session detection', () => {
       })
     );
   });
+
+  it('should find a valid session even if the first endpoint fails', async () => {
+    const fetchMock = vi.fn(async (input: RequestInfo | URL) => {
+      const url = String(input);
+      // Simulate the primary endpoint failing
+      if (url === '/api/auth/me') {
+        return {
+          ok: false,
+          json: async () => ({ error: 'service unavailable' }),
+        };
+      }
+      // The second endpoint succeeds
+      if (url === '/auth/me') {
+        return {
+          ok: true,
+          json: async () => ({ userId: 'fallback_123', discordUsername: 'fallback-user' }),
+        };
+      }
+      return { ok: false, json: async () => ({}) };
+    });
+
+    const window = await loadAuthScriptWithFetch(fetchMock);
+    const user = window.tiltCheckAuth?.getUser?.();
+    expect(user?.id).toBe('fallback_123');
+  });
 });
