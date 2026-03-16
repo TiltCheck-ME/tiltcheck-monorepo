@@ -46,6 +46,7 @@ import { requestLogger } from './middleware/logger.js';
 import { csrfProtection } from './middleware/csrf.js';
 
 const app = express();
+app.set('trust proxy', 1); // Trust the first proxy
 
 // ============================================================================
 // Stripe Webhook (MUST be before body parsers)
@@ -116,6 +117,7 @@ const globalLimiter = rateLimit({
   max: 1000, // 1000 requests per 15 minutes
   standardHeaders: true,
   legacyHeaders: false,
+  keyGenerator: (req) => req.ip || req.socket.remoteAddress || '',
   message: { error: 'Too many requests', code: 'RATE_LIMIT_EXCEEDED' },
 });
 app.use(globalLimiter);

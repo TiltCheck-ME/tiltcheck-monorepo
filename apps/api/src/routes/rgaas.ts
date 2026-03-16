@@ -123,8 +123,11 @@ router.post('/anti-tilt/evaluate', (req, res) => {
  * Ingest watcher community report into local trust pipeline (no Elastic required).
  */
 router.post('/trust/degen-intel', async (req, res) => {
-  const requiredKey = (process.env.COMMUNITY_INTEL_INGEST_KEY || '').trim();
-  console.log('API Server sees COMMUNITY_INTEL_INGEST_KEY:', requiredKey ? 'Set' : 'Not Set');
+  let requiredKey = (process.env.COMMUNITY_INTEL_INGEST_KEY || '').trim();
+  if (!requiredKey && process.env.NODE_ENV !== 'production') {
+    requiredKey = 'dev-ingest-key'; // Development override
+    console.warn('[API] Using development ingest key. Set COMMUNITY_INTEL_INGEST_KEY in .env for production.');
+  }
   if (requiredKey) {
     const provided = String(req.headers['x-community-intel-key'] || '');
     if (provided !== requiredKey) {
@@ -185,7 +188,8 @@ router.post('/trust/degen-intel', async (req, res) => {
       report,
       samples,
     };
-    appendFileSync(outFile, `${JSON.stringify(row)}\n`);
+    appendFileSync(outFile, `${JSON.stringify(row)}
+`);
 
     const trustLevel = trustEngines.getTrustLevel(trustEngines.getDegenScore(syntheticCommunityUser));
     res.json({

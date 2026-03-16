@@ -16,7 +16,6 @@ const BONUS_DATA_PATH = path.resolve(__dirname, '../../../../data', 'bonus-data.
 
 router.get('/casinos', (_req, res) => {
   try {
-    console.log('BONUS_DATA_PATH:', BONUS_DATA_PATH); // Debugging log
     if (!fs.existsSync(BONUS_DATA_PATH)) {
       res.json({ casinos: [], source: 'missing' });
       return;

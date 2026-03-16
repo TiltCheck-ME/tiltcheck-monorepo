@@ -1,70 +1,18 @@
-/* Global Background & Grid Overlay */
-body.degen-background {
-  background-color: #0E0E0F;
-  background-image: radial-gradient(ellipse 80% 50% at 50% -10%, rgba(0, 255, 170, 0.1), transparent),
-                    radial-gradient(ellipse 80% 50% at 50% 110%, rgba(168, 85, 247, 0.1), transparent);
-  background-repeat: no-repeat;
-  background-size: 100% 100%;
-  position: relative;
+/* Add skeleton loader */
+.kpi-value {
+  min-width: 40px;
+  min-height: 24px;
 }
-
-.content-wrapper {
-  position: relative;
-  z-index: 1;
-}
-.hide-scrollbar::-webkit-scrollbar { display: none; }
-.hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-
-/* Neon Hero Styles */
-.neon {
-  position: relative;
-  text-transform: uppercase;
-  letter-spacing: 2px;
-  font-family: 'Space Grotesk', sans-serif;
-  font-weight: 700;
-}
-.neon-main {
-  font-size: 110px;
-  color: #fff;
-  text-shadow: 0 0 1px #fff, 0 0 2px #fff, 0 0 3px #00ffaa;
-}
-.neon-sub {
-  font-size: 70px;
-  color: #fff;
-  text-shadow: 0 0 2px #fff, 0 0 5px #00ffaa;
-}
-.neon-title {
-  color: #fff;
-  text-shadow: 0 0 2px #fff, 0 0 8px rgba(0, 255, 170, 0.7);
-}
-.neon-tool-name {
-  color: #fff;
-  text-shadow: 0 0 1px #fff, 0 0 2px #00ffaa;
-  font-size: 1.25rem;
-}
-.neon-nav-style {
-  color: #fff;
-  text-shadow: 0 0 1px #fff, 0 0 2px #00ffaa;
-}
-.reflection::after {
-  content: attr(data-text);
-  position: absolute;
-  top: 100%;
-  left: 0;
+.kpi-value:empty::before {
+  content: '';
+  display: block;
   width: 100%;
-  transform: scaleY(-1);
-  opacity: 0.2;
-  background: linear-gradient(to bottom, rgba(255, 255, 255, 0.2), transparent);
-  -webkit-background-clip: text;
-  color: transparent;
-  text-shadow: none;
+  height: 100%;
+  background: linear-gradient(90deg, #1A1F24 25%, #2A2F34 50%, #1A1F24 75%);
+  background-size: 200% 100%;
+  animation: skeleton-pulse 1.5s ease-in-out infinite;
 }
-.floor {
-  position: absolute;
-  bottom: -50px;
-  left: 0;
-  width: 100%;
-  height: 100px;
-  background: radial-gradient(ellipse at center, rgba(0,255,170,0.1) 0%, transparent 70%);
-  filter: blur(40px);
+@keyframes skeleton-pulse {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
 }
