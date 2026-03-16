@@ -44,7 +44,11 @@ html {
 
 body {
   font-family: var(--font-primary);
-  background: var(--bg-primary);
+  background: 
+    radial-gradient(1200px 500px at 50% -10%, rgba(0, 194, 255, 0.08), transparent 70%),
+    radial-gradient(900px 400px at 10% 10%, rgba(0, 255, 198, 0.06), transparent 70%),
+    radial-gradient(800px 600px at 90% 90%, rgba(255, 56, 168, 0.03), transparent 70%),
+    linear-gradient(180deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
   color: var(--text-secondary);
   line-height: var(--leading-normal);
   font-size: var(--text-base);
@@ -288,11 +292,7 @@ body {
 .hero {
   padding: clamp(4rem, 10vw, 6rem) var(--container-padding);
   text-align: center;
-  background: 
-    radial-gradient(1200px 500px at 50% -10%, rgba(0, 194, 255, 0.08), transparent 70%),
-    radial-gradient(900px 400px at 10% 10%, rgba(0, 255, 198, 0.06), transparent 70%),
-    radial-gradient(800px 600px at 90% 90%, rgba(255, 56, 168, 0.03), transparent 70%),
-    linear-gradient(180deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
+  background: transparent;
   border-bottom: 1px solid rgba(0, 255, 198, 0.1);
   position: relative;
   overflow: hidden;
