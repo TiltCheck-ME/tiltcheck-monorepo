@@ -32,8 +32,8 @@ import {
   resolveDiscordRedirectUriForSource,
   getOAuthSource,
   getTrustedExtensionOrigin,
-  DEFAULT_API_DISCORD_CALLBACK,
 } from './auth.utils.js';
+
 
 const router = Router();
 
