@@ -8,8 +8,8 @@ export const EXT_CONFIG = {
     AI_GATEWAY_URL: 'https://api.tiltcheck.me/ai',
     WEB_APP_URL: 'https://tiltcheck.me',
     DISCORD_CLIENT_ID: '1445916179163250860',
-    // Keep in sync with API OAuth scope configuration.
-    DISCORD_SCOPES: ['identify', 'identify.premium'],
+    // Standard OAuth2 scopes.
+    DISCORD_SCOPES: ['identify'],
     // The redirect URI must be exactly what is in the Discord Developer Portal
     DISCORD_REDIRECT_URI: 'https://api.tiltcheck.me/auth/discord/callback'
 };
@@ -42,4 +42,3 @@ export function getDiscordLoginUrl(source = 'extension') {
     }
     return url.toString();
 }
-
