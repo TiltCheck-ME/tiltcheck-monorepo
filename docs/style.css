@@ -44,11 +44,7 @@ html {
 
 body {
   font-family: var(--font-primary);
-  background: 
-    radial-gradient(1200px 500px at 50% -10%, rgba(0, 194, 255, 0.08), transparent 70%),
-    radial-gradient(900px 400px at 10% 10%, rgba(0, 255, 198, 0.06), transparent 70%),
-    radial-gradient(800px 600px at 90% 90%, rgba(255, 56, 168, 0.03), transparent 70%),
-    linear-gradient(180deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
+  background: var(--bg-primary);
   color: var(--text-secondary);
   line-height: var(--leading-normal);
   font-size: var(--text-base);
@@ -100,7 +96,7 @@ body {
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: clamp(0.75rem, 1.5vw, 1.25rem);
+  gap: clamp(1.5rem, 3vw, 2rem);
   padding: var(--space-sm) var(--container-padding);
   background: var(--bg-secondary);
   border-bottom: 1px solid var(--border-subtle);
@@ -292,7 +288,11 @@ body {
 .hero {
   padding: clamp(4rem, 10vw, 6rem) var(--container-padding);
   text-align: center;
-  background: transparent;
+  background: 
+    radial-gradient(1200px 500px at 50% -10%, rgba(0, 194, 255, 0.08), transparent 70%),
+    radial-gradient(900px 400px at 10% 10%, rgba(0, 255, 198, 0.06), transparent 70%),
+    radial-gradient(800px 600px at 90% 90%, rgba(255, 56, 168, 0.03), transparent 70%),
+    linear-gradient(180deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
   border-bottom: 1px solid rgba(0, 255, 198, 0.1);
   position: relative;
   overflow: hidden;
@@ -487,7 +487,8 @@ body {
 
 .tools-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  /* Fix from UX Audit: Change from 300px to 280px for better narrow screen support */
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: var(--space-xl);
   max-width: var(--container-max);
   margin: 0 auto;
@@ -501,7 +502,7 @@ body {
   padding: var(--space-xl);
   display: flex;
   flex-direction: column;
-  gap: var(--space-md);
+  gap: var(--space-md); 
   text-decoration: none;
   transition: border-color var(--transition-base), opacity var(--transition-base);
   position: relative;
