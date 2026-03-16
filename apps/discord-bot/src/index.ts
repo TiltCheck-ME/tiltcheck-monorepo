@@ -25,7 +25,9 @@ import { initializeGameplayComplianceBridge } from './services/gameplay-complian
 import { startTrustAdapter } from '@tiltcheck/discord-utils/trust-adapter';
 import { Connection } from '@solana/web3.js';
 import { DatabaseClient } from '@tiltcheck/database';
-import { CreditManager, DepositMonitor, AutoRefundScheduler } from '@tiltcheck/justthetip';
+import { CreditManager } from './services/tipping/credit-manager.js';
+import { DepositMonitor } from './services/tipping/deposit-monitor.js';
+import { AutoRefundScheduler } from './services/tipping/auto-refund.js';
 import { BotWalletService } from './services/tipping/bot-wallet.js';
 import { TokenSwapService } from './services/tipping/token-swap.js';
 import { TokenDepositMonitor } from './services/tipping/token-deposit-monitor.js';

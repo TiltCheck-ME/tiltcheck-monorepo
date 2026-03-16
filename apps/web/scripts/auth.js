@@ -38,6 +38,17 @@ class TiltCheckAuth {
   async init() {
     await this.checkAuthStatus();
 
+    // If on the login page, handle the login button click to initiate the API flow.
+    if (window.location.pathname.endsWith('/login.html')) {
+      const loginBtn = document.querySelector('.discord-login-btn');
+      if (loginBtn) {
+        loginBtn.addEventListener('click', (e) => {
+          e.preventDefault();
+          window.location.href = '/api/auth/discord/login';
+        });
+      }
+    }
+
     // If user is already logged in and on the login page, redirect them.
     if (this.user && window.location.pathname.endsWith('/login.html')) {
       window.location.href = '/play/profile.html'; // Or a dashboard page
@@ -87,39 +98,44 @@ class TiltCheckAuth {
   updateNavigation() {
     const loginButtons = document.querySelectorAll('.discord-login-btn, a[href="/play/"]');
     
-    if (loginButtons.length === 0) return;
+    if (!loginButtons.length) return;
 
     if (this.user) {
-      // Replace login button with user avatar dropdown
+      // Find the primary login button, typically in the main nav.
+      const primaryLoginButton = document.querySelector('header .discord-login-btn, header a[href="/play/"]') || loginButtons[0];
+
+      // Replace the primary button with the user avatar.
       const avatar = createUserAvatar(this.user, () => this.logout());
-      loginButtons[0].replaceWith(avatar);
-      // Remove any other login buttons
-      for (let i = 1; i < loginButtons.length; i++) {
-        loginButtons[i].remove();
-      }
+      primaryLoginButton.replaceWith(avatar);
+
+      // Hide any other login buttons on the page to avoid confusion.
+      loginButtons.forEach(btn => {
+        if (btn !== primaryLoginButton) {
+          btn.style.display = 'none';
+        }
+      });
     } 
   }
 
   bindLoginButtons() {
     document.querySelectorAll('.discord-login-btn').forEach((el) => {
       if (el.dataset.authBound === 'true') return;
+      
+      // If the login "button" is a link, standardize its destination.
+      // This provides a consistent, JS-independent fallback.
+      if (el.tagName === 'A') {
+        el.setAttribute('href', '/login.html');
+      } else {
+        // For non-links (like <button>), add a click handler to navigate.
+        el.setAttribute('role', 'button');
+        el.addEventListener('click', (event) => {
+          event.preventDefault();
+          window.location.href = '/login.html';
+        });
+      }
+      
       el.dataset.authBound = 'true';
-
-      const href = el.getAttribute('href');
-      if (href && href !== '#') return;
-
-      el.setAttribute('role', 'button');
-      el.addEventListener('click', (event) => {
-        event.preventDefault();
-        this.loginWithDiscord();
-      });
     });
-  }
-
-  loginWithDiscord(nextPath = '/play/profile.html') {
-    const base = '/api/auth/discord/login';
-    const redirect = encodeURIComponent(`${window.location.origin}${nextPath}`);
-    window.location.href = `${base}?redirect=${redirect}`;
   }
 
   // Wait for shared nav injection to complete or for login button to exist

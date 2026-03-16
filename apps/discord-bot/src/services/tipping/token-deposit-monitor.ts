@@ -11,7 +11,7 @@ import {
     type ConfirmedSignatureInfo,
     type ParsedTransactionWithMeta,
 } from '@solana/web3.js';
-import { type CreditManager, MIN_DEPOSIT_LAMPORTS } from '@tiltcheck/justthetip';
+import { type CreditManager, MIN_DEPOSIT_LAMPORTS } from './credit-manager.js';
 import { TokenSwapService, DEPOSIT_TOKENS } from './token-swap.js';
 
 const POLL_INTERVAL_MS = 20_000;

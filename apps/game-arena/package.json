@@ -16,7 +16,6 @@
     "@tiltcheck/dad": "workspace:*",
     "@tiltcheck/db": "workspace:*",
     "@tiltcheck/event-router": "workspace:*",
-    "@tiltcheck/justthetip": "workspace:*",
     "@tiltcheck/poker": "workspace:*",
     "@tiltcheck/supabase-auth": "workspace:*",
     "@tiltcheck/types": "workspace:*",

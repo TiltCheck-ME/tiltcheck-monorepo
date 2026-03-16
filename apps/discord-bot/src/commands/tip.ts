@@ -16,8 +16,8 @@ import type { Command } from '../types.js';
 import {
   CreditManager,
   MIN_DEPOSIT_LAMPORTS,
-  type DepositMonitor,
-} from '@tiltcheck/justthetip';
+} from '../services/tipping/credit-manager.js';
+import type { DepositMonitor } from '../services/tipping/deposit-monitor.js';
 import { lockVault, unlockVault, extendVault, getVaultStatus, type LockVaultRecord } from '@tiltcheck/lockvault';
 import { parseAmountNL, formatAmount, parseDurationNL } from '@tiltcheck/natural-language-parser';
 import { getUsdPriceSync } from '@tiltcheck/utils';
