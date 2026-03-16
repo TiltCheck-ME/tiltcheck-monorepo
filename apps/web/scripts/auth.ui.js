@@ -27,6 +27,7 @@ export function createUserAvatar(user, onLogout) {
   });
 
   // Close on escape key
+  // Note: This listener is added once per avatar, which is not ideal.
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape' && dropdown.style.display === 'block') {
       avatarBtn.click();
@@ -166,4 +167,60 @@ export function showTermsModal({ onAccept, onDecline }) {
   modal.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') declineBtn.click();
   });
+}
+
+/**
+ * Injects a standardized site footer into a target element.
+ * @param {string} selector - The CSS selector for the container to inject the footer into.
+ */
+export function injectFooter(selector = '#site-footer') {
+  const footerContainer = document.querySelector(selector);
+  if (!footerContainer) return;
+
+  footerContainer.innerHTML = `
+    <div class="container">
+      <div class="footer-grid">
+        <div>
+          <h4>Product</h4>
+          <ul>
+            <li><a href="/">Home</a></li>
+            <li><a href="/how-it-works.html">How It Works</a></li>
+            <li><a href="/trust-explained.html">Trust System</a></li>
+            <li><a href="/casinos.html">Casino Scores</a></li>
+            <li><a href="/degen-trust.html">Degen Scores</a></li>
+            <li><a href="/dashboard">Dashboard</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4>Resources</h4>
+          <ul>
+            <li><a href="/faq.html">FAQ</a></li>
+            <li><a href="/press-kit.html">Press Kit</a></li>
+            <li><a href="/newsletter.html">Newsletter</a></li>
+            <li><a href="/docs/">Developer Docs</a></li>
+            <li><a href="/sitemap.html">Site Map</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4>Company</h4>
+          <ul>
+            <li><a href="/about.html">About</a></li>
+            <li><a href="/contact.html">Contact</a></li>
+            <li><a href="https://github.com/jmenichole/tiltcheck-monorepo" target="_blank" rel="noopener">GitHub</a></li>
+            <li><a href="https://discord.gg/s6NNfPHxMS" target="_blank" rel="noopener">Discord</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4>Legal</h4>
+          <ul>
+            <li><a href="/privacy.html">Privacy Policy</a></li>
+            <li><a href="/terms.html">Terms of Service</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p>TiltCheck Ecosystem © 2024–2026. Made for degens, by degens.</p>
+      </div>
+    </div>
+  `;
 }
