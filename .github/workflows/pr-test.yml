@@ -1,0 +1,33 @@
+name: Run Tests on Changed Packages (PR)
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  test-changed:
+    runs-on: ubuntu-latest
+    name: Test Changed Packages
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          # Fetch all history to enable correct diffing against the base branch
+          fetch-depth: 0
+
+      - name: Set up Node.js and pnpm
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+      - uses: pnpm/action-setup@v3
+        with:
+          version: 9
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run tests on changed packages
+        # This command filters for packages changed in the PR and runs their tests
+        run: pnpm --filter="...[origin/main]" test

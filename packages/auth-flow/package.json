@@ -1,5 +1,5 @@
 {
-  "name": "@jmenichole/tiltcheck-auth-flow",
+  "name": "@tiltcheck/auth-flow",
   "version": "0.1.1",
   "description": "JWT issuance and verification helpers for the TiltCheck ecosystem",
   "type": "module",

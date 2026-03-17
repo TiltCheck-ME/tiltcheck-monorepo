@@ -54,6 +54,7 @@ let demoMode = false;
 const SIDEBAR_PREFS_KEY = 'sidebarUiPrefs';
 const WALLET_LOCK_UNTIL_KEY = 'walletLockUntil';
 let showAdvancedTools = false;
+let isConnecting = false;
 
 const CASINO_THEMES: Record<string, { label: string; accent: string }> = {
   'stake.us': { label: 'Stake.us', accent: '#4ade80' },
@@ -320,11 +321,30 @@ async function ensureWalletUnlocked(actionLabel: string): Promise<boolean> {
 function applyPageOffset(width: number) {
   const offset = `${width}px`;
 
-  // Some sites anchor layout to <html>, others to <body>. Set both so content shifts reliably.
-  document.documentElement.style.marginRight = offset;
-  document.documentElement.style.transition = 'margin-right 0.3s ease';
-  document.body.style.marginRight = offset;
-  document.body.style.transition = 'margin-right 0.3s ease';
+  // Apply to both html and body for maximum compatibility across different casino layouts
+  if (document.documentElement) {
+    document.documentElement.style.marginRight = offset;
+    document.documentElement.style.transition = 'margin-right 0.3s ease';
+  }
+  
+  if (document.body) {
+    document.body.style.marginRight = offset;
+    document.body.style.transition = 'margin-right 0.3s ease';
+  }
+  
+  // Handle some fixed-position elements that might need adjustment on certain sites
+  const fixedSelectors = ['.Header-module__header', '[style*="position: fixed"]'];
+  fixedSelectors.forEach(sel => {
+    try {
+      const els = document.querySelectorAll(sel);
+      els.forEach(el => {
+        if (el instanceof HTMLElement && !el.closest('#tiltcheck-sidebar')) {
+           el.style.right = offset;
+           el.style.transition = 'right 0.3s ease';
+        }
+      });
+    } catch {}
+  });
 }
 
 function setSidebarVisibility(visible: boolean) {
@@ -1387,20 +1407,35 @@ function syncAccountUi() {
   const accountText = document.getElementById('tg-account-text');
   const connectBtn = document.getElementById('tg-connect-discord-inline') as HTMLButtonElement | null;
   const logoutBtn = document.getElementById('tg-logout') as HTMLButtonElement | null;
+  const usernameEl = document.getElementById('tg-username');
   if (!accountText || !connectBtn || !logoutBtn) return;
+
+  if (isConnecting) {
+    accountText.textContent = '📞 Syncing with Discord gateway...';
+    connectBtn.disabled = true;
+    connectBtn.style.opacity = '0.75';
+    connectBtn.textContent = 'Syncing...';
+    return;
+  }
 
   if (demoMode || !authToken) {
     accountText.textContent = 'Demo mode is live. Connect Discord if you want synced history and vault progress.';
+    connectBtn.disabled = false;
+    connectBtn.style.opacity = '1';
     connectBtn.textContent = 'Connect Discord';
     connectBtn.style.display = 'inline-flex';
     logoutBtn.style.display = 'none';
+    if (usernameEl) usernameEl.textContent = 'Guest (Demo)';
     return;
   }
 
   accountText.textContent = `Connected as ${userData?.username || 'TiltCheck user'}`;
+  connectBtn.disabled = false;
+  connectBtn.style.opacity = '1';
   connectBtn.textContent = 'Reconnect';
   connectBtn.style.display = 'inline-flex';
   logoutBtn.style.display = 'inline-flex';
+  if (usernameEl) usernameEl.textContent = userData?.username || 'TiltCheck User';
 }
 
 function clearDiscordAuthPolling() {
@@ -1413,6 +1448,7 @@ function clearDiscordAuthPolling() {
 async function applyDiscordAuthSuccess(token: string, user: Record<string, any>) {
   await setStorage({ authToken: token, userData: user });
   clearDiscordAuthPolling();
+  isConnecting = false;
   demoMode = false;
   authToken = token;
   userData = { ...user, isDemo: false };
@@ -1447,6 +1483,8 @@ function startDiscordLoginFlow() {
   const startedAt = Date.now();
   clearDiscordAuthPolling();
   authBridgeAckReceived = false;
+  isConnecting = true;
+  syncAccountUi();
 
   const startStoragePolling = () => {
     let pollAttempts = 0;
