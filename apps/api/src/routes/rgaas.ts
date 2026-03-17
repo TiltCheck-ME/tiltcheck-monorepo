@@ -17,7 +17,7 @@ import { evaluateBreathalyzer, evaluateSentiment } from '../lib/safety.js';
 import { trustEngines } from '@tiltcheck/trust-engines';
 import { eventRouter } from '@tiltcheck/event-router';
 import { suslink } from '@tiltcheck/suslink';
-import { getUserTiltStatus } from '@tiltcheck/tiltcheck-core';
+import { getUserTiltStatus } from '@tiltcheck/core';
 
 const router = Router();
 

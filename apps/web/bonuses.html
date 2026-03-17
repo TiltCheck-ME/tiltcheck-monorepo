@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Daily Bonus Drop - TiltCheck</title>
+  <link rel="stylesheet" href="/styles/theme.css">
+  <link rel="stylesheet" href="/styles/main.css">
+  <style>
+    .bonus-page { max-width: 800px; margin: 4rem auto; padding: 2rem; }
+    .bonus-card { background: #1a1f26; border: 1px solid #30363d; border-radius: 12px; padding: 2rem; margin-top: 2rem; }
+    .bonus-title { color: #00d4aa; margin-bottom: 0.5rem; }
+    .bonus-date { font-size: 0.9rem; opacity: 0.6; margin-bottom: 2rem; }
+    .bonus-item { border-bottom: 1px solid #333; padding: 1rem 0; display: flex; justify-content: space-between; align-items: center; }
+    .bonus-item:last-child { border-bottom: none; }
+    .casino-name { font-weight: bold; color: #fff; }
+    .bonus-type { color: #8ea7ff; }
+    .bonus-code { background: #0d1117; padding: 4px 8px; border-radius: 4px; font-family: monospace; }
+    .degen-insight { margin-top: 2rem; padding: 1rem; background: rgba(142, 167, 255, 0.1); border-left: 4px solid #8ea7ff; font-style: italic; }
+  </style>
+</head>
+<body class="degen-background">
+  <div id="shared-nav"></div>
+  <main class="bonus-page">
+    <h1 id="page-title">Daily Bonus Drop</h1>
+    <p id="page-subtitle">Scanning the meta so you don't have to.</p>
+
+    <div id="bonus-content" class="bonus-card">
+      <p>Loading the latest intel...</p>
+    </div>
+  </main>
+
+  <script type="module">
+    async function loadBonuses() {
+      const content = document.getElementById('bonus-content');
+      try {
+        const res = await fetch('/data/daily-bonuses.json');
+        if (!res.ok) throw new Error('No bonus data found.');
+        const data = await res.json();
+        
+        if (!data.bonuses || data.bonuses.length === 0) {
+          content.innerHTML = '<p>No bonuses found in the last 24h. The house is being stingy.</p>';
+          return;
+        }
+
+        let html = `
+          <h2 class="bonus-title">${data.title || 'Today\'s Bonus Intel'}</h2>
+          <div class="bonus-date">Last Updated: ${new Date(data.lastUpdated).toLocaleString()}</div>
+          <p><strong>Highlight:</strong> ${data.highlight}</p>
+          <div class="bonus-list">
+        `;
+
+        data.bonuses.forEach(b => {
+          html += `
+            <div class="bonus-item">
+              <div>
+                <div class="casino-name">${b.casino}</div>
+                <div class="bonus-type">${b.type}</div>
+              </div>
+              <div>
+                <span class="bonus-code">${b.code}</span>
+                <div style="font-size: 0.7rem; opacity: 0.5; margin-top: 4px;">Expires: ${b.expiry}</div>
+              </div>
+            </div>
+          `;
+        });
+
+        html += `</div>`;
+        if (data.degenInsight) {
+          html += `<div class="degen-insight"><strong>Scout's Note:</strong> ${data.degenInsight}</div>`;
+        }
+
+        content.innerHTML = html;
+      } catch (err) {
+        content.innerHTML = `<p>Error loading bonuses. Stay tuned.</p>`;
+      }
+    }
+    loadBonuses();
+  </script>
+  <script type="module" src="/scripts/components-loader.js"></script>
+</body>
+</html>

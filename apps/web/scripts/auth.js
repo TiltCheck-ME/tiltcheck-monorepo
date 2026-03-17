@@ -193,7 +193,7 @@ class TiltCheckAuth {
     if (this.user) {
       localStorage.setItem(`terms_accepted_${this.user.id}`, 'true');
       localStorage.setItem(`terms_accepted_date_${this.user.id}`, new Date().toISOString());
-    });
+    }
   }
 }
 

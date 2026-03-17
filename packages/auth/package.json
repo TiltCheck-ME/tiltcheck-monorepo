@@ -1,5 +1,5 @@
 {
-  "name": "@jmenichole/tiltcheck-auth",
+  "name": "@tiltcheck/auth",
   "version": "0.1.1",
   "description": "Shared authentication package for TiltCheck ecosystem - JWT, cookies, OAuth, and middleware",
   "type": "module",
