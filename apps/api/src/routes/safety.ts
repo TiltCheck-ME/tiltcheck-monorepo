@@ -149,9 +149,48 @@ router.post('/suslink/scan', async (req, res) => {
       },
     });
   } catch (err) {
-    console.error('[Safety API] SusLink scan error:', err instanceof Error ? err.message : err);
-    res.status(500).json({ error: 'Scan failed', code: 'SCAN_FAILED' });
+    console.error('[Safety API] SusLink scan error:', err);
   }
+});
+
+/**
+ * POST /safety/report
+ * Submit a community report about a casino.
+ */
+router.post('/report', (req, res) => {
+  const { type, details, casino } = req.body ?? {};
+  const userId = (req as any).user?.id || 'guest';
+
+  if (!type || !details || !casino) {
+    res.status(400).json({ error: 'Missing required fields', code: 'INVALID_INPUT' });
+    return;
+  }
+
+  // In a real app, we'd save this to a database and trigger trust score recalculation.
+  // For now, we'll log it and return success for the UX.
+  console.log(`[Community Signal] User ${userId} reported ${type} for ${casino}: ${details}`);
+
+  res.json({
+    success: true,
+    message: 'Signal shared with the community',
+    id: `signal_${Date.now()}`
+  });
+});
+
+/**
+ * GET /safety/signals/recent
+ * Get recent community signals.
+ */
+router.get('/signals/recent', (req, res) => {
+  // Mock recent signals for demo purposes.
+  // In production, this would query the DB for the last N reports.
+  res.json({
+    success: true,
+    signals: [
+      { id: '1', type: 'payout_change', casino: 'stake.us', details: 'Reports of delayed withdrawals starting 2h ago.', timestamp: Date.now() - 7200000 },
+      { id: '2', type: 'bonus_nerf', casino: 'roobet.com', details: 'Daily reload amounts reduced for level 2 accounts.', timestamp: Date.now() - 14400000 }
+    ]
+  });
 });
 
 export { router as safetyRouter };

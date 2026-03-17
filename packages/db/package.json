@@ -1,5 +1,5 @@
 {
-  "name": "@jmenichole/tiltcheck-db",
+  "name": "@tiltcheck/db",
   "version": "0.1.1",
   "description": "Neon PostgreSQL database client for TiltCheck ecosystem",
   "type": "module",

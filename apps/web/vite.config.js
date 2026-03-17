@@ -1,24 +1,28 @@
-/* Copyright (c) 2026 TiltCheck. All rights reserved. */
-import { resolve } from 'path';
-import { readdirSync } from 'fs';
+import path, { resolve } from 'path';
+import { fileURLToPath } from 'url';
 import { defineConfig } from 'vite';
 
-const root = 'public';
-const publicPath = resolve(__dirname, root);
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
-// Dynamically find all HTML files in the public directory to use as entry points.
-const input = readdirSync(publicPath)
-  .filter(file => file.endsWith('.html'))
-  .reduce((acc, file) => {
-    const name = file.slice(0, -5); // remove .html extension
-    acc[name] = resolve(publicPath, file);
-    return acc;
-  }, {});
+const root = __dirname;
+const publicDir = resolve(__dirname, 'public');
+
+// Find HTML files in both root and public directory to use as entry points.
+// Note: Vite will only find files within its root.
+const input = {
+  'index': resolve(root, 'index.html'),
+  'login': resolve(root, 'login.html'),
+  'dashboard/index': resolve(root, 'dashboard/index.html'),
+  'sitemap': resolve(publicDir, 'sitemap.html'),
+  'bonuses': resolve(root, 'bonuses.html'),
+};
 
 export default defineConfig({
   root,
+  publicDir: 'public',
   build: {
-    outDir: '../dist',
+    outDir: 'dist',
     emptyOutDir: true,
     manifest: true,
     rollupOptions: {
