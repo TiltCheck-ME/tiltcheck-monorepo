@@ -1,6 +1,6 @@
 {
   "name": "@tiltcheck/auth",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Shared authentication package for TiltCheck ecosystem - JWT, cookies, OAuth, and middleware",
   "type": "module",
   "main": "./dist/index.js",
@@ -10,6 +10,9 @@
     "dev": "tsc --watch",
     "clean": "rm -rf dist",
     "test": "vitest --run --passWithNoTests"
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
   },
   "dependencies": {
     "@noble/ed25519": "^3.0.0",

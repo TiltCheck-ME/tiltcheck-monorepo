@@ -7,37 +7,45 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles/theme.css">
+  <link rel="stylesheet" href="/styles/base.css">
   <link rel="stylesheet" href="/styles/main.css">
-  
 </head>
 <body class="degen-background text-white">
+  <!-- Skip to main content — keyboard accessibility -->
+  <a class="skip-link" href="#main-content">Skip to main content</a>
+
   <div class="content-wrapper">
   <header class="site-header">
-    <nav class="site-nav">
+    <nav class="site-nav" aria-label="Primary navigation">
       <!-- Logo -->
-      <a href="/" class="nav-logo">
-        <img src="/assets/logo/logocurrent.svg" alt="TiltCheck" width="32" height="32">
+      <a href="/" class="nav-logo" aria-label="TiltCheck — go to homepage">
+        <img src="/assets/logo/logocurrent.svg" alt="" width="32" height="32" aria-hidden="true">
         <span class="nav-logo-text">TiltCheck</span>
       </a>
       <!-- Desktop Nav Links -->
-      <div class="nav-links">
-        <a href="/features.html#agent" class="nav-link">Degen Intelligence</a>
-        <a href="/trust-scores.html" class="nav-link">Casino Trust</a>
-        <a href="/features.html" class="nav-link">Features</a>
-        <a href="/features.html#status" class="nav-link">Alpha/Beta</a>
+      <div class="nav-links" role="list">
+        <a href="/features.html#agent" class="nav-link" role="listitem">Degen Intelligence</a>
+        <a href="/trust-scores.html" class="nav-link" role="listitem">Casino Trust</a>
+        <a href="/features.html" class="nav-link" role="listitem">Features</a>
+        <a href="/bonuses.html" class="nav-link" role="listitem">Daily Bonuses</a>
+        <a href="/features.html#status" class="nav-link" role="listitem">Alpha/Beta</a>
       </div>
       <!-- CTA -->
       <div class="nav-cta">
-        <a href="https://discord.gg/s6NNfPHxMS" target="_blank" rel="noopener noreferrer" class="btn btn-secondary">Join Discord</a>
+        <a href="https://discord.gg/s6NNfPHxMS" target="_blank" rel="noopener noreferrer" class="btn btn-secondary">
+          Join Discord
+          <span class="sr-only">(opens in a new tab)</span>
+        </a>
         <a href="/login.html" class="discord-login-btn btn btn-primary">Login</a>
       </div>
     </nav>
   </header>
 
   <main id="main-content">
-    <section class="hero-surface">
+    <section class="hero-surface" aria-labelledby="hero-heading">
         <div class="hero-content">
-          <h1 class="neon neon-main" data-text="HOUSE ALWAYS WINS?">HOUSE ALWAYS WINS?</h1>
+          <h1 class="neon neon-main" id="hero-heading" data-text="HOUSE ALWAYS WINS?">HOUSE ALWAYS WINS?</h1>
           <h2 class="neon neon-sub" data-text="FUCK THAT.">FUCK THAT.</h2>
           <p class="hero-body">
             Not anymore. We've built the tools you need to fight back. Let's be real: you're not going to quit. So why do responsible gaming tools treat you like you should? We've embraced the degen spirit and built a toolkit that actually helps you navigate the chaos of online gambling, so you can play longer, smarter, and protect your stack.
@@ -45,98 +53,128 @@
         </div>
     </section>
 
-    <section class="stats-strip">
-      <div class="stats-strip-inner">
+    <!-- Suggestion 2: semantic <dl> for stats so screen readers associate values with labels -->
+    <section class="stats-strip" aria-label="Platform statistics">
+      <dl class="stats-strip-inner">
         <div>
-          <span class="stat-value" id="stat-communities">--</span>
-          <div class="stat-label">Communities</div>
+          <dt class="stat-label">Communities</dt>
+          <dd class="stat-value" id="stat-communities">--</dd>
         </div>
         <div>
-          <span class="stat-value" id="stat-scans">--</span>
-          <div class="stat-label">24h Scans</div>
+          <dt class="stat-label">24h Scans</dt>
+          <dd class="stat-value" id="stat-scans">--</dd>
         </div>
         <div>
-          <span class="stat-value" id="stat-blocked">--</span>
-          <div class="stat-label">Threats Blocked</div>
+          <dt class="stat-label">Threats Blocked</dt>
+          <dd class="stat-value" id="stat-blocked">--</dd>
         </div>
-      </div>
+      </dl>
       <p class="stats-note">*A note on our stats: These numbers are real. We don't inflate stats for marketing bullshit.</p>
-      <p class="stats-status"><span id="api-stats-status"></span></p>
+      <p class="stats-status"><span id="api-stats-status" aria-live="polite" aria-atomic="true"></span></p>
     </section>
 
-    <section id="tools">
+    <section id="tools" aria-labelledby="tools-heading">
       <div class="container">
         <div class="tools-header">
-          <h2 class="tools-title">The Full Degen Toolkit</h2>
+          <h2 class="tools-title" id="tools-heading">The Full Degen Toolkit</h2>
           <p class="tools-subtitle">Battle-tested signals across Discord, web, and extension.</p>
         </div>
-        <div class="tools-legend">
-          <span class="legend-item"><span class="legend-dot green"></span>Live</span>
-          <span class="legend-item"><span class="legend-dot purple"></span>Alpha/Beta</span>
+
+        <!-- Suggestion 8: aria-hidden on decorative status dots -->
+        <div class="tools-legend" role="list" aria-label="Status legend">
+          <span class="legend-item" role="listitem">
+            <span class="legend-dot green" aria-hidden="true"></span>Live
+          </span>
+          <span class="legend-item" role="listitem">
+            <span class="legend-dot purple" aria-hidden="true"></span>Alpha/Beta
+          </span>
         </div>
-        <div class="flex overflow-x-auto hide-scrollbar" id="tools-carousel" style="gap:1.5rem; padding-bottom:2rem; scroll-behavior:smooth;">
-          <a href="/features.html#agent" class="tool-card">
-            <div class="tool-card-body">
-              <h3 class="neon-tool-name">Degen Intelligence</h3>
-              <p class="tool-card-desc">Your personal on-chain analyst. Ask it anything about your gameplay in natural language via Discord DM.</p>
-            </div>
-            <span class="badge-live">Live</span>
-          </a>
-          <a href="/extension.html" class="tool-card">
-            <div class="tool-card-body">
-              <h3 class="neon-tool-name">The House Edge</h3>
-              <p class="tool-card-desc">A real-time co-pilot that watches for fairness anomalies, detects tilt, and enables harm reduction tools like autovaulting.</p>
-            </div>
-            <span class="badge-live">Live</span>
-          </a>
-          <a href="/features.html#lockvault" class="tool-card">
-            <div class="tool-card-body">
-              <h3 class="neon-tool-name">Wallet Lock</h3>
-              <p class="tool-card-desc">Time-lock your funds so your tilted future-self can't touch them. The ultimate form of self-control.</p>
-            </div>
-            <span class="badge-live">Live</span>
-          </a>
-          <a href="/tools/justthetip.html" class="tool-card">
-            <div class="tool-card-body">
-              <h3 class="neon-tool-name">JustTheTip</h3>
-              <p class="tool-card-desc">Secure, non-custodial Solana tipping, airdrops, and swaps directly in Discord.</p>
-            </div>
-            <span class="badge-live">Live</span>
-          </a>
-          <a href="/tools/suslink.html" class="tool-card">
-            <div class="tool-card-body">
-              <h3 class="neon-tool-name">LinkCheck</h3>
-              <p class="tool-card-desc">AI-powered link scanning to detect scams and phishing redirects before you click.</p>
-            </div>
-            <span class="badge-live">Live</span>
-          </a>
-          <a href="/features.html#trust" class="tool-card">
-            <div class="tool-card-body">
-              <h3 class="neon-tool-name">Trust Engine</h3>
-              <p class="tool-card-desc">Data-driven trust scores for casinos and users, based on real behavior, not paid reviews.</p>
-            </div>
-            <span class="badge-live">Live</span>
-          </a>
-          <a href="/tools/daad.html" class="tool-card">
-            <div class="tool-card-body">
-              <h3 class="neon-tool-name">DA&amp;D</h3>
-              <p class="tool-card-desc">Outrageous multiplayer card game playable as a Discord Activity.</p>
-            </div>
-            <span class="badge-live">Live</span>
-          </a>
-          <a href="/tools/collectclock.html" class="tool-card">
-            <div class="tool-card-body">
-              <h3 class="neon-tool-name">BonusCheck</h3>
-              <p class="tool-card-desc">Bonus drop tracking with nerf detection and window prediction.</p>
-            </div>
-            <span class="badge-beta">Beta</span>
-          </a>
+
+        <!-- Suggestion 5: Scroll cue via fade edges + prev/next arrow buttons -->
+        <div class="tools-carousel-wrapper" role="region" aria-label="Tools carousel, scrollable">
+          <button class="carousel-btn carousel-btn-prev" id="carousel-prev" aria-label="Scroll tools left" type="button">&#8249;</button>
+
+          <div class="flex overflow-x-auto hide-scrollbar" id="tools-carousel" style="gap:1.5rem; padding-bottom:2rem; scroll-behavior:smooth;">
+
+            <!-- Suggestion 6: aria-labelledby on each card pointing to its h3 -->
+            <a href="/features.html#agent" class="tool-card" aria-labelledby="card-degen-intelligence">
+              <div class="tool-card-body">
+                <h3 class="neon-tool-name" id="card-degen-intelligence">Degen Intelligence</h3>
+                <p class="tool-card-desc">Your personal on-chain analyst. Ask it anything about your gameplay in natural language via Discord DM.</p>
+              </div>
+              <span class="badge-live">Live</span>
+            </a>
+
+            <a href="/extension.html" class="tool-card" aria-labelledby="card-house-edge">
+              <div class="tool-card-body">
+                <h3 class="neon-tool-name" id="card-house-edge">The House Edge</h3>
+                <p class="tool-card-desc">A real-time co-pilot that watches for fairness anomalies, detects tilt, and enables harm reduction tools like autovaulting.</p>
+              </div>
+              <span class="badge-live">Live</span>
+            </a>
+
+            <a href="/features.html#lockvault" class="tool-card" aria-labelledby="card-wallet-lock">
+              <div class="tool-card-body">
+                <h3 class="neon-tool-name" id="card-wallet-lock">Wallet Lock</h3>
+                <p class="tool-card-desc">Time-lock your funds so your tilted future-self can't touch them. The ultimate form of self-control.</p>
+              </div>
+              <span class="badge-live">Live</span>
+            </a>
+
+            <a href="/tools/justthetip.html" class="tool-card" aria-labelledby="card-justthetip">
+              <div class="tool-card-body">
+                <h3 class="neon-tool-name" id="card-justthetip">JustTheTip</h3>
+                <p class="tool-card-desc">Secure, non-custodial Solana tipping, airdrops, and swaps directly in Discord.</p>
+              </div>
+              <span class="badge-live">Live</span>
+            </a>
+
+            <a href="/tools/suslink.html" class="tool-card" aria-labelledby="card-linkcheck">
+              <div class="tool-card-body">
+                <h3 class="neon-tool-name" id="card-linkcheck">LinkCheck</h3>
+                <p class="tool-card-desc">AI-powered link scanning to detect scams and phishing redirects before you click.</p>
+              </div>
+              <span class="badge-live">Live</span>
+            </a>
+
+            <a href="/features.html#trust" class="tool-card" aria-labelledby="card-trust-engine">
+              <div class="tool-card-body">
+                <h3 class="neon-tool-name" id="card-trust-engine">Trust Engine</h3>
+                <p class="tool-card-desc">Data-driven trust scores for casinos and users, based on real behavior, not paid reviews.</p>
+              </div>
+              <span class="badge-live">Live</span>
+            </a>
+
+            <a href="/tools/daad.html" class="tool-card" aria-labelledby="card-daad">
+              <div class="tool-card-body">
+                <h3 class="neon-tool-name" id="card-daad">DA&amp;D</h3>
+                <p class="tool-card-desc">Outrageous multiplayer card game playable as a Discord Activity.</p>
+              </div>
+              <span class="badge-live">Live</span>
+            </a>
+
+            <a href="/tools/collectclock.html" class="tool-card" aria-labelledby="card-bonuscheck">
+              <div class="tool-card-body">
+                <h3 class="neon-tool-name" id="card-bonuscheck">BonusCheck</h3>
+                <p class="tool-card-desc">Bonus drop tracking with nerf detection and window prediction.</p>
+              </div>
+              <span class="badge-beta">Beta</span>
+            </a>
+
+          </div>
+
+          <button class="carousel-btn carousel-btn-next" id="carousel-next" aria-label="Scroll tools right" type="button">&#8250;</button>
         </div>
+
+        <!-- Carousel Indicators (Mobile) -->
+        <div class="carousel-indicators" id="carousel-indicators" role="tablist" aria-label="Carousel indicators"></div>
+
       </div>
     </section>
   </main>
 
-  <footer class="site-footer">
+  <!-- Suggestion 7: Responsive grid footer -->
+  <footer class="site-footer" aria-label="Site footer">
     <div class="footer-columns">
       <div class="footer-col">
         <h4>Product</h4>
@@ -164,8 +202,16 @@
         <h4>Company</h4>
         <ul>
           <li><a href="/about.html">About</a></li>
-          <li><a href="https://github.com/jmenichole/tiltcheck-monorepo" target="_blank" rel="noopener noreferrer">GitHub</a></li>
-          <li><a href="https://discord.gg/s6NNfPHxMS" target="_blank" rel="noopener noreferrer">Discord</a></li>
+          <li>
+            <a href="https://github.com/jmenichole/tiltcheck-monorepo" target="_blank" rel="noopener noreferrer">
+              GitHub<span class="sr-only"> (opens in a new tab)</span>
+            </a>
+          </li>
+          <li>
+            <a href="https://discord.gg/s6NNfPHxMS" target="_blank" rel="noopener noreferrer">
+              Discord<span class="sr-only"> (opens in a new tab)</span>
+            </a>
+          </li>
           <li><a href="/contact.html">Contact</a></li>
           <li><a href="/press-kit.html">Press Kit</a></li>
         </ul>
@@ -193,12 +239,13 @@
     </div>
     <div class="footer-bottom">
       <p class="footer-tagline">Made for degens, by degens.</p>
-      <p class="footer-copyright">TiltCheck Ecosystem © 2024–2026</p>
+      <p class="footer-copyright">TiltCheck Ecosystem &copy; 2024&ndash;2026</p>
     </div>
   </footer>
 
-  <script src="/scripts/index-stats.js"></script>
-  <script src="/scripts/auth.js"></script>
+  <script type="module" src="/scripts/index-stats.js"></script>
+  <script type="module" src="/scripts/carousel.js"></script>
+  <script type="module" src="/scripts/auth.js"></script>
   </div>
 </body>
 </html>

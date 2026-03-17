@@ -1,0 +1,70 @@
+name: Publish Changed Packages on Push
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+  packages: write
+
+jobs:
+  publish-changed:
+    runs-on: ubuntu-latest
+    name: Detect, Version, and Publish Changed Packages
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          # Fetch all history to enable correct diffing
+          fetch-depth: 0
+
+      - name: Set up Node.js and pnpm
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          registry-url: 'https://npm.pkg.github.com'
+      - uses: pnpm/action-setup@v3
+        with:
+          version: 9
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Identify changed packages
+        id: changed-packages
+        run: |
+          # Use pnpm's git-based filtering to find changed packages since the last commit on main
+          # The output is a space-separated list of package names
+          CHANGED_PACKAGES=$(pnpm --filter="...[main^1]" --filter="!@tiltcheck/api" --filter="!@tiltcheck/landing-page" -r list --depth=-1 --json | jq -r 'map(.name) | join(" ")')
+          echo "changed_list=${CHANGED_PACKAGES}" >> $GITHUB_OUTPUT
+          echo "Changed packages: ${CHANGED_PACKAGES}"
+
+      - name: Build, Version, and Publish changed packages
+        if: steps.changed-packages.outputs.changed_list != ''
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Loop through each changed package
+          for pkg in ${{ steps.changed-packages.outputs.changed_list }}; do
+            echo "Processing package: $pkg"
+            pnpm --filter "$pkg" build
+            pnpm --filter "$pkg" exec pnpm version patch --no-git-tag-version
+            pnpm --filter "$pkg" publish --no-git-checks
+          done
+
+      - name: Commit and push version bumps
+        if: steps.changed-packages.outputs.changed_list != ''
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add -A
+          # Check if there are any changes to commit
+          if ! git diff --staged --quiet; then
+            git commit -m "chore(release): auto-publish changed packages"
+            git push
+          else
+            echo "No version changes to commit."
+          fi

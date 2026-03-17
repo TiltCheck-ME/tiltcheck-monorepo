@@ -47,7 +47,7 @@
     }
   </style>
 <link rel="stylesheet" href="/styles/main.css">
-  <script src="/scripts/glitter.js" defer></script>
+  <script type="module" src="/scripts/glitter.js" defer></script>
 </head>
 <body>
   <main class="card">
@@ -56,7 +56,7 @@
     <p>If you are not authenticated, you will be redirected to the login flow.</p>
     <a href="https://dashboard.tiltcheck.me/login">Login with Discord</a>
   </main>
-  <script>
+  <script type="module">
     (async () => {
       const next = 'https://dashboard.tiltcheck.me';
       const endpoints = ['/api/auth/me', '/auth/me', '/play/api/user', '/api/user'];
