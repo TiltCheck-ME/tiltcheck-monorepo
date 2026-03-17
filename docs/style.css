@@ -96,7 +96,7 @@ body {
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: clamp(1.5rem, 3vw, 2rem);
+  gap: clamp(1rem, 2vw, 1.5rem);
   padding: var(--space-sm) var(--container-padding);
   background: var(--bg-secondary);
   border-bottom: 1px solid var(--border-subtle);
@@ -1132,7 +1132,7 @@ body {
   display: block;
   width: 24px;
   height: 2px;
-  background: var(--color-primary);
+  background: var(--text-secondary);
   position: relative;
   transition: background 0.2s ease;
 }
@@ -1143,7 +1143,7 @@ body {
   position: absolute;
   width: 24px;
   height: 2px;
-  background: var(--color-primary);
+  background: var(--text-secondary);
   left: 0;
   transition: transform 0.3s ease;
 }
@@ -1169,11 +1169,6 @@ body {
 .hamburger-btn.open .hamburger-icon::after {
   transform: rotate(-45deg);
   top: 0;
-}
-
-/* Add a visually hidden "Close" label for screen readers */
-.hamburger-btn.open .sr-only {
-  display: inline;
 }
 
 /* Mobile Navigation Overlay */
@@ -1319,11 +1314,8 @@ body {
 }
 
 /* Show dropdown on hover (desktop) */
-/* Show dropdown on hover, focus, or when opened with JS */
-@media (hover: hover) and (pointer: fine) {
-  .nav-dropdown:hover .nav-dropdown-content,
-  .nav-dropdown:focus-within .nav-dropdown-content,
-  .nav-dropdown.dropdown-open .nav-dropdown-content {
+@media (hover: hover) {
+  .nav-dropdown:hover .nav-dropdown-content {
     display: block;
   }
 }

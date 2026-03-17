@@ -110,12 +110,12 @@ open http://localhost:8083/index-v2.html
 
 ### Deploy to Production
 ```bash
-# Replace current index.html
+# Backup and replace current index.html (ensure you have a rollback plan)
 mv public/index.html public/index-old-backup.html
 mv public/index-v2.html public/index.html
 
-# Restart server
-pm2 restart landing
+# Restart the relevant server process if needed
+# e.g., pm2 restart landing-page-server
 ```
 
 ## 📚 Documentation
@@ -214,7 +214,7 @@ Before deploying:
 - **Live Preview**: http://localhost:8083/index-v2.html (when server running)
 - **Theme Guide**: `services/landing/THEME_GUIDE.md`
 - **A11y Audit**: `services/landing/ACCESSIBILITY_AUDIT.md`
-- **GitHub**: [feat/components-tests-a11y-ecosystem](https://github.com/jmenichole/tiltcheck-monorepo)
+- **GitHub**: tiltcheck-monorepo
 
 ---
 
