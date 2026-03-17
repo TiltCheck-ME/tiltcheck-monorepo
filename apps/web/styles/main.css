@@ -31,11 +31,11 @@
    ============================================================ */
 body.degen-background {
   background-color: #0E0E0F;
-  background-image:
-    radial-gradient(ellipse 80% 50% at 50% -10%, rgba(0, 255, 170, 0.1), transparent),
-    radial-gradient(ellipse 80% 50% at 50% 110%, rgba(168, 85, 247, 0.1), transparent);
+  background-image: url('/assets/backgroundglitter.png');
+  background-size: cover;
   background-repeat: no-repeat;
-  background-size: 100% 100%;
+  background-position: center;
+  background-attachment: fixed;
   min-height: 100vh;
   position: relative;
 }
@@ -181,6 +181,10 @@ body.degen-background {
   padding: 5rem 1.5rem 3.5rem;
   text-align: center;
   position: relative;
+  background-image: url('/assets/herofuckthat.png');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
 }
 
 .hero-content {
