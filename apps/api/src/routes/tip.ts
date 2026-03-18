@@ -7,9 +7,7 @@
 import { Router } from 'express';
 import rateLimit from 'express-rate-limit';
 import { sessionAuth, type AuthContext } from '@tiltcheck/auth/middleware/express';
-import { verifySolanaSignature, verifySessionCookie, type JWTConfig } from '@tiltcheck/auth';
-import { createTip, findTipById, updateTipStatus, findUserByDiscordId } from '@tiltcheck/db';
-import { getJWTConfig } from '../middleware/auth.js';
+import { justthetip } from '@tiltcheck/justthetip';
 
 const router = Router();
 
@@ -30,7 +28,6 @@ const verifyLimiter = rateLimit({
   message: { error: 'Too many verification requests', code: 'RATE_LIMIT_EXCEEDED' },
 });
 
-
 /**
  * POST /tip/verify
  * Verify a tipping request (Discord user + wallet signature + session)
@@ -40,55 +37,39 @@ router.post('/verify', verifyLimiter, sessionAuth(), async (req, res) => {
     const { recipientDiscordId, amount, currency, signature, message, publicKey } = req.body;
     const auth = (req as any).auth as AuthContext;
 
-    if (!auth) {
-      res.status(401).json({ error: 'Not authenticated' });
+    if (!auth || !auth.discordId) {
+      res.status(401).json({ error: 'Not authenticated with Discord' });
       return;
     }
 
-    // Validate required fields
     if (!recipientDiscordId || !amount || !currency) {
       res.status(400).json({ error: 'Missing required fields: recipientDiscordId, amount, currency' });
       return;
     }
 
-    // Verify wallet signature if provided
-    if (signature && message && publicKey) {
-      const signatureResult = await verifySolanaSignature({ message, signature, publicKey });
-
-      if (!signatureResult.valid) {
-        res.status(400).json({ error: 'Invalid wallet signature', details: signatureResult.error });
-        return;
+    // Use JustTheTip module for verification logic
+    const result = await justthetip.verifyTipRequest(
+      { 
+        userId: auth.userId, 
+        discordId: auth.discordId, 
+        walletAddress: auth.walletAddress 
+      },
+      { 
+        recipientDiscordId: String(recipientDiscordId), 
+        amount: String(amount), 
+        currency: String(currency), 
+        signature: signature ? String(signature) : undefined, 
+        message: message ? String(message) : undefined, 
+        publicKey: publicKey ? String(publicKey) : undefined 
       }
+    );
 
-      // Verify the public key matches the user's linked wallet
-      if (auth.walletAddress && auth.walletAddress !== publicKey) {
-        res.status(400).json({ error: 'Wallet address mismatch' });
-        return;
-      }
+    if (!result.valid) {
+      res.status(400).json({ error: result.error || 'Verification failed' });
+      return;
     }
 
-    // Check if recipient exists
-    const recipient = await findUserByDiscordId(recipientDiscordId);
-
-    res.json({
-      valid: true,
-      sender: {
-        userId: auth.userId,
-        discordId: auth.discordId,
-        walletAddress: auth.walletAddress,
-      },
-      recipient: recipient ? {
-        userId: recipient.id,
-        discordId: recipient.discord_id,
-        walletAddress: recipient.wallet_address,
-      } : {
-        discordId: recipientDiscordId,
-        walletAddress: null,
-        isNewUser: true,
-      },
-      amount,
-      currency,
-    });
+    res.json(result);
   } catch (error) {
     console.error('[Tip] Verify error:', error);
     res.status(500).json({ error: 'Verification failed' });
@@ -114,11 +95,11 @@ router.post('/create', tipLimiter, sessionAuth(), async (req, res) => {
       return;
     }
 
-    // Create the tip record
-    const tip = await createTip({
-      sender_id: auth.userId,
-      recipient_discord_id: recipientDiscordId,
-      recipient_wallet: recipientWallet,
+    // Use JustTheTip module to create the record
+    const tip = await justthetip.createNewTip({
+      senderId: auth.userId,
+      recipientDiscordId,
+      recipientWallet,
       amount: String(amount),
       currency,
       message: tipMessage,
@@ -161,26 +142,23 @@ router.post('/:id/complete', tipLimiter, sessionAuth(), async (req, res) => {
       return;
     }
 
-    // Get the tip
-    const tip = await findTipById(id);
-
-    if (!tip) {
-      res.status(404).json({ error: 'Tip not found' });
+    if (!txSignature) {
+      res.status(400).json({ error: 'Missing txSignature' });
       return;
     }
 
-    // Verify the sender owns this tip
-    if (tip.sender_id !== auth.userId) {
-      res.status(403).json({ error: 'Not authorized to complete this tip' });
+    // Use JustTheTip module for completion logic (including ownership check)
+    const result = await justthetip.completeTipTransaction(id, auth.userId, String(txSignature));
+
+    if (!result.success) {
+      const status = result.error === 'Tip not found' ? 404 : 403;
+      res.status(status).json({ error: result.error });
       return;
     }
-
-    // Update tip status
-    const updatedTip = await updateTipStatus(id, 'completed', txSignature);
 
     res.json({
       success: true,
-      tip: updatedTip,
+      tip: result.tip,
     });
   } catch (error) {
     console.error('[Tip] Complete error:', error);
@@ -196,7 +174,7 @@ router.get('/:id', sessionAuth(undefined, { required: false }), async (req, res)
   try {
     const { id } = req.params;
 
-    const tip = await findTipById(id);
+    const tip = await justthetip.getTipDetails(id);
 
     if (!tip) {
       res.status(404).json({ error: 'Tip not found' });

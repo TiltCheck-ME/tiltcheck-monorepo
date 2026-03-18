@@ -1,8 +1,12 @@
 /* Copyright (c) 2026 TiltCheck. All rights reserved. */
 /**
- * JustTheTip - A funny joke on the tip message
+ * @tiltcheck/justthetip
+ * Centrally managed tipping logic for the TiltCheck ecosystem.
  */
 
-export const justTheTip = {
-  message: "That's what she said!",
-};
+export * from './types.js';
+export * from './core.js';
+
+// Re-export specific logic as a namespace for backwards compatibility if needed
+import * as justthetip from './core.js';
+export { justthetip };

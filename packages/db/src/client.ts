@@ -41,9 +41,9 @@ export function getDBConfig(): DBClientConfig {
     ssl: process.env.DATABASE_SSL !== 'false' && !connectionString.includes('localhost'),
   };
 }
-let poolInstance: any = null;
+let poolInstance: pg.Pool | null = null;
 
-export function getPool(): any {
+export function getPool(): pg.Pool {
   if (!poolInstance) {
     const config = getDBConfig();
     poolInstance = new Pool({
@@ -55,8 +55,8 @@ export function getPool(): any {
 }
 
 export async function query<T = Record<string, unknown>>(sql: string, params?: unknown[]): Promise<T[]> {
-  const res = await getPool().query(sql, params);
-  return res.rows as T[];
+  const result = await getPool().query(sql, params);
+  return result.rows as T[];
 }
 
 export async function queryOne<T = Record<string, unknown>>(sql: string, params?: unknown[]): Promise<T | null> {
@@ -64,11 +64,11 @@ export async function queryOne<T = Record<string, unknown>>(sql: string, params?
   return rows[0] ?? null;
 }
 
-export function createClient(config: DBClientConfig): any {
+export function createClient(config: DBClientConfig): pg.Pool {
   return new Pool({ connectionString: config.connectionString });
 }
 
-export function getClient() { return getPool(); }
+export function getClient(): pg.Pool { return getPool(); }
 export function resetClient(): void { poolInstance = null; }
 
 function _buildInsert(table: string, data: Record<string, unknown>) {
@@ -88,7 +88,7 @@ function _buildUpdate(table: string, id: string, data: Record<string, unknown>, 
   return { sql, values: [...values, id] };
 }
 
-function createClientFromExecutor(executor: (sql: string, params?: unknown[]) => Promise<any[]>): Client {
+function createClientFromExecutor(executor: (sql: string, params?: unknown[]) => Promise<Record<string, unknown>[]>): Client {
   return {
     query: async <T>(sql: string, params?: unknown[]) => (await executor(sql, params)) as T[],
     queryOne: async <T>(sql: string, params?: unknown[]) => {
@@ -106,26 +106,26 @@ function createClientFromExecutor(executor: (sql: string, params?: unknown[]) =>
       return (rows[0] as T) ?? null;
     },
     deleteRow: async (table, id, idColumn = 'id') => {
-      const sql = 'DELETE FROM ' + table + ' WHERE ' + idColumn + ' = ';
+      const sql = 'DELETE FROM ' + table + ' WHERE ' + idColumn + ' = $' + 1;
       await executor(sql, [id]);
       return true;
     },
     findById: async <T>(table, id, idColumn = 'id') => {
-      const sql = 'SELECT * FROM ' + table + ' WHERE ' + idColumn + ' = ';
+      const sql = 'SELECT * FROM ' + table + ' WHERE ' + idColumn + ' = $' + 1;
       const rows = await executor(sql, [id]);
       return (rows[0] as T) ?? null;
     },
     findBy: async <T>(table, column, value) => {
-      const sql = 'SELECT * FROM ' + table + ' WHERE ' + column + ' = ';
+      const sql = 'SELECT * FROM ' + table + ' WHERE ' + column + ' = $' + 1;
       return (await executor(sql, [value])) as T[];
     },
     findOneBy: async <T>(table, column, value) => {
-      const sql = 'SELECT * FROM ' + table + ' WHERE ' + column + ' = ';
+      const sql = 'SELECT * FROM ' + table + ' WHERE ' + column + ' = $' + 1;
       const rows = await executor(sql, [value]);
       return (rows[0] as T) ?? null;
     },
     exists: async (table, column, value) => {
-      const sql = 'SELECT 1 FROM ' + table + ' WHERE ' + column + ' =  LIMIT 1';
+      const sql = 'SELECT 1 FROM ' + table + ' WHERE ' + column + ' = $' + 1 + ' LIMIT 1';
       const result = await executor(sql, [value]);
       return result.length > 0;
     },

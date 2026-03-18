@@ -3,20 +3,12 @@
  * JustTheTip - Types
  */
 
-export type TipStatus = 'pending' | 'completed' | 'failed' | 'expired' | 'refunded';
+import type { Tip } from '@tiltcheck/db';
 
-export interface TipRecord {
-  id: string;
-  sender_id: string;
-  recipient_discord_id: string;
-  recipient_wallet: string | null;
-  amount: string;
-  currency: string;
-  message: string | null;
-  status: TipStatus;
-  tx_signature: string | null;
-  created_at: string;
-}
+export type TipStatus = 'pending' | 'completed' | 'failed' | 'cancelled' | 'expired' | 'refunded';
+
+// Use the Tip interface from @tiltcheck/db but allow for local extensions if needed
+export type TipRecord = Tip;
 
 export interface VerifyTipParams {
   recipientDiscordId: string;

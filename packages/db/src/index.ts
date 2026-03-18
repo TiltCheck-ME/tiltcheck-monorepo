@@ -81,6 +81,18 @@ export {
   findCasinoByDomain,
   getCasinos,
   addCasinoGrade,
+
+  // Partner & Webhook queries
+  findPartnerByAppId,
+  findPartnerById,
+  createPartner,
+  createWebhook,
+  findActiveWebhooksByEvent,
+  logWebhookDelivery,
+
+  // Identity & Trust queries
+  getAggregatedTrustByDiscordId,
+  logTrustSignal,
 } from './queries.js';
 
 // Type exports
@@ -102,4 +114,16 @@ export type {
   PaginatedResult,
   UserOnboarding,
   UpsertOnboardingPayload,
+
+  // Partner & Webhook types
+  Partner,
+  Webhook,
+  WebhookDelivery,
+  CreatePartnerPayload,
+  CreateWebhookPayload,
+
+  // Identity & Trust types
+  TrustSignal,
+  UserTrustSummary,
+  CreateTrustSignalPayload,
 } from './types.js';

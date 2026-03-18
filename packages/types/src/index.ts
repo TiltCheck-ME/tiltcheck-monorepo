@@ -768,7 +768,7 @@ export interface SwapQuote {
   rate: number; // output per input
   slippageBps: number;
   generatedAt: number;
-  routePlan?: any; // Placeholder for Jupiter route plan structure
+  routePlan?: unknown; // Placeholder for Jupiter route plan structure
   // Hardened fields
   minOutputAmount: number; // After slippage
   platformFeeBps: number;

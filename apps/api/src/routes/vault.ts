@@ -141,8 +141,9 @@ router.post('/:userId/lock', authMiddleware, async (req, res) => {
       success: true,
       vault: record
     });
-  } catch (error: any) {
-    res.status(400).json({ error: error.message });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Unknown error';
+    res.status(400).json({ error: message });
   }
 });
 
@@ -190,8 +191,9 @@ router.post('/:userId/release', authMiddleware, async (req, res) => {
       amountUnit: 'SOL',
       vault: record
     });
-  } catch (error: any) {
-    res.status(400).json({ error: error.message });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Unknown error';
+    res.status(400).json({ error: message });
   }
 });
 

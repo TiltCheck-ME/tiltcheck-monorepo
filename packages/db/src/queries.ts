@@ -22,6 +22,14 @@ import type {
   PaginatedResult,
   UserOnboarding,
   UpsertOnboardingPayload,
+  Partner,
+  CreatePartnerPayload,
+  Webhook,
+  CreateWebhookPayload,
+  WebhookDelivery,
+  TrustSignal,
+  UserTrustSummary,
+  CreateTrustSignalPayload,
 } from './types.js';
 
 // ============================================================================
@@ -541,4 +549,115 @@ export async function getAuditLogsByAdmin(
     offset,
     hasMore: offset + rows.length < total,
   };
+}
+
+// ============================================================================
+// Partner & Webhook Queries
+// ============================================================================
+
+/**
+ * Find partner by app ID
+ */
+export async function findPartnerByAppId(appId: string): Promise<Partner | null> {
+  return findOneBy<Partner>('partners', 'app_id', appId);
+}
+
+/**
+ * Find partner by ID
+ */
+export async function findPartnerById(id: string): Promise<Partner | null> {
+  return findById<Partner>('partners', id);
+}
+
+/**
+ * Create a new partner
+ */
+export async function createPartner(payload: CreatePartnerPayload): Promise<Partner | null> {
+  return insert<Partner>('partners', {
+    ...payload,
+    is_active: true,
+    created_at: new Date(),
+    updated_at: new Date(),
+  });
+}
+
+/**
+ * Create a webhook for a partner
+ */
+export async function createWebhook(payload: CreateWebhookPayload): Promise<Webhook | null> {
+  return insert<Webhook>('webhooks', {
+    ...payload,
+    is_active: true,
+    created_at: new Date(),
+    updated_at: new Date(),
+  });
+}
+
+/**
+ * Find active webhooks for a specific event type
+ */
+export async function findActiveWebhooksByEvent(eventType: string): Promise<Webhook[]> {
+  const sql = `
+    SELECT * FROM webhooks 
+    WHERE is_active = true 
+    AND $1 = ANY(events)
+  `;
+  return query<Webhook>(sql, [eventType]);
+}
+
+/**
+ * Log a webhook delivery attempt
+ */
+export async function logWebhookDelivery(delivery: Omit<WebhookDelivery, 'id' | 'created_at'>): Promise<WebhookDelivery | null> {
+  return insert<WebhookDelivery>('webhook_deliveries', {
+    ...delivery,
+    created_at: new Date(),
+  });
+}
+
+// ============================================================================
+// Identity & Trust Queries
+// ============================================================================
+
+/**
+ * Get aggregated trust summary for a Discord ID across all known origins
+ */
+export async function getAggregatedTrustByDiscordId(discordId: string): Promise<UserTrustSummary> {
+  const sql = `
+    SELECT 
+      discord_id,
+      SUM(delta) as total_score,
+      COUNT(*) as signals_count,
+      COUNT(DISTINCT origin_id) as origins_count,
+      MAX(created_at) as last_activity
+    FROM trust_signals
+    WHERE discord_id = $1
+    GROUP BY discord_id
+  `;
+
+  const result = await queryOne<any>(sql, [discordId]);
+
+  // Base score 100, capped at 0-1000
+  const baseScore = 100;
+  const totalDelta = parseInt(result?.total_score ?? '0', 10);
+  const finalScore = Math.max(0, Math.min(1000, baseScore + totalDelta));
+
+  return {
+    discord_id: discordId,
+    total_score: finalScore,
+    signals_count: parseInt(result?.signals_count ?? '0', 10),
+    origins_count: parseInt(result?.origins_count ?? '0', 10),
+    top_risk_factors: [],
+    last_activity: result?.last_activity ? new Date(result.last_activity) : null,
+  };
+}
+
+/**
+ * Log a new trust signal
+ */
+export async function logTrustSignal(payload: CreateTrustSignalPayload): Promise<TrustSignal | null> {
+  return insert<TrustSignal>('trust_signals', {
+    ...payload,
+    created_at: new Date(),
+  });
 }
