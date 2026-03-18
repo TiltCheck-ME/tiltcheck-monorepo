@@ -656,3 +656,95 @@ dl.stats-strip-inner {
     scroll-behavior: auto !important;
   }
 }
+
+/* ============================================================
+   LIVE TICKER & HERO ENHANCEMENTS (DEGEN EDITION)
+   ============================================================ */
+
+.hero-actions {
+  margin-top: 2.5rem;
+  display: flex;
+  justify-content: center;
+}
+
+.btn-hero {
+  padding: 1.125rem 2.5rem;
+  font-size: 1.125rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  border-radius: 4px;
+}
+
+.btn-glow {
+  box-shadow: 0 0 15px rgba(34, 211, 166, 0.4);
+  transition: box-shadow 300ms ease, transform 200ms ease;
+  background: var(--color-primary, #22d3a6) !important;
+}
+
+.btn-glow:hover {
+  box-shadow: 0 0 35px rgba(34, 211, 166, 0.7);
+  transform: translateY(-2px);
+}
+
+.live-ticker-strip {
+  margin: 2.5rem auto 1rem;
+  max-width: 720px;
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(34, 211, 166, 0.15);
+  border-radius: 40px;
+  padding: 0.5rem 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  font-family: 'Space Grotesk', sans-serif;
+  overflow: hidden;
+  box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.5);
+}
+
+.ticker-label {
+  font-size: 0.65rem;
+  font-weight: 800;
+  color: var(--color-primary, #22d3a6);
+  letter-spacing: 0.1em;
+  white-space: nowrap;
+}
+
+.ticker-feed {
+  flex: 1;
+  font-size: 0.875rem;
+  color: #c4ced8;
+  text-align: left;
+  min-height: 1.5rem;
+  display: flex;
+  align-items: center;
+}
+
+.ticker-event {
+  display: block;
+  width: 100%;
+}
+
+.ticker-time {
+  color: #8a97a8;
+  font-weight: 700;
+  margin-right: 0.5rem;
+}
+
+/* Ticker types */
+.type-tilt { color: #ff5555; }
+.type-sec { color: #facc15; }
+.type-vault { color: #22d3a6; }
+.type-trust { color: #818cf8; }
+.type-swap { color: #3b82f6; }
+.type-bonus { color: #f472b6; }
+
+@media (max-width: 768px) {
+  .live-ticker-strip {
+    margin: 2rem 1rem 1rem;
+    padding: 0.5rem 1rem;
+  }
+  .ticker-label { font-size: 0.55rem; }
+  .ticker-feed { font-size: 0.75rem; }
+}
+
