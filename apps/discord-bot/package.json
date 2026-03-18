@@ -22,6 +22,7 @@
     "@tiltcheck/discord-utils": "workspace:*",
     "@tiltcheck/esm-utils": "workspace:*",
     "@tiltcheck/event-router": "workspace:*",
+    "@tiltcheck/justthetip": "workspace:*",
     "@tiltcheck/lockvault": "workspace:*",
     "@tiltcheck/natural-language-parser": "workspace:*",
     "@tiltcheck/poker": "workspace:*",
