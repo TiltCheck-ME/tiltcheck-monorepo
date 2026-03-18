@@ -446,21 +446,21 @@ app.get('/api/admin/persistence-status', requireAuth, requireAdmin, async (_req,
 // JustTheTip API routes
 
 // Get tip history for authenticated user
-app.get('/api/tips', requireAuth, (req, res) => {
+app.get('/api/tips', requireAuth, async (req, res) => {
   try {
     const user = req.user!;
     const discordUser = mapAuthUserToDiscordUser(user);
-    const tips = justthetip.getTipsForUser(discordUser.id);
+    const tips = await justthetip.getTipsForUser(discordUser.id);
     
     // Format tips for client
     const formattedTips = tips.map(tip => ({
       id: tip.id,
-      type: tip.senderId === discordUser.id ? 'sent' : 'received',
-      amount: tip.solAmount || 0,
-      usdAmount: tip.usdAmount || 0,
-      otherUser: tip.senderId === discordUser.id ? tip.recipientId : tip.senderId,
+      type: tip.sender_id === discordUser.id ? 'sent' : 'received',
+      amount: tip.amount || 0,
+      usdAmount: 0, // Not stored in DB currently
+      otherUser: tip.sender_id === discordUser.id ? tip.recipient_discord_id : tip.sender_id,
       status: tip.status,
-      timestamp: new Date(tip.createdAt).toISOString(),
+      timestamp: tip.created_at.toISOString(),
     }));
 
     res.json({ tips: formattedTips });
@@ -471,19 +471,19 @@ app.get('/api/tips', requireAuth, (req, res) => {
 });
 
 // Get pending tips for authenticated user
-app.get('/api/tips/pending', requireAuth, (req, res) => {
+app.get('/api/tips/pending', requireAuth, async (req, res) => {
   try {
     const user = req.user!;
     const discordUser = mapAuthUserToDiscordUser(user);
-    const pendingTips = justthetip.getPendingTipsForUser(discordUser.id);
+    const pendingTips = await justthetip.getPendingTipsForUser(discordUser.id);
     
     // Format pending tips for client
     const formattedTips = pendingTips.map(tip => ({
       id: tip.id,
-      senderId: tip.senderId,
-      amount: tip.solAmount || 0,
-      usdAmount: tip.usdAmount || 0,
-      timestamp: new Date(tip.createdAt).toISOString(),
+      senderId: tip.sender_id,
+      amount: tip.amount || 0,
+      usdAmount: 0,
+      timestamp: tip.created_at.toISOString(),
       status: tip.status,
     }));
 
@@ -495,11 +495,11 @@ app.get('/api/tips/pending', requireAuth, (req, res) => {
 });
 
 // Get user's wallet status
-app.get('/api/tips/wallet', requireAuth, (req, res) => {
+app.get('/api/tips/wallet', requireAuth, async (req, res) => {
   try {
     const user = req.user!;
     const discordUser = mapAuthUserToDiscordUser(user);
-    const wallet = justthetip.getWallet(discordUser.id);
+    const wallet = await justthetip.getWallet(discordUser.id);
     
     if (wallet) {
       res.json({
@@ -518,11 +518,11 @@ app.get('/api/tips/wallet', requireAuth, (req, res) => {
 });
 
 // Get transaction history with receipts
-app.get('/api/tips/history', requireAuth, (req, res) => {
+app.get('/api/tips/history', requireAuth, async (req, res) => {
   try {
     const user = req.user!;
     const discordUser = mapAuthUserToDiscordUser(user);
-    const history = justthetip.getTransactionHistory(discordUser.id);
+    const history = await justthetip.getTransactionHistory(discordUser.id);
     
     res.json({ history });
   } catch (error: any) {

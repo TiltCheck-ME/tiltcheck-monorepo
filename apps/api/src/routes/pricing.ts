@@ -10,8 +10,9 @@ router.get('/:token', async (req, res) => {
         const token = req.params.token.toUpperCase();
         const price = await getPriceUsd(token);
         res.json({ token, price, updatedAt: Date.now() });
-    } catch (error: any) {
-        res.status(404).json({ error: error.message });
+    } catch (error) {
+        const message = error instanceof Error ? error.message : 'Unknown error';
+        res.status(404).json({ error: message });
     }
 });
 
@@ -33,8 +34,9 @@ router.post('/bulk', async (req, res) => {
         }));
 
         res.json({ prices: results, updatedAt: Date.now() });
-    } catch (error: any) {
-        res.status(500).json({ error: error.message });
+    } catch (error) {
+        const message = error instanceof Error ? error.message : 'Unknown error';
+        res.status(500).json({ error: message });
     }
 });
 

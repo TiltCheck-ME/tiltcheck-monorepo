@@ -110,6 +110,16 @@ export const cookieConfigSchema = z.object({
 });
 
 /**
+ * Compliance Configuration Schema
+ */
+export const complianceConfigSchema = z.object({
+  RESTRICTED_COUNTRIES: z
+    .string()
+    .transform((val: string) => val.split(',').filter(Boolean))
+    .default(['US', 'GB', 'FR', 'AU']),
+});
+
+/**
  * Combined Full Configuration Schema
  */
 export const fullConfigSchema = z.object({
@@ -121,6 +131,7 @@ export const fullConfigSchema = z.object({
   ...supabaseConfigSchemaBase.shape,
   ...serviceJwtConfigSchema.shape,
   ...blockchainConfigSchema.shape,
+  ...complianceConfigSchema.shape,
 }).refine(data => {
   if (process.env.NODE_ENV === 'production') {
     return data.DATABASE_URL || data.NEON_DATABASE_URL;

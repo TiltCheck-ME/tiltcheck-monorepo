@@ -82,5 +82,7 @@ To get started, copy the `.env.example` file to `.env` in the root of the projec
 | `SUSLINK_AUTO_SCAN` | Whether to automatically scan links in Discord (`true`/`false`) | `true` |
 | `TRUST_THRESHOLD` | Trust threshold for automatic flagging | `60` |
 | `MOD_NOTIFICATIONS_ENABLED` | Enable mod alerts (`true`/`false`) | `true` |
+| `RESTRICTED_COUNTRIES` | Comma-separated ISO country codes to block (e.g. `US,GB`) | `US,GB,FR,AU` |
+| `COMMUNITY_INTEL_INGEST_KEY` | Secret key for securing community intelligence ingestion | *(Required)* |
 
 > *Note: Many other specific feature flags or internal service configs (e.g., CASINO_API_KEY, LOG_LEVEL, DISCORD_BOT_HEALTH_PORT) can be found in the root `.env` file.*

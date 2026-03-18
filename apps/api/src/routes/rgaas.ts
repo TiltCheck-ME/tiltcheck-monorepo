@@ -18,6 +18,7 @@ import { trustEngines } from '@tiltcheck/trust-engines';
 import { eventRouter } from '@tiltcheck/event-router';
 import { suslink } from '@tiltcheck/suslink';
 import { getUserTiltStatus } from '@tiltcheck/core';
+import { webhookService } from '../lib/webhooks.js';
 
 const router = Router();
 
@@ -63,6 +64,10 @@ router.post('/breathalyzer/evaluate', (req, res) => {
     payload: eventPayload,
     correlationId: req.headers['x-correlation-id'] as string | undefined,
   });
+
+  if (result.riskScore > 60) {
+    webhookService.dispatch('safety.breathalyzer.evaluated', { ...eventPayload, result });
+  }
 
   res.json({
     success: true,
@@ -110,6 +115,10 @@ router.post('/anti-tilt/evaluate', (req, res) => {
     payload: eventPayload,
     correlationId: req.headers['x-correlation-id'] as string | undefined,
   });
+
+  if (result.severity === 'high') {
+    webhookService.dispatch('safety.sentiment.flagged', { ...eventPayload, result });
+  }
 
   res.json({
     success: true,
@@ -192,6 +201,15 @@ router.post('/trust/degen-intel', async (req, res) => {
 `);
 
     const trustLevel = trustEngines.getTrustLevel(trustEngines.getDegenScore(syntheticCommunityUser));
+    
+    // Async dispatch to partners
+    webhookService.dispatch('trust.degen-intel.ingested', {
+        source,
+        severity,
+        communityUserId: syntheticCommunityUser,
+        trustLevel
+    });
+
     res.json({
       success: true,
       ingested: true,
@@ -261,6 +279,11 @@ router.post('/scan', async (req, res) => {
 
   try {
     const result = await suslink.scanUrl(url, userId);
+    
+    if (result.riskLevel !== 'safe') {
+        webhookService.dispatch('link.flagged', { url, userId, scan: result });
+    }
+
     res.json({
       success: true,
       result,

@@ -39,11 +39,13 @@ import { casinoRouter } from './routes/casino.js';
 import { bonusRouter } from './routes/bonus.js';
 import { vaultRouter } from './routes/vault.js';
 import { betaRouter } from './routes/beta.js';
+import { partnerRouter } from './routes/partner.js';
 import { statsRouter } from './routes/stats.js';
 import modRouter from './routes/mod.js';
 import { errorHandler, notFoundHandler } from './middleware/error.js';
 import { requestLogger } from './middleware/logger.js';
 import { csrfProtection } from './middleware/csrf.js';
+import { geoComplianceMiddleware } from './middleware/compliance.js';
 
 const app = express();
 app.set('trust proxy', 1); // Trust the first proxy
@@ -139,7 +141,7 @@ app.use('/services', servicesRouter);
 app.use('/tip', tipRouter);
 
 // RGaaS (Responsible Gaming as a Service) routes
-app.use('/rgaas', rgaasRouter);
+app.use('/rgaas', geoComplianceMiddleware, rgaasRouter);
 
 // Safety routes
 app.use('/safety', safetyRouter);
@@ -164,6 +166,7 @@ app.use('/bonus', bonusRouter);
 app.use('/vault', vaultRouter);
 app.use('/beta', betaRouter);
 app.use('/stats', statsRouter);
+app.use('/partner', partnerRouter);
 
 // Moderation routes
 app.use('/mod', modRouter);
