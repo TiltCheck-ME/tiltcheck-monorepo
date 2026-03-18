@@ -1026,3 +1026,28 @@ export interface EventPayload<T> {
   timestamp: number;
 }
 
+// ============================================
+// UI & Extension Types
+// ============================================
+
+/**
+ * User onboarding state for the extension or dashboard.
+ */
+export interface OnboardingStatus {
+  userId: string;
+  onboardingCompleted: boolean;
+  lastStepCompleted?: number;
+  updatedAt: number;
+}
+
+/**
+ * Represents a predicted window for a social media drop (Insta, Twitter, etc).
+ */
+export interface DropPredictionWindow {
+  id: string;
+  source: 'instagram' | 'x' | 'telegram';
+  label: string;
+  estimatedAt: number;
+  confidence: number;
+}
+

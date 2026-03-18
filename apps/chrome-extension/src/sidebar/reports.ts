@@ -44,7 +44,7 @@ export class ReportManager {
       try {
           const result = await apiCall('/safety/signals/recent', {}, this.auth);
           if (result.success && Array.isArray(result.signals)) {
-              result.signals.forEach((s: any) => {
+              result.signals.forEach((s: { type: string; casino: string }) => {
                   this.ui.addFeedMessage(`Signal: ${s.type} @ ${s.casino}`);
               });
           }

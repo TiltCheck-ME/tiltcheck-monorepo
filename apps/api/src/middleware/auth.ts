@@ -33,6 +33,8 @@ export interface JWTPayload {
   userId: string;
   email: string;
   roles: string[];
+  discordId?: string;
+  walletAddress?: string;
   iat?: number;
   exp?: number;
 }
@@ -45,6 +47,8 @@ export interface AuthRequest extends Request {
     id: string;
     email: string;
     roles: string[];
+    discordId?: string;
+    walletAddress?: string;
   };
 }
 
@@ -129,6 +133,8 @@ export async function authMiddleware(
       id: user.id,
       email: user.email || payload.email,
       roles: user.roles,
+      discordId: user.discord_id || payload.discordId,
+      walletAddress: user.wallet_address || payload.walletAddress,
     };
     
     next();

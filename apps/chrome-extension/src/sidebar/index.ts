@@ -7,6 +7,8 @@ import { VaultManager } from './vault.js';
 import { ReportManager } from './reports.js';
 import { BlockchainManager } from './blockchain.js';
 import { BuddyManager } from './buddy.js';
+import { PredictorManager } from './predictor.js';
+import { OnboardingManager } from './onboarding.js';
 import { SidebarUI } from './types.js';
 
 export class SidebarController implements SidebarUI {
@@ -16,6 +18,8 @@ export class SidebarController implements SidebarUI {
   public reports: ReportManager;
   public blockchain: BlockchainManager;
   public buddy: BuddyManager;
+  public predictor: PredictorManager;
+  public onboarding: OnboardingManager;
 
   constructor() {
     this.auth = new AuthManager(this);
@@ -24,6 +28,8 @@ export class SidebarController implements SidebarUI {
     this.reports = new ReportManager(this, this.auth);
     this.blockchain = new BlockchainManager(this);
     this.buddy = new BuddyManager(this, this.auth);
+    this.predictor = new PredictorManager(this);
+    this.onboarding = new OnboardingManager(this);
   }
 
   public init() {
@@ -66,6 +72,22 @@ export class SidebarController implements SidebarUI {
         const target = e.target as HTMLInputElement;
         this.buddy.setMirrorEnabled(target.checked);
     });
+
+    // Predictor
+    document.getElementById('tg-open-predictor')?.addEventListener('click', () => {
+        const panel = document.getElementById('tg-predictor-panel');
+        if (panel) panel.style.display = 'block';
+        this.predictor.init();
+    });
+    document.getElementById('close-predictor')?.addEventListener('click', () => {
+        const panel = document.getElementById('tg-predictor-panel');
+        if (panel) panel.style.display = 'none';
+        this.predictor.destroy();
+    });
+
+    // Onboarding
+    document.getElementById('ob-next')?.addEventListener('click', () => this.onboarding.next());
+    document.getElementById('ob-skip')?.addEventListener('click', () => this.onboarding.finish());
   }
 
   // SidebarUI implementation
@@ -97,6 +119,7 @@ export class SidebarController implements SidebarUI {
     if (authSection) authSection.style.display = 'none';
     if (mainContent) mainContent.style.display = 'block';
     this.reports.fetchRecentSignals();
+    this.onboarding.startIntro();
   }
 
   public addFeedMessage(msg: string) {

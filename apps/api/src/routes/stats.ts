@@ -89,6 +89,11 @@ async function computeStats() {
       domainTrustScoresPath,
       sweepstakesCasinosPath,
     },
+    predictions: [
+      { id: 'p1', source: 'instagram', label: 'IG Flash Code', estimatedAt: Date.now() + 2700000, confidence: 0.85 },
+      { id: 'p2', source: 'x', label: 'X Weekly Drop', estimatedAt: Date.now() + 43200000, confidence: 0.92 },
+      { id: 'p3', source: 'telegram', label: 'Telegram Rain', estimatedAt: Date.now() + 300000, confidence: 0.60 }
+    ]
   };
 }
 

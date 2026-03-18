@@ -205,6 +205,7 @@ export const SIDEBAR_TEMPLATE = `
             <button class="tg-action-btn" id="tg-open-linkcheck">LinkCheck</button>
             <button class="tg-action-btn tg-advanced-only" id="tg-open-config">Site Setup</button>
             <button class="tg-action-btn tg-advanced-only" id="tg-open-verifier">Fairness Check</button>
+            <button class="tg-action-btn" id="tg-open-predictor">Predictor</button>
             <button class="tg-action-btn" id="tg-open-dashboard">Open Dashboard</button>
             <button class="tg-action-btn" id="tg-open-vault">Open Vault</button>
             <button class="tg-action-btn tg-advanced-only" id="tg-wallet">Wallet Status</button>
@@ -249,6 +250,18 @@ export const SIDEBAR_TEMPLATE = `
           </div>
           <button class="tg-btn tg-btn-primary" id="submit-report">Send Signal</button>
           <button class="tg-btn tg-btn-secondary" id="close-report">Close</button>
+        </div>
+
+        <!-- Predictor Panel (toggleable) -->
+        <div class="tg-settings-panel" id="tg-predictor-panel" style="display: none;">
+          <h4>Drop Predictor</h4>
+          <div id="predictor-list" class="tg-feed" style="max-height: 250px;">
+            <div class="tg-feed-item">Fetching drop windows...</div>
+          </div>
+          <div style="font-size: 10px; opacity: 0.5; margin-top: 10px; font-style: italic;">
+            * Predictions are based on historical social media activity and community signals.
+          </div>
+          <button class="tg-btn tg-btn-secondary" id="close-predictor" style="margin-top: 10px;">Close</button>
         </div>
 
         <!-- Vault Section -->
@@ -374,4 +387,19 @@ export const SIDEBAR_TEMPLATE = `
     </div>
 
     <div class="tg-toast" id="tg-toast" style="display:none;"></div>
+
+    <!-- Onboarding Overlay -->
+    <div id="onboarding-overlay">
+      <div class="onboarding-tooltip">
+        <div class="tooltip-title">Welcome</div>
+        <div class="tooltip-body">Let's walk through the Guardian Pro tools.</div>
+        <div class="tooltip-footer">
+          <div class="tooltip-progress">1 / 4</div>
+          <div class="tooltip-actions">
+            <button class="tooltip-btn" id="ob-skip">Skip</button>
+            <button class="tooltip-btn primary" id="ob-next">Next</button>
+          </div>
+        </div>
+      </div>
+    </div>
 `;

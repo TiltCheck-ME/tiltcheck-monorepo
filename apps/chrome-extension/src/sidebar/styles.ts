@@ -442,4 +442,92 @@ export const getSidebarStyles = () => `
       0% { background-color: rgba(16, 185, 129, 0.5); }
       100% { background-color: rgba(0, 0, 0, 0.3); }
     }
-\`;
+
+    /* Predictor Styles */
+    .predictor-card {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 10px;
+      padding: 12px;
+      margin-bottom: 10px;
+      position: relative;
+      overflow: hidden;
+      transition: all 0.3s ease;
+    }
+    .predictor-card.critical {
+      border-color: var(--tg-primary);
+      background: rgba(0, 212, 170, 0.05);
+    }
+    .predictor-card .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+    .source-tag {
+      font-size: 9px;
+      font-weight: 800;
+      padding: 2px 6px;
+      border-radius: 4px;
+      color: #fff;
+    }
+    .tag-instagram { background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888); }
+    .tag-x { background: #000; border: 1px solid rgba(255,255,255,0.2); }
+    .tag-telegram { background: #0088cc; }
+    .confidence-tag { font-size: 10px; opacity: 0.6; }
+    .drop-label { font-size: 13px; font-weight: 600; margin-bottom: 4px; }
+    .drop-timer { font-size: 18px; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--tg-primary); }
+    .critical-glow {
+      position: absolute;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: radial-gradient(circle at center, rgba(0, 212, 170, 0.15) 0%, transparent 70%);
+      animation: pulseGlow 2s infinite;
+      pointer-events: none;
+    }
+    @keyframes pulseGlow {
+      0%, 100% { opacity: 0.3; }
+      50% { opacity: 0.8; }
+    }
+
+    /* Onboarding Styles */
+    #onboarding-overlay {
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: radial-gradient(circle var(--spot-r) at var(--spot-x) var(--spot-y), transparent 99%, rgba(0,0,0,0.85) 100%);
+      z-index: 2147483647;
+      display: none;
+      pointer-events: none;
+    }
+    #onboarding-overlay.active { display: block; pointer-events: all; }
+    .onboarding-tooltip {
+      position: absolute;
+      width: 240px;
+      background: #1a1a1a;
+      border: 1px solid var(--tg-primary);
+      border-radius: 12px;
+      padding: 16px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+      color: #fff;
+      pointer-events: all;
+      animation: tooltipPop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    @keyframes tooltipPop {
+      from { transform: scale(0.9) translateY(10px); opacity: 0; }
+      to { transform: scale(1) translateY(0); opacity: 1; }
+    }
+    .tooltip-title { font-size: 14px; font-weight: 700; margin-bottom: 8px; color: var(--tg-primary); }
+    .tooltip-body { font-size: 12px; line-height: 1.5; margin-bottom: 12px; opacity: 0.9; }
+    .tooltip-footer { display: flex; justify-content: space-between; align-items: center; }
+    .tooltip-progress { font-size: 11px; opacity: 0.5; }
+    .tooltip-actions { display: flex; gap: 8px; }
+    .tooltip-btn {
+      background: var(--tg-surface);
+      border: 1px solid rgba(255,255,255,0.1);
+      color: #fff;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 11px;
+      cursor: pointer;
+    }
+    .tooltip-btn.primary { background: var(--tg-primary); color: #000; font-weight: 700; border: none; }
+`;
