@@ -33,7 +33,6 @@ export const linkwallet: Command = {
         await db.upsertDegenIdentity({
           discord_id: interaction.user.id,
           primary_external_address: address,
-          username: interaction.user.username // Sync username while we are at it
         });
 
         const embed = new EmbedBuilder()
@@ -41,7 +40,7 @@ export const linkwallet: Command = {
           .setTitle('🔗 Wallet Linked')
           .setDescription(`Successfully linked your wallet to the TiltCheck Hub.
 
-**Address:** `${address}`
+**Address:** \`${address}\`
 
 You are now ready to catch some juice! 🧃`)
           .setFooter({ text: 'Manage more settings at dashboard.tiltcheck.me' });
