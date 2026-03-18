@@ -15,7 +15,7 @@ export const lockvault: Command = {
     .addSubcommand(sub =>
       sub
         .setName('lock')
-        .setDescription('Stash your SOL before you do something stupid with it.')
+        .setDescription(`Stash your SOL before you do something stupid with it.`)
         .addStringOption(o => o.setName('amount').setDescription('How much SOL to lock away? ("$100", "5 SOL", "all")').setRequired(true))
         .addStringOption(o => o.setName('duration').setDescription('How long to keep it locked? (e.g., 24h, 3d, 90m)').setRequired(true))
         .addStringOption(o => o.setName('reason').setDescription('Why are you doing this to yourself? (optional)'))
@@ -29,7 +29,7 @@ export const lockvault: Command = {
     .addSubcommand(sub =>
       sub
         .setName('extend')
-        .setDescription('Don't trust yourself yet? Add more time to your lock.')
+        .setDescription(`Don't trust yourself yet? Add more time to your lock.`)
         .addStringOption(o => o.setName('id').setDescription('Which Vault ID needs a longer sentence?').setRequired(true))
         .addStringOption(o => o.setName('additional').setDescription('How much more time? (e.g. 12h, 2d)').setRequired(true))
     )
@@ -42,7 +42,7 @@ export const lockvault: Command = {
       sub
         .setName('autovault')
         .setDescription('Let the bot be the responsible one. Set rules to save your winnings from yourself.')
-        .addStringOption(o => o.setName('apikey').setDescription('Your casino API key. We don't store it, so don't ask.').setRequired(true))
+        .addStringOption(o => o.setName('apikey').setDescription(`Your casino API key. We don't store it, so don't ask.`).setRequired(true))
         .addNumberOption(o => o.setName('percentage').setDescription('Percentage of each win to automatically stash away (0-100).'))
         .addNumberOption(o => o.setName('threshold').setDescription('Once your balance hits this, vault everything above it.'))
         .addStringOption(o => o.setName('currency').setDescription('Currency for threshold (SOL/USD)').addChoices({ name: 'SOL', value: 'SOL' }, { name: 'USD', value: 'USD' }))
@@ -69,21 +69,21 @@ export const lockvault: Command = {
         }
         const parsedDuration = parseDuration(durationRaw);
         if (!parsedDuration.success || !parsedDuration.data) {
-          await interaction.reply({ content: 'That duration doesn't look right. Try something like "1d", "8h", or "90m".', ephemeral: true });
+          await interaction.reply({ content: `That duration doesn't look right. Try something like "1d", "8h", or "90m".`, ephemeral: true });
           return;
         }
         const vault = await lockVault({ userId: interaction.user.id, amountRaw, durationRaw, reason });
         const embed = new EmbedBuilder()
           .setColor(0x8A2BE2)
-          .setTitle('Vault Locked. You're Welcome.')
-          .setDescription(vault.vaultType === 'magic' ? 'Funds secured in your **Degen Identity** (Magic) wallet. Smart move.' : 'Funds moved to a disposable time-locked vault wallet. Don't even think about touching it.')
+          .setTitle(`Vault Locked. You're Welcome.`)
+          .setDescription(vault.vaultType === 'magic' ? `Funds secured in your **Degen Identity** (Magic) wallet. Smart move.` : `Funds moved to a disposable time-locked vault wallet. Don't even think about touching it.`)
           .addFields(
             { name: 'Vault ID', value: vault.id, inline: false },
-            { name: 'That F***ing Vault Wallet', value: ``${vault.vaultAddress}``, inline: false },
+            { name: 'That F***ing Vault Wallet', value: `\`${vault.vaultAddress}\``, inline: false },
             { name: 'Unlocks', value: `<t:${Math.floor(vault.unlockAt/1000)}:R>`, inline: true },
             { name: 'Amount (SOL, normalized)', value: vault.lockedAmountSOL === 0 ? 'ALL (snapshot, you madman)' : `${vault.lockedAmountSOL.toFixed(4)} SOL`, inline: true },
           )
-          .setFooter({ text: reason ? `Reason: ${reason}` : 'You'll thank us later. Use `/vault status` to check your prison sentence.' });
+          .setFooter({ text: reason ? `Reason: ${reason}` : `You'll thank us later. Use /vault status to check your prison sentence.` });
         await interaction.reply({ embeds: [embed], ephemeral: true });
       } else if (sub === 'unlock') {
         const id = interaction.options.getString('id', true);
@@ -94,16 +94,16 @@ export const lockvault: Command = {
             .setTitle('Freedom! Vault Unlocked.')
             .addFields(
               { name: 'Vault ID', value: vault.id },
-              { name: 'Released (SOL) - Go wild. Or don't.', value: `${vault.lockedAmountSOL === 0 ? 'ALL' : `${vault.lockedAmountSOL.toFixed(4)} SOL`}` },
+              { name: `Released (SOL) - Go wild. Or don't.`, value: `${vault.lockedAmountSOL === 0 ? 'ALL' : `${vault.lockedAmountSOL.toFixed(4)} SOL`}` },
             );
 
           if (vault.vaultSecret) {
             embed.addFields({ 
-              name: 'Your Precious Private Key (Don't F***ing Lose It)',
+              name: 'Your Precious Private Key (Don\'t F***ing Lose It)',
               value: `||${vault.vaultSecret}||`, 
               inline: false 
             });
-            embed.setFooter({ text: 'Keep this secret, degen! Use it to sweep your funds. If you lose it, you're f***ed.' });
+            embed.setFooter({ text: `Keep this secret, degen! Use it to sweep your funds. If you lose it, you're f***ed.` });
           }
           await interaction.reply({ embeds: [embed], ephemeral: true });
         } catch (err) {
@@ -132,25 +132,21 @@ export const lockvault: Command = {
         const reloadSchedule = getReloadSchedule(interaction.user.id);
 
         if (vaults.length === 0 && !autoVault && !reloadSchedule) {
-          await interaction.reply({ content: 'Nothing to see here. Your vaults are empty, autovault's off, and no reloads scheduled. You're on your own, degen.', ephemeral: true });
+          await interaction.reply({ content: `Nothing to see here. Your vaults are empty, autovault's off, and no reloads scheduled. You're on your own, degen.`, ephemeral: true });
           return;
         }
 
         const embed = new EmbedBuilder()
           .setColor(0x1E90FF)
-          .setTitle('Your Vault Report. Don't Panic.')
+          .setTitle(`Your Vault Report. Don't Panic.`)
           .setDescription(
             (vaults.length > 0 ? vaults.map((v: LockVaultRecord) => {
               const statusText = Date.now() >= v.unlockAt ? 'free' : 'still locked up';
               const amount = v.lockedAmountSOL === 0 ? 'ALL' : `${v.lockedAmountSOL.toFixed(4)} SOL`;
-              return `• **${v.id}** – ${v.status} (${statusText}) – unlocks <t:${Math.floor(v.unlockAt/1000)}:R> – ${amount}`;
-            }).join('
-') : 'No active vaults. (Are you even trying?)') +
-            (autoVault ? `
-
-**Auto-Vault:** ${autoVault.percentage}% of wins snatched from your greedy hands.` : '') +
-            (reloadSchedule ? `
-**Reload:** ${reloadSchedule.amountRaw} every ${reloadSchedule.interval}. Keep that degeneracy fueled.` : '')
+              return `• **${v.id}** – ${v.status} (${statusText}) – unlocks <t:${Math.floor(v.unlockAt / 1000)}:R> – ${amount}`;
+            }).join('\n') : `No active vaults. (Are you even trying?)`) +
+            (autoVault ? `\n\n**Auto-Vault:** ${autoVault.percentage}% of wins snatched from your greedy hands.` : '') +
+            (reloadSchedule ? `\n**Reload:** ${reloadSchedule.amountRaw} every ${reloadSchedule.interval}. Keep that degeneracy fueled.` : '')
           );
         await interaction.reply({ embeds: [embed], ephemeral: true });
       } else if (sub === 'autovault') {
@@ -173,14 +169,13 @@ export const lockvault: Command = {
         const embed = new EmbedBuilder()
             .setColor(0x00FFFF)
             .setTitle('Auto-Vault Activated. Prepare for Self-Control.')
-            .setDescription(`Auto-vault active: ${percentage ? percentage + '% of your wins are now safe from you.' : ''} ${threshold ? 'Everything over ' + threshold + ' ' + currency + ' will be stashed.' : ''} ${saveForNft ? '
-Saving for that sweet Identity NFT. Smart move.' : ''}`);
+            .setDescription(`Auto-vault active: ${percentage ? percentage + '% of your wins are now safe from you.' : ''} ${threshold ? `Everything over ${threshold} ${currency} will be stashed.` : ''} ${saveForNft ? 'Saving for that sweet Identity NFT. Smart move.' : ''}`);
         await interaction.reply({ embeds: [embed], ephemeral: true });
       } else if (sub === 'reload') {
         const amount = interaction.options.getString('amount', true);
         const interval = (interaction.options.getString('interval', true) as 'daily' | 'weekly' | 'monthly');
         if (!['daily', 'weekly', 'monthly'].includes(interval)) {
-          await interaction.reply({ content: 'That's not a real interval. Use "daily", "weekly", or "monthly".', ephemeral: true });
+          await interaction.reply({ content: `That's not a real interval. Use "daily", "weekly", or "monthly".`, ephemeral: true });
           return;
         }
         setReloadSchedule(interaction.user.id, amount, interval);

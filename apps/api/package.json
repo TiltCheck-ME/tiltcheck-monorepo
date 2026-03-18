@@ -17,7 +17,7 @@
     "@tiltcheck/auth": "workspace:*",
     "@tiltcheck/auth-flow": "workspace:*",
     "@tiltcheck/config": "workspace:*",
-    "@tiltcheck/core": "workspace:*",
+    "@tiltcheck/tiltcheck-core": "workspace:*",
     "@tiltcheck/db": "workspace:*",
     "@tiltcheck/event-types": "workspace:*",
     "@tiltcheck/justthetip": "workspace:*",

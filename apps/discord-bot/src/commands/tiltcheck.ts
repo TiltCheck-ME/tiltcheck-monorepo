@@ -34,7 +34,7 @@ export const tiltcheck: Command = {
     )
     .addSubcommand(sub =>
       sub.setName('status')
-        .setDescription('Check your current tilt status')
+        .setDescription(`Check your current tilt status and get recommendations to stay in control.`)
     )
     .addSubcommand(sub =>
       sub.setName('history')

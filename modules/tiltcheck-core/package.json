@@ -1,5 +1,5 @@
 {
-  "name": "@tiltcheck/core",
+  "name": "@tiltcheck/tiltcheck-core",
   "version": "0.1.0",
   "private": true,
   "type": "module",

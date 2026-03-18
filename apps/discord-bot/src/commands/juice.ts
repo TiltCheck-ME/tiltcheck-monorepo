@@ -67,7 +67,7 @@ export const juice: Command = {
       .setTitle('🧃 Prepare the Juice')
       .setDescription(`To drop **${totalSol.toFixed(4)} SOL** to ${maxUsers} users, you must first fund the temporary escrow wallet.
 
-**Escrow Address:** `${escrow.publicKey.toBase58()}`
+**Escrow Address:** \`${escrow.publicKey.toBase58()}\`
 
 *This escrow will be emptied immediately after the event ends.*`)
       .setFooter({ text: 'TiltCheck Non-Custodial Distribution' });

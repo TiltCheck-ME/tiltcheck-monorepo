@@ -1,5 +1,5 @@
 {
-  "name": "@tiltcheck/core",
+  "name": "@tiltcheck/extension",
   "version": "1.2.0",
   "private": true,
   "main": "dist/index.js",

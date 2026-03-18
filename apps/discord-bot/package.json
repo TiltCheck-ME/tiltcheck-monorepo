@@ -26,7 +26,7 @@
     "@tiltcheck/natural-language-parser": "workspace:*",
     "@tiltcheck/poker": "workspace:*",
     "@tiltcheck/suslink": "workspace:*",
-    "@tiltcheck/core": "workspace:*",
+    "@tiltcheck/tiltcheck-core": "workspace:*",
     "@tiltcheck/triviadrops": "workspace:*",
     "@tiltcheck/trust-engines": "workspace:*",
     "@tiltcheck/types": "workspace:*",
