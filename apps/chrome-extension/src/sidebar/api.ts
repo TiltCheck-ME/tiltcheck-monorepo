@@ -1,13 +1,13 @@
 /* Copyright (c) 2026 TiltCheck. All rights reserved. */
 import { API_BASE } from './constants.js';
 
-export async function apiCall(endpoint: string, options: any = {}, auth: { demoMode: boolean, authToken: string | null }) {
-  if (auth.demoMode) {
+export async function apiCall(endpoint: string, options: any = {}, auth?: { demoMode: boolean, authToken: string | null }) {
+  if (auth?.demoMode) {
     return mockApiCall(endpoint, options);
   }
   
   const headers: any = { 'Content-Type': 'application/json' };
-  if (auth.authToken) headers['Authorization'] = `Bearer ${auth.authToken}`;
+  if (auth?.authToken) headers['Authorization'] = `Bearer ${auth.authToken}`;
 
   try {
     const response = await fetch(`${API_BASE}${endpoint}`, {
@@ -47,6 +47,18 @@ function mockApiCall(endpoint: string, _options: any = {}) {
               { type: 'rtp_change', casino: 'roobet.com', details: 'RTP seems lower than usual.' }
           ]
       }
+  }
+
+  if (endpoint.startsWith('/stats')) {
+    return {
+      ok: true,
+      stats: {
+        predictions: [
+          { id: 'm-1', source: 'instagram', label: 'IG Flash Code (Mock)', estimatedAt: now + 2700000, confidence: 0.85 },
+          { id: 'm-2', source: 'telegram', label: 'Telegram Rain (Mock)', estimatedAt: now + 300000, confidence: 0.70 }
+        ]
+      }
+    };
   }
 
   return { success: true };

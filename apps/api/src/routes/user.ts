@@ -5,7 +5,7 @@
  */
 
 import { Router } from 'express';
-import { authMiddleware } from '../middleware/auth.js';
+import { authMiddleware, AuthRequest } from '../middleware/auth.js';
 import { findOnboardingByDiscordId, upsertOnboarding } from '@tiltcheck/db';
 
 const router = Router();
@@ -16,7 +16,7 @@ const router = Router();
  */
 router.get('/onboarding', authMiddleware, async (req, res) => {
     try {
-        const userPayload = (req as any).user;
+        const userPayload = (req as AuthRequest).user;
 
         if (!userPayload?.discordId) {
             res.status(400).json({ error: 'User must be linked to Discord to check onboarding' });
@@ -59,7 +59,7 @@ router.get('/onboarding', authMiddleware, async (req, res) => {
  */
 router.post('/onboarding', authMiddleware, async (req, res) => {
     try {
-        const userPayload = (req as any).user;
+        const userPayload = (req as AuthRequest).user;
         const {
             isOnboarded,
             riskLevel,
