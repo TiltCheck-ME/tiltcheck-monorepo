@@ -20,7 +20,27 @@
 
   let currentIndex = 0;
 
+  const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+  const API_BASE = isLocal ? 'http://localhost:3001' : 'https://api.tiltcheck.me';
+
+  async function fetchLiveSignals() {
+    try {
+      const res = await fetch(`${API_BASE}/stats/signals`);
+      if (res.ok) {
+        const payload = await res.json();
+        if (payload.signals && payload.signals.length > 0) {
+          // Update events array with real data from the API
+          events.length = 0;
+          events.push(...payload.signals);
+        }
+      }
+    } catch (e) {
+      // Silently fall back to hardcoded samples if API is offline
+    }
+  }
+
   function rotateTicker() {
+    if (events.length === 0) return;
     const event = events[currentIndex];
     
     // Create new event element
@@ -49,6 +69,11 @@
     setTimeout(rotateTicker, nextInterval);
   }
 
-  // Start rotation after a short delay
-  setTimeout(rotateTicker, 1000);
+  // Initial fetch and start rotation
+  fetchLiveSignals().then(() => {
+    setTimeout(rotateTicker, 500);
+  });
+
+  // Poll for new signals every 3 minutes to keep feed fresh but save tokens
+  setInterval(fetchLiveSignals, 180000);
 })();

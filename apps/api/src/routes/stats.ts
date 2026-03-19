@@ -97,11 +97,13 @@ async function computeStats() {
   };
 }
 
-router.get('/', async (_req, res) => {
-  const stats = await computeStats();
+router.get('/signals', async (_req, res) => {
+  const dataDir = getDataDir();
+  const signalsPath = path.join(dataDir, 'web_signals.json');
+  const signals = await readJson<any[]>(signalsPath, []);
   res.json({
     ok: true,
-    stats,
+    signals,
   });
 });
 

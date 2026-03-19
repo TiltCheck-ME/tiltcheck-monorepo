@@ -3,25 +3,39 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>DA&D Discord Activity Lobby | TiltCheck</title>
+  <title>Degens Against Decency Lobby | TiltCheck</title>
   <meta name="description" content="Degens Against Decency lobby and game arena." />
   <meta name="discord-client-id" content="1445916179163250860" />
   <meta name="daad-premium-sku-id" content="guild-premium-monthly" />
+  <link rel="stylesheet" href="/styles/main.css">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300..700&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg: #0f1020;
-      --panel: #1a1d37;
-      --panel-soft: #23284b;
-      --text: #f4f7ff;
-      --muted: #b2b7d9;
-      --primary: #6e7cff;
-      --accent: #f861ff;
-      --ok: #60d38c;
-      --warn: #f9be5e;
-      --danger: #ff6b7f;
-      --line: rgba(255, 255, 255, 0.12);
-      --shadow: 0 14px 28px rgba(5, 5, 22, 0.35);
-      --outline: 0 1px 0 #000, 1px 0 0 #000, 0 -1px 0 #000, -1px 0 0 #000;
+      --primary-mint: #22d3a6;
+      --primary-mint-rgb: 34, 211, 166;
+    }
+
+    body {
+      font-family: 'Satoshi', 'Inter', -apple-system, sans-serif;
+    }
+
+    .lobby-shell {
+      max-width: 1400px;
+      margin: 2rem auto;
+      padding: 0 1rem;
+      display: grid;
+      grid-template-columns: 320px 1fr 320px;
+      gap: 1.5rem;
+    }
+
+    .panel {
+      background: rgba(14, 14, 14, 0.25);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      border-radius: 12px;
+      padding: 1.5rem;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
     }
 
     * {
@@ -123,443 +137,262 @@
     .right-pane {
       display: flex;
       flex-direction: column;
-      gap: 1rem;
-    }
-
-    .title-card {
-      display: flex;
-      align-items: center;
-      gap: 0.9rem;
-      margin-bottom: 0.7rem;
-    }
-
-    .title-card img {
-      width: 52px;
-      height: 52px;
-      border-radius: 12px;
-      background: #0f1020;
-      border: 1px solid rgba(255, 255, 255, 0.2);
-      padding: 6px;
-    }
-
-    .banner-logo {
-      width: 158px;
-      height: auto;
-      object-fit: contain;
-      filter: drop-shadow(0 8px 16px rgba(0, 0, 0, 0.42));
-    }
-
-    h1,
-    h2,
-    h3,
-    .section-head,
-    .room-name {
-      text-shadow: var(--outline);
-      letter-spacing: 0.01em;
-    }
-
-    h1 {
-      font-size: 1.5rem;
-      line-height: 1.1;
+      gap: 1.5rem;
     }
 
     .subtitle {
-      color: var(--muted);
-      margin-top: 0.4rem;
-      font-size: 0.92rem;
-      text-shadow: var(--outline);
+      color: var(--text-muted);
+      font-size: 0.9rem;
+      margin-top: 0.5rem;
     }
 
     .row-buttons {
       display: flex;
-      gap: 0.5rem;
-      margin-top: 1rem;
+      gap: 0.75rem;
+      margin-top: 1.5rem;
       flex-wrap: wrap;
-    }
-
-    button,
-    .chip {
-      border: 1px solid rgba(255, 255, 255, 0.2);
-      border-radius: 11px;
-      padding: 0.5rem 0.82rem;
-      background: linear-gradient(180deg, #3d4691, #2c3373);
-      color: #fff;
-      font-weight: 650;
-      cursor: pointer;
-      transition: transform 120ms ease, opacity 120ms ease, border-color 120ms ease;
-    }
-
-    button:hover,
-    .chip:hover {
-      transform: translateY(-1px);
-      border-color: rgba(255, 255, 255, 0.36);
-    }
-
-    .chip {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 0.78rem;
-      padding: 0.35rem 0.66rem;
-      background: #272d57;
-    }
-
-    .chip.active {
-      background: linear-gradient(180deg, #f861ff, #cc3fd0);
-      border-color: rgba(255, 255, 255, 0.3);
-      box-shadow: 0 8px 16px rgba(248, 97, 255, 0.2);
-    }
-
-    .filter-group {
-      margin-top: 0.9rem;
-    }
-
-    .filter-group h3 {
-      font-size: 0.86rem;
-      margin-bottom: 0.42rem;
-      color: #dce2ff;
     }
 
     .chip-row {
       display: flex;
       flex-wrap: wrap;
-      gap: 0.38rem;
+      gap: 0.5rem;
+      margin-top: 0.75rem;
     }
 
-    .helper {
-      margin-top: 0.48rem;
-      color: var(--muted);
-      font-size: 0.76rem;
-      line-height: 1.3;
+    .chip {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 20px;
+      padding: 0.4rem 1rem;
+      font-size: 0.8rem;
+      color: var(--text-light);
+      cursor: pointer;
+      transition: all 0.2s ease;
     }
 
-    .friends-head {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 0.8rem;
+    .chip.active {
+      background: rgba(var(--primary-mint-rgb), 0.1);
+      border-color: var(--primary-mint);
+      color: var(--primary-mint);
     }
 
-    .pill {
-      padding: 0.25rem 0.56rem;
-      border-radius: 999px;
-      font-size: 0.74rem;
-      border: 1px solid rgba(255, 255, 255, 0.25);
-      background: rgba(96, 211, 140, 0.22);
+    .section-head {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: #fff;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 1rem;
     }
 
-    .friend-list {
+    .room-card {
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      border-radius: 12px;
+      padding: 1.25rem;
       display: grid;
-      gap: 0.55rem;
+      grid-template-columns: auto 1fr auto;
+      gap: 1rem;
+      align-items: center;
+      transition: all 0.2s ease;
+    }
+
+    .room-card:hover {
+      background: rgba(255, 255, 255, 0.04);
+      border-color: rgba(var(--primary-mint-rgb), 0.3);
+      transform: translateY(-2px);
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+    }
+
+    .status-waiting { background: #ffd166; box-shadow: 0 0 10px #ffd166; }
+    .status-live { background: var(--primary-mint); box-shadow: 0 0 10px var(--primary-mint); }
+    .status-full { background: #ef476f; box-shadow: 0 0 10px #ef476f; }
+
+    .chat-body {
+      height: 300px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      padding: 1rem;
+      background: rgba(0, 0, 0, 0.2);
+      border-radius: 8px;
+    }
+
+    .chat-row {
+      display: flex;
+      gap: 0.75rem;
+    }
+
+    .chat-text {
+      background: rgba(255, 255, 255, 0.05);
+      padding: 0.75rem;
+      border-radius: 0 12px 12px 12px;
+      font-size: 0.9rem;
+      color: #eef1ff;
     }
 
     .friend {
-      background: var(--panel-soft);
-      border: 1px solid var(--line);
-      border-radius: 12px;
-      padding: 0.58rem;
       display: flex;
-      gap: 0.62rem;
       align-items: center;
+      gap: 0.75rem;
+      padding: 0.75rem;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.03);
     }
 
     .avatar {
       width: 32px;
       height: 32px;
-      border-radius: 10px;
-      display: grid;
-      place-items: center;
+      border-radius: 50%;
+      background: var(--primary-mint);
+      color: #0E0E0F;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       font-weight: 700;
-      font-size: 0.88rem;
-      background: linear-gradient(155deg, #7d8cff, #f861ff);
-      color: white;
-      text-shadow: var(--outline);
-      flex-shrink: 0;
-    }
-
-    .friend-name {
-      font-size: 0.86rem;
-      font-weight: 620;
-      text-shadow: var(--outline);
-    }
-
-    .friend-status {
-      color: var(--muted);
-      font-size: 0.74rem;
-      margin-top: 0.12rem;
-    }
-
-    .subtitle-spaced {
-      margin-top: 0.9rem;
-    }
-
-    .main-pane {
-      display: flex;
-      flex-direction: column;
-      gap: 1rem;
-    }
-
-    .rooms-header {
-      display: flex;
-      justify-content: space-between;
-      gap: 0.8rem;
-      align-items: center;
-      margin-bottom: 0.8rem;
-      flex-wrap: wrap;
-    }
-
-    .rooms-headline {
-      font-size: 1.12rem;
-      text-shadow: var(--outline);
-    }
-
-    .sort-row {
-      display: flex;
-      gap: 0.4rem;
-      align-items: center;
-      color: var(--muted);
-      font-size: 0.82rem;
-    }
-
-    select {
-      background: #20264a;
-      border: 1px solid var(--line);
-      border-radius: 8px;
-      color: var(--text);
-      padding: 0.35rem 0.58rem;
-      font-size: 0.82rem;
-    }
-
-    .room-list {
-      display: grid;
-      gap: 0.75rem;
-    }
-
-    .room-card {
-      background: linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.03));
-      border: 1px solid var(--line);
-      border-radius: 16px;
-      padding: 0.84rem;
-      display: grid;
-      grid-template-columns: auto 1fr auto;
-      gap: 0.8rem;
-      align-items: center;
-      transition: transform 120ms ease, border-color 120ms ease;
-    }
-
-    .room-card:hover {
-      transform: translateY(-1px);
-      border-color: rgba(255, 255, 255, 0.3);
-    }
-
-    .status-dot {
-      width: 10px;
-      height: 10px;
-      border-radius: 999px;
-      margin-top: 0.28rem;
-      box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.25);
-    }
-
-    .status-waiting {
-      background: var(--ok);
-    }
-
-    .status-live {
-      background: var(--warn);
-    }
-
-    .status-full {
-      background: var(--danger);
-    }
-
-    .room-meta {
-      display: flex;
-      gap: 0.5rem;
-      flex-wrap: wrap;
-      color: var(--muted);
-      font-size: 0.74rem;
-      margin-top: 0.3rem;
-    }
-
-    .room-tags {
-      margin-top: 0.4rem;
-      display: flex;
-      gap: 0.28rem;
-      flex-wrap: wrap;
-    }
-
-    .tag {
-      font-size: 0.68rem;
-      border: 1px solid var(--line);
-      border-radius: 999px;
-      padding: 0.2rem 0.48rem;
-      background: rgba(255, 255, 255, 0.07);
-      text-shadow: var(--outline);
-    }
-
-    .room-action {
-      min-width: 114px;
-      text-align: center;
       font-size: 0.8rem;
-      padding: 0.55rem 0.72rem;
-      border-radius: 10px;
-      border: 1px solid rgba(255, 255, 255, 0.28);
-      cursor: pointer;
-      background: linear-gradient(180deg, #5f72ff, #4254d5);
-    }
-
-    .room-action.spectate {
-      background: linear-gradient(180deg, #ed74fa, #bf3fcc);
-    }
-
-    .room-action.full {
-      background: #4a4d64;
-      opacity: 0.7;
-      cursor: not-allowed;
-    }
-
-    .chat-body {
-      max-height: 260px;
-      overflow: auto;
-      display: grid;
-      gap: 0.65rem;
-      padding-right: 0.24rem;
-      margin-bottom: 0.75rem;
-    }
-
-    .chat-row {
-      display: flex;
-      gap: 0.56rem;
-      align-items: flex-start;
-    }
-
-    .chat-text {
-      background: var(--panel-soft);
-      border: 1px solid var(--line);
-      border-radius: 10px;
-      padding: 0.46rem 0.56rem;
-      font-size: 0.83rem;
-      color: #eef1ff;
-      line-height: 1.35;
-    }
-
-    .chat-meta {
-      color: var(--muted);
-      font-size: 0.7rem;
-      margin-bottom: 0.16rem;
-    }
-
-    .chat-input-wrap {
-      display: flex;
-      flex-direction: column;
-      gap: 0.45rem;
-    }
-
-    textarea {
-      resize: none;
-      min-height: 70px;
-      border-radius: 10px;
-      border: 1px solid var(--line);
-      background: #1a1f3f;
-      color: var(--text);
-      padding: 0.52rem 0.62rem;
-      font-size: 0.82rem;
-    }
-
-    .char-count {
-      color: var(--muted);
-      font-size: 0.72rem;
-      text-align: right;
-      text-shadow: var(--outline);
-    }
-
-    .chat-actions {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 0.5rem;
-    }
-
-    .emoji-btn {
-      border-radius: 8px;
-      background: #252b57;
-      padding: 0.35rem 0.62rem;
-      font-size: 0.76rem;
     }
 
     .toast {
       position: fixed;
-      right: 1rem;
-      bottom: 1rem;
-      background: #202750;
+      bottom: 2rem;
+      right: 2rem;
+      background: var(--primary-mint);
+      color: #0E0E0F;
+      padding: 1rem 1.5rem;
+      border-radius: 8px;
+      font-weight: 700;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+      transform: translateY(100px);
+      transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    .toast.show { transform: translateY(0); }
+
+    /* Modal Styles */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.82);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      padding: 1.5rem;
+    }
+    .modal-overlay.show { display: flex; }
+    .create-modal {
+      width: 100%;
+      max-width: 480px;
+      animation: modalSlideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    @keyframes modalSlideUp {
+      from { transform: translateY(30px) scale(0.98); opacity: 0; }
+      to { transform: translateY(0) scale(1); opacity: 1; }
+    }
+    .form-group { margin-bottom: 1.5rem; }
+    .form-group label { display: block; margin-bottom: 0.625rem; font-size: 0.875rem; color: #b1b1b1; font-weight: 500; }
+    .form-group input[type="number"], .form-group select {
+      width: 100%;
+      padding: 0.875rem;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 10px;
       color: #fff;
-      border: 1px solid rgba(255, 255, 255, 0.25);
-      border-radius: 12px;
-      padding: 0.6rem 0.8rem;
-      box-shadow: var(--shadow);
-      transform: translateY(15px);
-      opacity: 0;
-      pointer-events: none;
-      transition: transform 180ms ease, opacity 180ms ease;
-      text-shadow: var(--outline);
-      z-index: 90;
+      font-size: 1rem;
+      outline: none;
+      transition: border-color 0.2s ease;
+    }
+    .form-group input:focus, .form-group select:focus { border-color: var(--primary-mint); }
+    .checkbox-group { display: flex; align-items: center; gap: 0.75rem; cursor: pointer; }
+    .checkbox-group label { margin-bottom: 0; cursor: pointer; }
+    .modal-actions { display: flex; justify-content: flex-end; gap: 1rem; margin-top: 2.5rem; }
+
+    .primary-btn {
+      background: var(--primary-mint) !important;
+      color: #0E0E0F !important;
+      border: none !important;
+    }
+    .primary-btn:hover {
+      background: #2eeebc !important;
+      box-shadow: 0 0 20px rgba(34, 211, 166, 0.4) !important;
     }
 
-    .toast.show {
-      transform: translateY(0);
-      opacity: 1;
+    /* Input Focus Styles */
+    input[type="text"]:focus {
+      border-color: var(--primary-mint) !important;
+      outline: none;
     }
 
-    @media (max-width: 1260px) {
-      .lobby-shell {
-        grid-template-columns: 1fr;
-      }
-
-      body.activity-mode .lobby-shell {
-        grid-template-columns: 1fr;
-      }
+    .title-card h1 {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 1.75rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--primary-mint);
+      margin: 0;
     }
 
-    @media (max-width: 768px) {
-      body {
-        font-size: 15px;
-      }
+    .banner-logo {
+      width: 48px;
+      height: 48px;
+      object-fit: contain;
+      filter: drop-shadow(0 0 10px rgba(34, 211, 166, 0.3));
+    }
 
-      .lobby-shell {
-        width: calc(100% - 1rem);
-        margin-top: 1rem;
-      }
+    button {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+      padding: 0.75rem 1.25rem;
+      color: #fff;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-size: 0.9rem;
+    }
 
-      body.activity-mode .lobby-shell {
-        margin-top: 0.5rem;
-      }
+    button:hover {
+      background: rgba(255, 255, 255, 0.08);
+      border-color: var(--primary-mint);
+      box-shadow: 0 0 20px rgba(34, 211, 166, 0.2);
+    }
 
-      .room-card {
-        grid-template-columns: 1fr;
-      }
+    button#create-room-btn {
+      background: var(--primary-mint);
+      color: #0E0E0F;
+      border: none;
+    }
 
-      .room-action {
-        width: 100%;
-      }
+    button#create-room-btn:hover {
+      background: #2eeebc;
+      box-shadow: 0 0 25px rgba(34, 211, 166, 0.4);
     }
   </style>
-<link rel="stylesheet" href="/styles/main.css">
   <script src="/scripts/glitter.js" defer></script>
 </head>
-<body>
+<body class="degen-background">
   <div id="shared-nav"></div>
 
   <main class="lobby-shell">
     <aside class="left-pane">
       <section class="panel">
         <div class="title-card">
-          <img class="banner-logo" src="/assets/images/daad/logo.png" alt="Degens Against Decency logo" />
+          <img class="banner-logo" src="/assets/logo/logocurrent.png" alt="TiltCheck logo" />
           <div>
-            <h1>Game Lobby</h1>
-            <p class="subtitle">Join a room or create your own outrageous card game experience.</p>
-            <span class="activity-chip"><span class="activity-dot"></span>Discord Activity Ready</span>
-            <span class="activity-chip"><span class="activity-dot"></span>Premium Play Anywhere</span>
-            <p id="activity-auth-status" class="activity-auth-status">Not connected to Discord Activity yet.</p>
+            <h1>Degens Against Decency Arena</h1>
+            <p class="subtitle">The ultimate multiplayer card game for the TiltCheck community.</p>
           </div>
         </div>
         <div class="row-buttons">
@@ -567,8 +400,8 @@
           <button id="open-arena-btn" type="button">Open Game Arena</button>
           <button id="connect-discord-btn" type="button">Connect Discord</button>
           <button id="launch-activity-btn" type="button">Open Activity Mode</button>
-          <button id="upgrade-server-btn" type="button">Upgrade Server</button>
-          <button id="refresh-rooms-btn" type="button">Refresh</button>
+          <button id="upgrade-server-btn" type="button">Scale Infrastructure</button>
+          <button id="refresh-rooms-btn" type="button">Refresh Uplink</button>
         </div>
       </section>
 
@@ -615,11 +448,11 @@
         </div>
 
         <div class="filter-group">
-          <h3>Quick Filters</h3>
+          <h3 class="section-head">Quick Filters</h3>
           <div class="chip-row">
-            <button class="chip" id="quick-ready" type="button">Quick Join Ready</button>
-            <button class="chip" id="quick-popular" type="button">Popular Rooms</button>
-            <button class="chip" id="quick-spectate" type="button">Spectate Games</button>
+            <button class="chip" id="quick-ready" type="button">Quick Join</button>
+            <button class="chip" id="quick-popular" type="button">Most Active</button>
+            <button class="chip" id="quick-spectate" type="button">Spectate</button>
           </div>
         </div>
       </section>
@@ -638,7 +471,15 @@
             </select>
           </div>
         </div>
-        <div id="rooms-list" class="room-list" aria-live="polite"></div>
+        <div id="rooms-list" class="room-list">
+          <div class="room-card">
+            <div class="status-dot status-waiting"></div>
+            <div>
+              <div class="room-name">Syncing with Game Arena...</div>
+              <div class="helper">Connecting to the Degens Against Decency network.</div>
+            </div>
+          </div>
+        </div>
       </section>
 
       <section class="panel">
@@ -678,105 +519,117 @@
   <div id="shared-footer"></div>
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
+  <!-- Create Room Modal -->
+  <div id="create-modal-overlay" class="modal-overlay">
+    <div class="panel create-modal">
+      <h2 class="section-head">Start a New Match</h2>
+      <div class="form-group">
+        <label>Game Type</label>
+        <select id="create-game-type">
+          <option value="dad">Degens Against Decency (Standard)</option>
+          <option value="poker">Texas Hold'em Poker</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Max Players</label>
+        <input type="number" id="create-max-players" value="8" min="2" max="20">
+      </div>
+      <div class="form-group">
+        <div class="form-group">
+          <div class="checkbox-group" id="private-group">
+            <input type="checkbox" id="create-private" style="width: 18px; height: 18px;">
+            <label for="create-private">Private Lobby</label>
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button type="button" id="cancel-create-btn">Cancel</button>
+          <button type="button" id="confirm-create-btn" class="primary-btn">Create Room</button>
+        </div>
+      </div>
+    <!-- Invite Friends Modal -->
+    <div id="invite-modal-overlay" class="modal-overlay">
+      <div class="panel create-modal">
+        <h2 class="section-head">Broadcast Audit Uplink</h2>
+        <p class="subtitle" style="margin-bottom: 1.5rem;">Copy your unique arena link to invite fellow degens to this audit node.</p>
+        
+        <div class="form-group">
+          <label>Invite URL</label>
+          <div style="display: flex; gap: 0.5rem;">
+            <input type="text" id="invite-url-input" readonly style="flex: 1;">
+            <button type="button" id="copy-invite-btn" class="primary-btn" style="padding: 0 1.5rem;">Copy</button>
+          </div>
+        </div>
+
+        <div class="modal-actions">
+          <button type="button" id="close-invite-btn">Dismiss</button>
+        </div>
+      </div>
+    </div>
+
   <script src="https://cdn.socket.io/4.7.5/socket.io.min.js" crossorigin="anonymous"></script>
   <script>
     const rooms = [
       {
-        name: "Chaos & Laughter Central",
-        code: "#CHAOS1",
+        name: "The Degen Den",
+        code: "#B125",
         status: "waiting",
-        host: "ComedyKing",
-        hostLevel: 15,
-        hostedCount: 34,
+        host: "alpha_lead",
+        hostLevel: 42,
+        hostedCount: 156,
         players: 4,
-        maxPlayers: 6,
-        roundTime: 60,
-        toWin: 5,
-        content: "moderate",
-        spectators: true,
-        privateRoom: false,
-        createdMinutesAgo: 2
-      },
-      {
-        name: "Adults Only Mayhem",
-        code: "#SPICY2",
-        status: "live",
-        host: "WildCardWiz",
-        hostLevel: 22,
-        hostedCount: 67,
-        players: 6,
         maxPlayers: 8,
-        roundTime: 90,
-        toWin: 7,
-        content: "spicy",
-        spectators: true,
-        privateRoom: false,
-        createdMinutesAgo: 5
-      },
-      {
-        name: "Family Fun Time",
-        code: "#CLEAN3",
-        status: "waiting",
-        host: "FamilyGamer",
-        hostLevel: 8,
-        hostedCount: 12,
-        players: 3,
-        maxPlayers: 4,
         roundTime: 45,
-        toWin: 3,
-        content: "mild",
-        spectators: false,
-        privateRoom: false,
-        createdMinutesAgo: 8
-      },
-      {
-        name: "Quick & Dirty Rounds",
-        code: "#FAST4",
-        status: "full",
-        host: "SpeedDemon",
-        hostLevel: 18,
-        hostedCount: 45,
-        players: 8,
-        maxPlayers: 8,
-        roundTime: 30,
         toWin: 5,
         content: "moderate",
         spectators: true,
         privateRoom: false,
-        createdMinutesAgo: 12
+        createdMinutesAgo: 1
       },
       {
-        name: "Newbie Friendly Zone",
-        code: "#LEARN6",
-        status: "waiting",
-        host: "TeacherBot",
-        hostLevel: 5,
-        hostedCount: 3,
-        players: 1,
-        maxPlayers: 4,
-        roundTime: 120,
-        toWin: 3,
+        name: "Neural-Audit #12",
+        code: "#TEST1",
+        status: "live",
+        host: "audit_bot_01",
+        hostLevel: 99,
+        hostedCount: 5000,
+        players: 6,
+        maxPlayers: 10,
+        roundTime: 30,
+        toWin: 10,
         content: "mild",
         spectators: true,
+        privateRoom: false,
+        createdMinutesAgo: 4
+      },
+      {
+        name: "Solana Whale Chat",
+        code: "#WHL2",
+        status: "waiting",
+        host: "sol_whale",
+        hostLevel: 15,
+        hostedCount: 22,
+        players: 2,
+        maxPlayers: 5,
+        roundTime: 60,
+        toWin: 3,
+        content: "moderate",
+        spectators: false,
         privateRoom: true,
-        createdMinutesAgo: 18
+        createdMinutesAgo: 12
       }
     ];
 
     const friends = [
-      { name: "CrazyCardPlayer", status: "In Game Room", online: true },
-      { name: "LaughMaster99", status: "Creating Room", online: true },
-      { name: "WittyPlayer", status: "In Lobby", online: true },
-      { name: "JokeSlinger", status: "Last seen 2 hours ago", online: false },
-      { name: "CardShark2024", status: "Last seen 1 day ago", online: false }
+      { name: "degen_king", status: "In Arena #B125", online: true },
+      { name: "neural_mod", status: "Analyzing Logs", online: true },
+      { name: "tilt_checker", status: "In Lobby", online: true },
+      { name: "ghost_dev", status: "Offline", online: false }
     ];
 
     const chatMessages = [
-      { user: "System", text: "Welcome to Degens Against Decency! Have fun and play responsibly.", time: "07:14 AM", system: true },
-      { user: "CrazyCardPlayer", text: "Anyone up for a quick game? Looking for 3 more players!", time: "07:15 AM" },
-      { user: "LaughMaster99", text: "Just finished an epic game! The AI generated some hilarious combinations.", time: "07:16 AM" },
-      { user: "System", text: "WittyPlayer joined the lobby", time: "07:17 AM", system: true },
-      { user: "WittyPlayer", text: "Hey everyone! Ready to get weird with some cards?", time: "07:18 AM" }
+      { user: "System", text: "Welcome to the Degens Against Decency Arena!", time: "07:14 AM", system: true },
+      { user: "degen_king", text: "Who's ready for some cards?", time: "07:15 AM" },
+      { user: "System", text: "tilt_checker joined the arena", time: "07:17 AM", system: true }
     ];
 
     const filterState = {
@@ -1285,8 +1138,58 @@
       showToast("Message sent");
     });
 
+    const createModal = document.getElementById("create-modal-overlay");
+    const confirmCreateBtn = document.getElementById("confirm-create-btn");
+    const cancelCreateBtn = document.getElementById("cancel-create-btn");
+
     document.getElementById("create-room-btn").addEventListener("click", () => {
-      showToast("Create Room flow coming next");
+      createModal.classList.add("show");
+    });
+
+    cancelCreateBtn.addEventListener("click", () => {
+      createModal.classList.remove("show");
+    });
+
+    confirmCreateBtn.addEventListener("click", async () => {
+      const gameType = document.getElementById("create-game-type").value;
+      const maxPlayers = parseInt(document.getElementById("create-max-players").value) || 8;
+      const isPrivate = document.getElementById("create-private").checked;
+
+      try {
+        confirmCreateBtn.disabled = true;
+        confirmCreateBtn.textContent = "Creating...";
+
+        const response = await fetch(getArenaBaseUrl() + "/api/games", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({ gameType, maxPlayers, isPrivate })
+        });
+
+        if (response.status === 401) {
+          showToast("Authentication required to create rooms");
+          createModal.classList.remove("show");
+          return;
+        }
+
+        if (!response.ok) {
+          const err = await response.json();
+          throw new Error(err.error || "Failed to create game");
+        }
+
+        const payload = await response.json();
+        showToast("Arena initialized! Diverting...");
+        
+        window.setTimeout(() => {
+          window.location.href = getArenaBaseUrl() + "/game/" + payload.game.id;
+        }, 800);
+
+      } catch (error) {
+        showToast("Error: " + error.message);
+      } finally {
+        confirmCreateBtn.disabled = false;
+        confirmCreateBtn.textContent = "Create Room";
+      }
     });
 
     openArenaButton.addEventListener("click", () => {
@@ -1406,8 +1309,28 @@
       window.location.href = getWebBaseUrl() + "/tools/daad-pricing.html?source=lobby";
     });
 
+    const inviteModal = document.getElementById("invite-modal-overlay");
+    const inviteUrlInput = document.getElementById("invite-url-input");
+    const closeInviteBtn = document.getElementById("close-invite-btn");
+    const copyInviteBtn = document.getElementById("copy-invite-btn");
+
     document.getElementById("add-friends-btn").addEventListener("click", () => {
-      showToast("Friends invite modal coming next");
+      inviteUrlInput.value = window.location.href;
+      inviteModal.classList.add("show");
+    });
+
+    closeInviteBtn.addEventListener("click", () => {
+      inviteModal.classList.remove("show");
+    });
+
+    copyInviteBtn.addEventListener("click", () => {
+      inviteUrlInput.select();
+      document.execCommand("copy");
+      copyInviteBtn.textContent = "Copied!";
+      setTimeout(() => {
+        copyInviteBtn.textContent = "Copy";
+      }, 2000);
+      showToast("Invite link copied to clipboard");
     });
 
     if (isDiscordMode) {

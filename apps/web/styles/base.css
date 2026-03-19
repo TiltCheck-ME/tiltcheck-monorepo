@@ -12,9 +12,10 @@
   --color-surface-1: #151920;
   --color-surface-2: #1A1F24;
   --color-border: #1F2937;
-  --color-accent: #00FFC6;
-  --color-accent-alt: #8B5CF6;
-  --color-danger: #FF5252;
+    --color-accent: #00FFC6;
+    --primary-mint: #22d3a6;
+    --color-accent-alt: #8B5CF6;
+    --color-danger: #FF5252;
   --color-text: #ffffff;
   --color-text-secondary: #B8C4CE;
   --color-text-muted: #6B7280;

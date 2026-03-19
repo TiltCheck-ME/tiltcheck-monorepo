@@ -1,4 +1,4 @@
-import { readFileSync, appendFileSync, existsSync } from 'fs';
+import { readFileSync, appendFileSync, existsSync, writeFileSync } from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import dotenv from 'dotenv';
@@ -11,6 +11,7 @@ dotenv.config({ path: path.join(__dirname, '..', '..', '.env'), override: false 
 const LOG_FILE = path.join(__dirname, 'messages.jsonl');
 const REPORT_FILE_BUSINESS = path.join(__dirname, 'reports_business.md');
 const REPORT_FILE_LORE = path.join(__dirname, 'reports_lore.md');
+const TICKER_LOG_FILE = path.join(__dirname, '..', '..', 'apps', 'api', 'data', 'web_signals.json');
 const CITATIONS_FILE = path.join(__dirname, 'citations.md');
 const GPT_MAX_MESSAGES = 150;
 const PROVIDER = (process.env.PROVIDER || 'groq').toLowerCase();
@@ -65,6 +66,19 @@ Overall mood of this batch (tilted, hopeful, burned out, etc).
 
 Be direct and actionable. Write for the founder reading over morning coffee.`;
 
+const SIGNAL_PROMPT = `As the TiltCheck Fact-Checker & Signal Extractor:
+Analyze this batch of Discord messages and extract 3-5 "Verified Casino Signals" for our website's live ticker.
+IMPORTANT: ONLY EXTRATC RELEVANT CASINO ACTIVITY (Stake, Roobet, BC.Game, etc). Discard all general crypto or unrelated chat.
+We only want high-signal gambling events for the public feed.
+Types of signals:
+- [tilt] Casino Tilt detected (emotional/desperation on a specific site)
+- [sec] Casino Phishing blocked (fake bonus links/scams)
+- [trust] Casino Anomaly found (fairness/payout issues)
+- [vault] Control win (user moved winnings to vault)
+
+Format: JSON array of items like {"text": "...", "type": "..."}.
+Output ONLY the JSON. No other text.`;
+
 const LORE_PROMPT = `You are a comedy writer studying a Discord server full of gambling degenerates.
 Analyze these messages and write raw material for a comic strip.
 Highlight tragic losses, chaotic energy, funny interactions, and potential character arcs.
@@ -106,6 +120,18 @@ async function callProvider(provider, text, count, systemPrompt = GPT_SYSTEM_PRO
     } catch (err) {
         console.error(chalk.red('  ✗ Fetch Error:'), err.message);
         return { success: false, status: 500, error: err.message };
+    }
+}
+
+async function saveWebSignals(signals) {
+    if (!signals || !Array.isArray(signals)) return;
+    try {
+        const existing = existsSync(TICKER_LOG_FILE) ? JSON.parse(readFileSync(TICKER_LOG_FILE, 'utf-8')) : [];
+        const combined = [...signals, ...existing].slice(0, 15); // Keep last 15
+        writeFileSync(TICKER_LOG_FILE, JSON.stringify(combined, null, 2));
+        console.log(chalk.green(`  ✓ ${signals.length} Web Signals synced to API.`));
+    } catch (err) {
+        console.error(chalk.red('  ✗ Signal Sync Error:'), err.message);
     }
 }
 
@@ -190,6 +216,18 @@ async function run() {
             appendFileSync(CITATIONS_FILE, citationHeader + citationRows + '\n');
 
             console.log(chalk.green(`  ✓ Chunk ${i + 1} saved (${dateRange}).`));
+
+            // SIGNAL PASS: Generate ticker-worthy one-liners
+            console.log(chalk.blue(`  🚥 Extracting Web Signals (Fact-Check Pass)...`));
+            const signalResult = await callProvider(currentAi, text, chunk.length, SIGNAL_PROMPT);
+            if (signalResult.success && signalResult.content) {
+                try {
+                    const parsed = JSON.parse(signalResult.content.replace(/```json/g, '').replace(/```/g, '').trim());
+                    await saveWebSignals(parsed.map(s => ({ ...s, time: 'Just now' })));
+                } catch (e) {
+                    console.log(chalk.gray(`  ⚠️ Signal parse failed. Skipping chunk signals.`));
+                }
+            }
         }
 
         // LORE: Only run when --lore flag is passed (saves tokens)

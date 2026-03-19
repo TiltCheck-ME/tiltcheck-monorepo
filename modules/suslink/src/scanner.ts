@@ -74,6 +74,12 @@ const MAX_URL_LENGTH = 2048;
 const ALLOWED_PROTOCOLS = new Set(['http:', 'https:']);
 
 export class LinkScanner {
+  private blacklist: Set<string>;
+
+  constructor(blacklist: string[] = []) {
+    this.blacklist = new Set(blacklist.map(d => d.toLowerCase()));
+  }
+
   private validateInputUrl(rawUrl: string): { valid: true; normalized: string } | { valid: false; reason: string } {
     const input = String(rawUrl ?? '').trim();
     if (!input) return { valid: false, reason: 'URL is required' };
@@ -126,6 +132,7 @@ export class LinkScanner {
         impersonation: this.checkImpersonation(parsedUrl),
         length: this.checkLength(parsedUrl),
         subdomain: this.checkSubdomain(parsedUrl),
+        blacklist: this.checkBlacklist(parsedUrl),
       };
 
       // Calculate risk level
@@ -237,6 +244,17 @@ export class LinkScanner {
       }
     }
 
+    return { risky: false };
+  }
+
+  /**
+   * Check if domain is in the regional/local blacklist
+   */
+  private checkBlacklist(url: URL): { risky: boolean; reason?: string } {
+    const hostname = url.hostname.toLowerCase();
+    if (this.blacklist.has(hostname)) {
+      return { risky: true, reason: 'Domain is on the TiltCheck Scam Blacklist' };
+    }
     return { risky: false };
   }
 
