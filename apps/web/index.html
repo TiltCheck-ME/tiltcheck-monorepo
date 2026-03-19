@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>TiltCheck | The Degen Audit Layer | Nuke the House Edge</title>
-  <meta name="description" content="The house has an edge. Now you do too. TiltCheck provides real-time neural auditing, RNG drift detection, and automated profit-locking protocols. Stop playing blind.">
+  <meta name="description" content="The house has an edge. Now you do too. TiltCheck provides real-time fairness auditing, automated gain-locking, and scam protection for serious degens. Stop playing blind.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Space+Grotesk:wght@700;900&display=swap" rel="stylesheet">
@@ -49,11 +49,15 @@
   <main id="main-content">
     <section class="hero-surface" aria-labelledby="hero-heading">
         <div class="hero-content">
-          <h1 style="color: rgba(255, 255, 255, 0.95); font-weight: 900; letter-spacing: -0.01em; margin-bottom: 0.1rem; font-size: clamp(2.5rem, 8vw, 3.8rem); line-height: 1.1;" id="hero-heading">HOUSE ALWAYS WINS?</h1>
-          <h1 class="neon neon-main" data-text="FUCK THAT." style="font-size: clamp(1.8rem, 6vw, 2.8rem); line-height: 1.1;">FUCK THAT.</h1>
+          <h1 class="neon neon-main logo-pulse neon-hero-top" data-text="HOUSE ALWAYS WINS?">HOUSE ALWAYS WINS?</h1>
+          <h1 class="neon neon-main neon-hero-bottom" data-text="FUCK THAT.">FUCK THAT.</h1>
           <p class="hero-body">
-            <strong>Stop donating to the house.</strong> Use the same neural auditing engine typically reserved for casino security to flip the script. 24/7 RTP parity monitoring. Zero-day scam nukes. Stop playing blind and start using the data the casinos don't want you to see.
+            <strong>Stop getting rinsed.</strong> The house has the edge because they control the math—now you do too. We've built the <strong>audit protocols</strong> that monitor seed integrity and vault your winnings before the tilt hits. Stop playing blind.
           </p>
+          <div class="hero-actions" style="margin-top: 2rem; display: flex; gap: 1rem; justify-content: center;">
+            <a href="/login.html" class="btn btn-primary btn-large" style="padding: 1rem 2.5rem; font-size: 1.2rem; text-transform: uppercase; letter-spacing: 0.1em; font-weight: 900;">Secure My Edge</a>
+            <a href="#tools" class="btn btn-secondary btn-large" style="padding: 1rem 2.5rem; font-size: 1.2rem; text-transform: uppercase; letter-spacing: 0.1em;">View Toolkit</a>
+          </div>
         </div>
     </section>
 
@@ -65,11 +69,11 @@
           <dd class="stat-value" id="stat-communities">--</dd>
         </div>
         <div>
-          <dt class="stat-label">24h Scans</dt>
+          <dt class="stat-label">24h Audits</dt>
           <dd class="stat-value" id="stat-scans">--</dd>
         </div>
         <div>
-          <dt class="stat-label">Threats Blocked</dt>
+          <dt class="stat-label">Scams Blocked</dt>
           <dd class="stat-value" id="stat-blocked">--</dd>
         </div>
       </dl>
@@ -89,21 +93,26 @@
           <h2>THE DEPLOYMENT SEQUENCE</h2>
           <p>// SYSTEM INITIALIZED: FOLLOW PROTOCOLS TO SECURE YOUR STACK</p>
         </div>
-        <div class="steps-grid">
+        <div class="deployment-steps">
           <div class="step-card">
-            <div class="step-number">01</div>
+            <span class="step-num">01</span>
             <h3>DEPLOY</h3>
-            <p>Link your stack instantly. Non-custodial by design, with optional Degen Credits.</p>
+            <p>
+              Link your stack via Chrome or Discord. 100% <strong>non-custodial</strong>—we never touch your keys, ever. You stay in full control of your funds.
+            </p>
           </div>
           <div class="step-card">
-            <div class="step-number">02</div>
-            <h3>SCAN</h3>
-            <p>Live-scan RNG drift and shadow-nerfs across every bet and site.</p>
+            <span class="step-num">02</span>
+            <h3>VERIFY</h3>
+            <p>
+              <strong>Audit the Seed.</strong> We verify every move against on-chain block hashes in real-time to make sure the house isn't nerfing your odds.
+              <span class="badge-protocol" style="display:inline-block; margin-top:5px; font-size: 10px;">SEED INTEGRITY CHECK ACTIVE</span>
+            </p>
           </div>
           <div class="step-card">
             <div class="step-number">03</div>
-            <h3>FRONT-RUN</h3>
-            <p>Auto-vault winnings before the tilt hits. Intercept phishing links in real-time.</p>
+            <h3>PROTECT</h3>
+            <p>Stay in the green. Auto-vault winnings before the tilt hits and block scam links before you click.</p>
           </div>
         </div>
       </div>
@@ -132,67 +141,76 @@
 
           <div class="flex overflow-x-auto hide-scrollbar" id="tools-carousel" style="gap:1.5rem; padding-bottom:2rem; scroll-behavior:smooth;">
 
-            <!-- Suggestion 6: aria-labelledby on each card pointing to its h3 -->
-            <a href="/features.html#agent" class="tool-card featured-card" aria-labelledby="card-degen-intelligence">
+            <!-- CATEGORY: SECURITY PROTOCOLS -->
+            <a href="/features.html#lockvault" class="tool-card featured-card" style="border-color: var(--primary-mint);">
               <div class="tool-card-body">
-                <h3 class="neon-tool-name" id="card-degen-intelligence">Degen Intelligence</h3>
-                <p class="tool-card-desc">Your personal on-chain analyst. Ask it anything about your gameplay in natural language via Discord DM.</p>
+                <span class="category-label">Security Protocol</span>
+                <h3 class="neon-tool-name">Autovault (The Profit-Locker)</h3>
+                <p class="tool-card-desc">Secure the bag. Automatically vault your winnings to a private wallet the second you hit your "control win" target.</p>
               </div>
               <span class="badge-live">Live</span>
             </a>
 
-            <a href="/extension.html" class="tool-card" aria-labelledby="card-house-edge">
+            <a href="/extension.html" class="tool-card">
               <div class="tool-card-body">
-                <h3 class="neon-tool-name" id="card-house-edge">The House Edge</h3>
-                <p class="tool-card-desc">A real-time co-pilot that watches for RNG drift, detects tilt, and enables anti-bankruptcy tools like autovaulting.</p>
+                <span class="category-label">Security Protocol</span>
+                <h3 class="neon-tool-name">Seed Integrity Monitor</h3>
+                <p class="tool-card-desc">Stop the nerf. Audit every move against on-chain block hashes to ensure the house isn't manipulating the seed.</p>
               </div>
               <span class="badge-live">Live</span>
             </a>
 
-            <a href="/features.html#lockvault" class="tool-card" aria-labelledby="card-wallet-lock">
+            <a href="/features.html#linkguard" class="tool-card">
               <div class="tool-card-body">
-                <h3 class="neon-tool-name" id="card-wallet-lock">Wallet Lock</h3>
-                <p class="tool-card-desc">FORCE-LOCK YOUR GAINS. Stop your "3 AM Self" from giving it all back. Lock your bankroll into cold-storage the second you hit your session target.</p>
+                <span class="category-label">Security Protocol</span>
+                <h3 class="neon-tool-name">Scam Shield (SusLink)</h3>
+                <p class="tool-card-desc">Stop the drainers. We block known phishing redirects and fake casino clones before they hit your wallet.</p>
               </div>
               <span class="badge-live">Live</span>
             </a>
 
-            <a href="/tools/justthetip.html" class="tool-card" aria-labelledby="card-justthetip">
+            <!-- CATEGORY: COMMUNITY UTILITIES -->
+            <a href="/features.html#agent" class="tool-card">
               <div class="tool-card-body">
-                <h3 class="neon-tool-name" id="card-justthetip">JustTheTip</h3>
-                <p class="tool-card-desc">Secure tipping with non-custodial execution or high-speed credits directly in Discord.</p>
+                <span class="category-label">Community Tool</span>
+                <h3 class="neon-tool-name">Neural Edge (Neural Audit)</h3>
+                <p class="tool-card-desc">Detect the tilt. Our AI agent scans your session for manipulation signals and desperation patterns before you get rinsed.</p>
+              </div>
+              <span class="badge-alpha">Alpha Access</span>
+            </a>
+
+            <a href="/tools/justthetip.html" class="tool-card">
+              <div class="tool-card-body">
+                <span class="category-label">Community Tool</span>
+                <h3 class="neon-tool-name">JustTheTip</h3>
+                <p class="tool-card-desc">Secure tipping protocol. Send and receive peer-to-peer rewards via Solana Pay without leaving the chat.</p>
               </div>
               <span class="badge-live">Live</span>
             </a>
 
-            <a href="/tools/suslink.html" class="tool-card" aria-labelledby="card-linkcheck">
+            <a href="/tools/daad.html" class="tool-card">
               <div class="tool-card-body">
-                <h3 class="neon-tool-name" id="card-linkcheck">LinkGuard</h3>
-                <p class="tool-card-desc">Algorithmic risk engine that intercepts known phishing signatures before you click.</p>
+                <span class="category-label">Community Tool</span>
+                <h3 class="neon-tool-name">Degens Against Decency</h3>
+                <p class="tool-card-desc">Multiplayer card chaos. Play the ultimate community game directly in Discord or via the dashboard.</p>
               </div>
               <span class="badge-live">Live</span>
             </a>
 
             <a href="/features.html#trust" class="tool-card" aria-labelledby="card-trust-engine">
               <div class="tool-card-body">
-                <h3 class="neon-tool-name" id="card-trust-engine">Trust Engine</h3>
-                <p class="tool-card-desc">AI-AUDITED trust scores for casinos and users, based on real behavior, not paid reviews.</p>
-              </div>
-              <span class="badge-live">Live</span>
-            </a>
-
-            <a href="/tools/daad.html" class="tool-card" aria-labelledby="card-daad">
-              <div class="tool-card-body">
-                <h3 class="neon-tool-name" id="card-daad">Degens Against Decency</h3>
-                <p class="tool-card-desc">Outrageous multiplayer card game playable as a Discord Activity.</p>
+                <span class="category-label">Community Tool</span>
+                <h3 class="neon-tool-name" id="card-trust-engine">Reputation Map</h3>
+                <p class="tool-card-desc">The Trust Index. Unbiased rankings based on verified payout data and on-chain behavior—not paid reviews.</p>
               </div>
               <span class="badge-live">Live</span>
             </a>
 
             <a href="/tools/collectclock.html" class="tool-card" aria-labelledby="card-bonuscheck">
               <div class="tool-card-body">
-                <h3 class="neon-tool-name" id="card-bonuscheck">BonusCheck</h3>
-                <p class="tool-card-desc">Bonus drop tracking with nerf detection and window prediction.</p>
+                <span class="category-label">Community Tool</span>
+                <h3 class="neon-tool-name" id="card-bonuscheck">BonusCheck (Drop Monitor)</h3>
+                <p class="tool-card-desc">Never miss a reload. Track monthly drops and detect "stealth nerfs" to casino bonuses in real-time.</p>
               </div>
               <span class="badge-beta">Beta</span>
             </a>
@@ -205,6 +223,28 @@
         <!-- Carousel Indicators (Mobile) -->
         <div class="carousel-indicators" id="carousel-indicators" role="tablist" aria-label="Carousel indicators"></div>
 
+      </div>
+    </section>
+    <!-- Core Engineering Audit Section -->
+    <section class="audit-transparency-section" aria-label="System Transparency Report">
+      <div class="container">
+        <div class="terminal-audit glass-panel">
+          <div class="terminal-header">
+            <span class="terminal-dot red"></span>
+            <span class="terminal-dot yellow"></span>
+            <span class="terminal-dot green"></span>
+            <span class="terminal-title">CORE_ENGINE_AUDIT.LOG</span>
+          </div>
+          <div class="terminal-body font-mono">
+            <div class="audit-line"><span class="audit-prompt">></span> RUNNING TILTCHECK CORE INTEGRITY AUDIT...</div>
+            <div class="audit-line"><span class="audit-status success">[PASS]</span> RNG_SCANNER_v1.0.4 - HMAC-SHA256 SOLANA_SEED Verification</div>
+            <div class="audit-line"><span class="audit-status success">[PASS]</span> AUTOVAULT_PROTO_v2.1 - GRAPHQL PROXY ACTIVE</div>
+            <div class="audit-line"><span class="audit-status success">[PASS]</span> NERF_DETECTOR_ACTIVE - 24/7 RTP PARITY ANALYSIS</div>
+            <div class="audit-line blink-status"><span class="audit-prompt">></span> STATUS: <span class="text-mint">VERIFIED (WITH CAVEATS)</span></div>
+            <div class="audit-line-small" style="margin-top: 1rem; color: #555;">// CAVEAT: Non-custodial design prioritizes user signing; optional credits used for low-latency tipping.</div>
+            <a href="https://github.com/jmenichole/tiltcheck-monorepo" target="_blank" class="btn btn-secondary" style="margin-top: 1.5rem; display: inline-flex; font-size: 0.7rem; padding: 8px 16px;">[Inspect the Auditor on GitHub]</a>
+          </div>
+        </div>
       </div>
     </section>
   </main>
@@ -289,6 +329,161 @@
     </div>
   </footer>
 
+  <style>
+    .audit-transparency-section {
+      padding: 4rem 0;
+      background: linear-gradient(to bottom, transparent, rgba(59, 130, 246, 0.02));
+    }
+    .terminal-audit {
+      max-width: 800px;
+      margin: 0 auto;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+    }
+    .terminal-header {
+      background: rgba(255, 255, 255, 0.03);
+      padding: 0.75rem 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+    .terminal-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+    }
+    .terminal-dot.red { background: #ff5f56; }
+    .terminal-dot.yellow { background: #ffbd2e; }
+    .terminal-dot.green { background: #27c93f; }
+    .terminal-title {
+      margin-left: 0.5rem;
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: #666;
+    }
+    .terminal-body {
+      padding: 1.5rem;
+      background: rgba(5, 5, 5, 0.9);
+      font-size: 0.85rem;
+      line-height: 1.6;
+    }
+    .audit-line {
+      margin-bottom: 0.5rem;
+      color: #aaa;
+    }
+    .audit-prompt {
+      color: var(--primary-mint);
+      margin-right: 0.5rem;
+    }
+    .audit-status.success {
+      color: #27c93f;
+      font-weight: 700;
+      margin-right: 0.5rem;
+    }
+    .blink-status {
+      animation: opacity-blink 2s infinite;
+      font-weight: 900;
+      letter-spacing: 0.05em;
+    }
+    .audit-line-small {
+      font-size: 0.7rem;
+      font-style: italic;
+    }
+    @keyframes opacity-blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.7; }
+    }
+    .text-mint { color: var(--primary-mint); }
+
+    /* New Brand Styles */
+    :root {
+      --primary-mint: #1eb98f; /* De-saturated for premium feel */
+      --accent-alpha: #a855f7;
+      --bg-midnight: #08080c;
+    }
+    .badge-alpha {
+      background: rgba(168, 85, 247, 0.15);
+      color: var(--accent-alpha);
+      border: 1px solid rgba(168, 85, 247, 0.3);
+      padding: 0.2rem 0.6rem;
+      border-radius: 4px;
+      font-size: 0.65rem;
+      font-weight: 800;
+      text-transform: uppercase;
+    }
+    .badge-protocol {
+      background: rgba(30, 185, 143, 0.15);
+      color: var(--primary-mint);
+      border: 1px solid rgba(30, 185, 143, 0.3);
+      padding: 0.2rem 0.6rem;
+      border-radius: 4px;
+      font-size: 0.65rem;
+      font-weight: 800;
+    }
+    .category-label {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.2em;
+      color: #555;
+      margin-bottom: 1rem;
+      display: block;
+      font-weight: 700;
+    }
+    .audit-link {
+        font-size: 0.65rem;
+        color: var(--primary-mint);
+        text-decoration: underline;
+        margin-top: 0.5rem;
+        display: inline-block;
+        opacity: 0.7;
+    }
+    .audit-link:hover { opacity: 1; }
+    .tooltip-icon {
+        cursor: help;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        background: rgba(255,255,255,0.1);
+        font-size: 10px;
+        margin-left: 4px;
+        vertical-align: middle;
+    }
+    .tooltip-container { position: relative; display: inline-block; }
+    .tooltip-text {
+        visibility: hidden;
+        width: 220px;
+        background: #111;
+        color: #fff;
+        text-align: left;
+        border-radius: 6px;
+        padding: 10px;
+        position: absolute;
+        z-index: 100;
+        bottom: 125%;
+        left: 50%;
+        margin-left: -110px;
+        opacity: 0;
+        transition: opacity 0.3s;
+        border: 1px solid var(--primary-mint);
+        font-size: 0.7rem;
+        line-height: 1.4;
+        font-weight: normal;
+        pointer-events: none;
+    }
+    .tooltip-container:hover .tooltip-text { visibility: visible; opacity: 1; }
+    .logo-pulse { animation: logo-pulse 4s ease-in-out infinite; }
+    @keyframes logo-pulse {
+        0%, 100% { filter: drop-shadow(0 0 10px rgba(34, 211, 166, 0.1)); opacity: 0.8; }
+        50% { filter: drop-shadow(0 0 25px rgba(34, 211, 166, 0.3)); opacity: 1; }
+    }
+  </style>
   <script type="module" src="/scripts/index-stats.js"></script>
   <script type="module" src="/scripts/live-ticker.js"></script>
   <script type="module" src="/scripts/carousel.js"></script>
