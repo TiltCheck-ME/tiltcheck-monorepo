@@ -20,10 +20,23 @@
   <link rel="stylesheet" href="/styles/main.css">
   <style>
     .trust-scores-hero {
-      background: linear-gradient(180deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
-      padding: clamp(3rem, 6vw, 4rem) var(--container-padding);
+      background: rgba(14, 14, 14, 0.2);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      padding: clamp(6.5rem, 8vw, 8.5rem) var(--container-padding) 4.5rem;
       text-align: center;
-      border-bottom: 1px solid rgba(0, 255, 198, 0.12);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+      position: relative;
+      overflow: hidden;
+    }
+    .trust-scores-hero::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: url("/assets/logo/logo-brain.png") center 20% / 400px no-repeat;
+      filter: drop-shadow(0 0 40px rgba(34, 211, 166, 0.15));
+      opacity: 0.08;
+      pointer-events: none;
     }
 
     .trust-scores-hero h1 {
@@ -182,15 +195,15 @@
   </style>
 </head>
 
-<body>
+<body class="degen-background text-white">
   <a href="#scores-main" class="skip-link">Skip to main content</a>
   <div id="shared-nav"></div>
 
-  <main id="scores-main">
+  <main id="scores-main" class="content-page">
 
     <header class="trust-scores-hero">
       <div class="container">
-        <h1 class="text-gradient-emerald">Casino Trust Scores</h1>
+        <h1 class="neon neon-sub" data-text="Casino Trust Scores">Casino Trust Scores</h1>
         <p>Live trust data from the TiltCheck Casino Trust Engine. Updated automatically as events are tracked across
           the ecosystem.</p>
       </div>

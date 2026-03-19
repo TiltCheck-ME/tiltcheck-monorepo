@@ -5,6 +5,8 @@
  */
 
 import { Router } from 'express';
+import fs from 'node:fs/promises';
+import path from 'node:path';
 import {
   createEvent,
   type BreathalyzerEvaluatedPayload,
@@ -136,7 +138,18 @@ router.post('/suslink/scan', async (req, res) => {
   }
 
   try {
-    const scanner = new LinkScanner();
+    // Load local blacklist
+    const dataDir = process.env.STATS_DATA_DIR || path.resolve(process.cwd(), 'data');
+    const blacklistPath = path.join(dataDir, 'domain_blacklist.json');
+    let blacklist: string[] = [];
+    try {
+      const raw = await fs.readFile(blacklistPath, 'utf8');
+      blacklist = JSON.parse(raw);
+    } catch {
+      // Fallback if file missing
+    }
+
+    const scanner = new LinkScanner(blacklist);
     const result = await scanner.scan(url);
 
     res.json({
@@ -150,6 +163,7 @@ router.post('/suslink/scan', async (req, res) => {
     });
   } catch (err) {
     console.error('[Safety API] SusLink scan error:', err);
+    res.status(500).json({ error: 'Internal scan error' });
   }
 });
 

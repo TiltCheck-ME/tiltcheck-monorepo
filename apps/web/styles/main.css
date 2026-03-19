@@ -30,7 +30,7 @@
    BACKGROUND
    ============================================================ */
 body.degen-background {
-  background-color: #0E0E0F;
+  background-color: #0E0E0F !important;
   background-image: url('/assets/backgroundglitter.png');
   background-size: cover;
   background-repeat: no-repeat;
@@ -38,6 +38,91 @@ body.degen-background {
   background-attachment: fixed;
   min-height: 100vh;
   position: relative;
+  color: #fff;
+}
+
+.glass-panel {
+  background: rgba(14, 14, 14, 0.25) !important;
+  backdrop-filter: blur(16px) !important;
+  -webkit-backdrop-filter: blur(16px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.05) !important;
+  border-radius: 12px;
+}
+
+/* ============================================================
+   NEURAL-AUDIT LOGO SYSTEM
+   ============================================================ */
+.logo-container {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  cursor: pointer;
+  transition: transform 0.3s cubic-bezier(0.23, 1, 0.32, 1);
+  transform-origin: center;
+}
+
+.logo-container:hover {
+  transform: scale(1.1);
+}
+
+.neuro-shield {
+  filter: drop-shadow(0 0 10px rgba(34, 211, 166, 0.3));
+}
+
+.circuit-path {
+  fill: none;
+  stroke: var(--primary-mint);
+  stroke-width: 1.5;
+  stroke-dasharray: 400;
+  stroke-dashoffset: 400;
+  animation: drawCircuit 6s infinite alternate ease-in-out;
+}
+
+@keyframes drawCircuit {
+  0% { stroke-dashoffset: 400; opacity: 0.3; }
+  50% { stroke-dashoffset: 0; opacity: 1; }
+  100% { stroke-dashoffset: -400; opacity: 0.3; }
+}
+
+.scan-line {
+  width: 120%;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, #00d2ff, transparent);
+  position: absolute;
+  top: 20%;
+  left: -10%;
+  z-index: 20;
+  opacity: 0.5;
+  animation: scanner 4s infinite linear;
+  pointer-events: none;
+}
+
+@keyframes scanner {
+  0% { top: 10%; opacity: 0; }
+  20% { opacity: 0.6; }
+  80% { opacity: 0.6; }
+  100% { top: 90%; opacity: 0; }
+}
+
+.brand-text-glitch:hover {
+  animation: textGlitch 0.2s infinite;
+}
+
+@keyframes textGlitch {
+  0% { transform: translate(0); text-shadow: 2px 2px var(--color-danger), -2px -2px var(--color-primary); }
+  25% { transform: translate(-1px, 1px); }
+  50% { transform: translate(1px, -1px); }
+  100% { transform: translate(0); }
+}
+
+@keyframes markPulse {
+  from { opacity: 0.6; filter: drop-shadow(0 0 5px var(--primary-mint)); }
+  to { opacity: 1; filter: drop-shadow(0 0 15px var(--primary-mint)); }
+}
+
+.pulse-mark {
+  animation: markPulse 2s infinite alternate ease-in-out;
 }
 
 /* ============================================================
@@ -154,21 +239,57 @@ body.degen-background {
   text-shadow: 0 0 1px #fff, 0 0 2px #fff, 0 0 3px #00ffaa;
   line-height: 1.05;
   margin: 0 0 0.25rem;
+  position: relative;
+}
+
+.neon-main::before {
+  content: attr(data-text);
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  color: #00ffaa;
+  filter: blur(8px);
+  opacity: 0.5;
+  z-index: -1;
+  animation: neon-pulse 2s infinite alternate;
 }
 
 .neon-sub {
-  font-size: clamp(2rem, 4.5vw, 4.375rem);
+  font-size: clamp(1.25rem, 2.5vw, 1.75rem);
   color: #fff;
-  text-shadow: 0 0 2px #fff, 0 0 5px #00ffaa;
-  line-height: 1.05;
-  margin: 0;
+  margin: 1rem 0 0.5rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 800;
+  text-shadow: 0 0 1px #fff, 0 0 5px #00ffaa;
+}
+
+.neon-sub::before {
+  content: attr(data-text);
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  color: #00ffaa;
+  filter: blur(4px);
+  opacity: 0.4;
+  z-index: -1;
+}
+
+@keyframes neon-pulse {
+  from { opacity: 0.3; filter: blur(4px); }
+  to { opacity: 0.7; filter: blur(12px); }
 }
 
 .neon-tool-name {
   color: #fff;
   text-shadow: 0 0 1px #fff, 0 0 2px #00ffaa;
   font-size: 1.125rem;
-  font-family: var(--font-display, 'Space Grotesk', sans-serif);
+  font-family: 'Space Grotesk', sans-serif;
   font-weight: 700;
   margin: 0 0 0.5rem;
   line-height: 1.3;
@@ -178,13 +299,9 @@ body.degen-background {
    HERO SECTION
    ============================================================ */
 .hero-surface {
-  padding: 5rem 1.5rem 3.5rem;
+  padding: 8rem 1.5rem 4rem;
   text-align: center;
   position: relative;
-  background-image: url('/assets/herofuckthat.png');
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
 }
 
 .hero-content {
@@ -194,11 +311,20 @@ body.degen-background {
 
 /* Hero body text — #c4ced8 on #0e0e0f ≈ 8.1:1 (WCAG AAA) */
 .hero-body {
-  font-size: clamp(1rem, 1.1vw + 0.75rem, 1.15rem);
+  font-size: clamp(0.9rem, 1vw + 0.70rem, 1.05rem);
   color: #c4ced8;
   line-height: 1.8;
   max-width: 640px;
   margin: 2rem auto 0;
+  font-family: 'Satoshi', 'Inter', sans-serif;
+  letter-spacing: -0.01em;
+  padding: 2.5rem;
+  border-radius: 12px;
+  background: rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
 }
 
 /* ============================================================
@@ -553,13 +679,30 @@ dl.stats-strip-inner {
 }
 
 /* Footer links — #c4ced8 on #0e0e0f ≈ 8.1:1 (WCAG AAA) */
-.footer-col a {
-  color: #c4ced8;
-  text-decoration: none;
-  transition: color 200ms ease;
-  line-height: 1.5;
+.site-footer p {
+  font-family: 'Satoshi', 'Inter', sans-serif;
+  color: #a0a0a0;
+  line-height: 1.6;
 }
-.footer-col a:hover  { color: var(--color-primary, #22d3a6); }
+
+.footer-col a,
+.site-footer a {
+  color: #c4ced8 !important;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  font-family: 'Satoshi', 'Inter', sans-serif;
+}
+
+.footer-col a:visited,
+.site-footer a:visited {
+  color: #c4ced8 !important;
+}
+
+.footer-col a:hover,
+.site-footer a:hover {
+  color: var(--primary-mint) !important;
+  text-shadow: 0 0 10px rgba(34, 211, 166, 0.4);
+}
 .footer-col a:focus-visible {
   outline: 2px solid var(--color-primary, #22d3a6);
   outline-offset: 2px;
@@ -674,6 +817,8 @@ dl.stats-strip-inner {
   text-transform: uppercase;
   letter-spacing: 0.1em;
   border-radius: 4px;
+  font-family: 'Space Grotesk', sans-serif;
+  text-shadow: 0 0 8px rgba(0, 0, 0, 0.2);
 }
 
 .btn-glow {
@@ -739,12 +884,289 @@ dl.stats-strip-inner {
 .type-swap { color: #3b82f6; }
 .type-bonus { color: #f472b6; }
 
-@media (max-width: 768px) {
-  .live-ticker-strip {
-    margin: 2rem 1rem 1rem;
-    padding: 0.5rem 1rem;
-  }
-  .ticker-label { font-size: 0.55rem; }
-  .ticker-feed { font-size: 0.75rem; }
+/* ============================================================
+   GLITCHY HEART & GLOWING TAGLINE
+   ============================================================ */
+
+.glowing-tagline {
+  font-family: 'Space Grotesk', sans-serif !important;
+  font-weight: 800;
+  text-transform: uppercase;
+  color: #fff !important;
+  text-shadow: 0 0 10px rgba(34, 211, 166, 0.6) !important;
+  letter-spacing: 0.1em;
+  font-size: 0.85rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  text-decoration: none;
 }
 
+.glitch-heart {
+  color: #ff3b3b;
+  display: inline-block;
+  font-style: normal;
+  animation: heart-pulse 1.5s infinite alternate;
+  text-shadow: 0 0 8px rgba(255, 59, 59, 0.8);
+  font-size: 1.1rem;
+}
+
+@keyframes heart-pulse {
+  from { transform: scale(1); opacity: 0.8; }
+  to { transform: scale(1.2); opacity: 1; }
+}
+
+body.degen-background {
+  background-color: #0E0E0F !important;
+  color: #FFF !important;
+}
+
+
+/* ============================================================
+   GLOBAL SUBPAGE ENHANCEMENTS
+   ============================================================ */
+
+/* Force Mint color for all primary buttons across the site */
+.btn-primary, 
+.btn-hero,
+.cta-button,
+.discord-login-btn {
+  background-color: var(--color-primary, #22d3a6) !important;
+  color: #000 !important;
+  box-shadow: 0 0 10px rgba(34, 211, 166, 0.2);
+  text-shadow: 0 0 5px rgba(34, 211, 166, 0.3);
+  border: none;
+}
+
+.btn-primary:hover,
+.btn-hero:hover,
+.cta-button:hover,
+.discord-login-btn:hover {
+  box-shadow: 0 0 20px rgba(34, 211, 166, 0.5) !important;
+  transform: translateY(-2px);
+  background-color: #26e4b3 !important; /* Slightly brighter on hover */
+}
+
+/* Global Headings for subpages (Features, About, etc.) */
+.content-page h1,
+.content-page h2 {
+  font-family: 'Space Grotesk', sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #fff;
+  position: relative;
+  display: inline-block;
+}
+
+.content-page h1 {
+  font-size: clamp(2rem, 5vw, 3.5rem);
+  font-weight: 900;
+  margin-bottom: 2.5rem;
+  text-shadow: 0 0 15px rgba(34, 211, 166, 0.35);
+}
+
+.content-page h2 {
+  font-size: clamp(1.5rem, 3vw, 2.25rem);
+  font-weight: 800;
+  margin: 3rem 0 1.5rem;
+  color: var(--color-primary);
+  text-shadow: 0 0 8px rgba(34, 211, 166, 0.2);
+}
+
+/* Refined Tools Title for the index page */
+.tools-title.neon-sub {
+  font-size: clamp(1.75rem, 4vw, 2.5rem);
+  letter-spacing: 0.1em;
+  margin-bottom: 0.5rem;
+}
+
+.tools-title.neon-sub::before {
+  filter: blur(6px);
+  opacity: 0.3;
+}
+
+/* Footer Mission Styles */
+.footer-mission {
+  max-width: 800px;
+  margin: 0 auto 1.5rem;
+  line-height: 1.6;
+  color: var(--color-text-secondary, #B8C4CE);
+  font-size: 0.9rem;
+  opacity: 0.9;
+}
+
+.footer-mission strong {
+  color: var(--color-primary, #22d3a6);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* ============================================================
+   PREMIUM BUTTON VARIANTS
+   ============================================================ */
+
+.btn-outline {
+  background: transparent;
+  color: var(--color-primary, #22d3a6);
+  border: 1px solid rgba(34, 211, 166, 0.5);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.btn-outline:hover {
+  background: rgba(34, 211, 166, 0.05);
+  border-color: var(--color-primary);
+  box-shadow: 0 0 15px rgba(34, 211, 166, 0.2);
+  transform: translateY(-2px);
+  color: #fff;
+}
+
+/* ============================================================
+   CONTENT PAGE / HOW-IT-WORKS UPGRADE
+   ============================================================ */
+
+.content-page {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 4rem 1.5rem;
+}
+
+.content-page section {
+  background: rgba(14, 14, 14, 0.25);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  border-radius: 12px;
+  padding: 2.5rem;
+  margin-bottom: 2rem;
+  transition: transform 0.3s ease, border-color 0.3s ease;
+}
+
+.content-page section:hover {
+  border-color: rgba(34, 211, 166, 0.2);
+  transform: translateY(-4px);
+}
+
+.content-page h2 {
+  font-family: 'Space Grotesk', sans-serif;
+  color: var(--color-primary);
+  font-size: 1.5rem;
+  margin-top: 0;
+  margin-bottom: 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.content-page p,
+.content-page li {
+  font-family: 'Satoshi', 'Inter', sans-serif;
+  font-size: 0.95rem;
+  color: #c4ced8;
+  line-height: 1.7;
+}
+
+.content-page ul {
+  list-style: none;
+  padding: 0;
+}
+
+.content-page li {
+  margin-bottom: 0.75rem;
+  padding-left: 1.5rem;
+  position: relative;
+}
+
+.content-page li::before {
+  content: "»";
+  position: absolute;
+  left: 0;
+  color: var(--color-primary);
+  font-weight: bold;
+}
+
+/* ============================================================
+   HOW IT WORKS (MINI GRID)
+   ============================================================ */
+.how-it-works-mini {
+  padding: 100px 20px;
+  background: rgba(0, 0, 0, 0.3);
+  position: relative;
+}
+
+.how-it-works-mini .container {
+  max-width: 1100px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.mini-steps-header {
+  margin-bottom: 60px;
+}
+
+.mini-steps-header h2 {
+  font-size: 2rem;
+  margin-bottom: 15px;
+  color: #fff;
+  letter-spacing: 2px;
+}
+
+.mini-steps-header p {
+  color: #666;
+  font-family: 'Satoshi', 'Inter', sans-serif;
+  font-size: 0.9rem;
+}
+
+.steps-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 32px;
+}
+
+.step-card {
+  background: rgba(14, 14, 14, 0.35);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  padding: 40px 30px;
+  border-radius: 12px;
+  text-align: center;
+  transition: all 0.3s cubic-bezier(0.23, 1, 0.32, 1);
+  position: relative;
+}
+
+.step-card:hover {
+  transform: translateY(-8px);
+  border-color: var(--primary-mint);
+  background: rgba(14, 14, 14, 0.55);
+  box-shadow: 0 15px 30px rgba(34, 211, 166, 0.1);
+}
+
+.step-number {
+  color: var(--primary-mint);
+  font-family: 'Satoshi', 'Inter', sans-serif;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 2px;
+  margin-bottom: 25px;
+  display: block;
+}
+
+.step-card h3 {
+  font-size: 1.4rem;
+  margin-bottom: 15px;
+  color: #fff;
+  letter-spacing: 1px;
+}
+
+.step-card p {
+  color: #a0a0a0;
+  line-height: 1.6;
+  font-size: 0.95rem;
+}
+
+@media (max-width: 900px) {
+  .steps-grid {
+    grid-template-columns: 1fr;
+    gap: 40px;
+  }
+}

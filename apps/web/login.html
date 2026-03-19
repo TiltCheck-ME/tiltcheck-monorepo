@@ -21,16 +21,6 @@
   <link rel="manifest" href="/manifest.json">
   <link rel="icon" type="image/svg+xml" href="/assets/logo/favicon-white.svg">
   <style>
-    .login-card {
-      background: rgba(255, 255, 255, 0.05);
-      -webkit-backdrop-filter: blur(10px);
-      backdrop-filter: blur(10px);
-      border: 1px solid rgba(0, 212, 170, 0.2);
-      border-radius: 1rem;
-      padding: 3rem 2rem;
-      text-align: center;
-    }
-
     .login-logo {
       width: 64px;
       height: 64px;
@@ -52,6 +42,7 @@
       color: var(--color-text-secondary);
       margin-bottom: 2rem;
       line-height: 1.6;
+      font-family: 'Satoshi', 'Inter', sans-serif;
     }
 
     .login-btn-container {
@@ -203,9 +194,17 @@
     }
   </style>
 </head>
-<body class="login-page-body"><div id="shared-nav"></div><div class="login-content-area"><main id="main-content">
-    <div class="login-card">
-      <div class="login-logo"><img src="/assets/logo/logocurrent.svg" alt="TiltCheck" width="48" height="48"></div>
+<body class="degen-background text-white">
+  <div id="shared-nav"></div>
+  <main id="main-content" class="container content-page" style="display: flex; justify-content: center; align-items: center; min-height: 80vh;">
+    <div class="login-card glass-panel" style="padding: 3rem 2rem; text-align: center;">
+      <div class="logo-container" style="flex-direction: column; gap: 15px; margin-bottom: 2rem;">
+        <div class="scan-line" style="width: 80px; left: 50%; transform: translateX(-50%);"></div>
+        <svg class="neuro-shield" width="64" height="64" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+          <path class="circuit-path" d="M100 20 L160 50 L160 120 C160 160 100 180 100 180 C100 180 40 160 40 120 L40 50 L100 20" />
+          <path class="pulse-mark" d="M85 100 L95 110 L115 90" fill="none" stroke="var(--primary-mint)" stroke-width="12" stroke-linecap="round" stroke-linejoin="round" />
+        </svg>
+      </div>
       
       <h1>Sign in to TiltCheck</h1>
       <p class="subtitle">Connect your Discord account to access your safety dashboard, trust alerts, and profile settings across the ecosystem.</p>
