@@ -4,9 +4,9 @@ export const SIDEBAR_TEMPLATE = `
     <div class="tg-header">
       <div class="tg-logo"><span class="tg-logo-mark">T</span>TiltCheck</div>
       <div class="tg-header-actions">
-        <button class="tg-header-btn tg-advanced-only" id="tg-settings" title="Open settings panel">Settings</button>
-        <button class="tg-header-btn" id="tg-minimize" title="Minimize panel">Minimize</button>
-        <button class="tg-header-btn" id="tg-hide" title="Hide panel">Hide</button>
+        <button class="tg-header-btn tg-advanced-only" id="tg-settings" title="Settings">⚙️</button>
+        <button class="tg-header-btn" id="tg-minimize" title="Minimize">−</button>
+        <button class="tg-header-btn" id="tg-hide" title="Close">×</button>
       </div>
     </div>
     <div id="tg-license-strip" class="tg-license-strip pending">License: scanning current site...</div>
@@ -39,14 +39,14 @@ export const SIDEBAR_TEMPLATE = `
         </div>
         <div class="tg-focus-note">Quick tip: keep this minimized while you play, then expand when you want a clean reality check.</div>
 
-        <!-- Quick Safety -->
+        <!-- Tilt Protection -->
         <div class="tg-section tg-emergency">
           <div class="tg-emergency-header">
-            <div>
-              <div class="tg-emergency-title">Emergency Lock</div>
-              <div class="tg-emergency-sub">Immediate cool-down if things feel off</div>
+            <div style="flex: 1;">
+              <div class="tg-emergency-title">Tilt Protection</div>
+              <div class="tg-emergency-sub">Bank your wins and cool down if you detect tilt.</div>
             </div>
-            <button class="tg-btn tg-btn-danger" id="tg-emergency-lock">Start 15-Min Break</button>
+            <button class="tg-btn tg-btn-danger" id="tg-emergency-lock" style="width: auto; padding: 10px 16px;">SECURE STACK</button>
           </div>
         </div>
 
@@ -98,7 +98,7 @@ export const SIDEBAR_TEMPLATE = `
 
         <!-- Fairness Panel (toggleable) -->
         <div class="tg-settings-panel tg-advanced-only" id="tg-verifier-panel" style="display: none;">
-          <h4>Fairness Check</h4>
+          <h4>Verify Game</h4>
           
           <div class="tg-tabs">
             <button class="tg-tab active" data-target="fv-tab-verify">Verify</button>
@@ -148,34 +148,34 @@ export const SIDEBAR_TEMPLATE = `
         <div class="tg-metrics-card">
           <div class="tg-metrics-header">
             <div>
-              <h3>Active Session</h3>
-              <div class="tg-session-site" id="tg-session-site">Unknown</div>
+              <h3>Session HUD</h3>
+              <div class="tg-session-site" id="tg-session-site">Unknown Site</div>
             </div>
             <div class="tg-guardian-indicator" id="tg-guardian-indicator"></div>
           </div>
           <div class="tg-metrics-grid">
             <div class="tg-metric">
-              <span class="tg-metric-label">Time</span>
+              <span class="tg-metric-label">🕒 Time</span>
               <span class="tg-metric-value" id="tg-duration">0:00</span>
             </div>
             <div class="tg-metric">
-              <span class="tg-metric-label">Bets</span>
+              <span class="tg-metric-label">🎲 Bets</span>
               <span class="tg-metric-value" id="tg-bets">0</span>
             </div>
             <div class="tg-metric">
-              <span class="tg-metric-label">Wagered</span>
+              <span class="tg-metric-label">💸 Wagered</span>
               <span class="tg-metric-value" id="tg-wagered">$0</span>
             </div>
             <div class="tg-metric">
-              <span class="tg-metric-label">P/L</span>
+              <span class="tg-metric-label">📈 P/L</span>
               <span class="tg-metric-value" id="tg-profit">$0</span>
             </div>
             <div class="tg-metric">
-              <span class="tg-metric-label">RTP</span>
+              <span class="tg-metric-label">🎯 RTP</span>
               <span class="tg-metric-value" id="tg-rtp">--</span>
             </div>
             <div class="tg-metric">
-              <span class="tg-metric-label">Tilt <span class="tg-help" data-tip="Calculated from wager frequency and bet-size volatility.">?</span></span>
+              <span class="tg-metric-label">📉 Tilt <span class="tg-help" data-tip="Calculated from wager frequency and bet-size volatility.">?</span></span>
               <span class="tg-metric-value tg-tilt-value" id="tg-score-value">0</span>
             </div>
           </div>
@@ -202,11 +202,11 @@ export const SIDEBAR_TEMPLATE = `
           <h4>Quick Tools</h4>
           <button class="tg-btn tg-btn-secondary tg-advanced-toggle" id="tg-toggle-advanced" aria-pressed="false">Show Pro Tools</button>
           <div class="tg-action-grid">
-            <button class="tg-action-btn" id="tg-open-linkcheck">LinkCheck</button>
+            <button class="tg-action-btn" id="tg-open-linkcheck">Safety Check</button>
             <button class="tg-action-btn tg-advanced-only" id="tg-open-config">Site Setup</button>
-            <button class="tg-action-btn tg-advanced-only" id="tg-open-verifier">Fairness Check</button>
-            <button class="tg-action-btn" id="tg-open-predictor">Predictor</button>
-            <button class="tg-action-btn" id="tg-open-dashboard">Open Dashboard</button>
+            <button class="tg-action-btn tg-advanced-only" id="tg-open-verifier">Verify Game</button>
+            <button class="tg-action-btn" id="tg-open-predictor">Bonus Radar</button>
+            <button class="tg-action-btn" id="tg-open-dashboard">Dashboard</button>
             <button class="tg-action-btn" id="tg-open-vault">Open Vault</button>
             <button class="tg-action-btn tg-advanced-only" id="tg-wallet">Wallet Status</button>
             <button class="tg-action-btn tg-advanced-only" id="tg-upgrade">Unlock Premium</button>
@@ -214,9 +214,9 @@ export const SIDEBAR_TEMPLATE = `
           <button class="tg-btn tg-btn-secondary tg-advanced-only" id="tg-open-report" style="margin-top: 8px;">Report Site Change</button>
         </div>
 
-        <!-- LinkCheck Panel (toggleable) -->
+        <!-- Safety Check Panel -->
         <div class="tg-settings-panel" id="tg-linkcheck-panel" style="display: none;">
-          <h4>LinkCheck Scanner</h4>
+          <h4>Safety Check Scanner</h4>
           <div class="tg-input-group">
             <label>Check URL</label>
             <div style="display: flex; gap: 5px;">
@@ -252,9 +252,9 @@ export const SIDEBAR_TEMPLATE = `
           <button class="tg-btn tg-btn-secondary" id="close-report">Close</button>
         </div>
 
-        <!-- Predictor Panel (toggleable) -->
+        <!-- Bonus Radar Panel -->
         <div class="tg-settings-panel" id="tg-predictor-panel" style="display: none;">
-          <h4>Drop Predictor</h4>
+          <h4>Bonus Radar</h4>
           <div id="predictor-list" class="tg-feed" style="max-height: 250px;">
             <div class="tg-feed-item">Fetching drop windows...</div>
           </div>
