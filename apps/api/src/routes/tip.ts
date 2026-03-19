@@ -6,8 +6,9 @@
 
 import { Router } from 'express';
 import rateLimit from 'express-rate-limit';
-import { sessionAuth, type AuthContext } from '@tiltcheck/auth/middleware/express';
+import { sessionAuth } from '@tiltcheck/auth/middleware/express';
 import { justthetip } from '@tiltcheck/justthetip';
+import type { Request } from 'express';
 
 const router = Router();
 
@@ -32,10 +33,10 @@ const verifyLimiter = rateLimit({
  * POST /tip/verify
  * Verify a tipping request (Discord user + wallet signature + session)
  */
-router.post('/verify', verifyLimiter, sessionAuth(), async (req, res) => {
+router.post('/verify', verifyLimiter, sessionAuth(), async (req: Request, res) => {
   try {
     const { recipientDiscordId, amount, currency, signature, message, publicKey } = req.body;
-    const auth = (req as any).auth as AuthContext;
+    const auth = req.auth;
 
     if (!auth || !auth.discordId) {
       res.status(401).json({ error: 'Not authenticated with Discord' });
@@ -80,10 +81,10 @@ router.post('/verify', verifyLimiter, sessionAuth(), async (req, res) => {
  * POST /tip/create
  * Create a new tip
  */
-router.post('/create', tipLimiter, sessionAuth(), async (req, res) => {
+router.post('/create', tipLimiter, sessionAuth(), async (req: Request, res) => {
   try {
     const { recipientDiscordId, recipientWallet, amount, currency, message: tipMessage } = req.body;
-    const auth = (req as any).auth as AuthContext;
+    const auth = req.auth;
 
     if (!auth) {
       res.status(401).json({ error: 'Not authenticated' });
@@ -131,11 +132,11 @@ router.post('/create', tipLimiter, sessionAuth(), async (req, res) => {
  * POST /tip/:id/complete
  * Mark a tip as completed with transaction signature
  */
-router.post('/:id/complete', tipLimiter, sessionAuth(), async (req, res) => {
+router.post('/:id/complete', tipLimiter, sessionAuth(), async (req: Request, res) => {
   try {
     const { id } = req.params;
     const { txSignature } = req.body;
-    const auth = (req as any).auth as AuthContext;
+    const auth = req.auth;
 
     if (!auth) {
       res.status(401).json({ error: 'Not authenticated' });
@@ -182,7 +183,7 @@ router.get('/:id', sessionAuth(undefined, { required: false }), async (req, res)
     }
 
     // Only return full details if authenticated and is sender/recipient
-    const auth = (req as any).auth as AuthContext;
+    const auth = req.auth;
     const isParticipant = auth && (
       tip.sender_id === auth.userId ||
       tip.recipient_discord_id === auth.discordId

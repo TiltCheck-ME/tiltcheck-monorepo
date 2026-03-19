@@ -476,6 +476,9 @@
                 <a href="#justthetip" class="nav-link" onclick="showPanel('justthetip')">
                     JustTheTip Manager <span class="status">●</span>
                 </a>
+                <a href="#trivia-control" class="nav-link" onclick="showPanel('trivia-control')">
+                    Trivia Control <span class="status">●</span>
+                </a>
                 <a href="#trust-engine" class="nav-link" onclick="showPanel('trust-engine')">
                     Trust Engine <span class="status">●</span>
                 </a>
@@ -735,7 +738,28 @@
                 </div>
             </div>
 
-            <!-- Other panels would go here -->
+            <div id="trivia-control" class="panel-view" style="display: none;">
+                <div class="dashboard-grid">
+                    <div class="panel">
+                        <div class="panel-title">Trivia Live Ops</div>
+                        <div class="panel-content" style="display: flex; flex-direction: column; gap: 1rem;">
+                            <div class="metric">
+                                <span>Engine Status</span>
+                                <span class="metric-value" id="trivia-status">READY</span>
+                            </div>
+                            <button class="btn" onclick="startTrivia('general', 'Daily Grind', 10)">
+                                Start Daily Grind (10 rnds)
+                            </button>
+                            <button class="btn btn-primary" onclick="startTrivia('crypto', 'Market Meta Friday', 12)">
+                                Start Flagship Event (12 rnds)
+                            </button>
+                            <button class="btn btn-danger" onclick="resetTrivia()">
+                                EMERGENCY RESET
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
             <div id="discord" class="panel-view" style="display: none;">
                 <div class="panel">
                     <div class="panel-title"> Discord Bot Control</div>
@@ -1524,6 +1548,32 @@
                 autoRefreshInterval = setInterval(refreshLogs, 5000); // Every 5 seconds
                 statusEl.textContent = 'ON';
                 statusEl.style.color = '#0f0';
+            }
+        }
+
+        async function startTrivia(category, theme, rounds) {
+            const apiBase = window.location.hostname === 'localhost' ? 'http://localhost:3001' : 'https://api.tiltcheck.me';
+            try {
+                const res = await fetch(`${apiBase}/admin/trivia/start`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ category, theme, rounds })
+                });
+                const data = await res.json();
+                alert(data.message || 'Game Started');
+            } catch (e) {
+                alert('Failed to start trivia: ' + e.message);
+            }
+        }
+
+        async function resetTrivia() {
+            const apiBase = window.location.hostname === 'localhost' ? 'http://localhost:3001' : 'https://api.tiltcheck.me';
+            try {
+                const res = await fetch(`${apiBase}/admin/trivia/reset`, { method: 'POST' });
+                const data = await res.json();
+                alert(data.message || 'Game Reset');
+            } catch (e) {
+                alert('Failed to reset trivia: ' + e.message);
             }
         }
 

@@ -4,78 +4,42 @@
  */
 
 import type { Request, Response, NextFunction, ErrorRequestHandler } from 'express';
-
-/**
- * API Error class
- */
-export class APIError extends Error {
-  constructor(
-    public statusCode: number,
-    public code: string,
-    message: string,
-    public details?: unknown
-  ) {
-    super(message);
-    this.name = 'APIError';
-  }
-}
+import { ApplicationError } from '@tiltcheck/error-factory';
 
 /**
  * Not found handler
  */
 export function notFoundHandler(req: Request, res: Response): void {
-  res.status(404).json({
-    error: 'Not Found',
-    code: 'NOT_FOUND',
-    message: `Cannot ${req.method} ${req.path}`,
-  });
+  const error = new ApplicationError(`Cannot ${req.method} ${req.path}`, 404, 'NOT_FOUND');
+  res.status(404).json(error.toJSON());
 }
 
 /**
  * Global error handler
  */
 export const errorHandler: ErrorRequestHandler = (
-  err: Error,
+  err: any,
   _req: Request,
   res: Response,
   _next: NextFunction
 ): void => {
-  console.error('[API Error]', err);
+  // Use the shared error factory to normalize any error type
+  const appError = ApplicationError.fromError(err);
   
-  if (err instanceof APIError) {
-    res.status(err.statusCode).json({
-      error: err.message,
-      code: err.code,
-      details: err.details,
-    });
-    return;
+  // Log critical errors
+  if (appError.statusCode >= 500) {
+    console.error('[API Critical Error]', err);
+  } else {
+    console.warn('[API Client Error]', appError.message);
   }
   
-  // Handle specific error types
-  if (err.message.includes('CORS')) {
-    res.status(403).json({
-      error: 'CORS Error',
-      code: 'CORS_ERROR',
-      message: 'Cross-origin request blocked',
-    });
-    return;
-  }
+  const serialized = appError.toJSON();
   
-  if (err.message.includes('JSON')) {
-    res.status(400).json({
-      error: 'Invalid JSON',
-      code: 'INVALID_JSON',
-      message: 'Request body contains invalid JSON',
-    });
-    return;
-  }
-  
-  // Default error response
-  res.status(500).json({
-    error: 'Internal Server Error',
-    code: 'INTERNAL_ERROR',
-    message: process.env.NODE_ENV === 'production' 
-      ? 'An unexpected error occurred' 
-      : err.message,
+  // Backward compatibility for 'error' vs 'message' field
+  // The UI might expect { error: string } instead of { message: string }
+  res.status(appError.statusCode).json({
+    ...serialized,
+    error: serialized.message 
   });
 };
+

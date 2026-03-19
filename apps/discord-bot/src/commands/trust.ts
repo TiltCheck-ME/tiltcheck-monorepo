@@ -11,11 +11,11 @@ import { trustEngines } from '@tiltcheck/trust-engines';
 
 export const trustDashboard: Command = {
   data: new SlashCommandBuilder()
-    .setName('trust')
-    .setDescription('View TiltCheck trust scores')
+    .setName('reputation')
+    .setDescription('AUDIT THE ALPHA: View casino and degen reputation scores.')
     .addSubcommand(sub =>
       sub.setName('casino')
-        .setDescription('Check a casino trust score')
+        .setDescription('Check a casino alpha reputation')
         .addStringOption(option =>
           option.setName('name')
             .setDescription('Casino name or domain (e.g., stake.com)')
@@ -24,7 +24,7 @@ export const trustDashboard: Command = {
     )
     .addSubcommand(sub =>
       sub.setName('user')
-        .setDescription('Check a user trust score')
+        .setDescription('Check a degen reputation score')
         .addUserOption(option =>
           option.setName('user')
             .setDescription('User to check (leave empty for yourself)')
@@ -33,7 +33,7 @@ export const trustDashboard: Command = {
     )
     .addSubcommand(sub =>
       sub.setName('explain')
-        .setDescription('Learn how trust scoring works')
+        .setDescription('Learn how the alpha audit protocol works')
     ) as any as SlashCommandBuilder,
 
   async execute(interaction: ChatInputCommandInteraction) {
@@ -74,9 +74,9 @@ async function showCasinoTrust(interaction: ChatInputCommandInteraction) {
   else color = 0xf04747; // Red (bad)
 
   const embed = new EmbedBuilder()
-    .setTitle(`🎰 ${casinoName} Trust Score`)
+    .setTitle(`🎰 ${casinoName} ALPHA REPUTATION`)
     .setColor(color)
-    .setDescription(`**Overall Score: ${score}/100**`)
+    .setDescription(`**ALPHA SCORE: ${score}/100**`)
     .addFields(
       { name: '⚖️ Fairness', value: `${breakdown.fairnessScore}/100`, inline: true },
       { name: '💰 Payout', value: `${breakdown.payoutScore}/100`, inline: true },
@@ -122,9 +122,9 @@ async function showUserTrust(interaction: ChatInputCommandInteraction) {
   else if (level === 'high-risk') { color = 0xf04747; emoji = '🚨'; }
 
   const embed = new EmbedBuilder()
-    .setTitle(`${emoji} ${targetUser.username} Trust Score`)
+    .setTitle(`${emoji} ${targetUser.username} DEGEN REPUTATION`)
     .setColor(color)
-    .setDescription(`**${score}/100** - ${level.toUpperCase().replace('-', ' ')}`)
+    .setDescription(`**REPUTATION: ${score}/100** - ${level.toUpperCase().replace('-', ' ')}`)
     .addFields(
       { name: '🎯 Behavior', value: `${breakdown.behaviorScore}/100`, inline: true },
       { name: '🔥 Tilt Indicators', value: `${breakdown.tiltIndicators}`, inline: true },
@@ -161,9 +161,9 @@ async function showUserTrust(interaction: ChatInputCommandInteraction) {
 
 async function showExplanation(interaction: ChatInputCommandInteraction) {
   const embed = new EmbedBuilder()
-    .setTitle('📚 How Trust Scoring Works')
+    .setTitle('📚 THE ALPHA AUDIT PROTOCOL')
     .setColor(0x4ec9f0)
-    .setDescription('TiltCheck uses two trust engines to promote safety and transparency:')
+    .setDescription('TiltCheck uses brutal reality checks and un-fakeable Math to monitor the arena:')
     .addFields(
       {
         name: '🎰 Casino Trust (0-100)',

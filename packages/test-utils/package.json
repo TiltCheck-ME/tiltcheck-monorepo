@@ -1,0 +1,22 @@
+{
+  "name": "@tiltcheck/test-utils",
+  "version": "0.1.0",
+  "description": "Shared testing utilities and mocks for TiltCheck monorepo",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "private": true,
+  "scripts": {
+    "build": "tsc",
+    "clean": "rm -rf dist",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@tiltcheck/types": "workspace:*",
+    "@tiltcheck/error-factory": "workspace:*",
+    "vitest": "latest"
+  },
+  "devDependencies": {
+    "typescript": "^5.3.0"
+  }
+}

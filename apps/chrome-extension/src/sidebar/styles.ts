@@ -513,4 +513,60 @@ export const getSidebarStyles = () => `
       cursor: pointer;
     }
     .tooltip-btn.primary { background: var(--tg-primary); color: #000; font-weight: 700; border: none; }
+
+    /* Vibe Check Overlay */
+    #tg-vibe-check-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.95);
+      z-index: 2147483647;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      text-align: center;
+      color: #fff;
+      font-family: 'JetBrains Mono', monospace;
+      animation: fadeIn 0.4s ease;
+    }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    
+    #tg-vibe-check-overlay h2 {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 32px;
+      color: #ff3366;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      margin-bottom: 15px;
+      text-shadow: 0 0 20px rgba(255, 51, 102, 0.4);
+    }
+    
+    .vibe-check-gif-container {
+      width: 280px;
+      height: 280px;
+      background: #111;
+      margin-bottom: 30px;
+      border: 3px solid #ff3366;
+      box-shadow: 0 0 40px rgba(255, 51, 102, 0.2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      border-radius: 20px;
+      transform: rotate(-2deg);
+    }
+    
+    .tg-btn-outline {
+      background: transparent;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      color: #fff;
+    }
+    .tg-btn-outline:hover {
+      background: rgba(255, 255, 255, 0.05);
+      border-color: #fff;
+    }
 `;

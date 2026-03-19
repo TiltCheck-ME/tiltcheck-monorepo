@@ -1,43 +1,45 @@
-# 🚀 TiltCheck Terminal Cheat Sheet
+# 🚀 tiltcheck terminal cheat sheet
 
-This guide contains the most common commands you'll need to run, test, and maintain the TiltCheck ecosystem.
+look, we've all been rugged before. i've seen this movie. keep this doc handy so you don't break prod when you're 3 coffees deep at 4 AM trying to fix a typo.
 
 > [!TIP]
-> Always run these commands from the project root directory (`c:\Users\jmeni\tiltcheck-monorepo`) unless specified otherwise.
+> assume all commands should be run from the root directory (`c:\Users\jmeni\tiltcheck-monorepo`). if you're in the wrong folder, the math won't math.
 
 ---
 
-## 🌐 Web & Frontend
-| Task | Command | Description |
-| :--- | :--- | :--- |
-| **Start Local Site** | `pnpm --filter @tiltcheck/landing-page dev` | Starts the Vite dev server for the website at `localhost:5173`. |
-| **Build Site** | `pnpm --filter @tiltcheck/landing-page build` | Creates a production-ready build in the `dist` folder. |
+## 🌐 the alpha layer (frontend & web)
 
-## ⚙️ Backend & API
-| Task | Command | Description |
+| task | command | what it actually does |
 | :--- | :--- | :--- |
-| **Start API** | `pnpm --filter @tiltcheck/api dev` | Runs the central API gateway. |
-| **Start Discord Bot** | `pnpm --filter @tiltcheck/discord-bot dev` | Starts the bot for community interaction and log collection. |
-| **Start Everything** | `pnpm dev` | Starts **all** services simultaneously (use with caution). |
+| **local dev server** | `pnpm --filter @tiltcheck/web dev` or `npx serve apps/web -p 3000` | spins up the local site so you can check how your new UI looks before pushing. |
+| **build for prod** | `gcloud builds submit --config cloudbuild-web.yaml .` | builds the docker image on GCP infrastructure. literally pushing the bag to the cloud. |
+| **deploy live** | `gcloud run deploy tiltcheck-web --image us-central1-docker.pkg.dev/tiltchcek/tiltcheck-services/web:latest --port 80 --region us-central1 --project tiltchcek --allow-unauthenticated` | the big red button. pushes your docker image to the live URL (`tiltcheck.me`). don't do this with typos. |
 
-## 🤖 Analysis & Security Tools
-| Task | Command | Description |
-| :--- | :--- | :--- |
-| **Start Automated Watcher** | `cd tools/channel-watcher` then `node scheduler.js` | Runs the log analyzer every 2 minutes for the live ticker. |
-| **Manual Log Analysis** | `node tools/channel-watcher/analyze-log.js --from=7` | Analyzes logs from the last 7 hours manually. |
-| **Seed Trust Engine** | `pnpm seed:casino-trust` | Refreshes the casino trust database from the latest scrape data. |
+## ⚙️ the engine room (api & bots)
 
-## 🛠️ Maintenance & DevX
-| Task | Command | Description |
+| task | command | what it actually does |
 | :--- | :--- | :--- |
-| **Install Dependencies** | `pnpm install` | Installs all necessary packages for the monorepo. |
-| **Format Code** | `pnpm format` | Automatically fixes code styling (Prettier). |
-| **Lint Code** | `pnpm lint` | Checks for code errors or stylistic issues. |
-| **Run Tests** | `pnpm test` | Executes the unit test suite across the monorepo. |
+| **start api** | `pnpm --filter @tiltcheck/api dev` | boots the central nervous system. |
+| **start discord bot** | `pnpm --filter @tiltcheck/discord-bot dev` | wakes up the bot so it can yell at people tilting in voice channels. |
+| **start everything** | `pnpm dev` | runs the whole monorepo locally. will spike your CPU usage to the moon. |
+
+## 🤖 intel & analysis 
+
+| task | command | what it actually does |
+| :--- | :--- | :--- |
+| **run the watcher** | `cd tools/channel-watcher && node scheduler.js` | loops the log analyzer so the tickers stay live. |
+| **manual log sniffer**| `node tools/channel-watcher/analyze-log.js --from=7` | pulls the last 7 hours of discord logs and runs them through the intelligence agent. |
+
+## 🛠️ devX and housekeeping
+
+| task | command | what it actually does |
+| :--- | :--- | :--- |
+| **install packages** | `pnpm install` | downloads half the internet into `node_modules`. |
+| **format code** | `pnpm format` | runs prettier so your code doesn't look like trash. |
 
 ---
 
-## 💡 Troubleshooting
-- **Command not found?** Ensure you have `pnpm` installed globally (`npm install -g pnpm`).
-- **Port 5173 occupied?** Use `Ctrl + C` in the terminal to kill the existing process.
-- **API Errors?** Ensure your `.env` files are correctly set up in `apps/api/` and `tools/channel-watcher/`.
+## 💡 when things inevitably break
+- **"command not found"**: you probably didn't install `pnpm`, or you're using `npm` like a boomer. run `npm install -g pnpm`.
+- **"port already in use"**: you left a dev server running somewhere. kill the terminal process with `Ctrl + C` or suffer.
+- **"gcloud permissions denied"**: you aren't authenticated with google cloud sdk. run `gcloud auth login` and pray you remember your password.

@@ -609,16 +609,116 @@ export type EventType =
   | 'credit.pending_tip_created'
   | 'code.detected'
   | 'telegram.message.received'
-  | 'user.balance.depleted';
+  | 'user.balance.depleted'
+  | 'trivia.started'
+  | 'trivia.round.start'
+  | 'trivia.round.reveal'
+  | 'trivia.completed';
 
+/**
+ * Event-specific data interfaces
+ */
 
-export interface TiltCheckEvent<T = any> {
+export interface LinkFlaggedEventData {
+  url: string;
+  riskLevel: RiskLevel;
+  source?: string;
+  actorId?: string;
+}
+
+export interface BonusNerfDetectedEventData {
+  casinoName: string;
+  percentDrop: number;
+  bonusType?: string;
+}
+
+export interface CasinoRollupData {
+  totalDelta: number;
+  events: number;
+  externalData?: {
+    fairnessDelta?: number;
+    payoutDelta?: number;
+    bonusDelta?: number;
+    complianceDelta?: number;
+    supportDelta?: number;
+  };
+}
+
+export interface TrustCasinoRollupEventData {
+  casinos: Record<string, CasinoRollupData>;
+  source: string;
+}
+
+export interface DomainRollupData {
+  totalDelta: number;
+  events: number;
+  lastSeverity: number;
+}
+
+export interface TrustDomainRollupEventData {
+  domains: Record<string, DomainRollupData>;
+}
+
+export interface TipCompletedEventData {
+  fromUserId: string;
+  toUserId: string;
+  amount: number;
+  tipId?: string;
+  currency?: string;
+}
+
+export interface TiltDetectedEventData {
+  userId: string;
+  severity: number;
+  indicators?: string[];
+}
+
+export interface CooldownViolatedEventData {
+  userId: string;
+  severity: number;
+}
+
+export interface ScamReportedEventData {
+  reporterId: string;
+  accusedId: string;
+  verified: boolean;
+  falseReport: boolean;
+  reason?: string;
+}
+
+export interface AccountabilitySuccessEventData {
+  userId: string;
+  action: string;
+}
+
+/**
+ * Map event types to their data structures
+ */
+export interface EventDataMap {
+  'link.flagged': LinkFlaggedEventData;
+  'bonus.nerf.detected': BonusNerfDetectedEventData;
+  'trust.casino.rollup': TrustCasinoRollupEventData;
+  'trust.domain.rollup': TrustDomainRollupEventData;
+  'tip.completed': TipCompletedEventData;
+  'tilt.detected': TiltDetectedEventData;
+  'cooldown.violated': CooldownViolatedEventData;
+  'scam.reported': ScamReportedEventData;
+  'accountability.success': AccountabilitySuccessEventData;
+  'price.updated': PriceUpdateEvent;
+  'trust.casino.updated': TrustCasinoUpdateEvent;
+  'trust.degen.updated': TrustDegenUpdateEvent;
+  'trust.domain.updated': TrustDomainUpdateEvent;
+  // Fallback for types not yet specifically typed
+  [key: string]: any;
+}
+
+export interface TiltCheckEvent<K extends EventType = any> {
   id: string;
-  type: EventType;
+  type: K;
   timestamp: number;
   source: ModuleId;
   userId?: string;
-  data: T;
+  data: K extends keyof EventDataMap ? EventDataMap[K] : any;
   metadata?: Record<string, any>;
 }
 
@@ -926,7 +1026,7 @@ export interface DiscordCommand {
 // Event Handler Types
 // ============================================
 
-export type EventHandler<T = any> = (event: TiltCheckEvent<T>) => Promise<void> | void;
+export type EventHandler<T extends EventType = any> = (event: TiltCheckEvent<T>) => Promise<void> | void;
 
 export interface EventSubscription {
   eventType: EventType;

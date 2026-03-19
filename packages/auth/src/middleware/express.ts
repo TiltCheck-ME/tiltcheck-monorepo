@@ -7,6 +7,7 @@
 import type { Request, Response, NextFunction, RequestHandler } from 'express';
 import type { 
   AuthContext, 
+  AuthenticatedRequest,
   AuthMiddlewareOptions, 
   AuthError, 
   SessionData,
@@ -444,4 +445,10 @@ export function requireRoles(...roles: string[]): RequestHandler {
   };
 }
 
-export type { AuthContext, AuthMiddlewareOptions, AuthError };
+export type { 
+  AuthContext, 
+  AuthenticatedRequest, 
+  AuthMiddlewareOptions, 
+  AuthError 
+};
+

@@ -88,6 +88,25 @@ export class SidebarController implements SidebarUI {
     // Onboarding
     document.getElementById('ob-next')?.addEventListener('click', () => this.onboarding.next());
     document.getElementById('ob-skip')?.addEventListener('click', () => this.onboarding.finish());
+
+    // Emergency Brake
+    document.getElementById('tg-emergency-lock')?.addEventListener('click', () => {
+        this.vault.lockTheBag(1.0); // Default to 1 SOL for now or show a prompt
+    });
+
+    // Vibe Check Actions
+    document.getElementById('vibe-lock-bag')?.addEventListener('click', () => {
+        this.vault.lockTheBag(1.0);
+        this.dismissVibeCheck();
+    });
+    document.getElementById('vibe-discord')?.addEventListener('click', () => {
+        window.open('https://discord.gg/s6NNfPHxMS', '_blank');
+        this.dismissVibeCheck();
+    });
+    document.getElementById('vibe-ignore')?.addEventListener('click', () => {
+        this.addFeedMessage('Reality Check suppressed. Good luck fumbling the bag.');
+        this.dismissVibeCheck();
+    });
   }
 
   // SidebarUI implementation
@@ -143,7 +162,7 @@ export class SidebarController implements SidebarUI {
     });
   }
 
-  public updateStatus(message: string, type: 'success' | 'warning' | 'thinking' | 'danger') {
+  public updateStatus(message: string, type: 'success' | 'warning' | 'thinking' | 'danger' | 'info') {
     const statusBar = document.getElementById('tg-status-bar');
     if (!statusBar) return;
     statusBar.textContent = message;
@@ -152,6 +171,85 @@ export class SidebarController implements SidebarUI {
     setTimeout(() => {
         if (statusBar.textContent === message) statusBar.style.display = 'none';
     }, 4000);
+  }
+
+  public updateGuardian(active: boolean) {
+    const indicator = document.getElementById('tg-guardian-indicator');
+    if (indicator) {
+      indicator.className = `tg-guardian-indicator ${active ? 'active' : ''}`;
+    }
+  }
+
+  public updateLicense(data: any) {
+    const strip = document.getElementById('tg-license-strip');
+    if (!strip) return;
+    
+    if (data.isSafe) {
+      strip.textContent = `License: ${data.licenseType || 'Verified'} (${data.jurisdiction})`;
+      strip.className = 'tg-license-strip safe';
+    } else {
+      strip.textContent = `License: UNVERIFIED / MALICIOUS`;
+      strip.className = 'tg-license-strip danger';
+    }
+  }
+
+  public updateTilt(score: number, indicators: string[]) {
+    const scoreVal = document.getElementById('tg-score-value');
+    if (scoreVal) {
+      scoreVal.textContent = score.toString();
+      // Add a visual heat class based on score
+      if (score > 80) scoreVal.style.color = '#ff4444';
+      else if (score > 50) scoreVal.style.color = '#ff8800';
+      else scoreVal.style.color = '#17c3b2';
+    }
+    
+    // Add first indicator to feed if new/critical
+    if (indicators.length > 0 && score > 60) {
+        this.addFeedMessage(`Risk Alert: ${indicators[0]}`);
+        this.buddy.notifySnitch(indicators[0]);
+    }
+
+    if (score >= 80) {
+        this.triggerVibeCheck();
+    }
+  }
+
+  public triggerVibeCheck() {
+    const overlay = document.getElementById('tg-vibe-check-overlay');
+    if (overlay && overlay.style.display !== 'flex') {
+        overlay.style.display = 'flex';
+        this.addFeedMessage('VIBE CHECK TRIGGERED: EMERGENCY BRAKE RECOMMENDED.');
+    }
+  }
+
+  public dismissVibeCheck() {
+    const overlay = document.getElementById('tg-vibe-check-overlay');
+    if (overlay) overlay.style.display = 'none';
+  }
+
+  public updateStats(stats: any) {
+    if (stats.totalBets !== undefined) {
+      const el = document.getElementById('tg-bets');
+      if (el) el.textContent = stats.totalBets.toString();
+    }
+    if (stats.totalWagered !== undefined) {
+      const el = document.getElementById('tg-wagered');
+      if (el) el.textContent = `$${stats.totalWagered.toFixed(2)}`;
+    }
+    if (stats.totalWon !== undefined) {
+        const el = document.getElementById('tg-profit');
+        if (el) {
+            const pnl = stats.totalWon - (stats.totalWagered || 0);
+            el.textContent = `${pnl >= 0 ? '+' : ''}$${pnl.toFixed(2)}`;
+            el.style.color = pnl >= 0 ? '#17c3b2' : '#ff4444';
+        }
+    }
+  }
+
+  public notifyBuddy(event: string, data: any) {
+    if (this.buddy) {
+      this.buddy.notifyIntervention(data.type || event, data.data?.message || 'Intervention triggered');
+    }
   }
 
   public async openPremium() {

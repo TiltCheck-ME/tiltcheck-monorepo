@@ -1,27 +1,105 @@
 <!DOCTYPE html>
-<!--
-  © 2024–2025 TiltCheck Ecosystem. All Rights Reserved.
-  Created by jmenichole (https://github.com/jmenichole)
-  
-  This file is part of the TiltCheck project.
-  For licensing information, see LICENSE file in the project root.
--->
-
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Scam Reports - TiltCheck</title>
+  <title>Phish Logs - TiltCheck</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="styles/main.css">
-<link rel="stylesheet" href="/styles/main.css">
-  <script src="/scripts/glitter.js" defer></script>
+  <link rel="stylesheet" href="/styles/theme.css">
+  <link rel="stylesheet" href="/styles/main.css">
+  <style>
+    .nuke-page { max-width: 900px; margin: 4rem auto; padding: 2rem; font-family: 'JetBrains Mono', monospace; }
+    
+    .nuke-header { margin-bottom: 3rem; border-left: 5px solid #ff5f56; padding-left: 20px; }
+    .nuke-header h1 { color: #ff5f56; font-size: 3rem; text-transform: uppercase; margin: 0; font-family: 'Space Grotesk', sans-serif; letter-spacing: -1px;}
+    .nuke-header p { color: #888; font-size: 0.85rem; margin-top: 10px; }
+
+    .terminal-window {
+      background: #000;
+      border: 1px solid #ff5f56;
+      box-shadow: 0 0 20px rgba(255, 95, 86, 0.15);
+      border-radius: 4px;
+      padding: 1.5rem;
+      min-height: 400px;
+      position: relative;
+    }
+
+    .terminal-window::before {
+      content: "";
+      position: absolute;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(255,95,86,0.03) 2px, rgba(255,95,86,0.03) 4px);
+      pointer-events: none;
+    }
+
+    .log-entry { margin-bottom: 10px; font-size: 0.8rem; line-height: 1.5; color: #bbb; display: flex; gap: 10px;}
+    .log-time { color: #ff5f56; min-width: 140px; }
+    .log-action { color: #ffbd2e; font-weight: bold; min-width: 120px; }
+    .log-payload { color: #fff; word-break: break-all; }
+
+    .cursor-blink { animation: blink 1s step-end infinite; color: #ff5f56; }
+    @keyframes blink { 50% { opacity: 0; } }
+    
+  </style>
 </head>
-<body>
+<body class="degen-background text-white">
   <div id="shared-nav"></div>
-  <h1>Scam Reports</h1>
-  <p>Report scams, view flagged sites, and help keep the community safe. TiltCheck maintains a public blacklist for transparency.</p>
+
+  <main class="nuke-page">
+    <div class="nuke-header">
+      <h1 class="glitch" data-text="PHISH LOGS">PHISH LOGS</h1>
+      <p>> PUBLIC LEDGER OF NUKED DRAINERS AND CLONES</p>
+    </div>
+
+    <div class="terminal-window" id="nuke-terminal">
+      <!-- Simulated Terminal output -->
+      <div class="log-entry">
+        <span class="log-time">[${new Date().toISOString()}]</span>
+        <span class="log-action">SYSTEM_BOOT</span>
+        <span class="log-payload">Initializing Anti-Rinse Shields... OK.</span>
+      </div>
+      <div class="log-entry">
+        <span class="log-time">[${new Date().toISOString()}]</span>
+        <span class="log-action">PULLING_LOGS</span>
+        <span class="log-payload">Connecting to central server...</span>
+      </div>
+      <div id="dynamic-logs"></div>
+      <div class="log-entry" style="margin-top: 20px;">
+        <span style="color:#ff5f56">> <span class="cursor-blink">_</span></span>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    // Simulate real-time log pulling for aesthetic
+    const logs = [
+      { action: "BLOCKED_URL", payload: "sol-airdrop-claim.tech [REASON: KNOWN WALLET DRAINER]" },
+      { action: "CLONE_NUKE", payload: "rollb1t.com [REASON: FAKE CASINO CLONE]" },
+      { action: "SHADOW_BAN", payload: "Discord User ID: 8192039123 [REASON: PHISHING SPAM]" },
+      { action: "BLOCKED_URL", payload: "free-spins-verification.io [REASON: MALICIOUS PAYLOAD]" }
+    ];
+
+    const container = document.getElementById('dynamic-logs');
+    let idx = 0;
+
+    function addLog() {
+      if(idx >= logs.length) return;
+      const d = new Date(Date.now() - Math.floor(Math.random() * 1000000));
+      const el = document.createElement('div');
+      el.className = 'log-entry';
+      el.innerHTML = `
+        <span class="log-time">[${d.toISOString()}]</span>
+        <span class="log-action">${logs[idx].action}</span>
+        <span class="log-payload">${logs[idx].payload}</span>
+      `;
+      container.appendChild(el);
+      idx++;
+      setTimeout(addLog, 400 + Math.random() * 1000);
+    }
+    
+    setTimeout(addLog, 1000);
+  </script>
+
+  <div id="shared-footer"></div>
+  <script src="/scripts/components-loader.js"></script>
 </body>
-<div id="shared-footer"></div>
-<script src="/scripts/components-loader.js"></script>
-<script src="/scripts/auth.js"></script>
 </html>
