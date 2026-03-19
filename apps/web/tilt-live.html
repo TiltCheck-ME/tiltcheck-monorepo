@@ -1,0 +1,149 @@
+<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TiltLive | Synchronized Degen Trivia | TiltCheck</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Space+Grotesk:wght@700;900&family=Inter:wght@400;600;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles/theme.css">
+  <link rel="stylesheet" href="/styles/base.css">
+  <link rel="stylesheet" href="/styles/tilt-live.css">
+  <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+</head>
+<body class="tilt-live-body text-white overflow-hidden">
+  
+  <div id="app-container" class="full-viewport">
+    <!-- Top HUD -->
+    <header class="live-hud glass-panel">
+      <div class="hud-left">
+        <div class="live-indicator">
+          <span class="live-dot pulse"></span>
+          <span class="live-text">LIVE</span>
+        </div>
+        <div class="survivor-count">
+          <span id="survivor-num">--</span>
+          <span class="label">SURVIVORS</span>
+        </div>
+      </div>
+      <div class="hud-center">
+        <h1 class="logo-text brand-text-glitch">TILT<span class="primary-mint">LIVE</span></h1>
+      </div>
+      <div class="hud-right">
+        <div class="prize-pool">
+          <span class="label">PRIZE POOL</span>
+          <span id="prize-amount" class="gold-glow">-- SOL</span>
+        </div>
+      </div>
+    </header>
+
+    <main class="game-layout">
+      <!-- Left: Chat/Feed -->
+      <aside class="chat-sidebar glass-panel">
+        <div class="chat-header">DEGEN CHAT</div>
+        <div id="chat-messages" class="chat-messages">
+          <!-- Messages injected here -->
+          <div class="chat-message system">Welcome to TiltLive. Waiting for the next round...</div>
+        </div>
+        <div class="chat-input-area">
+          <input type="text" id="chat-input" placeholder="Type to insult neighbors..." disabled>
+        </div>
+      </aside>
+
+      <!-- Center: Trivia Engine -->
+      <section class="trivia-arena">
+        
+        <!-- Waiting State -->
+        <div id="waiting-screen" class="screen active">
+          <div class="waiting-card">
+            <h2 class="neon-main" data-text="NEXT GAME STARTING">NEXT GAME STARTING</h2>
+            <div id="countdown-timer" class="big-countdown">--:--</div>
+            <p class="waiting-sub">// PREPARING AI QUESTIONS ON "SOLANA SUMMER" LORE</p>
+            <button id="join-game-btn" class="btn btn-primary btn-large">SECURE SEAT (0.01 SOL)</button>
+          </div>
+        </div>
+
+        <!-- Active Round State -->
+        <div id="round-screen" class="screen">
+          <div class="round-status-bar">
+             <span id="current-round">ROUND --/--</span>
+             <div class="timer-ring-container">
+               <svg class="timer-ring" width="80" height="80">
+                 <circle class="timer-ring-bg" cx="40" cy="40" r="35" />
+                 <circle id="timer-ring-progress" cx="40" cy="40" r="35" />
+               </svg>
+               <span id="round-timer-text">--</span>
+             </div>
+          </div>
+
+          <div class="question-container glass-panel">
+            <h3 id="question-text">Waiting for question...</h3>
+          </div>
+
+          <div id="answers-grid" class="answers-grid">
+            <!-- Answer buttons injected here -->
+            <button class="answer-btn glass-panel" data-index="0">
+              <span class="ans-label">A</span>
+              <span class="ans-text">--</span>
+              <div class="heatmap-bar" style="width: 0%"></div>
+            </button>
+            <button class="answer-btn glass-panel" data-index="1">
+              <span class="ans-label">B</span>
+              <span class="ans-text">--</span>
+              <div class="heatmap-bar" style="width: 0%"></div>
+            </button>
+            <button class="answer-btn glass-panel" data-index="2">
+              <span class="ans-label">C</span>
+              <span class="ans-text">--</span>
+              <div class="heatmap-bar" style="width: 0%"></div>
+            </button>
+            <button class="answer-btn glass-panel" data-index="3">
+              <span class="ans-label">D</span>
+              <span class="ans-text">--</span>
+              <div class="heatmap-bar" style="width: 0%"></div>
+            </button>
+          </div>
+
+          <div class="monetization-actions">
+            <button id="ape-in-btn" class="btn btn-secondary hint-btn">
+              <span class="btn-icon">👁️</span> APE IN HINT (0.02 SOL)
+            </button>
+          </div>
+        </div>
+
+        <!-- Result Screen -->
+        <div id="result-screen" class="screen">
+          <div id="result-animation" class="result-box">
+             <!-- Correct/Incorrect Lottie/Text here -->
+          </div>
+          <p id="result-message">Analyzing results...</p>
+        </div>
+
+        <!-- Elimination/Winner Overlay -->
+        <div id="status-overlay" class="overlay">
+          <div id="eliminated-modal" class="modal glass-panel">
+            <h2 class="text-danger">YOU GOT RINSED</h2>
+            <p>The herd was smarter. Re-enter now to keep your share of the bag.</p>
+            <button id="buy-back-btn" class="btn btn-primary btn-large">BUY BACK (0.05 SOL)</button>
+            <button class="btn btn-ghost" onclick="hideOverlay()">SPECTATE</button>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- Right: Leaderboard / Live Stats -->
+      <aside class="leaderboard-sidebar glass-panel">
+        <div class="chat-header">TOP SURVIVORS</div>
+        <div id="survivor-list" class="survivor-list">
+          <!-- Live leaderboard data -->
+        </div>
+      </aside>
+    </main>
+
+  </div>
+
+  <script type="module" src="/js/tilt-live.js"></script>
+</body>
+</html>

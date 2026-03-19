@@ -21,6 +21,7 @@ import cors from 'cors';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import http from 'http';
+import cookieParser from 'cookie-parser';
 import { WebSocketServer } from 'ws';
 
 import { authRouter } from './routes/auth.js';
@@ -106,6 +107,7 @@ app.use(cors({
 // Body parsing
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser());
 
 // Request logging
 app.use(requestLogger);

@@ -1,16 +1,16 @@
 /* Copyright (c) 2026 TiltCheck. All rights reserved. */
 import { Connection, PublicKey } from '@solana/web3.js';
-import { SidebarUI } from './types.js';
+import { SidebarController } from './index.js';
 
 export class BlockchainManager {
-  private ui: SidebarUI;
+  private controller: SidebarController;
   private connection: Connection;
   private walletAddress: string | null = null;
   private lastBalance: number | null = null;
   private pollInterval: ReturnType<typeof setInterval> | null = null;
 
-  constructor(ui: SidebarUI) {
-    this.ui = ui;
+  constructor(controller: SidebarController) {
+    this.controller = controller;
     this.connection = new Connection('https://api.mainnet-beta.solana.com', 'confirmed');
   }
 
@@ -43,6 +43,25 @@ export class BlockchainManager {
       }
   }
 
+  public async lockTokens(amount: number, duration: number): Promise<boolean> {
+      if (!this.walletAddress) return false;
+      
+      // Simulation: In a real environment, we'd use the window.solana (Phantom/Solflare) provider
+      // to sign and send a transaction to our profit_locker program.
+      try {
+          console.log(`[BlockchainManager] Attempting to lock ${amount} SOL for ${duration}s...`);
+          
+          // Mimic on-chain verification
+          this.controller.updateStatus('Confirming on-chain transaction...', 'thinking');
+          await new Promise(resolve => setTimeout(resolve, 2000));
+          
+          return true;
+      } catch (err) {
+          console.error('[BlockchainManager] Transaction failed:', err);
+          return false;
+      }
+  }
+
   private async checkBalance() {
       if (!this.walletAddress) return;
       try {
@@ -53,9 +72,9 @@ export class BlockchainManager {
           if (this.lastBalance !== null && this.lastBalance !== solBalance) {
               const diff = solBalance - this.lastBalance;
               if (diff > 0) {
-                  this.ui.addFeedMessage(`On-chain Signal: Deposit of ${diff.toFixed(4)} SOL detected.`);
+                  this.controller.addFeedMessage(`On-chain Signal: Deposit of ${diff.toFixed(4)} SOL detected.`);
               } else if (diff < 0) {
-                  this.ui.addFeedMessage(`On-chain Signal: Withdrawal of ${Math.abs(diff).toFixed(4)} SOL detected.`);
+                  this.controller.addFeedMessage(`On-chain Signal: Withdrawal of ${Math.abs(diff).toFixed(4)} SOL detected.`);
               }
           }
 

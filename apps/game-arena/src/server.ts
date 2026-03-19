@@ -39,6 +39,8 @@ import type {
 } from './types.js';
 import { mapAuthUserToDiscordUser } from './types.js';
 import { justthetip } from '@tiltcheck/justthetip';
+import { triviaManager } from './trivia-manager.js';
+import { eventRouter } from '@tiltcheck/event-router';
 
 // ES module __dirname equivalent
 const __filename = fileURLToPath(import.meta.url);
@@ -125,6 +127,27 @@ const sessionMiddleware = session({
 });
 
 app.use(sessionMiddleware);
+app.use(express.json());
+
+app.post('/admin/trivia/start', async (req, res) => {
+  try {
+    const { category, theme, rounds } = req.body;
+    await triviaManager.scheduleGame({
+      startTime: Date.now() + 5000, // Start in 5 seconds
+      category: category || 'general',
+      theme: theme || 'Random Degen Knowledge',
+      totalRounds: rounds || 12
+    });
+    res.json({ success: true, message: 'Trivia game scheduled to start in 5s.' });
+  } catch (error: any) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.post('/admin/trivia/reset', (req, res) => {
+  triviaManager.endGame();
+  res.json({ success: true, message: 'Trivia manager reset.' });
+});
 
 // Extended session type
 declare module 'express-session' {
@@ -689,7 +712,70 @@ io.on('connection', (socket) => {
       playersOnline: gameManager.getOnlinePlayerCount(),
     });
   });
+
+  // ============================================================================
+  // Trivia Game Handlers
+  // ============================================================================
+
+  socket.on('submit-trivia-answer', (data: { questionId: string; answer: string }) => {
+    if (!user) return;
+    triviaManager.submitAnswer(user.id, data.answer);
+  });
+
+  socket.on('request-ape-in', async (data: { gameId: string; questionId: string }) => {
+    if (!user) return;
+    const result = await triviaManager.requestApeIn(user.id);
+    if (result.success) {
+      socket.emit('trivia-ape-in-result', { questionId: data.questionId, distribution: result.stats! });
+    } else {
+      socket.emit('game-error', result.message || 'Hint request failed');
+    }
+  });
+
+  socket.on('buy-back', async (data: { gameId: string }) => {
+    if (!user) return;
+    const result = await triviaManager.processBuyBack(user.id);
+    if (result.success) {
+      socket.emit('game-update', { type: 'buy-back-success', userId: user.id });
+    } else {
+      socket.emit('game-error', result.message || 'Buy-back failed');
+    }
+  });
 });
+
+// ============================================================================
+// Global Trivia Event Broadcaster
+// ============================================================================
+
+// Listen for trivia events from the manager (via eventRouter) and push to all clients
+eventRouter.subscribe('trivia.started', (event) => {
+  io.emit('chat-message', {
+    userId: 'system',
+    username: 'TiltLive',
+    message: `📢 LIVESTREAM STARTED: ${event.data.theme || event.data.category} Trivia is LIVE!`,
+    timestamp: Date.now(),
+  });
+  io.emit('game-update', { type: 'trivia-started', ...event.data });
+}, 'server-trivia-broadcaster');
+
+eventRouter.subscribe('trivia.round.start', (event) => {
+  io.emit('trivia-round-start', event.data);
+}, 'server-trivia-broadcaster');
+
+eventRouter.subscribe('trivia.round.reveal', (event) => {
+  io.emit('trivia-round-reveal', event.data);
+}, 'server-trivia-broadcaster');
+
+eventRouter.subscribe('trivia.completed', (event) => {
+  const winnerList = event.data.winners.map((w: any) => w.username).join(', ');
+  io.emit('chat-message', {
+    userId: 'system',
+    username: 'TiltLive',
+    message: `🏆 GAME OVER! Winners: ${winnerList || 'No one survived the trenches.'}`,
+    timestamp: Date.now(),
+  });
+  io.emit('game-update', { type: 'trivia-completed', ...event.data });
+}, 'server-trivia-broadcaster');
 
 // Cleanup interval (every 5 minutes)
 setInterval(() => {

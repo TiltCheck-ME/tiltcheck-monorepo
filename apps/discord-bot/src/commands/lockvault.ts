@@ -10,12 +10,12 @@ import { parseAmount, parseDuration } from '@tiltcheck/natural-language-parser';
 
 export const lockvault: Command = {
   data: new SlashCommandBuilder()
-    .setName('vault')
-    .setDescription('A time-locked safe for your SOL. Protect your funds from yourself.')
+    .setName('profit-locker')
+    .setDescription('SECURE THE BAG. Audit your own entries and lock gains into cold storage.')
     .addSubcommand(sub =>
       sub
         .setName('lock')
-        .setDescription(`Stash your SOL before you do something stupid with it.`)
+        .setDescription('SECURE THE BAG. Move entries to your PROFIT LOCKER instantly.')
         .addStringOption(o => o.setName('amount').setDescription('How much SOL to lock away? ("$100", "5 SOL", "all")').setRequired(true))
         .addStringOption(o => o.setName('duration').setDescription('How long to keep it locked? (e.g., 24h, 3d, 90m)').setRequired(true))
         .addStringOption(o => o.setName('reason').setDescription('Why are you doing this to yourself? (optional)'))
@@ -23,13 +23,13 @@ export const lockvault: Command = {
     .addSubcommand(sub =>
       sub
         .setName('unlock')
-        .setDescription('Your sentence is served. Time to reclaim your assets.')
+        .setDescription('The floor is yours again. Reclaim your secured bags.')
         .addStringOption(o => o.setName('id').setDescription('Which Vault ID are you liberating?').setRequired(true))
     )
     .addSubcommand(sub =>
       sub
         .setName('extend')
-        .setDescription(`Don't trust yourself yet? Add more time to your lock.`)
+        .setDescription('AUDIT THE ALPHA: Keep the bag locked for a longer session.')
         .addStringOption(o => o.setName('id').setDescription('Which Vault ID needs a longer sentence?').setRequired(true))
         .addStringOption(o => o.setName('additional').setDescription('How much more time? (e.g. 12h, 2d)').setRequired(true))
     )
@@ -41,7 +41,7 @@ export const lockvault: Command = {
     .addSubcommand(sub =>
       sub
         .setName('autovault')
-        .setDescription('Let the bot be the responsible one. Set rules to save your winnings from yourself.')
+        .setDescription('AUTODEPOSIT SIGNALS. Automate your bag securing with strict friction rules.')
         .addStringOption(o => o.setName('apikey').setDescription(`Your casino API key. We don't store it, so don't ask.`).setRequired(true))
         .addNumberOption(o => o.setName('percentage').setDescription('Percentage of each win to automatically stash away (0-100).'))
         .addNumberOption(o => o.setName('threshold').setDescription('Once your balance hits this, vault everything above it.'))
@@ -59,32 +59,16 @@ export const lockvault: Command = {
     const sub = interaction.options.getSubcommand();
     try {
       if (sub === 'lock') {
-        const amountRaw = interaction.options.getString('amount', true);
-        const durationRaw = interaction.options.getString('duration', true);
-        const reason = interaction.options.getString('reason') || undefined;
-        const parsedAmount = parseAmount(amountRaw);
-        if (!parsedAmount.success || !parsedAmount.data) {
-          await interaction.reply({ content: 'Is that even a number? Try again with an actual amount, like "$100" or "5 SOL".', ephemeral: true });
-          return;
-        }
-        const parsedDuration = parseDuration(durationRaw);
-        if (!parsedDuration.success || !parsedDuration.data) {
-          await interaction.reply({ content: `That duration doesn't look right. Try something like "1d", "8h", or "90m".`, ephemeral: true });
-          return;
-        }
-        const vault = await lockVault({ userId: interaction.user.id, amountRaw, durationRaw, reason });
         const embed = new EmbedBuilder()
-          .setColor(0x8A2BE2)
-          .setTitle(`Vault Locked. You're Welcome.`)
-          .setDescription(vault.vaultType === 'magic' ? `Funds secured in your **Degen Identity** (Magic) wallet. Smart move.` : `Funds moved to a disposable time-locked vault wallet. Don't even think about touching it.`)
-          .addFields(
-            { name: 'Vault ID', value: vault.id, inline: false },
-            { name: 'That F***ing Vault Wallet', value: `\`${vault.vaultAddress}\``, inline: false },
-            { name: 'Unlocks', value: `<t:${Math.floor(vault.unlockAt/1000)}:R>`, inline: true },
-            { name: 'Amount (SOL, normalized)', value: vault.lockedAmountSOL === 0 ? 'ALL (snapshot, you madman)' : `${vault.lockedAmountSOL.toFixed(4)} SOL`, inline: true },
-          )
-          .setFooter({ text: reason ? `Reason: ${reason}` : `You'll thank us later. Use /vault status to check your prison sentence.` });
+          .setColor(0xFF4500)
+          .setTitle('🔒 PROFIT LOCKER: PROTOCOL UPGRADE')
+          .setDescription('We are **100% NON-CUSTODIAL.** YOUR KEYS, YOUR PROBLEM.\n\nTime-locking your funds cleanly requires a custodial license we refuse to buy, and lawyers we don\'t respect. We will not keep your keys on a centralized database. This isn\'t FTX.\n\nWe\'re coding a true **V2 On-Chain Smart Contract** right now to do this legally and natively.')
+          .addFields({ name: 'Speed Up The Devs', value: 'Want the V2 smart contract faster? Throw some caffeine at the dev fund:\n👉 **[Drop a Ko-fi ☕](https://ko-fi.com/tiltcheck)**' })
+          .setFooter({ text: 'TiltCheck: ZERO MORALITY, ALL ALPHA.' });
+        
         await interaction.reply({ embeds: [embed], ephemeral: true });
+        return;
+
       } else if (sub === 'unlock') {
         const id = interaction.options.getString('id', true);
         try {
@@ -138,7 +122,7 @@ export const lockvault: Command = {
 
         const embed = new EmbedBuilder()
           .setColor(0x1E90FF)
-          .setTitle(`Your Vault Report. Don't Panic.`)
+          .setTitle('Your Alpha Audit Report. Don\'t Panic.')
           .setDescription(
             (vaults.length > 0 ? vaults.map((v: LockVaultRecord) => {
               const statusText = Date.now() >= v.unlockAt ? 'free' : 'still locked up';
@@ -150,40 +134,24 @@ export const lockvault: Command = {
           );
         await interaction.reply({ embeds: [embed], ephemeral: true });
       } else if (sub === 'autovault') {
-        const percentage = interaction.options.getNumber('percentage') || undefined;
-        const threshold = interaction.options.getNumber('threshold') || undefined;
-        const currency = (interaction.options.getString('currency') as 'SOL' | 'USD') || 'SOL';
-        const saveForNft = interaction.options.getBoolean('savefornft') || false;
-        const apikey = interaction.options.getString('apikey', true);
-
-        if (percentage === undefined && threshold === undefined) {
-          await interaction.reply({ content: 'You have to give me a rule to follow. Set a percentage or a threshold.', ephemeral: true });
-          return;
-        }
-        if (percentage !== undefined && (percentage < 0 || percentage > 100)) {
-          await interaction.reply({ content: 'Percentage has to be between 0 and 100. I know math is hard, but try to keep it in that range.', ephemeral: true });
-          return;
-        }
-
-        setAutoVault(interaction.user.id, { percentage, threshold, currency, saveForNft, apiKey: apikey });
         const embed = new EmbedBuilder()
-            .setColor(0x00FFFF)
-            .setTitle('Auto-Vault Activated. Prepare for Self-Control.')
-            .setDescription(`Auto-vault active: ${percentage ? percentage + '% of your wins are now safe from you.' : ''} ${threshold ? `Everything over ${threshold} ${currency} will be stashed.` : ''} ${saveForNft ? 'Saving for that sweet Identity NFT. Smart move.' : ''}`);
+          .setColor(0xFF4500)
+          .setTitle('🔒 AUTO-VAULT: PROTOCOL UPGRADE')
+          .setDescription('We are **100% NON-CUSTODIAL.** YOUR KEYS, YOUR PROBLEM.\n\nAutomating deposits means touching your keys. Legally, that requires lawyers we don\'t respect and licenses we refuse to pay for.\n\nWe\'re building a **V2 On-Chain Smart Contract** to do this natively without custodial risk.')
+          .addFields({ name: 'Speed Up The Devs', value: 'Want this faster? Throw some caffeine at the dev fund:\n👉 **[Drop a Ko-fi ☕](https://ko-fi.com/tiltcheck)**' })
+          .setFooter({ text: 'TiltCheck: ZERO MORALITY, ALL ALPHA.' });
+        
         await interaction.reply({ embeds: [embed], ephemeral: true });
+        return;
       } else if (sub === 'reload') {
-        const amount = interaction.options.getString('amount', true);
-        const interval = (interaction.options.getString('interval', true) as 'daily' | 'weekly' | 'monthly');
-        if (!['daily', 'weekly', 'monthly'].includes(interval)) {
-          await interaction.reply({ content: `That's not a real interval. Use "daily", "weekly", or "monthly".`, ephemeral: true });
-          return;
-        }
-        setReloadSchedule(interaction.user.id, amount, interval);
         const embed = new EmbedBuilder()
-          .setColor(0xFFA500)
-          .setTitle('Reload Scheduled. Never Go Broke Again. (Maybe.)')
-          .setDescription(`Scheduled ${amount} reload every ${interval}. Keep that degeneracy fueled, degen.`);
+          .setColor(0xFF4500)
+          .setTitle('🔒 AUTOMATIC RELOADS: PROTOCOL UPGRADE')
+          .setDescription('Same deal here, degen. Auto-sweeps require a custodial smart contract. We\'re coding it right now so we don\'t have to deal with the SEC.\n\nWait for V2.')
+          .addFields({ name: 'Speed Up The Devs', value: 'Want to rush the smart contract audit?\n👉 **[Drop a Ko-fi ☕](https://ko-fi.com/tiltcheck)**' });
+        
         await interaction.reply({ embeds: [embed], ephemeral: true });
+        return;
       } else {
         await interaction.reply({ content: 'Unknown subcommand', ephemeral: true });
       }

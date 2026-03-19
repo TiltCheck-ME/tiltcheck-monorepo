@@ -1,56 +1,107 @@
-<footer class="site-footer">
+<footer class="site-footer" aria-label="Site footer">
   <div class="container">
-    <div class="footer-grid">
-      <div>
-        <h3>TiltCheck</h3>
-        <p><strong>Our Mission:</strong> The house has spent decades perfecting the math to beat you. We’re spending ours building the tools to even the odds. TiltCheck provides real-time auditing and scam protection because every player deserves a fair fight.</p>
-        <p>Built for transparency, fairness, and non-custodial user control since 2024.</p>
+    <div class="terminal-audit glass-panel" style="margin-bottom: 4rem; max-width: 800px; margin-inline: auto;">
+      <div class="terminal-header" style="justify-content: flex-start; gap: 8px;">
+        <span class="terminal-dot red"></span>
+        <span class="terminal-dot yellow"></span>
+        <span class="terminal-dot green"></span>
+        <span class="terminal-title">TILT_MONITOR.LOG</span>
       </div>
-      <div>
-        <h4>Product</h4>
-        <ul>
-          <li><a href="/">Home</a></li>
-          <li><a href="/how-it-works.html">How It Works</a></li>
-          <li><a href="/trust-explained.html">Trust System</a></li>
-          <li><a href="/faq.html">FAQ</a></li>
-          <li><a href="/getting-started.html">Getting Started</a></li>
-          <li><a href="/search.html">Search</a></li>
-          <li><a href="/press-kit.html">Press Kit</a></li>
-          <li><a href="/newsletter.html">Newsletter</a></li>
-          <li><a href="/testimonials.html">Testimonials</a></li>
-        </ul>
-      </div>
-      <div>
-        <h4>Company</h4>
-        <ul>
-          <li><a href="/about.html">About</a></li>
-          <li><a href="/contact.html">Contact</a></li>
-          <li><a href="https://github.com/jmenichole/tiltcheck-monorepo" target="_blank" rel="noopener">GitHub</a></li>
-          <li><a href="https://discord.gg/s6NNfPHxMS" target="_blank" rel="noopener">Discord</a></li>
-        </ul>
-      </div>
-      <div>
-        <h4>Legal</h4>
-        <ul>
-          <li><a href="/privacy.html">Privacy Policy</a></li>
-          <li><a href="/terms.html">Terms of Service</a></li>
-        </ul>
+      <div class="terminal-body font-mono" style="min-height: 80px; display: flex; align-items: center;">
+        <div class="audit-line" style="margin: 0; font-size: 0.95rem;">
+          <span class="audit-prompt" style="color: #ff3366;">></span> 
+          <span id="vibe-typewriter" style="color: var(--color-text-secondary);"></span><span class="cursor" style="animation: blink 1s step-end infinite; color: var(--primary-mint);">_</span>
+        </div>
       </div>
     </div>
-    <div class="footer-bottom">
-      <div style="margin-bottom: 1rem; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 1rem;">
-        <a href="/responsible-gambling.html" style="color: #6b7280; text-decoration: none; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.1em; border: 1px solid #333; padding: 3px 10px; border-radius: 4px;">Responsible Gaming</a>
-      </div>
-      <p>
-        <a href="https://jmenichole.github.io/Portfolio/" target="_blank" rel="noopener" class="glowing-tagline">
-          Made for degens, by degens <i class="glitch-heart">♥</i>
-        </a>
-      </p>
-      <p>
-        Built by <a href="https://github.com/jmenichole" target="_blank" rel="noopener">jmenichole</a> • 
-        TiltCheck Ecosystem &copy; 2024&ndash;2026 • 
-        <a href="https://ko-fi.com/jmenichole0" target="_blank" rel="noopener">Support</a>
-      </p>
+    
+    <style>
+      @keyframes blink { 50% { opacity: 0; } }
+    </style>
+    <script>
+      (function() {
+        if(window.vibeScriptLoaded) return;
+        window.vibeScriptLoaded = true;
+
+        const vibePhrases = [
+          "04:00 THE FLOOR IS RINSED. 12 degens just punted their bags. Profit Locker activated.",
+          "SCAM ALERT: 48 degens almost got their bags fumbled by fake reloads. Transfers nuked.",
+          "VAULT STATUS: Winnings saved. Cooldown is online. Go touch some grass."
+        ];
+        let phraseIndex = 0;
+        let charIndex = 0;
+        let isDeleting = false;
+        let pDelay = 50;
+        
+        function typeVibe() {
+          const el = document.getElementById("vibe-typewriter");
+          if (!el) {
+            setTimeout(typeVibe, 1000);
+            return;
+          }
+          const cur = vibePhrases[phraseIndex];
+          if (isDeleting) {
+            el.textContent = cur.substring(0, charIndex - 1);
+            charIndex--;
+            pDelay = 20;
+          } else {
+            el.textContent = cur.substring(0, charIndex + 1);
+            charIndex++;
+            pDelay = 50;
+          }
+          if (!isDeleting && charIndex === cur.length) {
+            isDeleting = true;
+            pDelay = 3500;
+          } else if (isDeleting && charIndex === 0) {
+            isDeleting = false;
+            phraseIndex = (phraseIndex + 1) % vibePhrases.length;
+            pDelay = 800;
+          }
+          setTimeout(typeVibe, pDelay);
+        }
+        setTimeout(typeVibe, 1000);
+      })();
+    </script>
+  </div>
+  <div class="footer-columns">
+    <div class="footer-col">
+      <h4>The Edge</h4>
+      <ul>
+        <li><a href="/features.html">All Snitches</a></li>
+        <li><a href="/how-it-works.html">Rig-Check Engine</a></li>
+        <li><a href="/trust-explained.html">Rug Scores</a></li>
+        <li><a href="/extension.html">Emergency Brake</a></li>
+      </ul>
     </div>
+    <div class="footer-col">
+      <h4>The Arena</h4>
+      <ul>
+        <li><a href="/tools/justthetip.html">JustTheTip</a></li>
+        <li><a href="/tools/daad.html">Degen Arena Game</a></li>
+        <li><a href="/tools/collectclock.html">RTP Sniffer</a></li>
+        <li><a href="/scam-reports.html">Phish Logs</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+        <h4>Connect</h4>
+        <ul>
+          <li>
+            <a href="https://discord.gg/s6NNfPHxMS" target="_blank" rel="noopener noreferrer">Discord Arena</a>
+          </li>
+          <li>
+            <a href="https://github.com/jmenichole/tiltcheck-monorepo" target="_blank" rel="noopener noreferrer">The Source</a>
+          </li>
+        </ul>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <p class="footer-mission">
+      <strong>THE MISSION:</strong> The house spent decades perfecting the math to rinse you. We’re building the tools to NUKE THE HOUSE EDGE. TiltCheck provides real-time snitch layers and anti-rinse shields because every degen deserves a fair entry.
+    </p>
+    <div style="margin-bottom: 1.5rem;">
+      <a href="/touch-grass.html" style="color: #6b7280; text-decoration: none; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.1em; border: 1px solid #333; padding: 4px 12px; border-radius: 20px;">TOUCH GRASS PROTOCOL</a>
+    </div>
+    <p class="footer-tagline" style="background: linear-gradient(to right, #ff3366, #22d3a6); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; font-size: 1.2rem; font-weight: bold; letter-spacing: 1px;">MADE FOR DEGENS. BY DEGENS.</p>
+    <p class="footer-copyright">TiltCheck Ecosystem &copy; 2024&ndash;2026</p>
   </div>
 </footer>

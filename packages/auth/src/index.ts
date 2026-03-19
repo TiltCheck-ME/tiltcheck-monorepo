@@ -145,6 +145,7 @@ export type {
   
   // Middleware types
   AuthContext,
+  AuthenticatedRequest,
   AuthMiddlewareOptions,
   AuthError,
   AuthErrorCode,
