@@ -569,4 +569,44 @@ export const getSidebarStyles = () => `
       background: rgba(255, 255, 255, 0.05);
       border-color: #fff;
     }
+
+    /* Toggle Switch Styles */
+    .tg-toggle-wrapper {
+      position: relative;
+      width: 44px;
+      height: 22px;
+    }
+    .tg-toggle-input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+    .tg-toggle-label {
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background-color: var(--tg-surface-strong);
+      border: 1px solid var(--tg-border);
+      border-radius: 22px;
+      cursor: pointer;
+      transition: .3s;
+    }
+    .tg-toggle-label:before {
+      position: absolute;
+      content: "";
+      height: 14px;
+      width: 14px;
+      left: 3px;
+      bottom: 3px;
+      background-color: var(--tg-muted);
+      border-radius: 50%;
+      transition: .3s;
+    }
+    .tg-toggle-input:checked + .tg-toggle-label {
+      background-color: var(--tg-primary);
+      border-color: var(--tg-primary);
+    }
+    .tg-toggle-input:checked + .tg-toggle-label:before {
+      transform: translateX(22px);
+      background-color: #000;
+    }
 `;

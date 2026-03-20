@@ -40,7 +40,7 @@
     }
 
     const isLocal = window.location.hostname === 'localhost';
-    const socketUrl = isLocal ? 'http://localhost:3001' : 'https://api.tiltcheck.me';
+    const socketUrl = isLocal ? 'http://localhost:3010' : 'https://api.tiltcheck.me';
 
     console.log('[TiltLive] Connecting to:', socketUrl);
     socket = io(socketUrl, { withCredentials: true });
