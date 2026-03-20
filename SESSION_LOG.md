@@ -1,5 +1,14 @@
 # SESSION_LOG - 2026-03-11 - Save Point: "Core Infrastructure Complete"
 
+## 2026-03-20 - Sitemap Standardization & UI Hardening
+
+- **Sitemap Recovery**: Audited the entire `apps/web` directory and replaced the legacy `site-map.html` with a live-synced version. Added missing deep-links for `bonuses.html`, `trust-scores.html`, and `tilt-live.html`.
+- **Component Unification**: Replaced hardcoded headers and footers in `index.html` and `site-map.html` with the unified `<div id="shared-nav"></div>` and `<div id="shared-footer"></div>` system.
+- **Service Worker Patch (v3)**: Incremented the Service Worker cache version to `tiltcheck-static-v3` to resolve stale-content issues on mobile devices. Verified "Network-First" strategy for HTML navigations.
+- **Protocol Documentation**: Built and deployed placeholder pages for `about.html`, `faq.html`, `contact.html`, and `beta.html` to eliminate 404s and maintain brand consistency across all nav targets.
+- **Navigation Sync**: Updated `components/nav.html` and `components/footer.html` to prioritize `Rug Scores` and `RTP Scanner` as primary Degen Intelligence tools.
+- **GCP Deployment Verification**: Confirmed Google Cloud Build triggers are active for the `main` branch. Pushed all UI and component fixes to `main` to initiate a full cloud rebuild of `tiltcheck-web`.
+
 ## 2026-03-19 - Landing Page Copy Alignment & Brand Enforcement
 
 - **"The Alpha Purge"**: Archived corporate filler pages (`about.html`, `beta.html`, `faq.html`, `contact.html`, `press-kit.html`, `compliance.html`, `licensing.html`) into `legacy/archive/` to streamline the user experience to core protocols.

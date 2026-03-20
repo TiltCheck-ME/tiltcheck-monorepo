@@ -48,18 +48,24 @@ The TiltCheck monorepo is managed via **pnpm** and structured into three primary
 Based on current file structure and codebase status:
 
 ### High Priority (Stability & Types)
+
 - [ ] **Type Refinement**: Conduct a monorepo-wide sweep to replace remaining `any` types with defined interfaces in `@tiltcheck/types`.
-- [ ] **Standardize Builds**: Ensure all `apps` and `packages` follow the `dist/` output pattern and maintain clean `src/` directories.
+- [x] **Standardize UI/Sitemap**: Audited `apps/web` and implemented shared nav/footer across all 70+ HTML files.
 - [ ] **Error Factory Integration**: Transition all services to use the `@tiltcheck/error-factory` for consistent API responses.
 
 ### Medium Priority (Feature Completeness)
+
 - [ ] **Buddy System V2**: Finalize the "Phone a Friend" accountability system in the Chrome Extension and Dashboard.
-- [ ] **Predictive AI Drops**: Improve AI Predictor logic in `CollectClock` for Instagram/Social drops.
+- [x] **RTP Scanner Consolidation**: Merged `BonusCheck` and `CollectClock` logic into the `bonuses.html` scanner.
 - [ ] **Compliance Edge**: Implement Geo-Compliance checks in the Cloudflare Worker layer.
 
 ### Low Priority (Developer Experience)
+
 - [ ] **Shared Testing Utils**: Consolodate test mocks into a `@tiltcheck/test-utils` package.
-- [ ] **Documentation**: Generate API documentation from Zod schemas and TypeScript interfaces.
+- [x] **Documentation Sync**: Sitemap documented in `docs/sitemap_overview.md` and `site-map.html` updated.
+- [ ] **API Documentation**: Generate API documentation from Zod schemas and TypeScript interfaces.
 
 ---
-*Created by Gemini CLI — 2026-03-10*
+
+### *Created by Gemini CLI — 2026-03-10*
+
