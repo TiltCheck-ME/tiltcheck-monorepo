@@ -16,8 +16,8 @@ export const SIDEBAR_TEMPLATE = `
       <!-- Auth Section -->
       <div class="tg-section" id="tg-auth-section">
         <div class="tg-auth-prompt">
-          <h3>THE SNITCH IS ONLINE</h3>
-          <p>Demo is instant. Connect Discord to sync vault history and liquidity alerts. No lectures, just UNFILTERED SNITCHES.</p>
+          <h3>THE GUARDIAN IS ONLINE</h3>
+          <p>Demo is instant. Connect Discord to sync vault history and liquidity alerts. No lectures, just REALITY CHECKS.</p>
           <button class="tg-btn tg-btn-primary" id="tg-discord-login">Connect with Discord</button>
           <div class="tg-auth-divider">You can stay in guest mode if you prefer</div>
         </div>
@@ -148,7 +148,7 @@ export const SIDEBAR_TEMPLATE = `
         <div class="tg-metrics-card">
           <div class="tg-metrics-header">
             <div>
-              <h3>THE SNITCH BOT</h3>
+              <h3>REALITY CHECK BOT</h3>
               <div class="tg-session-site" id="tg-session-site">Unknown Site</div>
             </div>
             <div class="tg-guardian-indicator" id="tg-guardian-indicator"></div>
@@ -191,7 +191,7 @@ export const SIDEBAR_TEMPLATE = `
 
         <!-- Reality Check Log (Formerly Message Feed) -->
         <div class="tg-section">
-          <h4>The Snitch Log</h4>
+          <h4>Session Reality Log</h4>
           <div class="tg-feed" id="tg-message-feed">
             <div class="tg-feed-item">Monitoring active. No fluff.</div>
           </div>
@@ -203,8 +203,8 @@ export const SIDEBAR_TEMPLATE = `
           <button class="tg-btn tg-btn-secondary tg-advanced-toggle" id="tg-toggle-advanced" aria-pressed="false">Show Pro Tools</button>
           <div class="tg-action-grid">
             <button class="tg-action-btn" id="tg-open-linkcheck">PHISH NUKE</button>
-            <button class="tg-action-btn tg-advanced-only" id="tg-open-config">RIG SETUP</button>
-            <button class="tg-action-btn tg-advanced-only" id="tg-open-verifier">THE RIG CHECK</button>
+            <button class="tg-action-btn tg-advanced-only" id="tg-open-config">Rig Setup</button>
+            <button class="tg-action-btn tg-advanced-only" id="tg-open-verifier">IS THE GAME RIGGED?</button>
             <button class="tg-action-btn" id="tg-open-predictor">BONUS SNIFFER</button>
             <button class="tg-action-btn" id="tg-open-dashboard">THE HUB</button>
             <button class="tg-action-btn" id="tg-open-vault">THE VAULT</button>
@@ -233,7 +233,7 @@ export const SIDEBAR_TEMPLATE = `
 
         <!-- Report Panel (toggleable) -->
         <div class="tg-settings-panel tg-advanced-only" id="tg-report-panel" style="display: none;">
-          <h4>THE SNITCH CALL</h4>
+          <h4>THE TILT SIGNAL</h4>
           <div class="tg-input-group">
             <label>Signal Type</label>
             <select id="report-type" style="width: 100%; padding: 8px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); color: #fff; border-radius: 4px;">
@@ -300,6 +300,33 @@ export const SIDEBAR_TEMPLATE = `
             <button class="tg-btn tg-btn-secondary" id="tg-vault-custom">Custom Amount</button>
           </div>
           <button class="tg-btn tg-btn-secondary" id="tg-add-goal" style="margin-top: 8px; font-size: 11px;">+ Add Withdraw Goal</button>
+          
+          <!-- Auto-Vault (API Backdoor) -->
+          <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.1);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+              <h4 style="font-size: 11px; margin: 0;">THE AUTO-BAG SECURE (API)</h4>
+              <div class="tg-toggle-wrapper">
+                <input type="checkbox" id="tg-autovault-toggle" class="tg-toggle-input" />
+                <label for="tg-autovault-toggle" class="tg-toggle-label"></label>
+              </div>
+            </div>
+            <div id="tg-autovault-controls" style="display: none; background: rgba(0,255,198,0.05); padding: 10px; border-radius: 8px; border: 1px solid rgba(0,255,198,0.1);">
+              <div class="tg-input-group" style="margin-bottom: 8px;">
+                <label style="font-size: 10px; opacity: 0.7;">Vault % of Profit</label>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                  <input type="range" id="tg-autovault-pct" min="5" max="50" step="5" value="10" style="flex: 1;" />
+                  <span id="tg-autovault-pct-val" style="font-size: 12px; font-weight: bold; width: 30px;">10%</span>
+                </div>
+              </div>
+              <div style="font-size: 9px; opacity: 0.6; line-height: 1.4;">
+                * Automatically moves percentage of wins to your Internal Stake Vault using session cookies. No funds leave the casino.
+              </div>
+              <div id="tg-autovault-stats" style="margin-top: 8px; font-size: 10px; border-top: 1px solid rgba(0,255,198,0.1); padding-top: 6px; display: flex; justify-content: space-between;">
+                <span>Session Secured:</span>
+                <span id="tg-autovault-secured" style="color: #00FFC6;">0.00 --</span>
+              </div>
+            </div>
+          </div>
           
           <!-- Lock Timer Wallet -->
           <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.1);">

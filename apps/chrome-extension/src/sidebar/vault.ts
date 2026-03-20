@@ -1,15 +1,71 @@
 /* Copyright (c) 2026 TiltCheck. All rights reserved. */
 import { SidebarController } from './index.js';
+import { AutoVaultEngine, LogEntry } from '../autovault.js';
 
 export class VaultManager {
   private controller: SidebarController;
   private lockTimerInterval: any = null;
+  private autoVault: AutoVaultEngine | null = null;
+  private userId: string | null = null;
 
   constructor(controller: SidebarController) {
     this.controller = controller;
   }
 
+  public init() {
+    this.userId = this.controller.auth.userData?.id || null;
+    this.initAutoVault();
+  }
+
+  private initAutoVault() {
+    this.autoVault = new AutoVaultEngine({
+      onLogEntry: (entry: LogEntry) => {
+        this.controller.addFeedMessage(`[Vault] ${entry.message}`);
+        if (entry.type === 'error' || entry.type === 'warning') {
+          this.controller.updateStatus(entry.message, entry.type === 'error' ? 'danger' : 'warning');
+        }
+      },
+      onVaultCountUpdate: (count, max) => {
+        if (count >= max) {
+          this.controller.updateStatus('Vault rate limit reached inside Stake.', 'warning');
+        }
+      },
+      onVaultedUpdate: (amount, currency) => {
+        const el = document.getElementById('tg-autovault-secured');
+        if (el) el.textContent = `${amount.toFixed(6)} ${currency.toUpperCase()}`;
+      },
+      onRunningChange: (running) => {
+        const toggle = document.getElementById('tg-autovault-toggle') as HTMLInputElement;
+        const controls = document.getElementById('tg-autovault-controls');
+        if (toggle) toggle.checked = running;
+        if (controls) controls.style.display = running ? 'block' : 'none';
+      }
+    });
+
+    // Restore settings from UI if already interacted
+    const pctInput = document.getElementById('tg-autovault-pct') as HTMLInputElement;
+    if (pctInput) {
+      this.autoVault.setConfig({ saveAmount: parseInt(pctInput.value) / 100 });
+    }
+  }
+
+  public toggleAutoVault(enabled: boolean) {
+    if (!this.autoVault) return;
+    if (enabled) {
+      this.autoVault.start();
+    } else {
+      this.autoVault.stop();
+    }
+  }
+
+  public setAutoVaultPct(pct: number) {
+    if (this.autoVault) {
+      this.autoVault.setConfig({ saveAmount: pct / 100 });
+    }
+  }
+
   public async lockTheBag(amount: number) {
+    // ... logic remains same ...
     const userId = this.controller.auth.userData?.id;
     if (!userId) {
         this.controller.updateStatus('Connect Discord to use the Profit Locker.', 'warning');
@@ -19,14 +75,11 @@ export class VaultManager {
     try {
         this.controller.updateStatus('Initializing EMERGENCY BRAKE...', 'thinking');
         
-        // In a real app, this would use the BlockchainManager to send a Solana transaction
-        // to the Profit Locker smart contract. For now, we simulate the non-custodial lock.
         const success = await this.controller.blockchain.lockTokens(amount, 3600); // 1 hour lock
         
         if (success) {
             this.controller.addFeedMessage(`EMERGENCY BRAKE ENGAGED: ${amount} SOL locked for 1 hour.`);
             this.controller.updateStatus('Bag secured. Go touch grass.', 'success');
-            // Redirect to touch grass page after a delay
             setTimeout(() => {
                 window.open('https://web.tiltcheck.me/touch-grass.html', '_blank');
             }, 3000);
@@ -49,17 +102,14 @@ export class VaultManager {
 
   public async loadVaultBalance(userId: string) {
     if (!userId) return;
-    // Logic for loading vault balance
   }
 
   public renderVaultTimeline(_locks: any[]) {
     const container = document.getElementById('tg-vault-timeline');
     if (!container) return;
-    // ... logic from sidebar.ts ...
   }
 
   public startLockCountdown(_unlockTime: number, _startTime: number) {
     if (this.lockTimerInterval) clearInterval(this.lockTimerInterval);
-    // ... logic from sidebar.ts ...
   }
 }

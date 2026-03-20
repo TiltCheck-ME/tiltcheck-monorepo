@@ -1552,7 +1552,7 @@
         }
 
         async function startTrivia(category, theme, rounds) {
-            const apiBase = window.location.hostname === 'localhost' ? 'http://localhost:3001' : 'https://api.tiltcheck.me';
+            const apiBase = window.location.hostname === 'localhost' ? 'http://localhost:3010' : 'https://api.tiltcheck.me';
             try {
                 const res = await fetch(`${apiBase}/admin/trivia/start`, {
                     method: 'POST',
@@ -1567,7 +1567,7 @@
         }
 
         async function resetTrivia() {
-            const apiBase = window.location.hostname === 'localhost' ? 'http://localhost:3001' : 'https://api.tiltcheck.me';
+            const apiBase = window.location.hostname === 'localhost' ? 'http://localhost:3010' : 'https://api.tiltcheck.me';
             try {
                 const res = await fetch(`${apiBase}/admin/trivia/reset`, { method: 'POST' });
                 const data = await res.json();

@@ -38,6 +38,7 @@ export class SidebarController implements SidebarUI {
     this.setupListeners();
     this.auth.restoreAuth();
     this.buddy.restorePrefs();
+    this.vault.init();
   }
 
   private injectStyles() {
@@ -106,6 +107,20 @@ export class SidebarController implements SidebarUI {
     document.getElementById('vibe-ignore')?.addEventListener('click', () => {
         this.addFeedMessage('Reality Check suppressed. Good luck fumbling the bag.');
         this.dismissVibeCheck();
+    });
+
+    // AutoVault Controls
+    const avToggle = document.getElementById('tg-autovault-toggle') as HTMLInputElement | null;
+    avToggle?.addEventListener('change', () => {
+        this.vault.toggleAutoVault(avToggle.checked);
+    });
+
+    const avPct = document.getElementById('tg-autovault-pct') as HTMLInputElement | null;
+    const avPctVal = document.getElementById('tg-autovault-pct-val');
+    avPct?.addEventListener('input', () => {
+        const val = parseInt(avPct.value);
+        if (avPctVal) avPctVal.textContent = `${val}%`;
+        this.vault.setAutoVaultPct(val);
     });
   }
 
@@ -206,7 +221,7 @@ export class SidebarController implements SidebarUI {
     // Add first indicator to feed if new/critical
     if (indicators.length > 0 && score > 60) {
         this.addFeedMessage(`Risk Alert: ${indicators[0]}`);
-        this.buddy.notifySnitch(indicators[0]);
+        this.buddy.notifyGuardian(indicators[0]);
     }
 
     if (score >= 80) {

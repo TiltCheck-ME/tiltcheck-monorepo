@@ -20,6 +20,10 @@ export class BuddyManager {
       }
   }
 
+  public async notifyGuardian(indicator: string) {
+      return this.notifyBuddy('alert', `Risk detected: ${indicator}`);
+  }
+
   public async notifyIntervention(type: string, message: string) {
       // We always allow interventions to be sent even if mirror is off, 
       // as they are critical safety events.
