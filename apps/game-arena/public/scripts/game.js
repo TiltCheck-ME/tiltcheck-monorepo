@@ -155,14 +155,18 @@ class GameManager {
     const playerAvatar = document.getElementById('player-avatar');
 
     if (playerName && this.user) {
-      playerName.textContent = `${this.user.username}#${this.user.discriminator}`;
+      playerName.textContent = this.user.username;
     }
 
     if (playerAvatar && this.user) {
       if (this.user.avatar) {
-        playerAvatar.src = `https://cdn.discordapp.com/avatars/${this.user.id}/${this.user.avatar}.png?size=128`;
+        if (this.user.avatar.startsWith('http')) {
+          playerAvatar.src = this.user.avatar;
+        } else {
+          playerAvatar.src = `https://cdn.discordapp.com/avatars/${this.user.id}/${this.user.avatar}.png?size=128`;
+        }
       } else {
-        const defaultAvatarIndex = parseInt(this.user.discriminator) % 5;
+        const defaultAvatarIndex = parseInt(this.user.id) % 5;
         playerAvatar.src = `https://cdn.discordapp.com/embed/avatars/${defaultAvatarIndex}.png`;
       }
     }
@@ -594,10 +598,24 @@ class PokerGameRenderer extends BaseGameRenderer {
     }
 
     // Show poker table
+    let communityCardsHtml = '';
+    if (gameState.communityCards && gameState.communityCards.length > 0) {
+      communityCardsHtml = gameState.communityCards.map(card => `
+        <div class="playing-card community ${card.suit === 'hearts' || card.suit === 'diamonds' ? 'red' : ''}">
+          <div class="rank">${card.rank}</div>
+          <div class="suit">${this.getSuitSymbol(card.suit)}</div>
+        </div>
+      `).join('');
+    }
+
     gameContent.innerHTML = `
       <div class="poker-table">
         <div class="poker-pot">
-          Pot: $${gameState.pot || 0}
+          <span class="label">POT</span>
+          <span class="value">$${gameState.pot || 0}</span>
+        </div>
+        <div class="community-cards">
+          ${communityCardsHtml || '<div class="waiting-for-cards">Waiting for flop...</div>'}
         </div>
       </div>
     `;
@@ -606,8 +624,9 @@ class PokerGameRenderer extends BaseGameRenderer {
     if (gameState.playerHands && gameState.playerHands[userId]) {
       const hand = gameState.playerHands[userId];
       const handHtml = hand.map(card => `
-        <div class="playing-card ${card.suit === 'hearts' || card.suit === 'diamonds' ? 'red' : ''}">
-          ${card.rank}<br>${this.getSuitSymbol(card.suit)}
+        <div class="playing-card hole ${card.suit === 'hearts' || card.suit === 'diamonds' ? 'red' : ''}">
+          <div class="rank">${card.rank}</div>
+          <div class="suit">${this.getSuitSymbol(card.suit)}</div>
         </div>
       `).join('');
 

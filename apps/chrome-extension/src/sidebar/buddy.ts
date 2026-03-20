@@ -20,17 +20,48 @@ export class BuddyManager {
       }
   }
 
+  public async notifyGuardian(indicator: string) {
+      return this.notifyBuddy('alert', `Risk detected: ${indicator}`);
+  }
+
+  public async notifyIntervention(type: string, message: string) {
+      // We always allow interventions to be sent even if mirror is off, 
+      // as they are critical safety events.
+      try {
+          const result = await apiCall('/safety/notify-buddy', {
+              method: 'POST',
+              body: JSON.stringify({
+                  type,
+                  data: {
+                      message,
+                      casino: window.location.hostname,
+                      timestamp: new Date().toISOString()
+                  }
+              })
+          }, this.auth);
+
+          if (result.success) {
+              this.ui.updateStatus('Buddy notified via Discord', 'info');
+              console.log('[BuddyManager] Intervention signal sent to Discord.');
+          }
+      } catch (err) {
+          console.warn('[BuddyManager] Failed to send intervention signal', err);
+      }
+  }
+
   public async notifyBuddy(type: string, details: string) {
       if (!this.mirrorEnabled && !this.auth.demoMode) return;
 
       try {
-          const result = await apiCall('/buddy/notify', {
+          const result = await apiCall('/safety/notify-buddy', {
               method: 'POST',
               body: JSON.stringify({
-                  type,
-                  details,
-                  casino: window.location.hostname,
-                  timestamp: new Date().toISOString()
+                  type: `buddy_mirror_${type}`,
+                  data: {
+                      message: details,
+                      casino: window.location.hostname,
+                      timestamp: new Date().toISOString()
+                  }
               })
           }, this.auth);
 

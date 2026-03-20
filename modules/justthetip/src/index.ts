@@ -6,7 +6,11 @@
 
 export * from './types.js';
 export * from './core.js';
+export * from './credits.js';
+export * from './solana.js';
 
 // Re-export specific logic as a namespace for backwards compatibility if needed
-import * as justthetip from './core.js';
-export { justthetip };
+import * as core from './core.js';
+export const justthetip = {
+  ...core
+};

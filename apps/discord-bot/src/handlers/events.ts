@@ -217,7 +217,7 @@ export class EventHandler {
   subscribeToEvents(): void {
     eventRouter.subscribe(
       'tilt.detected',
-      async (event: TiltCheckEvent) => {
+      async (event: TiltCheckEvent<'tilt.detected'>) => {
         try {
           const { userId, reason, severity, tiltScore } = event.data;
 
@@ -243,7 +243,7 @@ export class EventHandler {
 
     eventRouter.subscribe(
       'cooldown.violated',
-      async (event: TiltCheckEvent) => {
+      async (event: TiltCheckEvent<'cooldown.violated'>) => {
         try {
           const { userId, violationCount, expiresAt } = event.data;
 
@@ -273,7 +273,7 @@ export class EventHandler {
 
     eventRouter.subscribe(
       'link.flagged',
-      async (event: TiltCheckEvent) => {
+      async (event: TiltCheckEvent<'link.flagged'>) => {
         await this.handleModAction('link.flagged', event.data);
       },
       'discord-bot'
@@ -281,7 +281,7 @@ export class EventHandler {
 
     eventRouter.subscribe(
       'scam.reported',
-      async (event: TiltCheckEvent) => {
+      async (event: TiltCheckEvent<'scam.reported'>) => {
         await this.handleModAction('scam.reported', event.data);
       },
       'discord-bot'
@@ -290,7 +290,7 @@ export class EventHandler {
     // LockVault Subscriptions
     eventRouter.subscribe(
       'vault.expired',
-      async (event: TiltCheckEvent) => {
+      async (event: TiltCheckEvent<'vault.expired'>) => {
         const { userId, id, address, amountSOL } = event.data;
         const user = await this.client.users.fetch(userId).catch(() => null);
         if (user) {
@@ -303,7 +303,7 @@ export class EventHandler {
 
     eventRouter.subscribe(
       'vault.reload_due',
-      async (event: TiltCheckEvent) => {
+      async (event: TiltCheckEvent<'vault.reload_due'>) => {
         const { userId, amountRaw, interval } = event.data;
         const user = await this.client.users.fetch(userId).catch(() => null);
         if (user) {
@@ -315,7 +315,7 @@ export class EventHandler {
 
     eventRouter.subscribe(
       'vault.locked',
-      async (event: TiltCheckEvent) => {
+      async (event: TiltCheckEvent<'vault.locked'>) => {
         const { userId, id, vaultType, vaultAddress, amountSOL } = event.data;
         // Only DM if it's potentially an auto-vault (not explicitly created by command reply)
         // For simplicity, we can just DM every lock as a "secure receipt", or only for magic/auto.
@@ -324,6 +324,30 @@ export class EventHandler {
           const typeText = vaultType === 'magic' ? 'your Degen Identity' : 'a disposable vault';
           const amountText = amountSOL === 0 ? 'ALL' : amountSOL.toFixed(4);
           await user.send(`🔒 **Vault Locked**\n\nFunds secured in ${typeText}.\n- **ID:** \`${id}\`\n- **Target:** \`${amountText} SOL eq\`\n- **Address:** \`${vaultAddress}\`\n\nUse \`/vault status\` to view your locks.`).catch(() => { });
+        }
+      },
+      'discord-bot'
+    );
+
+    eventRouter.subscribe(
+      'safety.intervention.triggered',
+      async (event: TiltCheckEvent<'safety.intervention.triggered'>) => {
+        try {
+          const { userId, type, data } = event.data;
+          
+          if (type === 'phone_friend_discord') {
+            const channelId = process.env.DEGEN_ACCOUNTABILITY_CHANNEL_ID || '1447913312015515711';
+            const channel = await this.client.channels.fetch(channelId).catch(() => null);
+            
+            if (channel && channel.isTextBased()) {
+              const userMention = userId !== 'guest' ? `<@${userId}>` : '**A Guest Degen**';
+              const alertMessage = `🚨 **BUDDY SYSTEM ALERT** 🚨\n\n${userMention} is fumbling the bag! They just hit a zero balance or blew a massive lead. \n\nGet in voice and pull them off the floor before they revenge deposit. \n\n*Action: ${data.message || 'Intervention Required'}*`;
+              await (channel as any).send(alertMessage);
+              console.log(`[Bot] Buddy snitch sent to channel ${channelId} for ${userId}`);
+            }
+          }
+        } catch (error) {
+          console.error('[Bot] Error handling safety.intervention.triggered:', error);
         }
       },
       'discord-bot'

@@ -6,7 +6,12 @@ export interface SidebarUI {
   addFeedMessage(msg: string): void;
   getStorage(keys: string[]): Promise<Record<string, any>>;
   setStorage(data: Partial<OnboardingStatus> | Record<string, any>): Promise<void>;
-  updateStatus(message: string, type: 'success' | 'warning' | 'thinking' | 'danger'): void;
+  updateStatus(message: string, type: 'success' | 'warning' | 'thinking' | 'danger' | 'info'): void;
+  updateGuardian(active: boolean): void;
+  updateLicense(data: any): void;
+  updateTilt(score: number, indicators: string[]): void;
+  updateStats(stats: Partial<SessionStats>): void;
+  notifyBuddy(event: string, data: any): void;
   openPremium?(): Promise<void>;
 }
 

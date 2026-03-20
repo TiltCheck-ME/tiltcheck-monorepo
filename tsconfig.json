@@ -1,7 +1,6 @@
 {
   "compilerOptions": {
     "outDir": "./dist",
-    "rootDir": "./src",
     "declaration": true,
     "skipLibCheck": true,
     "module": "NodeNext",
@@ -10,11 +9,8 @@
     "esModuleInterop": true,
     "target": "ESNext",
     "incremental": false,
-    "tsBuildInfoFile": null
+    "strict": true
   },
-  "include": [
-    "src/**/*.ts"
-  ],
   "exclude": [
     "node_modules",
     "dist"

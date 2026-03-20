@@ -43,6 +43,11 @@
       if (statusEl) statusEl.textContent = 'Live stats';
     })
     .catch(() => {
-      setFallback('Live stats temporarily unavailable — showing static launch view.');
+      // No fake stats. Show connection status instead.
+      [communitiesEl, scansEl, blockedEl].forEach((el) => el.classList.remove('loading'));
+      communitiesEl.textContent = '...';
+      scansEl.textContent = '...';
+      blockedEl.textContent = '...';
+      if (statusEl) statusEl.textContent = "We aren't fake. Neither is this. Connecting to live engine...";
     });
 })();

@@ -9,7 +9,7 @@
 import type { Request, Response, NextFunction } from 'express';
 import { isCountryRestricted } from '@tiltcheck/config';
 
-import { createError } from '../lib/error-factory.js';
+import { ForbiddenError } from '@tiltcheck/error-factory';
 
 /**
  * Middleware to restrict access based on user country.
@@ -31,10 +31,8 @@ export function geoComplianceMiddleware(
   if (countryCode && isCountryRestricted(countryCode)) {
     console.warn(`[Compliance] Blocked request from restricted region: ${countryCode}`);
     
-    return next(createError.forbidden(
-      `Access restricted in your region (${countryCode})`, 
-      'GEO_RESTRICTED',
-      { country: countryCode }
+    return next(new ForbiddenError(
+      `Access restricted in your region (${countryCode})`
     ));
   }
 

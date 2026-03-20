@@ -4,9 +4,9 @@ export const SIDEBAR_TEMPLATE = `
     <div class="tg-header">
       <div class="tg-logo"><span class="tg-logo-mark">T</span>TiltCheck</div>
       <div class="tg-header-actions">
-        <button class="tg-header-btn tg-advanced-only" id="tg-settings" title="Open settings panel">Settings</button>
-        <button class="tg-header-btn" id="tg-minimize" title="Minimize panel">Minimize</button>
-        <button class="tg-header-btn" id="tg-hide" title="Hide panel">Hide</button>
+        <button class="tg-header-btn tg-advanced-only" id="tg-settings" title="Settings">⚙️</button>
+        <button class="tg-header-btn" id="tg-minimize" title="Minimize">−</button>
+        <button class="tg-header-btn" id="tg-hide" title="Close">×</button>
       </div>
     </div>
     <div id="tg-license-strip" class="tg-license-strip pending">License: scanning current site...</div>
@@ -16,10 +16,10 @@ export const SIDEBAR_TEMPLATE = `
       <!-- Auth Section -->
       <div class="tg-section" id="tg-auth-section">
         <div class="tg-auth-prompt">
-          <h3>Welcome to TiltCheck</h3>
-          <p>Demo is instant. Connect Discord when you want synced vault history and buddy alerts. No lectures, just better signals.</p>
+          <h3>THE GUARDIAN IS ONLINE</h3>
+          <p>Demo is instant. Connect Discord to sync vault history and liquidity alerts. No lectures, just REALITY CHECKS.</p>
           <button class="tg-btn tg-btn-primary" id="tg-discord-login">Connect with Discord</button>
-          <div class="tg-auth-divider">You can stay in demo mode if you prefer</div>
+          <div class="tg-auth-divider">You can stay in guest mode if you prefer</div>
         </div>
       </div>
 
@@ -29,7 +29,7 @@ export const SIDEBAR_TEMPLATE = `
         <div class="tg-user-bar">
           <div class="tg-user-info">
             <span id="tg-username">Guest</span>
-            <span class="tg-tier" id="tg-user-tier">Free</span>
+            <span class="tg-tier" id="tg-user-tier">Guest Degen</span>
           </div>
           <button class="tg-btn-icon" id="tg-logout" title="Logout" aria-label="Logout">&#x00D7;</button>
         </div>
@@ -39,14 +39,14 @@ export const SIDEBAR_TEMPLATE = `
         </div>
         <div class="tg-focus-note">Quick tip: keep this minimized while you play, then expand when you want a clean reality check.</div>
 
-        <!-- Quick Safety -->
+        <!-- Reality Check Bot -->
         <div class="tg-section tg-emergency">
           <div class="tg-emergency-header">
-            <div>
-              <div class="tg-emergency-title">Emergency Lock</div>
-              <div class="tg-emergency-sub">Immediate cool-down if things feel off</div>
+            <div style="flex: 1;">
+              <div class="tg-emergency-title">REALITY CHECK BOT</div>
+              <div class="tg-emergency-sub">The house is farming you. Use the EMERGENCY BRAKE to lock your gains on-chain before you give it all back.</div>
             </div>
-            <button class="tg-btn tg-btn-danger" id="tg-emergency-lock">Start 15-Min Break</button>
+            <button class="tg-btn tg-btn-danger" id="tg-emergency-lock" style="width: auto; padding: 10px 16px;">EMERGENCY BRAKE</button>
           </div>
         </div>
 
@@ -98,7 +98,7 @@ export const SIDEBAR_TEMPLATE = `
 
         <!-- Fairness Panel (toggleable) -->
         <div class="tg-settings-panel tg-advanced-only" id="tg-verifier-panel" style="display: none;">
-          <h4>Fairness Check</h4>
+          <h4>Verify Game</h4>
           
           <div class="tg-tabs">
             <button class="tg-tab active" data-target="fv-tab-verify">Verify</button>
@@ -144,38 +144,38 @@ export const SIDEBAR_TEMPLATE = `
           <button class="tg-btn tg-btn-secondary" id="close-verifier">Close</button>
         </div>
 
-        <!-- Active Session Metrics (TOP PRIORITY) -->
+        <!-- Reality Check Log (Formerly Live Performance Audit) -->
         <div class="tg-metrics-card">
           <div class="tg-metrics-header">
             <div>
-              <h3>Active Session</h3>
-              <div class="tg-session-site" id="tg-session-site">Unknown</div>
+              <h3>REALITY CHECK BOT</h3>
+              <div class="tg-session-site" id="tg-session-site">Unknown Site</div>
             </div>
             <div class="tg-guardian-indicator" id="tg-guardian-indicator"></div>
           </div>
           <div class="tg-metrics-grid">
             <div class="tg-metric">
-              <span class="tg-metric-label">Time</span>
+              <span class="tg-metric-label">🕒 Time</span>
               <span class="tg-metric-value" id="tg-duration">0:00</span>
             </div>
             <div class="tg-metric">
-              <span class="tg-metric-label">Bets</span>
+              <span class="tg-metric-label">🎲 Bets</span>
               <span class="tg-metric-value" id="tg-bets">0</span>
             </div>
             <div class="tg-metric">
-              <span class="tg-metric-label">Wagered</span>
+              <span class="tg-metric-label">💸 Wagered</span>
               <span class="tg-metric-value" id="tg-wagered">$0</span>
             </div>
             <div class="tg-metric">
-              <span class="tg-metric-label">P/L</span>
+              <span class="tg-metric-label">📈 P/L</span>
               <span class="tg-metric-value" id="tg-profit">$0</span>
             </div>
             <div class="tg-metric">
-              <span class="tg-metric-label">RTP</span>
+              <span class="tg-metric-label">🎯 RTP</span>
               <span class="tg-metric-value" id="tg-rtp">--</span>
             </div>
             <div class="tg-metric">
-              <span class="tg-metric-label">Tilt <span class="tg-help" data-tip="Calculated from wager frequency and bet-size volatility.">?</span></span>
+              <span class="tg-metric-label">📉 Tilt <span class="tg-help" data-tip="Calculated from wager frequency and bet-size volatility.">?</span></span>
               <span class="tg-metric-value tg-tilt-value" id="tg-score-value">0</span>
             </div>
           </div>
@@ -189,9 +189,9 @@ export const SIDEBAR_TEMPLATE = `
           </div>
         </div>
 
-        <!-- Message Feed -->
+        <!-- Reality Check Log (Formerly Message Feed) -->
         <div class="tg-section">
-          <h4>Live Signals</h4>
+          <h4>Session Reality Log</h4>
           <div class="tg-feed" id="tg-message-feed">
             <div class="tg-feed-item">Monitoring active. No fluff.</div>
           </div>
@@ -202,21 +202,21 @@ export const SIDEBAR_TEMPLATE = `
           <h4>Quick Tools</h4>
           <button class="tg-btn tg-btn-secondary tg-advanced-toggle" id="tg-toggle-advanced" aria-pressed="false">Show Pro Tools</button>
           <div class="tg-action-grid">
-            <button class="tg-action-btn" id="tg-open-linkcheck">LinkCheck</button>
-            <button class="tg-action-btn tg-advanced-only" id="tg-open-config">Site Setup</button>
-            <button class="tg-action-btn tg-advanced-only" id="tg-open-verifier">Fairness Check</button>
-            <button class="tg-action-btn" id="tg-open-predictor">Predictor</button>
-            <button class="tg-action-btn" id="tg-open-dashboard">Open Dashboard</button>
-            <button class="tg-action-btn" id="tg-open-vault">Open Vault</button>
+            <button class="tg-action-btn" id="tg-open-linkcheck">PHISH NUKE</button>
+            <button class="tg-action-btn tg-advanced-only" id="tg-open-config">Rig Setup</button>
+            <button class="tg-action-btn tg-advanced-only" id="tg-open-verifier">IS THE GAME RIGGED?</button>
+            <button class="tg-action-btn" id="tg-open-predictor">BONUS SCANNER</button>
+            <button class="tg-action-btn" id="tg-open-dashboard">THE HUB</button>
+            <button class="tg-action-btn" id="tg-open-vault">THE VAULT</button>
             <button class="tg-action-btn tg-advanced-only" id="tg-wallet">Wallet Status</button>
-            <button class="tg-action-btn tg-advanced-only" id="tg-upgrade">Unlock Premium</button>
+            <button class="tg-action-btn tg-advanced-only" id="tg-upgrade">Upgrade Edge</button>
           </div>
           <button class="tg-btn tg-btn-secondary tg-advanced-only" id="tg-open-report" style="margin-top: 8px;">Report Site Change</button>
         </div>
 
-        <!-- LinkCheck Panel (toggleable) -->
+        <!-- Safety Check Panel -->
         <div class="tg-settings-panel" id="tg-linkcheck-panel" style="display: none;">
-          <h4>LinkCheck Scanner</h4>
+          <h4>Safety Check Scanner</h4>
           <div class="tg-input-group">
             <label>Check URL</label>
             <div style="display: flex; gap: 5px;">
@@ -233,7 +233,7 @@ export const SIDEBAR_TEMPLATE = `
 
         <!-- Report Panel (toggleable) -->
         <div class="tg-settings-panel tg-advanced-only" id="tg-report-panel" style="display: none;">
-          <h4>Community Signal</h4>
+          <h4>THE TILT SIGNAL</h4>
           <div class="tg-input-group">
             <label>Signal Type</label>
             <select id="report-type" style="width: 100%; padding: 8px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); color: #fff; border-radius: 4px;">
@@ -252,9 +252,9 @@ export const SIDEBAR_TEMPLATE = `
           <button class="tg-btn tg-btn-secondary" id="close-report">Close</button>
         </div>
 
-        <!-- Predictor Panel (toggleable) -->
+        <!-- Bonus Radar Panel -->
         <div class="tg-settings-panel" id="tg-predictor-panel" style="display: none;">
-          <h4>Drop Predictor</h4>
+          <h4>Bonus Radar</h4>
           <div id="predictor-list" class="tg-feed" style="max-height: 250px;">
             <div class="tg-feed-item">Fetching drop windows...</div>
           </div>
@@ -301,14 +301,41 @@ export const SIDEBAR_TEMPLATE = `
           </div>
           <button class="tg-btn tg-btn-secondary" id="tg-add-goal" style="margin-top: 8px; font-size: 11px;">+ Add Withdraw Goal</button>
           
+          <!-- Auto-Vault (API Backdoor) -->
+          <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.1);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+              <h4 style="font-size: 11px; margin: 0;">THE AUTO-BAG SECURE (API)</h4>
+              <div class="tg-toggle-wrapper">
+                <input type="checkbox" id="tg-autovault-toggle" class="tg-toggle-input" />
+                <label for="tg-autovault-toggle" class="tg-toggle-label"></label>
+              </div>
+            </div>
+            <div id="tg-autovault-controls" style="display: none; background: rgba(0,255,198,0.05); padding: 10px; border-radius: 8px; border: 1px solid rgba(0,255,198,0.1);">
+              <div class="tg-input-group" style="margin-bottom: 8px;">
+                <label style="font-size: 10px; opacity: 0.7;">Vault % of Profit</label>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                  <input type="range" id="tg-autovault-pct" min="5" max="50" step="5" value="10" style="flex: 1;" />
+                  <span id="tg-autovault-pct-val" style="font-size: 12px; font-weight: bold; width: 30px;">10%</span>
+                </div>
+              </div>
+              <div style="font-size: 9px; opacity: 0.6; line-height: 1.4;">
+                * Automatically moves percentage of wins to your Internal Stake Vault using session cookies. No funds leave the casino.
+              </div>
+              <div id="tg-autovault-stats" style="margin-top: 8px; font-size: 10px; border-top: 1px solid rgba(0,255,198,0.1); padding-top: 6px; display: flex; justify-content: space-between;">
+                <span>Session Secured:</span>
+                <span id="tg-autovault-secured" style="color: #00FFC6;">0.00 --</span>
+              </div>
+            </div>
+          </div>
+          
           <!-- Lock Timer Wallet -->
           <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.1);">
-            <h4 style="font-size: 11px; margin-bottom: 6px;">Lock Timer Wallet</h4>
+            <h4 style="font-size: 11px; margin-bottom: 6px;">SECURE THE BAG</h4>
             
             <div id="tg-lock-form">
               <div style="display: flex; gap: 5px; margin-bottom: 8px;">
                 <input type="number" id="lock-timer-mins" style="width: 60px; padding: 4px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); color: #fff; border-radius: 4px;" />
-                <button class="tg-btn tg-btn-primary" id="start-lock-timer" style="margin: 0; padding: 4px 8px; font-size: 11px;">Lock Funds</button>
+                <button class="tg-btn tg-btn-primary" id="start-lock-timer" style="margin: 0; padding: 4px 8px; font-size: 11px;">SECURE THE BAG</button>
               </div>
               <div style="display: flex; align-items: flex-start; gap: 6px; font-size: 10px; opacity: 0.7; line-height: 1.3;">
                 <input type="checkbox" id="lock-agree" style="margin-top: 2px;" />
@@ -356,7 +383,7 @@ export const SIDEBAR_TEMPLATE = `
         </div>
         <!-- Premium Upgrade Panel (hidden) -->
         <div class="tg-settings-panel" id="tg-premium-panel" style="display:none;">
-          <h4>Unlock Premium</h4>
+          <h4>Upgrade Your Edge</h4>
           <div style="margin-bottom:8px; padding:10px; background:rgba(255,255,255,0.03); border-radius:8px; border:1px solid rgba(255,255,255,0.08);">
             <div style="display:flex; justify-content:space-between; margin-bottom:6px;">
               <span style="font-size:12px; font-weight:700;">Free</span>
@@ -382,11 +409,29 @@ export const SIDEBAR_TEMPLATE = `
           <button class="tg-btn tg-btn-primary" id="tg-upgrade-confirm">Upgrade Now &#x2192;</button>
           <button class="tg-btn tg-btn-secondary" id="tg-premium-close">Cancel</button>
         </div>
-        <div class="tg-brand-footer">Made for degens, by degens • © 2026 TiltCheck</div>
+        <div class="tg-brand-footer">MADE FOR DEGENS. BY DEGENS. • © 2026 TiltCheck</div>
       </div>
     </div>
 
     <div class="tg-toast" id="tg-toast" style="display:none;"></div>
+
+    <!-- Vibe Check Overlay -->
+    <div id="tg-vibe-check-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 2147483647; flex-direction: column; align-items: center; justify-content: center; padding: 20px; text-align: center; color: #fff; font-family: 'JetBrains Mono', monospace;">
+      <div style="font-size: 80px; margin-bottom: 20px;">🚨</div>
+      <h2 style="font-size: 32px; color: #ff3366; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 10px;">VIBE CHECK</h2>
+      <p style="font-size: 18px; margin-bottom: 30px; max-width: 500px;">The Reality Check Bot just caught you rage-betting. You're about to fumble the bag. Either lock your profits now or go touch grass.</p>
+      
+      <div id="vibe-check-gif" style="width: 300px; height: 300px; background: #222; margin-bottom: 30px; border: 2px solid #ff3366; display: flex; align-items: center; justify-content: center; overflow: hidden; border-radius: 12px;">
+        <!-- GIF will be injected here -->
+        <img src="https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExMThqOHF4YTh2eGgxNzhxZnx8fGVufDB8fHw%3D/v1.gif" alt="Wake up" style="width: 100%; height: 100%; object-fit: cover;">
+      </div>
+
+      <div style="display: flex; gap: 15px; flex-wrap: wrap; justify-content: center;">
+        <button class="tg-btn tg-btn-danger" id="vibe-lock-bag" style="padding: 15px 30px; font-size: 18px;">SECURE THE BAG</button>
+        <button class="tg-btn tg-btn-secondary" id="vibe-discord" style="padding: 15px 30px; font-size: 18px;">GET YELLED AT (DISCORD)</button>
+        <button class="tg-btn tg-btn-outline" id="vibe-ignore" style="padding: 15px 30px; font-size: 14px; opacity: 0.5;">IGNORE (FUMBLE IT)</button>
+      </div>
+    </div>
 
     <!-- Onboarding Overlay -->
     <div id="onboarding-overlay">

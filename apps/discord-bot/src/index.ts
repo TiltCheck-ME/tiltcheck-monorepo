@@ -37,10 +37,10 @@ import { startLockVaultBackgroundTasks, stopLockVaultBackgroundTasks } from '@ti
 async function main() {
   const startTime = Date.now();
   console.log('\n' + '='.repeat(60));
-  console.log('TiltCheck Discord Bot - Powered by TiltCheck');
+  console.log('TILTCHECK ALPHA LAYER - NUKE THE HOUSE EDGE');
   console.log('='.repeat(60));
-  console.log(`Started at: ${new Date().toLocaleString()}`);
-  console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
+  console.log(`SESSION INITIALIZED at: ${new Date().toLocaleString()}`);
+  console.log(`ENV: ${process.env.NODE_ENV || 'production'}`);
   console.log('='.repeat(60) + '\n');
 
   if (process.env.SKIP_DISCORD_LOGIN === 'true') {
@@ -91,9 +91,9 @@ async function main() {
   startTiltAgentLoop(async (userId, message, severity) => {
     try {
       const user = await client.users.fetch(userId);
-      const prefix = severity === 'high' ? '[HIGH]' : severity === 'medium' ? '[MED]' : '[INFO]';
-      await user.send(`${prefix} TiltCheck Intervention\n\n${message}`);
-      console.log(`[TiltAgent] Intervention DM sent to ${userId} (${severity})`);
+      const prefix = severity === 'high' ? '🚨 [HIGH RISK]' : severity === 'medium' ? '⚠️ [ALPHA ALERT]' : 'ℹ️ [REALITY CHECK]';
+      await user.send(`${prefix} TILTCHECK ALPHA AUDIT\n\n${message}\n\n*Don't get rinsed. SECURE THE BAG.*`);
+      console.log(`[TiltAgent] Alpha signal sent to ${userId} (${severity})`);
     } catch (err) {
       console.error(`[TiltAgent] Failed to DM user ${userId}:`, err);
     }

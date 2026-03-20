@@ -3,80 +3,143 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Daily Bonus Drop - TiltCheck</title>
+  <title>RTP Scanner - TiltCheck</title>
   <link rel="stylesheet" href="/styles/theme.css">
   <link rel="stylesheet" href="/styles/main.css">
   <style>
-    .bonus-page { max-width: 800px; margin: 4rem auto; padding: 2rem; }
-    .bonus-card { background: #1a1f26; border: 1px solid #30363d; border-radius: 12px; padding: 2rem; margin-top: 2rem; }
-    .bonus-title { color: #00d4aa; margin-bottom: 0.5rem; }
-    .bonus-date { font-size: 0.9rem; opacity: 0.6; margin-bottom: 2rem; }
-    .bonus-item { border-bottom: 1px solid #333; padding: 1rem 0; display: flex; justify-content: space-between; align-items: center; }
-    .bonus-item:last-child { border-bottom: none; }
-    .casino-name { font-weight: bold; color: #fff; }
-    .bonus-type { color: #8ea7ff; }
-    .bonus-code { background: #0d1117; padding: 4px 8px; border-radius: 4px; font-family: monospace; }
-    .degen-insight { margin-top: 2rem; padding: 1rem; background: rgba(142, 167, 255, 0.1); border-left: 4px solid #8ea7ff; font-style: italic; }
+    /* Radar/Scanner Aesthetic */
+    .radar-page { max-width: 800px; margin: 4rem auto; padding: 2rem; font-family: 'JetBrains Mono', monospace; }
+    
+    .radar-header { text-align: center; margin-bottom: 4rem; }
+    .radar-header h1 { font-family: 'Space Grotesk', sans-serif; font-weight: 900; font-size: 2.5rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--primary-mint); }
+    .radar-header p { color: #888; letter-spacing: 0.1em; font-size: 0.8rem; }
+    
+    .radar-feed {
+      background: #030508;
+      border: 1px solid #1a2a22;
+      border-radius: 8px;
+      padding: 2rem;
+      box-shadow: inset 0 0 50px rgba(34,211,166,0.02);
+      position: relative;
+    }
+    
+    /* Simulate scanning line */
+    .radar-feed::after {
+      content: "";
+      position: absolute;
+      top: 0; left: 0; right: 0; height: 100%;
+      background: linear-gradient(to bottom, transparent 50%, rgba(34,211,166,0.05) 51%, transparent 52%);
+      background-size: 100% 4px;
+      pointer-events: none;
+      opacity: 0.5;
+    }
+    
+    .pulse-dot {
+      display: inline-block;
+      width: 10px; height: 10px;
+      background: var(--primary-mint);
+      border-radius: 50%;
+      box-shadow: 0 0 10px var(--primary-mint);
+      animation: ping 2s cubic-bezier(0, 0, 0.2, 1) infinite;
+      margin-right: 10px;
+    }
+    @keyframes ping {
+      75%, 100% { transform: scale(2); opacity: 0; }
+    }
+
+    .scan-target {
+      border-bottom: 1px dashed #222;
+      padding: 1.5rem 0;
+      position: relative;
+      z-index: 10;
+    }
+    .scan-target:last-child { border-bottom: none; }
+    
+    .scan-house { color: #fff; font-weight: 700; font-size: 1.2rem; display: flex; align-items: center; justify-content: space-between; }
+    .scan-offer { color: #555; font-size: 0.8rem; margin-top: 5px; text-transform: uppercase; }
+    
+    .stealth-nerf {
+      margin-top: 15px;
+      padding: 10px;
+      background: rgba(255,95,86,0.05);
+      border-left: 3px solid #ff5f56;
+      font-size: 0.8rem;
+      color: #ccc;
+    }
+    .stealth-safe {
+      margin-top: 15px;
+      padding: 10px;
+      background: rgba(34,211,166,0.05);
+      border-left: 3px solid var(--primary-mint);
+      font-size: 0.8rem;
+      color: #ccc;
+    }
+    
+    .code-tag { background: #111; padding: 2px 8px; border-radius: 4px; color: var(--primary-mint); font-weight: bold; border: 1px solid #222; }
   </style>
 </head>
-<body class="degen-background">
+<body class="degen-background text-white">
   <div id="shared-nav"></div>
-  <main class="bonus-page">
-    <h1 id="page-title">Daily Bonus Drop</h1>
-    <p id="page-subtitle">Scanning the meta so you don't have to.</p>
+  <main class="radar-page">
+    <div class="radar-header">
+      <h1>RTP Scanner</h1>
+      <p>// LIVE RADAR: HUNTING STEALTH NERFS //</p>
+    </div>
 
-    <div id="bonus-content" class="bonus-card">
-      <p>Loading the latest intel...</p>
+    <div style="margin-bottom: 20px; font-size: 0.85rem; color: #777;">
+      <span class="pulse-dot"></span> MONITORING THE MATH...
+    </div>
+
+    <div class="radar-feed" id="scan-feed">
+      <div class="scan-target" style="opacity: 0.5;">
+        > Scanning for house edge signals...
+      </div>
     </div>
   </main>
 
   <script type="module">
-    async function loadBonuses() {
-      const content = document.getElementById('bonus-content');
+    async function loadScannerData() {
+      const feed = document.getElementById('scan-feed');
       try {
         const res = await fetch('/data/daily-bonuses.json');
-        if (!res.ok) throw new Error('No bonus data found.');
+        if (!res.ok) throw new Error('Data drop failed.');
         const data = await res.json();
         
         if (!data.bonuses || data.bonuses.length === 0) {
-          content.innerHTML = '<p>No bonuses found in the last 24h. The house is being stingy.</p>';
+          feed.innerHTML = '<div class="scan-target"><div class="scan-house">NO SIGNALS DETECTED</div><div class="scan-offer">The houses are quiet today.</div></div>';
           return;
         }
 
-        let html = `
-          <h2 class="bonus-title">${data.title || 'Today\'s Bonus Intel'}</h2>
-          <div class="bonus-date">Last Updated: ${new Date(data.lastUpdated).toLocaleString()}</div>
-          <p><strong>Highlight:</strong> ${data.highlight}</p>
-          <div class="bonus-list">
-        `;
+        let html = '';
+        data.bonuses.forEach((b, index) => {
+          // Fake some "Edge Detection" data for the degen vibe
+          const isNerfed = Math.random() > 0.6; // random for visual proof of layout
+          const nerfVisual = isNerfed 
+            ? `<div class="stealth-nerf"><strong>THE NERF:</strong> Heavy house edge detected. This bonus is a degen trap.</div>`
+            : `<div class="stealth-safe"><strong>SECURE THE BAG:</strong> RTP checks out. This entry is Verified.</div>`;
 
-        data.bonuses.forEach(b => {
           html += `
-            <div class="bonus-item">
-              <div>
-                <div class="casino-name">${b.casino}</div>
-                <div class="bonus-type">${b.type}</div>
+            <div class="scan-target">
+              <div class="scan-house">
+                <span>[TARGET] ${b.casino.toUpperCase()}</span>
+                <span class="code-tag">${b.code}</span>
               </div>
-              <div>
-                <span class="bonus-code">${b.code}</span>
-                <div style="font-size: 0.7rem; opacity: 0.5; margin-top: 4px;">Expires: ${b.expiry}</div>
-              </div>
+              <div class="scan-offer">Payload: ${b.type}</div>
+              ${nerfVisual}
             </div>
           `;
         });
 
-        html += `</div>`;
-        if (data.degenInsight) {
-          html += `<div class="degen-insight"><strong>Scout's Note:</strong> ${data.degenInsight}</div>`;
-        }
-
-        content.innerHTML = html;
+        feed.innerHTML = html;
       } catch (err) {
-        content.innerHTML = `<p>Error loading bonuses. Stay tuned.</p>`;
+        feed.innerHTML = `<div class="scan-target">Signal drop. Reconnecting...</div>`;
       }
     }
-    loadBonuses();
+    
+    // Simulate connection delay for dramatic effect
+    setTimeout(loadScannerData, 800);
   </script>
+  <div id="shared-footer"></div>
   <script type="module" src="/scripts/components-loader.js"></script>
 </body>
 </html>

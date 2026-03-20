@@ -1,12 +1,15 @@
+<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-03-19 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TiltCheck Gaming Tools | Made4DegensByDegens | Play Smarter, Tilt Less</title>
+  <title>TiltCheck | The Degen Audit Layer | Nuke the House Edge</title>
+  <meta name="description" content="The house has an edge. Now you do too. TiltCheck provides real-time fairness auditing, automated gain-locking, and scam protection for serious degens. Stop playing blind.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Space+Grotesk:wght@700;900&display=swap" rel="stylesheet">
+  <link href="https://api.fontshare.com/v2/css?f[]=satoshi@700,500,400&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/styles/theme.css">
   <link rel="stylesheet" href="/styles/base.css">
   <link rel="stylesheet" href="/styles/main.css">
@@ -19,24 +22,26 @@
   <header class="site-header">
     <nav class="site-nav" aria-label="Primary navigation">
       <!-- Logo -->
+      <!-- Neural-Audit Animated Logo -->
       <a href="/" class="nav-logo" aria-label="TiltCheck — go to homepage">
-        <img src="/assets/logo/logocurrent.svg" alt="" width="32" height="32" aria-hidden="true">
-        <span class="nav-logo-text">TiltCheck</span>
+        <div class="logo-container" style="flex-direction: row; gap: 10px;">
+          <div class="scan-line" style="width: 40px; left: 0;"></div>
+          <svg class="neuro-shield" width="32" height="32" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+            <path class="circuit-path" d="M100 20 L160 50 L160 120 C160 160 100 180 100 180 C100 180 40 160 40 120 L40 50 L100 20" />
+            <path class="pulse-mark" d="M85 100 L95 110 L115 90" fill="none" stroke="var(--primary-mint)" stroke-width="12" stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+          <span class="nav-logo-text brand-text-glitch" style="margin: 0; font-size: 1.1rem; letter-spacing: 0.1em;">TILT<span style="color: var(--primary-mint); text-shadow: 0 0 10px rgba(34, 211, 166, 0.4);">CHECK</span></span>
+        </div>
       </a>
       <!-- Desktop Nav Links -->
       <div class="nav-links" role="list">
         <a href="/features.html#agent" class="nav-link" role="listitem">Degen Intelligence</a>
         <a href="/trust-scores.html" class="nav-link" role="listitem">Casino Trust</a>
         <a href="/features.html" class="nav-link" role="listitem">Features</a>
-        <a href="/bonuses.html" class="nav-link" role="listitem">Daily Bonuses</a>
-        <a href="/features.html#status" class="nav-link" role="listitem">Alpha/Beta</a>
+        <a href="/bonuses.html" class="nav-link" role="listitem">RTP Scanner</a>
       </div>
       <!-- CTA -->
       <div class="nav-cta">
-        <a href="https://discord.gg/s6NNfPHxMS" target="_blank" rel="noopener noreferrer" class="btn btn-secondary">
-          Join Discord
-          <span class="sr-only">(opens in a new tab)</span>
-        </a>
         <a href="/login.html" class="discord-login-btn btn btn-primary">Login</a>
       </div>
     </nav>
@@ -44,13 +49,17 @@
 
   <main id="main-content">
     <section class="hero-surface" aria-labelledby="hero-heading">
-        <div class="hero-content">
-          <h1 class="neon neon-main" id="hero-heading" data-text="HOUSE ALWAYS WINS?">HOUSE ALWAYS WINS?</h1>
-          <h2 class="neon neon-sub" data-text="FUCK THAT.">FUCK THAT.</h2>
-          <p class="hero-body">
-            Not anymore. We've built the tools you need to fight back. Let's be real: you're not going to quit. So why do responsible gaming tools treat you like you should? We've embraced the degen spirit and built a toolkit that actually helps you navigate the chaos of online gambling, so you can play longer, smarter, and protect your stack.
-          </p>
+      <div class="hero-content">
+        <h1 class="neon neon-main logo-pulse neon-hero-top" data-text="HOUSE ALWAYS WINS?">HOUSE ALWAYS WINS?</h1>
+        <h1 class="neon neon-main neon-hero-bottom" data-text="FUCK THAT.">FUCK THAT.</h1>
+        <p class="hero-body">
+          THE HOUSE WINS BECAUSE THEY OWN THE MATH AND YOU HAVE A DOPAMINE PROBLEM. TiltCheck is your browser-side audit layer and digital emergency brake. We don't guarantee you'll win; we just make sure you don't get cheated or liquidated by a bad session.
+        </p>
+        <div class="hero-actions">
+          <a href="/login.html" class="btn btn-primary btn-large">SECURE THE BAG</a>
+          <a href="#tools" class="btn btn-secondary btn-large">CHECK THE MATH</a>
         </div>
+      </div>
     </section>
 
     <!-- Suggestion 2: semantic <dl> for stats so screen readers associate values with labels -->
@@ -61,32 +70,93 @@
           <dd class="stat-value" id="stat-communities">--</dd>
         </div>
         <div>
-          <dt class="stat-label">24h Scans</dt>
+          <dt class="stat-label">24h Audits</dt>
           <dd class="stat-value" id="stat-scans">--</dd>
         </div>
         <div>
-          <dt class="stat-label">Threats Blocked</dt>
+          <dt class="stat-label">Scams Blocked</dt>
           <dd class="stat-value" id="stat-blocked">--</dd>
         </div>
       </dl>
-      <p class="stats-note">*A note on our stats: These numbers are real. We don't inflate stats for marketing bullshit.</p>
+      <div class="live-ticker-strip">
+        <div class="ticker-label">LIVE SIGNALS:</div>
+        <div id="live-ticker-feed" class="ticker-feed">
+          <span>Initializing connection to Tilt Engine...</span>
+        </div>
+      </div>
       <p class="stats-status"><span id="api-stats-status" aria-live="polite" aria-atomic="true"></span></p>
+    </section>
+
+    <!-- 3-Step Mini Section (User Request #4) -->
+    <section class="how-it-works-mini">
+      <div class="container">
+        <div class="mini-steps-header">
+          <h2>HOW WE STOP YOU</h2>
+          <p>// THE 3-STEP PROCESS TO NOT GOING TO ZERO</p>
+        </div>
+        <div class="deployment-steps">
+          <div class="step-card">
+            <div class="step-number">01</div>
+            <h3>INTEGRATION</h3>
+            <p>Install the extension. It’s read-only. We don’t touch your keys, we just watch the API calls.</p>
+          </div>
+          <div class="step-card">
+            <div class="step-number">02</div>
+            <h3>MONITORING</h3>
+            <p>The bot tracks your betting frequency and size. If the math starts looking like a mental breakdown, we flag it.</p>
+          </div>
+          <div class="step-card">
+            <div class="step-number">03</div>
+            <h3>MITIGATION</h3>
+            <p>When you hit your pre-set tilt limit, the UI locks. Your remaining balance is pushed to a vault. Go outside.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- THE VISION: NOW VS FUNDED -->
+    <section class="vision-grid">
+      <div class="container">
+        <div class="vision-header">
+          <h2 class="neon neon-sub" data-text="THE VISION: ESCALATING FRICTION">THE VISION: ESCALATING FRICTION</h2>
+          <p>// FROM SHOUTING AT YOU TO LITERALLY TAKING YOUR WALLET</p>
+        </div>
+        <div class="vision-comparison">
+          <div class="vision-column phase-now">
+            <div class="phase-badge">Phase 01: THE EXHAUSTED HAND-HOLDER (NOW)</div>
+            <h3>Browser-Side Interventions</h3>
+            <ul>
+              <li><strong>RNG Audit:</strong> We run the real-time math checks so you don't have to trust the dealer.</li>
+              <li><strong>Self-Custody Tipping:</strong> A P2P tipping protocol because we refuse to legally hold your funds.</li>
+              <li><strong>The Emergency Brake:</strong> We monitor your bad choices and forcibly freeze the browser before you go zero.</li>
+            </ul>
+          </div>
+          <div class="vision-column phase-future">
+            <div class="phase-badge badge-active">Phase 02: ENFORCED DISCIPLINE (FUNDED)</div>
+            <h3>The Real Profit Locker</h3>
+            <ul>
+              <li><strong>Logic-Based Unlocks:</strong> Your funds stay in the vault until your on-chain activity proves you aren't revenge-trading/betting. It’s a breathalyzer for your wallet.</li>
+              <li><strong>No-Cancel Withdrawals:</strong> Bypasses the 'Pending' state. Once you click withdraw, it’s gone from the casino. No 'one last spin' while you wait.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
     </section>
 
     <section id="tools" aria-labelledby="tools-heading">
       <div class="container">
         <div class="tools-header">
-          <h2 class="tools-title" id="tools-heading">The Full Degen Toolkit</h2>
+          <h2 class="tools-title neon neon-sub" id="tools-heading" data-text="The Full Degen Toolkit">The Full Degen Toolkit</h2>
           <p class="tools-subtitle">Battle-tested signals across Discord, web, and extension.</p>
         </div>
 
-        <!-- Suggestion 8: aria-hidden on decorative status dots -->
+        <!-- Suggestion 5: Scroll cue via fade edges + prev/next arrow buttons -->
         <div class="tools-legend" role="list" aria-label="Status legend">
           <span class="legend-item" role="listitem">
             <span class="legend-dot green" aria-hidden="true"></span>Live
           </span>
           <span class="legend-item" role="listitem">
-            <span class="legend-dot purple" aria-hidden="true"></span>Alpha/Beta
+            <span class="legend-dot purple" aria-hidden="true"></span>Still Cooking
           </span>
         </div>
 
@@ -96,69 +166,77 @@
 
           <div class="flex overflow-x-auto hide-scrollbar" id="tools-carousel" style="gap:1.5rem; padding-bottom:2rem; scroll-behavior:smooth;">
 
-            <!-- Suggestion 6: aria-labelledby on each card pointing to its h3 -->
-            <a href="/features.html#agent" class="tool-card" aria-labelledby="card-degen-intelligence">
+            <a href="/features.html#lockvault" class="tool-card featured-card" style="border-color: var(--primary-mint);">
               <div class="tool-card-body">
-                <h3 class="neon-tool-name" id="card-degen-intelligence">Degen Intelligence</h3>
-                <p class="tool-card-desc">Your personal on-chain analyst. Ask it anything about your gameplay in natural language via Discord DM.</p>
+                <span class="category-label">AUTO-VAULT</span>
+                <h3 class="neon-tool-name" id="card-wallet-lock">Auto-Vault</h3>
+                <p class="tool-card-desc">Move winnings to cold storage automatically. You can't bet what isn't in the hot wallet.</p>
               </div>
               <span class="badge-live">Live</span>
             </a>
 
-            <a href="/extension.html" class="tool-card" aria-labelledby="card-house-edge">
+            <a href="/extension.html" class="tool-card">
               <div class="tool-card-body">
-                <h3 class="neon-tool-name" id="card-house-edge">The House Edge</h3>
-                <p class="tool-card-desc">A real-time co-pilot that watches for fairness anomalies, detects tilt, and enables harm reduction tools like autovaulting.</p>
+                <span class="category-label">RNG AUDIT</span>
+                <h3 class="neon-tool-name">RNG Audit</h3>
+                <p class="tool-card-desc">We verify the casino's hashes against the expected probability. If the drift is real, we alert you.</p>
               </div>
               <span class="badge-live">Live</span>
             </a>
 
-            <a href="/features.html#lockvault" class="tool-card" aria-labelledby="card-wallet-lock">
+            <a href="/features.html#linkguard" class="tool-card">
               <div class="tool-card-body">
-                <h3 class="neon-tool-name" id="card-wallet-lock">Wallet Lock</h3>
-                <p class="tool-card-desc">Time-lock your funds so your tilted future-self can't touch them. The ultimate form of self-control.</p>
+                <span class="category-label">DOMAIN VERIFIER</span>
+                <h3 class="neon-tool-name">Domain Verifier</h3>
+                <p class="tool-card-desc">Stops you from connecting your wallet to a phishing clone. Simple as that.</p>
               </div>
               <span class="badge-live">Live</span>
             </a>
 
-            <a href="/tools/justthetip.html" class="tool-card" aria-labelledby="card-justthetip">
+            <!-- CATEGORY: REALITY CHECKS -->
+            <a href="/features.html#agent" class="tool-card featured-card" aria-labelledby="card-degen-intelligence">
               <div class="tool-card-body">
-                <h3 class="neon-tool-name" id="card-justthetip">JustTheTip</h3>
-                <p class="tool-card-desc">Secure, non-custodial Solana tipping, airdrops, and swaps directly in Discord.</p>
+                <span class="category-label">SESSION STATS</span>
+                <h3 class="neon-tool-name" id="card-degen-intelligence">Session Stats</h3>
+                <p class="tool-card-desc">No fluff. Just your PnL, your win rate, and how much you’ve "invested" in the house's bottom line.</p>
               </div>
               <span class="badge-live">Live</span>
             </a>
 
-            <a href="/tools/suslink.html" class="tool-card" aria-labelledby="card-linkcheck">
+            <a href="/tools/justthetip.html" class="tool-card">
               <div class="tool-card-body">
-                <h3 class="neon-tool-name" id="card-linkcheck">LinkCheck</h3>
-                <p class="tool-card-desc">AI-powered link scanning to detect scams and phishing redirects before you click.</p>
+                <span class="category-label">THE EDGE</span>
+                <h3 class="neon-tool-name">JustTheTip</h3>
+                <p class="tool-card-desc">A completely non-custodial tipping protocol because we legally and morally refuse to hold your funds. Do it on-chain yourself.</p>
+              </div>
+              <span class="badge-live">Live</span>
+            </a>
+
+            <a href="/tools/daad.html" class="tool-card">
+              <div class="tool-card-body">
+                <span class="category-label">THE ARENA</span>
+                <h3 class="neon-tool-name">Degens Against Decency</h3>
+                <p class="tool-card-desc">A multiplayer card game for the chronically online. Enter the floor, get insulted by the bot, win the bags.</p>
               </div>
               <span class="badge-live">Live</span>
             </a>
 
             <a href="/features.html#trust" class="tool-card" aria-labelledby="card-trust-engine">
               <div class="tool-card-body">
-                <h3 class="neon-tool-name" id="card-trust-engine">Trust Engine</h3>
-                <p class="tool-card-desc">Data-driven trust scores for casinos and users, based on real behavior, not paid reviews.</p>
-              </div>
-              <span class="badge-live">Live</span>
-            </a>
-
-            <a href="/tools/daad.html" class="tool-card" aria-labelledby="card-daad">
-              <div class="tool-card-body">
-                <h3 class="neon-tool-name" id="card-daad">DA&amp;D</h3>
-                <p class="tool-card-desc">Outrageous multiplayer card game playable as a Discord Activity.</p>
+                <span class="category-label">VERIFY THE SITE</span>
+                <h3 class="neon-tool-name" id="card-trust-engine">SCAN FOR SCAMS</h3>
+                <p class="tool-card-desc">The Trust Engine. We tell you directly to your face if the casino is a known scam so you stop depositing blindly.</p>
               </div>
               <span class="badge-live">Live</span>
             </a>
 
             <a href="/tools/collectclock.html" class="tool-card" aria-labelledby="card-bonuscheck">
               <div class="tool-card-body">
-                <h3 class="neon-tool-name" id="card-bonuscheck">BonusCheck</h3>
-                <p class="tool-card-desc">Bonus drop tracking with nerf detection and window prediction.</p>
+                <span class="category-label">HOUSE SCANNER</span>
+                <h3 class="neon-tool-name" id="card-bonuscheck">HOUSE-EDGE SCANNER</h3>
+                <p class="tool-card-desc">We do the math on the house's latest "reload bonus" to show you exactly how badly they are shadow-nerfing the odds.</p>
               </div>
-              <span class="badge-beta">Beta</span>
+              <span class="badge-beta">Still Cooking</span>
             </a>
 
           </div>
@@ -171,79 +249,12 @@
 
       </div>
     </section>
+
   </main>
 
-  <!-- Suggestion 7: Responsive grid footer -->
-  <footer class="site-footer" aria-label="Site footer">
-    <div class="footer-columns">
-      <div class="footer-col">
-        <h4>Product</h4>
-        <ul>
-          <li><a href="/features.html">Features</a></li>
-          <li><a href="/how-it-works.html">How It Works</a></li>
-          <li><a href="/trust-explained.html">Trust System</a></li>
-          <li><a href="/faq.html">FAQ</a></li>
-          <li><a href="/extension.html">Chrome Extension</a></li>
-          <li><a href="/beta.html">Beta Program</a></li>
-        </ul>
-      </div>
-      <div class="footer-col">
-        <h4>Tools</h4>
-        <ul>
-          <li><a href="/tools/justthetip.html">JustTheTip</a></li>
-          <li><a href="/tools/suslink.html">LinkCheck</a></li>
-          <li><a href="/tools/daad.html">DA&amp;D Game</a></li>
-          <li><a href="/tools/collectclock.html">BonusCheck</a></li>
-          <li><a href="/trust-api.html">Trust API</a></li>
-          <li><a href="/casino-reviews.html">Casino Reviews</a></li>
-        </ul>
-      </div>
-      <div class="footer-col">
-        <h4>Company</h4>
-        <ul>
-          <li><a href="/about.html">About</a></li>
-          <li>
-            <a href="https://github.com/jmenichole/tiltcheck-monorepo" target="_blank" rel="noopener noreferrer">
-              GitHub<span class="sr-only"> (opens in a new tab)</span>
-            </a>
-          </li>
-          <li>
-            <a href="https://discord.gg/s6NNfPHxMS" target="_blank" rel="noopener noreferrer">
-              Discord<span class="sr-only"> (opens in a new tab)</span>
-            </a>
-          </li>
-          <li><a href="/contact.html">Contact</a></li>
-          <li><a href="/press-kit.html">Press Kit</a></li>
-        </ul>
-      </div>
-      <div class="footer-col">
-        <h4>Resources</h4>
-        <ul>
-          <li><a href="/getting-started.html">Getting Started</a></li>
-          <li><a href="/tutorials.html">Tutorials</a></li>
-          <li><a href="/glossary.html">Glossary</a></li>
-          <li><a href="/help.html">Help Center</a></li>
-          <li><a href="/scam-reports.html">Scam Reports</a></li>
-        </ul>
-      </div>
-      <div class="footer-col">
-        <h4>Legal</h4>
-        <ul>
-          <li><a href="/privacy.html">Privacy Policy</a></li>
-          <li><a href="/terms.html">Terms of Service</a></li>
-          <li><a href="/cookie-policy.html">Cookie Policy</a></li>
-          <li><a href="/responsible-gambling.html">Responsible Gambling</a></li>
-          <li><a href="/compliance.html">Compliance</a></li>
-        </ul>
-      </div>
-    </div>
-    <div class="footer-bottom">
-      <p class="footer-tagline">Made for degens, by degens.</p>
-      <p class="footer-copyright">TiltCheck Ecosystem &copy; 2024&ndash;2026</p>
-    </div>
-  </footer>
-
+  <div id="shared-footer"></div>
   <script type="module" src="/scripts/index-stats.js"></script>
+  <script type="module" src="/scripts/live-ticker.js"></script>
   <script type="module" src="/scripts/carousel.js"></script>
   <script type="module" src="/scripts/auth.js"></script>
   </div>

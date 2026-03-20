@@ -41,7 +41,8 @@ if (isExcludedDomain) {
 import { CasinoDataExtractor, AnalyzerClient, SpinEvent } from './extractor.js';
 import { TiltDetector } from './tilt-detector.js';
 import { CasinoLicenseVerifier } from './license-verifier.js';
-import './sidebar.js';
+import { initSidebar } from './sidebar/index.js';
+import { SidebarUI } from './sidebar/types.js';
 import { Analyzer } from './analyzer.js';
 import { WalletBridge } from './wallet-bridge.js';
 import { SolanaProvider } from '@tiltcheck/utils';
@@ -64,6 +65,7 @@ let solana: SolanaProvider | null = null;
 let bridge: WalletBridge | null = null;
 let fairness: FairnessService | null = null;
 let tiltMonitoringInterval: ReturnType<typeof setInterval> | null = null;
+let sidebar: SidebarUI | null = null;
 const FULL_SIDEBAR_WIDTH = 340;
 const MINIMIZED_SIDEBAR_WIDTH = 40;
 const SIDEBAR_VISIBILITY_KEY = 'tiltcheck_sidebar_visible';
@@ -76,7 +78,7 @@ function refreshLicenseVerification() {
     licenseVerifier = new CasinoLicenseVerifier();
   }
   casinoVerification = licenseVerifier.verifyCasino();
-  (window as any).TiltCheckSidebar?.updateLicense(casinoVerification);
+  sidebar?.updateLicense(casinoVerification);
   return casinoVerification;
 }
 
@@ -120,13 +122,13 @@ async function restoreSidebarVisibility(defaultVisible: boolean) {
 }
 
 function toggleSidebarVisibility(): boolean {
-  const sidebar = document.getElementById('tiltcheck-sidebar');
-  if (!sidebar) {
-    const created = (window as any).TiltCheckSidebar?.create();
-    if (created) persistSidebarVisibility(true);
-    return !!created;
+  const sidebarEl = document.getElementById('tiltcheck-sidebar');
+  if (!sidebarEl) {
+    sidebar = initSidebar();
+    if (sidebar) persistSidebarVisibility(true);
+    return !!sidebar;
   }
-  const currentlyVisible = sidebar.style.display !== 'none';
+  const currentlyVisible = sidebarEl.style.display !== 'none';
   const visible = setSidebarVisibility(!currentlyVisible);
   persistSidebarVisibility(visible);
   return visible;
@@ -320,7 +322,7 @@ function initialize() {
   console.log('[TiltCheck] Initializing on:', window.location.hostname);
 
   // Create sidebar UI
-  const sidebar = (window as any).TiltCheckSidebar?.create();
+  sidebar = initSidebar();
   // Default hidden on TiltCheck-owned pages, visible on supported casino pages.
   const defaultVisible = !isDomain(hostname, 'tiltcheck.me');
   void restoreSidebarVisibility(defaultVisible);
@@ -391,7 +393,7 @@ async function startMonitoring() {
   console.log('[TiltCheck] Starting monitoring...');
 
   // Update UI
-  (window as any).TiltCheckSidebar?.updateGuardian(true);
+  sidebar?.updateGuardian(true);
   isMonitoring = true;
 
   // Get initial balance
@@ -414,7 +416,7 @@ async function startMonitoring() {
   client = new AnalyzerClient(ANALYZER_WS_URL, (error) => {
     // Surface post-open disconnect/reconnect failures to UI and logs.
     console.warn('[TiltGuard] Analyzer connection issue:', error);
-    (window as any).TiltCheckSidebar?.updateGuardian(false);
+    sidebar?.updateGuardian(false);
     window.dispatchEvent(
       new CustomEvent('tg-status-update', {
         detail: { message: 'Analyzer connection dropped. Reconnecting...', type: 'warning' }
@@ -481,7 +483,7 @@ function stopMonitoring() {
   }
 
   isMonitoring = false;
-  (window as any).TiltCheckSidebar?.updateGuardian(false);
+  sidebar?.updateGuardian(false);
 
   console.log('[TiltGuard] Monitoring stopped');
 }
@@ -517,7 +519,7 @@ function handleSpinEvent(spinData: SpinEvent, session: { sessionId: string, user
     const indicators = tiltSigns.map(sign => sign.description);
 
     // Update sidebar tilt score
-    (window as any).TiltCheckSidebar?.updateTilt(tiltRisk, indicators);
+    sidebar?.updateTilt(tiltRisk, indicators);
 
     const interventions = tiltDetector.generateInterventions();
     if (interventions.length > 0) {
@@ -541,8 +543,10 @@ function handleSpinEvent(spinData: SpinEvent, session: { sessionId: string, user
     });
   }
 
-  // Check for Zero Balance Intervention
-  checkZeroBalance(spinData.balance);
+  // Check for Bag Fumble or Zero Balance Intervention
+  if (tiltDetector) {
+    checkBagFumble(spinData.balance, tiltDetector.getSessionSummary().initialBalance);
+  }
 
   // Auto-increment Nonce for Fairness Verifier
   const currentNonce = parseInt(localStorage.getItem('tiltcheck_nonce') || '0');
@@ -560,27 +564,58 @@ function handleSpinEvent(spinData: SpinEvent, session: { sessionId: string, user
 }
 
 /**
- * Check if balance hit zero and suggest surveys
+ * Monitor Bag Fumbling (Buddy System)
+ * Triggers if user was up significantly and is now blowing their bag, or if they zero out completely.
  */
-let zeroBalanceTriggered = false;
-function checkZeroBalance(balance: number | null) {
-  if (balance === null) return;
+let peakBalance = 0;
+let zeroTriggered = false;
+let fumbleStrikes = 0;
 
-  // If balance is 0 (or very close to it) and we haven't triggered yet
-  if (balance < 0.05 && !zeroBalanceTriggered) {
-    zeroBalanceTriggered = true;
+function checkBagFumble(balance: number | null, initialBalance: number) {
+  if (balance === null || initialBalance <= 0) return;
 
-    // Show intervention
-    showInteractiveNotification(
-      "📉 Balance hit zero. Want to earn $5-10 quickly with a survey?",
-      [
-        { text: "Open Vault", action: () => { openVaultInterface(0); } },
-        { text: "No thanks", action: () => { } }
-      ]
-    );
-  } else if (balance > 1.0) {
-    // Reset trigger if they deposit or win
-    zeroBalanceTriggered = false;
+  if (balance > peakBalance) {
+    peakBalance = balance;
+  }
+
+  const hadBigBag = peakBalance >= initialBalance * 1.5;
+  const isBlowingIt = hadBigBag && balance <= (initialBalance * 1.1) && balance < (peakBalance * 0.5);
+  const isZero = balance < 0.05;
+
+  if ((isBlowingIt || isZero) && !zeroTriggered) {
+    zeroTriggered = true;
+    fumbleStrikes++;
+
+    if (fumbleStrikes === 1) {
+      // Strike 1
+      showInteractiveNotification(
+        isZero ? 
+        "🛑 0 BALANCE DETECTED. Hey, stop it. You're gonna be mad if you deposit again. Close the tab and go touch grass." :
+        "📉 BAG FUMBLE DETECTED. You were up and now you're giving it all back. Stop spinning before you ruin your week. Go touch grass.",
+        [
+          { text: "Close Tab", action: () => { window.close(); } },
+          { text: "I Won't Deposit (Lie)", action: () => { } }
+        ]
+      );
+    } else {
+      // Strike 2+ (Continued zeroing out / fumbling)
+      showInteractiveNotification(
+        "🚨 REPEATED FUMBLES. You obviously aren't going to stop yourself, so I just pinged the Discord. Get in the 'degen-accountability' VC for a lifeline before you do something stupid.",
+        [
+          { text: "Get Yelled At (Join VC)", action: () => { window.open('https://discord.gg/s6NNfPHxMS', '_blank'); } },
+          { text: "Ignore Me", action: () => { } }
+        ]
+      );
+      
+      // Simulate ping to Discord
+      sidebar?.notifyBuddy('intervention', {
+        type: 'phone_friend_discord',
+        data: { message: 'Discord ping sent to Degen Accountability channel.' }
+      });
+    }
+  } else if (balance >= initialBalance * 1.2 && !isBlowingIt) {
+    // Reset trigger if they actually recover (Strikes persist)
+    zeroTriggered = false;
   }
 }
 
@@ -599,12 +634,12 @@ function startTiltMonitoring() {
     const indicators = tiltSigns.map(sign => sign.description);
 
     // Update sidebar
-    (window as any).TiltCheckSidebar?.updateTilt(tiltRisk, indicators);
+    sidebar?.updateTilt(tiltRisk, indicators);
 
     // Check for critical tilt
     if (tiltRisk >= 80) {
       triggerEmergencyStop('Critical tilt detected!');
-      (window as any).TiltCheckSidebar?.notifyBuddy('critical_tilt', { risk: tiltRisk });
+      sidebar?.notifyBuddy('critical_tilt', { risk: tiltRisk });
     }
   }, 5000); // Check every 5 seconds
 }
@@ -643,7 +678,7 @@ function handleInterventions(interventions: any[]) {
     }
 
     // Notify Buddy
-    (window as any).TiltCheckSidebar?.notifyBuddy('intervention', {
+    sidebar?.notifyBuddy('intervention', {
       type: intervention.type,
       data: intervention.data
     });
@@ -1265,9 +1300,9 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
     }
 
     case 'open_sidebar': {
-      const sidebar = document.getElementById('tiltcheck-sidebar');
-      if (!sidebar) {
-        (window as any).TiltCheckSidebar?.create();
+      const sidebarEl = document.getElementById('tiltcheck-sidebar');
+      if (!sidebarEl) {
+        sidebar = initSidebar();
       }
       const visible = setSidebarVisibility(true);
       persistSidebarVisibility(true);

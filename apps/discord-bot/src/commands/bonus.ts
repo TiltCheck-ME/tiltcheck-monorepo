@@ -6,7 +6,7 @@ import type { Command } from '../types.js';
 export const bonus: Command = {
   data: new SlashCommandBuilder()
     .setName('bonus')
-    .setDescription('Track your bonus timers so you don't miss a single f***ing dollar.')
+    .setDescription(`Track your bonus timers so you don't miss a single f***ing dollar.`)
     .addSubcommand(sub =>
       sub
         .setName('list')
@@ -117,7 +117,7 @@ async function handleList(interaction: ChatInputCommandInteraction) {
   if (casinos.length > 24) {
     embed.setFooter({ text: `...and ${casinos.length - 24} more. Yeah, we're tracking ALL that sh**. Use /bonus claim for the full menu.` });
   } else {
-    embed.setFooter({ text: 'Maximize your degenerate stack. Don't miss a single one.' });
+    embed.setFooter({ text: `Maximize your degenerate stack. Don't miss a single one.` });
   }
 
   await interaction.reply({ embeds: [embed] });
@@ -215,7 +215,7 @@ async function handleClaim(interaction: ChatInputCommandInteraction) {
         { name: 'Claimed At', value: `<t:${Math.floor(claim.claimedAt / 1000)}:f>`, inline: true },
         { name: 'Next Eligible', value: `<t:${Math.floor(claim.nextEligibleAt / 1000)}:R>`, inline: true },
       )
-      .setFooter({ text: 'We'll hit you up when it's ready again. Unless you turned off notifications, you degenerate.' });
+      .setFooter({ text: `We'll hit you up when it's ready again. Unless you turned off notifications, you degenerate.` });
 
     await interaction.reply({ embeds: [embed] });
   } catch (error: any) {
@@ -237,7 +237,7 @@ async function handleTimers(interaction: ChatInputCommandInteraction) {
   const embed = new EmbedBuilder()
     .setColor(0x0099FF)
     .setTitle('Your Reload Countdown')
-    .setDescription('Here's when you can next get your hands on some sweet, sweet bonus action:')
+    .setDescription(`Here's when you can next get your hands on some sweet, sweet bonus action:`)
 
   timers.forEach(t => {
     const status = t.isReady ? '**Ready!**' : `<t:${Math.floor(t.nextEligibleAt / 1000)}:R>`;

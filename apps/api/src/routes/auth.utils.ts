@@ -3,7 +3,6 @@
  * Utility functions for the authentication routes.
  */
 
-import type { Request } from 'express';
 import type { DiscordOAuthConfig } from '@tiltcheck/auth';
 
 export const DEFAULT_DISCORD_CLIENT_ID = '1445916179163250860';

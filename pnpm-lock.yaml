@@ -107,9 +107,6 @@ importers:
       '@tiltcheck/config':
         specifier: workspace:*
         version: link:../../packages/config
-      '@tiltcheck/core':
-        specifier: workspace:*
-        version: link:../chrome-extension
       '@tiltcheck/db':
         specifier: workspace:*
         version: link:../../packages/db
@@ -125,6 +122,9 @@ importers:
       '@tiltcheck/suslink':
         specifier: workspace:*
         version: link:../../modules/suslink
+      '@tiltcheck/tiltcheck-core':
+        specifier: workspace:*
+        version: link:../../modules/tiltcheck-core
       '@tiltcheck/trust-engines':
         specifier: workspace:*
         version: link:../../packages/trust-engines
@@ -299,9 +299,6 @@ importers:
       '@tiltcheck/config':
         specifier: workspace:*
         version: link:../../packages/config
-      '@tiltcheck/core':
-        specifier: workspace:*
-        version: link:../chrome-extension
       '@tiltcheck/dad':
         specifier: workspace:*
         version: link:../../modules/dad
@@ -329,6 +326,9 @@ importers:
       '@tiltcheck/suslink':
         specifier: workspace:*
         version: link:../../modules/suslink
+      '@tiltcheck/tiltcheck-core':
+        specifier: workspace:*
+        version: link:../../modules/tiltcheck-core
       '@tiltcheck/triviadrops':
         specifier: workspace:*
         version: link:../../modules/triviadrops

@@ -5,11 +5,11 @@ import type { Command } from '../types.js';
 export const buddy: Command = {
     data: new SlashCommandBuilder()
         .setName('buddy')
-        .setDescription('Get an accountability buddy to save you from yourself (or let you know when you're being a degenerate)')
+        .setDescription(`Get an accountability buddy to save you from yourself.`)
         .addSubcommand(sub =>
             sub
                 .setName('add')
-                .setDescription('Hook up with a buddy to let them know when you're about to lose your sh**')
+                .setDescription(`Hook up with a buddy to keep you in check.`)
                 .addUserOption(opt =>
                     opt
                         .setName('user')
@@ -20,7 +20,7 @@ export const buddy: Command = {
         .addSubcommand(sub =>
             sub
                 .setName('remove')
-                .setDescription('Ditch a buddy. They probably couldn't save you anyway.')
+                .setDescription(`Ditch a buddy. They probably couldn't save you anyway.`)
                 .addUserOption(opt =>
                     opt
                         .setName('user')
@@ -31,12 +31,12 @@ export const buddy: Command = {
         .addSubcommand(sub =>
             sub
                 .setName('list')
-                .setDescription('See who's got your back (or who you're stuck with).')
+                .setDescription(`See who's got your back (or who you're stuck with).`)
         )
         .addSubcommand(sub =>
             sub
                 .setName('test')
-                .setDescription('Test if your buddy's actually watching. (It's a simulation, don't panic.)')
+                .setDescription(`Test if your buddy's actually watching. (It's a simulation, don't panic.)`)
                 .addUserOption(opt =>
                     opt
                         .setName('buddy')
@@ -52,13 +52,13 @@ export const buddy: Command = {
             if (subcommand === 'add') {
                 const targetUser = interaction.options.getUser('user')!;
 
-                if (targetUser.id === interaction.user.id) {
-                    await interaction.reply({ content: 'Seriously? You can't be your own damn buddy. Pick someone else.', ephemeral: true });
+        if (targetUser.id === interaction.user.id) {
+                    await interaction.reply({ content: `Seriously? You can't be your own damn buddy. Pick someone else.`, ephemeral: true });
                     return;
                 }
 
                 if (targetUser.bot) {
-                    await interaction.reply({ content: 'Bots are for trading, not saving your ass. Pick a human.', ephemeral: true });
+                    await interaction.reply({ content: `Bots are for trading, not saving your ass. Pick a human.`, ephemeral: true });
                     return;
                 }
 
@@ -81,8 +81,8 @@ export const buddy: Command = {
             } else if (subcommand === 'list') {
                 const embed = new EmbedBuilder()
                     .setColor(0x00CED1)
-                    .setTitle('Who's Got Your Back?')
-                    .setDescription('You're flying solo, degen. Maybe find a friend before you lose your sh**.')
+                    .setTitle(`Who's Got Your Back?`)
+                    .setDescription(`You're flying solo, degen. Maybe find a friend before you lose your sh**.`)
                     .setFooter({ text: 'Use /buddy add to rope in a poor soul.' });
 
                 await interaction.reply({ embeds: [embed], ephemeral: true });
@@ -97,7 +97,7 @@ export const buddy: Command = {
             }
         } catch (error) {
             console.error('Error executing /buddy command:', error);
-            await interaction.reply({ content: 'Well, f***. Something went wrong processing that buddy request. Try again, I guess?', ephemeral: true });
+            await interaction.reply({ content: `Well, f***. Something went wrong processing that buddy request. Try again, I guess?`, ephemeral: true });
         }
     },
 };

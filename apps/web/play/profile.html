@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile - TiltCheck</title>
+    <link rel="stylesheet" href="/styles/theme.css">
+    <link rel="stylesheet" href="/styles/main.css">
+    <style>
+        .profile-container {
+            max-width: 800px;
+            margin: 4rem auto;
+            padding: 2rem;
+        }
+        .user-header {
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+            margin-bottom: 3rem;
+            padding-bottom: 2rem;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        .user-avatar {
+            width: 96px;
+            height: 96px;
+            border-radius: 50%;
+            background: var(--primary-mint);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            color: #111;
+        }
+    </style>
+</head>
+<body class="degen-background text-white">
+    <div id="shared-nav"></div>
+    
+    <main class="profile-container">
+        <div class="user-header">
+            <div class="user-avatar" id="avatar-placeholder">?</div>
+            <div>
+                <h1 id="username-display">Loading profile...</h1>
+                <p class="text-secondary">THE GUARDIAN IS WATCHING</p>
+            </div>
+        </div>
+
+        <div class="glass-panel" style="padding: 2rem;">
+            <h3>YOUR RECENT ALERTS</h3>
+            <p style="opacity: 0.6;">No activity logged yet. Time to secure some bags.</p>
+        </div>
+    </main>
+
+    <div id="shared-footer"></div>
+    <script type="module" src="/scripts/components-loader.js"></script>
+    <script type="module">
+        import { TiltCheckAuth } from '/scripts/auth.js';
+        
+        document.addEventListener('DOMContentLoaded', async () => {
+            const auth = new TiltCheckAuth();
+            await auth.init();
+            
+            const user = auth.getUser();
+            if (user) {
+                document.getElementById('username-display').textContent = user.username;
+                if (user.avatar) {
+                    const avatarImg = document.createElement('img');
+                    avatarImg.src = `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png`;
+                    avatarImg.style.width = '100%';
+                    avatarImg.style.height = '100%';
+                    avatarImg.style.borderRadius = '50%';
+                    const placeholder = document.getElementById('avatar-placeholder');
+                    placeholder.innerHTML = '';
+                    placeholder.appendChild(avatarImg);
+                }
+            } else {
+                // Not logged in? Go back to login
+                // window.location.href = '/login.html';
+            }
+        });
+    </script>
+</body>
+</html>

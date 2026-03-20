@@ -11,7 +11,9 @@ import {
   getTipsBySender,
   getTipsByRecipient
 } from '@tiltcheck/db';
+import { DatabaseClient } from '@tiltcheck/database';
 import { verifySolanaSignature } from '@tiltcheck/auth';
+import { CreditService } from './credits.js';
 import type { 
   VerifyTipParams, 
   CreateTipParams, 
@@ -132,6 +134,22 @@ export async function completeTipTransaction(
 }
 
 /**
+ * Handle pending tips for a user after they link a wallet
+ */
+export async function processPendingTips(discordId: string): Promise<void> {
+  const result = await getTipsByRecipient(discordId, { limit: 100 });
+  const tips = result.rows.filter(t => t.status === 'pending');
+  if (tips.length === 0) return;
+
+  const recipient = await findUserByDiscordId(discordId);
+  if (!recipient?.wallet_address) return;
+
+  for (const tip of tips) {
+    // Logic for auto-settling or notifying
+  }
+}
+
+/**
  * Get tip details
  */
 export async function getTipDetails(tipId: string): Promise<TipRecord | null> {
@@ -185,4 +203,20 @@ export async function getTransactionHistory(discordId: string): Promise<any[]> {
     signature: tip.tx_signature,
     timestamp: tip.completed_at?.toISOString() || tip.created_at.toISOString()
   }));
+}
+
+/**
+ * TippingService - Unified Service
+ */
+export class TippingService {
+  public credits: CreditService;
+  private db: DatabaseClient;
+
+  constructor(db: DatabaseClient) {
+    this.db = db;
+    this.credits = new CreditService(db);
+  }
+
+  // Core non-custodial methods wrap the existing functions if needed,
+  // or we can just expose the functions and the credit service separately.
 }

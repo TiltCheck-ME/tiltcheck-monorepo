@@ -55,8 +55,8 @@ export function mapAuthUserToDiscordUser(authUser: AuthUser): DiscordUser {
 }
 
 // Game types
-export type GameType = 'dad' | 'poker';
-export type GameStatus = 'waiting' | 'active' | 'completed';
+export type GameType = 'dad' | 'poker' | 'trivia';
+export type GameStatus = 'waiting' | 'active' | 'completed' | 'scheduled';
 export type Platform = 'web' | 'discord';
 
 export interface GameLobbyInfo {
@@ -70,6 +70,7 @@ export interface GameLobbyInfo {
   maxPlayers: number;
   isPrivate: boolean;
   createdAt: number;
+  startTime?: number; // Scheduled start time for Trivia
 }
 
 export interface CreateGameRequest {
@@ -88,6 +89,10 @@ export interface ClientToServerEvents {
   'leave-game': () => void;
   'game-action': (action: any) => void;
   'chat-message': (message: string) => void;
+  // Trivia specific
+  'submit-trivia-answer': (data: { questionId: string; answer: string; timestamp: number }) => void;
+  'buy-back': (data: { gameId: string }) => void;
+  'request-ape-in': (data: { gameId: string; questionId: string }) => void;
 }
 
 export interface ServerToClientEvents {
@@ -98,6 +103,10 @@ export interface ServerToClientEvents {
   'chat-message': (data: { userId: string; username: string; message: string; timestamp: number }) => void;
   'player-joined': (data: { userId: string; username: string }) => void;
   'player-left': (data: { userId: string }) => void;
+  // Trivia specific
+  'trivia-round-start': (data: { question: any; roundNumber: number; totalRounds: number; endsAt: number }) => void;
+  'trivia-round-reveal': (data: { questionId: string; correctChoice: string; explanation?: string; stats: any }) => void;
+  'trivia-ape-in-result': (data: { questionId: string; distribution: Record<string, number> }) => void;
 }
 
 // Stats types

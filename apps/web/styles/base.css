@@ -12,9 +12,10 @@
   --color-surface-1: #151920;
   --color-surface-2: #1A1F24;
   --color-border: #1F2937;
-  --color-accent: #00FFC6;
-  --color-accent-alt: #8B5CF6;
-  --color-danger: #FF5252;
+    --color-accent: #00FFC6;
+    --primary-mint: #22d3a6;
+    --color-accent-alt: #8B5CF6;
+    --color-danger: #FF5252;
   --color-text: #ffffff;
   --color-text-secondary: #B8C4CE;
   --color-text-muted: #6B7280;
@@ -101,6 +102,35 @@ header nav a:focus-visible {
 .gauge-ring svg { width:100%; height:100%; }
 .gauge-bar { width:100%; height:14px; background: var(--color-surface-1); border-radius: var(--radius-sm); overflow:hidden; }
 .gauge-bar-fill { height:100%; background: var(--color-accent); width:0; transition:width 0.6s ease; }
+
+/* Vibe-Check Ticker */
+.vibe-ticker-wrapper {
+  overflow: hidden;
+  white-space: nowrap;
+  background: var(--color-surface-1);
+  border-top: 1px solid var(--color-border);
+  border-bottom: 1px solid var(--color-border);
+  padding: 10px 0;
+  margin-bottom: var(--space-5);
+  width: 100%;
+}
+.vibe-ticker {
+  display: inline-block;
+  padding-left: 100%;
+  animation: vibe-scroll 25s linear infinite;
+}
+.vibe-item {
+  display: inline-block;
+  color: var(--color-text-secondary);
+  font-family: var(--font-display);
+  font-size: 0.85rem;
+  letter-spacing: 0.05em;
+  margin-right: 4rem;
+}
+@keyframes vibe-scroll {
+  0%   { transform: translate3d(0, 0, 0); }
+  100% { transform: translate3d(-100%, 0, 0); }
+}
 
 /* Footer */
 footer { background: var(--color-bg); padding: var(--space-6) var(--space-4); text-align:center; border-top:1px solid var(--color-border); }

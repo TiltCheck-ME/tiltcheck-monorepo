@@ -14,23 +14,23 @@ export class OnboardingManager {
   private steps: OnboardingStep[] = [
     {
       targetId: 'site-mapper-btn',
-      title: 'Site Mapper',
-      body: 'Train the Guardian on any custom casino by mapping its deposit and withdrawal pages.'
+      title: 'AUDIT PROTOCOL SETUP',
+      body: 'Train the alpha on any house entry point to monitor shadow-nerfs and manipulation signals.'
     },
     {
       targetId: 'fairness-verifier-btn',
-      title: 'Fairness Verifier',
-      body: 'Verify real-time spin data against official RTPs. Red signals mean high-risk volatility.'
+      title: 'RNG DRIFT SNIFFER',
+      body: 'Verify real-time spin data against official RTPs. Put the house on blast if they nerf your run.'
     },
     {
       targetId: 'vault-btn',
-      title: 'Digital Vault',
-      body: 'Lock your Solana tokens or Discord sessions behind a cool-down timer to prevent impulsive play.'
+      title: 'PROFIT LOCKER',
+      body: 'Force-lock the bag before paper hands take over. Stop the 3 AM recovery-farming before it starts.'
     },
     {
       targetId: 'buddy-mirror-btn',
-      title: 'Buddy Mirror',
-      body: 'Connect an accountability partner who gets notified if you hit a danger zone.'
+      title: 'LIQUIDITY GUARDIAN',
+      body: 'Connect an alpha peer to watch your floor and nuke impulsive entries in the arena.'
     }
   ];
 

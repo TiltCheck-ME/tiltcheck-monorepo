@@ -46,12 +46,12 @@ export class SessionManager {
       : 0;
 
     if (betsEl) betsEl.textContent = this.sessionStats.totalBets.toString();
-    if (wageredEl) wageredEl.textContent = \`$\${this.sessionStats.totalWagered.toFixed(2)}\`;
+    if (wageredEl) wageredEl.textContent = `$${this.sessionStats.totalWagered.toFixed(2)}`;
     if (profitEl) {
-      profitEl.textContent = \`\${profit >= 0 ? '+' : ''}$\${profit.toFixed(2)}\`;
+      profitEl.textContent = `${profit >= 0 ? '+' : ''}$${profit.toFixed(2)}`;
       profitEl.style.color = profit >= 0 ? '#10b981' : '#ef4444';
     }
-    if (rtpEl) rtpEl.textContent = \`\${rtp.toFixed(1)}%\`;
+    if (rtpEl) rtpEl.textContent = `${rtp.toFixed(1)}%`;
 
     this.updateDuration();
   }
@@ -62,7 +62,7 @@ export class SessionManager {
     const diff = Math.floor((Date.now() - this.sessionStats.startTime) / 1000);
     const mins = Math.floor(diff / 60);
     const secs = diff % 60;
-    durationEl.textContent = \`\${mins}:\${secs < 10 ? '0' : ''}\${secs}\`;
+    durationEl.textContent = `${mins}:${secs < 10 ? '0' : ''}${secs}`;
   }
 
   public drawPnlGraph() {
