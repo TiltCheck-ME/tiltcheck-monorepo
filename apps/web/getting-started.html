@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <!--
   Â© 2024â€“2025 TiltCheck Ecosystem. All Rights Reserved.
   Created by jmenichole (https://github.com/jmenichole)
@@ -25,20 +25,17 @@
     .gs-hero {
       position: relative;
       overflow: hidden;
-      background:
-        radial-gradient(circle at 18% -12%, rgba(79, 156, 251, 0.2), transparent 48%),
-        radial-gradient(circle at 82% 0%, rgba(0, 212, 170, 0.16), transparent 50%),
-        linear-gradient(180deg, #0d1117 0%, #0b111a 78%, #0a0f17 100%);
-      padding: clamp(3.5rem, 6.5vw, 5.5rem) var(--container-padding);
+      padding: clamp(6.5rem, 8vw, 8.5rem) var(--container-padding) 4.5rem;
       text-align: center;
-      border-bottom: 1px solid rgba(79, 156, 251, 0.2);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.03);
     }
     .gs-hero::before {
       content: "";
       position: absolute;
       inset: 0;
-      background: url("/assets/logo/logocurrent.svg") center 12% / 520px no-repeat;
-      opacity: 0.035;
+      background: url("/assets/logo/logo-brain.png") center 20% / 400px no-repeat;
+      filter: drop-shadow(0 0 40px rgba(34, 211, 166, 0.15));
+      opacity: 0.08;
       pointer-events: none;
     }
     .gs-hero > .container {
@@ -86,16 +83,18 @@
       display: flex;
       gap: var(--space-xl);
       align-items: flex-start;
-      padding: var(--space-xl);
-      background: linear-gradient(165deg, rgba(22, 27, 34, 0.74), rgba(15, 20, 29, 0.9));
-      border: 1px solid rgba(79, 156, 251, 0.18);
-      border-radius: 1rem;
-      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
-      transition: border-color var(--transition-base), transform var(--transition-fast);
+      padding: 3rem;
+      background: rgba(14, 20, 27, 0.4);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      border-radius: 1.25rem;
+      transition: all 0.3s cubic-bezier(0.23, 1, 0.32, 1);
     }
     .gs-step:hover {
-      border-color: rgba(79, 156, 251, 0.4);
-      transform: translateY(-2px);
+      border-color: rgba(34, 211, 166, 0.3);
+      transform: translateY(-4px);
+      background: rgba(14, 20, 27, 0.5);
     }
     .gs-step-num {
       width: 44px;

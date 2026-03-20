@@ -13,23 +13,23 @@
 
 :root {
   /* === Color Palette === */
-  /* Primary brand colors - Neon accents */
-  --color-primary: #22d3a6; /* Refined emerald-cyan */
-  --color-primary-dark: #0f9f7f;
-  --color-primary-light: #5be7c2;
+  /* Primary brand colors - Refined Emerald (Less saturated) */
+  --color-primary: #17c3b2; 
+  --color-primary-dark: #129d8f;
+  --color-primary-light: #48d5c6;
   
   /* Secondary accents (brand: purple + green) */
   --color-secondary: #8b5cf6; /* Core purple accent */
   --color-accent: #d946ef; /* Supporting magenta accent */
   --color-gold: #ffd700; /* Gold highlight */
   
-  /* Backgrounds - Dark base */
-  --bg-primary: #0f1218; /* Deep charcoal */
-  --bg-secondary: #141922; /* Elevated canvas */
-  --bg-tertiary: #1b2230; /* Mid-level surface */
-  --bg-card: #1f2837; /* Card surface */
-  --bg-elevated: #1A1F24;
-  --bg-input: #111316;
+  /* Backgrounds - Darker base */
+  --bg-primary: #0a0c10; /* Deeper charcoal */
+  --bg-secondary: #0f1218; 
+  --bg-tertiary: #141922; 
+  --bg-card: #12161e; /* Darker card surface */
+  --bg-elevated: #161a21;
+  --bg-input: #080a0d;
   
   /* Text colors */
   --text-primary: #ffffff;
@@ -37,20 +37,20 @@
   --text-muted: #8a97a8;
   --text-disabled: #4B5563;
   
-  /* Borders & dividers - Sharp edges, neon 1px borders */
-  --border-subtle: #293244;
-  --border-default: #344158;
-  --border-emphasis: #415171;
-  --border-glow: rgba(34, 211, 166, 0.25);
-  --border-neon: 1px solid rgba(34, 211, 166, 0.35);
+  /* Borders & dividers - Subtler borders */
+  --border-subtle: #1e2533;
+  --border-default: #283347;
+  --border-emphasis: #344158;
+  --border-glow: rgba(23, 195, 178, 0.15);
+  --border-neon: 1px solid rgba(23, 195, 178, 0.25);
   
   /* Status/semantic colors */
-  --color-positive: #4CAF50; /* Positive RTP / Fair */
-  --color-caution: #FFC107; /* Caution */
-  --color-danger: #FF5252; /* Manipulation risk flagged */
-  --color-success: #4CAF50;
-  --color-warning: #FFC107;
-  --color-error: #FF5252;
+  --color-positive: #22c55e; 
+  --color-caution: #eab308; 
+  --color-danger: #ef4444; 
+  --color-success: #22c55e;
+  --color-warning: #eab308;
+  --color-error: #ef4444;
   
   /* Status badges */
   --status-live: var(--color-primary);
@@ -95,12 +95,12 @@
   --space-3xl: 4rem;
   
   /* === Effects === */
-  /* Shadows - Security-style glows */
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
-  --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.5);
-  --shadow-lg: 0 4px 16px rgba(0, 0, 0, 0.6);
-  --shadow-glow: 0 0 12px rgba(139, 92, 246, 0.22);
-  --shadow-glow-strong: 0 0 20px rgba(139, 92, 246, 0.4);
+  /* Shadows - Sharper, less blurry glows */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.6);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.7);
+  --shadow-lg: 0 12px 24px rgba(0, 0, 0, 0.8);
+  --shadow-glow: 0 0 8px rgba(23, 195, 178, 0.12);
+  --shadow-glow-strong: 0 0 16px rgba(23, 195, 178, 0.2);
   
   /* Glass panel effect */
   --glass-bg: rgba(26, 31, 36, 0.85);
@@ -149,6 +149,7 @@
   --bg-card: #141414;
   --bg-elevated: #0e0e0e;
   --bg-input: #1a1a1a;
+  --primary-mint: #22d3a6;
   --text-primary: #ffffff;
   --text-secondary: #e0e0e0;
   --text-muted: #999999;

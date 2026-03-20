@@ -15,7 +15,6 @@ import {
   createSession,
   destroySession,
   verifySessionCookie,
-  getDiscordAvatarUrl,
   generateOAuthState,
   type DiscordOAuthConfig,
 } from '@tiltcheck/auth';
@@ -26,7 +25,7 @@ import {
   updateUser,
   findUserById,
 } from '@tiltcheck/db';
-import { authMiddleware, getJWTConfig } from '../middleware/auth.js';
+import { getJWTConfig } from '../middleware/auth.js';
 import {
   getDiscordConfig,
   resolveDiscordRedirectUriForSource,
@@ -354,8 +353,13 @@ router.get('/discord/login', authLimiter, (req, res) => {
     }
 
     // Generate state for CSRF protection. Prefix helps recover source in callback if cookies are blocked.
-    const statePrefix = source === 'extension' ? 'ext_' : 'web_';
-    const state = `${statePrefix}${generateOAuthState()}`;
+    // For extensions, we also encode the opener origin to recover it if the cookie is lost.
+    const openerOrigin = getTrustedExtensionOrigin(req.query.opener_origin);
+    const originSuffix = (source === 'extension' && openerOrigin) 
+        ? `_${Buffer.from(openerOrigin).toString('base64').replace(/=/g, '')}` 
+        : '';
+    const statePrefix = source === 'extension' ? 'ext' : 'web';
+    const state = `${statePrefix}${originSuffix}_${generateOAuthState()}`;
 
     const isSecure = process.env.NODE_ENV === 'production' || req.hostname === 'localhost';
 
@@ -392,7 +396,6 @@ router.get('/discord/login', authLimiter, (req, res) => {
     }
 
     // Optional extension opener origin for stricter postMessage targeting.
-    const openerOrigin = getTrustedExtensionOrigin(req.query.opener_origin);
     if (openerOrigin) {
       res.cookie('oauth_opener_origin', openerOrigin, {
         httpOnly: true,
@@ -428,7 +431,19 @@ router.get('/discord/login', authLimiter, (req, res) => {
 router.get('/discord/callback', authLimiter, async (req, res) => {
   const source = getOAuthSource(req);
   try {
-    const { code, state } = req.query;
+    const { code, state, error, error_description } = req.query;
+
+    if (error) {
+      console.warn('[Auth] Discord returned error:', error, error_description);
+      const errorMsg = typeof error_description === 'string' ? error_description : `Discord error: ${error}`;
+      if (source === 'extension') {
+        res.status(400).send(renderExtensionAuthErrorPage(errorMsg));
+      } else {
+        res.status(400).json({ error: errorMsg });
+      }
+      return;
+    }
+
     const storedState = req.cookies?.oauth_state;
     const stateValue = typeof state === 'string' ? state : '';
     const sourceFromState = stateValue.startsWith('ext_')
@@ -518,7 +533,28 @@ router.get('/discord/callback', authLimiter, async (req, res) => {
     res.clearCookie('oauth_opener_origin');
     const storedExtensionId = req.cookies?.oauth_extension_id;
     res.clearCookie('oauth_extension_id');
-    const postMessageTarget = getTrustedExtensionOrigin(openerOriginCookie);
+    // Final fallback for the opener origin (needed for the final postMessage)
+    // Preference: 1. Cookie (most secure) 2. State (resilient for popups)
+    let postMessageTarget = getTrustedExtensionOrigin(openerOriginCookie);
+    
+    if (!postMessageTarget && source === 'extension' && typeof state === 'string') {
+        const stateParts = state.split('_');
+        if (stateParts.length >= 3 && stateParts[0] === 'ext') {
+            try {
+                const encodedOrigin = stateParts[1];
+                // Manually add back padding if needed for b64
+                const paddingNeeded = (4 - (encodedOrigin.length % 4)) % 4;
+                const padded = encodedOrigin + '='.repeat(paddingNeeded);
+                const decodedOrigin = Buffer.from(padded, 'base64').toString('utf8');
+                postMessageTarget = getTrustedExtensionOrigin(decodedOrigin);
+                if (postMessageTarget) {
+                    console.log('[Auth] Recovered extension origin from state:', postMessageTarget);
+                }
+            } catch (err) {
+                console.warn('[Auth] Failed to decode origin from state', err);
+            }
+        }
+    }
 
     if (source === 'extension') {
       // Validate extension runtime ID if extension is making the request
@@ -700,7 +736,7 @@ router.get('/me', async (req, res) => {
           });
           return;
         }
-      } catch (jwtError) {
+      } catch (_jwtError) {
         // Token invalid, try session cookie
       }
     }

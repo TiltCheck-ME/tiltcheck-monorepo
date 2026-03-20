@@ -88,48 +88,48 @@ function _buildUpdate(table: string, id: string, data: Record<string, unknown>, 
   return { sql, values: [...values, id] };
 }
 
-function createClientFromExecutor(executor: (sql: string, params?: unknown[]) => Promise<Record<string, unknown>[]>): Client {
+function createClientFromExecutor(executor: (sql: string, params?: unknown[]) => Promise<any[]>): Client {
   return {
-    query: async <T>(sql: string, params?: unknown[]) => (await executor(sql, params)) as T[],
-    queryOne: async <T>(sql: string, params?: unknown[]) => {
+    query: async <T = Record<string, unknown>>(sql: string, params?: unknown[]) => (await executor(sql, params)) as T[],
+    queryOne: async <T = Record<string, unknown>>(sql: string, params?: unknown[]) => {
       const rows = await executor(sql, params);
       return (rows[0] as T) ?? null;
     },
-    insert: async <T>(table, data) => {
+    insert: async <T = Record<string, unknown>>(table: string, data: Record<string, unknown>) => {
       const { sql, values } = _buildInsert(table, data);
       const rows = await executor(sql, values);
       return (rows[0] as T) ?? null;
     },
-    update: async <T>(table, id, data, idColumn = 'id') => {
+    update: async <T = Record<string, unknown>>(table: string, id: string, data: Record<string, unknown>, idColumn: string = 'id') => {
       const { sql, values } = _buildUpdate(table, id, data, idColumn);
       const rows = await executor(sql, values);
       return (rows[0] as T) ?? null;
     },
-    deleteRow: async (table, id, idColumn = 'id') => {
+    deleteRow: async (table: string, id: string, idColumn: string = 'id') => {
       const sql = 'DELETE FROM ' + table + ' WHERE ' + idColumn + ' = $' + 1;
       await executor(sql, [id]);
       return true;
     },
-    findById: async <T>(table, id, idColumn = 'id') => {
+    findById: async <T = Record<string, unknown>>(table: string, id: string, idColumn: string = 'id') => {
       const sql = 'SELECT * FROM ' + table + ' WHERE ' + idColumn + ' = $' + 1;
       const rows = await executor(sql, [id]);
       return (rows[0] as T) ?? null;
     },
-    findBy: async <T>(table, column, value) => {
+    findBy: async <T = Record<string, unknown>>(table: string, column: string, value: unknown) => {
       const sql = 'SELECT * FROM ' + table + ' WHERE ' + column + ' = $' + 1;
       return (await executor(sql, [value])) as T[];
     },
-    findOneBy: async <T>(table, column, value) => {
+    findOneBy: async <T = Record<string, unknown>>(table: string, column: string, value: unknown) => {
       const sql = 'SELECT * FROM ' + table + ' WHERE ' + column + ' = $' + 1;
       const rows = await executor(sql, [value]);
       return (rows[0] as T) ?? null;
     },
-    exists: async (table, column, value) => {
+    exists: async (table: string, column: string, value: unknown) => {
       const sql = 'SELECT 1 FROM ' + table + ' WHERE ' + column + ' = $' + 1 + ' LIMIT 1';
       const result = await executor(sql, [value]);
       return result.length > 0;
     },
-    count: async (table, where, params) => {
+    count: async (table: string, where?: string, params?: unknown[]) => {
       let sql = 'SELECT COUNT(*) as count FROM ' + table;
       if (where) sql += ' WHERE ' + where;
       const rows = await executor(sql, params);

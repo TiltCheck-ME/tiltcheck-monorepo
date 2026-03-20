@@ -39,6 +39,8 @@ import type {
 } from './types.js';
 import { mapAuthUserToDiscordUser } from './types.js';
 import { justthetip } from '@tiltcheck/justthetip';
+import { triviaManager } from './trivia-manager.js';
+import { eventRouter } from '@tiltcheck/event-router';
 
 // ES module __dirname equivalent
 const __filename = fileURLToPath(import.meta.url);
@@ -51,10 +53,24 @@ validateConfig();
 const app = express();
 const httpServer = createServer(app);
 
+// Simple CORS middleware for development
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', config.isDev ? '*' : process.env.ALLOWED_ORIGINS || '');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, x-admin-token');
+  res.header('Access-Control-Allow-Credentials', 'true');
+  
+  if (req.method === 'OPTIONS') {
+    res.sendStatus(200);
+  } else {
+    next();
+  }
+});
+
 // Initialize Socket.IO
 const io = new SocketIOServer<ClientToServerEvents, ServerToClientEvents>(httpServer, {
   cors: {
-    origin: config.isDev ? '*' : process.env.ALLOWED_ORIGINS?.split(',') || [],
+    origin: config.isDev ? true : process.env.ALLOWED_ORIGINS?.split(',') || [],
     credentials: true,
   },
 });
@@ -125,6 +141,27 @@ const sessionMiddleware = session({
 });
 
 app.use(sessionMiddleware);
+app.use(express.json());
+
+app.post('/admin/trivia/start', async (req, res) => {
+  try {
+    const { category, theme, rounds } = req.body;
+    await triviaManager.scheduleGame({
+      startTime: Date.now() + 5000, // Start in 5 seconds
+      category: category || 'general',
+      theme: theme || 'Random Degen Knowledge',
+      totalRounds: rounds || 12
+    });
+    res.json({ success: true, message: 'Trivia game scheduled to start in 5s.' });
+  } catch (error: any) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.post('/admin/trivia/reset', (req, res) => {
+  triviaManager.endGame();
+  res.json({ success: true, message: 'Trivia manager reset.' });
+});
 
 // Extended session type
 declare module 'express-session' {
@@ -211,6 +248,23 @@ app.get('/health', (_req, res) => {
     uptime: process.uptime(),
     timestamp: Date.now(),
     auth: authClient ? 'enabled' : 'disabled',
+  });
+});
+
+// Admin status for dashboard
+app.get('/admin/status', requireAdmin, (_req, res) => {
+  res.json({
+    status: 'ok',
+    services: [
+      { name: 'Game Arena', status: 'online', port: config.port },
+      { name: 'Trivia Manager', status: triviaManager.isActive() ? 'active' : 'idle' },
+      { name: 'Event Router', status: 'online' }
+    ],
+    metrics: {
+      uptime: process.uptime(),
+      requests: 0, // Mock for now
+      activeGames: gameManager.getGameCount()
+    }
   });
 });
 
@@ -689,7 +743,70 @@ io.on('connection', (socket) => {
       playersOnline: gameManager.getOnlinePlayerCount(),
     });
   });
+
+  // ============================================================================
+  // Trivia Game Handlers
+  // ============================================================================
+
+  socket.on('submit-trivia-answer', (data: { questionId: string; answer: string }) => {
+    if (!user) return;
+    triviaManager.submitAnswer(user.id, data.answer);
+  });
+
+  socket.on('request-ape-in', async (data: { gameId: string; questionId: string }) => {
+    if (!user) return;
+    const result = await triviaManager.requestApeIn(user.id);
+    if (result.success) {
+      socket.emit('trivia-ape-in-result', { questionId: data.questionId, distribution: result.stats! });
+    } else {
+      socket.emit('game-error', result.message || 'Hint request failed');
+    }
+  });
+
+  socket.on('buy-back', async (data: { gameId: string }) => {
+    if (!user) return;
+    const result = await triviaManager.processBuyBack(user.id);
+    if (result.success) {
+      socket.emit('game-update', { type: 'buy-back-success', userId: user.id });
+    } else {
+      socket.emit('game-error', result.message || 'Buy-back failed');
+    }
+  });
 });
+
+// ============================================================================
+// Global Trivia Event Broadcaster
+// ============================================================================
+
+// Listen for trivia events from the manager (via eventRouter) and push to all clients
+eventRouter.subscribe('trivia.started', (event) => {
+  io.emit('chat-message', {
+    userId: 'system',
+    username: 'TiltLive',
+    message: `📢 LIVESTREAM STARTED: ${event.data.theme || event.data.category} Trivia is LIVE!`,
+    timestamp: Date.now(),
+  });
+  io.emit('game-update', { type: 'trivia-started', ...event.data });
+}, 'server-trivia-broadcaster');
+
+eventRouter.subscribe('trivia.round.start', (event) => {
+  io.emit('trivia-round-start', event.data);
+}, 'server-trivia-broadcaster');
+
+eventRouter.subscribe('trivia.round.reveal', (event) => {
+  io.emit('trivia-round-reveal', event.data);
+}, 'server-trivia-broadcaster');
+
+eventRouter.subscribe('trivia.completed', (event) => {
+  const winnerList = event.data.winners.map((w: any) => w.username).join(', ');
+  io.emit('chat-message', {
+    userId: 'system',
+    username: 'TiltLive',
+    message: `🏆 GAME OVER! Winners: ${winnerList || 'No one survived the trenches.'}`,
+    timestamp: Date.now(),
+  });
+  io.emit('game-update', { type: 'trivia-completed', ...event.data });
+}, 'server-trivia-broadcaster');
 
 // Cleanup interval (every 5 minutes)
 setInterval(() => {
@@ -709,8 +826,8 @@ process.on('SIGTERM', async () => {
 });
 
 // Start server
-httpServer.listen(config.port, () => {
-  console.log(`🎮 Game Arena server running on port ${config.port}`);
+httpServer.listen(config.port, '0.0.0.0', () => {
+  console.log(`🎮 Game Arena server running on port ${config.port} (0.0.0.0)`);
   console.log(`🌍 Environment: ${config.nodeEnv}`);
   console.log(`🔐 Supabase Auth: ${authClient ? 'Enabled' : 'Disabled'}`);
   console.log(`🔗 Auth Redirect: ${config.auth.redirectUrl}`);

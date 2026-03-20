@@ -6,7 +6,7 @@
  */
 
 import { Connection, PublicKey, Transaction, SystemProgram, LAMPORTS_PER_SOL } from '@solana/web3.js';
-import { createTransferRequest, createTipWithFeeRequest, createAirdropWithFeeRequest } from '@tiltcheck/justthetip';
+import { createTransferRequest, createTipWithFeeRequest, createAirdropWithFeeRequest } from './tipping/solana-pay.js';
 
 const SOLANA_RPC_URL = process.env.SOLANA_RPC_URL || 'https://api.mainnet-beta.solana.com';
 const connection = new Connection(SOLANA_RPC_URL, 'confirmed');

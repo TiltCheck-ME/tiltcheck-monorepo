@@ -11,8 +11,8 @@ const connection = new Connection(process.env.SOLANA_RPC_URL || 'https://api.mai
 
 export const juice: Command = {
   data: new SlashCommandBuilder()
-    .setName('juice')
-    .setDescription('Spill some juice! Drop SOL to reactors in this channel.')
+    .setName('bagdrop')
+    .setDescription('SECURE THE BAG for your peers. Drop SOL to reactors in this channel.')
     .addStringOption(opt =>
       opt.setName('amount').setDescription('Total amount to drop (e.g. "1 SOL" or "$50")').setRequired(true)
     )
@@ -56,7 +56,7 @@ export const juice: Command = {
     const solanaPayUrl = `solana:${escrow.publicKey.toBase58()}?amount=${totalSol.toFixed(4)}&label=Juice+Drop&message=Fund+the+Escrow`;
 
     const fundBtn = new ButtonBuilder()
-      .setLabel('🧃 Fund the Juice Escrow')
+      .setLabel('🧃 INITIALIZE BAG DROP')
       .setStyle(ButtonStyle.Link)
       .setURL(solanaPayUrl);
 
@@ -64,13 +64,13 @@ export const juice: Command = {
 
     const fundEmbed = new EmbedBuilder()
       .setColor(0x22d3a6)
-      .setTitle('🧃 Prepare the Juice')
-      .setDescription(`To drop **${totalSol.toFixed(4)} SOL** to ${maxUsers} users, you must first fund the temporary escrow wallet.
+      .setTitle('🧃 INITIALIZE THE DROP')
+      .setDescription(`To drop **${totalSol.toFixed(4)} SOL** to ${maxUsers} degens, you must fund the alpha escrow. YOUR KEYS, YOUR PROBLEM.
 
-**Escrow Address:** `${escrow.publicKey.toBase58()}`
+**Escrow Address:** \`${escrow.publicKey.toBase58()}\`
 
-*This escrow will be emptied immediately after the event ends.*`)
-      .setFooter({ text: 'TiltCheck Non-Custodial Distribution' });
+*This escrow will be emptied immediately after the drop ends.*`)
+      .setFooter({ text: 'TiltCheck: AUDIT THE ALPHA - NON-CUSTODIAL' });
 
     await interaction.editReply({ embeds: [fundEmbed], components: [fundRow] });
 
@@ -93,7 +93,7 @@ export const juice: Command = {
     // 4. Post the Reaction Message
     const dropEmbed = new EmbedBuilder()
       .setColor(0x8b5cf6)
-      .setTitle('🧃 JUICE IS SPILLING!')
+      .setTitle('🧃 BAG DROPPING!')
       .setDescription(`${interaction.user} is dropping **${totalSol.toFixed(4)} SOL**!
 
 React with 🧃 to claim your share!
@@ -117,7 +117,7 @@ React with 🧃 to claim your share!
         return;
       }
 
-      await interaction.channel?.send(`⌛ Timer ended! Processing payouts for ${users.length} degens...`);
+      await interaction.channel?.send(`⌛ Timer ended! SECURING THE BAG for ${users.length} degens...`);
 
       // 6. Execute Payouts
       const recipients: string[] = [];
@@ -148,7 +148,7 @@ React with 🧃 to claim your share!
 
       try {
         const signature = await sendAndConfirmTransaction(connection, transaction, [escrow]);
-        await interaction.channel?.send(`✅ **Juice Distributed!**
+        await interaction.channel?.send(`✅ **BAGS SECURED!**
 Sent to ${recipients.length} wallets.
 
 **Tx:** https://solscan.io/tx/${signature}`);

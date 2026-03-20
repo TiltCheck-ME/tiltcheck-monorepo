@@ -49,15 +49,15 @@ function getNumberEnv(key: string, defaultValue: number): number {
   return isNaN(parsed) ? defaultValue : parsed;
 }
 
-// Use process.cwd() for .env resolution (works in both monorepo and bundled deploys)
-// In monorepo: cwd is the monorepo root
-// In bundled deploy: cwd is wherever you run the bot from (set via PM2/systemd)
-const rootDir = process.env.TILTCHECK_ROOT || process.cwd();
+// Use import.meta.url to find the root reliably from this file's location
+import { fileURLToPath } from 'url';
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
+// The root is 3 levels up from apps/discord-bot/src/config.ts
+const rootDir = path.resolve(__dirname, '../../../');
 const rootEnvLocal = path.resolve(rootDir, '.env.local');
 const rootEnv = path.resolve(rootDir, '.env');
-const appEnvLocal = path.resolve(rootDir, 'apps/discord-bot/.env.local');
-const appEnv = path.resolve(rootDir, 'apps/discord-bot/.env');
 
 // Debug: Log the paths we're trying to load
 if (process.env.DEBUG_ENV_LOADING) {
@@ -65,17 +65,13 @@ if (process.env.DEBUG_ENV_LOADING) {
   console.log('  rootDir:', rootDir);
   console.log('  rootEnvLocal:', rootEnvLocal);
   console.log('  rootEnv:', rootEnv);
-  console.log('  appEnvLocal:', appEnvLocal);
-  console.log('  appEnv:', appEnv);
 }
 
 // Try loading from root .env.local first (preferred for local dev)
 dotenv.config({ path: rootEnvLocal });
 // Fall back to root .env
 dotenv.config({ path: rootEnv });
-// Fall back to app-level .env files
-dotenv.config({ path: appEnvLocal });
-dotenv.config({ path: appEnv });
+
 
 export interface AlertChannelsConfig {
   /** Channel ID for trust/security alerts */
@@ -181,7 +177,7 @@ export const config: BotConfig = {
 export function validateConfig(): void {
   if (!config.discordToken) {
     console.error('[Config] [ERROR] No Discord token found in environment variables.');
-    console.error('[Config] Checked: TILT_DISCORD_TOKEN, TIP_DISCORD_TOKEN, DISCORD_TOKEN');
+    console.error('[Config] Checked: TILT_DISCORD_BOT_TOKEN, DISCORD_TOKEN, DISCORD_BOT_TOKEN');
 
     console.error('[Config] Debugging keys in process.env:');
     const relatedKeys = Object.keys(process.env).filter(k => k.includes('DISCORD') || k.includes('TOKEN'));

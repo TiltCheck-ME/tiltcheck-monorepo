@@ -96,15 +96,8 @@
       "lodash": ">=4.17.21"
     },
     "onlyBuiltDependencies": [
-      "@gsknnft/bigint-buffer",
-      "bufferutil",
-      "core-js",
-      "es5-ext",
       "esbuild",
-      "msgpackr-extract",
-      "puppeteer",
-      "sharp",
-      "utf-8-validate"
+      "protobufjs"
     ]
   }
 }

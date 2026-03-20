@@ -5,6 +5,8 @@
  */
 
 import { Router } from 'express';
+import fs from 'node:fs/promises';
+import path from 'node:path';
 import {
   createEvent,
   type BreathalyzerEvaluatedPayload,
@@ -136,7 +138,18 @@ router.post('/suslink/scan', async (req, res) => {
   }
 
   try {
-    const scanner = new LinkScanner();
+    // Load local blacklist
+    const dataDir = process.env.STATS_DATA_DIR || path.resolve(process.cwd(), 'data');
+    const blacklistPath = path.join(dataDir, 'domain_blacklist.json');
+    let blacklist: string[] = [];
+    try {
+      const raw = await fs.readFile(blacklistPath, 'utf8');
+      blacklist = JSON.parse(raw);
+    } catch {
+      // Fallback if file missing
+    }
+
+    const scanner = new LinkScanner(blacklist);
     const result = await scanner.scan(url);
 
     res.json({
@@ -150,6 +163,7 @@ router.post('/suslink/scan', async (req, res) => {
     });
   } catch (err) {
     console.error('[Safety API] SusLink scan error:', err);
+    res.status(500).json({ error: 'Internal scan error' });
   }
 });
 
@@ -178,18 +192,37 @@ router.post('/report', (req, res) => {
 });
 
 /**
- * GET /safety/signals/recent
- * Get recent community signals.
+ * POST /safety/notify-buddy
+ * Trigger a buddy system notification (e.g., Discord snitch).
  */
-router.get('/signals/recent', (req, res) => {
-  // Mock recent signals for demo purposes.
-  // In production, this would query the DB for the last N reports.
+router.post('/notify-buddy', (req, res) => {
+  const { userId, type, data } = req.body ?? {};
+  const actualUserId = userId || (req as any).user?.id || 'guest';
+
+  if (!type || !data) {
+    res.status(400).json({ error: 'type and data are required', code: 'INVALID_INPUT' });
+    return;
+  }
+
+  const event = createEvent({
+    name: 'safety.intervention.triggered',
+    source: 'api-gateway',
+    payload: {
+      userId: actualUserId,
+      type,
+      data,
+      timestamp: Date.now(),
+    },
+    correlationId: req.headers['x-correlation-id'] as string | undefined,
+  });
+
+  // Log the intervention for audit/telemetry
+  console.log(`[Buddy System] Intervention ${type} triggered for ${actualUserId}:`, data);
+
   res.json({
     success: true,
-    signals: [
-      { id: '1', type: 'payout_change', casino: 'stake.us', details: 'Reports of delayed withdrawals starting 2h ago.', timestamp: Date.now() - 7200000 },
-      { id: '2', type: 'bonus_nerf', casino: 'roobet.com', details: 'Daily reload amounts reduced for level 2 accounts.', timestamp: Date.now() - 14400000 }
-    ]
+    message: 'Intervention signal emitted',
+    event,
   });
 });
 

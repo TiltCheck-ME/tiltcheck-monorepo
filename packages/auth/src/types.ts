@@ -334,6 +334,8 @@ export interface MagicLinkVerifyResult {
 // Middleware Types
 // ============================================================================
 
+import type { Request } from 'express';
+
 /**
  * Authenticated request context
  */
@@ -353,6 +355,15 @@ export interface AuthContext {
   /** Session data */
   session: SessionData;
 }
+
+/**
+ * Express Request extended with auth context
+ */
+export interface AuthenticatedRequest extends Request {
+  auth: AuthContext;
+  tiltcheckSession?: SessionData;
+}
+
 
 /**
  * Middleware options

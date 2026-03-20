@@ -3,98 +3,176 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TiltCheck Features - The Complete Degen Toolkit</title>
-  <meta name="description" content="A deep dive into the complete TiltCheck toolkit, from the Degen Intelligence Agent and Autovaulting Extension to the DAAD card game.">
-  <link rel="canonical" href="https://tiltcheck.me/features.html">
+  <title>The Stack - TiltCheck</title>
   <link rel="stylesheet" href="/styles/theme.css">
   <link rel="stylesheet" href="/styles/main.css">
-  <link rel="manifest" href="/manifest.json">
-  <meta name="theme-color" content="#a855f7">
-  <link rel="apple-touch-icon" href="/assets/logo/apple-touch-icon.png">
-  <link rel="icon" type="image/x-icon" href="/assets/logo/favicon.ico">
+  <style>
+    /* Glassmorphism Vision Grid Style */
+    .vision-grid {
+      padding: 4rem 0;
+      background: rgba(0,0,0,0.3);
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+    .vision-header { text-align: center; margin-bottom: 4rem; }
+    .vision-header h1 { font-size: 3rem; margin-bottom: 1rem; }
+    .vision-header p { font-family: 'JetBrains Mono', monospace; color: #555; font-size: 0.9rem; letter-spacing: 0.2em; text-transform: uppercase; }
+    
+    .stack-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 2rem;
+      margin-bottom: 4rem;
+    }
+    
+    .stack-card {
+      padding: 2.5rem;
+      background: rgba(255,255,255,0.02);
+      border: 1px solid rgba(255,255,255,0.05);
+      border-radius: 12px;
+      position: relative;
+      transition: all 0.3s ease;
+    }
+    .stack-card:hover {
+      background: rgba(255,255,255,0.04);
+      transform: translateY(-5px);
+    }
+    .stack-card.featured {
+      border-color: rgba(30, 185, 143, 0.4);
+      box-shadow: inset 0 0 20px rgba(30, 185, 143, 0.05);
+    }
+    .stack-card.vibe-check {
+      border-color: rgba(168, 85, 247, 0.4);
+      box-shadow: inset 0 0 20px rgba(168, 85, 247, 0.05);
+    }
+    
+    .stack-label {
+      font-size: 0.65rem;
+      text-transform: uppercase;
+      letter-spacing: 0.2em;
+      color: #777;
+      margin-bottom: 1.5rem;
+      font-weight: 800;
+      display: block;
+    }
+    .stack-label.active { color: var(--primary-mint); }
+    .stack-label.beta { color: var(--color-secondary); }
+    
+    .stack-card h3 {
+      font-size: 1.5rem;
+      margin-bottom: 1rem;
+      font-family: 'Space Grotesk', sans-serif;
+      color: #fff;
+    }
+    
+    .stack-card p {
+      color: #999;
+      font-size: 0.95rem;
+      line-height: 1.6;
+      margin-bottom: 1.5rem;
+    }
+    
+    .stack-features { list-style: none; padding: 0; }
+    .stack-features li {
+      font-size: 0.85rem;
+      color: #bbb;
+      margin-bottom: 0.75rem;
+      padding-left: 1.5rem;
+      position: relative;
+    }
+    .stack-features li::before {
+      content: "→";
+      position: absolute;
+      left: 0;
+      color: var(--primary-mint);
+    }
+    .vibe-check .stack-features li::before {
+      color: var(--color-secondary);
+    }
+    
+    /* Top Action Links */
+    .action-links { display: flex; gap: 1rem; margin-top: 1.5rem; }
+    .action-links a {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--primary-mint);
+      text-decoration: underline;
+      opacity: 0.8;
+      transition: opacity 0.2s;
+    }
+    .action-links a:hover { opacity: 1; }
+  </style>
 </head>
-<body>
+<body class="degen-background text-white">
   <div id="shared-nav"></div>
-  <nav class="breadcrumbs"></nav>
-
-  <main id="main-content" class="container content-page">
-    <article>
-      <h1>The Complete Degen Toolkit</h1>
-      <p class="lede">
-        TiltCheck is more than just one tool—it's a complete ecosystem designed to give you an edge. Here’s a breakdown of every feature at your disposal.
-      </p>
-
-      <section id="daad">
-        <h2>Degens Against Decency (DAAD)</h2>
-        <p>
-          The centerpiece of our community is DAAD, a fully-built, outrageous multiplayer card game playable directly within Discord as a Discord Activity. Inspired by games like "Cards Against Humanity," DAAD is designed for maximum chaos and laughter.
-        </p>
-        <ul>
-          <li><strong>Live Game Lobbies:</strong> Browse and join public games, or create your own private room.</li>
-          <li><strong>Full Game Experience:</strong> Includes a game arena, live chat, friend lists, and spectator modes.</li>
-          <li><strong>Discord Activity Integration:</strong> Launch and play seamlessly inside the Discord app without ever leaving your server.</li>
-          <li><strong>Premium Tier:</strong> Unlock special features and private game controls with a Guild Premium subscription.</li>
-        </ul>
-        <a href="/tools/daad.html" class="btn btn-primary" style="margin-top: 1rem;">Enter the DAAD Arena</a>
-      </section>
-
-      <section id="agent">
-        <h2>Degen Intelligence Agent</h2>
-        <p>
-          Your personal on-chain analyst. The Degen Intelligence Agent is a conversational AI you can talk to in natural language to get instant, data-driven insights about your gameplay.
-        </p>
-        <ul>
-          <li><strong>Natural Language Queries:</strong> Just ask questions like "Am I on tilt?" or "What are my stats for the week?".</li>
-          <li><strong>Data-Driven Insights:</strong> The agent connects directly to the TiltCheck database to analyze your real stats, trust score, and tilt patterns.</li>
-          <li><strong>Bonus Tracking:</strong> Ask the agent "Can I claim any reloads?" to get the live status of your casino bonuses.</li>
-        </ul>
-      </section>
-
-      <section id="extension">
-        <h2>The Guardian Extension</h2>
-        <p>
-          The Chrome Extension is your real-time co-pilot during gameplay sessions. It monitors your activity and provides automated tools to protect you and your bankroll.
-        </p>
+  
+  <main class="content-page">
+    <section class="vision-grid">
+      <div class="container">
+        <div class="vision-header">
+          <h1 class="neon neon-sub" data-text="THE STACK">THE STACK</h1>
+          <p>// THE EDGE IS LOADED</p>
+        </div>
         
-        <h3>Key Extension Features</h3>
-        <ul>
-          <li>
-            <strong>Autovault:</strong> An automatic profit-saving engine. When you're on a winning streak on Stake.com, the autovaulter automatically moves a percentage of your profits into your on-site vault, protecting them from being gambled away.
-          </li>
-          <li>
-            <strong>Wallet Lock:</strong> An emergency cooldown tool. If you feel yourself tilting, you can manually lock a specific amount of your funds for a set duration (e.g., 15 minutes, 1 hour). The funds are inaccessible until the timer expires.
-          </li>
-          <li>
-            <strong>Tilt Detector:</strong> A sophisticated engine that watches for patterns of tilt—like rage betting and chasing losses—and provides real-time alerts and interventions.
-          </li>
-          <li>
-            <strong>License Verifier:</strong> Automatically scans the casino you're on and warns you if it's unlicensed or has a bad reputation.
-          </li>
-          <li>
-            <strong>"Double Provably Fair" Verifier:</strong> A unique system that uses Solana block hashes to verify game fairness, providing a higher level of trust than a casino's internal system.
-          </li>
-        </ul>
-         <a href="/extension.html" class="btn btn-secondary" style="margin-top: 1rem;">More about the Extension</a>
-      </section>
-      
-       <section id="tipping">
-        <h2>JustTheTip (Tipping & Airdrops)</h2>
-        <p>
-          A non-custodial system for sending and receiving crypto directly in Discord. All transactions are peer-to-peer on the Solana mainnet.
-        </p>
-        <ul>
-            <li><strong>Secure Tipping:</strong> Send tips to other users without the risk of a centralized wallet.</li>
-            <li><strong>Airdrop Tools:</strong> Easily create and manage airdrops for your community members.</li>
-            <li><strong>Solana Pay:</strong> Uses standardized Solana Pay links that you approve in your own wallet, ensuring you are always in control of your funds.</li>
-        </ul>
-      </section>
+        <div class="stack-grid">
+          <!-- Tactical Co-Pilot -->
+          <div class="stack-card featured" id="lockvault">
+            <span class="stack-label active">AUTO-VAULT</span>
+            <h3>The Emergency Brake</h3>
+            <p>Move winnings to cold storage automatically. You can't bet what isn't in the hot wallet. It monitors your session in real-time and locks the UI before you can revenge-bet your rent money.</p>
+            <ul class="stack-features">
+              <li><strong>Secure the Bag:</strong> Forcibly pushes remaining balance to vault.</li>
+              <li><strong>RNG Audit:</strong> Verifies casino hashes against expected probability.</li>
+              <li><strong>Domain Verifier:</strong> Stops you from connecting to phishing clones.</li>
+            </ul>
+            <div class="action-links">
+              <a href="/extension.html">Deploy Extension</a>
+            </div>
+          </div>
 
-    </article>
+          <!-- DIA (The Edge Agent) -->
+          <div class="stack-card" id="agent">
+            <span class="stack-label active">SESSION STATS</span>
+            <h3>The Reality Check Bot</h3>
+            <p>No fluff. Just your PnL, your win rate, and how much you’ve "invested" in the house's bottom line. It will happily prove that you're being farmed.</p>
+            <ul class="stack-features">
+              <li><strong>PnL Tracking:</strong> Real-time variance visualization.</li>
+              <li><strong>Audit History:</strong> Every hash checked, every drift flagged.</li>
+            </ul>
+          </div>
+          
+          <!-- JustTheTip -->
+          <div class="stack-card" id="tipping">
+            <span class="stack-label active">PEER-TO-PEER</span>
+            <h3>JustTheTip (P2P)</h3>
+            <p>A completely non-custodial tipping protocol because we legally and morally refuse to hold your funds. Want to tip someone? Do it on-chain yourself.</p>
+            <ul class="stack-features">
+              <li><strong>Solana Pay:</strong> Trustless, self-custody transfers. Your keys, your problem.</li>
+              <li><strong>Zero Friction:</strong> Because if it took more than two clicks, you wouldn't use it.</li>
+            </ul>
+             <div class="action-links">
+              <a href="/tools/justthetip.html">View Protocol</a>
+            </div>
+          </div>
+          
+          <!-- Vibe Check (Coming Soon) -->
+          <div class="stack-card vibe-check" id="vibecheck">
+            <span class="stack-label beta">ENFORCED DISCIPLINE</span>
+            <h3>The Buddy System VC</h3>
+            <p>The digital emergency brake for your squad. When our system detects a catastrophic session failure, it automatically alerts your Discord server.</p>
+            <ul class="stack-features">
+              <li><strong>Logic-Based Unlocks:</strong> Your funds stay in the vault until you prove you aren't revenge-betting.</li>
+              <li><strong>No-Cancel Withdrawals:</strong> Bypasses the 'Pending' state to get funds off the casino immediately.</li>
+            </ul>
+          </div>
+
+        </div>
+      </div>
+    </section>
   </main>
 
   <div id="shared-footer"></div>
+  <script src="/scripts/components-loader.js"></script>
+  <script src="/scripts/auth.js"></script>
 </body>
-<script src="/breadcrumbs.js" defer></script>
-<script src="/scripts/components-loader.js"></script>
-<script src="/scripts/auth.js"></script>
 </html>

@@ -34,11 +34,11 @@ export const tiltcheck: Command = {
     )
     .addSubcommand(sub =>
       sub.setName('status')
-        .setDescription('Check your current tilt status')
+        .setDescription(`Audit your current entry status. Stay in the green.`)
     )
     .addSubcommand(sub =>
       sub.setName('history')
-        .setDescription('View your tilt detection history')
+        .setDescription('View your session audit logs')
     )
     .addSubcommand(sub =>
       sub.setName('cooldown')
@@ -263,19 +263,19 @@ async function handleTiltStatus(interaction: ChatInputCommandInteraction) {
 
   const embed = new EmbedBuilder()
     .setColor(status.onCooldown ? 0xFF6B6B : 0x00CED1)
-    .setTitle('📊 Tilt Status');
+    .setTitle('📊 ALPHA AUDIT STATUS');
 
   if (status.onCooldown && cooldownStatus && cooldownStatus.endsAt) {
     const remaining = Math.ceil((cooldownStatus.endsAt - Date.now()) / 60000);
     const reason = cooldownStatus.reason || 'Unknown';
-    embed.setDescription('⏸️ On cooldown')
+    embed.setDescription('⏸️ PROFIT LOCKER ACTIVE')
       .addFields(
         { name: 'Time Remaining', value: `${remaining} minutes`, inline: true },
         { name: 'Reason', value: reason, inline: true },
         { name: 'Violations', value: `${cooldownStatus.violationCount}`, inline: true },
       );
   } else {
-    embed.setDescription('✅ No active cooldown')
+    embed.setDescription('✅ ALPHA STATUS: NORMAL')
       .addFields(
         { name: 'Recent Signals', value: `${status.recentSignals.length} (last hour)`, inline: true },
         { name: 'Status', value: status.recentSignals.length >= 3 ? '⚠️ Elevated' : '✅ Normal', inline: true },
@@ -312,8 +312,8 @@ async function handleTiltHistory(interaction: ChatInputCommandInteraction) {
 
   const embed = new EmbedBuilder()
     .setColor(0x0099FF)
-    .setTitle('📈 Tilt History')
-    .setDescription(`Activity tracking for ${interaction.user.username}`);
+    .setTitle('📈 SESSION AUDIT LOGS')
+    .setDescription(`Audit results for ${interaction.user.username}`);
 
   if (recentMessages.length > 0) {
     const messageCount = recentMessages.length;
@@ -347,7 +347,7 @@ async function handleTiltHistory(interaction: ChatInputCommandInteraction) {
     });
   }
 
-  embed.setFooter({ text: 'TiltCheck keeps you safe from yourself' });
+  embed.setFooter({ text: 'TiltCheck: NUKE THE HOUSE EDGE' });
 
   await interaction.reply({ embeds: [embed], ephemeral: true });
 }
@@ -384,8 +384,8 @@ async function handleCooldown(interaction: ChatInputCommandInteraction) {
 
   const embed = new EmbedBuilder()
     .setColor(0x00CED1)
-    .setTitle('⏸️ Cooldown Started')
-    .setDescription(`Taking a ${duration}-minute break. Smart move.`)
+    .setTitle('⏸️ PROFIT LOCKER INITIALIZED')
+    .setDescription(`Taking a ${duration}-minute alpha break. Secure the bag.`)
     .addFields(
       { name: 'Duration', value: `${duration} minutes`, inline: true },
       { name: 'Expires', value: `<t:${Math.floor((Date.now() + duration * 60000) / 1000)}:R>`, inline: true },
