@@ -30,7 +30,7 @@ self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
 
   // Avoid caching API/auth requests.
-  if (url.pathname.startsWith('/api/') || url.pathname.startsWith('/play/')) return;
+  if (url.pathname.startsWith('/api/') || url.pathname.startsWith('/play/') || url.port === '3010') return;
 
   const acceptHeader = event.request.headers.get('accept') || '';
   const isHtmlRequest =

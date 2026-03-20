@@ -670,12 +670,16 @@ export interface TipCompletedEventData {
 export interface TiltDetectedEventData {
   userId: string;
   severity: number;
+  reason: string;
+  tiltScore: number;
   indicators?: string[];
 }
 
 export interface CooldownViolatedEventData {
   userId: string;
   severity: number;
+  violationCount: number;
+  expiresAt?: number;
 }
 
 export interface ScamReportedEventData {
@@ -1028,9 +1032,9 @@ export interface DiscordCommand {
 
 export type EventHandler<T extends EventType = any> = (event: TiltCheckEvent<T>) => Promise<void> | void;
 
-export interface EventSubscription {
-  eventType: EventType;
-  handler: EventHandler;
+export interface EventSubscription<T extends EventType = any> {
+  eventType: T;
+  handler: EventHandler<T>;
   moduleId: ModuleId;
 }
 

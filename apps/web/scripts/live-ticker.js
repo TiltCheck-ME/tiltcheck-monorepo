@@ -10,12 +10,12 @@
   const events = [
     { time: '0.4s ago', text: 'Tilt detected on Stake.com — Cooldown nudge sent.', type: 'tilt' },
     { time: '1.2m ago', text: 'Phishing redirect blocked for User #812.', type: 'sec' },
-    { time: '5s ago', text: 'Autovault triggered: +0.42 SOL secured for future-self.', type: 'vault' },
-    { time: '15s ago', text: 'Casino Fairness Pulse: Stake.com behaving within 99.8% confidence.', type: 'trust' },
+    { time: '5s ago', text: 'Autovault triggered: +0.42 SOL pushed to cold vault.', type: 'vault' },
+    { time: '15s ago', text: 'RNG Audit: Stake.com hash parity verified (99.8%).', type: 'trust' },
     { time: '3h ago', text: 'New scam domain blacklisted: hyperbet-bonus.net', type: 'sec' },
     { time: '2s ago', text: 'JustTheTip: 0.1 SOL peer-to-peer swap completed.', type: 'swap' },
     { time: '24s ago', text: 'Tilt Engine: Manual Wallet Lock engaged for 1 hour.', type: 'tilt' },
-    { time: '10s ago', text: 'BonusCheck: Roobet daily reload nerf detected (-15%).', type: 'bonus' }
+    { time: '10s ago', text: 'RNG Audit: Roobet RTP drift detected (-15%).', type: 'bonus' }
   ];
 
   let currentIndex = 0;

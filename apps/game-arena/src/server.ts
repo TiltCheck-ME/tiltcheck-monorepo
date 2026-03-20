@@ -53,10 +53,24 @@ validateConfig();
 const app = express();
 const httpServer = createServer(app);
 
+// Simple CORS middleware for development
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', config.isDev ? '*' : process.env.ALLOWED_ORIGINS || '');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, x-admin-token');
+  res.header('Access-Control-Allow-Credentials', 'true');
+  
+  if (req.method === 'OPTIONS') {
+    res.sendStatus(200);
+  } else {
+    next();
+  }
+});
+
 // Initialize Socket.IO
 const io = new SocketIOServer<ClientToServerEvents, ServerToClientEvents>(httpServer, {
   cors: {
-    origin: config.isDev ? '*' : process.env.ALLOWED_ORIGINS?.split(',') || [],
+    origin: config.isDev ? true : process.env.ALLOWED_ORIGINS?.split(',') || [],
     credentials: true,
   },
 });
@@ -234,6 +248,23 @@ app.get('/health', (_req, res) => {
     uptime: process.uptime(),
     timestamp: Date.now(),
     auth: authClient ? 'enabled' : 'disabled',
+  });
+});
+
+// Admin status for dashboard
+app.get('/admin/status', requireAdmin, (_req, res) => {
+  res.json({
+    status: 'ok',
+    services: [
+      { name: 'Game Arena', status: 'online', port: config.port },
+      { name: 'Trivia Manager', status: triviaManager.isActive() ? 'active' : 'idle' },
+      { name: 'Event Router', status: 'online' }
+    ],
+    metrics: {
+      uptime: process.uptime(),
+      requests: 0, // Mock for now
+      activeGames: gameManager.getGameCount()
+    }
   });
 });
 
@@ -795,8 +826,8 @@ process.on('SIGTERM', async () => {
 });
 
 // Start server
-httpServer.listen(config.port, () => {
-  console.log(`🎮 Game Arena server running on port ${config.port}`);
+httpServer.listen(config.port, '0.0.0.0', () => {
+  console.log(`🎮 Game Arena server running on port ${config.port} (0.0.0.0)`);
   console.log(`🌍 Environment: ${config.nodeEnv}`);
   console.log(`🔐 Supabase Auth: ${authClient ? 'Enabled' : 'Disabled'}`);
   console.log(`🔗 Auth Redirect: ${config.auth.redirectUrl}`);

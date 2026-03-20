@@ -2,5 +2,8 @@
 .github
 node_modules/
 dist/
-# Allow JS files in packages/src for comic-generator
-!packages/comic-generator/src/*.js
+apps/dashboard/
+apps/discord-bot/
+apps/reverse-proxy/
+apps/web/
+!apps/api/

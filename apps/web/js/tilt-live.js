@@ -35,15 +35,27 @@
   // --- Initialization ---
   async function init() {
     // Wait for auth to be ready
-    if (window.tiltCheckAuth) {
-      user = window.tiltCheckAuth.getUser();
+    // Check auth status
+    user = window.tiltCheckAuth?.getUser();
+    
+    if (!user) {
+      console.log('[TiltLive] No user found, showing login state');
+      const joinBtn = document.getElementById('join-game-btn');
+      if (joinBtn) {
+        joinBtn.textContent = 'LOGIN WITH DISCORD TO PLAY';
+        joinBtn.onclick = () => window.location.href = '/login.html';
+      }
+      addChatMessage('System', 'Please login with Discord to participate in the trivia bowl.');
     }
 
-    const isLocal = window.location.hostname === 'localhost';
-    const socketUrl = isLocal ? 'http://localhost:3010' : 'https://api.tiltcheck.me';
+    const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+    const socketUrl = isLocal ? 'http://127.0.0.1:3010' : 'https://api.tiltcheck.me';
 
     console.log('[TiltLive] Connecting to:', socketUrl);
-    socket = io(socketUrl, { withCredentials: true });
+    socket = io(socketUrl, { 
+      withCredentials: true,
+      transports: ['websocket', 'polling']
+    });
 
     setupSocketListeners();
     setupUIListeners();

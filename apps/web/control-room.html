@@ -861,9 +861,12 @@
 
         // Real API integration
         async function refreshStatus() {
+            const apiBase = window.location.hostname === 'localhost' ? 'http://localhost:3010' : 'https://api.tiltcheck.me';
             try {
                 const key = new URLSearchParams(window.location.search).get('key') || 'tiltcheck-admin-2024';
-                const response = await fetch(`/api/admin/status?key=${key}`);
+                const response = await fetch(`${apiBase}/admin/status?key=${key}`, {
+                    headers: { 'x-admin-token': key } // Assuming key is the token
+                });
 
                 if (response.ok) {
                     const data = await response.json();

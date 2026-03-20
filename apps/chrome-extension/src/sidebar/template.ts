@@ -39,7 +39,7 @@ export const SIDEBAR_TEMPLATE = `
         </div>
         <div class="tg-focus-note">Quick tip: keep this minimized while you play, then expand when you want a clean reality check.</div>
 
-        <!-- Reality Check Bot (Formerly Alpha Audit) -->
+        <!-- Reality Check Bot -->
         <div class="tg-section tg-emergency">
           <div class="tg-emergency-header">
             <div style="flex: 1;">
@@ -205,7 +205,7 @@ export const SIDEBAR_TEMPLATE = `
             <button class="tg-action-btn" id="tg-open-linkcheck">PHISH NUKE</button>
             <button class="tg-action-btn tg-advanced-only" id="tg-open-config">Rig Setup</button>
             <button class="tg-action-btn tg-advanced-only" id="tg-open-verifier">IS THE GAME RIGGED?</button>
-            <button class="tg-action-btn" id="tg-open-predictor">BONUS SNIFFER</button>
+            <button class="tg-action-btn" id="tg-open-predictor">BONUS SCANNER</button>
             <button class="tg-action-btn" id="tg-open-dashboard">THE HUB</button>
             <button class="tg-action-btn" id="tg-open-vault">THE VAULT</button>
             <button class="tg-action-btn tg-advanced-only" id="tg-wallet">Wallet Status</button>

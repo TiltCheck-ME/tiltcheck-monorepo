@@ -35,14 +35,17 @@ export function getAuthorizationUrl(
     client_id: config.clientId,
     redirect_uri: config.redirectUri,
     response_type: 'code',
-    scope: config.scopes.join(' '),
   });
   
+  // Use literal space encoding for scopes, as some clients are sensitive
+  const scopeStr = config.scopes.join('%20');
+  const authUrl = `${DISCORD_OAUTH_AUTHORIZE}?${params.toString()}&scope=${scopeStr}`;
+  
   if (state) {
-    params.set('state', state);
+    return `${authUrl}&state=${state}`;
   }
   
-  return `${DISCORD_OAUTH_AUTHORIZE}?${params.toString()}`;
+  return authUrl;
 }
 
 /**
