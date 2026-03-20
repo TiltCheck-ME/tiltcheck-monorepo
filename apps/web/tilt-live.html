@@ -10,26 +10,44 @@
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Space+Grotesk:wght@700;900&family=Inter:wght@400;600;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/styles/theme.css">
   <link rel="stylesheet" href="/styles/base.css">
+  <link rel="stylesheet" href="/styles/main.css"> <!-- Added for shared components -->
   <link rel="stylesheet" href="/styles/tilt-live.css">
   <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
 </head>
-<body class="tilt-live-body text-white overflow-hidden">
+<body class="tilt-live-body text-white overflow-hidden degen-background">
   
-  <div id="app-container" class="full-viewport">
-    <!-- Top HUD -->
-    <header class="live-hud glass-panel">
+  <header class="site-header live-header">
+    <nav class="site-nav">
+      <a href="/" class="nav-logo">
+        <div class="logo-container">
+          <span class="nav-logo-text brand-text-glitch">TILT<span class="primary-mint">LIVE</span></span>
+        </div>
+      </a>
+      <div class="nav-links">
+        <a href="/" class="nav-link">Home</a>
+        <a href="/arena" class="nav-link">Arena</a>
+        <a href="/trust-scores.html" class="nav-link">Casino Trust</a>
+      </div>
+      <div class="nav-cta" id="auth-placeholder">
+        <a href="/login.html" class="btn btn-primary">Login</a>
+      </div>
+    </nav>
+  </header>
+
+  <div id="app-container" class="full-viewport mt-header">
+    <!-- Top HUD - Refocused on game stats -->
+    <div class="live-hud-stats glass-panel">
       <div class="hud-left">
         <div class="live-indicator">
           <span class="live-dot pulse"></span>
-          <span class="live-text">LIVE</span>
+          <span class="live-text">GAME STATUS: <span id="game-state-label" class="primary-mint">CONNECTING...</span></span>
         </div>
+      </div>
+      <div class="hud-center">
         <div class="survivor-count">
           <span id="survivor-num">--</span>
           <span class="label">SURVIVORS</span>
         </div>
-      </div>
-      <div class="hud-center">
-        <h1 class="logo-text brand-text-glitch">TILT<span class="primary-mint">LIVE</span></h1>
       </div>
       <div class="hud-right">
         <div class="prize-pool">
@@ -37,7 +55,7 @@
           <span id="prize-amount" class="gold-glow">-- SOL</span>
         </div>
       </div>
-    </header>
+    </div>
 
     <main class="game-layout">
       <!-- Left: Chat/Feed -->
@@ -144,6 +162,7 @@
 
   </div>
 
+  <script type="module" src="/scripts/auth.js"></script>
   <script type="module" src="/js/tilt-live.js"></script>
 </body>
 </html>

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>RTP Sniffer - TiltCheck</title>
+  <title>RTP Scanner - TiltCheck</title>
   <link rel="stylesheet" href="/styles/theme.css">
   <link rel="stylesheet" href="/styles/main.css">
   <style>
@@ -47,16 +47,16 @@
       75%, 100% { transform: scale(2); opacity: 0; }
     }
 
-    .sniff-target {
+    .scan-target {
       border-bottom: 1px dashed #222;
       padding: 1.5rem 0;
       position: relative;
       z-index: 10;
     }
-    .sniff-target:last-child { border-bottom: none; }
+    .scan-target:last-child { border-bottom: none; }
     
-    .sniff-house { color: #fff; font-weight: 700; font-size: 1.2rem; display: flex; align-items: center; justify-content: space-between; }
-    .sniff-offer { color: #555; font-size: 0.8rem; margin-top: 5px; text-transform: uppercase; }
+    .scan-house { color: #fff; font-weight: 700; font-size: 1.2rem; display: flex; align-items: center; justify-content: space-between; }
+    .scan-offer { color: #555; font-size: 0.8rem; margin-top: 5px; text-transform: uppercase; }
     
     .stealth-nerf {
       margin-top: 15px;
@@ -82,7 +82,7 @@
   <div id="shared-nav"></div>
   <main class="radar-page">
     <div class="radar-header">
-      <h1>RTP Sniffer</h1>
+      <h1>RTP Scanner</h1>
       <p>// LIVE RADAR: HUNTING STEALTH NERFS //</p>
     </div>
 
@@ -90,23 +90,23 @@
       <span class="pulse-dot"></span> MONITORING THE MATH...
     </div>
 
-    <div class="radar-feed" id="sniff-feed">
-      <div class="sniff-target" style="opacity: 0.5;">
-        > Establishing connection to the grid...
+    <div class="radar-feed" id="scan-feed">
+      <div class="scan-target" style="opacity: 0.5;">
+        > Scanning for house edge signals...
       </div>
     </div>
   </main>
 
   <script type="module">
-    async function loadSnifferData() {
-      const feed = document.getElementById('sniff-feed');
+    async function loadScannerData() {
+      const feed = document.getElementById('scan-feed');
       try {
         const res = await fetch('/data/daily-bonuses.json');
         if (!res.ok) throw new Error('Data drop failed.');
         const data = await res.json();
         
         if (!data.bonuses || data.bonuses.length === 0) {
-          feed.innerHTML = '<div class="sniff-target"><div class="sniff-house">NO SIGNALS DETECTED</div><div class="sniff-offer">The houses are quiet today.</div></div>';
+          feed.innerHTML = '<div class="scan-target"><div class="scan-house">NO SIGNALS DETECTED</div><div class="scan-offer">The houses are quiet today.</div></div>';
           return;
         }
 
@@ -115,16 +115,16 @@
           // Fake some "Edge Detection" data for the degen vibe
           const isNerfed = Math.random() > 0.6; // random for visual proof of layout
           const nerfVisual = isNerfed 
-            ? `<div class="stealth-nerf"><strong>WARNING:</strong> High probability of stealth RTP drop on active rollover.</div>`
-            : `<div class="stealth-safe"><strong>CLEARED:</strong> Math checks out. Standard RTP variance detected.</div>`;
+            ? `<div class="stealth-nerf"><strong>THE NERF:</strong> Heavy house edge detected. This bonus is a degen trap.</div>`
+            : `<div class="stealth-safe"><strong>SECURE THE BAG:</strong> RTP checks out. This entry is Verified.</div>`;
 
           html += `
-            <div class="sniff-target">
-              <div class="sniff-house">
+            <div class="scan-target">
+              <div class="scan-house">
                 <span>[TARGET] ${b.casino.toUpperCase()}</span>
                 <span class="code-tag">${b.code}</span>
               </div>
-              <div class="sniff-offer">Payload: ${b.type}</div>
+              <div class="scan-offer">Payload: ${b.type}</div>
               ${nerfVisual}
             </div>
           `;
@@ -132,12 +132,12 @@
 
         feed.innerHTML = html;
       } catch (err) {
-        feed.innerHTML = `<div class="sniff-target">Signal drop. Reconnecting...</div>`;
+        feed.innerHTML = `<div class="scan-target">Signal drop. Reconnecting...</div>`;
       }
     }
     
     // Simulate connection delay for dramatic effect
-    setTimeout(loadSnifferData, 800);
+    setTimeout(loadScannerData, 800);
   </script>
   <div id="shared-footer"></div>
   <script type="module" src="/scripts/components-loader.js"></script>
