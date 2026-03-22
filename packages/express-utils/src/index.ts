@@ -12,7 +12,7 @@ import type { Request, Response, NextFunction } from 'express';
 /**
  * Type for async route handler functions
  */
-type AsyncHandler = (req: Request, res: Response, next: NextFunction) => Promise<void> | Promise<any>;
+type AsyncHandler = (req: Request, res: Response, next: NextFunction) => Promise<void> | Promise<unknown>;
 
 /**
  * Type for error object with optional statusCode and code properties

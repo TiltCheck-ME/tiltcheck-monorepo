@@ -248,6 +248,10 @@ export class GameManager {
     return this.games.get(gameId);
   }
 
+  public getGameCount(): number {
+    return this.games.size;
+  }
+
   /**
    * Create a new game
    */

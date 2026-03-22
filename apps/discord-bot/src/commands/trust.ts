@@ -34,7 +34,7 @@ export const trustDashboard: Command = {
     .addSubcommand(sub =>
       sub.setName('explain')
         .setDescription('Learn how the alpha audit protocol works')
-    ) as any as SlashCommandBuilder,
+    ) as SlashCommandBuilder,
 
   async execute(interaction: ChatInputCommandInteraction) {
     const subcommand = interaction.options.getSubcommand();

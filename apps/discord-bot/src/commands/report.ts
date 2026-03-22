@@ -1,5 +1,5 @@
 /* Copyright (c) 2026 TiltCheck. All rights reserved. */
-import { SlashCommandBuilder, PermissionFlagsBits } from 'discord.js';
+import { SlashCommandBuilder, PermissionFlagsBits, ChatInputCommandInteraction } from 'discord.js';
 import fetch from 'node-fetch';
 
 export default {
@@ -32,7 +32,7 @@ export default {
         .setDescription('Link to screenshot or message (optional)')
         .setRequired(false)),
 
-  async execute(interaction: any) {
+  async execute(interaction: ChatInputCommandInteraction) {
     const target = interaction.options.getUser('target');
     const action = interaction.options.getString('action');
     const reason = interaction.options.getString('reason');

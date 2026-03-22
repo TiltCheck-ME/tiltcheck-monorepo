@@ -635,7 +635,12 @@ export async function getAggregatedTrustByDiscordId(discordId: string): Promise<
     GROUP BY discord_id
   `;
 
-  const result = await queryOne<any>(sql, [discordId]);
+  const result = await queryOne<{
+    total_score: string;
+    signals_count: string;
+    origins_count: string;
+    last_activity: string | Date;
+  }>(sql, [discordId]);
 
   // Base score 100, capped at 0-1000
   const baseScore = 100;

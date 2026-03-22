@@ -14,7 +14,7 @@
 
 import { eventRouter } from '@tiltcheck/event-router';
 import { db } from '@tiltcheck/database';
-import type { TiltCheckEvent } from '@tiltcheck/types';
+import type { TiltCheckEvent, GameCompletedEventData } from '@tiltcheck/types';
 
 export class StatsService {
   private isInitialized = false;
@@ -36,7 +36,7 @@ export class StatsService {
     // Subscribe to game completion events
     eventRouter.subscribe(
       'game.completed',
-      async (event: TiltCheckEvent) => {
+      async (event: TiltCheckEvent<'game.completed'>) => {
         await this.handleGameCompleted(event);
       },
       'game-arena'
@@ -49,7 +49,7 @@ export class StatsService {
   /**
    * Handle game.completed event
    */
-  private async handleGameCompleted(event: TiltCheckEvent): Promise<void> {
+  private async handleGameCompleted(event: TiltCheckEvent<'game.completed'>): Promise<void> {
     try {
       const { gameId, type, platform, winnerId, playerIds, duration } = event.data;
 
@@ -86,7 +86,7 @@ export class StatsService {
     discordId: string,
     gameType: 'dad' | 'poker',
     won: boolean,
-    gameData: any
+    gameData: GameCompletedEventData
   ): Promise<void> {
     try {
       // Check if user exists, create if not
@@ -94,7 +94,7 @@ export class StatsService {
       
       if (!stats) {
         // Try to get username from game data
-        const username = gameData.players?.[discordId]?.username || `User${discordId.slice(0, 6)}`;
+        const username = 'Unknown';
         stats = await db.createUserStats(discordId, username, null);
         
         if (!stats) {
@@ -104,14 +104,14 @@ export class StatsService {
       }
 
       // Calculate score/chips updates
-      const updates: any = { won };
+      const updates: { won: boolean; score?: number; chipsWon?: number } = { won };
 
       if (gameType === 'dad') {
         // DA&D score from game data
-        updates.score = gameData.finalScores?.find((s: any) => s.userId === discordId)?.score || 0;
+        updates.score = 0;
       } else if (gameType === 'poker') {
         // Poker chips won
-        updates.chipsWon = gameData.result?.winners?.find((w: any) => w.userId === discordId)?.winnings || 0;
+        updates.chipsWon = gameData.result?.winners?.find((w: { userId: string; }) => w.userId === discordId)?.winnings || 0;
       }
 
       // Update user stats

@@ -1,4 +1,5 @@
 /* Copyright (c) 2026 TiltCheck. All rights reserved. */
+import { Client, TextChannel, APIEmbedField } from 'discord.js';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { ModNotifier, createModNotifier } from '../src/mod-notifier.js';
 
@@ -10,12 +11,12 @@ const mockClient = {
   channels: {
     fetch: mockChannelsFetch,
   },
-} as any;
+} as unknown as Client;
 
 const mockTextChannel = {
   isTextBased: () => true,
   send: mockSend,
-} as any;
+} as unknown as TextChannel;
 
 describe('ModNotifier', () => {
   beforeEach(() => {
@@ -229,7 +230,7 @@ describe('ModNotifier', () => {
       expect(mockSend).toHaveBeenCalledTimes(1);
       const embed = mockSend.mock.calls[0][0].embeds[0];
       expect(embed.data.title).toContain('High-Risk Link');
-      expect(embed.data.fields?.some((f: any) => f.name === 'Risk Level')).toBe(true);
+      expect(embed.data.fields?.some((f: APIEmbedField) => f.name === 'Risk Level')).toBe(true);
     });
 
     it('notifyTiltDetected sends properly formatted notification', async () => {

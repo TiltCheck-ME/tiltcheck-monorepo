@@ -31,7 +31,7 @@ export interface ErrorResponse extends BaseResponse {
     status: 'error';
     error: string;           // Human readable error message
     code?: string;           // Machine readable error code (e.g. 'UNAUTHORIZED')
-    details?: any;           // Additional error context
+    details?: unknown;           // Additional error context
 }
 
 /**

@@ -681,7 +681,7 @@ export class DADModule {
     }
 
     // Emit game completed event
-    await eventRouter.publish('game.completed', 'dad', {
+    await eventRouter.publish('dad.game.completed', 'dad', {
       gameId: game.id,
       winnerId,
       finalScores: Array.from(game.players.values()).map(p => ({

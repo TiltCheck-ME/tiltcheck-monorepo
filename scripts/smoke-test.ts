@@ -53,7 +53,7 @@ async function runSmokeTest() {
             }
         });
         console.log('✅ Partner Auth: OK');
-    } catch (err: any) {
+    } catch (err: Error) {
         if (err.response?.status === 401) {
             console.log('✅ Partner Auth: Correctly rejected (No partner registered yet)');
         } else {
@@ -63,7 +63,7 @@ async function runSmokeTest() {
 
     console.log('\n🏆 [Smoke Test] Successfully completed 3/3 core checks.');
 
-  } catch (error: any) {
+  } catch (error: Error) {
     console.error('\n❌ [Smoke Test] Failed:', error.message);
     if (error.response) {
       console.error('Response:', error.response.data);

@@ -66,6 +66,16 @@ const getTrustStanding = new FunctionTool<typeof DiscordIdSchema>({
 
     const trustScore = identity?.trust_score ?? 50;
     
+    interface TiltEvent {
+        id: string;
+        user_id: string;
+        timestamp: string;
+        signals: unknown[];
+        tilt_score: number;
+        context: string | null;
+        created_at: string;
+    }
+
     return {
       trustScore,
       standing: trustScore > 80 ? 'Exemplary' : trustScore > 60 ? 'Stable' : trustScore > 40 ? 'Degenerate' : 'Toxic',
@@ -81,7 +91,7 @@ const getTrustStanding = new FunctionTool<typeof DiscordIdSchema>({
         tosAccepted: identity?.tos_accepted ?? false,
         nftMinted: identity?.tos_nft_minted ?? false
       },
-      recentWarnings: recentTilt.map(t => ({
+      recentWarnings: (recentTilt as TiltEvent[]).map(t => ({
         score: t.tilt_score,
         time: t.timestamp,
         context: t.context

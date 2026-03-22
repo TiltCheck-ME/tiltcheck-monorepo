@@ -36,11 +36,18 @@ import type {
   ClientToServerEvents,
   ServerToClientEvents,
   CreateGameRequest,
+  TriviaStartedEventData,
+  TriviaRoundStartEventData,
+  TriviaRoundRevealEventData,
+  TriviaCompletedEventData,
+  TriviaWinner,
+  GameLobbyInfo,
 } from './types.js';
 import { mapAuthUserToDiscordUser } from './types.js';
 import { justthetip } from '@tiltcheck/justthetip';
 import { triviaManager } from './trivia-manager.js';
 import { eventRouter } from '@tiltcheck/event-router';
+import { TiltCheckEvent, EventType } from '@tiltcheck/types';
 
 // ES module __dirname equivalent
 const __filename = fileURLToPath(import.meta.url);
@@ -150,7 +157,8 @@ app.post('/admin/trivia/start', async (req, res) => {
       startTime: Date.now() + 5000, // Start in 5 seconds
       category: category || 'general',
       theme: theme || 'Random Degen Knowledge',
-      totalRounds: rounds || 12
+      totalRounds: rounds || 12,
+      prizePool: 0
     });
     res.json({ success: true, message: 'Trivia game scheduled to start in 5s.' });
   } catch (error: any) {
@@ -787,18 +795,18 @@ eventRouter.subscribe('trivia.started', (event) => {
     timestamp: Date.now(),
   });
   io.emit('game-update', { type: 'trivia-started', ...event.data });
-}, 'server-trivia-broadcaster');
+}, 'game-arena');
 
 eventRouter.subscribe('trivia.round.start', (event) => {
   io.emit('trivia-round-start', event.data);
-}, 'server-trivia-broadcaster');
+}, 'game-arena');
 
 eventRouter.subscribe('trivia.round.reveal', (event) => {
   io.emit('trivia-round-reveal', event.data);
-}, 'server-trivia-broadcaster');
+}, 'game-arena');
 
 eventRouter.subscribe('trivia.completed', (event) => {
-  const winnerList = event.data.winners.map((w: any) => w.username).join(', ');
+  const winnerList = event.data.winners.map((w) => w.username).join(', ');
   io.emit('chat-message', {
     userId: 'system',
     username: 'TiltLive',
@@ -806,7 +814,7 @@ eventRouter.subscribe('trivia.completed', (event) => {
     timestamp: Date.now(),
   });
   io.emit('game-update', { type: 'trivia-completed', ...event.data });
-}, 'server-trivia-broadcaster');
+}, 'game-arena');
 
 // Cleanup interval (every 5 minutes)
 setInterval(() => {
