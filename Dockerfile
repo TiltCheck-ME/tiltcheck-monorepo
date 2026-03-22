@@ -1,38 +1,24 @@
-# TiltCheck API - Optimized Container
-FROM node:20-alpine AS build
-
-RUN npm install -g pnpm@10
-ENV CI=true
-ENV SKIP_ENV_VALIDATION=1
-
+# TiltCheck API - Production Container (Assumes prebuilt dist/)
+FROM node:20-alpine AS base
+RUN npm install -g pnpm@10 && npm cache clean --force
 WORKDIR /app
 
-# Copy workspace config
-COPY package.json pnpm-workspace.yaml pnpm-lock.yaml .npmrc tsconfig.json ./
-
-# Copy all sources (needed for workspace resolution)
-COPY packages/ ./packages/
-COPY modules/ ./modules/
-COPY apps/api/ ./apps/api/
-
-# Install dependencies for Wave 1
-RUN pnpm install --no-frozen-lockfile
-
-# Build API and its dependencies ONLY
-RUN pnpm --filter @tiltcheck/api... build
-
-# Production stage
-FROM node:20-alpine
-
-RUN npm install -g pnpm@10
+FROM base AS dependencies
 ENV CI=true
+COPY pnpm-workspace.yaml pnpm-lock.yaml package.json .npmrc ./
+RUN pnpm install --no-frozen-lockfile --prod
+
+FROM base AS runtime
 ENV NODE_ENV=production
-
-WORKDIR /app
-
-# Copy build artifacts
-COPY --from=build /app /app
-
+RUN apk add --no-cache dumb-init
+USER node
 EXPOSE 3001
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+  CMD node -e "require('http').get('http://localhost:3001/health', (r) => {if (r.statusCode !== 200) throw new Error(r.statusCode)})"
 
+FROM runtime AS production
+COPY --from=dependencies --chown=node:node /app/node_modules ./node_modules
+COPY --chown=node:node apps/api/dist ./apps/api/dist
+COPY --chown=node:node package.json ./
+ENTRYPOINT ["/usr/bin/dumb-init", "--"]
 CMD ["node", "apps/api/dist/index.js"]
