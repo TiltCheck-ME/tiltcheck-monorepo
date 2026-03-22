@@ -24,6 +24,12 @@ const TEST_FILE = path.join(DATA_DIR, 'newsletter-subscribers-test.json');
 process.env.NEWSLETTER_SALT = 'test-salt';
 const ORIGINAL_FILE = path.join(DATA_DIR, 'newsletter-subscribers.json');
 
+interface Subscriber {
+  hash: string;
+  ts: number;
+  email?: string;
+}
+
 describe('Newsletter API', () => {
   let app: express.Application;
   let originalData: string | null;
@@ -57,7 +63,7 @@ describe('Newsletter API', () => {
       const crypto = await import('node:crypto');
       const salt = process.env.NEWSLETTER_SALT || 'tiltcheck-salt';
       
-      let list = [];
+      let list: Subscriber[] = [];
       try {
         const data = await fs.readFile(TEST_FILE, 'utf8');
         list = JSON.parse(data);
@@ -67,7 +73,7 @@ describe('Newsletter API', () => {
 
       const emailHash = crypto.createHash('sha256').update(salt + ':' + email).digest('hex');
 
-      if (list.some((e: any) => e.hash === emailHash)) {
+      if (list.some((e: Subscriber) => e.hash === emailHash)) {
         return res.json({ ok: true, duplicate: true });
       }
 
@@ -92,7 +98,7 @@ describe('Newsletter API', () => {
       const crypto = await import('node:crypto');
       const salt = process.env.NEWSLETTER_SALT || 'tiltcheck-salt';
       
-      let list = [];
+      let list: Subscriber[] = [];
       try {
         const data = await fs.readFile(TEST_FILE, 'utf8');
         list = JSON.parse(data);
@@ -102,7 +108,7 @@ describe('Newsletter API', () => {
 
       const emailHash = crypto.createHash('sha256').update(salt + ':' + email).digest('hex');
       const before = list.length;
-      list = list.filter((e: any) => e.hash !== emailHash);
+      list = list.filter((e: Subscriber) => e.hash !== emailHash);
 
       if (list.length === before) {
         return res.json({ ok: true, notFound: true });
@@ -233,17 +239,17 @@ describe('Newsletter API', () => {
         .send({ email: 'hashed@example.com' });
 
       const data = await fs.readFile(TEST_FILE, 'utf8');
-      const list = JSON.parse(data);
+      const list: Subscriber[] = JSON.parse(data);
       
       // Check no plaintext emails exist
-      const hasPlaintext = list.some((entry: any) => 
+      const hasPlaintext = list.some((entry: Subscriber) => 
         entry.email && entry.email.includes('@')
       );
       
       expect(hasPlaintext).toBe(false);
       
       // Check hash exists
-      const hasHash = list.some((entry: any) => 
+      const hasHash = list.some((entry: Subscriber) => 
         entry.hash && entry.hash.length === 64 // SHA-256 hex length
       );
       

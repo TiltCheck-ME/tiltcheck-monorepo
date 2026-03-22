@@ -44,6 +44,10 @@ export class GlobalTriviaManager {
     console.log('[GlobalTriviaManager] Initialized');
   }
 
+  public isActive(): boolean {
+    return this.activeGame !== null && this.activeGame.status === 'active';
+  }
+
   /**
    * Schedule a new trivia event
    */
@@ -199,7 +203,7 @@ export class GlobalTriviaManager {
   /**
    * End the game and handle payouts
    */
-  private async endGame(): Promise<void> {
+  public async endGame(): Promise<void> {
     if (!this.activeGame) return;
 
     this.activeGame.status = 'completed';
@@ -243,9 +247,9 @@ export class GlobalTriviaManager {
     try {
       // Deduct 0.05 SOL equivalent in credits via JustTheTip
       const amount = 0.05;
-      const deduction = await justthetip.deductCredits(userId, amount, 'trivia-buy-back');
+      const deduction = await justthetip.credits.deduct(userId, amount, 'trivia-buy-back');
       
-      if (!deduction.success) {
+      if (!deduction) {
         return { success: false, message: 'Insufficient credits for buy-back.' };
       }
 
@@ -284,9 +288,9 @@ export class GlobalTriviaManager {
     try {
       // Deduct 0.02 SOL equivalent for the hint
       const amount = 0.02;
-      const deduction = await justthetip.deductCredits(userId, amount, 'trivia-ape-in-hint');
+      const deduction = await justthetip.credits.deduct(userId, amount, 'trivia-ape-in-hint');
 
-      if (!deduction.success) {
+      if (!deduction) {
         return { success: false, message: 'Insufficient credits for hint.' };
       }
 

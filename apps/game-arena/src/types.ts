@@ -134,3 +134,53 @@ export interface UserStats {
   createdAt: Date;
   updatedAt: Date;
 }
+
+// Trivia Event Types
+export interface TriviaGameSettings {
+  startTime: number;
+  category: string;
+  theme: string;
+  totalRounds: number;
+  prizePool: number;
+}
+
+export interface TriviaQuestion {
+    id: string;
+    question: string;
+    choices: string[];
+    category: string;
+    theme?: string;
+    difficulty?: 'easy' | 'medium' | 'hard';
+}
+
+export interface TriviaStartedEventData extends TriviaGameSettings {
+  gameId: string;
+}
+
+export interface TriviaRoundStartEventData {
+  question: TriviaQuestion;
+  roundNumber: number;
+  totalRounds: number;
+  endsAt: number; // Timestamp
+}
+
+export interface TriviaRoundRevealEventData {
+  questionId: string;
+  correctChoice: string;
+  explanation?: string;
+  stats: Record<string, { count: number; correct: boolean }>; // choice -> { count, correct }
+}
+
+export interface TriviaWinner {
+  userId: string;
+  username: string;
+  score: number;
+  rank: number;
+  prize?: number;
+}
+
+export interface TriviaCompletedEventData {
+  gameId: string;
+  winners: TriviaWinner[];
+  finalScores: { userId: string; username: string; score: number }[];
+}

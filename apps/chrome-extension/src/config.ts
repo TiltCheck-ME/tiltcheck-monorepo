@@ -9,7 +9,8 @@ export const EXT_CONFIG = {
     WEB_APP_URL: 'https://tiltcheck.me',
     DISCORD_CLIENT_ID: '1445916179163250860',
     // Standard OAuth2 scopes.
-    DISCORD_SCOPES: ['identify', 'email'],
+    DISCORD_SCOPES: ['identify'],
+
     // The redirect URI must be exactly what is in the Discord Developer Portal
     DISCORD_REDIRECT_URI: 'https://api.tiltcheck.me/auth/discord/callback'
 };

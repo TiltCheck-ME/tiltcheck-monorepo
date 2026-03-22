@@ -174,6 +174,7 @@ router.post('/trust/degen-intel', async (req, res) => {
         userId: syntheticCommunityUser,
         severity,
         reason: 'Community watcher intelligence ingest',
+        tiltScore: severity,
         reportExcerpt: report.slice(0, 400),
         messageCount,
       },

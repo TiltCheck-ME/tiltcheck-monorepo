@@ -10,7 +10,8 @@ import type {
   EventType, 
   AuthContext, 
   SessionType, 
-  User 
+  User,
+  UpdateUserPayload
 } from '@tiltcheck/types';
 
 /**
@@ -21,7 +22,7 @@ export class MockEventRouter {
   public publishedEvents: TiltCheckEvent[] = [];
   public subscribers: Map<string, Function[]> = new Map();
 
-  publish = vi.fn(async (type: string, source: string, data: any, userId?: string) => {
+  publish = vi.fn(async (type: string, source: string, data: unknown, userId?: string) => {
     const event: TiltCheckEvent = {
       id: `test-evt-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
       type: type as any,
@@ -59,7 +60,7 @@ export class MockEventRouter {
   }
 
   getLastEvent<T extends EventType>(type: T): TiltCheckEvent<T> | undefined {
-    return this.publishedEvents.reverse().find(e => e.type === type) as any;
+    return this.publishedEvents.reverse().find(e => e.type === type) as TiltCheckEvent<T> | undefined;
   }
 }
 
@@ -67,7 +68,7 @@ export class MockEventRouter {
  * Mock Database client
  */
 export class MockDatabase {
-  public stores: Map<string, Map<string, any>> = new Map();
+  public stores: Map<string, Map<string, User | { userId: string, score: number }>> = new Map();
 
   constructor() {
     this.stores.set('users', new Map());
@@ -75,17 +76,18 @@ export class MockDatabase {
     this.stores.set('tips', new Map());
   }
 
-  getUser = vi.fn(async (id: string) => this.stores.get('users')!.get(id) || null);
-  updateUser = vi.fn(async (id: string, data: any) => {
+  getUser = vi.fn(async (id: string) => this.stores.get('users')!.get(id) as User | null || null);
+  updateUser = vi.fn(async (id: string, data: Partial<UpdateUserPayload>) => {
     const current = this.stores.get('users')!.get(id) || {};
-    const updated = { ...current, ...data, id };
+    const updated = { ...current, ...data, id } as User;
     this.stores.get('users')!.set(id, updated);
     return updated;
   });
 
   updateTrustScore = vi.fn(async (userId: string, score: number) => {
-    this.stores.get('trust_scores')!.set(userId, score);
-    return { userId, score };
+    const scoreData = { userId, score };
+    this.stores.get('trust_scores')!.set(userId, scoreData);
+    return scoreData;
   });
 
   clear() {

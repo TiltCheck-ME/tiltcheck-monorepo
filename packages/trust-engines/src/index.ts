@@ -415,6 +415,7 @@ export class TrustEnginesService {
         delta: record.score - previousScore,
         level: this.getTrustLevel(record.score),
         reason,
+        source: 'trust-engine-degen',
       },
       userId
     );

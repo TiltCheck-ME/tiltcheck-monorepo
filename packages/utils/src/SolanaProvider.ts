@@ -1,6 +1,11 @@
 /* Copyright (c) 2026 TiltCheck. All rights reserved. */
 import { Connection, PublicKey, Transaction, TransactionInstruction, clusterApiUrl } from '@solana/web3.js';
 
+interface SolanaWallet {
+  publicKey: PublicKey;
+  sendTransaction: (transaction: Transaction, connection: Connection) => Promise<string>;
+}
+
 export class SolanaProvider {
   private connection: Connection;
   // The standard SPL Memo Program ID
@@ -31,7 +36,7 @@ export class SolanaProvider {
    * @param gameId - Unique identifier for the specific game round
    */
   async sendCommitmentMemo(
-    wallet: any, 
+    wallet: SolanaWallet, 
     discordId: string, 
     clientSeed: string, 
     gameId: string

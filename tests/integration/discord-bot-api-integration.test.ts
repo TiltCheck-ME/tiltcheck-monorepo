@@ -110,7 +110,7 @@ describe('Discord Bot ↔ API Integration', () => {
 
       try {
         await mockApiClient.post('/action', {});
-      } catch (err: any) {
+      } catch (err: Error) {
         mockBotUser.send(`Error: ${err.message}`);
       }
 
@@ -123,7 +123,7 @@ describe('Discord Bot ↔ API Integration', () => {
 
       try {
         await mockApiClient.post('/action', {});
-      } catch (err: any) {
+      } catch (err: Error) {
         // Fallback user-friendly message
         const message = err.message === 'INTERNAL_SERVER_ERROR' ? 'Something went wrong on our end. Please try again later.' : err.message;
         mockBotUser.send(message);

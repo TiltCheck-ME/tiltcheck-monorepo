@@ -5,7 +5,7 @@
  * Manages Discord client events and Event Router subscriptions.
  */
 
-import { Client, Events } from 'discord.js';
+import { Client, Events, Interaction, TextBasedChannel } from 'discord.js';
 import { eventRouter } from '@tiltcheck/event-router';
 import { extractUrls, ModNotifier, createModNotifier, ModNotificationEventType } from '@tiltcheck/discord-utils';
 import { suslink } from '@tiltcheck/suslink';
@@ -145,7 +145,7 @@ export class EventHandler {
     console.log('[EventHandler] Discord events registered');
   }
 
-  private async handleButtonInteraction(interaction: any): Promise<void> {
+  private async handleButtonInteraction(interaction: Interaction): Promise<void> {
     const customId = interaction.customId;
 
     try {
@@ -163,7 +163,7 @@ export class EventHandler {
     await interaction.reply({ content: 'Unknown button action.', ephemeral: true });
   }
 
-  private async handleModAction(type: ModNotificationEventType, data: any): Promise<void> {
+  private async handleModAction<T extends ModNotificationEventType>(type: T, data: T extends 'tilt.detected' ? TiltDetectedEventData : T extends 'cooldown.violated' ? CooldownViolatedEventData : T extends 'link.flagged' ? LinkFlaggedEventData : T extends 'scam.reported' ? ScamReportedEventData : { [key: string]: unknown }): Promise<void> {
     if (!this.modNotifier.isEnabled()) return;
 
     try {
@@ -342,7 +342,7 @@ export class EventHandler {
             if (channel && channel.isTextBased()) {
               const userMention = userId !== 'guest' ? `<@${userId}>` : '**A Guest Degen**';
               const alertMessage = `🚨 **BUDDY SYSTEM ALERT** 🚨\n\n${userMention} is fumbling the bag! They just hit a zero balance or blew a massive lead. \n\nGet in voice and pull them off the floor before they revenge deposit. \n\n*Action: ${data.message || 'Intervention Required'}*`;
-              await (channel as any).send(alertMessage);
+              await (channel as TextBasedChannel).send(alertMessage);
               console.log(`[Bot] Buddy snitch sent to channel ${channelId} for ${userId}`);
             }
           }

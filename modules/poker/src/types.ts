@@ -5,33 +5,13 @@
  * Tilt detection on bad beats
  */
 
-export type Suit = '♠' | '♥' | '♦' | '♣';
-export type Rank = '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' | '10' | 'J' | 'Q' | 'K' | 'A';
-
-export interface Card {
-  suit: Suit;
-  rank: Rank;
-  value: number; // 2-14 (Ace high)
-}
-
-export type HandRank =
-  | 'high-card'
-  | 'pair'
-  | 'two-pair'
-  | 'three-of-a-kind'
-  | 'straight'
-  | 'flush'
-  | 'full-house'
-  | 'four-of-a-kind'
-  | 'straight-flush'
-  | 'royal-flush';
-
-export interface HandEvaluation {
-  rank: HandRank;
-  value: number; // For comparison
-  cards: Card[]; // Best 5-card hand
-  description: string;
-}
+import type {
+  Suit,
+  Rank,
+  Card,
+  HandRank,
+  HandEvaluation,
+} from '@tiltcheck/types';
 
 export interface Player {
   userId: string;

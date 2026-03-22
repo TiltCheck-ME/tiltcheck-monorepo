@@ -382,7 +382,7 @@ try {
     }
 
     // In tests, we might want to continue even with missing envs (use defaults)
-    validatedEnv = result.data as any; // Cast as any because it might be partial
+    validatedEnv = {} as FullEnvConfig; // Allow tests to run with partial env
   } else {
     validatedEnv = result.data;
   }

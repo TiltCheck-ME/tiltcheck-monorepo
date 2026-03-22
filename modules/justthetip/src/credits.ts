@@ -115,6 +115,22 @@ export class CreditService {
     return this.fbCredit(discordId, amountLamports, 'deposit', opts);
   }
 
+  async deduct(
+    discordId: string,
+    amountLamports: number,
+    type: string,
+    opts?: { memo?: string; counterpartyId?: string; signature?: string }
+  ): Promise<{ newBalance: number; txId: string }> {
+    if (this.db.isConnected()) {
+      const result = await this.db.debitBalance(discordId, amountLamports, type, opts);
+      if (!result) throw new Error('Failed to debit balance');
+      return result;
+    }
+
+    const newBalance = this.fbDebit(discordId, amountLamports, type);
+    return { newBalance, txId: crypto.randomUUID() };
+  }
+
   async deductForTip(
     senderId: string,
     recipientId: string,

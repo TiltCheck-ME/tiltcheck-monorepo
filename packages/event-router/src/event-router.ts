@@ -30,8 +30,8 @@ function generateId(): string {
 
 export class EventRouter {
   private emitter: EventEmitter;
-  private subscriptions: Map<EventType, EventSubscription<any>[]>;
-  private eventHistory: TiltCheckEvent<any>[];
+  private subscriptions: Map<EventType, EventSubscription[]>;
+  private eventHistory: TiltCheckEvent[];
   private maxHistorySize: number;
 
   constructor(maxHistorySize = 1000) {
@@ -105,9 +105,9 @@ export class EventRouter {
   async publish<T extends EventType>(
     type: T,
     source: ModuleId,
-    data: T extends keyof EventDataMap ? EventDataMap[T] : any,
+    data: T extends keyof EventDataMap ? EventDataMap[T] : unknown,
     userId?: string,
-    metadata?: Record<string, any>
+    metadata?: Record<string, unknown>
   ): Promise<void> {
     const event: TiltCheckEvent<T> = {
       id: generateId(),
@@ -153,7 +153,7 @@ export class EventRouter {
     source?: ModuleId;
     userId?: string;
     limit?: number;
-  }): TiltCheckEvent<any>[] {
+  }): TiltCheckEvent[] {
     let filtered = this.eventHistory;
 
     if (filter?.eventType) {
@@ -178,7 +178,7 @@ export class EventRouter {
   /**
    * Get active subscriptions (for monitoring)
    */
-  getSubscriptions(): Map<EventType, EventSubscription<any>[]> {
+  getSubscriptions(): Map<EventType, EventSubscription[]> {
     return new Map(this.subscriptions);
   }
 
@@ -193,7 +193,7 @@ export class EventRouter {
   /**
    * Add event to history with size limit
    */
-  private addToHistory(event: TiltCheckEvent<any>): void {
+  private addToHistory(event: TiltCheckEvent): void {
     this.eventHistory.push(event);
 
     // Keep history size manageable
