@@ -1,42 +1,22 @@
-# TiltCheck Trust Rollup - Standalone Container
-# Build from monorepo root: docker build -f apps/trust-rollup/Dockerfile .
-
-FROM node:20-alpine AS build
-
-RUN npm install -g pnpm@10
-ENV CI=true
-ENV SKIP_ENV_VALIDATION=1
-
+# TiltCheck Trust Rollup - Production Container (Assumes prebuilt dist/)
+FROM node:20-alpine AS base
+RUN npm install -g pnpm@10 && npm cache clean --force
 WORKDIR /app
 
-# Copy workspace config
-COPY package.json pnpm-workspace.yaml pnpm-lock.yaml .npmrc tsconfig.json ./
-
-# Copy all workspace sources
-COPY packages/ ./packages/
-COPY modules/ ./modules/
-COPY apps/ ./apps/
-
-# Install dependencies
-RUN NODE_ENV=development pnpm install --no-frozen-lockfile
-
-# Build all packages
-RUN pnpm -r build
-
-# Prune dev dependencies
-# pnpm prune --prod
-
-# Production stage
-FROM node:20-alpine
-
-RUN npm install -g pnpm@10
+FROM base AS dependencies
 ENV CI=true
+COPY pnpm-workspace.yaml pnpm-lock.yaml package.json .npmrc ./
+RUN pnpm install --no-frozen-lockfile --prod
+
+FROM base AS runtime
 ENV NODE_ENV=production
+RUN apk add --no-cache dumb-init
+USER node
+EXPOSE 8082
 
-WORKDIR /app
-
-COPY --from=build /app /app
-
-EXPOSE 8083
-
+FROM runtime AS production
+COPY --from=dependencies --chown=node:node /app/node_modules ./node_modules
+COPY --chown=node:node apps/trust-rollup/dist ./apps/trust-rollup/dist
+COPY --chown=node:node package.json ./
+ENTRYPOINT ["/usr/bin/dumb-init", "--"]
 CMD ["node", "apps/trust-rollup/dist/index.js"]

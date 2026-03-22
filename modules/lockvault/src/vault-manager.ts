@@ -477,4 +477,8 @@ export function getReloadSchedule(userId: string) { return vaultManager.getReloa
 export function startLockVaultBackgroundTasks() { return vaultManager.startBackgroundTasks(); }
 export function stopLockVaultBackgroundTasks() { return vaultManager.stopBackgroundTasks(); }
 export function depositToVault(userId: string, amount: number) { return vaultManager.deposit(userId, amount); }
+export async function addSecondOwner(_userId: string, _secondOwnerId: string) { throw new Error('addSecondOwner not implemented yet'); }
+export async function initiateWithdrawal(_userId: string, _amount: number) { throw new Error('initiateWithdrawal not implemented yet'); }
+export async function approveWithdrawal(_userId: string) { throw new Error('approveWithdrawal not implemented yet'); }
+export async function executeWithdrawal(_userId: string) { throw new Error('executeWithdrawal not implemented yet'); }
 export function getVaultBalance(userId: string) { return vaultManager.getBalance(userId); }

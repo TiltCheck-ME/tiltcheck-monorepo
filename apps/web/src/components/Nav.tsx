@@ -1,6 +1,8 @@
+'use client';
 import React from 'react';
 import Link from 'next/link';
 import LiveStatusIndicator from './LiveStatusIndicator';
+import { ConnectButton } from '@rainbow-me/rainbowkit';
 
 const Nav = () => {
   return (
@@ -19,7 +21,7 @@ const Nav = () => {
         <div className="hidden sm:block">
             <LiveStatusIndicator />
         </div>
-        <a href="/connect" className="btn btn-secondary" data-text="CONNECT">CONNECT</a>
+        <ConnectButton />
       </div>
     </nav>
   );

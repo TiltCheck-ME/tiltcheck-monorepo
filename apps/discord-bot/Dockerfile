@@ -1,40 +1,22 @@
-# TiltCheck Discord Bot - Optimized Container (with Scripts)
-FROM node:20-alpine AS build
-
-RUN npm install -g pnpm@10
-ENV CI=true
-ENV SKIP_ENV_VALIDATION=1
-
+# TiltCheck Discord Bot - Production Container (Assumes prebuilt dist/)
+FROM node:20-alpine AS base
+RUN npm install -g pnpm@10 && npm cache clean --force
 WORKDIR /app
 
-# Copy workspace config
-COPY package.json pnpm-workspace.yaml pnpm-lock.yaml .npmrc tsconfig.json ./
-
-# Copy all sources
-COPY packages/ ./packages/
-COPY modules/ ./modules/
-COPY scripts/ ./scripts/
-COPY apps/discord-bot/ ./apps/discord-bot/
-
-# Install dependencies
-RUN pnpm install --no-frozen-lockfile
-
-# Build
-RUN pnpm --filter @tiltcheck/discord-bot... build
-
-# Production stage
-FROM node:20-alpine
-
-RUN npm install -g pnpm@10
+FROM base AS dependencies
 ENV CI=true
+COPY pnpm-workspace.yaml pnpm-lock.yaml package.json .npmrc ./
+RUN pnpm install --no-frozen-lockfile --prod
+
+FROM base AS runtime
 ENV NODE_ENV=production
-
-WORKDIR /app
-
-COPY --from=build /app /app
-
-RUN mkdir -p /app/data
-
+RUN apk add --no-cache dumb-init
+USER node
 EXPOSE 8081
 
-CMD ["node", "apps/discord-bot/dist/bootstrap.js"]
+FROM runtime AS production
+COPY --from=dependencies --chown=node:node /app/node_modules ./node_modules
+COPY --chown=node:node apps/discord-bot/dist ./apps/discord-bot/dist
+COPY --chown=node:node package.json ./
+ENTRYPOINT ["/usr/bin/dumb-init", "--"]
+CMD ["node", "apps/discord-bot/dist/index.js"]
