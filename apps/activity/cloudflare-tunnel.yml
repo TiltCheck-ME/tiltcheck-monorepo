@@ -1,0 +1,31 @@
+# TiltCheck Discord Activity — Cloudflare Named Tunnel
+#
+# A Named Tunnel provides a STABLE URL that doesn't change when you restart.
+# 
+# 1. AUTH LOGIN (In Terminal 2)
+#    npx cloudflared tunnel login
+#
+# 2. CREATE TUNNEL
+#    npx cloudflared tunnel create dev-activity
+#
+# 3. GET THE UUID
+#    The output of Step 2 will have a UUID. Replace {UUID} below:
+#
+
+tunnel: d066ae5e-0a61-407d-8eaa-825eac967b1c
+credentials-file: C:\Users\jmeni\.cloudflared\d066ae5e-0a61-407d-8eaa-825eac967b1c.json
+
+ingress:
+  - hostname: dev-activity.tiltcheck.me
+    service: http://localhost:5173
+  - service: http_status:404
+
+# 4. ROUTE DNS (One-time)
+#    npx cloudflared tunnel route dns dev-activity dev-activity.tiltcheck.me
+#
+# 5. RUN PERSISTENTLY
+#    npx cloudflared tunnel --config ./cloudflare-tunnel.yml run dev-activity
+#
+# 6. DISCORD SETUP
+#    In Discord Dev Portal → URL Mappings → Root → Target:
+#    Set it to: dev-activity.tiltcheck.me
