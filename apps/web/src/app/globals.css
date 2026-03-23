@@ -23,14 +23,14 @@
   --border-subtle: #1e2533;
   --border-default: #283347;
   --border-emphasis: #344158;
-  --border-glow: rgba(23, 195, 178, 0.15);
-  --border-neon: 1px solid rgba(23, 195, 178, 0.25);
-  --color-positive: #22c55e; 
+  --border-glow: rgba(0, 255, 170, 0.15);
+  --border-neon: 1px solid rgba(0, 255, 170, 0.4);
+  --color-positive: #00ffaa; 
   --color-caution: #eab308; 
   --color-danger: #ef4444; 
-  --transition-base: 0.2s ease-in-out;
-  --weight-bold: 700;
-  --radius-md: 0.5rem; /* from old theme.css */
+  --transition-base: 0.1s ease-out;
+  --weight-bold: 900;
+  --radius-md: 0px; /* Brutalist sharp edges */
 }
 
 body {
@@ -85,9 +85,10 @@ body {
 
 
 .btn:hover {
-  transform: translateY(-2px);
-  filter: brightness(1.1);
-  box-shadow: 0 0 15px rgba(23, 195, 178, 0.3);
+  transform: none;
+  filter: brightness(1.2);
+  box-shadow: 4px 4px 0px var(--color-positive);
+  border-color: var(--color-positive);
 }
 
 
