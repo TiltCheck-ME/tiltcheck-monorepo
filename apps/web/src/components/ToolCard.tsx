@@ -24,13 +24,15 @@ const ToolCard = ({ href, icon, category, title, description, status, gridClasse
     'flex',
     'flex-col',
     'justify-between',
-    'bg-gray-900/50', // Example background
+    'bg-[#0E0E0F]', // Brutalist dark background
     'border',
-    'border-white/10',
-    'rounded-lg',
-    'transition-all',
-    'hover:border-[color:var(--color-primary)]',
-    'hover:shadow-[0_0_30px_rgba(0,255,198,0.2)]',
+    'border-[#283347]',
+    'rounded-none', // Sharp corners
+    'transition-none', // Immediate snap on hover
+    'hover:-translate-y-1',
+    'hover:-translate-x-1',
+    'hover:border-[#00ffaa]',
+    'hover:shadow-[4px_4px_0px_#00ffaa]', // Harsh 90s offset shadow
     isComingSoon ? 'coming-soon' : 'live',
     isFeatured ? 'featured' : '',
     gridClasses || ''
