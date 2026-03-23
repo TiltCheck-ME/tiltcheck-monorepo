@@ -136,7 +136,7 @@ const DISCORD_CONFIG = {
 };
 
 app.get('/auth/discord', (_req, res) => {
-  const url = `https://discord.com/api/oauth2/authorize?client_id=${DISCORD_CONFIG.clientId}&redirect_uri=${encodeURIComponent(DISCORD_CONFIG.redirectUri)}&response_type=code&scope=identify%20email`;
+  const url = `https://discord.com/api/oauth2/authorize?client_id=${DISCORD_CONFIG.clientId}&redirect_uri=${encodeURIComponent(DISCORD_CONFIG.redirectUri)}&response_type=code&scope=identify`;
   res.redirect(url);
 });
 
