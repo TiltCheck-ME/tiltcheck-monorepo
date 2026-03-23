@@ -5,6 +5,7 @@
 
 export const EXT_CONFIG = {
     API_BASE_URL: 'https://api.tiltcheck.me',
+    HUB_URL: 'http://localhost:8787',
     AI_GATEWAY_URL: 'https://api.tiltcheck.me/ai',
     WEB_APP_URL: 'https://tiltcheck.me',
     DISCORD_CLIENT_ID: '1445916179163250860',

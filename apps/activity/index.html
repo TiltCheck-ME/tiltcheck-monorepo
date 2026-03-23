@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TiltCheck — Built for Degens</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&family=JetBrains+Mono:wght@400;500;700;800&family=Space+Grotesk:wght@400;700&display=swap" rel="stylesheet" />
+    <style>
+      :root {
+        /* === TiltCheck Brand Palette (from globals.css) === */
+        --color-primary: #17c3b2;           /* teal */
+        --color-primary-dark: #129d8f;
+        --color-secondary: #8b5cf6;         /* purple accent */
+        --color-accent: #d946ef;            /* magenta — CTA color */
+        --color-positive: #00ffaa;          /* neon green — positive only */
+        --color-danger: #ef4444;
+
+        --bg-primary: #0a0c10;
+        --bg-secondary: #0f1218;
+        --bg-card: #12161e;
+        --bg-input: #080a0d;
+
+        --text-primary: #ffffff;
+        --text-secondary: #c4ced8;
+        --text-muted: #8a97a8;
+
+        --border-subtle: #1e2533;
+        --border-default: #283347;
+        --border-neon: 1px solid rgba(23, 195, 178, 0.4);
+
+        --radius-md: 0px;                   /* brutalist sharp edges */
+        --transition-base: 0.1s ease-out;
+
+        --font-body: 'Inter', sans-serif;
+        --font-display: 'Space Grotesk', sans-serif;
+      }
+
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+
+      body {
+        background-color: #0e0e0f;
+        background-image: url('/assets/backgroundglitter.png');
+        background-size: cover;
+        background-repeat: no-repeat;
+        background-position: center;
+        background-attachment: fixed;
+        color: var(--text-primary);
+        font-family: var(--font-body);
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+      }
+
+      /* ── GLOWING HERO ─────────────────── */
+      .glowing-hero {
+        padding: 1.25rem 1.5rem 1rem;
+        text-align: center;
+        background: radial-gradient(circle at top center, rgba(23, 195, 178, 0.08) 0%, transparent 60%);
+      }
+
+      .hero-title-wrap {
+        min-height: 8.5rem;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        gap: 0.15rem;
+        margin-bottom: 1.25rem;
+      }
+
+      .hero-title {
+        font-family: var(--font-display);
+        font-size: 1.35rem;
+        font-weight: 700;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        color: rgba(255, 255, 255, 0.3);
+        margin: 0;
+      }
+
+      .hero-punchline {
+        font-family: var(--font-display);
+        font-size: 3.5rem;
+        font-weight: 900;
+        line-height: 1;
+        color: #ff003c; /* Neon Red Override */
+        text-transform: uppercase;
+        margin: 0.1rem 0;
+        letter-spacing: -0.02em;
+        /* Surgical Red Sharpness */
+        text-shadow: 
+          0 0 12px rgba(255, 0, 60, 0.6), 
+          0 0 24px rgba(255, 0, 60, 0.3);
+      }
+
+      #app {
+        flex: 1;
+        padding: 0 1.5rem 2.5rem;
+        max-width: 480px;
+        width: 100%;
+        margin: 0 auto;
+        display: flex;
+        flex-direction: column;
+        gap: 1.25rem;
+      }
+
+      /* ── MAIN CONTENT ───────────────────── */
+      #app {
+        flex: 1;
+        padding: 1rem 1.5rem 2.5rem;
+        max-width: 480px;
+        width: 100%;
+        margin: 0 auto;
+        background: rgba(8, 10, 13, 0.4);
+        backdrop-filter: blur(4px);
+        border-radius: var(--radius-md);
+        display: flex;
+        flex-direction: column;
+        gap: 1.25rem;
+      }
+
+      .sdk-status {
+        font-size: 0.75rem;
+        color: #ffffff;
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+      }
+
+      .sdk-status::before {
+        content: '';
+        display: inline-block;
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: currentColor;
+        flex-shrink: 0;
+        animation: pulse-glow 2s ease-in-out infinite;
+      }
+
+      @keyframes pulse-glow {
+        0%, 100% { opacity: 1; box-shadow: 0 0 10px rgba(23, 195, 178, 0.6); }
+        50%       { opacity: 0.6; box-shadow: 0 0 20px rgba(23, 195, 178, 0.3); }
+      }
+
+      /* ── SESSION HEADER ─────────────────── */
+      .session-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+        font-size: 0.8rem;
+        color: rgba(255,255,255,0.7);
+        text-shadow: 1px 1px 2px #000;
+      }
+
+      .session-user { font-weight: 700; color: #fff; }
+      .session-timer { font-family: 'Courier New', monospace; }
+
+      /* ── RTP DASHBOARD ───────────────────── */
+      .rtp-dashboard {
+        background: #080a0d;
+        border: 1px solid var(--color-primary);
+        box-shadow: 0 0 25px rgba(0,0,0,0.8);
+        border-radius: var(--radius-md);
+        padding: 1.25rem;
+      }
+
+      .rtp-main {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 0.75rem;
+        text-align: center;
+        margin-bottom: 1rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid rgba(255,255,255,0.08);
+      }
+
+      .rtp-label {
+        display: block;
+        font-size: 0.6rem;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: rgba(255,255,255,0.5);
+        margin-bottom: 0.35rem;
+      }
+
+      .rtp-value {
+        display: block;
+        font-family: var(--font-display);
+        font-size: 1.5rem;
+        font-weight: 900;
+        color: #fff;
+      }
+
+      .drift-positive { color: var(--color-positive) !important; }
+      .drift-negative { color: var(--color-danger) !important; }
+      .drift-neutral  { color: var(--color-primary) !important; }
+
+      .session-stats {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.5rem;
+      }
+
+      .stat {
+        display: flex;
+        justify-content: space-between;
+        font-size: 0.75rem;
+        padding: 0.25rem 0;
+      }
+
+      .stat-label { color: rgba(255,255,255,0.5); }
+      .stat-value { color: #fff; font-weight: 600; font-family: 'Courier New', monospace; }
+
+      /* ── WAITING STATE ───────────────────── */
+      .waiting-state {
+        text-align: center;
+        padding: 2.5rem 1.5rem;
+        background: rgba(10, 12, 16, 0.85);
+        backdrop-filter: blur(12px);
+        border: 1px solid rgba(23, 195, 178, 0.4);
+        box-shadow: 0 0 20px rgba(0,0,0,0.5);
+        border-radius: var(--radius-md);
+      }
+
+      .waiting-icon { font-size: 2.5rem; margin-bottom: 0.75rem; }
+      .waiting-title {
+        font-family: var(--font-display);
+        font-size: 1rem;
+        font-weight: 700;
+        color: #fff;
+        margin-bottom: 0.4rem;
+      }
+      .waiting-sub {
+        font-size: 0.8rem;
+        color: rgba(255,255,255,0.6);
+        line-height: 1.5;
+      }
+
+      /* ── MANUAL ENTRY ────────────────────── */
+      .manual-entry {
+        margin-bottom: 0.75rem;
+      }
+
+      .section-label {
+        font-size: 0.65rem;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: rgba(255,255,255,0.4);
+        margin-bottom: 0.5rem;
+      }
+
+      .entry-row {
+        display: flex;
+        gap: 0.5rem;
+        align-items: flex-end;
+      }
+
+      .entry-field {
+        flex: 1;
+      }
+
+      .entry-field label {
+        display: block;
+        font-size: 0.65rem;
+        margin-bottom: 0.2rem;
+      }
+
+      /* ── FORM ELEMENTS ───────────────────── */
+      label {
+        font-size: 0.7rem;
+        font-weight: 800;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: #ffffff;
+        text-shadow: 1px 1px 2px #000;
+        margin-top: 0.4rem;
+      }
+
+      input {
+        background-color: rgba(8, 10, 13, 0.55);
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        border-radius: var(--radius-md);
+        color: #ffffff;
+        font-family: var(--font-body);
+        font-size: 0.875rem;
+        padding: 0.6rem 0.75rem;
+        outline: none;
+        transition: border-color var(--transition-base);
+        width: 100%;
+        backdrop-filter: blur(6px);
+        -webkit-backdrop-filter: blur(6px);
+      }
+
+      input:focus { border-color: var(--color-primary); }
+
+      /* ── BUTTONS ──────────────────────────── */
+      .btn-row {
+        display: flex;
+        gap: 0.5rem;
+        margin-top: 0.5rem;
+      }
+
+      button {
+        font-family: var(--font-body);
+        font-size: 0.75rem;
+        font-weight: 900;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        padding: 0.6rem 0.75rem;
+        border-radius: var(--radius-md);
+        cursor: pointer;
+        border: none;
+        transition: all var(--transition-base);
+        flex: 1;
+        min-height: 40px;
+      }
+
+      button:hover {
+        filter: brightness(1.2);
+        box-shadow: 4px 4px 0px var(--color-positive);
+      }
+
+      button:active { transform: scale(0.97); }
+
+      .btn-primary {
+        background-color: var(--color-primary);
+        color: #000;
+      }
+
+      .btn-small {
+        flex: 0 0 48px;
+        font-size: 1.2rem;
+        padding: 0;
+      }
+
+      .btn-secondary {
+        background-color: rgba(255,255,255,0.08);
+        border: 1px solid rgba(255,255,255,0.2);
+        color: #ffffff;
+      }
+
+      .btn-secondary:hover { border-color: var(--color-primary); }
+
+      /* ── RESULT ──────────────────────────── */
+      .result-box {
+        padding: 0.85rem 1rem;
+        border: 1px solid rgba(23, 195, 178, 0.3);
+        border-radius: var(--radius-md);
+        background: rgba(10, 12, 16, 0.9);
+        backdrop-filter: blur(12px);
+        font-size: 0.75rem;
+        color: #fff;
+        text-shadow: 1px 1px 2px #000;
+        word-break: break-all;
+        min-height: 42px;
+        line-height: 1.5;
+        font-family: 'JetBrains Mono', monospace;
+      }
+
+      /* ── FOOTER ──────────────────────────── */
+      footer {
+        text-align: center;
+        padding: 1.25rem;
+        font-size: 0.7rem;
+        color: rgba(255, 255, 255, 0.7);
+        border-top: 1px solid rgba(255,255,255,0.1);
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+    </style>
+  </head>
+  <body>
+    <header class="glowing-hero">
+      <div class="hero-title-wrap">
+        <h1 class="hero-title" id="hero-title-1">HOUSE ALWAYS WINS</h1>
+        <h1 class="hero-punchline" id="hero-title-2"></h1>
+      </div>
+    </header>
+
+    <div id="app">
+      <p class="sdk-status">Waking up the pipes...</p>
+    </div>
+
+    <footer>TiltCheck v2.0 — The Financial Firewall for Degens</footer>
+
+    <script type="module" src="/main.ts"></script>
+    <script>
+      // Hero typewriter effect
+      (function() {
+        const lines = [
+          { id: 'hero-title-2', text: 'FUCK THAT', delay: 800, speed: 60 },
+        ];
+
+        async function typeText(el, text, speed) {
+          if (!el) return;
+          for (let i = 0; i < text.length; i++) {
+            el.textContent += text[i];
+            await new Promise(r => setTimeout(r, speed));
+          }
+        }
+
+        async function runSequence() {
+          for (let line of lines) {
+            const el = document.getElementById(line.id);
+            if (line.delay) await new Promise(r => setTimeout(r, line.delay));
+            await typeText(el, line.text, line.speed);
+          }
+        }
+
+        if (document.readyState === 'loading') {
+          document.addEventListener('DOMContentLoaded', runSequence);
+        } else {
+          runSequence();
+        }
+      })();
+    </script>
+  </body>
+</html>

@@ -55,6 +55,16 @@ export class EventHandler {
       this.modNotifier.setClient(client);
     });
 
+    this.client.on(Events.GuildMemberAdd, async (member) => {
+      if (member.user.bot) return;
+      if (needsOnboarding(member.user.id)) {
+        console.log(`[EventHandler] Automaticaly onboarding new member: ${member.user.tag}`);
+        checkAndOnboard(member.user).catch(err => {
+          console.error('[Bot] Failed to send welcome DM to new member:', err);
+        });
+      }
+    });
+
     this.client.on(Events.InteractionCreate, async (interaction) => {
       if (interaction.isButton()) {
         if (interaction.customId.startsWith('onboard_')) {
@@ -215,6 +225,25 @@ export class EventHandler {
   }
 
   subscribeToEvents(): void {
+    eventRouter.subscribe(
+      'user.discord_linked',
+      async (event: any) => {
+        try {
+          const { discordId } = event.data;
+          const user = await this.client.users.fetch(discordId);
+          if (user && needsOnboarding(user.id)) {
+            console.log(`[EventHandler] Automatically onboarding linked account: ${user.tag}`);
+            checkAndOnboard(user).catch(err => {
+              console.error('[Bot] Failed to send welcome DM on link:', err);
+            });
+          }
+        } catch (error) {
+          console.error('[Bot] Error handling user.discord_linked:', error);
+        }
+      },
+      'discord-bot'
+    );
+
     eventRouter.subscribe(
       'tilt.detected',
       async (event: TiltCheckEvent<'tilt.detected'>) => {

@@ -47,6 +47,7 @@ import { Analyzer } from './analyzer.js';
 import { WalletBridge } from './wallet-bridge.js';
 import { SolanaProvider } from '@tiltcheck/utils';
 import { FairnessService } from './FairnessService.js';
+import { EXT_CONFIG } from './config.js';
 
 // Configuration
 const ANALYZER_WS_URL = 'wss://api.tiltcheck.me/analyzer';
@@ -542,6 +543,17 @@ function handleSpinEvent(spinData: SpinEvent, session: { sessionId: string, user
       freeSpins: (spinData.freeSpins || 0) > 0
     });
   }
+
+  // NEW: Push to Hub Relay for Discord Activity
+  fetch(`${EXT_CONFIG.HUB_URL}/telemetry/round`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      userId: session.userId,
+      bet,
+      win: payout
+    })
+  }).catch(err => console.warn('[TiltCheck] Hub relay failed:', err));
 
   // Check for Bag Fumble or Zero Balance Intervention
   if (tiltDetector) {

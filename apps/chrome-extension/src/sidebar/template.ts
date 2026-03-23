@@ -144,41 +144,43 @@ export const SIDEBAR_TEMPLATE = `
           <button class="tg-btn tg-btn-secondary" id="close-verifier">Close</button>
         </div>
 
-        <!-- Reality Check Log (Formerly Live Performance Audit) -->
+        <!-- Reality Check Log -->
         <div class="tg-metrics-card">
-          <div class="tg-metrics-header">
-            <div>
-              <h3>REALITY CHECK BOT</h3>
-              <div class="tg-session-site" id="tg-session-site">Unknown Site</div>
+          <div class="tg-metrics-header" style="margin-bottom: 24px;">
+            <div style="flex: 1;">
+              <h1 class="tg-hud-label">THE LIE</h1>
+              <h2 class="tg-hud-title" style="color: var(--tg-muted); opacity: 0.5;">HOUSE ALWAYS WINS</h2>
             </div>
-            <div class="tg-guardian-indicator" id="tg-guardian-indicator"></div>
+            <div id="tg-guardian-indicator" class="tg-guardian-indicator"></div>
           </div>
-          <div class="tg-metrics-grid">
+
+          <div class="tg-metric-stack">
+            <h1 class="tg-hud-label">THE TRUTH</h1>
+            <div class="tg-drift-main">
+              <span class="tg-drift-value" id="tg-rtp">--</span>
+              <span class="tg-drift-label">ACTUAL RTP</span>
+            </div>
+          </div>
+
+          <div class="tg-metrics-grid" style="margin-top: 24px; border-top: 1px solid var(--tg-border); padding-top: 20px;">
             <div class="tg-metric">
-              <span class="tg-metric-label">🕒 Time</span>
-              <span class="tg-metric-value" id="tg-duration">0:00</span>
+              <span class="tg-metric-label">Volatility</span>
+              <span class="tg-metric-value" id="tg-score-value">0</span>
             </div>
             <div class="tg-metric">
-              <span class="tg-metric-label">🎲 Bets</span>
-              <span class="tg-metric-value" id="tg-bets">0</span>
-            </div>
-            <div class="tg-metric">
-              <span class="tg-metric-label">💸 Wagered</span>
+              <span class="tg-metric-label">Wagered</span>
               <span class="tg-metric-value" id="tg-wagered">$0</span>
             </div>
             <div class="tg-metric">
-              <span class="tg-metric-label">📈 P/L</span>
+              <span class="tg-metric-label">Rounds</span>
+              <span class="tg-metric-value" id="tg-bets">0</span>
+            </div>
+            <div class="tg-metric">
+              <span class="tg-metric-label">Session P/L</span>
               <span class="tg-metric-value" id="tg-profit">$0</span>
             </div>
-            <div class="tg-metric">
-              <span class="tg-metric-label">🎯 RTP</span>
-              <span class="tg-metric-value" id="tg-rtp">--</span>
-            </div>
-            <div class="tg-metric">
-              <span class="tg-metric-label">📉 Tilt <span class="tg-help" data-tip="Calculated from wager frequency and bet-size volatility.">?</span></span>
-              <span class="tg-metric-value tg-tilt-value" id="tg-score-value">0</span>
-            </div>
           </div>
+          <div class="tg-session-site" id="tg-session-site" style="margin-top: 12px; text-align: center;">Scanning Casino Environment...</div>
         </div>
 
         <!-- P/L Graph -->

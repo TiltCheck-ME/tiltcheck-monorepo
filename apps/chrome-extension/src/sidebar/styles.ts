@@ -5,18 +5,17 @@ export const getSidebarStyles = () => `
     @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=JetBrains+Mono:wght@400;700&family=Inter:wght@400;500;600;700&display=swap');
 
     #tiltcheck-sidebar {
-      --tg-bg: rgba(10, 12, 16, 0.98); 
-      --tg-surface: rgba(255, 255, 255, 0.03);
-      --tg-surface-strong: rgba(255, 255, 255, 0.06);
-      --tg-border: rgba(255, 255, 255, 0.06);
+      --tg-bg: rgba(8, 10, 14, 0.85); 
+      --tg-surface: rgba(255, 255, 255, 0.04);
+      --tg-surface-strong: rgba(255, 255, 255, 0.08);
+      --tg-border: rgba(255, 255, 255, 0.1);
       --tg-text: #ffffff;
-      --tg-muted: rgba(200, 210, 220, 0.6);
-      --tg-primary: #17c3b2; /* Refined teal */
-      --tg-primary-glow: rgba(23, 195, 178, 0.15);
-      --tg-secondary: #8b5cf6; 
-      --tg-accent: #d946ef; 
-      --tg-danger: #ef4444;
-      --tg-warning: #eab308;
+      --tg-muted: rgba(160, 175, 190, 0.6);
+      --tg-primary: #17c3b2; /* Radiant Teal */
+      --tg-primary-glow: rgba(23, 195, 178, 0.4);
+      --tg-danger: #ff003c; /* Neon Red Rebuttal */
+      --tg-danger-glow: rgba(255, 0, 60, 0.4);
+      --tg-warning: #fbbf24;
       
       position: fixed !important;
       top: 0 !important;
@@ -24,16 +23,14 @@ export const getSidebarStyles = () => `
       width: ${SIDEBAR_WIDTH}px;
       height: 100vh;
       background: var(--tg-bg); 
-      backdrop-filter: blur(32px);
+      backdrop-filter: blur(24px);
       color: var(--tg-text);
       z-index: 2147483647 !important;
-      font-family: 'Inter', -apple-system, sans-serif;
-      box-shadow: -10px 0 50px rgba(0, 0, 0, 0.8);
+      font-family: 'Space Grotesk', -apple-system, sans-serif;
+      box-shadow: -10px 0 60px rgba(0, 0, 0, 0.9);
       overflow-y: auto;
-      transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+      transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
       border-left: 1px solid var(--tg-border);
-      scrollbar-width: thin;
-      scrollbar-color: var(--tg-surface-strong) transparent;
     }
     #tiltcheck-sidebar.minimized { transform: translateX(${SIDEBAR_WIDTH - MINIMIZED_WIDTH}px); width: ${MINIMIZED_WIDTH}px; }
     body.tiltcheck-minimized { margin-right: ${MINIMIZED_WIDTH}px !important; }
@@ -42,38 +39,38 @@ export const getSidebarStyles = () => `
     #tiltcheck-sidebar::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.2); border-radius: 3px; }
     
     .tg-header {
-      padding: 18px 20px;
+      padding: 24px 20px;
       display: flex;
       justify-content: space-between;
       align-items: center;
       border-bottom: 1px solid var(--tg-border);
       position: sticky;
       top: 0;
-      background: rgba(8, 8, 12, 0.8);
-      backdrop-filter: blur(10px);
+      background: rgba(8, 10, 14, 0.4);
+      backdrop-filter: blur(12px);
       z-index: 100;
     }
     .tg-logo {
-      font-family: 'Space Grotesk', sans-serif;
-      font-size: 16px;
+      font-size: 14px;
       font-weight: 700;
       color: #fff;
       display: flex;
       align-items: center;
       gap: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
     }
     .tg-logo-mark {
-      width: 28px;
-      height: 28px;
-      border-radius: 8px;
-      background: linear-gradient(135deg, var(--tg-primary), var(--tg-secondary));
-      box-shadow: 0 4px 12px var(--tg-primary-glow);
+      width: 24px;
+      height: 24px;
+      border-radius: 4px;
+      background: #fff;
       color: #000;
       display: inline-flex;
       align-items: center;
       justify-content: center;
       font-weight: 900;
-      font-size: 14px;
+      font-size: 12px;
     }
     .tg-header-actions { display: flex; gap: 6px; align-items: center; }
     .tg-header-btn {
@@ -195,16 +192,13 @@ export const getSidebarStyles = () => `
     .tg-input-group input:focus { outline: none; border-color: var(--tg-primary); }
     
     .tg-metrics-card {
-      background: linear-gradient(-45deg, rgba(34, 211, 166, 0.08), rgba(59, 130, 246, 0.08), rgba(168, 85, 247, 0.08), rgba(34, 211, 166, 0.08));
-      background-size: 400% 400%;
-      animation: gradientBG 15s ease infinite;
+      background: rgba(255, 255, 255, 0.02);
       border: 1px solid var(--tg-border);
       border-radius: 20px;
       padding: 24px;
-      margin-bottom: 16px;
+      margin-bottom: 24px;
       position: relative;
       overflow: hidden;
-      box-shadow: inset 0 0 20px rgba(255, 255, 255, 0.02);
     }
     @keyframes gradientBG {
       0% { background-position: 0% 50%; }
@@ -605,8 +599,65 @@ export const getSidebarStyles = () => `
       background-color: var(--tg-primary);
       border-color: var(--tg-primary);
     }
-    .tg-toggle-input:checked + .tg-toggle-label:before {
-      transform: translateX(22px);
-      background-color: #000;
+    /* HUD Typography & Spacing */
+    .tg-hud-label {
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--tg-primary);
+      text-transform: uppercase;
+      letter-spacing: 0.2em;
+      margin: 0 0 4px 0;
+    }
+    .tg-hud-title {
+      font-size: 1.4rem;
+      font-weight: 800;
+      line-height: 1.1;
+      margin: 0;
+      letter-spacing: -0.02em;
+    }
+    .tg-metric-stack {
+      margin-top: 24px;
+      padding: 0;
+    }
+    .tg-drift-main {
+      display: flex;
+      flex-direction: column;
+      margin-top: 8px;
+    }
+    .tg-drift-value {
+      font-size: 3.5rem;
+      font-weight: 900;
+      color: var(--tg-primary);
+      line-height: 0.9;
+      letter-spacing: -0.04em;
+      font-family: 'Space Grotesk', sans-serif;
+      /* Subtle surgical glow */
+      text-shadow: 0 0 20px var(--tg-primary-glow);
+    }
+    .tg-drift-label {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--tg-primary);
+      opacity: 0.8;
+      margin-top: 4px;
+      letter-spacing: 0.1em;
+    }
+    .tg-metric-label {
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--tg-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .tg-metric-value {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 14px;
+      font-weight: 700;
+      margin-top: 2px;
+    }
+    .tg-metrics-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
     }
 `;
