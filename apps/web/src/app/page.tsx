@@ -16,7 +16,7 @@ export default function Home() {
             FUCK THAT.
           </h1>
           <p className="hero-body">
-            THE HOUSE WINS BECAUSE THEY OWN THE MATH AND YOU HAVE A DOPAMINE PROBLEM. TiltCheck is your browser-side audit layer and digital emergency brake. We don't guarantee you'll win; we just make sure you don't get cheated or liquidated by a bad session.
+            THE HOUSE WINS BECAUSE THEY OWN THE MATH AND YOU HAVE A DOPAMINE PROBLEM. TiltCheck is your browser-side audit layer and digital emergency brake. We don&apos;t guarantee you&apos;ll win; we just make sure you don&apos;t get cheated or liquidated by a bad session.
           </p>
           <div className="hero-actions">
             <a href="#tools" className="btn btn-primary" data-text="SECURE THE BAG">

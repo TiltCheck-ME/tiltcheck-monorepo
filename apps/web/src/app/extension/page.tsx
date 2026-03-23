@@ -12,7 +12,7 @@ export default function ExtensionPage() {
           <div className="stepper-item active" aria-current="step">
             <div className="step-number">01</div>
             <h3 className="step-title">plug in.</h3>
-            <p className="step-description">Install the extension. It's read-only. We don't touch your keys, we just watch the API calls.</p>
+            <p className="step-description">Install the extension. It&apos;s read-only. We don&apos;t touch your keys, we just watch the API calls.</p>
           </div>
 
           <div className="stepper-item">
@@ -25,7 +25,7 @@ export default function ExtensionPage() {
             <div className="step-number">03</div>
             <h3 className="step-title">touch grass.</h3>
             <p className="step-description">When you hit your pre-set tilt limit, the UI locks. Your remaining balance is pushed to a vault.</p>
-            <p className="step-subtext">We lock the UI so you don't go to zero. Go outside, the sun is out.</p>
+            <p className="step-subtext">We lock the UI so you don&apos;t go to zero. Go outside, the sun is out.</p>
           </div>
         </div>
     </div>

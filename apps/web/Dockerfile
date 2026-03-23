@@ -12,7 +12,7 @@ FROM alpine:latest AS web-runtime
 RUN apk add --no-cache nginx
 EXPOSE 80
 WORKDIR /var/www/html
-COPY --from=dependencies /app/apps/web/dist .
+COPY apps/web/dist .
 COPY <<EOF /etc/nginx/nginx.conf
 user nginx;
 worker_processes auto;

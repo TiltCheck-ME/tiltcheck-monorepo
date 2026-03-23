@@ -13,8 +13,10 @@
   },
   "scripts": {
     "dev": "pnpm --parallel --recursive dev",
+    "dev:core": "pnpm --filter @tiltcheck/api --filter web --filter @tiltcheck/discord-bot --parallel dev",
+    "discord:setup": "pnpm --filter @tiltcheck/discord-bot run deploy:commands",
     "postinstall": "pnpm -r --filter @tiltcheck/utils... build",
-    "build": "turbo run build",
+    "build": "pnpm -r build",
     "build:legacy": "pnpm -r --workspace-concurrency=1 build",
     "test": "vitest --run",
     "test:watch": "vitest",

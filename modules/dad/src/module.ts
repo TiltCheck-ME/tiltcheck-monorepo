@@ -137,7 +137,7 @@ export class DADModule {
     // Listen for game events if needed
     eventRouter.subscribe(
       'game.started',
-      async (event: TiltCheckEvent) => {
+      async (event: TiltCheckEvent<any>) => {
         console.log('[DA&D] Game started:', event.data);
       },
       'dad'

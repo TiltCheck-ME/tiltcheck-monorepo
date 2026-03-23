@@ -19,11 +19,11 @@ import type {
  * Collects published events for verification in tests
  */
 export class MockEventRouter {
-  public publishedEvents: TiltCheckEvent[] = [];
+  public publishedEvents: TiltCheckEvent<any>[] = [];
   public subscribers: Map<string, Function[]> = new Map();
 
   publish = vi.fn(async (type: string, source: string, data: unknown, userId?: string) => {
-    const event: TiltCheckEvent = {
+    const event: TiltCheckEvent<any> = {
       id: `test-evt-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
       type: type as any,
       timestamp: Date.now(),
