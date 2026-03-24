@@ -428,7 +428,7 @@ async function startMonitoring() {
   try {
     await client.connect();
     console.log('[TiltGuard] Connected to analyzer server');
-  } catch (_error) {
+  } catch {
     console.log('[TiltGuard] Analyzer backend offline - tilt monitoring only');
   }
 
@@ -466,7 +466,7 @@ async function startMonitoring() {
 /**
  * Stop monitoring
  */
-function stopMonitoring() {
+function _stopMonitoring() {
   console.log('[TiltGuard] Stopping monitoring...');
 
   if (stopObserving) {
@@ -1143,9 +1143,11 @@ async function getUserId(): Promise<string> {
   };
   return new Promise((resolve) => {
     try {
-      // Try to get from chrome storage
-      chrome.storage.local.get(['tiltguard_user_id'], (result) => {
-        if (result.tiltguard_user_id) {
+      // 1. Prefer authenticated Discord ID if available
+      chrome.storage.local.get(['userData', 'tiltguard_user_id'], (result: any) => {
+        if (result.userData?.id) {
+          resolve(result.userData.id as string);
+        } else if (result.tiltguard_user_id) {
           resolve(result.tiltguard_user_id as string);
         } else {
           // Generate new user ID
@@ -1154,8 +1156,16 @@ async function getUserId(): Promise<string> {
           resolve(newId as string);
         }
       });
-    } catch (_e) {
-      // Fallback to localStorage if chrome.storage is not available
+    } catch {
+      // Fallback to localStorage
+      const storedUserData = localStorage.getItem('userData');
+      if (storedUserData) {
+        try {
+          const user = JSON.parse(storedUserData);
+          if (user.id) return resolve(user.id);
+        } catch { /* ignore */ }
+      }
+      
       let userId = localStorage.getItem('tiltguard_user_id');
       if (!userId) {
         userId = createUserId();
@@ -1170,7 +1180,7 @@ async function getUserId(): Promise<string> {
  * Setup listeners for "Play" button to capture commitment
  */
 function setupFairnessListeners() {
-  const observer = new MutationObserver((mutations) => {
+  const observer = new MutationObserver((_mutations) => {
     // Generic selector for bet buttons - refine per casino
     const playBtns = document.querySelectorAll('[data-testid="bet-button"], .bet-button, button[class*="bet"]');
 
