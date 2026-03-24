@@ -23,7 +23,7 @@ export interface DBClientConfig {
   ssl?: boolean;
 }
 export function getDBConfig(): DBClientConfig {
-  const connectionString = process.env.NEON_DATABASE_URL || process.env.DATABASE_URL;
+  const connectionString = process.env.POSTGRESQL || process.env.NEON_DATABASE_URL || process.env.DATABASE_URL;
 
   if (!connectionString) {
     if (process.env.NODE_ENV === 'production') {

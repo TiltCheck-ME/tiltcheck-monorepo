@@ -31,6 +31,7 @@
     "@tiltcheck/triviadrops": "workspace:*",
     "@tiltcheck/trust-engines": "workspace:*",
     "@tiltcheck/types": "workspace:*",
+    "@tiltcheck/shared": "workspace:*",
     "@tiltcheck/utils": "workspace:*",
     "@solana/pay": "^0.2.6",
     "@solana/spl-token": "^0.4.9",

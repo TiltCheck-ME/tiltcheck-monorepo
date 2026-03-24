@@ -20,7 +20,7 @@ import fs from 'fs';
 import path from 'path';
 import { validateRollupSnapshotFile } from './rollup-schema.js';
 import { startCasinoVerificationScheduler } from './verification-scheduler.js';
-import type { TiltCheckEvent, TrustCasinoUpdateEvent, TrustDomainUpdateEvent, BonusUpdateEvent, BonusNerfDetectedEventData, TrustCasinoRollupEventData, DomainRollupData, TrustDomainRollupEventData, CasinoRollupData } from '@tiltcheck/types';
+import type { TiltCheckEvent, BonusUpdateEvent, BonusNerfDetectedEventData, TrustCasinoRollupEventData, DomainRollupData, TrustDomainRollupEventData, CasinoRollupData } from '@tiltcheck/types';
 
 /**
  * Casino Trust Aggregator (real-time snapshot + volatility/risk classification)
@@ -72,6 +72,23 @@ function pruneWindow(arr: CasinoRealTimeWindowEvent[]) {
     arr.splice(0, arr.length - MAX_EVENTS_PER_WINDOW);
   }
 }
+
+// Periodic cleanup of inactive entries to prevent memory leaks
+setInterval(() => {
+  const now = Date.now();
+  const cutoff = now - WINDOW_MS;
+
+  for (const [casinoName, window] of CASINO_WINDOWS.entries()) {
+    pruneWindow(window);
+    if (window.length === 0) {
+      // If window is empty after pruning (older than cutoff)
+      CASINO_WINDOWS.delete(casinoName);
+      REASONS.delete(casinoName);
+      SOURCES.delete(casinoName);
+    }
+  }
+  console.log(`[TrustRollup] Periodic cleanup completed. Cutoff: ${new Date(cutoff).toISOString()} | Active windows: ${CASINO_WINDOWS.size}`);
+}, 60 * 60 * 1000); // Hourly cleanup
 
 function stdDev(nums: number[]): number {
   if (nums.length < 2) return 0;
@@ -229,17 +246,8 @@ interface AggregatedEntry {
   lastScore?: number;
 }
 
-interface DomainRollupPayload {
-  windowStart: number;
-  windowEnd: number;
-  domains: Record<string, AggregatedEntry>;
-}
-
-interface CasinoRollupPayload {
-  windowStart: number;
-  windowEnd: number;
-  casinos: Record<string, AggregatedEntry>;
-}
+// removed unused interface DomainRollupPayload
+// removed unused interface CasinoRollupPayload
 
 const HOUR_MS = 60 * 60 * 1000;
 
@@ -265,7 +273,7 @@ function addEntry(store: Record<string, AggregatedEntry>, key: string, delta: nu
 }
 
 function publishRollups() {
-  const windowEnd = Date.now();
+  // windowEnd check removed as it was unused
 
   const domainRollupData: Record<string, DomainRollupData> = {};
   for (const key in domainAgg) {

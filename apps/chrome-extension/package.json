@@ -23,6 +23,7 @@
     "vm-browserify": "^1.1.2"
   },
   "dependencies": {
-    "@tiltcheck/utils": "workspace:*"
+    "@tiltcheck/utils": "workspace:*",
+    "@tiltcheck/shared": "workspace:*"
   }
 }

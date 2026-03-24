@@ -10,43 +10,64 @@
  */
 export class FairnessService {
   /**
-   * Generates a provably fair HMAC-SHA256 hash.
+   * Generates a provably fair HMAC-SHA256 hash (The 4-Key Lock).
+   * 
+   * Formula: R = HMAC_SHA256(Solana_Block_Hash, Discord_ID + Client_Seed + Nonce)
    *
-   * @param solanaBlockHash - The Solana Block Hash (acts as the Salt/Key for entropy)
-   * @param discordId - The User's Discord ID (Snowflake)
-   * @param clientSeed - The user-controlled client seed (Player Soul)
+   * @param solanaBlockHash - The Solana Block Hash (Platform Entropy / The Salt)
+   * @param discordId - The User's Discord ID (Identity Entropy)
+   * @param clientSeed - The user-controlled client seed (User Entropy)
+   * @param nonce - Sequential counter ensuring uniqueness (Incremental Entropy)
    * @returns The resulting hex string of the HMAC
    */
   async generateHash(
     solanaBlockHash: string,
     discordId: string,
-    clientSeed: string
+    clientSeed: string,
+    nonce: number = 0
   ): Promise<string> {
     const encoder = new TextEncoder();
     
     // The Solana Block Hash is used as the Key (Salt)
     const keyData = encoder.encode(solanaBlockHash);
     
-    // The Message combines the User Identity and their chosen Seed
-    const messageData = encoder.encode(`${discordId}${clientSeed}`);
+    // The Message combines the User Identity, the Seed, and the Nonce (The 4-Key Lock)
+    const messageData = encoder.encode(`${discordId}${clientSeed}:${nonce}`);
 
     // Import key for HMAC-SHA256
-    const key = await ((crypto.subtle || (crypto as any).webcrypto.subtle).importKey(
+    const subtle = (crypto as any).subtle || (crypto as any).webcrypto?.subtle;
+    const key = await subtle.importKey(
       'raw',
       keyData as any,
       { name: 'HMAC', hash: 'SHA-256' },
       false,
       ['sign']
-    ));
+    );
 
     // Sign the message
-    const signature = await ((crypto.subtle || (crypto as any).webcrypto.subtle).sign(
+    const signature = await subtle.sign(
       'HMAC',
       key,
       messageData as any
-    ));
+    );
 
     return this.bufferToHex(signature);
+  }
+
+  /**
+   * Creates a pre-game commitment hash.
+   * By publishing the hash of the Server Seed (or upcoming Block Hash) before the game,
+   * the platform proves it cannot change the result after the player bets.
+   * 
+   * @param serverSeed - The raw server seed or Solana Block Hash to be used
+   * @returns The SHA-256 hash of the seed
+   */
+  async createCommitment(serverSeed: string): Promise<string> {
+    const encoder = new TextEncoder();
+    const data = encoder.encode(serverSeed);
+    const subtle = (crypto as any).subtle || (crypto as any).webcrypto?.subtle;
+    const hashBuffer = await subtle.digest('SHA-256', data);
+    return this.bufferToHex(hashBuffer);
   }
 
   /**
@@ -109,7 +130,7 @@ export class FairnessService {
     // We take 2-character chunks (1 byte) from the hex string
     // If byte < 128 => Left (0), else => Right (1)
     for (let i = 0; i < rows * 2; i += 2) {
-      const byte = parseInt(hexHash.substr(i, 2), 16);
+      const byte = parseInt(hexHash.substring(i, i + 2), 16);
       directions.push(byte % 2); // 0 or 1
     }
     return directions;
@@ -123,14 +144,16 @@ export class FairnessService {
    * @param solanaBlockHash - The Solana Block Hash used for the bet
    * @param discordId - The User's Discord ID
    * @param clientSeed - The User's Client Seed
+   * @param nonce - Sequential counter
    */
   async verify(
     reportedHash: string,
     solanaBlockHash: string,
     discordId: string,
-    clientSeed: string
+    clientSeed: string,
+    nonce: number = 0
   ): Promise<boolean> {
-    const calculatedHash = await this.generateHash(solanaBlockHash, discordId, clientSeed);
+    const calculatedHash = await this.generateHash(solanaBlockHash, discordId, clientSeed, nonce);
     return calculatedHash === reportedHash;
   }
 
@@ -149,19 +172,20 @@ export class FairnessService {
     const keyData = encoder.encode(serverSeed);
     const messageData = encoder.encode(`${clientSeed}:${nonce}`);
 
-    const key = await ((crypto.subtle || (crypto as any).webcrypto.subtle).importKey(
+    const subtle = (crypto as any).subtle || (crypto as any).webcrypto?.subtle;
+    const key = await subtle.importKey(
       'raw',
       keyData as any,
       { name: 'HMAC', hash: 'SHA-256' },
       false,
       ['sign']
-    ));
+    );
 
-    const signature = await ((crypto.subtle || (crypto as any).webcrypto.subtle).sign(
+    const signature = await subtle.sign(
       'HMAC',
       key,
       messageData as any
-    ));
+    );
 
     return this.bufferToHex(signature);
   }

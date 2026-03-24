@@ -901,29 +901,49 @@ function triggerEmergencyStop(reason: string) {
   `;
 
   warning.innerHTML = `
-    <h2 style="font-size: 24px; margin-bottom: 15px;">🚨 EMERGENCY STOP</h2>
-    <p style="font-size: 16px; margin-bottom: 20px;">${reason}</p>
-    <button id="emergency-vault" style="
-      background: white;
-      color: #cc0000;
-      border: none;
-      padding: 12px 24px;
-      font-size: 14px;
-      font-weight: bold;
-      border-radius: 6px;
-      cursor: pointer;
-      margin-right: 10px;
-    ">Vault Balance</button>
-    <button id="emergency-continue" style="
-      background: rgba(255, 255, 255, 0.2);
-      color: white;
-      border: 1px solid white;
-      padding: 12px 24px;
-      font-size: 14px;
-      font-weight: bold;
-      border-radius: 6px;
-      cursor: pointer;
-    ">I Understand (Continue)</button>
+    <h2 style="font-size: 24px; margin-bottom: 15px; letter-spacing: -0.05em; font-weight: 900;">🚨 EMERGENCY STOP</h2>
+    <p style="font-size: 16px; margin-bottom: 10px; font-weight: bold;">${reason}</p>
+    
+    <div style="
+      background: rgba(0,0,0,0.3); 
+      padding: 15px; 
+      margin-bottom: 20px; 
+      border: 1px solid rgba(255,255,255,0.2);
+      text-align: left;
+      font-size: 11px;
+      line-height: 1.4;
+      color: rgba(255,255,255,0.9);
+      max-height: 120px;
+      overflow-y: auto;
+    ">
+      <b style="color: #ffda00; text-transform: uppercase; font-size: 10px; display: block; margin-bottom: 5px;">Digital Asset Risk Disclosure:</b>
+      TiltCheck is a non-custodial tool. We do not hold your funds. You are solely responsible for your private keys. Crypto assets are highly volatile and involves risk of total loss. No information provided constitutes financial advice.
+    </div>
+
+    <div style="display: flex; gap: 10px; justify-content: center;">
+      <button id="emergency-vault" style="
+        background: white;
+        color: #cc0000;
+        border: none;
+        padding: 14px 20px;
+        font-size: 13px;
+        font-weight: 900;
+        border-radius: 4px;
+        cursor: pointer;
+        text-transform: uppercase;
+      ">Vault Balance</button>
+      <button id="emergency-continue" style="
+        background: rgba(0,0,0,0.4);
+        color: white;
+        border: 2px solid white;
+        padding: 14px 20px;
+        font-size: 13px;
+        font-weight: 900;
+        border-radius: 4px;
+        cursor: pointer;
+        text-transform: uppercase;
+      ">I Acknowledge Risk</button>
+    </div>
   `;
 
   document.body.appendChild(warning);

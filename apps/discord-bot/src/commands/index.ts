@@ -17,4 +17,4 @@ export { poker } from './poker.js';
 export { support } from './support.js';
 export { terms } from './terms.js';
 export { dashboard } from './dashboard.js';
-export { dad } from './dad.js';
+export { jme } from './jme.js';

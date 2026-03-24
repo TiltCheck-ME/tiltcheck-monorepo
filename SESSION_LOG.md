@@ -1,4 +1,17 @@
-# SESSION_LOG - 2026-03-11 - Save Point: "Core Infrastructure Complete"
+# SESSION_LOG - 2026-03-24 - Save Point: "Automated Degen Intel Feed"
+
+## 2026-03-24 - Blog System & Automated Intel Generation
+
+- **Blog System Implementation**: Successfully architected and deployed a full-stack blog system. 
+  - **Database**: Created `blog_posts` table in Neon with indexes on `slug` and `created_at`. Added TypeScript types and query functions to `@tiltcheck/db`.
+  - **API**: Built `/blog` and `/blog/:slug` routes in the central gateway.
+  - **Automated Generation**: Implemented `BlogGenerator` service in `apps/api` using Ollama. Configured to generate structured "Degen Intel" every 3 days. 
+  - **Brand Alignment**: Enforced "The Degen Laws" via system prompts: clinical/blunt tone, math-centric topics, strictly no emojis, and mandatory "Made for Degens. By Degens." footer.
+- **Frontend Integration**: Built `apps/web/src/app/blog` using a high-fidelity "Intel Feed" aesthetic. Features glassmorphism cards, neon typography, and mobile-responsive layouts.
+- **Navigation Update**: Added "Blog" link to the primary site navigation to increase discoverability of automated intel.
+- **Copyright Headers**: Applied mandatory 2026 copyright headers to all new logic and UI files.
+
+## 2026-03-11 - Save Point: "Core Infrastructure Complete"
 
 ## 2026-03-20 - Sitemap Standardization & UI Hardening
 

@@ -1,22 +1,37 @@
-# TiltCheck Trust Rollup - Production Container (Assumes prebuilt dist/)
-FROM node:20-alpine AS base
-RUN npm install -g pnpm@10 && npm cache clean --force
+# TiltCheck Trust Rollup - High-Speed Aggregator Container
+FROM node:20-slim AS base
+ENV PNPM_HOME="/pnpm"
+ENV PATH="$PNPM_HOME:$PATH"
+RUN corepack enable
 WORKDIR /app
 
-FROM base AS dependencies
-ENV CI=true
-COPY pnpm-workspace.yaml pnpm-lock.yaml package.json .npmrc ./
-RUN pnpm install --no-frozen-lockfile --prod
+# [PHASE 1] Dependency Caching
+# Only copy lockfile and workspace config to cache deps separately from source
+COPY pnpm-lock.yaml pnpm-workspace.yaml package.json .npmrc tsconfig.json ./
+# Build the virtual store
+RUN pnpm fetch
 
-FROM base AS runtime
-ENV NODE_ENV=production
-RUN apk add --no-cache dumb-init
-USER node
-EXPOSE 8082
+# [PHASE 2] Building
+FROM base AS build
+COPY . .
+# Install only the trust-rollup dependency subgraph
+RUN pnpm install --offline --filter @tiltcheck/trust-rollup...
+RUN pnpm --filter @tiltcheck/trust-rollup... build
+# Prune for production
+RUN pnpm prune --prod --no-optional
 
-FROM runtime AS production
-COPY --from=dependencies --chown=node:node /app/node_modules ./node_modules
-COPY --chown=node:node apps/trust-rollup/dist ./apps/trust-rollup/dist
-COPY --chown=node:node package.json ./
+# [PHASE 3] Production Runtime
+FROM node:20-slim
+WORKDIR /app
+# Pull in dumb-init for healthy signal handling during rollups
+RUN apt-get update && apt-get install -y dumb-init && rm -rf /var/lib/apt/lists/*
 ENTRYPOINT ["/usr/bin/dumb-init", "--"]
+
+# Copy only the compiled artifacts and minimal node_modules
+COPY --from=build /app/apps/trust-rollup/dist ./apps/trust-rollup/dist
+COPY --from=build /app/node_modules ./node_modules
+COPY --from=build /app/apps/trust-rollup/package.json ./apps/trust-rollup/package.json
+COPY --from=build /app/package.json ./package.json
+
+EXPOSE 8082
 CMD ["node", "apps/trust-rollup/dist/index.js"]

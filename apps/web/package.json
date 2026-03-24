@@ -14,7 +14,8 @@
     "next": "15.5.14",
     "react": "^18",
     "react-dom": "^18",
-    "viem": "^2.47.6"
+    "viem": "^2.47.6",
+    "@tiltcheck/shared": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "^20",

@@ -30,6 +30,14 @@
     "./schemas": {
       "types": "./dist/schemas.d.ts",
       "import": "./dist/schemas.js"
+    },
+    "./legal": {
+      "types": "./dist/legal.d.ts",
+      "import": "./dist/legal.js"
+    },
+    "./fairness": {
+      "types": "./dist/fairness.d.ts",
+      "import": "./dist/fairness.js"
     }
   }
 }

@@ -4,9 +4,9 @@
  * Time-lock funds using disposable Magic-like vault wallets.
  */
 import { SlashCommandBuilder, ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
+import { LEGAL_DISCLAIMERS } from '@tiltcheck/shared/legal';
 import type { Command } from '../types.js';
-import { lockVault, unlockVault, extendVault, getVaultStatus, setAutoVault, getAutoVault, setReloadSchedule, getReloadSchedule, type LockVaultRecord } from '@tiltcheck/lockvault';
-import { parseAmount, parseDuration } from '@tiltcheck/natural-language-parser';
+import { unlockVault, extendVault, getVaultStatus, getAutoVault, getReloadSchedule, type LockVaultRecord } from '@tiltcheck/lockvault';
 
 export const lockvault: Command = {
   data: new SlashCommandBuilder()
@@ -62,8 +62,11 @@ export const lockvault: Command = {
         const embed = new EmbedBuilder()
           .setColor(0xFF4500)
           .setTitle('🔒 PROFIT LOCKER: PROTOCOL UPGRADE')
-          .setDescription('We are **100% NON-CUSTODIAL.** YOUR KEYS, YOUR PROBLEM.\n\nTime-locking your funds cleanly requires a custodial license we refuse to buy, and lawyers we don\'t respect. We will not keep your keys on a centralized database. This isn\'t FTX.\n\nWe\'re coding a true **V2 On-Chain Smart Contract** right now to do this legally and natively.')
-          .addFields({ name: 'Speed Up The Devs', value: 'Want the V2 smart contract faster? Throw some caffeine at the dev fund:\n👉 **[Drop a Ko-fi ☕](https://ko-fi.com/tiltcheck)**' })
+          .setDescription(`We are **100% NON-CUSTODIAL.** YOUR KEYS, YOUR PROBLEM.\n\n${LEGAL_DISCLAIMERS.DIGITAL_ASSET_RISKS}\n\nWe refuse to hold your keys. This isn't a centralized exchange. This is **DeFi Safeguarding.**`)
+          .addFields(
+            { name: 'Audit Your Logic', value: 'Don\'t trust us. Audit the math yourself:\n👉 **[Independent Verification Tool](https://tiltcheck.me/tools/verify)**' },
+            { name: 'Smart Contract Beta', value: 'Building a V2 protocol update right now.' }
+          )
           .setFooter({ text: 'TiltCheck: ZERO MORALITY, ALL ALPHA.' });
         
         await interaction.reply({ embeds: [embed], ephemeral: true });

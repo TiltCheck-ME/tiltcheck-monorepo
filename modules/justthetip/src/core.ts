@@ -28,7 +28,27 @@ export async function verifyTipRequest(
   sender: { userId: string; discordId: string; walletAddress?: string },
   params: VerifyTipParams
 ): Promise<TipVerificationResult> {
-  const { recipientDiscordId, amount, currency, signature, message, publicKey } = params;
+  const { 
+    recipientDiscordId, 
+    amount, 
+    currency, 
+    signature, 
+    message, 
+    publicKey,
+    disclaimerAccepted 
+  } = params;
+  
+  // 0. Compliance Check: Ensure user has accepted disclaimers and fees ($0.07)
+  if (!disclaimerAccepted) {
+    return {
+      valid: false,
+      sender,
+      recipient: { discordId: recipientDiscordId, isNewUser: true },
+      amount,
+      currency,
+      error: 'You must explicitly accept the legal disclaimers and the transaction fee before proceeding.'
+    };
+  }
 
   // 1. Verify wallet signature if provided
   if (signature && message && publicKey) {

@@ -1,22 +1,38 @@
-# TiltCheck Discord Bot - Production Container (Assumes prebuilt dist/)
-FROM node:20-alpine AS base
-RUN npm install -g pnpm@10 && npm cache clean --force
+# TiltCheck Discord Bot - High-Speed Production Container
+FROM node:20-slim AS base
+ENV PNPM_HOME="/pnpm"
+ENV PATH="$PNPM_HOME:$PATH"
+RUN corepack enable
 WORKDIR /app
 
-FROM base AS dependencies
-ENV CI=true
-COPY pnpm-workspace.yaml pnpm-lock.yaml package.json .npmrc ./
-RUN pnpm install --no-frozen-lockfile --prod
+# [PHASE 1] Dependency Caching
+# Only copy lockfile and workspace config to cache deps separately from source
+COPY pnpm-lock.yaml pnpm-workspace.yaml package.json .npmrc tsconfig.json ./
+# Build the virtual store
+RUN pnpm fetch
 
-FROM base AS runtime
-ENV NODE_ENV=production
-RUN apk add --no-cache dumb-init
-USER node
-EXPOSE 8081
+# [PHASE 2] Building
+FROM base AS build
+COPY . .
+# Install only the bot's dependency subgraph
+RUN pnpm install --offline --filter @tiltcheck/discord-bot...
+RUN pnpm --filter @tiltcheck/discord-bot... build
+# Prune for production
+RUN pnpm prune --prod --no-optional
 
-FROM runtime AS production
-COPY --from=dependencies --chown=node:node /app/node_modules ./node_modules
-COPY --chown=node:node apps/discord-bot/dist ./apps/discord-bot/dist
-COPY --chown=node:node package.json ./
+# [PHASE 3] Production Runtime
+FROM node:20-slim
+WORKDIR /app
+# We use dumb-init for internal signal handling
+RUN apt-get update && apt-get install -y dumb-init && rm -rf /var/lib/apt/lists/*
 ENTRYPOINT ["/usr/bin/dumb-init", "--"]
-CMD ["node", "apps/discord-bot/dist/index.js"]
+
+# Copy only the compiled artifacts and minimal node_modules
+COPY --from=build /app/apps/discord-bot/dist ./apps/discord-bot/dist
+COPY --from=build /app/node_modules ./node_modules
+COPY --from=build /app/apps/discord-bot/package.json ./apps/discord-bot/package.json
+COPY --from=build /app/package.json ./package.json
+
+EXPOSE 8085
+# Use the correct entry point from package.json
+CMD ["node", "apps/discord-bot/dist/bootstrap.js"]
