@@ -17,7 +17,7 @@ export class HubRelay {
   }
 
   private async loadUser(): Promise<void> {
-    const data = await chrome.storage.local.get(['discord_user_id']);
+    const data = await chrome.storage.local.get(['discord_user_id']) as { discord_user_id?: string };
     this.userId = data.discord_user_id || null;
   }
 

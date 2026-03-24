@@ -1,5 +1,4 @@
 import { defineConfig } from 'vite';
-import basicSsl from '@vitejs/plugin-basic-ssl';
 
 /**
  * © 2024–2026 TiltCheck Ecosystem. All Rights Reserved.
@@ -8,12 +7,14 @@ import basicSsl from '@vitejs/plugin-basic-ssl';
  * basicSsl generates a self-signed cert for local dev.
  */
 export default defineConfig({
-  plugins: [basicSsl()],
+  plugins: [], 
+  optimizeDeps: {
+    include: ['@discord/embedded-app-sdk'],
+  },
   server: {
     host: true,
     port: 5173,
-    allowedHosts: true,
-
+    allowedHosts: ['dev-activity.tiltcheck.me', 'localhost'],
     proxy: {
       '/.proxy': {
         target: 'https://discord.com',
@@ -24,6 +25,11 @@ export default defineConfig({
   },
   build: {
     target: 'esnext',
+    rollupOptions: {
+      input: {
+        main: './index.html',
+      },
+    },
   },
 });
 
