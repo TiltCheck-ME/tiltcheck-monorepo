@@ -188,10 +188,10 @@ export class SidebarController implements SidebarUI {
     }, 4000);
   }
 
-  public updateGuardian(active: boolean) {
-    const indicator = document.getElementById('tg-guardian-indicator');
+  public updateRealityCheck(active: boolean): void {
+    const indicator = document.getElementById('status');
     if (indicator) {
-      indicator.className = `tg-guardian-indicator ${active ? 'active' : ''}`;
+      indicator.className = `tg-status-indicator ${active ? 'active' : ''}`;
     }
   }
 
