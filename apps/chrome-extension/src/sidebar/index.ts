@@ -189,7 +189,7 @@ export class SidebarController implements SidebarUI {
   }
 
   public updateRealityCheck(active: boolean): void {
-    const indicator = document.getElementById('status');
+    const indicator = document.getElementById('tg-status-indicator');
     if (indicator) {
       indicator.className = `tg-status-indicator ${active ? 'active' : ''}`;
     }
@@ -221,7 +221,7 @@ export class SidebarController implements SidebarUI {
     // Add first indicator to feed if new/critical
     if (indicators.length > 0 && score > 60) {
         this.addFeedMessage(`Risk Alert: ${indicators[0]}`);
-        this.buddy.notifyGuardian(indicators[0]);
+        this.buddy.notifyMonitor(indicators[0]);
     }
 
     if (score >= 80) {

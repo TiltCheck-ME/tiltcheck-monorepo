@@ -91,11 +91,12 @@ function setSidebarVisibility(visible: boolean): boolean {
   const offset = sidebar.classList.contains('minimized') ? MINIMIZED_SIDEBAR_WIDTH : FULL_SIDEBAR_WIDTH;
 
   if (visible) {
-    document.body.style.marginRight = `${offset}px`;
-    document.documentElement.style.marginRight = `${offset}px`;
+    document.body.style.width = `calc(100% - ${offset}px)`;
+    document.documentElement.style.width = `calc(100% - ${offset}px)`;
+    document.body.style.transition = 'width 0.4s cubic-bezier(0.16, 1, 0.3, 1)';
   } else {
-    document.body.style.marginRight = '0px';
-    document.documentElement.style.marginRight = '0px';
+    document.body.style.width = '100%';
+    document.documentElement.style.width = '100%';
   }
 
   return visible;
@@ -187,7 +188,7 @@ class VisualPicker {
   private onHover = (e: MouseEvent) => {
     if (!this.overlay) return;
     const target = e.target as HTMLElement;
-    if (target === this.overlay || target.closest('#tiltguard-sidebar')) return;
+    if (target === this.overlay || target.closest('#tiltcheck-sidebar')) return;
 
     const rect = target.getBoundingClientRect();
     this.overlay.style.display = 'block';
@@ -394,7 +395,7 @@ async function startMonitoring() {
   console.log('[TiltCheck] Starting monitoring...');
 
   // Update UI
-  sidebar?.updateGuardian(true);
+  sidebar?.updateRealityCheck(true);
   isMonitoring = true;
 
   // Get initial balance
@@ -417,7 +418,7 @@ async function startMonitoring() {
   client = new AnalyzerClient(ANALYZER_WS_URL, (error) => {
     // Surface post-open disconnect/reconnect failures to UI and logs.
     console.warn('[TiltGuard] Analyzer connection issue:', error);
-    sidebar?.updateGuardian(false);
+    sidebar?.updateRealityCheck(false);
     window.dispatchEvent(
       new CustomEvent('tg-status-update', {
         detail: { message: 'Analyzer connection dropped. Reconnecting...', type: 'warning' }
@@ -484,7 +485,7 @@ function _stopMonitoring() {
   }
 
   isMonitoring = false;
-  sidebar?.updateGuardian(false);
+  sidebar?.updateRealityCheck(false);
 
   console.log('[TiltGuard] Monitoring stopped');
 }
