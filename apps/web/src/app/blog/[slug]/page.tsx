@@ -2,7 +2,9 @@
 import React from 'react';
 import Link from 'next/link';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/blog';
+export const dynamic = 'force-dynamic';
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.tiltcheck.me/blog';
 
 async function getPost(slug: string) {
   try {

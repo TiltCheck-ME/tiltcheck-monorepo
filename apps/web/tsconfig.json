@@ -25,6 +25,11 @@
     "paths": {
       "@/*": [
         "./src/*"
+      ],
+      "@tiltcheck/*": [
+        "../../packages/*/src/index.ts",
+        "../../packages/*",
+        "../../packages/*/src"
       ]
     },
     "target": "ES2017"

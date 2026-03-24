@@ -30,9 +30,9 @@ ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
 # Install dependencies
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile
 
-# SURGICAL SCOPED BUILD: Build ONLY the target app and its internal workspace dependencies
-# This bypasses failures in unrelated experimental packages (e.g. accessibility-bridge)
-RUN pnpm --filter @tiltcheck/$APP_NAME... build
+# RECURSIVE BUILD: Build the app AND ALL of its internal workspace dependencies
+# This guarantees that shared artifacts (dist/ folders) exist before the App Router builds.
+RUN pnpm --filter $APP_NAME... build
 
 # Prepare production output
 RUN if [ -d "apps/$APP_NAME/.next/standalone" ]; then \

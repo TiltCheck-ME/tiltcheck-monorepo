@@ -16,9 +16,9 @@ import {
 import { evaluateBreathalyzer, evaluateSentiment } from '../lib/safety.js';
 import { trustEngines } from '@tiltcheck/trust-engines';
 import { eventRouter } from '@tiltcheck/event-router';
-import { suslink } from '@tiltcheck/suslink';
 import { getUserTiltStatus } from '@tiltcheck/tiltcheck-core';
 import { webhookService } from '../lib/webhooks.js';
+import { authMiddleware, AuthRequest } from '../middleware/auth.js';
 
 const router = Router();
 
@@ -26,7 +26,7 @@ const router = Router();
  * POST /rgaas/breathalyzer/evaluate
  * Evaluate tilt risk based on recent betting velocity and loss context.
  */
-router.post('/breathalyzer/evaluate', (req, res) => {
+router.post('/breathalyzer/evaluate', authMiddleware, (req, res) => {
   const { userId, eventsInWindow, windowMinutes, lossAmountWindow, streakLosses } = req.body ?? {};
 
   if (!userId || typeof userId !== 'string') {
@@ -80,7 +80,7 @@ router.post('/breathalyzer/evaluate', (req, res) => {
  * POST /rgaas/anti-tilt/evaluate
  * Evaluate user sentiment and decide intervention level.
  */
-router.post('/anti-tilt/evaluate', (req, res) => {
+router.post('/anti-tilt/evaluate', authMiddleware, (req, res) => {
   const { userId, message, distressSignals } = req.body ?? {};
 
   if (!userId || typeof userId !== 'string') {
@@ -132,17 +132,19 @@ router.post('/anti-tilt/evaluate', (req, res) => {
  * Ingest watcher community report into local trust pipeline (no Elastic required).
  */
 router.post('/trust/degen-intel', async (req, res) => {
-  let requiredKey = (process.env.COMMUNITY_INTEL_INGEST_KEY || '').trim();
-  if (!requiredKey && process.env.NODE_ENV !== 'production') {
-    requiredKey = 'dev-ingest-key'; // Development override
-    console.warn('[API] Using development ingest key. Set COMMUNITY_INTEL_INGEST_KEY in .env for production.');
+  const requiredKey = (process.env.COMMUNITY_INTEL_INGEST_KEY || '').trim();
+  
+  // H4 Fix: Enforce ingest key in all environments. If not set, the endpoint is disabled.
+  if (!requiredKey) {
+    console.error('[API] COMMUNITY_INTEL_INGEST_KEY not set. Ingestion disabled.');
+    res.status(503).json({ error: 'Ingestion service unavailable', code: 'DISABLED' });
+    return;
   }
-  if (requiredKey) {
-    const provided = String(req.headers['x-community-intel-key'] || '');
-    if (provided !== requiredKey) {
-      res.status(401).json({ error: 'Unauthorized', code: 'INVALID_INGEST_KEY' });
-      return;
-    }
+
+  const provided = String(req.headers['x-community-intel-key'] || '');
+  if (provided !== requiredKey) {
+    res.status(401).json({ error: 'Unauthorized', code: 'INVALID_INGEST_KEY' });
+    return;
   }
 
   const source = String(req.body?.source || 'channel-watcher');
@@ -251,8 +253,15 @@ router.get('/trust/casino/:name', (req, res) => {
  * GET /rgaas/trust/user/:id
  * Get trust level and metrics for a user.
  */
-router.get('/trust/user/:id', (req, res) => {
+router.get('/trust/user/:id', authMiddleware, (req, res) => {
   const { id } = req.params;
+  
+  // H3 Fix: Only allow users to see their own trust profile (unless admin)
+  const authUser = (req as AuthRequest).user;
+  if (authUser?.userId !== id && !authUser?.roles?.includes('admin')) {
+    res.status(403).json({ error: 'Forbidden: You can only access your own trust profile' });
+    return;
+  }
   const level = trustEngines.getDegenScore(id);
   const breakdown = trustEngines.getDegenBreakdown(id);
   const explanation = trustEngines.explainDegenScore(id);
@@ -302,8 +311,15 @@ router.post('/scan', async (req, res) => {
  * GET /rgaas/profile/:userId
  * Unified Risk Profile for a user.
  */
-router.get('/profile/:userId', (req, res) => {
+router.get('/profile/:userId', authMiddleware, (req, res) => {
   const { userId } = req.params;
+
+  // H3 Fix: Only allow users to see their own risk profile (unless admin)
+  const authUser = (req as AuthRequest).user;
+  if (authUser?.userId !== userId && !authUser?.roles?.includes('admin')) {
+    res.status(403).json({ error: 'Forbidden: You can only access your own risk profile' });
+    return;
+  }
 
   const trustLevel = trustEngines.getDegenScore(userId);
   const trustBreakdown = trustEngines.getDegenBreakdown(userId);

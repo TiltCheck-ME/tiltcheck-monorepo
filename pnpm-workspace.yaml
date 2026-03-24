@@ -9,3 +9,7 @@ ignoredBuiltDependencies:
 
 onlyBuiltDependencies:
   - esbuild
+  - pg
+  - bcryptjs
+  - sharp
+  - scrypt-kdf

@@ -452,9 +452,6 @@ router.get('/discord/callback', authLimiter, async (req, res) => {
         ? 'web'
         : undefined;
     const sourceFromCookie = req.cookies?.oauth_source;
-    const isLocalDev =
-      process.env.NODE_ENV !== 'production' &&
-      (req.hostname === 'localhost' || req.hostname === '127.0.0.1');
 
     // Optional integrity check: if both exist, cookie source must match state source.
     if (sourceFromCookie && sourceFromState && sourceFromCookie !== sourceFromState) {
@@ -463,16 +460,13 @@ router.get('/discord/callback', authLimiter, async (req, res) => {
     }
 
     // Verify state CSRF token:
-    // Primary: query state must match stored cookie value (secure, same-site only)
-    // Fallback: if cookie missing (e.g., extension cross-origin), validate state prefix (ext_/web_)
-    // This handles extension OAuth in production where same-origin cookies are restricted
-    const stateValid =
-      !!stateValue &&
-      (stateValue === storedState || 
-       (!storedState && (sourceFromState === 'extension' || sourceFromState === 'web')));
+    // Query state MUST match the stored cookie value to prevent CSRF.
+    // Fallback prefixes (ext_/web_) are removed as they are insecure.
+    const stateValid = !!stateValue && stateValue === storedState;
 
     if (!stateValid) {
-      res.status(400).json({ error: 'Invalid OAuth state' });
+      console.warn('[Auth] OAuth state mismatch or missing cookie. Potential CSRF blocked.');
+      res.status(400).json({ error: 'Invalid OAuth state or expired session' });
       return;
     }
 
@@ -736,7 +730,8 @@ router.get('/me', async (req, res) => {
           });
           return;
         }
-      } catch (_jwtError) {
+      } catch (jwtError) {
+        console.warn('[Auth] Me JWT verification failed:', jwtError instanceof Error ? jwtError.message : String(jwtError));
         // Token invalid, try session cookie
       }
     }

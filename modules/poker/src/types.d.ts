@@ -3,20 +3,16 @@
  * Discord-based poker games with buy-ins via JustTheTip
  * Tilt detection on bad beats
  */
-export type Suit = '♠' | '♥' | '♦' | '♣';
-export type Rank = '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' | '10' | 'J' | 'Q' | 'K' | 'A';
-export interface Card {
-    suit: Suit;
-    rank: Rank;
-    value: number;
-}
-export type HandRank = 'high-card' | 'pair' | 'two-pair' | 'three-of-a-kind' | 'straight' | 'flush' | 'full-house' | 'four-of-a-kind' | 'straight-flush' | 'royal-flush';
-export interface HandEvaluation {
-    rank: HandRank;
-    value: number;
-    cards: Card[];
-    description: string;
-}
+import { 
+  Suit, 
+  Rank, 
+  Card, 
+  HandRank, 
+  HandEvaluation,
+  GameResult 
+} from '@tiltcheck/types';
+
+export { Suit, Rank, Card, HandRank, HandEvaluation, GameResult };
 export interface Player {
     userId: string;
     username: string;
@@ -49,18 +45,5 @@ export interface GameAction {
     action: 'fold' | 'call' | 'raise' | 'check' | 'all-in';
     amount?: number;
 }
-export interface GameResult {
-    winners: Array<{
-        userId: string;
-        username: string;
-        hand: HandEvaluation;
-        winnings: number;
-    }>;
-    pot: number;
-    badBeat?: {
-        loserId: string;
-        loserHand: HandEvaluation;
-        winnerHand: HandEvaluation;
-        probability: number;
-    };
-}
+
+// Players, Stage, and PokerGame remain local

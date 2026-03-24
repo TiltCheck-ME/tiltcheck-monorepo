@@ -2,9 +2,11 @@
 import React from 'react';
 import Link from 'next/link';
 
+export const dynamic = 'force-dynamic';
+
 // Since this is a server component in Next.js, we can fetch directly or from the API
 // For now, we'll hit the API we just created.
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/blog';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.tiltcheck.me/blog';
 
 async function getPosts() {
   try {
@@ -72,7 +74,7 @@ export default async function BlogPage() {
               </Link>
               
               <p className="text-text-secondary line-clamp-2 mb-6 font-sans leading-relaxed">
-                {post.excerpt || post.content.substring(0, 160) + '...'}
+                {post.excerpt || post.content?.substring(0, 160) + '...' || 'No analysis available.'}
               </p>
               
               <div className="flex items-center justify-between">

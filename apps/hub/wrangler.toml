@@ -1,20 +1,26 @@
 #:schema https://pnpm.io/json-schema/package.json
 #:schema https://raw.githubusercontent.com/cloudflare/wrangler2/main/packages/wrangler/src/config-schema.json
-name = "tiltcheck-hub"
+name = "tiltcheck-edge-hub"
 main = "src/index.ts"
-compatibility_date = "2024-03-01"
+compatibility_date = "2024-09-01"
+workers_dev = true
+
 
 [vars]
-ENVIRONMENT = "staging"
+# Production Environment
 
 [[kv_namespaces]]
 binding = "SESSIONS"
-id = "ab6a5560948348a6b261ac6f8ebe8592"
+id = "ac86eac7229c4da08427b6b385f64649"
 
 [[d1_databases]]
 binding = "DB"
 database_name = "tiltcheck-identity"
 database_id = "0218e3b3-a024-43ad-a8ae-5d2b00df05f6"
+
+# AI & Distributed Intelligence
+[ai]
+binding = "AI"
 
 # Performance/Monitoring
 [observability]

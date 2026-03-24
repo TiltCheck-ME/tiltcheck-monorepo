@@ -1,5 +1,16 @@
 {
   "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@tiltcheck/*": [
+        "packages/*/src/index.ts",
+        "packages/*",
+        "packages/*/src",
+        "modules/*/src/index.ts",
+        "modules/*",
+        "modules/*/src"
+      ]
+    },
     "outDir": "./dist",
     "declaration": true,
     "skipLibCheck": true,
