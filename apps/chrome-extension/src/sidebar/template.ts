@@ -150,7 +150,7 @@ export const SIDEBAR_TEMPLATE = `
               <h1 class="tg-hud-label">THE LIE</h1>
               <h2 class="tg-hud-title" style="color: var(--tg-muted); opacity: 0.5;">HOUSE ALWAYS WINS</h2>
             </div>
-            <div id="tg-guardian-indicator" class="tg-guardian-indicator"></div>
+            <div id="tg-status-indicator" class="tg-status-indicator"></div>
           </div>
 
           <div class="tg-metric-stack">
@@ -438,7 +438,7 @@ export const SIDEBAR_TEMPLATE = `
     <div id="onboarding-overlay">
       <div class="onboarding-tooltip">
         <div class="tooltip-title">Welcome</div>
-        <div class="tooltip-body">Let's walk through the Guardian Pro tools.</div>
+        <div class="tooltip-body">Let's walk through the Reality Check Pro tools.</div>
         <div class="tooltip-footer">
           <div class="tooltip-progress">1 / 4</div>
           <div class="tooltip-actions">
