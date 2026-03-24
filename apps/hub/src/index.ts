@@ -40,6 +40,18 @@ export default {
       'Vary': 'Origin',
     };
 
+    // --- COMPLIANCE: GEO-FENCE ---
+    const country = request.headers.get('cf-ipcountry');
+    const restricted = new Set(['US', 'GB', 'FR', 'AU']);
+    
+    if (country && restricted.has(country.toUpperCase())) {
+      console.warn(`[Hub] Blocked request from restricted region: ${country}`);
+      return new Response('Access restricted in your region.', { 
+        status: 403, 
+        headers: { ...corsHeaders, 'Content-Type': 'text/plain' }
+      });
+    }
+
     if (method === 'OPTIONS') {
       return new Response(null, { headers: corsHeaders });
     }
@@ -78,7 +90,7 @@ export default {
         
         // Fetch current session from KV (High-speed Temporary State)
         const sessionData = await env.SESSIONS.get(userId);
-        let rounds: Round[] = sessionData ? JSON.parse(sessionData) : [];
+        const rounds: Round[] = sessionData ? JSON.parse(sessionData) : [];
         
         rounds.push({ bet, win, timestamp: Date.now() });
         

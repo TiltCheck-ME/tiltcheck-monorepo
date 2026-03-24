@@ -34,6 +34,19 @@ import type {
   CreateBlogPostPayload,
 } from './types.js';
 
+/**
+ * Validates sorting parameters to prevent SQL injection
+ */
+function validateSort(
+  column: string,
+  allowedColumns: string[],
+  direction: string = 'desc'
+): { orderBy: string; orderDir: 'ASC' | 'DESC' } {
+  const orderBy = allowedColumns.includes(column) ? column : allowedColumns[0];
+  const orderDir = direction.toUpperCase() === 'ASC' ? 'ASC' : 'DESC';
+  return { orderBy, orderDir };
+}
+
 // ============================================================================
 // Blog Queries
 // ============================================================================
@@ -44,7 +57,12 @@ import type {
 export async function getBlogPosts(
   pagination?: PaginationParams
 ): Promise<PaginatedResult<BlogPost>> {
-  const { limit = 10, offset = 0, orderBy = 'created_at', orderDir = 'desc' } = pagination || {};
+  const { limit = 10, offset = 0 } = pagination || {};
+  const { orderBy, orderDir } = validateSort(
+    pagination?.orderBy || 'created_at',
+    ['created_at', 'title', 'status'],
+    pagination?.orderDir
+  );
 
   const sql = `
     SELECT * FROM blog_posts 
@@ -425,7 +443,12 @@ export async function getTipsBySender(
   senderId: string,
   pagination?: PaginationParams
 ): Promise<PaginatedResult<Tip>> {
-  const { limit = 20, offset = 0, orderBy = 'created_at', orderDir = 'desc' } = pagination || {};
+  const { limit = 20, offset = 0 } = pagination || {};
+  const { orderBy, orderDir } = validateSort(
+    pagination?.orderBy || 'created_at',
+    ['created_at', 'amount_sol', 'status'],
+    pagination?.orderDir
+  );
 
   const sql = `
     SELECT * FROM tips 
@@ -459,7 +482,12 @@ export async function getTipsByRecipient(
   recipientDiscordId: string,
   pagination?: PaginationParams
 ): Promise<PaginatedResult<Tip>> {
-  const { limit = 20, offset = 0, orderBy = 'created_at', orderDir = 'desc' } = pagination || {};
+  const { limit = 20, offset = 0 } = pagination || {};
+  const { orderBy, orderDir } = validateSort(
+    pagination?.orderBy || 'created_at',
+    ['created_at', 'amount_sol', 'status'],
+    pagination?.orderDir
+  );
 
   const sql = `
     SELECT * FROM tips 
@@ -517,7 +545,12 @@ export async function findCasinoByDomain(domain: string): Promise<Casino | null>
 export async function getCasinos(
   pagination?: PaginationParams
 ): Promise<PaginatedResult<Casino>> {
-  const { limit = 20, offset = 0, orderBy = 'name', orderDir = 'asc' } = pagination || {};
+  const { limit = 20, offset = 0 } = pagination || {};
+  const { orderBy, orderDir } = validateSort(
+    pagination?.orderBy || 'name',
+    ['name', 'grade', 'domain', 'created_at'],
+    pagination?.orderDir
+  );
 
   const sql = `
     SELECT * FROM casinos 
@@ -592,7 +625,12 @@ export async function getAuditLogsByAdmin(
   adminId: string,
   pagination?: PaginationParams
 ): Promise<PaginatedResult<AuditLog>> {
-  const { limit = 50, offset = 0, orderBy = 'created_at', orderDir = 'desc' } = pagination || {};
+  const { limit = 50, offset = 0 } = pagination || {};
+  const { orderBy, orderDir } = validateSort(
+    pagination?.orderBy || 'created_at',
+    ['created_at', 'action_type', 'admin_id'],
+    pagination?.orderDir
+  );
 
   const sql = `
     SELECT * FROM audit_logs 

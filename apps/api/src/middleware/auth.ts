@@ -166,3 +166,37 @@ export async function optionalAuthMiddleware(
   // If header exists, validate it
   await authMiddleware(req, res, next);
 }
+/**
+ * Middleware for internal service-to-service authentication
+ * Compares Bearer token against INTERNAL_API_SECRET
+ */
+export function internalServiceAuth(
+  req: Request,
+  res: Response,
+  next: NextFunction
+): void {
+  const secret = process.env.INTERNAL_API_SECRET;
+  
+  if (!secret) {
+    if (process.env.NODE_ENV !== 'production') {
+       next(); // Skip in dev if not set
+       return;
+    }
+    res.status(503).json({ error: 'Internal auth unconfigured' });
+    return;
+  }
+
+  const authHeader = req.headers.authorization;
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    res.status(401).json({ error: 'Bearer token required' });
+    return;
+  }
+
+  const token = authHeader.substring(7);
+  if (token !== secret) {
+    res.status(403).json({ error: 'Forbidden' });
+    return;
+  }
+
+  next();
+}

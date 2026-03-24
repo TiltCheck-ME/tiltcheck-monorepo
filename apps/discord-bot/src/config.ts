@@ -124,6 +124,10 @@ export interface BotConfig {
   feeWallet?: string;
   jttHealthPort: number;
 
+  // Internal API (Service-to-Service)
+  internalApiSecret: string;
+  backendUrl: string;
+
   // Database / Supabase
   supabaseUrl?: string;
   supabaseServiceRoleKey?: string;
@@ -168,6 +172,10 @@ export const config: BotConfig = {
   feeWallet: getEnvVar('JUSTTHETIP_FEE_WALLET', false),
   jttHealthPort: getNumberEnv('JTT_BOT_HEALTH_PORT', 8083),
 
+  // Internal API
+  internalApiSecret: process.env.INTERNAL_API_SECRET || '',
+  backendUrl: process.env.BACKEND_URL || 'https://api.tiltcheck.me',
+
   // Database / Supabase
   supabaseUrl: getEnvVar('SUPABASE_URL', false),
   supabaseServiceRoleKey: getEnvVar('SUPABASE_SERVICE_ROLE_KEY', false),
@@ -209,6 +217,9 @@ export function validateConfig(): void {
     }
     if (!config.supabaseServiceRoleKey) {
       console.warn('⚠️  SUPABASE_SERVICE_ROLE_KEY not set - database operations may fail');
+    }
+    if (!config.internalApiSecret) {
+      console.warn('⚠️  INTERNAL_API_SECRET not set - moderation reporting will fail (401)');
     }
   }
 

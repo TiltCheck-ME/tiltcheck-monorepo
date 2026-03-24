@@ -23,6 +23,8 @@ import rateLimit from 'express-rate-limit';
 import http from 'http';
 import cookieParser from 'cookie-parser';
 import { WebSocketServer } from 'ws';
+import { verifySessionCookie } from '@tiltcheck/auth';
+import { getJWTConfig } from './middleware/auth.js';
 
 import { authRouter } from './routes/auth.js';
 import { servicesRouter } from './routes/services.js';
@@ -196,10 +198,31 @@ const server = http.createServer(app);
 // WebSocket Server Setup
 // ============================================================================
 
-const wss = new WebSocketServer({ server, path: '/analyzer' });
+const wss = new WebSocketServer({ 
+  server, 
+  path: '/analyzer',
+  // H6 Fix: Verify session before allowing connection
+  verifyClient: async (info, callback) => {
+    const cookieHeader = info.req.headers.cookie;
+    const jwtConfig = getJWTConfig();
+    try {
+      const result = await verifySessionCookie(cookieHeader, jwtConfig);
+      if (result.valid) {
+        (info.req as any).session = result.session;
+        callback(true);
+      } else {
+        callback(false, 401, 'Unauthorized');
+      }
+    } catch (err) {
+      console.error('[Analyzer] Session verification error:', err);
+      callback(false, 500, 'Internal Server Error');
+    }
+  }
+});
 
-wss.on('connection', (ws) => {
-  console.log('[Analyzer] Client connected');
+wss.on('connection', (ws, req) => {
+  const session = (req as any).session;
+  console.log(`[Analyzer] Client connected: ${session?.userId || 'unknown'}`);
 
   ws.on('message', (data) => {
     try {

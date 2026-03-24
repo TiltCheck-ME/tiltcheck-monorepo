@@ -9,7 +9,7 @@
 import { DiscordSDK } from '@discord/embedded-app-sdk';
 
 const DISCORD_CLIENT_ID = '1445916179163250860';
-const HUB_URL = 'https://hub.tiltcheck.me';
+const HUB_URL = 'https://tiltcheck-edge-hub.j-chapman7.workers.dev';
 
 // --- Types ---
 interface SessionRound {
