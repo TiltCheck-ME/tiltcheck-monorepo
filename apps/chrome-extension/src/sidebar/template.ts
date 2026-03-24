@@ -16,10 +16,9 @@ export const SIDEBAR_TEMPLATE = `
       <!-- Auth Section -->
       <div class="tg-section" id="tg-auth-section">
         <div class="tg-auth-prompt">
-          <h3>THE GUARDIAN IS ONLINE</h3>
-          <p>Demo is instant. Connect Discord to sync vault history and liquidity alerts. No lectures, just REALITY CHECKS.</p>
+          <h3>REALITY CHECK ACTIVE</h3>
+          <p>Connect Discord to sync vault history, liquidity alerts, and live RTP telemetry. No lectures, just math.</p>
           <button class="tg-btn tg-btn-primary" id="tg-discord-login">Connect with Discord</button>
-          <div class="tg-auth-divider">You can stay in guest mode if you prefer</div>
         </div>
       </div>
 
