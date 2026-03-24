@@ -9,9 +9,7 @@ import cookieParser from 'cookie-parser';
 import jwt from 'jsonwebtoken';
 import rateLimit from 'express-rate-limit';
 import { Magic } from '@magic-sdk/admin';
-import { Connection, PublicKey, Keypair } from '@solana/web3.js';
-import nacl from 'tweetnacl';
-import bs58 from 'bs58';
+import { Connection } from '@solana/web3.js';
 import { fileURLToPath, pathToFileURL } from 'url';
 import { dirname, join } from 'path';
 import type { Request, Response, NextFunction } from 'express';
@@ -34,7 +32,8 @@ const trustLimiter = rateLimit({
 });
 const JWT_SECRET = process.env.JWT_SECRET || (process.env.NODE_ENV === 'production' ? (() => { throw new Error('JWT_SECRET is required in production'); })() : 'tiltcheck-user-secret-2024');
 const magicAdmin = new Magic(process.env.MAGIC_SECRET_KEY);
-const solanaConnection = new Connection(process.env.SOLANA_RPC_URL || 'https://api.mainnet-beta.solana.com', 'confirmed');
+// Solana connection reserved for future wallet verification features
+const _solanaConnection = new Connection(process.env.SOLANA_RPC_URL || 'https://api.mainnet-beta.solana.com', 'confirmed');
 
 // Middleware
 app.use(cors());
@@ -91,7 +90,7 @@ async function getUserData(discordId: string): Promise<UserData | null> {
   if (!db.isConnected()) return null;
 
   try {
-    const [dbStats, dbPrefs, dbIdentity] = await Promise.all([
+    const [dbStats, _dbPrefs, dbIdentity] = await Promise.all([
       db.getUserStats(discordId),
       db.getUserPreferences(discordId),
       db.getDegenIdentity(discordId)
@@ -123,21 +122,32 @@ async function getUserData(discordId: string): Promise<UserData | null> {
         baseCurrency: 'SOL'
       }
     };
-  } catch (err) {
+  } catch {
     return null;
   }
 }
 
 // === Auth Routes ===
+const isProdEnv = process.env.NODE_ENV === 'production';
 const DISCORD_CONFIG = {
   clientId: process.env.DISCORD_CLIENT_ID,
   clientSecret: process.env.DISCORD_CLIENT_SECRET,
-  redirectUri: process.env.DISCORD_CALLBACK_URL || 'http://localhost:6001/auth/discord/callback'
+  redirectUri:
+    process.env.DISCORD_CALLBACK_URL ||
+    (isProdEnv
+      ? 'https://user-dashboard.tiltcheck.me/auth/discord/callback'
+      : 'http://localhost:6001/auth/discord/callback'),
 };
 
 app.get('/auth/discord', (_req, res) => {
-  const url = `https://discord.com/api/oauth2/authorize?client_id=${DISCORD_CONFIG.clientId}&redirect_uri=${encodeURIComponent(DISCORD_CONFIG.redirectUri)}&response_type=code&scope=identify`;
-  res.redirect(url);
+  const params = new URLSearchParams({
+    client_id: DISCORD_CONFIG.clientId!,
+    redirect_uri: DISCORD_CONFIG.redirectUri,
+    response_type: 'code',
+    scope: 'identify',
+  });
+  // Note: Discord OAuth authorize endpoint is discord.com/oauth2/authorize (not /api/oauth2/)
+  res.redirect(`https://discord.com/oauth2/authorize?${params.toString()}`);
 });
 
 app.get('/auth/discord/callback', async (req, res) => {
@@ -176,7 +186,7 @@ app.get('/auth/discord/callback', async (req, res) => {
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
     res.redirect('/dashboard');
-  } catch (err) {
+  } catch {
     res.redirect('/?error=auth_failed');
   }
 });
@@ -219,7 +229,7 @@ app.put('/api/user/:discordId/preferences', authenticateToken as any, async (req
 });
 
 app.post('/api/auth/wallet/link', authenticateToken as any, async (req: any, res) => {
-  const { address, signature, message } = req.body;
+  const { address } = req.body;
   // Verify signature and save to DB
   if (db.isConnected()) {
     await db.upsertDegenIdentity({

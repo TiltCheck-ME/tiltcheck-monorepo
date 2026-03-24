@@ -20,10 +20,24 @@ export default {
   async fetch(request: Request, env: Env, _ctx: any): Promise<Response> {
     const url = new URL(request.url);
     const method = request.method;
+    // Allow requests from TiltCheck's Activity, extension, and web app
+    const allowedOrigins = new Set([
+      'https://tiltcheck.me',
+      'https://hub.tiltcheck.me',
+      'https://api.tiltcheck.me',
+      // Discord proxies Activity iframes via their CDN
+      'https://discord.com',
+      // Local dev
+      'http://localhost:5173',
+      'http://localhost:8787',
+    ]);
+    const origin = request.headers.get('Origin') || '';
+    const allowedOrigin = allowedOrigins.has(origin) ? origin : 'https://tiltcheck.me';
     const corsHeaders = {
-      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Origin': allowedOrigin,
       'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
       'Access-Control-Allow-Headers': 'Content-Type',
+      'Vary': 'Origin',
     };
 
     if (method === 'OPTIONS') {
@@ -95,6 +109,32 @@ export default {
       return new Response(JSON.stringify({ rounds }), { 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
       });
+    }
+
+    // --- ROUTE: TILT ALERT (Consumer: Discord Activity "Send Tilt Alert" button) ---
+    // POST /tilt-alert { user, userId, timestamp, signal, stats }
+    if (url.pathname === '/tilt-alert' && method === 'POST') {
+      try {
+        const body = await request.json() as {
+          user: string;
+          userId: string;
+          timestamp: number;
+          signal: string;
+          stats: { rounds: number; actualRtp: number; expectedRtp: number; drift: number };
+        };
+
+        // Log broadcast — in future, relay to Discord webhook via env binding
+        console.log(`[Hub] Tilt Alert from ${body.user} (${body.userId}): ${body.signal}`);
+        console.log(`[Hub] Stats: ${JSON.stringify(body.stats)}`);
+
+        return new Response(JSON.stringify({ received: true, timestamp: Date.now() }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      } catch (err: any) {
+        return new Response(JSON.stringify({ error: err.message }), {
+          status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      }
     }
 
     // --- ROUTE: HEALTH CHECK ---

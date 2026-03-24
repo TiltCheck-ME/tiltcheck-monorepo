@@ -170,7 +170,7 @@ async function main() {
   }
   console.log('');
 
-  const HEALTH_PORT = process.env.DISCORD_BOT_HEALTH_PORT || '8081';
+  const HEALTH_PORT = process.env.DISCORD_BOT_HEALTH_PORT || '8085';
   const PORT = parseInt(HEALTH_PORT, 10);
 
   const healthServer = http.createServer((req, res) => {

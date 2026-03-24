@@ -5,15 +5,12 @@
 
 export const EXT_CONFIG = {
     API_BASE_URL: 'https://api.tiltcheck.me',
-    HUB_URL: 'http://localhost:8787',
+    HUB_URL: 'https://hub.tiltcheck.me',
     AI_GATEWAY_URL: 'https://api.tiltcheck.me/ai',
     WEB_APP_URL: 'https://tiltcheck.me',
     DISCORD_CLIENT_ID: '1445916179163250860',
-    // Standard OAuth2 scopes.
-    DISCORD_SCOPES: ['identify'],
-
-    // The redirect URI must be exactly what is in the Discord Developer Portal
-    DISCORD_REDIRECT_URI: 'https://api.tiltcheck.me/auth/discord/callback'
+    // OAuth is handled server-side via API /auth/discord/login.
+    // The API controls scopes and redirect URIs — no client-side config needed.
 };
 
 /**

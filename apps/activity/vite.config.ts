@@ -1,4 +1,5 @@
 import { defineConfig } from 'vite';
+import basicSsl from '@vitejs/plugin-basic-ssl';
 
 /**
  * © 2024–2026 TiltCheck Ecosystem. All Rights Reserved.
@@ -7,6 +8,7 @@ import { defineConfig } from 'vite';
  * basicSsl generates a self-signed cert for local dev.
  */
 export default defineConfig({
+  plugins: [basicSsl()],
   server: {
     host: true,
     port: 5173,

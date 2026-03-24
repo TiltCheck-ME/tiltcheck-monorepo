@@ -99,7 +99,11 @@
     },
     "onlyBuiltDependencies": [
       "esbuild",
-      "protobufjs"
+      "keccak",
+      "sharp",
+      "unrs-resolver",
+      "utf-8-validate",
+      "workerd"
     ]
   }
 }
