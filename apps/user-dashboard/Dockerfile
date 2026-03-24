@@ -1,22 +1,33 @@
-# TiltCheck User Dashboard - Production Container (Assumes prebuilt dist/)
-FROM node:20-alpine AS base
-RUN npm install -g pnpm@10 && npm cache clean --force
+# TiltCheck User Dashboard - High-Speed Express Implementation
+FROM node:20-slim AS base
+ENV PNPM_HOME="/pnpm"
+ENV PATH="$PNPM_HOME:$PATH"
+RUN corepack enable
 WORKDIR /app
 
-FROM base AS dependencies
-ENV CI=true
-COPY pnpm-workspace.yaml pnpm-lock.yaml package.json .npmrc ./
-RUN pnpm install --no-frozen-lockfile --prod
+# Only copy lockfile and workspace config to cache deps separately from source
+COPY pnpm-lock.yaml pnpm-workspace.yaml package.json .npmrc tsconfig.json ./
+# Use pnpm fetch to create a virtual store from the lockfile
+RUN pnpm fetch
 
-FROM base AS runtime
-ENV NODE_ENV=production
-RUN apk add --no-cache dumb-init
-USER node
+# [PHASE 2] Building
+FROM base AS build
+COPY . .
+# Offline install using the virtual store created in Phase 1
+RUN pnpm install --offline --filter @tiltcheck/user-dashboard...
+RUN pnpm --filter @tiltcheck/user-dashboard... build
+# Prune to strictly production dependencies
+RUN pnpm prune --prod --no-optional
+
+# [PHASE 3] Production Runtime
+FROM node:20-slim
+WORKDIR /app
+# Copy only the compiled artifacts and minimal node_modules
+COPY --from=build /app/apps/user-dashboard/dist ./apps/user-dashboard/dist
+COPY --from=build /app/node_modules ./node_modules
+COPY --from=build /app/apps/user-dashboard/package.json ./apps/user-dashboard/package.json
+COPY --from=build /app/package.json ./package.json
+
 EXPOSE 6001
-
-FROM runtime AS production
-COPY --from=dependencies --chown=node:node /app/node_modules ./node_modules
-COPY --chown=node:node apps/user-dashboard/dist ./apps/user-dashboard/dist
-COPY --chown=node:node package.json ./
-ENTRYPOINT ["/usr/bin/dumb-init", "--"]
+# Skip CLI overhead, run the compiled entry point directly
 CMD ["node", "apps/user-dashboard/dist/index.js"]

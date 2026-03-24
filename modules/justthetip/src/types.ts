@@ -17,6 +17,7 @@ export interface VerifyTipParams {
   publicKey?: string;
   signature?: string;
   message?: string;
+  disclaimerAccepted: boolean; // MUST be true to proceed with transaction
 }
 
 export interface CreateTipParams {

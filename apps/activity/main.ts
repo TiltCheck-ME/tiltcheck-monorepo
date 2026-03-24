@@ -17,8 +17,9 @@ interface SessionRound {
   win: number;
   timestamp: number;
 }
-
 interface SessionState {
+  userId: string;
+  username: string;
   casino: string;
   game: string;
   rounds: SessionRound[];
@@ -26,16 +27,29 @@ interface SessionState {
   startedAt: number;
 }
 
-// --- Session State ---
+interface ChannelState {
+  id: string;
+  sessions: Record<string, SessionState>;
+}
+
+// --- Global State ---
 let session: SessionState = {
+  userId: 'unknown',
+  username: 'Anonymous',
   casino: '',
   game: '',
   rounds: [],
-  expectedRtp: 96.5, // default — will come from trust-engine later
+  expectedRtp: 96.5,
   startedAt: Date.now(),
 };
 
+const channelState: ChannelState = {
+  id: '',
+  sessions: {},
+};
+
 let currentUser: { username: string; id: string } | null = null;
+let currentChannelId: string | null = null;
 
 // --- Math ---
 function calcActualRtp(rounds: SessionRound[]): number {
@@ -78,12 +92,15 @@ function renderUI(status: string = 'Connecting...') {
   const drift = calcDrift(actualRtp, session.expectedRtp);
   const confidence = calcConfidence(session.rounds.length);
   const driftClass = getDriftClass(drift);
-  const totalWagered = session.rounds.reduce((sum, r) => sum + r.bet, 0);
-  const totalReturned = session.rounds.reduce((sum, r) => sum + r.win, 0);
+  const totalWagered = session.rounds.reduce((sum: number, r: SessionRound) => sum + r.bet, 0);
+  const totalReturned = session.rounds.reduce((sum: number, r: SessionRound) => sum + r.win, 0);
   const sessionTime = formatDuration(Date.now() - session.startedAt);
   const userName = currentUser?.username ?? 'Anonymous Degen';
 
   const hasRounds = session.rounds.length > 0;
+  
+  // Get other sessions for the Room HUD
+  const otherSessions = Object.values(channelState.sessions).filter(s => s.userId !== currentUser?.id);
 
   container.innerHTML = `
     <p id="sdk-status" class="sdk-status">${status}</p>
@@ -136,6 +153,28 @@ function renderUI(status: string = 'Connecting...') {
       <p class="waiting-sub">Start playing with the Chrome Extension active, or enter rounds manually below.</p>
     </div>
     `}
+
+    ${otherSessions.length > 0 ? `
+    <div class="room-hud">
+      <p class="section-label">OTHER DEGENS IN ROOM</p>
+      <div class="room-list">
+        ${otherSessions.map(os => {
+          const ortp = calcActualRtp(os.rounds);
+          const odrift = calcDrift(ortp, os.expectedRtp);
+          const oclass = getDriftClass(odrift);
+          return `
+            <div class="room-user-card">
+              <span class="room-user-name">${os.username}</span>
+              <div class="room-user-stats">
+                <span class="room-user-rtp ${oclass}">${ortp.toFixed(1)}%</span>
+                <span class="room-user-drift ${oclass}">${odrift > 0 ? '+' : ''}${odrift.toFixed(1)}%</span>
+              </div>
+            </div>
+          `;
+        }).join('')}
+      </div>
+    </div>
+    ` : ''}
 
     <div class="manual-entry">
       <p class="section-label">QUICK ADD ROUND</p>
@@ -213,10 +252,24 @@ async function pollSession() {
   if (!currentUser?.id || currentUser.id === 'unknown') return;
 
   try {
-    const res = await fetch(`${HUB_URL}/session/${currentUser.id}`);
+    // If we have a channelId, poll the collective room state instead of just the user
+    const endpoint = currentChannelId 
+      ? `${HUB_URL}/channel/${currentChannelId}` 
+      : `${HUB_URL}/session/${currentUser.id}`;
+
+    const res = await fetch(endpoint);
     if (res.ok) {
       const data = await res.json();
-      if (data.rounds && JSON.stringify(data.rounds) !== JSON.stringify(session.rounds)) {
+      
+      if (currentChannelId && data.sessions) {
+        // Multi-user room data
+        channelState.sessions = data.sessions;
+        if (data.sessions[currentUser.id]) {
+          session = data.sessions[currentUser.id];
+        }
+        renderUI(document.getElementById('sdk-status')?.textContent ?? 'Connected');
+      } else if (data.rounds && JSON.stringify(data.rounds) !== JSON.stringify(session.rounds)) {
+        // Fallback or Single-user data
         session.rounds = data.rounds;
         renderUI(document.getElementById('sdk-status')?.textContent ?? 'Connected');
       }
@@ -283,7 +336,9 @@ async function initDiscord() {
 
     if (auth.user) {
       currentUser = { username: auth.user.username, id: auth.user.id };
-      
+      currentChannelId = discordSdk.channelId;
+      if (currentChannelId) channelState.id = currentChannelId;
+
       // Perform the Degen Handshake with the Edge Hub
       try {
         updateStatus('Registering identity at the edge...');
@@ -292,7 +347,8 @@ async function initDiscord() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ 
             discordId: currentUser.id, 
-            tiltcheckId: `tc-${currentUser.id}` 
+            tiltcheckId: `tc-${currentUser.id}`,
+            channelId: currentChannelId 
           }),
         });
         console.log('[TiltCheck] Degen Handshake synchronized with D1.');

@@ -53,57 +53,56 @@
         flex-direction: column;
       }
 
-      /* ── GLOWING HERO ─────────────────── */
+      /* ── NEON HEADER (BLACKOUT ON GLITTER) ── */
       .glowing-hero {
-        padding: 1.25rem 1.5rem 1rem;
         text-align: center;
-        background: radial-gradient(circle at top center, rgba(23, 195, 178, 0.08) 0%, transparent 60%);
+        background: transparent; /* No bar color, sit on glitter */
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        z-index: 1000;
       }
 
       .hero-title-wrap {
-        min-height: 8.5rem;
+        padding: 0.75rem;
         display: flex;
-        flex-direction: column;
-        justify-content: center;
+        flex-direction: row;
         align-items: center;
-        gap: 0.15rem;
-        margin-bottom: 1.25rem;
+        justify-content: center;
+        gap: 0.4rem;
+        white-space: nowrap;
+        overflow: hidden;
+        flex-wrap: nowrap;
       }
 
-      .hero-title {
+      .neon-brand {
         font-family: var(--font-display);
-        font-size: 1.35rem;
-        font-weight: 700;
-        letter-spacing: 0.05em;
-        text-transform: uppercase;
-        color: rgba(255, 255, 255, 0.3);
-        margin: 0;
-      }
-
-      .hero-punchline {
-        font-family: var(--font-display);
-        font-size: 3.5rem;
         font-weight: 900;
-        line-height: 1;
-        color: #ff003c; /* Neon Red Override */
         text-transform: uppercase;
-        margin: 0.1rem 0;
-        letter-spacing: -0.02em;
-        /* Surgical Red Sharpness */
+        color: #000; /* BLACK TEXT */
+        font-size: 0.7rem; /* Scaled down for long line */
+        letter-spacing: 0.05rem;
+        position: relative;
         text-shadow: 
-          0 0 12px rgba(255, 0, 60, 0.6), 
-          0 0 24px rgba(255, 0, 60, 0.3);
+          -1px -1px 0 var(--color-primary),
+           1px -1px 0 var(--color-primary),
+          -1px  1px 0 var(--color-primary),
+           1px  1px 0 var(--color-primary),
+           0 0 5px #fff,
+           0 0 10px rgba(255, 255, 255, 0.3);
+        flex-shrink: 0;
       }
 
       #app {
         flex: 1;
-        padding: 0 1.5rem 2.5rem;
+        padding: 1.5rem 1.5rem 2.5rem; 
         max-width: 480px;
         width: 100%;
         margin: 0 auto;
         display: flex;
         flex-direction: column;
-        gap: 1.25rem;
+        gap: 0.75rem;
       }
 
       /* ── MAIN CONTENT ───────────────────── */
@@ -364,6 +363,54 @@
         font-family: 'JetBrains Mono', monospace;
       }
 
+      /* ── ROOM HUD (MULTI-USER) ── */
+      .room-hud {
+        margin-top: 0.5rem;
+        background: rgba(23, 195, 178, 0.05);
+        border: 1px solid rgba(23, 195, 178, 0.1);
+        border-radius: var(--radius-md);
+        padding: 0.75rem;
+      }
+
+      .room-list {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+        margin-top: 0.5rem;
+      }
+
+      .room-user-card {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: rgba(13, 15, 18, 0.6);
+        padding: 0.5rem 0.75rem;
+        border-radius: var(--radius-sm);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+      }
+
+      .room-user-name {
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: rgba(255, 255, 255, 0.9);
+      }
+
+      .room-user-stats {
+        display: flex;
+        gap: 0.75rem;
+        font-family: var(--font-display);
+      }
+
+      .room-user-rtp {
+        font-weight: 800;
+        font-size: 0.9rem;
+      }
+
+      .room-user-drift {
+        font-size: 0.75rem;
+        opacity: 0.8;
+      }
+
       /* ── FOOTER ──────────────────────────── */
       footer {
         text-align: center;
@@ -377,13 +424,6 @@
     </style>
   </head>
   <body>
-    <header class="glowing-hero">
-      <div class="hero-title-wrap">
-        <h1 class="hero-title" id="hero-title-1">HOUSE ALWAYS WINS</h1>
-        <h1 class="hero-punchline" id="hero-title-2"></h1>
-      </div>
-    </header>
-
     <div id="app">
       <p class="sdk-status">Waking up the pipes...</p>
     </div>
@@ -391,35 +431,5 @@
     <footer>TiltCheck v2.0 — The Financial Firewall for Degens</footer>
 
     <script type="module" src="/main.ts"></script>
-    <script>
-      // Hero typewriter effect
-      (function() {
-        const lines = [
-          { id: 'hero-title-2', text: 'FUCK THAT', delay: 800, speed: 60 },
-        ];
-
-        async function typeText(el, text, speed) {
-          if (!el) return;
-          for (let i = 0; i < text.length; i++) {
-            el.textContent += text[i];
-            await new Promise(r => setTimeout(r, speed));
-          }
-        }
-
-        async function runSequence() {
-          for (let line of lines) {
-            const el = document.getElementById(line.id);
-            if (line.delay) await new Promise(r => setTimeout(r, line.delay));
-            await typeText(el, line.text, line.speed);
-          }
-        }
-
-        if (document.readyState === 'loading') {
-          document.addEventListener('DOMContentLoaded', runSequence);
-        } else {
-          runSequence();
-        }
-      })();
-    </script>
   </body>
 </html>

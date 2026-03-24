@@ -30,7 +30,75 @@ import type {
   TrustSignal,
   UserTrustSummary,
   CreateTrustSignalPayload,
+  BlogPost,
+  CreateBlogPostPayload,
 } from './types.js';
+
+// ============================================================================
+// Blog Queries
+// ============================================================================
+
+/**
+ * Get all published blog posts with pagination
+ */
+export async function getBlogPosts(
+  pagination?: PaginationParams
+): Promise<PaginatedResult<BlogPost>> {
+  const { limit = 10, offset = 0, orderBy = 'created_at', orderDir = 'desc' } = pagination || {};
+
+  const sql = `
+    SELECT * FROM blog_posts 
+    WHERE status = 'published'
+    ORDER BY ${orderBy} ${orderDir}
+    LIMIT $1 OFFSET $2
+  `;
+
+  const countSql = "SELECT COUNT(*) as count FROM blog_posts WHERE status = 'published'";
+
+  const [rows, countResult] = await Promise.all([
+    query<BlogPost>(sql, [limit, offset]),
+    queryOne<{ count: string }>(countSql),
+  ]);
+
+  const total = parseInt(countResult?.count ?? '0', 10);
+
+  return {
+    rows,
+    total,
+    limit,
+    offset,
+    hasMore: offset + rows.length < total,
+  };
+}
+
+/**
+ * Get a single blog post by slug
+ */
+export async function getBlogPostBySlug(slug: string): Promise<BlogPost | null> {
+  return findOneBy<BlogPost>('blog_posts', 'slug', slug);
+}
+
+/**
+ * Create a new blog post
+ */
+export async function createBlogPost(payload: CreateBlogPostPayload): Promise<BlogPost | null> {
+  return insert<BlogPost>('blog_posts', {
+    ...payload,
+    author: payload.author || 'TiltCheck AI',
+    status: payload.status || 'published',
+    created_at: new Date(),
+    updated_at: new Date(),
+  });
+}
+
+/**
+ * Get the most recent blog post
+ */
+export async function getLatestBlogPost(): Promise<BlogPost | null> {
+  const sql = "SELECT * FROM blog_posts ORDER BY created_at DESC LIMIT 1";
+  return queryOne<BlogPost>(sql);
+}
+
 
 // ============================================================================
 // User Queries

@@ -61,6 +61,7 @@ export interface LockVaultInput {
   reason?: string;
   currencyHint?: 'USD' | 'SOL';
   autoWithdraw?: boolean; // If true, auto-send funds to user's registered wallet when lock expires
+  disclaimerAccepted: boolean; // MUST be true for crypto compliance
 }
 
 export interface LockVaultRecord {
@@ -169,6 +170,9 @@ class VaultManager {
   }
 
   async lock(input: LockVaultInput): Promise<LockVaultRecord> {
+    if (!input.disclaimerAccepted) {
+      throw new Error('You must explicitly acknowledge the Digital Asset Risk and Zero Custody disclosures before deploying a LockVault.');
+    }
     const amountParse = parseAmount(input.amountRaw);
     if (!amountParse.success || !amountParse.data) throw new Error(amountParse.error || 'Unable to parse amount');
     const parsedValue = amountParse.data.value;
@@ -250,6 +254,36 @@ class VaultManager {
     return record;
   }
 
+  async processBalanceUpdate(userId: string, balance: number, currency: 'USD' | 'SOL') {
+    const settings = this.autoVaults.get(userId);
+    if (!settings) return;
+
+    if (settings.threshold !== undefined && balance > settings.threshold) {
+      const overage = balance - settings.threshold;
+      console.log(`[LockVault] Auto-vaulting overage: ${overage} ${currency} for user ${userId}`);
+
+      // If saving for NFT, contribute to goal
+      if (settings.saveForNft && db.isConnected()) {
+        const solPrice = getUsdPriceSync('SOL');
+        if (solPrice && solPrice > 0) {
+          const amountSol = currency === 'SOL' ? overage : overage / solPrice;
+          await db.updateNftSavings(userId, amountSol);
+        } else {
+          console.warn('[LockVault] Could not fetch SOL price for NFT savings update');
+        }
+      }
+
+      await this.lock({
+        userId,
+        amountRaw: `${overage} ${currency}`,
+        durationRaw: '24h',
+        reason: settings.saveForNft ? 'Auto-vault (NFT Savings)' : 'Auto-vault (threshold)',
+        currencyHint: currency,
+        disclaimerAccepted: true // User accepted when they configured Auto-Vault
+      });
+    }
+  }
+
   unlock(userId: string, vaultId: string): LockVaultRecord {
     const vault = this.vaults.get(vaultId);
     if (!vault || vault.userId !== userId) throw new Error('Vault not found');
@@ -322,35 +356,6 @@ class VaultManager {
     if (settings.percentage !== undefined && (settings.percentage < 0 || settings.percentage > 100)) throw new Error('Percentage must be between 0 and 100');
     this.autoVaults.set(userId, settings);
     this.schedulePersist();
-  }
-
-  async processBalanceUpdate(userId: string, balance: number, currency: 'USD' | 'SOL') {
-    const settings = this.autoVaults.get(userId);
-    if (!settings) return;
-
-    if (settings.threshold !== undefined && balance > settings.threshold) {
-      const overage = balance - settings.threshold;
-      console.log(`[LockVault] Auto-vaulting overage: ${overage} ${currency} for user ${userId}`);
-
-      // If saving for NFT, contribute to goal
-      if (settings.saveForNft && db.isConnected()) {
-        const solPrice = getUsdPriceSync('SOL');
-        if (solPrice && solPrice > 0) {
-          const amountSol = currency === 'SOL' ? overage : overage / solPrice;
-          await db.updateNftSavings(userId, amountSol);
-        } else {
-          console.warn('[LockVault] Could not fetch SOL price for NFT savings update');
-        }
-      }
-
-      await this.lock({
-        userId,
-        amountRaw: `${overage} ${currency}`,
-        durationRaw: '24h',
-        reason: settings.saveForNft ? 'Auto-vault (NFT Savings)' : 'Auto-vault (threshold)',
-        currencyHint: currency
-      });
-    }
   }
 
   getAutoVault(userId: string): AutoVaultSettings | null {

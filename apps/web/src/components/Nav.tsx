@@ -14,6 +14,7 @@ const Nav = () => {
         <div className="hidden md:flex items-center gap-4 text-sm">
           <Link href="#tools" className="hover:text-[color:var(--color-primary)] transition-colors">Tools</Link>
           <Link href="/extension" className="hover:text-[color:var(--color-primary)] transition-colors">Extension</Link>
+          <Link href="/blog" className="hover:text-[color:var(--color-primary)] transition-colors">Blog</Link>
           <Link href="#faq" className="hover:text-[color:var(--color-primary)] transition-colors">FAQ</Link>
         </div>
       </div>

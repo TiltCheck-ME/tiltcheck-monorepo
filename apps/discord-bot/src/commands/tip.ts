@@ -10,22 +10,23 @@ import {
   ButtonBuilder,
   ButtonStyle,
   ActionRowBuilder,
-  ButtonInteraction,
+  ComponentType,
 } from 'discord.js';
+import { LEGAL_DISCLAIMERS } from '@tiltcheck/shared/legal';
+import { FLAT_FEE_LAMPORTS } from '@tiltcheck/justthetip';
 import type { Command } from '../types.js';
 import {
   CreditManager,
-  MIN_DEPOSIT_LAMPORTS,
 } from '../services/tipping/credit-manager.js';
 import type { DepositMonitor } from '../services/tipping/deposit-monitor.js';
-import { lockVault, unlockVault, extendVault, getVaultStatus, type LockVaultRecord } from '@tiltcheck/lockvault';
-import { parseAmountNL, formatAmount, parseDurationNL } from '@tiltcheck/natural-language-parser';
+import { lockVault, unlockVault, getVaultStatus } from '@tiltcheck/lockvault';
+import { parseAmountNL } from '@tiltcheck/natural-language-parser';
 import { getUsdPriceSync } from '@tiltcheck/utils';
-import { isOnCooldown } from '@tiltcheck/tiltcheck-core';
+// Removed unused isOnCooldown import
 import { LAMPORTS_PER_SOL } from '@solana/web3.js';
 import type { BotWalletService } from '../services/tipping/bot-wallet.js';
 import type { TokenDepositMonitor } from '../services/tipping/token-deposit-monitor.js';
-import { DEPOSIT_TOKENS } from '../services/tipping/token-swap.js';
+// Removed unused DEPOSIT_TOKENS import
 
 let creditManager: CreditManager;
 let depositMonitor: DepositMonitor;
@@ -44,12 +45,7 @@ export function setCreditDeps(
   tokenDepositMonitor = tdm;
 }
 
-const activeAirdrops = new Map<string, {
-  hostId: string;
-  amountPerUserLamports: number;
-  totalSlots: number;
-  claimedBy: Set<string>;
-}>();
+// Removed unused activeAirdrops
 
 export const tip: Command = {
   data: new SlashCommandBuilder()
@@ -203,34 +199,86 @@ async function handleDepositToken(interaction: ChatInputCommandInteraction) {
 }
 
 async function handleSend(interaction: ChatInputCommandInteraction) {
-  await interaction.deferReply();
   const recipient = interaction.options.getUser('user', true);
   const amountStr = interaction.options.getString('amount', true);
   const parse = parseAmountNL(amountStr);
 
   if (!parse.success || !parse.data) {
-    await interaction.editReply(`❌ Invalid amount: ${parse.error}`);
+    await interaction.reply({ content: `❌ Invalid amount: ${parse.error}`, ephemeral: true });
     return;
   }
 
   const solPrice = getUsdPriceSync('SOL');
-  const amountLamports = parse.data.currency === 'USD'
+  const amountLamportsInTarget = parse.data.currency === 'USD'
     ? Math.floor((parse.data.value / solPrice) * LAMPORTS_PER_SOL)
     : Math.floor(parse.data.value * LAMPORTS_PER_SOL);
 
+  const feeLamports = FLAT_FEE_LAMPORTS;
+  const totalLamports = amountLamportsInTarget + feeLamports;
+
+  // 1. Send Confirmation Embed
+  const confirmEmbed = new EmbedBuilder()
+    .setColor(0x17c3b2)
+    .setTitle('💸 TIP TRANSACTION: CONFIRMATION REQUIRED')
+    .setDescription(`You are about to send a tip to **${recipient.username}**.`)
+    .addFields(
+      { name: 'Tip Amount', value: `${(amountLamportsInTarget / LAMPORTS_PER_SOL).toFixed(4)} SOL (~$${(amountLamportsInTarget / LAMPORTS_PER_SOL * solPrice).toFixed(2)})`, inline: true },
+      { name: 'Fixed Fee', value: `${(feeLamports / LAMPORTS_PER_SOL).toFixed(4)} SOL (~$${(feeLamports / LAMPORTS_PER_SOL * solPrice).toFixed(2)})`, inline: true },
+      { name: 'Total Deduction', value: `**${(totalLamports / LAMPORTS_PER_SOL).toFixed(4)} SOL**`, inline: false },
+      { name: 'Legal Disclosure', value: LEGAL_DISCLAIMERS.FEE_DISCLOSURE }
+    )
+    .setFooter({ text: 'Audit your transaction context before confirming.' });
+
+  const row = new ActionRowBuilder<ButtonBuilder>()
+    .addComponents(
+      new ButtonBuilder()
+        .setCustomId('confirm_tip')
+        .setLabel('CONFIRM & SEND')
+        .setStyle(ButtonStyle.Success),
+      new ButtonBuilder()
+        .setCustomId('cancel_tip')
+        .setLabel('CANCEL')
+        .setStyle(ButtonStyle.Danger)
+    );
+
+  const response = await interaction.reply({
+    embeds: [confirmEmbed],
+    components: [row],
+    ephemeral: true
+  });
+
   try {
-    const bal = await creditManager.getBalance(recipient.id);
-    if (!bal?.wallet_address) {
-      await interaction.editReply(`❌ ${recipient.username} has no wallet. Tell them to run \`/tip wallet register-external\``);
+    const i = await response.awaitMessageComponent({
+      filter: (btn) => btn.user.id === interaction.user.id,
+      time: 30000,
+      componentType: ComponentType.Button
+    });
+
+    if (i.customId === 'cancel_tip') {
+      await i.update({ content: '❌ Transaction cancelled.', embeds: [], components: [] });
       return;
     }
 
-    const { senderNewBalance, netAmount } = await creditManager.deductForTip(interaction.user.id, recipient.id, amountLamports);
+    await i.update({ content: '⏳ Processing non-custodial disbursement...', embeds: [confirmEmbed], components: [] });
+
+    const bal = await creditManager.getBalance(recipient.id);
+    if (!bal?.wallet_address) {
+      throw new Error(`${recipient.username} has no registered wallet. Ask them to run /tip wallet register-external.`);
+    }
+
+    const { senderNewBalance, netAmount } = await creditManager.deductForTip(interaction.user.id, recipient.id, amountLamportsInTarget);
     const signature = await botWallet.sendSOL(bal.wallet_address, netAmount);
 
-    await interaction.editReply(`✅ Sent tip to ${recipient}! New balance: ${(senderNewBalance / LAMPORTS_PER_SOL).toFixed(4)} SOL\n[Transaction](https://solscan.io/tx/${signature})`);
+    await i.followUp({
+      content: `✅ **SUCCESS.** Sent tip to ${recipient}! \nRemaining Balance: ${(senderNewBalance / LAMPORTS_PER_SOL).toFixed(4)} SOL\n[Verify Transaction](https://solscan.io/tx/${signature})`,
+      ephemeral: true
+    });
   } catch (err) {
-    await interaction.editReply(`❌ Error: ${err instanceof Error ? err.message : err}`);
+    if (!interaction.replied) {
+       await interaction.reply({ content: `❌ **ACTION FAILED/TIMED OUT.** ${err instanceof Error ? err.message : 'Timeout'}`, ephemeral: true });
+    } else {
+       await interaction.followUp({ content: `❌ **ACTION FAILED/TIMED OUT.** ${err instanceof Error ? err.message : 'Timeout'}`, ephemeral: true });
+    }
   }
 }
 
@@ -245,7 +293,18 @@ async function handleWithdraw(interaction: ChatInputCommandInteraction) {
   try {
     const { amountLamports, walletAddress } = await creditManager.withdraw(interaction.user.id);
     const sig = await botWallet.sendSOL(walletAddress, amountLamports);
-    await interaction.editReply(`✅ Withdrawn ${(amountLamports / LAMPORTS_PER_SOL).toFixed(4)} SOL to \`${walletAddress}\`\n[Transaction](https://solscan.io/tx/${sig})`);
+    const embed = new EmbedBuilder()
+      .setColor(0x00FF00)
+      .setTitle('✅ WITHDRAWAL SUCCESSFUL')
+      .setDescription(`Successfully withdrawn funds to your registered wallet.`)
+      .addFields(
+        { name: 'Amount', value: `${(amountLamports / LAMPORTS_PER_SOL).toFixed(4)} SOL`, inline: true },
+        { name: 'Destination', value: `\`${walletAddress}\``, inline: true },
+        { name: 'Legal Note', value: LEGAL_DISCLAIMERS.DIGITAL_ASSET_RISKS },
+        { name: 'Explorer', value: `[View on Solscan](https://solscan.io/tx/${sig})` }
+      )
+      .setFooter({ text: 'TiltCheck | Non-Custodial Layer' });
+    await interaction.editReply({ embeds: [embed] });
   } catch (err) {
     await interaction.editReply(`❌ Withdrawal failed: ${err instanceof Error ? err.message : err}`);
   }
@@ -280,7 +339,19 @@ async function handleVaultLock(interaction: ChatInputCommandInteraction) {
 
   try {
     const vault = await lockVault({ userId: interaction.user.id, amountRaw: amountStr, durationRaw: durationStr, reason });
-    await interaction.reply({ content: `🔐 Locked vault created (ID: ${vault.id}). Unlocks <t:${Math.floor(vault.unlockAt / 1000)}:R>`, ephemeral: true });
+    const embed = new EmbedBuilder()
+      .setColor(0x17c3b2)
+      .setTitle('🔐 VAULT SECURED')
+      .setDescription(`Successfully created a non-custodial lock for **${amountStr}**.`)
+      .addFields(
+        { name: 'Vault ID', value: `\`${vault.id}\``, inline: true },
+        { name: 'Unlocks', value: `<t:${Math.floor(vault.unlockAt / 1000)}:R>`, inline: true },
+        { name: 'Legal Disclosure', value: LEGAL_DISCLAIMERS.DIGITAL_ASSET_RISKS },
+        { name: 'Independent Verification', value: '[Audit Tool](https://tiltcheck.me/tools/verify)' }
+      )
+      .setFooter({ text: 'TiltCheck | Non-Custodial Layer' });
+
+    await interaction.reply({ embeds: [embed], ephemeral: true });
   } catch (err) {
     await interaction.reply({ content: `❌ Lock failed: ${err instanceof Error ? err.message : err}`, ephemeral: true });
   }

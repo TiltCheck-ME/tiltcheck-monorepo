@@ -37,3 +37,9 @@ export {
   type User,
   type ErrorResponse,
 } from './schemas.js';
+
+// Legal exports
+export * from './legal.js';
+
+// Fairness exports
+export { FairnessService } from './fairness.js';

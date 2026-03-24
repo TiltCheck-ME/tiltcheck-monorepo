@@ -1,7 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  output: 'export',
-  distDir: 'dist',
+  output: 'standalone', // Updated for Cloud Run Standalone mode to reduce image size
   images: {
     unoptimized: true,
   },

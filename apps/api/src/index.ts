@@ -42,6 +42,8 @@ import { vaultRouter } from './routes/vault.js';
 import { betaRouter } from './routes/beta.js';
 import { partnerRouter } from './routes/partner.js';
 import { statsRouter } from './routes/stats.js';
+import { blogRouter } from './routes/blog.js';
+import { startBlogGenerator } from './services/blog-generator.js';
 import modRouter from './routes/mod.js';
 import { errorHandler, notFoundHandler } from './middleware/error.js';
 import { requestLogger } from './middleware/logger.js';
@@ -75,7 +77,7 @@ app.use(cors({
       'https://dashboard.tiltcheck.me',
       'https://api.tiltcheck.me',
       'https://bot.tiltcheck.me',
-      'https://tiltcheck-web-164294266634.us-central1.run.app',
+      'https://web-164294266634.us-central1.run.app',
       'https://tiltcheck-api-164294266634.us-central1.run.app',
       'https://tiltcheck-bot-164294266634.us-central1.run.app',
       'https://tiltcheck-user-dashboard-164294266634.us-central1.run.app',
@@ -169,6 +171,7 @@ app.use('/vault', vaultRouter);
 app.use('/beta', betaRouter);
 app.use('/stats', statsRouter);
 app.use('/partner', partnerRouter);
+app.use('/blog', blogRouter);
 
 // Moderation routes
 app.use('/mod', modRouter);
@@ -266,6 +269,9 @@ server.listen(PORT, HOST, () => {
   console.log(`[API Gateway] Running on http://${HOST}:${PORT}`);
   console.log(`[API Gateway] Environment: ${process.env.NODE_ENV || 'development'}`);
   console.log(`[Analyzer] WebSocket listening on ws://${HOST}:${PORT}/analyzer`);
+  
+  // Start automated background services
+  startBlogGenerator();
 });
 
 export default app;

@@ -30,6 +30,15 @@ const Footer = () => {
           </ul>
         </div>
         <div className="footer-col">
+            <h4>Compliance</h4>
+            <ul>
+              <li><Link href="/legal/asset-risk">Asset Risk</Link></li>
+              <li><Link href="/legal/responsible-gaming">Responsible Gaming</Link></li>
+              <li><Link href="/terms/usage">Term of Service</Link></li>
+              <li><Link href="/legal/non-advice">Non-Advice Disclosure</Link></li>
+            </ul>
+        </div>
+        <div className="footer-col">
             <h4>Connect</h4>
             <ul>
               <li>

@@ -425,3 +425,37 @@ export interface PaginatedResult<T> {
   offset: number;
   hasMore: boolean;
 }
+
+// ============================================================================
+// Blog Types
+// ============================================================================
+
+/**
+ * Blog post record in the database
+ */
+export interface BlogPost {
+  id: string;
+  title: string;
+  slug: string;
+  excerpt: string | null;
+  content: string;
+  author: string;
+  status: 'draft' | 'published' | 'archived';
+  tags: string[] | null;
+  created_at: Date;
+  updated_at: Date;
+}
+
+/**
+ * Create blog post payload
+ */
+export interface CreateBlogPostPayload {
+  title: string;
+  slug: string;
+  excerpt?: string;
+  content: string;
+  author?: string;
+  status?: 'draft' | 'published' | 'archived';
+  tags?: string[];
+}
+

@@ -1,34 +1,36 @@
-# TiltCheck Web - Production Container (Static Nginx)
-FROM node:20-alpine AS base
-RUN npm install -g pnpm@10 && npm cache clean --force
+# TiltCheck Web (Landing Page) - Production Implementation
+# Optimized for Google Cloud Run (Single-Service Subgraph Build)
+
+FROM node:20-slim AS base
+ENV PNPM_HOME="/pnpm"
+ENV PATH="$PNPM_HOME:$PATH"
+RUN corepack enable
 WORKDIR /app
 
-FROM base AS dependencies
-ENV CI=true
-COPY pnpm-workspace.yaml pnpm-lock.yaml package.json .npmrc ./
-RUN pnpm install --no-frozen-lockfile --prod
+# [PHASE 1] Base Dependencies
+# Cache lockfile separately to prevent full installs on simple code changes
+COPY pnpm-lock.yaml pnpm-workspace.yaml package.json .npmrc ./
+RUN pnpm fetch
 
-FROM alpine:latest AS web-runtime
-RUN apk add --no-cache nginx
-EXPOSE 80
-WORKDIR /var/www/html
-COPY apps/web/dist .
-COPY <<EOF /etc/nginx/nginx.conf
-user nginx;
-worker_processes auto;
-error_log /var/log/nginx/error.log warn;
-pid /var/run/nginx.pid;
-events { worker_connections 1024; }
-http {
-  include /etc/nginx/mime.types;
-  default_type application/octet-stream;
-  server {
-    listen 80;
-    root /var/www/html;
-    index index.html;
-    location / { try_files \$uri \$uri/ /index.html; }
-    location ~* \.(?:js|css|woff2?|ttf|otf|svg)$ { expires 1y; }
-  }
-}
-EOF
-CMD ["nginx", "-g", "daemon off;"]
+# [PHASE 2] Building (Next.js Standalone Mode)
+FROM base AS build
+COPY . .
+RUN pnpm install --offline --filter web...
+# Next.js Build requires NODE_ENV=production to optimize bundles
+ENV NODE_ENV=production
+RUN pnpm --filter web build
+
+# [PHASE 3] Production Surface
+FROM node:20-slim AS runner
+WORKDIR /app
+ENV NODE_ENV=production
+# Hardcode port for Cloud Run standard or use PORT env
+ENV PORT=3000
+
+# Copy internal packages first to resolve standalone dependencies
+COPY --from=build /app/apps/web/public ./apps/web/public
+COPY --from=build /app/apps/web/.next/standalone ./
+COPY --from=build /app/apps/web/.next/static ./apps/web/.next/static
+
+# Next.js standalone entry point
+CMD ["node", "apps/web/server.js"]

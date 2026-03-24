@@ -93,6 +93,12 @@ export {
   // Identity & Trust queries
   getAggregatedTrustByDiscordId,
   logTrustSignal,
+
+  // Blog queries
+  getBlogPosts,
+  getBlogPostBySlug,
+  createBlogPost,
+  getLatestBlogPost,
 } from './queries.js';
 
 // Type exports
@@ -126,4 +132,8 @@ export type {
   TrustSignal,
   UserTrustSummary,
   CreateTrustSignalPayload,
+
+  // Blog types
+  BlogPost,
+  CreateBlogPostPayload,
 } from './types.js';
