@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite",
     "tunnel": "npx cloudflared tunnel --config cloudflare-tunnel.yml run dev-activity",
-    "dev:tunnel": "pnpm dev & pnpm tunnel",
+    "dev:tunnel": "node scripts/dev-tunnel.js",
     "build": "tsc && vite build",
     "preview": "vite preview"
   },

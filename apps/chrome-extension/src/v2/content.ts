@@ -8,7 +8,7 @@
  */
 
 import { StakeSensor } from './sensors/StakeSensor.js';
-import { RealityHUD } from './hud/Sidebar.ts';
+import { RealityHUD } from './hud/Sidebar.js';
 import { HubRelay } from './telemetry/HubRelay.js';
 
 class RealityCheckOrchestrator {
@@ -53,7 +53,7 @@ class RealityCheckOrchestrator {
     // 4. Handle Auth Handoff
     window.addEventListener('message', (event) => {
       if (event.data.type === 'discord-auth') {
-        const { token, user } = event.data;
+        const { user } = event.data;
         console.log('[TiltCheck] Identity established:', user.username);
         this.relay.setUserId(user.id);
         // Refresh HUD if needed (e.g. show username)
@@ -64,7 +64,6 @@ class RealityCheckOrchestrator {
 
   private setupHUDListeners() {
     const btnBrake = document.getElementById('hud-btn-brake');
-    const btnDiscord = document.getElementById('hud-btn-activity');
 
     btnBrake?.addEventListener('click', () => {
       // Future: Real-world spending comparison popup
