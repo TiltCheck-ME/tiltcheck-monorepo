@@ -29,7 +29,7 @@ export class OnboardingManager {
     },
     {
       targetId: 'buddy-mirror-btn',
-      title: 'LIQUIDITY GUARDIAN',
+      title: 'LIQUIDITY PARTNER',
       body: 'Connect an alpha peer to watch your floor and nuke impulsive entries in the arena.'
     }
   ];
@@ -112,6 +112,6 @@ export class OnboardingManager {
     if (overlay) overlay.classList.remove('active');
     
     await this.ui.setStorage({ onboardingCompleted: true });
-    this.ui.addFeedMessage('Tutorial completed! You are now a <strong>Guardian Pro</strong>.');
+    this.ui.addFeedMessage('Tutorial completed! You are now a <strong>Reality Check Pro</strong>.');
   }
 }

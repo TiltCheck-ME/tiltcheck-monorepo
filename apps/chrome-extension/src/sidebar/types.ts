@@ -7,7 +7,7 @@ export interface SidebarUI {
   getStorage(keys: string[]): Promise<Record<string, any>>;
   setStorage(data: Partial<OnboardingStatus> | Record<string, any>): Promise<void>;
   updateStatus(message: string, type: 'success' | 'warning' | 'thinking' | 'danger' | 'info'): void;
-  updateGuardian(active: boolean): void;
+  updateRealityCheck(active: boolean): void;
   updateLicense(data: any): void;
   updateTilt(score: number, indicators: string[]): void;
   updateStats(stats: Partial<SessionStats>): void;

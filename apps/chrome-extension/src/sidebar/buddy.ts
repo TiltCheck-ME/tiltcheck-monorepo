@@ -20,7 +20,7 @@ export class BuddyManager {
       }
   }
 
-  public async notifyGuardian(indicator: string) {
+  public async notifyMonitor(indicator: string) {
       return this.notifyBuddy('alert', `Risk detected: ${indicator}`);
   }
 
