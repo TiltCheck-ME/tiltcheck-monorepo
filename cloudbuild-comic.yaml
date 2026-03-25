@@ -4,3 +4,5 @@ steps:
   dir: 'packages/comic-generator'
 images:
 - 'us-central1-docker.pkg.dev/tiltchcek/tiltcheck/comic-generator:v1'
+options:
+  logging: CLOUD_LOGGING_ONLY

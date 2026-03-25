@@ -611,10 +611,28 @@ router.get('/discord/callback', authLimiter, async (req, res) => {
                     token: '${token}',
                     user: userData
                   }, targetOrigin);
-                  setTimeout(() => window.close(), 1000);
+                  setTimeout(() => window.close(), 1500);
                 }
-              } catch (_error) {
-                document.querySelector('.hint').textContent = 'Auth handoff failed. Close this window and retry.';
+              } catch (err) {
+                console.error('Auth handoff failed:', err);
+                document.querySelector('.hint').innerHTML = `
+                  <div style="margin-top:15px; padding:10px; border:1px solid rgba(255,255,255,0.1); border-radius:8px;">
+                    <p style="color:#ef4444; font-weight:bold; margin-bottom:10px;">PostMessage Handshake Blocked</p>
+                    <button onclick="tryManualSync()" style="background:#6366f1; color:white; border:none; padding:8px 16px; border-radius:4px; font-weight:bold; cursor:pointer; width:100%;">SYNC HANDSHAKE NOW</button>
+                    <p style="margin-top:10px; font-size:11px;">If sync fails, ensure you are using <b>tiltcheck.me</b> and not a Cloud Run sandbox URL.</p>
+                  </div>
+                `;
+              }
+
+              function tryManualSync() {
+                try {
+                  if (window.opener) {
+                    window.opener.postMessage({ type: 'discord-auth', token: '${token}', user: userData }, targetOrigin);
+                    setTimeout(() => window.close(), 1000);
+                  }
+                } catch (e) {
+                  alert('Verification failed. Use https://tiltcheck.me');
+                }
               }
             </script>
           </body>

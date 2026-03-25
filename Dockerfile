@@ -14,12 +14,13 @@ RUN apt-get update && apt-get install -y \
     g++ \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy monorepo context
-COPY pnpm-lock.yaml package.json ./
+# Copy monorepo configuration first
+COPY pnpm-lock.yaml package.json turbo.json pnpm-workspace.yaml tsconfig.json ./
+
+# Copy all packages for contextual builds
 COPY packages/ ./packages/
 COPY apps/ ./apps/
 COPY modules/ ./modules/
-COPY turbo.json pnpm-workspace.yaml ./
 
 # Accept build-time env vars (needed for NEXT_PUBLIC_)
 ARG APP_NAME
@@ -28,7 +29,7 @@ ARG NEXT_PUBLIC_API_URL
 ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
 
 # Install dependencies
-RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile
+RUN pnpm install
 
 # RECURSIVE BUILD: Build the app AND ALL of its internal workspace dependencies
 # This guarantees that shared artifacts (dist/ folders) exist before the App Router builds.
@@ -57,7 +58,7 @@ RUN apt-get update && apt-get install -y \
 COPY --from=builder /app/out .
 
 EXPOSE 8080
-ENV PORT=8080
+# PORT is provided by the environment (e.g. Cloud Run)
 ENV NODE_ENV=production
 
 # Entry point logic: 

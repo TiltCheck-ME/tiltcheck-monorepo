@@ -2,7 +2,7 @@
 FROM node:20-slim AS base
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
-RUN corepack enable
+RUN corepack enable && corepack prepare pnpm@10.29.1 --activate
 WORKDIR /app
 
 # [PHASE 1] Dependency Caching
@@ -33,6 +33,6 @@ COPY --from=build /app/node_modules ./node_modules
 COPY --from=build /app/apps/discord-bot/package.json ./apps/discord-bot/package.json
 COPY --from=build /app/package.json ./package.json
 
-EXPOSE 8085
+EXPOSE 8080
 # Use the correct entry point from package.json
 CMD ["node", "apps/discord-bot/dist/bootstrap.js"]
