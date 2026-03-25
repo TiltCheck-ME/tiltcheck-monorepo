@@ -1,5 +1,7 @@
-﻿steps:
+steps:
 - name: 'gcr.io/cloud-builders/docker'
-  args: ['build', '-t', 'us-central1-docker.pkg.dev/tiltchcek/tiltcheck/api:latest', '-f', 'apps/api/Dockerfile', '.']
+  args: ['build', '--build-arg', 'APP_NAME=api', '-t', 'us-central1-docker.pkg.dev/tiltchcek/tiltcheck/api:latest', '.']
 images:
 - 'us-central1-docker.pkg.dev/tiltchcek/tiltcheck/api:latest'
+options:
+  logging: CLOUD_LOGGING_ONLY

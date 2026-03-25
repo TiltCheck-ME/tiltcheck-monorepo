@@ -83,6 +83,8 @@ app.use(cors({
       'https://tiltcheck-api-164294266634.us-central1.run.app',
       'https://tiltcheck-bot-164294266634.us-central1.run.app',
       'https://tiltcheck-user-dashboard-164294266634.us-central1.run.app',
+      'https://tiltcheck-api-prod-164294266634.us-central1.run.app',
+      'https://tiltcheck-api-gateway-164294266634.us-central1.run.app',
     ];
 
     // Allow requests with no origin (like mobile apps or curl)
@@ -125,7 +127,8 @@ const globalLimiter = rateLimit({
   max: 1000, // 1000 requests per 15 minutes
   standardHeaders: true,
   legacyHeaders: false,
-  keyGenerator: (req) => req.ip || req.socket.remoteAddress || '',
+  // Removed custom keyGenerator to fix ERR_ERL_KEY_GEN_IPV6
+  // and rely on default behavior with 'trust proxy'
   message: { error: 'Too many requests', code: 'RATE_LIMIT_EXCEEDED' },
 });
 app.use(globalLimiter);

@@ -2,7 +2,7 @@
 FROM node:20-slim AS base
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
-RUN corepack enable
+RUN corepack enable && corepack prepare pnpm@10.29.1 --activate && apt-get update && apt-get install -y python3 make g++ && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 
 # [PHASE 1] Dependency Caching
@@ -14,8 +14,8 @@ RUN pnpm fetch
 # [PHASE 2] Building
 FROM base AS build
 COPY . .
-# Offline install using the virtual store created in Phase 1
-RUN pnpm install --offline --filter @tiltcheck/api...
+# Perform full workspace install for monorepo dependency resolution
+RUN pnpm install --no-frozen-lockfile
 RUN pnpm --filter @tiltcheck/api... build
 # Prune to strictly production dependencies
 RUN pnpm prune --prod --no-optional
