@@ -1,17 +1,24 @@
+/* Copyright (c) 2026 TiltCheck. All rights reserved. */
 /**
  * (c) 2024-2025 TiltCheck Ecosystem. All Rights Reserved.
  */
 
 export const EXT_CONFIG = {
     API_BASE_URL: 'https://api.tiltcheck.me',
-    AI_GATEWAY_URL: 'https://ai-gateway.tiltcheck.me',
+    HUB_URL: 'https://tiltcheck-edge-hub.j-chapman7.workers.dev',
+    AI_GATEWAY_URL: 'https://api.tiltcheck.me/ai',
     WEB_APP_URL: 'https://tiltcheck.me',
     DISCORD_CLIENT_ID: '1445916179163250860',
-    // Keep in sync with API OAuth scope configuration.
-    DISCORD_SCOPES: ['identify', 'identify.premium'],
-    // The redirect URI must be exactly what is in the Discord Developer Portal
-    DISCORD_REDIRECT_URI: 'https://api.tiltcheck.me/auth/discord/callback'
+    // OAuth is handled server-side via API /auth/discord/login.
+    // The API controls scopes and redirect URIs — no client-side config needed.
 };
+
+/**
+ * Get the current extension runtime ID
+ */
+export function getExtensionId(): string | undefined {
+    return typeof chrome !== 'undefined' ? chrome.runtime?.id : undefined;
+}
 
 /**
  * Generate the Discord Login URL
@@ -20,11 +27,12 @@ export function getDiscordLoginUrl(source = 'extension') {
     const url = new URL(`${EXT_CONFIG.API_BASE_URL}/auth/discord/login`);
     // The API handles OAuth + callback and posts a message back to the extension window.
     url.searchParams.set('source', source);
-    if (source === 'extension' && typeof window !== 'undefined' && window.location?.origin) {
-        const origin = window.location.origin;
-        // opener_origin must be the extension origin; page origins (e.g. stake.us) break callback postMessage routing.
-        if (origin.startsWith('chrome-extension://')) {
-            url.searchParams.set('opener_origin', origin);
+    if (source === 'extension') {
+        // Content scripts run on page origins, so derive extension origin from runtime id.
+        const runtimeId = getExtensionId();
+        if (runtimeId) {
+            url.searchParams.set('opener_origin', `chrome-extension://${runtimeId}`);
+            url.searchParams.set('ext_id', runtimeId);
         }
     }
     // Preserve the caller info for debugging/analytics (not required by API).
@@ -33,4 +41,3 @@ export function getDiscordLoginUrl(source = 'extension') {
     }
     return url.toString();
 }
-

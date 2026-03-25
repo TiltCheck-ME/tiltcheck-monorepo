@@ -1,10 +1,4 @@
-/**
- * © 2024–2025 TiltCheck Ecosystem. All Rights Reserved.
- * Created by jmenichole (https://github.com/jmenichole)
- * 
- * This file is part of the TiltCheck project.
- * For licensing information, see LICENSE file in the project root.
- */
+/* Copyright (c) 2026 TiltCheck. All rights reserved. */
 /**
  * Game management and real-time gameplay
  * 
@@ -84,6 +78,10 @@ class GameManager {
       alert(`Error: ${error}`);
     });
 
+    this.socket.on('game-error', (error) => {
+      alert(`Error: ${error}`);
+    });
+
     this.socket.on('disconnect', () => {
       console.log('Disconnected from server');
     });
@@ -125,11 +123,7 @@ class GameManager {
     const sendMessage = () => {
       const message = chatInput.value.trim();
       if (message) {
-        this.socket.emit('chat-message', {
-          gameId: this.gameId,
-          message: message,
-          sender: this.user.username
-        });
+        this.socket.emit('chat-message', message);
         chatInput.value = '';
       }
     };
@@ -161,14 +155,18 @@ class GameManager {
     const playerAvatar = document.getElementById('player-avatar');
 
     if (playerName && this.user) {
-      playerName.textContent = `${this.user.username}#${this.user.discriminator}`;
+      playerName.textContent = this.user.username;
     }
 
     if (playerAvatar && this.user) {
       if (this.user.avatar) {
-        playerAvatar.src = `https://cdn.discordapp.com/avatars/${this.user.id}/${this.user.avatar}.png?size=128`;
+        if (this.user.avatar.startsWith('http')) {
+          playerAvatar.src = this.user.avatar;
+        } else {
+          playerAvatar.src = `https://cdn.discordapp.com/avatars/${this.user.id}/${this.user.avatar}.png?size=128`;
+        }
       } else {
-        const defaultAvatarIndex = parseInt(this.user.discriminator) % 5;
+        const defaultAvatarIndex = parseInt(this.user.id) % 5;
         playerAvatar.src = `https://cdn.discordapp.com/embed/avatars/${defaultAvatarIndex}.png`;
       }
     }
@@ -187,7 +185,7 @@ class GameManager {
     gameStatus.textContent = this.formatStatus(this.gameState.status);
 
     // Check if game just finished and show feedback survey
-    if (this.gameState.status === 'finished' && this.user && !this.isSpectator) {
+    if ((this.gameState.status === 'finished' || this.gameState.status === 'completed') && this.user && !this.isSpectator) {
       // Show feedback survey after a short delay
       setTimeout(() => {
         if (window.feedbackSurvey) {
@@ -259,7 +257,9 @@ class GameManager {
     const statuses = {
       'waiting': 'Waiting for Players',
       'playing': 'In Progress',
-      'finished': 'Game Finished'
+      'active': 'In Progress',
+      'finished': 'Game Finished',
+      'completed': 'Game Finished'
     };
     return statuses[status] || status;
   }
@@ -268,10 +268,15 @@ class GameManager {
     const chatMessages = document.getElementById('chat-messages');
     const messageElement = document.createElement('div');
     messageElement.className = 'chat-message';
-    messageElement.innerHTML = `
-      <div class="sender">${message.sender}</div>
-      <div class="text">${message.text}</div>
-    `;
+    const sender = message.username || message.sender || 'Player';
+    const text = message.message || message.text || '';
+    const senderElement = document.createElement('div');
+    senderElement.className = 'sender';
+    senderElement.textContent = String(sender);
+    const textElement = document.createElement('div');
+    textElement.className = 'text';
+    textElement.textContent = String(text);
+    messageElement.append(senderElement, textElement);
     
     chatMessages.appendChild(messageElement);
     chatMessages.scrollTop = chatMessages.scrollHeight;
@@ -317,12 +322,12 @@ class DegensGameRenderer extends BaseGameRenderer {
       gameContent.innerHTML = `
         <div class="waiting-area">
           <h2>Waiting for Players</h2>
-          <p>Need at least 3 players to start</p>
+          <p>Need at least 2 players to start</p>
           <p>Current players: ${gameState.players.length}/${gameState.maxPlayers}</p>
         </div>
       `;
       
-      if (gameState.creator.id === this.gameManager.user.id && gameState.players.length >= 2) {
+      if (gameState.players.length >= 2 && !this.gameManager.isSpectator) {
         gameActions.innerHTML = `
           <button class="cta-button" onclick="gameManager.sendGameAction({type: 'start-game'})">
             Start Game
@@ -359,7 +364,7 @@ class DegensGameRenderer extends BaseGameRenderer {
     if (gameState.submissions && gameState.submissions.length > 0) {
       const submissionsHtml = gameState.submissions.map((sub, index) => `
         <div class="submission-card" onclick="gameManager.sendGameAction({type: 'judge-submission', playerId: '${sub.playerId}'})">
-          ${sub.card.text}
+          ${sub.card?.text || sub.cards?.map(card => card.text).join(' / ') || `Submission #${index + 1}`}
         </div>
       `).join('');
 
@@ -593,10 +598,24 @@ class PokerGameRenderer extends BaseGameRenderer {
     }
 
     // Show poker table
+    let communityCardsHtml = '';
+    if (gameState.communityCards && gameState.communityCards.length > 0) {
+      communityCardsHtml = gameState.communityCards.map(card => `
+        <div class="playing-card community ${card.suit === 'hearts' || card.suit === 'diamonds' ? 'red' : ''}">
+          <div class="rank">${card.rank}</div>
+          <div class="suit">${this.getSuitSymbol(card.suit)}</div>
+        </div>
+      `).join('');
+    }
+
     gameContent.innerHTML = `
       <div class="poker-table">
         <div class="poker-pot">
-          Pot: $${gameState.pot || 0}
+          <span class="label">POT</span>
+          <span class="value">$${gameState.pot || 0}</span>
+        </div>
+        <div class="community-cards">
+          ${communityCardsHtml || '<div class="waiting-for-cards">Waiting for flop...</div>'}
         </div>
       </div>
     `;
@@ -605,8 +624,9 @@ class PokerGameRenderer extends BaseGameRenderer {
     if (gameState.playerHands && gameState.playerHands[userId]) {
       const hand = gameState.playerHands[userId];
       const handHtml = hand.map(card => `
-        <div class="playing-card ${card.suit === 'hearts' || card.suit === 'diamonds' ? 'red' : ''}">
-          ${card.rank}<br>${this.getSuitSymbol(card.suit)}
+        <div class="playing-card hole ${card.suit === 'hearts' || card.suit === 'diamonds' ? 'red' : ''}">
+          <div class="rank">${card.rank}</div>
+          <div class="suit">${this.getSuitSymbol(card.suit)}</div>
         </div>
       `).join('');
 

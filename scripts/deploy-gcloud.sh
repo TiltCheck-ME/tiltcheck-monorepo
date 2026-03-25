@@ -7,7 +7,7 @@
 # For licensing information, see LICENSE file in the project root.
 # ================================================================
 
-set -e
+set -euo pipefail
 
 #
 # TiltCheck Google Cloud Deployment Script
@@ -34,6 +34,15 @@ IMAGE_FAMILY="debian-12"
 IMAGE_PROJECT="debian-cloud"
 REMOTE_DIR="/opt/tiltcheck"
 BUNDLE_DIR="dist-bundle"
+MODE="${1:-}"
+PRECHECK_ONLY=0
+
+if [ "$MODE" = "--preflight" ]; then
+  PRECHECK_ONLY=1
+elif [ -n "$MODE" ] && [ "$MODE" != "--update" ]; then
+  echo "Unsupported mode '$MODE'. Use --update or --preflight." >&2
+  exit 1
+fi
 
 # ─── Helpers ────────────────────────────────────────────────
 RED='\033[0;31m'
@@ -45,26 +54,81 @@ info()  { echo -e "${GREEN}[INFO]${NC} $1"; }
 warn()  { echo -e "${YELLOW}[WARN]${NC} $1"; }
 error() { echo -e "${RED}[ERROR]${NC} $1"; exit 1; }
 
+is_placeholder() {
+  local value
+  value="$(echo "${1:-}" | tr '[:upper:]' '[:lower:]' | xargs)"
+  [[ -z "$value" || "$value" == *"changeme"* || "$value" == *"replace-me"* || "$value" == *"your_"* || "$value" == "<"*">" ]]
+}
+
+validate_env_file() {
+  local env_file="$1"
+  local required_keys=("DISCORD_TOKEN" "SUPABASE_URL" "SUPABASE_ANON_KEY" "JWT_SECRET" "SESSION_SECRET")
+  [ -f "$env_file" ] || error "Missing env file: $env_file"
+  for key in "${required_keys[@]}"; do
+    local line raw
+    line="$(rg "^${key}=" "$env_file" -N || true)"
+    [ -n "$line" ] || error "Missing required key in $env_file: $key"
+    raw="${line#*=}"
+    raw="${raw%\"}"
+    raw="${raw#\"}"
+    if is_placeholder "$raw"; then
+      error "Refusing deploy: $key appears unset or placeholder in $env_file"
+    fi
+  done
+}
+
+validate_project_id() {
+  local project_id="$1"
+  if is_placeholder "$project_id"; then
+    error "Invalid gcloud project id (placeholder/empty)."
+  fi
+}
+
+remote_verify_pm2() {
+  gcloud compute ssh "$VM_NAME" --zone="$ZONE" --command="
+    sudo pm2 jlist | node -e '
+      const fs=require(\"fs\");
+      const list=JSON.parse(fs.readFileSync(0,\"utf8\")||\"[]\");
+      const online=list.filter(p=>p?.pm2_env?.status===\"online\").length;
+      if (online===0) process.exit(1);
+      console.log(\"online_processes=\"+online);
+    '
+  "
+}
+
 # ─── Pre-flight checks ─────────────────────────────────────
-command -v gcloud >/dev/null 2>&1 || error "gcloud CLI not found. Install: https://cloud.google.com/sdk/docs/install"
 
 if [ ! -d "$BUNDLE_DIR" ]; then
   error "dist-bundle/ not found. Run: pnpm bundle:bots"
 fi
 
-if [ ! -f "$BUNDLE_DIR/.env" ] && [ "$1" != "--update" ]; then
+if [ ! -f "$BUNDLE_DIR/.env" ] && [ "$MODE" != "--update" ]; then
   warn ".env not found in dist-bundle/. Copy .env.example to .env and fill in your secrets before deploying."
   warn "  cp dist-bundle/.env.example dist-bundle/.env"
   warn "  Then edit dist-bundle/.env with your Discord tokens, Supabase keys, etc."
   exit 1
 fi
+if [ -f "$BUNDLE_DIR/.env" ]; then
+  validate_env_file "$BUNDLE_DIR/.env"
+fi
 
-PROJECT=$(gcloud config get-value project 2>/dev/null)
-[ -z "$PROJECT" ] && error "No GCloud project set. Run: gcloud config set project YOUR_PROJECT_ID"
+if [ "$PRECHECK_ONLY" = "1" ]; then
+  PROJECT="${PROJECT_ID:-${GCLOUD_PROJECT:-}}"
+else
+  command -v gcloud >/dev/null 2>&1 || error "gcloud CLI not found. Install: https://cloud.google.com/sdk/docs/install"
+  PROJECT="$(gcloud config get-value project 2>/dev/null)"
+fi
+[ -z "$PROJECT" ] && error "No GCloud project set. Set PROJECT_ID/GCLOUD_PROJECT or run: gcloud config set project YOUR_PROJECT_ID"
+validate_project_id "$PROJECT"
 info "Using project: $PROJECT"
 
+if [ "$PRECHECK_ONLY" = "1" ]; then
+  info "Preflight checks passed."
+  exit 0
+fi
+
 # ─── Update-only mode ──────────────────────────────────────
-if [ "$1" == "--update" ]; then
+if [ "$MODE" == "--update" ]; then
   info "Updating existing VM with new bundle..."
 
   # Upload bundle
@@ -72,13 +136,33 @@ if [ "$1" == "--update" ]; then
 
   # Deploy on VM
   gcloud compute ssh "$VM_NAME" --zone="$ZONE" --command="
+    set -euo pipefail
+    sudo test -f $REMOTE_DIR/.env || { echo 'Missing $REMOTE_DIR/.env on VM'; exit 1; }
+    BACKUP_DIR=/opt/tiltcheck-backups/\$(date +%Y%m%d-%H%M%S)
+    sudo mkdir -p \"\$BACKUP_DIR\"
+    sudo rsync -a $REMOTE_DIR/ \"\$BACKUP_DIR/\"
     sudo rsync -av --exclude='.env' --exclude='node_modules' ~/tiltcheck-upload/ $REMOTE_DIR/
     cd $REMOTE_DIR
     sudo npm install --production
     sudo pm2 restart ecosystem.config.cjs
     sudo pm2 save
-    echo 'Deploy complete!'
+    echo 'Deploy staged; verifying PM2 status next...'
   "
+  if ! remote_verify_pm2; then
+    warn "Post-deploy verification failed. Starting rollback..."
+    gcloud compute ssh "$VM_NAME" --zone="$ZONE" --command="
+      set -euo pipefail
+      LAST_BACKUP=\$(ls -1dt /opt/tiltcheck-backups/* 2>/dev/null | head -n 1)
+      test -n \"\$LAST_BACKUP\" || { echo 'No backup found for rollback'; exit 1; }
+      sudo rsync -a --delete \"\$LAST_BACKUP/\" $REMOTE_DIR/
+      cd $REMOTE_DIR
+      sudo npm install --production
+      sudo pm2 restart ecosystem.config.cjs
+      sudo pm2 save
+      echo 'Rollback completed from backup.'
+    "
+    error "Deployment failed verification and was rolled back."
+  fi
   info "Update complete!"
   exit 0
 fi
@@ -156,6 +240,9 @@ gcloud compute ssh "$VM_NAME" --zone="$ZONE" --command="
   sudo pm2 list
   echo '=============================='
 "
+if ! remote_verify_pm2; then
+  error "Post-deploy verification failed: no online PM2 processes detected."
+fi
 
 # Reserve a static IP (free while attached to a running VM)
 info "Reserving static IP..."

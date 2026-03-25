@@ -1,3 +1,4 @@
+/* Copyright (c) 2026 TiltCheck. All rights reserved. */
 // v0.1.0 — 2026-02-25
 /**
  * © 2024–2025 TiltCheck Ecosystem. All Rights Reserved.
@@ -108,8 +109,8 @@ export function recordViolation(userId: string): void {
     {
       userId,
       violationCount: status.violationCount,
-      cooldownReason: status.reason,
-      timestamp: Date.now(),
+      severity: status.violationCount,
+      expiresAt: status.endsAt,
     }
   );
   

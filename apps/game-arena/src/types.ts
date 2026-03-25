@@ -1,10 +1,4 @@
-/**
- * © 2024–2025 TiltCheck Ecosystem. All Rights Reserved.
- * Created by jmenichole (https://github.com/jmenichole)
- * 
- * This file is part of the TiltCheck project.
- * For licensing information, see LICENSE file in the project root.
- */
+/* Copyright (c) 2026 TiltCheck. All rights reserved. */
 /**
  * TypeScript type definitions for Game Arena
  */
@@ -61,8 +55,8 @@ export function mapAuthUserToDiscordUser(authUser: AuthUser): DiscordUser {
 }
 
 // Game types
-export type GameType = 'dad' | 'poker';
-export type GameStatus = 'waiting' | 'active' | 'completed';
+export type GameType = 'dad' | 'poker' | 'trivia';
+export type GameStatus = 'waiting' | 'active' | 'completed' | 'scheduled';
 export type Platform = 'web' | 'discord';
 
 export interface GameLobbyInfo {
@@ -76,6 +70,7 @@ export interface GameLobbyInfo {
   maxPlayers: number;
   isPrivate: boolean;
   createdAt: number;
+  startTime?: number; // Scheduled start time for Trivia
 }
 
 export interface CreateGameRequest {
@@ -87,20 +82,31 @@ export interface CreateGameRequest {
 // WebSocket event types
 export interface ClientToServerEvents {
   'join-lobby': () => void;
+  'request-lobby-update': () => void;
   'leave-lobby': () => void;
   'join-game': (gameId: string) => void;
+  'spectate-game': (gameId: string) => void;
   'leave-game': () => void;
   'game-action': (action: any) => void;
   'chat-message': (message: string) => void;
+  // Trivia specific
+  'submit-trivia-answer': (data: { questionId: string; answer: string; timestamp: number }) => void;
+  'buy-back': (data: { gameId: string }) => void;
+  'request-ape-in': (data: { gameId: string; questionId: string }) => void;
 }
 
 export interface ServerToClientEvents {
   'lobby-update': (data: { games: GameLobbyInfo[]; playersOnline: number }) => void;
   'game-update': (gameState: any) => void;
+  'spectator-mode': (enabled: boolean) => void;
   'game-error': (error: string) => void;
   'chat-message': (data: { userId: string; username: string; message: string; timestamp: number }) => void;
   'player-joined': (data: { userId: string; username: string }) => void;
   'player-left': (data: { userId: string }) => void;
+  // Trivia specific
+  'trivia-round-start': (data: { question: any; roundNumber: number; totalRounds: number; endsAt: number }) => void;
+  'trivia-round-reveal': (data: { questionId: string; correctChoice: string; explanation?: string; stats: any }) => void;
+  'trivia-ape-in-result': (data: { questionId: string; distribution: Record<string, number> }) => void;
 }
 
 // Stats types
@@ -127,4 +133,54 @@ export interface UserStats {
   lastPlayedAt: Date;
   createdAt: Date;
   updatedAt: Date;
+}
+
+// Trivia Event Types
+export interface TriviaGameSettings {
+  startTime: number;
+  category: string;
+  theme: string;
+  totalRounds: number;
+  prizePool: number;
+}
+
+export interface TriviaQuestion {
+    id: string;
+    question: string;
+    choices: string[];
+    category: string;
+    theme?: string;
+    difficulty?: 'easy' | 'medium' | 'hard';
+}
+
+export interface TriviaStartedEventData extends TriviaGameSettings {
+  gameId: string;
+}
+
+export interface TriviaRoundStartEventData {
+  question: TriviaQuestion;
+  roundNumber: number;
+  totalRounds: number;
+  endsAt: number; // Timestamp
+}
+
+export interface TriviaRoundRevealEventData {
+  questionId: string;
+  correctChoice: string;
+  explanation?: string;
+  stats: Record<string, { count: number; correct: boolean }>; // choice -> { count, correct }
+}
+
+export interface TriviaWinner {
+  userId: string;
+  username: string;
+  score: number;
+  rank: number;
+  prize?: number;
+}
+
+export interface TriviaCompletedEventData {
+  gameId: string;
+  winners: TriviaWinner[];
+  finalScores: { userId: string; username: string; score: number }[];
 }

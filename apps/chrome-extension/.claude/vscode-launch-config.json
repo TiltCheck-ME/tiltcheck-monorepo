@@ -1,0 +1,49 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Chrome - Attach to Extension",
+      "type": "chrome",
+      "request": "attach",
+      "port": 9222,
+      "pathMapping": {
+        "/": "${workspaceFolder}/apps/chrome-extension/",
+        "/dist": "${workspaceFolder}/apps/chrome-extension/dist/"
+      },
+      "sourceMapPathOverrides": {
+        "webpack:////*": "${webRoot}/*",
+        "webpack:///../*": "${webRoot}/*"
+      },
+      "urlFilter": "chrome-extension://*",
+      "description": "Attach VS Code debugger to Chrome extension background worker"
+    },
+    {
+      "name": "Chrome - Content Script Debug",
+      "type": "chrome",
+      "request": "launch",
+      "program": "${workspaceFolder}/node_modules/.bin/chrome",
+      "runtimeArgs": [
+        "--remote-debugging-port=9222",
+        "--user-data-dir=${workspaceFolder}/chrome-debug-profile"
+      ],
+      "webRoot": "${workspaceFolder}/apps/chrome-extension",
+      "sourceMaps": true,
+      "sourceMapPathOverrides": {
+        "webpack:////*": "${webRoot}/*"
+      },
+      "description": "Launch Chrome with extension loaded for content script debugging"
+    },
+    {
+      "name": "Node - Extension Tests",
+      "type": "node",
+      "request": "launch",
+      "program": "${workspaceFolder}/node_modules/.bin/vitest",
+      "args": ["--run", "--inspect-brk"],
+      "cwd": "${workspaceFolder}/apps/chrome-extension",
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen",
+      "skipFiles": ["<node_internals>/**"],
+      "description": "Debug unit tests with Node debugger"
+    }
+  ]
+}

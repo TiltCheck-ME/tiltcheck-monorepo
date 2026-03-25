@@ -1,3 +1,4 @@
+# Copyright (c) 2026 TiltCheck. All rights reserved.
 #!/usr/bin/env bash
 set -euo pipefail
 

@@ -1,0 +1,51 @@
+# © 2024–2026 TiltCheck Ecosystem. All Rights Reserved.
+# Last Updated: 2026-03-10
+# Deployment Configuration: tiltcheck-trust-rollup
+
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  name: tiltcheck-trust-rollup
+  labels:
+    cloud.googleapis.com/location: us-central1
+  annotations:
+    run.googleapis.com/ingress: all
+    run.googleapis.com/maxScale: '5'
+spec:
+  template:
+    metadata:
+      annotations:
+        autoscaling.knative.dev/maxScale: '5'
+    spec:
+      containerConcurrency: 10
+      timeoutSeconds: 300
+      serviceAccountName: 164294266634-compute@developer.gserviceaccount.com
+      containers:
+      - image: us-central1-docker.pkg.dev/tiltchcek/tiltcheck/trust-rollup:latest
+        ports:
+        - name: http1
+          containerPort: 8083
+        resources:
+          limits:
+            cpu: 1000m
+            memory: 512Mi
+        env:
+        - name: NODE_ENV
+          value: production
+        - name: JWT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: JWT_SECRET
+              key: latest
+        - name: NEON_DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: NEON_DATABASE_URL
+              key: latest
+        startupProbe:
+          timeoutSeconds: 240
+          periodSeconds: 240
+          failureThreshold: 1
+          tcpSocket:
+            port: 8083
+

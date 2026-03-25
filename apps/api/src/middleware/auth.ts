@@ -1,10 +1,4 @@
-/**
- * © 2024–2025 TiltCheck Ecosystem. All Rights Reserved.
- * Created by jmenichole (https://github.com/jmenichole)
- * 
- * This file is part of the TiltCheck project.
- * For licensing information, see LICENSE file in the project root.
- */
+/* Copyright (c) 2026 TiltCheck. All rights reserved. */
 /**
  * JWT Authentication Middleware
  * 
@@ -39,6 +33,8 @@ export interface JWTPayload {
   userId: string;
   email: string;
   roles: string[];
+  discordId?: string;
+  walletAddress?: string;
   iat?: number;
   exp?: number;
 }
@@ -51,6 +47,8 @@ export interface AuthRequest extends Request {
     id: string;
     email: string;
     roles: string[];
+    discordId?: string;
+    walletAddress?: string;
   };
 }
 
@@ -135,6 +133,8 @@ export async function authMiddleware(
       id: user.id,
       email: user.email || payload.email,
       roles: user.roles,
+      discordId: user.discord_id || payload.discordId,
+      walletAddress: user.wallet_address || payload.walletAddress,
     };
     
     next();
@@ -165,4 +165,38 @@ export async function optionalAuthMiddleware(
   
   // If header exists, validate it
   await authMiddleware(req, res, next);
+}
+/**
+ * Middleware for internal service-to-service authentication
+ * Compares Bearer token against INTERNAL_API_SECRET
+ */
+export function internalServiceAuth(
+  req: Request,
+  res: Response,
+  next: NextFunction
+): void {
+  const secret = process.env.INTERNAL_API_SECRET;
+  
+  if (!secret) {
+    if (process.env.NODE_ENV !== 'production') {
+       next(); // Skip in dev if not set
+       return;
+    }
+    res.status(503).json({ error: 'Internal auth unconfigured' });
+    return;
+  }
+
+  const authHeader = req.headers.authorization;
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    res.status(401).json({ error: 'Bearer token required' });
+    return;
+  }
+
+  const token = authHeader.substring(7);
+  if (token !== secret) {
+    res.status(403).json({ error: 'Forbidden' });
+    return;
+  }
+
+  next();
 }

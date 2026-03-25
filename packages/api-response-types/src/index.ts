@@ -1,10 +1,4 @@
-/**
- * © 2024–2025 TiltCheck Ecosystem. All Rights Reserved.
- * Created by jmenichole (https://github.com/jmenichole)
- * 
- * This file is part of the TiltCheck project.
- * For licensing information, see LICENSE file in the project root.
- */
+/* Copyright (c) 2026 TiltCheck. All rights reserved. */
 
 /**
  * Standardized API Response Types
@@ -37,7 +31,7 @@ export interface ErrorResponse extends BaseResponse {
     status: 'error';
     error: string;           // Human readable error message
     code?: string;           // Machine readable error code (e.g. 'UNAUTHORIZED')
-    details?: any;           // Additional error context
+    details?: unknown;           // Additional error context
 }
 
 /**

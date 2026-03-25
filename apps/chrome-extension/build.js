@@ -1,10 +1,4 @@
-/**
- * © 2024–2025 TiltCheck Ecosystem. All Rights Reserved.
- * Created by jmenichole (https://github.com/jmenichole)
- * 
- * This file is part of the TiltCheck project.
- * For licensing information, see LICENSE file in the project root.
- */
+/* Copyright (c) 2026 TiltCheck. All rights reserved. */
 import * as esbuild from 'esbuild';
 import { promises as fs } from 'fs';
 import path from 'path';
@@ -95,6 +89,8 @@ async function build() {
   const staticFiles = [
     { src: 'src/manifest.json', dest: 'dist/manifest.json' },
     { src: 'src/background.js', dest: 'dist/background.js' },
+    { src: 'src/auth-bridge.html', dest: 'dist/auth-bridge.html' },
+    { src: 'src/auth-bridge.js', dest: 'dist/auth-bridge.js' },
   ];
 
   for (const file of staticFiles) {

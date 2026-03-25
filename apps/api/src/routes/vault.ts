@@ -1,10 +1,4 @@
-/**
- * © 2024–2026 TiltCheck Ecosystem. All Rights Reserved.
- * Created by jmenichole (https://github.com/jmenichole)
- *
- * This file is part of the TiltCheck project.
- * For licensing information, see LICENSE file in the project root.
- */
+/* Copyright (c) 2026 TiltCheck. All rights reserved. */
 /**
  * Vault Routes - /vault/*
  * Handles general vault balance and timed locks.
@@ -17,7 +11,11 @@ import {
   unlockVault, 
   getVaultStatus, 
   depositToVault, 
-  getVaultBalance 
+  getVaultBalance,
+  addSecondOwner,
+  initiateWithdrawal,
+  approveWithdrawal,
+  executeWithdrawal
 } from '@tiltcheck/lockvault';
 
 const router = Router();
@@ -147,8 +145,9 @@ router.post('/:userId/lock', authMiddleware, async (req, res) => {
       success: true,
       vault: record
     });
-  } catch (error: any) {
-    res.status(400).json({ error: error.message });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Unknown error';
+    res.status(400).json({ error: message });
   }
 });
 
@@ -196,9 +195,123 @@ router.post('/:userId/release', authMiddleware, async (req, res) => {
       amountUnit: 'SOL',
       vault: record
     });
-  } catch (error: any) {
-    res.status(400).json({ error: error.message });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Unknown error';
+    res.status(400).json({ error: message });
   }
+});
+
+/**
+ * POST /vault/:userId/add-second-owner
+ * Add a second owner to the vault
+ */
+router.post('/:userId/add-second-owner', authMiddleware, async (req, res) => {
+    const { userId } = req.params;
+    const { secondOwnerId } = req.body;
+    const auth = (req as AuthRequest).user;
+
+    if (auth?.id !== userId) {
+        res.status(403).json({ error: 'Unauthorized' });
+        return;
+    }
+
+    if (!secondOwnerId || typeof secondOwnerId !== 'string') {
+        res.status(400).json({ error: 'Invalid secondOwnerId' });
+        return;
+    }
+
+    try {
+        const record = await addSecondOwner(userId, secondOwnerId);
+        res.json({
+            success: true,
+            vault: record
+        });
+    } catch (error) {
+        const message = error instanceof Error ? error.message : 'Unknown error';
+        res.status(400).json({ error: message });
+    }
+});
+
+/**
+ * POST /vault/:userId/initiate-withdrawal
+ * Initiate a withdrawal from the vault
+ */
+router.post('/:userId/initiate-withdrawal', authMiddleware, async (req, res) => {
+    const { userId } = req.params;
+    const { amount } = req.body;
+    const auth = (req as AuthRequest).user;
+
+    if (auth?.id !== userId) {
+        res.status(403).json({ error: 'Unauthorized' });
+        return;
+    }
+
+    const parsedAmount = Number(amount);
+    if (!Number.isFinite(parsedAmount) || parsedAmount <= 0) {
+        res.status(400).json({ error: 'Invalid amount' });
+        return;
+    }
+
+    try {
+        const record = await initiateWithdrawal(userId, parsedAmount);
+        res.json({
+            success: true,
+            vault: record
+        });
+    } catch (error) {
+        const message = error instanceof Error ? error.message : 'Unknown error';
+        res.status(400).json({ error: message });
+    }
+});
+
+/**
+ * POST /vault/:userId/approve-withdrawal
+ * Approve a withdrawal from the vault
+ */
+router.post('/:userId/approve-withdrawal', authMiddleware, async (req, res) => {
+    const { userId } = req.params;
+    const auth = (req as AuthRequest).user;
+
+    if (auth?.id !== userId) {
+        res.status(403).json({ error: 'Unauthorized' });
+        return;
+    }
+
+    try {
+        const record = await approveWithdrawal(userId);
+        res.json({
+            success: true,
+            vault: record
+        });
+    } catch (error) {
+        const message = error instanceof Error ? error.message : 'Unknown error';
+        res.status(400).json({ error: message });
+    }
+});
+
+/**
+ * POST /vault/:userId/execute-withdrawal
+ * Execute a withdrawal from the vault
+ */
+router.post('/:userId/execute-withdrawal', authMiddleware, async (req, res) => {
+    const { userId } = req.params;
+    const auth = (req as AuthRequest).user;
+
+    if (auth?.id !== userId) {
+        res.status(403).json({ error: 'Unauthorized' });
+        return;
+    }
+
+    try {
+        const record = await executeWithdrawal(userId);
+        res.json({
+            success: true,
+            vault: record
+        });
+    } catch (error) {
+        const message = error instanceof Error ? error.message : 'Unknown error';
+        res.status(400).json({ error: message });
+    }
 });
 
 export { router as vaultRouter };

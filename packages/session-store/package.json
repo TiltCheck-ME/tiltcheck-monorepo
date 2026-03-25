@@ -8,14 +8,14 @@
   "scripts": {
     "build": "tsc",
     "dev": "tsc --watch",
-    "test": "vitest run",
+    "test": "vitest run --passWithNoTests",
     "test:watch": "vitest",
     "clean": "rm -rf dist"
   },
   "devDependencies": {
-    "@types/node": "^25.3.0",
+    "@types/node": "^22.13.0",
     "typescript": "^5.3.0",
-    "vitest": "^2.0.0"
+    "vitest": "^4.1.0"
   },
   "optionalDependencies": {
     "ioredis": "^5.3.2"

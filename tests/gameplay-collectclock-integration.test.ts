@@ -14,7 +14,7 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import { eventRouter } from '@tiltcheck/event-router';
 import { CollectClockService } from '@tiltcheck/collectclock';
 import { addTrustSignal, getProfile, getTrustBand, clearProfiles } from '@tiltcheck/identity-core';
-import type { GameplayAnomalyEvent } from '@tiltcheck/types';
+import type { GameplayAnomalyEvent, TiltCheckEvent } from '@tiltcheck/types';
 
 // Import identity-core to ensure event subscriptions are registered
 import '@tiltcheck/identity-core';
@@ -125,7 +125,7 @@ describe('Gameplay Analyzer + CollectClock Integration', () => {
     
     // Subscribe to trust events
     await new Promise<void>((resolve) => {
-      eventRouter.subscribe('trust.casino.updated', (evt: any) => {
+      eventRouter.subscribe('trust.casino.updated', (evt: TiltCheckEvent<'trust.casino.updated'>) => {
         if (evt.source === 'collectclock' && evt.data.reason?.includes('Bonus nerf')) {
           trustEventReceived = true;
           expect(evt.data.severity).toBeGreaterThan(0);

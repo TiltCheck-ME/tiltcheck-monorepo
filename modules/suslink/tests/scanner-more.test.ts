@@ -1,10 +1,4 @@
-/**
- * © 2024–2025 TiltCheck Ecosystem. All Rights Reserved.
- * Created by jmenichole (https://github.com/jmenichole)
- * 
- * This file is part of the TiltCheck project.
- * For licensing information, see LICENSE file in the project root.
- */
+/* Copyright (c) 2026 TiltCheck. All rights reserved. */
 import { describe, it, expect } from 'vitest';
 import { LinkScanner } from '../src/scanner.js';
 
@@ -28,5 +22,24 @@ describe('LinkScanner extras', () => {
     const res = await scanner.scan('https://login.bad.host.example.xyz');
     expect(['suspicious', 'high', 'critical']).toContain(res.riskLevel);
     expect(res.reason).toMatch(/subdomain|Multiple subdomains/i);
+  });
+
+  it('rejects non-http protocols with graceful reason', async () => {
+    const res = await scanner.scan('javascript:alert(1)');
+    expect(res.riskLevel).toBe('critical');
+    expect(res.reason).toMatch(/http\(s\)/i);
+  });
+
+  it('rejects embedded credentials in URL', async () => {
+    const res = await scanner.scan('https://user:pass@example.com/login');
+    expect(res.riskLevel).toBe('critical');
+    expect(res.reason).toMatch(/embedded credentials/i);
+  });
+
+  it('rejects oversized URL payloads', async () => {
+    const long = `https://example.com/${'a'.repeat(2100)}`;
+    const res = await scanner.scan(long);
+    expect(res.riskLevel).toBe('critical');
+    expect(res.reason).toMatch(/maximum length/i);
   });
 });

@@ -1,3 +1,4 @@
+/* Copyright (c) 2026 TiltCheck. All rights reserved. */
 /**
  * (c) 2024-2025 TiltCheck Ecosystem. All Rights Reserved.
  * Created by jmenichole (https://github.com/jmenichole)
@@ -27,7 +28,10 @@ function getEnvVar(key: string, required = true): string {
 function getDiscordToken(): string {
   for (const envVar of DISCORD_TOKEN_ENV_VARS) {
     const value = process.env[envVar];
-    if (value) return value;
+    if (value) {
+      console.log(`[Config] Found token in ${envVar} (Length: ${value.trim().length}, Prefix: ${value.trim().substring(0, 5)}...)`);
+      return value.trim();
+    }
   }
   return '';
 }
@@ -45,15 +49,15 @@ function getNumberEnv(key: string, defaultValue: number): number {
   return isNaN(parsed) ? defaultValue : parsed;
 }
 
-// Use process.cwd() for .env resolution (works in both monorepo and bundled deploys)
-// In monorepo: cwd is the monorepo root
-// In bundled deploy: cwd is wherever you run the bot from (set via PM2/systemd)
-const rootDir = process.env.TILTCHECK_ROOT || process.cwd();
+// Use import.meta.url to find the root reliably from this file's location
+import { fileURLToPath } from 'url';
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
+// The root is 3 levels up from apps/discord-bot/src/config.ts
+const rootDir = path.resolve(__dirname, '../../../');
 const rootEnvLocal = path.resolve(rootDir, '.env.local');
 const rootEnv = path.resolve(rootDir, '.env');
-const appEnvLocal = path.resolve(rootDir, 'apps/discord-bot/.env.local');
-const appEnv = path.resolve(rootDir, 'apps/discord-bot/.env');
 
 // Debug: Log the paths we're trying to load
 if (process.env.DEBUG_ENV_LOADING) {
@@ -61,17 +65,13 @@ if (process.env.DEBUG_ENV_LOADING) {
   console.log('  rootDir:', rootDir);
   console.log('  rootEnvLocal:', rootEnvLocal);
   console.log('  rootEnv:', rootEnv);
-  console.log('  appEnvLocal:', appEnvLocal);
-  console.log('  appEnv:', appEnv);
 }
 
 // Try loading from root .env.local first (preferred for local dev)
 dotenv.config({ path: rootEnvLocal });
 // Fall back to root .env
 dotenv.config({ path: rootEnv });
-// Fall back to app-level .env files
-dotenv.config({ path: appEnvLocal });
-dotenv.config({ path: appEnv });
+
 
 export interface AlertChannelsConfig {
   /** Channel ID for trust/security alerts */
@@ -124,6 +124,10 @@ export interface BotConfig {
   feeWallet?: string;
   jttHealthPort: number;
 
+  // Internal API (Service-to-Service)
+  internalApiSecret: string;
+  backendUrl: string;
+
   // Database / Supabase
   supabaseUrl?: string;
   supabaseServiceRoleKey?: string;
@@ -168,6 +172,10 @@ export const config: BotConfig = {
   feeWallet: getEnvVar('JUSTTHETIP_FEE_WALLET', false),
   jttHealthPort: getNumberEnv('JTT_BOT_HEALTH_PORT', 8083),
 
+  // Internal API
+  internalApiSecret: process.env.INTERNAL_API_SECRET || '',
+  backendUrl: process.env.BACKEND_URL || 'https://api.tiltcheck.me',
+
   // Database / Supabase
   supabaseUrl: getEnvVar('SUPABASE_URL', false),
   supabaseServiceRoleKey: getEnvVar('SUPABASE_SERVICE_ROLE_KEY', false),
@@ -177,7 +185,7 @@ export const config: BotConfig = {
 export function validateConfig(): void {
   if (!config.discordToken) {
     console.error('[Config] [ERROR] No Discord token found in environment variables.');
-    console.error('[Config] Checked: TILT_DISCORD_TOKEN, TIP_DISCORD_TOKEN, DISCORD_TOKEN');
+    console.error('[Config] Checked: TILT_DISCORD_BOT_TOKEN, DISCORD_TOKEN, DISCORD_BOT_TOKEN');
 
     console.error('[Config] Debugging keys in process.env:');
     const relatedKeys = Object.keys(process.env).filter(k => k.includes('DISCORD') || k.includes('TOKEN'));
@@ -200,6 +208,19 @@ export function validateConfig(): void {
     throw new Error(
       'DISCORD_CLIENT_ID is required. Please check your .env file.'
     );
+  }
+
+  const isProd = config.nodeEnv === 'production';
+  if (isProd) {
+    if (!config.botWalletPrivateKey) {
+      console.warn('⚠️  JUSTTHETIP_BOT_WALLET_PRIVATE_KEY not set - tipping will be disabled');
+    }
+    if (!config.supabaseServiceRoleKey) {
+      console.warn('⚠️  SUPABASE_SERVICE_ROLE_KEY not set - database operations may fail');
+    }
+    if (!config.internalApiSecret) {
+      console.warn('⚠️  INTERNAL_API_SECRET not set - moderation reporting will fail (401)');
+    }
   }
 
   console.log('[Config] Configuration loaded successfully');

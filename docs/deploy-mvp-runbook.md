@@ -165,6 +165,28 @@ docker compose logs --tail=200 api
 
 1. If extension release was published, re-publish prior extension package/version.
 
+## 7.1) Rollback drill (must-pass before release)
+
+Run these from repo root and confirm the expected markers:
+
+```bash
+ALLOW_LEGACY_VPS_DEPLOY=1 bash deploy-vps.sh --dry-run
+PROJECT_ID=tiltcheck-ci bash scripts/deploy-gcloud.sh --preflight
+bash scripts/deploy-gcloud-rollback.sh --dry-run
+PROJECT_ID=tiltcheck-ci bash scripts/gcp/deploy-cloud-run-service.sh --preflight api
+```
+
+Expected markers:
+
+- VPS dry-run prints `[dry-run] rsync ...` and `[dry-run] ssh ...`
+- GCloud preflight prints `Preflight checks passed.`
+- rollback dry-run prints `[dry-run] gcloud compute ssh ...` with `pm2 restart`
+- Cloud Run preflight prints `Preflight checks passed for Cloud Run service: api`
+
+For a validated evidence log and command outcomes, see:
+
+- `docs/migration/deploy-post-verify-rollback.md`
+
 ## 8) Release Sign-off Criteria
 
 Deployment is complete when all are true:

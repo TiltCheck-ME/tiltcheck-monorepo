@@ -14,36 +14,42 @@
  */
 
 .game-container {
-  max-width: 1600px;
+  max-width: 1400px;
   margin: 0 auto;
-  padding: 20px;
+  padding: 2rem;
   display: grid;
   grid-template-areas:
     "header header header"
     "players game-area chat"
     "players game-controls chat";
-  grid-template-columns: 250px 1fr 300px;
+  grid-template-columns: 280px 1fr 320px;
   grid-template-rows: auto 1fr auto;
-  gap: 20px;
+  gap: 1.5rem;
   min-height: 100vh;
 }
 
 .game-header {
   grid-area: header;
-  background: rgba(255, 255, 255, 0.03);
-  border-radius: 15px;
-  padding: 20px;
+  background: var(--panel-bg);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-radius: 12px;
+  padding: 1.25rem 2rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border: 1px solid rgba(180, 255, 57, 0.2);
-  box-shadow: 0 0 20px rgba(180, 255, 57, 0.1);
+  border: 1px solid var(--border-white);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
 }
 
 .game-info h1 {
-  color: var(--brand-green);
-  margin-bottom: 5px;
+  font-family: 'Space Grotesk', sans-serif;
+  color: var(--primary-mint);
+  margin: 0 0 0.25rem;
   font-size: 1.5rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
 }
 
 .game-meta {
@@ -69,11 +75,14 @@
 
 .players-panel {
   grid-area: players;
-  background: rgba(255, 255, 255, 0.03);
-  border-radius: 15px;
-  padding: 20px;
-  border: 1px solid rgba(180, 255, 57, 0.2);
+  background: var(--panel-bg);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-radius: 12px;
+  padding: 1.5rem;
+  border: 1px solid var(--border-white);
   height: fit-content;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
 }
 
 .players-panel h3 {
@@ -123,13 +132,16 @@
 
 .game-area {
   grid-area: game-area;
-  background: rgba(255, 255, 255, 0.03);
-  border-radius: 15px;
-  padding: 30px;
-  border: 1px solid rgba(180, 255, 57, 0.2);
-  min-height: 400px;
+  background: var(--panel-bg);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-radius: 12px;
+  padding: 2rem;
+  border: 1px solid var(--border-white);
+  min-height: 450px;
   display: flex;
   flex-direction: column;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
 }
 
 .game-content {
@@ -143,10 +155,13 @@
 
 .game-controls {
   grid-area: game-controls;
-  background: rgba(255, 255, 255, 0.03);
-  border-radius: 15px;
-  padding: 20px;
-  border: 1px solid rgba(180, 255, 57, 0.2);
+  background: var(--panel-bg);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-radius: 12px;
+  padding: 1.5rem;
+  border: 1px solid var(--border-white);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
 }
 
 .game-actions {
@@ -158,14 +173,17 @@
 
 .chat-panel {
   grid-area: chat;
-  background: rgba(255, 255, 255, 0.03);
-  border-radius: 15px;
-  padding: 20px;
-  border: 1px solid rgba(180, 255, 57, 0.2);
+  background: var(--panel-bg);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-radius: 12px;
+  padding: 1.5rem;
+  border: 1px solid var(--border-white);
   display: flex;
   flex-direction: column;
   height: fit-content;
-  max-height: 600px;
+  max-height: 650px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
 }
 
 .chat-panel h3 {
@@ -226,16 +244,17 @@
 
 /* Degens Against Decency */
 .degens-question {
-  background: rgba(180, 255, 57, 0.05);
-  border: 2px solid var(--brand-green);
-  border-radius: 15px;
-  padding: 30px;
-  margin-bottom: 30px;
-  font-size: 1.3rem;
-  font-weight: 600;
+  background: rgba(var(--primary-mint-rgb), 0.05);
+  border: 1px solid rgba(var(--primary-mint-rgb), 0.3);
+  border-radius: 12px;
+  padding: 2.5rem;
+  margin-bottom: 2rem;
+  font-size: 1.5rem;
+  font-weight: 700;
   color: #fff;
   text-align: center;
-  box-shadow: 0 0 20px rgba(180, 255, 57, 0.2);
+  box-shadow: 0 0 30px rgba(var(--primary-mint-rgb), 0.1);
+  font-family: 'Space Grotesk', sans-serif;
 }
 
 .player-hand {
@@ -247,22 +266,25 @@
 
 .answer-card {
   background: rgba(255, 255, 255, 0.03);
-  border: 2px solid rgba(180, 255, 57, 0.3);
-  border-radius: 12px;
-  padding: 20px;
+  border: 1px solid var(--border-white);
+  border-radius: 10px;
+  padding: 1.5rem;
   cursor: pointer;
-  transition: all 0.3s ease;
-  min-height: 120px;
+  transition: all 0.2s ease;
+  min-height: 140px;
   display: flex;
   align-items: center;
   justify-content: center;
   text-align: center;
+  font-size: 1rem;
+  line-height: 1.5;
 }
 
 .answer-card:hover {
-  border-color: var(--brand-green);
-  transform: translateY(-3px);
-  box-shadow: 0 5px 15px rgba(180, 255, 57, 0.3);
+  border-color: var(--primary-mint);
+  transform: translateY(-4px);
+  background: rgba(var(--primary-mint-rgb), 0.05);
+  box-shadow: 0 8px 24px rgba(var(--primary-mint-rgb), 0.2);
 }
 
 .answer-card.selected {
@@ -360,59 +382,95 @@
   box-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
 }
 
-/* Poker */
+/* Poker Table */
 .poker-table {
-  background: radial-gradient(ellipse at center, rgba(0, 100, 0, 0.3) 0%, rgba(0, 50, 0, 0.1) 100%);
-  border: 3px solid rgba(255, 255, 255, 0.2);
-  border-radius: 50%;
-  width: 400px;
-  height: 300px;
-  margin: 20px auto;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  position: relative;
-}
-
-.poker-pot {
-  background: rgba(255, 255, 0, 0.2);
-  border: 2px solid #ffff00;
-  border-radius: 10px;
-  padding: 15px;
-  text-align: center;
-  font-weight: 600;
-  color: #ffff00;
-}
-
-.player-cards {
-  display: flex;
-  gap: 10px;
-  justify-content: center;
-  margin: 20px 0;
-}
-
-.playing-card {
-  background: white;
-  color: black;
-  border-radius: 8px;
-  width: 60px;
-  height: 84px;
+  background: radial-gradient(ellipse at center, rgba(34, 211, 166, 0.1) 0%, rgba(14, 14, 14, 0.6) 100%);
+  border: 2px solid rgba(34, 211, 166, 0.2);
+  border-radius: 200px;
+  width: 100%;
+  max-width: 700px;
+  height: 350px;
+  margin: 2rem auto;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  font-weight: 600;
-  border: 2px solid #333;
   position: relative;
+  box-shadow: inset 0 0 50px rgba(0, 0, 0, 0.8), 0 20px 60px rgba(0, 0, 0, 0.6);
+}
+
+.poker-pot {
+  background: rgba(14, 14, 14, 0.6);
+  border: 1px solid var(--primary-mint);
+  border-radius: 12px;
+  padding: 0.75rem 1.5rem;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  box-shadow: 0 0 20px rgba(34, 211, 166, 0.2);
+  margin-bottom: 1.5rem;
+}
+
+.poker-pot .label {
+  font-size: 0.65rem;
+  letter-spacing: 0.2em;
+  color: var(--text-muted);
+  font-weight: 700;
+}
+
+.poker-pot .value {
+  font-size: 1.5rem;
+  font-weight: 900;
+  color: var(--primary-mint);
+  font-family: 'Space Grotesk', sans-serif;
+}
+
+.community-cards {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: center;
+  perspective: 1000px;
+}
+
+.playing-card {
+  background: linear-gradient(135deg, #ffffff 0%, #f0f0f0 100%);
+  color: #1a1a1a;
+  border-radius: 6px;
+  width: 70px;
+  height: 98px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  border: 1px solid #ddd;
+  position: relative;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  transition: transform 0.3s ease;
+}
+
+.playing-card .rank {
+  font-size: 1.5rem;
+  line-height: 1;
+}
+
+.playing-card .suit {
+  font-size: 1.25rem;
 }
 
 .playing-card.red {
-  color: #d32f2f;
+  color: #e63946;
 }
 
-.playing-card.hidden {
-  background: linear-gradient(135deg, #1a1a2e, #16213e);
-  color: transparent;
+.playing-card.hole {
+  transform: translateY(10px) rotate(-5deg);
+  border: 2px solid var(--primary-mint);
+}
+
+.playing-card.hole:nth-child(2) {
+  transform: translateY(10px) rotate(5deg);
+  margin-left: -30px;
 }
 
 .betting-controls {

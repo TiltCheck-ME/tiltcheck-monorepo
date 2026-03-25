@@ -1,5 +1,6 @@
-/**
- *  20242025 TiltCheck Ecosystem. All Rights Reserved.
+/* Copyright (c) 2026 TiltCheck. All rights reserved. */
+﻿/**
+ * (c) 2024–2026 TiltCheck Ecosystem. All Rights Reserved.
  * Created by jmenichole (https://github.com/jmenichole)
  * 
  * This file is part of the TiltCheck project.
@@ -15,6 +16,14 @@ import { EXT_CONFIG, getDiscordLoginUrl } from './config.js';
 
 const API_BASE = EXT_CONFIG.API_BASE_URL;
 const AI_GATEWAY_URL = EXT_CONFIG.AI_GATEWAY_URL;
+const API_ORIGIN = (() => {
+  try {
+    return new URL(API_BASE).origin;
+  } catch {
+    return 'https://api.tiltcheck.me';
+  }
+})();
+const DISCORD_AUTH_MESSAGE_TYPE = 'discord-auth';
 let authToken: string | null = null;
 let showSettings = false;
 let apiKeys: any = {
@@ -39,11 +48,13 @@ let lockTimerInterval: any = null;
 let lastProfit = 0;
 let casinoThemesIntervalId: ReturnType<typeof setInterval> | null = null;
 let vaultRefreshIntervalId: ReturnType<typeof setInterval> | null = null;
+let discordAuthPollIntervalId: ReturnType<typeof setInterval> | null = null;
 let buddyMirrorEnabled = false;
 let demoMode = false;
 const SIDEBAR_PREFS_KEY = 'sidebarUiPrefs';
 const WALLET_LOCK_UNTIL_KEY = 'walletLockUntil';
 let showAdvancedTools = false;
+let isConnecting = false;
 
 const CASINO_THEMES: Record<string, { label: string; accent: string }> = {
   'stake.us': { label: 'Stake.us', accent: '#4ade80' },
@@ -239,19 +250,46 @@ function escapeHtml(value: unknown): string {
 
 function getStorage(keys: string[] | string): Promise<Record<string, any>> {
   return new Promise((resolve) => {
-    chrome.storage.local.get(keys, (result) => resolve(result || {}));
+    try {
+      if (!chrome.runtime?.id) {
+        console.warn('[TiltCheck] Extension context invalidated. Please refresh the page.');
+        resolve({});
+        return;
+      }
+      chrome.storage.local.get(keys, (result) => {
+        if (chrome.runtime?.lastError) {
+          console.warn('[TiltCheck] Storage get failed:', chrome.runtime.lastError.message);
+          resolve({});
+          return;
+        }
+        resolve(result || {});
+      });
+    } catch (error) {
+      console.warn('[TiltCheck] Storage get exception:', error);
+      resolve({});
+    }
   });
 }
 
 function setStorage(values: Record<string, any>): Promise<void> {
   return new Promise((resolve) => {
-    chrome.storage.local.set(values, () => resolve());
+    try {
+      chrome.storage.local.set(values, () => resolve());
+    } catch (error) {
+      console.warn('[TiltCheck] Storage set exception:', error);
+      resolve();
+    }
   });
 }
 
 function removeStorage(keys: string[] | string): Promise<void> {
   return new Promise((resolve) => {
-    chrome.storage.local.remove(keys, () => resolve());
+    try {
+      chrome.storage.local.remove(keys, () => resolve());
+    } catch (error) {
+      console.warn('[TiltCheck] Storage remove exception:', error);
+      resolve();
+    }
   });
 }
 
@@ -266,9 +304,12 @@ function formatLockRemaining(ms: number): string {
 
 async function ensureWalletUnlocked(actionLabel: string): Promise<boolean> {
   if (!userData || demoMode) return true;
-  const state = await apiCall(`/vault/${userData.id}/wallet-lock-status`);
-  if (state?.locked) {
-    const remaining = formatLockRemaining(Number(state.remainingMs || 0));
+  const state = await apiCall(`/vault/${userData.id}/lock-status`);
+  const isLocked = state?.locked === true;
+  if (isLocked) {
+    const remainingMs = Number(state?.remainingMs)
+      || Math.max(0, new Date(String(state?.unlockTime || 0)).getTime() - Date.now());
+    const remaining = formatLockRemaining(remainingMs);
     const message = `Wallet lock is active (${remaining}). Unlock in sidebar to ${actionLabel}.`;
     updateStatus(message, 'warning');
     addFeedMessage(message);
@@ -280,11 +321,30 @@ async function ensureWalletUnlocked(actionLabel: string): Promise<boolean> {
 function applyPageOffset(width: number) {
   const offset = `${width}px`;
 
-  // Some sites anchor layout to <html>, others to <body>. Set both so content shifts reliably.
-  document.documentElement.style.marginRight = offset;
-  document.documentElement.style.transition = 'margin-right 0.3s ease';
-  document.body.style.marginRight = offset;
-  document.body.style.transition = 'margin-right 0.3s ease';
+  // Apply to both html and body for maximum compatibility across different casino layouts
+  if (document.documentElement) {
+    document.documentElement.style.marginRight = offset;
+    document.documentElement.style.transition = 'margin-right 0.3s ease';
+  }
+  
+  if (document.body) {
+    document.body.style.marginRight = offset;
+    document.body.style.transition = 'margin-right 0.3s ease';
+  }
+  
+  // Handle some fixed-position elements that might need adjustment on certain sites
+  const fixedSelectors = ['.Header-module__header', '[style*="position: fixed"]'];
+  fixedSelectors.forEach(sel => {
+    try {
+      const els = document.querySelectorAll(sel);
+      els.forEach(el => {
+        if (el instanceof HTMLElement && !el.closest('#tiltcheck-sidebar')) {
+           el.style.right = offset;
+           el.style.transition = 'right 0.3s ease';
+        }
+      });
+    } catch {}
+  });
 }
 
 function setSidebarVisibility(visible: boolean) {
@@ -474,7 +534,7 @@ function createSidebar() {
             <span id="tg-username">Guest</span>
             <span class="tg-tier" id="tg-user-tier">Free</span>
           </div>
-          <button class="tg-btn-icon" id="tg-logout" title="Logout">x</button>
+          <button class="tg-btn-icon" id="tg-logout" title="Logout" aria-label="Logout">&#x00D7;</button>
         </div>
         <div class="tg-account-strip">
           <span id="tg-account-text">Demo mode is live</span>
@@ -708,7 +768,23 @@ function createSidebar() {
             <div class="tg-goal-meta" id="tg-goal-meta">$0 / $0</div>
           </div>
           <div id="tg-goals-list" style="margin-bottom: 10px;"></div>
-          
+
+          <!-- Inline Goal Form (hidden) -->
+          <div id="tg-goal-form-panel" style="display:none; margin-bottom:8px; padding:10px; background:rgba(0,0,0,0.25); border-radius:8px; border:1px solid rgba(255,255,255,0.1);">
+            <div class="tg-input-group">
+              <label>Goal Name</label>
+              <input type="text" id="goal-form-name" placeholder="e.g. Power Bill" />
+            </div>
+            <div class="tg-input-group">
+              <label>Target ($)</label>
+              <input type="number" id="goal-form-amount" placeholder="100" min="1" />
+            </div>
+            <div style="display:flex; gap:6px; margin-top:4px;">
+              <button class="tg-btn tg-btn-primary tg-btn-inline" id="goal-form-save">Save Goal</button>
+              <button class="tg-btn tg-btn-secondary tg-btn-inline" id="goal-form-cancel">Cancel</button>
+            </div>
+          </div>
+
           <div class="tg-vault-actions">
             <button class="tg-btn tg-btn-vault" id="tg-vault-btn">Vault Balance</button>
             <button class="tg-btn tg-btn-secondary" id="tg-vault-custom">Custom Amount</button>
@@ -768,7 +844,35 @@ function createSidebar() {
         <div class="tg-section">
           <button class="tg-btn tg-btn-secondary" id="tg-export-session">Export Session</button>
         </div>
-        <div class="tg-brand-footer">Made for degens, by degens.</div>
+        <!-- Premium Upgrade Panel (hidden) -->
+        <div class="tg-settings-panel" id="tg-premium-panel" style="display:none;">
+          <h4>Unlock Premium</h4>
+          <div style="margin-bottom:8px; padding:10px; background:rgba(255,255,255,0.03); border-radius:8px; border:1px solid rgba(255,255,255,0.08);">
+            <div style="display:flex; justify-content:space-between; margin-bottom:6px;">
+              <span style="font-size:12px; font-weight:700;">Free</span>
+              <span style="font-size:11px; color:var(--tg-muted);">$0/mo</span>
+            </div>
+            <ul style="font-size:11px; opacity:0.55; padding-left:16px; line-height:1.9; margin:0;">
+              <li>Basic tilt alerts</li>
+              <li>Community feed</li>
+            </ul>
+          </div>
+          <div style="margin-bottom:12px; padding:10px; background:rgba(0,255,198,0.05); border-radius:8px; border:1px solid rgba(0,255,198,0.2);">
+            <div style="display:flex; justify-content:space-between; margin-bottom:6px;">
+              <span style="font-size:12px; font-weight:700; color:#00FFC6;">Premium</span>
+              <span style="font-size:11px; color:var(--tg-muted);">$5/mo</span>
+            </div>
+            <ul style="font-size:11px; opacity:0.55; padding-left:16px; line-height:1.9; margin:0;">
+              <li>Priority alerts</li>
+              <li>Advanced vault controls</li>
+              <li>Buddy mirror</li>
+              <li>AI tilt analysis</li>
+            </ul>
+          </div>
+          <button class="tg-btn tg-btn-primary" id="tg-upgrade-confirm">Upgrade Now &#x2192;</button>
+          <button class="tg-btn tg-btn-secondary" id="tg-premium-close">Cancel</button>
+        </div>
+        <div class="tg-brand-footer">Made for degens, by degens • © 2026 TiltCheck</div>
       </div>
     </div>
 
@@ -781,21 +885,23 @@ function createSidebar() {
   const style = document.createElement('style');
   style.textContent = `
     #tiltcheck-sidebar {
-      --tg-bg: #0b0f17;
-      --tg-surface: rgba(255, 255, 255, 0.04);
-      --tg-surface-strong: rgba(255, 255, 255, 0.08);
-      --tg-border: rgba(255, 255, 255, 0.12);
+      --tg-bg: rgba(10, 10, 10, 0.95); /* Deep Black */
+      --tg-surface: rgba(26, 26, 26, 0.8);
+      --tg-surface-strong: rgba(36, 36, 36, 0.9);
+      --tg-border: rgba(255, 255, 255, 0.1);
       --tg-text: #e7ecf7;
       --tg-muted: rgba(231, 236, 247, 0.74);
-      --tg-accent-purple: #6366f1;
-      --tg-accent-purple-2: #7c3aed;
-      --tg-accent-green: #10b981;
+      --tg-primary: #00d4aa; /* Neon Teal */
+      --tg-secondary: #00a8ff; /* Electric Blue */
+      --tg-accent: #a855f7; /* Neon Purple */
+      --tg-danger: #ef4444;
+      --tg-warning: #f59e0b;
       position: fixed !important;
       top: 0 !important;
       right: 0 !important;
       width: ${SIDEBAR_WIDTH}px;
       height: 100vh;
-      background: var(--tg-bg);
+      background: var(--tg-bg); backdrop-filter: blur(12px);
       color: var(--tg-text);
       z-index: 2147483647 !important;
       font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
@@ -811,7 +917,7 @@ function createSidebar() {
     #tiltcheck-sidebar::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.2); border-radius: 3px; }
     
     .tg-header {
-      background: linear-gradient(180deg, rgba(99,102,241,0.22), rgba(11,15,23,0));
+      background: linear-gradient(180deg, rgba(0, 212, 170, 0.1), transparent);
       padding: 14px 16px;
       display: flex;
       justify-content: space-between;
@@ -834,7 +940,7 @@ function createSidebar() {
       width: 24px;
       height: 24px;
       border-radius: 7px;
-      background: linear-gradient(135deg, var(--tg-accent-purple), var(--tg-accent-purple-2));
+      background: linear-gradient(135deg, var(--tg-primary), var(--tg-secondary));
       color: #fff;
       display: inline-flex;
       align-items: center;
@@ -856,7 +962,7 @@ function createSidebar() {
       transition: all 0.15s;
       white-space: nowrap;
     }
-    .tg-header-btn:hover { background: var(--tg-surface-strong); border-color: rgba(99, 102, 241, 0.48); }
+    .tg-header-btn:hover { background: var(--tg-surface-strong); border-color: rgba(0, 212, 170, 0.4); }
     #tiltcheck-sidebar:not(.tg-show-advanced) .tg-advanced-only { display: none !important; }
     
     .tg-content { padding: 12px; }
@@ -888,8 +994,8 @@ function createSidebar() {
       gap: 8px;
       margin: -6px 0 12px;
       padding: 8px 10px;
-      background: rgba(99, 102, 241, 0.14);
-      border: 1px solid rgba(99, 102, 241, 0.46);
+      background: rgba(0, 168, 255, 0.1);
+      border: 1px solid rgba(0, 168, 255, 0.3);
       border-radius: 10px;
       font-size: 11px;
       line-height: 1.35;
@@ -899,12 +1005,12 @@ function createSidebar() {
       padding: 8px 10px;
       font-size: 11px;
       opacity: 0.78;
-      border-left: 2px solid rgba(16, 185, 129, 0.55);
-      background: rgba(16, 185, 129, 0.08);
+      border-left: 2px solid rgba(0, 212, 170, 0.6);
+      background: rgba(0, 212, 170, 0.08);
       border-radius: 0 8px 8px 0;
     }
     .tg-user-info { display: flex; gap: 8px; align-items: center; font-size: 13px; }
-    .tg-tier { padding: 2px 8px; background: rgba(99, 102, 241, 0.2); border-radius: 3px; font-size: 11px; color: #818cf8; }
+    .tg-tier { padding: 2px 8px; background: rgba(168, 85, 247, 0.2); border-radius: 3px; font-size: 11px; color: #c4b5fd; }
     .tg-btn-icon {
       background: transparent;
       border: none;
@@ -938,7 +1044,7 @@ function createSidebar() {
       color: #e1e8ed;
       font-size: 12px;
     }
-    .tg-input-group input:focus { outline: none; border-color: rgba(99, 102, 241, 0.5); }
+    .tg-input-group input:focus { outline: none; border-color: var(--tg-primary); }
     
     .tg-metrics-card {
       background: rgba(255, 255, 255, 0.03);
@@ -964,7 +1070,7 @@ function createSidebar() {
       width: 10px;
       height: 10px;
       border-radius: 50%;
-      background: var(--tg-accent-green);
+      background: var(--tg-primary);
       color: transparent;
       font-size: 0;
     }
@@ -1024,9 +1130,9 @@ function createSidebar() {
       font-weight: 600;
       font-variant-numeric: tabular-nums;
     }
-    .tg-tilt-value { color: var(--tg-accent-green); }
-    .tg-tilt-value.warning { color: #f59e0b; }
-    .tg-tilt-value.critical { color: #ef4444; }
+    .tg-tilt-value { color: var(--tg-primary); }
+    .tg-tilt-value.warning { color: var(--tg-warning); }
+    .tg-tilt-value.critical { color: var(--tg-danger); }
     
     .tg-graph {
       background: rgba(0, 0, 0, 0.2);
@@ -1073,12 +1179,12 @@ function createSidebar() {
       transition: all 0.15s;
       text-align: left;
     }
-    .tg-action-btn:hover { background: var(--tg-surface-strong); border-color: rgba(99, 102, 241, 0.45); transform: translateY(-1px); }
+    .tg-action-btn:hover { background: var(--tg-surface-strong); border-color: var(--tg-primary); transform: translateY(-1px); }
     
     .tg-vault-amount {
       font-size: 24px;
       font-weight: 700;
-      color: var(--tg-accent-green);
+      color: var(--tg-primary);
       margin-bottom: 12px;
       font-variant-numeric: tabular-nums;
     }
@@ -1112,16 +1218,16 @@ function createSidebar() {
       font-size: 11px;
       white-space: nowrap;
     }
-    .tg-btn-primary { background: var(--tg-accent-purple); }
-    .tg-btn-primary:hover { background: #5558e3; }
+    .tg-btn-primary { background: var(--tg-primary); color: #000; }
+    .tg-btn-primary:hover { background: #00b390; }
     .tg-btn-secondary { background: var(--tg-surface); border: 1px solid var(--tg-border); }
-    .tg-btn-secondary:hover { background: var(--tg-surface-strong); border-color: rgba(99, 102, 241, 0.45); }
-    .tg-btn-vault { background: var(--tg-accent-green); color: #07281f; font-weight: 700; }
-    .tg-btn-vault:hover { background: #0da271; }
-    .tg-btn-danger { background: #ef4444; }
+    .tg-btn-secondary:hover { background: var(--tg-surface-strong); border-color: var(--tg-secondary); }
+    .tg-btn-vault { background: var(--tg-primary); color: #000; font-weight: 700; }
+    .tg-btn-vault:hover { background: #00b390; }
+    .tg-btn-danger { background: var(--tg-danger); }
     .tg-btn-danger:hover { background: #dc2626; }
-    #tg-discord-login, #tg-connect-discord-inline { background: var(--tg-accent-purple); border: 1px solid rgba(255,255,255,0.12); }
-    #tg-discord-login:hover, #tg-connect-discord-inline:hover { background: #4d5ae9; }
+    #tg-discord-login, #tg-connect-discord-inline { background: var(--tg-accent); border: 1px solid rgba(255,255,255,0.12); color: #fff;}
+    #tg-discord-login:hover, #tg-connect-discord-inline:hover { background: #9333ea; }
 
     .tg-toast {
       position: fixed;
@@ -1131,7 +1237,7 @@ function createSidebar() {
       backdrop-filter: blur(10px);
       color: var(--tg-text);
       border: 1px solid rgba(255,255,255,0.12);
-      border-left: 3px solid var(--tg-accent-purple);
+      border-left: 3px solid var(--tg-accent);
       padding: 10px 12px;
       border-radius: 10px;
       font-size: 12px;
@@ -1147,15 +1253,15 @@ function createSidebar() {
 
     #tiltcheck-sidebar.tilt-warn {
       box-shadow: -2px 0 12px rgba(245, 158, 11, 0.35);
-      border-left-color: rgba(245, 158, 11, 0.6);
+      border-left-color: var(--tg-warning);
       animation: pulseBorder 2.2s ease-in-out infinite;
     }
     #tiltcheck-sidebar.tilt-critical {
       background: rgba(127, 29, 29, 0.85);
       box-shadow: -2px 0 16px rgba(239, 68, 68, 0.45);
-      border-left-color: rgba(239, 68, 68, 0.7);
+      border-left-color: var(--tg-danger);
     }
-    #tiltcheck-sidebar.tilt-critical .tg-emergency { border-color: rgba(239, 68, 68, 0.8); }
+    #tiltcheck-sidebar.tilt-critical .tg-emergency { border-color: var(--tg-danger); }
     #tiltcheck-sidebar.tilt-critical #tg-emergency-lock { animation: shake 0.6s ease-in-out infinite; }
 
     @keyframes pulseBorder {
@@ -1171,10 +1277,10 @@ function createSidebar() {
 
     .tg-tabs { display: flex; border-bottom: 1px solid rgba(255,255,255,0.1); margin-bottom: 12px; }
     .tg-tab { flex: 1; background: none; border: none; color: rgba(255,255,255,0.5); padding: 8px; cursor: pointer; border-bottom: 2px solid transparent; font-size: 12px; font-weight: 600; }
-    .tg-tab.active { color: #fff; border-bottom-color: #6366f1; }
+    .tg-tab.active { color: #fff; border-bottom-color: var(--tg-secondary); }
     .tg-history-item { padding: 8px; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 11px; background: rgba(255,255,255,0.02); margin-bottom: 4px; border-radius: 4px; }
     .tg-history-header { display: flex; justify-content: space-between; margin-bottom: 4px; opacity: 0.7; }
-    .tg-history-result { font-weight: bold; color: #10b981; }
+    .tg-history-result { font-weight: bold; color: var(--tg-primary); }
 
     .tg-license-strip {
       padding: 8px 12px;
@@ -1182,16 +1288,16 @@ function createSidebar() {
       font-weight: 600;
       text-align: center;
       border-bottom: 1px solid rgba(255,255,255,0.1);
-      background: rgba(99, 102, 241, 0.12);
-      color: #c7d2fe;
+      background: rgba(0, 168, 255, 0.1);
+      color: #7dd3fc;
     }
     .tg-license-strip.verified { background: rgba(16, 185, 129, 0.18); color: #6ee7b7; }
     .tg-license-strip.warning { background: rgba(245, 158, 11, 0.18); color: #fcd34d; }
     .tg-license-strip.risk { background: rgba(239, 68, 68, 0.18); color: #fca5a5; }
-    .tg-license-strip.pending { background: rgba(99, 102, 241, 0.12); color: #c7d2fe; }
+    .tg-license-strip.pending { background: rgba(0, 168, 255, 0.1); color: #7dd3fc; }
 
     .tg-status-bar { padding: 8px 12px; font-size: 11px; font-weight: 600; text-align: center; animation: slideDown 0.3s ease; }
-    .tg-status-bar.thinking { background: rgba(99, 102, 241, 0.2); color: #818cf8; border-bottom: 1px solid rgba(99, 102, 241, 0.3); }
+    .tg-status-bar.thinking { background: rgba(0, 168, 255, 0.2); color: #38bdf8; border-bottom: 1px solid rgba(0, 168, 255, 0.3); }
     .tg-status-bar.success { background: rgba(16, 185, 129, 0.2); color: #34d399; border-bottom: 1px solid rgba(16, 185, 129, 0.3); }
     .tg-status-bar.warning { background: rgba(245, 158, 11, 0.2); color: #fbbf24; border-bottom: 1px solid rgba(245, 158, 11, 0.3); }
     .tg-status-bar.buddy { background: rgba(236, 72, 153, 0.2); color: #f472b6; border-bottom: 1px solid rgba(236, 72, 153, 0.3); }
@@ -1301,55 +1407,171 @@ function syncAccountUi() {
   const accountText = document.getElementById('tg-account-text');
   const connectBtn = document.getElementById('tg-connect-discord-inline') as HTMLButtonElement | null;
   const logoutBtn = document.getElementById('tg-logout') as HTMLButtonElement | null;
+  const usernameEl = document.getElementById('tg-username');
   if (!accountText || !connectBtn || !logoutBtn) return;
+
+  if (isConnecting) {
+    accountText.textContent = '📞 Syncing with Discord gateway...';
+    connectBtn.disabled = true;
+    connectBtn.style.opacity = '0.75';
+    connectBtn.textContent = 'Syncing...';
+    return;
+  }
 
   if (demoMode || !authToken) {
     accountText.textContent = 'Demo mode is live. Connect Discord if you want synced history and vault progress.';
+    connectBtn.disabled = false;
+    connectBtn.style.opacity = '1';
     connectBtn.textContent = 'Connect Discord';
     connectBtn.style.display = 'inline-flex';
     logoutBtn.style.display = 'none';
+    if (usernameEl) usernameEl.textContent = 'Guest (Demo)';
     return;
   }
 
   accountText.textContent = `Connected as ${userData?.username || 'TiltCheck user'}`;
+  connectBtn.disabled = false;
+  connectBtn.style.opacity = '1';
   connectBtn.textContent = 'Reconnect';
   connectBtn.style.display = 'inline-flex';
   logoutBtn.style.display = 'inline-flex';
+  if (usernameEl) usernameEl.textContent = userData?.username || 'TiltCheck User';
+}
+
+function clearDiscordAuthPolling() {
+  if (discordAuthPollIntervalId) {
+    clearInterval(discordAuthPollIntervalId);
+    discordAuthPollIntervalId = null;
+  }
+}
+
+async function applyDiscordAuthSuccess(token: string, user: Record<string, any>) {
+  await setStorage({ authToken: token, userData: user });
+  clearDiscordAuthPolling();
+  isConnecting = false;
+  demoMode = false;
+  authToken = token;
+  userData = { ...user, isDemo: false };
+  isAuthenticated = true;
+  showMainContent();
+  syncAccountUi();
+  addFeedMessage(`Connected: ${userData.username || 'TiltCheck user'}`);
+}
+
+let authBridgeAckReceived = false;
+
+function handleDiscordAuthMessage(event: MessageEvent) {
+  if (event.origin !== API_ORIGIN) return;
+  const data = event.data as { type?: string; token?: unknown; user?: unknown } | null;
+  if (!data || data.type !== DISCORD_AUTH_MESSAGE_TYPE) return;
+  if (typeof data.token !== 'string' || !data.token) return;
+  if (!data.user || typeof data.user !== 'object') return;
+  void applyDiscordAuthSuccess(data.token, data.user as Record<string, any>);
+}
+
+function handleAuthBridgeAck(event: MessageEvent) {
+  const data = event.data as { type?: string; success?: boolean } | null;
+  if (data?.type === 'auth-bridge-ack') {
+    authBridgeAckReceived = true;
+    console.log('[TiltCheck] auth-bridge-ack received');
+  }
 }
 
 function startDiscordLoginFlow() {
   const authUrl = getDiscordLoginUrl('extension');
-  chrome.runtime.sendMessage({ type: 'open_auth_tab', url: authUrl }, (response) => {
-    if (chrome.runtime.lastError || !response?.success) {
-      addFeedMessage('Could not open Discord login tab. Try again.');
+  const maxPollMs = 5 * 60 * 1000;
+  const startedAt = Date.now();
+  clearDiscordAuthPolling();
+  authBridgeAckReceived = false;
+  isConnecting = true;
+  syncAccountUi();
+
+  const startStoragePolling = () => {
+    let pollAttempts = 0;
+    let lastReadWasUndefined = false;
+
+    discordAuthPollIntervalId = setInterval(async () => {
+      try {
+        const stored = await getStorage(['authToken', 'userData']);
+        
+        // If we got the auth, we're done
+        if (stored?.authToken && stored?.userData) {
+          await applyDiscordAuthSuccess(stored.authToken, stored.userData);
+          return;
+        }
+
+        // Track if reads are returning undefined (indicates storage write hasn't completed yet)
+        if (!stored?.authToken) {
+          lastReadWasUndefined = true;
+          pollAttempts++;
+          console.log(`[TiltCheck] Storage read returned undefined (attempt ${pollAttempts})`);
+          
+          // After 3 failed reads without ACK, add extra delay before next attempt
+          // This accounts for the race condition where auth-bridge is still writing
+          if (pollAttempts >= 3 && !authBridgeAckReceived) {
+            console.log('[TiltCheck] Polling returned undefined 3+ times without ACK. Adding backoff delay.');
+          }
+        }
+
+        // If ACK was received, we know storage write completed, so increase check frequency
+        if (authBridgeAckReceived && lastReadWasUndefined) {
+          console.log('[TiltCheck] ACK received. Storage write should be complete.');
+          lastReadWasUndefined = false;
+        }
+
+        if (Date.now() - startedAt > maxPollMs) {
+          clearDiscordAuthPolling();
+          addFeedMessage('Discord connect timed out. Try again.');
+        }
+      } catch (error) {
+        clearDiscordAuthPolling();
+        console.warn('[TiltCheck] Discord connect polling failed:', error);
+        addFeedMessage('Discord connect interrupted. Reload the tab and try again.');
+      }
+    }, 500); // Poll every 500ms (faster than 1000ms to catch writes sooner)
+  };
+
+  try {
+    // User-clicked popup preserves window.opener for callback postMessage.
+    const popup = window.open(authUrl, '_blank', 'popup=yes,width=520,height=760');
+    if (popup) {
+      startStoragePolling();
       return;
     }
 
-    const maxPollMs = 5 * 60 * 1000;
-    const startedAt = Date.now();
-    const checkClosed = setInterval(async () => {
-      const stored = await getStorage(['authToken', 'userData']);
-      if (stored?.authToken && stored?.userData) {
-        clearInterval(checkClosed);
-        demoMode = false;
-        authToken = stored.authToken;
-        userData = { ...stored.userData, isDemo: false };
-        isAuthenticated = true;
-        showMainContent();
-        syncAccountUi();
-        addFeedMessage(`Connected: ${userData.username || 'TiltCheck user'}`);
+    chrome.runtime.sendMessage({ type: 'open_auth_bridge', url: authUrl }, (response) => {
+      if (chrome.runtime.lastError) {
+        const msg = chrome.runtime.lastError.message || 'Could not open Discord login tab.';
+        addFeedMessage(
+          msg.includes('Extension context invalidated')
+            ? 'Extension refreshed mid-login. Reload this tab and retry Connect Discord.'
+            : 'Could not open Discord login helper. Try again.'
+        );
         return;
       }
 
-      if (Date.now() - startedAt > maxPollMs) {
-        clearInterval(checkClosed);
-        addFeedMessage('Discord connect timed out. Try again.');
+      if (!response?.success) {
+        addFeedMessage('Could not open Discord login helper. Try again.');
+        return;
       }
-    }, 1000);
-  });
+
+      addFeedMessage('Opened Discord login helper tab.');
+      startStoragePolling();
+    });
+  } catch (error) {
+    console.warn('[TiltCheck] Unable to start Discord connect flow:', error);
+    addFeedMessage('Connect failed to start. Reload tab and try again.');
+  }
 }
 
 function setupEventListeners() {
+  window.removeEventListener('message', handleDiscordAuthMessage as EventListener);
+  window.addEventListener('message', handleDiscordAuthMessage as EventListener);
+  
+  // Listen for auth-bridge ACK messages
+  window.removeEventListener('message', handleAuthBridgeAck as EventListener);
+  window.addEventListener('message', handleAuthBridgeAck as EventListener);
+
   document.getElementById('tg-minimize')?.addEventListener('click', () => {
     const sidebar = document.getElementById('tiltcheck-sidebar');
     const isMinimized = !!sidebar?.classList.contains('minimized');
@@ -1637,7 +1859,7 @@ function setupEventListeners() {
         }
       }
     } catch (e) {
-      console.error('[TiltGuard] LinkCheck scan error:', e);
+      console.error('[TiltCheck] LinkCheck scan error:', e);
       if (scoreDiv) {
         scoreDiv.textContent = 'Scan Error';
         scoreDiv.style.color = '#f59e0b';
@@ -1686,16 +1908,33 @@ function setupEventListeners() {
 
   // Add Goal Logic
   document.getElementById('tg-add-goal')?.addEventListener('click', () => {
-    const name = prompt('Goal Name (e.g. Power Bill):');
-    const amount = prompt('Amount ($):');
+    const panel = document.getElementById('tg-goal-form-panel');
+    if (panel) panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+  });
 
-    if (name && amount) {
-      const goals = loadGoals();
-      goals.push({ name, amount: Number(amount) });
-      saveGoals(goals);
-      renderGoals(goals);
-      updateGoalProgress(sessionStats.currentBalance || 0);
+  document.getElementById('goal-form-save')?.addEventListener('click', () => {
+    const nameInput = document.getElementById('goal-form-name') as HTMLInputElement;
+    const amountInput = document.getElementById('goal-form-amount') as HTMLInputElement;
+    const name = nameInput?.value?.trim();
+    const amount = parseFloat(amountInput?.value || '');
+    if (!name || isNaN(amount) || amount <= 0) {
+      updateStatus('Enter a valid goal name and amount.', 'warning');
+      return;
     }
+    const goals = loadGoals();
+    goals.push({ name, amount });
+    saveGoals(goals);
+    renderGoals(goals);
+    updateGoalProgress(sessionStats.currentBalance || 0);
+    nameInput.value = '';
+    amountInput.value = '';
+    const panel = document.getElementById('tg-goal-form-panel');
+    if (panel) panel.style.display = 'none';
+  });
+
+  document.getElementById('goal-form-cancel')?.addEventListener('click', () => {
+    const panel = document.getElementById('tg-goal-form-panel');
+    if (panel) panel.style.display = 'none';
   });
 
   document.getElementById('tg-goals-list')?.addEventListener('click', (e) => {
@@ -1863,11 +2102,25 @@ function setupEventListeners() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `tiltguard-session-${Date.now()}.json`;
+    a.download = `tiltcheck-session-${Date.now()}.json`;
     a.click();
     addFeedMessage('Session exported');
   });
-  document.getElementById('tg-upgrade')?.addEventListener('click', openPremium);
+  document.getElementById('tg-upgrade')?.addEventListener('click', () => {
+    const panel = document.getElementById('tg-premium-panel');
+    if (panel) panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+  });
+
+  document.getElementById('tg-upgrade-confirm')?.addEventListener('click', () => {
+    const panel = document.getElementById('tg-premium-panel');
+    if (panel) panel.style.display = 'none';
+    void openPremium();
+  });
+
+  document.getElementById('tg-premium-close')?.addEventListener('click', () => {
+    const panel = document.getElementById('tg-premium-panel');
+    if (panel) panel.style.display = 'none';
+  });
 }
 
 async function checkAuthStatus() {
@@ -2349,7 +2602,7 @@ function renderVaultTimeline(locks: any[]) {
           <span class="tg-vault-timeline-action">${action}</span>
           <span class="tg-vault-timeline-time">${relative}</span>
         </div>
-        <div class="tg-vault-timeline-meta">${metaParts.join(' • ')}</div>
+        <div class="tg-vault-timeline-meta">${metaParts.join(' \u2022 ')}</div>
       </div>
     `;
   }).join('');
@@ -2449,29 +2702,8 @@ function startLockCountdown(unlockTime: number, startTime: number) {
 }
 
 async function openDashboard() {
-  if (!userData) return;
-  const result = await apiCall(`/dashboard/${userData.id}`);
-  if (result.error) {
-    addFeedMessage('Dashboard unavailable right now.');
-    return;
-  }
-
-  addFeedMessage('Dashboard opened');
-  const data = escapeHtml(JSON.stringify(result, null, 2));
-  const win = window.open('', 'TiltGuard Dashboard', 'width=800,height=600');
-  if (win) {
-    win.document.write(`
-      <html>
-        <head><title>TiltGuard Dashboard</title>
-        <style>body{font-family:monospace;padding:20px;background:#0f1419;color:#e1e8ed;}pre{background:#1a1f26;padding:15px;border-radius:6px;border:1px solid rgba(255,255,255,0.1);}</style>
-        </head>
-        <body>
-          <h1>TiltGuard Dashboard</h1>
-          <pre>${data}</pre>
-        </body>
-      </html>
-    `);
-  }
+  addFeedMessage('Opening Dashboard');
+  window.open(`${EXT_CONFIG.WEB_APP_URL}/user-dashboard`, '_blank');
 }
 
 async function openVault() {
@@ -2479,24 +2711,27 @@ async function openVault() {
   if (!userData) return;
   const result = await apiCall(`/vault/${userData.id}`);
   if (result.error) {
-    alert('Vault data is unavailable right now. Try again shortly.');
+    addFeedMessage('Vault data unavailable. Try again shortly.');
     return;
   }
-
-  const data = escapeHtml(JSON.stringify(result.vault, null, 2));
-  const win = window.open('', 'TiltGuard Vault', 'width=600,height=500');
+  const vault = result.vault || {};
+  const balance = Number(vault.balance || 0).toFixed(2);
+  const locks = Array.isArray(vault.locks) ? vault.locks : [];
+  const activeLocks = locks.filter((l: any) => l.status === 'locked').length;
+  const win = window.open('', 'TiltCheck Vault', 'width=520,height=440,popup=yes');
   if (win) {
-    win.document.write(`
-      <html>
-        <head><title>TiltGuard Vault</title>
-        <style>body{font-family:monospace;padding:20px;background:#1a1a2e;color:white;}pre{background:#16213e;padding:15px;border-radius:8px;}</style>
-        </head>
-        <body>
-          <h1>TiltGuard Vault</h1>
-          <pre>${data}</pre>
-        </body>
-      </html>
-    `);
+    win.document.write(`<!DOCTYPE html><html lang="en"><head><title>TiltCheck \u00B7 Vault</title>
+    <style>*{box-sizing:border-box;margin:0;padding:0;}body{font-family:"Inter",system-ui,sans-serif;background:#0e0e0f;color:#e7ecf7;padding:24px;}h1{font-size:16px;font-weight:700;color:#00FFC6;margin-bottom:4px;}.sub{font-size:11px;opacity:0.45;margin-bottom:20px;letter-spacing:0.04em;}.card{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:18px;margin-bottom:12px;}.lbl{font-size:10px;text-transform:uppercase;letter-spacing:0.1em;opacity:0.5;margin-bottom:6px;}.val{font-size:28px;font-weight:700;color:#00FFC6;font-variant-numeric:tabular-nums;}.row{display:flex;justify-content:space-between;font-size:12px;padding:7px 0;border-bottom:1px solid rgba(255,255,255,0.05);}.row:last-child{border-bottom:none;}.tag{font-size:11px;padding:2px 8px;border-radius:4px;background:rgba(0,255,198,0.1);color:#00FFC6;}a{color:#00FFC6;text-decoration:none;font-size:12px;display:block;text-align:center;margin-top:14px;opacity:0.65;}</style>
+    </head><body>
+    <h1>TiltCheck Vault</h1><div class="sub">Non-Custodial \u00B7 SOL-backed</div>
+    <div class="card"><div class="lbl">Balance</div><div class="val">$${escapeHtml(balance)}</div></div>
+    <div class="card">
+      <div class="row"><span>Active locks</span><span class="tag">${activeLocks}</span></div>
+      <div class="row"><span>Total lock history</span><span>${locks.length}</span></div>
+    </div>
+    <a href="${EXT_CONFIG.WEB_APP_URL}/user-dashboard" target="_blank">Open Full Dashboard \u2192</a>
+    </body></html>`);
+    win.document.close();
   }
 }
 
@@ -2505,24 +2740,26 @@ async function openWallet() {
   if (!userData) return;
   const result = await apiCall(`/wallet/${userData.id}`);
   if (result.error) {
-    alert('Wallet data is unavailable right now. Try again shortly.');
+    addFeedMessage('Wallet data unavailable. Try again shortly.');
     return;
   }
-
-  const data = escapeHtml(JSON.stringify(result, null, 2));
-  const win = window.open('', 'TiltGuard Wallet', 'width=600,height=500');
+  const w = result.wallet || {};
+  const sol = Number(w.sol || 0).toFixed(4);
+  const addr = String(w.address || 'N/A');
+  const short = addr.length > 12 ? `${addr.slice(0, 6)}...${addr.slice(-4)}` : addr;
+  const win = window.open('', 'TiltCheck Wallet', 'width=520,height=360,popup=yes');
   if (win) {
-    win.document.write(`
-      <html>
-        <head><title>TiltGuard Wallet</title>
-        <style>body{font-family:monospace;padding:20px;background:#1a1a2e;color:white;}pre{background:#16213e;padding:15px;border-radius:8px;}</style>
-        </head>
-        <body>
-          <h1>TiltGuard Wallet</h1>
-          <pre>${data}</pre>
-        </body>
-      </html>
-    `);
+    win.document.write(`<!DOCTYPE html><html lang="en"><head><title>TiltCheck \u00B7 Wallet</title>
+    <style>*{box-sizing:border-box;margin:0;padding:0;}body{font-family:"Inter",system-ui,sans-serif;background:#0e0e0f;color:#e7ecf7;padding:24px;}h1{font-size:16px;font-weight:700;color:#00FFC6;margin-bottom:4px;}.sub{font-size:11px;opacity:0.45;margin-bottom:20px;letter-spacing:0.04em;}.card{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:18px;margin-bottom:12px;}.lbl{font-size:10px;text-transform:uppercase;letter-spacing:0.1em;opacity:0.5;margin-bottom:6px;}.val{font-size:26px;font-weight:700;color:#00FFC6;font-variant-numeric:tabular-nums;}.row{display:flex;justify-content:space-between;font-size:12px;padding:7px 0;border-bottom:1px solid rgba(255,255,255,0.05);}.row:last-child{border-bottom:none;}.mono{font-family:monospace;font-size:11px;opacity:0.6;}a{color:#00FFC6;text-decoration:none;font-size:12px;display:block;text-align:center;margin-top:14px;opacity:0.65;}</style>
+    </head><body>
+    <h1>TiltCheck Wallet</h1><div class="sub">Solana \u00B7 Non-Custodial</div>
+    <div class="card"><div class="lbl">Balance</div><div class="val">${escapeHtml(sol)} SOL</div></div>
+    <div class="card">
+      <div class="row"><span>Address</span><span class="mono" title="${escapeHtml(addr)}">${escapeHtml(short)}</span></div>
+    </div>
+    <a href="${EXT_CONFIG.WEB_APP_URL}/user-dashboard" target="_blank">Open Full Dashboard \u2192</a>
+    </body></html>`);
+    win.document.close();
   }
 }
 
@@ -2611,7 +2848,7 @@ async function notifyBuddy(type: string, data: any) {
       updateStatus('Buddy ping sent', 'buddy');
     }
   } catch (e) {
-    console.error('[TiltGuard] Buddy notification failed:', e);
+    console.error('[TiltCheck] Buddy notification failed:', e);
   }
 }
 
@@ -2641,4 +2878,5 @@ function updateStatus(message: string, type: string = 'info') {
 if (typeof window !== 'undefined') {
   (window as any).TiltCheckSidebar = { create: createSidebar, updateLicense, updateGuardian, updateTilt, updateStats, notifyBuddy };
 }
+
 

@@ -1,10 +1,4 @@
-/**
- * © 2024–2025 TiltCheck Ecosystem. All Rights Reserved.
- * Created by jmenichole (https://github.com/jmenichole)
- * 
- * This file is part of the TiltCheck project.
- * For licensing information, see LICENSE file in the project root.
- */
+/* Copyright (c) 2026 TiltCheck. All rights reserved. */
 /**
  * Token Deposit Monitor
  *
@@ -17,7 +11,7 @@ import {
     type ConfirmedSignatureInfo,
     type ParsedTransactionWithMeta,
 } from '@solana/web3.js';
-import { type CreditManager, MIN_DEPOSIT_LAMPORTS } from '@tiltcheck/justthetip';
+import { type CreditManager } from './credit-manager.js';
 import { TokenSwapService, DEPOSIT_TOKENS } from './token-swap.js';
 
 const POLL_INTERVAL_MS = 20_000;

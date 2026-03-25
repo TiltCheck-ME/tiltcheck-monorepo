@@ -1,3 +1,4 @@
+/* Copyright (c) 2026 TiltCheck. All rights reserved. */
 // v0.1.0 — 2026-02-25
 /**
  * © 2024–2025 TiltCheck Ecosystem. All Rights Reserved.
@@ -56,7 +57,7 @@ export class SusLinkModule {
    * Handle user feedback for link scans
    * Useful for AI self-training and improving accuracy
    */
-  private async handleLinkFeedback(event: TiltCheckEvent): Promise<void> {
+  private async handleLinkFeedback(event: TiltCheckEvent<'link.feedback'>): Promise<void> {
     const { url, userReportedRisk, actualStatus, comments } = event.data;
 
     if (!url || !actualStatus) {
@@ -81,7 +82,7 @@ export class SusLinkModule {
   /**
    * Handle promo submission events
    */
-  private async handlePromoSubmission(event: TiltCheckEvent): Promise<void> {
+  private async handlePromoSubmission(event: TiltCheckEvent<'promo.submitted'>): Promise<void> {
     const { url } = event.data;
 
     if (!url) {

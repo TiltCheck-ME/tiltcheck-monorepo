@@ -13,8 +13,10 @@
   },
   "scripts": {
     "dev": "pnpm --parallel --recursive dev",
+    "dev:core": "pnpm --filter @tiltcheck/api --filter web --filter @tiltcheck/discord-bot --parallel dev",
+    "discord:setup": "pnpm --filter @tiltcheck/discord-bot run deploy:commands",
     "postinstall": "pnpm -r --filter @tiltcheck/utils... build",
-    "build": "bash scripts/ordered-build.sh",
+    "build": "pnpm -r build",
     "build:legacy": "pnpm -r --workspace-concurrency=1 build",
     "test": "vitest --run",
     "test:watch": "vitest",
@@ -52,10 +54,14 @@
     "ci:deploy:scripts": "node scripts/check-deploy-scripts.mjs",
     "ops:linear:dry": "node scripts/linear-sync.mjs --dry-run",
     "ops:linear:sync": "node scripts/linear-sync.mjs",
-    "ops:daily": "powershell -ExecutionPolicy Bypass -File ./scripts/daily-ops.ps1"
+    "ops:daily": "powershell -ExecutionPolicy Bypass -File ./scripts/daily-ops.ps1",
+    "seed:casino-trust": "node scripts/seed-casino-trust-from-scrape.js --include-existing --runtime-output ./data/casino-trust.json",
+    "ops:task-ai": "node scripts/daily-task-ai.mjs",
+    "trust:build": "pnpm --filter @tiltcheck/trust-engines build",
+    "trust:start": "pnpm trust:build && node scripts/start-trust-engine-check.mjs"
   },
   "devDependencies": {
-    "@types/bcryptjs": "^3.0.0",
+    "@google-cloud/secret-manager": "^6.1.1",
     "@types/jsdom": "^21.1.7",
     "@types/node": "^24.10.13",
     "@types/supertest": "^6.0.3",
@@ -76,7 +82,7 @@
     "supertest": "^7.2.2",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.55.0",
-    "vitest": "^4.0.18"
+    "vitest": "^4.1.0"
   },
   "pnpm": {
     "overrides": {
@@ -84,23 +90,20 @@
       "esbuild@<=0.24.2": ">=0.25.0",
       "semver@>=7.0.0 <7.5.2": ">=7.5.2",
       "jws@<3.2.3": ">=3.2.3",
-      "systeminformation@<5.27.14": ">=5.27.14"
+      "systeminformation@<5.27.14": ">=5.27.14",
+      "basic-ftp": ">=5.1.1",
+      "minimatch": ">=9.0.5",
+      "hono": ">=4.12.0",
+      "undici": ">=6.21.4",
+      "lodash": ">=4.17.21"
     },
     "onlyBuiltDependencies": [
-      "@gsknnft/bigint-buffer",
-      "bufferutil",
-      "core-js",
-      "es5-ext",
       "esbuild",
-      "msgpackr-extract",
-      "puppeteer",
+      "keccak",
       "sharp",
-      "utf-8-validate"
+      "unrs-resolver",
+      "utf-8-validate",
+      "workerd"
     ]
-  },
-  "dependencies": {
-    "ci-test": "^0.1.11",
-    "commonjs": "^0.0.1",
-    "ollama": "^0.6.3"
   }
 }

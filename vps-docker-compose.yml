@@ -1,160 +1,344 @@
 services:
+  # 1. API Gateway
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    container_name: api
+    restart: unless-stopped
+    ports:
+      - "3001:3001"
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+        reservations:
+          memory: 512M
+    env_file: .env
+    environment:
+      - NODE_ENV=production
+      - SKIP_ENV_VALIDATION=1
+      - PORT=3001
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - tiltcheck-network
+
+  # 2. Discord Bot
   discord-bot:
     build:
       context: .
       dockerfile: apps/discord-bot/Dockerfile
     container_name: discord-bot
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+        reservations:
+          memory: 256M
     env_file: .env
     environment:
+      - NODE_ENV=production
       - SKIP_ENV_VALIDATION=1
-    networks:
-      - tiltcheck-network
-
-  api:
-    build:
-      context: .
-      dockerfile: apps/api/Dockerfile
-    container_name: api
-    ports:
-      - "3001:3001"
-    restart: unless-stopped
-    env_file: .env
-    environment:
-      - SKIP_ENV_VALIDATION=1
-      - PORT=3001
     healthcheck:
-      test: [ "CMD-SHELL", "wget -qO- http://localhost:3001/health/check || exit 0" ]
-      interval: 30s
+      test: ["CMD-SHELL", "node -e \"const http = require('http'); http.get('http://localhost:8085/health', (res) => { if (res.statusCode === 200) process.exit(0); else process.exit(1); }).on('error', () => process.exit(1));\""]
+      interval: 60s
       timeout: 10s
       retries: 3
     networks:
       - tiltcheck-network
 
-  dashboard:
-    build:
-      context: .
-      dockerfile: apps/dashboard/Dockerfile
-    container_name: dashboard
-    ports:
-      - "5055:3000"
-    restart: unless-stopped
-    env_file: .env
-    environment:
-      - SKIP_ENV_VALIDATION=1
-      - PORT=3000
-    healthcheck:
-      test: [ "CMD-SHELL", "wget -qO- http://localhost:3000/api/health || exit 0" ]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-    networks:
-      - tiltcheck-network
-
+  # 3. Control Room (Admin)
   control-room:
     build:
       context: .
       dockerfile: apps/control-room/Dockerfile
     container_name: control-room
+    restart: unless-stopped
     ports:
       - "3002:3001"
-    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+        reservations:
+          memory: 256M
     env_file: .env
     environment:
-      - SKIP_ENV_VALIDATION=1
+      - NODE_ENV=production
       - PORT=3001
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3001/health"]
+      interval: 60s
+      timeout: 10s
+      retries: 3
     networks:
       - tiltcheck-network
+    depends_on:
+      - api
 
+  # 4. Landing Page
   landing:
     build:
       context: .
       dockerfile: apps/web/Dockerfile
     container_name: landing
+    restart: unless-stopped
     ports:
       - "8080:80"
-    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+        reservations:
+          memory: 128M
     healthcheck:
-      test: [ "CMD-SHELL", "wget -qO- http://localhost:80/status.html || exit 0" ]
+      test: ["CMD-SHELL", "wget -qO- http://localhost/status.html || exit 0"]
       interval: 60s
       timeout: 5s
       retries: 3
     networks:
       - tiltcheck-network
 
+  # 5. Trust Rollup (Audit Layer)
   trust-rollup:
     build:
       context: .
       dockerfile: apps/trust-rollup/Dockerfile
     container_name: trust-rollup
+    restart: unless-stopped
     ports:
       - "8082:8082"
-    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+        reservations:
+          memory: 256M
     env_file: .env
     environment:
-      - SKIP_ENV_VALIDATION=1
+      - NODE_ENV=production
       - PORT=8082
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8082/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
     networks:
       - tiltcheck-network
+    depends_on:
+      - api
 
+  # 6. User Dashboard (Next.js)
   user-dashboard:
     build:
       context: .
       dockerfile: apps/user-dashboard/Dockerfile
     container_name: user-dashboard
+    restart: unless-stopped
     ports:
       - "6001:6001"
-    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+        reservations:
+          memory: 256M
     env_file: .env
     environment:
-      - SKIP_ENV_VALIDATION=1
+      - NODE_ENV=production
       - PORT=6001
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:6001/health"]
+      interval: 60s
+      timeout: 10s
+      retries: 3
     networks:
       - tiltcheck-network
 
+  # 7. Game Arena (Multiplayer)
   game-arena:
     build:
       context: .
       dockerfile: apps/game-arena/Dockerfile
     container_name: game-arena
+    restart: unless-stopped
     ports:
       - "7071:3010"
-    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+        reservations:
+          memory: 256M
     env_file: .env
     environment:
-      - SKIP_ENV_VALIDATION=1
+      - NODE_ENV=production
       - PORT=3010
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3010/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
     networks:
       - tiltcheck-network
 
+  # 8. Activity (Discord Activity Support)
+  activity:
+    build:
+      context: .
+      dockerfile: apps/activity/Dockerfile
+    container_name: activity
+    restart: unless-stopped
+    ports:
+      - "3003:3001"
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+        reservations:
+          memory: 256M
+    env_file: .env
+    environment:
+      - NODE_ENV=production
+      - PORT=3001
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3001/health"]
+      interval: 60s
+      timeout: 10s
+      retries: 3
+    networks:
+      - tiltcheck-network
+
+  # 9. Degen Intelligence Agent (DIA)
+  agent:
+    build:
+      context: .
+      dockerfile: packages/agent/Dockerfile
+    container_name: dia-agent
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+        reservations:
+          memory: 512M
+    healthcheck:
+      test: ["CMD-SHELL", "pgrep -f dia-agent || exit 1"]
+      interval: 60s
+      timeout: 10s
+      retries: 3
+    env_file: .env
+    networks:
+      - tiltcheck-network
+
+  # 10. Comic Generator (Automation)
+  comic-generator:
+    build:
+      context: .
+      dockerfile: packages/comic-generator/Dockerfile
+    container_name: comic-generator
+    restart: unless-stopped
+    ports:
+      - "8081:8080"
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+        reservations:
+          memory: 256M
+    env_file: .env
+    environment:
+      - NODE_ENV=production
+      - PORT=8080
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8080/health"]
+      interval: 60s
+      timeout: 10s
+      retries: 3
+    networks:
+      - tiltcheck-network
+
+  # 11. Redis (In-Memory Cache)
   redis:
     image: redis:alpine
     container_name: redis
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+        reservations:
+          memory: 128M
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
     networks:
       - tiltcheck-network
 
-  reverse-proxy:
-    build:
-      context: .
-      dockerfile: apps/reverse-proxy/Dockerfile
-    container_name: reverse-proxy
-    ports:
-      - "81:80"
-      - "444:443"
+  # 12. Local Audit Database (PostgreSQL)
+  audit-db:
+    image: postgres:16-alpine
+    container_name: audit-db
     restart: unless-stopped
-    volumes:
-      - /etc/letsencrypt:/etc/letsencrypt:ro
-      - /home/jme/certbot:/var/www/certbot:ro
-    depends_on:
-      - landing
-      - api
-      - dashboard
-      - user-dashboard
-      - game-arena
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+        reservations:
+          memory: 256M
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "audit_user", "-d", "tiltcheck_audit"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    environment:
+      - POSTGRES_DB=tiltcheck_audit
+      - POSTGRES_USER=audit_user
+      - POSTGRES_PASSWORD_FILE=/run/secrets/db_password
     networks:
       - tiltcheck-network
+
+  # 13. Reverse Proxy (Nginx)
+  proxy:
+    image: nginx:alpine
+    container_name: reverse-proxy
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    deploy:
+      resources:
+        limits:
+          memory: 128M
+        reservations:
+          memory: 64M
+    healthcheck:
+      test: ["CMD", "nginx", "-t"]
+      interval: 60s
+      timeout: 10s
+      retries: 3
+    networks:
+      - tiltcheck-network
+    depends_on:
+      - api
+      - landing
 
 networks:
   tiltcheck-network:
     driver: bridge
+
+volumes:
+  api-data:
+  control-room-data:
+  discord-bot-data:
+  trust-rollup-data:
+  user-dashboard-data:
+  game-arena-data:
+  db-data:

@@ -1,10 +1,4 @@
-/**
- * © 2024–2025 TiltCheck Ecosystem. All Rights Reserved.
- * Created by jmenichole (https://github.com/jmenichole)
- * 
- * This file is part of the TiltCheck project.
- * For licensing information, see LICENSE file in the project root.
- */
+/* Copyright (c) 2026 TiltCheck. All rights reserved. */
 /**
  * TiltCheck Database Client
  * Supabase integration for user stats, game history, and leaderboards
@@ -121,15 +115,24 @@ export interface DegenIdentity {
   tos_nft_signature: string | null;
   nft_savings_sol: number;
   trust_score: number;
-  identity_metadata: Record<string, any>;
+  identity_metadata: Record<string, unknown>;
   created_at: string;
   updated_at: string;
+}
+
+export interface LicenseInfo {
+  source?: string;
+  scraped_at?: string;
+  welcome_bonus?: string | null;
+  site_rating?: string | null;
+  type: string;
+  logo_url?: string | null;
 }
 
 export interface CasinoData {
   domain: string;
   name: string;
-  license_info: any;
+  license_info: LicenseInfo;
   claimed_rtp: number | null;
   verified_rtp: number | null;
   status: string;
@@ -168,7 +171,7 @@ export class DatabaseClient {
   /**
    * Execute a query (for compatibility)
    */
-  async query(_sql: string, _params?: any[]): Promise<any> {
+  async query(_sql: string, _params?: unknown[]): Promise<unknown> {
     // This method exists for compatibility with legacy code
     // For Supabase, use the specific methods instead
     console.warn('DatabaseClient.query() is deprecated. Use specific methods instead.');
@@ -489,6 +492,16 @@ export class DatabaseClient {
   }
 
   /**
+   * Execute a raw query
+   */
+  async raw(sql: string): Promise<{ data: unknown, error: Error | null }> {
+    if (!this.supabase) {
+      return { data: null, error: new Error('Database not connected') };
+    }
+    return this.supabase.rpc('exec', { sql });
+  }
+
+  /**
    * Get or create Degen Identity
    */
   async getDegenIdentity(discordId: string): Promise<DegenIdentity | null> {
@@ -734,7 +747,7 @@ export class DatabaseClient {
   ): Promise<boolean> {
     if (!this.supabase) return false;
 
-    const update: Record<string, any> = {};
+    const update: Record<string, unknown> = {};
     if (settings.refundMode !== undefined) update.refund_mode = settings.refundMode;
     if (settings.hardExpiryAt !== undefined) update.hard_expiry_at = settings.hardExpiryAt;
     if (settings.inactivityDays !== undefined) update.inactivity_days = settings.inactivityDays;
@@ -885,7 +898,7 @@ export class DatabaseClient {
   async recordTiltEvent(data: {
     userId: string;
     timestamp: number;
-    signals: any[];
+    signals: unknown[];
     tiltScore: number;
     context?: 'discord-dm' | 'discord-guild';
   }): Promise<boolean> {
@@ -922,7 +935,7 @@ export class DatabaseClient {
   async getTiltHistory(userId: string, options: {
     days?: number;
     limit?: number;
-  } = {}): Promise<any[]> {
+  } = {}): Promise<unknown[]> {
     if (!this.supabase) return [];
 
     try {
@@ -1041,6 +1054,25 @@ export class DatabaseClient {
         eventsLast7d: 0,
       };
     }
+  }
+
+  /**
+   * Get bonus status for a user
+   */
+  async getBonusStatus(discordId: string): Promise<{casino: string, bonus: string, status: string}[] | null> {
+    if (!this.supabase) return null;
+
+    const { data, error } = await this.supabase
+      .from('user_bonus_status')
+      .select('casino, bonus, status')
+      .eq('discord_id', discordId);
+
+    if (error) {
+      console.error('Error fetching bonus status:', error);
+      return null;
+    }
+
+    return data;
   }
 }
 

@@ -1,0 +1,10 @@
+# .gcloudignore
+# Exclude local dependencies and build artifacts to speed up GCP upload
+node_modules/
+.next/
+dist/
+.turbo/
+.git/
+.env
+*.log
+.pnpm-store/

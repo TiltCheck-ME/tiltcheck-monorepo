@@ -43,6 +43,8 @@ out/
 
 # Logs
 logs/
+!apps/web/admin/logs/
+!apps/web/admin/logs/index.html
 *.log
 npm-debug.log*
 pnpm-debug.log*
@@ -110,13 +112,13 @@ services/trust-engines/data/
 id_rsa*
 id_ecdsa*
 
-# Local policy: disable GitHub automation files
-.github/workflows/
-.github/actions/
-
 # Trust ingest local data
 data/degen-intel-events.jsonl
 apps/api/data/degen-intel-events.jsonl
 tools/channel-watcher/citations.md
 tools/channel-watcher/reports_business.md
 tools/channel-watcher/reports_lore.md
+
+# Google OAuth Credentials (DO NOT COMMIT!)
+apps/api/credentials.json
+apps/api/token.json

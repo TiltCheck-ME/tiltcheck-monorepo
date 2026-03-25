@@ -1,10 +1,4 @@
-/**
- * © 2024–2025 TiltCheck Ecosystem. All Rights Reserved.
- * Created by jmenichole (https://github.com/jmenichole)
- * 
- * This file is part of the TiltCheck project.
- * For licensing information, see LICENSE file in the project root.
- */
+/* Copyright (c) 2026 TiltCheck. All rights reserved. */
 /**
  * @tiltcheck/config
  * 
@@ -62,6 +56,20 @@ export {
   getJustTheTipConfig,
   getBotConfig,
 } from './env.js';
+
+// ============================================================
+// Compliance & Geo-Restriction Configuration
+// ============================================================
+
+/**
+ * Check if a country is in the restricted list
+ */
+export function isCountryRestricted(countryCode: string | undefined): boolean {
+  if (!countryCode) return false;
+  // Use the validated env list
+  const restricted = (process.env.RESTRICTED_COUNTRIES || 'US,GB,FR,AU').split(',');
+  return restricted.includes(countryCode.toUpperCase());
+}
 
 // ============================================================
 // Severity Configuration (Legacy)

@@ -1,3 +1,4 @@
+/* Copyright (c) 2026 TiltCheck. All rights reserved. */
 export type ConversationIntent = 'help' | 'tip' | 'wallet' | 'deposit' | 'withdraw' | 'safety' | 'game' | 'poker' | 'unknown';
 
 const INTENT_KEYWORDS: Array<{ intent: ConversationIntent; words: string[] }> = [

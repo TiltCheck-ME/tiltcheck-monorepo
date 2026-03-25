@@ -1,3 +1,4 @@
+/* Copyright (c) 2026 TiltCheck. All rights reserved. */
 import { Client, TextChannel } from 'discord.js';
 import { Client as ESClient } from '@elastic/elasticsearch';
 import { listReviewOverdueRegulations } from './regulations-retrieval.js';
