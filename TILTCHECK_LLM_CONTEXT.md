@@ -4,13 +4,14 @@
 TiltCheck is a comprehensive "Degen Safety Net" ecosystem designed to provide responsible gambling tools, fraud detection, and bankroll management for crypto users. It shifts the focus from "Service-First" to "Consumer-First," empowering players to verify fairness and manage their own data.
 
 ## Core Mission
-"Check Yourself" - Tools that allow players to generate their own entropy, verify casino fairness, and monitor their own behavioral patterns to prevent tilt.
+"Redeem-to-Win" - Our primary goal is to shift the definition of a "win." Instead of encouraging endless play, TiltCheck actively nudges users to cash out (redeem) their winnings once they cross a profitable threshold. The core mission is to help users secure wins, not just prevent losses.
 
 ## Key Components
 
 ### 1. TiltGuard (Browser Extension)
 - **Function:** Real-time overlay on casino sites (Stake, Rollbit, etc.).
 - **Features:**
+  - **Redeem Nudge:** Actively monitors user balance and nudges them to cash out when they cross a profitable, casino-specific redeem threshold.
   - **Tilt Detection:** Analyzes betting patterns (rage betting, chasing losses) and suggests interventions.
   - **Fairness Verifier:** Intercepts "Play" buttons to lock in client seeds and verify results against Solana block hashes.
   - **SusLink:** Scans URLs for scams/phishing.
