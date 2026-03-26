@@ -16,6 +16,13 @@ import type {
 // Fee configuration
 export const FLAT_FEE_LAMPORTS = 700_000; // 0.0007 SOL
 export const MIN_DEPOSIT_LAMPORTS = 100_000; // 0.0001 SOL
+const DEFAULT_DEPOSIT_AUTO_REFUND_MINUTES = 30;
+
+function getDepositAutoRefundMinutes(): number {
+  const raw = Number(process.env.JUSTTHETIP_DEPOSIT_AUTO_REFUND_MINUTES ?? DEFAULT_DEPOSIT_AUTO_REFUND_MINUTES);
+  if (!Number.isFinite(raw) || raw <= 0) return DEFAULT_DEPOSIT_AUTO_REFUND_MINUTES;
+  return Math.trunc(raw);
+}
 
 // Fallback file path
 const FALLBACK_DIR = path.join(process.cwd(), 'data');
@@ -106,13 +113,16 @@ export class CreditService {
         signature: opts?.signature,
       });
       if (!result) throw new Error('Failed to credit balance');
+      await this.applyDepositAutoRefundWindow(discordId);
       await eventRouter.publish('credit.deposited', 'justthetip', {
         discordId, amountLamports, newBalance: result.newBalance,
       });
       return result;
     }
 
-    return this.fbCredit(discordId, amountLamports, 'deposit', opts);
+    const fallbackResult = this.fbCredit(discordId, amountLamports, 'deposit', opts);
+    await this.applyDepositAutoRefundWindow(discordId);
+    return fallbackResult;
   }
 
   async deduct(
@@ -303,12 +313,10 @@ export class CreditService {
 
   async getStaleBalancesForRefund(): Promise<CreditBalance[]> {
     if (this.db.isConnected()) {
-      // Get all balances with balance > 0, then filter by their individual settings
+      // Get all funded balances (threshold 0 ~= all historical rows), then filter by per-user settings.
       const allStale: CreditBalance[] = [];
-
-      // Check reset-on-activity users
-      const roaBalances = await this.db.getStaleBalances(7 * 24 * 60 * 60 * 1000); // 7-day default
-      for (const b of roaBalances) {
+      const fundedBalances = await this.db.getStaleBalances(0);
+      for (const b of fundedBalances) {
         if (b.refund_mode === 'reset-on-activity') {
           const threshold = b.inactivity_days * 24 * 60 * 60 * 1000;
           const lastActivity = new Date(b.last_activity_at).getTime();
@@ -424,11 +432,33 @@ export class CreditService {
 
     const pending = this.fallback.pendingTips.filter(t => t.recipientId === recipientId && t.status === 'pending');
     for (const tip of pending) {
-      this.fbCredit(recipientId, tip.amountLamports, 'pending_release', { memo: 'pending tip claimed' });
+      this.fbCredit(recipientId, tip.amount_lamports, 'pending_release', { memo: 'pending tip claimed' });
       tip.status = 'claimed';
     }
     this.scheduleSave();
     return pending.length;
+  }
+
+  private async applyDepositAutoRefundWindow(discordId: string): Promise<void> {
+    const minutes = getDepositAutoRefundMinutes();
+    const hardExpiryIso = new Date(Date.now() + minutes * 60 * 1000).toISOString();
+
+    if (this.db.isConnected()) {
+      const ok = await this.db.updateRefundSettings(discordId, {
+        refundMode: 'hard-expiry',
+        hardExpiryAt: hardExpiryIso,
+      });
+      if (!ok) {
+        console.warn(`[CreditService] Failed to set hard-expiry auto-refund window for ${discordId}`);
+      }
+      return;
+    }
+
+    const fb = this.fallback.balances[discordId] || this.createFallbackBalance(discordId);
+    fb.refundMode = 'hard-expiry';
+    fb.hardExpiryAt = new Date(hardExpiryIso).getTime();
+    this.fallback.balances[discordId] = fb;
+    this.scheduleSave();
   }
 
   // ---- Fallback logic (Private) ----

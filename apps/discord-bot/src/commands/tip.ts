@@ -174,10 +174,11 @@ async function handleHelp(interaction: ChatInputCommandInteraction) {
 
 async function handleDeposit(interaction: ChatInputCommandInteraction) {
   const code = depositMonitor.generateDepositCode(interaction.user.id);
+  const autoRefundMins = Math.max(1, Number(process.env.JUSTTHETIP_DEPOSIT_AUTO_REFUND_MINUTES || 30));
   const embed = new EmbedBuilder()
     .setColor(0x00FF00)
     .setTitle('📥 Load SOL Credit')
-    .setDescription(`Send SOL to:\n\`${botWallet.address}\`\n\n**Memo (REQUIRED):**\n\`${code}\``)
+    .setDescription(`Send SOL to:\n\`${botWallet.address}\`\n\n**Memo (REQUIRED):**\n\`${code}\`\n\nUnused balance auto-refunds to your registered wallet after ~${autoRefundMins} minute(s).`)
     .setFooter({ text: 'TiltCheck Payments | JustTheTip' });
   await interaction.reply({ embeds: [embed], ephemeral: true });
 }
@@ -190,11 +191,12 @@ async function handleDepositToken(interaction: ChatInputCommandInteraction) {
   const token = interaction.options.getString('token', true).toUpperCase();
   const code = depositMonitor.generateDepositCode(interaction.user.id);
   tokenDepositMonitor.registerDepositCode(code, interaction.user.id);
+  const autoRefundMins = Math.max(1, Number(process.env.JUSTTHETIP_DEPOSIT_AUTO_REFUND_MINUTES || 30));
 
   const embed = new EmbedBuilder()
     .setColor(0x00FF00)
     .setTitle(`Deposit ${token}`)
-    .setDescription(`Send ${token} to:\n\`${botWallet.address}\`\n\n**Memo (REQUIRED):**\n\`${code}\``);
+    .setDescription(`Send ${token} to:\n\`${botWallet.address}\`\n\n**Memo (REQUIRED):**\n\`${code}\`\n\nUnused balance auto-refunds to your registered wallet after ~${autoRefundMins} minute(s).`);
   await interaction.reply({ embeds: [embed], ephemeral: true });
 }
 

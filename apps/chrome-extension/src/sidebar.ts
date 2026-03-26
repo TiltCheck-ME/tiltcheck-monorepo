@@ -13,6 +13,7 @@
  */
 
 import { EXT_CONFIG, getDiscordLoginUrl } from './config.js';
+import { AuthManager } from './sidebar/auth.js';
 
 const API_BASE = EXT_CONFIG.API_BASE_URL;
 const AI_GATEWAY_URL = EXT_CONFIG.AI_GATEWAY_URL;
@@ -24,6 +25,15 @@ const API_ORIGIN = (() => {
   }
 })();
 const DISCORD_AUTH_MESSAGE_TYPE = 'discord-auth';
+
+const authManager = new AuthManager({
+  addFeedMessage,
+  getStorage,
+  setStorage,
+  showMainContent,
+  syncAccountUi,
+});
+
 let authToken: string | null = null;
 let showSettings = false;
 let apiKeys: any = {
@@ -32,8 +42,7 @@ let apiKeys: any = {
   custom: ''
 };
 
-let isAuthenticated = false;
-let userData: any = null;
+let { isAuthenticated, userData, demoMode, isConnecting } = authManager;
 const SIDEBAR_WIDTH = 340;
 const MINIMIZED_WIDTH = 40;
 const SIDEBAR_VISIBILITY_KEY = 'tiltcheck_sidebar_visible';
@@ -52,7 +61,6 @@ let discordAuthPollIntervalId: ReturnType<typeof setInterval> | null = null;
 let buddyMirrorEnabled = false;
 let demoMode = false;
 const SIDEBAR_PREFS_KEY = 'sidebarUiPrefs';
-const WALLET_LOCK_UNTIL_KEY = 'walletLockUntil';
 let showAdvancedTools = false;
 let isConnecting = false;
 
@@ -304,6 +312,12 @@ function formatLockRemaining(ms: number): string {
 
 async function ensureWalletUnlocked(actionLabel: string): Promise<boolean> {
   if (!userData || demoMode) return true;
+<<<<<<< HEAD
+  const state = await apiCall(`/vault/${userData.id}/wallet-lock-status`);
+  if (state?.locked) {
+    const remaining = formatLockRemaining(Number(state.remainingMs || 0));
+    const message = `Wallet lock is active (${remaining}). Unlock in popup to ${actionLabel}.`;
+=======
   const state = await apiCall(`/vault/${userData.id}/lock-status`);
   const isLocked = state?.locked === true;
   if (isLocked) {
@@ -311,6 +325,7 @@ async function ensureWalletUnlocked(actionLabel: string): Promise<boolean> {
       || Math.max(0, new Date(String(state?.unlockTime || 0)).getTime() - Date.now());
     const remaining = formatLockRemaining(remainingMs);
     const message = `Wallet lock is active (${remaining}). Unlock in sidebar to ${actionLabel}.`;
+>>>>>>> main
     updateStatus(message, 'warning');
     addFeedMessage(message);
     return false;
