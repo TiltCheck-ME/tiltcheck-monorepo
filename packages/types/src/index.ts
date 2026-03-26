@@ -840,8 +840,17 @@ export interface UserDiscordLinkedEventData {
 
 export interface SafetyInterventionTriggeredEventData {
   userId: string;
-  type: 'phone_friend_discord' | 'lock_override' | 'nudge';
-  data: Record<string, any>;
+  riskScore: number; // 0-100
+  interventionLevel: 'CAUTION' | 'WARNING' | 'CRITICAL';
+  action: 'OVERLAY_MESSAGE' | 'COOLDOWN_LOCK' | 'SELF_EXCLUDE_PROMPT' | 'PHONE_FRIEND' | 'PROFITS_VAULTED';
+  displayText: string;
+  telemetrySnapshot?: {
+    balance: number;
+    peak: number;
+    velocity: number; // bets/min or similar
+    sentiment: 'neutral' | 'positive_tilt' | 'chase' | 'crisis';
+  };
+  metadata?: Record<string, any>;
 }
 
 export interface VaultExpiredEventData {
@@ -1356,8 +1365,21 @@ export interface EventPayload<T> {
 export interface OnboardingStatus {
   userId: string;
   onboardingCompleted: boolean;
+  tutorialCompleted: boolean;
   lastStepCompleted?: number;
+  riskLevel?: 'conservative' | 'moderate' | 'degen';
+  quizResults?: Record<string, string | number | boolean>;
   updatedAt: number;
+}
+
+export interface RiskQuizQuestion {
+  id: string;
+  text: string;
+  options: {
+    label: string;
+    value: string | number;
+    riskWeight: number; // -1 to 1 (conservative to degen)
+  }[];
 }
 
 /**

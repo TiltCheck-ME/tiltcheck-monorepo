@@ -262,3 +262,9 @@ export function truncateWallet(address: string, chars = 4): string {
   if (address.length <= chars * 2 + 3) return address;
   return `${address.slice(0, chars)}...${address.slice(-chars)}`;
 }
+
+// Branding
+export { DEGEN_QUOTES, getRandomQuote } from './quotes.js';
+
+// Onboarding
+export { ONBOARDING_QUESTIONS, calculateSuggestedRisk } from './onboarding.js';

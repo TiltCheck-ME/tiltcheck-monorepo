@@ -18,6 +18,7 @@ import {
   DMChannel,
 } from 'discord.js';
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
+import { getRandomQuote, ONBOARDING_QUESTIONS, calculateSuggestedRisk } from '@tiltcheck/utils';
 
 // Supabase client for persistent storage (free tier)
 let supabase: SupabaseClient | null = null;
@@ -48,6 +49,8 @@ interface UserPreferences {
   cooldownEnabled: boolean;
   dailyLimit?: number;
   hasAcceptedTerms: boolean;
+  quizScores: Record<string, number>;
+  tutorialCompleted: boolean;
   degenId?: string; // Future NFT-based ID
 }
 
@@ -89,6 +92,8 @@ async function loadOnboardingData(): Promise<void> {
           cooldownEnabled: row.cooldown_enabled,
           dailyLimit: row.daily_limit,
           hasAcceptedTerms: row.has_accepted_terms,
+          quizScores: row.quiz_scores ? JSON.parse(row.quiz_scores) : {},
+          tutorialCompleted: row.tutorial_completed || false,
         };
         userPreferences.set(row.discord_id, prefs);
       }
@@ -115,6 +120,8 @@ async function saveOnboardingToDb(userId: string, prefs: UserPreferences): Promi
         risk_level: prefs.riskLevel,
         cooldown_enabled: prefs.cooldownEnabled,
         daily_limit: prefs.dailyLimit,
+        quiz_scores: JSON.stringify(prefs.quizScores),
+        tutorial_completed: prefs.tutorialCompleted,
         notifications_tips: prefs.notifications.tips,
         notifications_trivia: prefs.notifications.trivia,
         notifications_promos: prefs.notifications.promos,
@@ -211,7 +218,7 @@ export async function sendWelcomeDM(user: User): Promise<boolean> {
         `Ready to set up your safety preferences?`
       )
       .setThumbnail('https://tiltcheck.me/assets/logo/favicon-white.svg')
-      .setFooter({ text: 'TiltCheck Safety Bot - Powered by TiltCheck - Est. 2024' });
+      .setFooter({ text: `TiltCheck Safety Bot | ${getRandomQuote()}` });
 
     const getStartedBtn = new ButtonBuilder()
       .setCustomId('onboard_start')
@@ -263,6 +270,10 @@ export async function handleOnboardingInteraction(
       break;
 
     case 'onboard_accept_terms':
+      await showRiskQuiz(interaction, 0);
+      break;
+
+    case 'onboard_skip_quiz':
       await showPreferences(interaction);
       break;
 
@@ -281,6 +292,8 @@ export async function handleOnboardingInteraction(
     default:
       if (interaction.customId.startsWith('onboard_pref_')) {
         await handlePreferenceSelection(interaction);
+      } else if (interaction.customId.startsWith('onboard_quiz_')) {
+        await handleQuizSelection(interaction);
       }
   }
 }
@@ -300,25 +313,110 @@ async function showTermsAndConditions(interaction: MessageComponentInteraction):
       `You are responsible for your own decisions. Use these tools responsibly.\n\n` +
       `**No Financial Advice**\n` +
       `Nothing here is financial advice.\n\n` +
-      `**Privacy**\n` +
-      `We store your Discord ID and safety preferences only.\n\n` +
-      `By continuing, you agree to use TiltCheck responsibly.`
+      `**Risk Quiz**\n` +
+      `I'll ask a few questions to suggest the right safety settings for you.\n\n` +
+      `By continuing, you agree to TiltCheck's surgical audit protocol.`
     );
 
-  const acceptBtn = new ButtonBuilder()
+  const startQuizBtn = new ButtonBuilder()
     .setCustomId('onboard_accept_terms')
-    .setLabel('I Accept')
+    .setLabel('Begin Assessment')
     .setStyle(ButtonStyle.Success);
 
-  const declineBtn = new ButtonBuilder()
-    .setCustomId('onboard_decline_terms')
-    .setLabel('Decline')
-    .setStyle(ButtonStyle.Danger);
+  const skipBtn = new ButtonBuilder()
+    .setCustomId('onboard_skip_quiz')
+    .setLabel('Manual Setup')
+    .setStyle(ButtonStyle.Secondary);
 
   const row = new ActionRowBuilder<ButtonBuilder>()
-    .addComponents(acceptBtn, declineBtn);
+    .addComponents(startQuizBtn, skipBtn);
 
   await interaction.update({ embeds: [termsEmbed], components: [row] });
+}
+
+/**
+ * Show a specific step of the Risk Assessment Quiz
+ */
+async function showRiskQuiz(
+  interaction: MessageComponentInteraction,
+  stepIndex: number
+): Promise<void> {
+  const question = ONBOARDING_QUESTIONS[stepIndex];
+
+  if (!question) {
+    await showPreferences(interaction);
+    return;
+  }
+
+  const quizEmbed = new EmbedBuilder()
+    .setColor(0x00D4AA)
+    .setTitle(`Risk Assessment — Step ${stepIndex + 1} of ${ONBOARDING_QUESTIONS.length}`)
+    .setDescription(`**${question.text}**`)
+    .setFooter({ text: `TiltCheck Assessment | ${getRandomQuote()}` });
+
+  const rows: ActionRowBuilder<ButtonBuilder>[] = [];
+  let currentRow = new ActionRowBuilder<ButtonBuilder>();
+
+  question.options.forEach((opt, idx) => {
+    const btn = new ButtonBuilder()
+      .setCustomId(`onboard_quiz_${stepIndex}_${idx}`)
+      .setLabel(opt.label)
+      .setStyle(ButtonStyle.Secondary);
+    
+    if (idx > 0 && idx % 2 === 0) {
+      rows.push(currentRow);
+      currentRow = new ActionRowBuilder<ButtonBuilder>();
+    }
+    currentRow.addComponents(btn);
+  });
+  rows.push(currentRow);
+
+  await interaction.update({ embeds: [quizEmbed], components: rows });
+}
+
+/**
+ * Handle quiz option selection
+ */
+async function handleQuizSelection(interaction: MessageComponentInteraction): Promise<void> {
+  const [,, stepIdxStr, optIdxStr] = interaction.customId.split('_');
+  const stepIdx = parseInt(stepIdxStr);
+  const optIdx = parseInt(optIdxStr);
+
+  const question = ONBOARDING_QUESTIONS[stepIdx];
+  if (!question) return;
+
+  const option = question.options[optIdx];
+  if (!option) return;
+
+  let prefs = userPreferences.get(interaction.user.id);
+  if (!prefs) {
+    prefs = {
+      userId: interaction.user.id,
+      discordId: interaction.user.id,
+      joinedAt: Date.now(),
+      notifications: { tips: true, trivia: true, promos: false },
+      riskLevel: 'moderate',
+      cooldownEnabled: true,
+      hasAcceptedTerms: true,
+      quizScores: {},
+      tutorialCompleted: false
+    };
+  }
+
+  prefs.quizScores[question.id] = option.riskWeight;
+  userPreferences.set(interaction.user.id, prefs);
+
+  if (stepIdx + 1 < ONBOARDING_QUESTIONS.length) {
+    await showRiskQuiz(interaction, stepIdx + 1);
+  } else {
+    // End of quiz: Calculate suggestion
+    const risk = calculateSuggestedRisk(prefs.quizScores);
+    prefs.riskLevel = risk;
+    prefs.cooldownEnabled = risk !== 'degen';
+    userPreferences.set(interaction.user.id, prefs);
+
+    await showPreferences(interaction, true);
+  }
 }
 
 /**
@@ -341,7 +439,7 @@ async function showLearnMore(interaction: MessageComponentInteraction): Promise<
       `**Ecosystem**\n` +
       `Tips and wallets are handled by **JustTheTip**. Bonus timers and promos live in **CollectClock**.`
     )
-    .setFooter({ text: 'Ready to get started? Click below.' });
+    .setFooter({ text: `TiltCheck | ${getRandomQuote()}` });
 
   const startBtn = new ButtonBuilder()
     .setCustomId('onboard_start')
@@ -362,28 +460,32 @@ async function showLearnMore(interaction: MessageComponentInteraction): Promise<
 /**
  * Show preferences setup (via interaction update)
  */
-async function showPreferences(interaction: MessageComponentInteraction): Promise<void> {
+async function showPreferences(
+  interaction: MessageComponentInteraction,
+  isSuggested = false
+): Promise<void> {
   const prefs: UserPreferences = userPreferences.get(interaction.user.id) ?? {
     userId: interaction.user.id,
     discordId: interaction.user.id,
     joinedAt: Date.now(),
     notifications: { tips: true, trivia: true, promos: false },
     riskLevel: 'moderate',
-    cooldownEnabled: false,
+    cooldownEnabled: true,
+    quizScores: {},
+    tutorialCompleted: false,
     hasAcceptedTerms: true,
   };
   userPreferences.set(interaction.user.id, prefs);
 
+  const description = isSuggested
+    ? `**Surgical Assessment Complete.**\nBased on your answers, I suggest a **${prefs.riskLevel.toUpperCase()}** profile. You can still tweak these below.`
+    : `Almost done. Customize your experience.\n\n**Notifications**\nChoose what you want to be notified about.\n\n**Risk Level**\nThis affects default cooldown suggestions and safety nudges.`;
+
   const prefsEmbed = new EmbedBuilder()
     .setColor(0x00D4AA)
-    .setTitle('Set Your Preferences')
-    .setDescription(
-      `Almost done. Customize your experience.\n\n` +
-      `**Notifications**\n` +
-      `Choose what you want to be notified about.\n\n` +
-      `**Risk Level**\n` +
-      `This affects default cooldown suggestions and safety nudges.`
-    );
+    .setTitle(isSuggested ? '🧠 SUGGESTED SETTINGS' : 'Set Your Preferences')
+    .setDescription(description)
+    .setFooter({ text: `TiltCheck Protocol | ${getRandomQuote()}` });
 
   const notifSelect = new StringSelectMenuBuilder()
     .setCustomId('onboard_pref_notifications')
@@ -554,7 +656,7 @@ async function completeOnboarding(interaction: MessageComponentInteraction): Pro
       `/help - Full command list\n\n` +
       `Questions? Use /support or join our Discord.`
     )
-    .setFooter({ text: 'TiltCheck Safety Bot - Powered by TiltCheck - Stay safe out there.' });
+    .setFooter({ text: `TiltCheck Safety Bot | ${getRandomQuote()}` });
 
   const discordBtn = new ButtonBuilder()
     .setLabel('Join TiltCheck Discord')

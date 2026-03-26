@@ -254,6 +254,8 @@ export interface UserOnboarding {
   risk_level: 'conservative' | 'moderate' | 'degen';
   cooldown_enabled: boolean;
   daily_limit: number | null;
+  quiz_scores: string | null;
+  tutorial_completed: boolean;
   notifications_tips: boolean;
   notifications_trivia: boolean;
   notifications_promos: boolean;
@@ -271,6 +273,8 @@ export interface UpsertOnboardingPayload {
   risk_level?: 'conservative' | 'moderate' | 'degen';
   cooldown_enabled?: boolean;
   daily_limit?: number | null;
+  quiz_scores?: string | null;
+  tutorial_completed?: boolean;
   notifications_tips?: boolean;
   notifications_trivia?: boolean;
   notifications_promos?: boolean;

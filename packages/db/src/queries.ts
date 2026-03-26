@@ -136,19 +136,21 @@ export async function upsertOnboarding(payload: UpsertOnboardingPayload): Promis
   const sql = `
     INSERT INTO user_onboarding (
       discord_id, is_onboarded, has_accepted_terms, risk_level, 
-      cooldown_enabled, daily_limit, notifications_tips, 
-      notifications_trivia, notifications_promos, updated_at
+      cooldown_enabled, daily_limit, quiz_scores, tutorial_completed,
+      notifications_tips, notifications_trivia, notifications_promos, updated_at
     ) 
-    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW())
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, NOW())
     ON CONFLICT (discord_id) DO UPDATE SET
       is_onboarded = COALESCE($2, user_onboarding.is_onboarded),
       has_accepted_terms = COALESCE($3, user_onboarding.has_accepted_terms),
       risk_level = COALESCE($4, user_onboarding.risk_level),
       cooldown_enabled = COALESCE($5, user_onboarding.cooldown_enabled),
       daily_limit = COALESCE($6, user_onboarding.daily_limit),
-      notifications_tips = COALESCE($7, user_onboarding.notifications_tips),
-      notifications_trivia = COALESCE($8, user_onboarding.notifications_trivia),
-      notifications_promos = COALESCE($9, user_onboarding.notifications_promos),
+      quiz_scores = COALESCE($7, user_onboarding.quiz_scores),
+      tutorial_completed = COALESCE($8, user_onboarding.tutorial_completed),
+      notifications_tips = COALESCE($9, user_onboarding.notifications_tips),
+      notifications_trivia = COALESCE($10, user_onboarding.notifications_trivia),
+      notifications_promos = COALESCE($11, user_onboarding.notifications_promos),
       updated_at = NOW()
     RETURNING *
   `;
@@ -160,6 +162,8 @@ export async function upsertOnboarding(payload: UpsertOnboardingPayload): Promis
     payload.risk_level ?? null,
     payload.cooldown_enabled ?? null,
     payload.daily_limit ?? null,
+    payload.quiz_scores ?? null,
+    payload.tutorial_completed ?? null,
     payload.notifications_tips ?? null,
     payload.notifications_trivia ?? null,
     payload.notifications_promos ?? null,

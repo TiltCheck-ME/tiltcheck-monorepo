@@ -11,6 +11,7 @@ import {
   TextChannel,
 } from 'discord.js';
 import type { Command } from '../types.js';
+import { getRandomQuote } from '@tiltcheck/utils';
 
 export const jme: Command = {
   data: new SlashCommandBuilder()
@@ -93,7 +94,7 @@ async function handlePurge(interaction: ChatInputCommandInteraction) {
       .setColor(0xff4b2b)
       .setTitle('🧹 CHANNEL AUDIT: COMPLETE')
       .setDescription(`Surgically removed **${deletedCount}** messages from this sector.`)
-      .setFooter({ text: 'TiltCheck | Administrative Cleanse' });
+      .setFooter({ text: `TiltCheck | ${getRandomQuote()}` });
 
     await interaction.editReply({ embeds: [embed] });
   } catch (error) {
@@ -122,7 +123,7 @@ async function handleNuke(interaction: ChatInputCommandInteraction) {
       { name: 'Protocol', value: 'Full GGR Reset', inline: true },
       { name: 'Status', value: 'Processing Database Purge...', inline: false }
     )
-    .setFooter({ text: 'TiltCheck | Tactical Override' });
+    .setFooter({ text: `TiltCheck | ${getRandomQuote()}` });
 
   await interaction.reply({ embeds: [embed], ephemeral: true });
   
@@ -143,7 +144,7 @@ async function handleIntel(interaction: ChatInputCommandInteraction) {
       { name: 'Cluster', value: 'Google Cloud Run (us-central1)', inline: false },
       { name: 'DB Pooler', value: process.env.POSTGRESQL ? 'CONNECTING/READY' : 'OFFLINE', inline: true }
     )
-    .setFooter({ text: 'TiltCheck | Central Audit Layer' });
+    .setFooter({ text: `TiltCheck | ${getRandomQuote()}` });
 
   await interaction.reply({ embeds: [embed], ephemeral: true });
 }
