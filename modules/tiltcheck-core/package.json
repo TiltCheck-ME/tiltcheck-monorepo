@@ -12,7 +12,8 @@
   },
   "dependencies": {
     "@tiltcheck/event-router": "workspace:*",
-    "@tiltcheck/types": "workspace:*"
+    "@tiltcheck/types": "workspace:*",
+    "@tiltcheck/utils": "workspace:*"
   },
   "optionalDependencies": {
     "@tiltcheck/ai-client": "workspace:*"

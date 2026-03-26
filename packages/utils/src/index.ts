@@ -268,3 +268,6 @@ export { DEGEN_QUOTES, getRandomQuote } from './quotes.js';
 
 // Onboarding
 export { ONBOARDING_QUESTIONS, calculateSuggestedRisk } from './onboarding.js';
+
+// Sentiment Analysis
+export { analyzeSentiment, type SentimentAnalysisResult, type SentimentStage } from './sentiment-analyzer.js';
