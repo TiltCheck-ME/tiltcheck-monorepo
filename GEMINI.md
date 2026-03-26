@@ -2,6 +2,10 @@
 
 This document provides a foundational overview of the TiltCheck ecosystem architecture, standards, and development roadmap.
 
+## Core Mission
+"Redeem-to-Win" - Our primary goal is to shift the definition of a "win." Instead of encouraging endless play, TiltCheck actively nudges users to cash out (redeem) their winnings once they cross a profitable threshold. The core mission is to help users secure wins, not just prevent losses.
+
+
 ## 1. Project Architecture
 
 The TiltCheck monorepo is managed via **pnpm** and structured into three primary top-level directories:
@@ -27,7 +31,7 @@ The TiltCheck monorepo is managed via **pnpm** and structured into three primary
 - **Language**: TypeScript (Strict Mode)
 - **Backend**: Express, Zod (Validation), pg (PostgreSQL)
 - **Frontend**: Next.js 16 (Dashboard), Vite (Landing Page)
-- **Infrastructure**: Nginx, Cloudflare Workers, Neon (DB), Supabase (Auth/Storage)
+- **Infrastructure**: Google Cloud Platform (GCP)
 - **Tools**: Vitest (Testing), ESLint, Prettier
 
 ## 3. Coding Style Guidelines
@@ -57,7 +61,7 @@ Based on current file structure and codebase status:
 
 - [ ] **Buddy System V2**: Finalize the "Phone a Friend" accountability system in the Chrome Extension and Dashboard.
 - [x] **RTP Scanner Consolidation**: Merged `BonusCheck` and `CollectClock` logic into the `bonuses.html` scanner.
-- [ ] **Compliance Edge**: Implement Geo-Compliance checks in the Cloudflare Worker layer.
+- [ ] **Geo-Regulation Awareness**: Provide users with information about relevant online gambling laws and regulations based on their region.
 
 ### Low Priority (Developer Experience)
 

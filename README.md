@@ -90,7 +90,7 @@ See [16. RGaaS Pivot Docs](./docs/tiltcheck/16-rgaas-pivot.md) for full integrat
 1. **Modularity** — Every tool stands alone
 2. **Interoperability** — Tools share insights through trust engines
 3. **Predictive Intelligence** — AI evaluates fairness, bonus cycles, and tilt
-4. **Cost Discipline** — Built on free-tier infra (Cloudflare, Supabase, etc.)
+4. **Cost Discipline** — Built on GCP serverless infrastructure
 5. **Degen Ergonomics** — Simple, funny, blunt, and extremely practical
 
 ## Branch Protection & Required Checks
@@ -237,40 +237,11 @@ See **[QUICKSTART.md](./QUICKSTART.md)** for 5-minute setup, **[ONE-LAUNCH-DEPLO
 
 ### Production Deployment
 
-For production deployments to Railway:
+The TiltCheck ecosystem is deployed on Google Cloud Platform (GCP). Services are containerized and orchestrated using Google Cloud Run, with CI/CD pipelines managed by Google Cloud Build.
 
-```bash
-# 1. Install Railway CLI
-npm install -g @railway/cli
-
-# 2. Login and link project
-railway login
-railway link
-
-# 3. Set environment variables (see guides below)
-railway variables set DISCORD_TOKEN="your_token"
-railway variables set DISCORD_CLIENT_ID="your_client_id"
-railway variables set DISCORD_GUILD_ID="your_guild_id"
-
-# 4. Deploy
-railway up
-
-# 5. Verify deployment
-bash scripts/verify-railway-deployment.sh
-```
-
-**Production Guides:**
-
-- **[Railway Deployment Guide](./docs/RAILWAY-DEPLOYMENT-GUIDE.md)** - Complete Railway setup and configuration
-- **[Production Deployment Checklist](./docs/PRODUCTION-DEPLOYMENT-CHECKLIST.md)** - Pre-deployment verification
-- **[Post-Deployment Checklist](./docs/POST-DEPLOYMENT-CHECKLIST.md)** - Post-deployment verification and monitoring setup
-- **[Production Runbook](./docs/PRODUCTION-RUNBOOK.md)** - Operational procedures and common tasks
-- **[Production Monitoring](./docs/PRODUCTION-MONITORING.md)** - Monitoring and alerting setup
-- **[Production Troubleshooting](./docs/PRODUCTION-TROUBLESHOOTING.md)** - Problem diagnosis and resolution
-- **[General Troubleshooting](./docs/TROUBLESHOOTING.md)** - Common monorepo issues and solutions
-- **[Environment Variables](./docs/ENV-VARIABLES.md)** - Complete reference of .env configuration
-- **[AI Gateway Production](./docs/AI-GATEWAY-PRODUCTION.md)** - OpenAI integration and cost optimization
-- **[Trust Rollup Production](./docs/TRUST-ROLLUP-PRODUCTION.md)** - Real casino data integration
+For details on the deployment process, see the following documents:
+- **[GCP Deployment Guide](./docs/GCP-DEPLOYMENT-GUIDE.md)** - Complete GCP setup and configuration.
+- **[Production Deployment Checklist](./docs/PRODUCTION-DEPLOYMENT-CHECKLIST.md)** - Pre-deployment verification.
 
 ### Components + A11y Audits
 
@@ -325,11 +296,11 @@ The custom Copilot Agent can answer questions like:
 ## Tech Stack
 
 - **Discord.js** — Bot framework
-- **Cloudflare Workers** — Serverless compute
-- **Supabase** — Database + edge functions
+- **Google Cloud Run** — Serverless compute for all backend services
+- **Google Cloud SQL (PostgreSQL)** — Managed database
 - **Magic.link** — Non-custodial wallet creation
 - **Jupiter** — Solana swaps
-- **SQLite / KV** — Lightweight storage
+- **Google Cloud Storage** — Object storage
 
 ---
 

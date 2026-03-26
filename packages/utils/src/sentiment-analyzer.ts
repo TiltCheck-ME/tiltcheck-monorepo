@@ -72,7 +72,8 @@ export function analyzeSentiment(text: string): SentimentAnalysisResult {
           'EUPHORIA': 30,
           'DESPERATION': 60,
           'BREAKING_POINT': 85,
-          'FINAL_EXIT': 100
+          'FINAL_EXIT': 100,
+          'NEUTRAL': 0
         };
         
         // Boost score based on number of keywords matched

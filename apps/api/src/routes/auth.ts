@@ -151,46 +151,30 @@ function isAllowedActivityRedirectUri(value: string): boolean {
  * POST /auth/register
  * Register a new user with email and password
  */
-router.post('/register', authLimiter, async (req, res) => {
+router.post('/register', authLimiter, async (req, res, next) => {
   try {
     const { email, password } = req.body;
 
     // Validate input
     if (!email || !password) {
-      res.status(400).json({
-        error: 'Email and password are required',
-        code: 'MISSING_FIELDS'
-      });
-      return;
+      return next(new ValidationError('Email and password are required', 'email'));
     }
 
     // Validate email format
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
-      res.status(400).json({
-        error: 'Invalid email format',
-        code: 'INVALID_EMAIL'
-      });
-      return;
+      return next(new ValidationError('Invalid email format', 'email'));
     }
 
     // Validate password length
     if (password.length < 6) {
-      res.status(400).json({
-        error: 'Password must be at least 6 characters',
-        code: 'INVALID_PASSWORD'
-      });
-      return;
+      return next(new ValidationError('Password must be at least 6 characters', 'password'));
     }
 
     // Check if user already exists
     const existingUser = await findUserByEmail(email);
     if (existingUser) {
-      res.status(409).json({
-        error: 'User with this email already exists',
-        code: 'USER_EXISTS'
-      });
-      return;
+      return next(new ConflictError('User with this email already exists'));
     }
 
     // Hash password
@@ -204,11 +188,7 @@ router.post('/register', authLimiter, async (req, res) => {
     });
 
     if (!user) {
-      res.status(500).json({
-        error: 'Failed to create user',
-        code: 'CREATE_FAILED'
-      });
-      return;
+      return next(new InternalServerError('Failed to create user'));
     }
 
     // Generate JWT
@@ -225,7 +205,7 @@ router.post('/register', authLimiter, async (req, res) => {
     });
   } catch (error) {
     console.error('[Auth] Register error:', error);
-    res.status(500).json({ error: 'Registration failed' });
+    return next(new InternalServerError('Registration failed'));
   }
 });
 

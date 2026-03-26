@@ -7,6 +7,7 @@
 import { Router } from 'express';
 import { authMiddleware, AuthRequest } from '../middleware/auth.js';
 import { findOnboardingByDiscordId, upsertOnboarding } from '@tiltcheck/db';
+import { ValidationError, InternalServerError } from '@tiltcheck/error-factory';
 
 const router = Router();
 
@@ -14,13 +15,12 @@ const router = Router();
  * GET /user/onboarding
  * Get onboarding status for the current user
  */
-router.get('/onboarding', authMiddleware, async (req, res) => {
+router.get('/onboarding', authMiddleware, async (req, res, next) => {
     try {
         const userPayload = (req as AuthRequest).user;
 
         if (!userPayload?.discordId) {
-            res.status(400).json({ error: 'User must be linked to Discord to check onboarding' });
-            return;
+            return next(new ValidationError('User must be linked to Discord to check onboarding'));
         }
 
         const onboarding = await findOnboardingByDiscordId(userPayload.discordId);
@@ -49,7 +49,7 @@ router.get('/onboarding', authMiddleware, async (req, res) => {
         });
     } catch (error) {
         console.error('[User API] Get onboarding error:', error);
-        res.status(500).json({ error: 'Failed to get onboarding status' });
+        return next(new InternalServerError('Failed to get onboarding status'));
     }
 });
 
@@ -57,7 +57,7 @@ router.get('/onboarding', authMiddleware, async (req, res) => {
  * POST /user/onboarding
  * Update onboarding status and preferences
  */
-router.post('/onboarding', authMiddleware, async (req, res) => {
+router.post('/onboarding', authMiddleware, async (req, res, next) => {
     try {
         const userPayload = (req as AuthRequest).user;
         const {
@@ -68,8 +68,7 @@ router.post('/onboarding', authMiddleware, async (req, res) => {
         } = req.body;
 
         if (!userPayload?.discordId) {
-            res.status(400).json({ error: 'User must be linked to Discord to update onboarding' });
-            return;
+            return next(new ValidationError('User must be linked to Discord to update onboarding'));
         }
 
         const result = await upsertOnboarding({
@@ -90,7 +89,7 @@ router.post('/onboarding', authMiddleware, async (req, res) => {
         });
     } catch (error) {
         console.error('[User API] Update onboarding error:', error);
-        res.status(500).json({ error: 'Failed to update onboarding status' });
+        return next(new InternalServerError('Failed to update onboarding status'));
     }
 });
 
