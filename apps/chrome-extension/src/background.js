@@ -11,8 +11,10 @@ const API_BASE = 'https://api.tiltcheck.me';
 function isAllowedAuthUrl(value) {
   try {
     const parsed = new URL(value);
-    if (!ALLOWED_AUTH_ORIGINS.has(parsed.origin)) return false;
-    return parsed.pathname === '/auth/discord/login';
+    const origin = parsed.origin;
+    if (ALLOWED_AUTH_ORIGINS.has(origin)) return true;
+    if (origin.endsWith('.a.run.app')) return true;
+    return false;
   } catch {
     return false;
   }

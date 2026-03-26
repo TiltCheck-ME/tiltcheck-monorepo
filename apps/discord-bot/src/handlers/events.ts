@@ -5,7 +5,7 @@
  * Manages Discord client events and Event Router subscriptions.
  */
 
-import { Client, Events, Interaction, TextBasedChannel } from 'discord.js';
+import { Client, Events, Interaction } from 'discord.js';
 import { eventRouter } from '@tiltcheck/event-router';
 import { extractUrls, ModNotifier, createModNotifier, ModNotificationEventType } from '@tiltcheck/discord-utils';
 import { suslink } from '@tiltcheck/suslink';

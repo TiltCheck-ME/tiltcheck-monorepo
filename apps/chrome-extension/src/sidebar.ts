@@ -1,5 +1,5 @@
 /* Copyright (c) 2026 TiltCheck. All rights reserved. */
-﻿/**
+/**
  * (c) 2024–2026 TiltCheck Ecosystem. All Rights Reserved.
  * Created by jmenichole (https://github.com/jmenichole)
  * 
@@ -32,15 +32,25 @@ const authManager = new AuthManager({
   setStorage,
   showMainContent,
   syncAccountUi,
+  updateStatus: (msg, type) => updateStatus(msg, type),
+  updateRealityCheck: () => { },
+  updateLicense: (data) => updateLicense(data),
+  updateTilt: (score, ind) => updateTilt(score, ind),
+  updateStats: (stats) => updateStats(stats),
+  notifyBuddy: (event, data) => notifyBuddy(event, data),
 });
 
 let authToken: string | null = null;
 let userData: any = null;
-let isAuthenticated = false;
 let demoMode = true;
 let isConnecting = false;
 
 let showSettings = false;
+let apiKeys: any = {
+  openai: '',
+  anthropic: '',
+  custom: ''
+};
 const SIDEBAR_WIDTH = 340;
 const MINIMIZED_WIDTH = 40;
 const SIDEBAR_VISIBILITY_KEY = 'tiltcheck_sidebar_visible';
@@ -259,6 +269,26 @@ function getRandomQuote(): string {
   return quotes[Math.floor(Math.random() * quotes.length)];
 }
 
+/**
+ * Surgical Walkthrough Protocol
+ */
+async function startSurgicalWalkthrough() {
+  const messages = [
+    "Welcome back. I've initiated the Surgical Onboarding Protocol.",
+    "1. YOUR HUD: Real-time mathematical audit of your session below.",
+    "2. RISK NUDGE: I'll warn you if I detect tilt or predatory house patterns.",
+    "3. BRAKE: If you're spiraling, I'll suggest a cooldown.",
+    "Tutorial complete. Good luck. Stay objective."
+  ];
+
+  for (const msg of messages) {
+    addFeedMessage(msg);
+    await new Promise(r => setTimeout(r, 3000));
+  }
+  
+  chrome.storage.local.set({ tutorialCompleted: true });
+}
+
 function escapeHtml(value: unknown): string {
   return String(value ?? '')
     .replace(/&/g, '&amp;')
@@ -466,7 +496,7 @@ async function apiCall(endpoint: string, options: any = {}) {
 
 function enableDemoMode() {
   demoMode = true;
-  isAuthenticated = true;
+  // isAuthenticated = true; // Removed duplicate variable assignment
   authToken = null;
   userData = { ...DEMO_USER };
   sessionStats = {
@@ -496,13 +526,13 @@ async function callAIGateway(application: string, data: any = {}) {
       })
     });
 
-    if (response.ok) {
+    if (response && response.ok) {
       return await response.json();
     }
-    console.log('[TiltCheck] Backend AI request failed, using local fallback');
+    console.log('[TiltCheck] Backend AI request failed');
     return { success: false, error: 'Request did not complete. Try again.' };
-  } catch (error) {
-    console.log('[TiltCheck] Backend AI offline, using local fallback');
+  } catch (err) {
+    console.log('[TiltCheck] Backend AI offline or error:', err);
     return { success: false, error: 'Network issue. Try again.' };
   }
 }
@@ -1434,7 +1464,6 @@ function syncAccountUi() {
   demoMode = authManager.demoMode;
   userData = authManager.userData;
   authToken = authManager.authToken;
-  isAuthenticated = authManager.isAuthenticated;
 
   const accountText = document.getElementById('tg-account-text');
   const connectBtn = document.getElementById('tg-connect-discord-inline') as HTMLButtonElement | null;
@@ -1484,7 +1513,7 @@ async function applyDiscordAuthSuccess(token: string, user: Record<string, any>)
   demoMode = false;
   authToken = token;
   userData = { ...user, isDemo: false };
-  isAuthenticated = true;
+  // isAuthenticated = true;
   showMainContent();
   syncAccountUi();
   addFeedMessage(`Connected: ${userData.username || 'TiltCheck user'}`);
@@ -1564,13 +1593,8 @@ function startDiscordLoginFlow() {
   };
 
   try {
-    // User-clicked popup preserves window.opener for callback postMessage.
-    const popup = window.open(authUrl, '_blank', 'popup=yes,width=520,height=760');
-    if (popup) {
-      startStoragePolling();
-      return;
-    }
-
+    // Force use of auth-bridge via background script for reliable cross-origin postMessage
+    // Direct window.open from content scripts often causes 'window.opener' origin issues.
     chrome.runtime.sendMessage({ type: 'open_auth_bridge', url: authUrl }, (response) => {
       if (chrome.runtime.lastError) {
         const msg = chrome.runtime.lastError.message || 'Could not open Discord login tab.';
@@ -2205,7 +2229,7 @@ async function checkAuthStatus() {
     demoMode = false;
     userData = storedUser;
     authToken = token;
-    isAuthenticated = true;
+    // isAuthenticated = true;
     showMainContent();
     syncAccountUi();
     renderGoals(loadGoals());
@@ -2213,6 +2237,13 @@ async function checkAuthStatus() {
     loadVaultBalance();
     checkLockStatus();
     initPnLGraph();
+    
+    chrome.storage.local.get(['tutorialCompleted'], (res) => {
+      if (!res.tutorialCompleted) {
+        void startSurgicalWalkthrough();
+      }
+    });
+
     vaultRefreshIntervalId = setInterval(() => {
       loadVaultBalance();
       checkLockStatus();
