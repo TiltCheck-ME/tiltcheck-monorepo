@@ -60,8 +60,8 @@ export default function VerifyPage() {
     <main className="flex min-h-screen flex-col items-center p-4 pt-24 bg-[#0a0c10]">
       <header className="terminal-header w-full max-w-4xl mb-8">
         <div className="container mx-auto text-center font-mono">
-            <h1 className="terminal-title" data-slang="VERIFY_OS">Verify v1.0.4 // CHECK_YOURSELF</h1>
-            <p className="terminal-subtitle text-[#17c3b2]">Independent Auditing UI</p>
+            <h1 className="terminal-title" data-slang="VERIFY_OS">The Receipt. // Prove they&apos;re not screwing you.</h1>
+            <p className="terminal-subtitle text-[#17c3b2]">Because &quot;provably fair&quot; is just a marketing term until you check the math yourself.</p>
         </div>
       </header>
 
@@ -91,16 +91,16 @@ export default function VerifyPage() {
              {mode === 'tiltcheck' ? (
                <>
                 <div>
-                   <label className="text-[10px] font-bold text-[#17c3b2] uppercase tracking-[0.2em] block mb-2">Solana Block Hash (Platform Salt)</label>
+                   <label className="text-[10px] font-bold text-[#17c3b2] uppercase tracking-[0.2em] block mb-2">Solana Block Hash (The Casino&apos;s Public Fingerprint)</label>
                    <input 
                      value={solanaHash}
                      onChange={(e) => setSolanaHash(e.target.value)}
-                     placeholder="Enter Solana Block Hash..."
+                     placeholder="Paste the recent Solana block hash here..."
                      className="w-full bg-black border border-[#283347] p-3 text-white font-mono text-sm focus:border-[#17c3b2] outline-none"
                    />
                 </div>
                 <div>
-                   <label className="text-[10px] font-bold text-[#17c3b2] uppercase tracking-[0.2em] block mb-2">Discord Identity (User ID)</label>
+                   <label className="text-[10px] font-bold text-[#17c3b2] uppercase tracking-[0.2em] block mb-2">Your Discord ID (Your Fingerprint)</label>
                    <input 
                      value={discordId}
                      onChange={(e) => setDiscordId(e.target.value)}
@@ -111,7 +111,7 @@ export default function VerifyPage() {
                </>
              ) : (
                 <div>
-                   <label className="text-[10px] font-bold text-[#d946ef] uppercase tracking-[0.2em] block mb-2">Server Seed (Raw Hex)</label>
+                   <label className="text-[10px] font-bold text-[#d946ef] uppercase tracking-[0.2em] block mb-2">Revealed Server Seed (The one they give you AFTER they&apos;ve taken your money)</label>
                    <input 
                      value={serverSeed}
                      onChange={(e) => setServerSeed(e.target.value)}
@@ -122,17 +122,17 @@ export default function VerifyPage() {
              )}
 
              <div>
-                <label className="text-[10px] font-bold text-[#17c3b2] uppercase tracking-[0.2em] block mb-2">Client Seed</label>
+                <label className="text-[10px] font-bold text-[#17c3b2] uppercase tracking-[0.2em] block mb-2">Your Client Seed (The one part you control)</label>
                 <input 
                   value={clientSeed}
                   onChange={(e) => setClientSeed(e.target.value)}
-                  placeholder="The user-defined seed..."
+                  placeholder="Whatever you typed in before you started."
                   className="w-full bg-black border border-[#283347] p-3 text-white font-mono text-sm focus:border-[#17c3b2] outline-none"
                 />
              </div>
 
              <div>
-                <label className="text-[10px] font-bold text-[#17c3b2] uppercase tracking-[0.2em] block mb-2">Nonce (Counter)</label>
+                <label className="text-[10px] font-bold text-[#17c3b2] uppercase tracking-[0.2em] block mb-2">Nonce (The number of bets you&apos;ve made)</label>
                 <input 
                   type="number"
                   value={nonce}
@@ -157,7 +157,7 @@ export default function VerifyPage() {
                   <div className="bg-black/80 border border-[#283347] p-4">
                      <span className="text-[10px] font-bold text-gray-500 uppercase block mb-1">HMAC-SHA256 Sig</span>
                      <code className="text-xs break-all text-[#17c3b2] font-mono leading-relaxed">
-                        {resultHash || 'Awaiting Valid Input Configuration...'}
+                        {resultHash || 'Feed me the seeds...'}
                      </code>
                   </div>
 
@@ -189,7 +189,7 @@ export default function VerifyPage() {
 
             <div className="mt-8 pt-6 border-t border-[#283347] text-center">
                <p className="text-[10px] text-gray-600 font-medium uppercase tracking-widest italic">
-                  Results are verified against the standard HMAC-SHA256 normalizers used by major crypto platforms.
+                  We use the same boring math as everyone else. The only difference is we&apos;re showing it to you.
                </p>
             </div>
         </div>
@@ -197,10 +197,9 @@ export default function VerifyPage() {
 
       <footer className="mt-16 text-center max-w-2xl px-6">
         <div className="p-6 bg-[#d946ef]/5 border border-[#d946ef]/20">
-          <h3 className="text-sm font-black text-[#d946ef] uppercase tracking-widest mb-2 italic underline underline-offset-4">Why use the 4-Key Lock?</h3>
+          <h3 className="text-sm font-black text-[#d946ef] uppercase tracking-widest mb-2 italic underline underline-offset-4">Why is the old way dumb?</h3>
           <p className="text-xs text-gray-500 leading-relaxed font-mono">
-             Legacy verification relies on a revealed Server Seed—meaning you can only check fairness AFTER the session ends. 
-             TiltCheck&apos;s 4-Key model uses <span className="text-white">Solana Block Hashes</span> as live, immutable entropy, allowing you to lock in a commitment BEFORE you see the result.
+             Because checking the math after you&apos;ve already lost is just masochism. The old way lets you confirm you got screwed. Our way uses live Solana block hashes so you can prove they&apos;re <span className="text-white">not</span> screwing you, <span className="text-white">before</span> you click.
           </p>
         </div>
       </footer>

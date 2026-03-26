@@ -7,6 +7,9 @@ import express from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import jwt from 'jsonwebtoken';
+import passport from 'passport';
+import { Strategy as DiscordStrategy } from 'passport-discord';
+import session from 'express-session';
 import rateLimit from 'express-rate-limit';
 import { Magic } from '@magic-sdk/admin';
 import { Connection } from '@solana/web3.js';
@@ -23,6 +26,14 @@ const __dirname = dirname(__filename);
 const app = express();
 const PORT = process.env.PORT || process.env.USER_DASHBOARD_PORT || 6001;
 
+// Configuration
+const isProd = process.env.NODE_ENV === 'production';
+const JWT_SECRET = process.env.JWT_SECRET || (isProd ? (() => { throw new Error('JWT_SECRET is required in production'); })() : 'tiltcheck-user-secret-2024');
+const SESSION_SECRET = process.env.SESSION_SECRET || (isProd ? (() => { throw new Error('SESSION_SECRET is required in production'); })() : 'tiltcheck-user-dashboard-secret');
+const DISCORD_CLIENT_ID = process.env.DISCORD_CLIENT_ID || (isProd ? (() => { throw new Error('DISCORD_CLIENT_ID is required in production'); })() : 'your-client-id');
+const DISCORD_CLIENT_SECRET = process.env.DISCORD_CLIENT_SECRET || (isProd ? (() => { throw new Error('DISCORD_CLIENT_SECRET is required in production'); })() : 'your-client-secret');
+const DISCORD_CALLBACK_URL = process.env.DISCORD_CALLBACK_URL || (isProd ? 'https://user-dashboard.tiltcheck.me/auth/discord/callback' : 'http://localhost:6001/auth/discord/callback');
+
 // Rate limiter
 const trustLimiter = rateLimit({
   windowMs: 1 * 60 * 1000,
@@ -30,7 +41,7 @@ const trustLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
 });
-const JWT_SECRET = process.env.JWT_SECRET || (process.env.NODE_ENV === 'production' ? (() => { throw new Error('JWT_SECRET is required in production'); })() : 'tiltcheck-user-secret-2024');
+
 const magicAdmin = new Magic(process.env.MAGIC_SECRET_KEY);
 // Solana connection reserved for future wallet verification features
 const _solanaConnection = new Connection(process.env.SOLANA_RPC_URL || 'https://api.mainnet-beta.solana.com', 'confirmed');
@@ -40,6 +51,33 @@ app.use(cors());
 app.use(cookieParser());
 app.use(express.json());
 app.use(express.static(join(__dirname, '../public')));
+app.use(session({
+  secret: SESSION_SECRET,
+  resave: false,
+  saveUninitialized: false,
+  cookie: { secure: isProd }
+}));
+app.use(passport.initialize());
+app.use(passport.session());
+
+
+// === Passport (Discord) Setup ===
+passport.use(new DiscordStrategy({
+    clientID: DISCORD_CLIENT_ID,
+    clientSecret: DISCORD_CLIENT_SECRET,
+    callbackURL: DISCORD_CALLBACK_URL,
+    scope: ['identify']
+  },
+  (accessToken, refreshToken, profile, done) => {
+    // This callback is called after Discord successfully authenticates the user.
+    // The profile object contains the user's Discord information.
+    // We pass the profile to the `done` callback to be used in our /auth/discord/callback route.
+    return done(null, profile);
+  }
+));
+
+// No need to serialize/deserialize user for JWT-based session management
+// We handle user state in the callback directly.
 
 // === Types ===
 interface UserData {
@@ -79,6 +117,7 @@ interface UserPreferences {
 interface DiscordUser {
   discordId: string;
   username: string;
+  avatar: string;
 }
 
 interface AuthenticatedRequest extends Request {
@@ -128,68 +167,30 @@ async function getUserData(discordId: string): Promise<UserData | null> {
 }
 
 // === Auth Routes ===
-const isProdEnv = process.env.NODE_ENV === 'production';
-const DISCORD_CONFIG = {
-  clientId: process.env.DISCORD_CLIENT_ID,
-  clientSecret: process.env.DISCORD_CLIENT_SECRET,
-  redirectUri:
-    process.env.DISCORD_CALLBACK_URL ||
-    (isProdEnv
-      ? 'https://user-dashboard.tiltcheck.me/auth/discord/callback'
-      : 'http://localhost:6001/auth/discord/callback'),
-};
+app.get('/auth/discord', passport.authenticate('discord'));
 
-app.get('/auth/discord', (_req, res) => {
-  const params = new URLSearchParams({
-    client_id: DISCORD_CONFIG.clientId!,
-    redirect_uri: DISCORD_CONFIG.redirectUri,
-    response_type: 'code',
-    scope: 'identify',
-  });
-  // Note: Discord OAuth authorize endpoint is discord.com/oauth2/authorize (not /api/oauth2/)
-  res.redirect(`https://discord.com/oauth2/authorize?${params.toString()}`);
-});
+app.get('/auth/discord/callback',
+  passport.authenticate('discord', { failureRedirect: '/?error=auth_failed', session: false }),
+  (req: any, res) => {
+    // passport-discord puts the user profile on req.user
+    const user = req.user as { id: string, username: string, avatar: string };
 
-app.get('/auth/discord/callback', async (req, res) => {
-  const { code } = req.query;
-  if (!code) return res.redirect('/?error=no_code');
-
-  try {
-    const tokenRes = await fetch('https://discord.com/api/oauth2/token', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: new URLSearchParams({
-        client_id: DISCORD_CONFIG.clientId!,
-        client_secret: DISCORD_CONFIG.clientSecret!,
-        grant_type: 'authorization_code',
-        code: code as string,
-        redirect_uri: DISCORD_CONFIG.redirectUri,
-      }),
-    });
-
-    const { access_token } = await tokenRes.json() as any;
-    const userRes = await fetch('https://discord.com/api/users/@me', {
-      headers: { Authorization: `Bearer ${access_token}` },
-    });
-
-    const userData = await userRes.json() as any;
     const token = jwt.sign(
-      { discordId: userData.id, username: userData.username, avatar: userData.avatar },
+      { discordId: user.id, username: user.username, avatar: user.avatar },
       JWT_SECRET,
       { expiresIn: '7d' }
     );
 
     res.cookie('auth_token', token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
+      secure: isProd,
       sameSite: 'lax',
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
     res.redirect('/dashboard');
-  } catch {
-    res.redirect('/?error=auth_failed');
   }
-});
+);
+
 
 // === API Routes ===
 app.get('/api/auth/me', authenticateToken as any, (req: any, res) => {
@@ -281,14 +282,15 @@ app.post('/api/agent/query', authenticateToken as any, async (req: any, res) => 
 
 // === Middleware ===
 function authenticateToken(req: AuthenticatedRequest, res: Response, next: NextFunction) {
-  const authHeader = req.headers['authorization'];
-  const token = authHeader && authHeader.split(' ')[1];
-  
+  // Prefer cookie-based auth for web dashboard
+  const token = (req.cookies?.auth_token as string) || null;
   if (!token) {
-    const cookieToken = (req.cookies?.auth_token as string) || null;
-    if (!cookieToken) return res.sendStatus(401);
+    // Fallback to bearer token for direct API calls
+    const authHeader = req.headers['authorization'];
+    const bearerToken = authHeader && authHeader.split(' ')[1];
+    if (!bearerToken) return res.sendStatus(401);
     
-    jwt.verify(cookieToken, JWT_SECRET, (err: any, user: any) => {
+    jwt.verify(bearerToken, JWT_SECRET, (err: any, user: any) => {
       if (err) return res.sendStatus(403);
       req.user = user;
       next();
@@ -303,6 +305,7 @@ function authenticateToken(req: AuthenticatedRequest, res: Response, next: NextF
   });
 }
 
+
 app.get('/dashboard', (_req, res) => {
   res.sendFile(join(__dirname, '../public/index.html'));
 });
@@ -311,6 +314,7 @@ const isMainModule = process.argv[1] && import.meta.url === pathToFileURL(proces
 if (isMainModule) {
   app.listen(PORT, () => {
     console.log(`🎯 Degen Hub listening on port ${PORT}`);
+    console.log(`🔗 Discord OAuth configured for: ${DISCORD_CALLBACK_URL}`);
   });
 }
 
