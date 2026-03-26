@@ -16,6 +16,7 @@
 import { eventRouter } from '@tiltcheck/event-router';
 import type { UserActivity } from './types.js';
 import type { SafetyInterventionTriggeredEventData } from '@tiltcheck/types';
+import { analyzeSentiment } from '@tiltcheck/utils';
 
 export class CircuitBreaker {
   private static instance: CircuitBreaker;
@@ -103,22 +104,45 @@ export class CircuitBreaker {
 
     // --- 4. THE CRISIS (Protective intervention for mental breakage) ---
     // Trigger based on sentiment analysis of messages
-    const crisisKeywords = ["done", "focked", "closing everything", "liquidated", "lost it all", "kill me", "bankrupt"];
-    const lastMessage = messages[messages.length - 1];
-    if (lastMessage && crisisKeywords.some(k => lastMessage.content.toLowerCase().includes(k))) {
-      await this.triggerIntervention(userId, {
-        riskScore: 100,
-        interventionLevel: 'CRITICAL',
-        action: 'SELF_EXCLUDE_PROMPT',
-        displayText: `CRISIS DETECTED. You said you're done. Let's make it official before you do more permanent damage. Click below to trigger the SEON Self-Exclusion across all 2,400 linked platforms. One click for a clean slate. Zero drift. Zero mercy.`,
-        telemetrySnapshot: {
-          balance: currentBalance,
-          peak: peakBalance,
-          velocity: betVelocity,
-          sentiment: 'crisis'
+    for (const msg of messages.slice(-5)) { // Check last 5 messages for rapid sentiment detection
+      const analysis = analyzeSentiment(msg.content);
+      
+      if (analysis.stage !== 'NEUTRAL' && analysis.stage !== 'EUPHORIA') {
+        // Map sentiment stage to intervention level
+        const stageConfigs: Record<string, { level: 'CAUTION' | 'WARNING' | 'CRITICAL', score: number }> = {
+          'DESPERATION': { level: 'WARNING' as const, score: 65 },
+          'BREAKING_POINT': { level: 'CRITICAL' as const, score: 90 },
+          'FINAL_EXIT': { level: 'CRITICAL' as const, score: 100 }
+        };
+
+        const config = stageConfigs[analysis.stage];
+        if (!config) continue;
+
+        // Custom handling for FINAL_EXIT
+        let action: 'COOLDOWN_LOCK' | 'SELF_EXCLUDE_PROMPT' | 'OVERLAY_MESSAGE' | 'PROFITS_VAULTED' = 'SELF_EXCLUDE_PROMPT';
+        let text = `CRISIS DETECTED (${analysis.stage}). My monitors flagged high-risk language in your chat: "${analysis.detectedKeywords.join(', ')}". One more bet is a mistake. Step back now.`;
+
+        if (analysis.stage === 'FINAL_EXIT') {
+          text = `EXIT PROTOCOL ACTIVATED. You mentioned "${analysis.detectedKeywords[0]}". Stop the bleeding now. I've sent a direct link to the Self-Exclusion API and notified your Accountabilibuddy. Zero Drift starts now.`;
+        } else if (analysis.stage === 'DESPERATION') {
+          action = 'COOLDOWN_LOCK';
+          text = `THE CHASE DETECTED. You are showing signs of desperation: "${analysis.detectedKeywords.join(', ')}". I'm locking the vault for 30 minutes to reset your brain chemistry. Logic or Luck—you have neither right now.`;
         }
-      });
-      return;
+
+        await this.triggerIntervention(userId, {
+          riskScore: config.score,
+          interventionLevel: config.level,
+          action,
+          displayText: text,
+          telemetrySnapshot: {
+            balance: currentBalance,
+            peak: peakBalance,
+            velocity: betVelocity,
+            sentiment: analysis.stage.toLowerCase() as any
+          }
+        });
+        return;
+      }
     }
   }
 

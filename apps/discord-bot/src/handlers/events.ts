@@ -377,17 +377,38 @@ export class EventHandler {
       'safety.intervention.triggered',
       async (event: TiltCheckEvent<'safety.intervention.triggered'>) => {
         try {
-          const { userId, type, data } = event.data;
-          
-          if (type === 'phone_friend_discord') {
+          const { userId, type, action, displayText, data } = event.data as any;
+          // The event data might be flat or nested depending on emitter. CircuitBreaker uses flat structure.
+          const finalAction = action || type;
+          const user = await this.client.users.fetch(userId).catch(() => null);
+
+          if (finalAction === 'phone_friend_discord' || finalAction === 'PHONE_FRIEND') {
             const channelId = process.env.DEGEN_ACCOUNTABILITY_CHANNEL_ID || '1447913312015515711';
             const channel = await this.client.channels.fetch(channelId).catch(() => null);
             
             if (channel && channel.isTextBased() && 'send' in channel) {
               const userMention = userId !== 'guest' ? `<@${userId}>` : '**A Guest Degen**';
-              const alertMessage = `🚨 **BUDDY SYSTEM ALERT** 🚨\n\n${userMention} is fumbling the bag! They just hit a zero balance or blew a massive lead. \n\nGet in voice and pull them off the floor before they revenge deposit. \n\n*Action: ${data.message || 'Intervention Required'}*`;
+              const message = data?.message || displayText || 'Intervention Required';
+              const alertMessage = `🚨 **BUDDY SYSTEM ALERT** 🚨\n\n${userMention} is fumbling the bag! \n\nGet in voice and pull them off the floor. \n\n*Reason: ${message}*`;
               await (channel as any).send({ content: alertMessage });
               console.log(`[Bot] Buddy snitch sent to channel ${channelId} for ${userId}`);
+            }
+          }
+
+          if (finalAction === 'SELF_EXCLUDE_PROMPT' && user) {
+            const selfExclusionUrl = process.env.SELF_EXCLUSION_URL || 'https://tiltcheck.app/safety/exclude';
+            const buddyChannelId = process.env.DEGEN_ACCOUNTABILITY_CHANNEL_ID || '1447913312015515711';
+            
+            // 1. DM User
+            await user.send(`🚨 **CRITICAL INTERVENTION** 🚨\n\n${displayText}\n\n**Self-Exclusion link:** ${selfExclusionUrl}\nTake the exit. We're here when you're objective again.`).catch(() => {
+              console.log(`[Bot] Could not DM self-exclusion prompt to ${user.tag}`);
+            });
+
+            // 2. Alert Buddy Channel
+            const channel = await this.client.channels.fetch(buddyChannelId).catch(() => null);
+            if (channel && channel.isTextBased() && 'send' in channel) {
+              const alertMessage = `☢️ **NUCLEAR INTERVENTION** ☢️\n\n<@${userId}> has reached their breaking point or requested exclusion. \n\nI've sent them the links, but they need a real human right now. Check on them.`;
+              await (channel as any).send({ content: alertMessage });
             }
           }
         } catch (error) {

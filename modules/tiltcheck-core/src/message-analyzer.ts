@@ -14,6 +14,7 @@
  */
 
 import type { TiltSignal, MessageActivity } from './types.js';
+import { analyzeSentiment } from '@tiltcheck/utils';
 
 // Type definition for the AI client's detectTilt method
 interface AIClientInterface {
@@ -55,17 +56,6 @@ async function getAIClient(): Promise<AIClientInterface | null> {
   return aiClient;
 }
 
-const TILT_KEYWORDS = [
-  'fuck', 'shit', 'scam', 'rigged', 'bullshit', 'wtf', 'fml',
-  'kill myself', 'done', 'quit', 'never again', 'last time',
-  'this is bullshit', 'fucking rigged', 'im done', 'fuck this',
-];
-
-const LOAN_KEYWORDS = [
-  'loan', 'borrow', 'need money', 'spot me', 'can someone',
-  'please send', 'im broke', 'lost everything', 'need help',
-  'emergency', 'desperate',
-];
 
 /**
  * Analyze recent messages for tilt patterns
@@ -140,31 +130,25 @@ function detectCapsSpam(messages: MessageActivity[], userId: string): TiltSignal
 
 function detectRageKeywords(messages: MessageActivity[], userId: string): TiltSignal | null {
   const recentMessages = messages.slice(-10);
-  let matchCount = 0;
-  let severitySum = 0;
+  let maxSeverity = 0;
+  let matches = 0;
   
   for (const msg of recentMessages) {
-    const lowerContent = msg.content.toLowerCase();
-    for (const keyword of TILT_KEYWORDS) {
-      if (lowerContent.includes(keyword)) {
-        matchCount++;
-        // More severe keywords get higher weight
-        if (keyword.includes('kill') || keyword.includes('done') || keyword.includes('rigged')) {
-          severitySum += 2;
-        } else {
-          severitySum += 1;
-        }
-      }
+    const analysis = analyzeSentiment(msg.content);
+    if (analysis.stage === 'BREAKING_POINT' || analysis.stage === 'FINAL_EXIT') {
+      matches++;
+      const stageSeverity = analysis.stage === 'FINAL_EXIT' ? 5 : 4;
+      maxSeverity = Math.max(maxSeverity, stageSeverity);
     }
   }
   
-  if (matchCount >= 2) {
+  if (matches > 0) {
     return {
       userId,
       signalType: 'rage-quit',
-      severity: Math.min(5, Math.ceil(severitySum / 2)),
-      confidence: 0.8,
-      context: { keywordMatches: matchCount },
+      severity: maxSeverity,
+      confidence: 0.85,
+      context: { matchedMessages: matches },
       detectedAt: Date.now(),
     };
   }
@@ -176,18 +160,16 @@ function detectLoanRequests(messages: MessageActivity[], userId: string): TiltSi
   const recentMessages = messages.slice(-5);
   
   for (const msg of recentMessages) {
-    const lowerContent = msg.content.toLowerCase();
-    for (const keyword of LOAN_KEYWORDS) {
-      if (lowerContent.includes(keyword)) {
-        return {
-          userId,
-          signalType: 'loan-request',
-          severity: 4, // Loan requests are serious tilt indicators
-          confidence: 0.9,
-          context: { messageContent: msg.content.substring(0, 100) },
-          detectedAt: Date.now(),
-        };
-      }
+    const analysis = analyzeSentiment(msg.content);
+    if (analysis.stage === 'DESPERATION') {
+      return {
+        userId,
+        signalType: 'loan-request',
+        severity: 4,
+        confidence: 0.9,
+        context: { detectedKeywords: analysis.detectedKeywords },
+        detectedAt: Date.now(),
+      };
     }
   }
   
