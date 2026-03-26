@@ -8,31 +8,31 @@ import { RiskQuizQuestion } from '@tiltcheck/types';
 
 export const ONBOARDING_QUESTIONS: RiskQuizQuestion[] = [
   {
-    id: 'tilt_trigger',
-    text: "How do you react when you've lost 15% of your session balance?",
+    id: 'delusion_check',
+    text: "Okay, hotshot. You're actually up 20%. What's the genius move?",
     options: [
-      { label: "STOP IMMEDIATELY.", value: 'stop', riskWeight: -1 },
-      { label: "Take a 15-minute walk.", value: 'break', riskWeight: -0.5 },
-      { label: "Increase bet size to win it back fast.", value: 'chase', riskWeight: 1 },
-      { label: "Just another day in the arena.", value: 'neutral', riskWeight: 0.5 }
+      { label: "I'm out. A win is a win.", value: 'secure', riskWeight: -1 },
+      { label: "Set a stop-loss at my entry. Playing with house money now.", value: 'protect', riskWeight: -0.5 },
+      { label: "It's called a 'hot streak' for a reason. Let it ride.", value: 'streak', riskWeight: 0.5 },
+      { label: "Double the bet. Scared money don't make money.", value: 'press', riskWeight: 1 }
     ]
   },
   {
-    id: 'squad_vibe',
-    text: "How often do you participate in high-intensity cluster drops (trivia, giveaways)?",
+    id: 'whats_your_damage',
+    text: "Let's be honest, what's your usual 'strategy'?",
     options: [
-      { label: "Rarely, I prefer slow surgical play.", value: 'solo', riskWeight: -0.5 },
-      { label: "Occasionally with the squad.", value: 'group', riskWeight: 0 },
-      { label: "I LIVE FOR THE HYPE. Notification squad.", value: 'hype', riskWeight: 1 }
+      { label: "I'm a boring RTP nerd. I only play if the math is right.", value: 'analytical', riskWeight: -0.5 },
+      { label: "I'm just here for a good time, but leaving with their money is better.", value: 'casual_profit', riskWeight: 0 },
+      { label: "I chase bonus buys and hunt for those 1000x screen-caps.", value: 'thrill_seeker', riskWeight: 1 }
     ]
   },
   {
-    id: 'limit_preference',
-    text: "What kind of 'Emergency Brake' do you prefer?",
+    id: 'the_leash',
+    text: "This thing has a leash. How tight do you want it?",
     options: [
-      { label: "Hard lock. Don't let me bet if I'm tilting.", value: 'strict', riskWeight: -1 },
-      { label: "Just a nudge. I'll listen... maybe.", value: 'soft', riskWeight: 0.5 },
-      { label: "No locks. I trust my math.", value: 'none', riskWeight: 1 }
+      { label: "If I'm tilting, lock me out. Save me from myself.", value: 'strict', riskWeight: -1 },
+      { label: "Flash a warning. I'll probably ignore it, but at least I saw it.", value: 'nudge', riskWeight: 0.5 },
+      { label: "No leash. I'm an adult. (Narrator: He was not.)", value: 'manual', riskWeight: 1 }
     ]
   }
 ];
