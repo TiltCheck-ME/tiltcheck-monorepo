@@ -32,7 +32,7 @@ const JWT_SECRET = process.env.JWT_SECRET || (isProd ? (() => { throw new Error(
 const SESSION_SECRET = process.env.SESSION_SECRET || (isProd ? (() => { throw new Error('SESSION_SECRET is required in production'); })() : 'tiltcheck-user-dashboard-secret');
 const DISCORD_CLIENT_ID = process.env.DISCORD_CLIENT_ID || (isProd ? (() => { throw new Error('DISCORD_CLIENT_ID is required in production'); })() : 'your-client-id');
 const DISCORD_CLIENT_SECRET = process.env.DISCORD_CLIENT_SECRET || (isProd ? (() => { throw new Error('DISCORD_CLIENT_SECRET is required in production'); })() : 'your-client-secret');
-const DISCORD_CALLBACK_URL = process.env.DISCORD_CALLBACK_URL || (isProd ? 'https://user-dashboard.tiltcheck.me/auth/discord/callback' : 'http://localhost:6001/auth/discord/callback');
+const DISCORD_CALLBACK_URL = process.env.DISCORD_CALLBACK_URL || (isProd ? 'https://dashboard.tiltcheck.me/auth/discord/callback' : 'http://localhost:6001/auth/discord/callback');
 
 // Rate limiter
 const trustLimiter = rateLimit({
@@ -66,7 +66,7 @@ passport.use(new DiscordStrategy({
     clientID: DISCORD_CLIENT_ID,
     clientSecret: DISCORD_CLIENT_SECRET,
     callbackURL: DISCORD_CALLBACK_URL,
-    scope: ['identify']
+    scope: ['identify', 'email']
   },
   (accessToken, refreshToken, profile, done) => {
     // This callback is called after Discord successfully authenticates the user.

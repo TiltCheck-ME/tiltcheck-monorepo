@@ -147,6 +147,14 @@ export class AuthManager {
       this.ui.addFeedMessage('Logged out successfully.');
   }
 
+  public continueAsGuest() {
+    this.demoMode = true;
+    this.isAuthenticated = false; // explicitly not authenticated with Discord
+    this.ui.showMainContent();
+    this.ui.syncAccountUi();
+    this.ui.addFeedMessage('Continuing in Guest mode. Discord features (Buddy Mirror, Global Leaderboard) disabled.');
+  }
+
   public async restoreAuth() {
     const stored = await this.ui.getStorage(['authToken', 'userData']);
     if (stored?.authToken && stored?.userData) {

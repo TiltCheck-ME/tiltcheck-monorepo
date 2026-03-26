@@ -10,13 +10,20 @@ window.addEventListener('DOMContentLoaded', async () => {
     // Initialize Magic SDK safely
     try {
         if (typeof Magic !== 'undefined') {
-            magic = new Magic('pk_live_7CCBBE6E6EF6E6E6', {
-                extensions: { 
+            const magicOptions = {
+                network: 'mainnet-beta'
+            };
+
+            // @ts-ignore - Extension might be on the global or need constructor
+            if (typeof SolanaExtension !== 'undefined') {
+                magicOptions.extensions = { 
                     solana: new SolanaExtension({ 
                         rpcUrl: 'https://api.mainnet-beta.solana.com' 
                     }) 
-                }
-            });
+                };
+            }
+
+            magic = new Magic('pk_live_7CCBBE6E6EF6E6E6', magicOptions);
         }
     } catch (err) {
         console.error('Magic SDK init failed:', err);
