@@ -1,26 +1,38 @@
-# TiltCheck Game Arena - Standalone Container
-FROM node:20-alpine AS build
-
-RUN npm install -g pnpm@10
-ENV CI=true
-ENV SKIP_ENV_VALIDATION=1
-
+# TiltCheck Game Arena - High-Speed Multiplayer Container
+FROM node:20-slim AS base
+ENV PNPM_HOME="/pnpm"
+ENV PATH="$PNPM_HOME:$PATH"
+RUN corepack enable
 WORKDIR /app
 
-COPY package.json pnpm-workspace.yaml pnpm-lock.yaml .npmrc tsconfig.json ./
-COPY packages/ ./packages/
-COPY modules/ ./modules/
-COPY apps/ ./apps/
+# [PHASE 1] Dependency Caching
+# Only copy lockfile and workspace config to cache deps separately from source
+COPY pnpm-lock.yaml pnpm-workspace.yaml package.json .npmrc tsconfig.json ./
+# Build the virtual store
+RUN pnpm fetch
 
-RUN pnpm install --no-frozen-lockfile
-RUN pnpm -r build
+# [PHASE 2] Building
+FROM base AS build
+COPY . .
+# Install only the game-arena dependency subgraph
+RUN pnpm install --offline --filter @tiltcheck/game-arena...
+RUN pnpm --filter @tiltcheck/game-arena... build
+# Prune for production
+RUN pnpm prune --prod --no-optional
 
-FROM node:20-alpine
-RUN npm install -g pnpm@10
-ENV CI=true
-ENV NODE_ENV=production
+# [PHASE 3] Production Runtime
+FROM node:20-slim
 WORKDIR /app
-COPY --from=build /app /app
+# Game Arena needs dumb-init for healthy WebSocket disconnect handling
+RUN apt-get update && apt-get install -y dumb-init && rm -rf /var/lib/apt/lists/*
+ENTRYPOINT ["/usr/bin/dumb-init", "--"]
+
+# Copy only the compiled artifacts and minimal node_modules
+COPY --from=build /app/apps/game-arena/dist ./apps/game-arena/dist
+COPY --from=build /app/node_modules ./node_modules
+COPY --from=build /app/apps/game-arena/package.json ./apps/game-arena/package.json
+COPY --from=build /app/package.json ./package.json
 
 EXPOSE 3010
+# Use the correct server entry point from package.json
 CMD ["node", "apps/game-arena/dist/server.js"]

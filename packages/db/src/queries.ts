@@ -1,10 +1,4 @@
-/**
- * © 2024–2025 TiltCheck Ecosystem. All Rights Reserved.
- * Created by jmenichole (https://github.com/jmenichole)
- * 
- * This file is part of the TiltCheck project.
- * For licensing information, see LICENSE file in the project root.
- */
+/* Copyright (c) 2026 TiltCheck. All rights reserved. */
 /**
  * @tiltcheck/db - Query Helpers
  * Typed query functions for common database operations
@@ -28,7 +22,101 @@ import type {
   PaginatedResult,
   UserOnboarding,
   UpsertOnboardingPayload,
+  Partner,
+  CreatePartnerPayload,
+  Webhook,
+  CreateWebhookPayload,
+  WebhookDelivery,
+  TrustSignal,
+  UserTrustSummary,
+  CreateTrustSignalPayload,
+  BlogPost,
+  CreateBlogPostPayload,
 } from './types.js';
+
+/**
+ * Validates sorting parameters to prevent SQL injection
+ */
+function validateSort(
+  column: string,
+  allowedColumns: string[],
+  direction: string = 'desc'
+): { orderBy: string; orderDir: 'ASC' | 'DESC' } {
+  const orderBy = allowedColumns.includes(column) ? column : allowedColumns[0];
+  const orderDir = direction.toUpperCase() === 'ASC' ? 'ASC' : 'DESC';
+  return { orderBy, orderDir };
+}
+
+// ============================================================================
+// Blog Queries
+// ============================================================================
+
+/**
+ * Get all published blog posts with pagination
+ */
+export async function getBlogPosts(
+  pagination?: PaginationParams
+): Promise<PaginatedResult<BlogPost>> {
+  const { limit = 10, offset = 0 } = pagination || {};
+  const { orderBy, orderDir } = validateSort(
+    pagination?.orderBy || 'created_at',
+    ['created_at', 'title', 'status'],
+    pagination?.orderDir
+  );
+
+  const sql = `
+    SELECT * FROM blog_posts 
+    WHERE status = 'published'
+    ORDER BY ${orderBy} ${orderDir}
+    LIMIT $1 OFFSET $2
+  `;
+
+  const countSql = "SELECT COUNT(*) as count FROM blog_posts WHERE status = 'published'";
+
+  const [rows, countResult] = await Promise.all([
+    query<BlogPost>(sql, [limit, offset]),
+    queryOne<{ count: string }>(countSql),
+  ]);
+
+  const total = parseInt(countResult?.count ?? '0', 10);
+
+  return {
+    rows,
+    total,
+    limit,
+    offset,
+    hasMore: offset + rows.length < total,
+  };
+}
+
+/**
+ * Get a single blog post by slug
+ */
+export async function getBlogPostBySlug(slug: string): Promise<BlogPost | null> {
+  return findOneBy<BlogPost>('blog_posts', 'slug', slug);
+}
+
+/**
+ * Create a new blog post
+ */
+export async function createBlogPost(payload: CreateBlogPostPayload): Promise<BlogPost | null> {
+  return insert<BlogPost>('blog_posts', {
+    ...payload,
+    author: payload.author || 'TiltCheck AI',
+    status: payload.status || 'published',
+    created_at: new Date(),
+    updated_at: new Date(),
+  });
+}
+
+/**
+ * Get the most recent blog post
+ */
+export async function getLatestBlogPost(): Promise<BlogPost | null> {
+  const sql = "SELECT * FROM blog_posts ORDER BY created_at DESC LIMIT 1";
+  return queryOne<BlogPost>(sql);
+}
+
 
 // ============================================================================
 // User Queries
@@ -355,7 +443,12 @@ export async function getTipsBySender(
   senderId: string,
   pagination?: PaginationParams
 ): Promise<PaginatedResult<Tip>> {
-  const { limit = 20, offset = 0, orderBy = 'created_at', orderDir = 'desc' } = pagination || {};
+  const { limit = 20, offset = 0 } = pagination || {};
+  const { orderBy, orderDir } = validateSort(
+    pagination?.orderBy || 'created_at',
+    ['created_at', 'amount_sol', 'status'],
+    pagination?.orderDir
+  );
 
   const sql = `
     SELECT * FROM tips 
@@ -389,7 +482,12 @@ export async function getTipsByRecipient(
   recipientDiscordId: string,
   pagination?: PaginationParams
 ): Promise<PaginatedResult<Tip>> {
-  const { limit = 20, offset = 0, orderBy = 'created_at', orderDir = 'desc' } = pagination || {};
+  const { limit = 20, offset = 0 } = pagination || {};
+  const { orderBy, orderDir } = validateSort(
+    pagination?.orderBy || 'created_at',
+    ['created_at', 'amount_sol', 'status'],
+    pagination?.orderDir
+  );
 
   const sql = `
     SELECT * FROM tips 
@@ -447,7 +545,12 @@ export async function findCasinoByDomain(domain: string): Promise<Casino | null>
 export async function getCasinos(
   pagination?: PaginationParams
 ): Promise<PaginatedResult<Casino>> {
-  const { limit = 20, offset = 0, orderBy = 'name', orderDir = 'asc' } = pagination || {};
+  const { limit = 20, offset = 0 } = pagination || {};
+  const { orderBy, orderDir } = validateSort(
+    pagination?.orderBy || 'name',
+    ['name', 'grade', 'domain', 'created_at'],
+    pagination?.orderDir
+  );
 
   const sql = `
     SELECT * FROM casinos 
@@ -522,7 +625,12 @@ export async function getAuditLogsByAdmin(
   adminId: string,
   pagination?: PaginationParams
 ): Promise<PaginatedResult<AuditLog>> {
-  const { limit = 50, offset = 0, orderBy = 'created_at', orderDir = 'desc' } = pagination || {};
+  const { limit = 50, offset = 0 } = pagination || {};
+  const { orderBy, orderDir } = validateSort(
+    pagination?.orderBy || 'created_at',
+    ['created_at', 'action_type', 'admin_id'],
+    pagination?.orderDir
+  );
 
   const sql = `
     SELECT * FROM audit_logs 
@@ -547,4 +655,120 @@ export async function getAuditLogsByAdmin(
     offset,
     hasMore: offset + rows.length < total,
   };
+}
+
+// ============================================================================
+// Partner & Webhook Queries
+// ============================================================================
+
+/**
+ * Find partner by app ID
+ */
+export async function findPartnerByAppId(appId: string): Promise<Partner | null> {
+  return findOneBy<Partner>('partners', 'app_id', appId);
+}
+
+/**
+ * Find partner by ID
+ */
+export async function findPartnerById(id: string): Promise<Partner | null> {
+  return findById<Partner>('partners', id);
+}
+
+/**
+ * Create a new partner
+ */
+export async function createPartner(payload: CreatePartnerPayload): Promise<Partner | null> {
+  return insert<Partner>('partners', {
+    ...payload,
+    is_active: true,
+    created_at: new Date(),
+    updated_at: new Date(),
+  });
+}
+
+/**
+ * Create a webhook for a partner
+ */
+export async function createWebhook(payload: CreateWebhookPayload): Promise<Webhook | null> {
+  return insert<Webhook>('webhooks', {
+    ...payload,
+    is_active: true,
+    created_at: new Date(),
+    updated_at: new Date(),
+  });
+}
+
+/**
+ * Find active webhooks for a specific event type
+ */
+export async function findActiveWebhooksByEvent(eventType: string): Promise<Webhook[]> {
+  const sql = `
+    SELECT * FROM webhooks 
+    WHERE is_active = true 
+    AND $1 = ANY(events)
+  `;
+  return query<Webhook>(sql, [eventType]);
+}
+
+/**
+ * Log a webhook delivery attempt
+ */
+export async function logWebhookDelivery(delivery: Omit<WebhookDelivery, 'id' | 'created_at'>): Promise<WebhookDelivery | null> {
+  return insert<WebhookDelivery>('webhook_deliveries', {
+    ...delivery,
+    created_at: new Date(),
+  });
+}
+
+// ============================================================================
+// Identity & Trust Queries
+// ============================================================================
+
+/**
+ * Get aggregated trust summary for a Discord ID across all known origins
+ */
+export async function getAggregatedTrustByDiscordId(discordId: string): Promise<UserTrustSummary> {
+  const sql = `
+    SELECT 
+      discord_id,
+      SUM(delta) as total_score,
+      COUNT(*) as signals_count,
+      COUNT(DISTINCT origin_id) as origins_count,
+      MAX(created_at) as last_activity
+    FROM trust_signals
+    WHERE discord_id = $1
+    GROUP BY discord_id
+  `;
+
+  const result = await queryOne<{
+    total_score: string;
+    signals_count: string;
+    origins_count: string;
+    last_activity: string | Date;
+  }>(sql, [discordId]);
+
+  // Base score 100, capped at 0-1000
+  const baseScore = 100;
+  const totalDelta = parseInt(result?.total_score ?? '0', 10);
+  const finalScore = Math.max(0, Math.min(1000, baseScore + totalDelta));
+
+  return {
+    discord_id: discordId,
+    total_score: finalScore,
+    signals_count: parseInt(result?.signals_count ?? '0', 10),
+    origins_count: parseInt(result?.origins_count ?? '0', 10),
+    top_risk_factors: [],
+    last_activity: result?.last_activity ? new Date(result.last_activity) : null,
+  };
+}
+
+/**
+ * Log a new trust signal
+ */
+export async function logTrustSignal(payload: CreateTrustSignalPayload): Promise<TrustSignal | null> {
+  return insert<TrustSignal>('trust_signals', {
+    ...payload,
+    created_at: new Date(),
+  });
 }

@@ -1,3 +1,4 @@
+/* Copyright (c) 2026 TiltCheck. All rights reserved. */
 // v0.1.0 — 2026-02-25
 /**
  * © 2024–2025 TiltCheck Ecosystem. All Rights Reserved.
@@ -22,6 +23,16 @@
 const CASINO_GURU_API_KEY = process.env.CASINO_GURU_API_KEY;
 const ASKGAMBLERS_API_KEY = process.env.ASKGAMBLERS_API_KEY;
 const TRUST_FETCH_TIMEOUT_MS = parseInt(process.env.TRUST_FETCH_TIMEOUT_MS || '5000', 10);
+const TRUST_ROLLUP_ENABLE_BONUS_SOURCE = process.env.TRUST_ROLLUP_ENABLE_BONUS_SOURCE === 'true';
+const TRUST_ROLLUP_ENABLE_COMPLIANCE_SOURCE = process.env.TRUST_ROLLUP_ENABLE_COMPLIANCE_SOURCE === 'true';
+
+const degradedTelemetryKeys = new Set<string>();
+function emitDegradedTelemetryOnce(key: string, detail: string) {
+  const dedupeKey = `${key}:${detail}`;
+  if (degradedTelemetryKeys.has(dedupeKey)) return;
+  degradedTelemetryKeys.add(dedupeKey);
+  console.info(`[TrustRollup] degraded_mode ${key}: ${detail}`);
+}
 
 // Simple fetch wrapper with timeout - handles abort correctly
 async function fetchWithTimeout(url: string, options: RequestInit = {}, timeoutMs = 5000): Promise<Response> {
@@ -175,15 +186,11 @@ export async function fetchPayoutData(casinoName: string): Promise<CasinoExterna
  * In beta, this returns no bonus data unless a real source is implemented.
  */
 export async function fetchBonusData(casinoName: string): Promise<CasinoExternalData['bonusData']> {
-  void casinoName;
-  // TODO: Affiliate APIs Required
-  // Need integration with casino affiliate tracking APIs (e.g., AskGamblers, CasinoNewsDaily)
-  // These APIs provide real-time bonus offer tracking, wagering requirements, and max withdrawal caps.
-  // For now, returns undefined to avoid fabricating data. When APIs are available:
-  // 1. Query casino_name against affiliate database
-  // 2. Extract current offer, wagering multiplier, max withdrawal
-  // 3. Classify bonus terms as "standard" or "restrictive" based on industry norms
-  // 4. Cache results for 24 hours to minimize API calls
+  if (!TRUST_ROLLUP_ENABLE_BONUS_SOURCE) {
+    emitDegradedTelemetryOnce('bonus', `disabled for ${casinoName}`);
+    return undefined;
+  }
+  emitDegradedTelemetryOnce('bonus', `enabled_without_provider for ${casinoName}`);
   return undefined;
 }
 
@@ -193,18 +200,11 @@ export async function fetchBonusData(casinoName: string): Promise<CasinoExternal
  * In beta, this returns no compliance data unless a real source is implemented.
  */
 export async function fetchComplianceData(casinoName: string): Promise<CasinoExternalData['complianceData']> {
-  void casinoName;
-  // TODO: Gaming Authority APIs Required
-  // Requires integration with regulatory body databases:
-  // - Malta MGA (MaltaGaming Authority): License registry query API
-  // - UK Gambling Commission: Industry register API
-  // - Gibraltar Gambling Commission: License verification endpoint
-  // - Curacao GTECH: License lookup for crypto casinos
-  // For now, returns undefined to avoid fabricating licensing claims. When APIs available:
-  // 1. Extract domain from casinoName
-  // 2. Query each authority database for matching license
-  // 3. Retrieve jurisdiction, license number, KYC requirements, reputation score
-  // 4. Cache for 7 days (rarely changes)
+  if (!TRUST_ROLLUP_ENABLE_COMPLIANCE_SOURCE) {
+    emitDegradedTelemetryOnce('compliance', `disabled for ${casinoName}`);
+    return undefined;
+  }
+  emitDegradedTelemetryOnce('compliance', `enabled_without_provider for ${casinoName}`);
   return undefined;
 }
 

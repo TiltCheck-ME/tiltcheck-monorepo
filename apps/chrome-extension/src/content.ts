@@ -1,10 +1,4 @@
-/**
- * © 2024–2025 TiltCheck Ecosystem. All Rights Reserved.
- * Created by jmenichole (https://github.com/jmenichole)
- *
- * This file is part of the TiltCheck project.
- * For licensing information, see LICENSE file in the project root.
- */
+/* Copyright (c) 2026 TiltCheck. All rights reserved. */
 
 /**
  * Enhanced Content Script - TiltCheck + License Verification
@@ -47,11 +41,13 @@ if (isExcludedDomain) {
 import { CasinoDataExtractor, AnalyzerClient, SpinEvent } from './extractor.js';
 import { TiltDetector } from './tilt-detector.js';
 import { CasinoLicenseVerifier } from './license-verifier.js';
-import './sidebar.js';
+import { initSidebar } from './sidebar/index.js';
+import { SidebarUI } from './sidebar/types.js';
 import { Analyzer } from './analyzer.js';
 import { WalletBridge } from './wallet-bridge.js';
 import { SolanaProvider } from '@tiltcheck/utils';
 import { FairnessService } from './FairnessService.js';
+import { EXT_CONFIG } from './config.js';
 
 // Configuration
 const ANALYZER_WS_URL = 'wss://api.tiltcheck.me/analyzer';
@@ -70,11 +66,22 @@ let solana: SolanaProvider | null = null;
 let bridge: WalletBridge | null = null;
 let fairness: FairnessService | null = null;
 let tiltMonitoringInterval: ReturnType<typeof setInterval> | null = null;
+let sidebar: SidebarUI | null = null;
 const FULL_SIDEBAR_WIDTH = 340;
 const MINIMIZED_SIDEBAR_WIDTH = 40;
+const SIDEBAR_VISIBILITY_KEY = 'tiltcheck_sidebar_visible';
 
 // Intervention state
 let cooldownEndTime: number | null = null;
+
+function refreshLicenseVerification() {
+  if (!licenseVerifier) {
+    licenseVerifier = new CasinoLicenseVerifier();
+  }
+  casinoVerification = licenseVerifier.verifyCasino();
+  sidebar?.updateLicense(casinoVerification);
+  return casinoVerification;
+}
 
 function setSidebarVisibility(visible: boolean): boolean {
   const sidebar = document.getElementById('tiltcheck-sidebar');
@@ -84,24 +91,49 @@ function setSidebarVisibility(visible: boolean): boolean {
   const offset = sidebar.classList.contains('minimized') ? MINIMIZED_SIDEBAR_WIDTH : FULL_SIDEBAR_WIDTH;
 
   if (visible) {
-    document.body.style.marginRight = `${offset}px`;
-    document.documentElement.style.marginRight = `${offset}px`;
+    document.body.style.width = `calc(100% - ${offset}px)`;
+    document.documentElement.style.width = `calc(100% - ${offset}px)`;
+    document.body.style.transition = 'width 0.4s cubic-bezier(0.16, 1, 0.3, 1)';
   } else {
-    document.body.style.marginRight = '0px';
-    document.documentElement.style.marginRight = '0px';
+    document.body.style.width = '100%';
+    document.documentElement.style.width = '100%';
   }
 
   return visible;
 }
 
-function toggleSidebarVisibility(): boolean {
-  const sidebar = document.getElementById('tiltcheck-sidebar');
-  if (!sidebar) {
-    const created = (window as any).TiltCheckSidebar?.create();
-    return !!created;
+function persistSidebarVisibility(visible: boolean) {
+  try {
+    chrome.storage.local.set({ [SIDEBAR_VISIBILITY_KEY]: visible });
+  } catch {
+    // Ignore persistence failures; UI still works in-memory.
   }
-  const currentlyVisible = sidebar.style.display !== 'none';
-  return setSidebarVisibility(!currentlyVisible);
+}
+
+async function restoreSidebarVisibility(defaultVisible: boolean) {
+  try {
+    const stored = await chrome.storage.local.get([SIDEBAR_VISIBILITY_KEY]);
+    if (typeof stored[SIDEBAR_VISIBILITY_KEY] === 'boolean') {
+      setSidebarVisibility(stored[SIDEBAR_VISIBILITY_KEY]);
+      return;
+    }
+  } catch {
+    // Fall back to default visibility.
+  }
+  setSidebarVisibility(defaultVisible);
+}
+
+function toggleSidebarVisibility(): boolean {
+  const sidebarEl = document.getElementById('tiltcheck-sidebar');
+  if (!sidebarEl) {
+    sidebar = initSidebar();
+    if (sidebar) persistSidebarVisibility(true);
+    return !!sidebar;
+  }
+  const currentlyVisible = sidebarEl.style.display !== 'none';
+  const visible = setSidebarVisibility(!currentlyVisible);
+  persistSidebarVisibility(visible);
+  return visible;
 }
 
 function getSidebarState() {
@@ -156,7 +188,7 @@ class VisualPicker {
   private onHover = (e: MouseEvent) => {
     if (!this.overlay) return;
     const target = e.target as HTMLElement;
-    if (target === this.overlay || target.closest('#tiltguard-sidebar')) return;
+    if (target === this.overlay || target.closest('#tiltcheck-sidebar')) return;
 
     const rect = target.getBoundingClientRect();
     this.overlay.style.display = 'block';
@@ -292,19 +324,17 @@ function initialize() {
   console.log('[TiltCheck] Initializing on:', window.location.hostname);
 
   // Create sidebar UI
-  const sidebar = (window as any).TiltCheckSidebar?.create();
-  // Keep the sidebar available but hidden by default.
-  setSidebarVisibility(false);
+  sidebar = initSidebar();
+  // Default hidden on TiltCheck-owned pages, visible on supported casino pages.
+  const defaultVisible = !isDomain(hostname, 'tiltcheck.me');
+  void restoreSidebarVisibility(defaultVisible);
   console.log('[TiltCheck] Sidebar created:', !!sidebar);
 
-  // Check casino license
-  licenseVerifier = new CasinoLicenseVerifier();
-  casinoVerification = licenseVerifier.verifyCasino();
-
-  console.log('[TiltCheck] License verification:', casinoVerification);
-
-  // Update sidebar with license info
-  (window as any).TiltCheckSidebar?.updateLicense(casinoVerification);
+  // Check casino license from footer/legal sections and refresh after delayed page content loads.
+  const initialLicenseStatus = refreshLicenseVerification();
+  console.log('[TiltCheck] License verification:', initialLicenseStatus);
+  setTimeout(() => refreshLicenseVerification(), 3000);
+  setTimeout(() => refreshLicenseVerification(), 8000);
 
   // Initialize Fairness Tools
   analyzer = new Analyzer();
@@ -365,7 +395,7 @@ async function startMonitoring() {
   console.log('[TiltCheck] Starting monitoring...');
 
   // Update UI
-  (window as any).TiltCheckSidebar?.updateGuardian(true);
+  sidebar?.updateRealityCheck(true);
   isMonitoring = true;
 
   // Get initial balance
@@ -385,12 +415,21 @@ async function startMonitoring() {
   tiltDetector = new TiltDetector(initialBalance, riskLevel);
 
   // Initialize analyzer client
-  client = new AnalyzerClient(ANALYZER_WS_URL);
+  client = new AnalyzerClient(ANALYZER_WS_URL, (error) => {
+    // Surface post-open disconnect/reconnect failures to UI and logs.
+    console.warn('[TiltGuard] Analyzer connection issue:', error);
+    sidebar?.updateRealityCheck(false);
+    window.dispatchEvent(
+      new CustomEvent('tg-status-update', {
+        detail: { message: 'Analyzer connection dropped. Reconnecting...', type: 'warning' }
+      })
+    );
+  });
 
   try {
     await client.connect();
     console.log('[TiltGuard] Connected to analyzer server');
-  } catch (_error) {
+  } catch {
     console.log('[TiltGuard] Analyzer backend offline - tilt monitoring only');
   }
 
@@ -428,7 +467,7 @@ async function startMonitoring() {
 /**
  * Stop monitoring
  */
-function stopMonitoring() {
+function _stopMonitoring() {
   console.log('[TiltGuard] Stopping monitoring...');
 
   if (stopObserving) {
@@ -446,7 +485,7 @@ function stopMonitoring() {
   }
 
   isMonitoring = false;
-  (window as any).TiltCheckSidebar?.updateGuardian(false);
+  sidebar?.updateRealityCheck(false);
 
   console.log('[TiltGuard] Monitoring stopped');
 }
@@ -482,7 +521,7 @@ function handleSpinEvent(spinData: SpinEvent, session: { sessionId: string, user
     const indicators = tiltSigns.map(sign => sign.description);
 
     // Update sidebar tilt score
-    (window as any).TiltCheckSidebar?.updateTilt(tiltRisk, indicators);
+    sidebar?.updateTilt(tiltRisk, indicators);
 
     const interventions = tiltDetector.generateInterventions();
     if (interventions.length > 0) {
@@ -506,8 +545,21 @@ function handleSpinEvent(spinData: SpinEvent, session: { sessionId: string, user
     });
   }
 
-  // Check for Zero Balance Intervention
-  checkZeroBalance(spinData.balance);
+  // NEW: Push to Hub Relay for Discord Activity
+  fetch(`${EXT_CONFIG.HUB_URL}/telemetry/round`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      userId: session.userId,
+      bet,
+      win: payout
+    })
+  }).catch(err => console.warn('[TiltCheck] Hub relay failed:', err));
+
+  // Check for Bag Fumble or Zero Balance Intervention
+  if (tiltDetector) {
+    checkBagFumble(spinData.balance, tiltDetector.getSessionSummary().initialBalance);
+  }
 
   // Auto-increment Nonce for Fairness Verifier
   const currentNonce = parseInt(localStorage.getItem('tiltcheck_nonce') || '0');
@@ -525,27 +577,58 @@ function handleSpinEvent(spinData: SpinEvent, session: { sessionId: string, user
 }
 
 /**
- * Check if balance hit zero and suggest surveys
+ * Monitor Bag Fumbling (Buddy System)
+ * Triggers if user was up significantly and is now blowing their bag, or if they zero out completely.
  */
-let zeroBalanceTriggered = false;
-function checkZeroBalance(balance: number | null) {
-  if (balance === null) return;
+let peakBalance = 0;
+let zeroTriggered = false;
+let fumbleStrikes = 0;
 
-  // If balance is 0 (or very close to it) and we haven't triggered yet
-  if (balance < 0.05 && !zeroBalanceTriggered) {
-    zeroBalanceTriggered = true;
+function checkBagFumble(balance: number | null, initialBalance: number) {
+  if (balance === null || initialBalance <= 0) return;
 
-    // Show intervention
-    showInteractiveNotification(
-      "📉 Balance hit zero. Want to earn $5-10 quickly with a survey?",
-      [
-        { text: "Open Vault", action: () => { openVaultInterface(0); } },
-        { text: "No thanks", action: () => { } }
-      ]
-    );
-  } else if (balance > 1.0) {
-    // Reset trigger if they deposit or win
-    zeroBalanceTriggered = false;
+  if (balance > peakBalance) {
+    peakBalance = balance;
+  }
+
+  const hadBigBag = peakBalance >= initialBalance * 1.5;
+  const isBlowingIt = hadBigBag && balance <= (initialBalance * 1.1) && balance < (peakBalance * 0.5);
+  const isZero = balance < 0.05;
+
+  if ((isBlowingIt || isZero) && !zeroTriggered) {
+    zeroTriggered = true;
+    fumbleStrikes++;
+
+    if (fumbleStrikes === 1) {
+      // Strike 1
+      showInteractiveNotification(
+        isZero ? 
+        "🛑 0 BALANCE DETECTED. Hey, stop it. You're gonna be mad if you deposit again. Close the tab and go touch grass." :
+        "📉 BAG FUMBLE DETECTED. You were up and now you're giving it all back. Stop spinning before you ruin your week. Go touch grass.",
+        [
+          { text: "Close Tab", action: () => { window.close(); } },
+          { text: "I Won't Deposit (Lie)", action: () => { } }
+        ]
+      );
+    } else {
+      // Strike 2+ (Continued zeroing out / fumbling)
+      showInteractiveNotification(
+        "🚨 REPEATED FUMBLES. You obviously aren't going to stop yourself, so I just pinged the Discord. Get in the 'degen-accountability' VC for a lifeline before you do something stupid.",
+        [
+          { text: "Get Yelled At (Join VC)", action: () => { window.open('https://discord.gg/s6NNfPHxMS', '_blank'); } },
+          { text: "Ignore Me", action: () => { } }
+        ]
+      );
+      
+      // Simulate ping to Discord
+      sidebar?.notifyBuddy('intervention', {
+        type: 'phone_friend_discord',
+        data: { message: 'Discord ping sent to Degen Accountability channel.' }
+      });
+    }
+  } else if (balance >= initialBalance * 1.2 && !isBlowingIt) {
+    // Reset trigger if they actually recover (Strikes persist)
+    zeroTriggered = false;
   }
 }
 
@@ -564,12 +647,12 @@ function startTiltMonitoring() {
     const indicators = tiltSigns.map(sign => sign.description);
 
     // Update sidebar
-    (window as any).TiltCheckSidebar?.updateTilt(tiltRisk, indicators);
+    sidebar?.updateTilt(tiltRisk, indicators);
 
     // Check for critical tilt
     if (tiltRisk >= 80) {
       triggerEmergencyStop('Critical tilt detected!');
-      (window as any).TiltCheckSidebar?.notifyBuddy('critical_tilt', { risk: tiltRisk });
+      sidebar?.notifyBuddy('critical_tilt', { risk: tiltRisk });
     }
   }, 5000); // Check every 5 seconds
 }
@@ -608,7 +691,7 @@ function handleInterventions(interventions: any[]) {
     }
 
     // Notify Buddy
-    (window as any).TiltCheckSidebar?.notifyBuddy('intervention', {
+    sidebar?.notifyBuddy('intervention', {
       type: intervention.type,
       data: intervention.data
     });
@@ -818,29 +901,49 @@ function triggerEmergencyStop(reason: string) {
   `;
 
   warning.innerHTML = `
-    <h2 style="font-size: 24px; margin-bottom: 15px;">🚨 EMERGENCY STOP</h2>
-    <p style="font-size: 16px; margin-bottom: 20px;">${reason}</p>
-    <button id="emergency-vault" style="
-      background: white;
-      color: #cc0000;
-      border: none;
-      padding: 12px 24px;
-      font-size: 14px;
-      font-weight: bold;
-      border-radius: 6px;
-      cursor: pointer;
-      margin-right: 10px;
-    ">Vault Balance</button>
-    <button id="emergency-continue" style="
-      background: rgba(255, 255, 255, 0.2);
-      color: white;
-      border: 1px solid white;
-      padding: 12px 24px;
-      font-size: 14px;
-      font-weight: bold;
-      border-radius: 6px;
-      cursor: pointer;
-    ">I Understand (Continue)</button>
+    <h2 style="font-size: 24px; margin-bottom: 15px; letter-spacing: -0.05em; font-weight: 900;">🚨 EMERGENCY STOP</h2>
+    <p style="font-size: 16px; margin-bottom: 10px; font-weight: bold;">${reason}</p>
+    
+    <div style="
+      background: rgba(0,0,0,0.3); 
+      padding: 15px; 
+      margin-bottom: 20px; 
+      border: 1px solid rgba(255,255,255,0.2);
+      text-align: left;
+      font-size: 11px;
+      line-height: 1.4;
+      color: rgba(255,255,255,0.9);
+      max-height: 120px;
+      overflow-y: auto;
+    ">
+      <b style="color: #ffda00; text-transform: uppercase; font-size: 10px; display: block; margin-bottom: 5px;">Digital Asset Risk Disclosure:</b>
+      TiltCheck is a non-custodial tool. We do not hold your funds. You are solely responsible for your private keys. Crypto assets are highly volatile and involves risk of total loss. No information provided constitutes financial advice.
+    </div>
+
+    <div style="display: flex; gap: 10px; justify-content: center;">
+      <button id="emergency-vault" style="
+        background: white;
+        color: #cc0000;
+        border: none;
+        padding: 14px 20px;
+        font-size: 13px;
+        font-weight: 900;
+        border-radius: 4px;
+        cursor: pointer;
+        text-transform: uppercase;
+      ">Vault Balance</button>
+      <button id="emergency-continue" style="
+        background: rgba(0,0,0,0.4);
+        color: white;
+        border: 2px solid white;
+        padding: 14px 20px;
+        font-size: 13px;
+        font-weight: 900;
+        border-radius: 4px;
+        cursor: pointer;
+        text-transform: uppercase;
+      ">I Acknowledge Risk</button>
+    </div>
   `;
 
   document.body.appendChild(warning);
@@ -1061,9 +1164,11 @@ async function getUserId(): Promise<string> {
   };
   return new Promise((resolve) => {
     try {
-      // Try to get from chrome storage
-      chrome.storage.local.get(['tiltguard_user_id'], (result) => {
-        if (result.tiltguard_user_id) {
+      // 1. Prefer authenticated Discord ID if available
+      chrome.storage.local.get(['userData', 'tiltguard_user_id'], (result: any) => {
+        if (result.userData?.id) {
+          resolve(result.userData.id as string);
+        } else if (result.tiltguard_user_id) {
           resolve(result.tiltguard_user_id as string);
         } else {
           // Generate new user ID
@@ -1072,8 +1177,16 @@ async function getUserId(): Promise<string> {
           resolve(newId as string);
         }
       });
-    } catch (_e) {
-      // Fallback to localStorage if chrome.storage is not available
+    } catch {
+      // Fallback to localStorage
+      const storedUserData = localStorage.getItem('userData');
+      if (storedUserData) {
+        try {
+          const user = JSON.parse(storedUserData);
+          if (user.id) return resolve(user.id);
+        } catch { /* ignore */ }
+      }
+      
       let userId = localStorage.getItem('tiltguard_user_id');
       if (!userId) {
         userId = createUserId();
@@ -1088,7 +1201,7 @@ async function getUserId(): Promise<string> {
  * Setup listeners for "Play" button to capture commitment
  */
 function setupFairnessListeners() {
-  const observer = new MutationObserver((mutations) => {
+  const observer = new MutationObserver((_mutations) => {
     // Generic selector for bet buttons - refine per casino
     const playBtns = document.querySelectorAll('[data-testid="bet-button"], .bet-button, button[class*="bet"]');
 
@@ -1230,11 +1343,12 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
     }
 
     case 'open_sidebar': {
-      const sidebar = document.getElementById('tiltcheck-sidebar');
-      if (!sidebar) {
-        (window as any).TiltCheckSidebar?.create();
+      const sidebarEl = document.getElementById('tiltcheck-sidebar');
+      if (!sidebarEl) {
+        sidebar = initSidebar();
       }
       const visible = setSidebarVisibility(true);
+      persistSidebarVisibility(true);
       sendResponse({ success: true, visible });
       break;
     }

@@ -1,10 +1,4 @@
-/**
- * © 2024–2025 TiltCheck Ecosystem. All Rights Reserved.
- * Created by jmenichole (https://github.com/jmenichole)
- * 
- * This file is part of the TiltCheck project.
- * For licensing information, see LICENSE file in the project root.
- */
+/* Copyright (c) 2026 TiltCheck. All rights reserved. */
 /**
  * DA&D (Degens Against Decency) Module
  * AI-powered card game for Discord communities
@@ -73,7 +67,12 @@ export interface Player {
 export interface GameRound {
   roundNumber: number;
   blackCard: BlackCard;
+  judgeUserId: string;
+  phase: 'submitting' | 'revealing' | 'scored';
+  submitDeadlineAt: number;
+  revealStartedAt?: number;
   submissions: Map<string, WhiteCard[]>; // userId -> cards
+  revealedSubmissions: Array<{ userId: string; cards: WhiteCard[] }>;
   votes: Map<string, string>; // voterId -> submissionUserId
   winner?: string;
   endedAt?: number;
@@ -89,6 +88,37 @@ export interface Game {
   cardPacks: string[]; // Pack IDs in use
   maxRounds: number;
   maxPlayers: number;
+  submitWindowMs: number;
+  createdAt: number;
+  startedAt?: number;
+  completedAt?: number;
+}
+
+export interface SerializedGameRound {
+  roundNumber: number;
+  blackCard: BlackCard;
+  judgeUserId: string;
+  phase: 'submitting' | 'revealing' | 'scored';
+  submitDeadlineAt: number;
+  revealStartedAt?: number;
+  submissions: Array<{ userId: string; cards: WhiteCard[] }>;
+  revealedSubmissions: Array<{ userId: string; cards: WhiteCard[] }>;
+  votes: Array<{ voterId: string; submissionUserId: string }>;
+  winner?: string;
+  endedAt?: number;
+}
+
+export interface SerializedGameState {
+  id: string;
+  channelId: string;
+  players: Player[];
+  status: 'waiting' | 'active' | 'completed';
+  currentRound: number;
+  rounds: SerializedGameRound[];
+  cardPacks: string[];
+  maxRounds: number;
+  maxPlayers: number;
+  submitWindowMs: number;
   createdAt: number;
   startedAt?: number;
   completedAt?: number;
@@ -107,7 +137,7 @@ export class DADModule {
     // Listen for game events if needed
     eventRouter.subscribe(
       'game.started',
-      async (event: TiltCheckEvent) => {
+      async (event: TiltCheckEvent<any>) => {
         console.log('[DA&D] Game started:', event.data);
       },
       'dad'
@@ -283,7 +313,7 @@ export class DADModule {
   async createGame(
     channelId: string,
     packIds: string[],
-    options: { maxRounds?: number; maxPlayers?: number } = {}
+    options: { maxRounds?: number; maxPlayers?: number; submitWindowMs?: number } = {}
   ): Promise<Game> {
     // Validate packs exist
     for (const packId of packIds) {
@@ -302,6 +332,7 @@ export class DADModule {
       cardPacks: packIds,
       maxRounds: options.maxRounds || 10,
       maxPlayers: options.maxPlayers || 10,
+      submitWindowMs: options.submitWindowMs || 60_000,
       createdAt: Date.now(),
     };
 
@@ -392,15 +423,77 @@ export class DADModule {
 
     // Draw a black card
     const blackCard = this.drawBlackCard(game);
+    const judgeUserId = this.getJudgeForRound(game, game.currentRound);
 
     const round: GameRound = {
       roundNumber: game.currentRound,
       blackCard,
+      judgeUserId,
+      phase: 'submitting',
+      submitDeadlineAt: Date.now() + game.submitWindowMs,
+      revealStartedAt: undefined,
       submissions: new Map(),
+      revealedSubmissions: [],
       votes: new Map(),
     };
 
     game.rounds.push(round);
+  }
+
+  private getJudgeForRound(game: Game, roundNumber: number): string {
+    const players = Array.from(game.players.keys());
+    if (players.length === 0) {
+      throw new Error('No players available');
+    }
+    const judgeIndex = (roundNumber - 1) % players.length;
+    return players[judgeIndex];
+  }
+
+  private maybeAdvanceSubmissionPhase(game: Game, round: GameRound): void {
+    if (round.phase !== 'submitting') {
+      return;
+    }
+    const requiredSubmissions = Math.max(0, game.players.size - 1);
+
+    if (round.submissions.size >= requiredSubmissions) {
+      this.revealRoundSubmissions(game, round);
+      return;
+    }
+
+    if (Date.now() <= round.submitDeadlineAt) {
+      return;
+    }
+
+    // Submit random cards for players who timed out (excluding judge).
+    for (const [userId, player] of game.players.entries()) {
+      if (userId === round.judgeUserId || round.submissions.has(userId)) {
+        continue;
+      }
+
+      const submittedCards = this.pickRandomCardsFromHand(player.hand, round.blackCard.blanks);
+      round.submissions.set(userId, submittedCards);
+      const submittedCardIds = new Set(submittedCards.map((card) => card.id));
+      player.hand = player.hand.filter((card) => !submittedCardIds.has(card.id));
+    }
+
+    this.revealRoundSubmissions(game, round);
+  }
+
+  private revealRoundSubmissions(game: Game, round: GameRound): void {
+    round.phase = 'revealing';
+    round.revealStartedAt = Date.now();
+    round.revealedSubmissions = this.shuffle(
+      Array.from(round.submissions.entries()).map(([userId, cards]) => ({ userId, cards }))
+    );
+
+    // Round reveal is internal state for now; external event contract remains stable.
+  }
+
+  private pickRandomCardsFromHand(hand: WhiteCard[], count: number): WhiteCard[] {
+    if (hand.length < count) {
+      throw new Error('Not enough cards in hand for auto-submit');
+    }
+    return this.shuffle([...hand]).slice(0, count);
   }
 
   /**
@@ -424,6 +517,16 @@ export class DADModule {
     const round = game.rounds[game.rounds.length - 1];
     if (!round) {
       throw new Error('No active round');
+    }
+
+    this.maybeAdvanceSubmissionPhase(game, round);
+
+    if (round.phase !== 'submitting') {
+      throw new Error('Submission window is closed for this round');
+    }
+
+    if (userId === round.judgeUserId) {
+      throw new Error('Judge cannot submit cards this round');
     }
 
     if (round.submissions.has(userId)) {
@@ -458,17 +561,13 @@ export class DADModule {
       roundNumber: round.roundNumber,
     }, userId);
 
-    // Check if all players have submitted
-    if (round.submissions.size === game.players.size) {
-      // Ready for voting
-      console.log('[DA&D] All players submitted, ready for voting');
-    }
+    this.maybeAdvanceSubmissionPhase(game, round);
   }
 
   /**
-   * Vote for a submission
+   * Judge selects the winning submission.
    */
-  async vote(gameId: string, voterId: string, submissionUserId: string): Promise<void> {
+  async pickWinner(gameId: string, judgeUserId: string, submissionUserId: string): Promise<void> {
     const game = this.games.get(gameId);
     if (!game) {
       throw new Error('Game not found');
@@ -479,21 +578,41 @@ export class DADModule {
       throw new Error('No active round');
     }
 
-    if (voterId === submissionUserId) {
-      throw new Error('Cannot vote for yourself');
+    this.maybeAdvanceSubmissionPhase(game, round);
+
+    if (round.phase !== 'revealing') {
+      throw new Error('Round is not ready for winner selection');
+    }
+
+    if (judgeUserId !== round.judgeUserId) {
+      throw new Error('Only the round judge can pick the winner');
+    }
+
+    if (judgeUserId === submissionUserId) {
+      throw new Error('Judge cannot pick themselves');
     }
 
     if (!round.submissions.has(submissionUserId)) {
       throw new Error('Invalid submission');
     }
 
-    round.votes.set(voterId, submissionUserId);
+    round.winner = submissionUserId;
+    round.phase = 'scored';
+    round.endedAt = Date.now();
 
-    // Check if all players have voted (everyone votes except can't vote for self)
-    // With N players, we expect N votes (each player votes once)
-    if (round.votes.size === game.players.size) {
-      await this.endRound(gameId);
+    const winner = game.players.get(submissionUserId);
+    if (winner) {
+      winner.score++;
     }
+
+    await this.endRound(gameId);
+  }
+
+  /**
+   * Backwards-compatible alias for legacy callers.
+   */
+  async vote(gameId: string, voterId: string, submissionUserId: string): Promise<void> {
+    await this.pickWinner(gameId, voterId, submissionUserId);
   }
 
   /**
@@ -510,37 +629,16 @@ export class DADModule {
       throw new Error('No active round');
     }
 
-    // Tally votes
-    const voteCounts = new Map<string, number>();
-    for (const submissionUserId of round.votes.values()) {
-      voteCounts.set(submissionUserId, (voteCounts.get(submissionUserId) || 0) + 1);
+    if (!round.winner) {
+      throw new Error('Cannot end round without winner');
     }
-
-    // Find winner (most votes)
-    let winnerId: string | undefined;
-    let maxVotes = 0;
-    for (const [userId, votes] of voteCounts) {
-      if (votes > maxVotes) {
-        maxVotes = votes;
-        winnerId = userId;
-      }
-    }
-
-    if (winnerId) {
-      round.winner = winnerId;
-      const winner = game.players.get(winnerId);
-      if (winner) {
-        winner.score++;
-      }
-    }
-
-    round.endedAt = Date.now();
 
     // Emit round ended event
     await eventRouter.publish('game.round.ended', 'dad', {
       gameId: game.id,
       roundNumber: round.roundNumber,
-      winnerId,
+      winnerId: round.winner,
+      judgeUserId: round.judgeUserId,
     });
 
     // Deal new cards to players
@@ -583,7 +681,7 @@ export class DADModule {
     }
 
     // Emit game completed event
-    await eventRouter.publish('game.completed', 'dad', {
+    await eventRouter.publish('dad.game.completed', 'dad', {
       gameId: game.id,
       winnerId,
       finalScores: Array.from(game.players.values()).map(p => ({
@@ -598,6 +696,134 @@ export class DADModule {
    * Get game state
    */
   getGame(gameId: string): Game | undefined {
+    const game = this.games.get(gameId);
+    if (!game || game.status !== 'active') {
+      return game;
+    }
+    const round = game.rounds[game.rounds.length - 1];
+    if (round) {
+      this.maybeAdvanceSubmissionPhase(game, round);
+    }
+    return game;
+  }
+
+  private serializeGame(game: Game): SerializedGameState {
+    return {
+      id: game.id,
+      channelId: game.channelId,
+      players: Array.from(game.players.values()),
+      status: game.status,
+      currentRound: game.currentRound,
+      rounds: game.rounds.map((round) => ({
+        roundNumber: round.roundNumber,
+        blackCard: round.blackCard,
+        judgeUserId: round.judgeUserId,
+        phase: round.phase,
+        submitDeadlineAt: round.submitDeadlineAt,
+        revealStartedAt: round.revealStartedAt,
+        submissions: Array.from(round.submissions.entries()).map(([userId, cards]) => ({ userId, cards })),
+        revealedSubmissions: round.revealedSubmissions,
+        votes: Array.from(round.votes.entries()).map(([voterId, submissionUserId]) => ({ voterId, submissionUserId })),
+        winner: round.winner,
+        endedAt: round.endedAt,
+      })),
+      cardPacks: game.cardPacks,
+      maxRounds: game.maxRounds,
+      maxPlayers: game.maxPlayers,
+      submitWindowMs: game.submitWindowMs,
+      createdAt: game.createdAt,
+      startedAt: game.startedAt,
+      completedAt: game.completedAt,
+    };
+  }
+
+  /**
+   * Export a game into a JSON-serializable snapshot.
+   */
+  exportGameState(gameId: string): SerializedGameState | null {
+    const game = this.games.get(gameId);
+    if (!game) {
+      return null;
+    }
+    return this.serializeGame(game);
+  }
+
+  /**
+   * Restore a game from a serialized snapshot.
+   */
+  importGameState(snapshot: SerializedGameState): Game {
+    for (const packId of snapshot.cardPacks) {
+      if (!this.cardPacks.has(packId)) {
+        throw new Error(`Cannot import game. Missing card pack: ${packId}`);
+      }
+    }
+
+    const restoredGame: Game = {
+      id: snapshot.id,
+      channelId: snapshot.channelId,
+      players: new Map(snapshot.players.map((player) => [player.userId, player])),
+      status: snapshot.status,
+      currentRound: snapshot.currentRound,
+      rounds: snapshot.rounds.map((round) => ({
+        roundNumber: round.roundNumber,
+        blackCard: round.blackCard,
+        judgeUserId: round.judgeUserId,
+        phase: round.phase,
+        submitDeadlineAt: round.submitDeadlineAt,
+        revealStartedAt: round.revealStartedAt,
+        submissions: new Map(round.submissions.map((entry) => [entry.userId, entry.cards])),
+        revealedSubmissions: round.revealedSubmissions,
+        votes: new Map(round.votes.map((entry) => [entry.voterId, entry.submissionUserId])),
+        winner: round.winner,
+        endedAt: round.endedAt,
+      })),
+      cardPacks: snapshot.cardPacks,
+      maxRounds: snapshot.maxRounds,
+      maxPlayers: snapshot.maxPlayers,
+      submitWindowMs: snapshot.submitWindowMs,
+      createdAt: snapshot.createdAt,
+      startedAt: snapshot.startedAt,
+      completedAt: snapshot.completedAt,
+    };
+
+    this.games.set(restoredGame.id, restoredGame);
+    return restoredGame;
+  }
+
+  /**
+   * Advance any expired submit window for an active game.
+   */
+  advanceGameTimers(gameId: string): void {
+    const game = this.games.get(gameId);
+    if (!game || game.status !== 'active') {
+      return;
+    }
+    const round = game.rounds[game.rounds.length - 1];
+    if (!round) {
+      return;
+    }
+    this.maybeAdvanceSubmissionPhase(game, round);
+  }
+
+  /**
+   * Advance all active game timers.
+   */
+  advanceAllTimers(): void {
+    for (const game of this.games.values()) {
+      if (game.status !== 'active') {
+        continue;
+      }
+      const round = game.rounds[game.rounds.length - 1];
+      if (round) {
+        this.maybeAdvanceSubmissionPhase(game, round);
+      }
+    }
+  }
+
+  /**
+   * Get game by id without mutating timers.
+   */
+  getGameUnsafe(gameId: string): Game | undefined {
     return this.games.get(gameId);
   }
 
@@ -605,9 +831,18 @@ export class DADModule {
    * Get active games for a channel
    */
   getChannelGames(channelId: string): Game[] {
-    return Array.from(this.games.values()).filter(
+    const games = Array.from(this.games.values()).filter(
       g => g.channelId === channelId && g.status !== 'completed'
     );
+    for (const game of games) {
+      if (game.status === 'active') {
+        const round = game.rounds[game.rounds.length - 1];
+        if (round) {
+          this.maybeAdvanceSubmissionPhase(game, round);
+        }
+      }
+    }
+    return games;
   }
 
   /**

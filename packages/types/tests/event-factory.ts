@@ -1,14 +1,8 @@
-/**
- * © 2024–2025 TiltCheck Ecosystem. All Rights Reserved.
- * Created by jmenichole (https://github.com/jmenichole)
- * 
- * This file is part of the TiltCheck project.
- * For licensing information, see LICENSE file in the project root.
- */
+/* Copyright (c) 2026 TiltCheck. All rights reserved. */
 // Test event factory utilities for TiltCheck
 import type { TiltCheckEvent, EventType, ModuleId } from '../src/index.js';
 
-export function makeEvent<T = any>(type: EventType, source: ModuleId, data: T, userId?: string): TiltCheckEvent<T> {
+export function makeEvent<K extends EventType>(type: K, source: ModuleId, data: K extends keyof EventDataMap ? EventDataMap[K] : unknown, userId?: string): TiltCheckEvent<K> {
   return {
     id: 'test-' + Math.random().toString(36).slice(2),
     type,

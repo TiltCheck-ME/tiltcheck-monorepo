@@ -1,29 +1,20 @@
-/**
- * © 2024–2025 TiltCheck Ecosystem. All Rights Reserved.
- * Created by jmenichole (https://github.com/jmenichole)
- *
- * This file is part of the TiltCheck project.
- * For licensing information, see LICENSE file in the project root.
- */
+/* Copyright (c) 2026 TiltCheck. All rights reserved. */
 /**
  * TiltCheck Bot Command Index
  *
  * Safety & community bot — tilt monitoring, link scanning, casino trust, reports
- *
- * Commands:
- * - /tiltcheck - Tilt monitoring and cooldown
- * - /suslink   - Link scanning, promo management, scam detection
- * - /casino    - Casino trust scores and info
- * - /buddy     - Accountability buddy system
- * - /report    - Report suspicious activity
- * - /setstate  - Set user state (mod)
- * - /ping      - Bot status check
- * - /help      - Help and command info
  */
 
+export { help } from './help.js';
 export { tiltcheck } from './tiltcheck.js';
 export { tip } from './tip.js';
-export { dad } from './dad.js';
+export { juice } from './juice.js';
+export { linkwallet } from './linkwallet.js';
+export { lockvault } from './lockvault.js';
+export { casino } from './casino.js';
+export { triviadrop } from './triviadrop.js';
 export { poker } from './poker.js';
-// Single-entry UX: everything routes through /tiltcheck now.
-
+export { support } from './support.js';
+export { terms } from './terms.js';
+export { dashboard } from './dashboard.js';
+export { jme } from './jme.js';

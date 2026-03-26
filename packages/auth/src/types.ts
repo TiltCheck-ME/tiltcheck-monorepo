@@ -1,10 +1,4 @@
-/**
- * © 2024–2025 TiltCheck Ecosystem. All Rights Reserved.
- * Created by jmenichole (https://github.com/jmenichole)
- * 
- * This file is part of the TiltCheck project.
- * For licensing information, see LICENSE file in the project root.
- */
+/* Copyright (c) 2026 TiltCheck. All rights reserved. */
 /**
  * @tiltcheck/auth - Type Definitions
  * Core types for authentication across the TiltCheck ecosystem
@@ -340,6 +334,8 @@ export interface MagicLinkVerifyResult {
 // Middleware Types
 // ============================================================================
 
+import type { Request } from 'express';
+
 /**
  * Authenticated request context
  */
@@ -359,6 +355,15 @@ export interface AuthContext {
   /** Session data */
   session: SessionData;
 }
+
+/**
+ * Express Request extended with auth context
+ */
+export interface AuthenticatedRequest extends Request {
+  auth: AuthContext;
+  tiltcheckSession?: SessionData;
+}
+
 
 /**
  * Middleware options

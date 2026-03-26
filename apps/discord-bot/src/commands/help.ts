@@ -1,10 +1,4 @@
-/**
- * © 2024–2025 TiltCheck Ecosystem. All Rights Reserved.
- * Created by jmenichole (https://github.com/jmenichole)
- * 
- * This file is part of the TiltCheck project.
- * For licensing information, see LICENSE file in the project root.
- */
+/* Copyright (c) 2026 TiltCheck. All rights reserved. */
 /**
  * Help Command
  * 
@@ -44,8 +38,8 @@ export const help: Command = {
         name: 'Trust And Link Safety',
         value:
           '`/tiltcheck casino domain:<domain>` - Get trust/fairness data\n' +
-          '`/tiltcheck suslink scan url:<url>` - Scan a suspicious URL\n' +
-          '`/tiltcheck suslink submit url:<url>` - Submit promo links for review',
+          '`/tiltcheck link scan url:<url>` - Scan a suspicious URL\n' +
+          '`/tiltcheck link submit url:<url>` - Submit promo links for review',
         inline: false,
       },
       {

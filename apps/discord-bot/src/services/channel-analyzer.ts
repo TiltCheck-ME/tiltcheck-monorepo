@@ -1,13 +1,4 @@
-/**
- * © 2024–2026 TiltCheck Ecosystem. All Rights Reserved.
- * Created by jmenichole (https://github.com/jmenichole)
- *
- * ChannelAnalyzer — Passive gambling community intelligence.
- * 
- * Listens to a configured Discord channel, buffers messages throughout the day,
- * and runs scheduled GPT-4o analysis to surface pain points, scam patterns,
- * tilt signals, and community needs. Posts a structured digest to a report channel.
- */
+/* Copyright (c) 2026 TiltCheck. All rights reserved. */
 
 import { Client, Message, TextChannel, EmbedBuilder } from 'discord.js';
 import OpenAI from 'openai';
@@ -62,6 +53,9 @@ Analyse these messages and respond with ONLY valid JSON in this exact structure:
 export class ChannelAnalyzer {
     private client: Client;
     private openai: OpenAI | null = null;
+    private useOllama = false;
+    private ollamaUrl = process.env.OLLAMA_URL || 'http://localhost:11434/v1';
+    private ollamaModel = process.env.AI_MODEL || process.env.OLLAMA_MODEL || 'llama3.2:1b';
     private messageBuffer: BufferedMessage[] = [];
     private watchChannelId: string;
     private reportChannelId: string;
@@ -76,6 +70,8 @@ export class ChannelAnalyzer {
         analysisIntervalHours?: number;
         maxBufferSize?: number;
         openaiApiKey?: string;
+        ollamaUrl?: string;
+        ollamaModel?: string;
     }) {
         this.client = client;
         this.watchChannelId = options.watchChannelId;
@@ -86,6 +82,9 @@ export class ChannelAnalyzer {
         if (options.openaiApiKey) {
             this.openai = new OpenAI({ apiKey: options.openaiApiKey });
         }
+        this.useOllama = process.env.AI_PROVIDER === 'ollama' || !!options.ollamaUrl || !!process.env.OLLAMA_URL;
+        if (options.ollamaUrl) this.ollamaUrl = options.ollamaUrl;
+        if (options.ollamaModel) this.ollamaModel = options.ollamaModel;
     }
 
     start(): void {
@@ -154,11 +153,27 @@ export class ChannelAnalyzer {
             try {
                 report = await this.analyseWithGPT(snapshot);
             } catch (err) {
-                console.error('[ChannelAnalyzer] OpenAI analysis failed:', err);
+                console.error('[ChannelAnalyzer] Primary LLM analysis failed:', err);
+                if (this.useOllama) {
+                    try {
+                        report = await this.analyseWithOllama(snapshot);
+                    } catch (ollamaErr) {
+                        console.error('[ChannelAnalyzer] Ollama analysis failed:', ollamaErr);
+                        report = this.generateFallbackReport(snapshot);
+                    }
+                } else {
+                    report = this.generateFallbackReport(snapshot);
+                }
+            }
+        } else if (this.useOllama) {
+            try {
+                report = await this.analyseWithOllama(snapshot);
+            } catch (err) {
+                console.error('[ChannelAnalyzer] Ollama analysis failed:', err);
                 report = this.generateFallbackReport(snapshot);
             }
         } else {
-            // Pattern-based fallback if no OpenAI key
+            // Pattern-based fallback if no AI provider key is configured
             report = this.generateFallbackReport(snapshot);
         }
 
@@ -194,6 +209,50 @@ export class ChannelAnalyzer {
         };
     }
 
+    private async analyseWithOllama(messages: BufferedMessage[]): Promise<PainPointReport> {
+        const prompt = ANALYSIS_PROMPT_TEMPLATE(messages);
+        const response = await fetch(`${this.ollamaUrl}/chat/completions`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: 'Bearer ollama',
+            },
+            body: JSON.stringify({
+                model: this.ollamaModel,
+                temperature: 0.3,
+                max_tokens: 1500,
+                messages: [
+                    { role: 'system', content: PAIN_POINT_SYSTEM_PROMPT },
+                    { role: 'user', content: prompt },
+                ],
+            }),
+        });
+
+        if (!response.ok) {
+            const body = await response.text().catch(() => '');
+            throw new Error(`Ollama returned ${response.status}: ${body.slice(0, 180)}`);
+        }
+
+        const data = await response.json() as { choices?: Array<{ message?: { content?: string } }> };
+        const raw = data?.choices?.[0]?.message?.content ?? '{}';
+        const jsonStart = raw.indexOf('{');
+        const jsonEnd = raw.lastIndexOf('}');
+        const parsed = jsonStart >= 0 && jsonEnd > jsonStart
+            ? JSON.parse(raw.slice(jsonStart, jsonEnd + 1))
+            : {};
+
+        return {
+            summary: parsed.summary ?? 'No summary generated.',
+            scamAlerts: parsed.scamAlerts ?? [],
+            tiltPatterns: parsed.tiltPatterns ?? [],
+            communityNeeds: parsed.communityNeeds ?? [],
+            positiveSignals: parsed.positiveSignals ?? [],
+            actionItems: parsed.actionItems ?? [],
+            messageCount: messages.length,
+            analysedAt: new Date(),
+        };
+    }
+
     private generateFallbackReport(messages: BufferedMessage[]): PainPointReport {
         // Basic keyword-based pattern matching as fallback
         const scamKeywords = ['free money', 'dm me', 'guaranteed', 'send sol', 'send usdc', 'click here', 'not a scam'];
@@ -205,7 +264,7 @@ export class ChannelAnalyzer {
         const foundTilt = tiltKeywords.filter(k => allText.includes(k));
 
         return {
-            summary: `Pattern-based analysis of ${messages.length} messages. OpenAI key not configured — using keyword detection.`,
+            summary: `Pattern-based analysis of ${messages.length} messages. AI provider not configured — using keyword detection.`,
             scamAlerts: foundScam.length > 0 ? [`Detected potential scam keywords: ${foundScam.join(', ')}`] : [],
             tiltPatterns: foundTilt.length > 0 ? [`Tilt-related language detected: ${foundTilt.join(', ')}`] : [],
             communityNeeds: [],

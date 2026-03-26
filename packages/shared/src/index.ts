@@ -1,3 +1,4 @@
+/* Copyright (c) 2026 TiltCheck. All rights reserved. */
 // v0.1.0 — 2026-02-25
 
 /**
@@ -36,3 +37,9 @@ export {
   type User,
   type ErrorResponse,
 } from './schemas.js';
+
+// Legal exports
+export * from './legal.js';
+
+// Fairness exports
+export { FairnessService } from './fairness.js';

@@ -1,10 +1,4 @@
-/**
- * © 2024–2025 TiltCheck Ecosystem. All Rights Reserved.
- * Created by jmenichole (https://github.com/jmenichole)
- * 
- * This file is part of the TiltCheck project.
- * For licensing information, see LICENSE file in the project root.
- */
+/* Copyright (c) 2026 TiltCheck. All rights reserved. */
 import { describe, it, expect } from 'vitest';
 import {
   validateEnv,
@@ -52,7 +46,7 @@ describe('Config Package - Environment Validation', () => {
 
       expect(result.success).toBe(false);
       expect(result.errors).toBeDefined();
-      expect(result.errors?.some((e: any) => e.includes('at least 32 characters'))).toBe(true);
+      expect(result.errors?.some((e: string) => e.includes('at least 32 characters'))).toBe(true);
     });
 
     it('should use defaults for JWT config', () => {

@@ -1,13 +1,8 @@
-/**
- * © 2024–2025 TiltCheck Ecosystem. All Rights Reserved.
- * Created by jmenichole (https://github.com/jmenichole)
- * 
- * This file is part of the TiltCheck project.
- * For licensing information, see LICENSE file in the project root.
- */
+/* Copyright (c) 2026 TiltCheck. All rights reserved. */
 import { describe, it, expect } from 'vitest';
 import { justthetip } from '../src/index.js';
 import { eventRouter } from '@tiltcheck/event-router';
+import type { TiltCheckEvent, TrustCasinoUpdateEvent } from '@tiltcheck/types';
 
 describe('JustTheTip trust mapping', () => {
   it('emits trust.casino.updated events on tip completion', async () => {
@@ -18,9 +13,9 @@ describe('JustTheTip trust mapping', () => {
     await justthetip.completeTip(tip.id, 'TestSignature');
     const trustEvents = eventRouter.getHistory({ eventType: 'trust.casino.updated' });
     expect(trustEvents.length).toBeGreaterThanOrEqual(2); // sender + recipient
-    const payloads = trustEvents.map((e: any) => e.data as any);
-    const senderEvt = payloads.find((p: any) => p.metadata?.userId === 'sender');
-    const recipientEvt = payloads.find((p: any) => p.metadata?.userId === 'recipient');
+    const payloads = trustEvents.map((e: TiltCheckEvent<'trust.casino.updated'>) => e.data);
+    const senderEvt = payloads.find((p: TrustCasinoUpdateEvent) => p.metadata?.userId === 'sender');
+    const recipientEvt = payloads.find((p: TrustCasinoUpdateEvent) => p.metadata?.userId === 'recipient');
     expect(senderEvt?.delta).toBe(1);
     expect(recipientEvt?.delta).toBe(2);
   });

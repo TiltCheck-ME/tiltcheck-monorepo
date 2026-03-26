@@ -1,10 +1,4 @@
-/**
- * © 2024–2025 TiltCheck Ecosystem. All Rights Reserved.
- * Created by jmenichole (https://github.com/jmenichole)
- * 
- * This file is part of the TiltCheck project.
- * For licensing information, see LICENSE file in the project root.
- */
+/* Copyright (c) 2026 TiltCheck. All rights reserved. */
 /**
  * Command Handler
  * 
@@ -27,19 +21,31 @@ export class CommandHandler {
    * Load all commands
    */
   loadCommands(): void {
+    const serviceId = process.env.SERVICE_ID || 'tiltcheck-bot';
+
+    // Define which commands belong to which bot
+    const dadBotCommands = ['dad', 'poker', 'help'];
+    const tiltCheckBotCommands = ['tiltcheck', 'tip', 'airdrop', 'lockvault', 'casino', 'triviadrop', 'support', 'terms', 'dashboard', 'help'];
+
+    const allowedCommands = serviceId === 'tiltcheck-dad-bot' 
+      ? dadBotCommands 
+      : tiltCheckBotCommands;
+
     // Load commands from the commands directory
     const commandModules = Object.values(commands);
 
-    let _count = 0;
     for (const command of commandModules) {
       if ('data' in command && 'execute' in command) {
-        this.commands.set(command.data.name, command as Command);
-        console.log(`  📄 /${command.data.name}`);
-        _count++;
+        const cmdName = command.data.name;
+
+        if (allowedCommands.includes(cmdName)) {
+          this.commands.set(cmdName, command as Command);
+          console.log(`  📄 /${cmdName}`);
+        }
       }
     }
 
-    console.log(`  └─ ${this.commands.size} commands loaded`);
+    console.log(`  └── ${this.commands.size} commands loaded for ${serviceId}`);
   }
 
   /**

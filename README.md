@@ -187,6 +187,21 @@ Shared wallet notifications and "phone-a-friend" tilt intervention.
 
 ## Getting Started
 
+### Cursor Cloud Agent Startup (Recommended)
+
+To bootstrap cloud sessions with preinstalled workspace dependencies and trust-engine readiness, set your Cursor startup command to:
+
+```bash
+bash scripts/cloud-agent-env-setup.sh
+```
+
+This startup script will:
+- sync `pnpm` workspace dependencies (lockfile-aware/idempotent)
+- verify TypeScript + Vitest tooling
+- prebuild trust-engine dependencies
+- seed runtime trust data when scrape artifacts exist
+- verify `pnpm trust:start` works end-to-end
+
 ### Quick Start
 
 ```bash

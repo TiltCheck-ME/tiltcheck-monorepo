@@ -1,3 +1,4 @@
+/* Copyright (c) 2026 TiltCheck. All rights reserved. */
 export type ConversationIntent = 'help' | 'tip' | 'wallet' | 'deposit' | 'withdraw' | 'safety' | 'game' | 'poker' | 'unknown';
 
 const INTENT_KEYWORDS: Array<{ intent: ConversationIntent; words: string[] }> = [
@@ -22,7 +23,7 @@ export function detectConversationIntent(message: string): ConversationIntent {
 export function buildPersonaReply(intent: ConversationIntent): string {
   switch (intent) {
     case 'safety':
-      return 'Safety tools: `/tiltcheck status`, `/tiltcheck cooldown`, `/tiltcheck suslink scan`, and `/tiltcheck casino`.';
+      return 'Safety tools: `/tiltcheck status`, `/tiltcheck cooldown`, `/tiltcheck link scan`, and `/tiltcheck casino`.';
     case 'help':
       return 'I am the safety bot. Use `/tiltcheck help` for the full command map. Tips are in JustTheTip bot. Games are in DA&D bot.';
     default:

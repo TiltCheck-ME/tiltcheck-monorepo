@@ -15,7 +15,7 @@ const MAX_QUOTES = 3;
 const ARCHIVE_LIMIT = parseInt(process.env.COMIC_ARCHIVE_LIMIT || '180', 10);
 const COMIC_USE_AI = process.env.COMIC_USE_AI !== 'false';
 const OLLAMA_URL = process.env.OLLAMA_URL || 'http://localhost:11434/v1';
-const COMIC_MODEL = process.env.COMIC_MODEL || process.env.AI_MODEL || 'llama3.2';
+const COMIC_MODEL = process.env.COMIC_MODEL || process.env.AI_MODEL || 'llama3.2:3b';
 const COMIC_CREATOR = process.env.COMIC_CREATOR || 'jmenichole';
 const VISUAL_ARTIST = process.env.COMIC_VISUAL_ARTIST || 'samoxic';
 const VISUAL_INSPIRATION_URL = 'https://pheverdream.github.io/The-Book-of-SealStats/';
@@ -168,7 +168,7 @@ function sanitizeAiPayload(payload) {
   if (panels.length === 0) return null;
   return {
     title: clip(payload.title || 'TiltCheck Daily Degen Comic', 90),
-    subtitle: clip(payload.subtitle || 'Daily server lore from the channel logs.', 140),
+    subtitle: clip(payload.subtitle || 'Daily degen lore from the community pulse.', 140),
     mood: clip(payload.mood || 'Chaotic', 60),
     oneLiner: clip(payload.oneLiner || '', 120),
     panels: panels.map((panel, idx) => ({
@@ -252,7 +252,7 @@ async function buildComicPayload(messages) {
       timezone: TIMEZONE,
       date: null,
       title: 'Daily Degen Comic',
-      subtitle: 'Waiting for channel-watcher logs.',
+      subtitle: 'Waiting for today\'s comic update.',
       mood: 'No data yet',
       stats: { messageCount: 0, uniqueAuthors: 0, topSpeakers: [] },
       panels: [],
@@ -262,10 +262,6 @@ async function buildComicPayload(messages) {
         creator: COMIC_CREATOR,
         visualInspiration: VISUAL_ARTIST,
         visualInspirationUrl: VISUAL_INSPIRATION_URL,
-      },
-      source: {
-        logFile: 'tools/channel-watcher/messages.jsonl',
-        generatedBy: 'tools/channel-watcher/generate-daily-comic.js',
       },
     };
   }
@@ -283,7 +279,7 @@ async function buildComicPayload(messages) {
     timezone: TIMEZONE,
     date: targetDay,
     title: aiNarrative?.title || 'TiltCheck Daily Degen Comic',
-    subtitle: aiNarrative?.subtitle || 'Auto-built from today\'s channel-watcher chat log.',
+    subtitle: aiNarrative?.subtitle || 'Auto-built from today\'s degen highlights.',
     mood: aiNarrative?.mood || summarizeMood(dayMessages),
     oneLiner: aiNarrative?.oneLiner || '',
     stats: {
@@ -320,10 +316,6 @@ async function buildComicPayload(messages) {
       creator: COMIC_CREATOR,
       visualInspiration: VISUAL_ARTIST,
       visualInspirationUrl: VISUAL_INSPIRATION_URL,
-    },
-    source: {
-      logFile: 'tools/channel-watcher/messages.jsonl',
-      generatedBy: 'tools/channel-watcher/generate-daily-comic.js',
     },
   };
 }

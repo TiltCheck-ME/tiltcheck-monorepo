@@ -1,0 +1,49 @@
+.stepper-vertical {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.stepper-item {
+  padding: 1.5rem;
+  border-left: 3px solid hsl(var(--border));
+  position: relative;
+  transition: all 0.2s ease-in-out;
+}
+
+.stepper-item.active {
+  border-left: 3px solid hsl(var(--primary));
+  background: hsla(var(--primary) / 0.08);
+}
+
+.step-number {
+  font-family: var(--font-mono);
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: hsl(var(--primary));
+  margin-bottom: 0.5rem;
+}
+
+.step-title {
+  font-family: var(--font-mono);
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: hsl(var(--foreground));
+  text-transform: lowercase;
+  margin-bottom: 0.75rem;
+}
+
+.step-description {
+  color: hsl(var(--muted-foreground));
+  line-height: 1.6;
+  margin-bottom: 0.5rem;
+}
+
+.step-subtext {
+  color: hsl(var(--primary));
+  font-size: 0.95rem;
+  font-style: italic;
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid hsl(var(--border));
+}

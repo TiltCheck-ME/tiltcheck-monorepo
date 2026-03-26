@@ -1,10 +1,4 @@
-/**
- * © 2024–2025 TiltCheck Ecosystem. All Rights Reserved.
- * Created by jmenichole (https://github.com/jmenichole)
- * 
- * This file is part of the TiltCheck project.
- * For licensing information, see LICENSE file in the project root.
- */
+/* Copyright (c) 2026 TiltCheck. All rights reserved. */
 /**
  * TiltCheck Casino Data Extractor
  * 
@@ -517,33 +511,151 @@ export class AnalyzerClient {
   private ws: WebSocket | null = null;
   private reconnectAttempts: number = 0;
   private maxReconnectAttempts: number = 5;
-  private reconnectDelay: number = 2000;
+  private baseReconnectDelay: number = 2000;
+  private maxReconnectDelay: number = 30000;
+  private reconnectTimer: ReturnType<typeof setTimeout> | null = null;
+  private shouldReconnect: boolean = true;
+  private isConnecting: boolean = false;
+  private heartbeatTimer: ReturnType<typeof setInterval> | null = null;
+  private readonly heartbeatIntervalMs: number = 25000;
+  private readonly onConnectionIssue?: (error: Error) => void;
 
-  constructor(private wsUrl: string) { }
+  constructor(wsUrl: string, onConnectionIssue?: (error: Error) => void) {
+    this.wsUrl = wsUrl;
+    this.onConnectionIssue = onConnectionIssue;
+  }
+
+  private wsUrl: string;
+
+  private getReadyStateLabel(state?: number): string {
+    switch (state) {
+      case WebSocket.CONNECTING:
+        return 'CONNECTING';
+      case WebSocket.OPEN:
+        return 'OPEN';
+      case WebSocket.CLOSING:
+        return 'CLOSING';
+      case WebSocket.CLOSED:
+        return 'CLOSED';
+      default:
+        return 'UNKNOWN';
+    }
+  }
+
+  private logSocketEvent(prefix: string, event: unknown): void {
+    const maybeClose = event as CloseEvent;
+    const maybeTarget = (event as Event | undefined)?.target as WebSocket | null;
+    const targetState = maybeTarget ? this.getReadyStateLabel(maybeTarget.readyState) : 'UNKNOWN';
+
+    if (maybeClose && typeof maybeClose.code === 'number') {
+      console.error(`${prefix} (close event)`, {
+        code: maybeClose.code,
+        reason: maybeClose.reason || '(no reason)',
+        wasClean: maybeClose.wasClean,
+        url: this.wsUrl,
+        readyState: targetState,
+      });
+      return;
+    }
+
+    console.error(`${prefix} (event)`, {
+      type: (event as Event | undefined)?.type || typeof event,
+      url: this.wsUrl,
+      readyState: targetState,
+    });
+  }
+
+  private toConnectionError(event: unknown, fallbackMessage: string): Error {
+    if (event instanceof Error) {
+      return event;
+    }
+    const closeEvent = event as CloseEvent | undefined;
+    if (closeEvent && typeof closeEvent.code === 'number') {
+      return new Error(
+        `${fallbackMessage} (code=${closeEvent.code}, reason=${closeEvent.reason || 'none'}, clean=${closeEvent.wasClean})`
+      );
+    }
+    return new Error(fallbackMessage);
+  }
+
+  private stopHeartbeat(): void {
+    if (this.heartbeatTimer) {
+      clearInterval(this.heartbeatTimer);
+      this.heartbeatTimer = null;
+    }
+  }
+
+  private startHeartbeat(): void {
+    this.stopHeartbeat();
+    this.heartbeatTimer = setInterval(() => {
+      if (!this.ws || this.ws.readyState !== WebSocket.OPEN) return;
+      try {
+        this.ws.send(JSON.stringify({ type: 'ping', ts: Date.now() }));
+      } catch (error) {
+        this.logSocketEvent('[TiltCheck] Heartbeat send failed', error);
+      }
+    }, this.heartbeatIntervalMs);
+  }
 
   /**
    * Connect to analyzer backend
    */
   connect(): Promise<void> {
+    if (this.isConnecting) {
+      return Promise.resolve();
+    }
+
+    this.shouldReconnect = true;
+
     return new Promise((resolve, reject) => {
       console.log('[TiltCheck] Connecting to analyzer...', this.wsUrl);
+      this.isConnecting = true;
+      let settled = false;
 
       this.ws = new WebSocket(this.wsUrl);
 
       this.ws.onopen = () => {
         console.log('[TiltCheck] Connected to analyzer');
+        this.isConnecting = false;
         this.reconnectAttempts = 0;
+        if (this.reconnectTimer) {
+          clearTimeout(this.reconnectTimer);
+          this.reconnectTimer = null;
+        }
+        this.startHeartbeat();
+        settled = true;
         resolve();
       };
 
       this.ws.onerror = (error) => {
-        console.error('[TiltCheck] WebSocket error:', error);
-        reject(error);
+        this.isConnecting = false;
+        this.logSocketEvent('[TiltCheck] WebSocket error', error);
+        if (!settled) {
+          settled = true;
+          reject(error);
+        }
       };
 
-      this.ws.onclose = () => {
+      this.ws.onclose = (event) => {
+        this.isConnecting = false;
+        this.stopHeartbeat();
+        this.ws = null;
         console.log('[TiltCheck] Disconnected from analyzer');
-        this.attemptReconnect();
+        this.logSocketEvent('[TiltCheck] WebSocket closed', event);
+
+        if (!settled) {
+          settled = true;
+          reject(event);
+        } else {
+          // Surface post-open disconnects to caller-owned handling.
+          this.onConnectionIssue?.(
+            this.toConnectionError(event, 'Analyzer connection closed after opening')
+          );
+        }
+
+        if (this.shouldReconnect) {
+          this.attemptReconnect(event);
+        }
       };
     });
   }
@@ -551,20 +663,40 @@ export class AnalyzerClient {
   /**
    * Attempt to reconnect
    */
-  private attemptReconnect(): void {
+  private attemptReconnect(lastEvent?: unknown): void {
+    if (!this.shouldReconnect) return;
+
     if (this.reconnectAttempts >= this.maxReconnectAttempts) {
-      console.error('[TiltCheck] Max reconnect attempts reached');
+      console.error('[TiltCheck] Max reconnect attempts reached', {
+        attempts: this.reconnectAttempts,
+        maxAttempts: this.maxReconnectAttempts,
+        url: this.wsUrl,
+      });
+      if (lastEvent) {
+        this.logSocketEvent('[TiltCheck] Final reconnect failure context', lastEvent);
+      }
       return;
     }
 
     this.reconnectAttempts++;
-    console.log(`[TiltCheck] Reconnecting in ${this.reconnectDelay}ms... (attempt ${this.reconnectAttempts})`);
+    const baseDelay = Math.min(
+      this.baseReconnectDelay * Math.pow(2, this.reconnectAttempts - 1),
+      this.maxReconnectDelay
+    );
+    // Add jitter (up to +25%) to reduce reconnect stampedes.
+    const jitteredDelay = Math.round(baseDelay * (1 + Math.random() * 0.25));
+    console.log(`[TiltCheck] Reconnecting in ${jitteredDelay}ms... (attempt ${this.reconnectAttempts})`);
 
-    setTimeout(() => {
+    if (this.reconnectTimer) {
+      clearTimeout(this.reconnectTimer);
+    }
+
+    this.reconnectTimer = setTimeout(() => {
       this.connect().catch(err => {
-        console.error('[TiltCheck] Reconnect failed:', err);
+        this.logSocketEvent('[TiltCheck] Reconnect failed', err);
+        this.onConnectionIssue?.(this.toConnectionError(err, 'Analyzer reconnect attempt failed'));
       });
-    }, this.reconnectDelay);
+    }, jitteredDelay);
   }
 
   /**
@@ -630,8 +762,14 @@ export class AnalyzerClient {
    * Close connection
    */
   disconnect(): void {
+    this.shouldReconnect = false;
+    this.stopHeartbeat();
+    if (this.reconnectTimer) {
+      clearTimeout(this.reconnectTimer);
+      this.reconnectTimer = null;
+    }
     if (this.ws) {
-      this.ws.close();
+      this.ws.close(1000, 'Client disconnect');
       this.ws = null;
     }
   }

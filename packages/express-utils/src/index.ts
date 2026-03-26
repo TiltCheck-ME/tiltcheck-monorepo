@@ -1,10 +1,4 @@
-/**
- * © 2024–2025 TiltCheck Ecosystem. All Rights Reserved.
- * Created by jmenichole (https://github.com/jmenichole)
- *
- * This file is part of the TiltCheck project.
- * For licensing information, see LICENSE file in the project root.
- */
+/* Copyright (c) 2026 TiltCheck. All rights reserved. */
 
 // v0.1.0 — 2026-02-25
 
@@ -18,7 +12,7 @@ import type { Request, Response, NextFunction } from 'express';
 /**
  * Type for async route handler functions
  */
-type AsyncHandler = (req: Request, res: Response, next: NextFunction) => Promise<void> | Promise<any>;
+type AsyncHandler = (req: Request, res: Response, next: NextFunction) => Promise<void> | Promise<unknown>;
 
 /**
  * Type for error object with optional statusCode and code properties

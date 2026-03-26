@@ -1,3 +1,4 @@
+/* Copyright (c) 2026 TiltCheck. All rights reserved. */
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { sendToLogflare, BatchLogSender, LogEvent } from '../src/logflare.js';
 
