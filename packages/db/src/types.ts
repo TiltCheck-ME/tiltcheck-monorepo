@@ -1,10 +1,4 @@
-/**
- * © 2024–2025 TiltCheck Ecosystem. All Rights Reserved.
- * Created by jmenichole (https://github.com/jmenichole)
- * 
- * This file is part of the TiltCheck project.
- * For licensing information, see LICENSE file in the project root.
- */
+/* Copyright (c) 2026 TiltCheck. All rights reserved. */
 /**
  * @tiltcheck/db - Type Definitions
  * Database types for the TiltCheck ecosystem
@@ -85,6 +79,51 @@ export interface MagicLink {
   expires_at: Date;
   used_at: Date | null;
   created_at: Date;
+  last_attempt_at: Date;
+}
+
+// ============================================================================
+// Identity & Trust Types
+// ============================================================================
+
+/**
+ * Trust signal cross-referenced by origin (e.g. Discord Server, Partner App)
+ */
+export interface TrustSignal {
+  id: string;
+  user_id: string;
+  discord_id: string;
+  origin_id: string;
+  origin_type: 'discord_guild' | 'partner_app' | 'manual';
+  signal_type: string;
+  delta: number;
+  metadata: Record<string, unknown>;
+  created_at: Date;
+}
+
+/**
+ * Summary of user trust across all origins
+ */
+export interface UserTrustSummary {
+  discord_id: string;
+  total_score: number;
+  signals_count: number;
+  origins_count: number;
+  top_risk_factors: string[];
+  last_activity: Date | null;
+}
+
+/**
+ * Create trust signal payload
+ */
+export interface CreateTrustSignalPayload {
+  user_id: string;
+  discord_id: string;
+  origin_id: string;
+  origin_type: 'discord_guild' | 'partner_app' | 'manual';
+  signal_type: string;
+  delta: number;
+  metadata?: Record<string, unknown>;
 }
 
 // ============================================================================
@@ -238,6 +277,116 @@ export interface UpsertOnboardingPayload {
 }
 
 // ============================================================================
+// Partner & Webhook Types
+// ============================================================================
+
+/**
+ * Partner record for API access
+ */
+export interface Partner {
+  id: string;
+  name: string;
+  website_url: string | null;
+  app_id: string;
+  secret_key: string; // Used for HMAC signatures
+  is_active: boolean;
+  created_at: Date;
+  updated_at: Date;
+}
+
+/**
+ * Webhook registration for a partner
+ */
+export interface Webhook {
+  id: string;
+  partner_id: string;
+  target_url: string;
+  events: string[]; // e.g. ["tilt.detected", "link.flagged"]
+  is_active: boolean;
+  created_at: Date;
+  updated_at: Date;
+}
+
+/**
+ * Log of webhook deliveries
+ */
+export interface WebhookDelivery {
+  id: string;
+  webhook_id: string;
+  event_type: string;
+  payload: Record<string, unknown>;
+  response_status: number | null;
+  response_body: string | null;
+  duration_ms: number;
+  attempt_count: number;
+  last_attempt_at: Date;
+  created_at: Date;
+}
+
+/**
+ * Create partner payload
+ */
+export interface CreatePartnerPayload {
+  name: string;
+  website_url?: string;
+  app_id: string;
+  secret_key: string;
+}
+
+/**
+ * Create webhook payload
+ */
+export interface CreateWebhookPayload {
+  partner_id: string;
+  target_url: string;
+  events: string[];
+}
+
+// ============================================================================
+// Identity & Trust Types
+// ============================================================================
+
+/**
+ * Trust signal cross-referenced by origin (e.g. Discord Server, Partner App)
+ */
+export interface TrustSignal {
+  id: string;
+  user_id: string;
+  discord_id: string;
+  origin_id: string;
+  origin_type: 'discord_guild' | 'partner_app' | 'manual';
+  signal_type: string;
+  delta: number;
+  metadata: Record<string, unknown>;
+  created_at: Date;
+}
+
+/**
+ * Summary of user trust across all origins
+ */
+export interface UserTrustSummary {
+  discord_id: string;
+  total_score: number;
+  signals_count: number;
+  origins_count: number;
+  top_risk_factors: string[];
+  last_activity: Date | null;
+}
+
+/**
+ * Create trust signal payload
+ */
+export interface CreateTrustSignalPayload {
+  user_id: string;
+  discord_id: string;
+  origin_id: string;
+  origin_type: 'discord_guild' | 'partner_app' | 'manual';
+  signal_type: string;
+  delta: number;
+  metadata?: Record<string, unknown>;
+}
+
+// ============================================================================
 // Query Result Types
 // ============================================================================
 
@@ -276,3 +425,37 @@ export interface PaginatedResult<T> {
   offset: number;
   hasMore: boolean;
 }
+
+// ============================================================================
+// Blog Types
+// ============================================================================
+
+/**
+ * Blog post record in the database
+ */
+export interface BlogPost {
+  id: string;
+  title: string;
+  slug: string;
+  excerpt: string | null;
+  content: string;
+  author: string;
+  status: 'draft' | 'published' | 'archived';
+  tags: string[] | null;
+  created_at: Date;
+  updated_at: Date;
+}
+
+/**
+ * Create blog post payload
+ */
+export interface CreateBlogPostPayload {
+  title: string;
+  slug: string;
+  excerpt?: string;
+  content: string;
+  author?: string;
+  status?: 'draft' | 'published' | 'archived';
+  tags?: string[];
+}
+

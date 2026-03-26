@@ -1,10 +1,4 @@
-/**
- * © 2024–2025 TiltCheck Ecosystem. All Rights Reserved.
- * Created by jmenichole (https://github.com/jmenichole)
- * 
- * This file is part of the TiltCheck project.
- * For licensing information, see LICENSE file in the project root.
- */
+/* Copyright (c) 2026 TiltCheck. All rights reserved. */
 /**
  * TiltCheck Event Router
  * 
@@ -22,6 +16,7 @@
 import type {
   TiltCheckEvent,
   EventType,
+  EventDataMap,
   EventHandler,
   EventSubscription,
   ModuleId,
@@ -35,8 +30,8 @@ function generateId(): string {
 
 export class EventRouter {
   private emitter: EventEmitter;
-  private subscriptions: Map<EventType, EventSubscription[]>;
-  private eventHistory: TiltCheckEvent[];
+  private subscriptions: Map<EventType, EventSubscription<any>[]>;
+  private eventHistory: TiltCheckEvent<any>[];
   private maxHistorySize: number;
 
   constructor(maxHistorySize = 1000) {
@@ -52,12 +47,12 @@ export class EventRouter {
   /**
    * Subscribe to an event type
    */
-  subscribe(
-    eventType: EventType,
-    handler: EventHandler,
+  subscribe<T extends EventType>(
+    eventType: T,
+    handler: EventHandler<T>,
     moduleId: ModuleId
   ): () => void {
-    const subscription: EventSubscription = {
+    const subscription: EventSubscription<T> = {
       eventType,
       handler,
       moduleId,
@@ -85,9 +80,9 @@ export class EventRouter {
   /**
    * Unsubscribe from an event type
    */
-  private unsubscribe(
-    eventType: EventType,
-    handler: EventHandler,
+  private unsubscribe<T extends EventType>(
+    eventType: T,
+    handler: EventHandler<T>,
     moduleId: ModuleId
   ): void {
     const subs = this.subscriptions.get(eventType);
@@ -107,12 +102,12 @@ export class EventRouter {
   /**
    * Publish an event to all subscribers
    */
-  async publish<T = any>(
-    type: EventType,
+  async publish<T extends EventType>(
+    type: T,
     source: ModuleId,
-    data: T,
+    data: T extends keyof EventDataMap ? EventDataMap[T] : unknown,
     userId?: string,
-    metadata?: Record<string, any>
+    metadata?: Record<string, unknown>
   ): Promise<void> {
     const event: TiltCheckEvent<T> = {
       id: generateId(),
@@ -158,7 +153,7 @@ export class EventRouter {
     source?: ModuleId;
     userId?: string;
     limit?: number;
-  }): TiltCheckEvent[] {
+  }): TiltCheckEvent<any>[] {
     let filtered = this.eventHistory;
 
     if (filter?.eventType) {
@@ -183,7 +178,7 @@ export class EventRouter {
   /**
    * Get active subscriptions (for monitoring)
    */
-  getSubscriptions(): Map<EventType, EventSubscription[]> {
+  getSubscriptions(): Map<EventType, EventSubscription<any>[]> {
     return new Map(this.subscriptions);
   }
 
@@ -198,7 +193,7 @@ export class EventRouter {
   /**
    * Add event to history with size limit
    */
-  private addToHistory(event: TiltCheckEvent): void {
+  private addToHistory(event: TiltCheckEvent<any>): void {
     this.eventHistory.push(event);
 
     // Keep history size manageable

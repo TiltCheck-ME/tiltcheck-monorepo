@@ -1,3 +1,4 @@
+/* Copyright (c) 2026 TiltCheck. All rights reserved. */
 // v0.1.0 — 2026-02-25
 /**
  * © 2024–2025 TiltCheck Ecosystem. All Rights Reserved.
@@ -234,12 +235,7 @@ function processTiltSignals(userId: string, signals: TiltSignal[]): void {
         reason: primarySignal.signalType,
         severity: Math.ceil(tiltScore),
         tiltScore,
-        signals: signals.map(s => ({
-          type: s.signalType,
-          severity: s.severity,
-          confidence: s.confidence,
-        })),
-        timestamp: Date.now(),
+        indicators: signals.map(s => `type: ${s.signalType}, severity: ${s.severity}, confidence: ${s.confidence}`),
       }
     );
     
@@ -317,35 +313,37 @@ export function getUserActivity(userId: string): UserActivity | undefined {
 }
 
 // Subscribe to game/tip events to track losses
-eventRouter.subscribe('tip.failed', (event: TiltCheckEvent) => {
+eventRouter.subscribe('tip.failed', (event: TiltCheckEvent<'tip.failed'>) => {
   const { userId, amount } = event.data;
   trackLoss(userId, amount, { source: 'tip-failed' });
 }, 'tiltcheck-core');
 
-eventRouter.subscribe('game.completed', (event: TiltCheckEvent) => {
-  const data = event.data as GameCompletedEvent;
+eventRouter.subscribe('game.completed', (event: TiltCheckEvent<'game.completed'>) => {
+  const data = event.data;
   const { result, participants } = data;
   
   if (!result) return;
   
-  const winnerIds = new Set(result.winners?.map(w => w.userId) || []);
+  const winnerIds = new Set(result.winners?.map((w: { userId: string }) => w.userId) || []);
   
   // Get all participants - either from explicit list or from winners
   const allParticipants = participants || Array.from(winnerIds);
   
   // Track losses for non-winners
   for (const participantId of allParticipants) {
-    if (!winnerIds.has(participantId)) {
-      // This participant lost - track the loss
-      // Use pot/participant count as estimated loss amount
-      const estimatedLoss = result.pot / Math.max(allParticipants.length, 2);
-      trackLoss(participantId, estimatedLoss, { 
-        source: 'game-completed',
-        gameId: data.gameId,
-      });
-    } else {
-      // Winner - reset their loss streak
-      resetLossStreak(participantId);
+    if (typeof participantId === 'string') {
+      if (!winnerIds.has(participantId)) {
+        // This participant lost - track the loss
+        // Use pot/participant count as estimated loss amount
+        const estimatedLoss = result.pot / Math.max(allParticipants.length, 2);
+        trackLoss(participantId, estimatedLoss, { 
+          source: 'game-completed',
+          gameId: data.gameId,
+        });
+      } else {
+        // Winner - reset their loss streak
+        resetLossStreak(participantId);
+      }
     }
   }
   

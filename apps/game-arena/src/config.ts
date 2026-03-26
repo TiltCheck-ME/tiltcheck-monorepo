@@ -1,3 +1,4 @@
+/* Copyright (c) 2026 TiltCheck. All rights reserved. */
 // v0.1.0 — 2026-02-25
 /**
  * © 2024–2025 TiltCheck Ecosystem. All Rights Reserved.
@@ -35,9 +36,14 @@ export const config = {
 
   // Session
   session: {
-    secret: process.env.SESSION_SECRET || 'dev-secret-change-in-production',
+    secret: process.env.SESSION_SECRET || '',
     cookieName: 'tiltcheck.arena.sid',
     maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+  },
+
+  // Admin
+  admin: {
+    statusToken: process.env.GAME_ARENA_ADMIN_TOKEN || '',
   },
 
   // Redis (optional)
@@ -50,6 +56,7 @@ export const config = {
     maxGamesPerChannel: 5,
     gameTimeout: 60 * 60 * 1000, // 1 hour
     maxPlayersPerGame: 10,
+    stateFilePath: process.env.GAME_ARENA_STATE_FILE || 'data/game-arena-state.json',
   },
 };
 

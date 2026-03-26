@@ -1,10 +1,4 @@
-/**
- * © 2024–2025 TiltCheck Ecosystem. All Rights Reserved.
- * Created by jmenichole (https://github.com/jmenichole)
- * 
- * This file is part of the TiltCheck project.
- * For licensing information, see LICENSE file in the project root.
- */
+/* Copyright (c) 2026 TiltCheck. All rights reserved. */
 /**
  * Trust Adapter Utilities for Discord Rendering
  *
@@ -32,15 +26,15 @@ export function startTrustAdapter(options: AdapterOptions = {}) {
   const casinoPrefix = options.casinoPrefix || 'CASINO';
 
   // Casino trust events
-  eventRouter.subscribe('trust.casino.updated', (evt: TiltCheckEvent<TrustCasinoUpdateEvent>) => {
-    const payload = evt.data;
+  eventRouter.subscribe('trust.casino.updated', (evt) => {
+    const payload = evt.data as TrustCasinoUpdateEvent;
     const msg = formatCasinoTrust(payload, severityIcons, casinoPrefix);
     options.onFormatted?.(msg, payload);
   }, 'discord-bot');
 
   // Domain trust events
-  eventRouter.subscribe('trust.domain.updated', (evt: TiltCheckEvent<TrustDomainUpdateEvent>) => {
-    const payload = evt.data;
+  eventRouter.subscribe('trust.domain.updated', (evt) => {
+    const payload = evt.data as TrustDomainUpdateEvent;
     const msg = formatDomainTrust(payload, severityIcons, domainPrefix);
     options.onFormatted?.(msg, payload);
   }, 'discord-bot');

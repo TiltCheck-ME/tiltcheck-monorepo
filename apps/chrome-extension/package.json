@@ -1,6 +1,6 @@
 {
-  "name": "@tiltcheck/core",
-  "version": "1.1.0",
+  "name": "@tiltcheck/extension",
+  "version": "1.2.1",
   "private": true,
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -23,6 +23,7 @@
     "vm-browserify": "^1.1.2"
   },
   "dependencies": {
-    "@tiltcheck/utils": "workspace:*"
+    "@tiltcheck/utils": "workspace:*",
+    "@tiltcheck/shared": "workspace:*"
   }
 }

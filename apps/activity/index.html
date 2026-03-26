@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TiltCheck — Built for Degens</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&family=JetBrains+Mono:wght@400;500;700;800&family=Space+Grotesk:wght@400;700&display=swap" rel="stylesheet" />
+    <style>
+      :root {
+        /* === TiltCheck Brand Palette (from globals.css) === */
+        --color-primary: #17c3b2;           /* teal */
+        --color-primary-dark: #129d8f;
+        --color-secondary: #8b5cf6;         /* purple accent */
+        --color-accent: #d946ef;            /* magenta — CTA color */
+        --color-positive: #00ffaa;          /* neon green — positive only */
+        --color-danger: #ef4444;
+
+        --bg-primary: #0a0c10;
+        --bg-secondary: #0f1218;
+        --bg-card: #12161e;
+        --bg-input: #080a0d;
+
+        --text-primary: #ffffff;
+        --text-secondary: #c4ced8;
+        --text-muted: #8a97a8;
+
+        --border-subtle: #1e2533;
+        --border-default: #283347;
+        --border-neon: 1px solid rgba(23, 195, 178, 0.4);
+
+        --radius-md: 0px;                   /* brutalist sharp edges */
+        --transition-base: 0.1s ease-out;
+
+        --font-body: 'Inter', sans-serif;
+        --font-display: 'Space Grotesk', sans-serif;
+      }
+
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+
+      body {
+        background-color: #0e0e0f;
+        background-image: url('/assets/backgroundglitter.png');
+        background-size: cover;
+        background-repeat: no-repeat;
+        background-position: center;
+        background-attachment: fixed;
+        color: var(--text-primary);
+        font-family: var(--font-body);
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+      }
+
+      /* ── NEON HEADER (BLACKOUT ON GLITTER) ── */
+      .glowing-hero {
+        text-align: center;
+        background: transparent; /* No bar color, sit on glitter */
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        z-index: 1000;
+      }
+
+      .hero-title-wrap {
+        padding: 0.75rem;
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: center;
+        gap: 0.4rem;
+        white-space: nowrap;
+        overflow: hidden;
+        flex-wrap: nowrap;
+      }
+
+      .neon-brand {
+        font-family: var(--font-display);
+        font-weight: 900;
+        text-transform: uppercase;
+        color: #000; /* BLACK TEXT */
+        font-size: 0.7rem; /* Scaled down for long line */
+        letter-spacing: 0.05rem;
+        position: relative;
+        text-shadow: 
+          -1px -1px 0 var(--color-primary),
+           1px -1px 0 var(--color-primary),
+          -1px  1px 0 var(--color-primary),
+           1px  1px 0 var(--color-primary),
+           0 0 5px #fff,
+           0 0 10px rgba(255, 255, 255, 0.3);
+        flex-shrink: 0;
+      }
+
+      #app {
+        flex: 1;
+        padding: 1.5rem 1.5rem 2.5rem; 
+        max-width: 480px;
+        width: 100%;
+        margin: 0 auto;
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+      }
+
+      /* ── MAIN CONTENT ───────────────────── */
+      #app {
+        flex: 1;
+        padding: 1rem 1.5rem 2.5rem;
+        max-width: 480px;
+        width: 100%;
+        margin: 0 auto;
+        background: rgba(8, 10, 13, 0.4);
+        backdrop-filter: blur(4px);
+        border-radius: var(--radius-md);
+        display: flex;
+        flex-direction: column;
+        gap: 1.25rem;
+      }
+
+      .sdk-status {
+        font-size: 0.75rem;
+        color: #ffffff;
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+      }
+
+      .sdk-status::before {
+        content: '';
+        display: inline-block;
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: currentColor;
+        flex-shrink: 0;
+        animation: pulse-glow 2s ease-in-out infinite;
+      }
+
+      @keyframes pulse-glow {
+        0%, 100% { opacity: 1; box-shadow: 0 0 10px rgba(23, 195, 178, 0.6); }
+        50%       { opacity: 0.6; box-shadow: 0 0 20px rgba(23, 195, 178, 0.3); }
+      }
+
+      /* ── SESSION HEADER ─────────────────── */
+      .session-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+        font-size: 0.8rem;
+        color: rgba(255,255,255,0.7);
+        text-shadow: 1px 1px 2px #000;
+      }
+
+      .session-user { font-weight: 700; color: #fff; }
+      .session-timer { font-family: 'Courier New', monospace; }
+
+      /* ── RTP DASHBOARD ───────────────────── */
+      .rtp-dashboard {
+        background: #080a0d;
+        border: 1px solid var(--color-primary);
+        box-shadow: 0 0 25px rgba(0,0,0,0.8);
+        border-radius: var(--radius-md);
+        padding: 1.25rem;
+      }
+
+      .rtp-main {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 0.75rem;
+        text-align: center;
+        margin-bottom: 1rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid rgba(255,255,255,0.08);
+      }
+
+      .rtp-label {
+        display: block;
+        font-size: 0.6rem;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: rgba(255,255,255,0.5);
+        margin-bottom: 0.35rem;
+      }
+
+      .rtp-value {
+        display: block;
+        font-family: var(--font-display);
+        font-size: 1.5rem;
+        font-weight: 900;
+        color: #fff;
+      }
+
+      .drift-positive { color: var(--color-positive) !important; }
+      .drift-negative { color: var(--color-danger) !important; }
+      .drift-neutral  { color: var(--color-primary) !important; }
+
+      .session-stats {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.5rem;
+      }
+
+      .stat {
+        display: flex;
+        justify-content: space-between;
+        font-size: 0.75rem;
+        padding: 0.25rem 0;
+      }
+
+      .stat-label { color: rgba(255,255,255,0.5); }
+      .stat-value { color: #fff; font-weight: 600; font-family: 'Courier New', monospace; }
+
+      /* ── WAITING STATE ───────────────────── */
+      .waiting-state {
+        text-align: center;
+        padding: 2.5rem 1.5rem;
+        background: rgba(10, 12, 16, 0.85);
+        backdrop-filter: blur(12px);
+        border: 1px solid rgba(23, 195, 178, 0.4);
+        box-shadow: 0 0 20px rgba(0,0,0,0.5);
+        border-radius: var(--radius-md);
+      }
+
+      .waiting-icon { font-size: 2.5rem; margin-bottom: 0.75rem; }
+      .waiting-title {
+        font-family: var(--font-display);
+        font-size: 1rem;
+        font-weight: 700;
+        color: #fff;
+        margin-bottom: 0.4rem;
+      }
+      .waiting-sub {
+        font-size: 0.8rem;
+        color: rgba(255,255,255,0.6);
+        line-height: 1.5;
+      }
+
+      /* ── MANUAL ENTRY ────────────────────── */
+      .manual-entry {
+        margin-bottom: 0.75rem;
+      }
+
+      .section-label {
+        font-size: 0.65rem;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: rgba(255,255,255,0.4);
+        margin-bottom: 0.5rem;
+      }
+
+      .entry-row {
+        display: flex;
+        gap: 0.5rem;
+        align-items: flex-end;
+      }
+
+      .entry-field {
+        flex: 1;
+      }
+
+      .entry-field label {
+        display: block;
+        font-size: 0.65rem;
+        margin-bottom: 0.2rem;
+      }
+
+      /* ── FORM ELEMENTS ───────────────────── */
+      label {
+        font-size: 0.7rem;
+        font-weight: 800;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: #ffffff;
+        text-shadow: 1px 1px 2px #000;
+        margin-top: 0.4rem;
+      }
+
+      input {
+        background-color: rgba(8, 10, 13, 0.55);
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        border-radius: var(--radius-md);
+        color: #ffffff;
+        font-family: var(--font-body);
+        font-size: 0.875rem;
+        padding: 0.6rem 0.75rem;
+        outline: none;
+        transition: border-color var(--transition-base);
+        width: 100%;
+        backdrop-filter: blur(6px);
+        -webkit-backdrop-filter: blur(6px);
+      }
+
+      input:focus { border-color: var(--color-primary); }
+
+      /* ── BUTTONS ──────────────────────────── */
+      .btn-row {
+        display: flex;
+        gap: 0.5rem;
+        margin-top: 0.5rem;
+      }
+
+      button {
+        font-family: var(--font-body);
+        font-size: 0.75rem;
+        font-weight: 900;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        padding: 0.6rem 0.75rem;
+        border-radius: var(--radius-md);
+        cursor: pointer;
+        border: none;
+        transition: all var(--transition-base);
+        flex: 1;
+        min-height: 40px;
+      }
+
+      button:hover {
+        filter: brightness(1.2);
+        box-shadow: 4px 4px 0px var(--color-positive);
+      }
+
+      button:active { transform: scale(0.97); }
+
+      .btn-primary {
+        background-color: var(--color-primary);
+        color: #000;
+      }
+
+      .btn-small {
+        flex: 0 0 48px;
+        font-size: 1.2rem;
+        padding: 0;
+      }
+
+      .btn-secondary {
+        background-color: rgba(255,255,255,0.08);
+        border: 1px solid rgba(255,255,255,0.2);
+        color: #ffffff;
+      }
+
+      .btn-secondary:hover { border-color: var(--color-primary); }
+
+      /* ── RESULT ──────────────────────────── */
+      .result-box {
+        padding: 0.85rem 1rem;
+        border: 1px solid rgba(23, 195, 178, 0.3);
+        border-radius: var(--radius-md);
+        background: rgba(10, 12, 16, 0.9);
+        backdrop-filter: blur(12px);
+        font-size: 0.75rem;
+        color: #fff;
+        text-shadow: 1px 1px 2px #000;
+        word-break: break-all;
+        min-height: 42px;
+        line-height: 1.5;
+        font-family: 'JetBrains Mono', monospace;
+      }
+
+      /* ── ROOM HUD (MULTI-USER) ── */
+      .room-hud {
+        margin-top: 0.5rem;
+        background: rgba(23, 195, 178, 0.05);
+        border: 1px solid rgba(23, 195, 178, 0.1);
+        border-radius: var(--radius-md);
+        padding: 0.75rem;
+      }
+
+      .room-list {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+        margin-top: 0.5rem;
+      }
+
+      .room-user-card {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: rgba(13, 15, 18, 0.6);
+        padding: 0.5rem 0.75rem;
+        border-radius: var(--radius-sm);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+      }
+
+      .room-user-name {
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: rgba(255, 255, 255, 0.9);
+      }
+
+      .room-user-stats {
+        display: flex;
+        gap: 0.75rem;
+        font-family: var(--font-display);
+      }
+
+      .room-user-rtp {
+        font-weight: 800;
+        font-size: 0.9rem;
+      }
+
+      .room-user-drift {
+        font-size: 0.75rem;
+        opacity: 0.8;
+      }
+
+      /* ── HUD NAVIGATION ─────────────────── */
+      .hud-nav {
+        display: flex;
+        justify-content: space-around;
+        background: rgba(13, 15, 18, 0.8);
+        border: 1px solid var(--border-subtle);
+        border-radius: var(--radius-md);
+        margin-bottom: 1rem;
+        padding: 0.25rem;
+        position: sticky;
+        top: 0;
+        z-index: 100;
+        backdrop-filter: blur(8px);
+      }
+
+      .nav-tab {
+        background: transparent;
+        border: none;
+        color: var(--text-muted);
+        font-family: var(--font-display);
+        font-size: 0.65rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        padding: 0.5rem 0.25rem;
+        cursor: pointer;
+        transition: all var(--transition-base);
+        flex: 1;
+        min-height: auto;
+      }
+
+      .nav-tab:hover {
+        color: var(--color-primary);
+        box-shadow: none;
+      }
+
+      .nav-tab.active {
+        color: var(--color-primary);
+        border-bottom: 2px solid var(--color-primary);
+        text-shadow: 0 0 8px rgba(23, 195, 178, 0.5);
+      }
+
+      .view-content {
+        display: none;
+        flex-direction: column;
+        gap: 1.25rem;
+      }
+
+      .view-content.active {
+        display: flex;
+      }
+
+      .sub-nav {
+        display: flex;
+        gap: 0.5rem;
+        margin-bottom: 0.5rem;
+        overflow-x: auto;
+        padding-bottom: 0.25rem;
+      }
+
+      .sub-tab {
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        color: var(--text-secondary);
+        font-size: 0.6rem;
+        padding: 0.35rem 0.6rem;
+        border-radius: var(--radius-md);
+        white-space: nowrap;
+      }
+
+      .sub-tab.active {
+        background: rgba(23, 195, 178, 0.1);
+        border-color: var(--color-primary);
+        color: var(--color-primary);
+      }
+
+      /* ── FOOTER ──────────────────────────── */
+      footer {
+        text-align: center;
+        padding: 1.25rem;
+        font-size: 0.7rem;
+        color: rgba(255, 255, 255, 0.7);
+        border-top: 1px solid rgba(255,255,255,0.1);
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="app">
+      <nav class="hud-nav">
+        <button class="nav-tab active" data-view="analyzer">Analyzer</button>
+        <button class="nav-tab" data-view="games">Games</button>
+        <button class="nav-tab" data-view="vault">Vault</button>
+      </nav>
+
+      <section id="view-analyzer" class="view-content active">
+        <p class="sdk-status">Waking up the pipes...</p>
+        <!-- Content will be injected by main.ts -->
+      </section>
+
+      <section id="view-games" class="view-content">
+        <div class="sub-nav">
+          <button class="sub-tab active" data-game="poker">Poker</button>
+          <button class="sub-tab" data-game="dad">DA&D</button>
+          <button class="sub-tab" data-game="trivia">Trivia</button>
+        </div>
+        <div id="game-container" class="waiting-state">
+          <div class="waiting-icon">[GAME]</div>
+          <p class="waiting-title">Ready to Play</p>
+          <p class="waiting-sub">Select a game mode to start a session.</p>
+        </div>
+      </section>
+
+      <section id="view-vault" class="view-content">
+        <div class="rtp-dashboard">
+          <p class="section-label">PROTECTION STATUS</p>
+          <div class="stat">
+            <span class="stat-label">Active Vaults</span>
+            <span class="stat-value" id="vault-count">0</span>
+          </div>
+          <div class="stat">
+            <span class="stat-label">Profit Guard</span>
+            <span class="stat-value" id="profit-guard-status">INACTIVE</span>
+          </div>
+        </div>
+        <button id="emergencyVaultBtn" class="btn-primary" style="background-color: var(--color-danger); margin-top: 1rem;">
+          [!] VAULT EVERYTHING
+        </button>
+        <p class="waiting-sub" style="text-align: center; margin-top: 0.5rem; font-size: 0.7rem;">
+          Move all eligible balances to non-custodial Profit Locker immediately.
+        </p>
+      </section>
+    </div>
+
+    <footer>TiltCheck v2.0 — The Financial Firewall for Degens</footer>
+
+    <script type="module" src="/main.ts"></script>
+  </body>
+</html>

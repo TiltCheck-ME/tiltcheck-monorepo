@@ -1,12 +1,6 @@
+/* Copyright (c) 2026 TiltCheck. All rights reserved. */
 /**
- * © 2024–2025 TiltCheck Ecosystem. All Rights Reserved.
- * Created by jmenichole (https://github.com/jmenichole)
- * 
- * This file is part of the TiltCheck project.
- * For licensing information, see LICENSE file in the project root.
- */
-/**
- * SusLink Command
+ * Link Safety Command
  * Combines link scanning and promo management
  */
 
@@ -15,9 +9,9 @@ import { suslink } from '@tiltcheck/suslink';
 import { linkScanEmbed, errorEmbed, isValidUrl } from '@tiltcheck/discord-utils';
 import type { Command } from '../types.js';
 
-export const suslinkCmd: Command = {
+export const linkCmd: Command = {
   data: new SlashCommandBuilder()
-    .setName('suslink')
+    .setName('link')
     .setDescription('Link scanning for suspicious patterns')
     .addSubcommand(sub =>
       sub

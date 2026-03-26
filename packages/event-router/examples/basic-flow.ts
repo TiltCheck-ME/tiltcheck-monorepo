@@ -1,10 +1,4 @@
-/**
- * © 2024–2025 TiltCheck Ecosystem. All Rights Reserved.
- * Created by jmenichole (https://github.com/jmenichole)
- * 
- * This file is part of the TiltCheck project.
- * For licensing information, see LICENSE file in the project root.
- */
+/* Copyright (c) 2026 TiltCheck. All rights reserved. */
 /**
  * Example: How Modules Use the Event Router
  * 
@@ -12,7 +6,7 @@
  */
 
 import { eventRouter } from '../src/event-router.js';
-import type { LinkScanResult } from '@tiltcheck/types';
+import type { LinkScanResult, TiltCheckEvent, PromoSubmittedEventData, LinkFlaggedEventData } from '@tiltcheck/types';
 
 // ============================================
 // Module 1: FreeSpinScan
@@ -40,8 +34,8 @@ class FreeSpinScanModule {
     );
   }
 
-  private async handleLinkScanned(event: any) {
-    const { url, riskLevel }: LinkScanResult = event.data;
+  private async handleLinkScanned(event: TiltCheckEvent<'link.scanned'>) {
+    const { url, riskLevel } = event.data as LinkScanResult;
 
     console.log(`[FreeSpinScan] Link scan result: ${url} is ${riskLevel}`);
 
@@ -74,7 +68,7 @@ class SusLinkModule {
     );
   }
 
-  private async handlePromoSubmission(event: any) {
+  private async handlePromoSubmission(event: TiltCheckEvent<'promo.submitted'>) {
     const { url, userId } = event.data;
 
     console.log(`[SusLink] Scanning link: ${url}`);
@@ -137,7 +131,7 @@ class CasinoTrustEngine {
     );
   }
 
-  private async handleFlaggedLink(event: any) {
+  private async handleFlaggedLink(event: TiltCheckEvent<'link.flagged'>) {
     const { url } = event.data;
 
     // Extract casino from URL (simplified)
@@ -164,8 +158,8 @@ class CasinoTrustEngine {
     }
   }
 
-  private async handleApprovedPromo(event: any) {
-    const { url } = event.data;
+  private async handleApprovedPromo(event: TiltCheckEvent<'promo.approved'>) {
+    const { url } = event.data as { url: string };
     const casino = this.extractCasino(url);
 
     if (casino) {
@@ -270,7 +264,7 @@ async function runExample() {
 
   console.log('Event History (last 10):');
   const history = eventRouter.getHistory({ limit: 10 });
-  history.forEach((e: any) => {
+  history.forEach((e: TiltCheckEvent) => {
     console.log(`  ${e.type} from ${e.source} at ${new Date(e.timestamp).toISOString()}`);
   });
 

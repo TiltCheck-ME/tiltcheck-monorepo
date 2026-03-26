@@ -1,10 +1,4 @@
-/**
- * © 2024–2025 TiltCheck Ecosystem. All Rights Reserved.
- * Created by jmenichole (https://github.com/jmenichole)
- * 
- * This file is part of the TiltCheck project.
- * For licensing information, see LICENSE file in the project root.
- */
+/* Copyright (c) 2026 TiltCheck. All rights reserved. */
 /**
  * Solana Agent Service
  * Handles all Solana blockchain interactions for JustTheTip
@@ -12,7 +6,7 @@
  */
 
 import { Connection, PublicKey, Transaction, SystemProgram, LAMPORTS_PER_SOL } from '@solana/web3.js';
-import { createTransferRequest, createTipWithFeeRequest, createAirdropWithFeeRequest } from '@tiltcheck/justthetip';
+import { createTransferRequest, createTipWithFeeRequest, createAirdropWithFeeRequest } from './tipping/solana-pay.js';
 
 const SOLANA_RPC_URL = process.env.SOLANA_RPC_URL || 'https://api.mainnet-beta.solana.com';
 const connection = new Connection(SOLANA_RPC_URL, 'confirmed');

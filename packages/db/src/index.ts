@@ -1,10 +1,4 @@
-/**
- * © 2024–2025 TiltCheck Ecosystem. All Rights Reserved.
- * Created by jmenichole (https://github.com/jmenichole)
- * 
- * This file is part of the TiltCheck project.
- * For licensing information, see LICENSE file in the project root.
- */
+/* Copyright (c) 2026 TiltCheck. All rights reserved. */
 /**
  * @tiltcheck/db
  * 
@@ -87,6 +81,24 @@ export {
   findCasinoByDomain,
   getCasinos,
   addCasinoGrade,
+
+  // Partner & Webhook queries
+  findPartnerByAppId,
+  findPartnerById,
+  createPartner,
+  createWebhook,
+  findActiveWebhooksByEvent,
+  logWebhookDelivery,
+
+  // Identity & Trust queries
+  getAggregatedTrustByDiscordId,
+  logTrustSignal,
+
+  // Blog queries
+  getBlogPosts,
+  getBlogPostBySlug,
+  createBlogPost,
+  getLatestBlogPost,
 } from './queries.js';
 
 // Type exports
@@ -108,4 +120,20 @@ export type {
   PaginatedResult,
   UserOnboarding,
   UpsertOnboardingPayload,
+
+  // Partner & Webhook types
+  Partner,
+  Webhook,
+  WebhookDelivery,
+  CreatePartnerPayload,
+  CreateWebhookPayload,
+
+  // Identity & Trust types
+  TrustSignal,
+  UserTrustSummary,
+  CreateTrustSignalPayload,
+
+  // Blog types
+  BlogPost,
+  CreateBlogPostPayload,
 } from './types.js';

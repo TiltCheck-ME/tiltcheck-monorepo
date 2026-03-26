@@ -1,10 +1,4 @@
-/**
- * © 2024–2025 TiltCheck Ecosystem. All Rights Reserved.
- * Created by jmenichole (https://github.com/jmenichole)
- * 
- * This file is part of the TiltCheck project.
- * For licensing information, see LICENSE file in the project root.
- */
+/* Copyright (c) 2026 TiltCheck. All rights reserved. */
 import * as esbuild from 'esbuild';
 import { promises as fs } from 'fs';
 import path from 'path';
@@ -78,29 +72,6 @@ async function build() {
     },
   });
 
-  // Build popup script
-  await esbuild.build({
-    entryPoints: [path.join(__dirname, 'src/popup.ts')],
-    bundle: true,
-    outfile: path.join(__dirname, 'dist/popup.js'),
-    format: 'iife',
-    platform: 'browser',
-    target: 'chrome100',
-    sourcemap: true,
-    minify: false,
-    plugins: [],
-    alias: {
-      crypto: 'crypto-browserify',
-      stream: 'stream-browserify',
-      vm: 'vm-browserify',
-      buffer: 'buffer',
-    },
-    define: {
-      global: 'window',
-      process: '{"env":{}}',
-    },
-  });
-
   // Build page-bridge script (runs in MAIN world for wallet access)
   await esbuild.build({
     entryPoints: [path.join(__dirname, 'src/page-bridge.ts')],
@@ -117,8 +88,9 @@ async function build() {
   // Copy static files
   const staticFiles = [
     { src: 'src/manifest.json', dest: 'dist/manifest.json' },
-    { src: 'src/popup.html', dest: 'dist/popup.html' },
     { src: 'src/background.js', dest: 'dist/background.js' },
+    { src: 'src/auth-bridge.html', dest: 'dist/auth-bridge.html' },
+    { src: 'src/auth-bridge.js', dest: 'dist/auth-bridge.js' },
   ];
 
   for (const file of staticFiles) {

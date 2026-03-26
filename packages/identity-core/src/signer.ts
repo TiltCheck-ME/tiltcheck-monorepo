@@ -1,3 +1,4 @@
+/* Copyright (c) 2026 TiltCheck. All rights reserved. */
 import * as ed from '@noble/ed25519';
 
 const encoder = new TextEncoder();

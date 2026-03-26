@@ -1,11 +1,10 @@
-/**
- * © 2024–2025 TiltCheck Ecosystem. All Rights Reserved.
- * Created by jmenichole (https://github.com/jmenichole)
- * 
- * This file is part of the TiltCheck project.
- * For licensing information, see LICENSE file in the project root.
- */
+/* Copyright (c) 2026 TiltCheck. All rights reserved. */
 import { Connection, PublicKey, Transaction, TransactionInstruction, clusterApiUrl } from '@solana/web3.js';
+
+interface SolanaWallet {
+  publicKey: PublicKey;
+  sendTransaction: (transaction: Transaction, connection: Connection) => Promise<string>;
+}
 
 export class SolanaProvider {
   private connection: Connection;
@@ -37,7 +36,7 @@ export class SolanaProvider {
    * @param gameId - Unique identifier for the specific game round
    */
   async sendCommitmentMemo(
-    wallet: any, 
+    wallet: SolanaWallet, 
     discordId: string, 
     clientSeed: string, 
     gameId: string

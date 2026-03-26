@@ -1,10 +1,4 @@
-/**
- * © 2024–2025 TiltCheck Ecosystem. All Rights Reserved.
- * Created by jmenichole (https://github.com/jmenichole)
- * 
- * This file is part of the TiltCheck project.
- * For licensing information, see LICENSE file in the project root.
- */
+/* Copyright (c) 2026 TiltCheck. All rights reserved. */
 /**
  * Logflare Log Transport Integration
  * 
@@ -30,7 +24,7 @@ export interface LogEvent {
   message: string;
   service: string;
   timestamp?: string;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 /**
@@ -76,16 +70,16 @@ export async function sendToLogflare(event: LogEvent): Promise<void> {
  */
 export function createLogflareLogger(serviceName: string) {
   return {
-    debug: async (message: string, meta?: Record<string, any>) => {
+    debug: async (message: string, meta?: Record<string, unknown>) => {
       await sendToLogflare({ level: 'debug', message, service: serviceName, ...meta });
     },
-    info: async (message: string, meta?: Record<string, any>) => {
+    info: async (message: string, meta?: Record<string, unknown>) => {
       await sendToLogflare({ level: 'info', message, service: serviceName, ...meta });
     },
-    warn: async (message: string, meta?: Record<string, any>) => {
+    warn: async (message: string, meta?: Record<string, unknown>) => {
       await sendToLogflare({ level: 'warn', message, service: serviceName, ...meta });
     },
-    error: async (message: string, meta?: Record<string, any>) => {
+    error: async (message: string, meta?: Record<string, unknown>) => {
       await sendToLogflare({ level: 'error', message, service: serviceName, ...meta });
     },
   };

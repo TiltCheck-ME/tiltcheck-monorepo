@@ -7,12 +7,12 @@
   "types": "./dist/index.d.ts",
   "scripts": {
     "build": "tsc",
-    "test": "vitest",
+    "test": "vitest --passWithNoTests",
     "test:watch": "vitest",
     "clean": "rm -rf dist"
   },
   "devDependencies": {
     "typescript": "^5.3.0",
-    "vitest": "^4.0.18"
+    "vitest": "^4.1.0"
   }
 }

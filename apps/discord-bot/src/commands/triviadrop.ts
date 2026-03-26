@@ -1,10 +1,4 @@
-/**
- * © 2024–2025 TiltCheck Ecosystem. All Rights Reserved.
- * Created by jmenichole (https://github.com/jmenichole)
- * 
- * This file is part of the TiltCheck project.
- * For licensing information, see LICENSE file in the project root.
- */
+/* Copyright (c) 2026 TiltCheck. All rights reserved. */
 import { SlashCommandBuilder, ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
 import type { Command } from '../types.js';
 import {
@@ -77,8 +71,12 @@ export const triviadrop: Command = {
       const difficulty = interaction.options.getString('difficulty') || undefined;
 
       try {
-        // Use AI generation if OPENAI_API_KEY is set
-        const useAI = !!process.env.OPENAI_API_KEY;
+        // Enable AI generation for gateway, OpenAI, or Ollama-backed setups.
+        const useAI =
+          process.env.AI_PROVIDER === 'ollama' ||
+          !!process.env.OLLAMA_URL ||
+          !!process.env.OPENAI_API_KEY ||
+          !!process.env.AI_GATEWAY_URL;
         const question = await startTriviaAsync(guildId, channelId, category, difficulty, useAI);
         
         const embed = new EmbedBuilder()

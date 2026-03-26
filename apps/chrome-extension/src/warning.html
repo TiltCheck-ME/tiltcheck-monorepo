@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>TiltCheck Security - Scam Blocked</title>
+    <style>
+        body {
+            background: #0a0a0b;
+            color: #fff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden;
+        }
+        .container {
+            text-align: center;
+            padding: 40px;
+            border: 1px solid #ff4b4b;
+            border-radius: 12px;
+            background: rgba(255, 75, 75, 0.05);
+            max-width: 500px;
+            box-shadow: 0 0 40px rgba(255, 75, 75, 0.2);
+        }
+        h1 {
+            color: #ff4b4b;
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+        p {
+            font-size: 1.1rem;
+            line-height: 1.6;
+            color: #a0a0a0;
+        }
+        .url {
+            word-break: break-all;
+            color: #ff4b4b;
+            font-weight: bold;
+            margin: 20px 0;
+            display: block;
+        }
+        .btn {
+            display: inline-block;
+            margin-top: 30px;
+            padding: 12px 24px;
+            background: #ff4b4b;
+            color: #fff;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: bold;
+            transition: all 0.2s;
+        }
+        .btn:hover {
+            background: #ff2a2a;
+            transform: scale(1.05);
+        }
+        .shield-icon {
+            font-size: 80px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="shield-icon">🛡️</div>
+        <h1>SCAM DETECTED</h1>
+        <p>TiltCheck has blocked a phishing attempt or malicious redirect to:</p>
+        <code class="url" id="target-url">Loading...</code>
+        <p>This domain is on our high-risk blacklist for casino impersonation and fraud.</p>
+        <a href="#" class="btn" id="go-back">GO BACK TO SAFETY</a>
+    </div>
+
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const target = urlParams.get('target');
+        if (target) {
+            document.getElementById('target-url').textContent = target;
+        }
+        document.getElementById('go-back').onclick = (e) => {
+            e.preventDefault();
+            history.back();
+        };
+    </script>
+</body>
+</html>

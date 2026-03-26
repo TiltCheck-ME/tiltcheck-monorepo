@@ -1,13 +1,28 @@
 {
   "compilerOptions": {
+    "baseUrl": ".",
+    "rootDir": ".",
+    "paths": {
+      "@tiltcheck/*": [
+        "packages/*/src/index.ts",
+        "packages/*",
+        "packages/*/src",
+        "modules/*/src/index.ts",
+        "modules/*",
+        "modules/*/src"
+      ]
+    },
     "outDir": "./dist",
-    "rootDir": "./src",
+    "declaration": true,
     "skipLibCheck": true,
-    "module": "NodeNext"
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "resolveJsonModule": true,
+    "esModuleInterop": true,
+    "target": "ESNext",
+    "incremental": false,
+    "strict": true
   },
-  "include": [
-    "src/**/*.ts"
-  ],
   "exclude": [
     "node_modules",
     "dist"

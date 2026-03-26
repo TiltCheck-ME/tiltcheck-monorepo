@@ -1,10 +1,4 @@
-/**
- * © 2024–2025 TiltCheck Ecosystem. All Rights Reserved.
- * Created by jmenichole (https://github.com/jmenichole)
- * 
- * This file is part of the TiltCheck project.
- * For licensing information, see LICENSE file in the project root.
- */
+/* Copyright (c) 2026 TiltCheck. All rights reserved. */
 /**
  * Poker Game Manager
  * Manages Texas Hold'em game state and actions
@@ -318,11 +312,12 @@ function endGame(game: PokerGame) {
           userId: loser.player.userId,
           reason: 'poker-bad-beat',
           severity: Math.floor(badBeatProb * 5), // 1-5 based on how bad
-          context: {
-            loserHand: loser.hand.description,
-            winnerHand: winners[0].hand.description,
-            probability: badBeatProb,
-          },
+          tiltScore: badBeatProb,
+          indicators: [
+            `Loser Hand: ${loser.hand.description}`,
+            `Winner Hand: ${winners[0].hand.description}`,
+            `Probability: ${badBeatProb}`,
+          ],
         }
       );
     }
@@ -337,6 +332,9 @@ function endGame(game: PokerGame) {
       channelId: game.channelId,
       result,
       duration: Date.now() - game.createdAt,
+      type: 'poker',
+      platform: 'discord',
+      playerIds: game.players.map(p => p.userId),
     }
   );
   

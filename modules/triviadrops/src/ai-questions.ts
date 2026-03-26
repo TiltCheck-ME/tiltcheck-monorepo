@@ -1,3 +1,4 @@
+/* Copyright (c) 2026 TiltCheck. All rights reserved. */
 // v0.1.0 — 2026-02-25
 /**
  * © 2024–2025 TiltCheck Ecosystem. All Rights Reserved.
@@ -8,13 +9,13 @@
  */
 /**
  * AI Question Generation for TriviaDrops
- * Integrates with AI Gateway for infinite question generation
- * Falls back to Vercel AI SDK or static bank when gateway is unavailable
+ * Integrates with configured AI providers for infinite question generation
+ * Falls back to static bank when provider calls are unavailable
  */
 
 import type { TriviaQuestion, TriviaCategory } from './index.js';
 
-// Try to use AI Gateway first, then Vercel AI SDK
+// Try to use shared AI client first, then SDK fallback
 let aiClient: any = null;
 
 async function getAIGatewayClient() {
@@ -22,15 +23,15 @@ async function getAIGatewayClient() {
     try {
       const module = await import('@tiltcheck/ai-client');
       aiClient = module.aiClient;
-      console.log('[TriviaDrops] AI Gateway client loaded');
+      console.log('[TriviaDrops] Shared AI client loaded');
     } catch {
-      console.log('[TriviaDrops] AI Gateway client not available');
+      console.log('[TriviaDrops] Shared AI client not available');
     }
   }
   return aiClient;
 }
 
-// Vercel AI SDK imports (fallback)
+// AI SDK imports (OpenAI-compatible fallback)
 let generateText: any = null;
 let openaiProvider: any = null;
 
@@ -42,7 +43,7 @@ async function getVercelAI() {
       generateText = aiModule.generateText;
       openaiProvider = openaiModule.openai;
     } catch {
-      console.log('[TriviaDrops] Vercel AI SDK not available');
+      console.log('[TriviaDrops] AI SDK fallback not available');
     }
   }
   return { generateText, openai: openaiProvider };
@@ -54,11 +55,69 @@ interface AIQuestionRequest {
   topic?: string;
 }
 
-const AI_ENABLED = !!process.env.OPENAI_API_KEY || !!process.env.AI_GATEWAY_URL;
+const OLLAMA_URL = process.env.OLLAMA_URL || 'http://localhost:11434/v1';
+const OLLAMA_MODEL = process.env.AI_MODEL || process.env.OLLAMA_MODEL || 'llama3.2:1b';
+const AI_ENABLED =
+  process.env.AI_PROVIDER === 'ollama' ||
+  !!process.env.OPENAI_API_KEY ||
+  !!process.env.AI_GATEWAY_URL ||
+  !!process.env.OLLAMA_URL;
+
+async function generateWithOllama(request: AIQuestionRequest): Promise<Omit<TriviaQuestion, 'id' | 'createdAt'> | null> {
+  try {
+    const prompt = `Generate one multiple choice trivia question.
+Return strict JSON only:
+{
+  "question": "string",
+  "choices": ["a","b","c","d"],
+  "answer": "must exactly equal one choice"
+}
+Category: ${request.category || 'general'}
+Difficulty: ${request.difficulty || 'medium'}
+Topic: ${request.topic || 'any'}`;
+
+    const response = await fetch(`${OLLAMA_URL}/chat/completions`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: 'Bearer ollama',
+      },
+      body: JSON.stringify({
+        model: OLLAMA_MODEL,
+        temperature: 0.6,
+        max_tokens: 300,
+        messages: [
+          { role: 'system', content: 'You generate clean trivia JSON only.' },
+          { role: 'user', content: prompt },
+        ],
+      }),
+    });
+
+    if (!response.ok) return null;
+    const data = await response.json();
+    const content = data?.choices?.[0]?.message?.content || '';
+    const jsonStart = content.indexOf('{');
+    const jsonEnd = content.lastIndexOf('}');
+    if (jsonStart === -1 || jsonEnd === -1) return null;
+    const parsed = JSON.parse(content.slice(jsonStart, jsonEnd + 1));
+    if (!parsed.question || !Array.isArray(parsed.choices) || parsed.choices.length !== 4 || !parsed.answer) {
+      return null;
+    }
+    return {
+      question: parsed.question,
+      choices: parsed.choices,
+      answer: parsed.answer,
+      category: request.category || 'general',
+      difficulty: request.difficulty || 'medium',
+    };
+  } catch {
+    return null;
+  }
+}
 
 /**
  * Generate a trivia question using AI
- * Tries AI Gateway first, then Vercel AI SDK, then falls back to static bank
+ * Tries Ollama/shared client first, then SDK fallback, then static bank
  */
 export async function generateAIQuestionAsync(
   request: AIQuestionRequest
@@ -67,7 +126,13 @@ export async function generateAIQuestionAsync(
     return generateAIQuestion(request);
   }
 
-  // Try AI Gateway first
+  // Prefer direct Ollama when explicitly selected.
+  if (process.env.AI_PROVIDER === 'ollama' || !!process.env.OLLAMA_URL) {
+    const ollamaResult = await generateWithOllama(request);
+    if (ollamaResult) return ollamaResult;
+  }
+
+  // Try shared AI client first
   const gatewayClient = await getAIGatewayClient();
   if (gatewayClient) {
     try {
@@ -90,15 +155,15 @@ export async function generateAIQuestionAsync(
             };
           }
         } catch {
-          console.log('[TriviaDrops] Failed to parse AI Gateway response');
+          console.log('[TriviaDrops] Failed to parse shared AI client response');
         }
       }
     } catch (error) {
-      console.log('[TriviaDrops] AI Gateway failed:', error);
+      console.log('[TriviaDrops] Shared AI client failed:', error);
     }
   }
 
-  // Fallback to Vercel AI SDK
+  // Fallback to OpenAI-compatible SDK
   try {
     const { generateText: genText, openai: openaiProv } = await getVercelAI();
 
@@ -144,7 +209,7 @@ Rules:
       }
     }
   } catch (error) {
-    console.error('[TriviaDrops] Vercel AI generation failed:', error);
+    console.error('[TriviaDrops] AI SDK generation failed:', error);
   }
 
   // Final fallback to static bank

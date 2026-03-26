@@ -1,0 +1,23 @@
+{
+  "name": "@tiltcheck/activity",
+  "private": true,
+  "version": "2.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "tunnel": "npx cloudflared tunnel --config cloudflare-tunnel.yml run dev-activity",
+    "dev:tunnel": "node scripts/dev-tunnel.js",
+    "build": "tsc && vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@discord/embedded-app-sdk": "^1.1.0",
+    "crypto-js": "^4.2.0"
+  },
+  "devDependencies": {
+    "@types/crypto-js": "^4.2.2",
+    "@vitejs/plugin-basic-ssl": "^2.2.0",
+    "typescript": "^5.3.3",
+    "vite": "^5.1.4"
+  }
+}

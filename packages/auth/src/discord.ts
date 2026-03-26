@@ -1,10 +1,4 @@
-/**
- * © 2024–2025 TiltCheck Ecosystem. All Rights Reserved.
- * Created by jmenichole (https://github.com/jmenichole)
- * 
- * This file is part of the TiltCheck project.
- * For licensing information, see LICENSE file in the project root.
- */
+/* Copyright (c) 2026 TiltCheck. All rights reserved. */
 /**
  * @tiltcheck/auth - Discord OAuth Module
  * Discord OAuth2 authentication and user verification
@@ -28,7 +22,7 @@ const DISCORD_USER_ME = `${DISCORD_API_BASE}/users/@me`;
 /**
  * Default OAuth scopes for TiltCheck
  */
-export const DEFAULT_SCOPES = ['identify', 'identify.premium'];
+export const DEFAULT_SCOPES = ['identify'];
 
 /**
  * Generate Discord OAuth2 authorization URL
@@ -41,7 +35,7 @@ export function getAuthorizationUrl(
     client_id: config.clientId,
     redirect_uri: config.redirectUri,
     response_type: 'code',
-    scope: config.scopes.join(' '),
+    scope: (config.scopes ?? ['identify']).join(' '),
   });
   
   if (state) {

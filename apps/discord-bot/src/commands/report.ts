@@ -1,12 +1,7 @@
-/**
- * © 2024–2025 TiltCheck Ecosystem. All Rights Reserved.
- * Created by jmenichole (https://github.com/jmenichole)
- * 
- * This file is part of the TiltCheck project.
- * For licensing information, see LICENSE file in the project root.
- */
-import { SlashCommandBuilder, PermissionFlagsBits } from 'discord.js';
+/* Copyright (c) 2026 TiltCheck. All rights reserved. */
+import { SlashCommandBuilder, PermissionFlagsBits, ChatInputCommandInteraction } from 'discord.js';
 import fetch from 'node-fetch';
+import { config } from '../config.js';
 
 export default {
   data: new SlashCommandBuilder()
@@ -38,7 +33,7 @@ export default {
         .setDescription('Link to screenshot or message (optional)')
         .setRequired(false)),
 
-  async execute(interaction: any) {
+  async execute(interaction: ChatInputCommandInteraction) {
     const target = interaction.options.getUser('target');
     const action = interaction.options.getString('action');
     const reason = interaction.options.getString('reason');
@@ -49,18 +44,18 @@ export default {
     await interaction.deferReply({ ephemeral: true });
 
     try {
-      const backendUrl = process.env.BACKEND_URL;
-      const internalApiSecret = process.env.INTERNAL_API_SECRET;
+      const backendUrl = config.backendUrl;
+      const internalApiSecret = config.internalApiSecret;
 
       if (!backendUrl) {
         throw new Error('BACKEND_URL is not configured');
       }
       if (!internalApiSecret) {
-        throw new Error('INTERNAL_API_SECRET is not configured');
+        throw new Error('INTERNAL_API_SECRET is not configured (401 prevented by pre-check)');
       }
 
       // Send to your backend API which handles the DB insertion
-      const response = await fetch(`${backendUrl}/api/mod/report`, {
+      const response = await fetch(`${backendUrl}/mod/report`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

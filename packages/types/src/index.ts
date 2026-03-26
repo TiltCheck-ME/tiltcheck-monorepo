@@ -1,3 +1,4 @@
+/* Copyright (c) 2026 TiltCheck. All rights reserved. */
 /**
  * @tiltcheck/types
  * 
@@ -5,6 +6,8 @@
  * This is the SINGLE SOURCE OF TRUTH for all TypeScript interfaces.
  * All packages and apps import types from here.
  */
+
+
 
 // ============================================
 // Identity & Auth Types
@@ -608,17 +611,251 @@ export type EventType =
   | 'credit.pending_tip_created'
   | 'code.detected'
   | 'telegram.message.received'
-  | 'user.balance.depleted';
+  | 'user.balance.depleted'
+  | 'trivia.started'
+  | 'trivia.round.start'
+  | 'trivia.round.reveal'
+  | 'trivia.completed'
+  | 'trivia.player.reinstated'
+  | 'dad.game.completed';
+
+/**
+ * Event-specific data interfaces
+ */
 
 
-export interface TiltCheckEvent<T = any> {
+export interface LinkFlaggedEventData {
+  url: string;
+  riskLevel: RiskLevel;
+  source?: string;
+  actorId?: string;
+  reason?: string;
+}
+
+export interface BonusNerfDetectedEventData {
+  casinoName: string;
+  percentDrop: number;
+  bonusType?: string;
+}
+
+export interface CasinoRollupData {
+  totalDelta: number;
+  events: number;
+  externalData?: {
+    fairnessDelta?: number;
+    payoutDelta?: number;
+    bonusDelta?: number;
+    complianceDelta?: number;
+    supportDelta?: number;
+  };
+}
+
+export interface TrustCasinoRollupEventData {
+  casinos: Record<string, CasinoRollupData>;
+  source: string;
+}
+
+export interface DomainRollupData {
+  totalDelta: number;
+  events: number;
+  lastSeverity?: number;
+}
+
+export interface TrustDomainRollupEventData {
+  domains: Record<string, DomainRollupData>;
+}
+
+export interface TipCompletedEventData {
+  fromUserId: string;
+  toUserId: string;
+  amount: number;
+  tipId?: string;
+  currency?: string;
+}
+
+export interface GameResult {
+  winners: {
+    userId: string;
+    username: string;
+    hand: HandEvaluation; // HandEvaluationResult
+    winnings: number;
+  }[];
+  pot: number;
+  badBeat?: {
+    loserId: string;
+    loserHand: HandEvaluation; // HandEvaluationResult
+    winnerHand: HandEvaluation; // HandEvaluationResult
+    probability: number;
+  };
+}
+
+export interface GameCompletedEventData {
+  gameId: string;
+  channelId: string;
+  participants?: string[];
+  result: GameResult;
+  duration: number;
+  type: 'dad' | 'poker';
+  platform: 'web' | 'discord';
+  playerIds: string[];
+  winnerId?: string;
+}
+
+export interface TipFailedEventData {
+  userId: string;
+  amount: number;
+  reason?: string;
+}
+
+export interface TiltDetectedEventData {
+  userId: string;
+  severity: number;
+  reason: string;
+  tiltScore: number;
+  indicators?: string[];
+  reportExcerpt?: string;
+  messageCount?: number;
+}
+
+export interface CooldownViolatedEventData {
+  userId: string;
+  severity: number;
+  violationCount: number;
+  expiresAt?: number;
+}
+
+export interface ScamReportedEventData {
+  reporterId: string;
+  accusedId: string;
+  verified: boolean;
+  falseReport: boolean;
+  reason?: string;
+}
+
+export interface AccountabilitySuccessEventData {
+  userId: string;
+  action: string;
+}
+
+export interface PromoSubmittedEventData {
+  url: string;
+}
+
+export interface LinkFeedbackEventData {
+  url: string;
+  userReportedRisk: RiskLevel;
+  actualStatus: 'safe' | 'malicious';
+  comments?: string;
+}
+
+export interface DadGameCompletedEventData {
+  gameId: string;
+  winnerId?: string;
+  finalScores: {
+    userId: string;
+    username: string;
+    score: number;
+  }[];
+}
+
+// ============================================
+// Trivia Event Types
+// ============================================
+
+export interface TriviaGameSettings {
+  startTime: number;
+  category: string;
+  theme: string;
+  totalRounds: number;
+  prizePool: number;
+}
+
+export interface TriviaQuestion {
+    id: string;
+    question: string;
+    choices: string[];
+    category: string;
+    theme?: string;
+    difficulty?: 'easy' | 'medium' | 'hard';
+}
+
+export interface TriviaStartedEventData extends TriviaGameSettings {
+  gameId: string;
+}
+
+export interface TriviaRoundStartEventData {
+  question: TriviaQuestion;
+  roundNumber: number;
+  totalRounds: number;
+  endsAt: number; // Timestamp
+}
+
+export interface TriviaRoundRevealEventData {
+  questionId: string;
+  correctChoice: string;
+  explanation?: string;
+  stats: Record<string, { count: number; correct: boolean }>; // choice -> { count, correct }
+}
+
+export interface TriviaWinner {
+  userId: string;
+  username: string;
+  score: number;
+  rank: number;
+  prize?: number;
+}
+
+export interface TriviaCompletedEventData {
+  gameId: string;
+  winners: TriviaWinner[];
+  finalScores: { userId: string; username: string; score: number }[];
+}
+
+export interface TriviaPlayerReinstatedEventData {
+  gameId: string;
+  userId: string;
+  username: string;
+}
+
+/**
+ * Map event types to their data structures
+ */
+export interface EventDataMap {
+  'promo.submitted': PromoSubmittedEventData;
+  'link.feedback': LinkFeedbackEventData;
+  'link.flagged': LinkFlaggedEventData;
+  'bonus.nerf.detected': BonusNerfDetectedEventData;
+  'trust.casino.rollup': TrustCasinoRollupEventData;
+  'trust.domain.rollup': TrustDomainRollupEventData;
+  'tip.completed': TipCompletedEventData;
+  'game.completed': GameCompletedEventData;
+  'dad.game.completed': DadGameCompletedEventData;
+  'tip.failed': TipFailedEventData;
+  'tilt.detected': TiltDetectedEventData;
+  'cooldown.violated': CooldownViolatedEventData;
+  'scam.reported': ScamReportedEventData;
+  'accountability.success': AccountabilitySuccessEventData;
+  'price.updated': PriceUpdateEvent;
+  'trust.casino.updated': TrustCasinoUpdateEvent;
+  'trust.degen.updated': TrustDegenUpdateEvent;
+  'trust.domain.updated': TrustDomainUpdateEvent;
+  'trivia.started': TriviaStartedEventData;
+  'trivia.round.start': TriviaRoundStartEventData;
+  'trivia.round.reveal': TriviaRoundRevealEventData;
+  'trivia.completed': TriviaCompletedEventData;
+  'trivia.player.reinstated': TriviaPlayerReinstatedEventData;
+    // Fallback for types not yet specifically typed
+    [key: string]: unknown;
+  }
+
+export interface TiltCheckEvent<K extends EventType> {
   id: string;
-  type: EventType;
+  type: K;
   timestamp: number;
   source: ModuleId;
   userId?: string;
-  data: T;
-  metadata?: Record<string, any>;
+  data: K extends keyof EventDataMap ? EventDataMap[K] : unknown;
+  metadata?: Record<string, unknown>;
 }
 
 export type ModuleId =
@@ -696,7 +933,7 @@ export interface TrustCasinoUpdateEvent {
   delta?: number; // newScore - previousScore (can be negative)
   reason: string;
   source: string; // 'collectclock' | 'trust-engine-casino' | other emitter
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 // User/degen trust updates (non-casino scoped)
@@ -706,9 +943,10 @@ export interface TrustDegenUpdateEvent {
   newScore?: number;
   delta?: number;
   severity?: number;
+  level: TrustLevel;
   reason: string; // e.g. 'tip:sent', 'tip:received'
   source: string; // emitter module id e.g. 'justthetip'
-  metadata?: Record<string, any>; // contextual details (tipId, amounts, etc.)
+  metadata?: Record<string, unknown>; // contextual details (tipId, amounts, etc.)
 }
 
 // Domain trust update events (LinkGuard / SusLink)
@@ -723,8 +961,10 @@ export interface TrustDomainUpdateEvent {
   category: DomainRiskCategory; // mapped risk category
   reason: string; // human readable summary e.g. 'risk:malicious' or 'override:safe'
   source: string; // expected: 'suslink' or 'linkguard'
-  metadata?: Record<string, any>; // contextual details (actor, scan artifacts, redirect chain)
+  metadata?: Record<string, unknown>; // contextual details (actor, scan artifacts, redirect chain)
 }
+
+export type TrustLevel = 'very-high' | 'high' | 'neutral' | 'low' | 'high-risk';
 
 export interface TrustScore {
   score: number;
@@ -767,7 +1007,7 @@ export interface SwapQuote {
   rate: number; // output per input
   slippageBps: number;
   generatedAt: number;
-  routePlan?: any; // Placeholder for Jupiter route plan structure
+  routePlan?: unknown; // Placeholder for Jupiter route plan structure
   // Hardened fields
   minOutputAmount: number; // After slippage
   platformFeeBps: number;
@@ -886,13 +1126,41 @@ export interface Cooldown {
 // Gameplay & Fairness Types
 // ============================================
 
+export type Suit = '♠' | '♥' | '♦' | '♣';
+export type Rank = '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' | '10' | 'J' | 'Q' | 'K' | 'A';
+
+export interface Card {
+  suit: Suit;
+  rank: Rank;
+  value: number; // 2-14 (Ace high)
+}
+
+export type HandRank =
+  | 'high-card'
+  | 'pair'
+  | 'two-pair'
+  | 'three-of-a-kind'
+  | 'straight'
+  | 'flush'
+  | 'full-house'
+  | 'four-of-a-kind'
+  | 'straight-flush'
+  | 'royal-flush';
+
+export interface HandEvaluation {
+  rank: HandRank;
+  value: number; // For comparison
+  cards: Card[]; // Best 5-card hand
+  description: string;
+}
+
 export interface GameplayAnomalyEvent {
   userId: string;
   casinoId: string;
   anomalyType: 'pump' | 'win_clustering' | 'rtp_drift';
   severity: 'warning' | 'critical';
   confidence: number; // 0-1
-  metadata: Record<string, any>;
+  metadata: Record<string, unknown>;
   reason: string;
   timestamp: number;
 }
@@ -901,7 +1169,7 @@ export interface GameplayAnomalyEvent {
 // API Response Types
 // ============================================
 
-export interface APIResponse<T = any> {
+export interface APIResponse<T = unknown> {
   status: 'ok' | 'error';
   data?: T;
   error?: string;
@@ -917,7 +1185,7 @@ export interface DiscordCommand {
   userId: string;
   guildId?: string;
   channelId: string;
-  options?: Record<string, any>;
+  options?: Record<string, unknown>;
   timestamp: Date;
 }
 
@@ -925,11 +1193,11 @@ export interface DiscordCommand {
 // Event Handler Types
 // ============================================
 
-export type EventHandler<T = any> = (event: TiltCheckEvent<T>) => Promise<void> | void;
+export type EventHandler<T extends EventType> = (event: TiltCheckEvent<T>) => Promise<void> | void;
 
-export interface EventSubscription {
-  eventType: EventType;
-  handler: EventHandler;
+export interface EventSubscription<T extends EventType> {
+  eventType: T;
+  handler: EventHandler<T>;
   moduleId: ModuleId;
 }
 
@@ -1023,5 +1291,30 @@ export interface EventPayload<T> {
   payload: T;
   /** Unix epoch milliseconds when the payload was produced */
   timestamp: number;
+}
+
+// ============================================
+// UI & Extension Types
+// ============================================
+
+/**
+ * User onboarding state for the extension or dashboard.
+ */
+export interface OnboardingStatus {
+  userId: string;
+  onboardingCompleted: boolean;
+  lastStepCompleted?: number;
+  updatedAt: number;
+}
+
+/**
+ * Represents a predicted window for a social media drop (Insta, Twitter, etc).
+ */
+export interface DropPredictionWindow {
+  id: string;
+  source: 'instagram' | 'x' | 'telegram';
+  label: string;
+  estimatedAt: number;
+  confidence: number;
 }
 

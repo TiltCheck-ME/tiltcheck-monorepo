@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+/* Copyright (c) 2026 TiltCheck. All rights reserved. */
 /**
  * © 2024–2025 TiltCheck Ecosystem. All Rights Reserved.
  * Created by jmenichole (https://github.com/jmenichole)

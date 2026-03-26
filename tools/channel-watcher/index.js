@@ -63,19 +63,19 @@ const PROVIDERS = {
     ollama: {
         baseUrl: process.env.OLLAMA_URL || 'http://localhost:11434/v1',
         apiKey: 'ollama',   // Ollama ignores the key but the header must exist
-        model: process.env.AI_MODEL || 'llama3.2',
+        model: process.env.OLLAMA_MODEL || process.env.AI_MODEL || 'llama3.2:1b',
         label: 'Ollama (local)',
     },
     groq: {
         baseUrl: 'https://api.groq.com/openai/v1',
         apiKey: process.env.GROQ_API_KEY || '',
-        model: process.env.AI_MODEL || 'llama-3.3-70b-versatile',
+        model: process.env.GROQ_MODEL || process.env.AI_MODEL || 'llama-3.3-70b-versatile',
         label: 'Groq (free cloud)',
     },
     gemini: {
         baseUrl: 'https://generativelanguage.googleapis.com/v1beta/openai',
         apiKey: process.env.GEMINI_API_KEY || '',
-        model: process.env.AI_MODEL || 'gemini-2.0-flash',
+        model: process.env.GEMINI_MODEL || process.env.AI_MODEL || 'gemini-2.0-flash',
         label: 'Google Gemini (free tier)',
     },
     openai: {

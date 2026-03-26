@@ -1,10 +1,4 @@
-/**
- * © 2024–2025 TiltCheck Ecosystem. All Rights Reserved.
- * Created by jmenichole (https://github.com/jmenichole)
- * 
- * This file is part of the TiltCheck project.
- * For licensing information, see LICENSE file in the project root.
- */
+/* Copyright (c) 2026 TiltCheck. All rights reserved. */
 /**
  * @tiltcheck/config - Environment Variable Validation
  * Zod-based configuration validation for all TiltCheck services
@@ -20,7 +14,9 @@ import { z } from 'zod';
  * JWT Configuration Schema
  */
 export const jwtConfigSchema = z.object({
-  JWT_SECRET: z.string().min(32, 'JWT_SECRET must be at least 32 characters'),
+  JWT_SECRET: process.env.NODE_ENV !== 'production'
+    ? z.string().min(32, 'JWT_SECRET must be at least 32 characters').optional().default('dev-jwt-secret-replace-me')
+    : z.string().min(32, 'JWT_SECRET must be at least 32 characters'),
   JWT_ISSUER: z.string().default('tiltcheck.me'),
   JWT_AUDIENCE: z.string().default('tiltcheck.me'),
   JWT_EXPIRES_IN: z.string().default('7d'),
@@ -30,8 +26,12 @@ export const jwtConfigSchema = z.object({
  * Service JWT Configuration Schema (for service-to-service auth)
  */
 export const serviceJwtConfigSchema = z.object({
-  SERVICE_JWT_SECRET: z.string().min(32, 'SERVICE_JWT_SECRET must be at least 32 characters'),
-  SERVICE_ID: z.string().min(1, 'SERVICE_ID is required'),
+  SERVICE_JWT_SECRET: process.env.NODE_ENV !== 'production'
+    ? z.string().min(32, 'SERVICE_JWT_SECRET must be at least 32 characters').optional().default('dev-service-jwt-secret-replace-me')
+    : z.string().min(32, 'SERVICE_JWT_SECRET must be at least 32 characters'),
+  SERVICE_ID: process.env.NODE_ENV !== 'production'
+    ? z.string().min(1, 'SERVICE_ID is required').optional().default('dev-service-id')
+    : z.string().min(1, 'SERVICE_ID is required'),
   ALLOWED_SERVICES: z
     .string()
     .transform((val: string) => val.split(',').filter(Boolean))
@@ -62,7 +62,9 @@ export const databaseConfigSchema = z.object({
  * Blockchain Configuration Schema
  */
 export const blockchainConfigSchema = z.object({
-  SOLANA_RPC_URL: z.string().url('SOLANA_RPC_URL must be a valid URL'),
+  SOLANA_RPC_URL: process.env.NODE_ENV !== 'production'
+    ? z.string().url('SOLANA_RPC_URL must be a valid URL').optional().default('http://localhost:8899') // Or a dev public RPC
+    : z.string().url('SOLANA_RPC_URL must be a valid URL'),
 });
 
 /**
@@ -108,6 +110,16 @@ export const cookieConfigSchema = z.object({
 });
 
 /**
+ * Compliance Configuration Schema
+ */
+export const complianceConfigSchema = z.object({
+  RESTRICTED_COUNTRIES: z
+    .string()
+    .transform((val: string) => val.split(',').filter(Boolean))
+    .default(['US', 'GB', 'FR', 'AU']),
+});
+
+/**
  * Combined Full Configuration Schema
  */
 export const fullConfigSchema = z.object({
@@ -119,7 +131,13 @@ export const fullConfigSchema = z.object({
   ...supabaseConfigSchemaBase.shape,
   ...serviceJwtConfigSchema.shape,
   ...blockchainConfigSchema.shape,
-}).refine(data => data.DATABASE_URL || data.NEON_DATABASE_URL, {
+  ...complianceConfigSchema.shape,
+}).refine(data => {
+  if (process.env.NODE_ENV === 'production') {
+    return data.DATABASE_URL || data.NEON_DATABASE_URL;
+  }
+  return true; // Optional in development
+}, {
   message: "Either DATABASE_URL or NEON_DATABASE_URL must be provided",
   path: ["DATABASE_URL"]
 });
@@ -364,7 +382,7 @@ try {
     }
 
     // In tests, we might want to continue even with missing envs (use defaults)
-    validatedEnv = result.data as any; // Cast as any because it might be partial
+    validatedEnv = {} as FullEnvConfig; // Allow tests to run with partial env
   } else {
     validatedEnv = result.data;
   }

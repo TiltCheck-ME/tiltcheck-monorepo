@@ -1,3 +1,4 @@
+/* Copyright (c) 2026 TiltCheck. All rights reserved. */
 /**
  * Bonus routes - CollectClock casino list
  */
@@ -7,8 +8,11 @@ import path from 'path';
 
 const router = Router();
 
-const rootDir = process.env.TILTCHECK_ROOT || process.cwd();
-const BONUS_DATA_PATH = path.resolve(rootDir, 'data', 'bonus-data.json');
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const BONUS_DATA_PATH = path.resolve(__dirname, '../../../../data', 'bonus-data.json');
 
 router.get('/casinos', (_req, res) => {
   try {

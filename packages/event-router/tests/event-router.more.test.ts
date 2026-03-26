@@ -1,12 +1,6 @@
-/**
- * © 2024–2025 TiltCheck Ecosystem. All Rights Reserved.
- * Created by jmenichole (https://github.com/jmenichole)
- * 
- * This file is part of the TiltCheck project.
- * For licensing information, see LICENSE file in the project root.
- */
+/* Copyright (c) 2026 TiltCheck. All rights reserved. */
 import { describe, it, expect } from 'vitest';
-import { eventRouter } from '../src/index.js';
+import { eventRouter, TiltCheckEvent, EventType } from '../src/index.js';
 
 describe('EventRouter edge cases', () => {
   it('filters history by type, source, and userId', async () => {
@@ -15,31 +9,31 @@ describe('EventRouter edge cases', () => {
     await eventRouter.publish('tip.completed', 'tiltcheck', { a: 3 }, 'user-B');
 
     const byType = eventRouter.getHistory({ eventType: 'tip.completed' });
-    expect(byType.every((e: any) => e.type === 'tip.completed')).toBe(true);
+    expect(byType.every((e: TiltCheckEvent<EventType>) => e.type === 'tip.completed')).toBe(true);
 
     const bySource = eventRouter.getHistory({ source: 'tiltcheck' });
-    expect(bySource.every((e: any) => e.source === 'tiltcheck')).toBe(true);
+    expect(bySource.every((e: TiltCheckEvent<EventType>) => e.source === 'tiltcheck')).toBe(true);
 
     const byUser = eventRouter.getHistory({ userId: 'user-B' });
-    expect(byUser.every((e: any) => e.userId === 'user-B')).toBe(true);
+    expect(byUser.every((e: TiltCheckEvent<EventType>) => e.userId === 'user-B')).toBe(true);
   });
 
   it('does not crash when a handler throws', async () => {
-    const errors: any[] = [];
-    const good: any[] = [];
+    const errors: Error[] = [];
+    const good: TiltCheckEvent<EventType>[] = [];
 
     const unsub1 = eventRouter.subscribe('game.started', () => {
       throw new Error('boom');
     }, 'tiltcheck');
 
-    const unsub2 = eventRouter.subscribe('game.started', (e: any) => {
+    const unsub2 = eventRouter.subscribe('game.started', (e: TiltCheckEvent<'game.started'>) => {
       good.push(e);
     }, 'tiltcheck');
 
     try {
       await eventRouter.publish('game.started', 'tiltcheck', { id: 1 }, 'user-1');
     } catch (e) {
-      errors.push(e);
+      errors.push(e as Error);
     }
 
     // publish should not throw; second handler still runs

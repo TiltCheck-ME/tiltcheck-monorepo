@@ -16,23 +16,23 @@
 <html lang="en">
 
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Game Arena - Degens Against Decency</title>
+  <title>Arena | TiltCheck</title>
   <link rel="stylesheet" href="/styles/main.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300..700&display=swap" rel="stylesheet">
 </head>
 
 <body>
   <div class="arena-container">
     <header class="arena-header">
       <div>
-        <h1>Game Arena</h1>
-        <p>Join a game or create your own</p>
+        <h1 class="neon" data-text="Arena">Arena</h1>
+        <p class="tagline">Join a game or create your own</p>
       </div>
       <div class="user-panel">
         <img id="user-avatar" src="" alt="User Avatar" />
         <div>
           <div id="user-name">Loading...</div>
+          <a href="https://tiltcheck.me/tools/daad-pricing.html?source=arena-admin" class="cta-button">Upgrade: Play Anywhere $4.99</a>
           <a href="profile.html" class="secondary-button">Profile</a>
           <a href="#integrations" class="secondary-button"
             onclick="window.location.href='profile.html#integrations'">Integrations</a>
@@ -43,7 +43,7 @@
 
     <div class="lobby">
       <div class="games-section">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+        <div class="games-header-row">
           <h2>Available Games</h2>
           <div id="lobby-stats" class="lobby-stats">
             <span class="stat-item">
@@ -68,6 +68,7 @@
             <label for="game-type">Game Type:</label>
             <select id="game-type" name="gameType" required>
               <option value="degens-against-decency">Degens Against Decency</option>
+              <option value="poker">Texas Hold'em Poker</option>
             </select>
           </div>
 
@@ -85,6 +86,24 @@
 
           <button type="submit" class="cta-button">Create Game</button>
         </form>
+
+        <section class="admin-status-panel" aria-label="Persistence Status">
+          <div class="admin-status-header">
+            <h3>Persistence Health</h3>
+            <button id="refresh-persistence-status" type="button" class="game-action-btn">Refresh</button>
+          </div>
+          <div class="form-group">
+            <label for="admin-status-token">Admin Token (prod only)</label>
+            <input
+              type="password"
+              id="admin-status-token"
+              autocomplete="off"
+              placeholder="Optional x-admin-token"
+            />
+          </div>
+          <div id="persistence-status-message" class="persistence-status-message">Loading status...</div>
+          <div id="persistence-status-grid" class="persistence-status-grid hidden"></div>
+        </section>
       </div>
     </div>
 
@@ -101,47 +120,51 @@
     <!-- Onboarding Modal -->
     <div id="onboarding-modal" class="modal">
       <div class="modal-content onboarding-content">
-        <h2>Welcome to Degens Against Decency!</h2>
+        <h2>Welcome to TiltCheck Arena!</h2>
         <div class="onboarding-step active" data-step="1">
-          <h3>Step 1: How to Play</h3>
-          <p>Degens Against Decency is a hilarious party game where players match answer cards to fill in the blank on
-            question cards. The Card Czar picks the funniest combo!</p>
+          <h3>Step 1: Multi-Game Hub</h3>
+          <p>Play cross-platform games with your Discord friends. Currently supporting <strong>Degens Against Decency</strong> and <strong>Texas Hold'em Poker</strong>.</p>
           <ul>
-            <li>Each round, one player is the Card Czar</li>
-            <li>Other players submit their funniest answer cards</li>
-            <li>The Card Czar picks the winner</li>
-            <li>First to reach the point goal wins!</li>
+            <li>Real-time multiplayer powered by Socket.IO</li>
+            <li>Stats tracked across web and Discord</li>
+            <li>Tilt detection and community integration</li>
+            <li>Pure degen energy</li>
           </ul>
           <button class="cta-button" onclick="arenaManager.nextOnboardingStep()">Next</button>
         </div>
         <div class="onboarding-step" data-step="2">
-          <h3>Step 2: Creating a Game</h3>
-          <p>You can create your own game room or join an existing one from the lobby below.</p>
+          <h3>Step 2: Join or Create</h3>
+          <p>You can create your own game room or join an existing one from the lobby.</p>
           <ul>
             <li>Click "Create Game" to start your own room</li>
-            <li>Set the max players (3-7 recommended)</li>
-            <li>Choose public or private room</li>
-            <li>Share the game link with friends!</li>
+            <li>Set the max players and privacy</li>
+            <li>Share the invite link for private games</li>
+            <li>Join live games as a spectator</li>
           </ul>
           <button class="secondary-button" onclick="arenaManager.prevOnboardingStep()">Back</button>
           <button class="cta-button" onclick="arenaManager.nextOnboardingStep()">Next</button>
         </div>
         <div class="onboarding-step" data-step="3">
-          <h3>Step 3: Bot Players</h3>
-          <p>Don't have enough players? No problem! Our AI bots will automatically join to ensure you have the minimum 3
-            players needed.</p>
+          <h3>Step 3: Neural-Audit Integration</h3>
+          <p>Our trust engine monitors gameplay for fairness and tilt signals.</p>
           <ul>
-            <li>Bots join automatically when you start a game with less than 3 players</li>
-            <li>They play just like real players</li>
-            <li>Bots leave when real players join</li>
-            <li>Perfect for solo practice or testing!</li>
+            <li>Automated bot players fill empty slots</li>
+            <li>Stats contribute to your global Trust Score</li>
+            <li>Earn badges by outplaying the competition</li>
+            <li>Stay Tilt-free or get checked!</li>
           </ul>
           <button class="secondary-button" onclick="arenaManager.prevOnboardingStep()">Back</button>
-          <button class="cta-button" onclick="arenaManager.completeOnboarding()">Let's Play!</button>
+          <button class="cta-button" onclick="arenaManager.completeOnboarding()">Enter Arena</button>
         </div>
       </div>
     </div>
   </div>
+
+  <footer class="footer">
+    <div class="container">
+      <p>&copy; 2026 TiltCheck Ecosystem. All Rights Reserved.</p>
+    </div>
+  </footer>
 
   <script src="/socket.io/socket.io.js"></script>
   <script src="/scripts/arena.js"></script>

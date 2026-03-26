@@ -1,3 +1,4 @@
+/* Copyright (c) 2026 TiltCheck. All rights reserved. */
 // v0.1.0 — 2026-02-25
 /**
  * © 2024–2025 TiltCheck Ecosystem. All Rights Reserved.
@@ -19,6 +20,8 @@ import { Server as SocketIOServer } from 'socket.io';
 import session from 'express-session';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { RedisStore } from 'connect-redis';
+import { createClient } from 'redis';
 
 import { config, validateConfig } from './config.js';
 import { GameManager } from './game-manager.js';
@@ -33,9 +36,18 @@ import type {
   ClientToServerEvents,
   ServerToClientEvents,
   CreateGameRequest,
+  TriviaStartedEventData,
+  TriviaRoundStartEventData,
+  TriviaRoundRevealEventData,
+  TriviaCompletedEventData,
+  TriviaWinner,
+  GameLobbyInfo,
 } from './types.js';
 import { mapAuthUserToDiscordUser } from './types.js';
 import { justthetip } from '@tiltcheck/justthetip';
+import { triviaManager } from './trivia-manager.js';
+import { eventRouter } from '@tiltcheck/event-router';
+import { TiltCheckEvent, EventType } from '@tiltcheck/types';
 
 // ES module __dirname equivalent
 const __filename = fileURLToPath(import.meta.url);
@@ -48,16 +60,33 @@ validateConfig();
 const app = express();
 const httpServer = createServer(app);
 
+// Simple CORS middleware for development
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', config.isDev ? '*' : process.env.ALLOWED_ORIGINS || '');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, x-admin-token');
+  res.header('Access-Control-Allow-Credentials', 'true');
+  
+  if (req.method === 'OPTIONS') {
+    res.sendStatus(200);
+  } else {
+    next();
+  }
+});
+
 // Initialize Socket.IO
 const io = new SocketIOServer<ClientToServerEvents, ServerToClientEvents>(httpServer, {
   cors: {
-    origin: config.isDev ? '*' : process.env.ALLOWED_ORIGINS?.split(',') || [],
+    origin: config.isDev ? true : process.env.ALLOWED_ORIGINS?.split(',') || [],
     credentials: true,
   },
 });
 
 // Initialize game manager
-const gameManager = new GameManager();
+const gameManager = new GameManager({
+  stateFilePath: config.game.stateFilePath,
+});
+await gameManager.initialize();
 
 // Initialize stats service
 statsService.initialize().catch(err => {
@@ -83,7 +112,29 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, '../public')));
 
 // Session configuration (used to store auth tokens)
+let redisSessionClient: ReturnType<typeof createClient> | null = null;
+let sessionStore: session.Store | undefined;
+
+if (config.redis.url) {
+  try {
+    redisSessionClient = createClient({ url: config.redis.url });
+    redisSessionClient.on('error', (error) => {
+      console.warn('[Session] Redis session client error:', error);
+    });
+    await redisSessionClient.connect();
+    sessionStore = new RedisStore({
+      client: redisSessionClient,
+      prefix: 'arena:sess:',
+    });
+    console.log('✅ Redis session store enabled');
+  } catch (error) {
+    redisSessionClient = null;
+    console.warn('[Session] Redis unavailable, falling back to in-memory sessions:', error);
+  }
+}
+
 const sessionMiddleware = session({
+  ...(sessionStore ? { store: sessionStore } : {}),
   secret: config.session.secret,
   resave: false,
   saveUninitialized: false,
@@ -97,6 +148,28 @@ const sessionMiddleware = session({
 });
 
 app.use(sessionMiddleware);
+app.use(express.json());
+
+app.post('/admin/trivia/start', async (req, res) => {
+  try {
+    const { category, theme, rounds } = req.body;
+    await triviaManager.scheduleGame({
+      startTime: Date.now() + 5000, // Start in 5 seconds
+      category: category || 'general',
+      theme: theme || 'Random Degen Knowledge',
+      totalRounds: rounds || 12,
+      prizePool: 0
+    });
+    res.json({ success: true, message: 'Trivia game scheduled to start in 5s.' });
+  } catch (error: any) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.post('/admin/trivia/reset', (req, res) => {
+  triviaManager.endGame();
+  res.json({ success: true, message: 'Trivia manager reset.' });
+});
 
 // Extended session type
 declare module 'express-session' {
@@ -150,6 +223,27 @@ async function optionalAuth(req: express.Request, _res: express.Response, next: 
   next();
 }
 
+function requireAdmin(req: express.Request, res: express.Response, next: express.NextFunction): void {
+  if (config.isDev) {
+    next();
+    return;
+  }
+
+  const configuredToken = config.admin.statusToken;
+  if (!configuredToken) {
+    res.status(503).json({ error: 'Admin status endpoint is not configured' });
+    return;
+  }
+
+  const providedToken = req.headers['x-admin-token'];
+  if (typeof providedToken !== 'string' || providedToken !== configuredToken) {
+    res.status(403).json({ error: 'Admin token required' });
+    return;
+  }
+
+  next();
+}
+
 // Share session with Socket.IO
 io.engine.use(sessionMiddleware as any);
 
@@ -162,6 +256,23 @@ app.get('/health', (_req, res) => {
     uptime: process.uptime(),
     timestamp: Date.now(),
     auth: authClient ? 'enabled' : 'disabled',
+  });
+});
+
+// Admin status for dashboard
+app.get('/admin/status', requireAdmin, (_req, res) => {
+  res.json({
+    status: 'ok',
+    services: [
+      { name: 'Game Arena', status: 'online', port: config.port },
+      { name: 'Trivia Manager', status: triviaManager.isActive() ? 'active' : 'idle' },
+      { name: 'Event Router', status: 'online' }
+    ],
+    metrics: {
+      uptime: process.uptime(),
+      requests: 0, // Mock for now
+      activeGames: gameManager.getGameCount()
+    }
   });
 });
 
@@ -384,24 +495,34 @@ app.get('/api/history/:discordId', async (req, res) => {
   }
 });
 
+// Admin: persistence health/status
+app.get('/api/admin/persistence-status', requireAuth, requireAdmin, async (_req, res) => {
+  try {
+    const status = await gameManager.getPersistenceStatus();
+    res.json(status);
+  } catch (error: any) {
+    res.status(500).json({ error: error.message || 'Failed to load persistence status' });
+  }
+});
+
 // JustTheTip API routes
 
 // Get tip history for authenticated user
-app.get('/api/tips', requireAuth, (req, res) => {
+app.get('/api/tips', requireAuth, async (req, res) => {
   try {
     const user = req.user!;
     const discordUser = mapAuthUserToDiscordUser(user);
-    const tips = justthetip.getTipsForUser(discordUser.id);
+    const tips = await justthetip.getTipsForUser(discordUser.id);
     
     // Format tips for client
     const formattedTips = tips.map(tip => ({
       id: tip.id,
-      type: tip.senderId === discordUser.id ? 'sent' : 'received',
-      amount: tip.solAmount || 0,
-      usdAmount: tip.usdAmount || 0,
-      otherUser: tip.senderId === discordUser.id ? tip.recipientId : tip.senderId,
+      type: tip.sender_id === discordUser.id ? 'sent' : 'received',
+      amount: tip.amount || 0,
+      usdAmount: 0, // Not stored in DB currently
+      otherUser: tip.sender_id === discordUser.id ? tip.recipient_discord_id : tip.sender_id,
       status: tip.status,
-      timestamp: new Date(tip.createdAt).toISOString(),
+      timestamp: tip.created_at.toISOString(),
     }));
 
     res.json({ tips: formattedTips });
@@ -412,19 +533,19 @@ app.get('/api/tips', requireAuth, (req, res) => {
 });
 
 // Get pending tips for authenticated user
-app.get('/api/tips/pending', requireAuth, (req, res) => {
+app.get('/api/tips/pending', requireAuth, async (req, res) => {
   try {
     const user = req.user!;
     const discordUser = mapAuthUserToDiscordUser(user);
-    const pendingTips = justthetip.getPendingTipsForUser(discordUser.id);
+    const pendingTips = await justthetip.getPendingTipsForUser(discordUser.id);
     
     // Format pending tips for client
     const formattedTips = pendingTips.map(tip => ({
       id: tip.id,
-      senderId: tip.senderId,
-      amount: tip.solAmount || 0,
-      usdAmount: tip.usdAmount || 0,
-      timestamp: new Date(tip.createdAt).toISOString(),
+      senderId: tip.sender_id,
+      amount: tip.amount || 0,
+      usdAmount: 0,
+      timestamp: tip.created_at.toISOString(),
       status: tip.status,
     }));
 
@@ -436,11 +557,11 @@ app.get('/api/tips/pending', requireAuth, (req, res) => {
 });
 
 // Get user's wallet status
-app.get('/api/tips/wallet', requireAuth, (req, res) => {
+app.get('/api/tips/wallet', requireAuth, async (req, res) => {
   try {
     const user = req.user!;
     const discordUser = mapAuthUserToDiscordUser(user);
-    const wallet = justthetip.getWallet(discordUser.id);
+    const wallet = await justthetip.getWallet(discordUser.id);
     
     if (wallet) {
       res.json({
@@ -459,11 +580,11 @@ app.get('/api/tips/wallet', requireAuth, (req, res) => {
 });
 
 // Get transaction history with receipts
-app.get('/api/tips/history', requireAuth, (req, res) => {
+app.get('/api/tips/history', requireAuth, async (req, res) => {
   try {
     const user = req.user!;
     const discordUser = mapAuthUserToDiscordUser(user);
-    const history = justthetip.getTransactionHistory(discordUser.id);
+    const history = await justthetip.getTransactionHistory(discordUser.id);
     
     res.json({ history });
   } catch (error: any) {
@@ -476,19 +597,19 @@ app.get('/api/tips/history', requireAuth, (req, res) => {
 io.on('connection', (socket) => {
   const session = (socket.request as any).session;
   const authUser: AuthUser | undefined = session?.user;
-
-  if (!authUser) {
-    console.log('❌ Unauthorized WebSocket connection');
-    socket.disconnect();
-    return;
-  }
-
-  const user: DiscordUser = mapAuthUserToDiscordUser(authUser);
-  console.log(`✅ User connected: ${user.username} (${user.id})`);
+  const user: DiscordUser | null = authUser ? mapAuthUserToDiscordUser(authUser) : null;
+  console.log(user ? `✅ User connected: ${user.username} (${user.id})` : '👀 Anonymous lobby watcher connected');
 
   // Join lobby
   socket.on('join-lobby', () => {
     socket.join('lobby');
+    socket.emit('lobby-update', {
+      games: gameManager.getActiveGames(),
+      playersOnline: gameManager.getOnlinePlayerCount(),
+    });
+  });
+
+  socket.on('request-lobby-update', () => {
     socket.emit('lobby-update', {
       games: gameManager.getActiveGames(),
       playersOnline: gameManager.getOnlinePlayerCount(),
@@ -502,6 +623,10 @@ io.on('connection', (socket) => {
 
   // Join game
   socket.on('join-game', async (gameId: string) => {
+    if (!user) {
+      socket.emit('game-error', 'Authentication required');
+      return;
+    }
     try {
       await gameManager.joinGame(gameId, user.id, user.username);
       socket.join(`game:${gameId}`);
@@ -525,8 +650,23 @@ io.on('connection', (socket) => {
     }
   });
 
+  // Spectate game (read-only)
+  socket.on('spectate-game', (gameId: string) => {
+    socket.join(`game:${gameId}`);
+    const gameState = gameManager.getGameState(gameId, user?.id || 'spectator');
+    if (!gameState) {
+      socket.emit('game-error', 'Game not found');
+      return;
+    }
+    socket.emit('spectator-mode', true);
+    socket.emit('game-update', gameState);
+  });
+
   // Leave game
   socket.on('leave-game', async () => {
+    if (!user) {
+      return;
+    }
     await gameManager.leaveGame(user.id);
     
     // Leave all game rooms
@@ -547,6 +687,10 @@ io.on('connection', (socket) => {
 
   // Game action
   socket.on('game-action', async (action: any) => {
+    if (!user) {
+      socket.emit('game-error', 'Authentication required');
+      return;
+    }
     const rooms = Array.from(socket.rooms);
     const gameRoom = rooms.find(room => room.startsWith('game:'));
     
@@ -570,6 +714,17 @@ io.on('connection', (socket) => {
 
   // Chat message
   socket.on('chat-message', (message: string) => {
+    if (!user) {
+      socket.emit('game-error', 'Authentication required');
+      return;
+    }
+    const normalizedMessage = typeof message === 'string' ? message.trim() : '';
+    if (!normalizedMessage) {
+      return;
+    }
+    // Hard cap prevents oversized payload abuse and keeps chat rendering predictable.
+    const safeMessage = normalizedMessage.slice(0, 500);
+
     const rooms = Array.from(socket.rooms);
     const gameRoom = rooms.find(room => room.startsWith('game:'));
     
@@ -577,7 +732,7 @@ io.on('connection', (socket) => {
       io.to(gameRoom).emit('chat-message', {
         userId: user.id,
         username: user.username,
-        message,
+        message: safeMessage,
         timestamp: Date.now(),
       });
     }
@@ -585,8 +740,10 @@ io.on('connection', (socket) => {
 
   // Disconnect
   socket.on('disconnect', async () => {
-    console.log(`❌ User disconnected: ${user.username} (${user.id})`);
-    await gameManager.leaveGame(user.id);
+    if (user) {
+      console.log(`❌ User disconnected: ${user.username} (${user.id})`);
+      await gameManager.leaveGame(user.id);
+    }
 
     // Update lobby
     io.to('lobby').emit('lobby-update', {
@@ -594,7 +751,70 @@ io.on('connection', (socket) => {
       playersOnline: gameManager.getOnlinePlayerCount(),
     });
   });
+
+  // ============================================================================
+  // Trivia Game Handlers
+  // ============================================================================
+
+  socket.on('submit-trivia-answer', (data: { questionId: string; answer: string }) => {
+    if (!user) return;
+    triviaManager.submitAnswer(user.id, data.answer);
+  });
+
+  socket.on('request-ape-in', async (data: { gameId: string; questionId: string }) => {
+    if (!user) return;
+    const result = await triviaManager.requestApeIn(user.id);
+    if (result.success) {
+      socket.emit('trivia-ape-in-result', { questionId: data.questionId, distribution: result.stats! });
+    } else {
+      socket.emit('game-error', result.message || 'Hint request failed');
+    }
+  });
+
+  socket.on('buy-back', async (data: { gameId: string }) => {
+    if (!user) return;
+    const result = await triviaManager.processBuyBack(user.id);
+    if (result.success) {
+      socket.emit('game-update', { type: 'buy-back-success', userId: user.id });
+    } else {
+      socket.emit('game-error', result.message || 'Buy-back failed');
+    }
+  });
 });
+
+// ============================================================================
+// Global Trivia Event Broadcaster
+// ============================================================================
+
+// Listen for trivia events from the manager (via eventRouter) and push to all clients
+eventRouter.subscribe('trivia.started', (event) => {
+  io.emit('chat-message', {
+    userId: 'system',
+    username: 'TiltLive',
+    message: `📢 LIVESTREAM STARTED: ${event.data.theme || event.data.category} Trivia is LIVE!`,
+    timestamp: Date.now(),
+  });
+  io.emit('game-update', { type: 'trivia-started', ...event.data });
+}, 'game-arena');
+
+eventRouter.subscribe('trivia.round.start', (event) => {
+  io.emit('trivia-round-start', event.data);
+}, 'game-arena');
+
+eventRouter.subscribe('trivia.round.reveal', (event) => {
+  io.emit('trivia-round-reveal', event.data);
+}, 'game-arena');
+
+eventRouter.subscribe('trivia.completed', (event) => {
+  const winnerList = event.data.winners.map((w) => w.username).join(', ');
+  io.emit('chat-message', {
+    userId: 'system',
+    username: 'TiltLive',
+    message: `🏆 GAME OVER! Winners: ${winnerList || 'No one survived the trenches.'}`,
+    timestamp: Date.now(),
+  });
+  io.emit('game-update', { type: 'trivia-completed', ...event.data });
+}, 'game-arena');
 
 // Cleanup interval (every 5 minutes)
 setInterval(() => {
@@ -604,14 +824,18 @@ setInterval(() => {
 // Graceful shutdown
 process.on('SIGTERM', async () => {
   console.log('SIGTERM received, closing gracefully...');
+  await gameManager.shutdown();
+  if (redisSessionClient) {
+    await redisSessionClient.quit();
+  }
   io.close();
   httpServer.close();
   process.exit(0);
 });
 
 // Start server
-httpServer.listen(config.port, () => {
-  console.log(`🎮 Game Arena server running on port ${config.port}`);
+httpServer.listen(config.port, '0.0.0.0', () => {
+  console.log(`🎮 Game Arena server running on port ${config.port} (0.0.0.0)`);
   console.log(`🌍 Environment: ${config.nodeEnv}`);
   console.log(`🔐 Supabase Auth: ${authClient ? 'Enabled' : 'Disabled'}`);
   console.log(`🔗 Auth Redirect: ${config.auth.redirectUrl}`);

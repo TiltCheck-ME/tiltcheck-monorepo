@@ -1,3 +1,4 @@
+/* Copyright (c) 2026 TiltCheck. All rights reserved. */
 /**
  * DM Handler - NLP-first routing for safety bot conversations.
  */

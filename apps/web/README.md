@@ -1,59 +1,36 @@
-# TiltCheck Web App (`apps/web`)
+This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
-Public-facing TiltCheck web properties (landing pages, docs pages, auth pages, dashboard gate, and static assets).
+## Getting Started
 
-## Key Paths
-
-```
-apps/web/
-├── index.html                 # Main landing page
-├── login.html                 # Discord login entry point
-├── dashboard/index.html       # Auth-gate for dashboard access
-├── docs/                      # Public docs pages
-├── tools/                     # Tool-specific marketing pages
-├── components/                # Reusable nav/footer/component fragments
-├── scripts/                   # Browser scripts
-├── assets/                    # Icons, logos, static assets
-├── styles/                    # Shared styles
-└── copy-static-to-dist.mjs    # Copies non-Vite static files to dist/
-```
-
-## Dashboard Auth Gate
-
-`/dashboard/` is an auth gate page:
-
-- checks session via `/play/api/user`
-- redirects authenticated users to `/play/profile.html`
-- redirects unauthenticated users to `/login.html?next=%2Fplay%2Fprofile.html`
-
-This keeps dashboard entry links stable while enforcing Discord-authenticated access.
-
-## Development
+First, run the development server:
 
 ```bash
-# From repository root
-pnpm -C apps/web dev
-
-# Production build
-pnpm -C apps/web build
-
-# Preview built output
-pnpm -C apps/web preview
+npm run dev
+# or
+yarn dev
+# or
+pnpm dev
+# or
+bun dev
 ```
 
-## Build Behavior
+Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-Build uses:
+You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
-1. `vite build`
-2. `node copy-static-to-dist.mjs`
+This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
-The copy step keeps non-Vite static files (legacy HTML pages, `/assets`, docs pages, etc.) in `dist/` so production includes all required icons and static resources.
+## Learn More
 
-## Related Commands (repo root)
+To learn more about Next.js, take a look at the following resources:
 
-```bash
-# Landing/web a11y snapshot tests
-pnpm a11y:audit:landing
-pnpm a11y:serve:landing
-```
+- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
+- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+
+You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+
+## Deploy on Vercel
+
+The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+
+Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
