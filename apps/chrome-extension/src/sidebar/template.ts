@@ -19,6 +19,7 @@ export const SIDEBAR_TEMPLATE = `
           <h3>REALITY CHECK ACTIVE</h3>
           <p>Connect Discord to sync vault history, liquidity alerts, and live RTP telemetry. No lectures, just math.</p>
           <button class="tg-btn tg-btn-primary" id="tg-discord-login">Connect with Discord</button>
+          <button class="tg-btn tg-btn-secondary" id="tg-guest-login" style="margin-top: 8px;">Continue as Guest</button>
         </div>
       </div>
 

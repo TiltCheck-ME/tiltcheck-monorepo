@@ -10,9 +10,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>The Alpha Layer | TiltCheck</title>
+    <title>The Command Center | TiltCheck</title>
     <link rel="stylesheet" href="/css/style.css">
-    <script src="https://auth.magic.link/sdk/no-modal/solana"></script>
+    <script src="https://auth.magic.link/sdk/latest"></script>
     <link rel="icon" type="image/svg+xml" href="/assets/logo/logocurrent.svg">
 </head>
 <body>
@@ -20,7 +20,7 @@
     <div id="not-logged-in" class="login-container">
         <div class="login-box">
             <img src="/assets/logo/logocurrent.svg" alt="TiltCheck" width="64" height="64" style="margin-bottom: 1.5rem; filter: drop-shadow(0 0 10px rgba(34, 211, 166, 0.4));">
-            <h1>THE AUDIT COMMAND CENTER</h1>
+            <h1>THE COMMAND CENTER</h1>
             <p>Access your non-custodial audit layer. Track shadow-nerfs, monitor vaults, and SECURE THE BAG.</p>
             <a href="/auth/discord" class="btn-discord">
                 <svg width="20" height="20" viewBox="0 0 71 55" fill="none">
@@ -36,7 +36,7 @@
         <header>
             <a href="https://tiltcheck.me" class="logo-link">
                 <img src="/assets/logo/logocurrent.svg" alt="TiltCheck" width="28" height="28">
-                TILTCHECK <span style="opacity: 0.5; font-weight: 400; margin-left: -4px;">ALPHA HUD</span>
+                TILTCHECK <span style="opacity: 0.5; font-weight: 400; margin-left: -4px;">HUB</span>
             </a>
             <div class="user-info">
                 <span id="user-name" class="user-name">...</span>
@@ -46,8 +46,8 @@
         </header>
 
         <nav class="tabs">
-            <button class="tab active" data-tab="overview">ALPHA HUD</button>
-            <button class="tab" data-tab="bonuses">RTP SNIFFER</button>
+            <button class="tab active" data-tab="overview">OVERVIEW</button>
+            <button class="tab" data-tab="bonuses">CHECK YOURSELF</button>
             <button class="tab" data-tab="vaults">PROFIT LOCKER</button>
             <button class="tab" data-tab="activity">AUDIT LOGS</button>
             <button class="tab" data-tab="settings">CONFIG</button>
@@ -58,7 +58,7 @@
             <div class="nlp-container">
                 <div class="nlp-input-wrapper">
                     <span class="nlp-icon">🤖</span>
-                    <input type="text" class="nlp-input" id="nlpInput" placeholder="Audit the Alpha... (e.g., 'What's my biggest win this week?')">
+                    <input type="text" class="nlp-input" id="nlpInput" placeholder="How's my session looking?">
                 </div>
                 <div class="nlp-hint">
                     Quick Queries: 
@@ -73,7 +73,7 @@
                 <div class="grid">
                     <!-- Trust Score Card -->
                     <div class="card">
-                        <h3>🛡️ ALPHA REPUTATION</h3>
+                        <h3>🛡️ REPUTATION</h3>
                         <div id="trustScore" class="trust-score-large">--</div>
                         <div class="metric">
                             <span class="metric-label">Tilt Level</span>
@@ -87,7 +87,7 @@
 
                     <!-- Distribution Stats -->
                     <div class="card">
-                        <h3>🧃 BAG STATS</h3>
+                        <h3>🧃 SESSION STATS</h3>
                         <div class="metric">
                             <span class="metric-label">Total Bags Secured</span>
                             <span id="totalJuice" class="metric-value">-- SOL</span>
@@ -132,7 +132,7 @@
             <!-- Bonus Tracker Tab -->
             <div id="bonuses-tab" class="tab-content">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
-                    <h2>RTP & BONUS AUDIT</h2>
+                    <h2>CHECK YOURSELF</h2>
                     <button class="btn btn-secondary" style="font-size: 0.75rem;">+ Add Custom Casino</button>
                 </div>
                 <div id="bonusGrid" class="bonus-grid">
@@ -161,7 +161,7 @@
 
             <!-- Settings Tab -->
             <div id="settings-tab" class="tab-content">
-                <h2>Ecosystem Config</h2>
+                <h2>System Config</h2>
                 <div class="grid" style="margin-top: 1.5rem;">
                     <div class="card">
                         <h3>Discord Sync</h3>
@@ -182,7 +182,7 @@
                         </label>
                     </div>
                 </div>
-                <button class="btn btn-primary" onclick="savePreferences()" style="margin-top: 1rem;">SAVE ALPHA CONFIG</button>
+                <button class="btn btn-primary" onclick="savePreferences()" style="margin-top: 1rem;">SAVE CONFIG</button>
             </div>
         </main>
     </div>

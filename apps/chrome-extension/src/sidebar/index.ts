@@ -59,6 +59,7 @@ export class SidebarController implements SidebarUI {
 
   private setupListeners() {
     document.getElementById('tg-discord-login')?.addEventListener('click', () => this.auth.startDiscordLoginFlow());
+    document.getElementById('tg-guest-login')?.addEventListener('click', () => this.auth.continueAsGuest());
     document.getElementById('tg-logout')?.addEventListener('click', () => this.auth.logout());
     
     document.getElementById('submit-report')?.addEventListener('click', () => {
