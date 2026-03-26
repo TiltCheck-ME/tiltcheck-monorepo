@@ -386,31 +386,6 @@ export class CreditService {
     });
   }
 
-<<<<<<< HEAD:modules/justthetip/src/credit-manager.ts
-  private async applyDepositAutoRefundWindow(discordId: string): Promise<void> {
-    const minutes = getDepositAutoRefundMinutes();
-    const hardExpiryIso = new Date(Date.now() + minutes * 60 * 1000).toISOString();
-
-    if (this.db.isConnected()) {
-      const ok = await this.db.updateRefundSettings(discordId, {
-        refundMode: 'hard-expiry',
-        hardExpiryAt: hardExpiryIso,
-      });
-      if (!ok) {
-        console.warn(`[CreditManager] Failed to set hard-expiry auto-refund window for ${discordId}`);
-      }
-      return;
-    }
-
-    const fb = this.fallback.balances[discordId] || this.createFallbackBalance(discordId);
-    fb.refundMode = 'hard-expiry';
-    fb.hardExpiryAt = new Date(hardExpiryIso).getTime();
-    this.fallback.balances[discordId] = fb;
-    this.scheduleSave();
-  }
-
-  // ---- Fallback helpers ----
-=======
   async refundExpiredPendingTips(): Promise<number> {
     if (this.db.isConnected()) {
       const expired = await this.db.getExpiredPendingTips();
@@ -457,11 +432,33 @@ export class CreditService {
 
     const pending = this.fallback.pendingTips.filter(t => t.recipientId === recipientId && t.status === 'pending');
     for (const tip of pending) {
-      this.fbCredit(recipientId, tip.amountLamports, 'pending_release', { memo: 'pending tip claimed' });
+      this.fbCredit(recipientId, tip.amount_lamports, 'pending_release', { memo: 'pending tip claimed' });
       tip.status = 'claimed';
     }
     this.scheduleSave();
     return pending.length;
+  }
+
+  private async applyDepositAutoRefundWindow(discordId: string): Promise<void> {
+    const minutes = getDepositAutoRefundMinutes();
+    const hardExpiryIso = new Date(Date.now() + minutes * 60 * 1000).toISOString();
+
+    if (this.db.isConnected()) {
+      const ok = await this.db.updateRefundSettings(discordId, {
+        refundMode: 'hard-expiry',
+        hardExpiryAt: hardExpiryIso,
+      });
+      if (!ok) {
+        console.warn(`[CreditService] Failed to set hard-expiry auto-refund window for ${discordId}`);
+      }
+      return;
+    }
+
+    const fb = this.fallback.balances[discordId] || this.createFallbackBalance(discordId);
+    fb.refundMode = 'hard-expiry';
+    fb.hardExpiryAt = new Date(hardExpiryIso).getTime();
+    this.fallback.balances[discordId] = fb;
+    this.scheduleSave();
   }
 
   // ---- Fallback logic (Private) ----
@@ -492,7 +489,6 @@ export class CreditService {
     if (this.debounceTimer) clearTimeout(this.debounceTimer);
     this.debounceTimer = setTimeout(() => this.saveFallback(), 250);
   }
->>>>>>> main:modules/justthetip/src/credits.ts
 
   private createFallbackBalance(discordId: string): FallbackBalance {
     return {
