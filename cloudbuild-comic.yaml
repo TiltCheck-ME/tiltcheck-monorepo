@@ -5,4 +5,6 @@ steps:
 images:
 - 'us-central1-docker.pkg.dev/tiltchcek/tiltcheck/comic-generator:v1'
 options:
-  logging: CLOUD_LOGGING_ONLY`n  defaultLogsBucketBehavior: REGIONAL_USER_OWNED_BUCKET
+  logging: CLOUD_LOGGING_ONLY
+  defaultLogsBucketBehavior: REGIONAL_USER_OWNED_BUCKET
+

@@ -127,8 +127,7 @@ const globalLimiter = rateLimit({
   max: 1000, // 1000 requests per 15 minutes
   standardHeaders: true,
   legacyHeaders: false,
-  // Removed custom keyGenerator to fix ERR_ERL_KEY_GEN_IPV6
-  // and rely on default behavior with 'trust proxy'
+  keyGenerator: (req) => req.ip || (req.headers['x-forwarded-for'] as string) || req.socket.remoteAddress || 'unknown',
   message: { error: 'Too many requests', code: 'RATE_LIMIT_EXCEEDED' },
 });
 app.use(globalLimiter);

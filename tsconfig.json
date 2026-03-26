@@ -20,7 +20,7 @@
     "resolveJsonModule": true,
     "esModuleInterop": true,
     "target": "ESNext",
-    "incremental": false,
+    "incremental": true,
     "strict": true
   },
   "exclude": [
