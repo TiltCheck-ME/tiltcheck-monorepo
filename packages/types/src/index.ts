@@ -617,7 +617,9 @@ export type EventType =
   | 'trivia.round.reveal'
   | 'trivia.completed'
   | 'trivia.player.reinstated'
-  | 'dad.game.completed';
+  | 'dad.game.completed'
+  | 'user.discord_linked'
+  | 'safety.intervention.triggered';
 
 /**
  * Event-specific data interfaces
@@ -626,10 +628,13 @@ export type EventType =
 
 export interface LinkFlaggedEventData {
   url: string;
-  riskLevel: RiskLevel;
+  riskLevel: string; // Using string instead of RiskLevel temporarily for cross-service compatibility
   source?: string;
+  userId?: string; // Standardized with other events
   actorId?: string;
   reason?: string;
+  channelId?: string;
+  guildId?: string;
 }
 
 export interface BonusNerfDetectedEventData {
@@ -715,6 +720,8 @@ export interface TiltDetectedEventData {
   indicators?: string[];
   reportExcerpt?: string;
   messageCount?: number;
+  channelId?: string;
+  guildId?: string;
 }
 
 export interface CooldownViolatedEventData {
@@ -722,14 +729,22 @@ export interface CooldownViolatedEventData {
   severity: number;
   violationCount: number;
   expiresAt?: number;
+  channelId?: string;
+  action?: string;
+  newDuration?: number;
+  guildId?: string;
 }
 
 export interface ScamReportedEventData {
   reporterId: string;
   accusedId: string;
+  userId: string; // Accused User ID for standardization
   verified: boolean;
   falseReport: boolean;
   reason?: string;
+  description?: string;
+  channelId?: string;
+  guildId?: string;
 }
 
 export interface AccountabilitySuccessEventData {
@@ -817,6 +832,39 @@ export interface TriviaPlayerReinstatedEventData {
   username: string;
 }
 
+export interface UserDiscordLinkedEventData {
+  userId: string;
+  discordId: string;
+  username?: string;
+}
+
+export interface SafetyInterventionTriggeredEventData {
+  userId: string;
+  type: 'phone_friend_discord' | 'lock_override' | 'nudge';
+  data: Record<string, any>;
+}
+
+export interface VaultExpiredEventData {
+  userId: string;
+  id: string;
+  address: string;
+  amountSOL: number;
+}
+
+export interface VaultLockedEventData {
+  userId: string;
+  id: string;
+  vaultType: 'disposable' | 'magic';
+  vaultAddress: string;
+  amountSOL: number;
+}
+
+export interface VaultReloadDueEventData {
+  userId: string;
+  amountRaw: string;
+  interval: string;
+}
+
 /**
  * Map event types to their data structures
  */
@@ -844,6 +892,11 @@ export interface EventDataMap {
   'trivia.round.reveal': TriviaRoundRevealEventData;
   'trivia.completed': TriviaCompletedEventData;
   'trivia.player.reinstated': TriviaPlayerReinstatedEventData;
+  'user.discord_linked': UserDiscordLinkedEventData;
+  'safety.intervention.triggered': SafetyInterventionTriggeredEventData;
+  'vault.expired': VaultExpiredEventData;
+  'vault.locked': VaultLockedEventData;
+  'vault.reload_due': VaultReloadDueEventData;
     // Fallback for types not yet specifically typed
     [key: string]: unknown;
   }

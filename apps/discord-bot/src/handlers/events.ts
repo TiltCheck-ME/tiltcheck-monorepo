@@ -13,7 +13,13 @@ import { trackMessage, isOnCooldown, recordViolation } from '@tiltcheck/tiltchec
 import { config } from '../config.js';
 import type { CommandHandler } from './commands.js';
 import { checkAndOnboard, handleOnboardingInteraction, needsOnboarding } from './onboarding.js';
-import type { TiltCheckEvent } from '@tiltcheck/types';
+import type { 
+  TiltCheckEvent, 
+  TiltDetectedEventData, 
+  CooldownViolatedEventData, 
+  LinkFlaggedEventData, 
+  ScamReportedEventData 
+} from '@tiltcheck/types';
 import { trackMessageEvent, trackCommandEvent } from '../services/elastic-telemetry.js';
 import { markUserActive, type TiltAgentContext } from '../services/tilt-agent.js';
 import { handleCommandError } from './error.js';
@@ -156,6 +162,7 @@ export class EventHandler {
   }
 
   private async handleButtonInteraction(interaction: Interaction): Promise<void> {
+    if (!interaction.isButton()) return;
     const customId = interaction.customId;
 
     try {
@@ -180,44 +187,52 @@ export class EventHandler {
       console.log(`[EventHandler] Routing mod action for ${type}`);
 
       switch (type) {
-        case 'tilt.detected':
+        case 'tilt.detected': {
+          const d = data as TiltDetectedEventData;
           await this.modNotifier.notifyTiltDetected({
-            userId: data.userId,
-            reason: data.reason,
-            severity: data.severity,
-            channelId: data.channelId,
-            guildId: data.guildId,
+            userId: d.userId,
+            reason: d.reason,
+            severity: d.severity,
+            channelId: d.channelId,
+            guildId: d.guildId,
           });
           break;
-        case 'cooldown.violated':
+        }
+        case 'cooldown.violated': {
+          const d = data as CooldownViolatedEventData;
           await this.modNotifier.notifyCooldownViolation({
-            userId: data.userId,
-            action: data.action || 'cooldown_violation',
-            newDuration: data.newDuration || 5,
-            channelId: data.channelId,
+            userId: d.userId,
+            action: d.action || 'cooldown_violation',
+            newDuration: d.newDuration || 5,
+            channelId: d.channelId,
           });
           break;
-        case 'link.flagged':
+        }
+        case 'link.flagged': {
+          const d = data as LinkFlaggedEventData;
           await this.modNotifier.notifyLinkFlagged({
-            url: data.url,
-            riskLevel: data.riskLevel,
-            userId: data.userId,
-            channelId: data.channelId,
-            guildId: data.guildId,
-            reason: data.reason,
+            url: d.url,
+            riskLevel: d.riskLevel,
+            userId: d.userId || 'unknown',
+            channelId: d.channelId,
+            guildId: d.guildId,
+            reason: d.reason,
           });
           break;
-        case 'scam.reported':
+        }
+        case 'scam.reported': {
+          const d = data as ScamReportedEventData;
           await this.modNotifier.notify({
             type: 'scam.reported',
-            userId: data.userId,
+            userId: d.userId,
             title: 'Scam Reported',
-            description: data.description || 'A potential scam has been reported.',
+            description: d.description || 'A potential scam has been reported.',
             severity: 4,
-            channelId: data.channelId,
-            guildId: data.guildId,
+            channelId: d.channelId,
+            guildId: d.guildId,
           });
           break;
+        }
       }
     } catch (error) {
       console.error(`[EventHandler] Error in handleModAction for ${type}:`, error);
@@ -227,7 +242,7 @@ export class EventHandler {
   subscribeToEvents(): void {
     eventRouter.subscribe(
       'user.discord_linked',
-      async (event: any) => {
+      async (event: TiltCheckEvent<'user.discord_linked'>) => {
         try {
           const { discordId } = event.data;
           const user = await this.client.users.fetch(discordId);
@@ -368,10 +383,10 @@ export class EventHandler {
             const channelId = process.env.DEGEN_ACCOUNTABILITY_CHANNEL_ID || '1447913312015515711';
             const channel = await this.client.channels.fetch(channelId).catch(() => null);
             
-            if (channel && channel.isTextBased()) {
+            if (channel && channel.isTextBased() && 'send' in channel) {
               const userMention = userId !== 'guest' ? `<@${userId}>` : '**A Guest Degen**';
               const alertMessage = `🚨 **BUDDY SYSTEM ALERT** 🚨\n\n${userMention} is fumbling the bag! They just hit a zero balance or blew a massive lead. \n\nGet in voice and pull them off the floor before they revenge deposit. \n\n*Action: ${data.message || 'Intervention Required'}*`;
-              await (channel as TextBasedChannel).send(alertMessage);
+              await (channel as any).send({ content: alertMessage });
               console.log(`[Bot] Buddy snitch sent to channel ${channelId} for ${userId}`);
             }
           }

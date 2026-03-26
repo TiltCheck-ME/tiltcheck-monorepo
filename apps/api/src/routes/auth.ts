@@ -58,6 +58,7 @@ function renderExtensionAuthErrorPage(message: string): string {
           .title { font-weight: 800; letter-spacing: 0.3px; margin-bottom: 10px; }
           .msg { font-size: 14px; opacity: 0.9; line-height: 1.45; }
           .hint { margin-top: 12px; font-size: 12px; opacity: 0.65; }
+          .footer { margin-top: 24px; font-size: 10px; opacity: 0.5; text-transform: uppercase; letter-spacing: 0.05em; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 12px; text-align: center; }
         </style>
       </head>
       <body>
@@ -65,6 +66,9 @@ function renderExtensionAuthErrorPage(message: string): string {
           <div class="title">TiltCheck Connect Issue</div>
           <div class="msg">${safeMessage}</div>
           <div class="hint">Return to your casino tab, then click Connect Discord again.</div>
+          <div class="footer">
+            "Casinos don't win because they're lucky. They win because they're open 24/7 and your calculator battery died at 2:17 a.m."
+          </div>
         </div>
       </body>
     </html>
@@ -590,6 +594,7 @@ router.get('/discord/callback', authLimiter, async (req, res) => {
               .spinner { width: 22px; height: 22px; border: 2px solid rgba(255,255,255,0.2); border-top-color: #6366f1; border-radius: 50%; margin: 12px auto; animation: spin 1s linear infinite; }
               @keyframes spin { to { transform: rotate(360deg); } }
               .hint { font-size: 12px; opacity: 0.6; }
+              .footer { margin-top: 20px; font-size: 9px; opacity: 0.4; text-transform: uppercase; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 10px; }
             </style>
           </head>
           <body>
@@ -598,6 +603,9 @@ router.get('/discord/callback', authLimiter, async (req, res) => {
               <div>Authenticating...</div>
               <div class="spinner"></div>
               <div class="hint">This window will close automatically.</div>
+              <div class="footer">
+                "Trust everybody, but cut the cards."
+              </div>
             </div>
             <script>
               const userData = ${JSON.stringify({ id: user.id, username: user.discord_username, avatar: user.discord_avatar })};

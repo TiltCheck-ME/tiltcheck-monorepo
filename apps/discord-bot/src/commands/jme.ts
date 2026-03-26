@@ -50,11 +50,14 @@ export const jme: Command = {
 
     switch (sub) {
       case 'purge':
-        return handlePurge(interaction);
+        await handlePurge(interaction);
+        break;
       case 'nuke':
-        return handleNuke(interaction);
+        await handleNuke(interaction);
+        break;
       case 'intel':
-        return handleIntel(interaction);
+        await handleIntel(interaction);
+        break;
       default:
         await interaction.reply({ content: 'Unknown protocol endpoint.', ephemeral: true });
     }
@@ -66,7 +69,8 @@ async function handlePurge(interaction: ChatInputCommandInteraction) {
   const channel = interaction.channel as TextChannel;
 
   if (!channel || !channel.isTextBased()) {
-    return interaction.reply({ content: '❌ Invalid channel context.', ephemeral: true });
+    await interaction.reply({ content: '❌ Invalid channel context.', ephemeral: true });
+    return;
   }
 
   await interaction.deferReply({ ephemeral: true });
@@ -105,7 +109,8 @@ async function handleNuke(interaction: ChatInputCommandInteraction) {
   const isOwner = interaction.user.id === '164294266634' || interaction.user.id === '229825593856163840'; // Replace with actual ID
   
   if (!isOwner) {
-    return interaction.reply({ content: '❌ UNAUTHORIZED. Owner-level clearance required for user nuking.', ephemeral: true });
+    await interaction.reply({ content: '❌ UNAUTHORIZED. Owner-level clearance required for user nuking.', ephemeral: true });
+    return;
   }
 
   const embed = new EmbedBuilder()
