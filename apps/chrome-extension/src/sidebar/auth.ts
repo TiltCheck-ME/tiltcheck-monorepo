@@ -110,13 +110,6 @@ export class AuthManager {
       };
 
       try {
-          // User-clicked popup preserves window.opener for callback postMessage.
-          const popup = window.open(authUrl, '_blank', 'popup=yes,width=520,height=760');
-          if (popup) {
-              startStoragePolling();
-              return;
-          }
-
           chrome.runtime.sendMessage({ type: 'open_auth_bridge', url: authUrl }, (response) => {
               if (chrome.runtime.lastError) {
                   const msg = chrome.runtime.lastError.message || 'Could not open Discord login tab.';
@@ -129,7 +122,7 @@ export class AuthManager {
               }
 
               if (response?.success) {
-                  this.ui.addFeedMessage(`Opened Discord login helper tab. Status: \${response.status || 'open'}`);
+                  this.ui.addFeedMessage(`Opened Discord login helper tab.`);
                   startStoragePolling();
               } else {
                   this.ui.addFeedMessage('Discord login tab could not be opened. Double check popup blockers.');
