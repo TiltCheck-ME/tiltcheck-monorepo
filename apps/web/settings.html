@@ -549,7 +549,7 @@
         alert(`Wallet lock is active (${formatWalletLockRemaining(walletLockUntilMs - Date.now())} left). Unlock it in Settings first.`);
         return;
       }
-      alert('Wallet connection coming soon! This will integrate with Phantom/Solflare for Solana tips.');
+      window.location.href = 'https://tiltcheck.me/dashboard?action=connect-wallet';
     }
 
     function formatWalletLockRemaining(ms) {

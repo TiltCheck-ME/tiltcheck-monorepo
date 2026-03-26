@@ -4,7 +4,7 @@
 
 This document outlines the migration of **TiltCheck** (gambling behavior tracker and tilt detection) from Discord bot commands to a standalone Progressive Web App (PWA).
 
-**Why Migrate**: Discord bot commands (`/cooldown`, `/tilt`) are a poor fit for gambling tracking because they lack privacy, rich features, and real-time intervention capabilities. A PWA provides a private, mobile-first, feature-rich solution that can actually help people with gambling problems.
+**Why Migrate**: Discord bot commands (`/cooldown`, `/tilt`) are a poor fit for gambling tracking because they lack privacy, rich features, and real-time intervention capabilities. A PWA provides a private, mobile-first, feature-rich solution that can empower users to secure wins and gamble smarter.
 
 **Timeline**: 11 weeks from start to full migration  
 **Effort**: 4-5 weeks development + 2 weeks migration + ongoing support
@@ -229,7 +229,6 @@ Everyone in the server can see this. Embarrassing and invasive.
 **Crisis Intervention**:
 - Escalation to human help (therapist, hotline)
 - Emergency contacts (trusted friend/family)
-- Suicide prevention resources
 
 **Examples**:
 ```
@@ -822,7 +821,7 @@ eventRouter.subscribe('user.profile.updated', (event) => {
 4. ✅ **Monetization Potential**
    - Partnerships with therapy providers
    - Premium features (advanced analytics, more casinos)
-   - B2B (casinos use TiltCheck for responsible gambling compliance)
+   - B2B (casinos use TiltCheck for player engagement and smarter gambling)
 
 5. ✅ **Impact**
    - Actually help people, not just detect tilt
@@ -977,8 +976,8 @@ Migrating TiltCheck from Discord bot to PWA is the **right decision** for the fo
 
 **Effort**: High upfront, but worth it for long-term impact
 
-**Recommendation**: **PROCEED** with migration. TiltCheck PWA will be a flagship product that demonstrates TiltCheck's commitment to responsible gambling and user privacy.
+**Recommendation**: **PROCEED** with migration. TiltCheck PWA will be a flagship product that demonstrates TiltCheck's commitment to smarter gambling and securing wins.
 
 ---
 
-**TiltCheck PWA: Not just detecting tilt. Actually helping people. 🎰📱💙**
+**TiltCheck PWA: Not just detecting tilt. Securing wins. 🎰📱💙**
