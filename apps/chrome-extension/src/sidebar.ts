@@ -35,14 +35,12 @@ const authManager = new AuthManager({
 });
 
 let authToken: string | null = null;
-let showSettings = false;
-let apiKeys: any = {
-  openai: '',
-  anthropic: '',
-  custom: ''
-};
+let userData: any = null;
+let isAuthenticated = false;
+let demoMode = true;
+let isConnecting = false;
 
-let { isAuthenticated, userData, demoMode, isConnecting } = authManager;
+let showSettings = false;
 const SIDEBAR_WIDTH = 340;
 const MINIMIZED_WIDTH = 40;
 const SIDEBAR_VISIBILITY_KEY = 'tiltcheck_sidebar_visible';
@@ -59,10 +57,8 @@ let casinoThemesIntervalId: ReturnType<typeof setInterval> | null = null;
 let vaultRefreshIntervalId: ReturnType<typeof setInterval> | null = null;
 let discordAuthPollIntervalId: ReturnType<typeof setInterval> | null = null;
 let buddyMirrorEnabled = false;
-let demoMode = false;
 const SIDEBAR_PREFS_KEY = 'sidebarUiPrefs';
 let showAdvancedTools = false;
-let isConnecting = false;
 
 const CASINO_THEMES: Record<string, { label: string; accent: string }> = {
   'stake.us': { label: 'Stake.us', accent: '#4ade80' },
@@ -245,6 +241,22 @@ function mockApiCall(endpoint: string, options: any = {}) {
   }
 
   return { success: true, demo: true };
+}
+
+function getRandomQuote(): string {
+  const quotes = [
+    "Trust everybody, but cut the cards.",
+    "Casinos don't win because they're lucky. They win because they're open 24/7 and your calculator battery died at 2:17 a.m.",
+    "The house always wins, unless you're the architect.",
+    "A gambler never makes the same mistake twice. He makes it three or four times just to be sure.",
+    "Risk is the price you pay for the chance to be right.",
+    "Fortune favors the bold, but the bold usually go broke at 4 AM.",
+    "What is a programmers favorite drink? Java!",
+    "Zero drift. Zero mercy.",
+    "Math doesn't care about your gut feeling.",
+    "The machine has a memory. You have a prayer."
+  ];
+  return quotes[Math.floor(Math.random() * quotes.length)];
 }
 
 function escapeHtml(value: unknown): string {
@@ -882,8 +894,8 @@ function createSidebar() {
         </div>
         <div class="tg-brand-footer">
           Made for degens, by degens • © 2026 TiltCheck<br/>
-          <span style="opacity:0.6; font-size:9px; text-transform:none; margin-top:4px; display:block;">
-            "Casinos don't win because they're lucky. They win because they're open 24/7 and your calculator battery died at 2:17 a.m."
+          <span id="tg-footer-quote" style="opacity:0.6; font-size:9px; text-transform:none; margin-top:4px; display:block;">
+            "${getRandomQuote()}"
           </span>
         </div>
       </div>
@@ -1417,6 +1429,13 @@ function updateSessionSiteLabel() {
 }
 
 function syncAccountUi() {
+  // Sync state from authManager to local variables
+  isConnecting = authManager.isConnecting;
+  demoMode = authManager.demoMode;
+  userData = authManager.userData;
+  authToken = authManager.authToken;
+  isAuthenticated = authManager.isAuthenticated;
+
   const accountText = document.getElementById('tg-account-text');
   const connectBtn = document.getElementById('tg-connect-discord-inline') as HTMLButtonElement | null;
   const logoutBtn = document.getElementById('tg-logout') as HTMLButtonElement | null;
