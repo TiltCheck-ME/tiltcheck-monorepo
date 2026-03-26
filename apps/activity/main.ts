@@ -1,15 +1,9 @@
-/**
- * © 2024–2026 TiltCheck Ecosystem. All Rights Reserved.
- * Discord Activity: Live RTP Session Analyzer
- *
- * You play. We watch. We math. We tell you if the casino's
- * math matches what they claim.
- */
-
 import { DiscordSDK } from '@discord/embedded-app-sdk';
+import { io, Socket } from 'socket.io-client';
 
 const DISCORD_CLIENT_ID = '1445916179163250860';
 const HUB_URL = 'https://tiltcheck-edge-hub.j-chapman7.workers.dev';
+const ARENA_URL = 'http://localhost:3010';
 
 // --- Types ---
 interface SessionRound {
@@ -50,6 +44,9 @@ const channelState: ChannelState = {
 
 let currentUser: { username: string; id: string } | null = null;
 let currentChannelId: string | null = null;
+let socket: Socket | null = null;
+let currentView = 'analyzer';
+let currentGame = 'poker';
 
 // --- Math ---
 function calcActualRtp(rounds: SessionRound[]): number {
@@ -65,11 +62,11 @@ function calcDrift(actual: number, expected: number): number {
 }
 
 function calcConfidence(roundCount: number): string {
-  if (roundCount < 50) return 'Need more data';
-  if (roundCount < 100) return 'Low (~60%)';
-  if (roundCount < 250) return 'Moderate (~80%)';
-  if (roundCount < 500) return 'Good (~90%)';
-  return 'High (95%+)';
+  if (roundCount < 50) return 'NEED DATA';
+  if (roundCount < 100) return 'LOW';
+  if (roundCount < 250) return 'MODERATE';
+  if (roundCount < 500) return 'GOOD';
+  return 'HIGH';
 }
 
 function getDriftClass(drift: number): string {
@@ -81,13 +78,46 @@ function getDriftClass(drift: number): string {
 function formatDuration(ms: number): string {
   const minutes = Math.floor(ms / 60000);
   const hours = Math.floor(minutes / 60);
-  if (hours > 0) return `${hours}h ${minutes % 60}m`;
-  return `${minutes}m`;
+  if (hours > 0) return `${hours}H ${minutes % 60}M`;
+  return `${minutes}M`;
 }
 
-// --- Render ---
-function renderUI(status: string = 'Connecting...') {
-  const container = document.getElementById('app')!;
+// --- View Management ---
+function switchView(viewId: string) {
+  currentView = viewId;
+  document.querySelectorAll('.view-content').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(el => el.classList.remove('active'));
+  
+  document.getElementById(`view-${viewId}`)?.classList.add('active');
+  document.querySelector(`.nav-tab[data-view="${viewId}"]`)?.classList.add('active');
+
+  if (viewId === 'analyzer') renderUI();
+}
+
+function switchGame(gameId: string) {
+  currentGame = gameId;
+  document.querySelectorAll('.sub-tab').forEach(el => el.classList.remove('active'));
+  document.querySelector(`.sub-tab[data-game="${gameId}"]`)?.classList.add('active');
+  
+  const container = document.getElementById('game-container')!;
+  container.innerHTML = `
+    <div class="waiting-state">
+      <div class="waiting-icon">[${gameId.toUpperCase()}]</div>
+      <p class="waiting-title">${gameId.toUpperCase()} Mode Active</p>
+      <p class="waiting-sub">Connecting to Game Arena...</p>
+    </div>
+  `;
+  
+  if (socket?.connected) {
+    socket.emit('join-lobby', { game: gameId });
+  }
+}
+
+// --- Render Analyzer ---
+function renderUI(status: string = 'CONNECTED') {
+  const container = document.getElementById('view-analyzer')!;
+  if (!container) return;
+
   const actualRtp = calcActualRtp(session.rounds);
   const drift = calcDrift(actualRtp, session.expectedRtp);
   const confidence = calcConfidence(session.rounds.length);
@@ -95,19 +125,17 @@ function renderUI(status: string = 'Connecting...') {
   const totalWagered = session.rounds.reduce((sum: number, r: SessionRound) => sum + r.bet, 0);
   const totalReturned = session.rounds.reduce((sum: number, r: SessionRound) => sum + r.win, 0);
   const sessionTime = formatDuration(Date.now() - session.startedAt);
-  const userName = currentUser?.username ?? 'Anonymous Degen';
+  const userName = currentUser?.username ?? 'ANONYMOUS DEGEN';
 
   const hasRounds = session.rounds.length > 0;
-  
-  // Get other sessions for the Room HUD
   const otherSessions = Object.values(channelState.sessions).filter(s => s.userId !== currentUser?.id);
 
   container.innerHTML = `
     <p id="sdk-status" class="sdk-status">${status}</p>
 
     <div class="session-header">
-      <span class="session-user">👤 ${userName}</span>
-      <span class="session-timer">⏱️ ${sessionTime}</span>
+      <span class="session-user">[USER] ${userName}</span>
+      <span class="session-timer">[SESSION] ${sessionTime}</span>
     </div>
 
     ${hasRounds ? `
@@ -148,26 +176,24 @@ function renderUI(status: string = 'Connecting...') {
     </div>
     ` : `
     <div class="waiting-state">
-      <div class="waiting-icon">📡</div>
+      <div class="waiting-icon">[SIGNAL]</div>
       <p class="waiting-title">Waiting for session data...</p>
-      <p class="waiting-sub">Start playing with the Chrome Extension active, or enter rounds manually below.</p>
+      <p class="waiting-sub">Start playing with the Chrome Extension active, or add manually below.</p>
     </div>
     `}
 
     ${otherSessions.length > 0 ? `
     <div class="room-hud">
-      <p class="section-label">OTHER DEGENS IN ROOM</p>
+      <p class="section-label">ROOM ANALYTICS</p>
       <div class="room-list">
         ${otherSessions.map(os => {
           const ortp = calcActualRtp(os.rounds);
-          const odrift = calcDrift(ortp, os.expectedRtp);
-          const oclass = getDriftClass(odrift);
+          const oclass = getDriftClass(calcDrift(ortp, os.expectedRtp));
           return `
             <div class="room-user-card">
               <span class="room-user-name">${os.username}</span>
               <div class="room-user-stats">
                 <span class="room-user-rtp ${oclass}">${ortp.toFixed(1)}%</span>
-                <span class="room-user-drift ${oclass}">${odrift > 0 ? '+' : ''}${odrift.toFixed(1)}%</span>
               </div>
             </div>
           `;
@@ -177,7 +203,7 @@ function renderUI(status: string = 'Connecting...') {
     ` : ''}
 
     <div class="manual-entry">
-      <p class="section-label">QUICK ADD ROUND</p>
+      <p class="section-label">AUDIT OVERRIDE</p>
       <div class="entry-row">
         <div class="entry-field">
           <label>Bet ($)</label>
@@ -193,56 +219,97 @@ function renderUI(status: string = 'Connecting...') {
 
     <div class="btn-row">
       <button id="resetBtn" class="btn-secondary">Reset Session</button>
-      <button id="alertBtn" class="btn-secondary">Send Tilt Alert</button>
+      <button id="alertBtn" class="btn-secondary">Send Hub Alert</button>
     </div>
-
-    <div id="result" class="result-box">${hasRounds
-      ? `Last round: Bet $${session.rounds[session.rounds.length-1].bet.toFixed(2)} → Won $${session.rounds[session.rounds.length-1].win.toFixed(2)}`
-      : 'Ready for audit. No custody. Just math.'
-    }</div>
   `;
 
   // --- Event Listeners ---
   document.getElementById('addRoundBtn')?.addEventListener('click', () => {
     const bet = parseFloat((document.getElementById('betAmount') as HTMLInputElement).value);
     const win = parseFloat((document.getElementById('winAmount') as HTMLInputElement).value);
-    if (isNaN(bet) || bet <= 0) {
-      document.getElementById('result')!.textContent = 'Enter a valid bet amount.';
-      return;
+    if (!isNaN(bet) && bet > 0) {
+      session.rounds.push({ bet, win: win || 0, timestamp: Date.now() });
+      renderUI();
     }
-    session.rounds.push({ bet, win: isNaN(win) ? 0 : win, timestamp: Date.now() });
-    renderUI(document.getElementById('sdk-status')?.textContent ?? 'Connected');
   });
 
   document.getElementById('resetBtn')?.addEventListener('click', () => {
-    session = { ...session, rounds: [], startedAt: Date.now() };
-    renderUI(document.getElementById('sdk-status')?.textContent ?? 'Connected');
+    session.rounds = [];
+    session.startedAt = Date.now();
+    renderUI();
   });
 
   document.getElementById('alertBtn')?.addEventListener('click', async () => {
-    const resultEl = document.getElementById('result')!;
-    resultEl.textContent = 'Pushing to Hub...';
+    updateStatus('PUSHING ALERT...');
     try {
-      const res = await fetch(`${HUB_URL}/tilt-alert`, {
+      await fetch(`${HUB_URL}/tilt-alert`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           user: currentUser?.username ?? 'anonymous',
           userId: currentUser?.id ?? 'unknown',
           timestamp: Date.now(),
-          signal: 'Tilt detected.',
+          signal: 'Manual override triggered.',
           stats: {
             rounds: session.rounds.length,
             actualRtp: calcActualRtp(session.rounds),
             expectedRtp: session.expectedRtp,
-            drift: calcDrift(calcActualRtp(session.rounds), session.expectedRtp),
           },
         }),
       });
-      const data = await res.json();
-      resultEl.textContent = `Hub acknowledged: ${JSON.stringify(data)}`;
+      updateStatus('HUB ACKNOWLEDGED');
+      setTimeout(() => updateStatus('CONNECTED'), 3000);
     } catch {
-      resultEl.textContent = 'Hub unreachable. Is the worker running?';
+      updateStatus('HUB OFFLINE', true);
+    }
+  });
+}
+
+// --- Navigation ---
+function initNavigation() {
+  document.querySelectorAll('.nav-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      const view = (tab as HTMLElement).dataset.view;
+      if (view) switchView(view);
+    });
+  });
+
+  document.querySelectorAll('.sub-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      const game = (tab as HTMLElement).dataset.game;
+      if (game) switchGame(game);
+    });
+  });
+
+  document.getElementById('emergencyVaultBtn')?.addEventListener('click', () => {
+    alert('VAULT TRIGGERED: Assets moving to non-custodial Profit Locker.');
+  });
+}
+
+// --- Socket.io ---
+function initSocket() {
+  if (socket) return;
+  
+  socket = io(ARENA_URL, {
+    auth: {
+      token: 'discord-activity-bypass',
+      userId: currentUser?.id
+    }
+  });
+
+  socket.on('connect', () => {
+    console.log('[TiltCheck] Arena linked.');
+    if (currentView === 'games') switchGame(currentGame);
+  });
+
+  socket.on('disconnect', () => {
+    console.warn('[TiltCheck] Arena connection lost.');
+  });
+
+  socket.on('game-update', (data) => {
+    if (currentView === 'games') {
+      const container = document.getElementById('game-container')!;
+      container.innerHTML = `<pre class="result-box">${JSON.stringify(data, null, 2)}</pre>`;
     }
   });
 }
@@ -252,7 +319,6 @@ async function pollSession() {
   if (!currentUser?.id || currentUser.id === 'unknown') return;
 
   try {
-    // If we have a channelId, poll the collective room state instead of just the user
     const endpoint = currentChannelId 
       ? `${HUB_URL}/channel/${currentChannelId}` 
       : `${HUB_URL}/session/${currentUser.id}`;
@@ -260,26 +326,17 @@ async function pollSession() {
     const res = await fetch(endpoint);
     if (res.ok) {
       const data = await res.json();
-      
-      if (currentChannelId && data.sessions) {
-        // Multi-user room data
+      if (data.sessions) {
         channelState.sessions = data.sessions;
-        if (data.sessions[currentUser.id]) {
-          session = data.sessions[currentUser.id];
-        }
-        renderUI(document.getElementById('sdk-status')?.textContent ?? 'Connected');
-      } else if (data.rounds && JSON.stringify(data.rounds) !== JSON.stringify(session.rounds)) {
-        // Fallback or Single-user data
-        session.rounds = data.rounds;
-        renderUI(document.getElementById('sdk-status')?.textContent ?? 'Connected');
+        if (data.sessions[currentUser.id]) session = data.sessions[currentUser.id];
+        renderUI();
       }
     }
   } catch (e) {
-    console.warn('[TiltCheck] Polling hub failed:', e);
+    console.warn('[TiltCheck] Mesh sync failed:', e);
   }
 }
 
-// Start polling every 2.5s
 setInterval(pollSession, 2500);
 
 // --- Status Helper ---
@@ -293,26 +350,23 @@ function updateStatus(msg: string, isError = false) {
 
 // --- SDK Init ---
 async function initDiscord() {
-  renderUI('Connecting to Discord SDK...');
+  renderUI('CONNECTING...');
 
   const isInsideDiscord = window.self !== window.top;
 
   if (!isInsideDiscord) {
-    currentUser = { username: 'Local Degen', id: 'dev-0000' };
-    updateStatus('DEV MODE: Running outside Discord. SDK skipped.');
-    renderUI('DEV MODE: Running outside Discord. SDK skipped.');
+    currentUser = { username: 'LOCAL DEGEN', id: 'dev-0000' };
+    updateStatus('BYPASS MODE');
+    initNavigation();
+    initSocket();
+    renderUI();
     return;
   }
 
-  const sdkTimeout = new Promise<never>((_, reject) =>
-    setTimeout(() => reject(new Error('SDK timed out (8s). Check Discord Dev Portal settings.')), 8000)
-  );
-
   try {
     const discordSdk = new DiscordSDK(DISCORD_CLIENT_ID);
-    await Promise.race([discordSdk.ready(), sdkTimeout]);
+    await discordSdk.ready();
 
-    // 1. Authorize (Client-side)
     const { code } = await discordSdk.commands.authorize({
       client_id: DISCORD_CLIENT_ID,
       response_type: 'code',
@@ -320,8 +374,6 @@ async function initDiscord() {
       prompt: 'none',
     });
 
-    // 2. Exchange Code for Access Token (Server-side via API)
-    updateStatus('Exchanging auth code...');
     const response = await fetch('https://api.tiltcheck.me/auth/discord/activity/token', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -329,48 +381,24 @@ async function initDiscord() {
     });
 
     const { access_token } = await response.json();
-
-    // 3. Authenticate with Access Token (Client-side handshake)
-    updateStatus('Pipes secured. Handshaking...');
     const auth = await discordSdk.commands.authenticate({ access_token });
 
     if (auth.user) {
       currentUser = { username: auth.user.username, id: auth.user.id };
       currentChannelId = discordSdk.channelId;
-      if (currentChannelId) channelState.id = currentChannelId;
-
-      // Perform the Degen Handshake with the Edge Hub
-      try {
-        updateStatus('Registering identity at the edge...');
-        await fetch(`${HUB_URL}/auth/Handshake`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ 
-            discordId: currentUser.id, 
-            tiltcheckId: `tc-${currentUser.id}`,
-            channelId: currentChannelId 
-          }),
-        });
-        console.log('[TiltCheck] Degen Handshake synchronized with D1.');
-      } catch (e) {
-        console.warn('[TiltCheck] Edge handshake failed (non-critical):', e);
-      }
-
-      updateStatus(`Connected as ${currentUser.username}`);
-      renderUI(`Connected as ${currentUser.username}`);
-      console.log('[TiltCheck] Authenticated successfully via central API.');
+      
+      initNavigation();
+      initSocket();
+      renderUI();
     }
 
-  } catch (err: any) {
-    const msg = err?.message ?? 'Unknown SDK error';
-    updateStatus(`SDK Error: ${msg}`, true);
-    console.error('[TiltCheck] SDK failed:', msg);
-    
-    // Fallback to anonymous for UI testing
-    currentUser = { username: 'Anonymous Degen', id: 'dev-0000' };
-    renderUI('SDK failure. Running in bypass mode.');
+  } catch {
+    updateStatus('SDK OFFLINE', true);
+    currentUser = { username: 'ANONYMOUS', id: 'dev-0000' };
+    initNavigation();
+    initSocket();
+    renderUI();
   }
 }
-
 
 initDiscord();

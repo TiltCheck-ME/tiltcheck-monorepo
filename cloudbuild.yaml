@@ -5,3 +5,4 @@ images:
 - 'us-central1-docker.pkg.dev/tiltchcek/tiltcheck/api:latest'
 options:
   logging: CLOUD_LOGGING_ONLY
+  defaultLogsBucketBehavior: REGIONAL_USER_OWNED_BUCKET

@@ -8,7 +8,7 @@
 import type { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import { findUserById } from '@tiltcheck/db';
-import type { JWTConfig } from '@tiltcheck/auth';
+import { verifySessionCookie, type JWTConfig } from '@tiltcheck/auth';
 
 /**
  * Get unified JWT configuration
@@ -63,6 +63,23 @@ function getJWTSecret(): string {
   return secret;
 }
 
+async function getSessionUser(req: Request): Promise<AuthRequest['user'] | null> {
+  try {
+    const cookieHeader = req.headers.cookie;
+    const jwtConfig = getJWTConfig();
+    const result = await verifySessionCookie(cookieHeader, jwtConfig);
+    if (!result.valid || !result.session) return null;
+    const session = result.session;
+    return {
+      id: session.userId,
+      email: `${session.userId}@session.local`,
+      roles: Array.isArray(session.roles) ? session.roles : [],
+    };
+  } catch {
+    return null;
+  }
+}
+
 /**
  * Middleware to verify JWT token and attach user to request
  */
@@ -76,9 +93,15 @@ export async function authMiddleware(
     const authHeader = req.headers.authorization;
     
     if (!authHeader) {
-      res.status(401).json({ 
-        error: 'No authorization header', 
-        code: 'UNAUTHORIZED' 
+      const sessionUser = await getSessionUser(req);
+      if (sessionUser) {
+        (req as AuthRequest).user = sessionUser;
+        next();
+        return;
+      }
+      res.status(401).json({
+        error: 'No authorization header',
+        code: 'UNAUTHORIZED'
       });
       return;
     }
@@ -101,17 +124,25 @@ export async function authMiddleware(
     try {
       payload = jwt.verify(token, secret) as JWTPayload;
     } catch (err) {
+      if (err instanceof jwt.TokenExpiredError || err instanceof jwt.JsonWebTokenError) {
+        const sessionUser = await getSessionUser(req);
+        if (sessionUser) {
+          (req as AuthRequest).user = sessionUser;
+          next();
+          return;
+        }
+      }
       if (err instanceof jwt.TokenExpiredError) {
-        res.status(401).json({ 
-          error: 'Token expired', 
-          code: 'TOKEN_EXPIRED' 
+        res.status(401).json({
+          error: 'Token expired',
+          code: 'TOKEN_EXPIRED'
         });
         return;
       }
       if (err instanceof jwt.JsonWebTokenError) {
-        res.status(401).json({ 
-          error: 'Invalid token', 
-          code: 'INVALID_TOKEN' 
+        res.status(401).json({
+          error: 'Invalid token',
+          code: 'INVALID_TOKEN'
         });
         return;
       }

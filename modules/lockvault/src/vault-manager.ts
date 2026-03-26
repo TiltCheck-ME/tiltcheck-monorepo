@@ -95,6 +95,13 @@ export interface ReloadSchedule {
   lastRunAt?: number;
 }
 
+export interface WalletActionLock {
+  userId: string;
+  lockUntil: number;
+  createdAt: number;
+  reason?: string;
+}
+
 function now() { return Date.now(); }
 function generateId() { return `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`; }
 
@@ -113,6 +120,7 @@ class VaultManager {
   private autoVaults = new Map<string, AutoVaultSettings>();
   private reloadSchedules = new Map<string, ReloadSchedule>();
   private generalBalances = new Map<string, number>(); // Tracking non-locked vault funds
+  private walletActionLocks = new Map<string, WalletActionLock>();
   private persistencePath = process.env.LOCKVAULT_STORE_PATH || 'data/lockvault.json';
   private persistDebounce?: NodeJS.Timeout;
   private backgroundTimer?: NodeJS.Timeout;
@@ -132,7 +140,8 @@ class VaultManager {
         vaults: Array.from(this.vaults.values()),
         autoVaults: Object.fromEntries(this.autoVaults),
         reloadSchedules: Object.fromEntries(this.reloadSchedules),
-        generalBalances: Object.fromEntries(this.generalBalances)
+        generalBalances: Object.fromEntries(this.generalBalances),
+        walletActionLocks: Object.fromEntries(this.walletActionLocks)
       }, null, 2);
       const dir = path.dirname(this.persistencePath);
       if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
@@ -162,6 +171,9 @@ class VaultManager {
       }
       for (const [userId, bal] of Object.entries(raw.generalBalances || {})) {
         this.generalBalances.set(userId, bal as number);
+      }
+      for (const [userId, lock] of Object.entries(raw.walletActionLocks || {})) {
+        this.walletActionLocks.set(userId, lock as WalletActionLock);
       }
       console.log(`[LockVault] Loaded ${this.vaults.size} vaults and ${this.generalBalances.size} balances`);
     } catch (err) {
@@ -349,7 +361,48 @@ class VaultManager {
   }
 
   clearAll(): void { // test helper
-    this.vaults.clear(); this.byUser.clear(); this.autoVaults.clear(); this.reloadSchedules.clear(); this.generalBalances.clear();
+    this.vaults.clear(); this.byUser.clear(); this.autoVaults.clear(); this.reloadSchedules.clear(); this.generalBalances.clear(); this.walletActionLocks.clear();
+  }
+
+  setWalletActionLock(userId: string, durationMs: number, reason?: string): WalletActionLock {
+    if (!Number.isFinite(durationMs) || durationMs <= 0) {
+      throw new Error('Duration must be a positive number.');
+    }
+    const record: WalletActionLock = {
+      userId,
+      lockUntil: now() + Math.trunc(durationMs),
+      createdAt: now(),
+      reason,
+    };
+    this.walletActionLocks.set(userId, record);
+    this.schedulePersist();
+    return record;
+  }
+
+  clearWalletActionLock(userId: string): void {
+    this.walletActionLocks.delete(userId);
+    this.schedulePersist();
+  }
+
+  getWalletActionLock(userId: string): WalletActionLock | null {
+    return this.walletActionLocks.get(userId) || null;
+  }
+
+  getWalletActionLockStatus(userId: string): { locked: boolean; lockUntil?: number; remainingMs?: number; reason?: string } {
+    const lock = this.walletActionLocks.get(userId);
+    if (!lock) return { locked: false };
+    const remainingMs = lock.lockUntil - now();
+    if (remainingMs <= 0) {
+      this.walletActionLocks.delete(userId);
+      this.schedulePersist();
+      return { locked: false };
+    }
+    return {
+      locked: true,
+      lockUntil: lock.lockUntil,
+      remainingMs,
+      reason: lock.reason,
+    };
   }
 
   setAutoVault(userId: string, settings: AutoVaultSettings): void {
@@ -487,3 +540,7 @@ export async function initiateWithdrawal(_userId: string, _amount: number) { thr
 export async function approveWithdrawal(_userId: string) { throw new Error('approveWithdrawal not implemented yet'); }
 export async function executeWithdrawal(_userId: string) { throw new Error('executeWithdrawal not implemented yet'); }
 export function getVaultBalance(userId: string) { return vaultManager.getBalance(userId); }
+export function setWalletActionLockForUser(userId: string, durationMs: number, reason?: string) { return vaultManager.setWalletActionLock(userId, durationMs, reason); }
+export function clearWalletActionLockForUser(userId: string) { return vaultManager.clearWalletActionLock(userId); }
+export function getWalletActionLockForUser(userId: string) { return vaultManager.getWalletActionLock(userId); }
+export function getWalletActionLockStatus(userId: string) { return vaultManager.getWalletActionLockStatus(userId); }

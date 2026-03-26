@@ -411,6 +411,81 @@
         opacity: 0.8;
       }
 
+      /* ── HUD NAVIGATION ─────────────────── */
+      .hud-nav {
+        display: flex;
+        justify-content: space-around;
+        background: rgba(13, 15, 18, 0.8);
+        border: 1px solid var(--border-subtle);
+        border-radius: var(--radius-md);
+        margin-bottom: 1rem;
+        padding: 0.25rem;
+        position: sticky;
+        top: 0;
+        z-index: 100;
+        backdrop-filter: blur(8px);
+      }
+
+      .nav-tab {
+        background: transparent;
+        border: none;
+        color: var(--text-muted);
+        font-family: var(--font-display);
+        font-size: 0.65rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        padding: 0.5rem 0.25rem;
+        cursor: pointer;
+        transition: all var(--transition-base);
+        flex: 1;
+        min-height: auto;
+      }
+
+      .nav-tab:hover {
+        color: var(--color-primary);
+        box-shadow: none;
+      }
+
+      .nav-tab.active {
+        color: var(--color-primary);
+        border-bottom: 2px solid var(--color-primary);
+        text-shadow: 0 0 8px rgba(23, 195, 178, 0.5);
+      }
+
+      .view-content {
+        display: none;
+        flex-direction: column;
+        gap: 1.25rem;
+      }
+
+      .view-content.active {
+        display: flex;
+      }
+
+      .sub-nav {
+        display: flex;
+        gap: 0.5rem;
+        margin-bottom: 0.5rem;
+        overflow-x: auto;
+        padding-bottom: 0.25rem;
+      }
+
+      .sub-tab {
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        color: var(--text-secondary);
+        font-size: 0.6rem;
+        padding: 0.35rem 0.6rem;
+        border-radius: var(--radius-md);
+        white-space: nowrap;
+      }
+
+      .sub-tab.active {
+        background: rgba(23, 195, 178, 0.1);
+        border-color: var(--color-primary);
+        color: var(--color-primary);
+      }
+
       /* ── FOOTER ──────────────────────────── */
       footer {
         text-align: center;
@@ -425,7 +500,49 @@
   </head>
   <body>
     <div id="app">
-      <p class="sdk-status">Waking up the pipes...</p>
+      <nav class="hud-nav">
+        <button class="nav-tab active" data-view="analyzer">Analyzer</button>
+        <button class="nav-tab" data-view="games">Games</button>
+        <button class="nav-tab" data-view="vault">Vault</button>
+      </nav>
+
+      <section id="view-analyzer" class="view-content active">
+        <p class="sdk-status">Waking up the pipes...</p>
+        <!-- Content will be injected by main.ts -->
+      </section>
+
+      <section id="view-games" class="view-content">
+        <div class="sub-nav">
+          <button class="sub-tab active" data-game="poker">Poker</button>
+          <button class="sub-tab" data-game="dad">DA&D</button>
+          <button class="sub-tab" data-game="trivia">Trivia</button>
+        </div>
+        <div id="game-container" class="waiting-state">
+          <div class="waiting-icon">[GAME]</div>
+          <p class="waiting-title">Ready to Play</p>
+          <p class="waiting-sub">Select a game mode to start a session.</p>
+        </div>
+      </section>
+
+      <section id="view-vault" class="view-content">
+        <div class="rtp-dashboard">
+          <p class="section-label">PROTECTION STATUS</p>
+          <div class="stat">
+            <span class="stat-label">Active Vaults</span>
+            <span class="stat-value" id="vault-count">0</span>
+          </div>
+          <div class="stat">
+            <span class="stat-label">Profit Guard</span>
+            <span class="stat-value" id="profit-guard-status">INACTIVE</span>
+          </div>
+        </div>
+        <button id="emergencyVaultBtn" class="btn-primary" style="background-color: var(--color-danger); margin-top: 1rem;">
+          [!] VAULT EVERYTHING
+        </button>
+        <p class="waiting-sub" style="text-align: center; margin-top: 0.5rem; font-size: 0.7rem;">
+          Move all eligible balances to non-custodial Profit Locker immediately.
+        </p>
+      </section>
     </div>
 
     <footer>TiltCheck v2.0 — The Financial Firewall for Degens</footer>
