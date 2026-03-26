@@ -5,6 +5,16 @@
 This list tracks any feature, plan, or concept that is **incomplete**, **not fully built**, **not planned**, or **not well thought out**.
 *As per ecosystem guidelines, ALL team members/agents MUST append items here when encountering incomplete functionality.*
 
+## Priority: "Redeem-to-Win" Core Feature
+- [ ] **Implement Redeem Nudge in TiltGuard Extension:**
+  - [ ] Track user's balance on supported casino sites in real-time.
+  - [ ] Add a configuration mechanism to store the minimum redeem/cash-out threshold for each site.
+  - [ ] When the user's balance crosses the redeem threshold, trigger a clear and positive UI nudge encouraging them to cash out.
+  - [ ] Create a celebratory notification/UI element when a successful redeem is detected.
+- [ ] **Update Dashboard for Redeem Metrics:**
+  - [ ] Add "Successful Redeems" as a key success metric on the user dashboard.
+  - [ ] Reframe session history to highlight sessions that ended with a redeem as "wins".
+
 ## Proposed Future Features (From 2026-03-12 & 2026-03-13 Sessions)
 
 - [ ] **Implement Safe vs. Degen Mode:**

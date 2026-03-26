@@ -26,6 +26,10 @@ TiltCheck is a modular, AI-assisted ecosystem designed to fix the worst parts of
 It doesn't try to stop degens from being degens.  
 It just gives them a smarter, safer, and more transparent way to play.
 
+### Core Philosophy: Redeem-to-Win
+
+Our primary goal is to shift the definition of a "win." Instead of encouraging endless play, TiltCheck actively nudges users to **cash out (redeem)** their winnings once they cross a profitable threshold. It's a disciplined "hit and run" strategy, turning profitable sessions into tangible wins in your wallet. We're here to help you secure the win, not just prevent the loss.
+
 ---
 
 ## Recent Product/Platform Updates (Mar 2026)
