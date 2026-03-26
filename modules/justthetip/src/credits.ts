@@ -432,7 +432,7 @@ export class CreditService {
 
     const pending = this.fallback.pendingTips.filter(t => t.recipientId === recipientId && t.status === 'pending');
     for (const tip of pending) {
-      this.fbCredit(recipientId, tip.amount_lamports, 'pending_release', { memo: 'pending tip claimed' });
+      this.fbCredit(recipientId, tip.amountLamports, 'pending_release', { memo: 'pending tip claimed' });
       tip.status = 'claimed';
     }
     this.scheduleSave();

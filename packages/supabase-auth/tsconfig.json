@@ -3,10 +3,20 @@
   "compilerOptions": {
     "composite": true,
     "outDir": "./dist",
-    "rootDir": "../../"
+    "rootDir": "src",
+    "incremental": true
   },
-  "include": ["src/**/*"],
-  "exclude": ["node_modules", "dist", "tests"]
+  "include": [
+    "src/**/*"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "tests"
+  ],
+  "references": [
+    {
+      "path": "../../packages/types"
+    }
+  ]
 }
-
-

@@ -5,7 +5,7 @@
   "type": "module",
   "main": "dist/index.js",
   "scripts": {
-    "build": "tsc",
+    "build": "tsc --build",
     "dev": "tsx watch src/bootstrap.ts",
     "start": "node dist/bootstrap.js",
     "clean": "rm -rf dist",

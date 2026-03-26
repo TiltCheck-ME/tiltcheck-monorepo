@@ -2,9 +2,64 @@
   "extends": "../../tsconfig.json",
   "compilerOptions": {
     "composite": true,
+    "incremental": true,
     "outDir": "./dist",
-    "rootDir": "../../"
+    "rootDir": "src"
   },
-  "include": ["src/**/*"]
+  "include": [
+    "src/**/*"
+  ],
+  "references": [
+    {
+      "path": "../../packages/config"
+    },
+    {
+      "path": "../../modules/dad"
+    },
+    {
+      "path": "../../packages/database"
+    },
+    {
+      "path": "../../packages/discord-utils"
+    },
+    {
+      "path": "../../packages/esm-utils"
+    },
+    {
+      "path": "../../packages/event-router"
+    },
+    {
+      "path": "../../modules/justthetip"
+    },
+    {
+      "path": "../../modules/lockvault"
+    },
+    {
+      "path": "../../packages/natural-language-parser"
+    },
+    {
+      "path": "../../modules/poker"
+    },
+    {
+      "path": "../../modules/suslink"
+    },
+    {
+      "path": "../../modules/tiltcheck-core"
+    },
+    {
+      "path": "../../modules/triviadrops"
+    },
+    {
+      "path": "../../packages/trust-engines"
+    },
+    {
+      "path": "../../packages/types"
+    },
+    {
+      "path": "../../packages/shared"
+    },
+    {
+      "path": "../../packages/utils"
+    }
+  ]
 }
-

@@ -2,8 +2,28 @@
   "extends": "../../tsconfig.json",
   "compilerOptions": {
     "outDir": "./dist",
-    "rootDir": "./src"
+    "rootDir": "src",
+    "composite": true,
+    "incremental": true
   },
-  "include": ["src/**/*"]
+  "include": [
+    "src/**/*"
+  ],
+  "references": [
+    {
+      "path": "../../packages/database"
+    },
+    {
+      "path": "../../packages/db"
+    },
+    {
+      "path": "../../packages/event-router"
+    },
+    {
+      "path": "../../packages/types"
+    },
+    {
+      "path": "../../packages/agent"
+    }
+  ]
 }
-

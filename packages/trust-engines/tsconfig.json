@@ -3,9 +3,30 @@
   "compilerOptions": {
     "composite": true,
     "outDir": "./dist",
-    "rootDir": "../../"
+    "rootDir": "src",
+    "incremental": true
   },
-  "include": ["src/**/*"]
+  "include": [
+    "src/**/*"
+  ],
+  "references": [
+    {
+      "path": "../../packages/types"
+    },
+    {
+      "path": "../../packages/event-router"
+    },
+    {
+      "path": "../../packages/config"
+    },
+    {
+      "path": "../../packages/database"
+    },
+    {
+      "path": "../../packages/db"
+    },
+    {
+      "path": "../../modules/collectclock"
+    }
+  ]
 }
-
-

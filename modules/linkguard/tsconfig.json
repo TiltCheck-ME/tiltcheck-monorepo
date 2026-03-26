@@ -2,9 +2,22 @@
   "extends": "../../tsconfig.json",
   "compilerOptions": {
     "composite": true,
-    "outDir": "dist"
+    "outDir": "dist",
+    "incremental": true,
+    "rootDir": "src"
   },
-  "include": ["src/**/*"]
+  "include": [
+    "src/**/*"
+  ],
+  "references": [
+    {
+      "path": "../../packages/config"
+    },
+    {
+      "path": "../../packages/event-router"
+    },
+    {
+      "path": "../../packages/types"
+    }
+  ]
 }
-
-

@@ -1,19 +1,18 @@
 {
-    "extends": "../../tsconfig.json",
-    "compilerOptions": {
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
     "composite": true,
-        "outDir": "./dist",
-        "rootDir": "../../",
-        
-        "module": "NodeNext"
-    },
-    "include": [
-        "src/**/*.ts"
-    ],
-    "exclude": [
-        "node_modules",
-        "dist"
-    ]
+    "outDir": "./dist",
+    "rootDir": "src",
+    "module": "NodeNext",
+    "incremental": true
+  },
+  "include": [
+    "src/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist"
+  ],
+  "references": []
 }
-
-

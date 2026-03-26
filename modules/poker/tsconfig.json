@@ -3,12 +3,25 @@
   "compilerOptions": {
     "composite": true,
     "outDir": "./dist",
-    "rootDir": "../../",
+    "rootDir": "src",
     "declaration": true,
-    "declarationMap": true
+    "declarationMap": true,
+    "incremental": true
   },
-  "include": ["src/**/*"],
-  "exclude": ["node_modules", "dist", "tests"]
+  "include": [
+    "src/**/*"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "tests"
+  ],
+  "references": [
+    {
+      "path": "../../packages/event-router"
+    },
+    {
+      "path": "../../packages/types"
+    }
+  ]
 }
-
-
