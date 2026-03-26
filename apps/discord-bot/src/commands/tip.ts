@@ -340,7 +340,13 @@ async function handleVaultLock(interaction: ChatInputCommandInteraction) {
   const reason = interaction.options.getString('reason') || undefined;
 
   try {
-    const vault = await lockVault({ userId: interaction.user.id, amountRaw: amountStr, durationRaw: durationStr, reason });
+    const vault = await lockVault({
+      userId: interaction.user.id,
+      amountRaw: amountStr,
+      durationRaw: durationStr,
+      reason,
+      disclaimerAccepted: true
+    });
     const embed = new EmbedBuilder()
       .setColor(0x17c3b2)
       .setTitle('🔐 VAULT SECURED')

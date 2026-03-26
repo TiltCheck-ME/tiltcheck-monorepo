@@ -3,9 +3,33 @@
   "compilerOptions": {
     "composite": true,
     "outDir": "./dist",
-    "rootDir": "../../"
+    "rootDir": "src",
+    "incremental": true
   },
-  "include": ["src/**/*"]
+  "include": [
+    "src/**/*"
+  ],
+  "references": [
+    {
+      "path": "../../packages/config"
+    },
+    {
+      "path": "../../packages/database"
+    },
+    {
+      "path": "../../packages/db"
+    },
+    {
+      "path": "../../packages/event-router"
+    },
+    {
+      "path": "../../packages/natural-language-parser"
+    },
+    {
+      "path": "../../packages/types"
+    },
+    {
+      "path": "../../packages/utils"
+    }
+  ]
 }
-
-

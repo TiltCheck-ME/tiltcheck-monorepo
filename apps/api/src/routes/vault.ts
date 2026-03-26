@@ -239,7 +239,8 @@ router.post('/:userId/lock', authMiddleware, async (req, res) => {
       amountRaw: `${parsedAmount} USD`,
       durationRaw: `${Math.trunc(parsedDurationMinutes)}m`,
       reason: reason || 'Manual Lock',
-      currencyHint: 'USD'
+      currencyHint: 'USD',
+      disclaimerAccepted: true
     });
 
     res.json({

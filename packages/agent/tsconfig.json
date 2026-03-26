@@ -11,10 +11,20 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "declaration": true,
-    "verbatimModuleSyntax": false
+    "verbatimModuleSyntax": false,
+    "incremental": true
   },
-  "include": ["app/**/*.ts"],
-  "exclude": ["node_modules", "dist", "tests"]
+  "include": [
+    "app/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "tests"
+  ],
+  "references": [
+    {
+      "path": "../../packages/database"
+    }
+  ]
 }
-
-

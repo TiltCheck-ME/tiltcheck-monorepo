@@ -4,9 +4,11 @@
     "composite": true,
     "declaration": true,
     "outDir": "./dist",
-    "rootDir": "../../"
+    "rootDir": "src",
+    "incremental": true
   },
-  "include": ["src"]
+  "include": [
+    "src"
+  ],
+  "references": []
 }
-
-

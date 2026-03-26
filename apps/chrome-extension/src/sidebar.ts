@@ -880,7 +880,12 @@ function createSidebar() {
           <button class="tg-btn tg-btn-primary" id="tg-upgrade-confirm">Upgrade Now &#x2192;</button>
           <button class="tg-btn tg-btn-secondary" id="tg-premium-close">Cancel</button>
         </div>
-        <div class="tg-brand-footer">Made for degens, by degens • © 2026 TiltCheck</div>
+        <div class="tg-brand-footer">
+          Made for degens, by degens • © 2026 TiltCheck<br/>
+          <span style="opacity:0.6; font-size:9px; text-transform:none; margin-top:4px; display:block;">
+            "Casinos don't win because they're lucky. They win because they're open 24/7 and your calculator battery died at 2:17 a.m."
+          </span>
+        </div>
       </div>
     </div>
 
