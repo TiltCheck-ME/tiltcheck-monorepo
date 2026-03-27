@@ -397,8 +397,8 @@ body {
 
 /* Old Theme Styles */
 body.degen-background {
-  background-color: #0E0E0F !important;
-  background-image: url('/assets/backgroundglitter.png');
+  background-color: #050505 !important;
+  background-image: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), url('/assets/backgroundglitter.png');
   background-size: cover;
   background-repeat: no-repeat;
   background-position: center;

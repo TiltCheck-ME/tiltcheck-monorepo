@@ -6,7 +6,16 @@
 
 import { Router } from 'express';
 import { authMiddleware, AuthRequest } from '../middleware/auth.js';
-import { findOnboardingByDiscordId, upsertOnboarding } from '@tiltcheck/db';
+import { 
+    findOnboardingByDiscordId, 
+    upsertOnboarding,
+    getUserBuddies,
+    getPendingBuddyRequests,
+    sendBuddyRequest,
+    acceptBuddyRequest,
+    removeBuddy,
+    updateBuddyThresholds
+} from '@tiltcheck/db';
 import { ValidationError, InternalServerError } from '@tiltcheck/error-factory';
 
 const router = Router();
@@ -135,6 +144,94 @@ router.get('/:discordId', authMiddleware, async (req, res, next) => {
     } catch (error) {
         console.error('[User API] Get profile error:', error);
         return next(new InternalServerError('Failed to get user profile'));
+    }
+});
+
+/**
+ * GET /user/:discordId/buddies
+ * Get all accepted buddies and pending requests
+ */
+router.get('/:discordId/buddies', authMiddleware, async (req, res, next) => {
+    try {
+        const { discordId } = req.params;
+        
+        const [buddies, pending] = await Promise.all([
+            getUserBuddies(discordId),
+            getPendingBuddyRequests(discordId)
+        ]);
+
+        res.json({
+            success: true,
+            buddies,
+            pending
+        });
+    } catch (err) {
+        next(err);
+    }
+});
+
+/**
+ * POST /user/:discordId/buddies
+ * Send a buddy request to another user
+ */
+router.post('/:discordId/buddies', authMiddleware, async (req, res, next) => {
+    try {
+        const { discordId } = req.params;
+        const { buddyId, thresholds } = req.body;
+
+        if (!buddyId) {
+            return next(new ValidationError('buddyId is required'));
+        }
+
+        const request = await sendBuddyRequest(discordId, buddyId, thresholds);
+
+        res.json({
+            success: true,
+            request
+        });
+    } catch (err) {
+        next(err);
+    }
+});
+
+/**
+ * POST /user/:discordId/buddies/accept
+ * Accept a pending buddy request
+ */
+router.post('/:discordId/buddies/accept', authMiddleware, async (req, res, next) => {
+    try {
+        const { requestId } = req.body;
+
+        if (!requestId) {
+            return next(new ValidationError('requestId is required'));
+        }
+
+        const buddy = await acceptBuddyRequest(requestId);
+
+        res.json({
+            success: true,
+            buddy
+        });
+    } catch (err) {
+        next(err);
+    }
+});
+
+/**
+ * DELETE /user/:discordId/buddies/:buddyId
+ * Remove a buddy relationship
+ */
+router.delete('/:discordId/buddies/:buddyId', authMiddleware, async (req, res, next) => {
+    try {
+        const { discordId, buddyId } = req.params;
+
+        await removeBuddy(discordId, buddyId);
+
+        res.json({
+            success: true
+        });
+    } catch (err) {
+        next(err);
     }
 });
 

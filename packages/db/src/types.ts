@@ -134,6 +134,50 @@ export interface CreateTrustSignalPayload {
 }
 
 // ============================================================================
+// Buddy & Accountability Types
+// ============================================================================
+
+/**
+ * Buddy alert thresholds
+ */
+export interface BuddyAlertThresholds {
+  tilt_score_exceeds?: number;
+  losses_in_24h_sol?: number;
+  zero_balance_reached?: boolean;
+}
+
+/**
+ * Buddy relationship in the database
+ */
+export interface UserBuddy {
+  id: string;
+  user_id: string;
+  buddy_id: string;
+  status: 'pending' | 'accepted' | 'declined' | 'removed';
+  alert_thresholds: BuddyAlertThresholds;
+  created_at: Date;
+  updated_at: Date;
+}
+
+/**
+ * Buddy creation payload
+ */
+export interface CreateBuddyPayload {
+  user_id: string;
+  buddy_id: string;
+  alert_thresholds?: BuddyAlertThresholds;
+}
+
+/**
+ * Buddy update payload
+ */
+export interface UpdateBuddyPayload {
+  status?: UserBuddy['status'];
+  alert_thresholds?: BuddyAlertThresholds;
+  updated_at?: Date;
+}
+
+// ============================================================================
 // Session Types
 // ============================================================================
 

@@ -25,7 +25,7 @@ export class CommandHandler {
 
     // Define which commands belong to which bot
     const dadBotCommands = ['dad', 'poker', 'help'];
-    const tiltCheckBotCommands = ['tiltcheck', 'tip', 'airdrop', 'lockvault', 'casino', 'triviadrop', 'support', 'terms', 'dashboard', 'help'];
+    const tiltCheckBotCommands = ['tiltcheck', 'tip', 'airdrop', 'lockvault', 'casino', 'support', 'terms', 'dashboard', 'help'];
 
     const allowedCommands = serviceId === 'tiltcheck-dad-bot' 
       ? dadBotCommands 

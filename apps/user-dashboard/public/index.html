@@ -12,8 +12,11 @@
     <link rel="icon" type="image/svg+xml" href="/assets/logo/logocurrent.svg">
     <style>
         body {
-            overflow: hidden;
-            background: radial-gradient(circle at center, #1a1f2c 0%, #0f1218 100%);
+            background-color: #050505;
+            background-image: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), url('/assets/backgroundglitter.png');
+            background-size: cover;
+            background-attachment: fixed;
+            color: var(--text-primary);
         }
         .scanline {
             width: 100%;
@@ -67,10 +70,10 @@
             <div style="margin-bottom: 2.5rem;">
                 <img src="/assets/logo/logocurrent.svg" alt="TiltCheck" width="80" height="80" style="filter: drop-shadow(0 0 15px rgba(34, 211, 166, 0.5));">
             </div>
-            <h1 class="neon neon-title" data-text="THE COMMAND CENTER">THE COMMAND CENTER</h1>
+            <h1 class="neon neon-title" data-text="MISSION CONTROL">MISSION CONTROL</h1>
             <p style="color: var(--text-muted); margin-bottom: 3rem; font-size: 1.1rem; max-width: 400px; margin-left: auto; margin-right: auto;">
-                Access your non-custodial audit layer.<br>
-                Track shadow-nerfs. SECURE THE BAG.
+                ACCESS THE NON-CUSTODIAL AUDIT LAYER.<br>
+                TRACK SHADOW-NERFS. SECURE THE BAG.
             </p>
             <a href="/auth/discord" class="btn-discord" style="font-size: 1.1rem; padding: 1.25rem;">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" style="margin-right: 12px;">
@@ -79,7 +82,7 @@
                 CONNECT WITH DISCORD
             </a>
             <div style="margin-top: 2rem; font-size: 0.8rem; color: var(--text-muted); opacity: 0.5;">
-                SECURE • AUDITED • NON-CUSTODIAL
+                SECURE • AUDITED • MADE FOR DEGENS BY DEGENS
             </div>
         </div>
     </div>
@@ -126,23 +129,34 @@
                 <div id="overview-tab" class="tab-content active">
                     <div class="grid">
                         <div class="card">
-                            <h3>🛡️ REPUTATION</h3>
+                            <h3>[REPUTATION]</h3>
                             <div id="trustScore" class="trust-score-large">--</div>
                             <div class="metric"><span class="metric-label">Tilt Level</span><span id="tiltLevel" class="metric-value">--</span></div>
                             <div class="metric"><span class="metric-label">Consistency</span><span id="consistency" class="metric-value">--</span></div>
                         </div>
                         <div class="card">
-                            <h3>🧃 SESSION STATS</h3>
+                            <h3>[SESSION STATS]</h3>
                             <div class="metric"><span class="metric-label">Bags Secured (Redeems)</span><span id="redeemWins" class="metric-value">--</span></div>
                             <div class="metric"><span class="metric-label">Total Amount Redeemed</span><span id="totalRedeemed" class="metric-value">--</span></div>
-                            <div class="metric"><span class="metric-label">Total Juice</span><span id="totalJuice" class="metric-value">-- SOL</span></div>
-                            <div class="metric"><span class="metric-label">Total Tips Caught</span><span id="totalTipsCaught" class="metric-value">-- SOL</span></div>
+                            <div class="metric"><span class="metric-label">Dopamine Credits</span><span id="totalJuice" class="metric-value">-- SOL</span></div>
+                            <div class="metric"><span class="metric-label">Tips Handled</span><span id="totalTipsCaught" class="metric-value">-- SOL</span></div>
                         </div>
                         <div class="card">
-                            <h3>🔗 Discord Linked Wallet</h3>
+                            <h3>[WALLET LINK]</h3>
                             <div class="metric" style="flex-direction: column; align-items: flex-start; gap: 0.5rem;">
                                 <span class="metric-label">Active Payout Address</span>
                                 <div id="externalWalletDisplay" class="wallet-address">Not linked</div>
+                            </div>
+                        </div>
+                        <div class="card">
+                            <h3>[BUDDY SYSTEM]</h3>
+                            <div id="buddyStatus" class="metric-value" style="font-size: 0.9rem; margin-bottom: 1rem;">Scanning accountability net...</div>
+                            <div id="buddyList" class="buddy-list">
+                                <!-- Buddies populated by JS -->
+                            </div>
+                            <div class="buddy-actions" style="margin-top: 1rem; border-top: 1px solid rgba(34, 211, 166, 0.1); padding-top: 1rem;">
+                                <input type="text" id="buddyInviteInput" placeholder="Friend's Discord ID" class="nlp-input" style="font-size: 0.8rem; padding: 0.5rem;">
+                                <button id="sendBuddyInviteBtn" class="btn btn-primary" style="width: 100%; margin-top: 0.5rem; font-size: 0.8rem;">SEND INVITE</button>
                             </div>
                         </div>
                     </div>

@@ -60,8 +60,8 @@ export const EnvSchema = z.object({
   SERVICE_ID: z.string().optional(),
   ALLOWED_SERVICES: z
     .string()
-    .transform((v) => v.split(',').filter(Boolean))
-    .default([]),
+    .default('')
+    .transform((v) => v.split(',').filter(Boolean)),
 
   // --------------------------------------------------------------------------
   // Discord

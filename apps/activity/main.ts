@@ -49,6 +49,32 @@ let socket: Socket | null = null;
 let currentView = 'analyzer';
 let currentGame = 'poker';
 
+interface VaultStatus {
+  activeVaults: number;
+  profitGuardActive: boolean;
+  totalVaultedBalance: number;
+}
+
+let vaultData: VaultStatus = {
+  activeVaults: 0,
+  profitGuardActive: false,
+  totalVaultedBalance: 0
+};
+
+interface TriviaState {
+  question: string;
+  options: string[];
+  prizePool: number;
+  leaderboard: Array<{ username: string; score: number }>;
+}
+
+let triviaData: TriviaState = {
+  question: 'Waiting for round...',
+  options: [],
+  prizePool: 0,
+  leaderboard: []
+};
+
 // --- Math ---
 function calcActualRtp(rounds: SessionRound[]): number {
   if (rounds.length === 0) return 0;
@@ -178,14 +204,28 @@ function renderUI(status: string = 'CONNECTED') {
     ` : `
     <div class="waiting-state">
       <div class="waiting-icon">[SIGNAL]</div>
-      <p class="waiting-title">Waiting for session data...</p>
-      <p class="waiting-sub">Start playing with the Chrome Extension active, or add manually below.</p>
+      <p class="waiting-title">LISTENING FOR LOSSES...</p>
+      <p class="waiting-sub">Start playing with the Chrome Extension active, or manually log your mistakes below.</p>
     </div>
     `}
 
     ${otherSessions.length > 0 ? `
     <div class="room-hud">
-      <p class="section-label">ROOM ANALYTICS</p>
+      <p class="section-label">SQUAD PERFORMANCE</p>
+      <div class="rtp-main" style="margin-bottom: 1rem; border-color: var(--color-danger);">
+        <div class="rtp-actual">
+          <span class="rtp-label">SQUAD DRIFT</span>
+          <span class="rtp-value ${getDriftClass(calcDrift(
+            Object.values(channelState.sessions).reduce((s, sess) => s + sess.rounds.reduce((r, rd) => r + rd.win, 0), 0) /
+            (Object.values(channelState.sessions).reduce((s, sess) => s + sess.rounds.reduce((r, rd) => r + rd.bet, 0), 0) || 1) * 100,
+            96.5
+          ))}">${calcDrift(
+            Object.values(channelState.sessions).reduce((s, sess) => s + sess.rounds.reduce((r, rd) => r + rd.win, 0), 0) /
+            (Object.values(channelState.sessions).reduce((s, sess) => s + sess.rounds.reduce((r, rd) => r + rd.bet, 0), 0) || 1) * 100,
+            96.5
+          ).toFixed(1)}%</span>
+        </div>
+      </div>
       <div class="room-list">
         ${otherSessions.map(os => {
           const ortp = calcActualRtp(os.rounds);
@@ -219,8 +259,8 @@ function renderUI(status: string = 'CONNECTED') {
     </div>
 
     <div class="btn-row">
-      <button id="resetBtn" class="btn-secondary">Reset Session</button>
-      <button id="alertBtn" class="btn-secondary">Send Hub Alert</button>
+      <button id="resetBtn" class="btn-secondary">SCRUB EVIDENCE</button>
+      <button id="alertBtn" class="btn-secondary">INITIATE PANIC SIGNAL</button>
     </div>
   `;
 
@@ -266,7 +306,36 @@ function renderUI(status: string = 'CONNECTED') {
   });
 }
 
-// --- Navigation ---
+// --- Vault Logic ---
+async function triggerEmergencyVault() {
+  const btn = document.getElementById('emergencyVaultBtn');
+  if (btn) {
+    btn.textContent = 'EXECUTING...';
+    btn.setAttribute('disabled', 'true');
+  }
+
+  try {
+    const res = await fetch(`${HUB_URL}/vault/emergency`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId: currentUser?.id }),
+    });
+    
+    if (res.ok) {
+      alert('VAULT SUCCESS: All eligible balances moved to non-custodial Profit Locker.');
+    } else {
+      throw new Error('API failure');
+    }
+  } catch {
+    alert('VAULT FAILED: Ensure you have a non-custodial wallet linked in the Dashboard.');
+  } finally {
+    if (btn) {
+      btn.textContent = '[!] VAULT EVERYTHING';
+      btn.removeAttribute('disabled');
+    }
+  }
+}
+
 function initNavigation() {
   document.querySelectorAll('.nav-tab').forEach(tab => {
     tab.addEventListener('click', () => {
@@ -282,9 +351,7 @@ function initNavigation() {
     });
   });
 
-  document.getElementById('emergencyVaultBtn')?.addEventListener('click', () => {
-    alert('VAULT TRIGGERED: Assets moving to non-custodial Profit Locker.');
-  });
+  document.getElementById('emergencyVaultBtn')?.addEventListener('click', triggerEmergencyVault);
 }
 
 // --- Socket.io ---
@@ -308,10 +375,57 @@ function initSocket() {
   });
 
   socket.on('game-update', (data) => {
-    if (currentView === 'games') {
+    if (currentView === 'games' && currentGame !== 'trivia') {
       const container = document.getElementById('game-container')!;
       container.innerHTML = `<pre class="result-box">${JSON.stringify(data, null, 2)}</pre>`;
     }
+  });
+
+  socket.on('trivia-question', (data) => {
+    triviaData.question = data.question;
+    triviaData.options = data.options;
+    triviaData.prizePool = data.prizePool;
+    if (currentView === 'games' && currentGame === 'trivia') renderTrivia();
+  });
+
+  socket.on('trivia-leaderboard', (data) => {
+    triviaData.leaderboard = data.leaderboard;
+    if (currentView === 'games' && currentGame === 'trivia') renderTrivia();
+  });
+}
+
+function renderTrivia() {
+  const container = document.getElementById('game-container')!;
+  container.innerHTML = `
+    <div class="rtp-dashboard" style="border-color: var(--color-accent);">
+      <p class="section-label">LIVE TRIVIA - $[${triviaData.prizePool}] PRIZE POOL</p>
+      <div class="waiting-title" style="margin-bottom: 1.5rem; font-size: 1.1rem;">${triviaData.question}</div>
+      <div class="entry-row" style="flex-wrap: wrap; gap: 0.5rem;">
+        ${triviaData.options.map(opt => `
+          <button class="btn-secondary trivia-opt-btn" style="flex: 1 0 40%; font-size: 0.7rem;">${opt}</button>
+        `).join('')}
+      </div>
+    </div>
+    
+    <div class="room-hud" style="margin-top: 1rem;">
+      <p class="section-label">SQUAD LEADERBOARD</p>
+      <div class="room-list">
+        ${triviaData.leaderboard.length > 0 ? triviaData.leaderboard.sort((a,b) => b.score - a.score).map(entry => `
+          <div class="room-user-card">
+            <span class="room-user-name">${entry.username}</span>
+            <span class="stat-value" style="color: var(--color-primary);">${entry.score} PTS</span>
+          </div>
+        `).join('') : '<p class="waiting-sub">No scores registered yet.</p>'}
+      </div>
+    </div>
+  `;
+  
+  document.querySelectorAll('.trivia-opt-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      socket?.emit('trivia-answer', { answer: btn.textContent });
+      (btn as HTMLElement).style.borderColor = 'var(--color-primary)';
+      btn.setAttribute('disabled', 'true');
+    });
   });
 }
 
@@ -338,7 +452,40 @@ async function pollSession() {
   }
 }
 
+// --- Vault Data Polling ---
+async function pollVaultStatus() {
+  if (!currentUser?.id || currentUser.id === 'unknown') return;
+
+  try {
+    const res = await fetch(`${HUB_URL}/vault/status/${currentUser.id}`);
+    if (res.ok) {
+      const data = await res.json();
+      vaultData = {
+        activeVaults: data.activeVaults ?? 0,
+        profitGuardActive: data.profitGuardActive ?? false,
+        totalVaultedBalance: data.totalVaultedBalance ?? 0
+      };
+      updateVaultUI();
+    }
+  } catch (e) {
+    console.warn('[TiltCheck] Vault sync failed:', e);
+  }
+}
+
+function updateVaultUI() {
+  const countEl = document.getElementById('vault-count');
+  const guardEl = document.getElementById('profit-guard-status');
+  
+  if (countEl) countEl.textContent = vaultData.activeVaults.toString();
+  if (guardEl) {
+    guardEl.textContent = vaultData.profitGuardActive ? 'ACTIVE' : 'INACTIVE';
+    guardEl.style.backgroundColor = vaultData.profitGuardActive ? 'rgba(0, 255, 170, 0.1)' : 'transparent';
+    guardEl.style.color = vaultData.profitGuardActive ? 'var(--color-positive)' : 'var(--color-danger)';
+  }
+}
+
 setInterval(pollSession, 2500);
+setInterval(pollVaultStatus, 5000);
 
 // --- Status Helper ---
 function updateStatus(msg: string, isError = false) {

@@ -34,8 +34,8 @@ export const serviceJwtConfigSchema = z.object({
     : z.string().min(1, 'SERVICE_ID is required'),
   ALLOWED_SERVICES: z
     .string()
-    .transform((val: string) => val.split(',').filter(Boolean))
-    .default([]),
+    .default('')
+    .transform((val: string) => val.split(',').filter(Boolean)),
 });
 
 /**
@@ -115,14 +115,14 @@ export const cookieConfigSchema = z.object({
 export const complianceConfigSchema = z.object({
   RESTRICTED_COUNTRIES: z
     .string()
-    .transform((val: string) => val.split(',').filter(Boolean))
-    .default(['US', 'GB', 'FR', 'AU']),
+    .default('US,GB,FR,AU')
+    .transform((val: string) => val.split(',').filter(Boolean)),
 });
 
 /**
- * Combined Full Configuration Schema
+ * Base Combined Configuration Schema (unrefined)
  */
-export const fullConfigSchema = z.object({
+export const baseConfigSchema = z.object({
   ...jwtConfigSchema.shape,
   ...discordConfigSchema.shape,
   ...databaseConfigSchema.shape,
@@ -132,7 +132,12 @@ export const fullConfigSchema = z.object({
   ...serviceJwtConfigSchema.shape,
   ...blockchainConfigSchema.shape,
   ...complianceConfigSchema.shape,
-}).refine(data => {
+});
+
+/**
+ * Combined Full Configuration Schema with refinements
+ */
+export const fullConfigSchema = baseConfigSchema.refine(data => {
   if (process.env.NODE_ENV === 'production') {
     return data.DATABASE_URL || data.NEON_DATABASE_URL;
   }
@@ -279,13 +284,12 @@ export function validateAllConfig(env: Record<string, string | undefined> = proc
 export function createPartialValidator<K extends keyof FullEnvConfig>(
   keys: K[]
 ): (env?: Record<string, string | undefined>) => Pick<FullEnvConfig, K> {
-  type ShapeType = (typeof fullConfigSchema)['shape'];
-  const configShape = fullConfigSchema.shape as ShapeType;
+  const configShape = baseConfigSchema.shape;
   const shape: Record<string, z.ZodTypeAny> = {};
 
   for (const key of keys) {
     if (key in configShape) {
-      shape[key] = configShape[key as keyof ShapeType] as z.ZodTypeAny;
+      shape[key] = configShape[key as keyof typeof configShape] as z.ZodTypeAny;
     }
   }
 

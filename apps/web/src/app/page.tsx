@@ -9,14 +9,14 @@ export default function Home() {
       {/* Hero Section */}
       <section className="hero-surface">
         <div className="hero-content">
-          <h1 className="neon neon-main neon-hero-top" data-text="LOSE TRACK OF TIME?">
-            LOSE TRACK OF TIME?
+          <h1 className="neon neon-main neon-hero-top" data-text="THE HOUSE ALWAYS WINS?">
+            THE HOUSE ALWAYS WINS?
           </h1>
-          <h1 className="neon neon-main neon-hero-bottom" data-text="WE GOT YOU.">
-            WE GOT YOU.
+          <h1 className="neon neon-main neon-hero-bottom" data-text="FUCK THAT.">
+            FUCK THAT.
           </h1>
           <p className="hero-body">
-            The house wins because they have the math and you have a human brain. We&apos;re the friend who helps you keep your winnings. TiltCheck is your browser-side co-pilot that keeps you honest and helps you walk away with the win.
+            THEY ONLY WIN BECAUSE THEY HAVE THE MATH AND YOU HAVE A DOPAMINE PROBLEM. BUT WE CAN COUNT TOO. TILTCHECK IS THE AUDIT LAYER BUILT TO TILT THE FAIRNESS SCALE BACK IN YOUR FAVOR. LEVEL THE PLAYING FIELD. CUZ MATH MATHS.
           </p>
           <div className="hero-actions">
             <a href="#tools" className="btn btn-primary" data-text="SECURE YOUR WIN">
