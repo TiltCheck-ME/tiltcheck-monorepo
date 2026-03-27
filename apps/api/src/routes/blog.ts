@@ -55,4 +55,27 @@ router.get('/:slug', async (req, res) => {
   }
 });
 
+import { generateNewPost } from '../services/blog-generator.js';
+
+// ... existing routes ...
+
+/**
+ * POST /blog/generate-force
+ * Triggers the AI blog generation manually (used by Cloud Scheduler)
+ * Requires internal service secret for security.
+ */
+router.post('/generate-force', async (req, res) => {
+  const secret = req.headers['x-internal-secret'];
+  if (secret !== process.env.INTERNAL_API_SECRET) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+
+  try {
+    await generateNewPost();
+    res.json({ success: true, message: 'Blog generation task triggered' });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to trigger blog generation' });
+  }
+});
+
 export { router as blogRouter };
