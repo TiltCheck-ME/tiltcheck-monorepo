@@ -75,9 +75,9 @@ export const features: Tool[] = [
   {
     href: "/tools/house-edge-scanner",
     icon: "house-edge-scanner.svg",
-    category: "HOUSE SCANNER",
-    title: "HOUSE-EDGE SCANNER",
-    description: "We do the math on the house's latest 'reload bonus' to show you exactly how badly they are shadow-nerfing the odds.",
+    category: "ODDS AUDIT",
+    title: "ODDS AUDIT ENGINE",
+    description: "We do the math on the house's latest 'reload bonus' to show you exactly how the odds compare to the official RTP.",
     status: "coming-soon",
     gridClasses: "",
   },

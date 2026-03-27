@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "TiltCheck Ecosystem - Built by a degen, for degens",
+  "description": "TiltCheck Ecosystem - Behavioral protection for a better experience",
   "author": "jmenichole",
   "license": "UNLICENSED",
   "packageManager": "pnpm@10.29.1",
