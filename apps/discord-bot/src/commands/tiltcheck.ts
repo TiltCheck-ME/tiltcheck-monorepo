@@ -181,7 +181,7 @@ export const tiltcheck: Command = {
     .addSubcommand((sub) =>
       sub
         .setName('setstate')
-        .setDescription('Optional: set your state context for regulation-aware TiltCheck analysis')
+        .setDescription('Optional: set your state context for regulation-aware analysis')
         .addStringOption((opt) =>
           opt.setName('state').setDescription('Two-letter US state code, e.g., NJ').setRequired(false),
         )
@@ -263,19 +263,19 @@ async function handleTiltStatus(interaction: ChatInputCommandInteraction) {
 
   const embed = new EmbedBuilder()
     .setColor(status.onCooldown ? 0xFF6B6B : 0x00CED1)
-    .setTitle('📊 ALPHA AUDIT STATUS');
+    .setTitle('📊 SESSION STATUS');
 
   if (status.onCooldown && cooldownStatus && cooldownStatus.endsAt) {
     const remaining = Math.ceil((cooldownStatus.endsAt - Date.now()) / 60000);
     const reason = cooldownStatus.reason || 'Unknown';
-    embed.setDescription('⏸️ PROFIT LOCKER ACTIVE')
+    embed.setDescription('⏸️ PROFIT GUARD ACTIVE')
       .addFields(
         { name: 'Time Remaining', value: `${remaining} minutes`, inline: true },
         { name: 'Reason', value: reason, inline: true },
         { name: 'Violations', value: `${cooldownStatus.violationCount}`, inline: true },
       );
   } else {
-    embed.setDescription('✅ ALPHA STATUS: NORMAL')
+    embed.setDescription('✅ STATUS: NORMAL')
       .addFields(
         { name: 'Recent Signals', value: `${status.recentSignals.length} (last hour)`, inline: true },
         { name: 'Status', value: status.recentSignals.length >= 3 ? '⚠️ Elevated' : '✅ Normal', inline: true },
@@ -347,7 +347,7 @@ async function handleTiltHistory(interaction: ChatInputCommandInteraction) {
     });
   }
 
-  embed.setFooter({ text: 'TiltCheck: NUKE THE HOUSE EDGE' });
+  embed.setFooter({ text: 'TiltCheck: LEVEL THE PLAYING FIELD' });
 
   await interaction.reply({ embeds: [embed], ephemeral: true });
 }
@@ -384,8 +384,8 @@ async function handleCooldown(interaction: ChatInputCommandInteraction) {
 
   const embed = new EmbedBuilder()
     .setColor(0x00CED1)
-    .setTitle('⏸️ PROFIT LOCKER INITIALIZED')
-    .setDescription(`Taking a ${duration}-minute alpha break. Secure the bag.`)
+    .setTitle('⏸️ PROFIT GUARD INITIALIZED')
+    .setDescription(`Taking a ${duration}-minute break. Stay focused.`)
     .addFields(
       { name: 'Duration', value: `${duration} minutes`, inline: true },
       { name: 'Expires', value: `<t:${Math.floor((Date.now() + duration * 60000) / 1000)}:R>`, inline: true },
