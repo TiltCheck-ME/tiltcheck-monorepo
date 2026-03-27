@@ -359,6 +359,34 @@
 
     <!-- Integrations Section -->
     <div class="settings-section">
+      <h2>Redeem-to-Win (Profit Guard)</h2>
+      
+      <div class="setting-item">
+        <div class="setting-info">
+          <h3>Profit Goal Threshold</h3>
+          <p>Define the balance at which TiltCheck should nudge you to cash out</p>
+        </div>
+        <div class="setting-control">
+          <div class="inline-lock-controls">
+            <span style="color: #00d4aa; font-weight: 800; margin-right: 4px;">$</span>
+            <input id="redeem-threshold" type="number" min="0" step="10" value="500" onchange="saveRedeemThreshold()">
+          </div>
+        </div>
+      </div>
+
+      <div class="setting-item">
+        <div class="setting-info">
+          <h3>High-Intensity Nudges</h3>
+          <p>Use full-screen "WINS SECURED" overlays when goal reached</p>
+        </div>
+        <div class="setting-control">
+          <div class="toggle-switch active" data-setting="high-intensity-nudge" onclick="toggleSetting(this)"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Integrations Section -->
+    <div class="settings-section">
       <h2>Integrations</h2>
       
       <div class="setting-item">
@@ -509,6 +537,11 @@
       if (settings['profile-visibility']) {
         document.getElementById('profile-visibility').value = settings['profile-visibility'];
       }
+
+      // Apply redeem threshold
+      if (settings['redeemThreshold']) {
+        document.getElementById('redeem-threshold').value = settings['redeemThreshold'];
+      }
     }
 
     function toggleSetting(element) {
@@ -529,6 +562,16 @@
     function saveProfileVisibility() {
       const value = document.getElementById('profile-visibility').value;
       settings['profile-visibility'] = value;
+      saveSettings();
+    }
+
+    function saveRedeemThreshold() {
+      const value = document.getElementById('redeem-threshold').value;
+      settings['redeemThreshold'] = value;
+      // Also sync to chrome.storage.local for the extension if available
+      if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
+        chrome.storage.local.set({ redeemThreshold: value });
+      }
       saveSettings();
     }
 

@@ -22,7 +22,7 @@ const TerminalDashboard = () => {
     <div className="terminal-box">
       <div className="terminal-prompt">
         <span className="prompt-prefix">$</span>
-        <span className="prompt-text">LIVE BONUS SCANNER</span>
+        <span className="prompt-text">SCANNING FOR CRUMBS...</span>
       </div>
 
       <div className="status-list">
@@ -38,12 +38,12 @@ const TerminalDashboard = () => {
 
       <div className="prediction-section">
         <div className="prompt-prefix">$</div>
-        <span className="prompt-text">PREDICTION ENGINE</span>
+        <span className="prompt-text">CRYSTAL BALL SAYS...</span>
       </div>
 
       <div className="vibe-check">
-        <p>next refresh: <span id="countdown">2h 34m 12s</span></p>
-        <p data-slang="vibe check">vibe check:
+        <p>next hit of dopamine: <span id="countdown">2h 34m 12s</span></p>
+        <p data-slang="vibe check">delusion check:
           <span className="vibe-bar-container">
             <span className="vibe-bar" style={{ width: '94%' }}></span>
           </span>
@@ -74,8 +74,8 @@ export default function CollectClockPage() {
     <main className="flex min-h-screen flex-col items-center p-4 pt-24">
       <header className="tool-header terminal-header">
         <div className="container mx-auto text-center">
-          <h1 className="terminal-title" data-slang="DEGEN_OS">Terminal v1.2.1 // DEGEN_OS</h1>
-          <p className="terminal-subtitle">bonus cycle intelligence</p>
+          <h1 className="terminal-title" data-slang="DEGEN_OS">The Grind // Your Bonus-Hunting Dashboard.</h1>
+          <p className="terminal-subtitle">Because your time is worthless, but a $5 bonus is a $5 bonus.</p>
         </div>
       </header>
       <section className="w-full max-w-4xl mx-auto mt-8">

@@ -16,9 +16,10 @@ export const SIDEBAR_TEMPLATE = `
       <!-- Auth Section -->
       <div class="tg-section" id="tg-auth-section">
         <div class="tg-auth-prompt">
-          <h3>REALITY CHECK ACTIVE</h3>
+          <h3>PROFIT GUARD ACTIVE</h3>
           <p>Connect Discord to sync vault history, liquidity alerts, and live RTP telemetry. No lectures, just math.</p>
           <button class="tg-btn tg-btn-primary" id="tg-discord-login">Connect with Discord</button>
+          <button class="tg-btn tg-btn-secondary" id="tg-guest-login" style="margin-top: 8px;">Continue as Guest</button>
         </div>
       </div>
 
@@ -28,7 +29,7 @@ export const SIDEBAR_TEMPLATE = `
         <div class="tg-user-bar">
           <div class="tg-user-info">
             <span id="tg-username">Guest</span>
-            <span class="tg-tier" id="tg-user-tier">Guest Degen</span>
+            <span class="tg-tier" id="tg-user-tier">Verified User</span>
           </div>
           <button class="tg-btn-icon" id="tg-logout" title="Logout" aria-label="Logout">&#x00D7;</button>
         </div>
@@ -42,7 +43,7 @@ export const SIDEBAR_TEMPLATE = `
         <div class="tg-section tg-emergency">
           <div class="tg-emergency-header">
             <div style="flex: 1;">
-              <div class="tg-emergency-title">REALITY CHECK BOT</div>
+              <div class="tg-emergency-title">PROFIT GUARD BOT</div>
               <div class="tg-emergency-sub">The house is farming you. Use the EMERGENCY BRAKE to lock your gains on-chain before you give it all back.</div>
             </div>
             <button class="tg-btn tg-btn-danger" id="tg-emergency-lock" style="width: auto; padding: 10px 16px;">EMERGENCY BRAKE</button>
@@ -147,14 +148,14 @@ export const SIDEBAR_TEMPLATE = `
         <div class="tg-metrics-card">
           <div class="tg-metrics-header" style="margin-bottom: 24px;">
             <div style="flex: 1;">
-              <h1 class="tg-hud-label">THE LIE</h1>
+              <h1 class="tg-hud-label">THE PROJECTED</h1>
               <h2 class="tg-hud-title" style="color: var(--tg-muted); opacity: 0.5;">HOUSE ALWAYS WINS</h2>
             </div>
             <div id="tg-status-indicator" class="tg-status-indicator"></div>
           </div>
 
           <div class="tg-metric-stack">
-            <h1 class="tg-hud-label">THE TRUTH</h1>
+            <h1 class="tg-hud-label">THE REALITY</h1>
             <div class="tg-drift-main">
               <span class="tg-drift-value" id="tg-rtp">--</span>
               <span class="tg-drift-label">ACTUAL RTP</span>
@@ -192,7 +193,7 @@ export const SIDEBAR_TEMPLATE = `
 
         <!-- Reality Check Log (Formerly Message Feed) -->
         <div class="tg-section">
-          <h4>Session Reality Log</h4>
+          <h4>Session History Log</h4>
           <div class="tg-feed" id="tg-message-feed">
             <div class="tg-feed-item">Monitoring active. No fluff.</div>
           </div>
@@ -207,7 +208,7 @@ export const SIDEBAR_TEMPLATE = `
             <button class="tg-action-btn tg-advanced-only" id="tg-open-config">Rig Setup</button>
             <button class="tg-action-btn tg-advanced-only" id="tg-open-verifier">IS THE GAME RIGGED?</button>
             <button class="tg-action-btn" id="tg-open-predictor">BONUS SCANNER</button>
-            <button class="tg-action-btn" id="tg-open-dashboard">THE HUB</button>
+            <button class="tg-action-btn" id="tg-open-dashboard">THE DASHBOARD</button>
             <button class="tg-action-btn" id="tg-open-vault">THE VAULT</button>
             <button class="tg-action-btn tg-advanced-only" id="tg-wallet">Wallet Status</button>
             <button class="tg-action-btn tg-advanced-only" id="tg-upgrade">Upgrade Edge</button>
@@ -419,7 +420,7 @@ export const SIDEBAR_TEMPLATE = `
     <!-- Vibe Check Overlay -->
     <div id="tg-vibe-check-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 2147483647; flex-direction: column; align-items: center; justify-content: center; padding: 20px; text-align: center; color: #fff; font-family: 'JetBrains Mono', monospace;">
       <div style="font-size: 80px; margin-bottom: 20px;">🚨</div>
-      <h2 style="font-size: 32px; color: #ff3366; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 10px;">VIBE CHECK</h2>
+      <h2 style="font-size: 32px; color: #ff3366; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 10px;">SESSION PAUSE</h2>
       <p style="font-size: 18px; margin-bottom: 30px; max-width: 500px;">The Reality Check Bot just caught you rage-betting. You're about to fumble the bag. Either lock your profits now or go touch grass.</p>
       
       <div id="vibe-check-gif" style="width: 300px; height: 300px; background: #222; margin-bottom: 30px; border: 2px solid #ff3366; display: flex; align-items: center; justify-content: center; overflow: hidden; border-radius: 12px;">

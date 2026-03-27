@@ -1,5 +1,5 @@
 # TiltCheck Discord Bot - High-Speed Production Container
-FROM node:20-slim AS base
+FROM node:20 AS base
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
 RUN corepack enable && corepack prepare pnpm@10.29.1 --activate
@@ -15,7 +15,7 @@ RUN pnpm fetch
 FROM base AS build
 COPY . .
 # Install only the bot's dependency subgraph
-RUN pnpm install --offline --filter @tiltcheck/discord-bot...
+RUN pnpm install --filter @tiltcheck/discord-bot...
 RUN pnpm --filter @tiltcheck/discord-bot... build
 # Prune for production
 RUN pnpm prune --prod --no-optional

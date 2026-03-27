@@ -59,6 +59,7 @@ export class SidebarController implements SidebarUI {
 
   private setupListeners() {
     document.getElementById('tg-discord-login')?.addEventListener('click', () => this.auth.startDiscordLoginFlow());
+    document.getElementById('tg-guest-login')?.addEventListener('click', () => this.auth.continueAsGuest());
     document.getElementById('tg-logout')?.addEventListener('click', () => this.auth.logout());
     
     document.getElementById('submit-report')?.addEventListener('click', () => {
@@ -98,15 +99,15 @@ export class SidebarController implements SidebarUI {
     // Vibe Check Actions
     document.getElementById('vibe-lock-bag')?.addEventListener('click', () => {
         this.vault.lockTheBag(1.0);
-        this.dismissVibeCheck();
+        this.dismissSessionPause();
     });
     document.getElementById('vibe-discord')?.addEventListener('click', () => {
         window.open('https://discord.gg/s6NNfPHxMS', '_blank');
-        this.dismissVibeCheck();
+        this.dismissSessionPause();
     });
     document.getElementById('vibe-ignore')?.addEventListener('click', () => {
-        this.addFeedMessage('Reality Check suppressed. Good luck fumbling the bag.');
-        this.dismissVibeCheck();
+        this.addFeedMessage('Profit Guard suppressed. Good luck.');
+        this.dismissSessionPause();
     });
 
     // AutoVault Controls
@@ -135,8 +136,8 @@ export class SidebarController implements SidebarUI {
     }
 
     if (this.auth.demoMode || !this.auth.authToken) {
-      if (accountText) accountText.textContent = 'Demo mode is live.';
-      if (usernameEl) usernameEl.textContent = 'Guest (Demo)';
+      if (accountText) accountText.textContent = 'Standard Mode.';
+      if (usernameEl) usernameEl.textContent = 'Guest';
       this.blockchain.setWallet(null);
     } else {
       if (accountText) accountText.textContent = `Connected as ${this.auth.userData?.username}`;
@@ -225,19 +226,19 @@ export class SidebarController implements SidebarUI {
     }
 
     if (score >= 80) {
-        this.triggerVibeCheck();
+        this.triggerSessionPause();
     }
   }
 
-  public triggerVibeCheck() {
+  public triggerSessionPause() {
     const overlay = document.getElementById('tg-vibe-check-overlay');
     if (overlay && overlay.style.display !== 'flex') {
         overlay.style.display = 'flex';
-        this.addFeedMessage('VIBE CHECK TRIGGERED: EMERGENCY BRAKE RECOMMENDED.');
+        this.addFeedMessage('SESSION PAUSE TRIGGERED: PROFIT GUARD RECOMMENDED.');
     }
   }
 
-  public dismissVibeCheck() {
+  public dismissSessionPause() {
     const overlay = document.getElementById('tg-vibe-check-overlay');
     if (overlay) overlay.style.display = 'none';
   }

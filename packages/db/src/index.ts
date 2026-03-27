@@ -94,6 +94,15 @@ export {
   getAggregatedTrustByDiscordId,
   logTrustSignal,
 
+  // Buddy queries
+  sendBuddyRequest,
+  acceptBuddyRequest,
+  getUserBuddies,
+  getAccountabilityPartners,
+  getPendingBuddyRequests,
+  updateBuddyThresholds,
+  removeBuddy,
+
   // Blog queries
   getBlogPosts,
   getBlogPostBySlug,
@@ -132,6 +141,12 @@ export type {
   TrustSignal,
   UserTrustSummary,
   CreateTrustSignalPayload,
+
+  // Buddy types
+  UserBuddy,
+  CreateBuddyPayload,
+  UpdateBuddyPayload,
+  BuddyAlertThresholds,
 
   // Blog types
   BlogPost,

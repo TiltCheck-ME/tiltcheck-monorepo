@@ -12,10 +12,10 @@ const LiveAuditLog = () => {
         </h3>
         {/* Terminal log simulation */}
         <div className="audit-log-display mt-6 p-4 border border-[#1e2533] bg-[#0a0c10] font-mono text-sm text-[#00ffaa]">
-          <div className="log-entry opacity-60">&gt; autovault: bag secured, 0.42 SOL.</div>
-          <div className="log-entry opacity-60">&gt; rtp: drift detected in Plinko. API logged.</div>
+          <div className="log-entry opacity-60">&gt; autovault: profit locked, 0.42 SOL.</div>
+          <div className="log-entry opacity-60">&gt; odds: drift detected in Plinko. API logged.</div>
           <div className="log-entry opacity-80">&gt; linkguard: verified contract 0xAbe2... safe.</div>
-          <div className="log-entry font-bold">&gt; verify: 142 cryptographic checks passed.</div>
+          <div className="log-entry font-bold">&gt; audits: 142 cryptographic checks passed.</div>
           <div className="log-entry mt-2 animate-pulse text-white">_</div>
         </div>
       </div>

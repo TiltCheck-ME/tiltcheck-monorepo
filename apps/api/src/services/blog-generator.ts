@@ -50,9 +50,9 @@ export async function generateNewPost(): Promise<void> {
       "The math of the 96% RTP trap",
       "Bankroll survival: The 1% rule",
       "Tilt detection: Your body knows before your brain does",
-      "Casino 'bonuses' are just liquidity for the house",
-      "The myth of the 'hot' slot",
-      "Liquidity management for the common degen",
+      "Blitz-7 Trivia: Why 7 seconds is the new IQ test",
+      "The Degen Forge: 99 cents will buy you a reputation",
+      "Liquidity management for the common survivor",
     ];
 
     const randomTopic = topics[Math.floor(Math.random() * topics.length)];
