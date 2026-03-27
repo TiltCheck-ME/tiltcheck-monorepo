@@ -90,7 +90,8 @@ export class EventHandler {
 
       if (isOnCooldown(interaction.user.id)) {
         recordViolation(interaction.user.id);
-        await interaction.reply({
+        const chatInteraction = interaction as any; // Cast for reply access
+        await chatInteraction.reply({
           content: 'Cooldown is active. Quick breather, then run it back.',
           ephemeral: true
         });
@@ -149,7 +150,7 @@ export class EventHandler {
           const result = await suslink.scanUrl(url, message.author.id);
           if (result.riskLevel === 'high' || result.riskLevel === 'critical') {
             await message.reply(
-              `Heads up: sketchy link detected (${result.riskLevel})\n${url}\nReason: ${result.reason}`
+              `[ALERT] Sketchy link detected (${result.riskLevel})\n${url}\nReason: ${result.reason}`
             ).catch(() => { });
           }
         } catch (error) {
@@ -166,18 +167,20 @@ export class EventHandler {
     const customId = interaction.customId;
 
     try {
-      const handled = await dispatchButtonInteraction(customId, interaction);
+      const handled = await dispatchButtonInteraction(customId, interaction as any);
       if (handled) return;
     } catch (error) {
       console.error('[EventHandler] Button handler error:', error);
-      await interaction.reply({
+      const btnInteraction = interaction as any;
+      await btnInteraction.reply({
         content: `Failed to process button action: ${error instanceof Error ? error.message : 'Unknown error'}`,
         ephemeral: true
       });
       return;
     }
 
-    await interaction.reply({ content: 'Unknown button action.', ephemeral: true });
+    const btnInteraction = interaction as any;
+    await btnInteraction.reply({ content: 'Unknown button action.', ephemeral: true });
   }
 
   private async handleModAction<T extends ModNotificationEventType>(type: T, data: T extends 'tilt.detected' ? TiltDetectedEventData : T extends 'cooldown.violated' ? CooldownViolatedEventData : T extends 'link.flagged' ? LinkFlaggedEventData : T extends 'scam.reported' ? ScamReportedEventData : { [key: string]: unknown }): Promise<void> {
@@ -339,7 +342,7 @@ export class EventHandler {
         const user = await this.client.users.fetch(userId).catch(() => null);
         if (user) {
           const amountText = amountSOL === 0 ? 'all funds' : `${amountSOL.toFixed(4)} SOL eq`;
-          await user.send(`🔓 **Vault Unlocked!**\n\nYour vault \`${id}\` (${amountText}) is now ready for withdrawal.\nUse \`/vault unlock id:${id}\` to release it.\n\nAddress: \`${address}\``).catch(() => { });
+          await user.send(`[UNLOCKED] Vault ready.\n\nYour vault \`${id}\` (${amountText}) is now ready for withdrawal.\nUse \`/vault unlock id:${id}\` to release it.\n\nAddress: \`${address}\``).catch(() => { });
         }
       },
       'discord-bot'
@@ -351,7 +354,7 @@ export class EventHandler {
         const { userId, amountRaw, interval } = event.data;
         const user = await this.client.users.fetch(userId).catch(() => null);
         if (user) {
-          await user.send(`📅 **Vault Reload Due (${interval})**\n\nTime for your scheduled lock of **${amountRaw}**.\nRun \`/vault lock amount:${amountRaw} duration:24h\` to stay on track.`).catch(() => { });
+          await user.send(`[SCHEDULED RELOAD] Vault Reload Due (${interval})\n\nTime for your scheduled lock of **${amountRaw}**.\nRun \`/vault lock amount:${amountRaw} duration:24h\` to stay on track.`).catch(() => { });
         }
       },
       'discord-bot'
@@ -367,7 +370,7 @@ export class EventHandler {
         if (user) {
           const typeText = vaultType === 'magic' ? 'your Degen Identity' : 'a disposable vault';
           const amountText = amountSOL === 0 ? 'ALL' : amountSOL.toFixed(4);
-          await user.send(`🔒 **Vault Locked**\n\nFunds secured in ${typeText}.\n- **ID:** \`${id}\`\n- **Target:** \`${amountText} SOL eq\`\n- **Address:** \`${vaultAddress}\`\n\nUse \`/vault status\` to view your locks.`).catch(() => { });
+          await user.send(`[LOCKED] Vault Created.\n\nFunds secured in ${typeText}.\n- **ID:** \`${id}\`\n- **Target:** \`${amountText} SOL eq\`\n- **Address:** \`${vaultAddress}\`\n\nUse \`/vault status\` to view your locks.`).catch(() => { });
         }
       },
       'discord-bot'
@@ -386,10 +389,10 @@ export class EventHandler {
             const channelId = process.env.DEGEN_ACCOUNTABILITY_CHANNEL_ID || '1447913312015515711';
             const channel = await this.client.channels.fetch(channelId).catch(() => null);
             
-            if (channel && channel.isTextBased() && 'send' in channel) {
+            if (channel && channel.isTextBased()) {
               const userMention = userId !== 'guest' ? `<@${userId}>` : '**A Guest Degen**';
               const message = data?.message || displayText || 'Intervention Required';
-              const alertMessage = `🚨 **BUDDY SYSTEM ALERT** 🚨\n\n${userMention} is fumbling the bag! \n\nGet in voice and pull them off the floor. \n\n*Reason: ${message}*`;
+              const alertMessage = `[BUDDY SYSTEM ALERT]\n\n${userMention} is fumbling the bag! \n\nGet in voice and pull them off the floor. \n\n*Reason: ${message}*`;
               await (channel as any).send({ content: alertMessage });
               console.log(`[Bot] Buddy snitch sent to channel ${channelId} for ${userId}`);
             }
@@ -406,8 +409,8 @@ export class EventHandler {
 
             // 2. Alert Buddy Channel
             const channel = await this.client.channels.fetch(buddyChannelId).catch(() => null);
-            if (channel && channel.isTextBased() && 'send' in channel) {
-              const alertMessage = `☢️ **NUCLEAR INTERVENTION** ☢️\n\n<@${userId}> has reached their breaking point or requested exclusion. \n\nI've sent them the links, but they need a real human right now. Check on them.`;
+            if (channel && channel.isTextBased()) {
+              const alertMessage = `[NUCLEAR INTERVENTION]\n\n<@${userId}> has reached their breaking point or requested exclusion. \n\nI've sent them the links, but they need a real human right now. Check on them.`;
               await (channel as any).send({ content: alertMessage });
             }
           }

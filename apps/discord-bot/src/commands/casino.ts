@@ -23,13 +23,13 @@ export const casino: Command = {
 
       if (!data) {
         await interaction.editReply({
-          content: `❌ No data found for **${domain}**.\n\nTry domains like \`stake.com\`, \`rollbit.com\`, or \`duelbits.com\`.`
+          content: `[DATA NOT FOUND] No data found for **${domain}**.\n\nTry domains like \`stake.com\`, \`rollbit.com\`, or \`duelbits.com\`.`
         });
         return;
       }
 
       const embed = new EmbedBuilder()
-        .setTitle(`🎰 ${data.name} (${data.domain})`)
+        .setTitle(`[CASINO TRUST] ${data.name} (${data.domain})`)
         .setColor(data.status === 'active' ? 0x00FF00 : 0xFF0000)
         .setDescription(`Trust and fairness data for ${data.name}.`)
         .addFields(
@@ -47,7 +47,7 @@ export const casino: Command = {
           .map(([k, v]) => `• **${k}:** ${v}`)
           .join('\n');
           
-        embed.addFields({ name: '📜 License Info', value: licenseDetails || 'No details', inline: false });
+        embed.addFields({ name: '[LICENSE INFO]', value: licenseDetails || 'No details', inline: false });
       }
 
       embed.setFooter({ text: 'TiltCheck Trust Engine • Verified Data' });
@@ -56,7 +56,7 @@ export const casino: Command = {
       await interaction.editReply({ embeds: [embed] });
     } catch (error) {
       console.error('[Casino] Error:', error);
-      await interaction.editReply({ content: '❌ Failed to fetch casino data.' });
+      await interaction.editReply({ content: '[ERROR] Failed to fetch casino data.' });
     }
   }
 };

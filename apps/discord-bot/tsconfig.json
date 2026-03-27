@@ -38,16 +38,10 @@
       "path": "../../packages/natural-language-parser"
     },
     {
-      "path": "../../modules/poker"
-    },
-    {
       "path": "../../modules/suslink"
     },
     {
       "path": "../../modules/tiltcheck-core"
-    },
-    {
-      "path": "../../modules/triviadrops"
     },
     {
       "path": "../../packages/trust-engines"
