@@ -78,6 +78,7 @@ export interface ClientToServerEvents {
   'submit-trivia-answer': (data: { questionId: string; answer: string; timestamp: number }) => void;
   'buy-back': (data: { gameId: string }) => void;
   'request-ape-in': (data: { gameId: string; questionId: string }) => void;
+  'request-shield': (data: { gameId: string; questionId: string }) => void;
 }
 
 export interface ServerToClientEvents {
@@ -92,6 +93,7 @@ export interface ServerToClientEvents {
   'trivia-round-start': (data: { question: any; roundNumber: number; totalRounds: number; endsAt: number }) => void;
   'trivia-round-reveal': (data: { questionId: string; correctChoice: string; explanation?: string; stats: any }) => void;
   'trivia-ape-in-result': (data: { questionId: string; distribution: Record<string, number> }) => void;
+  'trivia-shield-result': (data: { questionId: string; eliminated: string[] }) => void;
 }
 
 // Stats types

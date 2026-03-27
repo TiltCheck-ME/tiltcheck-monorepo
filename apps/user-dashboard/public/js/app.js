@@ -130,9 +130,10 @@ async function loadUserProfile() {
 
         // Stats
         document.getElementById('trustScore').textContent = user.trustScore || '50';
+        document.getElementById('redeemWins').textContent = user.analytics?.redeemWins || 0;
+        document.getElementById('totalRedeemed').textContent = '$' + (user.analytics?.totalRedeemed || 0).toFixed(2);
         document.getElementById('totalJuice').textContent = (user.analytics?.totalJuice || 0).toFixed(2) + ' SOL';
         document.getElementById('totalTipsCaught').textContent = (user.analytics?.totalTipsCaught || 0).toFixed(2) + ' SOL';
-        document.getElementById('eventCount').textContent = user.analytics?.eventCount || 0;
 
         // Wallet Display
         if (user.degenIdentity?.primary_external_address) {

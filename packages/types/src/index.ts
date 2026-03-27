@@ -22,6 +22,20 @@ export interface Identity {
   username?: string;
   linkedWallet?: string;
   roles: string[];
+  analytics?: UserAnalytics;
+  redeemThreshold?: number;
+}
+
+/**
+ * User-specific behavioral and profit metrics
+ */
+export interface UserAnalytics {
+  totalJuice: number; // SOL
+  totalTipsCaught: number; // SOL
+  eventCount: number;
+  redeemWins: number;
+  totalRedeemed: number; // USD/Token equivalent
+  lastRedeemAt?: number;
 }
 
 /**

@@ -1,9 +1,5 @@
 steps:
 - name: 'gcr.io/cloud-builders/docker'
-  args: ['build', '--build-arg', 'APP_NAME=discord-bot', '-t', 'us-central1-docker.pkg.dev/tiltchcek/tiltcheck/discord-bot:latest', '.']
+  args: ['build', '-t', 'gcr.io/$PROJECT_ID/tiltcheck-bot', '-f', 'apps/discord-bot/Dockerfile', '.']
 images:
-- 'us-central1-docker.pkg.dev/tiltchcek/tiltcheck/discord-bot:latest'
-options:
-  logging: CLOUD_LOGGING_ONLY
-  defaultLogsBucketBehavior: REGIONAL_USER_OWNED_BUCKET
-
+- 'gcr.io/$PROJECT_ID/tiltcheck-bot'

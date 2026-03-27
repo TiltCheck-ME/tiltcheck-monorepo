@@ -21,12 +21,14 @@
         .law { margin-bottom: 1rem; padding-left: 1.5rem; position: relative; }
         .law::before { content: '⚡'; position: absolute; left: 0; color: var(--color-primary); }
     </style>
+    <!-- Magic Link SDK -->
+    <script src="https://auth.magic.link/sdk"></script>
 </head>
 <body class="login-container">
     <div class="onboarding-container">
         <div id="step-1" class="step active">
-            <h1 class="neon" data-text="INITIATION">INITIATION</h1>
-            <p style="margin: 1.5rem 0;">Welcome, degen. Before we secure your bags, we need to know where to send them.</p>
+            <h1 class="neon" data-text="WELCOME">WELCOME</h1>
+            <p style="margin: 1.5rem 0;">Welcome to the TiltCheck Command Center. Before we secure your profile, we need to know where to send your audit reports.</p>
             <div class="card" style="margin-bottom: 2rem;">
                 <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 1rem;">YOUR EXTERNAL WALLET (OPTIONAL)</p>
                 <input type="text" id="walletInput" class="nlp-input" placeholder="Solana Wallet Address" style="padding: 1rem; margin-bottom: 1rem;">
@@ -36,18 +38,18 @@
         </div>
 
         <div id="step-2" class="step">
-            <h1 class="neon" data-text="THE DEGEN LAWS">THE DEGEN LAWS</h1>
+            <h1 class="neon" data-text="PROFIT GUARD CHARTER">PROFIT GUARD CHARTER</h1>
             <div class="laws-list">
-                <div class="law"><strong>LAW #1:</strong> Profit is not a sin. Securing the bag is the ultimate win.</div>
-                <div class="law"><strong>LAW #2:</strong> No apologies. We don't say sorry for winning or walking away.</div>
-                <div class="law"><strong>LAW #3:</strong> Zero Drift. Documentation and reality must match.</div>
-                <div class="law"><strong>LAW #4:</strong> Non-Custodial. We provide the tools, you provide the discipline.</div>
+                <div class="law"><strong>CHARTER #1:</strong> Profit is the goal. Securing the win is the ultimate victory.</div>
+                <div class="law"><strong>CHARTER #2:</strong> No apologies. We prioritize walking away with a win.</div>
+                <div class="law"><strong>CHARTER #3:</strong> Zero Drift. Every audit must be medically accurate and factual.</div>
+                <div class="law"><strong>CHARTER #4:</strong> Non-Custodial. We provide the tools, you provide the discipline.</div>
             </div>
             <label style="display: flex; gap: 1rem; align-items: flex-start; margin: 2rem 0; cursor: pointer;">
                 <input type="checkbox" id="acceptLaws" style="margin-top: 0.25rem;">
-                <span>I have read and accept the Degen Laws and Terms of Service. I understand that TiltCheck is a non-custodial audit layer and I am responsible for my own discipline.</span>
+                <span>I have read and accept the Profit Guard Charter and Terms of Service. I understand that TiltCheck is a non-custodial audit layer and I am responsible for my own session management.</span>
             </label>
-            <button class="btn btn-primary" style="width: 100%;" onclick="completeOnboarding()">SECURE MY ACCOUNT</button>
+            <button class="btn btn-primary" style="width: 100%;" onclick="completeOnboarding()">FINISH SETUP</button>
         </div>
 
         <div id="step-loading" class="step">
