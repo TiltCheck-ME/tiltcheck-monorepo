@@ -63,7 +63,7 @@ export class TrustAlertsHandler {
   /**
    * Handle casino trust updates
    */
-  private static async onCasinoTrustUpdated(evt: TiltCheckEvent<TrustCasinoUpdateEvent>): Promise<void> {
+  private static async onCasinoTrustUpdated(evt: TiltCheckEvent<'trust.casino.updated'>): Promise<void> {
     try {
       const { casinoName, previousScore, newScore, delta, severity, reason, source } = evt.data;
 
@@ -77,7 +77,7 @@ export class TrustAlertsHandler {
       }
 
       await alertService.postTrustAlert({
-        title: `🎰 Casino Trust: ${casinoName}`,
+        title: `[CASINO TRUST] ${casinoName}`,
         description: reason || `Trust score changed by ${delta || 0}`,
         severity: alertSeverity,
         data: {
@@ -97,7 +97,7 @@ export class TrustAlertsHandler {
   /**
    * Handle domain trust updates
    */
-  private static async onDomainTrustUpdated(evt: TiltCheckEvent<TrustDomainUpdateEvent>): Promise<void> {
+  private static async onDomainTrustUpdated(evt: TiltCheckEvent<'trust.domain.updated'>): Promise<void> {
     try {
       const { domain, newScore, delta, severity, reason, source } = evt.data;
 
@@ -111,7 +111,7 @@ export class TrustAlertsHandler {
       }
 
       await alertService.postTrustAlert({
-        title: `🔗 Domain Trust: ${domain}`,
+        title: `[DOMAIN TRUST] ${domain}`,
         description: reason || `Trust score changed by ${delta || 0}`,
         severity: alertSeverity,
         data: {
@@ -130,7 +130,7 @@ export class TrustAlertsHandler {
   /**
    * Handle degen trust updates
    */
-  private static async onDegenTrustUpdated(evt: TiltCheckEvent<TrustDegenUpdateEvent>): Promise<void> {
+  private static async onDegenTrustUpdated(evt: TiltCheckEvent<'trust.degen.updated'>): Promise<void> {
     try {
       const { userId, previousScore, newScore, delta, reason, source } = evt.data;
 
@@ -141,7 +141,7 @@ export class TrustAlertsHandler {
       }
 
       await alertService.postTrustAlert({
-        title: `👤 Degen Trust Updated`,
+        title: `[USER TRUST UPDATED]`,
         description: reason || `Trust score changed by ${delta || 0}`,
         severity: 'info',
         userId,
@@ -162,7 +162,7 @@ export class TrustAlertsHandler {
   /**
    * Handle flagged links (high-risk)
    */
-  private static async onLinkFlagged(evt: TiltCheckEvent<any>): Promise<void> {
+  private static async onLinkFlagged(evt: TiltCheckEvent<'link.flagged'>): Promise<void> {
     try {
       const { url, riskLevel, reason } = evt.data;
 
@@ -176,7 +176,7 @@ export class TrustAlertsHandler {
       const severity = riskLevel === 'critical' ? 'critical' : riskLevel === 'high' ? 'warning' : 'info';
 
       await alertService.postTrustAlert({
-        title: `⚠️ High-Risk Link Flagged`,
+        title: `[HIGH-RISK LINK DETECTED]`,
         description: `Risk Level: ${riskLevel}\n${reason || 'Suspicious link detected'}`,
         severity,
         data: {
@@ -194,7 +194,7 @@ export class TrustAlertsHandler {
   /**
    * Handle bonus nerfs
    */
-  private static async onBonusNerfDetected(evt: TiltCheckEvent<any>): Promise<void> {
+  private static async onBonusNerfDetected(evt: TiltCheckEvent<'bonus.nerf.detected'>): Promise<void> {
     try {
       const { casinoName, percentDrop, reason } = evt.data;
 
@@ -205,7 +205,7 @@ export class TrustAlertsHandler {
       }
 
       await alertService.postTrustAlert({
-        title: `📉 Bonus Nerf Detected`,
+        title: `[BONUS NERF DETECTED]`,
         description: `Casino: ${casinoName}\nDrop: ${(percentDrop * 100).toFixed(1)}%`,
         severity: percentDrop > 0.2 ? 'critical' : 'warning',
         data: {

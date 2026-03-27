@@ -92,7 +92,7 @@ async function main() {
   startTiltAgentLoop(async (userId, message, severity) => {
     try {
       const user = await client.users.fetch(userId);
-      const prefix = severity === 'high' ? '🚨 [HIGH RISK]' : severity === 'medium' ? '⚠️ [ALPHA ALERT]' : 'ℹ️ [REALITY CHECK]';
+      const prefix = severity === 'high' ? '[HIGH RISK]' : severity === 'medium' ? '[ALPHA ALERT]' : '[REALITY CHECK]';
       
       // Notify the User
       await user.send(`${prefix} TILTCHECK ALPHA AUDIT\n\n${message}\n\n*Don't get rinsed. SECURE THE BAG.*`);
@@ -102,7 +102,7 @@ async function main() {
       if (severity === 'high' || severity === 'medium') {
           const buddies = await getUserBuddies(userId);
           if (buddies && buddies.length > 0) {
-              const buddyMsg = `🚨 **BUDDY ALERT**: Your friend <@${userId}> is showing **${severity.toUpperCase()}** signs of tilt.\n\nTiltCheck Message Sent to Them:\n> ${message.substring(0, 500)}${message.length > 500 ? '...' : ''}\n\nCheck in on them. Friends don't let friends tilt-drain.`;
+              const buddyMsg = `[BUDDY ALERT]: Your friend <@${userId}> is showing **${severity.toUpperCase()}** signs of tilt.\n\nTiltCheck Message Sent to Them:\n> ${message.substring(0, 500)}${message.length > 500 ? '...' : ''}\n\nCheck in on them. Friends don't let friends tilt-drain.`;
               
               for (const buddyRel of buddies) {
                   try {

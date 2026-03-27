@@ -128,7 +128,7 @@ chrome.webNavigation.onBeforeNavigate.addListener(async (details) => {
     if (response.ok) {
       const data = await response.json();
       if (data.success && data.result.riskLevel === 'critical') {
-        console.log(`[TiltCheck] 🛡️  Blocked critical risk: ${url}`);
+        console.log(`[TiltCheck] [AUDIT] Blocked critical risk: ${url}`);
         const warningUrl = chrome.runtime.getURL(`warning.html?target=${encodeURIComponent(url)}`);
         chrome.tabs.update(details.tabId, { url: warningUrl });
       }

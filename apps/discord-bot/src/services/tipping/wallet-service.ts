@@ -108,7 +108,7 @@ export class WalletService {
     // Listen for withdrawal requests from QualifyFirst
     eventRouter.subscribe(
       'survey.withdrawal.requested',
-      async (event: TiltCheckEvent) => {
+      async (event: TiltCheckEvent<'survey.withdrawal.requested'>) => {
         const { userId, amountUSD } = event.data as any;
         await this.handleWithdrawalRequest(userId, amountUSD);
       },

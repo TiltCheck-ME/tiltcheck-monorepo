@@ -61,10 +61,10 @@ export const lockvault: Command = {
       if (sub === 'lock') {
         const embed = new EmbedBuilder()
           .setColor(0xFF4500)
-          .setTitle('🔒 PROFIT LOCKER: PROTOCOL UPGRADE')
+          .setTitle('[PROFIT LOCKER] PROTOCOL UPGRADE')
           .setDescription(`We are **100% NON-CUSTODIAL.** YOUR KEYS, YOUR PROBLEM.\n\n${LEGAL_DISCLAIMERS.DIGITAL_ASSET_RISKS}\n\nWe refuse to hold your keys. This isn't a centralized exchange. This is **DeFi Safeguarding.**`)
           .addFields(
-            { name: 'Audit Your Logic', value: 'Don\'t trust us. Audit the math yourself:\n👉 **[Independent Verification Tool](https://tiltcheck.me/tools/verify)**' },
+            { name: 'Audit Your Logic', value: 'Don\'t trust us. Audit the math yourself:\n>> **[Independent Verification Tool](https://tiltcheck.me/tools/verify)**' },
             { name: 'Smart Contract Beta', value: 'Building a V2 protocol update right now.' }
           )
           .setFooter({ text: 'TiltCheck: ZERO MORALITY, ALL ALPHA.' });
@@ -139,9 +139,9 @@ export const lockvault: Command = {
       } else if (sub === 'autovault') {
         const embed = new EmbedBuilder()
           .setColor(0xFF4500)
-          .setTitle('🔒 AUTO-VAULT: PROTOCOL UPGRADE')
+          .setTitle('[AUTO-VAULT] PROTOCOL UPGRADE')
           .setDescription('We are **100% NON-CUSTODIAL.** YOUR KEYS, YOUR PROBLEM.\n\nAutomating deposits means touching your keys. Legally, that requires lawyers we don\'t respect and licenses we refuse to pay for.\n\nWe\'re building a **V2 On-Chain Smart Contract** to do this natively without custodial risk.')
-          .addFields({ name: 'Speed Up The Devs', value: 'Want this faster? Throw some caffeine at the dev fund:\n👉 **[Drop a Ko-fi ☕](https://ko-fi.com/tiltcheck)**' })
+          .addFields({ name: 'Speed Up The Devs', value: 'Want this faster? Throw some caffeine at the dev fund:\n>> **[Drop a Ko-fi](https://ko-fi.com/tiltcheck)**' })
           .setFooter({ text: 'TiltCheck: ZERO MORALITY, ALL ALPHA.' });
         
         await interaction.reply({ embeds: [embed], ephemeral: true });
@@ -149,9 +149,9 @@ export const lockvault: Command = {
       } else if (sub === 'reload') {
         const embed = new EmbedBuilder()
           .setColor(0xFF4500)
-          .setTitle('🔒 AUTOMATIC RELOADS: PROTOCOL UPGRADE')
+          .setTitle('[AUTOMATIC RELOADS] PROTOCOL UPGRADE')
           .setDescription('Same deal here, degen. Auto-sweeps require a custodial smart contract. We\'re coding it right now so we don\'t have to deal with the SEC.\n\nWait for V2.')
-          .addFields({ name: 'Speed Up The Devs', value: 'Want to rush the smart contract audit?\n👉 **[Drop a Ko-fi ☕](https://ko-fi.com/tiltcheck)**' });
+          .addFields({ name: 'Speed Up The Devs', value: 'Want to rush the smart contract audit?\n>> **[Drop a Ko-fi](https://ko-fi.com/tiltcheck)**' });
         
         await interaction.reply({ embeds: [embed], ephemeral: true });
         return;

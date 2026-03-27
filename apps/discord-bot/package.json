@@ -25,7 +25,6 @@
     "@tiltcheck/justthetip": "workspace:*",
     "@tiltcheck/lockvault": "workspace:*",
     "@tiltcheck/natural-language-parser": "workspace:*",
-    "@tiltcheck/poker": "workspace:*",
     "@tiltcheck/suslink": "workspace:*",
     "@tiltcheck/tiltcheck-core": "workspace:*",
     "@tiltcheck/trust-engines": "workspace:*",
