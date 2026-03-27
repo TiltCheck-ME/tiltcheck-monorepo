@@ -16,7 +16,7 @@
 
 export const config = {
   // Server
-  port: parseInt(process.env.PORT || '3010', 10),
+  port: parseInt(process.env.PORT || '8080', 10),
   nodeEnv: process.env.NODE_ENV || 'development',
   isDev: process.env.NODE_ENV !== 'production',
 
@@ -36,7 +36,7 @@ export const config = {
 
   // Session
   session: {
-    secret: process.env.SESSION_SECRET || 'dev-secret-change-in-production',
+    secret: process.env.SESSION_SECRET || '',
     cookieName: 'tiltcheck.arena.sid',
     maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
   },

@@ -1,5 +1,5 @@
 /* Copyright (c) 2026 TiltCheck. All rights reserved. */
-﻿/**
+/**
  * (c) 2024–2026 TiltCheck Ecosystem. All Rights Reserved.
  * Created by jmenichole (https://github.com/jmenichole)
  * 
@@ -13,6 +13,7 @@
  */
 
 import { EXT_CONFIG, getDiscordLoginUrl } from './config.js';
+import { AuthManager } from './sidebar/auth.js';
 
 const API_BASE = EXT_CONFIG.API_BASE_URL;
 const AI_GATEWAY_URL = EXT_CONFIG.AI_GATEWAY_URL;
@@ -24,16 +25,32 @@ const API_ORIGIN = (() => {
   }
 })();
 const DISCORD_AUTH_MESSAGE_TYPE = 'discord-auth';
+
+const authManager = new AuthManager({
+  addFeedMessage,
+  getStorage,
+  setStorage,
+  showMainContent,
+  syncAccountUi,
+  updateStatus: (msg, type) => updateStatus(msg, type),
+  updateRealityCheck: () => { },
+  updateLicense: (data) => updateLicense(data),
+  updateTilt: (score, ind) => updateTilt(score, ind),
+  updateStats: (stats) => updateStats(stats),
+  notifyBuddy: (event, data) => notifyBuddy(event, data),
+});
+
 let authToken: string | null = null;
+let userData: any = null;
+let demoMode = true;
+let isConnecting = false;
+
 let showSettings = false;
 let apiKeys: any = {
   openai: '',
   anthropic: '',
   custom: ''
 };
-
-let isAuthenticated = false;
-let userData: any = null;
 const SIDEBAR_WIDTH = 340;
 const MINIMIZED_WIDTH = 40;
 const SIDEBAR_VISIBILITY_KEY = 'tiltcheck_sidebar_visible';
@@ -50,9 +67,7 @@ let casinoThemesIntervalId: ReturnType<typeof setInterval> | null = null;
 let vaultRefreshIntervalId: ReturnType<typeof setInterval> | null = null;
 let discordAuthPollIntervalId: ReturnType<typeof setInterval> | null = null;
 let buddyMirrorEnabled = false;
-let demoMode = false;
 const SIDEBAR_PREFS_KEY = 'sidebarUiPrefs';
-const WALLET_LOCK_UNTIL_KEY = 'walletLockUntil';
 let showAdvancedTools = false;
 
 const CASINO_THEMES: Record<string, { label: string; accent: string }> = {
@@ -238,6 +253,42 @@ function mockApiCall(endpoint: string, options: any = {}) {
   return { success: true, demo: true };
 }
 
+function getRandomQuote(): string {
+  const quotes = [
+    "Trust everybody, but cut the cards.",
+    "Casinos don't win because they're lucky. They win because they're open 24/7 and your calculator battery died at 2:17 a.m.",
+    "The house always wins, unless you're the architect.",
+    "A gambler never makes the same mistake twice. He makes it three or four times just to be sure.",
+    "Risk is the price you pay for the chance to be right.",
+    "Fortune favors the bold, but the bold usually go broke at 4 AM.",
+    "What is a programmers favorite drink? Java!",
+    "Zero drift. Zero mercy.",
+    "Math doesn't care about your gut feeling.",
+    "The machine has a memory. You have a prayer."
+  ];
+  return quotes[Math.floor(Math.random() * quotes.length)];
+}
+
+/**
+ * Surgical Walkthrough Protocol
+ */
+async function startSurgicalWalkthrough() {
+  const messages = [
+    "Welcome back. I've initiated the Surgical Onboarding Protocol.",
+    "1. YOUR HUD: Real-time mathematical audit of your session below.",
+    "2. RISK NUDGE: I'll warn you if I detect tilt or predatory house patterns.",
+    "3. BRAKE: If you're spiraling, I'll suggest a cooldown.",
+    "Tutorial complete. Good luck. Stay objective."
+  ];
+
+  for (const msg of messages) {
+    addFeedMessage(msg);
+    await new Promise(r => setTimeout(r, 3000));
+  }
+  
+  chrome.storage.local.set({ tutorialCompleted: true });
+}
+
 function escapeHtml(value: unknown): string {
   return String(value ?? '')
     .replace(/&/g, '&amp;')
@@ -320,11 +371,30 @@ async function ensureWalletUnlocked(actionLabel: string): Promise<boolean> {
 function applyPageOffset(width: number) {
   const offset = `${width}px`;
 
-  // Some sites anchor layout to <html>, others to <body>. Set both so content shifts reliably.
-  document.documentElement.style.marginRight = offset;
-  document.documentElement.style.transition = 'margin-right 0.3s ease';
-  document.body.style.marginRight = offset;
-  document.body.style.transition = 'margin-right 0.3s ease';
+  // Apply to both html and body for maximum compatibility across different casino layouts
+  if (document.documentElement) {
+    document.documentElement.style.marginRight = offset;
+    document.documentElement.style.transition = 'margin-right 0.3s ease';
+  }
+  
+  if (document.body) {
+    document.body.style.marginRight = offset;
+    document.body.style.transition = 'margin-right 0.3s ease';
+  }
+  
+  // Handle some fixed-position elements that might need adjustment on certain sites
+  const fixedSelectors = ['.Header-module__header', '[style*="position: fixed"]'];
+  fixedSelectors.forEach(sel => {
+    try {
+      const els = document.querySelectorAll(sel);
+      els.forEach(el => {
+        if (el instanceof HTMLElement && !el.closest('#tiltcheck-sidebar')) {
+           el.style.right = offset;
+           el.style.transition = 'right 0.3s ease';
+        }
+      });
+    } catch {}
+  });
 }
 
 function setSidebarVisibility(visible: boolean) {
@@ -426,7 +496,7 @@ async function apiCall(endpoint: string, options: any = {}) {
 
 function enableDemoMode() {
   demoMode = true;
-  isAuthenticated = true;
+  // isAuthenticated = true; // Removed duplicate variable assignment
   authToken = null;
   userData = { ...DEMO_USER };
   sessionStats = {
@@ -456,13 +526,13 @@ async function callAIGateway(application: string, data: any = {}) {
       })
     });
 
-    if (response.ok) {
+    if (response && response.ok) {
       return await response.json();
     }
-    console.log('[TiltCheck] Backend AI request failed, using local fallback');
+    console.log('[TiltCheck] Backend AI request failed');
     return { success: false, error: 'Request did not complete. Try again.' };
-  } catch (error) {
-    console.log('[TiltCheck] Backend AI offline, using local fallback');
+  } catch (err) {
+    console.log('[TiltCheck] Backend AI offline or error:', err);
     return { success: false, error: 'Network issue. Try again.' };
   }
 }
@@ -852,7 +922,12 @@ function createSidebar() {
           <button class="tg-btn tg-btn-primary" id="tg-upgrade-confirm">Upgrade Now &#x2192;</button>
           <button class="tg-btn tg-btn-secondary" id="tg-premium-close">Cancel</button>
         </div>
-        <div class="tg-brand-footer">Made for degens, by degens.</div>
+        <div class="tg-brand-footer">
+          Made for degens, by degens • © 2026 TiltCheck<br/>
+          <span id="tg-footer-quote" style="opacity:0.6; font-size:9px; text-transform:none; margin-top:4px; display:block;">
+            "${getRandomQuote()}"
+          </span>
+        </div>
       </div>
     </div>
 
@@ -865,15 +940,17 @@ function createSidebar() {
   const style = document.createElement('style');
   style.textContent = `
     #tiltcheck-sidebar {
-      --tg-bg: rgba(14, 14, 15, 0.95);
-      --tg-surface: rgba(17, 19, 22, 0.8);
-      --tg-surface-strong: rgba(26, 31, 36, 0.9);
-      --tg-border: rgba(255, 255, 255, 0.08);
+      --tg-bg: rgba(10, 10, 10, 0.95); /* Deep Black */
+      --tg-surface: rgba(26, 26, 26, 0.8);
+      --tg-surface-strong: rgba(36, 36, 36, 0.9);
+      --tg-border: rgba(255, 255, 255, 0.1);
       --tg-text: #e7ecf7;
       --tg-muted: rgba(231, 236, 247, 0.74);
-      --tg-accent-purple: #00FFC6;
-      --tg-accent-purple-2: #00E6B2;
-      --tg-accent-green: #00FFC6;
+      --tg-primary: #00d4aa; /* Neon Teal */
+      --tg-secondary: #00a8ff; /* Electric Blue */
+      --tg-accent: #a855f7; /* Neon Purple */
+      --tg-danger: #ef4444;
+      --tg-warning: #f59e0b;
       position: fixed !important;
       top: 0 !important;
       right: 0 !important;
@@ -895,7 +972,7 @@ function createSidebar() {
     #tiltcheck-sidebar::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.2); border-radius: 3px; }
     
     .tg-header {
-      background: linear-gradient(180deg, rgba(0, 255, 198, 0.1), transparent);
+      background: linear-gradient(180deg, rgba(0, 212, 170, 0.1), transparent);
       padding: 14px 16px;
       display: flex;
       justify-content: space-between;
@@ -918,7 +995,7 @@ function createSidebar() {
       width: 24px;
       height: 24px;
       border-radius: 7px;
-      background: linear-gradient(135deg, var(--tg-accent-purple), var(--tg-accent-purple-2));
+      background: linear-gradient(135deg, var(--tg-primary), var(--tg-secondary));
       color: #fff;
       display: inline-flex;
       align-items: center;
@@ -940,7 +1017,7 @@ function createSidebar() {
       transition: all 0.15s;
       white-space: nowrap;
     }
-    .tg-header-btn:hover { background: var(--tg-surface-strong); border-color: rgba(99, 102, 241, 0.48); }
+    .tg-header-btn:hover { background: var(--tg-surface-strong); border-color: rgba(0, 212, 170, 0.4); }
     #tiltcheck-sidebar:not(.tg-show-advanced) .tg-advanced-only { display: none !important; }
     
     .tg-content { padding: 12px; }
@@ -972,8 +1049,8 @@ function createSidebar() {
       gap: 8px;
       margin: -6px 0 12px;
       padding: 8px 10px;
-      background: rgba(99, 102, 241, 0.14);
-      border: 1px solid rgba(99, 102, 241, 0.46);
+      background: rgba(0, 168, 255, 0.1);
+      border: 1px solid rgba(0, 168, 255, 0.3);
       border-radius: 10px;
       font-size: 11px;
       line-height: 1.35;
@@ -983,12 +1060,12 @@ function createSidebar() {
       padding: 8px 10px;
       font-size: 11px;
       opacity: 0.78;
-      border-left: 2px solid rgba(16, 185, 129, 0.55);
-      background: rgba(16, 185, 129, 0.08);
+      border-left: 2px solid rgba(0, 212, 170, 0.6);
+      background: rgba(0, 212, 170, 0.08);
       border-radius: 0 8px 8px 0;
     }
     .tg-user-info { display: flex; gap: 8px; align-items: center; font-size: 13px; }
-    .tg-tier { padding: 2px 8px; background: rgba(99, 102, 241, 0.2); border-radius: 3px; font-size: 11px; color: #818cf8; }
+    .tg-tier { padding: 2px 8px; background: rgba(168, 85, 247, 0.2); border-radius: 3px; font-size: 11px; color: #c4b5fd; }
     .tg-btn-icon {
       background: transparent;
       border: none;
@@ -1022,7 +1099,7 @@ function createSidebar() {
       color: #e1e8ed;
       font-size: 12px;
     }
-    .tg-input-group input:focus { outline: none; border-color: rgba(99, 102, 241, 0.5); }
+    .tg-input-group input:focus { outline: none; border-color: var(--tg-primary); }
     
     .tg-metrics-card {
       background: rgba(255, 255, 255, 0.03);
@@ -1048,7 +1125,7 @@ function createSidebar() {
       width: 10px;
       height: 10px;
       border-radius: 50%;
-      background: var(--tg-accent-green);
+      background: var(--tg-primary);
       color: transparent;
       font-size: 0;
     }
@@ -1108,9 +1185,9 @@ function createSidebar() {
       font-weight: 600;
       font-variant-numeric: tabular-nums;
     }
-    .tg-tilt-value { color: var(--tg-accent-green); }
-    .tg-tilt-value.warning { color: #f59e0b; }
-    .tg-tilt-value.critical { color: #ef4444; }
+    .tg-tilt-value { color: var(--tg-primary); }
+    .tg-tilt-value.warning { color: var(--tg-warning); }
+    .tg-tilt-value.critical { color: var(--tg-danger); }
     
     .tg-graph {
       background: rgba(0, 0, 0, 0.2);
@@ -1157,12 +1234,12 @@ function createSidebar() {
       transition: all 0.15s;
       text-align: left;
     }
-    .tg-action-btn:hover { background: var(--tg-surface-strong); border-color: rgba(99, 102, 241, 0.45); transform: translateY(-1px); }
+    .tg-action-btn:hover { background: var(--tg-surface-strong); border-color: var(--tg-primary); transform: translateY(-1px); }
     
     .tg-vault-amount {
       font-size: 24px;
       font-weight: 700;
-      color: var(--tg-accent-green);
+      color: var(--tg-primary);
       margin-bottom: 12px;
       font-variant-numeric: tabular-nums;
     }
@@ -1196,16 +1273,16 @@ function createSidebar() {
       font-size: 11px;
       white-space: nowrap;
     }
-    .tg-btn-primary { background: var(--tg-accent-purple); }
-    .tg-btn-primary:hover { background: var(--tg-accent-purple-2); }
+    .tg-btn-primary { background: var(--tg-primary); color: #000; }
+    .tg-btn-primary:hover { background: #00b390; }
     .tg-btn-secondary { background: var(--tg-surface); border: 1px solid var(--tg-border); }
-    .tg-btn-secondary:hover { background: var(--tg-surface-strong); border-color: rgba(99, 102, 241, 0.45); }
-    .tg-btn-vault { background: var(--tg-accent-green); color: #07281f; font-weight: 700; }
-    .tg-btn-vault:hover { background: #0da271; }
-    .tg-btn-danger { background: #ef4444; }
+    .tg-btn-secondary:hover { background: var(--tg-surface-strong); border-color: var(--tg-secondary); }
+    .tg-btn-vault { background: var(--tg-primary); color: #000; font-weight: 700; }
+    .tg-btn-vault:hover { background: #00b390; }
+    .tg-btn-danger { background: var(--tg-danger); }
     .tg-btn-danger:hover { background: #dc2626; }
-    #tg-discord-login, #tg-connect-discord-inline { background: var(--tg-accent-purple); border: 1px solid rgba(255,255,255,0.12); }
-    #tg-discord-login:hover, #tg-connect-discord-inline:hover { background: #4d5ae9; }
+    #tg-discord-login, #tg-connect-discord-inline { background: var(--tg-accent); border: 1px solid rgba(255,255,255,0.12); color: #fff;}
+    #tg-discord-login:hover, #tg-connect-discord-inline:hover { background: #9333ea; }
 
     .tg-toast {
       position: fixed;
@@ -1215,7 +1292,7 @@ function createSidebar() {
       backdrop-filter: blur(10px);
       color: var(--tg-text);
       border: 1px solid rgba(255,255,255,0.12);
-      border-left: 3px solid var(--tg-accent-purple);
+      border-left: 3px solid var(--tg-accent);
       padding: 10px 12px;
       border-radius: 10px;
       font-size: 12px;
@@ -1231,15 +1308,15 @@ function createSidebar() {
 
     #tiltcheck-sidebar.tilt-warn {
       box-shadow: -2px 0 12px rgba(245, 158, 11, 0.35);
-      border-left-color: rgba(245, 158, 11, 0.6);
+      border-left-color: var(--tg-warning);
       animation: pulseBorder 2.2s ease-in-out infinite;
     }
     #tiltcheck-sidebar.tilt-critical {
       background: rgba(127, 29, 29, 0.85);
       box-shadow: -2px 0 16px rgba(239, 68, 68, 0.45);
-      border-left-color: rgba(239, 68, 68, 0.7);
+      border-left-color: var(--tg-danger);
     }
-    #tiltcheck-sidebar.tilt-critical .tg-emergency { border-color: rgba(239, 68, 68, 0.8); }
+    #tiltcheck-sidebar.tilt-critical .tg-emergency { border-color: var(--tg-danger); }
     #tiltcheck-sidebar.tilt-critical #tg-emergency-lock { animation: shake 0.6s ease-in-out infinite; }
 
     @keyframes pulseBorder {
@@ -1255,10 +1332,10 @@ function createSidebar() {
 
     .tg-tabs { display: flex; border-bottom: 1px solid rgba(255,255,255,0.1); margin-bottom: 12px; }
     .tg-tab { flex: 1; background: none; border: none; color: rgba(255,255,255,0.5); padding: 8px; cursor: pointer; border-bottom: 2px solid transparent; font-size: 12px; font-weight: 600; }
-    .tg-tab.active { color: #fff; border-bottom-color: #6366f1; }
+    .tg-tab.active { color: #fff; border-bottom-color: var(--tg-secondary); }
     .tg-history-item { padding: 8px; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 11px; background: rgba(255,255,255,0.02); margin-bottom: 4px; border-radius: 4px; }
     .tg-history-header { display: flex; justify-content: space-between; margin-bottom: 4px; opacity: 0.7; }
-    .tg-history-result { font-weight: bold; color: #10b981; }
+    .tg-history-result { font-weight: bold; color: var(--tg-primary); }
 
     .tg-license-strip {
       padding: 8px 12px;
@@ -1266,16 +1343,16 @@ function createSidebar() {
       font-weight: 600;
       text-align: center;
       border-bottom: 1px solid rgba(255,255,255,0.1);
-      background: rgba(99, 102, 241, 0.12);
-      color: #c7d2fe;
+      background: rgba(0, 168, 255, 0.1);
+      color: #7dd3fc;
     }
     .tg-license-strip.verified { background: rgba(16, 185, 129, 0.18); color: #6ee7b7; }
     .tg-license-strip.warning { background: rgba(245, 158, 11, 0.18); color: #fcd34d; }
     .tg-license-strip.risk { background: rgba(239, 68, 68, 0.18); color: #fca5a5; }
-    .tg-license-strip.pending { background: rgba(99, 102, 241, 0.12); color: #c7d2fe; }
+    .tg-license-strip.pending { background: rgba(0, 168, 255, 0.1); color: #7dd3fc; }
 
     .tg-status-bar { padding: 8px 12px; font-size: 11px; font-weight: 600; text-align: center; animation: slideDown 0.3s ease; }
-    .tg-status-bar.thinking { background: rgba(99, 102, 241, 0.2); color: #818cf8; border-bottom: 1px solid rgba(99, 102, 241, 0.3); }
+    .tg-status-bar.thinking { background: rgba(0, 168, 255, 0.2); color: #38bdf8; border-bottom: 1px solid rgba(0, 168, 255, 0.3); }
     .tg-status-bar.success { background: rgba(16, 185, 129, 0.2); color: #34d399; border-bottom: 1px solid rgba(16, 185, 129, 0.3); }
     .tg-status-bar.warning { background: rgba(245, 158, 11, 0.2); color: #fbbf24; border-bottom: 1px solid rgba(245, 158, 11, 0.3); }
     .tg-status-bar.buddy { background: rgba(236, 72, 153, 0.2); color: #f472b6; border-bottom: 1px solid rgba(236, 72, 153, 0.3); }
@@ -1382,23 +1459,44 @@ function updateSessionSiteLabel() {
 }
 
 function syncAccountUi() {
+  // Sync state from authManager to local variables
+  isConnecting = authManager.isConnecting;
+  demoMode = authManager.demoMode;
+  userData = authManager.userData;
+  authToken = authManager.authToken;
+
   const accountText = document.getElementById('tg-account-text');
   const connectBtn = document.getElementById('tg-connect-discord-inline') as HTMLButtonElement | null;
   const logoutBtn = document.getElementById('tg-logout') as HTMLButtonElement | null;
+  const usernameEl = document.getElementById('tg-username');
   if (!accountText || !connectBtn || !logoutBtn) return;
+
+  if (isConnecting) {
+    accountText.textContent = '📞 Syncing with Discord gateway...';
+    connectBtn.disabled = true;
+    connectBtn.style.opacity = '0.75';
+    connectBtn.textContent = 'Syncing...';
+    return;
+  }
 
   if (demoMode || !authToken) {
     accountText.textContent = 'Demo mode is live. Connect Discord if you want synced history and vault progress.';
+    connectBtn.disabled = false;
+    connectBtn.style.opacity = '1';
     connectBtn.textContent = 'Connect Discord';
     connectBtn.style.display = 'inline-flex';
     logoutBtn.style.display = 'none';
+    if (usernameEl) usernameEl.textContent = 'Guest (Demo)';
     return;
   }
 
   accountText.textContent = `Connected as ${userData?.username || 'TiltCheck user'}`;
+  connectBtn.disabled = false;
+  connectBtn.style.opacity = '1';
   connectBtn.textContent = 'Reconnect';
   connectBtn.style.display = 'inline-flex';
   logoutBtn.style.display = 'inline-flex';
+  if (usernameEl) usernameEl.textContent = userData?.username || 'TiltCheck User';
 }
 
 function clearDiscordAuthPolling() {
@@ -1411,14 +1509,17 @@ function clearDiscordAuthPolling() {
 async function applyDiscordAuthSuccess(token: string, user: Record<string, any>) {
   await setStorage({ authToken: token, userData: user });
   clearDiscordAuthPolling();
+  isConnecting = false;
   demoMode = false;
   authToken = token;
   userData = { ...user, isDemo: false };
-  isAuthenticated = true;
+  // isAuthenticated = true;
   showMainContent();
   syncAccountUi();
   addFeedMessage(`Connected: ${userData.username || 'TiltCheck user'}`);
 }
+
+let authBridgeAckReceived = false;
 
 function handleDiscordAuthMessage(event: MessageEvent) {
   if (event.origin !== API_ORIGIN) return;
@@ -1429,19 +1530,54 @@ function handleDiscordAuthMessage(event: MessageEvent) {
   void applyDiscordAuthSuccess(data.token, data.user as Record<string, any>);
 }
 
+function handleAuthBridgeAck(event: MessageEvent) {
+  const data = event.data as { type?: string; success?: boolean } | null;
+  if (data?.type === 'auth-bridge-ack') {
+    authBridgeAckReceived = true;
+    console.log('[TiltCheck] auth-bridge-ack received');
+  }
+}
+
 function startDiscordLoginFlow() {
   const authUrl = getDiscordLoginUrl('extension');
   const maxPollMs = 5 * 60 * 1000;
   const startedAt = Date.now();
   clearDiscordAuthPolling();
+  authBridgeAckReceived = false;
+  isConnecting = true;
+  syncAccountUi();
 
   const startStoragePolling = () => {
+    let pollAttempts = 0;
+    let lastReadWasUndefined = false;
+
     discordAuthPollIntervalId = setInterval(async () => {
       try {
         const stored = await getStorage(['authToken', 'userData']);
+        
+        // If we got the auth, we're done
         if (stored?.authToken && stored?.userData) {
           await applyDiscordAuthSuccess(stored.authToken, stored.userData);
           return;
+        }
+
+        // Track if reads are returning undefined (indicates storage write hasn't completed yet)
+        if (!stored?.authToken) {
+          lastReadWasUndefined = true;
+          pollAttempts++;
+          console.log(`[TiltCheck] Storage read returned undefined (attempt ${pollAttempts})`);
+          
+          // After 3 failed reads without ACK, add extra delay before next attempt
+          // This accounts for the race condition where auth-bridge is still writing
+          if (pollAttempts >= 3 && !authBridgeAckReceived) {
+            console.log('[TiltCheck] Polling returned undefined 3+ times without ACK. Adding backoff delay.');
+          }
+        }
+
+        // If ACK was received, we know storage write completed, so increase check frequency
+        if (authBridgeAckReceived && lastReadWasUndefined) {
+          console.log('[TiltCheck] ACK received. Storage write should be complete.');
+          lastReadWasUndefined = false;
         }
 
         if (Date.now() - startedAt > maxPollMs) {
@@ -1453,17 +1589,12 @@ function startDiscordLoginFlow() {
         console.warn('[TiltCheck] Discord connect polling failed:', error);
         addFeedMessage('Discord connect interrupted. Reload the tab and try again.');
       }
-    }, 1000);
+    }, 500); // Poll every 500ms (faster than 1000ms to catch writes sooner)
   };
 
   try {
-    // User-clicked popup preserves window.opener for callback postMessage.
-    const popup = window.open(authUrl, '_blank', 'popup=yes,width=520,height=760');
-    if (popup) {
-      startStoragePolling();
-      return;
-    }
-
+    // Force use of auth-bridge via background script for reliable cross-origin postMessage
+    // Direct window.open from content scripts often causes 'window.opener' origin issues.
     chrome.runtime.sendMessage({ type: 'open_auth_bridge', url: authUrl }, (response) => {
       if (chrome.runtime.lastError) {
         const msg = chrome.runtime.lastError.message || 'Could not open Discord login tab.';
@@ -1492,6 +1623,10 @@ function startDiscordLoginFlow() {
 function setupEventListeners() {
   window.removeEventListener('message', handleDiscordAuthMessage as EventListener);
   window.addEventListener('message', handleDiscordAuthMessage as EventListener);
+  
+  // Listen for auth-bridge ACK messages
+  window.removeEventListener('message', handleAuthBridgeAck as EventListener);
+  window.addEventListener('message', handleAuthBridgeAck as EventListener);
 
   document.getElementById('tg-minimize')?.addEventListener('click', () => {
     const sidebar = document.getElementById('tiltcheck-sidebar');
@@ -2094,7 +2229,7 @@ async function checkAuthStatus() {
     demoMode = false;
     userData = storedUser;
     authToken = token;
-    isAuthenticated = true;
+    // isAuthenticated = true;
     showMainContent();
     syncAccountUi();
     renderGoals(loadGoals());
@@ -2102,6 +2237,13 @@ async function checkAuthStatus() {
     loadVaultBalance();
     checkLockStatus();
     initPnLGraph();
+    
+    chrome.storage.local.get(['tutorialCompleted'], (res) => {
+      if (!res.tutorialCompleted) {
+        void startSurgicalWalkthrough();
+      }
+    });
+
     vaultRefreshIntervalId = setInterval(() => {
       loadVaultBalance();
       checkLockStatus();

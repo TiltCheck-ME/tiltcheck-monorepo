@@ -137,7 +137,7 @@ export class DADModule {
     // Listen for game events if needed
     eventRouter.subscribe(
       'game.started',
-      async (event: TiltCheckEvent) => {
+      async (event: TiltCheckEvent<any>) => {
         console.log('[DA&D] Game started:', event.data);
       },
       'dad'
@@ -681,7 +681,7 @@ export class DADModule {
     }
 
     // Emit game completed event
-    await eventRouter.publish('game.completed', 'dad', {
+    await eventRouter.publish('dad.game.completed', 'dad', {
       gameId: game.id,
       winnerId,
       finalScores: Array.from(game.players.values()).map(p => ({

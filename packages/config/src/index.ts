@@ -58,6 +58,20 @@ export {
 } from './env.js';
 
 // ============================================================
+// Compliance & Geo-Restriction Configuration
+// ============================================================
+
+/**
+ * Check if a country is in the restricted list
+ */
+export function isCountryRestricted(countryCode: string | undefined): boolean {
+  if (!countryCode) return false;
+  // Use the validated env list
+  const restricted = (process.env.RESTRICTED_COUNTRIES || 'US,GB,FR,AU').split(',');
+  return restricted.includes(countryCode.toUpperCase());
+}
+
+// ============================================================
 // Severity Configuration (Legacy)
 // ============================================================
 

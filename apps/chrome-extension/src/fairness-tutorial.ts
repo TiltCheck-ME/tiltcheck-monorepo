@@ -101,7 +101,7 @@ function createOverlay(): HTMLElement {
     dotsContainer.appendChild(dot);
   });
 
-  const sidebar = document.getElementById('tiltguard-sidebar');
+  const sidebar = document.getElementById('tiltcheck-sidebar');
   if (sidebar) {
     sidebar.appendChild(overlay);
   } else {
@@ -165,7 +165,7 @@ function goToStep(index: number) {
 
       // Calculate position relative to the sidebar overlay
       const rect = targetEl.getBoundingClientRect();
-      const sidebarEl = document.getElementById('tiltguard-sidebar');
+      const sidebarEl = document.getElementById('tiltcheck-sidebar');
       const sidebarRect = sidebarEl ? sidebarEl.getBoundingClientRect() : { left: 0, top: 0 };
 
       const relLeft = rect.left - sidebarRect.left;

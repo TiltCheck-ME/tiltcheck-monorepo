@@ -1,0 +1,61 @@
+name: Publish Package to GitHub Packages
+
+on:
+  workflow_dispatch:
+    inputs:
+      package_name:
+        description: 'The full name of the package to publish (e.g., @tiltcheck/auth-flow)'
+        required: true
+      version_bump:
+        description: 'The version bump type (patch, minor, major)'
+        required: true
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
+
+permissions:
+  contents: write
+  packages: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    name: Build and Publish Package
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          registry-url: 'https://npm.pkg.github.com'
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 9
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build package and its dependencies
+        run: pnpm --filter "${{ inputs.package_name }}..." build
+
+      - name: Bump package version
+        run: pnpm --filter "${{ inputs.package_name }}" exec pnpm version ${{ inputs.version_bump }}
+
+      - name: Publish package to GitHub Packages
+        run: pnpm --filter "${{ inputs.package_name }}" publish --no-git-checks
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Push version bump to repository
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git commit -am "chore(release): publish ${{ inputs.package_name }}@$(pnpm --filter ${{ inputs.package_name }} exec node -p "require('./package.json').version")"
+          git push

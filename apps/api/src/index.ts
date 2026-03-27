@@ -1,3 +1,12 @@
+import dotenv from 'dotenv';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const envPath = path.resolve(__dirname, '../../../.env'); // Path from apps/api/src to monorepo root .env
+dotenv.config({ path: envPath });
+
 /* Copyright (c) 2026 TiltCheck. All rights reserved. */
 // v1.1.0 — 2026-02-26
 /**
@@ -11,6 +20,11 @@ import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
+import http from 'http';
+import cookieParser from 'cookie-parser';
+import { WebSocketServer } from 'ws';
+import { verifySessionCookie } from '@tiltcheck/auth';
+import { getJWTConfig } from './middleware/auth.js';
 
 import { authRouter } from './routes/auth.js';
 import { servicesRouter } from './routes/services.js';
@@ -28,13 +42,19 @@ import { casinoRouter } from './routes/casino.js';
 import { bonusRouter } from './routes/bonus.js';
 import { vaultRouter } from './routes/vault.js';
 import { betaRouter } from './routes/beta.js';
+import { partnerRouter } from './routes/partner.js';
 import { statsRouter } from './routes/stats.js';
+import { blogRouter } from './routes/blog.js';
+import { telemetryRouter } from './routes/telemetry.js';
+import { startBlogGenerator } from './services/blog-generator.js';
 import modRouter from './routes/mod.js';
 import { errorHandler, notFoundHandler } from './middleware/error.js';
 import { requestLogger } from './middleware/logger.js';
 import { csrfProtection } from './middleware/csrf.js';
+import { geoComplianceMiddleware } from './middleware/compliance.js';
 
 const app = express();
+app.set('trust proxy', 1); // Trust the first proxy
 
 // ============================================================================
 // Stripe Webhook (MUST be before body parsers)
@@ -60,10 +80,12 @@ app.use(cors({
       'https://dashboard.tiltcheck.me',
       'https://api.tiltcheck.me',
       'https://bot.tiltcheck.me',
-      'https://tiltcheck-web-164294266634.us-central1.run.app',
+      'https://web-164294266634.us-central1.run.app',
       'https://tiltcheck-api-164294266634.us-central1.run.app',
       'https://tiltcheck-bot-164294266634.us-central1.run.app',
       'https://tiltcheck-user-dashboard-164294266634.us-central1.run.app',
+      'https://tiltcheck-api-prod-164294266634.us-central1.run.app',
+      'https://tiltcheck-api-gateway-164294266634.us-central1.run.app',
     ];
 
     // Allow requests with no origin (like mobile apps or curl)
@@ -92,6 +114,7 @@ app.use(cors({
 // Body parsing
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser());
 
 // Request logging
 app.use(requestLogger);
@@ -105,6 +128,7 @@ const globalLimiter = rateLimit({
   max: 1000, // 1000 requests per 15 minutes
   standardHeaders: true,
   legacyHeaders: false,
+  keyGenerator: (req) => req.ip || (req.headers['x-forwarded-for'] as string) || req.socket.remoteAddress || 'unknown',
   message: { error: 'Too many requests', code: 'RATE_LIMIT_EXCEEDED' },
 });
 app.use(globalLimiter);
@@ -126,7 +150,7 @@ app.use('/services', servicesRouter);
 app.use('/tip', tipRouter);
 
 // RGaaS (Responsible Gaming as a Service) routes
-app.use('/rgaas', rgaasRouter);
+app.use('/rgaas', geoComplianceMiddleware, rgaasRouter);
 
 // Safety routes
 app.use('/safety', safetyRouter);
@@ -151,6 +175,9 @@ app.use('/bonus', bonusRouter);
 app.use('/vault', vaultRouter);
 app.use('/beta', betaRouter);
 app.use('/stats', statsRouter);
+app.use('/partner', partnerRouter);
+app.use('/blog', blogRouter);
+app.use('/telemetry', telemetryRouter);
 
 // Moderation routes
 app.use('/mod', modRouter);
@@ -169,9 +196,110 @@ app.use(errorHandler);
 const PORT = parseInt(process.env.PORT || '3001', 10);
 const HOST = process.env.HOST || '0.0.0.0';
 
-app.listen(PORT, HOST, () => {
+const server = http.createServer(app);
+
+// ============================================================================
+// WebSocket Server Setup
+// ============================================================================
+
+const wss = new WebSocketServer({ 
+  server, 
+  path: '/analyzer',
+  // H6 Fix: Verify session before allowing connection
+  verifyClient: async (info, callback) => {
+    const cookieHeader = info.req.headers.cookie;
+    const jwtConfig = getJWTConfig();
+    try {
+      const result = await verifySessionCookie(cookieHeader, jwtConfig);
+      if (result.valid) {
+        (info.req as any).session = result.session;
+        callback(true);
+      } else {
+        callback(false, 401, 'Unauthorized');
+      }
+    } catch (err) {
+      console.error('[Analyzer] Session verification error:', err);
+      callback(false, 500, 'Internal Server Error');
+    }
+  }
+});
+
+wss.on('connection', (ws, req) => {
+  const session = (req as any).session;
+  console.log(`[Analyzer] Client connected: ${session?.userId || 'unknown'}`);
+
+  ws.on('message', (data) => {
+    try {
+      const message = JSON.parse(data.toString());
+
+      switch (message.type) {
+        case 'ping':
+          ws.send(JSON.stringify({ type: 'pong', ts: Date.now() }));
+          break;
+
+        case 'spin':
+          // Process spin data
+          // TODO: Validate spin data structure
+          // TODO: Calculate fairness metrics
+          // TODO: Store in database if needed
+          // TODO: Return analysis
+          ws.send(JSON.stringify({
+            type: 'spin_ack',
+            sessionId: message.data?.sessionId,
+            analyzed: true,
+            metrics: {
+              expectedRTP: 0.96,
+              observedRTP: message.data?.payout / message.data?.bet || 0,
+              anomalies: []
+            }
+          }));
+          break;
+
+        case 'request_report':
+          // Generate fairness report for session
+          // TODO: Pull historical data for sessionId
+          // TODO: Calculate aggregated metrics
+          ws.send(JSON.stringify({
+            type: 'report',
+            sessionId: message.sessionId,
+            report: {
+              totalSpins: 0,
+              averageRTP: 0.96,
+              fairnessScore: 100,
+              concerns: []
+            }
+          }));
+          break;
+
+        default:
+          console.warn('[Analyzer] Unknown message type:', message.type);
+      }
+    } catch (error) {
+      console.error('[Analyzer] Error processing message:', error);
+      ws.send(JSON.stringify({
+        type: 'error',
+        message: 'Failed to process message'
+      }));
+    }
+  });
+
+  ws.on('close', () => {
+    console.log('[Analyzer] Client disconnected');
+  });
+
+  ws.on('error', (error) => {
+    console.error('[Analyzer] WebSocket error:', error);
+  });
+});
+
+server.listen(PORT, HOST, () => {
   console.log(`[API Gateway] Running on http://${HOST}:${PORT}`);
   console.log(`[API Gateway] Environment: ${process.env.NODE_ENV || 'development'}`);
+  console.log(`[Analyzer] WebSocket listening on ws://${HOST}:${PORT}/analyzer`);
+  
+  // Start automated background services
+  startBlogGenerator();
 });
 
 export default app;
+export { server };

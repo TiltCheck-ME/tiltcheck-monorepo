@@ -61,6 +61,7 @@ export interface LockVaultInput {
   reason?: string;
   currencyHint?: 'USD' | 'SOL';
   autoWithdraw?: boolean; // If true, auto-send funds to user's registered wallet when lock expires
+  disclaimerAccepted: boolean; // MUST be true for crypto compliance
 }
 
 export interface LockVaultRecord {
@@ -94,6 +95,13 @@ export interface ReloadSchedule {
   lastRunAt?: number;
 }
 
+export interface WalletActionLock {
+  userId: string;
+  lockUntil: number;
+  createdAt: number;
+  reason?: string;
+}
+
 function now() { return Date.now(); }
 function generateId() { return `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`; }
 
@@ -112,6 +120,7 @@ class VaultManager {
   private autoVaults = new Map<string, AutoVaultSettings>();
   private reloadSchedules = new Map<string, ReloadSchedule>();
   private generalBalances = new Map<string, number>(); // Tracking non-locked vault funds
+  private walletActionLocks = new Map<string, WalletActionLock>();
   private persistencePath = process.env.LOCKVAULT_STORE_PATH || 'data/lockvault.json';
   private persistDebounce?: NodeJS.Timeout;
   private backgroundTimer?: NodeJS.Timeout;
@@ -131,7 +140,8 @@ class VaultManager {
         vaults: Array.from(this.vaults.values()),
         autoVaults: Object.fromEntries(this.autoVaults),
         reloadSchedules: Object.fromEntries(this.reloadSchedules),
-        generalBalances: Object.fromEntries(this.generalBalances)
+        generalBalances: Object.fromEntries(this.generalBalances),
+        walletActionLocks: Object.fromEntries(this.walletActionLocks)
       }, null, 2);
       const dir = path.dirname(this.persistencePath);
       if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
@@ -162,6 +172,9 @@ class VaultManager {
       for (const [userId, bal] of Object.entries(raw.generalBalances || {})) {
         this.generalBalances.set(userId, bal as number);
       }
+      for (const [userId, lock] of Object.entries(raw.walletActionLocks || {})) {
+        this.walletActionLocks.set(userId, lock as WalletActionLock);
+      }
       console.log(`[LockVault] Loaded ${this.vaults.size} vaults and ${this.generalBalances.size} balances`);
     } catch (err) {
       console.error('[LockVault] Load failed', err);
@@ -169,6 +182,9 @@ class VaultManager {
   }
 
   async lock(input: LockVaultInput): Promise<LockVaultRecord> {
+    if (!input.disclaimerAccepted) {
+      throw new Error('You must explicitly acknowledge the Digital Asset Risk and Zero Custody disclosures before deploying a LockVault.');
+    }
     const amountParse = parseAmount(input.amountRaw);
     if (!amountParse.success || !amountParse.data) throw new Error(amountParse.error || 'Unable to parse amount');
     const parsedValue = amountParse.data.value;
@@ -250,6 +266,36 @@ class VaultManager {
     return record;
   }
 
+  async processBalanceUpdate(userId: string, balance: number, currency: 'USD' | 'SOL') {
+    const settings = this.autoVaults.get(userId);
+    if (!settings) return;
+
+    if (settings.threshold !== undefined && balance > settings.threshold) {
+      const overage = balance - settings.threshold;
+      console.log(`[LockVault] Auto-vaulting overage: ${overage} ${currency} for user ${userId}`);
+
+      // If saving for NFT, contribute to goal
+      if (settings.saveForNft && db.isConnected()) {
+        const solPrice = getUsdPriceSync('SOL');
+        if (solPrice && solPrice > 0) {
+          const amountSol = currency === 'SOL' ? overage : overage / solPrice;
+          await db.updateNftSavings(userId, amountSol);
+        } else {
+          console.warn('[LockVault] Could not fetch SOL price for NFT savings update');
+        }
+      }
+
+      await this.lock({
+        userId,
+        amountRaw: `${overage} ${currency}`,
+        durationRaw: '24h',
+        reason: settings.saveForNft ? 'Auto-vault (NFT Savings)' : 'Auto-vault (threshold)',
+        currencyHint: currency,
+        disclaimerAccepted: true // User accepted when they configured Auto-Vault
+      });
+    }
+  }
+
   unlock(userId: string, vaultId: string): LockVaultRecord {
     const vault = this.vaults.get(vaultId);
     if (!vault || vault.userId !== userId) throw new Error('Vault not found');
@@ -315,42 +361,54 @@ class VaultManager {
   }
 
   clearAll(): void { // test helper
-    this.vaults.clear(); this.byUser.clear(); this.autoVaults.clear(); this.reloadSchedules.clear(); this.generalBalances.clear();
+    this.vaults.clear(); this.byUser.clear(); this.autoVaults.clear(); this.reloadSchedules.clear(); this.generalBalances.clear(); this.walletActionLocks.clear();
+  }
+
+  setWalletActionLock(userId: string, durationMs: number, reason?: string): WalletActionLock {
+    if (!Number.isFinite(durationMs) || durationMs <= 0) {
+      throw new Error('Duration must be a positive number.');
+    }
+    const record: WalletActionLock = {
+      userId,
+      lockUntil: now() + Math.trunc(durationMs),
+      createdAt: now(),
+      reason,
+    };
+    this.walletActionLocks.set(userId, record);
+    this.schedulePersist();
+    return record;
+  }
+
+  clearWalletActionLock(userId: string): void {
+    this.walletActionLocks.delete(userId);
+    this.schedulePersist();
+  }
+
+  getWalletActionLock(userId: string): WalletActionLock | null {
+    return this.walletActionLocks.get(userId) || null;
+  }
+
+  getWalletActionLockStatus(userId: string): { locked: boolean; lockUntil?: number; remainingMs?: number; reason?: string } {
+    const lock = this.walletActionLocks.get(userId);
+    if (!lock) return { locked: false };
+    const remainingMs = lock.lockUntil - now();
+    if (remainingMs <= 0) {
+      this.walletActionLocks.delete(userId);
+      this.schedulePersist();
+      return { locked: false };
+    }
+    return {
+      locked: true,
+      lockUntil: lock.lockUntil,
+      remainingMs,
+      reason: lock.reason,
+    };
   }
 
   setAutoVault(userId: string, settings: AutoVaultSettings): void {
     if (settings.percentage !== undefined && (settings.percentage < 0 || settings.percentage > 100)) throw new Error('Percentage must be between 0 and 100');
     this.autoVaults.set(userId, settings);
     this.schedulePersist();
-  }
-
-  async processBalanceUpdate(userId: string, balance: number, currency: 'USD' | 'SOL') {
-    const settings = this.autoVaults.get(userId);
-    if (!settings) return;
-
-    if (settings.threshold !== undefined && balance > settings.threshold) {
-      const overage = balance - settings.threshold;
-      console.log(`[LockVault] Auto-vaulting overage: ${overage} ${currency} for user ${userId}`);
-
-      // If saving for NFT, contribute to goal
-      if (settings.saveForNft && db.isConnected()) {
-        const solPrice = getUsdPriceSync('SOL');
-        if (solPrice && solPrice > 0) {
-          const amountSol = currency === 'SOL' ? overage : overage / solPrice;
-          await db.updateNftSavings(userId, amountSol);
-        } else {
-          console.warn('[LockVault] Could not fetch SOL price for NFT savings update');
-        }
-      }
-
-      await this.lock({
-        userId,
-        amountRaw: `${overage} ${currency}`,
-        durationRaw: '24h',
-        reason: settings.saveForNft ? 'Auto-vault (NFT Savings)' : 'Auto-vault (threshold)',
-        currencyHint: currency
-      });
-    }
   }
 
   getAutoVault(userId: string): AutoVaultSettings | null {
@@ -477,4 +535,12 @@ export function getReloadSchedule(userId: string) { return vaultManager.getReloa
 export function startLockVaultBackgroundTasks() { return vaultManager.startBackgroundTasks(); }
 export function stopLockVaultBackgroundTasks() { return vaultManager.stopBackgroundTasks(); }
 export function depositToVault(userId: string, amount: number) { return vaultManager.deposit(userId, amount); }
+export async function addSecondOwner(_userId: string, _secondOwnerId: string) { throw new Error('addSecondOwner not implemented yet'); }
+export async function initiateWithdrawal(_userId: string, _amount: number) { throw new Error('initiateWithdrawal not implemented yet'); }
+export async function approveWithdrawal(_userId: string) { throw new Error('approveWithdrawal not implemented yet'); }
+export async function executeWithdrawal(_userId: string) { throw new Error('executeWithdrawal not implemented yet'); }
 export function getVaultBalance(userId: string) { return vaultManager.getBalance(userId); }
+export function setWalletActionLockForUser(userId: string, durationMs: number, reason?: string) { return vaultManager.setWalletActionLock(userId, durationMs, reason); }
+export function clearWalletActionLockForUser(userId: string) { return vaultManager.clearWalletActionLock(userId); }
+export function getWalletActionLockForUser(userId: string) { return vaultManager.getWalletActionLock(userId); }
+export function getWalletActionLockStatus(userId: string) { return vaultManager.getWalletActionLockStatus(userId); }

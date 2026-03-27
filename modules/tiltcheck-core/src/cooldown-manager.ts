@@ -109,8 +109,8 @@ export function recordViolation(userId: string): void {
     {
       userId,
       violationCount: status.violationCount,
-      cooldownReason: status.reason,
-      timestamp: Date.now(),
+      severity: status.violationCount,
+      expiresAt: status.endsAt,
     }
   );
   

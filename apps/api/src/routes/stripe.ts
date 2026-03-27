@@ -88,8 +88,10 @@ router.post('/webhook', (_req, res) => {
   res.json({ received: true });
 });
 
+import type { Request, Response } from 'express';
+
 // Export named alias for compatibility and the webhook handler as a no-op
-export async function handleStripeWebhook(_req: any, res: any) {
+export async function handleStripeWebhook(_req: Request, res: Response) {
   res.json({ received: true });
 }
 

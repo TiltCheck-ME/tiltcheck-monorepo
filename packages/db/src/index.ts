@@ -81,6 +81,33 @@ export {
   findCasinoByDomain,
   getCasinos,
   addCasinoGrade,
+
+  // Partner & Webhook queries
+  findPartnerByAppId,
+  findPartnerById,
+  createPartner,
+  createWebhook,
+  findActiveWebhooksByEvent,
+  logWebhookDelivery,
+
+  // Identity & Trust queries
+  getAggregatedTrustByDiscordId,
+  logTrustSignal,
+
+  // Buddy queries
+  sendBuddyRequest,
+  acceptBuddyRequest,
+  getUserBuddies,
+  getAccountabilityPartners,
+  getPendingBuddyRequests,
+  updateBuddyThresholds,
+  removeBuddy,
+
+  // Blog queries
+  getBlogPosts,
+  getBlogPostBySlug,
+  createBlogPost,
+  getLatestBlogPost,
 } from './queries.js';
 
 // Type exports
@@ -102,4 +129,26 @@ export type {
   PaginatedResult,
   UserOnboarding,
   UpsertOnboardingPayload,
+
+  // Partner & Webhook types
+  Partner,
+  Webhook,
+  WebhookDelivery,
+  CreatePartnerPayload,
+  CreateWebhookPayload,
+
+  // Identity & Trust types
+  TrustSignal,
+  UserTrustSummary,
+  CreateTrustSignalPayload,
+
+  // Buddy types
+  UserBuddy,
+  CreateBuddyPayload,
+  UpdateBuddyPayload,
+  BuddyAlertThresholds,
+
+  // Blog types
+  BlogPost,
+  CreateBlogPostPayload,
 } from './types.js';

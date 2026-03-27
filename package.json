@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "TiltCheck Ecosystem - Built by a degen, for degens",
+  "description": "TiltCheck Ecosystem - Behavioral protection for a better experience",
   "author": "jmenichole",
   "license": "UNLICENSED",
   "packageManager": "pnpm@10.29.1",
@@ -13,8 +13,10 @@
   },
   "scripts": {
     "dev": "pnpm --parallel --recursive dev",
+    "dev:core": "pnpm --filter @tiltcheck/api --filter web --filter @tiltcheck/discord-bot --parallel dev",
+    "discord:setup": "pnpm --filter @tiltcheck/discord-bot run deploy:commands",
     "postinstall": "pnpm -r --filter @tiltcheck/utils... build",
-    "build": "bash scripts/ordered-build.sh",
+    "build": "pnpm -r build",
     "build:legacy": "pnpm -r --workspace-concurrency=1 build",
     "test": "vitest --run",
     "test:watch": "vitest",
@@ -54,11 +56,12 @@
     "ops:linear:sync": "node scripts/linear-sync.mjs",
     "ops:daily": "powershell -ExecutionPolicy Bypass -File ./scripts/daily-ops.ps1",
     "seed:casino-trust": "node scripts/seed-casino-trust-from-scrape.js --include-existing --runtime-output ./data/casino-trust.json",
+    "ops:task-ai": "node scripts/daily-task-ai.mjs",
     "trust:build": "pnpm --filter @tiltcheck/trust-engines build",
     "trust:start": "pnpm trust:build && node scripts/start-trust-engine-check.mjs"
   },
   "devDependencies": {
-    "@types/bcryptjs": "^3.0.0",
+    "@google-cloud/secret-manager": "^6.1.1",
     "@types/jsdom": "^21.1.7",
     "@types/node": "^24.10.13",
     "@types/supertest": "^6.0.3",
@@ -79,7 +82,7 @@
     "supertest": "^7.2.2",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.55.0",
-    "vitest": "^4.0.18"
+    "vitest": "^4.1.1"
   },
   "pnpm": {
     "overrides": {
@@ -92,18 +95,23 @@
       "minimatch": ">=9.0.5",
       "hono": ">=4.12.0",
       "undici": ">=6.21.4",
-      "lodash": ">=4.17.21"
+      "lodash": ">=4.17.21",
+      "socket.io-parser": ">=4.2.6",
+      "fast-xml-parser": ">=5.5.7",
+      "flatted": ">=3.4.2",
+      "picomatch": ">=4.0.4",
+      "yaml": ">=2.8.3",
+      "smol-toml": ">=1.6.1",
+      "brace-expansion": ">=5.0.5",
+      "@eslint/plugin-kit": ">=0.3.5"
     },
     "onlyBuiltDependencies": [
-      "@gsknnft/bigint-buffer",
-      "bufferutil",
-      "core-js",
-      "es5-ext",
       "esbuild",
-      "msgpackr-extract",
-      "puppeteer",
+      "keccak",
       "sharp",
-      "utf-8-validate"
+      "unrs-resolver",
+      "utf-8-validate",
+      "workerd"
     ]
   }
 }

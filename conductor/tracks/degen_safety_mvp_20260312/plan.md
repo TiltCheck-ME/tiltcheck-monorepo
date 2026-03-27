@@ -4,8 +4,8 @@ This plan outlines the tasks required to implement the Tilt Gut Check and Solana
 
 ## Phase 1: Wallet Linking Backend
 
-- [ ] **Task:** Create a new table in Supabase to store the mapping between Discord IDs and Solana public keys.
-- [ ] **Task:** Implement a new API endpoint in `apps/api` (e.g., `POST /user/wallet`) that accepts a Discord ID, a public key, and a signed message.
+- [x] **Task:** Create a new table in Supabase to store the mapping between Discord IDs and Solana public keys.
+- [~] **Task:** Implement a new API endpoint in `apps/api` (e.g., `POST /user/wallet`) that accepts a Discord ID, a public key, and a signed message.
     - [ ] Sub-task: The endpoint should verify the signature to ensure the user owns the provided public key.
     - [ ] Sub-task: Upon successful verification, the endpoint should store the Discord ID and public key in the new Supabase table.
 - [ ] **Task:** Write unit tests for the signature verification logic.

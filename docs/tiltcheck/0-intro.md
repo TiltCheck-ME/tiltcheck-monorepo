@@ -7,6 +7,8 @@ TiltCheck is a modular, AI-assisted ecosystem built **by a degen, for degens** â
 TiltCheck does **not** try to stop degens from being degens.  
 It simply gives them a smarter, safer, and more transparent way to play.
 
+The core of this philosophy is **"Redeem-to-Win"**: a proactive approach that encourages users to cash out (redeem) winnings as soon as they cross a profitable threshold. This shifts the focus from merely preventing losses to actively securing wins, turning good sessions into tangible results.
+
 The ecosystem is intentionally lean, serverless-friendly, non-custodial, and optimized for solo-founder development. Each module works independently but plugs into the shared trust engines, Discord bot interface, and AI reasoning layer.
 
 Together, the modules build a unified system that can:

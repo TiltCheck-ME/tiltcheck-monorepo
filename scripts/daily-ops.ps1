@@ -44,6 +44,10 @@ else {
     Write-Host "Optional: node scripts/linear-sync.mjs --dry-run"
 }
 
-Step "6) End-of-session checkpoint"
+Step "6) AI Task Generation"
+Write-Host "Run: pnpm ops:task-ai"
+Write-Host "This will suggest grant opportunities and prioritized next actions."
+
+Step "7) End-of-session checkpoint"
 Write-Host "- Write tomorrow's first task in docs/ops/linear-tasks.json"
 Write-Host "- Keep only one active work branch"

@@ -34,11 +34,11 @@ export const tiltcheck: Command = {
     )
     .addSubcommand(sub =>
       sub.setName('status')
-        .setDescription('Check your current tilt status')
+        .setDescription(`Audit your current entry status. Stay in the green.`)
     )
     .addSubcommand(sub =>
       sub.setName('history')
-        .setDescription('View your tilt detection history')
+        .setDescription('View your session audit logs')
     )
     .addSubcommand(sub =>
       sub.setName('cooldown')
@@ -181,7 +181,7 @@ export const tiltcheck: Command = {
     .addSubcommand((sub) =>
       sub
         .setName('setstate')
-        .setDescription('Optional: set your state context for regulation-aware TiltCheck analysis')
+        .setDescription('Optional: set your state context for regulation-aware analysis')
         .addStringOption((opt) =>
           opt.setName('state').setDescription('Two-letter US state code, e.g., NJ').setRequired(false),
         )
@@ -263,22 +263,22 @@ async function handleTiltStatus(interaction: ChatInputCommandInteraction) {
 
   const embed = new EmbedBuilder()
     .setColor(status.onCooldown ? 0xFF6B6B : 0x00CED1)
-    .setTitle('📊 Tilt Status');
+    .setTitle('📊 SESSION STATUS');
 
   if (status.onCooldown && cooldownStatus && cooldownStatus.endsAt) {
     const remaining = Math.ceil((cooldownStatus.endsAt - Date.now()) / 60000);
     const reason = cooldownStatus.reason || 'Unknown';
-    embed.setDescription('⏸️ On cooldown')
+    embed.setDescription('[PROFIT GUARD ACTIVE]')
       .addFields(
         { name: 'Time Remaining', value: `${remaining} minutes`, inline: true },
         { name: 'Reason', value: reason, inline: true },
         { name: 'Violations', value: `${cooldownStatus.violationCount}`, inline: true },
       );
   } else {
-    embed.setDescription('✅ No active cooldown')
+    embed.setDescription('STATUS: OPERATIONAL')
       .addFields(
         { name: 'Recent Signals', value: `${status.recentSignals.length} (last hour)`, inline: true },
-        { name: 'Status', value: status.recentSignals.length >= 3 ? '⚠️ Elevated' : '✅ Normal', inline: true },
+        { name: 'State', value: status.recentSignals.length >= 3 ? 'WARNING: ELEVATED' : 'OPERATIONAL', inline: true },
       );
   }
 
@@ -302,7 +302,7 @@ async function handleTiltHistory(interaction: ChatInputCommandInteraction) {
 
   if (!activity) {
     await interaction.reply({ 
-      content: '📊 No tilt history found. Keep it clean!',
+      content: 'NO TELEMETRY FOUND. SESSION INTEGRITY MAINTAINED.',
       ephemeral: true 
     });
     return;
@@ -312,8 +312,8 @@ async function handleTiltHistory(interaction: ChatInputCommandInteraction) {
 
   const embed = new EmbedBuilder()
     .setColor(0x0099FF)
-    .setTitle('📈 Tilt History')
-    .setDescription(`Activity tracking for ${interaction.user.username}`);
+    .setTitle('SESSION TELEMETRY')
+    .setDescription(`AUDIT LOGS FOR ${interaction.user.username.toUpperCase()}`);
 
   if (recentMessages.length > 0) {
     const messageCount = recentMessages.length;
@@ -347,7 +347,7 @@ async function handleTiltHistory(interaction: ChatInputCommandInteraction) {
     });
   }
 
-  embed.setFooter({ text: 'TiltCheck keeps you safe from yourself' });
+  embed.setFooter({ text: 'TiltCheck: LEVEL THE PLAYING FIELD' });
 
   await interaction.reply({ embeds: [embed], ephemeral: true });
 }
@@ -357,7 +357,7 @@ async function handleCooldown(interaction: ChatInputCommandInteraction) {
 
   if (duration < 5 || duration > 1440) {
     await interaction.reply({ 
-      content: '❌ Duration must be between 5 and 1440 minutes (24 hours)',
+      content: 'INVALID DURATION. MUST BE BETWEEN 5 AND 1440 MINUTES.',
       ephemeral: true 
     });
     return;
@@ -370,7 +370,7 @@ async function handleCooldown(interaction: ChatInputCommandInteraction) {
     const remaining = status && status.endsAt ? Math.ceil((status.endsAt - Date.now()) / 60000) : 0;
     
     await interaction.reply({ 
-      content: `⏸️ You're already on cooldown for ${remaining} more minutes`,
+      content: `PROFIT GUARD IS ALREADY ACTIVE. ${remaining} MINUTES REMAINING.`,
       ephemeral: true 
     });
     return;
@@ -384,8 +384,8 @@ async function handleCooldown(interaction: ChatInputCommandInteraction) {
 
   const embed = new EmbedBuilder()
     .setColor(0x00CED1)
-    .setTitle('⏸️ Cooldown Started')
-    .setDescription(`Taking a ${duration}-minute break. Smart move.`)
+    .setTitle('PROFIT GUARD INITIALIZED')
+    .setDescription(`TAKING A ${duration}-MINUTE BREAK. DISCONNECTING FROM HOUSE FEED.`)
     .addFields(
       { name: 'Duration', value: `${duration} minutes`, inline: true },
       { name: 'Expires', value: `<t:${Math.floor((Date.now() + duration * 60000) / 1000)}:R>`, inline: true },
@@ -400,13 +400,13 @@ async function handleDiagnostics(interaction: ChatInputCommandInteraction) {
   const isAdmin = interaction.memberPermissions?.has('Administrator') || interaction.user.id === interaction.guild?.ownerId;
   
   if (!isAdmin) {
-    await interaction.reply({ content: '❌ Only administrators can view system diagnostics.', ephemeral: true });
+    await interaction.reply({ content: 'INSUFFICIENT CLEARANCE. ADMINISTRATORS ONLY.', ephemeral: true });
     return;
   }
 
   const embed = new EmbedBuilder()
     .setColor(0x9B59B6)
-    .setTitle('⚙️ TiltCheck Diagnostics')
+    .setTitle('SYSTEM DIAGNOSTICS')
     .addFields(
       { name: 'Service Status', value: '✅ Operational', inline: true },
       { name: 'Detection Engine', value: '✅ Active', inline: true },

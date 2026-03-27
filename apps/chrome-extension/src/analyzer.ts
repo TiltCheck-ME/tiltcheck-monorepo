@@ -10,6 +10,7 @@ export interface CommitmentData {
   blockHash: string;
   discordId: string;
   clientSeed: string;
+  nonce: number;
 }
 
 export class Analyzer {
@@ -70,11 +71,12 @@ export class Analyzer {
     result: GameResult,
     commitment: CommitmentData
   ): Promise<{ isValid: boolean; expectedHash: string }> {
-    // Calculate what the hash SHOULD be based on Solana Block + User Seed
+    // Calculate what the hash SHOULD be based on Solana Block + User Seed + Nonce
     const expectedHash = await this.fairness.generateHash(
       commitment.blockHash,
       commitment.discordId,
-      commitment.clientSeed
+      commitment.clientSeed,
+      commitment.nonce
     );
 
     // If casino exposes the hash, compare directly (Strongest Proof)

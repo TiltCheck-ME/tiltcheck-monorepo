@@ -33,7 +33,10 @@ dotenv.config({ path: path.join(__dirname, '..', '..', '.env'), override: false 
 
 // ── Config ───────────────────────────────────────────────────────────────────
 const CHANNEL_URL = process.env.WATCH_CHANNEL_URL || '';
-const WATCH_KEYWORDS = process.env.WATCH_KEYWORDS ? process.env.WATCH_KEYWORDS.split(',').map(k => k.trim().toLowerCase()) : [];
+const WATCH_KEYWORDS = [
+    ...(process.env.WATCH_KEYWORDS ? process.env.WATCH_KEYWORDS.split(',').map(k => k.trim().toLowerCase()) : []),
+    ...ALL_CRISIS_KEYWORDS
+];
 const LOG_FILE = path.join(__dirname, 'messages.jsonl');
 const REPORT_FILE = path.join(__dirname, 'reports.md');
 const CITATIONS_FILE = path.join(__dirname, 'citations.md');
@@ -55,6 +58,29 @@ const TRUST_ENGINE_INGEST_URL = process.env.TRUST_ENGINE_INGEST_URL || '';
 const TRUST_ENGINE_INGEST_KEY = process.env.COMMUNITY_INTEL_INGEST_KEY || '';
 const DISCORD_MESSAGE_LIMIT = 1800;
 
+// ── Crisis Dictionary (Mirrored from @tiltcheck/utils) ──────────────────────
+const CRISIS_KEYWORDS = {
+    EUPHORIA: [
+        "i can't lose", "god run", "infinite money glitch", "never ending",
+        "too easy", "printing", "maxing", "send it all", "free money", "unbeatable"
+    ],
+    DESPERATION: [
+        "need it back", "chasing", "revenge", "so rigged", "one hit to break even",
+        "last deposit", "please just one", "recovery", "break even", "force a win"
+    ],
+    BREAKING_POINT: [
+        "i'm fucked", "ruined", "lost it all", "why did i", "idiot",
+        "stupid", "kill me", "it's over", "everything is gone", "disaster", "liquidated"
+    ],
+    FINAL_EXIT: [
+        "close my account", "i'm done", "ban me", "self exclude",
+        "rehab", "delete this", "help me stop", "i can't do this anymore", "stop me"
+    ]
+};
+
+// Flatten for the scavenger
+const ALL_CRISIS_KEYWORDS = Object.values(CRISIS_KEYWORDS).flat();
+
 // ── AI Provider config ───────────────────────────────────────────────────────
 // PROVIDER options: ollama | groq | gemini | openai
 const PROVIDER = (process.env.PROVIDER || 'ollama').toLowerCase();
@@ -63,19 +89,19 @@ const PROVIDERS = {
     ollama: {
         baseUrl: process.env.OLLAMA_URL || 'http://localhost:11434/v1',
         apiKey: 'ollama',   // Ollama ignores the key but the header must exist
-        model: process.env.AI_MODEL || process.env.OLLAMA_MODEL || 'llama3.2:1b',
+        model: process.env.OLLAMA_MODEL || process.env.AI_MODEL || 'llama3.2:1b',
         label: 'Ollama (local)',
     },
     groq: {
         baseUrl: 'https://api.groq.com/openai/v1',
         apiKey: process.env.GROQ_API_KEY || '',
-        model: process.env.AI_MODEL || 'llama-3.3-70b-versatile',
+        model: process.env.GROQ_MODEL || process.env.AI_MODEL || 'llama-3.3-70b-versatile',
         label: 'Groq (free cloud)',
     },
     gemini: {
         baseUrl: 'https://generativelanguage.googleapis.com/v1beta/openai',
         apiKey: process.env.GEMINI_API_KEY || '',
-        model: process.env.AI_MODEL || 'gemini-2.0-flash',
+        model: process.env.GEMINI_MODEL || process.env.AI_MODEL || 'gemini-2.0-flash',
         label: 'Google Gemini (free tier)',
     },
     openai: {
@@ -310,9 +336,20 @@ async function sendReportToDiscord({ report, messageCount, fromStr, runAtISO }) 
 function deriveTrustSignals(reportText) {
     const text = String(reportText || '').toLowerCase();
     const count = (re) => (text.match(re) || []).length;
+    
+    // Check for dictionary matches in the report
+    const dictionaryCount = (list) => {
+        let matches = 0;
+        for (const word of list) {
+            if (text.includes(word.toLowerCase())) matches++;
+        }
+        return matches;
+    };
+
     return {
         scamSignals: count(/\b(scam|scammed|fraud|rigged|fake)\b/g),
-        distressSignals: count(/\b(tilt|tilted|addict|addiction|chasing|broke|rinsed|lost)\b/g),
+        distressSignals: dictionaryCount([...CRISIS_KEYWORDS.DESPERATION, ...CRISIS_KEYWORDS.BREAKING_POINT, ...CRISIS_KEYWORDS.FINAL_EXIT]),
+        euphoriaSignals: dictionaryCount(CRISIS_KEYWORDS.EUPHORIA),
         frictionSignals: count(/\b(confus|stuck|unclear|bug|issue|broken|support)\b/g),
         opportunitySignals: count(/\b(opportunit|build|feature|needs?|request|help)\b/g),
     };

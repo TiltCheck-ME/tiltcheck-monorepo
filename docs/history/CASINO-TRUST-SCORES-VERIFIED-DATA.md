@@ -112,7 +112,7 @@ This document provides verified, publicly-available data for the first 10 casino
 |------|--------|-------|
 | Main License | ✅ Valid | Curaçao eGaming #365/JAZ |
 | AML/KYC | ✅ Compliant | 3-tier verification system |
-| Responsible Gambling | ✅ Available | Self-exclusion, limits, reality checks |
+| Player Safety Tools | ✅ Available | Self-exclusion, limits, reality checks |
 | Data Protection | ✅ GDPR Compliant | SSL 256-bit encryption |
 | eCOGRA Certification | ✅ Certified | Fair gaming verified |
 | Public Complaints | ⚠️ 1 filed | 2023 - Resolved |
@@ -251,14 +251,13 @@ This document provides verified, publicly-available data for the first 10 casino
 - **Regulatory History:** Clean record (0 complaints filed)
 - **KYC Requirements:** Standard (tiered)
 - **AML Compliance:** ✅ Full implementation
-- **Responsible Gambling:** ✅ Comprehensive tools
 
 #### Compliance Details
 | Area | Status | Notes |
 |------|--------|-------|
 | Main License | ✅ Valid | Curaçao eGaming #539/JAZ |
 | AML/KYC | ✅ Compliant | Full implementation |
-| Responsible Gambling | ✅ Advanced | Self-exclusion, limits, cooling-off |
+| Player Safety Tools | ✅ Advanced | Self-exclusion, limits, cooling-off |
 | Data Protection | ✅ GDPR | SSL + encryption |
 | eCOGRA Certification | ✅ Certified | Fair gaming verified |
 | Public Complaints | ✅ None | Clean record |
@@ -377,7 +376,6 @@ This document provides verified, publicly-available data for the first 10 casino
 - **Primary License:** Curaçao eGaming ✅
 - **Regulatory History:** Clean (0 complaints)
 - **US Compliance:** Geofencing enforcement ✅
-- **Responsible Gambling:** ✅ Comprehensive
 
 #### Compliance Details
 | Area | Status | Notes |
@@ -385,7 +383,7 @@ This document provides verified, publicly-available data for the first 10 casino
 | Main License | ✅ Valid | Curaçao eGaming |
 | Geofencing | ✅ Active | US state compliance |
 | KYC/AML | ✅ Full | Tier-based verification |
-| RG Tools | ✅ Advanced | Session limits, self-exclusion |
+| Player Safety Tools | ✅ Advanced | Session limits, self-exclusion |
 | Complaints | ✅ None | Clean record |
 
 ---
@@ -561,7 +559,7 @@ Each casino is scored on 5 key dimensions (0-100 each):
 - Valid license status
 - Regulatory history
 - KYC/AML implementation
-- Responsible gambling tools
+- Player Safety Tools
 - Data protection (GDPR)
 
 **5. Bonus Quality (20% weight)**

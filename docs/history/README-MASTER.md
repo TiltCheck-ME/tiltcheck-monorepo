@@ -25,7 +25,7 @@ A comprehensive gambling harm reduction platform featuring Discord bot integrati
 
 ## Overview
 
-TiltCheck is a monorepo containing multiple interconnected services designed to promote responsible gambling through:
+TiltCheck is a monorepo containing multiple interconnected services designed to empower gamblers with a "Redeem-to-Win" philosophy through:
 
 - **Trust Scoring** - Evaluate casino trustworthiness based on multiple data sources
 - **Tilt Detection** - Monitor and alert users when gambling patterns indicate tilt
@@ -591,9 +591,9 @@ Built with:
 - Vitest
 - And many other amazing open-source projects
 
-**Responsible Gaming Reminder:** TiltCheck is a harm reduction tool. If you or someone you know has a gambling problem, please seek help:
-- **National Council on Problem Gambling:** 1-800-522-4700
-- **Gamblers Anonymous:** https://www.gamblersanonymous.org/
+**Our Mission: Redeem-to-Win**
+
+TiltCheck is a tool built to help you secure wins. Our core mission is to shift the definition of a "win" from simply playing, to actively cashing out. If you feel your gambling habits are becoming problematic, professional help is available.
 
 ---
 

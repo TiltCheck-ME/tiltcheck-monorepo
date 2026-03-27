@@ -40,6 +40,13 @@ export interface TiltIndicator {
   triggeredAt: number;
 }
 
+export interface RedeemRecommendation {
+  amount: number;
+  threshold: number;
+  message: string;
+  urgency: 'medium' | 'high' | 'critical';
+}
+
 export interface VaultRecommendation {
   reason: string;
   suggestedAmount: number;
@@ -54,7 +61,7 @@ export interface VaultRecommendation {
 
 export interface InterventionAction {
   type: 'vault_balance' | 'cooldown' | 'phone_friend' | 'session_break' |
-  'spending_reminder' | 'stop_loss_triggered';
+  'spending_reminder' | 'stop_loss_triggered' | 'redeem_nudge';
   message: string;
   actionRequired: boolean;
   data?: any;
@@ -70,6 +77,7 @@ export class TiltDetector {
   private totalWon: number = 0;
   private currentBalance: number = 0;
   private initialBalance: number = 0;
+  private redeemThreshold: number | null = null;
 
   // Configuration
   private config = {
@@ -108,9 +116,10 @@ export class TiltDetector {
     ]
   };
 
-  constructor(initialBalance: number, riskLevel: 'conservative' | 'moderate' | 'degen' = 'moderate') {
+  constructor(initialBalance: number, riskLevel: 'conservative' | 'moderate' | 'degen' = 'moderate', redeemThreshold?: number) {
     this.currentBalance = initialBalance;
     this.initialBalance = initialBalance;
+    this.redeemThreshold = redeemThreshold || null;
     this.applyRiskProfile(riskLevel);
   }
 
@@ -404,6 +413,27 @@ export class TiltDetector {
   }
 
   /**
+   * Detect opportunity to redeem/cash out (Redeem-to-Win)
+   */
+  detectRedeemOpportunity(): RedeemRecommendation | null {
+    if (!this.redeemThreshold || this.currentBalance < this.redeemThreshold) return null;
+
+    const diff = this.currentBalance - this.redeemThreshold;
+    const overshootPercent = (diff / this.redeemThreshold) * 100;
+
+    let urgency: 'medium' | 'high' | 'critical' = 'medium';
+    if (overshootPercent > 50) urgency = 'critical';
+    else if (overshootPercent > 20) urgency = 'high';
+
+    return {
+      amount: this.currentBalance,
+      threshold: this.redeemThreshold,
+      urgency,
+      message: `🎯 PROFIT GOAL REACHED! You're at $${this.currentBalance.toFixed(2)}, which is above your $${this.redeemThreshold} goal. Secure the win and cash out now!`
+    };
+  }
+
+  /**
    * Find real-world item comparison
    */
   private findRealWorldComparison(amount: number): {
@@ -438,6 +468,7 @@ export class TiltDetector {
     const interventions: InterventionAction[] = [];
     const tiltSigns = this.detectAllTiltSigns();
     const vaultRec = this.generateVaultRecommendation();
+    const redeemRec = this.detectRedeemOpportunity();
 
     // Critical tilt signs = immediate cooldown
     const criticalSigns = tiltSigns.filter(t => t.severity === 'critical');
@@ -485,6 +516,16 @@ export class TiltDetector {
           data: vaultRec
         });
       }
+    }
+
+    // Redeem nudge (Positive Reinforcement)
+    if (redeemRec) {
+      interventions.push({
+        type: 'redeem_nudge',
+        message: redeemRec.message,
+        actionRequired: true,
+        data: redeemRec
+      });
     }
 
     // Session break for duration

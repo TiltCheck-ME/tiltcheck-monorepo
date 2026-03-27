@@ -1,4 +1,5 @@
 /* Copyright (c) 2026 TiltCheck. All rights reserved. */
+import { analyzeSentiment } from '@tiltcheck/utils';
 export type TiltRiskTier = 'low' | 'moderate' | 'high' | 'critical';
 
 export interface BreathalyzerInput {
@@ -64,81 +65,30 @@ export function evaluateBreathalyzer(input: BreathalyzerInput): BreathalyzerResu
   };
 }
 
+
 export function evaluateSentiment(input: SentimentInput): SentimentResult {
-  const normalized = input.message.toLowerCase();
-  const matchedSignals = new Set<string>();
-
-  const highRiskKeywords = [
-    'all in',
-    'can not stop',
-    'cannot stop',
-    "can't stop",
-    'lost everything',
-    'chasing losses',
-    'maxing out',
-    'tilted',
-    'rage bet',
-  ];
-  const moderateKeywords = [
-    'down bad',
-    'stress',
-    'angry',
-    'frustrated',
-    'need to win back',
-    'spiraling',
-    'panic',
-  ];
-
-  let score = 0;
-
-  for (const keyword of highRiskKeywords) {
-    if (normalized.includes(keyword)) {
-      matchedSignals.add(keyword);
-      score += 18;
-    }
-  }
-  for (const keyword of moderateKeywords) {
-    if (normalized.includes(keyword)) {
-      matchedSignals.add(keyword);
-      score += 10;
-    }
-  }
-
-  const distressSignals = input.distressSignals ?? [];
-  for (const signal of distressSignals) {
-    if (signal.trim()) {
-      matchedSignals.add(signal);
-      score += 8;
-    }
-  }
-
-  if (input.message.includes('!!!')) {
-    score += 8;
-  }
-  if (/[A-Z]{4,}/.test(input.message)) {
-    score += 6;
-  }
-
-  score = clamp(score);
-
+  const analysis = analyzeSentiment(input.message);
+  
   let severity: SentimentResult['severity'] = 'low';
   let intervention: SentimentResult['intervention'] = 'none';
-  if (score >= 75) {
+
+  // Map analysis stage to API result
+  if (analysis.stage === 'FINAL_EXIT' || analysis.stage === 'BREAKING_POINT') {
     severity = 'high';
     intervention = 'escalation';
-  } else if (score >= 50) {
+  } else if (analysis.stage === 'DESPERATION') {
     severity = 'high';
     intervention = 'cooldown';
-  } else if (score >= 30) {
+  } else if (analysis.stage === 'EUPHORIA') {
     severity = 'moderate';
     intervention = 'check-in';
   }
 
   return {
-    score,
+    score: analysis.score,
     severity,
     intervention,
-    matchedSignals: Array.from(matchedSignals),
+    matchedSignals: analysis.detectedKeywords,
   };
 }
 

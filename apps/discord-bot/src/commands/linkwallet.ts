@@ -32,13 +32,17 @@ export const linkwallet: Command = {
       if (db.isConnected()) {
         await db.upsertDegenIdentity({
           discord_id: interaction.user.id,
-          primary_external_address: address
+          primary_external_address: address,
         });
 
         const embed = new EmbedBuilder()
           .setColor(0x22d3a6)
           .setTitle('🔗 Wallet Linked')
-          .setDescription(`Successfully linked your wallet to the TiltCheck Hub.\n\n**Address:** \`${address}\`\n\nYou are now ready to catch some juice! 🧃`)
+          .setDescription(`Successfully linked your wallet to the TiltCheck Hub.
+
+**Address:** \`${address}\`
+
+You are now ready to catch some juice! 🧃`)
           .setFooter({ text: 'Manage more settings at dashboard.tiltcheck.me' });
 
         await interaction.editReply({ embeds: [embed] });

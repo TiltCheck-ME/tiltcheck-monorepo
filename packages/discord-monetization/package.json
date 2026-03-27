@@ -1,0 +1,20 @@
+{
+  "name": "@tiltcheck/discord-monetization",
+  "version": "1.0.0",
+  "description": "Discord SKU and Entitlement management for the TiltCheck ecosystem",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@tiltcheck/config": "workspace:*",
+    "@tiltcheck/logger": "workspace:*",
+    "axios": "^1.6.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.0.0",
+    "vitest": "^1.0.0"
+  }
+}

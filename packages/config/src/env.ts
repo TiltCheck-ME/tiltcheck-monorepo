@@ -14,7 +14,9 @@ import { z } from 'zod';
  * JWT Configuration Schema
  */
 export const jwtConfigSchema = z.object({
-  JWT_SECRET: z.string().min(32, 'JWT_SECRET must be at least 32 characters'),
+  JWT_SECRET: process.env.NODE_ENV !== 'production'
+    ? z.string().min(32, 'JWT_SECRET must be at least 32 characters').optional().default('dev-jwt-secret-replace-me')
+    : z.string().min(32, 'JWT_SECRET must be at least 32 characters'),
   JWT_ISSUER: z.string().default('tiltcheck.me'),
   JWT_AUDIENCE: z.string().default('tiltcheck.me'),
   JWT_EXPIRES_IN: z.string().default('7d'),
@@ -24,12 +26,16 @@ export const jwtConfigSchema = z.object({
  * Service JWT Configuration Schema (for service-to-service auth)
  */
 export const serviceJwtConfigSchema = z.object({
-  SERVICE_JWT_SECRET: z.string().min(32, 'SERVICE_JWT_SECRET must be at least 32 characters'),
-  SERVICE_ID: z.string().min(1, 'SERVICE_ID is required'),
+  SERVICE_JWT_SECRET: process.env.NODE_ENV !== 'production'
+    ? z.string().min(32, 'SERVICE_JWT_SECRET must be at least 32 characters').optional().default('dev-service-jwt-secret-replace-me')
+    : z.string().min(32, 'SERVICE_JWT_SECRET must be at least 32 characters'),
+  SERVICE_ID: process.env.NODE_ENV !== 'production'
+    ? z.string().min(1, 'SERVICE_ID is required').optional().default('dev-service-id')
+    : z.string().min(1, 'SERVICE_ID is required'),
   ALLOWED_SERVICES: z
     .string()
-    .transform((val: string) => val.split(',').filter(Boolean))
-    .default([]),
+    .default('')
+    .transform((val: string) => val.split(',').filter(Boolean)),
 });
 
 /**
@@ -56,7 +62,9 @@ export const databaseConfigSchema = z.object({
  * Blockchain Configuration Schema
  */
 export const blockchainConfigSchema = z.object({
-  SOLANA_RPC_URL: z.string().url('SOLANA_RPC_URL must be a valid URL'),
+  SOLANA_RPC_URL: process.env.NODE_ENV !== 'production'
+    ? z.string().url('SOLANA_RPC_URL must be a valid URL').optional().default('http://localhost:8899') // Or a dev public RPC
+    : z.string().url('SOLANA_RPC_URL must be a valid URL'),
 });
 
 /**
@@ -102,9 +110,19 @@ export const cookieConfigSchema = z.object({
 });
 
 /**
- * Combined Full Configuration Schema
+ * Compliance Configuration Schema
  */
-export const fullConfigSchema = z.object({
+export const complianceConfigSchema = z.object({
+  RESTRICTED_COUNTRIES: z
+    .string()
+    .default('US,GB,FR,AU')
+    .transform((val: string) => val.split(',').filter(Boolean)),
+});
+
+/**
+ * Base Combined Configuration Schema (unrefined)
+ */
+export const baseConfigSchema = z.object({
   ...jwtConfigSchema.shape,
   ...discordConfigSchema.shape,
   ...databaseConfigSchema.shape,
@@ -113,7 +131,18 @@ export const fullConfigSchema = z.object({
   ...supabaseConfigSchemaBase.shape,
   ...serviceJwtConfigSchema.shape,
   ...blockchainConfigSchema.shape,
-}).refine(data => data.DATABASE_URL || data.NEON_DATABASE_URL, {
+  ...complianceConfigSchema.shape,
+});
+
+/**
+ * Combined Full Configuration Schema with refinements
+ */
+export const fullConfigSchema = baseConfigSchema.refine(data => {
+  if (process.env.NODE_ENV === 'production') {
+    return data.DATABASE_URL || data.NEON_DATABASE_URL;
+  }
+  return true; // Optional in development
+}, {
   message: "Either DATABASE_URL or NEON_DATABASE_URL must be provided",
   path: ["DATABASE_URL"]
 });
@@ -255,13 +284,12 @@ export function validateAllConfig(env: Record<string, string | undefined> = proc
 export function createPartialValidator<K extends keyof FullEnvConfig>(
   keys: K[]
 ): (env?: Record<string, string | undefined>) => Pick<FullEnvConfig, K> {
-  type ShapeType = (typeof fullConfigSchema)['shape'];
-  const configShape = fullConfigSchema.shape as ShapeType;
+  const configShape = baseConfigSchema.shape;
   const shape: Record<string, z.ZodTypeAny> = {};
 
   for (const key of keys) {
     if (key in configShape) {
-      shape[key] = configShape[key as keyof ShapeType] as z.ZodTypeAny;
+      shape[key] = configShape[key as keyof typeof configShape] as z.ZodTypeAny;
     }
   }
 
@@ -358,7 +386,7 @@ try {
     }
 
     // In tests, we might want to continue even with missing envs (use defaults)
-    validatedEnv = result.data as any; // Cast as any because it might be partial
+    validatedEnv = {} as FullEnvConfig; // Allow tests to run with partial env
   } else {
     validatedEnv = result.data;
   }

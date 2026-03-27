@@ -40,7 +40,12 @@
       return;
     }
 
-    popupWindow = window.open(authUrl, '_blank', 'popup=yes,width=520,height=760');
+    // Inject extension ID if not already present
+    if (!parsed.searchParams.has('ext_id') && chrome?.runtime?.id) {
+      parsed.searchParams.set('ext_id', chrome.runtime.id);
+    }
+
+    popupWindow = window.open(parsed.toString(), '_blank', 'popup=yes,width=520,height=760');
     if (!popupWindow) {
       setStatus('Popup blocked. Click "Open Discord Auth" and allow popups for this extension page.');
       return;
@@ -56,16 +61,25 @@
     if (data.type !== 'discord-auth' || typeof data.token !== 'string' || !data.user) return;
 
     authCompleted = true;
-    chrome.storage.local.set(
-      {
-        authToken: data.token,
-        userData: data.user,
-      },
-      () => {
-        if (chrome.runtime?.lastError) {
-          setStatus('Auth received but could not save session. Retry Connect Discord.');
-          return;
-        }
+    
+    // Wrap chrome.storage.local.set in Promise and wait for completion before closing
+    (async () => {
+      try {
+        await new Promise((resolve, reject) => {
+          chrome.storage.local.set(
+            {
+              authToken: data.token,
+              userData: data.user,
+            },
+            () => {
+              if (chrome.runtime?.lastError) {
+                reject(new Error(chrome.runtime.lastError.message || 'Storage error'));
+              } else {
+                resolve();
+              }
+            }
+          );
+        });
 
         setStatus('Discord connected. You can return to your casino tab.');
         try {
@@ -73,9 +87,47 @@
         } catch {
           // noop
         }
-        setTimeout(() => window.close(), 1200);
+
+        // Send ACK message back to parent window to signal storage write completed
+        if (window.opener) {
+          window.opener.postMessage({ type: 'auth-bridge-ack', success: true }, '*');
+          console.log('[auth-bridge] ACK sent to parent');
+        }
+
+        // Close auth bridge window after brief delay to ensure ACK delivery
+        setTimeout(() => window.close(), 300);
+      } catch (error) {
+        console.error('[auth-bridge] Storage write failed:', error);
+        setStatus('Auth received but could not save session. Retry Connect Discord.');
+        
+        // Retry once after 100ms delay
+        setTimeout(() => {
+          try {
+            chrome.storage.local.set(
+              {
+                authToken: data.token,
+                userData: data.user,
+              },
+              () => {
+                if (!chrome.runtime?.lastError) {
+                  console.log('[auth-bridge] Retry succeeded');
+                  // Send ACK after retry success
+                  if (window.opener) {
+                    window.opener.postMessage({ type: 'auth-bridge-ack', success: true }, '*');
+                  }
+                  setTimeout(() => window.close(), 300);
+                } else {
+                  console.error('[auth-bridge] Retry failed:', chrome.runtime.lastError.message);
+                  setStatus('Auth storage failed permanently. Retry Connect Discord.');
+                }
+              }
+            );
+          } catch (retryError) {
+            console.error('[auth-bridge] Retry exception:', retryError);
+          }
+        }, 100);
       }
-    );
+    })();
   });
 
   openBtn?.addEventListener('click', openAuthPopup);

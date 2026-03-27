@@ -40,10 +40,15 @@ export interface UserActivity {
   lossStreak: number;
   cooldownViolations: number;
   lastCooldownViolation?: number;
-  /** Recent bets for bet sizing analysis (last 10) */
+  /** Recent bets for bet sizing analysis (last 20) */
   recentBets: BetRecord[];
   /** Baseline average bet size (rolling average) */
   baselineBetSize?: number;
+  currentBalance?: number;
+  peakBalance?: number;
+  initialDeposit?: number;
+  /** Bets per minute (rolling window) */
+  betVelocity?: number;
 }
 
 export interface MessageActivity {

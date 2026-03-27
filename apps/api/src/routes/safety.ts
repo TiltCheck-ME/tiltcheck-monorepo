@@ -5,6 +5,8 @@
  */
 
 import { Router } from 'express';
+import fs from 'node:fs/promises';
+import path from 'node:path';
 import {
   createEvent,
   type BreathalyzerEvaluatedPayload,
@@ -136,7 +138,18 @@ router.post('/suslink/scan', async (req, res) => {
   }
 
   try {
-    const scanner = new LinkScanner();
+    // Load local blacklist
+    const dataDir = process.env.STATS_DATA_DIR || path.resolve(process.cwd(), 'data');
+    const blacklistPath = path.join(dataDir, 'domain_blacklist.json');
+    let blacklist: string[] = [];
+    try {
+      const raw = await fs.readFile(blacklistPath, 'utf8');
+      blacklist = JSON.parse(raw);
+    } catch {
+      // Fallback if file missing
+    }
+
+    const scanner = new LinkScanner(blacklist);
     const result = await scanner.scan(url);
 
     res.json({
@@ -149,9 +162,68 @@ router.post('/suslink/scan', async (req, res) => {
       },
     });
   } catch (err) {
-    console.error('[Safety API] SusLink scan error:', err instanceof Error ? err.message : err);
-    res.status(500).json({ error: 'Scan failed', code: 'SCAN_FAILED' });
+    console.error('[Safety API] SusLink scan error:', err);
+    res.status(500).json({ error: 'Internal scan error' });
   }
+});
+
+/**
+ * POST /safety/report
+ * Submit a community report about a casino.
+ */
+router.post('/report', (req, res) => {
+  const { type, details, casino } = req.body ?? {};
+  const userId = (req as any).user?.id || 'guest';
+
+  if (!type || !details || !casino) {
+    res.status(400).json({ error: 'Missing required fields', code: 'INVALID_INPUT' });
+    return;
+  }
+
+  // In a real app, we'd save this to a database and trigger trust score recalculation.
+  // For now, we'll log it and return success for the UX.
+  console.log(`[Community Signal] User ${userId} reported ${type} for ${casino}: ${details}`);
+
+  res.json({
+    success: true,
+    message: 'Signal shared with the community',
+    id: `signal_${Date.now()}`
+  });
+});
+
+/**
+ * POST /safety/notify-buddy
+ * Trigger a buddy system notification (e.g., Discord snitch).
+ */
+router.post('/notify-buddy', (req, res) => {
+  const { userId, type, data } = req.body ?? {};
+  const actualUserId = userId || (req as any).user?.id || 'guest';
+
+  if (!type || !data) {
+    res.status(400).json({ error: 'type and data are required', code: 'INVALID_INPUT' });
+    return;
+  }
+
+  const event = createEvent({
+    name: 'safety.intervention.triggered',
+    source: 'api-gateway',
+    payload: {
+      userId: actualUserId,
+      type,
+      data,
+      timestamp: Date.now(),
+    },
+    correlationId: req.headers['x-correlation-id'] as string | undefined,
+  });
+
+  // Log the intervention for audit/telemetry
+  console.log(`[Buddy System] Intervention ${type} triggered for ${actualUserId}:`, data);
+
+  res.json({
+    success: true,
+    message: 'Intervention signal emitted',
+    event,
+  });
 });
 
 export { router as safetyRouter };

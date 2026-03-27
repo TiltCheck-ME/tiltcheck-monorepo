@@ -4,13 +4,14 @@
 TiltCheck is a comprehensive "Degen Safety Net" ecosystem designed to provide responsible gambling tools, fraud detection, and bankroll management for crypto users. It shifts the focus from "Service-First" to "Consumer-First," empowering players to verify fairness and manage their own data.
 
 ## Core Mission
-"Check Yourself" - Tools that allow players to generate their own entropy, verify casino fairness, and monitor their own behavioral patterns to prevent tilt.
+"Redeem-to-Win" - Our primary goal is to shift the definition of a "win." Instead of encouraging endless play, TiltCheck actively nudges users to cash out (redeem) their winnings once they cross a profitable threshold. The core mission is to help users secure wins, not just prevent losses.
 
 ## Key Components
 
 ### 1. TiltGuard (Browser Extension)
 - **Function:** Real-time overlay on casino sites (Stake, Rollbit, etc.).
 - **Features:**
+  - **Redeem Nudge:** Actively monitors user balance and nudges them to cash out when they cross a profitable, casino-specific redeem threshold.
   - **Tilt Detection:** Analyzes betting patterns (rage betting, chasing losses) and suggests interventions.
   - **Fairness Verifier:** Intercepts "Play" buttons to lock in client seeds and verify results against Solana block hashes.
   - **SusLink:** Scans URLs for scams/phishing.
@@ -39,10 +40,10 @@ TiltCheck is a comprehensive "Degen Safety Net" ecosystem designed to provide re
 
 ### Stack
 - **Frontend:** React, HTML5 PWA (Progressive Web App).
-- **Backend:** Node.js (Express), Cloudflare Workers (planned).
+- **Backend:** Node.js (Express) on Google Cloud Run.
 - **Database:** Supabase (PostgreSQL).
 - **Blockchain:** Solana (for entropy, memos, and tipping).
-- **AI:** Vercel AI Gateway (OpenAI/Anthropic) for coaching and analysis.
+- **AI:** Google Cloud AI Platform for coaching and analysis.
 
 ### "Double Provably Fair" System
 A unique mechanism where the "Source of Truth" for randomness is externalized.
@@ -50,11 +51,12 @@ A unique mechanism where the "Source of Truth" for randomness is externalized.
 2. **Entropy:** Solana Block Hash (Public, Immutable).
 3. **Verification:** `HMAC_SHA256(Block_Hash, Discord_ID + Seed)`.
 
-## Cloudflare Workers Use Cases (Planned)
-1. **Geo-Compliance:** Edge worker to block restricted jurisdictions before app load.
-2. **Nonce Generation:** High-speed edge generation of nonces for fairness verification.
-3. **Image Optimization:** Resizing casino logos/assets on the fly.
-4. **Event Router:** Handling webhooks from Discord/Stripe without spinning up full containers.
+## GCP Services
+- **Google Cloud Run:** Hosts all backend services, including the API and Discord bots, providing a scalable, serverless environment.
+- **Google Cloud Storage:** Used for storing user-uploaded assets and application data.
+- **Google Secret Manager:** Manages all secrets and API keys securely.
+- **Google Cloud Logging:** Centralized logging for all services.
+- **Geo-Information:** The platform aims to inform users about regional online gambling laws and regulations to help them make informed decisions, rather than strictly blocking access based on location.
 
 ## Priority Index (Decide/Delegate/Delete)
 
@@ -77,8 +79,9 @@ A unique mechanism where the "Source of Truth" for randomness is externalized.
 - **Legacy CSS:** `base.css` (migrating to `theme.css`).
 
 ## Deployment
-- **Frontend / Web / Dashboard:** Vercel (100% Free Tier, Next.js/React static apps).
-- **Backend / Discord Bots / API Services:** Virtualmin VPS (IP: 85.209.95.175) using Docker Compose or PM2.
+- **Infrastructure:** All services are deployed on Google Cloud Platform (GCP).
+- **Compute:** Services are containerized and deployed to Google Cloud Run.
+- **CI/CD:** Google Cloud Build is used for continuous integration and deployment.
 - **Extension:** Chrome Web Store (Manual load for dev).
 
 ---
