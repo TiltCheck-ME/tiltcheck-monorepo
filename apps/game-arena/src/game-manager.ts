@@ -15,7 +15,6 @@
 import { v4 as uuidv4 } from 'uuid';
 import { dad } from '@tiltcheck/dad';
 import type { SerializedGameState } from '@tiltcheck/dad';
-import * as poker from '@tiltcheck/poker';
 import { eventRouter } from '@tiltcheck/event-router';
 import { mkdir, readFile, rename, stat, writeFile } from 'node:fs/promises';
 import path from 'node:path';
@@ -201,34 +200,9 @@ export class GameManager {
       return;
     }
 
-    if (lobbyInfo.type === 'poker') {
-      let games = poker.getChannelGames(channelId);
-      if (games.length === 0) {
-        poker.createGame(channelId, lobbyInfo.hostId, lobbyInfo.hostUsername, 100, 1, 2);
-        games = poker.getChannelGames(channelId);
-      }
-      if (games.length === 0) {
-        return;
-      }
-
-      for (const player of players) {
-        if (player.userId === lobbyInfo.hostId) {
-          continue;
-        }
-        try {
-          poker.joinGame(games[0].id, player.userId, player.username);
-        } catch {
-          // Ignore duplicate joins during restore.
-        }
-      }
-
-      if (lobbyInfo.status === 'active') {
-        try {
-          poker.startGame(games[0].id);
-        } catch {
-          lobbyInfo.status = 'waiting';
-        }
-      }
+    if (lobbyInfo.type === 'poker' as any) {
+      // Poker has been deprecated and disabled.
+      return;
     }
   }
 
@@ -278,17 +252,8 @@ export class GameManager {
         submitWindowMs: 60_000,
       });
       await dad.joinGame(dadGame.id, hostId, hostUsername);
-    } else if (gameType === 'poker') {
-      // Create poker game
-      const channelId = platform === 'web' ? `web-${gameId}` : gameId;
-      poker.createGame(
-        channelId,
-        hostId,
-        hostUsername,
-        100, // buy-in
-        1,   // small blind
-        2    // big blind
-      );
+    } else if (gameType === 'poker' as any) {
+      throw new Error('Poker is currently disabled for maintenance.');
     }
 
     const lobbyInfo: GameLobbyInfo = {
@@ -358,12 +323,8 @@ export class GameManager {
       if (games.length > 0) {
         await dad.joinGame(games[0].id, userId, username);
       }
-    } else if (lobbyInfo.type === 'poker') {
-      const channelId = lobbyInfo.platform === 'web' ? `web-${gameId}` : gameId;
-      const games = poker.getChannelGames(channelId);
-      if (games.length > 0) {
-        poker.joinGame(games[0].id, userId, username);
-      }
+    } else if (lobbyInfo.type === 'poker' as any) {
+      throw new Error('Poker is currently disabled.');
     }
 
     lobbyInfo.playerCount++;
@@ -439,12 +400,8 @@ export class GameManager {
       if (games.length > 0) {
         await dad.startGame(games[0].id);
       }
-    } else if (lobbyInfo.type === 'poker') {
-      const channelId = lobbyInfo.platform === 'web' ? `web-${gameId}` : gameId;
-      const games = poker.getChannelGames(channelId);
-      if (games.length > 0) {
-        poker.startGame(games[0].id);
-      }
+    } else if (lobbyInfo.type === 'poker' as any) {
+      throw new Error('Poker is disabled.');
     }
 
     lobbyInfo.status = 'active';
@@ -506,10 +463,8 @@ export class GameManager {
         currentQuestion: round ? { text: round.blackCard.text, blanks: round.blackCard.blanks } : null,
         submissions: revealedSubmissions,
       };
-    } else if (lobbyInfo.type === 'poker') {
-      const channelId = lobbyInfo.platform === 'web' ? `web-${gameId}` : gameId;
-      const games = poker.getChannelGames(channelId);
-      return games.length > 0 ? games[0] : null;
+    } else if (lobbyInfo.type === 'poker' as any) {
+      return null;
     }
 
     return null;
@@ -557,17 +512,8 @@ export class GameManager {
           await dad.pickWinner(games[0].id, userId, action.playerId);
         }
       }
-    } else if (lobbyInfo.type === 'poker') {
-      // Poker actions
-      const channelId = lobbyInfo.platform === 'web' ? `web-${gameId}` : gameId;
-      const games = poker.getChannelGames(channelId);
-      if (games.length > 0) {
-        return poker.processAction(games[0].id, {
-          userId,
-          action: action.action,
-          amount: action.amount,
-        });
-      }
+    } else if (lobbyInfo.type === 'poker' as any) {
+      throw new Error('Poker is disabled.');
     }
 
     return { success: true };

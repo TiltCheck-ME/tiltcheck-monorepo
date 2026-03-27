@@ -36,9 +36,9 @@ export const jme: Command = {
     )
     .addSubcommand((sub) =>
       sub
-        .setName('nuke')
-        .setDescription('Mass-reset user interaction data (Owner Only)')
-        .addUserOption((o) => o.setName('target').setDescription('User to nuke').setRequired(true))
+        .setName('reset')
+        .setDescription('Surgically reset user interaction data (Owner Only)')
+        .addUserOption((o) => o.setName('target').setDescription('User to reset').setRequired(true))
     )
     .addSubcommand((sub) =>
       sub
@@ -53,8 +53,8 @@ export const jme: Command = {
       case 'purge':
         await handlePurge(interaction);
         break;
-      case 'nuke':
-        await handleNuke(interaction);
+      case 'reset':
+        await handleReset(interaction);
         break;
       case 'intel':
         await handleIntel(interaction);
@@ -70,7 +70,7 @@ async function handlePurge(interaction: ChatInputCommandInteraction) {
   const channel = interaction.channel as TextChannel;
 
   if (!channel || !channel.isTextBased()) {
-    await interaction.reply({ content: '❌ Invalid channel context.', ephemeral: true });
+    await interaction.reply({ content: '[!] Invalid channel context.', ephemeral: true });
     return;
   }
 
@@ -92,35 +92,35 @@ async function handlePurge(interaction: ChatInputCommandInteraction) {
 
     const embed = new EmbedBuilder()
       .setColor(0xff4b2b)
-      .setTitle('🧹 CHANNEL AUDIT: COMPLETE')
+      .setTitle('[AUDIT] CHANNEL CLEANUP: COMPLETE')
       .setDescription(`Surgically removed **${deletedCount}** messages from this sector.`)
       .setFooter({ text: `TiltCheck | ${getRandomQuote()}` });
 
     await interaction.editReply({ embeds: [embed] });
   } catch (error) {
     console.error('[JME] Purge error:', error);
-    await interaction.editReply({ content: '❌ Failed to execute purge. Ensure bot has Manage Messages permissions and messages are < 14 days old.' });
+    await interaction.editReply({ content: '[!] Failed to execute purge. Ensure bot has Manage Messages permissions and messages are < 14 days old.' });
   }
 }
 
-async function handleNuke(interaction: ChatInputCommandInteraction) {
+async function handleReset(interaction: ChatInputCommandInteraction) {
   const target = interaction.options.getUser('target', true);
   
   // Hardcoded Owner Check (Customizable)
   const isOwner = interaction.user.id === '164294266634' || interaction.user.id === '229825593856163840'; // Replace with actual ID
   
   if (!isOwner) {
-    await interaction.reply({ content: '❌ UNAUTHORIZED. Owner-level clearance required for user nuking.', ephemeral: true });
+    await interaction.reply({ content: '[!] UNAUTHORIZED. Owner-level clearance required for user reset.', ephemeral: true });
     return;
   }
 
   const embed = new EmbedBuilder()
     .setColor(0xff0000)
-    .setTitle('⚛️ USER NUKE INITIATED')
+    .setTitle('[EDGE EQUALIZER] USER RESET INITIATED')
     .setDescription(`Surgically resetting all interaction signals for **${target.username}**.`)
     .addFields(
       { name: 'Target', value: `<@${target.id}>`, inline: true },
-      { name: 'Protocol', value: 'Full GGR Reset', inline: true },
+      { name: 'Protocol', value: 'Full Reset', inline: true },
       { name: 'Status', value: 'Processing Database Purge...', inline: false }
     )
     .setFooter({ text: `TiltCheck | ${getRandomQuote()}` });
@@ -136,7 +136,7 @@ async function handleIntel(interaction: ChatInputCommandInteraction) {
 
   const embed = new EmbedBuilder()
     .setColor(0x17c3b2)
-    .setTitle('📡 PRODUCTION INTEL: BOT CLUSTER')
+    .setTitle('[SIGNAL] PRODUCTION INTEL: BOT CLUSTER')
     .addFields(
       { name: 'Uptime', value: `${Math.floor(uptime / 3600)}h ${Math.floor((uptime % 3600) / 60)}m`, inline: true },
       { name: 'Memory', value: `${Math.round(memory.rss / 1024 / 1024)}MB RSS`, inline: true },
@@ -145,6 +145,7 @@ async function handleIntel(interaction: ChatInputCommandInteraction) {
       { name: 'DB Pooler', value: process.env.POSTGRESQL ? 'CONNECTING/READY' : 'OFFLINE', inline: true }
     )
     .setFooter({ text: `TiltCheck | ${getRandomQuote()}` });
+
 
   await interaction.reply({ embeds: [embed], ephemeral: true });
 }

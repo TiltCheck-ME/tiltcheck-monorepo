@@ -205,15 +205,14 @@ export async function sendWelcomeDM(user: User): Promise<boolean> {
     const dmChannel = await user.createDM();
 
     const welcomeEmbed = new EmbedBuilder()
-      .setTitle('AUDIT LAYER INITIALIZED')
       .setDescription(
         `USER IDENTIFIED: **${user.username}**. I AM TILTCHECK. I AM THE RELUCTANT BABYSITTER FOR YOUR BANKROLL.\n\n` +
-        `I AM MONITORING FOR:\n` +
+        `I AM MONITORING THE ARENA FOR:\n` +
         `- MALICIOUS REDIRECTS (SCAM SCANNER)\n` +
         `- PREDATORY HOUSE DRIFT (FAIRNESS)\n` +
-        `- BEHAVIORAL SPIRALS (COOLDOWN OVERRIDE)\n` +
+        `- BEHAVIORAL SPIRALS (STATUS AUDITS)\n` +
         `- COMMUNITY TELEMETRY (TRUST ENGINE)\n\n` +
-        `NOTE: I DO NOT CUSTODY FUNDS. ALL TIPS ARE PROCESSED VIA **JUSTTHETIP**.\n\n` +
+        `NOTE: I DO NOT CUSTODY FUNDS. I PURELY LEVEL THE PLAYING FIELD.\n\n` +
         `INITIATE SURGICAL ASSESSMENT?`
       )
       .setThumbnail('https://tiltcheck.me/assets/logo/favicon-white.svg')
@@ -307,14 +306,14 @@ async function showTermsAndConditions(interaction: MessageComponentInteraction):
     .setDescription(
       `Before we proceed:\n\n` +
       `**Safety First**\n` +
-      `TiltCheck provides tools like cooldowns and trust checks to help you stay in control.\n\n` +
+      `TiltCheck provides tools like status audits, tethers, and fair-game verification to keep you objective.\n\n` +
       `**Your Responsibility**\n` +
-      `You are responsible for your own decisions. Use these tools responsibly.\n\n` +
+      `You are responsible for your own session. Use these tools as data, not as a ruleset.\n\n` +
       `**No Financial Advice**\n` +
       `Nothing here is financial advice.\n\n` +
       `**Risk Quiz**\n` +
-      `I'll ask a few questions to suggest the right safety settings for you.\n\n` +
-      `By continuing, you agree to TiltCheck's surgical audit protocol.`
+      `I'll ask a few questions to calibrate your nudge sensitivity.\n\n` +
+      `By continuing, you agree to the Edge Equalizer audit protocol.`
     );
 
   const startQuizBtn = new ButtonBuilder()
@@ -428,15 +427,15 @@ async function showLearnMore(interaction: MessageComponentInteraction): Promise<
     .setDescription(
       `**TiltCheck** is a safety bot for responsible play in Discord.\n\n` +
       `**Check your status**\n` +
-      `/tiltcheck status\n\n` +
-      `**Start a cooldown**\n` +
-      `/tiltcheck cooldown 30\n\n` +
-      `**Scan a link**\n` +
-      `/tiltcheck link scan url:<url>\n\n` +
+      `/status\n\n` +
+      `**House Edge check**\n` +
+      `/odds\n\n` +
+      `**Link some safety**\n` +
+      `/tether link user:<@user>\n\n` +
       `**Check a casino**\n` +
-      `/tiltcheck casino domain:<domain>\n\n` +
+      `/casino\n\n` +
       `**Ecosystem**\n` +
-      `Tips and wallets are handled by **JustTheTip**. Bonus timers and promos live in **CollectClock**.`
+      `Tips and wallets are handled by **JustTheTip**. Fairness data is updated in REALTIME via the Edge Equalizer SDK.`
     )
     .setFooter({ text: `TiltCheck | ${getRandomQuote()}` });
 
@@ -648,10 +647,10 @@ async function completeOnboarding(interaction: MessageComponentInteraction): Pro
       `- SENSITIVITY: ${prefs?.riskLevel.toUpperCase() || 'MODERATE'}\n` +
       `- MONITORING: ${notifications}\n\n` +
       `**AUDIT COMMANDS:**\n` +
-      `/tiltcheck status - QUERY SAFETY STATE\n` +
-      `/tiltcheck cooldown - FORCE DISCONNECT\n` +
-      `/tiltcheck link scan - TERM REGISTRY AUDIT\n` +
-      `/tiltcheck casino - TRUST ENGINE LOOKUP\n\n` +
+      `/status - QUERY SAFETY STATE\n` +
+      `/tether - LINK YOUR ACCOUNTABILITY LINE\n` +
+      `/odds - HOUSE EDGE AUDIT\n` +
+      `/verify - PROVABLY FAIR VERIFIER\n\n` +
       `IF YOUR BRAIN IS SMOKING, PULL THE BRAKE.`
     )
     .setFooter({ text: `TiltCheck Safety Bot | ${getRandomQuote()}` });

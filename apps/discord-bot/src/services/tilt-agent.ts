@@ -419,6 +419,19 @@ export function markUserActive(userId: string, context?: TiltAgentContext): void
   }
 }
 
+const userHeartbeats = new Map<string, number>();
+
+export function recordHeartbeat(userId: string): void {
+  userHeartbeats.set(userId, Date.now());
+}
+
+export function isUserInActiveSession(userId: string): boolean {
+  const lastHeartbeat = userHeartbeats.get(userId);
+  if (!lastHeartbeat) return false;
+  // Session is active if heartbeat received in last 2 minutes
+  return (Date.now() - lastHeartbeat) < (2 * 60 * 1000);
+}
+
 export function setUserTiltAgentContext(
   userId: string,
   context: TiltAgentContext,

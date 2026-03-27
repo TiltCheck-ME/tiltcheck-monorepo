@@ -1,69 +1,43 @@
 /* Copyright (c) 2026 TiltCheck. All rights reserved. */
-// v0.1.0 — 2026-02-25
 /**
- * © 2024–2025 TiltCheck Ecosystem. All Rights Reserved.
- * Created by jmenichole (https://github.com/jmenichole)
- *
- * This file is part of the TiltCheck project.
- * For licensing information, see LICENSE file in the project root.
- */
-/**
- * Nudge Generator
- * Generates friendly, humorous nudge messages for users showing tilt signals
+ * Edge Equalizer Nudge Generator
+ * Blunt, surgical, "Tough Love" audit strings.
  */
 
 import type { TiltSignal } from './types.js';
 
-/**
- * Nudge message with metadata
- */
 export interface NudgeMessage {
   text: string;
-  severity: 'gentle' | 'moderate' | 'firm';
+  severity: 'gentle' | 'moderate' | 'firm' | 'CRITICAL';
   category: string;
-  emoji: string;
+  symbol: string;
 }
 
-// Nudge messages categorized by signal type
+// THE RELUCTANT BABYSITTER: TOUGH LOVE AUDIT STRINGS
 const NUDGE_MESSAGES: Record<string, NudgeMessage[]> = {
   'rapid-messages': [
-    { text: "Slow down there, speed racer. Take a breath.", severity: 'gentle', category: 'pacing', emoji: '🏎️' },
-    { text: "Your keyboard is begging for mercy. Maybe chill for a sec?", severity: 'gentle', category: 'pacing', emoji: '⌨️' },
-    { text: "Chat's not going anywhere. Neither should you (to another bet).", severity: 'moderate', category: 'pacing', emoji: '💬' },
-  ],
-  'caps-spam': [
-    { text: "WE CAN HEAR YOU. No need for all caps, friend.", severity: 'gentle', category: 'tone', emoji: '📢' },
-    { text: "Caps lock is cruise control for cool, but maybe ease off.", severity: 'gentle', category: 'tone', emoji: '😎' },
-    { text: "The slots can't hear you yelling. Trust me, I've tried.", severity: 'moderate', category: 'tone', emoji: '🎰' },
-  ],
-  'rage-quit': [
-    { text: "Breathing room recommended. Seriously.", severity: 'moderate', category: 'cooldown', emoji: '🧘' },
-    { text: "The games aren't going anywhere. But your mental health might be.", severity: 'moderate', category: 'cooldown', emoji: '💆' },
-    { text: "Maybe walk away for 5 min? Get some water. Touch grass.", severity: 'firm', category: 'cooldown', emoji: '🌱' },
-    { text: "Tilt detected. This is your friendly reminder that revenge betting never works.", severity: 'firm', category: 'cooldown', emoji: '🚨' },
-  ],
-  'loan-request': [
-    { text: "Asking for loans is usually a sign it's time to step back.", severity: 'firm', category: 'safety', emoji: '🚩' },
-    { text: "If you're asking for money, you probably shouldn't be playing right now.", severity: 'firm', category: 'safety', emoji: '💸' },
-    { text: "Real talk: take a break. Loans lead to more losses.", severity: 'firm', category: 'safety', emoji: '❤️' },
+    { text: "Slow down. Your bet velocity is peaking. It's giving rinse vibes.", severity: 'gentle', category: 'pacing', symbol: '[AUDIT]' },
+    { text: "You're clicking faster than the page can even register. The house loves this momentum. STOP.", severity: 'moderate', category: 'pacing', symbol: '[SPEED]' },
+    { text: "Audit your head. 10 bets in 2 minutes? The house is printing while you f*** around.", severity: 'firm', category: 'pacing', symbol: '[RINSE]' },
   ],
   'loss-streak': [
-    { text: "Three losses in a row? Slots are acting cold. Cooldown time.", severity: 'moderate', category: 'strategy', emoji: '❄️' },
-    { text: "Loss streak detected. The RNG gods are not pleased today.", severity: 'moderate', category: 'strategy', emoji: '🎲' },
-    { text: "Maybe today's not your day. There's always tomorrow.", severity: 'moderate', category: 'strategy', emoji: '📅' },
-    { text: "Chasing losses is like chasing a mirage. Take five.", severity: 'firm', category: 'strategy', emoji: '🏜️' },
+    { text: "3 losses in a row. The RNG doesn't care about your feelings. Take a breather.", severity: 'moderate', category: 'loss', symbol: '[AUDIT]' },
+    { text: "Loss streak detected. Revenge betting is a house strategy. Don't be their donator.", severity: 'firm', category: 'loss', symbol: '[ALERT]' },
+    { text: "VIBE CHECK INBOUND. You literally cannot outrun the math. Walk away with what's left.", severity: 'CRITICAL', category: 'loss', symbol: '[CRITICAL]' },
   ],
-  'bad-beat': [
-    { text: "Ouch, that one hurt. But it's just variance, not karma.", severity: 'gentle', category: 'support', emoji: '🤕' },
-    { text: "Bad beats happen. Don't let it cloud your judgment.", severity: 'moderate', category: 'support', emoji: '🌧️' },
+  'large-bet': [
+    { text: "You just rolled a massive bet. That's a huge chunk of your bag. Audit your logic.", severity: 'firm', category: 'bankroll', symbol: '[RISK]' },
+    { text: "Over-leveraged. You're betting like you've already won. You haven't. Audit now.", severity: 'moderate', category: 'bankroll', symbol: '[CASH]' },
   ],
+  'playtime-exhaustion': [
+    { text: "You've been in the arena for 3 hours. Go touch grass while you still have a balance.", severity: 'moderate', category: 'time', symbol: '[TIME]' },
+    { text: "Audit says your probability of keeping this bag is dropping every minute. Go outside.", severity: 'firm', category: 'time', symbol: '[NATURE]' },
+  ]
 };
 
-// Generic fallback nudges
 const GENERIC_NUDGES: NudgeMessage[] = [
-  { text: "Hey, checking in. You good?", severity: 'gentle', category: 'general', emoji: '👋' },
-  { text: "Remember: gambling is for fun, not for fixing problems.", severity: 'moderate', category: 'general', emoji: '🎭' },
-  { text: "Just a friendly reminder to gamble responsibly.", severity: 'gentle', category: 'general', emoji: '🙏' },
+  { text: "Audit check. You still have your wits about you?", severity: 'gentle', category: 'general', symbol: '[HELLO]' },
+  { text: "The math is clear: Secure the profit now or it's gone in 5 mins.", severity: 'moderate', category: 'general', symbol: '[PROFIT]' },
 ];
 
 /**
@@ -80,13 +54,13 @@ export function getNudgeMessage(signals: TiltSignal[]): NudgeMessage {
   );
 
   const messages = NUDGE_MESSAGES[primarySignal.signalType] || GENERIC_NUDGES;
-
-  // Select message based on severity
+  
+  // Choose random message from appropriate severity level
   const severityThreshold = primarySignal.severity / 5;
   const appropriateMessages = messages.filter(m => {
-    if (severityThreshold >= 0.8) return m.severity === 'firm';
-    if (severityThreshold >= 0.5) return m.severity !== 'gentle';
-    return true;
+    if (severityThreshold >= 0.8) return m.severity === 'firm' || m.severity === 'CRITICAL';
+    if (severityThreshold >= 0.5) return m.severity === 'moderate' || m.severity === 'firm';
+    return m.severity === 'gentle' || m.severity === 'moderate';
   });
 
   const pool = appropriateMessages.length > 0 ? appropriateMessages : messages;
@@ -94,63 +68,17 @@ export function getNudgeMessage(signals: TiltSignal[]): NudgeMessage {
 }
 
 /**
- * Get a formatted nudge string with emoji
+ * Format a nudge for Discord (Markdown)
  */
 export function formatNudge(nudge: NudgeMessage): string {
-  return `${nudge.emoji} ${nudge.text}`;
+  // Add bolding and intensity symbols
+  const prefix = nudge.severity === 'CRITICAL' ? '🚀 [!!!] ' : '📊 ';
+  return `${prefix}**${nudge.symbol} ${nudge.text}**`;
 }
 
 /**
- * Get multiple nudge messages for severe tilt
+ * Get the Vibe Check message (Flashbang)
  */
-export function getEscalatedNudges(signals: TiltSignal[]): NudgeMessage[] {
-  const nudges: NudgeMessage[] = [];
-
-  // Get primary nudge
-  nudges.push(getNudgeMessage(signals));
-
-  // For severe tilt, add a secondary message
-  const tiltScore = signals.reduce((sum, s) => sum + s.severity, 0);
-  if (tiltScore >= 8) {
-    const firmNudges = Object.values(NUDGE_MESSAGES)
-      .flat()
-      .filter(n => n.severity === 'firm');
-    if (firmNudges.length > 0) {
-      nudges.push(firmNudges[Math.floor(Math.random() * firmNudges.length)]);
-    }
-  }
-
-  return nudges;
-}
-
-/**
- * Get cooldown-specific messages
- */
-export function getCooldownMessage(remainingMinutes: number): string {
-  if (remainingMinutes <= 1) {
-    return "⏰ Almost there! Just a bit more cooldown time.";
-  }
-  if (remainingMinutes <= 5) {
-    return `⏰ Cooldown: ${remainingMinutes} minutes left. Use this time wisely.`;
-  }
-  if (remainingMinutes <= 15) {
-    return `⏰ You're on a ${remainingMinutes}-minute cooldown. Go touch grass.`;
-  }
-  return `⏰ Extended cooldown: ${remainingMinutes} minutes. Maybe grab some food?`;
-}
-
-/**
- * Get violation warning message
- */
-export function getViolationMessage(violationCount: number): string {
-  switch (violationCount) {
-    case 1:
-      return "⚠️ First violation. The cooldown is there for your own good.";
-    case 2:
-      return "⚠️ Second violation. Seriously, take a break.";
-    case 3:
-      return "⚠️ Third violation. Cooldown extended. Time to step away.";
-    default:
-      return `⚠️ ${violationCount} violations. Your cooldown keeps getting longer. Please stop.`;
-  }
+export function getVibeCheckAlert(userId: string): string {
+  return `🚀 **[VIBE CHECK] SNAP OUT OF IT <@${userId}>** 🚀\n\n**The Audit is Crimson. Your current betting velocity is giving major rinse vibes.** Your Tether has been notified. We are moving you to voice to Audit your head.`;
 }

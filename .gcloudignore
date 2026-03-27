@@ -3,6 +3,7 @@
 node_modules/
 .next/
 dist/
+!apps/activity/dist/
 .turbo/
 .git/
 .env

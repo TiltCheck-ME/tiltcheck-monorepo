@@ -24,7 +24,7 @@ echo "📦 Layer 3: Services layer..."
 pnpm --filter @tiltcheck/pricing-oracle --filter @tiltcheck/discord-utils --filter @tiltcheck/trust-engines --filter @tiltcheck/trust-rollup run build
 
 echo "📦 Layer 4: Business logic modules..."
-pnpm --filter @tiltcheck/suslink --filter @tiltcheck/linkguard --filter @tiltcheck/collectclock --filter @tiltcheck/tiltcheck-core --filter @tiltcheck/justthetip --filter @tiltcheck/lockvault --filter @tiltcheck/freespinscan --filter @tiltcheck/dad --filter @tiltcheck/poker --filter @tiltcheck/qualifyfirst run build
+pnpm --filter @tiltcheck/suslink --filter @tiltcheck/linkguard --filter @tiltcheck/collectclock --filter @tiltcheck/tiltcheck-core --filter @tiltcheck/justthetip --filter @tiltcheck/lockvault --filter @tiltcheck/dad run build
 
 echo "📦 Layer 5: Applications..."
 pnpm --filter './apps/*' run build
