@@ -9,21 +9,21 @@ export default function Home() {
       {/* Hero Section */}
       <section className="hero-surface">
         <div className="hero-content">
-          <h1 className="neon neon-main neon-hero-top" data-text="HOUSE ALWAYS WINS?">
-            HOUSE ALWAYS WINS?
+          <h1 className="neon neon-main neon-hero-top" data-text="LOSE TRACK OF TIME?">
+            LOSE TRACK OF TIME?
           </h1>
-          <h1 className="neon neon-main neon-hero-bottom" data-text="FUCK THAT.">
-            FUCK THAT.
+          <h1 className="neon neon-main neon-hero-bottom" data-text="WE GOT YOU.">
+            WE GOT YOU.
           </h1>
           <p className="hero-body">
-            THE HOUSE WINS BECAUSE THEY OWN THE MATH AND YOU HAVE A DOPAMINE PROBLEM. We&apos;re the friend who grabs your keys at the bar. Not because we think you&apos;ll win, but because we&apos;re tired of watching you lose. TiltCheck is your browser-side co-pilot that calls out bullshit, keeps you honest, and stops you from liquidating your account at 3 AM. Again.
+            The house wins because they have the math and you have a human brain. We&apos;re the friend who helps you keep your winnings. TiltCheck is your browser-side co-pilot that keeps you honest and helps you walk away with the bag.
           </p>
           <div className="hero-actions">
-            <a href="#tools" className="btn btn-primary" data-text="SECURE THE BAG">
-              SECURE THE BAG
+            <a href="#tools" className="btn btn-primary" data-text="PROTECT THE BAG">
+              PROTECT THE BAG
             </a>
-            <a href="#tools" className="btn btn-secondary" data-text="CHECK THE MATH">
-              CHECK THE MATH
+            <a href="#tools" className="btn btn-secondary" data-text="LEARN MORE">
+              LEARN MORE
             </a>
           </div>
         </div>

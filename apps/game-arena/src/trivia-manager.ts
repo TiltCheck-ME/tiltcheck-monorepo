@@ -67,7 +67,10 @@ export class GlobalTriviaManager {
     const questions: TriviaQuestion[] = [];
     for (let i = 0; i < totalRounds; i++) {
       const difficulty = i < 4 ? 'easy' : i < 9 ? 'medium' : 'hard';
-      const q = await generateTriviaQuestionAsync(options.category || 'general', difficulty);
+      const q = await generateTriviaQuestionAsync({
+        category: options.category || 'general',
+        difficulty,
+      });
       questions.push({ ...q, id: `q-${i}`, createdAt: Date.now() });
     }
 

@@ -4,31 +4,20 @@
  */
 
 import type { Request } from 'express';
-import type { AuthUser, AuthSession } from '@tiltcheck/supabase-auth';
+import type { SessionData } from '@tiltcheck/auth';
 
-// Extend Express Request to include Supabase auth
-export interface ExpressUser {
-  id: string;
-  username: string;
-  discriminator: string;
-  avatar: string | null;
-  email?: string;
-  discordId?: string;
-}
-
+// Extend Express Request to include shared auth
 declare global {
   // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace Express {
     interface Request {
-      /** Authenticated user from Supabase */
-      user?: AuthUser;
-      /** Current Supabase auth session */
-      authSession?: AuthSession;
+      /** Authenticated user from @tiltcheck/auth */
+      user?: SessionData;
     }
   }
 }
 
-// User types - mapped from Supabase AuthUser for game usage
+// User types - mapped from shared SessionData for game usage
 export interface DiscordUser {
   id: string;           // Discord ID
   username: string;
@@ -37,20 +26,16 @@ export interface DiscordUser {
   email?: string;
 }
 
-export interface AuthenticatedRequest extends Request {
-  user?: AuthUser;
-}
-
 /**
- * Map Supabase AuthUser to DiscordUser for game logic compatibility
+ * Map ecosystem SessionData to DiscordUser for game logic compatibility
  */
-export function mapAuthUserToDiscordUser(authUser: AuthUser): DiscordUser {
+export function mapAuthUserToDiscordUser(session: SessionData): DiscordUser {
   return {
-    id: authUser.discordId || authUser.id,  // Use Discord ID if available, fallback to Supabase ID
-    username: authUser.discordUsername || authUser.email?.split('@')[0] || 'Unknown',
+    id: session.discordId || session.userId,  // Use Discord ID if available
+    username: session.discordUsername || 'Degen',
     discriminator: '0',  // Discord deprecated discriminators
-    avatar: authUser.avatarUrl || null,
-    email: authUser.email,
+    avatar: null, // Shared session doesn't currently carry avatar URL directly
+    email: undefined,
   };
 }
 
