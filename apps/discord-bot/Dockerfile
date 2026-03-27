@@ -15,7 +15,7 @@ RUN pnpm fetch
 FROM base AS build
 COPY . .
 # Install only the bot's dependency subgraph
-RUN pnpm install --offline --filter @tiltcheck/discord-bot...
+RUN pnpm install --filter @tiltcheck/discord-bot...
 RUN pnpm --filter @tiltcheck/discord-bot... build
 # Prune for production
 RUN pnpm prune --prod --no-optional
