@@ -17,37 +17,26 @@
 import express from 'express';
 import { createServer } from 'http';
 import { Server as SocketIOServer } from 'socket.io';
-import session from 'express-session';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { RedisStore } from 'connect-redis';
-import { createClient } from 'redis';
-
 import { config, validateConfig } from './config.js';
 import { GameManager } from './game-manager.js';
 import { statsService } from './stats-service.js';
-import {
-  createAuthClient,
-  type SupabaseAuthClient,
-  type AuthUser,
-} from '@tiltcheck/supabase-auth';
+import { 
+  verifySessionCookie, 
+  type JWTConfig, 
+  type SessionData 
+} from '@tiltcheck/auth';
 import type {
   DiscordUser,
   ClientToServerEvents,
   ServerToClientEvents,
   CreateGameRequest,
-  TriviaStartedEventData,
-  TriviaRoundStartEventData,
-  TriviaRoundRevealEventData,
-  TriviaCompletedEventData,
-  TriviaWinner,
-  GameLobbyInfo,
 } from './types.js';
 import { mapAuthUserToDiscordUser } from './types.js';
 import { justthetip } from '@tiltcheck/justthetip';
 import { triviaManager } from './trivia-manager.js';
 import { eventRouter } from '@tiltcheck/event-router';
-import { TiltCheckEvent, EventType } from '@tiltcheck/types';
 
 // ES module __dirname equivalent
 const __filename = fileURLToPath(import.meta.url);
@@ -88,67 +77,29 @@ const gameManager = new GameManager({
 });
 await gameManager.initialize();
 
+// Initialize trivia monetization
+const discordToken = process.env.TILT_DISCORD_BOT_TOKEN;
+const discordClientId = process.env.TILT_DISCORD_CLIENT_ID;
+if (discordToken && discordClientId) {
+  triviaManager.initializeShop(discordClientId, discordToken);
+}
+
 // Initialize stats service
 statsService.initialize().catch(err => {
   console.error('[Server] Failed to initialize stats service:', err);
 });
 
-// Initialize Supabase auth client (if configured)
-let authClient: SupabaseAuthClient | null = null;
-if (config.supabase.url && config.supabase.anonKey) {
-  authClient = createAuthClient({
-    supabaseUrl: config.supabase.url,
-    supabaseAnonKey: config.supabase.anonKey,
-    persistSession: false, // Server-side doesn't persist sessions
-  });
-  console.log('✅ Supabase auth client initialized');
-} else {
-  console.warn('⚠️  Supabase auth not configured - authentication will be disabled');
-}
+// Shared Auth Config
+const jwtConfig: JWTConfig = {
+  secret: process.env.JWT_SECRET || 'tiltcheck-user-secret-2024',
+  issuer: 'tiltcheck-api',
+  audience: 'tiltcheck-apps',
+};
 
 // Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, '../public')));
-
-// Session configuration (used to store auth tokens)
-let redisSessionClient: ReturnType<typeof createClient> | null = null;
-let sessionStore: session.Store | undefined;
-
-if (config.redis.url) {
-  try {
-    redisSessionClient = createClient({ url: config.redis.url });
-    redisSessionClient.on('error', (error) => {
-      console.warn('[Session] Redis session client error:', error);
-    });
-    await redisSessionClient.connect();
-    sessionStore = new RedisStore({
-      client: redisSessionClient,
-      prefix: 'arena:sess:',
-    });
-    console.log('✅ Redis session store enabled');
-  } catch (error) {
-    redisSessionClient = null;
-    console.warn('[Session] Redis unavailable, falling back to in-memory sessions:', error);
-  }
-}
-
-const sessionMiddleware = session({
-  ...(sessionStore ? { store: sessionStore } : {}),
-  secret: config.session.secret,
-  resave: false,
-  saveUninitialized: false,
-  name: config.session.cookieName,
-  cookie: {
-    maxAge: config.session.maxAge,
-    httpOnly: true,
-    secure: !config.isDev,
-    sameSite: config.isDev ? 'lax' : 'strict',
-  },
-});
-
-app.use(sessionMiddleware);
-app.use(express.json());
 
 app.post('/admin/trivia/start', async (req, res) => {
   try {
@@ -172,80 +123,70 @@ app.post('/admin/trivia/reset', (req, res) => {
 });
 
 // Extended session type
-declare module 'express-session' {
-  interface SessionData {
-    accessToken?: string;
-    refreshToken?: string;
-    user?: AuthUser;
-  }
-}
 
-// Authentication middleware - validates session token
+
+// Authentication middleware - validates shared ecosystem session cookie
 async function requireAuth(req: express.Request, res: express.Response, next: express.NextFunction): Promise<void> {
-  // Check if user is stored in session
-  if (req.session.user && req.session.accessToken) {
-    req.user = req.session.user;
-    return next();
-  }
+  const cookieHeader = req.headers.cookie;
   
-  // Check for Bearer token in Authorization header
-  const authHeader = req.headers.authorization;
-  if (authHeader && authHeader.startsWith('Bearer ') && authClient) {
-    const token = authHeader.substring(7);
-    try {
-      // Set the session and get user
-      const { data: sessionData, error: sessionError } = await authClient.setSession(
-        token,
-        req.session.refreshToken || ''
-      );
-      
-      if (sessionError || !sessionData) {
-        res.status(401).json({ error: 'Invalid or expired token' });
-        return;
-      }
-      
-      req.user = sessionData.user;
+  try {
+    const result = await verifySessionCookie(cookieHeader, jwtConfig);
+    if (result.valid && result.session) {
+      req.user = result.session;
       return next();
-    } catch {
-      res.status(401).json({ error: 'Authentication failed' });
-      return;
     }
+    
+    // Fallback for API calls vs page loads
+    if (req.path.startsWith('/api/')) {
+      res.status(401).json({ error: 'Authentication required', code: 'UNAUTHORIZED' });
+    } else {
+      res.redirect('/auth/discord');
+    }
+  } catch (err) {
+    console.error('[Auth] requireAuth error:', err);
+    res.status(500).json({ error: 'Internal auth error' });
   }
-  
-  res.status(401).json({ error: 'Authentication required' });
 }
 
 // Optional auth middleware - attaches user if available
 async function optionalAuth(req: express.Request, _res: express.Response, next: express.NextFunction): Promise<void> {
-  if (req.session.user) {
-    req.user = req.session.user;
+  const cookieHeader = req.headers.cookie;
+  try {
+    const result = await verifySessionCookie(cookieHeader, jwtConfig);
+    if (result.valid && result.session) {
+      req.user = result.session;
+    }
+  } catch (_err) {
+    console.warn('[Auth] optionalAuth check failed (non-critical)');
   }
   next();
 }
 
 function requireAdmin(req: express.Request, res: express.Response, next: express.NextFunction): void {
-  if (config.isDev) {
-    next();
-    return;
-  }
-
   const configuredToken = config.admin.statusToken;
-  if (!configuredToken) {
-    res.status(503).json({ error: 'Admin status endpoint is not configured' });
-    return;
-  }
+  if (!configuredToken) return next(); // Bypass if not set
 
   const providedToken = req.headers['x-admin-token'];
   if (typeof providedToken !== 'string' || providedToken !== configuredToken) {
     res.status(403).json({ error: 'Admin token required' });
     return;
   }
-
   next();
 }
 
-// Share session with Socket.IO
-io.engine.use(sessionMiddleware as any);
+// Socket.IO Auth Middleware
+io.use(async (socket, next) => {
+  const cookieHeader = socket.handshake.headers.cookie;
+  try {
+    const result = await verifySessionCookie(cookieHeader, jwtConfig);
+    if (result.valid && result.session) {
+      (socket as any).user = result.session;
+    }
+    next();
+  } catch (err) {
+    next(); // Allow anonymous lobby viewing
+  }
+});
 
 // Routes
 
@@ -255,7 +196,6 @@ app.get('/health', (_req, res) => {
     status: 'ok',
     uptime: process.uptime(),
     timestamp: Date.now(),
-    auth: authClient ? 'enabled' : 'disabled',
   });
 });
 
@@ -270,7 +210,7 @@ app.get('/admin/status', requireAdmin, (_req, res) => {
     ],
     metrics: {
       uptime: process.uptime(),
-      requests: 0, // Mock for now
+      requests: 0,
       activeGames: gameManager.getGameCount()
     }
   });
@@ -295,103 +235,23 @@ app.get('/game/:gameId', requireAuth, (_req, res) => {
   res.sendFile(path.join(__dirname, '../public/game.html'));
 });
 
-// Auth routes using Supabase Discord OAuth
-if (authClient) {
-  // Initiate Discord OAuth via Supabase
-  app.get('/auth/discord', async (_req, res) => {
-    try {
-      const { data, error } = await authClient!.signInWithOAuth({
-        provider: 'discord',
-        options: {
-          scopes: 'identify email',
-          redirectTo: config.auth.redirectUrl,
-          skipBrowserRedirect: true,
-        },
-      });
+// Auth routes (Unified with Ecosystem API)
+app.get('/auth/discord', (req, res) => {
+  const redirectBase = config.isDev ? 'http://localhost:3000' : 'https://api.tiltcheck.me';
+  const myUrl = config.isDev ? `http://localhost:${config.port}/arena` : 'https://arena.tiltcheck.me/arena';
+  res.redirect(`${redirectBase}/auth/discord/login?source=web&redirect=${encodeURIComponent(myUrl)}`);
+});
 
-      if (error || !data?.url) {
-        console.error('[Auth] Failed to get OAuth URL:', error);
-        res.redirect(config.auth.failureUrl);
-        return;
-      }
+// Compatibility callback
+app.get('/auth/callback', (req, res) => {
+  res.redirect('/arena');
+});
 
-      // Redirect user to Discord OAuth page via Supabase
-      res.redirect(data.url);
-    } catch (err) {
-      console.error('[Auth] OAuth error:', err);
-      res.redirect(config.auth.failureUrl);
-    }
-  });
-
-  // OAuth callback - exchange code for session
-  app.get('/auth/callback', async (req, res) => {
-    const { code, error: oauthError } = req.query;
-
-    if (oauthError) {
-      console.error('[Auth] OAuth error from provider:', oauthError);
-      res.redirect(config.auth.failureUrl);
-      return;
-    }
-
-    if (!code || typeof code !== 'string') {
-      console.error('[Auth] No code received');
-      res.redirect(config.auth.failureUrl);
-      return;
-    }
-
-    try {
-      // Exchange code for session
-      const { data: sessionData, error: exchangeError } = await authClient!.exchangeCodeForSession(code);
-
-      if (exchangeError || !sessionData) {
-        console.error('[Auth] Code exchange failed:', exchangeError);
-        res.redirect(config.auth.failureUrl);
-        return;
-      }
-
-      // Store session in express session
-      req.session.accessToken = sessionData.accessToken;
-      req.session.refreshToken = sessionData.refreshToken;
-      req.session.user = sessionData.user;
-
-      console.log(`✅ User authenticated: ${sessionData.user.discordUsername || sessionData.user.email}`);
-      
-      // Redirect to arena
-      res.redirect('/arena');
-    } catch (err) {
-      console.error('[Auth] Callback error:', err);
-      res.redirect(config.auth.failureUrl);
-    }
-  });
-
-  // Logout
-  app.get('/auth/logout', async (req, res) => {
-    try {
-      if (authClient && req.session.accessToken) {
-        await authClient.signOut();
-      }
-    } catch (err) {
-      console.error('[Auth] Logout error:', err);
-    }
-
-    req.session.destroy((err) => {
-      if (err) {
-        console.error('[Auth] Session destroy error:', err);
-      }
-      res.redirect('/');
-    });
-  });
-} else {
-  console.warn('⚠️  Supabase auth not configured - authentication endpoints disabled');
-  
-  // Provide helpful error messages
-  app.get('/auth/discord', (_req, res) => {
-    res.status(503).json({
-      error: 'Authentication not configured',
-      message: 'Set SUPABASE_URL and SUPABASE_ANON_KEY environment variables to enable authentication',
-    });
-  });
-}
+// Ecosystem Logout (Clears shared cookie)
+app.get('/auth/logout', (_req, res) => {
+  res.clearCookie('tiltcheck_session', { domain: '.tiltcheck.me' });
+  res.redirect('/');
+});
 
 // API routes
 
@@ -595,9 +455,8 @@ app.get('/api/tips/history', requireAuth, async (req, res) => {
 
 // WebSocket handling
 io.on('connection', (socket) => {
-  const session = (socket.request as any).session;
-  const authUser: AuthUser | undefined = session?.user;
-  const user: DiscordUser | null = authUser ? mapAuthUserToDiscordUser(authUser) : null;
+  const sessionUser: SessionData | undefined = (socket as any).user;
+  const user: DiscordUser | null = sessionUser ? mapAuthUserToDiscordUser(sessionUser) : null;
   console.log(user ? `✅ User connected: ${user.username} (${user.id})` : '👀 Anonymous lobby watcher connected');
 
   // Join lobby
@@ -771,6 +630,19 @@ io.on('connection', (socket) => {
     }
   });
 
+  socket.on('request-shield', async (data: { gameId: string; questionId: string }) => {
+    if (!user) return;
+    const result = await triviaManager.requestShield(user.id);
+    if (result.success) {
+      socket.emit('trivia-shield-result', { 
+        questionId: data.questionId, 
+        eliminated: result.eliminated! 
+      });
+    } else {
+      socket.emit('game-error', result.message || 'Shield request failed');
+    }
+  });
+
   socket.on('buy-back', async (data: { gameId: string }) => {
     if (!user) return;
     const result = await triviaManager.processBuyBack(user.id);
@@ -825,9 +697,6 @@ setInterval(() => {
 process.on('SIGTERM', async () => {
   console.log('SIGTERM received, closing gracefully...');
   await gameManager.shutdown();
-  if (redisSessionClient) {
-    await redisSessionClient.quit();
-  }
   io.close();
   httpServer.close();
   process.exit(0);
@@ -837,8 +706,7 @@ process.on('SIGTERM', async () => {
 httpServer.listen(config.port, '0.0.0.0', () => {
   console.log(`🎮 Game Arena server running on port ${config.port} (0.0.0.0)`);
   console.log(`🌍 Environment: ${config.nodeEnv}`);
-  console.log(`🔐 Supabase Auth: ${authClient ? 'Enabled' : 'Disabled'}`);
-  console.log(`🔗 Auth Redirect: ${config.auth.redirectUrl}`);
+  console.log(`🔐 Ecosystem Auth: Shared (.tiltcheck.me)`);
 });
 
 export { app, httpServer, io };

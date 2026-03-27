@@ -1072,7 +1072,7 @@ export class DatabaseClient {
       return null;
     }
 
-    return data;
+    return (data || []);
   }
 }
 

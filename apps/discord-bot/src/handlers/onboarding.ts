@@ -205,17 +205,16 @@ export async function sendWelcomeDM(user: User): Promise<boolean> {
     const dmChannel = await user.createDM();
 
     const welcomeEmbed = new EmbedBuilder()
-      .setColor(0x00D4AA)
-      .setTitle('Welcome to TiltCheck')
+      .setTitle('AUDIT LAYER INITIALIZED')
       .setDescription(
-        `Hi **${user.username}**. I'm **TiltCheck** - a safety bot for responsible play in Discord.\n\n` +
-        `I'm here to help you:\n` +
-        `- Scan links and spot scams\n` +
-        `- Check casino trust and fairness signals\n` +
-        `- Start cooldowns when you need a break\n` +
-        `- Get safety nudges based on your risk level\n\n` +
-        `This bot does not custody funds. Tips and wallets live in **JustTheTip**.\n\n` +
-        `Ready to set up your safety preferences?`
+        `USER IDENTIFIED: **${user.username}**. I AM TILTCHECK. I AM THE RELUCTANT BABYSITTER FOR YOUR BANKROLL.\n\n` +
+        `I AM MONITORING FOR:\n` +
+        `- MALICIOUS REDIRECTS (SCAM SCANNER)\n` +
+        `- PREDATORY HOUSE DRIFT (FAIRNESS)\n` +
+        `- BEHAVIORAL SPIRALS (COOLDOWN OVERRIDE)\n` +
+        `- COMMUNITY TELEMETRY (TRUST ENGINE)\n\n` +
+        `NOTE: I DO NOT CUSTODY FUNDS. ALL TIPS ARE PROCESSED VIA **JUSTTHETIP**.\n\n` +
+        `INITIATE SURGICAL ASSESSMENT?`
       )
       .setThumbnail('https://tiltcheck.me/assets/logo/favicon-white.svg')
       .setFooter({ text: `TiltCheck Safety Bot | ${getRandomQuote()}` });
@@ -320,7 +319,7 @@ async function showTermsAndConditions(interaction: MessageComponentInteraction):
 
   const startQuizBtn = new ButtonBuilder()
     .setCustomId('onboard_accept_terms')
-    .setLabel('Begin Assessment')
+    .setLabel('START PROFILING')
     .setStyle(ButtonStyle.Success);
 
   const skipBtn = new ButtonBuilder()
@@ -350,7 +349,7 @@ async function showRiskQuiz(
 
   const quizEmbed = new EmbedBuilder()
     .setColor(0x00D4AA)
-    .setTitle(`Risk Assessment — Step ${stepIndex + 1} of ${ONBOARDING_QUESTIONS.length}`)
+    .setTitle(`SURGICAL ASSESSMENT — STEP ${stepIndex + 1} OF ${ONBOARDING_QUESTIONS.length}`)
     .setDescription(`**${question.text}**`)
     .setFooter({ text: `TiltCheck Assessment | ${getRandomQuote()}` });
 
@@ -483,7 +482,7 @@ async function showPreferences(
 
   const prefsEmbed = new EmbedBuilder()
     .setColor(0x00D4AA)
-    .setTitle(isSuggested ? '🧠 SUGGESTED SETTINGS' : 'Set Your Preferences')
+    .setTitle(isSuggested ? '[SUGGESTED PROFILE]' : 'CALIBRATE NUDGE SENSITIVITY')
     .setDescription(description)
     .setFooter({ text: `TiltCheck Protocol | ${getRandomQuote()}` });
 
@@ -642,19 +641,18 @@ async function completeOnboarding(interaction: MessageComponentInteraction): Pro
 
   const completedEmbed = new EmbedBuilder()
     .setColor(0x00FF00)
-    .setTitle('You are all set')
+    .setTitle('PROFILE ACTIVATED')
     .setDescription(
-      `Welcome to TiltCheck, **${interaction.user.username}**.\n\n` +
-      `**Your Setup:**\n` +
-      `- Risk Level: ${prefs?.riskLevel || 'Moderate'}\n` +
-      `- Notifications: ${notifications}\n\n` +
-      `**Quick Commands:**\n` +
-      `/tiltcheck status - Check your safety state\n` +
-      `/tiltcheck cooldown 30 - Start a 30 minute break\n` +
-      `/tiltcheck link scan url:<url> - Scan a link\n` +
-      `/tiltcheck casino domain:<domain> - Check casino trust\n` +
-      `/help - Full command list\n\n` +
-      `Questions? Use /support or join our Discord.`
+      `REGISTRATION COMPLETE, **${interaction.user.username}**.\n\n` +
+      `**CONFIGURATION:**\n` +
+      `- SENSITIVITY: ${prefs?.riskLevel.toUpperCase() || 'MODERATE'}\n` +
+      `- MONITORING: ${notifications}\n\n` +
+      `**AUDIT COMMANDS:**\n` +
+      `/tiltcheck status - QUERY SAFETY STATE\n` +
+      `/tiltcheck cooldown - FORCE DISCONNECT\n` +
+      `/tiltcheck link scan - TERM REGISTRY AUDIT\n` +
+      `/tiltcheck casino - TRUST ENGINE LOOKUP\n\n` +
+      `IF YOUR BRAIN IS SMOKING, PULL THE BRAKE.`
     )
     .setFooter({ text: `TiltCheck Safety Bot | ${getRandomQuote()}` });
 

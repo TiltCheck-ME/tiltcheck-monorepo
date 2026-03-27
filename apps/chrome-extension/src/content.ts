@@ -405,14 +405,15 @@ async function startMonitoring() {
 
   console.log('[TiltGuard] Initial balance:', initialBalance);
 
-  // Get risk level from storage (synced from onboarding)
-  const storageResult = await chrome.storage.local.get(['riskLevel']);
+  // Get risk level and redeem threshold from storage
+  const storageResult = await chrome.storage.local.get(['riskLevel', 'redeemThreshold']);
   const riskLevel = (storageResult.riskLevel as 'conservative' | 'moderate' | 'degen') || 'moderate';
+  const redeemThreshold = Number(storageResult.redeemThreshold) || 0;
 
-  console.log('[TiltGuard] Using risk profile:', riskLevel);
+  console.log('[TiltGuard] Using profile:', { riskLevel, redeemThreshold });
 
   // Initialize tilt detector
-  tiltDetector = new TiltDetector(initialBalance, riskLevel);
+  tiltDetector = new TiltDetector(initialBalance, riskLevel, redeemThreshold);
 
   // Initialize analyzer client
   client = new AnalyzerClient(ANALYZER_WS_URL, (error) => {
@@ -687,6 +688,10 @@ function handleInterventions(interventions: any[]) {
 
       case 'session_break':
         showBreakPrompt();
+        break;
+
+      case 'redeem_nudge':
+        showRedeemNudge(intervention.data);
         break;
     }
 
@@ -1362,6 +1367,78 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
   }
   return true;
 });
+
+/**
+ * Show high-intensity Redeem Nudge
+ */
+function showRedeemNudge(data: any) {
+  const overlay = document.createElement('div');
+  overlay.id = 'tiltcheck-redeem-nudge';
+  overlay.style.cssText = `
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.95);
+    z-index: 1000000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    color: white;
+    font-family: 'Inter', sans-serif;
+    text-align: center;
+  `;
+
+  overlay.innerHTML = `
+    <div style="max-width: 500px; padding: 40px; border: 2px solid #00ff88; border-radius: 20px; background: rgba(0, 255, 136, 0.05); box-shadow: 0 0 50px rgba(0, 255, 136, 0.2);">
+      <h1 style="font-size: 64px; margin-bottom: 10px;">🏆</h1>
+      <h2 style="font-size: 28px; color: #00ff88; text-transform: uppercase; letter-spacing: 2px;">WIN SECURED</h2>
+      <p style="font-size: 20px; margin: 20px 0; line-height: 1.5;">${data.message}</p>
+      <div style="font-size: 48px; font-weight: 800; margin-bottom: 30px;">$${Number(data.amount).toFixed(2)}</div>
+      
+      <div style="display: flex; gap: 15px; justify-content: center;">
+        <button id="redeem-btn" style="background: #00ff88; color: black; border: none; padding: 15px 30px; border-radius: 10px; font-weight: 900; cursor: pointer; font-size: 18px; text-transform: uppercase;">
+          Redeem Now & Quit
+        </button>
+        <button id="later-btn" style="background: transparent; color: white; border: 1px solid rgba(255,255,255,0.2); padding: 15px 30px; border-radius: 10px; font-weight: 600; cursor: pointer; font-size: 14px;">
+          Maybe Later (Risk It)
+        </button>
+      </div>
+      
+      <div style="margin-top: 30px; font-size: 11px; opacity: 0.5; text-transform: uppercase; letter-spacing: 1px;">
+        Made for Degens. By Degens.
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(overlay);
+
+  document.getElementById('redeem-btn')?.addEventListener('click', () => {
+    // Notify hub of successful win secure
+    void relayWinSecure(data.amount);
+    overlay.remove();
+    window.close(); // Hard exit
+  });
+
+  document.getElementById('later-btn')?.addEventListener('click', () => {
+    overlay.remove();
+  });
+}
+
+async function relayWinSecure(amount: number) {
+  try {
+    const userId = await getUserId();
+    await fetch(`${EXT_CONFIG.HUB_URL}/telemetry/win-secure`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ amount, userId })
+    });
+  } catch (err) {
+    console.warn('[TiltCheck] Win secure relay failed:', err);
+  }
+}
 
 // Initialize on load
 if (!isExcludedDomain) {

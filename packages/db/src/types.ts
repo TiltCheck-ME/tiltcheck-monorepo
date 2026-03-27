@@ -23,6 +23,9 @@ export interface User {
   created_at: Date;
   updated_at: Date;
   last_login_at: Date | null;
+  redeem_threshold: number | null;
+  redeem_wins: number;
+  total_redeemed: number;
 }
 
 /**
@@ -50,6 +53,10 @@ export interface UpdateUserPayload {
   hashed_password?: string;
   roles?: string[];
   last_login_at?: Date;
+  redeem_threshold?: number | null;
+  redeem_wins?: number;
+  total_redeemed?: number;
+  updated_at?: Date;
 }
 
 // ============================================================================
@@ -124,6 +131,50 @@ export interface CreateTrustSignalPayload {
   signal_type: string;
   delta: number;
   metadata?: Record<string, unknown>;
+}
+
+// ============================================================================
+// Buddy & Accountability Types
+// ============================================================================
+
+/**
+ * Buddy alert thresholds
+ */
+export interface BuddyAlertThresholds {
+  tilt_score_exceeds?: number;
+  losses_in_24h_sol?: number;
+  zero_balance_reached?: boolean;
+}
+
+/**
+ * Buddy relationship in the database
+ */
+export interface UserBuddy {
+  id: string;
+  user_id: string;
+  buddy_id: string;
+  status: 'pending' | 'accepted' | 'declined' | 'removed';
+  alert_thresholds: BuddyAlertThresholds;
+  created_at: Date;
+  updated_at: Date;
+}
+
+/**
+ * Buddy creation payload
+ */
+export interface CreateBuddyPayload {
+  user_id: string;
+  buddy_id: string;
+  alert_thresholds?: BuddyAlertThresholds;
+}
+
+/**
+ * Buddy update payload
+ */
+export interface UpdateBuddyPayload {
+  status?: UserBuddy['status'];
+  alert_thresholds?: BuddyAlertThresholds;
+  updated_at?: Date;
 }
 
 // ============================================================================
@@ -259,6 +310,9 @@ export interface UserOnboarding {
   notifications_tips: boolean;
   notifications_trivia: boolean;
   notifications_promos: boolean;
+  redeem_threshold: number | null;
+  redeem_wins: number;
+  total_redeemed: number;
   joined_at: Date;
   updated_at: Date;
 }
@@ -278,6 +332,9 @@ export interface UpsertOnboardingPayload {
   notifications_tips?: boolean;
   notifications_trivia?: boolean;
   notifications_promos?: boolean;
+  redeem_threshold?: number | null;
+  redeem_wins?: number;
+  total_redeemed?: number;
 }
 
 // ============================================================================

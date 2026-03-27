@@ -1,12 +1,12 @@
-/* Copyright (c) 2026 TiltCheck. All rights reserved. */
-/**
- * User Dashboard Service (Degen Hub)
- */
-
 import express from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
-import jwt from 'jsonwebtoken';
+import { 
+  verifySessionCookie, 
+  getCookieConfig,
+  type JWTConfig,
+  type SessionData
+} from '@tiltcheck/auth';
 import rateLimit from 'express-rate-limit';
 import { Magic } from '@magic-sdk/admin';
 import { Connection } from '@solana/web3.js';
@@ -14,14 +14,36 @@ import { fileURLToPath, pathToFileURL } from 'url';
 import { dirname, join } from 'path';
 import type { Request, Response, NextFunction } from 'express';
 import { db, DegenIdentity } from '@tiltcheck/database';
+import { findUserByDiscordId, findOnboardingByDiscordId } from '@tiltcheck/db';
 import { runner } from '@tiltcheck/agent';
-import { stringifyContent } from '@google/adk';
+
+/**
+ * Utility to convert agent content to string
+ */
+function stringifyContent(content: any): string {
+  if (typeof content === 'string') return content;
+  if (content?.parts) return content.parts.map((p: any) => p.text || '').join('');
+  return JSON.stringify(content);
+}
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 const app = express();
 const PORT = process.env.PORT || process.env.USER_DASHBOARD_PORT || 6001;
+const DISCORD_CALLBACK_URL = process.env.TILT_DISCORD_REDIRECT_URI || 'https://api.tiltcheck.me/auth/discord/callback';
+
+// Configuration
+const isProd = process.env.NODE_ENV === 'production';
+const JWT_SECRET = process.env.JWT_SECRET || (isProd ? (() => { throw new Error('JWT_SECRET is required in production'); })() : 'tiltcheck-user-secret-2024');
+
+// Shared Auth Config
+const jwtConfig: JWTConfig = {
+  secret: JWT_SECRET,
+  issuer: 'tiltcheck-api',
+  audience: 'tiltcheck-apps',
+  expiresIn: '7d'
+};
 
 // Rate limiter
 const trustLimiter = rateLimit({
@@ -30,16 +52,56 @@ const trustLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
 });
-const JWT_SECRET = process.env.JWT_SECRET || (process.env.NODE_ENV === 'production' ? (() => { throw new Error('JWT_SECRET is required in production'); })() : 'tiltcheck-user-secret-2024');
+
 const magicAdmin = new Magic(process.env.MAGIC_SECRET_KEY);
-// Solana connection reserved for future wallet verification features
 const _solanaConnection = new Connection(process.env.SOLANA_RPC_URL || 'https://api.mainnet-beta.solana.com', 'confirmed');
 
 // Middleware
-app.use(cors());
+app.use(cors({
+  origin: true,
+  credentials: true
+}));
 app.use(cookieParser());
 app.use(express.json());
 app.use(express.static(join(__dirname, '../public')));
+
+// === Auth Middleware (Shared Ecosystem) ===
+function authenticateToken(req: any, res: Response, next: NextFunction) {
+  const cookieHeader = req.headers.cookie;
+  
+  verifySessionCookie(cookieHeader, jwtConfig)
+    .then(result => {
+      if (result.valid && result.session) {
+        req.user = result.session;
+        next();
+      } else {
+        // Log cause of rejection for debugging
+        console.warn('[Auth] Session invalid or missing:', result.error);
+        res.status(401).json({ error: 'Not authenticated', code: 'UNAUTHORIZED' });
+      }
+    })
+    .catch(err => {
+      console.error('[Auth] Middleware error:', err);
+      res.status(500).json({ error: 'Internal auth error' });
+    });
+}
+
+// === API Routes ===
+app.get('/api/auth/me', authenticateToken as any, (req: any, res) => {
+  res.json(req.user);
+});
+
+// === Auth Routes (Redirect to Central Login) ===
+app.get('/auth/discord', (req, res) => {
+  const redirectBase = isProd ? 'https://api.tiltcheck.me' : 'http://localhost:3000';
+  const myUrl = isProd ? 'https://hub.tiltcheck.me/dashboard' : `http://localhost:${PORT}/dashboard`;
+  res.redirect(`${redirectBase}/auth/discord/login?source=web&redirect=${encodeURIComponent(myUrl)}`);
+});
+
+// For compatibility with any direct callbacks that might still hit this app
+app.get('/auth/discord/callback', (req, res) => {
+  res.redirect('/dashboard');
+});
 
 // === Types ===
 interface UserData {
@@ -55,6 +117,8 @@ interface UserData {
     wagered: number;
     deposited: number;
     profit: number;
+    redeemWins: number;
+    totalRedeemed: number;
   };
   degenIdentity?: DegenIdentity | null;
   recentActivity: ActivityItem[];
@@ -79,6 +143,7 @@ interface UserPreferences {
 interface DiscordUser {
   discordId: string;
   username: string;
+  avatar: string;
 }
 
 interface AuthenticatedRequest extends Request {
@@ -87,109 +152,55 @@ interface AuthenticatedRequest extends Request {
 
 // === Data Fetching ===
 async function getUserData(discordId: string): Promise<UserData | null> {
-  if (!db.isConnected()) return null;
-
   try {
-    const [dbStats, _dbPrefs, dbIdentity] = await Promise.all([
-      db.getUserStats(discordId),
-      db.getUserPreferences(discordId),
-      db.getDegenIdentity(discordId)
+    const [user, onboarding, dbIdentity] = await Promise.all([
+      findUserByDiscordId(discordId),
+      findOnboardingByDiscordId(discordId),
+      db.isConnected() ? db.getDegenIdentity(discordId) : null
     ]);
 
-    if (!dbStats) return null;
+    if (!user) return null;
 
     return {
-      discordId: dbStats.discord_id,
-      username: dbStats.username,
-      avatar: dbStats.avatar || '',
-      trustScore: dbIdentity?.trust_score ?? 50,
+      discordId: user.discord_id!,
+      username: user.discord_username || 'Unknown',
+      avatar: user.discord_avatar || '',
+      trustScore: dbIdentity?.trust_score ?? 75,
       tiltLevel: 0,
       analytics: {
-        totalJuice: 0, // Future: Pull from distribution table
+        totalJuice: 0, 
         totalTipsCaught: 0,
-        eventCount: 0,
-        wagered: Number(dbStats.wagered_amount_sol),
-        deposited: Number(dbStats.deposited_amount_sol),
-        profit: Number(dbStats.profit_sol)
+        eventCount: 42,
+        wagered: 0,
+        deposited: 0,
+        profit: 0,
+        redeemWins: user!.redeem_wins || 0,
+        totalRedeemed: user!.total_redeemed || 0
       },
       degenIdentity: dbIdentity,
       recentActivity: [],
       preferences: {
-        notifyBonus: true,
-        notifyJuice: true,
+        notifyBonus: onboarding?.notifications_promos || true,
+        notifyJuice: onboarding?.notifications_tips || true,
         anonTipping: false,
         showAnalytics: true,
         baseCurrency: 'SOL'
       }
     };
-  } catch {
+  } catch (err) {
+    console.error('[Dashboard Server] Fetch user data error:', err);
     return null;
   }
 }
 
-// === Auth Routes ===
-const isProdEnv = process.env.NODE_ENV === 'production';
-const DISCORD_CONFIG = {
-  clientId: process.env.DISCORD_CLIENT_ID,
-  clientSecret: process.env.DISCORD_CLIENT_SECRET,
-  redirectUri:
-    process.env.DISCORD_CALLBACK_URL ||
-    (isProdEnv
-      ? 'https://user-dashboard.tiltcheck.me/auth/discord/callback'
-      : 'http://localhost:6001/auth/discord/callback'),
-};
 
-app.get('/auth/discord', (_req, res) => {
-  const params = new URLSearchParams({
-    client_id: DISCORD_CONFIG.clientId!,
-    redirect_uri: DISCORD_CONFIG.redirectUri,
-    response_type: 'code',
-    scope: 'identify',
-  });
-  // Note: Discord OAuth authorize endpoint is discord.com/oauth2/authorize (not /api/oauth2/)
-  res.redirect(`https://discord.com/oauth2/authorize?${params.toString()}`);
+// Authentication and onboarding routes are now unified via central app.
+
+// Onboarding route
+app.get('/onboarding', (_req, res) => {
+  res.sendFile(join(__dirname, '../public/onboarding.html'));
 });
 
-app.get('/auth/discord/callback', async (req, res) => {
-  const { code } = req.query;
-  if (!code) return res.redirect('/?error=no_code');
-
-  try {
-    const tokenRes = await fetch('https://discord.com/api/oauth2/token', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: new URLSearchParams({
-        client_id: DISCORD_CONFIG.clientId!,
-        client_secret: DISCORD_CONFIG.clientSecret!,
-        grant_type: 'authorization_code',
-        code: code as string,
-        redirect_uri: DISCORD_CONFIG.redirectUri,
-      }),
-    });
-
-    const { access_token } = await tokenRes.json() as any;
-    const userRes = await fetch('https://discord.com/api/users/@me', {
-      headers: { Authorization: `Bearer ${access_token}` },
-    });
-
-    const userData = await userRes.json() as any;
-    const token = jwt.sign(
-      { discordId: userData.id, username: userData.username, avatar: userData.avatar },
-      JWT_SECRET,
-      { expiresIn: '7d' }
-    );
-
-    res.cookie('auth_token', token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-    });
-    res.redirect('/dashboard');
-  } catch {
-    res.redirect('/?error=auth_failed');
-  }
-});
 
 // === API Routes ===
 app.get('/api/auth/me', authenticateToken as any, (req: any, res) => {
@@ -200,6 +211,33 @@ app.get('/api/user/:discordId', authenticateToken as any, async (req: any, res) 
   const data = await getUserData(req.params.discordId);
   if (!data) return res.status(404).json({ error: 'User not found' });
   res.json(data);
+});
+
+app.post('/api/user/onboard', authenticateToken as any, async (req: any, res) => {
+  try {
+    const { primary_external_address, tos_accepted } = req.body;
+    const discordId = req.user.discordId;
+
+    if (!tos_accepted) {
+      return res.status(400).json({ error: 'You must accept the ToS to proceed' });
+    }
+
+    const updatedIdentity = await db.upsertDegenIdentity({
+      discord_id: discordId,
+      primary_external_address: primary_external_address || null,
+      tos_accepted: true,
+      updated_at: new Date().toISOString()
+    });
+
+    if (!updatedIdentity) {
+      return res.status(500).json({ error: 'Failed to update identity' });
+    }
+
+    res.json({ success: true, identity: updatedIdentity });
+  } catch (err: any) {
+    console.error('[API] Onboard error:', err);
+    res.status(500).json({ error: err.message });
+  }
 });
 
 app.get('/api/user/:discordId/trust', authenticateToken as any, trustLimiter, async (req: any, res) => {
@@ -279,31 +317,17 @@ app.post('/api/agent/query', authenticateToken as any, async (req: any, res) => 
   }
 });
 
-// === Middleware ===
-function authenticateToken(req: AuthenticatedRequest, res: Response, next: NextFunction) {
-  const authHeader = req.headers['authorization'];
-  const token = authHeader && authHeader.split(' ')[1];
-  
-  if (!token) {
-    const cookieToken = (req.cookies?.auth_token as string) || null;
-    if (!cookieToken) return res.sendStatus(401);
-    
-    jwt.verify(cookieToken, JWT_SECRET, (err: any, user: any) => {
-      if (err) return res.sendStatus(403);
-      req.user = user;
-      next();
-    });
-    return;
+
+
+
+app.get('/dashboard', authenticateToken as any, async (req: any, res) => {
+  const discordId = req.user.discordId;
+  if (db.isConnected()) {
+    try {
+      const identity = await db.getDegenIdentity(discordId);
+      if (!identity || !identity.tos_accepted) return res.redirect('/onboard.html');
+    } catch (err) { console.warn('Onboarding check error:', err); }
   }
-
-  jwt.verify(token, JWT_SECRET, (err: any, user: any) => {
-    if (err) return res.sendStatus(403);
-    req.user = user;
-    next();
-  });
-}
-
-app.get('/dashboard', (_req, res) => {
   res.sendFile(join(__dirname, '../public/index.html'));
 });
 
@@ -311,6 +335,7 @@ const isMainModule = process.argv[1] && import.meta.url === pathToFileURL(proces
 if (isMainModule) {
   app.listen(PORT, () => {
     console.log(`🎯 Degen Hub listening on port ${PORT}`);
+    console.log(`🔗 Discord OAuth configured for: ${DISCORD_CALLBACK_URL}`);
   });
 }
 

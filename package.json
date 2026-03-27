@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "TiltCheck Ecosystem - Built by a degen, for degens",
+  "description": "TiltCheck Ecosystem - Behavioral protection for a better experience",
   "author": "jmenichole",
   "license": "UNLICENSED",
   "packageManager": "pnpm@10.29.1",
@@ -95,7 +95,15 @@
       "minimatch": ">=9.0.5",
       "hono": ">=4.12.0",
       "undici": ">=6.21.4",
-      "lodash": ">=4.17.21"
+      "lodash": ">=4.17.21",
+      "socket.io-parser": ">=4.2.6",
+      "fast-xml-parser": ">=5.5.7",
+      "flatted": ">=3.4.2",
+      "picomatch": ">=4.0.4",
+      "yaml": ">=2.8.3",
+      "smol-toml": ">=1.6.1",
+      "brace-expansion": ">=5.0.5",
+      "@eslint/plugin-kit": ">=0.3.5"
     },
     "onlyBuiltDependencies": [
       "esbuild",

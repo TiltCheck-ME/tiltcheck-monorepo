@@ -33,6 +33,7 @@ import { TokenSwapService } from './services/tipping/token-swap.js';
 import { TokenDepositMonitor } from './services/tipping/token-deposit-monitor.js';
 import { setCreditDeps } from './commands/tip.js';
 import { startLockVaultBackgroundTasks, stopLockVaultBackgroundTasks } from '@tiltcheck/lockvault';
+import { getUserBuddies } from '@tiltcheck/db';
 
 async function main() {
   const startTime = Date.now();
@@ -92,10 +93,30 @@ async function main() {
     try {
       const user = await client.users.fetch(userId);
       const prefix = severity === 'high' ? '🚨 [HIGH RISK]' : severity === 'medium' ? '⚠️ [ALPHA ALERT]' : 'ℹ️ [REALITY CHECK]';
+      
+      // Notify the User
       await user.send(`${prefix} TILTCHECK ALPHA AUDIT\n\n${message}\n\n*Don't get rinsed. SECURE THE BAG.*`);
       console.log(`[TiltAgent] Alpha signal sent to ${userId} (${severity})`);
+
+      // Notify Buddies (Accountability)
+      if (severity === 'high' || severity === 'medium') {
+          const buddies = await getUserBuddies(userId);
+          if (buddies && buddies.length > 0) {
+              const buddyMsg = `🚨 **BUDDY ALERT**: Your friend <@${userId}> is showing **${severity.toUpperCase()}** signs of tilt.\n\nTiltCheck Message Sent to Them:\n> ${message.substring(0, 500)}${message.length > 500 ? '...' : ''}\n\nCheck in on them. Friends don't let friends tilt-drain.`;
+              
+              for (const buddyRel of buddies) {
+                  try {
+                      const buddy = await client.users.fetch(buddyRel.buddy_id);
+                      await buddy.send(buddyMsg);
+                      console.log(`[Buddy] Alert sent to ${buddyRel.buddy_id} for user ${userId}`);
+                  } catch (e) {
+                      console.warn(`[Buddy] Failed to alert ${buddyRel.buddy_id}:`, e);
+                  }
+              }
+          }
+      }
     } catch (err) {
-      console.error(`[TiltAgent] Failed to DM user ${userId}:`, err);
+      console.error(`[TiltAgent] Failed to process intervention for ${userId}:`, err);
     }
   });
   console.log('[TiltAgent] Scan loop active\n');

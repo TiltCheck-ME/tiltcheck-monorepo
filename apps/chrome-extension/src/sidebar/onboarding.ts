@@ -14,13 +14,13 @@ export class OnboardingManager {
   private steps: OnboardingStep[] = [
     {
       targetId: 'site-mapper-btn',
-      title: 'AUDIT PROTOCOL SETUP',
-      body: 'Train the alpha on any house entry point to monitor shadow-nerfs and manipulation signals.'
+      title: 'SITE AUDIT SETUP',
+      body: 'Configure the tool on any house entry point to monitor for potential manipulation signals.'
     },
     {
       targetId: 'fairness-verifier-btn',
-      title: 'RNG DRIFT SNIFFER',
-      body: 'Verify real-time spin data against official RTPs. Put the house on blast if they nerf your run.'
+      title: 'VERIFICATION ENGINE',
+      body: 'Verify real-time spin data against official RTPs. Log any discrepancies immediately.'
     },
     {
       targetId: 'vault-btn',
@@ -29,8 +29,8 @@ export class OnboardingManager {
     },
     {
       targetId: 'buddy-mirror-btn',
-      title: 'LIQUIDITY PARTNER',
-      body: 'Connect an alpha peer to watch your floor and nuke impulsive entries in the arena.'
+      title: 'SQUAD MIRROR',
+      body: 'Connect a trusted peer to monitor your floor and help prevent impulsive entries.'
     }
   ];
 

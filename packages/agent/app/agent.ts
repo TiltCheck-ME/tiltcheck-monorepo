@@ -124,11 +124,51 @@ const getBonusStatus = new FunctionTool<typeof DiscordIdSchema>({
 });
 
 /**
+ * Schema for updating user preferences
+ */
+const UpdatePreferencesSchema = z.object({
+  discordId: z.string(),
+  email_notifications: z.boolean().optional(),
+  tilt_warnings: z.boolean().optional(),
+  trust_updates: z.boolean().optional(),
+  weekly_digest: z.boolean().optional(),
+});
+
+/**
+ * Tool to fetch user preferences
+ */
+const getUserPreferences = new FunctionTool<typeof DiscordIdSchema>({
+  name: 'get_user_preferences',
+  description: 'Fetches the user\'s ecosystem preferences including notification settings and tilt warning toggles.',
+  parameters: DiscordIdSchema,
+  execute: async ({ discordId }: DiscordIdParams) => {
+    if (!db.isConnected()) return "Database disconnected. Mock: Notifications ON, Warnings ON.";
+    const prefs = await db.getUserPreferences(discordId);
+    return prefs || "No preferences found. Defaulting to all notifications enabled.";
+  },
+});
+
+/**
+ * Tool to update user preferences via NLP
+ */
+const updateUserPreferences = new FunctionTool<typeof UpdatePreferencesSchema>({
+  name: 'update_user_preferences',
+  description: 'Updates user settings based on natural language commands. Supports toggling email notifications, tilt warnings, and digests.',
+  parameters: UpdatePreferencesSchema,
+  execute: async (params) => {
+    if (!db.isConnected()) return "Database disconnected. Could not save changes.";
+    const { discordId, ...prefs } = params;
+    const result = await db.updateUserPreferences(discordId, prefs);
+    return result ? "Preferences updated successfully." : "Failed to update preferences.";
+  },
+});
+
+/**
  * Degen Intelligence Agent
  */
 export const agent = new LlmAgent({
   name: 'tiltcheck_degen_intelligence',
-  description: 'Advanced AI assistant for the TiltCheck ecosystem. Analyzes degen stats, trust scores, and casino bonuses.',
+  description: 'Advanced AI assistant for the TiltCheck ecosystem. Analyzes degen stats, trust scores, casino bonuses, and manages account config.',
   model: new Gemini({
     model: 'gemini-1.5-flash',
   }),
@@ -138,9 +178,12 @@ export const agent = new LlmAgent({
                 - Use 'get_user_analytics' to answer questions about wins, losses, or volume.
                 - Use 'get_trust_standing' to explain why a user's trust score is high or low.
                 - Use 'get_bonus_status' when users ask about reloads or re-ups.
-                - Tone: Professional but "degen-friendly" (blunt, direct, no emojis unless specified in tool output).
-                - If data is missing, tell them to "get back in the trenches" (interact more with the bot).`,
-  tools: [getUserAnalytics, getTrustStanding, getBonusStatus],
+                - Use 'get_user_preferences' and 'update_user_preferences' to allow users to configure their account (e.g., "turn off email" or "stop warnings").
+                
+                Tone: Professional but "degen-friendly" (blunt, direct, no emojis unless specified in tool output).
+                Intervention: If you notice a user has a high tilt score, suggest they update their preferences to enable more aggressive 'tilt_warnings'.
+                If data is missing, tell them to "get back in the trenches" (interact more with the bot).`,
+  tools: [getUserAnalytics, getTrustStanding, getBonusStatus, getUserPreferences, updateUserPreferences],
 });
 
 /**
