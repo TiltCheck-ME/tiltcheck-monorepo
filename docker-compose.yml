@@ -8,19 +8,31 @@ services:
     deploy:
       resources:
         limits:
+          memory: 512M
+        reservations:
           memory: 256M
     env_file: .env
     environment:
+      - NODE_ENV=production
       - SKIP_ENV_VALIDATION=1
       - PORT=8081
-      - DISCORD_BOT_HEALTH_PORT=8081
+    volumes:
+      - discord-bot-data:/tmp
     networks:
       - tiltcheck-network
+    develop:
+      watch:
+        - path: ./apps/discord-bot/src
+          action: rebuild
+        - path: ./packages
+          action: rebuild
+        - path: ./modules
+          action: rebuild
 
   api:
     build:
       context: .
-      dockerfile: apps/api/Dockerfile
+      dockerfile: Dockerfile
     container_name: api
     ports:
       - "3001:3001"
@@ -28,18 +40,34 @@ services:
     deploy:
       resources:
         limits:
-          memory: 256M
+          memory: 1G
+        reservations:
+          memory: 512M
     env_file: .env
     environment:
+      - NODE_ENV=production
       - SKIP_ENV_VALIDATION=1
       - PORT=3001
     healthcheck:
-      test: [ "CMD", "wget", "-qO-", "http://localhost:3001/health" ]
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3001/health', (r) => {if (r.statusCode !== 200) throw new Error()})"]
       interval: 30s
       timeout: 10s
+      start_period: 10s
       retries: 3
+    volumes:
+      - api-data:/tmp
     networks:
       - tiltcheck-network
+    depends_on:
+      - discord-bot
+    develop:
+      watch:
+        - path: ./apps/api/src
+          action: rebuild
+        - path: ./packages
+          action: rebuild
+        - path: ./modules
+          action: rebuild
 
   control-room:
     build:
@@ -52,13 +80,28 @@ services:
     deploy:
       resources:
         limits:
+          memory: 512M
+        reservations:
           memory: 256M
     env_file: .env
     environment:
+      - NODE_ENV=production
       - SKIP_ENV_VALIDATION=1
       - PORT=3001
+    volumes:
+      - control-room-data:/tmp
     networks:
       - tiltcheck-network
+    depends_on:
+      - api
+    develop:
+      watch:
+        - path: ./apps/control-room/src
+          action: rebuild
+        - path: ./packages
+          action: rebuild
+        - path: ./modules
+          action: rebuild
 
   landing:
     build:
@@ -66,19 +109,27 @@ services:
       dockerfile: apps/web/Dockerfile
     container_name: landing
     ports:
-      - "8080:80"
+      - "80:80"
     restart: unless-stopped
     deploy:
       resources:
         limits:
+          memory: 256M
+        reservations:
           memory: 128M
     healthcheck:
-      test: [ "CMD-SHELL", "wget -qO- http://localhost:80/status.html || exit 0" ]
+      test: ["CMD-SHELL", "wget -qO- http://localhost/status.html || exit 0"]
       interval: 60s
       timeout: 5s
       retries: 3
     networks:
       - tiltcheck-network
+    develop:
+      watch:
+        - path: ./apps/web/src
+          action: rebuild
+        - path: ./packages
+          action: rebuild
 
   trust-rollup:
     build:
@@ -91,13 +142,28 @@ services:
     deploy:
       resources:
         limits:
+          memory: 512M
+        reservations:
           memory: 256M
     env_file: .env
     environment:
+      - NODE_ENV=production
       - SKIP_ENV_VALIDATION=1
       - PORT=8082
+    volumes:
+      - trust-rollup-data:/tmp
     networks:
       - tiltcheck-network
+    depends_on:
+      - api
+    develop:
+      watch:
+        - path: ./apps/trust-rollup/src
+          action: rebuild
+        - path: ./packages
+          action: rebuild
+        - path: ./modules
+          action: rebuild
 
   user-dashboard:
     build:
@@ -110,13 +176,28 @@ services:
     deploy:
       resources:
         limits:
+          memory: 512M
+        reservations:
           memory: 256M
     env_file: .env
     environment:
+      - NODE_ENV=production
       - SKIP_ENV_VALIDATION=1
       - PORT=6001
+    volumes:
+      - user-dashboard-data:/tmp
     networks:
       - tiltcheck-network
+    depends_on:
+      - api
+    develop:
+      watch:
+        - path: ./apps/user-dashboard/src
+          action: rebuild
+        - path: ./packages
+          action: rebuild
+        - path: ./modules
+          action: rebuild
 
   game-arena:
     build:
@@ -129,38 +210,37 @@ services:
     deploy:
       resources:
         limits:
+          memory: 512M
+        reservations:
           memory: 256M
     env_file: .env
     environment:
+      - NODE_ENV=production
       - SKIP_ENV_VALIDATION=1
       - PORT=3010
-    networks:
-      - tiltcheck-network
-
-  reverse-proxy:
-    build:
-      context: .
-      dockerfile: apps/reverse-proxy/Dockerfile
-    container_name: reverse-proxy
-    ports:
-      - "81:80"
-      - "444:443"
-    restart: unless-stopped
-    deploy:
-      resources:
-        limits:
-          memory: 128M
     volumes:
-      - /etc/letsencrypt:/etc/letsencrypt:ro
-      - /home/jme/certbot:/var/www/certbot:ro
-    depends_on:
-      - landing
-      - api
-      - user-dashboard
-      - game-arena
+      - game-arena-data:/tmp
     networks:
       - tiltcheck-network
+    depends_on:
+      - api
+    develop:
+      watch:
+        - path: ./apps/game-arena/src
+          action: rebuild
+        - path: ./packages
+          action: rebuild
+        - path: ./modules
+          action: rebuild
 
 networks:
   tiltcheck-network:
     driver: bridge
+
+volumes:
+  api-data:
+  control-room-data:
+  discord-bot-data:
+  trust-rollup-data:
+  user-dashboard-data:
+  game-arena-data:

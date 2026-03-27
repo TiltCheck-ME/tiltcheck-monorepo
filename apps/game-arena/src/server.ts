@@ -17,20 +17,16 @@
 import express from 'express';
 import { createServer } from 'http';
 import { Server as SocketIOServer } from 'socket.io';
-import session from 'express-session';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { RedisStore } from 'connect-redis';
-import { createClient } from 'redis';
-
 import { config, validateConfig } from './config.js';
 import { GameManager } from './game-manager.js';
 import { statsService } from './stats-service.js';
-import {
-  createAuthClient,
-  type SupabaseAuthClient,
-  type AuthUser,
-} from '@tiltcheck/supabase-auth';
+import { 
+  verifySessionCookie, 
+  type JWTConfig, 
+  type SessionData 
+} from '@tiltcheck/auth';
 import type {
   DiscordUser,
   ClientToServerEvents,
@@ -39,6 +35,8 @@ import type {
 } from './types.js';
 import { mapAuthUserToDiscordUser } from './types.js';
 import { justthetip } from '@tiltcheck/justthetip';
+import { triviaManager } from './trivia-manager.js';
+import { eventRouter } from '@tiltcheck/event-router';
 
 // ES module __dirname equivalent
 const __filename = fileURLToPath(import.meta.url);
@@ -51,10 +49,24 @@ validateConfig();
 const app = express();
 const httpServer = createServer(app);
 
+// Simple CORS middleware for development
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', config.isDev ? '*' : process.env.ALLOWED_ORIGINS || '');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, x-admin-token');
+  res.header('Access-Control-Allow-Credentials', 'true');
+  
+  if (req.method === 'OPTIONS') {
+    res.sendStatus(200);
+  } else {
+    next();
+  }
+});
+
 // Initialize Socket.IO
 const io = new SocketIOServer<ClientToServerEvents, ServerToClientEvents>(httpServer, {
   cors: {
-    origin: config.isDev ? '*' : process.env.ALLOWED_ORIGINS?.split(',') || [],
+    origin: config.isDev ? true : process.env.ALLOWED_ORIGINS?.split(',') || [],
     credentials: true,
   },
 });
@@ -65,142 +77,116 @@ const gameManager = new GameManager({
 });
 await gameManager.initialize();
 
+// Initialize trivia monetization
+const discordToken = process.env.TILT_DISCORD_BOT_TOKEN;
+const discordClientId = process.env.TILT_DISCORD_CLIENT_ID;
+if (discordToken && discordClientId) {
+  triviaManager.initializeShop(discordClientId, discordToken);
+}
+
 // Initialize stats service
 statsService.initialize().catch(err => {
   console.error('[Server] Failed to initialize stats service:', err);
 });
 
-// Initialize Supabase auth client (if configured)
-let authClient: SupabaseAuthClient | null = null;
-if (config.supabase.url && config.supabase.anonKey) {
-  authClient = createAuthClient({
-    supabaseUrl: config.supabase.url,
-    supabaseAnonKey: config.supabase.anonKey,
-    persistSession: false, // Server-side doesn't persist sessions
-  });
-  console.log('✅ Supabase auth client initialized');
-} else {
-  console.warn('⚠️  Supabase auth not configured - authentication will be disabled');
-}
+// Shared Auth Config
+const jwtConfig: JWTConfig = {
+  secret: process.env.JWT_SECRET || 'tiltcheck-user-secret-2024',
+  issuer: 'tiltcheck-api',
+  audience: 'tiltcheck-apps',
+};
 
 // Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, '../public')));
 
-// Session configuration (used to store auth tokens)
-let redisSessionClient: ReturnType<typeof createClient> | null = null;
-let sessionStore: session.Store | undefined;
-
-if (config.redis.url) {
+app.post('/admin/trivia/start', async (req, res) => {
   try {
-    redisSessionClient = createClient({ url: config.redis.url });
-    redisSessionClient.on('error', (error) => {
-      console.warn('[Session] Redis session client error:', error);
+    const { category, theme, rounds } = req.body;
+    await triviaManager.scheduleGame({
+      startTime: Date.now() + 5000, // Start in 5 seconds
+      category: category || 'general',
+      theme: theme || 'Random Degen Knowledge',
+      totalRounds: rounds || 12,
+      prizePool: 0
     });
-    await redisSessionClient.connect();
-    sessionStore = new RedisStore({
-      client: redisSessionClient,
-      prefix: 'arena:sess:',
-    });
-    console.log('✅ Redis session store enabled');
-  } catch (error) {
-    redisSessionClient = null;
-    console.warn('[Session] Redis unavailable, falling back to in-memory sessions:', error);
+    res.json({ success: true, message: 'Trivia game scheduled to start in 5s.' });
+  } catch (error: any) {
+    res.status(500).json({ success: false, error: error.message });
   }
-}
-
-const sessionMiddleware = session({
-  ...(sessionStore ? { store: sessionStore } : {}),
-  secret: config.session.secret,
-  resave: false,
-  saveUninitialized: false,
-  name: config.session.cookieName,
-  cookie: {
-    maxAge: config.session.maxAge,
-    httpOnly: true,
-    secure: !config.isDev,
-    sameSite: config.isDev ? 'lax' : 'strict',
-  },
 });
 
-app.use(sessionMiddleware);
+app.post('/admin/trivia/reset', (req, res) => {
+  triviaManager.endGame();
+  res.json({ success: true, message: 'Trivia manager reset.' });
+});
 
 // Extended session type
-declare module 'express-session' {
-  interface SessionData {
-    accessToken?: string;
-    refreshToken?: string;
-    user?: AuthUser;
-  }
-}
 
-// Authentication middleware - validates session token
+
+// Authentication middleware - validates shared ecosystem session cookie
 async function requireAuth(req: express.Request, res: express.Response, next: express.NextFunction): Promise<void> {
-  // Check if user is stored in session
-  if (req.session.user && req.session.accessToken) {
-    req.user = req.session.user;
-    return next();
-  }
+  const cookieHeader = req.headers.cookie;
   
-  // Check for Bearer token in Authorization header
-  const authHeader = req.headers.authorization;
-  if (authHeader && authHeader.startsWith('Bearer ') && authClient) {
-    const token = authHeader.substring(7);
-    try {
-      // Set the session and get user
-      const { data: sessionData, error: sessionError } = await authClient.setSession(
-        token,
-        req.session.refreshToken || ''
-      );
-      
-      if (sessionError || !sessionData) {
-        res.status(401).json({ error: 'Invalid or expired token' });
-        return;
-      }
-      
-      req.user = sessionData.user;
+  try {
+    const result = await verifySessionCookie(cookieHeader, jwtConfig);
+    if (result.valid && result.session) {
+      req.user = result.session;
       return next();
-    } catch {
-      res.status(401).json({ error: 'Authentication failed' });
-      return;
     }
+    
+    // Fallback for API calls vs page loads
+    if (req.path.startsWith('/api/')) {
+      res.status(401).json({ error: 'Authentication required', code: 'UNAUTHORIZED' });
+    } else {
+      res.redirect('/auth/discord');
+    }
+  } catch (err) {
+    console.error('[Auth] requireAuth error:', err);
+    res.status(500).json({ error: 'Internal auth error' });
   }
-  
-  res.status(401).json({ error: 'Authentication required' });
 }
 
 // Optional auth middleware - attaches user if available
 async function optionalAuth(req: express.Request, _res: express.Response, next: express.NextFunction): Promise<void> {
-  if (req.session.user) {
-    req.user = req.session.user;
+  const cookieHeader = req.headers.cookie;
+  try {
+    const result = await verifySessionCookie(cookieHeader, jwtConfig);
+    if (result.valid && result.session) {
+      req.user = result.session;
+    }
+  } catch (_err) {
+    console.warn('[Auth] optionalAuth check failed (non-critical)');
   }
   next();
 }
 
 function requireAdmin(req: express.Request, res: express.Response, next: express.NextFunction): void {
-  if (config.isDev) {
-    next();
-    return;
-  }
-
   const configuredToken = config.admin.statusToken;
-  if (!configuredToken) {
-    res.status(503).json({ error: 'Admin status endpoint is not configured' });
-    return;
-  }
+  if (!configuredToken) return next(); // Bypass if not set
 
   const providedToken = req.headers['x-admin-token'];
   if (typeof providedToken !== 'string' || providedToken !== configuredToken) {
     res.status(403).json({ error: 'Admin token required' });
     return;
   }
-
   next();
 }
 
-// Share session with Socket.IO
-io.engine.use(sessionMiddleware as any);
+// Socket.IO Auth Middleware
+io.use(async (socket, next) => {
+  const cookieHeader = socket.handshake.headers.cookie;
+  try {
+    const result = await verifySessionCookie(cookieHeader, jwtConfig);
+    if (result.valid && result.session) {
+      (socket as any).user = result.session;
+    }
+    next();
+  } catch (err) {
+    next(); // Allow anonymous lobby viewing
+  }
+});
 
 // Routes
 
@@ -210,7 +196,23 @@ app.get('/health', (_req, res) => {
     status: 'ok',
     uptime: process.uptime(),
     timestamp: Date.now(),
-    auth: authClient ? 'enabled' : 'disabled',
+  });
+});
+
+// Admin status for dashboard
+app.get('/admin/status', requireAdmin, (_req, res) => {
+  res.json({
+    status: 'ok',
+    services: [
+      { name: 'Game Arena', status: 'online', port: config.port },
+      { name: 'Trivia Manager', status: triviaManager.isActive() ? 'active' : 'idle' },
+      { name: 'Event Router', status: 'online' }
+    ],
+    metrics: {
+      uptime: process.uptime(),
+      requests: 0,
+      activeGames: gameManager.getGameCount()
+    }
   });
 });
 
@@ -233,103 +235,23 @@ app.get('/game/:gameId', requireAuth, (_req, res) => {
   res.sendFile(path.join(__dirname, '../public/game.html'));
 });
 
-// Auth routes using Supabase Discord OAuth
-if (authClient) {
-  // Initiate Discord OAuth via Supabase
-  app.get('/auth/discord', async (_req, res) => {
-    try {
-      const { data, error } = await authClient!.signInWithOAuth({
-        provider: 'discord',
-        options: {
-          scopes: 'identify email',
-          redirectTo: config.auth.redirectUrl,
-          skipBrowserRedirect: true,
-        },
-      });
+// Auth routes (Unified with Ecosystem API)
+app.get('/auth/discord', (req, res) => {
+  const redirectBase = config.isDev ? 'http://localhost:3000' : 'https://api.tiltcheck.me';
+  const myUrl = config.isDev ? `http://localhost:${config.port}/arena` : 'https://arena.tiltcheck.me/arena';
+  res.redirect(`${redirectBase}/auth/discord/login?source=web&redirect=${encodeURIComponent(myUrl)}`);
+});
 
-      if (error || !data?.url) {
-        console.error('[Auth] Failed to get OAuth URL:', error);
-        res.redirect(config.auth.failureUrl);
-        return;
-      }
+// Compatibility callback
+app.get('/auth/callback', (req, res) => {
+  res.redirect('/arena');
+});
 
-      // Redirect user to Discord OAuth page via Supabase
-      res.redirect(data.url);
-    } catch (err) {
-      console.error('[Auth] OAuth error:', err);
-      res.redirect(config.auth.failureUrl);
-    }
-  });
-
-  // OAuth callback - exchange code for session
-  app.get('/auth/callback', async (req, res) => {
-    const { code, error: oauthError } = req.query;
-
-    if (oauthError) {
-      console.error('[Auth] OAuth error from provider:', oauthError);
-      res.redirect(config.auth.failureUrl);
-      return;
-    }
-
-    if (!code || typeof code !== 'string') {
-      console.error('[Auth] No code received');
-      res.redirect(config.auth.failureUrl);
-      return;
-    }
-
-    try {
-      // Exchange code for session
-      const { data: sessionData, error: exchangeError } = await authClient!.exchangeCodeForSession(code);
-
-      if (exchangeError || !sessionData) {
-        console.error('[Auth] Code exchange failed:', exchangeError);
-        res.redirect(config.auth.failureUrl);
-        return;
-      }
-
-      // Store session in express session
-      req.session.accessToken = sessionData.accessToken;
-      req.session.refreshToken = sessionData.refreshToken;
-      req.session.user = sessionData.user;
-
-      console.log(`✅ User authenticated: ${sessionData.user.discordUsername || sessionData.user.email}`);
-      
-      // Redirect to arena
-      res.redirect('/arena');
-    } catch (err) {
-      console.error('[Auth] Callback error:', err);
-      res.redirect(config.auth.failureUrl);
-    }
-  });
-
-  // Logout
-  app.get('/auth/logout', async (req, res) => {
-    try {
-      if (authClient && req.session.accessToken) {
-        await authClient.signOut();
-      }
-    } catch (err) {
-      console.error('[Auth] Logout error:', err);
-    }
-
-    req.session.destroy((err) => {
-      if (err) {
-        console.error('[Auth] Session destroy error:', err);
-      }
-      res.redirect('/');
-    });
-  });
-} else {
-  console.warn('⚠️  Supabase auth not configured - authentication endpoints disabled');
-  
-  // Provide helpful error messages
-  app.get('/auth/discord', (_req, res) => {
-    res.status(503).json({
-      error: 'Authentication not configured',
-      message: 'Set SUPABASE_URL and SUPABASE_ANON_KEY environment variables to enable authentication',
-    });
-  });
-}
+// Ecosystem Logout (Clears shared cookie)
+app.get('/auth/logout', (_req, res) => {
+  res.clearCookie('tiltcheck_session', { domain: '.tiltcheck.me' });
+  res.redirect('/');
+});
 
 // API routes
 
@@ -446,21 +368,21 @@ app.get('/api/admin/persistence-status', requireAuth, requireAdmin, async (_req,
 // JustTheTip API routes
 
 // Get tip history for authenticated user
-app.get('/api/tips', requireAuth, (req, res) => {
+app.get('/api/tips', requireAuth, async (req, res) => {
   try {
     const user = req.user!;
     const discordUser = mapAuthUserToDiscordUser(user);
-    const tips = justthetip.getTipsForUser(discordUser.id);
+    const tips = await justthetip.getTipsForUser(discordUser.id);
     
     // Format tips for client
     const formattedTips = tips.map(tip => ({
       id: tip.id,
-      type: tip.senderId === discordUser.id ? 'sent' : 'received',
-      amount: tip.solAmount || 0,
-      usdAmount: tip.usdAmount || 0,
-      otherUser: tip.senderId === discordUser.id ? tip.recipientId : tip.senderId,
+      type: tip.sender_id === discordUser.id ? 'sent' : 'received',
+      amount: tip.amount || 0,
+      usdAmount: 0, // Not stored in DB currently
+      otherUser: tip.sender_id === discordUser.id ? tip.recipient_discord_id : tip.sender_id,
       status: tip.status,
-      timestamp: new Date(tip.createdAt).toISOString(),
+      timestamp: tip.created_at.toISOString(),
     }));
 
     res.json({ tips: formattedTips });
@@ -471,19 +393,19 @@ app.get('/api/tips', requireAuth, (req, res) => {
 });
 
 // Get pending tips for authenticated user
-app.get('/api/tips/pending', requireAuth, (req, res) => {
+app.get('/api/tips/pending', requireAuth, async (req, res) => {
   try {
     const user = req.user!;
     const discordUser = mapAuthUserToDiscordUser(user);
-    const pendingTips = justthetip.getPendingTipsForUser(discordUser.id);
+    const pendingTips = await justthetip.getPendingTipsForUser(discordUser.id);
     
     // Format pending tips for client
     const formattedTips = pendingTips.map(tip => ({
       id: tip.id,
-      senderId: tip.senderId,
-      amount: tip.solAmount || 0,
-      usdAmount: tip.usdAmount || 0,
-      timestamp: new Date(tip.createdAt).toISOString(),
+      senderId: tip.sender_id,
+      amount: tip.amount || 0,
+      usdAmount: 0,
+      timestamp: tip.created_at.toISOString(),
       status: tip.status,
     }));
 
@@ -495,11 +417,11 @@ app.get('/api/tips/pending', requireAuth, (req, res) => {
 });
 
 // Get user's wallet status
-app.get('/api/tips/wallet', requireAuth, (req, res) => {
+app.get('/api/tips/wallet', requireAuth, async (req, res) => {
   try {
     const user = req.user!;
     const discordUser = mapAuthUserToDiscordUser(user);
-    const wallet = justthetip.getWallet(discordUser.id);
+    const wallet = await justthetip.getWallet(discordUser.id);
     
     if (wallet) {
       res.json({
@@ -518,11 +440,11 @@ app.get('/api/tips/wallet', requireAuth, (req, res) => {
 });
 
 // Get transaction history with receipts
-app.get('/api/tips/history', requireAuth, (req, res) => {
+app.get('/api/tips/history', requireAuth, async (req, res) => {
   try {
     const user = req.user!;
     const discordUser = mapAuthUserToDiscordUser(user);
-    const history = justthetip.getTransactionHistory(discordUser.id);
+    const history = await justthetip.getTransactionHistory(discordUser.id);
     
     res.json({ history });
   } catch (error: any) {
@@ -533,9 +455,8 @@ app.get('/api/tips/history', requireAuth, (req, res) => {
 
 // WebSocket handling
 io.on('connection', (socket) => {
-  const session = (socket.request as any).session;
-  const authUser: AuthUser | undefined = session?.user;
-  const user: DiscordUser | null = authUser ? mapAuthUserToDiscordUser(authUser) : null;
+  const sessionUser: SessionData | undefined = (socket as any).user;
+  const user: DiscordUser | null = sessionUser ? mapAuthUserToDiscordUser(sessionUser) : null;
   console.log(user ? `✅ User connected: ${user.username} (${user.id})` : '👀 Anonymous lobby watcher connected');
 
   // Join lobby
@@ -689,7 +610,83 @@ io.on('connection', (socket) => {
       playersOnline: gameManager.getOnlinePlayerCount(),
     });
   });
+
+  // ============================================================================
+  // Trivia Game Handlers
+  // ============================================================================
+
+  socket.on('submit-trivia-answer', (data: { questionId: string; answer: string }) => {
+    if (!user) return;
+    triviaManager.submitAnswer(user.id, data.answer);
+  });
+
+  socket.on('request-ape-in', async (data: { gameId: string; questionId: string }) => {
+    if (!user) return;
+    const result = await triviaManager.requestApeIn(user.id);
+    if (result.success) {
+      socket.emit('trivia-ape-in-result', { questionId: data.questionId, distribution: result.stats! });
+    } else {
+      socket.emit('game-error', result.message || 'Hint request failed');
+    }
+  });
+
+  socket.on('request-shield', async (data: { gameId: string; questionId: string }) => {
+    if (!user) return;
+    const result = await triviaManager.requestShield(user.id);
+    if (result.success) {
+      socket.emit('trivia-shield-result', { 
+        questionId: data.questionId, 
+        eliminated: result.eliminated! 
+      });
+    } else {
+      socket.emit('game-error', result.message || 'Shield request failed');
+    }
+  });
+
+  socket.on('buy-back', async (data: { gameId: string }) => {
+    if (!user) return;
+    const result = await triviaManager.processBuyBack(user.id);
+    if (result.success) {
+      socket.emit('game-update', { type: 'buy-back-success', userId: user.id });
+    } else {
+      socket.emit('game-error', result.message || 'Buy-back failed');
+    }
+  });
 });
+
+// ============================================================================
+// Global Trivia Event Broadcaster
+// ============================================================================
+
+// Listen for trivia events from the manager (via eventRouter) and push to all clients
+eventRouter.subscribe('trivia.started', (event) => {
+  io.emit('chat-message', {
+    userId: 'system',
+    username: 'TiltLive',
+    message: `📢 LIVESTREAM STARTED: ${event.data.theme || event.data.category} Trivia is LIVE!`,
+    timestamp: Date.now(),
+  });
+  io.emit('game-update', { type: 'trivia-started', ...event.data });
+}, 'game-arena');
+
+eventRouter.subscribe('trivia.round.start', (event) => {
+  io.emit('trivia-round-start', event.data);
+}, 'game-arena');
+
+eventRouter.subscribe('trivia.round.reveal', (event) => {
+  io.emit('trivia-round-reveal', event.data);
+}, 'game-arena');
+
+eventRouter.subscribe('trivia.completed', (event) => {
+  const winnerList = event.data.winners.map((w) => w.username).join(', ');
+  io.emit('chat-message', {
+    userId: 'system',
+    username: 'TiltLive',
+    message: `🏆 GAME OVER! Winners: ${winnerList || 'No one survived the trenches.'}`,
+    timestamp: Date.now(),
+  });
+  io.emit('game-update', { type: 'trivia-completed', ...event.data });
+}, 'game-arena');
 
 // Cleanup interval (every 5 minutes)
 setInterval(() => {
@@ -700,20 +697,16 @@ setInterval(() => {
 process.on('SIGTERM', async () => {
   console.log('SIGTERM received, closing gracefully...');
   await gameManager.shutdown();
-  if (redisSessionClient) {
-    await redisSessionClient.quit();
-  }
   io.close();
   httpServer.close();
   process.exit(0);
 });
 
 // Start server
-httpServer.listen(config.port, () => {
-  console.log(`🎮 Game Arena server running on port ${config.port}`);
+httpServer.listen(config.port, '0.0.0.0', () => {
+  console.log(`🎮 Game Arena server running on port ${config.port} (0.0.0.0)`);
   console.log(`🌍 Environment: ${config.nodeEnv}`);
-  console.log(`🔐 Supabase Auth: ${authClient ? 'Enabled' : 'Disabled'}`);
-  console.log(`🔗 Auth Redirect: ${config.auth.redirectUrl}`);
+  console.log(`🔐 Ecosystem Auth: Shared (.tiltcheck.me)`);
 });
 
 export { app, httpServer, io };

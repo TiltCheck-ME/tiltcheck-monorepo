@@ -22,7 +22,103 @@ import type {
   PaginatedResult,
   UserOnboarding,
   UpsertOnboardingPayload,
+  Partner,
+  CreatePartnerPayload,
+  Webhook,
+  CreateWebhookPayload,
+  WebhookDelivery,
+  TrustSignal,
+  UserTrustSummary,
+  CreateTrustSignalPayload,
+  BlogPost,
+  CreateBlogPostPayload,
+  UserBuddy,
+  BuddyAlertThresholds,
 } from './types.js';
+
+/**
+ * Validates sorting parameters to prevent SQL injection
+ */
+function validateSort(
+  column: string,
+  allowedColumns: string[],
+  direction: string = 'desc'
+): { orderBy: string; orderDir: 'ASC' | 'DESC' } {
+  const orderBy = allowedColumns.includes(column) ? column : allowedColumns[0];
+  const orderDir = direction.toUpperCase() === 'ASC' ? 'ASC' : 'DESC';
+  return { orderBy, orderDir };
+}
+
+// ============================================================================
+// Blog Queries
+// ============================================================================
+
+/**
+ * Get all published blog posts with pagination
+ */
+export async function getBlogPosts(
+  pagination?: PaginationParams
+): Promise<PaginatedResult<BlogPost>> {
+  const { limit = 10, offset = 0 } = pagination || {};
+  const { orderBy, orderDir } = validateSort(
+    pagination?.orderBy || 'created_at',
+    ['created_at', 'title', 'status'],
+    pagination?.orderDir
+  );
+
+  const sql = `
+    SELECT * FROM blog_posts 
+    WHERE status = 'published'
+    ORDER BY ${orderBy} ${orderDir}
+    LIMIT $1 OFFSET $2
+  `;
+
+  const countSql = "SELECT COUNT(*) as count FROM blog_posts WHERE status = 'published'";
+
+  const [rows, countResult] = await Promise.all([
+    query<BlogPost>(sql, [limit, offset]),
+    queryOne<{ count: string }>(countSql),
+  ]);
+
+  const total = parseInt(countResult?.count ?? '0', 10);
+
+  return {
+    rows,
+    total,
+    limit,
+    offset,
+    hasMore: offset + rows.length < total,
+  };
+}
+
+/**
+ * Get a single blog post by slug
+ */
+export async function getBlogPostBySlug(slug: string): Promise<BlogPost | null> {
+  return findOneBy<BlogPost>('blog_posts', 'slug', slug);
+}
+
+/**
+ * Create a new blog post
+ */
+export async function createBlogPost(payload: CreateBlogPostPayload): Promise<BlogPost | null> {
+  return insert<BlogPost>('blog_posts', {
+    ...payload,
+    author: payload.author || 'TiltCheck AI',
+    status: payload.status || 'published',
+    created_at: new Date(),
+    updated_at: new Date(),
+  });
+}
+
+/**
+ * Get the most recent blog post
+ */
+export async function getLatestBlogPost(): Promise<BlogPost | null> {
+  const sql = "SELECT * FROM blog_posts ORDER BY created_at DESC LIMIT 1";
+  return queryOne<BlogPost>(sql);
+}
+
 
 // ============================================================================
 // User Queries
@@ -42,19 +138,21 @@ export async function upsertOnboarding(payload: UpsertOnboardingPayload): Promis
   const sql = `
     INSERT INTO user_onboarding (
       discord_id, is_onboarded, has_accepted_terms, risk_level, 
-      cooldown_enabled, daily_limit, notifications_tips, 
-      notifications_trivia, notifications_promos, updated_at
+      cooldown_enabled, daily_limit, quiz_scores, tutorial_completed,
+      notifications_tips, notifications_trivia, notifications_promos, updated_at
     ) 
-    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW())
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, NOW())
     ON CONFLICT (discord_id) DO UPDATE SET
       is_onboarded = COALESCE($2, user_onboarding.is_onboarded),
       has_accepted_terms = COALESCE($3, user_onboarding.has_accepted_terms),
       risk_level = COALESCE($4, user_onboarding.risk_level),
       cooldown_enabled = COALESCE($5, user_onboarding.cooldown_enabled),
       daily_limit = COALESCE($6, user_onboarding.daily_limit),
-      notifications_tips = COALESCE($7, user_onboarding.notifications_tips),
-      notifications_trivia = COALESCE($8, user_onboarding.notifications_trivia),
-      notifications_promos = COALESCE($9, user_onboarding.notifications_promos),
+      quiz_scores = COALESCE($7, user_onboarding.quiz_scores),
+      tutorial_completed = COALESCE($8, user_onboarding.tutorial_completed),
+      notifications_tips = COALESCE($9, user_onboarding.notifications_tips),
+      notifications_trivia = COALESCE($10, user_onboarding.notifications_trivia),
+      notifications_promos = COALESCE($11, user_onboarding.notifications_promos),
       updated_at = NOW()
     RETURNING *
   `;
@@ -66,6 +164,8 @@ export async function upsertOnboarding(payload: UpsertOnboardingPayload): Promis
     payload.risk_level ?? null,
     payload.cooldown_enabled ?? null,
     payload.daily_limit ?? null,
+    payload.quiz_scores ?? null,
+    payload.tutorial_completed ?? null,
     payload.notifications_tips ?? null,
     payload.notifications_trivia ?? null,
     payload.notifications_promos ?? null,
@@ -349,7 +449,12 @@ export async function getTipsBySender(
   senderId: string,
   pagination?: PaginationParams
 ): Promise<PaginatedResult<Tip>> {
-  const { limit = 20, offset = 0, orderBy = 'created_at', orderDir = 'desc' } = pagination || {};
+  const { limit = 20, offset = 0 } = pagination || {};
+  const { orderBy, orderDir } = validateSort(
+    pagination?.orderBy || 'created_at',
+    ['created_at', 'amount_sol', 'status'],
+    pagination?.orderDir
+  );
 
   const sql = `
     SELECT * FROM tips 
@@ -383,7 +488,12 @@ export async function getTipsByRecipient(
   recipientDiscordId: string,
   pagination?: PaginationParams
 ): Promise<PaginatedResult<Tip>> {
-  const { limit = 20, offset = 0, orderBy = 'created_at', orderDir = 'desc' } = pagination || {};
+  const { limit = 20, offset = 0 } = pagination || {};
+  const { orderBy, orderDir } = validateSort(
+    pagination?.orderBy || 'created_at',
+    ['created_at', 'amount_sol', 'status'],
+    pagination?.orderDir
+  );
 
   const sql = `
     SELECT * FROM tips 
@@ -441,7 +551,12 @@ export async function findCasinoByDomain(domain: string): Promise<Casino | null>
 export async function getCasinos(
   pagination?: PaginationParams
 ): Promise<PaginatedResult<Casino>> {
-  const { limit = 20, offset = 0, orderBy = 'name', orderDir = 'asc' } = pagination || {};
+  const { limit = 20, offset = 0 } = pagination || {};
+  const { orderBy, orderDir } = validateSort(
+    pagination?.orderBy || 'name',
+    ['name', 'grade', 'domain', 'created_at'],
+    pagination?.orderDir
+  );
 
   const sql = `
     SELECT * FROM casinos 
@@ -516,7 +631,12 @@ export async function getAuditLogsByAdmin(
   adminId: string,
   pagination?: PaginationParams
 ): Promise<PaginatedResult<AuditLog>> {
-  const { limit = 50, offset = 0, orderBy = 'created_at', orderDir = 'desc' } = pagination || {};
+  const { limit = 50, offset = 0 } = pagination || {};
+  const { orderBy, orderDir } = validateSort(
+    pagination?.orderBy || 'created_at',
+    ['created_at', 'action_type', 'admin_id'],
+    pagination?.orderDir
+  );
 
   const sql = `
     SELECT * FROM audit_logs 
@@ -541,4 +661,219 @@ export async function getAuditLogsByAdmin(
     offset,
     hasMore: offset + rows.length < total,
   };
+}
+
+// ============================================================================
+// Partner & Webhook Queries
+// ============================================================================
+
+/**
+ * Find partner by app ID
+ */
+export async function findPartnerByAppId(appId: string): Promise<Partner | null> {
+  return findOneBy<Partner>('partners', 'app_id', appId);
+}
+
+/**
+ * Find partner by ID
+ */
+export async function findPartnerById(id: string): Promise<Partner | null> {
+  return findById<Partner>('partners', id);
+}
+
+/**
+ * Create a new partner
+ */
+export async function createPartner(payload: CreatePartnerPayload): Promise<Partner | null> {
+  return insert<Partner>('partners', {
+    ...payload,
+    is_active: true,
+    created_at: new Date(),
+    updated_at: new Date(),
+  });
+}
+
+/**
+ * Create a webhook for a partner
+ */
+export async function createWebhook(payload: CreateWebhookPayload): Promise<Webhook | null> {
+  return insert<Webhook>('webhooks', {
+    ...payload,
+    is_active: true,
+    created_at: new Date(),
+    updated_at: new Date(),
+  });
+}
+
+/**
+ * Find active webhooks for a specific event type
+ */
+export async function findActiveWebhooksByEvent(eventType: string): Promise<Webhook[]> {
+  const sql = `
+    SELECT * FROM webhooks 
+    WHERE is_active = true 
+    AND $1 = ANY(events)
+  `;
+  return query<Webhook>(sql, [eventType]);
+}
+
+/**
+ * Log a webhook delivery attempt
+ */
+export async function logWebhookDelivery(delivery: Omit<WebhookDelivery, 'id' | 'created_at'>): Promise<WebhookDelivery | null> {
+  return insert<WebhookDelivery>('webhook_deliveries', {
+    ...delivery,
+    created_at: new Date(),
+  });
+}
+
+// ============================================================================
+// Identity & Trust Queries
+// ============================================================================
+
+/**
+ * Get aggregated trust summary for a Discord ID across all known origins
+ */
+export async function getAggregatedTrustByDiscordId(discordId: string): Promise<UserTrustSummary> {
+  const sql = `
+    SELECT 
+      discord_id,
+      SUM(delta) as total_score,
+      COUNT(*) as signals_count,
+      COUNT(DISTINCT origin_id) as origins_count,
+      MAX(created_at) as last_activity
+    FROM trust_signals
+    WHERE discord_id = $1
+    GROUP BY discord_id
+  `;
+
+  const result = await queryOne<{
+    total_score: string;
+    signals_count: string;
+    origins_count: string;
+    last_activity: string | Date;
+  }>(sql, [discordId]);
+
+  // Base score 100, capped at 0-1000
+  const baseScore = 100;
+  const totalDelta = parseInt(result?.total_score ?? '0', 10);
+  const finalScore = Math.max(0, Math.min(1000, baseScore + totalDelta));
+
+  return {
+    discord_id: discordId,
+    total_score: finalScore,
+    signals_count: parseInt(result?.signals_count ?? '0', 10),
+    origins_count: parseInt(result?.origins_count ?? '0', 10),
+    top_risk_factors: [],
+    last_activity: result?.last_activity ? new Date(result.last_activity) : null,
+  };
+}
+
+/**
+ * Log a new trust signal
+ */
+export async function logTrustSignal(payload: CreateTrustSignalPayload): Promise<TrustSignal | null> {
+  return insert<TrustSignal>('trust_signals', {
+    ...payload,
+    created_at: new Date(),
+  });
+}
+
+// ============================================================================
+// Buddy & Accountability Queries
+// ============================================================================
+
+/**
+ * Send a buddy request
+ */
+export async function sendBuddyRequest(
+  userId: string,
+  buddyId: string,
+  thresholds?: BuddyAlertThresholds
+): Promise<UserBuddy | null> {
+  return insert<UserBuddy>('user_buddies', {
+    user_id: userId,
+    buddy_id: buddyId,
+    status: 'pending',
+    alert_thresholds: thresholds || {
+      tilt_score_exceeds: 80,
+      losses_in_24h_sol: 5.0,
+      zero_balance_reached: true,
+    },
+    created_at: new Date(),
+    updated_at: new Date(),
+  });
+}
+
+/**
+ * Accept a pending buddy request
+ */
+export async function acceptBuddyRequest(requestId: string): Promise<UserBuddy | null> {
+  return update<UserBuddy>('user_buddies', requestId, {
+    status: 'accepted',
+    updated_at: new Date(),
+  });
+}
+
+/**
+ * Get buddies for a user (accountability partners watching the user)
+ */
+export async function getUserBuddies(userId: string): Promise<UserBuddy[]> {
+  const sql = `
+    SELECT * FROM user_buddies 
+    WHERE user_id = $1 AND status = 'accepted'
+  `;
+  return query<UserBuddy>(sql, [userId]);
+}
+
+/**
+ * Get users that this user is watching (user is the buddy)
+ */
+export async function getAccountabilityPartners(buddyId: string): Promise<UserBuddy[]> {
+  const sql = `
+    SELECT * FROM user_buddies 
+    WHERE buddy_id = $1 AND status = 'accepted'
+  `;
+  return query<UserBuddy>(sql, [buddyId]);
+}
+
+/**
+ * Get pending buddy requests for a user
+ */
+export async function getPendingBuddyRequests(userId: string): Promise<UserBuddy[]> {
+  const sql = `
+    SELECT * FROM user_buddies 
+    WHERE buddy_id = $1 AND status = 'pending'
+  `;
+  return query<UserBuddy>(sql, [userId]);
+}
+
+/**
+ * Update buddy alert thresholds
+ */
+export async function updateBuddyThresholds(
+  userId: string,
+  buddyId: string,
+  thresholds: BuddyAlertThresholds
+): Promise<UserBuddy | null> {
+  const sql = `
+    UPDATE user_buddies 
+    SET alert_thresholds = $3, updated_at = NOW()
+    WHERE user_id = $1 AND buddy_id = $2
+    RETURNING *
+  `;
+  const result = await query<UserBuddy>(sql, [userId, buddyId, JSON.stringify(thresholds)]);
+  return result[0] || null;
+}
+
+/**
+ * Remove a buddy relationship
+ */
+export async function removeBuddy(userId: string, buddyId: string): Promise<boolean> {
+  const sql = `
+    DELETE FROM user_buddies 
+    WHERE (user_id = $1 AND buddy_id = $2) OR (user_id = $2 AND buddy_id = $1)
+  `;
+  await query(sql, [userId, buddyId]);
+  return true;
 }

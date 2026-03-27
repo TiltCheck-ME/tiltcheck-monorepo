@@ -8,7 +8,7 @@
 import type { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import { findUserById } from '@tiltcheck/db';
-import type { JWTConfig } from '@tiltcheck/auth';
+import { verifySessionCookie, type JWTConfig } from '@tiltcheck/auth';
 
 /**
  * Get unified JWT configuration
@@ -33,6 +33,8 @@ export interface JWTPayload {
   userId: string;
   email: string;
   roles: string[];
+  discordId?: string;
+  walletAddress?: string;
   iat?: number;
   exp?: number;
 }
@@ -45,6 +47,8 @@ export interface AuthRequest extends Request {
     id: string;
     email: string;
     roles: string[];
+    discordId?: string;
+    walletAddress?: string;
   };
 }
 
@@ -57,6 +61,23 @@ function getJWTSecret(): string {
     throw new Error('JWT_SECRET environment variable is required');
   }
   return secret;
+}
+
+async function getSessionUser(req: Request): Promise<AuthRequest['user'] | null> {
+  try {
+    const cookieHeader = req.headers.cookie;
+    const jwtConfig = getJWTConfig();
+    const result = await verifySessionCookie(cookieHeader, jwtConfig);
+    if (!result.valid || !result.session) return null;
+    const session = result.session;
+    return {
+      id: session.userId,
+      email: `${session.userId}@session.local`,
+      roles: Array.isArray(session.roles) ? session.roles : [],
+    };
+  } catch {
+    return null;
+  }
 }
 
 /**
@@ -72,9 +93,15 @@ export async function authMiddleware(
     const authHeader = req.headers.authorization;
     
     if (!authHeader) {
-      res.status(401).json({ 
-        error: 'No authorization header', 
-        code: 'UNAUTHORIZED' 
+      const sessionUser = await getSessionUser(req);
+      if (sessionUser) {
+        (req as AuthRequest).user = sessionUser;
+        next();
+        return;
+      }
+      res.status(401).json({
+        error: 'No authorization header',
+        code: 'UNAUTHORIZED'
       });
       return;
     }
@@ -97,17 +124,25 @@ export async function authMiddleware(
     try {
       payload = jwt.verify(token, secret) as JWTPayload;
     } catch (err) {
+      if (err instanceof jwt.TokenExpiredError || err instanceof jwt.JsonWebTokenError) {
+        const sessionUser = await getSessionUser(req);
+        if (sessionUser) {
+          (req as AuthRequest).user = sessionUser;
+          next();
+          return;
+        }
+      }
       if (err instanceof jwt.TokenExpiredError) {
-        res.status(401).json({ 
-          error: 'Token expired', 
-          code: 'TOKEN_EXPIRED' 
+        res.status(401).json({
+          error: 'Token expired',
+          code: 'TOKEN_EXPIRED'
         });
         return;
       }
       if (err instanceof jwt.JsonWebTokenError) {
-        res.status(401).json({ 
-          error: 'Invalid token', 
-          code: 'INVALID_TOKEN' 
+        res.status(401).json({
+          error: 'Invalid token',
+          code: 'INVALID_TOKEN'
         });
         return;
       }
@@ -129,6 +164,8 @@ export async function authMiddleware(
       id: user.id,
       email: user.email || payload.email,
       roles: user.roles,
+      discordId: user.discord_id || payload.discordId,
+      walletAddress: user.wallet_address || payload.walletAddress,
     };
     
     next();
@@ -159,4 +196,38 @@ export async function optionalAuthMiddleware(
   
   // If header exists, validate it
   await authMiddleware(req, res, next);
+}
+/**
+ * Middleware for internal service-to-service authentication
+ * Compares Bearer token against INTERNAL_API_SECRET
+ */
+export function internalServiceAuth(
+  req: Request,
+  res: Response,
+  next: NextFunction
+): void {
+  const secret = process.env.INTERNAL_API_SECRET;
+  
+  if (!secret) {
+    if (process.env.NODE_ENV !== 'production') {
+       next(); // Skip in dev if not set
+       return;
+    }
+    res.status(503).json({ error: 'Internal auth unconfigured' });
+    return;
+  }
+
+  const authHeader = req.headers.authorization;
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    res.status(401).json({ error: 'Bearer token required' });
+    return;
+  }
+
+  const token = authHeader.substring(7);
+  if (token !== secret) {
+    res.status(403).json({ error: 'Forbidden' });
+    return;
+  }
+
+  next();
 }

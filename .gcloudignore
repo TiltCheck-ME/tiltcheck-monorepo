@@ -1,6 +1,10 @@
-.git
-.github
+# .gcloudignore
+# Exclude local dependencies and build artifacts to speed up GCP upload
 node_modules/
+.next/
 dist/
-# Allow JS files in packages/src for comic-generator
-!packages/comic-generator/src/*.js
+.turbo/
+.git/
+.env
+*.log
+.pnpm-store/

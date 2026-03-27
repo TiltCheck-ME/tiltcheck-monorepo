@@ -36,7 +36,7 @@ router.get('/ready', async (_req, res) => {
   }
 
   const checks = {
-    databaseConfigured: Boolean(process.env.NEON_DATABASE_URL),
+    databaseConfigured: Boolean(process.env.POSTGRESQL || process.env.NEON_DATABASE_URL),
     databaseConnected: dbConnected,
     jwtConfigured: Boolean(process.env.JWT_SECRET),
     notionConfigured: Boolean(process.env.NOTION_INTEGRATION_TOKEN),

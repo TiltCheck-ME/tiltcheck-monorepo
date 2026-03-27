@@ -1,6 +1,7 @@
 /* Copyright (c) 2026 TiltCheck. All rights reserved. */
 import { Router } from 'express';
-import { createClient } from '@supabase/supabase-js';
+import { createClient, type SupabaseClient } from '@supabase/supabase-js';
+import { internalServiceAuth } from '../middleware/auth.js';
 
 const router = Router();
 
@@ -8,14 +9,17 @@ const router = Router();
 const supabaseUrl = process.env.SUPABASE_URL || '';
 const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_KEY || '';
 
-let supabase: any;
+let supabase: SupabaseClient | null = null;
 if (supabaseUrl && supabaseKey) {
   supabase = createClient(supabaseUrl, supabaseKey);
 } else {
   console.warn('⚠️ [API] Supabase credentials missing. Moderation routes will be limited.');
 }
 
-router.post('/report', async (req, res) => {
+router.post('/report', internalServiceAuth, async (req, res) => {
+
+
+
   try {
     const { targetId, moderatorId, actionType, reason, evidenceUrl } = req.body;
 

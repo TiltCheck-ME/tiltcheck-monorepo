@@ -25,20 +25,23 @@ import { initializeGameplayComplianceBridge } from './services/gameplay-complian
 import { startTrustAdapter } from '@tiltcheck/discord-utils/trust-adapter';
 import { Connection } from '@solana/web3.js';
 import { DatabaseClient } from '@tiltcheck/database';
-import { CreditManager, DepositMonitor, AutoRefundScheduler } from '@tiltcheck/justthetip';
+import { CreditManager } from './services/tipping/credit-manager.js';
+import { DepositMonitor } from './services/tipping/deposit-monitor.js';
+import { AutoRefundScheduler } from './services/tipping/auto-refund.js';
 import { BotWalletService } from './services/tipping/bot-wallet.js';
 import { TokenSwapService } from './services/tipping/token-swap.js';
 import { TokenDepositMonitor } from './services/tipping/token-deposit-monitor.js';
 import { setCreditDeps } from './commands/tip.js';
 import { startLockVaultBackgroundTasks, stopLockVaultBackgroundTasks } from '@tiltcheck/lockvault';
+import { getUserBuddies } from '@tiltcheck/db';
 
 async function main() {
   const startTime = Date.now();
   console.log('\n' + '='.repeat(60));
-  console.log('TiltCheck Discord Bot - Powered by TiltCheck');
+  console.log('TILTCHECK ALPHA LAYER - NUKE THE HOUSE EDGE');
   console.log('='.repeat(60));
-  console.log(`Started at: ${new Date().toLocaleString()}`);
-  console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
+  console.log(`SESSION INITIALIZED at: ${new Date().toLocaleString()}`);
+  console.log(`ENV: ${process.env.NODE_ENV || 'production'}`);
   console.log('='.repeat(60) + '\n');
 
   if (process.env.SKIP_DISCORD_LOGIN === 'true') {
@@ -89,11 +92,31 @@ async function main() {
   startTiltAgentLoop(async (userId, message, severity) => {
     try {
       const user = await client.users.fetch(userId);
-      const prefix = severity === 'high' ? '[HIGH]' : severity === 'medium' ? '[MED]' : '[INFO]';
-      await user.send(`${prefix} TiltCheck Intervention\n\n${message}`);
-      console.log(`[TiltAgent] Intervention DM sent to ${userId} (${severity})`);
+      const prefix = severity === 'high' ? '🚨 [HIGH RISK]' : severity === 'medium' ? '⚠️ [ALPHA ALERT]' : 'ℹ️ [REALITY CHECK]';
+      
+      // Notify the User
+      await user.send(`${prefix} TILTCHECK ALPHA AUDIT\n\n${message}\n\n*Don't get rinsed. SECURE THE BAG.*`);
+      console.log(`[TiltAgent] Alpha signal sent to ${userId} (${severity})`);
+
+      // Notify Buddies (Accountability)
+      if (severity === 'high' || severity === 'medium') {
+          const buddies = await getUserBuddies(userId);
+          if (buddies && buddies.length > 0) {
+              const buddyMsg = `🚨 **BUDDY ALERT**: Your friend <@${userId}> is showing **${severity.toUpperCase()}** signs of tilt.\n\nTiltCheck Message Sent to Them:\n> ${message.substring(0, 500)}${message.length > 500 ? '...' : ''}\n\nCheck in on them. Friends don't let friends tilt-drain.`;
+              
+              for (const buddyRel of buddies) {
+                  try {
+                      const buddy = await client.users.fetch(buddyRel.buddy_id);
+                      await buddy.send(buddyMsg);
+                      console.log(`[Buddy] Alert sent to ${buddyRel.buddy_id} for user ${userId}`);
+                  } catch (e) {
+                      console.warn(`[Buddy] Failed to alert ${buddyRel.buddy_id}:`, e);
+                  }
+              }
+          }
+      }
     } catch (err) {
-      console.error(`[TiltAgent] Failed to DM user ${userId}:`, err);
+      console.error(`[TiltAgent] Failed to process intervention for ${userId}:`, err);
     }
   });
   console.log('[TiltAgent] Scan loop active\n');
@@ -168,11 +191,11 @@ async function main() {
   }
   console.log('');
 
-  const HEALTH_PORT = process.env.DISCORD_BOT_HEALTH_PORT || '8081';
+  const HEALTH_PORT = process.env.PORT || '8080';
   const PORT = parseInt(HEALTH_PORT, 10);
 
   const healthServer = http.createServer((req, res) => {
-    if (req.url === '/health') {
+    if (req.url === '/health' || req.url === '/') {
       const body = JSON.stringify({
         service: 'discord-bot',
         ready,
@@ -221,7 +244,11 @@ async function main() {
     const swapService = new TokenSwapService(config.botWalletPrivateKey, solConnection);
     tdMonitor = new TokenDepositMonitor(solConnection, botWallet.address, cm, swapService);
 
-    autoRefund = new AutoRefundScheduler(cm, botWallet.sendSOL.bind(botWallet), 12 * 60 * 60 * 1000);
+    const autoRefundIntervalMs = Math.max(
+      60_000,
+      Number(process.env.JUSTTHETIP_AUTO_REFUND_INTERVAL_MS || 5 * 60 * 1000)
+    );
+    autoRefund = new AutoRefundScheduler(cm, botWallet.sendSOL.bind(botWallet), autoRefundIntervalMs);
 
     setCreditDeps(cm, dMonitor, botWallet, tdMonitor);
 

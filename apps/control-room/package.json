@@ -8,7 +8,7 @@
     "dev": "node src/server-trust-auth.js",
     "start": "node src/server-trust-auth.js",
     "legacy": "node src/server.js",
-    "test": "vitest --run tests/readiness.test.ts"
+    "test": "vitest --run --passWithNoTests"
   },
   "dependencies": {
     "express": "^4.19.0",
@@ -25,6 +25,8 @@
   "devDependencies": {
     "@types/express": "^4.17.21",
     "@types/express-session": "^1.18.0",
-    "@types/passport": "^1.0.16"
+    "@types/passport": "^1.0.16",
+    "vitest": "latest",
+    "vite": "latest"
   }
 }

@@ -1,19 +1,24 @@
 {
   "extends": "../../tsconfig.json",
   "compilerOptions": {
+    "composite": true,
     "outDir": "./dist",
-    "rootDir": "./src",
+    "rootDir": "src",
     "skipLibCheck": true,
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
-    "types": []
+    "types": [],
+    "incremental": true
   },
-  "include": ["src/**/*"],
+  "include": [
+    "src/**/*"
+  ],
   "exclude": [
     "node_modules",
     "dist",
     "tests",
     "src/middleware/next.ts",
     "../../node_modules/next"
-  ]
+  ],
+  "references": []
 }

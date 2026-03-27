@@ -15,7 +15,6 @@ import {
   createSession,
   destroySession,
   verifySessionCookie,
-  getDiscordAvatarUrl,
   generateOAuthState,
   type DiscordOAuthConfig,
 } from '@tiltcheck/auth';
@@ -26,72 +25,20 @@ import {
   updateUser,
   findUserById,
 } from '@tiltcheck/db';
-import { authMiddleware, getJWTConfig } from '../middleware/auth.js';
+import { getJWTConfig } from '../middleware/auth.js';
+import {
+  getDiscordConfig,
+  resolveDiscordRedirectUriForSource,
+  getOAuthSource,
+  getTrustedExtensionOrigin,
+} from './auth.utils.js';
+
 
 const router = Router();
-const DEFAULT_DISCORD_CLIENT_ID = '1445916179163250860';
-const DEFAULT_DISCORD_SCOPES = ['identify', 'identify.premium'];
-const DEFAULT_API_DISCORD_CALLBACK = 'https://api.tiltcheck.me/auth/discord/callback';
 
 // ============================================================================
 // Configuration
 // ============================================================================
-
-function getDiscordConfig(): DiscordOAuthConfig {
-  const isProd = process.env.NODE_ENV === 'production';
-  const clientId =
-    process.env.TILT_DISCORD_CLIENT_ID ||
-    process.env.DISCORD_CLIENT_ID ||
-    DEFAULT_DISCORD_CLIENT_ID;
-  const clientSecret =
-    process.env.TILT_DISCORD_CLIENT_SECRET ||
-    process.env.DISCORD_CLIENT_SECRET ||
-    (isProd ? (() => { throw new Error('DISCORD_CLIENT_SECRET is required in production'); })() : '');
-  const redirectUri =
-    process.env.TILT_DISCORD_REDIRECT_URI ||
-    process.env.DISCORD_REDIRECT_URI ||
-    process.env.DISCORD_CALLBACK_URL ||
-    DEFAULT_API_DISCORD_CALLBACK;
-
-  return {
-    clientId,
-    clientSecret,
-    redirectUri,
-    scopes: DEFAULT_DISCORD_SCOPES,
-  };
-}
-
-function resolveDiscordRedirectUriForSource(
-  config: DiscordOAuthConfig,
-  source: string | undefined,
-  req: { hostname?: string }
-): string {
-  if (source !== 'extension') {
-    return config.redirectUri;
-  }
-
-  const host = req.hostname || '';
-  const isLocalDev =
-    process.env.NODE_ENV !== 'production' && (host === 'localhost' || host === '127.0.0.1');
-
-  // Extension OAuth must land on API callback in non-local environments.
-  return isLocalDev ? config.redirectUri : DEFAULT_API_DISCORD_CALLBACK;
-}
-
-function getOAuthSource(req: {
-  query?: { state?: unknown };
-  cookies?: { oauth_source?: unknown };
-}): 'extension' | 'web' | undefined {
-  const stateValue = typeof req.query?.state === 'string' ? req.query.state : '';
-  const sourceFromState = stateValue.startsWith('ext_')
-    ? 'extension'
-    : stateValue.startsWith('web_')
-      ? 'web'
-      : undefined;
-  if (sourceFromState) return sourceFromState;
-  const cookieSource = req.cookies?.oauth_source;
-  return cookieSource === 'extension' || cookieSource === 'web' ? cookieSource : undefined;
-}
 
 function renderExtensionAuthErrorPage(message: string): string {
   const safeMessage = message
@@ -111,6 +58,7 @@ function renderExtensionAuthErrorPage(message: string): string {
           .title { font-weight: 800; letter-spacing: 0.3px; margin-bottom: 10px; }
           .msg { font-size: 14px; opacity: 0.9; line-height: 1.45; }
           .hint { margin-top: 12px; font-size: 12px; opacity: 0.65; }
+          .footer { margin-top: 24px; font-size: 10px; opacity: 0.5; text-transform: uppercase; letter-spacing: 0.05em; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 12px; text-align: center; }
         </style>
       </head>
       <body>
@@ -118,25 +66,13 @@ function renderExtensionAuthErrorPage(message: string): string {
           <div class="title">TiltCheck Connect Issue</div>
           <div class="msg">${safeMessage}</div>
           <div class="hint">Return to your casino tab, then click Connect Discord again.</div>
+          <div class="footer">
+            "Casinos don't win because they're lucky. They win because they're open 24/7 and your calculator battery died at 2:17 a.m."
+          </div>
         </div>
       </body>
     </html>
   `;
-}
-
-function getTrustedExtensionOrigin(value: unknown): string | undefined {
-  if (typeof value !== 'string' || !value) return undefined;
-
-  try {
-    const parsed = new URL(value);
-    if (parsed.protocol === 'chrome-extension:') {
-      return parsed.origin;
-    }
-  } catch {
-    // Ignore invalid input; value is optional and best-effort.
-  }
-
-  return undefined;
 }
 
 // ============================================================================
@@ -215,46 +151,30 @@ function isAllowedActivityRedirectUri(value: string): boolean {
  * POST /auth/register
  * Register a new user with email and password
  */
-router.post('/register', authLimiter, async (req, res) => {
+router.post('/register', authLimiter, async (req, res, next) => {
   try {
     const { email, password } = req.body;
 
     // Validate input
     if (!email || !password) {
-      res.status(400).json({
-        error: 'Email and password are required',
-        code: 'MISSING_FIELDS'
-      });
-      return;
+      return next(new ValidationError('Email and password are required', 'email'));
     }
 
     // Validate email format
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
-      res.status(400).json({
-        error: 'Invalid email format',
-        code: 'INVALID_EMAIL'
-      });
-      return;
+      return next(new ValidationError('Invalid email format', 'email'));
     }
 
     // Validate password length
     if (password.length < 6) {
-      res.status(400).json({
-        error: 'Password must be at least 6 characters',
-        code: 'INVALID_PASSWORD'
-      });
-      return;
+      return next(new ValidationError('Password must be at least 6 characters', 'password'));
     }
 
     // Check if user already exists
     const existingUser = await findUserByEmail(email);
     if (existingUser) {
-      res.status(409).json({
-        error: 'User with this email already exists',
-        code: 'USER_EXISTS'
-      });
-      return;
+      return next(new ConflictError('User with this email already exists'));
     }
 
     // Hash password
@@ -268,11 +188,7 @@ router.post('/register', authLimiter, async (req, res) => {
     });
 
     if (!user) {
-      res.status(500).json({
-        error: 'Failed to create user',
-        code: 'CREATE_FAILED'
-      });
-      return;
+      return next(new InternalServerError('Failed to create user'));
     }
 
     // Generate JWT
@@ -289,7 +205,7 @@ router.post('/register', authLimiter, async (req, res) => {
     });
   } catch (error) {
     console.error('[Auth] Register error:', error);
-    res.status(500).json({ error: 'Registration failed' });
+    return next(new InternalServerError('Registration failed'));
   }
 });
 
@@ -421,14 +337,24 @@ router.get('/discord/login', authLimiter, (req, res) => {
     }
 
     // Generate state for CSRF protection. Prefix helps recover source in callback if cookies are blocked.
-    const statePrefix = source === 'extension' ? 'ext_' : 'web_';
-    const state = `${statePrefix}${generateOAuthState()}`;
+    // For extensions, we also encode the opener origin to recover it if the cookie is lost.
+    const openerOrigin = getTrustedExtensionOrigin(req.query.opener_origin);
+    const originSuffix = (source === 'extension' && openerOrigin) 
+        ? `_${Buffer.from(openerOrigin).toString('base64').replace(/=/g, '')}` 
+        : '';
+    const statePrefix = source === 'extension' ? 'ext' : 'web';
+    const state = `${statePrefix}${originSuffix}_${generateOAuthState()}`;
+
+    const isSecure = process.env.NODE_ENV === 'production' || req.hostname === 'localhost';
 
     // Store state in a short-lived cookie
+    // NOTE: No domain parameter = same-site only. This allows extension OAuth to work in production
+    // since extension content scripts cannot access domain-scoped cookies (e.g., domain: .tiltcheck.me).
+    // The callback validates: (1) state matches cookie if present, OR (2) state prefix is valid (ext_/web_).
     res.cookie('oauth_state', state, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
+      secure: isSecure,
+      sameSite: isSecure ? 'none' : 'lax',
       maxAge: 10 * 60 * 1000, // 10 minutes
     });
 
@@ -437,8 +363,8 @@ router.get('/discord/login', authLimiter, (req, res) => {
     if (redirectUrl) {
       res.cookie('oauth_redirect', redirectUrl, {
         httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
+        secure: isSecure,
+        sameSite: isSecure ? 'none' : 'lax',
         maxAge: 10 * 60 * 1000,
       });
     }
@@ -447,19 +373,29 @@ router.get('/discord/login', authLimiter, (req, res) => {
     if (source) {
       res.cookie('oauth_source', source, {
         httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
+        secure: isSecure,
+        sameSite: isSecure ? 'none' : 'lax',
         maxAge: 10 * 60 * 1000,
       });
     }
 
     // Optional extension opener origin for stricter postMessage targeting.
-    const openerOrigin = getTrustedExtensionOrigin(req.query.opener_origin);
     if (openerOrigin) {
       res.cookie('oauth_opener_origin', openerOrigin, {
         httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
+        secure: isSecure,
+        sameSite: isSecure ? 'none' : 'lax',
+        maxAge: 10 * 60 * 1000,
+      });
+    }
+
+    // Store extension ID for validation in callback (extension origin verification)
+    const extId = req.query.ext_id as string | undefined;
+    if (source === 'extension' && extId) {
+      res.cookie('oauth_extension_id', extId, {
+        httpOnly: true,
+        secure: isSecure,
+        sameSite: isSecure ? 'none' : 'lax',
         maxAge: 10 * 60 * 1000,
       });
     }
@@ -479,7 +415,19 @@ router.get('/discord/login', authLimiter, (req, res) => {
 router.get('/discord/callback', authLimiter, async (req, res) => {
   const source = getOAuthSource(req);
   try {
-    const { code, state } = req.query;
+    const { code, state, error, error_description } = req.query;
+
+    if (error) {
+      console.warn('[Auth] Discord returned error:', error, error_description);
+      const errorMsg = typeof error_description === 'string' ? error_description : `Discord error: ${error}`;
+      if (source === 'extension') {
+        res.status(400).send(renderExtensionAuthErrorPage(errorMsg));
+      } else {
+        res.status(400).json({ error: errorMsg });
+      }
+      return;
+    }
+
     const storedState = req.cookies?.oauth_state;
     const stateValue = typeof state === 'string' ? state : '';
     const sourceFromState = stateValue.startsWith('ext_')
@@ -488,9 +436,6 @@ router.get('/discord/callback', authLimiter, async (req, res) => {
         ? 'web'
         : undefined;
     const sourceFromCookie = req.cookies?.oauth_source;
-    const isLocalDev =
-      process.env.NODE_ENV !== 'production' &&
-      (req.hostname === 'localhost' || req.hostname === '127.0.0.1');
 
     // Optional integrity check: if both exist, cookie source must match state source.
     if (sourceFromCookie && sourceFromState && sourceFromCookie !== sourceFromState) {
@@ -498,15 +443,14 @@ router.get('/discord/callback', authLimiter, async (req, res) => {
       return;
     }
 
-    // Verify state:
-    // - normal: query state must match cookie
-    // - local extension fallback: allow if state cookie is missing and state itself indicates extension source
-    const stateValid =
-      !!stateValue &&
-      (stateValue === storedState || (!storedState && isLocalDev && sourceFromState === 'extension'));
+    // Verify state CSRF token:
+    // Query state MUST match the stored cookie value to prevent CSRF.
+    // Fallback prefixes (ext_/web_) are removed as they are insecure.
+    const stateValid = !!stateValue && stateValue === storedState;
 
     if (!stateValid) {
-      res.status(400).json({ error: 'Invalid OAuth state' });
+      console.warn('[Auth] OAuth state mismatch or missing cookie. Potential CSRF blocked.');
+      res.status(400).json({ error: 'Invalid OAuth state or expired session' });
       return;
     }
 
@@ -565,9 +509,45 @@ router.get('/discord/callback', authLimiter, async (req, res) => {
     res.clearCookie('oauth_source');
     const openerOriginCookie = req.cookies?.oauth_opener_origin;
     res.clearCookie('oauth_opener_origin');
-    const postMessageTarget = getTrustedExtensionOrigin(openerOriginCookie);
+    const storedExtensionId = req.cookies?.oauth_extension_id;
+    res.clearCookie('oauth_extension_id');
+    // Final fallback for the opener origin (needed for the final postMessage)
+    // Preference: 1. Cookie (most secure) 2. State (resilient for popups)
+    let postMessageTarget = getTrustedExtensionOrigin(openerOriginCookie);
+    
+    if (!postMessageTarget && source === 'extension' && typeof state === 'string') {
+        const stateParts = state.split('_');
+        if (stateParts.length >= 3 && stateParts[0] === 'ext') {
+            try {
+                const encodedOrigin = stateParts[1];
+                // Manually add back padding if needed for b64
+                const paddingNeeded = (4 - (encodedOrigin.length % 4)) % 4;
+                const padded = encodedOrigin + '='.repeat(paddingNeeded);
+                const decodedOrigin = Buffer.from(padded, 'base64').toString('utf8');
+                postMessageTarget = getTrustedExtensionOrigin(decodedOrigin);
+                if (postMessageTarget) {
+                    console.log('[Auth] Recovered extension origin from state:', postMessageTarget);
+                }
+            } catch (err) {
+                console.warn('[Auth] Failed to decode origin from state', err);
+            }
+        }
+    }
 
     if (source === 'extension') {
+      // Validate extension runtime ID if extension is making the request
+      const incomingExtId = req.query.ext_id as string | undefined;
+      if (storedExtensionId && incomingExtId && storedExtensionId !== incomingExtId) {
+        res
+          .status(400)
+          .send(
+            renderExtensionAuthErrorPage(
+              'Extension runtime ID mismatch. This may indicate an unauthorized extension. Close this window and restart Connect Discord from the original extension.'
+            )
+          );
+        return;
+      }
+
       if (!postMessageTarget) {
         res
           .status(400)
@@ -594,6 +574,7 @@ router.get('/discord/callback', authLimiter, async (req, res) => {
               .spinner { width: 22px; height: 22px; border: 2px solid rgba(255,255,255,0.2); border-top-color: #6366f1; border-radius: 50%; margin: 12px auto; animation: spin 1s linear infinite; }
               @keyframes spin { to { transform: rotate(360deg); } }
               .hint { font-size: 12px; opacity: 0.6; }
+              .footer { margin-top: 20px; font-size: 9px; opacity: 0.4; text-transform: uppercase; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 10px; }
             </style>
           </head>
           <body>
@@ -602,6 +583,9 @@ router.get('/discord/callback', authLimiter, async (req, res) => {
               <div>Authenticating...</div>
               <div class="spinner"></div>
               <div class="hint">This window will close automatically.</div>
+              <div class="footer">
+                "Trust everybody, but cut the cards."
+              </div>
             </div>
             <script>
               const userData = ${JSON.stringify({ id: user.id, username: user.discord_username, avatar: user.discord_avatar })};
@@ -615,10 +599,28 @@ router.get('/discord/callback', authLimiter, async (req, res) => {
                     token: '${token}',
                     user: userData
                   }, targetOrigin);
-                  setTimeout(() => window.close(), 1000);
+                  setTimeout(() => window.close(), 1500);
                 }
-              } catch (_error) {
-                document.querySelector('.hint').textContent = 'Auth handoff failed. Close this window and retry.';
+              } catch (err) {
+                console.error('Auth handoff failed:', err);
+                document.querySelector('.hint').innerHTML = ' \
+                  <div style="margin-top:15px; padding:10px; border:1px solid rgba(255,255,255,0.1); border-radius:8px;"> \
+                    <p style="color:#ef4444; font-weight:bold; margin-bottom:10px;">PostMessage Handshake Blocked</p> \
+                    <button onclick="tryManualSync()" style="background:#6366f1; color:white; border:none; padding:8px 16px; border-radius:4px; font-weight:bold; cursor:pointer; width:100%;">SYNC HANDSHAKE NOW</button> \
+                    <p style="margin-top:10px; font-size:11px;">If sync fails, ensure you are using <b>tiltcheck.me</b> and not a Cloud Run sandbox URL.</p> \
+                  </div> \
+                ';
+              }
+
+              function tryManualSync() {
+                try {
+                  if (window.opener) {
+                    window.opener.postMessage({ type: 'discord-auth', token: '${token}', user: userData }, targetOrigin);
+                    setTimeout(() => window.close(), 1000);
+                  }
+                } catch (e) {
+                  alert('Verification failed. Use https://tiltcheck.me');
+                }
               }
             </script>
           </body>
@@ -735,6 +737,7 @@ router.get('/me', async (req, res) => {
           return;
         }
       } catch (jwtError) {
+        console.warn('[Auth] Me JWT verification failed:', jwtError instanceof Error ? jwtError.message : String(jwtError));
         // Token invalid, try session cookie
       }
     }

@@ -2,6 +2,7 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { JustTheTipModule } from '../src/index.js';
 import { eventRouter } from '@tiltcheck/event-router';
+import type { TiltCheckEvent } from '@tiltcheck/types';
 
 describe('JustTheTipModule', () => {
   let justthetip: JustTheTipModule;
@@ -26,7 +27,7 @@ describe('JustTheTipModule', () => {
       expect(tip.reference).toBeDefined();
       
       const events = eventRouter.getHistory();
-      expect(events.some((e: any) => e.type === 'tip.initiated')).toBe(true);
+      expect(events.some((e: TiltCheckEvent) => e.type === 'tip.initiated')).toBe(true);
     });
 
     it('should reject tip below minimum amount', async () => {
@@ -82,7 +83,7 @@ describe('JustTheTipModule', () => {
       expect(wallet.registeredAt).toBeDefined();
       
       const events = eventRouter.getHistory();
-      expect(events.some((e: any) => e.type === 'wallet.registered')).toBe(true);
+      expect(events.some((e: TiltCheckEvent) => e.type === 'wallet.registered')).toBe(true);
     });
 
     it('should register wallet with Magic Link', async () => {
@@ -108,7 +109,7 @@ describe('JustTheTipModule', () => {
       expect(pending).toHaveLength(0);
       
       const events = eventRouter.getHistory();
-      expect(events.some((e: any) => e.type === 'tip.pending.resolved')).toBe(true);
+      expect(events.some((e: TiltCheckEvent) => e.type === 'tip.pending.resolved')).toBe(true);
     });
   });
 
@@ -126,7 +127,7 @@ describe('JustTheTipModule', () => {
       expect(completed.completedAt).toBeDefined();
       
       const events = eventRouter.getHistory();
-      expect(events.some((e: any) => e.type === 'tip.completed')).toBe(true);
+      expect(events.some((e: TiltCheckEvent) => e.type === 'tip.completed')).toBe(true);
     });
   });
 

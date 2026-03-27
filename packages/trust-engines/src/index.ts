@@ -210,8 +210,8 @@ export class TrustEnginesService {
     this.persist();
   }
 
-  private async onLinkFlagged(event: TiltCheckEvent) {
-    const { url, riskLevel } = event.data as any;
+  private async onLinkFlagged(event: TiltCheckEvent<'link.flagged'>) {
+    const { url, riskLevel } = event.data;
     try {
       const hostname = new URL(url).hostname.replace('www.', '');
       const delta = riskLevel === 'critical' ? -10 : -5;
@@ -222,8 +222,8 @@ export class TrustEnginesService {
     }
   }
 
-  private async onBonusNerf(event: TiltCheckEvent) {
-    const { casinoName, percentDrop } = event.data as any;
+  private async onBonusNerf(event: TiltCheckEvent<'bonus.nerf.detected'>) {
+    const { casinoName, percentDrop } = event.data;
     if (!casinoName || typeof percentDrop !== 'number') return;
     
     const severity = computeSeverity(Math.abs(percentDrop));
@@ -239,8 +239,8 @@ export class TrustEnginesService {
     );
   }
 
-  private async onCasinoRollup(event: TiltCheckEvent) {
-    const { casinos, source } = event.data as any;
+  private async onCasinoRollup(event: TiltCheckEvent<'trust.casino.rollup'>) {
+    const { casinos, source } = event.data;
     if (!casinos) return;
 
     // Process hourly aggregated casino trust events
@@ -305,8 +305,8 @@ export class TrustEnginesService {
     }
   }
 
-  private async onDomainRollup(event: TiltCheckEvent) {
-    const { domains } = event.data as any;
+  private async onDomainRollup(event: TiltCheckEvent<'trust.domain.rollup'>) {
+    const { domains } = event.data;
     if (!domains) return;
 
     // Process hourly aggregated domain trust events from SusLink
@@ -415,6 +415,7 @@ export class TrustEnginesService {
         delta: record.score - previousScore,
         level: this.getTrustLevel(record.score),
         reason,
+        source: 'trust-engine-degen',
       },
       userId
     );
@@ -427,8 +428,8 @@ export class TrustEnginesService {
     this.persist();
   }
 
-  private async onTipCompleted(event: TiltCheckEvent) {
-    const { fromUserId, toUserId, amount } = event.data as any;
+  private async onTipCompleted(event: TiltCheckEvent<'tip.completed'>) {
+    const { fromUserId, toUserId, amount } = event.data;
     if (!fromUserId || !toUserId) return;
 
     // Positive trust for completing tips
@@ -441,8 +442,8 @@ export class TrustEnginesService {
     }
   }
 
-  private async onTiltDetected(event: TiltCheckEvent) {
-    const { userId, severity } = event.data as any;
+  private async onTiltDetected(event: TiltCheckEvent<'tilt.detected'>) {
+    const { userId, severity } = event.data;
     if (!userId) return;
 
     // Tilt is temporary - increases tilt indicators
@@ -454,16 +455,16 @@ export class TrustEnginesService {
     record.recoveryScheduledAt = Date.now() + (3600000 * 4); // 4 hours
   }
 
-  private async onCooldownViolated(event: TiltCheckEvent) {
-    const { userId, severity } = event.data as any;
+  private async onCooldownViolated(event: TiltCheckEvent<'cooldown.violated'>) {
+    const { userId, severity } = event.data;
     if (!userId) return;
 
     const delta = -(severity || 2) * 2; // -4 to -10
     this.updateDegenScore(userId, delta, 'Violated cooldown', 'behavior', severity);
   }
 
-  private async onScamReported(event: TiltCheckEvent) {
-    const { reporterId, accusedId, verified, falseReport } = event.data as any;
+  private async onScamReported(event: TiltCheckEvent<'scam.reported'>) {
+    const { reporterId, accusedId, verified, falseReport } = event.data;
     
     if (verified && accusedId) {
       // Confirmed scam - heavy penalty
@@ -475,8 +476,8 @@ export class TrustEnginesService {
     }
   }
 
-  private async onAccountabilitySuccess(event: TiltCheckEvent) {
-    const { userId, action } = event.data as any;
+  private async onAccountabilitySuccess(event: TiltCheckEvent<'accountability.success'>) {
+    const { userId, action } = event.data;
     if (!userId) return;
 
     const bonuses: Record<string, number> = {

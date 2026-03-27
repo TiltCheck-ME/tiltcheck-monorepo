@@ -1,0 +1,138 @@
+.tool-header.terminal-header {
+  background: linear-gradient(180deg, rgba(0, 20, 20, 0.5), transparent);
+  border-bottom: 1px solid hsla(var(--primary) / 0.15);
+  padding: 2rem 0;
+  margin-bottom: 2rem;
+}
+
+.terminal-title {
+  font-family: var(--font-mono);
+  font-size: 2rem;
+  color: hsl(var(--primary));
+  letter-spacing: 1px;
+  margin-bottom: 0.5rem;
+}
+
+.terminal-subtitle {
+  font-family: var(--font-mono);
+  color: hsl(var(--muted-foreground));
+  font-size: 0.9rem;
+  letter-spacing: 0.1em;
+}
+
+.terminal-box {
+  background: linear-gradient(135deg, hsl(220, 13%, 8%), hsl(220, 13%, 10%));
+  border: 1px solid hsl(var(--primary));
+  padding: 1.5rem;
+  font-family: var(--font-mono);
+  color: hsl(var(--primary));
+  position: relative;
+}
+
+.terminal-box::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    hsla(var(--primary) / 0.02) 2px,
+    hsla(var(--primary) / 0.02) 4px
+  );
+  pointer-events: none;
+}
+
+.terminal-prompt {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.prompt-prefix {
+  color: hsl(var(--positive)); /* Custom color variable */
+  font-weight: 700;
+}
+
+.prompt-text {
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: hsl(var(--primary));
+}
+
+.status-list {
+  margin: 1.5rem 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.status-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem 0;
+  font-size: 0.95rem;
+}
+
+.status-icon {
+  font-weight: 700;
+  width: 1.5rem;
+  text-align: center;
+  font-size: 1.1rem;
+}
+
+.status-pass {
+  color: hsl(var(--positive));
+}
+
+.status-warn {
+  color: hsl(var(--warning));
+}
+
+.status-fail {
+  color: hsl(var(--destructive));
+}
+
+.terminal-divider {
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    hsl(var(--primary)),
+    transparent
+  );
+  margin: 1.5rem 0;
+  opacity: 0.3;
+}
+
+.vibe-check {
+  margin: 1rem 0;
+  line-height: 1.7;
+}
+
+.vibe-bar-container {
+  display: inline-block;
+  width: 200px;
+  height: 8px;
+  background: hsla(var(--primary) / 0.1);
+  border: 1px solid hsl(var(--primary));
+  margin: 0 0.5rem;
+  vertical-align: middle;
+}
+
+.vibe-bar {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, hsl(var(--positive)), hsl(var(--primary)));
+  animation: vibe-fill 2s ease-out forwards;
+}
+
+.vibe-percentage {
+  font-weight: 700;
+  color: hsl(var(--positive));
+}
+
+@keyframes vibe-fill {
+    from { width: 0%; }
+}

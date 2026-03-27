@@ -31,6 +31,22 @@ if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
+interface ScrapedCasinoData {
+  domain: string;
+  name: string;
+  status: 'active';
+  license_info: {
+    source?: string;
+    scraped_at?: string;
+    welcome_bonus?: string | null;
+    site_rating?: string | null;
+    type: string;
+    logo_url?: string | null;
+  };
+  claimed_rtp: number;
+  updated_at?: string;
+}
+
 async function scrapeSweepscoinguide() {
   console.log('🔍 Fetching sweepscoinguide.com...');
   
@@ -43,7 +59,7 @@ async function scrapeSweepscoinguide() {
     const dom = new JSDOM(html);
     const document = dom.window.document;
 
-    const casinos: any[] = [];
+    const casinos: ScrapedCasinoData[] = [];
 
     // Selectors based on typical affiliate site structures (headings, review cards)
     // Note: These are best-effort selectors. If the site layout changes, these need updates.
@@ -101,7 +117,7 @@ async function scrapeSweepscoinguide() {
       }
 
       // Construct data object
-      const casinoData = {
+      const casinoData: ScrapedCasinoData = {
         domain,
         name,
         status: 'active',

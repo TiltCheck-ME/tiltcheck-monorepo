@@ -1,17 +1,30 @@
 {
   "compilerOptions": {
+    "composite": true,
     "target": "ES2022",
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
     "outDir": "./dist",
-    "rootDir": "./app",
+    "rootDir": "../../",
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "declaration": true,
-    "verbatimModuleSyntax": false
+    "verbatimModuleSyntax": false,
+    "incremental": true
   },
-  "include": ["app/**/*.ts"],
-  "exclude": ["node_modules", "dist", "tests"]
+  "include": [
+    "app/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "tests"
+  ],
+  "references": [
+    {
+      "path": "../../packages/database"
+    }
+  ]
 }

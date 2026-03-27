@@ -1,6 +1,6 @@
 {
   "name": "@tiltcheck/db",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Neon PostgreSQL database client for TiltCheck ecosystem",
   "type": "module",
   "main": "./dist/index.js",
@@ -11,15 +11,18 @@
     "clean": "rm -rf dist",
     "test": "vitest --run --passWithNoTests"
   },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
+  },
   "dependencies": {
     "pg": "^8.11.3",
     "@tiltcheck/config": "workspace:*"
   },
   "devDependencies": {
-    "@types/node": "^25.3.0",
+    "@types/node": "^22.13.0",
     "@types/pg": "^8.11.10",
     "typescript": "^5.3.0",
-    "vitest": "^4.0.18"
+    "vitest": "^4.1.1"
   },
   "exports": {
     ".": {

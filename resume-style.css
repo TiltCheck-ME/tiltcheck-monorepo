@@ -1,0 +1,209 @@
+
+:root {
+  --background: #0A0A0A;
+  --foreground: #EDEDED;
+  --muted-foreground: #888888;
+  --primary: #00FFC6;
+  --accent: #FF00FF;
+  --border: rgba(255, 255, 255, 0.1);
+  --card-background: #1A1A1A;
+}
+
+body {
+    background-color: var(--background);
+    color: var(--foreground);
+    font-family: 'Inter', sans-serif;
+    line-height: 1.6;
+    margin: 0;
+    padding: 0;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+.container {
+    max-width: 900px;
+    margin: 40px auto;
+    padding: 20px;
+}
+
+a {
+    color: var(--primary);
+    text-decoration: none;
+    transition: color 0.2s ease-in-out;
+}
+
+a:hover {
+    color: var(--accent);
+}
+
+/* --- Header --- */
+.main-header {
+    text-align: center;
+    margin-bottom: 40px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--border);
+}
+
+.main-header h1 {
+    font-family: 'Geist Mono', 'Courier New', monospace;
+    font-size: 2.5rem;
+    margin: 0 0 5px 0;
+    color: var(--foreground);
+    letter-spacing: -1px;
+}
+
+.main-header .subtitle {
+    font-size: 1.2rem;
+    color: var(--muted-foreground);
+    margin: 0;
+}
+
+.main-header .contact-info {
+    margin-top: 15px;
+    font-size: 1rem;
+}
+
+.main-header .contact-info a {
+    margin: 0 10px;
+}
+
+/* --- Main Content --- */
+main section {
+    margin-bottom: 40px;
+}
+
+main h2 {
+    font-family: 'Geist Mono', 'Courier New', monospace;
+    font-size: 1.8rem;
+    color: var(--primary);
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 10px;
+    margin-bottom: 20px;
+    letter-spacing: -0.5px;
+}
+
+/* --- Skills --- */
+.skills-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+}
+
+.skill-category {
+    background-color: var(--card-background);
+    padding: 20px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+}
+
+.skill-category h3 {
+    margin-top: 0;
+    color: var(--foreground);
+    font-size: 1.1rem;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 10px;
+    margin-bottom: 15px;
+}
+
+.skill-category ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    font-size: 0.95rem;
+}
+
+.skill-category ul li {
+    margin-bottom: 8px;
+    color: var(--muted-foreground);
+}
+
+/* --- Experience --- */
+#experience .job h3 {
+    font-size: 1.3rem;
+    margin: 0;
+    color: var(--foreground);
+}
+
+#experience .job .company {
+    font-size: 1rem;
+    font-style: italic;
+    color: var(--muted-foreground);
+    margin-bottom: 15px;
+}
+
+#experience .job ul {
+    padding-left: 20px;
+}
+
+#experience .job ul li {
+    margin-bottom: 10px;
+}
+
+/* --- Projects --- */
+.project-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+}
+
+.project-grid a {
+    text-decoration: none;
+    color: inherit;
+}
+
+.project {
+    background-color: var(--card-background);
+    padding: 20px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    transition: transform 0.2s ease-in-out, border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+    height: 100%; /* Ensure cards in the same row are the same height */
+}
+
+.project:hover {
+    transform: scale(1.03);
+    border-color: var(--primary);
+    box-shadow: 0 0 15px rgba(0, 255, 198, 0.1);
+    cursor: pointer;
+}
+
+.project h3 {
+    margin-top: 0;
+    color: var(--foreground);
+}
+
+.project p {
+    color: var(--muted-foreground);
+    font-size: 0.9rem;
+    flex-grow: 1;
+}
+
+.project-links {
+    margin-top: 15px;
+    display: flex;
+    gap: 10px;
+}
+
+.project-links a {
+    font-size: 0.8rem;
+    font-weight: 500;
+    padding: 4px 8px;
+    border-radius: 4px;
+    background-color: var(--border);
+    transition: background-color 0.2s;
+}
+
+.project-links a:hover {
+    background-color: var(--primary);
+    color: var(--background);
+}
+
+/* --- Footer --- */
+.main-footer {
+    text-align: center;
+    margin-top: 50px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border);
+    font-size: 0.8rem;
+    color: var(--muted-foreground);
+}

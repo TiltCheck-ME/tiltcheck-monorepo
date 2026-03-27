@@ -1,9 +1,10 @@
 {
   "extends": "../../tsconfig.json",
   "compilerOptions": {
+    "composite": true,
+    "incremental": true,
     "outDir": "./dist",
-    "rootDir": "./src",
-    
+    "rootDir": "src",
     "module": "NodeNext",
     "types": [
       "chrome"
@@ -16,5 +17,13 @@
   "exclude": [
     "node_modules",
     "dist"
+  ],
+  "references": [
+    {
+      "path": "../../packages/utils"
+    },
+    {
+      "path": "../../packages/shared"
+    }
   ]
 }

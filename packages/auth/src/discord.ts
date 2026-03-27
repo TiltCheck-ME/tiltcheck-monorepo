@@ -22,7 +22,7 @@ const DISCORD_USER_ME = `${DISCORD_API_BASE}/users/@me`;
 /**
  * Default OAuth scopes for TiltCheck
  */
-export const DEFAULT_SCOPES = ['identify', 'identify.premium'];
+export const DEFAULT_SCOPES = ['identify'];
 
 /**
  * Generate Discord OAuth2 authorization URL
@@ -35,7 +35,7 @@ export function getAuthorizationUrl(
     client_id: config.clientId,
     redirect_uri: config.redirectUri,
     response_type: 'code',
-    scope: config.scopes.join(' '),
+    scope: (config.scopes ?? ['identify']).join(' '),
   });
   
   if (state) {

@@ -1,18 +1,30 @@
 {
-  "name": "@tiltcheck/landing-page",
-  "version": "0.1.0",
+  "name": "web",
+  "version": "0.1.1",
   "private": true,
-  "description": "TiltCheck Marketing Landing Page (Static)",
-  "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "vite build && node copy-static-to-dist.mjs",
-    "preview": "vite preview"
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "@rainbow-me/rainbowkit": "^2.2.10",
+    "@tanstack/react-query": "^5.94.5",
+    "next": "15.5.14",
+    "react": "19.0.0",
+    "react-dom": "19.0.0",
+    "viem": "^2.47.6",
+    "@tiltcheck/shared": "workspace:*"
   },
   "devDependencies": {
-    "autoprefixer": "^10.4.18",
-    "postcss": "^8.4.35",
+    "@types/node": "^20",
+    "@types/react": "19.0.0",
+    "@types/react-dom": "19.0.0",
+    "eslint": "9.17.0",
+    "eslint-config-next": "15.0.0",
+    "postcss": "^8",
     "tailwindcss": "^3.4.1",
-    "vite": "^5.1.0"
+    "typescript": "^5"
   }
 }

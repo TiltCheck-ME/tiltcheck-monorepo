@@ -1,20 +1,19 @@
 {
   "compilerOptions": {
+    "baseUrl": ".",
+    "rootDir": ".",
     "outDir": "./dist",
-    "rootDir": "./src",
-    "declaration": true,
     "skipLibCheck": true,
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
     "resolveJsonModule": true,
     "esModuleInterop": true,
     "target": "ESNext",
-    "incremental": false,
-    "tsBuildInfoFile": null
+    "composite": true,
+    "incremental": true,
+    "declaration": true,
+    "strict": true
   },
-  "include": [
-    "src/**/*.ts"
-  ],
   "exclude": [
     "node_modules",
     "dist"

@@ -1,0 +1,14 @@
+{
+  "name": "@tiltcheck/hub",
+  "private": true,
+  "version": "2.0.0",
+  "module": "index.ts",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20240301.0",
+    "wrangler": "^3.30.1"
+  }
+}

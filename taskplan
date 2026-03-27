@@ -1,0 +1,45 @@
+# TiltCheck Activity Build Task List
+
+## Phase 1: Environment & Identity 🪪
+- [x] Scaffold Activity with Vite + Discord SDK
+- [x] Configure Cloudflare Tunnel for local dev
+- [x] Implement "Degen Terminal" Hero & Typewriter
+- [x] Polish Dashboard UI (High-contrast glass)
+- [/] Fix SDK Handshake (403 proxy-tickets)
+- [x] Fix invalid_scope OAuth error (URL encoding + wrong /api/ endpoint prefix)
+- [ ] Link Discord ID to TiltCheck Profile
+
+## Phase 2: Live Data Pipeline 📡
+- [ ] Update Chrome Extension to capture round data (bet/win/game)
+- [ ] Connect Extension → Hub Worker (POST /session/update)
+- [ ] Hub Worker → Activity (Push session updates)
+- [ ] Implement manual round entry as fallback
+
+## Phase 3: Real-time Analysis Logic 🧠
+- [ ] Integrate Trust-engine to fetch expected RTP per game
+- [ ] Implement running RTP & Drift calculation in Activity
+- [ ] Add Confidence Interval scoring (Sample size check)
+- [ ] Color-code drift indicators (Teal = Safe, Red = Tilt)
+
+## Phase 4: Social & Engagement 🎰
+- [ ] Implement "Send Tilt Alert" to Discord Channel
+- [ ] Add "Session Summary" sharing to voice chat
+- [ ] Vibe Check MVP: Voice sentiment indicator (scaffold)
+- [ ] JustTheTip "Tip the Winner" button (mock/integration)
+
+## Phase 5: Hardening & Launch 🚀
+- [ ] Implement Named Tunnel for stable dev
+- [ ] Basic unit tests for RTP math
+- [ ] Mobile-responsive layout audit
+- [ ] Compliance disclaimer footer audit
+
+## Phase 6: Cloudflare × TiltCheck Synergy (Brainstorming) 🧠
+- [/] Architectural Use Case Brainstorming (Workers, KV, DO)
+- [ ] Edge-first Data Pipeline Design (Hub Worker v2)
+- [ ] Zero-Trust vs. Tunneling Security Audit
+- [ ] Global Performance & Latency Optimization
+
+## Phase 7: Roadmap & Launch Planning 📅
+- [/] 4-Week Dev Milestone Plan (Scheduling)
+- [ ] Technical Risk Assessment (Durable Objects quota check)
+- [ ] Beta Launch Playbook (Stake integration)

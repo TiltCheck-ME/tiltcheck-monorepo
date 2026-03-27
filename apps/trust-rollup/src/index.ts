@@ -20,7 +20,7 @@ import fs from 'fs';
 import path from 'path';
 import { validateRollupSnapshotFile } from './rollup-schema.js';
 import { startCasinoVerificationScheduler } from './verification-scheduler.js';
-import type { TiltCheckEvent, TrustCasinoUpdateEvent, TrustDomainUpdateEvent } from '@tiltcheck/types';
+import type { TiltCheckEvent, BonusUpdateEvent, BonusNerfDetectedEventData, TrustCasinoRollupEventData, DomainRollupData, TrustDomainRollupEventData, CasinoRollupData } from '@tiltcheck/types';
 
 /**
  * Casino Trust Aggregator (real-time snapshot + volatility/risk classification)
@@ -72,6 +72,23 @@ function pruneWindow(arr: CasinoRealTimeWindowEvent[]) {
     arr.splice(0, arr.length - MAX_EVENTS_PER_WINDOW);
   }
 }
+
+// Periodic cleanup of inactive entries to prevent memory leaks
+setInterval(() => {
+  const now = Date.now();
+  const cutoff = now - WINDOW_MS;
+
+  for (const [casinoName, window] of CASINO_WINDOWS.entries()) {
+    pruneWindow(window);
+    if (window.length === 0) {
+      // If window is empty after pruning (older than cutoff)
+      CASINO_WINDOWS.delete(casinoName);
+      REASONS.delete(casinoName);
+      SOURCES.delete(casinoName);
+    }
+  }
+  console.log(`[TrustRollup] Periodic cleanup completed. Cutoff: ${new Date(cutoff).toISOString()} | Active windows: ${CASINO_WINDOWS.size}`);
+}, 60 * 60 * 1000); // Hourly cleanup
 
 function stdDev(nums: number[]): number {
   if (nums.length < 2) return 0;
@@ -145,8 +162,17 @@ function recomputeSnapshot(casinoName: string, currentScore?: number, previousSc
     volatilityShift
   };
   CASINO_SNAPSHOTS.set(casinoName, snapshot);
+  const rollupData: TrustCasinoRollupEventData = {
+    casinos: {
+      [casinoName]: {
+        totalDelta: snapshot.scoreDelta || 0,
+        events: snapshot.events24h,
+      },
+    },
+    source: 'trust-rollup',
+  };
   // Publish synthetic rollup snapshot for this casino only
-  eventRouter.publish('trust.casino.rollup', 'trust-rollup', snapshot).catch(console.error);
+  eventRouter.publish('trust.casino.rollup', 'trust-rollup', rollupData).catch(console.error);
 }
 
 // Public accessor
@@ -170,7 +196,7 @@ function broadcastSnapshots() {
 }
 
 // Subscribe to events for real-time window maintenance
-eventRouter.subscribe('trust.casino.updated', (evt: TiltCheckEvent<TrustCasinoUpdateEvent>) => {
+eventRouter.subscribe('trust.casino.updated', (evt: TiltCheckEvent<'trust.casino.updated'>) => {
   const { casinoName, previousScore, newScore, delta, severity, reason, source } = evt.data;
   if (!CASINO_WINDOWS.has(casinoName)) CASINO_WINDOWS.set(casinoName, []);
   CASINO_WINDOWS.get(casinoName)!.push({ ts: Date.now(), type: 'trust', delta, severity });
@@ -194,8 +220,8 @@ eventRouter.subscribe('trust.casino.updated', (evt: TiltCheckEvent<TrustCasinoUp
   broadcastSnapshots();
 }, 'trust-rollup' as any);
 
-eventRouter.subscribe('bonus.updated', (evt: TiltCheckEvent<any>) => {
-  const { casinoName, newAmount, oldAmount } = evt.data || {};
+eventRouter.subscribe('bonus.updated', (evt: TiltCheckEvent) => {
+  const { casinoName, newAmount, oldAmount } = (evt.data as BonusUpdateEvent) || {};
   if (!casinoName) return;
   const delta = typeof newAmount === 'number' && typeof oldAmount === 'number' ? newAmount - oldAmount : undefined;
   if (!CASINO_WINDOWS.has(casinoName)) CASINO_WINDOWS.set(casinoName, []);
@@ -204,8 +230,8 @@ eventRouter.subscribe('bonus.updated', (evt: TiltCheckEvent<any>) => {
   broadcastSnapshots();
 }, 'trust-rollup' as any);
 
-eventRouter.subscribe('bonus.nerf.detected', (evt: TiltCheckEvent<any>) => {
-  const { casinoName, percentDrop } = evt.data || {};
+eventRouter.subscribe('bonus.nerf.detected', (evt: TiltCheckEvent) => {
+  const { casinoName, percentDrop } = (evt.data as BonusNerfDetectedEventData) || {};
   if (!casinoName || typeof percentDrop !== 'number') return;
   if (!CASINO_WINDOWS.has(casinoName)) CASINO_WINDOWS.set(casinoName, []);
   CASINO_WINDOWS.get(casinoName)!.push({ ts: Date.now(), type: 'bonus-nerf', percentChange: percentDrop });
@@ -220,17 +246,8 @@ interface AggregatedEntry {
   lastScore?: number;
 }
 
-interface DomainRollupPayload {
-  windowStart: number;
-  windowEnd: number;
-  domains: Record<string, AggregatedEntry>;
-}
-
-interface CasinoRollupPayload {
-  windowStart: number;
-  windowEnd: number;
-  casinos: Record<string, AggregatedEntry>;
-}
+// removed unused interface DomainRollupPayload
+// removed unused interface CasinoRollupPayload
 
 const HOUR_MS = 60 * 60 * 1000;
 
@@ -256,9 +273,27 @@ function addEntry(store: Record<string, AggregatedEntry>, key: string, delta: nu
 }
 
 function publishRollups() {
-  const windowEnd = Date.now();
-  const domainPayload: DomainRollupPayload = { windowStart, windowEnd, domains: domainAgg };
-  const casinoPayload: CasinoRollupPayload = { windowStart, windowEnd, casinos: casinoAgg };
+  // windowEnd check removed as it was unused
+
+  const domainRollupData: Record<string, DomainRollupData> = {};
+  for (const key in domainAgg) {
+    domainRollupData[key] = {
+      totalDelta: domainAgg[key].totalDelta,
+      events: domainAgg[key].events,
+      lastSeverity: domainAgg[key].lastSeverity,
+    };
+  }
+  const domainPayload: TrustDomainRollupEventData = { domains: domainRollupData };
+
+  const casinoRollupData: Record<string, CasinoRollupData> = {};
+  for (const key in casinoAgg) {
+    casinoRollupData[key] = {
+      totalDelta: casinoAgg[key].totalDelta,
+      events: casinoAgg[key].events,
+    };
+  }
+  const casinoPayload: TrustCasinoRollupEventData = { casinos: casinoRollupData, source: 'trust-rollup' };
+
   eventRouter.publish('trust.domain.rollup', 'trust-engine-casino', domainPayload).catch(console.error);
   eventRouter.publish('trust.casino.rollup', 'trust-engine-casino', casinoPayload).catch(console.error);
   persistSnapshots(domainPayload, casinoPayload);
@@ -266,13 +301,13 @@ function publishRollups() {
 }
 
 // Subscribe to trust events
-eventRouter.subscribe('trust.domain.updated', (evt: TiltCheckEvent<TrustDomainUpdateEvent>) => {
+eventRouter.subscribe('trust.domain.updated', (evt: TiltCheckEvent<'trust.domain.updated'>) => {
   const d = evt.data;
   addEntry(domainAgg, d.domain, d.delta || 0, d.severity, d.newScore);
   maybeFlush();
 }, 'trust-rollup' as any);
 
-eventRouter.subscribe('trust.casino.updated', (evt: TiltCheckEvent<TrustCasinoUpdateEvent>) => {
+eventRouter.subscribe('trust.casino.updated', (evt: TiltCheckEvent<'trust.casino.updated'>) => {
   const c = evt.data;
   addEntry(casinoAgg, c.casinoName, c.delta || 0, c.severity, c.newScore);
   maybeFlush();
@@ -350,7 +385,7 @@ http.createServer((req, res) => {
 const SNAPSHOT_DIR = process.env.TRUST_ROLLUP_SNAPSHOT_DIR || path.join('/app', 'data');
 const ROLLUP_FILE = path.join(SNAPSHOT_DIR, 'trust-rollups.json');
 
-function persistSnapshots(domainPayload: DomainRollupPayload, casinoPayload: CasinoRollupPayload) {
+function persistSnapshots(domainPayload: TrustDomainRollupEventData, casinoPayload: TrustCasinoRollupEventData) {
   try {
     if (!fs.existsSync(SNAPSHOT_DIR)) fs.mkdirSync(SNAPSHOT_DIR, { recursive: true });
     const existingRaw = fs.existsSync(ROLLUP_FILE) ? JSON.parse(fs.readFileSync(ROLLUP_FILE, 'utf-8')) : { batches: [] };

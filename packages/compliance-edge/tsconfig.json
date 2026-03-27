@@ -1,0 +1,24 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "composite": true,
+    "incremental": true,
+    "outDir": "./dist",
+    "rootDir": "src",
+    "declaration": true,
+    "module": "ESNext",
+    "target": "ESNext",
+    "lib": ["ESNext"],
+    "moduleResolution": "node",
+    "types": ["@cloudflare/workers-types"]
+  },
+  "include": [
+    "src/**/*"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "wrangler.toml"
+  ],
+  "references": []
+}
