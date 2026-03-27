@@ -35,13 +35,21 @@ interface TriviaGameState {
   prizePool: number; // in SOL
 }
 
+import { DiscordShopManager } from '@tiltcheck/discord-monetization';
+
 export class GlobalTriviaManager {
   private activeGame: TriviaGameState | null = null;
   private players: Map<string, TriviaSurvivor> = new Map();
   private timers: { [key: string]: NodeJS.Timeout } = {};
+  private shop: DiscordShopManager | null = null;
 
   constructor() {
     console.log('[GlobalTriviaManager] Initialized');
+  }
+
+  public initializeShop(applicationId: string, botToken: string): void {
+    this.shop = new DiscordShopManager({ applicationId, botToken });
+    console.log('[GlobalTriviaManager] Monetization layer active (Discord SKUs)');
   }
 
   public isActive(): boolean {
@@ -242,69 +250,87 @@ export class GlobalTriviaManager {
       return { success: false, message: 'Player is not eliminated.' };
     }
 
-    // Buy-back window check (up to Q10 in a 12-round game)
+    // Buy-back window check
     if (this.activeGame.currentRound > 10) {
-      return { success: false, message: 'Buy-back window has closed.' };
+      return { success: false, message: 'Buy-back window closed at Round 10.' };
     }
 
     try {
-      // Deduct 0.05 SOL equivalent in credits via JustTheTip
-      const amount = 0.05;
-      const deduction = await justthetip.credits.deduct(userId, amount, 'trivia-buy-back');
-      
-      if (!deduction) {
-        return { success: false, message: 'Insufficient credits for buy-back.' };
+      // Use Discord Monetization for Buy-back
+      if (!this.shop) return { success: false, message: 'Shop not initialized.' };
+      const skuId = process.env.DISCORD_SKU_REVIVE; // !revive SKU ID
+      if (!skuId) return { success: false, message: 'Revive SKU not configured.' };
+
+      const entitlement = await this.shop.verifyAndGetEntitlement(userId, skuId);
+      if (!entitlement) {
+        return { success: false, message: 'Purchase "!revive" in store to re-join.' };
       }
 
-      player.isEliminated = false;
-      player.lives = 1; // Give them a second chance
-      
-      console.log(`[Trivia] User ${player.username} successfully BUOUGHT BACK into game ${this.activeGame.id}`);
-      
-      await eventRouter.publish('trivia.player.reinstated', 'game-arena', {
-        gameId: this.activeGame.id,
-        userId: userId,
-        username: player.username
-      });
+      // Mark as consumed so it can be bought again
+      await this.shop.consumeEntitlement(userId, entitlement.id);
 
+      player.isEliminated = false;
+      player.lives = 1; 
+      
+      console.log(`[Trivia] User ${player.username} bought back via Discord SKU`);
       return { success: true };
     } catch (error) {
-      console.error('[Trivia] Buy-back failed:', error);
-      return { success: false, message: 'Internal error processing buy-back.' };
+      return { success: false, message: 'Internal error.' };
     }
   }
 
   /**
-   * Request an "Ape-in" hint
-   * Returns the current answer distribution for the active round
+   * Request an "Ape-in" hint (Heat Map)
    */
   async requestApeIn(userId: string): Promise<{ success: boolean; stats?: Record<string, number>; message?: string }> {
-    if (!this.activeGame || this.activeGame.status !== 'active') {
-      return { success: false, message: 'Game is not active.' };
-    }
+    if (!this.activeGame || this.activeGame.status !== 'active') return { success: false, message: 'Game is not active.' };
 
     const player = this.players.get(userId);
-    if (!player || player.isEliminated) {
-      return { success: false, message: 'Only active players can use hints.' };
-    }
+    if (!player || player.isEliminated) return { success: false, message: 'Only active players can use hints.' };
 
     try {
-      // Deduct 0.02 SOL equivalent for the hint
-      const amount = 0.02;
+      // Adjusted Cost: 0.002 SOL (~$0.36)
+      const amount = 0.002;
       const deduction = await justthetip.credits.deduct(userId, amount, 'trivia-ape-in-hint');
 
-      if (!deduction) {
-        return { success: false, message: 'Insufficient credits for hint.' };
-      }
+      if (!deduction) return { success: false, message: 'Insufficient credits.' };
 
       const stats = this.getApeInStats();
-      
-      console.log(`[Trivia] User ${player.username} used APE-IN hint for round ${this.activeGame.currentRound}`);
-
       return { success: true, stats };
     } catch (error) {
-      console.error('[Trivia] Hint request failed:', error);
-      return { success: false, message: 'Internal error processing hint.' };
+      return { success: false, message: 'Internal error.' };
+    }
+  }
+
+  /**
+   * Request a "Buster Shield" (50/50 - Eliminate 2 wrong answers)
+   */
+  async requestShield(userId: string): Promise<{ success: boolean; eliminated?: string[]; message?: string }> {
+    if (!this.activeGame || this.activeGame.status !== 'active') return { success: false, message: 'Game is not active.' };
+
+    const player = this.players.get(userId);
+    if (!player || player.isEliminated) return { success: false, message: 'Only active players can use shields.' };
+
+    try {
+      if (!this.shop) return { success: false, message: 'Shop not initialized.' };
+      const skuId = process.env.DISCORD_SKU_CHEAT; // !cheat SKU ID
+      if (!skuId) return { success: false, message: 'Cheat SKU not configured.' };
+
+      const entitlement = await this.shop.verifyAndGetEntitlement(userId, skuId);
+      if (!entitlement) {
+        return { success: false, message: 'Purchase "!cheat" in store to use a shield.' };
+      }
+
+      // Mark as consumed
+      await this.shop.consumeEntitlement(userId, entitlement.id);
+
+      const currentQuestion = this.activeGame.questions[this.activeGame.currentRound - 1];
+      const incorrectChoices = ['A', 'B', 'C', 'D'].filter(c => c !== currentQuestion.answer);
+      
+      const eliminated = incorrectChoices.sort(() => 0.5 - Math.random()).slice(0, 2);
+      return { success: true, eliminated };
+    } catch (error) {
+      return { success: false, message: 'Internal error.' };
     }
   }
 

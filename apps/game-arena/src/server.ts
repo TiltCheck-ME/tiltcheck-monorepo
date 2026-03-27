@@ -77,6 +77,13 @@ const gameManager = new GameManager({
 });
 await gameManager.initialize();
 
+// Initialize trivia monetization
+const discordToken = process.env.TILT_DISCORD_BOT_TOKEN;
+const discordClientId = process.env.TILT_DISCORD_CLIENT_ID;
+if (discordToken && discordClientId) {
+  triviaManager.initializeShop(discordClientId, discordToken);
+}
+
 // Initialize stats service
 statsService.initialize().catch(err => {
   console.error('[Server] Failed to initialize stats service:', err);
@@ -620,6 +627,19 @@ io.on('connection', (socket) => {
       socket.emit('trivia-ape-in-result', { questionId: data.questionId, distribution: result.stats! });
     } else {
       socket.emit('game-error', result.message || 'Hint request failed');
+    }
+  });
+
+  socket.on('request-shield', async (data: { gameId: string; questionId: string }) => {
+    if (!user) return;
+    const result = await triviaManager.requestShield(user.id);
+    if (result.success) {
+      socket.emit('trivia-shield-result', { 
+        questionId: data.questionId, 
+        eliminated: result.eliminated! 
+      });
+    } else {
+      socket.emit('game-error', result.message || 'Shield request failed');
     }
   });
 

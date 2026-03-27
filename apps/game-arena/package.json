@@ -20,6 +20,7 @@
     "@tiltcheck/poker": "workspace:*",
     "@tiltcheck/supabase-auth": "workspace:*",
     "@tiltcheck/types": "workspace:*",
+    "@tiltcheck/discord-monetization": "workspace:*",
     "connect-redis": "^9.0.0",
     "express": "^4.19.0",
     "express-session": "^1.18.0",

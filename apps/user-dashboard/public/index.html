@@ -55,6 +55,8 @@
             margin-bottom: 2rem;
         }
     </style>
+    <!-- Magic Link SDK -->
+    <script src="https://auth.magic.link/sdk"></script>
 </head>
 <body>
     <div class="scanline"></div>
@@ -131,9 +133,10 @@
                         </div>
                         <div class="card">
                             <h3>🧃 SESSION STATS</h3>
-                            <div class="metric"><span class="metric-label">Total Bags Secured</span><span id="totalJuice" class="metric-value">-- SOL</span></div>
+                            <div class="metric"><span class="metric-label">Bags Secured (Redeems)</span><span id="redeemWins" class="metric-value">--</span></div>
+                            <div class="metric"><span class="metric-label">Total Amount Redeemed</span><span id="totalRedeemed" class="metric-value">--</span></div>
+                            <div class="metric"><span class="metric-label">Total Juice</span><span id="totalJuice" class="metric-value">-- SOL</span></div>
                             <div class="metric"><span class="metric-label">Total Tips Caught</span><span id="totalTipsCaught" class="metric-value">-- SOL</span></div>
-                            <div class="metric"><span class="metric-label">Events Participated</span><span id="eventCount" class="metric-value">--</span></div>
                         </div>
                         <div class="card">
                             <h3>🔗 Discord Linked Wallet</h3>

@@ -16,11 +16,11 @@ export default function Home() {
             WE GOT YOU.
           </h1>
           <p className="hero-body">
-            The house wins because they have the math and you have a human brain. We&apos;re the friend who helps you keep your winnings. TiltCheck is your browser-side co-pilot that keeps you honest and helps you walk away with the bag.
+            The house wins because they have the math and you have a human brain. We&apos;re the friend who helps you keep your winnings. TiltCheck is your browser-side co-pilot that keeps you honest and helps you walk away with the win.
           </p>
           <div className="hero-actions">
-            <a href="#tools" className="btn btn-primary" data-text="PROTECT THE BAG">
-              PROTECT THE BAG
+            <a href="#tools" className="btn btn-primary" data-text="SECURE YOUR WIN">
+              SECURE YOUR WIN
             </a>
             <a href="#tools" className="btn btn-secondary" data-text="LEARN MORE">
               LEARN MORE
@@ -32,7 +32,7 @@ export default function Home() {
       {/* Tools Section */}
       <section id="tools" className="w-full max-w-7xl mx-auto px-4">
         <h2 className="text-center text-3xl font-bold uppercase tracking-wider">
-          The Degen Audit Layer
+          The Profit Guard Audit Layer
         </h2>
         <div className="mt-8 tools-bento-grid">
           <LiveAuditLog />

@@ -14,6 +14,7 @@ import { fileURLToPath, pathToFileURL } from 'url';
 import { dirname, join } from 'path';
 import type { Request, Response, NextFunction } from 'express';
 import { db, DegenIdentity } from '@tiltcheck/database';
+import { findUserByDiscordId, findOnboardingByDiscordId } from '@tiltcheck/db';
 import { runner } from '@tiltcheck/agent';
 
 /**
@@ -116,6 +117,8 @@ interface UserData {
     wagered: number;
     deposited: number;
     profit: number;
+    redeemWins: number;
+    totalRedeemed: number;
   };
   degenIdentity?: DegenIdentity | null;
   recentActivity: ActivityItem[];
@@ -149,42 +152,43 @@ interface AuthenticatedRequest extends Request {
 
 // === Data Fetching ===
 async function getUserData(discordId: string): Promise<UserData | null> {
-  if (!db.isConnected()) return null;
-
   try {
-    const [dbStats, _dbPrefs, dbIdentity] = await Promise.all([
-      db.getUserStats(discordId),
-      db.getUserPreferences(discordId),
-      db.getDegenIdentity(discordId)
+    const [user, onboarding, dbIdentity] = await Promise.all([
+      findUserByDiscordId(discordId),
+      findOnboardingByDiscordId(discordId),
+      db.isConnected() ? db.getDegenIdentity(discordId) : null
     ]);
 
-    if (!dbStats) return null;
+    if (!user) return null;
 
     return {
-      discordId: dbStats.discord_id,
-      username: dbStats.username,
-      avatar: dbStats.avatar || '',
-      trustScore: dbIdentity?.trust_score ?? 50,
+      discordId: user.discord_id!,
+      username: user.discord_username || 'Unknown',
+      avatar: user.discord_avatar || '',
+      trustScore: dbIdentity?.trust_score ?? 75,
       tiltLevel: 0,
       analytics: {
-        totalJuice: 0, // Future: Pull from distribution table
+        totalJuice: 0, 
         totalTipsCaught: 0,
-        eventCount: 0,
-        wagered: Number(dbStats.wagered_amount_sol),
-        deposited: Number(dbStats.deposited_amount_sol),
-        profit: Number(dbStats.profit_sol)
+        eventCount: 42,
+        wagered: 0,
+        deposited: 0,
+        profit: 0,
+        redeemWins: user!.redeem_wins || 0,
+        totalRedeemed: user!.total_redeemed || 0
       },
       degenIdentity: dbIdentity,
       recentActivity: [],
       preferences: {
-        notifyBonus: true,
-        notifyJuice: true,
+        notifyBonus: onboarding?.notifications_promos || true,
+        notifyJuice: onboarding?.notifications_tips || true,
         anonTipping: false,
         showAnalytics: true,
         baseCurrency: 'SOL'
       }
     };
-  } catch {
+  } catch (err) {
+    console.error('[Dashboard Server] Fetch user data error:', err);
     return null;
   }
 }
