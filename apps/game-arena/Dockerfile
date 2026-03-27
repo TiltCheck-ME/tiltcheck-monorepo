@@ -33,6 +33,6 @@ COPY --from=build /app/node_modules ./node_modules
 COPY --from=build /app/apps/game-arena/package.json ./apps/game-arena/package.json
 COPY --from=build /app/package.json ./package.json
 
-EXPOSE 3010
+EXPOSE 8080
 # Use the correct server entry point from package.json
 CMD ["node", "apps/game-arena/dist/server.js"]
