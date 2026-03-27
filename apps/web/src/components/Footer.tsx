@@ -68,7 +68,7 @@ const Footer = () => {
       </div>
       <div className="footer-bottom">
         <p className="footer-mission">
-          <strong>THE MISSION:</strong> The house spent decades perfecting the math. We’re building the tools to level the playing field. TiltCheck is an audit layer and profit guard designed for those who want to play smarter and keep more of what they win.
+          <strong>THE MISSION:</strong> THE HOUSE WINS BECAUSE THEY HAVE THE MATH AND YOU HAVE A DOPAMINE PROBLEM. BUT WE CAN COUNT TOO. TILTCHECK IS THE AUDIT LAYER BUILT TO TILT THE FAIRNESS SCALE BACK IN YOUR FAVOR. LEVEL THE PLAYING FIELD. CUZ MATH MATHS.
         </p>
         <div style={{ marginBottom: '1.5rem' }}>
           <Link href="/touch-grass" style={{ color: '#6b7280', textDecoration: 'none', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.1em', border: '1px solid #333', padding: '4px 12px', borderRadius: '20px' }}>
@@ -76,14 +76,14 @@ const Footer = () => {
           </Link>
         </div>
         <p className="footer-tagline" style={{ background: 'linear-gradient(to right, #ff3366, #22d3a6)', WebkitBackgroundClip: 'text', backgroundClip: 'text', WebkitTextFillColor: 'transparent', fontSize: '1.2rem', fontWeight: 'bold', letterSpacing: '1px', marginBottom: '8px' }}>
-          BUILT FOR THE COMMUNITY.
+          MADE FOR DEGENS BY DEGENS.
         </p>
         {quote && (
           <p className="footer-quote" style={{ fontSize: '0.85rem', opacity: 0.6, fontStyle: 'italic', marginBottom: '1.5rem', maxWidth: '600px', margin: '0 auto 1.5rem' }}>
             &quot;{quote}&quot;
           </p>
         )}
-        <p className="footer-copyright">TiltCheck Ecosystem &copy; 2024–2026</p>
+        <p className="footer-copyright">TiltCheck Ecosystem v2.0 — Made for Degens by Degens</p>
       </div>
     </footer>
   );

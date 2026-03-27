@@ -28,7 +28,6 @@
     "@tiltcheck/poker": "workspace:*",
     "@tiltcheck/suslink": "workspace:*",
     "@tiltcheck/tiltcheck-core": "workspace:*",
-    "@tiltcheck/triviadrops": "workspace:*",
     "@tiltcheck/trust-engines": "workspace:*",
     "@tiltcheck/types": "workspace:*",
     "@tiltcheck/shared": "workspace:*",

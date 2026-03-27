@@ -113,7 +113,8 @@ async function loadAllData() {
             loadTrustMetrics(),
             loadBonuses(),
             loadVaults(),
-            loadActivity()
+            loadActivity(),
+            loadBuddies()
         ]);
         
         if (overlay) overlay.style.display = 'none';
@@ -140,6 +141,101 @@ async function loadUserProfile() {
             document.getElementById('externalWalletDisplay').textContent = user.degenIdentity.primary_external_address;
         }
     } catch (err) { console.error(err); }
+}
+
+async function loadBuddies() {
+    try {
+        const response = await apiRequest(`/api/user/${currentUser.discordId}/buddies`);
+        if (!response.ok) return;
+        
+        const data = await response.json();
+        const buddyList = document.getElementById('buddyList');
+        const buddyStatus = document.getElementById('buddyStatus');
+        
+        if (!buddyList || !buddyStatus) return;
+        
+        buddyList.innerHTML = '';
+        const total = data.buddies.length + data.pending.length;
+        
+        if (total === 0) {
+            buddyStatus.textContent = 'Accountability net is empty.';
+            buddyList.innerHTML = '<div class="buddy-item">No buddies found. Invite 2 for optimal safety.</div>';
+        } else {
+            buddyStatus.textContent = `${data.buddies.length} active, ${data.pending.length} pending`;
+            
+            // Render active buddies
+            data.buddies.forEach(buddy => {
+                const item = document.createElement('div');
+                item.className = 'buddy-item';
+                item.style.display = 'flex';
+                item.style.justifyContent = 'space-between';
+                item.style.alignItems = 'center';
+                item.innerHTML = `
+                    <span>👤 <small>${buddy.buddy_id}</small></span>
+                    <span class="badge badge-success" style="font-size: 0.6rem;">ACTIVE</span>
+                `;
+                buddyList.appendChild(item);
+            });
+            
+            // Render pending requests
+            data.pending.forEach(req => {
+                const item = document.createElement('div');
+                item.className = 'buddy-item pending';
+                item.style.display = 'flex';
+                item.style.justifyContent = 'space-between';
+                item.style.alignItems = 'center';
+                item.style.opacity = '0.7';
+                item.innerHTML = `
+                    <span>👤 <small>${req.buddy_id}</small></span>
+                    <span class="badge" style="font-size: 0.6rem; background: #eba003;">PENDING</span>
+                `;
+                buddyList.appendChild(item);
+            });
+        }
+        
+        // Setup Invite Button
+        const inviteBtn = document.getElementById('sendBuddyInviteBtn');
+        const inviteInput = document.getElementById('buddyInviteInput');
+        
+        if (inviteBtn && !inviteBtn.dataset.listener) {
+            inviteBtn.dataset.listener = 'true';
+            inviteBtn.addEventListener('click', async () => {
+                const buddyId = inviteInput.value.trim();
+                if (!buddyId) return;
+                
+                inviteBtn.textContent = 'SENDING...';
+                inviteBtn.disabled = true;
+                
+                try {
+                    const res = await apiRequest(`/api/user/${currentUser.discordId}/buddies`, {
+                        method: 'POST',
+                        body: JSON.stringify({ buddyId })
+                    });
+                    
+                    if (res.ok) {
+                        inviteInput.value = '';
+                        inviteBtn.textContent = 'SENT!';
+                        setTimeout(() => {
+                            inviteBtn.textContent = 'SEND INVITE';
+                            inviteBtn.disabled = false;
+                        }, 2000);
+                        loadBuddies();
+                    } else {
+                        inviteBtn.textContent = 'FAILED';
+                        inviteBtn.style.background = '#ff4444';
+                        setTimeout(() => {
+                            inviteBtn.textContent = 'SEND INVITE';
+                            inviteBtn.disabled = false;
+                            inviteBtn.style.background = '';
+                        }, 2000);
+                    }
+                } catch (e) {
+                    console.error(e);
+                    inviteBtn.textContent = 'ERROR';
+                }
+            });
+        }
+    } catch (err) { console.error('[Buddy] Load failed:', err); }
 }
 
 // === Tab Navigation ===

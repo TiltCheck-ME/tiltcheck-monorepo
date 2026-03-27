@@ -12,7 +12,6 @@ export { juice } from './juice.js';
 export { linkwallet } from './linkwallet.js';
 export { lockvault } from './lockvault.js';
 export { casino } from './casino.js';
-export { triviadrop } from './triviadrop.js';
 export { poker } from './poker.js';
 export { support } from './support.js';
 export { terms } from './terms.js';

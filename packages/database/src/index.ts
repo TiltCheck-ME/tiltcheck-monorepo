@@ -1074,50 +1074,6 @@ export class DatabaseClient {
 
     return (data || []);
   }
-
-  /**
-   * Get user preferences
-   */
-  async getUserPreferences(discordId: string): Promise<UserPreferences | null> {
-    if (!this.supabase) return null;
-
-    const { data, error } = await this.supabase
-      .from('user_preferences')
-      .select('*')
-      .eq('discord_id', discordId)
-      .single();
-
-    if (error && error.code !== 'PGRST116') {
-      console.error('Error fetching user preferences:', error);
-      return null;
-    }
-
-    return data as UserPreferences | null;
-  }
-
-  /**
-   * Update user preferences
-   */
-  async updateUserPreferences(discordId: string, preferences: Partial<UserPreferences>): Promise<UserPreferences | null> {
-    if (!this.supabase) return null;
-
-    const { data, error } = await this.supabase
-      .from('user_preferences')
-      .upsert({
-        discord_id: discordId,
-        ...preferences,
-        updated_at: new Date().toISOString(),
-      })
-      .select()
-      .single();
-
-    if (error) {
-      console.error('Error updating user preferences:', error);
-      return null;
-    }
-
-    return data as UserPreferences;
-  }
 }
 
 // Export singleton instance

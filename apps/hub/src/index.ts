@@ -81,6 +81,29 @@ export default {
       }
     }
 
+    // --- ROUTE: TELEMETRY WIN-SECURE (Consumer: Chrome Extension) ---
+    // POST /telemetry/win-secure { amount, userId }
+    if (url.pathname === '/telemetry/win-secure' && method === 'POST') {
+      try {
+        const { amount, userId } = await request.json() as { amount: number, userId: string };
+        if (!userId) throw new Error('Missing userId');
+        
+        // Update D1 (Persistent stats in Cloudflare Hub for the user)
+        await env.DB.prepare(
+          "UPDATE users SET redeem_wins = redeem_wins + 1, total_redeemed = total_redeemed + ? WHERE discord_id = ? OR tiltcheck_id = ?"
+        ).bind(Number(amount) || 0, userId, userId).run();
+
+        console.log(`[Hub] Win secured for ${userId}: $${amount}`);
+        return new Response(JSON.stringify({ success: true }), { 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        });
+      } catch (err: any) {
+        return new Response(JSON.stringify({ error: err.message }), { 
+          status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        });
+      }
+    }
+
     // --- ROUTE: TELEMETRY ROUND (Consumer: Chrome Extension) ---
     // POST /telemetry/round { userId, bet, win }
     if (url.pathname === '/telemetry/round' && method === 'POST') {

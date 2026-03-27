@@ -32,6 +32,8 @@ import type {
   CreateTrustSignalPayload,
   BlogPost,
   CreateBlogPostPayload,
+  UserBuddy,
+  BuddyAlertThresholds,
 } from './types.js';
 
 /**
@@ -775,4 +777,103 @@ export async function logTrustSignal(payload: CreateTrustSignalPayload): Promise
     ...payload,
     created_at: new Date(),
   });
+}
+
+// ============================================================================
+// Buddy & Accountability Queries
+// ============================================================================
+
+/**
+ * Send a buddy request
+ */
+export async function sendBuddyRequest(
+  userId: string,
+  buddyId: string,
+  thresholds?: BuddyAlertThresholds
+): Promise<UserBuddy | null> {
+  return insert<UserBuddy>('user_buddies', {
+    user_id: userId,
+    buddy_id: buddyId,
+    status: 'pending',
+    alert_thresholds: thresholds || {
+      tilt_score_exceeds: 80,
+      losses_in_24h_sol: 5.0,
+      zero_balance_reached: true,
+    },
+    created_at: new Date(),
+    updated_at: new Date(),
+  });
+}
+
+/**
+ * Accept a pending buddy request
+ */
+export async function acceptBuddyRequest(requestId: string): Promise<UserBuddy | null> {
+  return update<UserBuddy>('user_buddies', requestId, {
+    status: 'accepted',
+    updated_at: new Date(),
+  });
+}
+
+/**
+ * Get buddies for a user (accountability partners watching the user)
+ */
+export async function getUserBuddies(userId: string): Promise<UserBuddy[]> {
+  const sql = `
+    SELECT * FROM user_buddies 
+    WHERE user_id = $1 AND status = 'accepted'
+  `;
+  return query<UserBuddy>(sql, [userId]);
+}
+
+/**
+ * Get users that this user is watching (user is the buddy)
+ */
+export async function getAccountabilityPartners(buddyId: string): Promise<UserBuddy[]> {
+  const sql = `
+    SELECT * FROM user_buddies 
+    WHERE buddy_id = $1 AND status = 'accepted'
+  `;
+  return query<UserBuddy>(sql, [buddyId]);
+}
+
+/**
+ * Get pending buddy requests for a user
+ */
+export async function getPendingBuddyRequests(userId: string): Promise<UserBuddy[]> {
+  const sql = `
+    SELECT * FROM user_buddies 
+    WHERE buddy_id = $1 AND status = 'pending'
+  `;
+  return query<UserBuddy>(sql, [userId]);
+}
+
+/**
+ * Update buddy alert thresholds
+ */
+export async function updateBuddyThresholds(
+  userId: string,
+  buddyId: string,
+  thresholds: BuddyAlertThresholds
+): Promise<UserBuddy | null> {
+  const sql = `
+    UPDATE user_buddies 
+    SET alert_thresholds = $3, updated_at = NOW()
+    WHERE user_id = $1 AND buddy_id = $2
+    RETURNING *
+  `;
+  const result = await query<UserBuddy>(sql, [userId, buddyId, JSON.stringify(thresholds)]);
+  return result[0] || null;
+}
+
+/**
+ * Remove a buddy relationship
+ */
+export async function removeBuddy(userId: string, buddyId: string): Promise<boolean> {
+  const sql = `
+    DELETE FROM user_buddies 
+    WHERE (user_id = $1 AND buddy_id = $2) OR (user_id = $2 AND buddy_id = $1)
+  `;
+  await query(sql, [userId, buddyId]);
+  return true;
 }
