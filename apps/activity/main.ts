@@ -47,7 +47,7 @@ let currentUser: { username: string; id: string } | null = null;
 let currentChannelId: string | null = null;
 let socket: Socket | null = null;
 let currentView = 'analyzer';
-let currentGame = 'poker';
+let currentGame = 'dad';
 
 interface VaultStatus {
   activeVaults: number;
