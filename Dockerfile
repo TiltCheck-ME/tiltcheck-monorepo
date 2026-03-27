@@ -32,17 +32,18 @@ ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
 RUN pnpm install
 
 # RECURSIVE BUILD: Build the app AND ALL of its internal workspace dependencies
-# This guarantees that shared artifacts (dist/ folders) exist before the App Router builds.
-RUN pnpm --filter $APP_NAME... build
+# Using path-based filtering for maximum robustness across naming conventions
+RUN pnpm --filter "./apps/$APP_NAME..." build
 
 # Prepare production output
+# pnpm v10 deploy requires --legacy for non-injected workspaces
 RUN if [ -d "apps/$APP_NAME/.next/standalone" ]; then \
-      pnpm --filter @tiltcheck/$APP_NAME --prod deploy /app/out && \
+      pnpm --filter "./apps/$APP_NAME" --prod --legacy deploy /app/out && \
       cp -r apps/$APP_NAME/.next/standalone/* /app/out/ && \
       cp -r apps/$APP_NAME/.next/static /app/out/.next/static && \
       cp -r apps/$APP_NAME/public /app/out/public; \
     else \
-      pnpm --filter @tiltcheck/$APP_NAME --prod deploy /app/out && \
+      pnpm --filter "./apps/$APP_NAME" --prod --legacy deploy /app/out && \
       cp -r apps/$APP_NAME/dist /app/out/dist || true; \
     fi
 

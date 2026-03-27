@@ -498,11 +498,15 @@ function updateStatus(msg: string, isError = false) {
 
 // --- SDK Init ---
 async function initDiscord() {
-  renderUI('CONNECTING...');
+  const BRAND_NAMES = ['EDGE EQUALIZER', 'TRANSPARENCY SHIELD'];
+  const BRAND_SELECT = BRAND_NAMES[Math.floor(Math.random() * BRAND_NAMES.length)];
+  
+  renderUI(`${BRAND_SELECT}: INITIALIZING...`);
 
   const isInsideDiscord = window.self !== window.top;
 
   if (!isInsideDiscord) {
+    console.warn(`[TiltCheck] Running outside Discord. Entering BYPASS MODE.`);
     currentUser = { username: 'LOCAL DEGEN', id: 'dev-0000' };
     updateStatus('BYPASS MODE');
     initNavigation();
@@ -513,7 +517,15 @@ async function initDiscord() {
 
   try {
     const discordSdk = new DiscordSDK(DISCORD_CLIENT_ID);
-    await discordSdk.ready();
+    
+    // Hardened SDK Initialization with timeout fallback
+    const sdkReadyPromise = discordSdk.ready();
+    const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => reject(new Error('Discord SDK Initialization Timeout')), 5000);
+    });
+
+    await Promise.race([sdkReadyPromise, timeoutPromise]);
+    console.log('[TiltCheck] Discord SDK Ready');
 
     const { code } = await discordSdk.commands.authorize({
       client_id: DISCORD_CLIENT_ID,
@@ -522,13 +534,17 @@ async function initDiscord() {
       prompt: 'none',
     });
 
-    const response = await fetch('https://api.tiltcheck.me/auth/discord/activity/token', {
+    const tokenResponse = await fetch('https://api.tiltcheck.me/auth/discord/activity/token', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ code }),
     });
 
-    const { access_token } = await response.json();
+    if (!tokenResponse.ok) {
+        throw new Error(`Auth API failed: ${tokenResponse.status}`);
+    }
+
+    const { access_token } = await tokenResponse.json();
     const auth = await discordSdk.commands.authenticate({ access_token });
 
     if (auth.user) {
@@ -540,8 +556,9 @@ async function initDiscord() {
       renderUI();
     }
 
-  } catch {
-    updateStatus('SDK OFFLINE', true);
+  } catch (err) {
+    console.error('[TiltCheck] SDK Init Failed:', err);
+    updateStatus('HANDSHAKE FAILED', true);
     currentUser = { username: 'ANONYMOUS', id: 'dev-0000' };
     initNavigation();
     initSocket();

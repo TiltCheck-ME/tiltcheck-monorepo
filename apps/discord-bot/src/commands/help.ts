@@ -1,74 +1,60 @@
 /* Copyright (c) 2026 TiltCheck. All rights reserved. */
 /**
- * Help Command
- * 
- * Displays available commands and module information.
+ * Edge Equalizer Help Command
+ * Technical map for the audit specialist.
  */
-
-import { SlashCommandBuilder, ChatInputCommandInteraction, InteractionContextType } from 'discord.js';
-import { createEmbed, Colors } from '@tiltcheck/discord-utils';
+import { SlashCommandBuilder, ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
 import type { Command } from '../types.js';
 
 export const help: Command = {
   data: new SlashCommandBuilder()
     .setName('help')
-    .setDescription('Show safety commands and bot routing')
-    .setContexts(
-      InteractionContextType.Guild,
-      InteractionContextType.BotDM
-    ),
+    .setDescription('[TECH MAP] Audit commands and bot routing.'),
 
   async execute(interaction: ChatInputCommandInteraction) {
-    const embed = createEmbed(
-      '🛡️ TiltCheck Safety Bot',
-      'Risk checks, moderation tools, and responsible play utilities',
-      Colors.PRIMARY
-    );
+    const embed = new EmbedBuilder()
+      .setColor(0x22d3a6)
+      .setTitle('🛡️ [EDGE EQUALIZER] THE AUDIT MAP')
+      .setDescription('Independent session audits and mathematical verification. We don\'t stop you; we audit you.')
+      .setThumbnail('https://tiltcheck.me/assets/logo/logocurrent.png');
 
     embed.addFields(
       {
-        name: 'Core Safety',
+        name: '📊 SESSION AUDIT',
         value:
-          '`/tiltcheck status` - Check your current tilt state\n' +
-          '`/tiltcheck history` - View your tilt history\n' +
-          '`/tiltcheck cooldown [minutes]` - Start a cooldown',
+          '`/status` - Quick in-Discord HUD snippet\n' +
+          '`/tether` - Link your accountability safety line\n' +
+          '`/goal` - Set your session exit milestones.',
         inline: false,
       },
       {
-        name: 'Trust And Link Safety',
+        name: '⚖️ MATH & TRUST',
         value:
-          '`/tiltcheck casino domain:<domain>` - Get trust/fairness data\n' +
-          '`/tiltcheck link scan url:<url>` - Scan a suspicious URL\n' +
-          '`/tiltcheck link submit url:<url>` - Submit promo links for review',
+          '`/odds` - HOUSE EDGE/RTP check for house games\n' +
+          '`/verify` - PROVABLY FAIR verification tool\n' +
+          '`/casino` - Domain trust and fairness lookup.',
         inline: false,
       },
       {
-        name: 'Community And Moderation',
+        name: '💾 SECURING THE BAG',
         value:
-          '`/buddy add @user` - Set up an accountability buddy\n' +
-          '`/report <target> <action> <reason>` - Log a report\n' +
-          '`/setstate state:<XX>` - Save optional region context',
+          '`/juicedrop` - Fund a non-custodial profit spill\n' +
+          '`/lockvault` - Dashboard portal to time-lock your bag.\n' +
+          '`/reputation` - Audit scores (Mod Only).',
         inline: false,
       },
       {
-        name: 'Utility',
+        name: '🤖 BOT ROUTING',
         value:
-          '`/ping` - Health check\n' +
-          '`/help` - Show this command guide',
-        inline: false,
-      },
-      {
-        name: 'Command Routing',
-        value:
-          'Tipping and vault commands are in the JustTheTip bot.\n' +
-          'DA&D and poker commands are in the DA&D bot.\n' +
-          'Bonus timer commands are in your external CollectClock bot.',
+          '**HUD:** Launch the full HUD via the Activity panel to the right.\n' +
+          '**GAMES:** DA&D and Poker commands are in the DA&D bot.\n' +
+          '**TIPS:** P2P tipping is handled by the JustTheTip bot.',
         inline: false,
       }
     );
 
     embed.setFooter({
-      text: 'TiltCheck Safety Bot',
+      text: 'Edge Equalizer: LEVEL THE PLAYING FIELD. Fair, Transparent, Non-Punitive.',
     });
 
     await interaction.reply({ embeds: [embed] });

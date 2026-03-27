@@ -38,7 +38,7 @@ import { getUserBuddies } from '@tiltcheck/db';
 async function main() {
   const startTime = Date.now();
   console.log('\n' + '='.repeat(60));
-  console.log('TILTCHECK ALPHA LAYER - NUKE THE HOUSE EDGE');
+  console.log('TILTCHECK TRANSPARENCY LAYER - NEUTRALIZE THE HOUSE EDGE');
   console.log('='.repeat(60));
   console.log(`SESSION INITIALIZED at: ${new Date().toLocaleString()}`);
   console.log(`ENV: ${process.env.NODE_ENV || 'production'}`);
@@ -92,11 +92,12 @@ async function main() {
   startTiltAgentLoop(async (userId, message, severity) => {
     try {
       const user = await client.users.fetch(userId);
-      const prefix = severity === 'high' ? '[HIGH RISK]' : severity === 'medium' ? '[ALPHA ALERT]' : '[REALITY CHECK]';
+      const prefix = severity === 'high' ? '[HIGH RISK]' : severity === 'medium' ? '[AUDIT ALERT]' : '[EDGE EQUALIZER]';
       
       // Notify the User
-      await user.send(`${prefix} TILTCHECK ALPHA AUDIT\n\n${message}\n\n*Don't get rinsed. SECURE THE BAG.*`);
-      console.log(`[TiltAgent] Alpha signal sent to ${userId} (${severity})`);
+      await user.send(`${prefix} TILTCHECK EDGE EQUALIZER AUDIT\n\n${message}\n\n*Don't get rinsed. SECURE THE PROFIT.*`);
+      console.log(`[TiltAgent] Transparency signal sent to ${userId} (${severity})`);
+
 
       // Notify Buddies (Accountability)
       if (severity === 'high' || severity === 'medium') {

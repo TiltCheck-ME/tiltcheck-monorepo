@@ -13,6 +13,8 @@ import { trackMessage, isOnCooldown, recordViolation } from '@tiltcheck/tiltchec
 import { config } from '../config.js';
 import type { CommandHandler } from './commands.js';
 import { checkAndOnboard, handleOnboardingInteraction, needsOnboarding } from './onboarding.js';
+import { isUserInActiveSession } from '../services/tilt-agent.js';
+import { getVibeCheckAlert } from '@tiltcheck/tiltcheck-core';
 import type { 
   TiltCheckEvent, 
   TiltDetectedEventData, 
@@ -271,10 +273,15 @@ export class EventHandler {
           const user = await this.client.users.fetch(userId);
           if (!user) return;
 
+          if (isUserInActiveSession(userId)) {
+            console.log(`[Bot] Suppressing tilt DM for ${user.tag} - HUD session active.`);
+            return;
+          }
+
           const scoreText = typeof tiltScore === 'number' ? tiltScore.toFixed(1) : 'n/a';
           const warningMessage = severity >= 4
-            ? `Tilt warning: auto-cooldown started. Reason: ${reason}.`
-            : `Tilt warning: detected (${reason}, score: ${scoreText}). Play it calm.`;
+            ? `📊 **[CRITICAL AUDIT] ${reason.toUpperCase()}. Your current risk profile is spiking. Audit your bag carefully.**`
+            : `📊 **[EDGE EQUALIZER] Quick heads-up: ${reason}. (Score: ${scoreText}). Stay objective.**`;
 
           await user.send(warningMessage).catch(() => {
             console.log(`[Bot] Could not send tilt warning DM to ${user.tag}`);
@@ -288,35 +295,7 @@ export class EventHandler {
       'discord-bot'
     );
 
-    eventRouter.subscribe(
-      'cooldown.violated',
-      async (event: TiltCheckEvent<'cooldown.violated'>) => {
-        try {
-          const { userId, violationCount, expiresAt } = event.data;
-
-          const user = await this.client.users.fetch(userId);
-          if (!user) return;
-
-          const remainingMs = expiresAt ? expiresAt - Date.now() : 0;
-          const remainingMin = Math.ceil(remainingMs / 60000);
-
-          const violationMessage = violationCount >= 3
-            ? `Cooldown violation. ${remainingMin} minutes left, and it got extended.`
-            : `Cooldown still active. ${remainingMin} minutes left.`;
-
-          await user.send(violationMessage).catch(() => { });
-
-          await this.handleModAction('cooldown.violated', {
-            ...event.data,
-            action: 'message_sent_on_cooldown',
-            newDuration: remainingMin > 0 ? remainingMin : 5
-          });
-        } catch (error) {
-          console.error('[Bot] Error handling cooldown.violated event:', error);
-        }
-      },
-      'discord-bot'
-    );
+    // Cooldown violation logic removed - transitioned to surgical audit.
 
     eventRouter.subscribe(
       'link.flagged',
@@ -385,33 +364,29 @@ export class EventHandler {
           const finalAction = action || type;
           const user = await this.client.users.fetch(userId).catch(() => null);
 
-          if (finalAction === 'phone_friend_discord' || finalAction === 'PHONE_FRIEND') {
+          if (finalAction === 'VIBE_CHECK') {
             const channelId = process.env.DEGEN_ACCOUNTABILITY_CHANNEL_ID || '1447913312015515711';
             const channel = await this.client.channels.fetch(channelId).catch(() => null);
             
             if (channel && channel.isTextBased()) {
-              const userMention = userId !== 'guest' ? `<@${userId}>` : '**A Guest Degen**';
-              const message = data?.message || displayText || 'Intervention Required';
-              const alertMessage = `[BUDDY SYSTEM ALERT]\n\n${userMention} is fumbling the bag! \n\nGet in voice and pull them off the floor. \n\n*Reason: ${message}*`;
-              await (channel as any).send({ content: alertMessage });
-              console.log(`[Bot] Buddy snitch sent to channel ${channelId} for ${userId}`);
-            }
-          }
+              const alertMessage = getVibeCheckAlert(userId);
+              // DROP THE FLASHBANG GIF
+              const flashbangGif = 'https://media.discordapp.net/attachments/123456789/flashbang.gif'; // PLACEHOLDER
+              await (channel as any).send({ 
+                content: alertMessage,
+                files: [flashbangGif]
+              });
 
-          if (finalAction === 'SELF_EXCLUDE_PROMPT' && user) {
-            const selfExclusionUrl = process.env.SELF_EXCLUSION_URL || 'https://tiltcheck.app/safety/exclude';
-            const buddyChannelId = process.env.DEGEN_ACCOUNTABILITY_CHANNEL_ID || '1447913312015515711';
-            
-            // 1. DM User
-            await user.send(`🚨 **CRITICAL INTERVENTION** 🚨\n\n${displayText}\n\n**Self-Exclusion link:** ${selfExclusionUrl}\nTake the exit. We're here when you're objective again.`).catch(() => {
-              console.log(`[Bot] Could not DM self-exclusion prompt to ${user.tag}`);
-            });
-
-            // 2. Alert Buddy Channel
-            const channel = await this.client.channels.fetch(buddyChannelId).catch(() => null);
-            if (channel && channel.isTextBased()) {
-              const alertMessage = `[NUCLEAR INTERVENTION]\n\n<@${userId}> has reached their breaking point or requested exclusion. \n\nI've sent them the links, but they need a real human right now. Check on them.`;
-              await (channel as any).send({ content: alertMessage });
+              // MOVE TO VOICE
+              const guildId = data?.guildId;
+              const guild = guildId ? await this.client.guilds.fetch(guildId).catch(() => null) : null;
+              if (guild) {
+                const member = await guild.members.fetch(userId).catch(() => null);
+                const voiceChannelId = process.env.DEGEN_ACCOUNTABILITY_VC_ID || '1447913312015515712';
+                if (member && member.voice.channelId) {
+                  await member.voice.setChannel(voiceChannelId).catch(console.error);
+                }
+              }
             }
           }
         } catch (error) {

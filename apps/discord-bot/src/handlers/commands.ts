@@ -24,8 +24,12 @@ export class CommandHandler {
     const serviceId = process.env.SERVICE_ID || 'tiltcheck-bot';
 
     // Define which commands belong to which bot
-    const dadBotCommands = ['dad', 'poker', 'help'];
-    const tiltCheckBotCommands = ['tiltcheck', 'tip', 'airdrop', 'lockvault', 'casino', 'support', 'terms', 'dashboard', 'help'];
+    const dadBotCommands = ['lobby', 'help', 'triviadrop'];
+    const tiltCheckBotCommands = [
+      'status', 'tether', 'odds', 'verify', 'goal', 'intervene', 
+      'lockvault', 'casino', 'juicedrop', 'jackpot', 
+      'support', 'terms', 'dashboard', 'help', 'reputation', 'jme'
+    ];
 
     const allowedCommands = serviceId === 'tiltcheck-dad-bot' 
       ? dadBotCommands 

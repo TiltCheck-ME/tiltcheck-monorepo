@@ -12,12 +12,11 @@ import { hand } from './dad/hand.js';
 import { submit } from './dad/submit.js';
 import { vote } from './dad/vote.js';
 import { scores } from './dad/scores.js';
-import { poker } from './poker.js';
 
 export const dad: Command = {
     data: new SlashCommandBuilder()
         .setName('dad')
-        .setDescription('DA&D lobby + poker table (one command, no clutter)')
+        .setDescription('DA&D lobby controls')
         .addSubcommandGroup((group) =>
             group
                 .setName('lobby')
@@ -70,42 +69,14 @@ export const dad: Command = {
                         ),
                 )
                 .addSubcommand((sub) => sub.setName('scores').setDescription('View the current DA&D leaderboard')),
-        )
-        .addSubcommandGroup((group) =>
-            group
-                .setName('poker')
-                .setDescription("Texas Hold'em")
-                .addSubcommand((sub) =>
-                    sub
-                        .setName('start')
-                        .setDescription('Start a new poker game')
-                        .addIntegerOption((opt) => opt.setName('buyin').setDescription('Buy-in amount (chips)').setRequired(false))
-                        .addIntegerOption((opt) =>
-                            opt.setName('smallblind').setDescription('Small blind amount').setRequired(false),
-                        ),
-                )
-                .addSubcommand((sub) => sub.setName('join').setDescription('Join an active poker game'))
-                .addSubcommand((sub) => sub.setName('status').setDescription('Check current game status'))
-                .addSubcommand((sub) => sub.setName('fold').setDescription('Fold your hand'))
-                .addSubcommand((sub) => sub.setName('check').setDescription('Check (no bet)'))
-                .addSubcommand((sub) => sub.setName('call').setDescription('Call the current bet'))
-                .addSubcommand((sub) =>
-                    sub
-                        .setName('raise')
-                        .setDescription('Raise the bet')
-                        .addIntegerOption((opt) =>
-                            opt.setName('amount').setDescription('Amount to raise to').setRequired(true),
-                        ),
-                )
-                .addSubcommand((sub) => sub.setName('allin').setDescription('Go all-in')),
         ),
 
     async execute(interaction: ChatInputCommandInteraction) {
         const group = interaction.options.getSubcommandGroup(true);
         const sub = interaction.options.getSubcommand(true);
 
-        if (group === 'poker') {
-            await poker.execute(interaction);
+        if (group !== 'lobby') {
+            await interaction.reply({ content: 'Invalid command group.', ephemeral: true });
             return;
         }
 
