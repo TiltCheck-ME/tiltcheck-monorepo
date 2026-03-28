@@ -9,6 +9,7 @@ export * from './src/index.js';
 
 // Import tilt detector function for legacy compatibility wrapper
 import { getUserTiltStatus } from './src/tilt-detector.js';
+import type { TiltSignal } from './src/types.js';
 
 // Legacy TiltEvent interface for backwards compatibility
 export interface TiltEvent {
@@ -40,7 +41,7 @@ export function detectTilt(userId: string): TiltEvent | null {
   if (
     status.onCooldown ||
     status.lossStreak >= 4 ||
-    status.recentSignals.some(s => s.severity >= 4)
+    status.recentSignals.some((s: TiltSignal) => s.severity >= 4)
   ) {
     severity = 'high';
   }
