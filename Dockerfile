@@ -31,9 +31,9 @@ ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
 # Install dependencies
 RUN pnpm install
 
-# Build only the application and its direct internal dependencies (the graph)
-# Pre-building dependencies ensures workspace links are resolved before the app build
-RUN pnpm --filter "...$APP_NAME" --if-present build
+# Build all direct internal dependencies (the graph) serially to ensure 
+# project references are strictly resolved and dist/ folders are populated.
+RUN pnpm --filter "...$APP_NAME" --workspace-concurrency=1 --if-present build
 
 # Final build for the application itself
 RUN pnpm --filter "./apps/$APP_NAME" --if-present build
