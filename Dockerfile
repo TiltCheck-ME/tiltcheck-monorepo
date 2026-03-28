@@ -31,12 +31,13 @@ ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
 # Install dependencies
 RUN pnpm install
 
-# Build all direct internal dependencies (the graph) serially to ensure 
-# project references are strictly resolved and dist/ folders are populated.
-RUN pnpm --filter "...$APP_NAME" --workspace-concurrency=1 --if-present build
+# SURGICAL BUILD: Only compile the application's direct dependent graph.
+# This prevents building unrelated legacy packages that might have broken types.
+# We build dependencies first, then the app to resolve path mapping correctly.
+RUN pnpm --filter "...@tiltcheck/$APP_NAME" --workspace-concurrency=1 --if-present build
 
-# Final build for the application itself
-RUN pnpm --filter "./apps/$APP_NAME" --if-present build
+# Final build for our specific application
+RUN pnpm --filter "@tiltcheck/$APP_NAME" build
 
 # Prepare production output
 # pnpm v10 deploy requires --legacy for non-injected workspaces
