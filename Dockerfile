@@ -31,9 +31,11 @@ ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
 # Install dependencies
 RUN pnpm install
 
-# RECURSIVE BUILD: Build the app AND ALL of its internal workspace dependencies
-# Using path-based filtering for maximum robustness across naming conventions
-RUN pnpm --filter "./apps/$APP_NAME..." build
+# Build all shared internal dependencies (packages and modules) first
+RUN pnpm --filter "./packages/**" --filter "./modules/**" --if-present build
+
+# Build the specific app AND its remaining workspace dependencies
+RUN pnpm --filter "./apps/$APP_NAME..." --if-present build
 
 # Prepare production output
 # pnpm v10 deploy requires --legacy for non-injected workspaces
