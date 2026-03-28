@@ -22,7 +22,8 @@ export default function CasinosPage() {
       try {
         // In local dev, API is usually on 3001. Using relative path if proxy is configured, 
         // but here we'll try to fetch from the API_URL env if available (inlined search).
-        const response = await fetch('http://localhost:3001/rgaas/casinos');
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://api.tiltcheck.me';
+        const response = await fetch(`${apiUrl}/rgaas/casinos`);
         if (!response.ok) throw new Error('Failed to fetch trust scores');
         const data = await response.json();
         setCasinos(data.casinos);
