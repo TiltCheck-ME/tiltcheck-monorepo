@@ -32,7 +32,7 @@ ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
 RUN pnpm install
 
 # We run from the app directory to ensure imports are resolved correctly.
-RUN cd apps/$APP_NAME && esbuild src/index.ts --bundle --platform=node --format=esm --target=node22 --outfile=dist/index.js --tsconfig=../../tsconfig.json --external:fsevents --external:pg-native --external:bcryptjs --external:bcrypt --external:bufferutil --external:utf-8-validate
+RUN cd apps/$APP_NAME && esbuild src/index.ts --bundle --platform=node --format=esm --target=node22 --outfile=dist/index.js --tsconfig=../../tsconfig.json --external:fsevents --external:pg-native --external:bcryptjs --external:bcrypt --external:bufferutil --external:utf-8-validate --external:fs --external:path --external:os --external:crypto --external:http --external:https --external:url --external:stream --external:zlib --external:events --external:util --external:net --external:tls --external:child_process
 
 # Prepare production output
 # pnpm v10 deploy requires --legacy for non-injected workspaces
