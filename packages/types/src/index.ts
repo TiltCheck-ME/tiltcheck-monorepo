@@ -634,7 +634,9 @@ export type EventType =
   | 'dad.game.completed'
   | 'user.discord_linked'
   | 'safety.intervention.triggered'
-  | 'trust.degen-intel.ingested';
+  | 'trust.degen-intel.ingested'
+  | 'trust.casino.metric.snapshot'
+  | 'trust.casino.tos.changed';
 
 /**
  * Event-specific data interfaces
@@ -932,9 +934,9 @@ export interface EventDataMap {
   'vault.expired': VaultExpiredEventData;
   'vault.locked': VaultLockedEventData;
   'vault.reload_due': VaultReloadDueEventData;
-    // Fallback for types not yet specifically typed
-    [key: string]: unknown;
-  }
+  'trust.casino.metric.snapshot': CasinoMetricSnapshot;
+  'trust.casino.tos.changed': CasinoTosVersion;
+}
 
 export interface TiltCheckEvent<K extends EventType> {
   id: string;
@@ -1040,6 +1042,50 @@ export interface CasinoTrustRecord extends CasinoTrustPillars {
 }
 
 /**
+ * Historical snapshot of raw metrics for auditing (The "Proof")
+ */
+export interface CasinoMetricSnapshot {
+  casinoName: string;
+  timestamp: number;
+  
+  // Financial Pillar Raw Data
+  avgWithdrawalHours?: number;
+  withdrawalSuccessRate?: number; // 0.0 - 1.0
+  
+  // Fairness Pillar Raw Data
+  advertisedRtp?: number;
+  actualRtp?: number;
+  rtpDelta?: number;
+  tosHash?: string;
+  provablyFairUrl?: string;
+  providerReputationTier?: 'reputable' | 'unknown' | 'shady';
+  
+  // Operational Raw Data
+  supportResponseTimeMinutes?: number;
+  licenseVerified?: boolean;
+}
+
+/**
+ * Historical record of pillar scores over time
+ */
+export interface CasinoScoreHistory extends CasinoTrustPillars {
+  casinoName: string;
+  overallScore: number;
+  timestamp: number;
+}
+
+/**
+ * Track changes to Terms of Service
+ */
+export interface CasinoTosVersion {
+  casinoName: string;
+  contentHash: string;
+  rawContentExcerpt?: string;
+  changeSummary?: string;
+  detectedAt: number;
+}
+
+/**
  * Full record for a degen's (community user) trust state
  */
 export interface DegenTrustRecord {
@@ -1051,6 +1097,7 @@ export interface DegenTrustRecord {
   communityReports: number;
   history: TrustEvent[];
   lastUpdated: number;
+  recoveryScheduledAt?: number;
 }
 
 // Unified payload for trust.casino.updated events

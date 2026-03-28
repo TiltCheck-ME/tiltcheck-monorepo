@@ -17,7 +17,7 @@ router.get('/', (_req, res) => {
   res.json({
     status: 'ok',
     service: 'api-gateway',
-    version: '0.1.0',
+    version: '1.1.0',
     timestamp: new Date().toISOString(),
   });
 });

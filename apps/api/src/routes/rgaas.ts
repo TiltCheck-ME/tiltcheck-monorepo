@@ -154,6 +154,7 @@ router.post('/trust/degen-intel', async (req, res) => {
   const runAtISO = String(req.body?.runAtISO || new Date().toISOString());
   const signals = req.body?.signals && typeof req.body.signals === 'object' ? req.body.signals : {};
   const samples = Array.isArray(req.body?.samples) ? req.body.samples.slice(-50) : [];
+  const casinoName = req.body?.casinoName ? String(req.body.casinoName) : undefined;
 
   if (!report) {
     res.status(400).json({ error: 'report is required', code: 'INVALID_REPORT' });
@@ -183,6 +184,20 @@ router.post('/trust/degen-intel', async (req, res) => {
       },
       syntheticCommunityUser,
       { source, runAtISO }
+    );
+
+    // Also feed casino trust engine if casinoName is present
+    await eventRouter.publish(
+      'trust.degen-intel.ingested',
+      'trust-engine-api',
+      {
+        source,
+        reportExcerpt: report.slice(0, 400),
+        severity,
+        communityUserId: syntheticCommunityUser,
+        trustLevel: trustEngines.getTrustLevel(trustEngines.getDegenScore(syntheticCommunityUser)),
+        casinoName,
+      }
     );
 
     // Persist raw intelligence to local JSONL for your own retrieval/indexing jobs.
