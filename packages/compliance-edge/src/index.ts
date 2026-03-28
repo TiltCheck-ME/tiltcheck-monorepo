@@ -69,20 +69,28 @@ export default {
 		let responseBody;
 		const headers = { 'Content-Type': 'application/json' };
 
-		if (country === 'US' && state && igamingRegulations.has(state)) {
+		if (country === 'US' && state && igamingRegulations.has(state as string)) {
 			// A specific regulation was found for the user's state.
-			const regulation = igamingRegulations.get(state);
-			responseBody = JSON.stringify({
-				message: 'Regulation information for your location.',
-				location: {
-					country,
-					state,
-				},
-				regulation: {
-					status: regulation.status,
-					summary: regulation.summary,
-				},
-			});
+			const regulation = igamingRegulations.get(state as string);
+			if (regulation) {
+				responseBody = JSON.stringify({
+					message: 'Regulation information for your location.',
+					location: {
+						country,
+						state,
+					},
+					regulation: {
+						status: regulation.status,
+						summary: regulation.summary,
+					},
+				});
+			} else {
+				// Should not happen since we checked has()
+				responseBody = JSON.stringify({
+					message: 'No specific iGaming regulations found for your location.',
+					location: { country: country || 'Unknown', state: state || 'Unknown' }
+				});
+			}
 		} else {
 			// No specific regulation found, or the user is outside the US.
 			responseBody = JSON.stringify({
