@@ -4,8 +4,8 @@
 FROM node:22 AS builder
 WORKDIR /app
 
-# Enable pnpm v10
-RUN corepack enable && corepack prepare pnpm@10.29.1 --activate
+# Enable pnpm v10 and install global build tools
+RUN corepack enable && corepack prepare pnpm@10.29.1 --activate && npm install -g esbuild
 
 # Install build dependencies for native modules (needed for pg/bcrypt/scrypt)
 RUN apt-get update && apt-get install -y \
@@ -31,10 +31,8 @@ ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
 # Install dependencies
 RUN pnpm install
 
-# SURGICAL BUNDLE: Instead of fighting the monorepo graph, we bundle the 
-# app and its proven internal dependencies into a single production file.
 # We run from the app directory to ensure imports are resolved correctly.
-RUN cd apps/$APP_NAME && npx esbuild src/index.ts --bundle --platform=node --format=esm --target=node22 --outfile=dist/index.js --tsconfig=../../tsconfig.json --external:fsevents --external:pg-native --external:bcryptjs --external:bcrypt --external:bufferutil --external:utf-8-validate
+RUN cd apps/$APP_NAME && esbuild src/index.ts --bundle --platform=node --format=esm --target=node22 --outfile=dist/index.js --tsconfig=../../tsconfig.json --external:fsevents --external:pg-native --external:bcryptjs --external:bcrypt --external:bufferutil --external:utf-8-validate
 
 # Prepare production output
 # pnpm v10 deploy requires --legacy for non-injected workspaces
