@@ -633,12 +633,22 @@ export type EventType =
   | 'trivia.player.reinstated'
   | 'dad.game.completed'
   | 'user.discord_linked'
-  | 'safety.intervention.triggered';
+  | 'safety.intervention.triggered'
+  | 'trust.degen-intel.ingested';
 
 /**
  * Event-specific data interfaces
  */
 
+
+export interface DegenIntelIngestedEventData {
+  source: string;
+  reportExcerpt?: string;
+  severity: number;
+  communityUserId: string;
+  trustLevel: TrustLevel;
+  casinoName?: string; // Optional: targets a specific casino record if identified
+}
 
 export interface LinkFlaggedEventData {
   url: string;
@@ -918,6 +928,7 @@ export interface EventDataMap {
   'trivia.player.reinstated': TriviaPlayerReinstatedEventData;
   'user.discord_linked': UserDiscordLinkedEventData;
   'safety.intervention.triggered': SafetyInterventionTriggeredEventData;
+  'trust.degen-intel.ingested': DegenIntelIngestedEventData;
   'vault.expired': VaultExpiredEventData;
   'vault.locked': VaultLockedEventData;
   'vault.reload_due': VaultReloadDueEventData;
@@ -986,19 +997,60 @@ export interface WalletMapping {
 // Trust Engine Types
 // ============================================
 
+/**
+ * Trust levels for both users and casinos
+ */
+export type TrustLevel = 'very-high' | 'high' | 'neutral' | 'low' | 'high-risk';
+
+/**
+ * Detailed trust event for history tracking and auditing
+ */
 export interface TrustEvent {
-  id: number;
+  timestamp: number;
+  delta: number;
+  reason: string;
+  category: string; // 'financial' | 'fairness' | 'promotional' | 'operational' | 'community' | 'degen'
+  severity?: number; // 1-5 scaled impact
+  source?: string; // emitter module id
+  metadata?: Record<string, unknown>;
+  id?: number | string;
   userId?: string;
-  casinoName?: string; // canonical casino identifier
-  eventType: string;
-  delta?: number; // For degen trust adjustments
-  severity?: number; // 1-5 scaled impact severity (nerfs, risk events)
-  previousScore?: number; // prior casino score when applicable
-  newScore?: number; // new casino score when applicable
-  reason: string; // human readable summary
-  source: string; // emitter module id
-  details?: string;
-  createdAt: Date;
+  casinoName?: string;
+}
+
+/**
+ * Pillar-based scoring for Casino Trust (The Five Pillars)
+ * Weighted Total = (P1 * 0.40) + (P2 * 0.25) + (P3 * 0.15) + (P4 * 0.10) + (P5 * 0.10)
+ */
+export interface CasinoTrustPillars {
+  financialPayouts: number;     // Pillar 1 (40%): Withdrawal speed/success, transparency, complaints
+  fairnessTransparency: number;  // Pillar 2 (25%): RTP delta, Provably Fair, ToS volatility, providers
+  promotionalHonesty: number;    // Pillar 3 (15%): Wagering, bonus clarity, silent nerfing
+  operationalSupport: number;    // Pillar 4 (10%): Licensing, support speed, dispute resolution
+  communityReputation: number;   // Pillar 5 (10%): Sentiment, forum rep, RG tools
+}
+
+/**
+ * Full record for a casino's trust state
+ */
+export interface CasinoTrustRecord extends CasinoTrustPillars {
+  score: number;
+  history: TrustEvent[];
+  lastUpdated: number;
+}
+
+/**
+ * Full record for a degen's (community user) trust state
+ */
+export interface DegenTrustRecord {
+  score: number;
+  tiltIndicators: number; // Temporary drops for tilt
+  behaviorScore: number;
+  scamFlags: number;
+  accountabilityBonus: number;
+  communityReports: number;
+  history: TrustEvent[];
+  lastUpdated: number;
 }
 
 // Unified payload for trust.casino.updated events
@@ -1041,11 +1093,9 @@ export interface TrustDomainUpdateEvent {
   metadata?: Record<string, unknown>; // contextual details (actor, scan artifacts, redirect chain)
 }
 
-export type TrustLevel = 'very-high' | 'high' | 'neutral' | 'low' | 'high-risk';
-
 export interface TrustScore {
   score: number;
-  level: 'very-high' | 'high' | 'neutral' | 'low' | 'high-risk';
+  level: TrustLevel;
   lastUpdated: Date;
   explanation?: string;
 }
