@@ -137,6 +137,12 @@ importers:
       '@tiltcheck/db':
         specifier: workspace:*
         version: link:../../packages/db
+      '@tiltcheck/error-factory':
+        specifier: workspace:*
+        version: link:../../packages/error-factory
+      '@tiltcheck/event-router':
+        specifier: workspace:*
+        version: link:../../packages/event-router
       '@tiltcheck/event-types':
         specifier: workspace:*
         version: link:../../packages/event-types
@@ -204,6 +210,9 @@ importers:
       '@types/express':
         specifier: ^4.17.21
         version: 4.17.25
+      '@types/express-serve-static-core':
+        specifier: ^4.19.8
+        version: 4.19.8
       '@types/helmet':
         specifier: ^4.0.0
         version: 4.0.0
@@ -270,7 +279,7 @@ importers:
     dependencies:
       '@solana/web3.js':
         specifier: ^1.87.0
-        version: 1.98.4(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@6.0.6)
+        version: 1.98.4(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)
       '@tiltcheck/event-router':
         specifier: workspace:*
         version: link:../../packages/event-router
@@ -291,13 +300,13 @@ importers:
         version: 0.1.4
       pm2:
         specifier: ^6.0.14
-        version: 6.0.14(bufferutil@4.1.0)(utf-8-validate@6.0.6)
+        version: 6.0.14(bufferutil@4.1.0)(utf-8-validate@5.0.10)
       tweetnacl:
         specifier: ^1.0.3
         version: 1.0.3
       ws:
         specifier: ^8.16.0
-        version: 8.19.0(bufferutil@4.1.0)(utf-8-validate@6.0.6)
+        version: 8.19.0(bufferutil@4.1.0)(utf-8-validate@5.0.10)
     devDependencies:
       '@types/express':
         specifier: ^4.17.21
@@ -883,6 +892,9 @@ importers:
 
   packages/api-client:
     dependencies:
+      '@tiltcheck/shared':
+        specifier: workspace:*
+        version: link:../shared
       '@tiltcheck/types':
         specifier: workspace:*
         version: link:../types
@@ -1025,10 +1037,19 @@ importers:
       '@tiltcheck/types':
         specifier: workspace:*
         version: link:../types
+      dotenv:
+        specifier: ^17.3.1
+        version: 17.3.1
+      pg:
+        specifier: ^8.20.0
+        version: 8.20.0
     devDependencies:
       '@types/bcryptjs':
         specifier: ^2.4.6
         version: 2.4.6
+      '@types/pg':
+        specifier: ^8.18.0
+        version: 8.18.0
       typescript:
         specifier: ^5.3.0
         version: 5.9.3
@@ -1300,6 +1321,9 @@ importers:
         specifier: workspace:*
         version: link:../types
     devDependencies:
+      '@types/express':
+        specifier: ^4.17.21
+        version: 4.17.25
       typescript:
         specifier: ^5.3.0
         version: 5.9.3
@@ -1370,7 +1394,7 @@ importers:
     dependencies:
       '@solana/web3.js':
         specifier: ^1.91.4
-        version: 1.98.4(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)
+        version: 1.98.4(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@6.0.6)
       '@tiltcheck/types':
         specifier: workspace:*
         version: link:../types
@@ -11485,7 +11509,7 @@ snapshots:
   '@pkgjs/parseargs@0.11.0':
     optional: true
 
-  '@pm2/agent@2.1.1(bufferutil@4.1.0)(utf-8-validate@6.0.6)':
+  '@pm2/agent@2.1.1(bufferutil@4.1.0)(utf-8-validate@5.0.10)':
     dependencies:
       async: 3.2.6
       chalk: 3.0.0
@@ -11498,7 +11522,7 @@ snapshots:
       pm2-axon-rpc: 0.7.1
       proxy-agent: 6.4.0
       semver: 7.7.2
-      ws: 7.5.10(bufferutil@4.1.0)(utf-8-validate@6.0.6)
+      ws: 7.5.10(bufferutil@4.1.0)(utf-8-validate@5.0.10)
     transitivePeerDependencies:
       - bufferutil
       - supports-color
@@ -11519,13 +11543,13 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@pm2/js-api@0.8.0(bufferutil@4.1.0)(utf-8-validate@6.0.6)':
+  '@pm2/js-api@0.8.0(bufferutil@4.1.0)(utf-8-validate@5.0.10)':
     dependencies:
       async: 2.6.4
       debug: 4.3.7
       eventemitter2: 6.4.9
       extrareqp2: 1.0.0(debug@4.3.7)
-      ws: 7.5.10(bufferutil@4.1.0)(utf-8-validate@6.0.6)
+      ws: 7.5.10(bufferutil@4.1.0)(utf-8-validate@5.0.10)
     transitivePeerDependencies:
       - bufferutil
       - supports-color
@@ -12864,7 +12888,7 @@ snapshots:
   '@types/body-parser@1.19.6':
     dependencies:
       '@types/connect': 3.4.38
-      '@types/node': 22.19.15
+      '@types/node': 25.5.0
 
   '@types/bs58@5.0.0':
     dependencies:
@@ -12888,7 +12912,7 @@ snapshots:
 
   '@types/connect@3.4.38':
     dependencies:
-      '@types/node': 22.19.15
+      '@types/node': 25.5.0
 
   '@types/cookie-parser@1.4.10(@types/express@4.17.25)':
     dependencies:
@@ -12912,7 +12936,7 @@ snapshots:
 
   '@types/express-serve-static-core@4.19.8':
     dependencies:
-      '@types/node': 22.19.15
+      '@types/node': 25.5.0
       '@types/qs': 6.15.0
       '@types/range-parser': 1.2.7
       '@types/send': 1.2.1
@@ -13046,7 +13070,7 @@ snapshots:
   '@types/send@0.17.6':
     dependencies:
       '@types/mime': 1.3.5
-      '@types/node': 22.19.15
+      '@types/node': 25.5.0
 
   '@types/send@1.2.1':
     dependencies:
@@ -13055,7 +13079,7 @@ snapshots:
   '@types/serve-static@1.15.10':
     dependencies:
       '@types/http-errors': 2.0.5
-      '@types/node': 22.19.15
+      '@types/node': 25.5.0
       '@types/send': 0.17.6
 
   '@types/shimmer@1.2.0': {}
@@ -17905,12 +17929,12 @@ snapshots:
       - supports-color
     optional: true
 
-  pm2@6.0.14(bufferutil@4.1.0)(utf-8-validate@6.0.6):
+  pm2@6.0.14(bufferutil@4.1.0)(utf-8-validate@5.0.10):
     dependencies:
-      '@pm2/agent': 2.1.1(bufferutil@4.1.0)(utf-8-validate@6.0.6)
+      '@pm2/agent': 2.1.1(bufferutil@4.1.0)(utf-8-validate@5.0.10)
       '@pm2/blessed': 0.1.81
       '@pm2/io': 6.1.0
-      '@pm2/js-api': 0.8.0(bufferutil@4.1.0)(utf-8-validate@6.0.6)
+      '@pm2/js-api': 0.8.0(bufferutil@4.1.0)(utf-8-validate@5.0.10)
       '@pm2/pm2-version-check': 1.0.4
       ansis: 4.0.0-node10
       async: 3.2.6
@@ -20001,6 +20025,11 @@ snapshots:
     optionalDependencies:
       bufferutil: 4.1.0
       utf-8-validate: 6.0.6
+
+  ws@8.19.0(bufferutil@4.1.0)(utf-8-validate@5.0.10):
+    optionalDependencies:
+      bufferutil: 4.1.0
+      utf-8-validate: 5.0.10
 
   ws@8.19.0(bufferutil@4.1.0)(utf-8-validate@6.0.6):
     optionalDependencies:

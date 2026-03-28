@@ -158,6 +158,14 @@ export class TrustEnginesService {
     this.updateCasinoScore(casinoName, 'fairnessTransparency', -10, `Watcher: Terms of Service Volatility: ${changeSummary || 'Silent update detected'}`);
   }
 
+  public getCasinoScores(): Record<string, CasinoTrustRecord> {
+    const scores: Record<string, CasinoTrustRecord> = {};
+    for (const [name, record] of this.casinoRecords.entries()) {
+      scores[name] = record;
+    }
+    return scores;
+  }
+
   // ============================================
   // CASINO TRUST ENGINE
   // ============================================
