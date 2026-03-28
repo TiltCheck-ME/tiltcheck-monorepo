@@ -22,7 +22,13 @@
 
 import { eventRouter } from '@tiltcheck/event-router';
 import { db } from '@tiltcheck/database';
-import type { TiltCheckEvent, TrustCasinoUpdateEvent } from '@tiltcheck/types';
+import {
+  type TiltCheckEvent,
+  type TrustCasinoUpdateEvent,
+  type TrustLevel,
+  type CasinoTrustRecord,
+  type DegenTrustRecord,
+} from '@tiltcheck/types';
 import fs from 'fs';
 import path from 'path';
 import { computeSeverity, penaltyForSeverity } from '@tiltcheck/config';
@@ -47,40 +53,7 @@ export interface TrustLogger {
   error?(msg: string, meta?: any): void;
 }
 
-export interface CasinoTrustRecord {
-  score: number;
-  fairnessScore: number; // 30%
-  payoutScore: number; // 20%
-  bonusScore: number; // 15%
-  userReportScore: number; // 15%
-  freespinScore: number; // 10%
-  complianceScore: number; // 5%
-  supportScore: number; // 5%
-  history: TrustEvent[];
-  lastUpdated: number;
-}
-
-export interface DegenTrustRecord {
-  score: number;
-  tiltIndicators: number; // Temporary drops
-  behaviorScore: number;
-  scamFlags: number;
-  accountabilityBonus: number;
-  communityReports: number;
-  history: TrustEvent[];
-  lastUpdated: number;
-  recoveryScheduledAt?: number;
-}
-
-export interface TrustEvent {
-  timestamp: number;
-  delta: number;
-  reason: string;
-  severity?: number;
-  category: string;
-}
-
-export type TrustLevel = 'very-high' | 'high' | 'neutral' | 'low' | 'high-risk';
+// Trust types now centralized in @tiltcheck/types
 
 const defaultConfig: TrustEnginesConfig = {
   startingCasinoScore: 75,
@@ -121,6 +94,7 @@ export class TrustEnginesService {
     eventRouter.subscribe('bonus.nerf.detected', this.onBonusNerf.bind(this), 'trust-engine-casino');
     eventRouter.subscribe('trust.casino.rollup', this.onCasinoRollup.bind(this), 'trust-engine-casino');
     eventRouter.subscribe('trust.domain.rollup', this.onDomainRollup.bind(this), 'trust-engine-casino');
+    eventRouter.subscribe('trust.degen-intel.ingested', this.onDegenIntelIngested.bind(this), 'trust-engine-casino');
     
     // Degen trust events
     eventRouter.subscribe('tip.completed', this.onTipCompleted.bind(this), 'trust-engine-degen');
@@ -128,6 +102,24 @@ export class TrustEnginesService {
     eventRouter.subscribe('cooldown.violated', this.onCooldownViolated.bind(this), 'trust-engine-degen');
     eventRouter.subscribe('scam.reported', this.onScamReported.bind(this), 'trust-engine-degen');
     eventRouter.subscribe('accountability.success', this.onAccountabilitySuccess.bind(this), 'trust-engine-degen');
+  }
+
+  private async onDegenIntelIngested(event: TiltCheckEvent<'trust.degen-intel.ingested'>) {
+    const { source, severity, casinoName, reportExcerpt } = event.data;
+    
+    // Base delta on severity (1-5 scale)
+    const baseDelta = severity * 2; // e.g. severity 5 = -10
+    const delta = -baseDelta;
+
+    if (casinoName) {
+      this.updateCasinoScore(
+        casinoName, 
+        'communityReputation', 
+        delta, 
+        `Community intel (${source}): ${reportExcerpt?.slice(0, 50)}...`, 
+        severity
+      );
+    }
   }
 
   // ============================================
@@ -138,13 +130,11 @@ export class TrustEnginesService {
     if (!this.casinoRecords.has(casinoName)) {
       this.casinoRecords.set(casinoName, {
         score: this.cfg.startingCasinoScore,
-        fairnessScore: 75,
-        payoutScore: 75,
-        bonusScore: 75,
-        userReportScore: 75,
-        freespinScore: 75,
-        complianceScore: 75,
-        supportScore: 75,
+        financialPayouts: 75,
+        fairnessTransparency: 75,
+        promotionalHonesty: 75,
+        operationalSupport: 75,
+        communityReputation: 75,
         history: [],
         lastUpdated: Date.now(),
       });
@@ -167,15 +157,13 @@ export class TrustEnginesService {
     const newCategoryScore = Math.max(0, Math.min(100, currentCategoryScore + delta));
     (record[category] as number) = newCategoryScore;
 
-    // Recalculate weighted total score
+    // Recalculate weighted total score (The Five Pillars)
     record.score = Math.round(
-      record.fairnessScore * 0.30 +
-      record.payoutScore * 0.20 +
-      record.bonusScore * 0.15 +
-      record.userReportScore * 0.15 +
-      record.freespinScore * 0.10 +
-      record.complianceScore * 0.05 +
-      record.supportScore * 0.05
+      record.financialPayouts * 0.40 +
+      record.fairnessTransparency * 0.25 +
+      record.promotionalHonesty * 0.15 +
+      record.operationalSupport * 0.10 +
+      record.communityReputation * 0.10
     );
 
     // Add to history
@@ -216,7 +204,7 @@ export class TrustEnginesService {
       const hostname = new URL(url).hostname.replace('www.', '');
       const delta = riskLevel === 'critical' ? -10 : -5;
       const severity = riskLevel === 'critical' ? 4 : 2;
-      this.updateCasinoScore(hostname, 'freespinScore', delta, `Suspicious link flagged (${riskLevel})`, severity);
+      this.updateCasinoScore(hostname, 'fairnessTransparency', delta, `Suspicious link flagged (${riskLevel})`, severity);
     } catch {
       this.log('warn', 'Invalid URL in link.flagged event', { url });
     }
@@ -232,7 +220,7 @@ export class TrustEnginesService {
     
     this.updateCasinoScore(
       casinoName,
-      'bonusScore',
+      'promotionalHonesty',
       delta,
       `Bonus nerf detected (-${(Math.abs(percentDrop) * 100).toFixed(1)}%)`,
       severity
@@ -253,7 +241,7 @@ export class TrustEnginesService {
         if (externalData.fairnessDelta) {
           this.updateCasinoScore(
             casinoName,
-            'fairnessScore',
+            'fairnessTransparency',
             externalData.fairnessDelta,
             'External RTP/fairness verification'
           );
@@ -261,7 +249,7 @@ export class TrustEnginesService {
         if (externalData.payoutDelta) {
           this.updateCasinoScore(
             casinoName,
-            'payoutScore',
+            'financialPayouts',
             externalData.payoutDelta,
             'External payout speed verification'
           );
@@ -269,7 +257,7 @@ export class TrustEnginesService {
         if (externalData.bonusDelta) {
           this.updateCasinoScore(
             casinoName,
-            'bonusScore',
+            'promotionalHonesty',
             externalData.bonusDelta,
             'External bonus terms verification'
           );
@@ -277,7 +265,7 @@ export class TrustEnginesService {
         if (externalData.complianceDelta) {
           this.updateCasinoScore(
             casinoName,
-            'complianceScore',
+            'operationalSupport',
             externalData.complianceDelta,
             'External compliance verification'
           );
@@ -285,7 +273,7 @@ export class TrustEnginesService {
         if (externalData.supportDelta) {
           this.updateCasinoScore(
             casinoName,
-            'supportScore',
+            'operationalSupport',
             externalData.supportDelta,
             'External support quality verification'
           );
@@ -297,7 +285,7 @@ export class TrustEnginesService {
         
         this.updateCasinoScore(
           casinoName,
-          'bonusScore',
+          'promotionalHonesty',
           delta,
           `Hourly rollup: ${eventCount} events, avg Δ${avgDelta.toFixed(1)}`
         );
@@ -319,7 +307,7 @@ export class TrustEnginesService {
       
       this.updateCasinoScore(
         domain,
-        'complianceScore',
+        'operationalSupport',
         delta,
         `Domain rollup: ${eventCount} events, avg Δ${avgDelta.toFixed(1)}`,
         lastSeverity
@@ -523,20 +511,20 @@ export class TrustEnginesService {
     const record = this.getCasinoRecord(casinoName);
     const explanations: string[] = [];
 
-    if (record.bonusScore < 60) {
-      explanations.push('⚠️ Frequent bonus nerfs detected');
+    if (record.promotionalHonesty < 60) {
+      explanations.push('⚠️ Shady bonus practices or silent nerfs');
     }
-    if (record.fairnessScore < 60) {
-      explanations.push('⚠️ Fairness concerns reported');
+    if (record.fairnessTransparency < 60) {
+      explanations.push('⚠️ Fairness or RTP transparency concerns');
     }
-    if (record.payoutScore < 60) {
-      explanations.push('⚠️ Payout delays or issues');
+    if (record.financialPayouts < 60) {
+      explanations.push('⚠️ Withdrawal delays or payout instability');
     }
-    if (record.freespinScore < 60) {
-      explanations.push('⚠️ Suspicious promotional links');
+    if (record.communityReputation < 60) {
+      explanations.push('⚠️ Significant negative community intel');
     }
-    if (record.supportScore < 60) {
-      explanations.push('⚠️ Poor support quality');
+    if (record.operationalSupport < 60) {
+      explanations.push('⚠️ Poor support or licensing issues');
     }
 
     if (explanations.length === 0) {
