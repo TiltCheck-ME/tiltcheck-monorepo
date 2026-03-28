@@ -11,7 +11,8 @@
     "clean": "rm -rf dist"
   },
   "dependencies": {
-    "@tiltcheck/types": "workspace:*"
+    "@tiltcheck/types": "workspace:*",
+    "@tiltcheck/shared": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "^22.13.0",
