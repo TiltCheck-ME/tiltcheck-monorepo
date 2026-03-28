@@ -31,11 +31,12 @@ ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
 # Install dependencies
 RUN pnpm install
 
-# Build all shared internal dependencies (packages and modules) first
-RUN pnpm --filter "./packages/**" --filter "./modules/**" --if-present build
+# Build only the application and its direct internal dependencies (the graph)
+# Pre-building dependencies ensures workspace links are resolved before the app build
+RUN pnpm --filter "...$APP_NAME" --if-present build
 
-# Build the specific app AND its remaining workspace dependencies
-RUN pnpm --filter "./apps/$APP_NAME..." --if-present build
+# Final build for the application itself
+RUN pnpm --filter "./apps/$APP_NAME" --if-present build
 
 # Prepare production output
 # pnpm v10 deploy requires --legacy for non-injected workspaces
