@@ -32,12 +32,12 @@ ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
 RUN pnpm install
 
 # --- PHASE: Service Specific Build Logic ---
-RUN if [ "$APP_NAME" = "web" ]; then \
+RUN echo "BUILDING: $APP_NAME" && \
+    if [ "$APP_NAME" = "web" ]; then \
       pnpm --filter web build; \
     else \
-      cd apps/$APP_NAME && \
-      esbuild src/index.ts --bundle --platform=node --format=esm --target=node22 --outfile=dist/index.js \
-      --tsconfig=../../tsconfig.json \
+      esbuild apps/$APP_NAME/src/index.ts --bundle --platform=node --format=esm --target=node22 --outfile=apps/$APP_NAME/dist/index.js \
+      --tsconfig=tsconfig.json \
       --banner:js='import { createRequire } from "module"; const require = createRequire(import.meta.url);' \
       --external:pg-native --external:bcryptjs --external:bcrypt --external:bufferutil --external:utf-8-validate \
       --external:fs --external:path --external:os --external:crypto --external:http --external:https --external:url --external:stream --external:zlib --external:events --external:util --external:net --external:tls --external:child_process; \
