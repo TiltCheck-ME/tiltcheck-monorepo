@@ -31,16 +31,23 @@ ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
 # Install dependencies
 RUN pnpm install
 
-# We run from the app directory to ensure imports are resolved correctly.
-RUN cd apps/$APP_NAME && esbuild src/index.ts --bundle --platform=node --format=esm --target=node22 --outfile=dist/index.js --tsconfig=../../tsconfig.json --external:fsevents --external:pg-native --external:bcryptjs --external:bcrypt --external:bufferutil --external:utf-8-validate --external:fs --external:path --external:os --external:crypto --external:http --external:https --external:url --external:stream --external:zlib --external:events --external:util --external:net --external:tls --external:child_process
+# --- PHASE: Service Specific Build Logic ---
+RUN if [ "$APP_NAME" = "web" ]; then \
+      pnpm --filter web build; \
+    else \
+      cd apps/$APP_NAME && \
+      esbuild src/index.ts --bundle --platform=node --format=esm --target=node22 --outfile=dist/index.js \
+      --tsconfig=../../tsconfig.json \
+      --banner:js='import { createRequire } from "module"; const require = createRequire(import.meta.url);' \
+      --external:pg-native --external:bcryptjs --external:bcrypt --external:bufferutil --external:utf-8-validate; \
+    fi
 
 # Prepare production output
-# pnpm v10 deploy requires --legacy for non-injected workspaces
-RUN if [ -d "apps/$APP_NAME/.next/standalone" ]; then \
-      pnpm --filter "./apps/$APP_NAME" --prod --legacy deploy /app/out && \
+RUN mkdir -p /app/out && \
+    if [ -d "apps/$APP_NAME/.next/standalone" ]; then \
       cp -r apps/$APP_NAME/.next/standalone/* /app/out/ && \
-      cp -r apps/$APP_NAME/.next/static /app/out/.next/static && \
-      cp -r apps/$APP_NAME/public /app/out/public; \
+      cp -r apps/$APP_NAME/.next/static /app/out/.next/static 2>/dev/null || true && \
+      cp -r apps/$APP_NAME/public /app/out/public 2>/dev/null || true; \
     else \
       pnpm --filter "./apps/$APP_NAME" --prod --legacy deploy /app/out && \
       cp -r apps/$APP_NAME/dist /app/out/dist || true; \

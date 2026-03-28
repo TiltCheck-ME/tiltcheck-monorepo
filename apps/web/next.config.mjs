@@ -12,6 +12,20 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
+  async redirects() {
+    return [
+      {
+        source: '/trust-scores.html',
+        destination: '/casinos',
+        permanent: true,
+      },
+      {
+        source: '/casinos.html',
+        destination: '/casinos',
+        permanent: true,
+      },
+    ];
+  },
 };
 
 export default nextConfig;

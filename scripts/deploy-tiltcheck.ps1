@@ -20,12 +20,12 @@ gcloud run deploy tiltcheck-api `
 
 # --- PHASE 2: Web ---
 Write-Host '[2/3] DEPLOYING: tiltcheck-web...' -ForegroundColor Yellow
-$API_URL = "https://tiltcheck-api-164294266634.us-central1.run.app"
+$API_URL = "https://api.tiltcheck.me"
 gcloud run deploy tiltcheck-web `
   --source=. `
   --project=$PROJECT_ID `
   --region=$REGION `
-  --set-build-env-vars=APP_NAME=web,NEXT_PUBLIC_API_URL="$API_URL/blog" `
+  --set-build-env-vars=APP_NAME=web,NEXT_PUBLIC_API_URL="$API_URL" `
   --set-env-vars="NODE_ENV=production,API_URL=$API_URL" `
   --allow-unauthenticated `
   --quiet

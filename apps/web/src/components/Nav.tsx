@@ -20,6 +20,7 @@ const Nav = () => {
               <Link href="/features" className="hover:text-[color:var(--color-primary)] transition-colors">Features</Link>
               <Link href="/blog" className="hover:text-[color:var(--color-primary)] transition-colors">Blog</Link>
               <Link href="/casinos" className="hover:text-[color:var(--color-primary)] transition-colors">Casinos</Link>
+              <Link href="/settings" className="hover:text-[color:var(--color-primary)] transition-colors">Settings</Link>
               <Link href="#faq" className="hover:text-[color:var(--color-primary)] transition-colors">FAQ</Link>
               <Link href="/extension" className="hover:text-[color:var(--color-primary)] transition-colors">Extension</Link>
             </>
