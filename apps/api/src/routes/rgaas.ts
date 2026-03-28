@@ -247,6 +247,18 @@ router.post('/trust/degen-intel', async (req, res) => {
 });
 
 /**
+ * GET /rgaas/casinos
+ * Retrieve all monitored casinos and their pillar-based trust scores.
+ */
+router.get('/casinos', (_req, res) => {
+  const scores = trustEngines.getCasinoScores();
+  res.json({
+    success: true,
+    casinos: scores,
+  });
+});
+
+/**
  * GET /rgaas/trust/casino/:name
  * Get trust score and breakdown for a casino.
  */

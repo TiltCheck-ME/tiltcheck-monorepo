@@ -19,12 +19,14 @@ const Nav = () => {
             <>
               <Link href="/features" className="hover:text-[color:var(--color-primary)] transition-colors">Features</Link>
               <Link href="/blog" className="hover:text-[color:var(--color-primary)] transition-colors">Blog</Link>
+              <Link href="/casinos" className="hover:text-[color:var(--color-primary)] transition-colors">Casinos</Link>
               <Link href="#faq" className="hover:text-[color:var(--color-primary)] transition-colors">FAQ</Link>
               <Link href="/extension" className="hover:text-[color:var(--color-primary)] transition-colors">Extension</Link>
             </>
           ) : (
             <>
               <Link href="/audit" className="hover:text-[color:var(--color-primary)] transition-colors">Audit</Link>
+              <Link href="/casinos" className="hover:text-[color:var(--color-primary)] transition-colors">Casinos</Link>
               <Link href="/vault" className="hover:text-[color:var(--color-primary)] transition-colors">Vault</Link>
               <Link href="/buddies" className="hover:text-[color:var(--color-primary)] transition-colors">Buddies</Link>
               <Link href="https://hub.tiltcheck.me" className="hover:text-[color:var(--color-primary)] transition-colors text-[color:var(--color-primary)] font-bold">[DASHBOARD]</Link>

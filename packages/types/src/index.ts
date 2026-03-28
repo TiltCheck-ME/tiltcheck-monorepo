@@ -967,7 +967,8 @@ export type ModuleId =
   | 'gameplay-analyzer'
   | 'linkguard'
   | 'test-suite'
-  | 'telegram-code-ingest';
+  | 'telegram-code-ingest'
+  | 'trust-engine-api';
 
 
 // ============================================
