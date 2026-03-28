@@ -81,7 +81,8 @@
     "supertest": "^7.2.2",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.55.0",
-    "vitest": "^4.1.1"
+    "vitest": "^4.1.1",
+    "esbuild": "^0.25.0"
   },
   "pnpm": {
     "overrides": {

@@ -5,7 +5,7 @@ FROM node:22 AS builder
 WORKDIR /app
 
 # Enable pnpm v10 and install global build tools
-RUN corepack enable && corepack prepare pnpm@10.29.1 --activate && npm install -g esbuild
+RUN corepack enable && corepack prepare pnpm@10.29.1 --activate
 
 # Install build dependencies for native modules (needed for pg/bcrypt/scrypt)
 RUN apt-get update && apt-get install -y \
@@ -36,7 +36,7 @@ RUN echo "BUILDING: $APP_NAME" && \
     if [ "$APP_NAME" = "web" ]; then \
       pnpm --filter web build; \
     else \
-      esbuild apps/$APP_NAME/src/index.ts --bundle --platform=node --format=esm --target=node22 --outfile=apps/$APP_NAME/dist/index.js \
+      npx esbuild apps/$APP_NAME/src/index.ts --bundle --platform=node --format=esm --target=node22 --outfile=apps/$APP_NAME/dist/index.js \
       --tsconfig=tsconfig.json \
       --banner:js='import { createRequire } from "module"; const require = createRequire(import.meta.url);' \
       --external:pg-native --external:bcryptjs --external:bcrypt --external:bufferutil --external:utf-8-validate \
