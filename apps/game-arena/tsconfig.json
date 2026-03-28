@@ -35,9 +35,6 @@
       "path": "../../modules/justthetip"
     },
     {
-      "path": "../../modules/poker"
-    },
-    {
       "path": "../../packages/supabase-auth"
     },
     {

@@ -45,6 +45,12 @@
       "path": "../../modules/suslink"
     },
     {
+      "path": "../../packages/error-factory"
+    },
+    {
+      "path": "../../packages/event-router"
+    },
+    {
       "path": "../../packages/trust-engines"
     },
     {

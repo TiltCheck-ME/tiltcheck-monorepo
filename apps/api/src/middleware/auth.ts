@@ -74,6 +74,8 @@ async function getSessionUser(req: Request): Promise<AuthRequest['user'] | null>
       id: session.userId,
       email: `${session.userId}@session.local`,
       roles: Array.isArray(session.roles) ? session.roles : [],
+      discordId: session.discordId,
+      walletAddress: session.walletAddress,
     };
   } catch {
     return null;

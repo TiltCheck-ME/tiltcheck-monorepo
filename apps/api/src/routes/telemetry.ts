@@ -8,7 +8,7 @@ import { Router } from 'express';
 import { findUserByDiscordId, updateUser } from '@tiltcheck/db';
 import { InternalServerError } from '@tiltcheck/error-factory';
 
-const router = Router();
+const router: Router = Router();
 
 /**
  * POST /telemetry/win-secure

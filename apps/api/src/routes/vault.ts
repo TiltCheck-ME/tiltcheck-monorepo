@@ -21,7 +21,7 @@ import {
   executeWithdrawal
 } from '@tiltcheck/lockvault';
 
-const router = Router();
+const router: Router = Router();
 
 function walletLockBlockedResponse(userId: string) {
   const status = getWalletActionLockStatus(userId);
