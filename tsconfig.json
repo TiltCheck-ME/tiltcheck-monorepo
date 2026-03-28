@@ -1,6 +1,23 @@
 {
   "compilerOptions": {
     "baseUrl": ".",
+    "paths": {
+      "@tiltcheck/types": ["packages/types/src/index.ts"],
+      "@tiltcheck/config": ["packages/config/src/index.ts"],
+      "@tiltcheck/auth": ["packages/auth/src/index.ts"],
+      "@tiltcheck/auth-flow": ["packages/auth-flow/src/index.ts"],
+      "@tiltcheck/tiltcheck-core": ["modules/tiltcheck-core/index.ts"],
+      "@tiltcheck/event-router": ["packages/event-router/src/index.ts"],
+      "@tiltcheck/db": ["packages/db/src/index.ts"],
+      "@tiltcheck/event-types": ["packages/event-types/src/index.ts"],
+      "@tiltcheck/justthetip": ["modules/justthetip/index.ts"],
+      "@tiltcheck/lockvault": ["modules/lockvault/src/index.ts"],
+      "@tiltcheck/suslink": ["modules/suslink/src/index.ts"],
+      "@tiltcheck/error-factory": ["packages/error-factory/src/index.ts"],
+      "@tiltcheck/utils": ["packages/utils/src/index.ts"],
+      "@tiltcheck/api-client": ["packages/api-client/src/index.ts"],
+      "@tiltcheck/shared": ["packages/shared/src/index.ts"]
+    },
     "rootDir": ".",
     "outDir": "./dist",
     "skipLibCheck": true,

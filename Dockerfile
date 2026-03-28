@@ -34,7 +34,7 @@ RUN pnpm install
 # SURGICAL BUNDLE: Instead of fighting the monorepo graph, we bundle the 
 # app and its proven internal dependencies into a single production file.
 # We run from the app directory to ensure imports are resolved correctly.
-RUN cd apps/$APP_NAME && npx esbuild src/index.ts --bundle --platform=node --format=esm --target=node22 --outfile=dist/index.js --external:fsevents --external:pg-native --external:bcryptjs --external:bcrypt --external:bufferutil --external:utf-8-validate
+RUN cd apps/$APP_NAME && npx esbuild src/index.ts --bundle --platform=node --format=esm --target=node22 --outfile=dist/index.js --tsconfig=../../tsconfig.json --external:fsevents --external:pg-native --external:bcryptjs --external:bcrypt --external:bufferutil --external:utf-8-validate
 
 # Prepare production output
 # pnpm v10 deploy requires --legacy for non-injected workspaces
