@@ -636,7 +636,8 @@ export type EventType =
   | 'safety.intervention.triggered'
   | 'trust.degen-intel.ingested'
   | 'trust.casino.metric.snapshot'
-  | 'trust.casino.tos.changed';
+  | 'trust.casino.tos.changed'
+  | 'trust.audit.trigger';
 
 /**
  * Event-specific data interfaces
@@ -935,7 +936,8 @@ export interface EventDataMap {
   'vault.locked': VaultLockedEventData;
   'vault.reload_due': VaultReloadDueEventData;
   'trust.casino.metric.snapshot': CasinoMetricSnapshot;
-  'trust.casino.tos.changed': CasinoTosVersion;
+  'trust.casino.tos.changed': { casinoName: string; changeSummary?: string; contentHash: string };
+  'trust.audit.trigger': { timestamp: number; reason: string };
 }
 
 export interface TiltCheckEvent<K extends EventType> {
