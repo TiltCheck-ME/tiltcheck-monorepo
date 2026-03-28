@@ -31,13 +31,10 @@ ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
 # Install dependencies
 RUN pnpm install
 
-# SURGICAL BUILD: Only compile the application's direct dependent graph.
-# This prevents building unrelated legacy packages that might have broken types.
-# We build dependencies first, then the app to resolve path mapping correctly.
-RUN pnpm --filter "...@tiltcheck/$APP_NAME" --workspace-concurrency=1 --if-present build
-
-# Final build for our specific application
-RUN pnpm --filter "@tiltcheck/$APP_NAME" build
+# SURGICAL BUNDLE: Instead of fighting the monorepo graph, we bundle the 
+# app and its proven internal dependencies into a single production file.
+# We run from the app directory to ensure imports are resolved correctly.
+RUN cd apps/$APP_NAME && npx esbuild src/index.ts --bundle --platform=node --format=esm --target=node22 --outfile=dist/index.js --external:fsevents --external:pg-native --external:bcryptjs --external:bcrypt --external:bufferutil --external:utf-8-validate
 
 # Prepare production output
 # pnpm v10 deploy requires --legacy for non-injected workspaces
