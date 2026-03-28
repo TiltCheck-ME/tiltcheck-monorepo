@@ -16,6 +16,7 @@
     "@tiltcheck/types": "workspace:*"
   },
   "devDependencies": {
+    "@types/express": "^4.17.21",
     "typescript": "^5.3.0",
     "vitest": "^4.1.1"
   },
