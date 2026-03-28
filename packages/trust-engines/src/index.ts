@@ -95,6 +95,8 @@ export class TrustEnginesService {
     eventRouter.subscribe('trust.casino.rollup', this.onCasinoRollup.bind(this), 'trust-engine-casino');
     eventRouter.subscribe('trust.domain.rollup', this.onDomainRollup.bind(this), 'trust-engine-casino');
     eventRouter.subscribe('trust.degen-intel.ingested', this.onDegenIntelIngested.bind(this), 'trust-engine-casino');
+    eventRouter.subscribe('trust.casino.metric.snapshot', this.onMetricSnapshot.bind(this), 'trust-engine-casino');
+    eventRouter.subscribe('trust.casino.tos.changed', this.onTosChanged.bind(this), 'trust-engine-casino');
     
     // Degen trust events
     eventRouter.subscribe('tip.completed', this.onTipCompleted.bind(this), 'trust-engine-degen');
@@ -120,6 +122,40 @@ export class TrustEnginesService {
         severity
       );
     }
+  }
+
+  private async onMetricSnapshot(event: TiltCheckEvent<'trust.casino.metric.snapshot'>) {
+    const data = event.data;
+    const casinoName = data.casinoName;
+
+    // Pillar 1: Financial Integrity
+    if (data.avgWithdrawalHours !== undefined) {
+      // < 2h = A+, < 24h = B, > 72h = F
+      const delta = data.avgWithdrawalHours < 2 ? 5 : (data.avgWithdrawalHours < 24 ? 0 : -15);
+      this.updateCasinoScore(casinoName, 'financialPayouts', delta, `Vault: Withdrawal speed update (${data.avgWithdrawalHours}h)`);
+    }
+
+    if (data.withdrawalSuccessRate !== undefined) {
+      const delta = data.withdrawalSuccessRate >= 0.99 ? 5 : (data.withdrawalSuccessRate < 0.90 ? -25 : -5);
+      this.updateCasinoScore(casinoName, 'financialPayouts', delta, `Vault: Withdrawal success rate update (${(data.withdrawalSuccessRate * 100).toFixed(1)}%)`);
+    }
+
+    // Pillar 2: Fairness & Transparency
+    if (data.rtpDelta !== undefined) {
+      // Any delta < -5% is a significant penalty
+      const delta = data.rtpDelta > -0.05 ? 0 : (data.rtpDelta > -0.15 ? -15 : -40);
+      this.updateCasinoScore(casinoName, 'fairnessTransparency', delta, `Scanner: RTP drift detected (${(data.rtpDelta * 100).toFixed(1)}%)`);
+    }
+
+    if (data.providerReputationTier === 'shady') {
+      this.updateCasinoScore(casinoName, 'fairnessTransparency', -20, 'Audit: Shady game provider detected on platform');
+    }
+  }
+
+  private async onTosChanged(event: TiltCheckEvent<'trust.casino.tos.changed'>) {
+    const { casinoName, changeSummary } = event.data;
+    // ToS volatility is a fairness risk. Silent nerfs are tracked here.
+    this.updateCasinoScore(casinoName, 'fairnessTransparency', -10, `Watcher: Terms of Service Volatility: ${changeSummary || 'Silent update detected'}`);
   }
 
   // ============================================
@@ -194,7 +230,7 @@ export class TrustEnginesService {
     };
     
     void eventRouter.publish('trust.casino.updated', 'trust-engine-casino', trustEvt);
-    this.log('info', `Casino ${casinoName} score: ${previousScore} → ${record.score} (${category}: ${reason})`, trustEvt);
+    this.log('info', `Casino ${casinoName} score: ${previousScore} → ${record.score} (${String(category)}: ${reason})`, trustEvt);
     this.persist();
   }
 
