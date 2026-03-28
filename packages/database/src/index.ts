@@ -6,6 +6,9 @@
 
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
+// Cloud SQL / Five Pillars Database Exports
+export { trustPool, pgClient } from './cloudsql.js';
+
 export interface DBConfig {
   url?: string;
   apiKey?: string;

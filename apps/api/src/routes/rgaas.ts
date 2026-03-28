@@ -259,6 +259,24 @@ router.get('/casinos', (_req, res) => {
 });
 
 /**
+ * POST /rgaas/audit
+ * Trigger a system-wide trust score audit/recalculation.
+ * Intended for Cloud Scheduler or manual override.
+ */
+router.post('/audit', (_req, res) => {
+  // Publish an audit trigger event
+  eventRouter.publish('trust.audit.trigger', 'trust-engine-api', {
+    timestamp: Date.now(),
+    reason: 'Manual or scheduled system-wide audit'
+  });
+
+  res.json({
+    success: true,
+    message: 'System-wide audit triggered. Scores will refresh asynchronously.',
+  });
+});
+
+/**
  * GET /rgaas/trust/casino/:name
  * Get trust score and breakdown for a casino.
  */

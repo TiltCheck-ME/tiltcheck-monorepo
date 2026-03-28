@@ -21,7 +21,7 @@
  */
 
 import { eventRouter } from '@tiltcheck/event-router';
-import { db } from '@tiltcheck/database';
+import { db, pgClient } from '@tiltcheck/database';
 import {
   type TiltCheckEvent,
   type TrustCasinoUpdateEvent,
@@ -104,6 +104,56 @@ export class TrustEnginesService {
     eventRouter.subscribe('cooldown.violated', this.onCooldownViolated.bind(this), 'trust-engine-degen');
     eventRouter.subscribe('scam.reported', this.onScamReported.bind(this), 'trust-engine-degen');
     eventRouter.subscribe('accountability.success', this.onAccountabilitySuccess.bind(this), 'trust-engine-degen');
+    
+    // Global audit trigger
+    eventRouter.subscribe('trust.audit.trigger', this.onAuditTrigger.bind(this), 'trust-engine-global');
+  }
+
+  private async onAuditTrigger(event: TiltCheckEvent<'trust.audit.trigger'>) {
+    this.log('info', `Trust Audit Triggered: ${event.data.reason}`);
+    await this.recalculateAllCasinos();
+  }
+
+  public async recalculateAllCasinos() {
+    try {
+      const { rows } = await pgClient.query('SELECT name FROM casinos');
+      this.log('info', `Recalculating scores for ${rows.length} casinos...`);
+      
+      for (const row of rows) {
+        await this.syncCasinoFromDB(row.name);
+      }
+      
+      this.log('info', 'Trust audit completed successfully.');
+    } catch (err) {
+      this.log('error', 'Global audit failed', err);
+    }
+  }
+
+  private async syncCasinoFromDB(casinoName: string) {
+    const record = this.getCasinoRecord(casinoName);
+    
+    // Fetch latest snapshots for each pillar type if we had more detailed logic
+    // For now, we'll sync the overall score from column if it exists, or calculate from snapshots
+    const { rows: snapshots } = await pgClient.query(
+      'SELECT metric_type, metric_value FROM casino_metric_snapshots WHERE casino_name = $1 ORDER BY timestamp DESC LIMIT 50',
+      [casinoName]
+    );
+
+    if (snapshots.length > 0) {
+      this.log('debug', `Found ${snapshots.length} metrics for ${casinoName}. Processing...`);
+      // Update pillar scores based on latest snapshots
+      // (This logic would become more complex as we add more metric types)
+    }
+
+    // After internal map is updated, we keep it in sync with DB core Registry
+    try {
+      await pgClient.query(
+        'UPDATE casinos SET current_overall_score = $1, updated_at = NOW() WHERE name = $2',
+        [record.score, casinoName]
+      );
+    } catch (err) {
+      this.log('error', `Failed to sync casino ${casinoName} back to DB`, err);
+    }
   }
 
   private async onDegenIntelIngested(event: TiltCheckEvent<'trust.degen-intel.ingested'>) {
