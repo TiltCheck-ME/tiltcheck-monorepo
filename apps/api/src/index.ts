@@ -128,7 +128,7 @@ const globalLimiter = rateLimit({
   max: 1000, // 1000 requests per 15 minutes
   standardHeaders: true,
   legacyHeaders: false,
-  keyGenerator: (req) => req.ip || (req.headers['x-forwarded-for'] as string) || req.socket.remoteAddress || 'unknown',
+  keyGenerator: (req) => req.ip || 'unknown',
   message: { error: 'Too many requests', code: 'RATE_LIMIT_EXCEEDED' },
 });
 app.use(globalLimiter);
