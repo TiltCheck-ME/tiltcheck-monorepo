@@ -39,7 +39,8 @@ RUN if [ "$APP_NAME" = "web" ]; then \
       esbuild src/index.ts --bundle --platform=node --format=esm --target=node22 --outfile=dist/index.js \
       --tsconfig=../../tsconfig.json \
       --banner:js='import { createRequire } from "module"; const require = createRequire(import.meta.url);' \
-      --external:pg-native --external:bcryptjs --external:bcrypt --external:bufferutil --external:utf-8-validate; \
+      --external:pg-native --external:bcryptjs --external:bcrypt --external:bufferutil --external:utf-8-validate \
+      --external:fs --external:path --external:os --external:crypto --external:http --external:https --external:url --external:stream --external:zlib --external:events --external:util --external:net --external:tls --external:child_process; \
     fi
 
 # Prepare production output
