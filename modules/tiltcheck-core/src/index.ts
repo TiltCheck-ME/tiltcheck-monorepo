@@ -48,5 +48,6 @@ export {
   getEscalatedNudges,
   getCooldownMessage,
   getViolationMessage,
+  getVibeCheckAlert,
   type NudgeMessage,
 } from './nudge-generator.js';

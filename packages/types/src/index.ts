@@ -880,6 +880,7 @@ export interface VaultLockedEventData {
   vaultType: 'disposable' | 'magic';
   vaultAddress: string;
   amountSOL: number;
+  unlockAt: number;
 }
 
 export interface VaultReloadDueEventData {

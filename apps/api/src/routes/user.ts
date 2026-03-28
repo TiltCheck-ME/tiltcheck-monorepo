@@ -9,6 +9,7 @@ import { authMiddleware, AuthRequest } from '../middleware/auth.js';
 import { 
     findOnboardingByDiscordId, 
     upsertOnboarding,
+    findUserByDiscordId,
     getUserBuddies,
     getPendingBuddyRequests,
     sendBuddyRequest,
@@ -18,7 +19,7 @@ import {
 } from '@tiltcheck/db';
 import { ValidationError, InternalServerError } from '@tiltcheck/error-factory';
 
-const router = Router();
+const router: Router = Router();
 
 /**
  * GET /user/onboarding

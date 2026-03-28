@@ -1,9 +1,9 @@
 steps:
 - name: 'gcr.io/cloud-builders/docker'
-  args: ['build', '--no-cache', '-t', 'us-central1-docker.pkg.dev/tiltchcek/tiltcheck/comic-generator:v1', '-f', 'Dockerfile', '.']
+  args: ['build', '--no-cache', '-t', 'us-central1-docker.pkg.dev/tiltcheck/tiltcheck/comic-generator:v1', '-f', 'Dockerfile', '.']
   dir: 'packages/comic-generator'
 images:
-- 'us-central1-docker.pkg.dev/tiltchcek/tiltcheck/comic-generator:v1'
+- 'us-central1-docker.pkg.dev/tiltcheck/tiltcheck/comic-generator:v1'
 options:
   logging: CLOUD_LOGGING_ONLY
   defaultLogsBucketBehavior: REGIONAL_USER_OWNED_BUCKET

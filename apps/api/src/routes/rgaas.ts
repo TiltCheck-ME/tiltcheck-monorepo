@@ -16,11 +16,12 @@ import {
 import { evaluateBreathalyzer, evaluateSentiment } from '../lib/safety.js';
 import { trustEngines } from '@tiltcheck/trust-engines';
 import { eventRouter } from '@tiltcheck/event-router';
+import { suslink } from '@tiltcheck/suslink';
 import { getUserTiltStatus } from '@tiltcheck/tiltcheck-core';
 import { webhookService } from '../lib/webhooks.js';
 import { authMiddleware, AuthRequest } from '../middleware/auth.js';
 
-const router = Router();
+const router: Router = Router();
 
 /**
  * POST /rgaas/breathalyzer/evaluate
@@ -258,7 +259,7 @@ router.get('/trust/user/:id', authMiddleware, (req, res) => {
   
   // H3 Fix: Only allow users to see their own trust profile (unless admin)
   const authUser = (req as AuthRequest).user;
-  if (authUser?.userId !== id && !authUser?.roles?.includes('admin')) {
+  if (authUser?.id !== id && !authUser?.roles?.includes('admin')) {
     res.status(403).json({ error: 'Forbidden: You can only access your own trust profile' });
     return;
   }
@@ -316,7 +317,7 @@ router.get('/profile/:userId', authMiddleware, (req, res) => {
 
   // H3 Fix: Only allow users to see their own risk profile (unless admin)
   const authUser = (req as AuthRequest).user;
-  if (authUser?.userId !== userId && !authUser?.roles?.includes('admin')) {
+  if (authUser?.id !== userId && !authUser?.roles?.includes('admin')) {
     res.status(403).json({ error: 'Forbidden: You can only access your own risk profile' });
     return;
   }

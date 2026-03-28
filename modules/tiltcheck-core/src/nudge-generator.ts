@@ -82,3 +82,28 @@ export function formatNudge(nudge: NudgeMessage): string {
 export function getVibeCheckAlert(userId: string): string {
   return `🚀 **[VIBE CHECK] SNAP OUT OF IT <@${userId}>** 🚀\n\n**The Audit is Crimson. Your current betting velocity is giving major rinse vibes.** Your Tether has been notified. We are moving you to voice to Audit your head.`;
 }
+
+/**
+ * Get a sequence of increasingly severe nudges
+ */
+export function getEscalatedNudges(userId: string): string[] {
+  return [
+    `📊 [AUDIT] <@${userId}>, slow down. Momentum is a house advantage.`,
+    `⚠️ [SPEED] Betting velocity is peaking. This is where you donate the bag.`,
+    `🛑 [RINSE] STOP. Your probability of recovery is near zero. End the session.`
+  ];
+}
+
+/**
+ * Get a message specifically for when a user enters cooldown
+ */
+export function getCooldownMessage(): string {
+  return `🔒 **[COOLDOWN] ACCESS DENIED.** You have crossed the risk threshold. The arena is locked for 15 minutes while you Audit your head. Secure whatever balance you have left.`;
+}
+
+/**
+ * Get a violation message for when a user ignores earlier nudges
+ */
+export function getViolationMessage(): string {
+  return `🚨 **[VIOLATION] CRITICAL RISK DETECTED.** You are actively ignoring the math. We are escalating this to your emergency contact. WALKING AWAY IS MANDATORY.`;
+}

@@ -25,6 +25,12 @@ import {
   updateUser,
   findUserById,
 } from '@tiltcheck/db';
+import { 
+  ValidationError, 
+  ConflictError, 
+  InternalServerError, 
+  NotFoundError 
+} from '@tiltcheck/error-factory';
 import { getJWTConfig } from '../middleware/auth.js';
 import {
   getDiscordConfig,
@@ -603,12 +609,12 @@ router.get('/discord/callback', authLimiter, async (req, res) => {
                 }
               } catch (err) {
                 console.error('Auth handoff failed:', err);
-                document.querySelector('.hint').innerHTML = ' \
-                  <div style="margin-top:15px; padding:10px; border:1px solid rgba(255,255,255,0.1); border-radius:8px;"> \
-                    <p style="color:#ef4444; font-weight:bold; margin-bottom:10px;">PostMessage Handshake Blocked</p> \
-                    <button onclick="tryManualSync()" style="background:#6366f1; color:white; border:none; padding:8px 16px; border-radius:4px; font-weight:bold; cursor:pointer; width:100%;">SYNC HANDSHAKE NOW</button> \
-                    <p style="margin-top:10px; font-size:11px;">If sync fails, ensure you are using <b>tiltcheck.me</b> and not a Cloud Run sandbox URL.</p> \
-                  </div> \
+                document.querySelector('.hint').innerHTML = ' \\
+                  <div style="margin-top:15px; padding:10px; border:1px solid rgba(255,255,255,0.1); border-radius:8px;"> \\
+                    <p style="color:#ef4444; font-weight:bold; margin-bottom:10px;">PostMessage Handshake Blocked</p> \\
+                    <button onclick="tryManualSync()" style="background:#6366f1; color:white; border:none; padding:8px 16px; border-radius:4px; font-weight:bold; cursor:pointer; width:100%;">SYNC HANDSHAKE NOW</button> \\
+                    <p style="margin-top:10px; font-size:11px;">If sync fails, ensure you are using <b>tiltcheck.me</b> and not a Cloud Run sandbox URL.</p> \\
+                  </div> \\
                 ';
               }
 
@@ -649,11 +655,6 @@ router.get('/discord/callback', authLimiter, async (req, res) => {
 /**
  * POST /auth/discord/activity/token
  * Exchange Discord Activity OAuth code for access token.
- *
- * Threat/risk notes:
- * - Redirect URI is validated against trusted hosts.
- * - Discord client secret is only used server-side.
- * - Errors are sanitized for clients.
  */
 router.post('/discord/activity/token', activityTokenLimiter, async (req, res) => {
   try {

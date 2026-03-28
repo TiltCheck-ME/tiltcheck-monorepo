@@ -1,6 +1,19 @@
 steps:
 - name: 'gcr.io/cloud-builders/docker'
   args: ['build', '--build-arg', 'APP_NAME=api', '-t', 'us-central1-docker.pkg.dev/tiltchcek/tiltcheck/api:latest', '.']
+- name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+  entrypoint: gcloud
+  args:
+  - 'run'
+  - 'deploy'
+  - 'tiltcheck-api'
+  - '--image'
+  - 'us-central1-docker.pkg.dev/tiltchcek/tiltcheck/api:latest'
+  - '--region'
+  - 'us-central1'
+  - '--platform'
+  - 'managed'
+  - '--allow-unauthenticated'
 images:
 - 'us-central1-docker.pkg.dev/tiltchcek/tiltcheck/api:latest'
 options:

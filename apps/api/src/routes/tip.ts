@@ -61,7 +61,8 @@ router.post('/verify', verifyLimiter, sessionAuth(), async (req: Request, res) =
         currency: String(currency), 
         signature: signature ? String(signature) : undefined, 
         message: message ? String(message) : undefined, 
-        publicKey: publicKey ? String(publicKey) : undefined 
+        publicKey: publicKey ? String(publicKey) : undefined,
+        disclaimerAccepted: true
       }
     );
 
