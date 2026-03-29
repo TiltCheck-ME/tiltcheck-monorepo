@@ -43,7 +43,6 @@
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
     "resolveJsonModule": true,
-    "types": ["node"],
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
     "target": "ESNext",
