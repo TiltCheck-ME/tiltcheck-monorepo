@@ -11,7 +11,7 @@ look, we've all been rugged before. i've seen this movie. keep this doc handy so
 
 | task | command | what it actually does |
 | :--- | :--- | :--- |
-| **local dev server** | `pnpm --filter @tiltchcek/web dev` or `npx serve apps/web -p 3000` | spins up the local site so you can check how your new UI looks before pushing. |
+| **local dev server** | `pnpm --filter @tiltcheck/web dev` or `npx serve apps/web -p 3000` | spins up the local site so you can check how your new UI looks before pushing. |
 | **build for prod** | `gcloud builds submit --config cloudbuild-web.yaml .` | builds the docker image on GCP infrastructure. literally pushing the bag to the cloud. |
 | **deploy live** | `gcloud run deploy tiltchcek-web --image us-central1-docker.pkg.dev/tiltchcek/tiltchcek-services/web:latest --port 80 --region us-central1 --project tiltchcek --allow-unauthenticated` | the big red button. pushes your docker image to the live URL (`tiltchcek.me`). don't do this with typos. |
 
@@ -19,8 +19,8 @@ look, we've all been rugged before. i've seen this movie. keep this doc handy so
 
 | task | command | what it actually does |
 | :--- | :--- | :--- |
-| **start api** | `pnpm --filter @tiltchcek/api dev` | boots the central nervous system. |
-| **start discord bot** | `pnpm --filter @tiltchcek/discord-bot dev` | wakes up the bot so it can yell at people tilting in voice channels. |
+| **start api** | `pnpm --filter @tiltcheck/api dev` | boots the central nervous system. |
+| **start discord bot** | `pnpm --filter @tiltcheck/discord-bot dev` | wakes up the bot so it can yell at people tilting in voice channels. |
 | **start everything** | `pnpm dev` | runs the whole monorepo locally. will spike your CPU usage to the moon. |
 
 ## 🤖 intel & analysis 

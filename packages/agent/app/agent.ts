@@ -2,7 +2,7 @@
 
 import { FunctionTool, LlmAgent, Runner, InMemorySessionService, Gemini } from '@google/adk';
 import { z } from 'zod';
-import { db } from '@tiltchcek/database';
+import { db } from '@tiltcheck/database';
 
 const DiscordIdSchema = z.object({
   discordId: z.string(),
@@ -41,7 +41,7 @@ const getUserAnalytics = new FunctionTool<typeof DiscordIdSchema>({
         depositedSol: stats?.deposited_amount_sol || 0,
         currentCreditBalance: credits ? (credits.balance_lamports / 1e9).toFixed(4) + ' SOL' : '0 SOL'
       },
-      recentActivity: recentGames.map(g => ({
+      recentActivity: recentGames.map((g: any) => ({
         type: g.game_type,
         completedAt: g.completed_at,
         won: g.winner_id === discordId

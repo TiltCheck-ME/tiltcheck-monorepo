@@ -197,7 +197,7 @@ curl -I https://tiltcheck.me/
    - Manual Cloud Run update:
    ```bash
    gcloud run deploy tiltcheck-web \
-     --image=us-central1-docker.pkg.dev/tiltchcek/tiltcheck/web:latest \
+     --image=us-central1-docker.pkg.dev/tiltcheck/tiltcheck/web:latest \
      --region=us-central1 \
      --allow-unauthenticated
    ```
