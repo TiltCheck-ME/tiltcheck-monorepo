@@ -2,7 +2,7 @@
 
 import { FunctionTool, LlmAgent, Runner, InMemorySessionService, Gemini } from '@google/adk';
 import { z } from 'zod';
-import { db } from '@tiltcheck/database';
+import { db } from '@tiltchcek/database';
 
 const DiscordIdSchema = z.object({
   discordId: z.string(),
@@ -219,12 +219,12 @@ const analyzeSentimentV2 = new FunctionTool<typeof AnalyzeSentimentSchema>({
  * Using Gemini 1.5 Pro for maximum 'Tough Love' authenticity.
  */
 export const agent = new LlmAgent({
-  name: 'tiltcheck_degen_intelligence',
+  name: 'tiltchcek_degen_intelligence',
   description: 'Advanced AI assistant for the TiltCheck ecosystem. Analyzes degen stats, trust scores, generates interventions, and manages account config.',
   model: new Gemini({
     model: 'gemini-1.5-flash',
     vertexai: process.env.GOOGLE_GENAI_USE_VERTEXAI === 'true',
-    project: process.env.GOOGLE_CLOUD_PROJECT || 'tiltcheck',
+    project: process.env.GOOGLE_CLOUD_PROJECT || 'tiltchcek',
     location: process.env.GOOGLE_CLOUD_LOCATION || 'us-central1',
   }),
   instruction: `You are the TiltCheck Degen Intelligence Agent (DIA). 

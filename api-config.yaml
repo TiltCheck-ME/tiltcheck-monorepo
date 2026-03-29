@@ -8,17 +8,17 @@ metadata:
     run.googleapis.com/ingress-status: all
     run.googleapis.com/maxScale: '20'
     run.googleapis.com/operation-id: b3a72802-1cb1-4206-ae30-558f0bc70966
-    run.googleapis.com/urls: '["https://tiltcheck-api-164294266634.us-central1.run.app","https://tiltcheck-api-n5ys25omlq-uc.a.run.app"]'
+    run.googleapis.com/urls: '["https://tiltchcek-api-164294266634.us-central1.run.app","https://tiltchcek-api-n5ys25omlq-uc.a.run.app"]'
     serving.knative.dev/creator: jamienichole1010@gmail.com
     serving.knative.dev/lastModifier: jamienichole1010@gmail.com
   creationTimestamp: '2026-03-25T01:44:12.615793Z'
   generation: 18
   labels:
     cloud.googleapis.com/location: us-central1
-  name: tiltcheck-api
+  name: tiltchcek-api
   namespace: '164294266634'
   resourceVersion: AAZN+E5khDk
-  selfLink: /apis/serving.knative.dev/v1/namespaces/164294266634/services/tiltcheck-api
+  selfLink: /apis/serving.knative.dev/v1/namespaces/164294266634/services/tiltchcek-api
   uid: 91739082-3fc1-4595-b2b3-559dc4e34932
 spec:
   template:
@@ -27,9 +27,9 @@ spec:
         autoscaling.knative.dev/maxScale: '20'
         run.googleapis.com/client-name: gcloud
         run.googleapis.com/client-version: 560.0.0
-        run.googleapis.com/cloudsql-instances: tiltchcek:us-central1:tiltcheck-main
+        run.googleapis.com/cloudsql-instances: tiltchcek:us-central1:tiltchcek-main
         run.googleapis.com/startup-cpu-boost: 'true'
-        run.googleapis.com/vpc-access-connector: tiltcheck-conn
+        run.googleapis.com/vpc-access-connector: tiltchcek-conn
         run.googleapis.com/vpc-access-egress: private-ranges-only
       labels:
         client.knative.dev/nonce: ipeuibuazf
@@ -83,8 +83,8 @@ spec:
         - name: TILT_DISCORD_CLIENT_ID
           value: '1445916179163250860'
         - name: TILT_DISCORD_REDIRECT_URI
-          value: https://api.tiltcheck.me/auth/discord/callback
-        image: us-central1-docker.pkg.dev/tiltchcek/tiltcheck/api:latest
+          value: https://api.tiltchcek.me/auth/discord/callback
+        image: us-central1-docker.pkg.dev/tiltchcek/tiltchcek/api:latest
         ports:
         - containerPort: 8080
           name: http1
@@ -105,7 +105,7 @@ spec:
     percent: 100
 status:
   address:
-    url: https://tiltcheck-api-n5ys25omlq-uc.a.run.app
+    url: https://tiltchcek-api-n5ys25omlq-uc.a.run.app
   conditions:
   - lastTransitionTime: '2026-03-27T02:32:02.702393Z'
     status: 'True'
@@ -116,11 +116,11 @@ status:
   - lastTransitionTime: '2026-03-27T02:32:02.665476Z'
     status: 'True'
     type: RoutesReady
-  latestCreatedRevisionName: tiltcheck-api-00018-stk
-  latestReadyRevisionName: tiltcheck-api-00018-stk
+  latestCreatedRevisionName: tiltchcek-api-00018-stk
+  latestReadyRevisionName: tiltchcek-api-00018-stk
   observedGeneration: 18
   traffic:
   - latestRevision: true
     percent: 100
-    revisionName: tiltcheck-api-00018-stk
-  url: https://tiltcheck-api-n5ys25omlq-uc.a.run.app
+    revisionName: tiltchcek-api-00018-stk
+  url: https://tiltchcek-api-n5ys25omlq-uc.a.run.app

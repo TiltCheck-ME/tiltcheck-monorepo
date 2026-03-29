@@ -1,4 +1,4 @@
-﻿apiVersion: serving.knative.dev/v1
+apiVersion: serving.knative.dev/v1
 kind: Service
 metadata:
   annotations:
@@ -8,17 +8,17 @@ metadata:
     run.googleapis.com/ingress-status: all
     run.googleapis.com/maxScale: '20'
     run.googleapis.com/operation-id: e0f3d173-28c5-4972-b69a-59cc8d51fab9
-    run.googleapis.com/urls: '["https://tiltcheck-bot-164294266634.us-central1.run.app","https://tiltcheck-bot-n5ys25omlq-uc.a.run.app"]'
+    run.googleapis.com/urls: '["https://tiltchcek-bot-164294266634.us-central1.run.app","https://tiltchcek-bot-n5ys25omlq-uc.a.run.app"]'
     serving.knative.dev/creator: jamienichole1010@gmail.com
     serving.knative.dev/lastModifier: jamienichole1010@gmail.com
   creationTimestamp: '2026-03-10T02:39:05.907476Z'
   generation: 23
   labels:
     cloud.googleapis.com/location: us-central1
-  name: tiltcheck-bot
+  name: tiltchcek-bot
   namespace: '164294266634'
   resourceVersion: AAZMusXKptg
-  selfLink: /apis/serving.knative.dev/v1/namespaces/164294266634/services/tiltcheck-bot
+  selfLink: /apis/serving.knative.dev/v1/namespaces/164294266634/services/tiltchcek-bot
   uid: 2da51118-236c-40f8-8b76-1c98152ce9d2
 spec:
   template:
@@ -27,7 +27,7 @@ spec:
         autoscaling.knative.dev/maxScale: '20'
         run.googleapis.com/client-name: gcloud
         run.googleapis.com/client-version: 559.0.0
-        run.googleapis.com/cloudsql-instances: tiltchcek:us-central1:tiltcheck-main
+        run.googleapis.com/cloudsql-instances: tiltchcek:us-central1:tiltchcek-main
         run.googleapis.com/cpu-throttling: 'false'
         run.googleapis.com/startup-cpu-boost: 'true'
       labels:
@@ -114,7 +114,7 @@ spec:
               name: TILT_DISCORD_GUILD_ID
         - name: RESTART_ID
           value: 20260310-115907
-        image: us-central1-docker.pkg.dev/tiltchcek/tiltcheck/discord-bot:latest
+        image: us-central1-docker.pkg.dev/tiltchcek/tiltchcek/discord-bot:latest
         ports:
         - containerPort: 8081
           name: http1
@@ -135,7 +135,7 @@ spec:
     percent: 100
 status:
   address:
-    url: https://tiltcheck-bot-n5ys25omlq-uc.a.run.app
+    url: https://tiltchcek-bot-n5ys25omlq-uc.a.run.app
   conditions:
   - lastTransitionTime: '2026-03-11T07:42:06.284504Z'
     status: 'True'
@@ -146,11 +146,12 @@ status:
   - lastTransitionTime: '2026-03-11T07:42:06.237143Z'
     status: 'True'
     type: RoutesReady
-  latestCreatedRevisionName: tiltcheck-bot-00023-zkm
-  latestReadyRevisionName: tiltcheck-bot-00023-zkm
+  latestCreatedRevisionName: tiltchcek-bot-00023-zkm
+  latestReadyRevisionName: tiltchcek-bot-00023-zkm
   observedGeneration: 23
   traffic:
   - latestRevision: true
     percent: 100
-    revisionName: tiltcheck-bot-00023-zkm
-  url: https://tiltcheck-bot-n5ys25omlq-uc.a.run.app
+    revisionName: tiltchcek-bot-00023-zkm
+  url: https://tiltchcek-bot-n5ys25omlq-uc.a.run.app
+
