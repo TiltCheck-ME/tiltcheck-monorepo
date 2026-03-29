@@ -49,7 +49,10 @@
     "composite": true,
     "incremental": true,
     "declaration": true,
-    "strict": true
+    "strict": true,
+    "types": [
+      "node"
+    ]
   },
   "exclude": [
     "node_modules",
