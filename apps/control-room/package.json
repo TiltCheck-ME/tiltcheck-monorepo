@@ -18,7 +18,6 @@
     "express-session": "^1.19.0",
     "passport": "^0.7.0",
     "passport-discord": "^0.1.4",
-    "pm2": "^6.0.14",
     "tweetnacl": "^1.0.3",
     "ws": "^8.20.0"
   },
