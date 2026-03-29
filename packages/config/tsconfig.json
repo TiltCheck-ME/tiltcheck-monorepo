@@ -4,7 +4,10 @@
     "composite": true,
     "outDir": "dist",
     "rootDir": "src",
-    "incremental": true
+    "incremental": true,
+    "types": [
+      "node"
+    ]
   },
   "include": [
     "src"

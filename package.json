@@ -62,7 +62,7 @@
   "devDependencies": {
     "@google-cloud/secret-manager": "^6.1.1",
     "@types/jsdom": "^28.0.1",
-    "@types/node": "^25.5.0",
+    "@types/node": "^22.0.0",
     "@types/supertest": "^7.2.0",
     "@typescript-eslint/eslint-plugin": "^8.57.2",
     "@typescript-eslint/parser": "^8.57.2",
