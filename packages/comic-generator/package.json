@@ -13,12 +13,12 @@
     "smoke:cloud": "node ./smoke-test-cloud.js"
   },
   "dependencies": {
-    "@google-cloud/storage": "^7.17.2",
-    "cors": "^2.8.5",
+    "@google-cloud/storage": "^7.19.0",
+    "cors": "^2.8.6",
     "dotenv": "^17.3.1",
-    "express": "^4.21.2"
+    "express": "^5.2.1"
   },
   "devDependencies": {
-    "typescript": "^5.9.3"
+    "typescript": "^6.0.2"
   }
 }

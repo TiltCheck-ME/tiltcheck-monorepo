@@ -14,7 +14,7 @@
     "dev": "node build.js --watch"
   },
   "devDependencies": {
-    "@types/chrome": "^0.1.37",
+    "@types/chrome": "^0.1.38",
     "buffer": "^6.0.3",
     "crypto-browserify": "^3.12.1",
     "esbuild-plugin-polyfill-node": "^0.3.0",
@@ -23,7 +23,7 @@
     "vm-browserify": "^1.1.2"
   },
   "dependencies": {
-    "@tiltcheck/utils": "workspace:*",
-    "@tiltcheck/shared": "workspace:*"
+    "@tiltcheck/shared": "workspace:*",
+    "@tiltcheck/utils": "workspace:*"
   }
 }

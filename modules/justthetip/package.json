@@ -11,8 +11,8 @@
   },
   "dependencies": {
     "@solana/pay": "^0.2.6",
-    "@solana/spl-token": "^0.4.9",
-    "@solana/web3.js": "^1.95.8",
+    "@solana/spl-token": "^0.4.14",
+    "@solana/web3.js": "^1.98.4",
     "@tiltcheck/config": "workspace:*",
     "@tiltcheck/database": "workspace:*",
     "@tiltcheck/db": "workspace:*",
@@ -20,11 +20,11 @@
     "@tiltcheck/natural-language-parser": "workspace:*",
     "@tiltcheck/types": "workspace:*",
     "@tiltcheck/utils": "workspace:*",
-    "bignumber.js": "^9.3.1",
+    "bignumber.js": "^10.0.2",
     "uuid": "^13.0.0"
   },
   "devDependencies": {
     "@types/uuid": "^11.0.0",
-    "typescript": "^5.3.0"
+    "typescript": "^6.0.2"
   }
 }

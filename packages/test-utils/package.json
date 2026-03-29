@@ -12,11 +12,11 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@tiltcheck/types": "workspace:*",
     "@tiltcheck/error-factory": "workspace:*",
+    "@tiltcheck/types": "workspace:*",
     "vitest": "latest"
   },
   "devDependencies": {
-    "typescript": "^5.3.0"
+    "typescript": "^6.0.2"
   }
 }

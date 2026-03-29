@@ -1,6 +1,6 @@
 steps:
 - name: 'gcr.io/cloud-builders/docker'
-  args: ['build', '--build-arg', 'APP_NAME=agent', '-t', 'us-central1-docker.pkg.dev/$PROJECT_ID/tiltcheck/agent:latest', '.']
+  args: ['build', '--build-arg', 'APP_NAME=agent', '-t', 'us-central1-docker.pkg.dev/$PROJECT_ID/tiltcheck/agent:latest', '-f', 'Dockerfile', '.']
 - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
   entrypoint: gcloud
   args:

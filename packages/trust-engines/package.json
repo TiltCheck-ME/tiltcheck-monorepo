@@ -2,7 +2,8 @@
   "name": "@tiltcheck/trust-engines",
   "version": "0.1.0",
   "private": true,
-  "type": "module",  "main": "dist/index.js",
+  "type": "module",
+  "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsc",
@@ -10,16 +11,15 @@
     "test": "vitest --run --passWithNoTests tests"
   },
   "dependencies": {
-    "@tiltcheck/types": "workspace:*",
-    "@tiltcheck/event-router": "workspace:*",
     "@tiltcheck/config": "workspace:*",
     "@tiltcheck/database": "workspace:*",
-    "@tiltcheck/db": "workspace:*"
+    "@tiltcheck/db": "workspace:*",
+    "@tiltcheck/event-router": "workspace:*",
+    "@tiltcheck/types": "workspace:*"
   },
   "devDependencies": {
     "@tiltcheck/collectclock": "workspace:*",
-    "typescript": "^5.3.0",
-    "vitest": "^4.1.1"
+    "typescript": "^6.0.2",
+    "vitest": "^4.1.2"
   }
 }
-

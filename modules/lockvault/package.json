@@ -19,16 +19,16 @@
     "test": "vitest --run --passWithNoTests"
   },
   "dependencies": {
-    "@solana/web3.js": "^1.95.0",
+    "@solana/web3.js": "^1.98.4",
+    "@tiltcheck/database": "workspace:*",
     "@tiltcheck/event-router": "workspace:*",
     "@tiltcheck/natural-language-parser": "workspace:*",
-    "@tiltcheck/database": "workspace:*",
     "@tiltcheck/types": "workspace:*",
     "@tiltcheck/utils": "workspace:*"
   },
   "devDependencies": {
-    "@types/node": "^22.13.0",
-    "tsx": "^4.7.0",
-    "typescript": "^5.3.0"
+    "@types/node": "^25.5.0",
+    "tsx": "^4.21.0",
+    "typescript": "^6.0.2"
   }
 }

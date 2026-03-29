@@ -13,12 +13,12 @@
     "clean": "rm -rf dist"
   },
   "devDependencies": {
-    "@types/node": "^22.13.0",
-    "typescript": "^5.3.0",
-    "vitest": "^4.1.1"
+    "@types/node": "^25.5.0",
+    "typescript": "^6.0.2",
+    "vitest": "^4.1.2"
   },
   "optionalDependencies": {
-    "ioredis": "^5.3.2"
+    "ioredis": "^5.10.1"
   },
   "exports": {
     ".": {

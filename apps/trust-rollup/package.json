@@ -21,14 +21,13 @@
   "dependencies": {
     "@tiltcheck/event-router": "workspace:*",
     "@tiltcheck/types": "workspace:*",
-    "zod": "^3.23.0"
+    "zod": "^4.3.6"
   },
   "devDependencies": {
-    "tsx": "^4.7.0",
-    "typescript": "^5.4.0",
-    "@types/bcryptjs": "^2.4.6",
-    "vitest": "latest",
-    "vite": "latest"
+    "@types/bcryptjs": "^3.0.0",
+    "tsx": "^4.21.0",
+    "typescript": "^6.0.2",
+    "vite": "latest",
+    "vitest": "latest"
   }
 }
-
