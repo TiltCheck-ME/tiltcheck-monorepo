@@ -313,6 +313,7 @@ export interface UserOnboarding {
   redeem_threshold: number | null;
   redeem_wins: number;
   total_redeemed: number;
+  compliance_bypass: boolean;
   joined_at: Date;
   updated_at: Date;
 }
@@ -335,6 +336,7 @@ export interface UpsertOnboardingPayload {
   redeem_threshold?: number | null;
   redeem_wins?: number;
   total_redeemed?: number;
+  compliance_bypass?: boolean;
 }
 
 // ============================================================================

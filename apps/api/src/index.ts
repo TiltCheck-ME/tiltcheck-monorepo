@@ -19,7 +19,7 @@ dotenv.config({ path: envPath });
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
-import rateLimit from 'express-rate-limit';
+import { rateLimit } from 'express-rate-limit';
 import http from 'http';
 import cookieParser from 'cookie-parser';
 import { WebSocketServer } from 'ws';
@@ -128,7 +128,10 @@ const globalLimiter = rateLimit({
   max: 1000, // 1000 requests per 15 minutes
   standardHeaders: true,
   legacyHeaders: false,
-  keyGenerator: (req) => req.ip || 'unknown',
+  // Fix for IPv6 bypass and proxy environments
+  keyGenerator: (req) => {
+    return (req.headers['x-forwarded-for'] as string)?.split(',')[0] || req.ip || 'unknown';
+  },
   message: { error: 'Too many requests', code: 'RATE_LIMIT_EXCEEDED' },
 });
 app.use(globalLimiter);
@@ -205,12 +208,38 @@ const server = http.createServer(app);
 const wss = new WebSocketServer({ 
   server, 
   path: '/analyzer',
-  // H6 Fix: Verify session before allowing connection
+  // H6 Fix: Verify session before allowing connection (Supports cookies or token query param)
   verifyClient: async (info, callback) => {
     const cookieHeader = info.req.headers.cookie;
+    const url = new URL(info.req.url || '', `http://${info.req.headers.host || 'localhost'}`);
+    const queryToken = url.searchParams.get('token');
+    
     const jwtConfig = getJWTConfig();
     try {
-      const result = await verifySessionCookie(cookieHeader, jwtConfig);
+      // 1. Try Cookie first
+      let result = await verifySessionCookie(cookieHeader, jwtConfig);
+      
+      // 2. Fallback to query token (Common for extensions/websockets)
+      if (!result.valid && queryToken) {
+          const { verifyToken } = await import('@tiltcheck/auth');
+          try {
+              const decoded = await verifyToken(queryToken, jwtConfig);
+              if (decoded.valid && decoded.payload) {
+                result = { 
+                    valid: true, 
+                    session: { 
+                        userId: decoded.payload.sub, 
+                        type: decoded.payload.type || 'user', 
+                        roles: decoded.payload.roles || [],
+                        createdAt: Date.now()
+                    } 
+                };
+              }
+          } catch (jwtErr) {
+              console.warn('[Analyzer] Invalid query token:', jwtErr);
+          }
+      }
+
       if (result.valid) {
         (info.req as any).session = result.session;
         callback(true);
@@ -224,11 +253,13 @@ const wss = new WebSocketServer({
   }
 });
 
+import { createAuditLog } from '@tiltcheck/db';
+
 wss.on('connection', (ws, req) => {
   const session = (req as any).session;
   console.log(`[Analyzer] Client connected: ${session?.userId || 'unknown'}`);
 
-  ws.on('message', (data) => {
+  ws.on('message', async (data) => {
     try {
       const message = JSON.parse(data.toString());
 
@@ -238,19 +269,37 @@ wss.on('connection', (ws, req) => {
           break;
 
         case 'spin':
-          // Process spin data
-          // TODO: Validate spin data structure
-          // TODO: Calculate fairness metrics
-          // TODO: Store in database if needed
-          // TODO: Return analysis
+          // 1. Calculate REAL metrics
+          const bet = Number(message.data?.bet) || 0;
+          const payout = Number(message.data?.payout) || 0;
+          const observedRTP = bet > 0 ? payout / bet : 0;
+          
+          // 2. Log to Database (The "Truth" Layer)
+          if (session?.userId) {
+            await createAuditLog({
+              admin_id: session.userId, // Using user ID as logger for now
+              action: 'VERIFY_SPIN',
+              target_type: 'USER',
+              target_id: session.userId,
+              metadata: {
+                bet,
+                payout,
+                rtp: observedRTP,
+                game: message.data?.game || 'unknown',
+                casino: message.data?.casino || 'unknown'
+              }
+            });
+          }
+
+          // 3. Return analysis
           ws.send(JSON.stringify({
             type: 'spin_ack',
             sessionId: message.data?.sessionId,
             analyzed: true,
             metrics: {
               expectedRTP: 0.96,
-              observedRTP: message.data?.payout / message.data?.bet || 0,
-              anomalies: []
+              observedRTP,
+              anomalies: observedRTP > 5.0 ? ['HIGH_PAYOUT_DETECTED'] : []
             }
           }));
           break;

@@ -31,8 +31,8 @@ export default function Home() {
 
       {/* Tools Section */}
       <section id="tools" className="w-full max-w-7xl mx-auto px-4">
-        <h2 className="text-center text-3xl font-bold uppercase tracking-wider">
-          The Profit Guard Audit Layer
+        <h2 className="text-center text-3xl font-bold uppercase tracking-widest neon neon-header" data-text="THE HOUSE EDGE NEUTRALIZER">
+          THE HOUSE EDGE NEUTRALIZER
         </h2>
         <div className="mt-8 tools-bento-grid">
           <LiveAuditLog />

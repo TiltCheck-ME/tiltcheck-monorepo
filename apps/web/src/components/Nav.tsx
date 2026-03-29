@@ -2,11 +2,11 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import LiveStatusIndicator from './LiveStatusIndicator';
-import { useAccount } from 'wagmi';
-import { ConnectButton } from '@rainbow-me/rainbowkit';
+import { useWallet } from '@solana/wallet-adapter-react';
+import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
 
 const Nav = () => {
-  const { isConnected } = useAccount();
+  const { connected: isConnected } = useWallet();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
@@ -27,7 +27,7 @@ const Nav = () => {
           <Link href="/dashboard" onClick={() => setIsMenuOpen(false)} className="hover:text-[color:var(--color-primary)] transition-colors">Audit</Link>
           <Link href="/dashboard" onClick={() => setIsMenuOpen(false)} className="hover:text-[color:var(--color-primary)] transition-colors text-[color:var(--color-primary)] font-bold">Dashboard</Link>
           <Link href="/dashboard" onClick={() => setIsMenuOpen(false)} className="hover:text-[color:var(--color-primary)] transition-colors">Vault</Link>
-          <Link href="/dashboard" onClick={() => setIsMenuOpen(false)} className="hover:text-[color:var(--color-primary)] transition-colors">Buddies</Link>
+          <Link href="/dashboard" onClick={() => setIsMenuOpen(false)} className="hover:text-[color:var(--color-primary)] transition-colors">Guardians</Link>
           <Link href="/docs" onClick={() => setIsMenuOpen(false)} className="hover:text-[color:var(--color-primary)] transition-colors">Docs</Link>
           <Link href="/admin" onClick={() => setIsMenuOpen(false)} className="hover:text-white/50 transition-colors">Admin</Link>
         </>
@@ -54,7 +54,7 @@ const Nav = () => {
         </div>
         
         <div className="hidden md:block">
-          <ConnectButton label="DEGEN LOGIN" />
+          <WalletMultiButton />
         </div>
 
         {/* Mobile Toggle */}
@@ -77,7 +77,7 @@ const Nav = () => {
           <div className="flex flex-col items-center justify-center h-full gap-8 p-8 text-2xl font-black uppercase tracking-[0.2em]">
             <NavLinks />
             <div className="mt-8">
-              <ConnectButton label="DEGEN LOGIN" />
+              <WalletMultiButton />
             </div>
             <div className="mt-4">
               <LiveStatusIndicator />

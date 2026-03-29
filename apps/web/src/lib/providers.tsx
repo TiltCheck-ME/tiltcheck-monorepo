@@ -1,44 +1,36 @@
-'use client';
-
 import * as React from 'react';
-import {
-  RainbowKitProvider,
-  getDefaultConfig,
-} from '@rainbow-me/rainbowkit';
-import { WagmiProvider } from 'wagmi';
-import {
-  mainnet,
-  polygon,
-  optimism,
-  arbitrum,
-  base,
-  zora,
-} from 'wagmi/chains';
+import { ConnectionProvider, WalletProvider } from '@solana/wallet-adapter-react';
+import { WalletModalProvider } from '@solana/wallet-adapter-react-ui';
+import { PhantomWalletAdapter, SolflareWalletAdapter } from '@solana/wallet-adapter-wallets';
+import { clusterApiUrl } from '@solana/web3.js';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
-const projectId = 'your_project_id_here'; // TODO: Replace with WalletConnect Project ID
-
-const config = getDefaultConfig({
-  appName: 'TiltCheck',
-  projectId,
-  chains: [mainnet, polygon, optimism, arbitrum, base, zora],
-  ssr: true, // Required for Next.js App Router
-});
-
-const queryClient = new QueryClient();
-
-const demoAppInfo = {
-  appName: 'TiltCheck',
-};
+// Default styles that can be overridden by your app
+import '@solana/wallet-adapter-react-ui/styles.css';
 
 export function RootProvider({ children }: { children: React.ReactNode }) {
+  // Use devnet or mainnet-beta
+  const endpoint = React.useMemo(() => clusterApiUrl('mainnet-beta'), []);
+  
+  const wallets = React.useMemo(
+    () => [
+      new PhantomWalletAdapter(),
+      new SolflareWalletAdapter(),
+    ],
+    []
+  );
+
+  const queryClient = new QueryClient();
+
   return (
-    <WagmiProvider config={config}>
-      <QueryClientProvider client={queryClient}>
-        <RainbowKitProvider appInfo={demoAppInfo}>
-          {children}
-        </RainbowKitProvider>
-      </QueryClientProvider>
-    </WagmiProvider>
+    <ConnectionProvider endpoint={endpoint}>
+      <WalletProvider wallets={wallets} autoConnect>
+        <WalletModalProvider>
+          <QueryClientProvider client={queryClient}>
+            {children}
+          </QueryClientProvider>
+        </WalletModalProvider>
+      </WalletProvider>
+    </ConnectionProvider>
   );
 }

@@ -970,6 +970,7 @@ export type ModuleId =
   | 'linkguard'
   | 'test-suite'
   | 'telegram-code-ingest'
+  | 'trust-engine-global'
   | 'trust-engine-api';
 
 

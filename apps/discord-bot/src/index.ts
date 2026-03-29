@@ -95,7 +95,7 @@ async function main() {
       const prefix = severity === 'high' ? '[HIGH RISK]' : severity === 'medium' ? '[AUDIT ALERT]' : '[EDGE EQUALIZER]';
       
       // Notify the User
-      await user.send(`${prefix} TILTCHECK EDGE EQUALIZER AUDIT\n\n${message}\n\n*Don't get rinsed. SECURE THE PROFIT.*`);
+      await user.send(`${prefix} TILTCHECK EDGE EQUALIZER AUDIT\n\n${message}\n\n*Don't get rinsed. SECURE THE PROFIT.*\n🔗 **View Hub:** https://tiltcheck.me/dashboard`);
       console.log(`[TiltAgent] Transparency signal sent to ${userId} (${severity})`);
 
 

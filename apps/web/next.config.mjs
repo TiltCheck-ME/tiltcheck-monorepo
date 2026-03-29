@@ -14,6 +14,26 @@ const nextConfig = {
   },
   async redirects() {
     return [
+      // Subdomain Consolidation (Phase 9)
+      {
+        source: '/:path*',
+        has: [{ type: 'host', value: 'hub.tiltcheck.me' }],
+        destination: 'https://tiltcheck.me/dashboard/:path*',
+        permanent: true,
+      },
+      {
+        source: '/:path*',
+        has: [{ type: 'host', value: 'docs.tiltcheck.me' }],
+        destination: 'https://tiltcheck.me/docs/:path*',
+        permanent: true,
+      },
+      {
+        source: '/:path*',
+        has: [{ type: 'host', value: 'control.tiltcheck.me' }],
+        destination: 'https://tiltcheck.me/admin/:path*',
+        permanent: true,
+      },
+      // Legacy HTML rewrites
       {
         source: '/trust-scores.html',
         destination: '/dashboard',
