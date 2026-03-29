@@ -119,6 +119,12 @@ router.post('/anti-tilt/evaluate', authMiddleware, async (req, res) => {
 
   if (result.severity === 'high') {
     webhookService.dispatch('safety.sentiment.flagged', { ...eventPayload, result });
+    
+    // Automated Enforcement: Trigger cooldown if risk is extreme (>85)
+    if (result.score > 85) {
+      const { startCooldown } = await import('@tiltcheck/tiltcheck-core');
+      startCooldown(userId, `AI detected psychological breaking point: ${result.matchedSignals.join(', ')}`, 15 * 60 * 1000);
+    }
   }
 
   res.json({
@@ -300,7 +306,7 @@ router.get('/trust/casino/:name', (req, res) => {
  * Get trust level and metrics for a user.
  */
 router.get('/trust/user/:id', authMiddleware, (req, res) => {
-  const { id } = req.params;
+  const id = req.params.id as string;
   
   // H3 Fix: Only allow users to see their own trust profile (unless admin)
   const authUser = (req as AuthRequest).user;
@@ -358,7 +364,7 @@ router.post('/scan', async (req, res) => {
  * Unified Risk Profile for a user.
  */
 router.get('/profile/:userId', authMiddleware, (req, res) => {
-  const { userId } = req.params;
+  const userId = req.params.userId as string;
 
   // H3 Fix: Only allow users to see their own risk profile (unless admin)
   const authUser = (req as AuthRequest).user;

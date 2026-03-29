@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "description": "AI Agent built with Google ADK (TypeScript)",
   "type": "module",
-  "main": "app/agent.ts",
+  "main": "dist/app/agent.js",
+  "types": "dist/app/agent.d.ts",
   "scripts": {
     "build": "tsc",
     "dev": "tsc && npx @google/adk-devtools web -h localhost dist/agent.js",

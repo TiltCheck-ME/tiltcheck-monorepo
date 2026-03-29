@@ -139,9 +139,10 @@ export async function upsertOnboarding(payload: UpsertOnboardingPayload): Promis
     INSERT INTO user_onboarding (
       discord_id, is_onboarded, has_accepted_terms, risk_level, 
       cooldown_enabled, daily_limit, quiz_scores, tutorial_completed,
-      notifications_tips, notifications_trivia, notifications_promos, updated_at
+      notifications_tips, notifications_trivia, notifications_promos, 
+      compliance_bypass, updated_at
     ) 
-    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, NOW())
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, NOW())
     ON CONFLICT (discord_id) DO UPDATE SET
       is_onboarded = COALESCE($2, user_onboarding.is_onboarded),
       has_accepted_terms = COALESCE($3, user_onboarding.has_accepted_terms),
@@ -153,6 +154,7 @@ export async function upsertOnboarding(payload: UpsertOnboardingPayload): Promis
       notifications_tips = COALESCE($9, user_onboarding.notifications_tips),
       notifications_trivia = COALESCE($10, user_onboarding.notifications_trivia),
       notifications_promos = COALESCE($11, user_onboarding.notifications_promos),
+      compliance_bypass = COALESCE($12, user_onboarding.compliance_bypass),
       updated_at = NOW()
     RETURNING *
   `;
@@ -169,6 +171,7 @@ export async function upsertOnboarding(payload: UpsertOnboardingPayload): Promis
     payload.notifications_tips ?? null,
     payload.notifications_trivia ?? null,
     payload.notifications_promos ?? null,
+    payload.compliance_bypass ?? null
   ];
 
   return queryOne<UserOnboarding>(sql, values);
@@ -650,6 +653,45 @@ export async function getAuditLogsByAdmin(
   const [rows, countResult] = await Promise.all([
     query<AuditLog>(sql, [adminId, limit, offset]),
     queryOne<{ count: string }>(countSql, [adminId]),
+  ]);
+
+  const total = parseInt(countResult?.count ?? '0', 10);
+
+  return {
+    rows,
+    total,
+    limit,
+    offset,
+    hasMore: offset + rows.length < total,
+  };
+}
+
+/**
+ * Get audit logs for a specific user ID
+ */
+export async function getAuditLogsByUser(
+  userId: string,
+  pagination?: PaginationParams
+): Promise<PaginatedResult<AuditLog>> {
+  const { limit = 50, offset = 0 } = pagination || {};
+  const { orderBy, orderDir } = validateSort(
+    pagination?.orderBy || 'created_at',
+    ['created_at', 'action_type'],
+    pagination?.orderDir
+  );
+
+  const sql = `
+    SELECT * FROM audit_logs 
+    WHERE target_id = $1 AND target_type = 'USER'
+    ORDER BY ${orderBy} ${orderDir}
+    LIMIT $2 OFFSET $3
+  `;
+
+  const countSql = "SELECT COUNT(*) as count FROM audit_logs WHERE target_id = $1 AND target_type = 'USER'";
+
+  const [rows, countResult] = await Promise.all([
+    query<AuditLog>(sql, [userId, limit, offset]),
+    queryOne<{ count: string }>(countSql, [userId]),
   ]);
 
   const total = parseInt(countResult?.count ?? '0', 10);

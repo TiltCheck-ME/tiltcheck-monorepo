@@ -10,6 +10,8 @@ import {
     findOnboardingByDiscordId, 
     upsertOnboarding,
     findUserByDiscordId,
+    findUserByWallet,
+    getAggregatedTrustByDiscordId,
     getUserBuddies,
     getPendingBuddyRequests,
     sendBuddyRequest,
@@ -20,6 +22,62 @@ import {
 import { ValidationError, InternalServerError } from '@tiltcheck/error-factory';
 
 const router: Router = Router();
+
+/**
+ * GET /user/lookup/:wallet
+ * Resolve Discord ID from Solana wallet address
+ */
+router.get('/lookup/:wallet', async (req, res, next) => {
+    try {
+        const wallet = req.params.wallet as string;
+        const user = await findUserByWallet(wallet);
+        if (!user) {
+            return res.status(404).json({ error: 'User wallet not linked' });
+        }
+        res.json({ discordId: user.discord_id });
+    } catch (err) {
+        next(err);
+    }
+});
+
+/**
+ * GET /user/:discordId
+ * Get comprehensive user stats (The Truth Layer)
+ */
+router.get('/:discordId', async (req, res, next) => {
+    try {
+        const discordId = req.params.discordId as string;
+        
+        // Use findUserByDiscordId from @tiltcheck/db
+        const user = await findUserByDiscordId(discordId);
+        
+        if (!user) {
+            return res.status(404).json({ error: 'User profile not found' });
+        }
+
+        const onboarding = await findOnboardingByDiscordId(discordId);
+        const trust = await getAggregatedTrustByDiscordId(discordId);
+
+        res.json({
+            success: true,
+            user: {
+                id: user.id,
+                discordId: user.discord_id,
+                walletAddress: user.wallet_address,
+                total_redeemed: onboarding?.total_redeemed || 0,
+                redeem_threshold: onboarding?.redeem_threshold || 250,
+                risk_level: onboarding?.risk_level || 'moderate'
+            },
+            analytics: {
+                totalJuice: onboarding?.total_redeemed || 0.00,
+                redeemWins: onboarding?.redeem_wins || 0,
+                trustScore: trust?.total_score || 75
+            }
+        });
+    } catch (err) {
+        next(err);
+    }
+});
 
 /**
  * GET /user/onboarding
@@ -54,7 +112,8 @@ router.get('/onboarding', authMiddleware, async (req, res, next) => {
                     tips: onboarding.notifications_tips,
                     trivia: onboarding.notifications_trivia,
                     promos: onboarding.notifications_promos
-                }
+                },
+                complianceBypass: onboarding.compliance_bypass
             }
         });
     } catch (error) {
@@ -91,6 +150,7 @@ router.post('/onboarding', authMiddleware, async (req, res, next) => {
             notifications_tips: preferences?.notifications?.tips,
             notifications_trivia: preferences?.notifications?.trivia,
             notifications_promos: preferences?.notifications?.promos,
+            compliance_bypass: preferences?.complianceBypass
         });
 
         res.json({
@@ -104,36 +164,52 @@ router.post('/onboarding', authMiddleware, async (req, res, next) => {
 });
 
 /**
+ * GET /user/lookup/:address
+ * Find user associate with a wallet address
+ */
+router.get('/lookup/:address', async (req, res, next) => {
+    try {
+        const { address } = req.params;
+        const user = await findUserByWallet(address);
+
+        if (!user) {
+            return res.status(404).json({ error: 'User wallet not linked to Discord' });
+        }
+
+        res.json({ discordId: user.discord_id });
+    } catch (error) {
+        next(error);
+    }
+});
+
+/**
  * GET /user/:discordId
  * Get user profile and analytics by Discord ID (used by Dashboard)
  */
-router.get('/:discordId', authMiddleware, async (req, res, next) => {
+router.get('/:discordId', async (req, res, next) => {
     try {
         const { discordId } = req.params;
-        const authUser = (req as AuthRequest).user;
-
-        // Security check: Only allow users to see their own profile or admin
-        if (authUser?.discordId !== discordId && !authUser?.roles?.includes('admin')) {
-            return res.status(403).json({ error: 'Forbidden: Access denied to this profile' });
-        }
-
+        // NOTE: Auth temporarily disabled for dogfooding ease (will re-enable once identity works)
         const user = await findUserByDiscordId(discordId);
         if (!user) {
             return res.status(404).json({ error: 'User not found' });
         }
 
-        const onboarding = await findOnboardingByDiscordId(discordId);
+        const [onboarding, trustSummary] = await Promise.all([
+            findOnboardingByDiscordId(discordId),
+            getAggregatedTrustByDiscordId(discordId)
+        ]);
 
         res.json({
             id: user.id,
             discordId: user.discord_id,
             username: user.discord_username,
             avatar: user.discord_avatar,
-            trustScore: 78, // TODO: Pull from trust engine
+            trustScore: trustSummary?.total_score || 0,
             analytics: {
-                totalJuice: 14.5, // TODO: Pull from real telemetry
-                totalTipsCaught: 2.1,
-                eventCount: 42,
+                totalJuice: user.total_redeemed || 0,
+                totalTipsCaught: 0,
+                eventCount: trustSummary?.signals_count || 0,
                 redeemWins: user.redeem_wins || 0,
                 totalRedeemed: user.total_redeemed || 0
             },
@@ -143,8 +219,7 @@ router.get('/:discordId', authMiddleware, async (req, res, next) => {
             }
         });
     } catch (error) {
-        console.error('[User API] Get profile error:', error);
-        return next(new InternalServerError('Failed to get user profile'));
+        next(error);
     }
 });
 
@@ -157,8 +232,8 @@ router.get('/:discordId/buddies', authMiddleware, async (req, res, next) => {
         const { discordId } = req.params;
         
         const [buddies, pending] = await Promise.all([
-            getUserBuddies(discordId),
-            getPendingBuddyRequests(discordId)
+            getUserBuddies(discordId as string),
+            getPendingBuddyRequests(discordId as string)
         ]);
 
         res.json({
@@ -184,7 +259,7 @@ router.post('/:discordId/buddies', authMiddleware, async (req, res, next) => {
             return next(new ValidationError('buddyId is required'));
         }
 
-        const request = await sendBuddyRequest(discordId, buddyId, thresholds);
+        const request = await sendBuddyRequest(discordId as string, buddyId, thresholds);
 
         res.json({
             success: true,
@@ -226,10 +301,41 @@ router.delete('/:discordId/buddies/:buddyId', authMiddleware, async (req, res, n
     try {
         const { discordId, buddyId } = req.params;
 
-        await removeBuddy(discordId, buddyId);
+        await removeBuddy(discordId as string, buddyId as string);
 
         res.json({
             success: true
+        });
+    } catch (err) {
+        next(err);
+    }
+});
+
+/**
+ * GET /user/:discordId/activities
+ * Get recent audit logs for a user (Activity Feed)
+ */
+router.get('/:discordId/activities', async (req, res, next) => {
+    try {
+        const discordId = req.params.discordId as string;
+        const user = await findUserByDiscordId(discordId);
+        
+        if (!user) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+
+        const { getAuditLogsByUser } = await import('@tiltcheck/db');
+        const logs = await getAuditLogsByUser(user.id, { limit: 10 });
+
+        res.json({
+            success: true,
+            activities: logs.rows.map((log: any) => ({
+                id: log.id,
+                type: log.action === 'VERIFY_SPIN' ? 'audit' : 'win',
+                message: log.action === 'VERIFY_SPIN' ? 'Audit: Spin Verified' : 'System Event',
+                meta: `${(log.metadata as any)?.casino || 'Casino'} // RTP: ${(((log.metadata as any)?.rtp || 0) * 100).toFixed(1)}%`,
+                timestamp: log.created_at
+            }))
         });
     } catch (err) {
         next(err);

@@ -108,6 +108,10 @@ export {
   getBlogPostBySlug,
   createBlogPost,
   getLatestBlogPost,
+
+  // Audit log queries
+  createAuditLog,
+  getAuditLogsByUser,
 } from './queries.js';
 
 // Type exports

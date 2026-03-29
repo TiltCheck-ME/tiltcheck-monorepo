@@ -95,15 +95,21 @@ export function evaluateSentiment(input: SentimentInput): SentimentResult {
 /**
  * Advanced Sentiment Evaluation (Vertex AI via DIA)
  * Asynchronous call to the Degen Intelligence Agent for contextual analysis.
+ * Uses V1 as a pre-filter to optimize latency and costs.
  */
 export async function evaluateSentimentV2(input: SentimentInput): Promise<SentimentResult> {
+  // Step 1: Pre-filter with V1 (Fast Rules)
+  const v1Result = evaluateSentiment(input);
+  
+  // If rules definitely caught a critical signal, no need to ask AI yet unless we want a nudge
+  if (v1Result.severity === 'high' && v1Result.intervention === 'escalation') {
+    return v1Result;
+  }
+
   const diaUrl = process.env.AGENT_DIA_URL;
   const diaApiKey = process.env.AGENT_DIA_API_KEY;
 
-  if (!diaUrl) {
-    // Fallback to V1 if agent is not configured
-    return evaluateSentiment(input);
-  }
+  if (!diaUrl) return v1Result;
 
   try {
     const resp = await fetch(`${diaUrl}/chat`, {
@@ -117,21 +123,20 @@ export async function evaluateSentimentV2(input: SentimentInput): Promise<Sentim
       }),
     });
 
-    if (!resp.ok) return evaluateSentiment(input);
+    if (!resp.ok) return v1Result;
     
     const data = (await resp.json()) as any;
-    // The ADK agent returns the response as a string or structured data
-    // For now, we trust the agent's summary or parse its tool outputs if available
-    // Mocking the parse logic for the refined V2 result:
+    
+    // Step 2: Merge V1 signals with AI depth
     return {
-      score: data.riskScore ?? 50,
-      severity: (data.riskScore ?? 50) > 75 ? 'high' : (data.riskScore ?? 50) > 40 ? 'moderate' : 'low',
-      intervention: (data.riskScore ?? 50) > 85 ? 'escalation' : (data.riskScore ?? 50) > 60 ? 'cooldown' : 'none',
-      matchedSignals: data.signals ?? ['vertex-ai-audit'],
+      score: data.riskScore ?? v1Result.score,
+      severity: (data.riskScore ?? v1Result.score) > 75 ? 'high' : (data.riskScore ?? v1Result.score) > 40 ? 'moderate' : 'low',
+      intervention: (data.riskScore ?? v1Result.score) > 85 ? 'escalation' : (data.riskScore ?? v1Result.score) > 60 ? 'cooldown' : v1Result.intervention,
+      matchedSignals: [...new Set([...v1Result.matchedSignals, ...(data.signals ?? ['vertex-ai-audit'])])],
     };
   } catch (err) {
     console.error('[Safety] Vertex Sentiment V2 failed:', err);
-    return evaluateSentiment(input);
+    return v1Result;
   }
 }
 

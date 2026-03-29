@@ -57,6 +57,9 @@
       "path": "../../packages/trust-score-types"
     },
     {
+      "path": "../../packages/types"
+    },
+    {
       "path": "../../packages/utils"
     }
   ]

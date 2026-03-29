@@ -405,18 +405,20 @@ async function startMonitoring() {
 
   console.log('[TiltGuard] Initial balance:', initialBalance);
 
-  // Get risk level and redeem threshold from storage
-  const storageResult = await chrome.storage.local.get(['riskLevel', 'redeemThreshold']);
+  // Get risk level, redeem threshold, and auth token from storage
+  const storageResult = await chrome.storage.local.get(['riskLevel', 'redeemThreshold', 'authToken']);
   const riskLevel = (storageResult.riskLevel as 'conservative' | 'moderate' | 'degen') || 'moderate';
   const redeemThreshold = Number(storageResult.redeemThreshold) || 0;
+  const authToken = storageResult.authToken as string | undefined;
 
-  console.log('[TiltGuard] Using profile:', { riskLevel, redeemThreshold });
+  console.log('[TiltGuard] Using profile:', { riskLevel, redeemThreshold, hasToken: !!authToken });
 
   // Initialize tilt detector
   tiltDetector = new TiltDetector(initialBalance, riskLevel, redeemThreshold);
 
-  // Initialize analyzer client
-  client = new AnalyzerClient(ANALYZER_WS_URL, (error) => {
+  // Initialize analyzer client with auth token if available
+  const wsUrlWithAuth = authToken ? `${ANALYZER_WS_URL}?token=${authToken}` : ANALYZER_WS_URL;
+  client = new AnalyzerClient(wsUrlWithAuth, (error) => {
     // Surface post-open disconnect/reconnect failures to UI and logs.
     console.warn('[TiltGuard] Analyzer connection issue:', error);
     sidebar?.updateRealityCheck(false);
@@ -430,6 +432,7 @@ async function startMonitoring() {
   try {
     await client.connect();
     console.log('[TiltGuard] Connected to analyzer server');
+    sidebar?.updateRealityCheck(true);
   } catch {
     console.log('[TiltGuard] Analyzer backend offline - tilt monitoring only');
   }

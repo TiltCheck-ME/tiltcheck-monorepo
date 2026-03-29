@@ -150,7 +150,7 @@ router.post('/:id/complete', tipLimiter, sessionAuth(), async (req: Request, res
     }
 
     // Use JustTheTip module for completion logic (including ownership check)
-    const result = await justthetip.completeTipTransaction(id, auth.userId, String(txSignature));
+    const result = await justthetip.completeTipTransaction(id as string, auth.userId, String(txSignature));
 
     if (!result.success) {
       const status = result.error === 'Tip not found' ? 404 : 403;
@@ -176,7 +176,7 @@ router.get('/:id', sessionAuth(undefined, { required: false }), async (req, res)
   try {
     const { id } = req.params;
 
-    const tip = await justthetip.getTipDetails(id);
+    const tip = await justthetip.getTipDetails(id as string);
 
     if (!tip) {
       res.status(404).json({ error: 'Tip not found' });

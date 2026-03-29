@@ -2,7 +2,8 @@
 
 import { SlashCommandBuilder, ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
 import type { Command } from '../types.js';
-import { db } from '@tiltcheck/database';
+import { db } from '@tiltcheck/database'; // Keep for legacy sync if needed
+import { linkWalletToUser, findUserByDiscordId, findOrCreateUserByDiscord } from '@tiltcheck/db';
 import { PublicKey } from '@solana/web3.js';
 
 export const linkwallet: Command = {
@@ -29,26 +30,35 @@ export const linkwallet: Command = {
     await interaction.deferReply({ ephemeral: true });
 
     try {
+      // 1. Sync to Truth Layer (Neon)
+      const discordUser = await findOrCreateUserByDiscord(
+        interaction.user.id,
+        interaction.user.username,
+        interaction.user.displayAvatarURL()
+      );
+
+      await linkWalletToUser(discordUser.id, address);
+
+      // 2. Legacy Sync (Optional, keep for compatibility)
       if (db.isConnected()) {
         await db.upsertDegenIdentity({
           discord_id: interaction.user.id,
           primary_external_address: address,
         });
-
-        const embed = new EmbedBuilder()
-          .setColor(0x22d3a6)
-          .setTitle('🔗 Wallet Linked')
-          .setDescription(`Successfully linked your wallet to the TiltCheck Hub.
-
-**Address:** \`${address}\`
-
-You are now ready to catch some juice! 🧃`)
-          .setFooter({ text: 'Manage more settings at dashboard.tiltcheck.me' });
-
-        await interaction.editReply({ embeds: [embed] });
-      } else {
-        throw new Error('Database connection failed');
       }
+
+      const embed = new EmbedBuilder()
+        .setColor(0x22d3a6)
+        .setTitle('🔗 Wallet Linked to Hub')
+        .setDescription(`Successfully linked your wallet to the TiltCheck Truth Layer.
+        
+**User:** \`${interaction.user.username}\`
+**Address:** \`${address.substring(0, 4)}...${address.substring(address.length - 4)}\`
+
+You can now login to the Hub and see your real-time telemetry instantly.`)
+        .setFooter({ text: 'Access the Hub at dashboard.tiltcheck.me' });
+
+      await interaction.editReply({ embeds: [embed] });
     } catch (error) {
       console.error('[LinkWallet] Error:', error);
       await interaction.editReply({ content: '❌ Failed to save wallet address. Please try again later.' });

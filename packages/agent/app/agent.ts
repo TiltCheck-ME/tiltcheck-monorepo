@@ -222,9 +222,9 @@ export const agent = new LlmAgent({
   name: 'tiltcheck_degen_intelligence',
   description: 'Advanced AI assistant for the TiltCheck ecosystem. Analyzes degen stats, trust scores, generates interventions, and manages account config.',
   model: new Gemini({
-    model: 'gemini-1.5-pro',
+    model: 'gemini-1.5-flash',
     vertexai: process.env.GOOGLE_GENAI_USE_VERTEXAI === 'true',
-    project: process.env.GOOGLE_CLOUD_PROJECT || 'tiltchcek',
+    project: process.env.GOOGLE_CLOUD_PROJECT || 'tiltcheck',
     location: process.env.GOOGLE_CLOUD_LOCATION || 'us-central1',
   }),
   instruction: `You are the TiltCheck Degen Intelligence Agent (DIA). 
