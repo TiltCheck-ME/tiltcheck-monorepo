@@ -16,13 +16,46 @@ const nextConfig = {
     return [
       {
         source: '/trust-scores.html',
-        destination: '/casinos',
+        destination: '/dashboard',
         permanent: true,
       },
       {
         source: '/casinos.html',
         destination: '/casinos',
         permanent: true,
+      },
+      {
+        source: '/hub.html',
+        destination: '/dashboard',
+        permanent: true,
+      },
+    ];
+  },
+  async rewrites() {
+    return [
+      {
+        source: '/arena/:path*',
+        destination: process.env.NODE_ENV === 'production' 
+          ? 'https://arena.tiltcheck.me/:path*' 
+          : 'http://localhost:3010/:path*',
+      },
+      {
+        source: '/admin/:path*',
+        destination: process.env.NODE_ENV === 'production' 
+          ? 'https://control-room.tiltcheck.me/:path*' 
+          : 'http://localhost:3001/:path*',
+      },
+      {
+        source: '/api/:path*',
+        destination: process.env.NODE_ENV === 'production'
+          ? 'https://api.tiltcheck.me/:path*'
+          : 'http://localhost:8080/:path*',
+      },
+      {
+        source: '/analyzer/:path*',
+        destination: process.env.NODE_ENV === 'production'
+          ? 'https://api.tiltcheck.me/analyzer/:path*'
+          : 'http://localhost:8080/analyzer/:path*',
       },
     ];
   },

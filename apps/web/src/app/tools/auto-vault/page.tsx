@@ -46,9 +46,8 @@ export default function AutoVaultPage() {
       <div className="w-full max-w-4xl mx-auto mt-8">
         {!hasAccepted ? (
           <div className="p-12 border-2 border-dashed border-[#283347] text-center bg-black/20">
-            <span className="text-4xl mb-4 block">🔒</span>
             <h2 className="text-xl font-bold text-gray-500 uppercase tracking-widest">
-              The &quot;Don&apos;t Sue Us&quot; Pop-up
+              REGULATORY DISCLOSURE REQUIRED
             </h2>
             <p className="text-gray-600 mt-2 max-w-md mx-auto">
               You need to agree that you understand how this works before you can use it. It&apos;s for your own good. And ours.
@@ -64,7 +63,7 @@ export default function AutoVaultPage() {
           <div className="terminal-box border-[#17c3b2] animate-in fade-in slide-in-from-bottom-4 duration-500">
              <div className="terminal-prompt">
                 <span className="prompt-prefix">$</span>
-                <span className="prompt-text">Warming up the vault... Don&apos;t worry, we don&apos;t have the keys.</span>
+                <span className="prompt-text">Vault initialized. TiltCheck is non-custodial. We do not hold keys.</span>
              </div>
              
              <div className="p-8 text-center">

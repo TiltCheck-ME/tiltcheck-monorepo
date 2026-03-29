@@ -1,4 +1,9 @@
-# tiltcheck
+# Degen Intelligence Agent (DIA) - TiltCheck
+*Centralized AI service powered by Vertex AI (Gemini 1.5 Pro) on project `tiltchcek`.*
+
+This package provides high-impact interventions and psychological risk scoring for the TiltCheck ecosystem. It uses a **Hybrid "Tough Love" Strategy**:
+- **Gemini 1.5 Pro (Model)**: Specialized in data-driven, blunt interventions without moralizing or apologies.
+- **Precision Tools**: Includes `generate_nudge` for interventions and `analyze_sentiment_v2` for nuanced psychological auditing.
 
 A base ReAct agent built with Google's Agent Development Kit (ADK)
 Agent generated with [`googleCloudPlatform/agent-starter-pack`](https://github.com/GoogleCloudPlatform/agent-starter-pack) version `0.39.0`

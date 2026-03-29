@@ -18,8 +18,8 @@ FROM node:20-slim AS builder
 WORKDIR /workspace
 
 # Copy package files
-COPY package.json package-lock.json ./
-RUN npm ci
+COPY package.json ./
+RUN npm install
 
 # Copy source and build config
 COPY app/ ./app/
@@ -32,8 +32,8 @@ FROM node:20-slim AS runtime
 WORKDIR /workspace
 
 # Copy package files and install production deps only
-COPY package.json package-lock.json ./
-RUN npm ci --omit=dev
+COPY package.json ./
+RUN npm install --omit=dev
 
 # Copy built application
 COPY --from=builder /workspace/dist ./dist

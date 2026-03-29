@@ -33,10 +33,18 @@ RUN pnpm install
 
 # --- PHASE: Service Specific Build Logic ---
 RUN echo "BUILDING: $APP_NAME" && \
+    if [ -d "packages/$APP_NAME" ]; then \
+      SERVICE_PATH="packages/$APP_NAME"; \
+    else \
+      SERVICE_PATH="apps/$APP_NAME"; \
+    fi && \
+    echo "SERVICE_PATH: $SERVICE_PATH" && \
     if [ "$APP_NAME" = "web" ]; then \
       pnpm --filter web build; \
+    elif [ "$APP_NAME" = "agent" ]; then \
+      pnpm --filter "@tiltcheck/agent" build; \
     else \
-      npx esbuild apps/$APP_NAME/src/index.ts --bundle --platform=node --format=esm --target=node22 --outfile=apps/$APP_NAME/dist/index.js \
+      npx esbuild $SERVICE_PATH/src/index.ts --bundle --platform=node --format=esm --target=node22 --outfile=$SERVICE_PATH/dist/index.js \
       --tsconfig=tsconfig.json \
       --banner:js='import { createRequire } from "module"; const require = createRequire(import.meta.url);' \
       --external:pg-native --external:bcryptjs --external:bcrypt --external:bufferutil --external:utf-8-validate \
@@ -45,13 +53,18 @@ RUN echo "BUILDING: $APP_NAME" && \
 
 # Prepare production output
 RUN mkdir -p /app/out && \
-    if [ -d "apps/$APP_NAME/.next/standalone" ]; then \
-      cp -r apps/$APP_NAME/.next/standalone/* /app/out/ && \
-      cp -r apps/$APP_NAME/.next/static /app/out/.next/static 2>/dev/null || true && \
-      cp -r apps/$APP_NAME/public /app/out/public 2>/dev/null || true; \
+    if [ -d "apps/$APP_NAME" ]; then \
+      S_PATH="apps/$APP_NAME"; \
     else \
-      pnpm --filter "./apps/$APP_NAME" --prod --legacy deploy /app/out && \
-      cp -r apps/$APP_NAME/dist /app/out/dist || true; \
+      S_PATH="packages/$APP_NAME"; \
+    fi && \
+    if [ -d "$S_PATH/.next/standalone" ]; then \
+      cp -r $S_PATH/.next/standalone/* /app/out/ && \
+      cp -r $S_PATH/.next/static /app/out/.next/static 2>/dev/null || true && \
+      cp -r $S_PATH/public /app/out/public 2>/dev/null || true; \
+    else \
+      pnpm --filter "@tiltcheck/$APP_NAME" --prod --legacy deploy /app/out || pnpm --filter $APP_NAME --prod --legacy deploy /app/out; \
+      cp -r $S_PATH/dist /app/out/dist || true; \
     fi
 
 # --- STEP 2: Slim runner image ---

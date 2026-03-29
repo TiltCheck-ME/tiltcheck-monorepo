@@ -1,5 +1,5 @@
 'use client';
-import React from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
 import LiveStatusIndicator from './LiveStatusIndicator';
 import { useAccount } from 'wagmi';
@@ -7,40 +7,84 @@ import { ConnectButton } from '@rainbow-me/rainbowkit';
 
 const Nav = () => {
   const { isConnected } = useAccount();
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+  const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
+
+  const NavLinks = () => (
+    <>
+      {!isConnected ? (
+        <>
+          <Link href="/features" onClick={() => setIsMenuOpen(false)} className="hover:text-[color:var(--color-primary)] transition-colors">Features</Link>
+          <Link href="/blog" onClick={() => setIsMenuOpen(false)} className="hover:text-[color:var(--color-primary)] transition-colors">Blog</Link>
+          <Link href="/casinos" onClick={() => setIsMenuOpen(false)} className="hover:text-[color:var(--color-primary)] transition-colors">Casinos</Link>
+          <Link href="/settings" onClick={() => setIsMenuOpen(false)} className="hover:text-[color:var(--color-primary)] transition-colors">Settings</Link>
+          <Link href="#faq" onClick={() => setIsMenuOpen(false)} className="hover:text-[color:var(--color-primary)] transition-colors">FAQ</Link>
+          <Link href="/extension" onClick={() => setIsMenuOpen(false)} className="hover:text-[color:var(--color-primary)] transition-colors">Extension</Link>
+        </>
+      ) : (
+        <>
+          <Link href="/dashboard" onClick={() => setIsMenuOpen(false)} className="hover:text-[color:var(--color-primary)] transition-colors">Audit</Link>
+          <Link href="/dashboard" onClick={() => setIsMenuOpen(false)} className="hover:text-[color:var(--color-primary)] transition-colors text-[color:var(--color-primary)] font-bold">Dashboard</Link>
+          <Link href="/dashboard" onClick={() => setIsMenuOpen(false)} className="hover:text-[color:var(--color-primary)] transition-colors">Vault</Link>
+          <Link href="/dashboard" onClick={() => setIsMenuOpen(false)} className="hover:text-[color:var(--color-primary)] transition-colors">Buddies</Link>
+          <Link href="/docs" onClick={() => setIsMenuOpen(false)} className="hover:text-[color:var(--color-primary)] transition-colors">Docs</Link>
+          <Link href="/admin" onClick={() => setIsMenuOpen(false)} className="hover:text-white/50 transition-colors">Admin</Link>
+        </>
+      )}
+    </>
+  );
 
   return (
-    <nav className="flex items-center justify-between w-full">
+    <nav className="flex items-center justify-between w-full relative z-50">
       <div className="flex items-center gap-8">
-        <Link href="/" className="font-bold text-lg">
+        <Link href="/" className="font-bold text-lg tracking-tighter hover:text-[color:var(--color-primary)] transition-colors">
           TILTCHECK
         </Link>
-        <div className="hidden md:flex items-center gap-4 text-sm">
-          {!isConnected ? (
-            <>
-              <Link href="/features" className="hover:text-[color:var(--color-primary)] transition-colors">Features</Link>
-              <Link href="/blog" className="hover:text-[color:var(--color-primary)] transition-colors">Blog</Link>
-              <Link href="/casinos" className="hover:text-[color:var(--color-primary)] transition-colors">Casinos</Link>
-              <Link href="/settings" className="hover:text-[color:var(--color-primary)] transition-colors">Settings</Link>
-              <Link href="#faq" className="hover:text-[color:var(--color-primary)] transition-colors">FAQ</Link>
-              <Link href="/extension" className="hover:text-[color:var(--color-primary)] transition-colors">Extension</Link>
-            </>
-          ) : (
-            <>
-              <Link href="/audit" className="hover:text-[color:var(--color-primary)] transition-colors">Audit</Link>
-              <Link href="/casinos" className="hover:text-[color:var(--color-primary)] transition-colors">Casinos</Link>
-              <Link href="/vault" className="hover:text-[color:var(--color-primary)] transition-colors">Vault</Link>
-              <Link href="/buddies" className="hover:text-[color:var(--color-primary)] transition-colors">Buddies</Link>
-              <Link href="https://hub.tiltcheck.me" className="hover:text-[color:var(--color-primary)] transition-colors text-[color:var(--color-primary)] font-bold">[DASHBOARD]</Link>
-            </>
-          )}
+        
+        {/* Desktop Links */}
+        <div className="hidden md:flex items-center gap-4 text-sm font-medium uppercase tracking-widest">
+          <NavLinks />
         </div>
       </div>
+
       <div className="flex items-center gap-4">
         <div className="hidden sm:block">
             <LiveStatusIndicator />
         </div>
-        <ConnectButton label="DEGEN LOGIN" />
+        
+        <div className="hidden md:block">
+          <ConnectButton label="DEGEN LOGIN" />
+        </div>
+
+        {/* Mobile Toggle */}
+        <button 
+          onClick={toggleMenu}
+          className="md:hidden p-2 text-[color:var(--color-primary)] hover:bg-[color:var(--color-primary)]/10 transition-colors"
+          aria-label="Toggle Menu"
+        >
+          {isMenuOpen ? (
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+          ) : (
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+          )}
+        </button>
       </div>
+
+      {/* Mobile Menu Overlay */}
+      {isMenuOpen && (
+        <div className="fixed inset-0 top-[72px] bg-black/95 backdrop-blur-xl z-40 md:hidden animate-in fade-in duration-300">
+          <div className="flex flex-col items-center justify-center h-full gap-8 p-8 text-2xl font-black uppercase tracking-[0.2em]">
+            <NavLinks />
+            <div className="mt-8">
+              <ConnectButton label="DEGEN LOGIN" />
+            </div>
+            <div className="mt-4">
+              <LiveStatusIndicator />
+            </div>
+          </div>
+        </div>
+      )}
     </nav>
   );
 };

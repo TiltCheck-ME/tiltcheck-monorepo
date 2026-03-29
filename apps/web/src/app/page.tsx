@@ -12,9 +12,9 @@ export default function Home() {
           <h1 className="neon neon-main neon-hero-top" data-text="THE HOUSE ALWAYS WINS?">
             THE HOUSE ALWAYS WINS?
           </h1>
-          <h1 className="neon neon-main neon-hero-bottom" data-text="FUCK THAT.">
+          <h2 className="neon neon-main neon-hero-bottom" data-text="FUCK THAT.">
             FUCK THAT.
-          </h1>
+          </h2>
           <p className="hero-body">
             THEY ONLY WIN BECAUSE THEY HAVE THE MATH AND YOU HAVE A DOPAMINE PROBLEM. BUT WE CAN COUNT TOO. TILTCHECK IS THE AUDIT LAYER BUILT TO TILT THE FAIRNESS SCALE BACK IN YOUR FAVOR. LEVEL THE PLAYING FIELD. CUZ MATH MATHS.
           </p>
