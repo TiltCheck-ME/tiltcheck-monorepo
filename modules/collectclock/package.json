@@ -11,11 +11,11 @@
     "clean": "rm -rf dist"
   },
   "dependencies": {
-    "@tiltcheck/types": "workspace:*",
+    "@tiltcheck/config": "workspace:*",
     "@tiltcheck/event-router": "workspace:*",
-    "@tiltcheck/config": "workspace:*"
+    "@tiltcheck/types": "workspace:*"
   },
   "devDependencies": {
-    "typescript": "^5.4.0"
+    "typescript": "^6.0.2"
   }
 }

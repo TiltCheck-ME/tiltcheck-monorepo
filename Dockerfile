@@ -67,9 +67,11 @@ RUN mkdir -p /app/out && \
       cp -r $S_PATH/dist /app/out/dist || true; \
     fi
 
-# --- STEP 2: Slim runner image ---
 FROM node:22-slim AS runner
 WORKDIR /app
+ARG APP_NAME
+ENV APP_NAME=$APP_NAME
+ENV NODE_ENV=production
 
 # Install runtime dependencies for native modules if needed
 RUN apt-get update && apt-get install -y \
@@ -84,5 +86,6 @@ ENV NODE_ENV=production
 
 # Entry point logic: 
 # If server.js (Next.js), run it. 
+# If agent, use adk-devtools.
 # Else run dist/index.js (API/Bot).
-CMD ["sh", "-c", "if [ -f server.js ]; then node server.js; else node dist/index.js; fi"]
+CMD ["sh", "-c", "if [ -f server.js ]; then node server.js; elif [ \"$APP_NAME\" = \"agent\" ]; then npx @google/adk-devtools api_server dist/agent.js --port 8080; else node dist/index.js; fi"]

@@ -11,12 +11,12 @@
     "clean": "rm -rf dist"
   },
   "dependencies": {
-    "@tiltcheck/types": "workspace:*",
-    "@tiltcheck/shared": "workspace:*"
+    "@tiltcheck/shared": "workspace:*",
+    "@tiltcheck/types": "workspace:*"
   },
   "devDependencies": {
-    "@types/node": "^22.13.0",
-    "typescript": "^5.3.0"
+    "@types/node": "^25.5.0",
+    "typescript": "^6.0.2"
   },
   "exports": {
     ".": {

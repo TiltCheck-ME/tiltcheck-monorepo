@@ -11,10 +11,10 @@
   "dependencies": {
     "@tiltcheck/config": "workspace:*",
     "@tiltcheck/logger": "workspace:*",
-    "axios": "^1.6.0"
+    "axios": "^1.14.0"
   },
   "devDependencies": {
-    "typescript": "^5.0.0",
-    "vitest": "^1.0.0"
+    "typescript": "^6.0.2",
+    "vitest": "^4.1.2"
   }
 }
