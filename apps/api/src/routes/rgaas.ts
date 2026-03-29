@@ -13,7 +13,7 @@ import {
   type BreathalyzerEvaluatedPayload,
   type SentimentFlaggedPayload,
 } from '@tiltcheck/event-types';
-import { evaluateBreathalyzer, evaluateSentiment } from '../lib/safety.js';
+import { evaluateBreathalyzer, evaluateSentiment, evaluateSentimentV2 } from '../lib/safety.js';
 import { trustEngines } from '@tiltcheck/trust-engines';
 import { eventRouter } from '@tiltcheck/event-router';
 import { suslink } from '@tiltcheck/suslink';
@@ -81,7 +81,7 @@ router.post('/breathalyzer/evaluate', authMiddleware, (req, res) => {
  * POST /rgaas/anti-tilt/evaluate
  * Evaluate user sentiment and decide intervention level.
  */
-router.post('/anti-tilt/evaluate', authMiddleware, (req, res) => {
+router.post('/anti-tilt/evaluate', authMiddleware, async (req, res) => {
   const { userId, message, distressSignals } = req.body ?? {};
 
   if (!userId || typeof userId !== 'string') {
@@ -97,7 +97,7 @@ router.post('/anti-tilt/evaluate', authMiddleware, (req, res) => {
     ? distressSignals.filter((signal): signal is string => typeof signal === 'string')
     : undefined;
 
-  const result = evaluateSentiment({
+  const result = await evaluateSentimentV2({
     userId,
     message,
     distressSignals: signals,

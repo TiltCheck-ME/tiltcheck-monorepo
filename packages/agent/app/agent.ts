@@ -164,26 +164,83 @@ const updateUserPreferences = new FunctionTool<typeof UpdatePreferencesSchema>({
 });
 
 /**
- * Degen Intelligence Agent
+ * Schema for generating a personalized intervention nudge
+ */
+const GenerateNudgeSchema = z.object({
+  userId: z.string(),
+  betRatio: z.number().describe('Current bet size / baseline bet size'),
+  lossStreak: z.number().describe('Number of consecutive losses'),
+  lastGameResult: z.string().optional().describe('Description of the last game result (e.g. "Bad beat on pocket aces")'),
+});
+
+/**
+ * Schema for advanced sentiment analysis
+ */
+const AnalyzeSentimentSchema = z.object({
+  text: z.string(),
+  userId: z.string().optional(),
+});
+
+/**
+ * Tool to generate a surgical, personality-driven 'Tough Love' nudge
+ */
+const generateNudge = new FunctionTool<typeof GenerateNudgeSchema>({
+  name: 'generate_nudge',
+  description: 'Generates a blunt, data-driven "Tough Love" intervention for a tilting user.',
+  parameters: GenerateNudgeSchema,
+  execute: async ({ userId, betRatio, lossStreak, lastGameResult }) => {
+    // This tool is designed to be called when heuristics detect moderate/high risk.
+    // The "actual" text generation happens via the LLM's system prompt + tool context.
+    return {
+      userId,
+      context: `User is betting ${betRatio.toFixed(1)}x their normal size and is on a ${lossStreak} loss streak. ${lastGameResult ? `Last frustration point: ${lastGameResult}` : ''}`,
+      instruction: "Write 1-2 blunt sentences asking them to Audit their head. No emojis. No apologies."
+    };
+  },
+});
+
+/**
+ * Tool for nuanced psychological risk scoring (Sentiment V2)
+ */
+const analyzeSentimentV2 = new FunctionTool<typeof AnalyzeSentimentSchema>({
+  name: 'analyze_sentiment_v2',
+  description: 'Analyzes user chat/behavior for psychological breaking points (Euphoria, Desperation, Final Exit).',
+  parameters: AnalyzeSentimentSchema,
+  execute: async ({ text }) => {
+    return {
+      originalText: text,
+      instruction: "Categorize the psychological stage of this message: NEUTRAL, EUPHORIA, DESPERATION, BREAKING_POINT, FINAL_EXIT. Score risk 0-100."
+    };
+  },
+});
+
+/**
+ * Degen Intelligence Agent (DIA)
+ * Using Gemini 1.5 Pro for maximum 'Tough Love' authenticity.
  */
 export const agent = new LlmAgent({
   name: 'tiltcheck_degen_intelligence',
-  description: 'Advanced AI assistant for the TiltCheck ecosystem. Analyzes degen stats, trust scores, casino bonuses, and manages account config.',
+  description: 'Advanced AI assistant for the TiltCheck ecosystem. Analyzes degen stats, trust scores, generates interventions, and manages account config.',
   model: new Gemini({
-    model: 'gemini-1.5-flash',
+    model: 'gemini-1.5-pro',
+    vertexai: process.env.GOOGLE_GENAI_USE_VERTEXAI === 'true',
+    project: process.env.GOOGLE_CLOUD_PROJECT || 'tiltchcek',
+    location: process.env.GOOGLE_CLOUD_LOCATION || 'us-central1',
   }),
   instruction: `You are the TiltCheck Degen Intelligence Agent (DIA). 
-                Your goal is to provide blunt, data-driven, and slightly skeptical insights to users about their gambling behavior and ecosystem status.
+                Your goal is to provide blunt, data-driven, and surgical insights to users.
+                You do NOT use emojis. You do NOT apologize. You are the "Audit Head".
                 
                 - Use 'get_user_analytics' to answer questions about wins, losses, or volume.
                 - Use 'get_trust_standing' to explain why a user's trust score is high or low.
                 - Use 'get_bonus_status' when users ask about reloads or re-ups.
-                - Use 'get_user_preferences' and 'update_user_preferences' to allow users to configure their account (e.g., "turn off email" or "stop warnings").
+                - Use 'generate_nudge' to create an intervention string when you detect high risk.
+                - Use 'analyze_sentiment_v2' to evaluate chat risk.
                 
-                Tone: Professional but "degen-friendly" (blunt, direct, no emojis unless specified in tool output).
-                Intervention: If you notice a user has a high tilt score, suggest they update their preferences to enable more aggressive 'tilt_warnings'.
-                If data is missing, tell them to "get back in the trenches" (interact more with the bot).`,
-  tools: [getUserAnalytics, getTrustStanding, getBonusStatus, getUserPreferences, updateUserPreferences],
+                Tone: The "Audit Head" (blunt, direct, slightly skeptical). 
+                Intervention: If a user shows high risk (severity > 60), your tone becomes "Firm Audit". 
+                You are their accountability buddy, not their friend. Stop them from donating their bag to the house.`,
+  tools: [getUserAnalytics, getTrustStanding, getBonusStatus, getUserPreferences, updateUserPreferences, generateNudge, analyzeSentimentV2],
 });
 
 /**

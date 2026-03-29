@@ -1,0 +1,22 @@
+steps:
+- name: 'gcr.io/cloud-builders/docker'
+  args: ['build', '--build-arg', 'APP_NAME=agent', '-t', 'us-central1-docker.pkg.dev/$PROJECT_ID/tiltcheck/agent:latest', '.']
+- name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+  entrypoint: gcloud
+  args:
+  - 'run'
+  - 'deploy'
+  - 'tiltcheck'
+  - '--image'
+  - 'us-central1-docker.pkg.dev/$PROJECT_ID/tiltcheck/agent:latest'
+  - '--region'
+  - 'us-central1'
+  - '--platform'
+  - 'managed'
+  - '--no-allow-unauthenticated'
+  - '--update-env-vars'
+  - 'GOOGLE_GENAI_USE_VERTEXAI=true,GOOGLE_CLOUD_PROJECT=$PROJECT_ID,GOOGLE_CLOUD_LOCATION=us-central1'
+images:
+- 'us-central1-docker.pkg.dev/$PROJECT_ID/tiltcheck/agent:latest'
+options:
+  logging: CLOUD_LOGGING_ONLY

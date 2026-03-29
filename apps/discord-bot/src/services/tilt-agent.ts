@@ -158,39 +158,30 @@ function buildMessage(
   return `${intro[severity]}\n\nI am seeing the following:\n${flagList}\n\n${outro[severity]}`;
 }
 
-async function callElasticAgent(
+async function callVertexAgent(
   metrics: TiltAnalysis['metrics'],
   flags: string[],
 ): Promise<string | null> {
-  const endpoint = process.env.ELASTIC_AGENT_ENDPOINT;
-  const apiKey = process.env.ELASTIC_API_KEY;
+  const diaUrl = process.env.AGENT_DIA_URL;
+  const diaApiKey = process.env.AGENT_DIA_API_KEY;
 
-  if (!endpoint || !apiKey || !flags.length) return null;
-
-  const systemPrompt = `You are TiltCheck, an accountability buddy for online gamblers.
-Write a short Discord DM (3-5 sentences) that acknowledges the concrete anomalies,
-asks them to pause, and avoids moralizing.`;
+  if (!diaUrl || !flags.length) return null;
 
   try {
-    const resp = await fetch(`${endpoint}/api/chat`, {
+    const resp = await fetch(`${diaUrl}/chat`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `ApiKey ${apiKey}`,
+        ...(diaApiKey ? { Authorization: `Bearer ${diaApiKey}` } : {}),
       },
       body: JSON.stringify({
-        model: 'gpt-4o',
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: JSON.stringify({ metrics, flags }) },
-        ],
-        max_tokens: 200,
+        message: `AUDIT REQUIRED. Indicators: ${flags.join(', ')}. Stats: ${JSON.stringify(metrics)}. Use the generate_nudge tool to audit this degen.`,
       }),
     });
 
     if (!resp.ok) return null;
     const data = (await resp.json()) as any;
-    return data?.choices?.[0]?.message?.content ?? null;
+    return data?.response ?? null;
   } catch {
     return null;
   }
@@ -327,7 +318,7 @@ async function analyseUserLegacy(client: ESClient, userId: string): Promise<Tilt
   const { severity, flags } = scoreActivity(metrics);
   if (!flags.length) return noop;
 
-  const agentMsg = await callElasticAgent(metrics, flags);
+  const agentMsg = await callVertexAgent(metrics, flags);
   const message = agentMsg ?? buildMessage(severity, flags);
 
   return { userId, isActing: true, severity, message, metrics };
@@ -370,7 +361,7 @@ export async function analyseUser(userId: string, context?: TiltAgentContext): P
 
     const agentMsg =
       decision.action === 'send_dm_intervention'
-        ? await callElasticAgent(metrics, flags)
+        ? await callVertexAgent(metrics, flags)
         : null;
 
     const message = agentMsg ?? buildMessage(severity, flags);

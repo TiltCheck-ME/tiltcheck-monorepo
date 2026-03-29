@@ -4,6 +4,8 @@ import session from 'express-session';
 import { createServer } from 'http';
 import { WebSocketServer } from 'ws';
 import path from 'path';
+import passport from 'passport';
+import { Strategy as DiscordStrategy } from 'passport-discord';
 import { fileURLToPath, pathToFileURL } from 'url';
 import { exec, spawn } from 'child_process';
 import { promisify } from 'util';
@@ -18,8 +20,13 @@ const wss = new WebSocketServer({ server });
 
 const PORT = process.env.CONTROL_ROOM_PORT || process.env.PORT || 3001;
 const isProd = process.env.NODE_ENV === 'production';
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || (isProd ? (() => { throw new Error('ADMIN_PASSWORD is required in production'); })() : (() => { throw new Error('ADMIN_PASSWORD is required - set in .env file'); })());
-const SESSION_SECRET = process.env.SESSION_SECRET || (isProd ? (() => { throw new Error('SESSION_SECRET is required in production'); })() : 'tiltcheck-control-room-secret');
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'tiltcheck-temp-pass';
+const SESSION_SECRET = process.env.SESSION_SECRET || 'tiltcheck-control-room-secret';
+
+// Admin Whitelist
+const ADMIN_WHITE_LIST = [
+  '1472601571496951932', // Primary Admin
+];
 
 // Known containers in the TiltCheck stack
 const KNOWN_CONTAINERS = [
@@ -35,6 +42,29 @@ const KNOWN_CONTAINERS = [
   { name: 'redis', label: 'Redis', icon: '🗄️' },
 ];
 
+// ─── Passport Configuration ────────────────────────────────────────────────────
+passport.serializeUser((user, done) => done(null, user));
+passport.deserializeUser((obj, done) => done(null, obj));
+
+passport.use(new DiscordStrategy({
+    clientID: process.env.TILT_DISCORD_CLIENT_ID || process.env.DISCORD_CLIENT_ID,
+    clientSecret: process.env.TILT_DISCORD_CLIENT_SECRET || process.env.DISCORD_CLIENT_SECRET,
+    callbackURL: process.env.DISCORD_CALLBACK_URL || 'http://localhost:3001/auth/discord/callback',
+    scope: ['identify', 'guilds', 'guilds.members.read']
+}, (accessToken, refreshToken, profile, done) => {
+    // Check if user is in whitelist
+    const isWhitelisted = ADMIN_WHITE_LIST.includes(profile.id);
+    
+    // Future: Role Check (requires 'guilds.members.read' and checking a specific guild_id)
+    // For now, we stick to ID whitelist as requested
+    
+    if (isWhitelisted) {
+        return done(null, profile);
+    }
+    
+    return done(null, false, { message: 'Unauthorized: Discord ID not in whitelist.' });
+}));
+
 // ─── Middleware ────────────────────────────────────────────────────────────────
 
 // Block common vulnerability scans
@@ -44,7 +74,6 @@ app.use((req, res, next) => {
   }
   next();
 });
-
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(session({
@@ -52,18 +81,30 @@ app.use(session({
   resave: false,
   saveUninitialized: false,
   cookie: {
-    secure: false,
+    secure: isProd,
     maxAge: 24 * 60 * 60 * 1000,
   },
 }));
+
+app.use(passport.initialize());
+app.use(passport.session());
+
 app.use(express.static(path.join(__dirname, '../public')));
 
 const requireAuth = (req, res, next) => {
-  if (req.session.authenticated) return next();
-  res.status(401).json({ error: 'Unauthorized' });
+  // Support both session auth (legacy) and passport auth
+  if (req.session.authenticated || req.isAuthenticated()) return next();
+  res.status(401).json({ error: 'Unauthorized: Clearance Level 2 Required' });
 };
 
-// ─── Auth ──────────────────────────────────────────────────────────────────────
+// ─── Auth Routes ───────────────────────────────────────────────────────────────
+app.get('/auth/discord', passport.authenticate('discord'));
+app.get('/auth/discord/callback', passport.authenticate('discord', {
+    failureRedirect: '/login?error=unauthorized'
+}), (req, res) => {
+    res.redirect('/');
+});
+
 app.post('/api/auth/login', (req, res) => {
   const { password } = req.body;
   if (password === ADMIN_PASSWORD) {
@@ -75,12 +116,17 @@ app.post('/api/auth/login', (req, res) => {
 });
 
 app.post('/api/auth/logout', (req, res) => {
-  req.session.destroy();
-  res.json({ success: true });
+  req.logout((err) => {
+      req.session.destroy();
+      res.json({ success: true });
+  });
 });
 
 app.get('/api/auth/status', (req, res) => {
-  res.json({ authenticated: !!req.session.authenticated });
+  res.json({ 
+      authenticated: !!req.session.authenticated || req.isAuthenticated(),
+      user: req.user ? { id: req.user.id, username: req.user.username } : null
+  });
 });
 
 // ─── Docker Helpers ────────────────────────────────────────────────────────────

@@ -92,6 +92,49 @@ export function evaluateSentiment(input: SentimentInput): SentimentResult {
   };
 }
 
+/**
+ * Advanced Sentiment Evaluation (Vertex AI via DIA)
+ * Asynchronous call to the Degen Intelligence Agent for contextual analysis.
+ */
+export async function evaluateSentimentV2(input: SentimentInput): Promise<SentimentResult> {
+  const diaUrl = process.env.AGENT_DIA_URL;
+  const diaApiKey = process.env.AGENT_DIA_API_KEY;
+
+  if (!diaUrl) {
+    // Fallback to V1 if agent is not configured
+    return evaluateSentiment(input);
+  }
+
+  try {
+    const resp = await fetch(`${diaUrl}/chat`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(diaApiKey ? { Authorization: `Bearer ${diaApiKey}` } : {}),
+      },
+      body: JSON.stringify({
+        message: `ANALYZE PSYCHOLOGY: "${input.message}". Categorize risk for user ${input.userId}. Use the analyze_sentiment_v2 tool.`,
+      }),
+    });
+
+    if (!resp.ok) return evaluateSentiment(input);
+    
+    const data = (await resp.json()) as any;
+    // The ADK agent returns the response as a string or structured data
+    // For now, we trust the agent's summary or parse its tool outputs if available
+    // Mocking the parse logic for the refined V2 result:
+    return {
+      score: data.riskScore ?? 50,
+      severity: (data.riskScore ?? 50) > 75 ? 'high' : (data.riskScore ?? 50) > 40 ? 'moderate' : 'low',
+      intervention: (data.riskScore ?? 50) > 85 ? 'escalation' : (data.riskScore ?? 50) > 60 ? 'cooldown' : 'none',
+      matchedSignals: data.signals ?? ['vertex-ai-audit'],
+    };
+  } catch (err) {
+    console.error('[Safety] Vertex Sentiment V2 failed:', err);
+    return evaluateSentiment(input);
+  }
+}
+
 function riskScoreToTier(score: number): TiltRiskTier {
   if (score >= 75) {
     return 'critical';

@@ -23,8 +23,8 @@ const LegalModal: React.FC<LegalModalProps> = ({ isOpen, onAccept, title = "LEGA
         {/* Background Accent */}
         <div className="absolute top-0 right-0 w-32 h-32 bg-[#d946ef] blur-[100px] opacity-10 pointer-events-none"></div>
         
-        <h2 className="text-2xl font-black tracking-tighter text-[#17c3b2] mb-6 uppercase flex items-center gap-2">
-          <span className="text-[#d946ef]">🛡️</span> {title}
+        <h2 className="text-2xl font-black tracking-tighter text-[color:var(--color-primary)] mb-6 uppercase flex items-center gap-2">
+          {title}
         </h2>
         
         <div className="max-h-[40vh] overflow-y-auto mb-8 pr-4 bg-black/40 p-4 border border-[#283347] font-sans scrollbar-thin scrollbar-thumb-[#17c3b2] scrollbar-track-transparent">

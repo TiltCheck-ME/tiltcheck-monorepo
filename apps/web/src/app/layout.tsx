@@ -1,3 +1,4 @@
+/* © 2024–2026 TiltCheck Ecosystem. All rights reserved. */
 import type { Metadata } from "next";
 import { Space_Grotesk, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
