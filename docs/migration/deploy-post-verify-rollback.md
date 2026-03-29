@@ -84,7 +84,7 @@ PROJECT_ID=tiltcheck-ci bash scripts/deploy-gcloud.sh --preflight
 
 Expected output markers:
 
-- `[INFO] Using project: tiltcheck-ci`
+- `[INFO] Using project: tiltchcek-ci`
 - `[INFO] Preflight checks passed.`
 
 Observed outcome:
