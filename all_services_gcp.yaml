@@ -3,11 +3,11 @@
 # Last Updated: 2026-03-11
 
 ---
-# tiltcheck-api
+# tiltchcek-api
 apiVersion: serving.knative.dev/v1
 kind: Service
 metadata:
-  name: tiltcheck-api
+  name: tiltchcek-api
   labels:
     cloud.googleapis.com/location: us-central1
   annotations:
@@ -17,14 +17,14 @@ spec:
     metadata:
       annotations:
         autoscaling.knative.dev/maxScale: '20'
-        run.googleapis.com/cloudsql-instances: tiltcheck:us-central1:tiltcheck-main
+        run.googleapis.com/cloudsql-instances: tiltchcek:us-central1:tiltchcek-main
         run.googleapis.com/startup-cpu-boost: 'true'
     spec:
       containerConcurrency: 80
       timeoutSeconds: 300
       serviceAccountName: 164294266634-compute@developer.gserviceaccount.com
       containers:
-      - image: us-central1-docker.pkg.dev/tiltcheck/tiltcheck/api:latest
+      - image: us-central1-docker.pkg.dev/tiltchcek/tiltchcek/api:latest
         ports:
         - name: http1
           containerPort: 3001
@@ -60,7 +60,7 @@ spec:
           valueFrom:
             secretKeyRef: { name: TILT_DISCORD_CLIENT_SECRET, key: latest }
         - name: DISCORD_REDIRECT_URI
-          value: https://api.tiltcheck.me/auth/discord/callback
+          value: https://api.tiltchcek.me/auth/discord/callback
         startupProbe:
           timeoutSeconds: 240
           periodSeconds: 240
@@ -68,11 +68,11 @@ spec:
           tcpSocket: { port: 3001 }
 
 ---
-# tiltcheck-bot
+# tiltchcek-bot
 apiVersion: serving.knative.dev/v1
 kind: Service
 metadata:
-  name: tiltcheck-bot
+  name: tiltchcek-bot
   labels:
     cloud.googleapis.com/location: us-central1
   annotations:
@@ -89,7 +89,7 @@ spec:
       timeoutSeconds: 300
       serviceAccountName: 164294266634-compute@developer.gserviceaccount.com
       containers:
-      - image: us-central1-docker.pkg.dev/tiltcheck/tiltcheck/discord-bot:latest
+      - image: us-central1-docker.pkg.dev/tiltchcek/tiltchcek/discord-bot:latest
         ports:
         - name: http1
           containerPort: 8083
@@ -122,11 +122,11 @@ spec:
           tcpSocket: { port: 8083 }
 
 ---
-# tiltcheck-user-dashboard
+# tiltchcek-user-dashboard
 apiVersion: serving.knative.dev/v1
 kind: Service
 metadata:
-  name: tiltcheck-user-dashboard
+  name: tiltchcek-user-dashboard
   labels:
     cloud.googleapis.com/location: us-central1
   annotations:
@@ -142,7 +142,7 @@ spec:
       timeoutSeconds: 300
       serviceAccountName: 164294266634-compute@developer.gserviceaccount.com
       containers:
-      - image: us-central1-docker.pkg.dev/tiltcheck/tiltcheck/user-dashboard:latest
+      - image: us-central1-docker.pkg.dev/tiltchcek/tiltchcek/user-dashboard:latest
         ports:
         - name: http1
           containerPort: 3001
@@ -166,7 +166,7 @@ spec:
           valueFrom:
             secretKeyRef: { name: TILT_DISCORD_CLIENT_SECRET, key: latest }
         - name: DISCORD_REDIRECT_URI
-          value: https://dashboard.tiltcheck.me/auth/discord/callback
+          value: https://dashboard.tiltchcek.me/auth/discord/callback
         startupProbe:
           timeoutSeconds: 240
           periodSeconds: 240
@@ -174,11 +174,11 @@ spec:
           tcpSocket: { port: 3001 }
 
 ---
-# tiltcheck-control-room
+# tiltchcek-control-room
 apiVersion: serving.knative.dev/v1
 kind: Service
 metadata:
-  name: tiltcheck-control-room
+  name: tiltchcek-control-room
   labels:
     cloud.googleapis.com/location: us-central1
   annotations:
@@ -193,7 +193,7 @@ spec:
       timeoutSeconds: 300
       serviceAccountName: 164294266634-compute@developer.gserviceaccount.com
       containers:
-      - image: us-central1-docker.pkg.dev/tiltcheck/tiltcheck/control-room:latest
+      - image: us-central1-docker.pkg.dev/tiltchcek/tiltchcek/control-room:latest
         ports:
         - name: http1
           containerPort: 3001
@@ -217,11 +217,11 @@ spec:
           tcpSocket: { port: 3001 }
 
 ---
-# tiltcheck-game-arena
+# tiltchcek-game-arena
 apiVersion: serving.knative.dev/v1
 kind: Service
 metadata:
-  name: tiltcheck-game-arena
+  name: tiltchcek-game-arena
   labels:
     cloud.googleapis.com/location: us-central1
   annotations:
@@ -237,7 +237,7 @@ spec:
       timeoutSeconds: 300
       serviceAccountName: 164294266634-compute@developer.gserviceaccount.com
       containers:
-      - image: us-central1-docker.pkg.dev/tiltcheck/tiltcheck/game-arena:latest
+      - image: us-central1-docker.pkg.dev/tiltchcek/tiltchcek/game-arena:latest
         ports:
         - name: http1
           containerPort: 3010
@@ -261,11 +261,11 @@ spec:
           tcpSocket: { port: 3010 }
 
 ---
-# tiltcheck-trust-rollup
+# tiltchcek-trust-rollup
 apiVersion: serving.knative.dev/v1
 kind: Service
 metadata:
-  name: tiltcheck-trust-rollup
+  name: tiltchcek-trust-rollup
   labels:
     cloud.googleapis.com/location: us-central1
   annotations:
@@ -280,7 +280,7 @@ spec:
       timeoutSeconds: 300
       serviceAccountName: 164294266634-compute@developer.gserviceaccount.com
       containers:
-      - image: us-central1-docker.pkg.dev/tiltcheck/tiltcheck/trust-rollup:latest
+      - image: us-central1-docker.pkg.dev/tiltchcek/tiltchcek/trust-rollup:latest
         ports:
         - name: http1
           containerPort: 8083
@@ -304,11 +304,11 @@ spec:
           tcpSocket: { port: 8083 }
 
 ---
-# tiltcheck-web
+# tiltchcek-web
 apiVersion: serving.knative.dev/v1
 kind: Service
 metadata:
-  name: tiltcheck-web
+  name: tiltchcek-web
   labels:
     cloud.googleapis.com/location: us-central1
   annotations:
@@ -324,7 +324,7 @@ spec:
       timeoutSeconds: 300
       serviceAccountName: 164294266634-compute@developer.gserviceaccount.com
       containers:
-      - image: us-central1-docker.pkg.dev/tiltcheck/tiltcheck/web:latest
+      - image: us-central1-docker.pkg.dev/tiltchcek/tiltchcek/web:latest
         ports:
         - name: http1
           containerPort: 8080
@@ -339,11 +339,11 @@ spec:
           tcpSocket: { port: 8080 }
 
 ---
-# tiltcheck-comic-generator
+# tiltchcek-comic-generator
 apiVersion: serving.knative.dev/v1
 kind: Service
 metadata:
-  name: tiltcheck-comic-generator
+  name: tiltchcek-comic-generator
   labels:
     cloud.googleapis.com/location: us-central1
   annotations:
@@ -355,7 +355,7 @@ spec:
       timeoutSeconds: 300
       serviceAccountName: 164294266634-compute@developer.gserviceaccount.com
       containers:
-      - image: us-central1-docker.pkg.dev/tiltcheck/tiltcheck/comic-generator:latest
+      - image: us-central1-docker.pkg.dev/tiltchcek/tiltchcek/comic-generator:latest
         ports:
         - name: http1
           containerPort: 8080
