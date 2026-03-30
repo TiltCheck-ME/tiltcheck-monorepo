@@ -1,7 +1,7 @@
 // THE DEGEN LAWS: No emojis. Blunt tone. Math maths.
 // This script handles Discord OAuth. It's for identifying you, not for holding your damn keys.
 
-const DISCORD_CLIENT_ID = '1445916179163250860'; // <<< REPLACE THIS WITH YOUR ACTUAL DISCORD CLIENT ID
+const DISCORD_CLIENT_ID = '1342618997321564344'; // <<< REPLACE THIS WITH YOUR ACTUAL DISCORD CLIENT ID
 // You can find this in your Discord Developer Portal under your application's OAuth2 -> General tab.
 // Make sure to add `https://<YOUR_EXTENSION_ID>.chromiumapp.org/discord` to your Redirects list.
 

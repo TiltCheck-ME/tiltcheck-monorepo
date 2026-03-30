@@ -20,6 +20,6 @@ export const trustPool = new Pool({
 });
 
 export const pgClient = {
-  query: (text: string, params?: any[]) => trustPool.query(text, params),
+  query: (text: string, params?: unknown[]) => trustPool.query(text, params),
   connect: () => trustPool.connect(),
 };

@@ -1,0 +1,42 @@
+[{
+    "type": "normal_user",
+    "user": {
+        "id": "193828392",
+        "username": "DeFiDegen",
+        "global_name": "Tyler T",
+        "email": "tyler@example.com",
+        "phone": "+1234567890",
+        "verified": true,
+        "mfa_enabled": true,
+        "public_flags": 256,
+        "client_status": { "desktop": "online", "mobile": "idle" }
+    },
+    "guilds": ["1111111"]
+},
+{
+    "type": "suspicious_user",
+    "user": {
+        "id": "847291048",
+        "username": "JohnDoe",
+        "global_name": "JohnDoe",
+        "email": "tempmail@junk.com",
+        "verified": true,
+        "mfa_enabled": false,
+        "public_flags": 0,
+        "client_status": {}
+    },
+    "guilds": ["2222222"]
+},
+{
+    "type": "obvious_farm_account",
+    "user": {
+        "id": "758392019",
+        "username": "q8fjlksdf9",
+        "global_name": "q8fjlksdf9",
+        "verified": false,
+        "mfa_enabled": false,
+        "public_flags": 0,
+        "client_status": {}
+    },
+    "guilds": ["1234567890"]
+}]

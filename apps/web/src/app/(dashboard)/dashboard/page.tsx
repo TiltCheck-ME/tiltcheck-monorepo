@@ -57,22 +57,21 @@ export default function DashboardPage() {
         <header className="mb-12 border-b border-[#283347] pb-8">
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
                 <div>
-                    <h1 className="text-6xl font-black uppercase tracking-tighter mb-2">DEGEN_HUB</h1>
                     <p className="text-gray-500 font-bold uppercase tracking-widest text-xs flex items-center gap-2">
-                        <span className={`w-2 h-2 rounded-full ${isConnected ? 'bg-[#d946ef] animate-pulse' : 'bg-red-500'}`}></span>
-                        Status: {isConnected ? 'Active' : 'Offline'} // Account: {isConnected ? address?.slice(0, 8) + '...' + address?.slice(-4) : 'Not Linked'}
+                        <span className={`w-2 h-2 rounded-full ${isConnected ? 'bg-[#17c3b2] animate-pulse' : 'bg-red-500'}`}></span>
+                        {isConnected ? `Connected · ${address?.slice(0, 8)}...${address?.slice(-4)}` : 'Not connected'}
                     </p>
                 </div>
                 {/* Secondary Stats */}
                 <div className="flex gap-12 text-sm font-black uppercase tracking-tighter">
                     <div className="flex flex-col">
-                        <span className="text-gray-500 text-[10px] mb-1">JUICE_POOL</span>
-                        <span className="text-[#d946ef]">
+                        <span className="text-gray-500 text-[10px] mb-1">Juice Pool</span>
+                        <span className="text-[#17c3b2]">
                           {loading ? '...' : (userData?.analytics?.totalJuice || '0.00')} SOL
                         </span>
                     </div>
                     <div className="flex flex-col border-l border-[#283347] pl-12 font-black">
-                        <span className="text-gray-500 text-[10px] mb-1 uppercase tracking-tighter">REDEEM_WINS</span>
+                        <span className="text-gray-500 text-[10px] mb-1 uppercase tracking-tighter">Wins Secured</span>
                         <span className="text-green-500">
                           {loading ? '...' : (userData?.analytics?.redeemWins || '0')}
                         </span>
@@ -82,19 +81,16 @@ export default function DashboardPage() {
 
             {/* Link Required Warning */}
             {isConnected && !loading && !userData && (
-              <div className="mt-8 p-6 bg-red-500/10 border border-red-500/50 rounded-lg animate-in slide-in-from-top duration-500">
+              <div className="mt-8 p-6 bg-[#17c3b2]/5 border border-[#17c3b2]/30 rounded-lg animate-in slide-in-from-top duration-500">
                 <div className="flex items-center gap-4">
-                  <div className="text-3xl">⚠️</div>
+                  <div className="text-2xl">🔗</div>
                   <div className="flex-1">
-                    <h3 className="text-lg font-black uppercase tracking-tighter text-white">Identity Not Linked</h3>
-                    <p className="text-xs font-bold uppercase tracking-widest text-gray-400 mt-1">
-                      THIS WALLET IS NOT ASSOCIATED WITH A DISCORD ACCOUNT. TELEMETRY AND VAULT SERVICES ARE DISABLED.
+                    <h3 className="text-base font-black uppercase tracking-tighter text-white">Wallet not linked yet</h3>
+                    <p className="text-xs text-gray-400 mt-1 leading-relaxed">
+                      We don't recognize this wallet. Link it to your Discord account with <code className="text-[#17c3b2]">/linkwallet</code> and your stats will show up here.
                     </p>
                   </div>
-                  <div className="flex flex-col gap-2">
-                    <a href="https://discord.gg/tiltcheck" target="_blank" className="btn btn-primary text-[10px] py-2">JOIN DISCORD</a>
-                    <div className="text-[10px] font-black uppercase tracking-tighter text-center opacity-50 px-4">OR USE `/linkwallet`</div>
-                  </div>
+                  <a href="https://discord.gg/gdBsEJfCar" target="_blank" className="btn btn-primary text-[10px] py-2 whitespace-nowrap">Join Discord</a>
                 </div>
               </div>
             )}
@@ -114,20 +110,20 @@ export default function DashboardPage() {
             <div className="flex flex-col gap-8">
                 {/* Protocol Shortcuts */}
                 <div className="bg-black/40 border border-[#283347] rounded-xl p-8 h-full">
-                    <h3 className="text-sm font-black uppercase tracking-tighter text-[#d946ef] mb-6 flex items-center gap-2">
-                        <span className="w-2 h-4 bg-[#d946ef]"></span>
-                        SYSTEM_PROTOCOLS
+                    <h3 className="text-sm font-black uppercase tracking-tighter text-[#17c3b2] mb-6 flex items-center gap-2">
+                        <span className="w-2 h-4 bg-[#17c3b2]"></span>
+                        Quick Links
                     </h3>
                     <div className="flex flex-col gap-2">
-                        <a href="/docs/ARCHITECTURE-BLUEPRINT" className="group flex items-center justify-between p-4 border border-[#283347] hover:border-[#d946ef] hover:translate-x-1 transition-all">
-                            <span className="text-sm font-black uppercase text-white group-hover:text-[#d946ef] transition-colors">Audit Blueprints</span>
+                        <a href="/docs" className="group flex items-center justify-between p-4 border border-[#283347] hover:border-[#17c3b2] hover:translate-x-1 transition-all">
+                            <span className="text-sm font-black uppercase text-white group-hover:text-[#17c3b2] transition-colors">Audit Blueprints</span>
                             <span className="text-xs opacity-30 text-white">→</span>
                         </a>
-                        <a href="/arena" className="group flex items-center justify-between p-4 border border-[#283347] hover:border-[#d946ef] hover:translate-x-1 transition-all">
-                            <span className="text-sm font-black uppercase text-white group-hover:text-[#d946ef] transition-colors">Enter Arena</span>
-                            <span className="text-[10px] text-gray-500 group-hover:text-[#d946ef] font-bold uppercase tracking-widest">Live // 142 Miners</span>
+                        <a href="/tools/auto-vault" className="group flex items-center justify-between p-4 border border-[#283347] hover:border-[#17c3b2] hover:translate-x-1 transition-all">
+                            <span className="text-sm font-black uppercase text-white group-hover:text-[#17c3b2] transition-colors">Enter Vault</span>
+                            <span className="text-[10px] text-gray-500 group-hover:text-[#17c3b2] font-bold uppercase tracking-widest">Live // Secure</span>
                         </a>
-                        <a href="https://discord.gg/tiltcheck" target="_blank" className="group flex items-center justify-between p-4 border border-[#283347] hover:border-[#5865F2] hover:translate-x-1 transition-all">
+                        <a href="https://discord.gg/gdBsEJfCar" target="_blank" className="group flex items-center justify-between p-4 border border-[#283347] hover:border-[#5865F2] hover:translate-x-1 transition-all">
                             <span className="text-sm font-black uppercase text-white group-hover:text-[#5865F2] transition-colors">Join Discord</span>
                             <span className="text-xs opacity-30 text-white">↗</span>
                         </a>
@@ -184,9 +180,9 @@ export default function DashboardPage() {
                         </label>
                     </div>
                     <p className="text-[10px] font-bold uppercase tracking-widest text-gray-500 leading-tight">
-                        ENABLE THIS IF YOU ARE USING A VPN TO BYPASS GEO-RESTRICTIONS. IT DISABLES PILLAR_5 (COMPLIANCE) NAGGING. 
+                        Using a VPN to access restricted regions? Toggle this to stop the compliance warnings.
                         <br/>
-                        <span className="text-amber-500 mt-2 block italic">⚠️ WARNING: YOU ARE OPERATING OUTSIDE OF LEGAL PROTECTION.</span>
+                        <span className="text-amber-500 mt-2 block italic">⚠️ Note: you're outside legal protection when you do this.</span>
                     </p>
                 </div>
             </div>

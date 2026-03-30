@@ -2,14 +2,14 @@
 
 import { SlashCommandBuilder, ChatInputCommandInteraction, EmbedBuilder, ButtonBuilder, ButtonStyle, ActionRowBuilder, Message } from 'discord.js';
 import type { Command } from '../types.js';
-import { db } from '@tiltcheck/database';
+import { findUserByDiscordId } from '@tiltcheck/db';
 import { parseAmountNL } from '@tiltcheck/natural-language-parser';
 import { getUsdPriceSync } from '@tiltcheck/utils';
 import { Connection, Keypair, LAMPORTS_PER_SOL, SystemProgram, Transaction, sendAndConfirmTransaction, PublicKey } from '@solana/web3.js';
 
 const connection = new Connection(process.env.SOLANA_RPC_URL || 'https://api.mainnet-beta.solana.com', 'confirmed');
 
-export const juice: Command = {
+export const juicedrop: Command = {
   data: new SlashCommandBuilder()
     .setName('profitdrop')
     .setDescription('SECURE THE PROFIT for your peers. Drop SOL to reactors in this channel.')
@@ -125,9 +125,9 @@ React with [DROP] to claim your share!
       // 6. Execute Payouts
       const recipients: string[] = [];
       for (const uid of users) {
-        const identity = await db.getDegenIdentity(uid);
-        if (identity?.primary_external_address) {
-          recipients.push(identity.primary_external_address);
+        const user = await findUserByDiscordId(uid);
+        if (user?.wallet_address) {
+          recipients.push(user.wallet_address);
         }
       }
 

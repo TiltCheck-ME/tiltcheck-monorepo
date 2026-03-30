@@ -11,11 +11,14 @@ const LiveAuditLog = () => {
           Real-Time Audits
         </h3>
         {/* Terminal log simulation */}
-        <div className="audit-log-display mt-6 p-4 border border-[#1e2533] bg-[#0a0c10] font-mono text-sm text-[#00ffaa]">
-          <div className="log-entry opacity-60">&gt; autovault: profit locked, 0.42 SOL.</div>
-          <div className="log-entry opacity-60">&gt; odds: drift detected in Plinko. API logged.</div>
-          <div className="log-entry opacity-80">&gt; linkguard: verified contract 0xAbe2... safe.</div>
-          <div className="log-entry font-bold">&gt; audits: 142 cryptographic checks passed.</div>
+        <div className="audit-log-display mt-6 p-4 border border-[#1e2533] bg-[#0a0c10] font-mono text-sm overflow-hidden whitespace-nowrap">
+          <div className="flex gap-12 animate-marquee">
+            <span className="text-[#00ffaa]">&gt; 3 more degens decided to stop gambling blind. Welcome.</span>
+            <span className="text-white opacity-60">|</span>
+            <span className="text-[#17c3b2]">&gt; 12 people kept their bag tonight. That&apos;s the whole point.</span>
+            <span className="text-white opacity-60">|</span>
+            <span className="text-[#ffd700]">&gt; Scam site flagged before anyone clicked it. 6 wallets spared.</span>
+          </div>
           <div className="log-entry mt-2 animate-pulse text-white">_</div>
         </div>
       </div>

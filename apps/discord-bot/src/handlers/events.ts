@@ -4,6 +4,26 @@
  *
  * Manages Discord client events and Event Router subscriptions.
  */
+// Add this import to the top
+import { generateTrustScore } from '../../../tools/discord-trust-scorer/engine.js';
+
+// Inside GuildMemberAdd
+this.client.on(Events.GuildMemberAdd, async (member) => {
+    const result = generateTrustScore(member.user as any);
+
+    if (result.riskLevel === 'HIGH') {
+        console.warn(`[SECURITY] High-risk user quarantined: ${member.user.tag} (Score: ${result.trustScore})`);
+        
+        // ACTION: Assign a "Restricted" role or Kick immediately
+        await member.roles.add(process.env.QUARANTINE_ROLE_ID || '12345').catch(console.error);
+        
+        // Notify the user blunt feedback
+        await member.send(`[AUDIT LAYER]: Your account has been quarantined. Reasons:\n- ${result.reasons.join('\n- ')}`).catch(() => {});
+        return; // STOP onboarding for high-risk accounts
+    }
+    
+    // Normal onboarding proceeds...
+});
 
 import { Client, Events, Interaction } from 'discord.js';
 import { eventRouter } from '@tiltcheck/event-router';

@@ -18,7 +18,9 @@ const GAME_DB: Record<string, GameData> = {
   'stake-plinko-med': { edge: 1.0, rtp: 99.0, variance: 'med', notes: 'Slow bleed. Watch your bet velocity.' },
   'slots-std': { edge: 4.0, rtp: 96.0, variance: 'high', notes: 'The house is printing. 4% bleed per spin.' },
   'keno-std': { edge: 1.0, rtp: 99.0, variance: 'med', notes: '1.0% Edge. You just clicked bet faster than the audit could run.' },
-  'blackjack-pref': { edge: 0.5, rtp: 99.5, variance: 'low', notes: 'Mathlyzer favorite. Perfect play or get rinsing.' }
+  'blackjack-pref': { edge: 0.5, rtp: 99.5, variance: 'low', notes: 'Mathlyzer favorite. Perfect play or get rinsing.' },
+  'stake-chicken': { edge: 1.0, rtp: 99.0, variance: 'med', notes: 'GC & SC logic identical. Takes 10,000+ rounds to meaningfully verify the 99% audit claim.' },
+  'stake-pump': { edge: 2.0, rtp: 98.0, variance: 'high', notes: 'Turn-based logic. 4 difficulties. Max win 3.2M x.' }
 };
 
 export const odds: Command = {
@@ -33,7 +35,9 @@ export const odds: Command = {
           { name: 'Plinko (Med)', value: 'stake-plinko-med' },
           { name: 'Slots (Generic)', value: 'slots-std' },
           { name: 'Keno', value: 'keno-std' },
-          { name: 'Blackjack (Perfect)', value: 'blackjack-pref' }
+          { name: 'Blackjack (Perfect)', value: 'blackjack-pref' },
+          { name: 'Chicken (Stake Original)', value: 'stake-chicken' },
+          { name: 'Pump (Stake Original)', value: 'stake-pump' }
         )
         .setRequired(true)
     ),

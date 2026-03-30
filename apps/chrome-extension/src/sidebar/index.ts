@@ -102,7 +102,7 @@ export class SidebarController implements SidebarUI {
         this.dismissSessionPause();
     });
     document.getElementById('vibe-discord')?.addEventListener('click', () => {
-        window.open('https://discord.gg/s6NNfPHxMS', '_blank');
+        window.open('https://discord.gg/gdBsEJfCar', '_blank');
         this.dismissSessionPause();
     });
     document.getElementById('vibe-ignore')?.addEventListener('click', () => {

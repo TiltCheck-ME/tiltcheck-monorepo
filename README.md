@@ -16,7 +16,7 @@
 
 <p align="center">
   <a href="https://discord.com/oauth2/authorize?client_id=1445916179163250860"><img src="https://img.shields.io/badge/Add%20to%20Discord-5865F2?style=for-the-badge&logo=discord&logoColor=white" alt="Add to Discord"></a>
-  <a href="https://discord.gg/PdjhpmRNdj"><img src="https://img.shields.io/badge/Join%20Community-5865F2?style=for-the-badge&logo=discord&logoColor=white" alt="Join Discord"></a>
+  <a href="https://discord.gg/gdBsEJfCar"><img src="https://img.shields.io/badge/Join%20Community-5865F2?style=for-the-badge&logo=discord&logoColor=white" alt="Join Discord"></a>
 </p>
 
 **Built by a degen, for degens.**
@@ -150,7 +150,7 @@ tiltcheck-monorepo/
 ### 🪙 **JustTheTip**
 
 Non-custodial tipping, airdrops, and swaps.  
-Flat fee only. No custody. No balance storage.
+Community-funded via a **2.5% protocol fee** for free users. No custody. Elite Tier removes all fees.
 
 ### 🔗 **SusLink**
 
@@ -297,7 +297,8 @@ The custom Copilot Agent can answer questions like:
 
 - **Discord.js** — Bot framework
 - **Google Cloud Run** — Serverless compute for all backend services
-- **Google Cloud SQL (PostgreSQL)** — Managed database
+- **Neon PostgreSQL** — Serverless/Edge database (PostgreSQL 16)
+- **@neondatabase/serverless** — Ultra-fast stateless HTTP driver
 - **Magic.link** — Non-custodial wallet creation
 - **Jupiter** — Solana swaps
 - **Google Cloud Storage** — Object storage

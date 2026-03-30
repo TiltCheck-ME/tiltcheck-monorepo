@@ -9,15 +9,14 @@ export * from './core.js';
 export * from './credits.js';
 export * from './solana.js';
 
-// Re-export specific logic as a namespace for backwards compatibility if needed
 import * as core from './core.js';
 import { CreditService } from './credits.js';
-import { db } from '@tiltcheck/database';
+import { DatabaseClient } from '@tiltcheck/database';
 
-export * from './types.js';
-export * from './core.js';
-export * from './credits.js';
-export * from './solana.js';
+const db = new DatabaseClient({
+  url: process.env.SUPABASE_URL || 'http://localhost',
+  apiKey: process.env.SUPABASE_SERVICE_ROLE_KEY || 'none'
+});
 
 // Re-export specific logic as a namespace for backwards compatibility if needed
 export const justthetip = {

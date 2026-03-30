@@ -18,7 +18,7 @@ export function notFoundHandler(req: Request, res: Response): void {
  * Global error handler
  */
 export const errorHandler: ErrorRequestHandler = (
-  err: any,
+  err: Error | unknown,
   _req: Request,
   res: Response,
   _next: NextFunction

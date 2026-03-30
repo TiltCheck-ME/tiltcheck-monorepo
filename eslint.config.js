@@ -1,14 +1,13 @@
 /**
- * © 2024–2025 TiltCheck Ecosystem. All Rights Reserved.
- * Created by jmenichole (https://github.com/jmenichole)
- * 
- * This file is part of the TiltCheck project.
- * For licensing information, see LICENSE file in the project root.
+ * © 2024–2026 TiltCheck Ecosystem. All Rights Reserved.
  */
 // Flat ESLint config for ESLint v9+
-// Minimal, type-check free setup for TS/JS across the monorepo
 import eslint from '@eslint/js';
 import tseslint from 'typescript-eslint';
+import { fileURLToPath } from 'url';
+import path from 'path';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 /** @type {import('eslint').Linter.Config[]} */
 export default [
@@ -20,6 +19,7 @@ export default [
       '**/.next/**',
       '**/coverage/**',
       '**/.cache/**',
+      '**/packages/comic-generator/**',
     ],
   },
   eslint.configs.recommended,
@@ -31,13 +31,13 @@ export default [
       parserOptions: {
         ecmaVersion: 'latest',
         sourceType: 'module',
+        tsconfigRootDir: __dirname,
       },
     },
     plugins: {
       '@typescript-eslint': tseslint.plugin,
     },
     rules: {
-      // Keep rules minimal to avoid churn; teams can extend per-package
       'no-unused-vars': 'off',
       '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }],
       '@typescript-eslint/no-explicit-any': 'off',

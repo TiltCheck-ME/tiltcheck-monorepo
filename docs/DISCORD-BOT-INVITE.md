@@ -4,7 +4,7 @@
 
 **TiltCheck Main Server:**
 - **Server ID:** `1446973117472964620`
-- **Invite Link:** [https://discord.gg/PdjhpmRNdj](https://discord.gg/PdjhpmRNdj)
+- **Invite Link:** [https://discord.gg/gdBsEJfCar](https://discord.gg/gdBsEJfCar)
 - **Purpose:** Main community hub for TiltCheck ecosystem discussion, support, and announcements
 
 ---
@@ -170,6 +170,6 @@ SUPPORT_CHANNEL_ID=1447524748069306489
 
 ## Support
 
-- **Discord:** [TiltCheck Community](https://discord.gg/PdjhpmRNdj)
+- **Discord:** [TiltCheck Community](https://discord.gg/gdBsEJfCar)
 - **Documentation:** See `/docs/tiltcheck/` for detailed guides
 - **Issues:** Report on GitHub or in Discord #support

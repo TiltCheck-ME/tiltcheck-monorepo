@@ -138,7 +138,7 @@ export class CircuitBreaker {
             balance: currentBalance,
             peak: peakBalance,
             velocity: betVelocity,
-            sentiment: analysis.stage.toLowerCase() as any
+            sentiment: analysis.stage === 'DESPERATION' ? 'chase' : 'crisis'
           }
         });
         return;

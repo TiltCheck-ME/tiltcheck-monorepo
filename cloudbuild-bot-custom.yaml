@@ -1,7 +1,0 @@
-
-steps:
-- name: 'gcr.io/cloud-builders/docker'
-  args: ['build', '--build-arg', 'APP_NAME=@tiltcheck/discord-bot', '-t', 'us-central1-docker.pkg.dev/tiltchcek/tiltcheck/discord-bot:latest', '.']
-images:
-- 'us-central1-docker.pkg.dev/tiltchcek/tiltcheck/discord-bot:latest'
-timeout: '1200s'

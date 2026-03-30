@@ -39,7 +39,7 @@ export default function AutoVaultPage() {
       <header className="tool-header terminal-header w-full max-w-4xl">
         <div className="container mx-auto text-center">
           <h1 className="terminal-title" data-slang="VAULT_OS">LockVault // The Digital Piggy Bank</h1>
-          <p className="terminal-subtitle text-[#d946ef]">This is where your profits go to hide from your bad decisions. Automatically.</p>
+          <p className="terminal-subtitle text-[#17c3b2]">This is where your profits go to hide from your bad decisions. Automatically.</p>
         </div>
       </header>
 
@@ -70,11 +70,11 @@ export default function AutoVaultPage() {
                 <p className="text-[#17c3b2] mb-4">Alright, we&apos;re watching. When you hit a profit trigger, we&apos;ll automatically move the money here.</p>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-8">
                     <div className="p-4 border border-[#283347] bg-black/40 text-left">
-                        <span className="text-xs text-[#d946ef] font-bold uppercase block mb-1">Current Mood</span>
+                        <span className="text-xs text-[#17c3b2] font-bold uppercase block mb-1">Current Mood</span>
                         <span className="font-mono">WAITING FOR YOU TO ACTUALLY WIN SOMETHING</span>
                     </div>
                     <div className="p-4 border border-[#283347] bg-black/40 text-left">
-                        <span className="text-xs text-[#d946ef] font-bold uppercase block mb-1">Our Cut</span>
+                        <span className="text-xs text-[#17c3b2] font-bold uppercase block mb-1">Our Cut</span>
                         <span className="font-mono">ELITE (1% CAP)</span>
                     </div>
                 </div>

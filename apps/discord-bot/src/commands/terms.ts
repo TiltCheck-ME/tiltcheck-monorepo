@@ -5,7 +5,7 @@
  */
 import { SlashCommandBuilder, ChatInputCommandInteraction, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } from 'discord.js';
 import type { Command } from '../types.js';
-import { db } from '@tiltcheck/database';
+import { upsertOnboarding } from '@tiltcheck/db';
 import fs from 'fs';
 import path from 'path';
 
@@ -61,14 +61,11 @@ export const terms: Command = {
         if (btn.customId === 'terms_accept_confirm') {
           saveAcceptance({ userId: interaction.user.id, username: interaction.user.username, acceptedAt: new Date().toISOString(), version: VERSION });
           
-          // Link to Degen Identity in Supabase
-          if (db.isConnected()) {
-            await db.upsertDegenIdentity({ 
-              discord_id: interaction.user.id, 
-              tos_accepted: true 
-            });
-            await db.mintTosNft(interaction.user.id);
-          }
+          // Link to Database
+          await upsertOnboarding({ 
+            discord_id: interaction.user.id, 
+            has_accepted_terms: true 
+          });
 
           await btn.update({ content: '✅ Terms accepted. Your **Degen Identity** NFT has been minted to your TiltCheck profile! You may now use tipping and vaulting features.', embeds: [], components: [] });
         } else {

@@ -17,7 +17,7 @@ export default function TrustRollup({ score = 75, isLoading = false }: TrustRoll
   // Determine color based on score
   const getScoreColor = (s: number) => {
     if (s >= 80) return '#22c55e'; // Green
-    if (s >= 60) return '#d946ef'; // TiltCheck Magenta
+    if (s >= 60) return '#f97316'; // Orange (needs attention)
     if (s >= 40) return '#f59e0b'; // Amber
     return '#ef4444'; // Red
   };
@@ -25,7 +25,7 @@ export default function TrustRollup({ score = 75, isLoading = false }: TrustRoll
   const scoreColor = getScoreColor(score);
 
   return (
-    <div className="bg-black/60 border border-[#283347] rounded-xl p-8 relative overflow-hidden group hover:border-[#d946ef]/50 transition-all duration-500">
+    <div className="bg-black/60 border border-[#283347] rounded-xl p-8 relative overflow-hidden group hover:border-[#17c3b2]/50 transition-all duration-500">
       {/* Background Decor */}
       <div className="absolute top-0 right-0 p-4 opacity-5">
         <svg xmlns="http://www.w3.org/2000/svg" width="120" height="120" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
@@ -67,8 +67,8 @@ export default function TrustRollup({ score = 75, isLoading = false }: TrustRoll
         {/* Factors */}
         <div className="flex-1 w-full">
             <h3 className="text-sm font-black uppercase tracking-tighter text-white mb-6 flex items-center gap-2">
-                <span className="w-2 h-4 bg-[#d946ef]"></span>
-                TRANSPARENCY_LAYER_V2
+                <span className="w-2 h-4 bg-[#17c3b2]"></span>
+                Your Trust Score
             </h3>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -114,8 +114,8 @@ export default function TrustRollup({ score = 75, isLoading = false }: TrustRoll
             </div>
 
             <div className="mt-8">
-                <button className="text-[10px] font-black uppercase text-[#d946ef] bg-[#d946ef]/10 border border-[#d946ef]/30 px-3 py-1 hover:bg-[#d946ef] hover:text-white transition-all">
-                    GENERATE PROOF_OF_DEGEN
+                <button className="text-[10px] font-black uppercase text-[#17c3b2] bg-[#17c3b2]/10 border border-[#17c3b2]/30 px-3 py-1 hover:bg-[#17c3b2] hover:text-black transition-all">
+                    Generate Proof of Degen
                 </button>
             </div>
         </div>

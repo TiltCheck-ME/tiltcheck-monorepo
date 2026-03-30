@@ -80,7 +80,7 @@ export default function VerifyPage() {
              <button 
                 onClick={() => setMode('legacy')}
                 className={`flex-1 py-2 text-xs font-black uppercase tracking-widest border-2 transition-all ${
-                    mode === 'legacy' ? 'bg-[#d946ef] text-black border-[#d946ef]' : 'border-[#283347] text-gray-500 hover:border-[#d946ef]'
+                    mode === 'legacy' ? 'bg-[#17c3b2] text-black border-[#17c3b2]' : 'border-[#283347] text-gray-500 hover:border-[#17c3b2]'
                 }`}
              >
                 Legacy Mode
@@ -111,12 +111,12 @@ export default function VerifyPage() {
                </>
              ) : (
                 <div>
-                   <label className="text-[10px] font-bold text-[#d946ef] uppercase tracking-[0.2em] block mb-2">Revealed Server Seed (The one they give you AFTER they&apos;ve taken your money)</label>
+                   <label className="text-[10px] font-bold text-[#17c3b2] uppercase tracking-[0.2em] block mb-2">Revealed Server Seed (The one they give you AFTER they&apos;ve taken your money)</label>
                    <input 
                      value={serverSeed}
                      onChange={(e) => setServerSeed(e.target.value)}
                      placeholder="Enter revealed Server Seed..."
-                     className="w-full bg-black border border-[#283347] p-3 text-white font-mono text-sm focus:border-[#d946ef] outline-none"
+                     className="w-full bg-black border border-[#283347] p-3 text-white font-mono text-sm focus:border-[#17c3b2] outline-none"
                    />
                 </div>
              )}
@@ -176,11 +176,11 @@ export default function VerifyPage() {
 
                   <div className="grid grid-cols-2 gap-4">
                      <div className="p-4 bg-black/40 border border-[#283347] text-center">
-                         <span className="text-[10px] font-bold text-[#d946ef] uppercase block mb-1">Dice (0-100)</span>
+                         <span className="text-[10px] font-bold text-[#17c3b2] uppercase block mb-1">Dice (0-100)</span>
                          <span className="text-2xl font-black text-white">{fairness.getDiceResult(resultFloat).toFixed(2)}</span>
                      </div>
                      <div className="p-4 bg-black/40 border border-[#283347] text-center">
-                         <span className="text-[10px] font-bold text-[#8b5cf6] uppercase block mb-1">Limbo / Crash</span>
+                         <span className="text-[10px] font-bold text-[#17c3b2] uppercase block mb-1">Limbo / Crash</span>
                          <span className="text-2xl font-black text-white">{fairness.getLimboResult(resultFloat).toFixed(2)}x</span>
                      </div>
                   </div>
@@ -196,8 +196,8 @@ export default function VerifyPage() {
       </div>
 
       <footer className="mt-16 text-center max-w-2xl px-6">
-        <div className="p-6 bg-[#d946ef]/5 border border-[#d946ef]/20">
-          <h3 className="text-sm font-black text-[#d946ef] uppercase tracking-widest mb-2 italic underline underline-offset-4">Why is the old way dumb?</h3>
+        <div className="p-6 bg-[#17c3b2]/5 border border-[#17c3b2]/20">
+          <h3 className="text-sm font-black text-[#17c3b2] uppercase tracking-widest mb-2 italic underline underline-offset-4">Why is the old way dumb?</h3>
           <p className="text-xs text-gray-500 leading-relaxed font-mono">
              Because checking the math after you&apos;ve already lost is just masochism. The old way lets you confirm you got screwed. Our way uses live Solana block hashes so you can prove they&apos;re <span className="text-white">not</span> screwing you, <span className="text-white">before</span> you click.
           </p>

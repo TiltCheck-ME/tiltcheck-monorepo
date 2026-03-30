@@ -171,7 +171,7 @@ apps/discord-bot/
    - https://discord.com/oauth2/authorize?client_id=1445916179163250860
 
 2. **Join the TiltCheck community:**
-   - https://discord.gg/PdjhpmRNdj
+   - https://discord.gg/gdBsEJfCar
 
 3. **Read the full documentation:**
    - [QUICKSTART.md](QUICKSTART.md) - Full setup guide

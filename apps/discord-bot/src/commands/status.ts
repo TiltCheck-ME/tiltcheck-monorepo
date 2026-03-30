@@ -25,7 +25,7 @@ export const status: Command = {
     const embed = new EmbedBuilder()
       .setColor(status.onCooldown ? 0xFF6B6B : 0x22d3a6)
       .setTitle('📊 [EDGE EQUALIZER] SESSION AUDIT')
-      .setDescription(status.onCooldown ? '**[PROFIT GUARD ACTIVE]** Snapshotting your head...' : '**STATUS: OPERATIONAL**')
+      .setDescription(status.onCooldown ? "**You're on a breather right now.** That's not a punishment — it's the system doing its job." : '**All clear. Session looks okay from here.**')
       .setTimestamp();
 
     // 1. Live Telemetry
@@ -54,7 +54,7 @@ export const status: Command = {
     // 4. Verification Footer
     const violationCount = getViolationHistory(interaction.user.id);
     embed.setFooter({ 
-      text: `Edge Equalizer Audit | ${violationCount} total violations recorded. | Audit your exit now.` 
+      text: `TiltCheck Audit | ${violationCount} flags on record. | Still here? Check your balance and decide if tonight's been worth it.` 
     });
 
     await interaction.reply({ embeds: [embed], ephemeral: true });

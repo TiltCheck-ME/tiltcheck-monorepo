@@ -120,6 +120,13 @@ export const complianceConfigSchema = z.object({
 });
 
 /**
+ * AI Services Configuration Schema
+ */
+export const aiConfigSchema = z.object({
+  JULES_API_KEY: z.string().optional(),
+});
+
+/**
  * Base Combined Configuration Schema (unrefined)
  */
 export const baseConfigSchema = z.object({
@@ -132,6 +139,7 @@ export const baseConfigSchema = z.object({
   ...serviceJwtConfigSchema.shape,
   ...blockchainConfigSchema.shape,
   ...complianceConfigSchema.shape,
+  ...aiConfigSchema.shape,
 });
 
 /**
@@ -158,6 +166,7 @@ export type DatabaseEnvConfig = z.infer<typeof databaseConfigSchema>;
 export type SupabaseEnvConfig = z.infer<typeof supabaseConfigSchema>;
 export type ServerEnvConfig = z.infer<typeof serverConfigSchema>;
 export type CookieEnvConfig = z.infer<typeof cookieConfigSchema>;
+export type AIEnvConfig = z.infer<typeof aiConfigSchema>;
 export type FullEnvConfig = z.infer<typeof fullConfigSchema>;
 
 // ============================================================================
@@ -267,6 +276,17 @@ export function getCookieConfig(env: Record<string, string | undefined> = proces
   const result = validateEnv(cookieConfigSchema, env);
   if (!result.success) {
     throw new Error(`Cookie config validation failed:\n${result.errors?.join('\n')}`);
+  }
+  return result.data!;
+}
+
+/**
+ * Validate and get AI config from environment
+ */
+export function getAIConfig(env: Record<string, string | undefined> = process.env): AIEnvConfig {
+  const result = validateEnv(aiConfigSchema, env);
+  if (!result.success) {
+    throw new Error(`AI config validation failed:\n${result.errors?.join('\n')}`);
   }
   return result.data!;
 }

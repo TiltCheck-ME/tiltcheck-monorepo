@@ -31,7 +31,7 @@ import { AutoRefundScheduler } from './services/tipping/auto-refund.js';
 import { BotWalletService } from './services/tipping/bot-wallet.js';
 import { TokenSwapService } from './services/tipping/token-swap.js';
 import { TokenDepositMonitor } from './services/tipping/token-deposit-monitor.js';
-import { setCreditDeps } from './commands/tip.js';
+
 import { startLockVaultBackgroundTasks, stopLockVaultBackgroundTasks } from '@tiltcheck/lockvault';
 import { getUserBuddies } from '@tiltcheck/db';
 
@@ -251,7 +251,7 @@ async function main() {
     );
     autoRefund = new AutoRefundScheduler(cm, botWallet.sendSOL.bind(botWallet), autoRefundIntervalMs);
 
-    setCreditDeps(cm, dMonitor, botWallet, tdMonitor);
+
 
     dMonitor.start();
     tdMonitor.start();
