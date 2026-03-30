@@ -159,4 +159,40 @@ describe('Auth callback state/source validation', () => {
     expect(response.headers['content-type']).toContain('text/html');
     expect(response.text).toContain('Missing trusted extension origin');
   });
+
+  it('rejects unsafe redirect URL at login entrypoint', async () => {
+    const response = await request(app).get('/auth/discord/login?redirect=https://evil.example/pwn');
+
+    expect(response.status).toBe(400);
+    expect(response.body.code).toBe('INVALID_REDIRECT');
+  });
+
+  it('falls back to default redirect when oauth_redirect cookie is unsafe', async () => {
+    vi.mocked(verifyDiscordOAuth).mockResolvedValueOnce({
+      valid: true,
+      user: {
+        id: 'discord-user-2',
+        username: 'tester2',
+        avatar: null,
+      },
+    } as any);
+    vi.mocked(findOrCreateUserByDiscord).mockResolvedValueOnce({
+      id: 'user-2',
+      email: null,
+      roles: ['user'],
+      discord_username: 'tester2',
+      discord_avatar: null,
+    } as any);
+    vi.mocked(createSession).mockResolvedValueOnce({
+      cookie: 'session=test; Path=/; HttpOnly',
+      token: 'session-token',
+    } as any);
+
+    const response = await request(app)
+      .get('/auth/discord/callback?state=web_state_ok&code=abc123')
+      .set('Cookie', ['oauth_state=web_state_ok', 'oauth_source=web', 'oauth_redirect=https://evil.example/pwn']);
+
+    expect(response.status).toBe(302);
+    expect(response.headers.location).toBe('https://tiltcheck.me/play/profile.html');
+  });
 });

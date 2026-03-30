@@ -6,7 +6,7 @@
 
 import { Router } from 'express';
 import { authMiddleware, AuthRequest } from '../middleware/auth.js';
-import { 
+import {
     findOnboardingByDiscordId, 
     upsertOnboarding,
     findUserByDiscordId,
@@ -16,64 +16,74 @@ import {
     getPendingBuddyRequests,
     sendBuddyRequest,
     acceptBuddyRequest,
-    removeBuddy,
-    updateBuddyThresholds
+    removeBuddy
 } from '@tiltcheck/db';
 import { ValidationError, InternalServerError } from '@tiltcheck/error-factory';
 
 const router: Router = Router();
 
 /**
- * GET /user/lookup/:wallet
- * Resolve Discord ID from Solana wallet address
+ * Resolve Discord ID from Solana wallet address.
  */
+async function handleLookupByWallet(wallet: string, res: any): Promise<boolean> {
+    const user = await findUserByWallet(wallet);
+    if (!user) {
+        res.status(404).json({ error: 'User wallet not linked' });
+        return false;
+    }
+    res.json({ discordId: user.discord_id });
+    return true;
+}
+
+function buildUserProfileResponse(user: any, onboarding: any, trustSummary: any) {
+    const analytics = {
+        totalJuice: user.total_redeemed ?? onboarding?.total_redeemed ?? 0,
+        totalTipsCaught: 0,
+        eventCount: trustSummary?.signals_count || 0,
+        redeemWins: user.redeem_wins ?? onboarding?.redeem_wins ?? 0,
+        totalRedeemed: user.total_redeemed ?? onboarding?.total_redeemed ?? 0,
+        trustScore: trustSummary?.total_score || 0,
+    };
+
+    return {
+        success: true,
+        id: user.id,
+        discordId: user.discord_id,
+        username: user.discord_username,
+        avatar: user.discord_avatar,
+        trustScore: trustSummary?.total_score || 0,
+        analytics,
+        redeemThreshold: user.redeem_threshold || onboarding?.daily_limit || 500,
+        degenIdentity: {
+            primary_external_address: user.wallet_address || 'Not linked',
+        },
+        user: {
+            id: user.id,
+            discordId: user.discord_id,
+            walletAddress: user.wallet_address,
+            total_redeemed: onboarding?.total_redeemed || user.total_redeemed || 0,
+            redeem_threshold: onboarding?.redeem_threshold || user.redeem_threshold || 250,
+            risk_level: onboarding?.risk_level || 'moderate',
+        },
+    };
+}
+
 router.get('/lookup/:wallet', async (req, res, next) => {
     try {
         const wallet = req.params.wallet as string;
-        const user = await findUserByWallet(wallet);
-        if (!user) {
-            return res.status(404).json({ error: 'User wallet not linked' });
-        }
-        res.json({ discordId: user.discord_id });
+        await handleLookupByWallet(wallet, res);
     } catch (err) {
         next(err);
     }
 });
 
 /**
- * GET /user/:discordId
- * Get comprehensive user stats (The Truth Layer)
+ * Backward compatible alias for older clients.
  */
-router.get('/:discordId', async (req, res, next) => {
+router.get('/lookup/:address', async (req, res, next) => {
     try {
-        const discordId = req.params.discordId as string;
-        
-        // Use findUserByDiscordId from @tiltcheck/db
-        const user = await findUserByDiscordId(discordId);
-        
-        if (!user) {
-            return res.status(404).json({ error: 'User profile not found' });
-        }
-
-        const onboarding = await findOnboardingByDiscordId(discordId);
-        const trust = await getAggregatedTrustByDiscordId(discordId);
-
-        res.json({
-            success: true,
-            user: {
-                id: user.id,
-                discordId: user.discord_id,
-                walletAddress: user.wallet_address,
-                total_redeemed: onboarding?.total_redeemed || 0,
-                redeem_threshold: onboarding?.redeem_threshold || 250,
-                risk_level: onboarding?.risk_level || 'moderate'
-            },
-            analytics: {
-                totalJuice: onboarding?.total_redeemed || 0.00,
-                redeemWins: onboarding?.redeem_wins || 0,
-                trustScore: trust?.total_score || 75
-            }
-        });
+        const address = req.params.address as string;
+        await handleLookupByWallet(address, res);
     } catch (err) {
         next(err);
     }
@@ -160,66 +170,6 @@ router.post('/onboarding', authMiddleware, async (req, res, next) => {
     } catch (error) {
         console.error('[User API] Update onboarding error:', error);
         return next(new InternalServerError('Failed to update onboarding status'));
-    }
-});
-
-/**
- * GET /user/lookup/:address
- * Find user associate with a wallet address
- */
-router.get('/lookup/:address', async (req, res, next) => {
-    try {
-        const { address } = req.params;
-        const user = await findUserByWallet(address);
-
-        if (!user) {
-            return res.status(404).json({ error: 'User wallet not linked to Discord' });
-        }
-
-        res.json({ discordId: user.discord_id });
-    } catch (error) {
-        next(error);
-    }
-});
-
-/**
- * GET /user/:discordId
- * Get user profile and analytics by Discord ID (used by Dashboard)
- */
-router.get('/:discordId', async (req, res, next) => {
-    try {
-        const { discordId } = req.params;
-        // NOTE: Auth temporarily disabled for dogfooding ease (will re-enable once identity works)
-        const user = await findUserByDiscordId(discordId);
-        if (!user) {
-            return res.status(404).json({ error: 'User not found' });
-        }
-
-        const [onboarding, trustSummary] = await Promise.all([
-            findOnboardingByDiscordId(discordId),
-            getAggregatedTrustByDiscordId(discordId)
-        ]);
-
-        res.json({
-            id: user.id,
-            discordId: user.discord_id,
-            username: user.discord_username,
-            avatar: user.discord_avatar,
-            trustScore: trustSummary?.total_score || 0,
-            analytics: {
-                totalJuice: user.total_redeemed || 0,
-                totalTipsCaught: 0,
-                eventCount: trustSummary?.signals_count || 0,
-                redeemWins: user.redeem_wins || 0,
-                totalRedeemed: user.total_redeemed || 0
-            },
-            redeemThreshold: user.redeem_threshold || onboarding?.daily_limit || 500,
-            degenIdentity: {
-                primary_external_address: user.wallet_address || 'Not linked'
-            }
-        });
-    } catch (error) {
-        next(error);
     }
 });
 
@@ -339,6 +289,30 @@ router.get('/:discordId/activities', async (req, res, next) => {
         });
     } catch (err) {
         next(err);
+    }
+});
+
+/**
+ * GET /user/:discordId
+ * Get user profile and analytics by Discord ID (used by Dashboard)
+ */
+router.get('/:discordId', async (req, res, next) => {
+    try {
+        const { discordId } = req.params;
+        // NOTE: Auth temporarily disabled for dogfooding ease (will re-enable once identity works)
+        const user = await findUserByDiscordId(discordId);
+        if (!user) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+
+        const [onboarding, trustSummary] = await Promise.all([
+            findOnboardingByDiscordId(discordId),
+            getAggregatedTrustByDiscordId(discordId)
+        ]);
+
+        res.json(buildUserProfileResponse(user, onboarding, trustSummary));
+    } catch (error) {
+        next(error);
     }
 });
 
