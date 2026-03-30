@@ -43,7 +43,7 @@ const ToolCard = ({ href, icon, category, title, description, status, gridClasse
       return <span className="absolute top-4 right-4 badge-beta">Still Cooking</span>;
     }
     if(status === 'live' || isFeatured) {
-        return <span className="absolute top-4 right-4 badge-live">Live</span>;
+        return <span className="absolute top-4 right-4 badge-beta">STRENGTH TESTING</span>;
     }
     return null;
   };

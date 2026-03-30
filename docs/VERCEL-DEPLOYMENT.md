@@ -349,7 +349,7 @@ git push origin main
 - **Vercel Docs**: https://vercel.com/docs
 - **Railway Docs**: https://docs.railway.app
 - **Supabase Docs**: https://supabase.com/docs
-- **TiltCheck Discord**: https://discord.gg/s6NNfPHxMS
+- **TiltCheck Discord**: https://discord.gg/gdBsEJfCar
 
 ---
 

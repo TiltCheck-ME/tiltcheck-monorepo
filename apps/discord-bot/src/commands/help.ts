@@ -9,7 +9,7 @@ import type { Command } from '../types.js';
 export const help: Command = {
   data: new SlashCommandBuilder()
     .setName('help')
-    .setDescription('[TECH MAP] Audit commands and bot routing.'),
+    .setDescription('[EDGE EQUALIZER] Your friend who went to stats class and actually paid attention.'),
 
   async execute(interaction: ChatInputCommandInteraction) {
     const embed = new EmbedBuilder()
@@ -20,41 +20,41 @@ export const help: Command = {
 
     embed.addFields(
       {
-        name: '📊 SESSION AUDIT',
+        name: '📊 Session Audit',
         value:
-          '`/status` - Quick in-Discord HUD snippet\n' +
-          '`/tether` - Link your accountability safety line\n' +
-          '`/goal` - Set your session exit milestones.',
+          '`/status` - Quick check on how your session is looking\n' +
+          '`/tether` - Link yourself to someone who\'ll check in on you\n' +
+          '`/goal` - Set a session target so you actually know when to stop.',
         inline: false,
       },
       {
-        name: '⚖️ MATH & TRUST',
+        name: '⚖️ Math & Trust',
         value:
-          '`/odds` - HOUSE EDGE/RTP check for house games\n' +
-          '`/verify` - PROVABLY FAIR verification tool\n' +
-          '`/casino` - Domain trust and fairness lookup.',
+          '`/odds` - House edge and RTP check for any game\n' +
+          '`/verify` - Provably fair verification (trust but verify)\n' +
+          '`/casino` - Trust score and fairness lookup for platforms.',
         inline: false,
       },
       {
-        name: '💾 SECURING THE BAG',
+        name: '💾 Securing the Bag',
         value:
-          '`/juicedrop` - Fund a non-custodial profit spill\n' +
-          '`/lockvault` - Dashboard portal to time-lock your bag.\n' +
-          '`/reputation` - Audit scores (Mod Only).',
+          '`/juicedrop` - Fund a non-custodial profit lock\n' +
+          '`/lockvault` - Time-lock your winnings before you bet them back.\n' +
+          '`/reputation` - Audit scores for users or platforms.',
         inline: false,
       },
       {
-        name: '🤖 BOT ROUTING',
+        name: '🤖 Other stuff',
         value:
-          '**HUD:** Launch the full HUD via the Activity panel to the right.\n' +
-          '**GAMES:** DA&D and Poker commands are in the DA&D bot.\n' +
-          '**TIPS:** P2P tipping is handled by the JustTheTip bot.',
+          '**HUD:** Full dashboard is in the Activity panel on the right.\n' +
+          '**Games:** DA&D and Poker are in the DA&D bot.\n' +
+          '**Tips:** P2P tipping lives in the JustTheTip bot.',
         inline: false,
       }
     );
 
     embed.setFooter({
-      text: 'Edge Equalizer: LEVEL THE PLAYING FIELD. Fair, Transparent, Non-Punitive.',
+      text: 'TiltCheck — We can count too.',
     });
 
     await interaction.reply({ embeds: [embed] });

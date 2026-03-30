@@ -26,13 +26,13 @@ export default function DashboardPage() {
 
         {/* Sidebar / Buddies */}
         <div className="col-span-1 flex flex-col gap-8">
-           <div className="terminal-box border-[#d946ef] p-6">
-              <h2 className="text-xs font-black uppercase tracking-widest text-[#d946ef] mb-4">Accountability Net</h2>
+           <div className="terminal-box border-[#17c3b2] p-6">
+              <h2 className="text-xs font-black uppercase tracking-widest text-[#17c3b2] mb-4">Accountability Net</h2>
               <div className="flex flex-col gap-3">
                  <div className="p-3 border border-[#283347] bg-black/40 text-xs text-gray-400 font-mono">
                     NO ACTIVE BUDDIES FOUND.
                  </div>
-                 <button className="w-full py-3 text-[10px] font-black uppercase tracking-widest bg-[#d946ef]/10 text-[#d946ef] border border-[#d946ef]/30 hover:bg-[#d946ef]/20 transition-all">
+                 <button className="w-full py-3 text-[10px] font-black uppercase tracking-widest bg-[#17c3b2]/10 text-[#17c3b2] border border-[#17c3b2]/30 hover:bg-[#17c3b2]/20 transition-all">
                     INVITE BUDDY
                  </button>
               </div>
@@ -57,6 +57,26 @@ export default function DashboardPage() {
             <button className="mt-8 text-left text-xs font-black uppercase tracking-widest text-[color:var(--color-primary)] hover:translate-x-2 transition-transform">
                Configure Vaults &rarr;
             </button>
+         </div>
+      </section>
+      {/* RTP Transparency Info */}
+      <section className="p-8 border border-[#17c3b2]/20 bg-[#17c3b2]/5">
+         <h2 className="text-lg font-bold uppercase mb-4 tracking-tight text-[#17c3b2] flex items-center gap-2">
+           <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+           RTP Audit Transparency
+         </h2>
+         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm text-gray-400">
+           <div>
+             <h3 className="font-bold text-gray-300 mb-2 tracking-wide uppercase">Short-Term Variance</h3>
+             <p>A "small sample" of 100–500 rounds can easily yield an observed RTP of 80% or 120%. A minimum of <strong>10,000+ rounds</strong> is required to overcome variance and accurately audit strong 99% claims on games like <em>Chicken</em> or <em>Plinko</em>.</p>
+           </div>
+           <div>
+             <h3 className="font-bold text-gray-300 mb-2 tracking-wide uppercase">House Edge Formula</h3>
+             <p>Stake.us does not have a "site-wide" RTP. You must check each game. Formula: <code>100% - House Edge = RTP</code>. Note: <em>Gold Coins (GC)</em> and <em>Stake Cash (SC)</em> utilize the exact same RNG engine and RTP mechanics.</p>
+           </div>
+           <div className="md:col-span-2 p-4 mt-2 border border-[#283347] bg-black/40 text-xs">
+             <strong className="text-white">Stake Originals Specs:</strong> <strong>Chicken:</strong> 99% RTP (1-24 bones) | <strong>Pump:</strong> 98% RTP (Turn-based, Max win 3.2M x) | <strong>Blackjack:</strong> Up to 99.43% (Requires perfect strategy). <em>Enhanced RTP slots sit around ~98%.</em>
+           </div>
          </div>
       </section>
     </div>

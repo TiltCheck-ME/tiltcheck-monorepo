@@ -2,7 +2,7 @@
 import type { Metadata } from "next";
 import { Space_Grotesk, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
-import "@rainbow-me/rainbowkit/styles.css";
+// import "@rainbow-me/rainbowkit/styles.css";
 import { RootProvider } from "@/lib/providers";
 
 const spaceGrotesk = Space_Grotesk({
@@ -20,7 +20,25 @@ const jetbrainsMono = JetBrains_Mono({
 
 export const metadata: Metadata = {
   title: "TiltCheck | The Degen Audit Layer",
-  description: "The house has an edge. Now you do too.",
+  description: "The house has an edge. Now you do too. TiltCheck audits casinos, tracks your sessions, and tells you when to cash out.",
+  metadataBase: new URL("https://tiltcheck.me"),
+  icons: {
+    icon: "/icon.png",
+    apple: "/icon.png",
+    shortcut: "/icon.png",
+  },
+  openGraph: {
+    title: "TiltCheck | The Degen Audit Layer",
+    description: "The house has an edge. Now you do too.",
+    url: "https://tiltcheck.me",
+    siteName: "TiltCheck",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "TiltCheck | The Degen Audit Layer",
+    description: "The house has an edge. Now you do too.",
+  },
 };
 
 import Header from "@/components/Header";

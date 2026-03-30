@@ -619,7 +619,7 @@ function checkBagFumble(balance: number | null, initialBalance: number) {
       showInteractiveNotification(
         "🚨 REPEATED FUMBLES. You obviously aren't going to stop yourself, so I just pinged the Discord. Get in the 'degen-accountability' VC for a lifeline before you do something stupid.",
         [
-          { text: "Get Yelled At (Join VC)", action: () => { window.open('https://discord.gg/s6NNfPHxMS', '_blank'); } },
+          { text: "Get Yelled At (Join VC)", action: () => { window.open('https://discord.gg/gdBsEJfCar', '_blank'); } },
           { text: "Ignore Me", action: () => { } }
         ]
       );

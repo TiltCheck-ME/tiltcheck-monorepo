@@ -2,8 +2,8 @@
 
 import { SlashCommandBuilder, ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
 import type { Command } from '../types.js';
-import { db } from '@tiltcheck/database'; // Keep for legacy sync if needed
-import { linkWalletToUser, findUserByDiscordId, findOrCreateUserByDiscord } from '@tiltcheck/db';
+
+import { linkWalletToUser, findOrCreateUserByDiscord } from '@tiltcheck/db';
 import { PublicKey } from '@solana/web3.js';
 
 export const linkwallet: Command = {
@@ -39,13 +39,7 @@ export const linkwallet: Command = {
 
       await linkWalletToUser(discordUser.id, address);
 
-      // 2. Legacy Sync (Optional, keep for compatibility)
-      if (db.isConnected()) {
-        await db.upsertDegenIdentity({
-          discord_id: interaction.user.id,
-          primary_external_address: address,
-        });
-      }
+
 
       const embed = new EmbedBuilder()
         .setColor(0x22d3a6)

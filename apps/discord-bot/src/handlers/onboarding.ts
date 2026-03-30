@@ -658,7 +658,7 @@ async function completeOnboarding(interaction: MessageComponentInteraction): Pro
   const discordBtn = new ButtonBuilder()
     .setLabel('Join TiltCheck Discord')
     .setStyle(ButtonStyle.Link)
-    .setURL('https://discord.gg/s6NNfPHxMS');
+    .setURL('https://discord.gg/gdBsEJfCar');
 
   const websiteBtn = new ButtonBuilder()
     .setLabel('Visit Website')

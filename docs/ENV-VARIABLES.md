@@ -50,13 +50,17 @@ To get started, copy the `.env.example` file to `.env` in the root of the projec
 | `TRUST_ALERTS_CHANNEL_ID` | Channel ID for trust-related alerts | |
 | `SUPPORT_CHANNEL_ID` | Channel ID for support tickets | |
 
-## Supabase
+## Database (Neon PostgreSQL)
 
 | Variable | Description | Default / Example |
 |---|---|---|
-| `SUPABASE_URL` | URL of your Supabase instance | `https://*.supabase.co` |
-| `SUPABASE_ANON_KEY` | Supabase Anon Key | *(Required)* |
-| `SUPABASE_SERVICE_ROLE_KEY` | Supabase Service Role Key | *(Required)* |
+| `POSTGRESQL` | Main connection string (Pooled/WebSocket) | `postgresql://...` |
+| `NEON_DATABASE_URL` | Neon HTTP connection string | `https://...` |
+| `DATABASE_URL` | Legacy/Fallback connection string | `postgresql://...` |
+| `DATABASE_POOL_SIZE` | Max pool size for WebSocket connections | `10` |
+| `DATABASE_SSL` | Enable/Disable SSL for Postgres | `true` |
+
+## Supabase (Legacy/Hybrid)
 
 ## External APIs
 

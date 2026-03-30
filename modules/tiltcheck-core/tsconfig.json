@@ -22,6 +22,9 @@
     },
     {
       "path": "../../packages/types"
+    },
+    {
+      "path": "../../packages/utils"
     }
   ]
 }

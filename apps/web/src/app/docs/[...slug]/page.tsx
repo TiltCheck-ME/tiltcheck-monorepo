@@ -43,8 +43,8 @@ export default async function DocPage({ params }: Props) {
       <aside className="w-80 border-r border-[#283347] hidden md:block overflow-y-auto p-6 fixed top-24 bottom-0">
         <div className="flex flex-col gap-8">
           <div>
-            <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-[#d946ef] mb-4 flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-[#d946ef] animate-pulse"></span>
+            <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-[#17c3b2] mb-4 flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-[#17c3b2] animate-pulse"></span>
                 TiltCheck Docs
             </h3>
             <div className="flex flex-col gap-1 text-sm font-semibold uppercase tracking-tight text-[color:var(--color-primary)]">
@@ -73,14 +73,14 @@ export default async function DocPage({ params }: Props) {
 
       {/* Main Content Area */}
       <main className="flex-1 md:ml-80 p-8 pt-24 max-w-5xl mx-auto w-full">
-        <article className="prose prose-invert max-w-none prose-headings:font-black prose-headings:uppercase prose-headings:tracking-tight prose-a:text-[color:var(--color-primary)] prose-code:text-[#d946ef] prose-code:bg-[#d946ef]/10 prose-code:p-1 prose-code:rounded prose-pre:bg-black/40 prose-pre:border prose-pre:border-[#283347] prose-img:rounded-lg">
+        <article className="prose prose-invert max-w-none prose-headings:font-black prose-headings:uppercase prose-headings:tracking-tight prose-a:text-[color:var(--color-primary)] prose-code:text-[#17c3b2] prose-code:bg-[#17c3b2]/10 prose-code:p-1 prose-code:rounded prose-pre:bg-black/40 prose-pre:border prose-pre:border-[#283347] prose-img:rounded-lg">
           <header className="mb-12 border-b border-[#283347] pb-8">
             <div className="flex items-center gap-2 text-[10px] font-mono text-gray-500 mb-4 tracking-widest uppercase">
                 <span>DOC_ID: {doc.slug.toUpperCase()}</span>
                 <span>//</span>
                 <span>CATEGORY: {doc.category}</span>
                 {isSensitive && (
-                  <span className="ml-auto text-[#d946ef] border border-[#d946ef]/50 px-2 py-0.5 rounded">RESTRICTED</span>
+                  <span className="ml-auto text-[#17c3b2] border border-[#17c3b2]/50 px-2 py-0.5 rounded">RESTRICTED</span>
                 )}
             </div>
             <h1 className="text-5xl mb-4 tracking-tighter text-white">

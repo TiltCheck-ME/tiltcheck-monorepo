@@ -73,6 +73,32 @@ router.post('/signup', async (req, res) => {
     }
 
     await insert('beta_signups', row);
+
+    // Notify Discord beta-applications channel
+    const webhookUrl = process.env.DISCORD_BETA_WEBHOOK_URL;
+    if (webhookUrl) {
+      fetch(webhookUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          username: 'TiltCheck Beta Gate',
+          embeds: [{
+            title: '\uD83D\uDCCB New Beta Application',
+            color: 0x17c3b2,
+            fields: [
+              { name: 'Discord', value: row.discord_username || 'Not provided', inline: true },
+              { name: 'Email', value: row.email, inline: true },
+              { name: 'Experience', value: row.experience_level || 'Not specified', inline: true },
+              { name: 'Interests', value: (row.interests || []).join(', ') || 'None listed', inline: false },
+              { name: 'Referral', value: row.referral_source || 'direct', inline: true },
+            ],
+            footer: { text: 'From tiltcheck.me/beta-tester' },
+            timestamp: new Date().toISOString(),
+          }],
+        }),
+      }).catch(err => console.error('[Beta API] Webhook post failed:', err));
+    }
+
     res.json({ success: true, message: 'Signed up successfully' });
   } catch (error: unknown) {
     // Race-safe duplicate handling if another request inserted first.
