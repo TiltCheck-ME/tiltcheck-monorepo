@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>TiltCheck Security - Scam Blocked</title>
+    <title>TiltCheck — Scam Blocked</title>
     <style>
         body {
             background: #0a0a0b;
@@ -17,59 +17,88 @@
         .container {
             text-align: center;
             padding: 40px;
-            border: 1px solid #ff4b4b;
+            border: 1px solid #ef4444;
             border-radius: 12px;
-            background: rgba(255, 75, 75, 0.05);
+            background: rgba(239, 68, 68, 0.05);
             max-width: 500px;
-            box-shadow: 0 0 40px rgba(255, 75, 75, 0.2);
+            box-shadow: 0 0 40px rgba(239, 68, 68, 0.15);
+        }
+        .shield-icon {
+            font-size: 64px;
+            margin-bottom: 16px;
         }
         h1 {
-            color: #ff4b4b;
-            font-size: 2.5rem;
-            margin-bottom: 20px;
+            color: #ef4444;
+            font-size: 1.75rem;
+            margin-bottom: 12px;
+            font-weight: 900;
+        }
+        .sub {
+            color: #6b7280;
+            font-size: 0.75rem;
+            letter-spacing: 0.15em;
             text-transform: uppercase;
-            letter-spacing: 2px;
+            font-weight: bold;
+            margin-bottom: 20px;
         }
         p {
-            font-size: 1.1rem;
-            line-height: 1.6;
-            color: #a0a0a0;
+            font-size: 1rem;
+            line-height: 1.65;
+            color: #d1d5db;
+            margin-bottom: 16px;
         }
         .url {
             word-break: break-all;
-            color: #ff4b4b;
+            color: #ef4444;
+            font-family: monospace;
+            font-size: 0.85rem;
             font-weight: bold;
-            margin: 20px 0;
+            margin: 16px 0;
             display: block;
+            background: rgba(239, 68, 68, 0.08);
+            padding: 8px 12px;
+            border-radius: 6px;
+        }
+        .secondary {
+            font-size: 0.85rem;
+            color: #6b7280;
         }
         .btn {
             display: inline-block;
-            margin-top: 30px;
-            padding: 12px 24px;
-            background: #ff4b4b;
-            color: #fff;
+            margin-top: 28px;
+            padding: 12px 28px;
+            background: #17c3b2;
+            color: #0a0a0b;
             text-decoration: none;
             border-radius: 6px;
-            font-weight: bold;
+            font-weight: 900;
+            font-size: 0.875rem;
+            letter-spacing: 0.05em;
             transition: all 0.2s;
+            cursor: pointer;
+            border: none;
         }
         .btn:hover {
-            background: #ff2a2a;
-            transform: scale(1.05);
-        }
-        .shield-icon {
-            font-size: 80px;
-            margin-bottom: 20px;
+            background: #14a99a;
+            transform: scale(1.04);
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>INTEGRITY BREACH DETECTED</h1>
-        <p>TILTCHECK HAS TERMINATED THIS CONNECTION. THIS DOMAIN IS FILTH. WE JUST SAVED YOUR PRIVATE KEYS FROM A JUNIOR-VARIABLE PHISHING ATTEMPT. YOU'RE WELCOME.</p>
+        <div class="shield-icon">🛡️</div>
+        <h1>Heads up. We just blocked that.</h1>
+        <p class="sub">Known scam domain</p>
+        <p>
+            That site is on our blacklist. We stopped the connection before it could do anything.
+            Your keys are safe. You're welcome.
+        </p>
         <code class="url" id="target-url">Loading...</code>
-        <p>THIS DOMAIN IS ON OUR HIGH-RISK BLACKLIST FOR REPRODUCING AD-HOC SCAM INFRASTRUCTURE.</p>
-        <a href="#" class="btn" id="go-back">ABORT MISSION</a>
+        <p class="secondary">
+            This domain is flagged for reproducing scam infrastructure. 
+            If you think this is a mistake, let us know at <strong>tiltcheck.me</strong>.
+        </p>
+        <button class="btn" id="go-back">Get me out of here</button>
     </div>
 
     <script>
@@ -78,8 +107,7 @@
         if (target) {
             document.getElementById('target-url').textContent = target;
         }
-        document.getElementById('go-back').onclick = (e) => {
-            e.preventDefault();
+        document.getElementById('go-back').onclick = () => {
             history.back();
         };
     </script>

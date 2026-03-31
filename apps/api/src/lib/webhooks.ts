@@ -13,7 +13,7 @@ export class WebhookService {
   /**
    * Dispatch an ecosystem event to all active webhooks subscribed to that event type.
    */
-  public async dispatch(eventType: string, payload: any): Promise<void> {
+  public async dispatch(eventType: string, payload: unknown): Promise<void> {
     try {
       const webhooks: Webhook[] = await findActiveWebhooksByEvent(eventType);
       

@@ -5,7 +5,7 @@
  */
 import { SlashCommandBuilder, ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
 import type { Command } from '../types.js';
-import { db } from '@tiltcheck/database'; // Assuming DB handle exists
+
 
 export const tether: Command = {
   data: new SlashCommandBuilder()

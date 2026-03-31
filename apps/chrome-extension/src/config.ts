@@ -8,9 +8,10 @@ export const EXT_CONFIG = {
     HUB_URL: 'https://tiltcheck.me/dashboard',
     AI_GATEWAY_URL: 'https://api.tiltcheck.me/ai',
     WEB_APP_URL: 'https://tiltcheck.me',
-    DISCORD_CLIENT_ID: '1445916179163250860',
-    // OAuth is handled server-side via API /auth/discord/login.
-    // The API controls scopes and redirect URIs — no client-side config needed.
+    DISCORD_CLIENT_ID: '1342618997321564344',
+    // Operations & Revenue (GCP Bill Fund)
+    OPERATIONS_WALLET: 'BvzEqVRUicmW8Y6HFncLYrGXESpMbSNDkWUNTQj5GGGi',
+    PROTOCOL_FEE_BPS: 250, // 2.5% service fee
 };
 
 /**

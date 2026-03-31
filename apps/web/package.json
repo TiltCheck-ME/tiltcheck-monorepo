@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@rainbow-me/rainbowkit": "^2.2.10",
     "@solana/wallet-adapter-base": "^0.9.23",
     "@solana/wallet-adapter-react": "^0.15.35",
     "@solana/wallet-adapter-react-ui": "^0.9.35",
@@ -17,14 +18,18 @@
     "@tanstack/react-query": "^5.95.2",
     "@tiltcheck/shared": "workspace:*",
     "gray-matter": "^4.0.3",
+    "lucide-react": "^1.7.0",
     "next": "16.2.1",
     "react": "19.2.4",
     "react-dom": "19.2.4",
     "react-markdown": "^10.1.0",
     "rehype-highlight": "^7.0.2",
-    "remark-gfm": "^4.0.1"
+    "remark-gfm": "^4.0.1",
+    "viem": "^2.47.6",
+    "wagmi": "^3.6.0"
   },
   "devDependencies": {
+    "@tailwindcss/postcss": "^4.2.2",
     "@types/node": "^25.5.0",
     "@types/react": "19.2.14",
     "@types/react-dom": "19.2.3",

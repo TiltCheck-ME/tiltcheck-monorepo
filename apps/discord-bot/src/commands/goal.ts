@@ -9,7 +9,7 @@ import type { Command } from '../types.js';
 export const goal: Command = {
   data: new SlashCommandBuilder()
     .setName('goal')
-    .setDescription('[PROFIT SECURE] Set your session exit milestone.')
+    .setDescription('Set your session exit milestone.')
     .addIntegerOption(opt => opt.setName('amount').setDescription('Profit Target (USD/SOL equivalent)').setRequired(true))
     .addBooleanOption(opt => opt.setName('total_balance').setDescription('Is this a total balance goal?').setRequired(false)),
 
@@ -19,7 +19,7 @@ export const goal: Command = {
 
     const embed = new EmbedBuilder()
       .setColor(0x00CED1)
-      .setTitle('💰 [PROFIT SECURE] TARGET SET')
+      .setTitle('💰 TARGET SET')
       .setDescription(`Target Audit: **$${amount}** ${isTotal ? '(Total Balance)' : '(Profit)'}.\n\nWhen you hit this, I'll notify your Tether to come celebrate while you SECURE THE BAG.`)
       .setFooter({ text: 'Edge Equalizer: DONT OVERRUN THE MATH.' });
 

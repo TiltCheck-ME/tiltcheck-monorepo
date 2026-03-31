@@ -47,10 +47,10 @@ export interface TrustEnginesConfig {
 }
 
 export interface TrustLogger {
-  debug?(msg: string, meta?: any): void;
-  info?(msg: string, meta?: any): void;
-  warn?(msg: string, meta?: any): void;
-  error?(msg: string, meta?: any): void;
+  debug?(msg: string, meta?: unknown): void;
+  info?(msg: string, meta?: unknown): void;
+  warn?(msg: string, meta?: unknown): void;
+  error?(msg: string, meta?: unknown): void;
 }
 
 // Trust types now centralized in @tiltcheck/types
@@ -192,9 +192,18 @@ export class TrustEnginesService {
 
     // Pillar 2: Fairness & Transparency
     if (data.rtpDelta !== undefined) {
-      // Any delta < -5% is a significant penalty
-      const delta = data.rtpDelta > -0.05 ? 0 : (data.rtpDelta > -0.15 ? -15 : -40);
-      this.updateCasinoScore(casinoName, 'fairnessTransparency', delta, `Scanner: RTP drift detected (${(data.rtpDelta * 100).toFixed(1)}%)`);
+      // Any delta < -5% is a significant penalty, but we need 10,000+ rounds to meaningfully verify a high-RTP (e.g. 99%) claim
+      const sampleSize = data.sampleSize || 0;
+      let delta = 0;
+      
+      if (sampleSize >= 10000) {
+        delta = data.rtpDelta > -0.05 ? 0 : (data.rtpDelta > -0.15 ? -15 : -40);
+        this.updateCasinoScore(casinoName, 'fairnessTransparency', delta, `Scanner: RTP drift detected (${(data.rtpDelta * 100).toFixed(1)}%) with high sample confidence.`);
+      } else if (data.rtpDelta < -0.15) {
+        // Still penalize massive drifts but lighter penalty for low variance confidence
+        delta = -5;
+        this.updateCasinoScore(casinoName, 'fairnessTransparency', delta, `Scanner: High RTP drift detected (${(data.rtpDelta * 100).toFixed(1)}%), but sample size < 10,000 rounds.`);
+      }
     }
 
     if (data.providerReputationTier === 'shady') {
@@ -761,7 +770,7 @@ export class TrustEnginesService {
     this.degenRecords.clear();
   }
 
-  private log(level: 'debug'|'info'|'warn'|'error', msg: string, meta?: any) {
+  private log(level: 'debug'|'info'|'warn'|'error', msg: string, meta?: unknown) {
     const logger = this.cfg.logger;
     if (logger && logger[level]) {
       try { (logger as any)[level](msg, meta); } catch {}

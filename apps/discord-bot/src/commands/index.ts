@@ -13,7 +13,7 @@ export { intervene } from './intervene.js';
 export { dashboard } from './dashboard.js';
 
 // Community & Fun Commands
-export { juice as juicedrop } from './juice.js';
+export { juicedrop } from './juicedrop.js';
 export { jackpot } from './jackpot.js';
 export { casino } from './casino.js';
 export { terms } from './terms.js';

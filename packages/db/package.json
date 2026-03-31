@@ -15,6 +15,7 @@
     "registry": "https://npm.pkg.github.com"
   },
   "dependencies": {
+    "@neondatabase/serverless": "^1.0.2",
     "@tiltcheck/config": "workspace:*",
     "pg": "^8.20.0"
   },

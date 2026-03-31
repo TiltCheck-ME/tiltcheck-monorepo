@@ -149,6 +149,28 @@ function isAllowedActivityRedirectUri(value: string): boolean {
   }
 }
 
+function isAllowedPostAuthRedirect(value: string): boolean {
+  if (!value) return false;
+
+  // Relative path redirects are constrained to this host.
+  if (value.startsWith('/')) return true;
+
+  try {
+    const parsed = new URL(value);
+    const host = parsed.hostname.toLowerCase();
+    const isHttpsTiltcheck =
+      parsed.protocol === 'https:' &&
+      (host === 'tiltcheck.me' || host === 'www.tiltcheck.me' || host.endsWith('.tiltcheck.me'));
+    const isLocalDev =
+      process.env.NODE_ENV !== 'production' &&
+      parsed.protocol === 'http:' &&
+      (host === 'localhost' || host === '127.0.0.1');
+    return isHttpsTiltcheck || isLocalDev;
+  } catch {
+    return false;
+  }
+}
+
 // ============================================================================
 // Routes
 // ============================================================================
@@ -365,8 +387,12 @@ router.get('/discord/login', authLimiter, (req, res) => {
     });
 
     // Store redirect URL if provided
-    const redirectUrl = req.query.redirect as string;
+    const redirectUrl = typeof req.query.redirect === 'string' ? req.query.redirect.trim() : '';
     if (redirectUrl) {
+      if (!isAllowedPostAuthRedirect(redirectUrl)) {
+        res.status(400).json({ error: 'Invalid redirect URL', code: 'INVALID_REDIRECT' });
+        return;
+      }
       res.cookie('oauth_redirect', redirectUrl, {
         httpOnly: true,
         secure: isSecure,
@@ -636,7 +662,10 @@ router.get('/discord/callback', authLimiter, async (req, res) => {
     }
 
     // Redirect to stored URL or default
-    const redirectUrl = req.cookies?.oauth_redirect || 'https://tiltcheck.me/play/profile.html';
+    const redirectCookie = typeof req.cookies?.oauth_redirect === 'string' ? req.cookies.oauth_redirect : '';
+    const redirectUrl = isAllowedPostAuthRedirect(redirectCookie)
+      ? redirectCookie
+      : 'https://tiltcheck.me/play/profile.html';
     res.clearCookie('oauth_redirect');
 
     res.redirect(redirectUrl);

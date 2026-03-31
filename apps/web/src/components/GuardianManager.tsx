@@ -88,10 +88,11 @@ const GuardianManager: React.FC<GuardianManagerProps> = ({ discordId }) => {
 
     return (
         <div className="bg-black/40 border border-[#283347] rounded-xl p-8">
-            <h2 className="text-xl font-black uppercase tracking-tighter mb-6 flex items-center gap-3">
+            <h2 className="text-xl font-black uppercase tracking-tighter mb-2 flex items-center gap-3">
                 <span className="w-2 h-6 bg-blue-500"></span>
-                PILLAR_4: THE_GUARDIANS
+                Your People
             </h2>
+            <p className="text-xs text-gray-500 font-mono mb-6">The humans who get a heads-up when your session goes sideways.</p>
 
             {/* Addition Form */}
             <form onSubmit={handleAddGuardian} className="mb-8 flex gap-2">
@@ -118,10 +119,10 @@ const GuardianManager: React.FC<GuardianManagerProps> = ({ discordId }) => {
                         ACTIVE_WATCHERS ({guardians.length})
                     </h3>
                     {loading ? (
-                        <div className="text-xs text-gray-600 animate-pulse">Loading Pillars...</div>
+                        <div className="text-xs text-gray-600 animate-pulse">Loading your crew...</div>
                     ) : guardians.length === 0 ? (
-                        <div className="p-4 border border-[#283347] border-dashed text-xs text-gray-500 uppercase tracking-widest italic text-center">
-                            No Guardians connected. You are operating without a safety net.
+                        <div className="p-4 border border-[#283347] border-dashed text-xs text-gray-500 italic text-center leading-relaxed">
+                            Nobody linked yet. That&apos;s fine — most people fly solo. But it helps to have someone watching your back when the session gets messy.
                         </div>
                     ) : (
                         <div className="grid grid-cols-1 gap-3">
@@ -149,7 +150,7 @@ const GuardianManager: React.FC<GuardianManagerProps> = ({ discordId }) => {
                 {pending.length > 0 && (
                     <div>
                         <h3 className="text-[10px] font-black uppercase tracking-widest text-yellow-500/50 mb-4 border-b border-[#283347] pb-1">
-                            PENDING_REYNOLDS ({pending.length})
+                            Waiting on them to accept ({pending.length})
                         </h3>
                         <div className="space-y-2">
                              {pending.map((p) => (
@@ -167,9 +168,9 @@ const GuardianManager: React.FC<GuardianManagerProps> = ({ discordId }) => {
 
             <div className="mt-8 pt-8 border-t border-[#283347]">
                 <div className="flex items-center gap-4 p-4 bg-gray-500/5 rounded">
-                    <div className="text-xl">ℹ️</div>
+                    <div className="text-xl">💙</div>
                     <div className="text-[10px] font-bold uppercase text-gray-500 leading-tight">
-                        Guardians receive blunt, non-polite alerts when you exceed your thresholds. Use only for trusted accountability partners.
+                        Guardians get a real, direct message when you cross your thresholds. Only add people you actually trust with that.
                     </div>
                 </div>
             </div>

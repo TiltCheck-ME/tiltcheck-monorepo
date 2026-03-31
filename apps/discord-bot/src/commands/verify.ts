@@ -10,7 +10,7 @@ import crypto from 'crypto';
 export const verify: Command = {
   data: new SlashCommandBuilder()
     .setName('verify')
-    .setDescription('[HASH AUDIT] Provably fair? Verify your rolls mid-session.')
+    .setDescription('Provably fair? Verify your rolls mid-session.')
     .addStringOption(opt => opt.setName('server_seed').setDescription('Server seed hash').setRequired(true))
     .addStringOption(opt => opt.setName('client_seed').setDescription('Client seed').setRequired(true))
     .addIntegerOption(opt => opt.setName('nonce').setDescription('Nonce number').setRequired(true)),
@@ -22,7 +22,7 @@ export const verify: Command = {
 
     const embed = new EmbedBuilder()
       .setColor(0x00FF00)
-      .setTitle('🔍 [HASH AUDIT] VERIFIED')
+      .setTitle('🔍 HASH AUDIT — VERIFIED')
       .setTimestamp();
 
     try {

@@ -15,21 +15,20 @@ const Nav = () => {
     <>
       {!isConnected ? (
         <>
-          <Link href="/features" onClick={() => setIsMenuOpen(false)} className="hover:text-[color:var(--color-primary)] transition-colors">Features</Link>
+          <Link href="/#tools" onClick={() => setIsMenuOpen(false)} className="hover:text-[color:var(--color-primary)] transition-colors">Tools</Link>
           <Link href="/blog" onClick={() => setIsMenuOpen(false)} className="hover:text-[color:var(--color-primary)] transition-colors">Blog</Link>
           <Link href="/casinos" onClick={() => setIsMenuOpen(false)} className="hover:text-[color:var(--color-primary)] transition-colors">Casinos</Link>
-          <Link href="/settings" onClick={() => setIsMenuOpen(false)} className="hover:text-[color:var(--color-primary)] transition-colors">Settings</Link>
-          <Link href="#faq" onClick={() => setIsMenuOpen(false)} className="hover:text-[color:var(--color-primary)] transition-colors">FAQ</Link>
+          <Link href="/beta-tester" onClick={() => setIsMenuOpen(false)} className="hover:text-[color:var(--color-primary)] transition-colors text-[#ffd700]">Beta</Link>
+          <Link href="/docs" onClick={() => setIsMenuOpen(false)} className="hover:text-[color:var(--color-primary)] transition-colors">Docs</Link>
           <Link href="/extension" onClick={() => setIsMenuOpen(false)} className="hover:text-[color:var(--color-primary)] transition-colors">Extension</Link>
         </>
       ) : (
         <>
-          <Link href="/dashboard" onClick={() => setIsMenuOpen(false)} className="hover:text-[color:var(--color-primary)] transition-colors">Audit</Link>
-          <Link href="/dashboard" onClick={() => setIsMenuOpen(false)} className="hover:text-[color:var(--color-primary)] transition-colors text-[color:var(--color-primary)] font-bold">Dashboard</Link>
-          <Link href="/dashboard" onClick={() => setIsMenuOpen(false)} className="hover:text-[color:var(--color-primary)] transition-colors">Vault</Link>
-          <Link href="/dashboard" onClick={() => setIsMenuOpen(false)} className="hover:text-[color:var(--color-primary)] transition-colors">Guardians</Link>
+          <Link href="/dashboard" onClick={() => setIsMenuOpen(false)} className="hover:text-[color:var(--color-primary)] transition-colors">Dashboard</Link>
+          <Link href="/dashboard#trust" onClick={() => setIsMenuOpen(false)} className="hover:text-[color:var(--color-primary)] transition-colors">Audit</Link>
+          <Link href="/dashboard#vault" onClick={() => setIsMenuOpen(false)} className="hover:text-[color:var(--color-primary)] transition-colors">Vault</Link>
+          <Link href="/dashboard#guardians" onClick={() => setIsMenuOpen(false)} className="hover:text-[color:var(--color-primary)] transition-colors">Guardians</Link>
           <Link href="/docs" onClick={() => setIsMenuOpen(false)} className="hover:text-[color:var(--color-primary)] transition-colors">Docs</Link>
-          <Link href="/admin" onClick={() => setIsMenuOpen(false)} className="hover:text-white/50 transition-colors">Admin</Link>
         </>
       )}
     </>
