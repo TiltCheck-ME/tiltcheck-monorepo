@@ -14,30 +14,32 @@ export interface NudgeMessage {
 }
 
 // THE RELUCTANT BABYSITTER: TOUGH LOVE AUDIT STRINGS
+// Voice guide: humor escalates DOWN as severity escalates UP.
+// Gentle = chatty. Moderate = raised eyebrow. Firm = pointed. CRITICAL = no jokes, just truth.
 const NUDGE_MESSAGES: Record<string, NudgeMessage[]> = {
   'rapid-messages': [
-    { text: "Slow down. Your bet velocity is peaking. It's giving rinse vibes.", severity: 'gentle', category: 'pacing', symbol: '[AUDIT]' },
-    { text: "You're clicking faster than the page can even register. The house loves this momentum. STOP.", severity: 'moderate', category: 'pacing', symbol: '[SPEED]' },
-    { text: "Audit your head. 10 bets in 2 minutes? The house is printing while you f*** around.", severity: 'firm', category: 'pacing', symbol: '[RINSE]' },
+    { text: "You're clicking fast. Like, really fast. The house loves this energy. Maybe slow down?", severity: 'gentle', category: 'pacing', symbol: '[AUDIT]' },
+    { text: "Bold of you to keep that pace up. Anyway, your bet velocity is peaking. The math noticed.", severity: 'moderate', category: 'pacing', symbol: '[SPEED]' },
+    { text: "10 bets in 2 minutes. How's that going for you statistically? Yeah. Thought so. Stop.", severity: 'firm', category: 'pacing', symbol: '[RINSE]' },
   ],
   'loss-streak': [
-    { text: "3 losses in a row. The RNG doesn't care about your feelings. Take a breather.", severity: 'moderate', category: 'loss', symbol: '[AUDIT]' },
-    { text: "Loss streak detected. Revenge betting is a house strategy. Don't be their donator.", severity: 'firm', category: 'loss', symbol: '[ALERT]' },
-    { text: "VIBE CHECK INBOUND. You literally cannot outrun the math. Walk away with what's left.", severity: 'CRITICAL', category: 'loss', symbol: '[CRITICAL]' },
+    { text: "3 losses in a row. The RNG doesn't care about your feelings. Take a breather — we'll be here.", severity: 'moderate', category: 'loss', symbol: '[AUDIT]' },
+    { text: "The house has officially entered its winning streak era. Revenge betting is their favorite thing. Don't give them the satisfaction.", severity: 'firm', category: 'loss', symbol: '[ALERT]' },
+    { text: "You cannot outrun the math. We say this with love. Walk away with what you've got left.", severity: 'CRITICAL', category: 'loss', symbol: '[CRITICAL]' },
   ],
   'large-bet': [
-    { text: "You just rolled a massive bet. That's a huge chunk of your bag. Audit your logic.", severity: 'firm', category: 'bankroll', symbol: '[RISK]' },
-    { text: "Over-leveraged. You're betting like you've already won. You haven't. Audit now.", severity: 'moderate', category: 'bankroll', symbol: '[CASH]' },
+    { text: "That's a big bet. Like, a real chunk of your bag. Just making sure that was on purpose.", severity: 'moderate', category: 'bankroll', symbol: '[RISK]' },
+    { text: "You're betting like you've already won. You haven't. Audit your logic before the next one.", severity: 'firm', category: 'bankroll', symbol: '[CASH]' },
   ],
   'playtime-exhaustion': [
-    { text: "You've been in the arena for 3 hours. Go touch grass while you still have a balance.", severity: 'moderate', category: 'time', symbol: '[TIME]' },
-    { text: "Audit says your probability of keeping this bag is dropping every minute. Go outside.", severity: 'firm', category: 'time', symbol: '[NATURE]' },
+    { text: "Three hours in. Your brain is cooked whether you feel it or not. Go eat something. We'll still be here.", severity: 'moderate', category: 'time', symbol: '[TIME]' },
+    { text: "The longer you play, the better the odds look to you and the worse they actually get. That's not a coincidence. Go outside.", severity: 'firm', category: 'time', symbol: '[NATURE]' },
   ]
 };
 
 const GENERIC_NUDGES: NudgeMessage[] = [
-  { text: "Audit check. You still have your wits about you?", severity: 'gentle', category: 'general', symbol: '[HELLO]' },
-  { text: "The math is clear: Secure the profit now or it's gone in 5 mins.", severity: 'moderate', category: 'general', symbol: '[PROFIT]' },
+  { text: "Two hours in. How you feeling? The math says... moderate chaos.", severity: 'gentle', category: 'general', symbol: '[HELLO]' },
+  { text: "Still here? The house noticed. They sent a thank-you card. Maybe cash out while you're ahead.", severity: 'moderate', category: 'general', symbol: '[PROFIT]' },
 ];
 
 /**
@@ -98,12 +100,12 @@ export function getEscalatedNudges(userId: string): string[] {
  * Get a message specifically for when a user enters cooldown
  */
 export function getCooldownMessage(): string {
-  return `🔒 **[COOLDOWN] ACCESS DENIED.** You have crossed the risk threshold. The arena is locked for 15 minutes while you Audit your head. Secure whatever balance you have left.`;
+  return `🔒 **Session locked for 15 minutes.** Not a punishment — the system is doing its job. You crossed your own line. Check your balance, breathe, and come back when you're ready.`;
 }
 
 /**
  * Get a violation message for when a user ignores earlier nudges
  */
 export function getViolationMessage(): string {
-  return `🚨 **[VIOLATION] CRITICAL RISK DETECTED.** You are actively ignoring the math. We are escalating this to your emergency contact. WALKING AWAY IS MANDATORY.`;
+  return `🚨 **We've been telling you.** This is the third time we've flagged this session. We're looping in your accountability partner now. Seriously — walk away.`;
 }

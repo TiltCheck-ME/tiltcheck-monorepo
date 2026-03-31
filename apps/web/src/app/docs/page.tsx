@@ -19,7 +19,7 @@ export default async function DocsIndexPage() {
     <div className="flex flex-col gap-12 animate-in fade-in slide-in-from-bottom-4 duration-500 max-w-7xl mx-auto px-4 py-12">
       <header className="border-b border-[#283347] pb-8">
         <div className="flex items-center gap-4 mb-2">
-            <span className="text-xs font-black uppercase tracking-[0.3em] text-[#d946ef] bg-[#d946ef]/10 px-2 py-1">Knowledge Base</span>
+            <span className="text-xs font-black uppercase tracking-[0.3em] text-[#17c3b2] bg-[#17c3b2]/10 px-2 py-1">Knowledge Base</span>
         </div>
         <h1 className="text-4xl font-black uppercase tracking-tighter text-[color:var(--color-primary)]">
           TiltCheck Library <span className="text-sm font-normal text-gray-500">// Documentation & Specs</span>

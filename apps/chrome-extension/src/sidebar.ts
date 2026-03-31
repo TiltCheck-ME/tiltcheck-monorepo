@@ -14,6 +14,12 @@
 
 import { EXT_CONFIG, getDiscordLoginUrl } from './config.js';
 import { AuthManager } from './sidebar/auth.js';
+import { WalletBridge } from './wallet-bridge.js';
+import { SolanaProvider } from './SolanaProvider.js';
+import { LAMPORTS_PER_SOL, PublicKey, SystemProgram, Transaction } from '@solana/web3.js';
+
+const walletBridge = new WalletBridge();
+const solanaProvider = new SolanaProvider();
 
 const API_BASE = EXT_CONFIG.API_BASE_URL;
 const AI_GATEWAY_URL = EXT_CONFIG.AI_GATEWAY_URL;
@@ -760,10 +766,47 @@ function createSidebar() {
             <button class="tg-action-btn tg-advanced-only" id="tg-open-verifier">Fairness Check</button>
             <button class="tg-action-btn" id="tg-open-dashboard">Open Dashboard</button>
             <button class="tg-action-btn" id="tg-open-vault">Open Vault</button>
+            <button class="tg-action-btn" id="tg-open-tip">Direct Tip</button>
             <button class="tg-action-btn tg-advanced-only" id="tg-wallet">Wallet Status</button>
             <button class="tg-action-btn tg-advanced-only" id="tg-upgrade">Unlock Premium</button>
           </div>
           <button class="tg-btn tg-btn-secondary tg-advanced-only" id="tg-open-report" style="margin-top: 8px;">Report Site Change</button>
+        </div>
+
+        <!-- Tipping Panel (Pillar 3/4) -->
+        <div class="tg-settings-panel" id="tg-tip-panel" style="display: none;">
+          <h4>JustTheTip Protocol</h4>
+          <div class="tg-input-group">
+            <label>Recipient Discord ID / Wallet</label>
+            <input type="text" id="tip-recipient" placeholder="Enter Discord ID or SOL Address" />
+          </div>
+          <div class="tg-input-group">
+            <label>Amount (SOL)</label>
+            <input type="number" id="tip-amount" step="0.01" value="0.05" />
+          </div>
+          <p id="tip-status-text" style="font-size: 10px; opacity: 0.6; margin-bottom: 10px;"></p>
+          
+          <div class="tg-action-grid" style="grid-template-columns: 1fr 1fr; margin-bottom: 10px;">
+            <button class="tg-btn tg-btn-primary" id="tip-send-btn">Browser Wallet</button>
+            <button class="tg-btn tg-btn-secondary" id="tip-manual-btn">Manual / QR</button>
+          </div>
+
+          <div id="tip-manual-area" style="display: none; padding: 10px; background: rgba(0,0,0,0.3); border-radius: 4px; margin-bottom: 10px; border: 1px dashed rgba(255,255,255,0.2);">
+            <div style="font-[10px] uppercase font-bold text-gray-500 mb-2">Manual Recipient Address:</div>
+            <div id="tip-manual-address" style="font-size: 10px; word-break: break-all; background: #000; padding: 8px; border-radius: 4px; margin-bottom: 8px; color: #4ade80;">...</div>
+            <div style="display: flex; gap: 5px;">
+              <button class="tg-btn-icon" id="tip-copy-address" style="flex: 1; font-size: 10px;">Copy Address</button>
+              <a href="https://jup.ag/swap" target="_blank" class="tg-btn-icon" style="flex: 1; font-size: 10px; text-decoration: none; text-align: center; display: flex; align-items: center; justify-content: center; background: #d946ef22; border-color: #d946ef44;">Bridge via Jupiter</a>
+            </div>
+          </div>
+
+          <div id="tip-elite-promo" style="display: block; padding: 10px; background: linear-gradient(135deg, #d946ef22 0%, #3b82f622 100%); border: 1px solid #d946ef44; border-radius: 8px; margin-bottom: 12px;">
+            <div style="font-size: 11px; font-weight: 800; color: #d946ef; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.05em;">🛡️ TiltCheck Elite Upgrade</div>
+            <p style="font-size: 10px; color: #9ca3af; margin-bottom: 8px; line-height: 1.2;">Unlocks Stealth Tipping (Privacy) and Removes Protocol Fees.</p>
+            <button class="tg-btn tg-btn-primary" id="tg-upgrade-elite-btn" style="padding: 6px; font-size: 10px;">Go Elite (0.5 SOL / Year)</button>
+          </div>
+
+          <button class="tg-btn tg-btn-secondary" id="close-tip" style="width: 100%;">Close</button>
         </div>
 
         <!-- LinkCheck Panel (toggleable) -->
@@ -1712,6 +1755,194 @@ function setupEventListeners() {
     if (panel) panel.style.display = 'none';
   });
 
+  // Tipping Panel (JustTheTip)
+  document.getElementById('tg-open-tip')?.addEventListener('click', () => {
+    const panel = document.getElementById('tg-tip-panel');
+    if (panel) panel.style.display = 'block';
+  });
+  document.getElementById('close-tip')?.addEventListener('click', () => {
+    const panel = document.getElementById('tg-tip-panel');
+    if (panel) panel.style.display = 'none';
+  });
+
+  document.getElementById('tip-send-btn')?.addEventListener('click', async () => {
+    const recipient = (document.getElementById('tip-recipient') as HTMLInputElement).value;
+    const amount = parseFloat((document.getElementById('tip-amount') as HTMLInputElement).value);
+    const statusText = document.getElementById('tip-status-text');
+
+    if (!recipient || isNaN(amount) || amount <= 0) {
+      updateStatus('Enter a valid recipient and amount.', 'warning');
+      return;
+    }
+
+    if (demoMode) {
+      updateStatus('Connect Discord to send real SOL tips.', 'warning');
+      return;
+    }
+
+    if (statusText) statusText.textContent = 'Resolving recipient...';
+    updateStatus('Initializing JustTheTip...', 'thinking');
+
+    try {
+      // 1. Resolve Recipient (if it's a Discord ID, we need to fetch their wallet address)
+      let recipientAddress = recipient;
+      if (!/^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(recipient)) {
+        // Assume Discord ID or handle
+        const res = await apiCall(`/user/resolve?identity=${recipient}`);
+        if (res.success && res.wallet) {
+          recipientAddress = res.wallet;
+        } else {
+          throw new Error('Could not resolve recipient wallet address.');
+        }
+      }
+
+      // 2. Connect Wallet if needed
+      if (!walletBridge.publicKey) {
+        if (statusText) statusText.textContent = 'Connecting wallet...';
+        await walletBridge.connect();
+      }
+
+      // 3. Create Transaction
+      const recipientPubkey = new PublicKey(recipientAddress);
+      const transaction = new Transaction();
+      
+      // Add the Base Tip
+      transaction.add(
+        SystemProgram.transfer({
+          fromPubkey: walletBridge.publicKey!,
+          toPubkey: recipientPubkey,
+          lamports: Math.floor(amount * LAMPORTS_PER_SOL),
+        })
+      );
+
+      // 3b. Add Protocol Fee (GCP Fund) if not Elite
+      const isElite = userData?.tier === 'elite';
+      if (!isElite) {
+        const bps = EXT_CONFIG.PROTOCOL_FEE_BPS || 250; 
+        const feeLamports = Math.floor((amount * LAMPORTS_PER_SOL * bps) / 10000);
+        
+        if (feeLamports > 0) {
+          transaction.add(
+            SystemProgram.transfer({
+              fromPubkey: walletBridge.publicKey!,
+              toPubkey: new PublicKey(EXT_CONFIG.OPERATIONS_WALLET),
+              lamports: feeLamports,
+            })
+          );
+          const feeSol = (feeLamports / LAMPORTS_PER_SOL).toFixed(4);
+          addFeedMessage(`Applied Protocol Fee: ${feeSol} SOL (Support GCP Bill Fund)`);
+        }
+      }
+
+      // 4. Sign and Send via Bridge
+      if (statusText) statusText.textContent = 'Requesting signature...';
+      const _signature = await walletBridge.sendTransaction(transaction, (solanaProvider as any).connection);
+      
+      if (statusText) {
+        statusText.textContent = 'Tip Sent Successfully!';
+        statusText.style.color = '#10b981';
+      }
+      addFeedMessage(`JustTheTip: Sent ${amount} SOL to ${recipientAddress.slice(0, 4)}...`);
+      updateStatus('Tip confirmed on-chain.', 'success');
+      
+      // Close panel after delay
+      setTimeout(() => {
+        document.getElementById('tg-tip-panel')!.style.display = 'none';
+        if (statusText) statusText.textContent = '';
+      }, 3000);
+
+    } catch (error: any) {
+      console.error('[JustTheTip] Error:', error);
+      if (statusText) {
+        statusText.textContent = `Error: ${error.message}`;
+        statusText.style.color = '#ef4444';
+      }
+      updateStatus('Tip failed. See logs.', 'warning');
+    }
+  });
+
+  document.getElementById('tip-manual-btn')?.addEventListener('click', async () => {
+    const recipient = (document.getElementById('tip-recipient') as HTMLInputElement).value;
+    const statusText = document.getElementById('tip-status-text');
+    const manualArea = document.getElementById('tip-manual-area');
+    const manualAddress = document.getElementById('tip-manual-address');
+
+    if (!recipient) {
+      updateStatus('Enter a recipient to resolve address.', 'warning');
+      return;
+    }
+
+    if (statusText) statusText.textContent = 'Resolving recipient address...';
+    
+    try {
+      let recipientAddress = recipient;
+      if (!/^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(recipient)) {
+        const res = await apiCall(`/user/resolve?identity=${recipient}`);
+        if (res.success && res.wallet) {
+          recipientAddress = res.wallet;
+        } else {
+          throw new Error('Could not resolve recipient wallet address.');
+        }
+      }
+
+      if (manualArea) manualArea.style.display = 'block';
+      if (manualAddress) manualAddress.textContent = recipientAddress;
+      if (statusText) statusText.textContent = 'Recipient address resolved below.';
+      updateStatus('Manual address ready.', 'success');
+
+    } catch (error: any) {
+      if (statusText) statusText.textContent = `Error: ${error.message}`;
+      updateStatus('Resolution failed.', 'warning');
+    }
+  });
+
+  document.getElementById('tip-copy-address')?.addEventListener('click', () => {
+    const address = document.getElementById('tip-manual-address')?.textContent;
+    if (address && address !== '...') {
+      navigator.clipboard.writeText(address);
+      updateStatus('Address copied to clipboard!', 'success');
+    }
+  });
+
+  document.getElementById('tg-upgrade-elite-btn')?.addEventListener('click', async () => {
+    updateStatus('Initializing Elite Upgrade...', 'thinking');
+    
+    try {
+      if (!walletBridge.publicKey) {
+        await walletBridge.connect();
+      }
+
+      const transaction = new Transaction().add(
+        SystemProgram.transfer({
+          fromPubkey: walletBridge.publicKey!,
+          toPubkey: new PublicKey(EXT_CONFIG.OPERATIONS_WALLET),
+          lamports: 0.5 * LAMPORTS_PER_SOL,
+        })
+      );
+
+      const sig = await walletBridge.sendTransaction(transaction, (solanaProvider as any).connection);
+      
+      // Update backend to track the upgrade
+      await apiCall('/user/upgrade', {
+        method: 'POST',
+        body: JSON.stringify({ signature: sig, tier: 'elite' })
+      });
+
+      addFeedMessage('🛡️ Upgrade successful! Welcome to the Elite Tier.');
+      updateStatus('Tier upgraded to Elite.', 'success');
+      
+      // Update local state and UI
+      if (userData) userData.tier = 'elite';
+      syncAccountUi();
+      const promo = document.getElementById('tip-elite-promo');
+      if (promo) promo.style.display = 'none';
+
+    } catch (error: any) {
+      console.error('[EliteUpgrade] Error:', error);
+      updateStatus('Upgrade failed. Check wallet.', 'warning');
+    }
+  });
+
   // Report toggle
   document.getElementById('tg-open-report')?.addEventListener('click', () => {
     const panel = document.getElementById('tg-report-panel');
@@ -2351,7 +2582,7 @@ function updateGoalProgress(balance: number) {
   meta.textContent = `$${balance.toFixed(2)} / $${goal.amount.toFixed(2)}`;
 }
 
-let pnlHistory: number[] = [];
+const pnlHistory: number[] = [];
 
 function initPnLGraph() {
   const canvas = document.getElementById('pnl-canvas') as HTMLCanvasElement;

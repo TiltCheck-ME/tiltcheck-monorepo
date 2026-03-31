@@ -3,6 +3,7 @@
  * @tiltcheck/db - Cloud SQL / Postgres Database Client
  */
 import pg from 'pg';
+import { neon } from '@neondatabase/serverless';
 const { Pool } = pg;
 
 export interface Client {
@@ -41,7 +42,17 @@ export function getDBConfig(): DBClientConfig {
     ssl: process.env.DATABASE_SSL !== 'false' && !connectionString.includes('localhost'),
   };
 }
+
 let poolInstance: pg.Pool | null = null;
+let httpInstance: ReturnType<typeof neon> | null = null;
+
+export function getHttpQuery() {
+  if (!httpInstance) {
+    const config = getDBConfig();
+    httpInstance = neon(config.connectionString);
+  }
+  return httpInstance;
+}
 
 export function getPool(): pg.Pool {
   if (!poolInstance) {
@@ -54,9 +65,9 @@ export function getPool(): pg.Pool {
   return poolInstance;
 }
 
-export async function query<T = Record<string, unknown>>(sql: string, params?: unknown[]): Promise<T[]> {
-  const result = await getPool().query(sql, params);
-  return result.rows as T[];
+export async function query<T = Record<string, unknown>>(sql: string, params?: any[]): Promise<T[]> {
+  const result = await getHttpQuery()(sql, params);
+  return result as unknown as T[];
 }
 
 export async function queryOne<T = Record<string, unknown>>(sql: string, params?: unknown[]): Promise<T | null> {

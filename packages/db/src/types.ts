@@ -26,6 +26,7 @@ export interface User {
   redeem_threshold: number | null;
   redeem_wins: number;
   total_redeemed: number;
+  tier: 'free' | 'elite' | string;
 }
 
 /**
@@ -39,6 +40,7 @@ export interface CreateUserPayload {
   email?: string;
   hashed_password?: string;
   roles?: string[];
+  tier?: 'free' | 'elite' | string;
 }
 
 /**
@@ -57,6 +59,7 @@ export interface UpdateUserPayload {
   redeem_wins?: number;
   total_redeemed?: number;
   updated_at?: Date;
+  tier?: 'free' | 'elite' | string;
 }
 
 // ============================================================================

@@ -1060,6 +1060,7 @@ export interface CasinoMetricSnapshot {
   advertisedRtp?: number;
   actualRtp?: number;
   rtpDelta?: number;
+  sampleSize?: number;
   tosHash?: string;
   provablyFairUrl?: string;
   providerReputationTier?: 'reputable' | 'unknown' | 'shady';

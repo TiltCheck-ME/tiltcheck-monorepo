@@ -12,7 +12,7 @@ import { trustEngines } from '@tiltcheck/trust-engines';
 export const trustDashboard: Command = {
   data: new SlashCommandBuilder()
     .setName('reputation')
-    .setDescription('[EDGE EQUALIZER] View casino and user reputation scores.')
+    .setDescription('View casino and user reputation scores.')
     .addSubcommand(sub =>
       sub.setName('casino')
         .setDescription('Check a casino reputation')
@@ -50,7 +50,7 @@ export const trustDashboard: Command = {
     } catch (err) {
       console.error('[TrustCommand] Error:', err);
       await interaction.reply({
-        content: '[!] Failed to fetch trust data. Please try again.',
+        content: 'Couldn\'t pull that data right now. The engine\'s having a moment — try again in a sec.',
         ephemeral: true
       });
     }
@@ -89,7 +89,7 @@ async function showCasinoTrust(interaction: ChatInputCommandInteraction) {
       { name: '\u200b', value: '\u200b', inline: true },
     )
     .setTimestamp()
-    .setFooter({ text: `${breakdown.history.length} events tracked` });
+    .setFooter({ text: `${breakdown.history.length} events tracked — the math doesn't judge you. Neither do we.` });
 
   // Add warnings/explanations
   if (explanations.length > 0) {
@@ -150,8 +150,8 @@ async function showUserTrust(interaction: ChatInputCommandInteraction) {
   const isSelf = targetUser.id === interaction.user.id;
   if (!isSelf) {
     embed.addFields({
-      name: '[INFO] Privacy',
-      value: 'Trust scores are visible to help maintain community safety.',
+      name: '👁️ Heads up',
+      value: 'This score is visible to others. We do that to keep the community honest — not to put anyone on blast.',
       inline: false
     });
   }
@@ -161,7 +161,7 @@ async function showUserTrust(interaction: ChatInputCommandInteraction) {
 
 async function showExplanation(interaction: ChatInputCommandInteraction) {
   const embed = new EmbedBuilder()
-    .setTitle('[EDGE EQUALIZER] THE TRANSPARENCY PROTOCOL')
+    .setTitle('THE TRANSPARENCY PROTOCOL')
     .setColor(0x4ec9f0)
     .setDescription('TiltCheck uses automated audits and math-based verification to monitor the arena:')
     .addFields(

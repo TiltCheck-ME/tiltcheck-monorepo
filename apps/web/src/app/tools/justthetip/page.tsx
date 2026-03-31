@@ -60,7 +60,7 @@ export default function JustTheTipPage() {
             </button>
           </div>
         ) : (
-          <div className="terminal-box border-[#d946ef] animate-in fade-in slide-in-from-bottom-4 duration-500">
+          <div className="terminal-box border-[#17c3b2] animate-in fade-in slide-in-from-bottom-4 duration-500">
              <div className="terminal-prompt">
                 <span className="prompt-prefix">$</span>
                 <span className="prompt-text">Alright, let&apos;s give away some money...</span>
@@ -92,7 +92,7 @@ export default function JustTheTipPage() {
                         type="checkbox" 
                         checked={feeAcknowledged}
                         onChange={(e) => setFeeAcknowledged(e.target.checked)}
-                        className="w-5 h-5 accent-[#d946ef]" 
+                        className="w-5 h-5 accent-[#17c3b2]" 
                       />
                       <span className="text-xs text-gray-400 font-bold group-hover:text-white transition-colors">
                          I get it. You take a tiny fee ($0.07) and if I mess up, the money&apos;s gone forever.
@@ -104,7 +104,7 @@ export default function JustTheTipPage() {
                   disabled={!feeAcknowledged}
                   className={`btn w-full py-4 text-lg font-black tracking-widest uppercase ${
                     feeAcknowledged 
-                    ? 'bg-[#d946ef] text-white hover:bg-[#f062ff] hover:shadow-[4px_4px_0_#17c3b2]' 
+                    ? 'bg-[#17c3b2] text-white hover:bg-[#48d5c6] hover:shadow-[4px_4px_0_#17c3b2]' 
                     : 'bg-[#141922] text-gray-600 border border-[#283347] cursor-not-allowed opacity-50'
                   }`}
                 >

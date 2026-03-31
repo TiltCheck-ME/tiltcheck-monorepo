@@ -1,0 +1,40 @@
+name: Deploy TiltCheck Web to GCP
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'apps/web/**'
+      - 'packages/**'
+      - 'cloudbuild-web.yaml'
+
+jobs:
+  deploy-web:
+    runs-on: ubuntu-latest
+    
+    # 2,000 free minutes per month on GitHub Free.
+    # We offload the actual heavy lifting to Google Cloud Build (120 free minutes per day).
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          # Keyless Authentication via Workload Identity Federation
+          workload_identity_provider: 'projects/164294266634/locations/global/workloadIdentityPools/github-actions-pool/providers/github-actions-provider'
+          service_account: 'github-actions@tiltchcek.iam.gserviceaccount.com'
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+        with:
+          project_id: tiltchcek
+
+      - name: Submit to Google Cloud Build
+        run: |
+          echo "Submitting Web App to Unified Google Cloud Build..."
+          gcloud builds submit \
+            --config cloudbuild.yaml \
+            --project tiltchcek \
+            --substitutions=_SERVICE_NAME=web,_REPOSITORY=tiltcheck-services,_REGION=us-central1

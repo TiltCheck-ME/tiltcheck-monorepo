@@ -4,9 +4,9 @@
  * Handles user profile, onboarding status, and preferences
  */
 
-import { Router } from 'express';
+import { Router, Response, Request, NextFunction } from 'express';
 import { authMiddleware, AuthRequest } from '../middleware/auth.js';
-import { 
+import {
     findOnboardingByDiscordId, 
     upsertOnboarding,
     findUserByDiscordId,
@@ -17,63 +17,169 @@ import {
     sendBuddyRequest,
     acceptBuddyRequest,
     removeBuddy,
-    updateBuddyThresholds
+    updateUser
 } from '@tiltcheck/db';
 import { ValidationError, InternalServerError } from '@tiltcheck/error-factory';
 
 const router: Router = Router();
 
 /**
- * GET /user/lookup/:wallet
- * Resolve Discord ID from Solana wallet address
+ * Resolve Discord ID from Solana wallet address.
  */
-router.get('/lookup/:wallet', async (req, res, next) => {
+async function handleLookupByWallet(wallet: string, res: Response): Promise<boolean> {
+    const user = await findUserByWallet(wallet);
+    if (!user) {
+        res.status(404).json({ error: 'User wallet not linked' });
+        return false;
+    }
+    res.json({ discordId: user.discord_id });
+    return true;
+}
+
+interface UserProfileData {
+    id: string;
+    discord_id?: string | null;
+    discord_username?: string | null;
+    discord_avatar?: string | null;
+    wallet_address?: string | null;
+    total_redeemed?: number | null;
+    redeem_wins?: number | null;
+    redeem_threshold?: number | null;
+}
+
+interface OnboardingData {
+    total_redeemed?: number | null;
+    redeem_wins?: number | null;
+    daily_limit?: number | null;
+    risk_level?: string | null;
+    redeem_threshold?: number | null;
+}
+
+interface TrustSummaryData {
+    signals_count?: number;
+    total_score?: number;
+}
+
+function buildUserProfileResponse(user: UserProfileData, onboarding: OnboardingData | null, trustSummary: TrustSummaryData | null) {
+    const analytics = {
+        totalJuice: user.total_redeemed ?? onboarding?.total_redeemed ?? 0,
+        totalTipsCaught: 0,
+        eventCount: trustSummary?.signals_count || 0,
+        redeemWins: user.redeem_wins ?? onboarding?.redeem_wins ?? 0,
+        totalRedeemed: user.total_redeemed ?? onboarding?.total_redeemed ?? 0,
+        trustScore: trustSummary?.total_score || 0,
+    };
+
+    return {
+        success: true,
+        id: user.id,
+        discordId: user.discord_id,
+        username: user.discord_username,
+        avatar: user.discord_avatar,
+        trustScore: trustSummary?.total_score || 0,
+        analytics,
+        redeemThreshold: user.redeem_threshold || onboarding?.daily_limit || 500,
+        degenIdentity: {
+            primary_external_address: user.wallet_address || 'Not linked',
+        },
+        user: {
+            id: user.id,
+            discordId: user.discord_id,
+            walletAddress: user.wallet_address,
+            total_redeemed: onboarding?.total_redeemed || user.total_redeemed || 0,
+            redeem_threshold: onboarding?.redeem_threshold || user.redeem_threshold || 250,
+            risk_level: onboarding?.risk_level || 'moderate',
+        },
+    };
+}
+
+router.get('/lookup/:wallet', async (req: Request, res: Response, next: NextFunction) => {
     try {
         const wallet = req.params.wallet as string;
-        const user = await findUserByWallet(wallet);
-        if (!user) {
-            return res.status(404).json({ error: 'User wallet not linked' });
-        }
-        res.json({ discordId: user.discord_id });
+        await handleLookupByWallet(wallet, res);
     } catch (err) {
         next(err);
     }
 });
 
 /**
- * GET /user/:discordId
- * Get comprehensive user stats (The Truth Layer)
+ * Upgrade user to Elite Tier.
+ * Validates transaction signature on-chain (placeholder for full validation).
  */
-router.get('/:discordId', async (req, res, next) => {
+router.post('/upgrade', authMiddleware, async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const discordId = req.params.discordId as string;
-        
-        // Use findUserByDiscordId from @tiltcheck/db
-        const user = await findUserByDiscordId(discordId);
-        
-        if (!user) {
-            return res.status(404).json({ error: 'User profile not found' });
+        const userPayload = (req as AuthRequest).user;
+        const { signature, tier } = req.body;
+
+        if (!userPayload?.id) {
+            return next(new ValidationError('User session not found'));
         }
 
-        const onboarding = await findOnboardingByDiscordId(discordId);
-        const trust = await getAggregatedTrustByDiscordId(discordId);
+        if (!signature || !tier) {
+            return next(new ValidationError('Upgrade signature and target tier are required'));
+        }
+
+        // TODO: In production, verify the signature on-chain to ensure it's a valid 0.5 SOL transfer 
+        // to the Operations Wallet before updating the database.
+        
+        const updated = await updateUser(userPayload.id, { tier });
 
         res.json({
             success: true,
-            user: {
-                id: user.id,
-                discordId: user.discord_id,
-                walletAddress: user.wallet_address,
-                total_redeemed: onboarding?.total_redeemed || 0,
-                redeem_threshold: onboarding?.redeem_threshold || 250,
-                risk_level: onboarding?.risk_level || 'moderate'
-            },
-            analytics: {
-                totalJuice: onboarding?.total_redeemed || 0.00,
-                redeemWins: onboarding?.redeem_wins || 0,
-                trustScore: trust?.total_score || 75
-            }
+            message: `User upgraded to ${tier} tier`,
+            user: updated
         });
+    } catch (err) {
+        console.error('[User API] Upgrade error:', err);
+        next(new InternalServerError('Failed to process upgrade'));
+    }
+});
+
+/**
+ * Resolve a wallet address from a Discord ID or generic identity string.
+ * Used by the JustTheTip protocol.
+ */
+router.get('/resolve', async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const identity = req.query.identity as string;
+        if (!identity) {
+            return next(new ValidationError('Identity query is required'));
+        }
+
+        // Try Discord ID first
+        const user = await findUserByDiscordId(identity);
+        
+        // If not found, try searching by username (case-insensitive handle)
+        if (!user) {
+            // Placeholder: currently the @tiltcheck/db doesn't have findUserByUsername
+            // But we can assume the user might pass the wallet directly.
+            if (/^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(identity)) {
+                return res.json({ success: true, wallet: identity });
+            }
+            return res.status(404).json({ success: false, error: 'Recipient not found or not linked' });
+        }
+
+        if (!user.wallet_address) {
+            return res.status(400).json({ success: false, error: 'Recipient has no wallet linked' });
+        }
+
+        res.json({
+            success: true,
+            wallet: user.wallet_address,
+            username: user.discord_username
+        });
+    } catch (err) {
+        next(err);
+    }
+});
+
+/**
+ * Backward compatible alias for older clients.
+ */
+router.get('/lookup/:address', async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const address = req.params.address as string;
+        await handleLookupByWallet(address, res);
     } catch (err) {
         next(err);
     }
@@ -83,7 +189,7 @@ router.get('/:discordId', async (req, res, next) => {
  * GET /user/onboarding
  * Get onboarding status for the current user
  */
-router.get('/onboarding', authMiddleware, async (req, res, next) => {
+router.get('/onboarding', authMiddleware, async (req: Request, res: Response, next: NextFunction) => {
     try {
         const userPayload = (req as AuthRequest).user;
 
@@ -126,7 +232,7 @@ router.get('/onboarding', authMiddleware, async (req, res, next) => {
  * POST /user/onboarding
  * Update onboarding status and preferences
  */
-router.post('/onboarding', authMiddleware, async (req, res, next) => {
+router.post('/onboarding', authMiddleware, async (req: Request, res: Response, next: NextFunction) => {
     try {
         const userPayload = (req as AuthRequest).user;
         const {
@@ -164,70 +270,10 @@ router.post('/onboarding', authMiddleware, async (req, res, next) => {
 });
 
 /**
- * GET /user/lookup/:address
- * Find user associate with a wallet address
- */
-router.get('/lookup/:address', async (req, res, next) => {
-    try {
-        const { address } = req.params;
-        const user = await findUserByWallet(address);
-
-        if (!user) {
-            return res.status(404).json({ error: 'User wallet not linked to Discord' });
-        }
-
-        res.json({ discordId: user.discord_id });
-    } catch (error) {
-        next(error);
-    }
-});
-
-/**
- * GET /user/:discordId
- * Get user profile and analytics by Discord ID (used by Dashboard)
- */
-router.get('/:discordId', async (req, res, next) => {
-    try {
-        const { discordId } = req.params;
-        // NOTE: Auth temporarily disabled for dogfooding ease (will re-enable once identity works)
-        const user = await findUserByDiscordId(discordId);
-        if (!user) {
-            return res.status(404).json({ error: 'User not found' });
-        }
-
-        const [onboarding, trustSummary] = await Promise.all([
-            findOnboardingByDiscordId(discordId),
-            getAggregatedTrustByDiscordId(discordId)
-        ]);
-
-        res.json({
-            id: user.id,
-            discordId: user.discord_id,
-            username: user.discord_username,
-            avatar: user.discord_avatar,
-            trustScore: trustSummary?.total_score || 0,
-            analytics: {
-                totalJuice: user.total_redeemed || 0,
-                totalTipsCaught: 0,
-                eventCount: trustSummary?.signals_count || 0,
-                redeemWins: user.redeem_wins || 0,
-                totalRedeemed: user.total_redeemed || 0
-            },
-            redeemThreshold: user.redeem_threshold || onboarding?.daily_limit || 500,
-            degenIdentity: {
-                primary_external_address: user.wallet_address || 'Not linked'
-            }
-        });
-    } catch (error) {
-        next(error);
-    }
-});
-
-/**
  * GET /user/:discordId/buddies
  * Get all accepted buddies and pending requests
  */
-router.get('/:discordId/buddies', authMiddleware, async (req, res, next) => {
+router.get('/:discordId/buddies', authMiddleware, async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { discordId } = req.params;
         
@@ -250,7 +296,7 @@ router.get('/:discordId/buddies', authMiddleware, async (req, res, next) => {
  * POST /user/:discordId/buddies
  * Send a buddy request to another user
  */
-router.post('/:discordId/buddies', authMiddleware, async (req, res, next) => {
+router.post('/:discordId/buddies', authMiddleware, async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { discordId } = req.params;
         const { buddyId, thresholds } = req.body;
@@ -274,7 +320,7 @@ router.post('/:discordId/buddies', authMiddleware, async (req, res, next) => {
  * POST /user/:discordId/buddies/accept
  * Accept a pending buddy request
  */
-router.post('/:discordId/buddies/accept', authMiddleware, async (req, res, next) => {
+router.post('/:discordId/buddies/accept', authMiddleware, async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { requestId } = req.body;
 
@@ -297,7 +343,7 @@ router.post('/:discordId/buddies/accept', authMiddleware, async (req, res, next)
  * DELETE /user/:discordId/buddies/:buddyId
  * Remove a buddy relationship
  */
-router.delete('/:discordId/buddies/:buddyId', authMiddleware, async (req, res, next) => {
+router.delete('/:discordId/buddies/:buddyId', authMiddleware, async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { discordId, buddyId } = req.params;
 
@@ -315,7 +361,7 @@ router.delete('/:discordId/buddies/:buddyId', authMiddleware, async (req, res, n
  * GET /user/:discordId/activities
  * Get recent audit logs for a user (Activity Feed)
  */
-router.get('/:discordId/activities', async (req, res, next) => {
+router.get('/:discordId/activities', async (req: Request, res: Response, next: NextFunction) => {
     try {
         const discordId = req.params.discordId as string;
         const user = await findUserByDiscordId(discordId);
@@ -329,7 +375,7 @@ router.get('/:discordId/activities', async (req, res, next) => {
 
         res.json({
             success: true,
-            activities: logs.rows.map((log: any) => ({
+            activities: logs.rows.map((log) => ({
                 id: log.id,
                 type: log.action === 'VERIFY_SPIN' ? 'audit' : 'win',
                 message: log.action === 'VERIFY_SPIN' ? 'Audit: Spin Verified' : 'System Event',
@@ -339,6 +385,30 @@ router.get('/:discordId/activities', async (req, res, next) => {
         });
     } catch (err) {
         next(err);
+    }
+});
+
+/**
+ * GET /user/:discordId
+ * Get user profile and analytics by Discord ID (used by Dashboard)
+ */
+router.get('/:discordId', async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const { discordId } = req.params;
+        // NOTE: Auth temporarily disabled for dogfooding ease (will re-enable once identity works)
+        const user = await findUserByDiscordId(discordId);
+        if (!user) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+
+        const [onboarding, trustSummary] = await Promise.all([
+            findOnboardingByDiscordId(discordId),
+            getAggregatedTrustByDiscordId(discordId)
+        ]);
+
+        res.json(buildUserProfileResponse(user, onboarding, trustSummary));
+    } catch (error) {
+        next(error);
     }
 });
 

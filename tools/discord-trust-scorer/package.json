@@ -1,0 +1,10 @@
+{
+  "name": "discord-trust-scorer",
+  "version": "1.0.0",
+  "description": "TiltCheck Zero-Dependency Discord Trust Engine Baseline",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js",
+    "cli": "node cli.js mocks.json"
+  }
+}

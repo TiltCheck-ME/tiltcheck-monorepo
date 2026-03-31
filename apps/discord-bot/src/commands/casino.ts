@@ -1,6 +1,6 @@
 /* Copyright (c) 2026 TiltCheck. All rights reserved. */
 import { SlashCommandBuilder, ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
-import { db } from '@tiltcheck/database';
+import { findCasinoByDomain } from '@tiltcheck/db';
 import type { Command } from '../types.js';
 
 export const casino: Command = {
@@ -19,7 +19,7 @@ export const casino: Command = {
     const domain = interaction.options.getString('domain', true).toLowerCase();
 
     try {
-      const data = await db.getCasino(domain);
+      const data = await findCasinoByDomain(domain);
 
       if (!data) {
         await interaction.editReply({
@@ -28,20 +28,26 @@ export const casino: Command = {
         return;
       }
 
+      const metadata = (data.metadata || {}) as any;
+      const status = metadata.status || 'unknown';
+      const claimed_rtp = metadata.claimed_rtp;
+      const verified_rtp = metadata.verified_rtp;
+      const license_info = metadata.license_info;
+
       const embed = new EmbedBuilder()
         .setTitle(`[CASINO TRUST] ${data.name} (${data.domain})`)
-        .setColor(data.status === 'active' ? 0x00FF00 : 0xFF0000)
+        .setColor(status === 'active' ? 0x00FF00 : 0xFF0000)
         .setDescription(`Trust and fairness data for ${data.name}.`)
         .addFields(
-          { name: 'Status', value: data.status.toUpperCase(), inline: true },
-          { name: 'Claimed RTP', value: data.claimed_rtp ? `${data.claimed_rtp}%` : 'N/A', inline: true },
-          { name: 'Verified RTP', value: data.verified_rtp ? `${data.verified_rtp}%` : 'N/A', inline: true },
+          { name: 'Status', value: String(status).toUpperCase(), inline: true },
+          { name: 'Claimed RTP', value: claimed_rtp ? `${claimed_rtp}%` : 'N/A', inline: true },
+          { name: 'Verified RTP', value: verified_rtp ? `${verified_rtp}%` : 'N/A', inline: true },
         );
 
-      if (data.license_info) {
-        const license = typeof data.license_info === 'string' 
-          ? JSON.parse(data.license_info) 
-          : data.license_info;
+      if (license_info) {
+        const license = typeof license_info === 'string' 
+          ? JSON.parse(license_info) 
+          : license_info;
         
         const licenseDetails = Object.entries(license)
           .map(([k, v]) => `• **${k}:** ${v}`)

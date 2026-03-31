@@ -60,8 +60,8 @@ export default function CasinosPage() {
       </header>
 
       {error && (
-        <div className="mb-8 p-4 border border-caution bg-caution/10 text-caution font-mono text-center">
-          [!] WARNING: {error}
+        <div className="mb-8 p-4 border border-[#ffd700]/30 bg-[#ffd700]/5 text-[#ffd700] font-mono text-center">
+          The Trust Engine is being moody right now. Showing you the last scores we grabbed — real data back when it chills out.
         </div>
       )}
 
@@ -83,10 +83,10 @@ export default function CasinosPage() {
 
             <div className="space-y-4">
               <PillarBar label="Financial Integrity (40%)" score={data.financialPayouts} color="#17c3b2" />
-              <PillarBar label="Fairness & Transparency (25%)" score={data.fairnessTransparency} color="#8b5cf6" />
-              <PillarBar label="Promotional Honesty (15%)" score={data.promotionalHonesty} color="#d946ef" />
+              <PillarBar label="Fairness & Transparency (25%)" score={data.fairnessTransparency} color="#17c3b2" />
+              <PillarBar label="Promotional Honesty (15%)" score={data.promotionalHonesty} color="#ffd700" />
               <PillarBar label="Operational Support (10%)" score={data.operationalSupport} color="#ffd700" />
-              <PillarBar label="Community Reputation (10%)" score={data.communityReputation} color="#fff" />
+              <PillarBar label="Community Reputation (10%)" score={data.communityReputation} color="#ffffff" />
             </div>
 
             <div className="mt-8 pt-4 border-t border-white/5 flex justify-between items-center text-[10px] font-mono uppercase tracking-widest text-muted">
