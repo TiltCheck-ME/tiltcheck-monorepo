@@ -197,6 +197,19 @@ export function saveUserPreferences(prefs: UserPreferences): void {
   saveOnboardingToDb(prefs.userId, prefs).catch(console.error);
 }
 
+export async function resetUserOnboarding(userId: string): Promise<void> {
+  onboardedUsers.delete(userId);
+  userPreferences.delete(userId);
+  if (supabase) {
+    try {
+      await supabase.from('user_onboarding').delete().eq('discord_id', userId);
+      console.log(`[Onboarding] Surgically purged ${userId} from Supabase.`);
+    } catch (e) {
+      console.error('[Onboarding] Delete error:', e);
+    }
+  }
+}
+
 /**
  * Send welcome DM to new user
  */

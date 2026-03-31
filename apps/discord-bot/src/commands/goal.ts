@@ -1,7 +1,7 @@
 /* Copyright (c) 2026 TiltCheck. All rights reserved. */
 /**
- * Profit Goal Command
- * Set session exit milestones.
+ * Redeem Goal Command
+ * Set starting balance and redeem point for a session.
  */
 import { SlashCommandBuilder, ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
 import type { Command } from '../types.js';
@@ -9,20 +9,31 @@ import type { Command } from '../types.js';
 export const goal: Command = {
   data: new SlashCommandBuilder()
     .setName('goal')
-    .setDescription('Set your session exit milestone.')
-    .addIntegerOption(opt => opt.setName('amount').setDescription('Profit Target (USD/SOL equivalent)').setRequired(true))
-    .addBooleanOption(opt => opt.setName('total_balance').setDescription('Is this a total balance goal?').setRequired(false)),
+    .setDescription('Set your starting balance and the point where you cash out.')
+    .addIntegerOption(opt => opt.setName('starting_balance').setDescription('What are you walking in with? (USD equivalent)').setRequired(true))
+    .addIntegerOption(opt => opt.setName('redeem_point').setDescription('What balance triggers a cash out? (USD equivalent)').setRequired(true)),
 
   async execute(interaction: ChatInputCommandInteraction) {
-    const amount = interaction.options.getInteger('amount');
-    const isTotal = interaction.options.getBoolean('total_balance') || false;
+    const start = interaction.options.getInteger('starting_balance') ?? 0;
+    const redeem = interaction.options.getInteger('redeem_point') ?? 0;
+    const profit = redeem - start;
+
+    if (redeem <= start) {
+      await interaction.reply({ content: `That redeem point is lower than your starting balance. The math doesn't work like that.`, ephemeral: true });
+      return;
+    }
 
     const embed = new EmbedBuilder()
       .setColor(0x00CED1)
-      .setTitle('💰 TARGET SET')
-      .setDescription(`Target Audit: **$${amount}** ${isTotal ? '(Total Balance)' : '(Profit)'}.\n\nWhen you hit this, I'll notify your Tether to come celebrate while you SECURE THE BAG.`)
-      .setFooter({ text: 'Edge Equalizer: DONT OVERRUN THE MATH.' });
+      .setTitle('TARGET LOCKED')
+      .setDescription(
+        `Starting balance: **$${start}**\n` +
+        `Redeem point: **$${redeem}**\n` +
+        `That's **$${profit} profit** if you actually pull the trigger.\n\n` +
+        `When you hit it, I'll remind you to cash out before the house notices.`
+      )
+      .setFooter({ text: "Winning is easy. Keeping it is legendary." });
 
-    await interaction.reply({ embeds: [embed] });
+    await interaction.reply({ embeds: [embed], ephemeral: true });
   },
 };

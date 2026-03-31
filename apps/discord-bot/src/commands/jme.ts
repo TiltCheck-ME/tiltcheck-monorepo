@@ -12,6 +12,7 @@ import {
 } from 'discord.js';
 import type { Command } from '../types.js';
 import { getRandomQuote } from '@tiltcheck/utils';
+import { resetUserOnboarding } from '../handlers/onboarding.js';
 
 export const jme: Command = {
   data: new SlashCommandBuilder()
@@ -106,8 +107,8 @@ async function handlePurge(interaction: ChatInputCommandInteraction) {
 async function handleReset(interaction: ChatInputCommandInteraction) {
   const target = interaction.options.getUser('target', true);
   
-  // Hardcoded Owner Check (Customizable)
-  const isOwner = interaction.user.id === '164294266634' || interaction.user.id === '229825593856163840'; // Replace with actual ID
+  // Owner Check
+  const isOwner = interaction.user.id === '1472601571496951932' || interaction.user.id === '229825593856163840';
   
   if (!isOwner) {
     await interaction.reply({ content: '[!] UNAUTHORIZED. Owner-level clearance required for user reset.', ephemeral: true });
@@ -127,7 +128,7 @@ async function handleReset(interaction: ChatInputCommandInteraction) {
 
   await interaction.reply({ embeds: [embed], ephemeral: true });
   
-  // TODO: Implement actual database delete calls for user signals
+  await resetUserOnboarding(target.id);
 }
 
 async function handleIntel(interaction: ChatInputCommandInteraction) {

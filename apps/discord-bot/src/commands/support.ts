@@ -1,58 +1,52 @@
 /* Copyright (c) 2026 TiltCheck. All rights reserved. */
-import { SlashCommandBuilder, ChatInputCommandInteraction } from 'discord.js';
-import { getAlertService } from '../services/alert-service.js';
+/**
+ * Support Command
+ * DMs the user a support ticket confirmation and notifies the owner.
+ */
+import { SlashCommandBuilder, ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
 import type { Command } from '../types.js';
 
-const SUPPORT_CHANNEL_ID = '1437295074856927363';
-const OWNER_MENTION = '<@jmenichole>';
+const OWNER_ID = '1472601571496951932';
 
 export const support: Command = {
   data: new SlashCommandBuilder()
     .setName('support')
-    .setDescription('Request help from TiltCheck support')
+    .setDescription('Something broken? Flag it and we\'ll look at it.')
     .addStringOption(option =>
-      option.setName('topic').setDescription('What do you need help with?').setRequired(false)
+      option.setName('topic').setDescription('What\'s the issue?').setRequired(false)
     )
     .addStringOption(option =>
-      option.setName('message').setDescription('Describe your issue (optional)').setRequired(false)
+      option.setName('message').setDescription('Any extra context?').setRequired(false)
     ),
 
   async execute(interaction: ChatInputCommandInteraction) {
-    const topic = interaction.options.getString('topic') || 'General Support';
+    const topic = interaction.options.getString('topic') || 'General';
     const message = interaction.options.getString('message') || '';
 
-    // Send a message in the support channel pinging the owner
-    const guild = interaction.guild;
-    if (!guild) {
-      await interaction.reply({ content: '❌ This command can only be used in a server.', ephemeral: true });
-      return;
-    }
-    const channel = guild.channels.cache.get(SUPPORT_CHANNEL_ID);
-    if (!channel || !('send' in channel)) {
-      await interaction.reply({ content: '❌ Support channel not found.', ephemeral: true });
-      return;
-    }
+    // Confirm to the user
+    const userEmbed = new EmbedBuilder()
+      .setColor(0x22d3a6)
+      .setTitle('SUPPORT REQUEST LOGGED')
+      .setDescription(
+        `Got it. Your ticket is in.\n\n` +
+        `**Topic:** ${topic}${message ? `\n**Details:** ${message}` : ''}\n\n` +
+        `Someone will follow up shortly. If it's urgent, ping directly in the server.`
+      )
+      .setFooter({ text: "We actually read these." });
 
-    // Post to support channel via traditional message
-    const supportMsg = `🔔 **Support Request** from <@${interaction.user.id}> ${OWNER_MENTION}\n📌 **Topic:** ${topic}${message ? `\n💬 **Message:** ${message}` : ''}`;
-    await (channel as any).send({ content: supportMsg });
+    await interaction.reply({ embeds: [userEmbed], ephemeral: true });
 
-    // Also post to support alerts channel via AlertService
-    const alertService = getAlertService();
-    if (alertService) {
-      try {
-        await alertService.postSupportTicket({
-          userId: interaction.user.id,
-          username: interaction.user.username,
-          topic,
-          message: message || '(No additional details provided)',
-          status: 'open',
-        });
-      } catch (error) {
-        console.error('[Support] Error posting support ticket alert:', error);
-      }
+    // DM the owner
+    try {
+      const owner = await interaction.client.users.fetch(OWNER_ID);
+      await owner.send(
+        `**Support Request** from ${interaction.user.username} (\`${interaction.user.id}\`)\n` +
+        `**Topic:** ${topic}\n` +
+        (message ? `**Message:** ${message}\n` : '') +
+        `**Server:** ${interaction.guild?.name || 'DM'}`
+      );
+    } catch (err) {
+      console.error('[Support] Failed to DM owner:', err);
     }
-
-    await interaction.reply({ content: '✅ Support request sent! Someone will be with you soon.', ephemeral: true });
   },
 };
