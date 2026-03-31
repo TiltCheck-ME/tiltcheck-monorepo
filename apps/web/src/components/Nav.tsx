@@ -37,8 +37,9 @@ const Nav = () => {
   return (
     <nav className="flex items-center justify-between w-full relative z-50">
       <div className="flex items-center gap-8">
-        <Link href="/" className="font-bold text-lg tracking-tighter hover:text-[color:var(--color-primary)] transition-colors">
-          TILTCHECK
+        <Link href="/" className="flex items-center gap-2 font-bold text-lg tracking-tighter hover:text-[color:var(--color-primary)] transition-colors">
+          <img src="/logo.png" alt="TiltCheck Logo" className="w-8 h-8 object-contain" />
+          <span className="hidden sm:inline">TILTCHECK</span>
         </Link>
         
         {/* Desktop Links */}
