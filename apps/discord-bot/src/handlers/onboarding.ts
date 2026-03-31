@@ -213,14 +213,14 @@ export async function sendWelcomeDM(user: User): Promise<boolean> {
         `- BEHAVIORAL SPIRALS (STATUS AUDITS)\n` +
         `- COMMUNITY TELEMETRY (TRUST ENGINE)\n\n` +
         `NOTE: I DO NOT CUSTODY FUNDS. I PURELY LEVEL THE PLAYING FIELD.\n\n` +
-        `INITIATE SURGICAL ASSESSMENT?`
+        `SYNC YOUR DEGEN ID?`
       )
       .setThumbnail('https://tiltcheck.me/assets/logo/favicon-white.svg')
       .setFooter({ text: `TiltCheck Safety Bot | ${getRandomQuote()}` });
 
     const getStartedBtn = new ButtonBuilder()
       .setCustomId('onboard_start')
-      .setLabel('Get Started')
+      .setLabel('SYNC UP')
       .setStyle(ButtonStyle.Success);
 
     const learnMoreBtn = new ButtonBuilder()
@@ -318,7 +318,7 @@ async function showTermsAndConditions(interaction: MessageComponentInteraction):
 
   const startQuizBtn = new ButtonBuilder()
     .setCustomId('onboard_accept_terms')
-    .setLabel('START PROFILING')
+    .setLabel('CALIBRATE NUDGES')
     .setStyle(ButtonStyle.Success);
 
   const skipBtn = new ButtonBuilder()
@@ -348,9 +348,9 @@ async function showRiskQuiz(
 
   const quizEmbed = new EmbedBuilder()
     .setColor(0x00D4AA)
-    .setTitle(`SURGICAL ASSESSMENT — STEP ${stepIndex + 1} OF ${ONBOARDING_QUESTIONS.length}`)
+    .setTitle(`AUDIT CALIBRATION — STEP ${stepIndex + 1} OF ${ONBOARDING_QUESTIONS.length}`)
     .setDescription(`**${question.text}**`)
-    .setFooter({ text: `TiltCheck Assessment | ${getRandomQuote()}` });
+    .setFooter({ text: `TiltCheck Calibration | ${getRandomQuote()}` });
 
   const rows: ActionRowBuilder<ButtonBuilder>[] = [];
   let currentRow = new ActionRowBuilder<ButtonBuilder>();
@@ -476,7 +476,7 @@ async function showPreferences(
   userPreferences.set(interaction.user.id, prefs);
 
   const description = isSuggested
-    ? `**Surgical Assessment Complete.**\nBased on your answers, I suggest a **${prefs.riskLevel.toUpperCase()}** profile. You can still tweak these below.`
+    ? `**Audit Calibration Complete.**\nBased on your answers, I suggest a **${prefs.riskLevel.toUpperCase()}** profile. You can still tweak these below.`
     : `Almost done. Customize your experience.\n\n**Notifications**\nChoose what you want to be notified about.\n\n**Risk Level**\nThis affects default cooldown suggestions and safety nudges.`;
 
   const prefsEmbed = new EmbedBuilder()

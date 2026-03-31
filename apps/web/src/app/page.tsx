@@ -18,10 +18,10 @@ export default function Home() {
           
           <div className="border border-[#17c3b2]/20 bg-[#17c3b2]/5 p-6 mb-10 max-w-3xl border-l-4 border-l-[#17c3b2] animate-in slide-in-from-left-4 duration-700">
              <p className="text-sm font-mono text-[#17c3b2]/80 uppercase tracking-widest mb-2 font-black">
-                Closed Beta — In Progress
+                [ACCESS]: ENCRYPTED — In Progress
              </p>
              <p className="text-gray-400 text-xs leading-relaxed font-mono italic">
-                The math is ready. We just need real degens to kick the tires before this goes public. Sound like you?
+                The math is ready. We just need real degens to kick the tires before this goes public. Support the GCP bill fund to **Overclock the Sprint** and ship it faster.
              </p>
           </div>
 

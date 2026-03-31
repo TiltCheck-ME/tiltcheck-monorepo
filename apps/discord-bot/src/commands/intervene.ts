@@ -9,7 +9,7 @@ import type { Command } from '../types.js';
 export const intervene: Command = {
   data: new SlashCommandBuilder()
     .setName('intervene')
-    .setDescription('[TETHER TRAY] Opt-in or out of voice channel safety moves.')
+    .setDescription('Opt-in or out of voice channel safety moves.')
     .addBooleanOption(opt => opt.setName('enabled').setDescription('Would you like a voice move on critical tilt?').setRequired(true)),
 
   async execute(interaction: ChatInputCommandInteraction) {

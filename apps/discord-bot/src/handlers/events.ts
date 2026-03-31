@@ -4,28 +4,17 @@
  *
  * Manages Discord client events and Event Router subscriptions.
  */
-// Add this import to the top
-import { generateTrustScore } from '../../../tools/discord-trust-scorer/engine.js';
-
-// Inside GuildMemberAdd
-this.client.on(Events.GuildMemberAdd, async (member) => {
-    const result = generateTrustScore(member.user as any);
-
-    if (result.riskLevel === 'HIGH') {
-        console.warn(`[SECURITY] High-risk user quarantined: ${member.user.tag} (Score: ${result.trustScore})`);
-        
-        // ACTION: Assign a "Restricted" role or Kick immediately
-        await member.roles.add(process.env.QUARANTINE_ROLE_ID || '12345').catch(console.error);
-        
-        // Notify the user blunt feedback
-        await member.send(`[AUDIT LAYER]: Your account has been quarantined. Reasons:\n- ${result.reasons.join('\n- ')}`).catch(() => {});
-        return; // STOP onboarding for high-risk accounts
-    }
-    
-    // Normal onboarding proceeds...
-});
 
 import { Client, Events, Interaction } from 'discord.js';
+// Trust scorer loaded via absolute path to avoid tsx resolution issues
+import { createRequire } from 'module';
+import { fileURLToPath } from 'url';
+import path from 'path';
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const _require = createRequire(import.meta.url);
+const { generateTrustScore } = _require(path.resolve(__dirname, '../../../../tools/discord-trust-scorer/engine.js'));
+
 import { eventRouter } from '@tiltcheck/event-router';
 import { extractUrls, ModNotifier, createModNotifier, ModNotificationEventType } from '@tiltcheck/discord-utils';
 import { suslink } from '@tiltcheck/suslink';
@@ -85,8 +74,19 @@ export class EventHandler {
 
     this.client.on(Events.GuildMemberAdd, async (member) => {
       if (member.user.bot) return;
+
+      const result = generateTrustScore(member.user as any);
+
+      if (result.riskLevel === 'HIGH') {
+        console.warn(`[SECURITY] High-risk user quarantined: ${member.user.tag} (Score: ${result.trustScore})`);
+        // Assign quarantine role
+        await member.roles.add(process.env.QUARANTINE_ROLE_ID || '1447038190363214015').catch(() => {});
+        await member.send(`[AUDIT LAYER]: Your account has been flagged as HIGH RISK. Access restricted.\n\nReasons:\n- ${result.reasons.join('\n- ')}`).catch(() => {});
+        return;
+      }
+
       if (needsOnboarding(member.user.id)) {
-        console.log(`[EventHandler] Automaticaly onboarding new member: ${member.user.tag}`);
+        console.log(`[EventHandler] Automatically onboarding new member: ${member.user.tag}`);
         checkAndOnboard(member.user).catch(err => {
           console.error('[Bot] Failed to send welcome DM to new member:', err);
         });

@@ -9,12 +9,12 @@ import type { Command } from '../types.js';
 export const help: Command = {
   data: new SlashCommandBuilder()
     .setName('help')
-    .setDescription('[EDGE EQUALIZER] Your friend who went to stats class and actually paid attention.'),
+    .setDescription('Your friend who went to stats class and actually paid attention.'),
 
   async execute(interaction: ChatInputCommandInteraction) {
     const embed = new EmbedBuilder()
       .setColor(0x22d3a6)
-      .setTitle('🛡️ [EDGE EQUALIZER] THE AUDIT MAP')
+      .setTitle('🛡️ THE AUDIT MAP')
       .setDescription('Independent session audits and mathematical verification. We don\'t stop you; we audit you.')
       .setThumbnail('https://tiltcheck.me/assets/logo/logocurrent.png');
 

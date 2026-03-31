@@ -12,7 +12,7 @@ import { trustEngines } from '@tiltcheck/trust-engines';
 export const trustDashboard: Command = {
   data: new SlashCommandBuilder()
     .setName('reputation')
-    .setDescription('[EDGE EQUALIZER] View casino and user reputation scores.')
+    .setDescription('View casino and user reputation scores.')
     .addSubcommand(sub =>
       sub.setName('casino')
         .setDescription('Check a casino reputation')
@@ -161,7 +161,7 @@ async function showUserTrust(interaction: ChatInputCommandInteraction) {
 
 async function showExplanation(interaction: ChatInputCommandInteraction) {
   const embed = new EmbedBuilder()
-    .setTitle('[EDGE EQUALIZER] THE TRANSPARENCY PROTOCOL')
+    .setTitle('THE TRANSPARENCY PROTOCOL')
     .setColor(0x4ec9f0)
     .setDescription('TiltCheck uses automated audits and math-based verification to monitor the arena:')
     .addFields(
