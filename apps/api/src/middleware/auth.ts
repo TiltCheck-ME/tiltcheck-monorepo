@@ -6,9 +6,8 @@
  */
 
 import type { Request, Response, NextFunction } from 'express';
-import jwt from 'jsonwebtoken';
 import { findUserById } from '@tiltcheck/db';
-import { verifySessionCookie, type JWTConfig } from '@tiltcheck/auth';
+import { verifySessionCookie, verifyToken, type JWTConfig, type JWTPayload } from '@tiltcheck/auth';
 
 /**
  * Get unified JWT configuration
@@ -29,14 +28,11 @@ export function getJWTConfig(): JWTConfig {
 /**
  * JWT payload structure
  */
-export interface JWTPayload {
-  userId: string;
-  email: string;
-  roles: string[];
+export interface JWTPayloadExt extends JWTPayload {
+  userId?: string;
+  email?: string;
   discordId?: string;
   walletAddress?: string;
-  iat?: number;
-  exp?: number;
 }
 
 /**
@@ -119,40 +115,48 @@ export async function authMiddleware(
     }
     
     const token = parts[1];
-    const secret = getJWTSecret();
+    const jwtConfig = getJWTConfig();
     
-    // Verify token
-    let payload: JWTPayload;
-    try {
-      payload = jwt.verify(token, secret) as JWTPayload;
-    } catch (err) {
-      if (err instanceof jwt.TokenExpiredError || err instanceof jwt.JsonWebTokenError) {
-        const sessionUser = await getSessionUser(req);
-        if (sessionUser) {
-          (req as AuthRequest).user = sessionUser;
-          next();
-          return;
-        }
+    // Verify token using @tiltcheck/auth
+    const result = await verifyToken(token, jwtConfig);
+    
+    if (!result.valid || !result.payload) {
+      const sessionUser = await getSessionUser(req);
+      if (sessionUser) {
+        (req as AuthRequest).user = sessionUser;
+        next();
+        return;
       }
-      if (err instanceof jwt.TokenExpiredError) {
+      
+      if (result.error?.includes('expired')) {
         res.status(401).json({
           error: 'Token expired',
           code: 'TOKEN_EXPIRED'
         });
         return;
       }
-      if (err instanceof jwt.JsonWebTokenError) {
-        res.status(401).json({
-          error: 'Invalid token',
-          code: 'INVALID_TOKEN'
-        });
-        return;
-      }
-      throw err;
+      
+      res.status(401).json({
+        error: result.error || 'Invalid token',
+        code: 'INVALID_TOKEN'
+      });
+      return;
+    }
+    
+    const payload = result.payload as JWTPayloadExt;
+    
+    // Get userId from either sub or userId field
+    const userId = payload.sub || payload.userId;
+    if (!userId) {
+      res.status(401).json({ 
+        error: 'Token missing user ID', 
+        code: 'INVALID_TOKEN' 
+      });
+      return;
     }
     
     // Verify user still exists in database
-    const user = await findUserById(payload.userId);
+    const user = await findUserById(userId);
     if (!user) {
       res.status(401).json({ 
         error: 'User not found', 
@@ -164,8 +168,8 @@ export async function authMiddleware(
     // Attach user to request
     (req as AuthRequest).user = {
       id: user.id,
-      email: user.email || payload.email,
-      roles: user.roles,
+      email: user.email || payload.email || '',
+      roles: payload.roles || user.roles || [],
       discordId: user.discord_id || payload.discordId,
       walletAddress: user.wallet_address || payload.walletAddress,
     };

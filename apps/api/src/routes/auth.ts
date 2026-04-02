@@ -6,7 +6,6 @@
 
 import { Router } from 'express';
 import rateLimit from 'express-rate-limit';
-import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
 import {
   getDiscordAuthUrl,
@@ -16,7 +15,10 @@ import {
   destroySession,
   verifySessionCookie,
   generateOAuthState,
+  createToken,
+  verifyToken,
   type DiscordOAuthConfig,
+  type JWTConfig,
 } from '@tiltcheck/auth';
 import {
   findOrCreateUserByDiscord,
@@ -106,26 +108,20 @@ const activityTokenLimiter = rateLimit({
 // ============================================================================
 
 /**
- * Get JWT secret from environment
- */
-function getJWTSecret(): string {
-  const secret = process.env.JWT_SECRET;
-  if (!secret) {
-    throw new Error('JWT_SECRET environment variable is required');
-  }
-  return secret;
-}
-
-/**
  * Generate JWT token for user
  */
-function generateJWT(userId: string, email: string, roles: string[]): string {
-  const secret = getJWTSecret();
-
-  const token = jwt.sign(
-    { userId, email, roles },
-    secret,
-    { expiresIn: '7d' }
+async function generateJWT(userId: string, email: string, roles: string[]): Promise<string> {
+  const jwtConfig = getJWTConfig();
+  
+  const token = await createToken(
+    { 
+      sub: userId, 
+      email, 
+      roles,
+      userId, // Keep for backward compatibility
+      type: 'user'
+    },
+    jwtConfig
   );
 
   return token;
@@ -220,7 +216,7 @@ router.post('/register', authLimiter, async (req, res, next) => {
     }
 
     // Generate JWT
-    const token = generateJWT(user.id, user.email!, user.roles);
+    const token = await generateJWT(user.id, user.email!, user.roles);
 
     res.status(201).json({
       success: true,
@@ -278,7 +274,7 @@ router.post('/login', authLimiter, async (req, res) => {
     await updateUser(user.id, { last_login_at: new Date() });
 
     // Generate JWT
-    const token = generateJWT(user.id, user.email!, user.roles);
+    const token = await generateJWT(user.id, user.email!, user.roles);
 
     res.json({
       success: true,
@@ -306,11 +302,16 @@ router.post('/guest', async (req, res) => {
     const guestId = `guest_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
     // Generate a guest JWT
-    const secret = getJWTSecret();
-    const token = jwt.sign(
-      { userId: guestId, username: guestUsername, roles: ['guest'], isGuest: true },
-      secret,
-      { expiresIn: '1d' }
+    const jwtConfig = getJWTConfig();
+    const token = await createToken(
+      { 
+        sub: guestId, 
+        username: guestUsername, 
+        roles: ['guest'], 
+        isGuest: true,
+        type: 'user'
+      },
+      { ...jwtConfig, expiresIn: '1d' }
     );
 
     res.json({
@@ -591,7 +592,7 @@ router.get('/discord/callback', authLimiter, async (req, res) => {
         return;
       }
       // Generate JWT for the user to pass back directly
-      const token = generateJWT(user.id, user.email || `${user.id}@discord.com`, user.roles);
+      const token = await generateJWT(user.id, user.email || `${user.id}@discord.com`, user.roles);
 
       // Branded callback page that posts message to opener
       res.send(`
@@ -747,24 +748,27 @@ router.get('/me', async (req, res) => {
     const authHeader = req.headers.authorization;
     if (authHeader && authHeader.startsWith('Bearer ')) {
       const token = authHeader.split(' ')[1];
-      const secret = getJWTSecret();
+      const jwtConfig = getJWTConfig();
 
       try {
-        const payload = jwt.verify(token, secret) as { userId: string; email: string; roles: string[] };
-        const user = await findUserById(payload.userId);
+        const result = await verifyToken(token, jwtConfig);
+        if (result.valid && result.payload) {
+          const userId = result.payload.sub || (result.payload as any).userId;
+          const user = await findUserById(userId);
 
-        if (user) {
-          res.json({
-            userId: user.id,
-            email: user.email,
-            discordId: user.discord_id,
-            discordUsername: user.discord_username,
-            walletAddress: user.wallet_address,
-            roles: user.roles,
-            type: 'user',
-            isAdmin: user.roles.includes('admin'),
-          });
-          return;
+          if (user) {
+            res.json({
+              userId: user.id,
+              email: user.email,
+              discordId: user.discord_id,
+              discordUsername: user.discord_username,
+              walletAddress: user.wallet_address,
+              roles: user.roles,
+              type: 'user',
+              isAdmin: user.roles.includes('admin'),
+            });
+            return;
+          }
         }
       } catch (jwtError) {
         console.warn('[Auth] Me JWT verification failed:', jwtError instanceof Error ? jwtError.message : String(jwtError));
