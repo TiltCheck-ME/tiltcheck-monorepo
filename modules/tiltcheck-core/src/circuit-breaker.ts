@@ -14,7 +14,7 @@
  */
 
 import { eventRouter } from '@tiltcheck/event-router';
-import type { UserActivity } from './types.js';
+import type { UserActivity, BetRecord } from './types.js';
 import type { SafetyInterventionTriggeredEventData } from '@tiltcheck/types';
 import { analyzeSentiment } from '@tiltcheck/utils';
 
@@ -64,7 +64,7 @@ export class CircuitBreaker {
     // Note: UserActivity doesn't explicitly track win streaks, but we can detect no losses + baseline increases
     if (lossStreak === 0 && activity.recentBets.length > 5) {
       const last5 = activity.recentBets.slice(-5);
-      const allWon = last5.every(b => b.won);
+      const allWon = last5.every((b: BetRecord) => b.won);
       const increasing = last5[4].amount > last5[0].amount * 1.5;
 
       if (allWon && increasing) {

@@ -108,7 +108,7 @@ function detectCapsSpam(messages: MessageActivity[], userId: string): TiltSignal
   
   for (const msg of recentMessages) {
     const words = msg.content.split(/\s+/);
-    const capsWords = words.filter(w => w === w.toUpperCase() && w.length > 2);
+    const capsWords = words.filter((w: string) => w === w.toUpperCase() && w.length > 2);
     if (capsWords.length / words.length > 0.5) {
       capsCount++;
     }
