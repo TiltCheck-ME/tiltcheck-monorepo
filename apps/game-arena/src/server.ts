@@ -90,8 +90,13 @@ statsService.initialize().catch(err => {
 });
 
 // Shared Auth Config
+const jwtSecret = process.env.JWT_SECRET;
+if (!jwtSecret) {
+  throw new Error('FATAL: JWT_SECRET environment variable is required');
+}
+
 const jwtConfig: JWTConfig = {
-  secret: process.env.JWT_SECRET || 'tiltcheck-user-secret-2024',
+  secret: jwtSecret,
   issuer: 'tiltcheck-api',
   audience: 'tiltcheck-apps',
 };
