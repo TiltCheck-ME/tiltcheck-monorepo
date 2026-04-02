@@ -39,7 +39,11 @@ const DISCORD_CALLBACK_URL = process.env.TILT_DISCORD_REDIRECT_URI || 'https://a
 
 // Configuration
 const isProd = process.env.NODE_ENV === 'production';
-const JWT_SECRET = process.env.JWT_SECRET || (isProd ? (() => { throw new Error('JWT_SECRET is required in production'); })() : 'tiltcheck-user-secret-2024');
+const JWT_SECRET = process.env.JWT_SECRET;
+
+if (!JWT_SECRET) {
+  throw new Error('FATAL: JWT_SECRET environment variable is required');
+}
 
 // Shared Auth Config
 const jwtConfig: JWTConfig = {
