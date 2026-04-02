@@ -65,8 +65,9 @@ export function getPool(): pg.Pool {
   return poolInstance;
 }
 
-export async function query<T = Record<string, unknown>>(sql: string, params?: any[]): Promise<T[]> {
-  const result = await getHttpQuery()(sql, params);
+export async function query<T = Record<string, unknown>>(sql: string, params?: unknown[]): Promise<T[]> {
+  const httpQuery = getHttpQuery();
+  const result = await httpQuery(sql as any, params);
   return result as unknown as T[];
 }
 

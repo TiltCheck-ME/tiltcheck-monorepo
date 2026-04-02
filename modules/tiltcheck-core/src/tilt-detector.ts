@@ -15,7 +15,7 @@
 import { eventRouter } from '@tiltcheck/event-router';
 import { analyzeMessages, calculateTiltScore } from './message-analyzer.js';
 import { startCooldown, isOnCooldown, recordViolation, getCooldownStatus } from './cooldown-manager.js';
-import type { UserActivity, TiltSignal, BetRecord, GameCompletedEvent } from './types.js';
+import type { UserActivity, TiltSignal, BetRecord, GameCompletedEvent, MessageRecord } from './types.js';
 import type { TiltCheckEvent } from '@tiltcheck/types';
 
 const userActivities = new Map<string, UserActivity>();
@@ -124,6 +124,7 @@ export function trackBet(userId: string, amount: number, gameType: string, won: 
   
   const betRecord: BetRecord = {
     amount,
+    game: gameType,
     timestamp: Date.now(),
     gameType,
     won,
@@ -167,7 +168,7 @@ function updateBaselineBetSize(activity: UserActivity): void {
   // Use the first 3 bets to establish a stable baseline
   // This provides a consistent reference point regardless of history size
   const baselineBets = activity.recentBets.slice(0, MIN_BETS_FOR_BASELINE);
-  const avgBet = baselineBets.reduce((sum, b) => sum + b.amount, 0) / baselineBets.length;
+  const avgBet = baselineBets.reduce((sum: number, b: BetRecord) => sum + b.amount, 0) / baselineBets.length;
   
   // Only set baseline if not already set (we want to detect changes from normal behavior)
   if (activity.baselineBetSize === undefined) {
@@ -271,7 +272,7 @@ export function shouldWarnUser(userId: string): boolean {
   if (activity.lossStreak >= 2) return true;
   
   // Warn if recent tilt signals
-  const recentMessages = activity.messages.filter(m => 
+  const recentMessages = activity.messages.filter((m: MessageRecord) => 
     Date.now() - m.timestamp < 5 * 60 * 1000 // Last 5 minutes
   );
   const signals = analyzeMessages(recentMessages, userId);
@@ -291,7 +292,7 @@ export function getUserTiltStatus(userId: string): {
   const activity = userActivities.get(userId);
   const cooldownInfo = getCooldownStatus(userId);
   
-  const recentMessages = activity?.messages.filter(m => 
+  const recentMessages = activity?.messages.filter((m: MessageRecord) => 
     Date.now() - m.timestamp < 10 * 60 * 1000
   ) || [];
   

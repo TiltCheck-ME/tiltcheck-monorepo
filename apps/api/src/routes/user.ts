@@ -404,7 +404,7 @@ router.get('/:discordId/activities', async (req: Request, res: Response, next: N
  */
 router.get('/:discordId', async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const { discordId } = req.params;
+        const discordId = Array.isArray(req.params.discordId) ? req.params.discordId[0] : req.params.discordId;
         // NOTE: Auth temporarily disabled for dogfooding ease (will re-enable once identity works)
         const user = await findUserByDiscordId(discordId);
         if (!user) {
