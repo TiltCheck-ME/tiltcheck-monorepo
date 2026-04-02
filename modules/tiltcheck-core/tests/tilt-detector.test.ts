@@ -1,5 +1,6 @@
 /* Copyright (c) 2026 TiltCheck. All rights reserved. */
 import { describe, it, expect, beforeEach } from 'vitest';
+import { TiltEvent } from '../src/types';
 import {
   trackMessage,
   trackLoss,
@@ -66,7 +67,7 @@ describe('Tilt Detector', () => {
       trackLoss('user-loss-2', 300);
 
       const history = eventRouter.getHistory();
-      const tiltEvent = history.find((e: any) => e.type === 'tilt.detected');
+      const tiltEvent = history.find((e): e is TiltEvent => e.type === 'tilt.detected');
 
       expect(tiltEvent).toBeDefined();
       expect(tiltEvent?.data.reason).toBe('loss-streak');
@@ -136,9 +137,9 @@ describe('Tilt Detector', () => {
       trackBet('user-bet-tilt', 35, 'poker', false);
 
       const history = eventRouter.getHistory();
-      const tiltEvent = history.find((e: any) => 
+      const tiltEvent = history.find((e): e is TiltEvent => 
         e.type === 'tilt.detected' && 
-        e.data.signals?.some((s: any) => s.type === 'bet-sizing')
+        e.data.signals?.some((s) => s.type === 'bet-sizing')
       );
 
       expect(tiltEvent).toBeDefined();
@@ -154,9 +155,9 @@ describe('Tilt Detector', () => {
       trackBet('user-bet-gradual', 15, 'poker', true);
 
       const history = eventRouter.getHistory();
-      const betSizingTilt = history.find((e: any) => 
+      const betSizingTilt = history.find((e): e is TiltEvent => 
         e.type === 'tilt.detected' && 
-        e.data.signals?.some((s: any) => s.type === 'bet-sizing')
+        e.data.signals?.some((s) => s.type === 'bet-sizing')
       );
 
       expect(betSizingTilt).toBeUndefined();
@@ -325,7 +326,7 @@ describe('Tilt Detector', () => {
       });
 
       const history = eventRouter.getHistory();
-      const tiltEvent = history.find((e: any) => 
+      const tiltEvent = history.find((e): e is TiltEvent => 
         e.type === 'tilt.detected' && 
         e.data.reason === 'bad-beat'
       );

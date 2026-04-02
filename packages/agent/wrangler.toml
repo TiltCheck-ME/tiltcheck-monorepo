@@ -1,0 +1,16 @@
+name = "tiltcheck-agent-api" # A descriptive name for your worker
+main = "index.ts"
+compatibility_date = "2024-03-20" # Use a recent compatibility date
+tsconfig = "tsconfig.json" # Assuming you have a tsconfig.json in packages/agent
+
+# D1 Database binding for casino bonus logs
+[[d1_databases]]
+binding = "BONUS_DB" # This must match the name in your Env interface (index.ts)
+database_name = "tiltcheck_bonuses_db" # Replace with your actual D1 database name
+database_id = "YOUR_D1_DATABASE_ID" # Replace with your actual D1 database ID
+
+# KV Namespace binding for caching bonus data
+[[kv_namespaces]]
+binding = "BONUS_CACHE" # This must match the name in your Env interface (index.ts)
+id = "YOUR_KV_NAMESPACE_ID" # Replace with your actual KV namespace ID
+# preview_id = "YOUR_KV_NAMESPACE_PREVIEW_ID" # Optional: for local development with `wrangler dev`

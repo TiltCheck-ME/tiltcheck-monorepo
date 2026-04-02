@@ -44,7 +44,7 @@ export const status: Command = {
       embed.addFields({ name: 'Active Break', value: `${remaining}m remaining`, inline: true });
     }
 
-    // 3. User Stats/Pattern Recognition (Degen vibes)
+    // 3. User Stats/Pattern Recognition
     if (activity && activity.lossStreak >= 3) {
       embed.addFields({ name: 'Loss Streak', value: `🚨 ${activity.lossStreak} - **RINSE VIBES**`, inline: false });
     } else if (activity && activity.lossStreak === 0 && signalCount > 0) {

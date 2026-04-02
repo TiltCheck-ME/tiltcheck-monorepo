@@ -91,6 +91,9 @@ async function callProvider(provider, text, count, systemPrompt = GPT_SYSTEM_PRO
     const model = modelOverride || provider.model;
     console.log(chalk.cyan(`  → ${provider.label} (${model})...`));
     try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 300000); // 5 mins for slow local models
+
         const res = await fetch(`${provider.baseUrl}/chat/completions`, {
             method: 'POST',
             headers: {
@@ -105,7 +108,10 @@ async function callProvider(provider, text, count, systemPrompt = GPT_SYSTEM_PRO
                 ],
                 temperature: 0.3,
             }),
+            signal: controller.signal,
         });
+
+        clearTimeout(timeoutId);
 
         if (!res.ok) {
             const errBody = await res.text();

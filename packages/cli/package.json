@@ -13,8 +13,12 @@
     "checklists": "node dist/index.js checklists"
   },
   "dependencies": {
+    "@google-cloud/vertexai": "^1.10.4",
+    "@google/genai": "^1.47.0",
     "@tiltcheck/shared": "workspace:*",
-    "commander": "^14.0.3"
+    "commander": "^14.0.3",
+    "dotenv": "^17.3.1",
+    "ora": "^9.3.0"
   },
   "devDependencies": {
     "@types/node": "^25.5.0",
