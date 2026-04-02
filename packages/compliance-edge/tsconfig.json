@@ -1,15 +1,16 @@
 {
   "extends": "../../tsconfig.json",
   "compilerOptions": {
+    "ignoreDeprecations": "6.0",
     "composite": true,
     "incremental": true,
     "outDir": "./dist",
     "rootDir": "src",
     "declaration": true,
-    "module": "ESNext",
+    "module": "NodeNext",
     "target": "ESNext",
     "lib": ["ESNext"],
-    "moduleResolution": "node",
+    "moduleResolution": "NodeNext",
     "types": ["@cloudflare/workers-types"]
   },
   "include": [
