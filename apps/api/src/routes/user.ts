@@ -20,6 +20,7 @@ import {
     updateUser
 } from '@tiltcheck/db';
 import { ValidationError, InternalServerError } from '@tiltcheck/error-factory';
+import { verifySolanaSignature } from '@tiltcheck/auth/solana';
 
 const router: Router = Router();
 
@@ -106,21 +107,30 @@ router.get('/lookup/:wallet', async (req: Request, res: Response, next: NextFunc
  * Upgrade user to Elite Tier.
  * Validates transaction signature on-chain (placeholder for full validation).
  */
+
 router.post('/upgrade', authMiddleware, async (req: Request, res: Response, next: NextFunction) => {
     try {
         const userPayload = (req as AuthRequest).user;
         const { signature, tier } = req.body;
 
-        if (!userPayload?.id) {
-            return next(new ValidationError('User session not found'));
+        if (!userPayload?.id || !userPayload.walletAddress) {
+            return next(new ValidationError('User session not found or wallet not linked'));
         }
 
         if (!signature || !tier) {
             return next(new ValidationError('Upgrade signature and target tier are required'));
         }
 
-        // TODO: In production, verify the signature on-chain to ensure it's a valid 0.5 SOL transfer 
-        // to the Operations Wallet before updating the database.
+        const message = `Upgrade to ${tier} tier for user ${userPayload.id}`;
+        const verification = await verifySolanaSignature({
+            message,
+            signature,
+            publicKey: userPayload.walletAddress,
+        });
+
+        if (!verification.valid) {
+            return next(new ValidationError('Invalid signature'));
+        }
         
         const updated = await updateUser(userPayload.id, { tier });
 

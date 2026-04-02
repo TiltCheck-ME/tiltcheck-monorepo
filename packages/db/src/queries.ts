@@ -671,7 +671,7 @@ export async function getAuditLogsByAdmin(
  */
 export async function getAuditLogsByUser(
   userId: string,
-  pagination?: PaginationParams
+  pagination?: PaginationParams & { action?: string }
 ): Promise<PaginatedResult<AuditLog>> {
   const { limit = 50, offset = 0 } = pagination || {};
   const { orderBy, orderDir } = validateSort(
@@ -680,18 +680,25 @@ export async function getAuditLogsByUser(
     pagination?.orderDir
   );
 
-  const sql = `
+  let sql = `
     SELECT * FROM audit_logs 
     WHERE target_id = $1 AND target_type = 'USER'
-    ORDER BY ${orderBy} ${orderDir}
-    LIMIT $2 OFFSET $3
   `;
+  let countSql = "SELECT COUNT(*) as count FROM audit_logs WHERE target_id = $1 AND target_type = 'USER'";
+  
+  const params = [userId];
 
-  const countSql = "SELECT COUNT(*) as count FROM audit_logs WHERE target_id = $1 AND target_type = 'USER'";
+  if (pagination?.action) {
+    sql += ` AND action = $${params.length + 1}`;
+    countSql += ` AND action = $${params.length + 1}`;
+    params.push(pagination.action);
+  }
 
+  sql += ` ORDER BY ${orderBy} ${orderDir} LIMIT $${params.length + 1} OFFSET $${params.length + 2}`;
+  
   const [rows, countResult] = await Promise.all([
-    query<AuditLog>(sql, [userId, limit, offset]),
-    queryOne<{ count: string }>(countSql, [userId]),
+    query<AuditLog>(sql, [...params, limit, offset]),
+    queryOne<{ count: string }>(countSql, params),
   ]);
 
   const total = parseInt(countResult?.count ?? '0', 10);

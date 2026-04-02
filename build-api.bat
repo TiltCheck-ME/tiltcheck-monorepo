@@ -1,0 +1,1 @@
+docker build -t gcr.io/tiltchcek/tiltcheck-api:latest -f apps/api/Dockerfile .

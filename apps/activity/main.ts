@@ -22,6 +22,17 @@ interface SessionState {
   startedAt: number;
 }
 
+interface Bonus {
+  id: string;
+  casino_name: string;
+  message: string;
+  expiry_message: string;
+  is_expired: boolean;
+  is_verified: boolean;
+  discovered_at: string;
+}
+
+
 interface ChannelState {
   id: string;
   sessions: Record<string, SessionState>;
@@ -42,6 +53,9 @@ const channelState: ChannelState = {
   id: '',
   sessions: {},
 };
+
+let bonusFeed: Bonus[] = [];
+let bonusFeedVisibleCount = 3; // Track how many bonuses to show
 
 let currentUser: { username: string; id: string } | null = null;
 let currentChannelId: string | null = null;
@@ -156,6 +170,7 @@ function renderUI(status: string = 'CONNECTED') {
 
   const hasRounds = session.rounds.length > 0;
   const otherSessions = Object.values(channelState.sessions).filter(s => s.userId !== currentUser?.id);
+  const recentBonuses = bonusFeed.slice(0, bonusFeedVisibleCount); // Use state to control visibility
 
   container.innerHTML = `
     <p id="sdk-status" class="sdk-status">${status}</p>
@@ -208,6 +223,25 @@ function renderUI(status: string = 'CONNECTED') {
       <p class="waiting-sub">Start playing with the Chrome Extension active, or manually log your mistakes below.</p>
     </div>
     `}
+
+    ${recentBonuses.length > 0 ? `
+    <div class="bonus-drop-hud">
+      <p class="section-label">🔥 LATEST DROPS</p>
+      ${recentBonuses.map(bonus => `
+        <div class="bonus-card">
+          <div class="bonus-header">
+            <h3 class="casino-name">${bonus.casino_name}</h3>
+            ${bonus.is_verified ? `<span class="verified-badge">✅ Verified</span>` : ''}
+          </div>
+          <p class="bonus-details">${bonus.message}</p>
+          <p class="bonus-expiry ${bonus.is_expired ? 'expired' : ''}">${bonus.expiry_message}</p>
+        </div>
+      `).join('')}
+      ${bonusFeed.length > bonusFeedVisibleCount ? `
+        <button id="viewMoreBonusesBtn" class="btn-secondary btn-small" style="width: 100%; margin-top: 0.5rem;">View More</button>
+      ` : ''}
+    </div>
+    ` : ''}
 
     ${otherSessions.length > 0 ? `
     <div class="room-hud">
@@ -272,6 +306,11 @@ function renderUI(status: string = 'CONNECTED') {
       session.rounds.push({ bet, win: win || 0, timestamp: Date.now() });
       renderUI();
     }
+  });
+
+  document.getElementById('viewMoreBonusesBtn')?.addEventListener('click', () => {
+    bonusFeedVisibleCount += 3; // Show 3 more
+    renderUI(); // Re-render the UI with the new count
   });
 
   document.getElementById('resetBtn')?.addEventListener('click', () => {
@@ -452,6 +491,25 @@ async function pollSession() {
   }
 }
 
+// --- Bonus Feed Polling ---
+async function pollBonuses() {
+  try {
+    // This assumes the agent worker is deployed at the same base URL as the hub
+    const res = await fetch(`${HUB_URL}/api/v1/bonuses`);
+    if (res.ok) {
+      const data: Bonus[] = await res.json();
+      // Only update if there's new data to prevent constant re-renders
+      if (JSON.stringify(data) !== JSON.stringify(bonusFeed)) {
+        bonusFeed = data;
+        bonusFeedVisibleCount = 3; // Reset count on new data
+        if (currentView === 'analyzer') renderUI();
+      }
+    }
+  } catch (e) {
+    console.warn('[TiltCheck] Bonus feed sync failed:', e);
+  }
+}
+
 // --- Vault Data Polling ---
 async function pollVaultStatus() {
   if (!currentUser?.id || currentUser.id === 'unknown') return;
@@ -486,6 +544,7 @@ function updateVaultUI() {
 
 setInterval(pollSession, 2500);
 setInterval(pollVaultStatus, 5000);
+setInterval(pollBonuses, 15000); // Poll for new bonuses every 15 seconds
 
 // --- Status Helper ---
 function updateStatus(msg: string, isError = false) {

@@ -33,6 +33,29 @@ dotenv.config({ path: path.join(__dirname, '..', '..', '.env'), override: false 
 
 // ── Config ───────────────────────────────────────────────────────────────────
 const CHANNEL_URL = process.env.WATCH_CHANNEL_URL || '';
+// ── Crisis Dictionary (Mirrored from @tiltcheck/utils) ──────────────────────
+const CRISIS_KEYWORDS = {
+    EUPHORIA: [
+        "i can't lose", "god run", "infinite money glitch", "never ending",
+        "too easy", "printing", "maxing", "send it all", "free money", "unbeatable"
+    ],
+    DESPERATION: [
+        "need it back", "chasing", "revenge", "so rigged", "one hit to break even",
+        "last deposit", "please just one", "recovery", "break even", "force a win"
+    ],
+    BREAKING_POINT: [
+        "i'm fucked", "ruined", "lost it all", "why did i", "idiot",
+        "stupid", "kill me", "it's over", "everything is gone", "disaster", "liquidated"
+    ],
+    FINAL_EXIT: [
+        "close my account", "i'm done", "ban me", "self exclude",
+        "rehab", "delete this", "help me stop", "i can't do this anymore", "stop me"
+    ]
+};
+
+// Flatten for the scavenger
+const ALL_CRISIS_KEYWORDS = Object.values(CRISIS_KEYWORDS).flat();
+
 const WATCH_KEYWORDS = [
     ...(process.env.WATCH_KEYWORDS ? process.env.WATCH_KEYWORDS.split(',').map(k => k.trim().toLowerCase()) : []),
     ...ALL_CRISIS_KEYWORDS
@@ -58,28 +81,7 @@ const TRUST_ENGINE_INGEST_URL = process.env.TRUST_ENGINE_INGEST_URL || '';
 const TRUST_ENGINE_INGEST_KEY = process.env.COMMUNITY_INTEL_INGEST_KEY || '';
 const DISCORD_MESSAGE_LIMIT = 1800;
 
-// ── Crisis Dictionary (Mirrored from @tiltcheck/utils) ──────────────────────
-const CRISIS_KEYWORDS = {
-    EUPHORIA: [
-        "i can't lose", "god run", "infinite money glitch", "never ending",
-        "too easy", "printing", "maxing", "send it all", "free money", "unbeatable"
-    ],
-    DESPERATION: [
-        "need it back", "chasing", "revenge", "so rigged", "one hit to break even",
-        "last deposit", "please just one", "recovery", "break even", "force a win"
-    ],
-    BREAKING_POINT: [
-        "i'm fucked", "ruined", "lost it all", "why did i", "idiot",
-        "stupid", "kill me", "it's over", "everything is gone", "disaster", "liquidated"
-    ],
-    FINAL_EXIT: [
-        "close my account", "i'm done", "ban me", "self exclude",
-        "rehab", "delete this", "help me stop", "i can't do this anymore", "stop me"
-    ]
-};
 
-// Flatten for the scavenger
-const ALL_CRISIS_KEYWORDS = Object.values(CRISIS_KEYWORDS).flat();
 
 // ── AI Provider config ───────────────────────────────────────────────────────
 // PROVIDER options: ollama | groq | gemini | openai
@@ -617,7 +619,8 @@ async function run() {
                 const isSubstantive = rawContent.length > 120; // Long posts are usually valuable
                 const hasKeyword = keywords && keywords.length > 0 && keywords.some(k => rawContent.toLowerCase().includes(k));
 
-                if (!hasKeyword && !isSubstantive) return [];
+                // No longer filtering! Gather everything.
+                // if (!hasKeyword && !isSubstantive) return [];
 
                 const author = li.querySelector('h3 [class*="username"]')?.textContent?.trim()
                     ?? li.querySelector('[class*="username"]')?.textContent?.trim()
@@ -780,12 +783,10 @@ async function run() {
                 const isSubstantive = rawContent.length > 120;
                 const hasKeyword = keywords && keywords.length > 0 && keywords.some(k => rawContent.toLowerCase().includes(k));
 
-                if (hasKeyword || isSubstantive) {
-                    const author = li.querySelector('h3 [class*="username"]')?.textContent?.trim()
-                        ?? li.querySelector('[class*="username"]')?.textContent?.trim()
-                        ?? '';
-                    recentlyFound.push({ messageId, timestamp, content: rawContent, author, hasKeyword });
-                }
+                const author = li.querySelector('h3 [class*="username"]')?.textContent?.trim()
+                    ?? li.querySelector('[class*="username"]')?.textContent?.trim()
+                    ?? '';
+                recentlyFound.push({ messageId, timestamp, content: rawContent, author, hasKeyword });
             }
             return { found: recentlyFound };
         }, WATCH_KEYWORDS);

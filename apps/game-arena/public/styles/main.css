@@ -2242,3 +2242,33 @@ body::before {
     transform: translateY(0);
   }
 }
+
+/* Bonus Feed styles for Activity Panel */
+.bonus-drop-hud {
+  margin-top: 1rem;
+}
+
+.bonus-drop-hud .bonus-card {
+  background: var(--panel-bg);
+  border: 1px solid var(--border-white);
+  border-radius: 12px;
+  padding: 1rem 1.25rem;
+  margin-bottom: 0.75rem;
+}
+
+.bonus-drop-hud .bonus-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--border-white);
+}
+
+.bonus-drop-hud .casino-name {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text-white);
+}
+
+/* Additional styles for bonus-details, bonus-expiry, etc. can be added here if needed */

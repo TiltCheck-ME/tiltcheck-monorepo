@@ -14,6 +14,7 @@
 import { Command } from 'commander';
 import { loginCommand, logoutCommand, whoamiCommand } from './commands/auth.js';
 import { checklistsCommand } from './commands/checklists.js';
+import { agentCommand } from './commands/agent.js';
 
 const program = new Command();
 
@@ -29,5 +30,8 @@ program.addCommand(whoamiCommand);
 
 // Resource commands
 program.addCommand(checklistsCommand);
+
+// AI Agent commands
+program.addCommand(agentCommand);
 
 program.parse();

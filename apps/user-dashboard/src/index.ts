@@ -20,9 +20,13 @@ import { runner } from '@tiltcheck/agent';
 /**
  * Utility to convert agent content to string
  */
-function stringifyContent(content: any): string {
+interface AgentContent {
+    parts?: { text?: string }[];
+}
+
+function stringifyContent(content: AgentContent | string): string {
   if (typeof content === 'string') return content;
-  if (content?.parts) return content.parts.map((p: any) => p.text || '').join('');
+  if (content?.parts) return content.parts.map((p) => p.text || '').join('');
   return JSON.stringify(content);
 }
 
@@ -66,13 +70,18 @@ app.use(express.json());
 app.use(express.static(join(__dirname, '../public')));
 
 // === Auth Middleware (Shared Ecosystem) ===
-function authenticateToken(req: any, res: Response, next: NextFunction) {
+function authenticateToken(req: AuthenticatedRequest, res: Response, next: NextFunction) {
   const cookieHeader = req.headers.cookie;
   
   verifySessionCookie(cookieHeader, jwtConfig)
-    .then(result => {
-      if (result.valid && result.session) {
-        req.user = result.session;
+    .then(async (result) => {
+      if (result.valid && result.session && result.session.discordId) {
+        const user = await findUserByDiscordId(result.session.discordId);
+        req.user = {
+            discordId: result.session.discordId,
+            username: result.session.discordUsername || 'Unknown',
+            avatar: user?.discord_avatar || null
+        };
         next();
       } else {
         // Log cause of rejection for debugging
@@ -87,9 +96,10 @@ function authenticateToken(req: any, res: Response, next: NextFunction) {
 }
 
 // === API Routes ===
-app.get('/api/auth/me', authenticateToken as any, (req: any, res) => {
+app.get('/api/auth/me', authenticateToken, (req: AuthenticatedRequest, res) => {
   res.json(req.user);
 });
+
 
 // === Auth Routes (Redirect to Central Login) ===
 app.get('/auth/discord', (req, res) => {
@@ -138,16 +148,6 @@ interface UserPreferences {
   anonTipping: boolean;
   showAnalytics: boolean;
   baseCurrency: string;
-}
-
-interface DiscordUser {
-  discordId: string;
-  username: string;
-  avatar: string;
-}
-
-interface AuthenticatedRequest extends Request {
-  user?: DiscordUser;
 }
 
 // === Data Fetching ===
@@ -201,22 +201,16 @@ app.get('/onboarding', (_req, res) => {
   res.sendFile(join(__dirname, '../public/onboarding.html'));
 });
 
-
-// === API Routes ===
-app.get('/api/auth/me', authenticateToken as any, (req: any, res) => {
-  res.json(req.user);
-});
-
-app.get('/api/user/:discordId', authenticateToken as any, async (req: any, res) => {
+app.get('/api/user/:discordId', authenticateToken, async (req: AuthenticatedRequest, res) => {
   const data = await getUserData(req.params.discordId);
   if (!data) return res.status(404).json({ error: 'User not found' });
   res.json(data);
 });
 
-app.post('/api/user/onboard', authenticateToken as any, async (req: any, res) => {
+app.post('/api/user/onboard', authenticateToken, async (req: AuthenticatedRequest, res) => {
   try {
     const { primary_external_address, tos_accepted } = req.body;
-    const discordId = req.user.discordId;
+    const discordId = req.user!.discordId;
 
     if (!tos_accepted) {
       return res.status(400).json({ error: 'You must accept the ToS to proceed' });
@@ -234,13 +228,14 @@ app.post('/api/user/onboard', authenticateToken as any, async (req: any, res) =>
     }
 
     res.json({ success: true, identity: updatedIdentity });
-  } catch (err: any) {
-    console.error('[API] Onboard error:', err);
-    res.status(500).json({ error: err.message });
+  } catch (err) {
+    const error = err as Error;
+    console.error('[API] Onboard error:', error);
+    res.status(500).json({ error: error.message });
   }
 });
 
-app.get('/api/user/:discordId/trust', authenticateToken as any, trustLimiter, async (req: any, res) => {
+app.get('/api/user/:discordId/trust', authenticateToken, trustLimiter, async (req: AuthenticatedRequest, res) => {
   const data = await getUserData(req.params.discordId);
   if (!data) return res.status(404).json({ error: 'User not found' });
   
@@ -251,7 +246,7 @@ app.get('/api/user/:discordId/trust', authenticateToken as any, trustLimiter, as
   });
 });
 
-app.get('/api/user/:discordId/activity', authenticateToken as any, async (req: any, res) => {
+app.get('/api/user/:discordId/activity', authenticateToken, async (req: AuthenticatedRequest, res) => {
   // Mock activity for now
   res.json({
     activities: [
@@ -261,12 +256,12 @@ app.get('/api/user/:discordId/activity', authenticateToken as any, async (req: a
   });
 });
 
-app.put('/api/user/:discordId/preferences', authenticateToken as any, async (req: any, res) => {
+app.put('/api/user/:discordId/preferences', authenticateToken, async (req: AuthenticatedRequest, res) => {
   // Logic to save preferences to DB
   res.json({ success: true });
 });
 
-app.post('/api/auth/wallet/link', authenticateToken as any, async (req: any, res) => {
+app.post('/api/auth/wallet/link', authenticateToken, async (req: AuthenticatedRequest, res) => {
   const { address } = req.body;
   // Verify signature and save to DB
   if (db.isConnected()) {
@@ -278,7 +273,7 @@ app.post('/api/auth/wallet/link', authenticateToken as any, async (req: any, res
   res.json({ success: true });
 });
 
-app.post('/api/auth/magic/link', authenticateToken as any, async (req: any, res) => {
+app.post('/api/auth/magic/link', authenticateToken, async (req: AuthenticatedRequest, res) => {
   const { didToken } = req.body;
   const metadata = await magicAdmin.users.getMetadataByToken(didToken);
   if (db.isConnected()) {
@@ -291,14 +286,14 @@ app.post('/api/auth/magic/link', authenticateToken as any, async (req: any, res)
 });
 
 // === AI Agent Route ===
-app.post('/api/agent/query', authenticateToken as any, async (req: any, res) => {
+app.post('/api/agent/query', authenticateToken, async (req: AuthenticatedRequest, res) => {
   const { query } = req.body;
   if (!query) return res.status(400).json({ error: 'Missing query' });
 
   try {
     let finalResponse = '';
     const it = runner.runAsync({
-      userId: req.user.discordId,
+      userId: req.user!.discordId,
       sessionId: 'dashboard-session',
       newMessage: {
         role: 'user',
@@ -320,8 +315,8 @@ app.post('/api/agent/query', authenticateToken as any, async (req: any, res) => 
 
 
 
-app.get('/dashboard', authenticateToken as any, async (req: any, res) => {
-  const discordId = req.user.discordId;
+app.get('/dashboard', authenticateToken, async (req: AuthenticatedRequest, res) => {
+  const discordId = req.user!.discordId;
   if (db.isConnected()) {
     try {
       const identity = await db.getDegenIdentity(discordId);

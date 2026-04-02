@@ -305,16 +305,33 @@ wss.on('connection', (ws, req) => {
           break;
 
         case 'request_report':
-          // Generate fairness report for session
-          // TODO: Pull historical data for sessionId
-          // TODO: Calculate aggregated metrics
+          const { getAuditLogsByUser } = await import('@tiltcheck/db');
+          
+          let allLogs = [];
+          let hasMore = true;
+          let offset = 0;
+          const limit = 100;
+
+          while(hasMore) {
+            const logs = await getAuditLogsByUser(session.userId, { limit, offset, action: 'VERIFY_SPIN' });
+            allLogs.push(...logs.rows);
+            hasMore = logs.hasMore;
+            offset += limit;
+          }
+
+          const totalSpins = allLogs.length;
+          const totalRTP = allLogs.reduce((acc, log) => acc + (log.metadata as any).rtp, 0);
+          const averageRTP = totalSpins > 0 ? totalRTP / totalSpins : 0;
+          const expectedRTP = 0.96;
+          const fairnessScore = 100 - (Math.abs(expectedRTP - averageRTP) * 100);
+
           ws.send(JSON.stringify({
             type: 'report',
             sessionId: message.sessionId,
             report: {
-              totalSpins: 0,
-              averageRTP: 0.96,
-              fairnessScore: 100,
+              totalSpins,
+              averageRTP,
+              fairnessScore,
               concerns: []
             }
           }));
