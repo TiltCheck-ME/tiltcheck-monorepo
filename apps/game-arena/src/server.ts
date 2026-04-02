@@ -49,9 +49,35 @@ validateConfig();
 const app = express();
 const httpServer = createServer(app);
 
-// Simple CORS middleware for development
+// Simple CORS middleware with whitelisting
 app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', config.isDev ? '*' : process.env.ALLOWED_ORIGINS || '');
+  const allowedOrigins = [
+    'https://tiltcheck.me',
+    'https://api.tiltcheck.me',
+    'https://game.tiltcheck.me',
+    'https://tiltcheck-game-arena-164294266634.us-central1.run.app',
+  ];
+
+  const origin = req.headers.origin;
+
+  // Check if origin is allowed
+  let isAllowed = false;
+  if (origin) {
+    isAllowed = allowedOrigins.includes(origin);
+    
+    // In development, also allow localhost
+    if (!isAllowed && config.isDev) {
+      isAllowed = origin.startsWith('http://localhost:') || origin.startsWith('http://127.0.0.1:');
+    }
+  } else {
+    // Allow requests with no origin (like mobile apps, curl)
+    isAllowed = true;
+  }
+
+  if (isAllowed) {
+    res.header('Access-Control-Allow-Origin', origin || '*');
+  }
+  
   res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
   res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, x-admin-token');
   res.header('Access-Control-Allow-Credentials', 'true');
@@ -63,11 +89,24 @@ app.use((req, res, next) => {
   }
 });
 
-// Initialize Socket.IO
+// Initialize Socket.IO with proper CORS whitelist
+const socketIoCorsOrigins = [
+  'https://tiltcheck.me',
+  'https://api.tiltcheck.me',
+  'https://game.tiltcheck.me',
+  'https://tiltcheck-game-arena-164294266634.us-central1.run.app',
+];
+
+// Add localhost in development
+if (config.isDev) {
+  socketIoCorsOrigins.push('http://localhost:3000', 'http://localhost:5173', 'http://127.0.0.1:3000');
+}
+
 const io = new SocketIOServer<ClientToServerEvents, ServerToClientEvents>(httpServer, {
   cors: {
-    origin: config.isDev ? true : process.env.ALLOWED_ORIGINS?.split(',') || [],
+    origin: socketIoCorsOrigins,
     credentials: true,
+    methods: ['GET', 'POST'],
   },
 });
 

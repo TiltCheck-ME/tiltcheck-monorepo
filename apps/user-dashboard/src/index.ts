@@ -66,7 +66,34 @@ const _solanaConnection = new Connection(process.env.SOLANA_RPC_URL || 'https://
 
 // Middleware
 app.use(cors({
-  origin: true,
+  origin: (origin, callback) => {
+    // Allowed origins for user dashboard
+    const allowedOrigins = [
+      'https://tiltcheck.me',
+      'https://dashboard.tiltcheck.me',
+      'https://api.tiltcheck.me',
+      'https://tiltcheck-user-dashboard-164294266634.us-central1.run.app',
+    ];
+
+    // Allow requests with no origin (like mobile apps)
+    if (!origin) {
+      callback(null, true);
+      return;
+    }
+
+    // Check if origin is in allowed list
+    const isAllowed = allowedOrigins.includes(origin);
+
+    if (isAllowed) {
+      callback(null, true);
+    } else if (process.env.NODE_ENV !== 'production') {
+      // Allow local development origins in dev
+      const isLocal = origin.startsWith('http://localhost:') || origin.startsWith('http://127.0.0.1:');
+      callback(null, isLocal);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true
 }));
 app.use(cookieParser());
