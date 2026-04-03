@@ -26,11 +26,12 @@ export function initializeActivityTiltIntegration(activityManager: DiscordActivi
         tiltBroadcaster.broadcastTilt(event);
 
         // Send state-update message to active activity for this user
-        const activeActivity = await activityManager.getActiveInstance(userId);
-        if (activeActivity) {
-          await activityManager.sendActivityMessage(activeActivity.instanceId, {
+        const activeActivities = activityManager.getActiveInstancesForUser(userId);
+        if (activeActivities.length > 0) {
+          const activity = activeActivities[0];
+          await activityManager.sendActivityMessage(activity.id, {
             type: 'state-update',
-            instanceId: activeActivity.instanceId,
+            instanceId: activity.id,
             userId,
             payload: {
               event: 'tilt-update',
@@ -38,6 +39,7 @@ export function initializeActivityTiltIntegration(activityManager: DiscordActivi
               sessionMetrics: event.payload.sessionMetrics,
               peerVisibility: tiltBroadcaster.getPeerVisibility(),
             },
+            timestamp: Date.now(),
           });
         }
 
