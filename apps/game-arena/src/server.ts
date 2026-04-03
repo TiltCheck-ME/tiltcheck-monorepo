@@ -35,7 +35,6 @@ import type {
 } from './types.js';
 import { mapAuthUserToDiscordUser } from './types.js';
 import { justthetip } from '@tiltcheck/justthetip';
-import { triviaManager } from './trivia-manager.js';
 import { eventRouter } from '@tiltcheck/event-router';
 
 // ES module __dirname equivalent
@@ -138,6 +137,7 @@ const jwtConfig: JWTConfig = {
   secret: jwtSecret,
   issuer: 'tiltcheck-api',
   audience: 'tiltcheck-apps',
+  expiresIn: '24h',
 };
 
 // Middleware
@@ -343,7 +343,8 @@ app.post('/api/games', requireAuth, async (req, res) => {
 
 // Get game details
 app.get('/api/games/:gameId', requireAuth, (req, res) => {
-  const { gameId } = req.params;
+  const { gameId: gameIdParam } = req.params;
+  const gameId = Array.isArray(gameIdParam) ? gameIdParam[0] : gameIdParam;
   const game = gameManager.getGame(gameId);
   
   if (!game) {
@@ -359,7 +360,8 @@ app.get('/api/games/:gameId', requireAuth, (req, res) => {
 
 // Get user stats
 app.get('/api/stats/:discordId', async (req, res) => {
-  const { discordId } = req.params;
+  const { discordId: discordIdParam } = req.params;
+  const discordId = Array.isArray(discordIdParam) ? discordIdParam[0] : discordIdParam;
   
   try {
     const stats = await statsService.getUserStats(discordId);
