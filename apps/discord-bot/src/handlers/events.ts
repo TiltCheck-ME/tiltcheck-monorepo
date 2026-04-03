@@ -80,7 +80,7 @@ export class EventHandler {
       if (result.riskLevel === 'HIGH') {
         console.warn(`[SECURITY] High-risk user quarantined: ${member.user.tag} (Score: ${result.trustScore})`);
         // Assign quarantine role
-        await member.roles.add(process.env.QUARANTINE_ROLE_ID || '1447038190363214015').catch(() => {});
+        await member.roles.add(process.env.QUARANTINE_ROLE_ID || '').catch(() => {});
         await member.send(`[AUDIT LAYER]: Your account has been flagged as HIGH RISK. Access restricted.\n\nReasons:\n- ${result.reasons.join('\n- ')}`).catch(() => {});
         return;
       }
@@ -385,7 +385,7 @@ export class EventHandler {
           const user = await this.client.users.fetch(userId).catch(() => null);
 
           if (finalAction === 'VIBE_CHECK') {
-            const channelId = process.env.DEGEN_ACCOUNTABILITY_CHANNEL_ID || '1447913312015515711';
+            const channelId = process.env.DEGEN_ACCOUNTABILITY_CHANNEL_ID || '';
             const channel = await this.client.channels.fetch(channelId).catch(() => null);
             
             if (channel && channel.isTextBased()) {

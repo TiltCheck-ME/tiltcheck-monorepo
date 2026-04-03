@@ -257,6 +257,43 @@ export class DiscordActivityManager extends EventEmitter {
   }
 
   /**
+   * Get a specific active instance for a user
+   */
+  async getActiveInstance(userId: string): Promise<ActivityInstance | undefined> {
+    const instances = this.getActiveInstancesForUser(userId);
+    return instances.length > 0 ? instances[0] : undefined;
+  }
+
+  /**
+   * Send a message to an active Activity instance
+   * In production, this would use WebSocket or HTTP to communicate with the iframe
+   * For now, we emit locally and relay through eventRouter
+   */
+  async sendActivityMessage(instanceId: string, message: ActivityMessage): Promise<boolean> {
+    const instance = this.activeInstances.get(instanceId);
+    if (!instance) {
+      console.warn(`[DiscordActivityManager] Message sent to unknown instance: ${instanceId}`);
+      return false;
+    }
+
+    // Emit locally for listeners
+    this.emit('message-to-activity', message);
+
+    // In production, publish to a queue or WebSocket for the iframe
+    try {
+      await eventRouter.publish('activity.message', 'discord-bot', {
+        activityId: instanceId,
+        message,
+      });
+    } catch (error) {
+      console.error(`[DiscordActivityManager] Failed to send message to activity ${instanceId}:`, error);
+      return false;
+    }
+
+    return true;
+  }
+
+  /**
    * Clean up an expired instance
    */
   private cleanupInstance(instanceId: string): void {
