@@ -9,7 +9,7 @@
 
 $ErrorActionPreference = "Stop"
 
-Write-Host "ðŸ”¨ Running Copyright Header Fixer..."
+Write-Host "[FIX] Running Copyright Header Fixer..."
 Write-Host "------------------------------------------"
 
 $copyrightHeader = "// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved."
@@ -39,10 +39,10 @@ foreach ($file in $stagedFiles) {
 
 if ($filesFixed -gt 0) {
     Write-Host "------------------------------------------"
-    Write-Host "âœ… Successfully added copyright headers to $filesFixed file(s)." -ForegroundColor Green
+    Write-Host "[OK] Successfully added copyright headers to $filesFixed file(s)." -ForegroundColor Green
     Write-Host "   These files have been automatically staged."
 } else {
-    Write-Host "âœ… No missing copyright headers found in staged .ts/.tsx/.js/.jsx files." -ForegroundColor Green
+    Write-Host "[OK] No missing copyright headers found in staged .ts/.tsx/.js/.jsx files." -ForegroundColor Green
 }
 
 Write-Host "------------------------------------------"

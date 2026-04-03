@@ -634,6 +634,7 @@ export type EventType =
   | 'dad.game.completed'
   | 'user.discord_linked'
   | 'safety.intervention.triggered'
+  | 'safety.tilt.detected'
   | 'trust.degen-intel.ingested'
   | 'trust.casino.metric.snapshot'
   | 'trust.casino.tos.changed'
