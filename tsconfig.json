@@ -62,6 +62,8 @@
     "**/tests/**",
     "**/*.test.ts",
     "**/*.spec.ts",
-    "apps/chrome-extension/**"
+    "apps/chrome-extension/**",
+    "docs/**",
+    "**/examples/**"
   ]
 }

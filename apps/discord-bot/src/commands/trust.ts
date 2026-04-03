@@ -78,14 +78,11 @@ async function showCasinoTrust(interaction: ChatInputCommandInteraction) {
     .setColor(color)
     .setDescription(`**TRUST SCORE: ${score}/100**`)
     .addFields(
-      { name: '[SCALES] Fairness', value: `${breakdown.fairnessScore}/100`, inline: true },
-      { name: '[CASH] Payout', value: `${breakdown.payoutScore}/100`, inline: true },
-      { name: '[GIFT] Bonus', value: `${breakdown.bonusScore}/100`, inline: true },
-      { name: '[USERS] User Reports', value: `${breakdown.userReportScore}/100`, inline: true },
-      { name: '[TICKET] Promo Integrity', value: `${breakdown.freespinScore}/100`, inline: true },
-      { name: '[LIST] Compliance', value: `${breakdown.complianceScore}/100`, inline: true },
-      { name: '\u200b', value: '\u200b', inline: true },
-      { name: '[HANDS] Support', value: `${breakdown.supportScore}/100`, inline: true },
+      { name: '[BANK] Financial Payouts', value: `${breakdown.financialPayouts}/100`, inline: true },
+      { name: '[SCALES] Fairness', value: `${breakdown.fairnessTransparency}/100`, inline: true },
+      { name: '[GIFT] Promotional', value: `${breakdown.promotionalHonesty}/100`, inline: true },
+      { name: '[TOOLS] Operations', value: `${breakdown.operationalSupport}/100`, inline: true },
+      { name: '[USERS] Reputation', value: `${breakdown.communityReputation}/100`, inline: true },
       { name: '\u200b', value: '\u200b', inline: true },
     )
     .setTimestamp()
