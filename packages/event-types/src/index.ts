@@ -198,7 +198,8 @@ export type TiltCheckEvent =
   | TiltCheckBaseEvent<'activity.completed', ActivityCompletedPayload>
   | TiltCheckBaseEvent<'activity.paused', ActivityPausedPayload>
   | TiltCheckBaseEvent<'activity.resumed', ActivityResumedPayload>
-  | TiltCheckBaseEvent<'activity.error', ActivityErrorPayload>;
+  | TiltCheckBaseEvent<'activity.error', ActivityErrorPayload>
+  | TiltCheckBaseEvent<'activity.message', ActivityMessagePayload>;
 
 export interface CreateEventInput<
   Name extends TiltCheckEventName,

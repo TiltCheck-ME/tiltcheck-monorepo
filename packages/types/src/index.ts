@@ -643,7 +643,8 @@ export type EventType =
   | 'activity.completed'
   | 'activity.paused'
   | 'activity.resumed'
-  | 'activity.error';
+  | 'activity.error'
+  | 'activity.message';
 
 /**
  * Event-specific data interfaces
