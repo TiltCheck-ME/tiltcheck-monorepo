@@ -1,9 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   output: 'standalone',
-  experimental: {
-    turbopack: false,
-  },
   transpilePackages: [
     "@tiltcheck/types",
     "@tiltcheck/db",

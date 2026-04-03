@@ -13,6 +13,7 @@ import {
   EventHandler,
   registerDMHandler,
   initializeTiltEventsHandler,
+  registerActivityButtonHandlers,
 } from './handlers/index.js';
 import { initializeAlertService } from './services/alert-service.js';
 import { TrustAlertsHandler } from './handlers/trust-alerts-handler.js';
@@ -34,6 +35,8 @@ import { TokenDepositMonitor } from './services/tipping/token-deposit-monitor.js
 
 import { startLockVaultBackgroundTasks, stopLockVaultBackgroundTasks } from '@tiltcheck/lockvault';
 import { getUserBuddies } from '@tiltcheck/db';
+import { DiscordActivityManager } from '@tiltcheck/discord-activities';
+import { setActivityManager } from './commands/play.js';
 
 async function main() {
   const startTime = Date.now();
@@ -157,6 +160,12 @@ async function main() {
   console.log('[Commands] Loading slash commands...');
   commandHandler.loadCommands();
   console.log('');
+
+  console.log('[Activities] Initializing Discord Activities SDK...');
+  const activityManager = new DiscordActivityManager(client.application?.id || '');
+  setActivityManager(activityManager);
+  registerActivityButtonHandlers(activityManager);
+  console.log('[Activities] Discord Activities SDK initialized\n');
 
   console.log('[Events] Registering Discord events...');
   eventHandler.registerDiscordEvents();
