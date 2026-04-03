@@ -355,13 +355,14 @@ export class GameManager {
     }
 
     // Leave the actual game
-    if (lobbyInfo.type === 'poker') {
-      const channelId = lobbyInfo.platform === 'web' ? `web-${gameId}` : gameId;
-      const games = poker.getChannelGames(channelId);
-      if (games.length > 0) {
-        poker.leaveGame(games[0].id, userId);
-      }
-    }
+    // (poker module not currently available - code kept for future use)
+    // if (lobbyInfo.type === 'poker') {
+    //   const channelId = lobbyInfo.platform === 'web' ? `web-${gameId}` : gameId;
+    //   const games = poker.getChannelGames(channelId);
+    //   if (games.length > 0) {
+    //     poker.leaveGame(games[0].id, userId);
+    //   }
+    // }
 
     lobbyInfo.playerCount--;
     this.playerGames.delete(userId);

@@ -25,3 +25,6 @@ export { lockvault } from './lockvault.js';
 // DAD Bot Commands (Lobby, Game, Scores, Trivia)
 export { dad as lobby } from './dad.js';
 // Scores and Trivia will be added to DAD command or separate files next
+
+// Discord Activities
+export { play } from './play.js';

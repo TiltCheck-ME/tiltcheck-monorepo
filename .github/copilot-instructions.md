@@ -198,18 +198,185 @@ vitest --ui path/to/test.test.ts
 vitest --run --reporter=verbose path/to/test.test.ts
 ```
 
-## MCP Server: Playwright
+## Workspace Filtering Tips
 
-**Browser automation is configured for web testing tasks.**
+Use `--filter` to efficiently run commands on specific workspaces:
 
-Use Playwright to:
+```bash
+# Filter by exact package name
+pnpm --filter @tiltcheck/api build
+
+# Filter by workspace scope (all modules)
+pnpm --filter "@tiltcheck/*" test
+
+# Filter by app name
+pnpm --filter web dev
+
+# Filter with dependencies
+pnpm --filter @tiltcheck/api --filter @tiltcheck/core build
+
+# Filter with dependents (reverse dependency graph)
+pnpm --filter @tiltcheck/types --filter "...@tiltcheck/types" test
+```
+
+## Build System & Caching
+
+- **Turbo**: Orchestrates parallel builds with dependency graph awareness (defined in `turbo.json`)
+- **Cache invalidation**: Turbo automatically invalidates cache when inputs change; use `pnpm clean` to reset entire cache if stuck
+- **Build outputs**: Each app/module has different output dirs (`dist/`, `.next/`, or framework-specific)
+- **PostInstall**: Automatically builds `@tiltcheck/utils` and dependencies after `pnpm install`
+- **Dependency ordering**: The build task has `"dependsOn": ["^build"]`, ensuring dependencies build first
+
+## Environment Setup
+
+```bash
+# Copy environment template
+cp .env.example .env
+
+# Edit .env with your configuration
+# Never commit real credentials—.env.example is the template
+
+# For local Discord bot development, also set up app-specific .env files:
+cp apps/discord-bot/.env.example apps/discord-bot/.env
+cp apps/user-dashboard/.env.example apps/user-dashboard/.env
+```
+
+## Test Organization
+
+- **Root vitest.config.ts**: Runs only specific integration tests (currently `tests/user-wallet-isolated.test.ts` and `packages/agent/app/agent.test.ts`)
+- **Workspace tests**: Each app/module can have its own test setup; run with `pnpm --filter @workspace-name test`
+- **Full test suite**: `pnpm test` runs the root config; for all tests in monorepo, use `pnpm test:all`
+
+## Component & Accessibility Audits
+
+Beyond unit tests, this monorepo requires component and accessibility compliance:
+
+```bash
+# Full audit (bundle, contrast, a11y, landing pages)
+pnpm audit:all
+
+# Individual checks
+pnpm bundle:components      # Component bundling
+pnpm contrast              # Color contrast check
+pnpm contrast:dom          # DOM contrast check
+pnpm a11y:audit            # Pa11y accessibility audit
+pnpm a11y:audit:landing    # Landing page a11y audit
+
+# Serve audit results
+pnpm a11y:serve            # Open http://localhost:5178/index.html
+```
+
+Artifacts are written to `dist/components/` (including Lighthouse reports).
+
+## Recommended MCP Servers for TiltCheck
+
+Configure these MCP servers in your Copilot/Claude environment for enhanced capabilities:
+
+### 1. Playwright (Browser Automation)
+**Status**: Recommended | **Priority**: High
+
+Use for:
 - Test web UI interactions (login flows, form submissions)
 - Verify responsive design across devices
 - Check Chrome extension sidebar functionality
 - Validate landing page rendering and accessibility
 - Take visual regression screenshots
+- Smoke testing after deployments
 
-Common test patterns in this monorepo use Puppeteer for some tasks and Playwright can complement those for UI automation needs.
+**Setup**: Available through most Copilot clients; check integration docs for your IDE.
+
+### 2. GitHub (Repository & PR Analysis)
+**Status**: Recommended | **Priority**: High
+
+Use for:
+- Explore repository structure, branches, commits
+- Analyze pull requests and review threads
+- Query issues and check branch protection rules
+- Review code changes and diff analysis
+- Access workflow/action history
+- Check security scanning results (CodeQL, Dependabot)
+
+**Useful queries**:
+- "Show me the diff for PR #123"
+- "What's the commit history for this file?"
+- "Are there any failing CI checks?"
+- "List all open issues with label 'bug'"
+
+### 3. PostgreSQL / Supabase (Database Exploration)
+**Status**: Optional | **Priority**: Medium
+
+Use for:
+- Explore Supabase schema and table relationships
+- Debug database query issues
+- Understand data models for TiltCheck core systems
+- Verify migration history
+
+**Prerequisites**: Requires `.env` with Supabase connection details (development/test only, never production credentials)
+
+**Typical queries**:
+- Trust engine data structure and relationships
+- User profile and authentication schema
+- Event routing and audit log schema
+
+**Note**: For this monorepo, database queries are typically managed through app services (`@tiltcheck/db` package), not direct SQL. Use this MCP mainly for schema exploration and debugging.
+
+## Using MCP Servers in Copilot Sessions
+
+When working on TiltCheck, leverage these MCP servers strategically:
+
+### GitHub MCP + Code Changes
+```
+Scenario: "I need to update the trust engine API but want to understand recent changes"
+↓
+1. Use GitHub MCP: "Show me the last 5 commits to packages/trust-engines/"
+2. Analyze PR history: "List merged PRs that touched trust-engines/ in the last month"
+3. Then make your changes with context
+```
+
+### Playwright + Web Development
+```
+Scenario: "Testing the Discord OAuth flow in the extension"
+↓
+1. Use Playwright: "Test the extension popup login flow"
+2. Check responsive design: "Verify the dashboard works on mobile (375px width)"
+3. Validate accessibility: "Run a11y checks on the auth modal"
+```
+
+### PostgreSQL MCP + Data Issues
+```
+Scenario: "User reporting tilt score not updating"
+↓
+1. Use PostgreSQL MCP to query: "Show the schema for user_tilt_scores table"
+2. Check recent data: "SELECT * FROM user_tilt_scores WHERE user_id = X ORDER BY created_at DESC"
+3. Debug via @tiltcheck/db package in code
+```
+
+## Troubleshooting
+
+**Build fails with "module not found"**:
+- Run `pnpm install` to ensure all symlinks are set up
+- Check that the package is listed in `pnpm-workspace.yaml`
+- Use absolute `@tiltcheck/*` imports, not relative paths
+
+**Tests don't run**:
+- Verify the test file matches the include pattern in `vitest.config.ts` or workspace config
+- Try `vitest --run path/to/test.ts` to test a specific file
+- Check for setup file issues: `setupFiles: ['./apps/api/tests/setup.ts']`
+
+**Linting errors about unused variables**:
+- Prefix with `_` to ignore: `const _unused = ...`
+- ESLint is intentionally permissive; check `eslint.config.js` for rules
+
+**Turbo cache seems stale**:
+- `pnpm clean` clears all build outputs and Turbo cache
+- For a single workspace: `pnpm --filter @workspace-name run clean`
+
+## Agent Directory & Automation
+
+- **Code review**: Use the `code-review` skill for correctness and security analysis
+- **Browser testing**: Playwright is configured for UI testing; use the `playwright` skill
+- **Custom agents**: See `AGENTS.md` for domain-specific agents (Brand Law Enforcer, Casino Scraper, Trust Log Analyzer, etc.)
+- **Brand enforcement**: PRs are automatically scanned for copyright headers, tone violations, and secrets via GitHub workflows
 
 ## Related Documentation
 
@@ -225,4 +392,5 @@ Common test patterns in this monorepo use Puppeteer for some tasks and Playwrigh
 - **Tests are required** for new features; run `pnpm test` before committing
 - **Atomic docs**: Update README/API docs in the same PR as code changes
 - **Workspace isolation**: Avoid circular dependencies; test each module independently
-- **Build caching**: Turbo caches outputs; `pnpm clean` to reset if stuck
+- **Brand compliance**: All new/modified files must include the copyright header and follow Degen tone
+- **Production safety**: Never commit real credentials, private keys, or sensitive API tokens

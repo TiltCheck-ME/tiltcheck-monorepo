@@ -637,7 +637,13 @@ export type EventType =
   | 'trust.degen-intel.ingested'
   | 'trust.casino.metric.snapshot'
   | 'trust.casino.tos.changed'
-  | 'trust.audit.trigger';
+  | 'trust.audit.trigger'
+  | 'activity.launched'
+  | 'activity.action'
+  | 'activity.completed'
+  | 'activity.paused'
+  | 'activity.resumed'
+  | 'activity.error';
 
 /**
  * Event-specific data interfaces
@@ -902,6 +908,45 @@ export interface VaultReloadDueEventData {
   interval: string;
 }
 
+export interface ActivityLaunchedEventData {
+  activityId: string;
+  userId: string;
+  activityType: 'trivia' | 'poker' | 'slots' | 'blackjack';
+  channelId: string;
+  messageId: string;
+}
+
+export interface ActivityActionEventData {
+  activityId: string;
+  userId: string;
+  action: string;
+  payload?: Record<string, unknown>;
+}
+
+export interface ActivityCompletedEventData {
+  activityId: string;
+  userId: string;
+  result?: Record<string, unknown>;
+  duration: number;
+}
+
+export interface ActivityPausedEventData {
+  activityId: string;
+  userId: string;
+}
+
+export interface ActivityResumedEventData {
+  activityId: string;
+  userId: string;
+}
+
+export interface ActivityErrorEventData {
+  activityId: string;
+  userId: string;
+  error: string;
+  code?: string;
+}
+
 /**
  * Map event types to their data structures
  */
@@ -938,6 +983,12 @@ export interface EventDataMap {
   'trust.casino.metric.snapshot': CasinoMetricSnapshot;
   'trust.casino.tos.changed': { casinoName: string; changeSummary?: string; contentHash: string };
   'trust.audit.trigger': { timestamp: number; reason: string };
+  'activity.launched': ActivityLaunchedEventData;
+  'activity.action': ActivityActionEventData;
+  'activity.completed': ActivityCompletedEventData;
+  'activity.paused': ActivityPausedEventData;
+  'activity.resumed': ActivityResumedEventData;
+  'activity.error': ActivityErrorEventData;
 }
 
 export interface TiltCheckEvent<K extends EventType> {

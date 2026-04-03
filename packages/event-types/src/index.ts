@@ -14,7 +14,13 @@ export type TiltCheckEventName =
   | 'trust.affiliate.score.updated'
   | 'identity.wallet.linked'
   | 'financial.tip.processed'
-  | 'trust.casino.graded';
+  | 'trust.casino.graded'
+  | 'activity.launched'
+  | 'activity.action'
+  | 'activity.completed'
+  | 'activity.paused'
+  | 'activity.resumed'
+  | 'activity.error';
 
 export interface TiltCheckBaseEvent<
   Name extends TiltCheckEventName,
@@ -107,6 +113,45 @@ export interface AffiliateScoreUpdatedPayload {
   sourceCount: number;
 }
 
+export interface ActivityLaunchedPayload {
+  instanceId: string;
+  userId: string;
+  activityType: 'trivia' | 'poker' | 'slots' | 'blackjack';
+  guildId: string;
+  channelId: string;
+}
+
+export interface ActivityActionPayload {
+  instanceId: string;
+  userId: string;
+  action: Record<string, unknown>;
+}
+
+export interface ActivityCompletedPayload {
+  instanceId: string;
+  userId: string;
+  activityType: 'trivia' | 'poker' | 'slots' | 'blackjack';
+  status: 'won' | 'lost' | 'abandoned';
+  score?: number;
+  prizeAmount?: number;
+  entitlementConsumed?: boolean;
+  completedAt: number;
+}
+
+export interface ActivityPausedPayload {
+  instanceId: string;
+}
+
+export interface ActivityResumedPayload {
+  instanceId: string;
+}
+
+export interface ActivityErrorPayload {
+  instanceId: string;
+  userId: string;
+  error: Record<string, unknown>;
+}
+
 export type WalletLinkedEvent = TiltCheckBaseEvent<'identity.wallet.linked', WalletLinkedPayload>;
 export type TipProcessedEvent = TiltCheckBaseEvent<'financial.tip.processed', TipProcessedPayload>;
 export type CasinoGradedEvent = TiltCheckBaseEvent<'trust.casino.graded', CasinoGradedPayload>;
@@ -121,7 +166,13 @@ export type TiltCheckEvent =
   | TiltCheckBaseEvent<'trust.affiliate.score.updated', AffiliateScoreUpdatedPayload>
   | WalletLinkedEvent
   | TipProcessedEvent
-  | CasinoGradedEvent;
+  | CasinoGradedEvent
+  | TiltCheckBaseEvent<'activity.launched', ActivityLaunchedPayload>
+  | TiltCheckBaseEvent<'activity.action', ActivityActionPayload>
+  | TiltCheckBaseEvent<'activity.completed', ActivityCompletedPayload>
+  | TiltCheckBaseEvent<'activity.paused', ActivityPausedPayload>
+  | TiltCheckBaseEvent<'activity.resumed', ActivityResumedPayload>
+  | TiltCheckBaseEvent<'activity.error', ActivityErrorPayload>;
 
 export interface CreateEventInput<
   Name extends TiltCheckEventName,

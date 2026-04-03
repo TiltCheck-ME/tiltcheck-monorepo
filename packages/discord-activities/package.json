@@ -1,0 +1,28 @@
+{
+  "name": "@tiltcheck/discord-activities",
+  "version": "1.0.0",
+  "description": "Discord Activities SDK for launching embedded games and interactive experiences",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "clean": "rm -rf dist"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "dependencies": {
+    "@tiltcheck/types": "workspace:*",
+    "@tiltcheck/event-router": "workspace:*",
+    "discord.js": "^14.13.0",
+    "uuid": "^9.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^6.0.2"
+  }
+}

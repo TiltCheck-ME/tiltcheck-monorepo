@@ -23,3 +23,4 @@ export {
   getUserTiltHistory,
   getUserTiltStats,
 } from './tilt-events-handler.js';
+export { handleActivityButtonInteraction, setActivityManager, registerActivityButtonHandlers } from './activity-button.js';

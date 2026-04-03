@@ -67,7 +67,7 @@ export class SentryMonitor {
   }
 
   /** Capture a message with a given severity level. */
-  static captureMessage(message: string, level: Sentry.Severity = 'info' as Sentry.Severity): void {
+  static captureMessage(message: string, level: 'fatal' | 'error' | 'warning' | 'info' = 'info'): void {
     Sentry.captureMessage(message, level);
   }
 
@@ -78,7 +78,7 @@ export class SentryMonitor {
 
   /** Clear any previously set user context. */
   static clearUser(): void {
-    Sentry.configureScope((scope) => scope.setUser(null));
+    Sentry.setUser(null);
   }
 
   /** Set arbitrary context data. */
