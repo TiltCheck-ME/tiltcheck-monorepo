@@ -64,7 +64,9 @@ import { sessionAuth as _sessionAuth, flexAuth as _flexAuth } from '@tiltcheck/a
 
 /**
  * Auth middleware that maps @tiltcheck/auth context to legacy .user property
- * This is a compatibility layer for existing routes
+ * This is a compatibility layer for existing routes.
+ * NOTE: Using 'any' here is intentional - this bridges two different type systems.
+ * Long-term solution is to migrate all routes to use @tiltcheck/auth directly.
  */
 export function authMiddleware(req: Request, res: Response, next: NextFunction): void {
   // Create sessionAuth middleware and call it
@@ -76,13 +78,16 @@ export function authMiddleware(req: Request, res: Response, next: NextFunction):
     }
 
     // Map req.auth to req.user for backwards compatibility
-    if ((req as any).auth) {
-      (req as any).user = {
-        id: (req as any).auth.userId,
-        email: (req as any).auth.email,
-        roles: (req as any).auth.roles || [],
-        discordId: (req as any).auth.discordId,
-        walletAddress: (req as any).auth.walletAddress,
+    // Using 'any' bridge because @tiltcheck/auth's Request extends doesn't
+    // match this middleware's expectation
+    const authReq = req as any;
+    if (authReq.auth) {
+      authReq.user = {
+        id: authReq.auth.userId,
+        email: authReq.auth.email || '',
+        roles: authReq.auth.roles || [],
+        discordId: authReq.auth.discordId,
+        walletAddress: authReq.auth.walletAddress,
       };
     }
 
@@ -92,6 +97,7 @@ export function authMiddleware(req: Request, res: Response, next: NextFunction):
 
 /**
  * Optional auth middleware (doesn't fail if no auth provided)
+ * NOTE: Using 'any' in bridge for same reason as authMiddleware - see above.
  */
 export function optionalAuthMiddleware(req: Request, res: Response, next: NextFunction): void {
   // Use flexAuth which handles both session and bearer tokens, with required: false
@@ -104,13 +110,14 @@ export function optionalAuthMiddleware(req: Request, res: Response, next: NextFu
     }
 
     // Map req.auth to req.user for backwards compatibility
-    if ((req as any).auth) {
-      (req as any).user = {
-        id: (req as any).auth.userId,
-        email: (req as any).auth.email,
-        roles: (req as any).auth.roles || [],
-        discordId: (req as any).auth.discordId,
-        walletAddress: (req as any).auth.walletAddress,
+    const authReq = req as any;
+    if (authReq.auth) {
+      authReq.user = {
+        id: authReq.auth.userId,
+        email: authReq.auth.email || '',
+        roles: authReq.auth.roles || [],
+        discordId: authReq.auth.discordId,
+        walletAddress: authReq.auth.walletAddress,
       };
     }
 

@@ -12,12 +12,10 @@
 
 import { Client, EmbedBuilder, TextChannel, DMChannel, ChannelType } from 'discord.js';
 import { eventRouter } from '@tiltcheck/event-router';
-import type { TiltCheckBaseEvent } from '@tiltcheck/event-types';
-import type { TiltDetectedPayload } from '@tiltcheck/event-types';
+import type { TiltCheckBaseEvent, TiltDetectedPayload } from '@tiltcheck/event-types';
 import {
   getAccountabilityPartners,
-  getBuddiesFor,
-  getUser,
+  getUserBuddies,
   query,
 } from '@tiltcheck/db';
 
@@ -57,11 +55,15 @@ export function initializeAccountabilityPings(client: Client): void {
         // Update rate limit
         recentAlerts.set(userId, Date.now());
 
-        // Get user info
-        const user = await getUser(userId);
-        if (!user) {
-          console.error(`[AccountabilityPing] User not found: ${userId}`);
-          return;
+        // Fetch user from Discord API to get username
+        let userName = 'User';
+        try {
+          const user = await client.users.fetch(userId);
+          if (user?.username) {
+            userName = user.username;
+          }
+        } catch (err) {
+          console.warn(`[AccountabilityPing] Could not fetch username for ${userId}, using default`);
         }
 
         // Get accountability buddies (people watching this user)
@@ -70,14 +72,14 @@ export function initializeAccountabilityPings(client: Client): void {
         // Send buddy notifications
         if (buddies && buddies.length > 0) {
           for (const buddy of buddies) {
-            await notifyBuddy(client, buddy.user_id, user.discord_id, event.payload);
+            await notifyBuddy(client, buddy.buddy_id, userId, userName, event.payload);
           }
         } else {
           console.log(`[AccountabilityPing] No buddies for user ${userId}, skipping buddy notification`);
         }
 
         // Post to accountability channel
-        await postToAccountabilityChannel(client, user.discord_id, user.discord_username || 'User', event.payload);
+        await postToAccountabilityChannel(client, userId, userName, event.payload);
 
         console.log(
           `[AccountabilityPing] Alert sent for user ${userId} (tilt: ${tiltScore}, buddies: ${buddies?.length || 0})`
@@ -99,6 +101,7 @@ async function notifyBuddy(
   client: Client,
   buddyDiscordId: string,
   userDiscordId: string,
+  userName: string,
   tiltData: TiltDetectedPayload
 ): Promise<void> {
   try {
@@ -107,9 +110,6 @@ async function notifyBuddy(
       console.warn(`[AccountabilityPing] Could not fetch buddy user: ${buddyDiscordId}`);
       return;
     }
-
-    const user = await client.users.fetch(userDiscordId);
-    const userName = user?.username || 'User';
 
     // Format tilt trigger
     const triggerText = getTriggerDescription(tiltData.trigger);

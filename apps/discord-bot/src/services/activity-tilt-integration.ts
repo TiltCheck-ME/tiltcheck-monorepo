@@ -7,10 +7,9 @@
  */
 
 import type { DiscordActivityManager } from '@tiltcheck/discord-activities';
-import { tiltBroadcaster } from '@tiltcheck/discord-activities/tilt-broadcast';
+import type { TiltCheckBaseEvent, TiltDetectedPayload } from '@tiltcheck/event-types';
 import { eventRouter } from '@tiltcheck/event-router';
-import type { TiltCheckBaseEvent } from '@tiltcheck/event-types';
-import type { TiltDetectedPayload } from '@tiltcheck/event-types';
+import { tiltBroadcaster } from '@tiltcheck/discord-activities';
 
 /**
  * Initialize integration between tilt events and Activity broadcasts

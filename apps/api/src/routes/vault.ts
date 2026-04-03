@@ -23,10 +23,16 @@ import {
 
 const router: Router = Router();
 
+interface VaultError extends Error {
+  code?: string;
+  httpStatus?: number;
+}
+
 function handleVaultError(error: unknown): { status: number; body: { error: string; code?: string } } {
   if (error instanceof Error) {
-    const code = (error as any).code;
-    const httpStatus = (error as any).httpStatus;
+    const vaultError = error as VaultError;
+    const code = vaultError.code;
+    const httpStatus = vaultError.httpStatus;
     if (code === 'FEATURE_NOT_IMPLEMENTED' && httpStatus === 501) {
       return {
         status: 501,
