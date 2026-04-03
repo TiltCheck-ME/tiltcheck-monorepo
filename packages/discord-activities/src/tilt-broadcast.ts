@@ -7,8 +7,7 @@
  */
 
 import { EventEmitter } from 'events';
-import type { TiltCheckBaseEvent } from '@tiltcheck/event-types';
-import type { TiltDetectedPayload } from '@tiltcheck/event-types';
+import type { TiltCheckBaseEvent, TiltDetectedPayload } from '@tiltcheck/event-types';
 
 export interface TiltBroadcast {
   userId: string;

@@ -8,7 +8,7 @@ import fs from 'fs';
 import path from 'path';
 import { createCipheriv, createDecipheriv, randomBytes } from 'crypto';
 
-// Vault secret encryption key - REQUIRED for disposable vaults in production
+// Vault secret encryption key - REQUIRED in production, strongly recommended for dev/test
 const VAULT_ENC_KEY_HEX = process.env.VAULT_ENCRYPTION_KEY || '';
 const VAULT_ALLOW_PLAINTEXT = process.env.LOCKVAULT_ALLOW_PLAINTEXT === 'true';
 
@@ -26,8 +26,15 @@ const VAULT_ENC_KEY = parseVaultEncryptionKey(VAULT_ENC_KEY_HEX);
 if (!VAULT_ENC_KEY) {
   if (process.env.NODE_ENV === 'production') {
     throw new Error('[LockVault] VAULT_ENCRYPTION_KEY must be set in production (32-byte hex).');
-  } else if (process.env.NODE_ENV !== 'test' && !VAULT_ALLOW_PLAINTEXT) {
-    console.warn('[LockVault] WARNING: VAULT_ENCRYPTION_KEY not set. Vault secrets stored unencrypted. Set LOCKVAULT_ALLOW_PLAINTEXT=true only for local development.');
+  } else if (process.env.NODE_ENV !== 'test') {
+    // Warn unless explicitly opted into plaintext mode
+    if (!VAULT_ALLOW_PLAINTEXT) {
+      console.warn('[LockVault] WARNING: VAULT_ENCRYPTION_KEY not set. Vault secrets will be stored unencrypted.');
+      console.warn('[LockVault] To use plaintext secrets for local dev only, set: LOCKVAULT_ALLOW_PLAINTEXT=true');
+      console.warn('[LockVault] To generate a key: node -e "console.log(require(\'crypto\').randomBytes(32).toString(\'hex\'))"');
+    } else {
+      console.warn('[LockVault] NOTE: Plaintext vault secrets enabled (LOCKVAULT_ALLOW_PLAINTEXT=true). This is dev-only.');
+    }
   }
 }
 

@@ -124,11 +124,14 @@ export function optionalAuthMiddleware(req: Request, res: Response, next: NextFu
  */
 export function internalServiceAuth(req: Request, _res: Response, next: NextFunction): void {
   const secret = process.env.INTERNAL_API_SECRET;
-  if (!secret) {
+  if (!secret || typeof secret !== 'string' || secret.trim() === '') {
     if (process.env.NODE_ENV === 'production') {
-      throw new Error('INTERNAL_API_SECRET must be set in production');
+      throw new Error('INTERNAL_API_SECRET must be set to a non-empty string in production');
     }
-    // Allow in dev
+    // Allow in dev (but warn)
+    if (secret === '') {
+      console.warn('[Auth] INTERNAL_API_SECRET is set to empty string - authentication will fail');
+    }
     next();
     return;
   }
