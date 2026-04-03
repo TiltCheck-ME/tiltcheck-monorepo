@@ -21,7 +21,8 @@ export type TiltCheckEventName =
   | 'activity.completed'
   | 'activity.paused'
   | 'activity.resumed'
-  | 'activity.error';
+  | 'activity.error'
+  | 'activity.message';
 
 export interface TiltCheckBaseEvent<
   Name extends TiltCheckEventName,
@@ -164,6 +165,16 @@ export interface ActivityErrorPayload {
   instanceId: string;
   userId: string;
   error: Record<string, unknown>;
+}
+
+export interface ActivityMessagePayload {
+  activityId: string;
+  message: {
+    type: string;
+    instanceId: string;
+    userId: string;
+    payload: Record<string, unknown>;
+  };
 }
 
 export type WalletLinkedEvent = TiltCheckBaseEvent<'identity.wallet.linked', WalletLinkedPayload>;

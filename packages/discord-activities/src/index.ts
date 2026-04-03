@@ -12,7 +12,9 @@
  * - Session state persistence and recovery
  * - iFrame-to-Bot bidirectional messaging
  * - Event publishing for analytics and game integration
+ * - Real-time tilt broadcasting to active activities
  */
 
 export * from './types.js';
 export * from './activity-manager.js';
+export * from './tilt-broadcast.js';

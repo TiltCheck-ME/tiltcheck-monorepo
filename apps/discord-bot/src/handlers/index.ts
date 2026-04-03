@@ -23,4 +23,9 @@ export {
   getUserTiltHistory,
   getUserTiltStats,
 } from './tilt-events-handler.js';
+export {
+  initializeAccountabilityPings,
+  getAccountabilityBuddies,
+  clearRateLimit,
+} from './accountability-ping.js';
 export { handleActivityButtonInteraction, setActivityManager, registerActivityButtonHandlers } from './activity-button.js';

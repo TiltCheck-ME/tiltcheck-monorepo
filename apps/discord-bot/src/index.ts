@@ -13,6 +13,7 @@ import {
   EventHandler,
   registerDMHandler,
   initializeTiltEventsHandler,
+  initializeAccountabilityPings,
   registerActivityButtonHandlers,
 } from './handlers/index.js';
 import { initializeAlertService } from './services/alert-service.js';
@@ -83,6 +84,10 @@ async function main() {
   initializeTiltEventsHandler();
   console.log('[Tilt] Tilt events handler ready\n');
 
+  console.log('[Accountability] Initializing accountability ping system...');
+  initializeAccountabilityPings(client);
+  console.log('[Accountability] Accountability pings active\n');
+
   console.log('[Elastic] Ensuring telemetry index...');
   await ensureTelemetryIndex();
   console.log('[Elastic] Telemetry index ready\n');
@@ -125,8 +130,8 @@ async function main() {
   });
   console.log('[TiltAgent] Scan loop active\n');
   if (process.env.ELASTIC_URL && process.env.ELASTIC_API_KEY) {
-    const regsChannelId = process.env.REGULATIONS_ALERTS_CHANNEL_ID || '1447524353263665252';
-    const regsGuildId = process.env.REGULATIONS_ALERTS_GUILD_ID || '1446973117472964620';
+    const regsChannelId = process.env.REGULATIONS_ALERTS_CHANNEL_ID || '';
+    const regsGuildId = process.env.REGULATIONS_ALERTS_GUILD_ID || '';
 
     startRegulationsNotifier(client, {
       elasticUrl: process.env.ELASTIC_URL,
