@@ -29,6 +29,9 @@
       "path": "../../packages/event-router"
     },
     {
+      "path": "../../packages/event-types"
+    },
+    {
       "path": "../../modules/justthetip"
     },
     {
