@@ -1,16 +1,22 @@
-/* Copyright (c) 2026 TiltCheck. All rights reserved. */
 /**
- * JWT Authentication Middleware
+ * DEPRECATED: This file is kept for backwards compatibility only.
+ * New implementations should use middleware from @tiltcheck/auth/middleware/express.js:
+ * - sessionAuth() - For session cookie authentication
+ * - bearerAuth() - For JWT Bearer token authentication
+ * - flexAuth() - For both session and bearer token
  * 
- * Verifies JWT tokens from Authorization header and attaches user to req.user
+ * To migrate existing code:
+ *   OLD: import { authMiddleware } from './middleware/auth.js'
+ *   NEW: import { flexAuth } from '@tiltcheck/auth/middleware/express.js'
+ *        app.use(flexAuth(getJWTConfig()));
  */
 
 import type { Request, Response, NextFunction } from 'express';
-import { findUserById } from '@tiltcheck/db';
 import { verifySessionCookie, verifyToken, type JWTConfig, type JWTPayload } from '@tiltcheck/auth';
 
 /**
  * Get unified JWT configuration
+ * (For backwards compatibility - new code should use getJWTConfigFromEnv from @tiltcheck/auth)
  */
 export function getJWTConfig(): JWTConfig {
   const secret = process.env.JWT_SECRET || '';
@@ -36,9 +42,10 @@ export interface JWTPayloadExt extends JWTPayload {
 }
 
 /**
- * Extended Request with user data
+ * DEPRECATED: Use AuthenticatedRequest from @tiltcheck/auth instead
+ * This type is kept for backwards compatibility only.
  */
-export interface AuthRequest extends Request {
+export type AuthRequest = Request & {
   user?: {
     id: string;
     email: string;
@@ -46,193 +53,100 @@ export interface AuthRequest extends Request {
     discordId?: string;
     walletAddress?: string;
   };
-}
+};
+
+// Export types from @tiltcheck/auth for backwards compatibility
+export type { JWTConfig, JWTPayload };
+export { verifyToken, verifySessionCookie };
+
+// Import the real middleware from @tiltcheck/auth
+import { sessionAuth as _sessionAuth, flexAuth as _flexAuth } from '@tiltcheck/auth/middleware/express.js';
 
 /**
- * Get JWT secret from environment
+ * Auth middleware that maps @tiltcheck/auth context to legacy .user property
+ * This is a compatibility layer for existing routes
  */
-function getJWTSecret(): string {
-  const secret = process.env.JWT_SECRET;
-  if (!secret) {
-    throw new Error('JWT_SECRET environment variable is required');
-  }
-  return secret;
-}
+export function authMiddleware(req: Request, res: Response, next: NextFunction): void {
+  // Create sessionAuth middleware and call it
+  const handler = _sessionAuth();
+  handler(req, res, (err) => {
+    if (err) {
+      next(err);
+      return;
+    }
 
-async function getSessionUser(req: Request): Promise<AuthRequest['user'] | null> {
-  try {
-    const cookieHeader = req.headers.cookie;
-    const jwtConfig = getJWTConfig();
-    const result = await verifySessionCookie(cookieHeader, jwtConfig);
-    if (!result.valid || !result.session) return null;
-    const session = result.session;
-    return {
-      id: session.userId,
-      email: `${session.userId}@session.local`,
-      roles: Array.isArray(session.roles) ? session.roles : [],
-      discordId: session.discordId,
-      walletAddress: session.walletAddress,
-    };
-  } catch {
-    return null;
-  }
-}
+    // Map req.auth to req.user for backwards compatibility
+    if ((req as any).auth) {
+      (req as any).user = {
+        id: (req as any).auth.userId,
+        email: (req as any).auth.email,
+        roles: (req as any).auth.roles || [],
+        discordId: (req as any).auth.discordId,
+        walletAddress: (req as any).auth.walletAddress,
+      };
+    }
 
-/**
- * Middleware to verify JWT token and attach user to request
- */
-export async function authMiddleware(
-  req: Request,
-  res: Response,
-  next: NextFunction
-): Promise<void> {
-  try {
-    // Get token from Authorization header
-    const authHeader = req.headers.authorization;
-    
-    if (!authHeader) {
-      const sessionUser = await getSessionUser(req);
-      if (sessionUser) {
-        (req as AuthRequest).user = sessionUser;
-        next();
-        return;
-      }
-      res.status(401).json({
-        error: 'No authorization header',
-        code: 'UNAUTHORIZED'
-      });
-      return;
-    }
-    
-    // Check for Bearer token format
-    const parts = authHeader.split(' ');
-    if (parts.length !== 2 || parts[0] !== 'Bearer') {
-      res.status(401).json({ 
-        error: 'Invalid authorization format. Expected: Bearer <token>', 
-        code: 'INVALID_TOKEN_FORMAT' 
-      });
-      return;
-    }
-    
-    const token = parts[1];
-    const jwtConfig = getJWTConfig();
-    
-    // Verify token using @tiltcheck/auth
-    const result = await verifyToken(token, jwtConfig);
-    
-    if (!result.valid || !result.payload) {
-      const sessionUser = await getSessionUser(req);
-      if (sessionUser) {
-        (req as AuthRequest).user = sessionUser;
-        next();
-        return;
-      }
-      
-      if (result.error?.includes('expired')) {
-        res.status(401).json({
-          error: 'Token expired',
-          code: 'TOKEN_EXPIRED'
-        });
-        return;
-      }
-      
-      res.status(401).json({
-        error: result.error || 'Invalid token',
-        code: 'INVALID_TOKEN'
-      });
-      return;
-    }
-    
-    const payload = result.payload as JWTPayloadExt;
-    
-    // Get userId from either sub or userId field
-    const userId = payload.sub || payload.userId;
-    if (!userId) {
-      res.status(401).json({ 
-        error: 'Token missing user ID', 
-        code: 'INVALID_TOKEN' 
-      });
-      return;
-    }
-    
-    // Verify user still exists in database
-    const user = await findUserById(userId);
-    if (!user) {
-      res.status(401).json({ 
-        error: 'User not found', 
-        code: 'USER_NOT_FOUND' 
-      });
-      return;
-    }
-    
-    // Attach user to request
-    (req as AuthRequest).user = {
-      id: user.id,
-      email: user.email || payload.email || '',
-      roles: payload.roles || user.roles || [],
-      discordId: user.discord_id || payload.discordId,
-      walletAddress: user.wallet_address || payload.walletAddress,
-    };
-    
     next();
-  } catch (error) {
-    console.error('[Auth Middleware] Error:', error);
-    res.status(500).json({ 
-      error: 'Authentication failed', 
-      code: 'AUTH_ERROR' 
-    });
-  }
+  });
 }
 
 /**
- * Optional auth middleware - doesn't fail if no token provided
- * Useful for routes that work both authenticated and unauthenticated
+ * Optional auth middleware (doesn't fail if no auth provided)
  */
-export async function optionalAuthMiddleware(
-  req: Request,
-  res: Response,
-  next: NextFunction
-): Promise<void> {
-  const authHeader = req.headers.authorization;
-  
-  if (!authHeader) {
+export function optionalAuthMiddleware(req: Request, res: Response, next: NextFunction): void {
+  // Use flexAuth which handles both session and bearer tokens, with required: false
+  const handler = _flexAuth(undefined, { required: false });
+  handler(req, res, (err) => {
+    if (err) {
+      // Don't propagate the error - optional means we proceed anyway
+      next();
+      return;
+    }
+
+    // Map req.auth to req.user for backwards compatibility
+    if ((req as any).auth) {
+      (req as any).user = {
+        id: (req as any).auth.userId,
+        email: (req as any).auth.email,
+        roles: (req as any).auth.roles || [],
+        discordId: (req as any).auth.discordId,
+        walletAddress: (req as any).auth.walletAddress,
+      };
+    }
+
     next();
-    return;
-  }
-  
-  // If header exists, validate it
-  await authMiddleware(req, res, next);
+  });
 }
+
 /**
- * Middleware for internal service-to-service authentication
- * Compares Bearer token against INTERNAL_API_SECRET
+ * Internal service authentication (kept for backwards compatibility)
+ * Validates Bearer token against INTERNAL_API_SECRET
  */
-export function internalServiceAuth(
-  req: Request,
-  res: Response,
-  next: NextFunction
-): void {
+export function internalServiceAuth(req: Request, _res: Response, next: NextFunction): void {
   const secret = process.env.INTERNAL_API_SECRET;
-  
   if (!secret) {
-    if (process.env.NODE_ENV !== 'production') {
-       next(); // Skip in dev if not set
-       return;
+    if (process.env.NODE_ENV === 'production') {
+      throw new Error('INTERNAL_API_SECRET must be set in production');
     }
-    res.status(503).json({ error: 'Internal auth unconfigured' });
+    // Allow in dev
+    next();
     return;
   }
 
   const authHeader = req.headers.authorization;
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    res.status(401).json({ error: 'Bearer token required' });
-    return;
+  if (!authHeader) {
+    // Middleware should reject, not pass
+    throw new Error('Missing authorization header');
   }
 
-  const token = authHeader.substring(7);
+  const parts = authHeader.split(' ');
+  if (parts.length !== 2 || parts[0] !== 'Bearer') {
+    throw new Error('Invalid authorization format');
+  }
+
+  const token = parts[1];
   if (token !== secret) {
-    res.status(403).json({ error: 'Forbidden' });
-    return;
+    throw new Error('Invalid service token');
   }
 
   next();
