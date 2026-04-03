@@ -535,10 +535,38 @@ export function getReloadSchedule(userId: string) { return vaultManager.getReloa
 export function startLockVaultBackgroundTasks() { return vaultManager.startBackgroundTasks(); }
 export function stopLockVaultBackgroundTasks() { return vaultManager.stopBackgroundTasks(); }
 export function depositToVault(userId: string, amount: number) { return vaultManager.deposit(userId, amount); }
-export async function addSecondOwner(_userId: string, _secondOwnerId: string) { throw new Error('addSecondOwner not implemented yet'); }
-export async function initiateWithdrawal(_userId: string, _amount: number) { throw new Error('initiateWithdrawal not implemented yet'); }
-export async function approveWithdrawal(_userId: string) { throw new Error('approveWithdrawal not implemented yet'); }
-export async function executeWithdrawal(_userId: string) { throw new Error('executeWithdrawal not implemented yet'); }
+export async function addSecondOwner(userId: string, secondOwnerId: string) { 
+  // Multi-signature vault feature - requires proper key management implementation
+  // For now, return a structured error that API routes can use
+  const error = new Error('Multi-signature vault features are not yet implemented');
+  (error as any).code = 'FEATURE_NOT_IMPLEMENTED';
+  (error as any).httpStatus = 501;
+  throw error;
+}
+
+export async function initiateWithdrawal(userId: string, _amount: number) { 
+  // Multi-signature withdrawal requires key rotation and approval flow
+  const error = new Error('Multi-signature withdrawal is not yet implemented');
+  (error as any).code = 'FEATURE_NOT_IMPLEMENTED';
+  (error as any).httpStatus = 501;
+  throw error;
+}
+
+export async function approveWithdrawal(userId: string) { 
+  // Second owner approval step - requires key management
+  const error = new Error('Multi-signature withdrawal approval is not yet implemented');
+  (error as any).code = 'FEATURE_NOT_IMPLEMENTED';
+  (error as any).httpStatus = 501;
+  throw error;
+}
+
+export async function executeWithdrawal(userId: string) { 
+  // Final execution with accumulated signatures
+  const error = new Error('Multi-signature withdrawal execution is not yet implemented');
+  (error as any).code = 'FEATURE_NOT_IMPLEMENTED';
+  (error as any).httpStatus = 501;
+  throw error;
+}
 export function getVaultBalance(userId: string) { return vaultManager.getBalance(userId); }
 export function setWalletActionLockForUser(userId: string, durationMs: number, reason?: string) { return vaultManager.setWalletActionLock(userId, durationMs, reason); }
 export function clearWalletActionLockForUser(userId: string) { return vaultManager.clearWalletActionLock(userId); }

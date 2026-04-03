@@ -23,6 +23,27 @@ import {
 
 const router: Router = Router();
 
+function handleVaultError(error: unknown): { status: number; body: { error: string; code?: string } } {
+  if (error instanceof Error) {
+    const code = (error as any).code;
+    const httpStatus = (error as any).httpStatus;
+    if (code === 'FEATURE_NOT_IMPLEMENTED' && httpStatus === 501) {
+      return {
+        status: 501,
+        body: { error: error.message, code: 'FEATURE_NOT_IMPLEMENTED' }
+      };
+    }
+    return {
+      status: 400,
+      body: { error: error.message }
+    };
+  }
+  return {
+    status: 500,
+    body: { error: 'Unknown error' }
+  };
+}
+
 function walletLockBlockedResponse(userId: string) {
   const status = getWalletActionLockStatus(userId);
   if (!status.locked || !status.lockUntil || !status.remainingMs) return null;
@@ -335,8 +356,8 @@ router.post('/:userId/add-second-owner', authMiddleware, async (req, res) => {
             vault: record
         });
     } catch (error) {
-        const message = error instanceof Error ? error.message : 'Unknown error';
-        res.status(400).json({ error: message });
+        const { status, body } = handleVaultError(error);
+        res.status(status).json(body);
     }
 });
 
@@ -367,8 +388,8 @@ router.post('/:userId/initiate-withdrawal', authMiddleware, async (req, res) => 
             vault: record
         });
     } catch (error) {
-        const message = error instanceof Error ? error.message : 'Unknown error';
-        res.status(400).json({ error: message });
+        const { status, body } = handleVaultError(error);
+        res.status(status).json(body);
     }
 });
 
@@ -392,8 +413,8 @@ router.post('/:userId/approve-withdrawal', authMiddleware, async (req, res) => {
             vault: record
         });
     } catch (error) {
-        const message = error instanceof Error ? error.message : 'Unknown error';
-        res.status(400).json({ error: message });
+        const { status, body } = handleVaultError(error);
+        res.status(status).json(body);
     }
 });
 
@@ -417,8 +438,8 @@ router.post('/:userId/execute-withdrawal', authMiddleware, async (req, res) => {
             vault: record
         });
     } catch (error) {
-        const message = error instanceof Error ? error.message : 'Unknown error';
-        res.status(400).json({ error: message });
+        const { status, body } = handleVaultError(error);
+        res.status(status).json(body);
     }
 });
 

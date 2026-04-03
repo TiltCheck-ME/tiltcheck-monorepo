@@ -11,6 +11,7 @@ export type TiltCheckEventName =
   | 'safety.cooldown.triggered'
   | 'safety.sentiment.flagged'
   | 'safety.intervention.triggered'
+  | 'safety.tilt.detected'
   | 'trust.affiliate.score.updated'
   | 'identity.wallet.linked'
   | 'financial.tip.processed'
@@ -100,6 +101,19 @@ export interface InterventionTriggeredPayload {
   reason: string;
 }
 
+export interface TiltDetectedPayload {
+  userId: string;
+  tiltScore: number;
+  threshold: number;
+  trigger: 'loss_streak' | 'large_loss' | 'time_played' | 'behavior';
+  sessionMetrics: {
+    pnl: number;
+    currentStreak: { wins: number; losses: number };
+    rtp: number;
+    timeInSession: number;
+  };
+}
+
 export interface AffiliateScoreUpdatedPayload {
   affiliateId: string;
   score: number;
@@ -163,6 +177,7 @@ export type TiltCheckEvent =
   | TiltCheckBaseEvent<'safety.cooldown.triggered', CooldownTriggeredPayload>
   | TiltCheckBaseEvent<'safety.sentiment.flagged', SentimentFlaggedPayload>
   | TiltCheckBaseEvent<'safety.intervention.triggered', InterventionTriggeredPayload>
+  | TiltCheckBaseEvent<'safety.tilt.detected', TiltDetectedPayload>
   | TiltCheckBaseEvent<'trust.affiliate.score.updated', AffiliateScoreUpdatedPayload>
   | WalletLinkedEvent
   | TipProcessedEvent
