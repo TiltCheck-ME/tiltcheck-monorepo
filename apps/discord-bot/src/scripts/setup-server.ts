@@ -53,50 +53,50 @@ const STRUCTURE = [
   {
     category: '👋 Start Here',
     channels: [
-      { name: 'welcome', type: ChannelType.GuildText, topic: 'What TiltCheck is and why it exists.', readonly: true },
-      { name: 'rules', type: ChannelType.GuildText, topic: 'Keep it real. No shilling. No harassment.', readonly: true },
-      { name: 'announcements', type: ChannelType.GuildText, topic: 'Product updates and beta milestones.', readonly: true },
+      { name: 'welcome', type: ChannelType.GuildText, topic: 'What TiltCheck is and why it exists.', readonly: true, staffOnly: false, genesisOnly: false },
+      { name: 'rules', type: ChannelType.GuildText, topic: 'Keep it real. No shilling. No harassment.', readonly: true, staffOnly: false, genesisOnly: false },
+      { name: 'announcements', type: ChannelType.GuildText, topic: 'Product updates and beta milestones.', readonly: true, staffOnly: false, genesisOnly: false },
     ],
   },
   {
     category: '💬 Community',
     channels: [
-      { name: 'general', type: ChannelType.GuildText, topic: 'Talk about anything. Be a human.' },
-      { name: 'degen-talk', type: ChannelType.GuildText, topic: 'Session stories, wins, losses, lessons.' },
-      { name: 'casino-watch', type: ChannelType.GuildText, topic: 'Flag sketchy platforms. Share legitimate finds.' },
-      { name: 'off-topic', type: ChannelType.GuildText, topic: 'Everything that doesn\'t fit elsewhere.' },
+      { name: 'general', type: ChannelType.GuildText, topic: 'Talk about anything. Be a human.', readonly: false, staffOnly: false, genesisOnly: false },
+      { name: 'degen-talk', type: ChannelType.GuildText, topic: 'Session stories, wins, losses, lessons.', readonly: false, staffOnly: false, genesisOnly: false },
+      { name: 'casino-watch', type: ChannelType.GuildText, topic: 'Flag sketchy platforms. Share legitimate finds.', readonly: false, staffOnly: false, genesisOnly: false },
+      { name: 'off-topic', type: ChannelType.GuildText, topic: 'Everything that doesn\'t fit elsewhere.', readonly: false, staffOnly: false, genesisOnly: false },
     ],
   },
   {
     category: '🛠️ Beta Program',
     channels: [
-      { name: 'beta-general', type: ChannelType.GuildText, topic: 'Beta tester chat. Testers only.', genesisOnly: true },
-      { name: 'bug-reports', type: ChannelType.GuildText, topic: 'Post bugs here. Be specific. Screenshots help.', genesisOnly: true },
-      { name: 'feature-requests', type: ChannelType.GuildText, topic: 'What would make this actually useful for you?' , genesisOnly: true },
-      { name: 'beta-applications', type: ChannelType.GuildText, topic: 'Auto-posted applications from the website.', readonly: true, staffOnly: true },
+      { name: 'beta-general', type: ChannelType.GuildText, topic: 'Beta tester chat. Testers only.', genesisOnly: true, readonly: false, staffOnly: false },
+      { name: 'bug-reports', type: ChannelType.GuildText, topic: 'Post bugs here. Be specific. Screenshots help.', genesisOnly: true, readonly: false, staffOnly: false },
+      { name: 'feature-requests', type: ChannelType.GuildText, topic: 'What would make this actually useful for you?' , genesisOnly: true, readonly: false, staffOnly: false },
+      { name: 'beta-applications', type: ChannelType.GuildText, topic: 'Auto-posted applications from the website.', readonly: true, staffOnly: true, genesisOnly: false },
     ],
   },
   {
     category: '📊 Audit Feed',
     channels: [
-      { name: 'trust-alerts', type: ChannelType.GuildText, topic: 'Automated trust score changes and flags.', readonly: true },
-      { name: 'casino-scores', type: ChannelType.GuildText, topic: 'New casino audits posted automatically.', readonly: true },
-      { name: 'scam-alerts', type: ChannelType.GuildText, topic: 'Domains flagged by the extension.', readonly: true },
+      { name: 'trust-alerts', type: ChannelType.GuildText, topic: 'Automated trust score changes and flags.', readonly: true, staffOnly: false, genesisOnly: false },
+      { name: 'casino-scores', type: ChannelType.GuildText, topic: 'New casino audits posted automatically.', readonly: true, staffOnly: false, genesisOnly: false },
+      { name: 'scam-alerts', type: ChannelType.GuildText, topic: 'Domains flagged by the extension.', readonly: true, staffOnly: false, genesisOnly: false },
     ],
   },
   {
     category: '🤙 Accountability',
     channels: [
-      { name: 'session-goals', type: ChannelType.GuildText, topic: 'Set a goal before you play. Post it here.' },
-      { name: 'wins-secured', type: ChannelType.GuildText, topic: 'You cashed out. Tell us about it.' },
-      { name: 'tough-love', type: ChannelType.GuildText, topic: 'Honest reflection on sessions that didn\'t go well.' },
+      { name: 'session-goals', type: ChannelType.GuildText, topic: 'Set a goal before you play. Post it here.', readonly: false, staffOnly: false, genesisOnly: false },
+      { name: 'wins-secured', type: ChannelType.GuildText, topic: 'You cashed out. Tell us about it.', readonly: false, staffOnly: false, genesisOnly: false },
+      { name: 'tough-love', type: ChannelType.GuildText, topic: 'Honest reflection on sessions that didn\'t go well.', readonly: false, staffOnly: false, genesisOnly: false },
     ],
   },
   {
     category: '🔧 Staff Only',
     channels: [
-      { name: 'staff-chat', type: ChannelType.GuildText, topic: 'Internal team channel.', staffOnly: true },
-      { name: 'mod-log', type: ChannelType.GuildText, topic: 'Moderation actions log.', staffOnly: true },
+      { name: 'staff-chat', type: ChannelType.GuildText, topic: 'Internal team channel.', staffOnly: true, readonly: false, genesisOnly: false },
+      { name: 'mod-log', type: ChannelType.GuildText, topic: 'Moderation actions log.', staffOnly: true, readonly: false, genesisOnly: false },
     ],
   },
 ];
