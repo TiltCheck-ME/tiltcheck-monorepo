@@ -36,6 +36,7 @@ import type {
 import { mapAuthUserToDiscordUser } from './types.js';
 import { justthetip } from '@tiltcheck/justthetip';
 import { eventRouter } from '@tiltcheck/event-router';
+import { triviaManager } from './trivia-manager.js';
 
 // ES module __dirname equivalent
 const __filename = fileURLToPath(import.meta.url);
