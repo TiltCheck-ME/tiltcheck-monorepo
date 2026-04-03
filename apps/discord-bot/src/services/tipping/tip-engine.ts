@@ -51,6 +51,10 @@ export async function executeTip(request: TipRequest, senderKeypair: Keypair): P
       message: 'Discord Tip (Pending)'
     });
 
+    if (!tipRecord) {
+      return { success: false, tipId: 'none', amount: 0, fee: 0, error: 'Failed to create pending tip record' };
+    }
+
     return { 
       success: true, 
       tipId: tipRecord.id, 
