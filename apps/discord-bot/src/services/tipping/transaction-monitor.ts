@@ -93,11 +93,9 @@ async function monitorTransaction(signature: string): Promise<void> {
       console.error(`[TransactionMonitor] ${signature} failed:`, confirmation.value.err);
       
       void eventRouter.publish('tip.failed', 'justthetip', {
-        signature,
         userId: tx.userId,
-        recipientId: tx.recipientId,
         amount: tx.amount,
-        error: JSON.stringify(confirmation.value.err),
+        reason: `Transaction failed: ${JSON.stringify(confirmation.value.err)}`,
       });
 
       pendingTransactions.delete(signature);

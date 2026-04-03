@@ -76,7 +76,7 @@ client.once('ready', async () => {
       console.log(`  └─ 📝 Creating channel: ${chan.name}`);
       await guild.channels.create({
         name: chan.name,
-        type: chan.type,
+        type: chan.type as any,
         parent: category.id,
         topic: chan.topic,
       });

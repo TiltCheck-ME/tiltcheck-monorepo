@@ -169,7 +169,7 @@ async function setup(guild: Guild) {
 
       const channel = await guild.channels.create({
         name: ch.name,
-        type: ch.type,
+        type: ch.type as any,
         topic: ch.topic,
         parent: category.id,
         permissionOverwrites,
