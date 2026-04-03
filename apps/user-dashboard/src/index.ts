@@ -5,7 +5,8 @@ import {
   verifySessionCookie, 
   getCookieConfig,
   type JWTConfig,
-  type SessionData
+  type SessionData,
+  type AuthenticatedRequest
 } from '@tiltcheck/auth';
 import rateLimit from 'express-rate-limit';
 import { Magic } from '@magic-sdk/admin';
@@ -15,7 +16,6 @@ import { dirname, join } from 'path';
 import type { Request, Response, NextFunction } from 'express';
 import { db, DegenIdentity } from '@tiltcheck/database';
 import { findUserByDiscordId, findOnboardingByDiscordId } from '@tiltcheck/db';
-import { runner } from '@tiltcheck/agent';
 
 /**
  * Utility to convert agent content to string

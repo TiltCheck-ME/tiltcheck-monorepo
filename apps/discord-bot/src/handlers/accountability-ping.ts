@@ -12,7 +12,7 @@
 
 import { Client, EmbedBuilder, TextChannel, DMChannel, ChannelType } from 'discord.js';
 import { eventRouter } from '@tiltcheck/event-router';
-import type { TiltCheckBaseEvent, TiltDetectedPayload } from '@tiltcheck/event-types';
+import type { TiltCheckEvent, TiltDetectedEventData } from '@tiltcheck/types';
 import {
   getAccountabilityPartners,
   getUserBuddies,
@@ -33,10 +33,11 @@ const recentAlerts = new Map<string, number>(); // userId -> timestamp
  */
 export function initializeAccountabilityPings(client: Client): void {
   eventRouter.subscribe(
-    'safety.tilt.detected',
-    async (event: TiltCheckBaseEvent<'safety.tilt.detected', TiltDetectedPayload>) => {
+    'tilt.detected',
+    async (event: TiltCheckEvent<'tilt.detected'>) => {
       try {
-        const { userId, tiltScore } = event.payload;
+        const { userId: eventUserId, tiltScore, reason, indicators } = event.data;
+        const userId = eventUserId || event.userId || '';
 
         // Only alert at TILT_THRESHOLD_ALERT or higher
         if (tiltScore < TILT_THRESHOLD_ALERT) {
@@ -72,14 +73,14 @@ export function initializeAccountabilityPings(client: Client): void {
         // Send buddy notifications
         if (buddies && buddies.length > 0) {
           for (const buddy of buddies) {
-            await notifyBuddy(client, buddy.buddy_id, userId, userName, event.payload);
+            await notifyBuddy(client, buddy.buddy_id, userId, userName, event.data);
           }
         } else {
           console.log(`[AccountabilityPing] No buddies for user ${userId}, skipping buddy notification`);
         }
 
         // Post to accountability channel
-        await postToAccountabilityChannel(client, userId, userName, event.payload);
+        await postToAccountabilityChannel(client, userId, userName, event.data);
 
         console.log(
           `[AccountabilityPing] Alert sent for user ${userId} (tilt: ${tiltScore}, buddies: ${buddies?.length || 0})`
@@ -91,7 +92,7 @@ export function initializeAccountabilityPings(client: Client): void {
     'discord-bot'
   );
 
-  console.log('[AccountabilityPing] Initialized - listening for safety.tilt.detected events at tilt >= 60');
+  console.log('[AccountabilityPing] Initialized - listening for tilt.detected events at tilt >= 60');
 }
 
 /**
@@ -102,7 +103,7 @@ async function notifyBuddy(
   buddyDiscordId: string,
   userDiscordId: string,
   userName: string,
-  tiltData: TiltDetectedPayload
+  tiltData: TiltDetectedEventData
 ): Promise<void> {
   try {
     const buddy = await client.users.fetch(buddyDiscordId);
@@ -112,7 +113,7 @@ async function notifyBuddy(
     }
 
     // Format tilt trigger
-    const triggerText = getTriggerDescription(tiltData.trigger);
+    const triggerText = getTriggerDescription(tiltData.reason);
 
     // Create accountability alert embed
     const embed = new EmbedBuilder()
@@ -124,7 +125,12 @@ async function notifyBuddy(
           name: 'Trigger',
           value: triggerText,
           inline: true,
-        },
+        }
+      );
+
+    // Add optional session metrics if available
+    if (tiltData.sessionMetrics) {
+      embed.addFields(
         {
           name: 'Session P&L',
           value: formatMoney(tiltData.sessionMetrics.pnl),
@@ -144,7 +150,11 @@ async function notifyBuddy(
           name: 'RTP',
           value: `${tiltData.sessionMetrics.rtp.toFixed(2)}%`,
           inline: true,
-        },
+        }
+      );
+    }
+
+    embed.addFields(
         {
           name: 'Recommended Actions',
           value: '1. Suggest a 15-minute pause\n2. Offer to chat in voice\n3. Remind of tilt spiral risk',
@@ -179,7 +189,7 @@ async function postToAccountabilityChannel(
   client: Client,
   userDiscordId: string,
   userName: string,
-  tiltData: TiltDetectedPayload
+  tiltData: TiltDetectedEventData
 ): Promise<void> {
   try {
     // Find the first guild with accountability channel
@@ -196,7 +206,7 @@ async function postToAccountabilityChannel(
       }
 
       // Create alert embed
-      const triggerText = getTriggerDescription(tiltData.trigger);
+      const triggerText = getTriggerDescription(tiltData.reason);
       const embed = new EmbedBuilder()
         .setColor('#FF6600') // Orange for warning
         .setTitle('Tilt Alert')
@@ -206,7 +216,12 @@ async function postToAccountabilityChannel(
             name: 'Trigger',
             value: triggerText,
             inline: true,
-          },
+          }
+        );
+
+      // Add optional session metrics if available
+      if (tiltData.sessionMetrics) {
+        embed.addFields(
           {
             name: 'Session P&L',
             value: formatMoney(tiltData.sessionMetrics.pnl),
@@ -226,19 +241,23 @@ async function postToAccountabilityChannel(
             name: 'RTP',
             value: `${tiltData.sessionMetrics.rtp.toFixed(2)}%`,
             inline: true,
-          },
-          {
-            name: 'Escape Routes',
-            value: '1. PAUSE 15 minutes\n2. CALL BUDDY\n3. END SESSION',
-            inline: false,
-          },
-          {
-            name: 'Community Support',
-            value:
-              "Everyone in this channel believes in accountability. React with encouragement. (reactions do NOT appear in activity)",
-            inline: false,
           }
-        )
+        );
+      }
+
+      embed.addFields(
+        {
+          name: 'Escape Routes',
+          value: '1. PAUSE 15 minutes\n2. CALL BUDDY\n3. END SESSION',
+          inline: false,
+        },
+        {
+          name: 'Community Support',
+          value:
+            "Everyone in this channel believes in accountability. React with encouragement. (reactions do NOT appear in activity)",
+          inline: false,
+        }
+      )
         .setFooter({ text: BRAND_FOOTER })
         .setTimestamp();
 

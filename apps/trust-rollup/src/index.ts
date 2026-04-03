@@ -220,7 +220,7 @@ eventRouter.subscribe('trust.casino.updated', (evt: TiltCheckEvent<'trust.casino
   broadcastSnapshots();
 }, 'trust-rollup' as any);
 
-eventRouter.subscribe('bonus.updated', (evt: TiltCheckEvent) => {
+eventRouter.subscribe('bonus.updated', (evt: TiltCheckEvent<'bonus.updated'>) => {
   const { casinoName, newAmount, oldAmount } = (evt.data as BonusUpdateEvent) || {};
   if (!casinoName) return;
   const delta = typeof newAmount === 'number' && typeof oldAmount === 'number' ? newAmount - oldAmount : undefined;
@@ -230,7 +230,7 @@ eventRouter.subscribe('bonus.updated', (evt: TiltCheckEvent) => {
   broadcastSnapshots();
 }, 'trust-rollup' as any);
 
-eventRouter.subscribe('bonus.nerf.detected', (evt: TiltCheckEvent) => {
+eventRouter.subscribe('bonus.nerf.detected', (evt: TiltCheckEvent<'bonus.nerf.detected'>) => {
   const { casinoName, percentDrop } = (evt.data as BonusNerfDetectedEventData) || {};
   if (!casinoName || typeof percentDrop !== 'number') return;
   if (!CASINO_WINDOWS.has(casinoName)) CASINO_WINDOWS.set(casinoName, []);

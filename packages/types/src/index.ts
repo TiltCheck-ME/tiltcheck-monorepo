@@ -634,7 +634,6 @@ export type EventType =
   | 'dad.game.completed'
   | 'user.discord_linked'
   | 'safety.intervention.triggered'
-  | 'safety.tilt.detected'
   | 'trust.degen-intel.ingested'
   | 'trust.casino.metric.snapshot'
   | 'trust.casino.tos.changed'
@@ -757,6 +756,12 @@ export interface TiltDetectedEventData {
   messageCount?: number;
   channelId?: string;
   guildId?: string;
+  sessionMetrics?: {
+    pnl: number;
+    currentStreak: { wins: number; losses: number };
+    rtp: number;
+    timeInSession: number;
+  };
 }
 
 export interface CooldownViolatedEventData {
