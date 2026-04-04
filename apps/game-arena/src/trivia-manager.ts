@@ -21,11 +21,11 @@ export const triviaManager = {
   },
   requestApeIn: async (userId: string) => {
     console.log('[Stub] triviaManager.requestApeIn called');
-    return { success: false, message: 'Not implemented' };
+    return { success: false as const, message: 'Not implemented', stats: undefined as unknown as Record<string, number> };
   },
   requestShield: async (userId: string) => {
     console.log('[Stub] triviaManager.requestShield called');
-    return { success: false, message: 'Not implemented' };
+    return { success: false as const, message: 'Not implemented', eliminated: undefined as unknown as string[] };
   },
   processBuyBack: async (userId: string) => {
     console.log('[Stub] triviaManager.processBuyBack called');

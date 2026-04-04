@@ -37,7 +37,8 @@ export async function createTransferRequest(
   // Create Solana Pay URL
   const url = encodeURL({
     recipient,
-    amount: new BigNumber(amountSOL),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    amount: new BigNumber(amountSOL) as any,
     reference,
     label: label || 'TiltCheck Tip',
     message: message || `Sending ${amountSOL} SOL`,

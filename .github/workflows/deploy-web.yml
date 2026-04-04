@@ -1,4 +1,4 @@
-name: Deploy TiltCheck Web to GCP
+name: Deploy Web to Vercel
 
 on:
   push:
@@ -7,34 +7,36 @@ on:
     paths:
       - 'apps/web/**'
       - 'packages/**'
-      - 'cloudbuild-web.yaml'
 
 jobs:
   deploy-web:
     runs-on: ubuntu-latest
-    
-    # 2,000 free minutes per month on GitHub Free.
-    # We offload the actual heavy lifting to Google Cloud Build (120 free minutes per day).
+    env:
+      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
     steps:
-      - name: Checkout Code
+      - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Authenticate to Google Cloud
-        uses: google-github-actions/auth@v2
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
         with:
-          # Keyless Authentication via Workload Identity Federation
-          workload_identity_provider: 'projects/164294266634/locations/global/workloadIdentityPools/github-actions-pool/providers/github-actions-provider'
-          service_account: 'github-actions@tiltchcek.iam.gserviceaccount.com'
+          version: 10.0.0
 
-      - name: Set up Cloud SDK
-        uses: google-github-actions/setup-gcloud@v2
+      - name: Setup Node
+        uses: actions/setup-node@v4
         with:
-          project_id: tiltchcek
+          node-version: 20
+          cache: 'pnpm'
 
-      - name: Submit to Google Cloud Build
-        run: |
-          echo "Submitting Web App to Unified Google Cloud Build..."
-          gcloud builds submit \
-            --config cloudbuild.yaml \
-            --project tiltchcek \
-            --substitutions=_SERVICE_NAME=web,_REPOSITORY=tiltcheck-services,_REGION=us-central1
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Pull Vercel project settings
+        run: npx vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
+
+      - name: Build
+        run: npx vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
+
+      - name: Deploy
+        run: npx vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }}

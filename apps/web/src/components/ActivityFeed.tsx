@@ -55,7 +55,9 @@ const ActivityFeed = ({ discordId }: { discordId?: string }) => {
                     activities.map((activity, idx) => (
                         <div 
                             key={activity.id} 
-                            className={`flex items-center justify-between p-4 bg-white/5 border border-white/5 rounded transition-all duration-500 ${idx === 0 ? 'animate-in fade-in slide-in-from-top-4' : ''}`}
+                            className={`flex items-center justify-between p-4 bg-white/5 border rounded transition-all duration-500 ${
+                                activity.type === 'redeem' ? 'border-green-500/50 shadow-lg shadow-green-500/10' : 'border-white/5'
+                            } ${idx === 0 ? 'animate-in fade-in slide-in-from-top-4' : ''}`}
                             style={{ opacity: 1 - idx * 0.2 }}
                         >
                             <div className="flex flex-col">
@@ -63,13 +65,13 @@ const ActivityFeed = ({ discordId }: { discordId?: string }) => {
                                 <span className="text-[10px] text-gray-500 uppercase tracking-widest font-bold">{activity.timestamp} // {activity.meta}</span>
                             </div>
                             <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded ${
-                                activity.type === 'redeem' ? 'text-green-500 bg-green-500/10' :
-                                activity.type === 'win' ? 'text-[#ffd700] bg-[#ffd700]/10' :
-                                activity.type === 'audit' ? 'text-blue-500 bg-blue-500/10' :
-                                'text-amber-500 bg-amber-500/10'
+                                activity.type === 'redeem' ? 'text-green-400 bg-green-500/10' :
+                                activity.type === 'win' ? 'text-yellow-400 bg-yellow-400/10' :
+                                activity.type === 'audit' ? 'text-blue-400 bg-blue-500/10' :
+                                'text-amber-400 bg-amber-500/10'
                             }`}>
-                                {activity.type === 'redeem' ? 'Secured' : 
-                                 activity.type === 'win' ? 'Jackpot' :
+                                {activity.type === 'redeem' ? 'WIN SECURED' : 
+                                 activity.type === 'win' ? 'BIG WIN' :
                                  activity.type === 'audit' ? 'Audited' : 
                                  'Nudged'}
                             </span>

@@ -1,9 +1,10 @@
-# Railway ignore file - speeds up build by excluding unnecessary files
+# Railway ignore file - exclude dev/build artifacts, keep source
 .git
 .github
 .env.example
 node_modules
 dist
+dist-bundle
 .next
 .turbo
 .DS_Store
@@ -14,26 +15,5 @@ README.md
 docs/
 tests/
 coverage/
-.gitignore
-.eslintignore
-vitest.config.ts
-tsconfig.json
-pnpm-workspace.yaml
-packages/
-services/
-modules/
-apps/
-bot/
-data/
 assets/
-frontend/
-scripts/
-
-# Keep only backend and necessary shared packages
-!packages/types/
-!packages/config/
-!packages/database/
-!packages/supabase-auth/
-!services/event-router/
-!modules/dad/
-!modules/poker/
+data/

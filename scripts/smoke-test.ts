@@ -53,20 +53,20 @@ async function runSmokeTest() {
             }
         });
         console.log('✅ Partner Auth: OK');
-    } catch (err: Error) {
-        if (err.response?.status === 401) {
-            console.log('✅ Partner Auth: Correctly rejected (No partner registered yet)');
+    } catch (err: unknown) {
+        if ((err as any).response?.status === 401) {
+            console.log('Partner Auth: Correctly rejected (No partner registered yet)');
         } else {
-             console.warn('⚠️ Partner Auth: Unexpected error:', err.message);
+             console.warn('Partner Auth: Unexpected error:', (err as any).message);
         }
     }
 
     console.log('\n🏆 [Smoke Test] Successfully completed 3/3 core checks.');
 
-  } catch (error: Error) {
-    console.error('\n❌ [Smoke Test] Failed:', error.message);
-    if (error.response) {
-      console.error('Response:', error.response.data);
+  } catch (error: unknown) {
+    console.error('\n [Smoke Test] Failed:', (error as any).message);
+    if ((error as any).response) {
+      console.error('Response:', (error as any).response.data);
     }
     process.exit(1);
   }

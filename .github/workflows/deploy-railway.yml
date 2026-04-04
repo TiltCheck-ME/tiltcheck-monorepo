@@ -1,0 +1,49 @@
+name: Deploy Services to Railway
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'apps/api/**'
+      - 'apps/discord-bot/**'
+      - 'apps/trust-rollup/**'
+      - 'packages/**'
+      - 'modules/**'
+
+jobs:
+  deploy-api:
+    name: Deploy API
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Deploy api to Railway
+        run: npx @railway/cli@latest up --service api --environment production --detach
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+
+  deploy-trust-rollup:
+    name: Deploy Trust Rollup
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Deploy trust-rollup to Railway
+        run: npx @railway/cli@latest up --service trust-rollup --environment production --detach
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+
+  deploy-discord-bot:
+    name: Deploy Discord Bot
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Deploy discord-bot to Railway
+        run: npx @railway/cli@latest up --service discord-bot --environment production --detach
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}

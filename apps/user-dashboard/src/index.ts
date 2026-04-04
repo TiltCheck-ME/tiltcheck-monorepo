@@ -5,8 +5,7 @@ import {
   verifySessionCookie, 
   getCookieConfig,
   type JWTConfig,
-  type SessionData,
-  type AuthenticatedRequest
+  type SessionData
 } from '@tiltcheck/auth';
 import rateLimit from 'express-rate-limit';
 import { Magic } from '@magic-sdk/admin';
@@ -14,6 +13,14 @@ import { Connection } from '@solana/web3.js';
 import { fileURLToPath, pathToFileURL } from 'url';
 import { dirname, join } from 'path';
 import type { Request, Response, NextFunction } from 'express';
+
+interface DashboardRequest extends Request {
+  user?: {
+    discordId: string;
+    username: string;
+    avatar: string | null;
+  };
+}
 import { db, DegenIdentity } from '@tiltcheck/database';
 import { findUserByDiscordId, findOnboardingByDiscordId } from '@tiltcheck/db';
 
@@ -101,7 +108,7 @@ app.use(express.json());
 app.use(express.static(join(__dirname, '../public')));
 
 // === Auth Middleware (Shared Ecosystem) ===
-function authenticateToken(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+function authenticateToken(req: DashboardRequest, res: Response, next: NextFunction) {
   const cookieHeader = req.headers.cookie;
   
   verifySessionCookie(cookieHeader, jwtConfig)
@@ -127,7 +134,7 @@ function authenticateToken(req: AuthenticatedRequest, res: Response, next: NextF
 }
 
 // === API Routes ===
-app.get('/api/auth/me', authenticateToken, (req: AuthenticatedRequest, res) => {
+app.get('/api/auth/me', authenticateToken, (req: DashboardRequest, res) => {
   res.json(req.user);
 });
 
@@ -232,13 +239,13 @@ app.get('/onboarding', (_req, res) => {
   res.sendFile(join(__dirname, '../public/onboarding.html'));
 });
 
-app.get('/api/user/:discordId', authenticateToken, async (req: AuthenticatedRequest, res) => {
-  const data = await getUserData(req.params.discordId);
+app.get('/api/user/:discordId', authenticateToken, async (req: DashboardRequest, res) => {
+  const data = await getUserData(req.params.discordId as string);
   if (!data) return res.status(404).json({ error: 'User not found' });
   res.json(data);
 });
 
-app.post('/api/user/onboard', authenticateToken, async (req: AuthenticatedRequest, res) => {
+app.post('/api/user/onboard', authenticateToken, async (req: DashboardRequest, res) => {
   try {
     const { primary_external_address, tos_accepted } = req.body;
     const discordId = req.user!.discordId;
@@ -266,8 +273,8 @@ app.post('/api/user/onboard', authenticateToken, async (req: AuthenticatedReques
   }
 });
 
-app.get('/api/user/:discordId/trust', authenticateToken, trustLimiter, async (req: AuthenticatedRequest, res) => {
-  const data = await getUserData(req.params.discordId);
+app.get('/api/user/:discordId/trust', authenticateToken, trustLimiter, async (req: DashboardRequest, res) => {
+  const data = await getUserData(req.params.discordId as string);
   if (!data) return res.status(404).json({ error: 'User not found' });
   
   res.json({
@@ -277,7 +284,7 @@ app.get('/api/user/:discordId/trust', authenticateToken, trustLimiter, async (re
   });
 });
 
-app.get('/api/user/:discordId/activity', authenticateToken, async (req: AuthenticatedRequest, res) => {
+app.get('/api/user/:discordId/activity', authenticateToken, async (req: DashboardRequest, res) => {
   // Mock activity for now
   res.json({
     activities: [
@@ -287,12 +294,12 @@ app.get('/api/user/:discordId/activity', authenticateToken, async (req: Authenti
   });
 });
 
-app.put('/api/user/:discordId/preferences', authenticateToken, async (req: AuthenticatedRequest, res) => {
+app.put('/api/user/:discordId/preferences', authenticateToken, async (req: DashboardRequest, res) => {
   // Logic to save preferences to DB
   res.json({ success: true });
 });
 
-app.post('/api/auth/wallet/link', authenticateToken, async (req: AuthenticatedRequest, res) => {
+app.post('/api/auth/wallet/link', authenticateToken, async (req: DashboardRequest, res) => {
   const { address } = req.body;
   // Verify signature and save to DB
   if (db.isConnected()) {
@@ -304,7 +311,7 @@ app.post('/api/auth/wallet/link', authenticateToken, async (req: AuthenticatedRe
   res.json({ success: true });
 });
 
-app.post('/api/auth/magic/link', authenticateToken, async (req: AuthenticatedRequest, res) => {
+app.post('/api/auth/magic/link', authenticateToken, async (req: DashboardRequest, res) => {
   const { didToken } = req.body;
   const metadata = await magicAdmin.users.getMetadataByToken(didToken);
   if (db.isConnected()) {
@@ -317,9 +324,15 @@ app.post('/api/auth/magic/link', authenticateToken, async (req: AuthenticatedReq
 });
 
 // === AI Agent Route ===
-app.post('/api/agent/query', authenticateToken, async (req: AuthenticatedRequest, res) => {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const runner: any = null; // TODO: Initialize with Google ADK runner when available
+app.post('/api/agent/query', authenticateToken, async (req: DashboardRequest, res) => {
   const { query } = req.body;
   if (!query) return res.status(400).json({ error: 'Missing query' });
+
+  if (!runner) {
+    return res.status(501).json({ error: 'AI agent not yet initialized' });
+  }
 
   try {
     let finalResponse = '';
@@ -346,7 +359,7 @@ app.post('/api/agent/query', authenticateToken, async (req: AuthenticatedRequest
 
 
 
-app.get('/dashboard', authenticateToken, async (req: AuthenticatedRequest, res) => {
+app.get('/dashboard', authenticateToken, async (req: DashboardRequest, res) => {
   const discordId = req.user!.discordId;
   if (db.isConnected()) {
     try {
