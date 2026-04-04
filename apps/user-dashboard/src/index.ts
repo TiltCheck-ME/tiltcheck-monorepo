@@ -1,6 +1,9 @@
+// © 2024-2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-04
 import express from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
+import { createServer } from 'http';
+import { WebSocketServer, WebSocket } from 'ws';
 import { 
   verifySessionCookie, 
   getCookieConfig,
@@ -22,7 +25,7 @@ interface DashboardRequest extends Request {
   };
 }
 import { db, DegenIdentity } from '@tiltcheck/database';
-import { findUserByDiscordId, findOnboardingByDiscordId } from '@tiltcheck/db';
+import { findUserByDiscordId, findOnboardingByDiscordId, upsertOnboarding, getUserBuddies, getPendingBuddyRequests, sendBuddyRequest } from '@tiltcheck/db';
 
 /**
  * Utility to convert agent content to string
@@ -285,18 +288,49 @@ app.get('/api/user/:discordId/trust', authenticateToken, trustLimiter, async (re
 });
 
 app.get('/api/user/:discordId/activity', authenticateToken, async (req: DashboardRequest, res) => {
-  // Mock activity for now
-  res.json({
-    activities: [
-      { type: 'juice', description: 'Caught 0.05 SOL in /juice drop', timestamp: Date.now() - 3600000 },
-      { type: 'tip', description: 'Received 0.1 SOL tip from @DegenMaster', timestamp: Date.now() - 86400000 }
-    ]
-  });
+  try {
+    const discordId = req.params.discordId;
+    const activities: { type: string; description: string; timestamp: number }[] = [];
+
+    if (db.isConnected()) {
+      // Fetch recent trust signals
+      const signals = await db.getRecentTrustSignals(discordId, 20).catch(() => []);
+      for (const s of signals) {
+        activities.push({
+          type: s.signal_type || 'event',
+          description: s.metadata?.description || `Trust signal: ${s.signal_type}`,
+          timestamp: new Date(s.created_at).getTime()
+        });
+      }
+    }
+
+    // Sort newest first
+    activities.sort((a, b) => b.timestamp - a.timestamp);
+    res.json({ activities: activities.slice(0, 20) });
+  } catch (err) {
+    console.error('[Activity]', err);
+    res.json({ activities: [] });
+  }
 });
 
 app.put('/api/user/:discordId/preferences', authenticateToken, async (req: DashboardRequest, res) => {
-  // Logic to save preferences to DB
-  res.json({ success: true });
+  try {
+    const discordId = req.params.discordId;
+    const { notifyBonus, notifyJuice, showAnalytics, baseCurrency, riskLevel } = req.body;
+
+    if (typeof upsertOnboarding === 'function') {
+      await upsertOnboarding(discordId, {
+        notifications_promos: notifyBonus,
+        notifications_tips: notifyJuice,
+        risk_level: riskLevel
+      });
+    }
+
+    res.json({ success: true });
+  } catch (err) {
+    console.error('[Preferences]', err);
+    res.status(500).json({ error: 'Failed to save preferences' });
+  }
 });
 
 app.post('/api/auth/wallet/link', authenticateToken, async (req: DashboardRequest, res) => {
@@ -359,6 +393,208 @@ app.post('/api/agent/query', authenticateToken, async (req: DashboardRequest, re
 
 
 
+// === Vault Routes ===
+app.get('/api/user/:discordId/vault', authenticateToken, async (req: DashboardRequest, res) => {
+  try {
+    const discordId = req.params.discordId;
+    if (!db.isConnected()) {
+      return res.json({ locked: false, amount: 0, history: [] });
+    }
+
+    const user = await findUserByDiscordId(discordId);
+    if (!user) return res.status(404).json({ error: 'User not found' });
+
+    const vaultData = await db.getVaultStatus(user.id).catch(() => null);
+    const history = await db.getVaultHistory(user.id, 5).catch(() => []);
+
+    res.json({
+      locked: vaultData?.status === 'locked',
+      unlockAt: vaultData?.unlock_at || null,
+      amount: vaultData?.amount_sol || 0,
+      history
+    });
+  } catch (err) {
+    console.error('[Vault GET]', err);
+    res.json({ locked: false, amount: 0, history: [] });
+  }
+});
+
+app.post('/api/user/:discordId/vault/lock', authenticateToken, async (req: DashboardRequest, res) => {
+  try {
+    const discordId = req.params.discordId;
+    const { amountSol, durationMs } = req.body;
+
+    if (!amountSol || amountSol <= 0) return res.status(400).json({ error: 'Invalid amount' });
+    if (!durationMs || durationMs < 3600000) return res.status(400).json({ error: 'Minimum lock duration is 1 hour' });
+
+    const user = await findUserByDiscordId(discordId);
+    if (!user) return res.status(404).json({ error: 'User not found' });
+
+    const unlockAt = new Date(Date.now() + durationMs).toISOString();
+
+    if (db.isConnected()) {
+      await db.createVaultLock({ userId: user.id, amountSol, unlockAt });
+    }
+
+    broadcastToUser(discordId, { type: 'vault.locked', data: { amountSol, unlockAt } });
+    res.json({ success: true, unlockAt });
+  } catch (err) {
+    console.error('[Vault LOCK]', err);
+    res.status(500).json({ error: 'Vault lock failed' });
+  }
+});
+
+app.post('/api/user/:discordId/vault/unlock', authenticateToken, async (req: DashboardRequest, res) => {
+  try {
+    const discordId = req.params.discordId;
+    const user = await findUserByDiscordId(discordId);
+    if (!user) return res.status(404).json({ error: 'User not found' });
+
+    if (db.isConnected()) {
+      await db.requestVaultUnlock(user.id);
+    }
+
+    broadcastToUser(discordId, { type: 'vault.unlock_requested' });
+    res.json({ success: true });
+  } catch (err) {
+    console.error('[Vault UNLOCK]', err);
+    res.status(500).json({ error: 'Unlock request failed' });
+  }
+});
+
+// === Bonus Routes ===
+app.get('/api/user/:discordId/bonuses', authenticateToken, async (req: DashboardRequest, res) => {
+  try {
+    const discordId = req.params.discordId;
+    if (!db.isConnected()) {
+      return res.json({ active: [], history: [], nerfs: [] });
+    }
+
+    const user = await findUserByDiscordId(discordId);
+    if (!user) return res.status(404).json({ error: 'User not found' });
+
+    const active = await db.getActiveBonuses(user.id).catch(() => []);
+    const history = await db.getBonusHistory(user.id, 10).catch(() => []);
+    const nerfs = await db.getRecentNerfs(5).catch(() => []);
+
+    res.json({ active, history, nerfs });
+  } catch (err) {
+    console.error('[Bonuses]', err);
+    res.json({ active: [], history: [], nerfs: [] });
+  }
+});
+
+app.post('/api/bonus/:discordId/claim', authenticateToken, async (req: DashboardRequest, res) => {
+  try {
+    const { bonusId } = req.body;
+    if (!bonusId) return res.status(400).json({ error: 'Missing bonusId' });
+
+    if (db.isConnected()) {
+      await db.claimBonus(req.params.discordId, bonusId);
+    }
+
+    res.json({ success: true });
+  } catch (err) {
+    console.error('[Bonus Claim]', err);
+    res.status(500).json({ error: 'Claim failed' });
+  }
+});
+
+// === Session History ===
+app.get('/api/user/:discordId/sessions', authenticateToken, async (req: DashboardRequest, res) => {
+  try {
+    const discordId = req.params.discordId;
+    if (!db.isConnected()) {
+      return res.json({ sessions: [], stats: { weeklyPL: 0, winRate: 0, avgSession: 0, rtpDrift: 0 } });
+    }
+
+    const user = await findUserByDiscordId(discordId);
+    if (!user) return res.status(404).json({ error: 'User not found' });
+
+    const sessions = await db.getUserSessions(user.id, 7).catch(() => []);
+
+    const totalPL = sessions.reduce((sum: number, s: { net_pl?: number }) => sum + (s.net_pl || 0), 0);
+    const wins = sessions.filter((s: { net_pl?: number }) => (s.net_pl || 0) > 0).length;
+    const winRate = sessions.length > 0 ? Math.round((wins / sessions.length) * 100) : 0;
+    const avgSession = sessions.length > 0
+      ? Math.round(sessions.reduce((sum: number, s: { duration_ms?: number }) => sum + (s.duration_ms || 0), 0) / sessions.length / 60000)
+      : 0;
+
+    res.json({
+      sessions,
+      stats: { weeklyPL: totalPL, winRate, avgSession, rtpDrift: 0 }
+    });
+  } catch (err) {
+    console.error('[Sessions]', err);
+    res.json({ sessions: [], stats: { weeklyPL: 0, winRate: 0, avgSession: 0, rtpDrift: 0 } });
+  }
+});
+
+// === Buddy Routes ===
+app.get('/api/user/:discordId/buddies', authenticateToken, async (req: DashboardRequest, res) => {
+  try {
+    const user = await findUserByDiscordId(req.params.discordId);
+    if (!user) return res.status(404).json({ error: 'User not found' });
+
+    const [buddies, pending] = await Promise.all([
+      getUserBuddies(user.id).catch(() => []),
+      getPendingBuddyRequests(user.id).catch(() => [])
+    ]);
+
+    res.json({ buddies, pending });
+  } catch (err) {
+    console.error('[Buddies GET]', err);
+    res.json({ buddies: [], pending: [] });
+  }
+});
+
+app.post('/api/user/:discordId/buddies', authenticateToken, async (req: DashboardRequest, res) => {
+  try {
+    const { buddyId } = req.body;
+    if (!buddyId) return res.status(400).json({ error: 'Missing buddyId' });
+
+    const user = await findUserByDiscordId(req.params.discordId);
+    if (!user) return res.status(404).json({ error: 'User not found' });
+
+    await sendBuddyRequest(user.id, buddyId);
+    res.json({ success: true });
+  } catch (err) {
+    console.error('[Buddy Invite]', err);
+    res.status(500).json({ error: 'Failed to send buddy request' });
+  }
+});
+
+app.post('/api/user/:discordId/buddies/:requestId/accept', authenticateToken, async (req: DashboardRequest, res) => {
+  try {
+    if (db.isConnected()) {
+      await db.acceptBuddyRequest(req.params.requestId);
+    }
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to accept request' });
+  }
+});
+
+app.post('/api/user/:discordId/buddies/:requestId/decline', authenticateToken, async (req: DashboardRequest, res) => {
+  try {
+    if (db.isConnected()) {
+      await db.declineBuddyRequest(req.params.requestId);
+    }
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to decline request' });
+  }
+});
+
+// === Preview page (no auth) ===
+app.get('/preview', (_req, res) => {
+  res.sendFile(join(__dirname, '../public/preview.html'));
+});
+
+app.get('/onboard.html', (_req, res) => {
+  res.sendFile(join(__dirname, '../public/onboard.html'));
+});
+
 app.get('/dashboard', authenticateToken, async (req: DashboardRequest, res) => {
   const discordId = req.user!.discordId;
   if (db.isConnected()) {
@@ -370,12 +606,58 @@ app.get('/dashboard', authenticateToken, async (req: DashboardRequest, res) => {
   res.sendFile(join(__dirname, '../public/index.html'));
 });
 
-const isMainModule = process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href;
-if (isMainModule) {
-  app.listen(PORT, () => {
-    console.log(`🎯 Degen Hub listening on port ${PORT}`);
-    console.log(`🔗 Discord OAuth configured for: ${DISCORD_CALLBACK_URL}`);
+// ============================================================
+// WEBSOCKET SERVER - real-time push to dashboard clients
+// ============================================================
+const httpServer = createServer(app);
+const wss = new WebSocketServer({ server: httpServer, path: '/ws' });
+
+const userConnections = new Map<string, Set<WebSocket>>();
+
+wss.on('connection', (socket: WebSocket) => {
+  let connectedDiscordId: string | null = null;
+
+  socket.on('message', (raw) => {
+    try {
+      const msg = JSON.parse(raw.toString());
+      if (msg.type === 'auth' && typeof msg.discordId === 'string') {
+        connectedDiscordId = msg.discordId;
+        if (!userConnections.has(connectedDiscordId)) {
+          userConnections.set(connectedDiscordId, new Set());
+        }
+        userConnections.get(connectedDiscordId)!.add(socket);
+      }
+    } catch (_) { /* ignore malformed messages */ }
+  });
+
+  socket.on('close', () => {
+    if (connectedDiscordId) {
+      const sockets = userConnections.get(connectedDiscordId);
+      if (sockets) {
+        sockets.delete(socket);
+        if (sockets.size === 0) userConnections.delete(connectedDiscordId);
+      }
+    }
+  });
+});
+
+function broadcastToUser(discordId: string, payload: object): void {
+  const sockets = userConnections.get(discordId);
+  if (!sockets) return;
+  const data = JSON.stringify(payload);
+  sockets.forEach(socket => {
+    if (socket.readyState === WebSocket.OPEN) {
+      socket.send(data);
+    }
   });
 }
 
-export { app };
+const isMainModule = process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href;
+if (isMainModule) {
+  httpServer.listen(PORT, () => {
+    console.log(`[Dashboard] Listening on port ${PORT}`);
+    console.log(`[Dashboard] Discord OAuth configured for: ${DISCORD_CALLBACK_URL}`);
+  });
+}
+
+export { app, broadcastToUser };

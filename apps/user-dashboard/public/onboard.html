@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<!-- © 2024-2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-04 -->
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TiltCheck | Setup</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" />
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body class="onboard-body">
+
+  <div class="onboard-container">
+    <div class="onboard-header">
+      <div class="onboard-logo">TILTCHECK</div>
+      <div class="onboard-progress-row">
+        <div id="step-indicator" class="step-indicator">Step 1 of 5</div>
+        <div class="progress-bar-outer">
+          <div id="onboard-progress-bar" class="progress-bar-inner" style="width:20%"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 1: Risk Level -->
+    <div id="step-1" class="onboard-step active">
+      <h2 class="step-title">How do you play?</h2>
+      <p class="step-desc">This sets your default alert thresholds. You can change this anytime.</p>
+      <div class="risk-cards">
+        <button class="risk-card" data-risk="conservative">
+          <div class="risk-card-title">Conservative</div>
+          <div class="risk-card-desc">Tight limits. Early alerts. Play to stay safe.</div>
+        </button>
+        <button class="risk-card" data-risk="moderate">
+          <div class="risk-card-title">Moderate</div>
+          <div class="risk-card-desc">Balanced approach. Alert at tilt signals, not noise.</div>
+        </button>
+        <button class="risk-card active" data-risk="degen">
+          <div class="risk-card-title">Degen</div>
+          <div class="risk-card-desc">High risk tolerance. Only alert on real danger signals.</div>
+        </button>
+      </div>
+      <div class="step-nav">
+        <button class="btn btn-primary" id="step1-next">Next</button>
+      </div>
+    </div>
+
+    <!-- STEP 2: Wallet -->
+    <div id="step-2" class="onboard-step">
+      <h2 class="step-title">Link your wallet (optional)</h2>
+      <p class="step-desc">Connect a Solana wallet to enable vault locking and tips. We never hold your keys.</p>
+      <div class="wallet-options">
+        <button class="wallet-option-btn" id="phantom-connect-btn">
+          <span class="wallet-icon">P</span>
+          Connect Phantom
+        </button>
+        <button class="wallet-option-btn" id="solflare-connect-btn">
+          <span class="wallet-icon">S</span>
+          Connect Solflare
+        </button>
+      </div>
+      <div id="wallet-connected-msg" class="wallet-connected-msg" style="display:none;">
+        <span class="connected-icon">OK</span>
+        <code id="onboard-wallet-addr" class="wallet-addr"></code>
+      </div>
+      <div class="step-nav">
+        <button class="btn btn-ghost" id="step2-skip">Skip for now</button>
+        <button class="btn btn-primary" id="step2-next">Next</button>
+      </div>
+    </div>
+
+    <!-- STEP 3: Buddy -->
+    <div id="step-3" class="onboard-step">
+      <h2 class="step-title">Add an accountability buddy (optional)</h2>
+      <p class="step-desc">Your buddy gets pinged when you hit tilt thresholds. They do the same for you.</p>
+      <div class="form-group">
+        <input type="text" id="onboard-buddy-input" class="input" placeholder="Discord username or ID" />
+        <button class="btn btn-secondary" id="onboard-buddy-invite-btn" style="margin-top:0.5rem;">Send Invite</button>
+        <div id="onboard-buddy-msg" class="form-msg" style="display:none;"></div>
+      </div>
+      <div class="step-nav">
+        <button class="btn btn-ghost" id="step3-skip">Skip for now</button>
+        <button class="btn btn-primary" id="step3-next">Next</button>
+      </div>
+    </div>
+
+    <!-- STEP 4: Vault Threshold -->
+    <div id="step-4" class="onboard-step">
+      <h2 class="step-title">Set your vault threshold</h2>
+      <p class="step-desc">When your session profit exceeds this amount, we suggest locking it. Default is $500.</p>
+      <div class="form-group">
+        <label class="form-label">Profit threshold (USD)</label>
+        <input type="number" id="onboard-threshold-input" class="input" value="500" min="1" step="10" />
+      </div>
+      <div class="threshold-examples">
+        <button class="chip" data-val="100">$100</button>
+        <button class="chip" data-val="250">$250</button>
+        <button class="chip active" data-val="500">$500</button>
+        <button class="chip" data-val="1000">$1,000</button>
+        <button class="chip" data-val="5000">$5,000</button>
+      </div>
+      <div class="step-nav">
+        <button class="btn btn-ghost" id="step4-back">Back</button>
+        <button class="btn btn-primary" id="step4-next">Next</button>
+      </div>
+    </div>
+
+    <!-- STEP 5: ToS -->
+    <div id="step-5" class="onboard-step">
+      <h2 class="step-title">Confirm and accept</h2>
+      <div class="tos-block">
+        <p><strong>TiltCheck is not a gambling operator.</strong> We are a responsible gambling tool. We do not hold custody of any funds.</p>
+        <p>By proceeding, you confirm:</p>
+        <ul class="tos-list">
+          <li>You are 18+ and legally permitted to gamble in your jurisdiction.</li>
+          <li>You accept sole responsibility for your gambling activity.</li>
+          <li>TiltCheck data is for informational purposes only.</li>
+          <li>Non-custodial principle: we never hold, move, or control your funds.</li>
+        </ul>
+      </div>
+      <div class="tos-check">
+        <label class="checkbox-label">
+          <input type="checkbox" id="tos-checkbox" />
+          <span>I understand and accept the above</span>
+        </label>
+      </div>
+      <div id="onboard-error" class="form-error" style="display:none;"></div>
+      <div class="step-nav">
+        <button class="btn btn-ghost" id="step5-back">Back</button>
+        <button class="btn btn-primary" id="step5-finish" disabled>Finish Setup</button>
+      </div>
+    </div>
+
+    <p class="onboard-degen-footer">Made for Degens. By Degens.</p>
+  </div>
+
+  <script src="/js/onboard.js"></script>
+</body>
+</html>
