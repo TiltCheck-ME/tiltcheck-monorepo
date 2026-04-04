@@ -675,6 +675,7 @@ export interface BonusNerfDetectedEventData {
   casinoName: string;
   percentDrop: number;
   bonusType?: string;
+  reason?: string;
 }
 
 export interface CasinoRollupData {
@@ -996,6 +997,9 @@ export interface EventDataMap {
   'activity.paused': ActivityPausedEventData;
   'activity.resumed': ActivityResumedEventData;
   'activity.error': ActivityErrorEventData;
+  'fairness.pump.detected': GameplayAnomalyEvent;
+  'fairness.cluster.detected': GameplayAnomalyEvent;
+  'fairness.drift.detected': GameplayAnomalyEvent;
 }
 
 export interface TiltCheckEvent<K extends EventType> {

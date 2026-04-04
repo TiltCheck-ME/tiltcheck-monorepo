@@ -1,5 +1,5 @@
 /* Copyright (c) 2026 TiltCheck. All rights reserved. */
-import { computeSeverity, DEFAULT_SEVERITY_SCALE } from '@tiltcheck/config';
+import { computeSeverity } from '@tiltcheck/config';
 import { eventRouter } from '@tiltcheck/event-router';
 import type { TrustDomainUpdateEvent } from '@tiltcheck/types';
 
@@ -35,7 +35,7 @@ export async function emitDomainTrustFromLinkGuard(scan: LinkGuardScanInput) {
   const delta = newScore - previousScore;
   if (delta === 0) return; // no-op
   domainScores.set(domain, newScore);
-  const severity = computeSeverity(Math.abs(delta), DEFAULT_SEVERITY_SCALE);
+  const severity = computeSeverity(Math.abs(delta));
   const event: TrustDomainUpdateEvent = {
     domain,
     previousScore,
@@ -66,7 +66,7 @@ export async function overrideLinkGuardDomain(domain: string, classification: 's
   const delta = target - prev;
   if (delta === 0) return;
   domainScores.set(norm, target);
-  const severity = computeSeverity(Math.abs(delta), DEFAULT_SEVERITY_SCALE);
+  const severity = computeSeverity(Math.abs(delta));
   const event: TrustDomainUpdateEvent = {
     domain: norm,
     previousScore: prev,

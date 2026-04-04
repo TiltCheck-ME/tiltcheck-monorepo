@@ -174,6 +174,15 @@ export class TiltDetector {
   }
 
   /**
+   * Update the current balance from an external source.
+   */
+  updateBalance(newBalance: number): void {
+    if (newBalance !== this.currentBalance) {
+      this.currentBalance = newBalance;
+    }
+  }
+
+  /**
    * Record a click event (for erratic clicking detection)
    */
   recordClick(): void {

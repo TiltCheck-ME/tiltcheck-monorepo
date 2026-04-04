@@ -75,7 +75,25 @@
       "Bash(for d in /c/Users/jmeni/tiltcheck-monorepo/apps/*/)",
       "Bash(__NEW_LINE_35cb9f0f7da7cfdc__ echo \"=== Total packages ===\")",
       "Bash(head -20 echo \"===\" grep -A3 \"discordToken\\\\|clientId\\\\|BOT_TOKEN\\\\|CLIENT_ID\" /c/Users/jmeni/tiltcheck-monorepo/apps/justthetip-bot/src/config.ts)",
-      "WebFetch(domain:github.com)"
+      "WebFetch(domain:github.com)",
+      "Bash(find /c/Users/jmeni/tiltcheck-monorepo -maxdepth 2 -name cloudbuild* -o -name .env* -o -name sentry* -o -name logr*)",
+      "Bash(find /c/Users/jmeni/tiltcheck-monorepo -name *deploy-bot* -o -name *railway*)",
+      "Bash(find /c/Users/jmeni/tiltcheck-monorepo -name railway.json -o -name railway.toml -o -name *railway*)",
+      "Bash(gcloud auth:*)",
+      "Bash(gcloud config:*)",
+      "Bash(where gcloud:*)",
+      "Read(//c/Users/jmeni/tiltcheck-monorepo/$LOCALAPPDATA/Google/Cloud SDK/google-cloud-sdk/bin/**)",
+      "Read(//c/Users/jmeni/tiltcheck-monorepo/$HOME/AppData/Local/Google/Cloud SDK/google-cloud-sdk/bin/**)",
+      "Bash(export PATH=\"$PATH:/c/Users/jmeni/AppData/Local/Google/Cloud SDK/google-cloud-sdk/bin\")",
+      "Bash(\"/c/Users/jmeni/AppData/Local/Google/Cloud SDK/google-cloud-sdk/bin/gcloud.cmd\" auth list)",
+      "Bash(GCLOUD=\"/c/Users/jmeni/AppData/Local/Google/Cloud SDK/google-cloud-sdk/bin/gcloud.cmd\")",
+      "Bash(\"$GCLOUD\" config:*)",
+      "Bash(\"$GCLOUD\" secrets:*)",
+      "Bash(railway --version)",
+      "Bash(npx @railway/cli@latest --version)",
+      "Bash(railway whoami:*)",
+      "Bash(where railway:*)",
+      "Bash(npx @railway/cli@latest whoami)"
     ]
   }
 }

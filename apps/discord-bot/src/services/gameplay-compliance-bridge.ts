@@ -155,7 +155,7 @@ async function postComplianceAlert(
 export function initializeGameplayComplianceBridge(discordClient: any): void {
   const esClient = getEsClient();
 
-  const handler = async (evt: TiltCheckEvent<GameplayAnomalyEvent>) => {
+  const handler = async (evt: TiltCheckEvent<'fairness.pump.detected'>) => {
     const data = evt.data;
     if (!data?.userId) return;
 
@@ -175,9 +175,11 @@ export function initializeGameplayComplianceBridge(discordClient: any): void {
     await postComplianceAlert(discordClient, data, compliance, stateCode, topic);
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const anyHandler = handler as any;
   eventRouter.subscribe('fairness.pump.detected', handler, 'discord-bot');
-  eventRouter.subscribe('fairness.cluster.detected', handler, 'discord-bot');
-  eventRouter.subscribe('fairness.drift.detected' as any, handler, 'discord-bot');
+  eventRouter.subscribe('fairness.cluster.detected', anyHandler, 'discord-bot');
+  eventRouter.subscribe('fairness.drift.detected' as any, anyHandler, 'discord-bot');
 
   console.log('[GameplayCompliance] Bridge subscribed to fairness events');
 }

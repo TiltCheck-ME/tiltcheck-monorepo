@@ -42,7 +42,7 @@ export class BonusFeedHandler {
   /**
    * Handle a new bonus being discovered.
    */
-  private static async onBonusDiscovered(evt: TiltCheckEvent<'bonus.discovered', BonusDiscoveredEventData>): Promise<void> {
+  private static async onBonusDiscovered(evt: { data: BonusDiscoveredEventData }): Promise<void> {
     try {
       const { casino_name, value, bonus_type, expiry_message, is_expired } = evt.data;
 

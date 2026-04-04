@@ -526,11 +526,6 @@ function handleSpinEvent(spinData: SpinEvent, session: { sessionId: string, user
 
     // Update sidebar tilt score
     sidebar?.updateTilt(tiltRisk, indicators);
-
-    const interventions = tiltDetector.generateInterventions();
-    if (interventions.length > 0) {
-      handleInterventions(interventions);
-    }
   }
 
   // Send to analyzer (if connected)

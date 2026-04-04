@@ -58,6 +58,15 @@ export default function DashboardPage() {
                Configure Vaults &rarr;
             </button>
          </div>
+         <div className="p-8 border border-green-500/20 bg-green-500/5 flex flex-col justify-between">
+            <div>
+                <h2 className="text-lg font-bold uppercase mb-2 tracking-tight text-green-400">Wins Secured</h2>
+                <p className="text-sm text-gray-400">7 successful redeems tracked.</p>
+            </div>
+            <a href="/dashboard" className="mt-8 text-left text-xs font-black uppercase tracking-widest text-green-400 hover:translate-x-2 transition-transform">
+               View History &rarr;
+            </a>
+         </div>
       </section>
       {/* RTP Transparency Info */}
       <section className="p-8 border border-[#17c3b2]/20 bg-[#17c3b2]/5">
