@@ -1,15 +1,7 @@
 name: Deploy Services to Railway
 
 on:
-  push:
-    branches:
-      - main
-    paths:
-      - 'apps/api/**'
-      - 'apps/discord-bot/**'
-      - 'apps/trust-rollup/**'
-      - 'packages/**'
-      - 'modules/**'
+  workflow_dispatch: # Disabled auto-deploy — using GCP Cloud Run. Re-enable push trigger when switching to Railway.
 
 jobs:
   deploy-api:
