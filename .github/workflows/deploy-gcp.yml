@@ -1,0 +1,148 @@
+name: Deploy Services to GCP Cloud Run
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'apps/api/**'
+      - 'apps/web/**'
+      - 'apps/discord-bot/**'
+      - 'apps/trust-rollup/**'
+      - 'apps/control-room/**'
+      - 'apps/game-arena/**'
+      - 'apps/user-dashboard/**'
+      - 'packages/**'
+      - 'modules/**'
+      - 'cloudbuild.yaml'
+      - 'Dockerfile'
+
+env:
+  PROJECT_ID: tiltchcek
+  REGION: us-central1
+  REPOSITORY: tiltcheck-services
+
+jobs:
+  changes:
+    name: Detect Changed Services
+    runs-on: ubuntu-latest
+    outputs:
+      api: ${{ steps.filter.outputs.api }}
+      web: ${{ steps.filter.outputs.web }}
+      discord-bot: ${{ steps.filter.outputs.discord-bot }}
+      trust-rollup: ${{ steps.filter.outputs.trust-rollup }}
+      control-room: ${{ steps.filter.outputs.control-room }}
+      game-arena: ${{ steps.filter.outputs.game-arena }}
+      user-dashboard: ${{ steps.filter.outputs.user-dashboard }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            api:
+              - 'apps/api/**'
+              - 'packages/**'
+              - 'modules/**'
+              - 'cloudbuild.yaml'
+              - 'Dockerfile'
+            web:
+              - 'apps/web/**'
+              - 'packages/**'
+              - 'cloudbuild.yaml'
+              - 'Dockerfile'
+            discord-bot:
+              - 'apps/discord-bot/**'
+              - 'packages/**'
+              - 'modules/**'
+              - 'cloudbuild.yaml'
+              - 'Dockerfile'
+            trust-rollup:
+              - 'apps/trust-rollup/**'
+              - 'packages/**'
+              - 'modules/**'
+              - 'cloudbuild.yaml'
+              - 'Dockerfile'
+            control-room:
+              - 'apps/control-room/**'
+              - 'cloudbuild.yaml'
+              - 'Dockerfile'
+            game-arena:
+              - 'apps/game-arena/**'
+              - 'packages/**'
+              - 'modules/**'
+              - 'cloudbuild.yaml'
+              - 'Dockerfile'
+            user-dashboard:
+              - 'apps/user-dashboard/**'
+              - 'packages/**'
+              - 'cloudbuild.yaml'
+              - 'Dockerfile'
+
+  deploy:
+    name: Deploy ${{ matrix.service }}
+    runs-on: ubuntu-latest
+    needs: changes
+    if: |
+      needs.changes.outputs.api == 'true' ||
+      needs.changes.outputs.web == 'true' ||
+      needs.changes.outputs['discord-bot'] == 'true' ||
+      needs.changes.outputs['trust-rollup'] == 'true' ||
+      needs.changes.outputs['control-room'] == 'true' ||
+      needs.changes.outputs['game-arena'] == 'true' ||
+      needs.changes.outputs['user-dashboard'] == 'true'
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - service: api
+            changed: ${{ needs.changes.outputs.api }}
+            cloud_run_name: tiltcheck-api
+          - service: web
+            changed: ${{ needs.changes.outputs.web }}
+            cloud_run_name: tiltcheck-web
+          - service: discord-bot
+            changed: ${{ needs.changes.outputs['discord-bot'] }}
+            cloud_run_name: tiltcheck-discord-bot
+          - service: trust-rollup
+            changed: ${{ needs.changes.outputs['trust-rollup'] }}
+            cloud_run_name: tiltcheck-trust-rollup
+          - service: control-room
+            changed: ${{ needs.changes.outputs['control-room'] }}
+            cloud_run_name: tiltcheck-control-room
+          - service: game-arena
+            changed: ${{ needs.changes.outputs['game-arena'] }}
+            cloud_run_name: tiltcheck-game-arena
+          - service: user-dashboard
+            changed: ${{ needs.changes.outputs['user-dashboard'] }}
+            cloud_run_name: tiltcheck-user-dashboard
+
+    steps:
+      - name: Skip if unchanged
+        if: matrix.changed != 'true'
+        run: echo "No changes detected for ${{ matrix.service }}, skipping."
+
+      - name: Checkout
+        if: matrix.changed == 'true'
+        uses: actions/checkout@v4
+
+      - name: Authenticate to GCP
+        if: matrix.changed == 'true'
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Set up Cloud SDK
+        if: matrix.changed == 'true'
+        uses: google-github-actions/setup-gcloud@v2
+        with:
+          project_id: ${{ env.PROJECT_ID }}
+
+      - name: Submit Cloud Build
+        if: matrix.changed == 'true'
+        run: |
+          gcloud builds submit \
+            --config=cloudbuild.yaml \
+            --substitutions="_SERVICE_NAME=${{ matrix.service }},_REPOSITORY=${{ env.REPOSITORY }},_REGION=${{ env.REGION }}" \
+            --project=${{ env.PROJECT_ID }} \
+            .
