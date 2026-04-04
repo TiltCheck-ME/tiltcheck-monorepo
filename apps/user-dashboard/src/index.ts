@@ -316,7 +316,7 @@ app.get('/api/user/:discordId/activity', authenticateToken, async (req: Dashboar
 app.put('/api/user/:discordId/preferences', authenticateToken, async (req: DashboardRequest, res) => {
   try {
     const discordId = req.params.discordId;
-    const { notifyBonus, notifyJuice, anonTipping, showAnalytics, baseCurrency, riskLevel } = req.body;
+    const { notifyBonus, notifyJuice, showAnalytics, baseCurrency, riskLevel } = req.body;
 
     if (typeof upsertOnboarding === 'function') {
       await upsertOnboarding(discordId, {
