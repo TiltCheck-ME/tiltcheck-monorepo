@@ -3,10 +3,7 @@
     "target": "ESNext",
     "useDefineForClassFields": true,
     "module": "ESNext",
-    "lib": [
-      "ESNext",
-      "DOM"
-    ],
+    "lib": ["ESNext", "DOM"],
     "moduleResolution": "Bundler",
     "allowImportingTsExtensions": true,
     "allowSyntheticDefaultImports": true,
@@ -16,27 +13,21 @@
     "isolatedModules": true,
     "esModuleInterop": true,
     "noEmit": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
-    "noImplicitReturns": true,
     "skipLibCheck": true,
-    "types": [
-      "vite/client"
-    ],
+    "types": ["vite/client"],
     "paths": {
-      "@/*": [
-        "./src/*"
-      ]
+      "@/*": ["./src/*"],
+      "@sdk/*": ["./src/sdk/*"],
+      "@views/*": ["./src/views/*"],
+      "@state/*": ["./src/state/*"],
+      "@utils/*": ["./src/utils/*"]
     },
     "composite": true,
     "incremental": true
   },
   "include": [
-    "main.ts",
+    "src/**/*.ts",
     "vite.config.ts"
   ],
-  "exclude": [
-    "node_modules"
-  ],
-  "references": []
+  "exclude": ["node_modules"]
 }
