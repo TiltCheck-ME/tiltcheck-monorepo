@@ -1,6 +1,6 @@
 // © 2024-2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-04
 
-import { DiscordSDK, Events, RPCCloseCodes } from '@discord/embedded-app-sdk';
+import { DiscordSDK, Events } from '@discord/embedded-app-sdk';
 
 export interface Participant {
   id: string;
