@@ -1,3 +1,4 @@
+# © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-04
 name: Deploy Services to GCP Cloud Run
 
 on:
@@ -22,6 +23,9 @@ env:
   REGION: us-central1
   REPOSITORY: tiltcheck-services
 
+permissions:
+  contents: read
+
 jobs:
   changes:
     name: Detect Changed Services
@@ -29,11 +33,11 @@ jobs:
     outputs:
       api: ${{ steps.filter.outputs.api }}
       web: ${{ steps.filter.outputs.web }}
-      discord-bot: ${{ steps.filter.outputs.discord-bot }}
-      trust-rollup: ${{ steps.filter.outputs.trust-rollup }}
-      control-room: ${{ steps.filter.outputs.control-room }}
-      game-arena: ${{ steps.filter.outputs.game-arena }}
-      user-dashboard: ${{ steps.filter.outputs.user-dashboard }}
+      discord-bot: ${{ steps.filter.outputs['discord-bot'] }}
+      trust-rollup: ${{ steps.filter.outputs['trust-rollup'] }}
+      control-room: ${{ steps.filter.outputs['control-room'] }}
+      game-arena: ${{ steps.filter.outputs['game-arena'] }}
+      user-dashboard: ${{ steps.filter.outputs['user-dashboard'] }}
     steps:
       - uses: actions/checkout@v4
       - uses: dorny/paths-filter@v3
@@ -65,6 +69,8 @@ jobs:
               - 'Dockerfile'
             control-room:
               - 'apps/control-room/**'
+              - 'packages/**'
+              - 'modules/**'
               - 'cloudbuild.yaml'
               - 'Dockerfile'
             game-arena:
@@ -97,25 +103,18 @@ jobs:
         include:
           - service: api
             changed: ${{ needs.changes.outputs.api }}
-            cloud_run_name: tiltcheck-api
           - service: web
             changed: ${{ needs.changes.outputs.web }}
-            cloud_run_name: tiltcheck-web
           - service: discord-bot
             changed: ${{ needs.changes.outputs['discord-bot'] }}
-            cloud_run_name: tiltcheck-discord-bot
           - service: trust-rollup
             changed: ${{ needs.changes.outputs['trust-rollup'] }}
-            cloud_run_name: tiltcheck-trust-rollup
           - service: control-room
             changed: ${{ needs.changes.outputs['control-room'] }}
-            cloud_run_name: tiltcheck-control-room
           - service: game-arena
             changed: ${{ needs.changes.outputs['game-arena'] }}
-            cloud_run_name: tiltcheck-game-arena
           - service: user-dashboard
             changed: ${{ needs.changes.outputs['user-dashboard'] }}
-            cloud_run_name: tiltcheck-user-dashboard
 
     steps:
       - name: Skip if unchanged
