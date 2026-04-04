@@ -239,12 +239,8 @@ jobs:
         uses: actions/github-script@v7
         with:
           script: |
-            github.rest.issues.createComment({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: 1,  // Update this to your actual pinned issue/discussion
-              body: '📋 Weekly frontend and marketing suggestions are ready! See Actions > Weekly Frontend Suggestions for details.'
-            });
+            // Skipping issue comment — no pinned issue configured.
+            core.notice('Weekly frontend suggestions generated. See job summary for details.');
 
   validate-implementations:
     runs-on: ubuntu-latest

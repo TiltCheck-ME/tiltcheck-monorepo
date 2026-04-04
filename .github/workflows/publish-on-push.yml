@@ -1,9 +1,7 @@
 name: Publish Changed Packages on Push
 
 on:
-  push:
-    branches:
-      - main
+  workflow_dispatch: # Disabled auto-publish on push — run manually when needed.
 
 permissions:
   contents: write
