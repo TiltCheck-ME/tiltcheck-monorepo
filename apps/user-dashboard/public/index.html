@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<!-- © 2024-2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-04 -->
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TiltCheck | Degen Hub</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" />
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+
+  <!-- LOGIN STATE -->
+  <div id="not-logged-in" style="display:none;">
+    <div class="auth-screen">
+      <div class="auth-card">
+        <div class="auth-logo">TILTCHECK</div>
+        <p class="auth-tagline">Reality checks for degens. Zero custody. All signal.</p>
+        <a href="/auth/discord" class="btn btn-primary btn-lg">Connect with Discord</a>
+        <a href="/preview" class="btn btn-secondary" style="margin-top:0.75rem;">Preview Dashboard</a>
+        <p class="auth-footer">Made for Degens. By Degens.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- DASHBOARD STATE -->
+  <div id="dashboard" style="display:none;">
+
+    <!-- SIDEBAR NAV -->
+    <nav class="sidebar">
+      <div class="sidebar-logo">TILTCHECK</div>
+      <div class="sidebar-user">
+        <img id="user-avatar" src="/img/default-avatar.png" alt="avatar" class="user-avatar" />
+        <div class="user-info">
+          <span id="user-name" class="user-name">Loading...</span>
+          <span id="user-tier" class="user-tier-badge">NEW</span>
+        </div>
+      </div>
+      <ul class="nav-links">
+        <li><a href="#" class="nav-link active" data-tab="profile">Profile</a></li>
+        <li><a href="#" class="nav-link" data-tab="analytics">Analytics</a></li>
+        <li><a href="#" class="nav-link" data-tab="vault">Vault</a></li>
+        <li><a href="#" class="nav-link" data-tab="buddies">Buddies</a></li>
+        <li><a href="#" class="nav-link" data-tab="bonuses">Bonuses</a></li>
+        <li><a href="#" class="nav-link" data-tab="agent">AI Agent</a></li>
+      </ul>
+      <div class="sidebar-footer">
+        <button class="btn btn-ghost btn-sm" id="logout-btn">Logout</button>
+        <p class="degen-footer">Made for Degens. By Degens.</p>
+      </div>
+    </nav>
+
+    <!-- MAIN CONTENT -->
+    <main class="main-content">
+
+      <!-- LOADING OVERLAY -->
+      <div id="loadingOverlay" class="loading-overlay" style="display:none;">
+        <div class="loading-spinner"></div>
+        <p>Loading your data...</p>
+      </div>
+
+      <div id="dashboardContent">
+
+        <!-- NOTIFICATION BANNER -->
+        <div id="notification-banner" class="notification-banner" style="display:none;">
+          <span id="notification-text"></span>
+          <button id="notification-close" class="notification-close">x</button>
+        </div>
+
+        <!-- TAB: PROFILE -->
+        <section id="profile-tab" class="tab-section active">
+          <div class="section-header">
+            <h1>Profile &amp; Identity</h1>
+            <div id="ws-status" class="ws-indicator disconnected" title="WebSocket status">LIVE: OFF</div>
+          </div>
+
+          <div class="stats-grid">
+            <div class="stat-card">
+              <div class="stat-label">TRUST SCORE</div>
+              <div id="trustScore" class="stat-value stat-primary">--</div>
+              <div class="stat-bar">
+                <div id="trustScoreBar" class="stat-bar-fill" style="width:0%"></div>
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-label">TILT LEVEL</div>
+              <div id="tiltLevel" class="stat-value">CALM</div>
+              <div id="tiltLevelSub" class="stat-sub">No signals detected</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-label">REDEEM WINS</div>
+              <div id="redeemWins" class="stat-value">0</div>
+              <div class="stat-sub">Times you cashed out at profit</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-label">TOTAL REDEEMED</div>
+              <div id="totalRedeemed" class="stat-value">$0.00</div>
+              <div class="stat-sub">Lifetime profit secured</div>
+            </div>
+          </div>
+
+          <div class="card-row">
+            <div class="card">
+              <h3 class="card-title">Trust Breakdown</h3>
+              <div class="trust-factors">
+                <div class="trust-factor">
+                  <span class="factor-label">Consistency</span>
+                  <div class="factor-bar"><div id="factor-consistency" class="factor-fill"></div></div>
+                  <span id="factor-consistency-val" class="factor-val">--</span>
+                </div>
+                <div class="trust-factor">
+                  <span class="factor-label">Community</span>
+                  <div class="factor-bar"><div id="factor-community" class="factor-fill"></div></div>
+                  <span id="factor-community-val" class="factor-val">--</span>
+                </div>
+                <div class="trust-factor">
+                  <span class="factor-label">Tips Sent</span>
+                  <div class="factor-bar"><div id="factor-tips" class="factor-fill"></div></div>
+                  <span id="factor-tips-val" class="factor-val">--</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="card">
+              <h3 class="card-title">Wallet Addresses</h3>
+              <div class="wallet-row">
+                <span class="wallet-label">External Wallet</span>
+                <code id="externalWalletDisplay" class="wallet-addr">Not linked</code>
+                <button class="btn btn-ghost btn-sm" id="link-wallet-btn">Link</button>
+              </div>
+              <div class="wallet-row" id="magic-wallet-row" style="display:none;">
+                <span class="wallet-label">Magic Wallet</span>
+                <code id="magicWalletDisplay" class="wallet-addr">Not linked</code>
+              </div>
+              <div id="wallet-link-form" class="wallet-link-form" style="display:none;">
+                <input type="text" id="wallet-address-input" class="input" placeholder="Solana wallet address" />
+                <button class="btn btn-primary btn-sm" id="save-wallet-btn">Save</button>
+                <button class="btn btn-ghost btn-sm" id="cancel-wallet-btn">Cancel</button>
+              </div>
+              <div class="wallet-stats">
+                <span class="stat-mini"><span class="stat-mini-label">Juice Earned</span><span id="totalJuice" class="stat-mini-val">0 SOL</span></span>
+                <span class="stat-mini"><span class="stat-mini-label">Tips Caught</span><span id="totalTipsCaught" class="stat-mini-val">0 SOL</span></span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- TAB: ANALYTICS -->
+        <section id="analytics-tab" class="tab-section">
+          <div class="section-header"><h1>Session Analytics</h1></div>
+
+          <div class="stats-grid-4">
+            <div class="stat-card">
+              <div class="stat-label">NET P/L (7 DAYS)</div>
+              <div id="weeklyPL" class="stat-value">$0.00</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-label">WIN RATE</div>
+              <div id="winRate" class="stat-value">--%</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-label">AVG SESSION</div>
+              <div id="avgSession" class="stat-value">--m</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-label">RTP DRIFT</div>
+              <div id="rtpDrift" class="stat-value">--%</div>
+            </div>
+          </div>
+
+          <div class="card-row">
+            <div class="card card-wide">
+              <h3 class="card-title">Session P/L (Last 7)</h3>
+              <div id="plChart" class="chart-area">
+                <div class="chart-placeholder">No session data yet. Install the Chrome extension to track sessions.</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card-row">
+            <div class="card">
+              <h3 class="card-title">Recent Activity</h3>
+              <div id="activityFeed" class="activity-feed">
+                <div class="activity-empty">Loading activity...</div>
+              </div>
+            </div>
+            <div class="card">
+              <h3 class="card-title">Casino Breakdown</h3>
+              <div id="casinoBreakdown" class="casino-breakdown">
+                <div class="activity-empty">No casino sessions recorded.</div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- TAB: VAULT -->
+        <section id="vault-tab" class="tab-section">
+          <div class="section-header"><h1>Vault</h1></div>
+
+          <div id="vault-status-card" class="vault-hero">
+            <div class="vault-status-header">
+              <span id="vault-status-label" class="vault-status-badge unlocked">UNLOCKED</span>
+              <div class="vault-quick-actions">
+                <button id="vault-extend-btn" class="btn btn-secondary btn-sm" style="display:none;">Extend</button>
+                <button id="vault-unlock-btn" class="btn btn-ghost btn-sm" style="display:none;">Request Unlock</button>
+              </div>
+            </div>
+            <div id="vault-locked-amount" class="vault-amount" style="display:none;"></div>
+            <div id="vault-countdown" class="vault-countdown" style="display:none;"></div>
+            <div class="profit-guard-row">
+              <span class="vault-label">Profit Guard</span>
+              <label class="toggle">
+                <input type="checkbox" id="profit-guard-toggle" />
+                <span class="toggle-track"></span>
+              </label>
+              <span class="vault-label">Auto-lock when P/L &gt;</span>
+              <input type="number" id="profit-guard-threshold" class="input input-inline" value="500" min="1" />
+              <span class="vault-label">USD</span>
+            </div>
+          </div>
+
+          <div class="card-row">
+            <div class="card">
+              <h3 class="card-title">Lock Now</h3>
+              <div class="lock-form">
+                <div class="form-group">
+                  <label class="form-label">Amount (SOL)</label>
+                  <input type="number" id="vault-amount-input" class="input" placeholder="0.00" step="0.01" min="0" />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Duration</label>
+                  <div class="duration-chips">
+                    <button class="chip" data-duration="3600000">1H</button>
+                    <button class="chip active" data-duration="14400000">4H</button>
+                    <button class="chip" data-duration="86400000">24H</button>
+                    <button class="chip" data-duration="259200000">72H</button>
+                    <button class="chip" data-duration="custom">Custom</button>
+                  </div>
+                  <input type="number" id="vault-custom-duration" class="input" placeholder="Hours" style="display:none; margin-top:0.5rem;" />
+                </div>
+                <button id="vault-lock-btn" class="btn btn-primary">Lock Vault</button>
+              </div>
+            </div>
+            <div class="card">
+              <h3 class="card-title">Vault History</h3>
+              <div id="vault-history" class="vault-history">
+                <div class="activity-empty">No vault history.</div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- TAB: BUDDIES -->
+        <section id="buddies-tab" class="tab-section">
+          <div class="section-header"><h1>Buddy System</h1></div>
+          <p class="section-desc">Accountability network. They get pinged when you tilt. You get pinged when they do.</p>
+
+          <div class="card-row">
+            <div class="card">
+              <h3 class="card-title">Add Buddy</h3>
+              <div class="form-group">
+                <input type="text" id="buddyInviteInput" class="input" placeholder="Discord username or ID" />
+                <button id="sendBuddyInviteBtn" class="btn btn-primary" style="margin-top:0.5rem;">Send Invite</button>
+              </div>
+            </div>
+            <div class="card">
+              <h3 class="card-title">Status</h3>
+              <p id="buddyStatus" class="buddy-status-text">Loading...</p>
+            </div>
+          </div>
+
+          <div class="card">
+            <h3 class="card-title">Your Buddies</h3>
+            <div id="buddyList" class="buddy-list">
+              <div class="activity-empty">Loading buddies...</div>
+            </div>
+          </div>
+
+          <div class="card">
+            <h3 class="card-title">Pending Requests</h3>
+            <div id="pendingBuddyList" class="buddy-list">
+              <div class="activity-empty">No pending requests.</div>
+            </div>
+          </div>
+        </section>
+
+        <!-- TAB: BONUSES -->
+        <section id="bonuses-tab" class="tab-section">
+          <div class="section-header"><h1>Bonuses (CollectClock)</h1></div>
+          <p class="section-desc">Track daily bonus cooldowns. Get alerted when you can claim. Know when the casino nerfs you.</p>
+
+          <div id="bonus-nerf-alerts" class="nerf-alerts" style="display:none;"></div>
+
+          <div id="bonusList" class="bonus-grid">
+            <div class="activity-empty">No bonuses tracked. Join a casino via the Discord bot to start tracking.</div>
+          </div>
+
+          <div class="card" style="margin-top:1.5rem;">
+            <h3 class="card-title">Bonus History</h3>
+            <div id="bonusHistory" class="activity-feed">
+              <div class="activity-empty">No history.</div>
+            </div>
+          </div>
+        </section>
+
+        <!-- TAB: AI AGENT -->
+        <section id="agent-tab" class="tab-section">
+          <div class="section-header"><h1>Degen Intelligence Agent</h1></div>
+          <p class="section-desc">Ask anything about your sessions, vault, bonuses, or strategy. No generic advice. Your data, your answers.</p>
+
+          <div class="prompt-chips">
+            <button class="prompt-chip" data-prompt="How am I doing this week?">How am I doing this week?</button>
+            <button class="prompt-chip" data-prompt="Should I vault now?">Should I vault now?</button>
+            <button class="prompt-chip" data-prompt="Show me my riskiest sessions">Show me my riskiest sessions</button>
+            <button class="prompt-chip" data-prompt="Compare my RTP across casinos">Compare my RTP across casinos</button>
+          </div>
+
+          <div class="agent-chat" id="agent-chat">
+            <div class="chat-msg system">Agent ready. Ask a question.</div>
+          </div>
+
+          <div class="agent-input-row">
+            <input type="text" id="agent-input" class="input agent-input" placeholder="Ask the agent..." />
+            <button id="agent-send-btn" class="btn btn-primary">Send</button>
+          </div>
+        </section>
+
+      </div><!-- /dashboardContent -->
+    </main>
+  </div><!-- /dashboard -->
+
+  <script src="/js/app.js"></script>
+</body>
+</html>
