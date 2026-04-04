@@ -117,10 +117,6 @@ jobs:
             changed: ${{ needs.changes.outputs['user-dashboard'] }}
 
     steps:
-      - name: Skip if unchanged
-        if: matrix.changed != 'true'
-        run: echo "No changes detected for ${{ matrix.service }}, skipping."
-
       - name: Checkout
         if: matrix.changed == 'true'
         uses: actions/checkout@v4
