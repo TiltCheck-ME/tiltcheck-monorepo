@@ -38,13 +38,13 @@ jobs:
     name: Detect Changed Services
     runs-on: ubuntu-latest
     outputs:
-      api: ${{ inputs.service == 'api' || (inputs.service == '' && steps.filter.outputs.api == 'true') }}
-      web: ${{ inputs.service == 'web' || (inputs.service == '' && steps.filter.outputs.web == 'true') }}
-      discord-bot: ${{ inputs.service == 'discord-bot' || (inputs.service == '' && steps.filter.outputs['discord-bot'] == 'true') }}
-      trust-rollup: ${{ inputs.service == 'trust-rollup' || (inputs.service == '' && steps.filter.outputs['trust-rollup'] == 'true') }}
-      control-room: ${{ inputs.service == 'control-room' || (inputs.service == '' && steps.filter.outputs['control-room'] == 'true') }}
-      game-arena: ${{ inputs.service == 'game-arena' || (inputs.service == '' && steps.filter.outputs['game-arena'] == 'true') }}
-      user-dashboard: ${{ inputs.service == 'user-dashboard' || (inputs.service == '' && steps.filter.outputs['user-dashboard'] == 'true') }}
+      api: ${{ ((github.event.inputs.service || '') == 'api') || ((github.event.inputs.service || '') == '' && steps.filter.outputs.api == 'true') }}
+      web: ${{ ((github.event.inputs.service || '') == 'web') || ((github.event.inputs.service || '') == '' && steps.filter.outputs.web == 'true') }}
+      discord-bot: ${{ ((github.event.inputs.service || '') == 'discord-bot') || ((github.event.inputs.service || '') == '' && steps.filter.outputs['discord-bot'] == 'true') }}
+      trust-rollup: ${{ ((github.event.inputs.service || '') == 'trust-rollup') || ((github.event.inputs.service || '') == '' && steps.filter.outputs['trust-rollup'] == 'true') }}
+      control-room: ${{ ((github.event.inputs.service || '') == 'control-room') || ((github.event.inputs.service || '') == '' && steps.filter.outputs['control-room'] == 'true') }}
+      game-arena: ${{ ((github.event.inputs.service || '') == 'game-arena') || ((github.event.inputs.service || '') == '' && steps.filter.outputs['game-arena'] == 'true') }}
+      user-dashboard: ${{ ((github.event.inputs.service || '') == 'user-dashboard') || ((github.event.inputs.service || '') == '' && steps.filter.outputs['user-dashboard'] == 'true') }}
     steps:
       - uses: actions/checkout@v4
       - uses: dorny/paths-filter@v3

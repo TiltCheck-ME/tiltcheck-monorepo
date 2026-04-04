@@ -1,4 +1,4 @@
-# .gcloudignore
+# © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-04
 # Exclude local dependencies and build artifacts to speed up GCP upload
 node_modules/
 .next/
@@ -14,6 +14,5 @@ build/
 coverage/
 tmp/
 *.txt
-*.log
 legacy_archive/
 gemini_chats_export.zip
