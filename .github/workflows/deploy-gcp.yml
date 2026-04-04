@@ -2,13 +2,6 @@
 name: Deploy Services to GCP Cloud Run
 
 on:
-  workflow_dispatch:
-    inputs:
-      service:
-        description: 'Service to deploy (leave empty to use path detection)'
-        required: false
-        type: choice
-        options: ['', api, web, discord-bot, trust-rollup, control-room, game-arena, user-dashboard]
   push:
     branches:
       - main
@@ -38,13 +31,13 @@ jobs:
     name: Detect Changed Services
     runs-on: ubuntu-latest
     outputs:
-      api: ${{ inputs.service == 'api' || (inputs.service == '' && steps.filter.outputs.api == 'true') }}
-      web: ${{ inputs.service == 'web' || (inputs.service == '' && steps.filter.outputs.web == 'true') }}
-      discord-bot: ${{ inputs.service == 'discord-bot' || (inputs.service == '' && steps.filter.outputs['discord-bot'] == 'true') }}
-      trust-rollup: ${{ inputs.service == 'trust-rollup' || (inputs.service == '' && steps.filter.outputs['trust-rollup'] == 'true') }}
-      control-room: ${{ inputs.service == 'control-room' || (inputs.service == '' && steps.filter.outputs['control-room'] == 'true') }}
-      game-arena: ${{ inputs.service == 'game-arena' || (inputs.service == '' && steps.filter.outputs['game-arena'] == 'true') }}
-      user-dashboard: ${{ inputs.service == 'user-dashboard' || (inputs.service == '' && steps.filter.outputs['user-dashboard'] == 'true') }}
+      api: ${{ steps.filter.outputs.api }}
+      web: ${{ steps.filter.outputs.web }}
+      discord-bot: ${{ steps.filter.outputs['discord-bot'] }}
+      trust-rollup: ${{ steps.filter.outputs['trust-rollup'] }}
+      control-room: ${{ steps.filter.outputs['control-room'] }}
+      game-arena: ${{ steps.filter.outputs['game-arena'] }}
+      user-dashboard: ${{ steps.filter.outputs['user-dashboard'] }}
     steps:
       - uses: actions/checkout@v4
       - uses: dorny/paths-filter@v3
@@ -124,6 +117,10 @@ jobs:
             changed: ${{ needs.changes.outputs['user-dashboard'] }}
 
     steps:
+      - name: Skip if unchanged
+        if: matrix.changed != 'true'
+        run: echo "No changes detected for ${{ matrix.service }}, skipping."
+
       - name: Checkout
         if: matrix.changed == 'true'
         uses: actions/checkout@v4
