@@ -9,11 +9,3 @@ dist/
 .env
 *.log
 .pnpm-store/
-dist-bundle/
-build/
-coverage/
-tmp/
-*.txt
-*.log
-legacy_archive/
-gemini_chats_export.zip
