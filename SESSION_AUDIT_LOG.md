@@ -101,6 +101,6 @@ Full migration off Google Cloud Platform initiated. Replacement stack:
 1. Run `terraform destroy` on the tiltchcek GCP project to remove all cloud resources.
 2. Provision Cloudflare R2 bucket and update COMIC_R2_BUCKET, R2_ACCOUNT_ID, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY in Railway env.
 3. Set RAILWAY_TOKEN GitHub secret and configure Railway services for all 7 apps.
-4. Rotate all credentials exposed in source history: Cloud SQL password T1lt_Ch3ck_Pr0d_5ecure_!2026, service account key GCP_SA_KEY.
+4. Rotate all credentials exposed in source history: hardcoded Cloud SQL password in packages/database/src/cloudsql.ts (now removed), and the GCP_SA_KEY service account key GitHub secret.
 5. Update DNS CNAME records to point to Railway service URLs once validated.
 6. Close or archive the tiltchcek GCP project to stop billing.

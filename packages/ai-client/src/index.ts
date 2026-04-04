@@ -309,7 +309,11 @@ export class AIClient {
 
     const data = await response.json() as { candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }> };
 
-    const fullText = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+    if (!data.candidates || data.candidates.length === 0) {
+      return { success: false, source: 'vertex' as any, error: 'No candidates in Gemini response' };
+    }
+
+    const fullText = data.candidates[0]?.content?.parts?.[0]?.text || '';
 
     if (!fullText) {
       return { success: false, source: 'vertex' as any, error: 'Empty Gemini response' };

@@ -8,7 +8,7 @@ const { Pool } = pg;
 const NEON_URL = process.env.NEON_DATABASE_URL || process.env.DATABASE_URL;
 
 if (!NEON_URL) {
-  throw new Error('NEON_DATABASE_URL or DATABASE_URL must be set. Cloud SQL has been removed.');
+  throw new Error('NEON_DATABASE_URL or DATABASE_URL environment variable is required.');
 }
 
 export const trustPool = new Pool({
