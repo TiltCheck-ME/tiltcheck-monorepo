@@ -1,12 +1,7 @@
 name: Deploy Web to Vercel
 
 on:
-  push:
-    branches:
-      - main
-    paths:
-      - 'apps/web/**'
-      - 'packages/**'
+  workflow_dispatch: # Disabled auto-deploy — using GCP Cloud Run. Re-enable push trigger when switching to Vercel.
 
 jobs:
   deploy-web:
