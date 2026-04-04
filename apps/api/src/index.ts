@@ -19,7 +19,7 @@ dotenv.config({ path: envPath });
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
-import { rateLimit } from 'express-rate-limit';
+import { rateLimit, ipKeyGenerator } from 'express-rate-limit';
 import http from 'http';
 import cookieParser from 'cookie-parser';
 import { WebSocketServer } from 'ws';
@@ -128,9 +128,9 @@ const globalLimiter = rateLimit({
   max: 1000, // 1000 requests per 15 minutes
   standardHeaders: true,
   legacyHeaders: false,
-  // Fix for IPv6 bypass and proxy environments
   keyGenerator: (req) => {
-    return (req.headers['x-forwarded-for'] as string)?.split(',')[0] || req.ip || 'unknown';
+    const ip = (req.headers['x-forwarded-for'] as string)?.split(',')[0]?.trim() || req.ip || 'unknown';
+    return ipKeyGenerator(ip);
   },
   message: { error: 'Too many requests', code: 'RATE_LIMIT_EXCEEDED' },
 });
