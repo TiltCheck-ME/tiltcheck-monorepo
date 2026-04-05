@@ -12,7 +12,6 @@
     "test": "vitest --run --passWithNoTests tests"
   },
   "dependencies": {
-    "@google-cloud/local-auth": "^3.0.1",
     "@supabase/supabase-js": "^2.100.1",
     "@tiltcheck/auth": "workspace:*",
     "@tiltcheck/auth-flow": "workspace:*",
@@ -34,7 +33,6 @@
     "dotenv": "^17.3.1",
     "express": "^5.2.1",
     "express-rate-limit": "^8.3.1",
-    "googleapis": "^171.4.0",
     "helmet": "^8.1.0",
     "jsonwebtoken": "^9.0.3",
     "stripe": "^21.0.1",

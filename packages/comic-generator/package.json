@@ -8,12 +8,10 @@
   "scripts": {
     "dev": "node --env-file=../../.env --watch src/index.js",
     "start": "node src/index.js",
-    "deploy:cloudrun": "bash ./deploy-cloud-run.sh",
-    "deploy:cloudrun:ps": "powershell -NoProfile -ExecutionPolicy Bypass -File ./deploy-cloud-run.ps1",
     "smoke:cloud": "node ./smoke-test-cloud.js"
   },
   "dependencies": {
-    "@google-cloud/storage": "^7.19.0",
+    "@aws-sdk/client-s3": "^3.731.0",
     "cors": "^2.8.6",
     "dotenv": "^17.3.1",
     "express": "^5.2.1"
