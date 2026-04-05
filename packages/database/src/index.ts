@@ -1,12 +1,13 @@
-/* Copyright (c) 2026 TiltCheck. All rights reserved. */
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-04
 /**
  * TiltCheck Database Client
- * Supabase integration for user stats, game history, and leaderboards
+ * Supabase integration for user stats, game history, and leaderboards.
+ * PostgreSQL (Neon) for Five Pillars Trust Engine.
  */
 
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
-// Cloud SQL / Five Pillars Database Exports
+// Five Pillars Database Exports (Neon PostgreSQL)
 export { trustPool, pgClient } from './cloudsql.js';
 
 export interface DBConfig {
