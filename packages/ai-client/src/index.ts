@@ -1,4 +1,4 @@
-/* Copyright (c) 2026 TiltCheck. All rights reserved. */
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-04
 /**
  * TiltCheck AI Gateway Client
  *
@@ -278,7 +278,8 @@ export class AIClient {
   }
 
   private async makeVertexRequest<T>(request: AIRequest, signal: AbortSignal): Promise<AIResponse<T>> {   
-    const url = `https://aiplatform.googleapis.com/v1/publishers/google/models/${this.config.vertexModel}:streamGenerateContent?key=${this.config.vertexApiKey}`;
+    // Uses direct Gemini REST API (no GCP/Vertex AI required).
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${this.config.vertexModel}:generateContent?key=${this.config.vertexApiKey}`;
 
     const prompt = request.prompt || `Task: ${request.application}\nContext: ${JSON.stringify(request.context || {})}`;
 
@@ -303,20 +304,19 @@ export class AIClient {
 
     if (!response.ok) {
       const body = await response.text().catch(() => '');
-      throw new Error(`Vertex AI returned ${response.status}: ${body.slice(0, 180)}`);
+      throw new Error(`Gemini API returned ${response.status}: ${body.slice(0, 180)}`);
     }
 
-    const data = await response.json() as Array<{ candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }> }>;
+    const data = await response.json() as { candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }> };
 
-    // Aggregate parts from stream response (it's an array of chunks in the REST API)
-    let fullText = '';
-    for (const chunk of data) {
-      const part = chunk.candidates?.[0]?.content?.parts?.[0]?.text || '';
-      fullText += part;
+    if (!data.candidates || data.candidates.length === 0) {
+      return { success: false, source: 'vertex' as any, error: 'No candidates in Gemini response' };
     }
+
+    const fullText = data.candidates[0]?.content?.parts?.[0]?.text || '';
 
     if (!fullText) {
-      return { success: false, source: 'vertex' as any, error: 'Empty Vertex response' };
+      return { success: false, source: 'vertex' as any, error: 'Empty Gemini response' };
     }
 
     const parsed = this.extractJson(fullText);

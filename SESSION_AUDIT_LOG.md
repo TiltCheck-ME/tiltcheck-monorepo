@@ -35,3 +35,72 @@
 
 ---
 **Current Verdict:** The monorepo is in a "Green State" for Cloud Build.
+
+---
+# GCP Decommission Audit Log
+**Date:** 2026-04-04
+**Status:** GCP Removal In Progress
+
+## Summary
+Full migration off Google Cloud Platform initiated. Replacement stack:
+- Cloud Run (8 services) -> Railway + GHCR
+- Artifact Registry -> GitHub Container Registry (ghcr.io)
+- Cloud SQL -> Neon (was already primary DB)
+- Secret Manager -> Railway environment variables
+- Cloud Storage (GCS) -> Cloudflare R2
+- Vertex AI -> Gemini API direct (no GCP project required)
+- Cloud Build -> GitHub Actions only
+
+## Changes Committed
+
+### Phase 1: Cloud SQL Removal
+- `packages/database/src/cloudsql.ts`: Removed hardcoded Cloud SQL credentials and IP address. Now reads from NEON_DATABASE_URL or DATABASE_URL only.
+- `packages/database/scripts/migrate-to-gcp.ts`: Renamed migration target from Cloud SQL to Neon. Removed hardcoded credentials.
+- `packages/database/src/index.ts`: Updated header comment to reflect Neon as the PostgreSQL layer.
+
+### Phase 2/4: CI/CD Migration
+- `.github/workflows/deploy-railway.yml`: Activated push-to-main trigger. Added all 7 services. Added GHCR build-and-push job before Railway deploy.
+- `.github/workflows/deploy-gcp.yml`: Disabled (header-only file retained for decommission reference window).
+
+### Phase 5: Cloud Storage -> Cloudflare R2
+- `packages/comic-generator/package.json`: Removed @google-cloud/storage, added @aws-sdk/client-s3.
+- `packages/comic-generator/.env.example`: Replaced COMIC_GCS_BUCKET with COMIC_R2_BUCKET, R2_ACCOUNT_ID, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY, COMIC_R2_ENDPOINT.
+- `packages/comic-generator/deploy-cloud-run.sh`: Deleted.
+- `packages/comic-generator/deploy-cloud-run.ps1`: Deleted.
+
+### Phase 6: Vertex AI -> Gemini Direct API
+- `packages/ai-client/src/index.ts`: Updated makeVertexRequest to call https://generativelanguage.googleapis.com/v1beta/models/... instead of aiplatform.googleapis.com. Removed streaming response aggregation (direct API returns single response).
+- `packages/agent/.env.example`: Set GOOGLE_GENAI_USE_VERTEXAI=false, added GEMINI_API_KEY. Commented out GOOGLE_CLOUD_PROJECT and GOOGLE_CLOUD_LOCATION.
+
+### Phase 7: GCP CI/CD and Config Files Deleted
+- `cloudbuild.yaml`: Deleted.
+- `all_services_gcp.yaml`: Deleted.
+- `api-config.yaml`: Deleted.
+- `discord-bot-deploy.yaml`: Deleted.
+- `game-arena-deploy.yaml`: Deleted.
+- `trust-rollup-deploy.yaml`: Deleted.
+- `user-dashboard-deploy.yaml`: Deleted.
+- `control-room-deploy.yaml`: Deleted.
+- `tiltcheck-api-gcp.yaml`: Deleted.
+- `tiltcheck-bot-gcp.yaml`: Deleted.
+- `tiltcheck-bot-gcp-utf8.yaml`: Deleted.
+- `packages/agent/.cloudbuild/`: Deleted (pr_checks.yaml, staging.yaml, deploy-to-prod.yaml).
+- `infra/gcp/`: Deleted (bootstrap scripts, Cloud Run service env).
+- `scripts/gcp/`: Deleted (deploy-cloud-run-service.sh, create-budget-alerts.sh).
+- `scripts/deploy-gcloud.sh`: Deleted.
+
+### Phase 8: Terraform Deleted
+- `packages/agent/deployment/terraform/`: Entire directory deleted (all GCP Terraform IaC).
+
+### Phase 9: npm Dependencies
+- `apps/api/package.json`: Removed @google-cloud/local-auth and googleapis (unused in source).
+- `packages/comic-generator/package.json`: Removed @google-cloud/storage, added @aws-sdk/client-s3.
+- `.env.example`: Added RAILWAY_TOKEN, GEMINI_API_KEY, GOOGLE_GENAI_USE_VERTEXAI, R2 storage vars.
+
+## Remaining Operational Steps (Require GCP/Platform Access)
+1. Run `terraform destroy` on the tiltchcek GCP project to remove all cloud resources.
+2. Provision Cloudflare R2 bucket and update COMIC_R2_BUCKET, R2_ACCOUNT_ID, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY in Railway env.
+3. Set RAILWAY_TOKEN GitHub secret and configure Railway services for all 7 apps.
+4. Rotate all credentials exposed in source history: hardcoded Cloud SQL password in packages/database/src/cloudsql.ts (now removed), and the GCP_SA_KEY service account key GitHub secret.
+5. Update DNS CNAME records to point to Railway service URLs once validated.
+6. Close or archive the tiltchcek GCP project to stop billing.
