@@ -79,14 +79,15 @@ These agents are available as GitHub Copilot custom agents within the repository
 | devops-agent | .github/agents/devops-agent.agent.md | Specialized agent for DevOps and deployment tasks in TiltCheck monorepo. Handles building, configuring, deploying, and monitoring infrastructure and CI/CD pipelines. Always verifies compliance with brand laws and documents any bugs or errors encountered. |
 | frontend-developer | .github/agents/frontend-developer.agent.md | Specialized agent for frontend development in TiltCheck monorepo. Handles building, refactoring, testing, and improving frontend code. Always verifies compliance with brand laws and documents any bugs or errors encountered. |
 | fullstack-developer | .github/agents/fullstack-developer.agent.md | Specialized agent for full-stack development in TiltCheck monorepo. Handles building, refactoring, testing, and improving cross-cutting features across frontend and backend. Always verifies compliance with brand laws and documents any bugs or errors encountered. |
+| scribe-agent | .github/agents/scribe-agent.md | Ecosystem documentarian and rule enforcer. Automates copyright headers, UI footers, and ensures zero-drift between code and docs. |
 
 ## Latest Additions (This Session)
 
 ### GitHub Copilot Custom Agents (ACTIVE)
 - **Purpose:** Domain-scoped AI assistants available via GitHub Copilot chat in the repository
-- **Agents:** backend-developer, devops-agent, frontend-developer, fullstack-developer
+- **Agents:** backend-developer, devops-agent, frontend-developer, fullstack-developer, scribe-agent
 - **Compliance:** All agents enforce brand laws (copyright headers, no emojis, atomic docs, non-custodial flows)
-- **Files:** `.github/agents/backend-developer.agent.md`, `.github/agents/devops-agent.agent.md`, `.github/agents/frontend-developer.agent.md`, `.github/agents/fullstack-developer.agent.md`
+- **Files:** `.github/agents/backend-developer.agent.md`, `.github/agents/devops-agent.agent.md`, `.github/agents/frontend-developer.agent.md`, `.github/agents/fullstack-developer.agent.md`, `.github/agents/scribe-agent.md`
 
 ### Brand Law Enforcer Agent (ACTIVE)
 - **Purpose:** Automated PR gatekeeper enforcing "The Degen Laws"
