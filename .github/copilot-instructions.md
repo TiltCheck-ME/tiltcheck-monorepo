@@ -1,3 +1,5 @@
+<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-05 -->
+
 # TiltCheck Copilot Instructions
 
 ## Quick Start Commands
@@ -377,6 +379,18 @@ Scenario: "User reporting tilt score not updating"
 - **Browser testing**: Playwright is configured for UI testing; use the `playwright` skill
 - **Custom agents**: See `AGENTS.md` for domain-specific agents (Brand Law Enforcer, Casino Scraper, Trust Log Analyzer, etc.)
 - **Brand enforcement**: PRs are automatically scanned for copyright headers, tone violations, and secrets via GitHub workflows
+
+### GitHub Copilot Custom Agents
+
+The following custom agents are configured in `.github/agents/` and available in Copilot chat. Each enforces brand laws and documents bugs encountered.
+
+| Agent | Description |
+| :--- | :--- |
+| `backend-developer` | Specialized agent for backend development in TiltCheck monorepo. Handles building, refactoring, testing, and improving backend services. Always verifies compliance with brand laws and documents any bugs or errors encountered. |
+| `devops-agent` | Specialized agent for DevOps and deployment tasks in TiltCheck monorepo. Handles building, configuring, deploying, and monitoring infrastructure and CI/CD pipelines. Always verifies compliance with brand laws and documents any bugs or errors encountered. |
+| `frontend-developer` | Specialized agent for frontend development in TiltCheck monorepo. Handles building, refactoring, testing, and improving frontend code. Always verifies compliance with brand laws and documents any bugs or errors encountered. |
+| `fullstack-developer` | Specialized agent for full-stack development in TiltCheck monorepo. Handles building, refactoring, testing, and improving cross-cutting features across frontend and backend. Always verifies compliance with brand laws and documents any bugs or errors encountered. |
+| `scribe-agent` | Ecosystem documentarian and rule enforcer. Automates copyright headers, UI footers, and ensures zero-drift between code and docs. |
 
 ## Related Documentation
 

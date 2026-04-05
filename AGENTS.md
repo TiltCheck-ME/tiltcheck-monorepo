@@ -1,3 +1,5 @@
+<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-05 -->
+
 # TiltCheck Agent Directory
 
 Current Ecosystem Capacity: 100% (Readiness)
@@ -22,7 +24,8 @@ Located in .cursor/agents/
 | Frontend & Marketing Suggestions | .cursor/agents/frontend-marketing-suggestions.md | **NEW:** Weekly code update suggestions for web, dashboard, and extension UX/UI improvements. |
 | Casino Scraper | .cursor/agents/casino-public-data-scraper.md | Scrapes public casino data for the Trust Engine. |
 | Daily Issue Finder | .cursor/agents/daily-issue-finder.md | (Merged) Reviews code changes and performs smoke tests on new features. |
-| Regulatory Scout | services/regulatory-scout/ | Functional: Monitors commission filings via SusLink integration. |
+| Regulatory Scout | .cursor/agents/regulatory-scout.md | Functional: Monitors commission filings via SusLink integration. |
+| Verifier | .cursor/agents/verifier.md | Validates completed work. Skeptically confirms implementations are functional after tasks are marked done. |
 | Trust Log Analyzer | .cursor/agents/trust-log-analyzer.md | Extracts GGR, Churn, and behavioral metrics from system logs. |
 | Brand Specialist | .cursor/agents/design-marketing-brand.md | Visual hierarchy, CTA clarity, and copy coherence. |
 | KPI Agent | .cursor/agents/kpi-agent.md | Metrics, experiment readouts, and funnel analysis. |
@@ -63,9 +66,27 @@ Functional code located in modules/
 | Solana Agent | packages/agent/ | Degen Intelligence Agent (DIA) via Google ADK. |
 
 ---
-Last Updated: 2026-03-13
+Last Updated: 2026-04-05
+
+## 6. GitHub Copilot Custom Agents
+Located in .github/agents/
+
+These agents are available as GitHub Copilot custom agents within the repository. Invoke them in Copilot chat to scope assistance to a specific domain.
+
+| Name | File | Description |
+| :--- | :--- | :--- |
+| backend-developer | .github/agents/backend-developer.agent.md | Specialized agent for backend development in TiltCheck monorepo. Handles building, refactoring, testing, and improving backend services. Always verifies compliance with brand laws and documents any bugs or errors encountered. |
+| devops-agent | .github/agents/devops-agent.agent.md | Specialized agent for DevOps and deployment tasks in TiltCheck monorepo. Handles building, configuring, deploying, and monitoring infrastructure and CI/CD pipelines. Always verifies compliance with brand laws and documents any bugs or errors encountered. |
+| frontend-developer | .github/agents/frontend-developer.agent.md | Specialized agent for frontend development in TiltCheck monorepo. Handles building, refactoring, testing, and improving frontend code. Always verifies compliance with brand laws and documents any bugs or errors encountered. |
+| fullstack-developer | .github/agents/fullstack-developer.agent.md | Specialized agent for full-stack development in TiltCheck monorepo. Handles building, refactoring, testing, and improving cross-cutting features across frontend and backend. Always verifies compliance with brand laws and documents any bugs or errors encountered. |
 
 ## Latest Additions (This Session)
+
+### GitHub Copilot Custom Agents (ACTIVE)
+- **Purpose:** Domain-scoped AI assistants available via GitHub Copilot chat in the repository
+- **Agents:** backend-developer, devops-agent, frontend-developer, fullstack-developer
+- **Compliance:** All agents enforce brand laws (copyright headers, no emojis, atomic docs, non-custodial flows)
+- **Files:** `.github/agents/backend-developer.agent.md`, `.github/agents/devops-agent.agent.md`, `.github/agents/frontend-developer.agent.md`, `.github/agents/fullstack-developer.agent.md`
 
 ### Brand Law Enforcer Agent (ACTIVE)
 - **Purpose:** Automated PR gatekeeper enforcing "The Degen Laws"
