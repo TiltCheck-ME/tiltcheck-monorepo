@@ -1,41 +1,74 @@
+# © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-04
 name: Deploy Services to Railway
 
 on:
-  workflow_dispatch: # Disabled auto-deploy — using GCP Cloud Run. Re-enable push trigger when switching to Railway.
+  push:
+    branches:
+      - main
+    paths:
+      - 'apps/**'
+      - 'packages/**'
+      - 'modules/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
 
 jobs:
-  deploy-api:
-    name: Deploy API
+  build-and-push:
+    name: Build and Push Images to GHCR
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        service:
+          - api
+          - web
+          - discord-bot
+          - trust-rollup
+          - control-room
+          - game-arena
+          - user-dashboard
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Deploy api to Railway
-        run: npx @railway/cli@latest up --service api --environment production --detach
-        env:
-          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
-  deploy-trust-rollup:
-    name: Deploy Trust Rollup
+      - name: Build and push ${{ matrix.service }} image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: apps/${{ matrix.service }}/Dockerfile
+          push: true
+          tags: ghcr.io/${{ github.repository_owner }}/tiltcheck-${{ matrix.service }}:latest
+
+  deploy:
+    name: Deploy to Railway
     runs-on: ubuntu-latest
+    needs: build-and-push
+    strategy:
+      fail-fast: false
+      matrix:
+        service:
+          - api
+          - web
+          - discord-bot
+          - trust-rollup
+          - control-room
+          - game-arena
+          - user-dashboard
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Deploy trust-rollup to Railway
-        run: npx @railway/cli@latest up --service trust-rollup --environment production --detach
-        env:
-          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
-
-  deploy-discord-bot:
-    name: Deploy Discord Bot
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Deploy discord-bot to Railway
-        run: npx @railway/cli@latest up --service discord-bot --environment production --detach
+      - name: Deploy ${{ matrix.service }} to Railway
+        run: npx @railway/cli@latest up --service ${{ matrix.service }} --environment production --detach
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}

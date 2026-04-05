@@ -1,22 +1,12 @@
 # © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-04
-name: Deploy Services to GCP Cloud Run
+# DEPRECATED: This workflow deployed to GCP Cloud Run and has been disabled.
+# All deployments now use deploy-railway.yml via Railway + GHCR.
+# This file is retained for reference during the GCP decommission window.
+# Safe to delete once Cloud Run services are fully decommissioned.
+name: Deploy Services to GCP Cloud Run (DEPRECATED)
 
 on:
-  push:
-    branches:
-      - main
-    paths:
-      - 'apps/api/**'
-      - 'apps/web/**'
-      - 'apps/discord-bot/**'
-      - 'apps/trust-rollup/**'
-      - 'apps/control-room/**'
-      - 'apps/game-arena/**'
-      - 'apps/user-dashboard/**'
-      - 'packages/**'
-      - 'modules/**'
-      - 'cloudbuild.yaml'
-      - 'Dockerfile'
+  workflow_dispatch: # Disabled — use deploy-railway.yml instead.
 
 env:
   PROJECT_ID: tiltchcek

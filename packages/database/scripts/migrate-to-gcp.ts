@@ -1,7 +1,8 @@
-/* Copyright (c) 2026 TiltCheck. All rights reserved. */
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-04
 /**
- * Migration Script: Supabase -> Cloud SQL (GCP)
- * Optimized for the 'Five Pillars' model initialization.
+ * Migration Script: Supabase -> Neon (PostgreSQL)
+ * Migrates Five Pillars trust engine data from Supabase to Neon.
+ * Cloud SQL has been removed. Use NEON_DATABASE_URL or DATABASE_URL.
  */
 import { createClient } from '@supabase/supabase-js';
 import pg from 'pg';
@@ -12,22 +13,26 @@ dotenv.config();
 
 const { Pool } = pg;
 
-// Connection Strings
-const CLOUD_SQL_URL = process.env.CLOUD_SQL_URL || `postgresql://trust-worker:T1lt_Ch3ck_Pr0d_5ecure_!2026@34.29.231.218:5432/tilt-trust-prod`;
+// Connection Strings — Neon only, no Cloud SQL.
+const NEON_URL = process.env.NEON_DATABASE_URL || process.env.DATABASE_URL;
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 async function migrate() {
+  if (!NEON_URL) {
+    console.error('ERROR: NEON_DATABASE_URL or DATABASE_URL must be set in .env');
+    return;
+  }
   if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
     console.error('ERROR: SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY must be set in .env');
     return;
   }
 
-  console.log('--- STARTING TRUST ENGINE MIGRATION ---');
+  console.log('--- STARTING TRUST ENGINE MIGRATION TO NEON ---');
   
-  // 1. Initialize Cloud SQL Pool
+  // 1. Initialize Neon Pool
   const pool = new Pool({
-    connectionString: CLOUD_SQL_URL,
+    connectionString: NEON_URL,
     ssl: { rejectUnauthorized: false }
   });
 
@@ -36,7 +41,7 @@ async function migrate() {
 
   try {
     // 3. Setup Target Schema
-    console.log('Initializing Cloud SQL schema...');
+    console.log('Initializing Neon schema...');
     await pool.query(INITIAL_SCHEMA);
     console.log('Schema initialized successfully.');
 
@@ -54,7 +59,7 @@ async function migrate() {
 
     console.log('Found ' + legacyCasinos.length + ' legacy records. Migrating...');
 
-    // 5. Transfer to Cloud SQL
+    // 5. Transfer to Neon
     for (const legacy of legacyCasinos) {
       const name = legacy.name || legacy.domain;
       
