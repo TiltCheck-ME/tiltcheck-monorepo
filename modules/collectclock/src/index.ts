@@ -7,7 +7,9 @@ import type {
   BonusClaimEvent,
   BonusNerfDetectedEvent,
   BonusPredictionGeneratedEvent,
-  TrustCasinoUpdateEvent
+  TrustCasinoUpdateEvent,
+  RtpReportSubmittedEvent,
+  RtpNerfDetectedEvent
 } from '@tiltcheck/types';
 import { computeSeverity } from '@tiltcheck/config';
 
@@ -18,6 +20,18 @@ interface CasinoBonusState {
   history: { amount: number; updatedAt: number }[];
   cooldownMs: number;
   claims: Map<string, number>;
+}
+
+// Per-provider, per-platform RTP tracking state (slot math nerf detection)
+interface ProviderRtpState {
+  platformUrl: string;
+  platformName: string;
+  providerName: string;
+  gameTitle: string;
+  /** Provider's documented maximum (fairest) RTP setting, seeded from known provider data */
+  providerMaxRtp: number;
+  /** History of reported RTP values on this platform (from extension or community) */
+  history: { reportedRtp: number; reportedAt: number; source: 'extension' | 'community' }[];
 }
 
 // User-defined custom bonus categories
@@ -75,6 +89,8 @@ export interface TrustGatingConfig {
 export interface CollectClockConfig {
   defaultCooldownMs: number;
   nerfThresholdPercent: number;
+  /** Minimum fractional drop from providerMaxRtp to fire rtp.nerf.detected (default: 0.02 = 2 percentage points) */
+  rtpNerfThresholdPercent: number;
   predictionWindow: number;
   persistenceDir?: string;
   maxHistoryEntries?: number;
@@ -99,6 +115,7 @@ export interface CollectClockLogger {
 const defaultConfig: CollectClockConfig = {
   defaultCooldownMs: 24 * 60 * 60 * 1000,
   nerfThresholdPercent: 0.15,
+  rtpNerfThresholdPercent: 0.02, // 2 percentage-point drop triggers rtp.nerf.detected
   predictionWindow: 5,
   persistenceDir: undefined,
   maxHistoryEntries: undefined,
@@ -131,11 +148,15 @@ export interface StaticDropData {
 export class CollectClockService {
   private casinos: Map<string, CasinoBonusState> = new Map();
   private cfg: CollectClockConfig;
-  
-  // New: User-specific data stores
+
+  // User-specific data stores
   private customCategories: Map<string, CustomBonusCategory> = new Map(); // key: `${userId}:${casinoName}:${categoryName}`
   private notifications: Map<string, BonusNotificationSubscription> = new Map(); // key: `${userId}:${casinoName}`
   private userHistory: UserBonusHistoryEntry[] = [];
+
+  // Per-provider, per-platform RTP tracking (slot math nerf detection)
+  // key: `${providerName}:${gameTitle}:${platformUrl}`
+  private rtpProfiles: Map<string, ProviderRtpState> = new Map();
 
   constructor(config?: Partial<CollectClockConfig>) {
     this.cfg = { ...defaultConfig, ...(config || {}) };
