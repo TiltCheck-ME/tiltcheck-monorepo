@@ -15,7 +15,7 @@ COPY apps/activity/package.json ./apps/activity/package.json
 
 # Install all workspace dependencies
 RUN pnpm fetch
-RUN pnpm install --no-frozen-lockfile
+RUN pnpm install --frozen-lockfile
 
 # Copy the full activity app source
 COPY apps/activity/ ./apps/activity/
