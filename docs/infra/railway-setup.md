@@ -39,7 +39,9 @@ Set the following variables in Railway for each service that requires them:
 | `JWT_SECRET` | JWT signing secret |
 | `SESSION_SECRET` | Session signing secret |
 | `DATABASE_URL` | Neon/PostgreSQL connection string |
-| `DISCORD_TOKEN` | Discord bot token (discord-bot only) |
+| `SUPABASE_URL` | Supabase project URL (required for `game-arena`) |
+| `SUPABASE_ANON_KEY` | Supabase anonymous key (required for `game-arena`) |
+| `DISCORD_TOKEN` | Discord bot token (`discord-bot` only) |
 
 Use Railway's shared variables or set per-service via the Railway dashboard or CLI:
 
@@ -70,7 +72,6 @@ Each service listens on a fixed port. Set `PORT` in Railway to match:
 `game-arena` uses Socket.io. Enable sticky sessions in Railway:
 
 - In the Railway service settings, enable **Session Affinity** (if available under networking).
-- Alternatively, configure the `SOCKET_IO_STICKY` environment variable if the service supports it.
 
 ---
 
@@ -91,7 +92,19 @@ gh workflow run deploy-railway.yml
 
 ## 7. Health Checks
 
-Each service exposes a `/health` endpoint (except `web`, which uses `/`). Railway will restart a service automatically if the health check fails after `restartPolicyMaxRetries` attempts.
+Configure Railway health checks per service:
+
+| Service | Health Check Path |
+| :--- | :--- |
+| `api` | `/health` |
+| `web` | `/` |
+| `discord-bot` | `/health` |
+| `trust-rollup` | `/health` |
+| `control-room` | `/health` |
+| `game-arena` | `/health` |
+| `user-dashboard` | `/` |
+
+Railway will restart a service automatically if the configured health check fails after `restartPolicyMaxRetries` attempts.
 
 ---
 
