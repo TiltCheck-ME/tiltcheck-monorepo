@@ -6,9 +6,7 @@ import { createServer } from 'http';
 import { WebSocketServer, WebSocket } from 'ws';
 import { 
   verifySessionCookie, 
-  getCookieConfig,
   type JWTConfig,
-  type SessionData
 } from '@tiltcheck/auth';
 import rateLimit from 'express-rate-limit';
 import { Magic } from '@magic-sdk/admin';
@@ -289,7 +287,7 @@ app.get('/api/user/:discordId/trust', authenticateToken, trustLimiter, async (re
 
 app.get('/api/user/:discordId/activity', authenticateToken, async (req: DashboardRequest, res) => {
   try {
-    const discordId = req.params.discordId;
+    const discordId = req.params.discordId as string;
     const activities: { type: string; description: string; timestamp: number }[] = [];
 
     if (db.isConnected()) {
@@ -315,11 +313,12 @@ app.get('/api/user/:discordId/activity', authenticateToken, async (req: Dashboar
 
 app.put('/api/user/:discordId/preferences', authenticateToken, async (req: DashboardRequest, res) => {
   try {
-    const discordId = req.params.discordId;
+    const discordId = req.params.discordId as string;
     const { notifyBonus, notifyJuice, showAnalytics, baseCurrency, riskLevel } = req.body;
 
     if (typeof upsertOnboarding === 'function') {
-      await upsertOnboarding(discordId, {
+      await upsertOnboarding({
+        discord_id: discordId as string,
         notifications_promos: notifyBonus,
         notifications_tips: notifyJuice,
         risk_level: riskLevel
@@ -396,7 +395,7 @@ app.post('/api/agent/query', authenticateToken, async (req: DashboardRequest, re
 // === Vault Routes ===
 app.get('/api/user/:discordId/vault', authenticateToken, async (req: DashboardRequest, res) => {
   try {
-    const discordId = req.params.discordId;
+    const discordId = req.params.discordId as string;
     if (!db.isConnected()) {
       return res.json({ locked: false, amount: 0, history: [] });
     }
@@ -421,7 +420,7 @@ app.get('/api/user/:discordId/vault', authenticateToken, async (req: DashboardRe
 
 app.post('/api/user/:discordId/vault/lock', authenticateToken, async (req: DashboardRequest, res) => {
   try {
-    const discordId = req.params.discordId;
+    const discordId = req.params.discordId as string;
     const { amountSol, durationMs } = req.body;
 
     if (!amountSol || amountSol <= 0) return res.status(400).json({ error: 'Invalid amount' });
@@ -446,7 +445,7 @@ app.post('/api/user/:discordId/vault/lock', authenticateToken, async (req: Dashb
 
 app.post('/api/user/:discordId/vault/unlock', authenticateToken, async (req: DashboardRequest, res) => {
   try {
-    const discordId = req.params.discordId;
+    const discordId = req.params.discordId as string;
     const user = await findUserByDiscordId(discordId);
     if (!user) return res.status(404).json({ error: 'User not found' });
 
@@ -465,7 +464,7 @@ app.post('/api/user/:discordId/vault/unlock', authenticateToken, async (req: Das
 // === Bonus Routes ===
 app.get('/api/user/:discordId/bonuses', authenticateToken, async (req: DashboardRequest, res) => {
   try {
-    const discordId = req.params.discordId;
+    const discordId = req.params.discordId as string;
     if (!db.isConnected()) {
       return res.json({ active: [], history: [], nerfs: [] });
     }
@@ -490,7 +489,7 @@ app.post('/api/bonus/:discordId/claim', authenticateToken, async (req: Dashboard
     if (!bonusId) return res.status(400).json({ error: 'Missing bonusId' });
 
     if (db.isConnected()) {
-      await db.claimBonus(req.params.discordId, bonusId);
+      await db.claimBonus(req.params.discordId as string, bonusId);
     }
 
     res.json({ success: true });
@@ -503,7 +502,7 @@ app.post('/api/bonus/:discordId/claim', authenticateToken, async (req: Dashboard
 // === Session History ===
 app.get('/api/user/:discordId/sessions', authenticateToken, async (req: DashboardRequest, res) => {
   try {
-    const discordId = req.params.discordId;
+    const discordId = req.params.discordId as string;
     if (!db.isConnected()) {
       return res.json({ sessions: [], stats: { weeklyPL: 0, winRate: 0, avgSession: 0, rtpDrift: 0 } });
     }
@@ -533,7 +532,7 @@ app.get('/api/user/:discordId/sessions', authenticateToken, async (req: Dashboar
 // === Buddy Routes ===
 app.get('/api/user/:discordId/buddies', authenticateToken, async (req: DashboardRequest, res) => {
   try {
-    const user = await findUserByDiscordId(req.params.discordId);
+    const user = await findUserByDiscordId(req.params.discordId as string);
     if (!user) return res.status(404).json({ error: 'User not found' });
 
     const [buddies, pending] = await Promise.all([
@@ -553,7 +552,7 @@ app.post('/api/user/:discordId/buddies', authenticateToken, async (req: Dashboar
     const { buddyId } = req.body;
     if (!buddyId) return res.status(400).json({ error: 'Missing buddyId' });
 
-    const user = await findUserByDiscordId(req.params.discordId);
+    const user = await findUserByDiscordId(req.params.discordId as string);
     if (!user) return res.status(404).json({ error: 'User not found' });
 
     await sendBuddyRequest(user.id, buddyId);
