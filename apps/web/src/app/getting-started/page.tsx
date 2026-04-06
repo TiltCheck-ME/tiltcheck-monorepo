@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All rights reserved. */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-06 */
 import React from 'react';
 import Link from 'next/link';
 
@@ -20,7 +20,7 @@ export default function GettingStartedPage() {
         <div className="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8">
           {/* Path 1: Just Wanna Install */}
           <div className="group border border-[#17c3b2]/30 bg-[#17c3b2]/5 p-8 hover:border-[#17c3b2] transition-all">
-            <div className="text-5xl mb-4">⚡</div>
+            <div className="text-xs font-mono text-[#17c3b2] uppercase tracking-widest mb-4">[ DEPLOY ]</div>
             <h2 className="text-xl font-black uppercase tracking-tight mb-3">
               Just Install & Go
             </h2>
@@ -28,13 +28,13 @@ export default function GettingStartedPage() {
               You know the drill. Download the extension. Set your limits. Play. That's it.
             </p>
             <Link href="/extension" className="text-[#17c3b2] hover:underline font-bold text-sm uppercase tracking-tight">
-              Skip to Extension → 
+              Skip to Extension →
             </Link>
           </div>
 
           {/* Path 2: I Want to Understand */}
           <div className="group border border-[#ffd700]/30 bg-[#ffd700]/5 p-8 hover:border-[#ffd700] transition-all">
-            <div className="text-5xl mb-4">🧠</div>
+            <div className="text-xs font-mono text-[#ffd700] uppercase tracking-widest mb-4">[ AUDIT ]</div>
             <h2 className="text-xl font-black uppercase tracking-tight mb-3">
               Show Me the Math
             </h2>
@@ -48,7 +48,7 @@ export default function GettingStartedPage() {
 
           {/* Path 3: I'm in Crisis */}
           <div className="group border border-[#ef4444]/30 bg-[#ef4444]/5 p-8 hover:border-[#ef4444] transition-all">
-            <div className="text-5xl mb-4">🆘</div>
+            <div className="text-xs font-mono text-[#ef4444] uppercase tracking-widest mb-4">[ HELP ]</div>
             <h2 className="text-xl font-black uppercase tracking-tight mb-3">
               Help & Resources
             </h2>
@@ -79,7 +79,7 @@ export default function GettingStartedPage() {
               <div className="flex-1">
                 <h3 className="text-lg font-black uppercase mb-2">Install from Chrome Web Store</h3>
                 <p className="text-gray-400">
-                  Search "TiltCheck" or visit the link. One click. No weird permissions. You own the data.
+                  Search "TiltCheck" or visit the link. One click. Requires storage, active tab, and site access — that's what the Audit Layer needs to inspect game telemetry. You own the data.
                 </p>
               </div>
             </div>

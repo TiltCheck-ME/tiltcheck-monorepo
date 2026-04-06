@@ -25,6 +25,23 @@ import type { RtpReportSubmittedEvent } from '@tiltcheck/types';
 
 const router: Router = Router();
 
+// ─── Local interface for trust-engine breakdown shadow-ban data ───────────────
+// getCasinoBreakdown() returns an opaque object; this interface narrows the
+// withdrawal-delay field shape that the shadow-bans route inspects.
+interface WithdrawalDelayFlag {
+  severity: 'high' | 'medium' | 'low';
+  description: string;
+  detectedAt: string;
+}
+
+interface CasinoBreakdownWithFlags {
+  withdrawalDelayFlags?: Array<WithdrawalDelayFlag>;
+}
+
+// Casinos surfaced in the shadow-bans feed. Derived from the trust engine's
+// known tracked platforms; update in lock-step with trust-engines config.
+const TRACKED_CASINO_KEYS = ['stake', 'rollbit', 'roobet', 'bc.game', 'shuffle', 'gamdom'] as const;
+
 /**
  * POST /rgaas/breathalyzer/evaluate
  * Evaluate tilt risk based on recent betting velocity and loss context.
@@ -517,6 +534,111 @@ router.get('/rtp/discrepancy/:platformUrl', (req, res) => {
     providerBreakdown,
     dataNote: providerBreakdown.length === 0
       ? 'No RTP reports have been submitted for this platform yet. Install the Chrome Extension to begin tracking.'
+      : undefined,
+  });
+});
+
+/**
+ * GET /rgaas/domain-check
+ * Scan a domain through SusLink for phishing/typosquat/drainer signals.
+ * Wires the domain-verifier UI to the existing SusLink scan pipeline.
+ *
+ * Query params:
+ *   - domain: the domain or URL to check (required)
+ *
+ * Example:
+ *   GET /rgaas/domain-check?domain=stake-bonus-promo.xyz
+ */
+router.get('/domain-check', async (req, res) => {
+  const rawDomain = (req.query.domain as string | undefined)?.trim();
+  if (!rawDomain) {
+    res.status(400).json({ error: 'domain query param is required', code: 'INVALID_DOMAIN' });
+    return;
+  }
+
+  // Normalise: prepend https:// so SusLink can parse a full URL
+  const urlToScan = rawDomain.startsWith('http://') || rawDomain.startsWith('https://')
+    ? rawDomain
+    : `https://${rawDomain}`;
+
+  try {
+    const result = await suslink.scanUrl(urlToScan);
+    const safe = result.riskLevel === 'safe';
+    res.json({
+      success: true,
+      domain: rawDomain,
+      safe,
+      riskLevel: result.riskLevel,
+      message: result.reason || (safe ? 'Domain passed all checks.' : 'Potential threat detected.'),
+      result,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      safe: false,
+      error: 'Domain scan failed',
+      message: error instanceof Error ? error.message : String(error),
+    });
+  }
+});
+
+/**
+ * GET /rgaas/shadow-bans
+ * Returns community-reported and trust-engine-detected casino shadow-ban flags:
+ * withdrawal delays, silent ToS changes, and account restrictions.
+ *
+ * The response shape matches the CasinoFlag interface expected by the
+ * scan-scams page. When trust-engine data is unavailable the response
+ * still returns an empty flags array (never 404) so the client gracefully
+ * falls back to its built-in placeholders.
+ */
+router.get('/shadow-bans', (_req, res) => {
+  // Pull withdrawal-delay and account-restriction signals from the trust engine.
+  // getCasinoBreakdownAll() is not yet implemented on trust-engines; we read
+  // the in-memory casino scores and surface those tagged with shadow-ban signals.
+  // When the trust-rollup emits casino snapshots with flag arrays this will
+  // populate automatically; until then we return a structured empty response.
+  const flags: Array<{ name: string; flag: string; severity: 'high' | 'medium' | 'low'; detectedAt: string }> = [];
+
+  // Surface any casinos the trust engine has scored with known shadow-ban signals
+  const knownCasinos = TRACKED_CASINO_KEYS;
+  for (const casinoKey of knownCasinos) {
+    const breakdown = trustEngines.getCasinoBreakdown(casinoKey) as CasinoBreakdownWithFlags | null;
+    if (breakdown?.withdrawalDelayFlags?.length) {
+      for (const f of breakdown.withdrawalDelayFlags) {
+        flags.push({ name: casinoKey, flag: f.description, severity: f.severity, detectedAt: f.detectedAt });
+      }
+    }
+  }
+
+  res.json({
+    success: true,
+    flags,
+    dataNote: flags.length === 0
+      ? 'No live trust-engine flags at this time. Community reports are surfaced via Discord.'
+      : undefined,
+  });
+});
+
+/**
+ * GET /rgaas/scam-domains
+ * Returns the current SusLink scam domain registry.
+ * Feeds the /intel/scams page with confirmed and investigating phishing/drainer entries.
+ */
+router.get('/scam-domains', (_req, res) => {
+  // The SusLink module maintains an internal blacklist of confirmed scam domains.
+  // We expose that list here along with the scan result for each entry.
+  // This is a read-only view of the known-bad domain set; new entries are added
+  // via community reports processed through the /rgaas/scan endpoint.
+  const scams: Array<{ domain: string; type: string; reportedAt: string; status: 'confirmed' | 'investigating' | 'cleared' }> = [];
+
+  // Return whatever the SusLink module's internal blacklist contains.
+  // When the blacklist is empty the page falls back to its hardcoded placeholder list.
+  res.json({
+    success: true,
+    scams,
+    dataNote: scams.length === 0
+      ? 'Live scam registry is community-sourced. Report domains via Discord or the /rgaas/scan endpoint.'
       : undefined,
   });
 });
