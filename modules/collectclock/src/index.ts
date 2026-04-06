@@ -1,3 +1,4 @@
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-06
 /* Copyright (c) 2026 TiltCheck. All rights reserved. */
 import { eventRouter } from '@tiltcheck/event-router';
 import fs from 'fs';
@@ -731,6 +732,147 @@ export class CollectClockService {
     }
 
     return result;
+  }
+
+  // =============================================
+  // RTP Nerf Detection (Slot Math)
+  // =============================================
+
+  /**
+   * Seed the known maximum (fairest) RTP for a provider/game combination.
+   * This baseline is required before reportRtp can calculate a nerf delta.
+   *
+   * @param platformUrl   - Casino domain (e.g. 'stake.com')
+   * @param platformName  - Human-readable casino name (e.g. 'Stake')
+   * @param providerName  - Game provider (e.g. 'Pragmatic Play')
+   * @param gameTitle     - Slot title (e.g. 'Gates of Olympus')
+   * @param providerMaxRtp - Provider's documented maximum RTP setting (e.g. 96.5)
+   */
+  registerRtpProfile(
+    platformUrl: string,
+    platformName: string,
+    providerName: string,
+    gameTitle: string,
+    providerMaxRtp: number
+  ): void {
+    const key = `${providerName}:${gameTitle}:${platformUrl}`;
+    if (this.rtpProfiles.has(key)) return; // Already registered; use reportRtp to update
+    this.rtpProfiles.set(key, {
+      platformUrl,
+      platformName,
+      providerName,
+      gameTitle,
+      providerMaxRtp,
+      history: [],
+    });
+  }
+
+  /**
+   * Ingest an RTP report from the Chrome Extension or a community member.
+   * Publishes `rtp.report.submitted` immediately, then checks whether the
+   * current platform setting is nerfed relative to the provider's max RTP.
+   * If the delta exceeds `rtpNerfThresholdPercent`, `rtp.nerf.detected` is published
+   * and the casino's trust score is updated.
+   *
+   * This is the slot-math equivalent of CollectClock's bonus nerf detection.
+   *
+   * @example
+   * // Pragmatic Play on Stake reports 96.5% — no nerf
+   * collectclock.reportRtp({ platformUrl: 'stake.com', platformName: 'Stake',
+   *   providerName: 'Pragmatic Play', gameTitle: 'Gates of Olympus',
+   *   reportedRtp: 96.5, source: 'extension', reportedAt: Date.now() });
+   *
+   * // Same provider on Roobet reports 91% — nerf detected (5.5pp delta)
+   * collectclock.reportRtp({ platformUrl: 'roobet.com', platformName: 'Roobet',
+   *   providerName: 'Pragmatic Play', gameTitle: 'Gates of Olympus',
+   *   reportedRtp: 91.0, source: 'community', reportedAt: Date.now() });
+   */
+  reportRtp(report: RtpReportSubmittedEvent): void {
+    const { platformUrl, platformName, providerName, gameTitle, reportedRtp, source, reportedByUserId, reportedAt } = report;
+    const key = `${providerName}:${gameTitle}:${platformUrl}`;
+
+    // Auto-register if not yet seeded (no providerMaxRtp available yet)
+    if (!this.rtpProfiles.has(key)) {
+      this.rtpProfiles.set(key, {
+        platformUrl,
+        platformName,
+        providerName,
+        gameTitle,
+        providerMaxRtp: reportedRtp, // Treat first report as provisional max
+        history: [],
+      });
+    }
+
+    const profile = this.rtpProfiles.get(key)!;
+    profile.history.push({ reportedRtp, reportedAt, source });
+
+    // Publish the raw report for downstream consumers (Trust Engine, DB writer, extension ACK)
+    const reportEvt: RtpReportSubmittedEvent = { platformUrl, platformName, providerName, gameTitle, reportedRtp, source, reportedByUserId, reportedAt };
+    eventRouter.publish('rtp.report.submitted', 'collectclock', reportEvt).catch(console.error);
+
+    // Nerf check: compare reported RTP against the provider's known maximum
+    const nerfDelta = profile.providerMaxRtp - reportedRtp;
+    const nerfPercent = nerfDelta / profile.providerMaxRtp;
+
+    if (nerfDelta > 0 && nerfPercent >= this.cfg.rtpNerfThresholdPercent) {
+      const nerfEvt: RtpNerfDetectedEvent = {
+        platformUrl,
+        platformName,
+        providerName,
+        gameTitle,
+        providerMaxRtp: profile.providerMaxRtp,
+        currentPlatformRtp: reportedRtp,
+        nerfDelta,
+        nerfPercent,
+        detectedAt: reportedAt,
+      };
+      eventRouter.publish('rtp.nerf.detected', 'collectclock', nerfEvt).catch(console.error);
+
+      // Propagate to Casino Trust Engine via the standard trust update channel
+      const trustEvt: TrustCasinoUpdateEvent = {
+        casinoName: platformName,
+        reason: `RTP nerf detected: ${providerName} "${gameTitle}" running at ${reportedRtp}% vs provider max ${profile.providerMaxRtp}% (delta: -${nerfDelta.toFixed(2)}pp)`,
+        source: 'collectclock',
+        delta: -(nerfPercent * 10), // Scale to trust score impact (max -10 pts)
+        severity: nerfPercent >= 0.10 ? 4 : nerfPercent >= 0.05 ? 3 : 2,
+        metadata: { providerName, gameTitle, nerfDelta, nerfPercent },
+      };
+      eventRouter.publish('trust.casino.updated', 'collectclock', trustEvt).catch(console.error);
+    }
+  }
+
+  /**
+   * Return the current RTP profile for a specific provider/game/platform combination.
+   * Returns null if no profile has been registered or reported yet.
+   *
+   * @example
+   * // Compare the same provider across two platforms
+   * const stakeProfile  = collectclock.getRtpProfile('Pragmatic Play', 'Gates of Olympus', 'stake.com');
+   * const roobetProfile = collectclock.getRtpProfile('Pragmatic Play', 'Gates of Olympus', 'roobet.com');
+   * const delta = (stakeProfile?.history.at(-1)?.reportedRtp ?? 0)
+   *             - (roobetProfile?.history.at(-1)?.reportedRtp ?? 0);
+   * // delta > 0 means Stake is running the fairer version
+   */
+  getRtpProfile(
+    providerName: string,
+    gameTitle: string,
+    platformUrl: string
+  ): ProviderRtpState | null {
+    return this.rtpProfiles.get(`${providerName}:${gameTitle}:${platformUrl}`) ?? null;
+  }
+
+  /**
+   * Return all tracked RTP profiles for a given platform, optionally filtered by provider.
+   * Used by the Trust Engine to compute the per-platform weighted_rtp_delta.
+   */
+  getRtpProfilesByPlatform(platformUrl: string, providerName?: string): ProviderRtpState[] {
+    const results: ProviderRtpState[] = [];
+    for (const profile of this.rtpProfiles.values()) {
+      if (profile.platformUrl !== platformUrl) continue;
+      if (providerName && profile.providerName !== providerName) continue;
+      results.push(profile);
+    }
+    return results;
   }
 
   private writePersistent(filePath: string, data: any[]) {
