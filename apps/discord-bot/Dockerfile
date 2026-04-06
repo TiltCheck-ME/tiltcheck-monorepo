@@ -1,3 +1,4 @@
+# © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-06
 # TiltCheck Discord Bot - High-Speed Production Container
 FROM node:20 AS base
 ENV PNPM_HOME="/pnpm"
@@ -16,7 +17,7 @@ RUN pnpm fetch
 FROM base AS build
 COPY . .
 # Install only the bot's dependency subgraph
-RUN pnpm install --filter @tiltcheck/discord-bot...
+RUN pnpm install --frozen-lockfile --ignore-scripts --filter @tiltcheck/discord-bot...
 RUN pnpm --filter @tiltcheck/discord-bot... build
 # Prune for production
 RUN pnpm prune --prod --no-optional
