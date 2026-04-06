@@ -1,4 +1,4 @@
-/* Copyright (c) 2026 TiltCheck. All rights reserved. */
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-06
 /**
  * Tilt Agent Service
  *
@@ -21,6 +21,15 @@ import {
 // ---------------------------------------------------------------------------
 // Types
 // ---------------------------------------------------------------------------
+
+interface EsqlQueryResult {
+  columns?: Array<{ name: string; type?: string }>;
+  rows?: Array<Array<number | string | null>>;
+}
+
+interface DiaApiResponse {
+  response?: string;
+}
 
 
 export interface TiltAgentContext {
@@ -76,9 +85,9 @@ async function runEsql(
   client: ESClient,
   query: string,
 ): Promise<Record<string, number | null>> {
-  const resp = await client.esql.query({ query, format: 'json' });
-  const columns: Array<{ name: string }> = (resp as any).columns ?? [];
-  const rows: Array<Array<number | null>> = (resp as any).rows ?? [];
+  const resp = (await client.esql.query({ query, format: 'json' })) as EsqlQueryResult;
+  const columns: Array<{ name: string }> = resp.columns ?? [];
+  const rows: Array<Array<number | null>> = (resp.rows ?? []) as Array<Array<number | null>>;
 
   if (!rows.length) return {};
 
@@ -180,7 +189,7 @@ async function callVertexAgent(
     });
 
     if (!resp.ok) return null;
-    const data = (await resp.json()) as any;
+    const data = (await resp.json()) as DiaApiResponse;
     return data?.response ?? null;
   } catch {
     return null;
