@@ -1,4 +1,4 @@
-# © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-05
+# © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-06
 name: Deploy Services to Railway
 
 on:
@@ -30,6 +30,7 @@ jobs:
           - control-room
           - game-arena
           - user-dashboard
+          - activity
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -68,6 +69,7 @@ jobs:
           - control-room
           - game-arena
           - user-dashboard
+          - activity
     steps:
       - name: Checkout
         uses: actions/checkout@v4
