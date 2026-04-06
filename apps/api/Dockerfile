@@ -16,7 +16,7 @@ RUN pnpm fetch
 # [PHASE 2] Building
 FROM base AS build
 COPY . .
-RUN pnpm install --offline --filter @tiltcheck/api...
+RUN pnpm install --frozen-lockfile --ignore-scripts --filter @tiltcheck/api...
 RUN pnpm --filter @tiltcheck/api... build
 RUN pnpm prune --prod --no-optional
 
