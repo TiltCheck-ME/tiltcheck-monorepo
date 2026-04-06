@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All rights reserved. */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-06 */
 import React from 'react';
 
 export default function HowItWorksPage() {
@@ -6,11 +6,11 @@ export default function HowItWorksPage() {
     <main className="min-h-screen bg-[#0a0c10] text-white">
       <section className="border-b border-[#283347] py-32 px-4">
         <div className="max-w-4xl mx-auto text-center">
-          <h1 className="neon neon-main text-5xl md:text-7xl mb-6" data-text="HOW WE TIP THE SCALE">
-            HOW WE TIP THE SCALE
+          <h1 className="neon neon-main text-5xl md:text-7xl mb-6" data-text="HOW WE ENFORCE THE MATH">
+            HOW WE ENFORCE THE MATH
           </h1>
           <p className="text-lg text-gray-400 max-w-2xl mx-auto font-mono">
-            The house wins because they have 24/7, the math, and your dopamine receptors. TiltCheck levels the field with real-time audit signals, trust scores, and one brutal truth: <span className="text-[#17c3b2] font-bold">we can count too.</span>
+            The house wins because they control the math. TiltCheck is the forensic layer that cross-references every spin against GLI-certified manufacturer RTP tiers. We don't monitor you. <span className="text-[#17c3b2] font-bold">We prosecute them.</span>
           </p>
         </div>
       </section>
@@ -27,13 +27,13 @@ export default function HowItWorksPage() {
               </div>
               <div className="flex-1">
                 <h2 className="text-2xl font-black uppercase tracking-tight mb-4 text-[#17c3b2]">
-                  INSTALL THE EXTENSION
+                  DEPLOY
                 </h2>
                 <p className="text-gray-400 leading-relaxed mb-4">
-                  The Chrome extension is a read-only audit layer. It doesn't ask for your seed phrase, your wallet keys, or your mama's maiden name. It just monitors what's happening on your screen in real-time.
+                  Install the extension and sync your forensic node. No permissions, no fluff. The Audit Layer sits between you and the casino as a passive read-only sensor — your seed phrase stays yours, your keys stay yours, and the casino gets zero warning it's being audited.
                 </p>
                 <div className="p-4 bg-[#17c3b2]/5 border border-[#17c3b2]/20 text-sm text-gray-300 font-mono">
-                  → Install from Chrome Web Store. No BS, no sketchy permissions.
+                  → One install. Zero custody. A forensic layer between you and the shadow-nerfed math.
                 </div>
               </div>
             </div>
@@ -47,13 +47,16 @@ export default function HowItWorksPage() {
               </div>
               <div className="flex-1">
                 <h2 className="text-2xl font-black uppercase tracking-tight mb-4 text-[#17c3b2]">
-                  SET YOUR TARGETS
+                  THE LIVE AUDIT
                 </h2>
+                <p className="text-gray-400 leading-relaxed mb-2">
+                  We don't just monitor you. Every spin is cross-referenced in real-time against our database of <span className="text-white font-bold">GLI-certified manufacturer RTP tiers</span> — the gold standard that slot providers certify before a game ships.
+                </p>
                 <p className="text-gray-400 leading-relaxed mb-4">
-                  Define your session exit points before you play. Profit target? Tilt limit? Loss ceiling? The system watches for you. When you hit your line, the UI locks. No wiggle room. No "just one more bet."
+                  When the casino deploys the "Greedy" version of your slot (88% instead of the certified 96.5%), the Delta Engine flags it immediately and surfaces the Greed Premium you're paying per $100 wagered.
                 </p>
                 <div className="p-4 bg-[#ffd700]/5 border border-[#ffd700]/20 text-sm text-gray-300 font-mono">
-                  → Example: "Lock me out if I'm down $200 OR I've won $100."
+                  → Live example: "Gates of Olympus — certified 96.5% / platform running 92.0%. Greed Premium: $4.50 per $100 wagered."
                 </div>
               </div>
             </div>
@@ -67,56 +70,16 @@ export default function HowItWorksPage() {
               </div>
               <div className="flex-1">
                 <h2 className="text-2xl font-black uppercase tracking-tight mb-4 text-[#17c3b2]">
-                  GET REAL-TIME SIGNALS
+                  ENFORCE
                 </h2>
+                <p className="text-gray-400 leading-relaxed mb-2">
+                  When the math breaks, we don't just alert you. The "Generate Evidence" trigger stays locked until the community sample reaches 5,000+ spins — enough for a statistically valid binomial z-test.
+                </p>
                 <p className="text-gray-400 leading-relaxed mb-4">
-                  Your session feeds into our audit engine. We check RNG signatures. We track variance. We spot tilt patterns. If the math looks wrong or your behavior does, you get a nudge — not a lecture. Just the data.
+                  Once unlocked, the system generates a <span className="text-white font-bold">Certified Evidence Packet</span> — binomial z-score, GLI tier proof, and scraped casino metadata — pre-formatted for direct upload to the Malta Gaming Authority or Curacao eGaming complaint portals. Your bag is locked simultaneously before the tilt-tax takes the rest.
                 </p>
                 <div className="p-4 bg-[#ef4444]/5 border border-[#ef4444]/20 text-sm text-gray-300 font-mono">
-                  → Real example: "3 losses in a row. The house loves this momentum."
-                </div>
-              </div>
-            </div>
-
-            {/* Step 4 */}
-            <div className="flex gap-8 items-start">
-              <div className="flex-shrink-0">
-                <div className="flex items-center justify-center h-16 w-16 rounded-none bg-[#17c3b2] text-black font-black text-xl">
-                  04
-                </div>
-              </div>
-              <div className="flex-1">
-                <h2 className="text-2xl font-black uppercase tracking-tight mb-4 text-[#17c3b2]">
-                  LOCK YOUR WINS / TAKE THE L
-                </h2>
-                <p className="text-gray-400 leading-relaxed mb-4">
-                  When your profit target hits, you get one chance to cash out before the lock engages. If you blow past it? The site is frozen. You can't bet. Can't chase. Can't spiral. You've got a mandatory break.
-                </p>
-                <p className="text-gray-400 leading-relaxed mb-4">
-                  Or you hit your loss limit. Same deal. Out. The money you have left is protected.
-                </p>
-                <div className="p-4 bg-[#17c3b2]/5 border border-[#17c3b2]/20 text-sm text-gray-300 font-mono">
-                  → This is not a suggestion. The UI goes dark. Go touch grass.
-                </div>
-              </div>
-            </div>
-
-            {/* Step 5 */}
-            <div className="flex gap-8 items-start">
-              <div className="flex-shrink-0">
-                <div className="flex items-center justify-center h-16 w-16 rounded-none bg-[#17c3b2] text-black font-black text-xl">
-                  05
-                </div>
-              </div>
-              <div className="flex-1">
-                <h2 className="text-2xl font-black uppercase tracking-tight mb-4 text-[#17c3b2]">
-                  REJOIN THE COMMUNITY
-                </h2>
-                <p className="text-gray-400 leading-relaxed mb-4">
-                  Use our Discord for accountability. Invite a Guardian (trusted friend). Get alerts when you're heading into danger. Share wins. Call out the bullshit. The whole point is that you're not alone in this.
-                </p>
-                <div className="p-4 bg-[#17c3b2]/5 border border-[#17c3b2]/20 text-sm text-gray-300 font-mono">
-                  → Community = your firewall against tilt.
+                  → When the math breaks, we generate the receipts and lock your bag. They picked the wrong degens to nerf.
                 </div>
               </div>
             </div>
@@ -138,27 +101,28 @@ export default function HowItWorksPage() {
                 <span className="text-[#17c3b2] group-open:rotate-180 transition-transform">+</span>
               </summary>
               <div className="p-6 bg-black border border-[#283347] border-t-0 text-gray-400">
-                No. We never ask for it. We don't want it. We don't store it. The extension reads your browser's activity on gambling sites — nothing else. Your keys are yours.
+                No. We never ask for it. We don't want it. We don't store it. The forensic node reads your browser's activity on gambling sites — nothing else. Your keys are yours.
               </div>
             </details>
 
             <details className="group cursor-pointer">
               <summary className="flex items-center justify-between p-6 bg-[#17c3b2]/5 border border-[#17c3b2]/20 hover:bg-[#17c3b2]/10 transition-all">
-                <span className="font-black uppercase tracking-tight">Can I bypass the lock?</span>
+                <span className="font-black uppercase tracking-tight">What is a "Greed Premium"?</span>
                 <span className="text-[#17c3b2] group-open:rotate-180 transition-transform">+</span>
               </summary>
               <div className="p-6 bg-black border border-[#283347] border-t-0 text-gray-400">
-                Technically? Yes. You can uninstall the extension. But if you're thinking about that, you've already lost. The lock isn't meant to be bulletproof — it's meant to give you a second to think.
+                Slot providers certify their games at multiple RTP tiers. A game certified at 96.5% can be legally deployed by a casino at 88%. That 8.5% gap is the Greed Premium — money extracted from you above and beyond the already unfavorable base odds. The Delta Engine shows you this number in real-time, per $100 wagered.
               </div>
             </details>
 
             <details className="group cursor-pointer">
               <summary className="flex items-center justify-between p-6 bg-[#17c3b2]/5 border border-[#17c3b2]/20 hover:bg-[#17c3b2]/10 transition-all">
-                <span className="font-black uppercase tracking-tight">Does this work on mobile?</span>
+                <span className="font-black uppercase tracking-tight">How does the Evidence Packet work?</span>
                 <span className="text-[#17c3b2] group-open:rotate-180 transition-transform">+</span>
               </summary>
               <div className="p-6 bg-black border border-[#283347] border-t-0 text-gray-400">
-                Not yet. Chrome extension is desktop-only. Mobile version is in progress. For now, set your loss limit on desktop before you gamble on mobile.
+                <p className="mb-2">The trigger stays locked until the community sample hits 5,000+ spins — the minimum for a statistically valid binomial z-test. Below that, it stays locked. We will not send you to a regulator with junk data.</p>
+                <p>When it unlocks, the packet is pre-filled for direct upload to the Malta Gaming Authority or Curacao eGaming complaint portals.</p>
               </div>
             </details>
 
@@ -179,14 +143,14 @@ export default function HowItWorksPage() {
       <section className="py-20 px-4 text-center border-t border-[#283347]">
         <div className="max-w-3xl mx-auto">
           <h2 className="text-3xl font-black uppercase tracking-tight mb-6">
-            Ready to tip the scale?
+            READY TO DEPLOY THE AUDIT LAYER?
           </h2>
           <p className="text-gray-400 mb-8">
-            Install the extension. Set your limits. Get signals. Keep your wins. It's that simple.
+            Install the forensic node. The math does the rest. They picked the wrong degens to nerf.
           </p>
           <div className="flex gap-4 justify-center flex-wrap">
             <a href="/extension" className="btn btn-primary py-3 px-6 font-black">
-              Get the Extension
+              Deploy the Extension
             </a>
             <a href="#" className="btn btn-secondary py-3 px-6 font-black">
               Join Discord

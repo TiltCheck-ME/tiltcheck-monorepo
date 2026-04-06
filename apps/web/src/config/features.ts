@@ -1,3 +1,4 @@
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-06
 export type Tool = {
   href: string;
   icon: string;
@@ -22,8 +23,8 @@ export const features: Tool[] = [
     href: "/tools/verify",
     icon: "rng-audit.svg",
     category: "CHECK THE MATH",
-    title: "Nerf-Proof RNG Audit",
-    description: "House signatures verified or we flag 'em. Cryptographic HMAC-SHA256 validation to ensure those 'bad beats' aren't shadow-buffed.",
+    title: "Forensic Seed Audit",
+    description: "Real-time binomial z-tests on every hash. If the randomness is drifting, we flag the breach. Cryptographic HMAC-SHA256 validation to ensure those 'bad beats' aren't manufactured.",
     status: "live",
     gridClasses: "",
   },
@@ -40,8 +41,8 @@ export const features: Tool[] = [
     href: "/tools/session-stats",
     icon: "session-stats.svg",
     category: "TILT TELEMETRY",
-    title: "PnL & Behavioral Raw Data",
-    description: "Zero fluff. Pure session PnL, erratic betting flags, and the 'Tough Love' intervention engine telemetry.",
+    title: "The Nerf Radar",
+    description: "A global heatmap of which platforms are running the 'Greedy' versions of your favorite slots. Zero fluff. Pure session PnL, platform RTP deviation flags, and the 'Tough Love' intervention engine telemetry.",
     status: "live",
     gridClasses: "",
   },
@@ -75,9 +76,9 @@ export const features: Tool[] = [
   {
     href: "/tools/house-edge-scanner",
     icon: "house-edge-scanner.svg",
-    category: "RELOAD AUDIT",
-    title: "Bonus Edge Calculator",
-    description: "We audit the house's latest 'reload bonus' to show you the real RTP math hidden in their terms. Know the edge.",
+    category: "RTP FORENSICS",
+    title: "The Delta Engine",
+    description: "We catch the difference between what they say it pays and what the math actually does. Cross-references your live session against GLI-certified manufacturer tiers to surface the Greed Premium in real-time.",
     status: "coming-soon",
     gridClasses: "",
   },
