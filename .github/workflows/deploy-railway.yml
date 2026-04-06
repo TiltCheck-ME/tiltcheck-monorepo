@@ -76,3 +76,4 @@ jobs:
         run: npx @railway/cli@latest up --service ${{ matrix.service }} --environment production --detach
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+          RAILWAY_PROJECT_ID: e48fdf5a-7857-4c69-a578-1ce8fa10d93e
