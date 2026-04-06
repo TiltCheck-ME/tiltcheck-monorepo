@@ -53,27 +53,11 @@ gcloud iam service-accounts create tiltcheck-runner \
   --project=tiltchcek
 ```
 
-Grant required roles:
+Grant the runtime-only roles this SA needs (Secret Manager access to read mounted secrets):
 
 ```bash
 PROJECT=tiltchcek
 SA=tiltcheck-runner@tiltchcek.iam.gserviceaccount.com
-
-gcloud projects add-iam-policy-binding $PROJECT \
-  --member="serviceAccount:$SA" \
-  --role="roles/run.admin"
-
-gcloud projects add-iam-policy-binding $PROJECT \
-  --member="serviceAccount:$SA" \
-  --role="roles/artifactregistry.writer"
-
-gcloud projects add-iam-policy-binding $PROJECT \
-  --member="serviceAccount:$SA" \
-  --role="roles/cloudbuild.builds.editor"
-
-gcloud projects add-iam-policy-binding $PROJECT \
-  --member="serviceAccount:$SA" \
-  --role="roles/iam.serviceAccountUser"
 
 gcloud projects add-iam-policy-binding $PROJECT \
   --member="serviceAccount:$SA" \
@@ -92,15 +76,27 @@ gcloud iam service-accounts create tiltcheck-deploy \
   --project=tiltchcek
 
 DEPLOY_SA=tiltcheck-deploy@tiltchcek.iam.gserviceaccount.com
+RUNNER_SA=tiltcheck-runner@tiltchcek.iam.gserviceaccount.com
 
 gcloud projects add-iam-policy-binding tiltchcek \
   --member="serviceAccount:$DEPLOY_SA" \
   --role="roles/cloudbuild.builds.editor"
 
-gcloud projects add-iam-policy-binding tiltchcek \
+# Scope serviceAccountUser to the runtime SA only — do not grant at project level
+gcloud iam service-accounts add-iam-policy-binding $RUNNER_SA \
   --member="serviceAccount:$DEPLOY_SA" \
-  --role="roles/iam.serviceAccountUser"
+  --role="roles/iam.serviceAccountUser" \
+  --project=tiltchcek
+```
 
+### Preferred: Workload Identity Federation (keyless auth)
+
+Rather than storing a long-lived JSON key in GitHub Secrets, use Workload Identity Federation so GitHub Actions authenticates via short-lived OIDC tokens.
+See: https://cloud.google.com/iam/docs/workload-identity-federation-with-deployment-pipelines
+
+If you still need the JSON key path, generate and immediately delete the local copy:
+
+```bash
 # Generate and download the JSON key
 gcloud iam service-accounts keys create /tmp/tiltcheck-deploy-key.json \
   --iam-account=$DEPLOY_SA \
@@ -162,15 +158,28 @@ To add a secret to the `cloudbuild.yaml` deploy step, append to the `--set-secre
 
 ---
 
-## 7. Grant Cloud Build Access to Artifact Registry
+## 7. Grant Cloud Build SA Required Permissions
+
+The Cloud Build SA must push images to Artifact Registry, deploy to Cloud Run, and act as the runtime SA.
 
 ```bash
 CB_SA=$(gcloud projects describe tiltchcek \
   --format="value(projectNumber)")@cloudbuild.gserviceaccount.com
+RUNNER_SA=tiltcheck-runner@tiltchcek.iam.gserviceaccount.com
 
 gcloud projects add-iam-policy-binding tiltchcek \
   --member="serviceAccount:$CB_SA" \
   --role="roles/artifactregistry.writer"
+
+gcloud projects add-iam-policy-binding tiltchcek \
+  --member="serviceAccount:$CB_SA" \
+  --role="roles/run.admin"
+
+# Allow Cloud Build to deploy services that run as tiltcheck-runner
+gcloud iam service-accounts add-iam-policy-binding $RUNNER_SA \
+  --member="serviceAccount:$CB_SA" \
+  --role="roles/iam.serviceAccountUser" \
+  --project=tiltchcek
 ```
 
 ---

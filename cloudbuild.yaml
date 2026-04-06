@@ -126,9 +126,12 @@ images:
   - '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPOSITORY}/${_SERVICE_NAME}:latest'
 
 substitutions:
-  _SERVICE_NAME: api
+  # _SERVICE_NAME and _REGION have no defaults — the workflow must supply them explicitly.
+  # Omitting them here ensures a bare `gcloud builds submit` will fail fast rather than
+  # accidentally deploying the wrong service.
+  _SERVICE_NAME: ""
   _REPOSITORY: tiltcheck-services
-  _REGION: us-central1
+  _REGION: ""
 
 options:
   logging: CLOUD_LOGGING_ONLY
