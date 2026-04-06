@@ -10,7 +10,7 @@ on:
       - 'packages/**'
       - 'modules/**'
       - 'cloudbuild.yaml'
-      - 'Dockerfile'
+      - 'apps/*/Dockerfile'
   workflow_dispatch:
 
 env:
