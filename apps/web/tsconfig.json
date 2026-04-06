@@ -28,7 +28,7 @@
         "./src/*"
       ],
       "@data/*": [
-        "../../data/*"
+        "./src/data/*"
       ],
       "@tiltcheck/*": [
         "../../packages/*/src/index.ts",

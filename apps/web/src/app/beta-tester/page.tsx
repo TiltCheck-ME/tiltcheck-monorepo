@@ -1,5 +1,5 @@
-"use client";
 /* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-06 */
+"use client";
 
 import React, { useState } from 'react';
 
