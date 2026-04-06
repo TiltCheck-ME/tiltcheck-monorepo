@@ -3,11 +3,9 @@
   "projectId": "e48fdf5a-7857-4c69-a578-1ce8fa10d93e",
   "build": {
     "builder": "DOCKERFILE",
-    "dockerfilePath": "apps/api/Dockerfile"
+    "dockerfilePath": "apps/web/Dockerfile"
   },
   "deploy": {
-    "healthcheckPath": "/health",
-    "healthcheckTimeout": 300,
     "restartPolicyType": "ON_FAILURE",
     "restartPolicyMaxRetries": 3
   }
