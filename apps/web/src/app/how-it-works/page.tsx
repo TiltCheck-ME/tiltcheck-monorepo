@@ -30,7 +30,7 @@ export default function HowItWorksPage() {
                   DEPLOY
                 </h2>
                 <p className="text-gray-400 leading-relaxed mb-4">
-                  Install the extension and sync your forensic node. No permissions, no fluff. The Audit Layer sits between you and the casino as a passive read-only sensor — your seed phrase stays yours, your keys stay yours, and the casino gets zero warning it's being audited.
+                  Install the extension and sync your forensic node. It requires storage, active tab access, and site permissions — the minimum needed for the Audit Layer to inspect game telemetry and sync session state without phoning home. Your seed phrase stays yours, your keys stay yours, and the casino gets zero warning it's being audited.
                 </p>
                 <div className="p-4 bg-[#17c3b2]/5 border border-[#17c3b2]/20 text-sm text-gray-300 font-mono">
                   → One install. Zero custody. A forensic layer between you and the shadow-nerfed math.

@@ -24,7 +24,7 @@ export const features: Tool[] = [
     icon: "rng-audit.svg",
     category: "CHECK THE MATH",
     title: "Forensic Seed Audit",
-    description: "Real-time binomial z-tests on every hash. If the randomness is drifting, we flag the breach. Cryptographic HMAC-SHA256 validation to ensure those 'bad beats' aren't manufactured.",
+    description: "HMAC-SHA256 provably fair verification. Paste your seeds and nonce to confirm the result wasn't manufactured. Supports TiltCheck 4-Key mode (Solana block hash) and legacy casino server/client seed formats.",
     status: "live",
     gridClasses: "",
   },
