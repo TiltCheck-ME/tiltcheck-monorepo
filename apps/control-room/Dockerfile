@@ -6,7 +6,7 @@ WORKDIR /app
 FROM base AS dependencies
 ENV CI=true
 COPY pnpm-workspace.yaml pnpm-lock.yaml package.json .npmrc ./
-RUN pnpm install --no-frozen-lockfile --prod
+RUN pnpm install --no-frozen-lockfile --filter @tiltcheck/control-room...
 
 FROM base AS runtime
 ENV NODE_ENV=production
