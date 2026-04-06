@@ -18,7 +18,7 @@ FROM base AS build
 COPY . .
 # Perform full workspace install for monorepo dependency resolution
 ENV CI=true
-RUN pnpm install --frozen-lockfile --ignore-scripts
+RUN pnpm install --frozen-lockfile
 # Next.js Build requires NODE_ENV=production to optimize bundles
 ENV NODE_ENV=production
 RUN pnpm --filter web build
