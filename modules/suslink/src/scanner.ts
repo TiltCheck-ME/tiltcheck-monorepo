@@ -1,3 +1,4 @@
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-06
 /* Copyright (c) 2026 TiltCheck. All rights reserved. */
 // v0.1.0 — 2026-02-25
 /**
@@ -55,7 +56,37 @@ const KNOWN_CASINOS = [
   'bc.game',
   'roobet.com',
   'shuffle.com',
+  'gamdom.com',
+  'csgoempire.com',
+  'jackbit.com',
+  'cloudbet.com',
+  'betfury.io',
 ];
+
+// ─── Levenshtein distance ─────────────────────────────────────────────────────
+// Used to detect single-character typosquat impersonation (e.g. stakee.com,
+// r0obet.com, rollb1t.com) that substring matching would miss.
+
+function levenshtein(a: string, b: string): number {
+  const m = a.length;
+  const n = b.length;
+  const dp: number[][] = Array.from({ length: m + 1 }, (_, i) =>
+    Array.from({ length: n + 1 }, (_, j) => (i === 0 ? j : j === 0 ? i : 0))
+  );
+  for (let i = 1; i <= m; i++) {
+    for (let j = 1; j <= n; j++) {
+      dp[i][j] = a[i - 1] === b[j - 1]
+        ? dp[i - 1][j - 1]
+        : 1 + Math.min(dp[i - 1][j], dp[i][j - 1], dp[i - 1][j - 1]);
+    }
+  }
+  return dp[m][n];
+}
+
+// Strip TLD so 'stakee' and 'stake' are compared without '.com' noise
+function stripTld(domain: string): string {
+  return domain.replace(/\.[a-z]{2,}$/, '');
+}
 
 // Scam keywords
 const SCAM_KEYWORDS = [
@@ -195,18 +226,32 @@ export class LinkScanner {
    */
   private checkImpersonation(url: URL): { risky: boolean; reason?: string } {
     const hostname = url.hostname.toLowerCase();
+    // Strip port if present (hostname already excludes port in URL API)
+    const hostBase = stripTld(hostname);
 
-    // Check for typosquatting or impersonation
     for (const casino of KNOWN_CASINOS) {
-      const casinoBase = casino.replace('.com', '').replace('.game', '');
+      const casinoBase = stripTld(casino);
 
-      // If hostname contains casino name but isn't exact match
+      // Exact match is legitimate — not an impersonation
+      if (hostname === casino) continue;
+
+      // 1. Substring check: hostname contains casino name but is not the real domain
+      //    Catches: stake-free.com, stake.xyz, stake-bonus-promo.xyz
       if (hostname.includes(casinoBase) && hostname !== casino) {
-        // Examples: stakee.com, stake-free.com, stake.xyz
-        return {
-          risky: true,
-          reason: `Possible impersonation of ${casino}`
-        };
+        return { risky: true, reason: `Possible impersonation of ${casino} (contains brand name)` };
+      }
+
+      // 2. Levenshtein typosquat check: edit distance <= 2 from the brand name
+      //    Catches: stakee, st4ke, r0obet, rollb1t — single substitution/insertion attacks
+      //    Only apply when hostname is similar in length (avoids false positives on short brand names like 'bc')
+      if (casinoBase.length >= 4) {
+        const dist = levenshtein(hostBase, casinoBase);
+        if (dist > 0 && dist <= 2) {
+          return {
+            risky: true,
+            reason: `Possible typosquat of ${casino} (edit distance: ${dist})`,
+          };
+        }
       }
     }
 
