@@ -1,4 +1,5 @@
 "use client";
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-06 */
 
 import React, { useState } from 'react';
 
@@ -47,7 +48,7 @@ export default function BetaTesterPage() {
           </span>
         </h1>
         <p className="text-gray-400 mt-4 max-w-3xl">
-          We&apos;re looking for enthusiastic users to help us refine and improve the Trust Engines! As a beta tester, you&apos;ll get early access to new features, directly influence development, and earn exclusive rewards.
+          We need real degens to stress-test the Trust Engines before this goes public. Early access, direct influence on the build, and exclusive rewards. The math is ready. We just need people who actually play to tell us what&apos;s broken.
         </p>
       </header>
 
@@ -83,16 +84,16 @@ export default function BetaTesterPage() {
               <h3 className="text-xs font-bold uppercase text-gray-400 mb-4 tracking-wider">Exclusive Assurances</h3>
               <div className="grid grid-cols-2 gap-4 text-xs font-mono">
                 <div className="p-3 bg-[#17c3b2]/5 border border-[#17c3b2]/20 text-[#17c3b2]">
-                  🏆 Genesis Tester Role (Whitelist)
+                  [WHITELIST] Genesis Tester Role
                 </div>
                 <div className="p-3 bg-yellow-500/5 border border-yellow-500/20 text-yellow-500">
-                  🪙 50% Lifetime Premium Discount
+                  [DISCOUNT] 50% Lifetime Premium
                 </div>
                 <div className="p-3 bg-blue-500/5 border border-blue-500/20 text-blue-400">
-                  ⚡ Free During Beta
+                  [FREE] Full Access During Beta
                 </div>
                 <div className="p-3 bg-white/5 border border-white/10 text-white">
-                  👑 Immortalized in CREDITS.TXT
+                  [PERMANENT] Listed in CREDITS.TXT
                 </div>
               </div>
             </div>
