@@ -1,3 +1,4 @@
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-06
 /* Copyright (c) 2026 TiltCheck. All rights reserved. */
 /**
  * RGaaS Routes - /rgaas/*
@@ -17,9 +18,10 @@ import { evaluateBreathalyzer, evaluateSentiment, evaluateSentimentV2 } from '..
 import { trustEngines } from '@tiltcheck/trust-engines';
 import { eventRouter } from '@tiltcheck/event-router';
 import { suslink } from '@tiltcheck/suslink';
-import { getUserTiltStatus } from '@tiltcheck/tiltcheck-core';
+import { getUserTiltStatus, evaluateRtpLegalTrigger } from '@tiltcheck/tiltcheck-core';
 import { webhookService } from '../lib/webhooks.js';
 import { authMiddleware, AuthRequest } from '../middleware/auth.js';
+import type { RtpReportSubmittedEvent } from '@tiltcheck/types';
 
 const router: Router = Router();
 
@@ -392,6 +394,130 @@ router.get('/profile/:userId', authMiddleware, (req, res) => {
           ? 'MONITOR_CLOSELY' 
           : 'NORMAL_PLAY',
     }
+  });
+});
+
+/**
+ * POST /rgaas/rtp/report
+ * Accept an RTP report from the Chrome Extension or a community member.
+ * Publishes rtp.report.submitted to the Event Router, which triggers:
+ *   - trust-rollup to update PROVIDER_PLATFORM_RTP and recompute weighted_rtp_delta
+ *   - CollectClock to run nerf detection against the provider's max RTP
+ *
+ * Body: { platformUrl, platformName, providerName, gameTitle, reportedRtp, source, reportedByUserId? }
+ */
+router.post('/rtp/report', async (req, res) => {
+  const { platformUrl, platformName, providerName, gameTitle, reportedRtp, source } = req.body ?? {};
+
+  if (!platformUrl || typeof platformUrl !== 'string') {
+    res.status(400).json({ error: 'platformUrl is required', code: 'INVALID_PLATFORM_URL' });
+    return;
+  }
+  if (!providerName || typeof providerName !== 'string') {
+    res.status(400).json({ error: 'providerName is required', code: 'INVALID_PROVIDER' });
+    return;
+  }
+  if (!gameTitle || typeof gameTitle !== 'string') {
+    res.status(400).json({ error: 'gameTitle is required', code: 'INVALID_GAME' });
+    return;
+  }
+  if (!isFiniteNumber(reportedRtp) || reportedRtp <= 0 || reportedRtp > 100) {
+    res.status(400).json({ error: 'reportedRtp must be a percentage between 0 and 100', code: 'INVALID_RTP' });
+    return;
+  }
+  if (source !== 'extension' && source !== 'community') {
+    res.status(400).json({ error: 'source must be "extension" or "community"', code: 'INVALID_SOURCE' });
+    return;
+  }
+
+  const authUser = (req as AuthRequest).user;
+  const report: RtpReportSubmittedEvent = {
+    platformUrl: platformUrl.trim().toLowerCase(),
+    platformName: (platformName as string | undefined)?.trim() || platformUrl,
+    providerName: providerName.trim(),
+    gameTitle: gameTitle.trim(),
+    reportedRtp: Number(reportedRtp),
+    source,
+    reportedByUserId: authUser?.id,
+    reportedAt: Date.now(),
+  };
+
+  await eventRouter.publish('rtp.report.submitted', 'rgaas-api', report);
+
+  res.json({
+    success: true,
+    message: 'RTP report submitted and routed to Trust Engine.',
+    report,
+  });
+});
+
+/**
+ * GET /rgaas/rtp/discrepancy/:platformUrl
+ * Returns the full RTP discrepancy analysis for a casino platform.
+ * For each tracked provider/game on this platform, calculates:
+ *   - weighted_rtp_delta vs provider max
+ *   - legal trigger tier (monitor / alert / breach)
+ *   - regulatory contact links if licenseAuthority is known
+ *
+ * Query params:
+ *   - provider: filter to a specific provider name (e.g. 'Pragmatic Play')
+ *   - licenseAuthority: the casino's regulator (e.g. 'Curacao', 'MGA') for legal links
+ *
+ * Example:
+ *   GET /rgaas/rtp/discrepancy/roobet.com?licenseAuthority=Curacao
+ */
+router.get('/rtp/discrepancy/:platformUrl', (req, res) => {
+  const rawPlatformUrl = req.params.platformUrl?.trim().toLowerCase();
+  if (!rawPlatformUrl) {
+    res.status(400).json({ error: 'platformUrl param required', code: 'INVALID_PLATFORM_URL' });
+    return;
+  }
+
+  const filterProvider = (req.query.provider as string | undefined)?.trim();
+  const licenseAuthority = (req.query.licenseAuthority as string | undefined)?.trim();
+
+  // Pull RTP snapshot from trust engine (live casino trust scores)
+  const casinoScore = trustEngines.getCasinoScore(rawPlatformUrl)
+    ?? trustEngines.getCasinoScore(rawPlatformUrl.replace(/^www\./, '').split('.')[0]);
+
+  // Build per-provider discrepancy report from the event router state
+  // (trust-rollup maintains PROVIDER_PLATFORM_RTP in memory; we read it
+  // via the published trust snapshots available through the trust engines)
+  const casinoBreakdown = trustEngines.getCasinoBreakdown(rawPlatformUrl);
+
+  // Compute legal triggers from the breakdown metadata if available
+  // The breakdown may carry providerRtpBreakdown from the last trust snapshot
+  const providerBreakdown: { providerName: string; gameTitle: string; latestReportedRtp: number; providerMaxRtp: number; delta: number; legalTrigger: ReturnType<typeof evaluateRtpLegalTrigger> }[] = [];
+
+  // Extract RTP deltas from casino breakdown metadata if present
+  const rtpMeta = (casinoBreakdown as { providerRtpBreakdown?: { providerName: string; gameSlug: string; gameTitle: string; latestReportedRtp: number; providerMaxRtp: number; delta: number }[] })?.providerRtpBreakdown;
+  if (rtpMeta && Array.isArray(rtpMeta)) {
+    for (const entry of rtpMeta) {
+      if (filterProvider && entry.providerName !== filterProvider) continue;
+      const legalTrigger = evaluateRtpLegalTrigger(
+        entry.delta,
+        rawPlatformUrl,
+        licenseAuthority
+      );
+      providerBreakdown.push({ ...entry, legalTrigger });
+    }
+  }
+
+  // Compute overall platform legal trigger using max delta across all providers
+  const maxDelta = providerBreakdown.reduce((max, e) => Math.max(max, e.delta), 0);
+  const platformLegalTrigger = maxDelta > 0
+    ? evaluateRtpLegalTrigger(maxDelta, rawPlatformUrl, licenseAuthority)
+    : null;
+
+  res.json({
+    success: true,
+    platformUrl: rawPlatformUrl,
+    casinoTrustScore: casinoScore,
+    platformLegalTrigger,
+    providerBreakdown,
+    dataNote: providerBreakdown.length === 0
+      ? 'No RTP reports have been submitted for this platform yet. Install the Chrome Extension to begin tracking.'
+      : undefined,
   });
 });
 
