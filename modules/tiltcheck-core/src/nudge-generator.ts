@@ -184,6 +184,9 @@ const REGULATOR_REGISTRY: Record<string, { name: string; contactUrl: string; com
  * | 0.5% - 1.0%   | monitor   | Track next 500 spins          |
  * | 1.1% - 3.0%   | alert     | Request Game History Export   |
  * | > 3.0%        | breach    | File regulatory complaint     |
+ *
+ * NOTE: "breach" is only returned when the discrepancy is statistically
+ * confirmed (p < 0.05) via RtpConfidenceResult. Raw delta alone is not enough.
  */
 export type RtpDiscrepancyLevel = 'monitor' | 'alert' | 'breach';
 
@@ -200,29 +203,48 @@ export interface LegalTrigger {
   regulatoryContactUrl?: string;
   /** Direct URL to the regulator's complaint submission page */
   regulatoryComplaintUrl?: string;
+  /**
+   * Statistical confidence result attached to this trigger.
+   * Consumers MUST surface this to the user on the "Review Evidence" screen.
+   * A LegalTrigger without a confidence result should not be presented as actionable.
+   */
+  confidence?: import('@tiltcheck/types').RtpConfidenceResult;
 }
 
 /**
  * Evaluate whether an RTP discrepancy warrants a legal/regulatory nudge.
  *
- * @param rtpDelta       - Percentage-point gap between provider max RTP and current platform setting.
- *                         E.g. if provider max = 96.5 and platform reports 91.0, rtpDelta = 5.5
- * @param casinoName     - Human-readable casino name (e.g. 'Roobet')
- * @param licenseAuthority - The casino's licensing body string (e.g. 'Curacao', 'MGA').
- *                           Used to look up the regulator's contact and complaint URLs.
- *                           Falls back to generic consumer guidance if not found.
+ * Statistical gating rules (prevents hallucinated legal claims):
+ *   - "breach" is only returned when confidence.confidenceTier is 'likely_nerf' or 'confirmed_nerf'
+ *     (p < 0.05, sample >= minimum required). Raw delta alone never triggers regulatory complaint.
+ *   - "alert" requires at least 'plausible_variance' tier with delta >= 1.1pp.
+ *   - "monitor" is the lowest tier and requires no statistical threshold.
  *
- * @returns LegalTrigger with message and regulatory links, or null if delta is below threshold (< 0.5pp)
+ * @param rtpDelta         - Percentage-point gap between provider max RTP and platform setting.
+ * @param casinoName       - Human-readable casino name (e.g. 'Roobet').
+ * @param licenseAuthority - The casino's licensing body string (e.g. 'Curacao', 'MGA').
+ * @param confidence       - Optional RtpConfidenceResult from assessRtpConfidence().
+ *                           If omitted, "breach" will never be returned (data not validated).
+ *
+ * @returns LegalTrigger, or null if delta is below noise floor (< 0.5pp).
  *
  * @example
- * const trigger = evaluateRtpLegalTrigger(5.5, 'Roobet', 'Curacao');
- * // => { discrepancyLevel: 'breach', suggestedAction: 'REGULATORY_COMPLAINT',
- * //       message: 'Statistically impossible variance...', regulatoryComplaintUrl: '...' }
+ * // With statistical confirmation (p < 0.01, 50,000 spins)
+ * const conf = assessRtpConfidence(89.5, 96.5, 50000);
+ * const trigger = evaluateRtpLegalTrigger(7.0, 'Roobet', 'Curacao', conf);
+ * // => { discrepancyLevel: 'breach', suggestedAction: 'REGULATORY_COMPLAINT', ... }
+ *
+ * @example
+ * // Without enough data — capped at 'alert', not 'breach'
+ * const conf = assessRtpConfidence(89.5, 96.5, 50); // only 50 spins
+ * const trigger = evaluateRtpLegalTrigger(7.0, 'Roobet', 'Curacao', conf);
+ * // => { discrepancyLevel: 'alert', suggestedAction: 'REQUEST_HISTORY', ... }
  */
 export function evaluateRtpLegalTrigger(
   rtpDelta: number,
   casinoName: string,
-  licenseAuthority?: string
+  licenseAuthority?: string,
+  confidence?: import('@tiltcheck/types').RtpConfidenceResult
 ): LegalTrigger | null {
   if (rtpDelta < 0.5) return null; // Below noise floor — no action
 
@@ -230,14 +252,28 @@ export function evaluateRtpLegalTrigger(
     ? REGULATOR_REGISTRY[licenseAuthority.toLowerCase().trim()]
     : undefined;
 
-  if (rtpDelta >= 3.0) {
+  // Statistical gate: only escalate to "breach" when data supports it
+  const isStatisticallyConfirmed = confidence?.isStatisticallySignificant === true;
+  const isHighConfidence = confidence?.confidenceTier === 'confirmed_nerf';
+  const hasInsufficientData = confidence?.confidenceTier === 'insufficient_data';
+
+  // A "breach" without statistical backing is legally indefensible — cap at "alert"
+  const canTriggerBreach = rtpDelta >= 3.0 && isStatisticallyConfirmed;
+  // An "alert" without enough data is premature — cap at "monitor"
+  const canTriggerAlert = rtpDelta >= 1.1 && !hasInsufficientData;
+
+  const confidenceNote = confidence
+    ? ` Based on ${confidence.sampleSize.toLocaleString()} community spins (p=${(confidence.pValue * 100).toFixed(2)}%).`
+    : ' Insufficient session data — result is unverified.';
+
+  if (canTriggerBreach) {
+    const certaintyLabel = isHighConfidence ? '99%' : '95%';
     return {
       discrepancyLevel: 'breach',
       rtpDelta,
       casinoName,
       suggestedAction: 'REGULATORY_COMPLAINT',
-      message: `Mathematical deviation of ${rtpDelta.toFixed(2)}pp detected on ${casinoName}. `
-        + `This variance is statistically inconsistent with normal RTP volatility. `
+      message: `Mathematical deviation of ${rtpDelta.toFixed(2)}pp confirmed on ${casinoName} at ${certaintyLabel} statistical confidence.${confidenceNote} `
         + (regulator
             ? `Action: File a Fairness Dispute with the ${regulator.name}.`
             : `Action: File a Fairness Dispute with the casino's licensing authority. `
@@ -245,32 +281,38 @@ export function evaluateRtpLegalTrigger(
       regulatoryBody: regulator?.name,
       regulatoryContactUrl: regulator?.contactUrl,
       regulatoryComplaintUrl: regulator?.complaintUrl,
+      confidence,
     };
   }
 
-  if (rtpDelta >= 1.1) {
+  if (canTriggerAlert) {
     return {
       discrepancyLevel: 'alert',
       rtpDelta,
       casinoName,
       suggestedAction: 'REQUEST_HISTORY',
-      message: `Significant RTP deviation of ${rtpDelta.toFixed(2)}pp on ${casinoName}. `
+      message: `Significant RTP deviation of ${rtpDelta.toFixed(2)}pp on ${casinoName}.${confidenceNote} `
         + `Request a Game History Export from the operator's support team. `
         + `Document session IDs for potential escalation.`,
       regulatoryBody: regulator?.name,
       regulatoryContactUrl: regulator?.contactUrl,
+      confidence,
     };
   }
 
-  // 0.5 - 1.0pp
+  // 0.5 - 1.0pp, or insufficient data at any delta
   return {
     discrepancyLevel: 'monitor',
     rtpDelta,
     casinoName,
     suggestedAction: 'MONITOR',
-    message: `Minor RTP variance of ${rtpDelta.toFixed(2)}pp detected on ${casinoName}. `
-      + `Within standard volatility range but worth tracking. Monitor the next 500 spins.`,
+    message: hasInsufficientData
+      ? `RTP variance of ${rtpDelta.toFixed(2)}pp detected on ${casinoName}.${confidenceNote} `
+          + `Minimum ${confidence?.minimumRequiredSample?.toLocaleString() ?? 'unknown'} spins required for a valid assessment. Keep tracking.`
+      : `Minor RTP variance of ${rtpDelta.toFixed(2)}pp detected on ${casinoName}.${confidenceNote} `
+          + `Within standard volatility range but worth tracking. Monitor the next 500 spins.`,
     regulatoryBody: regulator?.name,
     regulatoryContactUrl: regulator?.contactUrl,
+    confidence,
   };
 }

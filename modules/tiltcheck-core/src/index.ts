@@ -17,6 +17,7 @@ export * from './message-analyzer.js';
 export * from './cooldown-manager.js';
 export * from './tilt-detector.js';
 export * from './nudge-generator.js';
+export * from './rtp-statistics.js';
 
 export {
   trackMessage,

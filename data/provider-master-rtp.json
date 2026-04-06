@@ -1,0 +1,308 @@
+{
+  "_comment": "© 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-06",
+  "_note": "Manufacturer-certified RTP tiers sourced from GLI/eCOGRA lab certifications and provider PAR sheets. These are read-only anchors — the Gold Standard the Casino Trust Engine compares all platform reports against.",
+  "providers": [
+    {
+      "providerName": "Pragmatic Play",
+      "games": [
+        {
+          "gameTitle": "Gates of Olympus",
+          "gameSlug": "gates-of-olympus",
+          "certifiedTiers": [96.50, 94.50, 92.00, 88.13],
+          "maxRtp": 96.50,
+          "minRtp": 88.13,
+          "certifiedBy": "GLI",
+          "certifiedYear": 2021
+        },
+        {
+          "gameTitle": "Gates of Olympus 1000",
+          "gameSlug": "gates-of-olympus-1000",
+          "certifiedTiers": [96.50, 94.00, 90.00],
+          "maxRtp": 96.50,
+          "minRtp": 90.00,
+          "certifiedBy": "GLI",
+          "certifiedYear": 2023
+        },
+        {
+          "gameTitle": "Sweet Bonanza",
+          "gameSlug": "sweet-bonanza",
+          "certifiedTiers": [96.51, 94.51, 92.00, 88.00],
+          "maxRtp": 96.51,
+          "minRtp": 88.00,
+          "certifiedBy": "GLI",
+          "certifiedYear": 2019
+        },
+        {
+          "gameTitle": "Sweet Bonanza 1000",
+          "gameSlug": "sweet-bonanza-1000",
+          "certifiedTiers": [96.51, 94.00, 90.00],
+          "maxRtp": 96.51,
+          "minRtp": 90.00,
+          "certifiedBy": "GLI",
+          "certifiedYear": 2023
+        },
+        {
+          "gameTitle": "Big Bass Bonanza",
+          "gameSlug": "big-bass-bonanza",
+          "certifiedTiers": [96.71, 94.50, 92.00],
+          "maxRtp": 96.71,
+          "minRtp": 92.00,
+          "certifiedBy": "GLI",
+          "certifiedYear": 2020
+        },
+        {
+          "gameTitle": "Starlight Princess",
+          "gameSlug": "starlight-princess",
+          "certifiedTiers": [96.50, 94.50, 92.00, 88.00],
+          "maxRtp": 96.50,
+          "minRtp": 88.00,
+          "certifiedBy": "GLI",
+          "certifiedYear": 2021
+        },
+        {
+          "gameTitle": "Sugar Rush",
+          "gameSlug": "sugar-rush",
+          "certifiedTiers": [96.50, 94.50, 92.00],
+          "maxRtp": 96.50,
+          "minRtp": 92.00,
+          "certifiedBy": "GLI",
+          "certifiedYear": 2022
+        },
+        {
+          "gameTitle": "The Dog House",
+          "gameSlug": "the-dog-house",
+          "certifiedTiers": [96.51, 94.50, 92.00],
+          "maxRtp": 96.51,
+          "minRtp": 92.00,
+          "certifiedBy": "GLI",
+          "certifiedYear": 2019
+        },
+        {
+          "gameTitle": "Wolf Gold",
+          "gameSlug": "wolf-gold",
+          "certifiedTiers": [96.01, 94.00, 92.00],
+          "maxRtp": 96.01,
+          "minRtp": 92.00,
+          "certifiedBy": "GLI",
+          "certifiedYear": 2018
+        }
+      ]
+    },
+    {
+      "providerName": "Hacksaw Gaming",
+      "games": [
+        {
+          "gameTitle": "Chaos Crew",
+          "gameSlug": "chaos-crew",
+          "certifiedTiers": [96.01, 94.00, 92.00],
+          "maxRtp": 96.01,
+          "minRtp": 92.00,
+          "certifiedBy": "eCOGRA",
+          "certifiedYear": 2021
+        },
+        {
+          "gameTitle": "Stick Em",
+          "gameSlug": "stick-em",
+          "certifiedTiers": [96.10, 94.00],
+          "maxRtp": 96.10,
+          "minRtp": 94.00,
+          "certifiedBy": "eCOGRA",
+          "certifiedYear": 2020
+        },
+        {
+          "gameTitle": "Wanted Dead or a Wild",
+          "gameSlug": "wanted-dead-or-a-wild",
+          "certifiedTiers": [96.38, 94.00, 92.00],
+          "maxRtp": 96.38,
+          "minRtp": 92.00,
+          "certifiedBy": "eCOGRA",
+          "certifiedYear": 2022
+        },
+        {
+          "gameTitle": "Mental",
+          "gameSlug": "mental",
+          "certifiedTiers": [96.00, 94.00],
+          "maxRtp": 96.00,
+          "minRtp": 94.00,
+          "certifiedBy": "eCOGRA",
+          "certifiedYear": 2023
+        }
+      ]
+    },
+    {
+      "providerName": "Play'n GO",
+      "games": [
+        {
+          "gameTitle": "Book of Dead",
+          "gameSlug": "book-of-dead",
+          "certifiedTiers": [96.21],
+          "maxRtp": 96.21,
+          "minRtp": 96.21,
+          "certifiedBy": "GLI",
+          "certifiedYear": 2016,
+          "_note": "Play'n GO publishes single RTP — limited operator adjustment"
+        },
+        {
+          "gameTitle": "Fire Joker",
+          "gameSlug": "fire-joker",
+          "certifiedTiers": [96.15],
+          "maxRtp": 96.15,
+          "minRtp": 96.15,
+          "certifiedBy": "GLI",
+          "certifiedYear": 2016
+        },
+        {
+          "gameTitle": "Reactoonz",
+          "gameSlug": "reactoonz",
+          "certifiedTiers": [96.51],
+          "maxRtp": 96.51,
+          "minRtp": 96.51,
+          "certifiedBy": "GLI",
+          "certifiedYear": 2017
+        }
+      ]
+    },
+    {
+      "providerName": "NetEnt",
+      "games": [
+        {
+          "gameTitle": "Starburst",
+          "gameSlug": "starburst",
+          "certifiedTiers": [96.09],
+          "maxRtp": 96.09,
+          "minRtp": 96.09,
+          "certifiedBy": "GLI",
+          "certifiedYear": 2012
+        },
+        {
+          "gameTitle": "Dead or Alive 2",
+          "gameSlug": "dead-or-alive-2",
+          "certifiedTiers": [96.82, 94.00],
+          "maxRtp": 96.82,
+          "minRtp": 94.00,
+          "certifiedBy": "GLI",
+          "certifiedYear": 2019
+        },
+        {
+          "gameTitle": "Gonzo's Quest",
+          "gameSlug": "gonzos-quest",
+          "certifiedTiers": [95.97],
+          "maxRtp": 95.97,
+          "minRtp": 95.97,
+          "certifiedBy": "GLI",
+          "certifiedYear": 2011
+        }
+      ]
+    },
+    {
+      "providerName": "NoLimit City",
+      "games": [
+        {
+          "gameTitle": "Tombstone RIP",
+          "gameSlug": "tombstone-rip",
+          "certifiedTiers": [96.12, 94.00],
+          "maxRtp": 96.12,
+          "minRtp": 94.00,
+          "certifiedBy": "BMM",
+          "certifiedYear": 2021
+        },
+        {
+          "gameTitle": "Mental",
+          "gameSlug": "nolimit-mental",
+          "certifiedTiers": [96.00, 94.00],
+          "maxRtp": 96.00,
+          "minRtp": 94.00,
+          "certifiedBy": "BMM",
+          "certifiedYear": 2021
+        },
+        {
+          "gameTitle": "San Quentin",
+          "gameSlug": "san-quentin",
+          "certifiedTiers": [96.26, 94.00],
+          "maxRtp": 96.26,
+          "minRtp": 94.00,
+          "certifiedBy": "BMM",
+          "certifiedYear": 2021
+        },
+        {
+          "gameTitle": "East Coast vs West Coast",
+          "gameSlug": "east-coast-vs-west-coast",
+          "certifiedTiers": [96.06, 94.00],
+          "maxRtp": 96.06,
+          "minRtp": 94.00,
+          "certifiedBy": "BMM",
+          "certifiedYear": 2023
+        }
+      ]
+    },
+    {
+      "providerName": "Push Gaming",
+      "games": [
+        {
+          "gameTitle": "Jammin' Jars 2",
+          "gameSlug": "jammin-jars-2",
+          "certifiedTiers": [96.40],
+          "maxRtp": 96.40,
+          "minRtp": 96.40,
+          "certifiedBy": "eCOGRA",
+          "certifiedYear": 2021
+        },
+        {
+          "gameTitle": "Fat Banker",
+          "gameSlug": "fat-banker",
+          "certifiedTiers": [96.20, 94.00],
+          "maxRtp": 96.20,
+          "minRtp": 94.00,
+          "certifiedBy": "eCOGRA",
+          "certifiedYear": 2023
+        }
+      ]
+    },
+    {
+      "providerName": "BTG (Big Time Gaming)",
+      "games": [
+        {
+          "gameTitle": "Bonanza",
+          "gameSlug": "bonanza",
+          "certifiedTiers": [96.00, 94.00],
+          "maxRtp": 96.00,
+          "minRtp": 94.00,
+          "certifiedBy": "eCOGRA",
+          "certifiedYear": 2016
+        },
+        {
+          "gameTitle": "Extra Chilli",
+          "gameSlug": "extra-chilli",
+          "certifiedTiers": [96.27, 94.00],
+          "maxRtp": 96.27,
+          "minRtp": 94.00,
+          "certifiedBy": "eCOGRA",
+          "certifiedYear": 2018
+        }
+      ]
+    },
+    {
+      "providerName": "Relax Gaming",
+      "games": [
+        {
+          "gameTitle": "Money Train 3",
+          "gameSlug": "money-train-3",
+          "certifiedTiers": [96.00, 94.00, 92.00],
+          "maxRtp": 96.00,
+          "minRtp": 92.00,
+          "certifiedBy": "GLI",
+          "certifiedYear": 2022
+        },
+        {
+          "gameTitle": "Money Train 4",
+          "gameSlug": "money-train-4",
+          "certifiedTiers": [96.00, 94.00, 92.00],
+          "maxRtp": 96.00,
+          "minRtp": 92.00,
+          "certifiedBy": "GLI",
+          "certifiedYear": 2024
+        }
+      ]
+    }
+  ]
+}
