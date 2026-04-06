@@ -11,22 +11,25 @@ WORKDIR /app
 COPY pnpm-lock.yaml pnpm-workspace.yaml package.json .npmrc tsconfig.json ./
 RUN pnpm fetch
 
-# [PHASE 2] Install
+# [PHASE 2] Install and Build
 FROM base AS build
 COPY . .
 RUN pnpm install --frozen-lockfile --ignore-scripts --filter @tiltcheck/control-room...
+RUN pnpm prune --prod --no-optional
 
 # [PHASE 3] Production Runtime
 FROM node:20-slim
 WORKDIR /app
+ENV NODE_ENV=production
 RUN apt-get update && apt-get install -y dumb-init && rm -rf /var/lib/apt/lists/*
 ENTRYPOINT ["/usr/bin/dumb-init", "--"]
 
-COPY --from=build /app/node_modules ./node_modules
-COPY --from=build /app/apps/control-room/src ./apps/control-room/src
-COPY --from=build /app/apps/control-room/public ./apps/control-room/public
-COPY --from=build /app/apps/control-room/package.json ./apps/control-room/package.json
-COPY --from=build /app/package.json ./package.json
+COPY --from=build --chown=node:node /app/node_modules ./node_modules
+COPY --from=build --chown=node:node /app/apps/control-room/src ./apps/control-room/src
+COPY --from=build --chown=node:node /app/apps/control-room/public ./apps/control-room/public
+COPY --from=build --chown=node:node /app/apps/control-room/package.json ./apps/control-room/package.json
+COPY --from=build --chown=node:node /app/package.json ./package.json
 
+USER node
 EXPOSE 3001
 CMD ["node", "apps/control-room/src/server-trust-auth.js"]
