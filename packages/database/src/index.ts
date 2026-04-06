@@ -1060,6 +1060,292 @@ export class DatabaseClient {
     }
   }
 
+  // ============================================================
+  // Trust Signal Methods
+  // ============================================================
+
+  /**
+   * Get recent trust signals for a user
+   */
+  async getRecentTrustSignals(discordId: string, limit: number = 20): Promise<{
+    signal_type: string | null;
+    metadata: { description?: string } | null;
+    created_at: string;
+  }[]> {
+    if (!this.supabase) return [];
+
+    const { data, error } = await this.supabase
+      .from('trust_signals')
+      .select('signal_type, metadata, created_at')
+      .eq('discord_id', discordId)
+      .order('created_at', { ascending: false })
+      .limit(limit);
+
+    if (error) {
+      console.error('[DB] Error fetching trust signals:', error);
+      return [];
+    }
+
+    return (data || []) as { signal_type: string | null; metadata: { description?: string } | null; created_at: string }[];
+  }
+
+  // ============================================================
+  // Vault Methods
+  // ============================================================
+
+  /**
+   * Get vault status for a user
+   */
+  async getVaultStatus(userId: string): Promise<{
+    status: string;
+    unlock_at: string | null;
+    amount_sol: number;
+  } | null> {
+    if (!this.supabase) return null;
+
+    const { data, error } = await this.supabase
+      .from('vault_locks')
+      .select('status, unlock_at, amount_sol')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .single();
+
+    if (error && error.code !== 'PGRST116') {
+      console.error('[DB] Error fetching vault status:', error);
+      return null;
+    }
+
+    return data as { status: string; unlock_at: string | null; amount_sol: number } | null;
+  }
+
+  /**
+   * Get vault history for a user
+   */
+  async getVaultHistory(userId: string, limit: number = 5): Promise<unknown[]> {
+    if (!this.supabase) return [];
+
+    const { data, error } = await this.supabase
+      .from('vault_locks')
+      .select('*')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false })
+      .limit(limit);
+
+    if (error) {
+      console.error('[DB] Error fetching vault history:', error);
+      return [];
+    }
+
+    return data || [];
+  }
+
+  /**
+   * Create a vault lock
+   */
+  async createVaultLock(params: {
+    userId: string;
+    amountSol: number;
+    unlockAt: string;
+  }): Promise<boolean> {
+    if (!this.supabase) return false;
+
+    const { error } = await this.supabase
+      .from('vault_locks')
+      .insert({
+        user_id: params.userId,
+        amount_sol: params.amountSol,
+        unlock_at: params.unlockAt,
+        status: 'locked',
+        created_at: new Date().toISOString(),
+      });
+
+    if (error) {
+      console.error('[DB] Error creating vault lock:', error);
+      return false;
+    }
+
+    return true;
+  }
+
+  /**
+   * Request vault unlock for a user
+   */
+  async requestVaultUnlock(userId: string): Promise<boolean> {
+    if (!this.supabase) return false;
+
+    const { error } = await this.supabase
+      .from('vault_locks')
+      .update({ status: 'unlock_requested', updated_at: new Date().toISOString() })
+      .eq('user_id', userId)
+      .eq('status', 'locked');
+
+    if (error) {
+      console.error('[DB] Error requesting vault unlock:', error);
+      return false;
+    }
+
+    return true;
+  }
+
+  // ============================================================
+  // Bonus Methods
+  // ============================================================
+
+  /**
+   * Get active bonuses for a user
+   */
+  async getActiveBonuses(userId: string): Promise<unknown[]> {
+    if (!this.supabase) return [];
+
+    const { data, error } = await this.supabase
+      .from('user_bonuses')
+      .select('*')
+      .eq('user_id', userId)
+      .eq('status', 'active');
+
+    if (error) {
+      console.error('[DB] Error fetching active bonuses:', error);
+      return [];
+    }
+
+    return data || [];
+  }
+
+  /**
+   * Get bonus history for a user
+   */
+  async getBonusHistory(userId: string, limit: number = 10): Promise<unknown[]> {
+    if (!this.supabase) return [];
+
+    const { data, error } = await this.supabase
+      .from('user_bonuses')
+      .select('*')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false })
+      .limit(limit);
+
+    if (error) {
+      console.error('[DB] Error fetching bonus history:', error);
+      return [];
+    }
+
+    return data || [];
+  }
+
+  /**
+   * Get recent nerfs (global)
+   */
+  async getRecentNerfs(limit: number = 5): Promise<unknown[]> {
+    if (!this.supabase) return [];
+
+    const { data, error } = await this.supabase
+      .from('bonus_nerfs')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .limit(limit);
+
+    if (error) {
+      console.error('[DB] Error fetching recent nerfs:', error);
+      return [];
+    }
+
+    return data || [];
+  }
+
+  /**
+   * Claim a bonus for a user
+   */
+  async claimBonus(discordId: string, bonusId: string): Promise<boolean> {
+    if (!this.supabase) return false;
+
+    const { error } = await this.supabase
+      .from('user_bonuses')
+      .update({ status: 'claimed', claimed_at: new Date().toISOString() })
+      .eq('id', bonusId)
+      .eq('discord_id', discordId);
+
+    if (error) {
+      console.error('[DB] Error claiming bonus:', error);
+      return false;
+    }
+
+    return true;
+  }
+
+  // ============================================================
+  // Session History Methods
+  // ============================================================
+
+  /**
+   * Get user gambling sessions for the past N days
+   */
+  async getUserSessions(userId: string, days: number = 7): Promise<{
+    net_pl?: number;
+    duration_ms?: number;
+    [key: string]: unknown;
+  }[]> {
+    if (!this.supabase) return [];
+
+    const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString();
+
+    const { data, error } = await this.supabase
+      .from('gambling_sessions')
+      .select('*')
+      .eq('user_id', userId)
+      .gte('created_at', since)
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('[DB] Error fetching user sessions:', error);
+      return [];
+    }
+
+    return (data || []) as { net_pl?: number; duration_ms?: number; [key: string]: unknown }[];
+  }
+
+  // ============================================================
+  // Buddy Methods (via Supabase)
+  // ============================================================
+
+  /**
+   * Accept a buddy request by request ID
+   */
+  async acceptBuddyRequest(requestId: string): Promise<boolean> {
+    if (!this.supabase) return false;
+
+    const { error } = await this.supabase
+      .from('user_buddies')
+      .update({ status: 'accepted', updated_at: new Date().toISOString() })
+      .eq('id', requestId);
+
+    if (error) {
+      console.error('[DB] Error accepting buddy request:', error);
+      return false;
+    }
+
+    return true;
+  }
+
+  /**
+   * Decline a buddy request by request ID
+   */
+  async declineBuddyRequest(requestId: string): Promise<boolean> {
+    if (!this.supabase) return false;
+
+    const { error } = await this.supabase
+      .from('user_buddies')
+      .update({ status: 'declined', updated_at: new Date().toISOString() })
+      .eq('id', requestId);
+
+    if (error) {
+      console.error('[DB] Error declining buddy request:', error);
+      return false;
+    }
+
+    return true;
+  }
+
   /**
    * Get bonus status for a user
    */
