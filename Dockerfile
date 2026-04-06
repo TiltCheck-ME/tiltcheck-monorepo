@@ -24,11 +24,12 @@ RUN pnpm --filter @tiltcheck/api --prod deploy /app/out
 FROM node:20-slim AS runtime
 WORKDIR /app
 ENV NODE_ENV=production
+ENV PORT=3001
 
 RUN apt-get update && apt-get install -y dumb-init openssl && rm -rf /var/lib/apt/lists/*
 ENTRYPOINT ["/usr/bin/dumb-init", "--"]
 
 COPY --from=build /app/out ./
 
-EXPOSE 3001
+EXPOSE 3001 8080
 CMD ["node", "dist/index.js"]
