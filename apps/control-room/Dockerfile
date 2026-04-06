@@ -1,23 +1,32 @@
-# TiltCheck Control Room - Production Container (Assumes prebuilt dist/)
-FROM node:20-alpine AS base
-RUN npm install -g pnpm@10 && npm cache clean --force
+# © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-06
+# TiltCheck Control Room - Production Container
+FROM node:20-slim AS base
+ENV PNPM_HOME="/pnpm"
+ENV PATH="$PNPM_HOME:$PATH"
+ENV CI=true
+RUN corepack enable && corepack prepare pnpm@10.29.1 --activate
 WORKDIR /app
 
-FROM base AS dependencies
-ENV CI=true
-COPY pnpm-workspace.yaml pnpm-lock.yaml package.json .npmrc ./
-RUN pnpm install --no-frozen-lockfile --filter @tiltcheck/control-room...
+# [PHASE 1] Dependency Caching
+COPY pnpm-lock.yaml pnpm-workspace.yaml package.json .npmrc tsconfig.json ./
+RUN pnpm fetch
 
-FROM base AS runtime
-ENV NODE_ENV=production
-RUN apk add --no-cache dumb-init
-USER node
-EXPOSE 3001
+# [PHASE 2] Install
+FROM base AS build
+COPY . .
+RUN pnpm install --offline --filter @tiltcheck/control-room...
 
-FROM runtime AS production
-COPY --from=dependencies --chown=node:node /app/node_modules ./node_modules
-COPY --chown=node:node apps/control-room/src ./apps/control-room/src
-COPY --chown=node:node apps/control-room/public ./apps/control-room/public
-COPY --chown=node:node package.json ./
+# [PHASE 3] Production Runtime
+FROM node:20-slim
+WORKDIR /app
+RUN apt-get update && apt-get install -y dumb-init && rm -rf /var/lib/apt/lists/*
 ENTRYPOINT ["/usr/bin/dumb-init", "--"]
+
+COPY --from=build /app/node_modules ./node_modules
+COPY --from=build /app/apps/control-room/src ./apps/control-room/src
+COPY --from=build /app/apps/control-room/public ./apps/control-room/public
+COPY --from=build /app/apps/control-room/package.json ./apps/control-room/package.json
+COPY --from=build /app/package.json ./package.json
+
+EXPOSE 3001
 CMD ["node", "apps/control-room/src/server-trust-auth.js"]
