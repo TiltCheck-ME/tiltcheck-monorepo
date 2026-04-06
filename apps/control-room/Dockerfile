@@ -8,7 +8,7 @@ RUN corepack enable && corepack prepare pnpm@10.29.1 --activate
 WORKDIR /app
 
 # [PHASE 1] Dependency Caching
-COPY pnpm-lock.yaml pnpm-workspace.yaml package.json .npmrc tsconfig.json ./
+COPY pnpm-lock.yaml pnpm-workspace.yaml package.json tsconfig.json ./
 RUN pnpm fetch
 
 # [PHASE 2] Install and Build
