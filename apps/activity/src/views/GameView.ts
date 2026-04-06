@@ -60,8 +60,7 @@ export class GameView {
   render(): void {
     const game = this.state.currentGame;
 
-    let content = '';
-
+    let content: string;
     switch (game) {
       case 'dad':
         content = this.renderDAD();

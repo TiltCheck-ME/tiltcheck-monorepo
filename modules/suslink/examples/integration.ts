@@ -1,16 +1,16 @@
-/* Copyright (c) 2026 TiltCheck. All rights reserved. */
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-06
 /**
  * Complete Integration Example:
  * SusLink + Event Router + FreeSpinScan Simulation
- * 
+ *
  * This demonstrates how modules work together through events.
- * 
+ *
  * Run with: npx tsx modules/suslink/examples/integration.ts
  */
 
 import { eventRouter } from '@tiltcheck/event-router';
 import '../src/index'; // Initialize SusLink module
-import type { LinkScanResult } from '@tiltcheck/types';
+import type { LinkScanResult, TiltCheckEvent } from '@tiltcheck/types';
 
 // Simulate FreeSpinScan module
 class MockFreeSpinScan {
@@ -40,17 +40,17 @@ class MockFreeSpinScan {
     );
   }
 
-  private async handleLinkScanned(event: any) {
-    const { url, riskLevel, reason }: LinkScanResult = event.data;
+  private async handleLinkScanned(event: TiltCheckEvent<'link.scanned'>) {
+    const { url, riskLevel, reason } = event.data as LinkScanResult;
     
     console.log(`[FreeSpinScan] Scan result for ${url}:`);
     console.log(`  Risk: ${riskLevel}`);
     console.log(`  Reason: ${reason}`);
 
-    if (riskLevel === 'safe' || riskLevel === 'suspicious') {
-      // Auto-approve safe links
+    if (riskLevel === 'safe') {
+      // Auto-approve only verified-safe links
       this.approvedPromos.push(url);
-      console.log(`[FreeSpinScan] ✅ Auto-approved (${riskLevel})`);
+      console.log(`[FreeSpinScan] Auto-approved (${riskLevel})`);
       
       await eventRouter.publish(
         'promo.approved',
@@ -59,9 +59,10 @@ class MockFreeSpinScan {
         event.userId
       );
     } else {
-      // Flag high-risk for mod review
+      // Suspicious, high, and critical all route to mod queue
       this.flaggedPromos.push(url);
-      console.log(`[FreeSpinScan] 🚨 Flagged for mod review (${riskLevel})`);
+      const label = riskLevel === 'suspicious' ? 'Queued for mod review' : 'Flagged for mod review';
+      console.log(`[FreeSpinScan] ${label} (${riskLevel})`);
     }
   }
 
@@ -95,7 +96,7 @@ class MockCasinoTrust {
     console.log('[CasinoTrust] Monitoring casino behavior');
   }
 
-  private async handleFlaggedLink(event: any) {
+  private async handleFlaggedLink(event: TiltCheckEvent<'link.flagged'>) {
     const { url, riskLevel } = event.data;
     const casino = this.extractCasino(url);
 
@@ -106,8 +107,8 @@ class MockCasinoTrust {
     }
   }
 
-  private async handleApprovedPromo(event: any) {
-    const { url } = event.data;
+  private async handleApprovedPromo(event: TiltCheckEvent<'promo.approved'>) {
+    const { url } = event.data as { url: string };
     const casino = this.extractCasino(url);
 
     if (casino) {
@@ -209,8 +210,8 @@ async function runIntegration() {
   console.log('\n[CasinoTrust] Trust Scores:');
   const scores = casinoTrust.getAllScores();
   for (const [casino, score] of Object.entries(scores)) {
-    const emoji = score >= 80 ? '✅' : score >= 60 ? '⚠️' : '🚨';
-    console.log(`  ${emoji} ${casino}: ${score}/100`);
+    const label = score >= 80 ? 'OK' : score >= 60 ? 'WARN' : 'RISK';
+    console.log(`  [${label}] ${casino}: ${score}/100`);
   }
 
   console.log('\n[EventRouter] Stats:');
