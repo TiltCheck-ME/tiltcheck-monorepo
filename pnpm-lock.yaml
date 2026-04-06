@@ -346,9 +346,6 @@ importers:
       '@tiltcheck/config':
         specifier: workspace:*
         version: link:../../packages/config
-      '@tiltcheck/dad':
-        specifier: workspace:*
-        version: link:../../modules/dad
       '@tiltcheck/database':
         specifier: workspace:*
         version: link:../../packages/database
@@ -14347,7 +14344,7 @@ snapshots:
     dependencies:
       '@mikro-orm/core': 6.6.10
       fs-extra: 11.3.3
-      knex: 3.1.0(pg@8.19.0)(sqlite3@5.1.7)
+      knex: 3.1.0(mysql2@3.19.0(@types/node@25.5.0))(pg@8.19.0)
       sqlstring: 2.3.3
     optionalDependencies:
       mariadb: 3.4.5
