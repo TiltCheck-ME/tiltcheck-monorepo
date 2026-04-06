@@ -1,6 +1,6 @@
 /* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-06 */
 import React from 'react';
-import rtpData from '../../../../../../data/provider-master-rtp.json';
+import rtpData from '@data/provider-master-rtp.json';
 
 export default function RtpPage() {
   return (
