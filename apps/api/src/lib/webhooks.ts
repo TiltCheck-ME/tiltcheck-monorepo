@@ -50,7 +50,7 @@ export class WebhookService {
             .digest('hex');
 
           let responseStatus: number | null = null;
-          let responseBody: string | null = null;
+          let responseBody: string | null;
 
           try {
             const response = await fetch(webhook.target_url, {
