@@ -526,6 +526,9 @@ importers:
       '@tiltcheck/agent':
         specifier: workspace:*
         version: link:../../packages/agent
+      '@tiltcheck/auth':
+        specifier: workspace:*
+        version: link:../../packages/auth
       '@tiltcheck/database':
         specifier: workspace:*
         version: link:../../packages/database
@@ -14598,7 +14601,7 @@ snapshots:
     dependencies:
       '@mikro-orm/core': 6.6.10
       fs-extra: 11.3.3
-      knex: 3.1.0(pg@8.19.0)(tedious@19.2.1(@azure/core-client@1.10.1))
+      knex: 3.1.0(pg@8.19.0)(sqlite3@5.1.7)
       sqlstring: 2.3.3
     optionalDependencies:
       mariadb: 3.4.5
