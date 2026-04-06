@@ -1,3 +1,4 @@
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-06
 /* Copyright (c) 2026 TiltCheck. All rights reserved. */
 // v0.1.0 — 2026-02-25
 /**
@@ -20,7 +21,7 @@ import fs from 'fs';
 import path from 'path';
 import { validateRollupSnapshotFile } from './rollup-schema.js';
 import { startCasinoVerificationScheduler } from './verification-scheduler.js';
-import type { TiltCheckEvent, BonusUpdateEvent, BonusNerfDetectedEventData, TrustCasinoRollupEventData, DomainRollupData, TrustDomainRollupEventData, CasinoRollupData } from '@tiltcheck/types';
+import type { TiltCheckEvent, BonusUpdateEvent, BonusNerfDetectedEventData, TrustCasinoRollupEventData, DomainRollupData, TrustDomainRollupEventData, CasinoRollupData, RtpReportSubmittedEvent } from '@tiltcheck/types';
 
 /**
  * Casino Trust Aggregator (real-time snapshot + volatility/risk classification)
@@ -29,10 +30,24 @@ import type { TiltCheckEvent, BonusUpdateEvent, BonusNerfDetectedEventData, Trus
 
 interface CasinoRealTimeWindowEvent {
   ts: number;
-  type: 'trust' | 'bonus-update' | 'bonus-nerf';
+  type: 'trust' | 'bonus-update' | 'bonus-nerf' | 'rtp-report';
   delta?: number; // trust delta or bonus change
   percentChange?: number; // bonus nerf percent drop
   severity?: number;
+  // RTP-specific fields (type === 'rtp-report')
+  providerName?: string;
+  gameSlug?: string;
+  reportedRtp?: number;
+  providerMaxRtp?: number;
+}
+
+// Per-provider, per-game RTP window entry (keyed by providerName:gameSlug)
+interface ProviderRtpWindowEntry {
+  providerName: string;
+  gameSlug: string;       // URL-safe identifier derived from gameTitle
+  gameTitle: string;
+  reports: { reportedRtp: number; reportedAt: number; source: 'extension' | 'community' }[];
+  providerMaxRtp: number | null; // null until first report seeds it
 }
 
 interface CasinoTrustSnapshot {
@@ -50,15 +65,39 @@ interface CasinoTrustSnapshot {
   riskLevel: 'low' | 'watch' | 'elevated' | 'high' | 'critical';
   lastReasons: string[];
   sources: Set<string>;
-  // New analytics metrics
+  // Analytics metrics
   payoutDrift?: number; // 0-1 normalized absolute mean trust delta indicating directional bias
   volatilityShift?: number; // 0-1 magnitude of recent variance change (captures regime shift)
+  /**
+   * Weighted RTP delta aggregated across all tracked providers on this casino.
+   * Calculated as the mean of (providerMaxRtp - latestReportedRtp) for each
+   * provider/game pair where providerMaxRtp is known.
+   *
+   * Positive value = platform is running nerfed RTP versions (bad for players).
+   * Example: Pragmatic Play on Stake = 0.5pp delta, on Roobet = 5.5pp delta.
+   * weightedRtpDelta for Roobet will be significantly higher, lowering its trust score.
+   */
+  weightedRtpDelta?: number;
+  /** Per-provider breakdown of RTP nerfing on this platform */
+  providerRtpBreakdown?: { providerName: string; gameSlug: string; gameTitle: string; latestReportedRtp: number; providerMaxRtp: number; delta: number }[];
 }
 
 const CASINO_WINDOWS: Map<string, CasinoRealTimeWindowEvent[]> = new Map();
 const CASINO_SNAPSHOTS: Map<string, CasinoTrustSnapshot> = new Map();
 const REASONS: Map<string, string[]> = new Map();
 const SOURCES: Map<string, Set<string>> = new Map();
+
+// Provider-Platform RTP tracking
+// Outer key: platformUrl (e.g. 'stake.com')
+// Inner key: `${providerName}:${gameSlug}` (e.g. 'Pragmatic Play:gates-of-olympus')
+//
+// This is the structure that answers:
+//   "What RTP is Pragmatic Play running on Stake vs Roobet?"
+//
+// CASINO_WINDOWS key = casinoName (e.g. 'Stake')
+// PROVIDER_PLATFORM_RTP key = platformUrl (e.g. 'stake.com')
+// Both must resolve to the same physical casino — the trust engine joins on platformName.
+const PROVIDER_PLATFORM_RTP: Map<string, Map<string, ProviderRtpWindowEntry>> = new Map();
 const WINDOW_MS = 24 * 60 * 60 * 1000;
 const MAX_EVENTS_PER_WINDOW = 2000; // Hard cap per casino to prevent OOM
 const MAX_REASONS_RETAINED = 50;
@@ -87,8 +126,72 @@ setInterval(() => {
       SOURCES.delete(casinoName);
     }
   }
-  console.log(`[TrustRollup] Periodic cleanup completed. Cutoff: ${new Date(cutoff).toISOString()} | Active windows: ${CASINO_WINDOWS.size}`);
+
+  // Prune stale RTP reports from provider windows (keep last 24h per provider/game/platform)
+  for (const [platformUrl, providerMap] of PROVIDER_PLATFORM_RTP.entries()) {
+    for (const [providerKey, entry] of providerMap.entries()) {
+      entry.reports = entry.reports.filter(r => r.reportedAt >= cutoff);
+      if (entry.reports.length === 0) providerMap.delete(providerKey);
+    }
+    if (providerMap.size === 0) PROVIDER_PLATFORM_RTP.delete(platformUrl);
+  }
+
+  console.log(`[TrustRollup] Periodic cleanup completed. Cutoff: ${new Date(cutoff).toISOString()} | Active windows: ${CASINO_WINDOWS.size} | Active RTP platforms: ${PROVIDER_PLATFORM_RTP.size}`);
 }, 60 * 60 * 1000); // Hourly cleanup
+
+/** Convert a game title to a URL-safe slug (e.g. 'Gates of Olympus' -> 'gates-of-olympus') */
+function toGameSlug(title: string): string {
+  return title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+}
+
+/**
+ * Compute the weighted_rtp_delta for a given casino platform.
+ *
+ * This is the specific block that differentiates Pragmatic Play on Stake
+ * vs Pragmatic Play on Roobet:
+ *
+ *   platformUrl = 'stake.com'  -> Pragmatic Play 'Gates of Olympus' at 96.5%
+ *                               -> providerMaxRtp = 96.5, delta = 0.0pp
+ *
+ *   platformUrl = 'roobet.com' -> Pragmatic Play 'Gates of Olympus' at 91.0%
+ *                               -> providerMaxRtp = 96.5, delta = 5.5pp
+ *
+ * The mean delta across all tracked providers on that platform becomes the
+ * weightedRtpDelta fed into CasinoTrustSnapshot, lowering the trust score
+ * for platforms running consistently nerfed RTP versions.
+ *
+ * @param platformUrl - Casino domain key (e.g. 'stake.com')
+ * @returns { weightedRtpDelta, breakdown } or null if no RTP data
+ */
+function computeWeightedRtpDelta(platformUrl: string): {
+  weightedRtpDelta: number;
+  breakdown: { providerName: string; gameSlug: string; gameTitle: string; latestReportedRtp: number; providerMaxRtp: number; delta: number }[];
+} | null {
+  const providerMap = PROVIDER_PLATFORM_RTP.get(platformUrl);
+  if (!providerMap || providerMap.size === 0) return null;
+
+  const breakdown: { providerName: string; gameSlug: string; gameTitle: string; latestReportedRtp: number; providerMaxRtp: number; delta: number }[] = [];
+
+  for (const entry of providerMap.values()) {
+    if (!entry.providerMaxRtp || entry.reports.length === 0) continue;
+    // Use the most recent report as the current platform setting
+    const latestReport = entry.reports[entry.reports.length - 1];
+    const delta = entry.providerMaxRtp - latestReport.reportedRtp;
+    breakdown.push({
+      providerName: entry.providerName,
+      gameSlug: entry.gameSlug,
+      gameTitle: entry.gameTitle,
+      latestReportedRtp: latestReport.reportedRtp,
+      providerMaxRtp: entry.providerMaxRtp,
+      delta,
+    });
+  }
+
+  if (breakdown.length === 0) return null;
+
+  const weightedRtpDelta = breakdown.reduce((sum, b) => sum + b.delta, 0) / breakdown.length;
+  return { weightedRtpDelta, breakdown };
+}
 
 function stdDev(nums: number[]): number {
   if (nums.length < 2) return 0;
