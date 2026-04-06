@@ -200,7 +200,11 @@ function stdDev(nums: number[]): number {
   return Math.sqrt(variance);
 }
 
-function classifyRisk(volatility: number, nerfs24h: number): 'low' | 'watch' | 'elevated' | 'high' | 'critical' {
+function classifyRisk(volatility: number, nerfs24h: number, weightedRtpDelta?: number): 'low' | 'watch' | 'elevated' | 'high' | 'critical' {
+  // RTP delta > 3pp is an immediate critical regardless of other signals
+  if (weightedRtpDelta !== undefined && weightedRtpDelta > 3.0) return 'critical';
+  // RTP delta 1.1-3pp escalates to at least high
+  if (weightedRtpDelta !== undefined && weightedRtpDelta > 1.1 && volatility < 0.70) return 'high';
   if (volatility < 0.15 && nerfs24h === 0) return 'low';
   if (volatility < 0.30 && nerfs24h <= 1) return 'watch';
   if (volatility < 0.50 && nerfs24h <= 2) return 'elevated';
@@ -208,11 +212,11 @@ function classifyRisk(volatility: number, nerfs24h: number): 'low' | 'watch' | '
   return 'critical';
 }
 
-function recomputeSnapshot(casinoName: string, currentScore?: number, previousScore?: number, severity?: number) {
+function recomputeSnapshot(casinoName: string, currentScore?: number, previousScore?: number, severity?: number, platformUrl?: string) {
   const window = CASINO_WINDOWS.get(casinoName) || [];
   pruneWindow(window);
   const events24h = window.length;
-  const nerfs24h = window.filter(e => e.type === 'bonus-nerf').length;
+  const nerfs24h = window.filter(e => e.type === 'bonus-nerf' || e.type === 'rtp-report').length;
   const bonusChanges = window.filter(e => e.type === 'bonus-update' && typeof e.delta === 'number').map(e => e.delta as number);
   const nerfPercents = window.filter(e => e.type === 'bonus-nerf' && typeof e.percentChange === 'number').map(e => e.percentChange as number);
   // Build volatility input: trust deltas + bonus percentage changes (nerfs weighted heavier)
@@ -221,6 +225,10 @@ function recomputeSnapshot(casinoName: string, currentScore?: number, previousSc
     if (e.type === 'trust' && typeof e.delta === 'number') volatilityInputs.push(e.delta);
     if (e.type === 'bonus-update' && typeof e.delta === 'number') volatilityInputs.push(e.delta);
     if (e.type === 'bonus-nerf' && typeof e.percentChange === 'number') volatilityInputs.push((e.percentChange as number) * 1.5);
+    // RTP deviations contribute to volatility proportionally (weighted 2x — math evidence is stronger signal)
+    if (e.type === 'rtp-report' && typeof e.providerMaxRtp === 'number' && typeof e.reportedRtp === 'number') {
+      volatilityInputs.push((e.providerMaxRtp - e.reportedRtp) * 2);
+    }
   }
   const rawStd = stdDev(volatilityInputs);
   // Normalize volatility: assume practical std dev upper bound ~50 (large swings); clamp 0-1
@@ -246,6 +254,24 @@ function recomputeSnapshot(casinoName: string, currentScore?: number, previousSc
     // Normalize with cap diff=30
     volatilityShift = Math.min(1, diff / 30);
   }
+
+  // -----------------------------------------------------------------------
+  // Weighted RTP Delta: differentiates Pragmatic Play on Stake vs Roobet.
+  //
+  // Uses platformUrl to look up all provider/game RTP profiles for this
+  // specific casino and computes the mean nerf delta across all tracked games.
+  //
+  // Example:
+  //   Pragmatic Play 'Gates of Olympus' on stake.com = 96.5% (delta: 0.0pp)
+  //   Pragmatic Play 'Gates of Olympus' on roobet.com = 91.0% (delta: 5.5pp)
+  //   Hacksaw 'Chaos Crew' on roobet.com = 94.0% (delta: 2.0pp)
+  //   => roobet.com weightedRtpDelta = (5.5 + 2.0) / 2 = 3.75pp -> CRITICAL
+  //   => stake.com  weightedRtpDelta = (0.0) / 1 = 0.0pp -> no impact
+  // -----------------------------------------------------------------------
+  const rtpResult = platformUrl ? computeWeightedRtpDelta(platformUrl) : null;
+  const weightedRtpDelta = rtpResult?.weightedRtpDelta;
+  const providerRtpBreakdown = rtpResult?.breakdown;
+
   const snapshot: CasinoTrustSnapshot = {
     casinoName,
     currentScore: currentScore ?? (CASINO_SNAPSHOTS.get(casinoName)?.currentScore || 0),
@@ -258,11 +284,13 @@ function recomputeSnapshot(casinoName: string, currentScore?: number, previousSc
     nerfs24h,
     avgBonusChange24h,
     percentNerfMax24h,
-    riskLevel: classifyRisk(volatility24h, nerfs24h),
+    riskLevel: classifyRisk(volatility24h, nerfs24h, weightedRtpDelta),
     lastReasons: lastReasons.slice(-5),
     sources,
     payoutDrift,
-    volatilityShift
+    volatilityShift,
+    weightedRtpDelta,
+    providerRtpBreakdown,
   };
   CASINO_SNAPSHOTS.set(casinoName, snapshot);
   const rollupData: TrustCasinoRollupEventData = {
@@ -340,6 +368,72 @@ eventRouter.subscribe('bonus.nerf.detected', (evt: TiltCheckEvent<'bonus.nerf.de
   CASINO_WINDOWS.get(casinoName)!.push({ ts: Date.now(), type: 'bonus-nerf', percentChange: percentDrop });
   recomputeSnapshot(casinoName);
   broadcastSnapshots();
+}, 'trust-rollup' as any);
+
+// -----------------------------------------------------------------------
+// RTP Report Subscriber
+//
+// This is the Event Router bridge for the Chrome Extension.
+// When the extension scrapes "The theoretical RTP of this game is XX.XX%"
+// from a game info panel, it publishes rtp.report.submitted. This handler:
+//   1. Ingests the report into PROVIDER_PLATFORM_RTP keyed by platformUrl
+//   2. Resolves casinoName from platformUrl (best-effort via CASINO_SNAPSHOTS)
+//   3. Pushes an rtp-report event into that casino's CASINO_WINDOWS
+//   4. Calls recomputeSnapshot with platformUrl so computeWeightedRtpDelta
+//      can differentiate "Pragmatic Play on stake.com" vs "Pragmatic Play on roobet.com"
+// -----------------------------------------------------------------------
+eventRouter.subscribe('rtp.report.submitted', (evt: TiltCheckEvent<'rtp.report.submitted'>) => {
+  const report = evt.data as RtpReportSubmittedEvent;
+  const { platformUrl, platformName, providerName, gameTitle, reportedRtp, reportedAt } = report;
+
+  // Normalise game slug for map key
+  const gameSlug = toGameSlug(gameTitle);
+  const providerKey = `${providerName}:${gameSlug}`;
+
+  // Ensure platform entry exists in PROVIDER_PLATFORM_RTP
+  if (!PROVIDER_PLATFORM_RTP.has(platformUrl)) {
+    PROVIDER_PLATFORM_RTP.set(platformUrl, new Map());
+  }
+  const providerMap = PROVIDER_PLATFORM_RTP.get(platformUrl)!;
+
+  if (!providerMap.has(providerKey)) {
+    providerMap.set(providerKey, {
+      providerName,
+      gameSlug,
+      gameTitle,
+      // First report seeds the entry; providerMaxRtp is null until set externally
+      // (e.g. via CollectClock.registerRtpProfile or a known-good report).
+      providerMaxRtp: null,
+      reports: [],
+    });
+  }
+  const entry = providerMap.get(providerKey)!;
+  entry.reports.push({ reportedRtp, reportedAt, source: report.source });
+
+  // If this is the first ever report and no max is known, bootstrap it.
+  // Subsequent higher reports will update the max (assumes first reporter may see nerfed version).
+  if (entry.providerMaxRtp === null || reportedRtp > entry.providerMaxRtp) {
+    entry.providerMaxRtp = reportedRtp;
+  }
+
+  // Push into the per-casino real-time window so volatility includes RTP signal
+  // Resolve casinoName: prefer explicit platformName, fall back to hostname-derived name
+  const casinoName = platformName || platformUrl.replace(/^www\./, '').split('.')[0];
+  if (!CASINO_WINDOWS.has(casinoName)) CASINO_WINDOWS.set(casinoName, []);
+  CASINO_WINDOWS.get(casinoName)!.push({
+    ts: Date.now(),
+    type: 'rtp-report',
+    reportedRtp,
+    providerName,
+    gameSlug,
+    providerMaxRtp: entry.providerMaxRtp,
+  });
+
+  // Recompute snapshot — pass platformUrl so computeWeightedRtpDelta can run
+  recomputeSnapshot(casinoName, undefined, undefined, undefined, platformUrl);
+  broadcastSnapshots();
+
+  console.log(`[TrustRollup] RTP report ingested: ${providerName} "${gameTitle}" on ${platformUrl} = ${reportedRtp}%`);
 }, 'trust-rollup' as any);
 
 interface AggregatedEntry {
@@ -461,6 +555,50 @@ http.createServer((req, res) => {
     const snapshots = getCasinoSnapshots();
     res.writeHead(200, { 'Content-Type': 'application/json' });
     res.end(JSON.stringify({ data: snapshots, updatedAt: Date.now() }));
+    return;
+  }
+  // GET /api/trust/providers[?platform=stake.com&provider=Pragmatic+Play]
+  // Returns per-provider RTP performance data across all tracked platforms.
+  // This is the "Private Math" ledger: shows weighted_rtp_delta per platform
+  // and makes the Pragmatic Play on Stake vs Roobet comparison queryable.
+  if (req.url?.startsWith('/api/trust/providers')) {
+    const urlObj = new URL(req.url, `http://localhost:${HEALTH_PORT}`);
+    const filterPlatform = urlObj.searchParams.get('platform') || undefined;
+    const filterProvider = urlObj.searchParams.get('provider') || undefined;
+
+    const result: {
+      platformUrl: string;
+      weightedRtpDelta: number | null;
+      providers: { providerName: string; gameSlug: string; gameTitle: string; latestReportedRtp: number; providerMaxRtp: number | null; delta: number | null; reportCount: number }[];
+    }[] = [];
+
+    for (const [platformUrl, providerMap] of PROVIDER_PLATFORM_RTP.entries()) {
+      if (filterPlatform && platformUrl !== filterPlatform) continue;
+      const providers: typeof result[0]['providers'] = [];
+
+      for (const entry of providerMap.values()) {
+        if (filterProvider && entry.providerName !== filterProvider) continue;
+        if (entry.reports.length === 0) continue;
+        const latestRtp = entry.reports[entry.reports.length - 1].reportedRtp;
+        const delta = entry.providerMaxRtp !== null ? entry.providerMaxRtp - latestRtp : null;
+        providers.push({
+          providerName: entry.providerName,
+          gameSlug: entry.gameSlug,
+          gameTitle: entry.gameTitle,
+          latestReportedRtp: latestRtp,
+          providerMaxRtp: entry.providerMaxRtp,
+          delta,
+          reportCount: entry.reports.length,
+        });
+      }
+
+      if (providers.length === 0) continue;
+      const rtpSummary = computeWeightedRtpDelta(platformUrl);
+      result.push({ platformUrl, weightedRtpDelta: rtpSummary?.weightedRtpDelta ?? null, providers });
+    }
+
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({ data: result, updatedAt: Date.now() }));
     return;
   }
   if (req.url?.startsWith('/api/trust/stream')) {
