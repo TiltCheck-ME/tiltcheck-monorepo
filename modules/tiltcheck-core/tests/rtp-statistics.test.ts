@@ -1,5 +1,4 @@
 // © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-06
-/* Copyright (c) 2026 TiltCheck. All rights reserved. */
 
 import { describe, it, expect } from 'vitest';
 import {
@@ -45,8 +44,8 @@ describe('computeRtpZScore', () => {
     expect(zLarge).toBeLessThan(zSmall);
   });
 
-  it('reflects proportional deviation at 88% RTP vs 96.5% certified', () => {
-    // Greed Premium scenario: Gates of Olympus tier manipulation
+  it('reflects proportional deviation at 88% RTP vs 96.5% certified (tier manipulation scenario)', () => {
+    // Example: a slot certified at 96.5% deployed at the 88% tier
     const z = computeRtpZScore(88, 96.5, 50_000);
     expect(z).toBeLessThan(-50); // Massively significant
   });
