@@ -14,7 +14,7 @@ RUN pnpm fetch
 # [PHASE 2] Install and Build
 FROM base AS build
 COPY . .
-RUN pnpm install --frozen-lockfile --ignore-scripts --filter @tiltcheck/control-room...
+RUN pnpm install --frozen-lockfile --filter @tiltcheck/control-room...
 RUN pnpm prune --prod --no-optional
 
 # [PHASE 3] Production Runtime
