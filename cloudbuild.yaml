@@ -4,6 +4,27 @@
 # Required substitutions: _SERVICE_NAME, _REPOSITORY, _REGION
 
 steps:
+  # Fail fast if required substitutions are missing. This catches Cloud Build
+  # triggers or manual submits that omit _SERVICE_NAME or _REGION, which would
+  # otherwise produce an invalid Docker tag and a cryptic "invalid reference
+  # format" error deep inside the build step.
+  - name: 'gcr.io/cloud-builders/docker'
+    id: validate-substitutions
+    entrypoint: bash
+    args:
+      - '-c'
+      - |
+        if [ -z "${_SERVICE_NAME}" ]; then
+          echo "ERROR: _SERVICE_NAME substitution is required but was not provided."
+          echo "Supply it with --substitutions=_SERVICE_NAME=<service> or configure it in the Cloud Build trigger."
+          exit 1
+        fi
+        if [ -z "${_REGION}" ]; then
+          echo "ERROR: _REGION substitution is required but was not provided."
+          echo "Supply it with --substitutions=_REGION=<region> or configure it in the Cloud Build trigger."
+          exit 1
+        fi
+
   # Build the service image using the per-service Dockerfile
   - name: 'gcr.io/cloud-builders/docker'
     id: build
@@ -126,9 +147,12 @@ images:
   - '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPOSITORY}/${_SERVICE_NAME}:latest'
 
 substitutions:
-  # _SERVICE_NAME and _REGION have no defaults — the workflow must supply them explicitly.
-  # Omitting them here ensures a bare `gcloud builds submit` will fail fast rather than
-  # accidentally deploying the wrong service.
+  # _SERVICE_NAME and _REGION default to "" so Cloud Build accepts the config
+  # even when they are not present in the trigger. The validate-substitutions
+  # step above catches the empty-value case and fails fast with a clear message
+  # rather than letting docker build produce a cryptic "invalid reference format"
+  # error from a malformed image tag like "-docker.pkg.dev/.../:sha".
+  # The workflow (deploy-gcp.yml) must always supply both via --substitutions.
   _SERVICE_NAME: ""
   _REPOSITORY: tiltcheck-services
   _REGION: ""
