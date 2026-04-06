@@ -21,7 +21,8 @@ import fs from 'fs';
 import path from 'path';
 import { validateRollupSnapshotFile } from './rollup-schema.js';
 import { startCasinoVerificationScheduler } from './verification-scheduler.js';
-import type { TiltCheckEvent, BonusUpdateEvent, BonusNerfDetectedEventData, TrustCasinoRollupEventData, DomainRollupData, TrustDomainRollupEventData, CasinoRollupData, RtpReportSubmittedEvent } from '@tiltcheck/types';
+import type { TiltCheckEvent, BonusUpdateEvent, BonusNerfDetectedEventData, TrustCasinoRollupEventData, DomainRollupData, TrustDomainRollupEventData, CasinoRollupData, RtpReportSubmittedEvent, ProviderFairnessScore } from '@tiltcheck/types';
+import { computeRtpZScore, computeRtpPValue, computeMinSampleSize, computeProviderFairnessGrade } from '@tiltcheck/tiltcheck-core';
 
 /**
  * Casino Trust Aggregator (real-time snapshot + volatility/risk classification)
@@ -200,11 +201,45 @@ function stdDev(nums: number[]): number {
   return Math.sqrt(variance);
 }
 
-function classifyRisk(volatility: number, nerfs24h: number, weightedRtpDelta?: number): 'low' | 'watch' | 'elevated' | 'high' | 'critical' {
-  // RTP delta > 3pp is an immediate critical regardless of other signals
-  if (weightedRtpDelta !== undefined && weightedRtpDelta > 3.0) return 'critical';
-  // RTP delta 1.1-3pp escalates to at least high
-  if (weightedRtpDelta !== undefined && weightedRtpDelta > 1.1 && volatility < 0.70) return 'high';
+/**
+ * Classify the risk level for a casino based on volatility, nerf count,
+ * and (critically) statistical confidence in the weighted RTP delta.
+ *
+ * Statistical gating: an RTP delta alone does NOT trigger "critical" unless
+ * the sample size is sufficient AND the p-value confirms significance.
+ * This prevents false positives from small-sample noise.
+ *
+ * @param weightedRtpDelta - Mean pp deficit across all tracked providers on this platform
+ * @param rtpSampleSize    - Total reports contributing to weightedRtpDelta (for confidence gating)
+ * @param claimedRtp       - Representative claimed RTP (used for min-sample calculation)
+ */
+function classifyRisk(
+  volatility: number,
+  nerfs24h: number,
+  weightedRtpDelta?: number,
+  rtpSampleSize?: number,
+  claimedRtp?: number
+): 'low' | 'watch' | 'elevated' | 'high' | 'critical' {
+  if (weightedRtpDelta !== undefined && weightedRtpDelta > 0) {
+    // Gate RTP-driven classification on statistical significance
+    const sampleOk = rtpSampleSize !== undefined && rtpSampleSize > 0;
+    let rtpIsSignificant = false;
+
+    if (sampleOk && claimedRtp !== undefined) {
+      const observedRtp = claimedRtp - weightedRtpDelta;
+      const zScore = computeRtpZScore(observedRtp, claimedRtp, rtpSampleSize!);
+      const pValue = computeRtpPValue(zScore);
+      const minSample = computeMinSampleSize(claimedRtp, weightedRtpDelta);
+      rtpIsSignificant = pValue < 0.05 && rtpSampleSize! >= minSample;
+    }
+
+    // Only escalate to "critical" or "high" when data supports it
+    if (rtpIsSignificant) {
+      if (weightedRtpDelta > 3.0) return 'critical';
+      if (weightedRtpDelta > 1.1) return 'high';
+    }
+  }
+
   if (volatility < 0.15 && nerfs24h === 0) return 'low';
   if (volatility < 0.30 && nerfs24h <= 1) return 'watch';
   if (volatility < 0.50 && nerfs24h <= 2) return 'elevated';
@@ -272,6 +307,19 @@ function recomputeSnapshot(casinoName: string, currentScore?: number, previousSc
   const weightedRtpDelta = rtpResult?.weightedRtpDelta;
   const providerRtpBreakdown = rtpResult?.breakdown;
 
+  // Aggregate sample size and representative claimed RTP across all tracked providers
+  // on this platform — needed for statistical confidence gating in classifyRisk
+  const rtpSampleSize = providerRtpBreakdown
+    ? providerRtpBreakdown.reduce((sum, e) => {
+        const providerMap = platformUrl ? PROVIDER_PLATFORM_RTP.get(platformUrl) : undefined;
+        const entry = providerMap?.get(`${e.providerName}:${e.gameSlug}`);
+        return sum + (entry?.reports.length ?? 0);
+      }, 0)
+    : undefined;
+  const representativeClaimedRtp = providerRtpBreakdown && providerRtpBreakdown.length > 0
+    ? providerRtpBreakdown.reduce((sum, e) => sum + e.providerMaxRtp, 0) / providerRtpBreakdown.length
+    : undefined;
+
   const snapshot: CasinoTrustSnapshot = {
     casinoName,
     currentScore: currentScore ?? (CASINO_SNAPSHOTS.get(casinoName)?.currentScore || 0),
@@ -284,7 +332,7 @@ function recomputeSnapshot(casinoName: string, currentScore?: number, previousSc
     nerfs24h,
     avgBonusChange24h,
     percentNerfMax24h,
-    riskLevel: classifyRisk(volatility24h, nerfs24h, weightedRtpDelta),
+    riskLevel: classifyRisk(volatility24h, nerfs24h, weightedRtpDelta, rtpSampleSize, representativeClaimedRtp),
     lastReasons: lastReasons.slice(-5),
     sources,
     payoutDrift,
@@ -599,6 +647,48 @@ http.createServer((req, res) => {
 
     res.writeHead(200, { 'Content-Type': 'application/json' });
     res.end(JSON.stringify({ data: result, updatedAt: Date.now() }));
+    return;
+  }
+  // GET /api/trust/providers/leaderboard
+  // Ranks providers by how consistently their games are nerfed across platforms.
+  // S = hardest to nerf (players want these), F = systematically nerfed (avoid).
+  if (req.url?.startsWith('/api/trust/providers/leaderboard')) {
+    const providerTotals: Map<string, { deltas: number[]; nerfed: number; total: number }> = new Map();
+
+    for (const providerMap of PROVIDER_PLATFORM_RTP.values()) {
+      for (const entry of providerMap.values()) {
+        if (!entry.providerMaxRtp || entry.reports.length === 0) continue;
+        const latest = entry.reports[entry.reports.length - 1].reportedRtp;
+        const delta = entry.providerMaxRtp - latest;
+        if (!providerTotals.has(entry.providerName)) {
+          providerTotals.set(entry.providerName, { deltas: [], nerfed: 0, total: 0 });
+        }
+        const p = providerTotals.get(entry.providerName)!;
+        p.deltas.push(delta);
+        p.total++;
+        if (delta > 0.5) p.nerfed++;
+      }
+    }
+
+    const leaderboard: ProviderFairnessScore[] = [];
+    for (const [providerName, data] of providerTotals.entries()) {
+      const meanNerfDelta = data.deltas.reduce((a, b) => a + b, 0) / data.deltas.length;
+      const nerfFrequency = data.total > 0 ? data.nerfed / data.total : 0;
+      leaderboard.push({
+        providerName,
+        platformCount: data.total,
+        gameCount: data.total,
+        meanNerfDelta,
+        nerfFrequency,
+        fairnessGrade: computeProviderFairnessGrade(meanNerfDelta, nerfFrequency),
+        updatedAt: Date.now(),
+      });
+    }
+
+    leaderboard.sort((a, b) => a.meanNerfDelta - b.meanNerfDelta); // Best (S) first
+
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({ data: leaderboard, updatedAt: Date.now() }));
     return;
   }
   if (req.url?.startsWith('/api/trust/stream')) {

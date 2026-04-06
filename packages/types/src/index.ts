@@ -1219,6 +1219,99 @@ export interface ProviderPlatformPerformance {
 }
 
 /**
+ * Manufacturer-certified RTP tier for a specific game title.
+ * Sourced from GLI/eCOGRA lab certifications and provider documentation.
+ * This is the read-only anchor — the "Gold Standard" that cannot be faked by casinos.
+ */
+export interface ProviderMasterRtp {
+  providerName: string;
+  gameTitle: string;
+  gameSlug: string;
+  /** All certified RTP tiers available for this game (e.g. [96.5, 94.5, 92.0, 88.0]) */
+  certifiedTiers: number[];
+  /** The highest (fairest) certified tier — used as providerMaxRtp throughout the system */
+  maxRtp: number;
+  /** The lowest available tier — floor for "how greedy can a casino get?" */
+  minRtp: number;
+  /** Certifying lab: 'GLI' | 'eCOGRA' | 'BMM' | 'iTech Labs' | 'NMi' */
+  certifiedBy?: string;
+  /** Year of certification */
+  certifiedYear?: number;
+}
+
+/**
+ * Result of a statistical confidence assessment for an RTP discrepancy.
+ * Uses a z-test (normal approximation to binomial) to calculate whether the
+ * observed deviation from the claimed RTP is statistically significant.
+ *
+ * Only a "breach"-level LegalTrigger should be generated when:
+ *   - pValue < 0.05 (95% confidence the deviation is not random variance)
+ *   - sampleSize >= minimumRequiredSample (enough spins to be statistically valid)
+ */
+export interface RtpConfidenceResult {
+  /** Claimed/advertised RTP on this platform (e.g. 94.0) */
+  claimedRtp: number;
+  /** Observed aggregate RTP from community sessions (e.g. 89.5) */
+  observedRtp: number;
+  /** Number of spins/sessions contributing to observedRtp */
+  sampleSize: number;
+  /** Absolute delta: claimedRtp - observedRtp (positive = paying less than claimed) */
+  delta: number;
+  /** z-score from one-sided z-test: (observedRtp - claimedRtp) / SE */
+  zScore: number;
+  /**
+   * One-sided p-value: probability of observing this delta by chance if the true RTP is claimedRtp.
+   * p < 0.05 = statistically significant at 95% confidence.
+   * p < 0.01 = statistically significant at 99% confidence.
+   */
+  pValue: number;
+  /** Minimum spins required to detect the observed delta at 95% confidence with 80% power */
+  minimumRequiredSample: number;
+  /** True when sampleSize >= minimumRequiredSample AND pValue < 0.05 */
+  isStatisticallySignificant: boolean;
+  /**
+   * Confidence tier for the discrepancy.
+   * 'insufficient_data'  — below minimum sample threshold, do not issue legal trigger
+   * 'plausible_variance' — p >= 0.05, could be bad luck
+   * 'likely_nerf'        — p < 0.05, statistically significant
+   * 'confirmed_nerf'     — p < 0.01, high confidence — suitable for regulatory complaint
+   */
+  confidenceTier: 'insufficient_data' | 'plausible_variance' | 'likely_nerf' | 'confirmed_nerf';
+  /** Human-readable summary for the "Review Evidence" screen */
+  evidenceSummary: string;
+}
+
+/**
+ * Provider-level fairness score: how consistently the provider's games
+ * are nerfed across the platforms TiltCheck tracks.
+ *
+ * Used by the Fairness Leaderboard — ranks providers from hardest to nerf
+ * (players prefer these) to easiest to nerf (casinos exploit these most).
+ */
+export interface ProviderFairnessScore {
+  providerName: string;
+  /** Number of distinct platforms where this provider's games are tracked */
+  platformCount: number;
+  /** Number of distinct game titles tracked */
+  gameCount: number;
+  /** Mean weighted_rtp_delta across all platform/game pairs (higher = more nerfed) */
+  meanNerfDelta: number;
+  /** Fraction of platform/game pairs where a nerf was detected (0-1) */
+  nerfFrequency: number;
+  /**
+   * Fairness grade derived from meanNerfDelta and nerfFrequency.
+   * 'S' — delta < 0.5pp on > 90% of platforms (rarely nerfed)
+   * 'A' — delta < 1.0pp on > 80% of platforms
+   * 'B' — delta < 2.0pp on > 70% of platforms
+   * 'C' — delta < 3.0pp or nerfFrequency > 30%
+   * 'D' — delta >= 3.0pp or nerfFrequency > 50% (frequently nerfed)
+   * 'F' — delta >= 5.0pp or nerfFrequency > 70% (mathematically manipulable)
+   */
+  fairnessGrade: 'S' | 'A' | 'B' | 'C' | 'D' | 'F';
+  updatedAt: number;
+}
+
+/**
  * Historical record of pillar scores over time
  */
 export interface CasinoScoreHistory extends CasinoTrustPillars {
