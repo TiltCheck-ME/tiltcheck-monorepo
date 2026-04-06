@@ -1,9 +1,32 @@
 # TiltCheck Activity - Production HUD Host
+# Multi-stage build: Node.js builds the Vite app, nginx serves the static output.
+
+# ── Stage 1: Build ────────────────────────────────────────────────────────────
+FROM node:20-slim AS build
+ENV PNPM_HOME="/pnpm"
+ENV PATH="$PNPM_HOME:$PATH"
+RUN corepack enable
+WORKDIR /app
+
+# Copy workspace manifests and lockfile first for better layer caching
+COPY pnpm-lock.yaml pnpm-workspace.yaml package.json ./
+COPY apps/activity/package.json ./apps/activity/package.json
+
+# Install all workspace dependencies
+RUN pnpm fetch
+RUN pnpm install --no-frozen-lockfile --no-interactive
+
+# Copy the full activity app source
+COPY apps/activity/ ./apps/activity/
+
+# Build the Vite app — outputs to apps/activity/dist
+RUN pnpm --filter @tiltcheck/activity build
+
+# ── Stage 2: Serve ────────────────────────────────────────────────────────────
 FROM nginx:alpine
 
-# Copy the pre-built 'dist' folder from your local machine to the container
-# We build locally to ensure zero-drift and avoid cloud resource timeouts.
-COPY apps/activity/dist /usr/share/nginx/html
+# Copy the compiled static assets from the build stage
+COPY --from=build /app/apps/activity/dist /usr/share/nginx/html
 
 # Custom nginx config to handle SPA routing & Discord's specific security headers
 RUN echo 'server { \
