@@ -6,9 +6,7 @@ import { createServer } from 'http';
 import { WebSocketServer, WebSocket } from 'ws';
 import { 
   verifySessionCookie, 
-  getCookieConfig,
   type JWTConfig,
-  type SessionData
 } from '@tiltcheck/auth';
 import rateLimit from 'express-rate-limit';
 import { Magic } from '@magic-sdk/admin';
