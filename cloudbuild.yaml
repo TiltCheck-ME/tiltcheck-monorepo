@@ -106,19 +106,19 @@ steps:
         fi
 
         gcloud run deploy "tiltcheck-${_SERVICE_NAME}" \
-          --image="$IMAGE" \
+          --image="$$IMAGE" \
           --region="${_REGION}" \
           --platform=managed \
-          --port="$PORT" \
-          --memory="$MEMORY" \
-          --min-instances="$MIN_INSTANCES" \
-          --max-instances="$MAX_INSTANCES" \
-          --concurrency="$CONCURRENCY" \
+          --port="$$PORT" \
+          --memory="$$MEMORY" \
+          --min-instances="$$MIN_INSTANCES" \
+          --max-instances="$$MAX_INSTANCES" \
+          --concurrency="$$CONCURRENCY" \
           --timeout=300 \
           --service-account="tiltcheck-runner@$PROJECT_ID.iam.gserviceaccount.com" \
           --set-secrets="NODE_ENV=NODE_ENV:latest,JWT_SECRET=JWT_SECRET:latest,SESSION_SECRET=SESSION_SECRET:latest,DATABASE_URL=DATABASE_URL:latest" \
-          $ACCESS \
-          $EXTRA_FLAGS \
+          $$ACCESS \
+          $$EXTRA_FLAGS \
           --project="$PROJECT_ID"
 
 images:
