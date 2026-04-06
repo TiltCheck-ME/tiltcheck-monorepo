@@ -8,7 +8,7 @@ RUN corepack enable
 WORKDIR /app
 
 # Only copy lockfile and workspace config to cache deps separately from source
-COPY pnpm-lock.yaml pnpm-workspace.yaml package.json .npmrc tsconfig.json ./
+COPY pnpm-lock.yaml pnpm-workspace.yaml package.json tsconfig.json ./
 # Use pnpm fetch to create a virtual store from the lockfile
 RUN pnpm fetch
 

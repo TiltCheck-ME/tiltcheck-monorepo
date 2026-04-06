@@ -9,7 +9,7 @@ WORKDIR /app
 
 # [PHASE 1] Dependency Caching
 # Only copy lockfile and workspace config to cache deps separately from source
-COPY pnpm-lock.yaml pnpm-workspace.yaml package.json .npmrc tsconfig.json ./
+COPY pnpm-lock.yaml pnpm-workspace.yaml package.json tsconfig.json ./
 # Build the virtual store
 RUN pnpm fetch
 
