@@ -70,9 +70,19 @@ const KNOWN_CASINOS = [
 function levenshtein(a: string, b: string): number {
   const m = a.length;
   const n = b.length;
-  const dp: number[][] = Array.from({ length: m + 1 }, (_, i) =>
-    Array.from({ length: n + 1 }, (_, j) => (i === 0 ? j : j === 0 ? i : 0))
-  );
+  const dp: number[][] = [];
+  for (let i = 0; i <= m; i++) {
+    dp[i] = [];
+    for (let j = 0; j <= n; j++) {
+      if (i === 0) {
+        dp[i][j] = j;
+      } else if (j === 0) {
+        dp[i][j] = i;
+      } else {
+        dp[i][j] = 0;
+      }
+    }
+  }
   for (let i = 1; i <= m; i++) {
     for (let j = 1; j <= n; j++) {
       dp[i][j] = a[i - 1] === b[j - 1]
@@ -82,6 +92,10 @@ function levenshtein(a: string, b: string): number {
   }
   return dp[m][n];
 }
+
+// Minimum brand name length to apply Levenshtein check.
+// Short names like 'bc' would generate too many false positives.
+const MIN_BRAND_LENGTH_FOR_LEVENSHTEIN = 4;
 
 // Strip TLD so 'stakee' and 'stake' are compared without '.com' noise
 function stripTld(domain: string): string {
@@ -243,8 +257,8 @@ export class LinkScanner {
 
       // 2. Levenshtein typosquat check: edit distance <= 2 from the brand name
       //    Catches: stakee, st4ke, r0obet, rollb1t — single substitution/insertion attacks
-      //    Only apply when hostname is similar in length (avoids false positives on short brand names like 'bc')
-      if (casinoBase.length >= 4) {
+      //    Only apply when brand is long enough to avoid false positives on short names like 'bc'
+      if (casinoBase.length >= MIN_BRAND_LENGTH_FOR_LEVENSHTEIN) {
         const dist = levenshtein(hostBase, casinoBase);
         if (dist > 0 && dist <= 2) {
           return {
