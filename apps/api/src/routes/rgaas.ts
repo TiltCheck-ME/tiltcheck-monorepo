@@ -25,6 +25,23 @@ import type { RtpReportSubmittedEvent } from '@tiltcheck/types';
 
 const router: Router = Router();
 
+// ─── Local interface for trust-engine breakdown shadow-ban data ───────────────
+// getCasinoBreakdown() returns an opaque object; this interface narrows the
+// withdrawal-delay field shape that the shadow-bans route inspects.
+interface WithdrawalDelayFlag {
+  severity: 'high' | 'medium' | 'low';
+  description: string;
+  detectedAt: string;
+}
+
+interface CasinoBreakdownWithFlags {
+  withdrawalDelayFlags?: Array<WithdrawalDelayFlag>;
+}
+
+// Casinos surfaced in the shadow-bans feed. Derived from the trust engine's
+// known tracked platforms; update in lock-step with trust-engines config.
+const TRACKED_CASINO_KEYS = ['stake', 'rollbit', 'roobet', 'bc.game', 'shuffle', 'gamdom'] as const;
+
 /**
  * POST /rgaas/breathalyzer/evaluate
  * Evaluate tilt risk based on recent betting velocity and loss context.
@@ -584,11 +601,9 @@ router.get('/shadow-bans', (_req, res) => {
   const flags: Array<{ name: string; flag: string; severity: 'high' | 'medium' | 'low'; detectedAt: string }> = [];
 
   // Surface any casinos the trust engine has scored with known shadow-ban signals
-  const knownCasinos = ['stake', 'rollbit', 'roobet', 'bc.game', 'shuffle', 'gamdom'];
+  const knownCasinos = TRACKED_CASINO_KEYS;
   for (const casinoKey of knownCasinos) {
-    const breakdown = trustEngines.getCasinoBreakdown(casinoKey) as {
-      withdrawalDelayFlags?: Array<{ severity: 'high' | 'medium' | 'low'; description: string; detectedAt: string }>;
-    } | null;
+    const breakdown = trustEngines.getCasinoBreakdown(casinoKey) as CasinoBreakdownWithFlags | null;
     if (breakdown?.withdrawalDelayFlags?.length) {
       for (const f of breakdown.withdrawalDelayFlags) {
         flags.push({ name: casinoKey, flag: f.description, severity: f.severity, detectedAt: f.detectedAt });
