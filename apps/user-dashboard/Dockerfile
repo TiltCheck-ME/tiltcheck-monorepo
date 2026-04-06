@@ -1,3 +1,4 @@
+# © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-06
 # TiltCheck User Dashboard - High-Speed Express Implementation
 FROM node:20-slim AS base
 ENV PNPM_HOME="/pnpm"
