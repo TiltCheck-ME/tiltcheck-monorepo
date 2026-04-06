@@ -1,3 +1,4 @@
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-06
 /* Copyright (c) 2026 TiltCheck. All rights reserved. */
 /**
  * @tiltcheck/types
@@ -991,6 +992,8 @@ export interface EventDataMap {
   'trust.casino.metric.snapshot': CasinoMetricSnapshot;
   'trust.casino.tos.changed': { casinoName: string; changeSummary?: string; contentHash: string };
   'trust.audit.trigger': { timestamp: number; reason: string };
+  'rtp.report.submitted': RtpReportSubmittedEvent;
+  'rtp.nerf.detected': RtpNerfDetectedEvent;
   'activity.launched': ActivityLaunchedEventData;
   'activity.action': ActivityActionEventData;
   'activity.completed': ActivityCompletedEventData;
@@ -1113,11 +1116,11 @@ export interface CasinoTrustRecord extends CasinoTrustPillars {
 export interface CasinoMetricSnapshot {
   casinoName: string;
   timestamp: number;
-  
+
   // Financial Pillar Raw Data
   avgWithdrawalHours?: number;
   withdrawalSuccessRate?: number; // 0.0 - 1.0
-  
+
   // Fairness Pillar Raw Data
   advertisedRtp?: number;
   actualRtp?: number;
@@ -1126,10 +1129,93 @@ export interface CasinoMetricSnapshot {
   tosHash?: string;
   provablyFairUrl?: string;
   providerReputationTier?: 'reputable' | 'unknown' | 'shady';
-  
+
+  // Provider-level RTP tracking (differentiates same provider across platforms)
+  providerName?: string; // e.g. 'Pragmatic Play', 'Hacksaw'
+  gameTitle?: string;    // e.g. 'Gates of Olympus'
+
   // Operational Raw Data
   supportResponseTimeMinutes?: number;
   licenseVerified?: boolean;
+}
+
+/**
+ * Community-submitted RTP report from the game info panel on a specific platform.
+ * Players (or the extension) report the theoretical RTP they see in the slot UI.
+ */
+export interface RtpReportSubmittedEvent {
+  /** The casino/platform domain where the RTP was observed (e.g. 'stake.com') */
+  platformUrl: string;
+  /** Human-readable platform name (e.g. 'Stake') */
+  platformName: string;
+  /** Game provider name (e.g. 'Pragmatic Play') */
+  providerName: string;
+  /** Slot/game title (e.g. 'Gates of Olympus') */
+  gameTitle: string;
+  /**
+   * RTP percentage as reported in the game info panel (e.g. 96.5).
+   * This is the theoretical value toggled by the operator, not the observed session value.
+   */
+  reportedRtp: number;
+  /** Source of the report: 'extension' (scraped automatically) or 'community' (manual) */
+  source: 'extension' | 'community';
+  /** Discord user ID of the reporter, if available */
+  reportedByUserId?: string;
+  /** Unix epoch ms when the report was submitted */
+  reportedAt: number;
+}
+
+/**
+ * Emitted when a platform's RTP setting for a given provider/game drops below the
+ * provider's known maximum RTP by more than the configured nerf threshold.
+ *
+ * This is the slot-math equivalent of the bonus nerf detected by CollectClock.
+ */
+export interface RtpNerfDetectedEvent {
+  platformUrl: string;
+  platformName: string;
+  providerName: string;
+  gameTitle: string;
+  /** The provider's documented maximum (fairest) RTP setting */
+  providerMaxRtp: number;
+  /** The RTP currently configured on this platform */
+  currentPlatformRtp: number;
+  /** Absolute delta: providerMaxRtp - currentPlatformRtp (positive = nerfed) */
+  nerfDelta: number;
+  /** nerfDelta expressed as a fraction of providerMaxRtp (0-1) */
+  nerfPercent: number;
+  detectedAt: number;
+}
+
+/**
+ * Unified per-provider, per-platform RTP performance record.
+ *
+ * This is the "Provider-Platform Performance Table" entry used by the
+ * Casino Trust Engine to calculate discrepancy scores and flag nerfed platforms.
+ *
+ * - `advertisedRtp`       - The RTP reported in the game info panel on this platform
+ * - `observedRtpAggregate`- Average actual return calculated from aggregated session events
+ * - `discrepancyScore`    - advertisedRtp - observedRtpAggregate (positive = platform paying less than advertised)
+ */
+export interface ProviderPlatformPerformance {
+  id?: string;
+  providerName: string;
+  gameTitle: string;
+  platformUrl: string;
+  platformName: string;
+  /** RTP as shown in the game info panel on this platform (operator-toggled setting) */
+  advertisedRtp: number;
+  /** Aggregate observed return from community session data (null until sufficient sample) */
+  observedRtpAggregate: number | null;
+  /** advertisedRtp - observedRtpAggregate; null if observedRtpAggregate not yet available */
+  discrepancyScore: number | null;
+  /** Number of individual session data points feeding observedRtpAggregate */
+  sampleSize: number;
+  /** Number of community members who reported the advertisedRtp figure */
+  reportedByCount: number;
+  lastReportedAt: number;
+  createdAt?: number;
+  updatedAt?: number;
 }
 
 /**
