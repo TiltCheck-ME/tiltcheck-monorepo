@@ -72,10 +72,10 @@ export class DiscordBridge {
     await this.sdk.subscribe(
       Events.ACTIVITY_INSTANCE_PARTICIPANTS_UPDATE,
       (data) => {
-        this.state.participants = (data.participants || []).map((p: { id: string; username: string; avatar?: string }) => ({
+        this.state.participants = (data.participants || []).map((p: { id: string; username: string; avatar?: string | null }) => ({
           id: p.id,
           username: p.username,
-          avatar: p.avatar || null
+          avatar: p.avatar ?? null
         }));
         this.emit('participants', this.state.participants);
       }
