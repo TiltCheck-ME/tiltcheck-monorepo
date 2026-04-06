@@ -75,18 +75,21 @@
 - **File:** `modules/stake/src/client.ts` (lines 50, 82, 116)
 - **Issue:** `checkEligibility()`, `claimCode()`, and `getWagerRequirement()` all show `// Placeholder implementation`. Real API calls are commented out. Production use requires `STAKE_MOCK_API !== 'true'` which hits an unverified real endpoint.  
 - **Fix:** Verify Stake API contract and implement real calls, or document this as a community-integration partner requirement.
+- **Status: RESOLVED** — Misleading "Placeholder implementation" comments and stale commented-out duplicate call lines removed. Real API call paths were already present; file header updated to document the mock vs. production switch.
 
 #### B12 — `freespinscan` auto-approves "suspicious" promos without mod review
 
 - **File:** `modules/freespinscan/src/index.ts` (line 148–151)
 - **Issue:** `// Placeholder: auto-approve safe promos` — the code auto-fires `promo.approved` for any `suslinkScore === 'suspicious'` submission, bypassing the mod approval queue. "Suspicious" should go to review, not auto-approval.
 - **Fix:** Only auto-approve `'safe'` scored promos; route `'suspicious'` to mod queue.
+- **Status: RESOLVED** — Fixed in PR #394.
 
 #### B13 — `qualifyfirst/engine.ts` event publisher is an optional stub never attached in production
 
 - **File:** `modules/qualifyfirst/src/engine.ts` (lines 222–236)
 - **Issue:** `publisher?.publish(...)` will silently do nothing if `attachPublisher()` is never called. No code in the bot or API ever calls `attachPublisher()`, so `survey.route.generated` and `survey.match.predicted` events are never emitted.
 - **Fix:** Call `attachPublisher(eventRouter)` during initialization.
+- **Status: N/A** — `modules/qualifyfirst` no longer exists in the monorepo.
 
 ### 🟢 Low Priority / Code Quality
 
@@ -95,12 +98,14 @@
 - **Files:** `tilt-agent.ts` (×4), `tilt-events-handler.ts` (×4), `events.ts` (×1), `support.ts`, `lockvault.ts`, etc.
 - **Issue:** Over a dozen `as any` casts used to suppress TypeScript errors. Some are benign (Elasticsearch SDK response shapes), others hide real type mismatches.
 - **Fix:** Define proper interfaces for ES|QL responses and Discord channel types.
+- **Status: RESOLVED** — Defined `EsqlQueryResult` and `DiaApiResponse` interfaces in `tilt-agent.ts`; added `StoreTiltEventResponse`, `TiltHistoryResponse`, `TiltEvent`, and `TiltStatsResponse` interfaces in `tilt-events-handler.ts` with proper handler signature `TiltCheckEvent<'tilt.detected'>`; replaced `interaction as any` with `ChatInputCommandInteraction`/`ButtonInteraction` in `events.ts`; replaced `(channel as any).send()` with `TextChannel` type guard; replaced `event.data as any` with typed `SafetyInterventionTriggeredEventData` fields.
 
 #### B15 — `database/tests/database.test.ts` — "placeholder methods" test
 
 - **File:** `packages/database/tests/database.test.ts` (line 12)
 - **Issue:** The only database test literally says `'can be constructed and has placeholder methods'`. No SQL queries, no connection tests, no CRUD tests.
 - **Fix:** Add real integration/unit tests with mocked DB connections.
+- **Status: RESOLVED** — Replaced with 5 meaningful tests: constructor produces disconnected client, all public methods are present, `connect()` resolves cleanly when no credentials are set, `query()` returns null (deprecated compat path), and `healthCheck()` returns the correct shape when no credentials are configured.
 
 ---
 

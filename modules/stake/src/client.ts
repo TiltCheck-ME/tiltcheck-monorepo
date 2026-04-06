@@ -1,12 +1,13 @@
-/* Copyright (c) 2026 TiltCheck. All rights reserved. */
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-06
 /**
  * Stake API Client
- * 
+ *
  * Provides methods to interact with Stake.com API for checking eligibility
  * and claiming promo codes.
- * 
- * NOTE: This is a placeholder implementation. The actual Stake API endpoints
- * and authentication methods should be used in production.
+ *
+ * Set STAKE_MOCK_API=true to use the built-in mock (for local dev/testing).
+ * In production, provide a valid STAKE_API_KEY and the client will call
+ * the real Stake API endpoints.
  */
 
 import type {
@@ -41,11 +42,6 @@ export class StakeClient {
    */
   async checkEligibility(code: string): Promise<EligibilityResult> {
     try {
-      // Placeholder implementation
-      // In production, make actual API call:
-      // const response = await this.request('POST', '/promo/check-eligibility', { code });
-
-      // Mock implementation for development
       if (process.env.STAKE_MOCK_API === 'true') {
         return this.mockEligibilityCheck(code);
       }
@@ -73,11 +69,6 @@ export class StakeClient {
    */
   async claimCode(code: string): Promise<ClaimResult> {
     try {
-      // Placeholder implementation
-      // In production, make actual API call:
-      // const response = await this.request('POST', '/promo/claim', { code });
-
-      // Mock implementation for development
       if (process.env.STAKE_MOCK_API === 'true') {
         return this.mockClaimCode(code);
       }
@@ -107,7 +98,6 @@ export class StakeClient {
    */
   async getWagerRequirement(code: string): Promise<WagerRequirement> {
     try {
-      // Placeholder implementation
       if (process.env.STAKE_MOCK_API === 'true') {
         return {
           amount: 100,

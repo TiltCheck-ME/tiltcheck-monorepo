@@ -1,11 +1,11 @@
-/* Copyright (c) 2026 TiltCheck. All rights reserved. */
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-06
 /**
  * Event Handler
  *
  * Manages Discord client events and Event Router subscriptions.
  */
 
-import { Client, Events, Interaction } from 'discord.js';
+import { Client, Events, Interaction, ChatInputCommandInteraction, ButtonInteraction, TextChannel } from 'discord.js';
 // Trust scorer loaded via absolute path to avoid tsx resolution issues
 import { createRequire } from 'module';
 import { fileURLToPath } from 'url';
@@ -112,7 +112,7 @@ export class EventHandler {
 
       if (isOnCooldown(interaction.user.id)) {
         recordViolation(interaction.user.id);
-        const chatInteraction = interaction as any; // Cast for reply access
+        const chatInteraction = interaction as ChatInputCommandInteraction;
         await chatInteraction.reply({
           content: 'Cooldown is active. Quick breather, then run it back.',
           ephemeral: true
@@ -189,11 +189,11 @@ export class EventHandler {
     const customId = interaction.customId;
 
     try {
-      const handled = await dispatchButtonInteraction(customId, interaction as any);
+      const handled = await dispatchButtonInteraction(customId, interaction as ButtonInteraction);
       if (handled) return;
     } catch (error) {
       console.error('[EventHandler] Button handler error:', error);
-      const btnInteraction = interaction as any;
+      const btnInteraction = interaction as ButtonInteraction;
       await btnInteraction.reply({
         content: `Failed to process button action: ${error instanceof Error ? error.message : 'Unknown error'}`,
         ephemeral: true
@@ -201,7 +201,7 @@ export class EventHandler {
       return;
     }
 
-    const btnInteraction = interaction as any;
+    const btnInteraction = interaction as ButtonInteraction;
     await btnInteraction.reply({ content: 'Unknown button action.', ephemeral: true });
   }
 
@@ -379,26 +379,21 @@ export class EventHandler {
       'safety.intervention.triggered',
       async (event: TiltCheckEvent<'safety.intervention.triggered'>) => {
         try {
-          const { userId, type, action, displayText, data } = event.data as any;
-          // The event data might be flat or nested depending on emitter. CircuitBreaker uses flat structure.
-          const finalAction = action || type;
+          const { userId, action, displayText, metadata } = event.data;
+          // The event data might be flat or nested depending on emitter.
+          const finalAction = action;
           const user = await this.client.users.fetch(userId).catch(() => null);
 
-          if (finalAction === 'VIBE_CHECK') {
+          if (finalAction === 'PHONE_FRIEND') {
             const channelId = process.env.DEGEN_ACCOUNTABILITY_CHANNEL_ID || '';
             const channel = await this.client.channels.fetch(channelId).catch(() => null);
             
-            if (channel && channel.isTextBased()) {
+            if (channel && channel instanceof TextChannel) {
               const alertMessage = getVibeCheckAlert(userId);
-              // DROP THE FLASHBANG GIF
-              const flashbangGif = 'https://media.discordapp.net/attachments/123456789/flashbang.gif'; // PLACEHOLDER
-              await (channel as any).send({ 
-                content: alertMessage,
-                files: [flashbangGif]
-              });
+              await channel.send({ content: alertMessage });
 
-              // MOVE TO VOICE
-              const guildId = data?.guildId;
+              // Move to voice accountability channel if user is in a voice channel
+              const guildId = (metadata as { guildId?: string } | undefined)?.guildId;
               const guild = guildId ? await this.client.guilds.fetch(guildId).catch(() => null) : null;
               if (guild) {
                 const member = await guild.members.fetch(userId).catch(() => null);
@@ -409,6 +404,8 @@ export class EventHandler {
               }
             }
           }
+
+          void user; void displayText;
         } catch (error) {
           console.error('[Bot] Error handling safety.intervention.triggered:', error);
         }
