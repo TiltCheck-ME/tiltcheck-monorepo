@@ -289,7 +289,6 @@ app.get('/api/user/:discordId/trust', authenticateToken, trustLimiter, async (re
 
 app.get('/api/user/:discordId/activity', authenticateToken, async (req: DashboardRequest, res) => {
   try {
-    const discordId = req.params.discordId as string;
     const activities: { type: string; description: string; timestamp: number }[] = [];
 
     // Trust signals not yet implemented in DatabaseClient; activity list stays empty
