@@ -18,7 +18,7 @@ RUN pnpm fetch --filter @tiltcheck/api...
 FROM base AS build
 COPY . .
 RUN pnpm install --frozen-lockfile --filter @tiltcheck/api...
-RUN pnpm --filter @tiltcheck/api... build
+RUN pnpm --filter @tiltcheck/api build
 RUN pnpm --filter @tiltcheck/api --prod deploy /app/out
 
 FROM node:20-slim AS runtime
