@@ -1,15 +1,45 @@
-/* Copyright (c) 2026 TiltCheck. All rights reserved. */
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-06
 /**
  * Tilt Events Handler
- * 
+ *
  * Subscribes to tilt.detected events from @tiltcheck/tiltcheck-core
  * and forwards them to the backend API for persistent storage.
  */
 
 import { eventRouter } from '@tiltcheck/event-router';
+import type { TiltCheckEvent } from '@tiltcheck/event-router';
 import { trackTiltDetected } from '../services/elastic-telemetry.js';
 
 const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:3000';
+
+interface StoreTiltEventResponse {
+  success: boolean;
+  id?: string;
+}
+
+interface TiltHistoryResponse {
+  events: TiltEvent[];
+}
+
+interface TiltEvent {
+  userId: string;
+  timestamp: string;
+  signals: string[];
+  tiltScore: number;
+  context: string;
+}
+
+interface TiltStatsResponse {
+  userId: string;
+  totalEvents: number;
+  avgTiltScore: number;
+  averageTiltScore?: number;
+  maxTiltScore?: number;
+  eventsLast24h?: number;
+  eventsLast7d?: number;
+  lastDetectedAt?: string;
+  lastEventAt?: string;
+}
 
 /**
  * Initialize tilt events handler
@@ -19,9 +49,9 @@ export function initializeTiltEventsHandler(): void {
   // Subscribe to tilt.detected events from tiltcheck-core
   eventRouter.subscribe(
     'tilt.detected',
-    async (event: any) => {
+    async (event: TiltCheckEvent<'tilt.detected'>) => {
       try {
-        const tiltData = event.data as any;
+        const tiltData = event.data;
 
         // Forward to backend for storage
         const response = await fetch(`${BACKEND_URL}/api/tilt/events`, {
@@ -31,10 +61,10 @@ export function initializeTiltEventsHandler(): void {
           },
           body: JSON.stringify({
             userId: tiltData.userId,
-            timestamp: tiltData.timestamp,
-            signals: tiltData.signals || [],
+            timestamp: tiltData.sessionMetrics?.timeInSession ?? Date.now(),
+            signals: tiltData.indicators || [],
             tiltScore: tiltData.tiltScore,
-            context: 'discord-dm', // Can be set to discord-guild if in guild context
+            context: 'discord-dm',
           }),
         });
 
@@ -45,16 +75,16 @@ export function initializeTiltEventsHandler(): void {
           return;
         }
 
-        const result = await response.json() as any;
+        const result = (await response.json()) as StoreTiltEventResponse;
         if (result.success) {
-          console.log(`[TiltHandler] 📊 Tilt event stored for user ${tiltData.userId} (score: ${tiltData.tiltScore})`);
+          console.log(`[TiltHandler] Tilt event stored for user ${tiltData.userId} (score: ${tiltData.tiltScore})`);
         }
 
         // Mirror to Elastic telemetry index
         await trackTiltDetected({
           userId: tiltData.userId,
           tiltScore: tiltData.tiltScore ?? 0,
-          signals: tiltData.signals ?? [],
+          signals: tiltData.indicators ?? [],
         });
       } catch (error) {
         console.error('[TiltHandler] Error posting tilt event to backend:', error);
@@ -63,7 +93,7 @@ export function initializeTiltEventsHandler(): void {
     'discord-bot'
   );
 
-  console.log('[TiltHandler] ✅ Tilt events handler initialized - listening for tilt.detected events');
+  console.log('[TiltHandler] Tilt events handler initialized - listening for tilt.detected events');
 }
 
 /**
@@ -72,7 +102,7 @@ export function initializeTiltEventsHandler(): void {
 export async function getUserTiltHistory(userId: string, options: {
   days?: number;
   limit?: number;
-} = {}): Promise<any[]> {
+} = {}): Promise<TiltEvent[]> {
   try {
     const params = new URLSearchParams();
     if (options.days) params.append('days', options.days.toString());
@@ -90,7 +120,7 @@ export async function getUserTiltHistory(userId: string, options: {
       return [];
     }
 
-    const result = await response.json() as any;
+    const result = (await response.json()) as TiltHistoryResponse;
     return result.events || [];
   } catch (error) {
     console.error('[TiltHandler] Error fetching tilt history:', error);
@@ -101,7 +131,7 @@ export async function getUserTiltHistory(userId: string, options: {
 /**
  * Fetch tilt statistics for a user from the backend
  */
-export async function getUserTiltStats(userId: string): Promise<any | null> {
+export async function getUserTiltStats(userId: string): Promise<TiltStatsResponse | null> {
   try {
     const response = await fetch(`${BACKEND_URL}/api/tilt/stats/${userId}`, {
       method: 'GET',
@@ -115,8 +145,7 @@ export async function getUserTiltStats(userId: string): Promise<any | null> {
       return null;
     }
 
-    const result = await response.json() as any;
-    return result;
+    return (await response.json()) as TiltStatsResponse;
   } catch (error) {
     console.error('[TiltHandler] Error fetching tilt stats:', error);
     return null;
