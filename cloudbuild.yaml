@@ -1,0 +1,135 @@
+# © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-06
+# Cloud Build pipeline: build image, push to Artifact Registry, deploy to Cloud Run.
+# Triggered by deploy-gcp.yml via: gcloud builds submit --config=cloudbuild.yaml
+# Required substitutions: _SERVICE_NAME, _REPOSITORY, _REGION
+
+steps:
+  # Build the service image using the per-service Dockerfile
+  - name: 'gcr.io/cloud-builders/docker'
+    id: build
+    args:
+      - build
+      - -t
+      - '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPOSITORY}/${_SERVICE_NAME}:$COMMIT_SHA'
+      - -t
+      - '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPOSITORY}/${_SERVICE_NAME}:latest'
+      - -f
+      - 'apps/${_SERVICE_NAME}/Dockerfile'
+      - '.'
+
+  # Push both the commit-sha tag and the latest tag
+  - name: 'gcr.io/cloud-builders/docker'
+    id: push
+    args:
+      - push
+      - '--all-tags'
+      - '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPOSITORY}/${_SERVICE_NAME}'
+
+  # Deploy to Cloud Run with per-service port, memory, and access configuration
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    id: deploy
+    entrypoint: bash
+    args:
+      - '-c'
+      - |
+        set -e
+
+        IMAGE="${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPOSITORY}/${_SERVICE_NAME}:$COMMIT_SHA"
+
+        case "${_SERVICE_NAME}" in
+          api)
+            PORT=3001
+            MEMORY=512Mi
+            MIN_INSTANCES=1
+            MAX_INSTANCES=10
+            CONCURRENCY=80
+            ACCESS="--allow-unauthenticated"
+            ;;
+          web)
+            PORT=3000
+            MEMORY=256Mi
+            MIN_INSTANCES=0
+            MAX_INSTANCES=10
+            CONCURRENCY=80
+            ACCESS="--allow-unauthenticated"
+            ;;
+          discord-bot)
+            PORT=8080
+            MEMORY=512Mi
+            MIN_INSTANCES=1
+            MAX_INSTANCES=3
+            CONCURRENCY=1
+            ACCESS="--no-allow-unauthenticated"
+            ;;
+          trust-rollup)
+            PORT=8082
+            MEMORY=512Mi
+            MIN_INSTANCES=0
+            MAX_INSTANCES=5
+            CONCURRENCY=80
+            ACCESS="--no-allow-unauthenticated"
+            ;;
+          control-room)
+            PORT=3001
+            MEMORY=512Mi
+            MIN_INSTANCES=0
+            MAX_INSTANCES=5
+            CONCURRENCY=80
+            ACCESS="--no-allow-unauthenticated"
+            ;;
+          game-arena)
+            PORT=8080
+            MEMORY=512Mi
+            MIN_INSTANCES=1
+            MAX_INSTANCES=10
+            CONCURRENCY=80
+            ACCESS="--allow-unauthenticated"
+            ;;
+          user-dashboard)
+            PORT=6001
+            MEMORY=512Mi
+            MIN_INSTANCES=0
+            MAX_INSTANCES=10
+            CONCURRENCY=80
+            ACCESS="--allow-unauthenticated"
+            ;;
+          *)
+            echo "Unknown service: ${_SERVICE_NAME}"
+            exit 1
+            ;;
+        esac
+
+        # game-arena uses socket.io; session affinity keeps websocket connections sticky
+        EXTRA_FLAGS=""
+        if [ "${_SERVICE_NAME}" = "game-arena" ]; then
+          EXTRA_FLAGS="--session-affinity"
+        fi
+
+        gcloud run deploy "tiltcheck-${_SERVICE_NAME}" \
+          --image="$IMAGE" \
+          --region="${_REGION}" \
+          --platform=managed \
+          --port="$PORT" \
+          --memory="$MEMORY" \
+          --min-instances="$MIN_INSTANCES" \
+          --max-instances="$MAX_INSTANCES" \
+          --concurrency="$CONCURRENCY" \
+          --timeout=300 \
+          --service-account="tiltcheck-runner@$PROJECT_ID.iam.gserviceaccount.com" \
+          --set-secrets="NODE_ENV=NODE_ENV:latest,JWT_SECRET=JWT_SECRET:latest,SESSION_SECRET=SESSION_SECRET:latest,DATABASE_URL=DATABASE_URL:latest" \
+          $ACCESS \
+          $EXTRA_FLAGS \
+          --project="$PROJECT_ID"
+
+images:
+  - '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPOSITORY}/${_SERVICE_NAME}:$COMMIT_SHA'
+  - '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPOSITORY}/${_SERVICE_NAME}:latest'
+
+substitutions:
+  _SERVICE_NAME: api
+  _REPOSITORY: tiltcheck-services
+  _REGION: us-central1
+
+options:
+  logging: CLOUD_LOGGING_ONLY
+  machineType: E2_HIGHCPU_8
