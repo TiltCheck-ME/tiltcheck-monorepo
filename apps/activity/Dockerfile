@@ -1,3 +1,4 @@
+# © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-06
 # TiltCheck Activity - Production HUD Host
 # Multi-stage build: Node.js builds the Vite app, nginx serves the static output.
 
@@ -14,7 +15,7 @@ COPY apps/activity/package.json ./apps/activity/package.json
 
 # Install all workspace dependencies
 RUN pnpm fetch
-RUN pnpm install --no-frozen-lockfile --no-interactive
+RUN pnpm install --no-frozen-lockfile
 
 # Copy the full activity app source
 COPY apps/activity/ ./apps/activity/

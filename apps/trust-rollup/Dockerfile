@@ -17,7 +17,7 @@ RUN pnpm fetch
 FROM base AS build
 COPY . .
 # Install only the trust-rollup dependency subgraph
-RUN pnpm install --frozen-lockfile --ignore-scripts --filter @tiltcheck/trust-rollup...
+RUN pnpm install --frozen-lockfile --filter @tiltcheck/trust-rollup...
 RUN pnpm --filter @tiltcheck/trust-rollup... build
 # Prune for production
 RUN pnpm prune --prod --no-optional
