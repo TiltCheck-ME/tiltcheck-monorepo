@@ -1,3 +1,4 @@
+# © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-06
 # TiltCheck Trust Rollup - High-Speed Aggregator Container
 FROM node:20-slim AS base
 ENV PNPM_HOME="/pnpm"
@@ -16,7 +17,7 @@ RUN pnpm fetch
 FROM base AS build
 COPY . .
 # Install only the trust-rollup dependency subgraph
-RUN pnpm install --offline --filter @tiltcheck/trust-rollup...
+RUN pnpm install --frozen-lockfile --ignore-scripts --filter @tiltcheck/trust-rollup...
 RUN pnpm --filter @tiltcheck/trust-rollup... build
 # Prune for production
 RUN pnpm prune --prod --no-optional

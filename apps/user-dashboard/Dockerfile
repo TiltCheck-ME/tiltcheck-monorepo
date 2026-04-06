@@ -15,8 +15,8 @@ RUN pnpm fetch
 # [PHASE 2] Building
 FROM base AS build
 COPY . .
-# Offline install using the virtual store created in Phase 1
-RUN pnpm install --offline --filter @tiltcheck/user-dashboard... --filter @tiltcheck/auth
+# Install with a frozen lockfile and ignored scripts, reusing the virtual store created in Phase 1
+RUN pnpm install --frozen-lockfile --ignore-scripts --filter @tiltcheck/user-dashboard... --filter @tiltcheck/auth
 RUN pnpm --filter @tiltcheck/auth build
 RUN pnpm --filter @tiltcheck/user-dashboard... build
 # Prune to strictly production dependencies
