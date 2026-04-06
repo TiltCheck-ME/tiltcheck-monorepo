@@ -4,6 +4,7 @@ import rtpData from '@data/provider-master-rtp.json';
 
 interface GameEntry {
   gameTitle: string;
+  gameSlug: string;
   providerName: string;
   maxRtp: number;
   minRtp: number;
@@ -18,6 +19,7 @@ function buildGameList(): GameEntry[] {
     for (const game of provider.games) {
       entries.push({
         gameTitle: game.gameTitle,
+        gameSlug: game.gameSlug,
         providerName: provider.providerName,
         maxRtp: game.maxRtp,
         minRtp: game.minRtp,
@@ -84,11 +86,11 @@ export default function SessionStatsPage() {
                 </tr>
               </thead>
               <tbody>
-                {games.map((game, i) => {
+                {games.map((game) => {
                   const risk = getRiskLabel(game.greedPremium);
                   return (
                     <tr
-                      key={i}
+                      key={`${game.providerName}:${game.gameSlug}`}
                       className="border-b border-[#283347]/50 hover:bg-white/5 transition-colors"
                     >
                       <td className="py-3 px-4 text-white font-bold">{game.gameTitle}</td>
