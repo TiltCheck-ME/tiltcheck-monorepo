@@ -1,3 +1,4 @@
+# © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-06
 # TiltCheck Web (Landing Page) - Production Implementation
 # Optimized for Google Cloud Run (Single-Service Subgraph Build)
 
@@ -17,7 +18,7 @@ FROM base AS build
 COPY . .
 # Perform full workspace install for monorepo dependency resolution
 ENV CI=true
-RUN pnpm install --no-frozen-lockfile --no-interactive
+RUN pnpm install --frozen-lockfile --ignore-scripts
 # Next.js Build requires NODE_ENV=production to optimize bundles
 ENV NODE_ENV=production
 RUN pnpm --filter web build

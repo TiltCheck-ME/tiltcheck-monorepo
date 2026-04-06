@@ -14,7 +14,7 @@ RUN pnpm fetch
 # [PHASE 2] Install
 FROM base AS build
 COPY . .
-RUN pnpm install --offline --filter @tiltcheck/control-room...
+RUN pnpm install --frozen-lockfile --ignore-scripts --filter @tiltcheck/control-room...
 
 # [PHASE 3] Production Runtime
 FROM node:20-slim
