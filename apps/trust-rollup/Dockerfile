@@ -20,7 +20,6 @@ COPY . .
 RUN pnpm install --frozen-lockfile --filter @tiltcheck/trust-rollup...
 RUN pnpm --filter @tiltcheck/trust-rollup... build
 # Prune for production
-RUN pnpm prune --prod --ignore-scripts
 
 # [PHASE 3] Production Runtime
 FROM node:20-slim
