@@ -553,7 +553,7 @@ app.post('/api/user/:discordId/buddies', authenticateToken, async (req: Dashboar
     const { buddyId } = req.body;
     if (!buddyId) return res.status(400).json({ error: 'Missing buddyId' });
 
-    const user = await findUserByDiscordId(req.params.discordId);
+    const user = await findUserByDiscordId(req.params.discordId as string);
     if (!user) return res.status(404).json({ error: 'User not found' });
 
     await sendBuddyRequest(user.id, buddyId);
@@ -567,7 +567,7 @@ app.post('/api/user/:discordId/buddies', authenticateToken, async (req: Dashboar
 app.post('/api/user/:discordId/buddies/:requestId/accept', authenticateToken, async (req: DashboardRequest, res) => {
   try {
     if (db.isConnected()) {
-      await db.acceptBuddyRequest(req.params.requestId);
+      await db.acceptBuddyRequest(req.params.requestId as string);
     }
     res.json({ success: true });
   } catch (err) {
@@ -578,7 +578,7 @@ app.post('/api/user/:discordId/buddies/:requestId/accept', authenticateToken, as
 app.post('/api/user/:discordId/buddies/:requestId/decline', authenticateToken, async (req: DashboardRequest, res) => {
   try {
     if (db.isConnected()) {
-      await db.declineBuddyRequest(req.params.requestId);
+      await db.declineBuddyRequest(req.params.requestId as string);
     }
     res.json({ success: true });
   } catch (err) {
