@@ -20,16 +20,19 @@ COPY . .
 RUN pnpm install --frozen-lockfile --filter @tiltcheck/discord-bot...
 RUN pnpm --filter @tiltcheck/discord-bot... build
 RUN test -f apps/discord-bot/dist/bootstrap.js || (echo 'BUILD ERROR: apps/discord-bot/dist/bootstrap.js not produced' && exit 1)
-# Create self-contained deploy with real copies of workspace packages (no symlinks)
-RUN pnpm --filter @tiltcheck/discord-bot deploy --legacy /prod
-
 # [PHASE 3] Production Runtime
 FROM node:20-slim
 WORKDIR /app
 RUN apt-get update && apt-get install -y dumb-init && rm -rf /var/lib/apt/lists/*
 ENTRYPOINT ["/usr/bin/dumb-init", "--"]
 
-COPY --from=build /prod .
+COPY --from=build /app/apps/discord-bot/dist ./apps/discord-bot/dist
+COPY --from=build /app/apps/discord-bot/package.json ./apps/discord-bot/package.json
+# node_modules has pnpm symlinks into packages/ and modules/; copy both so they resolve
+COPY --from=build /app/node_modules ./node_modules
+COPY --from=build /app/packages ./packages
+COPY --from=build /app/modules ./modules
+COPY --from=build /app/package.json ./package.json
 
 EXPOSE 8080
-CMD ["node", "dist/bootstrap.js"]
+CMD ["node", "apps/discord-bot/dist/bootstrap.js"]

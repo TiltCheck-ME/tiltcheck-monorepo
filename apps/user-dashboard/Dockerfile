@@ -20,13 +20,17 @@ RUN pnpm install --frozen-lockfile --filter @tiltcheck/user-dashboard... --filte
 RUN pnpm --filter @tiltcheck/auth build
 RUN pnpm --filter @tiltcheck/user-dashboard... build
 RUN test -f apps/user-dashboard/dist/index.js || (echo 'BUILD ERROR: apps/user-dashboard/dist/index.js not produced' && exit 1)
-# Create self-contained deploy with real copies of workspace packages (no symlinks)
-RUN pnpm --filter @tiltcheck/user-dashboard deploy --legacy /prod
-
 # [PHASE 3] Production Runtime
 FROM node:20-slim
 WORKDIR /app
-COPY --from=build /prod .
+
+COPY --from=build /app/apps/user-dashboard/dist ./apps/user-dashboard/dist
+COPY --from=build /app/apps/user-dashboard/package.json ./apps/user-dashboard/package.json
+# node_modules has pnpm symlinks into packages/ and modules/; copy both so they resolve
+COPY --from=build /app/node_modules ./node_modules
+COPY --from=build /app/packages ./packages
+COPY --from=build /app/modules ./modules
+COPY --from=build /app/package.json ./package.json
+
 EXPOSE 6001
-# Skip CLI overhead, run the compiled entry point directly
-CMD ["node", "dist/index.js"]
+CMD ["node", "apps/user-dashboard/dist/index.js"]
