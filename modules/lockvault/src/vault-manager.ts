@@ -391,7 +391,10 @@ class VaultManager {
     if (!ids || ids.size === 0) throw new Error('No vault found for user');
     const records = Array.from(ids)
       .map((id) => this.vaults.get(id))
-      .filter((v): v is LockVaultRecord => Boolean(v) && Boolean(v.secondOwnerId))
+      .filter((v): v is LockVaultRecord => {
+        if (!v) return false;
+        return Boolean(v.secondOwnerId);
+      })
       .sort((a, b) => b.createdAt - a.createdAt);
     if (records.length === 0) throw new Error('No dual-owner vault found for user');
     return records[0];
