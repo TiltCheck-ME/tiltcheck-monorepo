@@ -96,9 +96,22 @@ jobs:
 
       - name: Redeploy ${{ matrix.service }} on Railway
         run: |
-          npx @railway/cli@latest redeploy \
-            --service "${{ steps.svc.outputs.name }}" \
-            --yes
+          SERVICE="${{ steps.svc.outputs.name }}"
+          for i in 1 2 3 4 5; do
+            OUTPUT=$(npx @railway/cli@latest redeploy --service "$SERVICE" --yes 2>&1)
+            EXIT_CODE=$?
+            echo "$OUTPUT"
+            if [ $EXIT_CODE -eq 0 ]; then
+              echo "Redeploy triggered successfully"
+              break
+            elif echo "$OUTPUT" | grep -qi "currently building\|currently deploying\|cannot be redeployed"; then
+              echo "Service already deploying (attempt $i/5). Waiting 30s..."
+              sleep 30
+            else
+              echo "Unexpected redeploy error"
+              exit $EXIT_CODE
+            fi
+          done
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
           RAILWAY_PROJECT_ID: e48fdf5a-7857-4c69-a578-1ce8fa10d93e
