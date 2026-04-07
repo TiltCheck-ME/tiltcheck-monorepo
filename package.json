@@ -105,7 +105,7 @@
       "smol-toml": ">=1.6.1",
       "brace-expansion": ">=5.0.5",
       "tar": "^7.5.11",
-      "defu": ">=6.1.5",
+      "defu": "^6.1.5",
       "elliptic": "^6.6.1",
       "cross-spawn": "^7.0.5",
       "@tootallnate/once": "^3.0.1",
