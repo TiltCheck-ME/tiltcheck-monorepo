@@ -1,4 +1,4 @@
-/* Copyright (c) 2026 TiltCheck. All rights reserved. */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-07 */
 import { Keypair } from '@solana/web3.js';
 import { eventRouter } from '@tiltcheck/event-router';
 import { parseAmount } from '@tiltcheck/natural-language-parser';
@@ -386,17 +386,26 @@ class VaultManager {
     return records[0];
   }
 
-  private getLatestDualOwnerVaultForUser(userId: string): LockVaultRecord {
+  private getLatestDualOwnerVaultForUser(
+    userId: string,
+    requiredProposalState?: 'pending' | 'approved'
+  ): LockVaultRecord {
     const ids = this.byUser.get(userId);
     if (!ids || ids.size === 0) throw new Error('No vault found for user');
     const records = Array.from(ids)
       .map((id) => this.vaults.get(id))
       .filter((v): v is LockVaultRecord => {
         if (!v) return false;
-        return Boolean(v.secondOwnerId);
+        if (!v.secondOwnerId) return false;
+        if (!requiredProposalState) return true;
+        return v.withdrawalProposal?.status === requiredProposalState;
       })
       .sort((a, b) => b.createdAt - a.createdAt);
-    if (records.length === 0) throw new Error('No dual-owner vault found for user');
+    if (records.length === 0) {
+      if (requiredProposalState === 'pending') throw new Error('No pending withdrawal to approve.');
+      if (requiredProposalState === 'approved') throw new Error('Withdrawal must be approved before execution.');
+      throw new Error('No dual-owner vault found for user');
+    }
     return records[0];
   }
 
@@ -444,22 +453,30 @@ class VaultManager {
     return vault;
   }
 
-  approveWithdrawal(userId: string): LockVaultRecord {
-    const vault = this.getLatestDualOwnerVaultForUser(userId);
+  approveWithdrawal(ownerUserId: string, approverUserId: string): LockVaultRecord {
+    const vault = this.getLatestDualOwnerVaultForUser(ownerUserId, 'pending');
+    if (!vault.secondOwnerId) {
+      throw new Error('Vault does not have a second owner configured.');
+    }
+    if (approverUserId !== vault.secondOwnerId) {
+      throw new Error('Only the second owner can approve this withdrawal.');
+    }
+
     const proposal = vault.withdrawalProposal;
     if (!proposal || proposal.status !== 'pending') {
       throw new Error('No pending withdrawal to approve.');
     }
 
+    const nowTs = now();
     proposal.status = 'approved';
-    proposal.approvedAt = now();
-    vault.history.push({ ts: now(), action: 'withdrawal-approved', note: `secondOwner=${vault.secondOwnerId}` });
+    proposal.approvedAt = nowTs;
+    vault.history.push({ ts: nowTs, action: 'withdrawal-approved', note: `approvedBy=${approverUserId}` });
     this.schedulePersist();
     return vault;
   }
 
   executeWithdrawal(userId: string): LockVaultRecord {
-    const vault = this.getLatestDualOwnerVaultForUser(userId);
+    const vault = this.getLatestDualOwnerVaultForUser(userId, 'approved');
     const proposal = vault.withdrawalProposal;
     const nowTs = now();
 
@@ -669,8 +686,8 @@ export async function initiateWithdrawal(userId: string, amount: number) {
   return vaultManager.initiateWithdrawal(userId, amount);
 }
 
-export async function approveWithdrawal(userId: string) { 
-  return vaultManager.approveWithdrawal(userId);
+export async function approveWithdrawal(ownerUserId: string, approverUserId: string) { 
+  return vaultManager.approveWithdrawal(ownerUserId, approverUserId);
 }
 
 export async function executeWithdrawal(userId: string) { 

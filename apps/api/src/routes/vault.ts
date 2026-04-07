@@ -1,4 +1,4 @@
-/* Copyright (c) 2026 TiltCheck. All rights reserved. */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-07 */
 /**
  * Vault Routes - /vault/*
  * Handles general vault balance and timed locks.
@@ -372,7 +372,7 @@ router.post('/:userId/add-second-owner', authMiddleware, async (req, res) => {
  * Initiate a withdrawal from the vault
  */
 router.post('/:userId/initiate-withdrawal', authMiddleware, async (req, res) => {
-    const { userId } = req.params;
+    const userId = req.params.userId as string;
     const { amount } = req.body;
     const auth = (req as AuthRequest).user;
 
@@ -404,16 +404,16 @@ router.post('/:userId/initiate-withdrawal', authMiddleware, async (req, res) => 
  * Approve a withdrawal from the vault
  */
 router.post('/:userId/approve-withdrawal', authMiddleware, async (req, res) => {
-    const { userId } = req.params;
+    const userId = req.params.userId as string;
     const auth = (req as AuthRequest).user;
 
-    if (auth?.id !== userId) {
-        res.status(403).json({ error: 'Unauthorized' });
+    if (!auth?.id) {
+        res.status(401).json({ error: 'Unauthorized' });
         return;
     }
 
     try {
-        const record = await approveWithdrawal(userId);
+        const record = await approveWithdrawal(userId, auth.id);
         res.json({
             success: true,
             vault: record
@@ -429,7 +429,7 @@ router.post('/:userId/approve-withdrawal', authMiddleware, async (req, res) => {
  * Execute a withdrawal from the vault
  */
 router.post('/:userId/execute-withdrawal', authMiddleware, async (req, res) => {
-    const { userId } = req.params;
+    const userId = req.params.userId as string;
     const auth = (req as AuthRequest).user;
 
     if (auth?.id !== userId) {

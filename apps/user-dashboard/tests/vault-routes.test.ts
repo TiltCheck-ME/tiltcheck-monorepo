@@ -1,4 +1,4 @@
-/* Copyright (c) 2026 TiltCheck. All rights reserved. */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-07 */
 import request from 'supertest';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -86,6 +86,21 @@ describe('user-dashboard vault routes', () => {
     expect(res.body.locked).toBe(true);
     expect(res.body.amount).toBeCloseTo(2, 6);
     expect(Array.isArray(res.body.history)).toBe(true);
+  });
+
+  it('returns 403 for vault routes when discordId does not match authenticated user', async () => {
+    const { app } = await import('../src/index.js');
+    const [getRes, lockRes, unlockRes] = await Promise.all([
+      request(app).get('/api/user/u2/vault'),
+      request(app).post('/api/user/u2/vault/lock').send({ amountSol: 1.5, durationMs: 3600000 }),
+      request(app).post('/api/user/u2/vault/unlock').send({}),
+    ]);
+
+    expect(getRes.status).toBe(403);
+    expect(lockRes.status).toBe(403);
+    expect(unlockRes.status).toBe(403);
+    expect(lockvaultMock.lockVault).not.toHaveBeenCalled();
+    expect(lockvaultMock.unlockVault).not.toHaveBeenCalled();
   });
 
   it('locks vault through lockvault module', async () => {

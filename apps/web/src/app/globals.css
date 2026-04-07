@@ -1,8 +1,12 @@
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-07 */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
+  --font-geist-sans: "Satoshi", "Inter", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-geist-mono: "JetBrains Mono", "SFMono-Regular", Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  --font-mono: var(--font-geist-mono);
   /* === Premium Audit Palette (Teal / Obsidian / Gold) === */
   --color-primary: #17c3b2; 
   --color-primary-dark: #129d8f;

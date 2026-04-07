@@ -1,4 +1,4 @@
-// © 2024-2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-04
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-07
 import express from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
@@ -383,9 +383,19 @@ app.post('/api/agent/query', authenticateToken, async (req: DashboardRequest, re
 
 
 // === Vault Routes ===
+function ensureVaultUserMatch(req: DashboardRequest, res: Response): string | null {
+  const discordId = req.params.discordId as string;
+  if (!req.user || req.user.discordId !== discordId) {
+    res.status(403).json({ error: 'Forbidden' });
+    return null;
+  }
+  return discordId;
+}
+
 app.get('/api/user/:discordId/vault', authenticateToken, async (req: DashboardRequest, res) => {
   try {
-    const discordId = req.params.discordId as string;
+    const discordId = ensureVaultUserMatch(req, res);
+    if (!discordId) return;
     if (!db.isConnected()) {
       return res.json({ locked: false, amount: 0, history: [] });
     }
@@ -410,7 +420,8 @@ app.get('/api/user/:discordId/vault', authenticateToken, async (req: DashboardRe
 
 app.post('/api/user/:discordId/vault/lock', authenticateToken, async (req: DashboardRequest, res) => {
   try {
-    const discordId = req.params.discordId as string;
+    const discordId = ensureVaultUserMatch(req, res);
+    if (!discordId) return;
     const { amountSol, durationMs } = req.body;
 
     if (!amountSol || amountSol <= 0) return res.status(400).json({ error: 'Invalid amount' });
@@ -439,7 +450,8 @@ app.post('/api/user/:discordId/vault/lock', authenticateToken, async (req: Dashb
 
 app.post('/api/user/:discordId/vault/unlock', authenticateToken, async (req: DashboardRequest, res) => {
   try {
-    const discordId = req.params.discordId as string;
+    const discordId = ensureVaultUserMatch(req, res);
+    if (!discordId) return;
     const user = await findUserByDiscordId(discordId);
     if (!user) return res.status(404).json({ error: 'User not found' });
 
