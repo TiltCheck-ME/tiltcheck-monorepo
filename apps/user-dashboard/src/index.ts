@@ -24,6 +24,7 @@ interface DashboardRequest extends Request {
 }
 import { db, DegenIdentity } from '@tiltcheck/database';
 import { findUserByDiscordId, findOnboardingByDiscordId, upsertOnboarding, getUserBuddies, getPendingBuddyRequests, sendBuddyRequest } from '@tiltcheck/db';
+import { getVaultStatus, lockVault, unlockVault } from '@tiltcheck/lockvault';
 
 /**
  * Utility to convert agent content to string
@@ -392,8 +393,15 @@ app.get('/api/user/:discordId/vault', authenticateToken, async (req: DashboardRe
     const user = await findUserByDiscordId(discordId);
     if (!user) return res.status(404).json({ error: 'User not found' });
 
-    // getVaultStatus/getVaultHistory not yet implemented in DatabaseClient
-    res.json({ locked: false, amount: 0, history: [] });
+    const nowTs = Date.now();
+    const vaults = getVaultStatus(discordId);
+    const locked = vaults.some((v) => (v.status === 'locked' || v.status === 'extended') && v.unlockAt > nowTs);
+    const amount = vaults.reduce((sum, v) => sum + (v.lockedAmountSOL || 0), 0);
+    const history = vaults
+      .flatMap((v) => v.history.map((h) => ({ ...h, vaultId: v.id })))
+      .sort((a, b) => b.ts - a.ts);
+
+    res.json({ locked, amount, history });
   } catch (err) {
     console.error('[Vault GET]', err);
     res.json({ locked: false, amount: 0, history: [] });
@@ -411,14 +419,21 @@ app.post('/api/user/:discordId/vault/lock', authenticateToken, async (req: Dashb
     const user = await findUserByDiscordId(discordId);
     if (!user) return res.status(404).json({ error: 'User not found' });
 
-    const unlockAt = new Date(Date.now() + durationMs).toISOString();
-
-    // createVaultLock not yet implemented in DatabaseClient
+    const durationMinutes = Math.max(1, Math.trunc(Number(durationMs) / 60000));
+    const vault = await lockVault({
+      userId: discordId,
+      amountRaw: `${Number(amountSol)} SOL`,
+      durationRaw: `${durationMinutes}m`,
+      reason: 'Dashboard lock',
+      currencyHint: 'SOL',
+      disclaimerAccepted: true,
+    });
+    const unlockAt = new Date(vault.unlockAt).toISOString();
     broadcastToUser(discordId, { type: 'vault.locked', data: { amountSol, unlockAt } });
-    res.json({ success: true, unlockAt });
+    res.json({ success: true, unlockAt, vault });
   } catch (err) {
     console.error('[Vault LOCK]', err);
-    res.status(500).json({ error: 'Vault lock failed' });
+    res.status(400).json({ error: 'Vault lock failed' });
   }
 });
 
@@ -428,12 +443,21 @@ app.post('/api/user/:discordId/vault/unlock', authenticateToken, async (req: Das
     const user = await findUserByDiscordId(discordId);
     if (!user) return res.status(404).json({ error: 'User not found' });
 
-    // requestVaultUnlock not yet implemented in DatabaseClient
+    const nowTs = Date.now();
+    const vaults = getVaultStatus(discordId);
+    const releasable = vaults.find((v) => (v.status === 'locked' || v.status === 'extended') && nowTs >= v.unlockAt);
+    const alreadyUnlocked = vaults.find((v) => v.status === 'unlocked');
+
+    if (!releasable && !alreadyUnlocked) {
+      return res.status(400).json({ error: 'No vaults ready for release' });
+    }
+
+    const vault = releasable ? unlockVault(discordId, releasable.id) : alreadyUnlocked!;
     broadcastToUser(discordId, { type: 'vault.unlock_requested' });
-    res.json({ success: true });
+    res.json({ success: true, vault });
   } catch (err) {
     console.error('[Vault UNLOCK]', err);
-    res.status(500).json({ error: 'Unlock request failed' });
+    res.status(400).json({ error: 'Unlock request failed' });
   }
 });
 
