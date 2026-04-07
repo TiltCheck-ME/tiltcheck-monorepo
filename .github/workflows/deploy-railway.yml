@@ -85,10 +85,19 @@ jobs:
           - user-dashboard
           - activity
     steps:
+      - name: Resolve Railway service name
+        id: svc
+        run: |
+          case "${{ matrix.service }}" in
+            api)      echo "name=@tiltcheck/api" >> $GITHUB_OUTPUT ;;
+            activity) echo "name=@tiltcheck/activity" >> $GITHUB_OUTPUT ;;
+            *)        echo "name=${{ matrix.service }}" >> $GITHUB_OUTPUT ;;
+          esac
+
       - name: Redeploy ${{ matrix.service }} on Railway
         run: |
           npx @railway/cli@latest redeploy \
-            --service "${{ matrix.service }}" \
+            --service "${{ steps.svc.outputs.name }}" \
             --yes
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
