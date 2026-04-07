@@ -23,6 +23,7 @@ interface DashboardRequest extends Request {
     username: string;
     avatar: string | null;
   };
+  params: Record<string, string>;
 }
 import { db, DegenIdentity } from '@tiltcheck/database';
 import { findUserByDiscordId, findOnboardingByDiscordId, upsertOnboarding, getUserBuddies, getPendingBuddyRequests, sendBuddyRequest } from '@tiltcheck/db';
@@ -319,7 +320,8 @@ app.put('/api/user/:discordId/preferences', authenticateToken, async (req: Dashb
     const { notifyBonus, notifyJuice, showAnalytics, baseCurrency, riskLevel } = req.body;
 
     if (typeof upsertOnboarding === 'function') {
-      await upsertOnboarding(discordId, {
+      await upsertOnboarding({
+        discord_id: discordId,
         notifications_promos: notifyBonus,
         notifications_tips: notifyJuice,
         risk_level: riskLevel
