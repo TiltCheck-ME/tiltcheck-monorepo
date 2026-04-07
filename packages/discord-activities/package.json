@@ -16,8 +16,9 @@
     }
   },
   "dependencies": {
-    "@tiltcheck/types": "workspace:*",
+    "@tiltcheck/event-types": "workspace:*",
     "@tiltcheck/event-router": "workspace:*",
+    "@tiltcheck/types": "workspace:*",
     "discord.js": "^14.13.0",
     "uuid": "^9.0.0"
   },

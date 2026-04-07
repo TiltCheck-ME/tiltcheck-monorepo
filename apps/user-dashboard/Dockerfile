@@ -20,7 +20,7 @@ RUN pnpm install --frozen-lockfile --filter @tiltcheck/user-dashboard... --filte
 RUN pnpm --filter @tiltcheck/auth build
 RUN pnpm --filter @tiltcheck/user-dashboard... build
 # Prune to strictly production dependencies
-RUN pnpm prune --prod --no-optional
+RUN pnpm prune --prod
 
 # [PHASE 3] Production Runtime
 FROM node:20-slim

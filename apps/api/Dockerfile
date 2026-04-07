@@ -18,7 +18,7 @@ FROM base AS build
 COPY . .
 RUN pnpm install --frozen-lockfile --filter @tiltcheck/api...
 RUN pnpm --filter @tiltcheck/api... build
-RUN pnpm prune --prod --no-optional
+RUN pnpm prune --prod
 
 # [PHASE 3] Production Runtime
 FROM node:20-slim

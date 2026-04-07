@@ -17,6 +17,9 @@
     "@tiltcheck/types": "workspace:*",
     "uuid": "^13.0.0"
   },
+  "optionalDependencies": {
+    "@tiltcheck/ai-client": "workspace:*"
+  },
   "devDependencies": {
     "@types/uuid": "^11.0.0",
     "tsx": "^4.21.0",

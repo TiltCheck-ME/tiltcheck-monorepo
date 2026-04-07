@@ -19,6 +19,8 @@ COPY . .
 # Perform full workspace install for monorepo dependency resolution
 ENV CI=true
 RUN pnpm install --frozen-lockfile
+# Build shared package before Next.js requires its dist
+RUN pnpm --filter @tiltcheck/shared build
 # Next.js Build requires NODE_ENV=production to optimize bundles
 ENV NODE_ENV=production
 RUN pnpm --filter web build
