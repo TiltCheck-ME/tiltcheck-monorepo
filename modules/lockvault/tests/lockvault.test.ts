@@ -67,4 +67,44 @@ describe('LockVault Module', () => {
     expect(unlocked.status).toBe('unlocked');
     expect(countEvents('vault.unlocked')).toBe(1);
   });
+
+  it('adds second owner and stores it on latest vault', async () => {
+    await vaultManager.lock({ userId: 'u1', amountRaw: '3', durationRaw: '10m' });
+    const updated = vaultManager.addSecondOwner('u1', 'u2');
+    expect(updated.secondOwnerId).toBe('u2');
+  });
+
+  it('runs initiate -> approve -> execute withdrawal lifecycle for unlocked dual-owner vault', async () => {
+    const rec = await vaultManager.lock({ userId: 'u1', amountRaw: '3', durationRaw: '10m' });
+    vaultManager.addSecondOwner('u1', 'u2');
+    vi.advanceTimersByTime(10 * 60 * 1000);
+    vaultManager.unlock('u1', rec.id);
+
+    const initiated = vaultManager.initiateWithdrawal('u1', 1.25);
+    expect(initiated.withdrawalProposal?.status).toBe('pending');
+    expect(initiated.withdrawalProposal?.amountSOL).toBe(1.25);
+
+    const approved = vaultManager.approveWithdrawal('u1');
+    expect(approved.withdrawalProposal?.status).toBe('approved');
+
+    const executed = vaultManager.executeWithdrawal('u1');
+    expect(executed.withdrawalProposal).toBeUndefined();
+    expect(executed.lockedAmountSOL).toBeCloseTo(1.75, 6);
+  });
+
+  it('rejects withdrawal initiation when second owner is missing', async () => {
+    const rec = await vaultManager.lock({ userId: 'u1', amountRaw: '3', durationRaw: '10m' });
+    vi.advanceTimersByTime(10 * 60 * 1000);
+    vaultManager.unlock('u1', rec.id);
+    expect(() => vaultManager.initiateWithdrawal('u1', 1)).toThrow(/No dual-owner vault/);
+  });
+
+  it('rejects execution before approval', async () => {
+    const rec = await vaultManager.lock({ userId: 'u1', amountRaw: '3', durationRaw: '10m' });
+    vaultManager.addSecondOwner('u1', 'u2');
+    vi.advanceTimersByTime(10 * 60 * 1000);
+    vaultManager.unlock('u1', rec.id);
+    vaultManager.initiateWithdrawal('u1', 1);
+    expect(() => vaultManager.executeWithdrawal('u1')).toThrow(/approved/);
+  });
 });
