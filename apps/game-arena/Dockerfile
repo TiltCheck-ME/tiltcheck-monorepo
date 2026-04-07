@@ -19,6 +19,7 @@ COPY . .
 # Install only the game-arena dependency subgraph
 RUN pnpm install --frozen-lockfile --filter @tiltcheck/game-arena...
 RUN pnpm --filter @tiltcheck/game-arena... build
+RUN test -f apps/game-arena/dist/index.js || (echo 'BUILD ERROR: apps/game-arena/dist/index.js not produced' && exit 1)
 # Prune for production
 
 # [PHASE 3] Production Runtime

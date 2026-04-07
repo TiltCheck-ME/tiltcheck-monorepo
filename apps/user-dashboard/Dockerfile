@@ -19,6 +19,7 @@ COPY . .
 RUN pnpm install --frozen-lockfile --filter @tiltcheck/user-dashboard... --filter @tiltcheck/auth
 RUN pnpm --filter @tiltcheck/auth build
 RUN pnpm --filter @tiltcheck/user-dashboard... build
+RUN test -f apps/user-dashboard/dist/index.js || (echo 'BUILD ERROR: apps/user-dashboard/dist/index.js not produced' && exit 1)
 
 # [PHASE 3] Production Runtime
 FROM node:20-slim
