@@ -9,6 +9,7 @@ on:
       - 'apps/**'
       - 'packages/**'
       - 'modules/**'
+      - '.github/workflows/deploy-railway.yml'
   workflow_dispatch:
 
 permissions:
