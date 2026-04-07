@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All rights reserved. */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-07 */
 import type { Metadata } from "next";
 import "./globals.css";
 // import "@rainbow-me/rainbowkit/styles.css";
