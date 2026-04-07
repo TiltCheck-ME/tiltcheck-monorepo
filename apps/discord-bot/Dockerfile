@@ -19,6 +19,7 @@ COPY . .
 # Install only the bot's dependency subgraph
 RUN pnpm install --frozen-lockfile --filter @tiltcheck/discord-bot...
 RUN pnpm --filter @tiltcheck/discord-bot... build
+RUN test -f apps/discord-bot/dist/index.js || (echo 'BUILD ERROR: apps/discord-bot/dist/index.js not produced' && exit 1)
 # Prune for production
 
 # [PHASE 3] Production Runtime

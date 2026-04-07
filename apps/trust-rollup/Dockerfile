@@ -19,6 +19,7 @@ COPY . .
 # Install only the trust-rollup dependency subgraph
 RUN pnpm install --frozen-lockfile --filter @tiltcheck/trust-rollup...
 RUN pnpm --filter @tiltcheck/trust-rollup... build
+RUN test -f apps/trust-rollup/dist/index.js || (echo 'BUILD ERROR: apps/trust-rollup/dist/index.js not produced' && exit 1)
 # Prune for production
 
 # [PHASE 3] Production Runtime

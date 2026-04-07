@@ -18,6 +18,7 @@ FROM base AS build
 COPY . .
 RUN pnpm install --frozen-lockfile --filter @tiltcheck/api...
 RUN pnpm --filter @tiltcheck/api... build
+RUN test -f apps/api/dist/index.js || (echo 'BUILD ERROR: apps/api/dist/index.js not produced' && exit 1)
 
 # [PHASE 3] Production Runtime
 FROM node:20-slim
