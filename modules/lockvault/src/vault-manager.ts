@@ -86,6 +86,14 @@ export interface LockVaultRecord {
   extendedCount: number;
   vaultSecret?: string; // AES-256-GCM encrypted for disposable vaults
   autoWithdraw?: boolean; // If true, auto-send to user's wallet on timer expiry
+  secondOwnerId?: string;
+  withdrawalProposal?: {
+    amountSOL: number;
+    initiatedBy: string;
+    initiatedAt: number;
+    approvedAt?: number;
+    status: 'pending' | 'approved';
+  };
 }
 
 export interface AutoVaultSettings {
@@ -367,6 +375,114 @@ class VaultManager {
     return this.generalBalances.get(userId) || 0;
   }
 
+  private getLatestVaultForUser(userId: string): LockVaultRecord {
+    const ids = this.byUser.get(userId);
+    if (!ids || ids.size === 0) throw new Error('No vault found for user');
+    const records = Array.from(ids)
+      .map((id) => this.vaults.get(id))
+      .filter((v): v is LockVaultRecord => Boolean(v))
+      .sort((a, b) => b.createdAt - a.createdAt);
+    if (records.length === 0) throw new Error('No vault found for user');
+    return records[0];
+  }
+
+  private getLatestDualOwnerVaultForUser(userId: string): LockVaultRecord {
+    const ids = this.byUser.get(userId);
+    if (!ids || ids.size === 0) throw new Error('No vault found for user');
+    const records = Array.from(ids)
+      .map((id) => this.vaults.get(id))
+      .filter((v): v is LockVaultRecord => Boolean(v) && Boolean(v.secondOwnerId))
+      .sort((a, b) => b.createdAt - a.createdAt);
+    if (records.length === 0) throw new Error('No dual-owner vault found for user');
+    return records[0];
+  }
+
+  addSecondOwner(userId: string, secondOwnerId: string): LockVaultRecord {
+    const normalizedSecondOwner = secondOwnerId.trim();
+    if (!normalizedSecondOwner) throw new Error('secondOwnerId is required');
+    if (normalizedSecondOwner === userId) throw new Error('secondOwnerId must be different from userId');
+
+    const vault = this.getLatestVaultForUser(userId);
+    vault.secondOwnerId = normalizedSecondOwner;
+    vault.history.push({ ts: now(), action: 'second-owner-added', note: normalizedSecondOwner });
+    this.schedulePersist();
+    return vault;
+  }
+
+  initiateWithdrawal(userId: string, amount: number): LockVaultRecord {
+    if (!Number.isFinite(amount) || amount <= 0) {
+      throw new Error('Withdrawal amount must be a positive finite number.');
+    }
+
+    const vault = this.getLatestDualOwnerVaultForUser(userId);
+    const nowTs = now();
+    if ((vault.status === 'locked' || vault.status === 'extended') && nowTs >= vault.unlockAt) {
+      vault.status = 'unlocked';
+      vault.history.push({ ts: nowTs, action: 'auto-unlocked', note: 'Timer expired during withdrawal initiation' });
+    }
+    if (vault.status !== 'unlocked') {
+      throw new Error('Vault must be unlocked before initiating withdrawal.');
+    }
+    if (amount > vault.lockedAmountSOL) {
+      throw new Error('Withdrawal amount exceeds locked balance.');
+    }
+    if (vault.withdrawalProposal && (vault.withdrawalProposal.status === 'pending' || vault.withdrawalProposal.status === 'approved')) {
+      throw new Error('A withdrawal is already in progress.');
+    }
+
+    vault.withdrawalProposal = {
+      amountSOL: amount,
+      initiatedBy: userId,
+      initiatedAt: nowTs,
+      status: 'pending',
+    };
+    vault.history.push({ ts: nowTs, action: 'withdrawal-initiated', note: `${amount} SOL` });
+    this.schedulePersist();
+    return vault;
+  }
+
+  approveWithdrawal(userId: string): LockVaultRecord {
+    const vault = this.getLatestDualOwnerVaultForUser(userId);
+    const proposal = vault.withdrawalProposal;
+    if (!proposal || proposal.status !== 'pending') {
+      throw new Error('No pending withdrawal to approve.');
+    }
+
+    proposal.status = 'approved';
+    proposal.approvedAt = now();
+    vault.history.push({ ts: now(), action: 'withdrawal-approved', note: `secondOwner=${vault.secondOwnerId}` });
+    this.schedulePersist();
+    return vault;
+  }
+
+  executeWithdrawal(userId: string): LockVaultRecord {
+    const vault = this.getLatestDualOwnerVaultForUser(userId);
+    const proposal = vault.withdrawalProposal;
+    const nowTs = now();
+
+    if ((vault.status === 'locked' || vault.status === 'extended') && nowTs >= vault.unlockAt) {
+      vault.status = 'unlocked';
+      vault.history.push({ ts: nowTs, action: 'auto-unlocked', note: 'Timer expired during withdrawal execution' });
+    }
+    if (vault.status !== 'unlocked') {
+      throw new Error('Vault must be unlocked before executing withdrawal.');
+    }
+
+    if (!proposal || proposal.status !== 'approved') {
+      throw new Error('Withdrawal must be approved before execution.');
+    }
+
+    if (proposal.amountSOL > vault.lockedAmountSOL) {
+      throw new Error('Withdrawal amount exceeds available vault balance.');
+    }
+
+    vault.lockedAmountSOL = Math.max(0, vault.lockedAmountSOL - proposal.amountSOL);
+    vault.history.push({ ts: nowTs, action: 'withdrawal-executed', note: `${proposal.amountSOL} SOL` });
+    delete vault.withdrawalProposal;
+    this.schedulePersist();
+    return vault;
+  }
+
   clearAll(): void { // test helper
     this.vaults.clear(); this.byUser.clear(); this.autoVaults.clear(); this.reloadSchedules.clear(); this.generalBalances.clear(); this.walletActionLocks.clear();
   }
@@ -543,36 +659,19 @@ export function startLockVaultBackgroundTasks() { return vaultManager.startBackg
 export function stopLockVaultBackgroundTasks() { return vaultManager.stopBackgroundTasks(); }
 export function depositToVault(userId: string, amount: number) { return vaultManager.deposit(userId, amount); }
 export async function addSecondOwner(userId: string, secondOwnerId: string) { 
-  // Multi-signature vault feature - requires proper key management implementation
-  // For now, return a structured error that API routes can use
-  const error = new Error('Multi-signature vault features are not yet implemented');
-  (error as any).code = 'FEATURE_NOT_IMPLEMENTED';
-  (error as any).httpStatus = 501;
-  throw error;
+  return vaultManager.addSecondOwner(userId, secondOwnerId);
 }
 
-export async function initiateWithdrawal(userId: string, _amount: number) { 
-  // Multi-signature withdrawal requires key rotation and approval flow
-  const error = new Error('Multi-signature withdrawal is not yet implemented');
-  (error as any).code = 'FEATURE_NOT_IMPLEMENTED';
-  (error as any).httpStatus = 501;
-  throw error;
+export async function initiateWithdrawal(userId: string, amount: number) { 
+  return vaultManager.initiateWithdrawal(userId, amount);
 }
 
 export async function approveWithdrawal(userId: string) { 
-  // Second owner approval step - requires key management
-  const error = new Error('Multi-signature withdrawal approval is not yet implemented');
-  (error as any).code = 'FEATURE_NOT_IMPLEMENTED';
-  (error as any).httpStatus = 501;
-  throw error;
+  return vaultManager.approveWithdrawal(userId);
 }
 
 export async function executeWithdrawal(userId: string) { 
-  // Final execution with accumulated signatures
-  const error = new Error('Multi-signature withdrawal execution is not yet implemented');
-  (error as any).code = 'FEATURE_NOT_IMPLEMENTED';
-  (error as any).httpStatus = 501;
-  throw error;
+  return vaultManager.executeWithdrawal(userId);
 }
 export function getVaultBalance(userId: string) { return vaultManager.getBalance(userId); }
 export function setWalletActionLockForUser(userId: string, durationMs: number, reason?: string) { return vaultManager.setWalletActionLock(userId, durationMs, reason); }
