@@ -1,21 +1,8 @@
 /* © 2024–2026 TiltCheck Ecosystem. All rights reserved. */
 import type { Metadata } from "next";
-import { Space_Grotesk, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 // import "@rainbow-me/rainbowkit/styles.css";
 import { RootProvider } from "@/lib/providers";
-
-const spaceGrotesk = Space_Grotesk({
-  subsets: ["latin"],
-  variable: "--font-display",
-  weight: ["700"],
-});
-
-const jetbrainsMono = JetBrains_Mono({
-  subsets: ["latin"],
-  variable: "--font-mono",
-  weight: ["400", "700"],
-});
 
 
 export const metadata: Metadata = {
@@ -52,11 +39,8 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <head>
-        <link href="https://api.fontshare.com/v2/css?f[]=satoshi@700,500,400&display=swap" rel="stylesheet" />
-      </head>
       <body
-        className={`${spaceGrotesk.variable} ${jetbrainsMono.variable} degen-background antialiased`}
+        className="degen-background antialiased"
       >
         <RootProvider>
           <AriaSlangProvider />
