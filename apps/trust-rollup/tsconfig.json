@@ -6,9 +6,7 @@
     "incremental": true
   },
   "include": [
-    "src",
-    "../../modules/tiltcheck-core/src",
-    "../../packages/utils/src"
+    "src"
   ],
   "references": [
     {
