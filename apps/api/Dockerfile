@@ -20,7 +20,7 @@ RUN pnpm install --frozen-lockfile --filter @tiltcheck/api...
 RUN pnpm --filter @tiltcheck/api... build
 RUN test -f apps/api/dist/index.js || (echo 'BUILD ERROR: apps/api/dist/index.js not produced' && exit 1)
 # Create self-contained deploy with real copies of workspace packages (no symlinks)
-RUN pnpm --filter @tiltcheck/api deploy /prod
+RUN pnpm --filter @tiltcheck/api deploy --legacy /prod
 
 # [PHASE 3] Production Runtime
 FROM node:20-slim
