@@ -104,12 +104,15 @@ jobs:
             if [ $EXIT_CODE -eq 0 ]; then
               echo "Redeploy triggered successfully"
               break
-            elif echo "$OUTPUT" | grep -qi "currently building\|currently deploying\|cannot be redeployed"; then
-              echo "Service already deploying (attempt $i/5). Waiting 30s..."
-              sleep 30
             else
-              echo "Unexpected redeploy error"
-              exit $EXIT_CODE
+              echo "Redeploy failed (exit code: $EXIT_CODE, attempt $i/5)"
+              if [ $i -lt 5 ]; then
+                echo "Retrying in 30s..."
+                sleep 30
+              else
+                echo "Max retries reached."
+                exit $EXIT_CODE
+              fi
             fi
           done
         env:
