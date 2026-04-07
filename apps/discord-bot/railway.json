@@ -1,10 +1,7 @@
 {
+  "_comment": "© 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-07",
   "$schema": "https://railway.app/railway-schema.json",
   "projectId": "e48fdf5a-7857-4c69-a578-1ce8fa10d93e",
-  "build": {
-    "builder": "DOCKERFILE",
-    "dockerfilePath": "apps/discord-bot/Dockerfile"
-  },
   "deploy": {
     "restartPolicyType": "ON_FAILURE",
     "restartPolicyMaxRetries": 3

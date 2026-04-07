@@ -1,4 +1,4 @@
-# © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-06
+# © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-07
 name: Deploy Services to Railway
 
 on:
@@ -14,6 +14,16 @@ on:
 permissions:
   contents: read
   packages: write
+
+# Architecture: GitHub Actions builds images and pushes to GHCR with repo-root
+# build context (context: .). Railway services must be configured in the Railway
+# dashboard to use "Docker Image" source pointing to the GHCR image for each
+# service (ghcr.io/tiltcheck-me/tiltcheck-<service>:latest). Once configured,
+# the redeploy step below triggers Railway to pull the new image and deploy.
+#
+# DO NOT use "railway up" here — it triggers Railway's own builder which uses
+# the service subdirectory as build context and cannot find root-level monorepo
+# files (pnpm-lock.yaml, pnpm-workspace.yaml, etc.).
 
 jobs:
   build-and-push:
@@ -58,7 +68,7 @@ jobs:
           tags: ghcr.io/${{ steps.vars.outputs.owner }}/tiltcheck-${{ matrix.service }}:latest
 
   deploy:
-    name: Deploy to Railway
+    name: Trigger Railway Redeploy
     runs-on: ubuntu-latest
     needs: build-and-push
     strategy:
@@ -74,11 +84,12 @@ jobs:
           - user-dashboard
           - activity
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Deploy ${{ matrix.service }} to Railway
-        run: npx @railway/cli@latest up --service ${{ matrix.service }} --environment production --detach
+      - name: Redeploy ${{ matrix.service }} on Railway
+        run: |
+          npx @railway/cli@latest redeploy \
+            --service "${{ matrix.service }}" \
+            --environment production \
+            --yes
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
           RAILWAY_PROJECT_ID: e48fdf5a-7857-4c69-a578-1ce8fa10d93e
