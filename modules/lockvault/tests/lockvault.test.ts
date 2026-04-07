@@ -1,4 +1,4 @@
-/* Copyright (c) 2026 TiltCheck. All rights reserved. */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-07 */
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { vaultManager } from '../src/vault-manager.js';
 import { eventRouter } from '@tiltcheck/event-router';
@@ -84,12 +84,21 @@ describe('LockVault Module', () => {
     expect(initiated.withdrawalProposal?.status).toBe('pending');
     expect(initiated.withdrawalProposal?.amountSOL).toBe(1.25);
 
-    const approved = vaultManager.approveWithdrawal('u1');
+    const approved = vaultManager.approveWithdrawal('u1', 'u2');
     expect(approved.withdrawalProposal?.status).toBe('approved');
 
     const executed = vaultManager.executeWithdrawal('u1');
     expect(executed.withdrawalProposal).toBeUndefined();
     expect(executed.lockedAmountSOL).toBeCloseTo(1.75, 6);
+  });
+
+  it('rejects approval from non-second-owner account', async () => {
+    const rec = await vaultManager.lock({ userId: 'u1', amountRaw: '3', durationRaw: '10m', disclaimerAccepted: true });
+    vaultManager.addSecondOwner('u1', 'u2');
+    vi.advanceTimersByTime(10 * 60 * 1000);
+    vaultManager.unlock('u1', rec.id);
+    vaultManager.initiateWithdrawal('u1', 1);
+    expect(() => vaultManager.approveWithdrawal('u1', 'u1')).toThrow(/Only the second owner/);
   });
 
   it('rejects withdrawal initiation when second owner is missing', async () => {

@@ -1,4 +1,4 @@
-/* Copyright (c) 2026 TiltCheck. All rights reserved. */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-07 */
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import request from 'supertest';
 import express from 'express';
@@ -188,10 +188,12 @@ describe('Vault Routes', () => {
     expect(initRes.status).toBe(200);
     expect(lockvaultMock.initiateWithdrawal).toHaveBeenCalledWith('user-1', 0.75);
 
+    mockUserId = 'user-2';
     const approveRes = await request(app).post('/vault/user-1/approve-withdrawal').send({});
     expect(approveRes.status).toBe(200);
-    expect(lockvaultMock.approveWithdrawal).toHaveBeenCalledWith('user-1');
+    expect(lockvaultMock.approveWithdrawal).toHaveBeenCalledWith('user-1', 'user-2');
 
+    mockUserId = 'user-1';
     const executeRes = await request(app).post('/vault/user-1/execute-withdrawal').send({});
     expect(executeRes.status).toBe(200);
     expect(lockvaultMock.executeWithdrawal).toHaveBeenCalledWith('user-1');
