@@ -6,13 +6,15 @@ import { db } from '@tiltcheck/database';
 import type { Session } from '@google/adk';
 
 const MOCK_DISCORD_ID = '123456789';
+const runLiveLlmTests = process.env.ENABLE_LIVE_LLM_TESTS === 'true';
+const liveIt = runLiveLlmTests ? it : it.skip;
 
 describe('Degen Intelligence Agent', () => {
   let session: Session;
 
   beforeAll(async () => {
     // Create a session from the service before tests run
-    session = await runner.sessionService.createSession({ appName: 'test', sessionId: 'test-session', userId: 'test-user' });
+    session = await runner.sessionService.createSession({ appName: 'TiltCheck Intelligence', sessionId: 'test-session', userId: 'test-user' });
 
     // Mock the database connection and methods for testing
     db.connect = async () => Promise.resolve();
@@ -99,7 +101,7 @@ describe('Degen Intelligence Agent', () => {
     await db.connect();
   });
 
-  it('should get full stats for a user', async () => {
+  liveIt('should get full stats for a user', async () => {
     const prompt = `What are the full stats for user ${MOCK_DISCORD_ID}?`;
     const events: any[] = [];
     for await (const event of runner.runAsync({
@@ -118,7 +120,7 @@ describe('Degen Intelligence Agent', () => {
     expect(response.content).toContain('wagered');
   }, 30000);
 
-  it('should explain trust standing', async () => {
+  liveIt('should explain trust standing', async () => {
     const prompt = `Is user ${MOCK_DISCORD_ID} tilted? Explain their trust standing.`;
     const events: any[] = [];
     for await (const event of runner.runAsync({
@@ -137,7 +139,7 @@ describe('Degen Intelligence Agent', () => {
     expect(response.content).toContain('Stable');
   }, 30000);
 
-  it('should get bonus status', async () => {
+  liveIt('should get bonus status', async () => {
     const prompt = `Can user ${MOCK_DISCORD_ID} claim any bonuses right now?`;
     const events: any[] = [];
     for await (const event of runner.runAsync({
@@ -156,7 +158,7 @@ describe('Degen Intelligence Agent', () => {
     expect(response.content).toContain('READY');
   }, 30000);
   
-  it('should get profit and loss', async () => {
+  liveIt('should get profit and loss', async () => {
     const prompt = `What's my profit and loss? My discord id is ${MOCK_DISCORD_ID}.`;
     const events: any[] = [];
     for await (const event of runner.runAsync({
