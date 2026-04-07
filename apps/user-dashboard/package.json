@@ -18,6 +18,7 @@
     "@tiltcheck/database": "workspace:*",
     "@tiltcheck/db": "workspace:*",
     "@tiltcheck/event-router": "workspace:*",
+    "@tiltcheck/lockvault": "workspace:*",
     "@tiltcheck/types": "workspace:*",
     "bs58": "^6.0.0",
     "cookie-parser": "^1.4.7",
