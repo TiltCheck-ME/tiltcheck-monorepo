@@ -611,11 +611,12 @@ wss.on('connection', (socket: WebSocket) => {
     try {
       const msg = JSON.parse(raw.toString());
       if (msg.type === 'auth' && typeof msg.discordId === 'string') {
-        connectedDiscordId = msg.discordId;
-        if (!userConnections.has(connectedDiscordId)) {
-          userConnections.set(connectedDiscordId, new Set());
+        const discordId = msg.discordId;
+        connectedDiscordId = discordId;
+        if (!userConnections.has(discordId)) {
+          userConnections.set(discordId, new Set());
         }
-        userConnections.get(connectedDiscordId)!.add(socket);
+        userConnections.get(discordId)!.add(socket);
       }
     } catch (_) { /* ignore malformed messages */ }
   });

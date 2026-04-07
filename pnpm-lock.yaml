@@ -541,6 +541,9 @@ importers:
       '@tiltcheck/event-router':
         specifier: workspace:*
         version: link:../../packages/event-router
+      '@tiltcheck/lockvault':
+        specifier: workspace:*
+        version: link:../../modules/lockvault
       '@tiltcheck/types':
         specifier: workspace:*
         version: link:../../packages/types
