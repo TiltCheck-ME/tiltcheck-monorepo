@@ -1,4 +1,4 @@
-/* Copyright (c) 2026 TiltCheck. All rights reserved. */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-07 */
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import request from 'supertest';
 import express from 'express';
@@ -22,6 +22,10 @@ const lockvaultMock = vi.hoisted(() => ({
   setWalletActionLockForUser: vi.fn(),
   clearWalletActionLockForUser: vi.fn(),
   getWalletActionLockStatus: vi.fn(),
+  addSecondOwner: vi.fn(),
+  initiateWithdrawal: vi.fn(),
+  approveWithdrawal: vi.fn(),
+  executeWithdrawal: vi.fn(),
 }));
 
 vi.mock('@tiltcheck/lockvault', () => lockvaultMock);
@@ -42,6 +46,10 @@ describe('Vault Routes', () => {
     lockvaultMock.lockVault.mockResolvedValue({ id: 'v1' });
     lockvaultMock.unlockVault.mockReturnValue({ id: 'v1', lockedAmountSOL: 1.23 });
     lockvaultMock.getWalletActionLockStatus.mockReturnValue({ locked: false });
+    lockvaultMock.addSecondOwner.mockResolvedValue({ id: 'v1', secondOwnerId: 'user-2' });
+    lockvaultMock.initiateWithdrawal.mockResolvedValue({ id: 'v1', withdrawalProposal: { status: 'pending' } });
+    lockvaultMock.approveWithdrawal.mockResolvedValue({ id: 'v1', withdrawalProposal: { status: 'approved' } });
+    lockvaultMock.executeWithdrawal.mockResolvedValue({ id: 'v1', lockedAmountSOL: 0.5 });
   });
 
   it('returns 403 for cross-user access', async () => {
@@ -157,5 +165,37 @@ describe('Vault Routes', () => {
     const clearRes = await request(app).post('/vault/user-1/wallet-unlock').send({});
     expect(clearRes.status).toBe(200);
     expect(lockvaultMock.clearWalletActionLockForUser).toHaveBeenCalledWith('user-1');
+  });
+
+  it('adds a second owner for an authenticated user', async () => {
+    const res = await request(app).post('/vault/user-1/add-second-owner').send({ secondOwnerId: 'user-2' });
+    expect(res.status).toBe(200);
+    expect(lockvaultMock.addSecondOwner).toHaveBeenCalledWith('user-1', 'user-2');
+  });
+
+  it('returns 501 when second-owner feature is flagged as not implemented', async () => {
+    const err = new Error('not implemented') as Error & { code?: string; httpStatus?: number };
+    err.code = 'FEATURE_NOT_IMPLEMENTED';
+    err.httpStatus = 501;
+    lockvaultMock.addSecondOwner.mockRejectedValueOnce(err);
+    const res = await request(app).post('/vault/user-1/add-second-owner').send({ secondOwnerId: 'user-2' });
+    expect(res.status).toBe(501);
+    expect(res.body.code).toBe('FEATURE_NOT_IMPLEMENTED');
+  });
+
+  it('initiates, approves, and executes withdrawal lifecycle', async () => {
+    const initRes = await request(app).post('/vault/user-1/initiate-withdrawal').send({ amount: 0.75 });
+    expect(initRes.status).toBe(200);
+    expect(lockvaultMock.initiateWithdrawal).toHaveBeenCalledWith('user-1', 0.75);
+
+    mockUserId = 'user-2';
+    const approveRes = await request(app).post('/vault/user-1/approve-withdrawal').send({});
+    expect(approveRes.status).toBe(200);
+    expect(lockvaultMock.approveWithdrawal).toHaveBeenCalledWith('user-1', 'user-2');
+
+    mockUserId = 'user-1';
+    const executeRes = await request(app).post('/vault/user-1/execute-withdrawal').send({});
+    expect(executeRes.status).toBe(200);
+    expect(lockvaultMock.executeWithdrawal).toHaveBeenCalledWith('user-1');
   });
 });

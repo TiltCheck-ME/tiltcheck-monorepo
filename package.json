@@ -17,7 +17,7 @@
     "discord:setup": "pnpm --filter @tiltcheck/discord-bot run deploy:commands",
     "build": "pnpm -r build",
     "build:legacy": "pnpm -r --workspace-concurrency=1 build",
-    "test": "vitest --run",
+    "test": "pnpm --filter @tiltcheck/database build && vitest --run",
     "test:watch": "vitest",
     "test:all": "pnpm --recursive test",
     "coverage": "vitest run --coverage",
