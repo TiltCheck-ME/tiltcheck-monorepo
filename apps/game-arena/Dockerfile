@@ -20,21 +20,16 @@ COPY . .
 RUN pnpm install --frozen-lockfile --filter @tiltcheck/game-arena...
 RUN pnpm --filter @tiltcheck/game-arena... build
 RUN test -f apps/game-arena/dist/server.js || (echo 'BUILD ERROR: apps/game-arena/dist/server.js not produced' && exit 1)
-# Prune for production
+# Create self-contained deploy with real copies of workspace packages (no symlinks)
+RUN pnpm --filter @tiltcheck/game-arena deploy /prod
 
 # [PHASE 3] Production Runtime
 FROM node:20-slim
 WORKDIR /app
-# Game Arena needs dumb-init for healthy WebSocket disconnect handling
 RUN apt-get update && apt-get install -y dumb-init && rm -rf /var/lib/apt/lists/*
 ENTRYPOINT ["/usr/bin/dumb-init", "--"]
 
-# Copy only the compiled artifacts and minimal node_modules
-COPY --from=build /app/apps/game-arena/dist ./apps/game-arena/dist
-COPY --from=build /app/node_modules ./node_modules
-COPY --from=build /app/apps/game-arena/package.json ./apps/game-arena/package.json
-COPY --from=build /app/package.json ./package.json
+COPY --from=build /prod .
 
 EXPOSE 8080
-# Use the correct server entry point from package.json
-CMD ["node", "apps/game-arena/dist/server.js"]
+CMD ["node", "dist/server.js"]

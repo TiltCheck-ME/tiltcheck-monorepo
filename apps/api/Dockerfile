@@ -19,6 +19,8 @@ COPY . .
 RUN pnpm install --frozen-lockfile --filter @tiltcheck/api...
 RUN pnpm --filter @tiltcheck/api... build
 RUN test -f apps/api/dist/index.js || (echo 'BUILD ERROR: apps/api/dist/index.js not produced' && exit 1)
+# Create self-contained deploy with real copies of workspace packages (no symlinks)
+RUN pnpm --filter @tiltcheck/api deploy /prod
 
 # [PHASE 3] Production Runtime
 FROM node:20-slim
@@ -26,10 +28,7 @@ WORKDIR /app
 RUN apt-get update && apt-get install -y dumb-init openssl && rm -rf /var/lib/apt/lists/*
 ENTRYPOINT ["/usr/bin/dumb-init", "--"]
 
-COPY --from=build /app/apps/api/dist ./apps/api/dist
-COPY --from=build /app/node_modules ./node_modules
-COPY --from=build /app/apps/api/package.json ./apps/api/package.json
-COPY --from=build /app/package.json ./package.json
+COPY --from=build /prod .
 
 EXPOSE 3001
-CMD ["node", "apps/api/dist/index.js"]
+CMD ["node", "dist/index.js"]
