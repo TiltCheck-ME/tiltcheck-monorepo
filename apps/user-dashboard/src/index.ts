@@ -6,7 +6,9 @@ import { createServer } from 'http';
 import { WebSocketServer, WebSocket } from 'ws';
 import { 
   verifySessionCookie, 
+  getCookieConfig,
   type JWTConfig,
+  type SessionData
 } from '@tiltcheck/auth';
 import rateLimit from 'express-rate-limit';
 import { Magic } from '@magic-sdk/admin';
@@ -24,7 +26,6 @@ interface DashboardRequest extends Request {
 }
 import { db, DegenIdentity } from '@tiltcheck/database';
 import { findUserByDiscordId, findOnboardingByDiscordId, upsertOnboarding, getUserBuddies, getPendingBuddyRequests, sendBuddyRequest } from '@tiltcheck/db';
-import { getVaultStatus, lockVault, unlockVault } from '@tiltcheck/lockvault';
 
 /**
  * Utility to convert agent content to string
@@ -204,7 +205,7 @@ async function getUserData(discordId: string): Promise<UserData | null> {
     return {
       discordId: user.discord_id!,
       username: user.discord_username || 'Unknown',
-      avatar: user.discord_avatar ?? '',
+      avatar: user.discord_avatar || '',
       trustScore: dbIdentity?.trust_score ?? 75,
       tiltLevel: 0,
       analytics: {
@@ -288,9 +289,20 @@ app.get('/api/user/:discordId/trust', authenticateToken, trustLimiter, async (re
 
 app.get('/api/user/:discordId/activity', authenticateToken, async (req: DashboardRequest, res) => {
   try {
+    const discordId = req.params.discordId;
     const activities: { type: string; description: string; timestamp: number }[] = [];
 
-    // Trust signals not yet implemented in DatabaseClient; activity list stays empty
+    if (db.isConnected()) {
+      // Fetch recent trust signals
+      const signals = await db.getRecentTrustSignals(discordId, 20).catch(() => []);
+      for (const s of signals) {
+        activities.push({
+          type: s.signal_type || 'event',
+          description: s.metadata?.description || `Trust signal: ${s.signal_type}`,
+          timestamp: new Date(s.created_at).getTime()
+        });
+      }
+    }
 
     // Sort newest first
     activities.sort((a, b) => b.timestamp - a.timestamp);
@@ -303,12 +315,11 @@ app.get('/api/user/:discordId/activity', authenticateToken, async (req: Dashboar
 
 app.put('/api/user/:discordId/preferences', authenticateToken, async (req: DashboardRequest, res) => {
   try {
-    const discordId = req.params.discordId as string;
-    const { notifyBonus, notifyJuice, showAnalytics: _showAnalytics, baseCurrency: _baseCurrency, riskLevel } = req.body;
+    const discordId = req.params.discordId;
+    const { notifyBonus, notifyJuice, showAnalytics, baseCurrency, riskLevel } = req.body;
 
     if (typeof upsertOnboarding === 'function') {
-      await upsertOnboarding({
-        discord_id: discordId,
+      await upsertOnboarding(discordId, {
         notifications_promos: notifyBonus,
         notifications_tips: notifyJuice,
         risk_level: riskLevel
@@ -383,19 +394,9 @@ app.post('/api/agent/query', authenticateToken, async (req: DashboardRequest, re
 
 
 // === Vault Routes ===
-function ensureVaultUserMatch(req: DashboardRequest, res: Response): string | null {
-  const discordId = req.params.discordId as string;
-  if (!req.user || req.user.discordId !== discordId) {
-    res.status(403).json({ error: 'Forbidden' });
-    return null;
-  }
-  return discordId;
-}
-
 app.get('/api/user/:discordId/vault', authenticateToken, async (req: DashboardRequest, res) => {
   try {
-    const discordId = ensureVaultUserMatch(req, res);
-    if (!discordId) return;
+    const discordId = req.params.discordId;
     if (!db.isConnected()) {
       return res.json({ locked: false, amount: 0, history: [] });
     }
@@ -403,15 +404,15 @@ app.get('/api/user/:discordId/vault', authenticateToken, async (req: DashboardRe
     const user = await findUserByDiscordId(discordId);
     if (!user) return res.status(404).json({ error: 'User not found' });
 
-    const nowTs = Date.now();
-    const vaults = getVaultStatus(discordId);
-    const locked = vaults.some((v) => (v.status === 'locked' || v.status === 'extended') && v.unlockAt > nowTs);
-    const amount = vaults.reduce((sum, v) => sum + (v.lockedAmountSOL || 0), 0);
-    const history = vaults
-      .flatMap((v) => v.history.map((h) => ({ ...h, vaultId: v.id })))
-      .sort((a, b) => b.ts - a.ts);
+    const vaultData = await db.getVaultStatus(user.id).catch(() => null);
+    const history = await db.getVaultHistory(user.id, 5).catch(() => []);
 
-    res.json({ locked, amount, history });
+    res.json({
+      locked: vaultData?.status === 'locked',
+      unlockAt: vaultData?.unlock_at || null,
+      amount: vaultData?.amount_sol || 0,
+      history
+    });
   } catch (err) {
     console.error('[Vault GET]', err);
     res.json({ locked: false, amount: 0, history: [] });
@@ -420,8 +421,7 @@ app.get('/api/user/:discordId/vault', authenticateToken, async (req: DashboardRe
 
 app.post('/api/user/:discordId/vault/lock', authenticateToken, async (req: DashboardRequest, res) => {
   try {
-    const discordId = ensureVaultUserMatch(req, res);
-    if (!discordId) return;
+    const discordId = req.params.discordId;
     const { amountSol, durationMs } = req.body;
 
     if (!amountSol || amountSol <= 0) return res.status(400).json({ error: 'Invalid amount' });
@@ -430,53 +430,42 @@ app.post('/api/user/:discordId/vault/lock', authenticateToken, async (req: Dashb
     const user = await findUserByDiscordId(discordId);
     if (!user) return res.status(404).json({ error: 'User not found' });
 
-    const durationMinutes = Math.max(1, Math.trunc(Number(durationMs) / 60000));
-    const vault = await lockVault({
-      userId: discordId,
-      amountRaw: `${Number(amountSol)} SOL`,
-      durationRaw: `${durationMinutes}m`,
-      reason: 'Dashboard lock',
-      currencyHint: 'SOL',
-      disclaimerAccepted: true,
-    });
-    const unlockAt = new Date(vault.unlockAt).toISOString();
+    const unlockAt = new Date(Date.now() + durationMs).toISOString();
+
+    if (db.isConnected()) {
+      await db.createVaultLock({ userId: user.id, amountSol, unlockAt });
+    }
+
     broadcastToUser(discordId, { type: 'vault.locked', data: { amountSol, unlockAt } });
-    res.json({ success: true, unlockAt, vault });
+    res.json({ success: true, unlockAt });
   } catch (err) {
     console.error('[Vault LOCK]', err);
-    res.status(400).json({ error: 'Vault lock failed' });
+    res.status(500).json({ error: 'Vault lock failed' });
   }
 });
 
 app.post('/api/user/:discordId/vault/unlock', authenticateToken, async (req: DashboardRequest, res) => {
   try {
-    const discordId = ensureVaultUserMatch(req, res);
-    if (!discordId) return;
+    const discordId = req.params.discordId;
     const user = await findUserByDiscordId(discordId);
     if (!user) return res.status(404).json({ error: 'User not found' });
 
-    const nowTs = Date.now();
-    const vaults = getVaultStatus(discordId);
-    const releasable = vaults.find((v) => (v.status === 'locked' || v.status === 'extended') && nowTs >= v.unlockAt);
-    const alreadyUnlocked = vaults.find((v) => v.status === 'unlocked');
-
-    if (!releasable && !alreadyUnlocked) {
-      return res.status(400).json({ error: 'No vaults ready for release' });
+    if (db.isConnected()) {
+      await db.requestVaultUnlock(user.id);
     }
 
-    const vault = releasable ? unlockVault(discordId, releasable.id) : alreadyUnlocked!;
     broadcastToUser(discordId, { type: 'vault.unlock_requested' });
-    res.json({ success: true, vault });
+    res.json({ success: true });
   } catch (err) {
     console.error('[Vault UNLOCK]', err);
-    res.status(400).json({ error: 'Unlock request failed' });
+    res.status(500).json({ error: 'Unlock request failed' });
   }
 });
 
 // === Bonus Routes ===
 app.get('/api/user/:discordId/bonuses', authenticateToken, async (req: DashboardRequest, res) => {
   try {
-    const discordId = req.params.discordId as string;
+    const discordId = req.params.discordId;
     if (!db.isConnected()) {
       return res.json({ active: [], history: [], nerfs: [] });
     }
@@ -484,8 +473,11 @@ app.get('/api/user/:discordId/bonuses', authenticateToken, async (req: Dashboard
     const user = await findUserByDiscordId(discordId);
     if (!user) return res.status(404).json({ error: 'User not found' });
 
-    // getActiveBonuses/getBonusHistory/getRecentNerfs not yet implemented in DatabaseClient
-    res.json({ active: [], history: [], nerfs: [] });
+    const active = await db.getActiveBonuses(user.id).catch(() => []);
+    const history = await db.getBonusHistory(user.id, 10).catch(() => []);
+    const nerfs = await db.getRecentNerfs(5).catch(() => []);
+
+    res.json({ active, history, nerfs });
   } catch (err) {
     console.error('[Bonuses]', err);
     res.json({ active: [], history: [], nerfs: [] });
@@ -497,7 +489,10 @@ app.post('/api/bonus/:discordId/claim', authenticateToken, async (req: Dashboard
     const { bonusId } = req.body;
     if (!bonusId) return res.status(400).json({ error: 'Missing bonusId' });
 
-    // claimBonus not yet implemented in DatabaseClient
+    if (db.isConnected()) {
+      await db.claimBonus(req.params.discordId, bonusId);
+    }
+
     res.json({ success: true });
   } catch (err) {
     console.error('[Bonus Claim]', err);
@@ -508,7 +503,7 @@ app.post('/api/bonus/:discordId/claim', authenticateToken, async (req: Dashboard
 // === Session History ===
 app.get('/api/user/:discordId/sessions', authenticateToken, async (req: DashboardRequest, res) => {
   try {
-    const discordId = req.params.discordId as string;
+    const discordId = req.params.discordId;
     if (!db.isConnected()) {
       return res.json({ sessions: [], stats: { weeklyPL: 0, winRate: 0, avgSession: 0, rtpDrift: 0 } });
     }
@@ -516,8 +511,7 @@ app.get('/api/user/:discordId/sessions', authenticateToken, async (req: Dashboar
     const user = await findUserByDiscordId(discordId);
     if (!user) return res.status(404).json({ error: 'User not found' });
 
-    // getUserSessions not yet implemented in DatabaseClient
-    const sessions: { net_pl?: number; duration_ms?: number }[] = [];
+    const sessions = await db.getUserSessions(user.id, 7).catch(() => []);
 
     const totalPL = sessions.reduce((sum: number, s: { net_pl?: number }) => sum + (s.net_pl || 0), 0);
     const wins = sessions.filter((s: { net_pl?: number }) => (s.net_pl || 0) > 0).length;
@@ -539,7 +533,7 @@ app.get('/api/user/:discordId/sessions', authenticateToken, async (req: Dashboar
 // === Buddy Routes ===
 app.get('/api/user/:discordId/buddies', authenticateToken, async (req: DashboardRequest, res) => {
   try {
-    const user = await findUserByDiscordId(req.params.discordId as string);
+    const user = await findUserByDiscordId(req.params.discordId);
     if (!user) return res.status(404).json({ error: 'User not found' });
 
     const [buddies, pending] = await Promise.all([
@@ -559,7 +553,7 @@ app.post('/api/user/:discordId/buddies', authenticateToken, async (req: Dashboar
     const { buddyId } = req.body;
     if (!buddyId) return res.status(400).json({ error: 'Missing buddyId' });
 
-    const user = await findUserByDiscordId(req.params.discordId as string);
+    const user = await findUserByDiscordId(req.params.discordId);
     if (!user) return res.status(404).json({ error: 'User not found' });
 
     await sendBuddyRequest(user.id, buddyId);
@@ -570,18 +564,22 @@ app.post('/api/user/:discordId/buddies', authenticateToken, async (req: Dashboar
   }
 });
 
-app.post('/api/user/:discordId/buddies/:requestId/accept', authenticateToken, async (_req: DashboardRequest, res) => {
+app.post('/api/user/:discordId/buddies/:requestId/accept', authenticateToken, async (req: DashboardRequest, res) => {
   try {
-    // acceptBuddyRequest not yet implemented in DatabaseClient
+    if (db.isConnected()) {
+      await db.acceptBuddyRequest(req.params.requestId);
+    }
     res.json({ success: true });
   } catch (err) {
     res.status(500).json({ error: 'Failed to accept request' });
   }
 });
 
-app.post('/api/user/:discordId/buddies/:requestId/decline', authenticateToken, async (_req: DashboardRequest, res) => {
+app.post('/api/user/:discordId/buddies/:requestId/decline', authenticateToken, async (req: DashboardRequest, res) => {
   try {
-    // declineBuddyRequest not yet implemented in DatabaseClient
+    if (db.isConnected()) {
+      await db.declineBuddyRequest(req.params.requestId);
+    }
     res.json({ success: true });
   } catch (err) {
     res.status(500).json({ error: 'Failed to decline request' });
@@ -623,12 +621,11 @@ wss.on('connection', (socket: WebSocket) => {
     try {
       const msg = JSON.parse(raw.toString());
       if (msg.type === 'auth' && typeof msg.discordId === 'string') {
-        const discordId = msg.discordId;
-        connectedDiscordId = discordId;
-        if (!userConnections.has(discordId)) {
-          userConnections.set(discordId, new Set());
+        connectedDiscordId = msg.discordId;
+        if (!userConnections.has(connectedDiscordId)) {
+          userConnections.set(connectedDiscordId, new Set());
         }
-        userConnections.get(discordId)!.add(socket);
+        userConnections.get(connectedDiscordId)!.add(socket);
       }
     } catch (_) { /* ignore malformed messages */ }
   });
