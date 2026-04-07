@@ -98,8 +98,10 @@ jobs:
         run: |
           SERVICE="${{ steps.svc.outputs.name }}"
           for i in 1 2 3 4 5; do
+            set +e
             OUTPUT=$(npx @railway/cli@latest redeploy --service "$SERVICE" --yes 2>&1)
             EXIT_CODE=$?
+            set -e
             echo "$OUTPUT"
             if [ $EXIT_CODE -eq 0 ]; then
               echo "Redeploy triggered successfully"
