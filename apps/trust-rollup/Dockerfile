@@ -20,20 +20,16 @@ COPY . .
 RUN pnpm install --frozen-lockfile --filter @tiltcheck/trust-rollup...
 RUN pnpm --filter @tiltcheck/trust-rollup... build
 RUN test -f apps/trust-rollup/dist/index.js || (echo 'BUILD ERROR: apps/trust-rollup/dist/index.js not produced' && exit 1)
-# Prune for production
+# Create self-contained deploy with real copies of workspace packages (no symlinks)
+RUN pnpm --filter @tiltcheck/trust-rollup deploy /prod
 
 # [PHASE 3] Production Runtime
 FROM node:20-slim
 WORKDIR /app
-# Pull in dumb-init for healthy signal handling during rollups
 RUN apt-get update && apt-get install -y dumb-init && rm -rf /var/lib/apt/lists/*
 ENTRYPOINT ["/usr/bin/dumb-init", "--"]
 
-# Copy only the compiled artifacts and minimal node_modules
-COPY --from=build /app/apps/trust-rollup/dist ./apps/trust-rollup/dist
-COPY --from=build /app/node_modules ./node_modules
-COPY --from=build /app/apps/trust-rollup/package.json ./apps/trust-rollup/package.json
-COPY --from=build /app/package.json ./package.json
+COPY --from=build /prod .
 
 EXPOSE 8082
-CMD ["node", "apps/trust-rollup/dist/index.js"]
+CMD ["node", "dist/index.js"]

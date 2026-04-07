@@ -19,22 +19,17 @@ COPY . .
 # Install only the bot's dependency subgraph
 RUN pnpm install --frozen-lockfile --filter @tiltcheck/discord-bot...
 RUN pnpm --filter @tiltcheck/discord-bot... build
-RUN test -f apps/discord-bot/dist/index.js || (echo 'BUILD ERROR: apps/discord-bot/dist/index.js not produced' && exit 1)
-# Prune for production
+RUN test -f apps/discord-bot/dist/bootstrap.js || (echo 'BUILD ERROR: apps/discord-bot/dist/bootstrap.js not produced' && exit 1)
+# Create self-contained deploy with real copies of workspace packages (no symlinks)
+RUN pnpm --filter @tiltcheck/discord-bot deploy /prod
 
 # [PHASE 3] Production Runtime
 FROM node:20-slim
 WORKDIR /app
-# We use dumb-init for internal signal handling
 RUN apt-get update && apt-get install -y dumb-init && rm -rf /var/lib/apt/lists/*
 ENTRYPOINT ["/usr/bin/dumb-init", "--"]
 
-# Copy only the compiled artifacts and minimal node_modules
-COPY --from=build /app/apps/discord-bot/dist ./apps/discord-bot/dist
-COPY --from=build /app/node_modules ./node_modules
-COPY --from=build /app/apps/discord-bot/package.json ./apps/discord-bot/package.json
-COPY --from=build /app/package.json ./package.json
+COPY --from=build /prod .
 
 EXPOSE 8080
-# Use the correct entry point from package.json
-CMD ["node", "apps/discord-bot/dist/bootstrap.js"]
+CMD ["node", "dist/bootstrap.js"]
