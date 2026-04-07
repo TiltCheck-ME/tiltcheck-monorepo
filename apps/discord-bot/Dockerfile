@@ -20,7 +20,7 @@ COPY . .
 RUN pnpm install --frozen-lockfile --filter @tiltcheck/discord-bot...
 RUN pnpm --filter @tiltcheck/discord-bot... build
 # Prune for production
-RUN pnpm prune --prod
+RUN pnpm prune --prod --ignore-scripts
 
 # [PHASE 3] Production Runtime
 FROM node:20-slim
