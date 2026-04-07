@@ -21,7 +21,7 @@ RUN pnpm install --frozen-lockfile --filter @tiltcheck/discord-bot...
 RUN pnpm --filter @tiltcheck/discord-bot... build
 RUN test -f apps/discord-bot/dist/bootstrap.js || (echo 'BUILD ERROR: apps/discord-bot/dist/bootstrap.js not produced' && exit 1)
 # Create self-contained deploy with real copies of workspace packages (no symlinks)
-RUN pnpm --filter @tiltcheck/discord-bot deploy /prod
+RUN pnpm --filter @tiltcheck/discord-bot deploy --legacy /prod
 
 # [PHASE 3] Production Runtime
 FROM node:20-slim

@@ -21,7 +21,7 @@ RUN pnpm install --frozen-lockfile --filter @tiltcheck/trust-rollup...
 RUN pnpm --filter @tiltcheck/trust-rollup... build
 RUN test -f apps/trust-rollup/dist/index.js || (echo 'BUILD ERROR: apps/trust-rollup/dist/index.js not produced' && exit 1)
 # Create self-contained deploy with real copies of workspace packages (no symlinks)
-RUN pnpm --filter @tiltcheck/trust-rollup deploy /prod
+RUN pnpm --filter @tiltcheck/trust-rollup deploy --legacy /prod
 
 # [PHASE 3] Production Runtime
 FROM node:20-slim

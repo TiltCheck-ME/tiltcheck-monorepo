@@ -21,7 +21,7 @@ RUN pnpm install --frozen-lockfile --filter @tiltcheck/game-arena...
 RUN pnpm --filter @tiltcheck/game-arena... build
 RUN test -f apps/game-arena/dist/server.js || (echo 'BUILD ERROR: apps/game-arena/dist/server.js not produced' && exit 1)
 # Create self-contained deploy with real copies of workspace packages (no symlinks)
-RUN pnpm --filter @tiltcheck/game-arena deploy /prod
+RUN pnpm --filter @tiltcheck/game-arena deploy --legacy /prod
 
 # [PHASE 3] Production Runtime
 FROM node:20-slim

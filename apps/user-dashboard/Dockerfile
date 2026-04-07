@@ -21,7 +21,7 @@ RUN pnpm --filter @tiltcheck/auth build
 RUN pnpm --filter @tiltcheck/user-dashboard... build
 RUN test -f apps/user-dashboard/dist/index.js || (echo 'BUILD ERROR: apps/user-dashboard/dist/index.js not produced' && exit 1)
 # Create self-contained deploy with real copies of workspace packages (no symlinks)
-RUN pnpm --filter @tiltcheck/user-dashboard deploy /prod
+RUN pnpm --filter @tiltcheck/user-dashboard deploy --legacy /prod
 
 # [PHASE 3] Production Runtime
 FROM node:20-slim
