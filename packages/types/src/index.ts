@@ -575,6 +575,8 @@ export type EventType =
   | 'bonus.updated'
   | 'bonus.nerf.detected'
   | 'bonus.prediction.generated'
+  | 'rtp.report.submitted'
+  | 'rtp.nerf.detected'
   | 'trust.casino.updated'
   | 'trust.domain.updated'
   | 'trust.degen.updated'
@@ -1036,7 +1038,8 @@ export type ModuleId =
   | 'test-suite'
   | 'telegram-code-ingest'
   | 'trust-engine-global'
-  | 'trust-engine-api';
+  | 'trust-engine-api'
+  | 'rgaas-api';
 
 
 // ============================================
@@ -1750,4 +1753,3 @@ export interface DropPredictionWindow {
   estimatedAt: number;
   confidence: number;
 }
-

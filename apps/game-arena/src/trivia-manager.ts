@@ -450,10 +450,10 @@ function emitRoundStart(game: ActiveGame): void {
   const q = game.questions[game.currentRound];
   const ROUND_DURATION_MS = 20_000; // 20 seconds per question
 
-  eventRouter.publish({
-    type: 'trivia.round.start',
-    source: 'game-arena',
-    data: {
+  eventRouter.publish(
+    'trivia.round.start',
+    'game-arena',
+    {
       question: {
         id: q.id,
         question: q.question,
@@ -465,8 +465,8 @@ function emitRoundStart(game: ActiveGame): void {
       roundNumber: game.currentRound + 1,
       totalRounds: game.settings.totalRounds,
       endsAt: Date.now() + ROUND_DURATION_MS,
-    },
-  });
+    }
+  );
 
   game.roundTimerId = setTimeout(() => {
     revealRound(game);
@@ -494,24 +494,24 @@ function revealRound(game: ActiveGame): void {
       player.eliminated = true;
     } else {
       player.shieldUsed = false; // Shield consumed
-      eventRouter.publish({
-        type: 'trivia.player.reinstated',
-        source: 'game-arena',
-        data: { gameId: game.gameId, userId: player.userId, username: player.username },
-      });
+      eventRouter.publish(
+        'trivia.player.reinstated',
+        'game-arena',
+        { gameId: game.gameId, userId: player.userId, username: player.username }
+      );
     }
   }
 
-  eventRouter.publish({
-    type: 'trivia.round.reveal',
-    source: 'game-arena',
-    data: {
+  eventRouter.publish(
+    'trivia.round.reveal',
+    'game-arena',
+    {
       questionId: q.id,
       correctChoice: q.answer,
       explanation: q.explanation,
       stats,
-    },
-  });
+    }
+  );
 
   game.currentRound++;
 
@@ -541,11 +541,11 @@ function endGameWithResults(game: ActiveGame): void {
     score: p.score,
   }));
 
-  eventRouter.publish({
-    type: 'trivia.completed',
-    source: 'game-arena',
-    data: { gameId: game.gameId, winners, finalScores },
-  });
+  eventRouter.publish(
+    'trivia.completed',
+    'game-arena',
+    { gameId: game.gameId, winners, finalScores }
+  );
 
   activeGame = null;
   console.log(`[TriviaManager] Game ${game.gameId} completed. Winner: ${winners[0]?.username ?? 'none'}`);
@@ -590,11 +590,11 @@ export const triviaManager = {
       startedAt: settings.startTime,
     };
 
-    eventRouter.publish({
-      type: 'trivia.started',
-      source: 'game-arena',
-      data: { gameId, ...settings },
-    });
+    eventRouter.publish(
+      'trivia.started',
+      'game-arena',
+      { gameId, ...settings }
+    );
 
     console.log(`[TriviaManager] Game ${gameId} starting in ${settings.startTime - Date.now()}ms | ${questions.length} rounds | category: ${settings.category}`);
 
@@ -682,11 +682,11 @@ export const triviaManager = {
     player.eliminated = false;
     player.buyBackUsed = true;
 
-    eventRouter.publish({
-      type: 'trivia.player.reinstated',
-      source: 'game-arena',
-      data: { gameId: activeGame.gameId, userId: player.userId, username: player.username },
-    });
+    eventRouter.publish(
+      'trivia.player.reinstated',
+      'game-arena',
+      { gameId: activeGame.gameId, userId: player.userId, username: player.username }
+    );
 
     return { success: true, message: 'Buy-back processed. You are back in the game.' };
   },
