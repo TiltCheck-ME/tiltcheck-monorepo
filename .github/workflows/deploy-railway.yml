@@ -43,6 +43,7 @@ jobs:
           - game-arena
           - user-dashboard
           - activity
+          - cloudflared
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -95,6 +96,8 @@ jobs:
             railway_service_id: "a5bb3924-76b3-41af-882c-319417c64dd8"
           - service: activity
             railway_service_id: "cf702e40-4001-4de4-a5e1-978e79f81633"
+          - service: cloudflared
+            railway_service_id: "18649391-7fe0-43a7-9a79-c4c3bf432eb8"
     steps:
       - name: Redeploy ${{ matrix.service }} on Railway
         run: |
