@@ -15,10 +15,9 @@ COPY apps/activity/package.json ./apps/activity/package.json
 
 # Install all workspace dependencies
 RUN pnpm fetch
-RUN pnpm install --frozen-lockfile
-
-# Copy the full activity app source
-COPY apps/activity/ ./apps/activity/
+# Copy full source so pnpm workspace can resolve all package manifests
+COPY . .
+RUN pnpm install --frozen-lockfile --filter @tiltcheck/activity...
 
 # Build the Vite app — outputs to apps/activity/dist
 RUN pnpm --filter @tiltcheck/activity build
