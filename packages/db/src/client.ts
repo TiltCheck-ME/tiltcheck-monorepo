@@ -1,9 +1,8 @@
-/* Copyright (c) 2026 TiltCheck. All rights reserved. */
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-08
 /**
  * @tiltcheck/db - Cloud SQL / Postgres Database Client
  */
 import pg from 'pg';
-import { neon } from '@neondatabase/serverless';
 const { Pool } = pg;
 
 export interface Client {
@@ -44,15 +43,6 @@ export function getDBConfig(): DBClientConfig {
 }
 
 let poolInstance: pg.Pool | null = null;
-let httpInstance: ReturnType<typeof neon> | null = null;
-
-export function getHttpQuery() {
-  if (!httpInstance) {
-    const config = getDBConfig();
-    httpInstance = neon(config.connectionString);
-  }
-  return httpInstance;
-}
 
 export function getPool(): pg.Pool {
   if (!poolInstance) {
@@ -66,9 +56,9 @@ export function getPool(): pg.Pool {
 }
 
 export async function query<T = Record<string, unknown>>(sql: string, params?: unknown[]): Promise<T[]> {
-  const httpQuery = getHttpQuery();
-  const result = await httpQuery(sql as any, params);
-  return result as unknown as T[];
+  const pool = getPool();
+  const result = await pool.query(sql, params as unknown[]);
+  return result.rows as T[];
 }
 
 export async function queryOne<T = Record<string, unknown>>(sql: string, params?: unknown[]): Promise<T | null> {
