@@ -35,7 +35,7 @@ import { trackMessageEvent, trackCommandEvent } from '../services/elastic-teleme
 import { markUserActive, type TiltAgentContext } from '../services/tilt-agent.js';
 import { handleCommandError } from './error.js';
 import { dispatchButtonInteraction } from './button-handlers.js';
-import { detectIntent, formatNlpResponse } from '../services/nlp-intent.js';
+import { detectIntent, formatNlpResponse, getFallbackReply } from '../services/nlp-intent.js';
 
 function getTiltAgentContext(): TiltAgentContext | undefined {
   const stateCode = process.env.TILT_AGENT_DEFAULT_STATE_CODE?.trim().toUpperCase();
@@ -179,9 +179,7 @@ export class EventHandler {
           });
           await message.reply(formatNlpResponse(intent)).catch(() => {});
         } else {
-          await message.reply(
-            'Not sure what you need. Use `/help` for all commands, or just tell me what you want in plain English.'
-          ).catch(() => {});
+          await message.reply(getFallbackReply()).catch(() => {});
         }
       }
 
