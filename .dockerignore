@@ -52,7 +52,6 @@ CHANGELOG.md
 # Misc
 .railwayignore
 .gcloudignore
-data/
 tmp/
 temp/
 .zencoder/
