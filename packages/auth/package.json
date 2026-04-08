@@ -69,11 +69,23 @@
       "types": "./dist/middleware/express.d.ts",
       "import": "./dist/middleware/express.js"
     },
+    "./middleware/express.js": {
+      "types": "./dist/middleware/express.d.ts",
+      "import": "./dist/middleware/express.js"
+    },
     "./middleware/next": {
       "types": "./dist/middleware/next.d.ts",
       "import": "./dist/middleware/next.js"
     },
+    "./middleware/next.js": {
+      "types": "./dist/middleware/next.d.ts",
+      "import": "./dist/middleware/next.js"
+    },
     "./middleware/node": {
+      "types": "./dist/middleware/node.d.ts",
+      "import": "./dist/middleware/node.js"
+    },
+    "./middleware/node.js": {
       "types": "./dist/middleware/node.d.ts",
       "import": "./dist/middleware/node.js"
     }
