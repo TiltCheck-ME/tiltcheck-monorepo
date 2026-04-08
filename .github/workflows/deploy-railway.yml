@@ -1,4 +1,4 @@
-# © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-07
+# © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-08
 name: Deploy Services to Railway
 
 on:
@@ -97,6 +97,18 @@ jobs:
       - name: Redeploy ${{ matrix.service }} on Railway
         run: |
           SERVICE="${{ steps.svc.outputs.name }}"
+
+          echo "Checking service status before redeploy..."
+          set +e
+          STATUS_OUTPUT=$(npx @railway/cli@latest service --service "$SERVICE" 2>&1)
+          STATUS_EXIT=$?
+          set -e
+          echo "$STATUS_OUTPUT"
+          if [ $STATUS_EXIT -ne 0 ]; then
+            echo "Service '$SERVICE' not found or inaccessible. Verify the service exists in the Railway project."
+            exit 1
+          fi
+
           for i in 1 2 3 4 5; do
             set +e
             OUTPUT=$(npx @railway/cli@latest redeploy --service "$SERVICE" --yes 2>&1)
@@ -109,8 +121,8 @@ jobs:
             else
               echo "Redeploy failed (exit code: $EXIT_CODE, attempt $i/5)"
               if [ $i -lt 5 ]; then
-                echo "Retrying in 30s..."
-                sleep 30
+                echo "Retrying in 60s..."
+                sleep 60
               else
                 echo "Max retries reached."
                 exit $EXIT_CODE
