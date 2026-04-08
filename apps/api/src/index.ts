@@ -36,7 +36,6 @@ import { safetyRouter } from './routes/safety.js';
 import { newsletterRouter } from './routes/newsletter.js';
 import { stripeRouter, handleStripeWebhook } from './routes/stripe.js';
 import { userRouter } from './routes/user.js';
-import { aiRouter } from './routes/ai.js';
 import { pricingRouter } from './routes/pricing.js';
 import { casinoRouter } from './routes/casino.js';
 import { bonusRouter } from './routes/bonus.js';
@@ -171,7 +170,7 @@ app.use('/stripe', stripeRouter);
 app.use('/user', userRouter);
 
 // Consolidated Utility Routes
-app.use('/ai', aiRouter);
+app.use('/ai', (_req, res) => { res.status(410).json({ success: false, error: 'AI Gateway consolidated into discord-bot service.' }); });
 app.use('/pricing', pricingRouter);
 app.use('/casino', casinoRouter);
 app.use('/bonus', bonusRouter);
