@@ -300,8 +300,8 @@ export class EventHandler {
 
           const scoreText = typeof tiltScore === 'number' ? tiltScore.toFixed(1) : 'n/a';
           const warningMessage = severity >= 4
-            ? `📊 **[CRITICAL AUDIT] ${reason.toUpperCase()}. Your current risk profile is spiking. Audit your bag carefully.**`
-            : `📊 **[EDGE EQUALIZER] Quick heads-up: ${reason}. (Score: ${scoreText}). Stay objective.**`;
+            ? `[CRITICAL AUDIT] ${reason.toUpperCase()}. Your current risk profile is spiking. Audit your bag carefully.`
+            : `[EDGE EQUALIZER] Quick heads-up: ${reason}. (Score: ${scoreText}). Stay objective.`;
 
           await user.send(warningMessage).catch(() => {
             console.log(`[Bot] Could not send tilt warning DM to ${user.tag}`);
