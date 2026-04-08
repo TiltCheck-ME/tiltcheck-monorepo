@@ -1,13 +1,11 @@
 {
   "extends": "../../tsconfig.json",
   "compilerOptions": {
-    "composite": true,
-    "incremental": true,
     "outDir": "./dist",
     "rootDir": "src",
-    "declaration": true,
     "strict": true,
-    "forceConsistentCasingInFileNames": true
+    "forceConsistentCasingInFileNames": true,
+    "paths": {}
   },
   "include": [
     "src/**/*"
@@ -15,52 +13,5 @@
   "exclude": [
     "node_modules",
     "dist"
-  ],
-  "references": [
-    {
-      "path": "../../packages/auth"
-    },
-    {
-      "path": "../../packages/auth-flow"
-    },
-    {
-      "path": "../../packages/config"
-    },
-    {
-      "path": "../../modules/tiltcheck-core"
-    },
-    {
-      "path": "../../packages/db"
-    },
-    {
-      "path": "../../packages/event-types"
-    },
-    {
-      "path": "../../modules/justthetip"
-    },
-    {
-      "path": "../../modules/lockvault"
-    },
-    {
-      "path": "../../modules/suslink"
-    },
-    {
-      "path": "../../packages/error-factory"
-    },
-    {
-      "path": "../../packages/event-router"
-    },
-    {
-      "path": "../../packages/trust-engines"
-    },
-    {
-      "path": "../../packages/trust-score-types"
-    },
-    {
-      "path": "../../packages/types"
-    },
-    {
-      "path": "../../packages/utils"
-    }
   ]
 }

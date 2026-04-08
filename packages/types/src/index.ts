@@ -1577,6 +1577,21 @@ export interface HandEvaluation {
   description: string;
 }
 
+// ============================================
+// RTP Reporting Types
+// ============================================
+
+export interface RtpReportSubmittedEvent {
+  platformUrl: string;
+  platformName: string;
+  providerName: string;
+  gameTitle: string;
+  reportedRtp: number;
+  source: 'extension' | 'community';
+  reportedByUserId?: string;
+  reportedAt: number;
+}
+
 export interface GameplayAnomalyEvent {
   userId: string;
   casinoId: string;

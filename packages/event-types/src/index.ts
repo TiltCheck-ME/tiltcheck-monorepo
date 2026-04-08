@@ -22,7 +22,8 @@ export type TiltCheckEventName =
   | 'activity.paused'
   | 'activity.resumed'
   | 'activity.error'
-  | 'activity.message';
+  | 'activity.message'
+  | 'rtp.report.submitted';
 
 export interface TiltCheckBaseEvent<
   Name extends TiltCheckEventName,
