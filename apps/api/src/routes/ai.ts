@@ -5,7 +5,7 @@ const router = Router();
 
 // AI processing is now handled directly inside the discord-bot's TiltAgent.
 // These routes are stubbed out and return a helpful message instead of crashing.
-router.all('/*', (_req, res) => {
+router.use((_req, res) => {
     res.status(410).json({
         success: false,
         error: 'AI Gateway has been consolidated into the discord-bot service.',
