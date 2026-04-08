@@ -32,6 +32,7 @@ COPY --from=build /app/apps/game-arena/package.json ./apps/game-arena/package.js
 COPY --from=build /app/node_modules ./node_modules
 COPY --from=build /app/packages ./packages
 COPY --from=build /app/modules ./modules
+COPY --from=build /app/apps/game-arena/public ./apps/game-arena/public
 COPY --from=build /app/package.json ./package.json
 
 EXPOSE 8080
