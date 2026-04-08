@@ -1,12 +1,7 @@
-import path from 'path'
-import { fileURLToPath } from 'url'
-const __dirname = path.dirname(fileURLToPath(import.meta.url))
-
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-08
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   output: 'standalone',
-  // Set tracing root to monorepo root so standalone server.js lands at the top of the standalone dir
-  outputFileTracingRoot: path.join(__dirname, '../../'),
   transpilePackages: [
     "@tiltcheck/types",
     "@tiltcheck/db",
@@ -20,7 +15,6 @@ const nextConfig = {
   },
   async redirects() {
     return [
-      // Subdomain Consolidation (Phase 9)
       {
         source: '/:path*',
         has: [{ type: 'host', value: 'hub.tiltcheck.me' }],
@@ -39,7 +33,6 @@ const nextConfig = {
         destination: 'https://tiltcheck.me/admin/:path*',
         permanent: true,
       },
-      // Legacy HTML rewrites
       {
         source: '/trust-scores.html',
         destination: '/dashboard',
@@ -61,14 +54,14 @@ const nextConfig = {
     return [
       {
         source: '/arena/:path*',
-        destination: process.env.NODE_ENV === 'production' 
-          ? 'https://arena.tiltcheck.me/:path*' 
+        destination: process.env.NODE_ENV === 'production'
+          ? 'https://arena.tiltcheck.me/:path*'
           : 'http://localhost:3010/:path*',
       },
       {
         source: '/admin/:path*',
-        destination: process.env.NODE_ENV === 'production' 
-          ? 'https://control-room.tiltcheck.me/:path*' 
+        destination: process.env.NODE_ENV === 'production'
+          ? 'https://control-room.tiltcheck.me/:path*'
           : 'http://localhost:3001/:path*',
       },
       {

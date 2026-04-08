@@ -4,6 +4,9 @@
     "outDir": "./dist",
     "rootDir": "src",
     "strict": true,
+    "composite": false,
+    "incremental": false,
+    "declaration": false,
     "forceConsistentCasingInFileNames": true,
     "paths": {}
   },
