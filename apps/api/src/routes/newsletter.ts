@@ -10,8 +10,14 @@ import { query, insert, update, findOneBy } from '@tiltcheck/db';
 
 const router = Router();
 
-// Salt for email hashing (should be in env)
-const NEWSLETTER_SALT = process.env.NEWSLETTER_SALT || 'tiltcheck-default-salt';
+// Salt for email hashing — must be set in production
+const NEWSLETTER_SALT = (() => {
+  const salt = process.env.NEWSLETTER_SALT;
+  if (!salt && process.env.NODE_ENV === 'production') {
+    throw new Error('[newsletter] NEWSLETTER_SALT env var is required in production');
+  }
+  return salt || 'tiltcheck-dev-salt';
+})();
 
 /**
  * POST /newsletter/subscribe

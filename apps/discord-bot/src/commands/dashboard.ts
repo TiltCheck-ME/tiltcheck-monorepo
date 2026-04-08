@@ -40,60 +40,51 @@ export const dashboard: Command = {
 
       if (!stats) {
         return await interaction.editReply({
-          content: '❌ Could not fetch your tilt data. Try again in a moment.',
+          content: 'Could not fetch your tilt data. Try again in a moment.',
         });
       }
 
-      // Determine tilt level emoji and color
+      // Determine tilt level and color
       const tiltLevel = stats.averageTiltScore || 0;
-      let emoji = '😊';
-      let color = 0x00ff00; // Green
-      if (tiltLevel > 5) {
-        emoji = '😐';
-        color = 0xffff00; // Yellow
-      }
-      if (tiltLevel > 7) {
-        emoji = '😟';
-        color = 0xff9900; // Orange
-      }
-      if (tiltLevel > 9) {
-        emoji = '😡';
-        color = 0xff0000; // Red
-      }
+      let riskLabel = 'CLEAR';
+      let color = 0x00ff00;
+      if (tiltLevel > 5) { riskLabel = 'ELEVATED'; color = 0xffff00; }
+      if (tiltLevel > 7) { riskLabel = 'HIGH';     color = 0xff9900; }
+      if (tiltLevel > 9) { riskLabel = 'CRITICAL'; color = 0xff0000; }
 
       // Create main stats embed
       const statsEmbed = new EmbedBuilder()
         .setColor(color)
-        .setTitle(`${emoji} ${username}'s Tilt Dashboard`)
-        .setDescription('Your recent tilt activity and statistics')
+        .setTitle(`[${riskLabel}] ${username}'s Tilt Dashboard`)
+        .setDescription('Session audit — live data')
         .addFields([
           {
-            name: '📊 Tilt Score (7-day avg)',
+            name: 'Tilt Score (7-day avg)',
             value: `${tiltLevel.toFixed(1)}/10`,
             inline: true,
           },
           {
-            name: '📈 Max Score (7-day)',
+            name: 'Max Score (7-day)',
             value: `${stats.maxTiltScore}/10`,
             inline: true,
           },
           {
-            name: '🎯 Total Events',
+            name: 'Total Events',
             value: `${stats.totalEvents}`,
             inline: true,
           },
           {
-            name: '📅 Last 24h Events',
+            name: 'Last 24h Events',
             value: `${stats.eventsLast24h}`,
             inline: true,
           },
           {
-            name: '📊 Last 7d Events',
+            name: 'Last 7d Events',
             value: `${stats.eventsLast7d}`,
             inline: true,
           },
           {
-            name: '🕒 Last Event',
+            name: 'Last Event',
             value: stats.lastEventAt
               ? new Date(stats.lastEventAt).toLocaleString()
               : 'No events yet',
@@ -138,7 +129,7 @@ export const dashboard: Command = {
           .setStyle(ButtonStyle.Secondary),
         new ButtonBuilder()
           .setCustomId(`tilt_settings_${userId}`)
-          .setLabel('⚙️ Settings')
+          .setLabel('Settings')
           .setStyle(ButtonStyle.Secondary)
       );
 
@@ -150,7 +141,7 @@ export const dashboard: Command = {
     } catch (error) {
       console.error('[Dashboard Command] Error:', error);
       await interaction.editReply({
-        content: '❌ An error occurred while fetching your dashboard. Please try again.',
+        content: 'An error occurred while fetching your dashboard. Try again.',
       });
     }
   }

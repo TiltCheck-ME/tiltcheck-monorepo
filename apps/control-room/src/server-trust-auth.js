@@ -20,13 +20,18 @@ const wss = new WebSocketServer({ server });
 
 const PORT = process.env.CONTROL_ROOM_PORT || process.env.PORT || 3001;
 const isProd = process.env.NODE_ENV === 'production';
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'tiltcheck-temp-pass';
-const SESSION_SECRET = process.env.SESSION_SECRET || 'tiltcheck-control-room-secret';
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
+const SESSION_SECRET = process.env.SESSION_SECRET;
 
-// Admin Whitelist
-const ADMIN_WHITE_LIST = [
-  '1472601571496951932', // Primary Admin
-];
+if (!ADMIN_PASSWORD || !SESSION_SECRET) {
+  throw new Error('[control-room] ADMIN_PASSWORD and SESSION_SECRET env vars are required');
+}
+
+// Admin whitelist — set ADMIN_DISCORD_IDS as comma-separated Discord user IDs
+const ADMIN_WHITE_LIST = (process.env.ADMIN_DISCORD_IDS || '')
+  .split(',')
+  .map((id) => id.trim())
+  .filter(Boolean);
 
 // Known containers in the TiltCheck stack
 const KNOWN_CONTAINERS = [

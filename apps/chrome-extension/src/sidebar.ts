@@ -48,7 +48,7 @@ const authManager = new AuthManager({
 
 let authToken: string | null = null;
 let userData: any = null;
-let demoMode = true;
+let demoMode = false; // opt-in only — set true via enableDemoMode()
 let isConnecting = false;
 
 let showSettings = false;

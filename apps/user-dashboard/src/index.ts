@@ -589,6 +589,8 @@ app.post('/api/user/:discordId/buddies/:requestId/decline', authenticateToken, a
 });
 
 // === Preview page (no auth) ===
+app.get('/health', (_req, res) => res.json({ status: 'ok' }));
+
 app.get('/preview', (_req, res) => {
   res.sendFile(join(__dirname, '../public/preview.html'));
 });
