@@ -1,16 +1,19 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-04
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-08
 /**
  * TiltCheck AI Gateway Client
  *
- * Shared client for making requests to the AI Gateway service.
- * Provides unified access to all 7 AI applications:
- * 1. Survey Matching Intelligence
- * 2. DA&D Card Generation
- * 3. Content Moderation
- * 4. Tilt Detection
- * 5. Natural Language Commands
- * 6. Personalized Recommendations
- * 7. User Support
+ * Smart multi-provider routing: each AI application is routed to the best
+ * provider based on accuracy requirements and cost efficiency, with automatic
+ * fallback if the primary provider is unavailable.
+ *
+ * Provider priority by application:
+ *   Accuracy-critical (tilt-detection, moderation, survey-matching,
+ *     recommendations, onboarding) → Vertex AI → Groq → Ollama → Mock
+ *   Speed/cost-critical (nl-commands, support, card-generation)
+ *     → Groq → Vertex AI → Ollama → Mock
+ *
+ * Auth: Vertex AI uses a GCP service account key (GOOGLE_SERVICE_ACCOUNT_JSON)
+ * to obtain short-lived OAuth2 Bearer tokens, cached for 55 minutes.
  */
 
 export type AIApplication =
@@ -22,6 +25,26 @@ export type AIApplication =
   | 'recommendations'
   | 'support'
   | 'onboarding';
+
+export type AIProvider = 'vertex' | 'groq' | 'ollama' | 'openai' | 'mock';
+
+/**
+ * Per-application provider priority list.
+ * First available/configured provider in the list wins.
+ * Falls back automatically on error.
+ */
+const PROVIDER_ROUTES: Record<AIApplication, AIProvider[]> = {
+  // Accuracy-critical: complex reasoning, behavioral analysis, safety
+  'tilt-detection':  ['vertex', 'groq', 'ollama', 'mock'],
+  'moderation':      ['vertex', 'groq', 'ollama', 'mock'],
+  'survey-matching': ['vertex', 'groq', 'ollama', 'mock'],
+  'recommendations': ['vertex', 'groq', 'ollama', 'mock'],
+  'onboarding':      ['vertex', 'groq', 'ollama', 'mock'],
+  // Speed/cost-critical: real-time UX, creative, high-volume
+  'nl-commands':     ['groq', 'vertex', 'ollama', 'mock'],
+  'support':         ['groq', 'vertex', 'ollama', 'mock'],
+  'card-generation': ['groq', 'ollama', 'vertex', 'mock'],
+};
 
 export interface AIRequest {
   application: AIApplication;
@@ -38,7 +61,7 @@ export interface AIResponse<T = unknown> {
     completionTokens: number;
     totalTokens: number;
   };
-  source?: 'openai' | 'ollama' | 'vertex' | 'mock';
+  source?: AIProvider;
   cached?: boolean;
   error?: string;
 }
@@ -163,25 +186,46 @@ export interface AIClientConfig {
   timeout?: number;
   authToken?: string;
   retries?: number;
-  provider?: 'gateway' | 'ollama' | 'vertex';
-  ollamaModel?: string;
-  vertexApiKey?: string;
+  /** Force a specific provider for all requests (overrides PROVIDER_ROUTES). */
+  forceProvider?: AIProvider;
+  // Vertex AI
+  vertexProject?: string;
+  vertexLocation?: string;
   vertexModel?: string;
+  // Groq
+  groqApiKey?: string;
+  groqModel?: string;
+  groqFastModel?: string;
+  // Ollama
+  ollamaUrl?: string;
+  ollamaModel?: string;
 }
 
 const DEFAULT_CONFIG: Required<AIClientConfig> = {
-  baseUrl:
-    process.env.AI_PROVIDER === 'ollama'
-      ? (process.env.OLLAMA_URL || 'http://localhost:11434/v1')
-      : (process.env.AI_GATEWAY_URL || 'https://ai-gateway.tiltcheck.me'),
+  baseUrl: process.env.AI_GATEWAY_URL || 'https://ai-gateway.tiltcheck.me',
   timeout: 30000,
   authToken: '',
   retries: 2,
-  provider: (process.env.AI_PROVIDER as any) || 'gateway',
-  ollamaModel: process.env.AI_MODEL || process.env.OLLAMA_MODEL || 'llama3.2:1b',
-  vertexApiKey: process.env.GEMINI_API_KEY || '',
-  vertexModel: process.env.VERTEX_MODEL || 'gemini-2.5-flash-lite',
+  forceProvider: (process.env.AI_PROVIDER as AIProvider | undefined) as unknown as AIProvider,
+  // Vertex AI (uses Gemini on Vertex — applies $1k credits)
+  vertexProject: process.env.GOOGLE_CLOUD_PROJECT || '',
+  vertexLocation: process.env.VERTEX_LOCATION || 'us-central1',
+  vertexModel: process.env.VERTEX_MODEL || 'gemini-2.5-flash',
+  // Groq — fast, cheap, OpenAI-compatible
+  groqApiKey: process.env.GROQ_API_KEY || '',
+  groqModel: process.env.GROQ_MODEL || 'llama-3.3-70b-versatile',
+  groqFastModel: process.env.GROQ_FAST_MODEL || 'llama-3.1-8b-instant',
+  // Ollama — local/self-hosted fallback
+  ollamaUrl: process.env.OLLAMA_URL || 'http://localhost:11434/v1',
+  ollamaModel: process.env.OLLAMA_MODEL || 'llama3.2:1b',
 };
+
+/** Vertex AI OAuth2 token cache */
+interface TokenCache {
+  token: string;
+  expiresAt: number;
+}
+let vertexTokenCache: TokenCache | null = null;
 
 /**
  * AI Gateway Client
@@ -237,49 +281,145 @@ export class AIClient {
     const timeoutId = setTimeout(() => controller.abort(), this.config.timeout);
 
     try {
-      if (this.config.provider === 'ollama') {
-        return await this.makeOllamaRequest<T>(request, controller.signal);
+      // Determine provider chain: forced override or route table
+      const chain: AIProvider[] = this.config.forceProvider
+        ? [this.config.forceProvider, 'mock']
+        : PROVIDER_ROUTES[request.application] ?? ['groq', 'vertex', 'ollama', 'mock'];
+
+      let lastError = '';
+      for (const provider of chain) {
+        if (!this.isProviderConfigured(provider)) continue;
+        try {
+          const result = await this.callProvider<T>(provider, request, controller.signal);
+          clearTimeout(timeoutId);
+          return result;
+        } catch (err) {
+          lastError = err instanceof Error ? err.message : String(err);
+          console.warn(`[AIClient] ${provider} failed for ${request.application}: ${lastError}`);
+        }
       }
-
-      if (this.config.provider === 'vertex') {
-        return await this.makeVertexRequest<T>(request, controller.signal);
-      }
-
-      const headers: Record<string, string> = {
-        'Content-Type': 'application/json',
-      };
-
-      if (this.config.authToken) {
-        headers['Authorization'] = `Bearer ${this.config.authToken}`;
-      }
-
-      const response = await fetch(`${this.config.baseUrl}/api/ai`, {
-        method: 'POST',
-        headers,
-        body: JSON.stringify(request),
-        signal: controller.signal,
-      });
 
       clearTimeout(timeoutId);
-
-      if (!response.ok) {
-        throw new Error(`AI Gateway returned ${response.status}`);
-      }
-
-      return await response.json() as AIResponse<T>;
+      return { success: false, error: `All providers failed. Last: ${lastError}` };
     } catch (error) {
       clearTimeout(timeoutId);
-
-      if ((error as Error).name === 'AbortError') {
-        throw new Error('Request timeout');
-      }
+      if ((error as Error).name === 'AbortError') throw new Error('Request timeout');
       throw error;
     }
   }
 
-  private async makeVertexRequest<T>(request: AIRequest, signal: AbortSignal): Promise<AIResponse<T>> {   
-    // Uses direct Gemini REST API (no GCP/Vertex AI required).
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/${this.config.vertexModel}:generateContent?key=${this.config.vertexApiKey}`;
+  private isProviderConfigured(provider: AIProvider): boolean {
+    switch (provider) {
+      case 'vertex':
+        return !!(process.env.GOOGLE_SERVICE_ACCOUNT_JSON && this.config.vertexProject);
+      case 'groq':
+        return !!this.config.groqApiKey;
+      case 'ollama':
+        return !!(this.config.ollamaUrl && this.config.ollamaUrl !== 'http://localhost:11434/v1')
+          || process.env.NODE_ENV === 'development';
+      case 'openai':
+        return !!process.env.OPENAI_API_KEY;
+      case 'mock':
+        return true;
+      default:
+        return false;
+    }
+  }
+
+  private async callProvider<T>(
+    provider: AIProvider,
+    request: AIRequest,
+    signal: AbortSignal,
+  ): Promise<AIResponse<T>> {
+    switch (provider) {
+      case 'vertex': return this.callVertex<T>(request, signal);
+      case 'groq':   return this.callGroq<T>(request, signal);
+      case 'ollama': return this.callOllama<T>(request, signal);
+      case 'openai': return this.callOpenAICompat<T>(request, signal, 'https://api.openai.com/v1', process.env.OPENAI_API_KEY || '', process.env.OPENAI_MODEL || 'gpt-4o-mini');
+      case 'mock':   return this.callMock<T>(request);
+      default:       throw new Error(`Unknown provider: ${provider}`);
+    }
+  }
+
+  // ── Vertex AI (Gemini on Vertex — uses GCP credits) ──────────────────────
+
+  private async getVertexToken(): Promise<string> {
+    const now = Date.now();
+    if (vertexTokenCache && vertexTokenCache.expiresAt > now + 60_000) {
+      return vertexTokenCache.token;
+    }
+
+    const raw = process.env.GOOGLE_SERVICE_ACCOUNT_JSON || '';
+    const sa = JSON.parse(raw) as {
+      client_email: string;
+      private_key: string;
+    };
+
+    const iat = Math.floor(now / 1000);
+    const exp = iat + 3600;
+
+    const header = this.base64url(JSON.stringify({ alg: 'RS256', typ: 'JWT' }));
+    const payload = this.base64url(JSON.stringify({
+      iss: sa.client_email,
+      scope: 'https://www.googleapis.com/auth/cloud-platform',
+      aud: 'https://oauth2.googleapis.com/token',
+      iat,
+      exp,
+    }));
+
+    const signingInput = `${header}.${payload}`;
+
+    // Import PKCS#8 private key (Google SA keys are PKCS#8 "BEGIN PRIVATE KEY")
+    const pemBody = sa.private_key
+      .replace(/-----BEGIN PRIVATE KEY-----/g, '')
+      .replace(/-----END PRIVATE KEY-----/g, '')
+      .replace(/\n/g, '');
+
+    const keyData = Uint8Array.from(Buffer.from(pemBody, 'base64'));
+    const cryptoKey = await globalThis.crypto.subtle.importKey(
+      'pkcs8',
+      keyData,
+      { name: 'RSASSA-PKCS1-v1_5', hash: 'SHA-256' },
+      false,
+      ['sign'],
+    );
+
+    const sigBytes = await globalThis.crypto.subtle.sign(
+      'RSASSA-PKCS1-v1_5',
+      cryptoKey,
+      new TextEncoder().encode(signingInput),
+    );
+    const sig = this.base64url(Buffer.from(sigBytes).toString('binary'), true);
+    const jwt = `${signingInput}.${sig}`;
+
+    const res = await fetch('https://oauth2.googleapis.com/token', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: `grant_type=urn%3Aietf%3Aparams%3Aoauth%3Agrant-type%3Ajwt-bearer&assertion=${jwt}`,
+    });
+
+    if (!res.ok) {
+      const body = await res.text().catch(() => '');
+      throw new Error(`Vertex token exchange failed ${res.status}: ${body.slice(0, 200)}`);
+    }
+
+    const data = await res.json() as { access_token: string; expires_in: number };
+    vertexTokenCache = {
+      token: data.access_token,
+      expiresAt: now + (data.expires_in ?? 3600) * 1000,
+    };
+    return vertexTokenCache.token;
+  }
+
+  private base64url(input: string, isBinary = false): string {
+    const b64 = isBinary ? Buffer.from(input, 'binary').toString('base64') : Buffer.from(input).toString('base64');
+    return b64.replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_');
+  }
+
+  private async callVertex<T>(request: AIRequest, signal: AbortSignal): Promise<AIResponse<T>> {
+    const token = await this.getVertexToken();
+    const { vertexProject, vertexLocation, vertexModel } = this.config;
+    const url = `https://${vertexLocation}-aiplatform.googleapis.com/v1/projects/${vertexProject}/locations/${vertexLocation}/publishers/google/models/${vertexModel}:generateContent`;
 
     const prompt = request.prompt || `Task: ${request.application}\nContext: ${JSON.stringify(request.context || {})}`;
 
@@ -287,61 +427,88 @@ export class AIClient {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify({
-        contents: [
-          {
-            role: 'user',
-            parts: [{ text: this.buildOllamaSystemPrompt(request.application) + "\n\nUser Input: " + prompt }]
-          }
-        ],
-        generationConfig: {
-          responseMimeType: 'application/json'
-        }
+        contents: [{ role: 'user', parts: [{ text: this.buildSystemPrompt(request.application) + '\n\nUser Input: ' + prompt }] }],
+        generationConfig: { responseMimeType: 'application/json', temperature: 0.2, maxOutputTokens: 1200 },
       }),
       signal,
     });
 
     if (!response.ok) {
       const body = await response.text().catch(() => '');
-      throw new Error(`Gemini API returned ${response.status}: ${body.slice(0, 180)}`);
+      throw new Error(`Vertex returned ${response.status}: ${body.slice(0, 200)}`);
     }
 
-    const data = await response.json() as { candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }> };
-
-    if (!data.candidates || data.candidates.length === 0) {
-      return { success: false, source: 'vertex' as any, error: 'No candidates in Gemini response' };
-    }
-
-    const fullText = data.candidates[0]?.content?.parts?.[0]?.text || '';
-
-    if (!fullText) {
-      return { success: false, source: 'vertex' as any, error: 'Empty Gemini response' };
-    }
+    const data = await response.json() as {
+      candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }>;
+    };
+    const fullText = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() ?? '';
+    if (!fullText) throw new Error('Empty Vertex response');
 
     const parsed = this.extractJson(fullText);
     return {
       success: true,
-      source: 'vertex' as any, 
-      text: typeof parsed?.text === 'string' ? (parsed.text as string) : fullText,
+      source: 'vertex',
+      text: typeof parsed?.text === 'string' ? parsed.text : fullText,
       data: (parsed?.data ?? parsed) as T,
     };
   }
 
-  private async makeOllamaRequest<T>(request: AIRequest, signal: AbortSignal): Promise<AIResponse<T>> {   
-    const response = await fetch(`${this.config.baseUrl}/chat/completions`, {
+  // ── Groq (speed/cost-optimised OpenAI-compat) ────────────────────────────
+
+  private async callGroq<T>(request: AIRequest, signal: AbortSignal): Promise<AIResponse<T>> {
+    // Use fast model for real-time UX tasks, standard model for others
+    const fastApps: AIApplication[] = ['nl-commands', 'support'];
+    const model = fastApps.includes(request.application)
+      ? this.config.groqFastModel
+      : this.config.groqModel;
+
+    return this.callOpenAICompat<T>(
+      request, signal,
+      'https://api.groq.com/openai/v1',
+      this.config.groqApiKey,
+      model,
+      'groq',
+    );
+  }
+
+  // ── Ollama (local/self-hosted) ────────────────────────────────────────────
+
+  private async callOllama<T>(request: AIRequest, signal: AbortSignal): Promise<AIResponse<T>> {
+    return this.callOpenAICompat<T>(
+      request, signal,
+      this.config.ollamaUrl,
+      'ollama',
+      this.config.ollamaModel,
+      'ollama',
+    );
+  }
+
+  // ── Shared OpenAI-compatible path (Groq, Ollama, OpenAI) ─────────────────
+
+  private async callOpenAICompat<T>(
+    request: AIRequest,
+    signal: AbortSignal,
+    baseUrl: string,
+    apiKey: string,
+    model: string,
+    source: AIProvider = 'openai',
+  ): Promise<AIResponse<T>> {
+    const response = await fetch(`${baseUrl}/chat/completions`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: 'Bearer ollama',
+        Authorization: `Bearer ${apiKey}`,
       },
       body: JSON.stringify({
-        model: this.config.ollamaModel,
+        model,
         temperature: 0.25,
         max_tokens: 900,
         messages: [
-          { role: 'system', content: this.buildOllamaSystemPrompt(request.application) },
-          { role: 'user', content: this.buildOllamaUserPrompt(request) },
+          { role: 'system', content: this.buildSystemPrompt(request.application) },
+          { role: 'user', content: this.buildUserPrompt(request) },
         ],
       }),
       signal,
@@ -349,29 +516,37 @@ export class AIClient {
 
     if (!response.ok) {
       const body = await response.text().catch(() => '');
-      throw new Error(`Ollama returned ${response.status}: ${body.slice(0, 180)}`);
+      throw new Error(`${source} returned ${response.status}: ${body.slice(0, 180)}`);
     }
 
-    const data = await response.json() as { choices?: Array<{ message?: { content?: string } }> };        
-    const content = data?.choices?.[0]?.message?.content?.trim() || '';
-    if (!content) {
-      return { success: false, source: 'ollama', error: 'Empty Ollama response' };
-    }
+    const data = await response.json() as { choices?: Array<{ message?: { content?: string } }> };
+    const content = data?.choices?.[0]?.message?.content?.trim() ?? '';
+    if (!content) throw new Error(`Empty ${source} response`);
 
     const parsed = this.extractJson(content);
-    if (!parsed) {
-      return { success: true, source: 'ollama', text: content };
-    }
-
     return {
       success: true,
-      source: 'ollama',
-      text: typeof parsed.text === 'string' ? parsed.text : undefined,
-      data: (parsed.data ?? parsed) as T,
+      source,
+      text: typeof parsed?.text === 'string' ? parsed.text : (parsed ? undefined : content),
+      data: (parsed?.data ?? parsed) as T,
     };
   }
 
-  private buildOllamaSystemPrompt(application: AIApplication): string {
+  // ── Mock (testing / offline fallback) ────────────────────────────────────
+
+  private callMock<T>(request: AIRequest): AIResponse<T> {
+    console.warn(`[AIClient] Using mock provider for ${request.application}`);
+    return {
+      success: true,
+      source: 'mock',
+      text: `Mock response for ${request.application}`,
+      data: {} as T,
+    };
+  }
+
+  // ── Shared prompt builders ────────────────────────────────────────────────
+
+  private buildSystemPrompt(application: AIApplication): string {
     const appGuidance: Record<AIApplication, string> = {
       'survey-matching': 'Return matchConfidence, matchLevel, reasoning[], recommendedActions[], estimatedCompletionTime, screenOutRisk.',
       'card-generation': 'Return whiteCards[] and blackCards[] with concise, non-harmful humor.',
@@ -388,7 +563,7 @@ Return strict JSON only with shape: {"text":"optional short summary","data":{...
 Never include markdown fences.`;
   }
 
-  private buildOllamaUserPrompt(request: AIRequest): string {
+  private buildUserPrompt(request: AIRequest): string {
     return JSON.stringify({
       application: request.application,
       prompt: request.prompt || '',
