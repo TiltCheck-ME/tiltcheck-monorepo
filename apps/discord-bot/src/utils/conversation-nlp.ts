@@ -23,10 +23,19 @@ export function detectConversationIntent(message: string): ConversationIntent {
 export function buildPersonaReply(intent: ConversationIntent): string {
   switch (intent) {
     case 'safety':
-      return 'Safety tools: `/tiltcheck status`, `/tiltcheck cooldown`, `/tiltcheck link scan`, and `/tiltcheck casino`.';
+      return 'Safety commands: `/status`, `/cooldown`, `/scan`, `/casino`. Run `/help` for the full list.';
     case 'help':
-      return 'I am the safety bot. Use `/tiltcheck help` for the full command map. Tips are in JustTheTip bot. Games are in DA&D bot.';
+      return 'This is the TiltCheck safety bot. Run `/help` for the full command map. Tips go to JustTheTip bot. Card games go to the Degens Against Decency bot.';
+    case 'tip':
+    case 'deposit':
+    case 'withdraw':
+      return 'Tips, deposits, and withdrawals live in JustTheTip bot. This bot handles safety only.';
+    case 'wallet':
+      return 'Wallet registration is in JustTheTip bot. To link your wallet for trust scoring, use `/linkwallet` here.';
+    case 'game':
+    case 'poker':
+      return 'Card games and poker are in the Degens Against Decency bot. This bot handles safety and session auditing.';
     default:
-      return 'I handle safety and moderation. If you want tips or games, I will route you to the right bot.';
+      return 'This is the TiltCheck safety bot. Run `/help` to see what I can do, or describe what you need.';
   }
 }

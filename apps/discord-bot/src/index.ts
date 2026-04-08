@@ -103,7 +103,7 @@ async function main() {
       const prefix = severity === 'high' ? '[HIGH RISK]' : severity === 'medium' ? '[AUDIT ALERT]' : '[EDGE EQUALIZER]';
       
       // Notify the User
-      await user.send(`${prefix} TILTCHECK EDGE EQUALIZER AUDIT\n\n${message}\n\n*Don't get rinsed. SECURE THE PROFIT.*\n🔗 **View Hub:** https://tiltcheck.me/dashboard`);
+      await user.send(`${prefix} TILTCHECK EDGE EQUALIZER AUDIT\n\n${message}\n\nDo not get rinsed. Secure the profit.\nView Hub: https://tiltcheck.me/dashboard`);
       console.log(`[TiltAgent] Transparency signal sent to ${userId} (${severity})`);
 
 
@@ -165,6 +165,23 @@ async function main() {
   console.log('[Commands] Loading slash commands...');
   commandHandler.loadCommands();
   console.log('');
+
+  // Auto-register slash commands with Discord on every startup
+  if (config.clientId && config.discordToken && process.env.SKIP_DISCORD_LOGIN !== 'true') {
+    const { REST, Routes } = await import('discord.js');
+    const rest = new REST().setToken(config.discordToken);
+    const commandData = commandHandler.getCommandData();
+    try {
+      if (config.guildId) {
+        await rest.put(Routes.applicationGuildCommands(config.clientId, config.guildId), { body: commandData });
+      } else {
+        await rest.put(Routes.applicationCommands(config.clientId), { body: commandData });
+      }
+      console.log(`[Commands] ${commandData.length} slash commands registered with Discord\n`);
+    } catch (err) {
+      console.error('[Commands] Failed to register slash commands:', err);
+    }
+  }
 
   console.log('[Activities] Initializing Discord Activities SDK...');
   const activityManager = new DiscordActivityManager(client.application?.id || '');
