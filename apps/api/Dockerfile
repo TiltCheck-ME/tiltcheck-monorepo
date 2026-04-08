@@ -17,6 +17,8 @@ RUN pnpm fetch
 FROM base AS build
 COPY . .
 RUN pnpm install --frozen-lockfile --filter @tiltcheck/api...
+# Force clean build — prevents tsc incremental cache serving stale compiled output
+RUN rm -rf apps/api/dist packages/*/dist modules/*/dist
 RUN pnpm --filter @tiltcheck/api... build
 RUN test -f apps/api/dist/index.js || (echo 'BUILD ERROR: apps/api/dist/index.js not produced' && exit 1)
 # [PHASE 3] Production Runtime
