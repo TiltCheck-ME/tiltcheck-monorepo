@@ -31,7 +31,7 @@ export const cooldown: Command = {
 
     if (duration < 5 || duration > 1440) {
       await interaction.reply({ 
-        content: '❌ Duration must be between 5 and 1440 minutes (24 hours)',
+        content: 'Duration must be between 5 and 1440 minutes (24 hours).',
         ephemeral: true 
       });
       return;
@@ -44,7 +44,7 @@ export const cooldown: Command = {
       const remaining = status && status.endsAt ? Math.ceil((status.endsAt - Date.now()) / 60000) : 0;
       
       await interaction.reply({ 
-        content: `⏸️ You're already on cooldown for ${remaining} more minutes`,
+        content: `Already on cooldown — ${remaining} more minutes. Hang tight.`,
         ephemeral: true 
       });
       return;
@@ -58,8 +58,8 @@ export const cooldown: Command = {
 
     const embed = new EmbedBuilder()
       .setColor(0x00CED1)
-      .setTitle('⏸️ Cooldown Started')
-      .setDescription(`Taking a ${duration}-minute break. Smart move.`)
+      .setTitle('[COOLDOWN ACTIVE]')
+      .setDescription(`${duration}-minute lock engaged. Smart move.`)
       .addFields(
         { name: 'Duration', value: `${duration} minutes`, inline: true },
         { name: 'Expires', value: `<t:${Math.floor((Date.now() + duration * 60000) / 1000)}:R>`, inline: true },
@@ -107,17 +107,17 @@ async function handleTiltStatus(interaction: ChatInputCommandInteraction) {
   if (status.onCooldown && cooldownStatus && cooldownStatus.endsAt) {
     const remaining = Math.ceil((cooldownStatus.endsAt - Date.now()) / 60000);
     const reason = cooldownStatus.reason || 'Unknown';
-    embed.setDescription('⏸️ On cooldown')
+    embed.setDescription('[COOLDOWN ACTIVE]')
       .addFields(
         { name: 'Time Remaining', value: `${remaining} minutes`, inline: true },
         { name: 'Reason', value: reason, inline: true },
         { name: 'Violations', value: `${cooldownStatus.violationCount}`, inline: true },
       );
   } else {
-    embed.setDescription('✅ No active cooldown')
+    embed.setDescription('[CLEAR]')
       .addFields(
         { name: 'Recent Signals', value: `${status.recentSignals.length} (last hour)`, inline: true },
-        { name: 'Status', value: status.recentSignals.length >= 3 ? '⚠️ Elevated' : '✅ Normal', inline: true },
+        { name: 'Status', value: status.recentSignals.length >= 3 ? '[ELEVATED]' : '[NORMAL]', inline: true },
       );
   }
 

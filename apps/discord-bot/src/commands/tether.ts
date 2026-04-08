@@ -1,11 +1,11 @@
-/* Copyright (c) 2026 TiltCheck. All rights reserved. */
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-08
 /**
  * Tether Accountability Command
  * Manage your safety line to other users.
  */
 import { SlashCommandBuilder, ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
 import type { Command } from '../types.js';
-
+import { getUserBuddies, removeBuddy, insert } from '@tiltcheck/db';
 
 export const tether: Command = {
   data: new SlashCommandBuilder()
@@ -41,19 +41,24 @@ export const tether: Command = {
           return;
         }
 
-        // 1. Database Update (Mocking the call for now, assume this logic exists)
-        // await db.addTether(interaction.user.id, targetUser.id);
-        
-        embed.setTitle('🔗 TETHER INITIALIZED')
-          .setDescription(`**${targetUser.username}** is now your accountability partner.\n\n[EDGE EQUALIZER] When telemetry goes red, they will be notified to intervene and audit your head.`)
+        await insert('user_buddies', {
+          user_id: interaction.user.id,
+          buddy_id: targetUser.id,
+          status: 'accepted',
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        });
+
+        embed.setTitle('[TETHER INITIALIZED]')
+          .setDescription(`**${targetUser.username}** is now your accountability partner.\n\nWhen telemetry goes red, they will be notified to intervene and audit your head.`)
           .setFooter({ text: 'TiltCheck: THE RELUCTANT BABYSITTER' });
 
         await interaction.reply({ embeds: [embed] });
 
       } else if (sub === 'unlink' && targetUser) {
-        // await db.removeTether(interaction.user.id, targetUser.id);
-        
-        embed.setTitle('✂️ TETHER TERMINATED')
+        await removeBuddy(interaction.user.id, targetUser.id);
+
+        embed.setTitle('[TETHER TERMINATED]')
           .setColor(0xFF4500)
           .setDescription(`Safety line to **${targetUser.username}** has been cut.\n\nYou're on your own now. Audit your sessions carefully.`)
           .setFooter({ text: 'TiltCheck: AUDIT INTEGRITY AT RISK' });
@@ -61,17 +66,20 @@ export const tether: Command = {
         await interaction.reply({ embeds: [embed] });
 
       } else if (sub === 'status') {
-        // const partners = await db.getTethers(interaction.user.id);
-        const partners = ['No partners linked.']; // Placeholder
-        
-        embed.setTitle('📡 THE TETHER AUDIT')
-          .setDescription(`**Active Safety Partners:**\n${partners.map(p => `• ${p}`).join('\n')}\n\n[PROFIT GUARD] If you spiral, these users will be moved to VC with you.`)
+        const partners = await getUserBuddies(interaction.user.id);
+
+        embed.setTitle('[TETHER AUDIT]')
+          .setDescription(
+            partners.length > 0
+              ? `**Active Safety Partners (${partners.length}):**\n${partners.map(p => `- <@${p.buddy_id}>`).join('\n')}\n\nIf you spiral, these users will be moved to VC with you.`
+              : 'No safety partners linked.\n\nUse `/tether link user:@someone` to add one. Accountability works.'
+          )
           .setFooter({ text: 'Audit your head mid-session.' });
 
         await interaction.reply({ embeds: [embed], ephemeral: true });
       }
     } catch (err) {
-      await interaction.reply({ content: `[!] Tether action failed: ${(err as Error).message}`, ephemeral: true });
+      await interaction.reply({ content: `Tether action failed: ${(err as Error).message}`, ephemeral: true });
     }
   },
 };
