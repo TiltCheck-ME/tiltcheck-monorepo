@@ -67,12 +67,12 @@ export const terms: Command = {
             has_accepted_terms: true 
           });
 
-          await btn.update({ content: '✅ Terms accepted. Your **Degen Identity** NFT has been minted to your TiltCheck profile! You may now use tipping and vaulting features.', embeds: [], components: [] });
+          await btn.update({ content: 'Terms accepted. You can now use tipping and vaulting features.', embeds: [], components: [] });
         } else {
-          await btn.update({ content: '❌ Acceptance cancelled. Run `/terms accept` later.', embeds: [], components: [] });
+          await btn.update({ content: 'Acceptance cancelled. Run `/terms accept` later.', embeds: [], components: [] });
         }
       } catch {
-        await interaction.editReply({ content: '⏱️ Timed out. Run `/terms accept` again.', embeds: [], components: [] });
+        await interaction.editReply({ content: 'Timed out. Run `/terms accept` again.', embeds: [], components: [] });
       }
       return;
     }

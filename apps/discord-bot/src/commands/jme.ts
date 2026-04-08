@@ -108,7 +108,8 @@ async function handleReset(interaction: ChatInputCommandInteraction) {
   const target = interaction.options.getUser('target', true);
   
   // Owner Check
-  const isOwner = interaction.user.id === '1472601571496951932' || interaction.user.id === '229825593856163840';
+  const ownerIds = (process.env.BOT_OWNER_IDS || '1472601571496951932,229825593856163840').split(',');
+  const isOwner = ownerIds.includes(interaction.user.id);
   
   if (!isOwner) {
     await interaction.reply({ content: '[!] UNAUTHORIZED. Owner-level clearance required for user reset.', ephemeral: true });

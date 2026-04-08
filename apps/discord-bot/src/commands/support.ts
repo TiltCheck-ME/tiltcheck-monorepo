@@ -6,7 +6,7 @@
 import { SlashCommandBuilder, ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
 import type { Command } from '../types.js';
 
-const OWNER_ID = '1472601571496951932';
+const OWNER_ID = process.env.BOT_OWNER_ID || '1472601571496951932';
 
 export const support: Command = {
   data: new SlashCommandBuilder()
