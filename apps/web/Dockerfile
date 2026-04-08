@@ -29,13 +29,11 @@ RUN pnpm --filter web build
 FROM node:20-slim AS runner
 WORKDIR /app
 ENV NODE_ENV=production
-# Hardcode port for Cloud Run standard or use PORT env
 ENV PORT=3000
 
-# Copy internal packages first to resolve standalone dependencies
-COPY --from=build /app/apps/web/public ./apps/web/public
+# Standalone output contains server.js at root when outputFileTracingRoot is not set
 COPY --from=build /app/apps/web/.next/standalone ./
-COPY --from=build /app/apps/web/.next/static ./apps/web/.next/static
+COPY --from=build /app/apps/web/.next/static ./.next/static
+COPY --from=build /app/apps/web/public ./public
 
-# Find and run server.js — path varies by Next.js version and outputFileTracingRoot
-CMD ["sh", "-c", "node $(find /app -name 'server.js' -not -path '*/node_modules/*' -not -path '*/.next/*' | head -1)"]
+CMD ["node", "server.js"]

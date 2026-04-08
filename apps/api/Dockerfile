@@ -20,6 +20,8 @@ RUN pnpm install --frozen-lockfile --filter @tiltcheck/api...
 # Force clean build — prevents tsc incremental cache serving stale compiled output
 RUN rm -rf apps/api/dist packages/*/dist modules/*/dist
 RUN pnpm --filter @tiltcheck/api... build
+# Belt-and-suspenders: ensure no stale ai.js artifact survives
+RUN rm -f apps/api/dist/routes/ai.js
 RUN test -f apps/api/dist/index.js || (echo 'BUILD ERROR: apps/api/dist/index.js not produced' && exit 1)
 # [PHASE 3] Production Runtime
 FROM node:20-slim
