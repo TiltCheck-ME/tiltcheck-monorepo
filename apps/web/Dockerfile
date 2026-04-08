@@ -37,5 +37,5 @@ COPY --from=build /app/apps/web/public ./apps/web/public
 COPY --from=build /app/apps/web/.next/standalone ./
 COPY --from=build /app/apps/web/.next/static ./apps/web/.next/static
 
-# Next.js standalone entry point - Corrected for monorepo standalone output
-CMD ["node", "server.js"]
+# Find and run server.js — path varies by Next.js version and outputFileTracingRoot
+CMD ["sh", "-c", "node $(find /app -name 'server.js' -not -path '*/node_modules/*' -not -path '*/.next/*' | head -1)"]
