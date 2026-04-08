@@ -76,48 +76,48 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        service:
-          - api
-          - web
-          - discord-bot
-          - trust-rollup
-          - control-room
-          - game-arena
-          - user-dashboard
-          - activity
+        include:
+          - service: api
+            railway_service_id: "90ddbf09-ab4c-413e-9c09-b030da6e85c0"
+          - service: web
+            railway_service_id: "08e9b7f6-ad09-4808-9e69-047eb5ab0cb2"
+          - service: discord-bot
+            railway_service_id: "91b91e98-fc19-4006-8edd-f7c2a1e45865"
+          - service: trust-rollup
+            railway_service_id: "a3d4ca4c-868b-4332-8316-03b0d0b0d238"
+          - service: control-room
+            railway_service_id: "1c05f565-9060-43a9-960c-f1b5daa540a9"
+          - service: game-arena
+            railway_service_id: "54152da7-7f13-4603-ad42-e7521bf0c58f"
+          - service: user-dashboard
+            railway_service_id: "a5bb3924-76b3-41af-882c-319417c64dd8"
+          - service: activity
+            railway_service_id: "fbd95f9a-7394-4de6-ac5d-23dc52222228"
     steps:
-      - name: Resolve Railway service name
-        id: svc
-        run: |
-          case "${{ matrix.service }}" in
-            api)      echo "name=@tiltcheck/api" >> $GITHUB_OUTPUT ;;
-            activity) echo "name=@tiltcheck/activity" >> $GITHUB_OUTPUT ;;
-            *)        echo "name=${{ matrix.service }}" >> $GITHUB_OUTPUT ;;
-          esac
-
       - name: Redeploy ${{ matrix.service }} on Railway
         run: |
-          SERVICE="${{ steps.svc.outputs.name }}"
-          for i in 1 2 3 4 5; do
-            set +e
-            OUTPUT=$(npx @railway/cli@latest redeploy --service "$SERVICE" --yes 2>&1)
+          ENV_ID="3558050f-0c00-4ba7-8763-e960a1ecaf96"
+          SVC_ID="${{ matrix.railway_service_id }}"
+          MUTATION="{\"query\":\"mutation { serviceInstanceRedeploy(serviceId: \\\"$SVC_ID\\\", environmentId: \\\"$ENV_ID\\\") }\"}"
+
+          for i in 1 2 3; do
+            RESPONSE=$(curl -sf -X POST https://backboard.railway.com/graphql/v2 \
+              -H "Authorization: Bearer $RAILWAY_TOKEN" \
+              -H "Content-Type: application/json" \
+              -d "$MUTATION" 2>&1)
             EXIT_CODE=$?
-            set -e
-            echo "$OUTPUT"
-            if [ $EXIT_CODE -eq 0 ]; then
-              echo "Redeploy triggered successfully"
+            echo "$RESPONSE"
+
+            if [ $EXIT_CODE -eq 0 ] && echo "$RESPONSE" | grep -q '"serviceInstanceRedeploy"'; then
+              echo "Redeploy triggered for ${{ matrix.service }}"
+              break
+            elif [ $EXIT_CODE -eq 0 ] && ! echo "$RESPONSE" | grep -q '"errors"'; then
+              echo "Redeploy triggered for ${{ matrix.service }}"
               break
             else
-              echo "Redeploy failed (exit code: $EXIT_CODE, attempt $i/5)"
-              if [ $i -lt 5 ]; then
-                echo "Retrying in 30s..."
-                sleep 30
-              else
-                echo "Max retries reached."
-                exit $EXIT_CODE
-              fi
+              echo "Attempt $i failed (exit: $EXIT_CODE)"
+              if [ $i -lt 3 ]; then sleep 15; else exit 1; fi
             fi
           done
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
-          RAILWAY_PROJECT_ID: e48fdf5a-7857-4c69-a578-1ce8fa10d93e
