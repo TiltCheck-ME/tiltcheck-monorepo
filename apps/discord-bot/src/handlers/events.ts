@@ -35,6 +35,7 @@ import { trackMessageEvent, trackCommandEvent } from '../services/elastic-teleme
 import { markUserActive, type TiltAgentContext } from '../services/tilt-agent.js';
 import { handleCommandError } from './error.js';
 import { dispatchButtonInteraction } from './button-handlers.js';
+import { detectIntent, formatNlpResponse } from '../services/nlp-intent.js';
 
 function getTiltAgentContext(): TiltAgentContext | undefined {
   const stateCode = process.env.TILT_AGENT_DEFAULT_STATE_CODE?.trim().toUpperCase();
@@ -160,6 +161,29 @@ export class EventHandler {
         isDM: !message.guildId,
       });
       markUserActive(message.author.id, getTiltAgentContext());
+
+      const isMentioned = this.client.user
+        ? message.mentions.has(this.client.user.id)
+        : false;
+      const isDM = !message.guildId;
+
+      // NLP intent detection for DMs and @mentions
+      if (isDM || isMentioned) {
+        const intent = detectIntent(message.content);
+        if (intent) {
+          trackCommandEvent({
+            userId: message.author.id,
+            guildId: message.guildId ?? undefined,
+            commandName: `nlp:${intent.command}`,
+            isDM,
+          });
+          await message.reply(formatNlpResponse(intent)).catch(() => {});
+        } else {
+          await message.reply(
+            'Not sure what you need. Use `/help` for all commands, or just tell me what you want in plain English.'
+          ).catch(() => {});
+        }
+      }
 
       if (!config.suslinkAutoScan) return;
 
