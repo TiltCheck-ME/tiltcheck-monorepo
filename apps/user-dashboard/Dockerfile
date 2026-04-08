@@ -30,6 +30,7 @@ COPY --from=build /app/apps/user-dashboard/package.json ./apps/user-dashboard/pa
 COPY --from=build /app/node_modules ./node_modules
 COPY --from=build /app/packages ./packages
 COPY --from=build /app/modules ./modules
+COPY --from=build /app/apps/user-dashboard/public ./apps/user-dashboard/public
 COPY --from=build /app/package.json ./package.json
 
 EXPOSE 6001

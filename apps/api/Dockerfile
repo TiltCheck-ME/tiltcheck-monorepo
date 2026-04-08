@@ -31,6 +31,7 @@ COPY --from=build /app/apps/api/package.json ./apps/api/package.json
 COPY --from=build /app/node_modules ./node_modules
 COPY --from=build /app/packages ./packages
 COPY --from=build /app/modules ./modules
+COPY --from=build /app/data ./data
 COPY --from=build /app/package.json ./package.json
 
 EXPOSE 3001
