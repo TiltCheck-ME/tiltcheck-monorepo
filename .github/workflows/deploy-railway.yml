@@ -80,7 +80,7 @@ jobs:
       matrix:
         include:
           - service: api
-            railway_service_id: "90ddbf09-ab4c-413e-9c09-b030da6e85c0"
+            railway_service_id: "d36d7de5-160c-42e3-9cfc-95e3cc37b9d8"
           - service: web
             railway_service_id: "08e9b7f6-ad09-4808-9e69-047eb5ab0cb2"
           - service: discord-bot
@@ -94,7 +94,7 @@ jobs:
           - service: user-dashboard
             railway_service_id: "a5bb3924-76b3-41af-882c-319417c64dd8"
           - service: activity
-            railway_service_id: "fbd95f9a-7394-4de6-ac5d-23dc52222228"
+            railway_service_id: "cf702e40-4001-4de4-a5e1-978e79f81633"
     steps:
       - name: Redeploy ${{ matrix.service }} on Railway
         run: |
