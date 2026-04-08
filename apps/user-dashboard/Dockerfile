@@ -4,15 +4,12 @@ FROM node:20-slim AS base
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
 ENV CI=true
-RUN corepack enable
+RUN corepack enable && corepack prepare pnpm@10.29.1 --activate
 WORKDIR /app
 
-# Only copy lockfile and workspace config to cache deps separately from source
+# [PHASE 1] Dependency Caching
 COPY pnpm-lock.yaml pnpm-workspace.yaml package.json ./
-# Use pnpm fetch to create a virtual store from the lockfile
 RUN pnpm fetch
-
-# [PHASE 2] Building
 FROM base AS build
 COPY . .
 # Install with a frozen lockfile, reusing the virtual store created in Phase 1

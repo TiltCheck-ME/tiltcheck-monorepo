@@ -1,6 +1,12 @@
+import path from 'path'
+import { fileURLToPath } from 'url'
+const __dirname = path.dirname(fileURLToPath(import.meta.url))
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   output: 'standalone',
+  // Set tracing root to monorepo root so standalone server.js lands at the top of the standalone dir
+  outputFileTracingRoot: path.join(__dirname, '../../'),
   transpilePackages: [
     "@tiltcheck/types",
     "@tiltcheck/db",
