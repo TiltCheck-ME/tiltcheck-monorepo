@@ -38,4 +38,4 @@ COPY --from=build /app/apps/web/.next/standalone ./
 COPY --from=build /app/apps/web/.next/static ./apps/web/.next/static
 
 # Next.js standalone entry point - Corrected for monorepo standalone output
-CMD ["node", "server.js"]
+CMD ["node", "apps/web/server.js"]

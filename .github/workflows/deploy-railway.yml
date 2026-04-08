@@ -9,6 +9,7 @@ on:
       - 'apps/**'
       - 'packages/**'
       - 'modules/**'
+      - '.dockerignore'
       - '.github/workflows/deploy-railway.yml'
   workflow_dispatch:
 
