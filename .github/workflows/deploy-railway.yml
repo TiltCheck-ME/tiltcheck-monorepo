@@ -67,7 +67,9 @@ jobs:
           context: .
           file: apps/${{ matrix.service }}/Dockerfile
           push: true
-          tags: ghcr.io/${{ steps.vars.outputs.owner }}/tiltcheck-${{ matrix.service }}:latest
+          tags: |
+            ghcr.io/${{ steps.vars.outputs.owner }}/tiltcheck-${{ matrix.service }}:latest
+            ghcr.io/${{ steps.vars.outputs.owner }}/tiltcheck-${{ matrix.service }}:sha-${{ github.sha }}
 
   deploy:
     name: Trigger Railway Redeploy
@@ -98,24 +100,31 @@ jobs:
         run: |
           ENV_ID="3558050f-0c00-4ba7-8763-e960a1ecaf96"
           SVC_ID="${{ matrix.railway_service_id }}"
-          MUTATION="{\"query\":\"mutation { serviceInstanceRedeploy(serviceId: \\\"$SVC_ID\\\", environmentId: \\\"$ENV_ID\\\") }\"}"
+          OWNER=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
+          IMAGE="ghcr.io/${OWNER}/tiltcheck-${{ matrix.service }}:sha-${{ github.sha }}"
 
+          # Update the service image to the SHA tag — forces Railway to pull fresh
+          UPDATE_MUTATION="{\"query\":\"mutation { serviceInstanceUpdate(serviceId: \\\"$SVC_ID\\\", environmentId: \\\"$ENV_ID\\\", input: { source: { image: \\\"$IMAGE\\\" } }) }\"}"
+          UPDATE_RESPONSE=$(curl -sf -X POST https://backboard.railway.com/graphql/v2 \
+            -H "Authorization: Bearer $RAILWAY_TOKEN" \
+            -H "Content-Type: application/json" \
+            -d "$UPDATE_MUTATION" 2>&1)
+          echo "Image update: $UPDATE_RESPONSE"
+
+          # Trigger redeploy
+          REDEPLOY_MUTATION="{\"query\":\"mutation { serviceInstanceRedeploy(serviceId: \\\"$SVC_ID\\\", environmentId: \\\"$ENV_ID\\\") }\"}"
           for i in 1 2 3; do
             RESPONSE=$(curl -sf -X POST https://backboard.railway.com/graphql/v2 \
               -H "Authorization: Bearer $RAILWAY_TOKEN" \
               -H "Content-Type: application/json" \
-              -d "$MUTATION" 2>&1)
+              -d "$REDEPLOY_MUTATION" 2>&1)
             EXIT_CODE=$?
             echo "$RESPONSE"
-
-            if [ $EXIT_CODE -eq 0 ] && echo "$RESPONSE" | grep -q '"serviceInstanceRedeploy"'; then
-              echo "Redeploy triggered for ${{ matrix.service }}"
-              break
-            elif [ $EXIT_CODE -eq 0 ] && ! echo "$RESPONSE" | grep -q '"errors"'; then
+            if [ $EXIT_CODE -eq 0 ] && ! echo "$RESPONSE" | grep -q '"errors"'; then
               echo "Redeploy triggered for ${{ matrix.service }}"
               break
             else
-              echo "Attempt $i failed (exit: $EXIT_CODE)"
+              echo "Attempt $i failed"
               if [ $i -lt 3 ]; then sleep 15; else exit 1; fi
             fi
           done
