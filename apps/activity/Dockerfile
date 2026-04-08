@@ -7,14 +7,12 @@ FROM node:20-slim AS build
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
 ENV CI=true
-RUN corepack enable
+RUN corepack enable && corepack prepare pnpm@10.29.1 --activate
 WORKDIR /app
 
 # Copy workspace manifests and lockfile first for better layer caching
 COPY pnpm-lock.yaml pnpm-workspace.yaml package.json ./
 COPY apps/activity/package.json ./apps/activity/package.json
-
-# Install all workspace dependencies
 RUN pnpm fetch
 # Copy full source so pnpm workspace can resolve all package manifests
 COPY . .
