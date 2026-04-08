@@ -100,7 +100,7 @@ jobs:
 
           echo "Checking service status before redeploy..."
           set +e
-          STATUS_OUTPUT=$(npx @railway/cli@latest service --service "$SERVICE" 2>&1)
+          STATUS_OUTPUT=$(npx @railway/cli@latest service "$SERVICE" 2>&1)
           STATUS_EXIT=$?
           set -e
           echo "$STATUS_OUTPUT"
@@ -111,7 +111,7 @@ jobs:
 
           for i in 1 2 3 4 5; do
             set +e
-            OUTPUT=$(npx @railway/cli@latest redeploy --service "$SERVICE" --yes 2>&1)
+            OUTPUT=$(npx @railway/cli@latest redeploy "$SERVICE" --yes 2>&1)
             EXIT_CODE=$?
             set -e
             echo "$OUTPUT"
