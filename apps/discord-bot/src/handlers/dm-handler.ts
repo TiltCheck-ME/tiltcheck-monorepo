@@ -1,15 +1,17 @@
-/* Copyright (c) 2026 TiltCheck. All rights reserved. */
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-08
 /**
- * DM Handler - NLP-first routing for safety bot conversations.
+ * DM Handler
+ * NLP routing for direct messages is handled by EventHandler.registerDiscordEvents().
+ * This module exports helpers used by that handler.
  */
 
-import { Client, Events, Message } from 'discord.js';
+import { Client, Message } from 'discord.js';
 import { trackMessage } from '@tiltcheck/tiltcheck-core';
 import { buildPersonaReply, detectConversationIntent } from '../utils/conversation-nlp.js';
 
 export async function handleDirectMessage(_client: Client, message: Message): Promise<void> {
   if (message.author.bot) return;
-  if (message.guildId) return; // DM only
+  if (message.guildId) return;
 
   trackMessage(message.author.id, message.content, message.channelId);
 
@@ -19,16 +21,7 @@ export async function handleDirectMessage(_client: Client, message: Message): Pr
   await message.reply({ content: reply });
 }
 
-export function registerDMHandler(client: Client): void {
-  client.on(Events.MessageCreate, async (message) => {
-    if (message.guildId || message.author.bot) return;
-    try {
-      await handleDirectMessage(client, message);
-    } catch (error) {
-      console.error('[DM Handler] Error handling DM:', error);
-      await message.reply('Something went wrong. Try `/help` for the command list.');
-    }
-  });
-
-  console.log('[DM Handler] TiltCheck DM NLP handler registered');
+/** No-op — DM NLP is registered once in EventHandler.registerDiscordEvents(). */
+export function registerDMHandler(_client: Client): void {
+  console.log('[DM Handler] NLP routing delegated to EventHandler');
 }
