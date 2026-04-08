@@ -43,18 +43,13 @@ router.get('/health', (_req, res) => {
 
 /**
  * POST /services/forward/:service
- * Forward authenticated request to another service
+ * Reserved for future inter-service proxying — not implemented.
  */
-router.post('/forward/:service', async (req, res) => {
-  const { service: targetService } = req.params;
-  const callerService = (req as any).service;
-
-  res.status(501).json({
+router.post('/forward/:service', (_req, res) => {
+  res.status(410).json({
     success: false,
-    code: 'FORWARD_NOT_IMPLEMENTED',
-    message: 'Service forwarding is not implemented for beta',
-    caller: callerService?.id,
-    target: targetService,
+    code: 'FORWARD_REMOVED',
+    message: 'Service forwarding was removed. Use direct service URLs.',
   });
 });
 

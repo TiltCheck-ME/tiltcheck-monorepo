@@ -79,7 +79,7 @@ export const features: Tool[] = [
     category: "RTP FORENSICS",
     title: "The Delta Engine",
     description: "We catch the difference between what they say it pays and what the math actually does. Cross-references your live session against GLI-certified manufacturer tiers to surface the Greed Premium in real-time.",
-    status: "coming-soon",
+    status: "live",
     gridClasses: "",
   },
 ];
