@@ -15,17 +15,31 @@ Enforce **"The Degen Laws"** — TiltCheck's non-negotiable brand and governance
 
 ## The Degen Laws (Enforcement Rules)
 
-### 1. **Tone: Direct, Blunt, Skeptical**
-- **Rule:** Copy, comments, error messages, and UI text must be direct and skeptical. No fluff, no apologies.
+### 1. **Tone: Direct, Witty, Supportive Tough Love**
+- **Rule:** Copy, comments, error messages, and UI text must be direct and sharp. No fluff, no apologies. Humor, dry wit, sarcasm, and millennial slang are not just allowed — they are part of the brand. The voice is a sharp friend who genuinely gives a damn: honest about bad decisions, funny about it, never cruel, always in your corner.
+- **Voice pillars:**
+  - **Humor and wit** — dry, deadpan, never try-hard. Funny because it's true, not because it's trying.
+  - **Sarcasm** — pointed but not mean. "Oh cool, another loss. Very normal behavior."
+  - **Millennial slang** — use naturally, not forced. "no cap", "lowkey", "big yikes", "it's giving", "we see you", "cooked", "locked in", "the math is mathing", "touch grass"
+  - **Supportive tough love** — call out bad decisions clearly, offer the path forward, never shame. "You're down 40%. That's not a bad run — that's a sign. Cash out the rest."
+  - **No condescension** — peer energy, not lecture energy. TiltCheck is a tool used by degens, built by degens.
 - **Violations to catch:**
   - "Sorry, but..." | "Please..." | "We apologize..." | "Kind of..." → **REJECT**
   - "This feature makes your gambling safer" → Reframe as "This catches tilt early. Use it."
-  - Overly formal language → Simplify to street-level tone
-  - "Unfortunately, we couldn't..." → "Failed: [reason]. Retry or contact support."
+  - Overly formal or corporate language → Rewrite to street-level tone
+  - "Unfortunately, we couldn't..." → "Failed: [reason]. Retry or stop."
+  - Bland copy that could belong to any app → Rewrite with TiltCheck voice
 
 **Examples:**
-- ✅ GOOD: "Your account is locked. Too many failed logins. Try again in 10 minutes."
+- ✅ GOOD: "Your account is locked. Too many failed logins. Try again in 10 minutes or don't — your call."
+- ✅ GOOD: "No cap, your session PnL is cooked. Lock in what's left."
+- ✅ GOOD: "Big yikes — three losses in a row. We see you. Step back."
+- ✅ GOOD: "The math is mathing and it's not in your favor right now."
+- ✅ GOOD: "Lowkey you should have cashed out 20 minutes ago. Still can, though."
+- ✅ GOOD: "It's giving tilt energy. Use the vault before your brain talks you out of it."
 - ❌ BAD: "We're sorry, your account has been temporarily locked for security reasons. Please try again later."
+- ❌ BAD: "We hope you enjoy using TiltCheck responsibly."
+- ❌ BAD: "Please be mindful of your spending habits."
 
 ---
 
@@ -223,6 +237,13 @@ Enforce **"The Degen Laws"** — TiltCheck's non-negotiable brand and governance
 
 ## Brand Voice Examples (for Reference)
 
+### Voice Pillars
+- **Humor and wit** — dry, deadpan, never try-hard
+- **Sarcasm** — pointed, not mean. "Oh cool, another loss. Very normal behavior."
+- **Millennial slang** — natural, not forced: "no cap", "lowkey", "big yikes", "it's giving", "cooked", "locked in", "the math is mathing", "touch grass", "we see you"
+- **Supportive tough love** — call it out, offer the exit, never shame
+- **Peer energy** — built by degens, for degens. Not a lecture, a nudge from someone who's been there
+
 ### Correct Tone Examples
 
 **API Error Response:**
@@ -232,14 +253,24 @@ Enforce **"The Degen Laws"** — TiltCheck's non-negotiable brand and governance
 }
 ```
 
-**Discord Bot Response:**
+**Discord Bot Response — Tilt Alert:**
 ```
-Your tilt score just hit 87. You're one bad beat away from tilting. Step away or lose your edge.
+Your tilt score just hit 87. No cap, you're one bad beat from full send. Step away or lose your edge — your call.
 ```
 
-**UI Copy:**
+**Discord Bot Response — Bonus:**
 ```
-Your bonus expires in 2 days. Extend it or lose it.
+Stake.us daily is live. Lowkey one of the better ones today. Claim it or don't, but it expires in 6 hours.
+```
+
+**UI Copy — Session Warning:**
+```
+You're down 40% this session. The math is mathing and it's not in your favor. Lock in what's left.
+```
+
+**UI Copy — Idle Prompt:**
+```
+Still here? Big yikes. You've been at it for 3 hours. Touch grass. Come back fresh.
 ```
 
 **Comment in Code:**
@@ -253,13 +284,16 @@ if (losses >= 3 && emotionalScore > 0.7) {
 ### Incorrect Tone Examples (Will be Rejected)
 
 ❌ "We're sorry, but your bonus has expired. Please try again later."
-✅ "Your bonus expired. Get a new one or play with what you have."
+✅ "Bonus expired. Get a new one or play with what you have."
 
 ❌ "Unfortunately, we couldn't process your withdrawal. Sorry for the inconvenience!"
 ✅ "Withdrawal failed: insufficient funds. Check your balance and retry."
 
 ❌ "Please be careful with your spending. 💰"
-✅ "You're on pace to lose $500 this month. That's a problem."
+✅ "You're on pace to lose $500 this month. That's a problem. Here's how to lock it down."
+
+❌ "We hope you enjoy using TiltCheck responsibly."
+✅ "Use it or don't. It's your money. We just make sure you know where it's going."
 
 ---
 
