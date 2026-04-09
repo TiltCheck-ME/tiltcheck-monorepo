@@ -24,12 +24,12 @@ export class CommandHandler {
     const serviceId = process.env.SERVICE_ID || 'tiltcheck-bot';
 
     // Define which commands belong to which bot
-    const dadBotCommands = ['lobby', 'degens-help', 'triviadrop', 'linkwallet', 'recover'];
+    const dadBotCommands = ['lobby', 'degens-help', 'triviadrop', 'linkwallet', 'sos'];
     const tiltCheckBotCommands = [
       'status', 'tether', 'odds', 'verify', 'goal', 'intervene',
       'lockvault', 'casino', 'juicedrop', 'jackpot',
       'support', 'terms', 'dashboard', 'help', 'reputation', 'jme',
-      'recover', 'linkwallet', 'scan',
+      'sos', 'linkwallet', 'scan',
     ];
 
     const allowedCommands = serviceId === 'tiltcheck-degens-bot'

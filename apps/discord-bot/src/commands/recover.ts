@@ -328,7 +328,7 @@ export async function handleRecoveryButton(
         .setColor(0xf59e0b)
         .setTitle('[COMMUNITY THRESHOLD REACHED]')
         .setDescription(
-          `Application \`${app.id}\` has reached ${VOTE_THRESHOLD} community vouches.\n\nAn admin must still confirm approval via the [APPROVE] button or \`/igofuckedup admin approve ${app.id}\`.`
+          `Application \`${app.id}\` has reached ${VOTE_THRESHOLD} community vouches.\n\nAn admin must still confirm approval via the [APPROVE] button or \`/sos admin approve ${app.id}\`.`
         );
       await reviewChannel.send({ embeds: [noticeEmbed] });
     }
@@ -459,7 +459,7 @@ async function notifySupportContact(
 
 export const recover: Command = {
   data: new SlashCommandBuilder()
-    .setName('igofuckedup')
+    .setName('sos')
     .setDescription('Community recovery microgrant — for degens who hit rock bottom and are ready to climb out')
     .addSubcommand(sub =>
       sub.setName('info').setDescription('How the community recovery microgrant works')
@@ -519,7 +519,7 @@ export const recover: Command = {
     const sub = interaction.options.getSubcommand();
 
     // -------------------------------------------------------------------------
-    // /igofuckedup info
+    // /sos info
     // -------------------------------------------------------------------------
     if (sub === 'info') {
       const infoEmbed = new EmbedBuilder()
@@ -531,7 +531,7 @@ export const recover: Command = {
           'the TiltCheck community has a fund specifically for this. No judgment. No lecturing. ' +
           'Degens helping degens when it matters most.\n\n' +
           '__**How it works:**__\n' +
-          '**1. Apply** — `/igofuckedup apply` with honest details about your hardship, what steps you are taking, and an accountability contact (someone who knows about your situation).\n\n' +
+          '**1. Apply** — `/sos apply` with honest details about your hardship, what steps you are taking, and an accountability contact (someone who knows about your situation).\n\n' +
           '**2. Accountability contact** — We DM your chosen person (must be on Discord). They confirm they know and are supportive. This is not optional — it is the single most important part.\n\n' +
           '**3. Community review** — Your application (anonymized where possible) is reviewed by admins and vouched for by community members. Requires 10 community vouches or admin approval.\n\n' +
           '**4. Grant paid** — Up to **1 SOL** sent directly to your linked wallet (set one with `/linkwallet`). One grant per person, ever.\n\n' +
@@ -557,7 +557,7 @@ export const recover: Command = {
     }
 
     // -------------------------------------------------------------------------
-    // /igofuckedup status
+    // /sos status
     // -------------------------------------------------------------------------
     if (sub === 'status') {
       if (!APPLICATIONS_OPEN) {
@@ -568,7 +568,7 @@ export const recover: Command = {
       const app = loadApplication(interaction.user.id);
       if (!app) {
         await interaction.reply({
-          content: 'You have no active application. Use `/igofuckedup apply` to submit one. Use `/igofuckedup info` to learn how it works.',
+          content: 'You have no active application. Use `/sos apply` to submit one. Use `/sos info` to learn how it works.',
           ephemeral: true,
         });
         return;
@@ -580,7 +580,7 @@ export const recover: Command = {
     }
 
     // -------------------------------------------------------------------------
-    // /igofuckedup apply
+    // /sos apply
     // -------------------------------------------------------------------------
     if (sub === 'apply') {
       if (!APPLICATIONS_OPEN) {
