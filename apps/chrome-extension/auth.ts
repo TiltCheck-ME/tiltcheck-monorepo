@@ -1,3 +1,4 @@
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-09
 // THE DEGEN LAWS: No emojis. Blunt tone. Math maths.
 // This script handles Discord OAuth. It's for identifying you, not for holding your damn keys.
 

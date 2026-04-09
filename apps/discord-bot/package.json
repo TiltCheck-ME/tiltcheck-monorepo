@@ -15,6 +15,7 @@
     "clear:names": "tsx src/cleanup-commands.ts"
   },
   "dependencies": {
+    "@discord/embedded-app-sdk": "^1.7.0",
     "@elastic/elasticsearch": "^9.3.4",
     "@supabase/supabase-js": "^2.45.0",
     "@solana/pay": "^0.2.6",

@@ -1,11 +1,11 @@
-/* Copyright (c) 2026 TiltCheck. All rights reserved. */
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-09
 /**
  * MV3 service worker.
  * Sidebar-first controls and shared tab actions.
  */
 
 const VAULT_URL_BASE = 'https://tiltcheck.me/vault';
-const ALLOWED_AUTH_ORIGINS = new Set(['https://api.tiltcheck.me', 'http://localhost', 'http://127.0.0.1']);
+const ALLOWED_AUTH_ORIGINS = new Set(['https://api.tiltcheck.me']);
 const API_BASE = 'https://api.tiltcheck.me';
 
 function isAllowedAuthUrl(value) {
@@ -111,8 +111,7 @@ chrome.webNavigation.onBeforeNavigate.addListener(async (details) => {
   // Skip safe origins
   if (url.startsWith('chrome://') || 
       url.startsWith('https://tiltcheck.me') || 
-      url.startsWith('https://api.tiltcheck.me') ||
-      url.startsWith('http://localhost')) return;
+      url.startsWith('https://api.tiltcheck.me')) return;
 
   // CASINO FOCUS: Only scan if the URL looks like gambling activity
   const casinoPatterns = /stake|roobet|bc\.game|duelbits|rollbit|bet|casino|slot|gamble|poker|win|bonus/i;
