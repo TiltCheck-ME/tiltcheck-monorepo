@@ -1,4 +1,4 @@
-/* Copyright (c) 2026 TiltCheck. All rights reserved. */
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-12
 /**
  * Edge Equalizer Bot Command Index
  */
@@ -14,6 +14,7 @@ export { dashboard } from './dashboard.js';
 export { cooldown, tilt } from './cooldown.js';
 export { linkwallet } from './linkwallet.js';
 export { scan } from './scan.js';
+export { recover } from './recover.js';
 
 // Community & Fun Commands
 export { juicedrop } from './juicedrop.js';
@@ -28,3 +29,8 @@ export { play } from './play.js';
 
 // External Data
 export { bonuses } from './bonuses.js';
+
+// Degens Against Decency Bot Commands
+export { lobby } from './lobby.js';
+export { triviadrop } from './triviadrop.js';
+export { degensHelp } from './dad-help.js';

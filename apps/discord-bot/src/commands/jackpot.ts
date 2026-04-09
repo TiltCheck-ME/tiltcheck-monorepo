@@ -27,11 +27,11 @@ export const jackpot: Command = {
         .setTitle('TRIVIA PRIZEPOOL')
         .setDescription(
           `The community pot is live.\n\n` +
-          `Play DA&D trivia to compete for the pool — winner takes all.\n\n` +
+          `Play Degens Against Decency trivia to compete for the pool — winner takes all.\n\n` +
           `*Pool balance is updated after each trivia round.*`
         )
         .addFields(
-          { name: 'How to Enter', value: 'Win a DA&D trivia round. No entry fee.', inline: false },
+          { name: 'How to Enter', value: 'Win a Degens Against Decency trivia round. No entry fee.', inline: false },
           { name: 'How to Add', value: 'Use `/jackpot fuel` to contribute SOL.', inline: false }
         )
         .setFooter({ text: "The house gives back. Occasionally." });
