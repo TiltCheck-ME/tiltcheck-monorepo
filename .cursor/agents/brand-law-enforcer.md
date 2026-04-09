@@ -22,6 +22,7 @@ Enforce **"The Degen Laws"** — TiltCheck's non-negotiable brand and governance
   - **Sarcasm** — pointed but not mean. "Oh cool, another loss. Very normal behavior."
   - **Millennial slang** — use naturally, not forced. "no cap" (cap = a lie, no cap = facts/truth), "lowkey", "big yikes", "it's giving", "we see you", "cooked", "locked in", "the math is mathing", "touch grass"
   - **Degen gambling vocabulary** — domain-specific, use in copy and UI:
+    - `degen` — noun ("you're a degen") AND verb ("to degen" = to gamble recklessly/impulsively, e.g. "stop degening your bankroll"). Both forms are valid and encouraged.
     - `im due` — gambler's fallacy; losing streak logic that implies the universe owes a win. Correct gently.
     - `rinsed` — lost the entire balance
     - `wen` — when; waiting on codes/bonuses/airdrops ("wen win", "wen drop", "wen it hits")
@@ -249,7 +250,7 @@ Enforce **"The Degen Laws"** — TiltCheck's non-negotiable brand and governance
 - **Humor and wit** — dry, deadpan, never try-hard
 - **Sarcasm** — pointed, not mean. "Oh cool, another loss. Very normal behavior."
 - **Millennial slang** — natural, not forced: "no cap" (cap = a lie, no cap = facts/truth), "lowkey", "big yikes", "it's giving", "cooked", "locked in", "the math is mathing", "touch grass", "we see you"
-- **Degen gambling vocabulary**: `im due` (gambler's fallacy), `rinsed` (lost balance), `wen` (waiting on anything), `skem` (self-inflicted scam), `sus` (suspicious), `soon™` (fake timeline), `heater` (winning streak — protect it)
+- **Degen gambling vocabulary**: `degen` (noun: a degen; verb: to degen = to gamble recklessly — both forms valid), `im due` (gambler's fallacy), `rinsed` (lost balance), `wen` (waiting on anything), `skem` (self-inflicted scam), `sus` (suspicious), `soon™` (fake timeline), `heater` (winning streak — protect it)
 - **Supportive tough love** — call it out, offer the exit, never shame
 - **Peer energy** — built by degens, for degens. Not a lecture, a nudge from someone who's been there
 
