@@ -185,7 +185,7 @@ body::before {
   grid-template-columns: 1fr; /* Mobile-first: 1 column */
   grid-auto-rows: auto;
   gap: 1.5rem;
-  padding: 2rem 0;
+  padding: 1rem 0;
 }
 
 @media (min-width: 640px) {
@@ -201,6 +201,16 @@ body::before {
     grid-template-columns: repeat(3, 1fr);
     grid-auto-rows: 280px;
     gap: 2rem;
+  }
+}
+
+/* Last card spans full remaining width if it ends up alone on a row */
+.tools-bento-grid > *:last-child:nth-child(3n + 1) {
+  grid-column: span 3;
+}
+@media (min-width: 640px) and (max-width: 1023px) {
+  .tools-bento-grid > *:last-child:nth-child(odd) {
+    grid-column: span 2;
   }
 }
 
@@ -555,7 +565,7 @@ body.degen-background {
 
 /* Hero Section Styles from old theme */
 .hero-surface {
-  padding: clamp(3rem, 8vw, 6rem) 1.5rem clamp(2rem, 5vw, 4rem);
+  padding: clamp(2.5rem, 6vw, 5rem) 1.5rem clamp(1.5rem, 3vw, 2.5rem);
   text-align: center;
   position: relative;
   border-bottom: 1px solid #283347;
@@ -570,9 +580,11 @@ body.degen-background {
 /* Audit banner inside hero */
 .hero-audit-banner {
   border-left: 4px solid var(--color-primary);
-  border: 1px solid rgba(23,195,178,0.2);
+  border: 1px solid rgba(23,195,178,0.35);
   border-left: 4px solid var(--color-primary);
-  background: rgba(23,195,178,0.04);
+  background: rgba(0, 0, 0, 0.72);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   padding: 1.25rem 1.5rem;
   margin: 0 auto 2rem;
   max-width: 680px;
@@ -583,7 +595,7 @@ body.degen-background {
   font-family: var(--font-mono);
   font-size: 0.7rem;
   font-weight: 900;
-  color: rgba(23,195,178,0.8);
+  color: var(--color-primary);
   text-transform: uppercase;
   letter-spacing: 0.15em;
   margin-bottom: 0.5rem;
@@ -592,7 +604,7 @@ body.degen-background {
 .hero-audit-body {
   font-family: var(--font-mono);
   font-size: 0.78rem;
-  color: var(--text-muted);
+  color: #c4ced8;
   line-height: 1.6;
   font-style: italic;
 }
@@ -602,13 +614,15 @@ body.degen-background {
   color: var(--text-secondary);
   line-height: 1.75;
   max-width: 640px;
-  margin: 2.5rem auto 0;
+  margin: 2rem auto 0;
   font-family: var(--font-geist-sans);
   letter-spacing: -0.01em;
-  padding: 1.75rem 2rem;
-  background: rgba(0, 0, 0, 0.45);
+  padding: 1.5rem 1.75rem;
+  background: rgba(0, 0, 0, 0.72);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   border: 1px solid var(--border-default);
-  border-top: 2px solid rgba(23,195,178,0.3);
+  border-top: 2px solid rgba(23,195,178,0.4);
 }
 
 .hero-body-accent {
@@ -670,13 +684,15 @@ body.degen-background {
   .hero-audit-banner {
     text-align: left;
     padding: 1rem;
+    margin-bottom: 1.25rem;
   }
   .hero-body {
-    margin-top: 1.5rem;
-    padding: 1.25rem;
+    margin-top: 1.25rem;
+    padding: 1.125rem;
   }
   .hero-surface {
-    padding-top: 2rem;
+    padding-top: 1.5rem;
+    padding-bottom: 1.25rem;
   }
 }
 
