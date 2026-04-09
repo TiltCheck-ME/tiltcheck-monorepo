@@ -2,35 +2,22 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import LiveStatusIndicator from './LiveStatusIndicator';
-import { useWallet } from '@solana/wallet-adapter-react';
-import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
 
 const Nav = () => {
-  const { connected: isConnected } = useWallet();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
 
   const NavLinks = () => (
     <>
-      {!isConnected ? (
-        <>
-          <Link href="/#tools" onClick={() => setIsMenuOpen(false)} className="text-sm font-semibold uppercase tracking-wider hover:text-[#17c3b2] transition-colors duration-200">Tools</Link>
-          <Link href="/blog" onClick={() => setIsMenuOpen(false)} className="text-sm font-semibold uppercase tracking-wider hover:text-[#17c3b2] transition-colors duration-200">Blog</Link>
-          <Link href="/casinos" onClick={() => setIsMenuOpen(false)} className="text-sm font-semibold uppercase tracking-wider hover:text-[#17c3b2] transition-colors duration-200">Casinos</Link>
-          <Link href="/beta-tester" onClick={() => setIsMenuOpen(false)} className="px-3 py-1 text-sm font-black uppercase tracking-widest rounded-full bg-[#17c3b2]/15 border border-[#17c3b2] text-[#17c3b2] hover:bg-[#17c3b2]/25 hover:shadow-[0_0_12px_rgba(23,195,178,0.4)] transition-all duration-200">Beta</Link>
-          <Link href="/docs" onClick={() => setIsMenuOpen(false)} className="text-sm font-semibold uppercase tracking-wider hover:text-[#17c3b2] transition-colors duration-200">Docs</Link>
-          <Link href="/extension" onClick={() => setIsMenuOpen(false)} className="text-sm font-semibold uppercase tracking-wider hover:text-[#17c3b2] transition-colors duration-200">Extension</Link>
-        </>
-      ) : (
-        <>
-          <Link href="/dashboard" onClick={() => setIsMenuOpen(false)} className="text-sm font-semibold uppercase tracking-wider hover:text-[#17c3b2] transition-colors duration-200">Dashboard</Link>
-          <Link href="/dashboard#trust" onClick={() => setIsMenuOpen(false)} className="text-sm font-semibold uppercase tracking-wider hover:text-[#17c3b2] transition-colors duration-200">Audit</Link>
-          <Link href="/dashboard#vault" onClick={() => setIsMenuOpen(false)} className="text-sm font-semibold uppercase tracking-wider hover:text-[#17c3b2] transition-colors duration-200">Vault</Link>
-          <Link href="/dashboard#guardians" onClick={() => setIsMenuOpen(false)} className="text-sm font-semibold uppercase tracking-wider hover:text-[#17c3b2] transition-colors duration-200">Guardians</Link>
-          <Link href="/docs" onClick={() => setIsMenuOpen(false)} className="text-sm font-semibold uppercase tracking-wider hover:text-[#17c3b2] transition-colors duration-200">Docs</Link>
-        </>
-      )}
+      <Link href="/#tools" onClick={() => setIsMenuOpen(false)} className="text-sm font-semibold uppercase tracking-wider hover:text-[#17c3b2] transition-colors duration-200">Tools</Link>
+      <Link href="/casinos" onClick={() => setIsMenuOpen(false)} className="text-sm font-semibold uppercase tracking-wider hover:text-[#17c3b2] transition-colors duration-200">Casinos</Link>
+      <Link href="/bonuses" onClick={() => setIsMenuOpen(false)} className="text-sm font-semibold uppercase tracking-wider hover:text-[#17c3b2] transition-colors duration-200">Bonuses</Link>
+      <Link href="/intel/rtp" onClick={() => setIsMenuOpen(false)} className="text-sm font-semibold uppercase tracking-wider hover:text-[#17c3b2] transition-colors duration-200">Nerf Radar</Link>
+      <Link href="/blog" onClick={() => setIsMenuOpen(false)} className="text-sm font-semibold uppercase tracking-wider hover:text-[#17c3b2] transition-colors duration-200">Blog</Link>
+      <Link href="/docs" onClick={() => setIsMenuOpen(false)} className="text-sm font-semibold uppercase tracking-wider hover:text-[#17c3b2] transition-colors duration-200">Docs</Link>
+      <Link href="/extension" onClick={() => setIsMenuOpen(false)} className="text-sm font-semibold uppercase tracking-wider hover:text-[#17c3b2] transition-colors duration-200">Extension</Link>
+      <Link href="/beta-tester" onClick={() => setIsMenuOpen(false)} className="px-3 py-1 text-sm font-black uppercase tracking-widest rounded-full bg-[#17c3b2]/15 border border-[#17c3b2] text-[#17c3b2] hover:bg-[#17c3b2]/25 hover:shadow-[0_0_12px_rgba(23,195,178,0.4)] transition-all duration-200">Beta</Link>
     </>
   );
 
@@ -52,10 +39,6 @@ const Nav = () => {
         <div className="hidden sm:block">
             <LiveStatusIndicator />
         </div>
-        
-        <div className="nav-wallet-desktop">
-          <WalletMultiButton />
-        </div>
 
         {/* Mobile Toggle */}
         <button 
@@ -76,9 +59,6 @@ const Nav = () => {
         <div className="fixed inset-0 top-[72px] bg-black/95 backdrop-blur-xl z-40 md:hidden animate-in fade-in duration-300">
           <div className="flex flex-col items-center justify-center h-full gap-8 p-8 text-2xl font-black uppercase tracking-[0.2em]">
             <NavLinks />
-            <div className="mt-8">
-              <WalletMultiButton />
-            </div>
             <div className="mt-4">
               <LiveStatusIndicator />
             </div>

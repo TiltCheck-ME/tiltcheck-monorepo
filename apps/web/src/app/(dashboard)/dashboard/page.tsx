@@ -83,11 +83,10 @@ export default function DashboardPage() {
             {isConnected && !loading && !userData && (
               <div className="mt-8 p-6 bg-[#17c3b2]/5 border border-[#17c3b2]/30 rounded-lg animate-in slide-in-from-top duration-500">
                 <div className="flex items-center gap-4">
-                  <div className="text-2xl">🔗</div>
                   <div className="flex-1">
                     <h3 className="text-base font-black uppercase tracking-tighter text-white">Wallet not linked yet</h3>
                     <p className="text-xs text-gray-400 mt-1 leading-relaxed">
-                      We don't recognize this wallet. Link it to your Discord account with <code className="text-[#17c3b2]">/linkwallet</code> and your stats will show up here.
+                      We don&apos;t recognize this wallet. Run <code className="text-[#17c3b2]">/linkwallet</code> in our Discord server and your stats will show up here automatically.
                     </p>
                   </div>
                   <a href="https://discord.gg/gdBsEJfCar" target="_blank" className="btn btn-primary text-[10px] py-2 whitespace-nowrap">Join Discord</a>
@@ -182,16 +181,18 @@ export default function DashboardPage() {
                     <p className="text-[10px] font-bold uppercase tracking-widest text-gray-500 leading-tight">
                         Using a VPN to access restricted regions? Toggle this to stop the compliance warnings.
                         <br/>
-                        <span className="text-amber-500 mt-2 block italic">⚠️ Note: you're outside legal protection when you do this.</span>
+                        <span className="text-amber-500 mt-2 block italic">Note: you are outside legal protection when you do this.</span>
                     </p>
                 </div>
             </div>
         </div>
 
-        {/* Pillar 3: LockVault Action Center */}
-        <div className="mt-12">
+        {/* Pillar 3: LockVault — only shown after wallet linked via /linkwallet in Discord */}
+        {userData && (
+          <div className="mt-12">
             <LockVault discordId={userData?.discordId} />
-        </div>
+          </div>
+        )}
       </main>
 
       <Footer />
