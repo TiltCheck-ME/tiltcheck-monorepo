@@ -13,7 +13,7 @@
  */
 
 import { eventRouter } from '@tiltcheck/event-router';
-import { db } from '@tiltcheck/db';
+import { db } from '@tiltcheck/database';
 import type { TiltCheckEvent, GameCompletedEventData } from '@tiltcheck/types';
 
 export class StatsService {
