@@ -89,8 +89,8 @@ export default function AboutPage() {
           </div>
 
           {/* The Mission */}
-          <div className="p-8 border border-[#ffd700]/30 bg-[#ffd700]/5">
-            <h2 className="text-2xl font-black uppercase mb-4 text-[#ffd700]">The Mission</h2>
+          <div className="p-8 border border-[#17c3b2]/30 bg-[#17c3b2]/5">
+            <h2 className="text-2xl font-black uppercase mb-4 text-[#17c3b2]">The Mission</h2>
             <p className="text-gray-400 leading-relaxed text-lg">
               Shift the definition of a "win" from "I didn't lose everything" to "I actually kept the money." Make it profitable to play smart instead of profitable to play long. Give every degen — from casual to hardcore — a fair shot at keeping their bag.
             </p>
