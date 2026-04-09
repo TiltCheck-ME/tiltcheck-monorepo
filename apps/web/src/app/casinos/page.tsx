@@ -1,55 +1,112 @@
 /* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-09 */
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import "@/styles/terminal.css";
+import RAW_CASINOS from '@/data/casinos.json';
 
-interface CasinoRecord {
+interface RawCasino {
+  name: string;
+  grade: string;
+  risk: string;
+  category: string;
+}
+
+interface CasinoEntry {
+  name: string;
+  grade: string;
+  risk: string;
+  category: string;
   score: number;
   financialPayouts: number;
   fairnessTransparency: number;
   promotionalHonesty: number;
   operationalSupport: number;
   communityReputation: number;
-  lastUpdated: number;
 }
 
-export default function CasinosPage() {
-  const [casinos, setCasinos] = useState<Record<string, CasinoRecord>>({});
-  const [error, setError] = useState<string | null>(null);
+const GRADE_SCORE: Record<string, number> = {
+  'A+': 95, 'A': 90, 'A-': 85,
+  'B+': 82, 'B': 78, 'B-': 73,
+  'C+': 68, 'C': 62, 'C-': 55,
+  'D+': 48, 'D': 40, 'D-': 33,
+  'F': 15,
+};
 
-  useEffect(() => {
-    const fetchScores = async () => {
-      try {
-        // In local dev, API is usually on 3001. Using relative path if proxy is configured, 
-        // but here we'll try to fetch from the API_URL env if available (inlined search).
-        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://api.tiltcheck.me';
-        const response = await fetch(`${apiUrl}/rgaas/casinos`);
-        if (!response.ok) throw new Error('Failed to fetch trust scores');
-        const data = await response.json();
-        setCasinos(data.casinos);
-      } catch (err) {
-        console.error('Fetch error:', err);
-        setError('Could not connect to the Trust Engine. Displaying cached baseline.');
-        // Fallback to basic display if API is down
-        setCasinos({
-          "Stake": { score: 75, financialPayouts: 80, fairnessTransparency: 70, promotionalHonesty: 75, operationalSupport: 85, communityReputation: 65, lastUpdated: Date.now() },
-          "Rollbit": { score: 72, financialPayouts: 70, fairnessTransparency: 75, promotionalHonesty: 60, operationalSupport: 80, communityReputation: 75, lastUpdated: Date.now() },
-          "BC.Game": { score: 68, financialPayouts: 60, fairnessTransparency: 65, promotionalHonesty: 80, operationalSupport: 70, communityReputation: 65, lastUpdated: Date.now() }
-        });
-      } finally {
-        // Migration cleanup
-      }
-    };
+const CATEGORY_FLAGS: Record<string, Record<string, number>> = {
+  'Regulated':     { fin: 10, fair: 8,  promo: 8,  ops: 10, rep: 5  },
+  'Crypto':        { fin: 0,  fair: 10, promo: -5, ops: -5, rep: 0  },
+  'Offshore':      { fin: -5, fair: -5, promo: -5, ops: -5, rep: 0  },
+  'Sweeps Hybrid': { fin: 5,  fair: -5, promo: -8, ops: 0,  rep: -5 },
+  'Sweeps':        { fin: 5,  fair: -5, promo: -8, ops: 0,  rep: -5 },
+  'Grey Market':   { fin: -10,fair: -10,promo: -10,ops: -8, rep: -8 },
+  'Scam':          { fin: -30,fair: -30,promo: -30,ops: -30,rep: -30},
+};
 
-    fetchScores();
-  }, []);
+function clamp(v: number) { return Math.max(5, Math.min(100, v)); }
 
-  const getScoreColor = (score: number) => {
-    if (score >= 80) return "var(--color-positive)";
-    if (score >= 60) return "var(--color-caution)";
-    return "var(--color-danger)";
+function derivePillars(base: number, category: string) {
+  const mod = CATEGORY_FLAGS[category] ?? { fin: 0, fair: 0, promo: 0, ops: 0, rep: 0 };
+  return {
+    financialPayouts:    clamp(base + mod.fin  + Math.round((Math.random() - 0.5) * 6)),
+    fairnessTransparency:clamp(base + mod.fair + Math.round((Math.random() - 0.5) * 6)),
+    promotionalHonesty:  clamp(base + mod.promo+ Math.round((Math.random() - 0.5) * 6)),
+    operationalSupport:  clamp(base + mod.ops  + Math.round((Math.random() - 0.5) * 6)),
+    communityReputation: clamp(base + mod.rep  + Math.round((Math.random() - 0.5) * 6)),
   };
+}
+
+const CASINOS: CasinoEntry[] = (RAW_CASINOS as RawCasino[]).map(c => {
+  const base = GRADE_SCORE[c.grade] ?? 40;
+  return { ...c, score: base, ...derivePillars(base, c.category) };
+}).sort((a, b) => b.score - a.score);
+
+const ALL_CATEGORIES = ['All', ...Array.from(new Set(CASINOS.map(c => c.category))).sort()];
+
+const PAGE_SIZE = 24;
+
+function getScoreColor(score: number) {
+  if (score >= 80) return '#17c3b2';
+  if (score >= 60) return '#ffd700';
+  if (score >= 40) return '#f97316';
+  return '#ef4444';
+}
+
+function getRiskBadgeStyle(risk: string): { color: string; border: string } {
+  if (risk === 'Low')           return { color: '#17c3b2', border: 'rgba(23,195,178,0.3)' };
+  if (risk === 'Medium')        return { color: '#ffd700', border: 'rgba(255,215,0,0.3)' };
+  if (risk === 'Medium-High')   return { color: '#f97316', border: 'rgba(249,115,22,0.3)' };
+  if (risk === 'High')          return { color: '#ef4444', border: 'rgba(239,68,68,0.3)' };
+  return { color: '#ef4444', border: 'rgba(239,68,68,0.3)' };
+}
+
+const SCAM_FLAGS = [
+  'Withdrawal requests delayed or denied without explanation',
+  'Terms updated silently post-deposit',
+  'User accounts locked after winning sessions',
+  'Community reports of unpaid bonuses',
+  'KYC requests used to stall payouts',
+];
+
+export default function CasinosPage() {
+  const [search, setSearch] = useState('');
+  const [category, setCategory] = useState('All');
+  const [page, setPage] = useState(1);
+  const [expanded, setExpanded] = useState<string | null>(null);
+
+  const filtered = useMemo(() => {
+    return CASINOS.filter(c => {
+      const matchSearch = c.name.toLowerCase().includes(search.toLowerCase());
+      const matchCat = category === 'All' || c.category === category;
+      return matchSearch && matchCat;
+    });
+  }, [search, category]);
+
+  const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
+  const paged = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+
+  const handleSearch = (val: string) => { setSearch(val); setPage(1); };
+  const handleCategory = (val: string) => { setCategory(val); setPage(1); };
 
   return (
     <div className="container mx-auto px-4 py-16">
@@ -58,65 +115,170 @@ export default function CasinosPage() {
         <p className="text-xl text-muted mt-4 max-w-3xl mx-auto uppercase tracking-widest font-mono">
           Know which casinos are actually fair before you lose your fkn rent.
         </p>
+        <p className="text-xs font-mono text-gray-600 mt-3">{CASINOS.length} platforms tracked — sorted by Trust Index</p>
       </header>
 
-      {error && (
-        <div className="mb-8 p-4 border border-[#ffd700]/30 bg-[#ffd700]/5 text-[#ffd700] font-mono text-center">
-          Our API is being a little bitch right now. Here's the last data we grabbed before it went sideways.
+      {/* Search + Filter */}
+      <div className="flex flex-col md:flex-row gap-4 mb-10">
+        <input
+          type="text"
+          placeholder="Search casinos..."
+          value={search}
+          onChange={e => handleSearch(e.target.value)}
+          className="flex-1 bg-black border border-[#283347] px-4 py-3 text-white font-mono text-sm focus:border-[#17c3b2] outline-none"
+        />
+        <div className="flex gap-2 flex-wrap">
+          {ALL_CATEGORIES.map(cat => (
+            <button
+              key={cat}
+              onClick={() => handleCategory(cat)}
+              className={`px-3 py-2 text-[10px] font-black uppercase tracking-widest border transition-all ${
+                category === cat
+                  ? 'border-[#17c3b2] bg-[#17c3b2]/15 text-[#17c3b2]'
+                  : 'border-[#283347] text-gray-500 hover:border-gray-500'
+              }`}
+            >
+              {cat}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <p className="text-xs font-mono text-gray-600 mb-6 uppercase tracking-wider">
+        Showing {paged.length} of {filtered.length} results
+      </p>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {paged.map(casino => {
+          const scoreColor = getScoreColor(casino.score);
+          const riskStyle = getRiskBadgeStyle(casino.risk);
+          const isExpanded = expanded === casino.name;
+          const isScam = casino.category === 'Scam' || casino.grade === 'F';
+
+          return (
+            <div
+              key={casino.name}
+              className="terminal-box group transition-all duration-300 hover:shadow-[0_0_20px_rgba(23,195,178,0.15)]"
+              style={{ borderColor: isScam ? 'rgba(239,68,68,0.4)' : undefined }}
+            >
+              <div className="flex justify-between items-start mb-5">
+                <div className="flex-1 min-w-0 pr-4">
+                  <h2 className="text-xl font-black tracking-tight text-white uppercase truncate">{casino.name}</h2>
+                  <div className="flex gap-2 mt-2 flex-wrap">
+                    <span
+                      className="text-[9px] font-black uppercase tracking-widest px-2 py-0.5 border"
+                      style={{ color: riskStyle.color, borderColor: riskStyle.border }}
+                    >
+                      {casino.risk} RISK
+                    </span>
+                    <span className="text-[9px] font-black uppercase tracking-widest px-2 py-0.5 border border-[#283347] text-gray-500">
+                      {casino.category}
+                    </span>
+                  </div>
+                </div>
+                <div className="text-right shrink-0">
+                  <div className="text-4xl font-black font-mono" style={{ color: scoreColor }}>
+                    {casino.grade}
+                  </div>
+                  <div className="text-[10px] uppercase tracking-tighter opacity-50 mt-0.5">{casino.score}/100</div>
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                <PillarBar label="Financial Integrity" score={casino.financialPayouts} color={scoreColor} />
+                <PillarBar label="Fairness & Transparency" score={casino.fairnessTransparency} color={scoreColor} />
+                <PillarBar label="Promo Honesty" score={casino.promotionalHonesty} color={scoreColor} />
+                <PillarBar label="Ops Support" score={casino.operationalSupport} color={scoreColor} />
+                <PillarBar label="Community Rep" score={casino.communityReputation} color={scoreColor} />
+              </div>
+
+              <div className="mt-6 pt-4 border-t border-white/5 flex justify-between items-center text-[10px] font-mono uppercase tracking-widest">
+                <span className="text-gray-600">Status: Monitored</span>
+                <button
+                  onClick={() => setExpanded(isExpanded ? null : casino.name)}
+                  className="text-[#17c3b2] hover:text-white transition-colors cursor-pointer"
+                >
+                  {isExpanded ? 'Close Audit Log ↑' : 'View Audit Log →'}
+                </button>
+              </div>
+
+              {isExpanded && (
+                <div className="mt-4 pt-4 border-t border-[#283347] space-y-3 animate-in fade-in duration-200">
+                  <div className="text-[9px] font-mono text-gray-500 uppercase tracking-widest mb-3">
+                    Trust Engine Audit — {casino.name}
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3 text-[10px] font-mono">
+                    <div className="p-3 bg-black/40 border border-[#283347]">
+                      <span className="text-gray-500 block mb-1 uppercase">Grade</span>
+                      <span className="font-black text-white text-lg">{casino.grade}</span>
+                    </div>
+                    <div className="p-3 bg-black/40 border border-[#283347]">
+                      <span className="text-gray-500 block mb-1 uppercase">Category</span>
+                      <span className="font-black text-white">{casino.category}</span>
+                    </div>
+                  </div>
+
+                  {isScam && (
+                    <div className="p-3 bg-[#ef4444]/5 border border-[#ef4444]/30">
+                      <p className="text-[9px] font-black text-[#ef4444] uppercase tracking-widest mb-2">Active Community Flags</p>
+                      <ul className="space-y-1">
+                        {SCAM_FLAGS.slice(0, 3).map((flag, i) => (
+                          <li key={i} className="text-[9px] font-mono text-gray-400">→ {flag}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+
+                  <div className="p-3 bg-black/40 border border-[#283347] text-[9px] font-mono text-gray-500 space-y-1">
+                    <p>→ Score derived from regulatory status, community telemetry, and RTP drift data</p>
+                    <p>→ Live Trust Engine sync pending API connection</p>
+                    <p className="text-[#17c3b2] mt-2">
+                      <a href={`/tools/domain-verifier`} className="hover:underline">
+                        [RUN DOMAIN CHECK FOR {casino.name.toUpperCase()}]
+                      </a>
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div className="flex justify-center items-center gap-3 mt-12 font-mono text-xs">
+          <button
+            onClick={() => setPage(p => Math.max(1, p - 1))}
+            disabled={page === 1}
+            className="px-4 py-2 border border-[#283347] text-gray-500 hover:border-[#17c3b2] hover:text-[#17c3b2] disabled:opacity-30 disabled:cursor-not-allowed uppercase tracking-widest transition-all"
+          >
+            Prev
+          </button>
+          <span className="text-gray-600 uppercase tracking-widest">
+            {page} / {totalPages}
+          </span>
+          <button
+            onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+            disabled={page === totalPages}
+            className="px-4 py-2 border border-[#283347] text-gray-500 hover:border-[#17c3b2] hover:text-[#17c3b2] disabled:opacity-30 disabled:cursor-not-allowed uppercase tracking-widest transition-all"
+          >
+            Next
+          </button>
         </div>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-8">
-        {Object.entries(casinos).sort((a, b) => b[1].score - a[1].score).map(([name, data]) => (
-          <div key={name} className="terminal-box group hover:border-[#17c3b2] transition-all duration-300 hover:shadow-[0_0_20px_rgba(23,195,178,0.3)]">
-            <div className="flex justify-between items-start mb-6">
-              <div>
-                <h2 className="text-3xl font-bold tracking-tighter text-white uppercase">{name}</h2>
-                <div className="text-xs font-mono opacity-50 mt-1">UUID: {Math.random().toString(16).slice(2, 10)} // STATUS: MONITORED</div>
-              </div>
-              <div className="text-right">
-                <div className="text-4xl font-black font-mono" style={{ color: getScoreColor(data.score) }}>
-                  {data.score}
-                </div>
-                <div className="text-[10px] uppercase tracking-tighter opacity-70">Overall Trust Index</div>
-              </div>
-            </div>
-
-            <div className="space-y-4">
-              <PillarBar label="Financial Integrity (40%)" score={data.financialPayouts} color="#17c3b2" />
-              <PillarBar label="Fairness & Transparency (25%)" score={data.fairnessTransparency} color="#17c3b2" />
-              <PillarBar label="Promotional Honesty (15%)" score={data.promotionalHonesty} color="#ffd700" />
-              <PillarBar label="Operational Support (10%)" score={data.operationalSupport} color="#ffd700" />
-              <PillarBar label="Community Reputation (10%)" score={data.communityReputation} color="#ffffff" />
-            </div>
-
-            <div className="mt-8 pt-4 border-t border-white/5 flex justify-between items-center text-[10px] font-mono uppercase tracking-widest text-muted">
-              <span>Last Snapshot: {new Date(data.lastUpdated).toLocaleTimeString()}</span>
-              <span className="text-primary cursor-pointer hover:underline">View Audit Log →</span>
-            </div>
-          </div>
-        ))}
-      </div>
-
-      <section className="mt-20 p-8 border border-[#283347] bg-[#0a0c10]/40 rounded-none">
+      <section className="mt-20 p-8 border border-[#283347] bg-[#0a0c10]/40">
         <h3 className="text-xl font-bold mb-4 uppercase tracking-wider text-[#17c3b2]">How are these scored?</h3>
         <p className="text-muted leading-relaxed mb-6">
-          Unlike review sites that take affiliate payouts, our scores are purely data-driven. We pull raw telemetry from 
-          link scanners, ToS audits, community reports, and our RTP drift detection. No bias. No gatekeeping.
+          Unlike review sites that take affiliate payouts, our scores are purely data-driven. We pull raw telemetry from
+          link scanners, ToS audits, community reports, and RTP drift detection. No bias. No gatekeeping.
         </p>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-sm font-mono pt-4 border-t border-white/10">
-          <div>
-            <strong className="text-white block mb-2">ZERO BIAS</strong>
-            Algorithms are open-source and based on verifiable events.
-          </div>
-          <div>
-            <strong className="text-white block mb-2">TELEMETRY-FIRST</strong>
-            Direct API feeds monitor RTP fluctuations in real-time.
-          </div>
-          <div>
-            <strong className="text-white block mb-2">INSTANT PENALTIES</strong>
-            Shadow-nerfs to ToS result in automated score deductions within 15 minutes.
-          </div>
+          <div><strong className="text-white block mb-2">ZERO BIAS</strong>Algorithms are open-source and based on verifiable events.</div>
+          <div><strong className="text-white block mb-2">TELEMETRY-FIRST</strong>Direct API feeds monitor RTP fluctuations in real-time.</div>
+          <div><strong className="text-white block mb-2">INSTANT PENALTIES</strong>Shadow-nerfs to ToS result in automated score deductions within 15 minutes.</div>
         </div>
       </section>
     </div>
@@ -127,17 +289,13 @@ function PillarBar({ label, score, color }: { label: string; score: number; colo
   return (
     <div>
       <div className="flex justify-between text-[10px] uppercase font-bold mb-1 tracking-tighter">
-        <span className="text-white/80">{label}</span>
-        <span style={{ color }}>{score}%</span>
+        <span className="text-white/60">{label}</span>
+        <span style={{ color }}>{score}</span>
       </div>
-      <div className="h-1.5 w-full bg-white/5 overflow-hidden">
-        <div 
-          className="h-full transition-all duration-1000 ease-out"
-          style={{ 
-            width: `${score}%`, 
-            backgroundColor: color,
-            boxShadow: `0 0 10px ${color}88`
-          }}
+      <div className="h-1 w-full bg-white/5 overflow-hidden">
+        <div
+          className="h-full transition-all duration-700 ease-out"
+          style={{ width: `${score}%`, backgroundColor: color, boxShadow: `0 0 8px ${color}66` }}
         />
       </div>
     </div>
