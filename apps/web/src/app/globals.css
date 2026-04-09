@@ -186,6 +186,15 @@ body::before {
   grid-auto-rows: auto;
   gap: 1.5rem;
   padding: 1rem 0;
+  width: 100%;
+  max-width: 100%;
+  overflow: hidden;
+}
+
+/* Prevent grid cells from overflowing their column */
+.tools-bento-grid > * {
+  min-width: 0;
+  max-width: 100%;
 }
 
 @media (min-width: 640px) {

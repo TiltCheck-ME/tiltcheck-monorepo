@@ -44,7 +44,7 @@ export default function Home() {
       <div className="section-divider" aria-hidden="true" />
 
       {/* Tools Section */}
-      <section id="tools" className="w-full max-w-7xl mx-auto px-4 pt-8 pb-16">
+      <section id="tools" className="w-full max-w-7xl mx-auto pt-8 pb-16">
         <div className="section-heading-block">
           <h2 className="neon neon-header section-heading" data-text="THE HOUSE EDGE NEUTRALIZER">
             THE HOUSE EDGE NEUTRALIZER

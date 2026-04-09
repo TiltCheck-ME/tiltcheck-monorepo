@@ -34,39 +34,58 @@ const Footer = () => {
           <h4>The Edge</h4>
           <ul>
             <li><Link href="/#tools">All Tools</Link></li>
-            <li><Link href="/docs">How it Works</Link></li>
-            <li><Link href="/tools/verify">Scan for Scams</Link></li>
-            <li><Link href="/extension">Profit Guard</Link></li>
-          </ul>
-        </div>
-        <div className="footer-col">
-          <h4>The Arena</h4>
-          <ul>
-            <li><Link href="/tools/justthetip">Community Tipping</Link></li>
             <li><Link href="/tools/auto-vault">Auto Vault</Link></li>
-            <li><Link href="/tools/collectclock">Odds Audit</Link></li>
-            <li><Link href="/casinos">Casino Scores</Link></li>
+            <li><Link href="/tools/verify">Forensic Seed Audit</Link></li>
+            <li><Link href="/tools/domain-verifier">Anti-Drainer DNS</Link></li>
+            <li><Link href="/tools/session-stats">Nerf Radar</Link></li>
+            <li><Link href="/tools/house-edge-scanner">Delta Engine</Link></li>
+            <li><Link href="/tools/scan-scams">Shadow-Ban Tracker</Link></li>
+            <li><Link href="/tools/justthetip">JustTheTip</Link></li>
+            <li><Link href="/tools/degens-arena">Tilt-Free Arena</Link></li>
           </ul>
         </div>
         <div className="footer-col">
-            <h4>Compliance</h4>
-            <ul>
-              <li><Link href="/legal/limit">Asset Risk</Link></li>
-              <li><Link href="/touch-grass">Responsible Gaming</Link></li>
-              <li><Link href="/terms">Term of Service</Link></li>
-              <li><Link href="/terms">Non-Advice Disclosure</Link></li>
-            </ul>
+          <h4>Intel</h4>
+          <ul>
+            <li><Link href="/casinos">Casino Trust Scores</Link></li>
+            <li><Link href="/bonuses">Daily Bonus Tracker</Link></li>
+            <li><Link href="/intel/rtp">RTP Scanner</Link></li>
+            <li><Link href="/intel/scanner">Threat Scanner</Link></li>
+            <li><Link href="/intel/scams">Scam Registry</Link></li>
+            <li><Link href="/extension">Profit Guard Extension</Link></li>
+          </ul>
         </div>
         <div className="footer-col">
-            <h4>Connect</h4>
-            <ul>
-              <li>
-                <a href="https://discord.gg/gdBsEJfCar" target="_blank" rel="noopener noreferrer">TiltCheck Discord</a>
-              </li>
-              <li>
-                <a href="https://github.com/jmenichole/tiltcheck-monorepo" target="_blank" rel="noopener noreferrer">The Source</a>
-              </li>
-            </ul>
+          <h4>Learn</h4>
+          <ul>
+            <li><Link href="/how-it-works">How It Works</Link></li>
+            <li><Link href="/getting-started">Getting Started</Link></li>
+            <li><Link href="/about">About</Link></li>
+            <li><Link href="/docs">Audit Blueprints</Link></li>
+            <li><Link href="/blog">Blog</Link></li>
+            <li><Link href="/beta-tester">Join Beta</Link></li>
+          </ul>
+        </div>
+        <div className="footer-col">
+          <h4>Compliance</h4>
+          <ul>
+            <li><Link href="/touch-grass">Touch Grass Protocol</Link></li>
+            <li><Link href="/terms">Terms of Service</Link></li>
+            <li><Link href="/legal/limit">Asset Risk Limits</Link></li>
+            <li><Link href="/terms">Non-Advice Disclosure</Link></li>
+          </ul>
+        </div>
+        <div className="footer-col">
+          <h4>Connect</h4>
+          <ul>
+            <li><Link href="/dashboard">Your Dashboard</Link></li>
+            <li>
+              <a href="https://discord.gg/gdBsEJfCar" target="_blank" rel="noopener noreferrer">TiltCheck Discord</a>
+            </li>
+            <li>
+              <a href="https://github.com/jmenichole/tiltcheck-monorepo" target="_blank" rel="noopener noreferrer">The Source</a>
+            </li>
+          </ul>
         </div>
       </div>
       <div className="footer-bottom">
