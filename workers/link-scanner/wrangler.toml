@@ -1,0 +1,11 @@
+# © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-09
+name = "tiltcheck-link-scanner"
+main = "src/index.ts"
+compatibility_date = "2024-09-01"
+workers_dev = true
+
+[vars]
+API_BASE_URL = "https://api.tiltcheck.me"
+
+[observability]
+enabled = true

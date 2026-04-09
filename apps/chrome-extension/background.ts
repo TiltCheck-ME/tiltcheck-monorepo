@@ -1,3 +1,4 @@
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-09
 // THE DEGEN LAWS: No emojis. Blunt tone. Math maths.
 // This is the brain of the operation. It runs in the background. Don't mess with it.
 

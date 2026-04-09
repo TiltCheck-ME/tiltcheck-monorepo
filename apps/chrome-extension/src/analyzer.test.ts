@@ -73,7 +73,8 @@ describe('Analyzer', () => {
     const mockCommitment = {
       blockHash: 'solana-hash',
       discordId: 'user-123',
-      clientSeed: 'seed-abc'
+      clientSeed: 'seed-abc',
+      nonce: 1
     };
 
     const result = {
