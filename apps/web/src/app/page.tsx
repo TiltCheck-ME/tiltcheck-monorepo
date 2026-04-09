@@ -8,8 +8,8 @@ export default function Home() {
   return (
     <main className="flex min-h-screen flex-col items-center p-4 pt-24">
       {/* Hero Section */}
-      <section className="hero-surface border-b border-[#283347] mb-12">
-        <div className="hero-content py-20">
+      <section className="hero-surface w-full">
+        <div className="hero-content">
           <h1 className="neon neon-main neon-hero-top mb-1" data-text="HOUSE ALWAYS WINS?">
             HOUSE ALWAYS WINS?
           </h1>
@@ -17,38 +17,41 @@ export default function Home() {
             FUCK THAT.
           </h2>
 
-          <div className="border border-[#17c3b2]/20 bg-[#17c3b2]/5 p-6 mb-10 max-w-3xl border-l-4 border-l-[#17c3b2] animate-in slide-in-from-left-4 duration-700">
-            <p className="text-sm font-mono text-[#17c3b2]/80 uppercase tracking-widest mb-2 font-black">
-              [AUDIT LAYER]: ONLINE AND PISSED
-            </p>
-            <p className="text-gray-400 text-xs leading-relaxed font-mono italic">
-              The casino's RNG is more rigged than your last relationship. We're not here to judge—we're here to show you the math before you hemorrhage your rent money. Sniff out the shadow nerfs, catch the RTP drifts, and know when to fucking fold.
+          <div className="hero-audit-banner">
+            <p className="hero-audit-label">[AUDIT LAYER]: ONLINE AND PISSED</p>
+            <p className="hero-audit-body">
+              The casino&apos;s RNG is more rigged than your last relationship. We&apos;re not here to judge — we&apos;re here to show you the math before you hemorrhage your rent money. Sniff out the shadow nerfs, catch the RTP drifts, and know when to fold.
             </p>
           </div>
 
-          <div className="hero-actions flex-wrap gap-4 justify-center">
-            <a href="/beta-tester" className="btn btn-primary shadow-lg hover:shadow-[0_0_20px_rgba(23,195,178,0.6)]" data-text="DEPLOY THE AUDIT LAYER">
+          <div className="hero-actions">
+            <a href="/beta-tester" className="btn btn-primary" data-text="DEPLOY THE AUDIT LAYER">
               DEPLOY THE AUDIT LAYER
             </a>
-            <a href="#tools" className="btn btn-secondary border-[#17c3b2] text-[#17c3b2] hover:border-[#17c3b2] hover:bg-[#17c3b2]/10" data-text="BROWSE THE ARSENAL">
+            <a href="#tools" className="btn btn-secondary" data-text="BROWSE THE ARSENAL">
               BROWSE THE ARSENAL
             </a>
           </div>
+
+          {/* Hero body copy — inside hero so there's no gap */}
+          <p className="hero-body">
+            Casinos don&apos;t win because they&apos;re lucky. They win because you don&apos;t know when to stop. <span className="hero-body-accent">TiltCheck is the forensic audit layer</span> that reads your live session, flags your peak PnL in real-time, and gives you the community-backed signal to lock gains and exit clean. We tell you when the math checks out and when you&apos;re chasing a ghost. Vault your wins before your brain talks you into one more spin.
+          </p>
         </div>
       </section>
 
-      <div className="w-full max-w-7xl mx-auto px-4 mb-20 text-center">
-        <p className="hero-body max-w-4xl mx-auto border border-[#283347] p-8 bg-black/40 text-[#ffffff]">
-          Casinos don't win because they're lucky. They win because you don't know when to stop. <span className="text-[#17c3b2] font-black">TiltCheck is the forensic audit layer</span> that reads your live session, flags your peak PnL in real-time, and gives you the community-backed signal to lock gains and exit clean. We tell you when the math checks out and when you're chasing a ghost. Vault your wins before your brain talks you into one more spin.
-        </p>
-      </div>
+      {/* Section divider */}
+      <div className="section-divider" aria-hidden="true" />
 
       {/* Tools Section */}
-      <section id="tools" className="w-full max-w-7xl mx-auto px-4">
-        <h2 className="text-center text-3xl font-bold uppercase tracking-widest neon neon-header" data-text="THE HOUSE EDGE NEUTRALIZER">
-          THE HOUSE EDGE NEUTRALIZER
-        </h2>
-        <div className="mt-8 tools-bento-grid">
+      <section id="tools" className="w-full max-w-7xl mx-auto px-4 py-16">
+        <div className="section-heading-block">
+          <h2 className="neon neon-header section-heading" data-text="THE HOUSE EDGE NEUTRALIZER">
+            THE HOUSE EDGE NEUTRALIZER
+          </h2>
+          <p className="section-subheading">Nine tools. One audit layer. No cap.</p>
+        </div>
+        <div className="mt-10 tools-bento-grid">
           <LiveAuditLog />
           {features.map((tool) => (
             <ToolCard key={tool.title} {...tool} />
