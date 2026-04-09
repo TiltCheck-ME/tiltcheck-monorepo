@@ -53,13 +53,15 @@ const ToolCard = ({ href, icon, category, title, description, status, gridClasse
   return (
     <Link href={href} className={cardClasses}>
       <div>
-        <Image
-          src={`/assets/icons/tools/${icon}`}
-          alt={`${title} icon`}
-          width={48}
-          height={48}
-          className="tool-card-icon mb-4 transition-transform duration-200 group-hover:scale-110"
-        />
+        <div className="tool-card-icon-wrap mb-4">
+          <Image
+            src={`/assets/icons/tools/${icon}`}
+            alt={`${title} icon`}
+            width={40}
+            height={40}
+            className="tool-card-icon transition-transform duration-200 group-hover:scale-110"
+          />
+        </div>
         <span className="category-label text-sm font-semibold uppercase tracking-wider text-[color:var(--color-primary)]">
           {category}
         </span>

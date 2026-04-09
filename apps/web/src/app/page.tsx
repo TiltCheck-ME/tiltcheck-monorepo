@@ -20,7 +20,7 @@ export default function Home() {
           <div className="hero-audit-banner">
             <p className="hero-audit-label">[AUDIT LAYER]: ONLINE AND PISSED</p>
             <p className="hero-audit-body">
-              Casinos don&apos;t win because they&apos;re lucky — they win because you&apos;re running on vibes and dopamine while they&apos;re running the math. We&apos;re the forensic backup: social telemetry, live RTP drift detection, and a community-backed green light to vault your wins before your brain convinces you one more spin is a good idea.
+              Nine tools. Live RTP drift. Provably fair verification. Community-backed trust scores. No vibes, no copium — just the math.
             </p>
           </div>
 

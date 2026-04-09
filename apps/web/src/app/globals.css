@@ -252,6 +252,25 @@ body::before {
 }
 
 /* Tool Card Specific Styles */
+.tool-card-icon-wrap {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 52px;
+  height: 52px;
+  background: rgba(23, 195, 178, 0.08);
+  border: 1px solid rgba(23, 195, 178, 0.25);
+}
+
+.tool-card-icon-wrap .tool-card-icon {
+  filter: brightness(0) saturate(100%) invert(72%) sepia(50%) saturate(450%) hue-rotate(132deg) brightness(95%);
+}
+
+.tool-card:hover .tool-card-icon-wrap {
+  background: rgba(23, 195, 178, 0.15);
+  border-color: rgba(23, 195, 178, 0.5);
+}
+
 .tool-card-icon {
   /* Base styles are handled by Tailwind classes in the component */
   transition: transform 0.2s ease-in-out;
