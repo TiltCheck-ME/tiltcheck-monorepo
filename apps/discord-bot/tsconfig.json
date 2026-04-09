@@ -4,7 +4,8 @@
     "composite": true,
     "incremental": true,
     "outDir": "./dist",
-    "rootDir": "src"
+    "rootDir": "src",
+    "lib": ["ESNext", "DOM"]
   },
   "include": [
     "src/**/*"

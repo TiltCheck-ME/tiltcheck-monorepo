@@ -1,0 +1,38 @@
+<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-09 -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CollectClock — TiltCheck</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: #0a0c10;
+      color: #ffffff;
+      font-family: monospace;
+      height: 100vh;
+      overflow: hidden;
+    }
+    #app {
+      height: 100vh;
+      overflow-y: auto;
+      padding: 0;
+    }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <p style="color:#17c3b2;padding:2rem;text-align:center;font-family:monospace;">
+      COLLECTCLOCK LOADING...
+    </p>
+  </div>
+  <!--
+    NOTE: This activity requires a separate Vite build step.
+    Build command: vite build apps/discord-bot/src/activity/
+    The bundler is NOT part of this package.json — add Vite as a devDependency
+    in a dedicated activity package or build it separately before deploying.
+  -->
+  <script type="module" src="./index.ts"></script>
+</body>
+</html>
