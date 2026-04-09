@@ -173,11 +173,15 @@ async function main() {
     const commandData = commandHandler.getCommandData();
     try {
       if (config.guildId) {
+        // Guild deploy — also clear global to prevent duplicates showing in Discord
         await rest.put(Routes.applicationGuildCommands(config.clientId, config.guildId), { body: commandData });
+        await rest.put(Routes.applicationCommands(config.clientId), { body: [] });
+        console.log(`[Commands] ${commandData.length} guild commands registered, global commands cleared\n`);
       } else {
+        // Global deploy — clear any stale guild commands if guildId was previously set
         await rest.put(Routes.applicationCommands(config.clientId), { body: commandData });
+        console.log(`[Commands] ${commandData.length} global slash commands registered\n`);
       }
-      console.log(`[Commands] ${commandData.length} slash commands registered with Discord\n`);
     } catch (err) {
       console.error('[Commands] Failed to register slash commands:', err);
     }

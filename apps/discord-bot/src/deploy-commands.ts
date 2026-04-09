@@ -30,12 +30,14 @@ async function deployCommands() {
 
     if (config.guildId) {
       // Deploy to specific guild (faster, for development)
+      // Also clear global commands to prevent duplicates appearing in Discord
       console.log('[Deploy] Deploying to guild:', config.guildId);
       await rest.put(
         Routes.applicationGuildCommands(config.clientId, config.guildId),
         { body: commands }
       );
-      console.log('[Deploy] Successfully deployed guild commands!');
+      await rest.put(Routes.applicationCommands(config.clientId), { body: [] });
+      console.log('[Deploy] Guild commands deployed, global commands cleared (no more duplicates)!');
     } else {
       // Deploy globally (slower, for production)
       console.log('[Deploy] Deploying globally...');
