@@ -1,6 +1,6 @@
 /* Copyright (c) 2026 TiltCheck. All rights reserved. */
 /**
- * DA&D (Degens Against Decency) - AI-powered card game
+ * Degens Against Decency - AI-powered card game
  * 
  * Features:
  * - White and black cards

@@ -1,6 +1,6 @@
 /* Copyright (c) 2026 TiltCheck. All rights reserved. */
 /**
- * DA&D (Degens Against Decency) Module
+ * Degens Against Decency Module
  * AI-powered card game for Discord communities
  * 
  * Features:
@@ -25,7 +25,7 @@ async function getAIClient() {
       const module = await import('@tiltcheck/ai-client');
       aiClient = module.aiClient;
     } catch {
-      console.log('[DA&D] AI client not available, using default cards only');
+      console.log('[Degens Against Decency] AI client not available, using default cards only');
     }
   }
   return aiClient;
@@ -138,7 +138,7 @@ export class DADModule {
     eventRouter.subscribe(
       'game.started',
       async (event: TiltCheckEvent<any>) => {
-        console.log('[DA&D] Game started:', event.data);
+        console.log('[Degens Against Decency] Game started:', event.data);
       },
       'dad'
     );
@@ -231,12 +231,12 @@ export class DADModule {
           };
 
           this.cardPacks.set(pack.id, pack);
-          console.log(`[DA&D] Generated AI pack "${name}" with ${whiteCards.length} white and ${blackCards.length} black cards`);
+          console.log(`[Degens Against Decency] Generated AI pack "${name}" with ${whiteCards.length} white and ${blackCards.length} black cards`);
           
           return pack;
         }
       } catch (error) {
-        console.log('[DA&D] AI card generation failed, using fallback:', error);
+        console.log('[Degens Against Decency] AI card generation failed, using fallback:', error);
       }
     }
 
@@ -896,4 +896,4 @@ export class DADModule {
 // Export singleton instance
 export const dad = new DADModule();
 
-console.log('[DA&D] Module loaded - Card game ready');
+console.log('[Degens Against Decency] Module loaded - Card game ready');
