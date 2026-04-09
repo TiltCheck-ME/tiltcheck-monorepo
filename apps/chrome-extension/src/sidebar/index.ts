@@ -1,4 +1,5 @@
 /* Copyright (c) 2026 TiltCheck. All rights reserved. */
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-09
 import { SIDEBAR_TEMPLATE } from './template.js';
 import { getSidebarStyles } from './styles.js';
 import { AuthManager } from './auth.js';
@@ -9,6 +10,7 @@ import { BlockchainManager } from './blockchain.js';
 import { BuddyManager } from './buddy.js';
 import { PredictorManager } from './predictor.js';
 import { OnboardingManager } from './onboarding.js';
+import { BonusManager } from './bonuses.js';
 import { SidebarUI } from './types.js';
 
 export class SidebarController implements SidebarUI {
@@ -20,6 +22,7 @@ export class SidebarController implements SidebarUI {
   public buddy: BuddyManager;
   public predictor: PredictorManager;
   public onboarding: OnboardingManager;
+  public bonuses: BonusManager;
 
   constructor() {
     this.auth = new AuthManager(this);
@@ -30,6 +33,7 @@ export class SidebarController implements SidebarUI {
     this.buddy = new BuddyManager(this, this.auth);
     this.predictor = new PredictorManager(this);
     this.onboarding = new OnboardingManager(this);
+    this.bonuses = new BonusManager(this);
   }
 
   public init() {
@@ -39,6 +43,7 @@ export class SidebarController implements SidebarUI {
     this.auth.restoreAuth();
     this.buddy.restorePrefs();
     this.vault.init();
+    this.bonuses.init();
   }
 
   private injectStyles() {

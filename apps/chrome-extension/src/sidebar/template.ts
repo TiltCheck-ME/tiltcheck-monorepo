@@ -379,6 +379,25 @@ export const SIDEBAR_TEMPLATE = `
           </div>
         </div>
 
+        <!-- Daily Bonuses Section -->
+        <div class="tg-section tg-bonuses-section">
+          <div class="tg-bonuses-header">
+            <h4 style="margin:0;">DAILY BONUSES</h4>
+            <div class="tg-bonuses-controls">
+              <button class="tg-btn-link" id="tg-bonuses-refresh">[REFRESH]</button>
+              <button class="tg-btn-link" id="tg-bonuses-toggle">[EXPAND]</button>
+            </div>
+          </div>
+          <div id="tg-bonuses-body" style="display:none;">
+            <div id="tg-bonuses-list">
+              <div class="tg-bonus-empty">Loading bonuses...</div>
+            </div>
+            <div class="tg-bonuses-footer">
+              <a href="https://tiltcheck.me/bonuses" target="_blank" rel="noopener noreferrer" class="tg-bonuses-viewall">View all at tiltcheck.me/bonuses</a>
+            </div>
+          </div>
+        </div>
+
         <!-- Export -->
         <div class="tg-section">
           <button class="tg-btn tg-btn-secondary" id="tg-export-session">Export Session</button>
