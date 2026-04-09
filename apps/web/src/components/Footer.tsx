@@ -38,10 +38,9 @@ const Footer = () => {
             <li><Link href="/tools/verify">Forensic Seed Audit</Link></li>
             <li><Link href="/tools/domain-verifier">Anti-Drainer DNS</Link></li>
             <li><Link href="/tools/session-stats">Nerf Radar</Link></li>
-            <li><Link href="/tools/house-edge-scanner">Delta Engine</Link></li>
-            <li><Link href="/tools/scan-scams">Shadow-Ban Tracker</Link></li>
+            <li><Link href="/tools/house-edge-scanner">House Edge Scanner</Link></li>
             <li><Link href="/tools/justthetip">JustTheTip</Link></li>
-            <li><Link href="/tools/degens-arena">Tilt-Free Arena</Link></li>
+            <li><Link href="/tools/degens-arena">Degen Trivia</Link></li>
           </ul>
         </div>
         <div className="footer-col">

@@ -372,6 +372,8 @@ function broadcastSnapshots() {
   for (const res of sseClients) {
     res.write(`data: ${payload}\n\n`);
   }
+  // Keep file snapshot in sync with live state
+  persistCasinoSnapshots();
 }
 
 // Subscribe to events for real-time window maintenance
@@ -715,6 +717,27 @@ http.createServer((req, res) => {
 // Persist snapshots to shared /app/data volume (works in Docker & local)
 const SNAPSHOT_DIR = process.env.TRUST_ROLLUP_SNAPSHOT_DIR || path.join('/app', 'data');
 const ROLLUP_FILE = path.join(SNAPSHOT_DIR, 'trust-rollups.json');
+const CASINO_TRUST_FILE = path.join(SNAPSHOT_DIR, 'casino-trust.json');
+
+function persistCasinoSnapshots() {
+  try {
+    if (!fs.existsSync(SNAPSHOT_DIR)) fs.mkdirSync(SNAPSHOT_DIR, { recursive: true });
+    const snapshots = getCasinoSnapshots().map(s => ({
+      ...s,
+      // Serialise Set<string> → string[] for JSON output
+      sources: Array.from(s.sources),
+    }));
+    fs.writeFileSync(
+      CASINO_TRUST_FILE,
+      JSON.stringify({ updatedAt: new Date().toISOString(), casinos: snapshots }, null, 2)
+    );
+  } catch (err) {
+    console.error('[TrustRollup] Failed to persist casino trust snapshots', err);
+  }
+}
+
+// Write snapshots every 5 minutes regardless of event activity
+setInterval(persistCasinoSnapshots, 5 * 60 * 1000);
 
 function persistSnapshots(domainPayload: TrustDomainRollupEventData, casinoPayload: TrustCasinoRollupEventData) {
   try {

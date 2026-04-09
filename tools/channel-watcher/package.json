@@ -11,12 +11,14 @@
         "10m": "node index.js --live --duration=10",
         "cloud": "powershell -ExecutionPolicy Bypass -File ./run-cloud-watcher.ps1",
         "cloud:schedule": "powershell -ExecutionPolicy Bypass -File ./register-cloud-watcher-task.ps1",
+        "railway:seed-session": "node create-session.js && node -e \"import('./create-session.js').then(()=>{const s=require('fs').readFileSync('.session.json','utf8');console.log('DISCORD_SESSION_JSON='+Buffer.from(s).toString('base64'))})\"",
+        "session:create": "node create-session.js",
+        "session:encode": "node -e \"import {readFileSync} from 'fs'; const s=readFileSync('.session.json','utf8'); console.log('\\nPaste this into Railway env vars as DISCORD_SESSION_JSON:\\n'); console.log(Buffer.from(s).toString('base64'));\" --input-type=module",
         "history": "node index.js --full",
         "analyze": "node analyze-log.js",
         "analyze:lore": "node analyze-log.js --lore",
         "comic:daily": "node generate-daily-comic.js",
-        "comic:publish": "node publish-comic-to-cloud.js",
-        "session:create": "node create-session.js"
+        "comic:publish": "node publish-comic-to-cloud.js"
     },
     "dependencies": {
         "playwright": "^1.41.0",

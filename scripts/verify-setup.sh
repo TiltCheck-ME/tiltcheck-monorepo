@@ -21,6 +21,9 @@
 
 set -e
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(dirname "$SCRIPT_DIR")"
+
 # Colors for output
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -101,8 +104,8 @@ echo ""
 echo "Checking required environment variables..."
 
 # Load .env file if it exists
-if [ -f .env ]; then
-  export $(cat .env | grep -v '^#' | xargs)
+if [ -f "$REPO_ROOT/.env" ]; then
+  set -a; source "$REPO_ROOT/.env"; set +a
   print_info "Loaded .env file"
 else
   print_warning ".env file not found (copy from .env.template)"

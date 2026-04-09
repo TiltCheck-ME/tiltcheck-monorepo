@@ -1,0 +1,93 @@
+{
+  "_comment": "© 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-09",
+  "regulators": {
+    "MGA": {
+      "name": "Malta Gaming Authority",
+      "url": "https://www.mga.org.mt",
+      "region": "Malta / EU",
+      "tier": 1,
+      "verifyUrl": "https://www.mga.org.mt/licensee-register/"
+    },
+    "UKGC": {
+      "name": "UK Gambling Commission",
+      "url": "https://www.gamblingcommission.gov.uk",
+      "region": "United Kingdom",
+      "tier": 1,
+      "verifyUrl": "https://www.gamblingcommission.gov.uk/public-register/businesses"
+    },
+    "NJDGE": {
+      "name": "New Jersey Division of Gaming Enforcement",
+      "url": "https://www.nj.gov/oag/ge/",
+      "region": "New Jersey, USA",
+      "tier": 1,
+      "verifyUrl": "https://www.nj.gov/oag/ge/igaminglicensees.html"
+    },
+    "PAGCOR": {
+      "name": "Philippine Amusement and Gaming Corporation",
+      "url": "https://www.pagcor.ph",
+      "region": "Philippines",
+      "tier": 2,
+      "verifyUrl": "https://www.pagcor.ph/regulatory-division.php"
+    },
+    "Curacao": {
+      "name": "Curacao eGaming",
+      "url": "https://www.curacao-egaming.com",
+      "region": "Curacao",
+      "tier": 3,
+      "verifyUrl": "https://www.curacao-egaming.com/licensees"
+    },
+    "IOM": {
+      "name": "Isle of Man Gambling Supervision Commission",
+      "url": "https://www.gov.im/gambling",
+      "region": "Isle of Man",
+      "tier": 2,
+      "verifyUrl": "https://www.gov.im/categories/business-and-industries/gambling-and-e-gaming/online-gambling/licence-holders/"
+    },
+    "Kahnawake": {
+      "name": "Kahnawake Gaming Commission",
+      "url": "https://www.gamingcommission.ca",
+      "region": "Kahnawake, Canada",
+      "tier": 2,
+      "verifyUrl": "https://www.gamingcommission.ca/igaming-permit-holders/"
+    },
+    "Gibraltar": {
+      "name": "Gibraltar Gambling Commissioner",
+      "url": "https://www.gibraltar.gov.gi/gambling",
+      "region": "Gibraltar",
+      "tier": 2,
+      "verifyUrl": "https://www.gibraltar.gov.gi/gambling"
+    },
+    "SweepsNA": {
+      "name": "Sweepstakes Model (No License Required)",
+      "url": null,
+      "region": "USA / Canada",
+      "tier": 4,
+      "verifyUrl": null,
+      "note": "Operates under US sweepstakes law. Not regulated by a gaming authority. No real-money gambling."
+    }
+  },
+  "operators": [
+    { "brand": "Chumba Casino", "domains": ["chumbacasino.com", "mail.chumbacasino.com"], "regulator": "SweepsNA", "licenseId": null, "type": "sweepstakes", "active": true },
+    { "brand": "Global Poker", "domains": ["globalpoker.com", "mail.globalpoker.com"], "regulator": "SweepsNA", "licenseId": null, "type": "sweepstakes", "active": true },
+    { "brand": "LuckyLand Slots", "domains": ["luckylandslots.com", "mail.luckylandslots.com", "email.luckylandslots.com"], "regulator": "SweepsNA", "licenseId": null, "type": "sweepstakes", "active": true },
+    { "brand": "Pulsz", "domains": ["pulsz.com", "mail.pulsz.com", "email.pulsz.com"], "regulator": "SweepsNA", "licenseId": null, "type": "sweepstakes", "active": true },
+    { "brand": "Stake.us", "domains": ["stake.us", "mail.stake.us", "promo.stake.us"], "regulator": "SweepsNA", "licenseId": null, "type": "sweepstakes", "active": true },
+    { "brand": "High 5 Casino", "domains": ["high5casino.com", "mail.high5casino.com"], "regulator": "SweepsNA", "licenseId": null, "type": "sweepstakes", "active": true },
+    { "brand": "WOW Vegas", "domains": ["wowvegas.com", "mail.wowvegas.com", "email.wowvegas.com"], "regulator": "SweepsNA", "licenseId": null, "type": "sweepstakes", "active": true },
+    { "brand": "Funrize", "domains": ["funrize.com", "mail.funrize.com"], "regulator": "SweepsNA", "licenseId": null, "type": "sweepstakes", "active": true },
+    { "brand": "Modo Casino", "domains": ["modo.us", "mail.modo.us"], "regulator": "SweepsNA", "licenseId": null, "type": "sweepstakes", "active": true },
+    { "brand": "Hello Millions", "domains": ["hellomillions.com", "mail.hellomillions.com"], "regulator": "SweepsNA", "licenseId": null, "type": "sweepstakes", "active": true },
+    { "brand": "Fortune Coins", "domains": ["fortunecoins.com", "mail.fortunecoins.com"], "regulator": "SweepsNA", "licenseId": null, "type": "sweepstakes", "active": true },
+    { "brand": "Sportzino", "domains": ["sportzino.com", "mail.sportzino.com"], "regulator": "SweepsNA", "licenseId": null, "type": "sweepstakes", "active": true },
+    { "brand": "Zula Casino", "domains": ["zulacasino.com", "mail.zulacasino.com"], "regulator": "SweepsNA", "licenseId": null, "type": "sweepstakes", "active": true },
+    { "brand": "Crown Coins Casino", "domains": ["crowncoinscasino.com", "mail.crowncoinscasino.com"], "regulator": "SweepsNA", "licenseId": null, "type": "sweepstakes", "active": true },
+    { "brand": "McLuck", "domains": ["mcluck.com", "mail.mcluck.com"], "regulator": "SweepsNA", "licenseId": null, "type": "sweepstakes", "active": true },
+    { "brand": "NoLimitCoins", "domains": ["nolimitcoins.com", "mail.nolimitcoins.com"], "regulator": "SweepsNA", "licenseId": null, "type": "sweepstakes", "active": true },
+    { "brand": "Stake", "domains": ["stake.com", "mail.stake.com"], "regulator": "Curacao", "licenseId": "8048/JAZ", "type": "crypto", "active": true },
+    { "brand": "Roobet", "domains": ["roobet.com", "mail.roobet.com"], "regulator": "Curacao", "licenseId": "8048/JAZ2019-013", "type": "crypto", "active": true },
+    { "brand": "Rollbit", "domains": ["rollbit.com", "mail.rollbit.com"], "regulator": "Curacao", "licenseId": null, "type": "crypto", "active": true },
+    { "brand": "BC.Game", "domains": ["bc.game", "mail.bc.game"], "regulator": "Curacao", "licenseId": null, "type": "crypto", "active": true },
+    { "brand": "Gamdom", "domains": ["gamdom.com", "mail.gamdom.com"], "regulator": "Curacao", "licenseId": null, "type": "crypto", "active": true },
+    { "brand": "Shuffle", "domains": ["shuffle.com", "mail.shuffle.com"], "regulator": "Curacao", "licenseId": null, "type": "crypto", "active": true }
+  ]
+}

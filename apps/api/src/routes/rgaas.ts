@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-06
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-09
 /* Copyright (c) 2026 TiltCheck. All rights reserved. */
 /**
  * RGaaS Routes - /rgaas/*
@@ -7,8 +7,9 @@
  */
 
 import { Router } from 'express';
-import { appendFileSync, existsSync, mkdirSync } from 'node:fs';
+import { appendFileSync, existsSync, mkdirSync, readFileSync } from 'node:fs';
 import path from 'node:path';
+import { createRequire } from 'node:module';
 import {
   createEvent,
   type BreathalyzerEvaluatedPayload,
@@ -24,6 +25,20 @@ import { authMiddleware, AuthRequest } from '../middleware/auth.js';
 import type { RtpReportSubmittedEvent } from '@tiltcheck/types';
 
 const router: Router = Router();
+
+// ─── License registry ─────────────────────────────────────────────────────────
+const _require = createRequire(import.meta.url);
+const licenseRegistry: {
+  regulators: Record<string, { name: string; url: string | null; region: string; tier: number; verifyUrl: string | null; note?: string }>;
+  operators: Array<{ brand: string; domains: string[]; regulator: string; licenseId: string | null; type: string; active: boolean }>;
+} = (() => {
+  try {
+    const registryPath = path.join(path.dirname(new URL(import.meta.url).pathname.replace(/^\/([A-Z]:)/, '$1')), '../data/license-registry.json');
+    return JSON.parse(readFileSync(registryPath, 'utf8'));
+  } catch {
+    return { regulators: {}, operators: [] };
+  }
+})();
 
 // ─── Local interface for trust-engine breakdown shadow-ban data ───────────────
 // getCasinoBreakdown() returns an opaque object; this interface narrows the
@@ -643,7 +658,199 @@ router.get('/scam-domains', (_req, res) => {
   });
 });
 
+/**
+ * GET /rgaas/license-check
+ * Look up a domain against the TiltCheck license registry.
+ *
+ * Query params:
+ *   - domain: domain to check (required)
+ *
+ * Example:
+ *   GET /rgaas/license-check?domain=stake.com
+ */
+router.get('/license-check', (req, res) => {
+  const rawDomain = (req.query.domain as string | undefined)?.trim().toLowerCase();
+  if (!rawDomain) {
+    res.status(400).json({ error: 'domain query param is required', code: 'INVALID_DOMAIN' });
+    return;
+  }
+
+  // Strip protocol and www
+  const domain = rawDomain
+    .replace(/^https?:\/\//i, '')
+    .replace(/^www\./i, '')
+    .split('/')[0];
+
+  const { operators, regulators } = licenseRegistry;
+
+  // Exact and subdomain match
+  const match = operators.find((op) =>
+    op.domains.some((d) => d === domain || domain.endsWith(`.${d}`) || d.endsWith(`.${domain}`))
+  );
+
+  if (match) {
+    const regulator = regulators[match.regulator as keyof typeof regulators] ?? null;
+    res.json({
+      success: true,
+      domain,
+      found: true,
+      brand: match.brand,
+      type: match.type,
+      regulator: match.regulator,
+      regulatorName: regulator?.name ?? match.regulator,
+      regulatorTier: regulator?.tier ?? null,
+      licenseId: match.licenseId,
+      licenseNote: regulator?.['note' as keyof typeof regulator] ?? null,
+      verifyUrl: regulator?.verifyUrl ?? null,
+      active: match.active,
+    });
+  } else {
+    res.json({
+      success: true,
+      domain,
+      found: false,
+      brand: null,
+      regulator: null,
+      regulatorName: null,
+      note: 'Domain not found in TiltCheck license registry. This does not confirm or deny legitimacy.',
+    });
+  }
+});
+
+/**
+ * POST /rgaas/email-ingest
+ * Parse a casino marketing email and extract trust signal data.
+ * Runs SusLink on the sender domain and all embedded links.
+ * Appends extracted bonus data to the trust signals log.
+ *
+ * Body:
+ *   { raw_email: string }  — full raw email text including headers
+ *
+ * Example:
+ *   POST /rgaas/email-ingest
+ *   { "raw_email": "From: promo@chumbacasino.com\nSubject: ...\n\n..." }
+ */
+router.post('/email-ingest', async (req, res) => {
+  const rawEmail = (req.body?.raw_email as string | undefined)?.trim();
+  if (!rawEmail || rawEmail.length < 20) {
+    res.status(400).json({ error: 'raw_email is required (min 20 chars)', code: 'INVALID_INPUT' });
+    return;
+  }
+
+  const { parseEmailIntel } = await import('../lib/email-parser.js');
+  const intel = parseEmailIntel(rawEmail);
+
+  // Run domain check on sender domain
+  let domainScan = null;
+  if (intel.senderDomain) {
+    try {
+      const urlToScan = `https://${intel.senderDomain}`;
+      domainScan = await suslink.scanUrl(urlToScan);
+    } catch {
+      domainScan = null;
+    }
+  }
+
+  // License check on sender domain
+  let licenseInfo = null;
+  if (intel.senderDomain) {
+    const domain = intel.senderDomain.toLowerCase();
+    const match = licenseRegistry.operators.find((op) =>
+      op.domains.some((d) => d === domain || domain.endsWith(`.${d}`) || d.endsWith(`.${domain}`))
+    );
+    if (match) {
+      const regulator = licenseRegistry.regulators[match.regulator as keyof typeof licenseRegistry.regulators] ?? null;
+      licenseInfo = {
+        found: true,
+        brand: match.brand,
+        regulator: match.regulator,
+        regulatorName: regulator?.name ?? match.regulator,
+        regulatorTier: regulator?.tier ?? null,
+        licenseId: match.licenseId,
+        type: match.type,
+      };
+    } else {
+      licenseInfo = { found: false };
+    }
+  }
+
+  // Scan up to 5 embedded URLs (avoid hammering external services)
+  const linkScans: Array<{ url: string; riskLevel: string; reason: string }> = [];
+  for (const url of intel.embeddedUrls.slice(0, 5)) {
+    try {
+      const scan = await suslink.scanUrl(url);
+      linkScans.push({ url, riskLevel: scan.riskLevel, reason: scan.reason || '' });
+    } catch {
+      linkScans.push({ url, riskLevel: 'unknown', reason: 'scan failed' });
+    }
+  }
+
+  // Append to trust signals log
+  if (intel.bonusSignals.length > 0 || intel.senderDomain) {
+    const trustSignalEntry = {
+      ingestedAt: new Date().toISOString(),
+      senderDomain: intel.senderDomain,
+      casinoBrand: intel.casinoBrand,
+      subject: intel.subject,
+      bonusSignals: intel.bonusSignals,
+      urgencyFlags: intel.urgencyFlags,
+      hasUnsubscribeLink: intel.hasUnsubscribeLink,
+      source: 'email-ingest',
+    };
+    try {
+      const dataDir = path.join(process.cwd(), 'data');
+      if (!existsSync(dataDir)) mkdirSync(dataDir, { recursive: true });
+      appendFileSync(
+        path.join(dataDir, 'trust-signals.jsonl'),
+        JSON.stringify(trustSignalEntry) + '\n',
+        'utf8'
+      );
+    } catch {
+      // Non-fatal — log but continue
+      console.warn('[email-ingest] Could not write trust signal entry');
+    }
+  }
+
+  res.json({
+    success: true,
+    intel,
+    domainScan: domainScan
+      ? { riskLevel: domainScan.riskLevel, reason: domainScan.reason }
+      : null,
+    licenseInfo,
+    linkScans,
+  });
+});
+
 export { router as rgaasRouter };
+
+/**
+ * GET /rgaas/casino-scores
+ * Returns live casino trust scores from trust-rollup.
+ * Falls back to a cached casino-trust.json snapshot, then empty if neither is available.
+ */
+router.get('/casino-scores', async (_req, res) => {
+  const trustRollupUrl = (process.env.TRUST_ROLLUP_URL || 'http://localhost:8082').replace(/\/$/, '');
+  try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 3000);
+    const upstream = await fetch(`${trustRollupUrl}/api/trust/casinos`, { signal: controller.signal });
+    clearTimeout(timeout);
+    if (!upstream.ok) throw new Error(`trust-rollup returned ${upstream.status}`);
+    const body = await upstream.json() as { data?: unknown[]; updatedAt?: string | number };
+    const casinos = Array.isArray(body) ? body : (body.data ?? []);
+    return void res.json({ success: true, casinos, updatedAt: body.updatedAt ?? null, source: 'live' });
+  } catch {
+    // Fall back to last persisted snapshot
+    try {
+      const snapshotPath = path.join(process.cwd(), 'data', 'casino-trust.json');
+      const cached = JSON.parse(readFileSync(snapshotPath, 'utf8')) as { casinos: unknown[]; updatedAt: string };
+      return void res.json({ success: true, casinos: cached.casinos ?? [], updatedAt: cached.updatedAt ?? null, source: 'snapshot' });
+    } catch {
+      return void res.json({ success: true, casinos: [], updatedAt: null, source: 'unavailable' });
+    }
+  }
+});
 
 function isFiniteNumber(value: unknown): boolean {
   return typeof value === 'number' && Number.isFinite(value);

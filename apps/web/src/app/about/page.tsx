@@ -45,20 +45,6 @@ export default function AboutPage() {
             </div>
           </div>
 
-          {/* The Realization */}
-          <div className="p-8 border border-[#17c3b2]/30 bg-[#17c3b2]/5">
-            <h2 className="text-2xl font-black uppercase mb-4 text-[#17c3b2]">The Moment It Clicked</h2>
-            <p className="text-gray-400 leading-relaxed">
-              I was sitting at my desk at 3:47am. Down $4,200 in a session. Made $800 of it back. Could've cashed out. Instead, I threw it all on one bet thinking I could get back to even. Lost. Sat there for two hours wondering how I made a decision that stupid and conscious at the same time.
-            </p>
-            <p className="text-gray-400 leading-relaxed mt-4">
-              That's when I realized: I'm not weak. I'm not addicted. I'm just operating without the right information and without circuit breakers.
-            </p>
-            <p className="text-gray-400 leading-relaxed mt-4">
-              So I built something: a tool that gives me (and you) what the house already has — real-time data and forced discipline.
-            </p>
-          </div>
-
           {/* The Philosophy */}
           <div>
             <h2 className="text-4xl font-black uppercase tracking-tight mb-8 text-[#17c3b2]">

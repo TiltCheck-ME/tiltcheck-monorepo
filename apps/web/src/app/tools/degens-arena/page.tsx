@@ -7,14 +7,17 @@ export default function DegensArenaPage() {
       <section className="border-b border-[#283347] py-32 px-4">
         <div className="max-w-4xl mx-auto text-center">
           <p className="text-xs font-mono text-[#17c3b2] uppercase tracking-widest mb-4">DEGENS AGAINST DECENCY</p>
-          <h1 className="neon neon-main text-5xl md:text-7xl mb-6" data-text="TILT-FREE TRIVIA ARENA">
-            TILT-FREE TRIVIA ARENA
+          <h1 className="neon neon-main text-5xl md:text-7xl mb-6" data-text="DEGEN TRIVIA">
+            DEGEN TRIVIA
           </h1>
           <div className="inline-block border border-[#ffd700]/40 bg-[#ffd700]/5 px-4 py-2 mb-8">
-            <span className="text-xs font-black font-mono text-[#ffd700] uppercase tracking-widest">MULTIPLAYER LAUNCH — COMING SOON</span>
+            <span className="text-xs font-black font-mono text-[#ffd700] uppercase tracking-widest">WEB ARENA — COMING SOON</span>
           </div>
           <p className="text-lg text-gray-400 max-w-2xl mx-auto font-mono">
-            WebSocket combat. Battle up to 10,000 concurrent players in degen trivia drops while you cool down between sessions. Earn drops, neutralize tilt, stay competitive without feeding the slots.
+            The web-based trivia arena. Battle up to 10,000 concurrent players for SOL prize drops while you cool down between sessions. Skill only — no house edge, no slots, no variance.
+          </p>
+          <p className="text-sm text-gray-500 font-mono mt-4 max-w-xl mx-auto">
+            Live trivia drops are already available in the TiltCheck Discord via <span className="text-[#17c3b2]">/triviadrop</span>. This page is the in-development web version.
           </p>
         </div>
       </section>

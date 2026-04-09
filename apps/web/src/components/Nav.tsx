@@ -1,10 +1,16 @@
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-11
 'use client';
 import React, { useState } from 'react';
 import Link from 'next/link';
 import LiveStatusIndicator from './LiveStatusIndicator';
+import { useAuth } from '../hooks/useAuth';
+
+const DASHBOARD_URL = process.env.NEXT_PUBLIC_DASHBOARD_URL || 'http://localhost:6001';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || '';
 
 const Nav = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { user, loading } = useAuth();
 
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
 
@@ -42,6 +48,27 @@ const Nav = () => {
             <LiveStatusIndicator />
         </div>
 
+        {/* Auth Button — Desktop */}
+        {!loading && (
+          <div className="hidden sm:block">
+            {user ? (
+              <a
+                href={DASHBOARD_URL}
+                className="px-3 py-1.5 text-xs font-black uppercase tracking-widest rounded-full bg-[#6c47ff]/15 border border-[#6c47ff] text-[#6c47ff] hover:bg-[#6c47ff]/25 hover:shadow-[0_0_12px_rgba(108,71,255,0.4)] transition-all duration-200 whitespace-nowrap"
+              >
+                {user.discordUsername}
+              </a>
+            ) : (
+              <a
+                href={`${API_URL}/auth/discord/login?redirect=${encodeURIComponent(DASHBOARD_URL)}`}
+                className="px-3 py-1.5 text-xs font-black uppercase tracking-widest rounded-full bg-[#5865f2]/15 border border-[#5865f2] text-[#5865f2] hover:bg-[#5865f2]/25 hover:shadow-[0_0_12px_rgba(88,101,242,0.4)] transition-all duration-200 whitespace-nowrap"
+              >
+                Login
+              </a>
+            )}
+          </div>
+        )}
+
         {/* Mobile Toggle */}
         <button 
           onClick={toggleMenu}
@@ -64,6 +91,25 @@ const Nav = () => {
             <div className="mt-4">
               <LiveStatusIndicator />
             </div>
+            {!loading && (
+              user ? (
+                <a
+                  href={DASHBOARD_URL}
+                  onClick={() => setIsMenuOpen(false)}
+                  className="px-5 py-2 text-sm font-black uppercase tracking-widest rounded-full bg-[#6c47ff]/15 border border-[#6c47ff] text-[#6c47ff] hover:bg-[#6c47ff]/25 transition-all duration-200"
+                >
+                  {user.discordUsername}
+                </a>
+              ) : (
+                <a
+                  href={`${API_URL}/auth/discord/login?redirect=${encodeURIComponent(DASHBOARD_URL)}`}
+                  onClick={() => setIsMenuOpen(false)}
+                  className="px-5 py-2 text-sm font-black uppercase tracking-widest rounded-full bg-[#5865f2]/15 border border-[#5865f2] text-[#5865f2] hover:bg-[#5865f2]/25 transition-all duration-200"
+                >
+                  Login with Discord
+                </a>
+              )
+            )}
           </div>
         </div>
       )}
