@@ -1,7 +1,8 @@
 {
-  "_comment": "© 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-07",
+  "_comment": "© 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-09",
   "$schema": "https://railway.app/railway-schema.json",
   "deploy": {
+    "startCommand": "node apps/web/server.js",
     "healthcheckPath": "/",
     "healthcheckTimeout": 300,
     "restartPolicyType": "ON_FAILURE",
