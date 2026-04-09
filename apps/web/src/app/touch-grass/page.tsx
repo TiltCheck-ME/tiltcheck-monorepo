@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-09 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-10 */
 "use client";
 
 import React from 'react';
@@ -178,6 +178,92 @@ export default function TouchGrassPage() {
               </div>
             </div>
           )}
+        </div>
+      </section>
+
+      {/* Degen Side Quests */}
+      <section className="py-16 px-4 border-t border-[#283347]">
+        <div className="max-w-4xl mx-auto">
+          <h2 className="text-3xl font-black uppercase tracking-tighter mb-2 text-white">Degen Side Quests</h2>
+          <p className="text-gray-500 font-mono text-sm mb-10 uppercase tracking-widest">
+            You need something to do with your hands. Pick a quest. Do not open a casino tab.
+          </p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+
+            <a
+              href="/tools/degens-arena"
+              className="p-6 border border-[#17c3b2]/30 bg-[#17c3b2]/5 hover:bg-[#17c3b2]/10 hover:border-[#17c3b2]/60 transition-all group block"
+            >
+              <div className="text-[#17c3b2] font-black uppercase text-xs tracking-widest mb-2">MULTIPLAYER</div>
+              <h3 className="text-lg font-black text-white uppercase mb-2 group-hover:text-[#17c3b2] transition-colors">Degen Arena</h3>
+              <p className="text-gray-500 text-sm leading-relaxed">
+                Skill-based multiplayer games. No house edge. No casino. You vs other degens. The only way to get rinsed here is by being bad.
+              </p>
+              <div className="mt-4 text-[10px] font-mono text-[#17c3b2] uppercase tracking-widest">Enter Arena →</div>
+            </a>
+
+            <a
+              href="/tools/verify"
+              className="p-6 border border-[#ffd700]/30 bg-[#ffd700]/5 hover:bg-[#ffd700]/10 hover:border-[#ffd700]/60 transition-all group block"
+            >
+              <div className="text-[#ffd700] font-black uppercase text-xs tracking-widest mb-2">TOOL</div>
+              <h3 className="text-lg font-black text-white uppercase mb-2 group-hover:text-[#ffd700] transition-colors">Provably Fair Checker</h3>
+              <p className="text-gray-500 text-sm leading-relaxed">
+                Verify every game result from your last session. Find out if you actually got rinsed or if the math just hates you today.
+              </p>
+              <div className="mt-4 text-[10px] font-mono text-[#ffd700] uppercase tracking-widest">Run Check →</div>
+            </a>
+
+            <a
+              href="/casinos"
+              className="p-6 border border-[#f97316]/30 bg-[#f97316]/5 hover:bg-[#f97316]/10 hover:border-[#f97316]/60 transition-all group block"
+            >
+              <div className="text-[#f97316] font-black uppercase text-xs tracking-widest mb-2">INTEL</div>
+              <h3 className="text-lg font-black text-white uppercase mb-2 group-hover:text-[#f97316] transition-colors">Casino Trust Engine</h3>
+              <p className="text-gray-500 text-sm leading-relaxed">
+                Read what TiltCheck actually has on the casino you just played. Compliance violations, license status, community flags. Cold water.
+              </p>
+              <div className="mt-4 text-[10px] font-mono text-[#f97316] uppercase tracking-widest">Read the File →</div>
+            </a>
+
+            <a
+              href="https://discord.gg/gdBsEJfCar"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="p-6 border border-[#5865f2]/30 bg-[#5865f2]/5 hover:bg-[#5865f2]/10 hover:border-[#5865f2]/60 transition-all group block"
+            >
+              <div className="text-[#5865f2] font-black uppercase text-xs tracking-widest mb-2">COMMUNITY</div>
+              <h3 className="text-lg font-black text-white uppercase mb-2 group-hover:text-[#5865f2] transition-colors">Hit the Discord</h3>
+              <p className="text-gray-500 text-sm leading-relaxed">
+                Talk to real people. Other degens who have been exactly where you are. The chat is free. The cope is free. Show up.
+              </p>
+              <div className="mt-4 text-[10px] font-mono text-[#5865f2] uppercase tracking-widest">Join Server →</div>
+            </a>
+
+            <a
+              href="/intel/scanner"
+              className="p-6 border border-[#17c3b2]/30 bg-[#17c3b2]/5 hover:bg-[#17c3b2]/10 hover:border-[#17c3b2]/60 transition-all group block"
+            >
+              <div className="text-[#17c3b2] font-black uppercase text-xs tracking-widest mb-2">INTEL</div>
+              <h3 className="text-lg font-black text-white uppercase mb-2 group-hover:text-[#17c3b2] transition-colors">Bonus Scanner</h3>
+              <p className="text-gray-500 text-sm leading-relaxed">
+                If you're going to come back, at least know what's claimable before you put another dollar in. Use the data. Work smarter.
+              </p>
+              <div className="mt-4 text-[10px] font-mono text-[#17c3b2] uppercase tracking-widest">Scan Bonuses →</div>
+            </a>
+
+            <div className="p-6 border border-[#283347] bg-black/20 flex flex-col justify-between">
+              <div>
+                <div className="text-gray-700 font-black uppercase text-xs tracking-widest mb-2">IRL QUEST</div>
+                <h3 className="text-lg font-black text-white uppercase mb-2">Actually Touch Grass</h3>
+                <p className="text-gray-500 text-sm leading-relaxed">
+                  Outside. Shoes on. Walk. The urge to reload has a half-life of about 20 minutes. Outlast it.
+                </p>
+              </div>
+              <div className="mt-4 text-[10px] font-mono text-gray-700 uppercase tracking-widest">No link needed.</div>
+            </div>
+
+          </div>
         </div>
       </section>
 
