@@ -1,3 +1,4 @@
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-09 */
 export default function TermsPage() {
   return (
     <div className="min-h-screen pt-32 pb-12 px-4 flex items-center justify-center bg-black relative">
@@ -7,7 +8,7 @@ export default function TermsPage() {
             THE DEGEN LAWS
           </h1>
           <p className="mt-2 font-mono text-xs uppercase tracking-widest text-gray-500">
-            STATUS: INITIALIZING COMPLIANCE ENGINE
+            VERSION 2.0 — LAST UPDATED 2026-04-09
           </p>
         </header>
 
@@ -33,8 +34,7 @@ export default function TermsPage() {
           
           <div className="mt-8 pt-6 border-t border-[#283347]">
             <p className="text-[10px] text-gray-600 font-mono uppercase leading-relaxed">
-              Full legal documentation is currently being audited by the transparency engine. 
-              Until initialization is complete, assume full responsibility for your own dopamine loops.
+              TiltCheck is an audit and transparency tool, not a gambling operator. Nothing here constitutes financial or gambling advice. You are responsible for your own decisions. Full terms are reviewed annually and updated here.
             </p>
           </div>
         </section>
