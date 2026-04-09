@@ -3,22 +3,6 @@ import Image from 'next/image';
 import React from 'react';
 
 const TerminalDashboard = () => {
-  const statusItems = [
-    { text: "Stake.com: $50 Daily Reload", status: "pass" },
-    { text: "Roobet: 100% Weekly Match", status: "pass" },
-    { text: "SlottyVegas: Bonus capped 5x", status: "warn" },
-    { text: "BC.Game: Bonus paused", status: "fail" },
-  ];
-
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case "pass": return <span className="status-icon status-icon-w">W</span>;
-      case "warn": return <span className="status-icon status-icon-warn">!</span>;
-      case "fail": return <span className="status-icon status-icon-l">L</span>;
-      default: return null;
-    }
-  };
-
   return (
     <div className="terminal-box">
       <div className="terminal-prompt">
@@ -27,12 +11,9 @@ const TerminalDashboard = () => {
       </div>
 
       <div className="status-list">
-        {statusItems.map((item, index) => (
-          <div key={index} className={`status-item status-${item.status}`}>
-            {getStatusIcon(item.status)}
-            {item.text}
-          </div>
-        ))}
+        <div className="p-4 text-center text-xs font-mono text-gray-600">
+          NO LIVE DATA. Connect your casino accounts via the Chrome extension to see live bonus status.
+        </div>
       </div>
 
       <div className="terminal-divider"></div>
@@ -43,12 +24,9 @@ const TerminalDashboard = () => {
       </div>
 
       <div className="vibe-check">
-        <p>next hit of dopamine: <span id="countdown">2h 34m 12s</span></p>
+        <p>next hit of dopamine: <span id="countdown" className="text-gray-600">— connect accounts to enable —</span></p>
         <p data-slang="vibe check">delusion check:
-          <span className="vibe-bar-container">
-            <span className="vibe-bar" style={{ width: '94%' }}></span>
-          </span>
-          <span className="vibe-percentage">94%</span>
+          <span className="text-gray-600 font-mono text-xs ml-2">N/A</span>
         </p>
       </div>
 

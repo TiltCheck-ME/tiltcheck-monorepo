@@ -20,21 +20,8 @@ export default function ScannerPage() {
                     </div>
 
                     <div className="status-list">
-                        <div className="status-item status-pass">
-                        <span className="status-icon status-icon-w">W</span>
-                        Stake.com: $50 Daily Reload
-                        </div>
-                        <div className="status-item status-pass">
-                        <span className="status-icon status-icon-w">W</span>
-                        Roobet: 100% Weekly Match
-                        </div>
-                        <div className="status-item status-warn">
-                        <span className="status-icon status-icon-warn">!</span>
-                        SlottyVegas: Bonus capped 5x
-                        </div>
-                        <div className="status-item status-fail">
-                        <span className="status-icon status-icon-l">L</span>
-                        BC.Game: Bonus paused
+                        <div className="p-4 text-center text-xs font-mono text-gray-600">
+                          NO LIVE DATA. Connect your casino accounts via the Chrome extension to enable live bonus scanning.
                         </div>
                     </div>
 
@@ -46,13 +33,8 @@ export default function ScannerPage() {
                     </div>
 
                     <div className="vibe-check">
-                        <p>next refresh: <span id="countdown">2h 34m 12s</span></p>
-                        <p>vibe check: 
-                        <span className="vibe-bar-container">
-                            <span className="vibe-bar" style={{width: "94%"}}></span>
-                        </span>
-                        <span className="vibe-percentage">94%</span>
-                        </p>
+                        <p>next refresh: <span id="countdown" className="text-gray-600">— connect accounts to enable —</span></p>
+                        <p>vibe check: <span className="text-gray-600 font-mono text-xs">N/A</span></p>
                     </div>
                     </div>
                 </div>

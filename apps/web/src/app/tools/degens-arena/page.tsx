@@ -11,7 +11,7 @@ export default function DegensArenaPage() {
             TILT-FREE TRIVIA ARENA
           </h1>
           <div className="inline-block border border-[#ffd700]/40 bg-[#ffd700]/5 px-4 py-2 mb-8">
-            <span className="text-xs font-black font-mono text-[#ffd700] uppercase tracking-widest">MULTIPLAYER LAUNCH — Q2 2026</span>
+            <span className="text-xs font-black font-mono text-[#ffd700] uppercase tracking-widest">MULTIPLAYER LAUNCH — COMING SOON</span>
           </div>
           <p className="text-lg text-gray-400 max-w-2xl mx-auto font-mono">
             WebSocket combat. Battle up to 10,000 concurrent players in degen trivia drops while you cool down between sessions. Earn drops, neutralize tilt, stay competitive without feeding the slots.

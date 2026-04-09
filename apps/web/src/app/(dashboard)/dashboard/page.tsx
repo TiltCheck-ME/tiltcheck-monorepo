@@ -99,7 +99,7 @@ export default function DashboardPage() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Pillar 1: Trust Engine */}
             <div className="lg:col-span-2 flex flex-col gap-8">
-                <TrustRollup score={isConnected && userData ? 88 : 0} />
+                <TrustRollup score={isConnected && userData ? (userData.trustScore ?? 0) : 0} />
                 
                 {/* Live Audit Feed (Phase 12) */}
                 <ActivityFeed discordId={userData?.discordId} />
@@ -132,7 +132,7 @@ export default function DashboardPage() {
                         <div className="p-4 bg-[color:var(--color-primary)]/10 border border-[color:var(--color-primary)]/20 rounded-lg">
                             <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-2 italic">Degen Advisor v2 is online.</p>
                             <p className="text-xs font-black uppercase tracking-tight text-white leading-tight">
-                              {userData ? '"You\'re up 4.2 SOL. Don\'t be a hero. Cash out or the math will find you."' : '"Identify yourself. The math can\'t help a ghost."'}
+                              {userData ? '"Your session data is loading. The math is watching."' : '"Identify yourself. The math can\'t help a ghost."'}
                             </p>
                         </div>
                     </div>

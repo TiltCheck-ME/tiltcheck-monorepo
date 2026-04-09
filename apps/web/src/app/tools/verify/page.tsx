@@ -146,7 +146,7 @@ export default function VerifyPage() {
                     <button
                       onClick={fetchLatestBlockhash}
                       disabled={isFetchingHash}
-                      className="text-[9px] font-black uppercase tracking-widest border border-[#17c3b2] text-[#17c3b2] px-2 py-1 hover:bg-[#17c3b2]/10 disabled:opacity-40 disabled:cursor-not-allowed transition-all whitespace-nowrap ml-2"
+                      className="text-[9px] font-black uppercase tracking-widest border border-[#17c3b2] text-[#17c3b2] px-3 min-h-[44px] hover:bg-[#17c3b2]/10 disabled:opacity-40 disabled:cursor-not-allowed transition-all whitespace-nowrap ml-2"
                     >
                       {isFetchingHash ? '[FETCHING...]' : '[GRAB LATEST]'}
                     </button>
