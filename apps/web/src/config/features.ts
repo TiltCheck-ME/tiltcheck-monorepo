@@ -71,7 +71,7 @@ export const features: Tool[] = [
     title: "Casino Shadow-Ban Tracker",
     description: "We see withdrawal delays and regulatory issues. If a casino's slow-rolling you, the community sees it first. Real-time alerts from real players.",
     status: "live",
-    gridClasses: "md:row-span-2",
+    gridClasses: "",
   },
   {
     href: "/tools/house-edge-scanner",
