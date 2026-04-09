@@ -20,7 +20,7 @@ export default function Home() {
           <div className="hero-audit-banner">
             <p className="hero-audit-label">[AUDIT LAYER]: ONLINE AND PISSED</p>
             <p className="hero-audit-body">
-              The casino&apos;s RNG is more rigged than your last relationship. We&apos;re not here to judge — we&apos;re here to show you the math before you hemorrhage your rent money. Sniff out the shadow nerfs, catch the RTP drifts, and know when to fold.
+              Casinos don&apos;t win because they&apos;re lucky — they win because you&apos;re running on vibes and dopamine while they&apos;re running the math. We&apos;re the forensic backup: social telemetry, live RTP drift detection, and a community-backed green light to vault your wins before your brain convinces you one more spin is a good idea.
             </p>
           </div>
 

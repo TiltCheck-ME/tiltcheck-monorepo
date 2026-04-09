@@ -56,7 +56,7 @@ export default function CasinosPage() {
       <header className="mb-12 text-center">
         <h1 className="neon neon-main" data-text="CASINO TRUST ENGINE">CASINO TRUST ENGINE</h1>
         <p className="text-xl text-muted mt-4 max-w-3xl mx-auto uppercase tracking-widest font-mono">
-          Know which casinos are actually fair before you lose your fucking rent.
+          Know which casinos are actually fair before you lose your fkn rent.
         </p>
       </header>
 
