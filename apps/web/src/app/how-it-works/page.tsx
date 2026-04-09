@@ -152,7 +152,7 @@ export default function HowItWorksPage() {
             <a href="/extension" className="btn btn-primary py-3 px-6 font-black">
               Deploy the Extension
             </a>
-            <a href="#" className="btn btn-secondary py-3 px-6 font-black">
+            <a href="https://discord.gg/gdBsEJfCar" target="_blank" rel="noopener noreferrer" className="btn btn-secondary py-3 px-6 font-black">
               Join Discord
             </a>
           </div>

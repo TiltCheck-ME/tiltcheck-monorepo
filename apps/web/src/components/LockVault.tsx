@@ -1,4 +1,4 @@
-/* Copyright (c) 2026 TiltCheck. All rights reserved. */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-09 */
 'use client';
 
 import React, { useState, useEffect } from 'react';
@@ -147,10 +147,12 @@ const LockVault = ({ discordId }: { discordId?: string }) => {
                     </div>
 
                     <button 
-                        className="w-full mt-2 py-4 bg-gradient-to-r from-[#2563eb] to-[#4f46e5] hover:from-[#1d4ed8] hover:to-[#4338ca] text-white rounded-xl font-bold shadow-xl shadow-blue-900/20 transform transition-all active:scale-[0.98] flex items-center justify-center gap-2 group"
+                        disabled
+                        className="w-full mt-2 py-4 bg-gray-800/40 text-gray-500 rounded-xl font-bold cursor-not-allowed flex items-center justify-center gap-2 border border-gray-700/30"
+                        title="Vault integration coming soon"
                     >
-                        <Shield className="w-5 h-5 group-hover:rotate-12 transition-transform" />
-                        SECURE MY WINS
+                        <Shield className="w-5 h-5" />
+                        SECURE MY WINS — SOON
                     </button>
                     
                     <p className="text-[10px] text-center text-gray-500 italic">

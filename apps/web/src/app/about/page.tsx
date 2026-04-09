@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All rights reserved. */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-09 */
 import React from 'react';
 
 export default function AboutPage() {

@@ -114,8 +114,8 @@ export default function TrustRollup({ score = 75, isLoading = false }: TrustRoll
             </div>
 
             <div className="mt-8">
-                <button className="text-[10px] font-black uppercase text-[#17c3b2] bg-[#17c3b2]/10 border border-[#17c3b2]/30 px-3 py-1 hover:bg-[#17c3b2] hover:text-black transition-all">
-                    Generate Proof of Degen
+                <button disabled className="text-[10px] font-black uppercase text-gray-600 bg-gray-800/30 border border-gray-700/30 px-3 py-1 cursor-not-allowed" title="Coming soon">
+                    Generate Proof of Degen — Soon
                 </button>
             </div>
         </div>

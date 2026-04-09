@@ -1,3 +1,4 @@
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-09 */
 "use client";
 
 import React, { useState, useEffect } from 'react';
@@ -47,7 +48,7 @@ export default function JustTheTipPage() {
       <div className="w-full max-w-2xl mx-auto mt-8">
         {!hasAccepted ? (
           <div className="p-12 border-2 border-dashed border-[#283347] text-center bg-black/20">
-            <span className="text-4xl mb-4 block">💸</span>
+            <div className="w-12 h-12 mx-auto mb-4 border-2 border-[#17c3b2] flex items-center justify-center text-[#17c3b2] font-black text-lg">$</div>
             <h2 className="text-xl font-bold text-gray-500 uppercase tracking-widest">
               Cover Your Ass Mode
             </h2>

@@ -1,3 +1,4 @@
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-09 */
 import "@/styles/terminal.css";
 
 export default function ScannerPage() {

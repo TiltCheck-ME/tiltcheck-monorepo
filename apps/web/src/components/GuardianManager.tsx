@@ -168,7 +168,7 @@ const GuardianManager: React.FC<GuardianManagerProps> = ({ discordId }) => {
 
             <div className="mt-8 pt-8 border-t border-[#283347]">
                 <div className="flex items-center gap-4 p-4 bg-gray-500/5 rounded">
-                    <div className="text-xl">💙</div>
+                    <div className="w-3 h-3 rounded-full bg-[#17c3b2] flex-shrink-0"></div>
                     <div className="text-[10px] font-bold uppercase text-gray-500 leading-tight">
                         Guardians get a real, direct message when you cross your thresholds. Only add people you actually trust with that.
                     </div>
