@@ -1,6 +1,24 @@
 /* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-09 */
 @import "tailwindcss";
 
+/* Skip link for keyboard accessibility */
+.skip-link {
+  position: absolute;
+  top: -100%;
+  left: 0;
+  z-index: 9999;
+  padding: 0.75rem 1.5rem;
+  background: #17c3b2;
+  color: #000;
+  font-weight: 700;
+  font-size: 0.875rem;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.skip-link:focus {
+  top: 0;
+}
+
 /* Nav layout — explicit fallback since Tailwind v4 utility scanning is build-time only */
 header nav .nav-desktop-links {
   display: flex;
@@ -790,6 +808,17 @@ body.degen-background {
   text-decoration: none;
   transition: all 0.2s ease;
   font-family: 'Satoshi', 'Inter', sans-serif;
+  display: inline-block;
+  min-height: 44px;
+  line-height: 44px;
+  padding: 0;
+}
+@media (min-width: 768px) {
+  .footer-col a,
+  .site-footer a {
+    min-height: unset;
+    line-height: 1.5;
+  }
 }
 
 .footer-col a:hover,

@@ -44,8 +44,9 @@ export default function RootLayout({
       >
         <RootProvider>
           <AriaSlangProvider />
+          <a href="#main-content" className="skip-link">Skip to main content</a>
           <Header />
-          <main>{children}</main>
+          <div id="main-content">{children}</div>
           <Footer />
         </RootProvider>
       </body>

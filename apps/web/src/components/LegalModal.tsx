@@ -27,7 +27,7 @@ const LegalModal: React.FC<LegalModalProps> = ({ isOpen, onAccept, title = "LEGA
           {title}
         </h2>
         
-        <div className="max-h-[40vh] overflow-y-auto mb-8 pr-4 bg-black/40 p-4 border border-[#283347] font-sans scrollbar-thin scrollbar-thumb-[#17c3b2] scrollbar-track-transparent">
+        <div className="max-h-[40vh] overflow-y-auto mb-8 pr-4 bg-black/40 p-4 border border-[#283347] font-sans scrollbar-thin scrollbar-thumb-[#17c3b2] scrollbar-track-transparent" tabIndex={0} aria-label="Legal agreement text">
           <section className="mb-8">
             <h3 className="text-xs font-bold text-[#d946ef] mb-3 uppercase tracking-[0.2em] border-b border-[#283347] pb-1">
               Statutory Risk Disclosure

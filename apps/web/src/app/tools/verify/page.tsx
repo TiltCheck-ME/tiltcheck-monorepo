@@ -155,6 +155,7 @@ export default function VerifyPage() {
                      value={solanaHash}
                      onChange={(e) => { setSolanaHash(e.target.value); setHashWasFetched(false); setFetchedSlot(null); }}
                      placeholder="Paste a Solana block hash or hit [GRAB LATEST]..."
+                     aria-label="Solana Block Hash"
                      className="w-full bg-black border border-[#283347] p-3 text-white font-mono text-sm focus:border-[#17c3b2] outline-none"
                    />
                    {fetchHashError && (
