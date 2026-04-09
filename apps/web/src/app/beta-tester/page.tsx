@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-06 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-09 */
 "use client";
 
 import React, { useState } from 'react';
@@ -55,7 +55,7 @@ export default function BetaTesterPage() {
       <section className="grid grid-cols-1 md:grid-cols-2 gap-8">
         <div className="flex flex-col gap-8">
           <div className="terminal-box border-[#17c3b2] p-8 bg-black/40">
-            <h2 className="text-lg font-black uppercase tracking-widest text-[#17c3b2] mb-6 flex items-center gap-2">
+            <h2 className="text-2xl font-black uppercase tracking-tight text-[#17c3b2] mb-6 flex items-center gap-2">
               <span className="w-2 h-2 bg-[#17c3b2] rounded-full animate-pulse"></span>
               Benefits & Rewards
             </h2>

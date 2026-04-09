@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-06 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-09 */
 import React from 'react';
 
 export default function HowItWorksPage() {
@@ -6,7 +6,7 @@ export default function HowItWorksPage() {
     <main className="min-h-screen bg-[#0a0c10] text-white">
       <section className="border-b border-[#283347] py-32 px-4">
         <div className="max-w-4xl mx-auto text-center">
-          <h1 className="neon neon-main text-5xl md:text-7xl mb-6" data-text="HOW WE ENFORCE THE MATH">
+          <h1 className="neon neon-main text-4xl md:text-5xl mb-6" data-text="HOW WE ENFORCE THE MATH">
             HOW WE ENFORCE THE MATH
           </h1>
           <p className="text-lg text-gray-400 max-w-2xl mx-auto font-mono">
@@ -90,7 +90,7 @@ export default function HowItWorksPage() {
       {/* FAQ Section */}
       <section className="py-20 px-4 border-t border-[#283347] bg-black/40">
         <div className="max-w-4xl mx-auto">
-          <h2 className="text-4xl font-black uppercase tracking-tight mb-12 text-center">
+            <h2 className="text-2xl font-black uppercase tracking-tight mb-12 text-center">
             COMMON FEARS
           </h2>
           
@@ -142,7 +142,7 @@ export default function HowItWorksPage() {
       {/* CTA Section */}
       <section className="py-20 px-4 text-center border-t border-[#283347]">
         <div className="max-w-3xl mx-auto">
-          <h2 className="text-3xl font-black uppercase tracking-tight mb-6">
+            <h2 className="text-2xl font-black uppercase tracking-tight mb-6">
             READY TO DEPLOY THE AUDIT LAYER?
           </h2>
           <p className="text-gray-400 mb-8">

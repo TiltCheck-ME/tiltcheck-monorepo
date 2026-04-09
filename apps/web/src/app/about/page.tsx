@@ -6,7 +6,7 @@ export default function AboutPage() {
     <main className="min-h-screen bg-[#0a0c10] text-white">
       <section className="border-b border-[#283347] py-32 px-4">
         <div className="max-w-4xl mx-auto text-center">
-          <h1 className="neon neon-main text-5xl md:text-7xl mb-6" data-text="BUILT BY A DEGEN">
+          <h1 className="neon neon-main text-4xl md:text-5xl mb-6" data-text="BUILT BY A DEGEN">
             BUILT BY A DEGEN
           </h1>
           <p className="text-lg text-gray-400 max-w-2xl mx-auto">
@@ -19,7 +19,7 @@ export default function AboutPage() {
         <div className="max-w-4xl mx-auto space-y-16">
           {/* The Problem */}
           <div>
-            <h2 className="text-4xl font-black uppercase tracking-tight mb-8 text-[#17c3b2]">
+            <h2 className="text-2xl font-black uppercase tracking-tight mb-8 text-[#17c3b2]">
               The Problem (As Seen From Inside)
             </h2>
             <div className="space-y-4 text-gray-400 leading-relaxed">
@@ -47,7 +47,7 @@ export default function AboutPage() {
 
           {/* The Philosophy */}
           <div>
-            <h2 className="text-4xl font-black uppercase tracking-tight mb-8 text-[#17c3b2]">
+            <h2 className="text-2xl font-black uppercase tracking-tight mb-8 text-[#17c3b2]">
               The TiltCheck Philosophy
             </h2>
             <div className="space-y-6 text-gray-400 leading-relaxed">
@@ -98,7 +98,7 @@ export default function AboutPage() {
 
           {/* Who Built It */}
           <div>
-            <h2 className="text-4xl font-black uppercase tracking-tight mb-8">
+            <h2 className="text-2xl font-black uppercase tracking-tight mb-8">
               Who Built This
             </h2>
             <div className="p-8 border border-[#283347] bg-black/40 space-y-4">
@@ -121,7 +121,7 @@ export default function AboutPage() {
 
           {/* What's Next */}
           <div>
-            <h2 className="text-4xl font-black uppercase tracking-tight mb-8">
+            <h2 className="text-2xl font-black uppercase tracking-tight mb-8">
               What's Next
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

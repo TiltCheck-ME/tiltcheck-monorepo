@@ -3,20 +3,19 @@
 
 import React, { useState } from 'react';
 
-const COLLAB_TYPES = [
-  'Casino / Platform Integration',
-  'Affiliate Network',
-  'Responsible Gambling Tool',
-  'Developer / Technical Integration',
-  'Content Creator / Streamer',
-  'Media / Press',
+const CONTACT_TOPICS = [
+  'Partner / Platform Integration',
+  'Collab / Creator / Streamer',
+  'General Question',
+  'Press / Media Inquiry',
+  'Bug Report / Technical Issue',
   'Research / Academic',
   'Other',
 ];
 
 type FormState = 'idle' | 'submitting' | 'success' | 'duplicate' | 'error';
 
-export default function CollabPage() {
+export default function ContactPage() {
   const [formState, setFormState] = useState<FormState>('idle');
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
@@ -61,19 +60,25 @@ export default function CollabPage() {
 
   if (formState === 'success') {
     return (
-      <main style={{ minHeight: '100vh', background: '#0a0a0f', color: '#e2e8f0', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem' }}>
-        <div style={{ maxWidth: '600px', textAlign: 'center' }}>
-          <h1 style={{ fontSize: '2rem', fontWeight: 700, color: '#6c47ff', marginBottom: '1.5rem' }}>
-            Application received.
+      <main className="min-h-screen bg-[#0a0c10] text-white flex items-center justify-center px-4">
+        <div className="max-w-xl text-center">
+          <div className="inline-block text-[10px] font-mono font-bold uppercase tracking-[0.3em] text-[#17c3b2] border border-[#17c3b2]/40 px-3 py-1 mb-6">
+            Message Received
+          </div>
+          <h1 className="text-4xl md:text-5xl font-black uppercase tracking-tighter text-white mb-6">
+            We Got It.
           </h1>
-          <p style={{ fontSize: '1.1rem', color: '#94a3b8', lineHeight: 1.7, marginBottom: '1.5rem' }}>
-            If it is a fit, someone will reach out. If you do not hear back within two weeks, we passed.
+          <p className="text-gray-400 text-lg leading-relaxed mb-4">
+            If it is worth a reply, someone will reach out. If you do not hear back within two weeks, we passed.
             No hard feelings — just capacity limits.
           </p>
-          <p style={{ fontSize: '0.95rem', color: '#64748b' }}>
-            Deals happen faster over conversation than cold forms. Come say hi in Discord.
+          <p className="text-gray-500 text-sm font-mono">
+            Deals and conversations happen faster on Discord than cold forms.
           </p>
-          <a href="https://discord.gg/tiltcheck" style={{ display: 'inline-block', marginTop: '2rem', padding: '0.75rem 2rem', background: '#6c47ff', color: '#fff', borderRadius: '8px', fontWeight: 600, textDecoration: 'none' }}>
+          <a
+            href="https://discord.gg/tiltcheck"
+            className="inline-block mt-8 px-8 py-3 bg-[#17c3b2] text-black font-black uppercase tracking-wider text-sm hover:bg-[#14a99a] transition-colors"
+          >
             Join Discord
           </a>
         </div>
@@ -83,12 +88,12 @@ export default function CollabPage() {
 
   if (formState === 'duplicate') {
     return (
-      <main style={{ minHeight: '100vh', background: '#0a0a0f', color: '#e2e8f0', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem' }}>
-        <div style={{ maxWidth: '600px', textAlign: 'center' }}>
-          <h1 style={{ fontSize: '2rem', fontWeight: 700, color: '#6c47ff', marginBottom: '1.5rem' }}>
-            Already in the queue.
+      <main className="min-h-screen bg-[#0a0c10] text-white flex items-center justify-center px-4">
+        <div className="max-w-xl text-center">
+          <h1 className="text-4xl md:text-5xl font-black uppercase tracking-tighter text-white mb-6">
+            Already In The Queue.
           </h1>
-          <p style={{ fontSize: '1.1rem', color: '#94a3b8', lineHeight: 1.7 }}>
+          <p className="text-gray-400 text-lg leading-relaxed">
             Submitting again will not speed up the process. We can read.
           </p>
         </div>
@@ -97,150 +102,162 @@ export default function CollabPage() {
   }
 
   return (
-    <main style={{ minHeight: '100vh', background: '#0a0a0f', color: '#e2e8f0' }}>
+    <main className="min-h-screen bg-[#0a0c10] text-white">
+
       {/* Hero */}
-      <section style={{ padding: '5rem 2rem 3rem', textAlign: 'center', maxWidth: '800px', margin: '0 auto' }}>
-        <div style={{ display: 'inline-block', background: '#6c47ff22', border: '1px solid #6c47ff55', borderRadius: '20px', padding: '0.4rem 1rem', fontSize: '0.85rem', color: '#a78bfa', marginBottom: '1.5rem', letterSpacing: '0.05em', textTransform: 'uppercase' }}>
-          Partner / Integration / Collab
+      <section className="border-b border-[#17c3b2]/20 py-24 px-4">
+        <div className="max-w-4xl mx-auto">
+          <div className="inline-block text-[10px] font-mono font-bold uppercase tracking-[0.3em] text-[#17c3b2] border border-[#17c3b2]/40 px-3 py-1 mb-6">
+            Contact / Partner / Collab
+          </div>
+          <h1 className="text-4xl md:text-5xl font-black uppercase tracking-tighter mb-6 text-white leading-none">
+            Get In Touch.
+            <br />
+            <span className="text-[#17c3b2]">We Actually Read These.</span>
+          </h1>
+          <p className="text-gray-400 text-lg max-w-2xl leading-relaxed mt-8">
+            General questions, partnership pitches, press inquiries, bug reports — this form handles it.
+            Pick a topic and tell us what you need. Vague messages get archived.
+          </p>
         </div>
-        <h1 style={{ fontSize: 'clamp(2rem, 5vw, 3.5rem)', fontWeight: 800, lineHeight: 1.1, marginBottom: '1.5rem' }}>
-          Think We Should Work Together?<br />
-          <span style={{ color: '#6c47ff' }}>Make Your Case.</span>
-        </h1>
-        <p style={{ fontSize: '1.15rem', color: '#94a3b8', lineHeight: 1.7, maxWidth: '600px', margin: '0 auto' }}>
-          TiltCheck is open to integrations, partnerships, and collabs that actually serve the degen community —
-          not just add noise to a press release. Tell us what you are building and why it matters.
-        </p>
       </section>
 
-      {/* What we are looking for */}
-      <section style={{ padding: '2rem', maxWidth: '900px', margin: '0 auto' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '1.5rem', marginBottom: '3rem' }}>
+      {/* Topic cards */}
+      <section className="max-w-4xl mx-auto py-16 px-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-16">
           {[
-            { title: 'Integrations', body: 'API consumers, data partners, platforms that want real-time tilt or trust scores baked into their UX.' },
-            { title: 'Collabs', body: 'Creators, streamers, communities building content around responsible degen culture. We are not anti-fun — we are pro-informed.' },
-            { title: 'Partners', body: 'Casinos and affiliates that want a trust signal badge. Comes with a real audit, not a logo on a wall.' },
-            { title: 'Research & Tools', body: 'Academic, regulatory, or tooling projects working at the intersection of gambling data and harm reduction.' },
-          ].map(({ title, body }) => (
-            <div key={title} style={{ background: '#111827', border: '1px solid #1e293b', borderRadius: '12px', padding: '1.5rem' }}>
-              <div style={{ fontWeight: 700, fontSize: '1rem', color: '#6c47ff', marginBottom: '0.5rem' }}>{title}</div>
-              <p style={{ fontSize: '0.9rem', color: '#94a3b8', lineHeight: 1.6, margin: 0 }}>{body}</p>
+            { label: 'Partner / Integrate', body: 'API consumers, platforms, or tools that want real-time tilt or trust scores in their UX.' },
+            { label: 'Collab / Create', body: 'Creators, streamers, and communities building content around responsible degen culture.' },
+            { label: 'Press / Research', body: 'Media, academic, and regulatory projects working at the intersection of gambling data and harm reduction.' },
+            { label: 'Bug / Technical', body: 'Something is broken or behaving wrong. Tell us what, where, and how to reproduce it.' },
+          ].map(({ label, body }) => (
+            <div key={label} className="p-5 border border-[#283347] bg-black/20">
+              <p className="text-[#17c3b2] font-mono font-bold text-xs uppercase tracking-wider mb-2">{label}</p>
+              <p className="text-gray-400 text-sm leading-relaxed">{body}</p>
             </div>
           ))}
         </div>
 
-        <div style={{ background: '#1a0a0a', border: '1px solid #4a1515', borderRadius: '12px', padding: '1.5rem', marginBottom: '3rem' }}>
-          <div style={{ fontWeight: 700, color: '#f87171', marginBottom: '0.75rem' }}>What this is not</div>
-          <ul style={{ margin: 0, paddingLeft: '1.25rem', color: '#94a3b8', fontSize: '0.9rem', lineHeight: 2 }}>
+        <div className="p-5 border border-[#ef4444]/30 bg-[#ef4444]/5 mb-16">
+          <p className="text-[#ef4444] font-bold text-xs uppercase tracking-wider mb-2">What this is not</p>
+          <ul className="text-gray-400 text-sm leading-loose list-disc list-inside">
             <li>A paid directory listing dressed up as a partnership</li>
             <li>An endorsement exchange — we do not trade trust scores for mentions</li>
-            <li>A slot affiliate wheel-spin-and-hope arrangement</li>
+            <li>A slot affiliate arrangement</li>
             <li>A quick logo swap for a backlink</li>
           </ul>
         </div>
-      </section>
 
-      {/* Form */}
-      <section style={{ padding: '0 2rem 5rem', maxWidth: '680px', margin: '0 auto' }}>
-        <h2 style={{ fontSize: '1.6rem', fontWeight: 700, marginBottom: '0.5rem' }}>Apply</h2>
-        <p style={{ color: '#64748b', fontSize: '0.9rem', marginBottom: '2rem' }}>
-          Submissions go to the team. We review everything. Vague pitches get archived.
-        </p>
+        {/* Form */}
+        <div>
+          <h2 className="text-2xl font-black uppercase tracking-tight text-white mb-2">Send a Message</h2>
+          <p className="text-gray-500 text-sm font-mono mb-10">
+            Every submission goes to the team. We review everything.
+          </p>
 
-        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-          <input type="text" name="honeypot" defaultValue="" style={{ display: 'none' }} tabIndex={-1} aria-hidden="true" />
+          <form onSubmit={handleSubmit} className="flex flex-col gap-6">
+            <input type="text" name="honeypot" defaultValue="" className="hidden" tabIndex={-1} aria-hidden="true" />
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider text-gray-400 mb-2">Your Name *</label>
+                <input
+                  name="name"
+                  required
+                  className="w-full bg-black/40 border border-[#283347] px-4 py-3 text-white text-sm focus:outline-none focus:border-[#17c3b2]/60"
+                  placeholder="Jane Degen"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider text-gray-400 mb-2">Email *</label>
+                <input
+                  name="email"
+                  type="email"
+                  required
+                  className="w-full bg-black/40 border border-[#283347] px-4 py-3 text-white text-sm focus:outline-none focus:border-[#17c3b2]/60"
+                  placeholder="jane@example.com"
+                />
+              </div>
+            </div>
+
             <div>
-              <label style={labelStyle}>Your Name *</label>
-              <input name="name" required style={inputStyle} placeholder="Jane Degen" />
+              <label className="block text-xs font-bold uppercase tracking-wider text-gray-400 mb-2">Topic *</label>
+              <select
+                name="collab_type"
+                required
+                className="w-full bg-black/40 border border-[#283347] px-4 py-3 text-white text-sm focus:outline-none focus:border-[#17c3b2]/60 cursor-pointer"
+              >
+                <option value="">Select a topic</option>
+                {CONTACT_TOPICS.map(t => <option key={t} value={t}>{t}</option>)}
+              </select>
             </div>
+
             <div>
-              <label style={labelStyle}>Email *</label>
-              <input name="email" type="email" required style={inputStyle} placeholder="jane@example.com" />
+              <label className="block text-xs font-bold uppercase tracking-wider text-gray-400 mb-2">Organization / Project</label>
+              <input
+                name="organization"
+                className="w-full bg-black/40 border border-[#283347] px-4 py-3 text-white text-sm focus:outline-none focus:border-[#17c3b2]/60"
+                placeholder="Acme Casino Ltd, or 'solo'"
+              />
             </div>
-          </div>
 
-          <div>
-            <label style={labelStyle}>Organization / Project</label>
-            <input name="organization" style={inputStyle} placeholder="Acme Casino Ltd, or 'solo'" />
-          </div>
-
-          <div>
-            <label style={labelStyle}>Collaboration Type *</label>
-            <select name="collab_type" required style={{ ...inputStyle, cursor: 'pointer' }}>
-              <option value="">Select one</option>
-              {COLLAB_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
-            </select>
-          </div>
-
-          <div>
-            <label style={labelStyle}>Website / Project Link</label>
-            <input name="url" type="url" style={inputStyle} placeholder="https://..." />
-          </div>
-
-          <div>
-            <label style={labelStyle}>Discord Username</label>
-            <input name="discord" style={inputStyle} placeholder="janedegen" />
-          </div>
-
-          <div>
-            <label style={labelStyle}>Pitch — What are you building and why should we care? *</label>
-            <textarea
-              name="description"
-              required
-              minLength={20}
-              rows={6}
-              style={{ ...inputStyle, resize: 'vertical', fontFamily: 'inherit' }}
-              placeholder="Give us the actual value proposition. What does this integration/collab do for TiltCheck users? Why now? What do you need from us?"
-            />
-            <div style={{ fontSize: '0.75rem', color: '#475569', marginTop: '0.25rem' }}>Min 20 characters. Vague pitches get archived.</div>
-          </div>
-
-          <div>
-            <label style={labelStyle}>How did you find us?</label>
-            <input name="referral" style={inputStyle} placeholder="Discord, Twitter, casino partner, someone told me..." />
-          </div>
-
-          {formState === 'error' && errorMsg && (
-            <div style={{ background: '#2a0a0a', border: '1px solid #7f1d1d', borderRadius: '8px', padding: '0.75rem 1rem', color: '#fca5a5', fontSize: '0.9rem' }}>
-              {errorMsg}
+            <div>
+              <label className="block text-xs font-bold uppercase tracking-wider text-gray-400 mb-2">Website / Link</label>
+              <input
+                name="url"
+                type="url"
+                className="w-full bg-black/40 border border-[#283347] px-4 py-3 text-white text-sm focus:outline-none focus:border-[#17c3b2]/60"
+                placeholder="https://..."
+              />
             </div>
-          )}
 
-          <button
-            type="submit"
-            disabled={formState === 'submitting'}
-            style={{ padding: '0.85rem 2rem', background: formState === 'submitting' ? '#4c3799' : '#6c47ff', color: '#fff', border: 'none', borderRadius: '8px', fontWeight: 700, fontSize: '1rem', cursor: formState === 'submitting' ? 'not-allowed' : 'pointer' }}
-          >
-            {formState === 'submitting' ? 'Submitting...' : 'Submit Application'}
-          </button>
-        </form>
+            <div>
+              <label className="block text-xs font-bold uppercase tracking-wider text-gray-400 mb-2">Discord Username</label>
+              <input
+                name="discord"
+                className="w-full bg-black/40 border border-[#283347] px-4 py-3 text-white text-sm focus:outline-none focus:border-[#17c3b2]/60"
+                placeholder="janedegen"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold uppercase tracking-wider text-gray-400 mb-2">Message *</label>
+              <textarea
+                name="description"
+                required
+                minLength={20}
+                rows={6}
+                className="w-full bg-black/40 border border-[#283347] px-4 py-3 text-white text-sm focus:outline-none focus:border-[#17c3b2]/60 resize-y font-inherit"
+                placeholder="Tell us what you need. If it is a partnership pitch, tell us the actual value proposition — not a press-release summary."
+              />
+              <p className="text-gray-600 text-xs font-mono mt-1">Min 20 characters. Vague messages get archived.</p>
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold uppercase tracking-wider text-gray-400 mb-2">How did you find us?</label>
+              <input
+                name="referral"
+                className="w-full bg-black/40 border border-[#283347] px-4 py-3 text-white text-sm focus:outline-none focus:border-[#17c3b2]/60"
+                placeholder="Discord, Twitter, casino partner, someone told me..."
+              />
+            </div>
+
+            {formState === 'error' && errorMsg && (
+              <div className="border border-[#ef4444]/40 bg-[#ef4444]/10 px-4 py-3 text-[#ef4444] text-sm font-mono">
+                {errorMsg}
+              </div>
+            )}
+
+            <button
+              type="submit"
+              disabled={formState === 'submitting'}
+              className="px-8 py-3 bg-[#17c3b2] text-black font-black uppercase tracking-wider text-sm hover:bg-[#14a99a] transition-colors disabled:opacity-50 disabled:cursor-not-allowed w-fit"
+            >
+              {formState === 'submitting' ? 'Sending...' : 'Send Message'}
+            </button>
+          </form>
+        </div>
       </section>
-
-      <footer style={{ textAlign: 'center', padding: '1.5rem', borderTop: '1px solid #1e293b', color: '#334155', fontSize: '0.8rem' }}>
-        Made for Degens. By Degens.
-      </footer>
     </main>
   );
 }
-
-const labelStyle: React.CSSProperties = {
-  display: 'block',
-  fontSize: '0.85rem',
-  fontWeight: 600,
-  color: '#94a3b8',
-  marginBottom: '0.35rem',
-};
-
-const inputStyle: React.CSSProperties = {
-  width: '100%',
-  background: '#111827',
-  border: '1px solid #1e293b',
-  borderRadius: '8px',
-  padding: '0.65rem 0.9rem',
-  color: '#e2e8f0',
-  fontSize: '0.95rem',
-  outline: 'none',
-  boxSizing: 'border-box',
-};
