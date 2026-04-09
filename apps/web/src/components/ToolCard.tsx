@@ -1,3 +1,4 @@
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-09 */
 import Link from 'next/link';
 import Image from 'next/image';
 import React from 'react';
@@ -24,15 +25,16 @@ const ToolCard = ({ href, icon, category, title, description, status, gridClasse
     'flex',
     'flex-col',
     'justify-between',
-    'bg-[#0E0E0F]', // Brutalist dark background
+    'bg-gradient-to-br from-[#0E0E0F] to-[#0a0c10]',
     'border',
     'border-[#283347]',
-    'rounded-none', // Sharp corners
-    'transition-none', // Immediate snap on hover
-    'hover:-translate-y-1',
-    'hover:-translate-x-1',
-    'hover:border-[#00ffaa]',
-    'hover:shadow-[4px_4px_0px_#00ffaa]', // Harsh 90s offset shadow
+    'rounded-none',
+    'transition-all',
+    'duration-300',
+    'hover:-translate-y-2',
+    'hover:-translate-x-2',
+    'hover:border-[#17c3b2]',
+    'hover:shadow-[6px_6px_0px_rgba(23,195,178,0.4)]',
     isComingSoon ? 'coming-soon' : 'live',
     isFeatured ? 'featured' : '',
     gridClasses || ''
@@ -43,7 +45,7 @@ const ToolCard = ({ href, icon, category, title, description, status, gridClasse
       return <span className="absolute top-4 right-4 badge-beta">Still Cooking</span>;
     }
     if(status === 'live' || isFeatured) {
-        return <span className="absolute top-4 right-4 badge-beta">STRENGTH TESTING</span>;
+        return <span className="absolute top-4 right-4 badge-beta">LIVE & TESTED</span>;
     }
     return null;
   };

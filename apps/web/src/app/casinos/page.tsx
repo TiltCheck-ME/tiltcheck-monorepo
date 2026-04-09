@@ -1,7 +1,8 @@
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-09 */
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import "@/styles/terminal.css"; // Reuse terminal styles for that 'brutalist' look
+import "@/styles/terminal.css";
 
 interface CasinoRecord {
   score: number;
@@ -55,19 +56,19 @@ export default function CasinosPage() {
       <header className="mb-12 text-center">
         <h1 className="neon neon-main" data-text="CASINO TRUST ENGINE">CASINO TRUST ENGINE</h1>
         <p className="text-xl text-muted mt-4 max-w-3xl mx-auto uppercase tracking-widest font-mono">
-          The Five Pillars of Defensibility: Real-time audit snapshots across the ecosystem.
+          Know which casinos are actually fair before you lose your fucking rent.
         </p>
       </header>
 
       {error && (
         <div className="mb-8 p-4 border border-[#ffd700]/30 bg-[#ffd700]/5 text-[#ffd700] font-mono text-center">
-          The Trust Engine is being moody right now. Showing you the last scores we grabbed — real data back when it chills out.
+          Our API is being a little bitch right now. Here's the last data we grabbed before it went sideways.
         </div>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-8">
         {Object.entries(casinos).sort((a, b) => b[1].score - a[1].score).map(([name, data]) => (
-          <div key={name} className="terminal-box group hover:border-accent transition-colors duration-300">
+          <div key={name} className="terminal-box group hover:border-[#17c3b2] transition-all duration-300 hover:shadow-[0_0_20px_rgba(23,195,178,0.3)]">
             <div className="flex justify-between items-start mb-6">
               <div>
                 <h2 className="text-3xl font-bold tracking-tighter text-white uppercase">{name}</h2>
@@ -97,16 +98,16 @@ export default function CasinosPage() {
         ))}
       </div>
 
-      <section className="mt-20 p-8 border border-white/10 bg-white/5 rounded-lg">
-        <h3 className="text-xl font-bold mb-4 uppercase tracking-wider text-accent">How are these scored?</h3>
+      <section className="mt-20 p-8 border border-[#283347] bg-[#0a0c10]/40 rounded-none">
+        <h3 className="text-xl font-bold mb-4 uppercase tracking-wider text-[#17c3b2]">How are these scored?</h3>
         <p className="text-muted leading-relaxed mb-6">
-          Unlike review sites that take affiliate payouts, TiltCheck's score is purely data-driven. We ingest raw telemetry from 
-          link scanners, manual ToS audits, community withdrawal reports, and our own RTP drift detection engine.
+          Unlike review sites that take affiliate payouts, our scores are purely data-driven. We pull raw telemetry from 
+          link scanners, ToS audits, community reports, and our RTP drift detection. No bias. No gatekeeping.
         </p>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-sm font-mono pt-4 border-t border-white/10">
           <div>
             <strong className="text-white block mb-2">ZERO BIAS</strong>
-            Scoring algorithms are open-source and based on verifiable events.
+            Algorithms are open-source and based on verifiable events.
           </div>
           <div>
             <strong className="text-white block mb-2">TELEMETRY-FIRST</strong>

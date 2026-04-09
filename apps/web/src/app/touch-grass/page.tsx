@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All rights reserved. */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-09 */
 "use client";
 
 import React from 'react';
@@ -15,14 +15,14 @@ export default function TouchGrassPage() {
             TOUCH GRASS PROTOCOL
           </h1>
           <p className="text-lg text-gray-400 max-w-2xl mx-auto">
-            If you're reading this, you've either hit a limit on TiltCheck, or you know you need one. Either way, we're talking real talk now.
+            You're here because TiltCheck locked you out, or you made the choice to lock yourself out. Either way, you're finally taking control. We're not judging. We're here to help.
           </p>
         </div>
       </section>
 
       <section className="py-12 px-4 bg-[#ef4444]/10 border-b border-[#ef4444]/30">
         <div className="max-w-4xl mx-auto text-center">
-          <p className="text-lg font-bold text-[#ef4444]">
+          <p className="text-base md:text-lg font-bold text-[#ef4444]">
             NEED IMMEDIATE HELP? <span className="text-white font-mono">1-800-GAMBLER (1-800-426-2537)</span> — Available 24/7
           </p>
         </div>
@@ -76,7 +76,7 @@ export default function TouchGrassPage() {
                 <div className="pt-6 border-t border-[#ef4444]/20">
                   <h3 className="text-lg font-black uppercase mb-3 text-[#ef4444]">Step 2: Tell Someone</h3>
                   <p className="text-gray-400 leading-relaxed">
-                    Not your buddy who gambles. Your Guardian from TiltCheck. Your parent. Your partner. Someone who will actually care and won't enable you. Shame is a tool. Use it.
+                    Not your buddy who gambles. Your parent. Your partner. Someone who will actually care and won't enable you. It's hard. Do it anyway.
                   </p>
                 </div>
                 <div className="pt-6 border-t border-[#ef4444]/20">
@@ -182,22 +182,22 @@ export default function TouchGrassPage() {
       </section>
 
       {/* Bottom CTA */}
-      <section className="py-12 px-4 border-t border-[#283347] bg-black/40 text-center">
+      <section className="py-16 px-4 border-t border-[#283347] bg-black/60 text-center">
         <div className="max-w-2xl mx-auto">
-          <h2 className="text-3xl font-black uppercase tracking-tight mb-4">
+          <h2 className="text-3xl md:text-4xl font-black uppercase tracking-tight mb-4">
             Right Now
           </h2>
-          <p className="text-gray-400 mb-6">
+          <p className="text-gray-400 mb-8 text-lg">
             Pick one thing. Just one.
           </p>
-          <div className="flex flex-col gap-3">
-            <a href="tel:1-800-426-2537" className="btn btn-primary py-3 px-6 font-black text-lg">
+          <div className="flex flex-col gap-4 sm:flex-row sm:justify-center">
+            <a href="tel:1-800-426-2537" className="btn btn-primary py-3 px-6 font-black text-base sm:flex-1 sm:max-w-xs">
               Call 1-800-GAMBLER
             </a>
-            <a href="https://www.ncpg.org/chat" target="_blank" rel="noopener noreferrer" className="btn btn-secondary py-3 px-6 font-black">
+            <a href="https://www.ncpg.org/chat" target="_blank" rel="noopener noreferrer" className="btn btn-secondary py-3 px-6 font-black text-base sm:flex-1 sm:max-w-xs">
               Start Chat with NCPG
             </a>
-            <Link href="/" className="btn btn-secondary py-3 px-6 font-black">
+            <Link href="/" className="btn btn-secondary py-3 px-6 font-black text-base sm:flex-1 sm:max-w-xs">
               Go Home
             </Link>
           </div>

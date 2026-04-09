@@ -1,3 +1,4 @@
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-09 */
 "use client";
 
 import Link from 'next/link';
@@ -26,7 +27,7 @@ const Footer = () => {
   return (
     <footer className="site-footer" aria-label="Site footer">
       <div className="container">
-        {/* The terminal will be re-implemented here */}
+        {/* Made for Degens by Degens */}
       </div>
       <div className="footer-columns">
         <div className="footer-col">
