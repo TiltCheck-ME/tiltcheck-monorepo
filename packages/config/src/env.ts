@@ -29,9 +29,7 @@ export const serviceJwtConfigSchema = z.object({
   SERVICE_JWT_SECRET: process.env.NODE_ENV !== 'production'
     ? z.string().min(32, 'SERVICE_JWT_SECRET must be at least 32 characters').optional().default('dev-service-jwt-secret-replace-me')
     : z.string().min(32, 'SERVICE_JWT_SECRET must be at least 32 characters'),
-  SERVICE_ID: process.env.NODE_ENV !== 'production'
-    ? z.string().min(1, 'SERVICE_ID is required').optional().default('dev-service-id')
-    : z.string().min(1, 'SERVICE_ID is required'),
+  SERVICE_ID: z.string().min(1, 'SERVICE_ID is required').optional().default('api-gateway'),
   ALLOWED_SERVICES: z
     .string()
     .default('')
@@ -62,9 +60,7 @@ export const databaseConfigSchema = z.object({
  * Blockchain Configuration Schema
  */
 export const blockchainConfigSchema = z.object({
-  SOLANA_RPC_URL: process.env.NODE_ENV !== 'production'
-    ? z.string().url('SOLANA_RPC_URL must be a valid URL').optional().default('http://localhost:8899') // Or a dev public RPC
-    : z.string().url('SOLANA_RPC_URL must be a valid URL'),
+  SOLANA_RPC_URL: z.string().url('SOLANA_RPC_URL must be a valid URL').optional(),
 });
 
 /**

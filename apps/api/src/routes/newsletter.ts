@@ -11,13 +11,17 @@ import { query, insert, update, findOneBy } from '@tiltcheck/db';
 const router = Router();
 
 // Salt for email hashing — must be set in production
-const NEWSLETTER_SALT = (() => {
+let _newsletterSalt: string | null = null;
+
+function getNewsletterSalt(): string {
+  if (_newsletterSalt) return _newsletterSalt;
   const salt = process.env.NEWSLETTER_SALT;
   if (!salt && process.env.NODE_ENV === 'production') {
     throw new Error('[newsletter] NEWSLETTER_SALT env var is required in production');
   }
-  return salt || 'tiltcheck-dev-salt';
-})();
+  _newsletterSalt = salt || 'tiltcheck-dev-salt';
+  return _newsletterSalt;
+}
 
 /**
  * POST /newsletter/subscribe
@@ -41,7 +45,7 @@ router.post('/subscribe', async (req, res) => {
   try {
     const emailHash = crypto
       .createHash('sha256')
-      .update(NEWSLETTER_SALT + ':' + cleanEmail)
+      .update(getNewsletterSalt() + ':' + cleanEmail)
       .digest('hex');
 
     const existing = await findOneBy('newsletter_subscribers', 'email_hash', emailHash);
@@ -85,7 +89,7 @@ router.post('/unsubscribe', async (req, res) => {
   try {
     const emailHash = crypto
       .createHash('sha256')
-      .update(NEWSLETTER_SALT + ':' + cleanEmail)
+      .update(getNewsletterSalt() + ':' + cleanEmail)
       .digest('hex');
 
     const existing = await findOneBy('newsletter_subscribers', 'email_hash', emailHash);
