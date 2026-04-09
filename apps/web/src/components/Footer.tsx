@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-09 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-08 */
 "use client";
 
 import Link from 'next/link';
@@ -89,7 +89,7 @@ const Footer = () => {
       </div>
       <div className="footer-bottom">
         <p className="footer-mission">
-          <strong>The mission:</strong> The house wins because they have the math and you have a dopamine problem. We can count too. TiltCheck is the audit layer built to tilt the fairness scale back in your favor — live RTP drift detection, provably fair verification, and a community-backed signal to lock gains before your brain talks you into one more spin. <strong>Level the playing field. Cuz math maths.</strong>
+          The house has the math. You have a dopamine problem. TiltCheck is the audit layer — real-time RTP drift, provably fair verification, casino trust scores, and a hard lock on your gains before your brain talks you into one more spin. <strong>Play smarter or don&apos;t play.</strong>
         </p>
         <div>
           <Link href="/touch-grass" className="footer-touchgrass-link">
