@@ -1,0 +1,27 @@
+{
+  "_comment": "© 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-08",
+  "name": "@tiltcheck/mcp-server",
+  "version": "1.0.0",
+  "description": "TiltCheck MCP server — exposes site context, casino data, and RGaaS tools to Claude Desktop, Cursor, Copilot, and other MCP-compatible AI agents.",
+  "type": "module",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "start": "node dist/index.js",
+    "typecheck": "tsc --noEmit"
+  },
+  "bin": {
+    "tiltcheck-mcp": "dist/index.js"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.12.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "typescript": "^5.5.4"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
