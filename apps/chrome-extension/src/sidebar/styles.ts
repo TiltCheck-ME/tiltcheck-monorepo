@@ -660,4 +660,86 @@ export const getSidebarStyles = () => `
       grid-template-columns: 1fr 1fr;
       gap: 16px;
     }
+
+    /* Daily Bonuses Section */
+    .tg-bonuses-section { padding: 14px 16px; }
+    .tg-bonuses-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0;
+    }
+    .tg-bonuses-controls { display: flex; gap: 6px; align-items: center; }
+    .tg-btn-link {
+      background: none;
+      border: none;
+      color: var(--tg-primary);
+      font-size: 10px;
+      font-weight: 700;
+      cursor: pointer;
+      padding: 0;
+      font-family: 'JetBrains Mono', monospace;
+      letter-spacing: 0.03em;
+      opacity: 0.85;
+      transition: opacity 0.15s;
+    }
+    .tg-btn-link:hover { opacity: 1; text-decoration: underline; }
+    #tg-bonuses-body { margin-top: 12px; }
+    .tg-bonus-item {
+      padding: 10px 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    }
+    .tg-bonus-item:last-child { border-bottom: none; }
+    .tg-bonus-brand {
+      font-size: 12px;
+      font-weight: 700;
+      color: #fff;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 2px;
+    }
+    .tg-bonus-desc {
+      font-size: 11px;
+      color: var(--tg-muted);
+      line-height: 1.4;
+      margin-bottom: 4px;
+    }
+    .tg-bonus-code {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--tg-warning);
+      margin-bottom: 4px;
+      letter-spacing: 0.04em;
+    }
+    .tg-bonus-claim {
+      display: inline-block;
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--tg-primary);
+      text-decoration: none;
+      font-family: 'JetBrains Mono', monospace;
+      letter-spacing: 0.03em;
+      transition: opacity 0.15s;
+    }
+    .tg-bonus-claim:hover { opacity: 0.75; text-decoration: underline; }
+    .tg-bonus-empty {
+      font-size: 11px;
+      color: var(--tg-muted);
+      padding: 8px 0;
+    }
+    .tg-bonuses-footer {
+      margin-top: 10px;
+      padding-top: 8px;
+      border-top: 1px solid rgba(255, 255, 255, 0.07);
+      text-align: right;
+    }
+    .tg-bonuses-viewall {
+      font-size: 10px;
+      color: var(--tg-muted);
+      text-decoration: none;
+      letter-spacing: 0.03em;
+      transition: color 0.15s;
+    }
+    .tg-bonuses-viewall:hover { color: var(--tg-primary); }
 `;
