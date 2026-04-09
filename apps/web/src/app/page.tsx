@@ -44,14 +44,14 @@ export default function Home() {
       <div className="section-divider" aria-hidden="true" />
 
       {/* Tools Section */}
-      <section id="tools" className="w-full max-w-7xl mx-auto px-4 py-16">
+      <section id="tools" className="w-full max-w-7xl mx-auto px-4 pt-8 pb-16">
         <div className="section-heading-block">
           <h2 className="neon neon-header section-heading" data-text="THE HOUSE EDGE NEUTRALIZER">
             THE HOUSE EDGE NEUTRALIZER
           </h2>
           <p className="section-subheading">Nine tools. One audit layer. No cap.</p>
         </div>
-        <div className="mt-10 tools-bento-grid">
+        <div className="mt-8 tools-bento-grid">
           <LiveAuditLog />
           {features.map((tool) => (
             <ToolCard key={tool.title} {...tool} />
