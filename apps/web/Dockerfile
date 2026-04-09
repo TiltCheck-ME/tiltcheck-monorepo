@@ -29,9 +29,10 @@ RUN pnpm --filter web build
 FROM node:20-slim AS runner
 WORKDIR /app
 ENV NODE_ENV=production
-# Railway injects PORT at runtime — do not hardcode it here.
-# HOSTNAME must be 0.0.0.0 so Next.js binds on all interfaces, not just localhost.
 ENV HOSTNAME=0.0.0.0
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl wget procps net-tools dnsutils \
+    && rm -rf /var/lib/apt/lists/*
 
 # Next.js standalone in a monorepo mirrors the app path inside the standalone dir.
 # With WORKDIR=/app, server.js lands at apps/web/server.js inside standalone.
