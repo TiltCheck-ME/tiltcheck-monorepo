@@ -82,4 +82,13 @@ export const features: Tool[] = [
     status: "live",
     gridClasses: "",
   },
+  {
+    href: "/bonuses",
+    icon: "collectclock.svg",
+    category: "BONUS INTEL",
+    title: "Daily Bonus Tracker",
+    description: "Sweepstakes and social casino daily login bonuses, verified by the community. CollectClock data refreshed hourly. Promo codes, claim links, and trust scores in one place.",
+    status: "live",
+    gridClasses: "",
+  },
 ];
