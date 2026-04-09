@@ -727,9 +727,9 @@ body.degen-background {
 /* Footer Styles from old theme */
 .site-footer {
   padding: 4rem 1.5rem 2.5rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.07);
+  border-top: 1px solid rgba(23, 195, 178, 0.2);
   font-size: 0.875rem;
-  text-align: center;
+  text-align: left;
 }
 
 .footer-columns {
@@ -749,16 +749,20 @@ body.degen-background {
 
 @media (min-width: 1024px) {
   .footer-columns {
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(5, 1fr);
   }
 }
 
 .footer-col h4 {
-  font-size: 0.75rem;
+  font-size: 0.8rem;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.12em;
-  color: var(--text-primary);
+  letter-spacing: 0.14em;
+  color: var(--color-primary);
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid rgba(23, 195, 178, 0.2);
+}
   margin: 0 0 1rem;
 }
 
@@ -770,11 +774,13 @@ body.degen-background {
   flex-direction: column;
   gap: 0.5rem;
 }
+  gap: 0.5rem;
+}
 
 .site-footer p {
   font-family: 'Satoshi', 'Inter', sans-serif;
   color: #a0a0a0;
-  line-height: 1.6;
+  line-height: 1.7;
   text-align: center;
 }
 
@@ -797,7 +803,11 @@ body.degen-background {
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  gap: 1.5rem;
+  gap: 1.25rem;
+  padding-top: 2.5rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  max-width: 1200px;
+  margin: 0 auto;
   max-width: 1200px;
   margin: 0 auto;
   padding-top: 2rem;
@@ -805,11 +815,13 @@ body.degen-background {
 }
 
 .footer-mission {
-  max-width: 800px;
-  line-height: 1.6;
-  color: var(--text-secondary);
-  font-size: 0.9rem;
-  opacity: 0.9;
+  max-width: 720px;
+  line-height: 1.75;
+  color: #8a97a8;
+  font-size: 0.875rem;
+  text-transform: none;
+  letter-spacing: 0;
+}
 }
 
 .footer-mission strong {
@@ -819,8 +831,25 @@ body.degen-background {
 }
 
 .footer-copyright {
-  color: #8a97a8;
+  color: #5a6472;
+  font-size: 0.75rem;
   margin: 0;
+}
+
+.footer-touchgrass-link {
+  color: #5a6472;
+  text-decoration: none;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  border: 1px solid #2a3040;
+  padding: 4px 14px;
+  transition: all 0.2s ease;
+}
+
+.footer-touchgrass-link:hover {
+  color: var(--color-primary);
+  border-color: rgba(23, 195, 178, 0.4);
 }
 
 @media (max-width: 640px) {
@@ -829,11 +858,11 @@ body.degen-background {
   }
   
   .footer-col h4 {
-    text-align: center;
+    text-align: left;
   }
   
   .footer-col ul {
-    justify-content: center;
+    align-items: flex-start;
   }
 }
 
