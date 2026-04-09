@@ -93,7 +93,7 @@ export default async function BonusesPage() {
         <div className="max-w-7xl mx-auto">
           {bonuses.length === 0 ? (
             <div className="py-20 text-center border border-[#283347] bg-[#0d1117]/40">
-              <p className="font-mono text-xs uppercase tracking-widest text-[#ffd700] mb-2">
+              <p className="font-mono text-xs uppercase tracking-widest text-[#17c3b2] mb-2">
                 [DATA UNAVAILABLE]
               </p>
               <p className="font-mono text-[#8a97a8] text-sm">

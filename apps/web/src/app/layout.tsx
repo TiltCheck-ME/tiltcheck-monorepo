@@ -1,6 +1,21 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-07 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-07 */
 import type { Metadata } from "next";
+import { Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
+
+const inter = Inter({
+  subsets: ["latin"],
+  variable: "--font-inter",
+  display: "swap",
+  weight: ["400", "500", "600", "700", "800", "900"],
+});
+
+const jetbrainsMono = JetBrains_Mono({
+  subsets: ["latin"],
+  variable: "--font-jetbrains-mono",
+  display: "swap",
+  weight: ["400", "500", "700", "800"],
+});
 // import "@rainbow-me/rainbowkit/styles.css";
 import { RootProvider } from "@/lib/providers";
 
@@ -40,7 +55,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className="degen-background antialiased"
+        className={`${inter.variable} ${jetbrainsMono.variable} degen-background antialiased`}
       >
         <RootProvider>
           <AriaSlangProvider />

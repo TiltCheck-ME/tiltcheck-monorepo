@@ -33,15 +33,15 @@ export default function GettingStartedPage() {
           </div>
 
           {/* Path 2: I Want to Understand */}
-          <div className="group border border-[#ffd700]/30 bg-[#ffd700]/5 p-8 hover:border-[#ffd700] transition-all">
-            <div className="text-xs font-mono text-[#ffd700] uppercase tracking-widest mb-4">[ AUDIT ]</div>
+          <div className="group border border-[#17c3b2]/30 bg-[#17c3b2]/5 p-8 hover:border-[#17c3b2] transition-all">
+            <div className="text-xs font-mono text-[#17c3b2] uppercase tracking-widest mb-4">[ AUDIT ]</div>
             <h2 className="text-xl font-black uppercase tracking-tight mb-3">
               Show Me the Math
             </h2>
             <p className="text-gray-400 text-sm mb-6 leading-relaxed">
               RTP mechanics. Variance. How we detect tilt. The science behind the signals.
             </p>
-            <Link href="/how-it-works" className="text-[#ffd700] hover:underline font-bold text-sm uppercase tracking-tight">
+            <Link href="/how-it-works" className="text-[#17c3b2] hover:underline font-bold text-sm uppercase tracking-tight">
               Read How It Works →
             </Link>
           </div>

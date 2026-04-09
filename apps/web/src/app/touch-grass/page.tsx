@@ -159,8 +159,8 @@ export default function TouchGrassPage() {
                 </p>
               </div>
 
-              <div className="p-8 border border-[#ffd700]/30 bg-[#ffd700]/5 space-y-4">
-                <h2 className="text-2xl font-black uppercase text-[#ffd700]">Test Yourself Honestly</h2>
+              <div className="p-8 border border-[#17c3b2]/30 bg-[#17c3b2]/5 space-y-4">
+                <h2 className="text-2xl font-black uppercase text-[#17c3b2]">Test Yourself Honestly</h2>
                 <p className="text-gray-400 text-sm mb-4">Answer these truthfully:</p>
                 <ul className="space-y-2 text-gray-400 text-sm">
                   <li>• Do you lie about how much you gamble?</li>
@@ -204,26 +204,26 @@ export default function TouchGrassPage() {
 
             <a
               href="/tools/verify"
-              className="p-6 border border-[#ffd700]/30 bg-[#ffd700]/5 hover:bg-[#ffd700]/10 hover:border-[#ffd700]/60 transition-all group block"
+              className="p-6 border border-[#17c3b2]/30 bg-[#17c3b2]/5 hover:bg-[#17c3b2]/10 hover:border-[#17c3b2]/60 transition-all group block"
             >
-              <div className="text-[#ffd700] font-black uppercase text-xs tracking-widest mb-2">TOOL</div>
-              <h3 className="text-lg font-black text-white uppercase mb-2 group-hover:text-[#ffd700] transition-colors">Provably Fair Checker</h3>
+              <div className="text-[#17c3b2] font-black uppercase text-xs tracking-widest mb-2">TOOL</div>
+              <h3 className="text-lg font-black text-white uppercase mb-2 group-hover:text-[#17c3b2] transition-colors">Provably Fair Checker</h3>
               <p className="text-gray-500 text-sm leading-relaxed">
                 Verify every game result from your last session. Find out if you actually got rinsed or if the math just hates you today.
               </p>
-              <div className="mt-4 text-[10px] font-mono text-[#ffd700] uppercase tracking-widest">Run Check →</div>
+              <div className="mt-4 text-[10px] font-mono text-[#17c3b2] uppercase tracking-widest">Run Check →</div>
             </a>
 
             <a
               href="/casinos"
-              className="p-6 border border-[#f97316]/30 bg-[#f97316]/5 hover:bg-[#f97316]/10 hover:border-[#f97316]/60 transition-all group block"
+              className="p-6 border border-gray-700/50 bg-gray-800/20 hover:bg-gray-700/30 hover:border-gray-500/60 transition-all group block"
             >
-              <div className="text-[#f97316] font-black uppercase text-xs tracking-widest mb-2">INTEL</div>
-              <h3 className="text-lg font-black text-white uppercase mb-2 group-hover:text-[#f97316] transition-colors">Casino Trust Engine</h3>
+              <div className="text-gray-400 font-black uppercase text-xs tracking-widest mb-2">INTEL</div>
+              <h3 className="text-lg font-black text-white uppercase mb-2 group-hover:text-[#17c3b2] transition-colors">Casino Trust Engine</h3>
               <p className="text-gray-500 text-sm leading-relaxed">
                 Read what TiltCheck actually has on the casino you just played. Compliance violations, license status, community flags. Cold water.
               </p>
-              <div className="mt-4 text-[10px] font-mono text-[#f97316] uppercase tracking-widest">Read the File →</div>
+              <div className="mt-4 text-[10px] font-mono text-gray-400 group-hover:text-[#17c3b2] uppercase tracking-widest">Read the File →</div>
             </a>
 
             <a

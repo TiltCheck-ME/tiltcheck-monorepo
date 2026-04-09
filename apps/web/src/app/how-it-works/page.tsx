@@ -55,7 +55,7 @@ export default function HowItWorksPage() {
                 <p className="text-gray-400 leading-relaxed mb-4">
                   When the casino deploys the "Greedy" version of your slot (88% instead of the certified 96.5%), the Delta Engine flags it immediately and surfaces the Greed Premium you're paying per $100 wagered.
                 </p>
-                <div className="p-4 bg-[#ffd700]/5 border border-[#ffd700]/20 text-sm text-gray-300 font-mono">
+                <div className="p-4 bg-[#17c3b2]/5 border border-[#17c3b2]/20 text-sm text-gray-300 font-mono">
                   → Live example: "Gates of Olympus — certified 96.5% / platform running 92.0%. Greed Premium: $4.50 per $100 wagered."
                 </div>
               </div>
