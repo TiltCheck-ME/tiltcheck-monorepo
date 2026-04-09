@@ -1,0 +1,13 @@
+{
+  "servers": {
+    "tiltcheck": {
+      "type": "stdio",
+      "command": "node",
+      "args": ["${workspaceFolder}/packages/mcp-server/dist/index.js"],
+      "env": {
+        "TILTCHECK_API_URL": "https://api.tiltcheck.me",
+        "MONOREPO_ROOT": "${workspaceFolder}"
+      }
+    }
+  }
+}

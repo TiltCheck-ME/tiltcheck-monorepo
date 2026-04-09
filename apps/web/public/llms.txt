@@ -1,0 +1,108 @@
+# TiltCheck
+
+> Responsible gaming audit layer for degens. Real-time RTP drift detection, casino trust scoring, provably fair verification, and session-based profit protection tools. Built for the US sweepstakes and crypto casino community.
+
+TiltCheck is a non-custodial responsible gaming platform. It does not operate a casino, take bets, or hold user funds. It audits casino behavior, scores operator trustworthiness, and gives players tools to protect their winnings and manage their sessions.
+
+## What TiltCheck Does
+
+- **Casino Trust Engine** — Community-backed trust scores for sweepstakes, crypto, and offshore operators. Grades (A+ to F) based on financial integrity, fairness, promo honesty, ops support, and community reputation.
+- **RTP Drift Detection** — Detects when a casino's Return-to-Player percentage deviates from stated values. Users submit RTP reports; the engine aggregates them for drift signals.
+- **Domain Verifier** — Checks any casino domain against TiltCheck's license registry and SusLink threat database. Flags unregulated, expired, or known-scam domains.
+- **Shadow-Ban Tracker** — Community-reported withdrawal delays, silent ToS changes, and account restrictions. Updated from Discord reports and trust engine signals.
+- **Email Intel Pipeline** — Ingests casino marketing emails to extract bonus signals, urgency flags, and domain trust data. Fed into the trust engine as behavioral signals.
+- **LockVault (Auto-Vault)** — Non-custodial profit-locking tool. Works with the Chrome extension to automatically move winnings out of reach when a user hits a profit trigger.
+- **JustTheTip** — Micro-tipping tool for Solana. Non-custodial. No private keys stored.
+- **Degen Trivia Arena** — Skill-based trivia game for cooling down between sessions. No house edge.
+- **CollectClock** — Sweepstakes bonus tracker. Tracks daily login bonuses, cooldowns, and redemption windows across multiple sweepstakes platforms.
+- **Forensic Seed Audit** — Verifies provably fair casino game seeds. Detects manipulation in client/server seed pairs.
+
+## Target Audience
+
+US-based sweepstakes casino players, crypto casino players, and degens who want tools to play with an edge. Not UK/EU regulated gambling markets.
+
+## Core Mission
+
+The house has the math. TiltCheck is the audit layer that gives players the same visibility. Primary goal: help users secure wins (redeem-to-win), not just prevent losses.
+
+## Operator Trust Categories
+
+- **Sweeps** — US sweepstakes platforms (Chumba, Global Poker, Pulsz, Stake.us, McLuck, etc.) Legal, no real-money gambling.
+- **Crypto** — Offshore crypto-native platforms (Stake, Roobet, Rollbit, BC.Game, etc.)
+- **Regulated** — US state-licensed operators (DraftKings, FanDuel, BetMGM, etc.)
+- **Offshore** — Offshore operators accepting US players without state license
+- **Grey Market** — Operators with unclear or partial licensing
+- **Scam** — Operators with documented unpaid winnings, deceptive practices, or failed license checks
+
+## Key Pages
+
+- `/` — Home / landing page
+- `/casinos` — Casino Trust Engine. Full list of rated operators. Default filter: Sweeps. Live trust scores overlaid when trust-rollup service is online.
+- `/bonuses` — Daily sweepstakes bonus tracker. Collectible cooldowns for major platforms.
+- `/tools/domain-verifier` — Domain + license checker. Paste any casino domain. Also accepts raw email for intel extraction.
+- `/tools/auto-vault` — LockVault interface. Requires legal consent and Chrome extension for auto-triggers.
+- `/tools/scan-scams` — Shadow-ban / casino flag tracker. Community-reported.
+- `/tools/house-edge-scanner` — RTP and house edge lookup tool.
+- `/tools/session-stats` — Session nerf radar. Tracks losing streaks and flags statistically unusual runs.
+- `/tools/justthetip` — Solana micro-tip tool.
+- `/tools/degens-arena` — Trivia arena (in development, Discord bot version live).
+- `/tools/verify` — Provably fair seed verification.
+- `/tools/collectclock` — Sweepstakes bonus collector.
+- `/intel/rtp` — RTP scanner and community reports.
+- `/intel/scanner` — Threat scanner.
+- `/intel/scams` — Known scam domain registry.
+- `/extension` — Chrome extension info and install.
+- `/dashboard` — User dashboard. Requires Discord OAuth login.
+- `/about` — About TiltCheck.
+- `/how-it-works` — Explainer for new users.
+- `/touch-grass` — Touch Grass Protocol. Responsible gambling resource.
+- `/sos` — Crisis / help resources.
+- `/collab` — Affiliate / collab application.
+- `/microgrant` — Recovery microgrant program.
+- `/beta-tester` — Beta signup.
+- `/blog` — Blog.
+
+## API Endpoints (Public RGaaS)
+
+Base URL: `https://api.tiltcheck.me`
+
+- `GET /rgaas/casino-scores` — Live trust scores for all tracked casinos. Source: trust-rollup service or cached snapshot.
+- `GET /rgaas/domain-check?domain=` — SusLink scan of a casino domain.
+- `GET /rgaas/license-check?domain=` — License registry lookup.
+- `GET /rgaas/shadow-bans` — Current community-reported casino flags.
+- `GET /rgaas/scam-domains` — Known scam domain list.
+- `POST /rgaas/tilt/evaluate` — Evaluate a session for tilt signals.
+- `POST /rgaas/email-ingest` — Parse a casino marketing email for trust signals.
+- `GET /health` — API health check.
+
+## Chrome Extension
+
+Browser extension for Chrome. Injects a sidebar HUD on casino sites. Features: session tracking, tilt detection, auto-vault triggers, provably fair verification, wallet bridge (Solana/Phantom). Does not store private keys. Communicates with the TiltCheck API.
+
+## Technical Stack
+
+- **Frontend**: Next.js 16 (App Router), Tailwind CSS, TypeScript
+- **API**: Express, TypeScript, Node.js 18+
+- **Trust Engine**: Custom scoring system in `@tiltcheck/trust-engines`
+- **Link Scanning**: `@tiltcheck/suslink`
+- **Tilt Detection**: `@tiltcheck/tiltcheck-core`
+- **Database**: Supabase (PostgreSQL)
+- **Auth**: Discord OAuth2
+- **Wallet**: Solana / Phantom (non-custodial)
+- **Deployment**: Railway (all services containerized)
+- **Monorepo**: pnpm workspaces + Turborepo
+
+## Brand Notes
+
+- Tone: Direct, blunt, degen-friendly. No apologies. No fluff.
+- Tagline: "Made for Degens. By Degens."
+- Non-custodial: TiltCheck never holds user funds or private keys.
+- Not a casino. Not financial advice.
+- No emojis in code or copy.
+
+## Legal / Compliance
+
+- All tools are informational only. Not financial or legal advice.
+- Non-custodial throughout — no fund custody.
+- Touch Grass Protocol: built-in responsible gambling resources and hard-stop tools.
+- License registry: public data aggregated from regulatory bodies. Not a guarantee of legitimacy.

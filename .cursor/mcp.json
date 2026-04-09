@@ -1,0 +1,13 @@
+{
+  "_comment": "© 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-08",
+  "mcpServers": {
+    "tiltcheck": {
+      "command": "node",
+      "args": ["./packages/mcp-server/dist/index.js"],
+      "env": {
+        "TILTCHECK_API_URL": "https://api.tiltcheck.me",
+        "MONOREPO_ROOT": "${workspaceFolder}"
+      }
+    }
+  }
+}

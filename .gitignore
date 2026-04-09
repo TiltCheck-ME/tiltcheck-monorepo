@@ -12,6 +12,7 @@ package-lock.json
 # Text files (allow known docs explicitly)
 *.txt
 !**/README.txt
+!apps/web/public/llms.txt
 
 # AI chat logs and exports
 *chat-export*
@@ -54,7 +55,8 @@ pnpm-debug.log*
 Thumbs.db
 
 # IDE
-.vscode/
+.vscode/*
+!.vscode/mcp.json
 .idea/
 *.swp
 *.swo
