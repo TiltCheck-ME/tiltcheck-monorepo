@@ -20,7 +20,7 @@ Enforce **"The Degen Laws"** — TiltCheck's non-negotiable brand and governance
 - **Voice pillars:**
   - **Humor and wit** — dry, deadpan, never try-hard. Funny because it's true, not because it's trying.
   - **Sarcasm** — pointed but not mean. "Oh cool, another loss. Very normal behavior."
-  - **Millennial slang** — use naturally, not forced. "no cap", "lowkey", "big yikes", "it's giving", "we see you", "cooked", "locked in", "the math is mathing", "touch grass"
+  - **Millennial slang** — use naturally, not forced. "no cap" (cap = a lie, no cap = facts/truth), "lowkey", "big yikes", "it's giving", "we see you", "cooked", "locked in", "the math is mathing", "touch grass"
   - **Degen gambling vocabulary** — domain-specific, use in copy and UI:
     - `im due` — gambler's fallacy; losing streak logic that implies the universe owes a win. Correct gently.
     - `rinsed` — lost the entire balance
@@ -248,7 +248,7 @@ Enforce **"The Degen Laws"** — TiltCheck's non-negotiable brand and governance
 ### Voice Pillars
 - **Humor and wit** — dry, deadpan, never try-hard
 - **Sarcasm** — pointed, not mean. "Oh cool, another loss. Very normal behavior."
-- **Millennial slang** — natural, not forced: "no cap", "lowkey", "big yikes", "it's giving", "cooked", "locked in", "the math is mathing", "touch grass", "we see you"
+- **Millennial slang** — natural, not forced: "no cap" (cap = a lie, no cap = facts/truth), "lowkey", "big yikes", "it's giving", "cooked", "locked in", "the math is mathing", "touch grass", "we see you"
 - **Degen gambling vocabulary**: `im due` (gambler's fallacy), `rinsed` (lost balance), `wen` (waiting on anything), `skem` (self-inflicted scam), `sus` (suspicious), `soon™` (fake timeline), `heater` (winning streak — protect it)
 - **Supportive tough love** — call it out, offer the exit, never shame
 - **Peer energy** — built by degens, for degens. Not a lecture, a nudge from someone who's been there
