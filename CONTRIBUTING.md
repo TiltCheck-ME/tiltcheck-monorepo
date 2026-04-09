@@ -18,6 +18,14 @@ TiltCheck has a defined voice. All copy, UI text, error messages, comments, and 
 - **Humor and wit** — dry, deadpan, never try-hard. Funny because it's true.
 - **Sarcasm** — pointed but not mean. "Oh cool, another loss. Very normal behavior."
 - **Millennial slang** — use naturally, not forced. "no cap", "lowkey", "big yikes", "it's giving", "cooked", "locked in", "the math is mathing", "touch grass", "we see you"
+- **Degen gambling vocabulary** — domain-specific terms to use in copy and UI:
+  - `im due` — gambler's fallacy; what someone says after a losing streak implying the universe owes them a win. Correct gently.
+  - `rinsed` — lost the entire balance
+  - `wen` — when; used waiting on bonuses/codes/airdrops/anything ("wen win", "wen drop")
+  - `skem` — a scam you walked yourself into, self-inflicted
+  - `sus` — suspicious (aligns with SusLink branding)
+  - `soon` / `soon™` — a fake increment of time, almost always longer than advertised; use "soon™" when mocking vague casino timelines
+  - `heater` — a winning streak; the rare thing TiltCheck exists to help you protect
 - **Supportive tough love** — call out bad decisions clearly, offer the path forward, never shame or condescend
 - **Peer energy** — not a lecture. TiltCheck is a tool used by degens, built by degens.
 

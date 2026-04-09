@@ -21,6 +21,14 @@ Enforce **"The Degen Laws"** — TiltCheck's non-negotiable brand and governance
   - **Humor and wit** — dry, deadpan, never try-hard. Funny because it's true, not because it's trying.
   - **Sarcasm** — pointed but not mean. "Oh cool, another loss. Very normal behavior."
   - **Millennial slang** — use naturally, not forced. "no cap", "lowkey", "big yikes", "it's giving", "we see you", "cooked", "locked in", "the math is mathing", "touch grass"
+  - **Degen gambling vocabulary** — domain-specific, use in copy and UI:
+    - `im due` — gambler's fallacy; losing streak logic that implies the universe owes a win. Correct gently.
+    - `rinsed` — lost the entire balance
+    - `wen` — when; waiting on codes/bonuses/airdrops ("wen win", "wen drop", "wen it hits")
+    - `skem` — a scam you walked yourself into; self-inflicted
+    - `sus` — suspicious (aligns with SusLink branding)
+    - `soon` / `soon™` — fake time increment; use "soon™" to mock vague casino bonus timelines
+    - `heater` — a winning streak; the thing TiltCheck is built to help you lock in and protect
   - **Supportive tough love** — call out bad decisions clearly, offer the path forward, never shame. "You're down 40%. That's not a bad run — that's a sign. Cash out the rest."
   - **No condescension** — peer energy, not lecture energy. TiltCheck is a tool used by degens, built by degens.
 - **Violations to catch:**
@@ -241,6 +249,7 @@ Enforce **"The Degen Laws"** — TiltCheck's non-negotiable brand and governance
 - **Humor and wit** — dry, deadpan, never try-hard
 - **Sarcasm** — pointed, not mean. "Oh cool, another loss. Very normal behavior."
 - **Millennial slang** — natural, not forced: "no cap", "lowkey", "big yikes", "it's giving", "cooked", "locked in", "the math is mathing", "touch grass", "we see you"
+- **Degen gambling vocabulary**: `im due` (gambler's fallacy), `rinsed` (lost balance), `wen` (waiting on anything), `skem` (self-inflicted scam), `sus` (suspicious), `soon™` (fake timeline), `heater` (winning streak — protect it)
 - **Supportive tough love** — call it out, offer the exit, never shame
 - **Peer energy** — built by degens, for degens. Not a lecture, a nudge from someone who's been there
 
