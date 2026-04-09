@@ -11,7 +11,7 @@ export default function TouchGrassPage() {
     <main className="min-h-screen bg-[#0a0c10] text-white">
       <section className="border-b border-[#ef4444]/30 py-32 px-4">
         <div className="max-w-4xl mx-auto text-center">
-          <h1 className="text-6xl md:text-7xl font-black uppercase tracking-tighter mb-6 text-[#ef4444]">
+          <h1 className="text-4xl md:text-5xl font-black uppercase tracking-tighter mb-6 text-[#ef4444]">
             TOUCH GRASS PROTOCOL
           </h1>
           <p className="text-lg text-gray-400 max-w-2xl mx-auto">
@@ -184,7 +184,7 @@ export default function TouchGrassPage() {
       {/* Degen Side Quests */}
       <section className="py-16 px-4 border-t border-[#283347]">
         <div className="max-w-4xl mx-auto">
-          <h2 className="text-3xl font-black uppercase tracking-tighter mb-2 text-white">Degen Side Quests</h2>
+          <h2 className="text-2xl font-black uppercase tracking-tight mb-2 text-white">Degen Side Quests</h2>
           <p className="text-gray-500 font-mono text-sm mb-10 uppercase tracking-widest">
             You need something to do with your hands. Pick a quest. Do not open a casino tab.
           </p>
@@ -270,7 +270,7 @@ export default function TouchGrassPage() {
       {/* Bottom CTA */}
       <section className="py-16 px-4 border-t border-[#283347] bg-black/60 text-center">
         <div className="max-w-2xl mx-auto">
-          <h2 className="text-3xl md:text-4xl font-black uppercase tracking-tight mb-4">
+          <h2 className="text-2xl font-black uppercase tracking-tight mb-4">
             Right Now
           </h2>
           <p className="text-gray-400 mb-8 text-lg">

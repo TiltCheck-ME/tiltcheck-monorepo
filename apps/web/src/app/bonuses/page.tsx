@@ -50,7 +50,7 @@ export default async function BonusesPage() {
           <p className="text-xs font-mono text-[#17c3b2] uppercase tracking-widest mb-4">
             BONUS INTEL // COLLECTCLOCK DATA
           </p>
-          <h1 className="neon neon-main text-5xl mb-6" data-text="DAILY BONUS TRACKER">
+          <h1 className="neon neon-main text-4xl md:text-5xl mb-6" data-text="DAILY BONUS TRACKER">
             DAILY BONUS TRACKER
           </h1>
           <p className="text-lg text-gray-400 max-w-2xl mx-auto font-mono leading-relaxed mb-6">

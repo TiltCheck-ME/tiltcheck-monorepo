@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-03-24 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-09 */
 import React from 'react';
 import Link from 'next/link';
 
@@ -38,7 +38,7 @@ export default async function BlogPage() {
   return (
     <main className="flex min-h-screen flex-col items-center p-4 pt-24 max-w-5xl mx-auto">
       <section className="w-full mb-12">
-        <h1 className="neon neon-main text-5xl mb-4" data-text="DEGEN INTEL">
+        <h1 className="neon neon-main text-4xl md:text-5xl mb-4" data-text="DEGEN INTEL">
           DEGEN INTEL
         </h1>
         <p className="text-muted max-w-2xl border-l-2 border-primary pl-4 py-2">
@@ -68,7 +68,7 @@ export default async function BlogPage() {
               </div>
               
               <Link href={`/blog/${post.slug}`}>
-                <h2 className="text-2xl font-bold mb-3 group-hover:text-color-primary transition-colors cursor-pointer uppercase tracking-tight">
+                <h2 className="text-2xl font-black mb-3 group-hover:text-color-primary transition-colors cursor-pointer uppercase tracking-tight">
                   {post.title}
                 </h2>
               </Link>

@@ -17,7 +17,7 @@ const NAV_LINKS: Array<{ href: string; label: string; accent?: string }> = [
   { href: '/docs',       label: 'Docs' },
   { href: '/extension',  label: 'Extension' },
   { href: '/microgrant', label: 'Recovery Fund', accent: 'danger' },
-  { href: '/collab',     label: 'Partner',        accent: 'purple' },
+  { href: '/collab',     label: 'Contact',        accent: 'purple' },
 ];
 
 const ACCENT_CLASS: Record<string, string> = {

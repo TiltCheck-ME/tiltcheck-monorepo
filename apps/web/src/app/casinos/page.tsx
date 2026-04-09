@@ -287,7 +287,7 @@ export default function CasinosPage() {
               <div className="flex justify-between items-start mb-5">
                 <div className="flex-1 min-w-0 pr-4">
                   <div className="flex items-center gap-2">
-                    <h2 className="text-xl font-black tracking-tight text-white uppercase truncate">{casino.name}</h2>
+                    <h2 className="text-2xl font-black tracking-tight text-white uppercase truncate">{casino.name}</h2>
                     {live && (
                       <span className="text-[8px] font-black px-1.5 py-0.5 bg-[#17c3b2]/15 border border-[#17c3b2]/50 text-[#17c3b2] uppercase tracking-widest shrink-0">LIVE</span>
                     )}
