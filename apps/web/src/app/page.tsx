@@ -1,6 +1,6 @@
 // © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-09
 import ToolCard from "@/components/ToolCard";
-import LiveAuditLog from "@/components/LiveAuditLog";
+
 import { features } from "@/config/features";
 
 
@@ -52,7 +52,6 @@ export default function Home() {
           <p className="section-subheading">Nine tools. One audit layer. No cap.</p>
         </div>
         <div className="mt-8 tools-bento-grid">
-          <LiveAuditLog />
           {features.map((tool) => (
             <ToolCard key={tool.title} {...tool} />
           ))}
