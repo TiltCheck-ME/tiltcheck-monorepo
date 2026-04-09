@@ -25,3 +25,6 @@ export { jme } from './jme.js';
 export { lockvault } from './lockvault.js';
 // Discord Activities
 export { play } from './play.js';
+
+// External Data
+export { bonuses } from './bonuses.js';
