@@ -103,12 +103,12 @@ export default function MicrograntPage() {
           <div className="inline-block text-[10px] font-mono font-bold uppercase tracking-[0.3em] text-[#ef4444] border border-[#ef4444]/40 px-3 py-1 mb-6">
             Community Recovery Fund
           </div>
-          <h1 className="text-5xl md:text-7xl font-black uppercase tracking-tighter mb-6 text-white leading-none">
+          <h1 className="text-4xl md:text-5xl font-black uppercase tracking-tighter mb-6 text-white leading-none">
             You Gambled.
             <br />
             <span className="text-[#ef4444]">It Did Not Go Well.</span>
             <br />
-            <span className="text-gray-400 text-3xl md:text-4xl">
+            <span className="text-gray-400 text-2xl md:text-3xl">
               Shocking.
             </span>
           </h1>
