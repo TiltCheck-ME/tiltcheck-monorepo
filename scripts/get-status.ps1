@@ -10,19 +10,27 @@
 # Ensure commands don't dump verbose errors to the console
 $ErrorActionPreference = "SilentlyContinue"
 
+# Resolve tool paths — safe for Task Scheduler / non-interactive contexts
+function Get-ToolPath([string]$Name) {
+    return (Get-Command $Name -ErrorAction SilentlyContinue)?.Source
+}
+$gitPath  = Get-ToolPath "git"
+$nodePath = Get-ToolPath "node"
+$pnpmPath = Get-ToolPath "pnpm"
+$tscPath  = Get-ToolPath "tsc"
+
 # 1. Get Git Information
-$branch = (git rev-parse --abbrev-ref HEAD).Trim()
-# Get machine-readable status, convert each line to a JSON-compatible string
-$statusLines = git status --porcelain | ForEach-Object { '"' + ($_.Replace('', '').Replace('"', '"')) + '"' }
+$branch = if ($gitPath) { (& $gitPath rev-parse --abbrev-ref HEAD).Trim() } else { "unknown" }
+$statusLines = if ($gitPath) { & $gitPath status --porcelain | ForEach-Object { '"' + ($_.Replace('', '').Replace('"', '"')) + '"' } } else { @() }
 $gitStatusJson = "[" + ($statusLines -join ',') + "]"
 
 # 2. Get Version Information
-$nodeVersion = (node --version).Trim()
-$pnpmVersion = (pnpm --version).Trim()
-$tscVersion = (tsc --version).Trim()
+$nodeVersion = if ($nodePath) { (& $nodePath --version).Trim() } else { "not found" }
+$pnpmVersion = if ($pnpmPath) { (& $pnpmPath --version).Trim() } else { "not found" }
+$tscVersion  = if ($tscPath)  { (& $tscPath --version).Trim()  } else { "not found" }
 
 # 3. Get Workspace Package Information as a JSON string
-$pnpmListJson = pnpm m ls --json --depth=-1
+$pnpmListJson = if ($pnpmPath) { & $pnpmPath m ls --json --depth=-1 } else { "[]" }
 
 # 4. Manually construct the final JSON string for robust and predictable output
 $jsonOutput = @"

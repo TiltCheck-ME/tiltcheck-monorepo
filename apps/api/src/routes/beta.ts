@@ -1,7 +1,7 @@
-/* Copyright (c) 2026 TiltCheck. All rights reserved. */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-09 */
 /**
  * Beta Routes - /beta/*
- * Handles beta program signups from tiltcheck.me/beta.html
+ * Handles data contributor signups from tiltcheck.me/beta-tester
  */
 
 import { Router } from 'express';
@@ -19,54 +19,47 @@ type BetaSignupRow = {
   created_at?: Date;
 };
 
-function parseInterests(raw: unknown): string[] {
+function parseList(raw: unknown): string[] {
   if (!Array.isArray(raw)) return [];
   return raw
-    .map((value) => (typeof value === 'string' ? value.trim() : ''))
-    .filter((value) => value.length > 0)
-    .slice(0, 12);
+    .map((v) => (typeof v === 'string' ? v.trim() : ''))
+    .filter((v) => v.length > 0)
+    .slice(0, 20);
 }
 
 /**
  * POST /beta/signup
- * Public beta signup endpoint (duplicate-safe by email).
+ * Data contributor signup — deduped by discord_username.
  */
 router.post('/signup', async (req, res) => {
-  const { email, discord_username, interests, experience_level, feedback_preference, referral_source, website } =
+  const { discord_username, casinos, play_frequency, verify_types, experience, website } =
     req.body ?? {};
 
-  // Honeypot check
+  // Honeypot
   if (website) {
     res.status(400).json({ success: false, error: 'Bot detected' });
     return;
   }
 
-  const cleanEmail = typeof email === 'string' ? email.trim().toLowerCase() : '';
-  if (!cleanEmail || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(cleanEmail)) {
-    res.status(400).json({ success: false, error: 'Invalid email address' });
+  const cleanDiscord = typeof discord_username === 'string' ? discord_username.trim() : '';
+  if (!cleanDiscord) {
+    res.status(400).json({ success: false, error: 'Discord username required' });
     return;
   }
 
+  // Map new fields onto existing DB schema columns
   const row: BetaSignupRow = {
-    email: cleanEmail,
-    discord_username: typeof discord_username === 'string' && discord_username.trim()
-      ? discord_username.trim()
-      : null,
-    interests: parseInterests(interests),
-    experience_level: typeof experience_level === 'string' && experience_level.trim()
-      ? experience_level.trim()
-      : null,
-    feedback_preference: typeof feedback_preference === 'string' && feedback_preference.trim()
-      ? feedback_preference.trim()
-      : null,
-    referral_source: typeof referral_source === 'string' && referral_source.trim()
-      ? referral_source.trim().slice(0, 120)
-      : 'direct',
+    email: `${cleanDiscord.toLowerCase().replace(/[^a-z0-9]/g, '')}@discord.tiltcheck.placeholder`,
+    discord_username: cleanDiscord,
+    interests: parseList(casinos),                          // casinos they actively play
+    experience_level: typeof play_frequency === 'string' ? play_frequency.trim() : null,
+    feedback_preference: parseList(verify_types).join(', ') || null, // what they'll verify
+    referral_source: typeof experience === 'string' ? experience.trim().slice(0, 500) : 'direct',
     created_at: new Date(),
   };
 
   try {
-    const existing = await findOneBy('beta_signups', 'email', cleanEmail);
+    const existing = await findOneBy('beta_signups', 'discord_username', cleanDiscord);
     if (existing) {
       res.json({ success: true, duplicate: true, message: 'Already signed up' });
       return;
@@ -74,7 +67,6 @@ router.post('/signup', async (req, res) => {
 
     await insert('beta_signups', row);
 
-    // Notify Discord beta-applications channel
     const webhookUrl = process.env.DISCORD_BETA_WEBHOOK_URL;
     if (webhookUrl) {
       fetch(webhookUrl, {
@@ -83,14 +75,14 @@ router.post('/signup', async (req, res) => {
         body: JSON.stringify({
           username: 'TiltCheck Beta Gate',
           embeds: [{
-            title: '\uD83D\uDCCB New Beta Application',
+            title: 'New Data Contributor Application',
             color: 0x17c3b2,
             fields: [
-              { name: 'Discord', value: row.discord_username || 'Not provided', inline: true },
-              { name: 'Email', value: row.email, inline: true },
-              { name: 'Experience', value: row.experience_level || 'Not specified', inline: true },
-              { name: 'Interests', value: (row.interests || []).join(', ') || 'None listed', inline: false },
-              { name: 'Referral', value: row.referral_source || 'direct', inline: true },
+              { name: 'Discord', value: row.discord_username || 'Unknown', inline: true },
+              { name: 'Plays Frequency', value: row.experience_level || 'Not specified', inline: true },
+              { name: 'Casinos', value: (row.interests || []).join(', ') || 'None listed', inline: false },
+              { name: 'Will Verify', value: row.feedback_preference || 'Not specified', inline: false },
+              { name: 'Their Experience', value: (row.referral_source || '').slice(0, 200) || 'None', inline: false },
             ],
             footer: { text: 'From tiltcheck.me/beta-tester' },
             timestamp: new Date().toISOString(),
@@ -101,7 +93,6 @@ router.post('/signup', async (req, res) => {
 
     res.json({ success: true, message: 'Signed up successfully' });
   } catch (error: unknown) {
-    // Race-safe duplicate handling if another request inserted first.
     const code = typeof error === 'object' && error !== null && 'code' in error
       ? String((error as { code?: unknown }).code)
       : '';

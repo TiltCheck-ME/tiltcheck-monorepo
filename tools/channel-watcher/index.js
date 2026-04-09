@@ -60,11 +60,12 @@ const WATCH_KEYWORDS = [
     ...(process.env.WATCH_KEYWORDS ? process.env.WATCH_KEYWORDS.split(',').map(k => k.trim().toLowerCase()) : []),
     ...ALL_CRISIS_KEYWORDS
 ];
-const LOG_FILE = path.join(__dirname, 'messages.jsonl');
-const REPORT_FILE = path.join(__dirname, 'reports.md');
-const CITATIONS_FILE = path.join(__dirname, 'citations.md');
-const SESSION_FILE = path.join(__dirname, '.session.json');
-const CHECKPOINT = path.join(__dirname, '.checkpoint.json');
+const DATA_DIR = process.env.DATA_DIR ? path.resolve(process.env.DATA_DIR) : __dirname;
+const LOG_FILE = path.join(DATA_DIR, 'messages.jsonl');
+const REPORT_FILE = path.join(DATA_DIR, 'reports.md');
+const CITATIONS_FILE = path.join(DATA_DIR, 'citations.md');
+const SESSION_FILE = path.join(DATA_DIR, '.session.json');
+const CHECKPOINT = path.join(DATA_DIR, '.checkpoint.json');
 
 // Scrape limits
 const MAX_MESSAGES = parseInt(process.env.MAX_MESSAGES || '400', 10);

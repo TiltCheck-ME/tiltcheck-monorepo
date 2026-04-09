@@ -21,12 +21,14 @@ run_or_echo() {
 
 if [[ "$DRY_RUN" != "1" ]]; then
   command -v gcloud >/dev/null 2>&1 || {
-    echo "[ERROR] gcloud CLI not found."
+    echo "[ERROR] gcloud CLI not found. Install from https://cloud.google.com/sdk/docs/install"
     exit 1
   }
 fi
 
-run_or_echo "gcloud compute ssh \"$VM_NAME\" --zone=\"$ZONE\" --command='
+GCLOUD_BIN="$(command -v gcloud 2>/dev/null || echo gcloud)"
+
+run_or_echo "$GCLOUD_BIN compute ssh \"$VM_NAME\" --zone=\"$ZONE\" --command='
   set -euo pipefail
   LAST_BACKUP=\$(ls -1dt /opt/tiltcheck-backups/* 2>/dev/null | head -n 1)
   test -n \"\$LAST_BACKUP\" || { echo \"No backup available\"; exit 1; }

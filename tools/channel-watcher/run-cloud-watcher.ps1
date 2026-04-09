@@ -61,9 +61,26 @@ function Resolve-Setting {
     return ""
 }
 
+function Resolve-ToolPath {
+    param([string]$Name, [string[]]$FallbackPaths = @())
+    $found = (Get-Command $Name -ErrorAction SilentlyContinue)?.Source
+    if ($found) { return $found }
+    foreach ($p in $FallbackPaths) {
+        if (Test-Path $p) { return $p }
+    }
+    throw "$Name not found in PATH. Ensure it is installed and accessible."
+}
+
+$npmPath   = Resolve-ToolPath "npm"
+$gcloudPath = Resolve-ToolPath "gcloud" -FallbackPaths @(
+    "C:\Program Files\Google\Cloud SDK\bin\gcloud.cmd",
+    "$env:LOCALAPPDATA\Google\Cloud SDK\bin\gcloud.cmd",
+    "$env:APPDATA\gcloud\bin\gcloud.cmd"
+)
+
 function Invoke-GCloud {
     param([string[]]$CommandArgs)
-    & gcloud @CommandArgs
+    & $gcloudPath @CommandArgs
     if ($LASTEXITCODE -ne 0) {
         throw "gcloud command failed: gcloud $($CommandArgs -join ' ')"
     }
@@ -93,7 +110,7 @@ try {
     if (-not $resolvedVmIp) {
         Write-Host "Resolving VM external IP..."
         $resolvedVmIp = (
-            & gcloud compute instances describe $resolvedVmName --zone $resolvedZone @projectArgs --format "get(networkInterfaces[0].accessConfigs[0].natIP)"
+            & $gcloudPath compute instances describe $resolvedVmName --zone $resolvedZone @projectArgs --format "get(networkInterfaces[0].accessConfigs[0].natIP)"
         ).Trim()
     }
 
@@ -127,21 +144,21 @@ try {
     Write-Host "Ollama is ready. Running channel watcher for $DurationMinutes minute(s)..."
     Push-Location $scriptDir
     try {
-        & npm run live -- "--duration=$DurationMinutes"
+        & $npmPath run live -- "--duration=$DurationMinutes"
         if ($LASTEXITCODE -ne 0) {
             throw "channel-watcher run failed."
         }
 
         if (-not $SkipComic) {
             Write-Host "Generating Daily Degen Comic payload from latest logs..."
-            & npm run comic:daily
+            & $npmPath run comic:daily
             if ($LASTEXITCODE -ne 0) {
                 Write-Host "⚠️ comic:daily failed (continuing). You can rerun manually: npm run comic:daily"
             } else {
                 Write-Host "✅ Daily Degen Comic payload updated."
                 if ($env:COMIC_API_URL) {
                     Write-Host "Publishing Daily Degen Comic to cloud endpoint..."
-                    & npm run comic:publish
+                    & $npmPath run comic:publish
                     if ($LASTEXITCODE -ne 0) {
                         Write-Host "⚠️ comic:publish failed (continuing). Check COMIC_API_URL/COMIC_API_INGEST_KEY."
                     } else {

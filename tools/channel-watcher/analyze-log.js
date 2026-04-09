@@ -8,11 +8,12 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 dotenv.config({ path: path.join(__dirname, '.env') });
 dotenv.config({ path: path.join(__dirname, '..', '..', '.env'), override: false });
 
-const LOG_FILE = path.join(__dirname, 'messages.jsonl');
-const REPORT_FILE_BUSINESS = path.join(__dirname, 'reports_business.md');
-const REPORT_FILE_LORE = path.join(__dirname, 'reports_lore.md');
+const DATA_DIR = process.env.DATA_DIR ? path.resolve(process.env.DATA_DIR) : __dirname;
+const LOG_FILE = path.join(DATA_DIR, 'messages.jsonl');
+const REPORT_FILE_BUSINESS = path.join(DATA_DIR, 'reports_business.md');
+const REPORT_FILE_LORE = path.join(DATA_DIR, 'reports_lore.md');
 const TICKER_LOG_FILE = path.join(__dirname, '..', '..', 'apps', 'api', 'data', 'web_signals.json');
-const CITATIONS_FILE = path.join(__dirname, 'citations.md');
+const CITATIONS_FILE = path.join(DATA_DIR, 'citations.md');
 const GPT_MAX_MESSAGES = 150;
 const PROVIDER = (process.env.PROVIDER || 'groq').toLowerCase();
 const LORE_MODE = process.argv.includes('--lore'); // Only generate comic lore when asked

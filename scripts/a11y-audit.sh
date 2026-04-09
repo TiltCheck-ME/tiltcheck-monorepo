@@ -13,6 +13,19 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 PORT="5178"
 
+# Use locally installed binaries — npx is unreliable in cron/CI (PATH stripped)
+PA11Y_BIN="$ROOT_DIR/node_modules/.bin/pa11y"
+LH_BIN="$ROOT_DIR/node_modules/.bin/lighthouse"
+
+if [[ ! -x "$PA11Y_BIN" ]]; then
+  echo "[a11y] ERROR: pa11y not found at $PA11Y_BIN. Run 'pnpm install' first."
+  exit 1
+fi
+if [[ ! -x "$LH_BIN" ]]; then
+  echo "[a11y] ERROR: lighthouse not found at $LH_BIN. Run 'pnpm install' first."
+  exit 1
+fi
+
 # Try to use locally installed Chrome to avoid puppeteer Chromium download.
 MAC_CHROME="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
 LINUX_CHROME="/usr/bin/google-chrome"
@@ -50,23 +63,23 @@ done
 # Pa11y audits (basic rules) - fail on serious issues
 PUPPETEER_EXECUTABLE_PATH="${PUPPETEER_EXECUTABLE_PATH:-}" \
 CHROME_PATH="${CHROME_PATH:-}" \
-npx pa11y "http://localhost:$PORT/index.html" --threshold 0 || true
+"$PA11Y_BIN" "http://localhost:$PORT/index.html" --threshold 0 || true
 
 PUPPETEER_EXECUTABLE_PATH="${PUPPETEER_EXECUTABLE_PATH:-}" \
 CHROME_PATH="${CHROME_PATH:-}" \
-npx pa11y "http://localhost:$PORT/trust-panel.html" --threshold 0 || true
+"$PA11Y_BIN" "http://localhost:$PORT/trust-panel.html" --threshold 0 || true
 
 PUPPETEER_EXECUTABLE_PATH="${PUPPETEER_EXECUTABLE_PATH:-}" \
 CHROME_PATH="${CHROME_PATH:-}" \
-npx pa11y "http://localhost:$PORT/transparency-hero.html" --threshold 0 || true
+"$PA11Y_BIN" "http://localhost:$PORT/transparency-hero.html" --threshold 0 || true
 
 PUPPETEER_EXECUTABLE_PATH="${PUPPETEER_EXECUTABLE_PATH:-}" \
 CHROME_PATH="${CHROME_PATH:-}" \
-npx pa11y "http://localhost:$PORT/ecosystem.html" --threshold 0 || true
+"$PA11Y_BIN" "http://localhost:$PORT/ecosystem.html" --threshold 0 || true
 
 PUPPETEER_EXECUTABLE_PATH="${PUPPETEER_EXECUTABLE_PATH:-}" \
 CHROME_PATH="${CHROME_PATH:-}" \
-npx pa11y "http://localhost:$PORT/degen-trust-engine.html" --threshold 0 || true
+"$PA11Y_BIN" "http://localhost:$PORT/degen-trust-engine.html" --threshold 0 || true
 
 # Lighthouse (only accessibility category) - produce JSON (retry up to 3x)
 LH_URL="http://localhost:$PORT/index.html"
@@ -74,7 +87,7 @@ for attempt in 1 2 3; do
   echo "[a11y] Lighthouse attempt $attempt on $LH_URL"
   PUPPETEER_EXECUTABLE_PATH="${PUPPETEER_EXECUTABLE_PATH:-}" \
   CHROME_PATH="${CHROME_PATH:-}" \
-  npx lighthouse "$LH_URL" \
+  "$LH_BIN" "$LH_URL" \
     --only-categories=accessibility \
     --quiet --no-enable-error-reporting \
     --max-wait-for-load=120000 \
@@ -88,7 +101,7 @@ for attempt in 1 2 3; do
   echo "[a11y] Lighthouse attempt $attempt on $LH_URL_ECO"
   PUPPETEER_EXECUTABLE_PATH="${PUPPETEER_EXECUTABLE_PATH:-}" \
   CHROME_PATH="${CHROME_PATH:-}" \
-  npx lighthouse "$LH_URL_ECO" \
+  "$LH_BIN" "$LH_URL_ECO" \
     --only-categories=accessibility \
     --quiet --no-enable-error-reporting \
     --max-wait-for-load=120000 \

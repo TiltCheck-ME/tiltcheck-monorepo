@@ -7,14 +7,14 @@ export default function HouseEdgeScannerPage() {
       <section className="border-b border-[#283347] py-32 px-4">
         <div className="max-w-4xl mx-auto text-center">
           <p className="text-xs font-mono text-[#17c3b2] uppercase tracking-widest mb-4">RTP FORENSICS</p>
-          <h1 className="neon neon-main text-5xl md:text-7xl mb-6" data-text="THE DELTA ENGINE">
-            THE DELTA ENGINE
+          <h1 className="neon neon-main text-5xl md:text-7xl mb-6" data-text="HOUSE EDGE SCANNER">
+            HOUSE EDGE SCANNER
           </h1>
           <div className="inline-block border border-[#ffd700]/40 bg-[#ffd700]/5 px-4 py-2 mb-8">
             <span className="text-xs font-black font-mono text-[#ffd700] uppercase tracking-widest">IN DEVELOPMENT — COMING SOON</span>
           </div>
           <p className="text-lg text-gray-400 max-w-2xl mx-auto font-mono">
-            The house says it pays 96.5%. Your session is running 88%. The Delta Engine finds the gap and surfaces the Greed Premium in real-time, per $100 wagered.
+            The house says it pays 96.5%. Your session is running 88%. The House Edge Scanner finds the gap and surfaces the Greed Premium in real-time, per $100 wagered.
           </p>
         </div>
       </section>

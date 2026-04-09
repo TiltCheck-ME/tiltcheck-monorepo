@@ -57,7 +57,11 @@
     "seed:casino-trust": "node scripts/seed-casino-trust-from-scrape.js --include-existing --runtime-output ./data/casino-trust.json",
     "ops:task-ai": "node scripts/daily-task-ai.mjs",
     "trust:build": "pnpm --filter @tiltcheck/trust-engines build",
-    "trust:start": "pnpm trust:build && node scripts/start-trust-engine-check.mjs"
+    "trust:start": "pnpm trust:build && node scripts/start-trust-engine-check.mjs",
+    "crawl:emails": "tsx scripts/email-crawler.ts",
+    "crawl:emails:dry": "tsx scripts/email-crawler.ts --dry-run",
+    "crawl:emails:all": "tsx scripts/email-crawler.ts --all",
+    "crawl:emails:schedule": "powershell -ExecutionPolicy Bypass -File scripts/register-email-crawler-task.ps1"
   },
   "devDependencies": {
     "@google-cloud/secret-manager": "^6.1.1",
@@ -71,10 +75,12 @@
     "eslint": "^10.1.0",
     "eslint-config-prettier": "^10.1.8",
     "http-server": "^14.1.1",
+    "imap": "^0.8.19",
     "jsdom": "^29.0.1",
     "knip": "^6.1.0",
     "lighthouse": "^13.0.3",
     "lunr": "^2.3.9",
+    "mailparser": "^3.9.8",
     "pa11y": "^9.1.1",
     "prettier": "^3.8.1",
     "puppeteer": "^24.40.0",

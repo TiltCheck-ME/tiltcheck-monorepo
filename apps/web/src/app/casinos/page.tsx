@@ -1,9 +1,17 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-10 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-08 */
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import "@/styles/terminal.css";
 import RAW_CASINOS from '@/data/casinos.json';
+
+interface LiveTrustScore {
+  casinoName: string;
+  currentScore: number;
+  riskLevel: string;
+  events24h: number;
+  updatedAt?: string;
+}
 
 interface RawCasino {
   name: string;
@@ -57,34 +65,41 @@ function seededFloat(seed: number, salt: number): number {
   return x - Math.floor(x);
 }
 
-// Lower number = shown first. Unranked entries sort by score after ranked ones.
+// Lower number = shown first. Sweepstakes platforms ranked first — most relevant to US community.
 const POPULARITY_RANK: Record<string, number> = {
-  'Bet365': 1, 'DraftKings Casino': 2, 'FanDuel Casino': 3, 'BetMGM': 4,
-  'PokerStars Casino': 5, 'William Hill': 6, 'Stake.com': 7, '888casino': 8,
-  'Caesars Casino': 9, 'Ladbrokes': 10, 'Betway': 11, 'Roobet': 12,
-  'Paddy Power': 13, 'Unibet': 14, 'Betsson': 15, 'Rollbit': 16,
-  'Betfair Casino': 17, 'BetRivers': 18, 'LeoVegas': 19, 'Bovada': 20,
-  'BC.Game': 21, 'Borgata Online': 22, 'Golden Nugget Online': 23,
-  'Mr Green': 24, 'Hard Rock Bet': 25, 'WynnBET': 26, 'PlaySugarHouse': 27,
-  'Betfred': 28, 'Kindred Group': 29, 'Sky Vegas': 30, 'Casumo': 31,
-  'Coral': 32, 'Grosvenor Casino': 33, 'PartyCasino': 34, 'PlayOJO': 35,
+  'Chumba Casino': 1, 'Global Poker': 2, 'LuckyLand Slots': 3, 'Pulsz': 4,
+  'WOW Vegas': 5, 'High 5 Casino': 6, 'Stake.us': 7, 'McLuck': 8,
+  'Fortune Coins': 9, 'Hello Millions': 10, 'Modo Casino': 11, 'Funrize': 12,
+  'Zula Casino': 13, 'Crown Coins Casino': 14, 'NoLimitCoins': 15, 'Sportzino': 16,
+  'Roobet': 17, 'Stake.com': 18, 'Rollbit': 19, 'Gamdom': 20,
+  'BC.Game': 21, 'Shuffle': 22, 'Wolf.bet': 23,
+  'DraftKings Casino': 24, 'FanDuel Casino': 25, 'BetMGM': 26,
+  'Caesars Casino': 27, 'BetRivers': 28, 'Borgata Online': 29,
+  'Golden Nugget Online': 30, 'Hard Rock Bet': 31, 'WynnBET': 32,
+  'Bitcasino.io': 33, 'Sportsbet.io': 34, 'Bovada': 35,
 };
 
 // License info and documented compliance violations for major operators
 const CASINO_META: Record<string, CasinoMeta> = {
-  'Bet365':           { license: 'UKGC / Malta MGA / Gibraltar GGB', violations: ['£52.5m UKGC fine (2023) — AML and social responsibility failures'] },
-  '888casino':        { license: 'UKGC / Gibraltar GGB / Malta MGA', violations: ['£9.4m UKGC fine (2022) — social responsibility failures'] },
-  'William Hill':     { license: 'UKGC / Gibraltar GGB', violations: ['£19.2m UKGC fine (2023) — AML failures', '£6.2m UKGC fine (2018)'] },
-  'Betway':           { license: 'UKGC / Malta MGA', violations: ['£11.6m UKGC fine (2021) — VIP customer handling failures'] },
-  'Ladbrokes':        { license: 'UKGC / Malta MGA', violations: ['Part of £17m Entain UKGC penalty (2022) — social responsibility failures'] },
-  'Coral':            { license: 'UKGC / Malta MGA', violations: ['Part of £17m Entain UKGC penalty (2022) — social responsibility failures'] },
-  'Kindred Group':    { license: 'Malta MGA / UKGC / Sweden Spelinspektionen', violations: ['£3m UKGC penalty (2022) — social responsibility failures'] },
-  'LeoVegas':         { license: 'Malta MGA / UKGC', violations: ['£1.32m UKGC fine (2022) — safer gambling failures'] },
-  'Paddy Power':      { license: 'UKGC / Ireland AGRI', violations: ['£2.2m UKGC fine (2016)', 'Multiple Flutter Group UKGC regulatory settlements'] },
-  'Betfair Casino':   { license: 'UKGC / Malta MGA / Gibraltar GGB', violations: ['Multiple historical UKGC informal regulatory actions'] },
-  'Sky Vegas':        { license: 'UKGC / Malta MGA', violations: ['Part of Flutter Group regulatory settlements'] },
-  'Mr Green':         { license: 'Malta MGA / UKGC / Sweden Spelinspektionen', violations: [] },
-  'PokerStars Casino':{ license: 'Isle of Man GSC / UKGC / Malta MGA', violations: [] },
+  // Sweepstakes — VGW Group (most established)
+  'Chumba Casino':    { license: 'VGW Holdings — Sweepstakes model (US/Canada)', violations: [] },
+  'Global Poker':     { license: 'VGW Holdings — Sweepstakes model (US/Canada)', violations: [] },
+  'LuckyLand Slots':  { license: 'VGW Holdings — Sweepstakes model (US/Canada)', violations: [] },
+  // Sweepstakes — independent operators
+  'Pulsz':            { license: 'Sweepstakes model (US/Canada)', violations: [] },
+  'WOW Vegas':        { license: 'Sweepstakes model (US/Canada)', violations: [] },
+  'High 5 Casino':    { license: 'Sweepstakes model (US/Canada)', violations: [] },
+  'Stake.us':         { license: 'Sweepstakes model (US/Canada)', violations: ['Confusing sweepstakes redemption terms', 'Limited cashout options vs Stake.com'] },
+  'McLuck':           { license: 'Sweepstakes model (US/Canada)', violations: [] },
+  'Fortune Coins':    { license: 'Sweepstakes model (US/Canada)', violations: [] },
+  'Hello Millions':   { license: 'Sweepstakes model (US/Canada)', violations: [] },
+  'Modo Casino':      { license: 'Sweepstakes model (US/Canada)', violations: [] },
+  'Funrize':          { license: 'Sweepstakes model (US/Canada)', violations: [] },
+  'Zula Casino':      { license: 'Sweepstakes model (US/Canada)', violations: [] },
+  'Crown Coins Casino': { license: 'Sweepstakes model (US/Canada)', violations: [] },
+  'NoLimitCoins':     { license: 'Sweepstakes model (US/Canada)', violations: [] },
+  'Sportzino':        { license: 'Sweepstakes model (US/Canada)', violations: [] },
+  // US Regulated
   'DraftKings Casino':{ license: 'NJ DGE / PA PGCB / MI MGCB / WV LCB', violations: [] },
   'FanDuel Casino':   { license: 'NJ DGE / PA PGCB / MI MGCB', violations: [] },
   'BetMGM':           { license: 'NJ DGE / PA PGCB / MI MGCB / WV LCB', violations: [] },
@@ -95,21 +110,16 @@ const CASINO_META: Record<string, CasinoMeta> = {
   'Hard Rock Bet':    { license: 'NJ DGE / PA PGCB', violations: [] },
   'WynnBET':          { license: 'NJ DGE / MI MGCB', violations: [] },
   'PlaySugarHouse':   { license: 'NJ DGE / PA PGCB', violations: [] },
-  'Betfred':          { license: 'UKGC / Malta MGA', violations: [] },
-  'Unibet':           { license: 'UKGC / Malta MGA / Sweden Spelinspektionen', violations: [] },
-  'Betsson':          { license: 'Malta MGA / UKGC', violations: [] },
-  'Grosvenor Casino': { license: 'UKGC', violations: [] },
-  'PartyCasino':      { license: 'UKGC / Gibraltar GGB', violations: [] },
-  'PlayOJO':          { license: 'Malta MGA / UKGC', violations: [] },
-  'Casumo':           { license: 'Malta MGA / UKGC / Sweden Spelinspektionen', violations: [] },
+  'Bet365':           { license: 'UKGC / Malta MGA / Gibraltar GGB', violations: ['£52.5m UKGC fine (2023) — AML and social responsibility failures'] },
+  '888casino':        { license: 'UKGC / Gibraltar GGB / Malta MGA', violations: ['£9.4m UKGC fine (2022) — social responsibility failures'] },
+  'PokerStars Casino':{ license: 'Isle of Man GSC / UKGC / Malta MGA', violations: [] },
   // Offshore / Crypto
-  'Stake.com':   { license: 'Curaçao eGaming', violations: ['Blocked in US, UK, Australia, and numerous other jurisdictions', 'No independent third-party RTP audits published', 'Influencer marketing campaigns targeting under-25 audiences'] },
+  'Stake.com':   { license: 'Curaçao eGaming', violations: ['Blocked in US, UK, Australia, and numerous other jurisdictions', 'No independent third-party RTP audits published', 'Influencer marketing targeting under-25 audiences'] },
   'Roobet':      { license: 'Curaçao eGaming', violations: ['Blocked in multiple EU and North American jurisdictions', 'Operates in restricted regions relying on VPN workarounds'] },
   'Rollbit':     { license: 'Curaçao eGaming', violations: ['No published independent RTP audits', 'NFT/token integration raises unresolved regulatory questions'] },
   'BC.Game':     { license: 'Curaçao eGaming / Kahnawake', violations: ['Community withdrawal delay reports', 'Limited responsible gambling toolset'] },
   'Bovada':      { license: 'Kahnawake Gaming Commission', violations: ['Unlicensed in most US states', 'Withdrawal processing delay reports in community forums'] },
   'Ignition Casino': { license: 'Kahnawake Gaming Commission', violations: ['Unlicensed in most US states'] },
-  'Stake.US':    { license: 'Sweepstakes model — no gaming license required', violations: ['Confusing sweepstakes redemption terms', 'Limited cashout options'] },
   // Scam tier
   'SlotsOfVegas':         { license: 'No valid gaming license detected', violations: ['Widespread withdrawal denial reports', 'Blacklisted by AskGamblers and Casinomeister', 'Fake bonus terms'] },
   'CoolCat Casino':       { license: 'No valid gaming license detected', violations: ['Blacklisted by multiple watchdog sites', 'Chronic non-payment reports'] },
@@ -123,9 +133,6 @@ const CASINO_META: Record<string, CasinoMeta> = {
   'Planet 7 Casino':      { license: 'No valid gaming license', violations: ['Blacklisted — false advertising of no-deposit bonuses'] },
   'Prism Casino':         { license: 'No valid gaming license', violations: ['Blacklisted — rogue operator, chronic non-payment'] },
   'Eclipse Casino':       { license: 'No valid gaming license', violations: ['Blacklisted — associated with rogue operator network'] },
-  'Palace of Chance':     { license: 'No valid gaming license', violations: ['Blacklisted — withdrawal refusal and false advertising'] },
-  'SlotsPlus':            { license: 'No valid gaming license', violations: ['Blacklisted — sister site to multiple rogue operators'] },
-  'Slotastic':            { license: 'No valid gaming license', violations: ['Blacklisted — predatory bonus terms and non-payment'] },
 };
 
 function clamp(v: number) { return Math.max(5, Math.min(100, v)); }
@@ -182,9 +189,25 @@ const SCAM_FLAGS = [
 
 export default function CasinosPage() {
   const [search, setSearch] = useState('');
-  const [category, setCategory] = useState('All');
+  const [category, setCategory] = useState('Sweeps');
   const [page, setPage] = useState(1);
   const [expanded, setExpanded] = useState<string | null>(null);
+  const [liveScores, setLiveScores] = useState<Map<string, LiveTrustScore>>(new Map());
+
+  useEffect(() => {
+    const apiUrl = (process.env.NEXT_PUBLIC_API_URL || 'https://api.tiltcheck.me').replace(/\/$/, '');
+    fetch(`${apiUrl}/rgaas/casino-scores`)
+      .then(r => r.ok ? r.json() : null)
+      .then((body: { casinos?: LiveTrustScore[] } | null) => {
+        if (!body?.casinos?.length) return;
+        const map = new Map<string, LiveTrustScore>();
+        for (const entry of body.casinos) {
+          if (entry?.casinoName) map.set(entry.casinoName.toLowerCase(), entry);
+        }
+        setLiveScores(map);
+      })
+      .catch(() => { /* graceful degradation — static data still renders */ });
+  }, []);
 
   const filtered = useMemo(() => {
     return CASINOS.filter(c => {
@@ -205,9 +228,9 @@ export default function CasinosPage() {
       <header className="mb-12 text-center">
         <h1 className="neon neon-main" data-text="CASINO TRUST ENGINE">CASINO TRUST ENGINE</h1>
         <p className="text-xl text-muted mt-4 max-w-3xl mx-auto uppercase tracking-widest font-mono">
-          Know which casinos are actually fair before you lose your fkn rent.
+          Sweepstakes, crypto, and offshore casinos rated by the degen community.
         </p>
-        <p className="text-xs font-mono text-gray-600 mt-3">{CASINOS.length} platforms tracked — sorted by popularity</p>
+        <p className="text-xs font-mono text-gray-600 mt-3">{CASINOS.length} platforms tracked — sweepstakes shown first</p>
       </header>
 
       {/* Search + Filter */}
@@ -242,8 +265,14 @@ export default function CasinosPage() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {paged.map(casino => {
-          const scoreColor = getScoreColor(casino.score);
-          const riskStyle = getRiskBadgeStyle(casino.risk);
+          const live = liveScores.get(casino.name.toLowerCase());
+          const displayScore = live ? Math.round(live.currentScore) : casino.score;
+          const displayGrade = live
+            ? Object.entries(GRADE_SCORE).sort((a, b) => a[1] - b[1]).reduce((best, [g, s]) => Math.abs(s - live.currentScore) < Math.abs(GRADE_SCORE[best] - live.currentScore) ? g : best, 'F')
+            : casino.grade;
+          const displayRisk = live ? live.riskLevel.charAt(0).toUpperCase() + live.riskLevel.slice(1) : casino.risk;
+          const scoreColor = getScoreColor(displayScore);
+          const riskStyle = getRiskBadgeStyle(displayRisk);
           const isExpanded = expanded === casino.name;
           const isScam = casino.category === 'Scam' || casino.grade === 'F';
           const { meta } = casino;
@@ -257,13 +286,18 @@ export default function CasinosPage() {
             >
               <div className="flex justify-between items-start mb-5">
                 <div className="flex-1 min-w-0 pr-4">
-                  <h2 className="text-xl font-black tracking-tight text-white uppercase truncate">{casino.name}</h2>
+                  <div className="flex items-center gap-2">
+                    <h2 className="text-xl font-black tracking-tight text-white uppercase truncate">{casino.name}</h2>
+                    {live && (
+                      <span className="text-[8px] font-black px-1.5 py-0.5 bg-[#17c3b2]/15 border border-[#17c3b2]/50 text-[#17c3b2] uppercase tracking-widest shrink-0">LIVE</span>
+                    )}
+                  </div>
                   <div className="flex gap-2 mt-2 flex-wrap">
                     <span
                       className="text-[9px] font-black uppercase tracking-widest px-2 py-0.5 border"
                       style={{ color: riskStyle.color, borderColor: riskStyle.border }}
                     >
-                      {casino.risk} RISK
+                      {displayRisk} RISK
                     </span>
                     <span className="text-[9px] font-black uppercase tracking-widest px-2 py-0.5 border border-[#283347] text-gray-500">
                       {casino.category}
@@ -272,9 +306,9 @@ export default function CasinosPage() {
                 </div>
                 <div className="text-right shrink-0">
                   <div className="text-4xl font-black font-mono" style={{ color: scoreColor }}>
-                    {casino.grade}
+                    {displayGrade}
                   </div>
-                  <div className="text-[10px] uppercase tracking-tighter opacity-50 mt-0.5">{casino.score}/100</div>
+                  <div className="text-[10px] uppercase tracking-tighter opacity-50 mt-0.5">{displayScore}/100</div>
                 </div>
               </div>
 
@@ -309,7 +343,7 @@ export default function CasinosPage() {
                     {isExpanded ? 'Close Audit ↑' : 'View Audit →'}
                   </button>
                   <span className="text-[8px] font-mono text-gray-700 normal-case tracking-normal opacity-50">
-                    Trust Engine · Apr 2026
+                    {live ? `Live · ${new Date(live.updatedAt ?? Date.now()).toLocaleDateString()}` : 'Trust Engine · Apr 2026'}
                   </span>
                 </div>
               </div>

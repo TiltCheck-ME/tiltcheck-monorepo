@@ -27,13 +27,17 @@ Write-Host "Then edit: docs/migration/logs/milestone-log.md and docs/migration/l
 
 Step "5) Linear sync"
 if ($SyncLinear) {
+    $nodePath = (Get-Command node -ErrorAction SilentlyContinue)?.Source
+    if (-not $nodePath) { throw "node not found in PATH. Ensure Node.js is installed." }
+    $syncScript = Join-Path (Split-Path -Parent $MyInvocation.MyCommand.Path) "linear-sync.mjs"
+
     if ($LinearDryRun) {
         Write-Host "Running Linear sync in dry-run mode..."
-        & node scripts/linear-sync.mjs --dry-run
+        & $nodePath $syncScript --dry-run
     }
     else {
         Write-Host "Running Linear sync..."
-        & node scripts/linear-sync.mjs
+        & $nodePath $syncScript
     }
 
     if ($LASTEXITCODE -ne 0) {
