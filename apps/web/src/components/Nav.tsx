@@ -17,6 +17,7 @@ const Nav = () => {
       <Link href="/blog" onClick={() => setIsMenuOpen(false)} className="text-sm font-semibold uppercase tracking-wider hover:text-[#17c3b2] transition-colors duration-200">Blog</Link>
       <Link href="/docs" onClick={() => setIsMenuOpen(false)} className="text-sm font-semibold uppercase tracking-wider hover:text-[#17c3b2] transition-colors duration-200">Docs</Link>
       <Link href="/extension" onClick={() => setIsMenuOpen(false)} className="text-sm font-semibold uppercase tracking-wider hover:text-[#17c3b2] transition-colors duration-200">Extension</Link>
+      <Link href="/microgrant" onClick={() => setIsMenuOpen(false)} className="text-sm font-semibold uppercase tracking-wider hover:text-[#ef4444] text-gray-400 transition-colors duration-200">Recovery Fund</Link>
       <Link href="/beta-tester" onClick={() => setIsMenuOpen(false)} className="px-3 py-1 text-sm font-black uppercase tracking-widest rounded-full bg-[#17c3b2]/15 border border-[#17c3b2] text-[#17c3b2] hover:bg-[#17c3b2]/25 hover:shadow-[0_0_12px_rgba(23,195,178,0.4)] transition-all duration-200">Beta</Link>
     </>
   );
