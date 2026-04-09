@@ -11,7 +11,7 @@ export default function HouseEdgeScannerPage() {
             THE DELTA ENGINE
           </h1>
           <div className="inline-block border border-[#ffd700]/40 bg-[#ffd700]/5 px-4 py-2 mb-8">
-            <span className="text-xs font-black font-mono text-[#ffd700] uppercase tracking-widest">IN DEVELOPMENT — BETA Q2 2026</span>
+            <span className="text-xs font-black font-mono text-[#ffd700] uppercase tracking-widest">IN DEVELOPMENT — COMING SOON</span>
           </div>
           <p className="text-lg text-gray-400 max-w-2xl mx-auto font-mono">
             The house says it pays 96.5%. Your session is running 88%. The Delta Engine finds the gap and surfaces the Greed Premium in real-time, per $100 wagered.

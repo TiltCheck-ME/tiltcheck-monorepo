@@ -19,8 +19,8 @@ export default function DashboardPage() {
             <span className="prompt-text">query --trust-score --id=@me</span>
           </div>
           <div className="p-12 text-center">
-            <div className="text-8xl font-black text-[color:var(--color-primary)] tracking-tighter mb-4">75</div>
-            <div className="uppercase font-bold tracking-[0.2em] text-gray-500">Trust Index // Optimized</div>
+            <div className="text-8xl font-black text-[color:var(--color-primary)] tracking-tighter mb-4">—</div>
+            <div className="uppercase font-bold tracking-[0.2em] text-gray-500">Trust Index // Link Discord to see your score</div>
           </div>
         </div>
 
@@ -44,28 +44,26 @@ export default function DashboardPage() {
          <div className="p-8 border border-[#283347] bg-black/20">
             <h2 className="text-lg font-bold uppercase mb-4 tracking-tight">Recent Audit Events</h2>
             <div className="text-xs font-mono text-gray-600">
-               [11:42:01] Session established on Roobet.com<br/>
-               [11:39:12] RTP verified: 96.01%<br/>
-               [11:35:44] Intervention ENGINE enabled (Degen Mode)
+               No session data yet. Install the Chrome extension to start tracking your sessions.
             </div>
          </div>
          <div className="p-8 border border-[#283347] bg-black/20 flex flex-col justify-between">
             <div>
                 <h2 className="text-lg font-bold uppercase mb-2 tracking-tight">Active Vaults</h2>
-                <p className="text-sm text-gray-400">0.00 SOL protected across 3 vaults.</p>
+                <p className="text-sm text-gray-400">No active vaults. Connect your wallet to get started.</p>
             </div>
-            <button className="mt-8 text-left text-xs font-black uppercase tracking-widest text-[color:var(--color-primary)] hover:translate-x-2 transition-transform">
+            <a href="/tools/auto-vault" className="mt-8 text-left text-xs font-black uppercase tracking-widest text-[color:var(--color-primary)] hover:translate-x-2 transition-transform">
                Configure Vaults &rarr;
-            </button>
+            </a>
          </div>
          <div className="p-8 border border-green-500/20 bg-green-500/5 flex flex-col justify-between">
             <div>
                 <h2 className="text-lg font-bold uppercase mb-2 tracking-tight text-green-400">Wins Secured</h2>
-                <p className="text-sm text-gray-400">7 successful redeems tracked.</p>
+                <p className="text-sm text-gray-400">No redeems tracked yet. Your wins will show up here.</p>
             </div>
-            <a href="/dashboard" className="mt-8 text-left text-xs font-black uppercase tracking-widest text-green-400 hover:translate-x-2 transition-transform">
+            <button disabled className="mt-8 text-left text-xs font-black uppercase tracking-widest text-gray-600 cursor-not-allowed opacity-50">
                View History &rarr;
-            </a>
+            </button>
          </div>
       </section>
       {/* RTP Transparency Info */}
