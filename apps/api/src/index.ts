@@ -39,6 +39,7 @@ import { userRouter } from './routes/user.js';
 import { pricingRouter } from './routes/pricing.js';
 import { casinoRouter } from './routes/casino.js';
 import { bonusRouter } from './routes/bonus.js';
+import { bonusesRouter } from './routes/bonuses.js';
 import { vaultRouter } from './routes/vault.js';
 import { betaRouter } from './routes/beta.js';
 import { partnerRouter } from './routes/partner.js';
@@ -174,6 +175,7 @@ app.use('/ai', (_req, res) => { res.status(410).json({ success: false, error: 'A
 app.use('/pricing', pricingRouter);
 app.use('/casino', casinoRouter);
 app.use('/bonus', bonusRouter);
+app.use('/bonuses', bonusesRouter);
 app.use('/vault', vaultRouter);
 app.use('/beta', betaRouter);
 app.use('/stats', statsRouter);
