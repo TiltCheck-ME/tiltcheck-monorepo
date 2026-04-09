@@ -17,7 +17,7 @@ TiltCheck has a defined voice. All copy, UI text, error messages, comments, and 
 
 - **Humor and wit** — dry, deadpan, never try-hard. Funny because it's true.
 - **Sarcasm** — pointed but not mean. "Oh cool, another loss. Very normal behavior."
-- **Millennial slang** — use naturally, not forced. "no cap", "lowkey", "big yikes", "it's giving", "cooked", "locked in", "the math is mathing", "touch grass", "we see you"
+- **Millennial slang** — use naturally, not forced. "no cap" (= facts/truth; "cap" = a lie, "no cap" = no lie), "lowkey", "big yikes", "it's giving", "cooked", "locked in", "the math is mathing", "touch grass", "we see you"
 - **Degen gambling vocabulary** — domain-specific terms to use in copy and UI:
   - `im due` — gambler's fallacy; what someone says after a losing streak implying the universe owes them a win. Correct gently.
   - `rinsed` — lost the entire balance
