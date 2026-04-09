@@ -328,7 +328,7 @@ export async function handleRecoveryButton(
         .setColor(0xf59e0b)
         .setTitle('[COMMUNITY THRESHOLD REACHED]')
         .setDescription(
-          `Application \`${app.id}\` has reached ${VOTE_THRESHOLD} community vouches.\n\nAn admin must still confirm approval via the [APPROVE] button or \`/recover admin approve ${app.id}\`.`
+          `Application \`${app.id}\` has reached ${VOTE_THRESHOLD} community vouches.\n\nAn admin must still confirm approval via the [APPROVE] button or \`/igofuckedup admin approve ${app.id}\`.`
         );
       await reviewChannel.send({ embeds: [noticeEmbed] });
     }
@@ -459,8 +459,11 @@ async function notifySupportContact(
 
 export const recover: Command = {
   data: new SlashCommandBuilder()
-    .setName('recover')
+    .setName('igofuckedup')
     .setDescription('Community recovery microgrant — for degens who hit rock bottom and are ready to climb out')
+    .addSubcommand(sub =>
+      sub.setName('info').setDescription('How the community recovery microgrant works')
+    )
     .addSubcommand(sub =>
       sub
         .setName('apply')
@@ -516,7 +519,45 @@ export const recover: Command = {
     const sub = interaction.options.getSubcommand();
 
     // -------------------------------------------------------------------------
-    // /recover status
+    // /igofuckedup info
+    // -------------------------------------------------------------------------
+    if (sub === 'info') {
+      const infoEmbed = new EmbedBuilder()
+        .setColor(0x6366f1)
+        .setTitle('[COMMUNITY RECOVERY MICROGRANT]')
+        .setDescription(
+          'This is not a bailout. It is a hand up.\n\n' +
+          'If gambling has put you in genuine financial crisis and you are ready to make real changes, ' +
+          'the TiltCheck community has a fund specifically for this. No judgment. No lecturing. ' +
+          'Degens helping degens when it matters most.\n\n' +
+          '__**How it works:**__\n' +
+          '**1. Apply** — `/igofuckedup apply` with honest details about your hardship, what steps you are taking, and an accountability contact (someone who knows about your situation).\n\n' +
+          '**2. Accountability contact** — We DM your chosen person (must be on Discord). They confirm they know and are supportive. This is not optional — it is the single most important part.\n\n' +
+          '**3. Community review** — Your application (anonymized where possible) is reviewed by admins and vouched for by community members. Requires 10 community vouches or admin approval.\n\n' +
+          '**4. Grant paid** — Up to **1 SOL** sent directly to your linked wallet (set one with `/linkwallet`). One grant per person, ever.\n\n' +
+          '__**Requirements:**__\n' +
+          '- Must tell a non-gambler in your life about your problem\n' +
+          '- Must agree the money will NOT be used for gambling\n' +
+          '- Must provide proof of hardship and describe proactive steps you are taking\n' +
+          '- Must have a linked wallet to receive funds\n\n' +
+          '__**This is not for:**__\n' +
+          '- Paying off gambling debts\n' +
+          '- Funding more play\n' +
+          '- Anyone who is not genuinely trying to stop\n\n' +
+          `__**Fund wallet:**__ \`${RECOVERY_FUND_WALLET}\`\n` +
+          'Want to contribute? Send SOL to that address. Every lamport goes directly to grants.\n\n' +
+          '__**In crisis right now?**__\n' +
+          '**National Problem Gambling Helpline: 1-800-522-4700** (free, 24/7, confidential)\n' +
+          '[ncpgambling.org](https://www.ncpgambling.org) | [gamblersinternational.org](https://gamblersinternational.org)'
+        )
+        .setFooter({ text: 'Made for Degens. By Degens. — The serious kind of help.' });
+
+      await interaction.reply({ embeds: [infoEmbed], ephemeral: true });
+      return;
+    }
+
+    // -------------------------------------------------------------------------
+    // /igofuckedup status
     // -------------------------------------------------------------------------
     if (sub === 'status') {
       if (!APPLICATIONS_OPEN) {
@@ -527,7 +568,7 @@ export const recover: Command = {
       const app = loadApplication(interaction.user.id);
       if (!app) {
         await interaction.reply({
-          content: 'You have no active application. Use `/recover apply` to submit one.',
+          content: 'You have no active application. Use `/igofuckedup apply` to submit one. Use `/igofuckedup info` to learn how it works.',
           ephemeral: true,
         });
         return;
@@ -539,7 +580,7 @@ export const recover: Command = {
     }
 
     // -------------------------------------------------------------------------
-    // /recover apply
+    // /igofuckedup apply
     // -------------------------------------------------------------------------
     if (sub === 'apply') {
       if (!APPLICATIONS_OPEN) {
