@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-06
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-09
 import ToolCard from "@/components/ToolCard";
 import LiveAuditLog from "@/components/LiveAuditLog";
 import { features } from "@/config/features";
@@ -39,7 +39,7 @@ export default function Home() {
 
       <div className="w-full max-w-7xl mx-auto px-4 mb-20 text-center">
         <p className="hero-body max-w-4xl mx-auto border border-[#283347] p-8 bg-black/40 text-[#ffffff]">
-          The house has the math. You have hope and a problem. <span className="text-[#17c3b2] font-black">We have receipts.</span> TiltCheck is the forensic audit layer that catches every shadow nerf, RTP drift, and rigged bullshit before your next spin. We don't judge. We just show you the numbers so you can make a real choice instead of a degen choice.
+          Casinos don't win because they're lucky. They win because you don't know when to stop. <span className="text-[#17c3b2] font-black">TiltCheck is the forensic audit layer</span> that reads your live session, flags your peak PnL in real-time, and gives you the community-backed signal to lock gains and exit clean. We tell you when the math checks out and when you're chasing a ghost. Vault your wins before your brain talks you into one more spin.
         </p>
       </div>
 

@@ -38,29 +38,29 @@ const Nav = () => {
     <nav className="flex items-center justify-between w-full relative z-50">
       <div className="flex items-center gap-8">
         <Link href="/" className="flex items-center gap-2 font-bold text-lg tracking-tighter hover:text-[color:var(--color-primary)] transition-colors">
-          <img src="/logo.png" alt="TiltCheck Logo" className="w-8 h-8 object-contain" />
+          <img src="/icon.png" alt="TiltCheck Logo" style={{ width: '32px', height: '32px', objectFit: 'contain' }} />
           <span className="hidden sm:inline">TILTCHECK</span>
         </Link>
         
         {/* Desktop Links */}
-        <div className="hidden md:flex items-center gap-4 text-sm font-medium uppercase tracking-widest">
+        <div className="nav-desktop-links items-center gap-4 text-sm font-medium uppercase tracking-widest" style={{ fontSize: '0.875rem', fontWeight: 500, letterSpacing: '0.1em' }}>
           <NavLinks />
         </div>
       </div>
 
-      <div className="flex items-center gap-4">
+      <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
         <div className="hidden sm:block">
             <LiveStatusIndicator />
         </div>
         
-        <div className="hidden md:block">
+        <div className="nav-wallet-desktop">
           <WalletMultiButton />
         </div>
 
         {/* Mobile Toggle */}
         <button 
           onClick={toggleMenu}
-          className="md:hidden p-2 text-[color:var(--color-primary)] hover:bg-[color:var(--color-primary)]/10 transition-colors"
+          className="nav-mobile-toggle p-2 text-[color:var(--color-primary)] hover:bg-[color:var(--color-primary)]/10 transition-colors"
           aria-label="Toggle Menu"
         >
           {isMenuOpen ? (
