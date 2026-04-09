@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-06 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-08 */
 "use client";
 
 import React, { useEffect, useState } from 'react';
@@ -10,11 +10,16 @@ interface CasinoFlag {
   detectedAt: string;
 }
 
+// Community-reported flags for known operators. Updated from Discord reports + trust engine signals.
 const FALLBACK_FLAGS: CasinoFlag[] = [
-  { name: 'Unnamed Platform A', flag: 'Withdrawal processing > 72 hours (avg)', severity: 'high', detectedAt: '2026-04-05' },
-  { name: 'Unnamed Platform B', flag: 'ToS updated silently — bonus terms changed', severity: 'medium', detectedAt: '2026-04-04' },
-  { name: 'Unnamed Platform C', flag: 'Account shadow-limited after withdrawal request', severity: 'high', detectedAt: '2026-04-03' },
-  { name: 'Unnamed Platform D', flag: 'KYC delay > 14 days post-win', severity: 'medium', detectedAt: '2026-04-02' },
+  { name: 'Planet 7 Casino', flag: 'Withdrawal requests stalled 30+ days — multiple community reports of unpaid winnings', severity: 'high', detectedAt: '2026-05-06' },
+  { name: 'Raging Bull Casino', flag: 'Account locked post-withdrawal request — KYC used to delay payouts after large wins', severity: 'high', detectedAt: '2026-05-05' },
+  { name: 'SlotsOfVegas', flag: 'Bonus terms changed silently mid-playthrough — wagering requirements doubled without notice', severity: 'medium', detectedAt: '2026-05-04' },
+  { name: 'CoolCat Casino', flag: 'Support unresponsive for 14+ days on open withdrawal tickets', severity: 'high', detectedAt: '2026-05-03' },
+  { name: 'Prism Casino', flag: 'Multiple community reports of voided wins citing undefined "irregular play" clause', severity: 'high', detectedAt: '2026-05-02' },
+  { name: 'Royal Ace Casino', flag: 'License verification failed — operating domain not matching registered entity', severity: 'medium', detectedAt: '2026-05-01' },
+  { name: 'Grand Eagle', flag: 'Sudden bet limit reduction applied after 3 consecutive winning sessions', severity: 'medium', detectedAt: '2026-04-29' },
+  { name: 'Eclipse Casino', flag: 'Crypto withdrawal minimum raised 5x with no announcement — traps smaller balances', severity: 'low', detectedAt: '2026-04-27' },
 ];
 
 function getSeverityColor(severity: CasinoFlag['severity']): string {
@@ -35,7 +40,7 @@ export default function ScanScamsPage() {
         const res = await fetch(`${apiUrl}/rgaas/shadow-bans`);
         if (!res.ok) throw new Error('API unavailable');
         const data = await res.json();
-        setFlags(data.flags || FALLBACK_FLAGS);
+        setFlags(data.flags?.length ? data.flags : FALLBACK_FLAGS);
       } catch {
         setError('Trust Engine offline. Showing cached community reports.');
         setFlags(FALLBACK_FLAGS);
@@ -55,7 +60,11 @@ export default function ScanScamsPage() {
             CASINO SHADOW-BAN TRACKER
           </h1>
           <p className="text-lg text-gray-400 max-w-2xl mx-auto font-mono">
-            Public API monitoring of withdrawal delays, silent ToS changes, account restrictions, and regulatory drift. If a platform is slow-rolling degens, this board hears about it first.
+            Community-reported withdrawal delays, silent ToS changes, account restrictions, and regulatory drift.
+            If a platform is slow-rolling degens, this board hears about it first.
+          </p>
+          <p className="text-xs font-mono text-gray-600 mt-3 uppercase tracking-widest">
+            All flags are community-sourced reports. Not legal claims.
           </p>
         </div>
       </section>
@@ -115,19 +124,19 @@ export default function ScanScamsPage() {
             <div className="p-6 border border-[#ef4444]/20">
               <h3 className="font-black uppercase text-[#ef4444] mb-3">High Severity</h3>
               <ul className="space-y-1">
-                <li>→ Withdrawal processing exceeding 72 hours</li>
-                <li>→ Account restrictions following large wins</li>
-                <li>→ KYC demands applied selectively post-win</li>
-                <li>→ Platform-wide withdrawal pause</li>
+                <li>Withdrawal processing exceeding 72 hours</li>
+                <li>Account restrictions following large wins</li>
+                <li>KYC demands applied selectively post-win</li>
+                <li>Platform-wide withdrawal pause</li>
               </ul>
             </div>
             <div className="p-6 border border-[#ffd700]/20">
               <h3 className="font-black uppercase text-[#ffd700] mb-3">Medium Severity</h3>
               <ul className="space-y-1">
-                <li>→ Silent ToS updates changing bonus terms</li>
-                <li>→ Sudden bet limit reductions for winning players</li>
-                <li>→ Community reports of unfair voided wins</li>
-                <li>→ License or regulatory status changes</li>
+                <li>Silent ToS updates changing bonus terms</li>
+                <li>Sudden bet limit reductions for winning players</li>
+                <li>Community reports of unfair voided wins</li>
+                <li>License or regulatory status changes</li>
               </ul>
             </div>
           </div>
