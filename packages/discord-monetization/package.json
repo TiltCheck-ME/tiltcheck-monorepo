@@ -11,7 +11,7 @@
   "dependencies": {
     "@tiltcheck/config": "workspace:*",
     "@tiltcheck/logger": "workspace:*",
-    "axios": "^1.14.0"
+    "axios": "^1.15.0"
   },
   "devDependencies": {
     "typescript": "^6.0.2",
