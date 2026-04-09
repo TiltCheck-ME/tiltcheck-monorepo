@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-11
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-08
 'use client';
 import React, { useState } from 'react';
 import Link from 'next/link';
@@ -8,112 +8,114 @@ import { useAuth } from '../hooks/useAuth';
 const DASHBOARD_URL = process.env.NEXT_PUBLIC_DASHBOARD_URL || 'http://localhost:6001';
 const API_URL = process.env.NEXT_PUBLIC_API_URL || '';
 
+const NAV_LINKS: Array<{ href: string; label: string; accent?: string }> = [
+  { href: '/#tools',     label: 'Tools' },
+  { href: '/casinos',    label: 'Casinos' },
+  { href: '/bonuses',    label: 'Bonuses' },
+  { href: '/intel/rtp',  label: 'Nerf Radar' },
+  { href: '/blog',       label: 'Blog' },
+  { href: '/docs',       label: 'Docs' },
+  { href: '/extension',  label: 'Extension' },
+  { href: '/microgrant', label: 'Recovery Fund', accent: 'danger' },
+  { href: '/collab',     label: 'Partner',        accent: 'purple' },
+];
+
+const ACCENT_CLASS: Record<string, string> = {
+  danger: 'nav-sidebar-link-danger',
+  purple: 'nav-sidebar-link-purple',
+};
+
 const Nav = () => {
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
   const { user, loading } = useAuth();
+  const close = () => setIsOpen(false);
 
-  const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
+  const AuthButton = ({ compact }: { compact?: boolean }) => {
+    if (loading) return null;
+    if (user) {
+      return (
+        <a href={DASHBOARD_URL} onClick={close} className={compact ? 'nav-auth-compact nav-auth-user' : 'nav-auth-full nav-auth-user'}>
+          {user.discordUsername}
+        </a>
+      );
+    }
+    return (
+      <a
+        href={`${API_URL}/auth/discord/login?redirect=${encodeURIComponent(DASHBOARD_URL)}`}
+        onClick={close}
+        className={compact ? 'nav-auth-compact nav-auth-discord' : 'nav-auth-full nav-auth-discord'}
+      >
+        {compact ? 'Login' : 'Login with Discord'}
+      </a>
+    );
+  };
 
-  const NavLinks = () => (
+  const Links = () => (
     <>
-      <Link href="/#tools" onClick={() => setIsMenuOpen(false)} className="text-sm font-semibold uppercase tracking-wider hover:text-[#17c3b2] transition-colors duration-200">Tools</Link>
-      <Link href="/casinos" onClick={() => setIsMenuOpen(false)} className="text-sm font-semibold uppercase tracking-wider hover:text-[#17c3b2] transition-colors duration-200">Casinos</Link>
-      <Link href="/bonuses" onClick={() => setIsMenuOpen(false)} className="text-sm font-semibold uppercase tracking-wider hover:text-[#17c3b2] transition-colors duration-200">Bonuses</Link>
-      <Link href="/intel/rtp" onClick={() => setIsMenuOpen(false)} className="text-sm font-semibold uppercase tracking-wider hover:text-[#17c3b2] transition-colors duration-200">Nerf Radar</Link>
-      <Link href="/blog" onClick={() => setIsMenuOpen(false)} className="text-sm font-semibold uppercase tracking-wider hover:text-[#17c3b2] transition-colors duration-200">Blog</Link>
-      <Link href="/docs" onClick={() => setIsMenuOpen(false)} className="text-sm font-semibold uppercase tracking-wider hover:text-[#17c3b2] transition-colors duration-200">Docs</Link>
-      <Link href="/extension" onClick={() => setIsMenuOpen(false)} className="text-sm font-semibold uppercase tracking-wider hover:text-[#17c3b2] transition-colors duration-200">Extension</Link>
-      <Link href="/microgrant" onClick={() => setIsMenuOpen(false)} className="text-sm font-semibold uppercase tracking-wider hover:text-[#ef4444] text-gray-400 transition-colors duration-200">Recovery Fund</Link>
-      <Link href="/collab" onClick={() => setIsMenuOpen(false)} className="text-sm font-semibold uppercase tracking-wider hover:text-[#6c47ff] text-gray-400 transition-colors duration-200">Partner</Link>
-      <Link href="/beta-tester" onClick={() => setIsMenuOpen(false)} className="px-3 py-1 text-sm font-black uppercase tracking-widest rounded-full bg-[#17c3b2]/15 border border-[#17c3b2] text-[#17c3b2] hover:bg-[#17c3b2]/25 hover:shadow-[0_0_12px_rgba(23,195,178,0.4)] transition-all duration-200">Beta</Link>
+      {NAV_LINKS.map(({ href, label, accent }) => (
+        <Link
+          key={href}
+          href={href}
+          onClick={close}
+          className={`nav-sidebar-link${accent ? ` ${ACCENT_CLASS[accent]}` : ''}`}
+        >
+          {label}
+        </Link>
+      ))}
+      <Link href="/beta-tester" onClick={close} className="nav-sidebar-link nav-sidebar-beta">
+        Beta
+      </Link>
     </>
   );
 
   return (
-    <nav className="flex items-center justify-between w-full relative z-50">
-      <div className="flex items-center gap-8">
-        <Link href="/" className="flex items-center gap-2 font-bold text-lg tracking-tighter hover:text-[color:var(--color-primary)] transition-colors">
-          <img src="/icon.png" alt="TiltCheck Logo" style={{ width: '40px', height: '40px', objectFit: 'contain' }} />
-          <span className="hidden sm:inline">TILTCHECK</span>
+    <>
+      {/* ── Mobile top bar (sticky, takes flow space — no padding-top hack needed) ── */}
+      <div className="nav-topbar">
+        <Link href="/" className="nav-logo">
+          <img src="/icon.png" alt="TiltCheck" width={28} height={28} style={{ objectFit: 'contain' }} />
+          <span>TILTCHECK</span>
         </Link>
-        
-        {/* Desktop Links */}
-        <div className="nav-desktop-links items-center gap-4 text-sm font-medium uppercase tracking-widest" style={{ fontSize: '0.875rem', fontWeight: 500, letterSpacing: '0.1em' }}>
-          <NavLinks />
+        <div className="nav-topbar-right">
+          <LiveStatusIndicator />
+          <AuthButton compact />
+          <button onClick={() => setIsOpen(!isOpen)} className="nav-hamburger" aria-label="Toggle navigation">
+            {isOpen
+              ? <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+              : <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+            }
+          </button>
         </div>
       </div>
 
-      <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-        <div className="hidden sm:block">
+      {/* ── Desktop left sidebar ─────────────────────────── */}
+      <aside className="nav-sidebar" aria-label="Site navigation">
+        <Link href="/" className="nav-sidebar-logo">
+          <img src="/icon.png" alt="TiltCheck" width={32} height={32} style={{ objectFit: 'contain' }} />
+          <span>TILTCHECK</span>
+        </Link>
+        <nav className="nav-sidebar-links">
+          <Links />
+        </nav>
+        <div className="nav-sidebar-foot">
+          <LiveStatusIndicator />
+          <AuthButton />
+        </div>
+      </aside>
+
+      {/* ── Mobile collapsible nav (drops below top bar) ─── */}
+      {isOpen && (
+        <div className="nav-collapse" aria-label="Navigation menu">
+          <nav className="nav-collapse-links">
+            <Links />
+          </nav>
+          <div className="nav-collapse-foot">
             <LiveStatusIndicator />
-        </div>
-
-        {/* Auth Button — Desktop */}
-        {!loading && (
-          <div className="hidden sm:block">
-            {user ? (
-              <a
-                href={DASHBOARD_URL}
-                className="px-3 py-1.5 text-xs font-black uppercase tracking-widest rounded-full bg-[#6c47ff]/15 border border-[#6c47ff] text-[#6c47ff] hover:bg-[#6c47ff]/25 hover:shadow-[0_0_12px_rgba(108,71,255,0.4)] transition-all duration-200 whitespace-nowrap"
-              >
-                {user.discordUsername}
-              </a>
-            ) : (
-              <a
-                href={`${API_URL}/auth/discord/login?redirect=${encodeURIComponent(DASHBOARD_URL)}`}
-                className="px-3 py-1.5 text-xs font-black uppercase tracking-widest rounded-full bg-[#5865f2]/15 border border-[#5865f2] text-[#5865f2] hover:bg-[#5865f2]/25 hover:shadow-[0_0_12px_rgba(88,101,242,0.4)] transition-all duration-200 whitespace-nowrap"
-              >
-                Login
-              </a>
-            )}
-          </div>
-        )}
-
-        {/* Mobile Toggle */}
-        <button 
-          onClick={toggleMenu}
-          className="nav-mobile-toggle p-2 text-[color:var(--color-primary)] hover:bg-[color:var(--color-primary)]/10 transition-colors"
-          aria-label="Toggle Menu"
-        >
-          {isMenuOpen ? (
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-          ) : (
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
-          )}
-        </button>
-      </div>
-
-      {/* Mobile Menu Overlay */}
-      {isMenuOpen && (
-        <div className="fixed inset-0 top-[72px] bg-black/95 backdrop-blur-xl z-40 md:hidden animate-in fade-in duration-300">
-          <div className="flex flex-col items-center justify-center h-full gap-8 p-8 text-2xl font-black uppercase tracking-[0.2em]">
-            <NavLinks />
-            <div className="mt-4">
-              <LiveStatusIndicator />
-            </div>
-            {!loading && (
-              user ? (
-                <a
-                  href={DASHBOARD_URL}
-                  onClick={() => setIsMenuOpen(false)}
-                  className="px-5 py-2 text-sm font-black uppercase tracking-widest rounded-full bg-[#6c47ff]/15 border border-[#6c47ff] text-[#6c47ff] hover:bg-[#6c47ff]/25 transition-all duration-200"
-                >
-                  {user.discordUsername}
-                </a>
-              ) : (
-                <a
-                  href={`${API_URL}/auth/discord/login?redirect=${encodeURIComponent(DASHBOARD_URL)}`}
-                  onClick={() => setIsMenuOpen(false)}
-                  className="px-5 py-2 text-sm font-black uppercase tracking-widest rounded-full bg-[#5865f2]/15 border border-[#5865f2] text-[#5865f2] hover:bg-[#5865f2]/25 transition-all duration-200"
-                >
-                  Login with Discord
-                </a>
-              )
-            )}
+            <AuthButton />
           </div>
         </div>
       )}
-    </nav>
+    </>
   );
 };
 
