@@ -49,6 +49,25 @@ import path from 'path';
 const RECOVERY_FUND_WALLET = 'CCXEVwUyfMLFwEzyusBLZ2VY1PyDe6qYhLHtgRqeBm51';
 const MAX_GRANT_SOL = 1;
 const VOTE_THRESHOLD = parseInt(process.env.RECOVERY_VOTE_THRESHOLD ?? '10', 10);
+
+// Applications are CLOSED until the community fund wallet is seeded.
+// Set RECOVERY_APPLICATIONS_OPEN=true in env to open them.
+const APPLICATIONS_OPEN = process.env.RECOVERY_APPLICATIONS_OPEN === 'true';
+
+const PENDING_FUNDS_EMBED = new EmbedBuilder()
+  .setColor(0xf59e0b)
+  .setTitle('[RECOVERY GRANT — PENDING FUNDS]')
+  .setDescription(
+    '**Applications are not open yet.**\n\n' +
+    'The TiltCheck community recovery fund is still being built. ' +
+    'Once enough SOL is available to cover grants, applications will open.\n\n' +
+    '__Want to help fund it?__\n' +
+    `Donate SOL to: \`${RECOVERY_FUND_WALLET}\`\n\n` +
+    'If you are in crisis right now:\n' +
+    '**National Problem Gambling Helpline: 1-800-522-4700**\n' +
+    '[ncpgambling.org](https://www.ncpgambling.org) — free, confidential, 24/7'
+  )
+  .setFooter({ text: 'Made for Degens. By Degens. — The serious kind of help.' });
 const APPLICATIONS_DIR = path.join(process.cwd(), 'tmp', 'recovery-applications');
 
 const connection = new Connection(
@@ -500,6 +519,11 @@ export const recover: Command = {
     // /recover status
     // -------------------------------------------------------------------------
     if (sub === 'status') {
+      if (!APPLICATIONS_OPEN) {
+        await interaction.reply({ embeds: [PENDING_FUNDS_EMBED], ephemeral: true });
+        return;
+      }
+
       const app = loadApplication(interaction.user.id);
       if (!app) {
         await interaction.reply({
@@ -518,6 +542,11 @@ export const recover: Command = {
     // /recover apply
     // -------------------------------------------------------------------------
     if (sub === 'apply') {
+      if (!APPLICATIONS_OPEN) {
+        await interaction.reply({ embeds: [PENDING_FUNDS_EMBED], ephemeral: true });
+        return;
+      }
+
       const agreed = interaction.options.getBoolean('agree', true);
       if (!agreed) {
         await interaction.reply({
