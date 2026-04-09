@@ -90,22 +90,22 @@ const Footer = () => {
       </div>
       <div className="footer-bottom">
         <p className="footer-mission">
-          <strong>THE MISSION:</strong> THE HOUSE WINS BECAUSE THEY HAVE THE MATH AND YOU HAVE A DOPAMINE PROBLEM. BUT WE CAN COUNT TOO. TILTCHECK IS THE AUDIT LAYER BUILT TO TILT THE FAIRNESS SCALE BACK IN YOUR FAVOR. LEVEL THE PLAYING FIELD. CUZ MATH MATHS.
+          <strong>The mission:</strong> The house wins because they have the math and you have a dopamine problem. We can count too. TiltCheck is the audit layer built to tilt the fairness scale back in your favor — live RTP drift detection, provably fair verification, and a community-backed signal to lock gains before your brain talks you into one more spin. <strong>Level the playing field. Cuz math maths.</strong>
         </p>
-        <div style={{ marginBottom: '1.5rem' }}>
-          <Link href="/touch-grass" style={{ color: '#6b7280', textDecoration: 'none', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.1em', border: '1px solid #333', padding: '4px 12px', borderRadius: '20px' }}>
+        <div>
+          <Link href="/touch-grass" className="footer-touchgrass-link">
             TOUCH GRASS PROTOCOL
           </Link>
         </div>
-        <p className="footer-tagline" style={{ background: 'linear-gradient(to right, #ff3366, #22d3a6)', WebkitBackgroundClip: 'text', backgroundClip: 'text', WebkitTextFillColor: 'transparent', fontSize: '1.2rem', fontWeight: 'bold', letterSpacing: '1px', marginBottom: '8px' }}>
-          MADE FOR DEGENS BY DEGENS.
+        <p className="footer-tagline" style={{ background: 'linear-gradient(to right, #ff3366, #22d3a6)', WebkitBackgroundClip: 'text', backgroundClip: 'text', WebkitTextFillColor: 'transparent', fontSize: '1.1rem', fontWeight: 'bold', letterSpacing: '1px' }}>
+          MADE FOR DEGENS. BY DEGENS.
         </p>
         {quote && (
-          <p className="footer-quote" style={{ fontSize: '0.85rem', opacity: 0.6, fontStyle: 'italic', marginBottom: '1.5rem', maxWidth: '600px', margin: '0 auto 1.5rem' }}>
+          <p className="footer-quote" style={{ fontSize: '0.8rem', opacity: 0.5, fontStyle: 'italic', maxWidth: '560px', margin: '0 auto' }}>
             &quot;{quote}&quot;
           </p>
         )}
-        <p className="footer-copyright">TiltCheck Ecosystem v2.0 — Made for Degens by Degens</p>
+        <p className="footer-copyright">© 2024–2026 TiltCheck Ecosystem. All Rights Reserved.</p>
       </div>
     </footer>
   );
