@@ -19,19 +19,19 @@ export default function Home() {
 
           <div className="border border-[#17c3b2]/20 bg-[#17c3b2]/5 p-6 mb-10 max-w-3xl border-l-4 border-l-[#17c3b2] animate-in slide-in-from-left-4 duration-700">
             <p className="text-sm font-mono text-[#17c3b2]/80 uppercase tracking-widest mb-2 font-black">
-              [AUDIT LAYER]: ACTIVE
+              [AUDIT LAYER]: ONLINE AND PISSED
             </p>
             <p className="text-gray-400 text-xs leading-relaxed font-mono italic">
-              The house only wins because they control the math. We just took the keys. Stop playing against shadow-nerfed slots and 88% RTP traps. Deploy the Audit Layer to sniff out RNG drift and see the real math before you spin.
+              The casino's RNG is more rigged than your last relationship. We're not here to judge—we're here to show you the math before you hemorrhage your rent money. Sniff out the shadow nerfs, catch the RTP drifts, and know when to fucking fold.
             </p>
           </div>
 
-          <div className="hero-actions flex-wrap gap-4">
-            <a href="/beta-tester" className="btn btn-primary" data-text="DEPLOY THE AUDIT LAYER">
+          <div className="hero-actions flex-wrap gap-4 justify-center">
+            <a href="/beta-tester" className="btn btn-primary shadow-lg hover:shadow-[0_0_20px_rgba(23,195,178,0.6)]" data-text="DEPLOY THE AUDIT LAYER">
               DEPLOY THE AUDIT LAYER
             </a>
-            <a href="#tools" className="btn btn-secondary border-[#283347] text-gray-500" data-text="VIEW TOOLS">
-              VIEW TOOLS
+            <a href="#tools" className="btn btn-secondary border-[#17c3b2] text-[#17c3b2] hover:border-[#17c3b2] hover:bg-[#17c3b2]/10" data-text="BROWSE THE ARSENAL">
+              BROWSE THE ARSENAL
             </a>
           </div>
         </div>
@@ -39,7 +39,7 @@ export default function Home() {
 
       <div className="w-full max-w-7xl mx-auto px-4 mb-20 text-center">
         <p className="hero-body max-w-4xl mx-auto border border-[#283347] p-8 bg-black/40 text-[#ffffff]">
-          The house wins because they control the math and you have a dopamine problem. <span className="text-[#17c3b2] font-black">We just took the keys.</span> TiltCheck is the forensic audit layer that cross-references your live session against GLI-certified manufacturer RTP tiers. We catch the Greed Premium. We generate the evidence. We lock your bag before the tilt-tax takes the rest.
+          The house has the math. You have hope and a problem. <span className="text-[#17c3b2] font-black">We have receipts.</span> TiltCheck is the forensic audit layer that catches every shadow nerf, RTP drift, and rigged bullshit before your next spin. We don't judge. We just show you the numbers so you can make a real choice instead of a degen choice.
         </p>
       </div>
 
