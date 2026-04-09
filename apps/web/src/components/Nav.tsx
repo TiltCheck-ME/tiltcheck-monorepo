@@ -25,7 +25,7 @@ const Nav = () => {
     <nav className="flex items-center justify-between w-full relative z-50">
       <div className="flex items-center gap-8">
         <Link href="/" className="flex items-center gap-2 font-bold text-lg tracking-tighter hover:text-[color:var(--color-primary)] transition-colors">
-          <img src="/icon.png" alt="TiltCheck Logo" style={{ width: '32px', height: '32px', objectFit: 'contain' }} />
+          <img src="/icon.png" alt="TiltCheck Logo" style={{ width: '40px', height: '40px', objectFit: 'contain' }} />
           <span className="hidden sm:inline">TILTCHECK</span>
         </Link>
         

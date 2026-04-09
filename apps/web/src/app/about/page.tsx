@@ -47,7 +47,7 @@ export default function AboutPage() {
 
           {/* The Realization */}
           <div className="p-8 border border-[#17c3b2]/30 bg-[#17c3b2]/5">
-            <h3 className="text-2xl font-black uppercase mb-4 text-[#17c3b2]">The Moment It Clicked</h3>
+            <h2 className="text-2xl font-black uppercase mb-4 text-[#17c3b2]">The Moment It Clicked</h2>
             <p className="text-gray-400 leading-relaxed">
               I was sitting at my desk at 3:47am. Down $4,200 in a session. Made $800 of it back. Could've cashed out. Instead, I threw it all on one bet thinking I could get back to even. Lost. Sat there for two hours wondering how I made a decision that stupid and conscious at the same time.
             </p>
@@ -104,7 +104,7 @@ export default function AboutPage() {
 
           {/* The Mission */}
           <div className="p-8 border border-[#ffd700]/30 bg-[#ffd700]/5">
-            <h3 className="text-2xl font-black uppercase mb-4 text-[#ffd700]">The Mission</h3>
+            <h2 className="text-2xl font-black uppercase mb-4 text-[#ffd700]">The Mission</h2>
             <p className="text-gray-400 leading-relaxed text-lg">
               Shift the definition of a "win" from "I didn't lose everything" to "I actually kept the money." Make it profitable to play smart instead of profitable to play long. Give every degen — from casual to hardcore — a fair shot at keeping their bag.
             </p>
@@ -172,7 +172,7 @@ export default function AboutPage() {
             This tool exists because I needed it. Not because I think gambling is "bad." Because I know it's real, it's profitable if you're smart, and it's catastrophic if you're not. TiltCheck is for people who want to be smart about it.
           </p>
           <p className="text-gray-400 text-lg leading-relaxed">
-            If you're actually in crisis — if you've lost money you can't afford to lose — this tool isn't enough. Reach out to <a href="https://www.ncpg.org" target="_blank" rel="noopener noreferrer" className="text-[#17c3b2] hover:underline">NCPG.org</a> or call 1-800-GAMBLER. Real help exists.
+            If you're actually in crisis — if you've lost money you can't afford to lose — this tool isn't enough. Reach out to <a href="https://www.ncpg.org" target="_blank" rel="noopener noreferrer" className="text-[#17c3b2] underline hover:no-underline">NCPG.org</a> or call 1-800-GAMBLER. Real help exists.
           </p>
           <p className="text-gray-400 text-lg leading-relaxed mt-6 italic">
             For everyone else: let's tip the scale back.
