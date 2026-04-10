@@ -58,9 +58,9 @@
     "ops:task-ai": "node scripts/daily-task-ai.mjs",
     "trust:build": "pnpm --filter @tiltcheck/trust-engines build",
     "trust:start": "pnpm trust:build && node scripts/start-trust-engine-check.mjs",
-    "crawl:emails": "node --use-system-ca node_modules/.bin/tsx scripts/email-crawler.ts",
-    "crawl:emails:dry": "node --use-system-ca node_modules/.bin/tsx scripts/email-crawler.ts --dry-run",
-    "crawl:emails:all": "node --use-system-ca node_modules/.bin/tsx scripts/email-crawler.ts --all",
+    "crawl:emails": "tsx --node-options=--use-system-ca scripts/email-crawler.ts",
+    "crawl:emails:dry": "tsx --node-options=--use-system-ca scripts/email-crawler.ts --dry-run",
+    "crawl:emails:all": "tsx --node-options=--use-system-ca scripts/email-crawler.ts --all",
     "crawl:emails:schedule": "powershell -ExecutionPolicy Bypass -File scripts/register-email-crawler-task.ps1"
   },
   "devDependencies": {
