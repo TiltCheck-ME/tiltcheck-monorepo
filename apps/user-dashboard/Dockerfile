@@ -30,5 +30,6 @@ COPY --from=build /app/modules ./modules
 COPY --from=build /app/apps/user-dashboard/public ./apps/user-dashboard/public
 COPY --from=build /app/package.json ./package.json
 
+ENV PORT=6001
 EXPOSE 6001
 CMD ["node", "apps/user-dashboard/dist/index.js"]
