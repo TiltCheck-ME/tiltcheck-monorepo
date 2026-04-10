@@ -228,7 +228,7 @@ export default function CasinosPage() {
       <header className="mb-12 text-center">
         <h1 className="neon neon-main" data-text="CASINO TRUST ENGINE">CASINO TRUST ENGINE</h1>
         <p className="text-xl text-muted mt-4 max-w-3xl mx-auto uppercase tracking-widest font-mono">
-          Sweepstakes, crypto, and offshore casinos rated by the degen community.
+          Sweepstakes, crypto, and offshore casinos rated by the degen community. No affiliate payouts. No paid placements. Ever.
         </p>
         <p className="text-xs font-mono text-gray-600 mt-3">{CASINOS.length} platforms tracked — sweepstakes shown first</p>
       </header>

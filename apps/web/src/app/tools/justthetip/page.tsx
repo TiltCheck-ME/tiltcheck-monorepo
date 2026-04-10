@@ -109,7 +109,7 @@ export default function JustTheTipPage() {
                     : 'bg-[#141922] text-gray-600 border border-[#283347] cursor-not-allowed opacity-50'
                   }`}
                 >
-                  YEET THE TIP
+                  SEND THE TIP
                 </button>
              </div>
           </div>

@@ -105,7 +105,7 @@ export default function AboutPage() {
               <div>
                 <h3 className="text-lg font-black uppercase text-[#17c3b2]">jmenichole (Founder & Dev)</h3>
                 <p className="text-gray-400 text-sm mt-2">
-                  Spent years chasing losses. Built software. Realized the software could fix the losses. Now building tools that let you do the same.
+                  Spent years chasing losses. Learned to code. Built the tool that would have saved past-me a lot of money. Now it's yours.
                 </p>
                 <p className="text-gray-400 text-sm mt-2">
                   Specialties: fullstack architecture, trust engines, behavioral analysis, and knowing exactly what it feels like to be down bad at 3am.
@@ -161,7 +161,7 @@ export default function AboutPage() {
             If you're actually in crisis — if you've lost money you can't afford to lose — this tool isn't enough. Reach out to <a href="https://www.ncpg.org" target="_blank" rel="noopener noreferrer" className="text-[#17c3b2] underline hover:no-underline">NCPG.org</a> or call 1-800-GAMBLER. Real help exists.
           </p>
           <p className="text-gray-400 text-lg leading-relaxed mt-6 italic">
-            For everyone else: let's tip the scale back.
+            You're already gambling. Might as well do it with your eyes open.
           </p>
         </div>
       </section>

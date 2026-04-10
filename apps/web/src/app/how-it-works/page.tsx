@@ -143,14 +143,14 @@ export default function HowItWorksPage() {
       <section className="py-20 px-4 text-center border-t border-[#283347]">
         <div className="max-w-3xl mx-auto">
             <h2 className="text-2xl font-black uppercase tracking-tight mb-6">
-            READY TO DEPLOY THE AUDIT LAYER?
+            READY TO SEE WHAT THE CASINO DOESN&apos;T WANT YOU TO SEE?
           </h2>
           <p className="text-gray-400 mb-8">
-            Install the forensic node. The math does the rest. They picked the wrong degens to nerf.
+            Install the forensic node. The Delta Engine (our live RTP cross-reference layer) does the rest. They picked the wrong degens to nerf.
           </p>
           <div className="flex gap-4 justify-center flex-wrap">
             <a href="/extension" className="btn btn-primary py-3 px-6 font-black">
-              Deploy the Extension
+              Install the Extension →
             </a>
             <a href="https://discord.gg/gdBsEJfCar" target="_blank" rel="noopener noreferrer" className="btn btn-secondary py-3 px-6 font-black">
               Join Discord
