@@ -489,14 +489,16 @@ body::before {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 52px;
-  height: 52px;
-  background: rgba(23, 195, 178, 0.08);
-  border: 1px solid rgba(23, 195, 178, 0.25);
+  width: 72px;
+  height: 72px;
+  background: rgba(23, 195, 178, 0.06);
+  border: 1px solid rgba(23, 195, 178, 0.2);
+  border-radius: 6px;
+  overflow: hidden;
 }
 
 .tool-card-icon-wrap .tool-card-icon {
-  filter: brightness(0) saturate(100%) invert(72%) sepia(50%) saturate(450%) hue-rotate(132deg) brightness(95%);
+  /* No tint filter — Canva icons already have full color */
 }
 
 .tool-card:hover .tool-card-icon-wrap {
@@ -811,17 +813,24 @@ body.degen-background {
 }
 
 .neon-hero-top {
-  font-size: clamp(2.5rem, 9vw, 8.5rem) !important;
+  font-size: clamp(2rem, 6.5vw, 5.5rem) !important;
   letter-spacing: -0.02em;
   margin-bottom: 0;
   line-height: 1.05;
+  white-space: nowrap;
 }
 
 .neon-hero-bottom {
   font-size: clamp(1.5rem, 5vw, 4.5rem) !important;
   margin-top: -0.25rem;
-  opacity: 0.9;
+  opacity: 1;
   letter-spacing: 0.1em;
+  color: #000 !important;
+  text-shadow:
+    0 0 8px #17c3b2,
+    0 0 20px #17c3b2,
+    0 0 40px rgba(23,195,178,0.6) !important;
+  -webkit-text-stroke: 0px !important;
 }
 
 /* ===================================================================
@@ -945,6 +954,23 @@ body.degen-background {
   color: #c4ced8;
   line-height: 1.6;
   font-style: italic;
+}
+
+.hero-tagline {
+  font-size: clamp(1rem, 1.5vw + 0.5rem, 1.25rem);
+  color: rgba(255,255,255,0.88);
+  font-family: var(--font-geist-sans);
+  font-weight: 400;
+  line-height: 1.6;
+  max-width: 600px;
+  margin: 0 auto 1.5rem;
+  text-align: center;
+  letter-spacing: -0.01em;
+}
+
+.hero-tagline strong {
+  color: var(--teal);
+  font-weight: 700;
 }
 
 .hero-body {

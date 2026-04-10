@@ -55,11 +55,11 @@ const ToolCard = ({ href, icon, category, title, description, status, gridClasse
       <div>
         <div className="tool-card-icon-wrap mb-4">
           <Image
-            src={`/assets/icons/tools/${icon}`}
+            src={icon.startsWith('/') ? icon : `/assets/icons/tools/${icon}`}
             alt={`${title} icon`}
-            width={40}
-            height={40}
-            className="tool-card-icon transition-transform duration-200 group-hover:scale-110"
+            width={64}
+            height={64}
+            className="tool-card-icon transition-transform duration-200 group-hover:scale-110 object-cover w-full h-full"
           />
         </div>
         <span className="category-label text-sm font-semibold uppercase tracking-wider text-[color:var(--color-primary)]">
