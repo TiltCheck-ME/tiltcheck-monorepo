@@ -2,7 +2,7 @@
 import { DiscordSDK } from '@discord/embedded-app-sdk';
 import { io, Socket } from 'socket.io-client';
 
-const DISCORD_CLIENT_ID = import.meta.env.VITE_DISCORD_CLIENT_ID || '1342618997321564344';
+const DISCORD_CLIENT_ID = import.meta.env.VITE_DISCORD_CLIENT_ID || '1445916179163250860';
 const HUB_URL = import.meta.env.VITE_HUB_URL || 'https://tiltcheck-edge-hub.j-chapman7.workers.dev';
 const ARENA_URL = import.meta.env.VITE_ARENA_URL || 'http://localhost:3010';
 

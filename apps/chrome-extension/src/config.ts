@@ -8,7 +8,7 @@ export const EXT_CONFIG = {
     HUB_URL: 'https://tiltcheck.me/dashboard',
     AI_GATEWAY_URL: 'https://api.tiltcheck.me/ai',
     WEB_APP_URL: 'https://tiltcheck.me',
-    DISCORD_CLIENT_ID: '1342618997321564344',
+    DISCORD_CLIENT_ID: '1445916179163250860',
     // Operations & Revenue (GCP Bill Fund)
     OPERATIONS_WALLET: 'BvzEqVRUicmW8Y6HFncLYrGXESpMbSNDkWUNTQj5GGGi',
     PROTOCOL_FEE_BPS: 250, // 2.5% service fee

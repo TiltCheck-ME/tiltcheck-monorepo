@@ -5,7 +5,7 @@
 
 import type { DiscordOAuthConfig } from '@tiltcheck/auth';
 
-export const DEFAULT_DISCORD_CLIENT_ID = '1342618997321564344';
+export const DEFAULT_DISCORD_CLIENT_ID = '1445916179163250860';
 export const DEFAULT_DISCORD_SCOPES = ['identify'];
 export const DEFAULT_API_DISCORD_CALLBACK = 'https://api.tiltcheck.me/auth/discord/callback';
 
