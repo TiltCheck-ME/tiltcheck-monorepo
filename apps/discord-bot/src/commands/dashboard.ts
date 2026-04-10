@@ -17,7 +17,7 @@ import {
 import { getUserTiltStats, getUserTiltHistory } from '../handlers/tilt-events-handler.js';
 import type { Command } from '../types.js';
 
-const DASHBOARD_URL = process.env.DASHBOARD_URL || 'https://tiltcheck.app/dashboard';
+const DASHBOARD_URL = process.env.DASHBOARD_URL || 'https://hub.tiltcheck.me';
 
 export const dashboard: Command = {
   data: new SlashCommandBuilder()
