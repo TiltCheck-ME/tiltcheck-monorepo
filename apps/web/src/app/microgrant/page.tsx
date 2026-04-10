@@ -97,6 +97,23 @@ export default function MicrograntPage() {
   return (
     <main className="min-h-screen bg-[#0a0c10] text-white">
 
+      {/* Closed state top banner */}
+      {!APPLICATIONS_OPEN && (
+        <div className="bg-yellow-500/10 border-b border-yellow-500/40 py-3 px-4 text-center">
+          <p className="text-sm font-mono font-bold text-yellow-400 uppercase tracking-widest">
+            Applications Closed — Fund Not Yet Seeded &nbsp;·&nbsp;{' '}
+            <a
+              href="https://discord.gg/gdBsEJfCar"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline hover:no-underline text-yellow-300"
+            >
+              Join Discord to get notified when they open →
+            </a>
+          </p>
+        </div>
+      )}
+
       {/* Hero */}
       <section className="border-b border-[#ef4444]/30 py-32 px-4">
         <div className="max-w-4xl mx-auto">

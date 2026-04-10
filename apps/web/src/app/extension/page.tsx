@@ -29,7 +29,7 @@ export default function ExtensionPage() {
             <div className="absolute -left-4 top-0 w-8 h-8 rounded-none bg-black border border-[#283347] flex items-center justify-center text-gray-500 font-mono text-xs">02</div>
             <h2 className="text-2xl font-black uppercase tracking-tight text-white mb-2">02 — WATCH THE MATH</h2>
             <p className="text-gray-400 text-sm leading-relaxed">
-              The engine tracks every play, mapping your betting frequency and variance against certified RTP. If the casino quietly downgrades the game&apos;s RTP (the &ldquo;shadow-nerf&rdquo;) or your bet sizes show a chase pattern, the system flags the drift.
+              The engine tracks every play, mapping your betting frequency and variance against certified RTP. If the casino quietly downgrades the game&apos;s RTP — what we call the <span className="text-[#17c3b2] font-bold">Greed Premium</span> (the extra edge they run above the certified base) — the system flags the drift and surfaces the exact dollar cost per $100 wagered.
             </p>
           </div>
 
