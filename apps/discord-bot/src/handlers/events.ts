@@ -213,9 +213,11 @@ export class EventHandler {
       console.log(`[Payments] Entitlement created: SKU ${skuId} for user ${userId}`);
 
       const skuMap: Record<string, string> = {
-        [process.env.DISCORD_SKU_PRO_ID || '']: 'Degen Pro',
-        [process.env.DISCORD_SKU_ELITE_ID || '']: 'Elite',
-        [process.env.DISCORD_SKU_LIFETIME_ID || '']: 'Lifetime Elite',
+        [process.env.DISCORD_SKU_PRO_ID || '']:        'Degen Pass',
+        [process.env.DISCORD_SKU_ELITE_ID || '']:      'Platinum Pass',
+        [process.env.DISCORD_SKU_LIFETIME_ID || '']:   'Lifetime Pass',
+        [process.env.DISCORD_SKU_OG_LIFETIME_ID || '']: 'OG Lifetime Pass (Beta)',
+        [process.env.DISCORD_SKU_SUPPORT_ID || '']:    'Support the Project',
       };
       const tierName = skuMap[skuId] || `Unknown SKU: ${skuId}`;
 
@@ -244,19 +246,29 @@ export class EventHandler {
         console.error('[Payments] Failed to notify MOD_LOG:', err);
       }
 
-      // Auto-grant Discord role if env vars are configured
+      // Primary role per SKU
       const roleMap: Record<string, string> = {
-        [process.env.DISCORD_SKU_PRO_ID || '']: process.env.DISCORD_ROLE_PRO_ID || '',
-        [process.env.DISCORD_SKU_ELITE_ID || '']: process.env.DISCORD_ROLE_ELITE_ID || '',
-        [process.env.DISCORD_SKU_LIFETIME_ID || '']: process.env.DISCORD_ROLE_LIFETIME_ID || '',
+        [process.env.DISCORD_SKU_PRO_ID || '']:        process.env.DISCORD_ROLE_PRO_ID || '',
+        [process.env.DISCORD_SKU_ELITE_ID || '']:      process.env.DISCORD_ROLE_ELITE_ID || '',
+        [process.env.DISCORD_SKU_LIFETIME_ID || '']:   process.env.DISCORD_ROLE_LIFETIME_ID || '',
+        [process.env.DISCORD_SKU_OG_LIFETIME_ID || '']: process.env.DISCORD_ROLE_OG_LIFETIME_ID || '',
       };
+
+      // OG Lifetime also grants beta tester role
+      const extraRoleMap: Record<string, string> = {
+        [process.env.DISCORD_SKU_OG_LIFETIME_ID || '']: process.env.DISCORD_ROLE_BETA_ID || '',
+      };
+
       const roleId = roleMap[skuId];
       if (roleId && userId) {
         try {
           const guild = await this.client.guilds.fetch('1488253239643078787');
           const member = await guild.members.fetch(userId);
-          await member.roles.add(roleId);
-          console.log(`[Payments] Auto-granted role ${roleId} to user ${userId}`);
+          const rolesToAdd = [roleId];
+          const extraRole = extraRoleMap[skuId];
+          if (extraRole) rolesToAdd.push(extraRole);
+          await member.roles.add(rolesToAdd);
+          console.log(`[Payments] Auto-granted roles [${rolesToAdd.join(', ')}] to user ${userId}`);
         } catch (err) {
           console.error(`[Payments] Failed to auto-grant role for ${userId}:`, err);
         }
