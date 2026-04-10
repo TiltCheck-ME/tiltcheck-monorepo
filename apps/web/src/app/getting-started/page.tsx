@@ -7,8 +7,8 @@ export default function GettingStartedPage() {
     <main className="min-h-screen bg-[#0a0c10] text-white">
       <section className="border-b border-[#283347] py-32 px-4">
         <div className="max-w-4xl mx-auto text-center">
-          <h1 className="neon neon-main text-4xl md:text-5xl mb-6" data-text="START HERE">
-            START HERE
+          <h1 className="neon neon-main text-4xl md:text-5xl mb-6" data-text="PICK YOUR PATH. THE MATH DOESN'T WAIT.">
+            PICK YOUR PATH. THE MATH DOESN&apos;T WAIT.
           </h1>
           <p className="text-lg text-gray-400 max-w-2xl mx-auto">
             Three choices. Pick one. The math doesn't care which you choose — it just cares that you're informed.
@@ -226,13 +226,13 @@ export default function GettingStartedPage() {
       <section className="py-20 px-4 border-t border-[#283347] text-center">
         <div className="max-w-3xl mx-auto">
           <h2 className="text-2xl font-black uppercase tracking-tight mb-6">
-            You get one shot at clarity.
+            This is the tool. You decide what to do with it.
           </h2>
           <p className="text-gray-400 mb-8">
             Everything else depends on you. Your discipline. Your honesty. Your willingness to listen when the math says no.
           </p>
           <a href="/extension" className="btn btn-primary py-4 px-8 text-lg font-black">
-            Let's Go
+            Install the Extension &rarr;
           </a>
         </div>
       </section>

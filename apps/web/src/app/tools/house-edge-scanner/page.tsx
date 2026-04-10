@@ -7,8 +7,8 @@ export default function HouseEdgeScannerPage() {
       <section className="border-b border-[#283347] py-32 px-4">
         <div className="max-w-4xl mx-auto text-center">
           <p className="text-xs font-mono text-[#17c3b2] uppercase tracking-widest mb-4">RTP FORENSICS</p>
-          <h1 className="neon neon-main text-5xl md:text-7xl mb-6" data-text="HOUSE EDGE SCANNER">
-            HOUSE EDGE SCANNER
+          <h1 className="neon neon-main text-5xl md:text-7xl mb-6" data-text="THE DELTA ENGINE">
+            THE DELTA ENGINE
           </h1>
           <div className="inline-block border border-[#ffd700]/40 bg-[#ffd700]/5 px-4 py-2 mb-8">
             <span className="text-xs font-black font-mono text-[#ffd700] uppercase tracking-widest">IN DEVELOPMENT — COMING SOON</span>

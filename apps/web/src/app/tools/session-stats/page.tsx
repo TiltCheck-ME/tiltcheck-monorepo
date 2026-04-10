@@ -46,8 +46,8 @@ export default function SessionStatsPage() {
       <section className="border-b border-[#283347] py-32 px-4">
         <div className="max-w-4xl mx-auto text-center">
           <p className="text-xs font-mono text-[#17c3b2] uppercase tracking-widest mb-4">TILT TELEMETRY</p>
-          <h1 className="neon neon-main text-5xl md:text-7xl mb-6" data-text="THE NERF RADAR">
-            THE NERF RADAR
+          <h1 className="neon neon-main text-5xl md:text-7xl mb-6" data-text="RTP DRIFT MONITOR">
+            RTP DRIFT MONITOR
           </h1>
           <p className="text-lg text-gray-400 max-w-2xl mx-auto font-mono">
             Slot providers certify games at multiple RTP tiers. Casinos pick which tier to deploy. This table shows the maximum legal gap between the best and worst certified tier — the range a casino can legally exploit without disclosing it.
@@ -145,10 +145,10 @@ export default function SessionStatsPage() {
             The Delta Engine will cross-reference your live session against these certified tiers in real-time. Until then, use this table to understand which games carry the most deployment risk.
           </p>
           <div className="flex gap-4 justify-center flex-wrap">
-            <a href="/tools/house-edge-scanner" className="btn btn-primary py-3 px-6 font-black">
-              Delta Engine (Coming Soon)
+            <a href="/extension" className="btn btn-primary py-3 px-6 font-black">
+              Deploy the Audit Layer &rarr;
             </a>
-            <a href="/extension" className="btn btn-secondary py-3 px-6 font-black">
+            <a href="/tools/house-edge-scanner" className="btn btn-secondary py-3 px-6 font-black">
               Deploy the Audit Layer
             </a>
           </div>

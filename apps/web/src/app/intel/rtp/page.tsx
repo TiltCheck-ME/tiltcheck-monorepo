@@ -8,12 +8,12 @@ export default function RtpPage() {
       <section className="border-b border-[#283347] py-20 px-4">
         <div className="max-w-4xl mx-auto text-center">
           <p className="text-xs font-mono text-[#17c3b2] uppercase tracking-widest mb-4">RTP INTEL</p>
-          <h1 className="neon neon-main text-5xl mb-6" data-text="LIVE RTP LOGS">
-            LIVE RTP LOGS
+          <h1 className="neon neon-main text-5xl mb-6" data-text="CERTIFIED RTP DATABASE">
+            CERTIFIED RTP DATABASE
           </h1>
           <p className="text-lg text-gray-400 max-w-2xl mx-auto font-mono">
             Manufacturer-certified RTP tiers sourced from GLI, eCOGRA, and BMM lab certifications.
-            These are the numbers slot providers certify before a game ships — the anchors the Delta Engine compares live sessions against.
+            These are the numbers slot providers certify before a game ships — the anchors the Delta Engine compares live sessions against. The gap between max and min tier is the <strong className="text-[#17c3b2]">Greed Premium</strong> the casino can silently take from you.
           </p>
         </div>
       </section>
@@ -63,7 +63,7 @@ export default function RtpPage() {
           </p>
           <div className="flex gap-4 justify-center flex-wrap">
             <a href="/tools/session-stats" className="btn btn-primary py-3 px-6 font-black">
-              View Nerf Radar (RTP Spread Table)
+              View RTP Drift Monitor
             </a>
             <a href="/tools/house-edge-scanner" className="btn btn-secondary py-3 px-6 font-black">
               Delta Engine (Coming Soon)
