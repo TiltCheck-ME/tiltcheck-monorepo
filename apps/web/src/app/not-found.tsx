@@ -1,12 +1,16 @@
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-10 */
 import React from 'react';
 import Link from 'next/link';
 
 export default function NotFound() {
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center p-4 bg-black text-white">
+    <main className="flex min-h-screen flex-col items-center justify-center p-4 text-white">
       <div className="max-w-xl w-full text-center flex flex-col gap-10 animate-in fade-in duration-500">
         <header>
-          <h1 className="text-7xl font-black uppercase tracking-tighter text-red-600 mb-2">
+          <h1
+            className="neon neon-main neon-hero-bottom text-7xl font-black uppercase tracking-tighter mb-2"
+            data-text="FUCK."
+          >
             FUCK.
           </h1>
           <div className="inline-block bg-red-600/10 border border-red-600/20 px-3 py-1">
@@ -26,15 +30,15 @@ export default function NotFound() {
           </p>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Link 
-              href="/" 
+            <Link
+              href="/"
               className="px-6 py-4 bg-[#17c3b2]/10 text-[#17c3b2] border border-[#17c3b2]/20 uppercase text-[10px] font-black tracking-widest hover:bg-[#17c3b2]/20 transition-all text-center"
             >
               &gt; BACK_TO_SAFETY
             </Link>
-            
-            <Link 
-              href="https://discord.gg/gdBsEJfCar" 
+
+            <Link
+              href="https://discord.gg/gdBsEJfCar"
               className="px-6 py-4 border border-white/10 text-gray-500 uppercase text-[10px] font-black tracking-widest hover:text-red-500 hover:border-red-500/30 transition-all text-center"
             >
               &gt; HARASS_THE_DEV
