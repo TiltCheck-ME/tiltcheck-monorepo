@@ -27,17 +27,33 @@ FROM nginx:alpine
 # Copy the compiled static assets from the build stage
 COPY --from=build /app/apps/activity/dist /usr/share/nginx/html
 
-# Custom nginx config to handle SPA routing & Discord's specific security headers
-RUN echo 'server { \
-    listen 8080; \
-    server_name localhost; \
-    location / { \
-        root /usr/share/nginx/html; \
-        index index.html; \
-        try_files $uri $uri/ /index.html; \
-        add_header X-Frame-Options "ALLOWALL"; \
-        add_header Access-Control-Allow-Origin "*"; \
-    } \
+# Custom nginx config: SPA routing + Discord Activity required headers
+RUN printf 'server {\n\
+    listen 8080;\n\
+    server_name localhost;\n\
+    root /usr/share/nginx/html;\n\
+    index index.html;\n\
+\n\
+    # Discord SDK proxies API calls through /.proxy — must forward to discord.com\n\
+    location /.proxy/ {\n\
+        resolver 1.1.1.1 valid=30s;\n\
+        proxy_pass https://discord.com/;\n\
+        proxy_set_header Host discord.com;\n\
+        proxy_set_header X-Real-IP $remote_addr;\n\
+        proxy_ssl_server_name on;\n\
+    }\n\
+\n\
+    location / {\n\
+        try_files $uri $uri/ /index.html;\n\
+        # Allow Discord to iframe this page\n\
+        add_header Content-Security-Policy "frame-ancestors https://discord.com https://*.discord.com https://*.discordsays.com https://*.discordapp.com" always;\n\
+        add_header Access-Control-Allow-Origin "*" always;\n\
+    }\n\
+\n\
+    location /assets/ {\n\
+        try_files $uri =404;\n\
+        add_header Cache-Control "public, max-age=31536000, immutable";\n\
+    }\n\
 }' > /etc/nginx/conf.d/default.conf
 
 EXPOSE 8080
