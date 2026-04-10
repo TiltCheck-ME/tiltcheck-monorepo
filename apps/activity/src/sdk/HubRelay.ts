@@ -71,6 +71,18 @@ export class HubRelay {
     this.socket.on('trivia.result', (data) => {
       this.emit('trivia.result', data);
     });
+
+    this.socket.on('tip.drop', (data) => {
+      this.emit('tip.drop', data);
+    });
+
+    this.socket.on('tip.claimed', (data) => {
+      this.emit('tip.claimed', data);
+    });
+
+    this.socket.on('tip.sent', (data) => {
+      this.emit('tip.sent', data);
+    });
   }
 
   pushRound(round: SessionRound): void {
@@ -101,6 +113,20 @@ export class HubRelay {
 
   submitTriviaAnswer(questionId: string, answerId: string): void {
     this.socket?.emit('trivia.answer', { questionId, answerId, userId: this.options.userId });
+  }
+
+  sendTip(toUsername: string, amountSol: number, message: string): void {
+    this.socket?.emit('tip.send', {
+      fromUserId: this.options.userId,
+      channelId: this.options.channelId,
+      toUsername,
+      amountSol,
+      message
+    });
+  }
+
+  getChannelId(): string {
+    return this.options.channelId;
   }
 
   on(event: string, handler: HubEventHandler): void {

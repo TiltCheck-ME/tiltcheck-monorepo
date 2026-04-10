@@ -10,6 +10,7 @@ import { GameView } from './views/GameView.js';
 import { VaultView } from './views/VaultView.js';
 import { BonusFeedView } from './views/BonusFeedView.js';
 import { LeaderboardView } from './views/LeaderboardView.js';
+import { TipView } from './views/TipView.js';
 
 const DISCORD_CLIENT_ID = import.meta.env.VITE_DISCORD_CLIENT_ID || '1445916179163250860';
 const HUB_URL = import.meta.env.VITE_HUB_URL || 'https://hub.tiltcheck.me';
@@ -98,10 +99,11 @@ async function main(): Promise<void> {
   // 5. Mount views
   // --------------------------------------------------------
   const analyzerContainer = document.getElementById('view-analyzer');
-  const gameContainer = document.getElementById('view-game');
+  const gameContainer = document.getElementById('view-games');
   const vaultContainer = document.getElementById('view-vault');
   const bonusContainer = document.getElementById('view-bonus');
   const leaderboardContainer = document.getElementById('view-leaderboard');
+  const tipContainer = document.getElementById('view-tip');
 
   if (analyzerContainer) {
     new AnalyzerView(analyzerContainer, state).mount();
@@ -121,6 +123,10 @@ async function main(): Promise<void> {
 
   if (leaderboardContainer) {
     new LeaderboardView(leaderboardContainer, state).mount();
+  }
+
+  if (tipContainer) {
+    await new TipView(tipContainer, state, relay, relay.getChannelId()).mount();
   }
 
   // --------------------------------------------------------
