@@ -31,5 +31,6 @@ COPY --from=build /app/modules ./modules
 COPY --from=build /app/apps/game-arena/public ./apps/game-arena/public
 COPY --from=build /app/package.json ./package.json
 
+ENV PORT=8080
 EXPOSE 8080
 CMD ["node", "apps/game-arena/dist/server.js"]
