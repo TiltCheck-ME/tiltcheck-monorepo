@@ -23,6 +23,9 @@ import { simpleParser } from 'mailparser';
 import { readFileSync, writeFileSync, existsSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { promisify } from 'node:util';
+import { config as dotenvConfig } from 'dotenv';
+
+dotenvConfig({ path: resolve(process.cwd(), '.env') });
 
 // ─── Config ───────────────────────────────────────────────────────────────────
 
