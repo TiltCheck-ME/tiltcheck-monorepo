@@ -1,8 +1,4 @@
-/* Copyright (c) 2026 TiltCheck. All rights reserved. */
-/**
- * Odds / House Edge Command
- * Real RTP data with human-readable breakdowns.
- */
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-10
 import { SlashCommandBuilder, ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
 import type { Command } from '../types.js';
 
@@ -79,7 +75,7 @@ export const odds: Command = {
     }
 
     const embed = new EmbedBuilder()
-      .setColor(data.edge <= 1.0 ? 0x22d3a6 : data.edge <= 2.0 ? 0xFFA500 : 0xFF6B6B)
+      .setColor(data.edge <= 1.0 ? 0x22d3a6 : data.edge <= 2.0 ? 0xf59e0b : 0xef4444)
       .setTitle(`HOUSE EDGE AUDIT`)
       .setDescription(`**${data.rtp}% RTP — ${data.edge}% house edge per round.**\n\n${data.notes}`)
       .setTimestamp();
@@ -93,7 +89,7 @@ export const odds: Command = {
       embed.addFields({ name: `Max Win: ${data.maxWin}`, value: `Odds: ${data.maxWinOdds}`, inline: false });
     }
 
-    embed.setFooter({ text: "We can count too." });
+    embed.setFooter({ text: 'Made for Degens. By Degens.' });
 
     await interaction.reply({ embeds: [embed] });
   },

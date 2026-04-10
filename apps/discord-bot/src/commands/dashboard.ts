@@ -1,11 +1,4 @@
-/* Copyright (c) 2026 TiltCheck. All rights reserved. */
-/**
- * Dashboard Command
- * 
- * Slash command: /dashboard
- * Shows user's tilt stats and recent events in Discord
- * Provides link to full web dashboard
- */
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-10
 
 import {
   SlashCommandBuilder,
@@ -40,22 +33,22 @@ export const dashboard: Command = {
 
       if (!stats) {
         return await interaction.editReply({
-          content: 'Could not fetch your tilt data. Try again in a moment.',
+          content: 'Dashboard pull failed. Try again.',
         });
       }
 
       // Determine tilt level and color
       const tiltLevel = stats.averageTiltScore || 0;
       let riskLabel = 'CLEAR';
-      let color = 0x00ff00;
-      if (tiltLevel > 5) { riskLabel = 'ELEVATED'; color = 0xffff00; }
-      if (tiltLevel > 7) { riskLabel = 'HIGH';     color = 0xff9900; }
-      if (tiltLevel > 9) { riskLabel = 'CRITICAL'; color = 0xff0000; }
+      let color = 0x22d3a6;
+      if (tiltLevel > 5) { riskLabel = 'ELEVATED'; color = 0xf59e0b; }
+      if (tiltLevel > 7) { riskLabel = 'HIGH';     color = 0xf59e0b; }
+      if (tiltLevel > 9) { riskLabel = 'CRITICAL'; color = 0xef4444; }
 
       // Create main stats embed
       const statsEmbed = new EmbedBuilder()
         .setColor(color)
-        .setTitle(`[${riskLabel}] ${username}'s Tilt Dashboard`)
+        .setTitle(`${username.toUpperCase()} — ${riskLabel}`)
         .setDescription('Session audit — live data')
         .addFields([
           {
@@ -91,13 +84,13 @@ export const dashboard: Command = {
             inline: false,
           },
         ])
-        .setFooter({ text: 'Data updates in real-time' })
+        .setFooter({ text: 'Made for Degens. By Degens.' })
         .setTimestamp();
 
       // Create recent events embed if events exist
       const recentEventsEmbed = new EmbedBuilder()
-        .setColor(0x5865f2)
-        .setTitle('Recent Tilt Events (Last 7 Days)')
+        .setColor(0x22d3a6)
+        .setTitle('RECENT TILT EVENTS — 7 DAYS')
         .setDescription(
           events && events.length > 0
             ? events
@@ -115,7 +108,8 @@ export const dashboard: Command = {
                 })
                 .join('\n')
             : 'No recent events detected'
-        );
+        )
+        .setFooter({ text: 'Made for Degens. By Degens.' });
 
       // Create action buttons
       const actionRow = new ActionRowBuilder<ButtonBuilder>().addComponents(
@@ -141,7 +135,7 @@ export const dashboard: Command = {
     } catch (error) {
       console.error('[Dashboard Command] Error:', error);
       await interaction.editReply({
-        content: 'An error occurred while fetching your dashboard. Try again.',
+        content: 'Could not pull tilt data. Try again.',
       });
     }
   }

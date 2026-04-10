@@ -88,7 +88,7 @@ export const upgrade: Command = {
           'No partial payments. Send the exact amount for your tier.',
         ].join('\n')
       )
-      .setFooter({ text: 'TiltCheck Payment System' });
+      .setFooter({ text: 'Made for Degens. By Degens.' });
 
     // Build action row with premium SKU buttons or link fallbacks
     const row = new ActionRowBuilder<ButtonBuilder>();

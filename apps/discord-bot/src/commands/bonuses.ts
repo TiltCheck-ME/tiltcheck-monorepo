@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-09
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-10
 /**
  * Bonuses Command
  *
@@ -60,7 +60,7 @@ export const bonuses: Command = {
       data = await fetchBonuses();
     } catch (err) {
       await interaction.editReply(
-        '[ERROR] Failed to retrieve bonus data from CollectClock. Try again shortly.'
+        'Bonus data pull failed. Try again.'
       );
       return;
     }
@@ -71,8 +71,8 @@ export const bonuses: Command = {
 
     if (data.length === 0) {
       const msg = filter
-        ? `[NO RESULTS] No bonuses found matching "${filter}".`
-        : '[NO RESULTS] No bonus data available at this time.';
+        ? `No bonuses matching "${filter}".`
+        : 'No bonus data right now. Check back later.';
       await interaction.editReply(msg);
       return;
     }
@@ -81,9 +81,9 @@ export const bonuses: Command = {
     const totalCount = data.length;
 
     const embed = new EmbedBuilder()
-      .setColor(0x17c3b2)
+      .setColor(0x22d3a6)
       .setTitle('DAILY BONUS TRACKER')
-      .setFooter({ text: 'Data from CollectClock | tiltcheck.me/bonuses' })
+      .setFooter({ text: 'Made for Degens. By Degens.' })
       .setTimestamp();
 
     const descLines: string[] = [];

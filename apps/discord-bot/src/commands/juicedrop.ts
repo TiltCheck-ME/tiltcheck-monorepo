@@ -1,4 +1,4 @@
-/* Copyright (c) 2026 TiltCheck. All rights reserved. */
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-10
 
 import { SlashCommandBuilder, ChatInputCommandInteraction, EmbedBuilder, ButtonBuilder, ButtonStyle, ActionRowBuilder, Message } from 'discord.js';
 import type { Command } from '../types.js';
@@ -64,13 +64,13 @@ export const juicedrop: Command = {
 
     const fundEmbed = new EmbedBuilder()
       .setColor(0x22d3a6)
-      .setTitle('[INITIALIZE THE DROP]')
-      .setDescription(`To drop **${totalSol.toFixed(4)} SOL** to ${maxUsers} degens, you must fund the escrow. YOUR KEYS, YOUR PROBLEM.
+      .setTitle('INITIALIZE THE DROP')
+      .setDescription(`To drop **${totalSol.toFixed(4)} SOL** to ${maxUsers} degens, fund the escrow. Your keys, your problem.
 
 **Escrow Address:** \`${escrow.publicKey.toBase58()}\`
 
-*This escrow will be emptied immediately after the drop ends.*`)
-      .setFooter({ text: 'TiltCheck: EDGE EQUALIZER AUDIT - NON-CUSTODIAL' });
+This escrow is emptied immediately after the drop ends.`)
+      .setFooter({ text: 'Made for Degens. By Degens.' });
 
     await interaction.editReply({ embeds: [fundEmbed], components: [fundRow] });
 
@@ -93,13 +93,14 @@ export const juicedrop: Command = {
     // 4. Post the Reaction Message
     const dropEmbed = new EmbedBuilder()
       .setColor(0x8b5cf6)
-      .setTitle('[PROFIT DROPPING!]')
+      .setTitle('PROFIT DROPPING')
       .setDescription(`${interaction.user} is dropping **${totalSol.toFixed(4)} SOL**!
 
-React with [DROP] to claim your share!
+React to claim your share.
 
 **Limits:** Max ${maxUsers} users | **Time:** ${timeLimit}s`)
-      .setThumbnail('https://tiltcheck.me/assets/logo/logocurrent.png');
+      .setThumbnail('https://tiltcheck.me/assets/logo/logocurrent.png')
+      .setFooter({ text: 'Made for Degens. By Degens.' });
 
     const dropMessage = await (interaction.channel as any)?.send({ embeds: [dropEmbed] }) as Message;
     await dropMessage.react('📦'); // Replaced generic juice with package/box for better "math" feel if needed.
@@ -115,12 +116,12 @@ React with [DROP] to claim your share!
       const users = collected.first()?.users.cache.filter(u => !u.bot).map(u => u.id) || [];
       
       if (users.length === 0) {
-        await (interaction.channel as any)?.send('[!] No one caught the drop. Returning funds to spiller...');
+        await (interaction.channel as any)?.send('No one caught the drop. Returning funds to spiller.');
         // Refund logic here...
         return;
       }
 
-      await (interaction.channel as any)?.send(`[TIME] Timer ended! SECURING THE PROFIT for ${users.length} degens...`);
+      await (interaction.channel as any)?.send(`Timer ended. Securing the profit for ${users.length} degens.`);
 
       // 6. Execute Payouts
       const recipients: string[] = [];
@@ -132,7 +133,7 @@ React with [DROP] to claim your share!
       }
 
       if (recipients.length === 0) {
-        await (interaction.channel as any)?.send('[!] No reactors have linked wallets! Use `/linkwallet` to catch profit next time.');
+        await (interaction.channel as any)?.send('No reactors have linked wallets. Use `/linkwallet` to catch profit next time.');
         return;
       }
 
@@ -151,13 +152,12 @@ React with [DROP] to claim your share!
 
       try {
         const signature = await sendAndConfirmTransaction(connection, transaction, [escrow]);
-        await (interaction.channel as any)?.send(`[DONE] **PROFIT SECURED!**
-Sent to ${recipients.length} wallets.
+        await (interaction.channel as any)?.send(`PROFIT SECURED. Sent to ${recipients.length} wallets.
 
 **Tx:** https://solscan.io/tx/${signature}`);
       } catch (err) {
         console.error('[Juice] Payout error:', err);
-        await (interaction.channel as any)?.send('[!] Payout failed! Funds are stuck in escrow. Contact Admin.');
+        await (interaction.channel as any)?.send('Payout failed. Funds stuck in escrow. Contact Admin.');
       }
     });
   },

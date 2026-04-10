@@ -1,4 +1,4 @@
-/* Copyright (c) 2026 TiltCheck. All rights reserved. */
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-10
 
 import { SlashCommandBuilder, ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
 import type { Command } from '../types.js';
@@ -23,7 +23,7 @@ export const linkwallet: Command = {
     try {
       new PublicKey(address);
     } catch {
-      await interaction.reply({ content: '❌ Invalid Solana address. Please check and try again.', ephemeral: true });
+      await interaction.reply({ content: 'Invalid Solana address. Check the format and try again.', ephemeral: true });
       return;
     }
 
@@ -43,19 +43,19 @@ export const linkwallet: Command = {
 
       const embed = new EmbedBuilder()
         .setColor(0x22d3a6)
-        .setTitle('🔗 Wallet Linked to Hub')
-        .setDescription(`Successfully linked your wallet to the TiltCheck Truth Layer.
+        .setTitle('WALLET LINKED')
+        .setDescription(`Wallet connected to TiltCheck. You are in the system.
         
 **User:** \`${interaction.user.username}\`
 **Address:** \`${address.substring(0, 4)}...${address.substring(address.length - 4)}\`
 
-You can now login to the Hub and see your real-time telemetry instantly.`)
-        .setFooter({ text: 'Access the Hub at dashboard.tiltcheck.me' });
+Log in to the Hub to see live telemetry.`)
+        .setFooter({ text: 'Made for Degens. By Degens.' });
 
       await interaction.editReply({ embeds: [embed] });
     } catch (error) {
       console.error('[LinkWallet] Error:', error);
-      await interaction.editReply({ content: '❌ Failed to save wallet address. Please try again later.' });
+      await interaction.editReply({ content: 'Wallet save failed. Try again.' });
     }
   },
 };
