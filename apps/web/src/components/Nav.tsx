@@ -16,7 +16,6 @@ const NAV_LINKS: Array<{ href: string; label: string; accent?: string }> = [
   { href: '/blog',       label: 'Blog' },
   { href: '/docs',       label: 'Docs' },
   { href: '/extension',  label: 'Extension' },
-  { href: '/microgrant', label: 'Recovery Fund', accent: 'danger' },
   { href: '/collab',     label: 'Contact',        accent: 'purple' },
 ];
 
