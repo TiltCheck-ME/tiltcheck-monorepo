@@ -241,13 +241,13 @@ export default function TouchGrassPage() {
             </a>
 
             <a
-              href="/intel/scanner"
+              href="/bonuses"
               className="p-6 border border-[#17c3b2]/30 bg-[#17c3b2]/5 hover:bg-[#17c3b2]/10 hover:border-[#17c3b2]/60 transition-all group block"
             >
               <div className="text-[#17c3b2] font-black uppercase text-xs tracking-widest mb-2">INTEL</div>
               <h3 className="text-lg font-black text-white uppercase mb-2 group-hover:text-[#17c3b2] transition-colors">Bonus Scanner</h3>
               <p className="text-gray-500 text-sm leading-relaxed">
-                If you're going to come back, at least know what's claimable before you put another dollar in. Use the data. Work smarter.
+                If you&apos;re going to come back, at least know what&apos;s claimable before you put another dollar in. Use the data. Work smarter.
               </p>
               <div className="mt-4 text-[10px] font-mono text-[#17c3b2] uppercase tracking-widest">Scan Bonuses →</div>
             </a>
@@ -259,20 +259,102 @@ export default function TouchGrassPage() {
               <div className="text-[#ef4444] font-black uppercase text-xs tracking-widest mb-2">COMMUNITY FUND</div>
               <h3 className="text-lg font-black text-white uppercase mb-2 group-hover:text-[#ef4444] transition-colors">Recovery Microgrant</h3>
               <p className="text-gray-500 text-sm leading-relaxed">
-                Up to 1 SOL. One-time. No loans, no lectures. If you're in a hole and can't see out, apply. Seeded by degens who climbed out of the same one.
+                Up to 1 SOL. One-time. No loans, no lectures. If you&apos;re in a hole and can&apos;t see out, apply. Seeded by degens who climbed out of the same one.
               </p>
               <div className="mt-4 text-[10px] font-mono text-[#ef4444] uppercase tracking-widest">Check Eligibility →</div>
             </a>
 
-            
-              <div>
-                <div className="text-gray-700 font-black uppercase text-xs tracking-widest mb-2">IRL QUEST</div>
-                <h3 className="text-lg font-black text-white uppercase mb-2">Actually Touch Grass</h3>
-                <p className="text-gray-500 text-sm leading-relaxed">
-                  Outside. Shoes on. Walk. The urge to reload has a half-life of about 20 minutes. Outlast it.
-                </p>
-              </div>
-              <div className="mt-4 text-[10px] font-mono text-gray-700 uppercase tracking-widest">No link needed.</div>
+            <a
+              href="/tools/house-edge-scanner"
+              className="p-6 border border-yellow-500/30 bg-yellow-500/5 hover:bg-yellow-500/10 hover:border-yellow-500/60 transition-all group block"
+            >
+              <div className="text-yellow-500 font-black uppercase text-xs tracking-widest mb-2">MATH</div>
+              <h3 className="text-lg font-black text-white uppercase mb-2 group-hover:text-yellow-500 transition-colors">Run the Numbers</h3>
+              <p className="text-gray-500 text-sm leading-relaxed">
+                Calculate exactly what the house edge cost you across your last session. The anger is productive. Let it land.
+              </p>
+              <div className="mt-4 text-[10px] font-mono text-yellow-500 uppercase tracking-widest">Open Delta Engine →</div>
+            </a>
+
+            <a
+              href="/tools/auto-vault"
+              className="p-6 border border-[#17c3b2]/30 bg-[#17c3b2]/5 hover:bg-[#17c3b2]/10 hover:border-[#17c3b2]/60 transition-all group block"
+            >
+              <div className="text-[#17c3b2] font-black uppercase text-xs tracking-widest mb-2">PROTECTION</div>
+              <h3 className="text-lg font-black text-white uppercase mb-2 group-hover:text-[#17c3b2] transition-colors">Set Hard Limits Now</h3>
+              <p className="text-gray-500 text-sm leading-relaxed">
+                While you&apos;re out of session and thinking clearly, set the limits for next time. It&apos;s harder to override them when you&apos;re not tilted. Do it now.
+              </p>
+              <div className="mt-4 text-[10px] font-mono text-[#17c3b2] uppercase tracking-widest">Configure AutoVault →</div>
+            </a>
+
+            <a
+              href="https://lichess.org"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="p-6 border border-gray-700/50 bg-gray-800/20 hover:bg-gray-700/30 hover:border-gray-500/60 transition-all group block"
+            >
+              <div className="text-gray-400 font-black uppercase text-xs tracking-widest mb-2">SKILL GAME</div>
+              <h3 className="text-lg font-black text-white uppercase mb-2 group-hover:text-[#17c3b2] transition-colors">Play Chess</h3>
+              <p className="text-gray-500 text-sm leading-relaxed">
+                Free. Skill-only. No RNG. No house. You either played better or you didn&apos;t. Lichess is open source and runs fast puzzles in under 3 minutes.
+              </p>
+              <div className="mt-4 text-[10px] font-mono text-gray-400 group-hover:text-[#17c3b2] uppercase tracking-widest">Go to Lichess →</div>
+            </a>
+
+            <a
+              href="https://www.youtube.com/results?search_query=casino+slot+machine+design+psychology"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="p-6 border border-gray-700/50 bg-gray-800/20 hover:bg-gray-700/30 hover:border-gray-500/60 transition-all group block"
+            >
+              <div className="text-gray-400 font-black uppercase text-xs tracking-widest mb-2">WATCH</div>
+              <h3 className="text-lg font-black text-white uppercase mb-2 group-hover:text-[#17c3b2] transition-colors">How Slots Are Designed</h3>
+              <p className="text-gray-500 text-sm leading-relaxed">
+                Watch how machine designers engineer near-misses, sound cues, and reward loops to keep you seated. Knowing the trick doesn&apos;t make it stop working. But it helps.
+              </p>
+              <div className="mt-4 text-[10px] font-mono text-gray-400 group-hover:text-[#17c3b2] uppercase tracking-widest">Watch on YouTube →</div>
+            </a>
+
+            <a
+              href="https://www.reddit.com/r/problemgambling/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="p-6 border border-orange-500/30 bg-orange-500/5 hover:bg-orange-500/10 hover:border-orange-500/60 transition-all group block"
+            >
+              <div className="text-orange-400 font-black uppercase text-xs tracking-widest mb-2">COMMUNITY</div>
+              <h3 className="text-lg font-black text-white uppercase mb-2 group-hover:text-orange-400 transition-colors">r/problemgambling</h3>
+              <p className="text-gray-500 text-sm leading-relaxed">
+                700k+ people posting honestly about where they are. No filters. Read a few threads. You are not the only one who has been here tonight.
+              </p>
+              <div className="mt-4 text-[10px] font-mono text-orange-400 uppercase tracking-widest">Open Reddit →</div>
+            </a>
+
+            <div className="p-6 border border-gray-800/60 bg-gray-900/30">
+              <div className="text-gray-600 font-black uppercase text-xs tracking-widest mb-2">IRL QUEST</div>
+              <h3 className="text-lg font-black text-white uppercase mb-2">Cold Shower</h3>
+              <p className="text-gray-500 text-sm leading-relaxed">
+                Two minutes cold at the end. Not a punishment — a reset. Cortisol drops. The urge to reload fades. You come back to baseline faster.
+              </p>
+              <div className="mt-4 text-[10px] font-mono text-gray-600 uppercase tracking-widest">No link. Turn the dial.</div>
+            </div>
+
+            <div className="p-6 border border-gray-800/60 bg-gray-900/30">
+              <div className="text-gray-600 font-black uppercase text-xs tracking-widest mb-2">IRL QUEST</div>
+              <h3 className="text-lg font-black text-white uppercase mb-2">Write the Number Down</h3>
+              <p className="text-gray-500 text-sm leading-relaxed">
+                What you lost tonight. Total. No rounding. Pen and paper. The brain minimizes in memory. Writing it down stops that. Look at it for 30 seconds.
+              </p>
+              <div className="mt-4 text-[10px] font-mono text-gray-600 uppercase tracking-widest">No link. Just write it.</div>
+            </div>
+
+            <div className="p-6 border border-gray-800/60 bg-gray-900/30">
+              <div className="text-gray-600 font-black uppercase text-xs tracking-widest mb-2">IRL QUEST</div>
+              <h3 className="text-lg font-black text-white uppercase mb-2">Actually Touch Grass</h3>
+              <p className="text-gray-500 text-sm leading-relaxed">
+                Outside. Shoes on. Walk. The urge to reload has a half-life of about 20 minutes. Outlast it.
+              </p>
+              <div className="mt-4 text-[10px] font-mono text-gray-600 uppercase tracking-widest">No link needed.</div>
             </div>
 
           </div>
