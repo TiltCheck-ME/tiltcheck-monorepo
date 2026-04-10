@@ -108,7 +108,7 @@ export default function VerifyPage() {
     <main className="flex min-h-screen flex-col items-center p-4 pt-24 bg-[#0a0c10]">
       <header className="terminal-header w-full max-w-4xl mb-8">
         <div className="container mx-auto text-center font-mono">
-            <h1 className="terminal-title" data-slang="VERIFY_OS">The Receipt. // Prove they&apos;re not screwing you.</h1>
+            <h1 className="terminal-title" data-slang="VERIFY_OS">THE RECEIPT — Prove they&apos;re not screwing you.</h1>
             <p className="terminal-subtitle text-[#17c3b2]">Because &quot;provably fair&quot; is just a marketing term until you check the math yourself.</p>
         </div>
       </header>

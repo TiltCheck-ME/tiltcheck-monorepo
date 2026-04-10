@@ -18,13 +18,13 @@ export default function Home() {
           </h2>
 
           <p className="hero-tagline">
-            TiltCheck is a <strong>responsible gambling toolkit</strong> — it tracks your live session, audits casino fairness, and locks your wins before you give them back.
+            TiltCheck tracks your live session, audits casino fairness, and <strong>locks your wins before your brain gives them back.</strong>
           </p>
 
           <div className="hero-audit-banner">
-            <p className="hero-audit-label">WHAT IT DOES</p>
+            <p className="hero-audit-label">WHAT THE CASINO DOESN&apos;T WANT INSTALLED</p>
             <p className="hero-audit-body">
-              Live session tracking &rarr; casino RTP audits &rarr; provably fair seed verification &rarr; win-locking vault &rarr; phishing protection. Nine tools. One layer. No middleman.
+              Live session tracking &rarr; RTP drift detection &rarr; <strong>Greed Premium</strong> surfaced per $100 wagered &rarr; provably fair verification &rarr; win-locking vault &rarr; phishing shield. Nine tools. One layer. No trust required.
             </p>
           </div>
 
@@ -50,10 +50,10 @@ export default function Home() {
       {/* Tools Section */}
       <section id="tools" className="w-full max-w-7xl mx-auto pt-8 pb-16">
         <div className="section-heading-block">
-          <h2 className="neon neon-header section-heading" data-text="THE HOUSE EDGE NEUTRALIZER">
-            THE HOUSE EDGE NEUTRALIZER
+          <h2 className="neon neon-header section-heading" data-text="WHAT THE CASINO DOESN'T WANT INSTALLED">
+            WHAT THE CASINO DOESN&apos;T WANT INSTALLED
           </h2>
-          <p className="section-subheading">Nine tools. One audit layer. No cap.</p>
+          <p className="section-subheading">Nine tools. One audit layer. No trust required.</p>
         </div>
         <div className="mt-8 tools-bento-grid">
           {features.map((tool) => (

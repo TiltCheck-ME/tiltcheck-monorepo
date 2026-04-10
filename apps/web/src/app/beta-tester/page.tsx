@@ -42,9 +42,9 @@ export default function BetaTesterPage() {
     <div className="min-h-screen pt-24 pb-12 px-4 max-w-5xl mx-auto flex flex-col gap-12 animate-in fade-in slide-in-from-bottom-4 duration-500">
       <header className="border-b border-[#283347] pb-8 text-center md:text-left">
         <h1 className="text-4xl md:text-5xl font-black uppercase tracking-tighter text-[color:var(--color-primary)]">
-          Beta Tester Program
+          BREAK IT BEFORE WE SHIP IT
           <span className="ml-4 text-sm font-mono font-normal text-[#17c3b2] bg-[#17c3b2]/10 px-2 py-1 rounded">
-            TRUST ENGINES
+            TRUST ENGINES BETA
           </span>
         </h1>
         <p className="text-gray-400 mt-4 max-w-3xl">
@@ -63,25 +63,25 @@ export default function BetaTesterPage() {
               <li className="flex items-start gap-3">
                 <span className="text-[#17c3b2] mt-0.5">▹</span>
                 <div>
-                  <strong className="text-white">Early Access:</strong> Be among the first to experience and test new scoring models, event handlers, and API functionalities before public release.
+                  <strong className="text-white">Early Access:</strong> First to test new scoring models and Trust Engine builds before they go public. Your session data shapes what ships.
                 </div>
               </li>
               <li className="flex items-start gap-3">
                 <span className="text-[#17c3b2] mt-0.5">▹</span>
                 <div>
-                  <strong className="text-white">Direct Impact:</strong> Your feedback will directly shape the future of Trust Engines, helping us build a more accurate and robust system.
+                  <strong className="text-white">Direct Impact:</strong> Your bug reports and feedback go straight to the build. No ticket queue, no support bot. You break it, we fix it.
                 </div>
               </li>
               <li className="flex items-start gap-3">
                 <span className="text-[#17c3b2] mt-0.5">▹</span>
                 <div>
-                  <strong className="text-white">Deep Dive:</strong> Gain a deeper understanding of how trust scores are calculated and the underlying mechanics.
+                  <strong className="text-white">Know the Math:</strong> Understand exactly how the Trust Engine scores casinos — the same data the community uses to avoid getting rinsed.
                 </div>
               </li>
             </ul>
 
             <div className="mt-8 border-t border-[#283347] pt-6">
-              <h3 className="text-xs font-bold uppercase text-gray-400 mb-4 tracking-wider">Exclusive Assurances</h3>
+              <h3 className="text-xs font-bold uppercase text-gray-400 mb-4 tracking-wider">Genesis Perks</h3>
               <div className="grid grid-cols-2 gap-4 text-xs font-mono">
                 <div className="p-3 bg-[#17c3b2]/5 border border-[#17c3b2]/20 text-[#17c3b2]">
                   [WHITELIST] Genesis Tester Role

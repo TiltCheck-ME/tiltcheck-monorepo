@@ -111,9 +111,9 @@ export default function ContactPage() {
             Contact / Partner / Collab
           </div>
           <h1 className="text-4xl md:text-5xl font-black uppercase tracking-tighter mb-6 text-white leading-none">
-            Get In Touch.
+            <span className="text-[#17c3b2]">WE ACTUALLY READ THESE.</span>
             <br />
-            <span className="text-[#17c3b2]">We Actually Read These.</span>
+            Get In Touch.
           </h1>
           <p className="text-gray-400 text-lg max-w-2xl leading-relaxed mt-8">
             General questions, partnership pitches, press inquiries, bug reports — this form handles it.

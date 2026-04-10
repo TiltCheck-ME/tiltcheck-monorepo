@@ -146,8 +146,8 @@ export default function DomainVerifierPage() {
       <section className="border-b border-[#283347] py-32 px-4">
         <div className="max-w-4xl mx-auto text-center">
           <p className="text-xs font-mono text-[#17c3b2] uppercase tracking-widest mb-4">LINKGUARD + LICENSE CHECK</p>
-          <h1 className="neon neon-main text-5xl md:text-7xl mb-6" data-text="ANTI-DRAINER DNS SENTRY">
-            ANTI-DRAINER DNS SENTRY
+          <h1 className="neon neon-main text-5xl md:text-7xl mb-6" data-text="PHISHING SHIELD">
+            PHISHING SHIELD
           </h1>
           <p className="text-lg text-gray-400 max-w-2xl mx-auto font-mono">
             Verify any casino domain or paste a marketing email. We check the sender domain, license status, embedded links, and extract bonus data for the trust engine.
