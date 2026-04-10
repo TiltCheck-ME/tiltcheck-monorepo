@@ -1470,28 +1470,6 @@ header {
    ============================================================ */
 .vault-quick-actions { display: flex; gap: 0.5rem; }
 
-/* ============================================================
-   RESPONSIVE
-   ============================================================ */
-@media (max-width: 1024px) {
-    .stats-grid, .stats-grid-4 { grid-template-columns: repeat(2, 1fr); }
-}
-
-@media (max-width: 768px) {
-    #dashboard { flex-direction: column; }
-    .sidebar { width: 100%; height: auto; position: static; flex-direction: column; padding: 0; }
-    .sidebar-logo { display: none; }
-    .sidebar-user { padding: 0.75rem 1rem; border-bottom: none; }
-    .nav-links { display: flex; flex-direction: row; overflow-x: auto; padding: 0; border-bottom: 1px solid var(--border-subtle); }
-    .nav-links li { flex-shrink: 0; }
-    .nav-link { padding: 0.65rem 1rem; border-right: none; border-bottom: 2px solid transparent; font-size: 0.8rem; }
-    .nav-link.active { border-right: none; border-bottom: 2px solid var(--color-primary); }
-    .sidebar-footer { display: none; }
-    .main-content { padding: 1.25rem; }
-    .card-row { grid-template-columns: 1fr; }
-    .card-wide { grid-column: span 1; }
-    .stats-grid, .stats-grid-4 { grid-template-columns: 1fr 1fr; }
-}
 
 /* ============================================================
    DASHBOARD LAYOUT - Added 2026-04-04
@@ -1749,4 +1727,27 @@ header {
   .sidebar-logo { font-size: 0.95rem; }
   .stats-grid, .stats-grid-4 { grid-template-columns: 1fr; }
   .bonus-grid { grid-template-columns: 1fr !important; }
+}
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media (max-width: 1024px) {
+    .stats-grid, .stats-grid-4 { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 768px) {
+    #dashboard { flex-direction: column; }
+    .sidebar { width: 100%; height: auto; position: static; flex-direction: column; padding: 0; }
+    .sidebar-logo { display: none; }
+    .sidebar-user { padding: 0.75rem 1rem; border-bottom: none; }
+    .nav-links { display: flex; flex-direction: row; overflow-x: auto; padding: 0; border-bottom: 1px solid var(--border-subtle); }
+    .nav-links li { flex-shrink: 0; }
+    .nav-link { padding: 0.65rem 1rem; border-right: none; border-bottom: 2px solid transparent; font-size: 0.8rem; }
+    .nav-link.active { border-right: none; border-bottom: 2px solid var(--color-primary); }
+    .sidebar-footer { display: none; }
+    .main-content { padding: 1.25rem; }
+    .card-row { grid-template-columns: 1fr; }
+    .card-wide { grid-column: span 1; }
+    .stats-grid, .stats-grid-4 { grid-template-columns: 1fr 1fr; }
 }

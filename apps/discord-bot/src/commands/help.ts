@@ -55,7 +55,7 @@ export const help: Command = {
         value:
           'Profit drops, wallet, and bonuses: **JustTheTip** bot — `/juicedrop`, `/linkwallet`, `/lockvault`, `/bonuses`\n' +
           'Card games and trivia: **DAD** (Degens Against Decency) bot — `/lobby`, `/triviadrop`\n' +
-          'Full dashboard: https://tiltcheck.me/dashboard',
+          'Full dashboard: https://hub.tiltcheck.me',
         inline: false,
       }
     );
