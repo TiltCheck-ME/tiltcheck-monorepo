@@ -136,7 +136,7 @@ function buildImapClient(): Imap {
     host: 'imap.gmail.com',
     port: 993,
     tls: true,
-    tlsOptions: { rejectUnauthorized: true },
+    tlsOptions: { rejectUnauthorized: true, servername: 'imap.gmail.com' },
     authTimeout: 10000,
   });
 }
