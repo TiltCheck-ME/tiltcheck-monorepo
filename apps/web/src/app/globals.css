@@ -752,6 +752,21 @@ body.degen-background {
   color: var(--text-primary);
 }
 
+/* Dark overlay across the entire glitter background */
+body.degen-background::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: rgba(10, 12, 16, 0.72);
+  pointer-events: none;
+  z-index: 0;
+}
+
+body.degen-background > * {
+  position: relative;
+  z-index: 1;
+}
+
 .neon {
   position: relative;
   text-transform: uppercase;
