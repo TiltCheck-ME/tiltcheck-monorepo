@@ -818,6 +818,12 @@ body.degen-background {
   margin-bottom: 0;
   line-height: 1.05;
   white-space: nowrap;
+  color: #000 !important;
+  text-shadow:
+    0 0 8px #17c3b2,
+    0 0 20px #17c3b2,
+    0 0 40px rgba(23,195,178,0.6) !important;
+  -webkit-text-stroke: 0px !important;
 }
 
 .neon-hero-bottom {
