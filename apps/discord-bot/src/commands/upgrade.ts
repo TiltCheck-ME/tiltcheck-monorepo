@@ -34,25 +34,35 @@ export const upgrade: Command = {
       .setTitle('UPGRADE YOUR DEGEN STATUS')
       .setDescription(
         [
-          '**DEGEN PRO** -- $4.99/mo',
+          '**DEGEN PASS** -- $4.99/mo',
           '- Unlimited scans, no daily cap',
           '- Full SusLink threat analysis',
           '- Casino trust scores (full detail)',
           '- Priority bot alerts',
-          '- Degen Pro Discord role',
+          '- Degen Pass Discord role',
           '',
-          '**ELITE** -- $14.99/mo',
-          '- Everything in Degen Pro',
+          '**PLATINUM PASS** -- $14.99/mo',
+          '- Everything in Degen Pass',
           '- Full API access',
           '- Custom nudge thresholds',
           '- Beta feature access',
-          '- OG Discord role',
+          '- Platinum Discord role',
           '',
-          '**LIFETIME ELITE** -- $99 one-time',
-          '- Elite tier forever, no renewals',
-          '- Every Elite perk',
+          '**LIFETIME PASS** -- $199.99 one-time',
+          '- Platinum tier forever, no renewals',
+          '- Every current Platinum perk',
           '- Early access to all new modules',
-          '- Lifetime Elite Discord role',
+          '- Lifetime Pass Discord role',
+          '',
+          '**OG LIFETIME PASS** -- $99.99 one-time (beta price)',
+          '- Everything in Lifetime Pass',
+          '- Locked in at beta price forever',
+          '- OG Lifetime Discord role',
+          '- Beta tester credit in release notes',
+          '',
+          '**SUPPORT THE PROJECT** -- $9.99 one-time',
+          '- No tier. No role. No perks.',
+          '- Just fuel for the team building this.',
         ].join('\n')
       )
       .setFooter({ text: 'Made for Degens. By Degens.' });
@@ -67,9 +77,10 @@ export const upgrade: Command = {
           `**Wallet:** \`${SOL_WALLET}\``,
           '',
           '**Amounts:**',
-          '- Degen Pro (monthly): `0.05 SOL`',
-          '- Elite (monthly): `0.15 SOL`',
-          '- Lifetime Elite (one-time): `1.00 SOL`',
+          '- Degen Pass (monthly): `0.05 SOL`',
+          '- Platinum Pass (monthly): `0.15 SOL`',
+          '- Lifetime Pass (one-time): `1.00 SOL`',
+          '- OG Lifetime Pass / Beta (one-time): `0.65 SOL`',
           '',
           `After paying, submit your tx hash at:\n${CLAIM_URL}`,
           '',
@@ -86,19 +97,16 @@ export const upgrade: Command = {
       const skuProId = process.env.DISCORD_SKU_PRO_ID;
       const skuEliteId = process.env.DISCORD_SKU_ELITE_ID;
       const skuLifetimeId = process.env.DISCORD_SKU_LIFETIME_ID;
+      const skuOgLifetimeId = process.env.DISCORD_SKU_OG_LIFETIME_ID;
+      const skuSupportId = process.env.DISCORD_SKU_SUPPORT_ID;
 
-      if (skuProId && skuEliteId && skuLifetimeId) {
-        // Discord native premium SKU buttons
+      if (skuProId && skuEliteId && skuLifetimeId && skuOgLifetimeId && skuSupportId) {
         row.addComponents(
-          new ButtonBuilder()
-            .setStyle(ButtonStyle.Premium)
-            .setSKUId(skuProId),
-          new ButtonBuilder()
-            .setStyle(ButtonStyle.Premium)
-            .setSKUId(skuEliteId),
-          new ButtonBuilder()
-            .setStyle(ButtonStyle.Premium)
-            .setSKUId(skuLifetimeId),
+          new ButtonBuilder().setStyle(ButtonStyle.Premium).setSKUId(skuProId),
+          new ButtonBuilder().setStyle(ButtonStyle.Premium).setSKUId(skuEliteId),
+          new ButtonBuilder().setStyle(ButtonStyle.Premium).setSKUId(skuLifetimeId),
+          new ButtonBuilder().setStyle(ButtonStyle.Premium).setSKUId(skuOgLifetimeId),
+          new ButtonBuilder().setStyle(ButtonStyle.Premium).setSKUId(skuSupportId),
         );
       } else {
         // Fallback: link button to app directory premium page
