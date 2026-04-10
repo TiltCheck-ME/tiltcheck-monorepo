@@ -32,6 +32,27 @@ export interface BonusItem {
   is_verified: boolean;
 }
 
+export interface TipDrop {
+  id: string;
+  fromUserId: string;
+  fromUsername: string;
+  amountSol: number;
+  amountUsd: number;
+  message: string;
+  expiresAt: number;
+  claimable: boolean;
+}
+
+export interface TipEntry {
+  id: string;
+  fromUsername: string;
+  toUsername: string;
+  amountSol: number;
+  message: string;
+  timestamp: number;
+  claimed: boolean;
+}
+
 type StateChangeHandler<T> = (value: T) => void;
 
 export class SessionState {
@@ -64,6 +85,10 @@ export class SessionState {
   };
   private _bonusFeed: BonusItem[] = [];
   private _channelSessions: Map<string, { userId: string; username: string; rounds: SessionRound[] }> = new Map();
+  private _activeDrop: TipDrop | null = null;
+  private _tipHistory: TipEntry[] = [];
+  private _feeSavedSol: number = 0;
+  private _isElite: boolean = false;
 
   private handlers: Map<string, StateChangeHandler<unknown>[]> = new Map();
 
@@ -191,6 +216,32 @@ export class SessionState {
   updateChannelSession(userId: string, username: string, rounds: SessionRound[]): void {
     this._channelSessions.set(userId, { userId, username, rounds });
     this.notify('channelSessions');
+  }
+
+  // --------------------------------------------------------
+  // Tips
+  // --------------------------------------------------------
+  get activeDrop(): TipDrop | null { return this._activeDrop; }
+  get tipHistory(): readonly TipEntry[] { return this._tipHistory; }
+  get feeSavedSol(): number { return this._feeSavedSol; }
+  get isElite(): boolean { return this._isElite; }
+
+  setActiveDrop(drop: TipDrop | null): void {
+    this._activeDrop = drop;
+    this.notify('tip');
+  }
+
+  addTipToHistory(entry: TipEntry): void {
+    if (!this._tipHistory.find(t => t.id === entry.id)) {
+      this._tipHistory = [entry, ...this._tipHistory].slice(0, 20);
+      this.notify('tip');
+    }
+  }
+
+  setEliteStatus(isElite: boolean, feeSavedSol: number): void {
+    this._isElite = isElite;
+    this._feeSavedSol = feeSavedSol;
+    this.notify('tip');
   }
 
   // --------------------------------------------------------

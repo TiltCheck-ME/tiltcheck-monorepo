@@ -496,6 +496,182 @@
         letter-spacing: 0.08em;
         text-transform: uppercase;
       }
+
+      /* ── NAV DROP BADGE ──────────────────── */
+      .nav-tab.has-drop {
+        color: var(--color-accent);
+        border-bottom-color: var(--color-accent);
+        animation: tab-pulse 1.5s ease-in-out infinite;
+      }
+      @keyframes tab-pulse {
+        0%, 100% { box-shadow: 0 2px 0 var(--color-accent); }
+        50%       { box-shadow: 0 2px 8px var(--color-accent); }
+      }
+
+      /* ── TIP VIEW ────────────────────────── */
+      .tip-drop-banner {
+        background: linear-gradient(135deg, rgba(217, 70, 239, 0.15), rgba(139, 92, 246, 0.1));
+        border: 1px solid var(--color-accent);
+        border-radius: var(--radius-md);
+        padding: 1rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+      }
+      .tip-drop-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .tip-drop-label {
+        font-size: 0.6rem;
+        font-weight: 700;
+        letter-spacing: 0.15em;
+        color: var(--color-accent);
+        text-transform: uppercase;
+      }
+      .tip-drop-timer {
+        font-family: 'Courier New', monospace;
+        font-size: 0.75rem;
+        font-weight: 700;
+        color: var(--color-accent);
+      }
+      .tip-drop-body {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+      }
+      .tip-drop-from { font-size: 0.85rem; color: var(--text-secondary); }
+      .tip-drop-amount {
+        font-family: var(--font-display);
+        font-size: 1.4rem;
+        font-weight: 900;
+        color: #fff;
+      }
+      .tip-drop-msg {
+        font-size: 0.75rem;
+        color: var(--text-muted);
+        font-style: italic;
+      }
+      .btn-claim {
+        background: var(--color-accent);
+        color: #000;
+        border: none;
+        padding: 0.6rem 1.5rem;
+        font-weight: 900;
+        font-size: 0.75rem;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        cursor: pointer;
+        border-radius: var(--radius-md);
+        transition: opacity 0.1s;
+        width: 100%;
+      }
+      .btn-claim:hover { opacity: 0.85; }
+      .btn-claim:disabled { opacity: 0.4; cursor: not-allowed; }
+
+      .tip-idle-state {
+        text-align: center;
+        padding: 1rem;
+        border: 1px dashed rgba(255,255,255,0.1);
+        border-radius: var(--radius-md);
+      }
+      .tip-idle-label {
+        display: block;
+        font-size: 0.6rem;
+        font-weight: 700;
+        letter-spacing: 0.15em;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        margin-bottom: 0.35rem;
+      }
+      .tip-idle-sub { font-size: 0.75rem; color: var(--text-muted); }
+
+      .tip-send-form {
+        background: rgba(10, 12, 16, 0.85);
+        border: 1px solid var(--border-default);
+        border-radius: var(--radius-md);
+        padding: 0.85rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+      }
+      .tip-form-row { display: flex; gap: 0.5rem; }
+      .tip-input {
+        background: var(--bg-input);
+        border: 1px solid var(--border-default);
+        color: var(--text-primary);
+        font-size: 0.8rem;
+        padding: 0.5rem 0.75rem;
+        border-radius: var(--radius-md);
+        width: 100%;
+        font-family: var(--font-body);
+      }
+      .tip-input:focus { outline: none; border-color: var(--color-primary); }
+      .tip-input-sm { width: 6rem; flex-shrink: 0; }
+      .btn-send {
+        background: var(--color-primary);
+        color: #000;
+        border: none;
+        padding: 0.55rem 1rem;
+        font-weight: 700;
+        font-size: 0.75rem;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        cursor: pointer;
+        border-radius: var(--radius-md);
+        transition: opacity 0.1s;
+      }
+      .btn-send:hover { opacity: 0.85; }
+      .btn-send:disabled { opacity: 0.4; cursor: not-allowed; }
+
+      .tip-elite-badge {
+        border-radius: var(--radius-md);
+        padding: 0.6rem 0.85rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.2rem;
+      }
+      .elite-active {
+        background: rgba(23, 195, 178, 0.08);
+        border: 1px solid rgba(23, 195, 178, 0.3);
+      }
+      .elite-inactive {
+        background: rgba(255,255,255,0.03);
+        border: 1px dashed rgba(255,255,255,0.1);
+      }
+      .elite-status {
+        font-size: 0.65rem;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--color-primary);
+      }
+      .elite-inactive .elite-status { color: var(--text-muted); }
+      .elite-saved { font-size: 0.72rem; color: var(--text-secondary); }
+      .elite-cta { font-size: 0.72rem; color: var(--text-muted); }
+
+      .tip-history { display: flex; flex-direction: column; gap: 0.35rem; }
+      .tip-history-empty { font-size: 0.75rem; color: var(--text-muted); }
+      .tip-history-row {
+        display: flex;
+        align-items: center;
+        gap: 0.35rem;
+        font-size: 0.72rem;
+        padding: 0.3rem 0;
+        border-bottom: 1px solid rgba(255,255,255,0.04);
+        flex-wrap: wrap;
+      }
+      .tip-hist-from, .tip-hist-to { color: var(--text-secondary); font-weight: 600; }
+      .tip-hist-arrow { color: var(--text-muted); }
+      .tip-hist-amount { color: var(--color-positive); font-family: 'Courier New', monospace; margin-left: auto; }
+      .tip-hist-msg { color: var(--text-muted); font-style: italic; width: 100%; }
+      .tip-history-row.claimed .tip-hist-amount { color: var(--color-primary); }
+
+      @keyframes toast-in {
+        from { opacity: 0; transform: translateX(-50%) translateY(8px); }
+        to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+      }
     </style>
   </head>
   <body>
@@ -504,6 +680,7 @@
         <button class="nav-tab active" data-view="analyzer">Analyzer</button>
         <button class="nav-tab" data-view="games">Games</button>
         <button class="nav-tab" data-view="vault">Vault</button>
+        <button class="nav-tab" data-view="tip">Tip</button>
       </nav>
 
       <section id="view-analyzer" class="view-content active">
@@ -541,6 +718,10 @@
         <p class="waiting-sub" style="text-align: center; margin-top: 0.5rem; font-size: 0.7rem;">
           Deploying non-custodial capital protection before you rinse the rest.
         </p>
+      </section>
+
+      <section id="view-tip" class="view-content">
+        <!-- Mounted by TipView.ts -->
       </section>
     </div>
 
