@@ -1,0 +1,27 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "composite": true,
+    "incremental": true,
+    "outDir": "./dist",
+    "rootDir": "src",
+    "lib": ["ESNext", "DOM"]
+  },
+  "include": [
+    "src/**/*"
+  ],
+  "references": [
+    { "path": "../../packages/config" },
+    { "path": "../../packages/database" },
+    { "path": "../../packages/discord-utils" },
+    { "path": "../../packages/esm-utils" },
+    { "path": "../../packages/event-router" },
+    { "path": "../../packages/event-types" },
+    { "path": "../../modules/justthetip" },
+    { "path": "../../modules/lockvault" },
+    { "path": "../../packages/natural-language-parser" },
+    { "path": "../../packages/types" },
+    { "path": "../../packages/shared" },
+    { "path": "../../packages/utils" }
+  ]
+}

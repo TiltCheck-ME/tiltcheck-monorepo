@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-09
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-10
 import ToolCard from "@/components/ToolCard";
 
 import { features } from "@/config/features";
@@ -6,7 +6,7 @@ import { features } from "@/config/features";
 
 export default function Home() {
   return (
-    <main className="flex min-h-screen flex-col items-center p-4 pt-8">
+    <main className="flex min-h-screen flex-col items-center p-4 pt-8 overflow-x-hidden w-full">
       {/* Hero Section */}
       <section className="hero-surface w-full">
         <div className="hero-content">

@@ -1,7 +1,6 @@
-/* Copyright (c) 2026 TiltCheck. All rights reserved. */
-/**
- * TiltCheck Safety Bot Help Command
- */
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-10
+// TiltCheck Safety Bot — Help Command
+
 import { SlashCommandBuilder, ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
 import type { Command } from '../types.js';
 
@@ -13,8 +12,8 @@ export const help: Command = {
   async execute(interaction: ChatInputCommandInteraction) {
     const embed = new EmbedBuilder()
       .setColor(0x22d3a6)
-      .setTitle('TILTCHECK SAFETY BOT — COMMAND MAP')
-      .setDescription('Session auditing, trust scoring, and link scanning. This bot does not handle tips or card games.')
+      .setTitle('TILTCHECK — COMMAND MAP')
+      .setDescription('Session auditing, casino trust scoring, and link scanning. This bot does not handle tips, drops, or card games — those are separate bots.')
       .setThumbnail('https://tiltcheck.me/assets/logo/logocurrent.png');
 
     embed.addFields(
@@ -22,39 +21,46 @@ export const help: Command = {
         name: 'Session Audit',
         value:
           '`/status` — Current session risk snapshot\n' +
-          '`/tether` — Link an accountability contact\n' +
-          '`/goal` — Set a session target and exit point',
+          '`/buddy` — Link an accountability contact\n' +
+          '`/goal` — Set a session target and exit point\n' +
+          '`/cooldown` — Start a voluntary session cooldown\n' +
+          '`/intervene` — Toggle voice channel safety intervention',
         inline: false,
       },
       {
         name: 'Math and Trust',
         value:
           '`/odds` — House edge and RTP for any game\n' +
-          '`/verify` — Provably fair verification\n' +
-          '`/casino` — Trust score and fairness lookup',
+          '`/verify` — Provably fair hash verification\n' +
+          '`/casino` — Trust score and fairness lookup\n' +
+          '`/trust` — Reputation audit for users or platforms',
         inline: false,
       },
       {
-        name: 'Securing the Bag',
+        name: 'Security',
         value:
-          '`/juicedrop` — Fund a non-custodial profit lock\n' +
-          '`/lockvault` — Time-lock winnings before you bet them back\n' +
-          '`/reputation` — Audit scores for users or platforms',
+          '`/scan` — Check a URL for phishing and scam signals\n' +
+          '`/recover` — Community recovery microgrant info and application',
+        inline: false,
+      },
+      {
+        name: 'Dashboard and Stats',
+        value:
+          '`/status` — Live risk snapshot\n' +
+          '`/dashboard` — View 7-day tilt stats and event history',
         inline: false,
       },
       {
         name: 'Other Bots',
         value:
-          'Tips and P2P payments: JustTheTip bot\n' +
-          'Card games and poker: Degens Against Decency bot\n' +
+          'Profit drops, wallet, and bonuses: **JustTheTip** bot — `/juicedrop`, `/linkwallet`, `/lockvault`, `/bonuses`\n' +
+          'Card games and trivia: **DAD** (Degens Against Decency) bot — `/lobby`, `/triviadrop`\n' +
           'Full dashboard: https://tiltcheck.me/dashboard',
         inline: false,
       }
     );
 
-    embed.setFooter({
-      text: 'TiltCheck — Made for Degens. By Degens.',
-    });
+    embed.setFooter({ text: 'TiltCheck — Made for Degens. By Degens.' });
 
     await interaction.reply({ embeds: [embed] });
   },

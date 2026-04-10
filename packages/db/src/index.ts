@@ -112,6 +112,14 @@ export {
   // Audit log queries
   createAuditLog,
   getAuditLogsByUser,
+
+  // Surgical Self-Exclusion queries
+  getUserExclusions,
+  addExclusion,
+  removeExclusion,
+  clearExclusions,
+  checkGameExcluded,
+  buildForbiddenGamesProfile,
 } from './queries.js';
 
 // Type exports
@@ -155,4 +163,10 @@ export type {
   // Blog types
   BlogPost,
   CreateBlogPostPayload,
+
+  // Surgical Self-Exclusion types
+  GameExclusion,
+  CreateGameExclusionPayload,
+  ForbiddenGamesProfile,
+  GameCategory,
 } from './types.js';

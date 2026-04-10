@@ -17,10 +17,15 @@ import {
     sendBuddyRequest,
     acceptBuddyRequest,
     removeBuddy,
-    updateUser
+    updateUser,
+    getUserExclusions,
+    addExclusion,
+    removeExclusion,
 } from '@tiltcheck/db';
 import { ValidationError, InternalServerError } from '@tiltcheck/error-factory';
 import { verifySolanaSignature } from '@tiltcheck/auth/solana';
+import { invalidateExclusionCache, getForbiddenGamesProfile } from '../services/exclusion-cache.js';
+import type { GameCategory } from '@tiltcheck/types';
 
 const router: Router = Router();
 
@@ -450,6 +455,80 @@ router.get('/:id/elite', async (req: Request, res, next: NextFunction) => {
         });
     } catch (error) {
         next(error);
+    }
+});
+
+// ─── Surgical Self-Exclusion Routes ──────────────────────────────────────────
+
+/**
+ * GET /user/:discordId/exclusions
+ * Return the full ForbiddenGamesProfile (exclusion list + quick-lookup arrays).
+ */
+router.get('/:discordId/exclusions', authMiddleware, async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const { discordId } = req.params;
+        const user = await findUserByDiscordId(discordId as string);
+        if (!user) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+
+        const profile = await getForbiddenGamesProfile(user.id);
+        res.json({ success: true, data: profile });
+    } catch (err) {
+        next(err);
+    }
+});
+
+/**
+ * POST /user/:discordId/exclusions
+ * Add a surgical exclusion (game_id, category, or both).
+ */
+router.post('/:discordId/exclusions', authMiddleware, async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const { discordId } = req.params;
+        const { gameId, category, reason } = req.body as {
+            gameId?: string;
+            category?: GameCategory;
+            reason?: string;
+        };
+
+        if (!gameId && !category) {
+            return next(new ValidationError('At least one of gameId or category is required'));
+        }
+
+        const user = await findUserByDiscordId(discordId as string);
+        if (!user) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+
+        const exclusion = await addExclusion({ userId: user.id, gameId, category, reason });
+        await invalidateExclusionCache(user.id);
+
+        res.status(201).json({ success: true, data: exclusion });
+    } catch (err) {
+        next(err);
+    }
+});
+
+/**
+ * DELETE /user/:discordId/exclusions/:exclusionId
+ * Remove a single exclusion entry.
+ */
+router.delete('/:discordId/exclusions/:exclusionId', authMiddleware, async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const { discordId, exclusionId } = req.params;
+
+        const user = await findUserByDiscordId(discordId as string);
+        if (!user) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+
+        await removeExclusion(exclusionId as string, user.id);
+        await invalidateExclusionCache(user.id);
+
+        res.json({ success: true });
+    } catch (err) {
+        next(err);
     }
 });
 

@@ -22,7 +22,10 @@ import { suslink } from '@tiltcheck/suslink';
 import { getUserTiltStatus, evaluateRtpLegalTrigger } from '@tiltcheck/tiltcheck-core';
 import { webhookService } from '../lib/webhooks.js';
 import { authMiddleware, AuthRequest } from '../middleware/auth.js';
-import type { RtpReportSubmittedEvent } from '@tiltcheck/types';
+import type { RtpReportSubmittedEvent, GameCategory } from '@tiltcheck/types';
+import { isGameBlocked } from '../services/exclusion-cache.js';
+import { findUserByDiscordId } from '@tiltcheck/db';
+import { ValidationError } from '@tiltcheck/error-factory';
 
 const router: Router = Router();
 
@@ -820,6 +823,54 @@ router.post('/email-ingest', async (req, res) => {
     licenseInfo,
     linkScans,
   });
+});
+
+// ─── Surgical Self-Exclusion — Casino API Integration Point ──────────────────
+
+/**
+ * POST /rgaas/check-game
+ * Gatekeeper endpoint for casino API integrations.
+ * Returns 200 {allowed: true} or 403 {allowed: false, message} based on
+ * the user's surgical exclusion list.
+ *
+ * Body: { discordId: string, gameId?: string, category?: GameCategory }
+ * Casinos ping this before launching a game iframe.
+ */
+router.post('/check-game', async (req, res, next) => {
+  try {
+    const { discordId, gameId, category } = req.body as {
+      discordId?: string;
+      gameId?: string;
+      category?: GameCategory;
+    };
+
+    if (!discordId) {
+      return next(new ValidationError('discordId is required'));
+    }
+    if (!gameId && !category) {
+      return next(new ValidationError('At least one of gameId or category is required'));
+    }
+
+    const user = await findUserByDiscordId(discordId);
+    if (!user) {
+      return res.status(404).json({ allowed: false, message: 'User not found' });
+    }
+
+    const blocked = await isGameBlocked(user.id, gameId, category as GameCategory | undefined);
+
+    if (blocked) {
+      return res.status(403).json({
+        allowed: false,
+        message: "Yo, you blocked this one yourself. Respect the call. Go play something else or touch grass.",
+        gameId: gameId ?? null,
+        category: category ?? null,
+      });
+    }
+
+    res.json({ allowed: true });
+  } catch (err) {
+    next(err);
+  }
 });
 
 export { router as rgaasRouter };

@@ -1,3 +1,4 @@
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-10
 /* Copyright (c) 2026 TiltCheck. All rights reserved. */
 /**
  * TiltCheck Discord Bot
@@ -14,7 +15,6 @@ import {
   registerDMHandler,
   initializeTiltEventsHandler,
   initializeAccountabilityPings,
-  registerActivityButtonHandlers,
 } from './handlers/index.js';
 import { initializeAlertService } from './services/alert-service.js';
 import { TrustAlertsHandler } from './handlers/trust-alerts-handler.js';
@@ -22,27 +22,15 @@ import { ensureTelemetryIndex } from './services/elastic-telemetry.js';
 import { ensureTiltAgentContextIndex } from './services/tilt-agent-context-store.js';
 import { startTiltAgentLoop, stopTiltAgentLoop } from './services/tilt-agent.js';
 import { startRegulationsNotifier, stopRegulationsNotifier } from './services/regulations-notifier.js';
-import { initializeGameplayComplianceBridge } from './services/gameplay-compliance-bridge.js';
 
 import { startTrustAdapter } from '@tiltcheck/discord-utils/trust-adapter';
-import { Connection } from '@solana/web3.js';
-import { DatabaseClient } from '@tiltcheck/database';
-import { CreditManager } from './services/tipping/credit-manager.js';
-import { DepositMonitor } from './services/tipping/deposit-monitor.js';
-import { AutoRefundScheduler } from './services/tipping/auto-refund.js';
-import { BotWalletService } from './services/tipping/bot-wallet.js';
-import { TokenSwapService } from './services/tipping/token-swap.js';
-import { TokenDepositMonitor } from './services/tipping/token-deposit-monitor.js';
 
-import { startLockVaultBackgroundTasks, stopLockVaultBackgroundTasks } from '@tiltcheck/lockvault';
 import { getUserBuddies } from '@tiltcheck/db';
-import { DiscordActivityManager } from '@tiltcheck/discord-activities';
-import { setActivityManager } from './commands/play.js';
 
 async function main() {
   const startTime = Date.now();
   console.log('\n' + '='.repeat(60));
-  console.log('TILTCHECK TRANSPARENCY LAYER - NEUTRALIZE THE HOUSE EDGE');
+  console.log('TILTCHECK — SESSION AUDIT AND ACCOUNTABILITY BOT');
   console.log('='.repeat(60));
   console.log(`SESSION INITIALIZED at: ${new Date().toLocaleString()}`);
   console.log(`ENV: ${process.env.NODE_ENV || 'production'}`);
@@ -145,11 +133,6 @@ async function main() {
     console.log('[Regulations] Skipping notifier (Elastic not configured)');
   }
 
-  initializeGameplayComplianceBridge(client);
-
-  console.log('[LockVault] Starting background timer tasks...');
-  startLockVaultBackgroundTasks();
-
   console.log('[DM] Registering direct message handler...');
   registerDMHandler(client);
   console.log('[DM] DM handler ready\n');
@@ -186,12 +169,6 @@ async function main() {
       console.error('[Commands] Failed to register slash commands:', err);
     }
   }
-
-  console.log('[Activities] Initializing Discord Activities SDK...');
-  const activityManager = new DiscordActivityManager(client.application?.id || '');
-  setActivityManager(activityManager);
-  registerActivityButtonHandlers(activityManager);
-  console.log('[Activities] Discord Activities SDK initialized\n');
 
   console.log('[Events] Registering Discord events...');
   eventHandler.registerDiscordEvents();
@@ -233,7 +210,7 @@ async function main() {
   const healthServer = http.createServer((req, res) => {
     if (req.url === '/health' || req.url === '/') {
       const body = JSON.stringify({
-        service: 'discord-bot',
+        service: 'tiltcheck',
         ready,
         uptime: Math.round((Date.now() - startTime) / 1000),
         commands: commandHandler.getAllCommands().length
@@ -259,51 +236,11 @@ async function main() {
     throw err;
   });
 
-  // Tipping & Solana Consolidation
-  let autoRefund: AutoRefundScheduler | undefined;
-  let dMonitor: DepositMonitor | undefined;
-  let tdMonitor: TokenDepositMonitor | undefined;
-
-  if (config.botWalletPrivateKey) {
-    console.log('[Tipping] Initializing consolidated credit system...');
-    const solConnection = new Connection(config.solanaRpcUrl, 'confirmed');
-    const botWallet = new BotWalletService(config.botWalletPrivateKey, solConnection);
-
-    const dbClient = new DatabaseClient({
-      url: config.supabaseUrl,
-      apiKey: config.supabaseServiceRoleKey,
-    });
-
-    const cm = new CreditManager(dbClient);
-    dMonitor = new DepositMonitor(solConnection, botWallet.address, cm);
-
-    const swapService = new TokenSwapService(config.botWalletPrivateKey, solConnection);
-    tdMonitor = new TokenDepositMonitor(solConnection, botWallet.address, cm, swapService);
-
-    const autoRefundIntervalMs = Math.max(
-      60_000,
-      Number(process.env.JUSTTHETIP_AUTO_REFUND_INTERVAL_MS || 5 * 60 * 1000)
-    );
-    autoRefund = new AutoRefundScheduler(cm, botWallet.sendSOL.bind(botWallet), autoRefundIntervalMs);
-
-
-
-    dMonitor.start();
-    tdMonitor.start();
-    autoRefund.start();
-    console.log('[Tipping] Credit system active\n');
-  }
-
-  const shutdown = async () => {
+  const shutdown= async () => {
     console.log('\n[Bot] Shutting down gracefully...');
 
     stopTiltAgentLoop();
     stopRegulationsNotifier();
-    stopLockVaultBackgroundTasks();
-
-    if (autoRefund) autoRefund.stop();
-    if (dMonitor) dMonitor.stop();
-    if (tdMonitor) tdMonitor.stop();
 
     if (healthServer.listening) {
       healthServer.close();

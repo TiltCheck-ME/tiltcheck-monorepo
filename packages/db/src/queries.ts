@@ -34,6 +34,10 @@ import type {
   CreateBlogPostPayload,
   UserBuddy,
   BuddyAlertThresholds,
+  GameExclusion,
+  CreateGameExclusionPayload,
+  ForbiddenGamesProfile,
+  GameCategory,
 } from './types.js';
 
 /**
@@ -925,4 +929,135 @@ export async function removeBuddy(userId: string, buddyId: string): Promise<bool
   `;
   await query(sql, [userId, buddyId]);
   return true;
+}
+
+// ============================================================================
+// Surgical Self-Exclusion Queries
+// ============================================================================
+
+/**
+ * Get all exclusions for a user.
+ */
+export async function getUserExclusions(userId: string): Promise<GameExclusion[]> {
+  const sql = `
+    SELECT id, user_id, game_id, category, reason, created_at
+    FROM user_game_exclusions
+    WHERE user_id = $1
+    ORDER BY created_at DESC
+  `;
+  const rows = await query<{
+    id: string;
+    user_id: string;
+    game_id: string | null;
+    category: string | null;
+    reason: string | null;
+    created_at: Date;
+  }>(sql, [userId]);
+
+  return rows.map((r) => ({
+    id: r.id,
+    userId: r.user_id,
+    gameId: r.game_id,
+    category: r.category as GameCategory | null,
+    reason: r.reason,
+    createdAt: r.created_at,
+  }));
+}
+
+/**
+ * Add a new exclusion entry. Caller must ensure at least one of gameId/category is set.
+ */
+export async function addExclusion(payload: CreateGameExclusionPayload): Promise<GameExclusion> {
+  const sql = `
+    INSERT INTO user_game_exclusions (user_id, game_id, category, reason)
+    VALUES ($1, $2, $3, $4)
+    RETURNING id, user_id, game_id, category, reason, created_at
+  `;
+  const row = await queryOne<{
+    id: string;
+    user_id: string;
+    game_id: string | null;
+    category: string | null;
+    reason: string | null;
+    created_at: Date;
+  }>(sql, [payload.userId, payload.gameId ?? null, payload.category ?? null, payload.reason ?? null]);
+
+  if (!row) throw new Error('Failed to insert exclusion');
+  return {
+    id: row.id,
+    userId: row.user_id,
+    gameId: row.game_id,
+    category: row.category as GameCategory | null,
+    reason: row.reason,
+    createdAt: row.created_at,
+  };
+}
+
+/**
+ * Remove a single exclusion entry. Scoped to userId to prevent cross-user deletes.
+ */
+export async function removeExclusion(exclusionId: string, userId: string): Promise<boolean> {
+  const sql = `
+    DELETE FROM user_game_exclusions
+    WHERE id = $1 AND user_id = $2
+  `;
+  await query(sql, [exclusionId, userId]);
+  return true;
+}
+
+/**
+ * Remove all exclusions for a user.
+ */
+export async function clearExclusions(userId: string): Promise<boolean> {
+  await query('DELETE FROM user_game_exclusions WHERE user_id = $1', [userId]);
+  return true;
+}
+
+/**
+ * Check whether a specific game is excluded for a user.
+ * Matches on exact gameId OR category match.
+ */
+export async function checkGameExcluded(
+  userId: string,
+  gameId?: string | null,
+  category?: GameCategory | null
+): Promise<boolean> {
+  if (!gameId && !category) return false;
+
+  const conditions: string[] = [];
+  const params: (string | null)[] = [userId];
+
+  if (gameId) {
+    params.push(gameId);
+    conditions.push(`game_id = $${params.length}`);
+  }
+  if (category) {
+    params.push(category);
+    conditions.push(`category = $${params.length}`);
+  }
+
+  const sql = `
+    SELECT 1 FROM user_game_exclusions
+    WHERE user_id = $1 AND (${conditions.join(' OR ')})
+    LIMIT 1
+  `;
+  const row = await queryOne<{ '?column?': number }>(sql, params);
+  return row !== null && row !== undefined;
+}
+
+/**
+ * Build the full ForbiddenGamesProfile for a user — used to populate the Redis cache.
+ */
+export async function buildForbiddenGamesProfile(userId: string): Promise<ForbiddenGamesProfile> {
+  const exclusions = await getUserExclusions(userId);
+  const blockedGameIds = exclusions.filter((e) => !!e.gameId).map((e) => e.gameId as string);
+  const blockedCategories = exclusions.filter((e) => !!e.category).map((e) => e.category as GameCategory);
+
+  return {
+    userId,
+    blockedGameIds,
+    blockedCategories,
+    exclusions,
+    updatedAt: new Date().toISOString(),
+  };
 }

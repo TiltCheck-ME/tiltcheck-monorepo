@@ -1,4 +1,4 @@
-# © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-08
+# © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-10
 name: Deploy Services to Railway
 
 on:
@@ -38,6 +38,8 @@ jobs:
           - api
           - web
           - discord-bot
+          - justthetip-bot
+          - dad-bot
           - trust-rollup
           - control-room
           - game-arena
@@ -86,6 +88,10 @@ jobs:
             railway_service_id: "08e9b7f6-ad09-4808-9e69-047eb5ab0cb2"
           - service: discord-bot
             railway_service_id: "91b91e98-fc19-4006-8edd-f7c2a1e45865"
+          - service: justthetip-bot
+            railway_service_id: "PENDING_RAILWAY_SERVICE_ID_JTT"
+          - service: dad-bot
+            railway_service_id: "PENDING_RAILWAY_SERVICE_ID_DAD"
           - service: trust-rollup
             railway_service_id: "a3d4ca4c-868b-4332-8316-03b0d0b0d238"
           - service: control-room

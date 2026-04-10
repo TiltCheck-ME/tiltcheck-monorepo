@@ -1070,6 +1070,63 @@ export interface WalletMapping {
 }
 
 // ============================================
+// Surgical Self-Exclusion Types
+// ============================================
+
+/**
+ * High-level game categories a user can surgically block.
+ * Targets are matched against casino DOM/URL slugs by the extension
+ * and against game metadata in the casino API integration.
+ */
+export type GameCategory =
+  | 'chicken_mines'
+  | 'bonus_buy'
+  | 'live_dealer'
+  | 'slots'
+  | 'crash'
+  | 'table_games';
+
+/**
+ * A single surgical exclusion entry — targets either a specific game ID,
+ * a broad category, or both.
+ */
+export interface GameExclusion {
+  id: string;
+  userId: string;
+  /** Casino-specific game slug/ID, e.g. "chicken_orig_01" */
+  gameId?: string | null;
+  /** Broad category block — applies across all casinos */
+  category?: GameCategory | null;
+  /** Optional user-supplied note: "I always chase on this one" */
+  reason?: string | null;
+  createdAt: Date;
+}
+
+/** Payload for creating a new exclusion */
+export interface CreateGameExclusionPayload {
+  userId: string;
+  gameId?: string | null;
+  category?: GameCategory | null;
+  reason?: string | null;
+}
+
+/**
+ * Full exclusion profile — what the extension and casino API endpoint consume.
+ * Cached in Redis keyed by userId.
+ */
+export interface ForbiddenGamesProfile {
+  userId: string;
+  /** Specific game IDs blocked */
+  blockedGameIds: string[];
+  /** Category-level blocks */
+  blockedCategories: GameCategory[];
+  /** Raw entries for management UI */
+  exclusions: GameExclusion[];
+  /** ISO timestamp of last change — used for Redis cache invalidation */
+  updatedAt: string;
+}
+
+// ============================================
 // Trust Engine Types
 // ============================================
 

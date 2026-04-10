@@ -48,6 +48,7 @@ import { WalletBridge } from './wallet-bridge.js';
 import { SolanaProvider } from '@tiltcheck/utils';
 import { FairnessService } from './FairnessService.js';
 import { EXT_CONFIG } from './config.js';
+import { GameBlocker } from './game-blocker.js';
 
 // Configuration
 const ANALYZER_WS_URL = 'wss://api.tiltcheck.me/analyzer';
@@ -67,6 +68,7 @@ let bridge: WalletBridge | null = null;
 let fairness: FairnessService | null = null;
 let tiltMonitoringInterval: ReturnType<typeof setInterval> | null = null;
 let sidebar: SidebarUI | null = null;
+let gameBlocker: GameBlocker | null = null;
 const FULL_SIDEBAR_WIDTH = 340;
 const MINIMIZED_SIDEBAR_WIDTH = 40;
 const SIDEBAR_VISIBILITY_KEY = 'tiltcheck_sidebar_visible';
@@ -383,6 +385,18 @@ function initialize() {
   void startMonitoring().catch((err) => {
     console.warn('[TiltCheck] Auto-start monitoring failed:', err);
   });
+
+  // Surgical Self-Exclusion: init game blocker after a tick so auth storage is ready.
+  setTimeout(() => {
+    getUserId().then((discordId) => {
+      gameBlocker = new GameBlocker(discordId);
+      gameBlocker.init().catch((err) => {
+        console.warn('[TiltCheck] Game blocker init failed:', err);
+      });
+    }).catch(() => {
+      // No user session — skip blocker silently
+    });
+  }, 500);
 
 }
 

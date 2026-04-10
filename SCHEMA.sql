@@ -107,6 +107,28 @@ CREATE TABLE IF NOT EXISTS user_buddies (
 );
 
 -- ============================================================================
+-- Surgical Self-Exclusion
+-- ============================================================================
+-- A user may block specific game IDs, broad categories, or both.
+-- At least one of (game_id, category) must be set per row.
+CREATE TABLE IF NOT EXISTS user_game_exclusions (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    game_id VARCHAR(255),
+    category VARCHAR(64) CHECK (category IN (
+        'chicken_mines', 'bonus_buy', 'live_dealer', 'slots', 'crash', 'table_games'
+    )),
+    reason TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    CONSTRAINT chk_exclusion_target CHECK (
+        game_id IS NOT NULL OR category IS NOT NULL
+    )
+);
+
+CREATE INDEX IF NOT EXISTS idx_user_game_exclusions_user_id
+    ON user_game_exclusions (user_id);
+
+-- ============================================================================
 -- Casino Audit Bureau
 -- ============================================================================
 CREATE TABLE IF NOT EXISTS casinos (

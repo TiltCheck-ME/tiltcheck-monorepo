@@ -1,5 +1,11 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-09 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-10 */
 @import "tailwindcss";
+
+/* Prevent horizontal overflow on all screen sizes */
+html, body {
+  overflow-x: hidden;
+  max-width: 100%;
+}
 
 /* Skip link for keyboard accessibility */
 .skip-link {
@@ -369,10 +375,12 @@ body::before {
   border-radius: var(--radius-md);
   transition: all var(--transition-base);
   overflow: hidden;
-  gap: 0.5rem; /* Space between icon and text */
+  gap: 0.5rem;
   min-height: 44px;
   min-width: 44px;
   padding: 0.75rem 1.5rem;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 
 
@@ -708,7 +716,7 @@ body::before {
 
 .vibe-bar-container {
   display: inline-block;
-  width: 200px;
+  width: min(200px, 100%);
   height: 8px;
   background: rgba(0, 255, 198, 0.1);
   border: 1px solid var(--color-primary);
@@ -746,7 +754,7 @@ body.degen-background {
   background-size: cover;
   background-repeat: no-repeat;
   background-position: center;
-  background-attachment: fixed;
+  background-attachment: scroll; /* fixed breaks on iOS Safari */
   min-height: 100vh;
   position: relative;
   color: var(--text-primary);
@@ -828,11 +836,12 @@ body.degen-background > * {
 }
 
 .neon-hero-top {
-  font-size: clamp(2rem, 6.5vw, 5.5rem) !important;
+  font-size: clamp(1.5rem, 6.5vw, 5.5rem) !important;
   letter-spacing: -0.02em;
   margin-bottom: 0;
   line-height: 1.05;
-  white-space: nowrap;
+  overflow-wrap: break-word;
+  word-break: break-word;
   color: #000 !important;
   text-shadow:
     0 0 8px #17c3b2,
@@ -1173,10 +1182,6 @@ body.degen-background > * {
   justify-content: center;
   align-items: center;
   gap: 1.25rem;
-  padding-top: 2.5rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.06);
-  max-width: 1200px;
-  margin: 0 auto;
   max-width: 1200px;
   margin: 0 auto;
   padding-top: 2rem;
@@ -1301,5 +1306,45 @@ body.degen-background > * {
   }
   50% {
     box-shadow: 0 0 20px rgba(23, 195, 178, 0.6);
+  }
+}
+
+/* Disable hover transforms on touch devices */
+@media (hover: none) {
+  .tool-card:hover {
+    transform: none !important;
+    box-shadow: none !important;
+  }
+  .btn:hover {
+    filter: none;
+    box-shadow: none;
+  }
+}
+
+/* Mobile footer layout */
+@media (max-width: 640px) {
+  .site-footer {
+    padding: 2rem 1rem 1.5rem;
+  }
+  .footer-bottom {
+    gap: 1rem;
+    padding-top: 1.5rem;
+  }
+  .footer-mission {
+    font-size: 0.8rem;
+  }
+}
+
+/* Prevent hero overflow on very small screens */
+@media (max-width: 360px) {
+  .neon-hero-top {
+    font-size: clamp(1.2rem, 8vw, 2rem) !important;
+  }
+  .neon-hero-bottom {
+    font-size: clamp(1rem, 7vw, 1.75rem) !important;
+  }
+  .hero-surface {
+    padding-left: 1rem;
+    padding-right: 1rem;
   }
 }
