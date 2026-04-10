@@ -1,69 +1,138 @@
+<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-10 -->
+
 # TiltCheck Chrome Extension (TiltGuard)
 
-This folder contains the source code and documentation for the TiltGuard Chrome extension.
+Source code and documentation for the TiltGuard Chrome extension.
+
+Made for Degens. By Degens.
+
+---
 
 ## Overview
 
-TiltGuard is a Chrome extension that helps casino players:
-- Track betting patterns and session statistics
-- Detect tilt behavior (rage betting, chasing losses, etc.)
-- Protect winnings with vault recommendations
-- Verify casino licensing
-- Get real-time interventions when tilt is detected
+TiltGuard is a Manifest V3 Chrome extension that runs as a content script on casino sites. It:
 
-## Authentication & Demo Mode
+- Tracks betting patterns and session statistics in real time
+- Detects tilt behavior (rage betting, loss chasing, bet escalation)
+- Enforces the user's Surgical Self-Exclusion list — blocking specific games or whole categories at the DOM level
+- Protects winnings with vault recommendations and stop-loss alerts
+- Verifies casino licensing against known authorities
+- Delivers real-time interventions when tilt is detected
 
-TiltGuard supports two runtime modes:
+---
 
-- **Authenticated mode** (Discord OAuth): full API-backed flows with persisted account/session data.
-- **Demo mode** (no login): automatically enabled when no auth token is present, with mock responses for core sidebar interactions so users can explore the product before connecting Discord.
+## Authentication
 
-OAuth source integrity is validated server-side using signed state prefixes (extension vs web origin) during callback handling.
+Two runtime modes:
+
+- **Authenticated mode** (Discord OAuth): full API-backed flows with persisted account and session data.
+- **Demo mode** (no login): active automatically when no auth token is present. Mock responses are served for core sidebar interactions so users can explore the product before connecting Discord.
+
+OAuth state integrity is validated server-side using signed state prefixes (extension origin vs web origin) during callback handling.
+
+---
 
 ## Version
 
-**Current Version:** 1.1.0
+**Current Version:** 1.0.0 (see `manifest.json`)
+
+---
+
+## Known Gaps
+
+- `manifest.json` declares `"default_popup": "popup.html"` under the `action` key, but `popup.html` does not exist in the source tree or the `dist/` output. The extension currently operates in sidebar-only mode; the popup entry point is not implemented. Until this file is created, clicking the toolbar icon will show an error in Chrome. This is a tracked gap, not a regression.
+
+---
 
 ## Folder Structure
 
 ```
 apps/chrome-extension/
-├── README.md           # This file
-├── package.json        # Extension dependencies
-├── tsconfig.json       # TypeScript configuration
-├── build.js            # Build script
-├── src/                # TypeScript source files
-│   ├── manifest.json   # Chrome extension manifest
-│   ├── content.ts      # Main content script
-│   ├── sidebar.ts      # Sidebar UI component
-│   ├── background.js   # Service worker (icon click + auth tab open)
-│   ├── extractor.ts    # Casino data extraction
-│   ├── tilt-detector.ts # Tilt detection logic
-│   └── license-verifier.ts # Casino license checking
-├── dist/               # Built extension files
-│   ├── icons/          # Extension icons
-│   └── ...             # Compiled JS files
-└── docs/               # Documentation
-    ├── installation.md # Installation guide
-    ├── features.md     # Feature documentation
-    ├── development.md  # Development setup
-    └── publishing.md   # Chrome Web Store publishing
+├── README.md                     # This file
+├── manifest.json                 # Active Chrome extension manifest (MV3)
+├── package.json                  # Extension dependencies
+├── tsconfig.json                 # TypeScript configuration
+├── build.js                      # esbuild-based build script
+├── src/
+│   ├── manifest.json             # Source manifest (copied to dist/ by build)
+│   ├── content.ts                # Content script entry point
+│   ├── game-blocker.ts           # Surgical Self-Exclusion enforcer (GameBlocker class)
+│   ├── sidebar.ts                # Legacy sidebar entry (superseded by sidebar/)
+│   ├── sidebar/                  # Modular sidebar subsystem
+│   │   ├── index.ts              # Sidebar bootstrap
+│   │   ├── api.ts                # API call helpers
+│   │   ├── auth.ts               # Auth state management
+│   │   ├── session.ts            # Session tracking
+│   │   ├── vault.ts              # Vault UI and actions
+│   │   ├── bonuses.ts            # Bonus tracking
+│   │   ├── buddy.ts              # Buddy system
+│   │   ├── reports.ts            # Session reports
+│   │   ├── predictor.ts          # Tilt predictor
+│   │   ├── blockchain.ts         # Solana/wallet integration
+│   │   ├── onboarding.ts         # First-run onboarding flow
+│   │   ├── styles.ts             # Injected CSS
+│   │   ├── template.ts           # HTML templates
+│   │   ├── constants.ts          # Shared constants
+│   │   └── types.ts              # Sidebar-specific types
+│   ├── v2/                       # Next-generation sensor architecture
+│   │   ├── content.ts            # v2 content entry point
+│   │   ├── core/Sensor.ts        # Sensor base class
+│   │   ├── hud/Sidebar.ts        # v2 HUD sidebar
+│   │   ├── sensors/              # Per-casino sensors
+│   │   │   ├── BcGameSensor.ts
+│   │   │   ├── GenericCasinoSensor.ts
+│   │   │   ├── RooSensor.ts
+│   │   │   ├── SensorRegistry.ts
+│   │   │   └── StakeSensor.ts
+│   │   └── telemetry/HubRelay.ts # Telemetry relay to API hub
+│   ├── background.js             # Service worker (icon click + auth tab open)
+│   ├── extractor.ts              # Casino DOM data extraction
+│   ├── tilt-detector.ts          # Tilt scoring engine
+│   ├── license-verifier.ts       # Casino license checking
+│   ├── analyzer.ts               # WebSocket analyzer client
+│   ├── autovault.ts              # Automatic vault logic
+│   ├── config.ts                 # EXT_CONFIG constants and Discord login URL builder
+│   ├── FairnessService.ts        # Provably-fair verification
+│   ├── fairness-tutorial.ts      # Fairness tutorial overlay
+│   ├── page-bridge.ts            # page <-> content script bridge
+│   ├── wallet-bridge.ts          # Solana wallet bridge
+│   ├── SolanaProvider.ts         # Solana provider injection
+│   ├── auth-bridge.html          # OAuth callback bridge page
+│   ├── auth-bridge.js            # OAuth postMessage handler
+│   ├── warning.html              # Tilt warning overlay page
+│   └── DEPLOYMENT_MANUAL.md      # Ecosystem deployment reference
+├── dist/                         # Compiled extension (load this in Chrome)
+│   ├── manifest.json
+│   ├── background.js
+│   ├── content.js
+│   ├── page-bridge.js
+│   ├── auth-bridge.html
+│   ├── auth-bridge.js
+│   └── icons/
+├── docs/
+│   ├── installation.md
+│   ├── features.md
+│   ├── development.md
+│   ├── publishing.md
+│   └── surgical-self-exclusion.md  # Surgical Self-Exclusion technical reference
+└── tests/unit/
+    ├── background.test.ts
+    ├── config.test.ts
+    ├── content.test.ts
+    └── message-contracts.test.ts
 ```
 
-## Quick Links
+---
 
-- **Extension Zip Files**: See `/browser-extension.zip` and `/tiltcheck-extension.zip` in the repository root
-- **Built Output**: The compiled extension is in the `dist/` folder
-
-## Installation
+## Quick Start
 
 ### For Users
 
-1. Download `tiltcheck-extension.zip` from the repository root
-2. Unzip to a local folder
-3. Open Chrome and navigate to `chrome://extensions/`
-4. Enable "Developer mode"
-5. Click "Load unpacked" and select the unzipped folder
+1. Download `tiltcheck-extension.zip` from the repository root.
+2. Unzip to a local folder.
+3. Open Chrome and navigate to `chrome://extensions/`.
+4. Enable Developer mode.
+5. Click "Load unpacked" and select the `dist/` folder from the unzipped archive.
 
 ### For Developers
 
@@ -74,14 +143,17 @@ pnpm install
 # Build the extension
 pnpm -C apps/chrome-extension build
 
-# Load the dist/ folder in Chrome
+# Load the dist/ folder in Chrome via chrome://extensions/
 ```
 
-See `docs/development.md` for full development setup instructions.
+See `docs/development.md` for the full development workflow.
+
+---
 
 ## Supported Casinos
 
-The extension supports the following casinos with site-specific selectors:
+Site-specific selectors are implemented for:
+
 - Stake.com / Stake.us
 - Roobet.com
 - BC.Game
@@ -90,40 +162,45 @@ The extension supports the following casinos with site-specific selectors:
 - Shuffle.com
 - Gamdom.com
 
-Generic selectors also work on many other casino sites.
+Generic fallback selectors activate on other casino sites.
+
+---
 
 ## Features
 
-- **Tilt Detection**: Identifies rage betting, chasing losses, and erratic behavior
-- **Session Tracking**: Monitors bets, wins, and session duration
-- **Vault Integration**: Recommends vaulting winnings to protect profits
-- **License Verification**: Checks casino licensing information
-- **Real-time Metrics**: Displays P/L, RTP, and tilt score
-- **Cooldown Periods**: Blocks betting when critical tilt is detected
-- **Real-world Comparisons**: Shows what your profit could buy
-- **Demo Mode**: Full sidebar walkthrough without mandatory login
+- **Tilt Detection**: Rage betting, loss chasing, erratic clicking, bet escalation, duration thresholds.
+- **Session Tracking**: Real-time P/L, RTP, bet count, session duration displayed in the sidebar.
+- **Vault Integration**: Recommends vaulting at configurable profit thresholds; stop-loss alerts at 50% drawdown.
+- **License Verification**: Scans casino footers against known licensing authorities across multiple jurisdictions.
+- **Cooldown Enforcement**: Full-page overlay blocks betting during critical-tilt cooldown windows.
+- **Surgical Self-Exclusion**: Blocks specific games or entire categories at the DOM level. See `docs/surgical-self-exclusion.md`.
+- **Provably-Fair Verification**: FairnessService cross-checks server seeds against on-chain commitments.
+- **Demo Mode**: Full sidebar walkthrough available before Discord login.
+
+---
 
 ## Changelog
 
-### v1.1.0
-- Fixed API URL consistency
-- Added support for more casinos (Rollbit, Shuffle, Gamdom, Stake.us)
-- Added more excluded domains (Google, GitHub)
-- Improved selector coverage for existing casinos
-- Added helper functions for better detection
-- Updated manifest with icons configuration
+### v1.0.0
+- Initial release.
 
 ### Unreleased
-- Sidebar-only extension flow (popup UI removed)
-- Added no-login demo mode defaults in sidebar
-- Added mock API responses for demo vault/dashboard/session flows
-- Hardened extension OAuth callback handling via source/state validation
+- Sidebar-only extension flow (popup UI not yet implemented — see Known Gaps).
+- Demo mode with mock API responses for vault, dashboard, and session flows.
+- Hardened OAuth callback handling via source/state validation.
+- Surgical Self-Exclusion: GameBlocker class with MutationObserver-based DOM enforcement.
+- Discord slash commands: `/block-game`, `/unblock-game`, `/my-exclusions`.
+- API endpoints: `GET/POST/DELETE /user/:discordId/exclusions`, `POST /rgaas/check-game`.
+- v2 sensor architecture with per-casino sensor classes and HubRelay telemetry.
 
-### v1.0.0
-- Initial release
+---
 
 ## Related Documentation
 
-- [TiltCheck Core Documentation](/docs/tiltcheck/7-tool-specs-3.md)
-- [Trust Engines](/docs/tiltcheck/8-trust-engines.md)
-- [Architecture](/docs/tiltcheck/9-architecture.md)
+- [Surgical Self-Exclusion Reference](docs/surgical-self-exclusion.md)
+- [Features Reference](docs/features.md)
+- [Development Guide](docs/development.md)
+- [Installation Guide](docs/installation.md)
+- [Publishing Guide](docs/publishing.md)
+- [TiltCheck Core Architecture](/docs/tiltcheck/9-architecture.md)
+- [RGaaS Pivot](/docs/tiltcheck/16-rgaas-pivot.md)

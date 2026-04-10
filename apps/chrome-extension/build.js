@@ -49,6 +49,18 @@ async function build() {
   await fs.rm(distPath, { recursive: true, force: true });
   await fs.mkdir(distPath, { recursive: true });
 
+  // Build popup
+  await esbuild.build({
+    entryPoints: [path.join(__dirname, 'src/popup.ts')],
+    bundle: true,
+    outfile: path.join(__dirname, 'dist/popup.js'),
+    format: 'iife',
+    platform: 'browser',
+    target: 'chrome100',
+    sourcemap: false,
+    minify: true,
+  });
+
   // Build content script
   await esbuild.build({
     entryPoints: [path.join(__dirname, 'src/content.ts')],
@@ -91,6 +103,7 @@ async function build() {
     { src: 'src/background.js', dest: 'dist/background.js' },
     { src: 'src/auth-bridge.html', dest: 'dist/auth-bridge.html' },
     { src: 'src/auth-bridge.js', dest: 'dist/auth-bridge.js' },
+    { src: 'src/popup.html', dest: 'dist/popup.html' },
   ];
 
   for (const file of staticFiles) {

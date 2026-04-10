@@ -1,91 +1,123 @@
-# TiltGuard Chrome Extension - Installation Guide
+<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-10 -->
+
+# TiltGuard Chrome Extension — Installation Guide
+
+Made for Degens. By Degens.
+
+---
 
 ## Quick Install (Users)
 
 ### Option 1: Load Unpacked Extension
 
 1. **Download** the extension:
-   - Download `tiltcheck-extension.zip` from the repository root
-   - Or download `browser-extension.zip` for the full package with server
+   - Get `tiltcheck-extension.zip` from the repository root.
 
-2. **Unzip** the downloaded file to a folder on your computer
+2. **Unzip** the downloaded file to a folder on your computer.
 
 3. **Open Chrome Extensions**:
-   - Navigate to `chrome://extensions/`
-   - Or click Menu (⋮) → More Tools → Extensions
+   - Navigate to `chrome://extensions/`.
 
 4. **Enable Developer Mode**:
-   - Toggle the "Developer mode" switch in the top right corner
+   - Toggle the "Developer mode" switch in the top-right corner.
 
 5. **Load the Extension**:
-   - Click "Load unpacked"
-   - Select the `dist/` folder from the unzipped files
-   - The extension should now appear in your extensions list
+   - Click "Load unpacked".
+   - Select the `dist/` folder from the unzipped archive.
+   - The TiltGuard extension should appear in your extensions list.
 
 6. **Pin the Extension** (optional):
-   - Click the puzzle piece icon in Chrome toolbar
-   - Click the pin icon next to TiltGuard
+   - Click the puzzle piece icon in the Chrome toolbar.
+   - Click the pin icon next to TiltGuard.
 
-### Option 2: Chrome Web Store (Coming Soon)
+### Option 2: Chrome Web Store (Pending)
 
-The extension will be available on the Chrome Web Store once published.
+The extension has not yet been published to the Chrome Web Store. Track progress in the repository changelog.
+
+---
 
 ## Verifying Installation
 
-After installation, you should see:
+After loading, you should see:
 
-1. **Extension Icon**: A TiltGuard icon in your Chrome toolbar
-2. **Popup**: Clicking the icon shows session stats and controls
-3. **Sidebar**: On casino sites, a sidebar appears on the right side of the page
+1. **Extension Icon**: TiltGuard icon in the Chrome toolbar.
+2. **Sidebar**: On supported casino sites, the TiltGuard sidebar appears on the right side of the page.
+
+Note: Clicking the toolbar icon currently does not open a popup — there is no popup.html implemented yet. The sidebar is toggled from within the casino page itself. This is a known gap tracked in the repository.
+
+---
 
 ## Supported Sites
 
 The extension activates on supported casino sites including:
-- stake.com
+
+- stake.com / stake.us
 - roobet.com
 - bc.game
 - duelbits.com
-- And other casino sites with generic selectors
+- rollbit.com
+- shuffle.com
+- gamdom.com
+
+Generic fallback selectors also activate on other casino sites.
+
+---
+
+## Permissions
+
+The extension requests the following permissions:
+
+- **activeTab**: Detect and interact with the current casino page.
+- **storage**: Save session data and user preferences locally.
+- **identity**: Discord OAuth flow support.
+- **notifications**: Alert delivery for tilt interventions.
+- **alarms**: Periodic background tasks (cooldown timers, session checks).
+- **host permissions (all URLs)**: Broad casino site support.
+
+---
 
 ## Troubleshooting
 
 ### Extension Not Loading
 
-1. Ensure Developer Mode is enabled
-2. Check the `dist/` folder contains `manifest.json`
-3. Look for errors in `chrome://extensions/`
+1. Confirm Developer Mode is enabled.
+2. Verify the `dist/` folder contains `manifest.json`.
+3. Check for errors on the `chrome://extensions/` page.
 
 ### Sidebar Not Appearing
 
-1. Refresh the page after installing
-2. Check if the site is in the excluded list (e.g., Discord)
-3. Open DevTools (F12) and check console for TiltGuard messages
+1. Refresh the page after installing.
+2. Check that the site is not in the excluded domains list (discord.com, localhost API ports).
+3. Open DevTools (F12) and filter the Console for `[TiltCheck]` messages.
 
 ### API Connection Issues
 
-1. The extension can work in "offline" mode without backend connection
-2. For full features, ensure the backend API is running
-3. Check `chrome://extensions/` for any permission errors
+1. The extension can operate in demo mode without a backend connection.
+2. For full features including Surgical Self-Exclusion, the backend API must be reachable at `https://api.tiltcheck.me`.
+3. Check `chrome://extensions/` for permission errors.
+
+### Game Blocking Not Activating
+
+1. Confirm you are logged in via Discord OAuth (demo mode does not support game blocking).
+2. Verify you have set at least one exclusion via `/block-game` in Discord or via the API directly.
+3. The profile refreshes every 5 minutes. Wait or reload the page to force a refresh.
+
+---
 
 ## Updating the Extension
 
-1. Download the new version
-2. Unzip to the same folder (or a new one)
-3. Go to `chrome://extensions/`
-4. Click the refresh icon on the TiltGuard extension
-5. Or click "Remove" and "Load unpacked" again
+1. Download the new version.
+2. Unzip to the same folder (or a new folder).
+3. Go to `chrome://extensions/`.
+4. Click the refresh icon on the TiltGuard entry.
+5. Or click "Remove" and "Load unpacked" again with the new folder.
 
-## Permissions
-
-The extension requires the following permissions:
-
-- **Active Tab**: To detect and analyze casino gameplay
-- **Storage**: To save session data and user preferences
-- **All URLs (optional)**: For broad casino site support
+---
 
 ## Privacy
 
-- Data is processed locally in your browser
-- No personal betting data is sent to external servers without consent
-- Session data can be exported locally
-- See the privacy policy for full details
+- Session data is processed locally in your browser.
+- No personal betting data is sent to external servers without your explicit consent.
+- Session data can be exported locally via the sidebar.
+- See the privacy policy at `https://tiltcheck.me/privacy` for full details.
+
