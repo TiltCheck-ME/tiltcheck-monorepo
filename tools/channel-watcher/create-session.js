@@ -1,9 +1,21 @@
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-10
+// Creates a minimal Discord session file — only the auth token + essential
+// cookies. Keeps the base64-encoded DISCORD_SESSION_JSON env var small enough
+// for Railway (full storageState can be 100-300 KB; this stays under 2 KB).
+
 import { chromium } from 'playwright';
+import { writeFileSync } from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const SESSION_FILE = path.join(__dirname, '.session.json');
+
+// Cookie names Discord actually needs for auth (everything else is noise).
+const ESSENTIAL_COOKIE_NAMES = new Set([
+    '__dcfduid', '__sdcfduid', '__cfruid', '__cf_bm',
+    'locale', '_ga', '_gid',
+]);
 
 async function createSession() {
     console.log('Starting browser to create Discord session...');
@@ -21,8 +33,32 @@ async function createSession() {
 
     try {
         await page.waitForSelector('[data-list-id="guildsnav"]', { timeout: 300000 });
-        await context.storageState({ path: SESSION_FILE });
-        console.log(`Session saved to ${SESSION_FILE}`);
+
+        // Extract only the Discord auth token from localStorage — not the full cache.
+        const token = await page.evaluate(() => {
+            try { return JSON.parse(localStorage.token); } catch { return null; }
+        });
+
+        // Grab only essential cookies — skip analytics/tracking bloat.
+        const allCookies = await context.cookies();
+        const essentialCookies = allCookies.filter(c =>
+            ESSENTIAL_COOKIE_NAMES.has(c.name) && c.domain.includes('discord.com')
+        );
+
+        // Build a minimal storageState Playwright can consume directly.
+        const minimalSession = {
+            cookies: essentialCookies,
+            origins: token ? [{
+                origin: 'https://discord.com',
+                localStorage: [{ name: 'token', value: JSON.stringify(token) }],
+            }] : [],
+        };
+
+        writeFileSync(SESSION_FILE, JSON.stringify(minimalSession, null, 2));
+
+        const sizeKB = (Buffer.byteLength(JSON.stringify(minimalSession)) / 1024).toFixed(1);
+        console.log(`Session saved to ${SESSION_FILE} (${sizeKB} KB — minimal format)`);
+        console.log('Run `npm run session:encode` to get the Railway env var string.');
     } catch {
         console.error('Login timeout (5 minutes). Run `npm run session:create` again.');
         process.exitCode = 1;
