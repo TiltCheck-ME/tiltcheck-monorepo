@@ -252,7 +252,19 @@ export default function TouchGrassPage() {
               <div className="mt-4 text-[10px] font-mono text-[#17c3b2] uppercase tracking-widest">Scan Bonuses →</div>
             </a>
 
-            <div className="p-6 border border-[#283347] bg-black/20 flex flex-col justify-between">
+            <a
+              href="/microgrant"
+              className="p-6 border border-[#ef4444]/30 bg-[#ef4444]/5 hover:bg-[#ef4444]/10 hover:border-[#ef4444]/60 transition-all group block"
+            >
+              <div className="text-[#ef4444] font-black uppercase text-xs tracking-widest mb-2">COMMUNITY FUND</div>
+              <h3 className="text-lg font-black text-white uppercase mb-2 group-hover:text-[#ef4444] transition-colors">Recovery Microgrant</h3>
+              <p className="text-gray-500 text-sm leading-relaxed">
+                Up to 1 SOL. One-time. No loans, no lectures. If you're in a hole and can't see out, apply. Seeded by degens who climbed out of the same one.
+              </p>
+              <div className="mt-4 text-[10px] font-mono text-[#ef4444] uppercase tracking-widest">Check Eligibility →</div>
+            </a>
+
+            
               <div>
                 <div className="text-gray-700 font-black uppercase text-xs tracking-widest mb-2">IRL QUEST</div>
                 <h3 className="text-lg font-black text-white uppercase mb-2">Actually Touch Grass</h3>
