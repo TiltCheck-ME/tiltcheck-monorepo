@@ -1127,6 +1127,110 @@ export interface ForbiddenGamesProfile {
 }
 
 // ============================================
+// Auto-Vault Rule Types
+// ============================================
+
+/**
+ * How the rule calculates the vault amount on each win event.
+ *
+ * percent_of_win      — vault N% of each individual win
+ * fixed_per_threshold — vault $X for every $Y accumulated in wins (running total resets after vault)
+ * balance_ceiling     — vault everything above a target balance ceiling
+ * session_profit_lock — vault once cumulative session profit reaches a target
+ */
+export type VaultRuleType =
+  | 'percent_of_win'
+  | 'fixed_per_threshold'
+  | 'balance_ceiling'
+  | 'session_profit_lock';
+
+/**
+ * Which casinos this rule applies to. 'all' = any supported casino.
+ */
+export type VaultRuleCasinoTarget =
+  | 'all'
+  | 'stake'
+  | 'roobet'
+  | 'bcgame'
+  | 'rollbit'
+  | 'gamdom'
+  | 'shuffle';
+
+/**
+ * A single auto-vault rule persisted per user.
+ */
+export interface VaultRule {
+  id: string;
+  user_id: string;
+  type: VaultRuleType;
+  enabled: boolean;
+  casino: VaultRuleCasinoTarget;
+
+  /** percent_of_win: 0–100 */
+  percent?: number;
+  /** fixed_per_threshold: vault this amount once threshold is reached */
+  fixed_amount?: number;
+  /** fixed_per_threshold: running-total trigger threshold */
+  threshold_amount?: number;
+  /** balance_ceiling: vault everything above this balance */
+  ceiling_amount?: number;
+  /** session_profit_lock: vault once session profit exceeds this */
+  profit_target?: number;
+
+  /** Do not trigger on wins below this value (noise filter) */
+  min_win_amount?: number;
+  /** Minimum ms between vault actions (rate-limit guard) */
+  cooldown_ms?: number;
+
+  label?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CreateVaultRulePayload {
+  type: VaultRuleType;
+  casino?: VaultRuleCasinoTarget;
+  percent?: number;
+  fixed_amount?: number;
+  threshold_amount?: number;
+  ceiling_amount?: number;
+  profit_target?: number;
+  min_win_amount?: number;
+  cooldown_ms?: number;
+  label?: string;
+}
+
+export interface UpdateVaultRulePayload extends Partial<CreateVaultRulePayload> {
+  enabled?: boolean;
+}
+
+/**
+ * A win event emitted by a casino adapter when a win is detected in the DOM or API.
+ */
+export interface CasinoWinEvent {
+  casino: string;
+  amount: number;
+  currency: string;
+  balanceBefore: number;
+  balanceAfter: number;
+  timestamp: number;
+  gameId?: string;
+}
+
+/**
+ * Result of a vault action attempt.
+ */
+export interface VaultActionResult {
+  success: boolean;
+  amount: number;
+  currency: string;
+  ruleId: string;
+  ruleType: VaultRuleType;
+  casinoResponse?: unknown;
+  error?: string;
+}
+
+// ============================================
 // Trust Engine Types
 // ============================================
 

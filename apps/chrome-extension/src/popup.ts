@@ -319,6 +319,7 @@ function activateTab(id: string) {
   $(`panel-${id}`).classList.add('active');
 
   if (id === 'block') loadExclusions();
+  if (id === 'vault') loadVaultRules();
 }
 
 // ---------------------------------------------------------------------------
@@ -393,6 +394,247 @@ async function init() {
   $('btn-settings').addEventListener('click', () => {
     chrome.tabs.create({ url: `${EXT_CONFIG.HUB_URL}/settings` });
   });
+
+  // Vault listeners
+  initVaultListeners();
 }
 
 document.addEventListener('DOMContentLoaded', init);
+
+
+// ---------------------------------------------------------------------------
+// Vault Rules
+// ---------------------------------------------------------------------------
+
+interface VaultRule {
+  id: string;
+  type: string;
+  enabled: boolean;
+  casino: string;
+  percent?: number | null;
+  fixed_amount?: number | null;
+  threshold_amount?: number | null;
+  ceiling_amount?: number | null;
+  profit_target?: number | null;
+  min_win_amount?: number | null;
+  label?: string | null;
+}
+
+let vaultRules: VaultRule[] = [];
+let vaultAddFormOpen = false;
+let vaultSessionTotal = 0;
+
+function describeVaultRule(r: VaultRule): string {
+  switch (r.type) {
+    case 'percent_of_win':    return `Vault ${r.percent}% of each win`;
+    case 'fixed_per_threshold': return `Vault $${r.fixed_amount} per $${r.threshold_amount} won`;
+    case 'balance_ceiling':   return `Keep balance under $${r.ceiling_amount}`;
+    case 'session_profit_lock': return `Lock profit at $${r.profit_target}`;
+    default: return r.type;
+  }
+}
+
+async function loadVaultRules() {
+  if (!userId) return;
+  show('vault-loading');
+  hide('vault-rule-list');
+  try {
+    const token = await getToken();
+    const res = await fetch(`${EXT_CONFIG.API_BASE_URL}/user/${userId}/vault-rules`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!res.ok) throw new Error('Failed to load vault rules');
+    const data = await res.json();
+    vaultRules = data.rules ?? [];
+    renderVaultRules();
+  } catch {
+    toast('Could not load vault rules', true);
+  } finally {
+    hide('vault-loading');
+    show('vault-rule-list');
+  }
+
+  // Load session total from storage
+  chrome.storage.local.get(['vaultSessionTotal'], d => {
+    vaultSessionTotal = d.vaultSessionTotal ?? 0;
+    $('vault-session-total').textContent = `$${vaultSessionTotal.toFixed(2)}`;
+  });
+}
+
+function renderVaultRules() {
+  const list = $('vault-rule-list');
+  if (vaultRules.length === 0) {
+    list.innerHTML = '';
+    show('vault-empty');
+    return;
+  }
+  hide('vault-empty');
+  list.innerHTML = vaultRules.map(r => `
+    <div class="vault-rule-item" data-id="${r.id}">
+      <div class="vault-rule-header">
+        <span class="vault-rule-label">${r.label || describeVaultRule(r)}</span>
+        <div class="vault-rule-actions">
+          <span class="vault-rule-casino">${r.casino}</span>
+          <label class="toggle-switch">
+            <input type="checkbox" class="vault-toggle" data-id="${r.id}" ${r.enabled ? 'checked' : ''} />
+            <span class="toggle-track"></span>
+            <span class="toggle-thumb"></span>
+          </label>
+          <button class="btn btn-danger-ghost vault-delete" data-id="${r.id}" style="padding:3px 8px; font-size:10px;">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" width="11" height="11">
+              <polyline points="3,4 13,4"/><path d="M5 4V3a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v1"/>
+              <path d="M6 7v5M10 7v5M4 4l.667 9.333A1 1 0 0 0 5.663 14h4.674a1 1 0 0 0 .996-.667L12 4"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+      <div class="vault-rule-desc">${describeVaultRule(r)}</div>
+    </div>
+  `).join('');
+
+  list.querySelectorAll('.vault-toggle').forEach(el => {
+    el.addEventListener('change', async (e) => {
+      const id = (e.target as HTMLInputElement).dataset['id']!;
+      const enabled = (e.target as HTMLInputElement).checked;
+      await patchVaultRule(id, { enabled });
+    });
+  });
+
+  list.querySelectorAll('.vault-delete').forEach(el => {
+    el.addEventListener('click', async (e) => {
+      const id = (e.currentTarget as HTMLButtonElement).dataset['id']!;
+      await deleteVaultRuleUI(id);
+    });
+  });
+}
+
+async function getToken(): Promise<string> {
+  return new Promise(resolve => {
+    chrome.storage.local.get(['authToken'], d => resolve(d.authToken ?? ''));
+  });
+}
+
+async function patchVaultRule(id: string, patch: Partial<VaultRule>) {
+  if (!userId) return;
+  try {
+    const token = await getToken();
+    await fetch(`${EXT_CONFIG.API_BASE_URL}/user/${userId}/vault-rules/${id}`, {
+      method: 'PATCH',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify(patch),
+    });
+    const rule = vaultRules.find(r => r.id === id);
+    if (rule) Object.assign(rule, patch);
+    renderVaultRules();
+  } catch {
+    toast('Failed to update rule', true);
+  }
+}
+
+async function deleteVaultRuleUI(id: string) {
+  if (!userId) return;
+  try {
+    const token = await getToken();
+    await fetch(`${EXT_CONFIG.API_BASE_URL}/user/${userId}/vault-rules/${id}`, {
+      method: 'DELETE',
+      credentials: 'include',
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    vaultRules = vaultRules.filter(r => r.id !== id);
+    renderVaultRules();
+    toast('Rule removed');
+  } catch {
+    toast('Failed to delete rule', true);
+  }
+}
+
+function openVaultAddForm() {
+  vaultAddFormOpen = true;
+  $('vault-add-form').classList.add('open');
+  switchVaultFieldGroup('percent_of_win');
+}
+
+function closeVaultAddForm() {
+  vaultAddFormOpen = false;
+  $('vault-add-form').classList.remove('open');
+  ($<HTMLSelectElement>('vault-type-select')).value = 'percent_of_win';
+  ($<HTMLInputElement>('vault-percent')).value = '';
+  ($<HTMLInputElement>('vault-fixed-amount')).value = '';
+  ($<HTMLInputElement>('vault-threshold')).value = '';
+  ($<HTMLInputElement>('vault-ceiling')).value = '';
+  ($<HTMLInputElement>('vault-profit-target')).value = '';
+  ($<HTMLInputElement>('vault-min-win')).value = '';
+  ($<HTMLInputElement>('vault-label')).value = '';
+  switchVaultFieldGroup('percent_of_win');
+}
+
+function switchVaultFieldGroup(type: string) {
+  const groups: Record<string, string> = {
+    percent_of_win: 'vfg-percent',
+    fixed_per_threshold: 'vfg-fixed',
+    balance_ceiling: 'vfg-ceiling',
+    session_profit_lock: 'vfg-profit',
+  };
+  Object.values(groups).forEach(id => $<HTMLDivElement>(id).classList.remove('active'));
+  if (groups[type]) $<HTMLDivElement>(groups[type]).classList.add('active');
+}
+
+async function submitVaultRule() {
+  if (!userId) return;
+  const type = ($<HTMLSelectElement>('vault-type-select')).value;
+  const casino = ($<HTMLSelectElement>('vault-casino')).value || 'all';
+  const minWin = parseFloat(($<HTMLInputElement>('vault-min-win')).value) || undefined;
+  const label = ($<HTMLInputElement>('vault-label')).value.trim() || undefined;
+
+  const payload: Record<string, unknown> = { type, casino, min_win_amount: minWin, label };
+
+  switch (type) {
+    case 'percent_of_win':
+      payload.percent = parseFloat(($<HTMLInputElement>('vault-percent')).value);
+      if (!payload.percent) { toast('Enter a percent', true); return; }
+      break;
+    case 'fixed_per_threshold':
+      payload.fixed_amount = parseFloat(($<HTMLInputElement>('vault-fixed-amount')).value);
+      payload.threshold_amount = parseFloat(($<HTMLInputElement>('vault-threshold')).value);
+      if (!payload.fixed_amount || !payload.threshold_amount) { toast('Fill in fixed + threshold', true); return; }
+      break;
+    case 'balance_ceiling':
+      payload.ceiling_amount = parseFloat(($<HTMLInputElement>('vault-ceiling')).value);
+      if (!payload.ceiling_amount) { toast('Enter a ceiling amount', true); return; }
+      break;
+    case 'session_profit_lock':
+      payload.profit_target = parseFloat(($<HTMLInputElement>('vault-profit-target')).value);
+      if (!payload.profit_target) { toast('Enter a profit target', true); return; }
+      break;
+  }
+
+  try {
+    const token = await getToken();
+    const res = await fetch(`${EXT_CONFIG.API_BASE_URL}/user/${userId}/vault-rules`, {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) throw new Error('Save failed');
+    const data = await res.json();
+    vaultRules.push(data.rule);
+    closeVaultAddForm();
+    renderVaultRules();
+    toast('Vault rule saved');
+  } catch {
+    toast('Failed to save rule', true);
+  }
+}
+
+function initVaultListeners() {
+  $('btn-vault-add-toggle').addEventListener('click', () => {
+    vaultAddFormOpen ? closeVaultAddForm() : openVaultAddForm();
+  });
+  $('btn-vault-add-cancel').addEventListener('click', closeVaultAddForm);
+  $('btn-vault-add-confirm').addEventListener('click', submitVaultRule);
+  $<HTMLSelectElement>('vault-type-select').addEventListener('change', (e) => {
+    switchVaultFieldGroup((e.target as HTMLSelectElement).value);
+  });
+}

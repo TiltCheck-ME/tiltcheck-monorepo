@@ -36,6 +36,8 @@ Built by a degen, for degens. Fast reference to every internal spec, prompt, and
 - [17 Branch Protection](17-branch-protection.md)
 - [17 Migration Checklist](17-migration-checklist.md)
 - [17 Trust Migration](17-trust-migration.md)
+- [21 Surgical Self-Exclusion](../surgical-self-exclusion.md)
+- [22 Auto-Vault Rule Engine](22-autovault.md)
 
 ## Roadmap & Diagrams
 - [15 Future Roadmap](15-future-roadmap.md)

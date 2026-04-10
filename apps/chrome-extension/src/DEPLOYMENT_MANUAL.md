@@ -1,10 +1,16 @@
-# TiltCheck Deployment & Operations Manual
+<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-10 -->
+
+# TiltCheck Deployment and Operations Manual
 
 This manual outlines the steps to deploy, maintain, and update the TiltCheck ecosystem.
 
-## 1. Onboarding Platform Recommendation
+> NOTE: This document was last fully verified in early 2026. Sections 1–3 reflect the intended production architecture. Section 4 (Chrome Extension) has been updated to match the current monorepo structure. If you find a discrepancy between this document and the actual codebase, treat the codebase as the source of truth and file a doc update.
 
-**Recommended Home: Web App (PWA)**
+---
+
+
+
+## 1. Onboarding Platform Recommendation
 
 Given the constraints (financial/app store) and the need for scalability:
 *   **Primary Hub:** The **Web App (PWA)** hosted at `tiltcheck.me`. This bypasses App Store fees, allows instant updates, and works on both mobile and desktop.
@@ -60,11 +66,19 @@ CREATE TABLE IF NOT EXISTS users (
 4.  Deploy. Your PWA is now live at `https://tiltcheck.me`.
 
 ### Step 4: Chrome Extension Deployment
-1.  Update `manifest.json` version in `apps/chrome-extension`.
-2.  Run build command: `npm run build:extension`.
-3.  Zip the `dist` folder.
-4.  **Manual Distribution:** Host the `.zip` on your website for users to download and install via Developer Mode.
-5.  **Store Distribution:** When ready, upload to Chrome Web Store Developer Dashboard ($5 one-time fee).
+
+1. Update the version field in `apps/chrome-extension/manifest.json` and `apps/chrome-extension/src/manifest.json`.
+2. Build the extension from the monorepo root:
+   ```bash
+   pnpm -C apps/chrome-extension build
+   ```
+3. Zip the `dist/` folder:
+   ```powershell
+   Compress-Archive -Path apps\chrome-extension\dist\* -DestinationPath tiltcheck-extension.zip
+   ```
+4. **Known Gap**: `manifest.json` declares `"default_popup": "popup.html"` but that file does not exist. Resolve this before submitting to the Chrome Web Store. See `apps/chrome-extension/README.md` Known Gaps section.
+5. **Manual Distribution**: Host the `.zip` on the TiltCheck website for developer-mode installs.
+6. **Store Distribution**: When popup.html is implemented and the review blockers are resolved, upload the package to the Chrome Web Store Developer Dashboard ($5 one-time fee).
 
 ## 3. CI/CD & Automation Checks
 
