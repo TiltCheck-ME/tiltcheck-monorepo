@@ -1,8 +1,4 @@
-/* Copyright (c) 2026 TiltCheck. All rights reserved. */
-/**
- * Hash Verification Command
- * Provably fair audit mid-session.
- */
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-10
 import { SlashCommandBuilder, ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
 import type { Command } from '../types.js';
 import crypto from 'crypto';
@@ -21,8 +17,8 @@ export const verify: Command = {
     const nonce = interaction.options.getInteger('nonce');
 
     const embed = new EmbedBuilder()
-      .setColor(0x00FF00)
-      .setTitle('🔍 HASH AUDIT — VERIFIED')
+      .setColor(0x22d3a6)
+      .setTitle('HASH AUDIT — VERIFIED')
       .setTimestamp();
 
     try {
@@ -37,7 +33,7 @@ export const verify: Command = {
           { name: 'NONCE', value: `${nonce}`, inline: true },
           { name: 'AUDIT VERDICT', value: 'Outcome integrity confirmed. House hasn\'t cheated. You just lost to math.', inline: false }
         )
-        .setFooter({ text: 'TiltCheck: SYSTEM INTEGRITY MAINTAINED.' });
+        .setFooter({ text: 'Made for Degens. By Degens.' });
 
       await interaction.reply({ embeds: [embed] });
 

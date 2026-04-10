@@ -1,8 +1,4 @@
-/* Copyright (c) 2026 TiltCheck. All rights reserved. */
-/**
- * Cooldown & Tilt Management Commands
- * Safety features for preventing tilt-driven losses
- */
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-10
 
 import { SlashCommandBuilder, ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
 import type { Command } from '../types.js';
@@ -57,14 +53,14 @@ export const cooldown: Command = {
     );
 
     const embed = new EmbedBuilder()
-      .setColor(0x00CED1)
-      .setTitle('[COOLDOWN ACTIVE]')
+      .setColor(0x22d3a6)
+      .setTitle('COOLDOWN LOCKED IN')
       .setDescription(`${duration}-minute lock engaged. Smart move.`)
       .addFields(
         { name: 'Duration', value: `${duration} minutes`, inline: true },
         { name: 'Expires', value: `<t:${Math.floor((Date.now() + duration * 60000) / 1000)}:R>`, inline: true },
       )
-      .setFooter({ text: 'Violations will extend your cooldown automatically' });
+      .setFooter({ text: 'Made for Degens. By Degens.' });
 
     await interaction.reply({ embeds: [embed] });
   },
@@ -101,8 +97,8 @@ async function handleTiltStatus(interaction: ChatInputCommandInteraction) {
   const cooldownStatus = getCooldownStatus(interaction.user.id);
 
   const embed = new EmbedBuilder()
-    .setColor(status.onCooldown ? 0xFF6B6B : 0x00CED1)
-    .setTitle('📊 Tilt Status');
+    .setColor(status.onCooldown ? 0xef4444 : 0x22d3a6)
+    .setTitle('TILT STATUS');
 
   if (status.onCooldown && cooldownStatus && cooldownStatus.endsAt) {
     const remaining = Math.ceil((cooldownStatus.endsAt - Date.now()) / 60000);
@@ -131,7 +127,7 @@ async function handleTiltStatus(interaction: ChatInputCommandInteraction) {
     });
   }
 
-  embed.setFooter({ text: 'Use /cooldown to take a voluntary break' });
+  embed.setFooter({ text: 'Made for Degens. By Degens.' });
 
   await interaction.reply({ embeds: [embed], ephemeral: true });
 }
@@ -141,7 +137,7 @@ async function handleTiltHistory(interaction: ChatInputCommandInteraction) {
 
   if (!activity) {
     await interaction.reply({ 
-      content: '📊 No tilt history found. Keep it clean!',
+      content: 'No tilt history found. Run clean sessions.',
       ephemeral: true 
     });
     return;
@@ -150,8 +146,8 @@ async function handleTiltHistory(interaction: ChatInputCommandInteraction) {
   const recentMessages = activity.messages.slice(-10);
 
   const embed = new EmbedBuilder()
-    .setColor(0x0099FF)
-    .setTitle('📈 Tilt History')
+    .setColor(0x22d3a6)
+    .setTitle('TILT HISTORY')
     .setDescription(`Activity tracking for ${interaction.user.username}`);
 
   if (recentMessages.length > 0) {
@@ -186,7 +182,7 @@ async function handleTiltHistory(interaction: ChatInputCommandInteraction) {
     });
   }
 
-  embed.setFooter({ text: 'TiltCheck keeps you safe from yourself' });
+  embed.setFooter({ text: 'Made for Degens. By Degens.' });
 
   await interaction.reply({ embeds: [embed], ephemeral: true });
 }

@@ -1,4 +1,4 @@
-/* Copyright (c) 2026 TiltCheck. All rights reserved. */
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-10
 /**
  * JME Command Suite — Owner & Admin Audit Tools
  */
@@ -92,10 +92,10 @@ async function handlePurge(interaction: ChatInputCommandInteraction) {
     }
 
     const embed = new EmbedBuilder()
-      .setColor(0xff4b2b)
-      .setTitle('[AUDIT] CHANNEL CLEANUP: COMPLETE')
-      .setDescription(`Surgically removed **${deletedCount}** messages from this sector.`)
-      .setFooter({ text: `TiltCheck | ${getRandomQuote()}` });
+      .setColor(0xef4444)
+      .setTitle('CHANNEL CLEANUP COMPLETE')
+      .setDescription(`Removed **${deletedCount}** messages.`)
+      .setFooter({ text: 'Made for Degens. By Degens.' });
 
     await interaction.editReply({ embeds: [embed] });
   } catch (error) {
@@ -117,15 +117,15 @@ async function handleReset(interaction: ChatInputCommandInteraction) {
   }
 
   const embed = new EmbedBuilder()
-    .setColor(0xff0000)
-    .setTitle('[EDGE EQUALIZER] USER RESET INITIATED')
-    .setDescription(`Surgically resetting all interaction signals for **${target.username}**.`)
+    .setColor(0xef4444)
+    .setTitle('USER RESET INITIATED')
+    .setDescription(`Resetting all interaction signals for **${target.username}**.`)
     .addFields(
       { name: 'Target', value: `<@${target.id}>`, inline: true },
       { name: 'Protocol', value: 'Full Reset', inline: true },
       { name: 'Status', value: 'Processing Database Purge...', inline: false }
     )
-    .setFooter({ text: `TiltCheck | ${getRandomQuote()}` });
+    .setFooter({ text: 'Made for Degens. By Degens.' });
 
   await interaction.reply({ embeds: [embed], ephemeral: true });
   
@@ -137,8 +137,8 @@ async function handleIntel(interaction: ChatInputCommandInteraction) {
   const memory = process.memoryUsage();
 
   const embed = new EmbedBuilder()
-    .setColor(0x17c3b2)
-    .setTitle('[SIGNAL] PRODUCTION INTEL: BOT CLUSTER')
+    .setColor(0x22d3a6)
+    .setTitle('BOT CLUSTER — LIVE INTEL')
     .addFields(
       { name: 'Uptime', value: `${Math.floor(uptime / 3600)}h ${Math.floor((uptime % 3600) / 60)}m`, inline: true },
       { name: 'Memory', value: `${Math.round(memory.rss / 1024 / 1024)}MB RSS`, inline: true },
@@ -146,7 +146,7 @@ async function handleIntel(interaction: ChatInputCommandInteraction) {
       { name: 'Cluster', value: 'Google Cloud Run (us-central1)', inline: false },
       { name: 'DB Pooler', value: process.env.POSTGRESQL ? 'CONNECTING/READY' : 'OFFLINE', inline: true }
     )
-    .setFooter({ text: `TiltCheck | ${getRandomQuote()}` });
+    .setFooter({ text: 'Made for Degens. By Degens.' });
 
 
   await interaction.reply({ embeds: [embed], ephemeral: true });

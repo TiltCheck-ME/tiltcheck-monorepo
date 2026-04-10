@@ -60,7 +60,7 @@ export const help: Command = {
       }
     );
 
-    embed.setFooter({ text: 'TiltCheck — Made for Degens. By Degens.' });
+    embed.setFooter({ text: 'Made for Degens. By Degens.' });
 
     await interaction.reply({ embeds: [embed] });
   },

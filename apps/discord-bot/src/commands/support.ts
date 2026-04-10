@@ -1,8 +1,4 @@
-/* Copyright (c) 2026 TiltCheck. All rights reserved. */
-/**
- * Support Command
- * DMs the user a support ticket confirmation and notifies the owner.
- */
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-10
 import { SlashCommandBuilder, ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
 import type { Command } from '../types.js';
 
@@ -32,7 +28,7 @@ export const support: Command = {
         `**Topic:** ${topic}${message ? `\n**Details:** ${message}` : ''}\n\n` +
         `Someone will follow up shortly. If it's urgent, ping directly in the server.`
       )
-      .setFooter({ text: "We actually read these." });
+      .setFooter({ text: 'Made for Degens. By Degens.' });
 
     await interaction.reply({ embeds: [userEmbed], ephemeral: true });
 

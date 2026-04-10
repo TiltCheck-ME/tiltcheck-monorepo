@@ -1,8 +1,4 @@
-/* Copyright (c) 2026 TiltCheck. All rights reserved. */
-/**
- * Terms Command
- * Displays TiltCheck Terms of Service & Privacy links and tracks acceptance.
- */
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-10
 import { SlashCommandBuilder, ChatInputCommandInteraction, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } from 'discord.js';
 import type { Command } from '../types.js';
 import { upsertOnboarding } from '@tiltcheck/db';
@@ -29,32 +25,33 @@ export const terms: Command = {
     const sub = interaction.options.getSubcommand();
     if (sub === 'view') {
       const embed = new EmbedBuilder()
-        .setTitle('📜 TiltCheck Legal')
+        .setTitle('LEGAL DOCS')
         .setDescription('Read before using tipping features.')
         .addFields(
-          { name: 'Terms of Service', value: '[Read Terms](https://tiltcheck.me/terms)\n• 18+ required\n• Non-refundable tips (0.07 SOL fee)\n• AS-IS service' },
-          { name: 'Privacy Policy', value: '[Read Privacy](https://tiltcheck.me/privacy)\n• Non-custodial wallets\n• Minimal logs (7 days)\n• No data selling' },
+          { name: 'Terms of Service', value: '[Read Terms](https://tiltcheck.me/terms)\n- 18+ required\n- Non-refundable tips (0.07 SOL fee)\n- AS-IS service' },
+          { name: 'Privacy Policy', value: '[Read Privacy](https://tiltcheck.me/privacy)\n- Non-custodial wallets\n- Minimal logs (7 days)\n- No data selling' },
           { name: 'Acceptance', value: 'Use `/terms accept` after reading.' },
           { name: 'Contact', value: 'privacy@tiltcheck.me | legal@tiltcheck.me' }
         )
-        .setColor(0x00a8ff)
-        .setFooter({ text: 'TiltCheck • Trust, Tipping & Anti-Tilt' });
+        .setColor(0x22d3a6)
+        .setFooter({ text: 'Made for Degens. By Degens.' });
       await interaction.reply({ embeds: [embed], ephemeral: true });
       return;
     }
     if (sub === 'accept') {
       if (hasAcceptedTerms(interaction.user.id)) {
-        await interaction.reply({ content: '✅ Already accepted. Use `/terms status`.', ephemeral: true });
+        await interaction.reply({ content: 'Already accepted. Check /terms status.', ephemeral: true });
         return;
       }
       const row = new ActionRowBuilder<ButtonBuilder>().addComponents(
-        new ButtonBuilder().setCustomId('terms_accept_confirm').setLabel('I Accept').setStyle(ButtonStyle.Success).setEmoji('✅'),
+        new ButtonBuilder().setCustomId('terms_accept_confirm').setLabel('I Accept').setStyle(ButtonStyle.Success),
         new ButtonBuilder().setCustomId('terms_accept_cancel').setLabel('Cancel').setStyle(ButtonStyle.Secondary)
       );
       const embed = new EmbedBuilder()
-        .setTitle('⚠️ Confirm Acceptance')
-        .setDescription('By clicking I Accept you confirm:\n• You are 18+\n• You read Terms & Privacy\n• Tips are non-refundable\n• You use TiltCheck at your own risk')
-        .setColor(0xffc107);
+        .setTitle('CONFIRM ACCEPTANCE')
+        .setDescription('By clicking I Accept you confirm:\n- You are 18+\n- You read Terms & Privacy\n- Tips are non-refundable\n- You use TiltCheck at your own risk')
+        .setColor(0xf59e0b)
+        .setFooter({ text: 'Made for Degens. By Degens.' });
       const msg = await interaction.reply({ embeds: [embed], components: [row], ephemeral: true, fetchReply: true });
       try {
         const btn = await msg.awaitMessageComponent({ filter: i => i.user.id === interaction.user.id, time: 60000 });
@@ -67,9 +64,9 @@ export const terms: Command = {
             has_accepted_terms: true 
           });
 
-          await btn.update({ content: 'Terms accepted. You can now use tipping and vaulting features.', embeds: [], components: [] });
+          await btn.update({ content: 'Locked in. Tipping and vaulting features unlocked.', embeds: [], components: [] });
         } else {
-          await btn.update({ content: 'Acceptance cancelled. Run `/terms accept` later.', embeds: [], components: [] });
+          await btn.update({ content: 'Cancelled. Run /terms accept when ready.', embeds: [], components: [] });
         }
       } catch {
         await interaction.editReply({ content: 'Timed out. Run `/terms accept` again.', embeds: [], components: [] });
@@ -79,10 +76,10 @@ export const terms: Command = {
     if (sub === 'status') {
       const rec = loadAcceptances().find(a => a.userId === interaction.user.id);
       if (!rec) {
-        await interaction.reply({ content: '⚠️ Not accepted yet. Use `/terms view` then `/terms accept`.', ephemeral: true });
+        await interaction.reply({ content: 'Not accepted yet. Run /terms view then /terms accept.', ephemeral: true });
         return;
       }
-      await interaction.reply({ content: `✅ Accepted ${new Date(rec.acceptedAt).toLocaleString()} (v${rec.version})`, ephemeral: true });
+      await interaction.reply({ content: `Accepted ${new Date(rec.acceptedAt).toLocaleString()} (v${rec.version})`, ephemeral: true });
     }
   }
 };

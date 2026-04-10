@@ -7,6 +7,11 @@ name: Configure Cloudflare Tunnel Routes
 
 on:
   workflow_dispatch:
+    inputs:
+      tunnel_id:
+        description: "Cloudflare Tunnel UUID (find it at: zero-trust dash → Networks → Tunnels). Leave empty to auto-discover (requires CLOUDFLARE_API_TOKEN + CLOUDFLARE_ACCOUNT_ID secrets)."
+        required: false
+        type: string
 
 permissions:
   contents: read

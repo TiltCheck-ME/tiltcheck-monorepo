@@ -1,4 +1,4 @@
-/* Copyright (c) 2026 TiltCheck. All rights reserved. */
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-10
 import {
   ChatInputCommandInteraction,
   InteractionContextType,
@@ -54,7 +54,7 @@ export const setstate: Command = {
     if (shouldClear) {
       clearUserTiltAgentContext(interaction.user.id);
       await interaction.reply({
-        content: 'Cleared your saved regulatory context. TiltCheck will run without state enrichment unless set again.',
+        content: 'Context cleared. No state enrichment until you set it again.',
         ephemeral: true,
       });
       return;
@@ -67,7 +67,7 @@ export const setstate: Command = {
     if (!stateInput && !topicInput) {
       if (!current) {
         await interaction.reply({
-          content: 'No saved context yet. You can optionally set `state` (and `topic`) any time.',
+          content: 'No context saved. Set state and topic any time with /setstate.',
           ephemeral: true,
         });
         return;

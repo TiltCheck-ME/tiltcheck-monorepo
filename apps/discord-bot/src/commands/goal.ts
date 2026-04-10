@@ -1,8 +1,4 @@
-/* Copyright (c) 2026 TiltCheck. All rights reserved. */
-/**
- * Redeem Goal Command
- * Set starting balance and redeem point for a session.
- */
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-10
 import { SlashCommandBuilder, ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
 import type { Command } from '../types.js';
 
@@ -24,15 +20,15 @@ export const goal: Command = {
     }
 
     const embed = new EmbedBuilder()
-      .setColor(0x00CED1)
+      .setColor(0x22d3a6)
       .setTitle('TARGET LOCKED')
       .setDescription(
         `Starting balance: **$${start}**\n` +
         `Redeem point: **$${redeem}**\n` +
         `That's **$${profit} profit** if you actually pull the trigger.\n\n` +
-        `When you hit it, I'll remind you to cash out before the house notices.`
+        `When you hit it, cash out before the house notices.`
       )
-      .setFooter({ text: "Winning is easy. Keeping it is legendary." });
+      .setFooter({ text: 'Made for Degens. By Degens.' });
 
     await interaction.reply({ embeds: [embed], ephemeral: true });
   },
