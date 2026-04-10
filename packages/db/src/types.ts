@@ -526,8 +526,71 @@ export interface CreateBlogPostPayload {
 }
 
 // ============================================================================
-// Surgical Self-Exclusion Types
+// Auto-Vault Rule Types
 // ============================================================================
+
+export type VaultRuleType =
+  | 'percent_of_win'
+  | 'fixed_per_threshold'
+  | 'balance_ceiling'
+  | 'session_profit_lock';
+
+export type VaultRuleCasinoTarget =
+  | 'all'
+  | 'stake'
+  | 'roobet'
+  | 'bcgame'
+  | 'rollbit'
+  | 'gamdom'
+  | 'shuffle';
+
+export interface VaultRule {
+  id: string;
+  user_id: string;
+  type: VaultRuleType;
+  enabled: boolean;
+  casino: VaultRuleCasinoTarget;
+  percent?: number | null;
+  fixed_amount?: number | null;
+  threshold_amount?: number | null;
+  ceiling_amount?: number | null;
+  profit_target?: number | null;
+  min_win_amount?: number | null;
+  cooldown_ms?: number | null;
+  label?: string | null;
+  created_at: Date;
+  updated_at: Date;
+}
+
+export interface CreateVaultRulePayload {
+  user_id: string;
+  type: VaultRuleType;
+  casino?: VaultRuleCasinoTarget;
+  percent?: number;
+  fixed_amount?: number;
+  threshold_amount?: number;
+  ceiling_amount?: number;
+  profit_target?: number;
+  min_win_amount?: number;
+  cooldown_ms?: number;
+  label?: string;
+}
+
+export interface UpdateVaultRulePayload {
+  type?: VaultRuleType;
+  casino?: VaultRuleCasinoTarget;
+  enabled?: boolean;
+  percent?: number | null;
+  fixed_amount?: number | null;
+  threshold_amount?: number | null;
+  ceiling_amount?: number | null;
+  profit_target?: number | null;
+  min_win_amount?: number | null;
+  cooldown_ms?: number | null;
+  label?: string | null;
+}
+
+
 
 export type GameCategory =
   | 'chicken_mines'

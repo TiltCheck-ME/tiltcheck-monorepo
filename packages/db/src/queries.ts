@@ -38,6 +38,9 @@ import type {
   CreateGameExclusionPayload,
   ForbiddenGamesProfile,
   GameCategory,
+  VaultRule,
+  CreateVaultRulePayload,
+  UpdateVaultRulePayload,
 } from './types.js';
 
 /**
@@ -1060,4 +1063,106 @@ export async function buildForbiddenGamesProfile(userId: string): Promise<Forbid
     exclusions,
     updatedAt: new Date().toISOString(),
   };
+}
+
+// ============================================================================
+// Auto-Vault Rule Queries
+// ============================================================================
+
+export async function getVaultRules(userId: string): Promise<VaultRule[]> {
+  const sql = `
+    SELECT * FROM user_vault_rules
+    WHERE user_id = $1
+    ORDER BY created_at ASC
+  `;
+  const result = await query<VaultRule>(sql, [userId]);
+  return result;
+}
+
+export async function getVaultRule(id: string, userId: string): Promise<VaultRule | null> {
+  return queryOne<VaultRule>(
+    `SELECT * FROM user_vault_rules WHERE id = $1 AND user_id = $2`,
+    [id, userId]
+  );
+}
+
+export async function createVaultRule(payload: CreateVaultRulePayload): Promise<VaultRule> {
+  const sql = `
+    INSERT INTO user_vault_rules
+      (user_id, type, casino, percent, fixed_amount, threshold_amount,
+       ceiling_amount, profit_target, min_win_amount, cooldown_ms, label)
+    VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)
+    RETURNING *
+  `;
+  const row = await queryOne<VaultRule>(sql, [
+    payload.user_id,
+    payload.type,
+    payload.casino ?? 'all',
+    payload.percent ?? null,
+    payload.fixed_amount ?? null,
+    payload.threshold_amount ?? null,
+    payload.ceiling_amount ?? null,
+    payload.profit_target ?? null,
+    payload.min_win_amount ?? null,
+    payload.cooldown_ms ?? null,
+    payload.label ?? null,
+  ]);
+  if (!row) throw new Error('Failed to create vault rule');
+  return row;
+}
+
+export async function updateVaultRule(
+  id: string,
+  userId: string,
+  payload: UpdateVaultRulePayload
+): Promise<VaultRule | null> {
+  const fields: string[] = [];
+  const values: unknown[] = [];
+  let idx = 1;
+
+  const allowed: (keyof UpdateVaultRulePayload)[] = [
+    'type', 'casino', 'enabled', 'percent', 'fixed_amount',
+    'threshold_amount', 'ceiling_amount', 'profit_target',
+    'min_win_amount', 'cooldown_ms', 'label',
+  ];
+
+  for (const key of allowed) {
+    if (key in payload) {
+      fields.push(`${key} = $${idx++}`);
+      values.push((payload as Record<string, unknown>)[key]);
+    }
+  }
+
+  if (fields.length === 0) return getVaultRule(id, userId);
+
+  fields.push(`updated_at = NOW()`);
+  values.push(id, userId);
+
+  const sql = `
+    UPDATE user_vault_rules
+    SET ${fields.join(', ')}
+    WHERE id = $${idx++} AND user_id = $${idx}
+    RETURNING *
+  `;
+  return queryOne<VaultRule>(sql, values);
+}
+
+export async function deleteVaultRule(id: string, userId: string): Promise<boolean> {
+  await query(
+    `DELETE FROM user_vault_rules WHERE id = $1 AND user_id = $2`,
+    [id, userId]
+  );
+  return true;
+}
+
+export async function setVaultRuleEnabled(
+  id: string,
+  userId: string,
+  enabled: boolean
+): Promise<VaultRule | null> {
+  return queryOne<VaultRule>(
+    `UPDATE user_vault_rules SET enabled = $1, updated_at = NOW()
+     WHERE id = $2 AND user_id = $3 RETURNING *`,
+    [enabled, id, userId]
+  );
 }

@@ -120,6 +120,14 @@ export {
   clearExclusions,
   checkGameExcluded,
   buildForbiddenGamesProfile,
+
+  // Vault rule queries
+  getVaultRules,
+  getVaultRule,
+  createVaultRule,
+  updateVaultRule,
+  deleteVaultRule,
+  setVaultRuleEnabled,
 } from './queries.js';
 
 // Type exports
@@ -169,4 +177,11 @@ export type {
   CreateGameExclusionPayload,
   ForbiddenGamesProfile,
   GameCategory,
+
+  // Vault rule types
+  VaultRule,
+  VaultRuleType,
+  VaultRuleCasinoTarget,
+  CreateVaultRulePayload,
+  UpdateVaultRulePayload,
 } from './types.js';

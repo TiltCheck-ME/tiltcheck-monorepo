@@ -21,6 +21,10 @@ import {
     getUserExclusions,
     addExclusion,
     removeExclusion,
+    getVaultRules,
+    createVaultRule,
+    updateVaultRule,
+    deleteVaultRule,
 } from '@tiltcheck/db';
 import { ValidationError, InternalServerError } from '@tiltcheck/error-factory';
 import { verifySolanaSignature } from '@tiltcheck/auth/solana';
@@ -533,3 +537,87 @@ router.delete('/:discordId/exclusions/:exclusionId', authMiddleware, async (req:
 });
 
 export { router as userRouter };
+
+// ─── Auto-Vault Rule Routes ───────────────────────────────────────────────────
+
+/**
+ * GET /user/:discordId/vault-rules
+ */
+router.get('/:discordId/vault-rules', authMiddleware, async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const user = await findUserByDiscordId(String(req.params.discordId));
+        if (!user) { res.status(404).json({ error: 'User not found' }); return; }
+        const rules = await getVaultRules(user.id);
+        res.json({ rules });
+    } catch (error) {
+        next(error);
+    }
+});
+
+/**
+ * POST /user/:discordId/vault-rules
+ * Body: CreateVaultRulePayload (minus user_id, which is resolved from discordId)
+ */
+router.post('/:discordId/vault-rules', authMiddleware, async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const user = await findUserByDiscordId(String(req.params.discordId));
+        if (!user) { res.status(404).json({ error: 'User not found' }); return; }
+
+        const { type, casino, percent, fixed_amount, threshold_amount,
+                ceiling_amount, profit_target, min_win_amount, cooldown_ms, label } = req.body;
+
+        if (!type) { res.status(400).json({ error: 'type is required' }); return; }
+
+        const rule = await createVaultRule({
+            user_id: user.id,
+            type,
+            casino,
+            percent,
+            fixed_amount,
+            threshold_amount,
+            ceiling_amount,
+            profit_target,
+            min_win_amount,
+            cooldown_ms,
+            label,
+        });
+
+        res.status(201).json({ rule });
+    } catch (error) {
+        next(error);
+    }
+});
+
+/**
+ * PATCH /user/:discordId/vault-rules/:ruleId
+ */
+router.patch('/:discordId/vault-rules/:ruleId', authMiddleware, async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const user = await findUserByDiscordId(String(req.params.discordId));
+        if (!user) { res.status(404).json({ error: 'User not found' }); return; }
+
+        const rule = await updateVaultRule(String(req.params.ruleId), user.id, req.body);
+        if (!rule) { res.status(404).json({ error: 'Rule not found' }); return; }
+
+        res.json({ rule });
+    } catch (error) {
+        next(error);
+    }
+});
+
+/**
+ * DELETE /user/:discordId/vault-rules/:ruleId
+ */
+router.delete('/:discordId/vault-rules/:ruleId', authMiddleware, async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const user = await findUserByDiscordId(String(req.params.discordId));
+        if (!user) { res.status(404).json({ error: 'User not found' }); return; }
+
+        await deleteVaultRule(String(req.params.ruleId), user.id);
+        res.status(204).end();
+    } catch (error) {
+        next(error);
+    }
+});
+
+export default router;

@@ -389,6 +389,82 @@
     .feed-item.danger { border-left: 2px solid var(--red); }
     .feed-item.info  { border-left: 2px solid var(--teal); }
 
+    /* --- VAULT RULE ITEM --- */
+    .vault-rule-item {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 10px 12px;
+      margin-bottom: 6px;
+    }
+    .vault-rule-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 4px;
+    }
+    .vault-rule-label {
+      font-weight: 600;
+      font-size: 12px;
+    }
+    .vault-rule-actions { display: flex; gap: 6px; align-items: center; }
+    .vault-rule-desc { font-size: 11px; color: var(--muted); font-family: var(--mono); }
+    .vault-rule-casino {
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 7px;
+      border-radius: 4px;
+      background: var(--teal-dim);
+      color: var(--teal);
+      letter-spacing: 0.04em;
+    }
+    .toggle-switch {
+      position: relative;
+      width: 28px;
+      height: 16px;
+      flex-shrink: 0;
+    }
+    .toggle-switch input { display: none; }
+    .toggle-track {
+      display: block;
+      width: 100%;
+      height: 100%;
+      border-radius: 8px;
+      background: rgba(255,255,255,0.12);
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .toggle-switch input:checked + .toggle-track { background: var(--teal); }
+    .toggle-thumb {
+      position: absolute;
+      top: 2px;
+      left: 2px;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: #fff;
+      pointer-events: none;
+      transition: transform 0.2s;
+    }
+    .toggle-switch input:checked ~ .toggle-thumb { transform: translateX(12px); }
+
+    .vault-stat-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 10px 12px;
+      margin-bottom: 12px;
+    }
+    .vault-stat-label { font-size: 11px; color: var(--muted); }
+    .vault-stat-value { font-family: var(--mono); font-size: 14px; font-weight: 700; color: var(--teal); }
+
+    /* Conditional vault form fields */
+    .vault-field-group { display: none; }
+    .vault-field-group.active { display: block; }
+
     /* --- LOADING SPINNER --- */
     .spinner {
       width: 16px;
@@ -472,6 +548,7 @@
 <div class="tabs">
   <button class="tab active" data-tab="status">Status</button>
   <button class="tab" data-tab="block">Block</button>
+  <button class="tab" data-tab="vault">Vault</button>
   <button class="tab" data-tab="activity">Activity</button>
 </div>
 
@@ -599,6 +676,113 @@
   </div>
 
   <div id="exclusion-loading" style="display:none; text-align:center; padding:24px 0;">
+    <div class="spinner" style="margin:0 auto;"></div>
+  </div>
+
+</div>
+
+<!-- ===== VAULT PANEL ===== -->
+<div id="panel-vault" class="panel">
+
+  <div class="vault-stat-row">
+    <span class="vault-stat-label">Auto-vaulted this session</span>
+    <span class="vault-stat-value" id="vault-session-total">$0.00</span>
+  </div>
+
+  <div class="section-head">
+    <span class="section-title">Vault Rules</span>
+    <button class="btn btn-ghost" id="btn-vault-add-toggle" style="padding:5px 10px; font-size:11px">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+        <line x1="8" y1="2" x2="8" y2="14"/><line x1="2" y1="8" x2="14" y2="8"/>
+      </svg>
+      Add rule
+    </button>
+  </div>
+
+  <!-- Add vault rule form -->
+  <div class="add-form" id="vault-add-form">
+    <div class="form-row">
+      <label>Rule type</label>
+      <select id="vault-type-select">
+        <option value="percent_of_win">Percent of each win</option>
+        <option value="fixed_per_threshold">Fixed $ per $ cumulative won</option>
+        <option value="balance_ceiling">Vault above balance ceiling</option>
+        <option value="session_profit_lock">Lock session profit target</option>
+      </select>
+    </div>
+
+    <!-- percent_of_win fields -->
+    <div class="vault-field-group active" id="vfg-percent">
+      <div class="form-row">
+        <label>Percent to vault (%)</label>
+        <input id="vault-percent" type="number" min="1" max="100" placeholder="e.g. 25" />
+      </div>
+    </div>
+
+    <!-- fixed_per_threshold fields -->
+    <div class="vault-field-group" id="vfg-fixed">
+      <div class="form-row">
+        <label>Fixed vault amount ($)</label>
+        <input id="vault-fixed-amount" type="number" min="0.01" step="0.01" placeholder="e.g. 5.00" />
+      </div>
+      <div class="form-row">
+        <label>After every $ won (threshold)</label>
+        <input id="vault-threshold" type="number" min="0.01" step="0.01" placeholder="e.g. 20.00" />
+      </div>
+    </div>
+
+    <!-- balance_ceiling fields -->
+    <div class="vault-field-group" id="vfg-ceiling">
+      <div class="form-row">
+        <label>Balance ceiling ($)</label>
+        <input id="vault-ceiling" type="number" min="0.01" step="0.01" placeholder="e.g. 100.00" />
+      </div>
+    </div>
+
+    <!-- session_profit_lock fields -->
+    <div class="vault-field-group" id="vfg-profit">
+      <div class="form-row">
+        <label>Profit target ($)</label>
+        <input id="vault-profit-target" type="number" min="0.01" step="0.01" placeholder="e.g. 50.00" />
+      </div>
+    </div>
+
+    <!-- shared fields -->
+    <div class="form-row">
+      <label>Casino</label>
+      <select id="vault-casino">
+        <option value="all">All casinos</option>
+        <option value="stake">Stake.com</option>
+        <option value="roobet">Roobet</option>
+        <option value="bcgame">BC.Game</option>
+        <option value="rollbit">Rollbit</option>
+        <option value="gamdom">Gamdom</option>
+        <option value="shuffle">Shuffle</option>
+      </select>
+    </div>
+    <div class="form-row">
+      <label>Min win to trigger ($, optional)</label>
+      <input id="vault-min-win" type="number" min="0" step="0.01" placeholder="e.g. 2.00" />
+    </div>
+    <div class="form-row">
+      <label>Label (optional)</label>
+      <input id="vault-label" type="text" maxlength="40" placeholder="e.g. Slots cleanup" />
+    </div>
+
+    <div class="form-actions">
+      <button class="btn btn-ghost" id="btn-vault-add-cancel">Cancel</button>
+      <button class="btn btn-primary" id="btn-vault-add-confirm">Save rule</button>
+    </div>
+  </div>
+
+  <!-- Rule list -->
+  <div id="vault-rule-list"></div>
+  <div class="empty-state" id="vault-empty" style="display:none">
+    <strong>No vault rules set.</strong>
+    Add a rule to automatically move winnings to your vault based on your criteria.
+  </div>
+
+  <div id="vault-loading" style="display:none; text-align:center; padding:24px 0;">
     <div class="spinner" style="margin:0 auto;"></div>
   </div>
 

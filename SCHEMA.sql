@@ -129,8 +129,43 @@ CREATE INDEX IF NOT EXISTS idx_user_game_exclusions_user_id
     ON user_game_exclusions (user_id);
 
 -- ============================================================================
--- Casino Audit Bureau
+-- Auto-Vault Rules
 -- ============================================================================
+CREATE TABLE IF NOT EXISTS user_vault_rules (
+    id          UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    user_id     TEXT NOT NULL,
+    type        TEXT NOT NULL CHECK (type IN (
+                    'percent_of_win',
+                    'fixed_per_threshold',
+                    'balance_ceiling',
+                    'session_profit_lock'
+                )),
+    enabled     BOOLEAN NOT NULL DEFAULT TRUE,
+    casino      TEXT NOT NULL DEFAULT 'all' CHECK (casino IN (
+                    'all', 'stake', 'roobet', 'bcgame', 'rollbit', 'gamdom', 'shuffle'
+                )),
+    percent           NUMERIC(5,2),
+    fixed_amount      NUMERIC(18,8),
+    threshold_amount  NUMERIC(18,8),
+    ceiling_amount    NUMERIC(18,8),
+    profit_target     NUMERIC(18,8),
+    min_win_amount    NUMERIC(18,8),
+    cooldown_ms       INTEGER,
+    label             TEXT,
+    created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    CONSTRAINT vault_rule_has_param CHECK (
+        percent IS NOT NULL
+        OR fixed_amount IS NOT NULL
+        OR ceiling_amount IS NOT NULL
+        OR profit_target IS NOT NULL
+    )
+);
+
+CREATE INDEX IF NOT EXISTS idx_user_vault_rules_user_id
+    ON user_vault_rules (user_id);
+
+
 CREATE TABLE IF NOT EXISTS casinos (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     name VARCHAR(255) NOT NULL,

@@ -61,6 +61,18 @@ async function build() {
     minify: true,
   });
 
+  // Build vault rule engine (used by content script at runtime)
+  await esbuild.build({
+    entryPoints: [path.join(__dirname, 'src/vault-rule-engine.ts')],
+    bundle: true,
+    outfile: path.join(__dirname, 'dist/vault-rule-engine.js'),
+    format: 'iife',
+    platform: 'browser',
+    target: 'chrome100',
+    sourcemap: false,
+    minify: true,
+  });
+
   // Build content script
   await esbuild.build({
     entryPoints: [path.join(__dirname, 'src/content.ts')],
