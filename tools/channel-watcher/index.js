@@ -482,9 +482,18 @@ async function run() {
 
     const storageState = existsSync(SESSION_FILE) ? SESSION_FILE : undefined;
 
+    // On Railway (headless Linux), use system Chromium installed via apt-get.
+    // executablePath takes precedence over env vars which Playwright may ignore.
+    const isHeadless = process.env.RAILWAY_ENVIRONMENT !== undefined || process.env.CI === 'true' || !process.env.DISPLAY;
+    const executablePath = process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH
+        || (isHeadless ? ('/usr/bin/chromium') : undefined);
+
     const browser = await chromium.launch({
-        headless: false,
-        args: ['--start-maximized'],
+        headless: isHeadless,
+        executablePath,
+        args: isHeadless
+            ? ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage', '--disable-gpu']
+            : ['--start-maximized'],
     });
 
     const context = await browser.newContext({
