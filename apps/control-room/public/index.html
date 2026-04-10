@@ -46,6 +46,7 @@
     <main class="main-content">
       <header class="topbar">
         <div class="topbar-left">
+          <button class="mobile-nav-btn" id="mobile-nav-toggle" aria-label="Open navigation">&#9776; Menu</button>
           <h2 id="tab-title">Containers</h2>
           <span id="last-updated" class="muted"></span>
         </div>
@@ -215,6 +216,29 @@
   </div>
 
   <div id="toast" class="toast hidden"></div>
+  <div class="sidebar-overlay" id="sidebar-overlay"></div>
   <script src="/js/app.js"></script>
+  <script>
+    // Mobile sidebar toggle
+    const mobileToggle = document.getElementById('mobile-nav-toggle');
+    const sidebar = document.querySelector('.sidebar');
+    const overlay = document.getElementById('sidebar-overlay');
+    if (mobileToggle && sidebar && overlay) {
+      mobileToggle.addEventListener('click', () => {
+        sidebar.classList.toggle('open');
+        overlay.classList.toggle('open');
+      });
+      overlay.addEventListener('click', () => {
+        sidebar.classList.remove('open');
+        overlay.classList.remove('open');
+      });
+      document.querySelectorAll('.nav-link').forEach(link => {
+        link.addEventListener('click', () => {
+          sidebar.classList.remove('open');
+          overlay.classList.remove('open');
+        });
+      });
+    }
+  </script>
 </body>
 </html>

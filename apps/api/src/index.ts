@@ -150,8 +150,9 @@ app.use('/auth', authRouter);
 // Internal services proxy (requires service token)
 app.use('/services', servicesRouter);
 
-// JustTheTip tipping routes
+// JustTheTip tipping routes (also at /justthetip for Activity direct access)
 app.use('/tip', tipRouter);
+app.use('/justthetip', tipRouter);
 
 // RGaaS (Responsible Gaming as a Service) routes
 app.use('/rgaas', geoComplianceMiddleware, rgaasRouter);

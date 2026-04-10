@@ -113,7 +113,7 @@
 
 .vibe-bar-container {
   display: inline-block;
-  width: 200px;
+  width: min(200px, 100%);
   height: 8px;
   background: hsla(var(--primary) / 0.1);
   border: 1px solid hsl(var(--primary));

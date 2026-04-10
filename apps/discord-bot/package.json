@@ -1,7 +1,7 @@
 {
   "name": "@tiltcheck/discord-bot",
   "version": "0.1.0",
-  "description": "TiltCheck Discord bot",
+  "description": "TiltCheck safety, accountability, and casino trust audit bot",
   "type": "module",
   "main": "dist/index.js",
   "scripts": {
@@ -15,21 +15,17 @@
     "clear:names": "tsx src/cleanup-commands.ts"
   },
   "dependencies": {
-    "@discord/embedded-app-sdk": "^1.7.0",
     "@elastic/elasticsearch": "^9.3.4",
     "@supabase/supabase-js": "^2.45.0",
     "@solana/pay": "^0.2.6",
     "@solana/spl-token": "^0.4.14",
     "@solana/web3.js": "^1.98.4",
     "@tiltcheck/config": "workspace:*",
-    "@tiltcheck/dad": "workspace:*",
     "@tiltcheck/database": "workspace:*",
-    "@tiltcheck/discord-activities": "workspace:*",
     "@tiltcheck/discord-utils": "workspace:*",
     "@tiltcheck/esm-utils": "workspace:*",
     "@tiltcheck/event-router": "workspace:*",
     "@tiltcheck/justthetip": "workspace:*",
-    "@tiltcheck/lockvault": "workspace:*",
     "@tiltcheck/natural-language-parser": "workspace:*",
     "@tiltcheck/shared": "workspace:*",
     "@tiltcheck/suslink": "workspace:*",

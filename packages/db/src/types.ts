@@ -525,3 +525,39 @@ export interface CreateBlogPostPayload {
   tags?: string[];
 }
 
+// ============================================================================
+// Surgical Self-Exclusion Types
+// ============================================================================
+
+export type GameCategory =
+  | 'chicken_mines'
+  | 'bonus_buy'
+  | 'live_dealer'
+  | 'slots'
+  | 'crash'
+  | 'table_games';
+
+export interface GameExclusion {
+  id: string;
+  userId: string;
+  gameId?: string | null;
+  category?: GameCategory | null;
+  reason?: string | null;
+  createdAt: Date;
+}
+
+export interface CreateGameExclusionPayload {
+  userId: string;
+  gameId?: string | null;
+  category?: GameCategory | null;
+  reason?: string | null;
+}
+
+export interface ForbiddenGamesProfile {
+  userId: string;
+  blockedGameIds: string[];
+  blockedCategories: GameCategory[];
+  exclusions: GameExclusion[];
+  updatedAt: string;
+}
+
