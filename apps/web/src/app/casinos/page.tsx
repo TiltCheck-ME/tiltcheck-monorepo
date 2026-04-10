@@ -230,6 +230,9 @@ export default function CasinosPage() {
         <p className="text-xl text-muted mt-4 max-w-3xl mx-auto uppercase tracking-widest font-mono">
           Sweepstakes, crypto, and offshore casinos rated by the degen community. No affiliate payouts. No paid placements. Ever.
         </p>
+        <p className="text-sm font-mono text-[#17c3b2] mt-3 max-w-2xl mx-auto">
+          Each card shows the Greed Premium — the gap between the max certified RTP and what the casino actually deploys on your slot. That&apos;s money extracted above the base house edge.
+        </p>
         <p className="text-xs font-mono text-gray-600 mt-3">{CASINOS.length} platforms tracked — sweepstakes shown first</p>
       </header>
 
