@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-10 -->
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TiltCheck</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        #080a0e;
+      --surface:   rgba(255,255,255,0.04);
+      --surface-hi:rgba(255,255,255,0.08);
+      --border:    rgba(255,255,255,0.10);
+      --text:      #ffffff;
+      --muted:     rgba(160,175,190,0.6);
+      --teal:      #17c3b2;
+      --teal-dim:  rgba(23,195,178,0.15);
+      --red:       #ff003c;
+      --red-dim:   rgba(255,0,60,0.12);
+      --yellow:    #fbbf24;
+      --radius:    8px;
+      --font:      'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      --mono:      'JetBrains Mono', 'Fira Code', monospace;
+    }
+
+    html { width: 360px; }
+
+    body {
+      width: 360px;
+      min-height: 480px;
+      max-height: 600px;
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font);
+      font-size: 13px;
+      overflow-x: hidden;
+      overflow-y: auto;
+    }
+
+    body::-webkit-scrollbar { width: 4px; }
+    body::-webkit-scrollbar-track { background: transparent; }
+    body::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 2px; }
+
+    /* --- HEADER --- */
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--border);
+      background: rgba(8,10,14,0.6);
+      backdrop-filter: blur(12px);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 700;
+      font-size: 13px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+    .logo-mark {
+      width: 22px;
+      height: 22px;
+      border-radius: 4px;
+      background: var(--teal);
+      color: #000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 900;
+      font-size: 11px;
+      flex-shrink: 0;
+    }
+    .header-actions { display: flex; gap: 6px; align-items: center; }
+    .icon-btn {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--muted);
+      width: 28px;
+      height: 28px;
+      border-radius: 6px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: color 0.15s, border-color 0.15s, background 0.15s;
+    }
+    .icon-btn:hover { color: var(--text); border-color: rgba(255,255,255,0.25); background: var(--surface-hi); }
+    .icon-btn svg { width: 14px; height: 14px; }
+
+    /* --- NAV TABS --- */
+    .tabs {
+      display: flex;
+      border-bottom: 1px solid var(--border);
+    }
+    .tab {
+      flex: 1;
+      padding: 10px 0;
+      background: none;
+      border: none;
+      color: var(--muted);
+      font-family: var(--font);
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: color 0.15s;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -1px;
+    }
+    .tab:hover { color: var(--text); }
+    .tab.active { color: var(--teal); border-bottom-color: var(--teal); }
+
+    /* --- PANELS --- */
+    .panel { display: none; padding: 16px; }
+    .panel.active { display: block; }
+
+    /* --- STATUS PILL --- */
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+    }
+    .status-pill .dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+    }
+    .pill-active { background: rgba(23,195,178,0.12); color: var(--teal); }
+    .pill-active .dot { background: var(--teal); }
+    .pill-idle   { background: var(--surface); color: var(--muted); }
+    .pill-idle .dot { background: var(--muted); }
+    .pill-warn   { background: rgba(251,191,36,0.12); color: var(--yellow); }
+    .pill-warn .dot { background: var(--yellow); }
+
+    /* --- TILT METER --- */
+    .tilt-block {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 14px;
+      margin-bottom: 12px;
+    }
+    .tilt-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+    .tilt-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.07em; font-weight: 600; }
+    .tilt-score { font-family: var(--mono); font-size: 22px; font-weight: 700; }
+    .score-low  { color: var(--teal); }
+    .score-mid  { color: var(--yellow); }
+    .score-high { color: var(--red); }
+    .meter-track {
+      height: 5px;
+      background: var(--surface-hi);
+      border-radius: 3px;
+      overflow: hidden;
+    }
+    .meter-fill {
+      height: 100%;
+      border-radius: 3px;
+      transition: width 0.4s ease;
+    }
+
+    /* --- STAT ROW --- */
+    .stat-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    .stat-cell {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 10px 12px;
+    }
+    .stat-label { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.07em; font-weight: 600; margin-bottom: 4px; }
+    .stat-value { font-family: var(--mono); font-size: 15px; font-weight: 700; }
+    .stat-pos { color: var(--teal); }
+    .stat-neg { color: var(--red); }
+    .stat-neu { color: var(--text); }
+
+    /* --- AUTH GATE --- */
+    .auth-gate {
+      text-align: center;
+      padding: 32px 16px;
+    }
+    .auth-gate .mark {
+      width: 48px;
+      height: 48px;
+      border-radius: 10px;
+      background: var(--teal-dim);
+      border: 1px solid rgba(23,195,178,0.3);
+      margin: 0 auto 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .auth-gate .mark svg { width: 24px; height: 24px; color: var(--teal); }
+    .auth-gate h2 { font-size: 15px; font-weight: 700; margin-bottom: 6px; }
+    .auth-gate p { color: var(--muted); font-size: 12px; line-height: 1.6; margin-bottom: 20px; }
+
+    /* --- BUTTONS --- */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 9px 16px;
+      border-radius: 6px;
+      font-family: var(--font);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      cursor: pointer;
+      border: none;
+      transition: all 0.15s;
+      text-decoration: none;
+    }
+    .btn-primary { background: var(--teal); color: #000; width: 100%; }
+    .btn-primary:hover { background: #14a99a; }
+    .btn-ghost {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text);
+    }
+    .btn-ghost:hover { background: var(--surface-hi); }
+    .btn-danger-ghost {
+      background: var(--red-dim);
+      border: 1px solid rgba(255,0,60,0.25);
+      color: var(--red);
+      padding: 5px 10px;
+      font-size: 11px;
+    }
+    .btn-danger-ghost:hover { background: rgba(255,0,60,0.2); }
+    .btn svg { width: 13px; height: 13px; flex-shrink: 0; }
+
+    /* --- SECTION HEADING --- */
+    .section-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+    .section-title {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+    }
+
+    /* --- EXCLUSION LIST --- */
+    .exclusion-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-bottom: 12px;
+    }
+    .exclusion-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 9px 12px;
+    }
+    .exclusion-info { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+    .exclusion-name {
+      font-weight: 600;
+      font-size: 12px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .exclusion-meta { font-size: 10px; color: var(--muted); font-family: var(--mono); }
+    .exclusion-badge {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      padding: 2px 7px;
+      border-radius: 4px;
+      flex-shrink: 0;
+      margin-right: 8px;
+    }
+    .badge-category { background: rgba(251,191,36,0.12); color: var(--yellow); }
+    .badge-gameid   { background: var(--teal-dim); color: var(--teal); }
+
+    .empty-state {
+      text-align: center;
+      padding: 24px 12px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.6;
+      background: var(--surface);
+      border: 1px dashed var(--border);
+      border-radius: var(--radius);
+      margin-bottom: 12px;
+    }
+    .empty-state strong { display: block; color: var(--text); font-size: 13px; margin-bottom: 4px; }
+
+    /* --- FORM --- */
+    .form-row { margin-bottom: 10px; }
+    label { display: block; font-size: 11px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 5px; }
+    input, select, textarea {
+      width: 100%;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text);
+      font-family: var(--font);
+      font-size: 12px;
+      padding: 8px 10px;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+    input:focus, select:focus, textarea:focus { border-color: var(--teal); }
+    select option { background: #1a1d24; }
+    textarea { resize: vertical; min-height: 52px; font-size: 11px; line-height: 1.5; }
+
+    .form-toggle {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 10px;
+    }
+    .toggle-btn {
+      flex: 1;
+      padding: 7px 0;
+      border-radius: 6px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--muted);
+      font-family: var(--font);
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .toggle-btn.active {
+      background: var(--teal-dim);
+      border-color: rgba(23,195,178,0.4);
+      color: var(--teal);
+    }
+
+    /* --- INLINE FORM EXPAND --- */
+    .add-form {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 12px;
+      margin-bottom: 12px;
+      display: none;
+    }
+    .add-form.open { display: block; }
+    .add-form .form-actions { display: flex; gap: 6px; margin-top: 10px; }
+    .add-form .form-actions .btn { flex: 1; }
+
+    /* --- FEED --- */
+    .feed { display: flex; flex-direction: column; gap: 6px; }
+    .feed-item {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 9px 12px;
+      font-size: 11px;
+      line-height: 1.5;
+      color: var(--muted);
+    }
+    .feed-item .feed-time { font-family: var(--mono); font-size: 10px; opacity: 0.5; }
+    .feed-item.warn { border-left: 2px solid var(--yellow); }
+    .feed-item.danger { border-left: 2px solid var(--red); }
+    .feed-item.info  { border-left: 2px solid var(--teal); }
+
+    /* --- LOADING SPINNER --- */
+    .spinner {
+      width: 16px;
+      height: 16px;
+      border: 2px solid rgba(255,255,255,0.1);
+      border-top-color: var(--teal);
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      flex-shrink: 0;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* --- TOAST --- */
+    #toast {
+      position: fixed;
+      bottom: 40px;
+      left: 50%;
+      transform: translateX(-50%) translateY(8px);
+      background: rgba(23,195,178,0.95);
+      color: #000;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 7px 16px;
+      border-radius: 20px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s, transform 0.2s;
+      white-space: nowrap;
+      z-index: 100;
+    }
+    #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+    #toast.error { background: rgba(255,0,60,0.95); color: #fff; }
+
+    /* --- FOOTER --- */
+    .footer {
+      text-align: center;
+      padding: 10px 16px;
+      border-top: 1px solid var(--border);
+      font-size: 10px;
+      color: rgba(160,175,190,0.35);
+      letter-spacing: 0.05em;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+
+    /* --- DIVIDER --- */
+    hr { border: none; border-top: 1px solid var(--border); margin: 12px 0; }
+
+    /* --- LOADING SKELETON --- */
+    .skeleton {
+      background: linear-gradient(90deg, var(--surface) 25%, var(--surface-hi) 50%, var(--surface) 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.4s infinite;
+      border-radius: 4px;
+      height: 12px;
+    }
+    @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <div class="logo">
+    <div class="logo-mark">TC</div>
+    TiltCheck
+  </div>
+  <div class="header-actions">
+    <span id="session-pill" class="status-pill pill-idle">
+      <span class="dot"></span>
+      <span id="session-pill-text">No session</span>
+    </span>
+    <button class="icon-btn" id="btn-settings" title="Settings">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+        <circle cx="8" cy="8" r="2.5"/>
+        <path d="M8 1v2M8 13v2M1 8h2M13 8h2M3.05 3.05l1.41 1.41M11.54 11.54l1.41 1.41M3.05 12.95l1.41-1.41M11.54 4.46l1.41-1.41"/>
+      </svg>
+    </button>
+  </div>
+</div>
+
+<div class="tabs">
+  <button class="tab active" data-tab="status">Status</button>
+  <button class="tab" data-tab="block">Block</button>
+  <button class="tab" data-tab="activity">Activity</button>
+</div>
+
+<!-- ===== STATUS PANEL ===== -->
+<div id="panel-status" class="panel active">
+
+  <!-- Auth gate (shown when logged out) -->
+  <div id="auth-gate" class="auth-gate" style="display:none">
+    <div class="mark">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 2L3 7v5c0 5.25 3.75 10.15 9 11.35C17.25 22.15 21 17.25 21 12V7L12 2z"/>
+      </svg>
+    </div>
+    <h2>Connect your account</h2>
+    <p>Link your Discord to start tracking sessions, tilt scores, and self-exclusions across every casino.</p>
+    <button class="btn btn-primary" id="btn-login">Connect with Discord</button>
+  </div>
+
+  <!-- Main status (shown when logged in) -->
+  <div id="status-content">
+    <div class="tilt-block">
+      <div class="tilt-row">
+        <span class="tilt-label">Tilt Score</span>
+        <span id="tilt-score" class="tilt-score score-low">--</span>
+      </div>
+      <div class="meter-track">
+        <div id="tilt-fill" class="meter-fill" style="width:0%; background: var(--teal);"></div>
+      </div>
+    </div>
+
+    <div class="stat-grid">
+      <div class="stat-cell">
+        <div class="stat-label">P/L Today</div>
+        <div id="stat-pl" class="stat-value stat-neu">--</div>
+      </div>
+      <div class="stat-cell">
+        <div class="stat-label">Session</div>
+        <div id="stat-session" class="stat-value stat-neu">--</div>
+      </div>
+      <div class="stat-cell">
+        <div class="stat-label">Blocked Games</div>
+        <div id="stat-blocked" class="stat-value stat-neu">--</div>
+      </div>
+      <div class="stat-cell">
+        <div class="stat-label">User</div>
+        <div id="stat-user" class="stat-value stat-neu" style="font-size:11px">--</div>
+      </div>
+    </div>
+
+    <button class="btn btn-ghost" id="btn-open-dashboard" style="width:100%">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+        <rect x="2" y="2" width="5" height="5" rx="1"/><rect x="9" y="2" width="5" height="5" rx="1"/>
+        <rect x="2" y="9" width="5" height="5" rx="1"/><rect x="9" y="9" width="5" height="5" rx="1"/>
+      </svg>
+      Open Dashboard
+    </button>
+  </div>
+
+</div>
+
+<!-- ===== BLOCK PANEL ===== -->
+<div id="panel-block" class="panel">
+
+  <div class="section-head">
+    <span class="section-title">My Exclusions</span>
+    <button class="btn btn-ghost" id="btn-add-toggle" style="padding:5px 10px; font-size:11px">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+        <line x1="8" y1="2" x2="8" y2="14"/><line x1="2" y1="8" x2="14" y2="8"/>
+      </svg>
+      Block game
+    </button>
+  </div>
+
+  <!-- Inline add form -->
+  <div class="add-form" id="add-form">
+    <div class="form-toggle">
+      <button class="toggle-btn active" data-mode="category">By category</button>
+      <button class="toggle-btn" data-mode="gameid">By game ID</button>
+    </div>
+
+    <div id="field-category" class="form-row">
+      <label>Category</label>
+      <select id="input-category">
+        <option value="">Select category...</option>
+        <option value="slots">Slots</option>
+        <option value="live_dealer">Live Dealer</option>
+        <option value="table_games">Table Games</option>
+        <option value="poker">Poker</option>
+        <option value="sports_betting">Sports Betting</option>
+        <option value="crash">Crash</option>
+        <option value="dice">Dice</option>
+        <option value="provably_fair">Provably Fair</option>
+        <option value="other">Other</option>
+      </select>
+    </div>
+
+    <div id="field-gameid" class="form-row" style="display:none">
+      <label>Game ID or slug</label>
+      <input id="input-gameid" type="text" placeholder="e.g. gates-of-olympus, sweet-bonanza" autocomplete="off" />
+    </div>
+
+    <div class="form-row">
+      <label>Note (optional)</label>
+      <textarea id="input-reason" placeholder="Why you're blocking this. Just for you."></textarea>
+    </div>
+
+    <div class="form-actions">
+      <button class="btn btn-ghost" id="btn-add-cancel">Cancel</button>
+      <button class="btn btn-primary" id="btn-add-confirm">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <line x1="8" y1="2" x2="8" y2="14"/><line x1="2" y1="8" x2="14" y2="8"/>
+        </svg>
+        Add block
+      </button>
+    </div>
+  </div>
+
+  <!-- List -->
+  <div id="exclusion-list-wrap">
+    <div class="empty-state" id="exclusion-empty">
+      <strong>Nothing blocked yet.</strong>
+      Block a game category or specific game ID. The extension will intercept it in your browser automatically.
+    </div>
+    <div class="exclusion-list" id="exclusion-list"></div>
+  </div>
+
+  <div id="exclusion-loading" style="display:none; text-align:center; padding:24px 0;">
+    <div class="spinner" style="margin:0 auto;"></div>
+  </div>
+
+</div>
+
+<!-- ===== ACTIVITY PANEL ===== -->
+<div id="panel-activity" class="panel">
+  <div class="section-head">
+    <span class="section-title">Recent Events</span>
+    <button class="btn btn-ghost" id="btn-refresh-feed" style="padding:5px 10px; font-size:11px">Refresh</button>
+  </div>
+  <div id="feed" class="feed">
+    <div class="feed-item">No activity recorded this session.</div>
+  </div>
+</div>
+
+<div class="footer">Made for Degens. By Degens.</div>
+<div id="toast"></div>
+
+<script src="popup.js"></script>
+</body>
+</html>
