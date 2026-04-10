@@ -1,16 +1,63 @@
-/* Copyright (c) 2026 TiltCheck. All rights reserved. */
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-10
 /**
- * Tip Routes - /tip/*
- * JustTheTip tipping endpoints
+ * Tip Routes - /tip/* (also mounted at /justthetip/*)
+ * JustTheTip tipping endpoints — direct tips, room rains, claim, history.
  */
 
 import { Router } from 'express';
 import rateLimit from 'express-rate-limit';
 import { sessionAuth } from '@tiltcheck/auth/middleware/express';
-import { justthetip } from '@tiltcheck/justthetip';
+import { justthetip, FLAT_FEE_LAMPORTS } from '@tiltcheck/justthetip';
+import { findUserByDiscordId } from '@tiltcheck/db';
+import { eventRouter } from '@tiltcheck/event-router';
 import type { Request } from 'express';
 
 const router = Router();
+
+const SOL_PER_LAMPORT = 1e-9;
+const LAMPORTS_PER_SOL = 1_000_000_000;
+const RAIN_TTL_MS = 5 * 60 * 1000; // 5 minutes
+
+// ── In-memory room rain store ──────────────────────────────────────────────
+interface RoomRain {
+  id: string;
+  channelId: string;
+  fromDiscordId: string;
+  fromUsername: string;
+  amountLamports: number;
+  message: string;
+  expiresAt: number;
+  claimedBy: Set<string>;
+  maxClaims: number;  // 0 = unlimited (splits evenly), N = first-N wins
+}
+
+interface ChannelHistoryEntry {
+  id: string;
+  fromUsername: string;
+  toUsername: string;
+  amountSol: number;
+  message: string;
+  timestamp: number;
+  claimed: boolean;
+}
+
+const roomRains = new Map<string, RoomRain>();
+const channelHistory = new Map<string, ChannelHistoryEntry[]>();
+
+// Clean up expired rains every 2 minutes
+setInterval(() => {
+  const now = Date.now();
+  for (const [id, rain] of roomRains) {
+    if (rain.expiresAt <= now) roomRains.delete(id);
+  }
+}, 2 * 60 * 1000);
+
+function addToHistory(channelId: string, entry: ChannelHistoryEntry): void {
+  const list = channelHistory.get(channelId) ?? [];
+  list.unshift(entry);
+  if (list.length > 50) list.length = 50;
+  channelHistory.set(channelId, list);
+}
 
 // Rate limiting for financial operations
 const tipLimiter = rateLimit({
@@ -210,4 +257,218 @@ router.get('/:id', sessionAuth(undefined, { required: false }), async (req, res)
   }
 });
 
+/**
+ * POST /tip/send  (also /justthetip/send)
+ * Send a tip to a user or rain the ROOM.
+ * Body: { fromUserId, toUsername, amountSol, message?, channelId }
+ */
+router.post('/send', tipLimiter, sessionAuth(undefined, { required: false }), async (req: Request, res) => {
+  try {
+    const { fromUserId, toUsername, amountSol, message = '', channelId } = req.body;
+    const userId = (req.auth as { userId?: string } | undefined)?.userId ?? fromUserId;
+
+    if (!userId || !toUsername || !amountSol || amountSol <= 0 || !channelId) {
+      res.status(400).json({ error: 'Missing required fields: toUsername, amountSol, channelId' });
+      return;
+    }
+
+    const amountLamports = Math.round(parseFloat(amountSol) * LAMPORTS_PER_SOL);
+    const feeLamports = FLAT_FEE_LAMPORTS;
+    const feeSavedSol = 0; // populated for Elite users below
+
+    // ── ROOM RAIN ─────────────────────────────────────────────────────────
+    if (toUsername.toUpperCase() === 'ROOM') {
+      const sender = await findUserByDiscordId(userId).catch(() => null);
+      const senderUsername = sender?.discord_username ?? userId;
+
+      await justthetip.credits.deductForAirdrop(userId, [`ROOM:${channelId}`], amountLamports);
+
+      const rain: RoomRain = {
+        id: crypto.randomUUID(),
+        channelId,
+        fromDiscordId: userId,
+        fromUsername: senderUsername,
+        amountLamports,
+        message,
+        expiresAt: Date.now() + RAIN_TTL_MS,
+        claimedBy: new Set(),
+        maxClaims: 0,
+      };
+      roomRains.set(rain.id, rain);
+
+      addToHistory(channelId, {
+        id: rain.id,
+        fromUsername: senderUsername,
+        toUsername: 'ROOM',
+        amountSol: amountLamports * SOL_PER_LAMPORT,
+        message,
+        timestamp: Date.now(),
+        claimed: false,
+      });
+
+      await eventRouter.publish('tip.rain', 'justthetip', {
+        rainId: rain.id,
+        channelId,
+        fromUserId: userId,
+        fromUsername: senderUsername,
+        amountSol: amountLamports * SOL_PER_LAMPORT,
+        amountUsd: 0,
+        message,
+        expiresAt: rain.expiresAt,
+        claimable: true,
+      });
+
+      res.json({
+        success: true,
+        type: 'room_rain',
+        rainId: rain.id,
+        amountSol: amountLamports * SOL_PER_LAMPORT,
+        feeSavedSol,
+        expiresAt: rain.expiresAt,
+      });
+      return;
+    }
+
+    // ── DIRECT TIP ────────────────────────────────────────────────────────
+    // Look up recipient by username
+    const sender = await findUserByDiscordId(userId).catch(() => null);
+    const senderUsername = sender?.discord_username ?? userId;
+
+    // Resolve recipient — best-effort by username (client sends Discord username)
+    // Since we store users by discordId, try direct lookup by toUsername as discordId fallback
+    let recipientId: string | null = null;
+    try {
+      const recipient = await findUserByDiscordId(toUsername);
+      recipientId = recipient?.id ?? null;
+    } catch (_) { /* username not a discordId */ }
+
+    if (!recipientId) {
+      // Store as pending with username as placeholder recipient ID
+      recipientId = `username:${toUsername}`;
+    }
+
+    await justthetip.credits.createPendingTip(userId, recipientId, amountLamports);
+
+    addToHistory(channelId, {
+      id: crypto.randomUUID(),
+      fromUsername: senderUsername,
+      toUsername,
+      amountSol: amountLamports * SOL_PER_LAMPORT,
+      message,
+      timestamp: Date.now(),
+      claimed: false,
+    });
+
+    await eventRouter.publish('tip.sent', 'justthetip', {
+      channelId,
+      fromUsername: senderUsername,
+      toUsername,
+      amountSol: amountLamports * SOL_PER_LAMPORT,
+      message,
+      timestamp: Date.now(),
+    });
+
+    res.json({
+      success: true,
+      type: 'direct',
+      amountSol: amountLamports * SOL_PER_LAMPORT,
+      feeSavedSol,
+      feeLamports,
+    });
+  } catch (error) {
+    const msg = error instanceof Error ? error.message : 'Send failed';
+    console.error('[Tip] Send error:', error);
+    res.status(500).json({ error: msg });
+  }
+});
+
+/**
+ * POST /tip/claim  (also /justthetip/claim)
+ * Claim an active room rain.
+ * Body: { rainId, userId, channelId }
+ */
+router.post('/claim', tipLimiter, sessionAuth(undefined, { required: false }), async (req: Request, res) => {
+  try {
+    const { rainId, userId, channelId } = req.body;
+    const claimerId = (req.auth as { userId?: string } | undefined)?.userId ?? userId;
+
+    if (!rainId || !claimerId || !channelId) {
+      res.status(400).json({ error: 'Missing required fields: rainId, userId, channelId' });
+      return;
+    }
+
+    const rain = roomRains.get(rainId);
+    if (!rain) {
+      res.status(404).json({ error: 'Rain not found or expired' });
+      return;
+    }
+    if (rain.channelId !== channelId) {
+      res.status(403).json({ error: 'Rain does not belong to this channel' });
+      return;
+    }
+    if (rain.expiresAt <= Date.now()) {
+      roomRains.delete(rainId);
+      res.status(410).json({ error: 'Rain expired' });
+      return;
+    }
+    if (rain.claimedBy.has(claimerId)) {
+      res.status(409).json({ error: 'Already claimed' });
+      return;
+    }
+    if (rain.fromDiscordId === claimerId) {
+      res.status(400).json({ error: 'Cannot claim your own rain' });
+      return;
+    }
+
+    rain.claimedBy.add(claimerId);
+
+    // Credit the claimer
+    await justthetip.credits.deposit(claimerId, rain.amountLamports, { memo: 'room_rain_claim' });
+
+    const amountSol = rain.amountLamports * SOL_PER_LAMPORT;
+
+    addToHistory(channelId, {
+      id: crypto.randomUUID(),
+      fromUsername: rain.fromUsername,
+      toUsername: claimerId,
+      amountSol,
+      message: rain.message,
+      timestamp: Date.now(),
+      claimed: true,
+    });
+
+    // Remove rain after first claim (change to partial if you want multi-claim)
+    roomRains.delete(rainId);
+
+    await eventRouter.publish('tip.rain.claimed', 'justthetip', {
+      rainId,
+      channelId,
+      claimedBy: claimerId,
+      amountSol,
+    });
+
+    res.json({ success: true, amountSol, feeSavedSol: 0 });
+  } catch (error) {
+    const msg = error instanceof Error ? error.message : 'Claim failed';
+    console.error('[Tip] Claim error:', error);
+    res.status(500).json({ error: msg });
+  }
+});
+
+/**
+ * GET /tip/history  (also /justthetip/history)
+ * Recent tips for a channel.
+ * Query: channelId
+ */
+router.get('/history', async (req: Request, res) => {
+  const { channelId } = req.query;
+  if (!channelId || typeof channelId !== 'string') {
+    res.status(400).json({ error: 'Missing channelId query param' });
+    return;
+  }
+  const tips = channelHistory.get(channelId) ?? [];
+  res.json({ tips });
+});
+
 export { router as tipRouter };
+

@@ -422,4 +422,35 @@ router.get('/:discordId', async (req: Request, res: Response, next: NextFunction
     }
 });
 
+/**
+ * GET /user/:id/elite
+ * Returns Elite tier status and fees saved for a user.
+ * Used by the Activity Tip tab to show 0% fee badge.
+ */
+router.get('/:id/elite', async (req: Request, res, next: NextFunction) => {
+    try {
+        const id = req.params['id'] as string;
+        if (!id) {
+            res.status(400).json({ error: 'Missing user id' });
+            return;
+        }
+
+        const { justthetip } = await import('@tiltcheck/justthetip');
+        const balance = await justthetip.credits.getBalance(id).catch(() => null);
+
+        const totalFees = balance?.total_fees_lamports ?? 0;
+        const feeSavedSol = 0; // populated once Elite tier is tracked in DB
+
+        // Elite = subscribed user with 0% fee. Stub: treat as non-elite until
+        // subscriptions table is wired. Update when Stripe Elite tier lands.
+        res.json({
+            isElite: false,
+            feeSavedSol,
+            totalFeesPaidSol: totalFees * 1e-9,
+        });
+    } catch (error) {
+        next(error);
+    }
+});
+
 export { router as userRouter };

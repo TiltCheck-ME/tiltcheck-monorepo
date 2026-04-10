@@ -552,6 +552,8 @@ export type EventType =
   | 'tip.failed'
   | 'tip.expired'
   | 'tip.ready'
+  | 'tip.rain'
+  | 'tip.rain.claimed'
   | 'airdrop.requested'
   | 'airdrop.confirmed'
   | 'airdrop.completed'
