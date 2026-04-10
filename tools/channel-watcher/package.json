@@ -13,7 +13,7 @@
         "cloud:schedule": "powershell -ExecutionPolicy Bypass -File ./register-cloud-watcher-task.ps1",
         "railway:seed-session": "node create-session.js && node -e \"import('./create-session.js').then(()=>{const s=require('fs').readFileSync('.session.json','utf8');console.log('DISCORD_SESSION_JSON='+Buffer.from(s).toString('base64'))})\"",
         "session:create": "node create-session.js",
-        "session:encode": "node -e \"import {readFileSync} from 'fs'; const s=readFileSync('.session.json','utf8'); console.log('\\nPaste this into Railway env vars as DISCORD_SESSION_JSON:\\n'); console.log(Buffer.from(s).toString('base64'));\" --input-type=module",
+        "token:get": "node --input-type=module -e \"import {readFileSync} from 'fs'; try { const s=JSON.parse(readFileSync('.session.json','utf8')); const o=s.origins?.find(o=>o.origin.includes('discord.com')); const t=o?.localStorage?.find(l=>l.name==='token'); if(t) { console.log('\\nYour DISCORD_TOKEN (paste this into Railway):\\n'); console.log(JSON.parse(t.value)); } else { console.log('No token found in .session.json. Run npm run session:create first.'); } } catch(e) { console.log('No .session.json found. Run npm run session:create first.'); }\"",
         "history": "node index.js --full",
         "analyze": "node analyze-log.js",
         "analyze:lore": "node analyze-log.js --lore",
