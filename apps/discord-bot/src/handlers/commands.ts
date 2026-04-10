@@ -17,7 +17,7 @@ export class CommandHandler {
     const tiltCheckBotCommands = [
       'status', 'buddy', 'odds', 'verify', 'goal', 'intervene',
       'casino', 'trust', 'support', 'terms', 'dashboard', 'help', 'jme',
-      'scan', 'recover', 'ping', 'cooldown', 'tilt',
+      'scan', 'recover', 'ping', 'cooldown', 'tilt', 'upgrade',
     ];
 
     const commandModules = Object.values(commands);

@@ -19,3 +19,4 @@ export { jme } from './jme.js';
 export { ping } from './ping.js';
 export { terms } from './terms.js';
 export { blockGame, unblockGame, myExclusions } from './exclusions.js';
+export { upgrade } from './upgrade.js';

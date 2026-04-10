@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-06
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-10
 /**
  * Event Handler
  *
@@ -204,6 +204,66 @@ export class EventHandler {
     });
 
     console.log('[EventHandler] Discord events registered');
+  }
+
+  registerPaymentEvents(): void {
+    this.client.on(Events.EntitlementCreate, async (entitlement) => {
+      const skuId = entitlement.skuId;
+      const userId = entitlement.userId;
+      console.log(`[Payments] Entitlement created: SKU ${skuId} for user ${userId}`);
+
+      const skuMap: Record<string, string> = {
+        [process.env.DISCORD_SKU_PRO_ID || '']: 'Degen Pro',
+        [process.env.DISCORD_SKU_ELITE_ID || '']: 'Elite',
+        [process.env.DISCORD_SKU_LIFETIME_ID || '']: 'Lifetime Elite',
+      };
+      const tierName = skuMap[skuId] || `Unknown SKU: ${skuId}`;
+
+      // Notify MOD_LOG channel
+      try {
+        const channel = await this.client.channels.fetch('1488256044349128974').catch(() => null);
+        if (channel && channel.isTextBased()) {
+          const { EmbedBuilder } = await import('discord.js');
+          await (channel as import('discord.js').TextChannel).send({
+            embeds: [
+              new EmbedBuilder()
+                .setColor(0x22d3a6)
+                .setTitle('DISCORD PREMIUM PURCHASE')
+                .setDescription('Auto-grant role or verify manually.')
+                .addFields(
+                  { name: 'User ID', value: userId || 'unknown', inline: true },
+                  { name: 'Tier', value: tierName, inline: true },
+                  { name: 'SKU ID', value: skuId, inline: false },
+                )
+                .setFooter({ text: 'Made for Degens. By Degens.' })
+                .setTimestamp(),
+            ],
+          });
+        }
+      } catch (err) {
+        console.error('[Payments] Failed to notify MOD_LOG:', err);
+      }
+
+      // Auto-grant Discord role if env vars are configured
+      const roleMap: Record<string, string> = {
+        [process.env.DISCORD_SKU_PRO_ID || '']: process.env.DISCORD_ROLE_PRO_ID || '',
+        [process.env.DISCORD_SKU_ELITE_ID || '']: process.env.DISCORD_ROLE_ELITE_ID || '',
+        [process.env.DISCORD_SKU_LIFETIME_ID || '']: process.env.DISCORD_ROLE_LIFETIME_ID || '',
+      };
+      const roleId = roleMap[skuId];
+      if (roleId && userId) {
+        try {
+          const guild = await this.client.guilds.fetch('1488253239643078787');
+          const member = await guild.members.fetch(userId);
+          await member.roles.add(roleId);
+          console.log(`[Payments] Auto-granted role ${roleId} to user ${userId}`);
+        } catch (err) {
+          console.error(`[Payments] Failed to auto-grant role for ${userId}:`, err);
+        }
+      }
+    });
+
+    console.log('[EventHandler] Payment events registered');
   }
 
   private async handleButtonInteraction(interaction: Interaction): Promise<void> {
