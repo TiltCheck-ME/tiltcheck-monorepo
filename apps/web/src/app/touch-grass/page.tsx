@@ -1,4 +1,5 @@
 /* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-10 */
+
 "use client";
 
 import React from 'react';
@@ -262,6 +263,20 @@ export default function TouchGrassPage() {
                 Up to 1 SOL. One-time. No loans, no lectures. If you&apos;re in a hole and can&apos;t see out, apply. Seeded by degens who climbed out of the same one.
               </p>
               <div className="mt-4 text-[10px] font-mono text-[#ef4444] uppercase tracking-widest">Check Eligibility →</div>
+            </a>
+
+            <a
+              href="https://stakaestats.net"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="p-6 border border-gray-700/50 bg-gray-800/20 hover:bg-gray-700/30 hover:border-gray-500/60 transition-all group block"
+            >
+              <div className="text-gray-400 font-black uppercase text-xs tracking-widest mb-2">INTEL</div>
+              <h3 className="text-lg font-black text-white uppercase mb-2 group-hover:text-[#17c3b2] transition-colors">Stake Stats Archive</h3>
+              <p className="text-gray-500 text-sm leading-relaxed">
+                Full gameplay archive and VIP calculator for Stake. Look up what level you&apos;re actually at, what the rakeback math says, and whether the house is treating your volume fairly.
+              </p>
+              <div className="mt-4 text-[10px] font-mono text-gray-400 group-hover:text-[#17c3b2] uppercase tracking-widest">Open StakaeStats →</div>
             </a>
 
             <a
