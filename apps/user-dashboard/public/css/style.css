@@ -1,10 +1,17 @@
 /**
  * © 2024–2026 TiltCheck Ecosystem. All Rights Reserved.
  * Created by jmenichole (https://github.com/jmenichole)
+ * Last Updated: 2026-04-10
  * 
  * This file is part of the TiltCheck project.
  * For licensing information, see LICENSE file in the project root.
  */
+
+/* Prevent horizontal overflow globally */
+html, body {
+  overflow-x: hidden;
+  max-width: 100%;
+}
 
 :root {
   --color-primary: #22d3a6;
@@ -1472,8 +1479,14 @@ header {
 
 @media (max-width: 768px) {
     #dashboard { flex-direction: column; }
-    .sidebar { width: 100%; height: auto; position: static; flex-direction: row; flex-wrap: wrap; padding: 1rem; }
-    .nav-links { display: flex; flex-direction: row; overflow-x: auto; }
+    .sidebar { width: 100%; height: auto; position: static; flex-direction: column; padding: 0; }
+    .sidebar-logo { display: none; }
+    .sidebar-user { padding: 0.75rem 1rem; border-bottom: none; }
+    .nav-links { display: flex; flex-direction: row; overflow-x: auto; padding: 0; border-bottom: 1px solid var(--border-subtle); }
+    .nav-links li { flex-shrink: 0; }
+    .nav-link { padding: 0.65rem 1rem; border-right: none; border-bottom: 2px solid transparent; font-size: 0.8rem; }
+    .nav-link.active { border-right: none; border-bottom: 2px solid var(--color-primary); }
+    .sidebar-footer { display: none; }
     .main-content { padding: 1.25rem; }
     .card-row { grid-template-columns: 1fr; }
     .card-wide { grid-column: span 1; }
@@ -1721,4 +1734,19 @@ header {
 .casino-breakdown { display: flex; flex-direction: column; gap: 0.5rem; }
 
 @media (max-width: 1024px) { .stats-grid, .stats-grid-4 { grid-template-columns: repeat(2, 1fr); } }
-@media (max-width: 768px) { #dashboard { flex-direction: column; } .sidebar { width: 100%; height: auto; position: static; } .main-content { padding: 1.25rem; } .card-row { grid-template-columns: 1fr; } .card-wide { grid-column: span 1; } .stats-grid, .stats-grid-4 { grid-template-columns: 1fr 1fr; } }
+
+/* Small phone improvements */
+@media (max-width: 480px) {
+  .sidebar { padding: 1rem 0; }
+  .main-content { padding: 1rem; }
+  .stats-grid, .stats-grid-4 { grid-template-columns: 1fr; }
+  .nlp-input { font-size: 0.95rem; padding: 1rem 1.25rem 1rem 3rem; }
+  .tabs { gap: 0.5rem; }
+}
+
+/* Very small screens */
+@media (max-width: 360px) {
+  .sidebar-logo { font-size: 0.95rem; }
+  .stats-grid, .stats-grid-4 { grid-template-columns: 1fr; }
+  .bonus-grid { grid-template-columns: 1fr !important; }
+}

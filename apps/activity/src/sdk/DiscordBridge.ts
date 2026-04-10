@@ -37,7 +37,13 @@ export class DiscordBridge {
   }
 
   async initialize(): Promise<DiscordBridgeState> {
-    await this.sdk.ready();
+    // 8-second timeout — fall to demo mode if Discord SDK hangs
+    await Promise.race([
+      this.sdk.ready(),
+      new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error('Discord SDK ready() timeout')), 8000)
+      )
+    ]);
     await this.authenticate();
     await this.subscribeToEvents();
     return this.state;
@@ -52,7 +58,7 @@ export class DiscordBridge {
       scope: ['identify', 'rpc.activities.write']
     });
 
-    const tokenRes = await fetch('/api/auth/discord/token', {
+    const tokenRes = await fetch('https://api.tiltcheck.me/auth/discord/activity/token', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ code })
