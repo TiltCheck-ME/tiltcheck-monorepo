@@ -50,12 +50,11 @@ export default async function BonusesPage() {
           <p className="text-xs font-mono text-[#17c3b2] uppercase tracking-widest mb-4">
             BONUS INTEL // COLLECTCLOCK DATA
           </p>
-          <h1 className="neon neon-main text-4xl md:text-5xl mb-6" data-text="DAILY BONUS TRACKER">
-            DAILY BONUS TRACKER
+          <h1 className="neon neon-main text-4xl md:text-5xl mb-6" data-text="CLAIM FIRST. DEPOSIT LATER.">
+            CLAIM FIRST. DEPOSIT LATER.
           </h1>
           <p className="text-lg text-gray-400 max-w-2xl mx-auto font-mono leading-relaxed mb-6">
-            Sweepstakes and social casino daily login bonuses, verified by the
-            community. Data sourced from CollectClock.
+            Extend your play without depositing real money. Every sweepstakes and social casino bonus worth claiming, community-verified and refreshed hourly. CollectClock data.
           </p>
           <a
             href={COLLECTCLOCK_SITE_URL}

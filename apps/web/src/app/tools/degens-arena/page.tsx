@@ -17,7 +17,11 @@ export default function DegensArenaPage() {
             The web-based trivia arena. Battle up to 10,000 concurrent players for SOL prize drops while you cool down between sessions. Skill only — no house edge, no slots, no variance.
           </p>
           <p className="text-sm text-gray-500 font-mono mt-4 max-w-xl mx-auto">
-            Live trivia drops are already available in the TiltCheck Discord via <span className="text-[#17c3b2]">/triviadrop</span>. This page is the in-development web version.
+            Already want to play? <span className="text-[#17c3b2]">/triviadrop</span> is live now on Discord.{' '}
+            <a href="https://discord.gg/gdBsEJfCar" target="_blank" rel="noopener noreferrer" className="text-[#17c3b2] underline hover:no-underline font-bold">
+              Join Server →
+            </a>{' '}
+            This page is the in-development web version.
           </p>
         </div>
       </section>
