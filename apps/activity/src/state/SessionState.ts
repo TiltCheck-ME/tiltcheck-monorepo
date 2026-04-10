@@ -32,7 +32,7 @@ export interface BonusItem {
   is_verified: boolean;
 }
 
-export interface TipDrop {
+export interface TipRain {
   id: string;
   fromUserId: string;
   fromUsername: string;
@@ -85,7 +85,7 @@ export class SessionState {
   };
   private _bonusFeed: BonusItem[] = [];
   private _channelSessions: Map<string, { userId: string; username: string; rounds: SessionRound[] }> = new Map();
-  private _activeDrop: TipDrop | null = null;
+  private _activeRain: TipRain | null = null;
   private _tipHistory: TipEntry[] = [];
   private _feeSavedSol: number = 0;
   private _isElite: boolean = false;
@@ -221,13 +221,13 @@ export class SessionState {
   // --------------------------------------------------------
   // Tips
   // --------------------------------------------------------
-  get activeDrop(): TipDrop | null { return this._activeDrop; }
+  get activeRain(): TipRain | null { return this._activeRain; }
   get tipHistory(): readonly TipEntry[] { return this._tipHistory; }
   get feeSavedSol(): number { return this._feeSavedSol; }
   get isElite(): boolean { return this._isElite; }
 
-  setActiveDrop(drop: TipDrop | null): void {
-    this._activeDrop = drop;
+  setActiveRain(rain: TipRain | null): void {
+    this._activeRain = rain;
     this.notify('tip');
   }
 

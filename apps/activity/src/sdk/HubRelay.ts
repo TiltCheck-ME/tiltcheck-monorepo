@@ -72,8 +72,8 @@ export class HubRelay {
       this.emit('trivia.result', data);
     });
 
-    this.socket.on('tip.drop', (data) => {
-      this.emit('tip.drop', data);
+    this.socket.on('tip.rain', (data) => {
+      this.emit('tip.rain', data);
     });
 
     this.socket.on('tip.claimed', (data) => {

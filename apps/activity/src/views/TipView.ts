@@ -1,6 +1,6 @@
 // © 2024-2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-10
 
-import type { SessionState, TipDrop, TipEntry } from '../state/SessionState.js';
+import type { SessionState, TipRain, TipEntry } from '../state/SessionState.js';
 import type { HubRelay } from '../sdk/HubRelay.js';
 
 const API_BASE = 'https://api.tiltcheck.me';
@@ -10,7 +10,7 @@ export class TipView {
   private state: SessionState;
   private relay: HubRelay;
   private channelId: string;
-  private dropTimer: ReturnType<typeof setInterval> | null = null;
+  private rainTimer: ReturnType<typeof setInterval> | null = null;
 
   constructor(container: HTMLElement, state: SessionState, relay: HubRelay, channelId: string) {
     this.container = container;
@@ -24,16 +24,16 @@ export class TipView {
     this.render();
     this.state.on('tip', () => this.render());
 
-    this.relay.on('tip.drop', (data: unknown) => {
-      const d = data as TipDrop;
-      this.state.setActiveDrop(d);
+    this.relay.on('tip.rain', (data: unknown) => {
+      const d = data as TipRain;
+      this.state.setActiveRain(d);
       this.flashNavBadge(true);
     });
 
     this.relay.on('tip.claimed', (data: unknown) => {
-      const d = data as { dropId: string };
-      if (this.state.activeDrop?.id === d.dropId) {
-        this.state.setActiveDrop(null);
+      const d = data as { rainId: string };
+      if (this.state.activeRain?.id === d.rainId) {
+        this.state.setActiveRain(null);
         this.flashNavBadge(false);
       }
     });
@@ -47,9 +47,9 @@ export class TipView {
     const tab = document.querySelector('.nav-tab[data-view="tip"]');
     if (!tab) return;
     if (show) {
-      tab.classList.add('has-drop');
+      tab.classList.add('has-rain');
     } else {
-      tab.classList.remove('has-drop');
+      tab.classList.remove('has-rain');
     }
   }
 
@@ -73,22 +73,22 @@ export class TipView {
     } catch (_) { /* non-fatal */ }
   }
 
-  private async claimDrop(dropId: string): Promise<void> {
+  private async claimRain(rainId: string): Promise<void> {
     const btn = this.container.querySelector<HTMLButtonElement>('#tip-claim-btn');
     if (btn) { btn.disabled = true; btn.textContent = 'CLAIMING...'; }
     try {
       const res = await fetch(`${API_BASE}/justthetip/claim`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ dropId, userId: this.state.userId, channelId: this.channelId })
+        body: JSON.stringify({ rainId, userId: this.state.userId, channelId: this.channelId })
       });
       if (res.ok) {
         const data = await res.json();
-        this.state.setActiveDrop(null);
+        this.state.setActiveRain(null);
         this.flashNavBadge(false);
         this.state.addTipToHistory({
-          id: dropId,
-          fromUsername: this.state.activeDrop?.fromUsername ?? 'ROOM',
+          id: rainId,
+          fromUsername: this.state.activeRain?.fromUsername ?? 'ROOM',
           toUsername: this.state.username,
           amountSol: data.amountSol ?? 0,
           message: 'Claimed',
@@ -174,16 +174,16 @@ export class TipView {
     setTimeout(() => toast.remove(), 3000);
   }
 
-  private startDropCountdown(expiresAt: number): void {
-    if (this.dropTimer) clearInterval(this.dropTimer);
-    const el = this.container.querySelector<HTMLElement>('#drop-countdown');
+  private startRainCountdown(expiresAt: number): void {
+    if (this.rainTimer) clearInterval(this.rainTimer);
+    const el = this.container.querySelector<HTMLElement>('#rain-countdown');
     const update = () => {
       const ms = expiresAt - Date.now();
       if (!el) return;
       if (ms <= 0) {
         el.textContent = 'EXPIRED';
-        if (this.dropTimer) clearInterval(this.dropTimer);
-        this.state.setActiveDrop(null);
+        if (this.rainTimer) clearInterval(this.rainTimer);
+        this.state.setActiveRain(null);
         return;
       }
       const s = Math.ceil(ms / 1000);
@@ -191,34 +191,34 @@ export class TipView {
       if (s <= 10) el.style.color = '#ef4444';
     };
     update();
-    this.dropTimer = setInterval(update, 500);
+    this.rainTimer = setInterval(update, 500);
   }
 
   render(): void {
-    if (this.dropTimer) { clearInterval(this.dropTimer); this.dropTimer = null; }
-    const drop = this.state.activeDrop;
+    if (this.rainTimer) { clearInterval(this.rainTimer); this.rainTimer = null; }
+    const rain = this.state.activeRain;
     const history = this.state.tipHistory;
     const isElite = this.state.isElite;
     const feeSaved = this.state.feeSavedSol;
 
     this.container.innerHTML = `
-      ${drop ? `
-      <div class="tip-drop-banner">
-        <div class="tip-drop-header">
-          <span class="tip-drop-label">DROP LIVE</span>
-          <span class="tip-drop-timer" id="drop-countdown">--</span>
+      ${rain ? `
+      <div class="tip-rain-banner">
+        <div class="tip-rain-header">
+          <span class="tip-rain-label">RAIN LIVE</span>
+          <span class="tip-rain-timer" id="rain-countdown">--</span>
         </div>
-        <div class="tip-drop-body">
-          <span class="tip-drop-from">${drop.fromUsername}</span>
-          <span class="tip-drop-amount">${drop.amountSol.toFixed(4)} SOL</span>
+        <div class="tip-rain-body">
+          <span class="tip-rain-from">${rain.fromUsername}</span>
+          <span class="tip-rain-amount">${rain.amountSol.toFixed(4)} SOL</span>
         </div>
-        ${drop.message ? `<p class="tip-drop-msg">"${drop.message}"</p>` : ''}
+        ${rain.message ? `<p class="tip-rain-msg">"${rain.message}"</p>` : ''}
         <button class="btn-claim" id="tip-claim-btn">CLAIM</button>
       </div>
       ` : `
       <div class="tip-idle-state">
-        <span class="tip-idle-label">NO ACTIVE DROP</span>
-        <p class="tip-idle-sub">When someone tips the room, it shows up here. Be the whale.</p>
+        <span class="tip-idle-label">NO ACTIVE RAIN</span>
+        <p class="tip-idle-sub">When someone rains the room, it shows up here. Be the whale.</p>
       </div>
       `}
 
@@ -241,7 +241,7 @@ export class TipView {
       </div>
 
       <div class="tip-history">
-        <p class="section-label">RECENT DROPS (${history.length})</p>
+        <p class="section-label">RECENT RAINS (${history.length})</p>
         ${history.length === 0 ? `
           <p class="tip-history-empty">No tips yet. Change that.</p>
         ` : history.slice(0, 10).map(t => `
@@ -256,10 +256,10 @@ export class TipView {
       </div>
     `;
 
-    if (drop) {
-      this.startDropCountdown(drop.expiresAt);
+    if (rain) {
+      this.startRainCountdown(rain.expiresAt);
       this.container.querySelector('#tip-claim-btn')?.addEventListener('click', () => {
-        this.claimDrop(drop.id);
+        this.claimRain(rain.id);
       });
     }
 
