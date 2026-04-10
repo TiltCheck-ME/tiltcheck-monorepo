@@ -1,0 +1,118 @@
+# © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-10
+# One-shot workflow: finds the Cloudflare Tunnel and sets all public hostname
+# ingress rules pointing to Railway internal services.
+# Trigger manually from Actions tab whenever tunnel config is lost/reset.
+
+name: Configure Cloudflare Tunnel Routes
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  configure-tunnel:
+    name: Set Tunnel Ingress Rules
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Find tunnel ID
+        id: tunnel
+        env:
+          CF_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CF_ACCOUNT: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          TUNNEL_ID=$(curl -sf "https://api.cloudflare.com/client/v4/accounts/${CF_ACCOUNT}/cfd_tunnel?is_deleted=false" \
+            -H "Authorization: Bearer ${CF_TOKEN}" \
+            | jq -r '.result[] | select(.name | test("tiltcheck"; "i")) | .id' | head -1)
+
+          if [ -z "$TUNNEL_ID" ]; then
+            echo "No tiltcheck tunnel found. Listing all tunnels:"
+            curl -sf "https://api.cloudflare.com/client/v4/accounts/${CF_ACCOUNT}/cfd_tunnel?is_deleted=false" \
+              -H "Authorization: Bearer ${CF_TOKEN}" | jq '[.result[] | {id, name}]'
+            exit 1
+          fi
+
+          echo "Found tunnel: $TUNNEL_ID"
+          echo "id=$TUNNEL_ID" >> "$GITHUB_OUTPUT"
+
+      - name: Apply ingress rules
+        env:
+          CF_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CF_ACCOUNT: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          TUNNEL_ID: ${{ steps.tunnel.outputs.id }}
+        run: |
+          # Railway internal hostnames — cloudflared and all services share the same project network
+          CONFIG=$(cat <<'EOF'
+          {
+            "config": {
+              "ingress": [
+                { "hostname": "api.tiltcheck.me",      "service": "http://api.railway.internal:3000" },
+                { "hostname": "hub.tiltcheck.me",      "service": "http://user-dashboard.railway.internal:3000" },
+                { "hostname": "activity.tiltcheck.me", "service": "http://activity.railway.internal:3000" },
+                { "hostname": "arena.tiltcheck.me",    "service": "http://game-arena.railway.internal:3000" },
+                { "hostname": "admin.tiltcheck.me",    "service": "http://control-room.railway.internal:3000" },
+                { "hostname": "tiltcheck.me",          "service": "http://web.railway.internal:3000" },
+                { "hostname": "www.tiltcheck.me",      "service": "http://web.railway.internal:3000" },
+                { "service": "http_status:404" }
+              ]
+            }
+          }
+          EOF
+          )
+
+          RESULT=$(curl -sf -X PUT \
+            "https://api.cloudflare.com/client/v4/accounts/${CF_ACCOUNT}/cfd_tunnel/${TUNNEL_ID}/configurations" \
+            -H "Authorization: Bearer ${CF_TOKEN}" \
+            -H "Content-Type: application/json" \
+            -d "$CONFIG")
+
+          echo "$RESULT" | jq '{success: .success, errors: .errors}'
+
+          if [ "$(echo "$RESULT" | jq -r '.success')" != "true" ]; then
+            echo "Failed to configure tunnel"
+            exit 1
+          fi
+
+          echo "Tunnel routes configured successfully."
+
+      - name: Verify DNS records exist
+        env:
+          CF_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CF_ZONE: ${{ secrets.CLOUDFLARE_ZONE_ID }}
+          CF_ACCOUNT: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          TUNNEL_ID: ${{ steps.tunnel.outputs.id }}
+        run: |
+          TUNNEL_CNAME="${TUNNEL_ID}.cfargotunnel.com"
+
+          for SUB in api hub activity arena admin www; do
+            NAME="${SUB}.tiltcheck.me"
+            EXISTING=$(curl -sf "https://api.cloudflare.com/client/v4/zones/${CF_ZONE}/dns_records?name=${NAME}&type=CNAME" \
+              -H "Authorization: Bearer ${CF_TOKEN}" | jq -r '.result[0].id // empty')
+
+            if [ -n "$EXISTING" ]; then
+              curl -sf -X PATCH "https://api.cloudflare.com/client/v4/zones/${CF_ZONE}/dns_records/${EXISTING}" \
+                -H "Authorization: Bearer ${CF_TOKEN}" \
+                -H "Content-Type: application/json" \
+                -d "{\"content\":\"${TUNNEL_CNAME}\",\"proxied\":true}" | jq -r '"Updated \(.result.name)"'
+            else
+              curl -sf -X POST "https://api.cloudflare.com/client/v4/zones/${CF_ZONE}/dns_records" \
+                -H "Authorization: Bearer ${CF_TOKEN}" \
+                -H "Content-Type: application/json" \
+                -d "{\"type\":\"CNAME\",\"name\":\"${SUB}\",\"content\":\"${TUNNEL_CNAME}\",\"proxied\":true,\"ttl\":1}" \
+                | jq -r '"Created \(.result.name)"'
+            fi
+          done
+
+          # Root domain — check for existing A/CNAME
+          ROOT_EXISTING=$(curl -sf "https://api.cloudflare.com/client/v4/zones/${CF_ZONE}/dns_records?name=tiltcheck.me&type=CNAME" \
+            -H "Authorization: Bearer ${CF_TOKEN}" | jq -r '.result[0].id // empty')
+          if [ -n "$ROOT_EXISTING" ]; then
+            curl -sf -X PATCH "https://api.cloudflare.com/client/v4/zones/${CF_ZONE}/dns_records/${ROOT_EXISTING}" \
+              -H "Authorization: Bearer ${CF_TOKEN}" \
+              -H "Content-Type: application/json" \
+              -d "{\"content\":\"${TUNNEL_CNAME}\",\"proxied\":true}" | jq -r '"Updated \(.result.name)"'
+          fi
+
+          echo "DNS verification complete."
