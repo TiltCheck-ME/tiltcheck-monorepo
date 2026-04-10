@@ -35,7 +35,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 # Tell Playwright to use system Chromium — skips its own 300MB download
 ENV PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
-ENV PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/usr/bin/chromium
+
+# Symlink whatever apt installed (chromium or chromium-browser) to a known path
+RUN ln -sf "$(which chromium 2>/dev/null || which chromium-browser 2>/dev/null)" /usr/local/bin/chromium-system \
+    && echo "Chromium at: $(readlink -f /usr/local/bin/chromium-system)"
+ENV PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/usr/local/bin/chromium-system
 
 WORKDIR /app
 
