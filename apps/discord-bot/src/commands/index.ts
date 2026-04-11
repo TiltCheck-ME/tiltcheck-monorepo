@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-10
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-11
 // TiltCheck Safety Bot — Command Index
 
 export { status } from './status.js';
@@ -20,3 +20,4 @@ export { ping } from './ping.js';
 export { terms } from './terms.js';
 export { blockGame, unblockGame, myExclusions } from './exclusions.js';
 export { upgrade } from './upgrade.js';
+export { touchgrass } from './touchgrass.js';
