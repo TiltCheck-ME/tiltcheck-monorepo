@@ -14,7 +14,7 @@ import { TipView } from './views/TipView.js';
 
 const DISCORD_CLIENT_ID = import.meta.env.VITE_DISCORD_CLIENT_ID || '1445916179163250860';
 const HUB_URL = import.meta.env.VITE_HUB_URL || 'https://hub.tiltcheck.me';
-const DASHBOARD_URL = import.meta.env.VITE_DASHBOARD_URL || 'https://dashboard.tiltcheck.me';
+const DASHBOARD_URL = import.meta.env.VITE_DASHBOARD_URL || 'https://hub.tiltcheck.me';
 
 async function main(): Promise<void> {
   const statusEl = document.getElementById('sdk-status');

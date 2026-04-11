@@ -1,4 +1,4 @@
-/* Copyright (c) 2026 TiltCheck. All rights reserved. */
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-10
 /**
  * LockVault Portal Command
  * Link to the dashboard vault feature.
@@ -13,20 +13,20 @@ export const lockvault: Command = {
 
   async execute(interaction: ChatInputCommandInteraction) {
     const embed = new EmbedBuilder()
-      .setColor(0x3b82f6)
+      .setColor(0x22d3a6)
       .setTitle('LOCK YOUR BAG')
       .setDescription(
         `You hit your number. Now lock it.\n\n` +
-        `The dashboard lets you time-lock profits so your future self can't undo what your current self earned.\n\n` +
-        `We don't touch your funds. You sign the transaction in your own wallet. We just hold the math.`
+        `The dashboard lets you time-lock profits so future-you cannot undo what current-you earned.\n\n` +
+        `No custodial nonsense. You sign the transaction in your own wallet. We hold the math.`
       )
       .setThumbnail('https://tiltcheck.me/assets/logo/logocurrent.png')
-      .setFooter({ text: "Winning is easy. Keeping it is legendary." });
+      .setFooter({ text: 'Made for Degens. By Degens.' });
 
     const portalBtn = new ButtonBuilder()
       .setLabel('Open Vault Dashboard')
       .setStyle(ButtonStyle.Link)
-      .setURL('https://tiltcheck.me/dashboard');
+      .setURL('https://hub.tiltcheck.me');
 
     const row = new ActionRowBuilder<ButtonBuilder>().addComponents(portalBtn);
 
