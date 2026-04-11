@@ -1,85 +1,25 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-10
-import { SlashCommandBuilder, ChatInputCommandInteraction, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } from 'discord.js';
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-11
+import { SlashCommandBuilder, ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
 import type { Command } from '../types.js';
-import { upsertOnboarding } from '@tiltcheck/db';
-import fs from 'fs';
-import path from 'path';
-
-const TERMS_STORE = path.join(process.cwd(), 'data', 'terms-acceptance.json');
-const VERSION = '1.0';
-
-interface TermsAcceptance { userId: string; username: string; acceptedAt: string; version: string; }
-function ensureStoreDir() { const dir = path.dirname(TERMS_STORE); if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true }); }
-function loadAcceptances(): TermsAcceptance[] { ensureStoreDir(); if (!fs.existsSync(TERMS_STORE)) return []; try { return JSON.parse(fs.readFileSync(TERMS_STORE, 'utf8')); } catch { return []; } }
-function saveAcceptance(a: TermsAcceptance) { const all = loadAcceptances().filter(x => x.userId !== a.userId); all.push(a); fs.writeFileSync(TERMS_STORE, JSON.stringify(all, null, 2)); }
-export function hasAcceptedTerms(uid: string): boolean { return loadAcceptances().some(a => a.userId === uid); }
 
 export const terms: Command = {
   data: new SlashCommandBuilder()
     .setName('terms')
-    .setDescription('Legal documents & acceptance')
-    .addSubcommand(s => s.setName('view').setDescription('View Terms & Privacy links'))
-    .addSubcommand(s => s.setName('accept').setDescription('Accept Terms of Service'))
-    .addSubcommand(s => s.setName('status').setDescription('Check your acceptance status')),
-  async execute(interaction: ChatInputCommandInteraction) {
-    const sub = interaction.options.getSubcommand();
-    if (sub === 'view') {
-      const embed = new EmbedBuilder()
-        .setTitle('LEGAL DOCS')
-        .setDescription('Read before using tipping features.')
-        .addFields(
-          { name: 'Terms of Service', value: '[Read Terms](https://tiltcheck.me/terms)\n- 18+ required\n- Non-refundable tips (0.07 SOL fee)\n- AS-IS service' },
-          { name: 'Privacy Policy', value: '[Read Privacy](https://tiltcheck.me/privacy)\n- Non-custodial wallets\n- Minimal logs (7 days)\n- No data selling' },
-          { name: 'Acceptance', value: 'Use `/terms accept` after reading.' },
-          { name: 'Contact', value: 'privacy@tiltcheck.me | legal@tiltcheck.me' }
-        )
-        .setColor(0x22d3a6)
-        .setFooter({ text: 'Made for Degens. By Degens.' });
-      await interaction.reply({ embeds: [embed], ephemeral: true });
-      return;
-    }
-    if (sub === 'accept') {
-      if (hasAcceptedTerms(interaction.user.id)) {
-        await interaction.reply({ content: 'Already accepted. Check /terms status.', ephemeral: true });
-        return;
-      }
-      const row = new ActionRowBuilder<ButtonBuilder>().addComponents(
-        new ButtonBuilder().setCustomId('terms_accept_confirm').setLabel('I Accept').setStyle(ButtonStyle.Success),
-        new ButtonBuilder().setCustomId('terms_accept_cancel').setLabel('Cancel').setStyle(ButtonStyle.Secondary)
-      );
-      const embed = new EmbedBuilder()
-        .setTitle('CONFIRM ACCEPTANCE')
-        .setDescription('By clicking I Accept you confirm:\n- You are 18+\n- You read Terms & Privacy\n- Tips are non-refundable\n- You use TiltCheck at your own risk')
-        .setColor(0xf59e0b)
-        .setFooter({ text: 'Made for Degens. By Degens.' });
-      const msg = await interaction.reply({ embeds: [embed], components: [row], ephemeral: true, fetchReply: true });
-      try {
-        const btn = await msg.awaitMessageComponent({ filter: i => i.user.id === interaction.user.id, time: 60000 });
-        if (btn.customId === 'terms_accept_confirm') {
-          saveAcceptance({ userId: interaction.user.id, username: interaction.user.username, acceptedAt: new Date().toISOString(), version: VERSION });
-          
-          // Link to Database
-          await upsertOnboarding({ 
-            discord_id: interaction.user.id, 
-            has_accepted_terms: true 
-          });
+    .setDescription('View TiltCheck legal documents and policies'),
 
-          await btn.update({ content: 'Locked in. Tipping and vaulting features unlocked.', embeds: [], components: [] });
-        } else {
-          await btn.update({ content: 'Cancelled. Run /terms accept when ready.', embeds: [], components: [] });
-        }
-      } catch {
-        await interaction.editReply({ content: 'Timed out. Run `/terms accept` again.', embeds: [], components: [] });
-      }
-      return;
-    }
-    if (sub === 'status') {
-      const rec = loadAcceptances().find(a => a.userId === interaction.user.id);
-      if (!rec) {
-        await interaction.reply({ content: 'Not accepted yet. Run /terms view then /terms accept.', ephemeral: true });
-        return;
-      }
-      await interaction.reply({ content: `Accepted ${new Date(rec.acceptedAt).toLocaleString()} (v${rec.version})`, ephemeral: true });
-    }
+  async execute(interaction: ChatInputCommandInteraction) {
+    const embed = new EmbedBuilder()
+      .setTitle('LEGAL DOCS')
+      .setDescription('By using TiltCheck you agree to these documents. Read them.')
+      .addFields(
+        { name: 'Terms of Service', value: '[Read Terms](https://tiltcheck.me/terms)\n- 18+ required\n- Tips are non-refundable\n- AS-IS service' },
+        { name: 'Privacy Policy', value: '[Read Privacy](https://tiltcheck.me/privacy)\n- Non-custodial wallets only\n- Minimal logs (7 days)\n- No data selling' },
+        { name: 'Acceptance', value: 'Terms are accepted during onboarding. Run `/start` to go through it again.' },
+        { name: 'Contact', value: 'privacy@tiltcheck.me | legal@tiltcheck.me' }
+      )
+      .setColor(0x22d3a6)
+      .setFooter({ text: 'Made for Degens. By Degens.' });
+
+    await interaction.reply({ embeds: [embed], ephemeral: true });
   }
 };
