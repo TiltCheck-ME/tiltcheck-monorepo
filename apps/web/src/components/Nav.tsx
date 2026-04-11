@@ -6,7 +6,7 @@ import LiveStatusIndicator from './LiveStatusIndicator';
 import { useAuth } from '../hooks/useAuth';
 
 const DASHBOARD_URL = process.env.NEXT_PUBLIC_DASHBOARD_URL || 'http://localhost:6001';
-const API_URL = process.env.NEXT_PUBLIC_API_URL || '';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.tiltcheck.me';
 
 const NAV_LINKS: Array<{ href: string; label: string; accent?: string }> = [
   { href: '/#tools',     label: 'Tools' },
