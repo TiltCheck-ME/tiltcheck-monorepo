@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-09 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-11 */
 export type Tool = {
   href: string;
   icon: string;
@@ -56,7 +56,7 @@ export const features: Tool[] = [
     gridClasses: "",
   },
   {
-    href: "/tools/degens-arena",
+    href: "/beta-tester",
     icon: "/assets/canva/crossed-swords.jpg",
     category: "DEGENS AGAINST DECENCY",
     title: "Degen Trivia",
@@ -65,7 +65,7 @@ export const features: Tool[] = [
     gridClasses: "",
   },
   {
-    href: "/tools/scan-scams",
+    href: "/beta-tester",
     icon: "/assets/canva/brain-circuit.jpg",
     category: "TRUST ENGINE",
     title: "Casino Limit Flags",

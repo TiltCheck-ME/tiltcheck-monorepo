@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-09 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-11 */
 import Link from 'next/link';
 import Image from 'next/image';
 import React from 'react';
@@ -42,10 +42,10 @@ const ToolCard = ({ href, icon, category, title, description, status, gridClasse
 
   const StatusBadge = () => {
     if (isComingSoon) {
-      return <span className="absolute top-4 right-4 badge-beta">Still Cooking</span>;
+      return <span className="absolute top-4 right-4 badge-notify" style={{fontSize:'0.65rem', fontWeight:900, letterSpacing:'0.12em', padding:'0.2rem 0.45rem', borderRadius:'9999px', textTransform:'uppercase'}}>GET NOTIFIED</span>;
     }
     if(status === 'live' || isFeatured) {
-        return <span className="absolute top-4 right-4 badge-beta">LIVE & TESTED</span>;
+        return <span className="absolute top-4 right-4 badge-live">LIVE & TESTED</span>;
     }
     return null;
   };
