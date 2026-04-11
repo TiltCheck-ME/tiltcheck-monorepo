@@ -82,10 +82,10 @@ export default function BetaTesterPage() {
             </ul>
 
             <div className="mt-8 border-t border-[#283347] pt-6">
-              <h3 className="text-xs font-bold uppercase text-gray-400 mb-4 tracking-wider">Genesis Perks</h3>
+              <h3 className="text-xs font-bold uppercase text-gray-400 mb-4 tracking-wider">Founder Perks</h3>
               <div className="grid grid-cols-2 gap-4 text-xs font-mono">
                 <div className="p-3 bg-[#17c3b2]/5 border border-[#17c3b2]/20 text-[#17c3b2]">
-                  [WHITELIST] Genesis Tester Role
+                  [WHITELIST] Founder Tester Role
                 </div>
                 <div className="p-3 bg-yellow-500/5 border border-yellow-500/20 text-yellow-500">
                   [DISCOUNT] 50% Lifetime Premium
@@ -103,7 +103,7 @@ export default function BetaTesterPage() {
           <div className="p-6 border border-[#17c3b2]/30 bg-[#17c3b2]/5">
             <h2 className="text-sm font-bold uppercase tracking-widest text-[#17c3b2] mb-3">Already on Discord?</h2>
             <p className="text-xs text-gray-500 leading-relaxed font-mono mb-6">
-              The bot is live. Join the server and run <span className="text-[#17c3b2]">/help</span> to see what&apos;s already deployed. Beta applicants get pinged in <span className="text-[#17c3b2]">#genesis-testers</span> first.
+              The bot is live. Join the server and run <span className="text-[#17c3b2]">/help</span> to see what&apos;s already deployed. Beta applicants get pinged in <span className="text-[#17c3b2]">#beta-general</span> first.
             </p>
             <a
               href="https://discord.gg/gdBsEJfCar"
@@ -138,7 +138,7 @@ export default function BetaTesterPage() {
                 </div>
                 <h3 className="text-xl font-bold text-white uppercase tracking-widest mb-2">Application received.</h3>
                 <p className="text-gray-400 font-mono text-sm max-w-sm mx-auto">
-                  We&apos;ll DM you on Discord if you&apos;re in. Watch <span className="text-[#17c3b2]">#genesis-testers</span>.
+                  We&apos;ll DM you on Discord if you&apos;re in. Watch <span className="text-[#17c3b2]">#beta-general</span>.
                 </p>
               </div>
             ) : (
@@ -261,3 +261,4 @@ export default function BetaTesterPage() {
     </div>
   );
 }
+
