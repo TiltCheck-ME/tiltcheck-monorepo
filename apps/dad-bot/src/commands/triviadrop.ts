@@ -11,7 +11,7 @@ import {
   TextChannel,
 } from 'discord.js';
 import type { Command } from '../types.js';
-import { findUserByDiscordId } from '@tiltcheck/db';
+import { db } from '@tiltcheck/database';
 import {
   Connection,
   Keypair,
@@ -779,9 +779,9 @@ The escrow keypair is persisted securely — funds are recoverable if the bot re
     let totalPaidLamports = 0;
 
     for (const [userId, lamports] of winnings.entries()) {
-      const user = await findUserByDiscordId(userId).catch(() => null);
-      const dest = user?.wallet_address ?? COMMUNITY_WALLET;
-      const isLinked = !!user?.wallet_address;
+      const identity = await db.getDegenIdentity(userId).catch(() => null);
+      const dest = identity?.primary_external_address ?? COMMUNITY_WALLET;
+      const isLinked = !!identity?.primary_external_address;
 
       transaction.add(
         SystemProgram.transfer({
