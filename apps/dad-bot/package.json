@@ -14,6 +14,7 @@
   },
   "dependencies": {
     "@discord/embedded-app-sdk": "^1.7.0",
+    "@tiltcheck/db": "workspace:*",
     "@solana/web3.js": "^1.98.4",
     "@tiltcheck/config": "workspace:*",
     "@tiltcheck/dad": "workspace:*",

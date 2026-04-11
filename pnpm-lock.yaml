@@ -364,6 +364,9 @@ importers:
       '@tiltcheck/database':
         specifier: workspace:*
         version: link:../../packages/database
+      '@tiltcheck/db':
+        specifier: workspace:*
+        version: link:../../packages/db
       '@tiltcheck/discord-activities':
         specifier: workspace:*
         version: link:../../packages/discord-activities
@@ -583,6 +586,9 @@ importers:
       '@tiltcheck/database':
         specifier: workspace:*
         version: link:../../packages/database
+      '@tiltcheck/db':
+        specifier: workspace:*
+        version: link:../../packages/db
       '@tiltcheck/discord-utils':
         specifier: workspace:*
         version: link:../../packages/discord-utils
