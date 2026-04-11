@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-10 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-11 */
 
 "use client";
 
@@ -71,25 +71,25 @@ export default function TouchGrassPage() {
                 <div>
                   <h3 className="text-lg font-black uppercase mb-3 text-[#ef4444]">Step 1: Stop Playing</h3>
                   <p className="text-gray-400 leading-relaxed">
-                    Close the casino. Close the browser. Put the phone in another room. The urge to "get it back" is your dopamine talking, not your brain. It will lie to you.
+                    Close the casino. Close the browser. Put the phone in another room. <strong className="text-white">The urge to get it back is dopamine talking, not your brain.</strong>
                   </p>
                 </div>
                 <div className="pt-6 border-t border-[#ef4444]/20">
                   <h3 className="text-lg font-black uppercase mb-3 text-[#ef4444]">Step 2: Tell Someone</h3>
                   <p className="text-gray-400 leading-relaxed">
-                    Not your buddy who gambles. Your parent. Your partner. Someone who will actually care and won't enable you. It's hard. Do it anyway.
+                    Not your buddy who gambles. Your parent. Your partner. <strong className="text-white">Someone who will care and won&apos;t enable you. It&apos;s hard. Do it anyway.</strong>
                   </p>
                 </div>
                 <div className="pt-6 border-t border-[#ef4444]/20">
                   <h3 className="text-lg font-black uppercase mb-3 text-[#ef4444]">Step 3: Count What You Lost</h3>
                   <p className="text-gray-400 leading-relaxed">
-                    Don't estimate. Write it down. Look at it. The number is real. The loss is real. You can't fix it tonight. You might not be able to fix it alone.
+                    Don&apos;t estimate. Write it down. Look at it. <strong className="text-white">The number is real. You can&apos;t fix it tonight.</strong>
                   </p>
                 </div>
                 <div className="pt-6 border-t border-[#ef4444]/20">
                   <h3 className="text-lg font-black uppercase mb-3 text-[#ef4444]">Step 4: Seek Help</h3>
                   <p className="text-gray-400 leading-relaxed">
-                    Call <strong>1-800-GAMBLER (1-800-426-2537)</strong>. It's free. It's confidential. They won't judge you. They've heard it all.
+                    <strong className="text-white">Call 1-800-GAMBLER (1-800-426-2537).</strong> Free. Confidential. They&apos;ve heard it all.
                   </p>
                 </div>
               </div>

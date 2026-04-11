@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-08 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-11 */
 'use client';
 
 import React, { useState, useMemo, useEffect } from 'react';
@@ -236,6 +236,20 @@ export default function CasinosPage() {
         <p className="text-xs font-mono text-gray-600 mt-3">{CASINOS.length} platforms tracked — sweepstakes shown first</p>
       </header>
 
+      {/* Grade distribution stat strip */}
+      <div className="flex justify-center gap-0 mb-10 border border-[#283347] divide-x divide-[#283347] max-w-lg mx-auto">
+        {(['A','B','C','D','F'] as const).map(g => {
+          const count = CASINOS.filter(c => c.grade.startsWith(g)).length;
+          const colors: Record<string,string> = {A:'#22c55e',B:'#17c3b2',C:'#facc15',D:'#f97316',F:'#ef4444'};
+          return (
+            <div key={g} className="flex-1 flex flex-col items-center py-3 px-2 bg-black/40">
+              <span className="text-xs font-black font-mono" style={{color: colors[g]}}>{g}</span>
+              <span className="text-[10px] font-mono text-gray-500 mt-0.5">{count}</span>
+            </div>
+          );
+        })}
+      </div>
+
       {/* Search + Filter */}
       <div className="flex flex-col md:flex-row gap-4 mb-10">
         <input
@@ -431,11 +445,11 @@ export default function CasinosPage() {
 
       <section className="mt-20 p-8 border border-[#283347] bg-[#0a0c10]/40">
         <h3 className="text-xl font-bold mb-4 uppercase tracking-wider text-[#17c3b2]">How are these scored?</h3>
-        <p className="text-muted leading-relaxed mb-6">
-          Grades are manually curated by the TiltCheck community based on verified regulatory history,
-          documented compliance violations, and publicly reported operator conduct. Pillar scores are derived
-          from the grade tier and risk category — no affiliate bias, no paid placements.
-        </p>
+        <ul className="space-y-2 text-sm font-mono text-muted mb-6">
+          <li><span className="text-[#17c3b2]">▹</span> Grades curated from verified regulatory history, compliance violations, and documented operator conduct.</li>
+          <li><span className="text-[#17c3b2]">▹</span> Pillar scores derived from grade tier and risk category — deterministic, not editorial.</li>
+          <li><span className="text-[#17c3b2]">▹</span> No affiliates. No paid placements. Ever. Grades reflect conduct.</li>
+        </ul>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-sm font-mono pt-4 border-t border-white/10">
           <div><strong className="text-white block mb-2">REGULATORY BASIS</strong>License validity, compliance fines, and jurisdiction track record inform the base grade.</div>
           <div><strong className="text-white block mb-2">COMMUNITY TELEMETRY</strong>Withdrawal complaints, shadow-nerf reports, and ToS changes feed real-time deductions.</div>
