@@ -1,4 +1,4 @@
-# © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-10
+# © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-11
 # JustTheTip Bot - Production Container
 FROM node:20 AS base
 ENV PNPM_HOME="/pnpm"
@@ -15,19 +15,16 @@ COPY . .
 RUN pnpm install --frozen-lockfile --filter @tiltcheck/justthetip-bot...
 RUN pnpm --filter @tiltcheck/justthetip-bot... build
 RUN test -f apps/justthetip-bot/dist/bootstrap.js || (echo 'BUILD ERROR: apps/justthetip-bot/dist/bootstrap.js not produced' && exit 1)
+# pnpm deploy resolves workspace symlinks (e.g. @tiltcheck/db) into real node_modules
+RUN pnpm --filter @tiltcheck/justthetip-bot deploy --prod /deploy/justthetip-bot
+RUN cp -r /app/apps/justthetip-bot/dist /deploy/justthetip-bot/dist
 
 FROM node:20-slim
 WORKDIR /app
 RUN apt-get update && apt-get install -y dumb-init && rm -rf /var/lib/apt/lists/*
 ENTRYPOINT ["/usr/bin/dumb-init", "--"]
 
-COPY --from=build /app/apps/justthetip-bot/dist ./apps/justthetip-bot/dist
-COPY --from=build /app/apps/justthetip-bot/package.json ./apps/justthetip-bot/package.json
-COPY --from=build /app/node_modules ./node_modules
-COPY --from=build /app/packages ./packages
-COPY --from=build /app/modules ./modules
-COPY --from=build /app/tools ./tools
-COPY --from=build /app/package.json ./package.json
+COPY --from=build /deploy/justthetip-bot ./
 
 EXPOSE 8080
-CMD ["node", "apps/justthetip-bot/dist/bootstrap.js"]
+CMD ["node", "dist/bootstrap.js"]
