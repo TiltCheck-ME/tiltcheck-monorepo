@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-12
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-10
 //
 // Community Recovery Microgrant Program
 //
@@ -56,18 +56,18 @@ const APPLICATIONS_OPEN = process.env.RECOVERY_APPLICATIONS_OPEN === 'true';
 
 const PENDING_FUNDS_EMBED = new EmbedBuilder()
   .setColor(0xf59e0b)
-  .setTitle('[RECOVERY GRANT — PENDING FUNDS]')
+  .setTitle('RECOVERY GRANT — PENDING FUNDS')
   .setDescription(
-    '**Applications are not open yet.**\n\n' +
+    'Applications are not open yet.\n\n' +
     'The TiltCheck community recovery fund is still being built. ' +
     'Once enough SOL is available to cover grants, applications will open.\n\n' +
-    '__Want to help fund it?__\n' +
+    'Want to help fund it?\n' +
     `Donate SOL to: \`${RECOVERY_FUND_WALLET}\`\n\n` +
     'If you are in crisis right now:\n' +
     '**National Problem Gambling Helpline: 1-800-522-4700**\n' +
     '[ncpgambling.org](https://www.ncpgambling.org) — free, confidential, 24/7'
   )
-  .setFooter({ text: 'Made for Degens. By Degens. — The serious kind of help.' });
+  .setFooter({ text: 'Made for Degens. By Degens.' });
 const APPLICATIONS_DIR = path.join(process.cwd(), 'tmp', 'recovery-applications');
 
 const connection = new Connection(
@@ -192,7 +192,7 @@ function buildReviewEmbed(app: RecoveryApplication): EmbedBuilder {
 
   return new EmbedBuilder()
     .setColor(statusColors[app.status])
-    .setTitle('[RECOVERY MICROGRANT APPLICATION]')
+    .setTitle('RECOVERY MICROGRANT APPLICATION')
     .addFields(
       { name: 'Applicant', value: `<@${app.discordUserId}> (${app.discordUsername})`, inline: true },
       { name: 'Application ID', value: `\`${app.id}\``, inline: true },
@@ -208,7 +208,7 @@ function buildReviewEmbed(app: RecoveryApplication): EmbedBuilder {
       { name: 'Community Votes', value: `${app.communityVotes} / ${VOTE_THRESHOLD} needed`, inline: true },
       { name: 'Grant Amount', value: `${MAX_GRANT_SOL} SOL (if approved)`, inline: true },
     )
-    .setFooter({ text: `Applied ${new Date(app.appliedAt).toUTCString()} | No auto-approvals. This is reviewed by humans.` });
+    .setFooter({ text: 'Made for Degens. By Degens.' });
 }
 
 function buildReviewButtons(appId: string): ActionRowBuilder<ButtonBuilder> {
@@ -270,11 +270,11 @@ async function executeGrantPayout(
     if (reviewChannel) {
       const paidEmbed = new EmbedBuilder()
         .setColor(0x16a34a)
-        .setTitle('[RECOVERY GRANT PAID]')
+        .setTitle('RECOVERY GRANT PAID')
         .setDescription(
           `<@${app.discordUserId}> received **${MAX_GRANT_SOL} SOL**.\n\nApproved by: ${approvedBy}\n\n[View on Solscan](https://solscan.io/tx/${sig})\n\nThis comes from the TiltCheck community recovery fund. If you need to donate to it: \`${RECOVERY_FUND_WALLET}\``
         )
-        .setFooter({ text: 'Made for Degens. By Degens. — The serious kind of help.' });
+        .setFooter({ text: 'Made for Degens. By Degens.' });
       await reviewChannel.send({ embeds: [paidEmbed] });
     }
 
@@ -326,10 +326,11 @@ export async function handleRecoveryButton(
       const reviewChannel = interaction.channel as TextChannel;
       const noticeEmbed = new EmbedBuilder()
         .setColor(0xf59e0b)
-        .setTitle('[COMMUNITY THRESHOLD REACHED]')
+        .setTitle('COMMUNITY THRESHOLD REACHED')
         .setDescription(
           `Application \`${app.id}\` has reached ${VOTE_THRESHOLD} community vouches.\n\nAn admin must still confirm approval via the [APPROVE] button or \`/sos admin approve ${app.id}\`.`
-        );
+        )
+        .setFooter({ text: 'Made for Degens. By Degens.' });
       await reviewChannel.send({ embeds: [noticeEmbed] });
     }
     return;
@@ -405,16 +406,14 @@ async function notifySupportContact(
     const supportUser = await client.users.fetch(app.supportDiscordId);
     const dmEmbed = new EmbedBuilder()
       .setColor(0x8b5cf6)
-      .setTitle('[ACTION REQUIRED — TiltCheck Recovery Program]')
+      .setTitle('ACTION REQUIRED — TILTCHECK RECOVERY PROGRAM')
       .setDescription(
-        `${app.discordUsername} has listed you as their accountability contact in a community recovery microgrant application.\n\n` +
-        `**What this means:** They are asking for community financial support to help recover from a gambling problem. ` +
-        `They have voluntarily told you about this as a condition of their application.\n\n` +
-        `**Your role:** You don't need to do anything financially. Just be aware and be there for them.\n\n` +
-        `React with ✅ to this message to confirm you are aware and supportive.\n` +
-        `React with ❌ to indicate this contact is inaccurate or you do not consent to being listed.`
+        `${app.discordUsername} listed you as their accountability contact in a community recovery microgrant application.\n\n` +
+        `They are asking for community financial support after a gambling problem. They told you about this voluntarily as a condition of applying.\n\n` +
+        `You do not need to do anything financially. Just be aware and show up for them.\n\n` +
+        `React to this message to confirm: yes (checkmark) or no (x-mark) if the contact is inaccurate or you do not consent.`
       )
-      .setFooter({ text: 'TiltCheck | Responsible Gambling Tools' });
+      .setFooter({ text: 'Made for Degens. By Degens.' });
 
     const dmMsg = await supportUser.send({ embeds: [dmEmbed] });
     await dmMsg.react('✅');
@@ -524,7 +523,7 @@ export const recover: Command = {
     if (sub === 'info') {
       const infoEmbed = new EmbedBuilder()
         .setColor(0x6366f1)
-        .setTitle('[COMMUNITY RECOVERY MICROGRANT]')
+        .setTitle('COMMUNITY RECOVERY MICROGRANT')
         .setDescription(
           'This is not a bailout. It is a hand up.\n\n' +
           'If gambling has put you in genuine financial crisis and you are ready to make real changes, ' +
@@ -550,7 +549,7 @@ export const recover: Command = {
           '**National Problem Gambling Helpline: 1-800-522-4700** (free, 24/7, confidential)\n' +
           '[ncpgambling.org](https://www.ncpgambling.org) | [gamblersinternational.org](https://gamblersinternational.org)'
         )
-        .setFooter({ text: 'Made for Degens. By Degens. — The serious kind of help.' });
+        .setFooter({ text: 'Made for Degens. By Degens.' });
 
       await interaction.reply({ embeds: [infoEmbed], ephemeral: true });
       return;
@@ -574,7 +573,7 @@ export const recover: Command = {
         return;
       }
 
-      const embed = buildReviewEmbed(app).setTitle('[YOUR APPLICATION STATUS]');
+      const embed = buildReviewEmbed(app).setTitle('YOUR APPLICATION STATUS');
       await interaction.reply({ embeds: [embed], ephemeral: true });
       return;
     }
@@ -663,7 +662,7 @@ export const recover: Command = {
 
       const confirmEmbed = new EmbedBuilder()
         .setColor(0x8b5cf6)
-        .setTitle('[APPLICATION SUBMITTED]')
+        .setTitle('APPLICATION SUBMITTED')
         .setDescription(
           `Your application (\`${appId}\`) has been received and is under review.\n\n` +
           (supportDiscordId
@@ -677,7 +676,7 @@ export const recover: Command = {
           `Make sure your wallet is linked: \`/linkwallet address:YOUR_WALLET\`\n\n` +
           `**If you need immediate help:** 1-800-522-4700 | [ncpgambling.org/chat](https://www.ncpgambling.org/help-treatment/chat)`
         )
-        .setFooter({ text: 'This is reviewed by humans. Be honest — your story matters more than gaming the system.' });
+        .setFooter({ text: 'Made for Degens. By Degens.' });
 
       await interaction.editReply({ embeds: [confirmEmbed] });
       return;

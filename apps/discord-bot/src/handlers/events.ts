@@ -289,14 +289,14 @@ export class EventHandler {
       console.error('[EventHandler] Button handler error:', error);
       const btnInteraction = interaction as ButtonInteraction;
       await btnInteraction.reply({
-        content: `Failed to process button action: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        content: `Button action failed: ${error instanceof Error ? error.message : 'Try again.'}`,
         ephemeral: true
       });
       return;
     }
 
     const btnInteraction = interaction as ButtonInteraction;
-    await btnInteraction.reply({ content: 'Unknown button action.', ephemeral: true });
+    await btnInteraction.reply({ content: 'Button not mapped. Try a different action.', ephemeral: true });
   }
 
   private async handleModAction<T extends ModNotificationEventType>(type: T, data: T extends 'tilt.detected' ? TiltDetectedEventData : T extends 'cooldown.violated' ? CooldownViolatedEventData : T extends 'link.flagged' ? LinkFlaggedEventData : T extends 'scam.reported' ? ScamReportedEventData : { [key: string]: unknown }): Promise<void> {

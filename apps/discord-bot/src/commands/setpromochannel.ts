@@ -1,11 +1,10 @@
-/* Copyright (c) 2026 TiltCheck. All rights reserved. */
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-10
 /**
  * Set Promo Channel Command (Mod Only)
  * Configure the channel where promo submissions are posted
  */
 
-import { SlashCommandBuilder, ChatInputCommandInteraction, PermissionFlagsBits, ChannelType } from 'discord.js';
-import { successEmbed, errorEmbed } from '@tiltcheck/discord-utils';
+import { SlashCommandBuilder, ChatInputCommandInteraction, PermissionFlagsBits, ChannelType, EmbedBuilder } from 'discord.js';
 import type { Command } from '../types.js';
 
 // In-memory storage for promo channel config (per guild)
@@ -30,10 +29,9 @@ export const setpromochannel: Command = {
     .setDefaultMemberPermissions(PermissionFlagsBits.ManageChannels) as unknown as SlashCommandBuilder,
 
   async execute(interaction: ChatInputCommandInteraction) {
-    // Check if in a guild
     if (!interaction.guild) {
       await interaction.reply({
-        embeds: [errorEmbed('Server Only', 'This command can only be used in a server.')],
+        embeds: [new EmbedBuilder().setColor(0xef4444).setTitle('SERVER ONLY').setDescription('This command can only be used in a server.').setFooter({ text: 'Made for Degens. By Degens.' })],
         ephemeral: true,
       });
       return;
@@ -43,7 +41,7 @@ export const setpromochannel: Command = {
     const member = interaction.member;
     if (!member || typeof member.permissions === 'string') {
       await interaction.reply({
-        embeds: [errorEmbed('Permission Error', 'Unable to verify permissions.')],
+        embeds: [new EmbedBuilder().setColor(0xef4444).setTitle('PERMISSION ERROR').setDescription('Unable to verify permissions.').setFooter({ text: 'Made for Degens. By Degens.' })],
         ephemeral: true,
       });
       return;
@@ -55,10 +53,7 @@ export const setpromochannel: Command = {
     promoChannels.set(interaction.guild.id, channel.id);
 
     await interaction.reply({
-      embeds: [successEmbed(
-        '✅ Promo Channel Set',
-        `Promo submissions will now be posted in <#${channel.id}>`
-      )],
+      embeds: [new EmbedBuilder().setColor(0x22d3a6).setTitle('PROMO CHANNEL SET').setDescription(`Promo submissions will now be posted in <#${channel.id}>`).setFooter({ text: 'Made for Degens. By Degens.' })],
     });
   },
 };
