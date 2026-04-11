@@ -271,11 +271,11 @@ html, body {
   --color-secondary: #17c3b2; /* Purple purged */
   --color-accent: #17c3b2; /* Magenta purged */
   --color-gold: #ffd700; 
-  --bg-primary: #0a0c10; 
-  --bg-secondary: #0d1117; 
-  --bg-tertiary: #12161e; 
-  --bg-card: rgba(13, 17, 23, 0.7); /* Translucent for glass */
-  --bg-elevated: #161a21;
+  --bg-primary: #06080b; 
+  --bg-secondary: #08090e; 
+  --bg-tertiary: #0d1017; 
+  --bg-card: rgba(8, 10, 15, 0.85); /* Translucent for glass */
+  --bg-elevated: #0f1219;
   --bg-input: #080a0d;
   --text-primary: #ffffff;
   --text-secondary: #c4ced8;
@@ -807,7 +807,7 @@ body::before {
 
 /* Old Theme Styles */
 body.degen-background {
-  background-color: #0E0E0F !important;
+  background-color: #07080A !important;
   background-image: url('/assets/backgroundglitter.png');
   background-size: cover;
   background-repeat: no-repeat;
@@ -823,7 +823,7 @@ body.degen-background::before {
   content: '';
   position: fixed;
   inset: 0;
-  background: rgba(10, 12, 16, 0.72);
+  background: rgba(5, 7, 10, 0.88);
   pointer-events: none;
   z-index: 0;
 }
