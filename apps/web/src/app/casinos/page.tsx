@@ -226,12 +226,12 @@ export default function CasinosPage() {
   return (
     <div className="container mx-auto px-4 py-16">
       <header className="mb-12 text-center">
-        <h1 className="neon neon-main" data-text="CASINO TRUST ENGINE">CASINO TRUST ENGINE</h1>
+        <h1 className="neon neon-main" data-text="THE BLACKLIST">THE BLACKLIST</h1>
         <p className="text-xl text-muted mt-4 max-w-3xl mx-auto uppercase tracking-widest font-mono">
-          Sweepstakes, crypto, and offshore casinos rated by the degen community. No affiliate payouts. No paid placements. Ever.
+          Casinos rated by degens, for degens. No affiliate payouts. No paid placements. If they cap winners — they&apos;re on here.
         </p>
         <p className="text-sm font-mono text-[#17c3b2] mt-3 max-w-2xl mx-auto">
-          Each card shows the Greed Premium — the gap between the max certified RTP and what the casino actually deploys on your slot. That&apos;s money extracted above the base house edge.
+          Each card exposes the Greed Premium — the gap between certified RTP and what the casino actually deploys on your slot. That&apos;s the extra tax they skim above the house edge.
         </p>
         <p className="text-xs font-mono text-gray-600 mt-3">{CASINOS.length} platforms tracked — sweepstakes shown first</p>
       </header>

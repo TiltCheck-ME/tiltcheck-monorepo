@@ -62,8 +62,8 @@ export default function Home() {
       {/* Tools Section */}
       <section id="tools" className="w-full max-w-7xl mx-auto pt-8 pb-16">
         <div className="section-heading-block">
-          <h2 className="neon neon-header section-heading" data-text="WHAT THE CASINO DOESN'T WANT INSTALLED">
-            WHAT THE CASINO DOESN&apos;T WANT INSTALLED
+          <h2 className="neon neon-header section-heading" data-text="THE SOFTWARE THAT GETS YOU BANNED FROM THE VIP LOUNGE">
+            THE SOFTWARE THAT GETS YOU BANNED FROM THE VIP LOUNGE
           </h2>
           <p className="section-subheading">Nine tools. One audit layer. No trust required.</p>
         </div>
