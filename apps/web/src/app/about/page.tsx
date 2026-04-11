@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-09 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-11 */
 import React from 'react';
 
 export default function AboutPage() {
@@ -50,50 +50,30 @@ export default function AboutPage() {
             <h2 className="text-2xl font-black uppercase tracking-tight mb-8 text-[#17c3b2]">
               The TiltCheck Philosophy
             </h2>
-            <div className="space-y-6 text-gray-400 leading-relaxed">
-              <div>
-                <h3 className="text-lg font-black uppercase mb-2 text-white">We Don't Try to Stop You</h3>
-                <p>
-                  We're not here to lecture you about gambling being bad. You already know that. You're going to gamble anyway. The question is whether you'll do it with your eyes open or blinded by hope and dopamine.
-                </p>
-              </div>
-
-              <div>
-                <h3 className="text-lg font-black uppercase mb-2 text-white">We Give You Signals, Not Solutions</h3>
-                <p>
-                  Real-time audit data. RNG verification. Tilt detection. Variance tracking. We show you the math. What you do with it is up to you. But at least you'll know.
-                </p>
-              </div>
-
-              <div>
-                <h3 className="text-lg font-black uppercase mb-2 text-white">We Believe in Accountability, Not Shame</h3>
-                <p>
-                  When you hit your limits, the system locks. No judgment. No "we told you so." Just a hard stop so you get time to think. Your Guardian gets a ping. Your community knows. That transparency is more powerful than any warning label.
-                </p>
-              </div>
-
-              <div>
-                <h3 className="text-lg font-black uppercase mb-2 text-white">We Play the Long Game</h3>
-                <p>
-                  Our core philosophy: "Redeem-to-Win." Don't try to turn $10 into $1,000. Turn $10 into $20, cash it out, and live to gamble another day. Winning is easy. Keeping it is legendary.
-                </p>
-              </div>
-
-              <div>
-                <h3 className="text-lg font-black uppercase mb-2 text-white">We Never Touch Your Money</h3>
-                <p>
-                  Non-custodial. Non-negotiable. Your keys, your wallet, your responsibility. We audit the outcome, not the funds.
-                </p>
-              </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {[
+                { title: "We Don't Try to Stop You", body: "You're going to gamble. The question is whether you'll do it with eyes open or blinded by dopamine." },
+                { title: "We Give You Signals, Not Solutions", body: "Real-time audit data. RNG verification. Tilt detection. We show you the math. What you do with it is on you." },
+                { title: "We Believe in Accountability, Not Shame", body: "When you hit your limits, the system locks. No judgment. Your Guardian gets pinged. Transparency beats warning labels." },
+                { title: "We Play the Long Game", body: "Redeem-to-Win. Turn $10 into $20, cash it out, live to gamble another day. Winning is easy. Keeping it is legendary." },
+                { title: "We Never Touch Your Money", body: "Non-custodial. Non-negotiable. Your keys, your wallet, your responsibility." },
+              ].map(item => (
+                <div key={item.title} className="p-5 border border-[#283347] bg-black/30">
+                  <h3 className="text-sm font-black uppercase tracking-tight mb-2 text-white">{item.title}</h3>
+                  <p className="text-xs text-gray-400 leading-relaxed">{item.body}</p>
+                </div>
+              ))}
             </div>
           </div>
 
           {/* The Mission */}
           <div className="p-8 border border-[#17c3b2]/30 bg-[#17c3b2]/5">
             <h2 className="text-2xl font-black uppercase mb-4 text-[#17c3b2]">The Mission</h2>
-            <p className="text-gray-400 leading-relaxed text-lg">
-              Shift the definition of a "win" from "I didn't lose everything" to "I actually kept the money." Make it profitable to play smart instead of profitable to play long. Give every degen — from casual to hardcore — a fair shot at keeping their bag.
-            </p>
+            <ul className="space-y-2 text-gray-400 text-sm font-mono">
+              <li><span className="text-[#17c3b2]">▹</span> Shift "win" from "I didn't lose everything" to "I actually kept the money."</li>
+              <li><span className="text-[#17c3b2]">▹</span> Make it profitable to play smart, not profitable to play long.</li>
+              <li><span className="text-[#17c3b2]">▹</span> Give every degen a fair shot at keeping their bag.</li>
+            </ul>
           </div>
 
           {/* Who Built It */}
@@ -155,13 +135,13 @@ export default function AboutPage() {
             One More Thing
           </h2>
           <p className="text-gray-400 text-lg leading-relaxed mb-8">
-            This tool exists because I needed it. Not because I think gambling is "bad." Because I know it's real, it's profitable if you're smart, and it's catastrophic if you're not. TiltCheck is for people who want to be smart about it.
+            This tool exists because I needed it. Gambling is real, profitable if you&apos;re smart, and catastrophic if you&apos;re not. TiltCheck is for people who want to be smart about it.
           </p>
-          <p className="text-gray-400 text-lg leading-relaxed">
-            If you're actually in crisis — if you've lost money you can't afford to lose — this tool isn't enough. Reach out to <a href="https://www.ncpg.org" target="_blank" rel="noopener noreferrer" className="text-[#17c3b2] underline hover:no-underline">NCPG.org</a> or call 1-800-GAMBLER. Real help exists.
+          <p className="text-gray-400 text-sm leading-relaxed">
+            If you&apos;ve lost money you can&apos;t afford to lose — reach out to <a href="https://www.ncpg.org" target="_blank" rel="noopener noreferrer" className="text-[#17c3b2] underline hover:no-underline">NCPG.org</a> or call <strong>1-800-GAMBLER</strong>. Real help exists.
           </p>
           <p className="text-gray-400 text-lg leading-relaxed mt-6 italic">
-            You're already gambling. Might as well do it with your eyes open.
+            You&apos;re already gambling. Might as well do it with your eyes open.
           </p>
         </div>
       </section>

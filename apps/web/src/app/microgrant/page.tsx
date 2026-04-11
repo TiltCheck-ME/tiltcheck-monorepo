@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-14 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-11 */
 "use client";
 
 import React, { useState } from "react";
@@ -18,28 +18,28 @@ export default function MicrograntPage() {
   const eligibilityItems = [
     {
       id: "e1",
-      label:
-        "I have a gambling problem. Not 'a rough patch.' Not 'bad variance.' A problem.",
+      label: "I have a gambling problem.",
+      sublabel: "Not a rough patch. Not bad variance. A problem.",
     },
     {
       id: "e2",
-      label:
-        "I am facing genuine financial hardship as a direct result of gambling — not just a bad month.",
+      label: "I am facing genuine financial hardship from gambling.",
+      sublabel: "Not just a bad month — real hardship, directly caused by gambling.",
     },
     {
       id: "e3",
-      label:
-        "I have told or will tell a real person in my life — not online, not anonymous — about this.",
+      label: "I have told a real person in my life about this.",
+      sublabel: "Not online. Not anonymous. Someone who knows your face.",
     },
     {
       id: "e4",
-      label:
-        "I agree this money will not be used for gambling. Not as a bankroll. Not as a 'one last shot to recover it.' Never.",
+      label: "I agree this money will not be used for gambling.",
+      sublabel: "Not as a bankroll. Not as a one-last-shot. Never.",
     },
     {
       id: "e5",
-      label:
-        "I understand this is a one-time grant. There is no second application. Make it count.",
+      label: "I understand this is a one-time grant.",
+      sublabel: "No second application. Make it count.",
     },
   ];
 
@@ -401,26 +401,28 @@ export default function MicrograntPage() {
                   {eligibilityItems.map((item) => (
                     <label
                       key={item.id}
-                      className={`flex items-start gap-4 p-4 border cursor-pointer transition-colors ${
+                      className={`flex items-start gap-4 p-4 border cursor-pointer transition-all ${
                         checked[item.id]
-                          ? "border-[#ef4444]/40 bg-[#ef4444]/5"
-                          : "border-[#283347] bg-black/20 hover:border-[#283347]/80"
+                          ? "border-[#17c3b2]/60 bg-[#17c3b2]/5"
+                          : "border-[#283347] hover:border-[#283347]/80"
                       }`}
                     >
                       <input
                         type="checkbox"
-                        className="accent-[#ef4444] mt-0.5 shrink-0"
                         checked={!!checked[item.id]}
                         onChange={(e) =>
-                          setChecked((prev) => ({
-                            ...prev,
-                            [item.id]: e.target.checked,
-                          }))
+                          setChecked((prev) => ({ ...prev, [item.id]: e.target.checked }))
                         }
+                        className="mt-1 accent-[#17c3b2] shrink-0"
                       />
-                      <span className="text-sm text-gray-300 font-mono leading-relaxed">
-                        {item.label}
-                      </span>
+                      <div>
+                        <span className="block text-sm font-black text-white uppercase tracking-tight">
+                          {item.label}
+                        </span>
+                        <span className="block text-xs text-gray-500 mt-0.5 font-mono">
+                          {item.sublabel}
+                        </span>
+                      </div>
                     </label>
                   ))}
                 </div>
