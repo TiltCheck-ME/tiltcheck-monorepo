@@ -135,11 +135,14 @@ function isAllowedActivityRedirectUri(value: string): boolean {
     const isHttpsTiltcheck =
       parsed.protocol === 'https:' &&
       (host === 'tiltcheck.me' || host === 'www.tiltcheck.me' || host.endsWith('.tiltcheck.me'));
+    // Discord Activity proxy domain — required for embedded SDK OAuth code exchange
+    const isDiscordProxy =
+      parsed.protocol === 'https:' && host.endsWith('.discordsays.com');
     const isLocalDev =
       process.env.NODE_ENV !== 'production' &&
       (host === 'localhost' || host === '127.0.0.1');
 
-    return isHttpsTiltcheck || isLocalDev;
+    return isHttpsTiltcheck || isDiscordProxy || isLocalDev;
   } catch {
     return false;
   }
@@ -708,9 +711,15 @@ router.post('/discord/activity/token', activityTokenLimiter, async (req, res) =>
       return;
     }
 
+    // Discord Activities OAuth code exchange must use the discordsays proxy URI —
+    // NOT the regular web/extension callback URI. The embedded SDK's authorize()
+    // command always uses https://<CLIENT_ID>.discordsays.com as the redirect.
+    const activityRedirectUri =
+      redirectUriInput || `https://${discordConfig.clientId}.discordsays.com`;
+
     const exchangeConfig: DiscordOAuthConfig = {
       ...discordConfig,
-      redirectUri: redirectUriInput || discordConfig.redirectUri,
+      redirectUri: activityRedirectUri,
     };
 
     // Timeout fallback keeps this endpoint responsive if Discord is degraded.
