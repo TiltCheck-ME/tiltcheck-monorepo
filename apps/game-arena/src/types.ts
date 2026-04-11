@@ -94,6 +94,10 @@ export interface ServerToClientEvents {
   'trivia-round-reveal': (data: { questionId: string; correctChoice: string; explanation?: string; stats: any }) => void;
   'trivia-ape-in-result': (data: { questionId: string; distribution: Record<string, number> }) => void;
   'trivia-shield-result': (data: { questionId: string; eliminated: string[] }) => void;
+  // Tip events forwarded from discord-bot via event router
+  'tip.rain': (data: { id: string; fromUserId: string; fromUsername: string; amountSol: number; amountUsd: number; message: string; expiresAt: number; claimable: boolean }) => void;
+  'tip.sent': (data: { id: string; fromUsername: string; toUsername: string; amountSol: number; message: string; timestamp: number; claimed: boolean }) => void;
+  'tip.claimed': (data: { rainId: string; claimerId: string }) => void;
 }
 
 // Stats types

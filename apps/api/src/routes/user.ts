@@ -25,6 +25,7 @@ import {
     createVaultRule,
     updateVaultRule,
     deleteVaultRule,
+    findOneBy,
 } from '@tiltcheck/db';
 import { ValidationError, InternalServerError } from '@tiltcheck/error-factory';
 import { verifySolanaSignature } from '@tiltcheck/auth/solana';
@@ -448,12 +449,25 @@ router.get('/:id/elite', async (req: Request, res, next: NextFunction) => {
         const balance = await justthetip.credits.getBalance(id).catch(() => null);
 
         const totalFees = balance?.total_fees_lamports ?? 0;
-        const feeSavedSol = 0; // populated once Elite tier is tracked in DB
 
-        // Elite = subscribed user with 0% fee. Stub: treat as non-elite until
-        // subscriptions table is wired. Update when Stripe Elite tier lands.
+        // Check subscriptions table for an active Elite tier
+        interface Subscription { user_id: string; status: string; plan: string; }
+        const sub = await findOneBy<Subscription>('subscriptions', 'user_id', id).catch(() => null);
+        const isElite = sub?.status === 'active' && sub?.plan?.toLowerCase().includes('elite');
+
+        // Founders also get Elite benefits
+        const FOUNDER_USERNAMES = (process.env.FOUNDER_USERNAMES || 'jmenichole')
+            .split(',')
+            .map((u) => u.trim().toLowerCase());
+        const user = await findUserByDiscordId(id).catch(() => null);
+        const isFounder = user?.discord_username
+            ? FOUNDER_USERNAMES.includes(user.discord_username.toLowerCase())
+            : false;
+
+        const feeSavedSol = isElite || isFounder ? (totalFees * 1e-9) * 0.01 : 0;
+
         res.json({
-            isElite: false,
+            isElite: isElite || isFounder,
             feeSavedSol,
             totalFeesPaidSol: totalFees * 1e-9,
         });

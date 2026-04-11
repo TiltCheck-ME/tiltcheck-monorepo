@@ -735,6 +735,48 @@ eventRouter.subscribe('trivia.completed', (event) => {
   io.emit('game-update', { type: 'trivia-completed', ...event.data });
 }, 'game-arena');
 
+// Forward tip rain events from discord-bot → socket.io clients (Activity TipView)
+eventRouter.subscribe('prize.distributed', (event) => {
+  const d = event.data as {
+    distributionId: string;
+    hostId: string;
+    recipientIds: string[];
+    totalPrize: number;
+    prizePerRecipient: number;
+    context?: string;
+  };
+  io.emit('tip.rain', {
+    id: d.distributionId,
+    fromUserId: d.hostId,
+    fromUsername: d.hostId,
+    amountSol: d.totalPrize,
+    amountUsd: 0,
+    message: d.context ?? '',
+    expiresAt: Date.now() + 5 * 60 * 1000,
+    claimable: true,
+  });
+}, 'game-arena');
+
+eventRouter.subscribe('prize.created', (event) => {
+  const d = event.data as {
+    distributionId: string;
+    hostId: string;
+    recipientIds: string[];
+    totalPrize: number;
+    prizePerRecipient: number;
+    context?: string;
+  };
+  io.emit('tip.sent', {
+    id: d.distributionId,
+    fromUsername: d.hostId,
+    toUsername: `${d.recipientIds.length} degens`,
+    amountSol: d.totalPrize,
+    message: d.context ?? '',
+    timestamp: Date.now(),
+    claimed: false,
+  });
+}, 'game-arena');
+
 // Cleanup interval (every 5 minutes)
 setInterval(() => {
   gameManager.cleanup();
