@@ -1,3 +1,4 @@
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-11
 import React from 'react';
 
 const LiveStatusIndicator = ({ live = true }: { live?: boolean }) => {
@@ -15,7 +16,7 @@ const LiveStatusIndicator = ({ live = true }: { live?: boolean }) => {
         <circle cx="12" cy="12" r="3" fill="currentColor" />
         <circle cx="12" cy="12" r="8" fill="none" stroke="currentColor" strokeWidth="1" opacity="0.3" />
       </svg>
-      <span className="status-text">ALL SYSTEMS LIVE</span>
+      <span className="status-text">THE RADAR IS GREEN.</span>
     </div>
   );
 };
