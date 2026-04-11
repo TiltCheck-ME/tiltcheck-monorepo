@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-10
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-11
 // TiltCheck Safety Bot — Help Command
 
 import { SlashCommandBuilder, ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
@@ -56,6 +56,13 @@ export const help: Command = {
           'Profit drops, wallet, and bonuses: **JustTheTip** bot — `/juicedrop`, `/linkwallet`, `/lockvault`, `/bonuses`\n' +
           'Card games and trivia: **DAD** (Degens Against Decency) bot — `/lobby`, `/triviadrop`\n' +
           'Full dashboard: https://hub.tiltcheck.me',
+        inline: false,
+      },
+      {
+        name: 'Legal',
+        value:
+          '`/terms` — View Terms of Service and Privacy Policy\n' +
+          '[Terms](https://tiltcheck.me/terms) · [Privacy](https://tiltcheck.me/privacy) · [Risk Limits](https://tiltcheck.me/legal/limit)',
         inline: false,
       }
     );
