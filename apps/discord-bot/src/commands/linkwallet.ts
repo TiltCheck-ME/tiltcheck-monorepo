@@ -39,8 +39,6 @@ export const linkwallet: Command = {
 
       await linkWalletToUser(discordUser.id, address);
 
-
-
       const embed = new EmbedBuilder()
         .setColor(0x22d3a6)
         .setTitle('WALLET LINKED')
