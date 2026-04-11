@@ -1,0 +1,744 @@
+<!DOCTYPE html>
+<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-10 -->
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TiltCheck | Premium Tiers</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" />
+  <link rel="stylesheet" href="/css/style.css" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: #0a0c10;
+      color: #e2e8f0;
+      font-family: 'Inter', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .page-header {
+      background: #0f1218;
+      border-bottom: 1px solid #1e2430;
+      padding: 1.25rem 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .header-logo {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #22d3a6;
+      letter-spacing: 0.08em;
+      text-decoration: none;
+    }
+
+    .header-nav a {
+      color: #94a3b8;
+      text-decoration: none;
+      font-size: 0.875rem;
+      margin-left: 1.5rem;
+      transition: color 0.15s;
+    }
+
+    .header-nav a:hover { color: #e2e8f0; }
+
+    .page-main {
+      flex: 1;
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 3rem 2rem;
+      width: 100%;
+    }
+
+    .page-title {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 2rem;
+      font-weight: 700;
+      color: #f1f5f9;
+      margin-bottom: 0.5rem;
+    }
+
+    .page-subtitle {
+      color: #64748b;
+      font-size: 1rem;
+      margin-bottom: 3rem;
+    }
+
+    /* Tier table */
+    .tier-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 1.5rem;
+      margin-bottom: 3.5rem;
+    }
+
+    .tier-card {
+      background: #0f1218;
+      border: 1px solid #1e2430;
+      border-radius: 10px;
+      padding: 2rem;
+      display: flex;
+      flex-direction: column;
+      transition: border-color 0.2s;
+    }
+
+    .tier-card:hover { border-color: #22d3a6; }
+
+    .tier-card.featured {
+      border-color: #22d3a6;
+      position: relative;
+    }
+
+    .tier-badge {
+      position: absolute;
+      top: -12px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #22d3a6;
+      color: #0a0c10;
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      padding: 0.2rem 0.75rem;
+      border-radius: 99px;
+    }
+
+    .tier-name {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: #f1f5f9;
+      margin-bottom: 0.35rem;
+    }
+
+    .tier-price {
+      font-size: 2rem;
+      font-weight: 700;
+      color: #22d3a6;
+      font-family: 'Space Grotesk', sans-serif;
+      margin-bottom: 0.15rem;
+    }
+
+    .tier-price-sub {
+      font-size: 0.8rem;
+      color: #475569;
+      margin-bottom: 1.25rem;
+    }
+
+    .tier-sol {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.85rem;
+      color: #94a3b8;
+      background: #141820;
+      padding: 0.35rem 0.65rem;
+      border-radius: 5px;
+      margin-bottom: 1.25rem;
+      display: inline-block;
+    }
+
+    .tier-perks {
+      list-style: none;
+      margin-bottom: 1.75rem;
+      flex: 1;
+    }
+
+    .tier-perks li {
+      font-size: 0.875rem;
+      color: #94a3b8;
+      padding: 0.3rem 0;
+      border-bottom: 1px solid #1a1f2e;
+      display: flex;
+      align-items: flex-start;
+      gap: 0.5rem;
+    }
+
+    .tier-perks li::before {
+      content: '--';
+      color: #22d3a6;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.8rem;
+      flex-shrink: 0;
+      margin-top: 0.05rem;
+    }
+
+    .btn {
+      display: inline-block;
+      padding: 0.65rem 1.25rem;
+      border-radius: 6px;
+      font-size: 0.875rem;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+      text-align: center;
+      border: none;
+      transition: opacity 0.15s, transform 0.1s;
+      font-family: 'Inter', sans-serif;
+    }
+
+    .btn:hover { opacity: 0.85; }
+    .btn:active { transform: scale(0.98); }
+
+    .btn-primary {
+      background: #22d3a6;
+      color: #0a0c10;
+    }
+
+    .btn-secondary {
+      background: transparent;
+      border: 1px solid #22d3a6;
+      color: #22d3a6;
+    }
+
+    .btn-discord {
+      background: #5865f2;
+      color: #fff;
+      width: 100%;
+    }
+
+    /* Section divider */
+    .section-title {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: #f1f5f9;
+      letter-spacing: 0.05em;
+      margin-bottom: 1rem;
+      text-transform: uppercase;
+    }
+
+    .section-desc {
+      color: #64748b;
+      font-size: 0.875rem;
+      margin-bottom: 1.5rem;
+      line-height: 1.6;
+    }
+
+    /* SOL payment section */
+    .sol-section {
+      background: #0f1218;
+      border: 1px solid #1e2430;
+      border-radius: 10px;
+      padding: 2rem;
+      margin-bottom: 3rem;
+    }
+
+    .sol-layout {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 2rem;
+      align-items: flex-start;
+    }
+
+    .sol-qr {
+      flex-shrink: 0;
+    }
+
+    .sol-qr img {
+      width: 150px;
+      height: 150px;
+      border-radius: 8px;
+      border: 2px solid #1e2430;
+      display: block;
+    }
+
+    .sol-details { flex: 1; min-width: 240px; }
+
+    .sol-address-label {
+      font-size: 0.75rem;
+      color: #475569;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 0.35rem;
+    }
+
+    .sol-address-row {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 1.25rem;
+    }
+
+    .sol-address {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.8rem;
+      color: #94a3b8;
+      background: #141820;
+      padding: 0.5rem 0.75rem;
+      border-radius: 5px;
+      word-break: break-all;
+      flex: 1;
+    }
+
+    .btn-copy {
+      background: #141820;
+      border: 1px solid #2a3040;
+      color: #94a3b8;
+      padding: 0.45rem 0.85rem;
+      border-radius: 5px;
+      font-size: 0.8rem;
+      cursor: pointer;
+      transition: border-color 0.15s, color 0.15s;
+      font-family: 'Inter', sans-serif;
+      white-space: nowrap;
+    }
+
+    .btn-copy:hover { border-color: #22d3a6; color: #22d3a6; }
+    .btn-copy.copied { border-color: #22d3a6; color: #22d3a6; }
+
+    .sol-amounts {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .sol-amount-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: #141820;
+      border-radius: 5px;
+      padding: 0.5rem 0.75rem;
+    }
+
+    .sol-amount-tier {
+      font-size: 0.85rem;
+      color: #94a3b8;
+      font-weight: 500;
+    }
+
+    .sol-amount-val {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.85rem;
+      color: #22d3a6;
+      font-weight: 600;
+    }
+
+    /* Claim form */
+    .claim-section {
+      background: #0f1218;
+      border: 1px solid #1e2430;
+      border-radius: 10px;
+      padding: 2rem;
+      margin-bottom: 3rem;
+    }
+
+    .form-group {
+      margin-bottom: 1.25rem;
+    }
+
+    .form-label {
+      display: block;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: #64748b;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      margin-bottom: 0.4rem;
+    }
+
+    .form-input, .form-select {
+      width: 100%;
+      background: #141820;
+      border: 1px solid #2a3040;
+      border-radius: 6px;
+      color: #e2e8f0;
+      font-size: 0.9rem;
+      font-family: 'Inter', sans-serif;
+      padding: 0.65rem 0.85rem;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+
+    .form-input:focus, .form-select:focus { border-color: #22d3a6; }
+
+    .form-select option { background: #141820; }
+
+    .claim-note {
+      font-size: 0.8rem;
+      color: #475569;
+      margin-bottom: 1.5rem;
+      line-height: 1.6;
+    }
+
+    .claim-result {
+      margin-top: 1rem;
+      padding: 0.75rem 1rem;
+      border-radius: 6px;
+      font-size: 0.875rem;
+      display: none;
+    }
+
+    .claim-result.success {
+      background: #0d2b22;
+      border: 1px solid #22d3a6;
+      color: #22d3a6;
+      display: block;
+    }
+
+    .claim-result.error {
+      background: #2b0d0d;
+      border: 1px solid #ef4444;
+      color: #ef4444;
+      display: block;
+    }
+
+    /* Footer */
+    .page-footer {
+      background: #0f1218;
+      border-top: 1px solid #1e2430;
+      padding: 1.5rem 2rem;
+      text-align: center;
+    }
+
+    .footer-brand {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: #22d3a6;
+      letter-spacing: 0.08em;
+    }
+
+    .footer-copy {
+      font-size: 0.75rem;
+      color: #334155;
+      margin-top: 0.35rem;
+    }
+
+    .divider {
+      border: none;
+      border-top: 1px solid #1e2430;
+      margin: 2.5rem 0;
+    }
+
+    @media (max-width: 640px) {
+      .page-main { padding: 2rem 1rem; }
+      .sol-layout { flex-direction: column; }
+      .tier-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <header class="page-header">
+    <a href="/" class="header-logo">TILTCHECK</a>
+    <nav class="header-nav">
+      <a href="/dashboard">Dashboard</a>
+      <a href="/premium" aria-current="page" style="color:#22d3a6;">Premium</a>
+    </nav>
+  </header>
+
+  <main class="page-main">
+
+    <h1 class="page-title">Upgrade Your Degen Status</h1>
+    <p class="page-subtitle">
+      No paywalls on safety features. Paying gives you more signal, more tools, and faster access.
+      Pick the tier that fits. No recurring bullshit unless you want it.
+    </p>
+
+    <!-- TIER CARDS -->
+    <div class="tier-grid">
+
+      <!-- Degen Pro -->
+      <div class="tier-card">
+        <div class="tier-name">Degen Pass</div>
+        <div class="tier-price">$4.99</div>
+        <div class="tier-price-sub">per month, recurring via Discord</div>
+        <span class="tier-sol">~0.05 SOL/mo via crypto</span>
+        <ul class="tier-perks">
+          <li>Unlimited scans, no daily cap</li>
+          <li>Full SusLink threat analysis</li>
+          <li>Casino trust scores (full detail)</li>
+          <li>Priority bot alerts and DMs</li>
+          <li>Degen Pass Discord role</li>
+        </ul>
+        <a id="btn-discord-pro" href="https://discord.com/application-directory/1445916179163250860/premium" target="_blank" rel="noopener" class="btn btn-discord">
+          Subscribe via Discord
+        </a>
+      </div>
+
+      <!-- Elite -->
+      <div class="tier-card featured">
+        <div class="tier-badge">MOST VALUE</div>
+        <div class="tier-name">Platinum Pass</div>
+        <div class="tier-price">$14.99</div>
+        <div class="tier-price-sub">per month, recurring via Discord</div>
+        <span class="tier-sol">~0.15 SOL/mo via crypto</span>
+        <ul class="tier-perks">
+          <li>Everything in Degen Pass</li>
+          <li>Full API access (rate-limited to fair use)</li>
+          <li>Custom nudge thresholds</li>
+          <li>Beta feature access</li>
+          <li>OG Discord role</li>
+          <li>Early access to new modules</li>
+        </ul>
+        <a id="btn-discord-elite" href="https://discord.com/application-directory/1445916179163250860/premium" target="_blank" rel="noopener" class="btn btn-discord">
+          Subscribe via Discord
+        </a>
+      </div>
+
+      <!-- Lifetime Pass -->
+      <div class="tier-card">
+        <div class="tier-name">Lifetime Pass</div>
+        <div class="tier-price">$199.99</div>
+        <div class="tier-price-sub">one-time payment</div>
+        <span class="tier-sol">~1 SOL one-time via crypto</span>
+        <ul class="tier-perks">
+          <li>Lifetime Pass forever, no renewals</li>
+          <li>Every current Platinum perk</li>
+          <li>Early access to all new modules</li>
+          <li>Lifetime Pass Discord role</li>
+          <li>Priority support queue</li>
+        </ul>
+        <a id="btn-discord-lifetime" href="https://discord.com/application-directory/1445916179163250860/premium" target="_blank" rel="noopener" class="btn btn-discord">
+          Purchase via Discord
+        </a>
+      </div>
+
+      <!-- OG Lifetime Pass (beta price) -->
+      <div class="tier-card" style="border-color: #f59e0b;">
+        <div class="tier-name" style="color: #f59e0b;">OG Lifetime Pass</div>
+        <div class="tier-price">$99.99</div>
+        <div class="tier-price-sub">beta tester price &mdash; one-time</div>
+        <span class="tier-sol">~0.65 SOL one-time via crypto</span>
+        <ul class="tier-perks">
+          <li>Everything in Lifetime Pass</li>
+          <li>Locked in at beta price forever</li>
+          <li>OG Lifetime Discord role</li>
+          <li>Beta tester credit in release notes</li>
+        </ul>
+        <a id="btn-discord-og-lifetime" href="https://discord.com/application-directory/1445916179163250860/premium" target="_blank" rel="noopener" class="btn btn-discord" style="background: #f59e0b; color: #000;">
+          Purchase via Discord
+        </a>
+      </div>
+
+      <!-- Support the Project -->
+      <div class="tier-card" style="border-color: #6b7280;">
+        <div class="tier-name" style="color: #9ca3af;">Support the Project</div>
+        <div class="tier-price">$9.99</div>
+        <div class="tier-price-sub">one-time &mdash; no perks</div>
+        <ul class="tier-perks">
+          <li>No tier. No role. No perks.</li>
+          <li>Just fuel for the team building this.</li>
+          <li>If TiltCheck saved you from a bad session, this is how you return the favor.</li>
+        </ul>
+        <a id="btn-discord-support" href="https://discord.com/application-directory/1445916179163250860/premium" target="_blank" rel="noopener" class="btn btn-discord" style="background: #374151; color: #d1d5db;">
+          Support via Discord
+        </a>
+      </div>
+
+    </div>
+
+    <hr class="divider" />
+
+    <!-- SOL PAYMENT SECTION -->
+    <div class="sol-section">
+      <div class="section-title">Pay with Solana (SOL)</div>
+      <p class="section-desc">
+        Prefer crypto? Send SOL directly to the wallet below.
+        After your transaction confirms, submit your tx hash in the form below.
+        Roles are granted manually within 24 hours after verification.
+        No automated confirmation on-chain -- do not send without submitting the claim form.
+      </p>
+
+      <div class="sol-layout">
+        <div class="sol-qr">
+          <img
+            src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=solana:BvzEqVRUicmW8Y6HFncLYrGXESpMbSNDkWUNTQj5GGGi"
+            alt="Solana payment QR code"
+            width="150"
+            height="150"
+          />
+        </div>
+
+        <div class="sol-details">
+          <div class="sol-address-label">Payment Wallet Address</div>
+          <div class="sol-address-row">
+            <code class="sol-address" id="sol-wallet-addr">BvzEqVRUicmW8Y6HFncLYrGXESpMbSNDkWUNTQj5GGGi</code>
+            <button class="btn-copy" id="copy-wallet-btn" onclick="copyWallet()">Copy</button>
+          </div>
+
+          <div class="sol-amounts">
+            <div class="sol-amount-row">
+              <span class="sol-amount-tier">Degen Pass (monthly)</span>
+              <span class="sol-amount-val">0.05 SOL</span>
+            </div>
+            <div class="sol-amount-row">
+              <span class="sol-amount-tier">Platinum Pass (monthly)</span>
+              <span class="sol-amount-val">0.15 SOL</span>
+            </div>
+            <div class="sol-amount-row">
+              <span class="sol-amount-tier">Lifetime Pass (one-time)</span>
+              <span class="sol-amount-val">1.00 SOL</span>
+            </div>
+            <div class="sol-amount-row" style="color: #f59e0b;">
+              <span class="sol-amount-tier">OG Lifetime Pass (beta price, one-time)</span>
+              <span class="sol-amount-val">0.65 SOL</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CLAIM FORM -->
+    <div class="claim-section">
+      <div class="section-title">Claim Crypto Payment</div>
+      <p class="claim-note">
+        Paid via SOL? Fill this out. We verify the transaction on-chain and grant your role within 24 hours.
+        Make sure the tx hash is the confirmed Solana transaction ID from your wallet.
+        If the amount does not match the tier, it gets rejected. No partial payments.
+      </p>
+
+      <form id="claim-form" onsubmit="submitClaim(event)">
+        <div class="form-group">
+          <label class="form-label" for="discord-username">Discord Username</label>
+          <input
+            type="text"
+            id="discord-username"
+            class="form-input"
+            placeholder="yourname or yourname#0000"
+            required
+            autocomplete="off"
+          />
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="tx-hash">Transaction Hash</label>
+          <input
+            type="text"
+            id="tx-hash"
+            class="form-input"
+            placeholder="Solana tx signature (88 characters)"
+            required
+            autocomplete="off"
+            style="font-family: 'JetBrains Mono', monospace; font-size: 0.8rem;"
+          />
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="tier-select">Tier</label>
+          <select id="tier-select" class="form-select" required>
+            <option value="">Select tier</option>
+            <option value="degen-pass">Degen Pass (0.05 SOL/mo)</option>
+            <option value="platinum-pass">Platinum Pass (0.15 SOL/mo)</option>
+            <option value="lifetime-pass">Lifetime Pass (1.00 SOL)</option>
+            <option value="og-lifetime-pass">OG Lifetime Pass / Beta (0.65 SOL)</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="amount-sent">Amount Sent (SOL)</label>
+          <input
+            type="number"
+            id="amount-sent"
+            class="form-input"
+            placeholder="e.g. 0.05"
+            step="0.001"
+            min="0.001"
+            required
+          />
+        </div>
+
+        <button type="submit" class="btn btn-primary" id="claim-submit-btn">Submit Claim</button>
+      </form>
+
+      <div id="claim-result" class="claim-result"></div>
+    </div>
+
+  </main>
+
+  <footer class="page-footer">
+    <div class="footer-brand">Made for Degens. By Degens.</div>
+    <div class="footer-copy">© 2024–2026 TiltCheck Ecosystem. All Rights Reserved.</div>
+  </footer>
+
+  <script>
+    // Load Discord client ID and update subscription links
+    (async function () {
+      try {
+        const res = await fetch('/api/config/public');
+        if (res.ok) {
+          const data = await res.json();
+          const clientId = data.client_id || data.clientId || '';
+          if (clientId) {
+            const premiumUrl = 'https://discord.com/application-directory/' + clientId + '/premium';
+            document.getElementById('btn-discord-pro').href = premiumUrl;
+            document.getElementById('btn-discord-elite').href = premiumUrl;
+            document.getElementById('btn-discord-lifetime').href = premiumUrl;
+          }
+        }
+      } catch (_e) {
+        // Links stay at /PENDING path -- visible indicator to user
+      }
+    })();
+
+    function copyWallet() {
+      const addr = document.getElementById('sol-wallet-addr').textContent;
+      const btn = document.getElementById('copy-wallet-btn');
+      navigator.clipboard.writeText(addr).then(function () {
+        btn.textContent = 'Copied';
+        btn.classList.add('copied');
+        setTimeout(function () {
+          btn.textContent = 'Copy';
+          btn.classList.remove('copied');
+        }, 2000);
+      }).catch(function () {
+        btn.textContent = 'Failed';
+        setTimeout(function () { btn.textContent = 'Copy'; }, 2000);
+      });
+    }
+
+    async function submitClaim(event) {
+      event.preventDefault();
+      const btn = document.getElementById('claim-submit-btn');
+      const resultEl = document.getElementById('claim-result');
+      const discordUsername = document.getElementById('discord-username').value.trim();
+      const txHash = document.getElementById('tx-hash').value.trim();
+      const tier = document.getElementById('tier-select').value;
+      const amount = document.getElementById('amount-sent').value.trim();
+
+      if (!discordUsername || !txHash || !tier || !amount) {
+        resultEl.className = 'claim-result error';
+        resultEl.textContent = 'All fields required. Fill them out.';
+        return;
+      }
+
+      btn.disabled = true;
+      btn.textContent = 'Submitting...';
+      resultEl.className = 'claim-result';
+      resultEl.textContent = '';
+
+      try {
+        const res = await fetch('/api/payments/claim-crypto', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ discordUsername, txHash, tier, amount })
+        });
+
+        const data = await res.json();
+
+        if (res.ok && data.success) {
+          resultEl.className = 'claim-result success';
+          resultEl.textContent = data.message || 'Claim received. We will verify and grant your role within 24 hours.';
+          document.getElementById('claim-form').reset();
+        } else {
+          resultEl.className = 'claim-result error';
+          resultEl.textContent = data.error || 'Submission failed. Try again.';
+        }
+      } catch (_e) {
+        resultEl.className = 'claim-result error';
+        resultEl.textContent = 'Network error. Check your connection and try again.';
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Submit Claim';
+      }
+    }
+  </script>
+
+</body>
+</html>

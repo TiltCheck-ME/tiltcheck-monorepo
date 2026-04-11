@@ -1,12 +1,6 @@
-/* Copyright (c) 2026 TiltCheck. All rights reserved. */
-/**
- * Ping Command
- * 
- * Simple health check command.
- */
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-10
 
-import { SlashCommandBuilder, ChatInputCommandInteraction } from 'discord.js';
-import { successEmbed } from '@tiltcheck/discord-utils';
+import { SlashCommandBuilder, ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
 import type { Command } from '../types.js';
 
 export const ping: Command = {
@@ -18,10 +12,11 @@ export const ping: Command = {
     const sent = await interaction.deferReply({ fetchReply: true });
     const latency = sent.createdTimestamp - interaction.createdTimestamp;
 
-    const embed = successEmbed(
-      '🏓 Pong!',
-      `Bot latency: ${latency}ms\nWebSocket: ${interaction.client.ws.ping}ms`
-    );
+    const embed = new EmbedBuilder()
+      .setColor(0x22d3a6)
+      .setTitle('PONG')
+      .setDescription(`Bot latency: ${latency}ms\nWebSocket: ${interaction.client.ws.ping}ms`)
+      .setFooter({ text: 'Made for Degens. By Degens.' });
 
     await interaction.editReply({ embeds: [embed] });
   },

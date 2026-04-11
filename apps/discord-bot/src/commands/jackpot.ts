@@ -1,4 +1,4 @@
-/* Copyright (c) 2026 TiltCheck. All rights reserved. */
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-10
 /**
  * Trivia Prizepool Command
  * Shows and funds the community trivia jackpot.
@@ -23,31 +23,31 @@ export const jackpot: Command = {
 
     if (sub === 'status') {
       const embed = new EmbedBuilder()
-        .setColor(0xFFA500)
+        .setColor(0xf59e0b)
         .setTitle('TRIVIA PRIZEPOOL')
         .setDescription(
           `The community pot is live.\n\n` +
           `Play Degens Against Decency trivia to compete for the pool — winner takes all.\n\n` +
-          `*Pool balance is updated after each trivia round.*`
+          `Pool balance updates after each trivia round.`
         )
         .addFields(
           { name: 'How to Enter', value: 'Win a Degens Against Decency trivia round. No entry fee.', inline: false },
           { name: 'How to Add', value: 'Use `/jackpot fuel` to contribute SOL.', inline: false }
         )
-        .setFooter({ text: "The house gives back. Occasionally." });
+        .setFooter({ text: 'Made for Degens. By Degens.' });
 
       await interaction.reply({ embeds: [embed] });
 
     } else if (sub === 'fuel') {
       const embed = new EmbedBuilder()
-        .setColor(0xFFA500)
+        .setColor(0xf59e0b)
         .setTitle('ADDING TO THE PRIZEPOOL')
         .setDescription(
-          `You're adding **${amount} SOL** to the trivia prizepool.\n\n` +
-          `Use the link below to complete the transaction. Your wallet, your signature — we don't touch it.`
+          `Adding **${amount} SOL** to the trivia prizepool.\n\n` +
+          `Use the link below to complete the transaction. Your wallet, your signature — not our problem.`
         )
         .addFields({ name: 'Contribute via Solana Pay', value: `https://tiltcheck.me/pay/jackpot?amount=${amount}`, inline: false })
-        .setFooter({ text: "Bold of you to fund the thing you might win." });
+        .setFooter({ text: 'Made for Degens. By Degens.' });
 
       await interaction.reply({ embeds: [embed] });
     }

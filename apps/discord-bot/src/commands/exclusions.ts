@@ -111,8 +111,8 @@ export const blockGame: Command = {
         : `category **${GAME_CATEGORIES.find((c) => c.value === category)?.name ?? category}**`;
 
       const embed = new EmbedBuilder()
-        .setColor(0xdc2626)
-        .setTitle('Blocked.')
+        .setColor(0xef4444)
+        .setTitle('BLOCKED')
         .setDescription(
           `${label} is now on your no-fly list.\n\nThe extension will intercept it. The API will return a 403. Past-you just did present-you a solid.`
         )
@@ -154,7 +154,7 @@ export const unblockGame: Command = {
 
       const embed = new EmbedBuilder()
         .setColor(0xf59e0b)
-        .setTitle('Unblocked.')
+        .setTitle('UNBLOCKED')
         .setDescription(
           "Exclusion lifted. That game is accessible again.\n\nHopefully you know what you're doing. Touch grass if not."
         )
@@ -200,8 +200,8 @@ export const myExclusions: Command = {
       });
 
       const embed = new EmbedBuilder()
-        .setColor(0x7c3aed)
-        .setTitle('Your Surgical Exclusion List')
+        .setColor(0x22d3a6)
+        .setTitle('EXCLUSION LIST')
         .setDescription(lines.join('\n\n'))
         .addFields([
           {

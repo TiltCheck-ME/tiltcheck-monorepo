@@ -352,6 +352,9 @@ importers:
       '@discord/embedded-app-sdk':
         specifier: ^1.7.0
         version: 1.9.0
+      '@solana/web3.js':
+        specifier: ^1.98.4
+        version: 1.98.4(bufferutil@4.1.0)(encoding@0.1.13)(typescript@6.0.2)(utf-8-validate@5.0.10)
       '@tiltcheck/config':
         specifier: workspace:*
         version: link:../../packages/config
@@ -378,7 +381,7 @@ importers:
         version: link:../../packages/utils
       discord.js:
         specifier: ^14.25.1
-        version: 14.25.1(bufferutil@4.1.0)(utf-8-validate@6.0.6)
+        version: 14.25.1(bufferutil@4.1.0)(utf-8-validate@5.0.10)
       dotenv:
         specifier: ^17.3.1
         version: 17.3.1
@@ -398,6 +401,9 @@ importers:
 
   apps/discord-bot:
     dependencies:
+      '@discord/embedded-app-sdk':
+        specifier: ^2.4.1
+        version: 2.4.1
       '@elastic/elasticsearch':
         specifier: ^9.3.4
         version: 9.3.4
@@ -416,9 +422,15 @@ importers:
       '@tiltcheck/config':
         specifier: workspace:*
         version: link:../../packages/config
+      '@tiltcheck/dad':
+        specifier: workspace:*
+        version: link:../../modules/dad
       '@tiltcheck/database':
         specifier: workspace:*
         version: link:../../packages/database
+      '@tiltcheck/discord-activities':
+        specifier: workspace:*
+        version: link:../../packages/discord-activities
       '@tiltcheck/discord-utils':
         specifier: workspace:*
         version: link:../../packages/discord-utils

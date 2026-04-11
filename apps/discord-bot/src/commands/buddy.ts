@@ -31,7 +31,7 @@ export const buddy: Command = {
     const targetUser = interaction.options.getUser('user');
 
     const embed = new EmbedBuilder()
-      .setColor(0x00CED1)
+      .setColor(0x22d3a6)
       .setTimestamp();
 
     try {
@@ -49,32 +49,32 @@ export const buddy: Command = {
           updated_at: new Date().toISOString(),
         });
 
-        embed.setTitle('[BUDDY LINKED]')
-          .setDescription(`**${targetUser.username}** is now your accountability partner.\n\nWhen telemetry goes red, they will be notified to intervene and audit your head.`)
-          .setFooter({ text: 'Audit your head mid-session.' });
+        embed.setTitle('BUDDY LINKED')
+          .setDescription(`**${targetUser.username}** is now your accountability partner.\n\nWhen telemetry goes red, they get notified to audit your head.`)
+          .setFooter({ text: 'Made for Degens. By Degens.' });
 
         await interaction.reply({ embeds: [embed] });
 
       } else if (sub === 'unlink' && targetUser) {
         await removeBuddy(interaction.user.id, targetUser.id);
 
-        embed.setTitle('[BUDDY REMOVED]')
-          .setColor(0xFF4500)
-          .setDescription(`Safety line to **${targetUser.username}** has been cut.\n\nYou're on your own now. Audit your sessions carefully.`)
-          .setFooter({ text: 'TiltCheck: AUDIT INTEGRITY AT RISK' });
+        embed.setTitle('BUDDY REMOVED')
+          .setColor(0xef4444)
+          .setDescription(`Safety line to **${targetUser.username}** cut.\n\nYou are on your own. Audit your sessions.`)
+          .setFooter({ text: 'Made for Degens. By Degens.' });
 
         await interaction.reply({ embeds: [embed] });
 
       } else if (sub === 'status') {
         const partners = await getUserBuddies(interaction.user.id);
 
-        embed.setTitle('[BUDDY NETWORK]')
+        embed.setTitle('BUDDY NETWORK')
           .setDescription(
             partners.length > 0
-              ? `**Active Safety Partners (${partners.length}):**\n${partners.map(p => `- <@${p.buddy_id}>`).join('\n')}\n\nIf you spiral, these users will be moved to VC with you.`
-              : 'No safety partners linked.\n\nUse \`/buddy link user:@someone\` to add one. Accountability works.'
+              ? `**Active Safety Partners (${partners.length}):**\n${partners.map(p => `- <@${p.buddy_id}>`).join('\n')}\n\nIf you spiral, these users get moved to VC with you.`
+              : 'No safety partners linked.\n\nUse `/buddy link user:@someone` to add one. Accountability works.'
           )
-          .setFooter({ text: 'Audit your head mid-session.' });
+          .setFooter({ text: 'Made for Degens. By Degens.' });
 
         await interaction.reply({ embeds: [embed], ephemeral: true });
       }
