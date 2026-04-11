@@ -1,5 +1,7 @@
 // © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-11
 import ToolCard from "@/components/ToolCard";
+import CommunityVaultStrip from "@/components/CommunityVaultStrip";
+import RtpDriftTicker from "@/components/RtpDriftTicker";
 
 import { features } from "@/config/features";
 
@@ -58,6 +60,12 @@ export default function Home() {
 
       {/* Section divider */}
       <div className="section-divider" aria-hidden="true" />
+
+      {/* Community Vault Strip — social proof */}
+      <CommunityVaultStrip />
+
+      {/* RTP Drift Live Feed */}
+      <RtpDriftTicker />
 
       {/* Tools Section */}
       <section id="tools" className="w-full max-w-7xl mx-auto pt-8 pb-16">

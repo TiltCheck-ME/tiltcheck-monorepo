@@ -9,6 +9,7 @@ import Footer from '@/components/Footer';
 import ActivityFeed from '@/components/ActivityFeed';
 import LockVault from '@/components/LockVault';
 import GuardianManager from '@/components/GuardianManager';
+import TouchGrassButton from '@/components/TouchGrassButton';
 
 /**
  * DashboardPage
@@ -190,6 +191,13 @@ export default function DashboardPage() {
                 )}
             </div>
         </div>
+
+        {/* Touch Grass — emergency 24hr lockout */}
+        {isConnected && userData && (
+          <div className="mt-8">
+            <TouchGrassButton discordId={userData.discordId} />
+          </div>
+        )}
 
         {/* Pillar 3: LockVault — only shown after wallet linked via /linkwallet in Discord */}
         {userData && (

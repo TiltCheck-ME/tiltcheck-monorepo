@@ -1408,3 +1408,41 @@ body.degen-background > * {
     padding-right: 1rem;
   }
 }
+
+/* ─── RTP Drift Ticker ────────────────────────────────────────────── */
+@keyframes ticker-scroll {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+.ticker-track {
+  overflow: hidden;
+  width: 100%;
+}
+
+.ticker-list {
+  display: flex;
+  gap: 3rem;
+  list-style: none;
+  margin: 0;
+  padding: 0 1rem;
+  white-space: nowrap;
+  animation: ticker-scroll 40s linear infinite;
+  width: max-content;
+}
+
+.ticker-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.ticker-casino  { color: #ffffff; }
+.ticker-sep     { color: #374151; }
+.ticker-game    { color: #9ca3af; }
+.ticker-drift   { font-weight: 900; margin-left: 0.25rem; }
+.ticker-time    { font-size: 0.65rem; margin-left: 0.25rem; }

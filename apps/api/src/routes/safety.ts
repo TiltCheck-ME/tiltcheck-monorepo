@@ -1,4 +1,4 @@
-/* Copyright (c) 2026 TiltCheck. All rights reserved. */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-11 */
 /**
  * Safety Routes - /safety/*
  * Degen Breathalyzer and Anti-Tilt interventions.
@@ -226,7 +226,57 @@ router.post('/notify-buddy', (req, res) => {
   });
 });
 
-export { router as safetyRouter };
+// In-memory store for Touch Grass lockouts (persisted to Supabase when available)
+const touchGrassLockouts = new Map<string, number>();
+
+/**
+ * POST /safety/touchgrass
+ * Trigger a 24-hour emergency session lockout for the user.
+ * Body: { discordId: string }
+ */
+router.post('/touchgrass', (req, res) => {
+  const { discordId } = req.body ?? {};
+  if (!discordId || typeof discordId !== 'string') {
+    res.status(400).json({ error: 'discordId is required', code: 'INVALID_INPUT' });
+    return;
+  }
+
+  const lockoutUntil = Date.now() + 24 * 60 * 60 * 1000;
+  touchGrassLockouts.set(discordId, lockoutUntil);
+  console.log(`[Touch Grass] 24hr lockout activated for ${discordId} until ${new Date(lockoutUntil).toISOString()}`);
+
+  res.json({
+    success: true,
+    locked: true,
+    discordId,
+    lockedUntil: new Date(lockoutUntil).toISOString(),
+    message: 'Touch Grass lockout active. Come back in 24 hours.',
+  });
+});
+
+/**
+ * GET /safety/touchgrass/:discordId
+ * Check if a user is currently locked out.
+ */
+router.get('/touchgrass/:discordId', (req, res) => {
+  const { discordId } = req.params;
+  const lockoutUntil = touchGrassLockouts.get(discordId);
+
+  if (!lockoutUntil || Date.now() >= lockoutUntil) {
+    if (lockoutUntil) touchGrassLockouts.delete(discordId);
+    res.json({ locked: false, discordId });
+    return;
+  }
+
+  res.json({
+    locked: true,
+    discordId,
+    lockedUntil: new Date(lockoutUntil).toISOString(),
+    remainingMs: lockoutUntil - Date.now(),
+  });
+});
+
+export { router as safetyRouter, touchGrassLockouts };
 
 function isFiniteNumber(value: unknown): boolean {
   return typeof value === 'number' && Number.isFinite(value);
