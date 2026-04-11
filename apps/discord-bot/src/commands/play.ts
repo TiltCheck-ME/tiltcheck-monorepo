@@ -1,6 +1,4 @@
-/**
- * © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-02
- */
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-10
 
 import {
   SlashCommandBuilder,
@@ -23,7 +21,7 @@ export function setActivityManager(manager: any): void {
 async function execute(interaction: ChatInputCommandInteraction): Promise<void> {
   if (!activityManager) {
     await interaction.reply({
-      content: 'Activity system not initialized. Please try again later.',
+      content: 'Activity system not loaded. Try again.',
       ephemeral: true,
     });
     return;
@@ -58,9 +56,9 @@ async function execute(interaction: ChatInputCommandInteraction): Promise<void> 
 
     // Build embed
     const embed = new EmbedBuilder()
-      .setColor('#00A8FF')
-      .setTitle(`Launch ${activityType.toUpperCase()}`)
-      .setDescription(`Ready to play some ${activityType}? Click the button below to start.`)
+      .setColor(0x22d3a6)
+      .setTitle(`LAUNCH ${activityType.toUpperCase()}`)
+      .setDescription(`${activityType.charAt(0).toUpperCase() + activityType.slice(1)} session ready. Click below to start.`)
       .addFields(
         { name: 'Game Type', value: activityType, inline: true },
         { name: 'Status', value: instance.status, inline: true },
@@ -91,7 +89,7 @@ async function execute(interaction: ChatInputCommandInteraction): Promise<void> 
   } catch (error) {
     console.error('[/play command] Error:', error);
     await interaction.editReply({
-      content: 'Failed to launch activity. Please try again later.',
+      content: 'Activity launch failed. Try again.',
     });
   }
 }

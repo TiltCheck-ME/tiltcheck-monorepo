@@ -118,13 +118,12 @@ export const lobby: Command = {
             `*Minimum 2 players required to start.*`,
         )
         .addFields({ name: `Players (1/${maxPlayers})`, value: `<@${userId}>` })
-        .setFooter({ text: 'Degens Against Decency — Made for Degens. By Degens.' });
+        .setFooter({ text: 'Made for Degens. By Degens.' });
 
       await interaction.reply({ embeds: [embed] });
       return;
     }
 
-    // --- JOIN ---
     if (sub === 'join') {
       const gameId = activeGames.get(channelId);
       const game = gameId ? dad.getGame(gameId) : undefined;
@@ -152,13 +151,13 @@ export const lobby: Command = {
 
       const embed = new EmbedBuilder()
         .setColor(0x8b5cf6)
-        .setTitle('Degens Against Decency — PLAYER JOINED')
+        .setTitle('PLAYER JOINED')
         .setDescription(`<@${userId}> is in.`)
         .addFields({
           name: `Players (${game.players.size}/${game.maxPlayers})`,
           value: playerList,
         })
-        .setFooter({ text: 'Degens Against Decency — Made for Degens. By Degens.' });
+        .setFooter({ text: 'Made for Degens. By Degens.' });
 
       await interaction.reply({ embeds: [embed] });
       return;
@@ -192,7 +191,7 @@ export const lobby: Command = {
 
         const embed = new EmbedBuilder()
           .setColor(0x22d3a6)
-          .setTitle(`Degens Against Decency — ROUND 1 OF ${started.maxRounds}`)
+          .setTitle(`ROUND 1 OF ${started.maxRounds}`)
           .setDescription(`**Black Card:**\n> ${round.blackCard.text}`)
           .addFields(
             { name: 'Judge', value: `<@${round.judgeUserId}>`, inline: true },
@@ -208,7 +207,7 @@ export const lobby: Command = {
               inline: false,
             },
           )
-          .setFooter({ text: 'Degens Against Decency — Made for Degens. By Degens.' });
+          .setFooter({ text: 'Made for Degens. By Degens.' });
 
         await interaction.reply({ embeds: [embed] });
       } catch (err: unknown) {
@@ -261,7 +260,7 @@ export const lobby: Command = {
         .setColor(0x374151)
         .setTitle('YOUR HAND')
         .setDescription(handText)
-        .setFooter({ text: 'Use /lobby submit <number> to play. Only you can see this.' });
+        .setFooter({ text: 'Made for Degens. By Degens.' });
 
       await interaction.reply({ embeds: [embed], ephemeral: true });
       return;
@@ -318,7 +317,7 @@ export const lobby: Command = {
 
         const embed = new EmbedBuilder()
           .setColor(0xf59e0b)
-          .setTitle(`Degens Against Decency — ROUND ${game.currentRound} REVEAL`)
+          .setTitle(`ROUND ${game.currentRound} REVEAL`)
           .setDescription(
             `**Black Card:**\n> ${round.blackCard.text}\n\n**Submissions:**\n${revealLines}`,
           )
@@ -326,7 +325,7 @@ export const lobby: Command = {
             name: 'Judge',
             value: `<@${round.judgeUserId}> — use \`/lobby pick <number>\` to pick the winner`,
           })
-          .setFooter({ text: 'Degens Against Decency — Made for Degens. By Degens.' });
+          .setFooter({ text: 'Made for Degens. By Degens.' });
 
         await interaction.reply({ embeds: [embed] });
       } else {
@@ -394,11 +393,11 @@ export const lobby: Command = {
 
         const embed = new EmbedBuilder()
           .setColor(0x22d3a6)
-          .setTitle('Degens Against Decency — GAME OVER')
+          .setTitle('GAME OVER')
           .setDescription(
             `<@${userId}> picks **"${winningText}"** by <@${submission.userId}>.\n\n**Final Scores:**\n${finalScores}`,
           )
-          .setFooter({ text: 'Degens Against Decency — Made for Degens. By Degens.' });
+          .setFooter({ text: 'Made for Degens. By Degens.' });
 
         await interaction.reply({ embeds: [embed] });
         return;
@@ -408,7 +407,7 @@ export const lobby: Command = {
 
       const embed = new EmbedBuilder()
         .setColor(0x22d3a6)
-        .setTitle(`Degens Against Decency — ROUND ${game.currentRound} WINNER`)
+        .setTitle(`ROUND ${game.currentRound} WINNER`)
         .setDescription(
           `<@${userId}> picks **"${winningText}"** by <@${submission.userId}>!\n<@${submission.userId}> scores a point.`,
         )
@@ -423,7 +422,7 @@ export const lobby: Command = {
             inline: true,
           },
         )
-        .setFooter({ text: 'Degens Against Decency — Made for Degens. By Degens.' });
+        .setFooter({ text: 'Made for Degens. By Degens.' });
 
       await interaction.reply({ embeds: [embed] });
       return;
@@ -459,12 +458,12 @@ export const lobby: Command = {
 
       const embed = new EmbedBuilder()
         .setColor(0x8b5cf6)
-        .setTitle('Degens Against Decency — SCORES')
+        .setTitle('SCORES')
         .addFields(
           { name: 'Status', value: statusLine, inline: true },
           { name: 'Scoreboard', value: scoreLines || 'No scores yet.' },
         )
-        .setFooter({ text: 'Degens Against Decency — Made for Degens. By Degens.' });
+        .setFooter({ text: 'Made for Degens. By Degens.' });
 
       await interaction.reply({ embeds: [embed] });
       return;

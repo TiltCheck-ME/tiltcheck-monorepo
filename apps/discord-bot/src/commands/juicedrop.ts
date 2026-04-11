@@ -103,10 +103,8 @@ React to claim your share.
       .setFooter({ text: 'Made for Degens. By Degens.' });
 
     const dropMessage = await (interaction.channel as any)?.send({ embeds: [dropEmbed] }) as Message;
-    await dropMessage.react('📦'); // Replaced generic juice with package/box for better "math" feel if needed.
-    // Wait, I should probably use a button here if I want to avoid emoji reactions entirely.
-    // But for now, I'll use a less "fun" emoji or just a symbol if Discord allows.
-    // I'll stick to a package/box or something neutral.
+    await dropMessage.react('📦');
+    // Reaction-based claim mechanic — users react to enter the drop.
 
     // 5. Collect Reactions
     const filter = (reaction: any, user: any) => reaction.emoji.name === '📦' && !user.bot;

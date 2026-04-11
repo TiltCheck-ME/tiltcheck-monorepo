@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-12
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-10
 
 import {
   SlashCommandBuilder,
@@ -627,7 +627,7 @@ export const triviadrop: Command = {
 
     const fundEmbed = new EmbedBuilder()
       .setColor(0x8b5cf6)
-      .setTitle('[TRIVIA DROP — FUND ESCROW]')
+      .setTitle('TRIVIA DROP — FUND ESCROW')
       .setDescription(
         `Prize pool: **${prizeSol.toFixed(4)} SOL** | **${rounds} round(s)** | **${timer}s per question** | Topic: **${topic.replace('_', ' ')}**
 
@@ -637,7 +637,7 @@ Fund this address to start the game. You have **2.5 minutes.**
 
 The escrow keypair is persisted securely — funds are recoverable if the bot restarts.`
       )
-      .setFooter({ text: 'Non-custodial. Your keys stay yours. Escrow exists only for the duration of this game.' });
+      .setFooter({ text: 'Made for Degens. By Degens.' });
 
     await interaction.editReply({ embeds: [fundEmbed], components: [fundRow] });
 
@@ -665,11 +665,11 @@ The escrow keypair is persisted securely — funds are recoverable if the bot re
     // -------------------------------------------------------------------------
     const startEmbed = new EmbedBuilder()
       .setColor(0x22d3a6)
-      .setTitle('[TRIVIA DROP — GAME ON]')
+      .setTitle('TRIVIA DROP — GAME ON')
       .setDescription(
         `${interaction.user} is hosting a **${topic.replace('_', ' ')}** trivia game.\n\n**Prize Pool:** ${prizeSol.toFixed(4)} SOL | **Rounds:** ${rounds} | **Timer:** ${timer}s per question\n\nReact with the correct letter to earn your share of each round's prize.\nAll correct reactors split the round — no first-place advantage.`
       )
-      .setFooter({ text: 'Winners must have /linkwallet set. Unclaimed prizes go to the community wallet.' });
+      .setFooter({ text: 'Made for Degens. By Degens.' });
 
     await channel.send({ embeds: [startEmbed] });
     await delay(3000);
@@ -686,9 +686,9 @@ The escrow keypair is persisted securely — funds are recoverable if the bot re
 
       const questionEmbed = new EmbedBuilder()
         .setColor(0xf59e0b)
-        .setTitle(`[ROUND ${round}/${rounds}] — ${timer}s to answer`)
+        .setTitle(`ROUND ${round} OF ${rounds} — ${timer}s`)
         .setDescription(`**${q.text}**\n\n${Object.entries(q.choices).map(([k, v]) => `${ANSWER_EMOJIS[k as AnswerKey]} **${k}.** ${v}`).join('\n')}`)
-        .setFooter({ text: `Round prize: ~${(prizePerRound / LAMPORTS_PER_SOL).toFixed(4)} SOL split among all correct reactors` });
+        .setFooter({ text: 'Made for Degens. By Degens.' });
 
       const qMessage: Message = await channel.send({ embeds: [questionEmbed] });
 
@@ -723,12 +723,13 @@ The escrow keypair is persisted securely — funds are recoverable if the bot re
 
           const resultEmbed = new EmbedBuilder()
             .setColor(correctUserIds.length > 0 ? 0x22d3a6 : 0xef4444)
-            .setTitle(`[ROUND ${round} RESULT]`)
+            .setTitle(`ROUND ${round} RESULT`)
             .setDescription(
               correctUserIds.length > 0
                 ? `Correct answer: **${q.answer} — ${q.choices[q.answer]}**\n\n${q.explanation}\n\n**${correctUserIds.length} degen(s) got it right** — each earns ~${(Math.floor(prizePerRound / correctUserIds.length) / LAMPORTS_PER_SOL).toFixed(4)} SOL`
                 : `Correct answer: **${q.answer} — ${q.choices[q.answer]}**\n\n${q.explanation}\n\nNobody got it right. Round prize rolls into the pool.`
-            );
+            )
+            .setFooter({ text: 'Made for Degens. By Degens.' });
 
           await channel.send({ embeds: [resultEmbed] });
           await delay(2000);
@@ -743,10 +744,11 @@ The escrow keypair is persisted securely — funds are recoverable if the bot re
     if (winnings.size === 0) {
       const noWinnersEmbed = new EmbedBuilder()
         .setColor(0xef4444)
-        .setTitle('[TRIVIA DROP — NO WINNERS]')
+        .setTitle('TRIVIA DROP — NO WINNERS')
         .setDescription(
           `Nobody answered correctly across all ${rounds} rounds.\n\nThe full prize pool of **${prizeSol.toFixed(4)} SOL** is being donated to the TiltCheck community wallet.\n\`${COMMUNITY_WALLET}\``
-        );
+        )
+        .setFooter({ text: 'Made for Degens. By Degens.' });
       await channel.send({ embeds: [noWinnersEmbed] });
 
       try {
@@ -770,8 +772,9 @@ The escrow keypair is persisted securely — funds are recoverable if the bot re
     // Build payout transaction
     const payoutEmbed = new EmbedBuilder()
       .setColor(0x8b5cf6)
-      .setTitle('[TRIVIA DROP — PAYING OUT]')
-      .setDescription('Sending winnings now...');
+      .setTitle('TRIVIA DROP — PAYING OUT')
+      .setDescription('Sending winnings now...')
+      .setFooter({ text: 'Made for Degens. By Degens.' });
     await channel.send({ embeds: [payoutEmbed] });
 
     const transaction = new Transaction();
@@ -817,7 +820,7 @@ The escrow keypair is persisted securely — funds are recoverable if the bot re
 
       const finalEmbed = new EmbedBuilder()
         .setColor(0x22d3a6)
-        .setTitle('[TRIVIA DROP — COMPLETE]')
+        .setTitle('TRIVIA DROP — COMPLETE')
         .setDescription(
           `**Winners (${winnings.size}):**\n${payoutLines.join('\n')}\n\n**Total paid:** ${(totalPaidLamports / LAMPORTS_PER_SOL).toFixed(4)} SOL\n\n[View on Solscan](https://solscan.io/tx/${sig})`
         )

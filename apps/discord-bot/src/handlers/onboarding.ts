@@ -1,4 +1,4 @@
-/* Copyright (c) 2026 TiltCheck. All rights reserved. */
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-10
 /**
  * Onboarding System for TiltCheck Safety Bot
  * Handles first-time user welcome and safety preferences
@@ -218,6 +218,7 @@ export async function sendWelcomeDM(user: User): Promise<boolean> {
     const dmChannel = await user.createDM();
 
     const welcomeEmbed = new EmbedBuilder()
+      .setColor(0x22d3a6)
       .setDescription(
         `USER IDENTIFIED: **${user.username}**. I AM TILTCHECK. I AM THE RELUCTANT BABYSITTER FOR YOUR BANKROLL.\n\n` +
         `I AM MONITORING THE ARENA FOR:\n` +
@@ -229,7 +230,7 @@ export async function sendWelcomeDM(user: User): Promise<boolean> {
         `SYNC YOUR DEGEN ID?`
       )
       .setThumbnail('https://tiltcheck.me/assets/logo/favicon-white.svg')
-      .setFooter({ text: `TiltCheck Safety Bot | ${getRandomQuote()}` });
+      .setFooter({ text: 'Made for Degens. By Degens.' });
 
     const getStartedBtn = new ButtonBuilder()
       .setCustomId('onboard_start')
@@ -274,7 +275,7 @@ export async function handleOnboardingInteraction(
 
     case 'onboard_later':
       await interaction.update({
-        content: 'No worries. When you are ready, run `/tiltcheck status` or `/help` to get started.',
+        content: 'When you are ready, run `/help` to get started.',
         embeds: [],
         components: [],
       });
@@ -290,7 +291,7 @@ export async function handleOnboardingInteraction(
 
     case 'onboard_decline_terms':
       await interaction.update({
-        content: 'All good. You can come back any time with `/tiltcheck status` or `/help`.',
+        content: 'Come back any time with `/help` to get set up.',
         embeds: [],
         components: [],
       });
@@ -314,8 +315,8 @@ export async function handleOnboardingInteraction(
  */
 async function showTermsAndConditions(interaction: MessageComponentInteraction): Promise<void> {
   const termsEmbed = new EmbedBuilder()
-    .setColor(0x00D4AA)
-    .setTitle('Quick Terms')
+    .setColor(0x22d3a6)
+    .setTitle('QUICK TERMS')
     .setDescription(
       `Before we proceed:\n\n` +
       `**Safety First**\n` +
@@ -325,9 +326,10 @@ async function showTermsAndConditions(interaction: MessageComponentInteraction):
       `**No Financial Advice**\n` +
       `Nothing here is financial advice.\n\n` +
       `**Risk Quiz**\n` +
-      `I'll ask a few questions to calibrate your nudge sensitivity.\n\n` +
+      `A few questions to calibrate your nudge sensitivity.\n\n` +
       `By continuing, you agree to the Edge Equalizer audit protocol.`
-    );
+    )
+    .setFooter({ text: 'Made for Degens. By Degens.' });
 
   const startQuizBtn = new ButtonBuilder()
     .setCustomId('onboard_accept_terms')
@@ -360,10 +362,10 @@ async function showRiskQuiz(
   }
 
   const quizEmbed = new EmbedBuilder()
-    .setColor(0x00D4AA)
+    .setColor(0x22d3a6)
     .setTitle(`AUDIT CALIBRATION — STEP ${stepIndex + 1} OF ${ONBOARDING_QUESTIONS.length}`)
     .setDescription(`**${question.text}**`)
-    .setFooter({ text: `TiltCheck Calibration | ${getRandomQuote()}` });
+    .setFooter({ text: 'Made for Degens. By Degens.' });
 
   const rows: ActionRowBuilder<ButtonBuilder>[] = [];
   let currentRow = new ActionRowBuilder<ButtonBuilder>();
@@ -435,8 +437,8 @@ async function handleQuizSelection(interaction: MessageComponentInteraction): Pr
  */
 async function showLearnMore(interaction: MessageComponentInteraction): Promise<void> {
   const learnEmbed = new EmbedBuilder()
-    .setColor(0x00D4AA)
-    .setTitle('What is TiltCheck')
+    .setColor(0x22d3a6)
+    .setTitle('WHAT IS TILTCHECK')
     .setDescription(
       `**TiltCheck** is a safety bot for responsible play in Discord.\n\n` +
       `**Check your status**\n` +
@@ -450,7 +452,7 @@ async function showLearnMore(interaction: MessageComponentInteraction): Promise<
       `**Ecosystem**\n` +
       `Tips and wallets are handled by **JustTheTip**. Fairness data is updated in REALTIME via the Edge Equalizer SDK.`
     )
-    .setFooter({ text: `TiltCheck | ${getRandomQuote()}` });
+    .setFooter({ text: 'Made for Degens. By Degens.' });
 
   const startBtn = new ButtonBuilder()
     .setCustomId('onboard_start')
@@ -493,10 +495,10 @@ async function showPreferences(
     : `Almost done. Customize your experience.\n\n**Notifications**\nChoose what you want to be notified about.\n\n**Risk Level**\nThis affects default cooldown suggestions and safety nudges.`;
 
   const prefsEmbed = new EmbedBuilder()
-    .setColor(0x00D4AA)
-    .setTitle(isSuggested ? '[SUGGESTED PROFILE]' : 'CALIBRATE NUDGE SENSITIVITY')
+    .setColor(0x22d3a6)
+    .setTitle(isSuggested ? 'SUGGESTED PROFILE' : 'CALIBRATE NUDGE SENSITIVITY')
     .setDescription(description)
-    .setFooter({ text: `TiltCheck Protocol | ${getRandomQuote()}` });
+    .setFooter({ text: 'Made for Degens. By Degens.' });
 
   const notifSelect = new StringSelectMenuBuilder()
     .setCustomId('onboard_pref_notifications')
@@ -559,14 +561,15 @@ async function showPreferences(
  */
 export async function showPreferencesMessage(channel: DMChannel, _userId: string): Promise<void> {
   const prefsEmbed = new EmbedBuilder()
-    .setColor(0x00D4AA)
-    .setTitle('Set Your Preferences')
+    .setColor(0x22d3a6)
+    .setTitle('SET YOUR PREFERENCES')
     .setDescription(
-      `Almost done. Pick your risk level:\n\n` +
+      `Pick your risk level:\n\n` +
       `Conservative - More cooldown reminders, lower limits suggested\n` +
       `Moderate - Balanced approach (default)\n` +
       `Full Degen - Minimal hand-holding`
-    );
+    )
+    .setFooter({ text: 'Made for Degens. By Degens.' });
 
   const conservativeBtn = new ButtonBuilder()
     .setCustomId('onboard_pref_risk_conservative')
@@ -652,7 +655,7 @@ async function completeOnboarding(interaction: MessageComponentInteraction): Pro
   ].filter(Boolean).join(', ') || 'None';
 
   const completedEmbed = new EmbedBuilder()
-    .setColor(0x00FF00)
+    .setColor(0x22d3a6)
     .setTitle('PROFILE ACTIVATED')
     .setDescription(
       `REGISTRATION COMPLETE, **${interaction.user.username}**.\n\n` +
@@ -666,7 +669,7 @@ async function completeOnboarding(interaction: MessageComponentInteraction): Pro
       `/verify - PROVABLY FAIR VERIFIER\n\n` +
       `IF YOUR BRAIN IS SMOKING, PULL THE BRAKE.`
     )
-    .setFooter({ text: `TiltCheck Safety Bot | ${getRandomQuote()}` });
+    .setFooter({ text: 'Made for Degens. By Degens.' });
 
   const discordBtn = new ButtonBuilder()
     .setLabel('Join TiltCheck Discord')
