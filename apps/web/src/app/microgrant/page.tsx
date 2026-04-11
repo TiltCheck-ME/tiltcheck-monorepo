@@ -101,14 +101,14 @@ export default function MicrograntPage() {
       {!APPLICATIONS_OPEN && (
         <div className="bg-yellow-500/10 border-b border-yellow-500/40 py-3 px-4 text-center">
           <p className="text-sm font-mono font-bold text-yellow-400 uppercase tracking-widest">
-            Applications Closed — Fund Not Yet Seeded &nbsp;·&nbsp;{' '}
+            Applications opening soon &nbsp;·&nbsp;{' '}
             <a
               href="https://discord.gg/gdBsEJfCar"
               target="_blank"
               rel="noopener noreferrer"
               className="underline hover:no-underline text-yellow-300"
             >
-              Join Discord to get notified when they open →
+              Join Discord to get notified &rarr;
             </a>
           </p>
         </div>

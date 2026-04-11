@@ -1,94 +1,98 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-09 */
-import React from 'react';
-import Link from 'next/link';
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-11 */
+"use client";
+import React, { useState } from 'react';
 
-export const dynamic = 'force-dynamic';
+export default function BlogPage() {
+  const [email, setEmail] = useState('');
+  const [submitted, setSubmitted] = useState(false);
 
-// Since this is a server component in Next.js, we can fetch directly or from the API
-// For now, we'll hit the API we just created.
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.tiltcheck.me/blog';
-
-async function getPosts() {
-  try {
-    const res = await fetch(API_URL, { next: { revalidate: 3600 } });
-    if (!res.ok) return [];
-    const json = await res.json();
-    return json.success ? json.data.rows : [];
-  } catch (error) {
-    console.error('Failed to fetch blog posts:', error);
-    return [];
-  }
-}
-
-// Define the local type for the blog post based on our DB schema
-interface BlogPost {
-  id: string;
-  title: string;
-  slug: string;
-  content: string;
-  excerpt?: string;
-  author?: string;
-  tags?: string[];
-  created_at: string;
-}
-
-export default async function BlogPage() {
-  const posts: BlogPost[] = await getPosts();
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email) return;
+    setSubmitted(true);
+  };
 
   return (
-    <main className="flex min-h-screen flex-col items-center p-4 pt-24 max-w-5xl mx-auto">
+    <main className="flex min-h-screen flex-col items-center p-4 pt-24 max-w-4xl mx-auto">
       <section className="w-full mb-12">
-        <h1 className="neon neon-main text-4xl md:text-5xl mb-4" data-text="DEGEN INTEL">
+        <p className="text-xs font-mono text-[#17c3b2] uppercase tracking-widest mb-4">[INTEL_FEED]</p>
+        <h1 className="neon neon-main text-4xl md:text-6xl mb-4 font-black uppercase tracking-tighter" data-text="DEGEN INTEL">
           DEGEN INTEL
         </h1>
-        <p className="text-muted max-w-2xl border-l-2 border-primary pl-4 py-2">
-          Clinical analysis of variance, RTP anomalies, and the mathematical reality of your dopamine addiction. 
-          Updated every 72 hours by TiltCheck AI. No fluff. No apologies.
+        <p className="text-gray-400 max-w-2xl border-l-2 border-[#17c3b2] pl-4 py-2 font-mono text-sm">
+          Clinical analysis of variance, RTP anomalies, and the mathematical reality of your dopamine addiction.
+          No fluff. No apologies. Updated every 72 hours by TiltCheck analysts.
         </p>
       </section>
 
-      <div className="w-full flex flex-col gap-8">
-        {posts.length === 0 ? (
-          <div className="hero-body text-center p-12">
-            <p>Scanning for new intel... No records found in the current session.</p>
-          </div>
-        ) : (
-          posts.map((post) => (
-            <article key={post.id} className="group relative border border-border-default bg-bg-secondary p-6 hover:border-color-primary transition-all duration-200">
-              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
-                <div className="flex items-center gap-2 text-xs font-mono text-color-primary uppercase tracking-widest">
-                  <span>[INTEL_LOG]</span>
-                  <span>{new Date(post.created_at).toLocaleDateString()}</span>
-                </div>
-                <div className="flex gap-2">
-                  {post.tags?.map((tag: string) => (
-                    <span key={tag} className="badge-live text-[10px] py-0.5 px-2">{tag}</span>
-                  ))}
-                </div>
-              </div>
-              
-              <Link href={`/blog/${post.slug}`}>
-                <h2 className="text-2xl font-black mb-3 group-hover:text-color-primary transition-colors cursor-pointer uppercase tracking-tight">
-                  {post.title}
-                </h2>
-              </Link>
-              
-              <p className="text-text-secondary line-clamp-2 mb-6 font-sans leading-relaxed">
-                {post.excerpt || post.content?.substring(0, 160) + '...' || 'No analysis available.'}
-              </p>
-              
-              <div className="flex items-center justify-between">
-                <span className="text-xs text-text-muted font-mono">AUTHOR: {post.author}</span>
-                <Link href={`/blog/${post.slug}`} className="text-xs font-bold text-color-primary hover:underline uppercase tracking-tighter">
-                   READ_ANALYSIS &gt;
-                </Link>
-              </div>
-            </article>
-          ))
-        )}
+      <div className="w-full border border-[#283347] bg-black/60 p-10 md:p-16 text-center flex flex-col items-center gap-8">
+        <div className="inline-block border border-[#ffd700]/40 bg-[#ffd700]/5 px-4 py-2">
+          <span className="text-xs font-black font-mono text-[#ffd700] uppercase tracking-widest">LAUNCHING SOON</span>
+        </div>
+
+        <div className="max-w-lg">
+          <h2 className="text-2xl font-black uppercase tracking-tight mb-4">
+            The intel feed is loading.
+          </h2>
+          <p className="text-gray-400 font-mono text-sm leading-relaxed">
+            We are documenting every RTP anomaly, withdrawal pattern, and house edge manipulation we find.
+            When this launches, it will not be a blog. It will be a public record.
+          </p>
+        </div>
+
+        <div className="w-full max-w-md">
+          {submitted ? (
+            <div className="p-4 border border-[#17c3b2]/40 bg-[#17c3b2]/10 font-mono text-sm text-[#17c3b2] uppercase tracking-widest">
+              Logged. You will be first in.
+            </div>
+          ) : (
+            <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-3">
+              <input
+                type="email"
+                value={email}
+                onChange={e => setEmail(e.target.value)}
+                placeholder="your@email.com"
+                required
+                className="flex-1 bg-black border border-[#283347] px-4 py-3 text-sm font-mono text-white placeholder-gray-600 focus:outline-none focus:border-[#17c3b2] transition-colors"
+              />
+              <button
+                type="submit"
+                className="px-6 py-3 bg-[#17c3b2] text-black font-black text-xs uppercase tracking-widest hover:bg-[#48d5c6] transition-colors whitespace-nowrap"
+              >
+                Notify Me
+              </button>
+            </form>
+          )}
+          <p className="text-xs text-gray-600 font-mono mt-3 uppercase tracking-widest">
+            No spam. One email when it drops.
+          </p>
+        </div>
+
+        <div className="flex flex-wrap gap-4 justify-center mt-4">
+          <a
+            href="/tools/session-stats"
+            className="text-xs font-black uppercase tracking-widest text-[#17c3b2] hover:underline font-mono"
+          >
+            Nerf Radar (Live) &rarr;
+          </a>
+          <a
+            href="/tools/house-edge-scanner"
+            className="text-xs font-black uppercase tracking-widest text-[#17c3b2] hover:underline font-mono"
+          >
+            Delta Engine &rarr;
+          </a>
+          <a
+            href="https://discord.gg/gdBsEJfCar"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-xs font-black uppercase tracking-widest text-gray-500 hover:text-[#17c3b2] font-mono transition-colors"
+          >
+            Discord (Degen Intel channel) &rarr;
+          </a>
+        </div>
       </div>
 
-      <footer className="mt-20 py-8 text-center text-xs text-text-muted opacity-50 uppercase tracking-[0.3em]">
+      <footer className="mt-20 py-8 text-center text-xs text-gray-600 uppercase tracking-[0.3em]">
         Made for Degens. By Degens.
       </footer>
     </main>

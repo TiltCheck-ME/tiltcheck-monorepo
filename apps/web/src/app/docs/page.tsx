@@ -50,9 +50,12 @@ export default async function DocsIndexPage() {
               </div>
               
               {docs.length > 5 && (
-                <button className="mt-auto text-[10px] font-black uppercase tracking-widest text-gray-500 hover:text-white transition-colors pt-4 border-t border-[#283347]">
-                  View All {docs.length} Resources
-                </button>
+                <Link
+                  href={`/docs`}
+                  className="mt-auto text-[10px] font-black uppercase tracking-widest text-gray-500 hover:text-white transition-colors pt-4 border-t border-[#283347] block"
+                >
+                  View All {docs.length} Resources &rarr;
+                </Link>
               )}
             </div>
           </div>

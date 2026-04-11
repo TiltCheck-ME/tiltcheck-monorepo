@@ -97,6 +97,16 @@ export default function AutoVaultPage() {
           </span>
         </div>
       )}
+
+      <div className="mt-6 px-4 py-2 border border-[#ffd700]/30 bg-[#ffd700]/5">
+        <span className="text-[10px] text-[#ffd700] font-black uppercase tracking-widest font-mono">
+          BETA — Vault writes are pending backend connection. UI is live. Execution is not.
+        </span>
+      </div>
+
+      <footer className="mt-16 py-8 text-center text-xs text-gray-600 uppercase tracking-[0.3em]">
+        Made for Degens. By Degens.
+      </footer>
     </main>
   );
 }
