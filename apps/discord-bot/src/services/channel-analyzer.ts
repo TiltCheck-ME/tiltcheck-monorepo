@@ -53,6 +53,7 @@ Analyse these messages and respond with ONLY valid JSON in this exact structure:
 export class ChannelAnalyzer {
     private client: Client;
     private openai: OpenAI | null = null;
+    private aiModel = 'gpt-4o-mini';
     private useOllama = false;
     private ollamaUrl = process.env.OLLAMA_URL || 'http://localhost:11434/v1';
     private ollamaModel = process.env.AI_MODEL || process.env.OLLAMA_MODEL || 'llama3.2:1b';
@@ -79,8 +80,16 @@ export class ChannelAnalyzer {
         this.analysisIntervalMs = (options.analysisIntervalHours ?? 6) * 60 * 60 * 1000;
         this.maxBufferSize = options.maxBufferSize ?? 500;
 
-        if (options.openaiApiKey) {
+        const geminiKey = process.env.GEMINI_API_KEY;
+        if (geminiKey) {
+            this.openai = new OpenAI({
+                apiKey: geminiKey,
+                baseURL: 'https://generativelanguage.googleapis.com/v1beta/openai/',
+            });
+            this.aiModel = process.env.AI_MODEL || 'gemini-1.5-flash';
+        } else if (options.openaiApiKey) {
             this.openai = new OpenAI({ apiKey: options.openaiApiKey });
+            this.aiModel = process.env.AI_MODEL || 'gpt-4o-mini';
         }
         this.useOllama = process.env.AI_PROVIDER === 'ollama' || !!options.ollamaUrl || !!process.env.OLLAMA_URL;
         if (options.ollamaUrl) this.ollamaUrl = options.ollamaUrl;
@@ -184,7 +193,7 @@ export class ChannelAnalyzer {
         const prompt = ANALYSIS_PROMPT_TEMPLATE(messages);
 
         const completion = await this.openai!.chat.completions.create({
-            model: 'gpt-4o-mini',
+            model: this.aiModel,
             messages: [
                 { role: 'system', content: PAIN_POINT_SYSTEM_PROMPT },
                 { role: 'user', content: prompt },
