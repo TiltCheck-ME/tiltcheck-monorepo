@@ -1,5 +1,6 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-09 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-11 */
 import "@/styles/terminal.css";
+import Link from "next/link";
 
 export default function ScannerPage() {
     return (
@@ -20,8 +21,23 @@ export default function ScannerPage() {
                     </div>
 
                     <div className="status-list">
-                        <div className="p-4 text-center text-xs font-mono text-gray-600">
-                          NO LIVE DATA. Connect your casino accounts via the Chrome extension to enable live bonus scanning.
+                        <div className="p-6 border border-[#283347] bg-black/40 text-center flex flex-col items-center gap-4">
+                            <p className="text-xs font-mono text-gray-500 uppercase tracking-widest">
+                                NO LIVE DATA — Extension not detected
+                            </p>
+                            <p className="text-xs font-mono text-gray-600 max-w-sm leading-relaxed">
+                                The bonus scanner reads your active casino sessions in real-time.
+                                It requires the TiltCheck Chrome extension to function.
+                            </p>
+                            <Link
+                                href="/extension"
+                                className="inline-block px-6 py-3 bg-[#17c3b2] text-black font-black text-xs uppercase tracking-widest hover:bg-[#48d5c6] transition-colors"
+                            >
+                                Get the Extension &rarr;
+                            </Link>
+                            <p className="text-[10px] font-mono text-gray-600 uppercase tracking-widest">
+                                Extension is in closed beta. Apply on the extension page.
+                            </p>
                         </div>
                     </div>
 
@@ -39,6 +55,10 @@ export default function ScannerPage() {
                     </div>
                 </div>
             </section>
+
+            <footer className="mt-20 py-8 text-center text-xs text-gray-600 uppercase tracking-[0.3em]">
+                Made for Degens. By Degens.
+            </footer>
         </div>
     );
 }
