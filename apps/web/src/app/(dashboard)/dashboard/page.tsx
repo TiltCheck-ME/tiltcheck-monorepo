@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All rights reserved. */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-11 */
 'use client';
 
 import React from 'react';
@@ -141,12 +141,13 @@ export default function DashboardPage() {
                 {/* Pillar 4: The Guardians */}
                 <GuardianManager discordId={userData?.discordId} />
 
-                {/* Pillar 5: VPN Bypass Toggle */}
+                {/* Pillar 5: Region Restriction Bypass */}
+                {isConnected && (
                 <div className="bg-black/40 border border-[#283347] rounded-xl p-8 hover:border-amber-500/50 transition-all duration-300">
                     <div className="flex items-center justify-between mb-4">
                         <h3 className="text-sm font-black uppercase tracking-tighter text-amber-500 flex items-center gap-2">
                             <span className="w-2 h-4 bg-amber-500"></span>
-                            SHADOW_MODE (VPN_BYPASS)
+                            GEO RESTRICTION WARNINGS
                         </h3>
                         <label className="relative inline-flex items-center cursor-pointer">
                             <input 
@@ -155,23 +156,25 @@ export default function DashboardPage() {
                               checked={userData?.preferences?.complianceBypass || false}
                               onChange={async (e) => {
                                 const checked = e.target.checked;
-                                // Optimistic update
                                 setUserData((prev: any) => ({
                                   ...prev,
                                   preferences: { ...prev?.preferences, complianceBypass: checked }
                                 }));
-
-                                // Persist
                                 try {
                                   await fetch(`${process.env.NEXT_PUBLIC_API_URL || '/api'}/user/onboarding`, {
                                     method: 'POST',
-                                    headers: { 'Content-Type': 'application/json' },
+                                    headers: {
+                                      'Content-Type': 'application/json',
+                                      ...(typeof window !== 'undefined' && localStorage.getItem('tc_token')
+                                        ? { Authorization: `Bearer ${localStorage.getItem('tc_token')}` }
+                                        : {}),
+                                    },
                                     body: JSON.stringify({
                                       preferences: { complianceBypass: checked }
                                     })
                                   });
                                 } catch (err) {
-                                  console.error('[Settings] Bypass update failed:', err);
+                                  console.error('[Settings] Region bypass update failed:', err);
                                 }
                               }}
                             />
@@ -179,11 +182,12 @@ export default function DashboardPage() {
                         </label>
                     </div>
                     <p className="text-[10px] font-bold uppercase tracking-widest text-gray-500 leading-tight">
-                        Using a VPN to access restricted regions? Toggle this to stop the compliance warnings.
+                        Using a VPN or accessing from a restricted region? Mute the geo warnings.
                         <br/>
-                        <span className="text-amber-500 mt-2 block italic">Note: you are outside legal protection when you do this.</span>
+                        <span className="text-amber-500 mt-2 block italic">Reminder: legal protections vary by jurisdiction — that is on you, not us.</span>
                     </p>
                 </div>
+                )}
             </div>
         </div>
 
