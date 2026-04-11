@@ -1,4 +1,4 @@
-# © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-10
+# © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-11
 name: Deploy Services to Railway
 
 on:
@@ -10,6 +10,7 @@ on:
       - 'packages/**'
       - 'modules/**'
       - '.dockerignore'
+      - 'pnpm-lock.yaml'
       - '.github/workflows/deploy-railway.yml'
   workflow_dispatch:
 
@@ -26,34 +27,125 @@ permissions:
 # DO NOT use "railway up" here — it triggers Railway's own builder which uses
 # the service subdirectory as build context and cannot find root-level monorepo
 # files (pnpm-lock.yaml, pnpm-workspace.yaml, etc.).
+#
+# Affected-changes logic: each service job has a path filter. Changes to shared
+# deps (packages/, modules/, pnpm-lock.yaml) trigger all services. Changes to
+# only apps/discord-bot/** rebuild only the discord-bot image. workflow_dispatch
+# always runs all services regardless of path filters.
 
 jobs:
-  build-and-push:
-    name: Build and Push Images to GHCR
+  # Detect which services have changed. Used by downstream jobs to skip unchanged services.
+  changes:
+    name: Detect Changed Services
     runs-on: ubuntu-latest
+    outputs:
+      api: ${{ steps.filter.outputs.api }}
+      web: ${{ steps.filter.outputs.web }}
+      discord-bot: ${{ steps.filter.outputs.discord-bot }}
+      justthetip-bot: ${{ steps.filter.outputs.justthetip-bot }}
+      dad-bot: ${{ steps.filter.outputs.dad-bot }}
+      trust-rollup: ${{ steps.filter.outputs.trust-rollup }}
+      control-room: ${{ steps.filter.outputs.control-room }}
+      game-arena: ${{ steps.filter.outputs.game-arena }}
+      user-dashboard: ${{ steps.filter.outputs.user-dashboard }}
+      activity: ${{ steps.filter.outputs.activity }}
+      cloudflared: ${{ steps.filter.outputs.cloudflared }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            shared: &shared
+              - 'packages/**'
+              - 'modules/**'
+              - 'pnpm-lock.yaml'
+              - 'pnpm-workspace.yaml'
+              - 'tsconfig.json'
+              - '.dockerignore'
+              - '.github/workflows/deploy-railway.yml'
+            api:
+              - *shared
+              - 'apps/api/**'
+            web:
+              - *shared
+              - 'apps/web/**'
+            discord-bot:
+              - *shared
+              - 'apps/discord-bot/**'
+            justthetip-bot:
+              - *shared
+              - 'apps/justthetip-bot/**'
+            dad-bot:
+              - *shared
+              - 'apps/dad-bot/**'
+            trust-rollup:
+              - *shared
+              - 'apps/trust-rollup/**'
+            control-room:
+              - *shared
+              - 'apps/control-room/**'
+            game-arena:
+              - *shared
+              - 'apps/game-arena/**'
+            user-dashboard:
+              - *shared
+              - 'apps/user-dashboard/**'
+            activity:
+              - *shared
+              - 'apps/activity/**'
+            cloudflared:
+              - *shared
+              - 'apps/cloudflared/**'
+
+  build-and-push:
+    name: Build ${{ matrix.service }}
+    runs-on: ubuntu-latest
+    needs: changes
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      needs.changes.outputs[matrix.service] == 'true'
     strategy:
       fail-fast: false
       matrix:
-        service:
-          - api
-          - web
-          - discord-bot
-          - justthetip-bot
-          - dad-bot
-          - trust-rollup
-          - control-room
-          - game-arena
-          - user-dashboard
-          - activity
-          - cloudflared
+        include:
+          - service: api
+            changed: ${{ needs.changes.outputs.api }}
+          - service: web
+            changed: ${{ needs.changes.outputs.web }}
+          - service: discord-bot
+            changed: ${{ needs.changes.outputs['discord-bot'] }}
+          - service: justthetip-bot
+            changed: ${{ needs.changes.outputs['justthetip-bot'] }}
+          - service: dad-bot
+            changed: ${{ needs.changes.outputs['dad-bot'] }}
+          - service: trust-rollup
+            changed: ${{ needs.changes.outputs['trust-rollup'] }}
+          - service: control-room
+            changed: ${{ needs.changes.outputs['control-room'] }}
+          - service: game-arena
+            changed: ${{ needs.changes.outputs['game-arena'] }}
+          - service: user-dashboard
+            changed: ${{ needs.changes.outputs['user-dashboard'] }}
+          - service: activity
+            changed: ${{ needs.changes.outputs.activity }}
+          - service: cloudflared
+            changed: ${{ needs.changes.outputs.cloudflared }}
     steps:
+      - name: Skip if unchanged
+        if: github.event_name != 'workflow_dispatch' && matrix.changed != 'true'
+        run: echo "No changes for ${{ matrix.service }} — skipping build." && exit 0
+
       - name: Checkout
+        if: github.event_name == 'workflow_dispatch' || matrix.changed == 'true'
         uses: actions/checkout@v4
 
       - name: Set up Docker Buildx
+        if: github.event_name == 'workflow_dispatch' || matrix.changed == 'true'
         uses: docker/setup-buildx-action@v3
 
       - name: Log in to GitHub Container Registry
+        if: github.event_name == 'workflow_dispatch' || matrix.changed == 'true'
         uses: docker/login-action@v3.4.0
         with:
           registry: ghcr.io
@@ -61,10 +153,12 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Set lowercase image owner
+        if: github.event_name == 'workflow_dispatch' || matrix.changed == 'true'
         id: vars
         run: echo "owner=$(echo '${{ github.repository_owner }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_OUTPUT
 
       - name: Build and push ${{ matrix.service }} image
+        if: github.event_name == 'workflow_dispatch' || matrix.changed == 'true'
         uses: docker/build-push-action@v6
         with:
           context: .
@@ -75,37 +169,56 @@ jobs:
             ghcr.io/${{ steps.vars.outputs.owner }}/tiltcheck-${{ matrix.service }}:sha-${{ github.sha }}
 
   deploy:
-    name: Trigger Railway Redeploy
+    name: Deploy ${{ matrix.service }} to Railway
     runs-on: ubuntu-latest
-    needs: build-and-push
+    needs: [changes, build-and-push]
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      needs.changes.outputs[matrix.service] == 'true'
     strategy:
       fail-fast: false
       matrix:
         include:
           - service: api
             railway_service_id: "d36d7de5-160c-42e3-9cfc-95e3cc37b9d8"
+            changed: ${{ needs.changes.outputs.api }}
           - service: web
             railway_service_id: "08e9b7f6-ad09-4808-9e69-047eb5ab0cb2"
+            changed: ${{ needs.changes.outputs.web }}
           - service: discord-bot
             railway_service_id: "91b91e98-fc19-4006-8edd-f7c2a1e45865"
+            changed: ${{ needs.changes.outputs['discord-bot'] }}
           - service: justthetip-bot
             railway_service_id: "1a168cbc-1a83-4e81-b6a2-c90d5afb7235"
+            changed: ${{ needs.changes.outputs['justthetip-bot'] }}
           - service: dad-bot
             railway_service_id: "1e8b60f1-625d-4351-8f17-b5180c20f8f4"
+            changed: ${{ needs.changes.outputs['dad-bot'] }}
           - service: trust-rollup
             railway_service_id: "a3d4ca4c-868b-4332-8316-03b0d0b0d238"
+            changed: ${{ needs.changes.outputs['trust-rollup'] }}
           - service: control-room
             railway_service_id: "1c05f565-9060-43a9-960c-f1b5daa540a9"
+            changed: ${{ needs.changes.outputs['control-room'] }}
           - service: game-arena
             railway_service_id: "54152da7-7f13-4603-ad42-e7521bf0c58f"
+            changed: ${{ needs.changes.outputs['game-arena'] }}
           - service: user-dashboard
             railway_service_id: "a5bb3924-76b3-41af-882c-319417c64dd8"
+            changed: ${{ needs.changes.outputs['user-dashboard'] }}
           - service: activity
             railway_service_id: "cf702e40-4001-4de4-a5e1-978e79f81633"
+            changed: ${{ needs.changes.outputs.activity }}
           - service: cloudflared
             railway_service_id: "18649391-7fe0-43a7-9a79-c4c3bf432eb8"
+            changed: ${{ needs.changes.outputs.cloudflared }}
     steps:
+      - name: Skip if unchanged
+        if: github.event_name != 'workflow_dispatch' && matrix.changed != 'true'
+        run: echo "No changes for ${{ matrix.service }} — skipping deploy." && exit 0
+
       - name: Redeploy ${{ matrix.service }} on Railway
+        if: github.event_name == 'workflow_dispatch' || matrix.changed == 'true'
         run: |
           ENV_ID="3558050f-0c00-4ba7-8763-e960a1ecaf96"
           SVC_ID="${{ matrix.railway_service_id }}"
