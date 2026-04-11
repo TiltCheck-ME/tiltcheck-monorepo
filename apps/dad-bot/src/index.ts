@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-10
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-11
 // DAD Bot — Main Entry Point
 
 import { Client, GatewayIntentBits, Partials } from 'discord.js';
@@ -54,25 +54,31 @@ async function main() {
     const { REST, Routes } = await import('discord.js');
     const rest = new REST().setToken(config.discordToken);
     const commandData = commandHandler.getCommandData();
+
+    // Activity Entry Point command (type 4) — required by Discord to show the
+    // "Launch Activity" button. handler: 2 = DISCORD_LAUNCH_ACTIVITY (Discord
+    // manages the launch; no bot interaction handler needed).
+    const activityEntryPoint = {
+      name: 'Launch Activity',
+      type: 4,
+      description: '',
+      handler: 2,
+    };
+    const allCommands = [...commandData, activityEntryPoint];
+
     try {
       if (config.guildId) {
-        await rest.put(Routes.applicationGuildCommands(config.clientId, config.guildId), { body: commandData });
+        await rest.put(Routes.applicationGuildCommands(config.clientId, config.guildId), { body: allCommands });
         await rest.put(Routes.applicationCommands(config.clientId), { body: [] });
-        console.log(`[Commands] ${commandData.length} guild commands registered, global commands cleared\n`);
+        console.log(`[Commands] ${allCommands.length} guild commands registered (incl. activity entry point), global cleared\n`);
       } else {
-        await rest.put(Routes.applicationCommands(config.clientId), { body: commandData });
-        console.log(`[Commands] ${commandData.length} global slash commands registered\n`);
+        await rest.put(Routes.applicationCommands(config.clientId), { body: allCommands });
+        console.log(`[Commands] ${allCommands.length} global commands registered (incl. activity entry point)\n`);
       }
     } catch (err) {
       console.error('[Commands] Failed to register slash commands:', err);
     }
   }
-
-  console.log('[Activities] Initializing Discord Activities SDK...');
-  const activityManager = new DiscordActivityManager(client.application?.id || '');
-  setActivityManager(activityManager);
-  registerActivityButtonHandlers(activityManager);
-  console.log('[Activities] Discord Activities SDK initialized\n');
 
   console.log('[Events] Registering Discord events...');
   eventHandler.registerDiscordEvents();
@@ -86,6 +92,10 @@ async function main() {
   let ready = false;
   if (process.env.SKIP_DISCORD_LOGIN === 'true') {
     console.log('[Discord] CI mode - skipping Discord login');
+    // Initialize activity manager with empty ID in CI mode
+    const activityManager = new DiscordActivityManager('');
+    setActivityManager(activityManager);
+    registerActivityButtonHandlers(activityManager);
     ready = true;
     try {
       fs.writeFileSync('/tmp/bot-ready', 'ready');
@@ -95,6 +105,12 @@ async function main() {
   } else {
     await client.login(config.discordToken);
     client.once('ready', () => {
+      // Initialize activity manager after login so client.application.id is available
+      console.log('[Activities] Initializing Discord Activities SDK...');
+      const activityManager = new DiscordActivityManager(client.application?.id || config.clientId);
+      setActivityManager(activityManager);
+      registerActivityButtonHandlers(activityManager);
+      console.log('[Activities] Discord Activities SDK initialized\n');
       ready = true;
       console.log('[Discord] Connected and ready!');
       try {
