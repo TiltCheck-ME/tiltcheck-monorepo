@@ -540,6 +540,64 @@ body::before {
     border: 1px solid var(--text-muted);
 }
 
+.badge-notify {
+    background-color: rgba(23, 195, 178, 0.12);
+    color: var(--color-primary);
+    border: 1px solid rgba(23, 195, 178, 0.6);
+    animation: pulse-notify 2s infinite;
+}
+
+@keyframes pulse-notify {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(23, 195, 178, 0.3); }
+  50% { box-shadow: 0 0 0 4px rgba(23, 195, 178, 0); }
+}
+
+/* Hero stats strip — replaces wall-of-text audit banner */
+.hero-stats-strip {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0;
+  margin: 0 auto 2rem;
+  max-width: 680px;
+  border: 1px solid rgba(23, 195, 178, 0.25);
+  background: rgba(0, 0, 0, 0.42);
+  backdrop-filter: blur(14px) saturate(1.2);
+  -webkit-backdrop-filter: blur(14px) saturate(1.2);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.hero-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 1rem 0.5rem;
+  border-right: 1px solid rgba(23, 195, 178, 0.2);
+  text-align: center;
+}
+
+.hero-stat:last-child {
+  border-right: none;
+}
+
+.hero-stat-value {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  font-weight: 900;
+  color: var(--color-primary);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 0.25rem;
+}
+
+.hero-stat-label {
+  font-family: var(--font-mono);
+  font-size: 0.58rem;
+  color: rgba(196, 206, 216, 0.7);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
 /* Stepper Styles */
 .stepper-vertical {
   display: flex;
@@ -1080,11 +1138,13 @@ body.degen-background > * {
   .hero-actions .btn {
     width: 100%;
   }
-  .hero-audit-banner {
-    text-align: left;
-    padding: 1rem;
-    margin-bottom: 1.25rem;
+  .hero-stats-strip {
+    grid-template-columns: repeat(2, 1fr);
+    max-width: 100%;
   }
+  .hero-stat:nth-child(2) { border-right: none; }
+  .hero-stat:nth-child(1),
+  .hero-stat:nth-child(2) { border-bottom: 1px solid rgba(23, 195, 178, 0.2); }
   .hero-body {
     margin-top: 1.25rem;
     padding: 1.125rem;

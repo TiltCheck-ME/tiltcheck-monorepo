@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-10
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-11
 import ToolCard from "@/components/ToolCard";
 
 import { features } from "@/config/features";
@@ -21,11 +21,23 @@ export default function Home() {
             TiltCheck tracks your live session, audits casino fairness, and <strong>locks your wins before your brain gives them back.</strong>
           </p>
 
-          <div className="hero-audit-banner">
-            <p className="hero-audit-label">WHAT THE CASINO DOESN&apos;T WANT INSTALLED</p>
-            <p className="hero-audit-body">
-              Live session tracking &rarr; RTP drift detection &rarr; <strong>Greed Premium</strong> surfaced per $100 wagered &rarr; provably fair verification &rarr; win-locking vault &rarr; phishing shield. Nine tools. One layer. No trust required.
-            </p>
+          <div className="hero-stats-strip" role="list" aria-label="TiltCheck capabilities">
+            <div className="hero-stat" role="listitem">
+              <span className="hero-stat-value">LIVE</span>
+              <span className="hero-stat-label">Tilt Monitor</span>
+            </div>
+            <div className="hero-stat" role="listitem">
+              <span className="hero-stat-value">AUTO-LOCK</span>
+              <span className="hero-stat-label">Win Vault</span>
+            </div>
+            <div className="hero-stat" role="listitem">
+              <span className="hero-stat-value">GREED TAX</span>
+              <span className="hero-stat-label">Per $100 Wagered</span>
+            </div>
+            <div className="hero-stat" role="listitem">
+              <span className="hero-stat-value">9 TOOLS</span>
+              <span className="hero-stat-label">One Audit Layer</span>
+            </div>
           </div>
 
           <div className="hero-actions">
@@ -39,7 +51,7 @@ export default function Home() {
 
           {/* Hero body copy — inside hero so there's no gap */}
           <p className="hero-body">
-            Casinos don&apos;t win because they&apos;re lucky. They win because you don&apos;t know when to stop. <span className="hero-body-accent">TiltCheck monitors your session in real-time</span>, flags your peak PnL, and gives you the signal to lock gains and exit clean — before your brain talks you into one more spin. Community-backed trust scores. Provably fair audits. No copium, just the math.
+            Casinos win because you don&apos;t know when to stop. <span className="hero-body-accent">TiltCheck fixes that.</span> Real-time session monitoring, provably fair audits, and a vault that locks your wins before your brain loses them back. Community-scored. No trust required.
           </p>
         </div>
       </section>
