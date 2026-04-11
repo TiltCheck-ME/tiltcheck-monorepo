@@ -66,7 +66,7 @@ export default function DegensArenaPage() {
         <div className="max-w-3xl mx-auto">
           <h2 className="text-2xl font-black uppercase mb-6">Get In Before Launch</h2>
           <p className="text-gray-400 mb-8 max-w-2xl mx-auto">
-            Beta access drops first in the Discord. Join the server, claim your Genesis role, and you'll get early access to Arena matches before public launch.
+            Beta access drops first in the Discord. Join the server, claim your Founder role, and you'll get early access to Arena matches before public launch.
           </p>
           <div className="flex gap-4 justify-center flex-wrap">
             <a
@@ -86,3 +86,4 @@ export default function DegensArenaPage() {
     </main>
   );
 }
+

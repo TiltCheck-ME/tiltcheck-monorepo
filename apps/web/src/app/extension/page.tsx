@@ -48,14 +48,13 @@ export default function ExtensionPage() {
         <div className="mt-16 text-center">
           <p className="text-gray-500 font-mono text-xs uppercase tracking-widest mb-4">We don&apos;t monitor you. We prosecute them.</p>
           <a
-            href="https://chrome.google.com/webstore"
-            target="_blank"
-            rel="noopener noreferrer"
+            href="/beta-tester"
             className="btn btn-primary inline-block px-8 py-4 text-sm font-black uppercase tracking-widest"
           >
-            Install from Chrome Web Store &rarr;
+            Apply for Beta Access &rarr;
           </a>
-          <p className="text-gray-600 font-mono text-xs mt-4">Non-custodial. No keys. Read-only.</p>
+          <p className="text-gray-600 font-mono text-xs mt-4">Chrome &amp; Brave. Non-custodial. No keys. Read-only.</p>
+          <p className="text-gray-600 font-mono text-[10px] mt-2 uppercase tracking-widest">Chrome Web Store listing coming soon — beta testers get sideload builds now.</p>
         </div>
     </div>
   );
