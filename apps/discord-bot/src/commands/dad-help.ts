@@ -11,7 +11,7 @@ export const degensHelp: Command = {
   async execute(interaction: ChatInputCommandInteraction) {
     const embed = new EmbedBuilder()
       .setColor(0x8b5cf6)
-      .setTitle('[DEGENS AGAINST DECENCY — COMMAND REFERENCE]')
+      .setTitle('DEGENS AGAINST DECENCY — COMMAND REFERENCE')
       .addFields(
         {
           name: '/lobby',
@@ -37,7 +37,7 @@ export const degensHelp: Command = {
           value: '`address` — Link your Solana wallet to receive payouts from triviadrop and other prize commands.',
         }
       )
-      .setFooter({ text: 'Made for Degens. By Degens. | Degens Against Decency' });
+      .setFooter({ text: 'Made for Degens. By Degens.' });
 
     await interaction.reply({ embeds: [embed], ephemeral: true });
   },

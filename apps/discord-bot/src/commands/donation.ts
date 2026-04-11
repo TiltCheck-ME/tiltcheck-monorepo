@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-14
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-10
 //
 // Shared donation prompt utility.
 //
@@ -51,7 +51,7 @@ export const DONATE_SKIP_ID = 'donate_skip';
 export function buildDonationEmbed(contextLabel: string): EmbedBuilder {
   return new EmbedBuilder()
     .setColor(0xf59e0b)
-    .setTitle('[OPTIONAL TIP — YOUR CALL]')
+    .setTitle('OPTIONAL TIP — YOUR CALL')
     .setDescription(
       `You are about to put real SOL on the line for **${contextLabel}**.\n\n` +
       `Before you fund — want to kick an extra **${DONATION_AMOUNT_LABEL}** somewhere useful?\n\n` +
@@ -61,7 +61,7 @@ export function buildDonationEmbed(contextLabel: string): EmbedBuilder {
       `\`${RECOVERY_WALLET}\`\n\n` +
       `Either way, your ${DONATION_AMOUNT_LABEL} gets added to the total you send. One transaction, two good outcomes.`
     )
-    .setFooter({ text: 'No pressure. The game runs either way. — Made for Degens. By Degens.' });
+    .setFooter({ text: 'Made for Degens. By Degens.' });
 }
 
 export function buildDonationRow(): ActionRowBuilder<ButtonBuilder> {
@@ -135,7 +135,7 @@ export function buildDonationConfirmedEmbed(choice: DonationChoice, prizeSol: nu
   if (choice.dest === 'none') {
     return new EmbedBuilder()
       .setColor(0x6b7280)
-      .setTitle('[NO TIP — FAIR ENOUGH]')
+      .setTitle('NO TIP — FAIR ENOUGH')
       .setDescription(
         `Got it. Fund the escrow with exactly **${prizeSol.toFixed(4)} SOL** and the game kicks off.\n\n` +
         `You can always fund the wallets directly if the mood strikes later:\n` +
@@ -151,7 +151,7 @@ export function buildDonationConfirmedEmbed(choice: DonationChoice, prizeSol: nu
 
   return new EmbedBuilder()
     .setColor(0x22d3a6)
-    .setTitle('[TIP LOCKED IN — SOLID]')
+    .setTitle('TIP LOCKED IN — SOLID')
     .setDescription(
       `Nice. **${DONATION_AMOUNT_LABEL}** going to ${destLabel}.\n\n` +
       `Fund the escrow with **${totalSol} SOL** total ` +

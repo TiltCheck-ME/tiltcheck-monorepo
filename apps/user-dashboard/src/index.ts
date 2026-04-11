@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-07
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-10
 import express from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
@@ -586,6 +586,61 @@ app.post('/api/user/:discordId/buddies/:requestId/decline', authenticateToken, a
   } catch (err) {
     res.status(500).json({ error: 'Failed to decline request' });
   }
+});
+
+// === Premium page + crypto payment claim ===
+app.get('/premium', (_req, res) => res.sendFile(join(__dirname, '../public/premium.html')));
+
+app.post('/api/payments/claim-crypto', async (req, res) => {
+  const { discordUsername, txHash, tier, amount } = req.body as {
+    discordUsername?: string;
+    txHash?: string;
+    tier?: string;
+    amount?: string | number;
+  };
+
+  if (!discordUsername || !txHash || !tier || !amount) {
+    res.status(400).json({ error: 'All fields required: discordUsername, txHash, tier, amount' });
+    return;
+  }
+
+  const MOD_LOG_CHANNEL_ID = '1488256044349128974';
+  const botToken = process.env.DISCORD_BOT_TOKEN;
+
+  if (botToken) {
+    try {
+      const embed = {
+        title: 'CRYPTO PAYMENT CLAIM',
+        color: 0x22d3a6,
+        fields: [
+          { name: 'Discord Username', value: String(discordUsername), inline: true },
+          { name: 'Tier', value: String(tier), inline: true },
+          { name: 'Amount Sent', value: String(amount) + ' SOL', inline: true },
+          { name: 'Tx Hash', value: String(txHash), inline: false },
+        ],
+        footer: { text: 'Manual role grant required - verify on-chain before granting' },
+        timestamp: new Date().toISOString(),
+      };
+
+      await fetch(`https://discord.com/api/v10/channels/${MOD_LOG_CHANNEL_ID}/messages`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bot ${botToken}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ embeds: [embed] }),
+      });
+    } catch (err) {
+      console.error('[Payments] Failed to notify MOD_LOG:', err);
+    }
+  } else {
+    console.warn('[Payments] DISCORD_BOT_TOKEN not set - MOD_LOG notification skipped');
+  }
+
+  res.json({
+    success: true,
+    message: "Claim received. We'll verify and grant your role within 24 hours.",
+  });
 });
 
 // === Preview page (no auth) ===

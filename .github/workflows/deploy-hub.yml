@@ -1,61 +1,28 @@
-# © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-08
-name: Deploy Hub to Cloudflare Workers
+# © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-10
+# DEPRECATED: apps/hub (Cloudflare Worker) was removed. hub.tiltcheck.me now
+# routes through the Cloudflare Tunnel to the user-dashboard Railway service.
+# Tunnel ingress rules are managed by .github/workflows/configure-tunnel.yml.
+# This file is kept for history only and will not trigger.
+name: Deploy Hub to Cloudflare Workers (DEPRECATED)
 
 on:
-  push:
-    branches:
-      - main
-    paths:
-      - 'apps/hub/**'
-      - '.github/workflows/deploy-hub.yml'
   workflow_dispatch:
+    inputs:
+      confirm:
+        description: "Type CONFIRM to acknowledge this workflow is deprecated"
+        required: true
 
 permissions:
   contents: read
 
 jobs:
-  deploy:
-    name: Deploy Edge Hub Worker
+  noop:
+    name: Deprecated
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: apps/hub
-
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Deploy to Cloudflare Workers
-        uses: cloudflare/wrangler-action@v3
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          workingDirectory: apps/hub
-          command: deploy --minify
-
-      - name: Upsert hub.tiltcheck.me DNS record
+      - name: Notice
         run: |
-          ZONE_ID="${{ secrets.CLOUDFLARE_ZONE_ID }}"
-          TOKEN="${{ secrets.CLOUDFLARE_API_TOKEN }}"
-          NAME="hub.tiltcheck.me"
-          CONTENT="tiltcheck-edge-hub.${{ secrets.CLOUDFLARE_ACCOUNT_ID }}.workers.dev"
-
-          # Check if record already exists
-          EXISTING=$(curl -sf "https://api.cloudflare.com/client/v4/zones/${ZONE_ID}/dns_records?name=${NAME}&type=CNAME" \
-            -H "Authorization: Bearer ${TOKEN}" | jq -r '.result[0].id // empty')
-
-          if [ -n "$EXISTING" ]; then
-            # Update existing record
-            curl -sf -X PATCH "https://api.cloudflare.com/client/v4/zones/${ZONE_ID}/dns_records/${EXISTING}" \
-              -H "Authorization: Bearer ${TOKEN}" \
-              -H "Content-Type: application/json" \
-              -d "{\"content\":\"${CONTENT}\",\"proxied\":true}" | jq '.success'
-            echo "Updated hub.tiltcheck.me"
-          else
-            # Create new record
-            curl -sf -X POST "https://api.cloudflare.com/client/v4/zones/${ZONE_ID}/dns_records" \
-              -H "Authorization: Bearer ${TOKEN}" \
-              -H "Content-Type: application/json" \
-              -d "{\"type\":\"CNAME\",\"name\":\"hub\",\"content\":\"${CONTENT}\",\"proxied\":true,\"ttl\":1}" | jq '.success'
-            echo "Created hub.tiltcheck.me"
-          fi
+          echo "This workflow is deprecated. apps/hub no longer exists."
+          echo "hub.tiltcheck.me is now served via Cloudflare Tunnel -> user-dashboard (Railway)."
+          echo "Use .github/workflows/configure-tunnel.yml to manage tunnel routes."
+          exit 1

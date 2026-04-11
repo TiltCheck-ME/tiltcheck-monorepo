@@ -174,6 +174,10 @@ async function main() {
   eventHandler.registerDiscordEvents();
   console.log('[Events] Discord events registered');
 
+  console.log('[Events] Registering payment events...');
+  eventHandler.registerPaymentEvents();
+  console.log('[Events] Payment events registered');
+
   console.log('[Events] Subscribing to EventRouter...');
   eventHandler.subscribeToEvents();
   console.log('[Events] EventRouter subscriptions active\n');

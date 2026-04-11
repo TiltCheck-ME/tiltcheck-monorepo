@@ -1,9 +1,4 @@
-/* Copyright (c) 2026 TiltCheck. All rights reserved. */
-/**
- * Trust Commands
- * 
- * Display trust scores from Casino Trust Engine and Degen Trust Engine.
- */
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-10
 
 import { SlashCommandBuilder, ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
 import type { Command } from '../types.js';
@@ -50,7 +45,7 @@ export const trustDashboard: Command = {
     } catch (err) {
       console.error('[TrustCommand] Error:', err);
       await interaction.reply({
-        content: 'Couldn\'t pull that data right now. The engine\'s having a moment — try again in a sec.',
+        content: 'Data pull failed. Try again.',
         ephemeral: true
       });
     }
@@ -74,24 +69,24 @@ async function showCasinoTrust(interaction: ChatInputCommandInteraction) {
   else color = 0xf04747; // Red (bad)
 
   const embed = new EmbedBuilder()
-    .setTitle(`[GAME] ${casinoName} REPUTATION`)
+    .setTitle(`${casinoName.toUpperCase()} — TRUST AUDIT`)
     .setColor(color)
     .setDescription(`**TRUST SCORE: ${score}/100**`)
     .addFields(
-      { name: '[BANK] Financial Payouts', value: `${breakdown.financialPayouts}/100`, inline: true },
-      { name: '[SCALES] Fairness', value: `${breakdown.fairnessTransparency}/100`, inline: true },
-      { name: '[GIFT] Promotional', value: `${breakdown.promotionalHonesty}/100`, inline: true },
-      { name: '[TOOLS] Operations', value: `${breakdown.operationalSupport}/100`, inline: true },
-      { name: '[USERS] Reputation', value: `${breakdown.communityReputation}/100`, inline: true },
+      { name: 'Financial Payouts', value: `${breakdown.financialPayouts}/100`, inline: true },
+      { name: 'Fairness', value: `${breakdown.fairnessTransparency}/100`, inline: true },
+      { name: 'Promotional', value: `${breakdown.promotionalHonesty}/100`, inline: true },
+      { name: 'Operations', value: `${breakdown.operationalSupport}/100`, inline: true },
+      { name: 'Reputation', value: `${breakdown.communityReputation}/100`, inline: true },
       { name: '\u200b', value: '\u200b', inline: true },
     )
     .setTimestamp()
-    .setFooter({ text: `${breakdown.history.length} events tracked — the math doesn't judge you. Neither do we.` });
+    .setFooter({ text: 'Made for Degens. By Degens.' });
 
   // Add warnings/explanations
   if (explanations.length > 0) {
     embed.addFields({
-      name: '[STATS] Analysis',
+      name: 'Analysis',
       value: explanations.slice(0, 5).join('\n'),
       inline: false
     });
@@ -119,25 +114,25 @@ async function showUserTrust(interaction: ChatInputCommandInteraction) {
   else if (level === 'high-risk') { color = 0xf04747; symbol = '[DANGER]'; }
 
   const embed = new EmbedBuilder()
-    .setTitle(`${symbol} ${targetUser.username} [AUDIT]`)
+    .setTitle(`${targetUser.username.toUpperCase()} — REPUTATION AUDIT`)
     .setColor(color)
     .setDescription(`**REPUTATION: ${score}/100** - ${level.toUpperCase().replace('-', ' ')}`)
     .addFields(
-      { name: '[TARGET] Behavior', value: `${breakdown.behaviorScore}/100`, inline: true },
-      { name: '[ALERT] Audit Signals', value: `${breakdown.tiltIndicators}`, inline: true },
-      { name: '[HANDS] Accountability', value: `+${breakdown.accountabilityBonus}`, inline: true },
-      { name: '[RISK] Scam Flags', value: `${breakdown.scamFlags}`, inline: true },
-      { name: '[COMM] Community', value: `${breakdown.communityReports > 0 ? '+' : ''}${breakdown.communityReports}`, inline: true },
+      { name: 'Behavior', value: `${breakdown.behaviorScore}/100`, inline: true },
+      { name: 'Audit Signals', value: `${breakdown.tiltIndicators}`, inline: true },
+      { name: 'Accountability', value: `+${breakdown.accountabilityBonus}`, inline: true },
+      { name: 'Scam Flags', value: `${breakdown.scamFlags}`, inline: true },
+      { name: 'Community', value: `${breakdown.communityReports > 0 ? '+' : ''}${breakdown.communityReports}`, inline: true },
       { name: '\u200b', value: '\u200b', inline: true },
     )
     .setThumbnail(targetUser.displayAvatarURL())
     .setTimestamp()
-    .setFooter({ text: `${breakdown.history.length} events tracked` });
+    .setFooter({ text: 'Made for Degens. By Degens.' });
 
   // Add insights
   if (explanations.length > 0) {
     embed.addFields({
-      name: '[STATS] Insights',
+      name: 'Insights',
       value: explanations.slice(0, 6).join('\n'),
       inline: false
     });
@@ -147,8 +142,8 @@ async function showUserTrust(interaction: ChatInputCommandInteraction) {
   const isSelf = targetUser.id === interaction.user.id;
   if (!isSelf) {
     embed.addFields({
-      name: '👁️ Heads up',
-      value: 'This score is visible to others. We do that to keep the community honest — not to put anyone on blast.',
+      name: 'HEADS UP',
+      value: 'This score is public. Community stays honest that way.',
       inline: false
     });
   }
@@ -163,37 +158,37 @@ async function showExplanation(interaction: ChatInputCommandInteraction) {
     .setDescription('TiltCheck uses automated audits and math-based verification to monitor the arena:')
     .addFields(
       {
-        name: '[GAME] Casino Trust (0-100)',
+        name: 'Casino Trust (0-100)',
         value: '**30%** Fairness consistency\n**20%** Payout reliability\n**15%** Bonus stability\n**15%** User reports\n**10%** Freespin validation\n**5%** Compliance\n**5%** Support quality',
         inline: false
       },
       {
-        name: '[USER] User Trust (0-100)',
+        name: 'User Trust (0-100)',
         value: '**Very High (95-100)** - Excellent reputation\n**High (80-94)** - Trusted member\n**Neutral (60-79)** - Normal standing\n**Low (40-59)** - Some concerns\n**High Risk (<40)** - Serious issues',
         inline: false
       },
       {
-        name: '[DONE] What Improves Trust',
-        value: '• Using accountability tools (vault, tethers, status audits)\n• Completing tips and being generous\n• Good community behavior\n• Following server rules',
+        name: 'What Improves Trust',
+        value: '- Using accountability tools (vault, tethers, status audits)\n- Completing tips and being generous\n- Good community behavior\n- Following server rules',
         inline: false
       },
       {
-        name: '[RISK] What Lowers Trust',
-        value: '• Tilt behavior (temporary, recovers over time)\n• Ignoring Tether alerts\n• Confirmed scams (-15 points)\n• False accusations\n• Repeated rule breaking',
+        name: 'What Lowers Trust',
+        value: '- Tilt behavior (temporary, recovers over time)\n- Ignoring Tether alerts\n- Confirmed scams (-15 points)\n- False accusations\n- Repeated rule breaking',
         inline: false
       },
       {
-        name: '[TIME] Recovery',
+        name: 'Recovery',
         value: 'Audit signals naturally decay at 0.5 points/hour. Trust scores can improve over time with positive behavior.',
         inline: false
       },
       {
-        name: '[INFO] Privacy',
+        name: 'Privacy',
         value: 'No sensitive personal data is stored. Trust is behavioral, not judgmental. Scores are not addiction assessments.',
         inline: false
       }
     )
-    .setFooter({ text: 'TiltCheck Edge Equalizer - Fair, Transparent, Non-Punitive' });
+    .setFooter({ text: 'Made for Degens. By Degens.' });
 
   await interaction.reply({ embeds: [embed] });
 }

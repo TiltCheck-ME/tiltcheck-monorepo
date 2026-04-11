@@ -89,9 +89,9 @@ jobs:
           - service: discord-bot
             railway_service_id: "91b91e98-fc19-4006-8edd-f7c2a1e45865"
           - service: justthetip-bot
-            railway_service_id: "PENDING_RAILWAY_SERVICE_ID_JTT"
+            railway_service_id: "1a168cbc-1a83-4e81-b6a2-c90d5afb7235"
           - service: dad-bot
-            railway_service_id: "PENDING_RAILWAY_SERVICE_ID_DAD"
+            railway_service_id: "1e8b60f1-625d-4351-8f17-b5180c20f8f4"
           - service: trust-rollup
             railway_service_id: "a3d4ca4c-868b-4332-8316-03b0d0b0d238"
           - service: control-room

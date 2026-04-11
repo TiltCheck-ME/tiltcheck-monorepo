@@ -1,13 +1,8 @@
-/* Copyright (c) 2026 TiltCheck. All rights reserved. */
-/**
- * Scan Command
- * 
- * Scans a URL for suspicious patterns using SusLink module.
- */
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-10
 
-import { SlashCommandBuilder, ChatInputCommandInteraction } from 'discord.js';
+import { SlashCommandBuilder, ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
 import { suslink } from '@tiltcheck/suslink';
-import { linkScanEmbed, errorEmbed, isValidUrl } from '@tiltcheck/discord-utils';
+import { linkScanEmbed, isValidUrl } from '@tiltcheck/discord-utils';
 import type { Command } from '../types.js';
 
 export const scan: Command = {
@@ -28,10 +23,11 @@ export const scan: Command = {
 
     // Validate URL
     if (!isValidUrl(url)) {
-      const embed = errorEmbed(
-        'Invalid URL',
-        'Please provide a valid URL starting with http:// or https://'
-      );
+      const embed = new EmbedBuilder()
+        .setColor(0xef4444)
+        .setTitle('INVALID URL')
+        .setDescription('That is not a valid URL. Must start with http:// or https://')
+        .setFooter({ text: 'Made for Degens. By Degens.' });
       await interaction.editReply({ embeds: [embed] });
       return;
     }
@@ -52,10 +48,11 @@ export const scan: Command = {
     } catch (error) {
       console.error('[ScanCommand] Error:', error);
       
-      const embed = errorEmbed(
-        'Scan Failed',
-        'An error occurred while scanning the URL. Please try again.'
-      );
+      const embed = new EmbedBuilder()
+        .setColor(0xef4444)
+        .setTitle('SCAN FAILED')
+        .setDescription('Scan did not complete. Try again.')
+        .setFooter({ text: 'Made for Degens. By Degens.' });
       await interaction.editReply({ embeds: [embed] });
     }
   },
