@@ -89,18 +89,6 @@ function setSidebarVisibility(visible: boolean): boolean {
   const sidebar = document.getElementById('tiltcheck-sidebar');
   if (!sidebar) return false;
   sidebar.style.display = visible ? 'block' : 'none';
-
-  const offset = sidebar.classList.contains('minimized') ? MINIMIZED_SIDEBAR_WIDTH : FULL_SIDEBAR_WIDTH;
-
-  if (visible) {
-    document.body.style.width = `calc(100% - ${offset}px)`;
-    document.documentElement.style.width = `calc(100% - ${offset}px)`;
-    document.body.style.transition = 'width 0.4s cubic-bezier(0.16, 1, 0.3, 1)';
-  } else {
-    document.body.style.width = '100%';
-    document.documentElement.style.width = '100%';
-  }
-
   return visible;
 }
 

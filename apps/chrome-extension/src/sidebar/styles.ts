@@ -33,7 +33,6 @@ export const getSidebarStyles = () => `
       border-left: 1px solid var(--tg-border);
     }
     #tiltcheck-sidebar.minimized { transform: translateX(${SIDEBAR_WIDTH - MINIMIZED_WIDTH}px); width: ${MINIMIZED_WIDTH}px; }
-    body.tiltcheck-minimized { margin-right: ${MINIMIZED_WIDTH}px !important; }
     #tiltcheck-sidebar::-webkit-scrollbar { width: 6px; }
     #tiltcheck-sidebar::-webkit-scrollbar-track { background: transparent; }
     #tiltcheck-sidebar::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.2); border-radius: 3px; }

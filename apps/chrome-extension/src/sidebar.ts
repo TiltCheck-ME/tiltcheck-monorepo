@@ -374,33 +374,8 @@ async function ensureWalletUnlocked(actionLabel: string): Promise<boolean> {
   return true;
 }
 
-function applyPageOffset(width: number) {
-  const offset = `${width}px`;
-
-  // Apply to both html and body for maximum compatibility across different casino layouts
-  if (document.documentElement) {
-    document.documentElement.style.marginRight = offset;
-    document.documentElement.style.transition = 'margin-right 0.3s ease';
-  }
-  
-  if (document.body) {
-    document.body.style.marginRight = offset;
-    document.body.style.transition = 'margin-right 0.3s ease';
-  }
-  
-  // Handle some fixed-position elements that might need adjustment on certain sites
-  const fixedSelectors = ['.Header-module__header', '[style*="position: fixed"]'];
-  fixedSelectors.forEach(sel => {
-    try {
-      const els = document.querySelectorAll(sel);
-      els.forEach(el => {
-        if (el instanceof HTMLElement && !el.closest('#tiltcheck-sidebar')) {
-           el.style.right = offset;
-           el.style.transition = 'right 0.3s ease';
-        }
-      });
-    } catch {}
-  });
+function applyPageOffset(_width: number) {
+  // Sidebar is a fixed overlay — do not shift page content.
 }
 
 function setSidebarVisibility(visible: boolean) {
@@ -412,12 +387,6 @@ function setSidebarVisibility(visible: boolean) {
   } catch {
     // Ignore storage failures in restricted contexts.
   }
-  if (!visible) {
-    applyPageOffset(0);
-    return;
-  }
-  const width = sidebar.classList.contains('minimized') ? MINIMIZED_WIDTH : SIDEBAR_WIDTH;
-  applyPageOffset(width);
 }
 
 async function updateSidebarPrefs(partial: Record<string, any>) {
@@ -431,8 +400,6 @@ function setSidebarMinimized(minimized: boolean, persist = true) {
   if (!sidebar) return;
   const btn = document.getElementById('tg-minimize');
   sidebar.classList.toggle('minimized', minimized);
-  document.body.classList.toggle('tiltcheck-minimized', minimized);
-  applyPageOffset(minimized ? MINIMIZED_WIDTH : SIDEBAR_WIDTH);
   if (btn) {
     btn.textContent = minimized ? 'Expand' : 'Minimize';
     btn.setAttribute('title', minimized ? 'Expand panel' : 'Minimize panel');
@@ -977,9 +944,6 @@ function createSidebar() {
     <div class="tg-toast" id="tg-toast" style="display:none;"></div>
   `;
 
-  // Push page content to make room for sidebar
-  applyPageOffset(SIDEBAR_WIDTH);
-
   const style = document.createElement('style');
   style.textContent = `
     #tiltcheck-sidebar {
@@ -1009,7 +973,6 @@ function createSidebar() {
       border-left: 1px solid var(--tg-border);
     }
     #tiltcheck-sidebar.minimized { transform: translateX(${SIDEBAR_WIDTH - MINIMIZED_WIDTH}px); width: ${MINIMIZED_WIDTH}px; }
-    body.tiltcheck-minimized { margin-right: ${MINIMIZED_WIDTH}px !important; }
     #tiltcheck-sidebar::-webkit-scrollbar { width: 6px; }
     #tiltcheck-sidebar::-webkit-scrollbar-track { background: transparent; }
     #tiltcheck-sidebar::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.2); border-radius: 3px; }

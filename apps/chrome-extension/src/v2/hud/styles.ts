@@ -145,10 +145,4 @@ export const HUD_STYLES = `
   .hud-btn-secondary { background: rgba(255, 255, 255, 0.08); color: #fff; border: 1px solid rgba(255, 255, 255, 0.1); }
 
   .hud-btn:hover { transform: translateY(-2px); filter: brightness(1.2); }
-
-  /* --- Global Shifting --- */
-  body.tiltcheck-sidebar-open {
-    width: calc(100% - 360px) !important;
-    transition: width 0.4s cubic-bezier(0.16, 1, 0.3, 1) !important;
-  }
 `;

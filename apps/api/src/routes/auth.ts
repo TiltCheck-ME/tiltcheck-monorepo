@@ -676,9 +676,13 @@ router.get('/discord/callback', authLimiter, async (req, res) => {
   } catch (error) {
     console.error('[Auth] Discord callback error:', error);
     if (source === 'extension') {
+      const detail =
+        error instanceof Error
+          ? error.message.slice(0, 120)
+          : 'Unknown error';
       res
         .status(500)
-        .send(renderExtensionAuthErrorPage('Discord sign-in failed unexpectedly. Please retry in a few seconds.'));
+        .send(renderExtensionAuthErrorPage(`Discord sign-in failed: ${detail}. Check Railway logs and retry.`));
       return;
     }
     res.status(500).json({ error: 'Authentication failed' });
