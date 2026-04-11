@@ -352,6 +352,9 @@ importers:
       '@discord/embedded-app-sdk':
         specifier: ^1.7.0
         version: 1.9.0
+      '@solana/web3.js':
+        specifier: ^1.98.4
+        version: 1.98.4(bufferutil@4.1.0)(encoding@0.1.13)(typescript@6.0.2)(utf-8-validate@5.0.10)
       '@tiltcheck/config':
         specifier: workspace:*
         version: link:../../packages/config
@@ -378,7 +381,7 @@ importers:
         version: link:../../packages/utils
       discord.js:
         specifier: ^14.25.1
-        version: 14.25.1(bufferutil@4.1.0)(utf-8-validate@6.0.6)
+        version: 14.25.1(bufferutil@4.1.0)(utf-8-validate@5.0.10)
       dotenv:
         specifier: ^17.3.1
         version: 17.3.1
@@ -14883,7 +14886,7 @@ snapshots:
     dependencies:
       '@mikro-orm/core': 6.6.10
       fs-extra: 11.3.3
-      knex: 3.1.0(pg@8.19.0)(sqlite3@5.1.7)
+      knex: 3.1.0(mysql2@3.19.0(@types/node@25.5.0))(pg@8.19.0)
       sqlstring: 2.3.3
     optionalDependencies:
       mariadb: 3.4.5
