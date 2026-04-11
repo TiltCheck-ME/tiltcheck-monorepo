@@ -1,4 +1,4 @@
-/* Copyright (c) 2026 TiltCheck. All rights reserved. */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-11 */
 import { SidebarUI } from './types.js';
 
 interface OnboardingStep {
@@ -112,6 +112,6 @@ export class OnboardingManager {
     if (overlay) overlay.classList.remove('active');
     
     await this.ui.setStorage({ onboardingCompleted: true });
-    this.ui.addFeedMessage('Tutorial completed! You are now a <strong>Reality Check Pro</strong>.');
+    this.ui.addFeedMessage('Setup complete. Audit mode active — the math does not lie, and now neither does your session.');
   }
 }

@@ -125,19 +125,18 @@ async function handleBetaRolegrant(interaction: ChatInputCommandInteraction) {
         { name: 'Role Granted', value: 'Founder Tester', inline: true },
         { name: 'Bug Reports', value: '<#1488256031590191174>', inline: true },
         { name: 'Beta General', value: '<#1488256030579364055>', inline: true },
-        { name: 'Getting Started', value: 'https://tiltcheck.me/getting-started', inline: false },
       )
       .setFooter({ text: 'Made for Degens. By Degens.' });
 
     const helpBtn = new ButtonBuilder()
-      .setLabel('Getting Started')
+      .setLabel('Getting Started Guide')
       .setStyle(ButtonStyle.Link)
       .setURL('https://tiltcheck.me/getting-started');
 
     const extensionBtn = new ButtonBuilder()
-      .setLabel('Apply for Extension Build')
+      .setLabel('Extension Setup')
       .setStyle(ButtonStyle.Link)
-      .setURL('https://tiltcheck.me/beta-tester');
+      .setURL('https://tiltcheck.me/extension');
 
     const row = new ActionRowBuilder<ButtonBuilder>().addComponents(helpBtn, extensionBtn);
     await dm.send({ embeds: [betaEmbed], components: [row] });

@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-10
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-11
 /**
  * Onboarding System for TiltCheck Safety Bot
  * Handles first-time user welcome and safety preferences
@@ -176,6 +176,9 @@ export function needsOnboarding(userId: string): boolean {
  */
 export function markOnboarded(userId: string): void {
   onboardedUsers.add(userId);
+  if (!supabase) {
+    console.warn('[Onboarding] WARNING: No Supabase configured — onboarding state for', userId, 'is MEMORY ONLY and will be lost on restart.');
+  }
   // Save immediately when user is onboarded
   markOnboardedInDb(userId).catch(console.error);
 }
@@ -667,22 +670,24 @@ async function completeOnboarding(interaction: MessageComponentInteraction): Pro
       `/tether - LINK YOUR ACCOUNTABILITY LINE\n` +
       `/odds - HOUSE EDGE AUDIT\n` +
       `/verify - PROVABLY FAIR VERIFIER\n\n` +
+      `**NEXT STEP:** Install the TiltCheck extension to get the full session auditing layer running.\n` +
+      `Apply at tiltcheck.me/beta-tester or browse the dashboard at tiltcheck.me/getting-started.\n\n` +
       `IF YOUR BRAIN IS SMOKING, PULL THE BRAKE.`
     )
     .setFooter({ text: 'Made for Degens. By Degens.' });
 
-  const discordBtn = new ButtonBuilder()
-    .setLabel('Join TiltCheck Discord')
+  const betaBtn = new ButtonBuilder()
+    .setLabel('Apply for Extension Beta')
     .setStyle(ButtonStyle.Link)
-    .setURL('https://discord.gg/gdBsEJfCar');
+    .setURL('https://tiltcheck.me/beta-tester');
 
-  const websiteBtn = new ButtonBuilder()
-    .setLabel('Visit Website')
+  const gettingStartedBtn = new ButtonBuilder()
+    .setLabel('Getting Started Guide')
     .setStyle(ButtonStyle.Link)
-    .setURL('https://tiltcheck.me');
+    .setURL('https://tiltcheck.me/getting-started');
 
   const row = new ActionRowBuilder<ButtonBuilder>()
-    .addComponents(discordBtn, websiteBtn);
+    .addComponents(betaBtn, gettingStartedBtn);
 
   await interaction.update({ embeds: [completedEmbed], components: [row] });
 }
