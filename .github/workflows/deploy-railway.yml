@@ -251,6 +251,9 @@ jobs:
             -d "$UPDATE_MUTATION" 2>&1)
           echo "Image update: $UPDATE_RESPONSE"
 
+          # Wait for Railway to persist the image update before triggering redeploy
+          sleep 5
+
           # Trigger redeploy
           REDEPLOY_MUTATION="{\"query\":\"mutation { serviceInstanceRedeploy(serviceId: \\\"$SVC_ID\\\", environmentId: \\\"$ENV_ID\\\") }\"}"
           for i in 1 2 3; do
