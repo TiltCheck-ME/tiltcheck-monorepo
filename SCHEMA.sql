@@ -1,3 +1,4 @@
+-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-12
 -- TiltCheck Ecosystem - Initial Database Schema
 -- Last Updated: 2026-03-30
 -- Target: Neon PostgreSQL (Serverless)
@@ -35,7 +36,13 @@ CREATE TABLE IF NOT EXISTS user_onboarding (
     has_accepted_terms BOOLEAN DEFAULT FALSE,
     risk_level VARCHAR(20) DEFAULT 'moderate', -- conservative, moderate, degen
     cooldown_enabled BOOLEAN DEFAULT TRUE,
+    voice_intervention_enabled BOOLEAN DEFAULT FALSE,
+    share_message_contents BOOLEAN DEFAULT FALSE,
+    share_financial_data BOOLEAN DEFAULT FALSE,
+    share_session_telemetry BOOLEAN DEFAULT FALSE,
+    notify_nft_identity_ready BOOLEAN DEFAULT FALSE,
     daily_limit DECIMAL(20, 8),
+    redeem_threshold DECIMAL(20, 8),
     quiz_scores TEXT, -- JSON or string representation of quiz results
     tutorial_completed BOOLEAN DEFAULT FALSE,
     notifications_tips BOOLEAN DEFAULT TRUE,
@@ -62,6 +69,34 @@ CREATE TABLE IF NOT EXISTS tips (
     completed_at TIMESTAMP WITH TIME ZONE,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
+
+-- ============================================================================
+-- Recovery Applications
+-- ============================================================================
+CREATE TABLE IF NOT EXISTS recovery_applications (
+    id VARCHAR(64) PRIMARY KEY,
+    discord_user_id VARCHAR(255) NOT NULL,
+    discord_username VARCHAR(255) NOT NULL,
+    hardship TEXT NOT NULL,
+    steps TEXT NOT NULL,
+    support_contact TEXT NOT NULL,
+    support_discord_id VARCHAR(255),
+    support_confirmed BOOLEAN DEFAULT FALSE NOT NULL,
+    review_message_id VARCHAR(255),
+    review_channel_id VARCHAR(255),
+    community_votes INTEGER DEFAULT 0 NOT NULL,
+    status VARCHAR(32) NOT NULL CHECK (status IN ('pending_support', 'under_review', 'approved', 'paid', 'rejected', 'cancelled')),
+    rejection_reason TEXT,
+    approved_by VARCHAR(255),
+    applied_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_recovery_applications_user
+    ON recovery_applications (discord_user_id);
+
+CREATE INDEX IF NOT EXISTS idx_recovery_applications_status
+    ON recovery_applications (status);
 
 -- ============================================================================
 -- Trust Layer - Signals & Ratings

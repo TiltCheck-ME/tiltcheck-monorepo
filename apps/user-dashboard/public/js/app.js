@@ -1,4 +1,4 @@
-// © 2024-2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-04
+// © 2024-2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-12
 
 'use strict';
 
@@ -140,6 +140,20 @@ async function loadUserProfile() {
         if (user.degenIdentity?.primary_external_address) {
             const addr = user.degenIdentity.primary_external_address;
             setText('externalWalletDisplay', addr.slice(0, 6) + '...' + addr.slice(-4));
+        }
+
+        if (user.nftIdentity) {
+            setText('nftIdentityStatus', user.nftIdentity.status);
+            setText('nftIdentitySub', user.nftIdentity.detail);
+
+            const noticeKey = `nft-ready-banner-${currentUser.discordId}`;
+            if (user.nftIdentity.notificationPending && !sessionStorage.getItem(noticeKey)) {
+                showNotification('NFT identity waitlist ready. Terms are signed and a wallet is linked.', 'success');
+                sessionStorage.setItem(noticeKey, '1');
+            }
+        } else {
+            setText('nftIdentityStatus', 'Unknown');
+            setText('nftIdentitySub', 'Identity status is offline right now.');
         }
     } catch (err) { console.error('[Profile]', err); }
 }
@@ -487,9 +501,15 @@ function setupWalletPanel() {
                 body: JSON.stringify({ address })
             });
             if (res.ok) {
+                const data = await res.json();
                 setText('externalWalletDisplay', address.slice(0, 6) + '...' + address.slice(-4));
+                if (data?.nftIdentity) {
+                    setText('nftIdentityStatus', data.nftIdentity.status);
+                    setText('nftIdentitySub', data.nftIdentity.detail);
+                }
                 if (form) form.style.display = 'none';
                 showNotification('Wallet linked.', 'success');
+                loadUserProfile();
             }
         } catch (err) { showNotification('Error linking wallet.', 'error'); }
     });
@@ -636,6 +656,10 @@ function handleWsMessage(msg) {
         case 'bonus.available':
             showNotification(`Bonus available: ${msg.data?.casinoName ?? 'Casino'}`, 'info');
             addBonusTabBadge();
+            break;
+        case 'identity.nft_ready':
+            showNotification(msg.data?.message ?? 'Your NFT identity waitlist is ready.', 'success');
+            loadUserProfile();
             break;
     }
 }

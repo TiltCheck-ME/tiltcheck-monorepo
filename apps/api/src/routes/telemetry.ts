@@ -1,12 +1,13 @@
-/* Copyright (c) 2026 TiltCheck. All rights reserved. */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-12 */
 /**
  * Telemetry Routes - /telemetry/*
  * Handles behavioral telemetry, win securing, and nudge efficacy tracking.
  */
 
 import { Router } from 'express';
-import { findUserByDiscordId, updateUser } from '@tiltcheck/db';
+import { findUserByDiscordId, findUserById, updateUser } from '@tiltcheck/db';
 import { InternalServerError } from '@tiltcheck/error-factory';
+import { getUserDataConsentState } from '../lib/data-consent.js';
 
 const router: Router = Router();
 
@@ -24,15 +25,22 @@ router.post('/win-secure', async (req, res, next) => {
 
         // Find user by Discord ID (extension sends discordId as userId usually, or we can check both)
         let user = await findUserByDiscordId(userId);
-        
+
         if (!user) {
-            // Try by ID if not found by Discord ID
-            const { findUserById } = await import('@tiltcheck/db');
             user = await findUserById(userId);
         }
 
         if (!user) {
             return res.status(404).json({ error: 'User not found' });
+        }
+
+        const consentState = await getUserDataConsentState(user.discord_id || userId);
+        if (!consentState.financialData) {
+            return res.json({
+                success: true,
+                skipped: true,
+                reason: 'financial_data_consent_required',
+            });
         }
 
         // Increment redeem wins and total redeemed

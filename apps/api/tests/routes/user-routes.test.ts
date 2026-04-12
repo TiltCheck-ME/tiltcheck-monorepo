@@ -1,4 +1,4 @@
-/* Copyright (c) 2026 TiltCheck. All rights reserved. */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-12 */
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import express from 'express';
 import request from 'supertest';
@@ -23,6 +23,9 @@ vi.mock('../../src/middleware/auth.js', () => ({
     if (!req.user) {
       req.user = { discordId: 'discord-self' };
     }
+    next();
+  },
+  internalServiceAuth: (_req: any, _res: any, next: any) => {
     next();
   },
 }));
@@ -77,5 +80,27 @@ describe('User route ordering and shape', () => {
     expect(response.body.discordId).toBe('d1');
     expect(response.body.user.discordId).toBe('d1');
     expect(response.body.analytics.trustScore).toBe(88);
+  });
+
+  it('returns internal consent state before dynamic discordId lookup', async () => {
+    mockedDb.findOnboardingByDiscordId.mockResolvedValueOnce({
+      share_message_contents: true,
+      share_financial_data: false,
+      share_session_telemetry: true,
+      notify_nft_identity_ready: false,
+      compliance_bypass: false,
+    });
+
+    const response = await request(app).get('/user/internal/consents/d1');
+
+    expect(response.status).toBe(200);
+    expect(response.body).toEqual({
+      messageContents: true,
+      financialData: false,
+      sessionTelemetry: true,
+      notifyNftIdentityReady: false,
+      complianceBypass: false,
+    });
+    expect(mockedDb.findOnboardingByDiscordId).toHaveBeenCalledWith('d1');
   });
 });
