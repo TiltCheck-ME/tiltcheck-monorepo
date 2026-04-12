@@ -54,7 +54,8 @@ jobs:
             "config": {
               "ingress": [
                 { "hostname": "api.tiltcheck.me",      "service": "http://api.railway.internal:3000" },
-                { "hostname": "hub.tiltcheck.me",      "service": "http://user-dashboard.railway.internal:3000" },
+                { "hostname": "hub.tiltcheck.me",      "service": "http://user-dashboard.railway.internal:6001" },
+                { "hostname": "dashboard.tiltcheck.me","service": "http://user-dashboard.railway.internal:6001" },
                 { "hostname": "activity.tiltcheck.me", "service": "http://activity.railway.internal:3000" },
                 { "hostname": "arena.tiltcheck.me",    "service": "http://game-arena.railway.internal:3000" },
                 { "hostname": "admin.tiltcheck.me",    "service": "http://control-room.railway.internal:3000" },
@@ -91,7 +92,7 @@ jobs:
         run: |
           TUNNEL_CNAME="${TUNNEL_ID}.cfargotunnel.com"
 
-          for SUB in api hub activity arena admin www; do
+            for SUB in api hub dashboard activity arena admin www; do
             NAME="${SUB}.tiltcheck.me"
             EXISTING=$(curl -sf "https://api.cloudflare.com/client/v4/zones/${CF_ZONE}/dns_records?name=${NAME}&type=CNAME" \
               -H "Authorization: Bearer ${CF_TOKEN}" | jq -r '.result[0].id // empty')
