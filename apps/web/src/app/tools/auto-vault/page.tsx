@@ -1,112 +1,152 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-09 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-13 */
 "use client";
 
 import React, { useState, useEffect } from 'react';
+import Link from 'next/link';
+import Nav from '@/components/Nav';
+import Footer from '@/components/Footer';
+import LockVault from '@/components/LockVault';
 import LegalModal from '@/components/LegalModal';
+
+const API = process.env.NEXT_PUBLIC_API_URL || '/api';
 
 /**
  * AutoVaultPage
- * Implements the non-custodial capital protection interface.
- * Enforces mandatory legal acceptance before displaying configuration.
+ * Full LockVault tool page wired to vault API.
+ * Requires Discord session auth for lock/release; shows sign-in state otherwise.
  */
 export default function AutoVaultPage() {
+  const [accepted, setAccepted] = useState(false);
   const [showLegal, setShowLegal] = useState(false);
-  const [hasAccepted, setHasAccepted] = useState(false);
+  const [discordId, setDiscordId] = useState<string | null>(null);
+  const [authLoading, setAuthLoading] = useState(true);
 
   useEffect(() => {
-    // Check if user has already accepted legal terms in this session
     const consent = localStorage.getItem('tiltcheck_legal_consent');
-    if (!consent) {
-      setShowLegal(true);
-    } else {
-      setHasAccepted(true);
-    }
+    if (!consent) setShowLegal(true);
+    else setAccepted(true);
   }, []);
 
-  const handleLegalAccept = () => {
+  useEffect(() => {
+    async function checkSession() {
+      try {
+        const res = await fetch(`${API}/auth/me`, { credentials: 'include' });
+        if (res.ok) {
+          const data = await res.json();
+          setDiscordId(data.discordId || data.userId || null);
+        }
+      } catch {
+        // no active session
+      } finally {
+        setAuthLoading(false);
+      }
+    }
+    checkSession();
+  }, []);
+
+  const handleAccept = () => {
     localStorage.setItem('tiltcheck_legal_consent', 'true');
     setShowLegal(false);
-    setHasAccepted(true);
+    setAccepted(true);
   };
 
   return (
-    <main className="flex min-h-screen flex-col items-center p-4 pt-24 bg-[#0a0c10]">
-      <LegalModal 
-        isOpen={showLegal} 
-        onAccept={handleLegalAccept} 
-        title="VAULT DEPLOYMENT COMPLIANCE"
-      />
+    <>
+      <Nav />
+      <main className="min-h-screen bg-[#0a0c10] text-white">
+        <LegalModal isOpen={showLegal} onAccept={handleAccept} title="VAULT DEPLOYMENT COMPLIANCE" />
 
-      <header className="tool-header terminal-header w-full max-w-4xl">
-        <div className="container mx-auto text-center">
-          <h1 className="terminal-title" data-slang="VAULT_OS">LockVault // Your Profits, Locked and Loaded</h1>
-          <p className="terminal-subtitle text-[#17c3b2]">This is where your profits go to hide from your bad decisions. Automatically.</p>
-        </div>
-      </header>
-
-      <div className="w-full max-w-4xl mx-auto mt-8">
-        {!hasAccepted ? (
-          <div className="p-12 border-2 border-dashed border-[#283347] text-center bg-black/20">
-            <h2 className="text-xl font-bold text-gray-500 uppercase tracking-widest">
-              REGULATORY DISCLOSURE REQUIRED
-            </h2>
-            <p className="text-gray-600 mt-2 max-w-md mx-auto">
-              You need to agree that you understand how this works before you can use it. It&apos;s for your own good. And ours.
+        <div className="max-w-4xl mx-auto px-4 py-12 pt-32">
+          {/* Header */}
+          <div className="mb-10">
+            <p className="text-[10px] text-gray-500 font-mono uppercase tracking-widest mb-2">
+              <Link href="/tools" className="hover:text-[#17c3b2] transition-colors">Tools</Link>
+              {' / '}
+              <span className="text-gray-400">LockVault</span>
             </p>
-            <button 
-              onClick={() => setShowLegal(true)}
-              className="mt-6 text-[#17c3b2] underline hover:text-[#48d5c6] font-bold uppercase tracking-tighter"
-            >
-              Get it Over With
-            </button>
+            <h1 className="text-3xl font-black uppercase tracking-tighter text-white mb-2">
+              LockVault
+            </h1>
+            <p className="text-gray-400 text-sm max-w-xl">
+              Non-custodial profit protection. Lock your wins behind a timer and block
+              impulse redemptions before you blow your stack.
+            </p>
           </div>
-        ) : (
-          <div className="terminal-box border-[#17c3b2] animate-in fade-in slide-in-from-bottom-4 duration-500">
-             <div className="terminal-prompt">
-                <span className="prompt-prefix">$</span>
-                <span className="prompt-text">Vault initialized. TiltCheck is non-custodial. We do not hold keys.</span>
-             </div>
-             
-             <div className="p-8 text-center">
-                <p className="text-[#17c3b2] mb-4">Alright, we&apos;re watching. When you hit a profit trigger, we&apos;ll automatically move the money here.</p>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-8">
-                    <div className="p-4 border border-[#283347] bg-black/40 text-left">
-                        <span className="text-xs text-[#17c3b2] font-bold uppercase block mb-1">Current Mood</span>
-                        <span className="font-mono">WAITING FOR YOU TO ACTUALLY WIN SOMETHING</span>
-                    </div>
-                    <div className="p-4 border border-[#283347] bg-black/40 text-left">
-                        <span className="text-xs text-[#17c3b2] font-bold uppercase block mb-1">Our Cut</span>
-                        <span className="font-mono">OUR CUT: 1% (CAPPED)</span>
-                    </div>
+
+          {/* How it works */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-10">
+            {[
+              { step: '01', label: 'SET THRESHOLD', desc: 'Choose a profit target. When you hit it, vault activates.' },
+              { step: '02', label: 'LOCK WINS', desc: 'Lock a SOL amount behind a time-based cooldown (1h–72h).' },
+              { step: '03', label: 'SECURE THE REDEEM', desc: 'Timer expires. Release the lock. Stack stays intact.' },
+            ].map(({ step, label, desc }) => (
+              <div key={step} className="bg-[#111827] border border-[#1e2d42] rounded-xl p-5">
+                <p className="text-[#17c3b2] text-xs font-mono font-bold mb-2">{step}</p>
+                <p className="text-white text-sm font-black uppercase tracking-tight mb-2">{label}</p>
+                <p className="text-gray-400 text-xs">{desc}</p>
+              </div>
+            ))}
+          </div>
+
+          {/* Vault interface */}
+          {accepted && (
+            <>
+              {authLoading ? (
+                <div className="animate-pulse bg-white/5 h-64 rounded-xl" />
+              ) : discordId ? (
+                <LockVault discordId={discordId} />
+              ) : (
+                <div className="bg-[#111827] border border-[#1e2d42] rounded-xl p-10 text-center">
+                  <p className="text-gray-400 text-sm mb-6">
+                    LockVault requires a Discord session. Connect via the TiltCheck bot first.
+                  </p>
+                  <a
+                    href={`${API}/auth/discord`}
+                    className="inline-block bg-[#5865F2] hover:bg-[#4752c4] text-white font-bold px-6 py-3 rounded-xl text-sm transition-colors"
+                  >
+                    Sign in with Discord
+                  </a>
+                  <p className="text-[10px] text-gray-600 mt-4 font-mono">
+                    Or use{' '}
+                    <code className="bg-white/5 px-1 rounded">/lockvault</code> in the TiltCheck Discord bot.
+                  </p>
                 </div>
-                
-                <p className="mt-12 text-gray-500 italic text-sm">
-                   Go to your dashboard if you want to change when and how much this thing grabs. Or don&apos;t. Your call.
-                </p>
-             </div>
+              )}
+            </>
+          )}
+
+          {!accepted && (
+            <div className="bg-[#111827] border border-[#1e2d42] rounded-xl p-8 text-center">
+              <p className="text-gray-400 text-sm mb-4">Accept the compliance terms to access LockVault.</p>
+              <button
+                onClick={() => setShowLegal(true)}
+                className="bg-[#17c3b2] hover:bg-[#14b0a0] text-black font-bold px-6 py-3 rounded-xl text-sm transition-colors"
+              >
+                View Terms
+              </button>
+            </div>
+          )}
+
+          {/* Cross-links */}
+          <div className="mt-10 grid grid-cols-2 md:grid-cols-4 gap-3">
+            {[
+              { href: '/tools/collectclock', label: 'CollectClock' },
+              { href: '/tools/delta-engine', label: 'Delta Engine' },
+              { href: '/tools/suslink', label: 'SusLink Scanner' },
+              { href: '/tools', label: 'All Tools' },
+            ].map(({ href, label }) => (
+              <Link
+                key={href}
+                href={href}
+                className="bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg px-4 py-3 text-xs text-gray-400 hover:text-white font-mono text-center transition-colors"
+              >
+                {label}
+              </Link>
+            ))}
           </div>
-        )}
-      </div>
-
-      {/* Compliance Badge */}
-      {hasAccepted && (
-        <div className="mt-8 flex items-center gap-2 px-4 py-2 bg-[#17c3b2]/10 border border-[#17c3b2]/30 rounded-full">
-          <span className="w-2 h-2 bg-[#17c3b2] rounded-full animate-pulse"></span>
-          <span className="text-[10px] text-[#17c3b2] font-black uppercase tracking-widest">
-            WE&apos;RE NOT HOLDING YOUR BAGS // ZERO SECRETS STORED
-          </span>
         </div>
-      )}
-
-      <div className="mt-6 px-4 py-2 border border-[#ffd700]/30 bg-[#ffd700]/5">
-        <span className="text-[10px] text-[#ffd700] font-black uppercase tracking-widest font-mono">
-          BETA — Vault writes are pending backend connection. UI is live. Execution is not.
-        </span>
-      </div>
-
-      <footer className="mt-16 py-8 text-center text-xs text-gray-600 uppercase tracking-[0.3em]">
-        Made for Degens. By Degens.
-      </footer>
-    </main>
+      </main>
+      <Footer />
+    </>
   );
 }
