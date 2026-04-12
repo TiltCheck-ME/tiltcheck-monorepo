@@ -1,4 +1,4 @@
-# © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-11
+# © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-14
 # DAD Bot - Production Container
 FROM node:20 AS base
 ENV PNPM_HOME="/pnpm"
@@ -16,7 +16,7 @@ RUN pnpm install --frozen-lockfile --filter @tiltcheck/dad-bot...
 RUN pnpm --filter @tiltcheck/dad-bot... build
 RUN test -f apps/dad-bot/dist/bootstrap.js || (echo 'BUILD ERROR: apps/dad-bot/dist/bootstrap.js not produced' && exit 1)
 # pnpm deploy resolves workspace symlinks (e.g. @tiltcheck/db) into real node_modules
-RUN pnpm --filter @tiltcheck/dad-bot deploy --prod /deploy/dad-bot
+RUN pnpm --filter @tiltcheck/dad-bot deploy --prod --legacy /deploy/dad-bot
 # Copy built dist over the deploy dir (deploy only copies src files)
 RUN cp -r /app/apps/dad-bot/dist /deploy/dad-bot/dist
 
