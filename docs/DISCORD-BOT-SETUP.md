@@ -1,4 +1,9 @@
-# Discord Bot Setup Complete! 🎉
+© 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-12
+
+# Discord Bot Setup Complete
+
+> Historical bootstrap note: this document describes the original 3-command startup bot.
+> For the current live command split across TiltCheck, JustTheTip, and DAD, use `docs/discord-command-ownership.md`.
 
 ## What We Built
 
@@ -351,15 +356,16 @@ Mod notification (TODO: implement)
 - ✅ Basic commands working
 - ✅ Event Router integration functional
 
-### Future Commands
-Add these commands as modules become available:
+### Current Live Direction
+The production command surface no longer centers on the original 3-command bootstrap.
 
-1. **`/tip @user <amount>`** - JustTheTip integration
-2. **`/bonus track <casino> <amount>`** - CollectClock integration
-3. **`/trust casino <name>`** - Casino Trust Engine
-4. **`/trust user @user`** - Degen Trust Engine
-5. **`/tilt check`** - TiltCheck Core
-6. **`/promo submit <url>`** - FreeSpinScan
+Current live TiltCheck examples:
+1. **`/casino <name>`** - Casino trust and fairness lookup
+2. **`/reputation @user`** - Degen/user reputation read
+3. **`/sos info`** - Recovery microgrant info
+4. **`/setstate`** - Save state/topic context for regulation-aware reads
+5. **`/touchgrass`** - Emergency self-lockout
+6. **`/block-game`** / **`/unblock-game`** - Surgical self-exclusion controls
 
 ### Enhancements
 - [ ] Mod notification system for flagged links

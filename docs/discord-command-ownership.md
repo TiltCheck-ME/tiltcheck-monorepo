@@ -1,40 +1,56 @@
+© 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-12
+
 # Discord Command Ownership
 
 This is the source of truth for slash command split across bots.
 
-## `@tiltcheck/discord-bot` (Safety + Moderation)
+## `@tiltcheck/discord-bot` (Safety + Trust)
 
-- `/tiltcheck`
-- `/suslink`
-- `/casino`
+- `/status`
 - `/buddy`
-- `/report`
-- `/setstate`
-- `/ping`
+- `/odds`
+- `/verify`
+- `/goal`
+- `/intervene`
+- `/dashboard`
+- `/cooldown`
+- `/tilt`
+- `/scan`
+- `/sos`
+- `/casino`
+- `/reputation`
+- `/support`
 - `/help`
+- `/jme`
+- `/ping`
+- `/setstate`
+- `/terms`
+- `/block-game`
+- `/unblock-game`
+- `/my-exclusions`
+- `/upgrade`
+- `/touchgrass`
 
 ## `@tiltcheck/justthetip-bot` (Tipping + Wallet)
 
-- `/tip`
-- `/airdrop`
-- `/justthetip`
+- `/juicedrop`
+- `/profitdrop`
+- `/lockvault`
+- `/bonuses`
+- `/linkwallet`
+- `/donation`
 - `/ping`
 - `/help`
 
 ## `@tiltcheck/dad-bot` (DA&D + Poker)
 
+- `/lobby`
+- `/triviadrop`
+- `/jackpot`
 - `/play`
-- `/join`
-- `/startgame`
-- `/hand`
-- `/submit`
-- `/vote`
-- `/scores`
-- `/poker`
-
-## `collectclock` Bot (External Repo)
-
-- `/bonus` and related bonus-tracking commands
+- `/degens-help`
+- `/ping`
+- `/help`
 
 ## Deployment Note
 

@@ -1,3 +1,5 @@
+© 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-12
+
 # AI Chatbot Quick Reference
 
 ## 🚀 Quick Start
@@ -74,7 +76,7 @@ That's it! The script handles everything:
 The chatbot knows about:
 
 1. **Casino Trust Scores** - Fairness, payouts, support, compliance, bonuses
-2. **Discord Commands** - /scan, /trust, /triviadrop, /qualify, /justthetip, etc.
+2. **Discord Commands** - /scan, /casino, /reputation, /status, /sos, /juicedrop, /triviadrop, etc.
 3. **Tilt Detection** - Real-time AI monitoring and interventions
 4. **JustTheTip** - Non-custodial crypto tipping on Solana
 5. **SusLink** - Link scanning and phishing detection
