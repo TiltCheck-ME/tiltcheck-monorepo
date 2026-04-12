@@ -50,6 +50,17 @@ function handleVaultError(error: unknown): { status: number; body: { error: stri
   };
 }
 
+/** Accepts both internal UUID and discordId as userId param for web compat */
+function isAuthorized(auth: AuthRequest['user'], userId: string): boolean {
+  return auth?.id === userId || (auth as any)?.discordId === userId;
+}
+
+/** Narrow req.params value to string (handles string | string[] edge case) */
+function param(req: { params: Record<string, string | string[]> }, name: string): string {
+  const v = req.params[name];
+  return Array.isArray(v) ? v[0] : v;
+}
+
 function walletLockBlockedResponse(userId: string) {
   const status = getWalletActionLockStatus(userId);
   if (!status.locked || !status.lockUntil || !status.remainingMs) return null;
@@ -67,10 +78,10 @@ function walletLockBlockedResponse(userId: string) {
  * Get general vault balance and all active locks
  */
 router.get('/:userId', authMiddleware, async (req, res) => {
-  const { userId } = req.params;
+  const userId = param(req, 'userId');
   const auth = (req as AuthRequest).user;
 
-  if (auth?.id !== userId) {
+  if (!isAuthorized(auth, userId)) {
     res.status(403).json({ error: 'Unauthorized access to vault' });
     return;
   }
@@ -94,10 +105,10 @@ router.get('/:userId', authMiddleware, async (req, res) => {
  * Get the most recent active lock status
  */
 router.get('/:userId/lock-status', authMiddleware, async (req, res) => {
-  const { userId } = req.params;
+  const userId = param(req, 'userId');
   const auth = (req as AuthRequest).user;
 
-  if (auth?.id !== userId) {
+  if (!isAuthorized(auth, userId)) {
     res.status(403).json({ error: 'Unauthorized' });
     return;
   }
@@ -127,10 +138,10 @@ router.get('/:userId/lock-status', authMiddleware, async (req, res) => {
  * Returns account-level wallet lock state
  */
 router.get('/:userId/wallet-lock-status', authMiddleware, async (req, res) => {
-  const { userId } = req.params;
+  const userId = param(req, 'userId');
   const auth = (req as AuthRequest).user;
 
-  if (auth?.id !== userId) {
+  if (!isAuthorized(auth, userId)) {
     res.status(403).json({ error: 'Unauthorized' });
     return;
   }
@@ -148,11 +159,11 @@ router.get('/:userId/wallet-lock-status', authMiddleware, async (req, res) => {
  * Set account-level wallet lock timer
  */
 router.post('/:userId/wallet-lock', authMiddleware, async (req, res) => {
-  const { userId } = req.params;
+  const userId = param(req, 'userId');
   const { durationMinutes, reason } = req.body || {};
   const auth = (req as AuthRequest).user;
 
-  if (auth?.id !== userId) {
+  if (!isAuthorized(auth, userId)) {
     res.status(403).json({ error: 'Unauthorized' });
     return;
   }
@@ -182,10 +193,10 @@ router.post('/:userId/wallet-lock', authMiddleware, async (req, res) => {
  * Clears account-level wallet lock
  */
 router.post('/:userId/wallet-unlock', authMiddleware, async (req, res) => {
-  const { userId } = req.params;
+  const userId = param(req, 'userId');
   const auth = (req as AuthRequest).user;
 
-  if (auth?.id !== userId) {
+  if (!isAuthorized(auth, userId)) {
     res.status(403).json({ error: 'Unauthorized' });
     return;
   }
@@ -199,11 +210,11 @@ router.post('/:userId/wallet-unlock', authMiddleware, async (req, res) => {
  * Add funds to general vault balance
  */
 router.post('/:userId/deposit', authMiddleware, async (req, res) => {
-  const { userId } = req.params;
+  const userId = param(req, 'userId');
   const { amount } = req.body;
   const auth = (req as AuthRequest).user;
 
-  if (auth?.id !== userId) {
+  if (!isAuthorized(auth, userId)) {
     res.status(403).json({ error: 'Unauthorized' });
     return;
   }
@@ -234,11 +245,11 @@ router.post('/:userId/deposit', authMiddleware, async (req, res) => {
  * Create a new timed lock
  */
 router.post('/:userId/lock', authMiddleware, async (req, res) => {
-  const { userId } = req.params;
+  const userId = param(req, 'userId');
   const { amount, durationMinutes, reason } = req.body;
   const auth = (req as AuthRequest).user;
 
-  if (auth?.id !== userId) {
+  if (!isAuthorized(auth, userId)) {
     res.status(403).json({ error: 'Unauthorized' });
     return;
   }
@@ -263,10 +274,10 @@ router.post('/:userId/lock', authMiddleware, async (req, res) => {
   try {
     const record = await lockVault({
       userId,
-      amountRaw: `${parsedAmount} USD`,
+      amountRaw: `${parsedAmount} SOL`,
       durationRaw: `${Math.trunc(parsedDurationMinutes)}m`,
       reason: reason || 'Manual Lock',
-      currencyHint: 'USD',
+      currencyHint: 'SOL',
       disclaimerAccepted: true
     });
 
@@ -285,11 +296,11 @@ router.post('/:userId/lock', authMiddleware, async (req, res) => {
  * Unlock an expired lock
  */
 router.post('/:userId/release', authMiddleware, async (req, res) => {
-  const { userId } = req.params;
+  const userId = param(req, 'userId');
   const { vaultId } = req.body;
   const auth = (req as AuthRequest).user;
 
-  if (auth?.id !== userId) {
+  if (!isAuthorized(auth, userId)) {
     res.status(403).json({ error: 'Unauthorized' });
     return;
   }
@@ -341,14 +352,14 @@ router.post('/:userId/release', authMiddleware, async (req, res) => {
  * Add a second owner to the vault
  */
 router.post('/:userId/add-second-owner', authMiddleware, async (req, res) => {
-    const { userId } = req.params;
+    const userId = param(req, 'userId');
     const { secondOwnerId } = req.body;
     const auth = (req as AuthRequest).user;
 
-    if (auth?.id !== userId) {
-        res.status(403).json({ error: 'Unauthorized' });
-        return;
-    }
+    if (!isAuthorized(auth, userId)) {
+    res.status(403).json({ error: 'Unauthorized' });
+    return;
+  }
 
     if (!secondOwnerId || typeof secondOwnerId !== 'string') {
         res.status(400).json({ error: 'Invalid secondOwnerId' });
@@ -376,10 +387,10 @@ router.post('/:userId/initiate-withdrawal', authMiddleware, async (req, res) => 
     const { amount } = req.body;
     const auth = (req as AuthRequest).user;
 
-    if (auth?.id !== userId) {
-        res.status(403).json({ error: 'Unauthorized' });
-        return;
-    }
+    if (!isAuthorized(auth, userId)) {
+    res.status(403).json({ error: 'Unauthorized' });
+    return;
+  }
 
     const parsedAmount = Number(amount);
     if (!Number.isFinite(parsedAmount) || parsedAmount <= 0) {
@@ -432,10 +443,10 @@ router.post('/:userId/execute-withdrawal', authMiddleware, async (req, res) => {
     const userId = req.params.userId as string;
     const auth = (req as AuthRequest).user;
 
-    if (auth?.id !== userId) {
-        res.status(403).json({ error: 'Unauthorized' });
-        return;
-    }
+    if (!isAuthorized(auth, userId)) {
+    res.status(403).json({ error: 'Unauthorized' });
+    return;
+  }
 
     try {
         const record = await executeWithdrawal(userId);
@@ -450,3 +461,5 @@ router.post('/:userId/execute-withdrawal', authMiddleware, async (req, res) => {
 });
 
 export { router as vaultRouter };
+
+
