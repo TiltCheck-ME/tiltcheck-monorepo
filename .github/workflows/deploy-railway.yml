@@ -251,20 +251,17 @@ jobs:
             -d "$UPDATE_MUTATION" 2>&1)
           echo "Image update: $UPDATE_RESPONSE"
 
-          # Wait for Railway to persist the image update before triggering redeploy
-          sleep 5
-
-          # Trigger redeploy
-          REDEPLOY_MUTATION="{\"query\":\"mutation { serviceInstanceRedeploy(serviceId: \\\"$SVC_ID\\\", environmentId: \\\"$ENV_ID\\\") }\"}"
+          # Trigger a fresh deployment from the current service source image.
+          DEPLOY_MUTATION="{\"query\":\"mutation { serviceInstanceDeployV2(serviceId: \\\"$SVC_ID\\\", environmentId: \\\"$ENV_ID\\\") }\"}"
           for i in 1 2 3; do
             RESPONSE=$(curl -sf -X POST https://backboard.railway.com/graphql/v2 \
               -H "Authorization: Bearer $RAILWAY_TOKEN" \
               -H "Content-Type: application/json" \
-              -d "$REDEPLOY_MUTATION" 2>&1)
+              -d "$DEPLOY_MUTATION" 2>&1)
             EXIT_CODE=$?
             echo "$RESPONSE"
             if [ $EXIT_CODE -eq 0 ] && ! echo "$RESPONSE" | grep -q '"errors"'; then
-              echo "Redeploy triggered for ${{ matrix.service }}"
+              echo "Deploy triggered for ${{ matrix.service }}"
               break
             else
               echo "Attempt $i failed"
