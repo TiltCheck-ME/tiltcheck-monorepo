@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-10
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-12
 //
 // Community Recovery Microgrant Program
 //
@@ -28,7 +28,16 @@ import {
   Client,
 } from 'discord.js';
 import type { Command } from '../types.js';
-import { findUserByDiscordId, findOrCreateUserByDiscord } from '@tiltcheck/db';
+import {
+  createRecoveryApplication,
+  findLatestRecoveryApplicationByDiscordUserId,
+  findRecoveryApplicationById,
+  findUserByDiscordId,
+  updateRecoveryApplication,
+  type RecoveryApplication as StoredRecoveryApplication,
+  type CreateRecoveryApplicationPayload,
+  type UpdateRecoveryApplicationPayload,
+} from '@tiltcheck/db';
 import {
   Connection,
   Keypair,
@@ -39,8 +48,6 @@ import {
   sendAndConfirmTransaction,
 } from '@solana/web3.js';
 import crypto from 'crypto';
-import fs from 'fs';
-import path from 'path';
 
 // -----------------------------------------------------------------------------
 // Constants
@@ -68,7 +75,6 @@ const PENDING_FUNDS_EMBED = new EmbedBuilder()
     '[ncpgambling.org](https://www.ncpgambling.org) — free, confidential, 24/7'
   )
   .setFooter({ text: 'Made for Degens. By Degens.' });
-const APPLICATIONS_DIR = path.join(process.cwd(), 'tmp', 'recovery-applications');
 
 const connection = new Connection(
   process.env.SOLANA_RPC_URL || 'https://api.mainnet-beta.solana.com',
@@ -106,55 +112,83 @@ interface RecoveryApplication {
   updatedAt: number;
 }
 
-function ensureDir(): void {
-  fs.mkdirSync(APPLICATIONS_DIR, { recursive: true });
+function toRecoveryApplication(row: StoredRecoveryApplication): RecoveryApplication {
+  return {
+    id: row.id,
+    discordUserId: row.discord_user_id,
+    discordUsername: row.discord_username,
+    hardship: row.hardship,
+    steps: row.steps,
+    supportContact: row.support_contact,
+    supportDiscordId: row.support_discord_id ?? undefined,
+    supportConfirmed: row.support_confirmed,
+    reviewMessageId: row.review_message_id ?? undefined,
+    reviewChannelId: row.review_channel_id ?? undefined,
+    communityVotes: row.community_votes,
+    status: row.status as ApplicationStatus,
+    rejectionReason: row.rejection_reason ?? undefined,
+    approvedBy: row.approved_by ?? undefined,
+    appliedAt: new Date(row.applied_at).getTime(),
+    updatedAt: new Date(row.updated_at).getTime(),
+  };
 }
 
-function appFilePath(userId: string): string {
-  return path.join(APPLICATIONS_DIR, `${userId}.json`);
+function toCreateRecoveryApplicationPayload(app: RecoveryApplication): CreateRecoveryApplicationPayload {
+  return {
+    id: app.id,
+    discord_user_id: app.discordUserId,
+    discord_username: app.discordUsername,
+    hardship: app.hardship,
+    steps: app.steps,
+    support_contact: app.supportContact,
+    support_discord_id: app.supportDiscordId ?? null,
+    support_confirmed: app.supportConfirmed,
+    review_message_id: app.reviewMessageId ?? null,
+    review_channel_id: app.reviewChannelId ?? null,
+    community_votes: app.communityVotes,
+    status: app.status,
+    rejection_reason: app.rejectionReason ?? null,
+    approved_by: app.approvedBy ?? null,
+  };
 }
 
-function loadApplication(userId: string): RecoveryApplication | null {
-  try {
-    const file = appFilePath(userId);
-    if (!fs.existsSync(file)) return null;
-    return JSON.parse(fs.readFileSync(file, 'utf8')) as RecoveryApplication;
-  } catch {
-    return null;
-  }
+function toUpdateRecoveryApplicationPayload(app: RecoveryApplication): UpdateRecoveryApplicationPayload {
+  return {
+    discord_username: app.discordUsername,
+    hardship: app.hardship,
+    steps: app.steps,
+    support_contact: app.supportContact,
+    support_discord_id: app.supportDiscordId ?? null,
+    support_confirmed: app.supportConfirmed,
+    review_message_id: app.reviewMessageId ?? null,
+    review_channel_id: app.reviewChannelId ?? null,
+    community_votes: app.communityVotes,
+    status: app.status,
+    rejection_reason: app.rejectionReason ?? null,
+    approved_by: app.approvedBy ?? null,
+    updated_at: new Date(),
+  };
 }
 
-function saveApplication(app: RecoveryApplication): void {
-  ensureDir();
+async function loadApplication(userId: string): Promise<RecoveryApplication | null> {
+  const row = await findLatestRecoveryApplicationByDiscordUserId(userId);
+  return row ? toRecoveryApplication(row) : null;
+}
+
+async function saveApplication(app: RecoveryApplication): Promise<RecoveryApplication | null> {
   app.updatedAt = Date.now();
-  fs.writeFileSync(appFilePath(app.discordUserId), JSON.stringify(app, null, 2), 'utf8');
+  const row = await updateRecoveryApplication(app.id, toUpdateRecoveryApplicationPayload(app));
+  return row ? toRecoveryApplication(row) : null;
 }
 
-function loadApplicationById(applicationId: string): RecoveryApplication | null {
-  try {
-    if (!fs.existsSync(APPLICATIONS_DIR)) return null;
-    const files = fs.readdirSync(APPLICATIONS_DIR).filter(f => f.endsWith('.json'));
-    for (const file of files) {
-      const raw = fs.readFileSync(path.join(APPLICATIONS_DIR, file), 'utf8');
-      const app = JSON.parse(raw) as RecoveryApplication;
-      if (app.id === applicationId) return app;
-    }
-    return null;
-  } catch {
-    return null;
-  }
+async function createApplication(app: RecoveryApplication): Promise<RecoveryApplication | null> {
+  const row = await createRecoveryApplication(toCreateRecoveryApplicationPayload(app));
+  return row ? toRecoveryApplication(row) : null;
 }
 
-function listApplicationsByStatus(status: ApplicationStatus): RecoveryApplication[] {
-  try {
-    if (!fs.existsSync(APPLICATIONS_DIR)) return [];
-    return fs.readdirSync(APPLICATIONS_DIR)
-      .filter(f => f.endsWith('.json'))
-      .map(f => JSON.parse(fs.readFileSync(path.join(APPLICATIONS_DIR, f), 'utf8')) as RecoveryApplication)
-      .filter(a => a.status === status);
-  } catch {
-    return [];
-  }
+async function loadApplicationById(applicationId: string): Promise<RecoveryApplication | null> {
+  const row = await findRecoveryApplicationById(applicationId);
+  return row ? toRecoveryApplication(row) : null;
 }
 
 // -----------------------------------------------------------------------------
@@ -265,7 +299,7 @@ async function executeGrantPayout(
 
     app.status = 'paid';
     app.approvedBy = approvedBy;
-    saveApplication(app);
+    await saveApplication(app);
 
     if (reviewChannel) {
       const paidEmbed = new EmbedBuilder()
@@ -295,7 +329,7 @@ export async function handleRecoveryButton(
   client: Client
 ): Promise<void> {
   const [, action, appId] = interaction.customId.split('_');
-  const app = loadApplicationById(appId);
+  const app = await loadApplicationById(appId);
   if (!app) {
     await interaction.reply({ content: '[!] Application not found.', ephemeral: true });
     return;
@@ -314,7 +348,7 @@ export async function handleRecoveryButton(
       return;
     }
     app.communityVotes += 1;
-    saveApplication(app);
+    await saveApplication(app);
 
     await interaction.reply({
       content: `You vouched for this application. Votes: **${app.communityVotes}/${VOTE_THRESHOLD}**`,
@@ -351,7 +385,7 @@ export async function handleRecoveryButton(
     const dbUser = await findUserByDiscordId(app.discordUserId).catch(() => null);
     if (!dbUser?.wallet_address) {
       await interaction.reply({
-        content: `[!] <@${app.discordUserId}> has not linked a wallet. Ask them to use \`/linkwallet\` before approving.`,
+        content: `[!] <@${app.discordUserId}> has no wallet on file. Tell them to link one with the JustTheTip bot \`/linkwallet\` or through the Hub first.`,
         ephemeral: true,
       });
       return;
@@ -359,7 +393,7 @@ export async function handleRecoveryButton(
 
     app.status = 'approved';
     app.approvedBy = interaction.user.tag;
-    saveApplication(app);
+    await saveApplication(app);
 
     await interaction.reply({ content: `Approving grant for <@${app.discordUserId}>. Sending payout...`, ephemeral: true });
 
@@ -376,7 +410,7 @@ export async function handleRecoveryButton(
     app.status = 'rejected';
     app.approvedBy = interaction.user.tag;
     app.rejectionReason = 'Rejected by admin via button.';
-    saveApplication(app);
+    await saveApplication(app);
 
     await interaction.reply({ content: `Application \`${app.id}\` rejected.`, ephemeral: true });
 
@@ -436,7 +470,7 @@ async function notifySupportContact(
       } else if (app.status === 'pending_support') {
         app.status = 'under_review';
       }
-      saveApplication(app);
+      await saveApplication(app);
 
       if (app.reviewMessageId && app.reviewChannelId) {
         // Update the review embed to reflect support confirmation
@@ -448,7 +482,7 @@ async function notifySupportContact(
     // Application still proceeds — manual verification required
     app.supportConfirmed = false;
     app.status = 'under_review';
-    saveApplication(app);
+    await saveApplication(app);
   }
 }
 
@@ -533,7 +567,7 @@ export const recover: Command = {
           '**1. Apply** — `/sos apply` with honest details about your hardship, what steps you are taking, and an accountability contact (someone who knows about your situation).\n\n' +
           '**2. Accountability contact** — We DM your chosen person (must be on Discord). They confirm they know and are supportive. This is not optional — it is the single most important part.\n\n' +
           '**3. Community review** — Your application (anonymized where possible) is reviewed by admins and vouched for by community members. Requires 10 community vouches or admin approval.\n\n' +
-          '**4. Grant paid** — Up to **1 SOL** sent directly to your linked wallet (set one with `/linkwallet`). One grant per person, ever.\n\n' +
+          '**4. Grant paid** — Up to **1 SOL** sent directly to your wallet on file. Link one through the JustTheTip bot or the Hub first. One grant per person, ever.\n\n' +
           '__**Requirements:**__\n' +
           '- Must tell a non-gambler in your life about your problem\n' +
           '- Must agree the money will NOT be used for gambling\n' +
@@ -564,7 +598,7 @@ export const recover: Command = {
         return;
       }
 
-      const app = loadApplication(interaction.user.id);
+      const app = await loadApplication(interaction.user.id);
       if (!app) {
         await interaction.reply({
           content: 'You have no active application. Use `/sos apply` to submit one. Use `/sos info` to learn how it works.',
@@ -598,10 +632,10 @@ export const recover: Command = {
       }
 
       // Check for existing active application
-      const existing = loadApplication(interaction.user.id);
+      const existing = await loadApplication(interaction.user.id);
       if (existing && !['rejected', 'cancelled', 'paid'].includes(existing.status)) {
         await interaction.reply({
-          content: `You already have an active application (\`${existing.id}\`) with status \`${existing.status}\`. Use \`/recover status\` to check it.`,
+          content: `You already have an active application (\`${existing.id}\`) with status \`${existing.status}\`. Use \`/sos status\` to check it.`,
           ephemeral: true,
         });
         return;
@@ -632,7 +666,7 @@ export const recover: Command = {
         appliedAt: Date.now(),
         updatedAt: Date.now(),
       };
-      saveApplication(app);
+      await createApplication(app);
 
       await interaction.deferReply({ ephemeral: true });
 
@@ -652,7 +686,7 @@ export const recover: Command = {
 
           app.reviewMessageId = reviewMsg.id;
           app.reviewChannelId = reviewChannelId;
-          saveApplication(app);
+          await saveApplication(app);
         } catch (err) {
           console.error('[recover] Failed to post to review channel:', err);
         }
@@ -672,8 +706,8 @@ export const recover: Command = {
           `1. Reviewers assess your application for authenticity\n` +
           `2. Community members may vouch for your application\n` +
           `3. An admin confirms the final decision\n` +
-          `4. If approved and you have a linked wallet, funds are sent\n\n` +
-          `Make sure your wallet is linked: \`/linkwallet address:YOUR_WALLET\`\n\n` +
+          `4. If approved and you have a wallet on file, funds are sent\n\n` +
+          `Make sure your wallet is linked with the **JustTheTip** bot using \`/linkwallet\`, or through the Hub before review closes.\n\n` +
           `**If you need immediate help:** 1-800-522-4700 | [ncpgambling.org/chat](https://www.ncpgambling.org/help-treatment/chat)`
         )
         .setFooter({ text: 'Made for Degens. By Degens.' });
@@ -701,7 +735,7 @@ export const recover: Command = {
       const appId = interaction.options.getString('application_id', true);
       const rejectReason = interaction.options.getString('reject_reason');
 
-      const app = loadApplicationById(appId);
+      const app = await loadApplicationById(appId);
       if (!app) {
         await interaction.reply({ content: `[!] Application \`${appId}\` not found.`, ephemeral: true });
         return;
@@ -717,7 +751,7 @@ export const recover: Command = {
         app.status = 'rejected';
         app.rejectionReason = rejectReason;
         app.approvedBy = interaction.user.tag;
-        saveApplication(app);
+        await saveApplication(app);
 
         try {
           const applicant = await interaction.client.users.fetch(app.discordUserId);
@@ -739,14 +773,14 @@ export const recover: Command = {
         const dbUser = await findUserByDiscordId(app.discordUserId).catch(() => null);
         if (!dbUser?.wallet_address) {
           await interaction.editReply({
-            content: `[!] <@${app.discordUserId}> has not linked a wallet. Ask them to use \`/linkwallet\` first.`,
+            content: `[!] <@${app.discordUserId}> has no wallet on file. Tell them to link one with the JustTheTip bot \`/linkwallet\` or through the Hub first.`,
           });
           return;
         }
 
         app.status = 'approved';
         app.approvedBy = interaction.user.tag;
-        saveApplication(app);
+        await saveApplication(app);
 
         const reviewChannel = process.env.RECOVERY_REVIEW_CHANNEL_ID
           ? (await interaction.client.channels.fetch(process.env.RECOVERY_REVIEW_CHANNEL_ID).catch(() => null)) as TextChannel | null

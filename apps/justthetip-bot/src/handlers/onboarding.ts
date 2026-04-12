@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-10
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-12
 // JustTheTip Bot — Onboarding
 
 import type { User } from 'discord.js';
@@ -17,6 +17,6 @@ export async function checkAndOnboard(user: User): Promise<void> {
   if (onboardedUsers.has(user.id)) return;
   onboardedUsers.add(user.id);
   await user.send(
-    `Welcome to JustTheTip — non-custodial SOL tipping and profit drops.\n\nUse \`/help\` to see available commands.\nLink your wallet with \`/linkwallet\` to receive payouts.`
+    `Welcome to JustTheTip.\n\nUse \`/help\` to see the live commands.\nLink your payout wallet with \`/linkwallet\` before you join a drop.`
   ).catch(() => {});
 }

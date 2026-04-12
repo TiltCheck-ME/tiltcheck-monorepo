@@ -30,6 +30,10 @@ import type {
   TrustSignal,
   UserTrustSummary,
   CreateTrustSignalPayload,
+  RecoveryApplication,
+  CreateRecoveryApplicationPayload,
+  UpdateRecoveryApplicationPayload,
+  RecoveryApplicationStatus,
   BlogPost,
   CreateBlogPostPayload,
   UserBuddy,
@@ -145,23 +149,29 @@ export async function upsertOnboarding(payload: UpsertOnboardingPayload): Promis
   const sql = `
     INSERT INTO user_onboarding (
       discord_id, is_onboarded, has_accepted_terms, risk_level, 
-      cooldown_enabled, daily_limit, quiz_scores, tutorial_completed,
-      notifications_tips, notifications_trivia, notifications_promos, 
-      compliance_bypass, updated_at
+      cooldown_enabled, voice_intervention_enabled, share_message_contents, share_financial_data,
+      share_session_telemetry, notify_nft_identity_ready, daily_limit, redeem_threshold, quiz_scores, tutorial_completed,
+      notifications_tips, notifications_trivia, notifications_promos, compliance_bypass, updated_at
     ) 
-    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, NOW())
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, NOW())
     ON CONFLICT (discord_id) DO UPDATE SET
       is_onboarded = COALESCE($2, user_onboarding.is_onboarded),
       has_accepted_terms = COALESCE($3, user_onboarding.has_accepted_terms),
       risk_level = COALESCE($4, user_onboarding.risk_level),
       cooldown_enabled = COALESCE($5, user_onboarding.cooldown_enabled),
-      daily_limit = COALESCE($6, user_onboarding.daily_limit),
-      quiz_scores = COALESCE($7, user_onboarding.quiz_scores),
-      tutorial_completed = COALESCE($8, user_onboarding.tutorial_completed),
-      notifications_tips = COALESCE($9, user_onboarding.notifications_tips),
-      notifications_trivia = COALESCE($10, user_onboarding.notifications_trivia),
-      notifications_promos = COALESCE($11, user_onboarding.notifications_promos),
-      compliance_bypass = COALESCE($12, user_onboarding.compliance_bypass),
+      voice_intervention_enabled = COALESCE($6, user_onboarding.voice_intervention_enabled),
+      share_message_contents = COALESCE($7, user_onboarding.share_message_contents),
+      share_financial_data = COALESCE($8, user_onboarding.share_financial_data),
+      share_session_telemetry = COALESCE($9, user_onboarding.share_session_telemetry),
+      notify_nft_identity_ready = COALESCE($10, user_onboarding.notify_nft_identity_ready),
+      daily_limit = COALESCE($11, user_onboarding.daily_limit),
+      redeem_threshold = COALESCE($12, user_onboarding.redeem_threshold),
+      quiz_scores = COALESCE($13, user_onboarding.quiz_scores),
+      tutorial_completed = COALESCE($14, user_onboarding.tutorial_completed),
+      notifications_tips = COALESCE($15, user_onboarding.notifications_tips),
+      notifications_trivia = COALESCE($16, user_onboarding.notifications_trivia),
+      notifications_promos = COALESCE($17, user_onboarding.notifications_promos),
+      compliance_bypass = COALESCE($18, user_onboarding.compliance_bypass),
       updated_at = NOW()
     RETURNING *
   `;
@@ -172,7 +182,13 @@ export async function upsertOnboarding(payload: UpsertOnboardingPayload): Promis
     payload.has_accepted_terms ?? null,
     payload.risk_level ?? null,
     payload.cooldown_enabled ?? null,
+    payload.voice_intervention_enabled ?? null,
+    payload.share_message_contents ?? null,
+    payload.share_financial_data ?? null,
+    payload.share_session_telemetry ?? null,
+    payload.notify_nft_identity_ready ?? null,
     payload.daily_limit ?? null,
+    payload.redeem_threshold ?? null,
     payload.quiz_scores ?? null,
     payload.tutorial_completed ?? null,
     payload.notifications_tips ?? null,
@@ -833,6 +849,78 @@ export async function logTrustSignal(payload: CreateTrustSignalPayload): Promise
     ...payload,
     created_at: new Date(),
   });
+}
+
+/**
+ * Get latest recovery application for a Discord user
+ */
+export async function findLatestRecoveryApplicationByDiscordUserId(
+  discordUserId: string
+): Promise<RecoveryApplication | null> {
+  const sql = `
+    SELECT *
+    FROM recovery_applications
+    WHERE discord_user_id = $1
+    ORDER BY applied_at DESC
+    LIMIT 1
+  `;
+
+  return queryOne<RecoveryApplication>(sql, [discordUserId]);
+}
+
+/**
+ * Find recovery application by application ID
+ */
+export async function findRecoveryApplicationById(id: string): Promise<RecoveryApplication | null> {
+  return findById<RecoveryApplication>('recovery_applications', id);
+}
+
+/**
+ * Create a recovery application
+ */
+export async function createRecoveryApplication(
+  payload: CreateRecoveryApplicationPayload
+): Promise<RecoveryApplication | null> {
+  return insert<RecoveryApplication>('recovery_applications', {
+    ...payload,
+    support_discord_id: payload.support_discord_id ?? null,
+    review_message_id: payload.review_message_id ?? null,
+    review_channel_id: payload.review_channel_id ?? null,
+    community_votes: payload.community_votes ?? 0,
+    rejection_reason: payload.rejection_reason ?? null,
+    approved_by: payload.approved_by ?? null,
+    applied_at: new Date(),
+    updated_at: new Date(),
+  });
+}
+
+/**
+ * Update a recovery application
+ */
+export async function updateRecoveryApplication(
+  id: string,
+  payload: UpdateRecoveryApplicationPayload
+): Promise<RecoveryApplication | null> {
+  return update<RecoveryApplication>('recovery_applications', id, {
+    ...payload,
+    updated_at: payload.updated_at ?? new Date(),
+  });
+}
+
+/**
+ * List recovery applications by status
+ */
+export async function listRecoveryApplicationsByStatus(
+  status: RecoveryApplicationStatus
+): Promise<RecoveryApplication[]> {
+  const sql = `
+    SELECT *
+    FROM recovery_applications
+    WHERE status = $1
+    ORDER BY applied_at DESC
+  `;
+
+  return query<RecoveryApplication>(sql, [status]);
 }
 
 // ============================================================================

@@ -35,6 +35,7 @@ if (process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY) {
 // In-memory cache for fast reads
 const onboardedUsers = new Set<string>();
 const userPreferences = new Map<string, UserPreferences>();
+const HUB_BASE_URL = process.env.DASHBOARD_URL || 'https://hub.tiltcheck.me';
 
 interface UserPreferences {
   userId: string;
@@ -47,6 +48,7 @@ interface UserPreferences {
   };
   riskLevel: 'conservative' | 'moderate' | 'degen';
   cooldownEnabled: boolean;
+  voiceInterventionEnabled: boolean;
   dailyLimit?: number;
   hasAcceptedTerms: boolean;
   quizScores: Record<string, number>;
@@ -90,6 +92,7 @@ async function loadOnboardingData(): Promise<void> {
           },
           riskLevel: row.risk_level || 'moderate',
           cooldownEnabled: row.cooldown_enabled,
+          voiceInterventionEnabled: row.voice_intervention_enabled ?? false,
           dailyLimit: row.daily_limit,
           hasAcceptedTerms: row.has_accepted_terms,
           quizScores: row.quiz_scores ? JSON.parse(row.quiz_scores) : {},
@@ -119,6 +122,7 @@ async function saveOnboardingToDb(userId: string, prefs: UserPreferences): Promi
         has_accepted_terms: prefs.hasAcceptedTerms,
         risk_level: prefs.riskLevel,
         cooldown_enabled: prefs.cooldownEnabled,
+        voice_intervention_enabled: prefs.voiceInterventionEnabled,
         daily_limit: prefs.dailyLimit,
         quiz_scores: JSON.stringify(prefs.quizScores),
         tutorial_completed: prefs.tutorialCompleted,
@@ -171,6 +175,56 @@ export function needsOnboarding(userId: string): boolean {
   return !onboardedUsers.has(userId) && !userPreferences.has(userId);
 }
 
+export async function isUserOnboarded(userId: string): Promise<boolean> {
+  if (onboardedUsers.has(userId) || userPreferences.has(userId)) {
+    return true;
+  }
+
+  if (!supabase) {
+    return false;
+  }
+
+  try {
+    const { data, error } = await supabase
+      .from('user_onboarding')
+      .select('*')
+      .eq('discord_id', userId)
+      .maybeSingle();
+
+    if (error || !data || !data.is_onboarded) {
+      return false;
+    }
+
+    onboardedUsers.add(userId);
+    userPreferences.set(userId, {
+      userId: data.discord_id,
+      discordId: data.discord_id,
+      joinedAt: new Date(data.joined_at).getTime(),
+      notifications: {
+        tips: data.notifications_tips,
+        trivia: data.notifications_trivia,
+        promos: data.notifications_promos,
+      },
+      riskLevel: data.risk_level || 'moderate',
+      cooldownEnabled: data.cooldown_enabled,
+      voiceInterventionEnabled: data.voice_intervention_enabled ?? false,
+      dailyLimit: data.daily_limit,
+      hasAcceptedTerms: data.has_accepted_terms,
+      quizScores: data.quiz_scores ? JSON.parse(data.quiz_scores) : {},
+      tutorialCompleted: data.tutorial_completed || false,
+    });
+
+    return true;
+  } catch (error) {
+    console.error('[Onboarding] Failed to query onboarding status:', error);
+    return false;
+  }
+}
+
+export function getWebsiteOnboardingUrl(): string {
+  return `${HUB_BASE_URL}/auth/discord?redirect=${encodeURIComponent('/onboarding?source=discord-bot')}`;
+}
+
 /**
  * Mark user as onboarded
  */
@@ -188,6 +242,28 @@ export function markOnboarded(userId: string): void {
  */
 export function getUserPreferences(userId: string): UserPreferences | undefined {
   return userPreferences.get(userId);
+}
+
+export function getOrCreateUserPreferences(userId: string): UserPreferences {
+  const existing = userPreferences.get(userId);
+  if (existing) {
+    return existing;
+  }
+
+  const prefs: UserPreferences = {
+    userId,
+    discordId: userId,
+    joinedAt: Date.now(),
+    notifications: { tips: true, trivia: true, promos: false },
+    riskLevel: 'moderate',
+    cooldownEnabled: true,
+    voiceInterventionEnabled: false,
+    hasAcceptedTerms: false,
+    quizScores: {},
+    tutorialCompleted: false,
+  };
+  userPreferences.set(userId, prefs);
+  return prefs;
 }
 
 /**
@@ -229,6 +305,7 @@ export async function sendWelcomeDM(user: User): Promise<boolean> {
         `- PREDATORY HOUSE DRIFT (FAIRNESS)\n` +
         `- BEHAVIORAL SPIRALS (STATUS AUDITS)\n` +
         `- COMMUNITY TELEMETRY (TRUST ENGINE)\n\n` +
+        `IF YOU WANT THE HARD BRAKE, RUN \`/intervene enabled:true\` SO I CAN AUTO-MOVE YOU INTO ACCOUNTABILITY VC WHEN YOUR SESSION GOES NUCLEAR.\n\n` +
         `NOTE: I DO NOT CUSTODY FUNDS. I PURELY LEVEL THE PLAYING FIELD.\n\n` +
         `SYNC YOUR DEGEN ID?`
       )
@@ -236,9 +313,9 @@ export async function sendWelcomeDM(user: User): Promise<boolean> {
       .setFooter({ text: 'Made for Degens. By Degens.' });
 
     const getStartedBtn = new ButtonBuilder()
-      .setCustomId('onboard_start')
-      .setLabel('SYNC UP')
-      .setStyle(ButtonStyle.Success);
+      .setLabel('FINISH SETUP')
+      .setStyle(ButtonStyle.Link)
+      .setURL(getWebsiteOnboardingUrl());
 
     const learnMoreBtn = new ButtonBuilder()
       .setCustomId('onboard_learn')
@@ -323,7 +400,7 @@ async function showTermsAndConditions(interaction: MessageComponentInteraction):
     .setDescription(
       `Before we proceed:\n\n` +
       `**Safety First**\n` +
-      `TiltCheck provides tools like status audits, tethers, and fair-game verification to keep you objective.\n\n` +
+      `TiltCheck provides tools like status audits, buddy alerts, /intervene voice brakes, and fair-game verification to keep you objective.\n\n` +
       `**Your Responsibility**\n` +
       `You are responsible for your own session. Use these tools as data, not as a ruleset.\n\n` +
       `**No Financial Advice**\n` +
@@ -413,6 +490,7 @@ async function handleQuizSelection(interaction: MessageComponentInteraction): Pr
       notifications: { tips: true, trivia: true, promos: false },
       riskLevel: 'moderate',
       cooldownEnabled: true,
+      voiceInterventionEnabled: false,
       hasAcceptedTerms: true,
       quizScores: {},
       tutorialCompleted: false
@@ -449,7 +527,9 @@ async function showLearnMore(interaction: MessageComponentInteraction): Promise<
       `**House Edge check**\n` +
       `/odds\n\n` +
       `**Link some safety**\n` +
-      `/tether link user:<@user>\n\n` +
+      `/buddy link user:<@user>\n\n` +
+      `**Hard brake on critical tilt**\n` +
+      `/intervene enabled:true\n\n` +
       `**Check a casino**\n` +
       `/casino\n\n` +
       `**Ecosystem**\n` +
@@ -458,9 +538,9 @@ async function showLearnMore(interaction: MessageComponentInteraction): Promise<
     .setFooter({ text: 'Made for Degens. By Degens.' });
 
   const startBtn = new ButtonBuilder()
-    .setCustomId('onboard_start')
-    .setLabel('Set Me Up')
-    .setStyle(ButtonStyle.Success);
+      .setLabel('Finish Setup')
+      .setStyle(ButtonStyle.Link)
+      .setURL(getWebsiteOnboardingUrl());
 
   const websiteBtn = new ButtonBuilder()
     .setLabel('Visit Website')
@@ -487,6 +567,7 @@ async function showPreferences(
     notifications: { tips: true, trivia: true, promos: false },
     riskLevel: 'moderate',
     cooldownEnabled: true,
+    voiceInterventionEnabled: false,
     quizScores: {},
     tutorialCompleted: false,
     hasAcceptedTerms: true,
@@ -495,7 +576,7 @@ async function showPreferences(
 
   const description = isSuggested
     ? `**Audit Calibration Complete.**\nBased on your answers, I suggest a **${prefs.riskLevel.toUpperCase()}** profile. You can still tweak these below.`
-    : `Almost done. Customize your experience.\n\n**Notifications**\nChoose what you want to be notified about.\n\n**Risk Level**\nThis affects default cooldown suggestions and safety nudges.`;
+    : `Almost done. Customize your experience.\n\n**Notifications**\nChoose what you want to be notified about.\n\n**Risk Level**\nThis affects default cooldown suggestions and safety nudges.\n\n**Voice Intervention**\nUse \`/intervene enabled:true\` later if you want TiltCheck to auto-move you into accountability VC on critical tilt.`;
 
   const prefsEmbed = new EmbedBuilder()
     .setColor(0x22d3a6)
@@ -570,7 +651,8 @@ export async function showPreferencesMessage(channel: DMChannel, _userId: string
       `Pick your risk level:\n\n` +
       `Conservative - More cooldown reminders, lower limits suggested\n` +
       `Moderate - Balanced approach (default)\n` +
-      `Full Degen - Minimal hand-holding`
+      `Full Degen - Minimal hand-holding\n\n` +
+      `Need the hard brake too? Run \`/intervene enabled:true\` after setup to allow emergency voice moves on critical tilt.`
     )
     .setFooter({ text: 'Made for Degens. By Degens.' });
 
@@ -664,10 +746,12 @@ async function completeOnboarding(interaction: MessageComponentInteraction): Pro
       `REGISTRATION COMPLETE, **${interaction.user.username}**.\n\n` +
       `**CONFIGURATION:**\n` +
       `- SENSITIVITY: ${prefs?.riskLevel.toUpperCase() || 'MODERATE'}\n` +
-      `- MONITORING: ${notifications}\n\n` +
+      `- MONITORING: ${notifications}\n` +
+      `- VOICE INTERVENTION: ${prefs?.voiceInterventionEnabled ? 'ENABLED' : 'OFF'}\n\n` +
       `**AUDIT COMMANDS:**\n` +
       `/status - QUERY SAFETY STATE\n` +
-      `/tether - LINK YOUR ACCOUNTABILITY LINE\n` +
+      `/buddy - LINK YOUR ACCOUNTABILITY LINE\n` +
+      `/intervene enabled:true - ALLOW AUTO-MOVE INTO ACCOUNTABILITY VC ON CRITICAL TILT\n` +
       `/odds - HOUSE EDGE AUDIT\n` +
       `/verify - PROVABLY FAIR VERIFIER\n\n` +
       `**NEXT STEP:** Install the TiltCheck extension to get the full session auditing layer running.\n` +

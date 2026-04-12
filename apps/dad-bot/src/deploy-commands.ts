@@ -1,8 +1,9 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-10
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-12
 
 import { REST, Routes } from 'discord.js';
 import { config } from './config.js';
 import { CommandHandler } from './handlers/commands.js';
+import { getRegisteredCommandData } from './command-registration.js';
 
 async function deployCommands() {
   try {
@@ -16,7 +17,7 @@ async function deployCommands() {
     const commandHandler = new CommandHandler();
     commandHandler.loadCommands();
 
-    const commands = commandHandler.getCommandData();
+    const commands = getRegisteredCommandData(commandHandler);
 
     console.log(`[Deploy] Deploying ${commands.length} commands...`);
 

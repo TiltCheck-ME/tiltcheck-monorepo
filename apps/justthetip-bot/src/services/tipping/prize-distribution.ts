@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-10
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-12
 /**
  * Prize Distribution Engine
  * Non-custodial Solana Pay prize distribution for JustTheTip
@@ -100,7 +100,7 @@ export async function createPrizeDistribution(
     if (!hasWallet(hostId)) {
       return {
         success: false,
-        error: 'Host does not have a registered wallet. Please register using /tip wallet first.',
+        error: 'Host does not have a registered wallet. Please link one with /linkwallet first.',
       };
     }
 

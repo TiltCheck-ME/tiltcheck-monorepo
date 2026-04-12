@@ -32,6 +32,8 @@
       "@tiltcheck/natural-language-parser/*": ["./packages/natural-language-parser/src/*"],
       "@tiltcheck/trust-engines": ["./packages/trust-engines/src/index.ts"],
       "@tiltcheck/trust-engines/*": ["./packages/trust-engines/src/*"],
+      "@tiltcheck/agent": ["./packages/agent/app/agent.ts"],
+      "@tiltcheck/agent/*": ["./packages/agent/app/*"],
       "@tiltcheck/trust-score-types": ["./packages/trust-score-types/src/index.ts"],
       "@tiltcheck/trust-score-types/*": ["./packages/trust-score-types/src/*"],
       "@tiltcheck/validator": ["./packages/validator/src/index.ts"],

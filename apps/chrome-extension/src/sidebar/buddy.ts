@@ -1,6 +1,8 @@
-/* Copyright (c) 2026 TiltCheck. All rights reserved. */
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-12
 import { SidebarUI } from './types.js';
 import { apiCall } from './api.js';
+
+type InterventionPayload = string | Record<string, unknown>;
 
 export class BuddyManager {
   private ui: SidebarUI;
@@ -24,19 +26,18 @@ export class BuddyManager {
       return this.notifyBuddy('alert', `Risk detected: ${indicator}`);
   }
 
-  public async notifyIntervention(type: string, message: string) {
+  public async notifyIntervention(type: string, payload: InterventionPayload) {
       // We always allow interventions to be sent even if mirror is off, 
       // as they are critical safety events.
       try {
+          const userId = await this.getUserId();
+          const data = this.normalizePayload(payload);
           const result = await apiCall('/safety/notify-buddy', {
               method: 'POST',
               body: JSON.stringify({
+                  userId,
                   type,
-                  data: {
-                      message,
-                      casino: window.location.hostname,
-                      timestamp: new Date().toISOString()
-                  }
+                  data
               })
           }, this.auth);
 
@@ -53,9 +54,11 @@ export class BuddyManager {
       if (!this.mirrorEnabled && !this.auth.demoMode) return;
 
       try {
+          const userId = await this.getUserId();
           const result = await apiCall('/safety/notify-buddy', {
               method: 'POST',
               body: JSON.stringify({
+                  userId,
                   type: `buddy_mirror_${type}`,
                   data: {
                       message: details,
@@ -78,5 +81,31 @@ export class BuddyManager {
       this.mirrorEnabled = !!prefs.buddyMirrorEnabled;
       const checkbox = document.getElementById('cfg-buddy-mirror') as HTMLInputElement | null;
       if (checkbox) checkbox.checked = this.mirrorEnabled;
+  }
+
+  private async getUserId(): Promise<string | undefined> {
+      const stored = await this.ui.getStorage(['userData', 'tiltguard_user_id']);
+      if (typeof stored.userData?.id === 'string' && stored.userData.id.trim() !== '') {
+          return stored.userData.id;
+      }
+      if (typeof stored.tiltguard_user_id === 'string' && stored.tiltguard_user_id.trim() !== '') {
+          return stored.tiltguard_user_id;
+      }
+      return undefined;
+  }
+
+  private normalizePayload(payload: InterventionPayload): Record<string, unknown> {
+      const basePayload = typeof payload === 'string'
+          ? { message: payload }
+          : { ...payload };
+
+      return {
+          casino: window.location.hostname,
+          timestamp: new Date().toISOString(),
+          ...basePayload,
+          message: typeof basePayload.message === 'string' && basePayload.message.trim() !== ''
+              ? basePayload.message
+              : 'Intervention triggered'
+      };
   }
 }

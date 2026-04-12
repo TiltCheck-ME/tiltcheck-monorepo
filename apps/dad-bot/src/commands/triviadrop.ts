@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-10
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-12
 
 import {
   SlashCommandBuilder,
@@ -669,7 +669,7 @@ The escrow keypair is persisted securely — funds are recoverable if the bot re
       .setDescription(
         `${interaction.user} is hosting a **${topic.replace('_', ' ')}** trivia game.\n\n**Prize Pool:** ${prizeSol.toFixed(4)} SOL | **Rounds:** ${rounds} | **Timer:** ${timer}s per question\n\nReact with the correct letter to earn your share of each round's prize.\nAll correct reactors split the round — no first-place advantage.`
       )
-      .setFooter({ text: 'Winners must have /linkwallet set. Unclaimed prizes go to the community wallet.' });
+      .setFooter({ text: 'Payouts use the wallet already linked to your TiltCheck profile. No linked wallet means the share goes to the community wallet.' });
 
     await channel.send({ embeds: [startEmbed] });
     await delay(3000);
@@ -796,7 +796,7 @@ The escrow keypair is persisted securely — funds are recoverable if the bot re
       payoutLines.push(
         isLinked
           ? `<@${userId}> — **${solAmount} SOL**`
-          : `<@${userId}> — **${solAmount} SOL** sent to community (no wallet linked — use \`/linkwallet\`)`
+          : `<@${userId}> — **${solAmount} SOL** sent to community (no linked wallet on file)`
       );
     }
 

@@ -1,3 +1,5 @@
+© 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-12
+
 <p align="center">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="assets/icons/tiltcheck-logo.svg">
@@ -228,8 +230,8 @@ pnpm -C apps/web dev
 
 # Test in Discord
 # /ping
-# /trust casino stake.com
-# /trust user @username
+# /casino stake.com
+# /reputation @username
 # /scan https://example.com
 ```
 

@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-10
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-12
 
 import {
   SlashCommandBuilder,
@@ -15,7 +15,7 @@ const DASHBOARD_URL = process.env.DASHBOARD_URL || 'https://hub.tiltcheck.me';
 export const dashboard: Command = {
   data: new SlashCommandBuilder()
     .setName('dashboard')
-    .setDescription('View your tilt stats and recent events'),
+    .setDescription('Pull your 7-day tilt trail and live session read.'),
 
   async execute(interaction: any) {
     // Acknowledge the interaction immediately
@@ -33,7 +33,7 @@ export const dashboard: Command = {
 
       if (!stats) {
         return await interaction.editReply({
-          content: 'Dashboard pull failed. Try again.',
+          content: 'Dashboard data came back empty. Run it again.',
         });
       }
 
@@ -49,7 +49,7 @@ export const dashboard: Command = {
       const statsEmbed = new EmbedBuilder()
         .setColor(color)
         .setTitle(`${username.toUpperCase()} — ${riskLabel}`)
-        .setDescription('Session audit — live data')
+        .setDescription('Live session read. No fluff.')
         .addFields([
           {
             name: 'Tilt Score (7-day avg)',
@@ -107,7 +107,7 @@ export const dashboard: Command = {
                   ).toLocaleString()}_`;
                 })
                 .join('\n')
-            : 'No recent events detected'
+            : 'No tilt events in the last 7 days. Either you were chill or invisible.'
         )
         .setFooter({ text: 'Made for Degens. By Degens.' });
 
@@ -135,7 +135,7 @@ export const dashboard: Command = {
     } catch (error) {
       console.error('[Dashboard Command] Error:', error);
       await interaction.editReply({
-        content: 'Could not pull tilt data. Try again.',
+        content: 'Tilt data pull failed. Run it again.',
       });
     }
   }

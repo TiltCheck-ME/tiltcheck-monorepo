@@ -8,12 +8,15 @@
 import { Client, Message } from 'discord.js';
 import { trackMessage } from '@tiltcheck/tiltcheck-core';
 import { buildPersonaReply, detectConversationIntent } from '../utils/conversation-nlp.js';
+import { hasMessageContentConsent } from '../services/data-consent.js';
 
 export async function handleDirectMessage(_client: Client, message: Message): Promise<void> {
   if (message.author.bot) return;
   if (message.guildId) return;
 
-  trackMessage(message.author.id, message.content, message.channelId);
+  if (await hasMessageContentConsent(message.author.id)) {
+    trackMessage(message.author.id, message.content, message.channelId);
+  }
 
   const intent = detectConversationIntent(message.content);
   const reply = buildPersonaReply(intent);

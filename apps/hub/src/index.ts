@@ -1,5 +1,5 @@
 /**
- * © 2024–2026 TiltCheck Ecosystem. All Rights Reserved.
+ * © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-12
  * Command Hub: Cloudflare Worker Backend
  * The centralized 'brain' for receiving tilt signals and managing relaying session data.
  */
@@ -8,12 +8,96 @@ export interface Env {
   WORKER_ID?: string;
   DB: D1Database;          // Cloudflare D1 for identity
   SESSIONS: KVNamespace;   // Cloudflare KV for telemetry
+  API_BASE_URL?: string;
+  INTERNAL_API_SECRET?: string;
 }
 
 interface Round {
   bet: number;
   win: number;
   timestamp: number;
+}
+
+interface UserDataConsentState {
+  messageContents: boolean;
+  financialData: boolean;
+  sessionTelemetry: boolean;
+  notifyNftIdentityReady: boolean;
+  complianceBypass: boolean;
+}
+
+interface CachedConsentState {
+  expiresAt: number;
+  value: UserDataConsentState;
+}
+
+const DEFAULT_DATA_CONSENT_STATE: UserDataConsentState = {
+  messageContents: false,
+  financialData: false,
+  sessionTelemetry: false,
+  notifyNftIdentityReady: false,
+  complianceBypass: false,
+};
+
+const consentCache = new Map<string, CachedConsentState>();
+const CONSENT_CACHE_TTL_MS = 5 * 60 * 1000;
+
+async function resolveDiscordId(env: Env, userId: string): Promise<string> {
+  const row = await env.DB.prepare(
+    'SELECT discord_id FROM users WHERE discord_id = ? OR tiltcheck_id = ? LIMIT 1'
+  ).bind(userId, userId).first<{ discord_id?: string }>();
+
+  return row?.discord_id || userId;
+}
+
+async function getUserDataConsentState(env: Env, userId: string): Promise<UserDataConsentState> {
+  const discordId = await resolveDiscordId(env, userId);
+  const cached = consentCache.get(discordId);
+  const now = Date.now();
+
+  if (cached && cached.expiresAt > now) {
+    return cached.value;
+  }
+
+  const apiBaseUrl = env.API_BASE_URL || 'https://api.tiltcheck.me';
+  const internalSecret = env.INTERNAL_API_SECRET;
+
+  if (!internalSecret) {
+    console.warn('[Hub] INTERNAL_API_SECRET missing. Optional telemetry writes will be skipped.');
+    return DEFAULT_DATA_CONSENT_STATE;
+  }
+
+  try {
+    const response = await fetch(`${apiBaseUrl}/user/internal/consents/${encodeURIComponent(discordId)}`, {
+      headers: {
+        Authorization: `Bearer ${internalSecret}`,
+      },
+    });
+
+    if (!response.ok) {
+      console.warn(`[Hub] Failed to resolve consent for ${discordId}: ${response.status} ${response.statusText}`);
+      return DEFAULT_DATA_CONSENT_STATE;
+    }
+
+    const payload = await response.json() as Partial<UserDataConsentState>;
+    const value: UserDataConsentState = {
+      messageContents: payload.messageContents === true,
+      financialData: payload.financialData === true,
+      sessionTelemetry: payload.sessionTelemetry === true,
+      notifyNftIdentityReady: payload.notifyNftIdentityReady === true,
+      complianceBypass: payload.complianceBypass === true,
+    };
+
+    consentCache.set(discordId, {
+      value,
+      expiresAt: now + CONSENT_CACHE_TTL_MS,
+    });
+
+    return value;
+  } catch (error) {
+    console.warn(`[Hub] Failed to fetch consent for ${discordId}:`, error);
+    return DEFAULT_DATA_CONSENT_STATE;
+  }
 }
 
 export default {
@@ -87,6 +171,13 @@ export default {
       try {
         const { amount, userId } = await request.json() as { amount: number, userId: string };
         if (!userId) throw new Error('Missing userId');
+
+        const consentState = await getUserDataConsentState(env, userId);
+        if (!consentState.financialData) {
+          return new Response(JSON.stringify({ success: true, skipped: true, reason: 'financial_data_consent_required' }), {
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          });
+        }
         
         // Update D1 (Persistent stats in Cloudflare Hub for the user)
         await env.DB.prepare(
@@ -110,6 +201,13 @@ export default {
       try {
         const { userId, bet, win } = await request.json() as { userId: string, bet: number, win: number };
         if (!userId) throw new Error('Missing userId');
+
+        const consentState = await getUserDataConsentState(env, userId);
+        if (!consentState.sessionTelemetry || !consentState.financialData) {
+          return new Response(JSON.stringify({ success: true, skipped: true, reason: 'telemetry_consent_required' }), {
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          });
+        }
         
         // Fetch current session from KV (High-speed Temporary State)
         const sessionData = await env.SESSIONS.get(userId);

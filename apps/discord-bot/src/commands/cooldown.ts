@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-10
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-12
 
 import { SlashCommandBuilder, ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
 import type { Command } from '../types.js';
@@ -14,11 +14,11 @@ import {
 export const cooldown: Command = {
   data: new SlashCommandBuilder()
     .setName('cooldown')
-    .setDescription('Start a voluntary cooldown period')
+    .setDescription('Lock yourself out for a bit before the session gets stupid.')
     .addIntegerOption(opt =>
       opt
         .setName('duration')
-        .setDescription('Duration in minutes (default: 15)')
+        .setDescription('Minutes to stay locked out (default: 15)')
         .setRequired(false)
     ),
 
@@ -27,7 +27,7 @@ export const cooldown: Command = {
 
     if (duration < 5 || duration > 1440) {
       await interaction.reply({ 
-        content: 'Duration must be between 5 and 1440 minutes (24 hours).',
+        content: 'Pick a window between 5 and 1440 minutes. We are not doing 2-minute fake discipline.',
         ephemeral: true 
       });
       return;
@@ -40,7 +40,7 @@ export const cooldown: Command = {
       const remaining = status && status.endsAt ? Math.ceil((status.endsAt - Date.now()) / 60000) : 0;
       
       await interaction.reply({ 
-        content: `Already on cooldown — ${remaining} more minutes. Hang tight.`,
+        content: `Cooldown already live — ${remaining} more minute(s). Sit still.`,
         ephemeral: true 
       });
       return;
@@ -55,7 +55,7 @@ export const cooldown: Command = {
     const embed = new EmbedBuilder()
       .setColor(0x22d3a6)
       .setTitle('COOLDOWN LOCKED IN')
-      .setDescription(`${duration}-minute lock engaged. Smart move.`)
+      .setDescription(`${duration}-minute lock is live. Future-you can complain later.`)
       .addFields(
         { name: 'Duration', value: `${duration} minutes`, inline: true },
         { name: 'Expires', value: `<t:${Math.floor((Date.now() + duration * 60000) / 1000)}:R>`, inline: true },
@@ -69,16 +69,16 @@ export const cooldown: Command = {
 export const tilt: Command = {
   data: new SlashCommandBuilder()
     .setName('tilt')
-    .setDescription('Check your tilt status and history')
+    .setDescription('Check the read on your tilt state and recent spiral history')
     .addSubcommand(sub =>
       sub
         .setName('status')
-        .setDescription('Check your current tilt status')
+        .setDescription('See your current tilt read')
     )
     .addSubcommand(sub =>
       sub
         .setName('history')
-        .setDescription('View your tilt detection history')
+        .setDescription('See the last tilt flags and how fast you were moving')
     ),
 
   async execute(interaction: ChatInputCommandInteraction) {
@@ -102,18 +102,18 @@ async function handleTiltStatus(interaction: ChatInputCommandInteraction) {
 
   if (status.onCooldown && cooldownStatus && cooldownStatus.endsAt) {
     const remaining = Math.ceil((cooldownStatus.endsAt - Date.now()) / 60000);
-    const reason = cooldownStatus.reason || 'Unknown';
-    embed.setDescription('[COOLDOWN ACTIVE]')
+    const reason = cooldownStatus.reason || 'Not logged';
+    embed.setDescription('[COOLDOWN ACTIVE]\nYou hit your own brake. Let it do its job.')
       .addFields(
         { name: 'Time Remaining', value: `${remaining} minutes`, inline: true },
         { name: 'Reason', value: reason, inline: true },
         { name: 'Violations', value: `${cooldownStatus.violationCount}`, inline: true },
       );
   } else {
-    embed.setDescription('[CLEAR]')
+    embed.setDescription('[CLEAR]\nNothing is screaming tilt right now.')
       .addFields(
         { name: 'Recent Signals', value: `${status.recentSignals.length} (last hour)`, inline: true },
-        { name: 'Status', value: status.recentSignals.length >= 3 ? '[ELEVATED]' : '[NORMAL]', inline: true },
+        { name: 'Status', value: status.recentSignals.length >= 3 ? '[HOT]' : '[NORMAL]', inline: true },
       );
   }
 
@@ -137,7 +137,7 @@ async function handleTiltHistory(interaction: ChatInputCommandInteraction) {
 
   if (!activity) {
     await interaction.reply({ 
-      content: 'No tilt history found. Run clean sessions.',
+      content: 'No tilt history yet. Either you stayed chill or nothing got flagged.',
       ephemeral: true 
     });
     return;
@@ -148,7 +148,7 @@ async function handleTiltHistory(interaction: ChatInputCommandInteraction) {
   const embed = new EmbedBuilder()
     .setColor(0x22d3a6)
     .setTitle('TILT HISTORY')
-    .setDescription(`Activity tracking for ${interaction.user.username}`);
+    .setDescription(`How the last stretch looked for ${interaction.user.username}`);
 
   if (recentMessages.length > 0) {
     const messageCount = recentMessages.length;
@@ -167,7 +167,7 @@ async function handleTiltHistory(interaction: ChatInputCommandInteraction) {
   if (activity.lossStreak > 0) {
     embed.addFields({
       name: 'Loss Streak',
-      value: `${activity.lossStreak} consecutive losses`,
+        value: `${activity.lossStreak} straight losses. Big yikes.`,
       inline: true,
     });
   }
@@ -177,7 +177,7 @@ async function handleTiltHistory(interaction: ChatInputCommandInteraction) {
   if (violationCount > 0) {
     embed.addFields({
       name: 'Cooldown Violations (24h)',
-      value: `${violationCount} violations`,
+        value: `${violationCount} lock break attempt(s)`,
       inline: true,
     });
   }

@@ -1,3 +1,4 @@
+-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-12
 -- TiltCheck Database Schema for Supabase
 -- User stats and game history for cross-platform tracking
 
@@ -48,6 +49,30 @@ CREATE TABLE IF NOT EXISTS wallet_registrations (
   updated_at TIMESTAMPTZ DEFAULT NOW() NOT NULL
 );
 
+-- Recovery Applications Table
+-- Durable storage for /sos microgrant applications in stateless deployments
+CREATE TABLE IF NOT EXISTS recovery_applications (
+  id TEXT PRIMARY KEY,
+  discord_user_id TEXT NOT NULL,
+  discord_username TEXT NOT NULL,
+  hardship TEXT NOT NULL,
+  steps TEXT NOT NULL,
+  support_contact TEXT NOT NULL,
+  support_discord_id TEXT,
+  support_confirmed BOOLEAN DEFAULT false NOT NULL,
+  review_message_id TEXT,
+  review_channel_id TEXT,
+  community_votes INTEGER DEFAULT 0 NOT NULL,
+  status TEXT NOT NULL CHECK (status IN ('pending_support', 'under_review', 'approved', 'paid', 'rejected', 'cancelled')),
+  rejection_reason TEXT,
+  approved_by TEXT,
+  applied_at TIMESTAMPTZ DEFAULT NOW() NOT NULL,
+  updated_at TIMESTAMPTZ DEFAULT NOW() NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_recovery_applications_user ON recovery_applications(discord_user_id);
+CREATE INDEX IF NOT EXISTS idx_recovery_applications_status ON recovery_applications(status);
+
 -- User Onboarding Table
 -- Tracks user onboarding status and preferences
 CREATE TABLE IF NOT EXISTS user_onboarding (
@@ -56,7 +81,14 @@ CREATE TABLE IF NOT EXISTS user_onboarding (
   has_accepted_terms BOOLEAN DEFAULT false NOT NULL,
   risk_level TEXT DEFAULT 'moderate' CHECK (risk_level IN ('conservative', 'moderate', 'degen')),
   cooldown_enabled BOOLEAN DEFAULT false NOT NULL,
+  voice_intervention_enabled BOOLEAN DEFAULT false NOT NULL,
+  share_message_contents BOOLEAN DEFAULT false NOT NULL,
+  share_financial_data BOOLEAN DEFAULT false NOT NULL,
+  share_session_telemetry BOOLEAN DEFAULT false NOT NULL,
+  notify_nft_identity_ready BOOLEAN DEFAULT false NOT NULL,
   daily_limit INTEGER,
+  redeem_threshold INTEGER,
+  compliance_bypass BOOLEAN DEFAULT false NOT NULL,
   notifications_tips BOOLEAN DEFAULT true NOT NULL,
   notifications_trivia BOOLEAN DEFAULT true NOT NULL,
   notifications_promos BOOLEAN DEFAULT false NOT NULL,

@@ -1,25 +1,45 @@
-// © 2024-2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-04
+// © 2024-2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-12
 
 'use strict';
 
 const state = {
     step: 1,
     riskLevel: 'degen',
+    discordUsername: '',
+    discordId: '',
     walletAddress: null,
     buddyId: null,
     threshold: 500,
-    tosAccepted: false
+    tosAccepted: false,
+    voiceInterventionEnabled: true,
+    notifications: {
+        tips: true,
+        trivia: true,
+        promos: false
+    },
+    trustEngineOptIn: {
+        message_contents: false,
+        financial_data: false,
+        session_telemetry: false,
+        notify_nft_identity_ready: false
+    }
 };
 
-const TOTAL_STEPS = 5;
+const TOTAL_STEPS = 3;
 
 window.addEventListener('DOMContentLoaded', () => {
+    initialize().catch(() => {
+        window.location.href = '/auth/discord?redirect=' + encodeURIComponent('/onboarding');
+    });
+});
+
+async function initialize() {
+    await Promise.all([loadCurrentUser(), loadExistingOnboarding()]);
     setupStep1();
     setupStep2();
     setupStep3();
-    setupStep4();
-    setupStep5();
-});
+    renderState();
+}
 
 function goToStep(n) {
     state.step = n;
@@ -33,23 +53,81 @@ function goToStep(n) {
 }
 
 // ============================================================
-// STEP 1: Risk Level
+// STEP 1: Legal + account
 // ============================================================
 function setupStep1() {
-    document.querySelectorAll('.risk-card').forEach(card => {
-        card.addEventListener('click', () => {
-            document.querySelectorAll('.risk-card').forEach(c => c.classList.remove('active'));
-            card.classList.add('active');
-            state.riskLevel = card.dataset.risk;
-        });
+    const tosCheckbox = document.getElementById('tos-checkbox');
+    const nextBtn = document.getElementById('step1-next');
+
+    tosCheckbox?.addEventListener('change', e => {
+        state.tosAccepted = e.target.checked;
+        if (nextBtn) nextBtn.disabled = !state.tosAccepted;
     });
-    document.getElementById('step1-next')?.addEventListener('click', () => goToStep(2));
+
+    document.getElementById('step1-next')?.addEventListener('click', () => {
+        if (!state.tosAccepted) return;
+        goToStep(2);
+    });
 }
 
 // ============================================================
-// STEP 2: Wallet
+// STEP 2: Settings
 // ============================================================
 function setupStep2() {
+    document.querySelectorAll('.risk-card').forEach(card => {
+        card.addEventListener('click', () => {
+            state.riskLevel = card.dataset.risk;
+            renderRiskCards();
+        });
+    });
+
+    document.querySelectorAll('[data-voice]').forEach(button => {
+        button.addEventListener('click', () => {
+            state.voiceInterventionEnabled = button.dataset.voice === 'on';
+            renderVoiceChips();
+        });
+    });
+
+    document.querySelectorAll('.threshold-examples .chip').forEach(chip => {
+        if (!chip.dataset.val) return;
+        chip.addEventListener('click', () => {
+            const numericValue = parseInt(chip.dataset.val, 10);
+            state.threshold = Number.isFinite(numericValue) ? numericValue : 500;
+            renderThreshold();
+        });
+    });
+
+    document.getElementById('onboard-threshold-input')?.addEventListener('input', e => {
+        state.threshold = parseInt(e.target.value, 10) || 500;
+        renderThreshold();
+    });
+
+    document.getElementById('notify-tips')?.addEventListener('change', e => {
+        state.notifications.tips = e.target.checked;
+    });
+    document.getElementById('notify-trivia')?.addEventListener('change', e => {
+        state.notifications.trivia = e.target.checked;
+    });
+    document.getElementById('notify-promos')?.addEventListener('change', e => {
+        state.notifications.promos = e.target.checked;
+    });
+
+    document.getElementById('step2-back')?.addEventListener('click', () => goToStep(1));
+    document.getElementById('step2-next')?.addEventListener('click', () => goToStep(3));
+}
+
+// ============================================================
+// STEP 3: Optional integrations + finish
+// ============================================================
+function setupStep3() {
+    const finishBtn = document.getElementById('step5-finish');
+    const trustOptIns = [
+        ['share-message-contents', 'message_contents'],
+        ['share-financial-data', 'financial_data'],
+        ['share-session-telemetry', 'session_telemetry'],
+        ['notify-nft-identity-ready', 'notify_nft_identity_ready']
+    ];
+
     document.getElementById('phantom-connect-btn')?.addEventListener('click', async () => {
         if (typeof window.solana !== 'undefined' && window.solana.isPhantom) {
             try {
@@ -78,68 +156,21 @@ function setupStep2() {
         }
     });
 
-    document.getElementById('step2-skip')?.addEventListener('click', () => goToStep(3));
-    document.getElementById('step2-next')?.addEventListener('click', () => goToStep(3));
-}
-
-function showWalletConnected(address) {
-    const msg = document.getElementById('wallet-connected-msg');
-    const addrEl = document.getElementById('onboard-wallet-addr');
-    if (msg) msg.style.display = 'flex';
-    if (addrEl) addrEl.textContent = address.slice(0, 6) + '...' + address.slice(-4);
-}
-
-// ============================================================
-// STEP 3: Buddy
-// ============================================================
-function setupStep3() {
     document.getElementById('onboard-buddy-invite-btn')?.addEventListener('click', async () => {
         const input = document.getElementById('onboard-buddy-input');
         const buddyId = input?.value?.trim();
         if (!buddyId) return;
         state.buddyId = buddyId;
-        const msg = document.getElementById('onboard-buddy-msg');
-        if (msg) { msg.textContent = 'Buddy invite queued. Will be sent after setup.'; msg.style.display = 'block'; }
+        showFormMsg('Buddy invite queued. Will be sent after setup.');
     });
 
-    document.getElementById('step3-skip')?.addEventListener('click', () => goToStep(4));
-    document.getElementById('step3-next')?.addEventListener('click', () => goToStep(4));
-}
-
-// ============================================================
-// STEP 4: Threshold
-// ============================================================
-function setupStep4() {
-    document.querySelectorAll('.threshold-examples .chip').forEach(chip => {
-        chip.addEventListener('click', () => {
-            document.querySelectorAll('.threshold-examples .chip').forEach(c => c.classList.remove('active'));
-            chip.classList.add('active');
-            const input = document.getElementById('onboard-threshold-input');
-            if (input) { input.value = chip.dataset.val; state.threshold = parseInt(chip.dataset.val, 10); }
+    trustOptIns.forEach(([id, key]) => {
+        document.getElementById(id)?.addEventListener('change', e => {
+            state.trustEngineOptIn[key] = e.target.checked;
         });
     });
 
-    document.getElementById('onboard-threshold-input')?.addEventListener('input', e => {
-        state.threshold = parseInt(e.target.value, 10) || 500;
-    });
-
-    document.getElementById('step4-back')?.addEventListener('click', () => goToStep(3));
-    document.getElementById('step4-next')?.addEventListener('click', () => goToStep(5));
-}
-
-// ============================================================
-// STEP 5: ToS + Finish
-// ============================================================
-function setupStep5() {
-    const tosCheckbox = document.getElementById('tos-checkbox');
-    const finishBtn = document.getElementById('step5-finish');
-
-    tosCheckbox?.addEventListener('change', e => {
-        state.tosAccepted = e.target.checked;
-        if (finishBtn) finishBtn.disabled = !state.tosAccepted;
-    });
-
-    document.getElementById('step5-back')?.addEventListener('click', () => goToStep(4));
+    document.getElementById('step3-back')?.addEventListener('click', () => goToStep(2));
 
     finishBtn?.addEventListener('click', async () => {
         if (!state.tosAccepted) return;
@@ -155,7 +186,10 @@ function setupStep5() {
                     tos_accepted: true,
                     primary_external_address: state.walletAddress || null,
                     risk_level: state.riskLevel,
-                    redeem_threshold: state.threshold
+                    voice_intervention_enabled: state.voiceInterventionEnabled,
+                    redeem_threshold: state.threshold,
+                    notifications: state.notifications,
+                    trust_engine_opt_in: state.trustEngineOptIn
                 })
             });
 
@@ -182,6 +216,112 @@ function setupStep5() {
             finishBtn.disabled = false;
             finishBtn.textContent = 'Finish Setup';
         }
+    });
+}
+
+function showWalletConnected(address) {
+    const msg = document.getElementById('wallet-connected-msg');
+    const addrEl = document.getElementById('onboard-wallet-addr');
+    if (msg) msg.style.display = 'flex';
+    if (addrEl) addrEl.textContent = address.slice(0, 6) + '...' + address.slice(-4);
+}
+
+async function loadCurrentUser() {
+    const response = await fetch('/api/auth/me', { credentials: 'include' });
+    if (!response.ok) {
+        throw new Error('Not authenticated');
+    }
+
+    const user = await response.json();
+    state.discordUsername = user.username || user.discordUsername || 'Unknown';
+    state.discordId = user.discordId || '';
+
+    const accountLine = document.getElementById('onboard-account-line');
+    if (accountLine) {
+        accountLine.textContent = state.discordId
+            ? `Signed in as ${state.discordUsername} (${state.discordId}).`
+            : `Signed in as ${state.discordUsername}.`;
+    }
+}
+
+async function loadExistingOnboarding() {
+    const response = await fetch('/api/user/onboard', { credentials: 'include' });
+    if (!response.ok) {
+        return;
+    }
+
+    const data = await response.json();
+    const onboarding = data.onboarding;
+    if (!onboarding) {
+        return;
+    }
+
+    state.riskLevel = onboarding.riskLevel || state.riskLevel;
+    state.voiceInterventionEnabled = onboarding.voiceInterventionEnabled !== false;
+    state.threshold = onboarding.redeemThreshold || state.threshold;
+    state.notifications = {
+        tips: onboarding.notifications?.tips !== false,
+        trivia: onboarding.notifications?.trivia !== false,
+        promos: onboarding.notifications?.promos === true
+    };
+    state.trustEngineOptIn = {
+        ...state.trustEngineOptIn,
+        ...onboarding.trustEngineOptIn
+    };
+}
+
+function renderState() {
+    renderRiskCards();
+    renderVoiceChips();
+    renderThreshold();
+    renderNotificationSettings();
+    renderConsentSettings();
+    const tosCheckbox = document.getElementById('tos-checkbox');
+    if (tosCheckbox) tosCheckbox.checked = state.tosAccepted;
+    const nextBtn = document.getElementById('step1-next');
+    if (nextBtn) nextBtn.disabled = !state.tosAccepted;
+}
+
+function renderRiskCards() {
+    document.querySelectorAll('.risk-card').forEach(card => {
+        card.classList.toggle('active', card.dataset.risk === state.riskLevel);
+    });
+}
+
+function renderVoiceChips() {
+    const voiceOn = document.getElementById('voice-on-chip');
+    const voiceOff = document.getElementById('voice-off-chip');
+    if (voiceOn) voiceOn.classList.toggle('active', state.voiceInterventionEnabled);
+    if (voiceOff) voiceOff.classList.toggle('active', !state.voiceInterventionEnabled);
+}
+
+function renderThreshold() {
+    const input = document.getElementById('onboard-threshold-input');
+    if (input) input.value = String(state.threshold);
+    document.querySelectorAll('.threshold-examples .chip').forEach(chip => {
+        if (!chip.dataset.val) return;
+        chip.classList.toggle('active', parseInt(chip.dataset.val, 10) === state.threshold);
+    });
+}
+
+function renderNotificationSettings() {
+    const notifyTips = document.getElementById('notify-tips');
+    const notifyTrivia = document.getElementById('notify-trivia');
+    const notifyPromos = document.getElementById('notify-promos');
+    if (notifyTips) notifyTips.checked = state.notifications.tips;
+    if (notifyTrivia) notifyTrivia.checked = state.notifications.trivia;
+    if (notifyPromos) notifyPromos.checked = state.notifications.promos;
+}
+
+function renderConsentSettings() {
+    Object.entries({
+        'share-message-contents': state.trustEngineOptIn.message_contents,
+        'share-financial-data': state.trustEngineOptIn.financial_data,
+        'share-session-telemetry': state.trustEngineOptIn.session_telemetry,
+        'notify-nft-identity-ready': state.trustEngineOptIn.notify_nft_identity_ready
+    }).forEach(([id, enabled]) => {
+        const input = document.getElementById(id);
+        if (input) input.checked = enabled;
     });
 }
 

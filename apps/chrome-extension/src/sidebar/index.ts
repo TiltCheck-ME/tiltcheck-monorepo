@@ -269,7 +269,9 @@ export class SidebarController implements SidebarUI {
 
   public notifyBuddy(event: string, data: any) {
     if (this.buddy) {
-      this.buddy.notifyIntervention(data.type || event, data.data?.message || 'Intervention triggered');
+      const interventionType = data?.type || event;
+      const interventionPayload = data?.data ?? data ?? 'Intervention triggered';
+      this.buddy.notifyIntervention(interventionType, interventionPayload);
     }
   }
 

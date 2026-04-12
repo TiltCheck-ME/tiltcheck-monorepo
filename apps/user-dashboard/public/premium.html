@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-10 -->
+<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-12 -->
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -667,9 +667,16 @@
           const clientId = data.client_id || data.clientId || '';
           if (clientId) {
             const premiumUrl = 'https://discord.com/application-directory/' + clientId + '/premium';
-            document.getElementById('btn-discord-pro').href = premiumUrl;
-            document.getElementById('btn-discord-elite').href = premiumUrl;
-            document.getElementById('btn-discord-lifetime').href = premiumUrl;
+            [
+              'btn-discord-pro',
+              'btn-discord-elite',
+              'btn-discord-lifetime',
+              'btn-discord-og-lifetime',
+              'btn-discord-support'
+            ].forEach(function (id) {
+              const link = document.getElementById(id);
+              if (link) link.href = premiumUrl;
+            });
           }
         }
       } catch (_e) {

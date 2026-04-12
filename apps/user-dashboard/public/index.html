@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- © 2024-2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-04 -->
+  <!-- © 2024-2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-12 -->
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -18,7 +18,6 @@
         <div class="auth-logo">TILTCHECK</div>
         <p class="auth-tagline">Reality checks for degens. Zero custody. All signal.</p>
         <a href="/auth/discord" class="btn btn-primary btn-lg">Connect with Discord</a>
-        <a href="/preview" class="btn btn-secondary" style="margin-top:0.75rem;">Preview Dashboard</a>
         <p class="auth-footer">Made for Degens. By Degens.</p>
       </div>
     </div>
@@ -129,6 +128,13 @@
                 <code id="externalWalletDisplay" class="wallet-addr">Not linked</code>
                 <button class="btn btn-ghost btn-sm" id="link-wallet-btn">Link</button>
               </div>
+              <div class="wallet-row">
+                <span class="wallet-label">NFT Identity</span>
+                <code id="nftIdentityStatus" class="wallet-addr">Checking...</code>
+              </div>
+              <div id="nftIdentitySub" class="stat-sub" style="margin-bottom:0.75rem;">
+                Opt in during onboarding if you want first-wave NFT identity notice.
+              </div>
               <div class="wallet-row" id="magic-wallet-row" style="display:none;">
                 <span class="wallet-label">Magic Wallet</span>
                 <code id="magicWalletDisplay" class="wallet-addr">Not linked</code>
@@ -218,6 +224,7 @@
               <input type="number" id="profit-guard-threshold" class="input input-inline" value="500" min="1" />
               <span class="vault-label">USD</span>
             </div>
+            <div id="profitGuardStatus" class="form-msg"></div>
           </div>
 
           <div class="card-row">
