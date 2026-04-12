@@ -171,10 +171,12 @@ jobs:
         run: |
           OWNER="${{ steps.vars.outputs.owner }}"
           PKG="tiltcheck-${{ matrix.service }}"
+          # Use PACKAGES_TOKEN (PAT with write:packages) if available, else GITHUB_TOKEN
+          TOKEN="${{ secrets.PACKAGES_TOKEN || secrets.GITHUB_TOKEN }}"
           # Make the package public so Railway can pull it without credentials
           STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
             -X PATCH \
-            -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+            -H "Authorization: Bearer ${TOKEN}" \
             -H "Accept: application/vnd.github+json" \
             -H "X-GitHub-Api-Version: 2022-11-28" \
             "https://api.github.com/orgs/${OWNER}/packages/container/${PKG}" \
@@ -183,7 +185,7 @@ jobs:
           if [ "$STATUS" = "200" ]; then
             echo "Package $PKG is now public."
           else
-            echo "Warning: could not set package visibility (status $STATUS). Railway may fail to pull if package is private."
+            echo "Warning: could not set package visibility (status $STATUS). Ensure PACKAGES_TOKEN secret has write:packages scope."
           fi
 
   deploy:
