@@ -1,11 +1,11 @@
-/* Copyright (c) 2026 TiltCheck. All rights reserved. */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-12 */
 /**
  * User Routes - /user/*
  * Handles user profile, onboarding status, and preferences
  */
 
 import { Router, Response, Request, NextFunction } from 'express';
-import { authMiddleware, AuthRequest } from '../middleware/auth.js';
+import { authMiddleware, AuthRequest, internalServiceAuth } from '../middleware/auth.js';
 import {
     findOnboardingByDiscordId, 
     upsertOnboarding,
@@ -31,6 +31,7 @@ import { ValidationError, InternalServerError } from '@tiltcheck/error-factory';
 import { verifySolanaSignature } from '@tiltcheck/auth/solana';
 import { invalidateExclusionCache, getForbiddenGamesProfile } from '../services/exclusion-cache.js';
 import type { GameCategory } from '@tiltcheck/types';
+import { getUserDataConsentState } from '../lib/data-consent.js';
 
 const router: Router = Router();
 
@@ -108,6 +109,22 @@ router.get('/lookup/:wallet', async (req: Request, res: Response, next: NextFunc
     try {
         const wallet = req.params.wallet as string;
         await handleLookupByWallet(wallet, res);
+    } catch (err) {
+        next(err);
+    }
+});
+
+router.get('/internal/consents/:discordId', internalServiceAuth, async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const discordId = req.params.discordId as string;
+
+        if (!discordId) {
+            res.status(400).json({ error: 'discordId is required' });
+            return;
+        }
+
+        const consentState = await getUserDataConsentState(discordId);
+        res.json(consentState);
     } catch (err) {
         next(err);
     }
@@ -233,7 +250,15 @@ router.get('/onboarding', authMiddleware, async (req: Request, res: Response, ne
             hasAcceptedTerms: onboarding.has_accepted_terms,
             preferences: {
                 cooldownEnabled: onboarding.cooldown_enabled,
+                voiceInterventionEnabled: onboarding.voice_intervention_enabled,
                 dailyLimit: onboarding.daily_limit,
+                redeemThreshold: onboarding.redeem_threshold,
+                dataSharing: {
+                    messageContents: onboarding.share_message_contents,
+                    financialData: onboarding.share_financial_data,
+                    sessionTelemetry: onboarding.share_session_telemetry
+                },
+                notifyNftIdentityReady: onboarding.notify_nft_identity_ready,
                 notifications: {
                     tips: onboarding.notifications_tips,
                     trivia: onboarding.notifications_trivia,
@@ -272,7 +297,13 @@ router.post('/onboarding', authMiddleware, async (req: Request, res: Response, n
             risk_level: riskLevel,
             has_accepted_terms: hasAcceptedTerms,
             cooldown_enabled: preferences?.cooldownEnabled,
+            voice_intervention_enabled: preferences?.voiceInterventionEnabled,
+            share_message_contents: preferences?.dataSharing?.messageContents,
+            share_financial_data: preferences?.dataSharing?.financialData,
+            share_session_telemetry: preferences?.dataSharing?.sessionTelemetry,
+            notify_nft_identity_ready: preferences?.notifyNftIdentityReady,
             daily_limit: preferences?.dailyLimit,
+            redeem_threshold: preferences?.redeemThreshold,
             notifications_tips: preferences?.notifications?.tips,
             notifications_trivia: preferences?.notifications?.trivia,
             notifications_promos: preferences?.notifications?.promos,

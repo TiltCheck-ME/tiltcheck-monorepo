@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-10
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-12
 import express from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
@@ -12,7 +12,7 @@ import {
 } from '@tiltcheck/auth';
 import rateLimit from 'express-rate-limit';
 import { Magic } from '@magic-sdk/admin';
-import { Connection } from '@solana/web3.js';
+import { Connection, PublicKey } from '@solana/web3.js';
 import { fileURLToPath, pathToFileURL } from 'url';
 import { dirname, join } from 'path';
 import type { Request, Response, NextFunction } from 'express';
@@ -26,19 +26,41 @@ interface DashboardRequest extends Request {
   params: Record<string, string>;
 }
 import { db, DegenIdentity } from '@tiltcheck/database';
-import { findUserByDiscordId, findOnboardingByDiscordId, upsertOnboarding, getUserBuddies, getPendingBuddyRequests, sendBuddyRequest } from '@tiltcheck/db';
+import { findUserByDiscordId, findOnboardingByDiscordId, upsertOnboarding, getUserBuddies, getPendingBuddyRequests, sendBuddyRequest, type UserOnboarding } from '@tiltcheck/db';
+import { runner } from '@tiltcheck/agent';
 
 /**
  * Utility to convert agent content to string
  */
 interface AgentContent {
-    parts?: { text?: string }[];
+  parts?: { text?: string }[];
 }
 
 function stringifyContent(content: AgentContent | string): string {
   if (typeof content === 'string') return content;
   if (content?.parts) return content.parts.map((p) => p.text || '').join('');
   return JSON.stringify(content);
+}
+
+function requireAuthorizedDiscordId(req: DashboardRequest, res: Response): string | null {
+  const authenticatedDiscordId = req.user?.discordId;
+  const requestedDiscordId = req.params.discordId;
+
+  if (!authenticatedDiscordId) {
+    res.status(401).json({ error: 'Not authenticated', code: 'UNAUTHORIZED' });
+    return null;
+  }
+
+  if (!requestedDiscordId || requestedDiscordId !== authenticatedDiscordId) {
+    res.status(403).json({ error: 'Forbidden', code: 'FORBIDDEN' });
+    return null;
+  }
+
+  return authenticatedDiscordId;
+}
+
+interface AgentEvent {
+  content?: AgentContent | string;
 }
 
 const __filename = fileURLToPath(import.meta.url);
@@ -50,6 +72,7 @@ const DISCORD_CALLBACK_URL = process.env.TILT_DISCORD_REDIRECT_URI || 'https://a
 
 // Configuration
 const isProd = process.env.NODE_ENV === 'production';
+const HUB_BASE_URL = isProd ? 'https://hub.tiltcheck.me' : `http://localhost:${PORT}`;
 const JWT_SECRET = process.env.JWT_SECRET;
 
 if (!JWT_SECRET) {
@@ -68,6 +91,13 @@ const jwtConfig: JWTConfig = {
 const trustLimiter = rateLimit({
   windowMs: 1 * 60 * 1000,
   max: 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+const paymentClaimLimiter = rateLimit({
+  windowMs: 5 * 60 * 1000,
+  max: 5,
   standardHeaders: true,
   legacyHeaders: false,
 });
@@ -144,10 +174,23 @@ app.get('/api/auth/me', authenticateToken, (req: DashboardRequest, res) => {
 
 
 // === Auth Routes (Redirect to Central Login) ===
-app.get('/auth/discord', (req, res) => {
+app.get('/auth/discord', async (req, res) => {
   const redirectBase = isProd ? 'https://api.tiltcheck.me' : 'http://localhost:3000';
-  const myUrl = isProd ? 'https://hub.tiltcheck.me/dashboard' : `http://localhost:${PORT}/dashboard`;
-  res.redirect(`${redirectBase}/auth/discord/login?source=web&redirect=${encodeURIComponent(myUrl)}`);
+  const requestedRedirect = typeof req.query.redirect === 'string' ? req.query.redirect.trim() : '';
+  const targetPath = isAllowedHubRedirect(requestedRedirect) ? requestedRedirect : '/dashboard';
+  const targetUrl = targetPath.startsWith('http') ? targetPath : `${HUB_BASE_URL}${targetPath}`;
+
+  try {
+    const result = await verifySessionCookie(req.headers.cookie, jwtConfig);
+    if (result.valid && result.session?.discordId) {
+      res.redirect(targetPath);
+      return;
+    }
+  } catch (error) {
+    console.warn('[Auth] Existing dashboard session check failed:', error);
+  }
+
+  res.redirect(`${redirectBase}/auth/discord/login?source=web&redirect=${encodeURIComponent(targetUrl)}`);
 });
 
 // For compatibility with any direct callbacks that might still hit this app
@@ -173,6 +216,7 @@ interface UserData {
     totalRedeemed: number;
   };
   degenIdentity?: DegenIdentity | null;
+  nftIdentity?: NftIdentityStatus;
   recentActivity: ActivityItem[];
   preferences: UserPreferences;
 }
@@ -190,6 +234,221 @@ interface UserPreferences {
   anonTipping: boolean;
   showAnalytics: boolean;
   baseCurrency: string;
+}
+
+interface NftIdentityStatus {
+  optedIn: boolean;
+  walletLinked: boolean;
+  walletType: 'external' | 'magic' | 'none';
+  tosAccepted: boolean;
+  minted: boolean;
+  paid: boolean;
+  ready: boolean;
+  notificationPending: boolean;
+  notifiedAt: string | null;
+  status: string;
+  detail: string;
+}
+
+function getIdentityMetadata(identity: DegenIdentity | null): Record<string, unknown> {
+  return identity?.identity_metadata && typeof identity.identity_metadata === 'object'
+    ? identity.identity_metadata
+    : {};
+}
+
+function getNftIdentityStatus(
+  onboarding: UserOnboarding | null,
+  identity: DegenIdentity | null
+): NftIdentityStatus {
+  const optedIn = onboarding?.notify_nft_identity_ready === true;
+  const walletType = identity?.primary_external_address
+    ? 'external'
+    : identity?.magic_address
+      ? 'magic'
+      : 'none';
+  const walletLinked = walletType !== 'none';
+  const tosAccepted = identity?.tos_accepted === true;
+  const minted = identity?.tos_nft_minted === true;
+  const paid = identity?.tos_nft_paid === true;
+  const metadata = getIdentityMetadata(identity);
+  const notifiedAt = typeof metadata.nft_identity_ready_notified_at === 'string'
+    ? metadata.nft_identity_ready_notified_at
+    : null;
+  const ready = optedIn && tosAccepted && walletLinked && !minted && !paid;
+  const notificationPending = ready && !notifiedAt;
+
+  if (!optedIn) {
+    return {
+      optedIn,
+      walletLinked,
+      walletType,
+      tosAccepted,
+      minted,
+      paid,
+      ready,
+      notificationPending,
+      notifiedAt,
+      status: 'Notice off',
+      detail: 'Opt in during onboarding if you want first-wave NFT identity notice.',
+    };
+  }
+
+  if (!tosAccepted) {
+    return {
+      optedIn,
+      walletLinked,
+      walletType,
+      tosAccepted,
+      minted,
+      paid,
+      ready,
+      notificationPending,
+      notifiedAt,
+      status: 'Terms missing',
+      detail: 'Accept the terms first so the identity flow has a real owner attached.',
+    };
+  }
+
+  if (!walletLinked) {
+    return {
+      optedIn,
+      walletLinked,
+      walletType,
+      tosAccepted,
+      minted,
+      paid,
+      ready,
+      notificationPending,
+      notifiedAt,
+      status: 'Wallet missing',
+      detail: 'Link a wallet and you are first in line when the identity fingerprint opens.',
+    };
+  }
+
+  if (minted || paid) {
+    return {
+      optedIn,
+      walletLinked,
+      walletType,
+      tosAccepted,
+      minted,
+      paid,
+      ready,
+      notificationPending,
+      notifiedAt,
+      status: 'Already live',
+      detail: 'Your identity NFT work is already recorded. No extra ping needed.',
+    };
+  }
+
+  return {
+    optedIn,
+    walletLinked,
+    walletType,
+    tosAccepted,
+    minted,
+    paid,
+    ready,
+    notificationPending,
+    notifiedAt,
+    status: notifiedAt ? 'Ready' : 'Ready for notice',
+    detail: notifiedAt
+      ? 'You already got the heads-up. When the mint opens, you are in the first wave.'
+      : 'Terms are signed and a wallet is linked. You are lined up for first-wave NFT identity notice.',
+  };
+}
+
+async function sendDiscordDirectMessage(discordId: string, content: string): Promise<boolean> {
+  const botToken = process.env.DISCORD_BOT_TOKEN;
+  if (!botToken) {
+    console.warn('[NFT Identity] DISCORD_BOT_TOKEN not set - DM notification skipped');
+    return false;
+  }
+
+  try {
+    const dmChannelResponse = await fetch('https://discord.com/api/v10/users/@me/channels', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bot ${botToken}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ recipient_id: discordId }),
+    });
+
+    if (!dmChannelResponse.ok) {
+      console.warn('[NFT Identity] Failed to open DM channel:', dmChannelResponse.status);
+      return false;
+    }
+
+    const dmChannel = await dmChannelResponse.json() as { id?: string };
+    if (!dmChannel.id) {
+      console.warn('[NFT Identity] Discord did not return a DM channel ID');
+      return false;
+    }
+
+    const messageResponse = await fetch(`https://discord.com/api/v10/channels/${dmChannel.id}/messages`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bot ${botToken}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ content }),
+    });
+
+    if (!messageResponse.ok) {
+      console.warn('[NFT Identity] Failed to send DM notification:', messageResponse.status);
+      return false;
+    }
+
+    return true;
+  } catch (error) {
+    console.error('[NFT Identity] DM notification failed:', error);
+    return false;
+  }
+}
+
+async function notifyNftIdentityReady(
+  discordId: string,
+  username: string,
+  onboarding: UserOnboarding | null,
+  identity: DegenIdentity | null
+): Promise<NftIdentityStatus> {
+  const status = getNftIdentityStatus(onboarding, identity);
+  if (!status.notificationPending || !db.isConnected() || !identity) {
+    return status;
+  }
+
+  const message = [
+    `${username || 'Degen'}, your TiltCheck NFT identity fingerprint waitlist is ready.`,
+    '',
+    'You already handled the hard part: terms accepted and wallet linked.',
+    'When the identity mint opens, you are first-wave ready.',
+    '',
+    'Hub: https://hub.tiltcheck.me/dashboard',
+    '',
+    'Made for Degens. By Degens.',
+  ].join('\n');
+
+  const dashboardDelivered = broadcastToUser(discordId, {
+    type: 'identity.nft_ready',
+    data: { message },
+  });
+  const dmDelivered = await sendDiscordDirectMessage(discordId, message);
+
+  if (!dashboardDelivered && !dmDelivered) {
+    return status;
+  }
+
+  const notifiedAt = new Date().toISOString();
+  const updatedIdentity = await db.upsertDegenIdentity({
+    discord_id: discordId,
+    identity_metadata: {
+      ...getIdentityMetadata(identity),
+      nft_identity_ready_notified_at: notifiedAt,
+    },
+  });
+
+  return getNftIdentityStatus(onboarding, updatedIdentity ?? identity);
 }
 
 // === Data Fetching ===
@@ -220,6 +479,7 @@ async function getUserData(discordId: string): Promise<UserData | null> {
         totalRedeemed: user!.total_redeemed || 0
       },
       degenIdentity: dbIdentity,
+      nftIdentity: getNftIdentityStatus(onboarding, dbIdentity),
       recentActivity: [],
       preferences: {
         notifyBonus: onboarding?.notifications_promos || true,
@@ -239,20 +499,94 @@ async function getUserData(discordId: string): Promise<UserData | null> {
 // Authentication and onboarding routes are now unified via central app.
 
 // Onboarding route
-app.get('/onboarding', (_req, res) => {
-  res.sendFile(join(__dirname, '../public/onboarding.html'));
+app.get('/onboarding', async (req, res) => {
+  try {
+    const result = await verifySessionCookie(req.headers.cookie, jwtConfig);
+    if (!result.valid || !result.session?.discordId) {
+      res.redirect(`/auth/discord?redirect=${encodeURIComponent('/onboarding')}`);
+      return;
+    }
+  } catch (error) {
+    console.warn('[Onboarding] Session verification failed:', error);
+    res.redirect(`/auth/discord?redirect=${encodeURIComponent('/onboarding')}`);
+    return;
+  }
+
+  res.sendFile(join(__dirname, '../public/onboard.html'));
+});
+
+app.get('/api/user/onboard', authenticateToken, async (req: DashboardRequest, res) => {
+  try {
+    const discordId = req.user!.discordId;
+    const onboarding = await findOnboardingByDiscordId(discordId);
+
+    res.json({
+      success: true,
+      onboarding: {
+        riskLevel: onboarding?.risk_level || 'moderate',
+        voiceInterventionEnabled: onboarding?.voice_intervention_enabled ?? false,
+        redeemThreshold: onboarding?.redeem_threshold ?? 500,
+        notifications: {
+          tips: onboarding?.notifications_tips ?? true,
+          trivia: onboarding?.notifications_trivia ?? true,
+          promos: onboarding?.notifications_promos ?? false,
+        },
+        trustEngineOptIn: {
+          message_contents: onboarding?.share_message_contents ?? false,
+          financial_data: onboarding?.share_financial_data ?? false,
+          session_telemetry: onboarding?.share_session_telemetry ?? false,
+          notify_nft_identity_ready: onboarding?.notify_nft_identity_ready ?? false,
+        },
+      },
+    });
+  } catch (error) {
+    console.error('[API] Load onboarding state error:', error);
+    res.status(500).json({ error: 'Failed to load onboarding state' });
+  }
 });
 
 app.get('/api/user/:discordId', authenticateToken, async (req: DashboardRequest, res) => {
-  const data = await getUserData(req.params.discordId as string);
+  const discordId = requireAuthorizedDiscordId(req, res);
+  if (!discordId) return;
+
+  const data = await getUserData(discordId);
   if (!data) return res.status(404).json({ error: 'User not found' });
   res.json(data);
 });
 
 app.post('/api/user/onboard', authenticateToken, async (req: DashboardRequest, res) => {
   try {
-    const { primary_external_address, tos_accepted } = req.body;
+    const {
+      primary_external_address,
+      tos_accepted,
+      risk_level,
+      voice_intervention_enabled,
+      redeem_threshold,
+      notifications,
+      trust_engine_opt_in
+    } = req.body;
     const discordId = req.user!.discordId;
+    const normalizedRiskLevel = risk_level === 'conservative' || risk_level === 'moderate' || risk_level === 'degen'
+      ? risk_level
+      : 'moderate';
+    const normalizedRedeemThreshold = typeof redeem_threshold === 'number' && Number.isFinite(redeem_threshold) && redeem_threshold > 0
+      ? redeem_threshold
+      : 500;
+    const normalizedNotifications = typeof notifications === 'object' && notifications
+      ? notifications as {
+          tips?: boolean;
+          trivia?: boolean;
+          promos?: boolean;
+        }
+      : {};
+    const trustEngineOptIn = typeof trust_engine_opt_in === 'object' && trust_engine_opt_in
+      ? trust_engine_opt_in as {
+          message_contents?: boolean;
+          financial_data?: boolean;
+          session_telemetry?: boolean;
+          notify_nft_identity_ready?: boolean;
+        }
+      : {};
 
     if (!tos_accepted) {
       return res.status(400).json({ error: 'You must accept the ToS to proceed' });
@@ -269,7 +603,33 @@ app.post('/api/user/onboard', authenticateToken, async (req: DashboardRequest, r
       return res.status(500).json({ error: 'Failed to update identity' });
     }
 
-    res.json({ success: true, identity: updatedIdentity });
+    await upsertOnboarding({
+      discord_id: discordId,
+      is_onboarded: true,
+      has_accepted_terms: true,
+      risk_level: normalizedRiskLevel,
+      cooldown_enabled: normalizedRiskLevel !== 'degen',
+      voice_intervention_enabled: voice_intervention_enabled === true,
+      share_message_contents: trustEngineOptIn.message_contents === true,
+      share_financial_data: trustEngineOptIn.financial_data === true,
+      share_session_telemetry: trustEngineOptIn.session_telemetry === true,
+      notify_nft_identity_ready: trustEngineOptIn.notify_nft_identity_ready === true,
+      notifications_tips: normalizedNotifications.tips !== false,
+      notifications_trivia: normalizedNotifications.trivia !== false,
+      notifications_promos: normalizedNotifications.promos === true,
+      redeem_threshold: normalizedRedeemThreshold,
+      tutorial_completed: true,
+    });
+
+    const savedOnboarding = await findOnboardingByDiscordId(discordId);
+    const nftIdentity = await notifyNftIdentityReady(
+      discordId,
+      req.user!.username,
+      savedOnboarding,
+      updatedIdentity
+    );
+
+    res.json({ success: true, identity: updatedIdentity, nftIdentity });
   } catch (err) {
     const error = err as Error;
     console.error('[API] Onboard error:', error);
@@ -277,8 +637,26 @@ app.post('/api/user/onboard', authenticateToken, async (req: DashboardRequest, r
   }
 });
 
+function isAllowedHubRedirect(value: string): boolean {
+  if (!value) return false;
+  if (value.startsWith('/')) return true;
+
+  try {
+    const parsed = new URL(value);
+    const host = parsed.hostname.toLowerCase();
+    const isHubHost = parsed.protocol === 'https:' && (host === 'hub.tiltcheck.me' || host === 'tiltcheck.me' || host.endsWith('.tiltcheck.me'));
+    const isLocalHost = !isProd && parsed.protocol === 'http:' && (host === 'localhost' || host === '127.0.0.1');
+    return isHubHost || isLocalHost;
+  } catch {
+    return false;
+  }
+}
+
 app.get('/api/user/:discordId/trust', authenticateToken, trustLimiter, async (req: DashboardRequest, res) => {
-  const data = await getUserData(req.params.discordId as string);
+  const discordId = requireAuthorizedDiscordId(req, res);
+  if (!discordId) return;
+
+  const data = await getUserData(discordId);
   if (!data) return res.status(404).json({ error: 'User not found' });
   
   res.json({
@@ -290,7 +668,9 @@ app.get('/api/user/:discordId/trust', authenticateToken, trustLimiter, async (re
 
 app.get('/api/user/:discordId/activity', authenticateToken, async (req: DashboardRequest, res) => {
   try {
-    const discordId = req.params.discordId;
+    const discordId = requireAuthorizedDiscordId(req, res);
+    if (!discordId) return;
+
     const activities: { type: string; description: string; timestamp: number }[] = [];
 
     if (db.isConnected()) {
@@ -316,7 +696,9 @@ app.get('/api/user/:discordId/activity', authenticateToken, async (req: Dashboar
 
 app.put('/api/user/:discordId/preferences', authenticateToken, async (req: DashboardRequest, res) => {
   try {
-    const discordId = req.params.discordId;
+    const discordId = requireAuthorizedDiscordId(req, res);
+    if (!discordId) return;
+
     const { notifyBonus, notifyJuice, showAnalytics, baseCurrency, riskLevel } = req.body;
 
     if (typeof upsertOnboarding === 'function') {
@@ -337,44 +719,65 @@ app.put('/api/user/:discordId/preferences', authenticateToken, async (req: Dashb
 
 app.post('/api/auth/wallet/link', authenticateToken, async (req: DashboardRequest, res) => {
   const { address } = req.body;
-  // Verify signature and save to DB
+  if (typeof address !== 'string' || !address.trim()) {
+    res.status(400).json({ error: 'Wallet address is required' });
+    return;
+  }
+
+  try {
+    new PublicKey(address.trim());
+  } catch {
+    res.status(400).json({ error: 'Invalid Solana wallet address' });
+    return;
+  }
+
+  let updatedIdentity: DegenIdentity | null = null;
   if (db.isConnected()) {
-    await db.upsertDegenIdentity({
+    updatedIdentity = await db.upsertDegenIdentity({
       discord_id: req.user!.discordId,
-      primary_external_address: address
+      primary_external_address: address.trim()
     });
   }
-  res.json({ success: true });
+  const onboarding = await findOnboardingByDiscordId(req.user!.discordId);
+  const nftIdentity = await notifyNftIdentityReady(
+    req.user!.discordId,
+    req.user!.username,
+    onboarding,
+    updatedIdentity
+  );
+  res.json({ success: true, nftIdentity });
 });
 
 app.post('/api/auth/magic/link', authenticateToken, async (req: DashboardRequest, res) => {
   const { didToken } = req.body;
   const metadata = await magicAdmin.users.getMetadataByToken(didToken);
+  let updatedIdentity: DegenIdentity | null = null;
   if (db.isConnected()) {
-    await db.upsertDegenIdentity({
+    updatedIdentity = await db.upsertDegenIdentity({
       discord_id: req.user!.discordId,
       magic_address: metadata.publicAddress
     });
   }
-  res.json({ success: true, address: metadata.publicAddress });
+  const onboarding = await findOnboardingByDiscordId(req.user!.discordId);
+  const nftIdentity = await notifyNftIdentityReady(
+    req.user!.discordId,
+    req.user!.username,
+    onboarding,
+    updatedIdentity
+  );
+  res.json({ success: true, address: metadata.publicAddress, nftIdentity });
 });
 
 // === AI Agent Route ===
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const runner: any = null; // TODO: Initialize with Google ADK runner when available
 app.post('/api/agent/query', authenticateToken, async (req: DashboardRequest, res) => {
   const { query } = req.body;
   if (!query) return res.status(400).json({ error: 'Missing query' });
-
-  if (!runner) {
-    return res.status(501).json({ error: 'AI agent not yet initialized' });
-  }
 
   try {
     let finalResponse = '';
     const it = runner.runAsync({
       userId: req.user!.discordId,
-      sessionId: 'dashboard-session',
+      sessionId: `dashboard-session-${req.user!.discordId}`,
       newMessage: {
         role: 'user',
         parts: [{ text: query }]
@@ -382,7 +785,14 @@ app.post('/api/agent/query', authenticateToken, async (req: DashboardRequest, re
     });
 
     for await (const event of it) {
-      finalResponse = stringifyContent(event);
+      const content = (event as AgentEvent).content;
+      if (content) {
+        finalResponse = stringifyContent(content);
+      }
+    }
+
+    if (!finalResponse) {
+      return res.status(502).json({ error: 'Agent returned no response' });
     }
 
     res.json({ response: finalResponse });
@@ -398,7 +808,9 @@ app.post('/api/agent/query', authenticateToken, async (req: DashboardRequest, re
 // === Vault Routes ===
 app.get('/api/user/:discordId/vault', authenticateToken, async (req: DashboardRequest, res) => {
   try {
-    const discordId = req.params.discordId;
+    const discordId = requireAuthorizedDiscordId(req, res);
+    if (!discordId) return;
+
     if (!db.isConnected()) {
       return res.json({ locked: false, amount: 0, history: [] });
     }
@@ -423,7 +835,9 @@ app.get('/api/user/:discordId/vault', authenticateToken, async (req: DashboardRe
 
 app.post('/api/user/:discordId/vault/lock', authenticateToken, async (req: DashboardRequest, res) => {
   try {
-    const discordId = req.params.discordId;
+    const discordId = requireAuthorizedDiscordId(req, res);
+    if (!discordId) return;
+
     const { amountSol, durationMs } = req.body;
 
     if (!amountSol || amountSol <= 0) return res.status(400).json({ error: 'Invalid amount' });
@@ -448,7 +862,9 @@ app.post('/api/user/:discordId/vault/lock', authenticateToken, async (req: Dashb
 
 app.post('/api/user/:discordId/vault/unlock', authenticateToken, async (req: DashboardRequest, res) => {
   try {
-    const discordId = req.params.discordId;
+    const discordId = requireAuthorizedDiscordId(req, res);
+    if (!discordId) return;
+
     const user = await findUserByDiscordId(discordId);
     if (!user) return res.status(404).json({ error: 'User not found' });
 
@@ -467,7 +883,9 @@ app.post('/api/user/:discordId/vault/unlock', authenticateToken, async (req: Das
 // === Bonus Routes ===
 app.get('/api/user/:discordId/bonuses', authenticateToken, async (req: DashboardRequest, res) => {
   try {
-    const discordId = req.params.discordId;
+    const discordId = requireAuthorizedDiscordId(req, res);
+    if (!discordId) return;
+
     if (!db.isConnected()) {
       return res.json({ active: [], history: [], nerfs: [] });
     }
@@ -488,11 +906,14 @@ app.get('/api/user/:discordId/bonuses', authenticateToken, async (req: Dashboard
 
 app.post('/api/bonus/:discordId/claim', authenticateToken, async (req: DashboardRequest, res) => {
   try {
+    const discordId = requireAuthorizedDiscordId(req, res);
+    if (!discordId) return;
+
     const { bonusId } = req.body;
     if (!bonusId) return res.status(400).json({ error: 'Missing bonusId' });
 
     if (db.isConnected()) {
-      await db.claimBonus(req.params.discordId, bonusId);
+      await db.claimBonus(discordId, bonusId);
     }
 
     res.json({ success: true });
@@ -505,7 +926,9 @@ app.post('/api/bonus/:discordId/claim', authenticateToken, async (req: Dashboard
 // === Session History ===
 app.get('/api/user/:discordId/sessions', authenticateToken, async (req: DashboardRequest, res) => {
   try {
-    const discordId = req.params.discordId;
+    const discordId = requireAuthorizedDiscordId(req, res);
+    if (!discordId) return;
+
     if (!db.isConnected()) {
       return res.json({ sessions: [], stats: { weeklyPL: 0, winRate: 0, avgSession: 0, rtpDrift: 0 } });
     }
@@ -535,7 +958,10 @@ app.get('/api/user/:discordId/sessions', authenticateToken, async (req: Dashboar
 // === Buddy Routes ===
 app.get('/api/user/:discordId/buddies', authenticateToken, async (req: DashboardRequest, res) => {
   try {
-    const user = await findUserByDiscordId(req.params.discordId);
+    const discordId = requireAuthorizedDiscordId(req, res);
+    if (!discordId) return;
+
+    const user = await findUserByDiscordId(discordId);
     if (!user) return res.status(404).json({ error: 'User not found' });
 
     const [buddies, pending] = await Promise.all([
@@ -552,10 +978,13 @@ app.get('/api/user/:discordId/buddies', authenticateToken, async (req: Dashboard
 
 app.post('/api/user/:discordId/buddies', authenticateToken, async (req: DashboardRequest, res) => {
   try {
+    const discordId = requireAuthorizedDiscordId(req, res);
+    if (!discordId) return;
+
     const { buddyId } = req.body;
     if (!buddyId) return res.status(400).json({ error: 'Missing buddyId' });
 
-    const user = await findUserByDiscordId(req.params.discordId as string);
+    const user = await findUserByDiscordId(discordId);
     if (!user) return res.status(404).json({ error: 'User not found' });
 
     await sendBuddyRequest(user.id, buddyId);
@@ -568,6 +997,16 @@ app.post('/api/user/:discordId/buddies', authenticateToken, async (req: Dashboar
 
 app.post('/api/user/:discordId/buddies/:requestId/accept', authenticateToken, async (req: DashboardRequest, res) => {
   try {
+    const discordId = requireAuthorizedDiscordId(req, res);
+    if (!discordId) return;
+
+    const user = await findUserByDiscordId(discordId);
+    if (!user) return res.status(404).json({ error: 'User not found' });
+
+    const pending = await getPendingBuddyRequests(user.id).catch(() => []);
+    const request = pending.find((entry) => entry.id === req.params.requestId);
+    if (!request) return res.status(404).json({ error: 'Buddy request not found' });
+
     if (db.isConnected()) {
       await db.acceptBuddyRequest(req.params.requestId as string);
     }
@@ -579,6 +1018,16 @@ app.post('/api/user/:discordId/buddies/:requestId/accept', authenticateToken, as
 
 app.post('/api/user/:discordId/buddies/:requestId/decline', authenticateToken, async (req: DashboardRequest, res) => {
   try {
+    const discordId = requireAuthorizedDiscordId(req, res);
+    if (!discordId) return;
+
+    const user = await findUserByDiscordId(discordId);
+    if (!user) return res.status(404).json({ error: 'User not found' });
+
+    const pending = await getPendingBuddyRequests(user.id).catch(() => []);
+    const request = pending.find((entry) => entry.id === req.params.requestId);
+    if (!request) return res.status(404).json({ error: 'Buddy request not found' });
+
     if (db.isConnected()) {
       await db.declineBuddyRequest(req.params.requestId as string);
     }
@@ -591,7 +1040,7 @@ app.post('/api/user/:discordId/buddies/:requestId/decline', authenticateToken, a
 // === Premium page + crypto payment claim ===
 app.get('/premium', (_req, res) => res.sendFile(join(__dirname, '../public/premium.html')));
 
-app.post('/api/payments/claim-crypto', async (req, res) => {
+app.post('/api/payments/claim-crypto', paymentClaimLimiter, async (req, res) => {
   const { discordUsername, txHash, tier, amount } = req.body as {
     discordUsername?: string;
     txHash?: string;
@@ -673,19 +1122,32 @@ const wss = new WebSocketServer({ server: httpServer, path: '/ws' });
 
 const userConnections = new Map<string, Set<WebSocket>>();
 
-wss.on('connection', (socket: WebSocket) => {
+wss.on('connection', async (socket: WebSocket, request) => {
   let connectedDiscordId: string | null = null;
+
+  try {
+    const result = await verifySessionCookie(request.headers.cookie, jwtConfig);
+    if (!result.valid || !result.session?.discordId) {
+      socket.close(1008, 'Unauthorized');
+      return;
+    }
+
+    connectedDiscordId = result.session.discordId;
+    if (!userConnections.has(connectedDiscordId)) {
+      userConnections.set(connectedDiscordId, new Set());
+    }
+    userConnections.get(connectedDiscordId)!.add(socket);
+  } catch (error) {
+    console.warn('[WebSocket] Session verification failed:', error);
+    socket.close(1008, 'Unauthorized');
+    return;
+  }
 
   socket.on('message', (raw) => {
     try {
       const msg = JSON.parse(raw.toString());
-      if (msg.type === 'auth' && typeof msg.discordId === 'string') {
-        const discordId: string = msg.discordId;
-        connectedDiscordId = discordId;
-        if (!userConnections.has(discordId)) {
-          userConnections.set(discordId, new Set());
-        }
-        userConnections.get(discordId)!.add(socket);
+      if (msg.type === 'auth' && typeof msg.discordId === 'string' && msg.discordId !== connectedDiscordId) {
+        socket.close(1008, 'Forbidden');
       }
     } catch (_) { /* ignore malformed messages */ }
   });
@@ -701,15 +1163,18 @@ wss.on('connection', (socket: WebSocket) => {
   });
 });
 
-function broadcastToUser(discordId: string, payload: object): void {
+function broadcastToUser(discordId: string, payload: object): boolean {
   const sockets = userConnections.get(discordId);
-  if (!sockets) return;
+  if (!sockets || sockets.size === 0) return false;
   const data = JSON.stringify(payload);
+  let delivered = false;
   sockets.forEach(socket => {
     if (socket.readyState === WebSocket.OPEN) {
       socket.send(data);
+      delivered = true;
     }
   });
+  return delivered;
 }
 
 const isMainModule = process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href;

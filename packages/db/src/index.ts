@@ -93,6 +93,11 @@ export {
   // Identity & Trust queries
   getAggregatedTrustByDiscordId,
   logTrustSignal,
+  findLatestRecoveryApplicationByDiscordUserId,
+  findRecoveryApplicationById,
+  createRecoveryApplication,
+  updateRecoveryApplication,
+  listRecoveryApplicationsByStatus,
 
   // Buddy queries
   sendBuddyRequest,
@@ -161,6 +166,10 @@ export type {
   TrustSignal,
   UserTrustSummary,
   CreateTrustSignalPayload,
+  RecoveryApplication,
+  RecoveryApplicationStatus,
+  CreateRecoveryApplicationPayload,
+  UpdateRecoveryApplicationPayload,
 
   // Buddy types
   UserBuddy,

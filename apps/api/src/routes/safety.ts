@@ -12,8 +12,10 @@ import {
   type BreathalyzerEvaluatedPayload,
   type SentimentFlaggedPayload,
 } from '@tiltcheck/event-types';
+import type { SafetyInterventionTriggeredEventData } from '@tiltcheck/types';
 import { LinkScanner } from '@tiltcheck/suslink';
 import { evaluateBreathalyzer, evaluateSentiment } from '../lib/safety.js';
+import { authMiddleware } from '../middleware/auth.js';
 
 const router = Router();
 
@@ -195,35 +197,60 @@ router.post('/report', (req, res) => {
  * POST /safety/notify-buddy
  * Trigger a buddy system notification (e.g., Discord snitch).
  */
-router.post('/notify-buddy', (req, res) => {
+router.post('/notify-buddy', authMiddleware, async (req, res) => {
   const { userId, type, data } = req.body ?? {};
-  const actualUserId = userId || (req as any).user?.id || 'guest';
+  const authenticatedUserId = (req as any).user?.id;
+  const authenticatedDiscordId = (req as any).user?.discordId;
+  const normalizedAuthenticatedUserId = typeof authenticatedDiscordId === 'string' && authenticatedDiscordId.trim() !== ''
+    ? authenticatedDiscordId
+    : typeof authenticatedUserId === 'string' && authenticatedUserId.trim() !== ''
+      ? authenticatedUserId
+      : null;
 
-  if (!type || !data) {
+  if (!normalizedAuthenticatedUserId) {
+    res.status(401).json({ error: 'Not authenticated', code: 'UNAUTHORIZED' });
+    return;
+  }
+
+  if (typeof userId === 'string' && userId.trim() !== '' && userId !== normalizedAuthenticatedUserId) {
+    res.status(403).json({ error: 'userId must match the authenticated user', code: 'FORBIDDEN' });
+    return;
+  }
+
+  const actualUserId = normalizedAuthenticatedUserId;
+
+  if (!type || typeof type !== 'string' || !data || typeof data !== 'object') {
     res.status(400).json({ error: 'type and data are required', code: 'INVALID_INPUT' });
     return;
   }
 
+  const intervention = buildSafetyIntervention(actualUserId, type, data as Record<string, unknown>);
+
   const event = createEvent({
     name: 'safety.intervention.triggered',
     source: 'api-gateway',
-    payload: {
-      userId: actualUserId,
-      type,
-      data,
-      timestamp: Date.now(),
-    },
+    payload: intervention,
     correlationId: req.headers['x-correlation-id'] as string | undefined,
   });
 
-  // Log the intervention for audit/telemetry
-  console.log(`[Buddy System] Intervention ${type} triggered for ${actualUserId}:`, data);
+  try {
+    const botDelivery = await forwardInterventionToBot(intervention);
+    console.log(`[Buddy System] Intervention ${type} delivered for ${actualUserId}:`, intervention.metadata);
 
-  res.json({
-    success: true,
-    message: 'Intervention signal emitted',
-    event,
-  });
+    res.json({
+      success: true,
+      message: 'Intervention delivered to Discord bot',
+      event,
+      delivery: botDelivery,
+    });
+  } catch (error) {
+    console.error(`[Buddy System] Failed to deliver intervention ${type} for ${actualUserId}:`, error);
+    res.status(502).json({
+      error: 'Failed to deliver intervention to Discord bot',
+      code: 'BOT_DELIVERY_FAILED',
+      event,
+    });
+  }
 });
 
 // In-memory store for Touch Grass lockouts (persisted to Supabase when available)
@@ -280,4 +307,101 @@ export { router as safetyRouter, touchGrassLockouts };
 
 function isFiniteNumber(value: unknown): boolean {
   return typeof value === 'number' && Number.isFinite(value);
+}
+
+function buildSafetyIntervention(
+  userId: string,
+  type: string,
+  data: Record<string, unknown>
+): SafetyInterventionTriggeredEventData {
+  const normalizedType = type.trim().toLowerCase();
+  const message = typeof data.message === 'string' && data.message.trim() !== ''
+    ? data.message
+    : defaultInterventionMessage(normalizedType);
+  const riskScore = typeof data.risk === 'number' && Number.isFinite(data.risk)
+    ? Math.max(0, Math.min(100, data.risk))
+    : normalizedType === 'phone_friend' || normalizedType === 'phone_friend_discord' || normalizedType === 'critical_tilt'
+      ? 95
+      : normalizedType === 'cooldown'
+        ? 80
+        : 65;
+
+  const action = normalizedType === 'phone_friend'
+    || normalizedType === 'phone_friend_discord'
+    || normalizedType === 'critical_tilt'
+    ? 'PHONE_FRIEND'
+    : normalizedType === 'cooldown'
+      ? 'COOLDOWN_LOCK'
+      : normalizedType === 'redeem_nudge'
+        ? 'PROFITS_VAULTED'
+        : 'OVERLAY_MESSAGE';
+
+  const interventionLevel = riskScore >= 90
+    ? 'CRITICAL'
+    : riskScore >= 75
+      ? 'WARNING'
+      : 'CAUTION';
+
+  return {
+    userId,
+    riskScore,
+    interventionLevel,
+    action,
+    displayText: message,
+    metadata: {
+      ...data,
+      sourceType: type,
+      requestedAt: typeof data.timestamp === 'string' ? data.timestamp : new Date().toISOString(),
+    },
+  };
+}
+
+function defaultInterventionMessage(type: string): string {
+  switch (type) {
+    case 'phone_friend':
+    case 'phone_friend_discord':
+    case 'critical_tilt':
+      return 'You are spiraling. Join the accountability voice channel before this gets uglier.';
+    case 'cooldown':
+      return 'Cooldown triggered. Step away before you torch the next deposit.';
+    case 'redeem_nudge':
+      return 'You are up. Secure the win before the site rinses it back.';
+    default:
+      return 'TiltCheck flagged this session. Stop, breathe, and reset before you keep firing.';
+  }
+}
+
+async function forwardInterventionToBot(intervention: SafetyInterventionTriggeredEventData): Promise<unknown> {
+  const botBaseUrl = process.env.DISCORD_BOT_INTERNAL_URL || 'https://bot.tiltcheck.me';
+  const serviceSecret = process.env.INTERNAL_API_SECRET;
+
+  if (!serviceSecret || serviceSecret.trim() === '') {
+    throw new Error('INTERNAL_API_SECRET is required to deliver interventions to the Discord bot');
+  }
+
+  const response = await fetch(`${botBaseUrl.replace(/\/$/, '')}/internal/interventions`, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${serviceSecret}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(intervention),
+  });
+
+  const responseText = await response.text();
+  const parsedResponse = responseText ? tryParseJson(responseText) : null;
+
+  if (!response.ok) {
+    throw new Error(`Discord bot returned ${response.status}: ${responseText}`);
+  }
+
+  return parsedResponse;
+}
+
+function tryParseJson(value: string): unknown {
+  try {
+    return JSON.parse(value);
+  } catch {
+    return value;
+  }
 }
