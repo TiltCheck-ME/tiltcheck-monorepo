@@ -1,14 +1,14 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-10
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-12
 /**
  * Swap Engine - Jupiter Integration for Token Swaps
  * 
- * Allows users to swap between supported Solana tokens (including wrapped assets)
+ * Allows users to swap between supported Solana tokens (including supported wrapped assets)
  * using Jupiter aggregator for best rates.
  * 
  * Features:
  * - Get swap quotes from Jupiter
  * - Execute swaps via Solana Pay deep links
- * - Support for wrapped tokens (wLTC, wBTC, etc.)
+ * - Support for wrapped tokens available on Solana (wBTC, wETH, etc.)
  * - Flat fee model consistent with tipping
  */
 
@@ -77,15 +77,18 @@ export const SUPPORTED_TOKENS: Record<string, { mint: string; decimals: number; 
     decimals: 8,
     name: 'Wrapped Ether (Wormhole)',
   },
-  // Note: There's no widely adopted wrapped LTC on Solana yet.
-  // Users with LTC would need to bridge to a supported token first.
-  // Placeholder for future LTC bridge support:
-  // 'WLTC': {
-  //   mint: 'TBD',
-  //   decimals: 8,
-  //   name: 'Wrapped Litecoin',
-  // },
 };
+
+function getUnsupportedTokenError(kind: 'input' | 'output', token: string): string {
+  const normalized = token.toUpperCase();
+  const supported = getSupportedTokens().join(', ');
+
+  if (normalized === 'LTC' || normalized === 'WLTC') {
+    return `Unsupported ${kind} token: ${token}. LTC is not swappable here yet; bridge into a supported Solana token first. Supported: ${supported}`;
+  }
+
+  return `Unsupported ${kind} token: ${token}. Supported: ${supported}`;
+}
 
 /**
  * Result of a swap quote request
@@ -186,7 +189,7 @@ export async function getSwapQuote(
   if (!inputInfo) {
     return {
       success: false,
-      error: `Unsupported input token: ${inputToken}. Supported: ${getSupportedTokens().join(', ')}`,
+      error: getUnsupportedTokenError('input', inputToken),
       inputToken,
       outputToken,
       inputAmount,
@@ -196,7 +199,7 @@ export async function getSwapQuote(
   if (!outputInfo) {
     return {
       success: false,
-      error: `Unsupported output token: ${outputToken}. Supported: ${getSupportedTokens().join(', ')}`,
+      error: getUnsupportedTokenError('output', outputToken),
       inputToken,
       outputToken,
       inputAmount,

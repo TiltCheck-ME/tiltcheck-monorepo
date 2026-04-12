@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-10
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-12
 // JustTheTip Bot — Profitdrop Command
 
 import { SlashCommandBuilder, ChatInputCommandInteraction } from 'discord.js';
@@ -11,7 +11,7 @@ export const profitdrop: Command = {
 
   async execute(interaction: ChatInputCommandInteraction) {
     await interaction.reply({
-      content: '[COMING SOON] Scheduled profit drops are in development. Use `/juicedrop` for an instant reaction-based drop.',
+      content: '[UNAVAILABLE] /profitdrop is not live in this build. Use `/juicedrop` for the active channel drop flow.',
       ephemeral: true,
     });
   },

@@ -1,5 +1,5 @@
 {
-  "_comment": "© 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-10",
+  "_comment": "© 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-12",
   "name": "@tiltcheck/dad-bot",
   "version": "0.1.0",
   "description": "Degens Against Decency — card game, trivia drops, and jackpot entertainment bot",
@@ -9,7 +9,7 @@
     "build": "tsc --build",
     "dev": "tsx watch src/bootstrap.ts",
     "start": "node dist/bootstrap.js",
-    "clean": "rm -rf dist",
+    "clean": "node -e \"require('fs').rmSync('dist', { recursive: true, force: true })\"",
     "deploy:commands": "tsx src/deploy-commands.ts"
   },
   "dependencies": {
