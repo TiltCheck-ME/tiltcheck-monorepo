@@ -3,6 +3,7 @@ import express from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import { createServer } from 'http';
+import fs from 'node:fs/promises';
 import { WebSocketServer, WebSocket } from 'ws';
 import { 
   verifySessionCookie, 
@@ -14,7 +15,7 @@ import rateLimit from 'express-rate-limit';
 import { Magic } from '@magic-sdk/admin';
 import { Connection, PublicKey } from '@solana/web3.js';
 import { fileURLToPath, pathToFileURL } from 'url';
-import { dirname, join } from 'path';
+import { dirname, join, resolve } from 'path';
 import type { Request, Response, NextFunction } from 'express';
 
 interface DashboardRequest extends Request {
@@ -236,6 +237,13 @@ interface UserPreferences {
   baseCurrency: string;
 }
 
+interface RtpDriftEvent {
+  casino: string;
+  game: string;
+  drift: number;
+  detectedMinsAgo: number;
+}
+
 interface NftIdentityStatus {
   optedIn: boolean;
   walletLinked: boolean;
@@ -254,6 +262,48 @@ function getIdentityMetadata(identity: DegenIdentity | null): Record<string, unk
   return identity?.identity_metadata && typeof identity.identity_metadata === 'object'
     ? identity.identity_metadata
     : {};
+}
+
+function getStatsDataDir(): string {
+  return process.env.STATS_DATA_DIR || resolve(process.cwd(), 'data');
+}
+
+async function readJsonFile<T>(filePath: string, fallback: T): Promise<T> {
+  try {
+    const raw = await fs.readFile(filePath, 'utf8');
+    return JSON.parse(raw) as T;
+  } catch {
+    return fallback;
+  }
+}
+
+async function getRtpDriftSnapshot() {
+  const filePath = join(getStatsDataDir(), 'rtp-drift-events.json');
+  const events = await readJsonFile<RtpDriftEvent[]>(filePath, []);
+  const validEvents = events.filter((event) =>
+    typeof event?.drift === 'number' &&
+    Number.isFinite(event.drift) &&
+    typeof event?.detectedMinsAgo === 'number' &&
+    Number.isFinite(event.detectedMinsAgo)
+  );
+
+  const drift = validEvents.length > 0
+    ? validEvents.reduce((lowest, event) => Math.min(lowest, event.drift), 0)
+    : 0;
+
+  const freshestDetectedMinsAgo = validEvents.length > 0
+    ? validEvents.reduce((freshest, event) => Math.min(freshest, event.detectedMinsAgo), validEvents[0].detectedMinsAgo)
+    : null;
+
+  return {
+    drift,
+    source: {
+      type: 'file' as const,
+      path: filePath,
+      eventCount: validEvents.length,
+      freshestDetectedMinsAgo,
+    },
+  };
 }
 
 function getNftIdentityStatus(
@@ -929,8 +979,19 @@ app.get('/api/user/:discordId/sessions', authenticateToken, async (req: Dashboar
     const discordId = requireAuthorizedDiscordId(req, res);
     if (!discordId) return;
 
+    const rtpSnapshot = await getRtpDriftSnapshot();
+
     if (!db.isConnected()) {
-      return res.json({ sessions: [], stats: { weeklyPL: 0, winRate: 0, avgSession: 0, rtpDrift: 0 } });
+      return res.json({
+        sessions: [],
+        stats: {
+          weeklyPL: 0,
+          winRate: 0,
+          avgSession: 0,
+          rtpDrift: rtpSnapshot.drift,
+          rtpSource: rtpSnapshot.source,
+        }
+      });
     }
 
     const user = await findUserByDiscordId(discordId);
@@ -947,11 +1008,27 @@ app.get('/api/user/:discordId/sessions', authenticateToken, async (req: Dashboar
 
     res.json({
       sessions,
-      stats: { weeklyPL: totalPL, winRate, avgSession, rtpDrift: 0 }
+      stats: {
+        weeklyPL: totalPL,
+        winRate,
+        avgSession,
+        rtpDrift: rtpSnapshot.drift,
+        rtpSource: rtpSnapshot.source,
+      }
     });
   } catch (err) {
     console.error('[Sessions]', err);
-    res.json({ sessions: [], stats: { weeklyPL: 0, winRate: 0, avgSession: 0, rtpDrift: 0 } });
+    const rtpSnapshot = await getRtpDriftSnapshot();
+    res.json({
+      sessions: [],
+      stats: {
+        weeklyPL: 0,
+        winRate: 0,
+        avgSession: 0,
+        rtpDrift: rtpSnapshot.drift,
+        rtpSource: rtpSnapshot.source,
+      }
+    });
   }
 });
 
