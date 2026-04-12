@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-10
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-12
 // JustTheTip Bot — Event Handler
 
 import { Client, Events } from 'discord.js';
@@ -42,6 +42,10 @@ export class EventHandler {
       const command = this.commandHandler.getCommand(interaction.commandName);
       if (!command) {
         console.warn(`[Bot] Unknown command: ${interaction.commandName}`);
+        await interaction.reply({
+          content: `[STALE COMMAND] /${interaction.commandName} is registered in Discord but not loaded in this bot build. Redeploy slash commands.`,
+          ephemeral: true,
+        }).catch(() => {});
         return;
       }
 
@@ -59,7 +63,7 @@ export class EventHandler {
       const isDM = !message.guildId;
 
       if (isDM) {
-        await message.reply('Use slash commands to interact with JustTheTip. Try `/help`.').catch(() => {});
+        await message.reply('Use slash commands here. Start with `/help`.').catch(() => {});
       }
     });
 

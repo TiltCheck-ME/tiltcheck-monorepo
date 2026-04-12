@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-10
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-12
 // JustTheTip Bot — Command Handler
 
 import { Collection } from 'discord.js';
@@ -13,13 +13,14 @@ export class CommandHandler {
   }
 
   loadCommands(): void {
-    const jttCommands = ['juicedrop', 'profitdrop', 'lockvault', 'bonuses', 'linkwallet', 'donation', 'ping', 'help'];
-
     const commandModules = Object.values(commands);
 
     for (const command of commandModules) {
       if ('data' in command && 'execute' in command) {
         const cmdName = command.data.name;
+        if (this.commands.has(cmdName)) {
+          throw new Error(`Duplicate command registration detected: ${cmdName}`);
+        }
         this.commands.set(cmdName, command as Command);
         console.log(`  /${cmdName}`);
       }

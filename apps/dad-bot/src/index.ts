@@ -1,9 +1,8 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-11
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-12
 // DAD Bot — Main Entry Point
 
 import { Client, GatewayIntentBits, Partials } from 'discord.js';
 import http from 'http';
-import fs from 'fs';
 import { config, validateConfig } from './config.js';
 import {
   CommandHandler,
@@ -12,6 +11,7 @@ import {
 } from './handlers/index.js';
 import { setActivityManager } from './commands/play.js';
 import { DiscordActivityManager } from '@tiltcheck/discord-activities';
+import { getRegisteredCommandData } from './command-registration.js';
 
 async function main() {
   const startTime = Date.now();
@@ -53,18 +53,7 @@ async function main() {
   if (config.clientId && config.discordToken && process.env.SKIP_DISCORD_LOGIN !== 'true') {
     const { REST, Routes } = await import('discord.js');
     const rest = new REST().setToken(config.discordToken);
-    const commandData = commandHandler.getCommandData();
-
-    // Activity Entry Point command (type 4) — required by Discord to show the
-    // "Launch Activity" button. handler: 2 = DISCORD_LAUNCH_ACTIVITY (Discord
-    // manages the launch; no bot interaction handler needed).
-    const activityEntryPoint = {
-      name: 'Launch Activity',
-      type: 4,
-      description: '',
-      handler: 2,
-    };
-    const allCommands = [...commandData, activityEntryPoint];
+    const allCommands = getRegisteredCommandData(commandHandler);
 
     try {
       if (config.guildId) {
@@ -97,11 +86,6 @@ async function main() {
     setActivityManager(activityManager);
     registerActivityButtonHandlers(activityManager);
     ready = true;
-    try {
-      fs.writeFileSync('/tmp/bot-ready', 'ready');
-    } catch (e) {
-      console.error('[Health] Failed to write ready marker:', e);
-    }
   } else {
     await client.login(config.discordToken);
     client.once('ready', () => {
@@ -113,16 +97,11 @@ async function main() {
       console.log('[Activities] Discord Activities SDK initialized\n');
       ready = true;
       console.log('[Discord] Connected and ready!');
-      try {
-        fs.writeFileSync('/tmp/bot-ready', 'ready');
-      } catch (e) {
-        console.error('[Health] Failed to write ready marker:', e);
-      }
     });
   }
   console.log('');
 
-  const HEALTH_PORT = process.env.PORT || '8080';
+  const HEALTH_PORT = process.env.PORT || process.env.DAD_BOT_HEALTH_PORT || process.env.DISCORD_BOT_HEALTH_PORT || '8080';
   const PORT = parseInt(HEALTH_PORT, 10);
 
   const healthServer = http.createServer((req, res) => {

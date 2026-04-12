@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-10
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-12
 // DAD Bot — Command Handler
 
 import { Collection } from 'discord.js';
@@ -13,8 +13,6 @@ export class CommandHandler {
   }
 
   loadCommands(): void {
-    const dadCommands = ['lobby', 'triviadrop', 'jackpot', 'play', 'degens-help', 'ping', 'help'];
-
     const commandModules = Object.values(commands);
 
     for (const command of commandModules) {

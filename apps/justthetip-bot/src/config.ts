@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-10
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-12
 // JustTheTip Bot — Configuration
 
 import dotenv from 'dotenv';
@@ -31,6 +31,18 @@ function getNumberEnv(key: string, defaultValue: number): number {
   if (!value) return defaultValue;
   const parsed = parseInt(value, 10);
   return isNaN(parsed) ? defaultValue : parsed;
+}
+
+function getFirstNumberEnv(keys: string[], defaultValue: number): number {
+  for (const key of keys) {
+    const value = process.env[key];
+    if (!value) continue;
+    const parsed = parseInt(value, 10);
+    if (!isNaN(parsed)) {
+      return parsed;
+    }
+  }
+  return defaultValue;
 }
 
 const __filename = fileURLToPath(import.meta.url);
@@ -74,7 +86,7 @@ export const config: BotConfig = {
   solanaRpcUrl: process.env.SOLANA_RPC_URL || 'https://api.mainnet-beta.solana.com',
   botWalletPrivateKey: getEnvVar('JUSTTHETIP_BOT_WALLET_PRIVATE_KEY', false),
   feeWallet: getEnvVar('JUSTTHETIP_FEE_WALLET', false),
-  jttHealthPort: getNumberEnv('JTT_BOT_HEALTH_PORT', 8082),
+  jttHealthPort: getFirstNumberEnv(['PORT', 'JTT_BOT_HEALTH_PORT', 'DISCORD_BOT_HEALTH_PORT'], 8082),
 };
 
 export function validateConfig(): void {
