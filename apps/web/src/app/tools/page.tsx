@@ -68,6 +68,20 @@ const TOOLS: Tool[] = [
     status: 'beta',
   },
   {
+    href: '/tools/buddy-system',
+    label: 'BUDDY SYSTEM',
+    title: 'Accountability Partner',
+    description: 'Add a trusted degen as your accountability partner. They get Discord DM alerts when your tilt score spikes, losses stack, or balance hits zero. You set the thresholds.',
+    status: 'beta',
+  },
+  {
+    href: '/tools/geo-laws',
+    label: 'GEO LAWS',
+    title: 'Regulation by Region',
+    description: 'Online gambling laws by country — legal status, regulator, self-exclusion programs, and official links. Know your jurisdiction before you deposit anywhere.',
+    status: 'live',
+  },
+  {
     href: '/tools/degens-arena',
     label: 'DEGENS ARENA',
     title: 'Trivia Drop Arena',
