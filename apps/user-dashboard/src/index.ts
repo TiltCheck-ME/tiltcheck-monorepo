@@ -27,7 +27,7 @@ interface DashboardRequest extends Request {
   params: Record<string, string>;
 }
 import { db, DegenIdentity } from '@tiltcheck/database';
-import { findUserByDiscordId, findOnboardingByDiscordId, upsertOnboarding, getUserBuddies, getPendingBuddyRequests, sendBuddyRequest, type UserOnboarding } from '@tiltcheck/db';
+import { findUserByDiscordId, findOnboardingByDiscordId, upsertOnboarding, getAggregatedTrustByDiscordId, getUserBuddies, getPendingBuddyRequests, queryOne, sendBuddyRequest, type UserOnboarding } from '@tiltcheck/db';
 import { runner } from '@tiltcheck/agent';
 
 /**
@@ -70,6 +70,7 @@ const __dirname = dirname(__filename);
 const app = express();
 const PORT = process.env.PORT || process.env.USER_DASHBOARD_PORT || 6001;
 const DISCORD_CALLBACK_URL = process.env.TILT_DISCORD_REDIRECT_URI || 'https://api.tiltcheck.me/auth/discord/callback';
+const DEFAULT_DISCORD_CLIENT_ID = '1445916179163250860';
 
 // Configuration
 const isProd = process.env.NODE_ENV === 'production';
@@ -171,6 +172,14 @@ function authenticateToken(req: DashboardRequest, res: Response, next: NextFunct
 // === API Routes ===
 app.get('/api/auth/me', authenticateToken, (req: DashboardRequest, res) => {
   res.json(req.user);
+});
+
+app.get('/api/config/public', (_req, res) => {
+  const clientId = getPublicDiscordClientId();
+  res.json({
+    client_id: clientId,
+    clientId,
+  });
 });
 
 
@@ -304,6 +313,12 @@ async function getRtpDriftSnapshot() {
       freshestDetectedMinsAgo,
     },
   };
+}
+
+function getPublicDiscordClientId(): string {
+  return process.env.TILT_DISCORD_CLIENT_ID?.trim()
+    || process.env.DISCORD_CLIENT_ID?.trim()
+    || DEFAULT_DISCORD_CLIENT_ID;
 }
 
 function getNftIdentityStatus(
@@ -504,29 +519,42 @@ async function notifyNftIdentityReady(
 // === Data Fetching ===
 async function getUserData(discordId: string): Promise<UserData | null> {
   try {
-    const [user, onboarding, dbIdentity] = await Promise.all([
+    const [user, onboarding, dbIdentity, trustSummary, tipSummary] = await Promise.all([
       findUserByDiscordId(discordId),
       findOnboardingByDiscordId(discordId),
-      db.isConnected() ? db.getDegenIdentity(discordId) : null
+      db.isConnected() ? db.getDegenIdentity(discordId) : null,
+      db.isConnected() ? getAggregatedTrustByDiscordId(discordId).catch(() => null) : null,
+      db.isConnected()
+        ? queryOne<{ total_caught: string | number | null }>(
+            `SELECT COALESCE(SUM(CASE WHEN status = 'completed' THEN amount::numeric ELSE 0 END), 0) AS total_caught
+             FROM tips
+             WHERE recipient_discord_id = $1`,
+            [discordId]
+          ).catch(() => null)
+        : null
     ]);
 
     if (!user) return null;
+
+    const totalRedeemed = Number(user.total_redeemed || 0);
+    const totalTipsCaught = Number(tipSummary?.total_caught || 0);
+    const eventCount = trustSummary?.signals_count || 0;
 
     return {
       discordId: user.discord_id!,
       username: user.discord_username || 'Unknown',
       avatar: user.discord_avatar || '',
-      trustScore: dbIdentity?.trust_score ?? 75,
+      trustScore: dbIdentity?.trust_score ?? trustSummary?.total_score ?? 75,
       tiltLevel: 0,
       analytics: {
-        totalJuice: 0, 
-        totalTipsCaught: 0,
-        eventCount: 42,
+        totalJuice: totalRedeemed,
+        totalTipsCaught,
+        eventCount,
         wagered: 0,
         deposited: 0,
         profit: 0,
         redeemWins: user!.redeem_wins || 0,
-        totalRedeemed: user!.total_redeemed || 0
+        totalRedeemed
       },
       degenIdentity: dbIdentity,
       nftIdentity: getNftIdentityStatus(onboarding, dbIdentity),
@@ -574,6 +602,7 @@ app.get('/api/user/onboard', authenticateToken, async (req: DashboardRequest, re
       success: true,
       onboarding: {
         riskLevel: onboarding?.risk_level || 'moderate',
+        cooldownEnabled: onboarding?.cooldown_enabled ?? true,
         voiceInterventionEnabled: onboarding?.voice_intervention_enabled ?? false,
         redeemThreshold: onboarding?.redeem_threshold ?? 500,
         notifications: {
@@ -610,6 +639,7 @@ app.post('/api/user/onboard', authenticateToken, async (req: DashboardRequest, r
       primary_external_address,
       tos_accepted,
       risk_level,
+      cooldown_enabled,
       voice_intervention_enabled,
       redeem_threshold,
       notifications,
@@ -637,6 +667,12 @@ app.post('/api/user/onboard', authenticateToken, async (req: DashboardRequest, r
           notify_nft_identity_ready?: boolean;
         }
       : {};
+    const existingIdentity = db.isConnected()
+      ? await db.getDegenIdentity(discordId).catch(() => null)
+      : null;
+    const normalizedPrimaryExternalAddress = typeof primary_external_address === 'string' && primary_external_address.trim().length > 0
+      ? primary_external_address.trim()
+      : existingIdentity?.primary_external_address || null;
 
     if (!tos_accepted) {
       return res.status(400).json({ error: 'You must accept the ToS to proceed' });
@@ -644,7 +680,7 @@ app.post('/api/user/onboard', authenticateToken, async (req: DashboardRequest, r
 
     const updatedIdentity = await db.upsertDegenIdentity({
       discord_id: discordId,
-      primary_external_address: primary_external_address || null,
+      primary_external_address: normalizedPrimaryExternalAddress,
       tos_accepted: true,
       updated_at: new Date().toISOString()
     });
@@ -658,7 +694,7 @@ app.post('/api/user/onboard', authenticateToken, async (req: DashboardRequest, r
       is_onboarded: true,
       has_accepted_terms: true,
       risk_level: normalizedRiskLevel,
-      cooldown_enabled: normalizedRiskLevel !== 'degen',
+      cooldown_enabled: typeof cooldown_enabled === 'boolean' ? cooldown_enabled : normalizedRiskLevel !== 'degen',
       voice_intervention_enabled: voice_intervention_enabled === true,
       share_message_contents: trustEngineOptIn.message_contents === true,
       share_financial_data: trustEngineOptIn.financial_data === true,

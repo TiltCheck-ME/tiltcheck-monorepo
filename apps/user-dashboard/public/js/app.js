@@ -10,6 +10,25 @@ let ws = null;
 let vaultState = { locked: false, unlockAt: null, amount: 0 };
 let selectedVaultDuration = 14400000; // 4h default
 let vaultCountdownTimer = null;
+let onboardingSettings = {
+    riskLevel: 'moderate',
+    cooldownEnabled: true,
+    voiceInterventionEnabled: true,
+    threshold: 500,
+    notifications: {
+        tips: true,
+        trivia: true,
+        promos: false
+    },
+    trustEngineOptIn: {
+        message_contents: false,
+        financial_data: false,
+        session_telemetry: false,
+        notify_nft_identity_ready: false
+    },
+    primaryExternalAddress: null
+};
+let profitGuardSaveTimer = null;
 
 // ============================================================
 // INIT
@@ -105,6 +124,7 @@ async function loadAllData() {
 
     await Promise.allSettled([
         loadUserProfile(),
+        loadOnboardingSettings(),
         loadTrustMetrics(),
         loadSessionAnalytics(),
         loadActivity(),
@@ -140,6 +160,7 @@ async function loadUserProfile() {
 
         if (user.degenIdentity?.primary_external_address) {
             const addr = user.degenIdentity.primary_external_address;
+            onboardingSettings.primaryExternalAddress = addr;
             setText('externalWalletDisplay', addr.slice(0, 6) + '...' + addr.slice(-4));
         }
 
@@ -157,6 +178,35 @@ async function loadUserProfile() {
             setText('nftIdentitySub', 'Identity status is offline right now.');
         }
     } catch (err) { console.error('[Profile]', err); }
+}
+
+async function loadOnboardingSettings() {
+    try {
+        const res = await apiRequest('/api/user/onboard');
+        if (!res.ok) return;
+
+        const data = await res.json();
+        const onboarding = data.onboarding ?? {};
+
+        onboardingSettings = {
+            ...onboardingSettings,
+            riskLevel: onboarding.riskLevel || onboardingSettings.riskLevel,
+            cooldownEnabled: onboarding.cooldownEnabled !== false,
+            voiceInterventionEnabled: onboarding.voiceInterventionEnabled !== false,
+            threshold: normalizeProfitGuardThreshold(onboarding.redeemThreshold),
+            notifications: {
+                tips: onboarding.notifications?.tips !== false,
+                trivia: onboarding.notifications?.trivia !== false,
+                promos: onboarding.notifications?.promos === true
+            },
+            trustEngineOptIn: {
+                ...onboardingSettings.trustEngineOptIn,
+                ...(onboarding.trustEngineOptIn || {})
+            }
+        };
+
+        renderProfitGuardSettings();
+    } catch (err) { console.error('[Onboarding]', err); }
 }
 
 async function loadTrustMetrics() {
@@ -478,6 +528,23 @@ function setupTabNavigation() {
 // VAULT PANEL
 // ============================================================
 function setupVaultPanel() {
+    const profitGuardToggle = document.getElementById('profit-guard-toggle');
+    const profitGuardThreshold = document.getElementById('profit-guard-threshold');
+
+    profitGuardToggle?.addEventListener('change', e => {
+        onboardingSettings.cooldownEnabled = e.target.checked;
+        renderProfitGuardSettings();
+        setProfitGuardStatus('Saving...');
+        queueProfitGuardSave();
+    });
+
+    profitGuardThreshold?.addEventListener('input', e => {
+        onboardingSettings.threshold = normalizeProfitGuardThreshold(e.target.value);
+        renderProfitGuardSettings();
+        setProfitGuardStatus('Saving...');
+        queueProfitGuardSave();
+    });
+
     document.querySelectorAll('.duration-chips .chip').forEach(chip => {
         chip.addEventListener('click', () => {
             document.querySelectorAll('.duration-chips .chip').forEach(c => c.classList.remove('active'));
@@ -536,6 +603,53 @@ function setupVaultPanel() {
             loadVaults();
         } catch (err) { showNotification('Error requesting unlock.', 'error'); }
     });
+}
+
+function renderProfitGuardSettings() {
+    const toggle = document.getElementById('profit-guard-toggle');
+    const thresholdInput = document.getElementById('profit-guard-threshold');
+
+    if (toggle) toggle.checked = onboardingSettings.cooldownEnabled;
+    if (thresholdInput) {
+        thresholdInput.value = String(normalizeProfitGuardThreshold(onboardingSettings.threshold));
+        thresholdInput.disabled = !onboardingSettings.cooldownEnabled;
+    }
+}
+
+function queueProfitGuardSave() {
+    if (profitGuardSaveTimer) clearTimeout(profitGuardSaveTimer);
+    profitGuardSaveTimer = setTimeout(saveProfitGuardSettings, 400);
+}
+
+async function saveProfitGuardSettings() {
+    try {
+        const res = await apiRequest('/api/user/onboard', {
+            method: 'POST',
+            body: JSON.stringify({
+                tos_accepted: true,
+                primary_external_address: onboardingSettings.primaryExternalAddress,
+                risk_level: onboardingSettings.riskLevel,
+                cooldown_enabled: onboardingSettings.cooldownEnabled,
+                voice_intervention_enabled: onboardingSettings.voiceInterventionEnabled,
+                redeem_threshold: normalizeProfitGuardThreshold(onboardingSettings.threshold),
+                notifications: onboardingSettings.notifications,
+                trust_engine_opt_in: onboardingSettings.trustEngineOptIn
+            })
+        });
+
+        if (!res.ok) {
+            const data = await res.json().catch(() => ({}));
+            setProfitGuardStatus(data.error || 'Save failed.', true);
+            return;
+        }
+
+        onboardingSettings.threshold = normalizeProfitGuardThreshold(onboardingSettings.threshold);
+        renderProfitGuardSettings();
+        setProfitGuardStatus('Saved.');
+    } catch (err) {
+        console.error('[Profit Guard]', err);
+        setProfitGuardStatus('Save failed.', true);
+    }
 }
 
 // ============================================================
@@ -771,6 +885,18 @@ function setBarAndVal(id, value) {
     const val = document.getElementById(id + '-val');
     if (bar) bar.style.width = Math.min(100, value) + '%';
     if (val) val.textContent = value;
+}
+
+function normalizeProfitGuardThreshold(value) {
+    const amount = Number.parseInt(value, 10);
+    return Number.isFinite(amount) && amount > 0 ? amount : 500;
+}
+
+function setProfitGuardStatus(message, isError = false) {
+    const el = document.getElementById('profitGuardStatus');
+    if (!el) return;
+    el.textContent = message;
+    el.style.color = isError ? 'var(--color-danger)' : '';
 }
 
 function formatCurrency(value) {
