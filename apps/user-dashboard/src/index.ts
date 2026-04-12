@@ -1205,11 +1205,11 @@ app.post('/api/payments/claim-crypto', paymentClaimLimiter, async (req, res) => 
   });
 });
 
-// === Preview page (no auth) ===
+// === Health + dashboard entrypoints ===
 app.get('/health', (_req, res) => res.json({ status: 'ok' }));
 
 app.get('/preview', (_req, res) => {
-  res.sendFile(join(__dirname, '../public/preview.html'));
+  res.redirect('/auth/discord?redirect=%2Fdashboard');
 });
 
 app.get('/onboard.html', (_req, res) => {
