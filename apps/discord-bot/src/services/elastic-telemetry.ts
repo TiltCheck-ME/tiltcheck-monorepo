@@ -1,4 +1,4 @@
-/* Copyright (c) 2026 TiltCheck. All rights reserved. */
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-12
 /**
  * Elastic Telemetry Service
  *
@@ -9,6 +9,7 @@
  */
 
 import { Client as ESClient } from '@elastic/elasticsearch';
+import { hasFinancialTelemetryConsent, hasSessionTelemetryConsent } from './data-consent.js';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -140,13 +141,19 @@ export function trackMessageEvent(opts: {
   sentiment?: number;
   isDM?: boolean;
 }): Promise<void> {
-  return ingestEvent({
-    user_id: opts.userId,
-    guild_id: opts.guildId,
-    channel_id: opts.channelId,
-    action: 'message_sent',
-    sentiment: opts.sentiment,
-    is_dm: opts.isDM ?? false,
+  return hasSessionTelemetryConsent(opts.userId).then((allowed) => {
+    if (!allowed) {
+      return;
+    }
+
+    return ingestEvent({
+      user_id: opts.userId,
+      guild_id: opts.guildId,
+      channel_id: opts.channelId,
+      action: 'message_sent',
+      sentiment: opts.sentiment,
+      is_dm: opts.isDM ?? false,
+    });
   });
 }
 
@@ -156,12 +163,18 @@ export function trackCommandEvent(opts: {
   commandName: string;
   isDM?: boolean;
 }): Promise<void> {
-  return ingestEvent({
-    user_id: opts.userId,
-    guild_id: opts.guildId,
-    action: 'command_used',
-    is_dm: opts.isDM ?? false,
-    metadata: { command: opts.commandName },
+  return hasSessionTelemetryConsent(opts.userId).then((allowed) => {
+    if (!allowed) {
+      return;
+    }
+
+    return ingestEvent({
+      user_id: opts.userId,
+      guild_id: opts.guildId,
+      action: 'command_used',
+      is_dm: opts.isDM ?? false,
+      metadata: { command: opts.commandName },
+    });
   });
 }
 
@@ -171,25 +184,36 @@ export function trackTipEvent(opts: {
   guildId?: string;
   amountSol: number;
 }): Promise<void> {
-  // Index two events — one for each side — so per-user queries work naturally
   return Promise.all([
-    ingestEvent({
-      user_id: opts.senderId,
-      guild_id: opts.guildId,
-      action: 'tip_sent',
-      amount_sol: opts.amountSol,
-      is_dm: false,
-      metadata: { counterpart: opts.receiverId },
-    }),
-    ingestEvent({
-      user_id: opts.receiverId,
-      guild_id: opts.guildId,
-      action: 'tip_received',
-      amount_sol: opts.amountSol,
-      is_dm: false,
-      metadata: { counterpart: opts.senderId },
-    }),
-  ]).then(() => undefined);
+    hasFinancialTelemetryConsent(opts.senderId),
+    hasFinancialTelemetryConsent(opts.receiverId),
+  ]).then(([senderAllowed, receiverAllowed]) => {
+    const writes: Promise<void>[] = [];
+
+    if (senderAllowed) {
+      writes.push(ingestEvent({
+        user_id: opts.senderId,
+        guild_id: opts.guildId,
+        action: 'tip_sent',
+        amount_sol: opts.amountSol,
+        is_dm: false,
+        metadata: { counterpart: opts.receiverId },
+      }));
+    }
+
+    if (receiverAllowed) {
+      writes.push(ingestEvent({
+        user_id: opts.receiverId,
+        guild_id: opts.guildId,
+        action: 'tip_received',
+        amount_sol: opts.amountSol,
+        is_dm: false,
+        metadata: { counterpart: opts.senderId },
+      }));
+    }
+
+    return Promise.all(writes).then(() => undefined);
+  });
 }
 
 export function trackTiltDetected(opts: {
@@ -197,11 +221,17 @@ export function trackTiltDetected(opts: {
   tiltScore: number;
   signals: string[];
 }): Promise<void> {
-  return ingestEvent({
-    user_id: opts.userId,
-    action: 'tilt_detected',
-    tilt_score: opts.tiltScore,
-    is_dm: true,
-    metadata: { signals: opts.signals },
+  return hasSessionTelemetryConsent(opts.userId).then((allowed) => {
+    if (!allowed) {
+      return;
+    }
+
+    return ingestEvent({
+      user_id: opts.userId,
+      action: 'tilt_detected',
+      tilt_score: opts.tiltScore,
+      is_dm: true,
+      metadata: { signals: opts.signals },
+    });
   });
 }

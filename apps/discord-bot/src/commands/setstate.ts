@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-10
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-12
 import {
   ChatInputCommandInteraction,
   InteractionContextType,
@@ -22,7 +22,7 @@ const VALID_TOPICS = new Set(['igaming', 'sportsbook', 'sweepstakes']);
 export const setstate: Command = {
   data: new SlashCommandBuilder()
     .setName('setstate')
-    .setDescription('Optional: set your state context for regulation-aware TiltCheck analysis')
+    .setDescription('Save your state and topic so TiltCheck stops guessing the rules.')
     .setContexts(InteractionContextType.Guild, InteractionContextType.BotDM)
     .addStringOption((opt) =>
       opt
@@ -33,7 +33,7 @@ export const setstate: Command = {
     .addStringOption((opt) =>
       opt
         .setName('topic')
-        .setDescription('Regulation topic')
+        .setDescription('What kind of rules you want loaded')
         .addChoices(
           { name: 'iGaming', value: 'igaming' },
           { name: 'Sportsbook', value: 'sportsbook' },
@@ -44,7 +44,7 @@ export const setstate: Command = {
     .addBooleanOption((opt) =>
       opt
         .setName('clear')
-        .setDescription('Clear your saved state/topic context')
+        .setDescription('Wipe your saved state/topic context')
         .setRequired(false),
     ),
 
@@ -54,7 +54,7 @@ export const setstate: Command = {
     if (shouldClear) {
       clearUserTiltAgentContext(interaction.user.id);
       await interaction.reply({
-        content: 'Context cleared. No state enrichment until you set it again.',
+        content: 'Context wiped. TiltCheck stops doing state-specific rule reads until you set it again.',
         ephemeral: true,
       });
       return;
@@ -67,14 +67,14 @@ export const setstate: Command = {
     if (!stateInput && !topicInput) {
       if (!current) {
         await interaction.reply({
-          content: 'No context saved. Set state and topic any time with /setstate.',
+          content: 'No context saved. Run /setstate whenever you want the rulebook dialed in.',
           ephemeral: true,
         });
         return;
       }
 
       await interaction.reply({
-        content: `Current context: state=${current.stateCode ?? 'unset'}, topic=${current.regulationTopic ?? 'igaming'}.`,
+        content: `Current context locked: state=${current.stateCode ?? 'unset'}, topic=${current.regulationTopic ?? 'igaming'}.`,
         ephemeral: true,
       });
       return;
@@ -85,7 +85,7 @@ export const setstate: Command = {
 
     if (!nextState || !VALID_STATES.has(nextState)) {
       await interaction.reply({
-        content: `Invalid or missing US state code: ${nextState || '(empty)'}. Example: NJ, NY, CA.`,
+        content: `State code is missing or busted: ${nextState || '(empty)'}. Use something real like NJ, NY, or CA.`,
         ephemeral: true,
       });
       return;
@@ -93,7 +93,7 @@ export const setstate: Command = {
 
     if (!VALID_TOPICS.has(nextTopic)) {
       await interaction.reply({
-        content: `Invalid topic: ${nextTopic}. Use igaming, sportsbook, or sweepstakes.`,
+        content: `Topic is off: ${nextTopic}. Use igaming, sportsbook, or sweepstakes.`,
         ephemeral: true,
       });
       return;
@@ -105,7 +105,7 @@ export const setstate: Command = {
     });
 
     await interaction.reply({
-      content: `Saved context: state=${saved.stateCode}, topic=${saved.regulationTopic}.`,
+      content: `Context saved: state=${saved.stateCode}, topic=${saved.regulationTopic}. TiltCheck now reads that lane by default.`,
       ephemeral: true,
     });
   },

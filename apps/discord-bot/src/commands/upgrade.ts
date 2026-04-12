@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-10
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-12
 /**
  * Upgrade Command
  *
@@ -24,7 +24,7 @@ const CLAIM_URL = 'https://hub.tiltcheck.me/premium';
 export const upgrade: Command = {
   data: new SlashCommandBuilder()
     .setName('upgrade')
-    .setDescription('View premium tiers and upgrade your degen status'),
+    .setDescription('See the paid tiers if you want more tools and less rate-limit pain.'),
 
   async execute(interaction: ChatInputCommandInteraction) {
     await interaction.deferReply({ ephemeral: true });
@@ -62,7 +62,7 @@ export const upgrade: Command = {
           '',
           '**SUPPORT THE PROJECT** -- $9.99 one-time',
           '- No tier. No role. No perks.',
-          '- Just fuel for the team building this.',
+          '- Just fuel for the team keeping this thing alive.',
         ].join('\n')
       )
       .setFooter({ text: 'Made for Degens. By Degens.' });
@@ -72,7 +72,7 @@ export const upgrade: Command = {
       .setTitle('PAY WITH SOLANA')
       .setDescription(
         [
-          'Prefer crypto over Discord billing? Send SOL directly.',
+           'Prefer crypto over Discord billing? Fine. Send SOL directly.',
           '',
           `**Wallet:** \`${SOL_WALLET}\``,
           '',
@@ -84,8 +84,8 @@ export const upgrade: Command = {
           '',
           `After paying, submit your tx hash at:\n${CLAIM_URL}`,
           '',
-          'Roles are granted manually within 24 hours after on-chain verification.',
-          'No partial payments. Send the exact amount for your tier.',
+           'Roles are granted manually within 24 hours after on-chain verification.',
+           'No partial payments. Send the exact amount or you just created paperwork.',
         ].join('\n')
       )
       .setFooter({ text: 'Made for Degens. By Degens.' });

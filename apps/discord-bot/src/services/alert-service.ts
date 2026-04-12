@@ -1,3 +1,4 @@
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-12
 /* Copyright (c) 2026 TiltCheck. All rights reserved. */
 /**
  * Alert Service
@@ -24,6 +25,14 @@ export interface SupportTicket {
   topic: string;
   message: string;
   status?: 'open' | 'pending' | 'resolved';
+}
+
+export interface BonusDropAlert {
+  casinoName: string;
+  value: string;
+  bonusType: string;
+  expiryMessage: string;
+  terms?: string;
 }
 
 export class AlertService {
@@ -198,6 +207,28 @@ export class AlertService {
     } catch (error) {
       console.error('[AlertService] Failed to post to trust alerts channel:', error);
     }
+  }
+
+  /**
+   * Post a bonus drop alert to the trust alerts channel
+   */
+  async postBonusDrop(alert: BonusDropAlert): Promise<void> {
+    const embed = new EmbedBuilder()
+      .setColor(0x22C55E)
+      .setTitle(`[BONUS DROP] ${alert.casinoName}`)
+      .setDescription(`**${alert.value} ${alert.bonusType}**\n${alert.expiryMessage}`)
+      .setTimestamp();
+
+    if (alert.terms) {
+      embed.addFields({
+        name: 'Terms',
+        value: alert.terms.substring(0, 1024),
+        inline: false,
+      });
+    }
+
+    await this.postToTrustAlertsChannel({ embeds: [embed] });
+    console.log(`[AlertService] Posted bonus drop for ${alert.casinoName}`);
   }
 }
 

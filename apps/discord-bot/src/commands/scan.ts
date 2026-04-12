@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-10
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-12
 
 import { SlashCommandBuilder, ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
 import { suslink } from '@tiltcheck/suslink';
@@ -8,11 +8,11 @@ import type { Command } from '../types.js';
 export const scan: Command = {
   data: new SlashCommandBuilder()
     .setName('scan')
-    .setDescription('Scan a URL for suspicious patterns')
+    .setDescription('Scan a link before you click the obvious skem.')
     .addStringOption((option) =>
       option
         .setName('url')
-        .setDescription('The URL to scan')
+        .setDescription('Link to audit')
         .setRequired(true)
     ) as SlashCommandBuilder,
 
@@ -26,7 +26,7 @@ export const scan: Command = {
       const embed = new EmbedBuilder()
         .setColor(0xef4444)
         .setTitle('INVALID URL')
-        .setDescription('That is not a valid URL. Must start with http:// or https://')
+        .setDescription('That URL is busted. Use http:// or https:// so SusLink has something real to scan.')
         .setFooter({ text: 'Made for Degens. By Degens.' });
       await interaction.editReply({ embeds: [embed] });
       return;
@@ -51,7 +51,7 @@ export const scan: Command = {
       const embed = new EmbedBuilder()
         .setColor(0xef4444)
         .setTitle('SCAN FAILED')
-        .setDescription('Scan did not complete. Try again.')
+        .setDescription('Scan bricked. Run it again.')
         .setFooter({ text: 'Made for Degens. By Degens.' });
       await interaction.editReply({ embeds: [embed] });
     }

@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-10
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-12
 import { SlashCommandBuilder, ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
 import type { Command } from '../types.js';
 
@@ -7,12 +7,12 @@ const OWNER_ID = process.env.BOT_OWNER_ID || '1472601571496951932';
 export const support: Command = {
   data: new SlashCommandBuilder()
     .setName('support')
-    .setDescription('Something broken? Flag it and we\'ll look at it.')
+    .setDescription('Something busted? Send the report without the corporate ticket dance.')
     .addStringOption(option =>
-      option.setName('topic').setDescription('What\'s the issue?').setRequired(false)
+      option.setName('topic').setDescription('What broke?').setRequired(false)
     )
     .addStringOption(option =>
-      option.setName('message').setDescription('Any extra context?').setRequired(false)
+      option.setName('message').setDescription('Extra context so we are not guessing').setRequired(false)
     ),
 
   async execute(interaction: ChatInputCommandInteraction) {
@@ -24,9 +24,9 @@ export const support: Command = {
       .setColor(0x22d3a6)
       .setTitle('SUPPORT REQUEST LOGGED')
       .setDescription(
-        `Got it. Your ticket is in.\n\n` +
+        `Report logged.\n\n` +
         `**Topic:** ${topic}${message ? `\n**Details:** ${message}` : ''}\n\n` +
-        `Someone will follow up shortly. If it's urgent, ping directly in the server.`
+        `If it is on fire, yell in-server too so this does not rot in DMs.`
       )
       .setFooter({ text: 'Made for Degens. By Degens.' });
 

@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-10
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-12
 /**
  * Buddy Accountability Command
  * Manage your accountability buddy network.
@@ -10,20 +10,20 @@ import { getUserBuddies, removeBuddy, insert } from '@tiltcheck/db';
 export const buddy: Command = {
   data: new SlashCommandBuilder()
     .setName('buddy')
-    .setDescription('[ACCOUNTABILITY] Link a buddy who gets alerted when your session goes sideways.')
+    .setDescription('Set who gets the "this degen is spiraling" ping.')
     .addSubcommand(sub =>
       sub.setName('link')
-        .setDescription('Link a buddy to your session.')
-        .addUserOption(opt => opt.setName('user').setDescription('The user who will receive your alerts').setRequired(true))
+        .setDescription('Add a session accountability buddy.')
+        .addUserOption(opt => opt.setName('user').setDescription('User who gets the red-flag ping').setRequired(true))
     )
     .addSubcommand(sub =>
       sub.setName('unlink')
-        .setDescription('Remove a buddy from your network.')
-        .addUserOption(opt => opt.setName('user').setDescription('The partner to remove').setRequired(true))
+        .setDescription('Cut a buddy loose.')
+        .addUserOption(opt => opt.setName('user').setDescription('Buddy to remove').setRequired(true))
     )
     .addSubcommand(sub =>
       sub.setName('status')
-        .setDescription('Check who is watching your sessions.')
+        .setDescription('See who gets called when your session goes sideways.')
     ),
 
   async execute(interaction: ChatInputCommandInteraction) {
@@ -37,7 +37,7 @@ export const buddy: Command = {
     try {
       if (sub === 'link' && targetUser) {
         if (targetUser.id === interaction.user.id) {
-          await interaction.reply({ content: 'You can\'t buddy yourself.', ephemeral: true });
+          await interaction.reply({ content: 'You cannot buddy yourself. Even you should not trust you that much.', ephemeral: true });
           return;
         }
 
@@ -50,7 +50,7 @@ export const buddy: Command = {
         });
 
         embed.setTitle('BUDDY LINKED')
-          .setDescription(`**${targetUser.username}** is now your accountability partner.\n\nWhen telemetry goes red, they get notified to audit your head.`)
+          .setDescription(`**${targetUser.username}** is now in the loop.\n\nWhen telemetry goes red, they get the "come get your degen" ping.`)
           .setFooter({ text: 'Made for Degens. By Degens.' });
 
         await interaction.reply({ embeds: [embed] });
@@ -60,7 +60,7 @@ export const buddy: Command = {
 
         embed.setTitle('BUDDY REMOVED')
           .setColor(0xef4444)
-          .setDescription(`Safety line to **${targetUser.username}** cut.\n\nYou are on your own. Audit your sessions.`)
+          .setDescription(`Safety line to **${targetUser.username}** cut.\n\nYou are raw-dogging accountability again. Try not to make that weird.`)
           .setFooter({ text: 'Made for Degens. By Degens.' });
 
         await interaction.reply({ embeds: [embed] });
@@ -71,15 +71,15 @@ export const buddy: Command = {
         embed.setTitle('BUDDY NETWORK')
           .setDescription(
             partners.length > 0
-              ? `**Active Safety Partners (${partners.length}):**\n${partners.map(p => `- <@${p.buddy_id}>`).join('\n')}\n\nIf you spiral, these users get moved to VC with you.`
-              : 'No safety partners linked.\n\nUse `/buddy link user:@someone` to add one. Accountability works.'
+              ? `**Active Safety Partners (${partners.length}):**\n${partners.map(p => `- <@${p.buddy_id}>`).join('\n')}\n\nIf you spiral, these people get the ping while TiltCheck handles your DM and optional voice shove.`
+              : 'No safety partners linked.\n\nRun `/buddy link user:@someone` and give future-you at least one witness.'
           )
           .setFooter({ text: 'Made for Degens. By Degens.' });
 
         await interaction.reply({ embeds: [embed], ephemeral: true });
       }
     } catch (err) {
-      await interaction.reply({ content: `Buddy action failed: ${(err as Error).message}`, ephemeral: true });
+      await interaction.reply({ content: `Buddy wiring failed: ${(err as Error).message}`, ephemeral: true });
     }
   },
 };

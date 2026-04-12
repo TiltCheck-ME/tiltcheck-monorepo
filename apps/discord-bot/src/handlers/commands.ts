@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-10
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-12
 // TiltCheck Safety Bot — Command Handler
 
 import { Collection } from 'discord.js';
@@ -14,22 +14,18 @@ export class CommandHandler {
   }
 
   loadCommands(): void {
-    const tiltCheckBotCommands = [
-      'status', 'buddy', 'odds', 'verify', 'goal', 'intervene',
-      'casino', 'trust', 'support', 'terms', 'dashboard', 'help', 'jme',
-      'scan', 'recover', 'ping', 'cooldown', 'tilt', 'upgrade',
-    ];
-
     const commandModules = Object.values(commands);
 
     for (const command of commandModules) {
       if ('data' in command && 'execute' in command) {
         const cmdName = command.data.name;
-
-        if (tiltCheckBotCommands.includes(cmdName)) {
-          this.commands.set(cmdName, command as Command);
-          console.log(`  /${cmdName}`);
+        if (this.commands.has(cmdName)) {
+          console.warn(`  [CommandHandler] Duplicate command "${cmdName}" skipped`);
+          continue;
         }
+
+        this.commands.set(cmdName, command as Command);
+        console.log(`  /${cmdName}`);
       }
     }
 

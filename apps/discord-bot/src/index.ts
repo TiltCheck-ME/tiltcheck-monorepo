@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-10
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-12
 /* Copyright (c) 2026 TiltCheck. All rights reserved. */
 /**
  * TiltCheck Discord Bot
@@ -17,11 +17,13 @@ import {
   initializeAccountabilityPings,
 } from './handlers/index.js';
 import { initializeAlertService } from './services/alert-service.js';
+import { BonusFeedHandler } from './handlers/bonus-feed-handler.js';
 import { TrustAlertsHandler } from './handlers/trust-alerts-handler.js';
 import { ensureTelemetryIndex } from './services/elastic-telemetry.js';
 import { ensureTiltAgentContextIndex } from './services/tilt-agent-context-store.js';
 import { startTiltAgentLoop, stopTiltAgentLoop } from './services/tilt-agent.js';
 import { startRegulationsNotifier, stopRegulationsNotifier } from './services/regulations-notifier.js';
+import { handleSafetyIntervention } from './services/intervention-service.js';
 
 import { startTrustAdapter } from '@tiltcheck/discord-utils/trust-adapter';
 
@@ -67,6 +69,10 @@ async function main() {
   console.log('[Trust] Initializing trust alerts...');
   TrustAlertsHandler.initialize();
   console.log('[Trust] Trust alerts subscribed\n');
+
+  console.log('[BonusFeed] Initializing bonus feed...');
+  BonusFeedHandler.initialize();
+  console.log('[BonusFeed] Bonus feed subscribed\n');
 
   console.log('[Tilt] Initializing tilt events handler...');
   initializeTiltEventsHandler();
@@ -223,6 +229,10 @@ async function main() {
       res.end(body);
       return;
     }
+    if (req.method === 'POST' && req.url === '/internal/interventions') {
+      void handleInternalIntervention(req, res);
+      return;
+    }
     res.writeHead(404);
     res.end();
   });
@@ -261,6 +271,62 @@ async function main() {
 
   process.on('SIGINT', shutdown);
   process.on('SIGTERM', shutdown);
+
+  async function handleInternalIntervention(req: http.IncomingMessage, res: http.ServerResponse): Promise<void> {
+    const serviceSecret = process.env.INTERNAL_API_SECRET;
+    if (!serviceSecret || serviceSecret.trim() === '') {
+      res.writeHead(503, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ error: 'INTERNAL_API_SECRET is not configured' }));
+      return;
+    }
+
+    const authHeader = req.headers.authorization;
+    if (authHeader !== `Bearer ${serviceSecret}`) {
+      res.writeHead(401, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ error: 'Unauthorized internal request' }));
+      return;
+    }
+
+    try {
+      const payload = await readJsonBody(req);
+      const intervention = payload as {
+        userId?: unknown;
+        riskScore?: unknown;
+        interventionLevel?: unknown;
+        action?: unknown;
+        displayText?: unknown;
+        metadata?: unknown;
+      };
+
+      if (
+        typeof intervention.userId !== 'string'
+        || typeof intervention.riskScore !== 'number'
+        || typeof intervention.interventionLevel !== 'string'
+        || typeof intervention.action !== 'string'
+        || typeof intervention.displayText !== 'string'
+      ) {
+        res.writeHead(400, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: 'Invalid intervention payload' }));
+        return;
+      }
+
+      const delivery = await handleSafetyIntervention(client, {
+        userId: intervention.userId,
+        riskScore: intervention.riskScore,
+        interventionLevel: intervention.interventionLevel as 'CAUTION' | 'WARNING' | 'CRITICAL',
+        action: intervention.action as 'OVERLAY_MESSAGE' | 'COOLDOWN_LOCK' | 'SELF_EXCLUDE_PROMPT' | 'PHONE_FRIEND' | 'PROFITS_VAULTED',
+        displayText: intervention.displayText,
+        metadata: typeof intervention.metadata === 'object' && intervention.metadata ? intervention.metadata as Record<string, unknown> : undefined,
+      });
+
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ success: true, delivery }));
+    } catch (error) {
+      console.error('[Bot] Failed to handle internal intervention request:', error);
+      res.writeHead(500, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ error: 'Failed to handle intervention' }));
+    }
+  }
 }
 
 process.on('unhandledRejection', (error) => {
@@ -271,6 +337,17 @@ main().catch((error) => {
   console.error('[Bot] Fatal error:', error);
   process.exit(1);
 });
+
+async function readJsonBody(req: http.IncomingMessage): Promise<unknown> {
+  const chunks: Buffer[] = [];
+
+  for await (const chunk of req) {
+    chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
+  }
+
+  const rawBody = Buffer.concat(chunks).toString('utf8');
+  return rawBody ? JSON.parse(rawBody) : {};
+}
 
 
 
