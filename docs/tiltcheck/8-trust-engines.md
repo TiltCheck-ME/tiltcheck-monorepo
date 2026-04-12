@@ -1,4 +1,4 @@
-© 2024–2025 TiltCheck Ecosystem (Created by jmenichole). All Rights Reserved.
+© 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-12
 
 # 8. Trust Engines Overview
 The TiltCheck ecosystem relies on two global trust engines that power safety, fairness, community transparency, and predictive insights:
@@ -317,10 +317,10 @@ The Trust Engines service is now live with the following features:
 - **Persistence**: JSON storage at `data/degen-trust.json`
 
 ### Discord Integration ✅
-Users can interact with trust scores via `/trust` commands:
-- `/trust casino <name>` - Weighted breakdown with color-coded embeds
-- `/trust user [@user]` - Trust level with emoji indicators
-- `/trust explain` - Educational content on scoring methodology
+Users interact with trust outputs through the live TiltCheck bot surface:
+- `/casino <name>` - Casino trust and fairness lookup
+- `/reputation [@user or platform]` - User/platform reputation read
+- `/scan <url>` - Scam and trust-adjacent link risk check
 
 ### Future Enhancements 🚧
 - RTP/Fairness live monitoring (requires screen-sharing integration)
