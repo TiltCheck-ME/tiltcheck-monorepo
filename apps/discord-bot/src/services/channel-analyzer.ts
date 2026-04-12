@@ -1,7 +1,8 @@
-/* Copyright (c) 2026 TiltCheck. All rights reserved. */
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-12
 
 import { Client, Message, TextChannel, EmbedBuilder } from 'discord.js';
 import OpenAI from 'openai';
+import { hasMessageContentConsent } from './data-consent.js';
 
 interface BufferedMessage {
     authorTag: string;
@@ -124,10 +125,11 @@ export class ChannelAnalyzer {
         console.log('[ChannelAnalyzer] Stopped.');
     }
 
-    private handleMessage(message: Message): void {
+    private async handleMessage(message: Message): Promise<void> {
         // Only watch the configured channel, ignore bots
         if (message.channelId !== this.watchChannelId) return;
         if (message.author.bot) return;
+        if (!(await hasMessageContentConsent(message.author.id))) return;
 
         const buffered: BufferedMessage = {
             authorTag: message.author.username,

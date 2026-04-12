@@ -5,7 +5,7 @@
  * Manages Discord client events and Event Router subscriptions.
  */
 
-import { Client, Events, Interaction, ChatInputCommandInteraction, ButtonInteraction, TextChannel } from 'discord.js';
+import { Client, Events, Interaction, ChatInputCommandInteraction, ButtonInteraction, TextChannel, ActionRowBuilder, ButtonBuilder, ButtonStyle } from 'discord.js';
 // Trust scorer loaded via absolute path to avoid tsx resolution issues
 import { createRequire } from 'module';
 import { fileURLToPath } from 'url';
@@ -21,9 +21,8 @@ import { suslink } from '@tiltcheck/suslink';
 import { trackMessage, isOnCooldown, recordViolation } from '@tiltcheck/tiltcheck-core';
 import { config } from '../config.js';
 import type { CommandHandler } from './commands.js';
-import { checkAndOnboard, handleOnboardingInteraction, needsOnboarding } from './onboarding.js';
+import { checkAndOnboard, handleOnboardingInteraction, needsOnboarding, isUserOnboarded, getWebsiteOnboardingUrl } from './onboarding.js';
 import { isUserInActiveSession } from '../services/tilt-agent.js';
-import { getVibeCheckAlert } from '@tiltcheck/tiltcheck-core';
 import type { 
   TiltCheckEvent, 
   TiltDetectedEventData, 
@@ -36,6 +35,8 @@ import { markUserActive, type TiltAgentContext } from '../services/tilt-agent.js
 import { handleCommandError } from './error.js';
 import { dispatchButtonInteraction } from './button-handlers.js';
 import { detectIntent, formatNlpResponse, getFallbackReply } from '../services/nlp-intent.js';
+import { handleSafetyIntervention } from '../services/intervention-service.js';
+import { hasMessageContentConsent } from '../services/data-consent.js';
 
 function getTiltAgentContext(): TiltAgentContext | undefined {
   const stateCode = process.env.TILT_AGENT_DEFAULT_STATE_CODE?.trim().toUpperCase();
@@ -51,6 +52,7 @@ function getTiltAgentContext(): TiltAgentContext | undefined {
 
 export class EventHandler {
   private modNotifier: ModNotifier;
+  private readonly gatedCommands = new Set(['status', 'buddy', 'goal', 'intervene', 'cooldown', 'tilt']);
 
   constructor(
     private client: Client,
@@ -121,7 +123,9 @@ export class EventHandler {
         return;
       }
 
-      if (needsOnboarding(interaction.user.id)) {
+      const onboarded = await isUserOnboarded(interaction.user.id);
+
+      if (!onboarded && needsOnboarding(interaction.user.id)) {
         checkAndOnboard(interaction.user).catch(err => {
           console.error('[Bot] Failed to send welcome DM:', err);
         });
@@ -141,6 +145,22 @@ export class EventHandler {
       });
       markUserActive(interaction.user.id, getTiltAgentContext());
 
+      if (!onboarded && this.gatedCommands.has(interaction.commandName)) {
+        const row = new ActionRowBuilder<ButtonBuilder>().addComponents(
+          new ButtonBuilder()
+            .setLabel('Finish Setup')
+            .setStyle(ButtonStyle.Link)
+            .setURL(getWebsiteOnboardingUrl())
+        );
+
+        await interaction.reply({
+          content: 'Finish website setup first. That links your Discord session, accepts terms, and unlocks the account-bound commands.',
+          components: [row],
+          ephemeral: true,
+        });
+        return;
+      }
+
       try {
         await command.execute(interaction);
         console.log(`[Bot] ${interaction.user.tag} used /${interaction.commandName}`);
@@ -152,7 +172,9 @@ export class EventHandler {
     this.client.on(Events.MessageCreate, async (message) => {
       if (message.author.bot) return;
 
-      trackMessage(message.author.id, message.content, message.channelId);
+      if (await hasMessageContentConsent(message.author.id)) {
+        trackMessage(message.author.id, message.content, message.channelId);
+      }
 
       trackMessageEvent({
         userId: message.author.id,
@@ -473,33 +495,7 @@ export class EventHandler {
       'safety.intervention.triggered',
       async (event: TiltCheckEvent<'safety.intervention.triggered'>) => {
         try {
-          const { userId, action, displayText, metadata } = event.data;
-          // The event data might be flat or nested depending on emitter.
-          const finalAction = action;
-          const user = await this.client.users.fetch(userId).catch(() => null);
-
-          if (finalAction === 'PHONE_FRIEND') {
-            const channelId = process.env.DEGEN_ACCOUNTABILITY_CHANNEL_ID || '';
-            const channel = await this.client.channels.fetch(channelId).catch(() => null);
-            
-            if (channel && channel instanceof TextChannel) {
-              const alertMessage = getVibeCheckAlert(userId);
-              await channel.send({ content: alertMessage });
-
-              // Move to voice accountability channel if user is in a voice channel
-              const guildId = (metadata as { guildId?: string } | undefined)?.guildId;
-              const guild = guildId ? await this.client.guilds.fetch(guildId).catch(() => null) : null;
-              if (guild) {
-                const member = await guild.members.fetch(userId).catch(() => null);
-                const voiceChannelId = process.env.DEGEN_ACCOUNTABILITY_VC_ID || '1447913312015515712';
-                if (member && member.voice.channelId) {
-                  await member.voice.setChannel(voiceChannelId).catch(console.error);
-                }
-              }
-            }
-          }
-
-          void user; void displayText;
+          await handleSafetyIntervention(this.client, event.data);
         } catch (error) {
           console.error('[Bot] Error handling safety.intervention.triggered:', error);
         }

@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-10
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-12
 
 import { SlashCommandBuilder, ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
 import type { Command } from '../types.js';
@@ -7,13 +7,13 @@ import { trustEngines } from '@tiltcheck/trust-engines';
 export const trustDashboard: Command = {
   data: new SlashCommandBuilder()
     .setName('reputation')
-    .setDescription('View casino and user reputation scores.')
+    .setDescription('Audit casino and user rep scores.')
     .addSubcommand(sub =>
       sub.setName('casino')
-        .setDescription('Check a casino reputation')
+        .setDescription('Check a casino trust score')
         .addStringOption(option =>
           option.setName('name')
-            .setDescription('Casino name or domain (e.g., stake.com)')
+            .setDescription('Casino name or domain to audit (example: stake.com)')
             .setRequired(true)
         )
     )
@@ -22,13 +22,13 @@ export const trustDashboard: Command = {
         .setDescription('Check a user reputation score')
         .addUserOption(option =>
           option.setName('user')
-            .setDescription('User to check (leave empty for yourself)')
+            .setDescription('User to audit. Leave empty to check yourself.')
             .setRequired(false)
         )
     )
     .addSubcommand(sub =>
       sub.setName('explain')
-        .setDescription('Learn how the Transparency protocol works')
+        .setDescription('See how the Transparency protocol scores things')
     ) as SlashCommandBuilder,
 
   async execute(interaction: ChatInputCommandInteraction) {
@@ -45,7 +45,7 @@ export const trustDashboard: Command = {
     } catch (err) {
       console.error('[TrustCommand] Error:', err);
       await interaction.reply({
-        content: 'Data pull failed. Try again.',
+         content: 'Trust data pull failed. Run it again.',
         ephemeral: true
       });
     }
@@ -86,7 +86,7 @@ async function showCasinoTrust(interaction: ChatInputCommandInteraction) {
   // Add warnings/explanations
   if (explanations.length > 0) {
     embed.addFields({
-      name: 'Analysis',
+       name: 'Why it scored like this',
       value: explanations.slice(0, 5).join('\n'),
       inline: false
     });
@@ -132,7 +132,7 @@ async function showUserTrust(interaction: ChatInputCommandInteraction) {
   // Add insights
   if (explanations.length > 0) {
     embed.addFields({
-      name: 'Insights',
+       name: 'What moved the score',
       value: explanations.slice(0, 6).join('\n'),
       inline: false
     });
@@ -155,7 +155,7 @@ async function showExplanation(interaction: ChatInputCommandInteraction) {
   const embed = new EmbedBuilder()
     .setTitle('THE TRANSPARENCY PROTOCOL')
     .setColor(0x4ec9f0)
-    .setDescription('TiltCheck uses automated audits and math-based verification to monitor the arena:')
+     .setDescription('TiltCheck scores the arena with audits, receipts, and math — not casino vibes:')
     .addFields(
       {
         name: 'Casino Trust (0-100)',
@@ -164,27 +164,27 @@ async function showExplanation(interaction: ChatInputCommandInteraction) {
       },
       {
         name: 'User Trust (0-100)',
-        value: '**Very High (95-100)** - Excellent reputation\n**High (80-94)** - Trusted member\n**Neutral (60-79)** - Normal standing\n**Low (40-59)** - Some concerns\n**High Risk (<40)** - Serious issues',
+         value: '**Very High (95-100)** - rock solid\n**High (80-94)** - trusted\n**Neutral (60-79)** - normal read\n**Low (40-59)** - sus behavior showing\n**High Risk (<40)** - big yikes',
         inline: false
       },
       {
         name: 'What Improves Trust',
-        value: '- Using accountability tools (vault, tethers, status audits)\n- Completing tips and being generous\n- Good community behavior\n- Following server rules',
+         value: '- Using accountability tools instead of degening blind\n- Completing tips and paying what you said you would\n- Not acting like a menace in the community\n- Following server rules without needing babysitting',
         inline: false
       },
       {
         name: 'What Lowers Trust',
-        value: '- Tilt behavior (temporary, recovers over time)\n- Ignoring Tether alerts\n- Confirmed scams (-15 points)\n- False accusations\n- Repeated rule breaking',
+         value: '- Tilt behavior spikes (temporary, but still ugly)\n- Ignoring Tether alerts\n- Confirmed scams (-15 points)\n- False accusations\n- Repeated rule breaking',
         inline: false
       },
       {
         name: 'Recovery',
-        value: 'Audit signals naturally decay at 0.5 points/hour. Trust scores can improve over time with positive behavior.',
+         value: 'Audit signals decay at 0.5 points per hour. Stop acting cooked long enough and the score can recover.',
         inline: false
       },
       {
         name: 'Privacy',
-        value: 'No sensitive personal data is stored. Trust is behavioral, not judgmental. Scores are not addiction assessments.',
+         value: 'No sensitive personal data is stored. This is behavior scoring, not armchair diagnosis.',
         inline: false
       }
     )

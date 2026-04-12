@@ -1,3 +1,4 @@
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-12
 /* Copyright (c) 2026 TiltCheck. All rights reserved. */
 /**
  * Bonus Feed Handler
@@ -8,18 +9,7 @@
 
 import { eventRouter } from '@tiltcheck/event-router';
 import { getAlertService } from '../services/alert-service.js';
-import type { TiltCheckEvent } from '@tiltcheck/types';
-import { EmbedBuilder } from 'discord.js';
-
-// This is the data we expect from the scraper worker's event
-interface BonusDiscoveredEventData {
-  casino_name: string;
-  bonus_type: string;
-  value: string;
-  terms: string;
-  expiry_message: string;
-  is_expired: boolean;
-}
+import type { BonusDiscoveredEventData, TiltCheckEvent } from '@tiltcheck/types';
 
 export class BonusFeedHandler {
   /**
@@ -28,13 +18,11 @@ export class BonusFeedHandler {
   static initialize(): void {
     console.log('[BonusFeedHandler] Initializing bonus feed subscription...');
 
-    // TODO: "bonus.discovered" event type not defined in EventType union
-    // Re-enable once event type is properly defined in @tiltcheck/types
-    // eventRouter.subscribe(
-    //   'bonus.discovered',
-    //   this.onBonusDiscovered.bind(this),
-    //   'discord-bot-bonus-feed' // Unique consumer name
-    // );
+    eventRouter.subscribe(
+      'bonus.discovered',
+      this.onBonusDiscovered.bind(this),
+      'discord-bot'
+    );
 
     console.log('[BonusFeedHandler] Bonus feed subscription initialized.');
   }
@@ -42,9 +30,9 @@ export class BonusFeedHandler {
   /**
    * Handle a new bonus being discovered.
    */
-  private static async onBonusDiscovered(evt: { data: BonusDiscoveredEventData }): Promise<void> {
+  private static async onBonusDiscovered(evt: TiltCheckEvent<'bonus.discovered'>): Promise<void> {
     try {
-      const { casino_name, value, bonus_type, expiry_message, is_expired } = evt.data;
+      const { casino_name, value, bonus_type, expiry_message, is_expired, terms } = evt.data;
 
       // Don't post expired bonuses to the live feed.
       if (is_expired) return;
@@ -55,10 +43,13 @@ export class BonusFeedHandler {
         return;
       }
 
-      const message = `**${value} ${bonus_type}** from **${casino_name}**.\n${expiry_message}`;
-
-      // TODO: postBonusDrop method not defined in AlertService
-      // await alertService.postBonusDrop(message);
+      await alertService.postBonusDrop({
+        casinoName: casino_name,
+        value,
+        bonusType: bonus_type,
+        expiryMessage: expiry_message,
+        terms,
+      });
     } catch (error) {
       console.error('[BonusFeedHandler] Error posting bonus drop alert:', error);
     }

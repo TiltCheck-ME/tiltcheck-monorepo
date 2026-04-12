@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-10
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-12
 import { SlashCommandBuilder, ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
 import type { Command } from '../types.js';
 import crypto from 'crypto';
@@ -6,10 +6,10 @@ import crypto from 'crypto';
 export const verify: Command = {
   data: new SlashCommandBuilder()
     .setName('verify')
-    .setDescription('Provably fair? Verify your rolls mid-session.')
-    .addStringOption(opt => opt.setName('server_seed').setDescription('Server seed hash').setRequired(true))
-    .addStringOption(opt => opt.setName('client_seed').setDescription('Client seed').setRequired(true))
-    .addIntegerOption(opt => opt.setName('nonce').setDescription('Nonce number').setRequired(true)),
+    .setDescription('Run the provably fair math instead of trusting casino vibes.')
+    .addStringOption(opt => opt.setName('server_seed').setDescription('Server seed or server-seed hash').setRequired(true))
+    .addStringOption(opt => opt.setName('client_seed').setDescription('Client seed you used').setRequired(true))
+    .addIntegerOption(opt => opt.setName('nonce').setDescription('Roll nonce').setRequired(true)),
 
   async execute(interaction: ChatInputCommandInteraction) {
     const serverSeed = interaction.options.getString('server_seed');
@@ -38,7 +38,7 @@ export const verify: Command = {
       await interaction.reply({ embeds: [embed] });
 
     } catch (err) {
-      await interaction.reply({ content: `[!] Hash audit failed: ${(err as Error).message}`, ephemeral: true });
+       await interaction.reply({ content: `[!] Hash audit blew up: ${(err as Error).message}`, ephemeral: true });
     }
   },
 };

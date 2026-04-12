@@ -17,6 +17,7 @@ export { support } from './support.js';
 export { help } from './help.js';
 export { jme } from './jme.js';
 export { ping } from './ping.js';
+export { setstate } from './setstate.js';
 export { terms } from './terms.js';
 export { blockGame, unblockGame, myExclusions } from './exclusions.js';
 export { upgrade } from './upgrade.js';

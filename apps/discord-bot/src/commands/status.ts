@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-10
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-12
 import { SlashCommandBuilder, ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
 import type { Command } from '../types.js';
 import { 
@@ -11,7 +11,7 @@ import {
 export const status: Command = {
   data: new SlashCommandBuilder()
     .setName('status')
-    .setDescription('Quick Audit: Check your live risk and session metrics.'),
+    .setDescription('Fast read on your live risk state.'),
 
   async execute(interaction: ChatInputCommandInteraction) {
     const status = getUserTiltStatus(interaction.user.id);
@@ -21,7 +21,7 @@ export const status: Command = {
     const embed = new EmbedBuilder()
       .setColor(status.onCooldown ? 0xef4444 : 0x22d3a6)
       .setTitle('SESSION AUDIT')
-      .setDescription(status.onCooldown ? 'COOLDOWN ACTIVE. You set this up. Let it run.' : 'ALL CLEAR. Nothing to flag right now.')
+      .setDescription(status.onCooldown ? 'COOLDOWN ACTIVE. You set the brake. Let it work.' : 'ALL CLEAR. Nothing is screaming tilt right now.')
       .setTimestamp();
 
     // 1. Live Telemetry
@@ -44,7 +44,7 @@ export const status: Command = {
     if (activity && activity.lossStreak >= 3) {
       embed.addFields({ name: 'Loss Streak', value: `${activity.lossStreak} in a row. Rinse vibes. Touch grass.`, inline: false });
     } else if (activity && activity.lossStreak === 0 && signalCount > 0) {
-      embed.addFields({ name: 'Session Profile', value: 'Chasing a win? The math never lies.', inline: false });
+      embed.addFields({ name: 'Session Profile', value: 'Chasing a win? Classic "im due" brain. The math is not moved.', inline: false });
     }
 
     // 4. Verification Footer
