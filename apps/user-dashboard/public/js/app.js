@@ -106,6 +106,7 @@ async function loadAllData() {
     await Promise.allSettled([
         loadUserProfile(),
         loadTrustMetrics(),
+        loadSessionAnalytics(),
         loadActivity(),
         loadVaults(),
         loadBonuses(),
@@ -207,6 +208,64 @@ async function loadActivity() {
             </div>
         `).join('');
     } catch (err) { console.error('[Activity]', err); }
+}
+
+async function loadSessionAnalytics() {
+    try {
+        const res = await apiRequest(`/api/user/${currentUser.discordId}/sessions`);
+        if (!res.ok) return;
+
+        const data = await res.json();
+        const stats = data.stats ?? {};
+        const sessions = Array.isArray(data.sessions) ? data.sessions : [];
+
+        setText('weeklyPL', formatCurrency(stats.weeklyPL ?? 0));
+        setText('winRate', `${stats.winRate ?? 0}%`);
+        setText('avgSession', `${stats.avgSession ?? 0}m`);
+        setText('rtpDrift', formatPercent(stats.rtpDrift ?? 0));
+
+        const chart = document.getElementById('plChart');
+        if (chart) {
+            if (sessions.length === 0) {
+                chart.innerHTML = '<div class="chart-placeholder">No session data yet. Install the Chrome extension to track sessions.</div>';
+            } else {
+                chart.innerHTML = sessions.slice(0, 7).map((session, index) => {
+                    const pl = Number(session.net_pl ?? 0);
+                    const completedAt = session.completed_at || session.created_at || Date.now();
+                    return `
+                        <div class="activity-item">
+                            <span class="activity-type">SESSION ${index + 1}</span>
+                            <span class="activity-desc">${formatCurrency(pl)}</span>
+                            <span class="activity-time">${timeAgo(completedAt)}</span>
+                        </div>
+                    `;
+                }).join('');
+            }
+        }
+
+        const breakdown = document.getElementById('casinoBreakdown');
+        if (breakdown) {
+            const byCasino = new Map();
+            sessions.forEach(session => {
+                const casino = session.casino_name || session.casino || 'Unknown';
+                const next = byCasino.get(casino) || { count: 0, net: 0 };
+                next.count += 1;
+                next.net += Number(session.net_pl ?? 0);
+                byCasino.set(casino, next);
+            });
+
+            if (byCasino.size === 0) {
+                breakdown.innerHTML = '<div class="activity-empty">No casino sessions recorded.</div>';
+            } else {
+                breakdown.innerHTML = Array.from(byCasino.entries()).slice(0, 6).map(([casino, summary]) => `
+                    <div class="activity-item">
+                        <span class="activity-type">${escapeHtml(casino)}</span>
+                        <span class="activity-desc">${summary.count} session${summary.count === 1 ? '' : 's'} · ${formatCurrency(summary.net)}</span>
+                    </div>
+                `).join('');
+            }
+        }
+    } catch (err) { console.error('[Sessions]', err); }
 }
 
 async function loadVaults() {
@@ -712,6 +771,18 @@ function setBarAndVal(id, value) {
     const val = document.getElementById(id + '-val');
     if (bar) bar.style.width = Math.min(100, value) + '%';
     if (val) val.textContent = value;
+}
+
+function formatCurrency(value) {
+    const amount = Number(value ?? 0);
+    const sign = amount > 0 ? '+' : '';
+    return `${sign}$${amount.toFixed(2)}`;
+}
+
+function formatPercent(value) {
+    const amount = Number(value ?? 0);
+    const sign = amount > 0 ? '+' : '';
+    return `${sign}${amount.toFixed(1)}%`;
 }
 
 function escapeHtml(str) {
