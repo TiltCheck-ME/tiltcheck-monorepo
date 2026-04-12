@@ -1,7 +1,7 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-11
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-13
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 
 interface BonusTimer {
@@ -79,14 +79,21 @@ let _idCounter = 0;
 function uid() { return `timer-${++_idCounter}`; }
 
 export default function CollectClockPage() {
-  const [timers, setTimers] = useState<BonusTimer[]>([]);
+  const [timers, setTimers] = useState<BonusTimer[]>(() => {
+    if (typeof window === 'undefined') return [];
+    try { return JSON.parse(localStorage.getItem('cc_timers') || '[]'); } catch { return []; }
+  });
   const [form, setForm] = useState({ casino: '', category: '', cooldownHours: '', lastClaimed: '' });
   const [now, setNow] = useState(Date.now());
 
-  React.useEffect(() => {
+  useEffect(() => {
     const interval = setInterval(() => setNow(Date.now()), 60000);
     return () => clearInterval(interval);
   }, []);
+
+  useEffect(() => {
+    try { localStorage.setItem('cc_timers', JSON.stringify(timers)); } catch { /* ignore */ }
+  }, [timers]);
 
   const addTimer = (e: React.FormEvent) => {
     e.preventDefault();
