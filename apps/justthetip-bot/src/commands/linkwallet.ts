@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-10
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-12
 
 import { SlashCommandBuilder, ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
 import type { Command } from '../types.js';
@@ -22,7 +22,7 @@ export const linkwallet: Command = {
     try {
       new PublicKey(address);
     } catch {
-      await interaction.reply({ content: '[!] Invalid Solana address. Please check and try again.', ephemeral: true });
+      await interaction.reply({ content: '[INVALID ADDRESS] Check the Solana address and try again.', ephemeral: true });
       return;
     }
 
@@ -39,14 +39,19 @@ export const linkwallet: Command = {
 
       const embed = new EmbedBuilder()
         .setColor(0x22d3a6)
-        .setTitle('Wallet Linked to Hub')
-        .setDescription(`Successfully linked your wallet to the TiltCheck Truth Layer.\n\n**User:** \`${interaction.user.username}\`\n**Address:** \`${address.substring(0, 4)}...${address.substring(address.length - 4)}\`\n\nYou can now login to the Hub and see your real-time telemetry instantly.`)
-        .setFooter({ text: 'Access the Hub at dashboard.tiltcheck.me' });
+        .setTitle('Wallet Linked')
+        .setDescription(
+          `Your payout wallet is now linked for JustTheTip.\n\n` +
+          `**User:** \`${interaction.user.username}\`\n` +
+          `**Address:** \`${address.substring(0, 4)}...${address.substring(address.length - 4)}\`\n\n` +
+          `Use \`/juicedrop\` and future payout flows with this address.`
+        )
+        .setFooter({ text: 'Non-custodial. You still sign with your own wallet.' });
 
       await interaction.editReply({ embeds: [embed] });
     } catch (error) {
       console.error('[LinkWallet] Error:', error);
-      await interaction.editReply({ content: '[!] Failed to save wallet address. Please try again later.' });
+      await interaction.editReply({ content: '[SAVE FAILED] Could not store the wallet address. Try again later.' });
     }
   },
 };

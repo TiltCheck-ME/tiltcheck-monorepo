@@ -137,6 +137,70 @@ export interface CreateTrustSignalPayload {
 }
 
 // ============================================================================
+// Recovery Application Types
+// ============================================================================
+
+export type RecoveryApplicationStatus =
+  | 'pending_support'
+  | 'under_review'
+  | 'approved'
+  | 'paid'
+  | 'rejected'
+  | 'cancelled';
+
+export interface RecoveryApplication {
+  id: string;
+  discord_user_id: string;
+  discord_username: string;
+  hardship: string;
+  steps: string;
+  support_contact: string;
+  support_discord_id: string | null;
+  support_confirmed: boolean;
+  review_message_id: string | null;
+  review_channel_id: string | null;
+  community_votes: number;
+  status: RecoveryApplicationStatus;
+  rejection_reason: string | null;
+  approved_by: string | null;
+  applied_at: Date;
+  updated_at: Date;
+}
+
+export interface CreateRecoveryApplicationPayload {
+  id: string;
+  discord_user_id: string;
+  discord_username: string;
+  hardship: string;
+  steps: string;
+  support_contact: string;
+  support_discord_id?: string | null;
+  support_confirmed: boolean;
+  review_message_id?: string | null;
+  review_channel_id?: string | null;
+  community_votes?: number;
+  status: RecoveryApplicationStatus;
+  rejection_reason?: string | null;
+  approved_by?: string | null;
+}
+
+export interface UpdateRecoveryApplicationPayload {
+  discord_username?: string;
+  hardship?: string;
+  steps?: string;
+  support_contact?: string;
+  support_discord_id?: string | null;
+  support_confirmed?: boolean;
+  review_message_id?: string | null;
+  review_channel_id?: string | null;
+  community_votes?: number;
+  status?: RecoveryApplicationStatus;
+  rejection_reason?: string | null;
+  approved_by?: string | null;
+  updated_at?: Date;
+}
+
+// ============================================================================
 // Buddy & Accountability Types
 // ============================================================================
 
@@ -307,6 +371,11 @@ export interface UserOnboarding {
   has_accepted_terms: boolean;
   risk_level: 'conservative' | 'moderate' | 'degen';
   cooldown_enabled: boolean;
+  voice_intervention_enabled: boolean;
+  share_message_contents: boolean;
+  share_financial_data: boolean;
+  share_session_telemetry: boolean;
+  notify_nft_identity_ready: boolean;
   daily_limit: number | null;
   quiz_scores: string | null;
   tutorial_completed: boolean;
@@ -330,6 +399,11 @@ export interface UpsertOnboardingPayload {
   has_accepted_terms?: boolean;
   risk_level?: 'conservative' | 'moderate' | 'degen';
   cooldown_enabled?: boolean;
+  voice_intervention_enabled?: boolean;
+  share_message_contents?: boolean;
+  share_financial_data?: boolean;
+  share_session_telemetry?: boolean;
+  notify_nft_identity_ready?: boolean;
   daily_limit?: number | null;
   quiz_scores?: string | null;
   tutorial_completed?: boolean;

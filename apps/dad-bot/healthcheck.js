@@ -1,9 +1,8 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-10
-#!/usr/bin/env node
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-12
 
-const http = require('http');
+import http from 'http';
 
-const PORT = process.env.DISCORD_BOT_HEALTH_PORT || 8083;
+const PORT = Number(process.env.PORT || process.env.DAD_BOT_HEALTH_PORT || process.env.DISCORD_BOT_HEALTH_PORT || 8080);
 const TIMEOUT_MS = 2000;
 
 const options = {

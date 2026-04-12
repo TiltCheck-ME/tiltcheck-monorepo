@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-10
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-12
 
 import { SlashCommandBuilder, ChatInputCommandInteraction, EmbedBuilder, ButtonBuilder, ButtonStyle, ActionRowBuilder, Message } from 'discord.js';
 import type { Command } from '../types.js';
@@ -8,6 +8,34 @@ import { getUsdPriceSync } from '@tiltcheck/utils';
 import { Connection, Keypair, LAMPORTS_PER_SOL, SystemProgram, Transaction, sendAndConfirmTransaction, PublicKey } from '@solana/web3.js';
 
 const connection = new Connection(process.env.SOLANA_RPC_URL || 'https://api.mainnet-beta.solana.com', 'confirmed');
+
+async function refundEscrowToHost(
+  hostDiscordId: string,
+  escrow: Keypair,
+  amountLamports: number
+): Promise<{ refunded: boolean; signature?: string; reason?: string }> {
+  const host = await findUserByDiscordId(hostDiscordId);
+  if (!host?.wallet_address) {
+    return {
+      refunded: false,
+      reason: 'Host has no linked wallet for refund.',
+    };
+  }
+
+  const refundTransaction = new Transaction().add(
+    SystemProgram.transfer({
+      fromPubkey: escrow.publicKey,
+      toPubkey: new PublicKey(host.wallet_address),
+      lamports: amountLamports,
+    })
+  );
+
+  const signature = await sendAndConfirmTransaction(connection, refundTransaction, [escrow]);
+  return {
+    refunded: true,
+    signature,
+  };
+}
 
 export const juicedrop: Command = {
   data: new SlashCommandBuilder()
@@ -20,7 +48,7 @@ export const juicedrop: Command = {
       opt.setName('users').setDescription('Maximum number of users who can claim').setRequired(true)
     )
     .addIntegerOption(opt =>
-      opt.setName('time').setDescription('Time in seconds to collect reactions (default 60)').setMinValue(10).setMaxValue(300)
+      opt.setName('time').setDescription('Time in seconds to collect claims (default 60)').setMinValue(10).setMaxValue(300)
     ),
 
   async execute(interaction: ChatInputCommandInteraction) {
@@ -32,7 +60,7 @@ export const juicedrop: Command = {
 
     const parseResult = parseAmountNL(amountRaw);
     if (!parseResult.success || !parseResult.data) {
-      await interaction.editReply({ content: '[!] Invalid amount format. Use "$10" or "0.5 SOL".' });
+      await interaction.editReply({ content: '[INVALID INPUT] Use "$10" or "0.5 SOL".' });
       return;
     }
 
@@ -42,7 +70,7 @@ export const juicedrop: Command = {
         const price = getUsdPriceSync('SOL');
         totalSol = parseResult.data.value / price;
       } catch {
-        await interaction.editReply({ content: '[!] Price feed unavailable. Please specify in SOL.' });
+        await interaction.editReply({ content: '[PRICE FEED DOWN] Specify the amount in SOL.' });
         return;
       }
     }
@@ -78,31 +106,90 @@ export const juicedrop: Command = {
     }
 
     if (!isFunded) {
-      await interaction.editReply({ content: '[!] Escrow funding timed out. Drop cancelled.', components: [] });
+      await interaction.editReply({ content: '[FUNDING TIMEOUT] Escrow was not funded in time. Drop cancelled.', components: [] });
       return;
     }
 
     const dropEmbed = new EmbedBuilder()
       .setColor(0x8b5cf6)
       .setTitle('[PROFIT DROPPING!]')
-      .setDescription(`${interaction.user} is dropping **${totalSol.toFixed(4)} SOL**!\n\nReact with [DROP] to claim your share!\n\n**Limits:** Max ${maxUsers} users | **Time:** ${timeLimit}s`)
+      .setDescription(`${interaction.user} is dropping **${totalSol.toFixed(4)} SOL**.\n\nClick **CLAIM DROP** to lock your slot.\n\n**Limits:** Max ${maxUsers} users | **Time:** ${timeLimit}s`)
       .setThumbnail('https://tiltcheck.me/assets/logo/logocurrent.png');
 
-    const dropMessage = await (interaction.channel as any)?.send({ embeds: [dropEmbed] }) as Message;
-    await dropMessage.react('[DROP]').catch(() => {});
+    const claimButtonId = `juicedrop:claim:${interaction.id}`;
+    const claimRow = new ActionRowBuilder<ButtonBuilder>().addComponents(
+      new ButtonBuilder()
+        .setCustomId(claimButtonId)
+        .setLabel('CLAIM DROP')
+        .setStyle(ButtonStyle.Success)
+    );
 
-    const filter = (reaction: any, user: any) => reaction.emoji.name === '[DROP]' && !user.bot;
-    const collector = dropMessage.createReactionCollector({ filter, time: timeLimit * 1000, max: maxUsers });
+    const dropMessage = await (interaction.channel as any)?.send({
+      embeds: [dropEmbed],
+      components: [claimRow],
+    }) as Message;
 
-    collector.on('end', async (collected) => {
-      const users = collected.first()?.users.cache.filter(u => !u.bot).map(u => u.id) || [];
+    const claimants = new Set<string>();
+    const collector = dropMessage.createMessageComponentCollector({
+      filter: (componentInteraction) =>
+        componentInteraction.isButton() &&
+        componentInteraction.customId === claimButtonId &&
+        !componentInteraction.user.bot,
+      time: timeLimit * 1000,
+    });
 
-      if (users.length === 0) {
-        await (interaction.channel as any)?.send('[!] No one caught the drop. Returning funds to spiller...');
+    collector.on('collect', async (componentInteraction) => {
+      if (claimants.has(componentInteraction.user.id)) {
+        await componentInteraction.reply({
+          content: '[ALREADY LOCKED] You already claimed this drop.',
+          ephemeral: true,
+        }).catch(() => {});
         return;
       }
 
-      await (interaction.channel as any)?.send(`[TIME] Timer ended! SECURING THE PROFIT for ${users.length} degens...`);
+      if (claimants.size >= maxUsers) {
+        await componentInteraction.reply({
+          content: '[DROP FULL] No slots left.',
+          ephemeral: true,
+        }).catch(() => {});
+        return;
+      }
+
+      claimants.add(componentInteraction.user.id);
+      await componentInteraction.reply({
+        content: 'Claim locked. Keep your wallet linked. Payout runs when the timer closes.',
+        ephemeral: true,
+      }).catch(() => {});
+
+      if (claimants.size >= maxUsers) {
+        collector.stop('filled');
+      }
+    });
+
+    collector.on('end', async () => {
+      await dropMessage.edit({ components: [] }).catch(() => {});
+      const users = Array.from(claimants);
+
+      if (users.length === 0) {
+        try {
+          const refund = await refundEscrowToHost(interaction.user.id, escrow, amountLamports);
+          if (refund.refunded) {
+            await (interaction.channel as any)?.send(
+              `[DROP DEAD] No one claimed. Refunded escrow to the host wallet.\n\n**Tx:** https://solscan.io/tx/${refund.signature}`
+            );
+          } else {
+            await (interaction.channel as any)?.send(
+              `[DROP DEAD] No one claimed. Refund failed because ${refund.reason ?? 'the host wallet is unavailable'}. Funds remain in escrow.`
+            );
+          }
+        } catch (err) {
+          console.error('[Juice] Refund error:', err);
+          await (interaction.channel as any)?.send('[REFUND FAILED] No one claimed the drop and escrow refund failed. Funds remain in escrow.');
+        }
+        return;
+      }
+
+      await (interaction.channel as any)?.send(`[TIME] Timer ended. Processing ${users.length} claim${users.length === 1 ? '' : 's'}...`);
 
       const recipients: string[] = [];
       for (const uid of users) {
@@ -113,7 +200,21 @@ export const juicedrop: Command = {
       }
 
       if (recipients.length === 0) {
-        await (interaction.channel as any)?.send('[!] No reactors have linked wallets! Use `/linkwallet` to catch profit next time.');
+        try {
+          const refund = await refundEscrowToHost(interaction.user.id, escrow, amountLamports);
+          if (refund.refunded) {
+            await (interaction.channel as any)?.send(
+              `[NO ELIGIBLE CLAIMS] No claimants had linked wallets. Refunded escrow to the host wallet.\n\n**Tx:** https://solscan.io/tx/${refund.signature}`
+            );
+          } else {
+            await (interaction.channel as any)?.send(
+              `[NO ELIGIBLE CLAIMS] No claimants had linked wallets, and refund failed because ${refund.reason ?? 'the host wallet is unavailable'}. Funds remain in escrow.`
+            );
+          }
+        } catch (err) {
+          console.error('[Juice] Refund error after wallet filter:', err);
+          await (interaction.channel as any)?.send('[REFUND FAILED] No claimant had a linked wallet and escrow refund failed. Funds remain in escrow.');
+        }
         return;
       }
 
@@ -135,7 +236,7 @@ export const juicedrop: Command = {
         await (interaction.channel as any)?.send(`[DONE] **PROFIT SECURED!**\nSent to ${recipients.length} wallets.\n\n**Tx:** https://solscan.io/tx/${signature}`);
       } catch (err) {
         console.error('[Juice] Payout error:', err);
-        await (interaction.channel as any)?.send('[!] Payout failed! Funds are stuck in escrow. Contact Admin.');
+        await (interaction.channel as any)?.send('[PAYOUT FAILED] Funds could not be distributed. Escrow still holds the balance. Contact admin.');
       }
     });
   },

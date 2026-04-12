@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-10
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-12
 import { SlashCommandBuilder, ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
 import { findCasinoByDomain } from '@tiltcheck/db';
 import type { Command } from '../types.js';
@@ -6,11 +6,11 @@ import type { Command } from '../types.js';
 export const casino: Command = {
   data: new SlashCommandBuilder()
     .setName('casino')
-    .setDescription('Get trust and fairness data for a casino')
+    .setDescription('Pull the trust read on a casino before it pulls your bankroll.')
     .addStringOption(option =>
       option
         .setName('domain')
-        .setDescription('Casino domain (e.g., stake.com)')
+        .setDescription('Casino domain to audit (example: stake.com)')
         .setRequired(true)
     ),
 
@@ -23,7 +23,7 @@ export const casino: Command = {
 
       if (!data) {
         await interaction.editReply({
-          content: `No data on **${domain}**. Try stake.com, rollbit.com, or duelbits.com.`
+          content: `No audit data on **${domain}** yet. Try stake.com, rollbit.com, or duelbits.com.`
         });
         return;
       }
@@ -37,7 +37,7 @@ export const casino: Command = {
       const embed = new EmbedBuilder()
         .setTitle(`${data.name.toUpperCase()} — TRUST AUDIT`)
         .setColor(status === 'active' ? 0x22d3a6 : 0xef4444)
-        .setDescription(`${data.name} trust breakdown. The math is in.`)
+        .setDescription(`${data.name} audit read. Trust, RTP claims, and license receipts in one place.`)
         .addFields(
           { name: 'Status', value: String(status).toUpperCase(), inline: true },
           { name: 'Claimed RTP', value: claimed_rtp ? `${claimed_rtp}%` : 'N/A', inline: true },
@@ -62,7 +62,7 @@ export const casino: Command = {
       await interaction.editReply({ embeds: [embed] });
     } catch (error) {
       console.error('[Casino] Error:', error);
-      await interaction.editReply({ content: 'Casino data pull failed. Try again.' });
+      await interaction.editReply({ content: 'Casino audit pull bricked. Run it again.' });
     }
   }
 };

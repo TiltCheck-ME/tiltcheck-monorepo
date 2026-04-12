@@ -1,9 +1,27 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-10
 #!/usr/bin/env node
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-12
 
 const http = require('http');
 
-const PORT = process.env.DISCORD_BOT_HEALTH_PORT || 8082;
+function getPort() {
+  const candidates = [
+    process.env.PORT,
+    process.env.JTT_BOT_HEALTH_PORT,
+    process.env.DISCORD_BOT_HEALTH_PORT,
+  ];
+
+  for (const candidate of candidates) {
+    if (!candidate) continue;
+    const parsed = parseInt(candidate, 10);
+    if (!Number.isNaN(parsed)) {
+      return parsed;
+    }
+  }
+
+  return 8082;
+}
+
+const PORT = getPort();
 const TIMEOUT_MS = 2000;
 
 const options = {

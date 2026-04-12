@@ -541,6 +541,7 @@ export interface RateLimitConfig {
 // Event System Types
 // ============================================
 
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-12
 export type EventType =
   | 'tip.requested'
   | 'tip.initiated'
@@ -575,6 +576,7 @@ export type EventType =
   | 'bonus.nerfed'
   | 'bonus.claimed'
   | 'bonus.updated'
+  | 'bonus.discovered'
   | 'bonus.nerf.detected'
   | 'bonus.prediction.generated'
   | 'rtp.report.submitted'
@@ -681,6 +683,15 @@ export interface BonusNerfDetectedEventData {
   percentDrop: number;
   bonusType?: string;
   reason?: string;
+}
+
+export interface BonusDiscoveredEventData {
+  casino_name: string;
+  bonus_type: string;
+  value: string;
+  terms: string;
+  expiry_message: string;
+  is_expired: boolean;
 }
 
 export interface CasinoRollupData {
@@ -967,6 +978,7 @@ export interface EventDataMap {
   'promo.submitted': PromoSubmittedEventData;
   'link.feedback': LinkFeedbackEventData;
   'link.flagged': LinkFlaggedEventData;
+  'bonus.discovered': BonusDiscoveredEventData;
   'bonus.nerf.detected': BonusNerfDetectedEventData;
   'trust.casino.rollup': TrustCasinoRollupEventData;
   'trust.domain.rollup': TrustDomainRollupEventData;

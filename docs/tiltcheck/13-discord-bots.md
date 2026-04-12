@@ -1,6 +1,10 @@
-© 2024–2025 TiltCheck Ecosystem (Created by jmenichole). All Rights Reserved.
+© 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-12
 
 # 13. Discord Bot Architecture & Command Design
+
+> Historical architecture note: this document captures an older multi-module command model.
+> It is **not** the live slash-command source of truth anymore.
+> Use `docs/discord-command-ownership.md` for the current command split across TiltCheck, JustTheTip, and DAD.
 This document defines all Discord bot logic for TiltCheck, including:
 
 - command structure  

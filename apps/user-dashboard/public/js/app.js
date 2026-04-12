@@ -1,4 +1,4 @@
-// © 2024-2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-04
+// © 2024-2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-12
 
 'use strict';
 
@@ -10,6 +10,25 @@ let ws = null;
 let vaultState = { locked: false, unlockAt: null, amount: 0 };
 let selectedVaultDuration = 14400000; // 4h default
 let vaultCountdownTimer = null;
+let onboardingSettings = {
+    riskLevel: 'moderate',
+    cooldownEnabled: true,
+    voiceInterventionEnabled: true,
+    threshold: 500,
+    notifications: {
+        tips: true,
+        trivia: true,
+        promos: false
+    },
+    trustEngineOptIn: {
+        message_contents: false,
+        financial_data: false,
+        session_telemetry: false,
+        notify_nft_identity_ready: false
+    },
+    primaryExternalAddress: null
+};
+let profitGuardSaveTimer = null;
 
 // ============================================================
 // INIT
@@ -105,7 +124,9 @@ async function loadAllData() {
 
     await Promise.allSettled([
         loadUserProfile(),
+        loadOnboardingSettings(),
         loadTrustMetrics(),
+        loadSessionAnalytics(),
         loadActivity(),
         loadVaults(),
         loadBonuses(),
@@ -139,9 +160,53 @@ async function loadUserProfile() {
 
         if (user.degenIdentity?.primary_external_address) {
             const addr = user.degenIdentity.primary_external_address;
+            onboardingSettings.primaryExternalAddress = addr;
             setText('externalWalletDisplay', addr.slice(0, 6) + '...' + addr.slice(-4));
         }
+
+        if (user.nftIdentity) {
+            setText('nftIdentityStatus', user.nftIdentity.status);
+            setText('nftIdentitySub', user.nftIdentity.detail);
+
+            const noticeKey = `nft-ready-banner-${currentUser.discordId}`;
+            if (user.nftIdentity.notificationPending && !sessionStorage.getItem(noticeKey)) {
+                showNotification('NFT identity waitlist ready. Terms are signed and a wallet is linked.', 'success');
+                sessionStorage.setItem(noticeKey, '1');
+            }
+        } else {
+            setText('nftIdentityStatus', 'Unknown');
+            setText('nftIdentitySub', 'Identity status is offline right now.');
+        }
     } catch (err) { console.error('[Profile]', err); }
+}
+
+async function loadOnboardingSettings() {
+    try {
+        const res = await apiRequest('/api/user/onboard');
+        if (!res.ok) return;
+
+        const data = await res.json();
+        const onboarding = data.onboarding ?? {};
+
+        onboardingSettings = {
+            ...onboardingSettings,
+            riskLevel: onboarding.riskLevel || onboardingSettings.riskLevel,
+            cooldownEnabled: onboarding.cooldownEnabled !== false,
+            voiceInterventionEnabled: onboarding.voiceInterventionEnabled !== false,
+            threshold: normalizeProfitGuardThreshold(onboarding.redeemThreshold),
+            notifications: {
+                tips: onboarding.notifications?.tips !== false,
+                trivia: onboarding.notifications?.trivia !== false,
+                promos: onboarding.notifications?.promos === true
+            },
+            trustEngineOptIn: {
+                ...onboardingSettings.trustEngineOptIn,
+                ...(onboarding.trustEngineOptIn || {})
+            }
+        };
+
+        renderProfitGuardSettings();
+    } catch (err) { console.error('[Onboarding]', err); }
 }
 
 async function loadTrustMetrics() {
@@ -193,6 +258,64 @@ async function loadActivity() {
             </div>
         `).join('');
     } catch (err) { console.error('[Activity]', err); }
+}
+
+async function loadSessionAnalytics() {
+    try {
+        const res = await apiRequest(`/api/user/${currentUser.discordId}/sessions`);
+        if (!res.ok) return;
+
+        const data = await res.json();
+        const stats = data.stats ?? {};
+        const sessions = Array.isArray(data.sessions) ? data.sessions : [];
+
+        setText('weeklyPL', formatCurrency(stats.weeklyPL ?? 0));
+        setText('winRate', `${stats.winRate ?? 0}%`);
+        setText('avgSession', `${stats.avgSession ?? 0}m`);
+        setText('rtpDrift', formatPercent(stats.rtpDrift ?? 0));
+
+        const chart = document.getElementById('plChart');
+        if (chart) {
+            if (sessions.length === 0) {
+                chart.innerHTML = '<div class="chart-placeholder">No session data yet. Install the Chrome extension to track sessions.</div>';
+            } else {
+                chart.innerHTML = sessions.slice(0, 7).map((session, index) => {
+                    const pl = Number(session.net_pl ?? 0);
+                    const completedAt = session.completed_at || session.created_at || Date.now();
+                    return `
+                        <div class="activity-item">
+                            <span class="activity-type">SESSION ${index + 1}</span>
+                            <span class="activity-desc">${formatCurrency(pl)}</span>
+                            <span class="activity-time">${timeAgo(completedAt)}</span>
+                        </div>
+                    `;
+                }).join('');
+            }
+        }
+
+        const breakdown = document.getElementById('casinoBreakdown');
+        if (breakdown) {
+            const byCasino = new Map();
+            sessions.forEach(session => {
+                const casino = session.casino_name || session.casino || 'Unknown';
+                const next = byCasino.get(casino) || { count: 0, net: 0 };
+                next.count += 1;
+                next.net += Number(session.net_pl ?? 0);
+                byCasino.set(casino, next);
+            });
+
+            if (byCasino.size === 0) {
+                breakdown.innerHTML = '<div class="activity-empty">No casino sessions recorded.</div>';
+            } else {
+                breakdown.innerHTML = Array.from(byCasino.entries()).slice(0, 6).map(([casino, summary]) => `
+                    <div class="activity-item">
+                        <span class="activity-type">${escapeHtml(casino)}</span>
+                        <span class="activity-desc">${summary.count} session${summary.count === 1 ? '' : 's'} · ${formatCurrency(summary.net)}</span>
+                    </div>
+                `).join('');
+            }
+        }
+    } catch (err) { console.error('[Sessions]', err); }
 }
 
 async function loadVaults() {
@@ -405,6 +528,23 @@ function setupTabNavigation() {
 // VAULT PANEL
 // ============================================================
 function setupVaultPanel() {
+    const profitGuardToggle = document.getElementById('profit-guard-toggle');
+    const profitGuardThreshold = document.getElementById('profit-guard-threshold');
+
+    profitGuardToggle?.addEventListener('change', e => {
+        onboardingSettings.cooldownEnabled = e.target.checked;
+        renderProfitGuardSettings();
+        setProfitGuardStatus('Saving...');
+        queueProfitGuardSave();
+    });
+
+    profitGuardThreshold?.addEventListener('input', e => {
+        onboardingSettings.threshold = normalizeProfitGuardThreshold(e.target.value);
+        renderProfitGuardSettings();
+        setProfitGuardStatus('Saving...');
+        queueProfitGuardSave();
+    });
+
     document.querySelectorAll('.duration-chips .chip').forEach(chip => {
         chip.addEventListener('click', () => {
             document.querySelectorAll('.duration-chips .chip').forEach(c => c.classList.remove('active'));
@@ -465,6 +605,53 @@ function setupVaultPanel() {
     });
 }
 
+function renderProfitGuardSettings() {
+    const toggle = document.getElementById('profit-guard-toggle');
+    const thresholdInput = document.getElementById('profit-guard-threshold');
+
+    if (toggle) toggle.checked = onboardingSettings.cooldownEnabled;
+    if (thresholdInput) {
+        thresholdInput.value = String(normalizeProfitGuardThreshold(onboardingSettings.threshold));
+        thresholdInput.disabled = !onboardingSettings.cooldownEnabled;
+    }
+}
+
+function queueProfitGuardSave() {
+    if (profitGuardSaveTimer) clearTimeout(profitGuardSaveTimer);
+    profitGuardSaveTimer = setTimeout(saveProfitGuardSettings, 400);
+}
+
+async function saveProfitGuardSettings() {
+    try {
+        const res = await apiRequest('/api/user/onboard', {
+            method: 'POST',
+            body: JSON.stringify({
+                tos_accepted: true,
+                primary_external_address: onboardingSettings.primaryExternalAddress,
+                risk_level: onboardingSettings.riskLevel,
+                cooldown_enabled: onboardingSettings.cooldownEnabled,
+                voice_intervention_enabled: onboardingSettings.voiceInterventionEnabled,
+                redeem_threshold: normalizeProfitGuardThreshold(onboardingSettings.threshold),
+                notifications: onboardingSettings.notifications,
+                trust_engine_opt_in: onboardingSettings.trustEngineOptIn
+            })
+        });
+
+        if (!res.ok) {
+            const data = await res.json().catch(() => ({}));
+            setProfitGuardStatus(data.error || 'Save failed.', true);
+            return;
+        }
+
+        onboardingSettings.threshold = normalizeProfitGuardThreshold(onboardingSettings.threshold);
+        renderProfitGuardSettings();
+        setProfitGuardStatus('Saved.');
+    } catch (err) {
+        console.error('[Profit Guard]', err);
+        setProfitGuardStatus('Save failed.', true);
+    }
+}
+
 // ============================================================
 // WALLET PANEL
 // ============================================================
@@ -487,9 +674,15 @@ function setupWalletPanel() {
                 body: JSON.stringify({ address })
             });
             if (res.ok) {
+                const data = await res.json();
                 setText('externalWalletDisplay', address.slice(0, 6) + '...' + address.slice(-4));
+                if (data?.nftIdentity) {
+                    setText('nftIdentityStatus', data.nftIdentity.status);
+                    setText('nftIdentitySub', data.nftIdentity.detail);
+                }
                 if (form) form.style.display = 'none';
                 showNotification('Wallet linked.', 'success');
+                loadUserProfile();
             }
         } catch (err) { showNotification('Error linking wallet.', 'error'); }
     });
@@ -637,6 +830,10 @@ function handleWsMessage(msg) {
             showNotification(`Bonus available: ${msg.data?.casinoName ?? 'Casino'}`, 'info');
             addBonusTabBadge();
             break;
+        case 'identity.nft_ready':
+            showNotification(msg.data?.message ?? 'Your NFT identity waitlist is ready.', 'success');
+            loadUserProfile();
+            break;
     }
 }
 
@@ -688,6 +885,30 @@ function setBarAndVal(id, value) {
     const val = document.getElementById(id + '-val');
     if (bar) bar.style.width = Math.min(100, value) + '%';
     if (val) val.textContent = value;
+}
+
+function normalizeProfitGuardThreshold(value) {
+    const amount = Number.parseInt(value, 10);
+    return Number.isFinite(amount) && amount > 0 ? amount : 500;
+}
+
+function setProfitGuardStatus(message, isError = false) {
+    const el = document.getElementById('profitGuardStatus');
+    if (!el) return;
+    el.textContent = message;
+    el.style.color = isError ? 'var(--color-danger)' : '';
+}
+
+function formatCurrency(value) {
+    const amount = Number(value ?? 0);
+    const sign = amount > 0 ? '+' : '';
+    return `${sign}$${amount.toFixed(2)}`;
+}
+
+function formatPercent(value) {
+    const amount = Number(value ?? 0);
+    const sign = amount > 0 ? '+' : '';
+    return `${sign}${amount.toFixed(1)}%`;
 }
 
 function escapeHtml(str) {

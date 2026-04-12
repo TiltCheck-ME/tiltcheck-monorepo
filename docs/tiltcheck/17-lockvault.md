@@ -73,7 +73,7 @@ Natural language via existing parser. USD treated 1:1 to SOL until oracle integr
 - No reliance on centralized session state.
 
 ## Integration Points
-- Discord bot commands (added in `/apps/discord-bot/src/commands/lockvault.ts`).
+- JustTheTip bot commands (implemented in `/apps/justthetip-bot/src/commands/lockvault.ts`).
 - EventRouter event emissions for telemetry & daily rollup inclusion.
 - Natural language parser for user-friendly amounts/durations.
 

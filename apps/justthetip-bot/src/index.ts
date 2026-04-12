@@ -1,9 +1,11 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-10
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-12
 // JustTheTip Bot — Main Entry Point
 
 import { Client, GatewayIntentBits, Partials } from 'discord.js';
 import http from 'http';
 import fs from 'fs';
+import os from 'os';
+import path from 'path';
 import { config, validateConfig } from './config.js';
 import {
   CommandHandler,
@@ -21,6 +23,7 @@ import { TokenDepositMonitor } from './services/tipping/token-deposit-monitor.js
 
 async function main() {
   const startTime = Date.now();
+  const readyMarkerPath = path.join(os.tmpdir(), 'justthetip-bot-ready');
   console.log('\n' + '='.repeat(60));
   console.log('JUSTTHETIP — NON-CUSTODIAL SOL TIPPING BOT');
   console.log('='.repeat(60));
@@ -92,7 +95,7 @@ async function main() {
     console.log('[Discord] CI mode - skipping Discord login');
     ready = true;
     try {
-      fs.writeFileSync('/tmp/bot-ready', 'ready');
+      fs.writeFileSync(readyMarkerPath, 'ready');
     } catch (e) {
       console.error('[Health] Failed to write ready marker:', e);
     }
@@ -102,7 +105,7 @@ async function main() {
       ready = true;
       console.log('[Discord] Connected and ready!');
       try {
-        fs.writeFileSync('/tmp/bot-ready', 'ready');
+        fs.writeFileSync(readyMarkerPath, 'ready');
       } catch (e) {
         console.error('[Health] Failed to write ready marker:', e);
       }
@@ -110,8 +113,7 @@ async function main() {
   }
   console.log('');
 
-  const HEALTH_PORT = process.env.PORT || '8080';
-  const PORT = parseInt(HEALTH_PORT, 10);
+  const PORT = config.jttHealthPort;
 
   const healthServer = http.createServer((req, res) => {
     if (req.url === '/health' || req.url === '/') {
