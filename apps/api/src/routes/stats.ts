@@ -97,6 +97,11 @@ async function computeStats() {
   };
 }
 
+/** Deployment probe — confirms this container version is running. */
+router.get('/ping', (_req, res) => {
+  res.json({ ok: true, v: 2, ts: Date.now() });
+});
+
 router.get('/signals', async (_req, res) => {
   const dataDir = getDataDir();
   const signalsPath = path.join(dataDir, 'web_signals.json');
