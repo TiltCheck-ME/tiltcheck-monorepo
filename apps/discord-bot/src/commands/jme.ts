@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-11
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-13
 /**
  * JME Command Suite — Owner & Admin Audit Tools
  */
@@ -12,6 +12,7 @@ import {
   ButtonBuilder,
   ButtonStyle,
   ActionRowBuilder,
+  Guild,
 } from 'discord.js';
 import type { Command } from '../types.js';
 import { getRandomQuote } from '@tiltcheck/utils';
@@ -80,6 +81,15 @@ export const jme: Command = {
   },
 };
 
+// Beta channel IDs that the beta tester role must be able to access.
+// Each ID can be overridden via an env var for flexibility.
+const BETA_CHANNELS: { id: string; label: string }[] = [
+  { id: process.env.BETA_GENERAL_CHANNEL_ID      || '1488256030579364055', label: 'beta-general' },
+  { id: process.env.BUG_REPORTS_CHANNEL_ID       || '1488256031590191174', label: 'bug-reports' },
+  { id: process.env.FEATURE_REQUESTS_CHANNEL_ID  || '1488256032865255626', label: 'feature-requests' },
+  { id: process.env.BETA_APPLICATIONS_CHANNEL_ID || '1488256033502793930', label: 'beta-applications' },
+];
+
 async function handleBetaRolegrant(interaction: ChatInputCommandInteraction) {
   const ownerIds = (process.env.BOT_OWNER_IDS || '1472601571496951932,229825593856163840').split(',');
   if (!ownerIds.includes(interaction.user.id)) {
@@ -93,14 +103,43 @@ async function handleBetaRolegrant(interaction: ChatInputCommandInteraction) {
   const betaRoleId = process.env.BETA_TESTER_ROLE_ID || '1492283508456947904';
   const guildId = process.env.DISCORD_GUILD_ID || '1488253239643078787';
 
+  let guild!: Guild;
   try {
-    const guild = await interaction.client.guilds.fetch(guildId);
+    guild = await interaction.client.guilds.fetch(guildId) as Guild;
     const member = await guild.members.fetch(target.id);
     await member.roles.add(betaRoleId, `Beta access granted by ${interaction.user.username}`);
   } catch (err) {
     console.error('[JME] Role grant failed:', err);
     await interaction.editReply({ content: `[!] Could not assign role. Is <@${target.id}> in the server? Error: ${String(err).slice(0, 120)}` });
     return;
+  }
+
+  // Ensure the beta tester role has explicit ViewChannel / SendMessages / ReadMessageHistory
+  // overwrites on every beta channel. This is necessary when channels are private (deny @everyone
+  // ViewChannel) — adding the role alone is not enough unless the overwrites already exist.
+  const channelResults: { label: string; ok: boolean }[] = [];
+  for (const { id, label } of BETA_CHANNELS) {
+    try {
+      const channel = await guild.channels.fetch(id);
+      if (!channel || !channel.isTextBased()) {
+        channelResults.push({ label, ok: false });
+        console.warn(`[JME] Beta channel ${label} (${id}) not found or not text-based`);
+        continue;
+      }
+      await (channel as TextChannel).permissionOverwrites.create(
+        betaRoleId,
+        {
+          ViewChannel: true,
+          SendMessages: true,
+          ReadMessageHistory: true,
+        },
+        { reason: `Beta access granted to role ${betaRoleId} by ${interaction.user.username}` }
+      );
+      channelResults.push({ label, ok: true });
+    } catch (err) {
+      channelResults.push({ label, ok: false });
+      console.error(`[JME] Failed to set perms on beta channel ${label} (${id}):`, err);
+    }
   }
 
   // Send beta onboarding DM
@@ -145,13 +184,20 @@ async function handleBetaRolegrant(interaction: ChatInputCommandInteraction) {
     console.error('[JME] Beta DM failed:', err);
   }
 
+  const channelStatusLines = channelResults
+    .map(({ label, ok }) => `${ok ? '[OK]' : '[FAIL]'} #${label}`)
+    .join('\n');
+
+  const allChannelsOk = channelResults.every(({ ok }) => ok);
+
   const confirmEmbed = new EmbedBuilder()
-    .setColor(0x22d3a6)
+    .setColor(allChannelsOk ? 0x22d3a6 : 0xf59e0b)
     .setTitle('BETA ACCESS GRANTED')
     .addFields(
       { name: 'User', value: `<@${target.id}> (${target.username})`, inline: true },
       { name: 'Role', value: 'Founder Tester', inline: true },
       { name: 'Onboarding DM', value: dmSent ? 'Sent' : 'Failed — DMs may be closed', inline: true },
+      { name: 'Channel Access', value: channelStatusLines || 'No channels configured', inline: false },
     )
     .setFooter({ text: 'Made for Degens. By Degens.' });
 
