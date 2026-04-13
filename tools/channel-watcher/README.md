@@ -148,4 +148,5 @@ Required env values for cloud publish:
 ## No API key?
 
 Set `PROVIDER=ollama` with `OLLAMA_URL` to run keyless via your VM/local model.  
+If Ollama is unreachable, the watcher now falls through to any configured cloud provider key (`GROQ_API_KEY`, `GEMINI_API_KEY`, or `OPENAI_API_KEY`) instead of dropping the whole chunk.  
 If cloud providers are unset, the watcher still runs and logs all messages to file for later analysis.
