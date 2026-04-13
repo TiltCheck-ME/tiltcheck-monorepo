@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-11
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-13
 /**
  * Onboarding System for TiltCheck Safety Bot
  * Handles first-time user welcome and safety preferences
@@ -37,6 +37,7 @@ const onboardedUsers = new Set<string>();
 const userPreferences = new Map<string, UserPreferences>();
 const BACKEND_URL = process.env.BACKEND_URL || 'https://api.tiltcheck.me';
 const SITE_URL = process.env.SITE_URL || 'https://tiltcheck.me';
+const DASHBOARD_URL = process.env.DASHBOARD_URL || 'https://hub.tiltcheck.me';
 
 interface UserPreferences {
   userId: string;
@@ -223,12 +224,12 @@ export async function isUserOnboarded(userId: string): Promise<boolean> {
 }
 
 export function getWebsiteOnboardingUrl(): string {
-  const redirect = encodeURIComponent('/dashboard');
+  const redirect = encodeURIComponent(`${DASHBOARD_URL}/onboarding`);
   return `${BACKEND_URL}/auth/discord/login?source=discord-bot&redirect=${redirect}`;
 }
 
 export function getDashboardUrl(): string {
-  return `${SITE_URL}/dashboard`;
+  return DASHBOARD_URL;
 }
 
 export function getBetaTesterUrl(): string {
