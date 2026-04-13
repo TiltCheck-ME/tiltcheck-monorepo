@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-11
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-13
 /**
  * Onboarding System for TiltCheck Safety Bot
  * Handles first-time user welcome and safety preferences
@@ -36,6 +36,7 @@ if (process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY) {
 const onboardedUsers = new Set<string>();
 const userPreferences = new Map<string, UserPreferences>();
 const HUB_BASE_URL = process.env.DASHBOARD_URL || 'https://hub.tiltcheck.me';
+const SITE_URL = process.env.SITE_URL || 'https://tiltcheck.me';
 
 interface UserPreferences {
   userId: string;
@@ -225,6 +226,10 @@ export function getWebsiteOnboardingUrl(): string {
   return `${HUB_BASE_URL}/auth/discord?redirect=${encodeURIComponent('/onboarding?source=discord-bot')}`;
 }
 
+export function getBetaTesterUrl(): string {
+  return `${SITE_URL}/beta-tester`;
+}
+
 /**
  * Mark user as onboarded
  */
@@ -306,6 +311,7 @@ export async function sendWelcomeDM(user: User): Promise<boolean> {
         `- BEHAVIORAL SPIRALS (STATUS AUDITS)\n` +
         `- COMMUNITY TELEMETRY (TRUST ENGINE)\n\n` +
         `IF YOU WANT THE HARD BRAKE, RUN \`/intervene enabled:true\` SO I CAN AUTO-MOVE YOU INTO ACCOUNTABILITY VC WHEN YOUR SESSION GOES NUCLEAR.\n\n` +
+        `WANT BETA ACCESS? LINK DISCORD ON THE SITE FIRST. THE BETA FORM NOW USES YOUR REAL DISCORD ID SO APPROVALS AND ROLE GRANTS DO NOT TURN INTO A SCAVENGER HUNT.\n\n` +
         `NOTE: I DO NOT CUSTODY FUNDS. I PURELY LEVEL THE PLAYING FIELD.\n\n` +
         `SYNC YOUR DEGEN ID?`
       )
@@ -316,6 +322,11 @@ export async function sendWelcomeDM(user: User): Promise<boolean> {
       .setLabel('FINISH SETUP')
       .setStyle(ButtonStyle.Link)
       .setURL(getWebsiteOnboardingUrl());
+
+    const betaBtn = new ButtonBuilder()
+      .setLabel('APPLY FOR BETA')
+      .setStyle(ButtonStyle.Link)
+      .setURL(getBetaTesterUrl());
 
     const learnMoreBtn = new ButtonBuilder()
       .setCustomId('onboard_learn')
@@ -328,7 +339,7 @@ export async function sendWelcomeDM(user: User): Promise<boolean> {
       .setStyle(ButtonStyle.Secondary);
 
     const row = new ActionRowBuilder<ButtonBuilder>()
-      .addComponents(getStartedBtn, learnMoreBtn, maybeLaterBtn);
+      .addComponents(getStartedBtn, betaBtn, learnMoreBtn, maybeLaterBtn);
 
     await dmChannel.send({ embeds: [welcomeEmbed], components: [row] });
     return true;
