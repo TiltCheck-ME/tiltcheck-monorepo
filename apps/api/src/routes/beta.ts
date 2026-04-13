@@ -39,13 +39,10 @@ function parseList(raw: unknown): string[] {
     .slice(0, 20);
 }
 
-function parseCommaSeparatedList(raw: unknown): string[] {
-  if (typeof raw !== 'string') return [];
-  return raw
-    .split(',')
-    .map((value) => value.trim())
-    .filter((value) => value.length > 0)
-    .slice(0, 20);
+function parseCasinosString(raw: unknown): string[] {
+  if (Array.isArray(raw)) return parseList(raw);
+  if (typeof raw !== 'string' || !raw.trim()) return [];
+  return raw.split(/[,;]+/).map((v) => v.trim()).filter((v) => v.length > 0).slice(0, 20);
 }
 
 /**
@@ -76,7 +73,7 @@ router.post('/signup', async (req, res) => {
   const discordId = authResult.session.discordId;
   const discordUsername = authResult.session.discordUsername?.trim() || discordId;
   const stableEmail = `${discordId}@discord.tiltcheck.placeholder`;
-  const casinoList = parseCommaSeparatedList(casinos);
+  const casinoList = parseCasinosString(casinos);
   const requestedTools = parseList(aspects);
   const reviewerNotes = [
     typeof setup === 'string' && setup.trim() ? `Setup: ${setup.trim()}` : '',

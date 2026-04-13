@@ -32,7 +32,7 @@ export default function BetaTesterPage() {
       const res = await fetch(`${apiUrl}/beta/signup`, {
         method: 'POST',
         credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
         body: JSON.stringify({
           casinos: data.get('casinos') as string,
           style: data.get('style') as string,

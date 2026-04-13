@@ -35,8 +35,10 @@ if (process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY) {
 // In-memory cache for fast reads
 const onboardedUsers = new Set<string>();
 const userPreferences = new Map<string, UserPreferences>();
-const HUB_BASE_URL = process.env.DASHBOARD_URL || 'https://hub.tiltcheck.me';
+const BACKEND_URL = process.env.BACKEND_URL || 'https://api.tiltcheck.me';
 const SITE_URL = process.env.SITE_URL || 'https://tiltcheck.me';
+const DASHBOARD_URL = process.env.DASHBOARD_URL || 'https://hub.tiltcheck.me';
+const DISCORD_INVITE_URL = process.env.DISCORD_INVITE_URL || 'https://discord.gg/gdBsEJfCar';
 
 interface UserPreferences {
   userId: string;
@@ -223,7 +225,12 @@ export async function isUserOnboarded(userId: string): Promise<boolean> {
 }
 
 export function getWebsiteOnboardingUrl(): string {
-  return `${HUB_BASE_URL}/auth/discord?redirect=${encodeURIComponent('/onboarding?source=discord-bot')}`;
+  const redirect = encodeURIComponent(`${DASHBOARD_URL}/onboarding`);
+  return `${BACKEND_URL}/auth/discord/login?source=discord-bot&redirect=${redirect}`;
+}
+
+export function getDashboardUrl(): string {
+  return DASHBOARD_URL;
 }
 
 export function getBetaTesterUrl(): string {
@@ -304,7 +311,8 @@ export async function sendWelcomeDM(user: User): Promise<boolean> {
     const welcomeEmbed = new EmbedBuilder()
       .setColor(0x22d3a6)
       .setDescription(
-        `USER IDENTIFIED: **${user.username}**. I AM TILTCHECK. I AM THE RELUCTANT BABYSITTER FOR YOUR BANKROLL.\n\n` +
+        `USER IDENTIFIED: **${user.username}**.\n\n` +
+        `I AM TILTCHECK. I AUDIT CASINOS, SCAN SCAM LINKS, AND PULL THE BRAKE BEFORE YOU GIVE BACK A WIN.\n\n` +
         `I AM MONITORING THE ARENA FOR:\n` +
         `- MALICIOUS REDIRECTS (SCAM SCANNER)\n` +
         `- PREDATORY HOUSE DRIFT (FAIRNESS)\n` +
@@ -318,8 +326,9 @@ export async function sendWelcomeDM(user: User): Promise<boolean> {
       .setThumbnail('https://tiltcheck.me/assets/logo/favicon-white.svg')
       .setFooter({ text: 'Made for Degens. By Degens.' });
 
-    const getStartedBtn = new ButtonBuilder()
-      .setLabel('FINISH SETUP')
+    // Primary: link/login via Discord OAuth
+    const linkAccountBtn = new ButtonBuilder()
+      .setLabel('LINK ACCOUNT')
       .setStyle(ButtonStyle.Link)
       .setURL(getWebsiteOnboardingUrl());
 
@@ -328,18 +337,20 @@ export async function sendWelcomeDM(user: User): Promise<boolean> {
       .setStyle(ButtonStyle.Link)
       .setURL(getBetaTesterUrl());
 
-    const learnMoreBtn = new ButtonBuilder()
-      .setCustomId('onboard_learn')
-      .setLabel('Learn More')
-      .setStyle(ButtonStyle.Secondary);
+    // Link to the Discord server so users can navigate back from the DM
+    const joinServerBtn = new ButtonBuilder()
+      .setLabel('JOIN SERVER')
+      .setStyle(ButtonStyle.Link)
+      .setURL(DISCORD_INVITE_URL);
 
     const maybeLaterBtn = new ButtonBuilder()
       .setCustomId('onboard_later')
-      .setLabel('Maybe Later')
+      .setLabel('Later')
       .setStyle(ButtonStyle.Secondary);
 
+    // Discord ActionRow allows a maximum of 5 components — currently 4 buttons.
     const row = new ActionRowBuilder<ButtonBuilder>()
-      .addComponents(getStartedBtn, betaBtn, learnMoreBtn, maybeLaterBtn);
+      .addComponents(linkAccountBtn, betaBtn, joinServerBtn, maybeLaterBtn);
 
     await dmChannel.send({ embeds: [welcomeEmbed], components: [row] });
     return true;
@@ -741,6 +752,14 @@ async function handlePreferenceSelection(interaction: MessageComponentInteractio
  */
 async function completeOnboarding(interaction: MessageComponentInteraction): Promise<void> {
   const prefs = userPreferences.get(interaction.user.id);
+
+  // Mark tutorial and onboarding as complete
+  if (prefs) {
+    prefs.tutorialCompleted = true;
+    prefs.hasAcceptedTerms = true;
+    userPreferences.set(interaction.user.id, prefs);
+    await saveOnboardingToDb(interaction.user.id, prefs);
+  }
 
   markOnboarded(interaction.user.id);
 
