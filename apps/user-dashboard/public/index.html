@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-  <!-- © 2024-2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-12 -->
+  <!-- © 2024-2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-13 -->
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -150,24 +150,65 @@
               </div>
             </div>
           </div>
+
+          <div class="card-row">
+            <div class="card">
+              <h3 class="card-title">Survey Match Readiness</h3>
+              <div class="identity-hero">
+                <div id="surveyReadinessLabel" class="identity-status-pill">Loading...</div>
+                <div id="surveyReadinessScore" class="identity-readiness-score">0/5 lanes ready</div>
+                <div id="surveyReadinessSub" class="stat-sub">Turning on the right lanes builds a cleaner profile for survey routing without custody creep.</div>
+              </div>
+              <div id="surveyReadinessChecklist" class="identity-checklist">
+                <div class="activity-empty">Loading readiness...</div>
+              </div>
+            </div>
+
+            <div class="card">
+              <h3 class="card-title">Identity Controls</h3>
+              <div class="identity-controls">
+                <label class="checkbox-label">
+                  <input type="checkbox" id="identity-optin-notify" />
+                  <span>Notify me when NFT identity fingerprint opens</span>
+                </label>
+                <label class="checkbox-label">
+                  <input type="checkbox" id="identity-optin-session" />
+                  <span>Use session telemetry for survey/profile matching</span>
+                </label>
+                <label class="checkbox-label">
+                  <input type="checkbox" id="identity-optin-financial" />
+                  <span>Use financial history to avoid garbage-fit survey offers</span>
+                </label>
+                <label class="checkbox-label">
+                  <input type="checkbox" id="identity-optin-messages" />
+                  <span>Use message content signals for tighter survey/profile fit</span>
+                </label>
+              </div>
+              <div class="identity-actions">
+                <button class="btn btn-primary btn-sm" id="save-identity-settings-btn">Save Identity Settings</button>
+              </div>
+              <div id="identitySettingsStatus" class="form-msg"></div>
+            </div>
+          </div>
         </section>
 
         <!-- TAB: ANALYTICS -->
         <section id="analytics-tab" class="tab-section">
           <div class="section-header"><h1>Session Analytics</h1></div>
+          <p class="section-desc">Vaulted sessions count as secured wins. Big green sessions over your redeem line show up as redeem windows until you actually lock the profit.</p>
 
           <div class="stats-grid-4">
             <div class="stat-card">
-              <div class="stat-label">NET P/L (7 DAYS)</div>
-              <div id="weeklyPL" class="stat-value">$0.00</div>
+              <div class="stat-label">SECURED (7 DAYS)</div>
+              <div id="securedAmount" class="stat-value stat-primary">$0.00</div>
             </div>
             <div class="stat-card">
-              <div class="stat-label">WIN RATE</div>
-              <div id="winRate" class="stat-value">--%</div>
+              <div class="stat-label">SECURED WINS</div>
+              <div id="securedWins" class="stat-value">0</div>
             </div>
             <div class="stat-card">
-              <div class="stat-label">AVG SESSION</div>
-              <div id="avgSession" class="stat-value">--m</div>
+              <div class="stat-label">REDEEM WINDOWS</div>
+              <div id="redeemWindowCount" class="stat-value">0</div>
             </div>
             <div class="stat-card">
               <div class="stat-label">RTP DRIFT</div>
@@ -177,7 +218,7 @@
 
           <div class="card-row">
             <div class="card card-wide">
-              <h3 class="card-title">Session P/L (Last 7)</h3>
+              <h3 class="card-title">Redeem-to-Win Sessions</h3>
               <div id="plChart" class="chart-area">
                 <div class="chart-placeholder">No session data yet. Install the Chrome extension to track sessions.</div>
               </div>
@@ -261,7 +302,7 @@
         <!-- TAB: BUDDIES -->
         <section id="buddies-tab" class="tab-section">
           <div class="section-header"><h1>Buddy System</h1></div>
-          <p class="section-desc">Accountability network. They get pinged when you tilt. You get pinged when they do.</p>
+          <p class="section-desc">Accountability network. Support-only check-ins when risk spikes. No balance, win, or wallet details get shared either way.</p>
 
           <div class="card-row">
             <div class="card">
@@ -298,6 +339,32 @@
           <p class="section-desc">Track daily bonus cooldowns. Get alerted when you can claim. Know when the casino nerfs you.</p>
 
           <div id="bonus-nerf-alerts" class="nerf-alerts" style="display:none;"></div>
+
+          <div class="stats-grid-4">
+            <div class="stat-card">
+              <div class="stat-label">READY NOW</div>
+              <div id="bonusReadyNow" class="stat-value stat-primary">0</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-label">ACTIVE TRACKED</div>
+              <div id="bonusActiveTracked" class="stat-value">0</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-label">CLAIMS LOGGED</div>
+              <div id="bonusClaimsLogged" class="stat-value">0</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-label">RECENT NERFS</div>
+              <div id="bonusNerfCount" class="stat-value">0</div>
+            </div>
+          </div>
+
+          <div class="card" style="margin-bottom:1.5rem;">
+            <h3 class="card-title">Claim Rhythm</h3>
+            <div id="bonusHistoryChart" class="chart-area">
+              <div class="chart-placeholder">No bonus history yet.</div>
+            </div>
+          </div>
 
           <div id="bonusList" class="bonus-grid">
             <div class="activity-empty">No bonuses tracked. Join a casino via the Discord bot to start tracking.</div>
