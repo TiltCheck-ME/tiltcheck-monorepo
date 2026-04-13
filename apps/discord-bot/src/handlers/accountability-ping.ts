@@ -1,9 +1,9 @@
-/* Copyright (c) 2026 TiltCheck. All rights reserved. */
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-12
 /**
  * Accountability Ping Handler
  *
  * Monitors tilt.detected events and triggers:
- * 1. Direct message to accountability buddy (with alert)
+ * 1. Direct message to accountability buddy (support-only alert)
  * 2. Post to degen accountability voice chat channel
  * 3. Broadcast to Discord Activity (real-time meter)
  *
@@ -128,27 +128,17 @@ async function notifyBuddy(
         }
       );
 
-    // Add optional session metrics if available
+    // Keep the alert focused on support actions, not bankroll context.
     if (tiltData.sessionMetrics) {
       embed.addFields(
-        {
-          name: 'Session P&L',
-          value: formatMoney(tiltData.sessionMetrics.pnl),
-          inline: true,
-        },
         {
           name: 'Time in Session',
           value: formatTime(tiltData.sessionMetrics.timeInSession),
           inline: true,
         },
         {
-          name: 'Current Streak',
-          value: `${tiltData.sessionMetrics.currentStreak.wins}W-${tiltData.sessionMetrics.currentStreak.losses}L`,
-          inline: true,
-        },
-        {
-          name: 'RTP',
-          value: `${tiltData.sessionMetrics.rtp.toFixed(2)}%`,
+          name: 'Tilt Pattern',
+          value: 'Risk spike detected. TiltCheck intentionally hides balance and win data from buddies.',
           inline: true,
         }
       );
@@ -157,7 +147,12 @@ async function notifyBuddy(
     embed.addFields(
         {
           name: 'Recommended Actions',
-          value: '1. Suggest a 15-minute pause\n2. Offer to chat in voice\n3. Remind of tilt spiral risk',
+          value: '1. Suggest a 15-minute pause\n2. Offer to chat in voice\n3. Tell them to cash out or log off\n4. Keep the check-in off money',
+          inline: false,
+        },
+        {
+          name: 'Hard Rule',
+          value: 'Do not ask for loans, tips, transfers, bankroll screenshots, or wallet help after an alert.',
           inline: false,
         }
       )
@@ -168,7 +163,7 @@ async function notifyBuddy(
     const dm = await buddy.createDM();
     await dm.send({
       embeds: [embed],
-      content: `<@${buddyDiscordId}>, ${userName} needs your accountability support right now.`,
+      content: `<@${buddyDiscordId}>, ${userName} needs your accountability support right now. Support only — no money asks.`,
     });
 
     console.log(
@@ -219,27 +214,17 @@ async function postToAccountabilityChannel(
           }
         );
 
-      // Add optional session metrics if available
+      // Keep public accountability posts free of bankroll details.
       if (tiltData.sessionMetrics) {
         embed.addFields(
-          {
-            name: 'Session P&L',
-            value: formatMoney(tiltData.sessionMetrics.pnl),
-            inline: true,
-          },
           {
             name: 'Time in Session',
             value: formatTime(tiltData.sessionMetrics.timeInSession),
             inline: true,
           },
           {
-            name: 'Streak',
-            value: `${tiltData.sessionMetrics.currentStreak.wins}W-${tiltData.sessionMetrics.currentStreak.losses}L`,
-            inline: true,
-          },
-          {
-            name: 'RTP',
-            value: `${tiltData.sessionMetrics.rtp.toFixed(2)}%`,
+            name: 'Alert Scope',
+            value: 'Support only. No balance, winnings, wallet details, or transfer bait.',
             inline: true,
           }
         );
@@ -249,6 +234,11 @@ async function postToAccountabilityChannel(
         {
           name: 'Escape Routes',
           value: '1. PAUSE 15 minutes\n2. CALL BUDDY\n3. END SESSION',
+          inline: false,
+        },
+        {
+          name: 'Support Rules',
+          value: 'Keep replies on pause, cash-out, water, and voice support. No money asks. No tip asks. No wallet talk.',
           inline: false,
         },
         {
@@ -294,14 +284,6 @@ function getTriggerDescription(trigger: string): string {
     behavior: 'Detected escalating bet patterns',
   };
   return descriptions[trigger] || trigger;
-}
-
-/**
- * Format currency for display
- */
-function formatMoney(amount: number): string {
-  const sign = amount >= 0 ? '+' : '';
-  return `${sign}$${Math.abs(amount).toFixed(2)}`;
 }
 
 /**
