@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-09 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-13 */
 /**
  * Beta Routes - /beta/*
  * Handles data contributor signups from tiltcheck.me/beta-tester
@@ -27,13 +27,32 @@ function parseList(raw: unknown): string[] {
     .slice(0, 20);
 }
 
+function parseCasinosString(raw: unknown): string[] {
+  if (Array.isArray(raw)) return parseList(raw);
+  if (typeof raw !== 'string' || !raw.trim()) return [];
+  return raw.split(/[,;]+/).map((v) => v.trim()).filter((v) => v.length > 0).slice(0, 20);
+}
+
 /**
  * POST /beta/signup
  * Data contributor signup — deduped by discord_username.
  */
 router.post('/signup', async (req, res) => {
-  const { discord_username, casinos, play_frequency, verify_types, experience, website } =
-    req.body ?? {};
+  // Accept both the current form field names and legacy names
+  const {
+    discord_username,
+    website,
+    // Current form fields
+    experience_level,
+    interests,
+    referral_source,
+    feedback_preference,
+    casinos,
+    // Legacy field names (kept for backward compat)
+    play_frequency,
+    verify_types,
+    experience,
+  } = req.body ?? {};
 
   // Honeypot
   if (website) {
@@ -47,14 +66,31 @@ router.post('/signup', async (req, res) => {
     return;
   }
 
-  // Map new fields onto existing DB schema columns
+  // Resolve with form fields taking precedence over legacy names
+  const resolvedExperienceLevel = experience_level ?? play_frequency;
+  const resolvedInterests = interests ?? verify_types;
+  const resolvedReferralSource = referral_source ?? experience;
+
   const row: BetaSignupRow = {
     email: `${cleanDiscord.toLowerCase().replace(/[^a-z0-9]/g, '')}@discord.tiltcheck.placeholder`,
     discord_username: cleanDiscord,
-    interests: parseList(casinos),                          // casinos they actively play
-    experience_level: typeof play_frequency === 'string' ? play_frequency.trim() : null,
-    feedback_preference: parseList(verify_types).join(', ') || null, // what they'll verify
-    referral_source: typeof experience === 'string' ? experience.trim().slice(0, 500) : 'direct',
+    // Aspects to test (checkboxes) — stored as array
+    interests: parseList(resolvedInterests),
+    // Tester type (breaker / validator / skeptic / newbie) or play frequency
+    experience_level: typeof resolvedExperienceLevel === 'string' ? resolvedExperienceLevel.trim() : null,
+    // Free-text trust answer or comma-separated verify types
+    feedback_preference: typeof feedback_preference === 'string'
+      ? feedback_preference.trim().slice(0, 1000)
+      : (parseList(resolvedInterests).join(', ') || null),
+    // Browser setup (chrome / firefox / mobile) or prior experience text
+    // Casinos they play are appended so they're not silently dropped
+    referral_source: (() => {
+      const setup = typeof resolvedReferralSource === 'string' ? resolvedReferralSource.trim() : '';
+      const casinoList = parseCasinosString(casinos).join(', ');
+      if (setup && casinoList) return `${setup} | plays: ${casinoList}`.slice(0, 500);
+      if (casinoList) return `plays: ${casinoList}`.slice(0, 500);
+      return setup || 'direct';
+    })(),
     created_at: new Date(),
   };
 
