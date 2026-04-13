@@ -38,6 +38,7 @@ const userPreferences = new Map<string, UserPreferences>();
 const BACKEND_URL = process.env.BACKEND_URL || 'https://api.tiltcheck.me';
 const SITE_URL = process.env.SITE_URL || 'https://tiltcheck.me';
 const DASHBOARD_URL = process.env.DASHBOARD_URL || 'https://hub.tiltcheck.me';
+const DISCORD_INVITE_URL = process.env.DISCORD_INVITE_URL || 'https://discord.gg/gdBsEJfCar';
 
 interface UserPreferences {
   userId: string;
@@ -331,6 +332,12 @@ export async function sendWelcomeDM(user: User): Promise<boolean> {
       .setStyle(ButtonStyle.Link)
       .setURL(getWebsiteOnboardingUrl());
 
+    // Link to the Discord server so users can navigate back from the DM
+    const joinServerBtn = new ButtonBuilder()
+      .setLabel('JOIN SERVER')
+      .setStyle(ButtonStyle.Link)
+      .setURL(DISCORD_INVITE_URL);
+
     // Secondary: run in-Discord calibration quiz without needing an account
     const calibrateBtn = new ButtonBuilder()
       .setCustomId('onboard_start')
@@ -342,8 +349,9 @@ export async function sendWelcomeDM(user: User): Promise<boolean> {
       .setLabel('Later')
       .setStyle(ButtonStyle.Secondary);
 
+    // Discord ActionRow allows a maximum of 5 components — currently 4 buttons.
     const row = new ActionRowBuilder<ButtonBuilder>()
-      .addComponents(linkAccountBtn, calibrateBtn, maybeLaterBtn);
+      .addComponents(linkAccountBtn, joinServerBtn, calibrateBtn, maybeLaterBtn);
 
     await dmChannel.send({ embeds: [welcomeEmbed], components: [row] });
     return true;
