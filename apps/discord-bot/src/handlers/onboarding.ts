@@ -35,7 +35,8 @@ if (process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY) {
 // In-memory cache for fast reads
 const onboardedUsers = new Set<string>();
 const userPreferences = new Map<string, UserPreferences>();
-const HUB_BASE_URL = process.env.DASHBOARD_URL || 'https://hub.tiltcheck.me';
+const BACKEND_URL = process.env.BACKEND_URL || 'https://api.tiltcheck.me';
+const SITE_URL = process.env.SITE_URL || 'https://tiltcheck.me';
 
 interface UserPreferences {
   userId: string;
@@ -222,7 +223,16 @@ export async function isUserOnboarded(userId: string): Promise<boolean> {
 }
 
 export function getWebsiteOnboardingUrl(): string {
-  return `${HUB_BASE_URL}/auth/discord?redirect=${encodeURIComponent('/onboarding?source=discord-bot')}`;
+  const redirect = encodeURIComponent('/dashboard');
+  return `${BACKEND_URL}/auth/discord/login?source=discord-bot&redirect=${redirect}`;
+}
+
+export function getDashboardUrl(): string {
+  return `${SITE_URL}/dashboard`;
+}
+
+export function getBetaTesterUrl(): string {
+  return `${SITE_URL}/beta-tester`;
 }
 
 /**
