@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-10 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-13 */
 "use client";
 
 import React, { useState } from 'react';
@@ -19,7 +19,7 @@ export default function BetaTesterPage() {
     try {
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || '/api'}/beta/signup`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
         body: JSON.stringify({
           discord_username: data.get('discord') as string,
           experience_level: data.get('style') as string,
