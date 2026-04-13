@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-12
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-13
 import { SlashCommandBuilder, ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
 import type { Command } from '../types.js';
 
@@ -34,7 +34,8 @@ export function buildHelpEmbed(): EmbedBuilder {
     {
       name: 'Activities',
       value:
-        '`/play game:<trivia|poker|slots|blackjack>` — Launch a Discord activity',
+        '`/play game:<trivia|slots|blackjack>` — Launch a live Discord activity\n' +
+        '`/play game:poker` — Shows poker launch-gate status while cross-server handoff work finishes',
       inline: false,
     },
     {

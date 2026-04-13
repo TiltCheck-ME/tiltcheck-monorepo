@@ -182,6 +182,10 @@ export class TiltDetector {
     }
   }
 
+  setRedeemThreshold(redeemThreshold: number | null): void {
+    this.redeemThreshold = redeemThreshold && redeemThreshold > 0 ? redeemThreshold : null;
+  }
+
   /**
    * Record a click event (for erratic clicking detection)
    */

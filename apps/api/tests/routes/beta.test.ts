@@ -4,10 +4,15 @@ import request from 'supertest';
 import express from 'express';
 import { betaRouter } from '../../src/routes/beta.js';
 import * as db from '@tiltcheck/db';
+import { verifySessionCookie } from '@tiltcheck/auth';
 
 vi.mock('@tiltcheck/db', () => ({
   findOneBy: vi.fn(),
   insert: vi.fn(),
+}));
+
+vi.mock('@tiltcheck/auth', () => ({
+  verifySessionCookie: vi.fn(),
 }));
 
 const app = express();
@@ -17,12 +22,18 @@ app.use('/beta', betaRouter);
 describe('Beta Routes', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.mocked(verifySessionCookie).mockResolvedValue({
+      valid: true,
+      session: {
+        discordId: '1234567890',
+        discordUsername: 'demo-user',
+      },
+    } as never);
   });
 
   describe('POST /beta/signup', () => {
     it('returns 400 for honeypot submissions', async () => {
       const response = await request(app).post('/beta/signup').send({
-        email: 'test@example.com',
         website: 'https://spam.example',
       });
 
@@ -30,20 +41,20 @@ describe('Beta Routes', () => {
       expect(response.body.error).toBe('Bot detected');
     });
 
-    it('returns 400 for invalid email', async () => {
-      const response = await request(app).post('/beta/signup').send({
-        email: 'not-an-email',
-      });
+    it('returns 401 when Discord is not linked', async () => {
+      vi.mocked(verifySessionCookie).mockResolvedValueOnce({ valid: false } as never);
 
-      expect(response.status).toBe(400);
-      expect(response.body.error).toBe('Invalid email address');
+      const response = await request(app).post('/beta/signup').send({});
+
+      expect(response.status).toBe(401);
+      expect(response.body.error).toBe('Link Discord before applying');
     });
 
-    it('returns duplicate success if email already exists', async () => {
-      vi.mocked(db.findOneBy).mockResolvedValueOnce({ email: 'test@example.com' } as never);
+    it('returns duplicate success if Discord identity already exists', async () => {
+      vi.mocked(db.findOneBy).mockResolvedValueOnce({ email: '1234567890@discord.tiltcheck.placeholder' } as never);
 
       const response = await request(app).post('/beta/signup').send({
-        email: 'test@example.com',
+        casinos: 'Stake, Roobet',
       });
 
       expect(response.status).toBe(200);
@@ -57,27 +68,26 @@ describe('Beta Routes', () => {
       vi.mocked(db.insert).mockResolvedValueOnce({ id: '1' } as never);
 
       const response = await request(app).post('/beta/signup').send({
-        email: '  NEW@Example.com  ',
-        discord_username: '  demo#1234 ',
-        interests: ['extension', 'tilt-detection', '', 42],
-        experience_level: 'experienced',
-        feedback_preference: 'discord',
-        referral_source: 'campaign-abc',
+        casinos: 'Stake, Roobet,  Pulsz ',
+        style: 'breaker',
+        aspects: ['delta', 'bot'],
+        setup: 'chrome',
+        proof: 'The data has to match what I see in session.',
       });
 
       expect(response.status).toBe(200);
       expect(response.body.success).toBe(true);
       expect(response.body.message).toBe('Signed up successfully');
-      expect(db.findOneBy).toHaveBeenCalledWith('beta_signups', 'email', 'new@example.com');
+      expect(db.findOneBy).toHaveBeenCalledWith('beta_signups', 'email', '1234567890@discord.tiltcheck.placeholder');
       expect(db.insert).toHaveBeenCalledWith(
         'beta_signups',
         expect.objectContaining({
-          email: 'new@example.com',
-          discord_username: 'demo#1234',
-          interests: ['extension', 'tilt-detection'],
-          experience_level: 'experienced',
-          feedback_preference: 'discord',
-          referral_source: 'campaign-abc',
+          email: '1234567890@discord.tiltcheck.placeholder',
+          discord_username: 'demo-user',
+          interests: ['Stake', 'Roobet', 'Pulsz'],
+          experience_level: 'breaker',
+          feedback_preference: 'delta, bot',
+          referral_source: 'Setup: chrome\nTrust requirement: The data has to match what I see in session.',
           created_at: expect.any(Date),
         }),
       );
@@ -87,9 +97,7 @@ describe('Beta Routes', () => {
       vi.mocked(db.findOneBy).mockResolvedValueOnce(null as never);
       vi.mocked(db.insert).mockRejectedValueOnce({ code: '23505' } as never);
 
-      const response = await request(app).post('/beta/signup').send({
-        email: 'new@example.com',
-      });
+      const response = await request(app).post('/beta/signup').send({});
 
       expect(response.status).toBe(200);
       expect(response.body.success).toBe(true);

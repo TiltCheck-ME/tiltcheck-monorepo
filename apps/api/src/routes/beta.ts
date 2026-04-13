@@ -5,7 +5,10 @@
  */
 
 import { Router } from 'express';
+import { verifySessionCookie } from '@tiltcheck/auth';
 import { findOneBy, insert } from '@tiltcheck/db';
+import { z } from 'zod';
+import { getJWTConfig } from '../middleware/auth.js';
 
 const router = Router();
 
@@ -18,6 +21,15 @@ type BetaSignupRow = {
   referral_source: string | null;
   created_at?: Date;
 };
+
+const betaSignupSchema = z.object({
+  casinos: z.string().optional(),
+  style: z.string().optional(),
+  aspects: z.array(z.string()).optional(),
+  setup: z.string().optional(),
+  proof: z.string().optional(),
+  website: z.string().optional(),
+});
 
 function parseList(raw: unknown): string[] {
   if (!Array.isArray(raw)) return [];
@@ -35,24 +47,16 @@ function parseCasinosString(raw: unknown): string[] {
 
 /**
  * POST /beta/signup
- * Data contributor signup — deduped by discord_username.
+ * Linked beta signup — deduped by authenticated Discord identity.
  */
 router.post('/signup', async (req, res) => {
-  // Accept both the current form field names and legacy names
-  const {
-    discord_username,
-    website,
-    // Current form fields
-    experience_level,
-    interests,
-    referral_source,
-    feedback_preference,
-    casinos,
-    // Legacy field names (kept for backward compat)
-    play_frequency,
-    verify_types,
-    experience,
-  } = req.body ?? {};
+  const parsedBody = betaSignupSchema.safeParse(req.body ?? {});
+  if (!parsedBody.success) {
+    res.status(400).json({ success: false, error: 'Invalid beta application payload' });
+    return;
+  }
+
+  const { casinos, style, aspects, setup, proof, website } = parsedBody.data;
 
   // Honeypot
   if (website) {
@@ -60,42 +64,38 @@ router.post('/signup', async (req, res) => {
     return;
   }
 
-  const cleanDiscord = typeof discord_username === 'string' ? discord_username.trim() : '';
-  if (!cleanDiscord) {
-    res.status(400).json({ success: false, error: 'Discord username required' });
+  const authResult = await verifySessionCookie(req.headers.cookie, getJWTConfig());
+  if (!authResult.valid || !authResult.session?.discordId) {
+    res.status(401).json({ success: false, error: 'Link Discord before applying', code: 'DISCORD_LINK_REQUIRED' });
     return;
   }
 
-  // Resolve with form fields taking precedence over legacy names
-  const resolvedExperienceLevel = experience_level ?? play_frequency;
-  const resolvedInterests = interests ?? verify_types;
-  const resolvedReferralSource = referral_source ?? experience;
+  const discordId = authResult.session.discordId;
+  const discordUsername = authResult.session.discordUsername?.trim() || discordId;
+  const stableEmail = `${discordId}@discord.tiltcheck.placeholder`;
+  const casinoList = parseCasinosString(casinos);
+  const requestedTools = parseList(aspects);
+  const reviewerNotes = [
+    typeof setup === 'string' && setup.trim() ? `Setup: ${setup.trim()}` : '',
+    typeof proof === 'string' && proof.trim() ? `Trust requirement: ${proof.trim()}` : '',
+  ]
+    .filter(Boolean)
+    .join('\n')
+    .slice(0, 500);
 
+  // Map new fields onto existing DB schema columns
   const row: BetaSignupRow = {
-    email: `${cleanDiscord.toLowerCase().replace(/[^a-z0-9]/g, '')}@discord.tiltcheck.placeholder`,
-    discord_username: cleanDiscord,
-    // Aspects to test (checkboxes) — stored as array
-    interests: parseList(resolvedInterests),
-    // Tester type (breaker / validator / skeptic / newbie) or play frequency
-    experience_level: typeof resolvedExperienceLevel === 'string' ? resolvedExperienceLevel.trim() : null,
-    // Free-text trust answer or comma-separated verify types
-    feedback_preference: typeof feedback_preference === 'string'
-      ? feedback_preference.trim().slice(0, 1000)
-      : (parseList(resolvedInterests).join(', ') || null),
-    // Browser setup (chrome / firefox / mobile) or prior experience text
-    // Casinos they play are appended so they're not silently dropped
-    referral_source: (() => {
-      const setup = typeof resolvedReferralSource === 'string' ? resolvedReferralSource.trim() : '';
-      const casinoList = parseCasinosString(casinos).join(', ');
-      if (setup && casinoList) return `${setup} | plays: ${casinoList}`.slice(0, 500);
-      if (casinoList) return `plays: ${casinoList}`.slice(0, 500);
-      return setup || 'direct';
-    })(),
+    email: stableEmail,
+    discord_username: discordUsername,
+    interests: casinoList,
+    experience_level: typeof style === 'string' ? style.trim() : null,
+    feedback_preference: requestedTools.join(', ') || null,
+    referral_source: reviewerNotes || 'direct',
     created_at: new Date(),
   };
 
   try {
-    const existing = await findOneBy('beta_signups', 'discord_username', cleanDiscord);
+    const existing = await findOneBy('beta_signups', 'email', stableEmail);
     if (existing) {
       res.json({ success: true, duplicate: true, message: 'Already signed up' });
       return;
@@ -115,10 +115,11 @@ router.post('/signup', async (req, res) => {
             color: 0x17c3b2,
             fields: [
               { name: 'Discord', value: row.discord_username || 'Unknown', inline: true },
-              { name: 'Plays Frequency', value: row.experience_level || 'Not specified', inline: true },
+              { name: 'Discord ID', value: discordId, inline: true },
+              { name: 'Tester Type', value: row.experience_level || 'Not specified', inline: true },
               { name: 'Casinos', value: (row.interests || []).join(', ') || 'None listed', inline: false },
-              { name: 'Will Verify', value: row.feedback_preference || 'Not specified', inline: false },
-              { name: 'Their Experience', value: (row.referral_source || '').slice(0, 200) || 'None', inline: false },
+              { name: 'Wants to Test', value: row.feedback_preference || 'Not specified', inline: false },
+              { name: 'Notes', value: (row.referral_source || '').slice(0, 200) || 'None', inline: false },
             ],
             footer: { text: 'From tiltcheck.me/beta-tester' },
             timestamp: new Date().toISOString(),

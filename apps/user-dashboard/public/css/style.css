@@ -1,7 +1,7 @@
 /**
  * © 2024–2026 TiltCheck Ecosystem. All Rights Reserved.
  * Created by jmenichole (https://github.com/jmenichole)
- * Last Updated: 2026-04-10
+ * Last Updated: 2026-04-13
  * 
  * This file is part of the TiltCheck project.
  * For licensing information, see LICENSE file in the project root.
@@ -790,6 +790,125 @@ header {
 .stat-mini-label { font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; }
 .stat-mini-val { font-family: var(--font-mono); font-size: 0.85rem; font-weight: 600; color: var(--color-primary); }
 
+.identity-hero {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid var(--border-subtle);
+    border-radius: 10px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+}
+
+.identity-status-pill {
+    display: inline-flex;
+    align-items: center;
+    border-radius: 999px;
+    padding: 0.35rem 0.75rem;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    background: rgba(255,255,255,0.06);
+    color: var(--text-secondary);
+    margin-bottom: 0.65rem;
+}
+
+.identity-status-pill.ready {
+    background: rgba(34, 211, 166, 0.15);
+    color: var(--color-primary);
+    border: 1px solid rgba(34, 211, 166, 0.25);
+}
+
+.identity-status-pill.partial {
+    background: rgba(251, 191, 36, 0.15);
+    color: #fbbf24;
+    border: 1px solid rgba(251, 191, 36, 0.25);
+}
+
+.identity-status-pill.blocked {
+    background: rgba(255, 68, 68, 0.12);
+    color: #ff6b6b;
+    border: 1px solid rgba(255, 68, 68, 0.22);
+}
+
+.identity-readiness-score {
+    font-family: var(--font-display);
+    font-size: 1.35rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 0.35rem;
+}
+
+.identity-checklist {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+}
+
+.identity-check-item {
+    display: flex;
+    gap: 0.75rem;
+    align-items: flex-start;
+    padding: 0.75rem;
+    border: 1px solid var(--border-subtle);
+    border-radius: 8px;
+    background: rgba(255,255,255,0.02);
+}
+
+.identity-check-icon {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8rem;
+    font-weight: 700;
+    flex-shrink: 0;
+    background: rgba(255,255,255,0.08);
+    color: var(--text-muted);
+}
+
+.identity-check-item.ready .identity-check-icon {
+    background: rgba(34, 211, 166, 0.15);
+    color: var(--color-primary);
+}
+
+.identity-check-item.blocked .identity-check-icon {
+    background: rgba(255, 68, 68, 0.12);
+    color: #ff6b6b;
+}
+
+.identity-check-copy {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    min-width: 0;
+}
+
+.identity-check-title {
+    font-size: 0.84rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.identity-check-desc {
+    font-size: 0.76rem;
+    color: var(--text-muted);
+    line-height: 1.45;
+}
+
+.identity-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+}
+
+.identity-actions {
+    margin-top: 1rem;
+    display: flex;
+    justify-content: flex-start;
+}
+
 /* ============================================================
    VAULT
    ============================================================ */
@@ -1002,6 +1121,21 @@ header {
 .bonus-cooldown { font-size: 0.75rem; color: var(--text-muted); font-family: var(--font-mono); }
 .bonus-cooldown.ready { color: var(--color-primary); font-weight: 600; }
 
+.bonus-claim-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: 0.74rem;
+    color: var(--text-muted);
+}
+
+.bonus-claim-row strong {
+    color: var(--text-secondary);
+    font-family: var(--font-mono);
+    font-weight: 600;
+}
+
 /* ============================================================
    ACTIVITY FEED
    ============================================================ */
@@ -1033,9 +1167,18 @@ header {
 .activity-type-tip { background: rgba(139, 92, 246, 0.15); color: #8b5cf6; }
 .activity-type-vault { background: rgba(34, 211, 166, 0.12); color: var(--color-primary); }
 .activity-type-bonus { background: rgba(251, 191, 36, 0.15); color: #fbbf24; }
+.activity-type-secured_win { background: rgba(16, 185, 129, 0.15); color: #10b981; }
+.activity-type-redeem_window { background: rgba(251, 191, 36, 0.15); color: #fbbf24; }
+.activity-type-up_session { background: rgba(34, 211, 166, 0.12); color: var(--color-primary); }
+.activity-type-down_session { background: rgba(255, 68, 68, 0.16); color: var(--color-danger); }
+.activity-type-flat_session { background: rgba(196, 206, 216, 0.12); color: var(--text-secondary); }
 
 .activity-desc { flex: 1; color: var(--text-secondary); }
 .activity-time { font-size: 0.7rem; color: var(--text-muted); flex-shrink: 0; }
+.activity-item-secured_win { border-left-color: #10b981; background: rgba(16, 185, 129, 0.08); }
+.activity-item-redeem_window { border-left-color: #fbbf24; background: rgba(251, 191, 36, 0.08); }
+.activity-item-down_session { border-left-color: var(--color-danger); background: rgba(255, 68, 68, 0.08); }
+.activity-item-flat_session { border-left-color: var(--text-muted); }
 
 /* ============================================================
    AI AGENT
@@ -1144,6 +1287,203 @@ header {
 .chart-bar:hover { opacity: 0.8; }
 .chart-bar.positive { background: var(--color-primary); }
 .chart-bar.negative { background: var(--color-danger); }
+
+.chart-area.chart-stack {
+    height: auto;
+    min-height: 220px;
+    align-items: stretch;
+    justify-content: stretch;
+    padding: 1rem;
+}
+
+.chart-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    width: 100%;
+}
+
+.chart-summary-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 0.75rem;
+}
+
+.chart-summary-pill {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid var(--border-subtle);
+    border-radius: 8px;
+    padding: 0.75rem 0.9rem;
+}
+
+.chart-summary-label {
+    display: block;
+    font-size: 0.68rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 0.3rem;
+}
+
+.chart-summary-value {
+    display: block;
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.chart-shell {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(0, 1fr));
+    gap: 1rem;
+    align-items: end;
+}
+
+.chart-shell.single-column {
+    grid-template-columns: 1fr;
+}
+
+.chart-panel {
+    background: rgba(255,255,255,0.02);
+    border: 1px solid var(--border-subtle);
+    border-radius: 10px;
+    padding: 0.9rem;
+}
+
+.chart-panel-title {
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 0.85rem;
+}
+
+.chart-bars.chart-bars-tall {
+    min-height: 160px;
+}
+
+.chart-col {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.55rem;
+    flex: 1;
+    min-width: 0;
+}
+
+.chart-bar-wrap {
+    width: 100%;
+    height: 160px;
+    display: flex;
+    align-items: flex-end;
+}
+
+.chart-bar.chart-bar-soft {
+    border-radius: 8px 8px 0 0;
+}
+
+.chart-bar.chart-bar-soft.positive {
+    background: linear-gradient(180deg, rgba(34, 211, 166, 0.65) 0%, rgba(34, 211, 166, 1) 100%);
+}
+
+.chart-bar.chart-bar-soft.negative {
+    background: linear-gradient(180deg, rgba(255, 68, 68, 0.65) 0%, rgba(255, 68, 68, 1) 100%);
+}
+
+.chart-bar.chart-bar-soft.neutral {
+    background: linear-gradient(180deg, rgba(196, 206, 216, 0.4) 0%, rgba(196, 206, 216, 0.8) 100%);
+}
+
+.chart-x-label,
+.chart-y-label {
+    font-size: 0.68rem;
+    color: var(--text-muted);
+    font-family: var(--font-mono);
+}
+
+.chart-y-label {
+    text-align: center;
+}
+
+.chart-note {
+    font-size: 0.74rem;
+    color: var(--text-muted);
+    line-height: 1.5;
+}
+
+.chart-note strong {
+    color: var(--text-secondary);
+}
+
+.mini-bar-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.7rem;
+}
+
+.mini-bar-item {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(110px, 2fr) auto;
+    gap: 0.75rem;
+    align-items: center;
+}
+
+.mini-bar-label {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.mini-bar-track {
+    position: relative;
+    height: 10px;
+    border-radius: 999px;
+    background: rgba(255,255,255,0.08);
+    overflow: hidden;
+}
+
+.mini-bar-fill {
+    position: absolute;
+    inset: 0 auto 0 0;
+    border-radius: inherit;
+    min-width: 6px;
+}
+
+.mini-bar-fill.positive { background: linear-gradient(90deg, rgba(34, 211, 166, 0.45), rgba(34, 211, 166, 1)); }
+.mini-bar-fill.negative { background: linear-gradient(90deg, rgba(255, 68, 68, 0.45), rgba(255, 68, 68, 1)); }
+.mini-bar-value {
+    font-size: 0.76rem;
+    color: var(--text-muted);
+    font-family: var(--font-mono);
+}
+
+.session-feed {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+@media (max-width: 720px) {
+    .chart-area.chart-stack {
+        padding: 0.85rem;
+    }
+
+    .mini-bar-item {
+        grid-template-columns: 1fr;
+        gap: 0.4rem;
+    }
+
+    .mini-bar-value {
+        justify-self: start;
+    }
+
+    .identity-actions .btn {
+        width: 100%;
+    }
+}
 
 /* ============================================================
    WS INDICATOR

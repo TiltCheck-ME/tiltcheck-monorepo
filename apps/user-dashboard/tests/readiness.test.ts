@@ -1,6 +1,11 @@
 /* Copyright (c) 2026 TiltCheck. All rights reserved. */
 import request from 'supertest';
-import { describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+
+beforeEach(() => {
+  vi.resetModules();
+  process.env.JWT_SECRET = process.env.JWT_SECRET || 'test-jwt-secret';
+});
 
 describe('user-dashboard readiness', () => {
   it('serves health endpoint', async () => {
@@ -35,5 +40,18 @@ describe('user-dashboard readiness', () => {
     const response = await request(app).get('/api/user/123456');
     expect(response.status).toBe(401);
     expect(response.body).toMatchObject({ error: 'Access token required' });
+  });
+
+  it('still serves health when MAGIC_SECRET_KEY is missing', async () => {
+    const previousMagicSecret = process.env.MAGIC_SECRET_KEY;
+    process.env.MAGIC_SECRET_KEY = '';
+    const { app } = await import('../src/index.js');
+    const response = await request(app).get('/health');
+    expect(response.status).toBe(200);
+    if (previousMagicSecret) {
+      process.env.MAGIC_SECRET_KEY = previousMagicSecret;
+    } else {
+      delete process.env.MAGIC_SECRET_KEY;
+    }
   });
 });

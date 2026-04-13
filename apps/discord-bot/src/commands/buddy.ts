@@ -50,7 +50,7 @@ export const buddy: Command = {
         });
 
         embed.setTitle('BUDDY LINKED')
-          .setDescription(`**${targetUser.username}** is now in the loop.\n\nWhen telemetry goes red, they get the "come get your degen" ping.`)
+          .setDescription(`**${targetUser.username}** is now in the loop.\n\nWhen telemetry goes red, they get a support-only accountability ping. TiltCheck does not share your balance, wins, or wallet details.`)
           .setFooter({ text: 'Made for Degens. By Degens.' });
 
         await interaction.reply({ embeds: [embed] });
@@ -71,7 +71,7 @@ export const buddy: Command = {
         embed.setTitle('BUDDY NETWORK')
           .setDescription(
             partners.length > 0
-              ? `**Active Safety Partners (${partners.length}):**\n${partners.map(p => `- <@${p.buddy_id}>`).join('\n')}\n\nIf you spiral, these people get the ping while TiltCheck handles your DM and optional voice shove.`
+              ? `**Active Safety Partners (${partners.length}):**\n${partners.map(p => `- <@${p.buddy_id}>`).join('\n')}\n\nIf you spiral, these people get a support-only ping while TiltCheck handles your DM and optional voice shove. No balance, winnings, or wallet details get shared.`
               : 'No safety partners linked.\n\nRun `/buddy link user:@someone` and give future-you at least one witness.'
           )
           .setFooter({ text: 'Made for Degens. By Degens.' });

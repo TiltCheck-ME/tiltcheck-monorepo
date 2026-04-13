@@ -1,5 +1,5 @@
 // © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-12
-/* Copyright (c) 2026 TiltCheck. All rights reserved. */
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-12
 /**
  * TiltCheck Discord Bot
  * Main entry point for the safety and moderation bot.
@@ -105,7 +105,12 @@ async function main() {
       if (severity === 'high' || severity === 'medium') {
           const buddies = await getUserBuddies(userId);
           if (buddies && buddies.length > 0) {
-              const buddyMsg = `[BUDDY ALERT]: Your friend <@${userId}> is showing **${severity.toUpperCase()}** signs of tilt.\n\nTiltCheck Message Sent to Them:\n> ${message.substring(0, 500)}${message.length > 500 ? '...' : ''}\n\nCheck in on them. Friends don't let friends tilt-drain.`;
+              const buddyMsg = [
+                `[BUDDY ALERT]: <@${userId}> is showing **${severity.toUpperCase()}** signs of tilt.`,
+                '',
+                'Support only. Tell them to pause, cash out, drink water, or jump in voice.',
+                'Do not ask for money, tips, transfers, wallet screenshots, or bankroll details.',
+              ].join('\n');
               
               for (const buddyRel of buddies) {
                   try {

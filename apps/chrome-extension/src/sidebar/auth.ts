@@ -1,7 +1,16 @@
 /* Copyright (c) 2026 TiltCheck. All rights reserved. */
 import { getDiscordLoginUrl } from '../config.js';
-import { API_ORIGIN, DISCORD_AUTH_MESSAGE_TYPE } from './constants.js';
+import { API_BASE, API_ORIGIN, DISCORD_AUTH_MESSAGE_TYPE } from './constants.js';
 import { SidebarUI } from './types.js';
+
+interface OnboardingPreferencesResponse {
+  riskLevel?: 'conservative' | 'moderate' | 'degen';
+  preferences?: {
+    cooldownEnabled?: boolean;
+    voiceInterventionEnabled?: boolean;
+    redeemThreshold?: number;
+  };
+}
 
 export class AuthManager {
   private ui: SidebarUI;
@@ -27,6 +36,7 @@ export class AuthManager {
 
   public async applyDiscordAuthSuccess(token: string, user: Record<string, any>) {
       await this.ui.setStorage({ authToken: token, userData: user });
+      await this.syncSafetyPreferences(token);
       this.clearDiscordAuthPolling();
       this.isConnecting = false;
       this.demoMode = false;
@@ -160,6 +170,7 @@ export class AuthManager {
     if (stored?.authToken && stored?.userData) {
       this.authToken = stored.authToken;
       this.userData = stored.userData;
+      await this.syncSafetyPreferences(String(stored.authToken));
       this.isAuthenticated = true;
       this.demoMode = false;
       this.ui.showMainContent();
@@ -169,5 +180,46 @@ export class AuthManager {
     this.demoMode = true;
     this.ui.syncAccountUi();
     return false;
+  }
+
+  private async syncSafetyPreferences(token: string): Promise<void> {
+    try {
+      const response = await fetch(`${API_BASE}/user/onboarding`, {
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        credentials: 'include',
+      });
+
+      if (!response.ok) {
+        return;
+      }
+
+      const data = await response.json() as OnboardingPreferencesResponse;
+      const nextStorage: Record<string, boolean | number | string> = {};
+
+      if (data.riskLevel) {
+        nextStorage.riskLevel = data.riskLevel;
+      }
+
+      if (typeof data.preferences?.cooldownEnabled === 'boolean') {
+        nextStorage.cooldownEnabled = data.preferences.cooldownEnabled;
+      }
+
+      if (typeof data.preferences?.voiceInterventionEnabled === 'boolean') {
+        nextStorage.voiceInterventionEnabled = data.preferences.voiceInterventionEnabled;
+      }
+
+      if (typeof data.preferences?.redeemThreshold === 'number' && Number.isFinite(data.preferences.redeemThreshold)) {
+        nextStorage.redeemThreshold = data.preferences.redeemThreshold;
+      }
+
+      if (Object.keys(nextStorage).length > 0) {
+        await this.ui.setStorage(nextStorage);
+      }
+    } catch (error) {
+      console.warn('[TiltCheck] Failed to sync onboarding preferences:', error);
+    }
   }
 }
