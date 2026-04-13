@@ -3,6 +3,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import BonusFormulaLab from '@/components/BonusFormulaLab';
 
 interface BonusTimer {
   id: string;
@@ -138,10 +139,12 @@ export default function CollectClockPage() {
             COLLECTCLOCK
           </h1>
           <p className="text-lg text-gray-400 max-w-2xl mx-auto font-mono leading-relaxed">
-            Track bonus cooldowns by casino and category. Know exactly when your daily reload, weekly cashback, or streak bonus resets — and if the amount drifted since last time.
+            Track bonus cooldowns by casino and category, then reverse-engineer the reload formula with your own wager and payout history. Know when the bonus resets and whether the amount got shaved.
           </p>
         </div>
       </section>
+
+      <BonusFormulaLab />
 
       {/* Your Timers */}
       <section className="py-16 px-4 border-b border-[#283347]">

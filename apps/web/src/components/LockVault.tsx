@@ -50,7 +50,7 @@ const LockVault = ({ discordId }: { discordId?: string }) => {
     try {
       const [vaultRes, userRes] = await Promise.all([
         fetch(`${API}/vault/${discordId}`, { credentials: 'include' }),
-        fetch(`${API}/user/${discordId}`),
+        fetch(`${API}/user/${discordId}`, { credentials: 'include' }),
       ]);
 
       if (vaultRes.ok) {
@@ -146,7 +146,7 @@ const LockVault = ({ discordId }: { discordId?: string }) => {
         method: 'POST',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ lockId: vault.activeLock.id }),
+        body: JSON.stringify({ vaultId: vault.activeLock.id }),
       });
       if (!res.ok) {
         const d = await res.json().catch(() => ({}));
@@ -166,8 +166,14 @@ const LockVault = ({ discordId }: { discordId?: string }) => {
     try {
       const res = await fetch(`${API}/user/${discordId}/onboarding`, {
         method: 'POST',
+        credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ redeem_threshold: newThreshold }),
+        body: JSON.stringify({
+          isOnboarded: true,
+          preferences: {
+            redeemThreshold: newThreshold,
+          },
+        }),
       });
       if (res.ok) setVault(prev => ({ ...prev, threshold: newThreshold }));
     } catch (err) {
