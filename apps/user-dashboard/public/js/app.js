@@ -1,4 +1,4 @@
-// © 2024-2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-12
+// © 2024-2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-13
 
 'use strict';
 
@@ -8,6 +8,10 @@
 let currentUser = null;
 let ws = null;
 let vaultState = { locked: false, unlockAt: null, amount: 0 };
+let profileState = {
+    degenIdentity: null,
+    nftIdentity: null
+};
 let selectedVaultDuration = 14400000; // 4h default
 let vaultCountdownTimer = null;
 let onboardingSettings = {
@@ -45,6 +49,7 @@ window.addEventListener('DOMContentLoaded', async () => {
     setupAgentChat();
     setupVaultPanel();
     setupWalletPanel();
+    setupIdentityPanel();
     setupBuddyPanel();
     setupLogout();
 });
@@ -142,6 +147,8 @@ async function loadUserProfile() {
         const res = await apiRequest(`/api/user/${currentUser.discordId}`);
         if (!res.ok) return;
         const user = await res.json();
+        profileState.degenIdentity = user.degenIdentity || null;
+        profileState.nftIdentity = user.nftIdentity || null;
 
         setText('trustScore', user.trustScore ?? '--');
         setText('redeemWins', user.analytics?.redeemWins ?? 0);
@@ -177,6 +184,8 @@ async function loadUserProfile() {
             setText('nftIdentityStatus', 'Unknown');
             setText('nftIdentitySub', 'Identity status is offline right now.');
         }
+
+        renderSurveyIdentityPanel();
     } catch (err) { console.error('[Profile]', err); }
 }
 
@@ -206,6 +215,7 @@ async function loadOnboardingSettings() {
         };
 
         renderProfitGuardSettings();
+        renderSurveyIdentityPanel();
     } catch (err) { console.error('[Onboarding]', err); }
 }
 
@@ -267,29 +277,22 @@ async function loadSessionAnalytics() {
 
         const data = await res.json();
         const stats = data.stats ?? {};
+        const context = data.context ?? {};
         const sessions = Array.isArray(data.sessions) ? data.sessions : [];
 
-        setText('weeklyPL', formatCurrency(stats.weeklyPL ?? 0));
-        setText('winRate', `${stats.winRate ?? 0}%`);
-        setText('avgSession', `${stats.avgSession ?? 0}m`);
+        setText('securedAmount', formatCurrency(stats.securedAmount ?? 0));
+        setText('securedWins', stats.securedWins ?? 0);
+        setText('redeemWindowCount', stats.redeemWindowCount ?? 0);
         setText('rtpDrift', formatPercent(stats.rtpDrift ?? 0));
 
         const chart = document.getElementById('plChart');
         if (chart) {
             if (sessions.length === 0) {
+                chart.classList.remove('chart-stack');
                 chart.innerHTML = '<div class="chart-placeholder">No session data yet. Install the Chrome extension to track sessions.</div>';
             } else {
-                chart.innerHTML = sessions.slice(0, 7).map((session, index) => {
-                    const pl = Number(session.net_pl ?? 0);
-                    const completedAt = session.completed_at || session.created_at || Date.now();
-                    return `
-                        <div class="activity-item">
-                            <span class="activity-type">SESSION ${index + 1}</span>
-                            <span class="activity-desc">${formatCurrency(pl)}</span>
-                            <span class="activity-time">${timeAgo(completedAt)}</span>
-                        </div>
-                    `;
-                }).join('');
+                chart.classList.add('chart-stack');
+                chart.innerHTML = renderSessionChart(sessions, context);
             }
         }
 
@@ -307,15 +310,150 @@ async function loadSessionAnalytics() {
             if (byCasino.size === 0) {
                 breakdown.innerHTML = '<div class="activity-empty">No casino sessions recorded.</div>';
             } else {
-                breakdown.innerHTML = Array.from(byCasino.entries()).slice(0, 6).map(([casino, summary]) => `
-                    <div class="activity-item">
-                        <span class="activity-type">${escapeHtml(casino)}</span>
-                        <span class="activity-desc">${summary.count} session${summary.count === 1 ? '' : 's'} · ${formatCurrency(summary.net)}</span>
-                    </div>
-                `).join('');
+                breakdown.innerHTML = renderCasinoBreakdown(Array.from(byCasino.entries()));
             }
         }
     } catch (err) { console.error('[Sessions]', err); }
+}
+
+function getSessionOutcomeType(pl) {
+    if (pl > 0) return 'up_session';
+    if (pl < 0) return 'down_session';
+    return 'flat_session';
+}
+
+function getSessionOutcomeLabel(outcome) {
+    switch (outcome) {
+        case 'secured_win':
+            return 'SECURED WIN';
+        case 'redeem_window':
+            return 'REDEEM WINDOW';
+        case 'up_session':
+            return 'UP SESSION';
+        case 'down_session':
+            return 'DOWN SESSION';
+        default:
+            return 'FLAT SESSION';
+    }
+}
+
+function buildSessionOutcomeText(session, pl, redeemThreshold) {
+    if (session.outcome === 'secured_win') {
+        return `${formatCurrency(pl)} · ${formatCurrency(Number(session.secured_amount ?? 0))} hit the vault`;
+    }
+
+    if (session.outcome === 'redeem_window') {
+        if (Number(redeemThreshold ?? 0) > 0) {
+            return `${formatCurrency(pl)} · crossed your ${formatCurrency(redeemThreshold)} redeem line`;
+        }
+        return `${formatCurrency(pl)} · green enough to secure`;
+    }
+
+    if (session.outcome === 'up_session') {
+        return `${formatCurrency(pl)} · still unclaimed`;
+    }
+
+    if (session.outcome === 'down_session') {
+        return `${formatCurrency(pl)} · rinse alert`;
+    }
+
+    return `${formatCurrency(pl)} · dead flat`;
+}
+
+function renderSessionChart(sessions, context = {}) {
+    const recentSessions = sessions.slice(0, 7).reverse();
+    const peak = Math.max(...recentSessions.map(session => Math.abs(Number(session.net_pl ?? 0))), 1);
+    const positiveCount = recentSessions.filter(session => Number(session.net_pl ?? 0) > 0).length;
+    const totalNet = recentSessions.reduce((sum, session) => sum + Number(session.net_pl ?? 0), 0);
+    const redeemWindowCount = recentSessions.filter(session => session.outcome === 'redeem_window').length;
+
+    return `
+        <div class="chart-stack">
+            <div class="chart-summary-row">
+                <div class="chart-summary-pill">
+                    <span class="chart-summary-label">Last ${recentSessions.length} sessions</span>
+                    <span class="chart-summary-value">${positiveCount} green / ${recentSessions.length - positiveCount} red</span>
+                </div>
+                <div class="chart-summary-pill">
+                    <span class="chart-summary-label">Net swing</span>
+                    <span class="chart-summary-value">${formatCurrency(totalNet)}</span>
+                </div>
+                <div class="chart-summary-pill">
+                    <span class="chart-summary-label">Redeem pressure</span>
+                    <span class="chart-summary-value">${redeemWindowCount} window${redeemWindowCount === 1 ? '' : 's'}</span>
+                </div>
+            </div>
+            <div class="chart-shell">
+                <div class="chart-panel">
+                    <div class="chart-panel-title">Session P/L bars</div>
+                    <div class="chart-bars chart-bars-tall">
+                        ${recentSessions.map((session, index) => {
+                            const pl = Number(session.net_pl ?? 0);
+                            const height = Math.max(10, Math.round((Math.abs(pl) / peak) * 100));
+                            const completedAt = session.completed_at || session.created_at || Date.now();
+                            const label = new Date(completedAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+                            const state = pl > 0 ? 'positive' : (pl < 0 ? 'negative' : 'neutral');
+                            return `
+                                <div class="chart-col" title="${escapeHtml(`${label} · ${formatCurrency(pl)}`)}">
+                                    <span class="chart-y-label">${formatCurrency(pl)}</span>
+                                    <div class="chart-bar-wrap">
+                                        <div class="chart-bar chart-bar-soft ${state}" style="height:${height}%"></div>
+                                    </div>
+                                    <span class="chart-x-label">S${index + 1}</span>
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
+                </div>
+                <div class="chart-panel">
+                    <div class="chart-panel-title">Session readout</div>
+                    <div class="session-feed">
+                        ${recentSessions.map((session, index) => {
+                            const pl = Number(session.net_pl ?? 0);
+                            const completedAt = session.completed_at || session.created_at || Date.now();
+                            const casino = session.casino_name || session.casino || `Session ${index + 1}`;
+                            const outcome = session.outcome || getSessionOutcomeType(pl);
+                            const outcomeLabel = session.outcome_label || getSessionOutcomeLabel(outcome);
+                            const outcomeText = buildSessionOutcomeText(session, pl, context.redeemThreshold);
+                            return `
+                                <div class="activity-item activity-item-${escapeHtml(outcome)}">
+                                    <span class="activity-type activity-type-${escapeHtml(outcome)}">${escapeHtml(outcomeLabel)}</span>
+                                    <span class="activity-desc">${escapeHtml(casino)} · ${escapeHtml(outcomeText)}</span>
+                                    <span class="activity-time">${timeAgo(completedAt)}</span>
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+function renderCasinoBreakdown(entries) {
+    const ranked = entries
+        .sort(([, a], [, b]) => Math.abs(Number(b.net ?? 0)) - Math.abs(Number(a.net ?? 0)))
+        .slice(0, 6);
+    const peak = Math.max(...ranked.map(([, summary]) => Math.abs(Number(summary.net ?? 0))), 1);
+
+    return `
+        <div class="mini-bar-list">
+            ${ranked.map(([casino, summary]) => {
+                const net = Number(summary.net ?? 0);
+                const width = Math.max(8, Math.round((Math.abs(net) / peak) * 100));
+                const state = net >= 0 ? 'positive' : 'negative';
+                return `
+                    <div class="mini-bar-item">
+                        <span class="mini-bar-label">${escapeHtml(casino)}</span>
+                        <div class="mini-bar-track">
+                            <div class="mini-bar-fill ${state}" style="width:${width}%"></div>
+                        </div>
+                        <span class="mini-bar-value">${summary.count}x · ${formatCurrency(net)}</span>
+                    </div>
+                `;
+            }).join('')}
+        </div>
+    `;
 }
 
 async function loadVaults() {
@@ -397,9 +535,15 @@ async function loadBonuses() {
         const active = data.active ?? [];
         const history = data.history ?? [];
         const nerfs = data.nerfs ?? [];
+        const readyNow = active.filter(isBonusReady).length;
+        const nerfContainer = document.getElementById('bonus-nerf-alerts');
+
+        setText('bonusReadyNow', readyNow);
+        setText('bonusActiveTracked', active.length);
+        setText('bonusClaimsLogged', history.length);
+        setText('bonusNerfCount', nerfs.length);
 
         if (nerfs.length > 0) {
-            const nerfContainer = document.getElementById('bonus-nerf-alerts');
             if (nerfContainer) {
                 nerfContainer.style.display = 'block';
                 nerfContainer.innerHTML = nerfs.map(n => `
@@ -408,18 +552,33 @@ async function loadBonuses() {
                     </div>
                 `).join('');
             }
+        } else if (nerfContainer) {
+            nerfContainer.style.display = 'none';
+            nerfContainer.innerHTML = '';
+        }
+
+        const bonusChart = document.getElementById('bonusHistoryChart');
+        if (bonusChart) {
+            bonusChart.classList.add('chart-stack');
+            bonusChart.innerHTML = renderBonusHistoryChart(active, history, nerfs);
         }
 
         if (active.length === 0) {
             grid.innerHTML = '<div class="activity-empty">No bonuses tracked.</div>';
         } else {
             grid.innerHTML = active.map(bonus => {
-                const isReady = !bonus.nextClaimAt || new Date(bonus.nextClaimAt) <= new Date();
+                const isReady = isBonusReady(bonus);
+                const claimCount = getBonusClaimCount(bonus);
+                const nextClaimAt = getBonusNextClaimAt(bonus);
                 return `
                 <div class="bonus-card ${isReady ? 'ready' : ''}">
-                    <div class="bonus-casino">${escapeHtml(bonus.casinoName)}</div>
-                    <div class="bonus-desc">${escapeHtml(bonus.description)}</div>
-                    <div class="bonus-cooldown ${isReady ? 'ready' : ''}">${isReady ? 'READY TO CLAIM' : 'Resets in ' + timeUntil(bonus.nextClaimAt)}</div>
+                    <div class="bonus-casino">${escapeHtml(getBonusCasinoName(bonus))}</div>
+                    <div class="bonus-desc">${escapeHtml(getBonusDescription(bonus))}</div>
+                    <div class="bonus-cooldown ${isReady ? 'ready' : ''}">${isReady ? 'READY TO CLAIM' : 'Resets in ' + timeUntil(nextClaimAt)}</div>
+                    <div class="bonus-claim-row">
+                        <span>Claims tracked</span>
+                        <strong>${claimCount}</strong>
+                    </div>
                     ${isReady ? `<button class="btn btn-primary btn-sm claim-bonus-btn" data-bonus-id="${bonus.id}">Claim</button>` : ''}
                 </div>`;
             }).join('');
@@ -432,13 +591,143 @@ async function loadBonuses() {
         if (historyEl && history.length > 0) {
             historyEl.innerHTML = history.slice(0, 10).map(h => `
                 <div class="activity-item">
-                    <span class="activity-type">${escapeHtml(h.casinoName)}</span>
-                    <span class="activity-desc">${escapeHtml(h.description)}</span>
-                    <span class="activity-time">${timeAgo(h.claimedAt)}</span>
+                    <span class="activity-type">${escapeHtml(getBonusCasinoName(h))}</span>
+                    <span class="activity-desc">${escapeHtml(getBonusDescription(h))}</span>
+                    <span class="activity-time">${timeAgo(getBonusClaimedAt(h) || getBonusCreatedAt(h) || Date.now())}</span>
                 </div>
             `).join('');
+        } else if (historyEl) {
+            historyEl.innerHTML = '<div class="activity-empty">No history.</div>';
         }
     } catch (err) { console.error('[Bonuses]', err); }
+}
+
+function renderBonusHistoryChart(active, history, nerfs) {
+    const recentHistory = history
+        .map((entry, index) => ({
+            label: getBonusCasinoName(entry) || `Claim ${index + 1}`,
+            claimedAt: getBonusClaimedAt(entry) || getBonusCreatedAt(entry),
+            createdAt: getBonusCreatedAt(entry)
+        }))
+        .filter(entry => entry.claimedAt || entry.createdAt)
+        .sort((a, b) => new Date(a.claimedAt || a.createdAt).getTime() - new Date(b.claimedAt || b.createdAt).getTime())
+        .slice(-7);
+
+    if (recentHistory.length === 0) {
+        return `
+            <div class="chart-stack">
+                <div class="chart-summary-row">
+                    <div class="chart-summary-pill">
+                        <span class="chart-summary-label">Tracked casinos</span>
+                        <span class="chart-summary-value">${active.length}</span>
+                    </div>
+                    <div class="chart-summary-pill">
+                        <span class="chart-summary-label">Recent nerfs</span>
+                        <span class="chart-summary-value">${nerfs.length}</span>
+                    </div>
+                </div>
+                <div class="chart-placeholder">No claim history yet. Once claims start landing, this panel shows cadence and cooldown pressure.</div>
+            </div>
+        `;
+    }
+
+    const bars = buildBonusClaimDaySeries(recentHistory);
+    const peak = Math.max(...bars.map(item => item.count), 1);
+    const lastClaim = recentHistory[recentHistory.length - 1];
+
+    return `
+        <div class="chart-stack">
+            <div class="chart-summary-row">
+                <div class="chart-summary-pill">
+                    <span class="chart-summary-label">Tracked casinos</span>
+                    <span class="chart-summary-value">${active.length}</span>
+                </div>
+                <div class="chart-summary-pill">
+                    <span class="chart-summary-label">Claims in view</span>
+                    <span class="chart-summary-value">${recentHistory.length}</span>
+                </div>
+                <div class="chart-summary-pill">
+                    <span class="chart-summary-label">Last claim</span>
+                    <span class="chart-summary-value">${timeAgo(lastClaim.claimedAt || lastClaim.createdAt)}</span>
+                </div>
+                <div class="chart-summary-pill">
+                    <span class="chart-summary-label">Recent nerfs</span>
+                    <span class="chart-summary-value">${nerfs.length}</span>
+                </div>
+            </div>
+            <div class="chart-shell single-column">
+                <div class="chart-panel">
+                    <div class="chart-panel-title">Claim cadence</div>
+                    <div class="chart-bars chart-bars-tall">
+                        ${bars.map((item) => `
+                            <div class="chart-col" title="${escapeHtml(`${item.label}: ${item.count} claim${item.count === 1 ? '' : 's'}`)}">
+                                <span class="chart-y-label">${item.count}</span>
+                                <div class="chart-bar-wrap">
+                                    <div class="chart-bar chart-bar-soft positive" style="height:${Math.max(10, Math.round((item.count / peak) * 100))}%"></div>
+                                </div>
+                                <span class="chart-x-label">${escapeHtml(item.shortLabel)}</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                    <p class="chart-note">
+                        <strong>${escapeHtml(lastClaim.label)}</strong> is the latest logged claim. This panel tracks claim cadence, not payout size, so it stays stable across mixed casino payloads.
+                    </p>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+function buildBonusClaimDaySeries(historyEntries) {
+    const bucketMap = new Map();
+
+    historyEntries.forEach(entry => {
+        const date = new Date(entry.claimedAt || entry.createdAt);
+        const key = date.toISOString().slice(0, 10);
+        const label = date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+        const shortLabel = date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }).replace(' ', '/');
+        const current = bucketMap.get(key) || { key, label, shortLabel, count: 0 };
+        current.count += 1;
+        bucketMap.set(key, current);
+    });
+
+    return Array.from(bucketMap.values()).slice(-7);
+}
+
+function getBonusCasinoName(bonus) {
+    return bonus?.casinoName || bonus?.casino_name || bonus?.casino || 'Casino';
+}
+
+function getBonusDescription(bonus) {
+    return bonus?.description || bonus?.bonus_name || bonus?.name || 'Bonus tracked';
+}
+
+function getBonusClaimedAt(bonus) {
+    return bonus?.claimedAt || bonus?.claimed_at || bonus?.last_claimed_at || null;
+}
+
+function getBonusCreatedAt(bonus) {
+    return bonus?.createdAt || bonus?.created_at || bonus?.updated_at || null;
+}
+
+function isBonusReady(bonus) {
+    const nextClaimAt = getBonusNextClaimAt(bonus);
+    return !nextClaimAt || new Date(nextClaimAt) <= new Date();
+}
+
+function getBonusClaimCount(bonus) {
+    const numericValue = Number(
+        bonus?.claimCount ??
+        bonus?.claim_count ??
+        bonus?.claims_count ??
+        bonus?.times_claimed ??
+        0
+    );
+    return Number.isFinite(numericValue) ? numericValue : 0;
+}
+
+function getBonusNextClaimAt(bonus) {
+    return bonus?.nextClaimAt || bonus?.next_claim_at || bonus?.cooldown_ends_at || null;
 }
 
 async function claimBonus(bonusId, btn) {
@@ -677,15 +966,229 @@ function setupWalletPanel() {
                 const data = await res.json();
                 setText('externalWalletDisplay', address.slice(0, 6) + '...' + address.slice(-4));
                 if (data?.nftIdentity) {
+                    profileState.nftIdentity = data.nftIdentity;
                     setText('nftIdentityStatus', data.nftIdentity.status);
                     setText('nftIdentitySub', data.nftIdentity.detail);
                 }
                 if (form) form.style.display = 'none';
+                onboardingSettings.primaryExternalAddress = address;
+                renderSurveyIdentityPanel();
                 showNotification('Wallet linked.', 'success');
                 loadUserProfile();
             }
         } catch (err) { showNotification('Error linking wallet.', 'error'); }
     });
+}
+
+function setupIdentityPanel() {
+    const fieldMap = [
+        ['identity-optin-notify', 'notify_nft_identity_ready'],
+        ['identity-optin-session', 'session_telemetry'],
+        ['identity-optin-financial', 'financial_data'],
+        ['identity-optin-messages', 'message_contents']
+    ];
+
+    fieldMap.forEach(([elementId, settingKey]) => {
+        document.getElementById(elementId)?.addEventListener('change', e => {
+            onboardingSettings.trustEngineOptIn[settingKey] = e.target.checked;
+            renderSurveyIdentityPanel();
+            setIdentitySettingsStatus('Changes pending.');
+        });
+    });
+
+    document.getElementById('save-identity-settings-btn')?.addEventListener('click', saveIdentitySettings);
+}
+
+function renderSurveyIdentityPanel() {
+    const statusLabel = document.getElementById('surveyReadinessLabel');
+    const scoreEl = document.getElementById('surveyReadinessScore');
+    const subEl = document.getElementById('surveyReadinessSub');
+    const checklistEl = document.getElementById('surveyReadinessChecklist');
+
+    const notifyCheckbox = document.getElementById('identity-optin-notify');
+    const sessionCheckbox = document.getElementById('identity-optin-session');
+    const financialCheckbox = document.getElementById('identity-optin-financial');
+    const messageCheckbox = document.getElementById('identity-optin-messages');
+
+    const identity = profileState.degenIdentity || {};
+    const nftIdentity = profileState.nftIdentity || {};
+    const walletLinked = Boolean(onboardingSettings.primaryExternalAddress || identity.primary_external_address || identity.magic_address);
+    const tosAccepted = identity.tos_accepted === true || nftIdentity.tosAccepted === true;
+    const controls = onboardingSettings.trustEngineOptIn || {};
+    const readyCount = [
+        tosAccepted,
+        walletLinked,
+        controls.session_telemetry === true,
+        controls.financial_data === true,
+        controls.message_contents === true
+    ].filter(Boolean).length;
+
+    const readiness = getSurveyReadinessSummary({
+        readyCount,
+        tosAccepted,
+        walletLinked,
+        sessionTelemetry: controls.session_telemetry === true,
+        financialData: controls.financial_data === true,
+        messageContents: controls.message_contents === true
+    });
+
+    if (notifyCheckbox) notifyCheckbox.checked = controls.notify_nft_identity_ready === true;
+    if (sessionCheckbox) sessionCheckbox.checked = controls.session_telemetry === true;
+    if (financialCheckbox) financialCheckbox.checked = controls.financial_data === true;
+    if (messageCheckbox) messageCheckbox.checked = controls.message_contents === true;
+
+    if (statusLabel) {
+        statusLabel.textContent = readiness.label;
+        statusLabel.className = `identity-status-pill ${readiness.tone}`;
+    }
+    if (scoreEl) scoreEl.textContent = `${readyCount}/5 lanes ready`;
+    if (subEl) {
+        subEl.textContent = nftIdentity.detail
+            || readiness.detail;
+    }
+
+    if (checklistEl) {
+        checklistEl.innerHTML = buildIdentityChecklist([
+            {
+                title: 'Terms accepted',
+                description: tosAccepted
+                    ? 'The profile has a real owner attached. No ghost identity junk.'
+                    : 'Accept the terms first so the identity and survey profile belong to a real owner.',
+                ready: tosAccepted
+            },
+            {
+                title: 'Wallet linked',
+                description: walletLinked
+                    ? 'Wallet attached. Survey payouts and identity notices can point to a real address without custody.'
+                    : 'Link an external wallet so payout and identity flows have somewhere legit to land.',
+                ready: walletLinked
+            },
+            {
+                title: 'Session telemetry lane',
+                description: controls.session_telemetry === true
+                    ? 'Gameplay/session history can be used to avoid dumb survey matches.'
+                    : 'Turn this on if you want survey matching to use session behavior instead of guessing.',
+                ready: controls.session_telemetry === true
+            },
+            {
+                title: 'Financial lane',
+                description: controls.financial_data === true
+                    ? 'Deposit/loss context can help filter out low-fit offers.'
+                    : 'Turn this on if you want higher-signal survey routing based on bankroll behavior.',
+                ready: controls.financial_data === true
+            },
+            {
+                title: 'Message context lane',
+                description: controls.message_contents === true
+                    ? 'Message/context signals are on for tighter routing.'
+                    : 'Optional, but this gives the survey profile sharper context than raw numbers alone.',
+                ready: controls.message_contents === true
+            }
+        ]);
+    }
+}
+
+function getSurveyReadinessSummary({ readyCount, tosAccepted, walletLinked, sessionTelemetry, financialData, messageContents }) {
+    if (!tosAccepted || !walletLinked) {
+        return {
+            label: 'Blocked',
+            tone: 'blocked',
+            detail: 'Terms and wallet linkage are the minimum. Without both, survey routing stays bench-side.'
+        };
+    }
+
+    if (sessionTelemetry && financialData && messageContents) {
+        return {
+            label: 'Match Ready',
+            tone: 'ready',
+            detail: 'The profile is loaded with the core lanes needed for high-signal survey routing and first-wave identity notice.'
+        };
+    }
+
+    if (readyCount >= 3) {
+        return {
+            label: 'Partial Signal',
+            tone: 'partial',
+            detail: 'You are close. Flip the remaining data lanes if you want stronger survey fit and fewer trash offers.'
+        };
+    }
+
+    return {
+        label: 'Thin Profile',
+        tone: 'blocked',
+        detail: 'The profile exists, but the matching lanes are still thin. Turn on more opt-ins if you want real routing value.'
+    };
+}
+
+function buildIdentityChecklist(items) {
+    return items.map(item => `
+        <div class="identity-check-item ${item.ready ? 'ready' : 'blocked'}">
+            <span class="identity-check-icon">${item.ready ? 'OK' : '!'}</span>
+            <div class="identity-check-copy">
+                <span class="identity-check-title">${escapeHtml(item.title)}</span>
+                <span class="identity-check-desc">${escapeHtml(item.description)}</span>
+            </div>
+        </div>
+    `).join('');
+}
+
+async function saveIdentitySettings() {
+    const button = document.getElementById('save-identity-settings-btn');
+    if (button) {
+        button.disabled = true;
+        button.textContent = 'Saving...';
+    }
+    setIdentitySettingsStatus('Saving...');
+
+    try {
+        const res = await apiRequest('/api/user/onboard', {
+            method: 'POST',
+            body: JSON.stringify({
+                tos_accepted: true,
+                primary_external_address: onboardingSettings.primaryExternalAddress,
+                risk_level: onboardingSettings.riskLevel,
+                cooldown_enabled: onboardingSettings.cooldownEnabled,
+                voice_intervention_enabled: onboardingSettings.voiceInterventionEnabled,
+                redeem_threshold: normalizeProfitGuardThreshold(onboardingSettings.threshold),
+                notifications: onboardingSettings.notifications,
+                trust_engine_opt_in: onboardingSettings.trustEngineOptIn
+            })
+        });
+
+        if (!res.ok) {
+            const data = await res.json().catch(() => ({}));
+            setIdentitySettingsStatus(data.error || 'Save failed.', true);
+            return;
+        }
+
+        const data = await res.json().catch(() => ({}));
+        if (data?.identity) profileState.degenIdentity = data.identity;
+        if (data?.nftIdentity) {
+            profileState.nftIdentity = data.nftIdentity;
+            setText('nftIdentityStatus', data.nftIdentity.status);
+            setText('nftIdentitySub', data.nftIdentity.detail);
+        }
+
+        renderSurveyIdentityPanel();
+        setIdentitySettingsStatus('Saved.');
+        showNotification('Identity settings saved.', 'success');
+        loadUserProfile();
+    } catch (err) {
+        console.error('[Identity Settings]', err);
+        setIdentitySettingsStatus('Save failed.', true);
+    } finally {
+        if (button) {
+            button.disabled = false;
+            button.textContent = 'Save Identity Settings';
+        }
+    }
+}
+
+function setIdentitySettingsStatus(message, isError = false) {
+    const el = document.getElementById('identitySettingsStatus');
+    if (!el) return;
+    el.textContent = message;
+    el.style.color = isError ? '#ff6b6b' : '';
 }
 
 // ============================================================

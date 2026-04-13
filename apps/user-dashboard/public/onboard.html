@@ -57,17 +57,17 @@
       <h2 class="step-title">Settings and preferences</h2>
       <p class="step-desc">Set the defaults that actually control how hard TiltCheck pulls the brake.</p>
       <div class="tos-block">
-        <p><strong>Risk level</strong></p>
+        <p><strong>Mode</strong></p>
         <div class="risk-cards">
           <button class="risk-card" data-risk="conservative">
-            <div class="risk-card-title">Conservative</div>
-            <div class="risk-card-desc">Tight limits. Early alerts. Play to stay safe.</div>
+            <div class="risk-card-title">Safe</div>
+            <div class="risk-card-desc">Tight limits. Early brake. Less room for spiral behavior.</div>
           </button>
           <button class="risk-card" data-risk="moderate">
-            <div class="risk-card-title">Moderate</div>
-            <div class="risk-card-desc">Balanced approach. Alert at tilt signals, not noise.</div>
+            <div class="risk-card-title">Balanced</div>
+            <div class="risk-card-desc">Standard guardrails. Catch the real slide without crying wolf.</div>
           </button>
-          <button class="risk-card active" data-risk="degen">
+          <button class="risk-card" data-risk="degen">
             <div class="risk-card-title">Degen</div>
             <div class="risk-card-desc">High risk tolerance. Only alert on real danger signals.</div>
           </button>
@@ -147,7 +147,8 @@
       </div>
       <div class="tos-block">
         <p><strong>Accountability buddy (optional)</strong></p>
-        <p style="margin-bottom:0.75rem;">Your buddy gets pinged when you hit tilt thresholds. They do the same for you.</p>
+        <p style="margin-bottom:0.75rem;">Your buddy gets a support-only check-in when risk spikes. TiltCheck does not share your balance, winnings, wallet details, or any excuse to ask you for money.</p>
+        <p style="margin-bottom:0.75rem;">Use this for pause/cash-out accountability only. If a buddy turns an alert into a loan, tip, or transfer request, cut them loose.</p>
         <div class="form-group">
           <input type="text" id="onboard-buddy-input" class="input" placeholder="Discord username or ID" />
           <button class="btn btn-secondary" id="onboard-buddy-invite-btn" style="margin-top:0.5rem;">Send Invite</button>

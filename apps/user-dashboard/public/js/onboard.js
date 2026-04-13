@@ -4,7 +4,7 @@
 
 const state = {
     step: 1,
-    riskLevel: 'degen',
+    riskLevel: 'moderate',
     discordUsername: '',
     discordId: '',
     walletAddress: null,

@@ -1,4 +1,4 @@
-/* Copyright (c) 2026 TiltCheck. All rights reserved. */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-13 */
 
 import { FunctionTool, LlmAgent, Runner, InMemorySessionService, Gemini } from '@google/adk';
 import { z } from 'zod';
@@ -218,36 +218,50 @@ const analyzeSentimentV2 = new FunctionTool<typeof AnalyzeSentimentSchema>({
  * Degen Intelligence Agent (DIA)
  * Using Gemini 1.5 Pro for maximum 'Tough Love' authenticity.
  */
-export const agent = new LlmAgent({
-  name: 'tiltchcek_degen_intelligence',
-  description: 'Advanced AI assistant for the TiltCheck ecosystem. Analyzes degen stats, trust scores, generates interventions, and manages account config.',
-  model: new Gemini({
-    model: 'gemini-1.5-flash',
-    vertexai: process.env.GOOGLE_GENAI_USE_VERTEXAI === 'true',
-    project: process.env.GOOGLE_CLOUD_PROJECT || 'tiltchcek',
-    location: process.env.GOOGLE_CLOUD_LOCATION || 'us-central1',
-  }),
-  instruction: `You are the TiltCheck Degen Intelligence Agent (DIA). 
-                Your goal is to provide blunt, data-driven, and surgical insights to users.
-                You do NOT use emojis. You do NOT apologize. You are the "Audit Head".
-                
-                - Use 'get_user_analytics' to answer questions about wins, losses, or volume.
-                - Use 'get_trust_standing' to explain why a user's trust score is high or low.
-                - Use 'get_bonus_status' when users ask about reloads or re-ups.
-                - Use 'generate_nudge' to create an intervention string when you detect high risk.
-                - Use 'analyze_sentiment_v2' to evaluate chat risk.
-                
-                Tone: The "Audit Head" (blunt, direct, slightly skeptical). 
-                Intervention: If a user shows high risk (severity > 60), your tone becomes "Firm Audit". 
-                You are their accountability buddy, not their friend. Stop them from donating their bag to the house.`,
-  tools: [getUserAnalytics, getTrustStanding, getBonusStatus, getUserPreferences, updateUserPreferences, generateNudge, analyzeSentimentV2],
-});
+function hasAgentModelConfig(): boolean {
+  return process.env.GOOGLE_GENAI_USE_VERTEXAI === 'true'
+    || Boolean(process.env.GOOGLE_GENAI_API_KEY?.trim())
+    || Boolean(process.env.GEMINI_API_KEY?.trim());
+}
+
+export const agent = hasAgentModelConfig()
+  ? new LlmAgent({
+      name: 'tiltchcek_degen_intelligence',
+      description: 'Advanced AI assistant for the TiltCheck ecosystem. Analyzes degen stats, trust scores, generates interventions, and manages account config.',
+      model: new Gemini({
+        model: 'gemini-1.5-flash',
+        vertexai: process.env.GOOGLE_GENAI_USE_VERTEXAI === 'true',
+        project: process.env.GOOGLE_CLOUD_PROJECT || 'tiltchcek',
+        location: process.env.GOOGLE_CLOUD_LOCATION || 'us-central1',
+      }),
+      instruction: `You are the TiltCheck Degen Intelligence Agent (DIA). 
+                    Your goal is to provide blunt, data-driven, and surgical insights to users.
+                    You do NOT use emojis. You do NOT apologize. You are the "Audit Head".
+                    
+                    - Use 'get_user_analytics' to answer questions about wins, losses, or volume.
+                    - Use 'get_trust_standing' to explain why a user's trust score is high or low.
+                    - Use 'get_bonus_status' when users ask about reloads or re-ups.
+                    - Use 'generate_nudge' to create an intervention string when you detect high risk.
+                    - Use 'analyze_sentiment_v2' to evaluate chat risk.
+                    
+                    Tone: The "Audit Head" (blunt, direct, slightly skeptical). 
+                    Intervention: If a user shows high risk (severity > 60), your tone becomes "Firm Audit". 
+                    You are their accountability buddy, not their friend. Stop them from donating their bag to the house.`,
+      tools: [getUserAnalytics, getTrustStanding, getBonusStatus, getUserPreferences, updateUserPreferences, generateNudge, analyzeSentimentV2],
+    })
+  : null;
 
 /**
  * Initialize ADK Runner
  */
-export const runner = new Runner({
-  appName: 'TiltCheck Intelligence',
-  agent,
-  sessionService: new InMemorySessionService(),
-});
+export const runner = agent
+  ? new Runner({
+      appName: 'TiltCheck Intelligence',
+      agent,
+      sessionService: new InMemorySessionService(),
+    })
+  : null;
+
+if (!agent) {
+  console.warn('[TiltCheck Agent] No Gemini or Vertex AI configuration detected. Agent runner disabled until model credentials are set.');
+}

@@ -1,14 +1,21 @@
 {
+  "_comment": "© 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-13",
   "name": "@tiltcheck/agent",
   "version": "1.0.0",
   "description": "AI Agent built with Google ADK (TypeScript)",
   "type": "module",
-  "main": "dist/app/agent.js",
-  "types": "dist/app/agent.d.ts",
+  "main": "dist/packages/agent/app/agent.js",
+  "types": "dist/packages/agent/app/agent.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/packages/agent/app/agent.d.ts",
+      "import": "./dist/packages/agent/app/agent.js"
+    }
+  },
   "scripts": {
     "build": "tsc",
-    "dev": "tsc && npx @google/adk-devtools web -h localhost dist/agent.js",
-    "run": "tsc && npx @google/adk-devtools run dist/agent.js",
+    "dev": "tsc && npx @google/adk-devtools web -h localhost dist/packages/agent/app/agent.js",
+    "run": "tsc && npx @google/adk-devtools run dist/packages/agent/app/agent.js",
     "test": "vitest run",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit"
