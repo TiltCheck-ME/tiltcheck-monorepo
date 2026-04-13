@@ -1,12 +1,24 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-10 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-13 */
 "use client";
 
 import React, { useState } from 'react';
+import { useAuth } from '@/hooks/useAuth';
 
 export default function BetaTesterPage() {
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { user, loading } = useAuth();
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL || '/api';
+
+  const handleLinkDiscord = () => {
+    if (typeof window === 'undefined') {
+      return;
+    }
+
+    const redirect = encodeURIComponent(window.location.href);
+    window.location.href = `${apiUrl}/auth/discord/login?redirect=${redirect}`;
+  };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -17,23 +29,26 @@ export default function BetaTesterPage() {
     const data = new FormData(form);
 
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || '/api'}/beta/signup`, {
+      const res = await fetch(`${apiUrl}/beta/signup`, {
         method: 'POST',
+        credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          discord_username: data.get('discord') as string,
-          experience_level: data.get('style') as string,
-          interests: data.getAll('aspects') as string[],
-          referral_source: data.get('setup') as string,
-          feedback_preference: data.get('proof') as string,
           casinos: data.get('casinos') as string,
+          style: data.get('style') as string,
+          aspects: data.getAll('aspects') as string[],
+          setup: data.get('setup') as string,
+          proof: data.get('proof') as string,
         }),
       });
 
-      if (!res.ok) throw new Error('Submit failed');
+      if (!res.ok) {
+        const body = await res.json().catch(() => null);
+        throw new Error(body?.error || 'Submit failed');
+      }
       setSubmitted(true);
-    } catch {
-      setError('Something went wrong. Try again or hit us up on Discord.');
+    } catch (submitError) {
+      setError(submitError instanceof Error ? submitError.message : 'Something went wrong. Try again or hit us up on Discord.');
     } finally {
       setSubmitting(false);
     }
@@ -101,9 +116,9 @@ export default function BetaTesterPage() {
           </div>
 
           <div className="p-6 border border-[#17c3b2]/30 bg-[#17c3b2]/5">
-            <h2 className="text-sm font-bold uppercase tracking-widest text-[#17c3b2] mb-3">Already on Discord?</h2>
+            <h2 className="text-sm font-bold uppercase tracking-widest text-[#17c3b2] mb-3">Best Flow</h2>
             <p className="text-xs text-gray-500 leading-relaxed font-mono mb-6">
-              The bot is live. Join the server and run <span className="text-[#17c3b2]">/help</span> to see what&apos;s already deployed. Beta applicants get pinged in <span className="text-[#17c3b2]">#beta-general</span> first.
+              Join Discord first. The welcome DM points you to link your account on-site. Once linked, this beta form locks to your real Discord identity so approvals and role grants don&apos;t turn into username roulette.
             </p>
             <a
               href="https://discord.gg/gdBsEJfCar"
@@ -120,49 +135,70 @@ export default function BetaTesterPage() {
           <div className="absolute inset-0 pointer-events-none bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%),linear-gradient(90deg,rgba(255,0,0,0.06),rgba(0,255,0,0.02),rgba(0,0,255,0.06))] bg-[length:100%_4px,3px_100%] z-10 opacity-20"></div>
 
           <div className="p-4 border-b border-[#283347] bg-black/80 flex items-center justify-between z-20 relative">
-            <h2 className="text-xs font-mono font-bold text-gray-400 uppercase tracking-widest">beta_application.exe</h2>
-            <div className="flex gap-1">
+              <h2 className="text-xs font-mono font-bold text-gray-400 uppercase tracking-widest">beta_application.exe</h2>
+              <div className="flex gap-1">
               <div className="w-2 h-2 rounded-full bg-red-500/50"></div>
               <div className="w-2 h-2 rounded-full bg-yellow-500/50"></div>
               <div className="w-2 h-2 rounded-full bg-green-500/50"></div>
             </div>
           </div>
 
-          <div className="p-8 z-20 relative">
-            {submitted ? (
-              <div className="text-center py-16 animate-in zoom-in duration-300">
+            <div className="p-8 z-20 relative">
+              {submitted ? (
+                <div className="text-center py-16 animate-in zoom-in duration-300">
                 <div className="w-16 h-16 rounded-full bg-green-500/10 border border-green-500 flex items-center justify-center mx-auto mb-6">
                   <svg className="w-8 h-8 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                   </svg>
                 </div>
-                <h3 className="text-xl font-bold text-white uppercase tracking-widest mb-2">Application received.</h3>
-                <p className="text-gray-400 font-mono text-sm max-w-sm mx-auto">
-                  We&apos;ll DM you on Discord if you&apos;re in. Watch <span className="text-[#17c3b2]">#beta-general</span>.
-                </p>
-              </div>
-            ) : (
-              <form onSubmit={handleSubmit} className="flex flex-col gap-6">
-
-                <div className="form-group">
-                  <label className="block text-xs font-bold uppercase tracking-widest text-[#17c3b2] mb-2">
-                    1. Discord Username
-                  </label>
-                  <input
-                    name="discord"
-                    required
-                    placeholder="yourname or yourname#1234"
-                    className="w-full bg-black/50 border border-[#283347] p-3 text-white font-mono text-sm focus:outline-none focus:border-[#17c3b2] transition-colors"
-                  />
-                  <p className="text-[10px] text-gray-600 font-mono mt-1">How we notify you. Must be reachable on Discord.</p>
+                 <h3 className="text-xl font-bold text-white uppercase tracking-widest mb-2">Application received.</h3>
+                 <p className="text-gray-400 font-mono text-sm max-w-sm mx-auto">
+                   We&apos;ll review it against your linked Discord account. If approved, beta access lands in Discord without the username guessing game.
+                 </p>
                 </div>
+              ) : loading ? (
+                <div className="text-center py-16">
+                  <p className="text-gray-400 font-mono text-sm">Checking linked Discord session...</p>
+                </div>
+              ) : !user?.discordId ? (
+                <div className="flex flex-col gap-6">
+                  <div className="border border-[#17c3b2]/30 bg-[#17c3b2]/5 p-6">
+                    <h3 className="text-lg font-black uppercase tracking-widest text-white mb-3">Link Discord to continue.</h3>
+                    <p className="text-sm text-gray-400 font-mono leading-relaxed">
+                      Beta applications now use your real linked Discord identity. That keeps approvals clean, role grants fast, and stops manual username hunting.
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleLinkDiscord}
+                    className="w-full py-4 text-xs font-black uppercase tracking-[0.2em] bg-[#17c3b2]/10 text-[#17c3b2] border border-[#17c3b2]/30 hover:bg-[#17c3b2]/20 hover:shadow-[0_0_20px_rgba(23,195,178,0.2)] hover:scale-[1.02] transition-all"
+                  >
+                    Link Discord and Continue →
+                  </button>
+                  <p className="text-[10px] text-center text-gray-600 font-mono">
+                    Join the TiltCheck server first, then come back here after Discord connect finishes.
+                  </p>
+                </div>
+              ) : (
+                <form onSubmit={handleSubmit} className="flex flex-col gap-6">
+                  <div className="form-group border border-[#17c3b2]/20 bg-[#17c3b2]/5 p-4">
+                    <label className="block text-xs font-bold uppercase tracking-widest text-[#17c3b2] mb-2">
+                      Linked Discord
+                    </label>
+                    <p className="text-sm text-white font-mono">
+                      {user.discordUsername} <span className="text-gray-500">({user.discordId})</span>
+                    </p>
+                    <p className="text-[10px] text-gray-600 font-mono mt-1">
+                      This is the identity we use for review, DMs, and beta role access.
+                    </p>
+                  </div>
 
-                <div className="form-group">
-                  <label className="block text-xs font-bold uppercase tracking-widest text-[#17c3b2] mb-2">
-                    2. Where do you play?
-                  </label>
-                  <input
-                    name="casinos"
+                  <div className="form-group">
+                    <label className="block text-xs font-bold uppercase tracking-widest text-[#17c3b2] mb-2">
+                      1. Where do you play?
+                    </label>
+                    <input
+                      name="casinos"
                     required
                     placeholder="E.g., Stake, Roobet, McLuck, Pulsz, BetOnline..."
                     className="w-full bg-black/50 border border-[#283347] p-3 text-white font-mono text-sm focus:outline-none focus:border-[#17c3b2] transition-colors"
@@ -170,10 +206,10 @@ export default function BetaTesterPage() {
                   <p className="text-[10px] text-gray-600 font-mono mt-1">We test against real platforms. Your answer helps us prioritize which ones.</p>
                 </div>
 
-                <div className="form-group">
-                  <label className="block text-xs font-bold uppercase tracking-widest text-[#17c3b2] mb-3">
-                    3. What kind of tester are you?
-                  </label>
+                  <div className="form-group">
+                    <label className="block text-xs font-bold uppercase tracking-widest text-[#17c3b2] mb-3">
+                      2. What kind of tester are you?
+                    </label>
                   <div className="flex flex-col gap-2 font-mono text-xs text-gray-300">
                     {[
                       { label: 'Breaker — I will find the edge cases and break things intentionally.', val: 'breaker' },
@@ -189,10 +225,10 @@ export default function BetaTesterPage() {
                   </div>
                 </div>
 
-                <div className="form-group">
-                  <label className="block text-xs font-bold uppercase tracking-widest text-[#17c3b2] mb-3">
-                    4. What do you want to test first? (pick all that apply)
-                  </label>
+                  <div className="form-group">
+                    <label className="block text-xs font-bold uppercase tracking-widest text-[#17c3b2] mb-3">
+                      3. What do you want to test first? (pick all that apply)
+                    </label>
                   <div className="flex flex-col gap-2 font-mono text-xs text-gray-300">
                     {[
                       { label: 'Delta Engine — does the RTP audit catch what the casino is actually running?', val: 'delta' },
@@ -209,10 +245,10 @@ export default function BetaTesterPage() {
                   </div>
                 </div>
 
-                <div className="form-group">
-                  <label className="block text-xs font-bold uppercase tracking-widest text-[#17c3b2] mb-2">
-                    5. Your setup
-                  </label>
+                  <div className="form-group">
+                    <label className="block text-xs font-bold uppercase tracking-widest text-[#17c3b2] mb-2">
+                      4. Your setup
+                    </label>
                   <div className="flex flex-col gap-2 font-mono text-xs text-gray-300">
                     {[
                       { label: 'Chrome or Brave (Desktop) — can test the extension', val: 'chrome' },
@@ -227,10 +263,10 @@ export default function BetaTesterPage() {
                   </div>
                 </div>
 
-                <div className="form-group">
-                  <label className="block text-xs font-bold uppercase tracking-widest text-[#17c3b2] mb-2">
-                    6. Last question — what would make you actually trust a casino audit tool?
-                  </label>
+                  <div className="form-group">
+                    <label className="block text-xs font-bold uppercase tracking-widest text-[#17c3b2] mb-2">
+                      5. Last question — what would make you actually trust a casino audit tool?
+                    </label>
                   <p className="text-[10px] text-gray-500 italic mb-2">One sentence. Be blunt. Wrong answers don&apos;t exist but vague ones do.</p>
                   <textarea
                     name="proof"
