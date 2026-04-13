@@ -13,6 +13,8 @@ import { OnboardingManager } from './onboarding.js';
 import { BonusManager } from './bonuses.js';
 import { SidebarUI } from './types.js';
 
+const SITE_REDEEM_THRESHOLDS_KEY = 'tiltcheck_site_thresholds';
+
 export class SidebarController implements SidebarUI {
   public auth: AuthManager;
   public session: SessionManager;
@@ -40,6 +42,7 @@ export class SidebarController implements SidebarUI {
     this.injectStyles();
     this.createDom();
     this.setupListeners();
+    void this.loadRedeemThresholdSettings();
     this.auth.restoreAuth();
     this.buddy.restorePrefs();
     this.vault.init();
@@ -78,6 +81,17 @@ export class SidebarController implements SidebarUI {
     document.getElementById('cfg-buddy-mirror')?.addEventListener('change', (e) => {
         const target = e.target as HTMLInputElement;
         this.buddy.setMirrorEnabled(target.checked);
+    });
+
+    document.getElementById('tg-save-redeem-threshold')?.addEventListener('click', () => {
+        void this.saveRedeemThresholdForSite();
+    });
+
+    document.getElementById('tg-redeem-threshold')?.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            void this.saveRedeemThresholdForSite();
+        }
     });
 
     // Predictor
@@ -128,6 +142,101 @@ export class SidebarController implements SidebarUI {
         if (avPctVal) avPctVal.textContent = `${val}%`;
         this.vault.setAutoVaultPct(val);
     });
+  }
+
+  private getCurrentSiteHost(): string {
+    return (window.location.hostname || 'unknown').replace(/^www\./, '').toLowerCase();
+  }
+
+  private getStoredRedeemThresholds(value: unknown): Record<string, number> {
+    if (!value || typeof value !== 'object' || Array.isArray(value)) {
+      return {};
+    }
+
+    const thresholds: Record<string, number> = {};
+
+    for (const [host, rawValue] of Object.entries(value as Record<string, unknown>)) {
+      const threshold = Number(rawValue);
+      if (Number.isFinite(threshold) && threshold > 0) {
+        thresholds[host] = threshold;
+      }
+    }
+
+    return thresholds;
+  }
+
+  private parseRedeemThresholdInput(): number | null {
+    const input = document.getElementById('tg-redeem-threshold') as HTMLInputElement | null;
+    if (!input) return null;
+
+    const parsed = Number(input.value || '0');
+    if (!Number.isFinite(parsed) || parsed < 0) {
+      return null;
+    }
+
+    return Math.round(parsed * 100) / 100;
+  }
+
+  private setRedeemThresholdInputValue(threshold: number): void {
+    const input = document.getElementById('tg-redeem-threshold') as HTMLInputElement | null;
+    if (!input) return;
+    input.value = threshold > 0 ? threshold.toFixed(2).replace(/\.00$/, '') : '';
+  }
+
+  private updateRedeemSiteLabel(): void {
+    const label = document.getElementById('tg-redeem-site-label');
+    if (label) {
+      label.textContent = this.getCurrentSiteHost();
+    }
+  }
+
+  private async loadRedeemThresholdSettings(): Promise<void> {
+    this.updateRedeemSiteLabel();
+
+    const siteHost = this.getCurrentSiteHost();
+    const stored = await this.getStorage([SITE_REDEEM_THRESHOLDS_KEY, 'redeemThreshold']) as Record<string, unknown>;
+    const thresholds = this.getStoredRedeemThresholds(stored[SITE_REDEEM_THRESHOLDS_KEY]);
+    const fallbackThreshold = Number(stored.redeemThreshold) || 0;
+    const activeThreshold = thresholds[siteHost] ?? fallbackThreshold;
+
+    this.setRedeemThresholdInputValue(activeThreshold);
+  }
+
+  private async saveRedeemThresholdForSite(): Promise<void> {
+    const threshold = this.parseRedeemThresholdInput();
+    if (threshold === null) {
+      this.updateStatus('Use a valid redeem line or 0 to disable it.', 'warning');
+      return;
+    }
+
+    const siteHost = this.getCurrentSiteHost();
+    const stored = await this.getStorage([SITE_REDEEM_THRESHOLDS_KEY]) as Record<string, unknown>;
+    const thresholds = this.getStoredRedeemThresholds(stored[SITE_REDEEM_THRESHOLDS_KEY]);
+
+    if (threshold === 0) {
+      delete thresholds[siteHost];
+    } else {
+      thresholds[siteHost] = threshold;
+    }
+
+    await this.setStorage({
+      [SITE_REDEEM_THRESHOLDS_KEY]: thresholds,
+      redeemThreshold: threshold,
+    });
+
+    this.setRedeemThresholdInputValue(threshold);
+    window.dispatchEvent(new CustomEvent('tg-redeem-threshold-updated', {
+      detail: { hostname: siteHost, threshold },
+    }));
+
+    if (threshold === 0) {
+      this.updateStatus(`Redeem nudge disabled for ${siteHost}.`, 'info');
+      this.addFeedMessage(`Redeem nudge disabled for ${siteHost}.`);
+      return;
+    }
+
+    this.updateStatus(`Redeem line armed at $${threshold.toFixed(2)} for ${siteHost}.`, 'success');
+    this.addFeedMessage(`Redeem line armed for ${siteHost} at $${threshold.toFixed(2)}.`);
   }
 
   // SidebarUI implementation

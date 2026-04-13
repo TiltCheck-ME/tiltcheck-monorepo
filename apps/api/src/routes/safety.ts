@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-12 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-13 */
 /**
  * Safety Routes - /safety/*
  * Degen Breathalyzer and Anti-Tilt interventions.
@@ -16,42 +16,90 @@ import type { SafetyInterventionTriggeredEventData } from '@tiltcheck/types';
 import { LinkScanner } from '@tiltcheck/suslink';
 import { evaluateBreathalyzer, evaluateSentiment } from '../lib/safety.js';
 import { authMiddleware } from '../middleware/auth.js';
+import { z, ZodError } from 'zod';
 
 const router = Router();
+const OUTBOUND_FETCH_TIMEOUT_MS = 8000;
+const COMMUNITY_SIGNAL_LIMIT = 50;
+const COMMUNITY_SIGNALS_FILE = 'community-signals.json';
+
+const breathalyzerSchema = z.object({
+  userId: z.string().trim().min(1),
+  eventsInWindow: z.number().finite(),
+  windowMinutes: z.number().finite(),
+  lossAmountWindow: z.number().finite().optional(),
+  streakLosses: z.number().finite().optional(),
+});
+
+const antiTiltSchema = z.object({
+  userId: z.string().trim().min(1),
+  message: z.string().trim().min(1),
+  distressSignals: z.array(z.string()).optional(),
+});
+
+const suslinkScanSchema = z.object({
+  url: z.string().trim().min(1),
+});
+
+const reportSchema = z.object({
+  type: z.string().trim().min(1),
+  details: z.string().trim().min(1),
+  casino: z.string().trim().min(1),
+});
+
+const notifyBuddySchema = z.object({
+  userId: z.string().trim().min(1).optional(),
+  type: z.string().trim().min(1),
+  data: z.record(z.string(), z.unknown()),
+});
+
+const touchGrassSchema = z.object({
+  discordId: z.string().trim().min(1),
+});
+
+function getErrorMessage(error: ZodError): string {
+  return error.issues[0]?.message || 'Invalid request body';
+}
+
+function fetchWithTimeout(input: string, init: RequestInit, timeoutMs = OUTBOUND_FETCH_TIMEOUT_MS) {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), timeoutMs);
+
+  return fetch(input, {
+    ...init,
+    signal: controller.signal,
+  }).finally(() => {
+    clearTimeout(timeout);
+  });
+}
 
 /**
  * POST /safety/breathalyzer/evaluate
  * Evaluate tilt risk based on recent betting velocity and loss context.
  */
 router.post('/breathalyzer/evaluate', (req, res) => {
-  const { userId, eventsInWindow, windowMinutes, lossAmountWindow, streakLosses } = req.body ?? {};
+  const parseResult = breathalyzerSchema.safeParse(req.body);
+  if (!parseResult.success) {
+    res.status(400).json({ error: getErrorMessage(parseResult.error), code: 'INVALID_INPUT' });
+    return;
+  }
 
-  if (!userId || typeof userId !== 'string') {
-    res.status(400).json({ error: 'userId is required', code: 'INVALID_USER_ID' });
-    return;
-  }
-  if (!isFiniteNumber(eventsInWindow) || !isFiniteNumber(windowMinutes)) {
-    res.status(400).json({
-      error: 'eventsInWindow and windowMinutes must be numbers',
-      code: 'INVALID_INPUT',
-    });
-    return;
-  }
+  const { userId, eventsInWindow, windowMinutes, lossAmountWindow, streakLosses } = parseResult.data;
 
   const result = evaluateBreathalyzer({
     userId,
-    eventsInWindow: Number(eventsInWindow),
-    windowMinutes: Number(windowMinutes),
-    lossAmountWindow: isFiniteNumber(lossAmountWindow) ? Number(lossAmountWindow) : undefined,
-    streakLosses: isFiniteNumber(streakLosses) ? Number(streakLosses) : undefined,
+    eventsInWindow,
+    windowMinutes,
+    lossAmountWindow,
+    streakLosses,
   });
 
   const eventPayload: BreathalyzerEvaluatedPayload = {
     userId,
     riskScore: result.riskScore,
     riskTier: result.riskTier,
-    eventsInWindow: Number(eventsInWindow),
-    windowMinutes: Number(windowMinutes),
+    eventsInWindow,
+    windowMinutes,
     recommendedCooldownMinutes: result.recommendedCooldownMinutes,
   };
 
@@ -74,25 +122,18 @@ router.post('/breathalyzer/evaluate', (req, res) => {
  * Evaluate user sentiment and decide intervention level.
  */
 router.post('/anti-tilt/evaluate', (req, res) => {
-  const { userId, message, distressSignals } = req.body ?? {};
-
-  if (!userId || typeof userId !== 'string') {
-    res.status(400).json({ error: 'userId is required', code: 'INVALID_USER_ID' });
-    return;
-  }
-  if (!message || typeof message !== 'string') {
-    res.status(400).json({ error: 'message is required', code: 'INVALID_MESSAGE' });
+  const parseResult = antiTiltSchema.safeParse(req.body);
+  if (!parseResult.success) {
+    res.status(400).json({ error: getErrorMessage(parseResult.error), code: 'INVALID_INPUT' });
     return;
   }
 
-  const signals = Array.isArray(distressSignals)
-    ? distressSignals.filter((signal): signal is string => typeof signal === 'string')
-    : undefined;
+  const { userId, message, distressSignals } = parseResult.data;
 
   const result = evaluateSentiment({
     userId,
     message,
-    distressSignals: signals,
+    distressSignals,
   });
 
   const eventPayload: SentimentFlaggedPayload = {
@@ -121,12 +162,13 @@ router.post('/anti-tilt/evaluate', (req, res) => {
  * Scan a URL for suspicious patterns using the SusLink engine.
  */
 router.post('/suslink/scan', async (req, res) => {
-  const { url } = req.body ?? {};
-
-  if (!url || typeof url !== 'string') {
-    res.status(400).json({ error: 'url is required', code: 'INVALID_URL' });
+  const parseResult = suslinkScanSchema.safeParse(req.body);
+  if (!parseResult.success) {
+    res.status(400).json({ error: getErrorMessage(parseResult.error), code: 'INVALID_INPUT' });
     return;
   }
+
+  const { url } = parseResult.data;
 
   try {
     const parsed = new URL(url);
@@ -173,32 +215,68 @@ router.post('/suslink/scan', async (req, res) => {
  * POST /safety/report
  * Submit a community report about a casino.
  */
-router.post('/report', (req, res) => {
-  const { type, details, casino } = req.body ?? {};
+router.post('/report', async (req, res) => {
+  const parseResult = reportSchema.safeParse(req.body);
   const userId = (req as any).user?.id || 'guest';
 
-  if (!type || !details || !casino) {
-    res.status(400).json({ error: 'Missing required fields', code: 'INVALID_INPUT' });
+  if (!parseResult.success) {
+    res.status(400).json({ error: getErrorMessage(parseResult.error), code: 'INVALID_INPUT' });
     return;
   }
 
-  // In a real app, we'd save this to a database and trigger trust score recalculation.
-  // For now, we'll log it and return success for the UX.
-  console.log(`[Community Signal] User ${userId} reported ${type} for ${casino}: ${details}`);
+  const { type, details, casino } = parseResult.data;
+  const signal = {
+    id: `signal_${Date.now()}`,
+    type,
+    details,
+    casino,
+    reporterId: userId,
+    createdAt: new Date().toISOString(),
+  };
+
+  try {
+    const existingSignals = await readCommunitySignals();
+    await writeCommunitySignals([signal, ...existingSignals].slice(0, COMMUNITY_SIGNAL_LIMIT));
+    console.log(`[Community Signal] User ${userId} reported ${type} for ${casino}: ${details}`);
+  } catch (error) {
+    console.error('[Community Signal] Failed to persist report:', error);
+    res.status(500).json({ error: 'Failed to store community signal', code: 'SIGNAL_STORE_FAILED' });
+    return;
+  }
 
   res.json({
     success: true,
     message: 'Signal shared with the community',
-    id: `signal_${Date.now()}`
+    id: signal.id
   });
 });
 
 /**
+ * GET /safety/signals/recent
+ * Return the latest community signals for the fairness watchdog feed.
+ */
+router.get('/signals/recent', async (_req, res) => {
+  try {
+    const signals = await readCommunitySignals();
+    res.json({ success: true, signals: signals.slice(0, 8) });
+  } catch (error) {
+    console.error('[Community Signal] Failed to read recent signals:', error);
+    res.status(500).json({ error: 'Failed to load recent signals', code: 'SIGNAL_READ_FAILED' });
+  }
+});
+
+/**
  * POST /safety/notify-buddy
- * Trigger a buddy system notification (e.g., Discord snitch).
+ * Trigger a support-only buddy accountability notification.
  */
 router.post('/notify-buddy', authMiddleware, async (req, res) => {
-  const { userId, type, data } = req.body ?? {};
+  const parseResult = notifyBuddySchema.safeParse(req.body);
+  if (!parseResult.success) {
+    res.status(400).json({ error: getErrorMessage(parseResult.error), code: 'INVALID_INPUT' });
+    return;
+  }
+
+  const { userId, type, data } = parseResult.data;
   const authenticatedUserId = (req as any).user?.id;
   const authenticatedDiscordId = (req as any).user?.discordId;
   const normalizedAuthenticatedUserId = typeof authenticatedDiscordId === 'string' && authenticatedDiscordId.trim() !== ''
@@ -219,12 +297,7 @@ router.post('/notify-buddy', authMiddleware, async (req, res) => {
 
   const actualUserId = normalizedAuthenticatedUserId;
 
-  if (!type || typeof type !== 'string' || !data || typeof data !== 'object') {
-    res.status(400).json({ error: 'type and data are required', code: 'INVALID_INPUT' });
-    return;
-  }
-
-  const intervention = buildSafetyIntervention(actualUserId, type, data as Record<string, unknown>);
+  const intervention = buildSafetyIntervention(actualUserId, type, data);
 
   const event = createEvent({
     name: 'safety.intervention.triggered',
@@ -262,11 +335,13 @@ const touchGrassLockouts = new Map<string, number>();
  * Body: { discordId: string }
  */
 router.post('/touchgrass', (req, res) => {
-  const { discordId } = req.body ?? {};
-  if (!discordId || typeof discordId !== 'string') {
-    res.status(400).json({ error: 'discordId is required', code: 'INVALID_INPUT' });
+  const parseResult = touchGrassSchema.safeParse(req.body);
+  if (!parseResult.success) {
+    res.status(400).json({ error: getErrorMessage(parseResult.error), code: 'INVALID_INPUT' });
     return;
   }
+
+  const { discordId } = parseResult.data;
 
   const lockoutUntil = Date.now() + 24 * 60 * 60 * 1000;
   touchGrassLockouts.set(discordId, lockoutUntil);
@@ -305,8 +380,55 @@ router.get('/touchgrass/:discordId', (req, res) => {
 
 export { router as safetyRouter, touchGrassLockouts };
 
-function isFiniteNumber(value: unknown): boolean {
-  return typeof value === 'number' && Number.isFinite(value);
+async function readCommunitySignals(): Promise<Array<{
+  id: string;
+  type: string;
+  details: string;
+  casino: string;
+  reporterId: string;
+  createdAt: string;
+}>> {
+  const filePath = getCommunitySignalsPath();
+
+  try {
+    const raw = await fs.readFile(filePath, 'utf8');
+    const parsed = JSON.parse(raw) as unknown;
+    return Array.isArray(parsed)
+      ? parsed.filter((entry): entry is {
+          id: string;
+          type: string;
+          details: string;
+          casino: string;
+          reporterId: string;
+          createdAt: string;
+        } => typeof entry === 'object' && entry !== null)
+      : [];
+  } catch (error) {
+    const nodeError = error as NodeJS.ErrnoException;
+    if (nodeError.code === 'ENOENT') {
+      return [];
+    }
+
+    throw error;
+  }
+}
+
+async function writeCommunitySignals(signals: Array<{
+  id: string;
+  type: string;
+  details: string;
+  casino: string;
+  reporterId: string;
+  createdAt: string;
+}>): Promise<void> {
+  const filePath = getCommunitySignalsPath();
+  await fs.mkdir(path.dirname(filePath), { recursive: true });
+  await fs.writeFile(filePath, JSON.stringify(signals, null, 2), 'utf8');
+}
+
+function getCommunitySignalsPath(): string {
+  const dataDir = process.env.STATS_DATA_DIR || path.resolve(process.cwd(), 'data');
+  return path.join(dataDir, COMMUNITY_SIGNALS_FILE);
 }
 
 function buildSafetyIntervention(
@@ -315,9 +437,11 @@ function buildSafetyIntervention(
   data: Record<string, unknown>
 ): SafetyInterventionTriggeredEventData {
   const normalizedType = type.trim().toLowerCase();
-  const message = typeof data.message === 'string' && data.message.trim() !== ''
-    ? data.message
-    : defaultInterventionMessage(normalizedType);
+  const message = shouldUseSupportOnlyMessage(normalizedType)
+    ? supportOnlyInterventionMessage(normalizedType)
+    : typeof data.message === 'string' && data.message.trim() !== ''
+      ? data.message
+      : defaultInterventionMessage(normalizedType);
   const riskScore = typeof data.risk === 'number' && Number.isFinite(data.risk)
     ? Math.max(0, Math.min(100, data.risk))
     : normalizedType === 'phone_friend' || normalizedType === 'phone_friend_discord' || normalizedType === 'critical_tilt'
@@ -348,12 +472,27 @@ function buildSafetyIntervention(
     interventionLevel,
     action,
     displayText: message,
-    metadata: {
-      ...data,
-      sourceType: type,
-      requestedAt: typeof data.timestamp === 'string' ? data.timestamp : new Date().toISOString(),
-    },
+    metadata: sanitizeInterventionMetadata(type, data),
   };
+}
+
+function shouldUseSupportOnlyMessage(type: string): boolean {
+  return type === 'phone_friend'
+    || type === 'phone_friend_discord'
+    || type === 'critical_tilt'
+    || type === 'cooldown';
+}
+
+function supportOnlyInterventionMessage(type: string): string {
+  switch (type) {
+    case 'cooldown':
+      return 'Cooldown triggered. Keep the check-in on pause, cash-out, water, or voice. No money asks, no transfer asks.';
+    case 'phone_friend':
+    case 'phone_friend_discord':
+    case 'critical_tilt':
+    default:
+      return 'Accountability check-in required. Push a pause, a cash-out, or a voice check-in. Do not ask for money, tips, transfers, or wallet screenshots.';
+  }
 }
 
 function defaultInterventionMessage(type: string): string {
@@ -371,6 +510,37 @@ function defaultInterventionMessage(type: string): string {
   }
 }
 
+function sanitizeInterventionMetadata(type: string, data: Record<string, unknown>): Record<string, unknown> {
+  const requestedAt = typeof data.timestamp === 'string'
+    ? data.timestamp
+    : typeof data.requestedAt === 'string'
+      ? data.requestedAt
+      : new Date().toISOString();
+
+  const metadata: Record<string, unknown> = {
+    sourceType: type,
+    requestedAt,
+    accountabilityMode: 'support_only',
+    antiSolicitationPolicy: 'no-loans-no-tips-no-transfers',
+    supportActions: [
+      'tell them to pause',
+      'tell them to cash out',
+      'offer a voice check-in',
+      'tell them to drink water and log off',
+    ],
+  };
+
+  const passthroughKeys = ['guildId', 'voiceChannelId', 'inviteUrl', 'timestamp'];
+  for (const key of passthroughKeys) {
+    const value = data[key];
+    if (typeof value === 'string' && value.trim() !== '') {
+      metadata[key] = value;
+    }
+  }
+
+  return metadata;
+}
+
 async function forwardInterventionToBot(intervention: SafetyInterventionTriggeredEventData): Promise<unknown> {
   const botBaseUrl = process.env.DISCORD_BOT_INTERNAL_URL || 'https://bot.tiltcheck.me';
   const serviceSecret = process.env.INTERNAL_API_SECRET;
@@ -379,7 +549,7 @@ async function forwardInterventionToBot(intervention: SafetyInterventionTriggere
     throw new Error('INTERNAL_API_SECRET is required to deliver interventions to the Discord bot');
   }
 
-  const response = await fetch(`${botBaseUrl.replace(/\/$/, '')}/internal/interventions`, {
+  const response = await fetchWithTimeout(`${botBaseUrl.replace(/\/$/, '')}/internal/interventions`, {
     method: 'POST',
     headers: {
       'Authorization': `Bearer ${serviceSecret}`,

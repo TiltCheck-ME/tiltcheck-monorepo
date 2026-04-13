@@ -1,11 +1,9 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-11 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-13 */
 'use client';
 
 import React from 'react';
 import { useWallet } from '@solana/wallet-adapter-react';
 import TrustRollup from '@/components/TrustRollup';
-import Nav from '@/components/Nav';
-import Footer from '@/components/Footer';
 import ActivityFeed from '@/components/ActivityFeed';
 import LockVault from '@/components/LockVault';
 import GuardianManager from '@/components/GuardianManager';
@@ -51,9 +49,7 @@ export default function DashboardPage() {
 
   return (
     <div className="min-h-screen bg-[#0a0c10] text-white">
-      <Nav />
-      
-      <main className="max-w-7xl mx-auto px-4 py-12 pt-32">
+      <main className="max-w-7xl mx-auto px-4 py-12">
         {/* Header Section */}
         <header className="mb-12 border-b border-[#283347] pb-8">
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
@@ -206,8 +202,6 @@ export default function DashboardPage() {
           </div>
         )}
       </main>
-
-      <Footer />
     </div>
   );
 }

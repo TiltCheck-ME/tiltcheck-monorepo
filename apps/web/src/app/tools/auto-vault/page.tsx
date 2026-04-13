@@ -131,8 +131,8 @@ export default function AutoVaultPage() {
           <div className="mt-10 grid grid-cols-2 md:grid-cols-4 gap-3">
             {[
               { href: '/tools/collectclock', label: 'CollectClock' },
-              { href: '/tools/delta-engine', label: 'Delta Engine' },
-              { href: '/tools/suslink', label: 'SusLink Scanner' },
+              { href: '/tools/house-edge-scanner', label: 'Delta Engine' },
+              { href: '/tools/domain-verifier', label: 'SusLink Scanner' },
               { href: '/tools', label: 'All Tools' },
             ].map(({ href, label }) => (
               <Link

@@ -29,6 +29,7 @@
     "jsonwebtoken": "^9.0.3",
     "passport": "^0.7.0",
     "passport-discord": "^0.1.4",
+    "zod": "^4.3.6",
     "tweetnacl": "^1.0.3",
     "ws": "^8.18.0"
   },

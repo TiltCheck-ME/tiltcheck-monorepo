@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-12
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-13
 import express from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
@@ -17,6 +17,7 @@ import { Connection, PublicKey } from '@solana/web3.js';
 import { fileURLToPath, pathToFileURL } from 'url';
 import { dirname, join, resolve } from 'path';
 import type { Request, Response, NextFunction } from 'express';
+import { z, ZodError } from 'zod';
 
 interface DashboardRequest extends Request {
   user?: {
@@ -37,10 +38,110 @@ interface AgentContent {
   parts?: { text?: string }[];
 }
 
+interface DashboardSessionRecord {
+  net_pl?: number;
+  duration_ms?: number;
+  completed_at?: string;
+  created_at?: string;
+  casino_name?: string;
+  casino?: string;
+  [key: string]: unknown;
+}
+
+interface VaultHistoryRecord {
+  amount_sol?: number;
+  created_at?: string;
+  status?: string;
+  [key: string]: unknown;
+}
+
+const REDEEM_VAULT_MATCH_WINDOW_MS = 6 * 60 * 60 * 1000;
+
 function stringifyContent(content: AgentContent | string): string {
   if (typeof content === 'string') return content;
   if (content?.parts) return content.parts.map((p) => p.text || '').join('');
   return JSON.stringify(content);
+}
+
+function normalizeFiniteNumber(value: unknown): number {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : 0;
+}
+
+function parseTimestamp(value: unknown): number | null {
+  if (typeof value !== 'string' && typeof value !== 'number' && !(value instanceof Date)) {
+    return null;
+  }
+
+  const parsed = new Date(value).getTime();
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
+function getMatchedVaultAmount(
+  completedAtMs: number,
+  sessionProfit: number,
+  vaultHistory: VaultHistoryRecord[],
+): number {
+  if (sessionProfit <= 0) return 0;
+
+  let bestMatch: { deltaMs: number; amount: number } | null = null;
+
+  for (const entry of vaultHistory) {
+    const vaultCreatedAtMs = parseTimestamp(entry.created_at);
+    if (vaultCreatedAtMs === null) continue;
+    if (vaultCreatedAtMs < completedAtMs) continue;
+    if (vaultCreatedAtMs > completedAtMs + REDEEM_VAULT_MATCH_WINDOW_MS) continue;
+
+    const amount = normalizeFiniteNumber(entry.amount_sol);
+    if (amount <= 0) continue;
+
+    const deltaMs = vaultCreatedAtMs - completedAtMs;
+    if (!bestMatch || deltaMs < bestMatch.deltaMs) {
+      bestMatch = {
+        deltaMs,
+        amount: Math.min(amount, sessionProfit),
+      };
+    }
+  }
+
+  return bestMatch?.amount ?? 0;
+}
+
+function summarizeDashboardSession(
+  session: DashboardSessionRecord,
+  redeemThreshold: number,
+  vaultHistory: VaultHistoryRecord[],
+) {
+  const netPL = normalizeFiniteNumber(session.net_pl);
+  const completedAtMs = parseTimestamp(session.completed_at) ?? parseTimestamp(session.created_at) ?? Date.now();
+  const thresholdHit = redeemThreshold > 0 && netPL >= redeemThreshold;
+  const securedAmount = getMatchedVaultAmount(completedAtMs, netPL, vaultHistory);
+
+  let outcome: 'secured_win' | 'redeem_window' | 'up_session' | 'flat_session' | 'down_session' = 'flat_session';
+  let outcomeLabel = 'FLAT SESSION';
+
+  if (securedAmount > 0) {
+    outcome = 'secured_win';
+    outcomeLabel = 'SECURED WIN';
+  } else if (thresholdHit) {
+    outcome = 'redeem_window';
+    outcomeLabel = 'REDEEM WINDOW';
+  } else if (netPL > 0) {
+    outcome = 'up_session';
+    outcomeLabel = 'UP SESSION';
+  } else if (netPL < 0) {
+    outcome = 'down_session';
+    outcomeLabel = 'DOWN SESSION';
+  }
+
+  return {
+    ...session,
+    net_pl: netPL,
+    secured_amount: securedAmount,
+    redeem_threshold_hit: thresholdHit,
+    outcome,
+    outcome_label: outcomeLabel,
+  };
 }
 
 function requireAuthorizedDiscordId(req: DashboardRequest, res: Response): string | null {
@@ -71,11 +172,13 @@ const app = express();
 const PORT = process.env.PORT || process.env.USER_DASHBOARD_PORT || 6001;
 const DISCORD_CALLBACK_URL = process.env.TILT_DISCORD_REDIRECT_URI || 'https://api.tiltcheck.me/auth/discord/callback';
 const DEFAULT_DISCORD_CLIENT_ID = '1445916179163250860';
+const OUTBOUND_FETCH_TIMEOUT_MS = 8000;
 
 // Configuration
 const isProd = process.env.NODE_ENV === 'production';
 const HUB_BASE_URL = isProd ? 'https://hub.tiltcheck.me' : `http://localhost:${PORT}`;
 const JWT_SECRET = process.env.JWT_SECRET;
+const MAGIC_SECRET_KEY = process.env.MAGIC_SECRET_KEY?.trim();
 
 if (!JWT_SECRET) {
   throw new Error('FATAL: JWT_SECRET environment variable is required');
@@ -104,8 +207,12 @@ const paymentClaimLimiter = rateLimit({
   legacyHeaders: false,
 });
 
-const magicAdmin = new Magic(process.env.MAGIC_SECRET_KEY);
+const magicAdmin = MAGIC_SECRET_KEY ? new Magic(MAGIC_SECRET_KEY) : null;
 const _solanaConnection = new Connection(process.env.SOLANA_RPC_URL || 'https://api.mainnet-beta.solana.com', 'confirmed');
+
+if (!magicAdmin) {
+  console.warn('[Dashboard] MAGIC_SECRET_KEY is not configured. Magic wallet linking routes will return 503 until the secret is set.');
+}
 
 // Middleware
 app.use(cors({
@@ -267,6 +374,45 @@ interface NftIdentityStatus {
   detail: string;
 }
 
+const userOnboardSchema = z.object({
+  primary_external_address: z.string().trim().min(1).nullable().optional(),
+  tos_accepted: z.literal(true),
+  risk_level: z.enum(['conservative', 'moderate', 'degen']).optional(),
+  cooldown_enabled: z.boolean().optional(),
+  voice_intervention_enabled: z.boolean().optional(),
+  redeem_threshold: z.number().finite().positive().optional(),
+  notifications: z.object({
+    tips: z.boolean().optional(),
+    trivia: z.boolean().optional(),
+    promos: z.boolean().optional(),
+  }).optional(),
+  trust_engine_opt_in: z.object({
+    message_contents: z.boolean().optional(),
+    financial_data: z.boolean().optional(),
+    session_telemetry: z.boolean().optional(),
+    notify_nft_identity_ready: z.boolean().optional(),
+  }).optional(),
+});
+
+const walletLinkSchema = z.object({
+  address: z.string().trim().min(1),
+});
+
+const magicLinkSchema = z.object({
+  didToken: z.string().trim().min(1),
+});
+
+const paymentClaimSchema = z.object({
+  discordUsername: z.string().trim().min(1),
+  txHash: z.string().trim().min(1),
+  tier: z.string().trim().min(1),
+  amount: z.union([z.string().trim().min(1), z.number().finite().positive()]),
+});
+
+const agentQuerySchema = z.object({
+  query: z.string().trim().min(1),
+});
+
 function getIdentityMetadata(identity: DegenIdentity | null): Record<string, unknown> {
   return identity?.identity_metadata && typeof identity.identity_metadata === 'object'
     ? identity.identity_metadata
@@ -275,6 +421,22 @@ function getIdentityMetadata(identity: DegenIdentity | null): Record<string, unk
 
 function getStatsDataDir(): string {
   return process.env.STATS_DATA_DIR || resolve(process.cwd(), 'data');
+}
+
+function getErrorMessage(error: ZodError): string {
+  return error.issues[0]?.message || 'Invalid request body';
+}
+
+function fetchWithTimeout(input: string, init: RequestInit, timeoutMs = OUTBOUND_FETCH_TIMEOUT_MS) {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), timeoutMs);
+
+  return fetch(input, {
+    ...init,
+    signal: controller.signal,
+  }).finally(() => {
+    clearTimeout(timeout);
+  });
 }
 
 async function readJsonFile<T>(filePath: string, fallback: T): Promise<T> {
@@ -431,7 +593,7 @@ async function sendDiscordDirectMessage(discordId: string, content: string): Pro
   }
 
   try {
-    const dmChannelResponse = await fetch('https://discord.com/api/v10/users/@me/channels', {
+    const dmChannelResponse = await fetchWithTimeout('https://discord.com/api/v10/users/@me/channels', {
       method: 'POST',
       headers: {
         'Authorization': `Bot ${botToken}`,
@@ -451,7 +613,7 @@ async function sendDiscordDirectMessage(discordId: string, content: string): Pro
       return false;
     }
 
-    const messageResponse = await fetch(`https://discord.com/api/v10/channels/${dmChannel.id}/messages`, {
+    const messageResponse = await fetchWithTimeout(`https://discord.com/api/v10/channels/${dmChannel.id}/messages`, {
       method: 'POST',
       headers: {
         'Authorization': `Bot ${botToken}`,
@@ -644,29 +806,12 @@ app.post('/api/user/onboard', authenticateToken, async (req: DashboardRequest, r
       redeem_threshold,
       notifications,
       trust_engine_opt_in
-    } = req.body;
+    } = userOnboardSchema.parse(req.body);
     const discordId = req.user!.discordId;
-    const normalizedRiskLevel = risk_level === 'conservative' || risk_level === 'moderate' || risk_level === 'degen'
-      ? risk_level
-      : 'moderate';
-    const normalizedRedeemThreshold = typeof redeem_threshold === 'number' && Number.isFinite(redeem_threshold) && redeem_threshold > 0
-      ? redeem_threshold
-      : 500;
-    const normalizedNotifications = typeof notifications === 'object' && notifications
-      ? notifications as {
-          tips?: boolean;
-          trivia?: boolean;
-          promos?: boolean;
-        }
-      : {};
-    const trustEngineOptIn = typeof trust_engine_opt_in === 'object' && trust_engine_opt_in
-      ? trust_engine_opt_in as {
-          message_contents?: boolean;
-          financial_data?: boolean;
-          session_telemetry?: boolean;
-          notify_nft_identity_ready?: boolean;
-        }
-      : {};
+    const normalizedRiskLevel = risk_level ?? 'moderate';
+    const normalizedRedeemThreshold = redeem_threshold ?? 500;
+    const normalizedNotifications = notifications ?? {};
+    const trustEngineOptIn = trust_engine_opt_in ?? {};
     const existingIdentity = db.isConnected()
       ? await db.getDegenIdentity(discordId).catch(() => null)
       : null;
@@ -717,6 +862,10 @@ app.post('/api/user/onboard', authenticateToken, async (req: DashboardRequest, r
 
     res.json({ success: true, identity: updatedIdentity, nftIdentity });
   } catch (err) {
+    if (err instanceof ZodError) {
+      res.status(400).json({ error: getErrorMessage(err), code: 'INVALID_INPUT' });
+      return;
+    }
     const error = err as Error;
     console.error('[API] Onboard error:', error);
     res.status(500).json({ error: error.message });
@@ -804,14 +953,16 @@ app.put('/api/user/:discordId/preferences', authenticateToken, async (req: Dashb
 });
 
 app.post('/api/auth/wallet/link', authenticateToken, async (req: DashboardRequest, res) => {
-  const { address } = req.body;
-  if (typeof address !== 'string' || !address.trim()) {
-    res.status(400).json({ error: 'Wallet address is required' });
+  const parseResult = walletLinkSchema.safeParse(req.body);
+  if (!parseResult.success) {
+    res.status(400).json({ error: getErrorMessage(parseResult.error), code: 'INVALID_INPUT' });
     return;
   }
 
+  const address = parseResult.data.address.trim();
+
   try {
-    new PublicKey(address.trim());
+    new PublicKey(address);
   } catch {
     res.status(400).json({ error: 'Invalid Solana wallet address' });
     return;
@@ -821,7 +972,7 @@ app.post('/api/auth/wallet/link', authenticateToken, async (req: DashboardReques
   if (db.isConnected()) {
     updatedIdentity = await db.upsertDegenIdentity({
       discord_id: req.user!.discordId,
-      primary_external_address: address.trim()
+      primary_external_address: address
     });
   }
   const onboarding = await findOnboardingByDiscordId(req.user!.discordId);
@@ -835,29 +986,57 @@ app.post('/api/auth/wallet/link', authenticateToken, async (req: DashboardReques
 });
 
 app.post('/api/auth/magic/link', authenticateToken, async (req: DashboardRequest, res) => {
-  const { didToken } = req.body;
-  const metadata = await magicAdmin.users.getMetadataByToken(didToken);
-  let updatedIdentity: DegenIdentity | null = null;
-  if (db.isConnected()) {
-    updatedIdentity = await db.upsertDegenIdentity({
-      discord_id: req.user!.discordId,
-      magic_address: metadata.publicAddress
-    });
+  const parseResult = magicLinkSchema.safeParse(req.body);
+  if (!parseResult.success) {
+    res.status(400).json({ error: getErrorMessage(parseResult.error), code: 'INVALID_INPUT' });
+    return;
   }
-  const onboarding = await findOnboardingByDiscordId(req.user!.discordId);
-  const nftIdentity = await notifyNftIdentityReady(
-    req.user!.discordId,
-    req.user!.username,
-    onboarding,
-    updatedIdentity
-  );
-  res.json({ success: true, address: metadata.publicAddress, nftIdentity });
+
+  if (!magicAdmin) {
+    res.status(503).json({ error: 'Magic wallet linking is not configured', code: 'SERVICE_UNAVAILABLE' });
+    return;
+  }
+
+  try {
+    const metadata = await magicAdmin.users.getMetadataByToken(parseResult.data.didToken);
+    let updatedIdentity: DegenIdentity | null = null;
+    if (db.isConnected()) {
+      updatedIdentity = await db.upsertDegenIdentity({
+        discord_id: req.user!.discordId,
+        magic_address: metadata.publicAddress
+      });
+    }
+    const onboarding = await findOnboardingByDiscordId(req.user!.discordId);
+    const nftIdentity = await notifyNftIdentityReady(
+      req.user!.discordId,
+      req.user!.username,
+      onboarding,
+      updatedIdentity
+    );
+    res.json({ success: true, address: metadata.publicAddress, nftIdentity });
+  } catch (err) {
+    console.error('[Magic Link]', err);
+    res.status(400).json({ error: 'Invalid Magic link token', code: 'INVALID_INPUT' });
+  }
 });
 
 // === AI Agent Route ===
 app.post('/api/agent/query', authenticateToken, async (req: DashboardRequest, res) => {
-  const { query } = req.body;
-  if (!query) return res.status(400).json({ error: 'Missing query' });
+  const parseResult = agentQuerySchema.safeParse(req.body);
+  if (!parseResult.success) {
+    res.status(400).json({ error: getErrorMessage(parseResult.error), code: 'INVALID_INPUT' });
+    return;
+  }
+
+  if (!runner) {
+    res.status(503).json({
+      error: 'Agent is not configured',
+      code: 'SERVICE_UNAVAILABLE',
+    });
+    return;
+  }
+
+  const { query } = parseResult.data;
 
   try {
     let finalResponse = '';
@@ -1021,36 +1200,60 @@ app.get('/api/user/:discordId/sessions', authenticateToken, async (req: Dashboar
       return res.json({
         sessions: [],
         stats: {
-          weeklyPL: 0,
-          winRate: 0,
+          netSessionPL: 0,
+          securedAmount: 0,
+          securedWins: 0,
+          redeemWindowCount: 0,
           avgSession: 0,
           rtpDrift: rtpSnapshot.drift,
           rtpSource: rtpSnapshot.source,
-        }
+        },
+        context: {
+          redeemThreshold: 500,
+          lifetimeRedeemWins: 0,
+          lifetimeTotalRedeemed: 0,
+        },
       });
     }
 
     const user = await findUserByDiscordId(discordId);
     if (!user) return res.status(404).json({ error: 'User not found' });
 
-    const sessions = await db.getUserSessions(user.id, 7).catch(() => []);
+    const [sessions, vaultHistory, onboarding] = await Promise.all([
+      db.getUserSessions(user.id, 7).catch(() => []),
+      db.getVaultHistory(user.id, 20).catch(() => []),
+      findOnboardingByDiscordId(discordId),
+    ]);
 
-    const totalPL = sessions.reduce((sum: number, s: { net_pl?: number }) => sum + (s.net_pl || 0), 0);
-    const wins = sessions.filter((s: { net_pl?: number }) => (s.net_pl || 0) > 0).length;
-    const winRate = sessions.length > 0 ? Math.round((wins / sessions.length) * 100) : 0;
-    const avgSession = sessions.length > 0
-      ? Math.round(sessions.reduce((sum: number, s: { duration_ms?: number }) => sum + (s.duration_ms || 0), 0) / sessions.length / 60000)
+    const redeemThreshold = normalizeFiniteNumber(onboarding?.redeem_threshold ?? 500);
+    const summarizedSessions = sessions.map((session) =>
+      summarizeDashboardSession(session as DashboardSessionRecord, redeemThreshold, vaultHistory as VaultHistoryRecord[]),
+    );
+
+    const totalPL = summarizedSessions.reduce((sum, session) => sum + session.net_pl, 0);
+    const securedAmount = summarizedSessions.reduce((sum, session) => sum + session.secured_amount, 0);
+    const securedWins = summarizedSessions.filter((session) => session.outcome === 'secured_win').length;
+    const redeemWindowCount = summarizedSessions.filter((session) => session.redeem_threshold_hit).length;
+    const avgSession = summarizedSessions.length > 0
+      ? Math.round(summarizedSessions.reduce((sum, session) => sum + normalizeFiniteNumber(session.duration_ms), 0) / summarizedSessions.length / 60000)
       : 0;
 
     res.json({
-      sessions,
+      sessions: summarizedSessions,
       stats: {
-        weeklyPL: totalPL,
-        winRate,
+        netSessionPL: totalPL,
+        securedAmount,
+        securedWins,
+        redeemWindowCount,
         avgSession,
         rtpDrift: rtpSnapshot.drift,
         rtpSource: rtpSnapshot.source,
-      }
+      },
+      context: {
+        redeemThreshold,
+        lifetimeRedeemWins: user.redeem_wins || 0,
+        lifetimeTotalRedeemed: normalizeFiniteNumber(user.total_redeemed),
+      },
     });
   } catch (err) {
     console.error('[Sessions]', err);
@@ -1058,12 +1261,19 @@ app.get('/api/user/:discordId/sessions', authenticateToken, async (req: Dashboar
     res.json({
       sessions: [],
       stats: {
-        weeklyPL: 0,
-        winRate: 0,
+        netSessionPL: 0,
+        securedAmount: 0,
+        securedWins: 0,
+        redeemWindowCount: 0,
         avgSession: 0,
         rtpDrift: rtpSnapshot.drift,
         rtpSource: rtpSnapshot.source,
-      }
+      },
+      context: {
+        redeemThreshold: 500,
+        lifetimeRedeemWins: 0,
+        lifetimeTotalRedeemed: 0,
+      },
     });
   }
 });
@@ -1154,17 +1364,13 @@ app.post('/api/user/:discordId/buddies/:requestId/decline', authenticateToken, a
 app.get('/premium', (_req, res) => res.sendFile(join(__dirname, '../public/premium.html')));
 
 app.post('/api/payments/claim-crypto', paymentClaimLimiter, async (req, res) => {
-  const { discordUsername, txHash, tier, amount } = req.body as {
-    discordUsername?: string;
-    txHash?: string;
-    tier?: string;
-    amount?: string | number;
-  };
-
-  if (!discordUsername || !txHash || !tier || !amount) {
-    res.status(400).json({ error: 'All fields required: discordUsername, txHash, tier, amount' });
+  const parseResult = paymentClaimSchema.safeParse(req.body);
+  if (!parseResult.success) {
+    res.status(400).json({ error: getErrorMessage(parseResult.error), code: 'INVALID_INPUT' });
     return;
   }
+
+  const { discordUsername, txHash, tier, amount } = parseResult.data;
 
   const MOD_LOG_CHANNEL_ID = '1488256044349128974';
   const botToken = process.env.DISCORD_BOT_TOKEN;
@@ -1184,7 +1390,7 @@ app.post('/api/payments/claim-crypto', paymentClaimLimiter, async (req, res) => 
         timestamp: new Date().toISOString(),
       };
 
-      await fetch(`https://discord.com/api/v10/channels/${MOD_LOG_CHANNEL_ID}/messages`, {
+      await fetchWithTimeout(`https://discord.com/api/v10/channels/${MOD_LOG_CHANNEL_ID}/messages`, {
         method: 'POST',
         headers: {
           'Authorization': `Bot ${botToken}`,

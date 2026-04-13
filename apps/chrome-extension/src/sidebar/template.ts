@@ -50,6 +50,20 @@ export const SIDEBAR_TEMPLATE = `
           </div>
         </div>
 
+        <div class="tg-section">
+          <h4>Redeem-to-Win</h4>
+          <div class="tg-input-group">
+            <label>Cash-out line for <span id="tg-redeem-site-label">this site</span></label>
+            <div style="display: flex; gap: 8px; align-items: center;">
+              <input type="number" id="tg-redeem-threshold" min="0" step="0.01" placeholder="0.00" style="flex: 1;" />
+              <button class="tg-btn tg-btn-primary tg-btn-inline" id="tg-save-redeem-threshold">Arm</button>
+            </div>
+            <div style="font-size: 11px; opacity: 0.65; margin-top: 6px;">
+              Set 0 to disable the redeem nudge on this casino.
+            </div>
+          </div>
+        </div>
+
         <!-- Settings Panel (toggleable) -->
         <div class="tg-settings-panel tg-advanced-only" id="tg-settings-panel" style="display: none;">
           <h4>API Keys</h4>

@@ -318,10 +318,10 @@ export async function sendWelcomeDM(user: User): Promise<boolean> {
         `- PREDATORY HOUSE DRIFT (FAIRNESS)\n` +
         `- BEHAVIORAL SPIRALS (STATUS AUDITS)\n` +
         `- COMMUNITY TELEMETRY (TRUST ENGINE)\n\n` +
-        `**TO GET STARTED:**\n` +
-        `Link your account at **tiltcheck.me** to enable account-bound commands, the vault, and your Degen ID.\n\n` +
-        `Or calibrate your nudge profile directly in Discord — no account required.\n\n` +
-        `I DO NOT CUSTODY FUNDS.`
+        `IF YOU WANT THE HARD BRAKE, RUN \`/intervene enabled:true\` SO I CAN AUTO-MOVE YOU INTO ACCOUNTABILITY VC WHEN YOUR SESSION GOES NUCLEAR.\n\n` +
+        `WANT BETA ACCESS? LINK DISCORD ON THE SITE FIRST. THE BETA FORM NOW USES YOUR REAL DISCORD ID SO APPROVALS AND ROLE GRANTS DO NOT TURN INTO A SCAVENGER HUNT.\n\n` +
+        `NOTE: I DO NOT CUSTODY FUNDS. I PURELY LEVEL THE PLAYING FIELD.\n\n` +
+        `SYNC YOUR DEGEN ID?`
       )
       .setThumbnail('https://tiltcheck.me/assets/logo/favicon-white.svg')
       .setFooter({ text: 'Made for Degens. By Degens.' });
@@ -332,17 +332,16 @@ export async function sendWelcomeDM(user: User): Promise<boolean> {
       .setStyle(ButtonStyle.Link)
       .setURL(getWebsiteOnboardingUrl());
 
+    const betaBtn = new ButtonBuilder()
+      .setLabel('APPLY FOR BETA')
+      .setStyle(ButtonStyle.Link)
+      .setURL(getBetaTesterUrl());
+
     // Link to the Discord server so users can navigate back from the DM
     const joinServerBtn = new ButtonBuilder()
       .setLabel('JOIN SERVER')
       .setStyle(ButtonStyle.Link)
       .setURL(DISCORD_INVITE_URL);
-
-    // Secondary: run in-Discord calibration quiz without needing an account
-    const calibrateBtn = new ButtonBuilder()
-      .setCustomId('onboard_start')
-      .setLabel('CALIBRATE IN DISCORD')
-      .setStyle(ButtonStyle.Primary);
 
     const maybeLaterBtn = new ButtonBuilder()
       .setCustomId('onboard_later')
@@ -351,7 +350,7 @@ export async function sendWelcomeDM(user: User): Promise<boolean> {
 
     // Discord ActionRow allows a maximum of 5 components — currently 4 buttons.
     const row = new ActionRowBuilder<ButtonBuilder>()
-      .addComponents(linkAccountBtn, joinServerBtn, calibrateBtn, maybeLaterBtn);
+      .addComponents(linkAccountBtn, betaBtn, joinServerBtn, maybeLaterBtn);
 
     await dmChannel.send({ embeds: [welcomeEmbed], components: [row] });
     return true;
