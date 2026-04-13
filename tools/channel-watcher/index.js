@@ -117,6 +117,23 @@ const PROVIDERS = {
 
 const ai = PROVIDERS[PROVIDER] ?? PROVIDERS.ollama;
 
+function isProviderConfigured(providerKey) {
+    const provider = PROVIDERS[providerKey];
+    if (!provider) return false;
+    if (providerKey === 'ollama') return true;
+    return Boolean(provider.apiKey);
+}
+
+function getFallbackProviders(primaryKey) {
+    const orderedKeys = primaryKey === 'all'
+        ? Object.keys(PROVIDERS)
+        : [primaryKey, ...Object.keys(PROVIDERS).filter(key => key !== primaryKey)];
+
+    return orderedKeys
+        .map(key => ({ key, ...PROVIDERS[key] }))
+        .filter(provider => isProviderConfigured(provider.key));
+}
+
 const GPT_SYSTEM_PROMPT = `You are a community intelligence analyst for TiltCheck, a responsible gambling platform.
 You are given a batch of Discord messages scraped from a gambling community server.
 
@@ -262,7 +279,22 @@ async function analyseMessages(messages) {
                 .filter(Boolean);
             chunkReport = sections.join('\n');
         } else {
-            chunkReport = await callProvider(ai, text, chunk.length);
+            const candidates = getFallbackProviders(PROVIDER);
+
+            for (const provider of candidates) {
+                const result = await callProvider(provider, text, chunk.length);
+                if (result) {
+                    chunkReport = result;
+                    if (provider.key !== PROVIDER) {
+                        console.log(chalk.yellow(`  ↺ Fell back from ${ai.label} to ${provider.label} for this chunk.`));
+                    }
+                    break;
+                }
+            }
+
+            if (!chunkReport && candidates.length > 0) {
+                console.error(chalk.red(`  ✗ All configured AI providers failed for chunk ${idx + 1}.`));
+            }
         }
 
         if (chunkReport) {
