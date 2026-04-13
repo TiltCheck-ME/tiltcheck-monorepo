@@ -309,36 +309,40 @@ export async function sendWelcomeDM(user: User): Promise<boolean> {
     const welcomeEmbed = new EmbedBuilder()
       .setColor(0x22d3a6)
       .setDescription(
-        `USER IDENTIFIED: **${user.username}**. I AM TILTCHECK. I AM THE RELUCTANT BABYSITTER FOR YOUR BANKROLL.\n\n` +
+        `USER IDENTIFIED: **${user.username}**.\n\n` +
+        `I AM TILTCHECK. I AUDIT CASINOS, SCAN SCAM LINKS, AND PULL THE BRAKE BEFORE YOU GIVE BACK A WIN.\n\n` +
         `I AM MONITORING THE ARENA FOR:\n` +
         `- MALICIOUS REDIRECTS (SCAM SCANNER)\n` +
         `- PREDATORY HOUSE DRIFT (FAIRNESS)\n` +
         `- BEHAVIORAL SPIRALS (STATUS AUDITS)\n` +
         `- COMMUNITY TELEMETRY (TRUST ENGINE)\n\n` +
-        `IF YOU WANT THE HARD BRAKE, RUN \`/intervene enabled:true\` SO I CAN AUTO-MOVE YOU INTO ACCOUNTABILITY VC WHEN YOUR SESSION GOES NUCLEAR.\n\n` +
-        `NOTE: I DO NOT CUSTODY FUNDS. I PURELY LEVEL THE PLAYING FIELD.\n\n` +
-        `SYNC YOUR DEGEN ID?`
+        `**TO GET STARTED:**\n` +
+        `Link your account at **tiltcheck.me** to enable account-bound commands, the vault, and your Degen ID.\n\n` +
+        `Or calibrate your nudge profile directly in Discord — no account required.\n\n` +
+        `I DO NOT CUSTODY FUNDS.`
       )
       .setThumbnail('https://tiltcheck.me/assets/logo/favicon-white.svg')
       .setFooter({ text: 'Made for Degens. By Degens.' });
 
-    const getStartedBtn = new ButtonBuilder()
-      .setLabel('FINISH SETUP')
+    // Primary: link/login via Discord OAuth
+    const linkAccountBtn = new ButtonBuilder()
+      .setLabel('LINK ACCOUNT')
       .setStyle(ButtonStyle.Link)
       .setURL(getWebsiteOnboardingUrl());
 
-    const learnMoreBtn = new ButtonBuilder()
-      .setCustomId('onboard_learn')
-      .setLabel('Learn More')
-      .setStyle(ButtonStyle.Secondary);
+    // Secondary: run in-Discord calibration quiz without needing an account
+    const calibrateBtn = new ButtonBuilder()
+      .setCustomId('onboard_start')
+      .setLabel('CALIBRATE IN DISCORD')
+      .setStyle(ButtonStyle.Primary);
 
     const maybeLaterBtn = new ButtonBuilder()
       .setCustomId('onboard_later')
-      .setLabel('Maybe Later')
+      .setLabel('Later')
       .setStyle(ButtonStyle.Secondary);
 
     const row = new ActionRowBuilder<ButtonBuilder>()
-      .addComponents(getStartedBtn, learnMoreBtn, maybeLaterBtn);
+      .addComponents(linkAccountBtn, calibrateBtn, maybeLaterBtn);
 
     await dmChannel.send({ embeds: [welcomeEmbed], components: [row] });
     return true;
@@ -740,6 +744,14 @@ async function handlePreferenceSelection(interaction: MessageComponentInteractio
  */
 async function completeOnboarding(interaction: MessageComponentInteraction): Promise<void> {
   const prefs = userPreferences.get(interaction.user.id);
+
+  // Mark tutorial and onboarding as complete
+  if (prefs) {
+    prefs.tutorialCompleted = true;
+    prefs.hasAcceptedTerms = true;
+    userPreferences.set(interaction.user.id, prefs);
+    await saveOnboardingToDb(interaction.user.id, prefs);
+  }
 
   markOnboarded(interaction.user.id);
 
