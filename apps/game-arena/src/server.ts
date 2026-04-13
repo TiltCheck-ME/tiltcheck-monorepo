@@ -1,7 +1,7 @@
-/* Copyright (c) 2026 TiltCheck. All rights reserved. */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-13 */
 // v0.1.0 — 2026-02-25
 /**
- * © 2024–2025 TiltCheck Ecosystem. All Rights Reserved.
+ * © 2024–2026 TiltCheck Ecosystem. All Rights Reserved.
  * Created by jmenichole (https://github.com/jmenichole)
  *
  * This file is part of the TiltCheck project.
@@ -22,6 +22,7 @@ import { fileURLToPath } from 'url';
 import { config, validateConfig } from './config.js';
 import { GameManager } from './game-manager.js';
 import { statsService } from './stats-service.js';
+import { db } from '@tiltcheck/database';
 import { 
   verifySessionCookie, 
   type JWTConfig, 
@@ -244,8 +245,88 @@ app.get('/health', (_req, res) => {
   });
 });
 
+async function getLaunchReadiness() {
+  const persistence = await gameManager.getPersistenceStatus();
+  const authReady = Boolean(config.supabase.url && config.supabase.anonKey && jwtSecret);
+  const discordBridgeReady = Boolean(discordToken && discordClientId);
+  const statsTrackingReady = db.isConnected();
+  const persistenceReady = persistence.stats.persistErrorCount === 0 && persistence.stats.restoreErrorCount === 0;
+  const sharedTrustIdentityReady = authReady && statsTrackingReady;
+  const promoTrackingReady = discordBridgeReady && statsTrackingReady;
+  const crossServerReady = authReady && discordBridgeReady && statsTrackingReady && persistenceReady;
+
+  return {
+    summary: {
+      poker: 'gated',
+      crossServer: crossServerReady ? 'ready' : 'partial',
+      promoTracking: promoTrackingReady ? 'ready' : 'partial',
+      sharedTrustIdentity: sharedTrustIdentityReady ? 'ready' : 'partial',
+    },
+    gates: [
+      {
+        key: 'shared-auth',
+        label: 'Shared session auth',
+        ready: authReady,
+        detail: authReady
+          ? 'Shared auth cookies can follow players between TiltCheck surfaces.'
+          : 'Supabase auth or JWT wiring is still missing.',
+      },
+      {
+        key: 'lobby-persistence',
+        label: 'Lobby persistence',
+        ready: persistenceReady,
+        detail: persistenceReady
+          ? 'Arena state can survive restarts without dumping the table.'
+          : 'Persistence errors still need cleanup before cross-server tables are safe.',
+      },
+      {
+        key: 'promo-tracking',
+        label: 'Promo tracking bridge',
+        ready: promoTrackingReady,
+        detail: promoTrackingReady
+          ? 'Discord/game signals can be tied back to tracked player state.'
+          : 'Discord bridge credentials or stats tracking are still incomplete.',
+      },
+      {
+        key: 'shared-trust-identity',
+        label: 'Shared trust identity',
+        ready: sharedTrustIdentityReady,
+        detail: sharedTrustIdentityReady
+          ? 'Gameplay outcomes can feed the same trust identity across the ecosystem.'
+          : 'Database-backed trust identity wiring is still partial.',
+      },
+      {
+        key: 'poker-launch',
+        label: 'Poker launch',
+        ready: false,
+        detail: 'Poker is still gated while cross-server lobby sync and trust handoff are being finished.',
+      },
+    ],
+    arena: {
+      activeGames: gameManager.getActiveGames().map((game) => ({
+        id: game.id,
+        type: game.type,
+        platform: game.platform,
+        status: game.status,
+        playerCount: game.playerCount,
+      })),
+      persistence,
+      statsTrackingReady,
+    },
+  };
+}
+
+app.get('/api/network/readiness', async (_req, res) => {
+  const readiness = await getLaunchReadiness();
+  res.json({
+    success: true,
+    ...readiness,
+  });
+});
+
 // Admin status for dashboard
-app.get('/admin/status', requireAdmin, (_req, res) => {
+app.get('/admin/status', requireAdmin, async (_req, res) => {
+  const readiness = await getLaunchReadiness();
   res.json({
     status: 'ok',
     services: [
@@ -257,7 +338,8 @@ app.get('/admin/status', requireAdmin, (_req, res) => {
       uptime: process.uptime(),
       requests: 0,
       activeGames: gameManager.getGameCount()
-    }
+    },
+    readiness,
   });
 });
 
