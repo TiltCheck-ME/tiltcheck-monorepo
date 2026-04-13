@@ -10,6 +10,7 @@
  * TiltCheck Sidebar - Fully Functional UI
  * Features: Discord auth, vault, dashboard, wallet, session export, premium upgrades
  * Integrates with backend AI services for intelligent tilt detection
+ * Last Updated: 2026-04-13
  */
 
 import { EXT_CONFIG, getDiscordLoginUrl } from './config.js';
@@ -1523,6 +1524,7 @@ async function applyDiscordAuthSuccess(token: string, user: Record<string, any>)
   showMainContent();
   syncAccountUi();
   addFeedMessage(`Connected: ${userData.username || 'TiltCheck user'}`);
+  void loadRecentCommunitySignals();
 }
 
 let authBridgeAckReceived = false;
@@ -2138,7 +2140,7 @@ function setupEventListeners() {
     updateStatus('Sending signal...', 'thinking');
 
     try {
-      const result = await apiCall('/reports/casino-update', {
+      const result = await apiCall('/safety/report', {
         method: 'POST',
         body: JSON.stringify({ type, details, casino: window.location.hostname })
       });
@@ -2148,6 +2150,7 @@ function setupEventListeners() {
         updateStatus('Signal shared with community', 'success');
         (document.getElementById('report-details') as HTMLTextAreaElement).value = '';
         document.getElementById('tg-report-panel')!.style.display = 'none';
+        void loadRecentCommunitySignals();
       } else {
         updateStatus(`Signal did not send: ${result.error}`, 'warning');
       }
@@ -2431,6 +2434,7 @@ async function checkAuthStatus() {
     loadVaultBalance();
     checkLockStatus();
     initPnLGraph();
+    void loadRecentCommunitySignals();
     
     chrome.storage.local.get(['tutorialCompleted'], (res) => {
       if (!res.tutorialCompleted) {
@@ -2480,6 +2484,26 @@ function addFeedMessage(message: string) {
   // Keep only last 10 messages
   while (feed.children.length > 10) {
     feed.removeChild(feed.lastChild!);
+  }
+}
+
+async function loadRecentCommunitySignals() {
+  try {
+    const result = await apiCall('/safety/signals/recent', { method: 'GET' });
+    if (!result?.success || !Array.isArray(result.signals) || result.signals.length === 0) {
+      return;
+    }
+
+    result.signals
+      .slice(0, 3)
+      .reverse()
+      .forEach((signal: { type?: string; casino?: string }) => {
+        const type = typeof signal.type === 'string' ? signal.type.replace(/_/g, ' ') : 'signal';
+        const casino = typeof signal.casino === 'string' ? signal.casino : 'unknown site';
+        addFeedMessage(`Watchdog: ${type} @ ${casino}`);
+      });
+  } catch (error) {
+    console.warn('[TiltCheck] Failed to load recent community signals:', error);
   }
 }
 

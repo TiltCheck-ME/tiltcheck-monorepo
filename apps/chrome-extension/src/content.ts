@@ -72,9 +72,53 @@ let gameBlocker: GameBlocker | null = null;
 const FULL_SIDEBAR_WIDTH = 340;
 const MINIMIZED_SIDEBAR_WIDTH = 40;
 const SIDEBAR_VISIBILITY_KEY = 'tiltcheck_sidebar_visible';
+const SITE_REDEEM_THRESHOLDS_KEY = 'tiltcheck_site_thresholds';
+const SUPPORT_INTERVENTION_COOLDOWN_MS = 10 * 60 * 1000;
 
 // Intervention state
 let cooldownEndTime: number | null = null;
+let lastRedeemNudgeBalance = 0;
+let lastRedeemNudgeThreshold = 0;
+const lastSupportInterventionByType: Record<string, number> = {};
+
+function normalizeSiteHost(value: string): string {
+  return value.replace(/^www\./, '').toLowerCase();
+}
+
+function getStoredSiteRedeemThresholds(value: unknown): Record<string, number> {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    return {};
+  }
+
+  const thresholds: Record<string, number> = {};
+  for (const [host, rawValue] of Object.entries(value as Record<string, unknown>)) {
+    const threshold = Number(rawValue);
+    if (Number.isFinite(threshold) && threshold > 0) {
+      thresholds[normalizeSiteHost(host)] = threshold;
+    }
+  }
+
+  return thresholds;
+}
+
+function shouldShowRedeemNudge(data: { amount: number; threshold: number }): boolean {
+  if (document.getElementById('tiltcheck-redeem-nudge')) return false;
+
+  const threshold = Number(data.threshold) || 0;
+  if (threshold <= 0) return false;
+
+  const amount = Number(data.amount) || 0;
+  const thresholdChanged = threshold !== lastRedeemNudgeThreshold;
+  const meaningfulGain = amount >= lastRedeemNudgeBalance + Math.max(5, threshold * 0.1);
+
+  if (thresholdChanged || lastRedeemNudgeBalance === 0 || meaningfulGain) {
+    lastRedeemNudgeThreshold = threshold;
+    lastRedeemNudgeBalance = amount;
+    return true;
+  }
+
+  return false;
+}
 
 function refreshLicenseVerification() {
   if (!licenseVerifier) {
@@ -83,6 +127,17 @@ function refreshLicenseVerification() {
   casinoVerification = licenseVerifier.verifyCasino();
   sidebar?.updateLicense(casinoVerification);
   return casinoVerification;
+}
+
+function notifySupportIntervention(type: string, data: Record<string, unknown>): boolean {
+  const lastSentAt = lastSupportInterventionByType[type] || 0;
+  if (Date.now() - lastSentAt < SUPPORT_INTERVENTION_COOLDOWN_MS) {
+    return false;
+  }
+
+  lastSupportInterventionByType[type] = Date.now();
+  sidebar?.notifyBuddy('intervention', { type, data });
+  return true;
 }
 
 function setSidebarVisibility(visible: boolean): boolean {
@@ -348,6 +403,20 @@ function initialize() {
     highlighter.highlight(e.detail.selector);
   }) as EventListener);
 
+  window.addEventListener('tg-redeem-threshold-updated', ((e: CustomEvent<{ hostname?: string; threshold?: number }>) => {
+    if (!tiltDetector) return;
+
+    const updatedHost = normalizeSiteHost(e.detail?.hostname || '');
+    if (updatedHost && updatedHost !== normalizeSiteHost(window.location.hostname)) {
+      return;
+    }
+
+    const threshold = Number(e.detail?.threshold) || 0;
+    tiltDetector.setRedeemThreshold(threshold > 0 ? threshold : null);
+    lastRedeemNudgeBalance = 0;
+    lastRedeemNudgeThreshold = 0;
+  }) as EventListener);
+
   // Setup Fairness Calculator Listener
   window.addEventListener('tg-calc-fairness', (async (e: CustomEvent) => {
     if (!fairness) return;
@@ -408,9 +477,11 @@ async function startMonitoring() {
   console.log('[TiltGuard] Initial balance:', initialBalance);
 
   // Get risk level, redeem threshold, and auth token from storage
-  const storageResult = await chrome.storage.local.get(['riskLevel', 'redeemThreshold', 'authToken']);
+  const storageResult = await chrome.storage.local.get(['riskLevel', 'redeemThreshold', 'authToken', SITE_REDEEM_THRESHOLDS_KEY]);
   const riskLevel = (storageResult.riskLevel as 'conservative' | 'moderate' | 'degen') || 'moderate';
-  const redeemThreshold = Number(storageResult.redeemThreshold) || 0;
+  const siteThresholds = getStoredSiteRedeemThresholds(storageResult[SITE_REDEEM_THRESHOLDS_KEY]);
+  const siteHost = normalizeSiteHost(window.location.hostname);
+  const redeemThreshold = siteThresholds[siteHost] ?? (Number(storageResult.redeemThreshold) || 0);
   const authToken = storageResult.authToken as string | undefined;
 
   console.log('[TiltGuard] Using profile:', { riskLevel, redeemThreshold, hasToken: !!authToken });
@@ -521,6 +592,16 @@ function handleSpinEvent(spinData: SpinEvent, session: { sessionId: string, user
     };
     (window as any).TiltCheckSidebar?.updateStats(stats);
 
+    const redeemOpportunity = tiltDetector.detectRedeemOpportunity();
+    if (redeemOpportunity) {
+      if (shouldShowRedeemNudge(redeemOpportunity)) {
+        showRedeemNudge(redeemOpportunity);
+      }
+    } else {
+      lastRedeemNudgeBalance = 0;
+      lastRedeemNudgeThreshold = 0;
+    }
+
     // Check for tilt immediately after bet
     const tiltSigns = tiltDetector.detectAllTiltSigns();
     const tiltRisk = tiltDetector.getTiltRiskScore();
@@ -621,10 +702,13 @@ function checkBagFumble(balance: number | null, initialBalance: number) {
         ]
       );
       
-      // Simulate ping to Discord
-      sidebar?.notifyBuddy('intervention', {
-        type: 'phone_friend_discord',
-        data: { message: 'Discord ping sent to Degen Accountability channel.' }
+      notifySupportIntervention('phone_friend_discord', {
+        message: 'Repeated fumble detected. Get them into the accountability voice room.',
+        supportActions: ['tell them to stop depositing', 'tell them to cash out', 'pull them into voice'],
+        balance,
+        initialBalance,
+        peakBalance,
+        strikeCount: fumbleStrikes,
       });
     }
   } else if (balance >= initialBalance * 1.2 && !isBlowingIt) {
@@ -653,7 +737,11 @@ function startTiltMonitoring() {
     // Check for critical tilt
     if (tiltRisk >= 80) {
       triggerEmergencyStop('Critical tilt detected!');
-      sidebar?.notifyBuddy('critical_tilt', { risk: tiltRisk });
+      notifySupportIntervention('critical_tilt', {
+        message: 'Critical tilt detected from live extension telemetry.',
+        risk: tiltRisk,
+        indicators,
+      });
     }
   }, 5000); // Check every 5 seconds
 }
@@ -695,11 +783,7 @@ function handleInterventions(interventions: any[]) {
         break;
     }
 
-    // Notify Buddy
-    sidebar?.notifyBuddy('intervention', {
-      type: intervention.type,
-      data: intervention.data
-    });
+    notifySupportIntervention(intervention.type, intervention.data ?? {});
   }
 }
 
@@ -1372,6 +1456,11 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
  * Show high-intensity Redeem Nudge
  */
 function showRedeemNudge(data: any) {
+  const existing = document.getElementById('tiltcheck-redeem-nudge');
+  if (existing) {
+    existing.remove();
+  }
+
   const overlay = document.createElement('div');
   overlay.id = 'tiltcheck-redeem-nudge';
   overlay.style.cssText = `
