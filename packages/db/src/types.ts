@@ -201,6 +201,73 @@ export interface UpdateRecoveryApplicationPayload {
 }
 
 // ============================================================================
+// Beta Access Types
+// ============================================================================
+
+export type BetaApplicationPath = 'discord' | 'site';
+
+export type BetaContactMethod = 'discord' | 'email';
+
+export type BetaSignupStatus = 'pending' | 'approved' | 'rejected' | 'waitlisted';
+
+export interface BetaEntitlements {
+  beta_access_web: boolean;
+  beta_access_dashboard: boolean;
+  beta_access_extension: boolean;
+  beta_access_discord: boolean;
+  beta_access_community: boolean;
+}
+
+export interface BetaSignup extends BetaEntitlements {
+  id: string;
+  user_id: string | null;
+  email: string;
+  application_path: BetaApplicationPath;
+  contact_method: BetaContactMethod;
+  status: BetaSignupStatus;
+  discord_id: string | null;
+  discord_username: string | null;
+  notification_email: string | null;
+  notification_discord_id: string | null;
+  interests: string[] | null;
+  experience_level: string | null;
+  feedback_preference: string | null;
+  referral_source: string | null;
+  reviewer_notes: string | null;
+  review_message_id: string | null;
+  review_channel_id: string | null;
+  approved_at: Date | null;
+  rejected_at: Date | null;
+  created_at: Date;
+  updated_at: Date;
+}
+
+export interface CreateBetaSignupPayload extends Partial<BetaEntitlements> {
+  user_id?: string | null;
+  email: string;
+  application_path: BetaApplicationPath;
+  contact_method: BetaContactMethod;
+  status?: BetaSignupStatus;
+  discord_id?: string | null;
+  discord_username?: string | null;
+  notification_email?: string | null;
+  notification_discord_id?: string | null;
+  interests?: string[] | null;
+  experience_level?: string | null;
+  feedback_preference?: string | null;
+  referral_source?: string | null;
+  reviewer_notes?: string | null;
+  review_message_id?: string | null;
+  review_channel_id?: string | null;
+  approved_at?: Date | null;
+  rejected_at?: Date | null;
+}
+
+export interface UpdateBetaSignupPayload extends Partial<CreateBetaSignupPayload> {
+  updated_at?: Date;
+}
+
+// ============================================================================
 // Buddy & Accountability Types
 // ============================================================================
 

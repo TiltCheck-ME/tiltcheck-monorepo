@@ -9,6 +9,8 @@
         "full": "node index.js --full",
         "live": "node index.js --live",
         "10m": "node index.js --live --duration=10",
+        "bonus:sync": "node sync-bonus-drops.js",
+        "bonus:schedule": "powershell -ExecutionPolicy Bypass -File ./register-bonus-sync-task.ps1",
         "cloud": "powershell -ExecutionPolicy Bypass -File ./run-cloud-watcher.ps1",
         "cloud:schedule": "powershell -ExecutionPolicy Bypass -File ./register-cloud-watcher-task.ps1",
         "railway:seed-session": "node create-session.js && node -e \"import('./create-session.js').then(()=>{const s=require('fs').readFileSync('.session.json','utf8');console.log('DISCORD_SESSION_JSON='+Buffer.from(s).toString('base64'))})\"",
@@ -17,6 +19,8 @@
         "history": "node index.js --full",
         "analyze": "node analyze-log.js",
         "analyze:lore": "node analyze-log.js --lore",
+        "backfill": "node analyze-log.js --backfill",
+        "backfill:lore": "node analyze-log.js --backfill --lore",
         "comic:daily": "node generate-daily-comic.js",
         "comic:publish": "node publish-comic-to-cloud.js"
     },

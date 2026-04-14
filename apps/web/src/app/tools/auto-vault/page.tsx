@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-13 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-14 */
 "use client";
 
 import React, { useState, useEffect } from 'react';
@@ -9,6 +9,7 @@ import LockVault from '@/components/LockVault';
 import LegalModal from '@/components/LegalModal';
 
 const API = process.env.NEXT_PUBLIC_API_URL || '/api';
+const DISCORD_LOGIN_URL = `${API}/auth/discord/login?redirect=${encodeURIComponent('/tools/auto-vault')}`;
 
 /**
  * AutoVaultPage
@@ -101,7 +102,7 @@ export default function AutoVaultPage() {
                     LockVault requires a Discord session. Connect via the TiltCheck bot first.
                   </p>
                   <a
-                    href={`${API}/auth/discord`}
+                    href={DISCORD_LOGIN_URL}
                     className="inline-block bg-[#5865F2] hover:bg-[#4752c4] text-white font-bold px-6 py-3 rounded-xl text-sm transition-colors"
                   >
                     Sign in with Discord

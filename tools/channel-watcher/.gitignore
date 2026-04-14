@@ -1,6 +1,8 @@
 .env
 .session.json
 .checkpoint.json
+.analysis-manifest.json
+.bonus-sync-state.json
 messages.jsonl
 reports.md
 citations.md

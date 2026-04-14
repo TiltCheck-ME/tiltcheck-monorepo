@@ -17,6 +17,8 @@ interface UserData {
   id: string;
   username?: string;
   discriminator?: string;
+  email?: string | null;
+  discordId?: string | null;
 }
 
 type BlockMode = 'category' | 'gameid';
@@ -75,9 +77,44 @@ function renderAuthState() {
   } else {
     show('status-content');
     hide('auth-gate');
-    const name = userData?.username ?? userId.slice(0, 10);
+    const name = userData?.username ?? userData?.email ?? userId.slice(0, 10);
     $('stat-user').textContent = name;
+    syncCapabilityState();
   }
+}
+
+function syncCapabilityState() {
+  const hasDiscordLinked = Boolean(userData?.discordId);
+  const blockTab = document.querySelector<HTMLButtonElement>('.tab[data-tab="block"]');
+  const vaultTab = document.querySelector<HTMLButtonElement>('.tab[data-tab="vault"]');
+
+  if (!blockTab || !vaultTab) {
+    return;
+  }
+
+  if (userId && !hasDiscordLinked) {
+    blockTab.style.display = 'none';
+    vaultTab.style.display = 'none';
+    show('limited-auth-note');
+    $('session-pill').className = 'status-pill pill-warn';
+    $('session-pill-text').textContent = 'Site beta';
+    $('tilt-score').textContent = '--';
+    $('tilt-fill').style.width = '0%';
+    $('stat-pl').textContent = '--';
+    $('stat-session').textContent = '--';
+    $('stat-blocked').textContent = 'Site';
+
+    const activeHiddenPanel = document.querySelector('.tab.active[data-tab="block"], .tab.active[data-tab="vault"]');
+    if (activeHiddenPanel) {
+      activateTab('status');
+    }
+
+    return;
+  }
+
+  blockTab.style.display = '';
+  vaultTab.style.display = '';
+  hide('limited-auth-note');
 }
 
 // ---------------------------------------------------------------------------
@@ -85,7 +122,7 @@ function renderAuthState() {
 // ---------------------------------------------------------------------------
 
 async function loadStatus() {
-  if (!userId) return;
+  if (!userId || !userData?.discordId) return;
 
   try {
     const res = await fetch(`${EXT_CONFIG.API_BASE_URL}/user/${userId}/status`, {
@@ -354,7 +391,7 @@ async function init() {
   await loadAuth();
   renderAuthState();
 
-  if (userId) {
+  if (userId && userData?.discordId) {
     loadStatus();
   }
 
@@ -381,6 +418,75 @@ async function init() {
   $('btn-login').addEventListener('click', () => {
     chrome.tabs.create({ url: `${EXT_CONFIG.API_BASE_URL}/auth/discord/login?source=extension` });
   });
+  $('btn-magic-login').addEventListener('click', async () => {
+    const email = ($<HTMLInputElement>('magic-email')).value.trim();
+    if (!email) {
+      toast('Enter your email first.', true);
+      return;
+    }
+
+    const button = $<HTMLButtonElement>('btn-magic-login');
+    button.disabled = true;
+    button.innerHTML = '<div class="spinner"></div>';
+
+    try {
+      const configResponse = await fetch(`${EXT_CONFIG.API_BASE_URL}/auth/magic/config`);
+      const config = await configResponse.json().catch(() => null) as { enabled?: boolean; publishableKey?: string | null } | null;
+      if (!configResponse.ok || !config?.enabled || !config.publishableKey) {
+        throw new Error('Magic sign-in is not configured.');
+      }
+
+      const { Magic } = await import('magic-sdk');
+      const magic = new Magic(config.publishableKey);
+      const didToken = await magic.auth.loginWithMagicLink({ email });
+      const response = await fetch(`${EXT_CONFIG.API_BASE_URL}/auth/magic/login`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ didToken }),
+      });
+      const payload = await response.json().catch(() => null) as {
+        token?: string;
+        user?: {
+          id: string;
+          email?: string | null;
+          discordId?: string | null;
+          displayName?: string | null;
+        };
+        error?: string;
+      } | null;
+
+      if (!response.ok || !payload?.token || !payload.user?.id) {
+        throw new Error(payload?.error || 'Magic sign-in failed.');
+      }
+
+      const nextUser: UserData = {
+        id: payload.user.id,
+        username: payload.user.displayName || payload.user.email || payload.user.id.slice(0, 10),
+        email: payload.user.email || null,
+        discordId: payload.user.discordId || null,
+      };
+
+      await chrome.storage.local.set({
+        authToken: payload.token,
+        tiltguard_user_id: payload.user.id,
+        userData: nextUser,
+      });
+
+      userId = payload.user.id;
+      userData = nextUser;
+      renderAuthState();
+      loadFeed();
+      toast(payload.user.discordId ? 'Signed in.' : 'Signed in. Discord-only tools stay hidden on site accounts.');
+    } catch (error) {
+      toast(error instanceof Error ? error.message : 'Magic sign-in failed.', true);
+    } finally {
+      button.disabled = false;
+      button.textContent = 'Connect with Email';
+    }
+  });
 
   // Dashboard
   $('btn-open-dashboard').addEventListener('click', () => {
@@ -397,6 +503,7 @@ async function init() {
 
   // Vault listeners
   initVaultListeners();
+  loadFeed();
 }
 
 document.addEventListener('DOMContentLoaded', init);

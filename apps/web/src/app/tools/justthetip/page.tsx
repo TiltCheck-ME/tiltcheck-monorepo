@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-13 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-14 */
 "use client";
 
 import React, { useState, useEffect, useCallback } from 'react';
@@ -10,6 +10,7 @@ import { LEGAL_DISCLAIMERS } from '@tiltcheck/shared/legal';
 
 const API = process.env.NEXT_PUBLIC_API_URL || '/api';
 const WEB_CHANNEL = 'web-tips';
+const DISCORD_LOGIN_URL = `${API}/auth/discord/login?redirect=${encodeURIComponent('/tools/justthetip')}`;
 
 interface HistoryEntry {
   id: string;
@@ -161,7 +162,7 @@ export default function JustTheTipPage() {
                     <span className="text-[10px] text-[#17c3b2] font-mono">as {username || discordId}</span>
                   ) : (
                     <a
-                      href={`${API}/auth/discord`}
+                      href={DISCORD_LOGIN_URL}
                       className="text-[10px] text-yellow-400 font-mono hover:text-yellow-300 underline"
                     >
                       sign in for verified tips
