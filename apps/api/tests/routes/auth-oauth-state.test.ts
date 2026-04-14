@@ -108,6 +108,15 @@ describe('Auth callback state/source validation', () => {
     expect(response.headers.location).toBe('/auth/discord/callback?code=abc123&state=ext_mock');
   });
 
+  it('defaults oauth_source cookie to web when login source is omitted', async () => {
+    const response = await request(app).get('/auth/discord/login?redirect=%2Fbeta-tester');
+
+    expect(response.status).toBe(302);
+    expect(response.headers['set-cookie']).toEqual(
+      expect.arrayContaining([expect.stringContaining('oauth_source=web')])
+    );
+  });
+
   it('rejects invalid activity token exchange payload', async () => {
     const response = await request(app)
       .post('/auth/discord/activity/token')
@@ -209,6 +218,35 @@ describe('Auth callback state/source validation', () => {
 
     expect(response.status).toBe(302);
     expect(response.headers.location).toBe('https://tiltcheck.me/play/profile.html');
+  });
+
+  it('accepts legacy discord-bot oauth_source cookie as web', async () => {
+    vi.mocked(verifyDiscordOAuth).mockResolvedValueOnce({
+      valid: true,
+      user: {
+        id: 'discord-user-legacy',
+        username: 'legacy-user',
+        avatar: null,
+      },
+    } as any);
+    vi.mocked(findOrCreateUserByDiscord).mockResolvedValueOnce({
+      id: 'user-legacy',
+      email: null,
+      roles: ['user'],
+      discord_username: 'legacy-user',
+      discord_avatar: null,
+    } as any);
+    vi.mocked(createSession).mockResolvedValueOnce({
+      cookie: 'session=test; Path=/; HttpOnly',
+      token: 'session-token',
+    } as any);
+
+    const response = await request(app)
+      .get('/auth/discord/callback?state=web_state_ok&code=abc123')
+      .set('Cookie', ['oauth_state=web_state_ok', 'oauth_source=discord-bot', 'oauth_redirect=/beta-tester']);
+
+    expect(response.status).toBe(302);
+    expect(response.headers.location).toBe('/beta-tester');
   });
 
   it('returns Magic config only when both keys are configured', async () => {

@@ -1,10 +1,10 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-12
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-14
 
 import { SlashCommandBuilder, ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
 import type { Command } from '../types.js';
 
-import { linkWalletToUser, findOrCreateUserByDiscord } from '@tiltcheck/db';
 import { PublicKey } from '@solana/web3.js';
+import { registerExternalWallet } from '../services/tipping/wallet-manager.js';
 
 export const linkwallet: Command = {
   data: new SlashCommandBuilder()
@@ -29,13 +29,7 @@ export const linkwallet: Command = {
     await interaction.deferReply({ ephemeral: true });
 
     try {
-      const discordUser = await findOrCreateUserByDiscord(
-        interaction.user.id,
-        interaction.user.username,
-        interaction.user.displayAvatarURL()
-      );
-
-      await linkWalletToUser(discordUser.id, address);
+      await registerExternalWallet(interaction.user.id, address);
 
       const embed = new EmbedBuilder()
         .setColor(0x22d3a6)

@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-12
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-14
 // TiltCheck Safety Bot — Help Command
 
 import { SlashCommandBuilder, ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
@@ -42,7 +42,8 @@ export const help: Command = {
           '`/odds` — Pull the house edge and RTP so "im due" dies on impact\n' +
           '`/verify` — Check the provably fair math instead of trusting casino vibes\n' +
           '`/casino` — Audit a casino before it audits your bankroll\n' +
-          '`/reputation` — Pull a trust read on users or platforms',
+          '`/reputation` — Pull a trust read on users or platforms\n' +
+          '`/bonuses` — Pull the latest bonus digest from CollectClock',
         inline: false,
       },
       {
@@ -65,7 +66,7 @@ export const help: Command = {
       {
         name: 'Other Bots',
         value:
-          '**JustTheTip** handles the bag-moving stuff — `/juicedrop`, `/linkwallet`, `/lockvault`, `/bonuses`\n' +
+          '**JustTheTip** handles the bag-moving stuff — `/juicedrop`, `/linkwallet`, `/lockvault`\n' +
           '**DAD** handles card games and trivia — `/lobby`, `/triviadrop`\n' +
           'Full dashboard: https://hub.tiltcheck.me',
         inline: false,

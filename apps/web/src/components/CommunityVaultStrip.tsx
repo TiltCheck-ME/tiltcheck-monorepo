@@ -1,10 +1,10 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-11
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-14
 'use client';
 
 /**
  * CommunityVaultStrip
- * Social proof bar showing community-wide vault lock activity.
- * Data: GET /stats/community — falls back to placeholder values.
+ * Community vault bar showing real vault lock activity.
+ * Data: GET /stats/community.
  */
 
 import React from 'react';
@@ -29,10 +29,14 @@ export default function CommunityVaultStrip() {
       .catch(() => null);
   }, []);
 
-  const totalSol = stats?.totalLockedSol?.toFixed(1) ?? '143.7';
-  const totalUsers = stats?.totalUsers ?? 38;
-  const weeklySol = stats?.weeklyLockedSol?.toFixed(1) ?? '22.1';
-  const weeklyUsers = stats?.weeklyUsers ?? 12;
+  if (!stats) {
+    return null;
+  }
+
+  const totalSol = stats.totalLockedSol.toFixed(1);
+  const totalUsers = stats.totalUsers;
+  const weeklySol = stats.weeklyLockedSol.toFixed(1);
+  const weeklyUsers = stats.weeklyUsers;
 
   return (
     <section
@@ -41,7 +45,7 @@ export default function CommunityVaultStrip() {
     >
       <div className="border border-[#283347] rounded-xl bg-black/40 px-6 py-5 flex flex-col md:flex-row md:items-center gap-6 md:gap-0">
         <p className="text-[10px] font-bold uppercase tracking-widest text-[#17c3b2] md:w-48 shrink-0">
-          Proof of Work
+          Community Vault
         </p>
         <div className="flex flex-wrap gap-8 md:gap-12 flex-1">
           <div className="flex flex-col">

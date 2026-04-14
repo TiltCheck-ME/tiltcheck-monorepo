@@ -8,12 +8,24 @@ import type { DiscordOAuthConfig } from '@tiltcheck/auth';
 export const DEFAULT_DISCORD_CLIENT_ID = '1445916179163250860';
 export const DEFAULT_DISCORD_SCOPES = ['identify'];
 export const DEFAULT_API_DISCORD_CALLBACK = 'https://api.tiltcheck.me/auth/discord/callback';
+export type OAuthSource = 'extension' | 'web';
 
 function sanitizeUrlEnv(value: string | undefined): string | undefined {
   if (!value) return undefined;
 
   const compact = value.replace(/\s+/g, '').trim();
   return compact.length > 0 ? compact : undefined;
+}
+
+export function normalizeOAuthSource(value: unknown): OAuthSource | undefined {
+  if (typeof value !== 'string') return undefined;
+
+  const normalized = value.trim().toLowerCase();
+  if (!normalized) return undefined;
+  if (normalized === 'extension' || normalized === 'ext') return 'extension';
+  if (normalized === 'web' || normalized === 'discord-bot' || normalized === 'discord_bot') return 'web';
+
+  return undefined;
 }
 
 /**
@@ -51,7 +63,7 @@ export function resolveDiscordRedirectUriForSource(
   source: string | undefined,
   req: { hostname?: string }
 ): string {
-  if (source !== 'extension') {
+  if (normalizeOAuthSource(source) !== 'extension') {
     return config.redirectUri;
   }
 
@@ -69,7 +81,7 @@ export function resolveDiscordRedirectUriForSource(
 export function getOAuthSource(req: {
   query?: { state?: unknown };
   cookies?: { oauth_source?: unknown };
-}): 'extension' | 'web' | undefined {
+}): OAuthSource | undefined {
   const stateValue = typeof req.query?.state === 'string' ? req.query.state : '';
   const sourceFromState = stateValue.startsWith('ext_')
     ? 'extension'
@@ -77,8 +89,7 @@ export function getOAuthSource(req: {
       ? 'web'
       : undefined;
   if (sourceFromState) return sourceFromState;
-  const cookieSource = req.cookies?.oauth_source;
-  return cookieSource === 'extension' || cookieSource === 'web' ? cookieSource : undefined;
+  return normalizeOAuthSource(req.cookies?.oauth_source);
 }
 
 /**

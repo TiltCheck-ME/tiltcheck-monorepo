@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-11 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-14 */
 export type Tool = {
   href: string;
   icon: string;
@@ -56,11 +56,11 @@ export const features: Tool[] = [
     gridClasses: "",
   },
   {
-    href: "/beta-tester",
+    href: "/tools/degens-arena",
     icon: "/assets/canva/crossed-swords.jpg",
     category: "DEGENS AGAINST DECENCY",
     title: "Degen Trivia",
-    description: "The web trivia arena — battle degens for SOL drops while you cool down. Live drops available now in Discord via /triviadrop. Web version launching soon.",
+    description: "Live trivia details for the TriviaDrop arena. Skill-only SOL drops, no house edge, Discord rounds live now via /triviadrop, and web access updates in progress.",
     status: "coming-soon",
     gridClasses: "",
   },

@@ -45,7 +45,7 @@ const Nav = () => {
     }
     return (
       <a
-        href={`${API_URL}/auth/discord/login?redirect=${encodeURIComponent(DASHBOARD_URL)}`}
+        href={`${API_URL}/auth/discord/login?source=web&redirect=${encodeURIComponent(DASHBOARD_URL)}`}
         onClick={close}
         className={compact ? 'nav-auth-compact nav-auth-discord' : 'nav-auth-full nav-auth-discord'}
       >

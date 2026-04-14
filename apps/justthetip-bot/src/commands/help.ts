@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-12
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-14
 import { SlashCommandBuilder, ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
 import type { Command } from '../types.js';
 
@@ -11,7 +11,7 @@ export const help: Command = {
     const embed = new EmbedBuilder()
       .setColor(0xf59e0b)
       .setTitle('JUSTTHETIP — COMMANDS')
-      .setDescription('Non-custodial SOL drops, wallet linking, and bonus tracking. Use the commands below.')
+      .setDescription('Non-custodial SOL drops, wallet linking, and lock flows. Use the commands below.')
       .setThumbnail('https://tiltcheck.me/assets/logo/logocurrent.png');
 
     embed.addFields(
@@ -37,10 +37,10 @@ export const help: Command = {
       {
         name: 'Utility',
         value:
-          '`/bonuses` — Pull the latest bonus digest from CollectClock\n' +
           '`/donation` — Show the optional support links\n' +
           '`/ping` — Check bot latency\n' +
-          '`/help` — Show this command map',
+          '`/help` — Show this command map\n' +
+          'Use TiltCheck bot `/bonuses` for the CollectClock digest.',
         inline: false,
       }
     );
