@@ -9,7 +9,7 @@ import LockVault from '@/components/LockVault';
 import LegalModal from '@/components/LegalModal';
 
 const API = process.env.NEXT_PUBLIC_API_URL || '/api';
-const DISCORD_LOGIN_URL = `${API}/auth/discord/login?redirect=${encodeURIComponent('/tools/auto-vault')}`;
+const DISCORD_LOGIN_URL = `${API}/auth/discord/login?source=web&redirect=${encodeURIComponent('/tools/auto-vault')}`;
 
 /**
  * AutoVaultPage

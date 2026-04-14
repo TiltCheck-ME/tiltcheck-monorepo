@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-13
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-14
 /**
  * Onboarding System for TiltCheck Safety Bot
  * Handles first-time user welcome and safety preferences
@@ -226,7 +226,7 @@ export async function isUserOnboarded(userId: string): Promise<boolean> {
 
 export function getWebsiteOnboardingUrl(): string {
   const redirect = encodeURIComponent(`${DASHBOARD_URL}/onboarding`);
-  return `${BACKEND_URL}/auth/discord/login?source=discord-bot&redirect=${redirect}`;
+  return `${BACKEND_URL}/auth/discord/login?source=web&redirect=${redirect}`;
 }
 
 export function getDashboardUrl(): string {
@@ -319,7 +319,8 @@ export async function sendWelcomeDM(user: User): Promise<boolean> {
         `- BEHAVIORAL SPIRALS (STATUS AUDITS)\n` +
         `- COMMUNITY TELEMETRY (TRUST ENGINE)\n\n` +
         `IF YOU WANT THE HARD BRAKE, RUN \`/intervene enabled:true\` SO I CAN AUTO-MOVE YOU INTO ACCOUNTABILITY VC WHEN YOUR SESSION GOES NUCLEAR.\n\n` +
-        `WANT BETA ACCESS? LINK DISCORD ON THE SITE FIRST. THE BETA FORM NOW USES YOUR REAL DISCORD ID SO APPROVALS AND ROLE GRANTS DO NOT TURN INTO A SCAVENGER HUNT.\n\n` +
+        `WANT BETA ACCESS? LINK DISCORD ON THE SITE FIRST. THE BETA FORM NOW USES YOUR REAL DISCORD ID SO APPROVALS AND ROLE GRANTS DO NOT TURN INTO A SCAVENGER HUNT.\n` +
+        `LINK DISCORD: ${getWebsiteOnboardingUrl()}\n\n` +
         `NOTE: I DO NOT CUSTODY FUNDS. I PURELY LEVEL THE PLAYING FIELD.\n\n` +
         `SYNC YOUR DEGEN ID?`
       )
@@ -328,7 +329,7 @@ export async function sendWelcomeDM(user: User): Promise<boolean> {
 
     // Primary: link/login via Discord OAuth
     const linkAccountBtn = new ButtonBuilder()
-      .setLabel('LINK ACCOUNT')
+      .setLabel('LINK DISCORD')
       .setStyle(ButtonStyle.Link)
       .setURL(getWebsiteOnboardingUrl());
 

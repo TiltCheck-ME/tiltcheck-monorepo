@@ -4,7 +4,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 
-const DISCORD_LOGIN_URL = `/api/auth/discord/login?redirect=${encodeURIComponent('/tools/buddy-system')}`;
+const DISCORD_LOGIN_URL = `/api/auth/discord/login?source=web&redirect=${encodeURIComponent('/tools/buddy-system')}`;
 
 interface Buddy {
   id: string;

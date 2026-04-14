@@ -1,6 +1,6 @@
 # Comic Generator Service
 
-Cloud-oriented service that turns daily channel context into a generated 3-panel comic with archive persistence.
+Cloud-oriented service that turns daily channel context into a generated 3-panel comic with archive persistence in Cloudflare R2.
 
 ## Endpoints
 
@@ -33,43 +33,27 @@ curl -X POST http://localhost:8080/v1/comic/generate \
   }'
 ```
 
-## Cloud Run deploy (example)
+## Storage and access
 
-```bash
-gcloud run deploy comic-generator \
-  --source . \
-  --region us-central1 \
-  --allow-unauthenticated \
-  --set-env-vars COMIC_GCS_BUCKET=<bucket>,COMIC_STORAGE_PREFIX=comics,GEMINI_TEXT_MODEL=gemini-2.0-flash,GEMINI_IMAGE_MODEL=gemini-2.0-flash-preview-image-generation
-```
+- Object storage: Cloudflare R2 via S3-compatible API
+- API archive/current endpoints stay stable regardless of object storage URLs
+- Optional `COMIC_PUBLIC_BASE_URL` can be set if you want panel assets to return public object URLs instead of inline fallback SVG data URLs
 
-Set secrets via Secret Manager for:
+## Local run
 
-- `GEMINI_API_KEY`
-- `COMIC_INGEST_KEY` (optional but recommended)
+Requires the R2 env values from `.env.example`.
 
-## One-command deploy
+## Deploy notes
 
-From repo root:
+This package was migrated off GCS. Use the R2 env vars from `.env.example`:
 
-```bash
-COMIC_GCS_BUCKET=<your-bucket> GEMINI_API_KEY=<your-key> COMIC_INGEST_KEY=<your-shared-key> npm --prefix packages/comic-generator run deploy:cloudrun
-```
+- `COMIC_R2_BUCKET`
+- `COMIC_R2_ENDPOINT`
+- `R2_ACCESS_KEY_ID`
+- `R2_SECRET_ACCESS_KEY`
+- optional `COMIC_PUBLIC_BASE_URL`
 
-Windows PowerShell:
-
-```powershell
-$env:COMIC_GCS_BUCKET="<your-bucket>"
-$env:GEMINI_API_KEY="<your-key>"
-$env:COMIC_INGEST_KEY="<your-shared-key>"
-npm --prefix packages/comic-generator run deploy:cloudrun:ps
-```
-
-Notes:
-
-- If `PROJECT_ID` is not passed, the script uses your current `gcloud` project.
-- Override defaults with env vars: `PROJECT_ID`, `REGION`, `SERVICE_NAME`, `ALLOW_UNAUTH`.
-- After deploy, it prints `COMIC_API_URL` for `tools/channel-watcher/.env`.
+The README still documents the API contract; deployment should follow your current Railway / container flow rather than the old Cloud Run-only examples.
 
 ## One-command cloud smoke test
 

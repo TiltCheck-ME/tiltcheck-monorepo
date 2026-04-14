@@ -10,7 +10,7 @@ import { LEGAL_DISCLAIMERS } from '@tiltcheck/shared/legal';
 
 const API = process.env.NEXT_PUBLIC_API_URL || '/api';
 const WEB_CHANNEL = 'web-tips';
-const DISCORD_LOGIN_URL = `${API}/auth/discord/login?redirect=${encodeURIComponent('/tools/justthetip')}`;
+const DISCORD_LOGIN_URL = `${API}/auth/discord/login?source=web&redirect=${encodeURIComponent('/tools/justthetip')}`;
 
 interface HistoryEntry {
   id: string;

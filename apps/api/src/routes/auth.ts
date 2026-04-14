@@ -40,6 +40,7 @@ import {
   resolveDiscordRedirectUriForSource,
   getOAuthSource,
   getTrustedExtensionOrigin,
+  normalizeOAuthSource,
 } from './auth.utils.js';
 
 
@@ -452,7 +453,7 @@ router.post('/guest', async (req, res) => {
 router.get('/discord/login', authLimiter, (req, res) => {
   try {
     const baseConfig = getDiscordConfig();
-    const source = req.query.source as string | undefined;
+    const source = normalizeOAuthSource(req.query.source) || 'web';
     const config: DiscordOAuthConfig = {
       ...baseConfig,
       redirectUri: resolveDiscordRedirectUriForSource(baseConfig, source, req),
@@ -583,7 +584,7 @@ router.get('/discord/callback', authLimiter, async (req, res) => {
       : stateValue.startsWith('web_')
         ? 'web'
         : undefined;
-    const sourceFromCookie = req.cookies?.oauth_source;
+    const sourceFromCookie = normalizeOAuthSource(req.cookies?.oauth_source);
 
     // Optional integrity check: if both exist, cookie source must match state source.
     if (sourceFromCookie && sourceFromState && sourceFromCookie !== sourceFromState) {
