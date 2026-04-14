@@ -8,6 +8,8 @@ import ActivityFeed from '@/components/ActivityFeed';
 import LockVault from '@/components/LockVault';
 import GuardianManager from '@/components/GuardianManager';
 import TouchGrassButton from '@/components/TouchGrassButton';
+import { useAuth } from '@/hooks/useAuth';
+import { signInWithMagicEmail } from '@/lib/magicAuth';
 
 /**
  * DashboardPage
@@ -15,9 +17,15 @@ import TouchGrassButton from '@/components/TouchGrassButton';
  */
 export default function DashboardPage() {
   const { publicKey, connected: isConnected } = useWallet();
+  const { user } = useAuth();
   const address = publicKey?.toBase58();
   const [userData, setUserData] = React.useState<any>(null);
   const [loading, setLoading] = React.useState(true);
+  const [betaInbox, setBetaInbox] = React.useState<any>(null);
+  const [betaInboxLoading, setBetaInboxLoading] = React.useState(true);
+  const [magicEmail, setMagicEmail] = React.useState('');
+  const [magicLoading, setMagicLoading] = React.useState(false);
+  const [magicError, setMagicError] = React.useState<string | null>(null);
 
   React.useEffect(() => {
     async function fetchUserData() {
@@ -46,6 +54,60 @@ export default function DashboardPage() {
       setLoading(false);
     }
   }, [address, isConnected]);
+
+  React.useEffect(() => {
+    async function fetchBetaInbox() {
+      if (!user?.userId) {
+        setBetaInbox(null);
+        setBetaInboxLoading(false);
+        return;
+      }
+
+      try {
+        const token = typeof window !== 'undefined' ? localStorage.getItem('tc_token') : null;
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || '/api'}/beta/inbox`, {
+          credentials: 'include',
+          headers: {
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
+        });
+
+        if (!response.ok) {
+          setBetaInbox(null);
+          return;
+        }
+
+        const payload = await response.json();
+        setBetaInbox(payload);
+      } catch (err) {
+        console.error('[Dashboard] Beta inbox fetch failed:', err);
+        setBetaInbox(null);
+      } finally {
+        setBetaInboxLoading(false);
+      }
+    }
+
+    fetchBetaInbox();
+  }, [user?.userId]);
+
+  async function handleMagicSignIn() {
+    if (!magicEmail.trim()) {
+      setMagicError('Enter your email first.');
+      return;
+    }
+
+    setMagicLoading(true);
+    setMagicError(null);
+
+    try {
+      await signInWithMagicEmail(process.env.NEXT_PUBLIC_API_URL || '/api', magicEmail.trim());
+      window.location.reload();
+    } catch (error) {
+      setMagicError(error instanceof Error ? error.message : 'Magic sign-in failed.');
+    } finally {
+      setMagicLoading(false);
+    }
+  }
 
   return (
     <div className="min-h-screen bg-[#0a0c10] text-white">
@@ -91,6 +153,77 @@ export default function DashboardPage() {
               </div>
             )}
         </header>
+
+        {!user?.userId && (
+          <section className="mb-8">
+            <div className="bg-black/40 border border-[#17c3b2]/30 rounded-xl p-6">
+              <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mb-2">Site lane sign-in</p>
+              <h2 className="text-lg font-black uppercase tracking-tight text-white mb-3">Use Magic if you are beta-approved without Discord.</h2>
+              <p className="text-sm text-gray-400 leading-relaxed mb-4">
+                This signs you into the web dashboard and inbox with the same site account used for non-Discord beta approval.
+              </p>
+              <div className="flex flex-col md:flex-row gap-3">
+                <input
+                  type="email"
+                  value={magicEmail}
+                  onChange={(event) => setMagicEmail(event.target.value)}
+                  placeholder="you@example.com"
+                  className="flex-1 bg-black/50 border border-[#283347] p-3 text-white font-mono text-sm focus:outline-none focus:border-[#17c3b2] transition-colors"
+                />
+                <button
+                  type="button"
+                  disabled={magicLoading}
+                  onClick={handleMagicSignIn}
+                  className="px-5 py-3 text-[11px] font-black uppercase tracking-[0.2em] bg-[#17c3b2]/10 text-[#17c3b2] border border-[#17c3b2]/30 hover:bg-[#17c3b2]/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {magicLoading ? 'Sending link...' : 'Sign in with Magic'}
+                </button>
+              </div>
+              {magicError && <p className="text-xs text-red-400 font-mono mt-3">{magicError}</p>}
+            </div>
+          </section>
+        )}
+
+        {user?.userId && (
+          <section className="mb-8">
+            <div className="bg-black/40 border border-[#283347] rounded-xl p-6">
+              <div className="flex items-center justify-between gap-4 mb-4">
+                <div>
+                  <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest">Dashboard Inbox</p>
+                  <h2 className="text-lg font-black uppercase tracking-tight text-white">Beta access updates</h2>
+                </div>
+                {betaInbox?.application?.status && (
+                  <span className={`px-3 py-1 text-[10px] font-black uppercase tracking-widest border ${
+                    betaInbox.application.status === 'approved'
+                      ? 'border-green-500/40 text-green-400 bg-green-500/10'
+                      : betaInbox.application.status === 'waitlisted'
+                        ? 'border-yellow-500/40 text-yellow-300 bg-yellow-500/10'
+                        : betaInbox.application.status === 'rejected'
+                          ? 'border-red-500/40 text-red-400 bg-red-500/10'
+                          : 'border-[#17c3b2]/30 text-[#17c3b2] bg-[#17c3b2]/10'
+                  }`}>
+                    {betaInbox.application.status}
+                  </span>
+                )}
+              </div>
+
+              {betaInboxLoading ? (
+                <p className="text-sm text-gray-500 font-mono">Loading beta inbox...</p>
+              ) : betaInbox?.messages?.length ? (
+                <div className="space-y-3">
+                  {betaInbox.messages.map((message: any, index: number) => (
+                    <div key={`${message.kind}-${index}`} className="border border-[#283347] bg-black/50 p-4 rounded-lg">
+                      <p className="text-xs font-black uppercase tracking-widest text-[#17c3b2] mb-2">{message.title}</p>
+                      <p className="text-sm text-gray-300 leading-relaxed">{message.body}</p>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-sm text-gray-500 font-mono">No beta notices yet. When review moves, this inbox gets the update.</p>
+              )}
+            </div>
+          </section>
+        )}
 
         {/* Dashboard Pillars */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">

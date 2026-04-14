@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-11 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-14 */
 'use client';
 
 import React, { useState, useMemo, useEffect } from 'react';
@@ -28,7 +28,10 @@ interface CasinoMeta {
 interface CasinoEntry extends RawCasino {
   score: number;
   popularity: number;
+  sourcePriority: number;
   meta: CasinoMeta;
+  affiliateUrl?: string;
+  promoCode?: string | null;
   financialPayouts: number;
   fairnessTransparency: number;
   promotionalHonesty: number;
@@ -77,6 +80,49 @@ const POPULARITY_RANK: Record<string, number> = {
   'Caesars Casino': 27, 'BetRivers': 28, 'Borgata Online': 29,
   'Golden Nugget Online': 30, 'Hard Rock Bet': 31, 'WynnBET': 32,
   'Bitcasino.io': 33, 'Sportsbet.io': 34, 'Bovada': 35,
+};
+
+// Current Bonus Drops source feed overlap. These are shown first when they are
+// actively appearing in the monitored bonus feed.
+const BONUS_FEED_PRIORITY: Record<string, number> = {
+  'WOW Vegas': 1,
+  'Modo Casino': 2,
+};
+
+const BONUS_FEED_PENDING_GRADES = ['LoneStar Casino', 'Chanced', 'Punt', 'Baba Casino'];
+
+const COLLECTCLOCK_LINKS: Record<string, { url: string; code: string | null }> = {
+  'TrustDice': { url: 'https://trustdice.win/faucet/?ref=u_jmenichole', code: null },
+  'Stake.us': { url: 'https://stake.us/?c=Jmenichole', code: null },
+  'Shuffle': { url: 'https://shuffle.com?r=jHR7JnWRPF', code: null },
+  'WOW Vegas': { url: 'https://www.wowvegas.com/?raf=3615494', code: null },
+  'Pulsz': { url: 'https://www.pulsz.com/?invited_by=utfk4r', code: 'PULSE10' },
+  'Modo Casino': { url: 'https://modo.us?referralCode=61MN6A', code: null },
+  'McLuck': { url: 'https://www.mcluck.com/lp/raf?r=61119407%2F908900038', code: null },
+  'Crown Coins Casino': { url: 'https://crowncoinscasino.com/?utm_campaign=59048bf4-dbeb-4c58-b690-d7ad11bdb847&utm_source=friends', code: null },
+  'Zula Casino': { url: 'https://www.zulacasino.com/signup/221ddd92-862e-45d8-acc0-4cd2c26f7cdd', code: null },
+  'Fortune Coins': { url: 'https://www.fortunecoins.com/signup/3c08936f-8979-4f87-b377-efdbff519029', code: null },
+  'High 5 Casino': { url: 'https://high5casino.com/gc?adId=INV001%3AJmenichole', code: 'HIGH5DAILY' },
+  'Chumba Casino': { url: 'https://chumbacasino.com', code: 'CHUMBAFREE5' },
+  'Global Poker': { url: 'https://globalpoker.com', code: null },
+  'LuckyLand Slots': { url: 'https://luckylandslots.com', code: null },
+  'Sportzino': { url: 'https://sportzino.com/signup/8a105ba6-7ada-45c8-b021-f478ac03c7c4', code: null },
+  'Hello Millions': { url: 'https://www.hellomillions.com/lp/raf?r=26d6760f%2F1236643867', code: null },
+  'Funrize': { url: 'https://funrize.com', code: 'FUN100' },
+  'NoLimitCoins': { url: 'https://nolimitcoins.com/?invited_by=ZI1JIU', code: null },
+  'Clubs Poker': { url: 'https://play.clubs.poker/?referralCode=104192', code: null },
+  'Jackpota': { url: 'https://www.jackpota.com/?r=85453282', code: null },
+  'PlayFame': { url: 'https://www.playfame.com/lp/raf?r=1275975417', code: null },
+  'American Luck': { url: 'https://americanluck.com/signup/e360918f-8986-4dec-9823-a902d3f4936a', code: null },
+  'Punt': { url: 'https://punt.com/c/cg60pd', code: null },
+  'Chanced': { url: 'https://chanced.com/c/ysa096', code: null },
+  'FortuneWheelz': { url: 'https://fortunewheelz.com/?invited_by=P36ZS6', code: null },
+  'Spree': { url: 'https://spree.com/?r=1450539', code: null },
+  'Rolla': { url: 'https://www.rolla.com/?raf=3873', code: null },
+  'Pulsz Bingo': { url: 'https://www.pulszbingo.com/?invited_by=eg6mbf', code: null },
+  'Mega Bonanza': { url: 'https://www.megabonanza.com/?r=72781897', code: null },
+  'Real Prize': { url: 'https://www.realprize.com/refer/317136', code: null },
+  'Zoot': { url: 'https://getzoot.us/?referralCode=ZOOTwithJMENICHOLE', code: null },
 };
 
 // License info and documented compliance violations for major operators
@@ -151,14 +197,22 @@ function derivePillars(base: number, category: string, seed: number) {
 const CASINOS: CasinoEntry[] = (RAW_CASINOS as RawCasino[]).map(c => {
   const base = GRADE_SCORE[c.grade] ?? 40;
   const seed = hashStr(c.name);
+  const collectClockLink = COLLECTCLOCK_LINKS[c.name];
   return {
     ...c,
     score: base,
     popularity: POPULARITY_RANK[c.name] ?? 999,
+    sourcePriority: BONUS_FEED_PRIORITY[c.name] ?? 999,
     meta: CASINO_META[c.name] ?? {},
+    affiliateUrl: collectClockLink?.url,
+    promoCode: collectClockLink?.code ?? null,
     ...derivePillars(base, c.category, seed),
   };
-}).sort((a, b) => a.popularity - b.popularity || b.score - a.score);
+}).sort((a, b) => a.sourcePriority - b.sourcePriority || a.popularity - b.popularity || b.score - a.score);
+
+const COLLECTCLOCK_NO_CODE = CASINOS
+  .filter(casino => casino.affiliateUrl && !casino.promoCode)
+  .map(casino => casino.name);
 
 const ALL_CATEGORIES = ['All', ...Array.from(new Set(CASINOS.map(c => c.category))).sort()];
 
@@ -233,6 +287,9 @@ export default function CasinosPage() {
         <p className="text-sm font-mono text-[#17c3b2] mt-3 max-w-2xl mx-auto">
           Each card exposes the Greed Premium — the gap between certified RTP and what the casino actually deploys on your slot. That&apos;s the extra tax they skim above the house edge.
         </p>
+        <p className="text-xs font-mono text-[#ffd700] mt-3 max-w-4xl mx-auto">
+          Bonus-source priority is live: casinos actively showing up in Bonus Drops get surfaced first. Current source brands awaiting full grade: {BONUS_FEED_PENDING_GRADES.join(' · ')}.
+        </p>
         <p className="text-xs font-mono text-gray-600 mt-3">{CASINOS.length} platforms tracked — sweepstakes shown first</p>
       </header>
 
@@ -304,7 +361,18 @@ export default function CasinosPage() {
               <div className="flex justify-between items-start mb-5">
                 <div className="flex-1 min-w-0 pr-4">
                   <div className="flex items-center gap-2">
-                    <h2 className="text-2xl font-black tracking-tight text-white uppercase truncate">{casino.name}</h2>
+                    {casino.affiliateUrl ? (
+                      <a
+                        href={casino.affiliateUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-2xl font-black tracking-tight text-white uppercase truncate hover:text-[#17c3b2] underline decoration-transparent hover:decoration-[#17c3b2] transition-colors"
+                      >
+                        {casino.name}
+                      </a>
+                    ) : (
+                      <h2 className="text-2xl font-black tracking-tight text-white uppercase truncate">{casino.name}</h2>
+                    )}
                     {live && (
                       <span className="text-[8px] font-black px-1.5 py-0.5 bg-[#17c3b2]/15 border border-[#17c3b2]/50 text-[#17c3b2] uppercase tracking-widest shrink-0">LIVE</span>
                     )}
@@ -319,6 +387,11 @@ export default function CasinosPage() {
                     <span className="text-[9px] font-black uppercase tracking-widest px-2 py-0.5 border border-[#283347] text-gray-500">
                       {casino.category}
                     </span>
+                    {casino.affiliateUrl && (
+                      <span className="text-[9px] font-black uppercase tracking-widest px-2 py-0.5 border border-[#17c3b2]/40 text-[#17c3b2]">
+                        {casino.promoCode ? `Code ${casino.promoCode}` : 'No code'}
+                      </span>
+                    )}
                   </div>
                 </div>
                 <div className="text-right shrink-0">
@@ -448,12 +521,16 @@ export default function CasinosPage() {
         <ul className="space-y-2 text-sm font-mono text-muted mb-6">
           <li><span className="text-[#17c3b2]">▹</span> Grades curated from verified regulatory history, compliance violations, and documented operator conduct.</li>
           <li><span className="text-[#17c3b2]">▹</span> Pillar scores derived from grade tier and risk category — deterministic, not editorial.</li>
-          <li><span className="text-[#17c3b2]">▹</span> No affiliates. No paid placements. Ever. Grades reflect conduct.</li>
+          <li><span className="text-[#17c3b2]">▹</span> CollectClock outbound links and codes are shown where available. They do not change the grade.</li>
         </ul>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-sm font-mono pt-4 border-t border-white/10">
           <div><strong className="text-white block mb-2">REGULATORY BASIS</strong>License validity, compliance fines, and jurisdiction track record inform the base grade.</div>
           <div><strong className="text-white block mb-2">COMMUNITY TELEMETRY</strong>Withdrawal complaints, shadow-nerf reports, and ToS changes feed real-time deductions.</div>
-          <div><strong className="text-white block mb-2">ZERO AFFILIATES</strong>No casino pays us. Grades reflect conduct, not partnerships.</div>
+          <div><strong className="text-white block mb-2">INDEPENDENT GRADES</strong>Outbound links come from CollectClock coverage. Grade order still reflects conduct, not partnerships.</div>
+        </div>
+        <div className="mt-6 pt-4 border-t border-white/10 text-sm font-mono text-muted">
+          <strong className="text-white block mb-2">NO REFERRAL CODE AVAILABLE</strong>
+          <p>{COLLECTCLOCK_NO_CODE.join(' · ')}</p>
         </div>
       </section>
     </div>

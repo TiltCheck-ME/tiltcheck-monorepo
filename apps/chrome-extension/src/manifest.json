@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "TiltCheck",
-  "version": "1.2.0",
+  "version": "1.2.2",
   "description": "Real-time gambling behavior tracker, tilt detection, and bankroll management tools.",
   "permissions": [
     "storage",
@@ -22,10 +22,11 @@
     "https://*.gamdom.com/*",
     "https://*.csgoempire.com/*",
     "https://*.tiltcheck.me/*",
-    "https://api.tiltcheck.me/*"
+    "https://api.tiltcheck.me/*",
+    "https://*.magic.link/*"
   ],
   "content_security_policy": {
-    "extension_pages": "script-src 'self'; object-src 'self'"
+    "extension_pages": "script-src 'self'; object-src 'self'; connect-src 'self' https://api.tiltcheck.me https://*.tiltcheck.me https://*.magic.link; frame-src https://*.magic.link"
   },
   "background": {
     "service_worker": "background.js"

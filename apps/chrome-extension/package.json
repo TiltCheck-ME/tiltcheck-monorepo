@@ -24,6 +24,7 @@
   },
   "dependencies": {
     "@tiltcheck/shared": "workspace:*",
-    "@tiltcheck/utils": "workspace:*"
+    "@tiltcheck/utils": "workspace:*",
+    "magic-sdk": "^33.6.3"
   }
 }

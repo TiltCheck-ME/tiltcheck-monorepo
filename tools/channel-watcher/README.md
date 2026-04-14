@@ -14,7 +14,7 @@ Passively watches a Discord channel from your logged-in browser session, then ru
    - 😤 Emotional state of the community
    - 💡 Community needs
    - 🎯 Opportunities for TiltCheck to respond
-5. Reports are printed to the terminal AND saved to `reports.md`
+5. Reports are printed to the terminal AND saved to `reports_business.md`
 
 ## Setup
 
@@ -119,8 +119,68 @@ In Discord: right-click the channel name → **Copy Link**. Paste that into `WAT
 ## Controls
 
 - **Ctrl+C** — triggers an immediate final analysis then exits cleanly
-- **Reports** — saved to `reports.md` in the watcher directory
+- **Reports** — saved to `reports_business.md` in the watcher directory
 - **Raw logs** — every message saved to `messages.jsonl` (one JSON object per line)
+
+## Bonus Drops sync
+
+Use the same saved Discord session to scrape a source bonus channel, strip out chatter/non-bonus junk, dedupe links, and repost fresh claims into TiltCheck `#bonus-drops`.
+
+```bash
+# Dry run the filtered payload
+node sync-bonus-drops.js "<discord-channel-link>" --dry-run
+
+# Post fresh links into TiltCheck Bonus Drops
+npm run bonus:sync -- "<discord-channel-link>"
+```
+
+Config values:
+
+- `BONUS_SOURCE_CHANNEL_URL` — source Discord channel link to scrape
+- `BONUS_DROPS_CHANNEL_ID` — target TiltCheck channel (defaults to `1488256038665981982`)
+- `TILT_DISCORD_BOT_TOKEN` or `DISCORD_BOT_TOKEN` — bot token used to post
+
+The sync stores de-dup state in `.bonus-sync-state.json`, so reruns only post new links.
+If Discord keeps trying to throw you back to login, set `DISCORD_TOKEN` in `.env` as well — the sync now hydrates that token before page load so it can reuse the saved session cleanly.
+
+### Schedule Bonus Drops sync every 2 hours on Windows
+
+```powershell
+./register-bonus-sync-task.ps1 `
+  -ChannelUrl "https://discord.com/channels/1088790880573476964/1364048680805601371"
+```
+
+Default schedule times:
+
+- 00:00, 02:00, 04:00, 06:00, 08:00, 10:00
+- 12:00, 14:00, 16:00, 18:00, 20:00, 22:00
+
+## Manual backfill for already-scraped logs
+
+If the watcher already scraped messages into `messages.jsonl` but you never ran analysis on them, use the manual backfill path instead of scraping again.
+
+```bash
+# Show which old log windows are still uncovered
+npm run backfill -- --dry-run
+
+# Analyze only uncovered windows and record them as reported
+npm run backfill
+
+# Narrow to a manual time range
+npm run backfill -- --from=2026-04-01T00:00:00Z --to=2026-04-03T23:59:59Z
+
+# Resume a failed long run from a later chunk
+npm run backfill -- --from-chunk=3
+```
+
+What this does:
+
+- reads existing `messages.jsonl`
+- skips time ranges already recorded in `.analysis-manifest.json`
+- appends fresh report output to `reports_business.md`, `reports_lore.md`, and `citations.md`
+- records the analyzed time window in `.analysis-manifest.json` so the next backfill only picks up uncovered segments
+
+The cron/live watcher behavior does not change. Backfill stays manual and operator-controlled.
 
 ## Daily Degen Comic export
 

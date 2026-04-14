@@ -563,8 +563,13 @@
       </svg>
     </div>
     <h2>Connect your account</h2>
-    <p>Link your Discord to start tracking sessions, tilt scores, and self-exclusions across every casino.</p>
+    <p>Use Discord for synced vault and community tooling, or use email if you're approved for the site-only beta path.</p>
     <button class="btn btn-primary" id="btn-login">Connect with Discord</button>
+    <div style="height:10px"></div>
+    <input id="magic-email" type="email" placeholder="you@example.com" autocomplete="email" />
+    <div style="height:10px"></div>
+    <button class="btn btn-ghost" id="btn-magic-login" style="width:100%">Connect with Email</button>
+    <p style="margin-top:10px; font-size:11px;">Site beta gets dashboard and extension access. Discord-only panels stay locked unless your account is linked.</p>
   </div>
 
   <!-- Main status (shown when logged in) -->
@@ -605,6 +610,10 @@
       </svg>
       Open Dashboard
     </button>
+    <div id="limited-auth-note" class="empty-state" style="display:none; margin-top:12px;">
+      <strong>Site account connected.</strong>
+      Discord-only tools stay hidden here until your account is linked. Dashboard inbox and approved beta access still work.
+    </div>
   </div>
 
 </div>
