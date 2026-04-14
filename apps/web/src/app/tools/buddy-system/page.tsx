@@ -1,8 +1,10 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-11
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-14
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
+
+const DISCORD_LOGIN_URL = `/api/auth/discord/login?redirect=${encodeURIComponent('/tools/buddy-system')}`;
 
 interface Buddy {
   id: string;
@@ -164,7 +166,7 @@ export default function BuddySystemPage() {
               Buddy System uses your Discord account to link partners and route alerts. No wallet connection required.
             </p>
             <a
-              href="/api/auth/discord"
+              href={DISCORD_LOGIN_URL}
               className="inline-block border border-[#17c3b2] text-[#17c3b2] font-black uppercase tracking-widest text-sm px-8 py-3 hover:bg-[#17c3b2] hover:text-black transition-colors"
             >
               Connect Discord
