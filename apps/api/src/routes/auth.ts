@@ -7,6 +7,7 @@
 import { Router } from 'express';
 import rateLimit from 'express-rate-limit';
 import bcrypt from 'bcryptjs';
+import { Magic } from '@magic-sdk/admin';
 import {
   getDiscordAuthUrl,
   verifyDiscordOAuth,
@@ -102,6 +103,32 @@ const activityTokenLimiter = rateLimit({
   legacyHeaders: false,
   message: { error: 'Too many activity auth attempts', code: 'RATE_LIMIT_EXCEEDED' },
 });
+
+function getMagicAdmin(): Magic | null {
+  const secret = process.env.MAGIC_SECRET_KEY?.trim();
+  if (!secret) {
+    return null;
+  }
+
+  return new Magic(secret);
+}
+
+function getMagicPublishableKey(): string | null {
+  return process.env.MAGIC_PUBLISHABLE_KEY?.trim() || null;
+}
+
+function normalizeEmail(email: string | null | undefined): string | null {
+  const value = email?.trim().toLowerCase();
+  return value && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value) ? value : null;
+}
+
+function getDisplayName(email: string, discordUsername?: string | null): string {
+  if (discordUsername?.trim()) {
+    return discordUsername.trim();
+  }
+
+  return email.split('@')[0] || email;
+}
 
 // ============================================================================
 // Helper Functions
@@ -291,6 +318,91 @@ router.post('/login', authLimiter, async (req, res) => {
   } catch (error) {
     console.error('[Auth] Login error:', error);
     res.status(500).json({ error: 'Login failed' });
+  }
+});
+
+/**
+ * GET /auth/magic/config
+ * Returns whether Magic auth is enabled and the publishable client key.
+ */
+router.get('/magic/config', (_req, res) => {
+  const publishableKey = getMagicPublishableKey();
+  const enabled = Boolean(getMagicAdmin() && publishableKey);
+
+  res.json({
+    enabled,
+    publishableKey: enabled ? publishableKey : null,
+  });
+});
+
+/**
+ * POST /auth/magic/login
+ * Verify a Magic DID token and issue the standard TiltCheck JWT/session.
+ */
+router.post('/magic/login', authLimiter, async (req, res) => {
+  const didToken = typeof req.body?.didToken === 'string' ? req.body.didToken.trim() : '';
+  if (!didToken) {
+    res.status(400).json({ error: 'Magic DID token is required', code: 'MISSING_DID_TOKEN' });
+    return;
+  }
+
+  const magicAdmin = getMagicAdmin();
+  if (!magicAdmin) {
+    res.status(503).json({ error: 'Magic auth is not configured', code: 'SERVICE_UNAVAILABLE' });
+    return;
+  }
+
+  try {
+    const metadata = await magicAdmin.users.getMetadataByToken(didToken);
+    const email = normalizeEmail(metadata.email);
+
+    if (!email) {
+      res.status(400).json({ error: 'Magic identity must include an email', code: 'INVALID_MAGIC_IDENTITY' });
+      return;
+    }
+
+    let user = await findUserByEmail(email);
+    if (!user) {
+      user = await createUser({
+        email,
+        roles: ['user'],
+      });
+    }
+
+    if (!user) {
+      res.status(500).json({ error: 'Failed to provision user', code: 'USER_PROVISION_FAILED' });
+      return;
+    }
+
+    await updateUser(user.id, { last_login_at: new Date() });
+
+    const roles = Array.isArray(user.roles) && user.roles.length > 0 ? user.roles : ['user'];
+    const token = await generateJWT(user.id, user.email || email, roles);
+    const jwtConfig = getJWTConfig();
+    const { cookie } = await createSession(user.id, jwtConfig, {
+      type: 'user',
+      roles,
+      discordId: user.discord_id || undefined,
+      discordUsername: user.discord_username || undefined,
+      walletAddress: user.wallet_address || undefined,
+    });
+
+    res.setHeader('Set-Cookie', cookie);
+    res.json({
+      success: true,
+      token,
+      user: {
+        id: user.id,
+        email: user.email || email,
+        roles,
+        discordId: user.discord_id || null,
+        discordUsername: user.discord_username || null,
+        displayName: getDisplayName(user.email || email, user.discord_username),
+      },
+    });
+  } catch (error) {
+    console.error('[Auth] Magic login error:', error);
+    res.status(400).json({ error: 'Invalid Magic token', code: 'INVALID_MAGIC_TOKEN' });
   }
 });
 

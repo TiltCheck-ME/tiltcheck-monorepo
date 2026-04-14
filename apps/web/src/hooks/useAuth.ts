@@ -4,8 +4,9 @@ import { useEffect, useState } from 'react';
 
 export type AuthUser = {
   userId: string;
-  discordId: string;
-  discordUsername: string;
+  email?: string | null;
+  discordId?: string | null;
+  discordUsername?: string | null;
   walletAddress: string | null;
   roles: string[];
   isAdmin: boolean;
@@ -17,7 +18,10 @@ export function useAuth() {
 
   useEffect(() => {
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || '';
-    fetch(`${apiUrl}/auth/me`, { credentials: 'include' })
+    const token = typeof window !== 'undefined' ? window.localStorage.getItem('tc_token') : null;
+    const headers = token ? { Authorization: `Bearer ${token}` } : undefined;
+
+    fetch(`${apiUrl}/auth/me`, { credentials: 'include', headers })
       .then((r) => (r.ok ? r.json() : null))
       .then((data: AuthUser | null) => {
         if (data?.userId) setUser(data);

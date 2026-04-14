@@ -98,6 +98,13 @@ export {
   createRecoveryApplication,
   updateRecoveryApplication,
   listRecoveryApplicationsByStatus,
+  findBetaSignupById,
+  findLatestBetaSignupByEmail,
+  findLatestBetaSignupByUserId,
+  findLatestBetaSignupByDiscordId,
+  createBetaSignup,
+  updateBetaSignup,
+  listBetaSignupsByStatus,
 
   // Buddy queries
   sendBuddyRequest,
@@ -170,6 +177,13 @@ export type {
   RecoveryApplicationStatus,
   CreateRecoveryApplicationPayload,
   UpdateRecoveryApplicationPayload,
+  BetaApplicationPath,
+  BetaContactMethod,
+  BetaSignupStatus,
+  BetaEntitlements,
+  BetaSignup,
+  CreateBetaSignupPayload,
+  UpdateBetaSignupPayload,
 
   // Buddy types
   UserBuddy,

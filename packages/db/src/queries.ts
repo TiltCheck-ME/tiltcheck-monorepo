@@ -34,6 +34,10 @@ import type {
   CreateRecoveryApplicationPayload,
   UpdateRecoveryApplicationPayload,
   RecoveryApplicationStatus,
+  BetaSignup,
+  BetaSignupStatus,
+  CreateBetaSignupPayload,
+  UpdateBetaSignupPayload,
   BlogPost,
   CreateBlogPostPayload,
   UserBuddy,
@@ -921,6 +925,144 @@ export async function listRecoveryApplicationsByStatus(
   `;
 
   return query<RecoveryApplication>(sql, [status]);
+}
+
+/**
+ * Find beta signup by application ID
+ */
+export async function findBetaSignupById(id: string): Promise<BetaSignup | null> {
+  return findById<BetaSignup>('beta_signups', id);
+}
+
+/**
+ * Get latest beta signup for an email
+ */
+export async function findLatestBetaSignupByEmail(email: string): Promise<BetaSignup | null> {
+  const sql = `
+    SELECT *
+    FROM beta_signups
+    WHERE email = $1
+    ORDER BY created_at DESC
+    LIMIT 1
+  `;
+
+  return queryOne<BetaSignup>(sql, [email]);
+}
+
+/**
+ * Get latest beta signup for a user account
+ */
+export async function findLatestBetaSignupByUserId(userId: string): Promise<BetaSignup | null> {
+  const sql = `
+    SELECT *
+    FROM beta_signups
+    WHERE user_id = $1
+    ORDER BY created_at DESC
+    LIMIT 1
+  `;
+
+  return queryOne<BetaSignup>(sql, [userId]);
+}
+
+/**
+ * Get latest beta signup for a Discord identity
+ */
+export async function findLatestBetaSignupByDiscordId(discordId: string): Promise<BetaSignup | null> {
+  const sql = `
+    SELECT *
+    FROM beta_signups
+    WHERE discord_id = $1
+    ORDER BY created_at DESC
+    LIMIT 1
+  `;
+
+  return queryOne<BetaSignup>(sql, [discordId]);
+}
+
+/**
+ * Create a beta signup row with shared entitlement fields
+ */
+export async function createBetaSignup(
+  payload: CreateBetaSignupPayload
+): Promise<BetaSignup | null> {
+  return insert<BetaSignup>('beta_signups', {
+    user_id: payload.user_id ?? null,
+    email: payload.email,
+    application_path: payload.application_path,
+    contact_method: payload.contact_method,
+    status: payload.status ?? 'pending',
+    discord_id: payload.discord_id ?? null,
+    discord_username: payload.discord_username ?? null,
+    notification_email: payload.notification_email ?? null,
+    notification_discord_id: payload.notification_discord_id ?? null,
+    beta_access_web: payload.beta_access_web ?? false,
+    beta_access_dashboard: payload.beta_access_dashboard ?? false,
+    beta_access_extension: payload.beta_access_extension ?? false,
+    beta_access_discord: payload.beta_access_discord ?? false,
+    beta_access_community: payload.beta_access_community ?? false,
+    interests: payload.interests ?? null,
+    experience_level: payload.experience_level ?? null,
+    feedback_preference: payload.feedback_preference ?? null,
+    referral_source: payload.referral_source ?? null,
+    reviewer_notes: payload.reviewer_notes ?? null,
+    review_message_id: payload.review_message_id ?? null,
+    review_channel_id: payload.review_channel_id ?? null,
+    approved_at: payload.approved_at ?? null,
+    rejected_at: payload.rejected_at ?? null,
+    created_at: new Date(),
+    updated_at: new Date(),
+  });
+}
+
+/**
+ * Update a beta signup and its entitlement flags
+ */
+export async function updateBetaSignup(
+  id: string,
+  payload: UpdateBetaSignupPayload
+): Promise<BetaSignup | null> {
+  return update<BetaSignup>('beta_signups', id, {
+    ...(payload.user_id !== undefined ? { user_id: payload.user_id } : {}),
+    ...(payload.email !== undefined ? { email: payload.email } : {}),
+    ...(payload.application_path !== undefined ? { application_path: payload.application_path } : {}),
+    ...(payload.contact_method !== undefined ? { contact_method: payload.contact_method } : {}),
+    ...(payload.status !== undefined ? { status: payload.status } : {}),
+    ...(payload.discord_id !== undefined ? { discord_id: payload.discord_id } : {}),
+    ...(payload.discord_username !== undefined ? { discord_username: payload.discord_username } : {}),
+    ...(payload.notification_email !== undefined ? { notification_email: payload.notification_email } : {}),
+    ...(payload.notification_discord_id !== undefined ? { notification_discord_id: payload.notification_discord_id } : {}),
+    ...(payload.beta_access_web !== undefined ? { beta_access_web: payload.beta_access_web } : {}),
+    ...(payload.beta_access_dashboard !== undefined ? { beta_access_dashboard: payload.beta_access_dashboard } : {}),
+    ...(payload.beta_access_extension !== undefined ? { beta_access_extension: payload.beta_access_extension } : {}),
+    ...(payload.beta_access_discord !== undefined ? { beta_access_discord: payload.beta_access_discord } : {}),
+    ...(payload.beta_access_community !== undefined ? { beta_access_community: payload.beta_access_community } : {}),
+    ...(payload.interests !== undefined ? { interests: payload.interests } : {}),
+    ...(payload.experience_level !== undefined ? { experience_level: payload.experience_level } : {}),
+    ...(payload.feedback_preference !== undefined ? { feedback_preference: payload.feedback_preference } : {}),
+    ...(payload.referral_source !== undefined ? { referral_source: payload.referral_source } : {}),
+    ...(payload.reviewer_notes !== undefined ? { reviewer_notes: payload.reviewer_notes } : {}),
+    ...(payload.review_message_id !== undefined ? { review_message_id: payload.review_message_id } : {}),
+    ...(payload.review_channel_id !== undefined ? { review_channel_id: payload.review_channel_id } : {}),
+    ...(payload.approved_at !== undefined ? { approved_at: payload.approved_at } : {}),
+    ...(payload.rejected_at !== undefined ? { rejected_at: payload.rejected_at } : {}),
+    updated_at: payload.updated_at ?? new Date(),
+  });
+}
+
+/**
+ * List beta signups by moderation status
+ */
+export async function listBetaSignupsByStatus(
+  status: BetaSignupStatus
+): Promise<BetaSignup[]> {
+  const sql = `
+    SELECT *
+    FROM beta_signups
+    WHERE status = $1
+    ORDER BY created_at DESC
+  `;
+
+  return query<BetaSignup>(sql, [status]);
 }
 
 // ============================================================================

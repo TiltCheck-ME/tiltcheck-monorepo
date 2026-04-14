@@ -7,11 +7,23 @@ vi.mock('@tiltcheck/auth', () => ({
   getDiscordAuthUrl: vi.fn(() => 'https://discord.com/oauth2/authorize'),
   verifyDiscordOAuth: vi.fn(),
   exchangeDiscordCode: vi.fn(),
+  createToken: vi.fn(async () => 'mock-jwt-token'),
   createSession: vi.fn(),
   destroySession: vi.fn(() => 'session=; Path=/; HttpOnly'),
   verifySessionCookie: vi.fn(),
+  verifyToken: vi.fn(),
   getDiscordAvatarUrl: vi.fn(),
   generateOAuthState: vi.fn(() => 'mock-state'),
+}));
+
+const mockGetMetadataByToken = vi.fn();
+
+vi.mock('@magic-sdk/admin', () => ({
+  Magic: class {
+    users = {
+      getMetadataByToken: mockGetMetadataByToken,
+    };
+  },
 }));
 
 vi.mock('@tiltcheck/db', () => ({
@@ -33,8 +45,9 @@ vi.mock('../../src/middleware/auth.js', () => ({
 }));
 
 import { authRouter } from '../../src/routes/auth.js';
+import { getDiscordConfig } from '../../src/routes/auth.utils.js';
 import { createSession, exchangeDiscordCode, verifyDiscordOAuth } from '@tiltcheck/auth';
-import { findOrCreateUserByDiscord } from '@tiltcheck/db';
+import { createUser, findOrCreateUserByDiscord, findUserByEmail, updateUser } from '@tiltcheck/db';
 
 const app = express();
 app.use((req, _res, next) => {
@@ -56,6 +69,8 @@ describe('Auth callback state/source validation', () => {
     process.env.NODE_ENV = 'development';
     process.env.DISCORD_CLIENT_ID = 'test-client-id';
     process.env.DISCORD_CLIENT_SECRET = 'test-client-secret';
+    delete process.env.MAGIC_SECRET_KEY;
+    delete process.env.MAGIC_PUBLISHABLE_KEY;
     vi.clearAllMocks();
   });
 
@@ -71,10 +86,10 @@ describe('Auth callback state/source validation', () => {
   it('allows local extension fallback only when state prefix indicates extension', async () => {
     const response = await request(app).get('/auth/discord/callback?state=ext_abc123');
 
-    // State validation passes; it then fails on missing code.
+    // Without the matching oauth_state cookie, state validation still fails closed.
     expect(response.status).toBe(400);
-    expect(response.headers['content-type']).toContain('text/html');
-    expect(response.text).toContain('Missing authorization code');
+    expect(response.headers['content-type']).toContain('application/json');
+    expect(response.body.error).toBe('Invalid OAuth state or expired session');
   });
 
   it('does not allow oauth_source cookie alone to bypass missing oauth_state cookie', async () => {
@@ -83,7 +98,7 @@ describe('Auth callback state/source validation', () => {
       .set('Cookie', ['oauth_source=extension']);
 
     expect(response.status).toBe(400);
-    expect(response.body.error).toBe('Invalid OAuth state');
+    expect(response.body.error).toBe('Invalid OAuth state or expired session');
   });
 
   it('forwards OAuth callback params from /login to /callback', async () => {
@@ -194,5 +209,73 @@ describe('Auth callback state/source validation', () => {
 
     expect(response.status).toBe(302);
     expect(response.headers.location).toBe('https://tiltcheck.me/play/profile.html');
+  });
+
+  it('returns Magic config only when both keys are configured', async () => {
+    let response = await request(app).get('/auth/magic/config');
+
+    expect(response.status).toBe(200);
+    expect(response.body).toEqual({ enabled: false, publishableKey: null });
+
+    process.env.MAGIC_SECRET_KEY = 'magic-secret';
+    process.env.MAGIC_PUBLISHABLE_KEY = 'pk_live_magic';
+
+    response = await request(app).get('/auth/magic/config');
+
+    expect(response.status).toBe(200);
+    expect(response.body).toEqual({ enabled: true, publishableKey: 'pk_live_magic' });
+  });
+
+  it('sanitizes embedded whitespace in Discord redirect env values', () => {
+    process.env.TILT_DISCORD_REDIRECT_URI = 'https:// api.tiltcheck.me/auth/discord/callback ';
+
+    const config = getDiscordConfig();
+
+    expect(config.redirectUri).toBe('https://api.tiltcheck.me/auth/discord/callback');
+  });
+
+  it('logs in an existing user with Magic and issues the standard JWT', async () => {
+    process.env.MAGIC_SECRET_KEY = 'magic-secret';
+    mockGetMetadataByToken.mockResolvedValueOnce({ email: 'magic@example.com' });
+    vi.mocked(findUserByEmail).mockResolvedValueOnce({
+      id: 'user-magic-1',
+      email: 'magic@example.com',
+      roles: ['user'],
+      discord_id: null,
+      discord_username: null,
+      wallet_address: null,
+    } as any);
+    vi.mocked(updateUser).mockResolvedValueOnce(undefined as any);
+    vi.mocked(createSession).mockResolvedValueOnce({
+      cookie: 'session=test; Path=/; HttpOnly',
+      token: 'session-token',
+    } as any);
+
+    const response = await request(app)
+      .post('/auth/magic/login')
+      .send({ didToken: 'magic-did-token' });
+
+    expect(response.status).toBe(200);
+    expect(mockGetMetadataByToken).toHaveBeenCalledWith('magic-did-token');
+    expect(response.body.token).toBe('mock-jwt-token');
+    expect(response.body.user).toMatchObject({
+      id: 'user-magic-1',
+      email: 'magic@example.com',
+      displayName: 'magic',
+    });
+    expect(response.headers['set-cookie']).toBeDefined();
+  });
+
+  it('rejects Magic login when the identity does not include an email', async () => {
+    process.env.MAGIC_SECRET_KEY = 'magic-secret';
+    mockGetMetadataByToken.mockResolvedValueOnce({ email: null });
+
+    const response = await request(app)
+      .post('/auth/magic/login')
+      .send({ didToken: 'magic-did-token' });
+
+    expect(response.status).toBe(400);
+    expect(response.body.code).toBe('INVALID_MAGIC_IDENTITY');
+    expect(createUser).not.toHaveBeenCalled();
   });
 });

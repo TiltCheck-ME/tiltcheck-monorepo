@@ -6,7 +6,7 @@ dotenv.config();
 const { Pool } = pg;
 
 async function updateSchemaAndSeed() {
-  const connectionString = process.env.POSTGRESQL || process.env.NEON_DATABASE_URL;
+  const connectionString = process.env.NEON_DATABASE_URL || process.env.DATABASE_URL || process.env.POSTGRESQL;
   if (!connectionString) {
     console.error('❌ No database connection string found in .env');
     return;

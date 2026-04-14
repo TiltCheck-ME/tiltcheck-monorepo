@@ -9,6 +9,13 @@ export const DEFAULT_DISCORD_CLIENT_ID = '1445916179163250860';
 export const DEFAULT_DISCORD_SCOPES = ['identify'];
 export const DEFAULT_API_DISCORD_CALLBACK = 'https://api.tiltcheck.me/auth/discord/callback';
 
+function sanitizeUrlEnv(value: string | undefined): string | undefined {
+  if (!value) return undefined;
+
+  const compact = value.replace(/\s+/g, '').trim();
+  return compact.length > 0 ? compact : undefined;
+}
+
 /**
  * Constructs the Discord OAuth configuration from environment variables.
  */
@@ -23,9 +30,9 @@ export function getDiscordConfig(): DiscordOAuthConfig {
     process.env.DISCORD_CLIENT_SECRET?.trim() ||
     (isProd ? (() => { throw new Error('DISCORD_CLIENT_SECRET is required in production'); })() : '');
   const redirectUri =
-    process.env.TILT_DISCORD_REDIRECT_URI?.trim() ||
-    process.env.DISCORD_REDIRECT_URI?.trim() ||
-    process.env.DISCORD_CALLBACK_URL?.trim() ||
+    sanitizeUrlEnv(process.env.TILT_DISCORD_REDIRECT_URI) ||
+    sanitizeUrlEnv(process.env.DISCORD_REDIRECT_URI) ||
+    sanitizeUrlEnv(process.env.DISCORD_CALLBACK_URL) ||
     DEFAULT_API_DISCORD_CALLBACK;
 
   return {

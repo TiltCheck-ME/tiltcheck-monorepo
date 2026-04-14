@@ -406,17 +406,46 @@ CREATE TRIGGER update_subscriptions_updated_at
 -- Stores beta program registrations from the web signup form
 CREATE TABLE IF NOT EXISTS beta_signups (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  user_id UUID REFERENCES users(id) ON DELETE SET NULL,
   email TEXT NOT NULL UNIQUE,
+  application_path TEXT DEFAULT 'discord' NOT NULL CHECK (application_path IN ('discord', 'site')),
+  contact_method TEXT DEFAULT 'discord' NOT NULL CHECK (contact_method IN ('discord', 'email')),
+  status TEXT DEFAULT 'pending' NOT NULL CHECK (status IN ('pending', 'approved', 'rejected', 'waitlisted')),
+  discord_id TEXT,
   discord_username TEXT,
+  notification_email TEXT,
+  notification_discord_id TEXT,
+  beta_access_web BOOLEAN DEFAULT false NOT NULL,
+  beta_access_dashboard BOOLEAN DEFAULT false NOT NULL,
+  beta_access_extension BOOLEAN DEFAULT false NOT NULL,
+  beta_access_discord BOOLEAN DEFAULT false NOT NULL,
+  beta_access_community BOOLEAN DEFAULT false NOT NULL,
   interests TEXT[],
   experience_level TEXT,
   feedback_preference TEXT,
   referral_source TEXT,
-  created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL
+  reviewer_notes TEXT,
+  review_message_id TEXT,
+  review_channel_id TEXT,
+  approved_at TIMESTAMPTZ,
+  rejected_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL,
+  updated_at TIMESTAMPTZ DEFAULT NOW() NOT NULL
 );
 
 -- Indexes for beta_signups
 CREATE INDEX IF NOT EXISTS idx_beta_signups_created ON beta_signups(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_beta_signups_status ON beta_signups(status);
+CREATE INDEX IF NOT EXISTS idx_beta_signups_contact_method ON beta_signups(contact_method);
+CREATE INDEX IF NOT EXISTS idx_beta_signups_application_path ON beta_signups(application_path);
+CREATE INDEX IF NOT EXISTS idx_beta_signups_discord_id ON beta_signups(discord_id);
+CREATE INDEX IF NOT EXISTS idx_beta_signups_user_id ON beta_signups(user_id);
+
+-- Trigger for beta_signups updated_at
+CREATE TRIGGER update_beta_signups_updated_at
+  BEFORE UPDATE ON beta_signups
+  FOR EACH ROW
+  EXECUTE FUNCTION update_updated_at_column();
 
 -- RLS for beta_signups
 ALTER TABLE beta_signups ENABLE ROW LEVEL SECURITY;

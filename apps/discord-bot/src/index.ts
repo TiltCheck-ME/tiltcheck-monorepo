@@ -24,10 +24,11 @@ import { ensureTiltAgentContextIndex } from './services/tilt-agent-context-store
 import { startTiltAgentLoop, stopTiltAgentLoop } from './services/tilt-agent.js';
 import { startRegulationsNotifier, stopRegulationsNotifier } from './services/regulations-notifier.js';
 import { handleSafetyIntervention } from './services/intervention-service.js';
+import { initializeBetaReviewQueue, syncBetaReviewQueue } from './services/beta-review-queue.js';
 
 import { startTrustAdapter } from '@tiltcheck/discord-utils/trust-adapter';
 
-import { getUserBuddies } from '@tiltcheck/db';
+import { getUserBuddies, type BetaSignupStatus } from '@tiltcheck/db';
 
 async function main() {
   const startTime = Date.now();
@@ -65,6 +66,10 @@ async function main() {
   console.log('[Alerts] Initializing alert service...');
   initializeAlertService(client);
   console.log('[Alerts] Alert service ready\n');
+
+  console.log('[BetaQueue] Initializing beta review queue...');
+  initializeBetaReviewQueue(client);
+  console.log('[BetaQueue] Beta review queue ready\n');
 
   console.log('[Trust] Initializing trust alerts...');
   TrustAlertsHandler.initialize();
@@ -238,6 +243,10 @@ async function main() {
       void handleInternalIntervention(req, res);
       return;
     }
+    if (req.method === 'POST' && req.url === '/internal/beta-signups') {
+      void handleInternalBetaSignupSync(req, res);
+      return;
+    }
     res.writeHead(404);
     res.end();
   });
@@ -330,6 +339,55 @@ async function main() {
       console.error('[Bot] Failed to handle internal intervention request:', error);
       res.writeHead(500, { 'Content-Type': 'application/json' });
       res.end(JSON.stringify({ error: 'Failed to handle intervention' }));
+    }
+  }
+
+  async function handleInternalBetaSignupSync(req: http.IncomingMessage, res: http.ServerResponse): Promise<void> {
+    const serviceSecret = process.env.INTERNAL_API_SECRET;
+    if (!serviceSecret || serviceSecret.trim() === '') {
+      res.writeHead(503, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ error: 'INTERNAL_API_SECRET is not configured' }));
+      return;
+    }
+
+    const authHeader = req.headers.authorization;
+    if (authHeader !== `Bearer ${serviceSecret}`) {
+      res.writeHead(401, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ error: 'Unauthorized internal request' }));
+      return;
+    }
+
+    try {
+      const payload = await readJsonBody(req);
+      const body = payload as {
+        signupId?: unknown;
+        eventType?: unknown;
+        previousStatus?: unknown;
+      };
+
+      if (typeof body.signupId !== 'string' || body.signupId.trim() === '') {
+        res.writeHead(400, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: 'Invalid beta signup payload' }));
+        return;
+      }
+
+      const previousStatus = typeof body.previousStatus === 'string'
+        && ['pending', 'approved', 'rejected', 'waitlisted'].includes(body.previousStatus)
+        ? body.previousStatus as BetaSignupStatus
+        : undefined;
+
+      const syncResult = await syncBetaReviewQueue({
+        signupId: body.signupId,
+        eventType: body.eventType === 'reviewed' ? 'reviewed' : 'submitted',
+        previousStatus,
+      });
+
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ success: true, ...syncResult }));
+    } catch (error) {
+      console.error('[Bot] Failed to sync beta review queue:', error);
+      res.writeHead(500, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ error: 'Failed to sync beta review queue' }));
     }
   }
 }
