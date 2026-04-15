@@ -61,6 +61,12 @@ Thumbs.db
 *.swp
 *.swo
 *~
+/.agents/
+/.claude/
+/.junie/
+/.zencoder/
+/skills/
+/skills-lock.json
 
 # Testing
 coverage/
