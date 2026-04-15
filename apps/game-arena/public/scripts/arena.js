@@ -304,7 +304,7 @@ class ArenaManager {
     const types = {
       'degens-against-decency': 'Degens Against Decency',
       '2-truths-and-a-lie': '2 Truths and a Lie',
-      'poker': 'Poker (5-Card Stud)'
+      'poker': 'Poker (disabled)'
     };
     return types[type] || type;
   }

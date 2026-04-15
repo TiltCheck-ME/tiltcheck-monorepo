@@ -1,23 +1,31 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-12
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-15
 'use client';
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
+import { Menu, X } from 'lucide-react';
 import LiveStatusIndicator from './LiveStatusIndicator';
 import { useAuth } from '../hooks/useAuth';
 
 const DASHBOARD_URL = process.env.NEXT_PUBLIC_DASHBOARD_URL || 'http://localhost:6001';
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.tiltcheck.me';
 
-const NAV_LINKS: Array<{ href: string; label: string; accent?: string }> = [
+type NavLink = { href: string; label: string; accent?: string };
+
+const NAV_LINKS_PRIMARY: NavLink[] = [
   { href: '/#tools',     label: 'Tools' },
   { href: '/casinos',    label: 'Casinos' },
   { href: '/bonuses',    label: 'Bonuses' },
   { href: '/intel/rtp',  label: 'Nerf Radar' },
+];
+
+const NAV_LINKS_SECONDARY: NavLink[] = [
   { href: '/blog',       label: 'Blog' },
   { href: '/docs',       label: 'Docs' },
   { href: '/extension',  label: 'Extension' },
-  { href: '/collab',     label: 'Contact',        accent: 'purple' },
+  { href: '/collab',     label: 'Contact', accent: 'purple' },
 ];
+
+const ALL_LINKS = [...NAV_LINKS_PRIMARY, ...NAV_LINKS_SECONDARY];
 
 const STACKED_ACCENT_CLASS: Record<string, string> = {
   danger: 'nav-sidebar-link-danger',
@@ -31,8 +39,24 @@ const DESKTOP_ACCENT_CLASS: Record<string, string> = {
 
 const Nav = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
   const { user, loading } = useAuth();
   const close = () => setIsOpen(false);
+
+  const handleScroll = useCallback(() => {
+    setScrolled(window.scrollY > 16);
+  }, []);
+
+  useEffect(() => {
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [handleScroll]);
+
+  // Lock body scroll when mobile menu is open
+  useEffect(() => {
+    document.body.style.overflow = isOpen ? 'hidden' : '';
+    return () => { document.body.style.overflow = ''; };
+  }, [isOpen]);
 
   const AuthButton = ({ compact }: { compact?: boolean }) => {
     if (loading) return null;
@@ -54,78 +78,98 @@ const Nav = () => {
     );
   };
 
-  const Links = ({ variant = 'stacked' }: { variant?: 'stacked' | 'desktop' }) => (
+  const DesktopLinks = () => (
     <>
-      {NAV_LINKS.map(({ href, label, accent }) => (
+      {ALL_LINKS.map(({ href, label, accent }) => (
         <Link
           key={href}
           href={href}
-          onClick={close}
-          className={
-            variant === 'desktop'
-              ? `nav-desktop-link${accent ? ` ${DESKTOP_ACCENT_CLASS[accent]}` : ''}`
-              : `nav-sidebar-link${accent ? ` ${STACKED_ACCENT_CLASS[accent]}` : ''}`
-          }
+          className={`nav-desktop-link${accent ? ` ${DESKTOP_ACCENT_CLASS[accent]}` : ''}`}
         >
           {label}
         </Link>
       ))}
-      <Link
-        href="/beta-tester"
-        onClick={close}
-        className={variant === 'desktop' ? 'nav-desktop-link nav-desktop-beta' : 'nav-sidebar-link nav-sidebar-beta'}
-      >
+      <Link href="/beta-tester" className="nav-desktop-link nav-desktop-beta">
         Beta
+      </Link>
+    </>
+  );
+
+  const MobileLinks = () => (
+    <>
+      {ALL_LINKS.map(({ href, label, accent }) => (
+        <Link
+          key={href}
+          href={href}
+          onClick={close}
+          className={`nav-sidebar-link${accent ? ` ${STACKED_ACCENT_CLASS[accent]}` : ''}`}
+        >
+          {label}
+        </Link>
+      ))}
+      <Link href="/beta-tester" onClick={close} className="nav-sidebar-link nav-sidebar-beta">
+        Get Early Access
       </Link>
     </>
   );
 
   return (
     <>
-      <div className="nav-topbar">
-        <Link href="/" className="nav-logo">
-          <img src="/icon.png" alt="TiltCheck" width={28} height={28} style={{ objectFit: 'contain' }} />
-          <span>TILTCHECK</span>
+      <div className={`nav-topbar${scrolled ? ' nav-topbar--scrolled' : ''}`}>
+        {/* Logo */}
+        <Link href="/" className="nav-logo" aria-label="TiltCheck home">
+          <span className="nav-logo-icon">
+            <img src="/icon.png" alt="" width={24} height={24} style={{ objectFit: 'contain' }} aria-hidden="true" />
+          </span>
+          <span className="nav-logo-text">TILTCHECK</span>
         </Link>
 
+        {/* Desktop nav links */}
         <nav className="nav-desktop-links" aria-label="Primary navigation">
-          <Links variant="desktop" />
+          <DesktopLinks />
         </nav>
 
+        {/* Desktop right actions */}
         <div className="nav-desktop-actions">
           <LiveStatusIndicator />
           <AuthButton />
         </div>
 
+        {/* Mobile right cluster */}
         <div className="nav-topbar-right">
           <LiveStatusIndicator />
           <AuthButton compact />
           <button
             onClick={() => setIsOpen(!isOpen)}
             className="nav-hamburger"
-            aria-label="Toggle navigation"
+            aria-label={isOpen ? 'Close navigation' : 'Open navigation'}
             aria-controls="site-mobile-nav"
             aria-expanded={isOpen}
           >
-            {isOpen
-              ? <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-              : <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
-            }
+            {isOpen ? <X size={22} strokeWidth={2.5} /> : <Menu size={22} strokeWidth={2.5} />}
           </button>
         </div>
       </div>
 
+      {/* Mobile menu overlay */}
       {isOpen && (
-        <div id="site-mobile-nav" className="nav-collapse" aria-label="Navigation menu">
-          <nav className="nav-collapse-links">
-            <Links variant="stacked" />
-          </nav>
-          <div className="nav-collapse-foot">
-            <LiveStatusIndicator />
-            <AuthButton />
-          </div>
-        </div>
+        <div className="nav-overlay" onClick={close} aria-hidden="true" />
       )}
+
+      {/* Mobile menu panel */}
+      <div
+        id="site-mobile-nav"
+        className={`nav-collapse${isOpen ? ' nav-collapse--open' : ''}`}
+        aria-label="Navigation menu"
+      >
+        <nav className="nav-collapse-links">
+          <MobileLinks />
+        </nav>
+        <div className="nav-collapse-foot">
+          <LiveStatusIndicator />
+          <AuthButton />
+        </div>
+      </div>
     </>
   );
 };

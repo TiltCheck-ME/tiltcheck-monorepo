@@ -43,3 +43,6 @@ export * from './legal.js';
 
 // Fairness exports
 export { FairnessService } from './fairness.js';
+
+// Trivia exports
+export * from './trivia.js';

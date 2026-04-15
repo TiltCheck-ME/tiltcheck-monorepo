@@ -8,6 +8,14 @@ import { getUsdPriceSync } from '@tiltcheck/utils';
 import { Connection, Keypair, LAMPORTS_PER_SOL, SystemProgram, Transaction, sendAndConfirmTransaction, PublicKey } from '@solana/web3.js';
 
 const connection = new Connection(process.env.SOLANA_RPC_URL || 'https://api.mainnet-beta.solana.com', 'confirmed');
+const COLLECTOR_TRIPWIRE_LABEL = 'BOT/COLLECTOR CLAIM';
+
+async function announceCollectorBlock(channel: any, userId: string): Promise<void> {
+  await channel?.send(
+    `[ANTI-COLLECTOR] <@${userId}> tripped the drop collector check and is blocked from this payout. ` +
+    `Rain drops are for actual people, not script-fed wallet farming.`
+  ).catch(() => {});
+}
 
 async function refundEscrowToHost(
   hostDiscordId: string,
@@ -113,15 +121,25 @@ export const juicedrop: Command = {
     const dropEmbed = new EmbedBuilder()
       .setColor(0x8b5cf6)
       .setTitle('[PROFIT DROPPING!]')
-      .setDescription(`${interaction.user} is dropping **${totalSol.toFixed(4)} SOL**.\n\nClick **CLAIM DROP** to lock your slot.\n\n**Limits:** Max ${maxUsers} users | **Time:** ${timeLimit}s`)
+      .setDescription(
+        `${interaction.user} is dropping **${totalSol.toFixed(4)} SOL**.\n\n` +
+        `Click **CLAIM DROP** to lock your slot.\n\n` +
+        `**Limits:** Max ${maxUsers} users | **Time:** ${timeLimit}s\n` +
+        `Collector scripts get clipped. Trip the wrong button and you're out.`
+      )
       .setThumbnail('https://tiltcheck.me/assets/logo/logocurrent.png');
 
     const claimButtonId = `juicedrop:claim:${interaction.id}`;
+    const collectorTrapButtonId = `juicedrop:collector:${interaction.id}`;
     const claimRow = new ActionRowBuilder<ButtonBuilder>().addComponents(
       new ButtonBuilder()
         .setCustomId(claimButtonId)
         .setLabel('CLAIM DROP')
-        .setStyle(ButtonStyle.Success)
+        .setStyle(ButtonStyle.Success),
+      new ButtonBuilder()
+        .setCustomId(collectorTrapButtonId)
+        .setLabel(COLLECTOR_TRIPWIRE_LABEL)
+        .setStyle(ButtonStyle.Danger)
     );
 
     const dropMessage = await (interaction.channel as any)?.send({
@@ -130,15 +148,39 @@ export const juicedrop: Command = {
     }) as Message;
 
     const claimants = new Set<string>();
+    const blockedClaimants = new Set<string>();
     const collector = dropMessage.createMessageComponentCollector({
       filter: (componentInteraction) =>
         componentInteraction.isButton() &&
-        componentInteraction.customId === claimButtonId &&
+        [claimButtonId, collectorTrapButtonId].includes(componentInteraction.customId) &&
         !componentInteraction.user.bot,
       time: timeLimit * 1000,
     });
 
     collector.on('collect', async (componentInteraction) => {
+      if (componentInteraction.customId === collectorTrapButtonId) {
+        claimants.delete(componentInteraction.user.id);
+        const firstBlock = !blockedClaimants.has(componentInteraction.user.id);
+        blockedClaimants.add(componentInteraction.user.id);
+        await componentInteraction.reply({
+          content: '[BLOCKED] Collector tripwire hit. This drop is human-only.',
+          ephemeral: true,
+        }).catch(() => {});
+
+        if (firstBlock) {
+          await announceCollectorBlock(interaction.channel, componentInteraction.user.id);
+        }
+        return;
+      }
+
+      if (blockedClaimants.has(componentInteraction.user.id)) {
+        await componentInteraction.reply({
+          content: '[BLOCKED] You already tripped the collector check on this drop.',
+          ephemeral: true,
+        }).catch(() => {});
+        return;
+      }
+
       if (claimants.has(componentInteraction.user.id)) {
         await componentInteraction.reply({
           content: '[ALREADY LOCKED] You already claimed this drop.',

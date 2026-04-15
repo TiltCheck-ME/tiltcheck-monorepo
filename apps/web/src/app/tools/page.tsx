@@ -85,8 +85,8 @@ const TOOLS: Tool[] = [
     href: '/tools/degens-arena',
     label: 'DEGENS ARENA',
     title: 'Trivia Drop Arena',
-    description: 'Web-based trivia battle for up to 10,000 concurrent players. Skill-only SOL prize drops, zero house edge. Activates automatically when the extension locks your session. Available now on Discord via /triviadrop.',
-    status: 'soon',
+    description: 'Live trivia drops are already running on Discord via /triviadrop. The web surface is live as the briefing, rules, and access path — not the launch surface.',
+    status: 'live',
   },
 ];
 

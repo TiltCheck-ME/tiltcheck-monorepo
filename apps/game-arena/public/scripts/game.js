@@ -215,7 +215,7 @@ class GameManager {
         this.gameRenderer = new TwoTruthsGameRenderer(this);
         break;
       case 'poker':
-        this.gameRenderer = new PokerGameRenderer(this);
+        this.gameRenderer = new PokerDisabledRenderer(this);
         break;
       default:
         console.error('Unknown game type:', this.gameState.type);
@@ -248,7 +248,7 @@ class GameManager {
     const types = {
       'degens-against-decency': 'Degens Against Decency',
       '2-truths-and-a-lie': '2 Truths and a Lie',
-      'poker': 'Poker (5-Card Stud)'
+      'poker': 'Poker (disabled)'
     };
     return types[type] || type;
   }
@@ -566,113 +566,24 @@ class TwoTruthsGameRenderer extends BaseGameRenderer {
   }
 }
 
-// Poker renderer
-class PokerGameRenderer extends BaseGameRenderer {
+// Poker fallback renderer
+class PokerDisabledRenderer extends BaseGameRenderer {
   constructor(gameManager) {
     super(gameManager, 'poker');
   }
 
-  render(gameState) {
+  render() {
     this.clearGameContent();
-    
+
     const gameContent = document.getElementById('game-content');
     const gameActions = document.getElementById('game-actions');
-    const userId = this.gameManager.user.id;
-
-    if (gameState.status === 'waiting') {
-      gameContent.innerHTML = `
-        <div class="waiting-area">
-          <h2>Waiting for Players</h2>
-          <p>Need at least 3 players to start</p>
-        </div>
-      `;
-      
-      if (gameState.creator.id === userId && gameState.players.length >= 2) {
-        gameActions.innerHTML = `
-          <button class="cta-button" onclick="gameManager.sendGameAction({type: 'start-game'})">
-            Start Game
-          </button>
-        `;
-      }
-      return;
-    }
-
-    // Show poker table
-    let communityCardsHtml = '';
-    if (gameState.communityCards && gameState.communityCards.length > 0) {
-      communityCardsHtml = gameState.communityCards.map(card => `
-        <div class="playing-card community ${card.suit === 'hearts' || card.suit === 'diamonds' ? 'red' : ''}">
-          <div class="rank">${card.rank}</div>
-          <div class="suit">${this.getSuitSymbol(card.suit)}</div>
-        </div>
-      `).join('');
-    }
-
     gameContent.innerHTML = `
-      <div class="poker-table">
-        <div class="poker-pot">
-          <span class="label">POT</span>
-          <span class="value">$${gameState.pot || 0}</span>
-        </div>
-        <div class="community-cards">
-          ${communityCardsHtml || '<div class="waiting-for-cards">Waiting for flop...</div>'}
-        </div>
+      <div class="waiting-area">
+        <h2>Poker is disabled</h2>
+        <p>Legacy poker rooms do not launch from TiltCheck right now. Use the live game list instead of a dead table path.</p>
       </div>
     `;
-
-    // Show player's hand
-    if (gameState.playerHands && gameState.playerHands[userId]) {
-      const hand = gameState.playerHands[userId];
-      const handHtml = hand.map(card => `
-        <div class="playing-card hole ${card.suit === 'hearts' || card.suit === 'diamonds' ? 'red' : ''}">
-          <div class="rank">${card.rank}</div>
-          <div class="suit">${this.getSuitSymbol(card.suit)}</div>
-        </div>
-      `).join('');
-
-      gameContent.innerHTML += `
-        <div class="player-cards">
-          ${handHtml}
-        </div>
-      `;
-    }
-
-    // Show betting controls if it's player's turn
-    if (gameState.currentPlayer?.id === userId) {
-      const currentBet = gameState.currentBet || 0;
-      const playerBet = gameState.playerBets?.[userId] || 0;
-      const callAmount = currentBet - playerBet;
-
-      gameActions.innerHTML = `
-        <div class="betting-controls">
-          <button class="secondary-button" onclick="gameManager.sendGameAction({type: 'fold'})">
-            Fold
-          </button>
-          ${callAmount > 0 ? `
-            <button class="cta-button" onclick="gameManager.sendGameAction({type: 'call'})">
-              Call $${callAmount}
-            </button>
-          ` : `
-            <button class="cta-button" onclick="gameManager.sendGameAction({type: 'check'})">
-              Check
-            </button>
-          `}
-          <button class="cta-button" onclick="gameManager.sendGameAction({type: 'raise', amount: ${Math.max(10, currentBet)}})">
-            Raise $${Math.max(10, currentBet)}
-          </button>
-        </div>
-      `;
-    }
-  }
-
-  getSuitSymbol(suit) {
-    const symbols = {
-      'hearts': '♥',
-      'diamonds': '♦',
-      'clubs': '♣',
-      'spades': '♠'
-    };
-    return symbols[suit] || suit;
+    gameActions.innerHTML = '';
   }
 }
 

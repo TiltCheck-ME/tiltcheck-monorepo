@@ -1,7 +1,18 @@
 /* Copyright (c) 2026 TiltCheck. All rights reserved. */
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-14
 import { SIDEBAR_WIDTH, MINIMIZED_WIDTH } from './constants.js';
 
 export const getSidebarStyles = () => `
+    html.tiltcheck-sidebar-reserved,
+    body.tiltcheck-sidebar-reserved {
+      width: calc(100vw - var(--tiltcheck-sidebar-offset, 0px)) !important;
+      max-width: calc(100vw - var(--tiltcheck-sidebar-offset, 0px)) !important;
+      margin-right: var(--tiltcheck-sidebar-offset, 0px) !important;
+      box-sizing: border-box !important;
+      overflow-x: hidden !important;
+      transition: width 0.25s ease, max-width 0.25s ease, margin-right 0.25s ease !important;
+    }
+
     @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=JetBrains+Mono:wght@400;700&family=Inter:wght@400;500;600;700&display=swap');
 
     #tiltcheck-sidebar {

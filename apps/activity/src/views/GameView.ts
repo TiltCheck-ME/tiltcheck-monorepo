@@ -68,22 +68,18 @@ export class GameView {
       case 'trivia':
         content = this.renderTrivia();
         break;
-      case 'poker':
-        content = this.renderPoker();
-        break;
       default:
         content = `<div class="waiting-state"><p>Select a game above.</p></div>`;
     }
 
     this.container.innerHTML = `
-      <div class="view-game">
-        <div class="game-tabs">
-          <button class="game-tab ${game === 'dad' ? 'active' : ''}" data-game="dad">DA&amp;D</button>
-          <button class="game-tab ${game === 'trivia' ? 'active' : ''}" data-game="trivia">TRIVIA</button>
-          <button class="game-tab ${game === 'poker' ? 'active' : ''}" data-game="poker">POKER</button>
+        <div class="view-game">
+          <div class="game-tabs">
+            <button class="game-tab ${game === 'dad' ? 'active' : ''}" data-game="dad">DA&amp;D</button>
+            <button class="game-tab ${game === 'trivia' ? 'active' : ''}" data-game="trivia">TRIVIA</button>
+          </div>
+          <div class="game-content" id="game-container">${content}</div>
         </div>
-        <div class="game-content" id="game-container">${content}</div>
-      </div>
     `;
 
     this.container.querySelectorAll('.game-tab').forEach(btn => {
@@ -167,15 +163,6 @@ export class GameView {
         <p class="trivia-question">${t.question}</p>
         <div class="trivia-options">${optHtml}</div>
         <div class="prize-pool">PRIZE: ${t.prizePool.toFixed(3)} SOL</div>
-      </div>`;
-  }
-
-  private renderPoker(): string {
-    return `
-      <div class="waiting-state">
-        <p class="waiting-title">POKER</p>
-        <p class="waiting-sub">Poker rooms coming soon.</p>
-        <button class="btn-game" id="poker-join-btn">Join Table</button>
       </div>`;
   }
 

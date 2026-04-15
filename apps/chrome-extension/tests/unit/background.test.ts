@@ -29,6 +29,11 @@ function setupChromeMock() {
       sendMessage: vi.fn((_tabId: number, _message: any, callback?: () => void) => callback?.()),
       create: vi.fn((_opts: any, callback?: () => void) => callback?.()),
     },
+    webNavigation: {
+      onBeforeNavigate: {
+        addListener: vi.fn(),
+      },
+    },
   };
 
   (globalThis as any).chrome = chromeMock;

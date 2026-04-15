@@ -22,6 +22,7 @@
     "@tiltcheck/discord-activities": "workspace:*",
     "@tiltcheck/discord-utils": "workspace:*",
     "@tiltcheck/esm-utils": "workspace:*",
+    "@tiltcheck/shared": "workspace:*",
     "@tiltcheck/types": "workspace:*",
     "@tiltcheck/utils": "workspace:*",
     "discord.js": "^14.25.1",

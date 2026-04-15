@@ -5,6 +5,7 @@
  */
 
 import { query, queryOne, insert, update, findById, findOneBy, exists } from './client.js';
+import { createClient as createSupabaseClient, type SupabaseClient } from '@supabase/supabase-js';
 import type {
   User,
   CreateUserPayload,
@@ -50,6 +51,98 @@ import type {
   CreateVaultRulePayload,
   UpdateVaultRulePayload,
 } from './types.js';
+
+let supabaseAdminClient: SupabaseClient | null | undefined;
+
+function getSupabaseAdminClient(): SupabaseClient | null {
+  if (supabaseAdminClient !== undefined) {
+    return supabaseAdminClient;
+  }
+
+  const url = process.env.SUPABASE_URL?.trim();
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY?.trim();
+
+  if (!url || !key) {
+    supabaseAdminClient = null;
+    return null;
+  }
+
+  supabaseAdminClient = createSupabaseClient(url, key, {
+    auth: {
+      persistSession: false,
+      autoRefreshToken: false,
+    },
+  });
+
+  return supabaseAdminClient;
+}
+
+function getErrorMessage(error: unknown): string {
+  if (error instanceof Error) return error.message;
+  if (error && typeof error === 'object' && 'message' in error && typeof error.message === 'string') {
+    return error.message;
+  }
+  return String(error);
+}
+
+function isUsersTablePermissionDenied(error: unknown): boolean {
+  return /permission denied for table users/i.test(getErrorMessage(error));
+}
+
+function formatSupabaseError(action: string, error: { message?: string } | null): Error {
+  return new Error(`[DB] Supabase fallback ${action} failed: ${error?.message || 'unknown error'}`);
+}
+
+function serializeSupabasePayload(payload: Record<string, unknown>): Record<string, unknown> {
+  return Object.fromEntries(
+    Object.entries(payload).flatMap(([key, value]) => {
+      if (value === undefined) return [];
+      if (value instanceof Date) return [[key, value.toISOString()]];
+      return [[key, value]];
+    })
+  );
+}
+
+function normalizeUserRow(row: Record<string, any>): User {
+  return {
+    id: String(row.id),
+    discord_id: row.discord_id ?? null,
+    discord_username: row.discord_username ?? null,
+    discord_avatar: row.discord_avatar ?? null,
+    wallet_address: row.wallet_address ?? null,
+    email: row.email ?? null,
+    hashed_password: row.hashed_password ?? null,
+    roles: Array.isArray(row.roles) ? row.roles.map(String) : ['user'],
+    created_at: row.created_at ? new Date(row.created_at) : new Date(),
+    updated_at: row.updated_at ? new Date(row.updated_at) : new Date(),
+    last_login_at: row.last_login_at ? new Date(row.last_login_at) : null,
+    redeem_threshold: row.redeem_threshold == null ? null : Number(row.redeem_threshold),
+    redeem_wins: Number(row.redeem_wins ?? 0),
+    total_redeemed: Number(row.total_redeemed ?? 0),
+    tier: row.tier ?? 'free',
+  };
+}
+
+async function withUsersTableFallback<T>(
+  primary: () => Promise<T>,
+  fallback: (client: SupabaseClient) => Promise<T>
+): Promise<T> {
+  try {
+    return await primary();
+  } catch (error) {
+    if (!isUsersTablePermissionDenied(error)) {
+      throw error;
+    }
+
+    const admin = getSupabaseAdminClient();
+    if (!admin) {
+      throw error;
+    }
+
+    console.warn('[DB] Falling back to Supabase service role for users table access.');
+    return fallback(admin);
+  }
+}
 
 /**
  * Validates sorting parameters to prevent SQL injection
@@ -208,28 +301,56 @@ export async function upsertOnboarding(payload: UpsertOnboardingPayload): Promis
  * Find user by ID
  */
 export async function findUserById(id: string): Promise<User | null> {
-  return findById<User>('users', id);
+  return withUsersTableFallback(
+    () => findById<User>('users', id),
+    async (client) => {
+      const { data, error } = await client.from('users').select('*').eq('id', id).maybeSingle();
+      if (error) throw formatSupabaseError('findUserById', error);
+      return data ? normalizeUserRow(data) : null;
+    }
+  );
 }
 
 /**
  * Find user by Discord ID
  */
 export async function findUserByDiscordId(discordId: string): Promise<User | null> {
-  return findOneBy<User>('users', 'discord_id', discordId);
+  return withUsersTableFallback(
+    () => findOneBy<User>('users', 'discord_id', discordId),
+    async (client) => {
+      const { data, error } = await client.from('users').select('*').eq('discord_id', discordId).maybeSingle();
+      if (error) throw formatSupabaseError('findUserByDiscordId', error);
+      return data ? normalizeUserRow(data) : null;
+    }
+  );
 }
 
 /**
  * Find user by wallet address
  */
 export async function findUserByWallet(walletAddress: string): Promise<User | null> {
-  return findOneBy<User>('users', 'wallet_address', walletAddress);
+  return withUsersTableFallback(
+    () => findOneBy<User>('users', 'wallet_address', walletAddress),
+    async (client) => {
+      const { data, error } = await client.from('users').select('*').eq('wallet_address', walletAddress).maybeSingle();
+      if (error) throw formatSupabaseError('findUserByWallet', error);
+      return data ? normalizeUserRow(data) : null;
+    }
+  );
 }
 
 /**
  * Find user by email
  */
 export async function findUserByEmail(email: string): Promise<User | null> {
-  return findOneBy<User>('users', 'email', email);
+  return withUsersTableFallback(
+    () => findOneBy<User>('users', 'email', email),
+    async (client) => {
+      const { data, error } = await client.from('users').select('*').eq('email', email).maybeSingle();
+      if (error) throw formatSupabaseError('findUserByEmail', error);
+      return data ? normalizeUserRow(data) : null;
+    }
+  );
 }
 
 /**
@@ -243,7 +364,18 @@ export async function createUser(payload: CreateUserPayload): Promise<User | nul
     updated_at: new Date(),
   };
 
-  return insert<User>('users', data);
+  return withUsersTableFallback(
+    () => insert<User>('users', data),
+    async (client) => {
+      const { data: created, error } = await client
+        .from('users')
+        .insert(serializeSupabasePayload(data))
+        .select('*')
+        .single();
+      if (error) throw formatSupabaseError('createUser', error);
+      return created ? normalizeUserRow(created) : null;
+    }
+  );
 }
 
 /**
@@ -255,7 +387,19 @@ export async function updateUser(id: string, payload: UpdateUserPayload): Promis
     updated_at: new Date(),
   };
 
-  return update<User>('users', id, data);
+  return withUsersTableFallback(
+    () => update<User>('users', id, data),
+    async (client) => {
+      const { data: updated, error } = await client
+        .from('users')
+        .update(serializeSupabasePayload(data))
+        .eq('id', id)
+        .select('*')
+        .maybeSingle();
+      if (error) throw formatSupabaseError('updateUser', error);
+      return updated ? normalizeUserRow(updated) : null;
+    }
+  );
 }
 
 /**

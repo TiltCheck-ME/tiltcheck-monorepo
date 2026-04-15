@@ -60,8 +60,8 @@ export const features: Tool[] = [
     icon: "/assets/canva/crossed-swords.jpg",
     category: "DEGENS AGAINST DECENCY",
     title: "Degen Trivia",
-    description: "Live trivia details for the TriviaDrop arena. Skill-only SOL drops, no house edge, Discord rounds live now via /triviadrop, and web access updates in progress.",
-    status: "coming-soon",
+    description: "Live trivia is already running via Discord /triviadrop. This web surface is the briefing room: format, round flow, and access path without pretending web is the launch surface.",
+    status: "live",
     gridClasses: "",
   },
   {

@@ -7,7 +7,7 @@ const HOW_IT_WORKS = [
   {
     eyebrow: '01 // QUEUE UP',
     title: 'Jump into a live round',
-    body: 'TriviaDrop runs fast rounds built for degens who want action without opening another casino tab. Join from Discord now. Web arena follows after that.',
+    body: 'TriviaDrop runs fast rounds built for degens who want action without opening another casino tab. Discord is the live launch surface. This page is the briefing room.',
   },
   {
     eyebrow: '02 // ANSWER FAST',
@@ -25,7 +25,7 @@ const REASONS_TO_JOIN = [
   'No house edge. No slots. No fake “entertainment” tax.',
   'Built to redirect tilt energy into something skill-based.',
   'Discord rounds are already live via /triviadrop.',
-  'Web version is being shaped around actual community play patterns.',
+  'The web role right now is briefing, routing, and product context — not game launch.',
 ];
 
 const ROUND_FORMAT = [
@@ -58,10 +58,10 @@ const RELATED_SURFACES = [
     cta: 'Open tools',
   },
   {
-    title: 'Get on the beta list',
+    title: 'Track future launch changes',
     href: '/beta-tester',
-    body: 'Want early access when the web arena opens up? Get your name in before public launch.',
-    cta: 'Apply for beta',
+    body: 'If the launch surface changes later, the beta list is where those updates land first.',
+    cta: 'Track updates',
   },
   {
     title: 'Hit Touch Grass instead',
@@ -89,13 +89,13 @@ export default function DegensArenaPage() {
             <div className="mb-6 inline-flex flex-wrap items-center gap-3 border border-[#17c3b2]/30 bg-[#17c3b2]/5 px-4 py-3">
               <span className="text-[10px] font-black uppercase tracking-[0.3em] text-[#17c3b2]">Discord live now</span>
               <span className="hidden h-1 w-1 rounded-full bg-[#17c3b2] sm:block" />
-              <span className="text-[10px] font-black uppercase tracking-[0.3em] text-[#ffd700]">Web arena in build</span>
+              <span className="text-[10px] font-black uppercase tracking-[0.3em] text-[#ffd700]">Web briefing surface</span>
             </div>
             <p className="max-w-2xl text-lg leading-relaxed text-gray-300 md:text-xl">
-              Live trivia for degens who want action without feeding a house edge. Answer fast. Beat the room. Take the SOL drop. The game zone is not on web yet, but the format, flow, and access path are live.
+              Live trivia for degens who want action without feeding a house edge. Answer fast. Beat the room. Take the SOL drop. Discord is the real launch surface today. Web stays on briefing duty until that changes on purpose.
             </p>
             <p className="mt-5 max-w-2xl text-sm font-mono leading-relaxed text-gray-500">
-              Current live entry point: <span className="text-[#17c3b2]">/triviadrop</span> in Discord. This page is the web-side briefing for what it is, how it works, and where it fits in the TiltCheck loop.
+              Current live entry point: <span className="text-[#17c3b2]">/triviadrop</span> in Discord. This page stays as the web-side briefing for what it is, how it works, and where it fits in the TiltCheck loop.
             </p>
             <div className="mt-8 flex flex-wrap gap-4">
               <a
@@ -110,7 +110,7 @@ export default function DegensArenaPage() {
                 See All Tools
               </Link>
               <Link href="/beta-tester" className="border border-[#283347] px-6 py-3 text-sm font-black uppercase tracking-widest text-white transition-colors hover:border-[#17c3b2] hover:text-[#17c3b2]">
-                Get Web Access Updates
+                Track Launch Updates
               </Link>
             </div>
           </div>
@@ -120,7 +120,7 @@ export default function DegensArenaPage() {
               ['Format', 'Live trivia drops'],
               ['Payout Logic', 'Skill only'],
               ['Current Surface', 'Discord /triviadrop'],
-              ['Future Surface', 'Web arena during cooldown'],
+              ['Web Role', 'Briefing + routing'],
             ].map(([label, value]) => (
               <div key={label} className="border border-[#283347] bg-black/30 p-5">
                 <p className="text-[10px] font-mono uppercase tracking-[0.3em] text-gray-500">{label}</p>

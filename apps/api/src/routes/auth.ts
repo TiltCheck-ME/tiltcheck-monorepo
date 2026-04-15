@@ -23,6 +23,7 @@ import {
 } from '@tiltcheck/auth';
 import {
   findOrCreateUserByDiscord,
+  findUserByDiscordId,
   findUserByEmail,
   createUser,
   updateUser,
@@ -153,6 +154,44 @@ async function generateJWT(userId: string, email: string, roles: string[]): Prom
   );
 
   return token;
+}
+
+async function resolveAuthenticatedUser(req: {
+  headers?: {
+    authorization?: string;
+    cookie?: string;
+  };
+}): Promise<Awaited<ReturnType<typeof findUserById>> | null> {
+  const jwtConfig = getJWTConfig();
+  const authHeader = req.headers?.authorization;
+
+  if (authHeader?.startsWith('Bearer ')) {
+    const token = authHeader.split(' ')[1];
+    try {
+      const result = await verifyToken(token, jwtConfig);
+      if (result.valid && result.payload) {
+        const userId = result.payload.sub || (result.payload as { userId?: string }).userId;
+        if (typeof userId === 'string' && userId.trim()) {
+          const user = await findUserById(userId);
+          if (user) {
+            return user;
+          }
+        }
+      }
+    } catch (jwtError) {
+      console.warn(
+        '[Auth] Failed to resolve bearer-authenticated user:',
+        jwtError instanceof Error ? jwtError.message : String(jwtError),
+      );
+    }
+  }
+
+  const sessionResult = await verifySessionCookie(req.headers?.cookie, jwtConfig);
+  if (!sessionResult?.valid || !sessionResult.session?.userId) {
+    return null;
+  }
+
+  return findUserById(sessionResult.session.userId);
 }
 
 function isAllowedActivityRedirectUri(value: string): boolean {
@@ -636,18 +675,55 @@ router.get('/discord/callback', authLimiter, async (req, res) => {
       return;
     }
 
-    // Find or create user in database
-    const user = await findOrCreateUserByDiscord(
-      result.user.id,
-      result.user.username,
-      result.user.avatar || undefined
-    );
+    const authenticatedUser = await resolveAuthenticatedUser(req);
+    const existingDiscordUser = await findUserByDiscordId(result.user.id);
+
+    let user;
+    if (authenticatedUser) {
+      if (authenticatedUser.discord_id && authenticatedUser.discord_id !== result.user.id) {
+        const message = 'This TiltCheck account is already linked to a different Discord account.';
+        if (source === 'extension') {
+          res.status(409).send(renderExtensionAuthErrorPage(message));
+        } else {
+          res.status(409).json({ error: message, code: 'DISCORD_ALREADY_LINKED' });
+        }
+        return;
+      }
+
+      if (existingDiscordUser && existingDiscordUser.id !== authenticatedUser.id) {
+        const message = 'This Discord account is already linked to another TiltCheck account.';
+        if (source === 'extension') {
+          res.status(409).send(renderExtensionAuthErrorPage(message));
+        } else {
+          res.status(409).json({ error: message, code: 'DISCORD_LINK_CONFLICT' });
+        }
+        return;
+      }
+
+      user = await updateUser(authenticatedUser.id, {
+        discord_id: result.user.id,
+        discord_username: result.user.username,
+        discord_avatar: result.user.avatar || undefined,
+        last_login_at: new Date(),
+      });
+
+      if (!user) {
+        throw new Error('Failed to link Discord account');
+      }
+    } else {
+      user = await findOrCreateUserByDiscord(
+        result.user.id,
+        result.user.username,
+        result.user.avatar || undefined
+      );
+    }
 
     // Create session
     const { cookie } = await createSession(user.id, jwtConfig, {
       type: 'user',
-      discordId: result.user.id,
-      discordUsername: result.user.username,
+      discordId: user.discord_id || result.user.id,
+      discordUsername: user.discord_username || result.user.username,
+      walletAddress: user.wallet_address || undefined,
       roles: user.roles,
     });
 
@@ -737,7 +813,15 @@ router.get('/discord/callback', authLimiter, async (req, res) => {
               </div>
             </div>
             <script>
-              const userData = ${JSON.stringify({ id: user.id, username: user.discord_username, avatar: user.discord_avatar })};
+              const userData = ${JSON.stringify({
+                id: user.id,
+                username: user.discord_username || result.user.username,
+                discordId: user.discord_id || result.user.id,
+                discordUsername: user.discord_username || result.user.username,
+                avatar: user.discord_avatar,
+                email: user.email,
+                walletAddress: user.wallet_address,
+              })};
               const targetOrigin = ${JSON.stringify(postMessageTarget)};
               try {
                 if (!window.opener || typeof window.opener.postMessage !== 'function') {
@@ -914,6 +998,21 @@ router.get('/me', async (req, res) => {
     }
 
     const session = result.session;
+    const user = await findUserById(session.userId);
+
+    if (user) {
+      res.json({
+        userId: user.id,
+        email: user.email,
+        discordId: user.discord_id,
+        discordUsername: user.discord_username,
+        walletAddress: user.wallet_address,
+        roles: user.roles,
+        type: session.type,
+        isAdmin: user.roles.includes('admin') || session.type === 'admin',
+      });
+      return;
+    }
 
     res.json({
       userId: session.userId,

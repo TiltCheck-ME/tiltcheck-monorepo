@@ -27,26 +27,6 @@ async function execute(interaction: ChatInputCommandInteraction): Promise<void> 
   const guildId = interaction.guildId || 'dm';
   const channelId = interaction.channelId || 'dm';
 
-  if (activityType === 'poker') {
-    const gatedEmbed = new EmbedBuilder()
-      .setColor('#f59e0b')
-      .setTitle('Poker launch is gated')
-      .setDescription('Poker is not live in the activity launcher yet. The cross-server table handoff, promo tracking bridge, and shared trust identity work are still being finished.')
-      .addFields(
-        { name: 'Live now', value: 'Trivia, slots, and blackjack activities are live.', inline: false },
-        { name: 'Why blocked', value: 'Poker is still disabled in the arena runtime, so launching it here would dump users into a dead path.', inline: false },
-        { name: 'Next move', value: 'Use `/play` for live activities today. Poker comes back when the launch gates are green.', inline: false }
-      )
-      .setFooter({ text: 'Made for Degens. By Degens.' })
-      .setTimestamp();
-
-    await interaction.reply({
-      embeds: [gatedEmbed],
-      ephemeral: true,
-    });
-    return;
-  }
-
   if (!activityManager) {
     await interaction.reply({
       content: 'Activity system not initialized. Please try again later.',
@@ -128,9 +108,8 @@ export const play: Command = {
         .setRequired(true)
         .addChoices(
           { name: 'Trivia', value: 'trivia' },
-          { name: 'Poker (Launch Gates Pending)', value: 'poker' },
-          { name: 'Slots', value: 'slots' },
-          { name: 'Blackjack', value: 'blackjack' }
+          { name: 'Blackjack', value: 'blackjack' },
+          { name: 'War', value: 'war' }
         )
     ),
   execute,

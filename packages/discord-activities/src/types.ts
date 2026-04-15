@@ -7,8 +7,8 @@
 export enum ActivityType {
   POKER = 'poker',
   TRIVIA = 'trivia',
-  SLOTS = 'slots',
   BLACKJACK = 'blackjack',
+  WAR = 'war',
 }
 
 /**

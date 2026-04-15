@@ -135,7 +135,7 @@ export interface AffiliateScoreUpdatedPayload {
 export interface ActivityLaunchedPayload {
   instanceId: string;
   userId: string;
-  activityType: 'trivia' | 'poker' | 'slots' | 'blackjack';
+  activityType: 'trivia' | 'poker' | 'blackjack' | 'war';
   guildId: string;
   channelId: string;
 }
@@ -149,7 +149,7 @@ export interface ActivityActionPayload {
 export interface ActivityCompletedPayload {
   instanceId: string;
   userId: string;
-  activityType: 'trivia' | 'poker' | 'slots' | 'blackjack';
+  activityType: 'trivia' | 'poker' | 'blackjack' | 'war';
   status: 'won' | 'lost' | 'abandoned';
   score?: number;
   prizeAmount?: number;
