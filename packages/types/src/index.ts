@@ -935,7 +935,7 @@ export interface VaultReloadDueEventData {
 export interface ActivityLaunchedEventData {
   activityId: string;
   userId: string;
-  activityType: 'trivia' | 'poker' | 'slots' | 'blackjack';
+  activityType: 'trivia' | 'poker' | 'blackjack' | 'war';
   channelId: string;
   messageId: string;
 }

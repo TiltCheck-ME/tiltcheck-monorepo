@@ -34,8 +34,7 @@ export function buildHelpEmbed(): EmbedBuilder {
     {
       name: 'Activities',
       value:
-        '`/play game:<trivia|slots|blackjack>` — Launch a live Discord activity\n' +
-        '`/play game:poker` — Shows poker launch-gate status while cross-server handoff work finishes',
+        '`/play game:<trivia|blackjack|war>` — Launch a live Discord activity',
       inline: false,
     },
     {

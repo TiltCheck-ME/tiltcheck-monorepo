@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "Web-based multiplayer game arena for DA&D and Poker with Discord auth",
+  "description": "Web-based multiplayer game arena for live TiltCheck experiences with Discord auth",
   "main": "dist/server.js",
   "scripts": {
     "dev": "tsx watch --env-file=.env src/server.ts",
@@ -19,6 +19,7 @@
     "@tiltcheck/discord-monetization": "workspace:*",
     "@tiltcheck/event-router": "workspace:*",
     "@tiltcheck/justthetip": "workspace:*",
+    "@tiltcheck/shared": "workspace:*",
     "@tiltcheck/supabase-auth": "workspace:*",
     "@tiltcheck/types": "workspace:*",
     "connect-redis": "^9.0.0",

@@ -28,6 +28,7 @@ vi.mock('@magic-sdk/admin', () => ({
 
 vi.mock('@tiltcheck/db', () => ({
   findOrCreateUserByDiscord: vi.fn(),
+  findUserByDiscordId: vi.fn(),
   findUserByEmail: vi.fn(),
   createUser: vi.fn(),
   updateUser: vi.fn(),
@@ -46,8 +47,8 @@ vi.mock('../../src/middleware/auth.js', () => ({
 
 import { authRouter } from '../../src/routes/auth.js';
 import { getDiscordConfig } from '../../src/routes/auth.utils.js';
-import { createSession, exchangeDiscordCode, verifyDiscordOAuth } from '@tiltcheck/auth';
-import { createUser, findOrCreateUserByDiscord, findUserByEmail, updateUser } from '@tiltcheck/db';
+import { createSession, exchangeDiscordCode, verifyDiscordOAuth, verifySessionCookie } from '@tiltcheck/auth';
+import { createUser, findOrCreateUserByDiscord, findUserByDiscordId, findUserByEmail, findUserById, updateUser } from '@tiltcheck/db';
 
 const app = express();
 app.use((req, _res, next) => {
@@ -184,6 +185,120 @@ describe('Auth callback state/source validation', () => {
     expect(response.text).toContain('Missing trusted extension origin');
   });
 
+  it('links Discord onto the currently authenticated site account instead of creating a second user', async () => {
+    vi.mocked(verifySessionCookie).mockResolvedValueOnce({
+      valid: true,
+      session: {
+        userId: 'site-user-1',
+        type: 'user',
+        roles: ['user'],
+        createdAt: 1,
+      },
+    } as any);
+    vi.mocked(verifyDiscordOAuth).mockResolvedValueOnce({
+      valid: true,
+      user: {
+        id: 'discord-user-link',
+        username: 'linked-user',
+        avatar: 'avatar-123',
+      },
+    } as any);
+    vi.mocked(findUserById).mockResolvedValueOnce({
+      id: 'site-user-1',
+      email: 'site@example.com',
+      roles: ['user'],
+      discord_id: null,
+      discord_username: null,
+      discord_avatar: null,
+      wallet_address: null,
+    } as any);
+    vi.mocked(findUserByDiscordId).mockResolvedValueOnce(null);
+    vi.mocked(updateUser).mockResolvedValueOnce({
+      id: 'site-user-1',
+      email: 'site@example.com',
+      roles: ['user'],
+      discord_id: 'discord-user-link',
+      discord_username: 'linked-user',
+      discord_avatar: 'avatar-123',
+      wallet_address: null,
+    } as any);
+    vi.mocked(createSession).mockResolvedValueOnce({
+      cookie: 'session=test; Path=/; HttpOnly',
+      token: 'session-token',
+    } as any);
+
+    const response = await request(app)
+      .get('/auth/discord/callback?state=ext_state_ok&code=abc123')
+      .set('Cookie', [
+        'oauth_state=ext_state_ok',
+        'oauth_source=extension',
+        'oauth_opener_origin=chrome-extension://test-ext-id',
+      ]);
+
+    expect(response.status).toBe(200);
+    expect(findOrCreateUserByDiscord).not.toHaveBeenCalled();
+    expect(updateUser).toHaveBeenCalledWith(
+      'site-user-1',
+      expect.objectContaining({
+        discord_id: 'discord-user-link',
+        discord_username: 'linked-user',
+        discord_avatar: 'avatar-123',
+      }),
+    );
+    expect(response.text).toContain('"discordId":"discord-user-link"');
+    expect(response.text).toContain('"email":"site@example.com"');
+  });
+
+  it('rejects linking when the Discord account already belongs to a different user', async () => {
+    vi.mocked(verifySessionCookie).mockResolvedValueOnce({
+      valid: true,
+      session: {
+        userId: 'site-user-2',
+        type: 'user',
+        roles: ['user'],
+        createdAt: 1,
+      },
+    } as any);
+    vi.mocked(verifyDiscordOAuth).mockResolvedValueOnce({
+      valid: true,
+      user: {
+        id: 'discord-user-conflict',
+        username: 'conflicted-user',
+        avatar: null,
+      },
+    } as any);
+    vi.mocked(findUserById).mockResolvedValueOnce({
+      id: 'site-user-2',
+      email: 'site2@example.com',
+      roles: ['user'],
+      discord_id: null,
+      discord_username: null,
+      discord_avatar: null,
+      wallet_address: null,
+    } as any);
+    vi.mocked(findUserByDiscordId).mockResolvedValueOnce({
+      id: 'other-user',
+      email: 'other@example.com',
+      roles: ['user'],
+      discord_id: 'discord-user-conflict',
+      discord_username: 'conflicted-user',
+      discord_avatar: null,
+      wallet_address: null,
+    } as any);
+
+    const response = await request(app)
+      .get('/auth/discord/callback?state=ext_state_ok&code=abc123')
+      .set('Cookie', [
+        'oauth_state=ext_state_ok',
+        'oauth_source=extension',
+        'oauth_opener_origin=chrome-extension://test-ext-id',
+      ]);
+
+    expect(response.status).toBe(409);
+    expect(response.text).toContain('already linked to another TiltCheck account');
+    expect(updateUser).not.toHaveBeenCalled();
+  });
+
   it('rejects unsafe redirect URL at login entrypoint', async () => {
     const response = await request(app).get('/auth/discord/login?redirect=https://evil.example/pwn');
 
@@ -302,6 +417,42 @@ describe('Auth callback state/source validation', () => {
       displayName: 'magic',
     });
     expect(response.headers['set-cookie']).toBeDefined();
+  });
+
+  it('returns DB-backed identity details for valid cookie sessions on /auth/me', async () => {
+    vi.mocked(verifySessionCookie).mockResolvedValueOnce({
+      valid: true,
+      session: {
+        userId: 'site-user-3',
+        type: 'user',
+        roles: ['user'],
+        discordId: 'discord-user-3',
+        discordUsername: 'cookie-user',
+        createdAt: 1,
+      },
+    } as any);
+    vi.mocked(findUserById).mockResolvedValueOnce({
+      id: 'site-user-3',
+      email: 'cookie@example.com',
+      roles: ['user'],
+      discord_id: 'discord-user-3',
+      discord_username: 'cookie-user',
+      discord_avatar: null,
+      wallet_address: 'wallet-123',
+    } as any);
+
+    const response = await request(app)
+      .get('/auth/me')
+      .set('Cookie', ['tiltcheck_session=session-token']);
+
+    expect(response.status).toBe(200);
+    expect(response.body).toMatchObject({
+      userId: 'site-user-3',
+      email: 'cookie@example.com',
+      discordId: 'discord-user-3',
+      discordUsername: 'cookie-user',
+      walletAddress: 'wallet-123',
+    });
   });
 
   it('rejects Magic login when the identity does not include an email', async () => {

@@ -217,7 +217,7 @@ class ProfileManager {
       'degens-against-decency': 'Degens Against Decency',
       'dad': 'Degens Against Decency',
       '2-truths-and-a-lie': '2 Truths and a Lie',
-      'poker': 'Poker'
+      'poker': 'Poker (legacy)'
     };
     return types[type] || type;
   }

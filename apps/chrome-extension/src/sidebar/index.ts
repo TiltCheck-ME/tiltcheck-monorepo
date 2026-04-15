@@ -11,9 +11,11 @@ import { BuddyManager } from './buddy.js';
 import { PredictorManager } from './predictor.js';
 import { OnboardingManager } from './onboarding.js';
 import { BonusManager } from './bonuses.js';
+import { MINIMIZED_WIDTH, SIDEBAR_PREFS_KEY, SIDEBAR_VISIBILITY_KEY, SIDEBAR_WIDTH } from './constants.js';
 import { SidebarUI } from './types.js';
 
 const SITE_REDEEM_THRESHOLDS_KEY = 'tiltcheck_site_thresholds';
+const SIDEBAR_RESERVED_CLASS = 'tiltcheck-sidebar-reserved';
 
 export class SidebarController implements SidebarUI {
   public auth: AuthManager;
@@ -25,6 +27,8 @@ export class SidebarController implements SidebarUI {
   public predictor: PredictorManager;
   public onboarding: OnboardingManager;
   public bonuses: BonusManager;
+  private layoutObserver: MutationObserver | null = null;
+  private showAdvancedTools = false;
 
   constructor() {
     this.auth = new AuthManager(this);
@@ -41,7 +45,9 @@ export class SidebarController implements SidebarUI {
   public init() {
     this.injectStyles();
     this.createDom();
+    this.observeSidebarLayout();
     this.setupListeners();
+    void this.restoreSidebarPreferences();
     void this.loadRedeemThresholdSettings();
     this.auth.restoreAuth();
     this.buddy.restorePrefs();
@@ -63,9 +69,18 @@ export class SidebarController implements SidebarUI {
     sidebar.id = 'tiltcheck-sidebar';
     sidebar.innerHTML = SIDEBAR_TEMPLATE;
     document.body.appendChild(sidebar);
+    this.syncHostPageLayout();
   }
 
   private setupListeners() {
+    document.getElementById('tg-minimize')?.addEventListener('click', () => {
+      const sidebar = this.getSidebarElement();
+      const minimized = !!sidebar?.classList.contains('minimized');
+      this.setSidebarMinimized(!minimized);
+    });
+    document.getElementById('tg-hide')?.addEventListener('click', () => {
+      this.setSidebarVisibility(false);
+    });
     document.getElementById('tg-discord-login')?.addEventListener('click', () => this.auth.startDiscordLoginFlow());
     document.getElementById('tg-guest-login')?.addEventListener('click', () => this.auth.continueAsGuest());
     document.getElementById('tg-logout')?.addEventListener('click', () => this.auth.logout());
@@ -92,6 +107,10 @@ export class SidebarController implements SidebarUI {
             e.preventDefault();
             void this.saveRedeemThresholdForSite();
         }
+    });
+
+    document.getElementById('tg-toggle-advanced')?.addEventListener('click', () => {
+      this.setAdvancedToolsVisibility(!this.showAdvancedTools);
     });
 
     // Predictor
@@ -142,6 +161,141 @@ export class SidebarController implements SidebarUI {
         if (avPctVal) avPctVal.textContent = `${val}%`;
         this.vault.setAutoVaultPct(val);
     });
+  }
+
+  private getSidebarElement(): HTMLElement | null {
+    return document.getElementById('tiltcheck-sidebar');
+  }
+
+  private getReservedWidth(): number {
+    const sidebar = this.getSidebarElement();
+    if (!sidebar || sidebar.style.display === 'none') {
+      return 0;
+    }
+    return sidebar.classList.contains('minimized') ? MINIMIZED_WIDTH : SIDEBAR_WIDTH;
+  }
+
+  private applyHostPageLayout(offset: number): void {
+    const value = `${Math.max(offset, 0)}px`;
+    for (const element of [document.documentElement, document.body]) {
+      element.classList.toggle(SIDEBAR_RESERVED_CLASS, offset > 0);
+      element.style.setProperty('--tiltcheck-sidebar-offset', value);
+    }
+  }
+
+  private syncHostPageLayout(): void {
+    this.applyHostPageLayout(this.getReservedWidth());
+  }
+
+  private observeSidebarLayout(): void {
+    this.layoutObserver?.disconnect();
+    const sidebar = this.getSidebarElement();
+    if (!sidebar) {
+      return;
+    }
+
+    this.layoutObserver = new MutationObserver(() => this.syncHostPageLayout());
+    this.layoutObserver.observe(sidebar, {
+      attributes: true,
+      attributeFilter: ['class', 'style'],
+    });
+  }
+
+  private async updateSidebarPrefs(partial: Record<string, unknown>): Promise<void> {
+    const stored = await this.getStorage([SIDEBAR_PREFS_KEY]) as Record<string, unknown>;
+    const existing = stored[SIDEBAR_PREFS_KEY];
+    const prefs = existing && typeof existing === 'object' && !Array.isArray(existing)
+      ? existing as Record<string, unknown>
+      : {};
+    await this.setStorage({ [SIDEBAR_PREFS_KEY]: { ...prefs, ...partial } });
+  }
+
+  private setSidebarMinimized(minimized: boolean, persist = true): void {
+    const sidebar = this.getSidebarElement();
+    if (!sidebar) {
+      return;
+    }
+
+    sidebar.classList.toggle('minimized', minimized);
+    const button = document.getElementById('tg-minimize');
+    if (button) {
+      button.textContent = minimized ? '+' : '−';
+      button.setAttribute('title', minimized ? 'Expand' : 'Minimize');
+      button.setAttribute('aria-label', minimized ? 'Expand sidebar' : 'Minimize sidebar');
+    }
+
+    this.syncHostPageLayout();
+
+    if (persist) {
+      void this.updateSidebarPrefs({ minimized });
+    }
+  }
+
+  private setSidebarVisibility(visible: boolean, persist = true): void {
+    const sidebar = this.getSidebarElement();
+    if (!sidebar) {
+      return;
+    }
+
+    sidebar.style.display = visible ? 'block' : 'none';
+    this.syncHostPageLayout();
+
+    if (persist) {
+      void this.setStorage({ [SIDEBAR_VISIBILITY_KEY]: visible });
+    }
+  }
+
+  private setAdvancedToolsVisibility(show: boolean, persist = true): void {
+    this.showAdvancedTools = show;
+    const sidebar = this.getSidebarElement();
+    const toggleBtn = document.getElementById('tg-toggle-advanced') as HTMLButtonElement | null;
+    if (!sidebar) {
+      return;
+    }
+
+    sidebar.classList.toggle('tg-show-advanced', show);
+    if (toggleBtn) {
+      toggleBtn.textContent = show ? 'Hide Pro Tools' : 'Show Pro Tools';
+      toggleBtn.setAttribute('aria-pressed', show ? 'true' : 'false');
+    }
+
+    if (!show) {
+      const advancedPanels = ['tg-settings-panel', 'tg-config-panel', 'tg-verifier-panel', 'tg-report-panel'];
+      advancedPanels.forEach((panelId) => {
+        const panel = document.getElementById(panelId);
+        if (panel) {
+          panel.style.display = 'none';
+        }
+      });
+    }
+
+    if (persist) {
+      void this.updateSidebarPrefs({ showAdvanced: show });
+    }
+  }
+
+  private async restoreSidebarPreferences(): Promise<void> {
+    const stored = await this.getStorage([SIDEBAR_PREFS_KEY]) as Record<string, unknown>;
+    const prefs = stored[SIDEBAR_PREFS_KEY];
+    if (prefs && typeof prefs === 'object' && !Array.isArray(prefs)) {
+      const sidebarPrefs = prefs as Record<string, unknown>;
+      if (typeof sidebarPrefs.minimized === 'boolean') {
+        this.setSidebarMinimized(sidebarPrefs.minimized, false);
+      } else {
+        this.setSidebarMinimized(false, false);
+      }
+
+      if (typeof sidebarPrefs.showAdvanced === 'boolean') {
+        this.setAdvancedToolsVisibility(sidebarPrefs.showAdvanced, false);
+      } else {
+        this.setAdvancedToolsVisibility(false, false);
+      }
+    } else {
+      this.setSidebarMinimized(false, false);
+      this.setAdvancedToolsVisibility(false, false);
+    }
+
+    this.syncHostPageLayout();
   }
 
   private getCurrentSiteHost(): string {

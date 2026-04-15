@@ -16,10 +16,12 @@ export const help: Command = {
 
     embed.addFields(
       {
-        name: 'Drops',
+        name: 'Drops and Juice',
         value:
-          '`/juicedrop` — Run a live SOL drop in the current channel\n' +
-          '`/profitdrop` — Reserved command. Not live yet. Use `/juicedrop`.',
+          '`/juice` — Split SOL equally across everyone else in your current voice channel\n' +
+          '`/rain` — Run a live SOL airdrop in the current channel\n' +
+          '`/juicedrop` — Legacy alias for `/rain`\n' +
+          '`/profitdrop` — Reserved command. Not live yet. Use `/rain`.',
         inline: false,
       },
       {

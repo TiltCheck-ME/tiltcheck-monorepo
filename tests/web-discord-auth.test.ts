@@ -1,105 +1,99 @@
-import { describe, expect, it, vi } from 'vitest';
-import { JSDOM } from 'jsdom';
-import { readFileSync } from 'node:fs';
-import { resolve } from 'node:path';
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-15
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { fetchAuthSession } from '../apps/web/src/lib/auth-session';
 
-async function loadAuthScriptWithFetch(
-  fetchImpl: (input: RequestInfo | URL, init?: RequestInit) => Promise<{ ok: boolean; json: () => Promise<any> }>
-) {
-  const dom = new JSDOM(
-    `<!doctype html><html><body><button class="discord-login-btn">Login</button></body></html>`,
-    {
-      url: 'https://tiltcheck.me/login.html',
-      runScripts: 'dangerously',
-      pretendToBeVisual: true,
+describe('web auth session detection', () => {
+  const originalWindow = globalThis.window;
+
+  beforeEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    if (typeof originalWindow === 'undefined') {
+      delete (globalThis as typeof globalThis & { window?: Window }).window;
+    } else {
+      globalThis.window = originalWindow;
     }
-  );
+  });
 
-  const { window } = dom;
-  (window as any).fetch = fetchImpl;
-  (window as any).console = console;
-
-  const script = readFileSync(resolve('apps/web/scripts/auth.js'), 'utf8');
-  window.eval(script);
-
-  await new Promise((resolveDelay) => setTimeout(resolveDelay, 30));
-  return window as any;
-}
-
-describe('Discord web auth session detection', () => {
-  it('repro: does not detect valid /api/auth/me session when /play/api/user fails', async () => {
-    const fetchMock = vi.fn(async (input: RequestInfo | URL) => {
-      const url = String(input);
-      if (url === '/api/auth/me') {
-        return {
-          ok: true,
-          json: async () => ({ userId: 'u_123', discordUsername: 'tilt-user' }),
-        };
-      }
-      return {
-        ok: false,
-        json: async () => ({}),
-      };
+  it('uses the canonical /auth/me endpoint', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        userId: 'u_123',
+        discordId: 'd_123',
+        discordUsername: 'tilt-user',
+      }),
     });
+    vi.stubGlobal('fetch', fetchMock);
 
-    const window = await loadAuthScriptWithFetch(fetchMock);
-    const user = window.tiltCheckAuth?.getUser?.();
+    const session = await fetchAuthSession({ apiBase: '/api', includeStoredToken: false });
 
-    // Desired behavior: valid /api/auth/me should count as logged in.
-    expect(user).toEqual(
+    expect(fetchMock).toHaveBeenCalledWith('/api/auth/me', {
+      credentials: 'include',
+      headers: undefined,
+    });
+    expect(session).toEqual(
       expect.objectContaining({
-        id: 'u_123',
-      })
+        userId: 'u_123',
+        discordId: 'd_123',
+        discordUsername: 'tilt-user',
+        username: 'tilt-user',
+      }),
     );
   });
 
-  it('keeps legacy /play/api/user compatibility', async () => {
-    const fetchMock = vi.fn(async (input: RequestInfo | URL) => {
-      const url = String(input);
-      if (url === '/play/api/user') {
-        return {
-          ok: true,
-          json: async () => ({ id: 'legacy_1', username: 'legacy-user' }),
-        };
-      }
-      return {
-        ok: false,
-        json: async () => ({}),
-      };
-    });
-
-    const window = await loadAuthScriptWithFetch(fetchMock);
-    const user = window.tiltCheckAuth?.getUser?.();
-
-    expect(user).toEqual(
-      expect.objectContaining({
-        id: 'legacy_1',
-      })
+  it('falls back to email when Discord username is absent', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          userId: 'u_456',
+          email: 'degen@tiltcheck.me',
+        }),
+      }),
     );
+
+    const session = await fetchAuthSession({ apiBase: '', includeStoredToken: false });
+
+    expect(session?.username).toBe('degen@tiltcheck.me');
   });
 
-  it('should find a valid session even if the first endpoint fails', async () => {
-    const fetchMock = vi.fn(async (input: RequestInfo | URL) => {
-      const url = String(input);
-      // Simulate the primary endpoint failing
-      if (url === '/api/auth/me') {
-        return {
-          ok: false,
-          json: async () => ({ error: 'service unavailable' }),
-        };
-      }
-      // The second endpoint succeeds
-      if (url === '/auth/me') {
-        return {
-          ok: true,
-          json: async () => ({ userId: 'fallback_123', discordUsername: 'fallback-user' }),
-        };
-      }
-      return { ok: false, json: async () => ({}) };
+  it('adds bearer auth when a stored token exists', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        userId: 'u_789',
+        username: 'wallet-user',
+      }),
     });
+    vi.stubGlobal('fetch', fetchMock);
+    vi.stubGlobal('window', {
+      localStorage: {
+        getItem: vi.fn().mockReturnValue('stored-token'),
+      },
+    } as unknown as Window);
 
-    const window = await loadAuthScriptWithFetch(fetchMock);
-    const user = window.tiltCheckAuth?.getUser?.();
-    expect(user?.id).toBe('fallback_123');
+    await fetchAuthSession({ apiBase: '/api' });
+
+    expect(fetchMock).toHaveBeenCalledWith('/api/auth/me', {
+      credentials: 'include',
+      headers: { Authorization: 'Bearer stored-token' },
+    });
+  });
+
+  it('returns null when no session exists', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        ok: false,
+        json: async () => ({ error: 'Not authenticated' }),
+      }),
+    );
+
+    await expect(fetchAuthSession({ apiBase: '/api', includeStoredToken: false })).resolves.toBeNull();
   });
 });

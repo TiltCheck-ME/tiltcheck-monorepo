@@ -16,6 +16,7 @@
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.0.2",
+    "@supabase/supabase-js": "^2.100.1",
     "@tiltcheck/config": "workspace:*",
     "pg": "^8.20.0"
   },

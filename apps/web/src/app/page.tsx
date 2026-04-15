@@ -1,7 +1,8 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-13
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-15
 import ToolCard from "@/components/ToolCard";
 import CommunityVaultStrip from "@/components/CommunityVaultStrip";
 import RtpDriftTicker from "@/components/RtpDriftTicker";
+import ValueProposition from "@/components/ValueProposition";
 
 import { features } from "@/config/features";
 
@@ -57,6 +58,12 @@ export default function Home() {
           </p>
         </div>
       </section>
+
+      {/* Section divider */}
+      <div className="section-divider" aria-hidden="true" />
+
+      {/* Value Proposition — Players + Platforms */}
+      <ValueProposition />
 
       {/* Section divider */}
       <div className="section-divider" aria-hidden="true" />

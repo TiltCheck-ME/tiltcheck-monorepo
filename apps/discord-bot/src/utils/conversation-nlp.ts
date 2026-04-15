@@ -51,7 +51,7 @@ export function buildPersonaReply(intent: ConversationIntent): string {
     case 'game':
       return 'Card games belong to the Degens Against Decency bot. I\'m the one who tells you when to stop.';
     case 'poker':
-      return 'Poker\'s in the Degens Against Decency bot. But when you\'re down 40% and still calling — come back here and run `/cooldown`.';
+      return 'Poker is still disabled in the live DAD launch surfaces. If you want something that actually runs today, use trivia or the live activity list — then come back here when the tilt hits.';
     default:
       return 'TiltCheck audits your sessions, scans links, rates casinos, and locks your vault when you\'re spiralling. Run `/help` or just tell me what you need.';
   }

@@ -3,8 +3,10 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
+import { fetchAuthSession } from '@/lib/auth-session';
 
-const DISCORD_LOGIN_URL = `/api/auth/discord/login?source=web&redirect=${encodeURIComponent('/tools/buddy-system')}`;
+const API = process.env.NEXT_PUBLIC_API_URL || '/api';
+const DISCORD_LOGIN_URL = `${API}/auth/discord/login?source=web&redirect=${encodeURIComponent('/tools/buddy-system')}`;
 
 interface Buddy {
   id: string;
@@ -50,8 +52,7 @@ export default function BuddySystemPage() {
   const [submitMsg, setSubmitMsg] = useState('');
 
   useEffect(() => {
-    fetch('/api/auth/me', { credentials: 'include' })
-      .then((r) => (r.ok ? r.json() : null))
+    fetchAuthSession({ apiBase: API })
       .then((d) => {
         if (d?.discordId) setAuth({ discordId: d.discordId, username: d.username });
         setAuthChecked(true);

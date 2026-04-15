@@ -7,6 +7,7 @@ import Nav from '@/components/Nav';
 import Footer from '@/components/Footer';
 import LegalModal from '@/components/LegalModal';
 import { LEGAL_DISCLAIMERS } from '@tiltcheck/shared/legal';
+import { fetchAuthSession } from '@/lib/auth-session';
 
 const API = process.env.NEXT_PUBLIC_API_URL || '/api';
 const WEB_CHANNEL = 'web-tips';
@@ -59,12 +60,9 @@ export default function JustTheTipPage() {
   useEffect(() => {
     async function checkSession() {
       try {
-        const res = await fetch(`${API}/auth/me`, { credentials: 'include' });
-        if (res.ok) {
-          const data = await res.json();
-          setDiscordId(data.discordId || data.userId || null);
-          setUsername(data.username || data.discordUsername || '');
-        }
+        const data = await fetchAuthSession({ apiBase: API });
+        setDiscordId(data?.discordId || data?.userId || null);
+        setUsername(data?.username || '');
       } catch { /* no session */ } finally {
         setAuthLoading(false);
       }
