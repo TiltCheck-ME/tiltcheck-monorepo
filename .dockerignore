@@ -56,3 +56,9 @@ tmp/
 temp/
 .zencoder/
 notes/
+/.agents/
+/.claude/
+/.junie/
+/.zencoder/
+/skills/
+/skills-lock.json
