@@ -13,11 +13,19 @@ interface ActiveLock {
   readyToRelease: boolean;
 }
 
+interface EarlyUnlockRequest {
+  mode: 'admin_approval' | 'paid_early_unlock';
+  status: 'pending' | 'approved' | 'completed';
+  feePercentage?: number;
+  feeAmountSOL?: number;
+}
+
 interface VaultState {
   balance: number;
   activeLock: ActiveLock | null;
   walletLocked: boolean;
   walletLockUntil: string | null;
+  walletUnlockRequest: EarlyUnlockRequest | null;
   threshold: number;
 }
 
@@ -36,6 +44,7 @@ const LockVault = ({ discordId }: { discordId?: string }) => {
     activeLock: null,
     walletLocked: false,
     walletLockUntil: null,
+    walletUnlockRequest: null,
     threshold: 250,
   });
   const [loading, setLoading] = useState(true);
@@ -44,6 +53,8 @@ const LockVault = ({ discordId }: { discordId?: string }) => {
   const [lockAmount, setLockAmount] = useState('');
   const [lockHours, setLockHours] = useState(24);
   const [ticker, setTicker] = useState('');
+  const [walletLockHours, setWalletLockHours] = useState(24);
+  const [walletLockTicker, setWalletLockTicker] = useState('');
 
   const fetchVault = useCallback(async () => {
     if (!discordId) return;
@@ -73,6 +84,7 @@ const LockVault = ({ discordId }: { discordId?: string }) => {
           walletLockUntil: data.walletLock?.lockUntil
             ? new Date(data.walletLock.lockUntil).toISOString()
             : null,
+          walletUnlockRequest: data.walletLock?.earlyUnlockRequest ?? null,
         }));
       }
 
@@ -110,6 +122,30 @@ const LockVault = ({ discordId }: { discordId?: string }) => {
     setTicker(countdown(vault.activeLock.unlockTime));
     return () => clearInterval(id);
   }, [vault.activeLock?.unlockTime]);
+
+  useEffect(() => {
+    if (!vault.walletLockUntil) {
+      setWalletLockTicker('');
+      return;
+    }
+
+    const updateTicker = () => {
+      const next = countdown(vault.walletLockUntil!);
+      setWalletLockTicker(next);
+      if (next === 'Ready to release') {
+        setVault(prev => ({
+          ...prev,
+          walletLocked: false,
+          walletLockUntil: null,
+          walletUnlockRequest: null,
+        }));
+      }
+    };
+
+    updateTicker();
+    const id = setInterval(updateTicker, 1000);
+    return () => clearInterval(id);
+  }, [vault.walletLockUntil]);
 
   const handleLock = async () => {
     if (!discordId) return;
@@ -178,6 +214,101 @@ const LockVault = ({ discordId }: { discordId?: string }) => {
       if (res.ok) setVault(prev => ({ ...prev, threshold: newThreshold }));
     } catch (err) {
       console.error('[LockVault] Threshold update error:', err);
+    } finally {
+      setWorking(false);
+    }
+  };
+
+  const handleWalletLock = async () => {
+    if (!discordId) return;
+    setWorking(true);
+    setError(null);
+    try {
+      const res = await fetch(`${API}/vault/${discordId}/wallet-lock`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          durationMinutes: walletLockHours * 60,
+          reason: 'Manual wallet lock via TiltCheck Hub',
+        }),
+      });
+      if (!res.ok) {
+        const d = await res.json().catch(() => ({}));
+        throw new Error(d.error || `HTTP ${res.status}`);
+      }
+      await fetchVault();
+    } catch (err: any) {
+      setError(err.message || 'Wallet lock failed.');
+    } finally {
+      setWorking(false);
+    }
+  };
+
+  const handleWalletUnlock = async () => {
+    if (!discordId) return;
+    setWorking(true);
+    setError(null);
+    try {
+      const res = await fetch(`${API}/vault/${discordId}/wallet-unlock`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({}),
+      });
+      if (!res.ok) {
+        const d = await res.json().catch(() => ({}));
+        throw new Error(d.error || `HTTP ${res.status}`);
+      }
+      await fetchVault();
+    } catch (err: any) {
+      setError(err.message || 'Wallet unlock failed.');
+    } finally {
+      setWorking(false);
+    }
+  };
+
+  const handleWalletUnlockRequest = async (mode: 'admin_approval' | 'paid_early_unlock') => {
+    if (!discordId) return;
+    setWorking(true);
+    setError(null);
+    try {
+      const res = await fetch(`${API}/vault/${discordId}/wallet-unlock-request`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ mode }),
+      });
+      if (!res.ok) {
+        const d = await res.json().catch(() => ({}));
+        throw new Error(d.error || `HTTP ${res.status}`);
+      }
+      await fetchVault();
+    } catch (err: any) {
+      setError(err.message || 'Wallet unlock request failed.');
+    } finally {
+      setWorking(false);
+    }
+  };
+
+  const handleWalletUnlockPayment = async () => {
+    if (!discordId) return;
+    setWorking(true);
+    setError(null);
+    try {
+      const res = await fetch(`${API}/vault/${discordId}/wallet-unlock-pay`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({}),
+      });
+      if (!res.ok) {
+        const d = await res.json().catch(() => ({}));
+        throw new Error(d.error || `HTTP ${res.status}`);
+      }
+      await fetchVault();
+    } catch (err: any) {
+      setError(err.message || 'Paid wallet unlock failed.');
     } finally {
       setWorking(false);
     }
@@ -261,6 +392,30 @@ const LockVault = ({ discordId }: { discordId?: string }) => {
               </div>
             </div>
           )}
+
+          <div className={`p-4 rounded-lg border ${vault.walletLocked ? 'bg-yellow-500/10 border-yellow-500/20' : 'bg-black/20 border-white/5'}`}>
+            <div className="flex items-start gap-3">
+              <Lock className={`w-5 h-5 shrink-0 mt-0.5 ${vault.walletLocked ? 'text-yellow-400' : 'text-gray-500'}`} />
+              <div>
+                <h3 className="text-sm font-semibold text-white">Wallet Lock</h3>
+                <p className="text-xs text-gray-400 mt-1">
+                  Freeze wallet vault actions for a cooldown window so you cannot top up or release on impulse.
+                </p>
+                {vault.walletLocked && vault.walletLockUntil && (
+                  <p className="text-xs text-yellow-400 mt-2 font-mono">
+                    Wallet lock active — {walletLockTicker}
+                  </p>
+                )}
+                {vault.walletUnlockRequest && (
+                  <p className="text-xs text-yellow-300 mt-2 font-mono">
+                    {vault.walletUnlockRequest.mode === 'admin_approval'
+                      ? 'Admin override requested'
+                      : `Early unlock fee queued: ${vault.walletUnlockRequest.feeAmountSOL?.toFixed(4) ?? '0.0000'} SOL (${vault.walletUnlockRequest.feePercentage ?? 10}%)`}
+                  </p>
+                )}
+              </div>
+            </div>
+          </div>
         </div>
 
         {/* Right: controls */}
@@ -312,14 +467,71 @@ const LockVault = ({ discordId }: { discordId?: string }) => {
               </div>
               <button
                 onClick={handleLock}
-                disabled={working || !lockAmount}
+                disabled={working || !lockAmount || vault.walletLocked}
                 className="w-full py-4 bg-[#17c3b2] hover:bg-[#14b0a0] disabled:opacity-50 disabled:cursor-not-allowed text-black rounded-xl font-bold flex items-center justify-center gap-2 transition-all"
               >
                 <Shield className="w-5 h-5" />
-                {working ? 'LOCKING...' : 'SECURE MY WINS'}
+                {working ? 'LOCKING...' : vault.walletLocked ? 'WALLET LOCK ACTIVE' : 'SECURE MY WINS'}
               </button>
             </>
           )}
+
+          <div className="space-y-2 rounded-xl border border-[#283347] bg-black/20 p-4">
+            <label className="text-sm font-medium text-gray-300">Wallet Lock Timer</label>
+            <div className="grid grid-cols-4 gap-2">
+              {[1, 6, 24, 72].map(h => (
+                <button
+                  key={`wallet-${h}`}
+                  onClick={() => setWalletLockHours(h)}
+                  disabled={working || vault.walletLocked}
+                  className={`py-2 rounded-lg text-xs font-mono transition-all border ${
+                    walletLockHours === h
+                      ? 'bg-[#facc15] border-[#facc15] text-black font-bold'
+                      : 'bg-white/5 border-white/10 text-gray-400 hover:bg-white/10'
+                  } disabled:opacity-50 disabled:cursor-not-allowed`}
+                >
+                  {h}h
+                </button>
+              ))}
+            </div>
+            {vault.walletLocked ? (
+              <div className="space-y-2">
+                <button
+                  onClick={handleWalletUnlock}
+                  disabled={working || walletLockTicker !== 'Ready to release'}
+                  className="w-full py-3 bg-yellow-500/20 hover:bg-yellow-500/30 border border-yellow-500/40 text-yellow-300 rounded-xl font-bold flex items-center justify-center gap-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <Unlock className="w-5 h-5" />
+                  {working ? 'CLEARING LOCK...' : walletLockTicker === 'Ready to release' ? 'CLEAR WALLET LOCK' : 'WALLET LOCK TIMER ACTIVE'}
+                </button>
+                <button
+                  onClick={() => handleWalletUnlockRequest('admin_approval')}
+                  disabled={working || vault.walletUnlockRequest?.mode === 'admin_approval'}
+                  className="w-full py-3 bg-white/5 hover:bg-white/10 border border-white/10 text-gray-200 rounded-xl font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {vault.walletUnlockRequest?.mode === 'admin_approval' ? 'ADMIN OVERRIDE REQUESTED' : 'REQUEST ADMIN OVERRIDE'}
+                </button>
+                <button
+                  onClick={vault.walletUnlockRequest?.mode === 'paid_early_unlock' ? handleWalletUnlockPayment : () => handleWalletUnlockRequest('paid_early_unlock')}
+                  disabled={working || !vault.activeLock}
+                  className="w-full py-3 bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 text-red-300 rounded-xl font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {vault.walletUnlockRequest?.mode === 'paid_early_unlock'
+                    ? `PAY ${vault.walletUnlockRequest.feeAmountSOL?.toFixed(4) ?? '0.0000'} SOL TO UNLOCK NOW`
+                    : 'QUOTE 10% EARLY UNLOCK FEE'}
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={handleWalletLock}
+                disabled={working}
+                className="w-full py-3 bg-yellow-500/20 hover:bg-yellow-500/30 border border-yellow-500/40 text-yellow-300 rounded-xl font-bold flex items-center justify-center gap-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <Lock className="w-5 h-5" />
+                {working ? 'LOCKING WALLET...' : `LOCK WALLET FOR ${walletLockHours}H`}
+              </button>
+            )}
+          </div>
 
           <div className="space-y-2">
             <label className="text-[10px] text-gray-500 uppercase tracking-widest">Redemption Threshold</label>

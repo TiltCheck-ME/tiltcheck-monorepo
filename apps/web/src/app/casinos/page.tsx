@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-14 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-15 */
 'use client';
 
 import React, { useState, useMemo, useEffect } from 'react';
@@ -280,8 +280,13 @@ export default function CasinosPage() {
   return (
     <div className="container mx-auto px-4 py-16">
       <header className="mb-12 text-center">
-        <h1 className="neon neon-main" data-text="THE BLACKLIST">THE BLACKLIST</h1>
-        <p className="text-xl text-muted mt-4 max-w-3xl mx-auto uppercase tracking-widest font-mono">
+        <p className="brand-eyebrow">Casino Intel</p>
+        <h1 className="brand-page-title">
+          <span className="text-[#17c3b2]">The blacklist.</span>
+          <br />
+          Rated by degens.
+        </h1>
+        <p className="brand-lead mt-4 max-w-3xl mx-auto uppercase tracking-widest font-mono">
           Casinos rated by degens, for degens. No affiliate payouts. No paid placements. If they cap winners — they&apos;re on here.
         </p>
         <p className="text-sm font-mono text-[#17c3b2] mt-3 max-w-2xl mx-auto">

@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-09
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-15
 import React from 'react';
 import type { Metadata } from 'next';
 import BonusGrid, { BonusEntry } from '@/components/BonusGrid';
@@ -45,15 +45,17 @@ export default async function BonusesPage() {
   return (
     <main className="min-h-screen bg-[#0a0c10] text-white">
       {/* Page header */}
-      <section className="border-b border-[#283347] py-20 px-4">
+        <section className="border-b border-[#283347] py-20 px-4">
         <div className="max-w-4xl mx-auto text-center">
-          <p className="text-xs font-mono text-[#17c3b2] uppercase tracking-widest mb-4">
+          <p className="brand-eyebrow">
             BONUS INTEL // COLLECTCLOCK DATA
           </p>
-          <h1 className="neon neon-main text-4xl md:text-5xl mb-6" data-text="CLAIM FIRST. DEPOSIT LATER.">
-            CLAIM FIRST. DEPOSIT LATER.
+          <h1 className="brand-page-title">
+            <span className="text-[#17c3b2]">Claim first.</span>
+            <br />
+            Deposit later.
           </h1>
-          <p className="text-lg text-gray-400 max-w-2xl mx-auto font-mono leading-relaxed mb-6">
+          <p className="brand-lead mx-auto mb-6">
             Extend your play without depositing real money. Every sweepstakes and social casino bonus worth claiming, community-verified and refreshed hourly. CollectClock data.
           </p>
           <a

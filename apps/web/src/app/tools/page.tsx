@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-11
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-15
 import React from 'react';
 import Link from 'next/link';
 
@@ -120,18 +120,20 @@ export default function ToolsIndexPage() {
   return (
     <main className="min-h-screen bg-[#0a0c10] text-white">
 
-      {/* Hero */}
-      <section className="border-b border-[#283347] py-32 px-4">
-        <div className="max-w-4xl mx-auto text-center">
-          <p className="text-xs font-mono text-[#17c3b2] uppercase tracking-widest mb-4">TILTCHECK TOOLKIT</p>
-          <h1 className="neon neon-main text-5xl md:text-7xl mb-6" data-text="THE TOOLS">
-            THE TOOLS
-          </h1>
-          <p className="text-lg text-gray-400 max-w-2xl mx-auto font-mono leading-relaxed">
-            Math-backed, no-fluff utilities for degens who want receipts. Verify bets. Track bonuses. Scan scams. Lock wins. Every tool here does one thing — and actually does it.
-          </p>
-        </div>
-      </section>
+        {/* Hero */}
+        <section className="border-b border-[#283347] py-32 px-4">
+          <div className="max-w-4xl mx-auto text-center">
+            <p className="brand-eyebrow">TiltCheck Toolkit</p>
+            <h1 className="brand-page-title">
+              <span className="text-[#17c3b2]">The tools.</span>
+              <br />
+              Built for receipts.
+            </h1>
+            <p className="brand-lead mx-auto">
+              Math-backed, no-fluff utilities for degens who want receipts. Verify bets. Track bonuses. Scan scams. Lock wins. Every tool here does one thing — and actually does it.
+            </p>
+          </div>
+        </section>
 
       {/* Live Tools */}
       <section className="py-20 px-4">
