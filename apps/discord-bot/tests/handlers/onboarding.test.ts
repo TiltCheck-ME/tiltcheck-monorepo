@@ -37,7 +37,7 @@ describe('Onboarding Handler', () => {
 
     describe('getWebsiteOnboardingUrl', () => {
         it('should point welcome links at the dashboard onboarding route', () => {
-            expect(getWebsiteOnboardingUrl()).toBe('https://dashboard.tiltcheck.me/onboarding');
+            expect(getWebsiteOnboardingUrl()).toBe('https://tiltcheck.me/login?redirect=%2Fdashboard');
         });
     });
 

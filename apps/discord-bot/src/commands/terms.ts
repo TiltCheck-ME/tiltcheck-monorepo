@@ -14,7 +14,7 @@ export const terms: Command = {
       .addFields(
         { name: 'Terms of Service', value: '[Read Terms](https://tiltcheck.me/terms)\n- 18+ required\n- Tips are non-refundable\n- AS-IS service' },
         { name: 'Privacy Policy', value: '[Read Privacy](https://tiltcheck.me/privacy)\n- Non-custodial wallets only\n- Minimal logs (7 days)\n- No data selling' },
-        { name: 'Acceptance', value: 'Terms get accepted during onboarding. Run `/help` if you are lost, or go straight to https://dashboard.tiltcheck.me/onboarding to run setup again.' },
+        { name: 'Acceptance', value: 'Terms get accepted during onboarding. Run `/help` if you are lost, or go straight to https://tiltcheck.me/login?redirect=%2Fdashboard to link Discord and run setup again.' },
         { name: 'Contact', value: 'privacy@tiltcheck.me | legal@tiltcheck.me' }
       )
       .setColor(0x22d3a6)
