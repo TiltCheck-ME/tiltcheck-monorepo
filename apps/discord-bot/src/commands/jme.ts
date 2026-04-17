@@ -151,19 +151,19 @@ async function handleBetaRolegrant(interaction: ChatInputCommandInteraction) {
       .setColor(0x22d3a6)
       .setTitle('YOU ARE IN. WELCOME TO THE BETA.')
       .setDescription(
-        `**${target.username}** — you just got cleared for Founder Tester access on TiltCheck.\n\n` +
-        `Your role is live. Here's what you have access to:\n\n` +
-        `**Trust Engines Beta** — score casinos in real-time and flag withdrawal patterns before they become a problem.\n` +
-        `**Delta Engine** — RTP audit layer. It watches the math. You watch the screen.\n` +
-        `**Phishing Shield** — link scanner. Paste any URL, get a threat report in seconds.\n` +
-        `**Extension Build** — the full Chrome sidebar. Install it, run a session, tell us what breaks.\n\n` +
-        `**Your job:** Break it. If something feels wrong, is wrong, or makes no sense — report it in <#1488256031590191174>.\n\n` +
-        `Start with \`/help\` in the server to see all active commands. Or just jump into <#1488256025449595132> and start asking questions.`
+        `**${target.username}** — Founder Tester access is live.\n\n` +
+        `You are here to hit the beta hard:\n` +
+        `**Trust Engines** to sanity-check casinos and withdrawal vibes.\n` +
+        `**Delta Engine** to audit RTP instead of trusting casino fairy tales.\n` +
+        `**Phishing Shield** to scan links before a skem scans you.\n` +
+        `**Extension Build** to run live sessions and find what breaks first.\n\n` +
+        `Start with \`/help\`, link your Discord, then go put pressure on the product.\n` +
+        `If something is busted, confusing, or cooked, drop it in <#1488256031590191174>.`
       )
       .addFields(
-        { name: 'Role Granted', value: 'Founder Tester', inline: true },
+        { name: 'Role', value: 'Founder Tester', inline: true },
         { name: 'Bug Reports', value: '<#1488256031590191174>', inline: true },
-        { name: 'Beta General', value: '<#1488256030579364055>', inline: true },
+        { name: 'Beta Chat', value: '<#1488256030579364055>', inline: true },
       )
       .setFooter({ text: 'Made for Degens. By Degens.' });
 
