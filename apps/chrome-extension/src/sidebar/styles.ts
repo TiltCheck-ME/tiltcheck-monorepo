@@ -1,5 +1,4 @@
-/* Copyright (c) 2026 TiltCheck. All rights reserved. */
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-14
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-17 */
 import { SIDEBAR_WIDTH, MINIMIZED_WIDTH } from './constants.js';
 
 export const getSidebarStyles = () => `
@@ -49,58 +48,90 @@ export const getSidebarStyles = () => `
     #tiltcheck-sidebar::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.2); border-radius: 3px; }
     
     .tg-header {
-      padding: 24px 20px;
+      padding: 0.75rem 1rem;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      border-bottom: 1px solid var(--tg-border);
+      gap: 0.75rem;
+      min-height: 56px;
+      border-bottom: 1px solid transparent;
       position: sticky;
       top: 0;
-      background: rgba(8, 10, 14, 0.4);
-      backdrop-filter: blur(12px);
+      background: rgba(6, 8, 11, 0.97);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      box-shadow: 0 1px 24px rgba(0, 0, 0, 0.5), 0 0 1px rgba(23, 195, 178, 0.08);
+      border-bottom-color: rgba(23, 195, 178, 0.12);
       z-index: 100;
     }
-    .tg-logo {
-      font-size: 14px;
-      font-weight: 700;
-      color: #fff;
+    .tg-header-brand {
       display: flex;
       align-items: center;
-      gap: 10px;
-      text-transform: uppercase;
-      letter-spacing: 0.1em;
+      gap: 0.625rem;
+      min-width: 0;
+    }
+    .tg-logo-icon {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 32px;
+      height: 32px;
+      border: 1px solid rgba(23, 195, 178, 0.25);
+      background: rgba(23, 195, 178, 0.06);
+      border-radius: 4px;
+      flex: 0 0 auto;
     }
     .tg-logo-mark {
-      width: 24px;
-      height: 24px;
-      border-radius: 4px;
-      background: #fff;
-      color: #000;
       display: inline-flex;
       align-items: center;
       justify-content: center;
+      width: 100%;
+      height: 100%;
       font-weight: 900;
       font-size: 12px;
+      color: #fff;
+    }
+    .tg-logo-copy {
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+    }
+    .tg-logo-text {
+      color: #fff;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.8rem;
+      font-weight: 900;
+      letter-spacing: 0.12em;
+      line-height: 1;
+    }
+    .tg-logo-sub {
+      margin-top: 0.15rem;
+      color: rgba(160, 175, 190, 0.78);
+      font-size: 0.62rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      white-space: nowrap;
     }
     .tg-header-actions { display: flex; gap: 6px; align-items: center; }
     .tg-header-btn {
-      background: var(--tg-surface);
-      border: 1px solid var(--tg-border);
-      color: var(--tg-text);
+      background: none;
+      border: 1px solid rgba(23, 195, 178, 0.2);
+      color: var(--tg-primary);
       width: 32px;
       height: 32px;
-      border-radius: 8px;
+      border-radius: 4px;
       cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
       font-size: 16px;
       transition: all 0.2s cubic-bezier(0.23, 1, 0.32, 1);
+      line-height: 1;
     }
     .tg-header-btn:hover { 
-      background: var(--tg-surface-strong); 
-      border-color: var(--tg-primary);
-      transform: translateY(-1px);
+      background: rgba(23, 195, 178, 0.08);
+      border-color: rgba(23, 195, 178, 0.4);
     }
     #tiltcheck-sidebar:not(.tg-show-advanced) .tg-advanced-only { display: none !important; }
     

@@ -1,5 +1,4 @@
-/* Copyright (c) 2026 TiltCheck. All rights reserved. */
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-09
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-17 */
 import { SIDEBAR_TEMPLATE } from './template.js';
 import { getSidebarStyles } from './styles.js';
 import { AuthManager } from './auth.js';
@@ -144,7 +143,7 @@ export class SidebarController implements SidebarUI {
         this.dismissSessionPause();
     });
     document.getElementById('vibe-ignore')?.addEventListener('click', () => {
-        this.addFeedMessage('Profit Guard suppressed. Good luck.');
+        this.addFeedMessage('TiltCheck warning suppressed. Good luck.');
         this.dismissSessionPause();
     });
 
@@ -502,7 +501,7 @@ export class SidebarController implements SidebarUI {
     const overlay = document.getElementById('tg-vibe-check-overlay');
     if (overlay && overlay.style.display !== 'flex') {
         overlay.style.display = 'flex';
-        this.addFeedMessage('SESSION PAUSE TRIGGERED: PROFIT GUARD RECOMMENDED.');
+        this.addFeedMessage('SESSION PAUSE TRIGGERED: TILTCHECK INTERVENTION RECOMMENDED.');
     }
   }
 

@@ -1,8 +1,14 @@
-/* Copyright (c) 2026 TiltCheck. All rights reserved. */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-17 */
 
 export const SIDEBAR_TEMPLATE = `
     <div class="tg-header">
-      <div class="tg-logo"><span class="tg-logo-mark">T</span>TiltCheck</div>
+      <div class="tg-header-brand">
+        <div class="tg-logo-icon"><span class="tg-logo-mark">T</span></div>
+        <div class="tg-logo-copy">
+          <span class="tg-logo-text">TILTCHECK</span>
+          <span class="tg-logo-sub">The Degen Audit Layer</span>
+        </div>
+      </div>
       <div class="tg-header-actions">
         <button class="tg-header-btn tg-advanced-only" id="tg-settings" title="Settings">⚙️</button>
         <button class="tg-header-btn" id="tg-minimize" title="Minimize">−</button>
@@ -16,8 +22,8 @@ export const SIDEBAR_TEMPLATE = `
       <!-- Auth Section -->
       <div class="tg-section" id="tg-auth-section">
         <div class="tg-auth-prompt">
-          <h3>PROFIT GUARD ACTIVE</h3>
-          <p>Connect Discord to sync vault history, liquidity alerts, and live RTP telemetry. No lectures, just math.</p>
+          <h3>TILTCHECK ACTIVE</h3>
+          <p>Connect Discord to sync vault history, live session signals, and casino telemetry across the ecosystem. No lectures, just math.</p>
           <button class="tg-btn tg-btn-primary" id="tg-discord-login">Connect with Discord</button>
           <button class="tg-btn tg-btn-secondary" id="tg-guest-login" style="margin-top: 8px;">Continue as Guest</button>
         </div>
@@ -43,7 +49,7 @@ export const SIDEBAR_TEMPLATE = `
         <div class="tg-section tg-emergency">
           <div class="tg-emergency-header">
             <div style="flex: 1;">
-              <div class="tg-emergency-title">PROFIT GUARD BOT</div>
+              <div class="tg-emergency-title">TILTCHECK INTERVENTION</div>
               <div class="tg-emergency-sub">The house is farming you. Use the EMERGENCY BRAKE to lock your gains on-chain before you give it all back.</div>
             </div>
             <button class="tg-btn tg-btn-danger" id="tg-emergency-lock" style="width: auto; padding: 10px 16px;">EMERGENCY BRAKE</button>

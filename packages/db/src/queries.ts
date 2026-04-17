@@ -1,4 +1,4 @@
-/* Copyright (c) 2026 TiltCheck. All rights reserved. */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-16 */
 /**
  * @tiltcheck/db - Query Helpers
  * Typed query functions for common database operations
@@ -93,6 +93,10 @@ function formatSupabaseError(action: string, error: { message?: string } | null)
   return new Error(`[DB] Supabase fallback ${action} failed: ${error?.message || 'unknown error'}`);
 }
 
+const SUPABASE_OPTIONAL_USER_COLUMNS = new Set([
+  'discord_avatar',
+]);
+
 function serializeSupabasePayload(payload: Record<string, unknown>): Record<string, unknown> {
   return Object.fromEntries(
     Object.entries(payload).flatMap(([key, value]) => {
@@ -101,6 +105,98 @@ function serializeSupabasePayload(payload: Record<string, unknown>): Record<stri
       return [[key, value]];
     })
   );
+}
+
+function getMissingSupabaseUsersColumn(error: { message?: string } | null): string | null {
+  const message = error?.message;
+  if (!message) {
+    return null;
+  }
+
+  const match = message.match(/Could not find the '([^']+)' column of 'users' in the schema cache/i);
+  return match?.[1] ?? null;
+}
+
+function stripUnsupportedOptionalUsersColumn(
+  payload: Record<string, unknown>,
+  error: { message?: string } | null
+): Record<string, unknown> | null {
+  const missingColumn = getMissingSupabaseUsersColumn(error);
+  if (!missingColumn || !SUPABASE_OPTIONAL_USER_COLUMNS.has(missingColumn) || !(missingColumn in payload)) {
+    return null;
+  }
+
+  const nextPayload = { ...payload };
+  delete nextPayload[missingColumn];
+  console.warn(`[DB] Supabase users schema is missing optional column "${missingColumn}". Retrying without it.`);
+  return nextPayload;
+}
+
+async function insertSupabaseUser(
+  client: SupabaseClient,
+  payload: Record<string, unknown>
+): Promise<User | null> {
+  const serializedPayload = serializeSupabasePayload(payload);
+  const { data: created, error } = await client
+    .from('users')
+    .insert(serializedPayload)
+    .select('*')
+    .single();
+
+  if (!error) {
+    return created ? normalizeUserRow(created) : null;
+  }
+
+  const retriablePayload = stripUnsupportedOptionalUsersColumn(serializedPayload, error);
+  if (!retriablePayload) {
+    throw formatSupabaseError('createUser', error);
+  }
+
+  const retryResult = await client
+    .from('users')
+    .insert(retriablePayload)
+    .select('*')
+    .single();
+  if (retryResult.error) {
+    throw formatSupabaseError('createUser', retryResult.error);
+  }
+
+  return retryResult.data ? normalizeUserRow(retryResult.data) : null;
+}
+
+async function updateSupabaseUser(
+  client: SupabaseClient,
+  id: string,
+  payload: Record<string, unknown>
+): Promise<User | null> {
+  const serializedPayload = serializeSupabasePayload(payload);
+  const { data: updated, error } = await client
+    .from('users')
+    .update(serializedPayload)
+    .eq('id', id)
+    .select('*')
+    .maybeSingle();
+
+  if (!error) {
+    return updated ? normalizeUserRow(updated) : null;
+  }
+
+  const retriablePayload = stripUnsupportedOptionalUsersColumn(serializedPayload, error);
+  if (!retriablePayload) {
+    throw formatSupabaseError('updateUser', error);
+  }
+
+  const retryResult = await client
+    .from('users')
+    .update(retriablePayload)
+    .eq('id', id)
+    .select('*')
+    .maybeSingle();
+  if (retryResult.error) {
+    throw formatSupabaseError('updateUser', retryResult.error);
+  }
+
+  return retryResult.data ? normalizeUserRow(retryResult.data) : null;
 }
 
 function normalizeUserRow(row: Record<string, any>): User {
@@ -366,15 +462,7 @@ export async function createUser(payload: CreateUserPayload): Promise<User | nul
 
   return withUsersTableFallback(
     () => insert<User>('users', data),
-    async (client) => {
-      const { data: created, error } = await client
-        .from('users')
-        .insert(serializeSupabasePayload(data))
-        .select('*')
-        .single();
-      if (error) throw formatSupabaseError('createUser', error);
-      return created ? normalizeUserRow(created) : null;
-    }
+    async (client) => insertSupabaseUser(client, data)
   );
 }
 
@@ -389,16 +477,7 @@ export async function updateUser(id: string, payload: UpdateUserPayload): Promis
 
   return withUsersTableFallback(
     () => update<User>('users', id, data),
-    async (client) => {
-      const { data: updated, error } = await client
-        .from('users')
-        .update(serializeSupabasePayload(data))
-        .eq('id', id)
-        .select('*')
-        .maybeSingle();
-      if (error) throw formatSupabaseError('updateUser', error);
-      return updated ? normalizeUserRow(updated) : null;
-    }
+    async (client) => updateSupabaseUser(client, id, data)
   );
 }
 

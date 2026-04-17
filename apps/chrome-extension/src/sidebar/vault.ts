@@ -1,4 +1,4 @@
-/* Copyright (c) 2026 TiltCheck. All rights reserved. */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-17 */
 import { SidebarController } from './index.js';
 import { AutoVaultEngine, LogEntry } from '../autovault.js';
 
@@ -68,7 +68,7 @@ export class VaultManager {
     // ... logic remains same ...
     const userId = this.controller.auth.userData?.id;
     if (!userId) {
-        this.controller.updateStatus('Connect Discord to use the Profit Locker.', 'warning');
+        this.controller.updateStatus('Connect Discord to use the Vault.', 'warning');
         return;
     }
 
