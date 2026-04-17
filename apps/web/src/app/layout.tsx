@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-07 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-16 */
 import type { Metadata } from "next";
 import { Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
@@ -59,9 +59,9 @@ export default function RootLayout({
       >
         <RootProvider>
           <AriaSlangProvider />
-          <a href="#main-content" className="skip-link">Skip to main content</a>
+          <a href="#main-content" className="nav-skip-link">Skip to main content</a>
           <Header />
-          <div id="main-content" className="nav-main-content">{children}</div>
+          <main id="main-content" className="nav-main-content">{children}</main>
           <div className="nav-main-content"><Footer /></div>
         </RootProvider>
       </body>

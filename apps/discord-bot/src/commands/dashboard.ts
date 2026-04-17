@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-12
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-17
 
 import {
   SlashCommandBuilder,
@@ -10,7 +10,7 @@ import {
 import { getUserTiltStats, getUserTiltHistory } from '../handlers/tilt-events-handler.js';
 import type { Command } from '../types.js';
 
-const DASHBOARD_URL = process.env.DASHBOARD_URL || 'https://hub.tiltcheck.me';
+const DASHBOARD_URL = process.env.DASHBOARD_URL || 'https://dashboard.tiltcheck.me';
 
 export const dashboard: Command = {
   data: new SlashCommandBuilder()

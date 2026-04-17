@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-14
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-17
 /**
  * Beta review queue
  *
@@ -34,6 +34,9 @@ interface QueueSyncPayload {
 
 const DEFAULT_REVIEW_CHANNEL_ID = process.env.BETA_APPLICATION_REVIEW_CHANNEL_ID?.trim() || '1488256033502793930';
 const DEFAULT_BETA_ROLE_ID = process.env.BETA_TESTER_ROLE_ID?.trim() || '1492283508456947904';
+const SITE_URL = (process.env.SITE_URL || 'https://tiltcheck.me').replace(/\/+$/, '');
+const DASHBOARD_URL = (process.env.DASHBOARD_URL || 'https://dashboard.tiltcheck.me').replace(/\/+$/, '');
+const BACKEND_URL = (process.env.BACKEND_URL || 'https://api.tiltcheck.me').replace(/\/+$/, '');
 
 let discordClient: Client | null = null;
 let handlersRegistered = false;
@@ -142,6 +145,36 @@ function buildReviewButtons(signupId: string): ActionRowBuilder<ButtonBuilder> {
   );
 }
 
+function buildApplicantLinkButtons(signup: BetaSignup): ActionRowBuilder<ButtonBuilder>[] {
+  const buttons: ButtonBuilder[] = [
+    new ButtonBuilder()
+      .setLabel('Open Beta App')
+      .setStyle(ButtonStyle.Link)
+      .setURL(`${SITE_URL}/beta-tester`),
+  ];
+
+  if (signup.beta_access_dashboard || signup.beta_access_web) {
+    buttons.push(
+      new ButtonBuilder()
+        .setLabel('Open Dashboard')
+        .setStyle(ButtonStyle.Link)
+        .setURL(`${DASHBOARD_URL}/dashboard`)
+    );
+  }
+
+  if (signup.beta_access_discord || signup.application_path === 'discord') {
+    const redirect = encodeURIComponent(`${SITE_URL}/beta-tester`);
+    buttons.push(
+      new ButtonBuilder()
+        .setLabel('Link Discord')
+        .setStyle(ButtonStyle.Link)
+        .setURL(`${BACKEND_URL}/auth/discord/login?source=web&redirect=${redirect}`)
+    );
+  }
+
+  return buttons.length > 0 ? [new ActionRowBuilder<ButtonBuilder>().addComponents(buttons.slice(0, 5))] : [];
+}
+
 async function ensureReviewerAccess(interaction: ButtonInteraction): Promise<boolean> {
   if (interaction.memberPermissions?.has(PermissionFlagsBits.Administrator)) {
     return true;
@@ -202,7 +235,9 @@ async function notifyDiscordApplicant(signup: BetaSignup, previousStatus?: BetaS
     .setFooter({ text: 'Made for Degens. By Degens.' })
     .setTimestamp();
 
-  await user.send({ embeds: [embed] }).catch((error) => {
+  const components = buildApplicantLinkButtons(signup);
+
+  await user.send({ embeds: [embed], components }).catch((error) => {
     console.error('[BetaQueue] Failed to DM applicant:', error);
   });
 }

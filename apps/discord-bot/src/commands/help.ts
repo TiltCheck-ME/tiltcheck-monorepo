@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-14
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-17
 // TiltCheck Safety Bot — Help Command
 
 import { SlashCommandBuilder, ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
@@ -59,6 +59,8 @@ export const help: Command = {
           '`/status` — Fast read on your live risk state\n' +
           '`/dashboard` — Open the 7-day tilt trail and event history\n' +
           '`/setstate` — Save your state and rules topic so TiltCheck stops guessing\n' +
+          '`/beta apply` — Apply for beta without leaving Discord\n' +
+          '`/beta status` — Check where your Discord beta app sits in the queue\n' +
           '`/support` — Send a bug report without the helpdesk cosplay\n' +
           '`/ping` — Make sure the bot is alive and not face-down in the gutter',
         inline: false,
@@ -68,7 +70,7 @@ export const help: Command = {
         value:
           '**JustTheTip** handles the bag-moving stuff — `/juicedrop`, `/linkwallet`, `/lockvault`\n' +
           '**DAD** handles card games and trivia — `/lobby`, `/triviadrop`\n' +
-          'Full dashboard: https://hub.tiltcheck.me',
+          'Full dashboard: https://dashboard.tiltcheck.me',
         inline: false,
       },
       {

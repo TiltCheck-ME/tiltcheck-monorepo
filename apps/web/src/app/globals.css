@@ -1,28 +1,10 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-10 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-16 */
 @import "tailwindcss";
 
 /* Prevent horizontal overflow on all screen sizes */
 html, body {
   overflow-x: hidden;
   max-width: 100%;
-}
-
-/* Skip link for keyboard accessibility */
-.skip-link {
-  position: absolute;
-  top: -100%;
-  left: 0;
-  z-index: 9999;
-  padding: 0.75rem 1.5rem;
-  background: #17c3b2;
-  color: #000;
-  font-weight: 700;
-  font-size: 0.875rem;
-  text-decoration: none;
-  white-space: nowrap;
-}
-.skip-link:focus {
-  top: 0;
 }
 
 /* Hide status text in the compact mobile header */
@@ -186,6 +168,31 @@ html, body {
 .nav-main-content {
   margin-left: 0;
   min-width: 0;
+}
+
+.nav-skip-link {
+  position: fixed;
+  left: 1rem;
+  top: -4rem;
+  z-index: 260;
+  padding: 0.75rem 1rem;
+  border: 1px solid rgba(23, 195, 178, 0.55);
+  border-radius: 0.75rem;
+  background: rgba(6, 8, 11, 0.98);
+  color: #17c3b2;
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-decoration: none;
+  text-transform: uppercase;
+  transition: top 0.2s ease, box-shadow 0.2s ease;
+}
+
+.nav-skip-link:focus,
+.nav-skip-link:focus-visible {
+  top: 0.875rem;
+  box-shadow: 0 0 0 3px rgba(23, 195, 178, 0.2);
+  outline: none;
 }
 
 @media (min-width: 768px) {
