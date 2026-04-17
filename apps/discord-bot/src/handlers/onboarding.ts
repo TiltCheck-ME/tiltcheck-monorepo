@@ -234,7 +234,7 @@ export async function isUserOnboarded(userId: string): Promise<boolean> {
 }
 
 export function getWebsiteOnboardingUrl(): string {
-  return new URL('/onboarding', DASHBOARD_URL).toString();
+  return new URL('/login?redirect=%2Fdashboard', SITE_URL).toString();
 }
 
 export function getDashboardUrl(): string {
