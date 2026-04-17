@@ -37,6 +37,7 @@ This mode is designed for your use case: run for a short window, then shut down 
    - `GCP_VM_ZONE=...`
    - `GCP_PROJECT_ID=...` (optional if your gcloud default project is already correct)
    - `DEV_UPDATES_WEBHOOK_URL=...` (optional, posts each generated report to Discord)
+   - `REPORTS_CHANNEL_ID=...` (preferred when the TiltCheck bot token can post straight into your reports channel)
    - `TRUST_ENGINE_INGEST_URL=...` (optional, sends each report into your internal trust pipeline)
    - `COMMUNITY_INTEL_INGEST_KEY=...` (optional key header for trust ingest auth)
 2. Make sure `gcloud auth login` is done on your machine.
@@ -56,7 +57,8 @@ What this does automatically:
 - Runs `npm run comic:daily` to refresh `apps/web/daily-degen-comic.json`
 - If `COMIC_API_URL` is set, runs `npm run comic:publish` to send latest day context to cloud comic API
 - Stops VM when finished (even if watcher errors)
-- Posts generated reports to your Discord webhook when `DEV_UPDATES_WEBHOOK_URL` is configured
+- Posts generated reports to your Discord reports channel when `REPORTS_CHANNEL_ID` is configured
+- Falls back to Discord webhook posting when `DEV_UPDATES_WEBHOOK_URL` is configured
 - Sends generated report payloads to `TRUST_ENGINE_INGEST_URL` when configured
 
 Optional flags:
@@ -132,16 +134,41 @@ node sync-bonus-drops.js "<discord-channel-link>" --dry-run
 
 # Post fresh links into TiltCheck Bonus Drops
 npm run bonus:sync -- "<discord-channel-link>"
+
+# Run a live headless watcher against one or more source channels
+npm run bonus:watch -- "<discord-channel-link-1>" "<discord-channel-link-2>"
 ```
 
 Config values:
 
 - `BONUS_SOURCE_CHANNEL_URL` — source Discord channel link to scrape
+- `BONUS_SOURCE_CHANNEL_URLS` — comma-separated list of source channel links to watch
 - `BONUS_DROPS_CHANNEL_ID` — target TiltCheck channel (defaults to `1488256038665981982`)
 - `TILT_DISCORD_BOT_TOKEN` or `DISCORD_BOT_TOKEN` — bot token used to post
+- `BONUS_SYNC_HEADLESS=true` — run without opening a browser window
+- `BONUS_SYNC_WATCH=true` or `--watch` — keep polling live instead of one-shot sync
+- `BONUS_SYNC_INTERVAL_SECONDS=45` — live watch poll cadence
+- `BONUS_SYNC_LIVE_SCROLL_PASSES=3` — lighter scroll depth after the first catch-up pass
 
 The sync stores de-dup state in `.bonus-sync-state.json`, so reruns only post new links.
+In live watch mode it posts **one branded TiltCheck embed per fresh bonus** instead of dumping a text summary block.
 If Discord keeps trying to throw you back to login, set `DISCORD_TOKEN` in `.env` as well — the sync now hydrates that token before page load so it can reuse the saved session cleanly.
+
+### Live headless mode without local popups
+
+Yes — this can run fully headless. The only time a visible browser is needed is the first time you create or refresh the saved Discord session.
+
+Typical server-side flow:
+
+```bash
+# One time: create or seed a Discord session/token
+npm run session:create
+
+# Then run headless forever with one or more source channels
+BONUS_SYNC_HEADLESS=true npm run bonus:watch -- \
+  "https://discord.com/channels/1308950499088928798/1323094780430782515" \
+  "https://discord.com/channels/1088790880573476964/1364048680805601371"
+```
 
 ### Schedule Bonus Drops sync every 2 hours on Windows
 

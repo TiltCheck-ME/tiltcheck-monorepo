@@ -76,6 +76,10 @@ dotenv.config({ path: rootEnv });
 export interface AlertChannelsConfig {
   /** Channel ID for trust/security alerts */
   trustAlertsChannelId?: string;
+  /** Channel ID for bonus alerts */
+  bonusAlertsChannelId?: string;
+  /** Channel ID for watcher and ops reports */
+  reportsChannelId?: string;
   /** Channel ID for support tickets */
   supportChannelId?: string;
 }
@@ -153,12 +157,15 @@ export const config: BotConfig = {
   // Alert channels
   alertChannels: {
     trustAlertsChannelId: getEnvVar('TRUST_ALERTS_CHANNEL_ID', false),
+    bonusAlertsChannelId:
+      getEnvVar('BONUS_ALERTS_CHANNEL_ID', false) || getEnvVar('TRUST_ALERTS_CHANNEL_ID', false),
+    reportsChannelId: getEnvVar('REPORTS_CHANNEL_ID', false),
     supportChannelId: getEnvVar('SUPPORT_CHANNEL_ID', false),
   },
 
   // Mod notifications
   modNotifications: {
-    modChannelId: getEnvVar('MOD_CHANNEL_ID', false),
+    modChannelId: getEnvVar('MOD_CHANNEL_ID', false) || getEnvVar('MOD_LOG_CHANNEL_ID', false),
     modRoleId: getEnvVar('MOD_ROLE_ID', false),
     enabled: getBoolEnv('MOD_NOTIFICATIONS_ENABLED', true),
     rateLimitWindowMs: getNumberEnv('MOD_RATE_LIMIT_WINDOW_MS', 60000),
@@ -229,6 +236,12 @@ export function validateConfig(): void {
 
   if (config.alertChannels.trustAlertsChannelId) {
     console.log(`[Config] Trust alerts channel: ${config.alertChannels.trustAlertsChannelId}`);
+  }
+  if (config.alertChannels.bonusAlertsChannelId) {
+    console.log(`[Config] Bonus alerts channel: ${config.alertChannels.bonusAlertsChannelId}`);
+  }
+  if (config.alertChannels.reportsChannelId) {
+    console.log(`[Config] Reports channel: ${config.alertChannels.reportsChannelId}`);
   }
   if (config.alertChannels.supportChannelId) {
     console.log(`[Config] Support tickets channel: ${config.alertChannels.supportChannelId}`);

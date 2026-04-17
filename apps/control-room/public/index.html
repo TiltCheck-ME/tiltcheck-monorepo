@@ -19,6 +19,13 @@
         <input type="password" id="password" placeholder="Admin password" autocomplete="current-password" required>
         <button type="submit" class="btn btn-primary btn-full">Unlock</button>
       </form>
+      <div id="discord-login-wrap" class="hidden" style="margin-top: 12px;">
+        <div class="muted" style="text-align:center; font-size: 11px; margin-bottom: 8px;">or use your whitelisted Discord account</div>
+        <a id="discord-login-link" href="/auth/discord" class="btn btn-secondary btn-full">Login with Discord</a>
+      </div>
+      <div class="muted" style="margin-top: 10px; font-size: 11px; text-align: center;">
+        Use Discord for whitelist access or the admin password for direct override access.
+      </div>
       <div id="login-error" class="error-msg"></div>
     </div>
   </div>
@@ -32,6 +39,7 @@
         <li><a href="#" class="nav-link active" data-tab="containers">[INSTANCES]</a></li>
         <li><a href="#" class="nav-link" data-tab="trivia">[TRIVIA]</a></li>
         <li><a href="#" class="nav-link" data-tab="logs">[AUDIT LOGS]</a></li>
+        <li><a href="#" class="nav-link" data-tab="reports">[CHANNEL REPORTS]</a></li>
         <li><a href="#" class="nav-link" data-tab="metrics">[METRICS]</a></li>
         <li><a href="#" class="nav-link" data-tab="compose">[OPS]</a></li>
       </ul>
@@ -108,6 +116,68 @@
               <div class="log-placeholder">Select a container to view logs</div>
             </div>
           </div>
+        </div>
+      </section>
+
+      <!-- Reports Tab -->
+      <section id="tab-reports" class="tab hidden">
+        <div class="reports-grid">
+          <div class="panel">
+            <div class="panel-header">
+              <h3>Queue Channel Report</h3>
+            </div>
+            <p class="muted mb-md">Run one-off async searches against channel watcher data. Filter by author, user ID, terms, and timeframe, then come back later for the report.</p>
+            <div id="reports-config" class="reports-config muted mb-md">Loading report runner status...</div>
+            <form id="report-request-form" class="admin-form">
+              <div class="form-group">
+                <label>Author / tag</label>
+                <input type="text" id="report-author-query" placeholder="ruby or @ruby">
+              </div>
+              <div class="form-group">
+                <label>Author Discord ID</label>
+                <input type="text" id="report-author-id" placeholder="Optional, enables cleaner live lookup when watcher auth exists">
+              </div>
+              <div class="form-group form-group-wide">
+                <label>Terms / phrases</label>
+                <textarea id="report-terms" rows="4" placeholder="provably fair&#10;paperclip&#10;trust score"></textarea>
+              </div>
+              <div class="form-group">
+                <label>From</label>
+                <input type="datetime-local" id="report-from" required>
+              </div>
+              <div class="form-group">
+                <label>To</label>
+                <input type="datetime-local" id="report-to" required>
+              </div>
+              <div class="form-group">
+                <label>Max results</label>
+                <input type="number" id="report-max-results" value="100" min="1" max="250">
+              </div>
+              <div class="form-actions">
+                <button type="submit" class="btn btn-primary">Queue Report</button>
+                <button type="button" class="btn btn-ghost" onclick="resetReportRequestForm()">Reset</button>
+              </div>
+            </form>
+            <div id="report-request-status" class="status-msg mt-md muted"></div>
+          </div>
+
+          <div class="panel">
+            <div class="panel-header">
+              <h3>Report Jobs</h3>
+              <button class="btn btn-sm btn-secondary" onclick="loadReportJobs()">Refresh</button>
+            </div>
+            <div id="report-job-list" class="report-job-list">
+              <div class="loading-msg">No jobs loaded yet.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel mt-lg">
+          <div class="panel-header">
+            <h3>Report Detail</h3>
+            <span id="report-detail-meta" class="muted">Select a job to inspect the report.</span>
+          </div>
+          <pre id="report-detail-output" class="compose-output">No report selected.</pre>
         </div>
       </section>
 

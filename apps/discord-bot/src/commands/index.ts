@@ -14,6 +14,8 @@ export { recover } from './recover.js';
 export { casino } from './casino.js';
 export { trustDashboard } from './trust.js';
 export { support } from './support.js';
+export { submit } from './submit.js';
+export { beta } from './beta.js';
 export { help } from './help.js';
 export { bonuses } from './bonuses.js';
 export { jme } from './jme.js';

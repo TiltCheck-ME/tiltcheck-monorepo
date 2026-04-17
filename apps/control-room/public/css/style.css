@@ -156,6 +156,46 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 .stats-table td { padding: .5rem .75rem; border-bottom: 1px solid rgba(255,255,255,.04); vertical-align: middle; }
 .stats-table tr:last-child td { border-bottom: none; }
 
+/* ── Reports Tab ────────────────────────── */
+.reports-grid { display: grid; grid-template-columns: minmax(320px, 1.1fr) minmax(280px, .9fr); gap: 1.5rem; }
+.reports-config { line-height: 1.6; }
+.admin-form { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
+.form-group { display: flex; flex-direction: column; gap: .35rem; }
+.form-group label { font-size: .8rem; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; }
+.form-group input,
+.form-group textarea {
+  width: 100%;
+  padding: .75rem .85rem;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  font-size: .9rem;
+}
+.form-group textarea { resize: vertical; min-height: 100px; }
+.form-group-wide { grid-column: 1 / -1; }
+.form-actions { grid-column: 1 / -1; display: flex; gap: .75rem; flex-wrap: wrap; }
+.status-msg { min-height: 1.25rem; }
+.report-job-list { display: flex; flex-direction: column; gap: .75rem; max-height: 480px; overflow-y: auto; }
+.report-job-card {
+  width: 100%;
+  text-align: left;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: .85rem;
+  color: var(--text);
+  cursor: pointer;
+}
+.report-job-card:hover,
+.report-job-card.active { border-color: var(--accent); background: rgba(88,166,255,.08); }
+.report-job-card-header { display: flex; justify-content: space-between; align-items: center; gap: .75rem; margin-bottom: .4rem; }
+.report-job-card-body { font-size: .84rem; color: var(--muted); line-height: 1.5; }
+.status-pill.report-status-pending { background: rgba(210,153,34,.15); color: var(--yellow); }
+.status-pill.report-status-running { background: rgba(88,166,255,.15); color: var(--accent); }
+.status-pill.report-status-completed { background: rgba(63,185,80,.15); color: var(--green); }
+.status-pill.report-status-failed { background: rgba(248,81,73,.15); color: var(--red); }
+
 /* ── Compose Tab ──────────────────────── */
 .compose-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
 .compose-actions { display: flex; flex-wrap: wrap; gap: .75rem; }
@@ -208,6 +248,8 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 
   .logs-layout { grid-template-columns: 1fr; height: auto; }
   .logs-sidebar { max-height: 200px; }
+  .reports-grid { grid-template-columns: 1fr; }
+  .admin-form { grid-template-columns: 1fr; }
   .compose-grid { grid-template-columns: 1fr; }
   .tab { padding: 1rem; }
 

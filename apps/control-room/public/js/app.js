@@ -8,13 +8,20 @@ let liveLogSource = null;
 let ws = null;
 let allServices = [];
 let refreshIntervalId;
+let reportJobs = [];
+let selectedReportJobId = null;
 
 // ── Init ───────────────────────────────────────────────────────────────────────
 window.addEventListener('DOMContentLoaded', async () => {
   startClock();
+  setDefaultReportRange();
   const { data } = await api('/api/auth/status');
+  updateLoginOptions(data);
+  applyLoginErrorFromQuery();
   if (data && data.authenticated) showApp();
   document.getElementById('login-form').addEventListener('submit', handleLogin);
+  var reportForm = document.getElementById('report-request-form');
+  if (reportForm) reportForm.addEventListener('submit', handleReportRequestSubmit);
 });
 
 async function handleLogin(e) {
@@ -37,6 +44,35 @@ function showApp() {
   refreshIntervalId = setInterval(refreshAll, 15000);
 }
 
+function updateLoginOptions(authStatus) {
+  var discordWrap = document.getElementById('discord-login-wrap');
+  if (!discordWrap) return;
+  discordWrap.classList.toggle('hidden', !(authStatus && authStatus.discordAuthEnabled));
+}
+
+function applyLoginErrorFromQuery() {
+  if (typeof window === 'undefined') return;
+  var params = new URLSearchParams(window.location.search);
+  var error = params.get('error');
+  if (!error) return;
+
+  var messages = {
+    oauth_state: 'Discord login failed because the OAuth session state did not stick. Hit "Login with Discord" again from this screen.',
+    oauth_session: 'Discord login failed because the session could not be saved cleanly. Try the Discord button again from this screen.',
+    unauthorized: 'That Discord account is not on the Control Room whitelist.',
+  };
+
+  var loginError = document.getElementById('login-error');
+  if (loginError) {
+    loginError.textContent = messages[error] || 'Login failed. Try again from this screen.';
+  }
+
+  params.delete('error');
+  var nextQuery = params.toString();
+  var nextUrl = window.location.pathname + (nextQuery ? '?' + nextQuery : '') + window.location.hash;
+  window.history.replaceState({}, document.title, nextUrl);
+}
+
 window.logout = async function () {
   if (refreshIntervalId) clearInterval(refreshIntervalId);
   await api('/api/auth/logout', 'POST');
@@ -47,7 +83,7 @@ window.logout = async function () {
 async function api(url, method, body) {
   method = method || 'GET';
   try {
-    var opts = { method: method, headers: { 'Content-Type': 'application/json' } };
+    var opts = { method: method, headers: { 'Content-Type': 'application/json' }, credentials: 'same-origin' };
     if (body) opts.body = JSON.stringify(body);
     var res = await fetch(url, opts);
     var data = await res.json().catch(function() { return {}; });
@@ -66,7 +102,7 @@ function startClock() {
 }
 
 // ── Tabs ───────────────────────────────────────────────────────────────────────
-var TAB_TITLES = { containers: 'Containers', logs: 'Logs', metrics: 'Metrics', compose: 'Compose' };
+var TAB_TITLES = { containers: 'Containers', logs: 'Logs', reports: 'Channel Reports', metrics: 'Metrics', compose: 'Compose' };
 
 function initTabs() {
   document.querySelectorAll('.nav-link').forEach(function(link) {
@@ -89,11 +125,13 @@ function switchTab(tab) {
   document.getElementById('tab-title').textContent = TAB_TITLES[tab] || tab;
   if (tab === 'metrics') loadMetrics();
   if (tab === 'logs') buildLogsSidebar();
+  if (tab === 'reports') loadReportsTab();
 }
 
 // ── Refresh ────────────────────────────────────────────────────────────────────
 window.refreshAll = async function () {
   await loadContainers();
+  if (currentTab === 'reports') await loadReportJobs();
   var el = document.getElementById('last-updated');
   if (el) el.textContent = 'Updated ' + new Date().toLocaleTimeString();
 };
@@ -227,6 +265,158 @@ function renderLogs(text) {
     return '<div class="log-line">' + colorLog(escHtml(line)) + '</div>';
   }).join('');
   out.scrollTop = out.scrollHeight;
+}
+
+// ── Channel Reports ─────────────────────────────────────────────────────────────
+async function loadReportsTab() {
+  await Promise.all([loadReportConfig(), loadReportJobs()]);
+}
+
+async function loadReportConfig() {
+  var result = await api('/api/report-requests/config');
+  var el = document.getElementById('reports-config');
+  if (!el) return;
+  if (!result.ok) {
+    el.textContent = 'Report runner status unavailable.';
+    return;
+  }
+
+  var data = result.data || {};
+  el.textContent =
+    'Watcher log: ' + (data.watcherLogAvailable ? 'ready' : 'missing') +
+    ' | Live watcher auth: ' + (data.watcherAuthAvailable ? 'ready' : 'missing') +
+    ' | Discord whitelist: ' + (data.authMode && data.authMode.discordWhitelistEnabled ? 'on' : 'off') +
+    ' | IP allowlist: ' + (data.authMode && data.authMode.ipAllowlistEnabled ? 'on' : 'off');
+}
+
+async function loadReportJobs() {
+  var result = await api('/api/report-requests');
+  var list = document.getElementById('report-job-list');
+  if (!list) return;
+
+  if (!result.ok) {
+    list.innerHTML = '<div class="loading-msg error-msg">' + escHtml((result.data && result.data.error) || 'Failed to load jobs') + '</div>';
+    return;
+  }
+
+  reportJobs = (result.data && result.data.jobs) || [];
+  renderReportJobList(reportJobs);
+
+  if (!selectedReportJobId && reportJobs.length > 0) {
+    selectedReportJobId = reportJobs[0].id;
+  }
+
+  if (selectedReportJobId) {
+    await loadReportJobDetail(selectedReportJobId);
+  }
+}
+
+function renderReportJobList(jobs) {
+  var list = document.getElementById('report-job-list');
+  if (!list) return;
+  if (!jobs.length) {
+    list.innerHTML = '<div class="loading-msg">No report jobs yet.</div>';
+    return;
+  }
+
+  list.innerHTML = jobs.map(function(job) {
+    var req = job.request || {};
+    var summary = [];
+    if (req.authorQuery) summary.push('author: ' + req.authorQuery);
+    if (req.authorId) summary.push('id: ' + req.authorId);
+    if (req.terms && req.terms.length) summary.push('terms: ' + req.terms.join(', '));
+    summary.push('from ' + formatShortDate(req.from));
+    summary.push('to ' + formatShortDate(req.to));
+    return '<button class="report-job-card ' + (job.id === selectedReportJobId ? 'active' : '') + '" onclick="selectReportJob(\'' + escJs(job.id) + '\')">' +
+      '<div class="report-job-card-header">' +
+        '<span class="status-pill report-status-' + escHtml(job.status) + '">' + escHtml(job.status) + '</span>' +
+        '<span class="muted">' + escHtml(formatShortDate(job.createdAt)) + '</span>' +
+      '</div>' +
+      '<div class="report-job-card-body">' + escHtml(summary.join(' | ')) + '</div>' +
+    '</button>';
+  }).join('');
+}
+
+window.selectReportJob = async function (jobId) {
+  selectedReportJobId = jobId;
+  renderReportJobList(reportJobs);
+  await loadReportJobDetail(jobId);
+};
+
+async function loadReportJobDetail(jobId) {
+  var result = await api('/api/report-requests/' + encodeURIComponent(jobId));
+  var out = document.getElementById('report-detail-output');
+  var meta = document.getElementById('report-detail-meta');
+  if (!out || !meta) return;
+
+  if (!result.ok) {
+    meta.textContent = 'Failed to load report detail.';
+    out.textContent = (result.data && result.data.error) || 'Unknown error';
+    return;
+  }
+
+  var job = result.data && result.data.job;
+  if (!job) return;
+  meta.textContent = 'Status: ' + job.status + ' | Created: ' + formatShortDate(job.createdAt);
+
+  if (job.status === 'completed' && job.result) {
+    out.textContent = job.result.reportMarkdown || 'Report completed with no markdown output.';
+    return;
+  }
+
+  if (job.status === 'failed') {
+    out.textContent = job.error || 'Job failed.';
+    return;
+  }
+
+  out.textContent = 'Job is ' + job.status + '. Come back later.';
+}
+
+async function handleReportRequestSubmit(e) {
+  e.preventDefault();
+  var statusEl = document.getElementById('report-request-status');
+  if (statusEl) statusEl.textContent = 'Queueing report...';
+
+  var payload = {
+    authorQuery: document.getElementById('report-author-query').value,
+    authorId: document.getElementById('report-author-id').value,
+    terms: document.getElementById('report-terms').value,
+    from: toIsoStringFromLocalInput(document.getElementById('report-from').value),
+    to: toIsoStringFromLocalInput(document.getElementById('report-to').value),
+    maxResults: document.getElementById('report-max-results').value,
+  };
+
+  var result = await api('/api/report-requests', 'POST', payload);
+  if (!result.ok) {
+    if (statusEl) statusEl.textContent = (result.data && result.data.error) || 'Failed to queue report.';
+    toast('Report queue failed', 'error');
+    return;
+  }
+
+  if (statusEl) statusEl.textContent = 'Report queued. Come back later or click the new job to inspect status.';
+  toast('Report queued');
+  selectedReportJobId = result.data && result.data.job && result.data.job.id;
+  await loadReportJobs();
+}
+
+window.resetReportRequestForm = function () {
+  var form = document.getElementById('report-request-form');
+  if (form) form.reset();
+  setDefaultReportRange();
+  var maxResults = document.getElementById('report-max-results');
+  if (maxResults) maxResults.value = 100;
+  var statusEl = document.getElementById('report-request-status');
+  if (statusEl) statusEl.textContent = '';
+};
+
+function setDefaultReportRange() {
+  var from = document.getElementById('report-from');
+  var to = document.getElementById('report-to');
+  if (!from || !to) return;
+  var now = new Date();
+  var dayAgo = new Date(now.getTime() - (24 * 60 * 60 * 1000));
+  from.value = formatLocalDateTime(dayAgo);
+  to.value = formatLocalDateTime(now);
 }
 
 function startLiveTail() {
@@ -402,6 +592,27 @@ function toast(msg, type) {
 }
 
 // ── Utils ──────────────────────────────────────────────────────────────────────
+function formatLocalDateTime(date) {
+  var pad = function(num) { return String(num).padStart(2, '0'); };
+  return date.getFullYear() + '-' +
+    pad(date.getMonth() + 1) + '-' +
+    pad(date.getDate()) + 'T' +
+    pad(date.getHours()) + ':' +
+    pad(date.getMinutes());
+}
+
+function toIsoStringFromLocalInput(value) {
+  if (!value) return '';
+  return new Date(value).toISOString();
+}
+
+function formatShortDate(value) {
+  if (!value) return '—';
+  var date = new Date(value);
+  if (isNaN(date.getTime())) return '—';
+  return date.toLocaleString();
+}
+
 function escHtml(str) {
   if (str == null) return '';
   return String(str)

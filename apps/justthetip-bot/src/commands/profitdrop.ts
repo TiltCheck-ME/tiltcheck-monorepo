@@ -11,7 +11,7 @@ export const profitdrop: Command = {
 
   async execute(interaction: ChatInputCommandInteraction) {
     await interaction.reply({
-      content: '[UNAVAILABLE] /profitdrop is not live in this build. Use `/rain` for the active channel drop flow or `/juice` for voice-room tipping.',
+      content: '[UNAVAILABLE] /profitdrop is not live in this build. Use `/rain channel` for the active channel flow or `/rain voice` for voice-room tipping.',
       ephemeral: true,
     });
   },

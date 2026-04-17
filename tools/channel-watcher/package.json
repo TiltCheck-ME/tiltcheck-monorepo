@@ -10,6 +10,7 @@
         "live": "node index.js --live",
         "10m": "node index.js --live --duration=10",
         "bonus:sync": "node sync-bonus-drops.js",
+        "bonus:watch": "node sync-bonus-drops.js --watch",
         "bonus:schedule": "powershell -ExecutionPolicy Bypass -File ./register-bonus-sync-task.ps1",
         "cloud": "powershell -ExecutionPolicy Bypass -File ./run-cloud-watcher.ps1",
         "cloud:schedule": "powershell -ExecutionPolicy Bypass -File ./register-cloud-watcher-task.ps1",

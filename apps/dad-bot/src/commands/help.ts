@@ -34,7 +34,7 @@ export function buildHelpEmbed(): EmbedBuilder {
     {
       name: 'Activities',
       value:
-        '`/play game:<trivia|blackjack|war>` — Launch a live Discord activity',
+        '`/play game:<trivia|blackjack>` — Launch a live Discord activity',
       inline: false,
     },
     {

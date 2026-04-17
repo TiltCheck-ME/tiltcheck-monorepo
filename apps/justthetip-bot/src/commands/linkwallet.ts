@@ -9,7 +9,7 @@ import { registerExternalWallet } from '../services/tipping/wallet-manager.js';
 export const linkwallet: Command = {
   data: new SlashCommandBuilder()
     .setName('linkwallet')
-    .setDescription('Link your Solana wallet address for payouts and juice drops')
+    .setDescription('Link your Solana wallet address for /rain payouts and future payout flows')
     .addStringOption(opt =>
       opt
         .setName('address')
@@ -38,7 +38,7 @@ export const linkwallet: Command = {
           `Your payout wallet is now linked for JustTheTip.\n\n` +
           `**User:** \`${interaction.user.username}\`\n` +
           `**Address:** \`${address.substring(0, 4)}...${address.substring(address.length - 4)}\`\n\n` +
-          `Use \`/juicedrop\` and future payout flows with this address.`
+          `Use \`/rain voice\`, \`/rain channel\`, and future payout flows with this address.`
         )
         .setFooter({ text: 'Non-custodial. You still sign with your own wallet.' });
 

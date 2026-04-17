@@ -1,4 +1,4 @@
-/* Copyright (c) 2026 TiltCheck. All rights reserved. */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-17 */
 import express from 'express';
 import session from 'express-session';
 import { createServer } from 'http';
@@ -9,6 +9,13 @@ import { Strategy as DiscordStrategy } from 'passport-discord';
 import { fileURLToPath, pathToFileURL } from 'url';
 import { exec, spawn } from 'child_process';
 import { promisify } from 'util';
+import {
+  createJob,
+  getJobById,
+  getJobList,
+  getReportConfig,
+  startReportWorker,
+} from './report-requests.js';
 
 const execAsync = promisify(exec);
 const __filename = fileURLToPath(import.meta.url);
@@ -17,11 +24,19 @@ const __dirname = path.dirname(__filename);
 const app = express();
 const server = createServer(app);
 const wss = new WebSocketServer({ server });
+app.set('trust proxy', true);
 
 const PORT = process.env.CONTROL_ROOM_PORT || process.env.PORT || 3001;
 const isProd = process.env.NODE_ENV === 'production';
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
 const SESSION_SECRET = process.env.SESSION_SECRET;
+const DISCORD_CLIENT_ID = process.env.TILT_DISCORD_CLIENT_ID || process.env.DISCORD_CLIENT_ID;
+const DISCORD_CLIENT_SECRET = process.env.TILT_DISCORD_CLIENT_SECRET || process.env.DISCORD_CLIENT_SECRET;
+const DISCORD_AUTH_ENABLED = Boolean(DISCORD_CLIENT_ID && DISCORD_CLIENT_SECRET);
+const CONTROL_ROOM_ALLOWED_IPS = (process.env.CONTROL_ROOM_ALLOWED_IPS || '')
+  .split(',')
+  .map((entry) => entry.trim())
+  .filter(Boolean);
 
 if (!ADMIN_PASSWORD || !SESSION_SECRET) {
   throw new Error('[control-room] ADMIN_PASSWORD and SESSION_SECRET env vars are required');
@@ -32,6 +47,34 @@ const ADMIN_WHITE_LIST = (process.env.ADMIN_DISCORD_IDS || '')
   .split(',')
   .map((id) => id.trim())
   .filter(Boolean);
+
+function normalizeIpAddress(value) {
+  if (!value) return '';
+  const trimmed = String(value).trim();
+  if (trimmed.startsWith('::ffff:')) {
+    return trimmed.slice(7);
+  }
+  return trimmed;
+}
+
+function getClientIp(req) {
+  const forwarded = req.headers['x-forwarded-for'];
+  if (typeof forwarded === 'string' && forwarded.trim()) {
+    return normalizeIpAddress(forwarded.split(',')[0]);
+  }
+
+  return normalizeIpAddress(req.socket?.remoteAddress || req.ip || '');
+}
+
+function sendIpForbidden(req, res) {
+  const message = 'Forbidden: Control Room IP allowlist rejected this request';
+  if ((req.headers.accept || '').includes('text/html')) {
+    res.status(403).send(message);
+    return;
+  }
+
+  res.status(403).json({ error: message });
+}
 
 // Known containers in the TiltCheck stack
 const KNOWN_CONTAINERS = [
@@ -51,24 +94,24 @@ const KNOWN_CONTAINERS = [
 passport.serializeUser((user, done) => done(null, user));
 passport.deserializeUser((obj, done) => done(null, obj));
 
-passport.use(new DiscordStrategy({
-    clientID: process.env.TILT_DISCORD_CLIENT_ID || process.env.DISCORD_CLIENT_ID,
-    clientSecret: process.env.TILT_DISCORD_CLIENT_SECRET || process.env.DISCORD_CLIENT_SECRET,
-    callbackURL: process.env.DISCORD_CALLBACK_URL || 'http://localhost:3001/auth/discord/callback',
-    scope: ['identify', 'guilds', 'guilds.members.read']
-}, (accessToken, refreshToken, profile, done) => {
-    // Check if user is in whitelist
-    const isWhitelisted = ADMIN_WHITE_LIST.includes(profile.id);
-    
-    // Future: Role Check (requires 'guilds.members.read' and checking a specific guild_id)
-    // For now, we stick to ID whitelist as requested
-    
-    if (isWhitelisted) {
-        return done(null, profile);
-    }
-    
-    return done(null, false, { message: 'Unauthorized: Discord ID not in whitelist.' });
-}));
+if (DISCORD_AUTH_ENABLED) {
+  passport.use(new DiscordStrategy({
+      clientID: DISCORD_CLIENT_ID,
+      clientSecret: DISCORD_CLIENT_SECRET,
+      callbackURL: process.env.DISCORD_CALLBACK_URL || 'http://localhost:3001/auth/discord/callback',
+      scope: ['identify', 'guilds', 'guilds.members.read']
+  }, (accessToken, refreshToken, profile, done) => {
+      const isWhitelisted = ADMIN_WHITE_LIST.includes(profile.id);
+
+      if (isWhitelisted) {
+          return done(null, profile);
+      }
+
+      return done(null, false, { message: 'Unauthorized: Discord ID not in whitelist.' });
+  }));
+} else {
+  console.warn('[control-room] Discord OAuth disabled because client credentials are missing');
+}
 
 // ─── Middleware ────────────────────────────────────────────────────────────────
 
@@ -82,17 +125,37 @@ app.use((req, res, next) => {
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(session({
+  name: 'control-room.sid',
   secret: SESSION_SECRET,
+  proxy: true,
   resave: false,
   saveUninitialized: false,
   cookie: {
-    secure: isProd,
+    secure: isProd ? 'auto' : false,
+    httpOnly: true,
+    sameSite: 'lax',
     maxAge: 24 * 60 * 60 * 1000,
   },
 }));
 
 app.use(passport.initialize());
 app.use(passport.session());
+
+app.use((req, res, next) => {
+  if (req.path === '/health' || CONTROL_ROOM_ALLOWED_IPS.length === 0) {
+    next();
+    return;
+  }
+
+  const clientIp = getClientIp(req);
+  if (CONTROL_ROOM_ALLOWED_IPS.includes(clientIp)) {
+    next();
+    return;
+  }
+
+  console.warn(`[control-room] Rejected request from IP ${clientIp || 'unknown'} for ${req.method} ${req.path}`);
+  sendIpForbidden(req, res);
+});
 
 app.use(express.static(path.join(__dirname, '../public')));
 
@@ -102,12 +165,60 @@ const requireAuth = (req, res, next) => {
   res.status(401).json({ error: 'Unauthorized: Clearance Level 2 Required' });
 };
 
+function redirectAuthFailure(res, reason = 'unauthorized') {
+  res.redirect(`/?error=${encodeURIComponent(reason)}`);
+}
+
 // ─── Auth Routes ───────────────────────────────────────────────────────────────
-app.get('/auth/discord', passport.authenticate('discord'));
-app.get('/auth/discord/callback', passport.authenticate('discord', {
-    failureRedirect: '/login?error=unauthorized'
-}), (req, res) => {
-    res.redirect('/');
+app.get('/auth/discord', (req, res, next) => {
+  if (!DISCORD_AUTH_ENABLED) {
+    res.status(503).json({ error: 'Discord OAuth is not configured for Control Room' });
+    return;
+  }
+
+  req.session.oauthStateRequestedAt = Date.now();
+  req.session.save((error) => {
+    if (error) {
+      console.error('[control-room] Failed to persist OAuth session before redirect:', error);
+      redirectAuthFailure(res, 'oauth_session');
+      return;
+    }
+
+    passport.authenticate('discord')(req, res, next);
+  });
+});
+
+app.get('/auth/discord/callback', (req, res, next) => {
+  if (!DISCORD_AUTH_ENABLED) {
+    res.status(503).json({ error: 'Discord OAuth is not configured for Control Room' });
+    return;
+  }
+
+  passport.authenticate('discord', (error, user, info) => {
+    if (error) {
+      console.error('[control-room] Discord OAuth callback failed:', error);
+      redirectAuthFailure(res, 'oauth_state');
+      return;
+    }
+
+    if (!user) {
+      const reason = info?.message === 'Unauthorized: Discord ID not in whitelist.'
+        ? 'unauthorized'
+        : 'oauth_state';
+      redirectAuthFailure(res, reason);
+      return;
+    }
+
+    req.logIn(user, (loginError) => {
+      if (loginError) {
+        console.error('[control-room] Discord login session failed:', loginError);
+        redirectAuthFailure(res, 'oauth_session');
+        return;
+      }
+
+      res.redirect('/');
+    });
+  })(req, res, next);
 });
 
 app.post('/api/auth/login', (req, res) => {
@@ -130,8 +241,46 @@ app.post('/api/auth/logout', (req, res) => {
 app.get('/api/auth/status', (req, res) => {
   res.json({ 
       authenticated: !!req.session.authenticated || req.isAuthenticated(),
-      user: req.user ? { id: req.user.id, username: req.user.username } : null
+      user: req.user ? { id: req.user.id, username: req.user.username } : null,
+      discordAuthEnabled: DISCORD_AUTH_ENABLED,
+   });
+});
+
+// ─── Channel Report Requests ─────────────────────────────────────────────────────
+app.get('/api/report-requests/config', requireAuth, (req, res) => {
+  res.json({
+    ...getReportConfig(),
+    authMode: {
+      discordWhitelistEnabled: ADMIN_WHITE_LIST.length > 0,
+      discordOAuthEnabled: DISCORD_AUTH_ENABLED,
+      passwordEnabled: Boolean(ADMIN_PASSWORD),
+      ipAllowlistEnabled: CONTROL_ROOM_ALLOWED_IPS.length > 0,
+    },
   });
+});
+
+app.get('/api/report-requests', requireAuth, (req, res) => {
+  res.json({ jobs: getJobList() });
+});
+
+app.get('/api/report-requests/:id', requireAuth, (req, res) => {
+  const job = getJobById(req.params.id);
+  if (!job) {
+    res.status(404).json({ error: 'Report job not found' });
+    return;
+  }
+
+  res.json({ job });
+});
+
+app.post('/api/report-requests', requireAuth, (req, res) => {
+  try {
+    const createdBy = req.user?.username || 'admin-password';
+    const job = createJob({ ...req.body, createdBy });
+    res.status(202).json({ job });
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
 });
 
 // ─── Docker Helpers ────────────────────────────────────────────────────────────
@@ -400,6 +549,8 @@ wss.on('connection', (ws) => {
 // ─── Health ────────────────────────────────────────────────────────────────────
 app.get('/health', (req, res) => res.json({ status: 'ok', port: PORT }));
 
+startReportWorker();
+
 const isMainModule = process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href;
 if (isMainModule) {
   server.listen(PORT, () => {
@@ -409,4 +560,4 @@ if (isMainModule) {
   });
 }
 
-export { app, server, sanitizeContainer };
+export { app, server, sanitizeContainer, normalizeIpAddress };

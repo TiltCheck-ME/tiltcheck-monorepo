@@ -15,6 +15,10 @@ import {
   setWalletActionLockForUser,
   clearWalletActionLockForUser,
   getWalletActionLockStatus,
+  requestAdminWalletUnlockForUser,
+  approveAdminWalletUnlockForUser,
+  requestPaidWalletUnlockForUser,
+  settlePaidWalletUnlockForUser,
   addSecondOwner,
   initiateWithdrawal,
   approveWithdrawal,
@@ -55,6 +59,10 @@ function isAuthorized(auth: AuthRequest['user'], userId: string): boolean {
   return auth?.id === userId || (auth as any)?.discordId === userId;
 }
 
+function isAdmin(auth: AuthRequest['user']): boolean {
+  return Array.isArray(auth?.roles) && auth.roles.includes('admin');
+}
+
 /** Narrow req.params value to string (handles string | string[] edge case) */
 function param(req: { params: Record<string, string | string[]> }, name: string): string {
   const v = req.params[name];
@@ -70,6 +78,7 @@ function walletLockBlockedResponse(userId: string) {
     lockUntil: new Date(status.lockUntil).toISOString(),
     remainingMs: status.remainingMs,
     reason: status.reason || null,
+    earlyUnlockRequest: status.earlyUnlockRequest || null,
   };
 }
 
@@ -201,8 +210,114 @@ router.post('/:userId/wallet-unlock', authMiddleware, async (req, res) => {
     return;
   }
 
+  const status = getWalletActionLockStatus(userId);
+  if (status.locked && status.remainingMs && status.remainingMs > 0) {
+    res.status(423).json({
+      error: 'Wallet lock is still active. Use admin approval or pay the early unlock fee.',
+      code: 'WALLET_LOCK_STILL_ACTIVE',
+      lockUntil: status.lockUntil ? new Date(status.lockUntil).toISOString() : null,
+      remainingMs: status.remainingMs,
+      reason: status.reason || null,
+      earlyUnlockRequest: status.earlyUnlockRequest || null,
+      unlockOptions: ['admin_approval', 'paid_early_unlock'],
+    });
+    return;
+  }
+
   clearWalletActionLockForUser(userId);
   res.json({ success: true, locked: false });
+});
+
+/**
+ * POST /vault/:userId/wallet-unlock-request
+ * Opens an early unlock path for admin approval or paid unlock
+ */
+router.post('/:userId/wallet-unlock-request', authMiddleware, async (req, res) => {
+  const userId = param(req, 'userId');
+  const auth = (req as AuthRequest).user;
+  const { mode } = req.body || {};
+
+  if (!isAuthorized(auth, userId)) {
+    res.status(403).json({ error: 'Unauthorized' });
+    return;
+  }
+
+  if (mode !== 'admin_approval' && mode !== 'paid_early_unlock') {
+    res.status(400).json({ error: 'mode must be admin_approval or paid_early_unlock' });
+    return;
+  }
+
+  try {
+    const actorId = (auth as any)?.discordId || auth?.id || userId;
+    const record = mode === 'admin_approval'
+      ? requestAdminWalletUnlockForUser(userId, actorId)
+      : requestPaidWalletUnlockForUser(userId, actorId, 10);
+
+    res.json({
+      success: true,
+      locked: true,
+      lockUntil: new Date(record.lockUntil).toISOString(),
+      earlyUnlockRequest: record.earlyUnlockRequest || null,
+    });
+  } catch (error) {
+    const handled = handleVaultError(error);
+    res.status(handled.status).json(handled.body);
+  }
+});
+
+/**
+ * POST /vault/:userId/wallet-unlock-approve
+ * Admin-only approval path for early wallet unlock
+ */
+router.post('/:userId/wallet-unlock-approve', authMiddleware, async (req, res) => {
+  const userId = param(req, 'userId');
+  const auth = (req as AuthRequest).user;
+
+  if (!isAdmin(auth)) {
+    res.status(403).json({ error: 'Admin approval required' });
+    return;
+  }
+
+  try {
+    const approverId = (auth as any)?.discordId || auth?.id || 'admin';
+    const record = approveAdminWalletUnlockForUser(userId, approverId);
+    res.json({
+      success: true,
+      locked: false,
+      earlyUnlockRequest: record.earlyUnlockRequest || null,
+    });
+  } catch (error) {
+    const handled = handleVaultError(error);
+    res.status(handled.status).json(handled.body);
+  }
+});
+
+/**
+ * POST /vault/:userId/wallet-unlock-pay
+ * Pays the 10% early unlock fee from the user's latest active locked vault
+ */
+router.post('/:userId/wallet-unlock-pay', authMiddleware, async (req, res) => {
+  const userId = param(req, 'userId');
+  const auth = (req as AuthRequest).user;
+
+  if (!isAuthorized(auth, userId)) {
+    res.status(403).json({ error: 'Unauthorized' });
+    return;
+  }
+
+  try {
+    const paidBy = (auth as any)?.discordId || auth?.id || userId;
+    const record = settlePaidWalletUnlockForUser(userId, paidBy);
+    res.json({
+      success: true,
+      locked: false,
+      earlyUnlockRequest: record.earlyUnlockRequest || null,
+      feeChargedSOL: record.earlyUnlockRequest?.feeAmountSOL ?? null,
+    });
+  } catch (error) {
+    const handled = handleVaultError(error);
+    res.status(handled.status).json(handled.body);
+  }
 });
 
 /**

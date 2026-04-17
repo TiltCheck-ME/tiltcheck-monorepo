@@ -115,6 +115,17 @@ export interface WalletActionLock {
   lockUntil: number;
   createdAt: number;
   reason?: string;
+  earlyUnlockRequest?: {
+    mode: 'admin_approval' | 'paid_early_unlock';
+    status: 'pending' | 'approved' | 'completed';
+    requestedAt: number;
+    requestedBy: string;
+    feePercentage?: number;
+    feeAmountSOL?: number;
+    approvedBy?: string;
+    approvedAt?: number;
+    completedAt?: number;
+  };
 }
 
 function now() { return Date.now(); }
@@ -375,6 +386,22 @@ class VaultManager {
     return this.generalBalances.get(userId) || 0;
   }
 
+  private clearWalletActionLockInternal(userId: string): void {
+    this.walletActionLocks.delete(userId);
+    this.schedulePersist();
+  }
+
+  private getLatestLockedVaultForUser(userId: string): LockVaultRecord {
+    const ids = this.byUser.get(userId);
+    if (!ids || ids.size === 0) throw new Error('No vault found for user');
+    const records = Array.from(ids)
+      .map((id) => this.vaults.get(id))
+      .filter((v): v is LockVaultRecord => Boolean(v) && (v!.status === 'locked' || v!.status === 'extended'))
+      .sort((a, b) => b.createdAt - a.createdAt);
+    if (records.length === 0) throw new Error('No active locked vault found for user');
+    return records[0];
+  }
+
   private getLatestVaultForUser(userId: string): LockVaultRecord {
     const ids = this.byUser.get(userId);
     if (!ids || ids.size === 0) throw new Error('No vault found for user');
@@ -523,21 +550,25 @@ class VaultManager {
   }
 
   clearWalletActionLock(userId: string): void {
-    this.walletActionLocks.delete(userId);
-    this.schedulePersist();
+    this.clearWalletActionLockInternal(userId);
   }
 
   getWalletActionLock(userId: string): WalletActionLock | null {
     return this.walletActionLocks.get(userId) || null;
   }
 
-  getWalletActionLockStatus(userId: string): { locked: boolean; lockUntil?: number; remainingMs?: number; reason?: string } {
+  getWalletActionLockStatus(userId: string): {
+    locked: boolean;
+    lockUntil?: number;
+    remainingMs?: number;
+    reason?: string;
+    earlyUnlockRequest?: WalletActionLock['earlyUnlockRequest'];
+  } {
     const lock = this.walletActionLocks.get(userId);
     if (!lock) return { locked: false };
     const remainingMs = lock.lockUntil - now();
     if (remainingMs <= 0) {
-      this.walletActionLocks.delete(userId);
-      this.schedulePersist();
+      this.clearWalletActionLockInternal(userId);
       return { locked: false };
     }
     return {
@@ -545,7 +576,97 @@ class VaultManager {
       lockUntil: lock.lockUntil,
       remainingMs,
       reason: lock.reason,
+      earlyUnlockRequest: lock.earlyUnlockRequest,
     };
+  }
+
+  requestAdminWalletUnlock(userId: string, requestedBy: string): WalletActionLock {
+    const lock = this.walletActionLocks.get(userId);
+    if (!lock) throw new Error('No active wallet lock found.');
+    const remainingMs = lock.lockUntil - now();
+    if (remainingMs <= 0) {
+      this.clearWalletActionLockInternal(userId);
+      throw new Error('Wallet lock has already expired.');
+    }
+
+    lock.earlyUnlockRequest = {
+      mode: 'admin_approval',
+      status: 'pending',
+      requestedAt: now(),
+      requestedBy,
+    };
+    this.schedulePersist();
+    return lock;
+  }
+
+  approveAdminWalletUnlock(userId: string, approvedBy: string): WalletActionLock {
+    const lock = this.walletActionLocks.get(userId);
+    if (!lock) throw new Error('No active wallet lock found.');
+    if (!lock.earlyUnlockRequest || lock.earlyUnlockRequest.mode !== 'admin_approval') {
+      throw new Error('No admin approval request exists for this wallet lock.');
+    }
+
+    lock.earlyUnlockRequest.status = 'approved';
+    lock.earlyUnlockRequest.approvedBy = approvedBy;
+    lock.earlyUnlockRequest.approvedAt = now();
+    lock.earlyUnlockRequest.completedAt = now();
+    this.clearWalletActionLockInternal(userId);
+    return lock;
+  }
+
+  requestPaidWalletUnlock(userId: string, requestedBy: string, feePercentage = 10): WalletActionLock {
+    const lock = this.walletActionLocks.get(userId);
+    if (!lock) throw new Error('No active wallet lock found.');
+    const remainingMs = lock.lockUntil - now();
+    if (remainingMs <= 0) {
+      this.clearWalletActionLockInternal(userId);
+      throw new Error('Wallet lock has already expired.');
+    }
+
+    const vault = this.getLatestLockedVaultForUser(userId);
+    const feeAmountSOL = Number((vault.lockedAmountSOL * (feePercentage / 100)).toFixed(8));
+    if (!Number.isFinite(feeAmountSOL) || feeAmountSOL <= 0) {
+      throw new Error('Unable to calculate early unlock fee.');
+    }
+
+    lock.earlyUnlockRequest = {
+      mode: 'paid_early_unlock',
+      status: 'pending',
+      requestedAt: now(),
+      requestedBy,
+      feePercentage,
+      feeAmountSOL,
+    };
+    this.schedulePersist();
+    return lock;
+  }
+
+  settlePaidWalletUnlock(userId: string, paidBy: string): WalletActionLock {
+    const lock = this.walletActionLocks.get(userId);
+    if (!lock) throw new Error('No active wallet lock found.');
+    const request = lock.earlyUnlockRequest;
+    if (!request || request.mode !== 'paid_early_unlock') {
+      throw new Error('No paid early unlock request exists for this wallet lock.');
+    }
+
+    const vault = this.getLatestLockedVaultForUser(userId);
+    if (!request.feeAmountSOL || request.feeAmountSOL <= 0) {
+      throw new Error('Paid unlock fee is invalid.');
+    }
+    if (vault.lockedAmountSOL <= request.feeAmountSOL) {
+      throw new Error('Vault amount is too small to cover the early unlock fee.');
+    }
+
+    vault.lockedAmountSOL = Number((vault.lockedAmountSOL - request.feeAmountSOL).toFixed(8));
+    vault.history.push({
+      ts: now(),
+      action: 'wallet-lock-early-unlock-fee',
+      note: `${request.feeAmountSOL} SOL charged by ${paidBy}`,
+    });
+    request.status = 'completed';
+    request.completedAt = now();
+    this.clearWalletActionLockInternal(userId);
+    return lock;
   }
 
   setAutoVault(userId: string, settings: AutoVaultSettings): void {
@@ -698,3 +819,15 @@ export function setWalletActionLockForUser(userId: string, durationMs: number, r
 export function clearWalletActionLockForUser(userId: string) { return vaultManager.clearWalletActionLock(userId); }
 export function getWalletActionLockForUser(userId: string) { return vaultManager.getWalletActionLock(userId); }
 export function getWalletActionLockStatus(userId: string) { return vaultManager.getWalletActionLockStatus(userId); }
+export function requestAdminWalletUnlockForUser(userId: string, requestedBy: string) {
+  return vaultManager.requestAdminWalletUnlock(userId, requestedBy);
+}
+export function approveAdminWalletUnlockForUser(userId: string, approvedBy: string) {
+  return vaultManager.approveAdminWalletUnlock(userId, approvedBy);
+}
+export function requestPaidWalletUnlockForUser(userId: string, requestedBy: string, feePercentage?: number) {
+  return vaultManager.requestPaidWalletUnlock(userId, requestedBy, feePercentage);
+}
+export function settlePaidWalletUnlockForUser(userId: string, paidBy: string) {
+  return vaultManager.settlePaidWalletUnlock(userId, paidBy);
+}

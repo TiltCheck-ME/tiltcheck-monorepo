@@ -6,6 +6,7 @@ import { fileURLToPath } from 'url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(__dirname, '..', '..');
+const cliArgs = process.argv.slice(2);
 
 function loadEnv(filePath) {
   if (!fs.existsSync(filePath)) return;
@@ -27,14 +28,34 @@ loadEnv(path.join(repoRoot, '.env'));
 const DATA_DIR = process.env.DATA_DIR ? path.resolve(process.env.DATA_DIR) : __dirname;
 const SESSION_FILE = path.join(DATA_DIR, '.session.json');
 const STATE_FILE = path.join(DATA_DIR, '.bonus-sync-state.json');
-const SOURCE_CHANNEL_URL = process.env.BONUS_SOURCE_CHANNEL_URL || process.argv.slice(2).find(arg => !arg.startsWith('--')) || '';
 const BONUS_DROPS_CHANNEL_ID = process.env.BONUS_DROPS_CHANNEL_ID || '1488256038665981982';
 const DISCORD_BOT_TOKEN = process.env.TILT_DISCORD_BOT_TOKEN || process.env.DISCORD_BOT_TOKEN || '';
-const DRY_RUN = process.argv.includes('--dry-run');
-const HEADLESS = process.env.BONUS_SYNC_HEADLESS === 'true';
+const DRY_RUN = cliArgs.includes('--dry-run');
+const WATCH_MODE = cliArgs.includes('--watch') || process.env.BONUS_SYNC_WATCH === 'true';
+const HEADLESS = !cliArgs.includes('--headed') && process.env.BONUS_SYNC_HEADLESS !== 'false';
+const POLL_INTERVAL_MS = Math.max(
+  parseInt(process.env.BONUS_SYNC_INTERVAL_SECONDS || '45', 10) || 45,
+  15
+) * 1000;
 const MAX_SCROLL_PASSES = parseInt(process.env.BONUS_SYNC_SCROLL_PASSES || '18', 10);
+const LIVE_SCROLL_PASSES = Math.max(
+  parseInt(process.env.BONUS_SYNC_LIVE_SCROLL_PASSES || '3', 10) || 3,
+  1
+);
 const SCROLL_STEP = parseInt(process.env.BONUS_SYNC_SCROLL_STEP || '2200', 10);
 const MAX_REDIRECTS = 6;
+const BRAND_COLOR = 0x17C3B2;
+
+function parseSourceChannelUrls() {
+  const envUrls = [
+    ...(process.env.BONUS_SOURCE_CHANNEL_URLS || '').split(','),
+    process.env.BONUS_SOURCE_CHANNEL_URL || '',
+  ];
+  const cliUrls = cliArgs.filter(arg => !arg.startsWith('--'));
+  return [...new Set([...envUrls, ...cliUrls].map(normalizeSpace).filter(Boolean))];
+}
+
+const SOURCE_CHANNEL_URLS = parseSourceChannelUrls();
 
 function loadSavedDiscordToken() {
   const explicitToken = process.env.DISCORD_TOKEN || process.env.TILT_DISCORD_TOKEN || '';
@@ -94,6 +115,26 @@ function normalizeSpace(value) {
   return (value || '').replace(/\s+/g, ' ').trim();
 }
 
+function truncate(value, maxLength) {
+  if (!value) return '';
+  if (value.length <= maxLength) return value;
+  return `${value.slice(0, Math.max(0, maxLength - 1)).trimEnd()}…`;
+}
+
+function parseSourceChannelParts(channelUrl) {
+  try {
+    const parsed = new URL(channelUrl);
+    const parts = parsed.pathname.split('/').filter(Boolean);
+    if (parts[0] !== 'channels' || parts.length < 3) return null;
+    return {
+      guildId: parts[1],
+      channelId: parts[2],
+    };
+  } catch {
+    return null;
+  }
+}
+
 function cleanContent(raw, urls) {
   let cleaned = normalizeSpace(raw);
   for (const url of urls) {
@@ -117,23 +158,26 @@ function cleanContent(raw, urls) {
 
 function readState() {
   if (!fs.existsSync(STATE_FILE)) {
-    return { postedUrls: [], postedSourceMessageIds: [] };
+    return { postedUrls: [], postedSourceMessageKeys: [] };
   }
   try {
     const parsed = JSON.parse(fs.readFileSync(STATE_FILE, 'utf8'));
+    const legacyMessageIds = Array.isArray(parsed.postedSourceMessageIds) ? parsed.postedSourceMessageIds : [];
     return {
       postedUrls: Array.isArray(parsed.postedUrls) ? parsed.postedUrls : [],
-      postedSourceMessageIds: Array.isArray(parsed.postedSourceMessageIds) ? parsed.postedSourceMessageIds : [],
+      postedSourceMessageKeys: Array.isArray(parsed.postedSourceMessageKeys)
+        ? parsed.postedSourceMessageKeys
+        : legacyMessageIds,
     };
   } catch {
-    return { postedUrls: [], postedSourceMessageIds: [] };
+    return { postedUrls: [], postedSourceMessageKeys: [] };
   }
 }
 
 function writeState(state) {
   const trimmed = {
     postedUrls: state.postedUrls.slice(-500),
-    postedSourceMessageIds: state.postedSourceMessageIds.slice(-500),
+    postedSourceMessageKeys: state.postedSourceMessageKeys.slice(-500),
   };
   fs.writeFileSync(STATE_FILE, JSON.stringify(trimmed, null, 2));
 }
@@ -201,8 +245,7 @@ function buildTitle(content, brand, fallbackTitle) {
   return title;
 }
 
-async function scrapeMessagesOnce() {
-  if (!SOURCE_CHANNEL_URL) throw new Error('BONUS_SOURCE_CHANNEL_URL is required.');
+async function createDiscordContext() {
   if (!fs.existsSync(SESSION_FILE)) throw new Error(`Missing Discord session file: ${SESSION_FILE}`);
   if (!DISCORD_USER_TOKEN) {
     throw new Error('No saved Discord user token found. Set DISCORD_TOKEN in .env or recreate tools/channel-watcher/.session.json with npm run session:create once.');
@@ -217,21 +260,26 @@ async function scrapeMessagesOnce() {
   await context.addInitScript((token) => {
     window.localStorage.setItem('token', JSON.stringify(token));
   }, DISCORD_USER_TOKEN);
-  const page = await context.newPage();
-  await page.goto(SOURCE_CHANNEL_URL, { waitUntil: 'domcontentloaded', timeout: 120000 });
+  return { browser, context };
+}
+
+async function loadSourcePage(page, sourceChannelUrl) {
+  await page.goto(sourceChannelUrl, { waitUntil: 'domcontentloaded', timeout: 120000 });
   await page.waitForSelector('ol[data-list-id="chat-messages"]', { timeout: 60000 });
   await page.waitForTimeout(2500);
+}
 
+async function scrapeMessagesFromPage(page, scrollPasses) {
   const seen = new Map();
-  for (let pass = 0; pass < MAX_SCROLL_PASSES; pass += 1) {
+  for (let pass = 0; pass < scrollPasses; pass += 1) {
     const batch = await page.evaluate(() => {
       const items = Array.from(document.querySelectorAll('ol[data-list-id="chat-messages"] > li[id^="chat-messages-"]'));
-      return items.map((item) => {
-        const messageId = item.id;
-        const author =
-          item.querySelector('h3 span[class*="username"], h3 span[class*="headerText"] span')?.textContent ||
-          item.querySelector('span[id^="message-username-"]')?.textContent ||
-          '';
+        return items.map((item) => {
+          const messageId = item.id.replace(/^chat-messages-/, '');
+          const author =
+            item.querySelector('h3 span[class*="username"], h3 span[class*="headerText"] span')?.textContent ||
+            item.querySelector('span[id^="message-username-"]')?.textContent ||
+            '';
         const timestamp =
           item.querySelector('time')?.getAttribute('datetime') ||
           item.querySelector('time')?.textContent ||
@@ -263,20 +311,59 @@ async function scrapeMessagesOnce() {
     await page.waitForTimeout(1200);
   }
 
-  await browser.close();
   return Array.from(seen.values()).sort((a, b) => a.messageId.localeCompare(b.messageId));
 }
 
-async function scrapeMessages() {
+async function scrapeMessages(options = {}) {
+  if (!SOURCE_CHANNEL_URLS.length) {
+    throw new Error('BONUS_SOURCE_CHANNEL_URL or BONUS_SOURCE_CHANNEL_URLS is required.');
+  }
+
+  const { context: existingContext, pages: existingPages, scrollPasses = MAX_SCROLL_PASSES } = options;
+  let ownedBrowser = null;
+  let context = existingContext;
+  const pages = existingPages || new Map();
+
+  if (!context) {
+    ownedBrowser = await createDiscordContext();
+    context = ownedBrowser.context;
+  }
+
   let lastError = null;
   for (let attempt = 1; attempt <= 2; attempt += 1) {
     try {
-      return await scrapeMessagesOnce();
+      const allMessages = [];
+
+      for (const sourceChannelUrl of SOURCE_CHANNEL_URLS) {
+        let page = pages.get(sourceChannelUrl);
+        if (!page) {
+          page = await context.newPage();
+          pages.set(sourceChannelUrl, page);
+        }
+
+        await loadSourcePage(page, sourceChannelUrl);
+        const messages = await scrapeMessagesFromPage(page, scrollPasses);
+        allMessages.push(
+          ...messages.map(message => ({
+            ...message,
+            sourceChannelUrl,
+          }))
+        );
+      }
+
+      if (ownedBrowser) {
+        await ownedBrowser.browser.close();
+      }
+      return allMessages;
     } catch (error) {
       lastError = error;
       if (attempt === 2) break;
       await new Promise(resolve => setTimeout(resolve, 3000));
     }
+  }
+
+  if (ownedBrowser) {
+    await ownedBrowser.browser.close();
   }
   throw lastError;
 }
@@ -301,6 +388,8 @@ async function buildEntries(messages) {
 
       entries.push({
         sourceMessageId: message.messageId,
+        sourceMessageKey: `${message.sourceChannelUrl}|${message.messageId}`,
+        sourceChannelUrl: message.sourceChannelUrl,
         author: message.author,
         timestamp: message.timestamp,
         brand: brandInfo.brand,
@@ -318,47 +407,88 @@ async function buildEntries(messages) {
   return Array.from(unique.values());
 }
 
-function buildDiscordChunks(entries) {
-  const lines = [
-    `**BONUS DROPS SYNC**`,
-    `Fresh pulls from the monitored source feed. Non-bonus chatter stripped.`,
-    '',
-  ];
-
-  for (const entry of entries) {
-    lines.push(`- **${entry.brand}** — ${entry.title}`);
-    lines.push(`  ${entry.finalUrl}`);
-  }
-
-  const chunks = [];
-  let current = '';
-  for (const line of lines) {
-    const next = current ? `${current}\n${line}` : line;
-    if (next.length > 1800) {
-      chunks.push(current);
-      current = line;
-    } else {
-      current = next;
-    }
-  }
-  if (current) chunks.push(current);
-  return chunks;
+function buildSourceMessageUrl(entry) {
+  const sourceChannelParts = parseSourceChannelParts(entry.sourceChannelUrl);
+  if (!sourceChannelParts) return entry.sourceChannelUrl;
+  return `https://discord.com/channels/${sourceChannelParts.guildId}/${sourceChannelParts.channelId}/${entry.sourceMessageId}`;
 }
 
-async function postChunks(chunks) {
+function buildDiscordPayload(entry) {
+  const description = [
+    `**${truncate(entry.title, 180)}**`,
+    `Fresh pull from the monitored bonus feed. Claim it before it gets rinsed.`,
+  ].join('\n');
+
+  const fields = [
+    {
+      name: 'Brand',
+      value: entry.brand,
+      inline: true,
+    },
+    {
+      name: 'Source',
+      value: truncate(entry.author || 'Monitored bonus source', 1024),
+      inline: true,
+    },
+  ];
+
+  if (entry.timestamp) {
+    fields.push({
+      name: 'Posted',
+      value: truncate(entry.timestamp, 1024),
+      inline: true,
+    });
+  }
+
+  const sourceMessageUrl = buildSourceMessageUrl(entry);
+
+  return {
+    embeds: [
+      {
+        color: BRAND_COLOR,
+        title: `BONUS ALERT | ${entry.brand.toUpperCase()}`,
+        description,
+        fields,
+        footer: {
+          text: 'TiltCheck bonus relay | Made for Degens. By Degens.',
+        },
+        timestamp: new Date().toISOString(),
+      },
+    ],
+    components: [
+      {
+        type: 1,
+        components: [
+          {
+            type: 2,
+            style: 5,
+            label: 'Claim bonus',
+            url: entry.finalUrl,
+          },
+          {
+            type: 2,
+            style: 5,
+            label: 'Source post',
+            url: sourceMessageUrl,
+          },
+        ],
+      },
+    ],
+    allowed_mentions: { parse: [] },
+  };
+}
+
+async function postEntries(entries) {
   if (!DISCORD_BOT_TOKEN) throw new Error('TILT_DISCORD_BOT_TOKEN or DISCORD_BOT_TOKEN is required.');
 
-  for (const chunk of chunks) {
+  for (const entry of entries) {
     const response = await fetch(`https://discord.com/api/v10/channels/${BONUS_DROPS_CHANNEL_ID}/messages`, {
       method: 'POST',
       headers: {
         'authorization': `Bot ${DISCORD_BOT_TOKEN}`,
         'content-type': 'application/json',
       },
-      body: JSON.stringify({
-        content: chunk,
-        allowed_mentions: { parse: [] },
-      }),
+      body: JSON.stringify(buildDiscordPayload(entry)),
     });
 
     if (!response.ok) {
@@ -367,12 +497,12 @@ async function postChunks(chunks) {
   }
 }
 
-async function main() {
+async function runSyncPass(options = {}) {
   const state = readState();
-  const messages = await scrapeMessages();
+  const messages = await scrapeMessages(options);
   const entries = await buildEntries(messages);
   const freshEntries = entries.filter(entry =>
-    !state.postedSourceMessageIds.includes(entry.sourceMessageId) &&
+    !state.postedSourceMessageKeys.includes(entry.sourceMessageKey) &&
     !state.postedUrls.includes(entry.finalUrl)
   );
 
@@ -383,16 +513,56 @@ async function main() {
 
   if (DRY_RUN) {
     console.log(JSON.stringify(freshEntries, null, 2));
-    return;
+    return freshEntries.length;
   }
 
-  await postChunks(buildDiscordChunks(freshEntries));
+  await postEntries(freshEntries);
 
   state.postedUrls.push(...freshEntries.map(entry => entry.finalUrl));
-  state.postedSourceMessageIds.push(...freshEntries.map(entry => entry.sourceMessageId));
+  state.postedSourceMessageKeys.push(...freshEntries.map(entry => entry.sourceMessageKey));
   writeState(state);
 
   console.log(`Posted ${freshEntries.length} bonus link(s) to channel ${BONUS_DROPS_CHANNEL_ID}.`);
+  return freshEntries.length;
+}
+
+async function main() {
+  if (!WATCH_MODE) {
+    await runSyncPass();
+    return;
+  }
+
+  console.log(
+    `Watching ${SOURCE_CHANNEL_URLS.length} source channel(s) every ${Math.floor(POLL_INTERVAL_MS / 1000)}s ` +
+    `(${HEADLESS ? 'headless' : 'headed'})`
+  );
+
+  const runtime = await createDiscordContext();
+  const pages = new Map();
+  let firstPass = true;
+
+  try {
+    // eslint-disable-next-line no-constant-condition
+    while (true) {
+      const scrollPasses = firstPass ? MAX_SCROLL_PASSES : LIVE_SCROLL_PASSES;
+      firstPass = false;
+
+      try {
+        await runSyncPass({ context: runtime.context, pages, scrollPasses });
+      } catch (error) {
+        console.error(error?.message || error);
+      }
+
+      if (DRY_RUN) return;
+      await new Promise(resolve => setTimeout(resolve, POLL_INTERVAL_MS));
+    }
+  } finally {
+    try {
+      await runtime.browser.close();
+    } catch {
+      // noop
+    }
+  }
 }
 
 main().catch((error) => {
