@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-09 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-15 */
 "use client";
 
 import React, { useState } from 'react';
@@ -107,15 +107,15 @@ export default function ContactPage() {
       {/* Hero */}
       <section className="border-b border-[#17c3b2]/20 py-24 px-4">
         <div className="max-w-4xl mx-auto">
-          <div className="inline-block text-[10px] font-mono font-bold uppercase tracking-[0.3em] text-[#17c3b2] border border-[#17c3b2]/40 px-3 py-1 mb-6">
+          <div className="brand-eyebrow">
             Contact / Partner / Collab
           </div>
-          <h1 className="text-4xl md:text-5xl font-black uppercase tracking-tighter mb-6 text-white leading-none">
+          <h1 className="brand-page-title text-white leading-none">
             <span className="text-[#17c3b2]">WE ACTUALLY READ THESE.</span>
             <br />
             Get In Touch.
           </h1>
-          <p className="text-gray-400 text-lg max-w-2xl leading-relaxed mt-8">
+          <p className="brand-lead mt-8">
             General questions, partnership pitches, press inquiries, bug reports — this form handles it.
             Pick a topic and tell us what you need. Vague messages get archived.
           </p>

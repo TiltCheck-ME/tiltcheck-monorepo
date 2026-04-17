@@ -1,6 +1,5 @@
 // © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-15
 import ToolCard from "@/components/ToolCard";
-import CommunityVaultStrip from "@/components/CommunityVaultStrip";
 import RtpDriftTicker from "@/components/RtpDriftTicker";
 import ValueProposition from "@/components/ValueProposition";
 
@@ -24,25 +23,6 @@ export default function Home() {
             TiltCheck tracks your live session, audits casino fairness, and <strong>locks your wins before your brain gives them back.</strong>
           </p>
 
-          <div className="hero-stats-strip" role="list" aria-label="TiltCheck capabilities">
-            <div className="hero-stat" role="listitem">
-              <span className="hero-stat-value">LIVE</span>
-              <span className="hero-stat-label">Tilt Monitor</span>
-            </div>
-            <div className="hero-stat" role="listitem">
-              <span className="hero-stat-value">AUTO-LOCK</span>
-              <span className="hero-stat-label">Win Vault</span>
-            </div>
-            <div className="hero-stat" role="listitem">
-              <span className="hero-stat-value">GREED TAX</span>
-              <span className="hero-stat-label">Per $100 Wagered</span>
-            </div>
-            <div className="hero-stat" role="listitem">
-              <span className="hero-stat-value">9 TOOLS</span>
-              <span className="hero-stat-label">One Audit Layer</span>
-            </div>
-          </div>
-
           <div className="hero-actions">
             <a href="/beta-tester" className="btn btn-primary" data-text="GET EARLY ACCESS">
               GET EARLY ACCESS
@@ -51,11 +31,6 @@ export default function Home() {
               SEE THE TOOLS
             </a>
           </div>
-
-          {/* Hero body copy — inside hero so there's no gap */}
-          <p className="hero-body">
-            Casinos win because you don&apos;t know when to stop. <span className="hero-body-accent">TiltCheck fixes that.</span> Real-time session monitoring, provably fair audits, and a vault that locks your wins before your brain loses them back. Community-scored. No trust required.
-          </p>
         </div>
       </section>
 
@@ -67,9 +42,6 @@ export default function Home() {
 
       {/* Section divider */}
       <div className="section-divider" aria-hidden="true" />
-
-      {/* Community Vault Strip — social proof */}
-      <CommunityVaultStrip />
 
       {/* RTP Drift Live Feed */}
       <RtpDriftTicker />

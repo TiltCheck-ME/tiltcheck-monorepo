@@ -3,11 +3,10 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { Menu, X } from 'lucide-react';
-import LiveStatusIndicator from './LiveStatusIndicator';
 import { useAuth } from '../hooks/useAuth';
 
 const DASHBOARD_URL = process.env.NEXT_PUBLIC_DASHBOARD_URL || 'http://localhost:6001';
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.tiltcheck.me';
+const LOGIN_URL = '/login?redirect=%2Fdashboard';
 
 type NavLink = { href: string; label: string; accent?: string };
 
@@ -68,13 +67,13 @@ const Nav = () => {
       );
     }
     return (
-      <a
-        href={`${API_URL}/auth/discord/login?source=web&redirect=${encodeURIComponent(DASHBOARD_URL)}`}
+      <Link
+        href={LOGIN_URL}
         onClick={close}
         className={compact ? 'nav-auth-compact nav-auth-discord' : 'nav-auth-full nav-auth-discord'}
       >
         {compact ? 'Login' : 'Login with Discord'}
-      </a>
+      </Link>
     );
   };
 
@@ -131,13 +130,11 @@ const Nav = () => {
 
         {/* Desktop right actions */}
         <div className="nav-desktop-actions">
-          <LiveStatusIndicator />
           <AuthButton />
         </div>
 
         {/* Mobile right cluster */}
         <div className="nav-topbar-right">
-          <LiveStatusIndicator />
           <AuthButton compact />
           <button
             onClick={() => setIsOpen(!isOpen)}
@@ -166,7 +163,6 @@ const Nav = () => {
           <MobileLinks />
         </nav>
         <div className="nav-collapse-foot">
-          <LiveStatusIndicator />
           <AuthButton />
         </div>
       </div>

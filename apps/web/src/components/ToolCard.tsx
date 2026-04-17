@@ -1,6 +1,5 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-11 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-15 */
 import Link from 'next/link';
-import Image from 'next/image';
 import React from 'react';
 
 type ToolCardProps = {
@@ -13,7 +12,7 @@ type ToolCardProps = {
   gridClasses?: string;
 };
 
-const ToolCard = ({ href, icon, category, title, description, status, gridClasses }: ToolCardProps) => {
+const ToolCard = ({ href, category, title, description, status, gridClasses }: ToolCardProps) => {
   const isComingSoon = status === 'coming-soon';
   const isFeatured = status === 'featured';
 
@@ -31,10 +30,7 @@ const ToolCard = ({ href, icon, category, title, description, status, gridClasse
     'rounded-none',
     'transition-all',
     'duration-300',
-    'hover:-translate-y-2',
-    'hover:-translate-x-2',
     'hover:border-[#17c3b2]',
-    'hover:shadow-[6px_6px_0px_rgba(23,195,178,0.4)]',
     isComingSoon ? 'coming-soon' : 'live',
     isFeatured ? 'featured' : '',
     gridClasses || ''
@@ -53,15 +49,6 @@ const ToolCard = ({ href, icon, category, title, description, status, gridClasse
   return (
     <Link href={href} className={cardClasses}>
       <div>
-        <div className="tool-card-icon-wrap mb-4">
-          <Image
-            src={icon.startsWith('/') ? icon : `/assets/icons/tools/${icon}`}
-            alt={`${title} icon`}
-            width={64}
-            height={64}
-            className="tool-card-icon transition-transform duration-200 group-hover:scale-110 object-cover w-full h-full"
-          />
-        </div>
         <span className="category-label text-sm font-semibold uppercase tracking-wider text-[color:var(--color-primary)]">
           {category}
         </span>

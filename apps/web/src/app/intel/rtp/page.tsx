@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-06 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-15 */
 import React from 'react';
 import rtpData from '@data/provider-master-rtp.json';
 
@@ -7,11 +7,13 @@ export default function RtpPage() {
     <main className="min-h-screen bg-[#0a0c10] text-white">
       <section className="border-b border-[#283347] py-20 px-4">
         <div className="max-w-4xl mx-auto text-center">
-          <p className="text-xs font-mono text-[#17c3b2] uppercase tracking-widest mb-4">RTP INTEL</p>
-          <h1 className="neon neon-main text-5xl mb-6" data-text="CERTIFIED RTP DATABASE">
-            CERTIFIED RTP DATABASE
+          <p className="brand-eyebrow">RTP Intel</p>
+          <h1 className="brand-page-title">
+            <span className="text-[#17c3b2]">Certified RTP.</span>
+            <br />
+            Database first.
           </h1>
-          <p className="text-lg text-gray-400 max-w-2xl mx-auto font-mono">
+          <p className="brand-lead mx-auto">
             Manufacturer-certified RTP tiers sourced from GLI, eCOGRA, and BMM lab certifications.
             These are the numbers slot providers certify before a game ships — the anchors the Delta Engine compares live sessions against. The gap between max and min tier is the <strong className="text-[#17c3b2]">Greed Premium</strong> the casino can silently take from you.
           </p>

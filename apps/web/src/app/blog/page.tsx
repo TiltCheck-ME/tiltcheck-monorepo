@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-11 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-15 */
 "use client";
 import React, { useState } from 'react';
 
@@ -15,11 +15,13 @@ export default function BlogPage() {
   return (
     <main className="flex min-h-screen flex-col items-center p-4 pt-24 max-w-4xl mx-auto">
       <section className="w-full mb-12">
-        <p className="text-xs font-mono text-[#17c3b2] uppercase tracking-widest mb-4">[INTEL_FEED]</p>
-        <h1 className="neon neon-main text-4xl md:text-6xl mb-4 font-black uppercase tracking-tighter" data-text="DEGEN INTEL">
-          DEGEN INTEL
+        <p className="brand-eyebrow">Intel Feed</p>
+        <h1 className="brand-page-title">
+          <span className="text-[#17c3b2]">Degen intel.</span>
+          <br />
+          Public record pending.
         </h1>
-        <p className="text-gray-400 max-w-2xl border-l-2 border-[#17c3b2] pl-4 py-2 font-mono text-sm">
+        <p className="brand-lead max-w-2xl border-l-2 border-[#17c3b2] pl-4 py-2">
           Clinical analysis of variance, RTP anomalies, and the mathematical reality of your dopamine addiction.
           No fluff. No apologies. Updated every 72 hours by TiltCheck analysts.
         </p>

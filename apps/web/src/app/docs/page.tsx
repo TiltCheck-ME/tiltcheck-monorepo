@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All rights reserved. */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-15 */
 import React from 'react';
 import Link from 'next/link';
 import { getAllDocs } from '@/lib/docs';
@@ -19,12 +19,14 @@ export default async function DocsIndexPage() {
     <div className="flex flex-col gap-12 animate-in fade-in slide-in-from-bottom-4 duration-500 max-w-7xl mx-auto px-4 py-12">
       <header className="border-b border-[#283347] pb-8">
         <div className="flex items-center gap-4 mb-2">
-            <span className="text-xs font-black uppercase tracking-[0.3em] text-[#17c3b2] bg-[#17c3b2]/10 px-2 py-1">Knowledge Base</span>
+            <span className="brand-eyebrow mb-0">Knowledge Base</span>
         </div>
-        <h1 className="text-4xl font-black uppercase tracking-tighter text-[color:var(--color-primary)]">
-          TiltCheck Library <span className="text-sm font-normal text-gray-500">// Documentation & Specs</span>
+        <h1 className="brand-page-title mb-3">
+          <span className="text-[#17c3b2]">TiltCheck library.</span>
+          <br />
+          Documentation and specs.
         </h1>
-        <p className="text-gray-400 mt-2">Transparent documentation for a transparent ecosystem. No fluff—just the math and the protocols that tilt the scale.</p>
+        <p className="brand-lead mt-2">Transparent documentation for a transparent ecosystem. No fluff—just the math and the protocols that tilt the scale.</p>
       </header>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
