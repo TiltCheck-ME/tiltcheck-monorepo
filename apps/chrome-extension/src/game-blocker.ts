@@ -39,11 +39,13 @@ export class GameBlocker {
   private profile: ForbiddenGamesProfile | null = null;
   private profileFetchedAt = 0;
   private discordId: string;
+  private authToken: string;
   private observer: MutationObserver | null = null;
   private pollTimer: ReturnType<typeof setInterval> | null = null;
 
-  constructor(discordId: string) {
+  constructor(discordId: string, authToken: string) {
     this.discordId = discordId;
+    this.authToken = authToken;
   }
 
   async init(): Promise<void> {
@@ -67,7 +69,12 @@ export class GameBlocker {
     try {
       const resp = await fetch(
         `${EXT_CONFIG.API_BASE_URL}/user/${encodeURIComponent(this.discordId)}/exclusions`,
-        { credentials: 'include' }
+        {
+          credentials: 'include',
+          headers: {
+            Authorization: `Bearer ${this.authToken}`,
+          },
+        }
       );
       if (!resp.ok) return;
       const body = await resp.json() as { success: boolean; data: ForbiddenGamesProfile };

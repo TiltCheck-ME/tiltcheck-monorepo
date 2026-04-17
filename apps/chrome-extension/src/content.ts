@@ -445,13 +445,21 @@ function initialize() {
 
   // Surgical Self-Exclusion: init game blocker after a tick so auth storage is ready.
   setTimeout(() => {
-    getUserId().then((discordId) => {
-      gameBlocker = new GameBlocker(discordId);
+    Promise.all([
+      getLinkedDiscordId(),
+      chrome.storage.local.get(['authToken']),
+    ]).then(([discordId, authState]) => {
+      const authToken = typeof authState.authToken === 'string' ? authState.authToken : '';
+      if (!discordId || !authToken) {
+        return;
+      }
+
+      gameBlocker = new GameBlocker(discordId, authToken);
       gameBlocker.init().catch((err) => {
         console.warn('[TiltCheck] Game blocker init failed:', err);
       });
     }).catch(() => {
-      // No user session — skip blocker silently
+      // No linked Discord session — skip blocker silently
     });
   }, 500);
 
@@ -489,25 +497,29 @@ async function startMonitoring() {
   // Initialize tilt detector
   tiltDetector = new TiltDetector(initialBalance, riskLevel, redeemThreshold);
 
-  // Initialize analyzer client with auth token if available
-  const wsUrlWithAuth = authToken ? `${ANALYZER_WS_URL}?token=${authToken}` : ANALYZER_WS_URL;
-  client = new AnalyzerClient(wsUrlWithAuth, (error) => {
-    // Surface post-open disconnect/reconnect failures to UI and logs.
-    console.warn('[TiltGuard] Analyzer connection issue:', error);
-    sidebar?.updateRealityCheck(false);
-    window.dispatchEvent(
-      new CustomEvent('tg-status-update', {
-        detail: { message: 'Analyzer connection dropped. Reconnecting...', type: 'warning' }
-      })
-    );
-  });
+  if (authToken) {
+    const wsUrlWithAuth = `${ANALYZER_WS_URL}?token=${authToken}`;
+    client = new AnalyzerClient(wsUrlWithAuth, (error) => {
+      // Surface post-open disconnect/reconnect failures to UI and logs.
+      console.warn('[TiltGuard] Analyzer connection issue:', error);
+      sidebar?.updateRealityCheck(false);
+      window.dispatchEvent(
+        new CustomEvent('tg-status-update', {
+          detail: { message: 'Analyzer connection dropped. Reconnecting...', type: 'warning' }
+        })
+      );
+    });
 
-  try {
-    await client.connect();
-    console.log('[TiltGuard] Connected to analyzer server');
-    sidebar?.updateRealityCheck(true);
-  } catch {
-    console.log('[TiltGuard] Analyzer backend offline - tilt monitoring only');
+    try {
+      await client.connect();
+      console.log('[TiltGuard] Connected to analyzer server');
+      sidebar?.updateRealityCheck(true);
+    } catch {
+      console.log('[TiltGuard] Analyzer backend offline - tilt monitoring only');
+    }
+  } else {
+    console.log('[TiltGuard] Analyzer disabled until Discord auth is connected');
+    sidebar?.updateRealityCheck(false);
   }
 
   // Generate session ID using cryptographically secure random
@@ -1282,6 +1294,18 @@ async function getUserId(): Promise<string> {
         localStorage.setItem('tiltguard_user_id', userId);
       }
       resolve(userId);
+    }
+  });
+}
+
+async function getLinkedDiscordId(): Promise<string | null> {
+  return new Promise((resolve) => {
+    try {
+      chrome.storage.local.get(['userData'], (result: any) => {
+        resolve(typeof result.userData?.discordId === 'string' ? result.userData.discordId : null);
+      });
+    } catch {
+      resolve(null);
     }
   });
 }

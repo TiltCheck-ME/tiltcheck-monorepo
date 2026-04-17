@@ -7,10 +7,10 @@ import { EXT_CONFIG } from './config.js';
 
 interface ExclusionItem {
   id: string;
-  game_id: string | null;
+  gameId: string | null;
   category: string | null;
   reason: string | null;
-  created_at: string;
+  createdAt: string;
 }
 
 interface UserData {
@@ -117,15 +117,20 @@ function syncCapabilityState() {
   hide('limited-auth-note');
 }
 
+function getLinkedDiscordRouteId(): string | null {
+  return userData?.discordId ?? null;
+}
+
 // ---------------------------------------------------------------------------
 // Tilt / Session status
 // ---------------------------------------------------------------------------
 
 async function loadStatus() {
-  if (!userId || !userData?.discordId) return;
+  const linkedDiscordId = getLinkedDiscordRouteId();
+  if (!linkedDiscordId) return;
 
   try {
-    const res = await fetch(`${EXT_CONFIG.API_BASE_URL}/user/${userId}/status`, {
+    const res = await fetch(`${EXT_CONFIG.API_BASE_URL}/user/${linkedDiscordId}/status`, {
       headers: { 'Content-Type': 'application/json' },
     });
     if (!res.ok) return;
@@ -174,16 +179,21 @@ function formatDuration(startMs: number): string {
 // ---------------------------------------------------------------------------
 
 async function loadExclusions() {
-  if (!userId) return;
+  const linkedDiscordId = getLinkedDiscordRouteId();
+  if (!linkedDiscordId) return;
 
   show('exclusion-loading');
   hide('exclusion-list-wrap');
 
   try {
-    const res = await fetch(`${EXT_CONFIG.API_BASE_URL}/user/${userId}/exclusions`);
+    const token = await getToken();
+    const res = await fetch(`${EXT_CONFIG.API_BASE_URL}/user/${linkedDiscordId}/exclusions`, {
+      credentials: 'include',
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    });
     if (!res.ok) throw new Error('fetch failed');
     const data = await res.json();
-    exclusions = data.exclusions ?? [];
+    exclusions = data.data?.exclusions ?? [];
   } catch {
     exclusions = [];
     toast('Could not load exclusions.', true);
@@ -222,12 +232,12 @@ function renderExclusions() {
   list.style.display = '';
 
   for (const ex of exclusions) {
-    const label = ex.game_id
-      ? ex.game_id
+    const label = ex.gameId
+      ? ex.gameId
       : CATEGORY_LABELS[ex.category ?? ''] ?? ex.category ?? 'Unknown';
-    const badgeClass = ex.game_id ? 'badge-gameid' : 'badge-category';
-    const badgeLabel = ex.game_id ? 'Game ID' : 'Category';
-    const date = new Date(ex.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    const badgeClass = ex.gameId ? 'badge-gameid' : 'badge-category';
+    const badgeLabel = ex.gameId ? 'Game ID' : 'Category';
+    const date = new Date(ex.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 
     const item = document.createElement('div');
     item.className = 'exclusion-item';
@@ -250,7 +260,8 @@ function renderExclusions() {
 }
 
 async function addExclusion() {
-  if (!userId) { toast('Connect your account first.', true); return; }
+  const linkedDiscordId = getLinkedDiscordRouteId();
+  if (!linkedDiscordId) { toast('Connect Discord first.', true); return; }
 
   const mode = addMode;
   const category = ($<HTMLSelectElement>('input-category')).value || undefined;
@@ -262,16 +273,21 @@ async function addExclusion() {
 
   const payload: Record<string, string | undefined> = { reason };
   if (mode === 'category') payload.category = category;
-  else payload.game_id = gameId;
+  else payload.gameId = gameId;
 
   const btn = $<HTMLButtonElement>('btn-add-confirm');
   btn.disabled = true;
   btn.innerHTML = '<div class="spinner"></div>';
 
   try {
-    const res = await fetch(`${EXT_CONFIG.API_BASE_URL}/user/${userId}/exclusions`, {
+    const token = await getToken();
+    const res = await fetch(`${EXT_CONFIG.API_BASE_URL}/user/${linkedDiscordId}/exclusions`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
       body: JSON.stringify(payload),
     });
     if (!res.ok) throw new Error('failed');
@@ -291,10 +307,16 @@ async function addExclusion() {
 }
 
 async function removeExclusion(id: string) {
-  if (!userId) return;
+  const linkedDiscordId = getLinkedDiscordRouteId();
+  if (!linkedDiscordId) return;
 
   try {
-    await fetch(`${EXT_CONFIG.API_BASE_URL}/user/${userId}/exclusions/${id}`, { method: 'DELETE' });
+    const token = await getToken();
+    await fetch(`${EXT_CONFIG.API_BASE_URL}/user/${linkedDiscordId}/exclusions/${id}`, {
+      method: 'DELETE',
+      credentials: 'include',
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    });
     toast('Block removed.');
     await loadExclusions();
   } catch {
@@ -542,12 +564,13 @@ function describeVaultRule(r: VaultRule): string {
 }
 
 async function loadVaultRules() {
-  if (!userId) return;
+  const linkedDiscordId = getLinkedDiscordRouteId();
+  if (!linkedDiscordId) return;
   show('vault-loading');
   hide('vault-rule-list');
   try {
     const token = await getToken();
-    const res = await fetch(`${EXT_CONFIG.API_BASE_URL}/user/${userId}/vault-rules`, {
+    const res = await fetch(`${EXT_CONFIG.API_BASE_URL}/user/${linkedDiscordId}/vault-rules`, {
       headers: { Authorization: `Bearer ${token}` },
     });
     if (!res.ok) throw new Error('Failed to load vault rules');
@@ -622,10 +645,11 @@ async function getToken(): Promise<string> {
 }
 
 async function patchVaultRule(id: string, patch: Partial<VaultRule>) {
-  if (!userId) return;
+  const linkedDiscordId = getLinkedDiscordRouteId();
+  if (!linkedDiscordId) return;
   try {
     const token = await getToken();
-    await fetch(`${EXT_CONFIG.API_BASE_URL}/user/${userId}/vault-rules/${id}`, {
+    await fetch(`${EXT_CONFIG.API_BASE_URL}/user/${linkedDiscordId}/vault-rules/${id}`, {
       method: 'PATCH',
       credentials: 'include',
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
@@ -640,10 +664,11 @@ async function patchVaultRule(id: string, patch: Partial<VaultRule>) {
 }
 
 async function deleteVaultRuleUI(id: string) {
-  if (!userId) return;
+  const linkedDiscordId = getLinkedDiscordRouteId();
+  if (!linkedDiscordId) return;
   try {
     const token = await getToken();
-    await fetch(`${EXT_CONFIG.API_BASE_URL}/user/${userId}/vault-rules/${id}`, {
+    await fetch(`${EXT_CONFIG.API_BASE_URL}/user/${linkedDiscordId}/vault-rules/${id}`, {
       method: 'DELETE',
       credentials: 'include',
       headers: { Authorization: `Bearer ${token}` },
@@ -688,7 +713,8 @@ function switchVaultFieldGroup(type: string) {
 }
 
 async function submitVaultRule() {
-  if (!userId) return;
+  const linkedDiscordId = getLinkedDiscordRouteId();
+  if (!linkedDiscordId) return;
   const type = ($<HTMLSelectElement>('vault-type-select')).value;
   const casino = ($<HTMLSelectElement>('vault-casino')).value || 'all';
   const minWin = parseFloat(($<HTMLInputElement>('vault-min-win')).value) || undefined;
@@ -718,7 +744,7 @@ async function submitVaultRule() {
 
   try {
     const token = await getToken();
-    const res = await fetch(`${EXT_CONFIG.API_BASE_URL}/user/${userId}/vault-rules`, {
+    const res = await fetch(`${EXT_CONFIG.API_BASE_URL}/user/${linkedDiscordId}/vault-rules`, {
       method: 'POST',
       credentials: 'include',
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
