@@ -35,7 +35,17 @@ interface QueueSyncPayload {
 const DEFAULT_REVIEW_CHANNEL_ID = process.env.BETA_APPLICATION_REVIEW_CHANNEL_ID?.trim() || '1488256033502793930';
 const DEFAULT_BETA_ROLE_ID = process.env.BETA_TESTER_ROLE_ID?.trim() || '1492283508456947904';
 const SITE_URL = (process.env.SITE_URL || 'https://tiltcheck.me').replace(/\/+$/, '');
-const DASHBOARD_URL = (process.env.DASHBOARD_URL || 'https://dashboard.tiltcheck.me').replace(/\/+$/, '');
+
+function getDashboardBaseUrl(): string {
+  const configuredUrl = process.env.DASHBOARD_URL?.trim();
+  if (configuredUrl && !/^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?(\/|$)/i.test(configuredUrl)) {
+    return configuredUrl.replace(/\/+$/, '');
+  }
+
+  return 'https://dashboard.tiltcheck.me';
+}
+
+const DASHBOARD_URL = getDashboardBaseUrl();
 const BACKEND_URL = (process.env.BACKEND_URL || 'https://api.tiltcheck.me').replace(/\/+$/, '');
 
 let discordClient: Client | null = null;
