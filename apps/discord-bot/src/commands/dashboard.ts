@@ -10,7 +10,16 @@ import {
 import { getUserTiltStats, getUserTiltHistory } from '../handlers/tilt-events-handler.js';
 import type { Command } from '../types.js';
 
-const DASHBOARD_URL = process.env.DASHBOARD_URL || 'https://dashboard.tiltcheck.me';
+function getDashboardBaseUrl(): string {
+  const configuredUrl = process.env.DASHBOARD_URL?.trim();
+  if (configuredUrl && !/^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?(\/|$)/i.test(configuredUrl)) {
+    return configuredUrl;
+  }
+
+  return 'https://dashboard.tiltcheck.me';
+}
+
+const DASHBOARD_URL = getDashboardBaseUrl();
 
 export const dashboard: Command = {
   data: new SlashCommandBuilder()

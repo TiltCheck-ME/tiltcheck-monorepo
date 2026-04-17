@@ -36,7 +36,17 @@ if (process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY) {
 const onboardedUsers = new Set<string>();
 const userPreferences = new Map<string, UserPreferences>();
 const SITE_URL = process.env.SITE_URL || 'https://tiltcheck.me';
-const DASHBOARD_URL = process.env.DASHBOARD_URL || 'https://dashboard.tiltcheck.me';
+
+function getDashboardBaseUrl(): string {
+  const configuredUrl = process.env.DASHBOARD_URL?.trim();
+  if (configuredUrl && !/^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?(\/|$)/i.test(configuredUrl)) {
+    return configuredUrl;
+  }
+
+  return 'https://dashboard.tiltcheck.me';
+}
+
+const DASHBOARD_URL = getDashboardBaseUrl();
 const DISCORD_INVITE_URL = process.env.DISCORD_INVITE_URL || 'https://discord.gg/gdBsEJfCar';
 
 interface UserPreferences {
