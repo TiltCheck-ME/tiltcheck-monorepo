@@ -20,6 +20,7 @@ import { AutoRefundScheduler } from './services/tipping/auto-refund.js';
 import { BotWalletService } from './services/tipping/bot-wallet.js';
 import { TokenSwapService } from './services/tipping/token-swap.js';
 import { TokenDepositMonitor } from './services/tipping/token-deposit-monitor.js';
+import { recoverOrphanedRainEscrows } from './commands/rain.js';
 
 async function main() {
   const startTime = Date.now();
@@ -59,6 +60,8 @@ async function main() {
   console.log('[DM] Registering direct message handler...');
   registerDMHandler(client);
   console.log('[DM] DM handler ready\n');
+
+  recoverOrphanedRainEscrows();
 
   console.log('[Commands] Loading slash commands...');
   commandHandler.loadCommands();

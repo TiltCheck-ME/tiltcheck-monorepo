@@ -61,16 +61,54 @@ cp .env.example .env
 
 3. Start the control room:
 ```bash
-pnpm start
+pnpm --filter @tiltcheck/control-room start
 ```
 
 4. Access at `http://localhost:3001`
+
+## Access Control
+
+The Control Room should be locked to you, not exposed as a general admin panel.
+
+- `ADMIN_DISCORD_IDS` - Comma-separated Discord user IDs allowed through Discord OAuth
+- `ADMIN_PASSWORD` - Backup password gate for direct login
+- `CONTROL_ROOM_ALLOWED_IPS` - Optional comma-separated IPv4 / IPv6 allowlist for a second network gate
+
+Recommended lock setup:
+
+```bash
+ADMIN_DISCORD_IDS=<your_discord_user_id>
+CONTROL_ROOM_ALLOWED_IPS=68.57.191.75,2001:4860:7:110e::80
+```
+
+That keeps the Control Room behind:
+
+1. Your Discord ID whitelist
+2. Your admin password fallback
+3. Your network allowlist when you are on one of those IPs
+
+If you deploy behind a proxy, make sure the proxy forwards the real client IP so the allowlist can work correctly.
 
 ## Environment Variables
 
 - `CONTROL_ROOM_PORT` - Port (default: 3001)
 - `ADMIN_PASSWORD` - Admin login password
 - `SESSION_SECRET` - Session encryption key
+- `ADMIN_DISCORD_IDS` - Discord user ID whitelist for Control Room OAuth access
+- `CONTROL_ROOM_ALLOWED_IPS` - Optional IPv4 / IPv6 allowlist for Control Room requests
+- `CONTROL_ROOM_DATA_DIR` - Optional persistent directory for queued report jobs and generated report state
+
+## Channel Reports
+
+The Control Room now includes a **Channel Reports** tab for one-off async report requests.
+
+Use it to queue searches like:
+
+- messages from `@ruby` mentioning `provably fair`
+- messages from a specific Discord user ID within a date range
+- term-only searches across a custom timeframe
+
+Each request is queued, processed in the background, and saved so you can come back later and inspect the finished report.
 
 ## Security
 

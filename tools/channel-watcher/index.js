@@ -78,6 +78,8 @@ const SAMPLE_MODE = process.env.SAMPLE_MODE === 'true';
 const SAMPLE_SKIP_PASSES = parseInt(process.env.SAMPLE_SKIP_PASSES || '40', 10);
 const JUMP_TO_DATE = process.env.JUMP_TO_DATE || null; // e.g. '2024-03-01'
 const DEV_UPDATES_WEBHOOK_URL = process.env.DEV_UPDATES_WEBHOOK_URL || process.env.DISCORD_WEBHOOK_URL || '';
+const REPORTS_CHANNEL_ID = process.env.REPORTS_CHANNEL_ID || '';
+const DISCORD_BOT_TOKEN = process.env.TILT_DISCORD_BOT_TOKEN || process.env.DISCORD_BOT_TOKEN || '';
 const TRUST_ENGINE_INGEST_URL = process.env.TRUST_ENGINE_INGEST_URL || '';
 const TRUST_ENGINE_INGEST_KEY = process.env.COMMUNITY_INTEL_INGEST_KEY || '';
 const DISCORD_MESSAGE_LIMIT = 1800;
@@ -323,6 +325,31 @@ function chunkText(text, maxLen = DISCORD_MESSAGE_LIMIT) {
 }
 
 async function postDiscordUpdate(content) {
+    if (REPORTS_CHANNEL_ID && DISCORD_BOT_TOKEN) {
+        try {
+            const res = await fetch(`https://discord.com/api/v10/channels/${REPORTS_CHANNEL_ID}/messages`, {
+                method: 'POST',
+                headers: {
+                    'authorization': `Bot ${DISCORD_BOT_TOKEN}`,
+                    'content-type': 'application/json',
+                },
+                body: JSON.stringify({
+                    content,
+                    allowed_mentions: { parse: [] },
+                }),
+            });
+            if (!res.ok) {
+                const bodyText = await res.text().catch(() => '');
+                console.error(chalk.red(`Discord channel post failed: ${res.status} ${bodyText}`));
+                return false;
+            }
+            return true;
+        } catch (err) {
+            console.error(chalk.red('Discord channel post failed:'), err.message);
+            return false;
+        }
+    }
+
     if (!DEV_UPDATES_WEBHOOK_URL) return false;
 
     try {
@@ -347,7 +374,7 @@ async function postDiscordUpdate(content) {
 }
 
 async function sendReportToDiscord({ report, messageCount, fromStr, runAtISO }) {
-    if (!DEV_UPDATES_WEBHOOK_URL) return;
+    if (!DEV_UPDATES_WEBHOOK_URL && !(REPORTS_CHANNEL_ID && DISCORD_BOT_TOKEN)) return;
 
     const intro = [
         `📡 TiltCheck channel watcher update`,

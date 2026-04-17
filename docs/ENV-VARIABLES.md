@@ -48,6 +48,8 @@ To get started, copy the `.env.example` file to `.env` in the root of the projec
 | `TIP_DISCORD_BOT_TOKEN` | JustTheTip Bot Discord token | *(Required)* |
 | `TIP_DISCORD_CLIENT_ID` | JustTheTip Bot Client ID | *(Required)* |
 | `TRUST_ALERTS_CHANNEL_ID` | Channel ID for trust-related alerts | |
+| `BONUS_ALERTS_CHANNEL_ID` | Channel ID for branded bonus alert posts | |
+| `REPORTS_CHANNEL_ID` | Channel ID for watcher and ops reports | |
 | `SUPPORT_CHANNEL_ID` | Channel ID for support tickets | |
 
 ## Database (Neon PostgreSQL)

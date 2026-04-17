@@ -3,12 +3,18 @@
 /**
  * Alert Service
  * 
- * Handles posting alerts and notifications to configured Discord channels:
- * - Trust alerts (#trust-alerts)
- * - Support tickets (#support)
+ * Handles posting alerts and notifications to configured Discord channels.
  */
 
-import { Client, EmbedBuilder, TextChannel } from 'discord.js';
+import {
+  ActionRowBuilder,
+  ButtonBuilder,
+  ButtonStyle,
+  Client,
+  EmbedBuilder,
+  type MessageCreateOptions,
+  TextChannel,
+} from 'discord.js';
 import { config } from '../config.js';
 
 export interface TrustAlert {
@@ -33,6 +39,17 @@ export interface BonusDropAlert {
   bonusType: string;
   expiryMessage: string;
   terms?: string;
+  bonusUrl?: string;
+  submittedBy?: string;
+}
+
+export interface SubmittedBonusAlert {
+  casinoName: string;
+  bonusUrl: string;
+  details: string;
+  submittedBy: string;
+  submittedById: string;
+  scanReason: string;
 }
 
 export class AlertService {
@@ -40,6 +57,30 @@ export class AlertService {
 
   constructor(client: Client) {
     this.client = client;
+  }
+
+  private async postToConfiguredChannel(
+    channelId: string | undefined,
+    label: string,
+    content: string | MessageCreateOptions
+  ): Promise<void> {
+    if (!channelId) {
+      console.warn(`[AlertService] ${label} channel not configured`);
+      return;
+    }
+
+    try {
+      const channel = await this.client.channels.fetch(channelId);
+
+      if (!channel || !channel.isTextBased()) {
+        console.error(`[AlertService] ${label} channel is not a text channel`);
+        return;
+      }
+
+      await (channel as TextChannel).send(content);
+    } catch (error) {
+      console.error(`[AlertService] Failed to post to ${label} channel:`, error);
+    }
   }
 
   /**
@@ -159,54 +200,36 @@ export class AlertService {
    * Post a generic message to the support channel
    */
   async postToSupportChannel(
-    content: string | { embeds?: EmbedBuilder[] }
+    content: string | MessageCreateOptions
   ): Promise<void> {
-    if (!config.alertChannels.supportChannelId) {
-      console.warn('[AlertService] Support channel not configured');
-      return;
-    }
-
-    try {
-      const channel = await this.client.channels.fetch(
-        config.alertChannels.supportChannelId
-      );
-
-      if (!channel || !channel.isTextBased()) {
-        console.error('[AlertService] Support channel is not a text channel');
-        return;
-      }
-
-      await (channel as TextChannel).send(content);
-    } catch (error) {
-      console.error('[AlertService] Failed to post to support channel:', error);
-    }
+    await this.postToConfiguredChannel(
+      config.alertChannels.supportChannelId,
+      'support',
+      content
+    );
   }
 
   /**
    * Post a generic message to the trust alerts channel
    */
   async postToTrustAlertsChannel(
-    content: string | { embeds?: EmbedBuilder[] }
+    content: string | MessageCreateOptions
   ): Promise<void> {
-    if (!config.alertChannels.trustAlertsChannelId) {
-      console.warn('[AlertService] Trust alerts channel not configured');
-      return;
-    }
+    await this.postToConfiguredChannel(
+      config.alertChannels.trustAlertsChannelId,
+      'trust alerts',
+      content
+    );
+  }
 
-    try {
-      const channel = await this.client.channels.fetch(
-        config.alertChannels.trustAlertsChannelId
-      );
-
-      if (!channel || !channel.isTextBased()) {
-        console.error('[AlertService] Trust alerts channel is not a text channel');
-        return;
-      }
-
-      await (channel as TextChannel).send(content);
-    } catch (error) {
-      console.error('[AlertService] Failed to post to trust alerts channel:', error);
-    }
+  async postToBonusAlertsChannel(
+    content: string | MessageCreateOptions
+  ): Promise<void> {
+    await this.postToConfiguredChannel(
+      config.alertChannels.bonusAlertsChannelId,
+      'bonus alerts',
+      content
+    );
   }
 
   /**
@@ -215,9 +238,15 @@ export class AlertService {
   async postBonusDrop(alert: BonusDropAlert): Promise<void> {
     const embed = new EmbedBuilder()
       .setColor(0x22C55E)
-      .setTitle(`[BONUS DROP] ${alert.casinoName}`)
+      .setTitle(`BONUS ALERT | ${alert.casinoName.toUpperCase()}`)
       .setDescription(`**${alert.value} ${alert.bonusType}**\n${alert.expiryMessage}`)
+      .setFooter({ text: 'Made for Degens. By Degens.' })
       .setTimestamp();
+
+    embed.addFields(
+      { name: 'Drop', value: `${alert.value} ${alert.bonusType}`, inline: true },
+      { name: 'Window', value: alert.expiryMessage, inline: true }
+    );
 
     if (alert.terms) {
       embed.addFields({
@@ -227,8 +256,54 @@ export class AlertService {
       });
     }
 
-    await this.postToTrustAlertsChannel({ embeds: [embed] });
+    if (alert.submittedBy) {
+      embed.addFields({
+        name: 'Submitted By',
+        value: alert.submittedBy,
+        inline: true,
+      });
+    }
+
+    const components = alert.bonusUrl
+      ? [
+          new ActionRowBuilder<ButtonBuilder>().addComponents(
+            new ButtonBuilder()
+              .setLabel('Claim bonus')
+              .setStyle(ButtonStyle.Link)
+              .setURL(alert.bonusUrl)
+          ),
+        ]
+      : [];
+
+    await this.postToBonusAlertsChannel({ embeds: [embed], components });
     console.log(`[AlertService] Posted bonus drop for ${alert.casinoName}`);
+  }
+
+  async postSubmittedBonus(alert: SubmittedBonusAlert): Promise<void> {
+    const embed = new EmbedBuilder()
+      .setColor(0x17C3B2)
+      .setTitle(`BONUS ALERT | ${alert.casinoName.toUpperCase()}`)
+      .setDescription('Community-submitted bonus cleared safety scan and is live.')
+      .addFields(
+        { name: 'Casino', value: alert.casinoName, inline: true },
+        { name: 'Submitted By', value: `<@${alert.submittedById}>`, inline: true },
+        { name: 'Scan Verdict', value: alert.scanReason.substring(0, 1024), inline: false },
+        { name: 'Details', value: alert.details.substring(0, 1024), inline: false },
+      )
+      .setFooter({ text: `Submitted by ${alert.submittedBy} | Made for Degens. By Degens.` })
+      .setTimestamp();
+
+    const components = [
+      new ActionRowBuilder<ButtonBuilder>().addComponents(
+        new ButtonBuilder()
+          .setLabel('Claim bonus')
+          .setStyle(ButtonStyle.Link)
+          .setURL(alert.bonusUrl)
+      ),
+    ];
+
+    await this.postToBonusAlertsChannel({ embeds: [embed], components });
+    console.log(`[AlertService] Posted submitted bonus for ${alert.casinoName}`);
   }
 }
 

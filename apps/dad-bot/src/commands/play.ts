@@ -108,8 +108,7 @@ export const play: Command = {
         .setRequired(true)
         .addChoices(
           { name: 'Trivia', value: 'trivia' },
-          { name: 'Blackjack', value: 'blackjack' },
-          { name: 'War', value: 'war' }
+          { name: 'Blackjack', value: 'blackjack' }
         )
     ),
   execute,

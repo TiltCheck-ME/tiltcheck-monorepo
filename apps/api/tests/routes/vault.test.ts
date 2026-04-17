@@ -5,10 +5,11 @@ import express from 'express';
 import type { Request, Response, NextFunction } from 'express';
 
 let mockUserId = 'user-1';
+let mockRoles = ['user'];
 
 vi.mock('../../src/middleware/auth.js', () => ({
   authMiddleware: (req: Request, _res: Response, next: NextFunction) => {
-    (req as any).user = { id: mockUserId, email: 'u@example.com', roles: ['user'] };
+    (req as any).user = { id: mockUserId, email: 'u@example.com', roles: mockRoles };
     next();
   },
 }));
@@ -22,6 +23,10 @@ const lockvaultMock = vi.hoisted(() => ({
   setWalletActionLockForUser: vi.fn(),
   clearWalletActionLockForUser: vi.fn(),
   getWalletActionLockStatus: vi.fn(),
+  requestAdminWalletUnlockForUser: vi.fn(),
+  approveAdminWalletUnlockForUser: vi.fn(),
+  requestPaidWalletUnlockForUser: vi.fn(),
+  settlePaidWalletUnlockForUser: vi.fn(),
   addSecondOwner: vi.fn(),
   initiateWithdrawal: vi.fn(),
   approveWithdrawal: vi.fn(),
@@ -40,12 +45,37 @@ describe('Vault Routes', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockUserId = 'user-1';
+    mockRoles = ['user'];
     lockvaultMock.getVaultBalance.mockReturnValue(0);
     lockvaultMock.getVaultStatus.mockReturnValue([]);
     lockvaultMock.depositToVault.mockReturnValue(10);
     lockvaultMock.lockVault.mockResolvedValue({ id: 'v1' });
     lockvaultMock.unlockVault.mockReturnValue({ id: 'v1', lockedAmountSOL: 1.23 });
     lockvaultMock.getWalletActionLockStatus.mockReturnValue({ locked: false });
+    lockvaultMock.requestAdminWalletUnlockForUser.mockReturnValue({
+      userId: 'user-1',
+      lockUntil: Date.now() + 30 * 60_000,
+      createdAt: Date.now(),
+      earlyUnlockRequest: { mode: 'admin_approval', status: 'pending' },
+    });
+    lockvaultMock.requestPaidWalletUnlockForUser.mockReturnValue({
+      userId: 'user-1',
+      lockUntil: Date.now() + 30 * 60_000,
+      createdAt: Date.now(),
+      earlyUnlockRequest: { mode: 'paid_early_unlock', status: 'pending', feePercentage: 10, feeAmountSOL: 0.125 },
+    });
+    lockvaultMock.approveAdminWalletUnlockForUser.mockReturnValue({
+      userId: 'user-1',
+      lockUntil: Date.now() + 30 * 60_000,
+      createdAt: Date.now(),
+      earlyUnlockRequest: { mode: 'admin_approval', status: 'approved' },
+    });
+    lockvaultMock.settlePaidWalletUnlockForUser.mockReturnValue({
+      userId: 'user-1',
+      lockUntil: Date.now() + 30 * 60_000,
+      createdAt: Date.now(),
+      earlyUnlockRequest: { mode: 'paid_early_unlock', status: 'completed', feePercentage: 10, feeAmountSOL: 0.125 },
+    });
     lockvaultMock.addSecondOwner.mockResolvedValue({ id: 'v1', secondOwnerId: 'user-2' });
     lockvaultMock.initiateWithdrawal.mockResolvedValue({ id: 'v1', withdrawalProposal: { status: 'pending' } });
     lockvaultMock.approveWithdrawal.mockResolvedValue({ id: 'v1', withdrawalProposal: { status: 'approved' } });
@@ -151,7 +181,7 @@ describe('Vault Routes', () => {
     expect(typeof res.body.lockUntil).toBe('string');
   });
 
-  it('sets and clears wallet lock', async () => {
+  it('sets wallet lock and blocks direct early unlock', async () => {
     lockvaultMock.setWalletActionLockForUser.mockReturnValue({
       userId: 'user-1',
       lockUntil: Date.now() + 30 * 60_000,
@@ -162,9 +192,44 @@ describe('Vault Routes', () => {
     expect(setRes.status).toBe(200);
     expect(lockvaultMock.setWalletActionLockForUser).toHaveBeenCalled();
 
+    lockvaultMock.getWalletActionLockStatus.mockReturnValue({
+      locked: true,
+      lockUntil: Date.now() + 30 * 60_000,
+      remainingMs: 30 * 60_000,
+      reason: 'manual',
+    });
     const clearRes = await request(app).post('/vault/user-1/wallet-unlock').send({});
-    expect(clearRes.status).toBe(200);
-    expect(lockvaultMock.clearWalletActionLockForUser).toHaveBeenCalledWith('user-1');
+    expect(clearRes.status).toBe(423);
+    expect(clearRes.body.code).toBe('WALLET_LOCK_STILL_ACTIVE');
+    expect(lockvaultMock.clearWalletActionLockForUser).not.toHaveBeenCalled();
+  });
+
+  it('creates admin and paid early unlock requests', async () => {
+    const adminReq = await request(app).post('/vault/user-1/wallet-unlock-request').send({ mode: 'admin_approval' });
+    expect(adminReq.status).toBe(200);
+    expect(lockvaultMock.requestAdminWalletUnlockForUser).toHaveBeenCalledWith('user-1', 'user-1');
+
+    const paidReq = await request(app).post('/vault/user-1/wallet-unlock-request').send({ mode: 'paid_early_unlock' });
+    expect(paidReq.status).toBe(200);
+    expect(lockvaultMock.requestPaidWalletUnlockForUser).toHaveBeenCalledWith('user-1', 'user-1', 10);
+    expect(paidReq.body.earlyUnlockRequest.feePercentage).toBe(10);
+  });
+
+  it('requires admin role to approve early unlock', async () => {
+    const denied = await request(app).post('/vault/user-1/wallet-unlock-approve').send({});
+    expect(denied.status).toBe(403);
+
+    mockRoles = ['user', 'admin'];
+    const approved = await request(app).post('/vault/user-1/wallet-unlock-approve').send({});
+    expect(approved.status).toBe(200);
+    expect(lockvaultMock.approveAdminWalletUnlockForUser).toHaveBeenCalledWith('user-1', 'user-1');
+  });
+
+  it('settles paid early unlock for the owner', async () => {
+    const res = await request(app).post('/vault/user-1/wallet-unlock-pay').send({});
+    expect(res.status).toBe(200);
+    expect(lockvaultMock.settlePaidWalletUnlockForUser).toHaveBeenCalledWith('user-1', 'user-1');
+    expect(res.body.feeChargedSOL).toBe(0.125);
   });
 
   it('adds a second owner for an authenticated user', async () => {
