@@ -94,6 +94,7 @@ function formatSupabaseError(action: string, error: { message?: string } | null)
 }
 
 const SUPABASE_OPTIONAL_USER_COLUMNS = new Set([
+  'discord_username',
   'discord_avatar',
 ]);
 
