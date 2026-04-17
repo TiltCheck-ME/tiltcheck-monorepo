@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-14
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-17
 /**
  * Onboarding System for TiltCheck Safety Bot
  * Handles first-time user welcome and safety preferences
@@ -35,9 +35,8 @@ if (process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY) {
 // In-memory cache for fast reads
 const onboardedUsers = new Set<string>();
 const userPreferences = new Map<string, UserPreferences>();
-const BACKEND_URL = process.env.BACKEND_URL || 'https://api.tiltcheck.me';
 const SITE_URL = process.env.SITE_URL || 'https://tiltcheck.me';
-const DASHBOARD_URL = process.env.DASHBOARD_URL || 'https://hub.tiltcheck.me';
+const DASHBOARD_URL = process.env.DASHBOARD_URL || 'https://dashboard.tiltcheck.me';
 const DISCORD_INVITE_URL = process.env.DISCORD_INVITE_URL || 'https://discord.gg/gdBsEJfCar';
 
 interface UserPreferences {
@@ -225,8 +224,7 @@ export async function isUserOnboarded(userId: string): Promise<boolean> {
 }
 
 export function getWebsiteOnboardingUrl(): string {
-  const redirect = encodeURIComponent(`${DASHBOARD_URL}/onboarding`);
-  return `${BACKEND_URL}/auth/discord/login?source=web&redirect=${redirect}`;
+  return new URL('/onboarding', DASHBOARD_URL).toString();
 }
 
 export function getDashboardUrl(): string {
@@ -327,9 +325,9 @@ export async function sendWelcomeDM(user: User): Promise<boolean> {
       .setThumbnail('https://tiltcheck.me/assets/logo/favicon-white.svg')
       .setFooter({ text: 'Made for Degens. By Degens.' });
 
-    // Primary: link/login via Discord OAuth
+    // Primary: isolate the account-link action so it is not buried in the welcome DM controls.
     const linkAccountBtn = new ButtonBuilder()
-      .setLabel('LINK DISCORD')
+      .setLabel('LINK DISCORD NOW')
       .setStyle(ButtonStyle.Link)
       .setURL(getWebsiteOnboardingUrl());
 
@@ -349,11 +347,13 @@ export async function sendWelcomeDM(user: User): Promise<boolean> {
       .setLabel('Later')
       .setStyle(ButtonStyle.Secondary);
 
-    // Discord ActionRow allows a maximum of 5 components — currently 4 buttons.
-    const row = new ActionRowBuilder<ButtonBuilder>()
-      .addComponents(linkAccountBtn, betaBtn, joinServerBtn, maybeLaterBtn);
+    const primaryRow = new ActionRowBuilder<ButtonBuilder>()
+      .addComponents(linkAccountBtn);
 
-    await dmChannel.send({ embeds: [welcomeEmbed], components: [row] });
+    const secondaryRow = new ActionRowBuilder<ButtonBuilder>()
+      .addComponents(betaBtn, joinServerBtn, maybeLaterBtn);
+
+    await dmChannel.send({ embeds: [welcomeEmbed], components: [primaryRow, secondaryRow] });
     return true;
   } catch (error) {
     console.error('[Onboarding] Failed to send welcome DM:', error);

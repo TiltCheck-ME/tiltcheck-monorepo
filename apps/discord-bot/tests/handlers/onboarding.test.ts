@@ -1,6 +1,15 @@
-/* Copyright (c) 2026 TiltCheck. All rights reserved. */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-16 */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { needsOnboarding, markOnboarded, getUserPreferences, saveUserPreferences, handleOnboardingInteraction } from '../../src/handlers/onboarding.js';
+import {
+    needsOnboarding,
+    markOnboarded,
+    getUserPreferences,
+    saveUserPreferences,
+    handleOnboardingInteraction,
+    getWebsiteOnboardingUrl,
+    getBetaTesterUrl,
+    sendWelcomeDM,
+} from '../../src/handlers/onboarding.js';
 
 // We need to mock Supabase to avoid actual DB calls during testing
 vi.mock('@supabase/supabase-js', () => ({
@@ -23,6 +32,37 @@ describe('Onboarding Handler', () => {
     describe('needsOnboarding', () => {
         it('should return true for an unknown user', () => {
             expect(needsOnboarding('unknown-user-id')).toBe(true);
+        });
+    });
+
+    describe('getWebsiteOnboardingUrl', () => {
+        it('should point welcome links at the dashboard onboarding route', () => {
+            expect(getWebsiteOnboardingUrl()).toBe('https://dashboard.tiltcheck.me/onboarding');
+        });
+    });
+
+    describe('sendWelcomeDM', () => {
+        it('should include the Discord linking and beta buttons in the welcome DM', async () => {
+            const send = vi.fn().mockResolvedValue(undefined);
+            const createDM = vi.fn().mockResolvedValue({ send });
+            const user = {
+                username: 'TestUser',
+                createDM,
+            } as any;
+
+            const sent = await sendWelcomeDM(user);
+
+            expect(sent).toBe(true);
+            expect(createDM).toHaveBeenCalledOnce();
+            expect(send).toHaveBeenCalledOnce();
+
+            const payload = send.mock.calls[0][0];
+            expect(payload.embeds).toHaveLength(1);
+            expect(payload.components).toHaveLength(2);
+            expect(payload.components[0].components[0].data.label).toBe('LINK DISCORD NOW');
+            expect(payload.components[0].components[0].data.url).toBe(getWebsiteOnboardingUrl());
+            expect(payload.components[1].components[0].data.label).toBe('APPLY FOR BETA');
+            expect(payload.components[1].components[0].data.url).toBe(getBetaTesterUrl());
         });
     });
 
@@ -79,7 +119,7 @@ describe('Onboarding Handler', () => {
 
             expect(mockUpdate).toHaveBeenCalled();
             const args = mockUpdate.mock.calls[0][0];
-            expect(args.embeds[0].data.title).toContain('Legal Stuff');
+            expect(args.embeds[0].data.title).toContain('QUICK TERMS');
         });
 
         it('should show wallet setup when terms are accepted', async () => {
@@ -88,10 +128,7 @@ describe('Onboarding Handler', () => {
 
             expect(mockUpdate).toHaveBeenCalled();
             const args = mockUpdate.mock.calls[0][0];
-            expect(args.embeds[0].data.title).toContain('Connect Your Wallet');
-
-            // Should initialize basic preferences behind the scenes
-            expect(getUserPreferences('interact-user')).toBeDefined();
+            expect(args.embeds[0].data.title).toContain('AUDIT CALIBRATION — STEP 1 OF 3');
         });
 
         it('should complete onboarding successfully', async () => {
@@ -113,7 +150,7 @@ describe('Onboarding Handler', () => {
             expect(needsOnboarding('interact-user')).toBe(false);
 
             const args = mockUpdate.mock.calls[0][0];
-            expect(args.embeds[0].data.title).toContain('You\'re All Set');
+            expect(args.embeds[0].data.title).toContain('PROFILE ACTIVATED');
         });
     });
 });

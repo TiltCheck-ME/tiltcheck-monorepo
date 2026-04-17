@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-12
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-17
 /**
  * Upgrade Command
  *
@@ -19,7 +19,7 @@ import type { Command } from '../types.js';
 const TEAL = 0x22d3a6;
 const SOL_WALLET = 'BvzEqVRUicmW8Y6HFncLYrGXESpMbSNDkWUNTQj5GGGi';
 const PREMIUM_URL = `https://discord.com/application-directory/${process.env.DISCORD_CLIENT_ID || 'PENDING'}/premium`;
-const CLAIM_URL = 'https://hub.tiltcheck.me/premium';
+const CLAIM_URL = 'https://dashboard.tiltcheck.me/premium';
 
 export const upgrade: Command = {
   data: new SlashCommandBuilder()

@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-13
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-17
 /**
  * JME Command Suite — Owner & Admin Audit Tools
  */
@@ -16,7 +16,7 @@ import {
 } from 'discord.js';
 import type { Command } from '../types.js';
 import { getRandomQuote } from '@tiltcheck/utils';
-import { resetUserOnboarding } from '../handlers/onboarding.js';
+import { getWebsiteOnboardingUrl, resetUserOnboarding } from '../handlers/onboarding.js';
 
 export const jme: Command = {
   data: new SlashCommandBuilder()
@@ -172,12 +172,12 @@ async function handleBetaRolegrant(interaction: ChatInputCommandInteraction) {
       .setStyle(ButtonStyle.Link)
       .setURL('https://tiltcheck.me/getting-started');
 
-    const extensionBtn = new ButtonBuilder()
-      .setLabel('Extension Setup')
+    const linkDiscordBtn = new ButtonBuilder()
+      .setLabel('Link Discord')
       .setStyle(ButtonStyle.Link)
-      .setURL('https://tiltcheck.me/extension');
+      .setURL(getWebsiteOnboardingUrl());
 
-    const row = new ActionRowBuilder<ButtonBuilder>().addComponents(helpBtn, extensionBtn);
+    const row = new ActionRowBuilder<ButtonBuilder>().addComponents(helpBtn, linkDiscordBtn);
     await dm.send({ embeds: [betaEmbed], components: [row] });
     dmSent = true;
   } catch (err) {
