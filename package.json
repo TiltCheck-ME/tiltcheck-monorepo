@@ -54,7 +54,8 @@
     "crawl:emails": "cross-env NODE_OPTIONS=--use-system-ca tsx scripts/email-crawler.ts",
     "crawl:emails:dry": "cross-env NODE_OPTIONS=--use-system-ca tsx scripts/email-crawler.ts --dry-run",
     "crawl:emails:all": "cross-env NODE_OPTIONS=--use-system-ca tsx scripts/email-crawler.ts --all",
-    "crawl:emails:schedule": "powershell -ExecutionPolicy Bypass -File scripts/register-email-crawler-task.ps1"
+    "crawl:emails:schedule": "powershell -ExecutionPolicy Bypass -File scripts/register-email-crawler-task.ps1",
+    "crawl:casinos": "tsx scripts/scrape-casinos.ts"
   },
   "devDependencies": {
     "@google-cloud/secret-manager": "^6.1.1",

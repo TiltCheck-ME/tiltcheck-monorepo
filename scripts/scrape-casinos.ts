@@ -1,7 +1,7 @@
 /* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-18 */
 /**
  * Casino Data Scraper
- * Scrapes sweepscoinguide.com to populate the casino_data table.
+ * Scrapes the live community casino directory to populate the casino_data table.
  * 
  * Usage: npx tsx scripts/scrape-casinos.ts
  */
@@ -169,99 +169,112 @@ async function cacheLogoAsset(logoUrl: string | null, domain: string): Promise<{
 }
 
 async function scrapeSweepscoinguide() {
-  console.log('🔍 Fetching sweepscoinguide.com...');
+  const sources = [
+    {
+      label: 'sweepscointracker.com/casinos',
+      url: 'https://sweepscointracker.com/casinos/',
+      selectors: ['.casino-list-item', '.casino-card'],
+      sourceTag: 'sweepscointracker.com',
+    },
+    {
+      label: 'sweepscoinguide.com',
+      url: 'https://sweepscoinguide.com/',
+      selectors: [
+        'article',
+        '.casino-item',
+        '.review-card',
+        '.casino-card',
+        '.toplist-item',
+        '.review-box',
+        '.table-row',
+        'tr',
+        '.casino-row',
+        'div[class*="casino"]',
+        'div[class*="review"]',
+        'a[href*="visit"]',
+      ],
+      sourceTag: 'sweepscoinguide.com',
+    },
+  ];
+
+  console.log('🔍 Fetching casino sources...');
   
   try {
-    // Fetch the main page
-    const response = await fetch('https://sweepscoinguide.com/');
-    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-    const html = await response.text();
-    
-    const dom = new JSDOM(html);
-    const document = dom.window.document;
-
     const casinos: ScrapedCasinoData[] = [];
+    const seenDomains = new Set<string>();
 
-    // Selectors based on typical affiliate site structures (headings, review cards)
-    // Note: These are best-effort selectors. If the site layout changes, these need updates.
-    const selectors = [
-      'article',
-      '.casino-item',
-      '.review-card',
-      '.casino-card',
-      '.toplist-item',
-      '.review-box',
-      '.table-row',
-      'tr',
-      '.casino-row',
-      'div[class*="casino"]', // Catch-all for divs with casino in class
-      'div[class*="review"]',
-      'a[href*="visit"]' // Links to casinos often are in containers we want
-    ];
-    const articles = document.querySelectorAll(selectors.join(', '));
-
-    console.log(`📄 Found ${articles.length} potential casino entries.`);
-
-    if (articles.length === 0) {
-      console.log('⚠️ Debug: No entries found. The site might be using client-side rendering or blocking bots.');
-      console.log(`ℹ️ HTML Content Length: ${html.length} characters`);
-    }
-
-    for (const article of articles) {
-      const nameEl = article.querySelector('h2, h3, .casino-name, .review-title, a.name, td:first-child');
-      if (!nameEl) continue;
-
-      const name = nameEl.textContent?.trim() || 'Unknown';
-      
-      // Infer domain from name (e.g., "Chumba Casino" -> "chumbacasino.com")
-      // We intentionally use generic domains and do NOT scrape affiliate links.
-      const domain = name.toLowerCase().replace(/[^a-z0-9]/g, '') + '.com';
-
-      // Extract features/bonuses if available
-      const bonusEl = article.querySelector('.bonus, .offer, .welcome-bonus');
-      const bonusText = bonusEl?.textContent?.trim() || null;
-
-      const ratingEl = article.querySelector('.rating, .score, .stars');
-      const ratingText = ratingEl?.textContent?.trim() || null;
-
-      // Extract logo URL
-      const imgEl = article.querySelector('img');
-      let logoUrl = imgEl?.getAttribute('src') || null;
-      
-      // Resolve relative URLs
-      if (logoUrl && !logoUrl.startsWith('http')) {
-        try {
-          logoUrl = new URL(logoUrl, 'https://sweepscoinguide.com').toString();
-        } catch (e) {
-          logoUrl = null;
-        }
+    for (const source of sources) {
+      console.log(`🔍 Fetching ${source.label}...`);
+      const response = await fetch(source.url);
+      if (!response.ok) {
+        console.warn(`⚠️ Skipping ${source.label}: HTTP ${response.status}`);
+        continue;
       }
 
-      // Construct data object
-      const cachedLogo = await cacheLogoAsset(logoUrl, domain);
+      const html = await response.text();
+      const dom = new JSDOM(html);
+      const document = dom.window.document;
+      const articles = document.querySelectorAll(source.selectors.join(', '));
 
-      const casinoData: ScrapedCasinoData = {
-        domain,
-        name,
-        status: 'active',
-        // Store scraped metadata in license_info JSONB column
-        license_info: {
-          source: 'sweepscoinguide.com',
-          scraped_at: new Date().toISOString(),
-          welcome_bonus: bonusText,
-          site_rating: ratingText,
-          type: 'Sweepstakes Casino',
-          logo_url: cachedLogo.logoUrl,
-          source_logo_url: cachedLogo.sourceLogoUrl,
-          logo_storage_path: cachedLogo.storagePath,
-          logo_cache_status: cachedLogo.cacheStatus,
-        },
-        // Default RTP if not found (Sweepstakes casinos rarely publish live RTP)
-        claimed_rtp: 95.0, 
-        updated_at: new Date().toISOString()
-      };
+      console.log(`📄 Found ${articles.length} potential casino entries in ${source.label}.`);
 
-      casinos.push(casinoData);
+      for (const article of articles) {
+        const nameEl = article.querySelector('h2, h3, h4, h5, .casino-name, .review-title, a.name, .card-title a, td:first-child');
+        if (!nameEl) continue;
+
+        const name = nameEl.textContent?.trim() || 'Unknown';
+      
+        // Infer domain from name (e.g., "Chumba Casino" -> "chumbacasino.com")
+        // We intentionally use generic domains and do NOT scrape affiliate links.
+        const domain = name.toLowerCase().replace(/[^a-z0-9]/g, '') + '.com';
+        if (seenDomains.has(domain)) continue;
+
+        // Extract features/bonuses if available
+        const bonusText = extractWelcomeBonus(article);
+
+        const ratingEl = article.querySelector('.rating, .score, .stars');
+        const ratingText = ratingEl?.textContent?.trim() || null;
+
+        // Extract logo URL
+        const imgEl = article.querySelector('img');
+        let logoUrl = imgEl?.getAttribute('src') || null;
+      
+        // Resolve relative URLs
+        if (logoUrl && !logoUrl.startsWith('http')) {
+          try {
+            logoUrl = new URL(logoUrl, source.url).toString();
+          } catch {
+            logoUrl = null;
+          }
+        }
+
+        // Construct data object
+        const cachedLogo = await cacheLogoAsset(logoUrl, domain);
+
+        const casinoData: ScrapedCasinoData = {
+          domain,
+          name,
+          status: 'active',
+          // Store scraped metadata in license_info JSONB column
+          license_info: {
+            source: source.sourceTag,
+            scraped_at: new Date().toISOString(),
+            welcome_bonus: bonusText,
+            site_rating: ratingText,
+            type: 'Sweepstakes Casino',
+            logo_url: cachedLogo.logoUrl,
+            source_logo_url: cachedLogo.sourceLogoUrl,
+            logo_storage_path: cachedLogo.storagePath,
+            logo_cache_status: cachedLogo.cacheStatus,
+          },
+          // Default RTP if not found (Sweepstakes casinos rarely publish live RTP)
+          claimed_rtp: 95.0,
+          updated_at: new Date().toISOString(),
+        };
+
+        casinos.push(casinoData);
+        seenDomains.add(domain);
+      }
     }
 
     // If scraping yields nothing (e.g., site structure changed), add some known defaults
@@ -286,6 +299,19 @@ async function scrapeSweepscoinguide() {
   } catch (error) {
     console.error('❌ Error scraping casinos:', error);
   }
+}
+
+function extractWelcomeBonus(article: Element): string | null {
+  const text = article.textContent?.replace(/\s+/g, ' ').trim() || '';
+  if (!text) return null;
+
+  const welcomeMatch = text.match(/Welcome(?:\s+Bonus)?\s*:\s*([^|]+?)(?:Daily(?:\s+Bonus)?\s*:|Loyalty Program|Play Now|Read Full Review|$)/i);
+  if (welcomeMatch?.[1]) {
+    return welcomeMatch[1].trim();
+  }
+
+  const genericMatch = text.match(/(?:bonus|offer)\s*:\s*([^|]+?)(?:Daily|Loyalty|Play Now|$)/i);
+  return genericMatch?.[1]?.trim() || null;
 }
 
 scrapeSweepscoinguide();
