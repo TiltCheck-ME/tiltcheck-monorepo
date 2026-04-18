@@ -866,6 +866,9 @@ export interface TriviaRoundStartEventData {
   roundNumber: number;
   totalRounds: number;
   endsAt: number; // Timestamp
+  prizePool?: number;
+  leaderboard?: Array<{ username: string; score: number }>;
+  players?: Array<{ userId: string; username: string; score: number; eliminated: boolean; shieldConsumed: boolean; buyBackUsed: boolean }>;
 }
 
 export interface TriviaRoundRevealEventData {
@@ -874,6 +877,8 @@ export interface TriviaRoundRevealEventData {
   correctChoice: string;
   explanation?: string;
   stats: Record<string, { count: number; correct: boolean }>; // choice -> { count, correct }
+  leaderboard?: Array<{ username: string; score: number }>;
+  players?: Array<{ userId: string; username: string; score: number; eliminated: boolean; shieldConsumed: boolean; buyBackUsed: boolean }>;
 }
 
 export interface TriviaWinner {

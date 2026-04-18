@@ -87,6 +87,15 @@ interface TriviaFinalScore {
   eliminated: boolean;
 }
 
+interface TriviaLivePlayerState {
+  userId: string;
+  username: string;
+  score: number;
+  eliminated: boolean;
+  shieldConsumed: boolean;
+  buyBackUsed: boolean;
+}
+
 interface TriviaCompletedGameRecord {
   gameId: string;
   settings: TriviaGameSettings;
@@ -258,6 +267,44 @@ function clonePlayerState(player: PlayerState): PlayerState {
     ...player,
     answers: new Map(player.answers),
   };
+}
+
+function toLivePlayerState(player: PlayerState): TriviaLivePlayerState {
+  return {
+    userId: player.userId,
+    username: player.username,
+    score: player.score,
+    eliminated: player.eliminated,
+    shieldConsumed: player.shieldConsumed,
+    buyBackUsed: player.buyBackUsed,
+  };
+}
+
+function buildLivePlayers(players: Map<string, PlayerState>): TriviaLivePlayerState[] {
+  return [...players.values()]
+    .map(toLivePlayerState)
+    .sort((left, right) => {
+      if (right.score !== left.score) {
+        return right.score - left.score;
+      }
+
+      if (left.eliminated !== right.eliminated) {
+        return Number(left.eliminated) - Number(right.eliminated);
+      }
+
+      return left.username.localeCompare(right.username);
+    });
+}
+
+function buildLiveLeaderboard(
+  players: Map<string, PlayerState>,
+): Array<{ username: string; score: number }> {
+  return buildLivePlayers(players)
+    .map((player) => ({
+      username: player.username,
+      score: player.score,
+    }))
+    .slice(0, 8);
 }
 
 function clonePlayers(players: Map<string, PlayerState>): Map<string, PlayerState> {
@@ -466,9 +513,12 @@ async function emitRoundStart(game: ActiveGame): Promise<boolean> {
         theme: question.theme,
         difficulty: question.difficulty,
       },
+      prizePool: game.settings.prizePool,
       roundNumber: game.currentRound + 1,
       totalRounds: game.settings.totalRounds,
       endsAt: roundEndsAt,
+      leaderboard: buildLiveLeaderboard(game.players),
+      players: buildLivePlayers(game.players),
     },
   );
 
@@ -564,6 +614,8 @@ async function revealRound(gameId: string, expectedQuestionId: string): Promise<
       correctChoice: question.answer,
       explanation: question.explanation,
       stats,
+      leaderboard: buildLiveLeaderboard(game.players),
+      players: buildLivePlayers(game.players),
     },
   );
 
@@ -790,6 +842,8 @@ export const triviaManager = {
     roundNumber: number;
     totalRounds: number;
     playerCount: number;
+    players: TriviaLivePlayerState[];
+    leaderboard: Array<{ username: string; score: number }>;
     currentQuestion: {
       id: string;
       question: string;
@@ -812,6 +866,8 @@ export const triviaManager = {
       roundNumber: activeGame.currentRound + 1,
       totalRounds: activeGame.settings.totalRounds,
       playerCount: activeGame.players.size,
+      players: buildLivePlayers(activeGame.players),
+      leaderboard: buildLiveLeaderboard(activeGame.players),
       currentQuestion: currentQuestion
         ? {
             id: currentQuestion.id,
@@ -833,6 +889,8 @@ export const triviaManager = {
       roundNumber: number;
       totalRounds: number;
       playerCount: number;
+      players: TriviaLivePlayerState[];
+      leaderboard: Array<{ username: string; score: number }>;
       currentQuestion: {
         id: string;
         question: string;
@@ -846,16 +904,18 @@ export const triviaManager = {
     recentResults: TriviaCompletedGameRecord[];
     recentAuditEvents: TriviaAuditRecord[];
   } => ({
-    liveState: activeGame
-      ? {
-          gameId: activeGame.gameId,
-          settings: activeGame.settings,
-          roundNumber: activeGame.currentRound + 1,
-          totalRounds: activeGame.settings.totalRounds,
-          playerCount: activeGame.players.size,
-          currentQuestion: activeGame.questions[activeGame.currentRound]
-            ? {
-                id: activeGame.questions[activeGame.currentRound].id,
+      liveState: activeGame
+        ? {
+            gameId: activeGame.gameId,
+            settings: activeGame.settings,
+            roundNumber: activeGame.currentRound + 1,
+            totalRounds: activeGame.settings.totalRounds,
+            playerCount: activeGame.players.size,
+            players: buildLivePlayers(activeGame.players),
+            leaderboard: buildLiveLeaderboard(activeGame.players),
+            currentQuestion: activeGame.questions[activeGame.currentRound]
+              ? {
+                  id: activeGame.questions[activeGame.currentRound].id,
                 question: activeGame.questions[activeGame.currentRound].question,
                 choices: activeGame.questions[activeGame.currentRound].choices,
                 category: activeGame.questions[activeGame.currentRound].category,

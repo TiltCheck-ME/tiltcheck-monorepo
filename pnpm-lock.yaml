@@ -317,7 +317,7 @@ importers:
     dependencies:
       '@solana/web3.js':
         specifier: ^1.98.4
-        version: 1.98.4(bufferutil@4.1.0)(encoding@0.1.13)(typescript@6.0.2)(utf-8-validate@6.0.6)
+        version: 1.98.4(bufferutil@4.1.0)(encoding@0.1.13)(typescript@6.0.2)(utf-8-validate@5.0.10)
       '@tiltcheck/event-router':
         specifier: workspace:*
         version: link:../../packages/event-router
@@ -341,7 +341,7 @@ importers:
         version: 1.0.3
       ws:
         specifier: ^8.20.0
-        version: 8.20.0(bufferutil@4.1.0)(utf-8-validate@6.0.6)
+        version: 8.20.0(bufferutil@4.1.0)(utf-8-validate@5.0.10)
     devDependencies:
       '@types/express':
         specifier: ^5.0.6
@@ -366,7 +366,7 @@ importers:
         version: 1.9.0
       '@solana/web3.js':
         specifier: ^1.98.4
-        version: 1.98.4(bufferutil@4.1.0)(encoding@0.1.13)(typescript@6.0.2)(utf-8-validate@5.0.10)
+        version: 1.98.4(bufferutil@4.1.0)(encoding@0.1.13)(typescript@6.0.2)(utf-8-validate@6.0.6)
       '@tiltcheck/config':
         specifier: workspace:*
         version: link:../../packages/config
@@ -399,7 +399,7 @@ importers:
         version: link:../../packages/utils
       discord.js:
         specifier: ^14.25.1
-        version: 14.25.1(bufferutil@4.1.0)(utf-8-validate@5.0.10)
+        version: 14.25.1(bufferutil@4.1.0)(utf-8-validate@6.0.6)
       dotenv:
         specifier: ^17.3.1
         version: 17.3.1
@@ -656,6 +656,9 @@ importers:
       '@tiltcheck/event-router':
         specifier: workspace:*
         version: link:../../packages/event-router
+      '@tiltcheck/shared':
+        specifier: workspace:*
+        version: link:../../packages/shared
       '@tiltcheck/tiltcheck-core':
         specifier: workspace:*
         version: link:../../modules/tiltcheck-core

@@ -3,7 +3,6 @@
  * TypeScript type definitions for Game Arena
  */
 
-import type { Request } from 'express';
 import type { SessionData } from '@tiltcheck/auth';
 
 // Extend Express Request to include shared auth
@@ -79,6 +78,8 @@ export interface ClientToServerEvents {
   'buy-back': (data: { gameId: string }) => void;
   'request-ape-in': (data: { gameId: string; questionId: string }) => void;
   'request-shield': (data: { gameId: string; questionId: string }) => void;
+  'schedule-trivia-game': (data: { category?: string; theme?: string; totalRounds?: number }) => void;
+  'reset-trivia-game': () => void;
 }
 
 export interface ServerToClientEvents {
@@ -90,14 +91,23 @@ export interface ServerToClientEvents {
   'player-joined': (data: { userId: string; username: string }) => void;
   'player-left': (data: { userId: string }) => void;
   // Trivia specific
-  'trivia-round-start': (data: { gameId: string; question: any; roundNumber: number; totalRounds: number; endsAt: number }) => void;
-  'trivia-round-reveal': (data: { gameId: string; questionId: string; correctChoice: string; explanation?: string; stats: any }) => void;
+  'trivia-round-start': (data: { gameId: string; question: any; roundNumber: number; totalRounds: number; endsAt: number; prizePool?: number; leaderboard?: Array<{ username: string; score: number }>; players?: TriviaLivePlayerState[] }) => void;
+  'trivia-round-reveal': (data: { gameId: string; questionId: string; correctChoice: string; explanation?: string; stats: any; leaderboard?: Array<{ username: string; score: number }>; players?: TriviaLivePlayerState[] }) => void;
   'trivia-ape-in-result': (data: { questionId: string; distribution: Record<string, number> }) => void;
   'trivia-shield-result': (data: { questionId: string; eliminated: string[] }) => void;
   // Tip events forwarded from discord-bot via event router
   'tip.rain': (data: { id: string; fromUserId: string; fromUsername: string; amountSol: number; amountUsd: number; message: string; expiresAt: number; claimable: boolean }) => void;
   'tip.sent': (data: { id: string; fromUsername: string; toUsername: string; amountSol: number; message: string; timestamp: number; claimed: boolean }) => void;
   'tip.claimed': (data: { rainId: string; claimerId: string }) => void;
+}
+
+export interface TriviaLivePlayerState {
+  userId: string;
+  username: string;
+  score: number;
+  eliminated: boolean;
+  shieldConsumed: boolean;
+  buyBackUsed: boolean;
 }
 
 // Stats types
@@ -153,6 +163,9 @@ export interface TriviaRoundStartEventData {
   roundNumber: number;
   totalRounds: number;
   endsAt: number; // Timestamp
+  prizePool?: number;
+  leaderboard?: Array<{ username: string; score: number }>;
+  players?: TriviaLivePlayerState[];
 }
 
 export interface TriviaRoundRevealEventData {
@@ -160,6 +173,8 @@ export interface TriviaRoundRevealEventData {
   correctChoice: string;
   explanation?: string;
   stats: Record<string, { count: number; correct: boolean }>; // choice -> { count, correct }
+  leaderboard?: Array<{ username: string; score: number }>;
+  players?: TriviaLivePlayerState[];
 }
 
 export interface TriviaWinner {
