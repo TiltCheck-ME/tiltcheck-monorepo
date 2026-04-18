@@ -694,6 +694,7 @@ export interface BonusDiscoveredEventData {
   expiry_message: string;
   is_expired: boolean;
   bonus_url?: string;
+  image_url?: string | null;
   code?: string | null;
   source?: string;
 }

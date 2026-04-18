@@ -15,6 +15,7 @@ export interface EmailBonusFeedEntry {
   brand: string;
   bonus: string;
   url: string;
+  imageUrl: string | null;
   verified: string;
   code: string | null;
   source: 'email-inbox';
@@ -60,6 +61,15 @@ const NON_CLAIM_URL_PATTERNS = [
   /contact/i,
   /view(?:ing)?(?:\s|-)?in(?:\s|-)?browser/i,
   /mailto:/i,
+];
+
+const NON_DURABLE_IMAGE_URL_PATTERNS = [
+  /cdn\.discordapp\.com\/ephemeral-attachments\//i,
+  /discordapp\.net\/ephemeral-attachments\//i,
+  /google-analytics\.com/i,
+  /doubleclick\.net/i,
+  /pixel/i,
+  /tracking/i,
 ];
 
 export function getEmailBonusFeedPath(): string {
@@ -191,6 +201,7 @@ export function buildEmailBonusEntries(
   const verified = now.toISOString();
   const brand = normalizeBrand(intel.casinoBrand, intel.senderDomain);
   const url = selectBonusUrl(intel);
+  const imageUrl = selectBonusImageUrl(intel);
   const promoCode = extractPromoCode(rawEmail, intel);
 
   return intel.bonusSignals.map((signal, index) => {
@@ -217,6 +228,7 @@ export function buildEmailBonusEntries(
       brand,
       bonus,
       url,
+      imageUrl,
       verified,
       code: promoCode,
       source: 'email-inbox',
@@ -298,6 +310,29 @@ function selectBonusUrl(intel: EmailIntelData): string {
   }
 
   return 'https://tiltcheck.me/bonuses';
+}
+
+function selectBonusImageUrl(intel: EmailIntelData): string | null {
+  const safeImage = intel.imageUrls.find((url) => isDurableImageUrl(url, intel.senderDomain));
+  return safeImage || null;
+}
+
+function isDurableImageUrl(url: string, senderDomain: string | null): boolean {
+  if (NON_DURABLE_IMAGE_URL_PATTERNS.some((pattern) => pattern.test(url))) {
+    return false;
+  }
+
+  try {
+    const parsed = new URL(url);
+    const hostname = parsed.hostname.toLowerCase();
+    if (senderDomain && hostname === senderDomain.toLowerCase()) {
+      return true;
+    }
+
+    return /\.(png|jpe?g|gif|webp|svg)$/i.test(parsed.pathname);
+  } catch {
+    return false;
+  }
 }
 
 function extractPromoCode(rawEmail: string, intel: EmailIntelData): string | null {

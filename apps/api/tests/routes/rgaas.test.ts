@@ -375,6 +375,8 @@ describe('RGaaS Routes', () => {
                         '',
                         'Get a 100% match bonus up to $500 expires in 2 days.',
                         'Use code DROP500 at https://mcluck.com/promos/claim',
+                        '<img src="https://cdn.discordapp.com/ephemeral-attachments/1234/5678/bad.png" />',
+                        '<img src="https://mcluck.com/assets/promo-banner.png" />',
                         'Unsubscribe: https://mcluck.com/unsubscribe',
                     ].join('\n'),
                 });
@@ -394,6 +396,7 @@ describe('RGaaS Routes', () => {
                     value: '100% USD',
                     code: 'DROP500',
                     bonus_url: 'https://mcluck.com/promos/claim',
+                    image_url: 'https://mcluck.com/assets/promo-banner.png',
                     source: 'email-inbox',
                 }),
                 undefined,
@@ -410,6 +413,7 @@ describe('RGaaS Routes', () => {
             expect(persistedFeed.bonuses[0]).toMatchObject({
                 brand: 'McLuck',
                 code: 'DROP500',
+                imageUrl: 'https://mcluck.com/assets/promo-banner.png',
                 url: 'https://mcluck.com/promos/claim',
                 source: 'email-inbox',
                 lastPublishedAt: expect.any(String),
