@@ -1,4 +1,4 @@
-// © 2024-2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-18
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-18
 
 import { io, Socket } from 'socket.io-client';
 import type { SessionRound } from '../state/SessionState.js';
@@ -24,16 +24,26 @@ interface TriviaRoundStartPayload {
     id: string;
     question: string;
     choices: string[];
+    category?: string;
+    theme?: string;
+    difficulty?: 'easy' | 'medium' | 'hard';
   };
+  prizePool?: number;
   roundNumber?: number;
   totalRounds?: number;
   endsAt?: number;
+  leaderboard?: Array<{ username: string; score: number }>;
+  players?: Array<{ userId: string; username: string; score: number; eliminated: boolean; shieldConsumed: boolean; buyBackUsed: boolean }>;
 }
 
 interface TriviaRoundRevealPayload {
   gameId?: string;
   questionId?: string;
   correctChoice?: string;
+  explanation?: string;
+  stats?: Record<string, { count: number; correct: boolean }>;
+  leaderboard?: Array<{ username: string; score: number }>;
+  players?: Array<{ userId: string; username: string; score: number; eliminated: boolean; shieldConsumed: boolean; buyBackUsed: boolean }>;
 }
 
 interface TriviaSnapshot {
@@ -106,6 +116,8 @@ export class HubRelay {
       } else if (type === 'trivia-completed') {
         this.triviaSnapshot = { started: null, roundStart: null, roundReveal: null };
         this.emit('trivia.completed', data);
+      } else if (type === 'trivia-reset') {
+        this.triviaSnapshot = { started: null, roundStart: null, roundReveal: null };
       }
     });
 
@@ -142,6 +154,14 @@ export class HubRelay {
     this.socket.on('trivia-round-reveal', (data) => {
       this.triviaSnapshot.roundReveal = data as TriviaRoundRevealPayload;
       this.emit('trivia.round.reveal', data);
+    });
+
+    this.socket.on('trivia-ape-in-result', (data) => {
+      this.emit('trivia.ape-in.result', data);
+    });
+
+    this.socket.on('trivia-shield-result', (data) => {
+      this.emit('trivia.shield.result', data);
     });
 
     this.socket.on('tip.rain', (data) => {
@@ -217,6 +237,38 @@ export class HubRelay {
       answer,
       timestamp: Date.now(),
     });
+  }
+
+  requestTriviaApeIn(gameId: string, questionId: string): void {
+    this.socket?.emit('request-ape-in', {
+      gameId,
+      questionId,
+    });
+  }
+
+  requestTriviaShield(gameId: string, questionId: string): void {
+    this.socket?.emit('request-shield', {
+      gameId,
+      questionId,
+    });
+  }
+
+  buyTriviaBack(gameId: string): void {
+    this.socket?.emit('buy-back', {
+      gameId,
+    });
+  }
+
+  scheduleTriviaGame(category: string, theme: string, totalRounds: number): void {
+    this.socket?.emit('schedule-trivia-game', {
+      category,
+      theme,
+      totalRounds,
+    });
+  }
+
+  resetTriviaGame(): void {
+    this.socket?.emit('reset-trivia-game');
   }
 
   sendTip(toUsername: string, amountSol: number, message: string): void {

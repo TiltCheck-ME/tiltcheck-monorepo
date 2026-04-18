@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-18 */
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-18
 // v0.1.0 — 2026-02-25
 /**
  * © 2024–2026 TiltCheck Ecosystem. All Rights Reserved.
@@ -65,18 +65,10 @@ app.use((req, res, next) => {
   const origin = req.headers.origin;
 
   // Check if origin is allowed
-  let isAllowed = false;
-  if (origin) {
-    isAllowed = allowedOrigins.includes(origin);
-    
-    // In development, also allow localhost
-    if (!isAllowed && config.isDev) {
-      isAllowed = origin.startsWith('http://localhost:') || origin.startsWith('http://127.0.0.1:');
-    }
-  } else {
-    // Allow requests with no origin (like mobile apps, curl)
-    isAllowed = true;
-  }
+  const isAllowed = origin
+    ? allowedOrigins.includes(origin) ||
+      (config.isDev && (origin.startsWith('http://localhost:') || origin.startsWith('http://127.0.0.1:')))
+    : true;
 
   if (isAllowed) {
     res.header('Access-Control-Allow-Origin', origin || '*');
@@ -214,7 +206,7 @@ async function optionalAuth(req: express.Request, _res: express.Response, next: 
     if (result.valid && result.session) {
       req.user = result.session;
     }
-  } catch (_err) {
+  } catch {
     console.warn('[Auth] optionalAuth check failed (non-critical)');
   }
   next();
@@ -230,6 +222,49 @@ function requireAdmin(req: express.Request, res: express.Response, next: express
     return;
   }
   next();
+}
+
+function normalizeTriviaCategory(input: unknown): 'general' | 'strategy' | 'gambling_math' | 'degen' | 'crypto' {
+  if (typeof input !== 'string') {
+    return 'general';
+  }
+
+  const normalized = input.trim().toLowerCase();
+  if (
+    normalized === 'strategy' ||
+    normalized === 'gambling_math' ||
+    normalized === 'degen' ||
+    normalized === 'crypto'
+  ) {
+    return normalized;
+  }
+
+  return 'general';
+}
+
+function clampTriviaRoundCount(input: unknown): number {
+  if (typeof input !== 'number' || !Number.isFinite(input)) {
+    return 5;
+  }
+
+  return Math.min(7, Math.max(3, Math.round(input)));
+}
+
+function normalizeTriviaTheme(input: unknown, fallbackCategory: string): string {
+  if (typeof input === 'string' && input.trim()) {
+    return input.trim().slice(0, 80);
+  }
+
+  switch (fallbackCategory) {
+    case 'strategy':
+      return 'Tilt or Skill';
+    case 'degen':
+      return 'Safe or Sketchy';
+    case 'crypto':
+      return 'Cash Out or Chase';
+    default:
+      return 'Rapid Trivia';
+  }
 }
 
 // Socket.IO Auth Middleware
@@ -263,7 +298,7 @@ io.use(async (socket, next) => {
       }
     }
     next();
-  } catch (err) {
+  } catch {
     next(); // Allow anonymous lobby viewing
   }
 });
@@ -649,6 +684,8 @@ io.on('connection', (socket) => {
       ...liveTriviaState.settings,
       playerCount: liveTriviaState.playerCount,
       roundNumber: liveTriviaState.roundNumber,
+      leaderboard: liveTriviaState.leaderboard,
+      players: liveTriviaState.players,
     });
   };
 
@@ -700,15 +737,20 @@ io.on('connection', (socket) => {
         prizePool: updatedTriviaState?.settings.prizePool ?? 0,
         roundNumber: updatedTriviaState?.roundNumber ?? 1,
         totalRounds: updatedTriviaState?.totalRounds ?? 0,
+        leaderboard: updatedTriviaState?.leaderboard ?? [],
+        players: updatedTriviaState?.players ?? [],
       });
 
       if (updatedTriviaState?.currentQuestion && updatedTriviaState.endsAt) {
         socket.emit('trivia-round-start', {
           gameId,
           question: updatedTriviaState.currentQuestion,
+          prizePool: updatedTriviaState.settings.prizePool,
           roundNumber: updatedTriviaState.roundNumber,
           totalRounds: updatedTriviaState.totalRounds,
           endsAt: updatedTriviaState.endsAt,
+          leaderboard: updatedTriviaState.leaderboard,
+          players: updatedTriviaState.players,
         });
       }
 
@@ -905,6 +947,44 @@ io.on('connection', (socket) => {
       socket.emit('game-error', result.message || 'Buy-back failed');
     }
   });
+
+  socket.on('schedule-trivia-game', async (data: { category?: string; theme?: string; totalRounds?: number }) => {
+    if (!user) {
+      socket.emit('game-error', 'Authentication required');
+      return;
+    }
+
+    const category = normalizeTriviaCategory(data?.category);
+    const totalRounds = clampTriviaRoundCount(data?.totalRounds);
+    const theme = normalizeTriviaTheme(data?.theme, category);
+    const result = await triviaManager.scheduleGame({
+      category,
+      theme,
+      totalRounds,
+      startTime: Date.now() + 3_000,
+      prizePool: 0,
+    });
+
+    if (!result.success) {
+      socket.emit('game-error', result.message);
+      return;
+    }
+
+    io.to('lobby').emit('lobby-update', {
+      games: gameManager.getActiveGames(),
+      playersOnline: gameManager.getOnlinePlayerCount(),
+    });
+  });
+
+  socket.on('reset-trivia-game', async () => {
+    if (!user) {
+      socket.emit('game-error', 'Authentication required');
+      return;
+    }
+
+    await triviaManager.endGame();
+    io.emit('game-update', { type: 'trivia-reset' });
+  });
 });
 
 // ============================================================================
@@ -913,13 +993,21 @@ io.on('connection', (socket) => {
 
 // Listen for trivia events from the manager (via eventRouter) and push to all clients
 eventRouter.subscribe('trivia.started', (event) => {
+  const liveTriviaState = triviaManager.getLiveState();
   io.emit('chat-message', {
     userId: 'system',
     username: 'TiltLive',
-    message: `📢 LIVESTREAM STARTED: ${event.data.theme || event.data.category} Trivia is LIVE!`,
+    message: `LIVE ROUND ARMED: ${event.data.theme || event.data.category} trivia is live.`,
     timestamp: Date.now(),
   });
-  io.emit('game-update', { type: 'trivia-started', ...event.data });
+  io.emit('game-update', {
+    type: 'trivia-started',
+    ...event.data,
+    playerCount: liveTriviaState?.playerCount ?? 0,
+    roundNumber: liveTriviaState?.roundNumber ?? 1,
+    leaderboard: liveTriviaState?.leaderboard ?? [],
+    players: liveTriviaState?.players ?? [],
+  });
 }, 'game-arena');
 
 eventRouter.subscribe('trivia.round.start', (event) => {
@@ -935,7 +1023,7 @@ eventRouter.subscribe('trivia.completed', (event) => {
   io.emit('chat-message', {
     userId: 'system',
     username: 'TiltLive',
-    message: `🏆 GAME OVER! Winners: ${winnerList || 'No one survived the trenches.'}`,
+    message: `ROUND LOOP CLOSED. Winners: ${winnerList || 'No one survived the trenches.'}`,
     timestamp: Date.now(),
   });
   io.to(`game:${event.data.gameId}`).emit('game-update', { type: 'trivia-completed', ...event.data });

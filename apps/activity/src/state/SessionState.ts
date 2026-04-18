@@ -1,4 +1,14 @@
-// © 2024-2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-04
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-18
+
+import {
+  loadActivityProgression,
+  recordProgressionPromptStart,
+  recordProgressionRecapVisit,
+  recordProgressionRoundResult,
+  saveActivityProgression,
+  type ActivityBadge,
+  type ActivityProgression,
+} from './activityProgression.js';
 
 export interface SessionRound {
   bet: number;
@@ -21,6 +31,14 @@ export interface TriviaState {
   leaderboard: Array<{ username: string; score: number }>;
   timeRemaining: number;
   correctAnswer: string | null;
+  category: string | null;
+  theme: string | null;
+  roundNumber: number;
+  totalRounds: number;
+  explanation: string | null;
+  selectedAnswer: string | null;
+  answerLocked: boolean;
+  answerDistribution: Array<{ choice: string; count: number; correct: boolean }>;
 }
 
 export interface BonusItem {
@@ -53,6 +71,22 @@ export interface TipEntry {
   claimed: boolean;
 }
 
+export type ActivityView = 'home' | 'play' | 'bonuses' | 'recap';
+
+export type ActivityStage = 'lobby' | 'in-round' | 'post-round';
+
+export interface ActivityRecap {
+  title: string;
+  detail: string;
+  updatedAt: number | null;
+}
+
+export interface ProgressionRoundResult {
+  questionId: string;
+  survived: boolean;
+  usedCrowdRead: boolean;
+}
+
 type StateChangeHandler<T> = (value: T) => void;
 
 export class SessionState {
@@ -63,8 +97,9 @@ export class SessionState {
   private _rounds: SessionRound[] = [];
   private _expectedRtp: number = 96.5;
   private _startedAt: number = Date.now();
-  private _currentView: string = 'analyzer';
-  private _currentGame: string = 'dad';
+  private _currentView: ActivityView = 'home';
+  private _currentGame: string = 'trivia';
+  private _roundStage: ActivityStage = 'lobby';
   private _participantCount: number = 1;
   private _voiceActive: boolean = false;
   private _orientation: 'landscape' | 'portrait' = 'landscape';
@@ -81,7 +116,15 @@ export class SessionState {
     prizePool: 0,
     leaderboard: [],
     timeRemaining: 0,
-    correctAnswer: null
+    correctAnswer: null,
+    category: null,
+    theme: null,
+    roundNumber: 0,
+    totalRounds: 0,
+    explanation: null,
+    selectedAnswer: null,
+    answerLocked: false,
+    answerDistribution: []
   };
   private _bonusFeed: BonusItem[] = [];
   private _channelSessions: Map<string, { userId: string; username: string; rounds: SessionRound[] }> = new Map();
@@ -89,8 +132,21 @@ export class SessionState {
   private _tipHistory: TipEntry[] = [];
   private _feeSavedSol: number = 0;
   private _isElite: boolean = false;
+  private _activityRecap: ActivityRecap = {
+    title: 'Lobby is live',
+    detail: 'Home is armed. Queue up the next round when the room is ready.',
+    updatedAt: null
+  };
+  private _progression: ActivityProgression;
+  private seenProgressionPromptIds: Set<string> = new Set();
+  private seenProgressionResultIds: Set<string> = new Set();
+  private seenRecapUpdateKeys: Set<string> = new Set();
 
   private handlers: Map<string, StateChangeHandler<unknown>[]> = new Map();
+
+  constructor() {
+    this._progression = loadActivityProgression();
+  }
 
   // --------------------------------------------------------
   // User identity
@@ -134,10 +190,13 @@ export class SessionState {
   // --------------------------------------------------------
   // Navigation
   // --------------------------------------------------------
-  get currentView(): string { return this._currentView; }
+  get currentView(): ActivityView { return this._currentView; }
   get currentGame(): string { return this._currentGame; }
+  get roundStage(): ActivityStage { return this._roundStage; }
+  get activityRecap(): ActivityRecap { return { ...this._activityRecap }; }
 
-  setView(view: string): void {
+  setView(view: ActivityView): void {
+    if (this._currentView === view) return;
     this._currentView = view;
     this.notify('view');
   }
@@ -145,6 +204,85 @@ export class SessionState {
   setGame(game: string): void {
     this._currentGame = game;
     this.notify('game');
+  }
+
+  setRoundStage(stage: ActivityStage, recap?: Partial<ActivityRecap>): void {
+    if (this._roundStage !== stage) {
+      this._roundStage = stage;
+      this.notify('stage');
+    }
+
+    if (recap) {
+      const title = recap.title ?? this._activityRecap.title;
+      const detail = recap.detail ?? this._activityRecap.detail;
+      const recapChanged = title !== this._activityRecap.title || detail !== this._activityRecap.detail;
+      if (!recapChanged && recap.updatedAt === undefined) {
+        return;
+      }
+
+      const nextRecap: ActivityRecap = {
+        ...this._activityRecap,
+        ...recap,
+        title,
+        detail,
+        updatedAt: recap.updatedAt ?? Date.now()
+      };
+      this._activityRecap = nextRecap;
+      this.notify('recap');
+    }
+  }
+
+  setActivityRecap(title: string, detail: string, updatedAt = Date.now()): void {
+    this._activityRecap = { title, detail, updatedAt };
+    this.notify('recap');
+  }
+
+  // --------------------------------------------------------
+  // Progression
+  // --------------------------------------------------------
+  get progression(): ActivityProgression {
+    return {
+      ...this._progression,
+      badges: this._progression.badges.map((badge: ActivityBadge) => ({ ...badge })),
+    };
+  }
+
+  recordProgressionPromptStart(questionId: string, participantCount: number, at = Date.now()): void {
+    if (this.seenProgressionPromptIds.has(questionId)) {
+      return;
+    }
+
+    this.seenProgressionPromptIds.add(questionId);
+    this._progression = recordProgressionPromptStart(this._progression, {
+      at,
+      participantCount,
+    });
+    this.persistProgression();
+  }
+
+  recordProgressionRoundResult(result: ProgressionRoundResult, at = Date.now()): void {
+    if (this.seenProgressionResultIds.has(result.questionId)) {
+      return;
+    }
+
+    this.seenProgressionResultIds.add(result.questionId);
+    this._progression = recordProgressionRoundResult(this._progression, {
+      at,
+      survived: result.survived,
+      usedCrowdRead: result.usedCrowdRead,
+    });
+    this.persistProgression();
+  }
+
+  recordProgressionRecapVisit(at = Date.now()): void {
+    const recapKey = this._activityRecap.updatedAt === null ? `none:${at}` : String(this._activityRecap.updatedAt);
+    if (this.seenRecapUpdateKeys.has(recapKey)) {
+      return;
+    }
+
+    this.seenRecapUpdateKeys.add(recapKey);
+    this._progression = recordProgressionRecapVisit(this._progression, at);
+    this.persistProgression();
   }
 
   // --------------------------------------------------------
@@ -263,5 +401,10 @@ export class SessionState {
   private notify(event: string): void {
     this.handlers.get(event)?.forEach(h => h(undefined));
     this.handlers.get('*')?.forEach(h => h(event));
+  }
+
+  private persistProgression(): void {
+    saveActivityProgression(this._progression);
+    this.notify('progression');
   }
 }

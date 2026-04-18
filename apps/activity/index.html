@@ -1,3 +1,4 @@
+<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-18 -->
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -480,6 +481,11 @@
         text-shadow: 0 0 8px rgba(23, 195, 178, 0.5);
       }
 
+      .nav-tab.nav-tab-wide {
+        font-size: 0.62rem;
+        letter-spacing: 0.12em;
+      }
+
       .view-content {
         display: none;
         flex-direction: column;
@@ -514,6 +520,278 @@
         color: var(--color-primary);
       }
 
+      .shell-stack {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+      }
+
+      .shell-card {
+        background: rgba(10, 12, 16, 0.85);
+        border: 1px solid var(--border-default);
+        padding: 0.95rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.7rem;
+      }
+
+      .shell-card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 0.75rem;
+      }
+
+      .shell-eyebrow {
+        font-size: 0.62rem;
+        font-weight: 800;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: var(--text-muted);
+        margin-bottom: 0.2rem;
+      }
+
+      .shell-title {
+        font-family: var(--font-display);
+        font-size: 1.05rem;
+        font-weight: 800;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        color: #fff;
+      }
+
+      .shell-copy {
+        font-size: 0.82rem;
+        line-height: 1.5;
+        color: var(--text-secondary);
+      }
+
+      .shell-subcopy {
+        font-size: 0.74rem;
+        line-height: 1.45;
+        color: var(--text-muted);
+      }
+
+      .shell-metrics {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 0.65rem;
+      }
+
+      .shell-metric {
+        display: flex;
+        flex-direction: column;
+        gap: 0.2rem;
+        padding-top: 0.45rem;
+        border-top: 1px solid rgba(255,255,255,0.08);
+      }
+
+      .shell-metric-label {
+        font-size: 0.6rem;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--text-muted);
+      }
+
+      .shell-metric-value {
+        font-size: 0.82rem;
+        font-weight: 700;
+        color: #fff;
+      }
+
+      .stage-pill {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 5.5rem;
+        min-height: 2rem;
+        padding: 0.35rem 0.7rem;
+        border: 1px solid rgba(255,255,255,0.12);
+        font-size: 0.62rem;
+        font-weight: 800;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: #fff;
+      }
+
+      .stage-lobby {
+        border-color: rgba(255,255,255,0.12);
+        color: var(--text-secondary);
+      }
+
+      .stage-in-round {
+        border-color: rgba(23, 195, 178, 0.45);
+        color: var(--color-primary);
+      }
+
+      .stage-post-round {
+        border-color: rgba(139, 92, 246, 0.45);
+        color: #c9b5ff;
+      }
+
+      .panel-heading {
+        font-size: 0.72rem;
+        font-weight: 800;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--text-muted);
+      }
+
+      .play-shell-card,
+      .shell-home-card,
+      .shell-recap-card,
+      .shell-fallback-card {
+        backdrop-filter: blur(12px);
+      }
+
+      .recap-storyline {
+        display: flex;
+        flex-direction: column;
+        gap: 0.45rem;
+        padding: 0.85rem;
+        border: 1px solid rgba(255,255,255,0.08);
+        background: linear-gradient(135deg, rgba(23, 195, 178, 0.08), rgba(139, 92, 246, 0.08));
+      }
+
+      .recap-storyline[data-tone="tilted"] {
+        background: linear-gradient(135deg, rgba(239, 68, 68, 0.15), rgba(139, 92, 246, 0.08));
+        border-color: rgba(239, 68, 68, 0.35);
+      }
+
+      .recap-storyline[data-tone="heated"] {
+        background: linear-gradient(135deg, rgba(0, 255, 170, 0.08), rgba(23, 195, 178, 0.16));
+        border-color: rgba(0, 255, 170, 0.22);
+      }
+
+      .recap-storyline[data-tone="guarded"] {
+        background: linear-gradient(135deg, rgba(23, 195, 178, 0.08), rgba(217, 70, 239, 0.12));
+        border-color: rgba(23, 195, 178, 0.28);
+      }
+
+      .recap-shell-title {
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+      }
+
+      .recap-story-headline {
+        font-family: var(--font-display);
+        font-size: 1rem;
+        font-weight: 800;
+        line-height: 1.4;
+        color: #fff;
+      }
+
+      .recap-story-copy,
+      .recap-story-take {
+        font-size: 0.78rem;
+        line-height: 1.5;
+        color: var(--text-secondary);
+      }
+
+      .recap-story-take {
+        color: var(--color-primary);
+        font-weight: 700;
+      }
+
+      .recap-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 0.75rem;
+      }
+
+      .recap-panel {
+        display: flex;
+        flex-direction: column;
+        gap: 0.65rem;
+        padding: 0.85rem;
+        border: 1px solid rgba(255,255,255,0.08);
+        background: rgba(255,255,255,0.02);
+      }
+
+      .recap-panel-label {
+        font-size: 0.65rem;
+        font-weight: 800;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: var(--text-muted);
+      }
+
+      .recap-list {
+        list-style: none;
+        display: flex;
+        flex-direction: column;
+        gap: 0.55rem;
+        margin: 0;
+        padding: 0;
+      }
+
+      .recap-list-item {
+        display: flex;
+        flex-direction: column;
+        gap: 0.2rem;
+        padding: 0.55rem 0.6rem;
+        border-left: 2px solid rgba(23, 195, 178, 0.35);
+        background: rgba(23, 195, 178, 0.06);
+      }
+
+      .recap-list-item-warning {
+        border-left-color: rgba(239, 68, 68, 0.8);
+        background: rgba(239, 68, 68, 0.08);
+      }
+
+      .recap-list-item-safe {
+        border-left-color: rgba(0, 255, 170, 0.5);
+        background: rgba(0, 255, 170, 0.06);
+      }
+
+      .recap-list-title {
+        font-size: 0.72rem;
+        font-weight: 800;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: #fff;
+      }
+
+      .recap-list-copy {
+        font-size: 0.75rem;
+        line-height: 1.45;
+        color: var(--text-secondary);
+      }
+
+      .recap-callout {
+        display: flex;
+        flex-direction: column;
+        gap: 0.3rem;
+        padding: 0.7rem;
+        border: 1px solid rgba(255,255,255,0.08);
+      }
+
+      .recap-callout-smart {
+        background: rgba(23, 195, 178, 0.08);
+        border-color: rgba(23, 195, 178, 0.28);
+      }
+
+      .recap-callout-degen {
+        background: rgba(217, 70, 239, 0.08);
+        border-color: rgba(217, 70, 239, 0.24);
+      }
+
+      .recap-callout-label {
+        font-size: 0.62rem;
+        font-weight: 800;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: #fff;
+      }
+
+      .recap-callout-copy {
+        font-size: 0.76rem;
+        line-height: 1.45;
+        color: var(--text-secondary);
+      }
+
       /* ── FOOTER ──────────────────────────── */
       footer {
         text-align: center;
@@ -534,6 +812,178 @@
       @keyframes tab-pulse {
         0%, 100% { box-shadow: 0 2px 0 var(--color-accent); }
         50%       { box-shadow: 0 2px 8px var(--color-accent); }
+      }
+
+      /* ── BONUS TRACKER ───────────────────── */
+      .bonus-utility-card {
+        backdrop-filter: blur(12px);
+      }
+
+      .bonus-utility-stats {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 0.65rem;
+      }
+
+      .bonus-utility-stat {
+        display: flex;
+        flex-direction: column;
+        gap: 0.2rem;
+        padding-top: 0.45rem;
+        border-top: 1px solid rgba(255,255,255,0.08);
+      }
+
+      .bonus-utility-stat-label {
+        font-size: 0.6rem;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--text-muted);
+      }
+
+      .bonus-utility-stat-value {
+        font-size: 0.95rem;
+        font-weight: 800;
+        color: #fff;
+      }
+
+      .bonus-source-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.4rem;
+      }
+
+      .bonus-source-pill,
+      .bonus-meta-pill,
+      .bonus-status-badge,
+      .bonus-action-link {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 1.7rem;
+        padding: 0.2rem 0.55rem;
+        border: 1px solid rgba(255,255,255,0.12);
+        font-size: 0.62rem;
+        font-weight: 800;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: #fff;
+      }
+
+      .bonus-source-pill-live,
+      .bonus-meta-pill-good,
+      .bonus-status-badge-ready {
+        border-color: rgba(23, 195, 178, 0.45);
+        color: var(--color-primary);
+      }
+
+      .bonus-source-pill-tracker,
+      .bonus-meta-pill-neutral,
+      .bonus-status-badge-tracker {
+        border-color: rgba(255,255,255,0.12);
+        color: var(--text-secondary);
+      }
+
+      .bonus-source-pill-fallback,
+      .bonus-meta-pill-warn,
+      .bonus-status-badge-cooldown,
+      .bonus-status-badge-expired {
+        border-color: rgba(239, 68, 68, 0.35);
+        color: #ff9d9d;
+      }
+
+      .bonus-card-list {
+        display: flex;
+        flex-direction: column;
+        gap: 0.65rem;
+      }
+
+      .bonus-card,
+      .bonus-fallback-card {
+        background: rgba(8, 10, 13, 0.72);
+        border: 1px solid rgba(255,255,255,0.08);
+        padding: 0.8rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.6rem;
+      }
+
+      .bonus-card-ready {
+        border-color: rgba(23, 195, 178, 0.22);
+      }
+
+      .bonus-card-cooldown,
+      .bonus-card-expired {
+        border-color: rgba(239, 68, 68, 0.18);
+      }
+
+      .bonus-card-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 0.75rem;
+      }
+
+      .bonus-card-side {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 0.35rem;
+        flex-shrink: 0;
+      }
+
+      .bonus-card-casino {
+        font-size: 0.9rem;
+        font-weight: 800;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        color: #fff;
+      }
+
+      .bonus-card-copy {
+        margin-top: 0.25rem;
+        font-size: 0.78rem;
+        line-height: 1.45;
+        color: var(--text-secondary);
+      }
+
+      .bonus-timer-label {
+        font-family: 'Courier New', monospace;
+        font-size: 0.72rem;
+        font-weight: 700;
+        color: var(--text-muted);
+      }
+
+      .bonus-meta-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.4rem;
+      }
+
+      .bonus-action-link {
+        text-decoration: none;
+        border-color: rgba(23, 195, 178, 0.35);
+        color: var(--color-primary);
+      }
+
+      .bonus-fallback-title {
+        font-size: 0.78rem;
+        font-weight: 800;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--color-primary);
+      }
+
+      .bonus-fallback-copy {
+        font-size: 0.78rem;
+        line-height: 1.45;
+        color: var(--text-secondary);
+      }
+
+      .bonus-fallback-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.4rem;
       }
 
       /* ── TIP VIEW ────────────────────────── */
@@ -705,55 +1155,72 @@
   <body>
     <div id="app">
       <nav class="hud-nav">
-        <button class="nav-tab active" data-view="analyzer">Analyzer</button>
-        <button class="nav-tab" data-view="games">Games</button>
-        <button class="nav-tab" data-view="vault">Vault</button>
-        <button class="nav-tab" data-view="tip">Tip</button>
+        <button class="nav-tab nav-tab-wide active" data-view="home">Home</button>
+        <button class="nav-tab nav-tab-wide" data-view="play">Play</button>
+        <button class="nav-tab nav-tab-wide" data-view="bonuses">Bonuses</button>
+        <button class="nav-tab nav-tab-wide" data-view="recap">Recap</button>
       </nav>
 
-      <section id="view-analyzer" class="view-content active">
+      <section id="view-home" class="view-content active">
         <p id="sdk-status" class="sdk-status">CALIBRATING INTEGRITY MESH...</p>
-        <!-- Content will be injected by main.ts -->
+        <div id="view-home-shell"></div>
+        <div id="view-home-analyzer"></div>
       </section>
 
-      <section id="view-games" class="view-content">
-        <div class="sub-nav">
-          <button class="sub-tab active" data-game="dad">DA&D</button>
-          <button class="sub-tab" data-game="trivia">Trivia</button>
-        </div>
-        <div id="game-container" class="waiting-state">
-          <div class="waiting-icon">[SIGNAL]</div>
-          <p class="waiting-title">AWAITING DEGENERACY</p>
-          <p class="waiting-sub">Select your poison to synchronize with the squad.</p>
-        </div>
-      </section>
-
-      <section id="view-vault" class="view-content">
-        <div class="rtp-dashboard">
-          <p class="section-label">PROTECTION STATUS: HARSH TRUTH ONLY</p>
-          <div class="stat">
-            <span class="stat-label">Active Vaults</span>
-            <span class="stat-value" id="vault-count">0</span>
-          </div>
-          <div class="stat">
-            <span class="stat-label">Profit Guard</span>
-            <span class="stat-value" id="profit-guard-status">BYPASS MODE</span>
+      <section id="view-play" class="view-content">
+        <div id="view-play-game" class="shell-stack">
+          <div class="shell-card play-shell-card">
+            <div class="shell-card-header">
+              <div>
+                <p class="shell-eyebrow">Play state</p>
+                <h2 class="shell-title">Play</h2>
+              </div>
+              <span class="stage-pill stage-lobby">Lobby</span>
+            </div>
+            <p class="shell-copy">The room is staged. Pick a game and wait for the live round to start.</p>
           </div>
         </div>
-        <button id="emergencyVaultBtn" class="btn-primary" style="background-color: var(--color-danger); margin-top: 1rem;">
-          [!] VAULT EVERYTHING
-        </button>
-        <p class="waiting-sub" style="text-align: center; margin-top: 0.5rem; font-size: 0.7rem;">
-          Deploying non-custodial capital protection before you rinse the rest.
-        </p>
       </section>
 
-      <section id="view-tip" class="view-content">
-        <!-- Mounted by TipView.ts -->
+      <section id="view-bonuses" class="view-content">
+        <div class="shell-stack">
+          <div class="shell-card">
+            <div class="shell-card-header">
+              <div>
+                <p class="shell-eyebrow">Utility lane</p>
+                <h2 class="shell-title">Bonuses</h2>
+              </div>
+              <span class="stage-pill stage-lobby">Lean v1</span>
+            </div>
+            <p class="shell-copy">Bonuses keeps daily utility in one place. Tracker data, tip flow, and protection stay readable without turning the activity into dashboard sludge.</p>
+          </div>
+          <div>
+            <p class="panel-heading">Bonus tracker</p>
+            <div id="view-bonuses-feed"></div>
+          </div>
+          <div>
+            <p class="panel-heading">Tip flow</p>
+            <div id="view-bonuses-tip"></div>
+          </div>
+          <div>
+            <p class="panel-heading">Protection</p>
+            <div id="view-bonuses-vault"></div>
+          </div>
+        </div>
+      </section>
+
+      <section id="view-recap" class="view-content">
+        <div class="shell-stack">
+          <div id="view-recap-shell"></div>
+          <div>
+            <p class="panel-heading">Room board</p>
+            <div id="view-recap-leaderboard"></div>
+          </div>
+        </div>
       </section>
     </div>
 
-    <footer>TiltCheck v2.0 — Made for Degens by Degens</footer>
+    <footer>TiltCheck v2.0 — Made for Degens. By Degens.</footer>
 
     <script type="module" src="/src/main.ts"></script>
   </body>

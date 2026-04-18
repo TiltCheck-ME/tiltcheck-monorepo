@@ -1,4 +1,4 @@
-// © 2024-2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-10
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-18
 
 import type { SessionState, TipRain, TipEntry } from '../state/SessionState.js';
 import type { HubRelay } from '../sdk/HubRelay.js';
@@ -44,7 +44,7 @@ export class TipView {
   }
 
   private flashNavBadge(show: boolean): void {
-    const tab = document.querySelector('.nav-tab[data-view="tip"]');
+    const tab = document.querySelector('.nav-tab[data-view="bonuses"]');
     if (!tab) return;
     if (show) {
       tab.classList.add('has-rain');

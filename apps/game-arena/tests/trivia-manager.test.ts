@@ -4,6 +4,7 @@ import { rm } from 'node:fs/promises';
 import path from 'node:path';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { eventRouter } from '@tiltcheck/event-router';
+import { TRIVIA_QUESTION_BANK } from '@tiltcheck/shared';
 import { triviaManager } from '../src/trivia-manager.js';
 
 const TEST_STATE_FILE = path.resolve(process.cwd(), 'data/trivia-manager.test-state.json');
@@ -155,5 +156,45 @@ describe('triviaManager', () => {
 
     expect(persistence.snapshotExists).toBe(true);
     expect(audit.recentAuditEvents.some((event) => event.type === 'answer.submitted')).toBe(true);
+  });
+
+  it('lets an eliminated player chase a single buy-back into the next round', async () => {
+    await triviaManager.scheduleGame({
+      category: 'casino',
+      totalRounds: 2,
+      startTime: Date.now() + 1_000,
+    });
+
+    const game = triviaManager.getLiveState();
+    expect(game).not.toBeNull();
+    await triviaManager.joinGame('user-1', 'Alice', game!.gameId);
+
+    await vi.advanceTimersByTimeAsync(1_000);
+
+    const liveRound = triviaManager.getLiveState();
+    const liveQuestion = liveRound!.currentQuestion!;
+    const bankQuestion = TRIVIA_QUESTION_BANK.casino.find((question) => question.id === liveQuestion.id);
+    expect(bankQuestion).toBeTruthy();
+    const correctAnswer = bankQuestion!.choices[bankQuestion!.answer];
+    const wrongAnswer = liveQuestion.choices.find((choice) => choice !== correctAnswer);
+    expect(wrongAnswer).toBeTruthy();
+
+    await expect(triviaManager.submitAnswer('user-1', liveQuestion.id, wrongAnswer!)).resolves.toEqual({
+      success: true,
+      message: 'Answer accepted.',
+    });
+
+    await vi.advanceTimersByTimeAsync(20_000);
+
+    const eliminatedState = triviaManager.getLiveState();
+    expect(eliminatedState?.players.find((player) => player.userId === 'user-1')?.eliminated).toBe(true);
+
+    await expect(triviaManager.processBuyBack('user-1', game!.gameId)).resolves.toEqual({
+      success: true,
+      message: 'Buy-back processed. You are back in the game.',
+    });
+
+    expect(triviaManager.getLiveState()?.players.find((player) => player.userId === 'user-1')?.eliminated).toBe(false);
+    expect(triviaManager.getLiveState()?.players.find((player) => player.userId === 'user-1')?.buyBackUsed).toBe(true);
   });
 });
