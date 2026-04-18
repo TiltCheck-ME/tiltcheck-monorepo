@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-10
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-18 */
 /**
  * Game Blocker — Surgical Self-Exclusion enforcement for the Chrome Extension.
  *
@@ -42,6 +42,7 @@ export class GameBlocker {
   private authToken: string;
   private observer: MutationObserver | null = null;
   private pollTimer: ReturnType<typeof setInterval> | null = null;
+  private readonly dismissStorageKey = `tiltcheck_game_block_dismissed:${window.location.hostname.toLowerCase()}`;
 
   constructor(discordId: string, authToken: string) {
     this.discordId = discordId;
@@ -123,6 +124,11 @@ export class GameBlocker {
   // ─── DOM scan ─────────────────────────────────────────────────────────────
 
   private scan(): void {
+    if (this.isDismissedForSession()) {
+      this.removeOverlay();
+      return;
+    }
+
     if (!this.profile) return;
 
     // Check page URL
@@ -212,10 +218,29 @@ export class GameBlocker {
     document.body.appendChild(overlay);
 
     document.getElementById('tc-block-dismiss')?.addEventListener('click', () => {
+      this.setDismissedForSession(true);
       this.removeOverlay();
-      // Prevent re-injection for this page session
-      this.profile = null;
     });
+  }
+
+  private isDismissedForSession(): boolean {
+    try {
+      return window.sessionStorage.getItem(this.dismissStorageKey) === '1';
+    } catch {
+      return false;
+    }
+  }
+
+  private setDismissedForSession(dismissed: boolean): void {
+    try {
+      if (dismissed) {
+        window.sessionStorage.setItem(this.dismissStorageKey, '1');
+      } else {
+        window.sessionStorage.removeItem(this.dismissStorageKey);
+      }
+    } catch {
+      // Ignore storage failures and fall back to the current DOM state.
+    }
   }
 
   private removeOverlay(): void {

@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-16 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-18 */
 import type { Metadata } from "next";
 import { Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
@@ -46,6 +46,7 @@ export const metadata: Metadata = {
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import AriaSlangProvider from "@/components/AriaSlangProvider";
+import PublicPageFrame from "@/components/PublicPageFrame";
 
 export default function RootLayout({
   children,
@@ -61,7 +62,9 @@ export default function RootLayout({
           <AriaSlangProvider />
           <a href="#main-content" className="nav-skip-link">Skip to main content</a>
           <Header />
-          <main id="main-content" className="nav-main-content">{children}</main>
+          <main id="main-content" className="nav-main-content">
+            <PublicPageFrame>{children}</PublicPageFrame>
+          </main>
           <div className="nav-main-content"><Footer /></div>
         </RootProvider>
       </body>

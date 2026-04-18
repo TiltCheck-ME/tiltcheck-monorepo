@@ -1,9 +1,10 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-13
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-18
 import { appendFileSync, existsSync, readFileSync, writeFileSync } from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import dotenv from 'dotenv';
 import chalk from 'chalk';
+import { buildTiltCheckDailyDegenSummary } from './report-summary.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 dotenv.config({ path: path.join(__dirname, '.env') });
@@ -437,7 +438,11 @@ async function run() {
         second: '2-digit',
       });
       const dateRange = `${new Date(chunk[0].timestamp).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })} → ${new Date(chunk[chunk.length - 1].timestamp).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}`;
-      const outputBusiness = `\n\n---\n## Batch ${globalChunkNumber}/${chunks.length} · Saved at ${chunkTime}\n> **Message date range:** ${dateRange}  \n> ${chunk.length} messages · ${currentAi.label} (${finalModel})\n\n${reportContent}`;
+      const degenSummary = buildTiltCheckDailyDegenSummary(chunk, {
+        fromTimestamp: chunk[0]?.timestamp || null,
+        toTimestamp: chunk[chunk.length - 1]?.timestamp || null,
+      });
+      const outputBusiness = `\n\n---\n## Batch ${globalChunkNumber}/${chunks.length} · Saved at ${chunkTime}\n> **Message date range:** ${dateRange}  \n> ${chunk.length} messages · ${currentAi.label} (${finalModel})\n\n${degenSummary}\n\n${reportContent}`;
       appendFileSync(REPORT_FILE_BUSINESS, outputBusiness);
 
       const citationHeader = `\n\n---\n## 📎 Citations Batch ${globalChunkNumber}/${chunks.length} · Saved at ${chunkTime}\n> **Message date range:** ${dateRange}  \n> Source messages analysed in this batch\n\n`;

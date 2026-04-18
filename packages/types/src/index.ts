@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-17
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-18
 /* Copyright (c) 2026 TiltCheck. All rights reserved. */
 /**
  * @tiltcheck/types
@@ -861,6 +861,7 @@ export interface TriviaStartedEventData extends TriviaGameSettings {
 }
 
 export interface TriviaRoundStartEventData {
+  gameId: string;
   question: TriviaQuestion;
   roundNumber: number;
   totalRounds: number;
@@ -868,6 +869,7 @@ export interface TriviaRoundStartEventData {
 }
 
 export interface TriviaRoundRevealEventData {
+  gameId: string;
   questionId: string;
   correctChoice: string;
   explanation?: string;

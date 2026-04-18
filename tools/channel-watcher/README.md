@@ -1,3 +1,4 @@
+<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-18 -->
 # TiltCheck Channel Watcher
 
 Passively watches a Discord channel from your logged-in browser session, then runs scheduled GPT-4o analysis to surface pain points, friction, and community insights — no keyword lists needed.
@@ -77,7 +78,7 @@ Optional flags:
 ./run-cloud-watcher.ps1 -VmName "my-vm" -Zone "us-central1-a" -ProjectId "my-project"
 ```
 
-## Schedule it on Windows (3 days/week)
+## Schedule it on Windows (every 2 hours)
 
 Create a recurring Task Scheduler job that runs the cloud watcher automatically:
 
@@ -87,18 +88,18 @@ npm run cloud:schedule
 
 Default schedule created by the script:
 
-- Days: Monday, Wednesday, Friday, Saturday
-- Times: 00:00 and 08:00
-- Run length per execution: 10 minutes
+- Days: Monday through Sunday
+- Times: every 2 hours (`00:00, 02:00, 04:00, ..., 22:00`)
+- Run length per execution: 2 minutes
 
 Custom schedule example:
 
 ```powershell
 ./register-cloud-watcher-task.ps1 `
   -TaskName "TiltCheck-Cloud-Watcher" `
-  -Days Monday,Wednesday,Friday,Saturday `
-  -Times 00:00,08:00 `
-  -DurationMinutes 10
+  -Days Monday,Tuesday,Wednesday,Thursday,Friday,Saturday,Sunday `
+  -Times 00:00,02:00,04:00,06:00,08:00,10:00,12:00,14:00,16:00,18:00,20:00,22:00 `
+  -DurationMinutes 2
 ```
 
 Manage the task:
@@ -153,6 +154,8 @@ Config values:
 The sync stores de-dup state in `.bonus-sync-state.json`, so reruns only post new links.
 In live watch mode it posts **one branded TiltCheck embed per fresh bonus** instead of dumping a text summary block.
 Preferred setup is a sanitized `DISCORD_SESSION_JSON` or `.session.json`. If Discord still throws you back to login, you can also set `DISCORD_TOKEN` for runtime-only hydration. That token is injected at page load and is not written back to disk.
+
+`DISCORD_SESSION_JSON` must be a sanitized Playwright `storageState` JSON object (or the base64 encoding of that object). Raw Discord IDs, raw tokens, or other scalar values are invalid and will be rejected at startup.
 
 ### Live headless mode without local popups
 

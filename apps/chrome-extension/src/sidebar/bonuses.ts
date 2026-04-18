@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-09
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-18
 
 import { SidebarUI } from './types.js';
 
@@ -8,6 +8,18 @@ const BONUSES_PRIMARY_URL = 'https://api.tiltcheck.me/bonuses';
 const BONUSES_FALLBACK_URL =
   'https://raw.githubusercontent.com/TiltCheck-ME/CollectClock/main/bonus-data.json';
 const BONUSES_DISPLAY_COUNT = 5;
+const BONUS_CLAIM_ALLOWED_HOSTS = [
+  'stake.com',
+  'stake.us',
+  'roobet.com',
+  'bc.game',
+  'duelbits.com',
+  'rollbit.com',
+  'shuffle.com',
+  'gamdom.com',
+  'csgoempire.com',
+  'tiltcheck.me',
+] as const;
 
 export interface BonusEntry {
   brand: string;
@@ -125,7 +137,12 @@ export class BonusManager {
         brand: String(item.brand ?? ''),
         description: String(item.description ?? item.desc ?? ''),
         code: item.code ? String(item.code) : undefined,
-        claimUrl: item.claimUrl ?? item.url ?? undefined,
+        claimUrl:
+          typeof item.claimUrl === 'string'
+            ? item.claimUrl
+            : typeof item.url === 'string'
+              ? item.url
+              : undefined,
       }));
   }
 
@@ -146,15 +163,62 @@ export class BonusManager {
           <div class="tg-bonus-brand">${this.esc(b.brand)}</div>
           <div class="tg-bonus-desc">${this.esc(b.description)}</div>
           ${b.code ? `<div class="tg-bonus-code">[CODE: ${this.esc(b.code)}]</div>` : ''}
-          ${
-            b.claimUrl
-              ? `<a class="tg-bonus-claim" href="${this.esc(b.claimUrl)}" target="_blank" rel="noopener noreferrer">[CLAIM]</a>`
-              : ''
-          }
+          ${this.renderClaimAction(b.claimUrl)}
         </div>
       `
       )
       .join('');
+  }
+
+  private renderClaimAction(claimUrl?: string): string {
+    const safeClaimUrl = this.getSafeClaimUrl(claimUrl);
+    if (safeClaimUrl) {
+      return `<a class="tg-bonus-claim" href="${this.esc(safeClaimUrl)}" target="_blank" rel="noopener noreferrer">[CLAIM]</a>`;
+    }
+
+    if (typeof claimUrl === 'string' && claimUrl.trim()) {
+      return '<span class="tg-bonus-claim tg-bonus-claim-blocked" title="Blocked unsafe claim link">[LINK BLOCKED]</span>';
+    }
+
+    return '';
+  }
+
+  private getSafeClaimUrl(rawClaimUrl?: string): string | null {
+    if (typeof rawClaimUrl !== 'string') {
+      return null;
+    }
+
+    const trimmedClaimUrl = rawClaimUrl.trim();
+    if (!trimmedClaimUrl) {
+      return null;
+    }
+
+    try {
+      const parsedClaimUrl = new URL(trimmedClaimUrl);
+      if (parsedClaimUrl.protocol !== 'https:') {
+        return null;
+      }
+
+      if (parsedClaimUrl.username || parsedClaimUrl.password) {
+        return null;
+      }
+
+      const hostname = parsedClaimUrl.hostname.replace(/^www\./, '').toLowerCase();
+      if (!hostname || !this.isAllowedClaimHost(hostname)) {
+        return null;
+      }
+
+      parsedClaimUrl.hash = '';
+      return parsedClaimUrl.toString();
+    } catch {
+      return null;
+    }
+  }
+
+  private isAllowedClaimHost(hostname: string): boolean {
+    return BONUS_CLAIM_ALLOWED_HOSTS.some(
+      (allowedHost) => hostname === allowedHost || hostname.endsWith(`.${allowedHost}`),
+    );
   }
 
   private setStatus(msg: string): void {

@@ -8,6 +8,7 @@
  * For licensing information, see LICENSE file in the project root.
  */
 /**
+ * © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-18
  * Game Arena Server Configuration
  * Central configuration for the game arena service
  *
@@ -57,6 +58,7 @@ export const config = {
     gameTimeout: 60 * 60 * 1000, // 1 hour
     maxPlayersPerGame: 10,
     stateFilePath: process.env.GAME_ARENA_STATE_FILE || 'data/game-arena-state.json',
+    triviaStateFilePath: process.env.GAME_ARENA_TRIVIA_STATE_FILE || 'data/trivia-state.json',
   },
 };
 

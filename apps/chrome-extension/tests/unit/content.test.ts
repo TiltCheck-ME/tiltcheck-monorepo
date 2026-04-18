@@ -1,4 +1,4 @@
-/* Copyright (c) 2026 TiltCheck. All rights reserved. */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-18 */
 /**
  * @vitest-environment jsdom
  */
@@ -32,7 +32,26 @@ function createChromeMock() {
   return { listeners };
 }
 
-function mockHeavyDependencies() {
+function mockHeavyDependencies(options?: {
+  extractBalance?: number | null;
+  tiltDetectorSpy?: ReturnType<typeof vi.fn>;
+  verification?: Record<string, unknown>;
+}) {
+  const extractorInitialize = vi.fn().mockResolvedValue(undefined);
+  const tiltDetectorSpy = options?.tiltDetectorSpy ?? vi.fn();
+  const verification = {
+    isLegitimate: true,
+    licenseInfo: {
+      found: true,
+      issuingAuthority: 'Malta Gaming Authority',
+      jurisdiction: 'Malta',
+      verified: true,
+      warnings: [],
+    },
+    verdict: 'legitimate',
+    shouldAnalyze: true,
+    ...options?.verification,
+  };
   vi.doMock('../../src/extractor.js', () => ({
     AnalyzerClient: class {
       connect = vi.fn().mockResolvedValue(undefined);
@@ -40,29 +59,38 @@ function mockHeavyDependencies() {
       sendSpin = vi.fn();
     },
     CasinoDataExtractor: class {
-      initialize = vi.fn().mockResolvedValue(undefined);
-      extractBalance = vi.fn().mockReturnValue(100);
+      initialize = extractorInitialize;
+      extractBalance = vi.fn().mockReturnValue(options?.extractBalance ?? 100);
       startObserving = vi.fn().mockReturnValue(() => {});
     },
   }));
   vi.doMock('../../src/tilt-detector.js', () => ({
     TiltDetector: class {
+      constructor(...args: unknown[]) {
+        tiltDetectorSpy(...args);
+      }
       recordBet = vi.fn();
       getSessionSummary = vi.fn().mockReturnValue({ currentBalance: 100, startTime: Date.now(), totalBets: 0, totalWagered: 0, totalWon: 0 });
       detectAllTiltSigns = vi.fn().mockReturnValue([]);
       getTiltRiskScore = vi.fn().mockReturnValue(0);
       generateInterventions = vi.fn().mockReturnValue([]);
+      updateBalance = vi.fn();
     },
   }));
   vi.doMock('../../src/license-verifier.js', () => ({
     CasinoLicenseVerifier: class {
-      verifyCasino = vi.fn().mockReturnValue({ verified: true });
+      verifyCasino = vi.fn().mockReturnValue(verification);
     },
+    buildLicensePresentation: vi.fn().mockImplementation((verification) => ({
+      summary: verification?.warningMessage ?? 'License verified: Malta Gaming Authority',
+      tone: verification?.shouldAnalyze === false ? 'risk' : 'verified',
+    })),
+    getAnalysisBlockMessage: vi.fn().mockImplementation((verification) => verification?.shouldAnalyze === false ? verification.warningMessage : null),
   }));
-  vi.doMock('../../src/sidebar.js', () => ({}));
   vi.doMock('../../src/analyzer.js', () => ({ Analyzer: class {} }));
   vi.doMock('../../src/FairnessService.js', () => ({ FairnessService: class {} }));
   vi.doMock('@tiltcheck/utils', () => ({ SolanaProvider: class { getLatestBlockHash = vi.fn().mockResolvedValue('hash'); } }));
+  return { extractorInitialize, tiltDetectorSpy };
 }
 
 describe('content script readiness contracts', () => {
@@ -120,5 +148,75 @@ describe('content script readiness contracts', () => {
     const response = vi.fn();
     listeners[0]({ type: 'unknown_message' }, null, response);
     expect(response).toHaveBeenCalledWith({ error: 'Unknown message type' });
+  });
+
+  it('blocks auto analysis when the site is unlicensed', async () => {
+    const sidebarStub = {
+      syncAccountUi: vi.fn(),
+      showMainContent: vi.fn(),
+      addFeedMessage: vi.fn(),
+      getStorage: vi.fn().mockResolvedValue({}),
+      setStorage: vi.fn().mockResolvedValue(undefined),
+      updateStatus: vi.fn(),
+      updateRealityCheck: vi.fn(),
+      updateLicense: vi.fn(),
+      updateTilt: vi.fn(),
+      updateStats: vi.fn(),
+      notifyBuddy: vi.fn(),
+      openPremium: vi.fn().mockResolvedValue(undefined),
+    };
+    vi.doMock('../../src/sidebar/index.js', () => ({
+      initSidebar: vi.fn(() => sidebarStub),
+    }));
+    const { extractorInitialize } = mockHeavyDependencies({
+      verification: {
+        isLegitimate: false,
+        licenseInfo: {
+          found: false,
+          verified: false,
+          warnings: [],
+        },
+        verdict: 'unlicensed',
+        shouldAnalyze: false,
+        warningMessage: 'No valid gambling license found yet. Normal TiltCheck analysis is disabled on this site.',
+      },
+    });
+
+    await import('../../src/content.ts');
+
+    expect(extractorInitialize).not.toHaveBeenCalled();
+    expect(sidebarStub.updateLicense).toHaveBeenCalledWith(expect.objectContaining({
+      verdict: 'unlicensed',
+      shouldAnalyze: false,
+    }));
+    expect(sidebarStub.updateStatus).toHaveBeenCalledWith(
+      'No valid gambling license found yet. Normal TiltCheck analysis is disabled on this site.',
+      'warning',
+    );
+    expect(sidebarStub.updateRealityCheck).toHaveBeenCalledWith(false);
+  });
+
+  it('passes through honest zero balances without fabricating a starting amount', async () => {
+    const { listeners } = createChromeMock();
+    const tiltDetectorSpy = vi.fn();
+    mockHeavyDependencies({ extractBalance: 0, tiltDetectorSpy });
+    (window as any).TiltCheckSidebar = {
+      create: vi.fn(() => {
+        const div = document.createElement('div');
+        div.id = 'tiltcheck-sidebar';
+        document.body.appendChild(div);
+        return div;
+      }),
+      updateLicense: vi.fn(),
+      updateGuardian: vi.fn(),
+      updateStats: vi.fn(),
+      updateTilt: vi.fn(),
+      notifyBuddy: vi.fn(),
+    };
+
+    await import('../../src/content.ts');
+
+    expect(listeners).toHaveLength(1);
+    expect(tiltDetectorSpy).toHaveBeenCalledWith(0, 'moderate', 0);
   });
 });

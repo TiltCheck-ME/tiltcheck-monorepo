@@ -1,4 +1,4 @@
-// © 2024-2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-04
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-18
 
 import { DiscordSDK, Events } from '@discord/embedded-app-sdk';
 
@@ -20,7 +20,8 @@ export interface DiscordBridgeState {
 type EventHandler<T = unknown> = (data: T) => void;
 
 export class DiscordBridge {
-  private sdk: DiscordSDK;
+  private readonly clientId: string;
+  private sdk: DiscordSDK | null = null;
   private state: DiscordBridgeState = {
     userId: '',
     username: 'Anonymous',
@@ -33,25 +34,49 @@ export class DiscordBridge {
   private accessToken: string | null = null;
 
   constructor(clientId: string) {
-    this.sdk = new DiscordSDK(clientId);
+    this.clientId = clientId;
   }
 
   async initialize(): Promise<DiscordBridgeState> {
+    const sdk = this.getOrCreateSdk();
+
     // 8-second timeout — fall to demo mode if Discord SDK hangs
     await Promise.race([
-      this.sdk.ready(),
+      sdk.ready(),
       new Promise<never>((_, reject) =>
         setTimeout(() => reject(new Error('Discord SDK ready() timeout')), 8000)
       )
     ]);
-    await this.authenticate();
-    await this.subscribeToEvents();
+
+    await this.authenticate(sdk);
+    await this.subscribeToEvents(sdk);
     return this.state;
   }
 
-  private async authenticate(): Promise<void> {
-    const { code } = await this.sdk.commands.authorize({
-      client_id: this.sdk.clientId,
+  private getOrCreateSdk(): DiscordSDK {
+    if (this.sdk) {
+      return this.sdk;
+    }
+
+    try {
+      this.sdk = new DiscordSDK(this.clientId);
+      return this.sdk;
+    } catch (error) {
+      throw new Error(this.formatSdkInitError(error), { cause: error });
+    }
+  }
+
+  private formatSdkInitError(error: unknown): string {
+    if (error instanceof Error && error.message) {
+      return `Discord SDK unavailable outside Discord: ${error.message}`;
+    }
+
+    return 'Discord SDK unavailable outside Discord.';
+  }
+
+  private async authenticate(sdk: DiscordSDK): Promise<void> {
+    const { code } = await sdk.commands.authorize({
+      client_id: sdk.clientId,
       response_type: 'code',
       state: '',
       prompt: 'none',
@@ -67,15 +92,15 @@ export class DiscordBridge {
     const { access_token } = await tokenRes.json();
     this.accessToken = access_token;
 
-    const auth = await this.sdk.commands.authenticate({ access_token });
+    const auth = await sdk.commands.authenticate({ access_token });
     this.state.userId = auth.user.id;
     this.state.username = auth.user.username;
-    this.state.channelId = this.sdk.channelId;
+    this.state.channelId = sdk.channelId;
   }
 
-  private async subscribeToEvents(): Promise<void> {
+  private async subscribeToEvents(sdk: DiscordSDK): Promise<void> {
     // Participant updates
-    await this.sdk.subscribe(
+    await sdk.subscribe(
       Events.ACTIVITY_INSTANCE_PARTICIPANTS_UPDATE,
       (data) => {
         this.state.participants = (data.participants || []).map((p: { id: string; username: string; avatar?: string | null }) => ({
@@ -88,8 +113,8 @@ export class DiscordBridge {
     );
 
     // Voice state
-    if (this.sdk.channelId) {
-      await this.sdk.subscribe(
+    if (sdk.channelId) {
+      await sdk.subscribe(
         Events.VOICE_STATE_UPDATE,
         (data) => {
           if (data.user?.id === this.state.userId) {
@@ -97,12 +122,12 @@ export class DiscordBridge {
             this.emit('voiceState', this.state.voiceActive);
           }
         },
-        { channel_id: this.sdk.channelId }
+        { channel_id: sdk.channelId }
       );
     }
 
     // Orientation
-    await this.sdk.subscribe(
+    await sdk.subscribe(
       Events.ORIENTATION_UPDATE,
       (data) => {
         this.state.orientation = data.screen_orientation === 0 ? 'portrait' : 'landscape';
@@ -112,14 +137,29 @@ export class DiscordBridge {
   }
 
   async openExternalLink(url: string): Promise<void> {
-    await this.sdk.commands.openExternalLink({ url });
+    if (this.sdk) {
+      await this.sdk.commands.openExternalLink({ url });
+      return;
+    }
+
+    if (typeof window !== 'undefined' && typeof window.open === 'function') {
+      window.open(url, '_blank', 'noopener,noreferrer');
+    }
   }
 
   async inviteUserToActivity(): Promise<void> {
+    if (!this.sdk) {
+      return;
+    }
+
     await this.sdk.commands.openInviteDialog();
   }
 
   async setRichPresence(state: string, details: string): Promise<void> {
+    if (!this.sdk) {
+      return;
+    }
+
     await this.sdk.commands.setActivity({
       activity: {
         state,

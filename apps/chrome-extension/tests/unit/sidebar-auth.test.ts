@@ -190,6 +190,27 @@ describe('Sidebar AuthManager', () => {
     expect(ui.showMainContent).toHaveBeenCalled();
   });
 
+  it('normalizes legacy snake_case wallet fields into walletAddress', async () => {
+    const { AuthManager } = await import('../../src/sidebar/auth.ts');
+    const ui = new SidebarUiStub();
+    const manager = new AuthManager(ui);
+
+    await manager.applyDiscordAuthSuccess('jwt-token', {
+      id: 'user_999',
+      username: 'wallet-user',
+      wallet_address: 'Wallet111111111111111111111111111111111',
+    });
+
+    expect(manager.userData).toEqual(expect.objectContaining({
+      walletAddress: 'Wallet111111111111111111111111111111111',
+    }));
+    expect(ui.setStorage).toHaveBeenCalledWith(expect.objectContaining({
+      userData: expect.objectContaining({
+        walletAddress: 'Wallet111111111111111111111111111111111',
+      }),
+    }));
+  });
+
   it('clears stale stored auth when /auth/me no longer accepts the token', async () => {
     (globalThis as any).fetch = vi.fn(async () => ({
       ok: false,

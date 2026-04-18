@@ -1,3 +1,4 @@
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-18 */
 import { SidebarUI } from './types.js';
 import { apiCall } from './api.js';
 import { DropPredictionWindow } from '@tiltcheck/types';
@@ -6,12 +7,14 @@ export class PredictorManager {
   private ui: SidebarUI;
   private windows: DropPredictionWindow[] = [];
   private pollInterval: ReturnType<typeof setInterval> | null = null;
+  private tickerInterval: ReturnType<typeof setInterval> | null = null;
 
   constructor(ui: SidebarUI) {
     this.ui = ui;
   }
 
   public async init(): Promise<void> {
+    this.destroy();
     console.log('[PredictorManager] Initializing drop predictions...');
     await this.fetchPredictions();
     
@@ -60,7 +63,11 @@ export class PredictorManager {
   }
 
   private startTicker(): void {
-    setInterval(() => {
+    if (this.tickerInterval) {
+      clearInterval(this.tickerInterval);
+    }
+
+    this.tickerInterval = setInterval(() => {
       this.render();
     }, 1000);
   }
@@ -105,6 +112,13 @@ export class PredictorManager {
   }
 
   public destroy(): void {
-    if (this.pollInterval) clearInterval(this.pollInterval);
+    if (this.pollInterval) {
+      clearInterval(this.pollInterval);
+      this.pollInterval = null;
+    }
+    if (this.tickerInterval) {
+      clearInterval(this.tickerInterval);
+      this.tickerInterval = null;
+    }
   }
 }

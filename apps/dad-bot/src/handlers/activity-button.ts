@@ -1,6 +1,5 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-10
 /**
- * © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-02
+ * © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-18
  */
 
 import { ButtonInteraction, EmbedBuilder } from 'discord.js';
@@ -45,20 +44,17 @@ async function handleLaunchActivityButton(
     return;
   }
 
-  // Mark as active
-  instance.status = 'active';
-
   const embed = new EmbedBuilder()
-    .setColor('#00FF00')
-    .setTitle('Activity Launched!')
+    .setColor('#00A8FF')
+    .setTitle('Activity Launch Requested')
     .setDescription(
-      `Your ${instance.activityType} activity is now live!\n\n` +
+      `Your ${instance.activityType} activity is opening in Discord.\n\n` +
         '**Browser Activity Window:**\n' +
-        'The embedded game window will open in your Discord client (desktop).\n\n' +
+        'The embedded game window should open in your Discord client (desktop).\n\n' +
         '**Tips:**\n' +
         '• Keep the activity window open while playing\n' +
-        '• Your session will persist for 1 hour\n' +
-        '• Winnings will be credited automatically'
+        '• Status stays launching until the client actually connects\n' +
+        '• Winnings only count after the live session joins successfully'
     )
     .addFields({
       name: 'Session Info',
@@ -73,7 +69,7 @@ async function handleLaunchActivityButton(
     ephemeral: true,
   });
 
-  console.log(`[Activity Button] Launched activity ${instanceId} for user ${interaction.user.id}`);
+  console.log(`[Activity Button] Launch requested for activity ${instanceId} by user ${interaction.user.id}`);
 }
 
 async function handleActivityInfoButton(

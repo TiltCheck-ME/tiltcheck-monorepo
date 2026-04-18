@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-15
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-18
 import ToolCard from "@/components/ToolCard";
 import RtpDriftTicker from "@/components/RtpDriftTicker";
 import ValueProposition from "@/components/ValueProposition";
@@ -8,7 +8,7 @@ import { features } from "@/config/features";
 
 export default function Home() {
   return (
-    <main className="flex min-h-screen flex-col items-center p-4 pt-8 md:pt-8 overflow-x-hidden w-full">
+    <main className="flex min-h-screen w-full flex-col items-center overflow-x-hidden p-4 pt-0">
       {/* Hero Section */}
       <section className="hero-surface w-full">
         <div className="hero-content">

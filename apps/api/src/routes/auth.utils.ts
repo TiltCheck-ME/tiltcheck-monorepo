@@ -1,4 +1,4 @@
-/* Copyright (c) 2026 TiltCheck. All rights reserved. */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-18 */
 /**
  * Utility functions for the authentication routes.
  */
@@ -7,7 +7,8 @@ import type { DiscordOAuthConfig } from '@tiltcheck/auth';
 
 export const DEFAULT_DISCORD_CLIENT_ID = '1445916179163250860';
 export const DEFAULT_DISCORD_SCOPES = ['identify'];
-export const DEFAULT_API_DISCORD_CALLBACK = 'https://api.tiltcheck.me/auth/discord/callback';
+export const DEFAULT_DISCORD_CALLBACK_PATH = '/auth/discord/callback';
+export const DEFAULT_API_DISCORD_CALLBACK = `https://api.tiltcheck.me${DEFAULT_DISCORD_CALLBACK_PATH}`;
 export type OAuthSource = 'extension' | 'web';
 
 function sanitizeUrlEnv(value: string | undefined): string | undefined {
@@ -55,16 +56,130 @@ export function getDiscordConfig(): DiscordOAuthConfig {
   };
 }
 
+type RedirectRequest = {
+  get?: (name: string) => string | undefined;
+  headers?: Record<string, string | string[] | undefined>;
+  hostname?: string;
+  protocol?: string;
+  query?: {
+    redirect?: unknown;
+  };
+};
+
+function readRequestHeader(req: RedirectRequest, name: string): string | undefined {
+  const fromGetter = req.get?.(name);
+  if (typeof fromGetter === 'string' && fromGetter.trim()) {
+    return fromGetter.trim();
+  }
+
+  const fromHeaders = req.headers?.[name.toLowerCase()];
+  if (Array.isArray(fromHeaders)) {
+    return fromHeaders[0]?.trim();
+  }
+
+  return typeof fromHeaders === 'string' && fromHeaders.trim() ? fromHeaders.trim() : undefined;
+}
+
+function getPublicRequestProtocol(req: RedirectRequest): string | undefined {
+  const forwardedProto = readRequestHeader(req, 'x-forwarded-proto');
+  if (forwardedProto) {
+    return forwardedProto.split(',')[0]?.trim().replace(/:$/, '') || undefined;
+  }
+
+  return req.protocol?.trim().replace(/:$/, '') || undefined;
+}
+
+function getPublicRequestHost(req: RedirectRequest): string | undefined {
+  const forwardedHost = readRequestHeader(req, 'x-forwarded-host');
+  if (forwardedHost) {
+    return forwardedHost.split(',')[0]?.trim() || undefined;
+  }
+
+  const hostHeader = readRequestHeader(req, 'host');
+  if (hostHeader) {
+    return hostHeader.split(',')[0]?.trim() || undefined;
+  }
+
+  return req.hostname?.trim() || undefined;
+}
+
+function getPreferredWebRedirectOrigin(req: RedirectRequest): { protocol: string; host: string } | undefined {
+  const redirectValue = typeof req.query?.redirect === 'string' ? req.query.redirect.trim() : '';
+  if (!redirectValue || redirectValue.startsWith('/')) {
+    return undefined;
+  }
+
+  try {
+    const parsed = new URL(redirectValue);
+    const host = parsed.host.trim();
+    const hostname = parsed.hostname.toLowerCase();
+    const isTiltcheckWebHost =
+      parsed.protocol === 'https:' &&
+      (hostname === 'tiltcheck.me' || hostname === 'www.tiltcheck.me' || hostname.endsWith('.tiltcheck.me')) &&
+      hostname !== 'api.tiltcheck.me';
+    const isLocalDev =
+      process.env.NODE_ENV !== 'production' &&
+      parsed.protocol === 'http:' &&
+      (hostname === 'localhost' || hostname === '127.0.0.1');
+
+    if (!host || (!isTiltcheckWebHost && !isLocalDev)) {
+      return undefined;
+    }
+
+    return {
+      protocol: parsed.protocol.replace(/:$/, ''),
+      host,
+    };
+  } catch {
+    return undefined;
+  }
+}
+
+function getHostname(host: string): string {
+  try {
+    return new URL(`https://${host}`).hostname.toLowerCase();
+  } catch {
+    return host.split(':')[0]?.toLowerCase() || '';
+  }
+}
+
+function getPublicWebRedirectPath(config: DiscordOAuthConfig, publicHost: string): string {
+  const configuredCallback = new URL(config.redirectUri);
+  const callbackPath = `${configuredCallback.pathname}${configuredCallback.search}`;
+  const normalizedHost = getHostname(publicHost);
+  const configuredHost = configuredCallback.hostname.toLowerCase();
+  const isDirectApiHost =
+    normalizedHost === configuredHost ||
+    normalizedHost === 'api.tiltcheck.me' ||
+    publicHost === 'localhost:8080' ||
+    publicHost === '127.0.0.1:8080' ||
+    normalizedHost.includes('tiltcheck-api') ||
+    normalizedHost.includes('api-gateway');
+
+  if (isDirectApiHost || callbackPath.startsWith('/api/')) {
+    return callbackPath;
+  }
+
+  return `/api${callbackPath}`;
+}
+
 /**
  * Resolves the correct Discord redirect URI based on the request source.
  */
 export function resolveDiscordRedirectUriForSource(
   config: DiscordOAuthConfig,
   source: string | undefined,
-  req: { hostname?: string }
+  req: RedirectRequest
 ): string {
   if (normalizeOAuthSource(source) !== 'extension') {
-    return config.redirectUri;
+    const preferredOrigin = getPreferredWebRedirectOrigin(req);
+    const publicHost = preferredOrigin?.host || getPublicRequestHost(req);
+    const publicProtocol = preferredOrigin?.protocol || getPublicRequestProtocol(req);
+    if (!publicHost || !publicProtocol) {
+      return config.redirectUri;
+    }
+
+    return new URL(getPublicWebRedirectPath(config, publicHost), `${publicProtocol}://${publicHost}`).toString();
   }
 
   const host = req.hostname || '';
