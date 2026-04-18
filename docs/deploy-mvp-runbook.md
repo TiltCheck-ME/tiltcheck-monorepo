@@ -1,3 +1,4 @@
+<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-17 -->
 # MVP Deployment Runbook
 
 This runbook is tailored to the current TiltCheck repo and infra:
@@ -65,7 +66,7 @@ What it does:
 - pulls latest `main`
 - runs `docker compose up -d --build`
 - prunes old images
-- runs beta-tool smoke checks against landing (`/beta.html` + core `/tools/*` pages)
+- runs beta-tool smoke checks against landing (`/beta-tester` + core `/tools/*` pages)
 
 Current VPS target and path (from script):
 
@@ -128,11 +129,11 @@ docker compose logs -f
 - Home and key MVP pages load.
 - No archived features shown as active in user-facing MVP paths.
 - Beta testing surfaces load:
-  - `/beta.html`
-  - `/tools/justthetip.html`
-  - `/tools/suslink.html`
-  - `/tools/collectclock.html`
-  - `/tools/tiltcheck-core.html`
+  - `/beta-tester`
+  - `/tools/justthetip`
+  - `/tools/domain-verifier`
+  - `/tools/collectclock`
+  - `/tools/verify`
 
 ### Extension
 

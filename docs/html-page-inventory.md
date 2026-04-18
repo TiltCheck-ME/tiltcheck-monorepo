@@ -1,3 +1,4 @@
+<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-17 -->
 # HTML Page Inventory
 
 Generated: 2026-03-08T07:56:36.131Z
@@ -25,7 +26,7 @@ Generated: 2026-03-08T07:56:36.131Z
 |---|---|---|---|
 | `apps/web/about.html` | shared-nav wired | keep (wired) |  |
 | `apps/web/auth/callback.html` | custom/no-shared-nav | keep (custom auth/system) | Intentional standalone auth/health shell. |
-| `apps/web/beta.html` | shared-nav wired | keep (wired) |  |
+| `apps/web/src/app/beta-tester/page.tsx` | Next app route | keep (wired) | Served at `/beta-tester`. |
 | `apps/web/casino-reviews.html` | shared-nav wired | keep (wired) |  |
 | `apps/web/casinos.html` | shared-nav wired | keep (wired) |  |
 | `apps/web/chrome-extension-subscription.html` | shared-nav wired | keep (wired) |  |
@@ -70,12 +71,12 @@ Generated: 2026-03-08T07:56:36.131Z
 
 | File | Wiring | Suggested action | Notes |
 |---|---|---|---|
-| `apps/web/tools/collectclock.html` | shared-nav wired | keep (wired) |  |
+| `apps/web/src/app/tools/collectclock/page.tsx` | Next app route | keep (wired) | Served at `/tools/collectclock`. |
 | `apps/web/tools/daad.html` | shared-nav wired | keep (wired) |  |
-| `apps/web/tools/justthetip.html` | shared-nav wired | keep (wired) |  |
+| `apps/web/src/app/tools/justthetip/page.tsx` | Next app route | keep (wired) | Served at `/tools/justthetip`. |
 | `apps/web/tools/poker.html` | shared-nav wired | keep (wired) |  |
-| `apps/web/tools/suslink.html` | shared-nav wired | keep (wired) |  |
-| `apps/web/tools/tiltcheck-core.html` | shared-nav wired | keep (wired) |  |
+| `apps/web/src/app/tools/domain-verifier/page.tsx` | Next app route | keep (wired) | Served at `/tools/domain-verifier`. |
+| `apps/web/src/app/tools/verify/page.tsx` | Next app route | keep (wired) | Served at `/tools/verify`. |
 | `apps/web/tools/triviadrops.html` | shared-nav wired | keep (wired) |  |
 
 ## Admin/internal pages

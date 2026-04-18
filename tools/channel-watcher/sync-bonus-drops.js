@@ -1,8 +1,10 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-14
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-17
 import { chromium } from 'playwright';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import dns from 'node:dns/promises';
+import net from 'node:net';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(__dirname, '..', '..');
@@ -44,7 +46,16 @@ const LIVE_SCROLL_PASSES = Math.max(
 );
 const SCROLL_STEP = parseInt(process.env.BONUS_SYNC_SCROLL_STEP || '2200', 10);
 const MAX_REDIRECTS = 6;
+const REDIRECT_TIMEOUT_MS = Math.max(parseInt(process.env.BONUS_SYNC_REDIRECT_TIMEOUT_MS || '8000', 10) || 8000, 1000);
 const BRAND_COLOR = 0x17C3B2;
+const BLOCKED_REDIRECT_HOST_PATTERNS = [
+  /^localhost$/i,
+  /\.localhost$/i,
+  /\.local$/i,
+  /\.internal$/i,
+  /\.home\.arpa$/i,
+];
+const SAFE_HOST_CACHE = new Map();
 
 function parseSourceChannelUrls() {
   const envUrls = [
@@ -57,21 +68,13 @@ function parseSourceChannelUrls() {
 
 const SOURCE_CHANNEL_URLS = parseSourceChannelUrls();
 
-function loadSavedDiscordToken() {
-  const explicitToken = process.env.DISCORD_TOKEN || process.env.TILT_DISCORD_TOKEN || '';
-  if (explicitToken) return explicitToken;
-  if (!fs.existsSync(SESSION_FILE)) return '';
-  try {
-    const session = JSON.parse(fs.readFileSync(SESSION_FILE, 'utf8'));
-    const origin = session.origins?.find(entry => entry.origin === 'https://discord.com');
-    const tokenEntry = origin?.localStorage?.find(entry => entry.name === 'token');
-    return tokenEntry ? JSON.parse(tokenEntry.value) : '';
-  } catch {
-    return '';
-  }
+function readRuntimeDiscordToken() {
+  const rawToken = (process.env.DISCORD_TOKEN || process.env.TILT_DISCORD_TOKEN || '').trim();
+  if (!rawToken) return '';
+  return rawToken.replace(/^"+|"+$/g, '');
 }
 
-const DISCORD_USER_TOKEN = loadSavedDiscordToken();
+const DISCORD_USER_TOKEN = readRuntimeDiscordToken();
 
 const BRAND_BY_HOST = [
   { match: /wowvegas\.com$/i, brand: 'WOW Vegas', fallbackTitle: 'Claim bonus' },
@@ -182,6 +185,39 @@ function writeState(state) {
   fs.writeFileSync(STATE_FILE, JSON.stringify(trimmed, null, 2));
 }
 
+function sanitizeSessionState(sessionState) {
+  const sanitized = {
+    cookies: Array.isArray(sessionState?.cookies) ? sessionState.cookies : [],
+    origins: Array.isArray(sessionState?.origins)
+      ? sessionState.origins.map((origin) => {
+        if (!origin || typeof origin !== 'object') {
+          return origin;
+        }
+        const localStorage = Array.isArray(origin.localStorage)
+          ? origin.localStorage.filter(entry => entry && entry.name !== 'token')
+          : [];
+        return {
+          ...origin,
+          localStorage,
+        };
+      })
+      : [],
+  };
+  return sanitized;
+}
+
+function loadSessionState() {
+  if (!fs.existsSync(SESSION_FILE)) return null;
+  const raw = fs.readFileSync(SESSION_FILE, 'utf8');
+  const parsed = JSON.parse(raw);
+  const sanitized = sanitizeSessionState(parsed);
+  const sanitizedJson = JSON.stringify(sanitized, null, 2);
+  if (sanitizedJson !== raw.trim()) {
+    fs.writeFileSync(SESSION_FILE, `${sanitizedJson}\n`);
+  }
+  return sanitized;
+}
+
 function hasBonusSignature(url) {
   return BONUS_LINK_PATTERNS.some(pattern => pattern.test(url));
 }
@@ -190,7 +226,8 @@ async function resolveRedirects(url) {
   let current = url;
   let best = hasBonusSignature(url) ? url : '';
   for (let i = 0; i < MAX_REDIRECTS; i += 1) {
-    const response = await fetch(current, {
+    await assertSafePublicUrl(current);
+    const response = await fetchWithTimeout(current, {
       method: 'GET',
       redirect: 'manual',
       headers: { 'user-agent': 'Mozilla/5.0 TiltCheck Bonus Sync' },
@@ -199,6 +236,7 @@ async function resolveRedirects(url) {
       const location = response.headers.get('location');
       if (!location) break;
       current = new URL(location, current).toString();
+      await assertSafePublicUrl(current);
       if (hasBonusSignature(current)) best = current;
       continue;
     }
@@ -220,6 +258,85 @@ function isSkippableUrl(url) {
   if (/\.(png|jpe?g|gif|webp)(\?|$)/i.test(url)) return true;
   const host = getHost(url);
   return SKIP_HOSTS.some(pattern => pattern.test(host));
+}
+
+function isPrivateIPv4(address) {
+  const parts = address.split('.').map(part => Number.parseInt(part, 10));
+  if (parts.length !== 4 || parts.some(Number.isNaN)) return true;
+  const [a, b] = parts;
+  return (
+    a === 0 ||
+    a === 10 ||
+    a === 127 ||
+    (a === 100 && b >= 64 && b <= 127) ||
+    (a === 169 && b === 254) ||
+    (a === 172 && b >= 16 && b <= 31) ||
+    (a === 192 && b === 168) ||
+    (a === 198 && (b === 18 || b === 19))
+  );
+}
+
+function isPrivateIPv6(address) {
+  const normalized = address.toLowerCase();
+  if (normalized === '::1' || normalized === '::') return true;
+  if (normalized.startsWith('fe80:')) return true;
+  if (normalized.startsWith('fc') || normalized.startsWith('fd')) return true;
+  if (normalized.startsWith('::ffff:')) {
+    const mapped = normalized.slice('::ffff:'.length);
+    return net.isIP(mapped) === 4 ? isPrivateIPv4(mapped) : true;
+  }
+  return false;
+}
+
+function isPrivateAddress(address) {
+  const family = net.isIP(address);
+  if (family === 4) return isPrivateIPv4(address);
+  if (family === 6) return isPrivateIPv6(address);
+  return true;
+}
+
+async function assertSafePublicUrl(url) {
+  const parsed = new URL(url);
+  if (!['http:', 'https:'].includes(parsed.protocol)) {
+    throw new Error(`Unsupported redirect protocol: ${parsed.protocol}`);
+  }
+
+  const hostname = parsed.hostname.toLowerCase();
+  if (!hostname || BLOCKED_REDIRECT_HOST_PATTERNS.some(pattern => pattern.test(hostname))) {
+    throw new Error(`Blocked redirect host: ${hostname || 'unknown'}`);
+  }
+
+  if (SAFE_HOST_CACHE.get(hostname) === true) {
+    return;
+  }
+
+  const resolvedAddresses = net.isIP(hostname)
+    ? [hostname]
+    : (await dns.lookup(hostname, { all: true, verbatim: true })).map(entry => entry.address);
+
+  if (!resolvedAddresses.length || resolvedAddresses.some(address => isPrivateAddress(address))) {
+    throw new Error(`Blocked private redirect target: ${hostname}`);
+  }
+
+  SAFE_HOST_CACHE.set(hostname, true);
+}
+
+async function fetchWithTimeout(url, options) {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), REDIRECT_TIMEOUT_MS);
+  try {
+    return await fetch(url, {
+      ...options,
+      signal: controller.signal,
+    });
+  } catch (error) {
+    if (error?.name === 'AbortError') {
+      throw new Error(`Request timed out after ${REDIRECT_TIMEOUT_MS}ms`);
+    }
+    throw error;
+  } finally {
+    clearTimeout(timeoutId);
+  }
 }
 
 function looksBonusLike(content, url) {
@@ -246,20 +363,22 @@ function buildTitle(content, brand, fallbackTitle) {
 }
 
 async function createDiscordContext() {
-  if (!fs.existsSync(SESSION_FILE)) throw new Error(`Missing Discord session file: ${SESSION_FILE}`);
-  if (!DISCORD_USER_TOKEN) {
-    throw new Error('No saved Discord user token found. Set DISCORD_TOKEN in .env or recreate tools/channel-watcher/.session.json with npm run session:create once.');
+  const storageState = loadSessionState();
+  if (!storageState && !DISCORD_USER_TOKEN) {
+    throw new Error('Missing Discord session. Provide a sanitized .session.json or set DISCORD_TOKEN only for runtime injection.');
   }
 
   const browser = await chromium.launch({ headless: HEADLESS, slowMo: HEADLESS ? 0 : 50 });
   const context = await browser.newContext({
-    storageState: SESSION_FILE,
+    ...(storageState ? { storageState } : {}),
     viewport: { width: 1440, height: 960 },
     userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
   });
-  await context.addInitScript((token) => {
-    window.localStorage.setItem('token', JSON.stringify(token));
-  }, DISCORD_USER_TOKEN);
+  if (DISCORD_USER_TOKEN) {
+    await context.addInitScript((token) => {
+      window.localStorage.setItem('token', JSON.stringify(token));
+    }, DISCORD_USER_TOKEN);
+  }
   return { browser, context };
 }
 
@@ -380,7 +499,13 @@ async function buildEntries(messages) {
     for (const rawUrl of rawUrls) {
       if (!looksBonusLike(cleanedContent, rawUrl)) continue;
 
-      const finalUrl = await resolveRedirects(rawUrl);
+      let finalUrl = '';
+      try {
+        finalUrl = await resolveRedirects(rawUrl);
+      } catch (error) {
+        console.warn(`[Bonus Sync] Skipping redirect chain for ${rawUrl}: ${error?.message || error}`);
+        continue;
+      }
       if (isSkippableUrl(finalUrl)) continue;
 
       const brandInfo = detectBrand(finalUrl);

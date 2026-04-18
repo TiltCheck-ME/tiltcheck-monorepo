@@ -1,98 +1,61 @@
-/* Copyright (c) 2026 TiltCheck. All rights reserved. */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-17 */
 
 import { Router } from 'express';
-import { findOneBy } from '@tiltcheck/db';
+import type { Request, Response } from 'express';
 
 const router = Router();
+const PAYMENTS_UNAVAILABLE_MESSAGE =
+  'Payments and premium upgrades are temporarily unavailable until live billing validation is implemented.';
+const PAYMENTS_UNAVAILABLE_CODE = 'PAYMENTS_UNAVAILABLE';
 
-
-interface Subscription {
-  user_id: string;
-  status: string;
-  plan: string;
-  current_period_end: Date;
+function sendPaymentsUnavailable(res: Response) {
+  return res.status(503).json({
+    success: false,
+    code: PAYMENTS_UNAVAILABLE_CODE,
+    status: 'disabled',
+    provider: null,
+    paymentsEnabled: false,
+    upgradesEnabled: false,
+    message: PAYMENTS_UNAVAILABLE_MESSAGE,
+    error: PAYMENTS_UNAVAILABLE_MESSAGE,
+  });
 }
 
 /**
  * GET /payments/config
- * Returns public payment configuration (placeholder).
+ * Returns the current gated payments status.
  */
 router.get('/config', (_req, res) => {
-  res.json({
-    success: true,
-    provider: 'placeholder',
-    publicKey: null,
-    message: 'Payment processing is not yet configured.',
-  });
+  return sendPaymentsUnavailable(res);
 });
 
 /**
  * GET /payments/subscription-status
- * Get subscription status for a user.
+ * Payments are gated until live validation exists.
  */
-router.get('/subscription-status', async (req, res) => {
-  const { userId, username } = req.query;
-
-  if (!userId || typeof userId !== 'string') {
-    res.status(400).json({ success: false, error: 'userId is required' });
-    return;
-  }
-
-  const FOUNDER_USERNAMES = (process.env.FOUNDER_USERNAMES || 'jmenichole')
-    .split(',')
-    .map((u) => u.trim().toLowerCase());
-
-  // Founder check — lifetime access
-  if (
-    username &&
-    typeof username === 'string' &&
-    FOUNDER_USERNAMES.includes(username.toLowerCase())
-  ) {
-    res.json({
-      success: true,
-      subscription: {
-        status: 'founder',
-        message: 'Lifetime premium access',
-      },
-    });
-    return;
-  }
-
-  try {
-    const subscription = await findOneBy<Subscription>('subscriptions', 'user_id', userId);
-    res.json({ success: true, subscription });
-  } catch (err) {
-    console.error('[Payments API] Status error:', err);
-    res.status(500).json({ success: false, error: 'Internal server error' });
-  }
+router.get('/subscription-status', (_req, res) => {
+  return sendPaymentsUnavailable(res);
 });
 
 /**
  * POST /payments/create-checkout-session
- * Placeholder — returns a not-implemented response.
+ * Checkout remains disabled until Stripe validation is implemented.
  */
 router.post('/create-checkout-session', (_req, res) => {
-  res.status(501).json({
-    success: false,
-    error: 'Payment processing is not yet implemented.',
-    message: 'Contact the team to arrange access.',
-  });
+  return sendPaymentsUnavailable(res);
 });
 
 /**
  * POST /payments/webhook
- * Placeholder webhook — always returns 200 so external callers don't retry.
+ * Webhooks are disabled until Stripe is live.
  */
 router.post('/webhook', (_req, res) => {
-  console.log('[Payments Webhook] Received (placeholder — no-op)');
-  res.json({ received: true });
+  return sendPaymentsUnavailable(res);
 });
 
-import type { Request, Response } from 'express';
-
-// Export named alias for compatibility and the webhook handler as a no-op
+// Export named alias for compatibility with the gated webhook contract.
 export async function handleStripeWebhook(_req: Request, res: Response) {
-  res.json({ received: true });
+  return sendPaymentsUnavailable(res);
 }
 
 export { router as stripeRouter };

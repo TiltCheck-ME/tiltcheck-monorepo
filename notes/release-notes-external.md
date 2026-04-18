@@ -1,3 +1,4 @@
+<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-17 -->
 # TiltCheck MVP Release Notes (External)
 
 ## Highlights
@@ -23,11 +24,11 @@
 
 - Users should see fewer dead-end links and clearer routes into MVP features.
 - Beta users get more consistent access to key tools:
-  - `/beta.html`
-  - `/tools/justthetip.html`
-  - `/tools/suslink.html`
-  - `/tools/collectclock.html`
-  - `/tools/tiltcheck-core.html`
+  - `/beta-tester`
+  - `/tools/justthetip`
+  - `/tools/domain-verifier`
+  - `/tools/collectclock`
+  - `/tools/verify`
 
 ## No Action Required
 

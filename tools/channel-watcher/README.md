@@ -152,7 +152,7 @@ Config values:
 
 The sync stores de-dup state in `.bonus-sync-state.json`, so reruns only post new links.
 In live watch mode it posts **one branded TiltCheck embed per fresh bonus** instead of dumping a text summary block.
-If Discord keeps trying to throw you back to login, set `DISCORD_TOKEN` in `.env` as well — the sync now hydrates that token before page load so it can reuse the saved session cleanly.
+Preferred setup is a sanitized `DISCORD_SESSION_JSON` or `.session.json`. If Discord still throws you back to login, you can also set `DISCORD_TOKEN` for runtime-only hydration. That token is injected at page load and is not written back to disk.
 
 ### Live headless mode without local popups
 
@@ -161,7 +161,7 @@ Yes — this can run fully headless. The only time a visible browser is needed i
 Typical server-side flow:
 
 ```bash
-# One time: create or seed a Discord session/token
+# One time: create or seed a sanitized Discord session
 npm run session:create
 
 # Then run headless forever with one or more source channels

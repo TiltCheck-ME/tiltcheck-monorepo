@@ -1,3 +1,4 @@
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-17
 import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -12,6 +13,33 @@ const INTEL_FILE = path.join(__dirname, '..', '..', 'apps', 'api', 'data', 'dege
 const OUTPUT_FILE = path.join(__dirname, '..', '..', 'apps', 'web', 'public', 'data', 'daily-bonuses.json');
 const OLLAMA_URL = process.env.OLLAMA_URL || 'http://localhost:11434/v1';
 const AI_MODEL = process.env.AI_MODEL || 'llama3.2:1b';
+const AI_TIMEOUT_MS = Math.max(parseInt(process.env.BONUS_BLOG_AI_TIMEOUT_MS || '30000', 10) || 30000, 1000);
+
+function parseJsonlEvents(raw) {
+  const events = [];
+  const malformedLines = [];
+
+  raw.split(/\r?\n/).forEach((line, index) => {
+    const trimmed = line.trim();
+    if (!trimmed) return;
+
+    try {
+      events.push(JSON.parse(trimmed));
+    } catch (error) {
+      malformedLines.push({ lineNumber: index + 1, message: error.message });
+    }
+  });
+
+  if (malformedLines.length > 0) {
+    const preview = malformedLines
+      .slice(0, 5)
+      .map(({ lineNumber, message }) => `line ${lineNumber}: ${message}`)
+      .join('; ');
+    console.warn(`[WARN] Skipped ${malformedLines.length} malformed JSONL line(s): ${preview}`);
+  }
+
+  return events;
+}
 
 async function main() {
   console.log('[INFO] Generating Daily Bonus Blog Post...');
@@ -27,8 +55,13 @@ async function main() {
     return;
   }
 
-  const events = raw.split('\n').map(line => JSON.parse(line));
+  const events = parseJsonlEvents(raw);
   const gmailEvents = events.filter(e => e.source === 'gmail-agent-nodejs');
+
+  if (events.length === 0) {
+    console.warn('[WARN] Intel file contains no valid JSONL events.');
+    return;
+  }
 
   if (gmailEvents.length === 0) {
     console.warn('[WARN] No Gmail ingested bonuses found.');
@@ -63,12 +96,16 @@ Format your response as strict JSON:
   "degenInsight": "A cheeky degen-style insight about the current bonus meta (1-2 sentences)"
 }
 
-Keep it brief and degen-centric. No corporate jargon. No financial advice.`;
+  Keep it brief and degen-centric. No corporate jargon. No financial advice.`;
 
+  let timeoutId = null;
   try {
+    const controller = new AbortController();
+    timeoutId = setTimeout(() => controller.abort(), AI_TIMEOUT_MS);
     const res = await fetch(`${OLLAMA_URL}/chat/completions`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
+      signal: controller.signal,
       body: JSON.stringify({
         model: AI_MODEL,
         messages: [{ role: 'user', content: prompt }],
@@ -76,10 +113,16 @@ Keep it brief and degen-centric. No corporate jargon. No financial advice.`;
         format: 'json'
       })
     });
+    clearTimeout(timeoutId);
+    timeoutId = null;
 
     if (!res.ok) throw new Error(`AI Request failed with status ${res.status}`);
     const data = await res.json();
-    const result = JSON.parse(data.choices[0].message.content);
+    const content = data?.choices?.[0]?.message?.content;
+    if (typeof content !== 'string' || !content.trim()) {
+      throw new Error('AI response did not include JSON content.');
+    }
+    const result = JSON.parse(content);
 
     // Update the output file
     const payload = {
@@ -93,7 +136,15 @@ Keep it brief and degen-centric. No corporate jargon. No financial advice.`;
 
     console.log('[SUCCESS] Daily Bonus Blog Post generated and saved to:', OUTPUT_FILE);
   } catch (error) {
+    if (error?.name === 'AbortError') {
+      console.error(`[ERROR] Failed to generate blog post: AI request timed out after ${AI_TIMEOUT_MS}ms`);
+      return;
+    }
     console.error('[ERROR] Failed to generate blog post:', error.message);
+  } finally {
+    if (timeoutId !== null) {
+      clearTimeout(timeoutId);
+    }
   }
 }
 

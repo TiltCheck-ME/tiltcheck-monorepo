@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-08 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-17 */
 "use client";
 
 import React, { useEffect, useState } from 'react';
@@ -8,19 +8,17 @@ interface CasinoFlag {
   flag: string;
   severity: 'high' | 'medium' | 'low';
   detectedAt: string;
+  source?: string;
 }
 
-// Community-reported flags for known operators. Updated from Discord reports + trust engine signals.
-const FALLBACK_FLAGS: CasinoFlag[] = [
-  { name: 'Planet 7 Casino', flag: 'Withdrawal requests stalled 30+ days — multiple community reports of unpaid winnings', severity: 'high', detectedAt: '2026-05-06' },
-  { name: 'Raging Bull Casino', flag: 'Account locked post-withdrawal request — KYC used to delay payouts after large wins', severity: 'high', detectedAt: '2026-05-05' },
-  { name: 'SlotsOfVegas', flag: 'Bonus terms changed silently mid-playthrough — wagering requirements doubled without notice', severity: 'medium', detectedAt: '2026-05-04' },
-  { name: 'CoolCat Casino', flag: 'Support unresponsive for 14+ days on open withdrawal tickets', severity: 'high', detectedAt: '2026-05-03' },
-  { name: 'Prism Casino', flag: 'Multiple community reports of voided wins citing undefined "irregular play" clause', severity: 'high', detectedAt: '2026-05-02' },
-  { name: 'Royal Ace Casino', flag: 'License verification failed — operating domain not matching registered entity', severity: 'medium', detectedAt: '2026-05-01' },
-  { name: 'Grand Eagle', flag: 'Sudden bet limit reduction applied after 3 consecutive winning sessions', severity: 'medium', detectedAt: '2026-04-29' },
-  { name: 'Eclipse Casino', flag: 'Crypto withdrawal minimum raised 5x with no announcement — traps smaller balances', severity: 'low', detectedAt: '2026-04-27' },
-];
+interface ShadowBanFeedResponse {
+  availability?: 'available' | 'unavailable';
+  coverage?: 'partial';
+  supportedSignals?: string[];
+  unavailableSignals?: string[];
+  message?: string;
+  flags?: CasinoFlag[];
+}
 
 function getSeverityColor(severity: CasinoFlag['severity']): string {
   if (severity === 'high') return '#ef4444';
@@ -32,23 +30,32 @@ export default function ScanScamsPage() {
   const [flags, setFlags] = useState<CasinoFlag[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [supportedSignals, setSupportedSignals] = useState<string[]>([]);
+  const [unavailableSignals, setUnavailableSignals] = useState<string[]>([]);
 
   useEffect(() => {
     const fetchFlags = async () => {
       try {
         const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://api.tiltcheck.me';
         const res = await fetch(`${apiUrl}/rgaas/shadow-bans`);
-        if (!res.ok) throw new Error('API unavailable');
-        const data = await res.json();
-        setFlags(data.flags?.length ? data.flags : FALLBACK_FLAGS);
+        if (!res.ok) throw new Error('Trust Engine feed unavailable');
+
+        const data = await res.json() as ShadowBanFeedResponse;
+        setFlags(Array.isArray(data.flags) ? data.flags : []);
+        setSupportedSignals(Array.isArray(data.supportedSignals) ? data.supportedSignals : []);
+        setUnavailableSignals(Array.isArray(data.unavailableSignals) ? data.unavailableSignals : []);
+        setError(data.message || null);
       } catch {
-        setError('Trust Engine offline. Showing cached community reports.');
-        setFlags(FALLBACK_FLAGS);
+        setError('Trust Engine feed unavailable. No fallback sample data is shown.');
+        setFlags([]);
+        setSupportedSignals([]);
+        setUnavailableSignals([]);
       } finally {
         setLoading(false);
       }
     };
-    fetchFlags();
+
+    void fetchFlags();
   }, []);
 
   return (
@@ -56,15 +63,15 @@ export default function ScanScamsPage() {
       <section className="border-b border-[#283347] py-32 px-4">
         <div className="max-w-4xl mx-auto text-center">
           <p className="text-xs font-mono text-[#17c3b2] uppercase tracking-widest mb-4">TRUST ENGINE</p>
-          <h1 className="neon neon-main text-5xl md:text-7xl mb-6" data-text="CASINO SHADOW-BAN TRACKER">
-            CASINO SHADOW-BAN TRACKER
+          <h1 className="neon neon-main text-5xl md:text-7xl mb-6" data-text="PAYOUT DELAY SIGNALS">
+            PAYOUT DELAY SIGNALS
           </h1>
           <p className="text-lg text-gray-400 max-w-2xl mx-auto font-mono">
-            Community-reported withdrawal delays, silent ToS changes, account restrictions, and regulatory drift.
-            If a platform is slow-rolling degens, this board hears about it first.
+            Live trust-engine feed for payout friction and ToS volatility only.
+            Account locks and Discord anecdotes are not shown here unless the backend actually supports them.
           </p>
           <p className="text-xs font-mono text-gray-600 mt-3 uppercase tracking-widest">
-            All flags are community-sourced reports. Not legal claims.
+            No fake fallback intel. Unsupported signal classes stay blank.
           </p>
         </div>
       </section>
@@ -88,6 +95,13 @@ export default function ScanScamsPage() {
             <div className="text-center py-16 font-mono text-gray-500">
               Querying Trust Engine...
             </div>
+          ) : flags.length === 0 ? (
+            <div className="border border-[#283347] bg-black/40 p-8 text-center">
+              <p className="text-white font-black uppercase tracking-wide mb-3">No live signals in scope</p>
+              <p className="text-sm font-mono text-gray-400">
+                {error || 'This feed only covers trust-engine payout and ToS events.'}
+              </p>
+            </div>
           ) : (
             <div className="space-y-4">
               {flags.map((item, i) => {
@@ -107,7 +121,7 @@ export default function ScanScamsPage() {
                       <p className="text-gray-400 text-sm font-mono">{item.flag}</p>
                     </div>
                     <div className="text-xs font-mono text-gray-600 whitespace-nowrap">
-                      Detected: {item.detectedAt}
+                      {new Date(item.detectedAt).toLocaleString()}
                     </div>
                   </div>
                 );
@@ -119,24 +133,22 @@ export default function ScanScamsPage() {
 
       <section className="py-16 px-4 border-t border-[#283347] bg-black/40">
         <div className="max-w-4xl mx-auto">
-          <h2 className="text-2xl font-black uppercase mb-8 text-[#17c3b2]">What Gets Flagged</h2>
+          <h2 className="text-2xl font-black uppercase mb-8 text-[#17c3b2]">Current Feed Coverage</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm text-gray-400">
-            <div className="p-6 border border-[#ef4444]/20">
-              <h3 className="font-black uppercase text-[#ef4444] mb-3">High Severity</h3>
+            <div className="p-6 border border-[#17c3b2]/20">
+              <h3 className="font-black uppercase text-[#17c3b2] mb-3">Supported Right Now</h3>
               <ul className="space-y-1">
-                <li>Withdrawal processing exceeding 72 hours</li>
-                <li>Account restrictions following large wins</li>
-                <li>KYC demands applied selectively post-win</li>
-                <li>Platform-wide withdrawal pause</li>
+                {(supportedSignals.length > 0 ? supportedSignals : ['No supported signal metadata returned.']).map((signal) => (
+                  <li key={signal}>{signal}</li>
+                ))}
               </ul>
             </div>
             <div className="p-6 border border-[#ffd700]/20">
-              <h3 className="font-black uppercase text-[#ffd700] mb-3">Medium Severity</h3>
+              <h3 className="font-black uppercase text-[#ffd700] mb-3">Not In This Feed</h3>
               <ul className="space-y-1">
-                <li>Silent ToS updates changing bonus terms</li>
-                <li>Sudden bet limit reductions for winning players</li>
-                <li>Community reports of unfair voided wins</li>
-                <li>License or regulatory status changes</li>
+                {(unavailableSignals.length > 0 ? unavailableSignals : ['No unavailable signal metadata returned.']).map((signal) => (
+                  <li key={signal}>{signal}</li>
+                ))}
               </ul>
             </div>
           </div>
@@ -147,7 +159,7 @@ export default function ScanScamsPage() {
         <div className="max-w-3xl mx-auto">
           <h2 className="text-2xl font-black uppercase mb-6">Report a Flag</h2>
           <p className="text-gray-400 mb-8">
-            Hit a withdrawal wall or got shadow-banned after a big win? Report it in Discord. Community reports drive this board.
+            Hit a withdrawal wall? Report it in Discord. That does not automatically become live feed data until the backend has a real source wired in.
           </p>
           <a
             href="https://discord.gg/gdBsEJfCar"
@@ -159,6 +171,10 @@ export default function ScanScamsPage() {
           </a>
         </div>
       </section>
+
+      <footer className="py-8 px-4 border-t border-[#283347] text-center text-xs font-mono text-gray-500 uppercase tracking-[0.3em]">
+        Made for Degens. By Degens.
+      </footer>
     </main>
   );
 }

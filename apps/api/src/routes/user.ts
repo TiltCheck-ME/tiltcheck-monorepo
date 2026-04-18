@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-12 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-17 */
 /**
  * User Routes - /user/*
  * Handles user profile, onboarding status, and preferences
@@ -17,7 +17,6 @@ import {
     sendBuddyRequest,
     acceptBuddyRequest,
     removeBuddy,
-    updateUser,
     getUserExclusions,
     addExclusion,
     removeExclusion,
@@ -27,8 +26,7 @@ import {
     deleteVaultRule,
     findOneBy,
 } from '@tiltcheck/db';
-import { ValidationError, InternalServerError } from '@tiltcheck/error-factory';
-import { verifySolanaSignature } from '@tiltcheck/auth/solana';
+import { ApplicationError, ValidationError, InternalServerError } from '@tiltcheck/error-factory';
 import { invalidateExclusionCache, getForbiddenGamesProfile } from '../services/exclusion-cache.js';
 import type { GameCategory } from '@tiltcheck/types';
 import { getUserDataConsentState } from '../lib/data-consent.js';
@@ -131,41 +129,16 @@ router.get('/internal/consents/:discordId', internalServiceAuth, async (req: Req
 });
 
 /**
- * Upgrade user to Elite Tier.
- * Validates transaction signature on-chain (placeholder for full validation).
+ * Premium upgrades stay disabled until live payment validation exists.
  */
 
-router.post('/upgrade', authMiddleware, async (req: Request, res: Response, next: NextFunction) => {
+router.post('/upgrade', authMiddleware, async (_req: Request, _res: Response, next: NextFunction) => {
     try {
-        const userPayload = (req as AuthRequest).user;
-        const { signature, tier } = req.body;
-
-        if (!userPayload?.id || !userPayload.walletAddress) {
-            return next(new ValidationError('User session not found or wallet not linked'));
-        }
-
-        if (!signature || !tier) {
-            return next(new ValidationError('Upgrade signature and target tier are required'));
-        }
-
-        const message = `Upgrade to ${tier} tier for user ${userPayload.id}`;
-        const verification = await verifySolanaSignature({
-            message,
-            signature,
-            publicKey: userPayload.walletAddress,
-        });
-
-        if (!verification.valid) {
-            return next(new ValidationError('Invalid signature'));
-        }
-        
-        const updated = await updateUser(userPayload.id, { tier });
-
-        res.json({
-            success: true,
-            message: `User upgraded to ${tier} tier`,
-            user: updated
-        });
+        return next(new ApplicationError(
+            'Premium upgrades are temporarily unavailable until live payment validation is implemented.',
+            503,
+            'PAYMENTS_UNAVAILABLE'
+        ));
     } catch (err) {
         console.error('[User API] Upgrade error:', err);
         next(new InternalServerError('Failed to process upgrade'));

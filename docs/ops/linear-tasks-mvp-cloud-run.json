@@ -9,7 +9,7 @@
     {
       "key": "MVP-P0-SUSLINK-VALIDATION",
       "title": "SusLink URL validation + security tests",
-      "description": "Batch 1 (P0 Security + Stability). Harden URL intake and scanner boundaries in modules/suslink and apps/web/tools/suslink.html. Enforce protocol/length/format checks and add abuse-case tests. Labels: mvp, p0, security, capability-gap.",
+      "description": "Batch 1 (P0 Security + Stability). Harden URL intake and scanner boundaries in modules/suslink and apps/web/src/app/tools/domain-verifier/page.tsx. Enforce protocol/length/format checks and add abuse-case tests. Labels: mvp, p0, security, capability-gap.",
       "priority": 1
     },
     {

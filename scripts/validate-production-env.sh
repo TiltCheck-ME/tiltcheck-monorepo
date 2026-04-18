@@ -1,11 +1,5 @@
 #!/usr/bin/env bash
-# ================================================================
-# © 2024–2025 TiltCheck Ecosystem. All Rights Reserved.
-# Created by jmenichole (https://github.com/jmenichole)
-# 
-# This file is part of the TiltCheck project.
-# For licensing information, see LICENSE file in the project root.
-# ================================================================
+# © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-17
 
 # TiltCheck Production Environment Validation Script
 # Validates environment variables and configuration for production deployment
@@ -422,7 +416,7 @@ main() {
         echo ""
         echo "Next steps:"
         echo "1. Deploy: railway up"
-        echo "2. Verify: bash scripts/verify-railway-deployment.sh"
+        echo "2. Verify: set ROLLUP_URL/BOT_URL/LANDING_URL as needed, then run bash scripts/check-health.sh"
         echo "3. Monitor: railway logs --follow"
         exit 0
     fi

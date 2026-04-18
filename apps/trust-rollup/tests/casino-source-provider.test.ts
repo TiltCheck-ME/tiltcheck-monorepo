@@ -1,13 +1,15 @@
-/* Copyright (c) 2026 TiltCheck. All rights reserved. */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-17 */
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import fs from 'fs';
+import os from 'os';
 import path from 'path';
+import { COMMUNITY_DEFAULT_MONITORED_CASINOS } from '@tiltcheck/shared/community-casinos';
 
 // Store original env vars to restore after tests
 const originalEnv = { ...process.env };
 
 describe('Casino Source Provider', () => {
-  const testDir = '/tmp/casino-source-test';
+  let testDir = '';
   
   beforeEach(async () => {
     // Reset environment variables before each test
@@ -17,11 +19,7 @@ describe('Casino Source Provider', () => {
     delete process.env.MONITORED_CASINOS;
     
     // Create test directory using async API
-    try {
-      await fs.promises.access(testDir);
-    } catch {
-      await fs.promises.mkdir(testDir, { recursive: true });
-    }
+    testDir = await fs.promises.mkdtemp(path.join(os.tmpdir(), 'casino-source-test-'));
     
     // Clear module cache to get fresh env vars
     vi.resetModules();
@@ -46,9 +44,9 @@ describe('Casino Source Provider', () => {
       const result = await fetchActiveCasinos();
       
       expect(result.source).toBe('default');
-      expect(result.casinos).toContain('stake.com');
-      expect(result.casinos).toContain('duelbits.com');
-      expect(result.casinos.length).toBeGreaterThan(0);
+      expect(result.casinos).toEqual(COMMUNITY_DEFAULT_MONITORED_CASINOS);
+      expect(result.casinos).toContain('wowvegas.com');
+      expect(result.casinos).toContain('chumbacasino.com');
       expect(result.fetchedAt).toBeDefined();
     });
 

@@ -1,4 +1,4 @@
-/* Copyright (c) 2026 TiltCheck. All rights reserved. */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-17 */
 // v0.1.0 — 2026-02-25
 
 /**
@@ -46,3 +46,13 @@ export { FairnessService } from './fairness.js';
 
 // Trivia exports
 export * from './trivia.js';
+
+// Community casino defaults
+export {
+  COMMUNITY_DEFAULT_CASINOS,
+  COMMUNITY_DEFAULT_MONITORED_CASINOS,
+  getCommunityDefaultCasinoPriority,
+  isCommunityDefaultCasino,
+  normalizeCasinoName,
+  type CommunityDefaultCasino,
+} from './community-casinos.js';

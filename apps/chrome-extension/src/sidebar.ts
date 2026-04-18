@@ -1,16 +1,9 @@
-/* Copyright (c) 2026 TiltCheck. All rights reserved. */
-/**
- * (c) 2024–2026 TiltCheck Ecosystem. All Rights Reserved.
- * Created by jmenichole (https://github.com/jmenichole)
- * 
- * This file is part of the TiltCheck project.
- * For licensing information, see LICENSE file in the project root.
- */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-17 */
 /**
  * TiltCheck Sidebar - Fully Functional UI
  * Features: Discord auth, vault, dashboard, wallet, session export, premium upgrades
  * Integrates with backend AI services for intelligent tilt detection
- * Last Updated: 2026-04-13
+ * Last Updated: 2026-04-17
  */
 
 import { EXT_CONFIG, getDiscordLoginUrl } from './config.js';
@@ -46,6 +39,16 @@ const authManager = new AuthManager({
   updateStats: (stats) => updateStats(stats),
   notifyBuddy: (event, data) => notifyBuddy(event, data),
 });
+const PAYMENTS_UNAVAILABLE_MESSAGE =
+  'Payments and premium upgrades are temporarily unavailable until live billing validation is implemented. Do not send funds through the extension.';
+const PAYMENTS_DISABLED_RESPONSE = {
+  success: false,
+  code: 'PAYMENTS_UNAVAILABLE',
+  paymentsEnabled: false,
+  upgradesEnabled: false,
+  message: PAYMENTS_UNAVAILABLE_MESSAGE,
+  error: PAYMENTS_UNAVAILABLE_MESSAGE,
+};
 
 let authToken: string | null = null;
 let userData: any = null;
@@ -152,18 +155,19 @@ function mockApiCall(endpoint: string, options: any = {}) {
   }
 
   if (endpoint.startsWith('/premium/plans')) {
-    return {
-      success: true,
-      plans: [
-        { name: 'free', price: 0, features: ['Basic alerts', 'Community feed'] },
-        { name: 'premium', price: 5, features: ['Priority alerts', 'Advanced vault controls'] },
-      ],
-    };
+    return { ...PAYMENTS_DISABLED_RESPONSE };
   }
 
   if (endpoint.startsWith('/premium/upgrade')) {
-    if (userData) userData.tier = 'premium';
-    return { success: true };
+    return { ...PAYMENTS_DISABLED_RESPONSE };
+  }
+
+  if (endpoint.startsWith('/stripe/config')) {
+    return { ...PAYMENTS_DISABLED_RESPONSE };
+  }
+
+  if (endpoint.startsWith('/user/upgrade')) {
+    return { ...PAYMENTS_DISABLED_RESPONSE };
   }
 
   if (endpoint.startsWith('/buddy/notify')) {
@@ -736,7 +740,7 @@ function createSidebar() {
             <button class="tg-action-btn" id="tg-open-vault">Open Vault</button>
             <button class="tg-action-btn" id="tg-open-tip">Direct Tip</button>
             <button class="tg-action-btn tg-advanced-only" id="tg-wallet">Wallet Status</button>
-            <button class="tg-action-btn tg-advanced-only" id="tg-upgrade">Unlock Premium</button>
+            <button class="tg-action-btn tg-advanced-only" id="tg-upgrade">Premium Offline</button>
           </div>
           <button class="tg-btn tg-btn-secondary tg-advanced-only" id="tg-open-report" style="margin-top: 8px;">Report Site Change</button>
         </div>
@@ -768,11 +772,11 @@ function createSidebar() {
             </div>
           </div>
 
-          <div id="tip-elite-promo" style="display: block; padding: 10px; background: linear-gradient(135deg, #d946ef22 0%, #3b82f622 100%); border: 1px solid #d946ef44; border-radius: 8px; margin-bottom: 12px;">
-            <div style="font-size: 11px; font-weight: 800; color: #d946ef; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.05em;">🛡️ TiltCheck Elite Upgrade</div>
-            <p style="font-size: 10px; color: #9ca3af; margin-bottom: 8px; line-height: 1.2;">Unlocks Stealth Tipping (Privacy) and Removes Protocol Fees.</p>
-            <button class="tg-btn tg-btn-primary" id="tg-upgrade-elite-btn" style="padding: 6px; font-size: 10px;">Go Elite (0.5 SOL / Year)</button>
-          </div>
+            <div id="tip-elite-promo" style="display: block; padding: 10px; background: linear-gradient(135deg, #d946ef22 0%, #3b82f622 100%); border: 1px solid #d946ef44; border-radius: 8px; margin-bottom: 12px;">
+              <div style="font-size: 11px; font-weight: 800; color: #d946ef; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.05em;">TiltCheck Elite Upgrade</div>
+              <p style="font-size: 10px; color: #9ca3af; margin-bottom: 8px; line-height: 1.2;">Elite upgrades are gated until live payment validation ships. Do not send funds from this panel.</p>
+              <button class="tg-btn tg-btn-primary" id="tg-upgrade-elite-btn" style="padding: 6px; font-size: 10px; opacity: 0.65; cursor: not-allowed;" disabled>Elite Upgrade Offline</button>
+            </div>
 
           <button class="tg-btn tg-btn-secondary" id="close-tip" style="width: 100%;">Close</button>
         </div>
@@ -907,34 +911,19 @@ function createSidebar() {
         </div>
         <!-- Premium Upgrade Panel (hidden) -->
         <div class="tg-settings-panel" id="tg-premium-panel" style="display:none;">
-          <h4>Unlock Premium</h4>
-          <div style="margin-bottom:8px; padding:10px; background:rgba(255,255,255,0.03); border-radius:8px; border:1px solid rgba(255,255,255,0.08);">
-            <div style="display:flex; justify-content:space-between; margin-bottom:6px;">
-              <span style="font-size:12px; font-weight:700;">Free</span>
-              <span style="font-size:11px; color:var(--tg-muted);">$0/mo</span>
-            </div>
-            <ul style="font-size:11px; opacity:0.55; padding-left:16px; line-height:1.9; margin:0;">
-              <li>Basic tilt alerts</li>
-              <li>Community feed</li>
-            </ul>
+          <h4>Premium Upgrade Offline</h4>
+          <div style="margin-bottom:12px; padding:10px; background:rgba(255,255,255,0.03); border-radius:8px; border:1px solid rgba(255,255,255,0.08);">
+            <p style="font-size:11px; opacity:0.75; line-height:1.6; margin:0;">
+              Payments and premium upgrades are temporarily gated until the backend has real Stripe and transaction validation.
+              No checkout flow is live from this extension.
+            </p>
           </div>
-          <div style="margin-bottom:12px; padding:10px; background:rgba(0,255,198,0.05); border-radius:8px; border:1px solid rgba(0,255,198,0.2);">
-            <div style="display:flex; justify-content:space-between; margin-bottom:6px;">
-              <span style="font-size:12px; font-weight:700; color:#00FFC6;">Premium</span>
-              <span style="font-size:11px; color:var(--tg-muted);">$5/mo</span>
-            </div>
-            <ul style="font-size:11px; opacity:0.55; padding-left:16px; line-height:1.9; margin:0;">
-              <li>Priority alerts</li>
-              <li>Advanced vault controls</li>
-              <li>Buddy mirror</li>
-              <li>AI tilt analysis</li>
-            </ul>
-          </div>
-          <button class="tg-btn tg-btn-primary" id="tg-upgrade-confirm">Upgrade Now &#x2192;</button>
+          <button class="tg-btn tg-btn-primary" id="tg-upgrade-confirm" style="opacity:0.65; cursor:not-allowed;" disabled>Payments Offline</button>
           <button class="tg-btn tg-btn-secondary" id="tg-premium-close">Cancel</button>
         </div>
         <div class="tg-brand-footer">
-          Made for degens, by degens • © 2026 TiltCheck<br/>
+          Made for Degens. By Degens.<br/>
+          © 2024–2026 TiltCheck Ecosystem. All Rights Reserved.<br/>
           <span id="tg-footer-quote" style="opacity:0.6; font-size:9px; text-transform:none; margin-top:4px; display:block;">
             "${getRandomQuote()}"
           </span>
@@ -1870,42 +1859,7 @@ function setupEventListeners() {
   });
 
   document.getElementById('tg-upgrade-elite-btn')?.addEventListener('click', async () => {
-    updateStatus('Initializing Elite Upgrade...', 'thinking');
-    
-    try {
-      if (!walletBridge.publicKey) {
-        await walletBridge.connect();
-      }
-
-      const transaction = new Transaction().add(
-        SystemProgram.transfer({
-          fromPubkey: walletBridge.publicKey!,
-          toPubkey: new PublicKey(EXT_CONFIG.OPERATIONS_WALLET),
-          lamports: 0.5 * LAMPORTS_PER_SOL,
-        })
-      );
-
-      const sig = await walletBridge.sendTransaction(transaction, (solanaProvider as any).connection);
-      
-      // Update backend to track the upgrade
-      await apiCall('/user/upgrade', {
-        method: 'POST',
-        body: JSON.stringify({ signature: sig, tier: 'elite' })
-      });
-
-      addFeedMessage('🛡️ Upgrade successful! Welcome to the Elite Tier.');
-      updateStatus('Tier upgraded to Elite.', 'success');
-      
-      // Update local state and UI
-      if (userData) userData.tier = 'elite';
-      syncAccountUi();
-      const promo = document.getElementById('tip-elite-promo');
-      if (promo) promo.style.display = 'none';
-
-    } catch (error: any) {
-      console.error('[EliteUpgrade] Error:', error);
-      updateStatus('Upgrade failed. Check wallet.', 'warning');
-    }
+    await showPaymentsUnavailable();
   });
 
   // Report toggle
@@ -3045,29 +2999,19 @@ async function openWallet() {
 }
 
 async function openPremium() {
-  const result = await apiCall('/premium/plans');
-  if (result.error) {
-    addFeedMessage('Premium plans unavailable right now.');
-    return;
-  }
+  await showPaymentsUnavailable();
+}
 
-  const plans = result.plans.map((p: any) =>
-    `${p.name} - $${p.price}/mo\n${p.features.join('\n')}`
-  ).join('\n\n');
+async function showPaymentsUnavailable() {
+  const result = await apiCall('/stripe/config');
+  const message =
+    result?.code === 'PAYMENTS_UNAVAILABLE' && typeof result.message === 'string'
+      ? result.message
+      : PAYMENTS_UNAVAILABLE_MESSAGE;
 
-  const upgrade = confirm(`Available Plans:\n\n${plans}\n\nUpgrade to Premium?`);
-  if (upgrade && userData) {
-    const upgradeResult = await apiCall('/premium/upgrade', {
-      method: 'POST',
-      body: JSON.stringify({ userId: userData.id, plan: 'premium' })
-    });
-    if (upgradeResult.success) {
-      userData.tier = 'premium';
-      const tierEl = document.getElementById('tg-user-tier');
-      if (tierEl) tierEl.textContent = 'Premium';
-      addFeedMessage('Premium unlocked.');
-    }
-  }
+  updateStatus('Premium upgrades are offline.', 'warning');
+  addFeedMessage(message);
+  showToast(message);
 }
 
 function saveVerificationHistory(data: any) {

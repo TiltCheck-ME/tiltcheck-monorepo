@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-12 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-17 */
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import express from 'express';
 import request from 'supertest';
@@ -8,6 +8,7 @@ const mockedDb = vi.hoisted(() => ({
   upsertOnboarding: vi.fn(),
   findUserByDiscordId: vi.fn(),
   findUserByWallet: vi.fn(),
+  updateUser: vi.fn(),
   getAggregatedTrustByDiscordId: vi.fn(),
   getUserBuddies: vi.fn(),
   getPendingBuddyRequests: vi.fn(),
@@ -16,12 +17,17 @@ const mockedDb = vi.hoisted(() => ({
   removeBuddy: vi.fn(),
   getAuditLogsByUser: vi.fn(),
 }));
+const mockAuthUser = vi.hoisted(() => ({
+  id: 'user-1',
+  discordId: 'discord-self',
+  walletAddress: 'wallet-1',
+}));
 
 vi.mock('@tiltcheck/db', () => mockedDb);
 vi.mock('../../src/middleware/auth.js', () => ({
   authMiddleware: (req: any, _res: any, next: any) => {
     if (!req.user) {
-      req.user = { discordId: 'discord-self' };
+      req.user = { ...mockAuthUser };
     }
     next();
   },
@@ -31,11 +37,13 @@ vi.mock('../../src/middleware/auth.js', () => ({
 }));
 
 import { userRouter } from '../../src/routes/user.js';
+import { errorHandler } from '../../src/middleware/error.js';
 
 describe('User route ordering and shape', () => {
   const app = express();
   app.use(express.json());
   app.use('/user', userRouter);
+  app.use(errorHandler);
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -102,5 +110,16 @@ describe('User route ordering and shape', () => {
       complianceBypass: false,
     });
     expect(mockedDb.findOnboardingByDiscordId).toHaveBeenCalledWith('d1');
+  });
+
+  it('gates /upgrade until live payment validation exists', async () => {
+    const response = await request(app)
+      .post('/user/upgrade')
+      .send({ signature: 'signature', tier: 'elite' });
+
+    expect(response.status).toBe(503);
+    expect(response.body.code).toBe('PAYMENTS_UNAVAILABLE');
+    expect(response.body.error).toContain('temporarily unavailable');
+    expect(mockedDb.updateUser).not.toHaveBeenCalled();
   });
 });

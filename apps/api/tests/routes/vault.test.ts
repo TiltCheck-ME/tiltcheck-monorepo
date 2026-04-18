@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-07 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-17 */
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import request from 'supertest';
 import express from 'express';
@@ -58,28 +58,24 @@ describe('Vault Routes', () => {
       createdAt: Date.now(),
       earlyUnlockRequest: { mode: 'admin_approval', status: 'pending' },
     });
-    lockvaultMock.requestPaidWalletUnlockForUser.mockReturnValue({
-      userId: 'user-1',
-      lockUntil: Date.now() + 30 * 60_000,
-      createdAt: Date.now(),
-      earlyUnlockRequest: { mode: 'paid_early_unlock', status: 'pending', feePercentage: 10, feeAmountSOL: 0.125 },
-    });
     lockvaultMock.approveAdminWalletUnlockForUser.mockReturnValue({
       userId: 'user-1',
       lockUntil: Date.now() + 30 * 60_000,
       createdAt: Date.now(),
       earlyUnlockRequest: { mode: 'admin_approval', status: 'approved' },
     });
-    lockvaultMock.settlePaidWalletUnlockForUser.mockReturnValue({
-      userId: 'user-1',
-      lockUntil: Date.now() + 30 * 60_000,
-      createdAt: Date.now(),
-      earlyUnlockRequest: { mode: 'paid_early_unlock', status: 'completed', feePercentage: 10, feeAmountSOL: 0.125 },
-    });
     lockvaultMock.addSecondOwner.mockResolvedValue({ id: 'v1', secondOwnerId: 'user-2' });
     lockvaultMock.initiateWithdrawal.mockResolvedValue({ id: 'v1', withdrawalProposal: { status: 'pending' } });
     lockvaultMock.approveWithdrawal.mockResolvedValue({ id: 'v1', withdrawalProposal: { status: 'approved' } });
-    lockvaultMock.executeWithdrawal.mockResolvedValue({ id: 'v1', lockedAmountSOL: 0.5 });
+    lockvaultMock.executeWithdrawal.mockResolvedValue({
+      id: 'v1',
+      lockedAmountSOL: 1.25,
+      withdrawalProposal: {
+        status: 'execution-pending',
+        executionRequestId: 'req-1',
+        executionTimeoutAt: Date.now() + 60_000,
+      },
+    });
   });
 
   it('returns 403 for cross-user access', async () => {
@@ -201,18 +197,19 @@ describe('Vault Routes', () => {
     const clearRes = await request(app).post('/vault/user-1/wallet-unlock').send({});
     expect(clearRes.status).toBe(423);
     expect(clearRes.body.code).toBe('WALLET_LOCK_STILL_ACTIVE');
+    expect(clearRes.body.unlockOptions).toEqual(['admin_approval']);
     expect(lockvaultMock.clearWalletActionLockForUser).not.toHaveBeenCalled();
   });
 
-  it('creates admin and paid early unlock requests', async () => {
+  it('creates admin early unlock requests and rejects paid unlock requests', async () => {
     const adminReq = await request(app).post('/vault/user-1/wallet-unlock-request').send({ mode: 'admin_approval' });
     expect(adminReq.status).toBe(200);
     expect(lockvaultMock.requestAdminWalletUnlockForUser).toHaveBeenCalledWith('user-1', 'user-1');
 
     const paidReq = await request(app).post('/vault/user-1/wallet-unlock-request').send({ mode: 'paid_early_unlock' });
-    expect(paidReq.status).toBe(200);
-    expect(lockvaultMock.requestPaidWalletUnlockForUser).toHaveBeenCalledWith('user-1', 'user-1', 10);
-    expect(paidReq.body.earlyUnlockRequest.feePercentage).toBe(10);
+    expect(paidReq.status).toBe(501);
+    expect(paidReq.body.code).toBe('FEATURE_NOT_IMPLEMENTED');
+    expect(lockvaultMock.requestPaidWalletUnlockForUser).not.toHaveBeenCalled();
   });
 
   it('requires admin role to approve early unlock', async () => {
@@ -225,11 +222,17 @@ describe('Vault Routes', () => {
     expect(lockvaultMock.approveAdminWalletUnlockForUser).toHaveBeenCalledWith('user-1', 'user-1');
   });
 
-  it('settles paid early unlock for the owner', async () => {
+  it('rejects paid early unlock settlement while the fee sink is disabled', async () => {
+    const err = new Error('disabled') as Error & { code?: string; httpStatus?: number };
+    err.code = 'FEATURE_NOT_IMPLEMENTED';
+    err.httpStatus = 501;
+    lockvaultMock.settlePaidWalletUnlockForUser.mockImplementationOnce(() => {
+      throw err;
+    });
     const res = await request(app).post('/vault/user-1/wallet-unlock-pay').send({});
-    expect(res.status).toBe(200);
+    expect(res.status).toBe(501);
     expect(lockvaultMock.settlePaidWalletUnlockForUser).toHaveBeenCalledWith('user-1', 'user-1');
-    expect(res.body.feeChargedSOL).toBe(0.125);
+    expect(res.body.code).toBe('FEATURE_NOT_IMPLEMENTED');
   });
 
   it('adds a second owner for an authenticated user', async () => {
@@ -248,7 +251,7 @@ describe('Vault Routes', () => {
     expect(res.body.code).toBe('FEATURE_NOT_IMPLEMENTED');
   });
 
-  it('initiates, approves, and executes withdrawal lifecycle', async () => {
+  it('initiates, approves, and marks withdrawal execution as pending', async () => {
     const initRes = await request(app).post('/vault/user-1/initiate-withdrawal').send({ amount: 0.75 });
     expect(initRes.status).toBe(200);
     expect(lockvaultMock.initiateWithdrawal).toHaveBeenCalledWith('user-1', 0.75);
@@ -260,7 +263,31 @@ describe('Vault Routes', () => {
 
     mockUserId = 'user-1';
     const executeRes = await request(app).post('/vault/user-1/execute-withdrawal').send({});
-    expect(executeRes.status).toBe(200);
+    expect(executeRes.status).toBe(202);
     expect(lockvaultMock.executeWithdrawal).toHaveBeenCalledWith('user-1');
+    expect(executeRes.body.pendingExecution).toBe(true);
+    expect(executeRes.body.retryEligible).toBe(false);
+    expect(executeRes.body.success).toBe(false);
+    expect(executeRes.body.executionRequestId).toBe('req-1');
+  });
+
+  it('surfaces stale execution recovery without reporting payout success', async () => {
+    lockvaultMock.executeWithdrawal.mockResolvedValueOnce({
+      id: 'v1',
+      lockedAmountSOL: 1.25,
+      withdrawalProposal: {
+        status: 'approved',
+        lastRecoveryReason: 'execution-timeout',
+        lastRecoveryAt: Date.now(),
+      },
+    });
+
+    const executeRes = await request(app).post('/vault/user-1/execute-withdrawal').send({});
+
+    expect(executeRes.status).toBe(409);
+    expect(executeRes.body.success).toBe(false);
+    expect(executeRes.body.pendingExecution).toBe(false);
+    expect(executeRes.body.retryEligible).toBe(true);
+    expect(executeRes.body.code).toBe('WITHDRAWAL_EXECUTION_STALE');
   });
 });

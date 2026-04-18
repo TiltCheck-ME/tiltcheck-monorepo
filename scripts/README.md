@@ -1,3 +1,4 @@
+<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-17 -->
 # Scripts Quick Guide
 
 This folder has many one-off and historical utilities. If you are working solo, use the small subset below and ignore the rest unless needed.
@@ -41,15 +42,6 @@ This folder has many one-off and historical utilities. If you are working solo, 
 
 Only run these when you have a specific task and have checked the script first.
 
-## Current Drift To Be Aware Of
+## Current State
 
-Root `package.json` references several script files that are currently missing from this folder:
-
-- `scripts/audit-images.js`
-- `scripts/a11y-regression-landing.js`
-- `scripts/optimize-images.js`
-- `scripts/run-lighthouse.js`
-- `scripts/build-search-index.js`
-- `scripts/lighthouse-ci.js`
-
-If npm commands that rely on those fail, this mismatch is the reason.
+The root `package.json` no longer exposes the removed landing audit and lighthouse helpers that used to point at missing files in this folder.

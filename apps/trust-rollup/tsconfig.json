@@ -14,6 +14,9 @@
       "path": "../../packages/event-router"
     },
     {
+      "path": "../../packages/shared"
+    },
+    {
       "path": "../../packages/types"
     },
     {

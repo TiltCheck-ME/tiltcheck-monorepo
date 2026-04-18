@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-09
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-17
 'use client';
 
 import React, { useState, useCallback } from 'react';
@@ -155,7 +155,7 @@ export default function BonusGrid({ bonuses }: BonusGridProps) {
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {filtered.map((entry) => (
-            <BonusCard key={`${entry.brand}-${entry.verified}`} entry={entry} />
+            <BonusCard key={`${entry.brand}-${entry.url}-${entry.verified}`} entry={entry} />
           ))}
         </div>
       )}

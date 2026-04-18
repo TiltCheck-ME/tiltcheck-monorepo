@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-09
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-17
 
 /**
  * Email Intel Parser
@@ -28,32 +28,70 @@ export interface EmailIntelData {
   senderEmail: string | null;
   casinoBrand: string | null;
   subject: string | null;
+  sentAt: string | null;
   bonusSignals: BonusSignal[];
+  allUrls: string[];
   embeddedUrls: string[];
   urgencyFlags: string[];
   hasUnsubscribeLink: boolean;
   hasSPFHint: boolean;
+  promoCode: string | null;
   rawSignals: string[];
 }
 
 // ─── Known sweepstakes casino brand patterns ─────────────────────────────────
 
 const BRAND_PATTERNS: Array<{ pattern: RegExp; brand: string }> = [
+  { pattern: /myprize(?:\s*us)?/i, brand: 'MyPrize US' },
   { pattern: /chumba\s*casino/i, brand: 'Chumba Casino' },
   { pattern: /global\s*poker/i, brand: 'Global Poker' },
   { pattern: /luckyland\s*slots?/i, brand: 'LuckyLand Slots' },
+  { pattern: /pulsz\s*bingo/i, brand: 'Pulsz Bingo' },
   { pattern: /pulsz/i, brand: 'Pulsz' },
   { pattern: /stake\.us/i, brand: 'Stake.us' },
   { pattern: /high\s*5\s*casino/i, brand: 'High 5 Casino' },
   { pattern: /wow\s*vegas/i, brand: 'WOW Vegas' },
   { pattern: /funrize/i, brand: 'Funrize' },
-  { pattern: /modo\s*casino/i, brand: 'Modo Casino' },
+  { pattern: /modo(?:\s*casino)?/i, brand: 'Modo Casino' },
+  { pattern: /rolla/i, brand: 'Rolla' },
   { pattern: /rolling\s*riches/i, brand: 'Rolling Riches' },
   { pattern: /hello\s*millions/i, brand: 'Hello Millions' },
   { pattern: /fortune\s*coins/i, brand: 'Fortune Coins' },
   { pattern: /sportzino/i, brand: 'Sportzino' },
   { pattern: /zula\s*casino/i, brand: 'Zula Casino' },
-  { pattern: /crown\s*coins/i, brand: 'Crown Coins' },
+  { pattern: /crown\s*coins(?:\s*casino)?/i, brand: 'Crown Coins Casino' },
+  { pattern: /gains(?:\.com)?/i, brand: 'Gains.com' },
+  { pattern: /lone\s*star\s*casino/i, brand: 'LoneStar Casino' },
+  { pattern: /real\s*prize/i, brand: 'Real Prize' },
+  { pattern: /megabonanza|mega\s*bonanza/i, brand: 'MegaBonanza' },
+  { pattern: /mcluck/i, brand: 'McLuck' },
+  { pattern: /no\s*limit\s*coins/i, brand: 'NoLimitCoins' },
+  { pattern: /jackpota/i, brand: 'Jackpota' },
+  { pattern: /playfame/i, brand: 'PlayFame' },
+  { pattern: /spinblitz/i, brand: 'SpinBlitz' },
+  { pattern: /ace(?:\.com)?/i, brand: 'Ace.com' },
+  { pattern: /spindoo/i, brand: 'Spindoo' },
+  { pattern: /american\s*luck/i, brand: 'American Luck' },
+  { pattern: /yay\s*casino/i, brand: 'Yay Casino' },
+  { pattern: /shuffle(?:\.us|\s*us)?/i, brand: 'Shuffle.us' },
+  { pattern: /chanced/i, brand: 'Chanced' },
+  { pattern: /punt/i, brand: 'Punt' },
+  { pattern: /spinfinite/i, brand: 'Spinfinite' },
+  { pattern: /lunaland\s*casino/i, brand: 'Lunaland Casino' },
+  { pattern: /baba\s*casino/i, brand: 'Baba Casino' },
+  { pattern: /tao(?:\s*fortune|\.fun)/i, brand: 'Tao Fortune' },
+  { pattern: /ding\s*ding\s*ding/i, brand: 'DingDingDing' },
+  { pattern: /scratchful/i, brand: 'Scratchful' },
+  { pattern: /spree/i, brand: 'Spree' },
+  { pattern: /dara\s*casino/i, brand: 'Dara Casino' },
+  { pattern: /chip(?:\s*'?\s*n)?\s*win/i, brand: "Chip'n WIN" },
+  { pattern: /jefebet\s*casino/i, brand: 'JefeBet Casino' },
+  { pattern: /rollin\s*riches/i, brand: 'Rollin Riches' },
+  { pattern: /lucky\s*stake/i, brand: 'LuckyStake' },
+  { pattern: /lucky\s*hands/i, brand: 'Lucky Hands' },
+  { pattern: /spinquest/i, brand: 'SpinQuest' },
+  { pattern: /zoot/i, brand: 'Zoot' },
+  { pattern: /gold\s*machine/i, brand: 'Gold Machine' },
   // Crypto / offshore
   { pattern: /roobet/i, brand: 'Roobet' },
   { pattern: /rollbit/i, brand: 'Rollbit' },
@@ -117,6 +155,8 @@ export function parseEmailIntel(raw: string): EmailIntelData {
   // ── Subject ──
   const subjectMatch = headerBlock.match(/^Subject:\s*(.+)/im);
   const subject = subjectMatch?.[1]?.trim() || null;
+  const dateMatch = headerBlock.match(/^Date:\s*(.+)/im);
+  const sentAt = normalizeHeaderDate(dateMatch?.[1] || null);
 
   // ── SPF hint ──
   const hasSPFHint = /spf=pass|dkim=pass/i.test(headerBlock);
@@ -151,7 +191,7 @@ export function parseEmailIntel(raw: string): EmailIntelData {
 
   // Match patterns like "$50 Free Play", "200 SC", "100% match up to $500", "5 SC No Deposit"
   const bonusPatterns = [
-    /(\d[\d,.]*)\s*(sc|gc|free\s*play|free\s*spins?|free\s*coins?|\$\d+|usd)/gi,
+    /(?:\$)?(\d[\d,.]*)\s*(sc|gc|usd|usdc|sol|free\s*play|free\s*spins?|free\s*coins?|sweep\s*coins?|gold\s*coins?)/gi,
     /(\d{1,3}%)\s*match(\s*bonus)?(\s*up\s*to\s*[\$\d,.]+)?/gi,
     /(no[- ]deposit\s*bonus(?:\s*of\s*[\$\d,.]+\s*(?:sc|gc))?)/gi,
     /(daily|weekly)\s*(bonus|reward|coins?|sc|gc)(\s*of\s*[\$\d,.]+)?/gi,
@@ -192,6 +232,7 @@ export function parseEmailIntel(raw: string): EmailIntelData {
 
   // ── Unsubscribe ──
   const hasUnsubscribeLink = /unsubscribe/i.test(raw);
+  const promoCode = extractPromoCode(fullText);
 
   // ── Raw signals summary ──
   const rawSignals: string[] = [];
@@ -206,11 +247,14 @@ export function parseEmailIntel(raw: string): EmailIntelData {
     senderEmail,
     casinoBrand,
     subject,
+    sentAt,
     bonusSignals,
+    allUrls,
     embeddedUrls,
     urgencyFlags,
     hasUnsubscribeLink,
     hasSPFHint,
+    promoCode,
     rawSignals,
   };
 }
@@ -225,6 +269,31 @@ function extractWagering(body: string, nearIndex: number): string | null {
 
 function extractExpiry(body: string, nearIndex: number): string | null {
   const window = body.slice(Math.max(0, nearIndex - 50), nearIndex + 300);
-  const match = window.match(/expires?\s*(in\s*[\d]+\s*(?:hours?|days?|weeks?)|on\s*[A-Za-z]+\s*\d{1,2}|\d{1,2}\/\d{1,2}(?:\/\d{2,4})?)/i);
+  const match = window.match(
+    /(?:expired\s*(?:yesterday|today)|(?:expires?|ends?)\s*(in\s*[\d]+\s*(?:hours?|days?|weeks?)|on\s*[A-Za-z]+\s*\d{1,2}(?:,\s*\d{4})?|\d{1,2}\/\d{1,2}(?:\/\d{2,4})?|today|tonight|tomorrow))/i
+  );
   return match ? match[0].trim() : null;
+}
+
+function normalizeHeaderDate(rawDate: string | null): string | null {
+  if (!rawDate) return null;
+  const parsed = new Date(rawDate);
+  return Number.isNaN(parsed.getTime()) ? null : parsed.toISOString();
+}
+
+function extractPromoCode(text: string): string | null {
+  const patterns = [
+    /(?:promo|bonus|offer|coupon)\s*code\s*[:\-]?\s*([A-Z0-9-]{4,20})/i,
+    /\buse\s+code\s+([A-Z0-9-]{4,20})\b/i,
+    /\benter\s+code\s+([A-Z0-9-]{4,20})\b/i,
+  ];
+
+  for (const pattern of patterns) {
+    const match = text.match(pattern);
+    if (match?.[1]) {
+      return match[1].toUpperCase();
+    }
+  }
+
+  return null;
 }

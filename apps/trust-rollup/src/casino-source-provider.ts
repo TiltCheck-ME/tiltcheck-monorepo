@@ -1,4 +1,4 @@
-/* Copyright (c) 2026 TiltCheck. All rights reserved. */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-17 */
 // v0.1.0 — 2026-02-25
 /**
  * © 2024–2025 TiltCheck Ecosystem. All Rights Reserved.
@@ -15,15 +15,10 @@
 
 import fs from 'fs';
 import path from 'path';
+import { COMMUNITY_DEFAULT_MONITORED_CASINOS } from '@tiltcheck/shared/community-casinos';
 
 // Default fallback casinos (used when no other sources available)
-const DEFAULT_CASINOS = [
-  'stake.com',
-  'duelbits.com',
-  'rollbit.com',
-  'roobet.com',
-  'bc.game',
-];
+const DEFAULT_CASINOS = COMMUNITY_DEFAULT_MONITORED_CASINOS;
 
 // Configuration from environment
 const CASINO_SOURCE_FILE = process.env.CASINO_SOURCE_FILE;

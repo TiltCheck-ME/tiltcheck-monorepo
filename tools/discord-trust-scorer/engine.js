@@ -1,6 +1,7 @@
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-17
 /**
  * Core Scoring Engine
- * 
+ *
  * Takes a raw Discord user JSON object and returns the Score, Risk Level, and Reasons.
  */
 
@@ -18,7 +19,26 @@ export function analyzeUsername(username) {
     return isVowellessSoup || isAutoPadded;
 }
 
-export function generateTrustScore(user, bannedGuildIds = []) {
+function normalizeGuildIds(rawGuilds) {
+    if (!Array.isArray(rawGuilds)) return [];
+    return rawGuilds.flatMap((entry) => {
+        if (!entry) return [];
+        if (typeof entry === 'string' || typeof entry === 'number') {
+            return [String(entry)];
+        }
+        if (typeof entry === 'object') {
+            return [
+                entry.id,
+                entry.guild_id,
+                entry.guildId,
+                entry.identityGuildId,
+            ].filter(Boolean).map((value) => String(value));
+        }
+        return [];
+    });
+}
+
+export function generateTrustScore(user, guildIds = [], options = {}) {
     let risk = 0;
     const reasons = [];
 
@@ -32,6 +52,16 @@ export function generateTrustScore(user, bannedGuildIds = []) {
     const username = user.username || "";
     const globalName = user.globalName || user.global_name;
     const primaryGuildId = user.primaryGuild?.identityGuildId || user.guild_id;
+    const blacklistGuildIds = new Set([
+        ...BAD_GUILDS,
+        ...normalizeGuildIds(options.bannedGuildIds),
+    ]);
+    const observedGuildIds = new Set([
+        ...normalizeGuildIds(guildIds),
+        ...normalizeGuildIds(user.guilds),
+        ...normalizeGuildIds(user.mutual_guilds),
+        ...(primaryGuildId ? [String(primaryGuildId)] : []),
+    ]);
 
     if (!email) { risk += 3; reasons.push("No email"); }
     if (!phone) { risk += 3; reasons.push("No phone"); }
@@ -51,8 +81,10 @@ export function generateTrustScore(user, bannedGuildIds = []) {
         risk += 2; reasons.push("globalName matches username");
     }
 
-    if (bannedGuildIds.includes(primaryGuildId)) {
-        risk += 5; reasons.push("Matches banned guild identity");
+    const overlappingGuilds = [...observedGuildIds].filter((guildId) => blacklistGuildIds.has(guildId));
+    if (overlappingGuilds.length > 0) {
+        risk += 5;
+        reasons.push(`Guild overlap with blacklist (${overlappingGuilds.length})`);
     }
 
     let riskLevel = "LOW";

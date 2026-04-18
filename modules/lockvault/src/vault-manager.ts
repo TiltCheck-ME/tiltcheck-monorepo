@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-07 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-17 */
 import { Keypair } from '@solana/web3.js';
 import { eventRouter } from '@tiltcheck/event-router';
 import { parseAmount } from '@tiltcheck/natural-language-parser';
@@ -92,7 +92,13 @@ export interface LockVaultRecord {
     initiatedBy: string;
     initiatedAt: number;
     approvedAt?: number;
-    status: 'pending' | 'approved';
+    executionRequestedAt?: number;
+    executionRequestId?: string;
+    executionTimeoutAt?: number;
+    executionAttempts?: number;
+    lastRecoveryAt?: number;
+    lastRecoveryReason?: 'execution-timeout';
+    status: 'pending' | 'approved' | 'execution-pending';
   };
 }
 
@@ -130,6 +136,24 @@ export interface WalletActionLock {
 
 function now() { return Date.now(); }
 function generateId() { return `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`; }
+
+function parsePositiveIntegerEnv(value: string | undefined, fallback: number): number {
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed) || parsed <= 0) return fallback;
+  return Math.trunc(parsed);
+}
+
+const WITHDRAWAL_EXECUTION_TIMEOUT_MS = parsePositiveIntegerEnv(
+  process.env.LOCKVAULT_WITHDRAWAL_EXECUTION_TIMEOUT_MS,
+  15 * 60 * 1000,
+);
+
+function createFeatureNotImplementedError(message: string): Error & { code: string; httpStatus: number } {
+  const error = new Error(message) as Error & { code: string; httpStatus: number };
+  error.code = 'FEATURE_NOT_IMPLEMENTED';
+  error.httpStatus = 501;
+  return error;
+}
 
 function parseDuration(raw: string): number {
   const m = raw.trim().toLowerCase().match(/^(\d+)(m|h|d)$/);
@@ -208,6 +232,11 @@ class VaultManager {
   }
 
   async lock(input: LockVaultInput): Promise<LockVaultRecord> {
+    if (input.autoWithdraw) {
+      throw createFeatureNotImplementedError(
+        'LockVault auto-withdraw is temporarily disabled until a real execution consumer is wired.'
+      );
+    }
     if (!input.disclaimerAccepted) {
       throw new Error('You must explicitly acknowledge the Digital Asset Risk and Zero Custody disclosures before deploying a LockVault.');
     }
@@ -216,7 +245,7 @@ class VaultManager {
     const parsedValue = amountParse.data.value;
     const isAll = amountParse.data.isAll;
     // Convert USD to SOL if needed using oracle
-    let amountSOL = 0;
+    let amountSOL: number;
     if (isAll) {
       throw new Error('Locking "all" is not currently supported.');
     } else if (input.currencyHint === 'USD' || amountParse.data.currency === 'USD') {
@@ -343,7 +372,7 @@ class VaultManager {
         result.vaultSecret = decryptSecret(result.vaultSecret);
       } catch (err) {
         console.error('[LockVault] Failed to decrypt vault secret during unlock', err);
-        throw new Error('Vault secret is unreadable. Contact support for recovery.');
+        throw new Error('Vault secret is unreadable. Contact support for recovery.', { cause: err });
       }
     }
     return result;
@@ -366,10 +395,29 @@ class VaultManager {
   status(userId: string): LockVaultRecord[] {
     const ids = this.byUser.get(userId);
     if (!ids) return [];
-    return Array.from(ids).map(id => this.vaults.get(id)!).sort((a, b) => a.unlockAt - b.unlockAt);
+    const records = Array.from(ids)
+      .map(id => this.vaults.get(id))
+      .filter((vault): vault is LockVaultRecord => Boolean(vault))
+      .sort((a, b) => a.unlockAt - b.unlockAt);
+    const nowTs = now();
+    let changed = false;
+    for (const record of records) {
+      changed = this.recoverStaleExecutionPending(record, nowTs) || changed;
+    }
+    if (changed) {
+      this.schedulePersist();
+    }
+    return records;
   }
 
-  get(vaultId: string): LockVaultRecord | undefined { return this.vaults.get(vaultId); }
+  get(vaultId: string): LockVaultRecord | undefined {
+    const vault = this.vaults.get(vaultId);
+    if (!vault) return undefined;
+    if (this.recoverStaleExecutionPending(vault, now())) {
+      this.schedulePersist();
+    }
+    return vault;
+  }
 
   deposit(userId: string, amount: number): number {
     if (!Number.isFinite(amount) || amount <= 0) {
@@ -415,22 +463,38 @@ class VaultManager {
 
   private getLatestDualOwnerVaultForUser(
     userId: string,
-    requiredProposalState?: 'pending' | 'approved'
+    requiredProposalState?: 'pending' | 'approved' | 'execution-pending' | Array<'pending' | 'approved' | 'execution-pending'>,
+    recoverStaleExecution = true,
   ): LockVaultRecord {
+    const requiredStates = Array.isArray(requiredProposalState)
+      ? requiredProposalState
+      : requiredProposalState
+        ? [requiredProposalState]
+        : undefined;
     const ids = this.byUser.get(userId);
     if (!ids || ids.size === 0) throw new Error('No vault found for user');
+    const nowTs = now();
+    let changed = false;
     const records = Array.from(ids)
       .map((id) => this.vaults.get(id))
       .filter((v): v is LockVaultRecord => {
         if (!v) return false;
+        if (recoverStaleExecution) {
+          changed = this.recoverStaleExecutionPending(v, nowTs) || changed;
+        }
         if (!v.secondOwnerId) return false;
-        if (!requiredProposalState) return true;
-        return v.withdrawalProposal?.status === requiredProposalState;
+        if (!requiredStates) return true;
+        return Boolean(v.withdrawalProposal?.status && requiredStates.includes(v.withdrawalProposal.status));
       })
       .sort((a, b) => b.createdAt - a.createdAt);
+    if (changed) {
+      this.schedulePersist();
+    }
     if (records.length === 0) {
-      if (requiredProposalState === 'pending') throw new Error('No pending withdrawal to approve.');
-      if (requiredProposalState === 'approved') throw new Error('Withdrawal must be approved before execution.');
+      if (requiredStates?.includes('pending')) throw new Error('No pending withdrawal to approve.');
+      if (requiredStates?.includes('approved') || requiredStates?.includes('execution-pending')) {
+        throw new Error('Withdrawal must be approved before execution.');
+      }
       throw new Error('No dual-owner vault found for user');
     }
     return records[0];
@@ -465,7 +529,14 @@ class VaultManager {
     if (amount > vault.lockedAmountSOL) {
       throw new Error('Withdrawal amount exceeds locked balance.');
     }
-    if (vault.withdrawalProposal && (vault.withdrawalProposal.status === 'pending' || vault.withdrawalProposal.status === 'approved')) {
+    if (
+      vault.withdrawalProposal
+      && (
+        vault.withdrawalProposal.status === 'pending'
+        || vault.withdrawalProposal.status === 'approved'
+        || vault.withdrawalProposal.status === 'execution-pending'
+      )
+    ) {
       throw new Error('A withdrawal is already in progress.');
     }
 
@@ -503,7 +574,7 @@ class VaultManager {
   }
 
   executeWithdrawal(userId: string): LockVaultRecord {
-    const vault = this.getLatestDualOwnerVaultForUser(userId, 'approved');
+    const vault = this.getLatestDualOwnerVaultForUser(userId, ['approved', 'execution-pending'], false);
     const proposal = vault.withdrawalProposal;
     const nowTs = now();
 
@@ -515,19 +586,74 @@ class VaultManager {
       throw new Error('Vault must be unlocked before executing withdrawal.');
     }
 
-    if (!proposal || proposal.status !== 'approved') {
+    if (!proposal) {
       throw new Error('Withdrawal must be approved before execution.');
     }
-
+    if (proposal.status === 'execution-pending') {
+      if (this.recoverStaleExecutionPending(vault, nowTs)) {
+        this.schedulePersist();
+      }
+      return vault;
+    }
+    if (proposal.status !== 'approved') {
+      throw new Error('Withdrawal must be approved before execution.');
+    }
     if (proposal.amountSOL > vault.lockedAmountSOL) {
       throw new Error('Withdrawal amount exceeds available vault balance.');
     }
 
-    vault.lockedAmountSOL = Math.max(0, vault.lockedAmountSOL - proposal.amountSOL);
-    vault.history.push({ ts: nowTs, action: 'withdrawal-executed', note: `${proposal.amountSOL} SOL` });
-    delete vault.withdrawalProposal;
+    const executionRequestId = generateId();
+    proposal.status = 'execution-pending';
+    proposal.executionRequestedAt = nowTs;
+    proposal.executionRequestId = executionRequestId;
+    proposal.executionTimeoutAt = nowTs + WITHDRAWAL_EXECUTION_TIMEOUT_MS;
+    proposal.executionAttempts = (proposal.executionAttempts || 0) + 1;
+    delete proposal.lastRecoveryAt;
+    delete proposal.lastRecoveryReason;
+    vault.history.push({
+      ts: nowTs,
+      action: 'withdrawal-execution-requested',
+      note: `${proposal.amountSOL} SOL requestId=${executionRequestId} timeoutMs=${WITHDRAWAL_EXECUTION_TIMEOUT_MS}`,
+    });
+    void eventRouter.publish('vault.withdrawal_execution_requested', 'lockvault', {
+      id: vault.id,
+      userId: vault.userId,
+      vaultAddress: vault.vaultAddress,
+      vaultType: vault.vaultType,
+      amountSOL: proposal.amountSOL,
+      executionRequestId,
+      secondOwnerId: vault.secondOwnerId,
+    });
     this.schedulePersist();
     return vault;
+  }
+
+  private recoverStaleExecutionPending(vault: LockVaultRecord, nowTs: number): boolean {
+    const proposal = vault.withdrawalProposal;
+    if (!proposal || proposal.status !== 'execution-pending' || !proposal.executionRequestedAt) {
+      return false;
+    }
+    if (nowTs < proposal.executionRequestedAt + WITHDRAWAL_EXECUTION_TIMEOUT_MS) {
+      if (!proposal.executionTimeoutAt) {
+        proposal.executionTimeoutAt = proposal.executionRequestedAt + WITHDRAWAL_EXECUTION_TIMEOUT_MS;
+        return true;
+      }
+      return false;
+    }
+
+    const staleRequestId = proposal.executionRequestId;
+    proposal.status = 'approved';
+    proposal.lastRecoveryAt = nowTs;
+    proposal.lastRecoveryReason = 'execution-timeout';
+    delete proposal.executionRequestedAt;
+    delete proposal.executionRequestId;
+    delete proposal.executionTimeoutAt;
+    vault.history.push({
+      ts: nowTs,
+      action: 'withdrawal-execution-timeout-recovered',
+      note: `staleRequestId=${staleRequestId || 'unknown'} reset-to=approved manual-retry-required`,
+    });
+    return true;
   }
 
   clearAll(): void { // test helper
@@ -615,58 +741,20 @@ class VaultManager {
   }
 
   requestPaidWalletUnlock(userId: string, requestedBy: string, feePercentage = 10): WalletActionLock {
-    const lock = this.walletActionLocks.get(userId);
-    if (!lock) throw new Error('No active wallet lock found.');
-    const remainingMs = lock.lockUntil - now();
-    if (remainingMs <= 0) {
-      this.clearWalletActionLockInternal(userId);
-      throw new Error('Wallet lock has already expired.');
-    }
-
-    const vault = this.getLatestLockedVaultForUser(userId);
-    const feeAmountSOL = Number((vault.lockedAmountSOL * (feePercentage / 100)).toFixed(8));
-    if (!Number.isFinite(feeAmountSOL) || feeAmountSOL <= 0) {
-      throw new Error('Unable to calculate early unlock fee.');
-    }
-
-    lock.earlyUnlockRequest = {
-      mode: 'paid_early_unlock',
-      status: 'pending',
-      requestedAt: now(),
-      requestedBy,
-      feePercentage,
-      feeAmountSOL,
-    };
-    this.schedulePersist();
-    return lock;
+    void userId;
+    void requestedBy;
+    void feePercentage;
+    throw createFeatureNotImplementedError(
+      'Paid early wallet unlock is temporarily disabled until fee routing is implemented.'
+    );
   }
 
   settlePaidWalletUnlock(userId: string, paidBy: string): WalletActionLock {
-    const lock = this.walletActionLocks.get(userId);
-    if (!lock) throw new Error('No active wallet lock found.');
-    const request = lock.earlyUnlockRequest;
-    if (!request || request.mode !== 'paid_early_unlock') {
-      throw new Error('No paid early unlock request exists for this wallet lock.');
-    }
-
-    const vault = this.getLatestLockedVaultForUser(userId);
-    if (!request.feeAmountSOL || request.feeAmountSOL <= 0) {
-      throw new Error('Paid unlock fee is invalid.');
-    }
-    if (vault.lockedAmountSOL <= request.feeAmountSOL) {
-      throw new Error('Vault amount is too small to cover the early unlock fee.');
-    }
-
-    vault.lockedAmountSOL = Number((vault.lockedAmountSOL - request.feeAmountSOL).toFixed(8));
-    vault.history.push({
-      ts: now(),
-      action: 'wallet-lock-early-unlock-fee',
-      note: `${request.feeAmountSOL} SOL charged by ${paidBy}`,
-    });
-    request.status = 'completed';
-    request.completedAt = now();
-    this.clearWalletActionLockInternal(userId);
-    return lock;
+    void userId;
+    void paidBy;
+    throw createFeatureNotImplementedError(
+      'Paid early wallet unlock is temporarily disabled until fee routing is implemented.'
+    );
   }
 
   setAutoVault(userId: string, settings: AutoVaultSettings): void {
@@ -725,27 +813,16 @@ class VaultManager {
           autoUnlocked: true,
         });
 
-        // If user opted into autoWithdraw, request it — the bot/API layer handles the actual transfer
+        // Auto-withdraw stays disabled until a real execution consumer exists.
         if (vault.autoWithdraw) {
-          let secretDecryptError = false;
-          if (vault.vaultSecret) {
-            try {
-              // Validate decryptability without emitting or storing plaintext outside this scope.
-              decryptSecret(vault.vaultSecret);
-            } catch (err) {
-              secretDecryptError = true;
-              console.error(`[LockVault] Unable to decrypt secret for auto-withdraw vault ${vault.id}`, err);
-            }
-          }
-          void eventRouter.publish('vault.auto_withdraw_requested', 'lockvault', {
-            id: vault.id,
-            userId: vault.userId,
-            vaultAddress: vault.vaultAddress,
-            vaultType: vault.vaultType,
-            amountSOL: vault.lockedAmountSOL,
-            secretDecryptError,
+          vault.autoWithdraw = false;
+          vault.history.push({
+            ts: t,
+            action: 'auto-withdraw-disabled',
+            note: 'Auto-withdraw was requested before the execution path existed. Funds remain in the unlocked vault.',
           });
-          console.log(`[LockVault] Auto-withdraw requested for vault ${vault.id} (user ${vault.userId})`);
+          this.schedulePersist();
+          console.warn(`[LockVault] Auto-withdraw disabled for vault ${vault.id}; no execution consumer is registered.`);
         }
       }
     }
