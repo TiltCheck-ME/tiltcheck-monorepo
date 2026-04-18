@@ -1,4 +1,4 @@
-/* Copyright (c) 2026 TiltCheck. All rights reserved. */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-17 */
 /**
  * Profile page functionality
  * 
@@ -260,7 +260,7 @@ class ProfileManager {
       if (!listContainer) return;
 
       if (tipHistory.length === 0) {
-        listContainer.innerHTML = '<div style="text-align: center; padding: 40px; color: #888;">No tip history yet. Start tipping with <a href="/tools/justthetip.html" style="color: #00d4aa;">JustTheTip</a>!</div>';
+        listContainer.innerHTML = '<div style="text-align: center; padding: 40px; color: #888;">No tip history yet. Start tipping with <a href="/tools/justthetip" style="color: #00d4aa;">JustTheTip</a>!</div>';
         return;
       }
 

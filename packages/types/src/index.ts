@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-06
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-17
 /* Copyright (c) 2026 TiltCheck. All rights reserved. */
 /**
  * @tiltcheck/types
@@ -614,6 +614,7 @@ export type EventType =
   | 'vault.expired'
   | 'vault.reload_due'
   | 'vault.auto_withdraw_requested'
+  | 'vault.withdrawal_execution_requested'
   | 'transaction.created'
   | 'transaction.approved'
   | 'transaction.submitted'
@@ -692,6 +693,9 @@ export interface BonusDiscoveredEventData {
   terms: string;
   expiry_message: string;
   is_expired: boolean;
+  bonus_url?: string;
+  code?: string | null;
+  source?: string;
 }
 
 export interface CasinoRollupData {
@@ -932,6 +936,25 @@ export interface VaultReloadDueEventData {
   interval: string;
 }
 
+export interface VaultAutoWithdrawRequestedEventData {
+  userId: string;
+  id: string;
+  vaultAddress: string;
+  vaultType: 'disposable' | 'magic';
+  amountSOL: number;
+  secretDecryptError: boolean;
+}
+
+export interface VaultWithdrawalExecutionRequestedEventData {
+  userId: string;
+  id: string;
+  vaultAddress: string;
+  vaultType: 'disposable' | 'magic';
+  amountSOL: number;
+  executionRequestId: string;
+  secondOwnerId?: string;
+}
+
 export interface ActivityLaunchedEventData {
   activityId: string;
   userId: string;
@@ -1005,6 +1028,8 @@ export interface EventDataMap {
   'vault.expired': VaultExpiredEventData;
   'vault.locked': VaultLockedEventData;
   'vault.reload_due': VaultReloadDueEventData;
+  'vault.auto_withdraw_requested': VaultAutoWithdrawRequestedEventData;
+  'vault.withdrawal_execution_requested': VaultWithdrawalExecutionRequestedEventData;
   'trust.casino.metric.snapshot': CasinoMetricSnapshot;
   'trust.casino.tos.changed': { casinoName: string; changeSummary?: string; contentHash: string };
   'trust.audit.trigger': { timestamp: number; reason: string };

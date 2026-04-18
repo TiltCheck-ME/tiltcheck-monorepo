@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-07 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-17 */
 /**
  * Vault Routes - /vault/*
  * Handles general vault balance and timed locks.
@@ -37,10 +37,10 @@ function handleVaultError(error: unknown): { status: number; body: { error: stri
     const vaultError = error as VaultError;
     const code = vaultError.code;
     const httpStatus = vaultError.httpStatus;
-    if (code === 'FEATURE_NOT_IMPLEMENTED' && httpStatus === 501) {
+    if (code && httpStatus) {
       return {
-        status: 501,
-        body: { error: error.message, code: 'FEATURE_NOT_IMPLEMENTED' }
+        status: httpStatus,
+        body: { error: error.message, code }
       };
     }
     return {
@@ -79,6 +79,50 @@ function walletLockBlockedResponse(userId: string) {
     remainingMs: status.remainingMs,
     reason: status.reason || null,
     earlyUnlockRequest: status.earlyUnlockRequest || null,
+  };
+}
+
+function buildWithdrawalExecutionResponse(record: Awaited<ReturnType<typeof executeWithdrawal>>) {
+  const proposal = record.withdrawalProposal;
+  if (proposal?.status === 'execution-pending') {
+    const executionTimeoutAt = proposal.executionTimeoutAt ?? null;
+    const remainingMs = executionTimeoutAt ? Math.max(0, executionTimeoutAt - Date.now()) : null;
+    return {
+      status: 202,
+      body: {
+        success: false,
+        pendingExecution: true,
+        retryEligible: false,
+        message: 'Withdrawal execution was requested, but funds have not moved yet.',
+        executionRequestId: proposal.executionRequestId ?? null,
+        executionTimeoutAt: executionTimeoutAt ? new Date(executionTimeoutAt).toISOString() : null,
+        remainingMs,
+        vault: record,
+      },
+    };
+  }
+
+  if (proposal?.status === 'approved' && proposal.lastRecoveryReason === 'execution-timeout') {
+    return {
+      status: 409,
+      body: {
+        success: false,
+        pendingExecution: false,
+        retryEligible: true,
+        code: 'WITHDRAWAL_EXECUTION_STALE',
+        message: 'The previous withdrawal execution request went stale and was reset. Review the vault status and retry execution if funds did not move.',
+        recoveredAt: proposal.lastRecoveryAt ? new Date(proposal.lastRecoveryAt).toISOString() : null,
+        vault: record,
+      },
+    };
+  }
+
+  return {
+    status: 200,
+    body: {
+      success: true,
+      vault: record,
+    },
   };
 }
 
@@ -213,13 +257,13 @@ router.post('/:userId/wallet-unlock', authMiddleware, async (req, res) => {
   const status = getWalletActionLockStatus(userId);
   if (status.locked && status.remainingMs && status.remainingMs > 0) {
     res.status(423).json({
-      error: 'Wallet lock is still active. Use admin approval or pay the early unlock fee.',
+      error: 'Wallet lock is still active. Use admin approval or wait for the timer to expire.',
       code: 'WALLET_LOCK_STILL_ACTIVE',
       lockUntil: status.lockUntil ? new Date(status.lockUntil).toISOString() : null,
       remainingMs: status.remainingMs,
       reason: status.reason || null,
       earlyUnlockRequest: status.earlyUnlockRequest || null,
-      unlockOptions: ['admin_approval', 'paid_early_unlock'],
+      unlockOptions: ['admin_approval'],
     });
     return;
   }
@@ -244,6 +288,13 @@ router.post('/:userId/wallet-unlock-request', authMiddleware, async (req, res) =
 
   if (mode !== 'admin_approval' && mode !== 'paid_early_unlock') {
     res.status(400).json({ error: 'mode must be admin_approval or paid_early_unlock' });
+    return;
+  }
+  if (mode === 'paid_early_unlock') {
+    res.status(501).json({
+      error: 'Paid early wallet unlock is temporarily disabled until fee routing is implemented.',
+      code: 'FEATURE_NOT_IMPLEMENTED',
+    });
     return;
   }
 
@@ -305,8 +356,8 @@ router.post('/:userId/wallet-unlock-pay', authMiddleware, async (req, res) => {
     return;
   }
 
+  const paidBy = (auth as any)?.discordId || auth?.id || userId;
   try {
-    const paidBy = (auth as any)?.discordId || auth?.id || userId;
     const record = settlePaidWalletUnlockForUser(userId, paidBy);
     res.json({
       success: true,
@@ -565,10 +616,8 @@ router.post('/:userId/execute-withdrawal', authMiddleware, async (req, res) => {
 
     try {
         const record = await executeWithdrawal(userId);
-        res.json({
-            success: true,
-            vault: record
-        });
+        const response = buildWithdrawalExecutionResponse(record);
+        res.status(response.status).json(response.body);
     } catch (error) {
         const { status, body } = handleVaultError(error);
         res.status(status).json(body);

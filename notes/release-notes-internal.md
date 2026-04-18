@@ -1,3 +1,4 @@
+<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-17 -->
 # TiltCheck MVP Release Notes (Internal)
 
 ## Release Theme
@@ -20,10 +21,10 @@ MVP hardening and operational simplification: reduce user-facing dead paths, loc
 ## Key Internal Changes
 
 - **Web**
-  - Replaced legacy `/dashboard` references with `/getting-started.html`.
-  - Replaced placeholder login links with `/login.html`.
-  - Removed archived tool links from primary navs; promoted `/beta.html`.
-  - Normalized route suffixes for static pages (`*.html`) in nav/footer/sitemap.
+  - Replaced legacy `/dashboard` references with `/getting-started`.
+  - Replaced placeholder login links with `/login`.
+  - Removed archived tool links from primary navs; promoted `/beta-tester`.
+  - Normalized tool and landing references to current Next.js routes.
 - **Extension**
   - `wallet-bridge.ts` now clears timeout on success and prevents dangling waiters.
   - Request ID correlation remains enforced for transaction responses.

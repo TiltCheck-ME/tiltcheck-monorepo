@@ -7,7 +7,6 @@
   "scripts": {
     "dev": "node src/server-trust-auth.js",
     "start": "node src/server-trust-auth.js",
-    "legacy": "node src/server.js",
     "test": "vitest --run --passWithNoTests"
   },
   "dependencies": {

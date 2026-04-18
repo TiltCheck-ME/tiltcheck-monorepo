@@ -38,6 +38,10 @@
     "./fairness": {
       "types": "./dist/fairness.d.ts",
       "import": "./dist/fairness.js"
+    },
+    "./community-casinos": {
+      "types": "./dist/community-casinos.d.ts",
+      "import": "./dist/community-casinos.js"
     }
   }
 }

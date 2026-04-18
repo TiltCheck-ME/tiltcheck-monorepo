@@ -1,3 +1,4 @@
+<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-17 -->
 # VPS-Free Deployment Plan (MVP)
 
 This plan replaces the old VPS strategy after production instability and loss of host access.
@@ -65,11 +66,11 @@ Before public traffic:
 2. Deploy web on Vercel
 3. Deploy API/bot on Railway
 4. Run MVP smoke tests:
-   - `/beta.html`
-   - `/tools/justthetip.html`
-   - `/tools/suslink.html`
-   - `/tools/collectclock.html`
-   - `/tools/tiltcheck-core.html`
+   - `/beta-tester`
+   - `/tools/justthetip`
+   - `/tools/domain-verifier`
+   - `/tools/collectclock`
+   - `/tools/verify`
    - `GET /health` on API
 5. Verify Discord commands:
    - `/vault lock`

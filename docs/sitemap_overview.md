@@ -1,3 +1,4 @@
+<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-17 -->
 # TiltCheck Web Sitemap & Standardization Plan
 
 This document provides a comprehensive overview of the current TiltCheck web ecosystem, identifies gaps in the sitemap, and outlines the steps to ensure uniform styling across all pages.
@@ -22,10 +23,10 @@ The TiltCheck web application is a monorepo-based static and dynamic site. Most 
 ### Tools & Simulators (`/tools/*`)
 | Page | URL | Description | Status |
 | :--- | :--- | :--- | :--- |
-| **JustTheTip** | `/tools/justthetip.html` | Non-custodial tipping protocol demo/tool. | ✅ Live |
-| **LinkCheck** | `/tools/suslink.html` | Domain verifier and phishing protection simulator. | ✅ Live |
-| **BonusCheck** | `/tools/collectclock.html` | Bonus audit tool (formerly CollectClock). | ✅ Live |
-| **Fairness Analyzer** | `/tools/tiltcheck-core.html` | Gameplay math and RNG auditor. | ✅ Live |
+| **JustTheTip** | `/tools/justthetip` | Non-custodial tipping protocol demo/tool. | ✅ Live |
+| **LinkCheck** | `/tools/domain-verifier` | Domain verifier and phishing protection simulator. | ✅ Live |
+| **BonusCheck** | `/tools/collectclock` | Bonus audit tool (formerly CollectClock). | ✅ Live |
+| **Fairness Analyzer** | `/tools/verify` | Gameplay math and RNG auditor. | ✅ Live |
 | **Degen Arena** | `/tools/daad.html` | "Degens Against Decency" multiplayer card game. | ✅ Live |
 
 ### Support & Operational
@@ -54,7 +55,7 @@ The following pages are linked in the current `site-map.html` but do not exist i
 - ❌ `/about.html` -> Needs to be created or redirected to `how-it-works.html`.
 - ❌ `/faq.html` -> Needs content implementation.
 - ❌ `/contact.html` -> Needs implementation (likely a Discord link).
-- ❌ `/beta.html` -> Needs implementation.
+- ❌ `/beta.html` -> Replaced by `/beta-tester`.
 
 The following existing pages are **missing** from `site-map.html`:
 - 🔗 `/bonuses.html` (RTP Scanner)

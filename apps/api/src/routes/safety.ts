@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-13 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-17 */
 /**
  * Safety Routes - /safety/*
  * Degen Breathalyzer and Anti-Tilt interventions.
@@ -14,6 +14,7 @@ import {
 } from '@tiltcheck/event-types';
 import type { SafetyInterventionTriggeredEventData } from '@tiltcheck/types';
 import { LinkScanner } from '@tiltcheck/suslink';
+import { loadDomainBlacklist } from '../lib/live-feed-data.js';
 import { evaluateBreathalyzer, evaluateSentiment } from '../lib/safety.js';
 import { authMiddleware } from '../middleware/auth.js';
 import { z, ZodError } from 'zod';
@@ -182,18 +183,8 @@ router.post('/suslink/scan', async (req, res) => {
   }
 
   try {
-    // Load local blacklist
-    const dataDir = process.env.STATS_DATA_DIR || path.resolve(process.cwd(), 'data');
-    const blacklistPath = path.join(dataDir, 'domain_blacklist.json');
-    let blacklist: string[] = [];
-    try {
-      const raw = await fs.readFile(blacklistPath, 'utf8');
-      blacklist = JSON.parse(raw);
-    } catch {
-      // Fallback if file missing
-    }
-
-    const scanner = new LinkScanner(blacklist);
+    const blacklistSnapshot = await loadDomainBlacklist();
+    const scanner = new LinkScanner(blacklistSnapshot.domains);
     const result = await scanner.scan(url);
 
     res.json({

@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 
+# © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-17
 # MVP beta-testing tool smoke test.
 # Verifies critical public pages for the beta program and core tools.
 
@@ -12,11 +13,11 @@ if [[ "${BASE_URL}" == */ ]]; then
 fi
 
 CHECK_PATHS=(
-  "/beta.html"
-  "/tools/justthetip.html"
-  "/tools/suslink.html"
-  "/tools/collectclock.html"
-  "/tools/tiltcheck-core.html"
+  "/beta-tester"
+  "/tools/justthetip"
+  "/tools/domain-verifier"
+  "/tools/collectclock"
+  "/tools/verify"
 )
 
 PASS_COUNT=0

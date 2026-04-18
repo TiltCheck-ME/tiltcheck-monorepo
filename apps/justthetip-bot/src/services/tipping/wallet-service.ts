@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-10
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-17
 /**
  * Wallet Service - Non-Custodial Implementation
  * 
@@ -10,11 +10,13 @@
 
 import { eventRouter } from '@tiltcheck/event-router';
 import { v4 as uuidv4 } from 'uuid';
-import { getSolscanUrl } from './utils.js';
 import type { TiltCheckEvent } from '@tiltcheck/types';
 
 export type WalletProvider = 'x402' | 'magic' | 'phantom' | 'solflare' | 'user-supplied';
-export type TransactionStatus = 'pending' | 'approved' | 'signed' | 'submitted' | 'confirmed' | 'failed';
+export type TransactionStatus = 'pending' | 'approved' | 'signed' | 'execution-pending' | 'submitted' | 'confirmed' | 'failed';
+
+const EXECUTION_DISABLED_MESSAGE =
+  'Wallet-service transaction submission is temporarily disabled until a real Solana execution path is wired.';
 
 /**
  * User wallet mapping (NON-CUSTODIAL)
@@ -114,6 +116,44 @@ export class WalletService {
       },
       'wallet-service'
     );
+  }
+
+  private createFeatureNotImplementedError(message: string): Error & { code: string; httpStatus: number } {
+    const error = new Error(message) as Error & { code: string; httpStatus: number };
+    error.code = 'FEATURE_NOT_IMPLEMENTED';
+    error.httpStatus = 501;
+    return error;
+  }
+
+  private async markExecutionPending(
+    tx: TransactionRequest,
+    stage: 'user-submission' | 'treasury-submission',
+    reason: string
+  ): Promise<void> {
+    const previousStatus = tx.status;
+    tx.status = 'execution-pending';
+    tx.metadata = {
+      ...tx.metadata,
+      execution: {
+        state: 'disabled',
+        stage,
+        reason,
+        previousStatus,
+        updatedAt: Date.now(),
+      },
+    };
+
+    const error = this.createFeatureNotImplementedError(reason);
+    await eventRouter.publish('transaction.failed', 'wallet-service', {
+      transactionId: tx.id,
+      userId: tx.userId,
+      error: error.message,
+      code: error.code,
+      httpStatus: error.httpStatus,
+      stage,
+      currentStatus: tx.status,
+      previousStatus,
+    }, tx.userId);
   }
 
   /**
@@ -270,8 +310,8 @@ export class WalletService {
     this.transactionRequests.set(txRequest.id, txRequest);
 
     // Treasury transactions don't need user signature
-    // Treasury signs and sends directly
     txRequest.status = 'approved';
+    txRequest.approvedAt = Date.now();
 
     await eventRouter.publish('transaction.created', 'wallet-service', {
       transactionId: txRequest.id,
@@ -279,6 +319,8 @@ export class WalletService {
       type: 'withdrawal',
       requiresSignature: false,
     }, userId);
+
+    await this.markExecutionPending(txRequest, 'treasury-submission', EXECUTION_DISABLED_MESSAGE);
 
     return txRequest;
   }
@@ -332,39 +374,7 @@ export class WalletService {
     tx.signature = signature;
     tx.status = 'signed';
     tx.signedAt = Date.now();
-
-    // In real implementation, this would submit to Solana blockchain
-    // For now, just mark as submitted
-    tx.status = 'submitted';
-    // On Solana, the transaction signature IS the transaction hash/ID
-    // Using it for both fields maintains consistency with the Solana model
-    tx.transactionHash = signature;
-    tx.explorerUrl = getSolscanUrl(signature);
-
-    await eventRouter.publish('transaction.submitted', 'wallet-service', {
-      transactionId,
-      transactionHash: tx.transactionHash,
-      explorerUrl: tx.explorerUrl,
-      receipt: {
-        transactionHash: signature,
-        explorerUrl: tx.explorerUrl,
-        timestamp: tx.signedAt,
-        from: tx.from,
-        to: tx.to,
-        amount: tx.amountUSD,
-        currency: tx.token,
-      },
-    }, tx.userId);
-
-    // Simulate confirmation
-    setTimeout(async () => {
-      tx.status = 'confirmed';
-      await eventRouter.publish('transaction.confirmed', 'wallet-service', {
-        transactionId,
-        transactionHash: tx.transactionHash,
-        explorerUrl: tx.explorerUrl,
-      }, tx.userId);
-    }, 2000);
+    await this.markExecutionPending(tx, 'user-submission', EXECUTION_DISABLED_MESSAGE);
   }
 
   /**
@@ -372,14 +382,7 @@ export class WalletService {
    */
   private async handleWithdrawalRequest(userId: string, amountUSD: number): Promise<void> {
     try {
-      const tx = await this.createWithdrawalTransaction(userId, amountUSD);
-      
-      // Auto-process treasury transactions
-      if (tx.type === 'withdrawal') {
-        // In real implementation, treasury would sign and submit
-        tx.signature = `TREASURY_SIGNATURE_${uuidv4()}`;
-        await this.submitSignedTransaction(tx.id, tx.signature);
-      }
+      await this.createWithdrawalTransaction(userId, amountUSD);
     } catch (error) {
       console.error('Failed to handle withdrawal request:', error);
       await eventRouter.publish('transaction.failed', 'wallet-service', {

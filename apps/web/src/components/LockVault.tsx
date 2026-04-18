@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-13 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-17 */
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
@@ -268,7 +268,7 @@ const LockVault = ({ discordId }: { discordId?: string }) => {
     }
   };
 
-  const handleWalletUnlockRequest = async (mode: 'admin_approval' | 'paid_early_unlock') => {
+  const handleWalletUnlockRequest = async (mode: 'admin_approval') => {
     if (!discordId) return;
     setWorking(true);
     setError(null);
@@ -286,29 +286,6 @@ const LockVault = ({ discordId }: { discordId?: string }) => {
       await fetchVault();
     } catch (err: any) {
       setError(err.message || 'Wallet unlock request failed.');
-    } finally {
-      setWorking(false);
-    }
-  };
-
-  const handleWalletUnlockPayment = async () => {
-    if (!discordId) return;
-    setWorking(true);
-    setError(null);
-    try {
-      const res = await fetch(`${API}/vault/${discordId}/wallet-unlock-pay`, {
-        method: 'POST',
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({}),
-      });
-      if (!res.ok) {
-        const d = await res.json().catch(() => ({}));
-        throw new Error(d.error || `HTTP ${res.status}`);
-      }
-      await fetchVault();
-    } catch (err: any) {
-      setError(err.message || 'Paid wallet unlock failed.');
     } finally {
       setWorking(false);
     }
@@ -410,7 +387,7 @@ const LockVault = ({ discordId }: { discordId?: string }) => {
                   <p className="text-xs text-yellow-300 mt-2 font-mono">
                     {vault.walletUnlockRequest.mode === 'admin_approval'
                       ? 'Admin override requested'
-                      : `Early unlock fee queued: ${vault.walletUnlockRequest.feeAmountSOL?.toFixed(4) ?? '0.0000'} SOL (${vault.walletUnlockRequest.feePercentage ?? 10}%)`}
+                      : 'Paid early unlock is temporarily disabled until fee routing is implemented.'}
                   </p>
                 )}
               </div>
@@ -512,13 +489,11 @@ const LockVault = ({ discordId }: { discordId?: string }) => {
                   {vault.walletUnlockRequest?.mode === 'admin_approval' ? 'ADMIN OVERRIDE REQUESTED' : 'REQUEST ADMIN OVERRIDE'}
                 </button>
                 <button
-                  onClick={vault.walletUnlockRequest?.mode === 'paid_early_unlock' ? handleWalletUnlockPayment : () => handleWalletUnlockRequest('paid_early_unlock')}
-                  disabled={working || !vault.activeLock}
-                  className="w-full py-3 bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 text-red-300 rounded-xl font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                  type="button"
+                  disabled
+                  className="w-full py-3 bg-red-500/10 border border-red-500/20 text-red-300 rounded-xl font-bold transition-all opacity-60 cursor-not-allowed"
                 >
-                  {vault.walletUnlockRequest?.mode === 'paid_early_unlock'
-                    ? `PAY ${vault.walletUnlockRequest.feeAmountSOL?.toFixed(4) ?? '0.0000'} SOL TO UNLOCK NOW`
-                    : 'QUOTE 10% EARLY UNLOCK FEE'}
+                  PAID EARLY UNLOCK TEMPORARILY DISABLED
                 </button>
               </div>
             ) : (
@@ -565,6 +540,9 @@ const LockVault = ({ discordId }: { discordId?: string }) => {
           NON-CUSTODIAL: TiltCheck cannot access your funds. Vault locks and redemption signals are advisory only.
         </p>
       </div>
+      <p className="mt-4 text-center text-[10px] uppercase tracking-[0.3em] text-gray-500">
+        Made for Degens. By Degens.
+      </p>
     </div>
   );
 };

@@ -8,6 +8,8 @@
       "@tiltcheck/types/*": ["./packages/types/src/*"],
       "@tiltcheck/config": ["./packages/config/src/index.ts"],
       "@tiltcheck/config/*": ["./packages/config/src/*"],
+      "@tiltcheck/shared": ["./packages/shared/src/index.ts"],
+      "@tiltcheck/shared/*": ["./packages/shared/src/*"],
       "@tiltcheck/db": ["./packages/db/src/index.ts"],
       "@tiltcheck/db/*": ["./packages/db/src/*"],
       "@tiltcheck/database": ["./packages/database/src/index.ts"],

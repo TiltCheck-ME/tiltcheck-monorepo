@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-12
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-17
 /* Copyright (c) 2026 TiltCheck. All rights reserved. */
 /**
  * Bonus Feed Handler
@@ -32,7 +32,7 @@ export class BonusFeedHandler {
    */
   private static async onBonusDiscovered(evt: TiltCheckEvent<'bonus.discovered'>): Promise<void> {
     try {
-      const { casino_name, value, bonus_type, expiry_message, is_expired, terms } = evt.data;
+      const { casino_name, value, bonus_type, expiry_message, is_expired, terms, bonus_url } = evt.data;
 
       // Don't post expired bonuses to the live feed.
       if (is_expired) return;
@@ -43,13 +43,14 @@ export class BonusFeedHandler {
         return;
       }
 
-      await alertService.postBonusDrop({
-        casinoName: casino_name,
-        value,
-        bonusType: bonus_type,
-        expiryMessage: expiry_message,
-        terms,
-      });
+        await alertService.postBonusDrop({
+          casinoName: casino_name,
+          value,
+          bonusType: bonus_type,
+          expiryMessage: expiry_message,
+          terms,
+          bonusUrl: bonus_url,
+        });
     } catch (error) {
       console.error('[BonusFeedHandler] Error posting bonus drop alert:', error);
     }

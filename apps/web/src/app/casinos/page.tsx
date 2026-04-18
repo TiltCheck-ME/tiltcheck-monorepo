@@ -1,8 +1,9 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-15 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-17 */
 'use client';
 
 import React, { useState, useMemo, useEffect } from 'react';
 import "@/styles/terminal.css";
+import { getCommunityDefaultCasinoPriority } from '@tiltcheck/shared/community-casinos';
 import RAW_CASINOS from '@/data/casinos.json';
 
 interface LiveTrustScore {
@@ -27,7 +28,7 @@ interface CasinoMeta {
 
 interface CasinoEntry extends RawCasino {
   score: number;
-  popularity: number;
+  communityPriority: number;
   sourcePriority: number;
   meta: CasinoMeta;
   affiliateUrl?: string;
@@ -68,28 +69,12 @@ function seededFloat(seed: number, salt: number): number {
   return x - Math.floor(x);
 }
 
-// Lower number = shown first. Sweepstakes platforms ranked first — most relevant to US community.
-const POPULARITY_RANK: Record<string, number> = {
-  'Chumba Casino': 1, 'Global Poker': 2, 'LuckyLand Slots': 3, 'Pulsz': 4,
-  'WOW Vegas': 5, 'High 5 Casino': 6, 'Stake.us': 7, 'McLuck': 8,
-  'Fortune Coins': 9, 'Hello Millions': 10, 'Modo Casino': 11, 'Funrize': 12,
-  'Zula Casino': 13, 'Crown Coins Casino': 14, 'NoLimitCoins': 15, 'Sportzino': 16,
-  'Roobet': 17, 'Stake.com': 18, 'Rollbit': 19, 'Gamdom': 20,
-  'BC.Game': 21, 'Shuffle': 22, 'Wolf.bet': 23,
-  'DraftKings Casino': 24, 'FanDuel Casino': 25, 'BetMGM': 26,
-  'Caesars Casino': 27, 'BetRivers': 28, 'Borgata Online': 29,
-  'Golden Nugget Online': 30, 'Hard Rock Bet': 31, 'WynnBET': 32,
-  'Bitcasino.io': 33, 'Sportsbet.io': 34, 'Bovada': 35,
-};
-
 // Current Bonus Drops source feed overlap. These are shown first when they are
 // actively appearing in the monitored bonus feed.
 const BONUS_FEED_PRIORITY: Record<string, number> = {
   'WOW Vegas': 1,
   'Modo Casino': 2,
 };
-
-const BONUS_FEED_PENDING_GRADES = ['LoneStar Casino', 'Chanced', 'Punt', 'Baba Casino'];
 
 const COLLECTCLOCK_LINKS: Record<string, { url: string; code: string | null }> = {
   'TrustDice': { url: 'https://trustdice.win/faucet/?ref=u_jmenichole', code: null },
@@ -120,6 +105,7 @@ const COLLECTCLOCK_LINKS: Record<string, { url: string; code: string | null }> =
   'Spree': { url: 'https://spree.com/?r=1450539', code: null },
   'Rolla': { url: 'https://www.rolla.com/?raf=3873', code: null },
   'Pulsz Bingo': { url: 'https://www.pulszbingo.com/?invited_by=eg6mbf', code: null },
+  'MegaBonanza': { url: 'https://www.megabonanza.com/?r=72781897', code: null },
   'Mega Bonanza': { url: 'https://www.megabonanza.com/?r=72781897', code: null },
   'Real Prize': { url: 'https://www.realprize.com/refer/317136', code: null },
   'Zoot': { url: 'https://getzoot.us/?referralCode=ZOOTwithJMENICHOLE', code: null },
@@ -201,14 +187,19 @@ const CASINOS: CasinoEntry[] = (RAW_CASINOS as RawCasino[]).map(c => {
   return {
     ...c,
     score: base,
-    popularity: POPULARITY_RANK[c.name] ?? 999,
+    communityPriority: getCommunityDefaultCasinoPriority(c.name),
     sourcePriority: BONUS_FEED_PRIORITY[c.name] ?? 999,
     meta: CASINO_META[c.name] ?? {},
     affiliateUrl: collectClockLink?.url,
     promoCode: collectClockLink?.code ?? null,
     ...derivePillars(base, c.category, seed),
   };
-}).sort((a, b) => a.sourcePriority - b.sourcePriority || a.popularity - b.popularity || b.score - a.score);
+}).sort(
+  (a, b) =>
+    a.communityPriority - b.communityPriority ||
+    a.sourcePriority - b.sourcePriority ||
+    b.score - a.score
+);
 
 const COLLECTCLOCK_NO_CODE = CASINOS
   .filter(casino => casino.affiliateUrl && !casino.promoCode)
@@ -293,9 +284,9 @@ export default function CasinosPage() {
           Each card exposes the Greed Premium — the gap between certified RTP and what the casino actually deploys on your slot. That&apos;s the extra tax they skim above the house edge.
         </p>
         <p className="text-xs font-mono text-[#ffd700] mt-3 max-w-4xl mx-auto">
-          Bonus-source priority is live: casinos actively showing up in Bonus Drops get surfaced first. Current source brands awaiting full grade: {BONUS_FEED_PENDING_GRADES.join(' · ')}.
+          Community-default ordering tracks the current sweeps market leaders. Bonus Drops overlap still jumps the line when those brands are actively in feed.
         </p>
-        <p className="text-xs font-mono text-gray-600 mt-3">{CASINOS.length} platforms tracked — sweepstakes shown first</p>
+        <p className="text-xs font-mono text-gray-600 mt-3">{CASINOS.length} platforms tracked — community defaults shown first</p>
       </header>
 
       {/* Grade distribution stat strip */}

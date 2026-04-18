@@ -169,6 +169,49 @@ function redirectAuthFailure(res, reason = 'unauthorized') {
   res.redirect(`/?error=${encodeURIComponent(reason)}`);
 }
 
+function getPrivilegedActor(req) {
+  const ipAddress = getClientIp(req) || null;
+
+  if (req.user) {
+    return {
+      actorId: String(req.user.id || 'discord-admin'),
+      actorLabel: req.user.username || 'discord-admin',
+      authMode: 'discord-oauth',
+      ipAddress,
+    };
+  }
+
+  if (req.session?.authenticated) {
+    return {
+      actorId: ipAddress ? `password:${ipAddress}` : 'password-session',
+      actorLabel: 'admin-password',
+      authMode: 'admin-password',
+      ipAddress,
+    };
+  }
+
+  return {
+    actorId: ipAddress ? `anonymous:${ipAddress}` : 'anonymous',
+    actorLabel: 'anonymous',
+    authMode: 'anonymous',
+    ipAddress,
+  };
+}
+
+function auditPrivilegedAction(req, action, metadata = {}) {
+  const actor = getPrivilegedActor(req);
+  console.info('[control-room][audit]', {
+    action,
+    actorId: actor.actorId,
+    actorLabel: actor.actorLabel,
+    authMode: actor.authMode,
+    ipAddress: actor.ipAddress,
+    method: req.method,
+    path: req.path,
+    ...metadata,
+  });
+}
+
 // ─── Auth Routes ───────────────────────────────────────────────────────────────
 app.get('/auth/discord', (req, res, next) => {
   if (!DISCORD_AUTH_ENABLED) {
@@ -225,17 +268,25 @@ app.post('/api/auth/login', (req, res) => {
   const { password } = req.body;
   if (password === ADMIN_PASSWORD) {
     req.session.authenticated = true;
+    auditPrivilegedAction(req, 'auth.login', { outcome: 'success' });
     res.json({ success: true });
   } else {
+    auditPrivilegedAction(req, 'auth.login', { outcome: 'denied' });
     res.status(401).json({ error: 'Invalid password' });
   }
 });
 
 app.post('/api/auth/logout', (req, res) => {
   req.logout((err) => {
+      if (err) {
+        auditPrivilegedAction(req, 'auth.logout', { outcome: 'error', error: err.message });
+        res.status(500).json({ error: 'Logout failed' });
+        return;
+      }
+      auditPrivilegedAction(req, 'auth.logout', { outcome: 'success' });
       req.session.destroy();
       res.json({ success: true });
-  });
+   });
 });
 
 app.get('/api/auth/status', (req, res) => {
@@ -277,8 +328,17 @@ app.post('/api/report-requests', requireAuth, (req, res) => {
   try {
     const createdBy = req.user?.username || 'admin-password';
     const job = createJob({ ...req.body, createdBy });
+    auditPrivilegedAction(req, 'report-request.create', {
+      outcome: 'success',
+      jobId: job.id,
+      createdBy,
+    });
     res.status(202).json({ job });
   } catch (error) {
+    auditPrivilegedAction(req, 'report-request.create', {
+      outcome: 'error',
+      error: error.message,
+    });
     res.status(400).json({ error: error.message });
   }
 });
@@ -438,9 +498,17 @@ app.post('/api/container/:action/:name', requireAuth, async (req, res) => {
 
   try {
     const { stdout, stderr } = await execAsync(command);
-    // console.log(`[CONTROL ROOM] Executed: ${command}`);
+    auditPrivilegedAction(req, `container.${action}`, {
+      outcome: 'success',
+      target: safeName,
+    });
     res.json({ success: true, output: (stdout + stderr).trim() });
   } catch (error) {
+    auditPrivilegedAction(req, `container.${action}`, {
+      outcome: 'error',
+      target: safeName,
+      error: error.message,
+    });
     res.status(500).json({ error: error.message });
   }
 });
@@ -449,8 +517,16 @@ app.post('/api/containers/restart-all', requireAuth, async (req, res) => {
   try {
     const names = KNOWN_CONTAINERS.map(c => c.name).join(' ');
     const { stdout } = await execAsync(`docker restart ${names} 2>&1`);
+    auditPrivilegedAction(req, 'containers.restart-all', {
+      outcome: 'success',
+      targets: KNOWN_CONTAINERS.map(c => c.name),
+    });
     res.json({ success: true, output: stdout.trim() });
   } catch (error) {
+    auditPrivilegedAction(req, 'containers.restart-all', {
+      outcome: 'error',
+      error: error.message,
+    });
     res.status(500).json({ error: error.message });
   }
 });
@@ -510,8 +586,17 @@ app.post('/api/compose/:action', requireAuth, async (req, res) => {
       ? `cd ${composeDir} && docker compose up -d 2>&1`
       : `cd ${composeDir} && docker compose ${action} 2>&1`;
     const { stdout } = await execAsync(cmd);
+    auditPrivilegedAction(req, `compose.${action}`, {
+      outcome: 'success',
+      composeDir,
+    });
     res.json({ success: true, output: stdout.trim() });
   } catch (error) {
+    auditPrivilegedAction(req, `compose.${action}`, {
+      outcome: 'error',
+      composeDir,
+      error: error.message,
+    });
     res.status(500).json({ error: error.message });
   }
 });
@@ -560,4 +645,4 @@ if (isMainModule) {
   });
 }
 
-export { app, server, sanitizeContainer, normalizeIpAddress };
+export { app, server, sanitizeContainer, normalizeIpAddress, getPrivilegedActor, auditPrivilegedAction };

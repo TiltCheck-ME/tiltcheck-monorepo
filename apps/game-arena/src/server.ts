@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-13 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-17 */
 // v0.1.0 — 2026-02-25
 /**
  * © 2024–2026 TiltCheck Ecosystem. All Rights Reserved.
@@ -147,7 +147,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, '../public')));
 
-app.post('/admin/trivia/start', async (req, res) => {
+app.post('/admin/trivia/start', requireAuth, requireAdmin, async (req, res) => {
   try {
     const { category, theme, rounds } = req.body;
     await triviaManager.scheduleGame({
@@ -163,7 +163,7 @@ app.post('/admin/trivia/start', async (req, res) => {
   }
 });
 
-app.post('/admin/trivia/reset', (req, res) => {
+app.post('/admin/trivia/reset', requireAuth, requireAdmin, (req, res) => {
   triviaManager.endGame();
   res.json({ success: true, message: 'Trivia manager reset.' });
 });

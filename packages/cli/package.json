@@ -1,4 +1,5 @@
 {
+  "_comment": "© 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-08",
   "name": "@tiltcheck/cli",
   "version": "0.1.0",
   "description": "TiltCheck CLI",
@@ -9,7 +10,7 @@
   "scripts": {
     "build": "tsc",
     "dev": "tsc --watch",
-    "clean": "rm -rf dist",
+    "clean": "node -e \"require('node:fs').rmSync('dist', { recursive: true, force: true })\"",
     "checklists": "node dist/index.js checklists"
   },
   "dependencies": {

@@ -1,3 +1,4 @@
+<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-17 -->
 # MVP Deploy Cheat Sheet (VPS-Free)
 
 ```bash
@@ -30,7 +31,7 @@ docker compose -f docker-compose.mvp.yml up -d --build
 - Vault timeline shows created/extended/auto-unlocked events.
 - Discord `/vault status` and `/vault unlock` respond correctly.
 - Web home/getting-started/extension pages load and reflect MVP.
-- Beta pages load: `/beta.html`, `/tools/justthetip.html`, `/tools/suslink.html`, `/tools/collectclock.html`, `/tools/tiltcheck-core.html`.
+- Beta pages load: `/beta-tester`, `/tools/justthetip`, `/tools/domain-verifier`, `/tools/collectclock`, `/tools/verify`.
 
 ## Emergency Rollback
 

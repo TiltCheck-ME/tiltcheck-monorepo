@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-07-16
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-17
 /**
  * @tiltcheck/api - CollectClock Bonuses Proxy Routes
  *
@@ -7,6 +7,7 @@
  */
 
 import { Router, Request, Response } from 'express';
+import { getActiveEmailBonusEntries, readEmailBonusFeed } from '../lib/email-bonus-feed.js';
 
 const router = Router();
 
@@ -65,6 +66,38 @@ router.get('/', async (_req: Request, res: Response): Promise<void> => {
     res.status(502).json({
       error: 'UPSTREAM_FETCH_ERROR',
       message: 'Could not retrieve bonus data from CollectClock.',
+    });
+  }
+});
+
+// ---------------------------------------------------------------------------
+// GET /bonuses/inbox
+// Returns the persisted inbox bonus feed for the web bonus hub.
+// ---------------------------------------------------------------------------
+router.get('/inbox', (_req: Request, res: Response): void => {
+  try {
+    const feed = readEmailBonusFeed();
+    const activeBonuses = getActiveEmailBonusEntries();
+
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.json({
+      source: 'email-inbox',
+      available: activeBonuses.length > 0,
+      updatedAt: feed.updatedAt,
+      total: activeBonuses.length,
+      data: activeBonuses,
+      message: activeBonuses.length === 0
+        ? 'Inbox bonus feed is empty or no active email bonuses are available.'
+        : undefined,
+    });
+  } catch (error) {
+    console.error('[Bonuses] Failed to load inbox bonus feed:', error);
+    res.status(500).json({
+      source: 'email-inbox',
+      available: false,
+      total: 0,
+      data: [],
+      error: 'INBOX_FEED_LOAD_FAILED',
     });
   }
 });

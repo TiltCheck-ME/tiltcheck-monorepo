@@ -16,7 +16,7 @@
         "cloud:schedule": "powershell -ExecutionPolicy Bypass -File ./register-cloud-watcher-task.ps1",
         "railway:seed-session": "node create-session.js && node -e \"import('./create-session.js').then(()=>{const s=require('fs').readFileSync('.session.json','utf8');console.log('DISCORD_SESSION_JSON='+Buffer.from(s).toString('base64'))})\"",
         "session:create": "node create-session.js",
-        "token:get": "node --input-type=module -e \"import {readFileSync} from 'fs'; try { const s=JSON.parse(readFileSync('.session.json','utf8')); const o=s.origins?.find(o=>o.origin.includes('discord.com')); const t=o?.localStorage?.find(l=>l.name==='token'); if(t) { console.log('\\nYour DISCORD_TOKEN (paste this into Railway):\\n'); console.log(JSON.parse(t.value)); } else { console.log('No token found in .session.json. Run npm run session:create first.'); } } catch(e) { console.log('No .session.json found. Run npm run session:create first.'); }\"",
+        "token:get": "node --input-type=module -e \"console.log('Raw Discord token export has been removed. Use npm run railway:seed-session to generate DISCORD_SESSION_JSON from a sanitized session file.');\"",
         "history": "node index.js --full",
         "analyze": "node analyze-log.js",
         "analyze:lore": "node analyze-log.js --lore",

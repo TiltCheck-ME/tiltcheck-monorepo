@@ -1,5 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-09
-/* Copyright (c) 2026 TiltCheck. All rights reserved. */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-17 */
 /**
  * RGaaS Routes - /rgaas/*
  * Responsible Gaming as a Service.
@@ -9,28 +8,33 @@
 import { Router } from 'express';
 import { appendFileSync, existsSync, mkdirSync, readFileSync } from 'node:fs';
 import path from 'node:path';
-import { createRequire } from 'node:module';
 import {
   createEvent,
   type BreathalyzerEvaluatedPayload,
   type SentimentFlaggedPayload,
 } from '@tiltcheck/event-types';
-import { evaluateBreathalyzer, evaluateSentiment, evaluateSentimentV2 } from '../lib/safety.js';
+import { evaluateBreathalyzer, evaluateSentimentV2 } from '../lib/safety.js';
 import { trustEngines } from '@tiltcheck/trust-engines';
 import { eventRouter } from '@tiltcheck/event-router';
 import { suslink } from '@tiltcheck/suslink';
 import { getUserTiltStatus, evaluateRtpLegalTrigger } from '@tiltcheck/tiltcheck-core';
 import { webhookService } from '../lib/webhooks.js';
 import { authMiddleware, AuthRequest } from '../middleware/auth.js';
-import type { RtpReportSubmittedEvent, GameCategory } from '@tiltcheck/types';
+import type { CasinoTrustRecord, GameCategory, RtpReportSubmittedEvent, TrustEvent } from '@tiltcheck/types';
 import { isGameBlocked } from '../services/exclusion-cache.js';
 import { findUserByDiscordId } from '@tiltcheck/db';
 import { ValidationError } from '@tiltcheck/error-factory';
+import { loadDomainBlacklist } from '../lib/live-feed-data.js';
+import {
+  getActiveEmailBonusEntries,
+  getEmailBonusFeedPath,
+  markEmailBonusEntriesPublished,
+  persistEmailBonusIntel,
+} from '../lib/email-bonus-feed.js';
 
 const router: Router = Router();
 
 // ─── License registry ─────────────────────────────────────────────────────────
-const _require = createRequire(import.meta.url);
 const licenseRegistry: {
   regulators: Record<string, { name: string; url: string | null; region: string; tier: number; verifyUrl: string | null; note?: string }>;
   operators: Array<{ brand: string; domains: string[]; regulator: string; licenseId: string | null; type: string; active: boolean }>;
@@ -43,22 +47,20 @@ const licenseRegistry: {
   }
 })();
 
-// ─── Local interface for trust-engine breakdown shadow-ban data ───────────────
-// getCasinoBreakdown() returns an opaque object; this interface narrows the
-// withdrawal-delay field shape that the shadow-bans route inspects.
-interface WithdrawalDelayFlag {
-  severity: 'high' | 'medium' | 'low';
-  description: string;
-  detectedAt: string;
-}
-
-interface CasinoBreakdownWithFlags {
-  withdrawalDelayFlags?: Array<WithdrawalDelayFlag>;
-}
-
-// Casinos surfaced in the shadow-bans feed. Derived from the trust engine's
-// known tracked platforms; update in lock-step with trust-engines config.
+const SHADOW_BAN_SIGNAL_WINDOW_MS = 45 * 24 * 60 * 60 * 1000;
 const TRACKED_CASINO_KEYS = ['stake', 'rollbit', 'roobet', 'bc.game', 'shuffle', 'gamdom'] as const;
+const SHADOW_BAN_SUPPORTED_SIGNALS = [
+  'Withdrawal and payout trust-engine events',
+  'Terms-of-service volatility events',
+] as const;
+const SHADOW_BAN_UNAVAILABLE_SIGNALS = [
+  'Account restriction reports',
+  'Discord-only community reports',
+] as const;
+
+function getTrustSignalsLogPath(): string {
+  return process.env.TRUST_SIGNALS_LOG_PATH?.trim() || path.join(process.cwd(), 'data', 'trust-signals.jsonl');
+}
 
 /**
  * POST /rgaas/breathalyzer/evaluate
@@ -602,63 +604,79 @@ router.get('/domain-check', async (req, res) => {
 
 /**
  * GET /rgaas/shadow-bans
- * Returns community-reported and trust-engine-detected casino shadow-ban flags:
- * withdrawal delays, silent ToS changes, and account restrictions.
- *
- * The response shape matches the CasinoFlag interface expected by the
- * scan-scams page. When trust-engine data is unavailable the response
- * still returns an empty flags array (never 404) so the client gracefully
- * falls back to its built-in placeholders.
+ * Returns the live subset of shadow-ban intel that the backend actually
+ * supports today. This feed is intentionally narrow: trust-engine payout
+ * events and ToS volatility events only.
  */
 router.get('/shadow-bans', (_req, res) => {
-  // Pull withdrawal-delay and account-restriction signals from the trust engine.
-  // getCasinoBreakdownAll() is not yet implemented on trust-engines; we read
-  // the in-memory casino scores and surface those tagged with shadow-ban signals.
-  // When the trust-rollup emits casino snapshots with flag arrays this will
-  // populate automatically; until then we return a structured empty response.
-  const flags: Array<{ name: string; flag: string; severity: 'high' | 'medium' | 'low'; detectedAt: string }> = [];
+  try {
+    const flags = buildShadowBanFlags();
 
-  // Surface any casinos the trust engine has scored with known shadow-ban signals
-  const knownCasinos = TRACKED_CASINO_KEYS;
-  for (const casinoKey of knownCasinos) {
-    const breakdown = trustEngines.getCasinoBreakdown(casinoKey) as CasinoBreakdownWithFlags | null;
-    if (breakdown?.withdrawalDelayFlags?.length) {
-      for (const f of breakdown.withdrawalDelayFlags) {
-        flags.push({ name: casinoKey, flag: f.description, severity: f.severity, detectedAt: f.detectedAt });
-      }
-    }
+    res.json({
+      success: true,
+      live: true,
+      availability: 'available',
+      coverage: 'partial',
+      supportedSignals: SHADOW_BAN_SUPPORTED_SIGNALS,
+      unavailableSignals: SHADOW_BAN_UNAVAILABLE_SIGNALS,
+      windowDays: SHADOW_BAN_SIGNAL_WINDOW_MS / (24 * 60 * 60 * 1000),
+      flags,
+      message: flags.length > 0
+        ? 'Live trust-engine payout and ToS volatility events only. Unsupported signal classes stay blank.'
+        : 'No live payout or ToS volatility events in the current trust-engine window. This feed does not cover account restrictions or Discord-only reports.',
+    });
+  } catch (error) {
+    console.error('[RGaaS] Shadow-ban feed unavailable:', error);
+    res.json({
+      success: true,
+      live: false,
+      availability: 'unavailable',
+      coverage: 'partial',
+      supportedSignals: SHADOW_BAN_SUPPORTED_SIGNALS,
+      unavailableSignals: SHADOW_BAN_UNAVAILABLE_SIGNALS,
+      flags: [],
+      message: 'Shadow-ban feed unavailable. Only payout and ToS volatility events are supported when trust-engine history is readable.',
+    });
   }
-
-  res.json({
-    success: true,
-    flags,
-    dataNote: flags.length === 0
-      ? 'No live trust-engine flags at this time. Community reports are surfaced via Discord.'
-      : undefined,
-  });
 });
 
 /**
  * GET /rgaas/scam-domains
- * Returns the current SusLink scam domain registry.
- * Feeds the /intel/scams page with confirmed and investigating phishing/drainer entries.
+ * Returns the repository-backed scam domain blacklist. If the blacklist source
+ * cannot be loaded, the API says so directly instead of pretending an empty
+ * list is a live feed.
  */
-router.get('/scam-domains', (_req, res) => {
-  // The SusLink module maintains an internal blacklist of confirmed scam domains.
-  // We expose that list here along with the scan result for each entry.
-  // This is a read-only view of the known-bad domain set; new entries are added
-  // via community reports processed through the /rgaas/scan endpoint.
-  const scams: Array<{ domain: string; type: string; reportedAt: string; status: 'confirmed' | 'investigating' | 'cleared' }> = [];
+router.get('/scam-domains', async (_req, res) => {
+  try {
+    const blacklist = await loadDomainBlacklist();
 
-  // Return whatever the SusLink module's internal blacklist contains.
-  // When the blacklist is empty the page falls back to its hardcoded placeholder list.
-  res.json({
-    success: true,
-    scams,
-    dataNote: scams.length === 0
-      ? 'Live scam registry is community-sourced. Report domains via Discord or the /rgaas/scan endpoint.'
-      : undefined,
-  });
+    res.json({
+      success: true,
+      live: blacklist.availability === 'available',
+      availability: blacklist.availability,
+      source: blacklist.source,
+      scams: blacklist.domains.map((domain) => ({
+        domain,
+        source: 'domain_blacklist',
+        classification: 'repository blacklist match',
+      })),
+      message: blacklist.availability === 'available'
+        ? 'Repository blacklist loaded.'
+        : blacklist.availability === 'empty'
+          ? 'Repository blacklist loaded but currently contains zero domains.'
+          : 'Repository blacklist unavailable.',
+    });
+  } catch (error) {
+    console.error('[RGaaS] Scam domain blacklist unavailable:', error);
+    res.json({
+      success: true,
+      live: false,
+      availability: 'unavailable',
+      source: null,
+      scams: [],
+      message: 'Repository blacklist unavailable.',
+    });
+  }
 });
 
 /**
@@ -801,10 +819,11 @@ router.post('/email-ingest', async (req, res) => {
       source: 'email-ingest',
     };
     try {
-      const dataDir = path.join(process.cwd(), 'data');
+      const trustSignalsPath = getTrustSignalsLogPath();
+      const dataDir = path.dirname(trustSignalsPath);
       if (!existsSync(dataDir)) mkdirSync(dataDir, { recursive: true });
       appendFileSync(
-        path.join(dataDir, 'trust-signals.jsonl'),
+        trustSignalsPath,
         JSON.stringify(trustSignalEntry) + '\n',
         'utf8'
       );
@@ -814,14 +833,70 @@ router.post('/email-ingest', async (req, res) => {
     }
   }
 
+  const persistedBonuses = persistEmailBonusIntel(rawEmail, intel, new Date());
+  const publishedBonusEvents: string[] = [];
+  for (const bonus of persistedBonuses.toPublish) {
+    try {
+      await eventRouter.publish(
+        'bonus.discovered',
+        'rgaas-api',
+        {
+          casino_name: bonus.brand,
+          bonus_type: bonus.bonusType,
+          value: bonus.bonusValue,
+          terms: bonus.terms,
+          expiry_message: bonus.expiryMessage,
+          is_expired: bonus.isExpired,
+          bonus_url: bonus.url,
+          code: bonus.code,
+          source: bonus.source,
+        },
+        undefined,
+        {
+          discoveredVia: 'email-ingest',
+          senderDomain: bonus.senderDomain ?? undefined,
+        }
+      );
+      publishedBonusEvents.push(bonus.id);
+    } catch (error) {
+      console.warn('[email-ingest] Could not publish bonus.discovered event', error);
+    }
+  }
+
+  if (publishedBonusEvents.length > 0) {
+    markEmailBonusEntriesPublished(publishedBonusEvents);
+  }
+
   res.json({
     success: true,
     intel,
+    bonusFeed: {
+      file: getEmailBonusFeedPath(),
+      detected: persistedBonuses.entries.length,
+      added: persistedBonuses.added.length,
+      updated: persistedBonuses.updated.length,
+      publishedEvents: publishedBonusEvents.length,
+    },
     domainScan: domainScan
       ? { riskLevel: domainScan.riskLevel, reason: domainScan.reason }
       : null,
     licenseInfo,
     linkScans,
+  });
+});
+
+/**
+ * GET /rgaas/bonus-feed
+ * Returns the active inbox bonus feed for the web bonus hub.
+ */
+router.get('/bonus-feed', (_req, res) => {
+  const bonuses = getActiveEmailBonusEntries();
+  res.json({
+    success: true,
+    bonuses,
+    source: 'email-inbox',
+    file: getEmailBonusFeedPath(),
+    updatedAt: bonuses[0]?.updatedAt ?? null,
   });
 });
 
@@ -905,4 +980,78 @@ router.get('/casino-scores', async (_req, res) => {
 
 function isFiniteNumber(value: unknown): boolean {
   return typeof value === 'number' && Number.isFinite(value);
+}
+
+function buildShadowBanFlags(): Array<{
+  name: string;
+  flag: string;
+  severity: 'high' | 'medium' | 'low';
+  detectedAt: string;
+  source: 'trust_engine_history';
+}> {
+  const activeSince = Date.now() - SHADOW_BAN_SIGNAL_WINDOW_MS;
+  const casinoKeys = getShadowBanCasinoKeys();
+  const flags: Array<{
+    name: string;
+    flag: string;
+    severity: 'high' | 'medium' | 'low';
+    detectedAt: string;
+    source: 'trust_engine_history';
+  }> = [];
+
+  for (const casinoKey of casinoKeys) {
+    const breakdown = trustEngines.getCasinoBreakdown(casinoKey) as CasinoTrustRecord | null;
+    const history = Array.isArray(breakdown?.history) ? breakdown.history : [];
+
+    for (const event of history) {
+      if (!isShadowBanFeedEvent(event, activeSince)) {
+        continue;
+      }
+
+      flags.push({
+        name: casinoKey,
+        flag: event.reason,
+        severity: shadowBanSeverityForEvent(event),
+        detectedAt: new Date(event.timestamp).toISOString(),
+        source: 'trust_engine_history',
+      });
+    }
+  }
+
+  return flags.sort((left, right) => Date.parse(right.detectedAt) - Date.parse(left.detectedAt));
+}
+
+function getShadowBanCasinoKeys(): string[] {
+  const getCasinoScores = (trustEngines as typeof trustEngines & {
+    getCasinoScores?: () => Record<string, CasinoTrustRecord>;
+  }).getCasinoScores;
+
+  if (typeof getCasinoScores === 'function') {
+    const scores = getCasinoScores.call(trustEngines);
+    const keys = Object.keys(scores || {});
+    if (keys.length > 0) {
+      return keys;
+    }
+  }
+
+  return [...TRACKED_CASINO_KEYS];
+}
+
+function isShadowBanFeedEvent(event: TrustEvent, activeSince: number): boolean {
+  if (!Number.isFinite(event.timestamp) || event.timestamp < activeSince || event.delta >= 0) {
+    return false;
+  }
+
+  const reason = event.reason.toLowerCase();
+  const isPayoutEvent = event.category === 'financial' && /(withdrawal|payout)/.test(reason);
+  const isTosEvent = event.category === 'fairness' && /(terms of service|silent update|bonus terms|bonus nerf|volatility)/.test(reason);
+
+  return isPayoutEvent || isTosEvent;
+}
+
+function shadowBanSeverityForEvent(event: TrustEvent): 'high' | 'medium' | 'low' {
+  const magnitude = Math.max(Math.abs(event.delta), (event.severity || 0) * 5);
+  if (magnitude >= 20) return 'high';
+  if (magnitude >= 10) return 'medium';
+  return 'low';
 }
