@@ -1,4 +1,4 @@
-// © 2024-2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-04
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-18
 
 /// <reference types="vite/client" />
 
@@ -13,7 +13,7 @@ import { LeaderboardView } from './views/LeaderboardView.js';
 import { TipView } from './views/TipView.js';
 
 const DISCORD_CLIENT_ID = import.meta.env.VITE_DISCORD_CLIENT_ID || '1445916179163250860';
-const HUB_URL = import.meta.env.VITE_HUB_URL || 'https://hub.tiltcheck.me';
+const HUB_URL = import.meta.env.VITE_HUB_URL || 'https://arena.tiltcheck.me';
 const DASHBOARD_URL = import.meta.env.VITE_DASHBOARD_URL || 'https://hub.tiltcheck.me';
 
 async function main(): Promise<void> {
@@ -31,7 +31,7 @@ async function main(): Promise<void> {
   // 2. Discord SDK
   // --------------------------------------------------------
   const bridge = new DiscordBridge(DISCORD_CLIENT_ID);
-  let discordState;
+  let discordState = bridge.getState();
   try {
     discordState = await bridge.initialize();
     state.setIdentity(discordState.userId, discordState.username);
@@ -44,6 +44,7 @@ async function main(): Promise<void> {
     // Fall back to demo mode — allow browsing without SDK
     state.setIdentity('demo', 'DEMO DEGEN');
   }
+  document.body.dataset.orientation = state.orientation;
 
   // --------------------------------------------------------
   // 3. Hub relay
@@ -51,7 +52,8 @@ async function main(): Promise<void> {
   const relay = new HubRelay({
     url: HUB_URL,
     userId: state.userId,
-    channelId: discordState?.channelId ?? 'demo-channel'
+    channelId: discordState?.channelId ?? 'demo-channel',
+    accessToken: bridge.getAccessToken(),
   });
   relay.connect();
 

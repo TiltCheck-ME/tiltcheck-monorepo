@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-17 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-18 */
 import { SIDEBAR_WIDTH, MINIMIZED_WIDTH } from './constants.js';
 
 export const getSidebarStyles = () => `
@@ -450,7 +450,6 @@ export const getSidebarStyles = () => `
       text-align: center;
       font-size: 10px;
       letter-spacing: 0.08em;
-      text-transform: uppercase;
       color: var(--tg-muted);
       opacity: 0.75;
     }
@@ -764,6 +763,12 @@ export const getSidebarStyles = () => `
       transition: opacity 0.15s;
     }
     .tg-bonus-claim:hover { opacity: 0.75; text-decoration: underline; }
+    .tg-bonus-claim-blocked {
+      color: var(--tg-warning);
+      cursor: default;
+      text-decoration: none;
+      opacity: 0.75;
+    }
     .tg-bonus-empty {
       font-size: 11px;
       color: var(--tg-muted);

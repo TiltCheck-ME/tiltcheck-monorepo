@@ -1,4 +1,4 @@
-/* Copyright (c) 2026 TiltCheck. All rights reserved. */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-18 */
 /**
  * TiltCheck - Real-time tilt detection and intervention system
  * 
@@ -26,7 +26,7 @@ export interface BehaviorEvent {
 export interface BetEvent {
   amount: number;
   timestamp: number;
-  result: 'win' | 'loss';
+  result: 'win' | 'loss' | 'push';
   payout: number;
 }
 
@@ -75,8 +75,8 @@ export class TiltDetector {
   private consecutiveLosses: number = 0;
   private totalWagered: number = 0;
   private totalWon: number = 0;
-  private currentBalance: number = 0;
-  private initialBalance: number = 0;
+  private currentBalance: number | null = null;
+  private initialBalance: number | null = null;
   private redeemThreshold: number | null = null;
 
   // Configuration
@@ -116,11 +116,27 @@ export class TiltDetector {
     ]
   };
 
-  constructor(initialBalance: number, riskLevel: 'conservative' | 'moderate' | 'degen' = 'moderate', redeemThreshold?: number) {
+  constructor(initialBalance: number | null, riskLevel: 'conservative' | 'moderate' | 'degen' = 'moderate', redeemThreshold?: number) {
     this.currentBalance = initialBalance;
     this.initialBalance = initialBalance;
     this.redeemThreshold = redeemThreshold || null;
     this.applyRiskProfile(riskLevel);
+  }
+
+  private classifyBetResult(bet: number, payout: number): BetEvent['result'] {
+    if (bet <= 0) {
+      return payout > 0 ? 'win' : 'push';
+    }
+
+    if (payout <= 0 || payout < bet) {
+      return 'loss';
+    }
+
+    if (payout === bet) {
+      return 'push';
+    }
+
+    return 'win';
   }
 
   /**
@@ -148,7 +164,7 @@ export class TiltDetector {
    */
   recordBet(bet: number, payout: number): void {
     const now = Date.now();
-    const result = payout > 0 ? 'win' : 'loss';
+    const result = this.classifyBetResult(bet, payout);
 
     this.bets.push({
       amount: bet,
@@ -159,7 +175,9 @@ export class TiltDetector {
 
     this.totalWagered += bet;
     this.totalWon += payout;
-    this.currentBalance = this.currentBalance - bet + payout;
+    if (this.currentBalance !== null) {
+      this.currentBalance = this.currentBalance - bet + payout;
+    }
 
     if (result === 'loss') {
       this.consecutiveLosses++;
@@ -168,8 +186,9 @@ export class TiltDetector {
     }
 
     // Update baseline (average of first 10 bets)
-    if (this.bets.length <= 10) {
-      this.baselineAvgBet = this.bets.reduce((sum, b) => sum + b.amount, 0) / this.bets.length;
+    const baselineBets = this.bets.filter((entry) => entry.amount > 0).slice(0, 10);
+    if (baselineBets.length > 0) {
+      this.baselineAvgBet = baselineBets.reduce((sum, entry) => sum + entry.amount, 0) / baselineBets.length;
     }
   }
 
@@ -303,9 +322,10 @@ export class TiltDetector {
    * Detect bet escalation (beyond baseline)
    */
   detectBetEscalation(): TiltIndicator | null {
-    if (this.bets.length < 10) return null; // Need baseline first
+    if (this.bets.filter((entry) => entry.amount > 0).length < 10 || this.baselineAvgBet <= 0) return null; // Need baseline first
 
     const recentBet = this.bets[this.bets.length - 1];
+    if (recentBet.amount <= 0) return null;
     const escalationFactor = recentBet.amount / this.baselineAvgBet;
 
     if (escalationFactor > 5) {
@@ -392,6 +412,10 @@ export class TiltDetector {
    * Generate vault recommendation
    */
   generateVaultRecommendation(): VaultRecommendation | null {
+    if (this.currentBalance === null || this.initialBalance === null || this.initialBalance <= 0) {
+      return null;
+    }
+
     const profit = this.currentBalance - this.initialBalance;
     const profitMultiple = this.currentBalance / this.initialBalance;
 
@@ -429,7 +453,7 @@ export class TiltDetector {
    * Detect opportunity to redeem/cash out (Redeem-to-Win)
    */
   detectRedeemOpportunity(): RedeemRecommendation | null {
-    if (!this.redeemThreshold || this.currentBalance < this.redeemThreshold) return null;
+    if (!this.redeemThreshold || this.currentBalance === null || this.currentBalance < this.redeemThreshold) return null;
 
     const diff = this.currentBalance - this.redeemThreshold;
     const overshootPercent = (diff / this.redeemThreshold) * 100;
@@ -593,8 +617,14 @@ export class TiltDetector {
    */
   getSessionSummary() {
     const duration = Date.now() - this.sessionStartTime;
-    const netProfit = this.currentBalance - this.initialBalance;
-    const roi = (netProfit / this.initialBalance) * 100;
+    const netProfit =
+      this.currentBalance !== null && this.initialBalance !== null
+        ? this.currentBalance - this.initialBalance
+        : null;
+    const roi =
+      netProfit !== null && this.initialBalance !== null && this.initialBalance > 0
+        ? (netProfit / this.initialBalance) * 100
+        : null;
 
     return {
       duration: duration, // ms

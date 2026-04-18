@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-17 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-18 */
 import { SIDEBAR_TEMPLATE } from './template.js';
 import { getSidebarStyles } from './styles.js';
 import { AuthManager } from './auth.js';
@@ -12,6 +12,9 @@ import { OnboardingManager } from './onboarding.js';
 import { BonusManager } from './bonuses.js';
 import { MINIMIZED_WIDTH, SIDEBAR_PREFS_KEY, SIDEBAR_VISIBILITY_KEY, SIDEBAR_WIDTH } from './constants.js';
 import { SidebarUI } from './types.js';
+import { buildLicensePresentation } from '../license-verifier.js';
+import { EXT_CONFIG } from '../config.js';
+import type { CasinoVerification } from '../license-verifier.js';
 
 const SITE_REDEEM_THRESHOLDS_KEY = 'tiltcheck_site_thresholds';
 const SIDEBAR_RESERVED_CLASS = 'tiltcheck-sidebar-reserved';
@@ -80,9 +83,23 @@ export class SidebarController implements SidebarUI {
     document.getElementById('tg-hide')?.addEventListener('click', () => {
       this.setSidebarVisibility(false);
     });
+    document.getElementById('tg-settings')?.addEventListener('click', () => {
+      this.togglePanelVisibility('tg-settings-panel');
+    });
+    document.getElementById('close-settings')?.addEventListener('click', () => {
+      this.setPanelVisibility('tg-settings-panel', false);
+    });
     document.getElementById('tg-discord-login')?.addEventListener('click', () => this.auth.startDiscordLoginFlow());
+    document.getElementById('tg-connect-discord-inline')?.addEventListener('click', () => this.auth.startDiscordLoginFlow());
     document.getElementById('tg-guest-login')?.addEventListener('click', () => this.auth.continueAsGuest());
     document.getElementById('tg-logout')?.addEventListener('click', () => this.auth.logout());
+    document.getElementById('tg-open-dashboard')?.addEventListener('click', () => this.openDashboard());
+    document.getElementById('tg-open-report')?.addEventListener('click', () => {
+      this.setPanelVisibility('tg-report-panel', true);
+    });
+    document.getElementById('close-report')?.addEventListener('click', () => {
+      this.setPanelVisibility('tg-report-panel', false);
+    });
     
     document.getElementById('submit-report')?.addEventListener('click', () => {
         const typeEl = document.getElementById('report-type') as HTMLSelectElement | null;
@@ -114,13 +131,11 @@ export class SidebarController implements SidebarUI {
 
     // Predictor
     document.getElementById('tg-open-predictor')?.addEventListener('click', () => {
-        const panel = document.getElementById('tg-predictor-panel');
-        if (panel) panel.style.display = 'block';
+        this.setPanelVisibility('tg-predictor-panel', true);
         this.predictor.init();
     });
     document.getElementById('close-predictor')?.addEventListener('click', () => {
-        const panel = document.getElementById('tg-predictor-panel');
-        if (panel) panel.style.display = 'none';
+        this.setPanelVisibility('tg-predictor-panel', false);
         this.predictor.destroy();
     });
 
@@ -160,6 +175,22 @@ export class SidebarController implements SidebarUI {
         if (avPctVal) avPctVal.textContent = `${val}%`;
         this.vault.setAutoVaultPct(val);
     });
+  }
+
+  private setPanelVisibility(panelId: string, visible: boolean): void {
+    const panel = document.getElementById(panelId);
+    if (panel) {
+      panel.style.display = visible ? 'block' : 'none';
+    }
+  }
+
+  private togglePanelVisibility(panelId: string): void {
+    const panel = document.getElementById(panelId);
+    if (!panel) {
+      return;
+    }
+
+    this.setPanelVisibility(panelId, panel.style.display === 'none');
   }
 
   private getSidebarElement(): HTMLElement | null {
@@ -259,7 +290,7 @@ export class SidebarController implements SidebarUI {
     }
 
     if (!show) {
-      const advancedPanels = ['tg-settings-panel', 'tg-config-panel', 'tg-verifier-panel', 'tg-report-panel'];
+      const advancedPanels = ['tg-settings-panel', 'tg-report-panel'];
       advancedPanels.forEach((panelId) => {
         const panel = document.getElementById(panelId);
         if (panel) {
@@ -396,23 +427,44 @@ export class SidebarController implements SidebarUI {
   public syncAccountUi() {
     const accountText = document.getElementById('tg-account-text');
     const usernameEl = document.getElementById('tg-username');
+    const connectBtn = document.getElementById('tg-connect-discord-inline') as HTMLButtonElement | null;
     
     if (this.auth.isConnecting) {
-      if (accountText) accountText.textContent = '📞 Syncing...';
+      if (accountText) accountText.textContent = 'Syncing...';
+      if (connectBtn) {
+        connectBtn.hidden = false;
+        connectBtn.disabled = true;
+        connectBtn.textContent = 'Connecting...';
+      }
       return;
     }
 
     if (this.auth.demoMode || !this.auth.authToken) {
       if (accountText) accountText.textContent = 'Standard Mode.';
       if (usernameEl) usernameEl.textContent = 'Guest';
+      if (connectBtn) {
+        connectBtn.hidden = false;
+        connectBtn.disabled = false;
+        connectBtn.textContent = 'Connect Discord';
+      }
       this.blockchain.setWallet(null);
     } else {
       if (accountText) accountText.textContent = `Connected as ${this.auth.userData?.username}`;
       if (usernameEl) usernameEl.textContent = this.auth.userData?.username;
+      if (connectBtn) {
+        connectBtn.hidden = true;
+        connectBtn.disabled = false;
+        connectBtn.textContent = 'Connect Discord';
+      }
       
-      const walletAddr = this.auth.userData?.wallet_address || null;
+      const walletAddr = this.auth.userData?.walletAddress || null;
       this.blockchain.setWallet(walletAddr);
     }
+  }
+
+  private openDashboard(): void {
+    chrome.tabs.create({ url: EXT_CONFIG.HUB_URL, active: true });
+    this.addFeedMessage('Opening dashboard.');
   }
 
   public showMainContent() {
@@ -449,7 +501,7 @@ export class SidebarController implements SidebarUI {
     const statusBar = document.getElementById('tg-status-bar');
     if (!statusBar) return;
     statusBar.textContent = message;
-    statusBar.className = `tg-status-bar tg-status-${type}`;
+    statusBar.className = `tg-status-bar ${type}`;
     statusBar.style.display = 'block';
     setTimeout(() => {
         if (statusBar.textContent === message) statusBar.style.display = 'none';
@@ -463,17 +515,13 @@ export class SidebarController implements SidebarUI {
     }
   }
 
-  public updateLicense(data: any) {
+  public updateLicense(data: CasinoVerification | null) {
     const strip = document.getElementById('tg-license-strip');
     if (!strip) return;
-    
-    if (data.isSafe) {
-      strip.textContent = `License: ${data.licenseType || 'Verified'} (${data.jurisdiction})`;
-      strip.className = 'tg-license-strip safe';
-    } else {
-      strip.textContent = `License: UNVERIFIED / MALICIOUS`;
-      strip.className = 'tg-license-strip danger';
-    }
+
+    const presentation = buildLicensePresentation(data);
+    strip.textContent = presentation.summary;
+    strip.className = `tg-license-strip ${presentation.tone}`;
   }
 
   public updateTilt(score: number, indicators: string[]) {
@@ -538,9 +586,7 @@ export class SidebarController implements SidebarUI {
   }
 
   public async openPremium() {
-    // For now, just open a new tab to the premium page.
-    // In a real scenario, this might open an in-app modal or a more sophisticated flow.
-    chrome.tabs.create({ url: 'https://tiltcheck.com/premium', active: true });
+    chrome.tabs.create({ url: `${EXT_CONFIG.HUB_URL}/premium`, active: true });
     console.log('[SidebarController] Redirecting to premium upgrade page...');
   }
 }

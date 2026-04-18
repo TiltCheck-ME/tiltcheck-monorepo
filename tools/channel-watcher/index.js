@@ -10,12 +10,14 @@
  *   npm run full             — ignore checkpoint, scrape entire history
  */
 
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-18
 import { chromium } from 'playwright';
 import { writeFileSync, readFileSync, appendFileSync, existsSync } from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import dotenv from 'dotenv';
 import chalk from 'chalk';
+import { buildTiltCheckDailyDegenSummary } from './report-summary.js';
 
 dotenv.config();
 
@@ -464,10 +466,15 @@ async function saveAndPrintReport(report, messageCount, fromTimestamp, messages 
     const fromStr = fromTimestamp
         ? `since ${new Date(fromTimestamp).toLocaleString('en-US', { dateStyle: 'short', timeStyle: 'short' })}`
         : 'full history';
+    const summary = buildTiltCheckDailyDegenSummary(messages, {
+        fromTimestamp,
+        toTimestamp: messages[messages.length - 1]?.timestamp || null,
+    });
+    const fullReport = `${summary}\n\n${report}`;
 
     // ── Save the intelligence report ─────────────────────────────────────────
     const header = `\n\n---\n## 📊 Report — ${runAtStr}\n> **Generated:** ${runAtISO}  \n> **Messages analysed:** ${messageCount} (${fromStr})\n\n`;
-    appendFileSync(REPORT_FILE, header + report);
+    appendFileSync(REPORT_FILE, header + fullReport);
 
     // ── Save citations (source messages) ─────────────────────────────────────
     if (messages.length > 0) {
@@ -482,13 +489,13 @@ async function saveAndPrintReport(report, messageCount, fromTimestamp, messages 
     }
 
     await sendReportToDiscord({
-        report,
+        report: fullReport,
         messageCount,
         fromStr,
         runAtISO,
     });
     await sendReportToTrustEngine({
-        report,
+        report: fullReport,
         messageCount,
         fromTimestamp,
         runAtISO,
@@ -499,7 +506,7 @@ async function saveAndPrintReport(report, messageCount, fromTimestamp, messages 
     console.log(chalk.bold.cyan('  📊 TILTCHECK COMMUNITY INTELLIGENCE REPORT'));
     console.log(chalk.bold.cyan(`  ${runAtStr}`));
     console.log(chalk.bold.cyan('═'.repeat(64)));
-    report.split('\n').forEach(line => {
+    fullReport.split('\n').forEach(line => {
         if (/^#{1,3} /.test(line)) console.log(chalk.bold.yellow('\n' + line));
         else if (line.startsWith('- ') || line.startsWith('• ')) console.log(chalk.white('  ' + line));
         else if (line.trim()) console.log(chalk.gray(line));

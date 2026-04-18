@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-16 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-18 */
 @import "tailwindcss";
 
 /* Prevent horizontal overflow on all screen sizes */
@@ -21,9 +21,11 @@ html, body {
 .nav-topbar {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 0.75rem;
   padding: 0.75rem 1.25rem;
   min-height: 56px;
+  box-sizing: border-box;
   background: rgba(10, 12, 16, 0.85);
   border-bottom: 1px solid transparent;
   backdrop-filter: blur(20px);
@@ -49,14 +51,18 @@ html, body {
 .nav-topbar-right {
   display: flex;
   align-items: center;
+  justify-content: flex-end;
   gap: 0.625rem;
-  margin-left: auto;
+  flex: 0 0 auto;
+  max-width: min(52vw, 12rem);
 }
 
 .nav-logo {
   display: flex;
   align-items: center;
+  flex: 1 1 auto;
   gap: 0.5rem;
+  min-width: 0;
   font-weight: 900;
   font-size: 0.8rem;
   letter-spacing: 0.12em;
@@ -88,6 +94,8 @@ html, body {
 
 .nav-logo-text {
   font-family: var(--font-mono);
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .nav-hamburger {
@@ -139,6 +147,8 @@ html, body {
   transform: translateX(100%);
   transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   overflow-y: auto;
+  overflow-x: hidden;
+  box-sizing: border-box;
   display: flex;
   flex-direction: column;
 }
@@ -170,6 +180,47 @@ html, body {
   min-width: 0;
 }
 
+.public-page-frame {
+  width: 100%;
+}
+
+.public-page-frame--readable {
+  position: relative;
+  isolation: isolate;
+}
+
+.public-page-frame--readable > * {
+  position: relative;
+  width: 100%;
+}
+
+.public-page-frame--readable > * > :is(section, article, header, footer, nav, aside, div):not(.hero-surface):not(.section-divider) > [class*="max-w-"] {
+  position: relative;
+  z-index: 0;
+  isolation: isolate;
+}
+
+.public-page-frame--readable > * > :is(section, article, header, footer, nav, aside, div):not(.hero-surface):not(.section-divider) > [class*="max-w-"]::before {
+  content: "";
+  position: absolute;
+  inset: clamp(-0.85rem, -1.2vw, -1.25rem);
+  border: 1px solid rgba(40, 51, 71, 0.85);
+  border-radius: clamp(1rem, 1.8vw, 1.5rem);
+  background:
+    linear-gradient(180deg, rgba(4, 6, 10, 0.92) 0%, rgba(8, 10, 14, 0.84) 100%),
+    radial-gradient(circle at top, rgba(23, 195, 178, 0.08), transparent 55%);
+  box-shadow:
+    0 32px 80px rgba(0, 0, 0, 0.45),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  pointer-events: none;
+  z-index: -1;
+}
+
+.public-page-frame--readable > * > .hero-surface,
+.public-page-frame--readable > * > .section-divider {
+  isolation: initial;
+}
+
 .nav-skip-link {
   position: fixed;
   left: 1rem;
@@ -197,12 +248,14 @@ html, body {
 
 @media (min-width: 768px) {
   .nav-topbar {
+    justify-content: flex-start;
     padding: 0.875rem 2rem;
   }
 
   .nav-collapse { display: none !important; }
   .nav-overlay  { display: none !important; }
   .nav-topbar-right { display: none; }
+  .nav-logo { flex: 0 0 auto; }
 
   .nav-desktop-links {
     display: flex;
@@ -352,8 +405,11 @@ html, body {
   text-overflow: ellipsis;
 }
 
-.nav-auth-full    { padding: 0.4rem 0.5rem; }
-.nav-auth-compact { padding: 0.25rem 0.5rem; }
+.nav-auth-full { padding: 0.4rem 0.5rem; }
+.nav-auth-compact {
+  max-width: min(34vw, 9rem);
+  padding: 0.25rem 0.5rem;
+}
 
 .nav-auth-discord {
   color: #5865f2;
@@ -1719,6 +1775,8 @@ body.degen-background > * {
 .ticker-track {
   overflow: hidden;
   width: 100%;
+  contain: layout paint;
+  isolation: isolate;
 }
 
 .ticker-list {
@@ -1730,6 +1788,8 @@ body.degen-background > * {
   white-space: nowrap;
   animation: ticker-scroll 40s linear infinite;
   width: max-content;
+  min-width: max-content;
+  will-change: transform;
 }
 
 .ticker-item {

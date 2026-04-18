@@ -1,4 +1,4 @@
-/* Copyright (c) 2026 TiltCheck. All rights reserved. */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-18 */
 
 /**
  * Enhanced Content Script - TiltCheck + License Verification
@@ -40,7 +40,7 @@ if (isExcludedDomain) {
 // Only import and run on allowed casino sites
 import { CasinoDataExtractor, AnalyzerClient, SpinEvent } from './extractor.js';
 import { TiltDetector } from './tilt-detector.js';
-import { CasinoLicenseVerifier } from './license-verifier.js';
+import { CasinoLicenseVerifier, getAnalysisBlockMessage } from './license-verifier.js';
 import { initSidebar } from './sidebar/index.js';
 import { SidebarUI } from './sidebar/types.js';
 import { Analyzer } from './analyzer.js';
@@ -49,6 +49,7 @@ import { SolanaProvider } from '@tiltcheck/utils';
 import { FairnessService } from './FairnessService.js';
 import { EXT_CONFIG } from './config.js';
 import { GameBlocker } from './game-blocker.js';
+import type { CasinoVerification } from './license-verifier.js';
 
 // Configuration
 const ANALYZER_WS_URL = 'wss://api.tiltcheck.me/analyzer';
@@ -61,7 +62,7 @@ let client: AnalyzerClient | null = null;
 let sessionId: string | null = null;
 let stopObserving: (() => void) | null = null;
 let isMonitoring = false;
-let casinoVerification: any = null;
+let casinoVerification: CasinoVerification | null = null;
 let analyzer: Analyzer | null = null;
 let solana: SolanaProvider | null = null;
 let bridge: WalletBridge | null = null;
@@ -69,6 +70,9 @@ let fairness: FairnessService | null = null;
 let tiltMonitoringInterval: ReturnType<typeof setInterval> | null = null;
 let sidebar: SidebarUI | null = null;
 let gameBlocker: GameBlocker | null = null;
+let analysisRuntimeReady = false;
+let initializationComplete = false;
+let lastAnalysisBlockMessage: string | null = null;
 const FULL_SIDEBAR_WIDTH = 340;
 const MINIMIZED_SIDEBAR_WIDTH = 40;
 const SIDEBAR_VISIBILITY_KEY = 'tiltcheck_sidebar_visible';
@@ -126,7 +130,55 @@ function refreshLicenseVerification() {
   }
   casinoVerification = licenseVerifier.verifyCasino();
   sidebar?.updateLicense(casinoVerification);
+  if (initializationComplete) {
+    applyAnalysisGate(casinoVerification);
+  }
   return casinoVerification;
+}
+
+function ensureAnalysisRuntime() {
+  if (analysisRuntimeReady) {
+    return;
+  }
+
+  analyzer = new Analyzer();
+  bridge = new WalletBridge();
+  solana = new SolanaProvider();
+  fairness = new FairnessService();
+  setupFairnessListeners();
+  analysisRuntimeReady = true;
+}
+
+function applyAnalysisGate(verification: CasinoVerification) {
+  const blockMessage = getAnalysisBlockMessage(verification);
+  if (!blockMessage) {
+    lastAnalysisBlockMessage = null;
+
+    if (!analysisRuntimeReady) {
+      ensureAnalysisRuntime();
+    }
+
+    if (!isMonitoring) {
+      void startMonitoring().catch((err) => {
+        console.warn('[TiltCheck] Auto-start monitoring failed:', err);
+      });
+    }
+
+    return;
+  }
+
+  if (isMonitoring) {
+    _stopMonitoring();
+  } else {
+    sidebar?.updateRealityCheck(false);
+  }
+
+  const statusType = verification.verdict === 'suspicious' ? 'danger' : 'warning';
+  sidebar?.updateStatus(blockMessage, statusType);
+  if (lastAnalysisBlockMessage !== blockMessage) {
+    sidebar?.addFeedMessage(blockMessage);
+    lastAnalysisBlockMessage = blockMessage;
+  }
 }
 
 function notifySupportIntervention(type: string, data: Record<string, unknown>): boolean {
@@ -381,13 +433,6 @@ function initialize() {
   setTimeout(() => refreshLicenseVerification(), 3000);
   setTimeout(() => refreshLicenseVerification(), 8000);
 
-  // Initialize Fairness Tools
-  analyzer = new Analyzer();
-  bridge = new WalletBridge();
-  solana = new SolanaProvider();
-  fairness = new FairnessService();
-  setupFairnessListeners();
-
   // Setup Visual Picker Listener
   const picker = new VisualPicker();
   window.addEventListener('tg-start-picker', ((e: CustomEvent) => {
@@ -438,10 +483,8 @@ function initialize() {
     }
   }) as EventListener);
 
-  // Sidebar-first mode: start monitoring automatically.
-  void startMonitoring().catch((err) => {
-    console.warn('[TiltCheck] Auto-start monitoring failed:', err);
-  });
+  initializationComplete = true;
+  applyAnalysisGate(initialLicenseStatus);
 
   // Surgical Self-Exclusion: init game blocker after a tick so auth storage is ready.
   setTimeout(() => {
@@ -473,6 +516,14 @@ async function startMonitoring() {
 
   console.log('[TiltCheck] Starting monitoring...');
 
+  const verification = casinoVerification ?? refreshLicenseVerification();
+  const blockMessage = getAnalysisBlockMessage(verification);
+  if (blockMessage) {
+    sidebar?.updateRealityCheck(false);
+    sidebar?.updateStatus(blockMessage, verification?.verdict === 'suspicious' ? 'danger' : 'warning');
+    return;
+  }
+
   // Update UI
   sidebar?.updateRealityCheck(true);
   isMonitoring = true;
@@ -480,7 +531,11 @@ async function startMonitoring() {
   // Get initial balance
   extractor = new CasinoDataExtractor();
   await extractor.initialize();
-  const initialBalance = extractor.extractBalance() || 100; // Default if can't extract
+  const initialBalance = extractor.extractBalance();
+
+  peakBalance = typeof initialBalance === 'number' ? initialBalance : 0;
+  zeroTriggered = false;
+  fumbleStrikes = 0;
 
   console.log('[TiltGuard] Initial balance:', initialBalance);
 
@@ -583,12 +638,19 @@ function _stopMonitoring() {
  * Handle spin event
  */
 function handleSpinEvent(spinData: SpinEvent, session: { sessionId: string, userId: string, casinoId: string, gameId: string }) {
+  if (casinoVerification && !casinoVerification.shouldAnalyze) {
+    return;
+  }
+
   const bet = spinData.bet || 0;
   const payout = spinData.win || 0;
 
   // Record in tilt detector
   if (tiltDetector) {
     tiltDetector.recordBet(bet, payout);
+    if (typeof spinData.balance === 'number') {
+      tiltDetector.updateBalance(spinData.balance);
+    }
 
     // Get session summary for accurate stats
     const sessionSummary = tiltDetector.getSessionSummary();
@@ -678,7 +740,7 @@ let peakBalance = 0;
 let zeroTriggered = false;
 let fumbleStrikes = 0;
 
-function checkBagFumble(balance: number | null, initialBalance: number) {
+function checkBagFumble(balance: number | null, initialBalance: number | null) {
   if (balance === null || initialBalance <= 0) return;
 
   if (balance > peakBalance) {
@@ -1361,6 +1423,10 @@ function setupFairnessListeners() {
  * Verify the fairness of a finished spin
  */
 async function verifySpinFairness(spinData: any, gameId: string) {
+  if (casinoVerification && !casinoVerification.shouldAnalyze) {
+    return;
+  }
+
   if (!fairness || !analyzer) return;
 
   const storedCommitment = sessionStorage.getItem('tiltcheck_pending_commitment');

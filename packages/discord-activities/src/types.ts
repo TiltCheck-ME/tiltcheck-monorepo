@@ -1,5 +1,5 @@
 /**
- * © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-02
+ * © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-18
  * Discord Activities SDK Types
  * Defines the interface contract for embedded Discord Activities (games/apps)
  */
@@ -26,6 +26,7 @@ export interface ActivityLaunchConfig {
   // Optional monetization
   requiredSKUs?: string[];
   consumableSKUs?: string[];
+  verifiedRequiredSKUs?: string[];
   
   // Optional game config
   gameConfig?: Record<string, unknown>;
@@ -47,6 +48,11 @@ export interface ActivityInstance {
   expiresAt: number;
   gameState?: Record<string, unknown>;
   entitlementsVerified?: boolean;
+  requiredSKUs?: string[];
+  consumableSKUs?: string[];
+  verifiedRequiredSKUs?: string[];
+  outcome?: ActivityResultStatus;
+  result?: ActivityResult;
 }
 
 /**
@@ -67,12 +73,15 @@ export interface ActivityResult {
   instanceId: string;
   userId: string;
   activityType: ActivityType;
-  status: 'won' | 'lost' | 'abandoned';
+  status: ActivityResultStatus;
   score?: number;
   prizeAmount?: number;
   entitlementConsumed?: boolean;
+  consumedEntitlementIds?: string[];
   completedAt: number;
 }
+
+export type ActivityResultStatus = 'won' | 'lost' | 'abandoned';
 
 /**
  * Session state persisted for Activity
@@ -88,4 +97,11 @@ export interface ActivitySessionState {
   lastHeartbeat: number;
   expiresAt: number;
   reconnectCount: number;
+  status: ActivityInstance['status'];
+  requiredSKUs?: string[];
+  consumableSKUs?: string[];
+  verifiedRequiredSKUs?: string[];
+  outcome?: ActivityResultStatus;
+  result?: ActivityResult;
+  consumedEntitlementIds?: string[];
 }

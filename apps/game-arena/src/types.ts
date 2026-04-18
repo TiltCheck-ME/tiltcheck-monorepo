@@ -1,4 +1,4 @@
-/* Copyright (c) 2026 TiltCheck. All rights reserved. */
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-18
 /**
  * TypeScript type definitions for Game Arena
  */
@@ -90,8 +90,8 @@ export interface ServerToClientEvents {
   'player-joined': (data: { userId: string; username: string }) => void;
   'player-left': (data: { userId: string }) => void;
   // Trivia specific
-  'trivia-round-start': (data: { question: any; roundNumber: number; totalRounds: number; endsAt: number }) => void;
-  'trivia-round-reveal': (data: { questionId: string; correctChoice: string; explanation?: string; stats: any }) => void;
+  'trivia-round-start': (data: { gameId: string; question: any; roundNumber: number; totalRounds: number; endsAt: number }) => void;
+  'trivia-round-reveal': (data: { gameId: string; questionId: string; correctChoice: string; explanation?: string; stats: any }) => void;
   'trivia-ape-in-result': (data: { questionId: string; distribution: Record<string, number> }) => void;
   'trivia-shield-result': (data: { questionId: string; eliminated: string[] }) => void;
   // Tip events forwarded from discord-bot via event router

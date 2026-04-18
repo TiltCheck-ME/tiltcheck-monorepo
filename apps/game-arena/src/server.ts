@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-17 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-18 */
 // v0.1.0 — 2026-02-25
 /**
  * © 2024–2026 TiltCheck Ecosystem. All Rights Reserved.
@@ -24,6 +24,7 @@ import { GameManager } from './game-manager.js';
 import { statsService } from './stats-service.js';
 import { db } from '@tiltcheck/database';
 import { 
+  getDiscordUser,
   verifySessionCookie, 
   type JWTConfig, 
   type SessionData 
@@ -55,6 +56,8 @@ app.use((req, res, next) => {
   const allowedOrigins = [
     'https://tiltcheck.me',
     'https://api.tiltcheck.me',
+    'https://activity.tiltcheck.me',
+    'https://dev-activity.tiltcheck.me',
     'https://game.tiltcheck.me',
     'https://tiltcheck-game-arena-164294266634.us-central1.run.app',
   ];
@@ -94,6 +97,8 @@ app.use((req, res, next) => {
 const socketIoCorsOrigins = [
   'https://tiltcheck.me',
   'https://api.tiltcheck.me',
+  'https://activity.tiltcheck.me',
+  'https://dev-activity.tiltcheck.me',
   'https://game.tiltcheck.me',
   'https://tiltcheck-game-arena-164294266634.us-central1.run.app',
 ];
@@ -116,6 +121,9 @@ const gameManager = new GameManager({
   stateFilePath: config.game.stateFilePath,
 });
 await gameManager.initialize();
+await triviaManager.initialize({
+  stateFilePath: config.game.triviaStateFilePath,
+});
 
 // Initialize trivia monetization
 const discordToken = process.env.TILT_DISCORD_BOT_TOKEN;
@@ -150,21 +158,25 @@ app.use(express.static(path.join(__dirname, '../public')));
 app.post('/admin/trivia/start', requireAuth, requireAdmin, async (req, res) => {
   try {
     const { category, theme, rounds } = req.body;
-    await triviaManager.scheduleGame({
+    const result = await triviaManager.scheduleGame({
       startTime: Date.now() + 5000, // Start in 5 seconds
       category: category || 'general',
       theme: theme || 'Random Degen Knowledge',
       totalRounds: rounds || 12,
       prizePool: 0
     });
-    res.json({ success: true, message: 'Trivia game scheduled to start in 5s.' });
+    if (!result.success) {
+      res.status(409).json(result);
+      return;
+    }
+    res.json({ success: true, message: 'Trivia game scheduled to start in 5s.', gameId: result.gameId });
   } catch (error: any) {
     res.status(500).json({ success: false, error: error.message });
   }
 });
 
-app.post('/admin/trivia/reset', requireAuth, requireAdmin, (req, res) => {
-  triviaManager.endGame();
+app.post('/admin/trivia/reset', requireAuth, requireAdmin, async (_req, res) => {
+  await triviaManager.endGame();
   res.json({ success: true, message: 'Trivia manager reset.' });
 });
 
@@ -223,10 +235,32 @@ function requireAdmin(req: express.Request, res: express.Response, next: express
 // Socket.IO Auth Middleware
 io.use(async (socket, next) => {
   const cookieHeader = socket.handshake.headers.cookie;
+  const activityAccessToken =
+    typeof socket.handshake.auth?.accessToken === 'string'
+      ? socket.handshake.auth.accessToken.trim()
+      : '';
   try {
     const result = await verifySessionCookie(cookieHeader, jwtConfig);
     if (result.valid && result.session) {
       (socket as any).user = result.session;
+      next();
+      return;
+    }
+
+    if (activityAccessToken) {
+      const activityUser = await getDiscordUser(activityAccessToken);
+      if (activityUser.success && activityUser.user) {
+        (socket as any).user = {
+          userId: activityUser.user.id,
+          type: 'user',
+          discordId: activityUser.user.id,
+          discordUsername: activityUser.user.globalName || activityUser.user.username,
+          roles: [],
+          createdAt: Math.floor(Date.now() / 1000),
+        } satisfies SessionData;
+      } else {
+        console.warn('[Auth] Discord activity token rejected for socket connection');
+      }
     }
     next();
   } catch (err) {
@@ -247,10 +281,15 @@ app.get('/health', (_req, res) => {
 
 async function getLaunchReadiness() {
   const persistence = await gameManager.getPersistenceStatus();
+  const triviaPersistence = await triviaManager.getPersistenceStatus();
   const authReady = Boolean(config.supabase.url && config.supabase.anonKey && jwtSecret);
   const discordBridgeReady = Boolean(discordToken && discordClientId);
   const statsTrackingReady = db.isConnected();
-  const persistenceReady = persistence.stats.persistErrorCount === 0 && persistence.stats.restoreErrorCount === 0;
+  const persistenceReady =
+    persistence.stats.persistErrorCount === 0 &&
+    persistence.stats.restoreErrorCount === 0 &&
+    triviaPersistence.stats.persistErrorCount === 0 &&
+    triviaPersistence.stats.restoreErrorCount === 0;
   const sharedTrustIdentityReady = authReady && statsTrackingReady;
   const promoTrackingReady = discordBridgeReady && statsTrackingReady;
   const crossServerReady = authReady && discordBridgeReady && statsTrackingReady && persistenceReady;
@@ -311,6 +350,7 @@ async function getLaunchReadiness() {
         playerCount: game.playerCount,
       })),
       persistence,
+      triviaPersistence,
       statsTrackingReady,
     },
   };
@@ -487,8 +527,17 @@ app.get('/api/history/:discordId', async (req, res) => {
 // Admin: persistence health/status
 app.get('/api/admin/persistence-status', requireAuth, requireAdmin, async (_req, res) => {
   try {
-    const status = await gameManager.getPersistenceStatus();
-    res.json(status);
+    const [gameStatus, triviaStatus] = await Promise.all([
+      gameManager.getPersistenceStatus(),
+      triviaManager.getPersistenceStatus(),
+    ]);
+    res.json({
+      gameArena: gameStatus,
+      trivia: {
+        ...triviaStatus,
+        audit: triviaManager.getAuditSnapshot(),
+      },
+    });
   } catch (error: any) {
     res.status(500).json({ error: error.message || 'Failed to load persistence status' });
   }
@@ -588,6 +637,21 @@ io.on('connection', (socket) => {
   const user: DiscordUser | null = sessionUser ? mapAuthUserToDiscordUser(sessionUser) : null;
   console.log(user ? `✅ User connected: ${user.username} (${user.id})` : '👀 Anonymous lobby watcher connected');
 
+  const emitLiveTriviaState = (): void => {
+    const liveTriviaState = triviaManager.getLiveState();
+    if (!liveTriviaState) {
+      return;
+    }
+
+    socket.emit('game-update', {
+      type: 'trivia-started',
+      gameId: liveTriviaState.gameId,
+      ...liveTriviaState.settings,
+      playerCount: liveTriviaState.playerCount,
+      roundNumber: liveTriviaState.roundNumber,
+    });
+  };
+
   // Join lobby
   socket.on('join-lobby', () => {
     socket.join('lobby');
@@ -595,6 +659,7 @@ io.on('connection', (socket) => {
       games: gameManager.getActiveGames(),
       playersOnline: gameManager.getOnlinePlayerCount(),
     });
+    emitLiveTriviaState();
   });
 
   socket.on('request-lobby-update', () => {
@@ -602,6 +667,7 @@ io.on('connection', (socket) => {
       games: gameManager.getActiveGames(),
       playersOnline: gameManager.getOnlinePlayerCount(),
     });
+    emitLiveTriviaState();
   });
 
   // Leave lobby
@@ -615,6 +681,45 @@ io.on('connection', (socket) => {
       socket.emit('game-error', 'Authentication required');
       return;
     }
+
+    const activeTriviaState = triviaManager.getLiveState();
+    if (activeTriviaState?.gameId === gameId) {
+      const joinResult = await triviaManager.joinGame(user.id, user.username, gameId);
+      if (!joinResult.success) {
+        socket.emit('game-error', joinResult.message);
+        return;
+      }
+
+      socket.join(`game:${gameId}`);
+
+      const updatedTriviaState = triviaManager.getLiveState();
+      socket.emit('game-update', {
+        type: 'trivia-joined',
+        gameId,
+        playerCount: updatedTriviaState?.playerCount ?? 0,
+        prizePool: updatedTriviaState?.settings.prizePool ?? 0,
+        roundNumber: updatedTriviaState?.roundNumber ?? 1,
+        totalRounds: updatedTriviaState?.totalRounds ?? 0,
+      });
+
+      if (updatedTriviaState?.currentQuestion && updatedTriviaState.endsAt) {
+        socket.emit('trivia-round-start', {
+          gameId,
+          question: updatedTriviaState.currentQuestion,
+          roundNumber: updatedTriviaState.roundNumber,
+          totalRounds: updatedTriviaState.totalRounds,
+          endsAt: updatedTriviaState.endsAt,
+        });
+      }
+
+      socket.to(`game:${gameId}`).emit('player-joined', {
+        userId: user.id,
+        username: user.username,
+      });
+
+      return;
+    }
+
     try {
       await gameManager.joinGame(gameId, user.id, user.username);
       socket.join(`game:${gameId}`);
@@ -744,14 +849,25 @@ io.on('connection', (socket) => {
   // Trivia Game Handlers
   // ============================================================================
 
-  socket.on('submit-trivia-answer', (data: { questionId: string; answer: string }) => {
+  socket.on('submit-trivia-answer', async (data: { questionId: string; answer: string }) => {
     if (!user) return;
-    triviaManager.submitAnswer(user.id, data.answer);
+    if (!data || typeof data.questionId !== 'string' || typeof data.answer !== 'string') {
+      socket.emit('game-error', 'Invalid answer payload');
+      return;
+    }
+    const result = await triviaManager.submitAnswer(user.id, data.questionId, data.answer);
+    if (!result.success) {
+      socket.emit('game-error', result.message || 'Answer submission failed');
+    }
   });
 
   socket.on('request-ape-in', async (data: { gameId: string; questionId: string }) => {
     if (!user) return;
-    const result = await triviaManager.requestApeIn(user.id);
+    if (!data || typeof data.gameId !== 'string' || typeof data.questionId !== 'string') {
+      socket.emit('game-error', 'Invalid Ape In payload');
+      return;
+    }
+    const result = await triviaManager.requestApeIn(user.id, data.gameId, data.questionId);
     if (result.success) {
       socket.emit('trivia-ape-in-result', { questionId: data.questionId, distribution: result.stats! });
     } else {
@@ -761,7 +877,11 @@ io.on('connection', (socket) => {
 
   socket.on('request-shield', async (data: { gameId: string; questionId: string }) => {
     if (!user) return;
-    const result = await triviaManager.requestShield(user.id);
+    if (!data || typeof data.gameId !== 'string' || typeof data.questionId !== 'string') {
+      socket.emit('game-error', 'Invalid shield payload');
+      return;
+    }
+    const result = await triviaManager.requestShield(user.id, data.gameId, data.questionId);
     if (result.success) {
       socket.emit('trivia-shield-result', { 
         questionId: data.questionId, 
@@ -774,7 +894,11 @@ io.on('connection', (socket) => {
 
   socket.on('buy-back', async (data: { gameId: string }) => {
     if (!user) return;
-    const result = await triviaManager.processBuyBack(user.id);
+    if (!data || typeof data.gameId !== 'string') {
+      socket.emit('game-error', 'Invalid buy-back payload');
+      return;
+    }
+    const result = await triviaManager.processBuyBack(user.id, data.gameId);
     if (result.success) {
       socket.emit('game-update', { type: 'buy-back-success', userId: user.id });
     } else {
@@ -799,11 +923,11 @@ eventRouter.subscribe('trivia.started', (event) => {
 }, 'game-arena');
 
 eventRouter.subscribe('trivia.round.start', (event) => {
-  io.emit('trivia-round-start', event.data);
+  io.to(`game:${event.data.gameId}`).emit('trivia-round-start', event.data);
 }, 'game-arena');
 
 eventRouter.subscribe('trivia.round.reveal', (event) => {
-  io.emit('trivia-round-reveal', event.data);
+  io.to(`game:${event.data.gameId}`).emit('trivia-round-reveal', event.data);
 }, 'game-arena');
 
 eventRouter.subscribe('trivia.completed', (event) => {
@@ -814,7 +938,7 @@ eventRouter.subscribe('trivia.completed', (event) => {
     message: `🏆 GAME OVER! Winners: ${winnerList || 'No one survived the trenches.'}`,
     timestamp: Date.now(),
   });
-  io.emit('game-update', { type: 'trivia-completed', ...event.data });
+  io.to(`game:${event.data.gameId}`).emit('game-update', { type: 'trivia-completed', ...event.data });
 }, 'game-arena');
 
 // Forward tip rain events from discord-bot → socket.io clients (Activity TipView)

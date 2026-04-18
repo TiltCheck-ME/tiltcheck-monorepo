@@ -1,4 +1,4 @@
-/* Copyright (c) 2026 TiltCheck. All rights reserved. */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-18 */
 /**
  * @vitest-environment jsdom
  */
@@ -106,9 +106,27 @@ function mockContentDependencies() {
 
   vi.doMock('../../src/license-verifier.js', () => {
     class MockCasinoLicenseVerifier {
-      verifyCasino = vi.fn().mockReturnValue({ verified: true });
+      verifyCasino = vi.fn().mockReturnValue({
+        isLegitimate: true,
+        licenseInfo: {
+          found: true,
+          issuingAuthority: 'Malta Gaming Authority',
+          jurisdiction: 'Malta',
+          verified: true,
+          warnings: [],
+        },
+        verdict: 'legitimate',
+        shouldAnalyze: true,
+      });
     }
-    return { CasinoLicenseVerifier: MockCasinoLicenseVerifier };
+    return {
+      CasinoLicenseVerifier: MockCasinoLicenseVerifier,
+      buildLicensePresentation: vi.fn().mockImplementation((verification) => ({
+        summary: verification?.warningMessage ?? 'License verified: Malta Gaming Authority',
+        tone: verification?.shouldAnalyze === false ? 'risk' : 'verified',
+      })),
+      getAnalysisBlockMessage: vi.fn().mockImplementation((verification) => verification?.shouldAnalyze === false ? verification.warningMessage : null),
+    };
   });
 
   vi.doMock('../../src/sidebar.js', () => ({}));

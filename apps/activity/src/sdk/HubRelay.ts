@@ -1,4 +1,4 @@
-// © 2024-2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-04
+// © 2024-2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-18
 
 import { io, Socket } from 'socket.io-client';
 import type { SessionRound } from '../state/SessionState.js';
@@ -7,6 +7,39 @@ export interface HubRelayOptions {
   url: string;
   userId: string;
   channelId: string;
+  accessToken?: string | null;
+}
+
+interface TriviaStartedPayload {
+  type?: string;
+  gameId?: string;
+  prizePool?: number;
+  roundNumber?: number;
+  totalRounds?: number;
+}
+
+interface TriviaRoundStartPayload {
+  gameId?: string;
+  question?: {
+    id: string;
+    question: string;
+    choices: string[];
+  };
+  roundNumber?: number;
+  totalRounds?: number;
+  endsAt?: number;
+}
+
+interface TriviaRoundRevealPayload {
+  gameId?: string;
+  questionId?: string;
+  correctChoice?: string;
+}
+
+interface TriviaSnapshot {
+  started: TriviaStartedPayload | null;
+  roundStart: TriviaRoundStartPayload | null;
+  roundReveal: TriviaRoundRevealPayload | null;
 }
 
 type HubEventHandler<T = unknown> = (data: T) => void;
@@ -17,6 +50,12 @@ export class HubRelay {
   private handlers: Map<string, HubEventHandler[]> = new Map();
   private reconnectAttempts = 0;
   private readonly maxReconnectDelay = 30000;
+  private joinedGameId: string | null = null;
+  private triviaSnapshot: TriviaSnapshot = {
+    started: null,
+    roundStart: null,
+    roundReveal: null,
+  };
 
   constructor(options: HubRelayOptions) {
     this.options = options;
@@ -24,24 +63,54 @@ export class HubRelay {
 
   connect(): void {
     this.socket = io(this.options.url, {
+      auth: this.options.accessToken ? { accessToken: this.options.accessToken } : undefined,
       reconnection: true,
       reconnectionDelay: 1000,
       reconnectionDelayMax: this.maxReconnectDelay,
       reconnectionAttempts: Infinity,
-      transports: ['websocket']
+      transports: ['websocket'],
+      withCredentials: true,
     });
 
     this.socket.on('connect', () => {
       this.reconnectAttempts = 0;
-      this.socket!.emit('join-channel', {
-        channelId: this.options.channelId,
-        userId: this.options.userId
-      });
+      this.socket!.emit('join-lobby');
+      if (this.joinedGameId) {
+        this.socket!.emit('join-game', this.joinedGameId);
+      }
       this.emit('connected', true);
+    });
+
+    this.socket.on('connect_error', (error) => {
+      this.emit('game.error', error.message);
+      this.emit('connected', false);
     });
 
     this.socket.on('disconnect', () => {
       this.emit('connected', false);
+    });
+
+    this.socket.on('game-update', (data) => {
+      this.emit('game.update', data);
+
+      if (typeof data !== 'object' || data === null || !('type' in data)) {
+        return;
+      }
+
+      const type = (data as { type?: string }).type;
+      if (type === 'trivia-started') {
+        this.triviaSnapshot.started = data as TriviaStartedPayload;
+        this.emit('trivia.started', data);
+      } else if (type === 'trivia-joined') {
+        this.emit('trivia.joined', data);
+      } else if (type === 'trivia-completed') {
+        this.triviaSnapshot = { started: null, roundStart: null, roundReveal: null };
+        this.emit('trivia.completed', data);
+      }
+    });
+
+    this.socket.on('game-error', (error) => {
+      this.emit('game.error', error);
     });
 
     this.socket.on('session.update', (data) => {
@@ -64,12 +133,15 @@ export class HubRelay {
       this.emit('dad.round', data);
     });
 
-    this.socket.on('trivia.question', (data) => {
-      this.emit('trivia.question', data);
+    this.socket.on('trivia-round-start', (data) => {
+      this.triviaSnapshot.roundStart = data as TriviaRoundStartPayload;
+      this.triviaSnapshot.roundReveal = null;
+      this.emit('trivia.round.start', data);
     });
 
-    this.socket.on('trivia.result', (data) => {
-      this.emit('trivia.result', data);
+    this.socket.on('trivia-round-reveal', (data) => {
+      this.triviaSnapshot.roundReveal = data as TriviaRoundRevealPayload;
+      this.emit('trivia.round.reveal', data);
     });
 
     this.socket.on('tip.rain', (data) => {
@@ -96,11 +168,39 @@ export class HubRelay {
 
   joinLobby(game: string): void {
     if (!this.socket?.connected) return;
-    this.socket.emit('join-lobby', {
-      game,
-      userId: this.options.userId,
-      channelId: this.options.channelId
-    });
+    if (game === 'trivia' && this.joinedGameId) {
+      this.socket.emit('join-game', this.joinedGameId);
+      return;
+    }
+    this.socket.emit('join-lobby');
+  }
+
+  joinGame(gameId: string): void {
+    this.joinedGameId = gameId;
+    if (!this.socket?.connected) return;
+    this.socket.emit('join-game', gameId);
+  }
+
+  clearJoinedGame(): void {
+    this.joinedGameId = null;
+  }
+
+  getTriviaSnapshot(): TriviaSnapshot {
+    return {
+      started: this.triviaSnapshot.started ? { ...this.triviaSnapshot.started } : null,
+      roundStart: this.triviaSnapshot.roundStart
+        ? {
+            ...this.triviaSnapshot.roundStart,
+            question: this.triviaSnapshot.roundStart.question
+              ? {
+                  ...this.triviaSnapshot.roundStart.question,
+                  choices: [...this.triviaSnapshot.roundStart.question.choices],
+                }
+              : undefined,
+          }
+        : null,
+      roundReveal: this.triviaSnapshot.roundReveal ? { ...this.triviaSnapshot.roundReveal } : null,
+    };
   }
 
   playCard(gameId: string, cardId: string): void {
@@ -111,8 +211,12 @@ export class HubRelay {
     this.socket?.emit('vote-card', { gameId, cardId, userId: this.options.userId });
   }
 
-  submitTriviaAnswer(questionId: string, answerId: string): void {
-    this.socket?.emit('trivia.answer', { questionId, answerId, userId: this.options.userId });
+  submitTriviaAnswer(questionId: string, answer: string): void {
+    this.socket?.emit('submit-trivia-answer', {
+      questionId,
+      answer,
+      timestamp: Date.now(),
+    });
   }
 
   sendTip(toUsername: string, amountSol: number, message: string): void {

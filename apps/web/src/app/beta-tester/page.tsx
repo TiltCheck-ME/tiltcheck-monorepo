@@ -66,7 +66,7 @@ export default function BetaTesterPage() {
     }
 
     const redirect = encodeURIComponent(window.location.href);
-    window.location.href = `${apiUrl}/auth/discord/login?source=web&redirect=${redirect}`;
+    window.location.href = `/api/auth/discord/login?source=web&redirect=${redirect}`;
   };
 
   const handleMagicSignIn = async () => {

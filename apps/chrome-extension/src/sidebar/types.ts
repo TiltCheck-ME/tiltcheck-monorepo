@@ -1,4 +1,6 @@
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-18 */
 import { OnboardingStatus } from '@tiltcheck/types';
+import type { CasinoVerification } from '../license-verifier.js';
 
 export interface SidebarUI {
   syncAccountUi(): void;
@@ -8,7 +10,7 @@ export interface SidebarUI {
   setStorage(data: Partial<OnboardingStatus> | Record<string, any>): Promise<void>;
   updateStatus(message: string, type: 'success' | 'warning' | 'thinking' | 'danger' | 'info'): void;
   updateRealityCheck(active: boolean): void;
-  updateLicense(data: any): void;
+  updateLicense(data: CasinoVerification | null): void;
   updateTilt(score: number, indicators: string[]): void;
   updateStats(stats: Partial<SessionStats>): void;
   notifyBuddy(event: string, data: any): void;

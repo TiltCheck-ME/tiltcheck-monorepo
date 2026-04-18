@@ -1,5 +1,5 @@
 /**
- * © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-02
+ * © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-18
  */
 
 import { EventEmitter } from 'events';
@@ -9,6 +9,7 @@ import type {
   ActivityLaunchConfig,
   ActivityInstance,
   ActivityResult,
+  ActivityResultStatus,
   ActivitySessionState,
   ActivityMessage,
 } from './types.js';
@@ -36,6 +37,14 @@ export class DiscordActivityManager extends EventEmitter {
   async launchActivity(config: ActivityLaunchConfig): Promise<ActivityInstance> {
     const instanceId = config.instanceId || uuidv4();
     const expiresAt = Date.now() + 3600000; // 1 hour TTL
+    const requiredSKUs = config.requiredSKUs || [];
+    const consumableSKUs = config.consumableSKUs || [];
+    const verifiedRequiredSKUs = config.verifiedRequiredSKUs || [];
+    const missingRequiredSKUs = requiredSKUs.filter((skuId) => !verifiedRequiredSKUs.includes(skuId));
+
+    if (missingRequiredSKUs.length > 0) {
+      throw new Error(`Required entitlements not verified: ${missingRequiredSKUs.join(', ')}`);
+    }
 
     const instance: ActivityInstance = {
       id: instanceId,
@@ -48,6 +57,11 @@ export class DiscordActivityManager extends EventEmitter {
       sessionToken: config.sessionToken,
       createdAt: Date.now(),
       expiresAt,
+      gameState: config.gameConfig || {},
+      entitlementsVerified: missingRequiredSKUs.length === 0,
+      requiredSKUs,
+      consumableSKUs,
+      verifiedRequiredSKUs,
     };
 
     this.activeInstances.set(instanceId, instance);
@@ -64,6 +78,10 @@ export class DiscordActivityManager extends EventEmitter {
       lastHeartbeat: Date.now(),
       expiresAt,
       reconnectCount: 0,
+      status: 'launching',
+      requiredSKUs,
+      consumableSKUs,
+      verifiedRequiredSKUs,
     };
 
     this.sessionStore.set(instanceId, sessionState);
@@ -108,11 +126,23 @@ export class DiscordActivityManager extends EventEmitter {
 
     switch (message.type) {
       case 'heartbeat':
+        if (instance.status === 'launching') {
+          instance.status = 'active';
+          if (session) {
+            session.status = 'active';
+          }
+        }
         // Keep-alive ping from Activity
         this.emit('heartbeat', { instanceId: message.instanceId, timestamp: message.timestamp });
         break;
 
       case 'state-update':
+        if (instance.status === 'launching') {
+          instance.status = 'active';
+          if (session) {
+            session.status = 'active';
+          }
+        }
         // Game state changed
         if (instance.gameState) {
           instance.gameState = { ...instance.gameState, ...message.payload };
@@ -135,13 +165,33 @@ export class DiscordActivityManager extends EventEmitter {
 
       case 'result':
         // Game completed with result
-        await this.completeActivity(message.instanceId, message.payload as Omit<ActivityResult, 'instanceId' | 'userId'>);
+        try {
+          await this.completeActivity(
+            message.instanceId,
+            message.payload as Omit<ActivityResult, 'instanceId' | 'userId' | 'activityType'>
+          );
+        } catch (error) {
+          instance.status = 'failed';
+          if (session) {
+            session.status = 'failed';
+          }
+          const messageText = error instanceof Error ? error.message : 'Invalid activity result payload';
+          await eventRouter.publish('activity.error', 'discord-bot', {
+            activityId: message.instanceId,
+            userId: message.userId,
+            error: messageText,
+            code: 'invalid_result',
+          });
+        }
         break;
 
       case 'error':
         // Error in Activity
         console.error(`[DiscordActivityManager] Activity error: ${message.instanceId}`, message.payload);
         instance.status = 'failed';
+        if (session) {
+          session.status = 'failed';
+        }
         await eventRouter.publish('activity.error', 'discord-bot', {
           activityId: message.instanceId,
           userId: message.userId,
@@ -158,26 +208,53 @@ export class DiscordActivityManager extends EventEmitter {
   async completeActivity(
     instanceId: string,
     result: Omit<ActivityResult, 'instanceId' | 'userId' | 'activityType'>
-  ): Promise<void> {
+  ): Promise<ActivityResult> {
     const instance = this.activeInstances.get(instanceId);
+    const session = this.sessionStore.get(instanceId);
 
-    if (!instance) {
-      console.warn(`[DiscordActivityManager] Attempted to complete unknown instance: ${instanceId}`);
-      return;
+    if (!instance || !session) {
+      throw new Error(`Unknown activity instance: ${instanceId}`);
     }
 
-    instance.status = result.status === 'won' ? 'completed' : result.status === 'abandoned' ? 'completed' : 'completed';
+    if (instance.status === 'completed' || instance.status === 'failed') {
+      throw new Error(`Activity ${instanceId} is already terminal`);
+    }
+
+    const normalizedStatus = this.normalizeResultStatus(result.status);
+    const consumedEntitlementIds = result.consumedEntitlementIds || [];
+
+    if (result.entitlementConsumed) {
+      if ((instance.consumableSKUs || []).length === 0) {
+        throw new Error(`Activity ${instanceId} cannot report entitlement consumption without configured consumables`);
+      }
+      if (consumedEntitlementIds.length === 0) {
+        throw new Error(`Activity ${instanceId} cannot report entitlement consumption without consumed entitlement IDs`);
+      }
+    }
+
+    if (!result.entitlementConsumed && consumedEntitlementIds.length > 0) {
+      throw new Error(`Activity ${instanceId} reported consumed entitlement IDs without confirming consumption`);
+    }
 
     const fullResult: ActivityResult = {
       instanceId,
       userId: instance.userId,
       activityType: instance.activityType,
-      status: result.status,
+      status: normalizedStatus,
       completedAt: result.completedAt,
       ...(result.score !== undefined && { score: result.score }),
       ...(result.prizeAmount !== undefined && { prizeAmount: result.prizeAmount }),
       ...(result.entitlementConsumed !== undefined && { entitlementConsumed: result.entitlementConsumed }),
+      ...(consumedEntitlementIds.length > 0 && { consumedEntitlementIds }),
     };
+
+    instance.status = 'completed';
+    instance.outcome = normalizedStatus;
+    instance.result = fullResult;
+    session.status = 'completed';
+    session.outcome = normalizedStatus;
+    session.result = fullResult;
+    session.consumedEntitlementIds = consumedEntitlementIds;
 
     // Publish result event
     const startTime = instance.createdAt;
@@ -185,14 +262,15 @@ export class DiscordActivityManager extends EventEmitter {
     await eventRouter.publish('activity.completed', 'discord-bot', {
       activityId: instanceId,
       userId: instance.userId,
-      result: result,
+      result: fullResult as unknown as Record<string, unknown>,
       duration: duration,
     });
 
-    console.log(`[DiscordActivityManager] Activity completed: ${instanceId} - Status: ${result.status}`);
+    console.log(`[DiscordActivityManager] Activity completed: ${instanceId} - Status: ${normalizedStatus}`);
 
     // Schedule cleanup in 5 minutes
     setTimeout(() => this.cleanupInstance(instanceId), 300000);
+    return fullResult;
   }
 
   /**
@@ -206,6 +284,10 @@ export class DiscordActivityManager extends EventEmitter {
     }
 
     instance.status = 'paused';
+    const session = this.sessionStore.get(instanceId);
+    if (session) {
+      session.status = 'paused';
+    }
     await eventRouter.publish('activity.paused', 'discord-bot', { 
       activityId: instanceId,
       userId: instance.userId,
@@ -224,6 +306,10 @@ export class DiscordActivityManager extends EventEmitter {
     }
 
     instance.status = 'active';
+    const session = this.sessionStore.get(instanceId);
+    if (session) {
+      session.status = 'active';
+    }
     await eventRouter.publish('activity.resumed', 'discord-bot', { 
       activityId: instanceId,
       userId: instance.userId,
@@ -253,7 +339,9 @@ export class DiscordActivityManager extends EventEmitter {
    * Get all active instances for a user
    */
   getActiveInstancesForUser(userId: string): ActivityInstance[] {
-    return Array.from(this.activeInstances.values()).filter((i) => i.userId === userId && i.status === 'active');
+    return Array.from(this.activeInstances.values()).filter(
+      (i) => i.userId === userId && (i.status === 'launching' || i.status === 'active')
+    );
   }
 
   /**
@@ -342,5 +430,13 @@ export class DiscordActivityManager extends EventEmitter {
       Object.assign(session, updates);
       session.reconnectCount = (session.reconnectCount || 0) + 1;
     }
+  }
+
+  private normalizeResultStatus(status: ActivityResultStatus): ActivityResultStatus {
+    if (status === 'won' || status === 'lost' || status === 'abandoned') {
+      return status;
+    }
+
+    throw new Error(`Unsupported activity result status: ${String(status)}`);
   }
 }

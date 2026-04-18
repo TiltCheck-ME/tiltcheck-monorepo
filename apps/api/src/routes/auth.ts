@@ -1,4 +1,4 @@
-/* Copyright (c) 2026 TiltCheck. All rights reserved. */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-18 */
 /**
  * Auth Routes - /auth/*
  * Handles Discord OAuth, JWT auth, session management, and user info
@@ -77,9 +77,9 @@ function renderExtensionAuthErrorPage(message: string): string {
           <div class="title">TiltCheck Connect Issue</div>
           <div class="msg">${safeMessage}</div>
           <div class="hint">Return to your casino tab, then click Connect Discord again.</div>
-          <div class="footer">
-            "Casinos don't win because they're lucky. They win because they're open 24/7 and your calculator battery died at 2:17 a.m."
-          </div>
+           <div class="footer">
+             Made for Degens. By Degens.
+           </div>
         </div>
       </body>
     </html>
@@ -808,9 +808,9 @@ router.get('/discord/callback', authLimiter, async (req, res) => {
               <div>Authenticating...</div>
               <div class="spinner"></div>
               <div class="hint">This window will close automatically.</div>
-              <div class="footer">
-                "Trust everybody, but cut the cards."
-              </div>
+               <div class="footer">
+                 Made for Degens. By Degens.
+               </div>
             </div>
             <script>
               const userData = ${JSON.stringify({

@@ -1,4 +1,4 @@
-/* Copyright (c) 2026 TiltCheck. All rights reserved. */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-18 */
 import { getDiscordLoginUrl } from '../config.js';
 import { API_BASE, API_ORIGIN, DISCORD_AUTH_MESSAGE_TYPE } from './constants.js';
 import { SidebarUI } from './types.js';
@@ -10,6 +10,7 @@ interface AuthSessionResponse {
   discordId?: string | null;
   discordUsername?: string | null;
   walletAddress?: string | null;
+  wallet_address?: string | null;
 }
 
 interface OnboardingPreferencesResponse {
@@ -28,6 +29,7 @@ interface ExtensionUserData {
   discordId?: string | null;
   discordUsername?: string | null;
   walletAddress?: string | null;
+  wallet_address?: string | null;
   isDemo?: boolean;
 }
 
@@ -64,6 +66,12 @@ export class AuthManager {
     const email = typeof user.email === 'string' ? user.email : null;
     const discordId = typeof user.discordId === 'string' ? user.discordId : null;
     const discordUsername = typeof user.discordUsername === 'string' ? user.discordUsername : null;
+    const walletAddress =
+      typeof user.walletAddress === 'string'
+        ? user.walletAddress
+        : typeof (user as { wallet_address?: unknown }).wallet_address === 'string'
+          ? (user as { wallet_address: string }).wallet_address
+          : null;
     const usernameCandidate = typeof user.username === 'string' ? user.username.trim() : '';
     const username =
       usernameCandidate ||
@@ -77,7 +85,7 @@ export class AuthManager {
       email,
       discordId,
       discordUsername,
-      walletAddress: typeof user.walletAddress === 'string' ? user.walletAddress : null,
+      walletAddress,
     };
   }
 

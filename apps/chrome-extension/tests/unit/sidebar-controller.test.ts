@@ -1,5 +1,4 @@
-/* Copyright (c) 2026 TiltCheck. All rights reserved. */
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-14
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-18 */
 /**
  * @vitest-environment jsdom
  */
@@ -45,8 +44,8 @@ vi.mock('../../src/sidebar/reports.js', () => ({
 
 vi.mock('../../src/sidebar/blockchain.js', () => ({
   BlockchainManager: class {
+    public setWallet = vi.fn();
     constructor() {}
-    setWallet() {}
   },
 }));
 
@@ -123,5 +122,71 @@ describe('SidebarController', () => {
     expect(sidebar?.style.display).toBe('none');
     expect(document.body.classList.contains('tiltcheck-sidebar-reserved')).toBe(false);
     expect(document.body.style.getPropertyValue('--tiltcheck-sidebar-offset')).toBe('0px');
+  });
+
+  it('renders legitimate license verdicts without the old malicious fallback', async () => {
+    const { initSidebar } = await import('../../src/sidebar/index.ts');
+    const controller = initSidebar();
+
+    controller.updateLicense({
+      isLegitimate: true,
+      licenseInfo: {
+        found: true,
+        issuingAuthority: 'Malta Gaming Authority',
+        jurisdiction: 'Malta',
+        licenseNumber: 'MGA/B2C/1234',
+        location: 'footer',
+        verified: true,
+        warnings: [],
+      },
+      verdict: 'legitimate',
+      shouldAnalyze: true,
+    });
+
+    const strip = document.getElementById('tg-license-strip');
+    expect(strip?.className).toBe('tg-license-strip verified');
+    expect(strip?.textContent).toContain('License verified: Malta Gaming Authority');
+    expect(strip?.textContent).toContain('MGA/B2C/1234');
+  });
+
+  it('shows a risk strip and styled status when analysis is gated', async () => {
+    const { initSidebar } = await import('../../src/sidebar/index.ts');
+    const controller = initSidebar();
+
+    controller.updateLicense({
+      isLegitimate: false,
+      licenseInfo: {
+        found: false,
+        verified: false,
+        warnings: [],
+      },
+      verdict: 'unlicensed',
+      shouldAnalyze: false,
+      warningMessage: 'No valid gambling license found yet. Normal TiltCheck analysis is disabled on this site.',
+    });
+    controller.updateStatus('Analysis disabled on this site.', 'warning');
+
+    const strip = document.getElementById('tg-license-strip');
+    const statusBar = document.getElementById('tg-status-bar');
+    expect(strip?.className).toBe('tg-license-strip risk');
+    expect(strip?.textContent).toBe('No valid gambling license found yet. Normal TiltCheck analysis is disabled on this site.');
+    expect(statusBar?.className).toBe('tg-status-bar warning');
+  });
+
+  it('passes the normalized walletAddress field into blockchain monitoring', async () => {
+    const { initSidebar } = await import('../../src/sidebar/index.ts');
+    const controller = initSidebar();
+
+    controller.auth.demoMode = false;
+    controller.auth.authToken = 'jwt-token';
+    controller.auth.userData = {
+      id: 'user_1',
+      username: 'wallet-user',
+      walletAddress: 'Wallet111111111111111111111111111111111',
+    };
+
+    controller.syncAccountUi();
+
+    expect((controller.blockchain as any).setWallet).toHaveBeenCalledWith('Wallet111111111111111111111111111111111');
   });
 });

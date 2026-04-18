@@ -1,4 +1,4 @@
-/* Copyright (c) 2026 TiltCheck. All rights reserved. */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-18 */
 /**
  * Casino License Verification
  * 
@@ -22,6 +22,11 @@ export interface CasinoVerification {
   verdict: 'legitimate' | 'unlicensed' | 'suspicious' | 'unknown';
   shouldAnalyze: boolean;
   warningMessage?: string;
+}
+
+export interface LicensePresentation {
+  tone: 'verified' | 'warning' | 'risk' | 'pending';
+  summary: string;
 }
 
 /**
@@ -53,11 +58,11 @@ const LEGITIMATE_AUTHORITIES = [
  * Red flag patterns (unlicensed/scam indicators)
  */
 const RED_FLAGS = [
-  /no\s*license/i,
-  /unlicensed/i,
-  /offshore/i,
-  /unregulated/i,
-  /bitcoin\s*only/i, // Often a red flag
+  { pattern: /no\s*license/i, label: 'site claims no license' },
+  { pattern: /unlicensed/i, label: 'site describes itself as unlicensed' },
+  { pattern: /offshore/i, label: 'offshore licensing language detected' },
+  { pattern: /unregulated/i, label: 'site describes itself as unregulated' },
+  { pattern: /bitcoin\s*only/i, label: 'bitcoin-only language detected' },
 ];
 
 export class CasinoLicenseVerifier {
@@ -127,8 +132,8 @@ export class CasinoLicenseVerifier {
     // 4. Check for red flags
     const bodyText = doc.body.textContent || '';
     for (const redFlag of RED_FLAGS) {
-      if (redFlag.test(bodyText)) {
-        warnings.push(`Red flag detected: ${redFlag.source}`);
+      if (redFlag.pattern.test(bodyText)) {
+        warnings.push(redFlag.label);
       }
     }
     
@@ -190,11 +195,11 @@ export class CasinoLicenseVerifier {
     } else if (licenseInfo.warnings.length > 0) {
       verdict = 'suspicious';
       shouldAnalyze = false;
-      warningMessage = `⚠️ This casino has red flags: ${licenseInfo.warnings.join(', ')}. Fairness analysis not recommended.`;
+      warningMessage = `Suspicious licensing signals detected: ${licenseInfo.warnings.join(', ')}. Normal TiltCheck analysis is disabled on this site.`;
     } else {
       verdict = 'unlicensed';
       shouldAnalyze = false;
-      warningMessage = '🚫 No gambling license found. This casino cannot be verified for fairness. Play at your own risk.';
+      warningMessage = 'No valid gambling license found yet. Normal TiltCheck analysis is disabled on this site.';
     }
     
     return {
@@ -211,7 +216,7 @@ export class CasinoLicenseVerifier {
    */
   getVerificationMessage(verification: CasinoVerification): string {
     if (verification.verdict === 'legitimate') {
-      return `✅ Licensed by ${verification.licenseInfo.issuingAuthority} (${verification.licenseInfo.jurisdiction})${
+      return `Licensed by ${verification.licenseInfo.issuingAuthority} (${verification.licenseInfo.jurisdiction})${
         verification.licenseInfo.licenseNumber ? ` - License #${verification.licenseInfo.licenseNumber}` : ''
       }`;
     } else if (verification.verdict === 'unknown') {
@@ -222,4 +227,52 @@ export class CasinoLicenseVerifier {
       return verification.warningMessage || 'No license found';
     }
   }
+}
+
+function formatLicenseAuthority(licenseInfo: LicenseInfo): string {
+  return licenseInfo.issuingAuthority || 'Unknown authority';
+}
+
+function formatLicenseDetails(licenseInfo: LicenseInfo): string {
+  const authority = formatLicenseAuthority(licenseInfo);
+  const jurisdiction = licenseInfo.jurisdiction ? ` (${licenseInfo.jurisdiction})` : '';
+  const licenseNumber = licenseInfo.licenseNumber ? ` #${licenseInfo.licenseNumber}` : '';
+  const location = licenseInfo.location ? ` via ${licenseInfo.location}` : '';
+  return `${authority}${jurisdiction}${licenseNumber}${location}`;
+}
+
+export function buildLicensePresentation(verification: CasinoVerification | null | undefined): LicensePresentation {
+  if (!verification) {
+    return {
+      tone: 'pending',
+      summary: 'License: scanning current site...',
+    };
+  }
+
+  if (verification.verdict === 'legitimate') {
+    return {
+      tone: 'verified',
+      summary: `License verified: ${formatLicenseDetails(verification.licenseInfo)}`,
+    };
+  }
+
+  if (verification.verdict === 'unknown') {
+    return {
+      tone: 'warning',
+      summary: verification.warningMessage || `License found but not fully verified: ${formatLicenseDetails(verification.licenseInfo)}`,
+    };
+  }
+
+  return {
+    tone: 'risk',
+    summary: verification.warningMessage || 'License verification failed. Normal TiltCheck analysis is disabled on this site.',
+  };
+}
+
+export function getAnalysisBlockMessage(verification: CasinoVerification | null | undefined): string | null {
+  if (!verification || verification.shouldAnalyze) {
+    return null;
+  }
+
+  return verification.warningMessage || 'Normal TiltCheck analysis is disabled on this site until a valid license is verified.';
 }

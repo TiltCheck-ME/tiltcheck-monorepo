@@ -1,4 +1,4 @@
-/* Copyright (c) 2026 TiltCheck. All rights reserved. */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-18 */
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import express from 'express';
 import request from 'supertest';
@@ -47,10 +47,11 @@ vi.mock('../../src/middleware/auth.js', () => ({
 
 import { authRouter } from '../../src/routes/auth.js';
 import { getDiscordConfig } from '../../src/routes/auth.utils.js';
-import { createSession, exchangeDiscordCode, verifyDiscordOAuth, verifySessionCookie } from '@tiltcheck/auth';
+import { createSession, exchangeDiscordCode, getDiscordAuthUrl, verifyDiscordOAuth, verifySessionCookie } from '@tiltcheck/auth';
 import { createUser, findOrCreateUserByDiscord, findUserByDiscordId, findUserByEmail, findUserById, updateUser } from '@tiltcheck/db';
 
 const app = express();
+app.set('trust proxy', 1);
 app.use((req, _res, next) => {
   const cookieHeader = req.headers.cookie || '';
   const cookies: Record<string, string> = {};
@@ -115,6 +116,51 @@ describe('Auth callback state/source validation', () => {
     expect(response.status).toBe(302);
     expect(response.headers['set-cookie']).toEqual(
       expect.arrayContaining([expect.stringContaining('oauth_source=web')])
+    );
+  });
+
+  it('uses the proxied site callback host for web OAuth logins', async () => {
+    const response = await request(app)
+      .get('/auth/discord/login?source=web&redirect=%2Fbeta-tester')
+      .set('X-Forwarded-Proto', 'https')
+      .set('X-Forwarded-Host', 'tiltcheck.me');
+
+    expect(response.status).toBe(302);
+    expect(vi.mocked(getDiscordAuthUrl)).toHaveBeenCalledWith(
+      expect.objectContaining({
+        redirectUri: 'https://tiltcheck.me/api/auth/discord/callback',
+      }),
+      expect.stringMatching(/^web_/),
+    );
+  });
+
+  it('keeps the API host callback for direct web OAuth logins on the API domain', async () => {
+    const response = await request(app)
+      .get('/auth/discord/login?source=web&redirect=%2Fbeta-tester')
+      .set('X-Forwarded-Proto', 'https')
+      .set('X-Forwarded-Host', 'api.tiltcheck.me');
+
+    expect(response.status).toBe(302);
+    expect(vi.mocked(getDiscordAuthUrl)).toHaveBeenCalledWith(
+      expect.objectContaining({
+        redirectUri: 'https://api.tiltcheck.me/auth/discord/callback',
+      }),
+      expect.stringMatching(/^web_/),
+    );
+  });
+
+  it('prefers the localhost redirect host for web OAuth during local beta flows', async () => {
+    const response = await request(app)
+      .get('/auth/discord/login?source=web&redirect=http%3A%2F%2Flocalhost%3A3000%2Fbeta-tester')
+      .set('X-Forwarded-Proto', 'https')
+      .set('X-Forwarded-Host', 'api.tiltcheck.me');
+
+    expect(response.status).toBe(302);
+    expect(vi.mocked(getDiscordAuthUrl)).toHaveBeenCalledWith(
+      expect.objectContaining({
+        redirectUri: 'http://localhost:3000/api/auth/discord/callback',
+      }),
+      expect.stringMatching(/^web_/),
     );
   });
 

@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-15
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-18
 'use client';
 import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
@@ -137,6 +137,7 @@ const Nav = () => {
         <div className="nav-topbar-right">
           <AuthButton compact />
           <button
+            type="button"
             onClick={() => setIsOpen(!isOpen)}
             className="nav-hamburger"
             aria-label={isOpen ? 'Close navigation' : 'Open navigation'}
@@ -154,18 +155,20 @@ const Nav = () => {
       )}
 
       {/* Mobile menu panel */}
-      <div
-        id="site-mobile-nav"
-        className={`nav-collapse${isOpen ? ' nav-collapse--open' : ''}`}
-        aria-label="Navigation menu"
-      >
-        <nav className="nav-collapse-links">
-          <MobileLinks />
-        </nav>
-        <div className="nav-collapse-foot">
-          <AuthButton />
+      {isOpen && (
+        <div
+          id="site-mobile-nav"
+          className="nav-collapse nav-collapse--open"
+          aria-label="Navigation menu"
+        >
+          <nav className="nav-collapse-links">
+            <MobileLinks />
+          </nav>
+          <div className="nav-collapse-foot">
+            <AuthButton />
+          </div>
         </div>
-      </div>
+      )}
     </>
   );
 };
