@@ -32,6 +32,7 @@ export interface EmailIntelData {
   bonusSignals: BonusSignal[];
   allUrls: string[];
   embeddedUrls: string[];
+  imageUrls: string[];
   urgencyFlags: string[];
   hasUnsubscribeLink: boolean;
   hasSPFHint: boolean;
@@ -185,6 +186,7 @@ export function parseEmailIntel(raw: string): EmailIntelData {
       return true;
     }
   });
+  const imageUrls = extractImageUrls(raw);
 
   // ── Bonus signal extraction ──
   const bonusSignals: BonusSignal[] = [];
@@ -251,12 +253,25 @@ export function parseEmailIntel(raw: string): EmailIntelData {
     bonusSignals,
     allUrls,
     embeddedUrls,
+    imageUrls,
     urgencyFlags,
     hasUnsubscribeLink,
     hasSPFHint,
     promoCode,
     rawSignals,
   };
+}
+
+function extractImageUrls(raw: string): string[] {
+  const htmlImageMatches = [...raw.matchAll(/<img[^>]+src=["']([^"']+)["']/gi)].map((match) => match[1]);
+  const markdownImageMatches = [...raw.matchAll(/!\[[^\]]*]\((https?:\/\/[^)\s]+)\)/gi)].map((match) => match[1]);
+  const imageLikeUrls = [...raw.matchAll(/https?:\/\/[^\s"'<>)\]]+\.(?:png|jpe?g|gif|webp|svg)(?:\?[^\s"'<>)\]]+)?/gi)].map((match) =>
+    match[0].replace(/[.,;)]+$/, '')
+  );
+
+  return [...new Set([...htmlImageMatches, ...markdownImageMatches, ...imageLikeUrls])]
+    .map((url) => url.trim())
+    .filter(Boolean);
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────

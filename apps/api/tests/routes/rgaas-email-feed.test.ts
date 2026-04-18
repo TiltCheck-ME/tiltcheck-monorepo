@@ -81,17 +81,19 @@ describe('RGaaS email bonus feed routes', () => {
 
     const response = await request(app)
       .post('/rgaas/email-ingest')
-      .send({
-        raw_email: [
-          'From: promos@mcluck.com',
-          'Date: Thu, 16 Apr 2026 12:00:00 +0000',
-          'Subject: Match bonus drop',
-          '',
-          'Get a 100% match bonus up to $500 expires in 2 days.',
-          'Use code DROP500 at https://mcluck.com/promos/claim',
-          'Unsubscribe: https://mcluck.com/unsubscribe',
-        ].join('\n'),
-      });
+        .send({
+          raw_email: [
+            'From: promos@mcluck.com',
+            'Date: Thu, 16 Apr 2026 12:00:00 +0000',
+            'Subject: Match bonus drop',
+            '',
+            'Get a 100% match bonus up to $500 expires in 2 days.',
+            'Use code DROP500 at https://mcluck.com/promos/claim',
+            '<img src="https://cdn.discordapp.com/ephemeral-attachments/1234/5678/bad.png" />',
+            '<img src="https://mcluck.com/assets/promo-banner.png" />',
+            'Unsubscribe: https://mcluck.com/unsubscribe',
+          ].join('\n'),
+        });
 
     expect(response.status).toBe(200);
     expect(response.body.success).toBe(true);
@@ -118,13 +120,14 @@ describe('RGaaS email bonus feed routes', () => {
       bonuses: Array<Record<string, unknown>>;
     };
     expect(persistedFeed.bonuses).toHaveLength(1);
-    expect(persistedFeed.bonuses[0]).toMatchObject({
-      brand: 'McLuck',
-      code: 'DROP500',
-      url: 'https://mcluck.com/promos/claim',
-      source: 'email-inbox',
-      lastPublishedAt: expect.any(String),
-    });
+      expect(persistedFeed.bonuses[0]).toMatchObject({
+        brand: 'McLuck',
+        code: 'DROP500',
+        imageUrl: 'https://mcluck.com/assets/promo-banner.png',
+        url: 'https://mcluck.com/promos/claim',
+        source: 'email-inbox',
+        lastPublishedAt: expect.any(String),
+      });
 
     const trustSignalsLog = readFileSync(TEST_TRUST_SIGNALS_LOG_PATH, 'utf8').trim().split('\n');
     expect(trustSignalsLog).toHaveLength(1);

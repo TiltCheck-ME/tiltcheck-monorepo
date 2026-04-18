@@ -1,10 +1,4 @@
-/**
- * © 2024–2025 TiltCheck Ecosystem. All Rights Reserved.
- * Created by jmenichole (https://github.com/jmenichole)
- * 
- * This file is part of the TiltCheck project.
- * For licensing information, see LICENSE file in the project root.
- */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-18 */
 /**
  * Casino Data Scraper
  * Scrapes sweepscoinguide.com to populate the casino_data table.
@@ -16,6 +10,7 @@ import { JSDOM } from 'jsdom';
 import { createClient } from '@supabase/supabase-js';
 import dotenv from 'dotenv';
 import path from 'path';
+import { mkdirSync, writeFileSync } from 'node:fs';
 
 // Load environment variables from root
 const rootDir = process.cwd();
@@ -42,9 +37,135 @@ interface ScrapedCasinoData {
     site_rating?: string | null;
     type: string;
     logo_url?: string | null;
+    source_logo_url?: string | null;
+    logo_storage_path?: string | null;
+    logo_cache_status?: 'hosted' | 'mirrored' | 'external' | 'failed' | 'missing';
   };
   claimed_rtp: number;
   updated_at?: string;
+}
+
+const CASINO_ASSET_BUCKET = process.env.CASINO_ASSET_BUCKET?.trim() || null;
+const CASINO_ASSET_PREFIX = (process.env.CASINO_ASSET_PREFIX?.trim() || 'casino-assets').replace(/^\/+|\/+$/g, '');
+const CASINO_ASSET_OUTPUT_DIR = process.env.CASINO_ASSET_OUTPUT_DIR?.trim() || null;
+const CASINO_ASSET_PUBLIC_BASE_URL = process.env.CASINO_ASSET_PUBLIC_BASE_URL?.trim().replace(/\/$/, '') || null;
+
+function slugify(value: string): string {
+  return value.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'casino';
+}
+
+function getExtensionFromUrl(url: string): string | null {
+  try {
+    const pathname = new URL(url).pathname;
+    const ext = path.extname(pathname).toLowerCase();
+    if (/^\.[a-z0-9]{2,5}$/.test(ext)) return ext;
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+function getExtensionFromContentType(contentType: string | null): string {
+  if (!contentType) return '.png';
+  if (contentType.includes('svg')) return '.svg';
+  if (contentType.includes('webp')) return '.webp';
+  if (contentType.includes('jpeg') || contentType.includes('jpg')) return '.jpg';
+  if (contentType.includes('gif')) return '.gif';
+  return '.png';
+}
+
+async function cacheLogoAsset(logoUrl: string | null, domain: string): Promise<{
+  logoUrl: string | null;
+  sourceLogoUrl: string | null;
+  storagePath: string | null;
+  cacheStatus: 'hosted' | 'mirrored' | 'external' | 'failed' | 'missing';
+}> {
+  if (!logoUrl) {
+    return {
+      logoUrl: null,
+      sourceLogoUrl: null,
+      storagePath: null,
+      cacheStatus: 'missing',
+    };
+  }
+
+  const sourceLogoUrl = logoUrl;
+  const timeoutSignal = AbortSignal.timeout(12_000);
+
+  try {
+    const response = await fetch(logoUrl, {
+      headers: { Accept: 'image/*' },
+      signal: timeoutSignal,
+    });
+    if (!response.ok) {
+      console.warn(`⚠️ Could not fetch logo for ${domain}: HTTP ${response.status}`);
+      return { logoUrl, sourceLogoUrl, storagePath: null, cacheStatus: 'failed' };
+    }
+
+    const contentType = response.headers.get('content-type');
+    if (!contentType?.startsWith('image/')) {
+      console.warn(`⚠️ Skipping non-image logo for ${domain}: ${contentType ?? 'unknown content type'}`);
+      return { logoUrl, sourceLogoUrl, storagePath: null, cacheStatus: 'failed' };
+    }
+
+    const arrayBuffer = await response.arrayBuffer();
+    const body = Buffer.from(arrayBuffer);
+    const extension = getExtensionFromUrl(response.url || logoUrl) || getExtensionFromContentType(contentType);
+    const filename = `${slugify(domain)}${extension}`;
+    const storagePath = `${CASINO_ASSET_PREFIX}/${filename}`;
+
+    if (CASINO_ASSET_BUCKET) {
+      const { error: uploadError } = await supabase.storage
+        .from(CASINO_ASSET_BUCKET)
+        .upload(storagePath, body, {
+          contentType,
+          upsert: true,
+          cacheControl: '86400',
+        });
+
+      if (uploadError) {
+        console.warn(`⚠️ Failed to upload hosted logo for ${domain}:`, uploadError.message);
+      } else {
+        const {
+          data: { publicUrl },
+        } = supabase.storage.from(CASINO_ASSET_BUCKET).getPublicUrl(storagePath);
+
+        return {
+          logoUrl: publicUrl || logoUrl,
+          sourceLogoUrl,
+          storagePath,
+          cacheStatus: 'hosted',
+        };
+      }
+    }
+
+    if (CASINO_ASSET_OUTPUT_DIR && CASINO_ASSET_PUBLIC_BASE_URL) {
+      const outputPath = path.join(CASINO_ASSET_OUTPUT_DIR, filename);
+      mkdirSync(path.dirname(outputPath), { recursive: true });
+      writeFileSync(outputPath, body);
+      return {
+        logoUrl: `${CASINO_ASSET_PUBLIC_BASE_URL}/${filename}`,
+        sourceLogoUrl,
+        storagePath: outputPath,
+        cacheStatus: 'mirrored',
+      };
+    }
+
+    return {
+      logoUrl,
+      sourceLogoUrl,
+      storagePath: null,
+      cacheStatus: 'external',
+    };
+  } catch (error) {
+    console.warn(`⚠️ Failed to cache logo for ${domain}:`, error);
+    return {
+      logoUrl,
+      sourceLogoUrl,
+      storagePath: null,
+      cacheStatus: 'failed',
+    };
+  }
 }
 
 async function scrapeSweepscoinguide() {
@@ -86,9 +207,9 @@ async function scrapeSweepscoinguide() {
       console.log(`ℹ️ HTML Content Length: ${html.length} characters`);
     }
 
-    articles.forEach((article) => {
+    for (const article of articles) {
       const nameEl = article.querySelector('h2, h3, .casino-name, .review-title, a.name, td:first-child');
-      if (!nameEl) return;
+      if (!nameEl) continue;
 
       const name = nameEl.textContent?.trim() || 'Unknown';
       
@@ -117,6 +238,8 @@ async function scrapeSweepscoinguide() {
       }
 
       // Construct data object
+      const cachedLogo = await cacheLogoAsset(logoUrl, domain);
+
       const casinoData: ScrapedCasinoData = {
         domain,
         name,
@@ -128,7 +251,10 @@ async function scrapeSweepscoinguide() {
           welcome_bonus: bonusText,
           site_rating: ratingText,
           type: 'Sweepstakes Casino',
-          logo_url: logoUrl
+          logo_url: cachedLogo.logoUrl,
+          source_logo_url: cachedLogo.sourceLogoUrl,
+          logo_storage_path: cachedLogo.storagePath,
+          logo_cache_status: cachedLogo.cacheStatus,
         },
         // Default RTP if not found (Sweepstakes casinos rarely publish live RTP)
         claimed_rtp: 95.0, 
@@ -136,7 +262,7 @@ async function scrapeSweepscoinguide() {
       };
 
       casinos.push(casinoData);
-    });
+    }
 
     // If scraping yields nothing (e.g., site structure changed), add some known defaults
     if (casinos.length === 0) {

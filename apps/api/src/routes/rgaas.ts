@@ -848,6 +848,7 @@ router.post('/email-ingest', async (req, res) => {
           expiry_message: bonus.expiryMessage,
           is_expired: bonus.isExpired,
           bonus_url: bonus.url,
+          image_url: bonus.imageUrl,
           code: bonus.code,
           source: bonus.source,
         },
