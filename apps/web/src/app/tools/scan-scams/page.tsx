@@ -20,6 +20,8 @@ interface ShadowBanFeedResponse {
   flags?: CasinoFlag[];
 }
 
+type FeedState = 'loading' | 'ready' | 'unavailable';
+
 function getSeverityColor(severity: CasinoFlag['severity']): string {
   if (severity === 'high') return '#ef4444';
   if (severity === 'medium') return '#ffd700';
@@ -32,12 +34,19 @@ export default function ScanScamsPage() {
   const [error, setError] = useState<string | null>(null);
   const [supportedSignals, setSupportedSignals] = useState<string[]>([]);
   const [unavailableSignals, setUnavailableSignals] = useState<string[]>([]);
+  const [feedState, setFeedState] = useState<FeedState>('loading');
 
   useEffect(() => {
+    const controller = new AbortController();
+    const timeoutId = window.setTimeout(() => controller.abort(), 8000);
+
     const fetchFlags = async () => {
       try {
         const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://api.tiltcheck.me';
-        const res = await fetch(`${apiUrl}/rgaas/shadow-bans`);
+        const res = await fetch(`${apiUrl}/rgaas/shadow-bans`, {
+          signal: controller.signal,
+          cache: 'no-store',
+        });
         if (!res.ok) throw new Error('Trust Engine feed unavailable');
 
         const data = await res.json() as ShadowBanFeedResponse;
@@ -45,21 +54,47 @@ export default function ScanScamsPage() {
         setSupportedSignals(Array.isArray(data.supportedSignals) ? data.supportedSignals : []);
         setUnavailableSignals(Array.isArray(data.unavailableSignals) ? data.unavailableSignals : []);
         setError(data.message || null);
-      } catch {
-        setError('Trust Engine feed unavailable. No fallback sample data is shown.');
+        setFeedState('ready');
+      } catch (fetchError) {
+        const timeoutMessage =
+          fetchError instanceof DOMException && fetchError.name === 'AbortError'
+            ? 'Trust Engine feed timed out. No fallback sample data is shown.'
+            : 'Trust Engine feed unavailable. No fallback sample data is shown.';
+        setError(timeoutMessage);
         setFlags([]);
         setSupportedSignals([]);
         setUnavailableSignals([]);
+        setFeedState('unavailable');
       } finally {
+        window.clearTimeout(timeoutId);
         setLoading(false);
       }
     };
 
     void fetchFlags();
+
+    return () => {
+      window.clearTimeout(timeoutId);
+      controller.abort();
+    };
   }, []);
 
+  const feedStatusLabel =
+    feedState === 'loading'
+      ? 'Loading live feed'
+      : feedState === 'ready'
+        ? 'Live feed ready'
+        : 'Live feed unavailable';
+
   return (
-    <main className="min-h-screen bg-[#0a0c10] text-white">
+    <main
+      className="min-h-screen bg-[#0a0c10] text-white"
+      data-feed-state={feedState}
+      aria-busy={loading}
+    >
+      <div className="sr-only" aria-live="polite">
+        Shadow-ban feed status: {feedStatusLabel}
+      </div>
       <section className="border-b border-[#283347] py-32 px-4">
         <div className="max-w-4xl mx-auto text-center">
           <p className="text-xs font-mono text-[#17c3b2] uppercase tracking-widest mb-4">TRUST ENGINE</p>
@@ -86,8 +121,11 @@ export default function ScanScamsPage() {
         <div className="max-w-5xl mx-auto">
           <div className="flex justify-between items-center mb-8">
             <h2 className="text-xl font-black uppercase tracking-tight">Active Flags</h2>
-            <span className="text-xs font-mono text-gray-500 uppercase">
-              {loading ? 'Loading...' : `${flags.length} flags tracked`}
+            <span
+              className="text-xs font-mono text-gray-500 uppercase"
+              data-testid="shadow-ban-feed-status"
+            >
+              {loading ? 'Loading live feed...' : `${flags.length} flags tracked`}
             </span>
           </div>
 
