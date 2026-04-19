@@ -6,6 +6,7 @@
 
 import { Router } from 'express';
 import { query } from '@tiltcheck/db';
+import { aiClient } from '@tiltcheck/ai-client';
 
 const router = Router();
 
@@ -58,6 +59,14 @@ router.get('/ready', async (_req, res) => {
 router.get('/live', (_req, res) => {
   res.json({
     status: 'alive',
+    timestamp: new Date().toISOString(),
+  });
+});
+
+router.get('/ai', (_req, res) => {
+  res.json({
+    status: 'ok',
+    ai: aiClient.getStatus(),
     timestamp: new Date().toISOString(),
   });
 });

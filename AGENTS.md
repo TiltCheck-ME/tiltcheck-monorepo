@@ -79,15 +79,23 @@ These agents are available as GitHub Copilot custom agents within the repository
 | devops-agent | .github/agents/devops-agent.agent.md | Specialized agent for DevOps and deployment tasks in TiltCheck monorepo. Handles building, configuring, deploying, and monitoring infrastructure and CI/CD pipelines. Always verifies compliance with brand laws and documents any bugs or errors encountered. |
 | frontend-developer | .github/agents/frontend-developer.agent.md | Specialized agent for frontend development in TiltCheck monorepo. Handles building, refactoring, testing, and improving frontend code. Always verifies compliance with brand laws and documents any bugs or errors encountered. |
 | fullstack-developer | .github/agents/fullstack-developer.agent.md | Specialized agent for full-stack development in TiltCheck monorepo. Handles building, refactoring, testing, and improving cross-cutting features across frontend and backend. Always verifies compliance with brand laws and documents any bugs or errors encountered. |
+| platform-strategy-agent | .github/agents/platform-strategy-agent.agent.md | Specialized agent for marketing pain-point analysis, UX friction evaluation, and platform-fit strategy. Recommends where tools and flows should live across web, dashboard, Discord, extension, control-room, and API. |
 | scribe-agent | .github/agents/scribe-agent.md | Ecosystem documentarian and rule enforcer. Automates copyright headers, UI footers, and ensures zero-drift between code and docs. |
 
 ## Latest Additions (This Session)
 
 ### GitHub Copilot Custom Agents (ACTIVE)
 - **Purpose:** Domain-scoped AI assistants available via GitHub Copilot chat in the repository
-- **Agents:** backend-developer, devops-agent, frontend-developer, fullstack-developer, scribe-agent
+- **Agents:** backend-developer, devops-agent, frontend-developer, fullstack-developer, platform-strategy-agent, scribe-agent
 - **Compliance:** All agents enforce brand laws (copyright headers, no emojis, atomic docs, non-custodial flows)
-- **Files:** `.github/agents/backend-developer.agent.md`, `.github/agents/devops-agent.agent.md`, `.github/agents/frontend-developer.agent.md`, `.github/agents/fullstack-developer.agent.md`, `.github/agents/scribe-agent.md`
+- **Files:** `.github/agents/backend-developer.agent.md`, `.github/agents/devops-agent.agent.md`, `.github/agents/frontend-developer.agent.md`, `.github/agents/fullstack-developer.agent.md`, `.github/agents/platform-strategy-agent.agent.md`, `.github/agents/scribe-agent.md`
+
+### Platform Strategy Agent (ACTIVE)
+- **Purpose:** Evaluates user pain points, UX friction, and platform-fit across the TiltCheck ecosystem so each tool lives on the right surface.
+- **Focus:** Discovery vs configuration vs real-time guardrails vs durable settings vs social/accountability flows.
+- **Surfaces:** `web`, `user-dashboard`, `chrome-extension`, `discord-bot`, `control-room`, and `api`.
+- **Outcome:** Recommends primary surface, supporting surfaces, user journey, friction risks, and what should not be duplicated elsewhere.
+- **File:** `.github/agents/platform-strategy-agent.agent.md`
 
 ### Brand Law Enforcer Agent (ACTIVE)
 - **Purpose:** Automated PR gatekeeper enforcing "The Degen Laws"

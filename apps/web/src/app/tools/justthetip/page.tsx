@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-14 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-19 */
 "use client";
 
 import React, { useState, useEffect, useCallback } from 'react';
@@ -8,10 +8,11 @@ import Footer from '@/components/Footer';
 import LegalModal from '@/components/LegalModal';
 import { LEGAL_DISCLAIMERS } from '@tiltcheck/shared/legal';
 import { fetchAuthSession } from '@/lib/auth-session';
+import { getDiscordLoginApiBase, getDiscordLoginUrl } from '@/lib/discord-login';
 
-const API = process.env.NEXT_PUBLIC_API_URL || '/api';
+const API = getDiscordLoginApiBase();
 const WEB_CHANNEL = 'web-tips';
-const DISCORD_LOGIN_URL = `${API}/auth/discord/login?source=web&redirect=${encodeURIComponent('/tools/justthetip')}`;
+const DISCORD_LOGIN_URL = getDiscordLoginUrl('/tools/justthetip');
 
 interface HistoryEntry {
   id: string;

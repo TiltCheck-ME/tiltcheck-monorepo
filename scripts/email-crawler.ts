@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-09
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-18
 /**
  * Casino Email Crawler
  *
@@ -16,6 +16,7 @@
  *   npx tsx scripts/email-crawler.ts --all        # reprocess all (ignores seen log)
  *   npx tsx scripts/email-crawler.ts --dry-run    # parse only, don't call API
  *   npx tsx scripts/email-crawler.ts --limit 50   # cap at 50 emails per run
+ *   npx tsx scripts/email-crawler.ts --delete-processed # delete emails after successful ingest
  */
 
 import Imap from 'imap';
@@ -37,6 +38,7 @@ const APP_PASSWORD = process.env.CRAWLER_APP_PASSWORD;
 const FLAGS = {
   all: process.argv.includes('--all'),
   dryRun: process.argv.includes('--dry-run'),
+  deleteProcessed: process.argv.includes('--delete-processed'),
   limit: (() => {
     const idx = process.argv.indexOf('--limit');
     return idx !== -1 ? parseInt(process.argv[idx + 1], 10) || 100 : 200;
@@ -203,7 +205,10 @@ async function ingestEmail(rawEmail: string): Promise<{ success: boolean; brand?
 
   const res = await fetch(`${API_URL}/rgaas/email-ingest`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      'Content-Type': 'application/json',
+      'X-Requested-With': 'TiltCheck-Email-Crawler',
+    },
     body: JSON.stringify({ raw_email: rawEmail }),
   });
 
@@ -265,6 +270,26 @@ function fetchRawMessage(imap: Imap, uid: number): Promise<string> {
   });
 }
 
+function deleteMessage(imap: Imap, uid: number): Promise<void> {
+  return new Promise((resolve, reject) => {
+    imap.addFlags(uid, '\\Deleted', (flagError) => {
+      if (flagError) {
+        reject(flagError);
+        return;
+      }
+
+      imap.expunge(uid, (expungeError) => {
+        if (expungeError) {
+          reject(expungeError);
+          return;
+        }
+
+        resolve();
+      });
+    });
+  });
+}
+
 // ─── Main ────────────────────────────────────────────────────────────────────
 
 async function run(): Promise<void> {
@@ -272,7 +297,7 @@ async function run(): Promise<void> {
   const imap = buildImapClient();
 
   console.log(`\nTiltCheck Casino Email Crawler`);
-  console.log(`Mode: ${FLAGS.dryRun ? 'DRY RUN' : 'LIVE'} | Limit: ${FLAGS.limit} | Reset: ${FLAGS.all}`);
+  console.log(`Mode: ${FLAGS.dryRun ? 'DRY RUN' : 'LIVE'} | Limit: ${FLAGS.limit} | Reset: ${FLAGS.all} | Delete processed: ${FLAGS.deleteProcessed}`);
   console.log(`API: ${API_URL}`);
   console.log(`Searching for emails from ${CASINO_SENDER_DOMAINS.length} known casino domains...\n`);
 
@@ -280,26 +305,30 @@ async function run(): Promise<void> {
     imap.once('ready', async () => {
       try {
         // Open inbox
-        await promisify(imap.openBox.bind(imap))('INBOX', true);
+        await promisify(imap.openBox.bind(imap))('INBOX', !FLAGS.deleteProcessed);
 
-        // Build IMAP search: OR chain of FROM filters
-        const fromQueries = CASINO_SENDER_DOMAINS.map((d) => ['FROM', d]);
-
-        // IMAP OR requires pairs; build a nested OR tree
-        function buildOrSearch(queries: string[][]): unknown {
-          if (queries.length === 1) return queries[0];
-          if (queries.length === 2) return ['OR', queries[0], queries[1]];
-          return ['OR', queries[0], buildOrSearch(queries.slice(1))];
-        }
-
-        const searchCriteria = buildOrSearch(fromQueries);
-
-        const uids: number[] = await new Promise((res, rej) => {
-          imap.search([searchCriteria] as Parameters<typeof imap.search>[0], (err, results) => {
+        const searchDomain = (domain: string): Promise<number[]> => new Promise((res, rej) => {
+          imap.search([['FROM', domain]] as Parameters<typeof imap.search>[0], (err, results) => {
             if (err) rej(err);
-            else res(results as number[]);
+            else res((results as number[]) ?? []);
           });
         });
+
+        // Gmail/IMAP chokes on a very large nested OR tree. Search each sender
+        // domain independently, then union the matching UIDs.
+        const uidSet = new Set<number>();
+        for (const domain of CASINO_SENDER_DOMAINS) {
+          try {
+            const domainUids = await searchDomain(domain);
+            for (const uid of domainUids) {
+              uidSet.add(uid);
+            }
+          } catch (err) {
+            console.warn(`Skipping domain ${domain}: ${err instanceof Error ? err.message : String(err)}`);
+          }
+        }
+
+        const uids = [...uidSet].sort((a, b) => a - b);
 
         console.log(`Found ${uids.length} matching emails in inbox.`);
 
@@ -329,6 +358,9 @@ async function run(): Promise<void> {
             if (result.success) {
               seen.add(String(uid));
               totalBonuses += result.bonusCount ?? 0;
+              if (FLAGS.deleteProcessed) {
+                await deleteMessage(imap, uid);
+              }
               console.log(`OK | ${result.brand ?? 'unknown brand'} | ${result.bonusCount ?? 0} bonuses | domain: ${result.riskLevel}`);
             } else {
               console.log('FAILED');

@@ -1,6 +1,5 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-15 */
-import Link from 'next/link';
-import React from 'react';
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-19 */
+import Link from "next/link";
 
 type ToolCardProps = {
   href: string;
@@ -8,58 +7,55 @@ type ToolCardProps = {
   category: string;
   title: string;
   description: string;
-  status: 'live' | 'coming-soon' | 'featured';
+  status: "live" | "coming-soon" | "featured";
   gridClasses?: string;
+  variant?: "hero" | "flagship" | "supporting";
 };
 
-const ToolCard = ({ href, category, title, description, status, gridClasses }: ToolCardProps) => {
-  const isComingSoon = status === 'coming-soon';
-  const isFeatured = status === 'featured';
+const ToolCard = ({
+  href,
+  icon,
+  category,
+  title,
+  description,
+  status,
+  gridClasses,
+  variant = "flagship",
+}: ToolCardProps) => {
+  const isComingSoon = status === "coming-soon";
+  const isFeatured = status === "featured" || variant !== "supporting";
 
   const cardClasses = [
-    'tool-card',
-    'group',
-    'relative',
-    'p-6',
-    'flex',
-    'flex-col',
-    'justify-between',
-    'bg-gradient-to-br from-[#0E0E0F] to-[#0a0c10]',
-    'border',
-    'border-[#283347]',
-    'rounded-none',
-    'transition-all',
-    'duration-300',
-    'hover:border-[#17c3b2]',
-    isComingSoon ? 'coming-soon' : 'live',
-    isFeatured ? 'featured' : '',
-    gridClasses || ''
-  ].join(' ');
-
-  const StatusBadge = () => {
-    if (isComingSoon) {
-      return <span className="absolute top-4 right-4 badge-notify" style={{fontSize:'0.65rem', fontWeight:900, letterSpacing:'0.12em', padding:'0.2rem 0.45rem', borderRadius:'9999px', textTransform:'uppercase'}}>GET NOTIFIED</span>;
-    }
-    if(status === 'live' || isFeatured) {
-        return <span className="absolute top-4 right-4 badge-live">LIVE & TESTED</span>;
-    }
-    return null;
-  };
+    "tool-card",
+    `tool-card--${variant}`,
+    isComingSoon ? "tool-card--coming-soon" : "tool-card--live",
+    isFeatured ? "tool-card--featured" : "",
+    gridClasses || "",
+  ]
+    .filter(Boolean)
+    .join(" ");
 
   return (
     <Link href={href} className={cardClasses}>
-      <div>
-        <span className="category-label text-sm font-semibold uppercase tracking-wider text-[color:var(--color-primary)]">
-          {category}
-        </span>
-        <h3 className="neon-tool-name mt-2 text-xl font-bold text-white">
-          {title}
-        </h3>
-        <p className="tool-card-desc mt-2 text-gray-400">
-          {description}
-        </p>
+      <div className="tool-card__media" aria-hidden="true">
+        <img src={icon} alt="" className="tool-card__image" />
       </div>
-      <StatusBadge />
+
+      <div className="tool-card__body">
+        <div className="tool-card__eyebrow-row">
+          <span className="tool-card__category">{category}</span>
+          <span className={`tool-card__status ${isComingSoon ? "tool-card__status--notify" : "tool-card__status--live"}`}>
+            {isComingSoon ? "Get notified" : "Live now"}
+          </span>
+        </div>
+
+        <h3 className="tool-card__title">{title}</h3>
+        <p className="tool-card__description">{description}</p>
+      </div>
+
+      <div className="tool-card__footer">
+        <span className="tool-card__cta">{isComingSoon ? "Join waitlist" : "Open tool"}</span>
+      </div>
     </Link>
   );
 };

@@ -1,4 +1,4 @@
-# © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-09
+# © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-18
 #
 # Registers a Windows Task Scheduler job to run the email crawler on a recurring schedule.
 # Reads env vars from the repo root .env file automatically.
@@ -17,6 +17,7 @@ param(
     [string[]]$Times = @("07:00", "19:00"),
     [int]$Limit = 500,
     [switch]$DryRun,
+    [switch]$DeleteProcessed,
     [switch]$DisableAfterCreate
 )
 
@@ -27,10 +28,11 @@ $repoRoot = Split-Path -Parent $MyInvocation.MyCommand.Path | Split-Path -Parent
 # Resolve tsx — prefer local workspace install, fall back to global
 $tsxPath = Join-Path $repoRoot "node_modules\.bin\tsx.cmd"
 if (-not (Test-Path $tsxPath)) {
-    $tsxPath = (Get-Command tsx -ErrorAction SilentlyContinue)?.Source
-    if (-not $tsxPath) {
+    $tsxCommand = Get-Command tsx -ErrorAction SilentlyContinue
+    if (-not $tsxCommand) {
         throw "tsx not found. Run 'pnpm install' in the repo root first."
     }
+    $tsxPath = $tsxCommand.Source
 }
 
 $runnerScript = Join-Path $repoRoot "scripts\run-email-crawler.ps1"
@@ -72,21 +74,9 @@ foreach ($timeText in $Times) {
     }
 }
 
-# Build argument string for tsx
-$crawlerArgs = "`"$crawlerScript`" --limit $Limit"
-if ($DryRun) { $crawlerArgs += " --dry-run" }
-
-$argList = "-NoProfile -ExecutionPolicy Bypass -Command `"& '$tsxPath' $crawlerArgs`""
-
-# Build argument string for the wrapper script
-$runnerArgs = "-DurationMinutes" # placeholder var removed
-$wrapperArgs = @()
-$wrapperArgs += "--limit"; $wrapperArgs += $Limit
-if ($DryRun) { $wrapperArgs += "--dry-run" }
-
-$wrapperArgsStr = ($wrapperArgs | ForEach-Object { if ($_ -match '^\d+$') { $_ } else { $_ } }) -join " "
 $argList = "-NoProfile -ExecutionPolicy Bypass -File `"$runnerScript`" -Limit $Limit"
 if ($DryRun) { $argList += " -DryRun" }
+if ($DeleteProcessed) { $argList += " -DeleteProcessed" }
 
 $action = New-ScheduledTaskAction `
     -Execute "powershell.exe" `
@@ -115,7 +105,7 @@ Register-ScheduledTask `
 
 if ($DisableAfterCreate) {
     Disable-ScheduledTask -TaskName $TaskName | Out-Null
-    Write-Host "Task created (disabled — enable it when ready)."
+    Write-Host "Task created (disabled - enable it when ready)."
 } else {
     Write-Host "Task created and enabled."
 }
@@ -127,6 +117,7 @@ if ($Schedule -eq "Weekly") { Write-Host "Days       : $($Days -join ', ')" }
 Write-Host "Times      : $($Times -join ', ')"
 Write-Host "Limit/run  : $Limit emails"
 if ($DryRun) { Write-Host "Mode       : dry-run (no API calls)" }
+if ($DeleteProcessed) { Write-Host "Cleanup    : delete processed emails after successful ingest" }
 Write-Host ""
 Write-Host "Manage the task:"
 Write-Host "  Run now : Start-ScheduledTask -TaskName `"$TaskName`""

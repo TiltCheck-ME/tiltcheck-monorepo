@@ -462,9 +462,10 @@ function colorLog(line) {
 
 // ── Metrics ────────────────────────────────────────────────────────────────────
 async function loadMetrics() {
-  var results = await Promise.all([api('/api/system/metrics'), api('/api/system/status')]);
+  var results = await Promise.all([api('/api/system/metrics'), api('/api/system/status'), api('/api/ai/status')]);
   var m = results[0].data;
   var s = results[1].data;
+  var ai = results[2].data;
 
   if (m) {
     document.getElementById('m-uptime').textContent = m.uptime || '—';
@@ -482,6 +483,8 @@ async function loadMetrics() {
     var upEl = document.getElementById('stats-updated');
     if (upEl) upEl.textContent = 'Updated ' + new Date().toLocaleTimeString();
   }
+
+  renderAIStatus(ai, results[2].ok);
 }
 
 function renderStatsTable(services) {
@@ -505,6 +508,74 @@ function renderStatsTable(services) {
       '</tr>';
     }).join('') +
     '</tbody></table>';
+}
+
+function renderAIStatus(payload, ok) {
+  var wrap = document.getElementById('ai-provider-panel');
+  if (!wrap) return;
+
+  if (!ok || !payload || !payload.ai) {
+    var errorText = (payload && (payload.error || payload.details)) || 'AI status unavailable.';
+    wrap.innerHTML = '<div class="ai-status-card ai-status-error">' +
+      '<div class="ai-status-title">Status unavailable</div>' +
+      '<div class="muted">' + escHtml(errorText) + '</div>' +
+      '</div>';
+    return;
+  }
+
+  var ai = payload.ai;
+  var last = ai.lastRequest;
+  var policy = ai.policy || null;
+  var providers = (ai.providers || []).map(function(provider) {
+    return '<div class="ai-provider-row">' +
+      '<span class="ai-provider-name">' + escHtml(provider.provider) + '</span>' +
+      '<span class="status-pill ' + (provider.configured ? 'status-running' : 'status-stopped') + '">' +
+      (provider.configured ? 'configured' : 'offline') +
+      '</span>' +
+      '</div>';
+  }).join('');
+
+  var attempts = last && last.attempts && last.attempts.length
+    ? last.attempts.map(function(attempt) {
+        var label = attempt.success ? 'ok' : (attempt.skipped ? 'skipped' : 'failed');
+        var pillClass = attempt.success ? 'status-running' : (attempt.skipped ? 'status-missing' : 'status-stopped');
+        return '<div class="ai-attempt-row">' +
+          '<span>' + escHtml(attempt.provider) + '</span>' +
+          '<span class="status-pill ' + pillClass + '">' + label + '</span>' +
+          (attempt.error ? '<span class="muted">' + escHtml(attempt.error) + '</span>' : '') +
+          '</div>';
+      }).join('')
+    : '<div class="muted">No AI requests recorded yet in this API process.</div>';
+
+  var activeProvider = last && last.successfulProvider ? last.successfulProvider : 'none';
+  var stateText = last
+    ? (last.mockUsed ? 'Mock fallback active' : (last.successfulProvider ? 'Live provider active' : 'Provider chain failed'))
+    : 'No requests yet';
+  var policyMeta = policy
+    ? ('Profile: ' + policy.profile + (policy.disablePaidProviders ? ' | paid providers blocked' : ''))
+    : 'Policy unavailable';
+  var allowedProvidersText = policy && policy.allowedProviders && policy.allowedProviders.length
+    ? policy.allowedProviders.join(', ')
+    : 'none';
+
+  wrap.innerHTML =
+    '<div class="ai-status-card">' +
+      '<div class="ai-status-kicker">Current state</div>' +
+      '<div class="ai-status-title">' + escHtml(activeProvider) + '</div>' +
+      '<div class="muted">' + escHtml(stateText) + '</div>' +
+      '<div class="ai-status-meta">' + escHtml(policyMeta) + '</div>' +
+      '<div class="ai-status-meta">Allowed: ' + escHtml(allowedProvidersText) + '</div>' +
+      (last && last.application ? '<div class="ai-status-meta">Last app: ' + escHtml(last.application) + '</div>' : '') +
+      (last && last.timestamp ? '<div class="ai-status-meta">Updated: ' + escHtml(new Date(last.timestamp).toLocaleString()) + '</div>' : '') +
+    '</div>' +
+    '<div class="ai-status-card">' +
+      '<div class="ai-status-kicker">Configured providers</div>' +
+      providers +
+    '</div>' +
+    '<div class="ai-status-card ai-status-span-2">' +
+      '<div class="ai-status-kicker">Recent chain</div>' +
+      attempts +
+    '</div>';
 }
 
 // ── Compose ────────────────────────────────────────────────────────────────────

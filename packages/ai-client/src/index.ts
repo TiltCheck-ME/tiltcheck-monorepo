@@ -2,18 +2,16 @@
 /**
  * TiltCheck AI Gateway Client
  *
- * Smart multi-provider routing: each AI application is routed to the best
- * provider based on accuracy requirements and cost efficiency, with automatic
- * fallback if the primary provider is unavailable.
+ * Smart multi-provider routing with a hard provider switcher. Each AI
+ * application is routed to the best allowed provider based on accuracy and
+ * cost efficiency, with automatic fallback if the primary provider fails.
  *
  * Provider priority by application:
  *   Accuracy-critical (tilt-detection, moderation, survey-matching,
- *     recommendations, onboarding) → Vertex AI → Groq → Ollama → Mock
+ *     recommendations, onboarding) → Gemini → Groq → Hugging Face
+ *     → Ollama → Mock
  *   Speed/cost-critical (nl-commands, support, card-generation)
- *     → Groq → Vertex AI → Ollama → Mock
- *
- * Auth: Vertex AI uses a GCP service account key (GOOGLE_SERVICE_ACCOUNT_JSON)
- * to obtain short-lived OAuth2 Bearer tokens, cached for 55 minutes.
+ *     → Groq → Hugging Face → Gemini → Ollama → Mock
  */
 
 export type AIApplication =
@@ -26,7 +24,8 @@ export type AIApplication =
   | 'support'
   | 'onboarding';
 
-export type AIProvider = 'vertex' | 'groq' | 'ollama' | 'openai' | 'mock';
+export type AIProvider = 'vertex' | 'gemini' | 'groq' | 'huggingface' | 'ollama' | 'openai' | 'mock';
+export type AIProviderProfile = 'local-only' | 'free-tier' | 'balanced' | 'paid' | 'custom';
 
 /**
  * Per-application provider priority list.
@@ -35,15 +34,24 @@ export type AIProvider = 'vertex' | 'groq' | 'ollama' | 'openai' | 'mock';
  */
 const PROVIDER_ROUTES: Record<AIApplication, AIProvider[]> = {
   // Accuracy-critical: complex reasoning, behavioral analysis, safety
-  'tilt-detection':  ['vertex', 'groq', 'ollama', 'mock'],
-  'moderation':      ['vertex', 'groq', 'ollama', 'mock'],
-  'survey-matching': ['vertex', 'groq', 'ollama', 'mock'],
-  'recommendations': ['vertex', 'groq', 'ollama', 'mock'],
-  'onboarding':      ['vertex', 'groq', 'ollama', 'mock'],
+  'tilt-detection':  ['gemini', 'groq', 'huggingface', 'ollama', 'mock'],
+  'moderation':      ['gemini', 'groq', 'huggingface', 'ollama', 'mock'],
+  'survey-matching': ['gemini', 'groq', 'huggingface', 'ollama', 'mock'],
+  'recommendations': ['gemini', 'groq', 'huggingface', 'ollama', 'mock'],
+  'onboarding':      ['gemini', 'groq', 'huggingface', 'ollama', 'mock'],
   // Speed/cost-critical: real-time UX, creative, high-volume
-  'nl-commands':     ['groq', 'vertex', 'ollama', 'mock'],
-  'support':         ['groq', 'vertex', 'ollama', 'mock'],
-  'card-generation': ['groq', 'ollama', 'vertex', 'mock'],
+  'nl-commands':     ['groq', 'huggingface', 'gemini', 'ollama', 'mock'],
+  'support':         ['groq', 'huggingface', 'gemini', 'ollama', 'mock'],
+  'card-generation': ['groq', 'huggingface', 'gemini', 'ollama', 'mock'],
+};
+
+const ALL_PROVIDERS: AIProvider[] = ['gemini', 'groq', 'huggingface', 'ollama', 'openai', 'mock'];
+const DEFAULT_PAID_PROVIDERS: AIProvider[] = ['gemini', 'groq', 'openai'];
+const PROVIDER_PROFILES: Record<Exclude<AIProviderProfile, 'custom'>, AIProvider[]> = {
+  'local-only': ['ollama', 'mock'],
+  'free-tier': ['huggingface', 'ollama', 'mock'],
+  'balanced': ['gemini', 'groq', 'huggingface', 'ollama', 'openai', 'mock'],
+  'paid': ['gemini', 'groq', 'huggingface', 'ollama', 'openai', 'mock'],
 };
 
 export interface AIRequest {
@@ -188,7 +196,18 @@ export interface AIClientConfig {
   retries?: number;
   /** Force a specific provider for all requests (overrides PROVIDER_ROUTES). */
   forceProvider?: AIProvider;
-  // Vertex AI
+  providerProfile?: AIProviderProfile;
+  disablePaidProviders?: boolean;
+  allowedProviders?: AIProvider[];
+  blockedProviders?: AIProvider[];
+  paidProviders?: AIProvider[];
+  // Gemini
+  geminiApiKey?: string;
+  geminiModel?: string;
+  // Hugging Face
+  huggingFaceToken?: string;
+  huggingFaceModel?: string;
+  // Vertex AI (deprecated)
   vertexProject?: string;
   vertexLocation?: string;
   vertexModel?: string;
@@ -207,7 +226,18 @@ const DEFAULT_CONFIG: Required<AIClientConfig> = {
   authToken: '',
   retries: 2,
   forceProvider: (process.env.AI_PROVIDER as AIProvider | undefined) as unknown as AIProvider,
-  // Vertex AI (uses Gemini on Vertex — applies $1k credits)
+  providerProfile: (process.env.AI_PROVIDER_PROFILE as AIProviderProfile | undefined) || 'free-tier',
+  disablePaidProviders: process.env.AI_DISABLE_PAID_PROVIDERS === 'true',
+  allowedProviders: parseProviderList(process.env.AI_ALLOWED_PROVIDERS),
+  blockedProviders: parseProviderList(process.env.AI_BLOCKED_PROVIDERS),
+  paidProviders: parseProviderList(process.env.AI_PAID_PROVIDERS, DEFAULT_PAID_PROVIDERS),
+  // Gemini direct (OpenAI-compatible endpoint)
+  geminiApiKey: process.env.GEMINI_API_KEY || '',
+  geminiModel: process.env.GEMINI_MODEL || 'gemini-2.0-flash',
+  // Hugging Face
+  huggingFaceToken: process.env.HUGGINGFACE_TOKEN || process.env.HF_TOKEN || '',
+  huggingFaceModel: process.env.HUGGINGFACE_MODEL || 'Qwen/Qwen2.5-72B-Instruct',
+  // Vertex AI (deprecated; kept for compatibility, no longer used in routing)
   vertexProject: process.env.GOOGLE_CLOUD_PROJECT || '',
   vertexLocation: process.env.VERTEX_LOCATION || 'us-central1',
   vertexModel: process.env.VERTEX_MODEL || 'gemini-2.5-flash',
@@ -227,6 +257,62 @@ interface TokenCache {
 }
 let vertexTokenCache: TokenCache | null = null;
 
+function parseProviderList(
+  value: string | undefined,
+  fallback: AIProvider[] = [],
+): AIProvider[] {
+  if (!value?.trim()) return [...fallback];
+  const requested = value
+    .split(',')
+    .map((entry) => entry.trim().toLowerCase())
+    .filter(Boolean);
+
+  return requested.filter((provider): provider is AIProvider => (
+    provider === 'vertex'
+    || provider === 'gemini'
+    || provider === 'groq'
+    || provider === 'huggingface'
+    || provider === 'ollama'
+    || provider === 'openai'
+    || provider === 'mock'
+  ));
+}
+
+export interface AIProviderAttempt {
+  provider: AIProvider;
+  configured: boolean;
+  success: boolean;
+  error?: string;
+  skipped?: boolean;
+}
+
+export interface AIStatusSnapshot {
+  timestamp: string;
+  forceProvider: AIProvider | null;
+  policy: {
+    profile: AIProviderProfile;
+    disablePaidProviders: boolean;
+    allowedProviders: AIProvider[];
+    blockedProviders: AIProvider[];
+    paidProviders: AIProvider[];
+  };
+  routes: Record<AIApplication, AIProvider[]>;
+  providers: Array<{
+    provider: AIProvider;
+    configured: boolean;
+  }>;
+  lastRequest: {
+    application: AIApplication;
+    baseChain: AIProvider[];
+    chain: AIProvider[];
+    successfulProvider: AIProvider | null;
+    mockUsed: boolean;
+    attempts: AIProviderAttempt[];
+    error: string | null;
+    timestamp: string;
+  } | null;
+}
+
 /**
  * AI Gateway Client
  */
@@ -234,6 +320,7 @@ export class AIClient {
   private config: Required<AIClientConfig>;
   private cache: Map<string, { response: AIResponse; timestamp: number }> = new Map();
   private cacheTimeout = 300000; // 5 minutes
+  private lastRequestStatus: AIStatusSnapshot['lastRequest'] = null;
 
   constructor(config?: AIClientConfig) {
     this.config = { ...DEFAULT_CONFIG, ...config };
@@ -281,24 +368,48 @@ export class AIClient {
     const timeoutId = setTimeout(() => controller.abort(), this.config.timeout);
 
     try {
-      // Determine provider chain: forced override or route table
-      const chain: AIProvider[] = this.config.forceProvider
+      const baseChain: AIProvider[] = this.config.forceProvider
         ? [this.config.forceProvider, 'mock']
-        : PROVIDER_ROUTES[request.application] ?? ['groq', 'vertex', 'ollama', 'mock'];
+        : PROVIDER_ROUTES[request.application] ?? ['groq', 'huggingface', 'gemini', 'ollama', 'mock'];
+      const { chain, policy } = this.getEffectiveChain(baseChain);
 
       let lastError = '';
+      const attempts: AIProviderAttempt[] = [];
       for (const provider of chain) {
-        if (!this.isProviderConfigured(provider)) continue;
+        const configured = this.isProviderConfigured(provider);
+        if (!configured) {
+          attempts.push({
+            provider,
+            configured: false,
+            success: false,
+            skipped: true,
+            error: 'not configured',
+          });
+          continue;
+        }
         try {
           const result = await this.callProvider<T>(provider, request, controller.signal);
+          attempts.push({ provider, configured: true, success: true });
+          this.recordRequestStatus(request.application, baseChain, chain, attempts, provider, null);
           clearTimeout(timeoutId);
           return result;
         } catch (err) {
           lastError = err instanceof Error ? err.message : String(err);
+          attempts.push({ provider, configured: true, success: false, error: lastError });
           console.warn(`[AIClient] ${provider} failed for ${request.application}: ${lastError}`);
         }
       }
 
+      this.recordRequestStatus(
+        request.application,
+        baseChain,
+        chain,
+        attempts,
+        null,
+        lastError || (policy.allowedProviders.length > 0
+          ? 'No configured AI providers available'
+          : 'Provider switcher blocked every configured provider'),
+      );
       clearTimeout(timeoutId);
       return { success: false, error: `All providers failed. Last: ${lastError}` };
     } catch (error) {
@@ -311,9 +422,13 @@ export class AIClient {
   private isProviderConfigured(provider: AIProvider): boolean {
     switch (provider) {
       case 'vertex':
-        return !!(process.env.GOOGLE_SERVICE_ACCOUNT_JSON && this.config.vertexProject);
+        return false;
+      case 'gemini':
+        return !!this.config.geminiApiKey;
       case 'groq':
         return !!this.config.groqApiKey;
+      case 'huggingface':
+        return !!this.config.huggingFaceToken;
       case 'ollama':
         return !!(this.config.ollamaUrl && this.config.ollamaUrl !== 'http://localhost:11434/v1')
           || process.env.NODE_ENV === 'development';
@@ -333,7 +448,9 @@ export class AIClient {
   ): Promise<AIResponse<T>> {
     switch (provider) {
       case 'vertex': return this.callVertex<T>(request, signal);
+      case 'gemini': return this.callGemini<T>(request, signal);
       case 'groq':   return this.callGroq<T>(request, signal);
+      case 'huggingface': return this.callHuggingFace<T>(request, signal);
       case 'ollama': return this.callOllama<T>(request, signal);
       case 'openai': return this.callOpenAICompat<T>(request, signal, 'https://api.openai.com/v1', process.env.OPENAI_API_KEY || '', process.env.OPENAI_MODEL || 'gpt-4o-mini');
       case 'mock':   return this.callMock<T>(request);
@@ -458,6 +575,16 @@ export class AIClient {
 
   // ── Groq (speed/cost-optimised OpenAI-compat) ────────────────────────────
 
+  private async callGemini<T>(request: AIRequest, signal: AbortSignal): Promise<AIResponse<T>> {
+    return this.callOpenAICompat<T>(
+      request, signal,
+      'https://generativelanguage.googleapis.com/v1beta/openai',
+      this.config.geminiApiKey,
+      this.config.geminiModel,
+      'gemini',
+    );
+  }
+
   private async callGroq<T>(request: AIRequest, signal: AbortSignal): Promise<AIResponse<T>> {
     // Use fast model for real-time UX tasks, standard model for others
     const fastApps: AIApplication[] = ['nl-commands', 'support'];
@@ -471,6 +598,16 @@ export class AIClient {
       this.config.groqApiKey,
       model,
       'groq',
+    );
+  }
+
+  private async callHuggingFace<T>(request: AIRequest, signal: AbortSignal): Promise<AIResponse<T>> {
+    return this.callOpenAICompat<T>(
+      request, signal,
+      'https://router.huggingface.co/v1',
+      this.config.huggingFaceToken,
+      this.config.huggingFaceModel,
+      'huggingface',
     );
   }
 
@@ -716,6 +853,27 @@ Never include markdown fences.`;
     this.cache.clear();
   }
 
+  getStatus(): AIStatusSnapshot {
+    const policy = this.getProviderPolicy();
+    return {
+      timestamp: new Date().toISOString(),
+      forceProvider: this.config.forceProvider || null,
+      policy: {
+        profile: policy.profile,
+        disablePaidProviders: policy.disablePaidProviders,
+        allowedProviders: policy.allowedProviders,
+        blockedProviders: policy.blockedProviders,
+        paidProviders: policy.paidProviders,
+      },
+      routes: PROVIDER_ROUTES,
+      providers: ALL_PROVIDERS.map((provider) => ({
+        provider,
+        configured: this.isProviderConfigured(provider),
+      })),
+      lastRequest: this.lastRequestStatus,
+    };
+  }
+
   /**
    * Update auth token
    */
@@ -729,6 +887,75 @@ Never include markdown fences.`;
 
   private delay(ms: number): Promise<void> {
     return new Promise((resolve) => setTimeout(resolve, ms));
+  }
+
+  private recordRequestStatus(
+    application: AIApplication,
+    baseChain: AIProvider[],
+    chain: AIProvider[],
+    attempts: AIProviderAttempt[],
+    successfulProvider: AIProvider | null,
+    error: string | null,
+  ): void {
+    this.lastRequestStatus = {
+      application,
+      baseChain,
+      chain,
+      successfulProvider,
+      mockUsed: successfulProvider === 'mock',
+      attempts,
+      error,
+      timestamp: new Date().toISOString(),
+    };
+  }
+
+  private getProviderPolicy(): {
+    profile: AIProviderProfile;
+    disablePaidProviders: boolean;
+    allowedProviders: AIProvider[];
+    blockedProviders: AIProvider[];
+    paidProviders: AIProvider[];
+  } {
+    const profile = this.config.providerProfile;
+    let allowedProviders = profile === 'custom'
+      ? [...this.config.allowedProviders]
+      : [...PROVIDER_PROFILES[profile]];
+
+    if (this.config.allowedProviders.length > 0 && profile !== 'custom') {
+      allowedProviders = allowedProviders.filter((provider) => this.config.allowedProviders.includes(provider));
+    }
+
+    if (this.config.disablePaidProviders) {
+      allowedProviders = allowedProviders.filter((provider) => !this.config.paidProviders.includes(provider));
+    }
+
+    if (this.config.blockedProviders.length > 0) {
+      allowedProviders = allowedProviders.filter((provider) => !this.config.blockedProviders.includes(provider));
+    }
+
+    if (!allowedProviders.includes('mock')) {
+      allowedProviders.push('mock');
+    }
+
+    return {
+      profile,
+      disablePaidProviders: this.config.disablePaidProviders,
+      allowedProviders,
+      blockedProviders: [...this.config.blockedProviders],
+      paidProviders: [...this.config.paidProviders],
+    };
+  }
+
+  private getEffectiveChain(baseChain: AIProvider[]): {
+    chain: AIProvider[];
+    policy: ReturnType<AIClient['getProviderPolicy']>;
+  } {
+    const policy = this.getProviderPolicy();
+    const chain = baseChain.filter((provider) => policy.allowedProviders.includes(provider));
+    return {
+      chain: chain.length > 0 ? chain : ['mock'],
+      policy,
+    };
   }
 }
 

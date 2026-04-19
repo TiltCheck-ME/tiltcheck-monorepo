@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-17 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-19 */
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
@@ -450,8 +450,11 @@ const LockVault = ({ discordId }: { discordId?: string }) => {
                 <Shield className="w-5 h-5" />
                 {working ? 'LOCKING...' : vault.walletLocked ? 'WALLET LOCK ACTIVE' : 'SECURE MY WINS'}
               </button>
-            </>
-          )}
+              <p className="text-[10px] text-gray-500 font-mono">
+                Manual locks require a linked wallet or Degen Identity. TiltCheck will not create a server-managed fallback wallet.
+              </p>
+             </>
+           )}
 
           <div className="space-y-2 rounded-xl border border-[#283347] bg-black/20 p-4">
             <label className="text-sm font-medium text-gray-300">Wallet Lock Timer</label>

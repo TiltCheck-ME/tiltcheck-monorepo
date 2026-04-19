@@ -5,6 +5,7 @@ import { fileURLToPath } from 'url';
 import dotenv from 'dotenv';
 import chalk from 'chalk';
 import { buildTiltCheckDailyDegenSummary } from './report-summary.js';
+import { getFallbackProviders, getRequestedProvider } from './provider-switcher.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 dotenv.config({ path: path.join(__dirname, '.env') });
@@ -18,7 +19,7 @@ const TICKER_LOG_FILE = path.join(__dirname, '..', '..', 'apps', 'api', 'data', 
 const CITATIONS_FILE = path.join(DATA_DIR, 'citations.md');
 const ANALYSIS_MANIFEST_FILE = path.join(DATA_DIR, '.analysis-manifest.json');
 const GPT_MAX_MESSAGES = 150;
-const PROVIDER = (process.env.PROVIDER || 'groq').toLowerCase();
+const PROVIDER = getRequestedProvider('groq');
 
 const argv = process.argv.slice(2);
 const LORE_MODE = argv.includes('--lore');
@@ -43,6 +44,12 @@ const PROVIDERS = {
     model: process.env.GROQ_MODEL || process.env.AI_MODEL || 'llama-3.3-70b-versatile',
     label: 'Groq (free cloud)',
   },
+  huggingface: {
+    baseUrl: 'https://router.huggingface.co/v1',
+    apiKey: process.env.HUGGINGFACE_TOKEN || process.env.HF_TOKEN || '',
+    model: process.env.HUGGINGFACE_MODEL || process.env.AI_MODEL || 'Qwen/Qwen2.5-72B-Instruct',
+    label: 'Hugging Face',
+  },
   gemini: {
     baseUrl: 'https://generativelanguage.googleapis.com/v1beta/openai',
     apiKey: process.env.GEMINI_API_KEY || '',
@@ -57,7 +64,11 @@ const PROVIDERS = {
   },
 };
 
-let currentAi = PROVIDERS[PROVIDER] || PROVIDERS.ollama;
+const PROVIDER_SWITCH = getFallbackProviders(PROVIDER, PROVIDERS);
+let currentAi = PROVIDER_SWITCH.providers.find((provider) => provider.key === PROVIDER && provider.apiKey)
+  || PROVIDER_SWITCH.providers.find((provider) => provider.key === 'ollama')
+  || PROVIDER_SWITCH.providers.find((provider) => Boolean(provider.apiKey))
+  || null;
 
 const BUSINESS_PROMPT = `You are a community intelligence analyst for TiltCheck, a responsible gambling platform.
 Analyze this batch of Discord messages. Write a structured report with these sections:
@@ -319,6 +330,10 @@ function appendSessionBanner({ messageCount, chunkCount }) {
   ].filter(Boolean).join(' ');
   const labelSuffix = RUN_LABEL ? ` · Label: ${RUN_LABEL}` : '';
   const scopeSuffix = rangeLabel ? ` · Scope: ${rangeLabel}` : '';
+
+  if (!currentAi) {
+    throw new Error(`Provider switcher blocked every configured watcher provider. Requested=${PROVIDER}.`);
+  }
 
   const sessionBanner = `\n\n${'═'.repeat(72)}\n# 📊 Analysis Session — ${sessionLabel}\n> ISO: ${sessionISO}  \n> Provider: ${currentAi.label} · Model: ${currentAi.model}  \n> Mode: ${runMode}${scopeSuffix}${labelSuffix}  \n> Messages: ${messageCount} across ${chunkCount} chunks\n${'═'.repeat(72)}\n`;
   appendFileSync(REPORT_FILE_BUSINESS, sessionBanner);

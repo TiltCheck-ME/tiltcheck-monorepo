@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-17 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-19 */
 /**
  * User Routes - /user/*
  * Handles user profile, onboarding status, and preferences
@@ -17,7 +17,6 @@ import {
     sendBuddyRequest,
     acceptBuddyRequest,
     removeBuddy,
-    getUserExclusions,
     addExclusion,
     removeExclusion,
     getVaultRules,
@@ -101,6 +100,55 @@ function buildUserProfileResponse(user: UserProfileData, onboarding: OnboardingD
             risk_level: onboarding?.risk_level || 'moderate',
         },
     };
+}
+
+function extractBearerToken(authHeader: string | undefined): string | null {
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+        return null;
+    }
+
+    const token = authHeader.slice('Bearer '.length).trim();
+    return token.length > 0 ? token : null;
+}
+
+function hasInternalServiceAccess(req: Request): boolean {
+    const internalSecret = process.env.INTERNAL_API_SECRET?.trim();
+    if (!internalSecret) {
+        return false;
+    }
+
+    const bearerToken = extractBearerToken(req.headers.authorization);
+    const headerSecret = typeof req.headers['x-internal-secret'] === 'string' ? req.headers['x-internal-secret'].trim() : '';
+    return bearerToken === internalSecret || headerSecret === internalSecret;
+}
+
+function exclusionAccessMiddleware(req: Request, res: Response, next: NextFunction): void {
+    if (hasInternalServiceAccess(req)) {
+        next();
+        return;
+    }
+
+    authMiddleware(req, res, next);
+}
+
+function enforceExclusionOwnership(req: Request): void {
+    if (hasInternalServiceAccess(req)) {
+        return;
+    }
+
+    const authUser = (req as AuthRequest).user;
+    const requestedDiscordId = typeof req.params.discordId === 'string' ? req.params.discordId.trim() : '';
+    const authenticatedDiscordId = typeof authUser?.discordId === 'string'
+        ? authUser.discordId.trim()
+        : '';
+
+    if (!authenticatedDiscordId) {
+        throw new ValidationError('User must be linked to Discord to manage exclusions');
+    }
+
+    if (requestedDiscordId !== authenticatedDiscordId) {
+        throw new ApplicationError('Forbidden: You can only manage your own exclusions', 403, 'FORBIDDEN');
+    }
 }
 
 router.get('/lookup/:wallet', async (req: Request, res: Response, next: NextFunction) => {
@@ -486,8 +534,9 @@ router.get('/:id/elite', async (req: Request, res, next: NextFunction) => {
  * GET /user/:discordId/exclusions
  * Return the full ForbiddenGamesProfile (exclusion list + quick-lookup arrays).
  */
-router.get('/:discordId/exclusions', authMiddleware, async (req: Request, res: Response, next: NextFunction) => {
+router.get('/:discordId/exclusions', exclusionAccessMiddleware, async (req: Request, res: Response, next: NextFunction) => {
     try {
+        enforceExclusionOwnership(req);
         const { discordId } = req.params;
         const user = await findUserByDiscordId(discordId as string);
         if (!user) {
@@ -505,8 +554,9 @@ router.get('/:discordId/exclusions', authMiddleware, async (req: Request, res: R
  * POST /user/:discordId/exclusions
  * Add a surgical exclusion (game_id, category, or both).
  */
-router.post('/:discordId/exclusions', authMiddleware, async (req: Request, res: Response, next: NextFunction) => {
+router.post('/:discordId/exclusions', exclusionAccessMiddleware, async (req: Request, res: Response, next: NextFunction) => {
     try {
+        enforceExclusionOwnership(req);
         const { discordId } = req.params;
         const { gameId, category, reason } = req.body as {
             gameId?: string;
@@ -536,8 +586,9 @@ router.post('/:discordId/exclusions', authMiddleware, async (req: Request, res: 
  * DELETE /user/:discordId/exclusions/:exclusionId
  * Remove a single exclusion entry.
  */
-router.delete('/:discordId/exclusions/:exclusionId', authMiddleware, async (req: Request, res: Response, next: NextFunction) => {
+router.delete('/:discordId/exclusions/:exclusionId', exclusionAccessMiddleware, async (req: Request, res: Response, next: NextFunction) => {
     try {
+        enforceExclusionOwnership(req);
         const { discordId, exclusionId } = req.params;
 
         const user = await findUserByDiscordId(discordId as string);

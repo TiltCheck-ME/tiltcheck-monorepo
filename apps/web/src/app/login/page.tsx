@@ -1,13 +1,12 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-15 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-19 */
 'use client';
 
 import React, { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
+import { getDiscordLoginApiBase, getDiscordLoginUrl } from '@/lib/discord-login';
 import { signInWithMagicEmail } from '@/lib/magicAuth';
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || '/api';
 
 function isSafeRedirect(value: string | null): string {
   if (!value || !value.startsWith('/')) {
@@ -35,7 +34,7 @@ export default function LoginPage() {
   }, []);
 
   const discordLoginUrl = useMemo(
-    () => `${API_URL}/auth/discord/login?source=web&redirect=${encodeURIComponent(redirectTarget)}`,
+    () => getDiscordLoginUrl(redirectTarget),
     [redirectTarget],
   );
 
@@ -49,7 +48,7 @@ export default function LoginPage() {
     setError(null);
 
     try {
-      await signInWithMagicEmail(API_URL, magicEmail.trim());
+      await signInWithMagicEmail(getDiscordLoginApiBase(), magicEmail.trim());
       router.push(redirectTarget);
       router.refresh();
     } catch (magicError) {

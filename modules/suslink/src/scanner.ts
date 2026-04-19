@@ -444,8 +444,7 @@ export class LinkScanner {
       if (isCasino && heuristicResult.riskLevel === 'safe') {
         return {
           ...heuristicResult,
-          riskLevel: 'suspicious' as RiskLevel,
-          reason: 'Known casino domain detected via validator',
+          reason: 'Known casino domain detected via validator; no suspicious patterns detected',
           safeMode: true
         };
       }

@@ -31,6 +31,7 @@ import {
   markEmailBonusEntriesPublished,
   persistEmailBonusIntel,
 } from '../lib/email-bonus-feed.js';
+import type { EmailIntelData } from '../lib/email-parser.js';
 
 const router: Router = Router();
 
@@ -60,6 +61,73 @@ const SHADOW_BAN_UNAVAILABLE_SIGNALS = [
 
 function getTrustSignalsLogPath(): string {
   return process.env.TRUST_SIGNALS_LOG_PATH?.trim() || path.join(process.cwd(), 'data', 'trust-signals.jsonl');
+}
+
+interface EmailLinkScanSummary {
+  url: string;
+  riskLevel: string;
+  reason: string;
+}
+
+const EMAIL_GRADE_LOOKBACK_MS = 14 * 24 * 60 * 60 * 1000;
+
+function buildEmailGradeEvidence(
+  intel: EmailIntelData,
+  linkScans: EmailLinkScanSummary[],
+  now = new Date(),
+): {
+  bonusDelta?: number;
+  complianceDelta?: number;
+  reasons: string[];
+} | null {
+  if (!intel.casinoBrand || !intel.sentAt) {
+    return null;
+  }
+
+  const sentAtMs = Date.parse(intel.sentAt);
+  if (!Number.isFinite(sentAtMs) || now.getTime() - sentAtMs > EMAIL_GRADE_LOOKBACK_MS) {
+    return null;
+  }
+
+  let bonusDelta = 0;
+  let complianceDelta = 0;
+  const reasons: string[] = [];
+
+  if (intel.bonusSignals.length >= 2 && intel.urgencyFlags.length >= 3) {
+    bonusDelta -= 1;
+    reasons.push('Repeated aggressive urgency wrapped around multiple bonus pushes');
+  }
+
+  if (intel.embeddedUrls.length >= 5) {
+    bonusDelta -= 1;
+    reasons.push('High outbound-link density in a promo email');
+  }
+
+  const suspiciousLinks = linkScans.filter((scan) => scan.riskLevel === 'suspicious').length;
+  if (suspiciousLinks >= 2) {
+    bonusDelta -= 1;
+    reasons.push('Multiple suspicious non-primary links in a single promo email');
+  }
+
+  if (intel.bonusSignals.length > 0 && !intel.hasUnsubscribeLink) {
+    complianceDelta -= 1;
+    reasons.push('Promo email missing an unsubscribe path');
+  }
+
+  if (intel.bonusSignals.length > 0 && !intel.hasSPFHint) {
+    complianceDelta -= 1;
+    reasons.push('Promo email missing SPF/DKIM pass hints in headers');
+  }
+
+  if (bonusDelta === 0 && complianceDelta === 0) {
+    return null;
+  }
+
+  return {
+    bonusDelta: bonusDelta === 0 ? undefined : bonusDelta,
+    complianceDelta: complianceDelta === 0 ? undefined : complianceDelta,
+    reasons,
+  };
 }
 
 /**
@@ -868,6 +936,27 @@ router.post('/email-ingest', async (req, res) => {
     markEmailBonusEntriesPublished(publishedBonusEvents);
   }
 
+  const emailGradeEvidence = buildEmailGradeEvidence(intel, linkScans, new Date());
+  if (emailGradeEvidence && intel.casinoBrand) {
+    try {
+      await eventRouter.publish('trust.casino.rollup', 'rgaas-api', {
+        source: 'email-intel',
+        casinos: {
+          [intel.casinoBrand]: {
+            totalDelta: (emailGradeEvidence.bonusDelta ?? 0) + (emailGradeEvidence.complianceDelta ?? 0),
+            events: emailGradeEvidence.reasons.length,
+            externalData: {
+              bonusDelta: emailGradeEvidence.bonusDelta,
+              complianceDelta: emailGradeEvidence.complianceDelta,
+            },
+          },
+        },
+      });
+    } catch (error) {
+      console.warn('[email-ingest] Could not publish trust.casino.rollup evidence', error);
+    }
+  }
+
   res.json({
     success: true,
     intel,
@@ -881,6 +970,7 @@ router.post('/email-ingest', async (req, res) => {
     domainScan: domainScan
       ? { riskLevel: domainScan.riskLevel, reason: domainScan.reason }
       : null,
+    gradeEvidence: emailGradeEvidence,
     licenseInfo,
     linkScans,
   });

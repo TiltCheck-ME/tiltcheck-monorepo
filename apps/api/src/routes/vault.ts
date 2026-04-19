@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-17 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-19 */
 /**
  * Vault Routes - /vault/*
  * Handles general vault balance and timed locks.
@@ -452,8 +452,8 @@ router.post('/:userId/lock', authMiddleware, async (req, res) => {
       vault: record
     });
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Unknown error';
-    res.status(400).json({ error: message });
+    const handled = handleVaultError(error);
+    res.status(handled.status).json(handled.body);
   }
 });
 

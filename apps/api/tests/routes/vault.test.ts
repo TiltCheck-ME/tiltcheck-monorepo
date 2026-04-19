@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-17 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-19 */
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import request from 'supertest';
 import express from 'express';
@@ -36,6 +36,13 @@ const lockvaultMock = vi.hoisted(() => ({
 vi.mock('@tiltcheck/lockvault', () => lockvaultMock);
 
 import { vaultRouter } from '../../src/routes/vault.js';
+
+function createVaultError(message: string, code: string, httpStatus: number) {
+  const error = new Error(message) as Error & { code?: string; httpStatus?: number };
+  error.code = code;
+  error.httpStatus = httpStatus;
+  return error;
+}
 
 const app = express();
 app.use(express.json());
@@ -124,6 +131,22 @@ describe('Vault Routes', () => {
     const res = await request(app).post('/vault/user-1/lock').send({ amount: 10, durationMinutes: 'bad' });
     expect(res.status).toBe(400);
     expect(res.body.error).toBe('Invalid durationMinutes');
+  });
+
+  it('surfaces a linked-wallet requirement when lock creation is refused', async () => {
+    lockvaultMock.lockVault.mockRejectedValueOnce(
+      createVaultError(
+        'LockVault requires a linked wallet or Degen Identity before a lock can be created. No server-managed fallback wallet will be created.',
+        'LOCKVAULT_IDENTITY_REQUIRED',
+        409,
+      ),
+    );
+
+    const res = await request(app).post('/vault/user-1/lock').send({ amount: 10, durationMinutes: 30 });
+
+    expect(res.status).toBe(409);
+    expect(res.body.code).toBe('LOCKVAULT_IDENTITY_REQUIRED');
+    expect(res.body.error).toMatch(/linked wallet or Degen Identity/i);
   });
 
   it('does not report unlocked vault-status as actively locked', async () => {
@@ -223,9 +246,7 @@ describe('Vault Routes', () => {
   });
 
   it('rejects paid early unlock settlement while the fee sink is disabled', async () => {
-    const err = new Error('disabled') as Error & { code?: string; httpStatus?: number };
-    err.code = 'FEATURE_NOT_IMPLEMENTED';
-    err.httpStatus = 501;
+    const err = createVaultError('disabled', 'FEATURE_NOT_IMPLEMENTED', 501);
     lockvaultMock.settlePaidWalletUnlockForUser.mockImplementationOnce(() => {
       throw err;
     });
@@ -242,9 +263,7 @@ describe('Vault Routes', () => {
   });
 
   it('returns 501 when second-owner feature is flagged as not implemented', async () => {
-    const err = new Error('not implemented') as Error & { code?: string; httpStatus?: number };
-    err.code = 'FEATURE_NOT_IMPLEMENTED';
-    err.httpStatus = 501;
+    const err = createVaultError('not implemented', 'FEATURE_NOT_IMPLEMENTED', 501);
     lockvaultMock.addSecondOwner.mockRejectedValueOnce(err);
     const res = await request(app).post('/vault/user-1/add-second-owner').send({ secondOwnerId: 'user-2' });
     expect(res.status).toBe(501);
