@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-10
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-19
 import { EXT_CONFIG } from './config.js';
 
 // ---------------------------------------------------------------------------
@@ -9,6 +9,8 @@ interface ExclusionItem {
   id: string;
   gameId: string | null;
   category: string | null;
+  provider: string | null;
+  casino: string | null;
   reason: string | null;
   createdAt: string;
 }
@@ -21,7 +23,13 @@ interface UserData {
   discordId?: string | null;
 }
 
-type BlockMode = 'category' | 'gameid';
+interface PopupStorageSnapshot {
+  userData?: UserData | null;
+  tiltguard_user_id?: string | null;
+  authToken?: string | null;
+  activityFeed?: Array<{ msg: string; type?: string; ts?: number }>;
+  vaultSessionTotal?: number;
+}
 
 // ---------------------------------------------------------------------------
 // State
@@ -30,8 +38,6 @@ type BlockMode = 'category' | 'gameid';
 let userId: string | null = null;
 let userData: UserData | null = null;
 let exclusions: ExclusionItem[] = [];
-let addMode: BlockMode = 'category';
-let addFormOpen = false;
 
 // ---------------------------------------------------------------------------
 // DOM helpers
@@ -58,7 +64,7 @@ function toast(msg: string, isError = false) {
 
 async function loadAuth(): Promise<void> {
   return new Promise(resolve => {
-    chrome.storage.local.get(['userData', 'authToken', 'tiltguard_user_id'], data => {
+    chrome.storage.local.get(['userData', 'authToken', 'tiltguard_user_id'], (data: PopupStorageSnapshot) => {
       if (data.userData?.id) {
         userId = data.userData.id;
         userData = data.userData;
@@ -119,6 +125,14 @@ function syncCapabilityState() {
 
 function getLinkedDiscordRouteId(): string | null {
   return userData?.discordId ?? null;
+}
+
+function openDashboardTab(tab: 'safety' | 'vault' | 'buddies' | 'profile' = 'profile') {
+  const dashboardUrl = new URL(EXT_CONFIG.DASHBOARD_URL);
+  if (tab !== 'profile') {
+    dashboardUrl.searchParams.set('tab', tab);
+  }
+  chrome.tabs.create({ url: dashboardUrl.toString() });
 }
 
 // ---------------------------------------------------------------------------
@@ -206,16 +220,21 @@ async function loadExclusions() {
 }
 
 const CATEGORY_LABELS: Record<string, string> = {
+  chicken_mines: 'Chicken / Mines',
+  bonus_buy: 'Bonus Buy',
   slots: 'Slots',
   live_dealer: 'Live Dealer',
   table_games: 'Table Games',
-  poker: 'Poker',
-  sports_betting: 'Sports Betting',
   crash: 'Crash',
-  dice: 'Dice',
-  provably_fair: 'Provably Fair',
-  other: 'Other',
 };
+
+function humanizeSlug(value: string | null | undefined): string {
+  return String(value ?? '')
+    .split(/[-_]+/)
+    .filter(Boolean)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(' ');
+}
 
 function renderExclusions() {
   const list = $('exclusion-list');
@@ -234,9 +253,21 @@ function renderExclusions() {
   for (const ex of exclusions) {
     const label = ex.gameId
       ? ex.gameId
-      : CATEGORY_LABELS[ex.category ?? ''] ?? ex.category ?? 'Unknown';
+      : ex.category
+        ? CATEGORY_LABELS[ex.category] ?? humanizeSlug(ex.category)
+        : ex.provider
+          ? humanizeSlug(ex.provider)
+          : ex.casino
+            ? humanizeSlug(ex.casino)
+            : 'Unknown';
     const badgeClass = ex.gameId ? 'badge-gameid' : 'badge-category';
-    const badgeLabel = ex.gameId ? 'Game ID' : 'Category';
+    const badgeLabel = ex.gameId
+      ? 'Game ID'
+      : ex.category
+        ? 'Category'
+        : ex.provider
+          ? 'Provider'
+          : 'Casino';
     const date = new Date(ex.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 
     const item = document.createElement('div');
@@ -247,123 +278,9 @@ function renderExclusions() {
         <span class="exclusion-meta">Blocked ${date}${ex.reason ? ' — ' + ex.reason : ''}</span>
       </div>
       <span class="exclusion-badge ${badgeClass}">${badgeLabel}</span>
-      <button class="btn btn-danger-ghost" data-id="${ex.id}" title="Remove block">
-        <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="12" height="12">
-          <line x1="2" y1="2" x2="12" y2="12"/><line x1="12" y1="2" x2="2" y2="12"/>
-        </svg>
-      </button>
+      <span class="exclusion-meta">Dashboard-owned</span>
     `;
-
-    item.querySelector('button')!.addEventListener('click', () => removeExclusion(ex.id));
     list.appendChild(item);
-  }
-}
-
-async function addExclusion() {
-  const linkedDiscordId = getLinkedDiscordRouteId();
-  if (!linkedDiscordId) { toast('Connect Discord first.', true); return; }
-
-  const mode = addMode;
-  const category = ($<HTMLSelectElement>('input-category')).value || undefined;
-  const gameId = ($<HTMLInputElement>('input-gameid')).value.trim() || undefined;
-  const reason = ($<HTMLTextAreaElement>('input-reason')).value.trim() || undefined;
-
-  if (mode === 'category' && !category) { toast('Pick a category.', true); return; }
-  if (mode === 'gameid' && !gameId) { toast('Enter a game ID or slug.', true); return; }
-
-  const payload: Record<string, string | undefined> = { reason };
-  if (mode === 'category') payload.category = category;
-  else payload.gameId = gameId;
-
-  const btn = $<HTMLButtonElement>('btn-add-confirm');
-  btn.disabled = true;
-  btn.innerHTML = '<div class="spinner"></div>';
-
-  try {
-    const token = await getToken();
-    const res = await fetch(`${EXT_CONFIG.API_BASE_URL}/user/${linkedDiscordId}/exclusions`, {
-      method: 'POST',
-      credentials: 'include',
-      headers: {
-        'Content-Type': 'application/json',
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      },
-      body: JSON.stringify(payload),
-    });
-    if (!res.ok) throw new Error('failed');
-    toast('Blocked. The extension will enforce it immediately.');
-    closeAddForm();
-    await loadExclusions();
-  } catch {
-    toast('Failed to add block.', true);
-  } finally {
-    btn.disabled = false;
-    btn.innerHTML = `
-      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="13" height="13">
-        <line x1="8" y1="2" x2="8" y2="14"/><line x1="2" y1="8" x2="14" y2="8"/>
-      </svg>
-      Add block`;
-  }
-}
-
-async function removeExclusion(id: string) {
-  const linkedDiscordId = getLinkedDiscordRouteId();
-  if (!linkedDiscordId) return;
-
-  try {
-    const token = await getToken();
-    await fetch(`${EXT_CONFIG.API_BASE_URL}/user/${linkedDiscordId}/exclusions/${id}`, {
-      method: 'DELETE',
-      credentials: 'include',
-      headers: token ? { Authorization: `Bearer ${token}` } : {},
-    });
-    toast('Block removed.');
-    await loadExclusions();
-  } catch {
-    toast('Could not remove block.', true);
-  }
-}
-
-// ---------------------------------------------------------------------------
-// Add form
-// ---------------------------------------------------------------------------
-
-function openAddForm() {
-  addFormOpen = true;
-  $('add-form').classList.add('open');
-  $('btn-add-toggle').textContent = '';
-  $('btn-add-toggle').innerHTML = `
-    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="13" height="13">
-      <line x1="2" y1="2" x2="14" y2="14"/><line x1="14" y1="2" x2="2" y2="14"/>
-    </svg>
-    Close`;
-}
-
-function closeAddForm() {
-  addFormOpen = false;
-  $('add-form').classList.remove('open');
-  $('btn-add-toggle').innerHTML = `
-    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="13" height="13">
-      <line x1="8" y1="2" x2="8" y2="14"/><line x1="2" y1="8" x2="14" y2="8"/>
-    </svg>
-    Block game`;
-  ($<HTMLSelectElement>('input-category')).value = '';
-  ($<HTMLInputElement>('input-gameid')).value = '';
-  ($<HTMLTextAreaElement>('input-reason')).value = '';
-}
-
-function setAddMode(mode: BlockMode) {
-  addMode = mode;
-  document.querySelectorAll('.toggle-btn').forEach(btn => {
-    (btn as HTMLButtonElement).classList.toggle('active', (btn as HTMLButtonElement).dataset['mode'] === mode);
-  });
-  if (mode === 'category') {
-    show('field-category');
-    hide('field-gameid');
-  } else {
-    hide('field-category');
-    show('field-gameid');
-    $<HTMLInputElement>('input-gameid').focus();
   }
 }
 
@@ -386,8 +303,8 @@ function activateTab(id: string) {
 // ---------------------------------------------------------------------------
 
 function loadFeed() {
-  chrome.storage.local.get(['activityFeed'], data => {
-    const events: Array<{ msg: string; type?: string; ts?: number }> = data.activityFeed ?? [];
+  chrome.storage.local.get(['activityFeed'], (data: PopupStorageSnapshot) => {
+    const events = data.activityFeed ?? [];
     const feed = $('feed');
     if (events.length === 0) {
       feed.innerHTML = '<div class="feed-item">No activity recorded this session.</div>';
@@ -424,17 +341,7 @@ async function init() {
     });
   });
 
-  // Add form toggle
-  $('btn-add-toggle').addEventListener('click', () => {
-    if (addFormOpen) closeAddForm(); else openAddForm();
-  });
-  $('btn-add-cancel').addEventListener('click', closeAddForm);
-  $('btn-add-confirm').addEventListener('click', addExclusion);
-
-  // Mode toggles
-  document.querySelectorAll('.toggle-btn').forEach(btn => {
-    btn.addEventListener('click', () => setAddMode((btn as HTMLButtonElement).dataset['mode'] as BlockMode));
-  });
+  $('btn-add-toggle').addEventListener('click', () => openDashboardTab('safety'));
 
   // Auth
   $('btn-login').addEventListener('click', () => {
@@ -512,7 +419,7 @@ async function init() {
 
   // Dashboard
   $('btn-open-dashboard').addEventListener('click', () => {
-    chrome.tabs.create({ url: EXT_CONFIG.HUB_URL });
+    openDashboardTab('profile');
   });
 
   // Activity refresh
@@ -520,7 +427,7 @@ async function init() {
 
   // Settings (open options page if it exists, else dashboard)
   $('btn-settings').addEventListener('click', () => {
-    chrome.tabs.create({ url: `${EXT_CONFIG.HUB_URL}/settings` });
+    openDashboardTab('profile');
   });
 
   // Vault listeners
@@ -550,7 +457,6 @@ interface VaultRule {
 }
 
 let vaultRules: VaultRule[] = [];
-let vaultAddFormOpen = false;
 let vaultSessionTotal = 0;
 
 function describeVaultRule(r: VaultRule): string {
@@ -585,7 +491,7 @@ async function loadVaultRules() {
   }
 
   // Load session total from storage
-  chrome.storage.local.get(['vaultSessionTotal'], d => {
+  chrome.storage.local.get(['vaultSessionTotal'], (d: PopupStorageSnapshot) => {
     vaultSessionTotal = d.vaultSessionTotal ?? 0;
     $('vault-session-total').textContent = `$${vaultSessionTotal.toFixed(2)}`;
   });
@@ -605,169 +511,20 @@ function renderVaultRules() {
         <span class="vault-rule-label">${r.label || describeVaultRule(r)}</span>
         <div class="vault-rule-actions">
           <span class="vault-rule-casino">${r.casino}</span>
-          <label class="toggle-switch">
-            <input type="checkbox" class="vault-toggle" data-id="${r.id}" ${r.enabled ? 'checked' : ''} />
-            <span class="toggle-track"></span>
-            <span class="toggle-thumb"></span>
-          </label>
-          <button class="btn btn-danger-ghost vault-delete" data-id="${r.id}" style="padding:3px 8px; font-size:10px;">
-            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" width="11" height="11">
-              <polyline points="3,4 13,4"/><path d="M5 4V3a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v1"/>
-              <path d="M6 7v5M10 7v5M4 4l.667 9.333A1 1 0 0 0 5.663 14h4.674a1 1 0 0 0 .996-.667L12 4"/>
-            </svg>
-          </button>
+          <span class="vault-rule-casino">${r.enabled ? 'ON' : 'OFF'}</span>
         </div>
       </div>
       <div class="vault-rule-desc">${describeVaultRule(r)}</div>
     </div>
   `).join('');
-
-  list.querySelectorAll('.vault-toggle').forEach(el => {
-    el.addEventListener('change', async (e) => {
-      const id = (e.target as HTMLInputElement).dataset['id']!;
-      const enabled = (e.target as HTMLInputElement).checked;
-      await patchVaultRule(id, { enabled });
-    });
-  });
-
-  list.querySelectorAll('.vault-delete').forEach(el => {
-    el.addEventListener('click', async (e) => {
-      const id = (e.currentTarget as HTMLButtonElement).dataset['id']!;
-      await deleteVaultRuleUI(id);
-    });
-  });
 }
 
 async function getToken(): Promise<string> {
   return new Promise(resolve => {
-    chrome.storage.local.get(['authToken'], d => resolve(d.authToken ?? ''));
+    chrome.storage.local.get(['authToken'], (d: PopupStorageSnapshot) => resolve(d.authToken ?? ''));
   });
-}
-
-async function patchVaultRule(id: string, patch: Partial<VaultRule>) {
-  const linkedDiscordId = getLinkedDiscordRouteId();
-  if (!linkedDiscordId) return;
-  try {
-    const token = await getToken();
-    await fetch(`${EXT_CONFIG.API_BASE_URL}/user/${linkedDiscordId}/vault-rules/${id}`, {
-      method: 'PATCH',
-      credentials: 'include',
-      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-      body: JSON.stringify(patch),
-    });
-    const rule = vaultRules.find(r => r.id === id);
-    if (rule) Object.assign(rule, patch);
-    renderVaultRules();
-  } catch {
-    toast('Failed to update rule', true);
-  }
-}
-
-async function deleteVaultRuleUI(id: string) {
-  const linkedDiscordId = getLinkedDiscordRouteId();
-  if (!linkedDiscordId) return;
-  try {
-    const token = await getToken();
-    await fetch(`${EXT_CONFIG.API_BASE_URL}/user/${linkedDiscordId}/vault-rules/${id}`, {
-      method: 'DELETE',
-      credentials: 'include',
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    vaultRules = vaultRules.filter(r => r.id !== id);
-    renderVaultRules();
-    toast('Rule removed');
-  } catch {
-    toast('Failed to delete rule', true);
-  }
-}
-
-function openVaultAddForm() {
-  vaultAddFormOpen = true;
-  $('vault-add-form').classList.add('open');
-  switchVaultFieldGroup('percent_of_win');
-}
-
-function closeVaultAddForm() {
-  vaultAddFormOpen = false;
-  $('vault-add-form').classList.remove('open');
-  ($<HTMLSelectElement>('vault-type-select')).value = 'percent_of_win';
-  ($<HTMLInputElement>('vault-percent')).value = '';
-  ($<HTMLInputElement>('vault-fixed-amount')).value = '';
-  ($<HTMLInputElement>('vault-threshold')).value = '';
-  ($<HTMLInputElement>('vault-ceiling')).value = '';
-  ($<HTMLInputElement>('vault-profit-target')).value = '';
-  ($<HTMLInputElement>('vault-min-win')).value = '';
-  ($<HTMLInputElement>('vault-label')).value = '';
-  switchVaultFieldGroup('percent_of_win');
-}
-
-function switchVaultFieldGroup(type: string) {
-  const groups: Record<string, string> = {
-    percent_of_win: 'vfg-percent',
-    fixed_per_threshold: 'vfg-fixed',
-    balance_ceiling: 'vfg-ceiling',
-    session_profit_lock: 'vfg-profit',
-  };
-  Object.values(groups).forEach(id => $<HTMLDivElement>(id).classList.remove('active'));
-  if (groups[type]) $<HTMLDivElement>(groups[type]).classList.add('active');
-}
-
-async function submitVaultRule() {
-  const linkedDiscordId = getLinkedDiscordRouteId();
-  if (!linkedDiscordId) return;
-  const type = ($<HTMLSelectElement>('vault-type-select')).value;
-  const casino = ($<HTMLSelectElement>('vault-casino')).value || 'all';
-  const minWin = parseFloat(($<HTMLInputElement>('vault-min-win')).value) || undefined;
-  const label = ($<HTMLInputElement>('vault-label')).value.trim() || undefined;
-
-  const payload: Record<string, unknown> = { type, casino, min_win_amount: minWin, label };
-
-  switch (type) {
-    case 'percent_of_win':
-      payload.percent = parseFloat(($<HTMLInputElement>('vault-percent')).value);
-      if (!payload.percent) { toast('Enter a percent', true); return; }
-      break;
-    case 'fixed_per_threshold':
-      payload.fixed_amount = parseFloat(($<HTMLInputElement>('vault-fixed-amount')).value);
-      payload.threshold_amount = parseFloat(($<HTMLInputElement>('vault-threshold')).value);
-      if (!payload.fixed_amount || !payload.threshold_amount) { toast('Fill in fixed + threshold', true); return; }
-      break;
-    case 'balance_ceiling':
-      payload.ceiling_amount = parseFloat(($<HTMLInputElement>('vault-ceiling')).value);
-      if (!payload.ceiling_amount) { toast('Enter a ceiling amount', true); return; }
-      break;
-    case 'session_profit_lock':
-      payload.profit_target = parseFloat(($<HTMLInputElement>('vault-profit-target')).value);
-      if (!payload.profit_target) { toast('Enter a profit target', true); return; }
-      break;
-  }
-
-  try {
-    const token = await getToken();
-    const res = await fetch(`${EXT_CONFIG.API_BASE_URL}/user/${linkedDiscordId}/vault-rules`, {
-      method: 'POST',
-      credentials: 'include',
-      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-      body: JSON.stringify(payload),
-    });
-    if (!res.ok) throw new Error('Save failed');
-    const data = await res.json();
-    vaultRules.push(data.rule);
-    closeVaultAddForm();
-    renderVaultRules();
-    toast('Vault rule saved');
-  } catch {
-    toast('Failed to save rule', true);
-  }
 }
 
 function initVaultListeners() {
-  $('btn-vault-add-toggle').addEventListener('click', () => {
-    vaultAddFormOpen ? closeVaultAddForm() : openVaultAddForm();
-  });
-  $('btn-vault-add-cancel').addEventListener('click', closeVaultAddForm);
-  $('btn-vault-add-confirm').addEventListener('click', submitVaultRule);
-  $<HTMLSelectElement>('vault-type-select').addEventListener('change', (e) => {
-    switchVaultFieldGroup((e.target as HTMLSelectElement).value);
-  });
+  $('btn-vault-add-toggle').addEventListener('click', () => openDashboardTab('vault'));
 }

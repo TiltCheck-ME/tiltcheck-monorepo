@@ -3,9 +3,9 @@
 
 import React, { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
 import { getDiscordLoginApiBase, getDiscordLoginUrl } from '@/lib/discord-login';
+import { getDashboardHandoffUrl, getDashboardLaneLabel } from '@/lib/dashboard-handoff';
 import { signInWithMagicEmail } from '@/lib/magicAuth';
 
 function isSafeRedirect(value: string | null): string {
@@ -17,7 +17,6 @@ function isSafeRedirect(value: string | null): string {
 }
 
 export default function LoginPage() {
-  const router = useRouter();
   const { user, loading } = useAuth();
   const [magicEmail, setMagicEmail] = useState('');
   const [magicLoading, setMagicLoading] = useState(false);
@@ -33,10 +32,9 @@ export default function LoginPage() {
     setRedirectTarget(isSafeRedirect(params.get('redirect')));
   }, []);
 
-  const discordLoginUrl = useMemo(
-    () => getDiscordLoginUrl(redirectTarget),
-    [redirectTarget],
-  );
+  const canonicalRedirectUrl = useMemo(() => getDashboardHandoffUrl(redirectTarget), [redirectTarget]);
+  const redirectLabel = useMemo(() => getDashboardLaneLabel(redirectTarget), [redirectTarget]);
+  const discordLoginUrl = useMemo(() => getDiscordLoginUrl(canonicalRedirectUrl), [canonicalRedirectUrl]);
 
   async function handleMagicSignIn() {
     if (!magicEmail.trim()) {
@@ -49,8 +47,7 @@ export default function LoginPage() {
 
     try {
       await signInWithMagicEmail(getDiscordLoginApiBase(), magicEmail.trim());
-      router.push(redirectTarget);
-      router.refresh();
+      window.location.assign(canonicalRedirectUrl);
     } catch (magicError) {
       setError(magicError instanceof Error ? magicError.message : 'Magic sign-in failed.');
     } finally {
@@ -65,8 +62,8 @@ export default function LoginPage() {
           <p className="text-[10px] font-black uppercase tracking-[0.3em] text-[#17c3b2] mb-3">Access Portal</p>
           <h1 className="text-4xl md:text-5xl font-black uppercase tracking-tighter">Log in without the scavenger hunt</h1>
           <p className="mt-4 max-w-3xl text-sm md:text-base text-gray-400">
-            Pick the lane that matches how you got approved. Discord handles bot, community, and linked-account access.
-            Magic handles site-lane access for dashboard and inbox without Discord.
+            Pick the lane that matches how you got approved. Web still owns login. The authenticated control surface lives
+            in the canonical dashboard after auth lands.
           </p>
         </div>
 
@@ -75,7 +72,8 @@ export default function LoginPage() {
             <p className="text-[10px] font-black uppercase tracking-[0.25em] text-[#17c3b2] mb-3">Discord lane</p>
             <h2 className="text-2xl font-black uppercase tracking-tight mb-3">Use your linked Discord account</h2>
             <p className="text-sm text-gray-400 leading-relaxed mb-6">
-              Best for beta users who need founder role access, Discord-native tools, or account linking tied to your real Discord identity.
+              Best for founder-role access, Discord-linked identity, and the canonical dashboard lanes that depend on your
+              real Discord account.
             </p>
             <a
               href={discordLoginUrl}
@@ -92,7 +90,8 @@ export default function LoginPage() {
             <p className="text-[10px] font-black uppercase tracking-[0.25em] text-gray-400 mb-3">Site lane</p>
             <h2 className="text-2xl font-black uppercase tracking-tight mb-3">Use Magic email login</h2>
             <p className="text-sm text-gray-400 leading-relaxed mb-6">
-              Best for beta-approved web and dashboard access when your approval is tied to an email instead of a Discord account.
+              Best for beta-approved access when your approval is tied to an email instead of a Discord account. After the
+              login lands, we hand you into the canonical dashboard lane.
             </p>
             <div className="flex flex-col gap-3">
               <input
@@ -117,9 +116,9 @@ export default function LoginPage() {
 
         <div className="mt-8 rounded-2xl border border-[#283347] bg-black/30 p-6">
           <p className="text-[10px] font-black uppercase tracking-[0.25em] text-gray-500 mb-2">Need the beta lane first?</p>
-          <p className="text-sm text-gray-400">
-            Apply from the beta app, then come back here when you need account access that is actually obvious.
-          </p>
+            <p className="text-sm text-gray-400">
+              Apply from the beta app, then come back here when you need account access that is actually obvious.
+            </p>
           <div className="mt-4 flex flex-wrap gap-3">
             <Link
               href="/beta-tester"
@@ -127,12 +126,12 @@ export default function LoginPage() {
             >
               Open Beta App
             </Link>
-            <Link
-              href={redirectTarget}
+            <a
+              href={canonicalRedirectUrl}
               className="inline-flex items-center justify-center rounded-xl border border-[#283347] px-4 py-3 text-[11px] font-black uppercase tracking-[0.2em] text-white transition-all hover:border-[#17c3b2]/30"
             >
-              Continue to {redirectTarget === '/dashboard' ? 'Dashboard' : 'Requested Page'}
-            </Link>
+              Continue to {redirectLabel}
+            </a>
           </div>
         </div>
 
@@ -142,6 +141,12 @@ export default function LoginPage() {
             <p className="text-sm text-gray-300">
               You are already in as <span className="font-mono text-white">{user.username}</span>.
             </p>
+            <a
+              href={canonicalRedirectUrl}
+              className="mt-4 inline-flex items-center justify-center rounded-xl border border-[#17c3b2]/40 bg-[#17c3b2]/10 px-4 py-3 text-[11px] font-black uppercase tracking-[0.2em] text-[#17c3b2] transition-all hover:bg-[#17c3b2]/20"
+            >
+              Open {redirectLabel}
+            </a>
           </div>
         )}
 

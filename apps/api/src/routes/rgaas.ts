@@ -999,22 +999,24 @@ router.get('/bonus-feed', (_req, res) => {
  * Returns 200 {allowed: true} or 403 {allowed: false, message} based on
  * the user's surgical exclusion list.
  *
- * Body: { discordId: string, gameId?: string, category?: GameCategory }
+ * Body: { discordId: string, gameId?: string, category?: GameCategory, provider?: string, casino?: string }
  * Casinos ping this before launching a game iframe.
  */
 router.post('/check-game', async (req, res, next) => {
   try {
-    const { discordId, gameId, category } = req.body as {
+    const { discordId, gameId, category, provider, casino } = req.body as {
       discordId?: string;
       gameId?: string;
       category?: GameCategory;
+      provider?: string;
+      casino?: string;
     };
 
     if (!discordId) {
       return next(new ValidationError('discordId is required'));
     }
-    if (!gameId && !category) {
-      return next(new ValidationError('At least one of gameId or category is required'));
+    if (!gameId && !category && !provider && !casino) {
+      return next(new ValidationError('At least one of gameId, category, provider, or casino is required'));
     }
 
     const user = await findUserByDiscordId(discordId);
@@ -1022,7 +1024,7 @@ router.post('/check-game', async (req, res, next) => {
       return res.status(404).json({ allowed: false, message: 'User not found' });
     }
 
-    const blocked = await isGameBlocked(user.id, gameId, category as GameCategory | undefined);
+    const blocked = await isGameBlocked(user.id, gameId, category as GameCategory | undefined, provider, casino);
 
     if (blocked) {
       return res.status(403).json({
@@ -1030,6 +1032,8 @@ router.post('/check-game', async (req, res, next) => {
         message: "Yo, you blocked this one yourself. Respect the call. Go play something else or touch grass.",
         gameId: gameId ?? null,
         category: category ?? null,
+        provider: provider ?? null,
+        casino: casino ?? null,
       });
     }
 

@@ -1,11 +1,9 @@
-/* Copyright (c) 2026 TiltCheck. All rights reserved. */
-/**
- * (c) 2024-2025 TiltCheck Ecosystem. All Rights Reserved.
- */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-19 */
 
 export const EXT_CONFIG = {
     API_BASE_URL: 'https://api.tiltcheck.me',
     HUB_URL: 'https://tiltcheck.me/dashboard',
+    DASHBOARD_URL: 'https://hub.tiltcheck.me/dashboard',
     AI_GATEWAY_URL: 'https://api.tiltcheck.me/ai',
     WEB_APP_URL: 'https://tiltcheck.me',
     DISCORD_CLIENT_ID: '1445916179163250860',

@@ -1118,22 +1118,50 @@ export interface WalletMapping {
 // Surgical Self-Exclusion Types
 // ============================================
 
+export const GAME_EXCLUSION_CATEGORIES = [
+  'chicken_mines',
+  'bonus_buy',
+  'live_dealer',
+  'slots',
+  'crash',
+  'table_games',
+] as const;
+
 /**
  * High-level game categories a user can surgically block.
  * Targets are matched against casino DOM/URL slugs by the extension
  * and against game metadata in the casino API integration.
  */
-export type GameCategory =
-  | 'chicken_mines'
-  | 'bonus_buy'
-  | 'live_dealer'
-  | 'slots'
-  | 'crash'
-  | 'table_games';
+export type GameCategory = typeof GAME_EXCLUSION_CATEGORIES[number];
+
+export const GAME_EXCLUSION_CATEGORY_LABELS: Record<GameCategory, string> = {
+  chicken_mines: 'Chicken / Mines',
+  bonus_buy: 'Bonus Buy',
+  live_dealer: 'Live Dealer',
+  slots: 'Slots',
+  crash: 'Crash',
+  table_games: 'Table Games',
+};
+
+export const EXCLUSION_TARGET_TYPES = [
+  'category',
+  'gameId',
+  'provider',
+  'casino',
+] as const;
+
+export type ExclusionTargetType = typeof EXCLUSION_TARGET_TYPES[number];
+
+export const EXCLUSION_TARGET_LABELS: Record<ExclusionTargetType, string> = {
+  category: 'Category',
+  gameId: 'Game ID or slug',
+  provider: 'Provider',
+  casino: 'Casino',
+};
 
 /**
- * A single surgical exclusion entry — targets either a specific game ID,
- * a broad category, or both.
+ * A single surgical exclusion entry — targets a specific game ID,
+ * a broad category, a provider, or a casino.
  */
 export interface GameExclusion {
   id: string;
@@ -1142,6 +1170,10 @@ export interface GameExclusion {
   gameId?: string | null;
   /** Broad category block — applies across all casinos */
   category?: GameCategory | null;
+  /** Canonical provider slug, e.g. "pragmatic-play" */
+  provider?: string | null;
+  /** Canonical casino slug, e.g. "stake" */
+  casino?: string | null;
   /** Optional user-supplied note: "I always chase on this one" */
   reason?: string | null;
   createdAt: Date;
@@ -1152,6 +1184,8 @@ export interface CreateGameExclusionPayload {
   userId: string;
   gameId?: string | null;
   category?: GameCategory | null;
+  provider?: string | null;
+  casino?: string | null;
   reason?: string | null;
 }
 
@@ -1165,6 +1199,10 @@ export interface ForbiddenGamesProfile {
   blockedGameIds: string[];
   /** Category-level blocks */
   blockedCategories: GameCategory[];
+  /** Provider-level blocks */
+  blockedProviders: string[];
+  /** Casino-level blocks */
+  blockedCasinos: string[];
   /** Raw entries for management UI */
   exclusions: GameExclusion[];
   /** ISO timestamp of last change — used for Redis cache invalidation */

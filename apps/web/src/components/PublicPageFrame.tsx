@@ -1,10 +1,10 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-18 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-19 */
 "use client";
 
 import type { ReactNode } from "react";
 import { usePathname } from "next/navigation";
 
-const READABILITY_OPT_OUT_PREFIXES = ["/dashboard"];
+const READABILITY_OPT_OUT_PREFIXES: string[] = [];
 
 function isPublicReadablePath(pathname: string): boolean {
   return !READABILITY_OPT_OUT_PREFIXES.some(

@@ -144,8 +144,8 @@ CREATE TABLE IF NOT EXISTS user_buddies (
 -- ============================================================================
 -- Surgical Self-Exclusion
 -- ============================================================================
--- A user may block specific game IDs, broad categories, or both.
--- At least one of (game_id, category) must be set per row.
+-- A user may block specific game IDs, broad categories, providers, or casinos.
+-- At least one exclusion target must be set per row.
 CREATE TABLE IF NOT EXISTS user_game_exclusions (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
@@ -153,12 +153,32 @@ CREATE TABLE IF NOT EXISTS user_game_exclusions (
     category VARCHAR(64) CHECK (category IN (
         'chicken_mines', 'bonus_buy', 'live_dealer', 'slots', 'crash', 'table_games'
     )),
+    provider_slug VARCHAR(255),
+    casino_slug VARCHAR(255),
     reason TEXT,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     CONSTRAINT chk_exclusion_target CHECK (
-        game_id IS NOT NULL OR category IS NOT NULL
+        game_id IS NOT NULL
+        OR category IS NOT NULL
+        OR provider_slug IS NOT NULL
+        OR casino_slug IS NOT NULL
     )
 );
+
+ALTER TABLE user_game_exclusions
+    ADD COLUMN IF NOT EXISTS provider_slug VARCHAR(255),
+    ADD COLUMN IF NOT EXISTS casino_slug VARCHAR(255);
+
+ALTER TABLE user_game_exclusions
+    DROP CONSTRAINT IF EXISTS chk_exclusion_target;
+
+ALTER TABLE user_game_exclusions
+    ADD CONSTRAINT chk_exclusion_target CHECK (
+        game_id IS NOT NULL
+        OR category IS NOT NULL
+        OR provider_slug IS NOT NULL
+        OR casino_slug IS NOT NULL
+    );
 
 CREATE INDEX IF NOT EXISTS idx_user_game_exclusions_user_id
     ON user_game_exclusions (user_id);

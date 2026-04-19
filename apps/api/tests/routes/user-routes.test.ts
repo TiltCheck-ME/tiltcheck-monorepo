@@ -141,6 +141,8 @@ describe('User route ordering and shape', () => {
       exclusions: [],
       blockedGameIds: [],
       blockedCategories: [],
+      blockedProviders: [],
+      blockedCasinos: [],
     });
 
     const response = await request(app).get('/user/discord-self/exclusions');
@@ -153,6 +155,8 @@ describe('User route ordering and shape', () => {
         exclusions: [],
         blockedGameIds: [],
         blockedCategories: [],
+        blockedProviders: [],
+        blockedCasinos: [],
       },
     });
     expect(mockedDb.findUserByDiscordId).toHaveBeenCalledWith('discord-self');
@@ -182,6 +186,8 @@ describe('User route ordering and shape', () => {
       exclusions: [],
       blockedGameIds: ['game-2'],
       blockedCategories: [],
+      blockedProviders: [],
+      blockedCasinos: [],
     });
 
     const response = await request(app)
@@ -229,6 +235,40 @@ describe('User route ordering and shape', () => {
       gameId: 'game-2',
       category: undefined,
       reason: 'keep it blocked',
+    });
+    expect(mockedExclusionCache.invalidateExclusionCache).toHaveBeenCalledWith('user-2');
+  });
+
+  it('accepts canonical provider exclusions for internal service writes', async () => {
+    vi.stubEnv('INTERNAL_API_SECRET', 'test-internal-secret');
+    mockedDb.findUserByDiscordId.mockResolvedValueOnce({
+      id: 'user-2',
+      discord_id: 'discord-other',
+    });
+    mockedDb.addExclusion.mockResolvedValueOnce({
+      id: 'ex-2',
+      userId: 'user-2',
+      gameId: null,
+      category: null,
+      provider: 'pragmatic-play',
+      casino: null,
+      reason: 'provider tilt',
+    });
+
+    const response = await request(app)
+      .post('/user/discord-other/exclusions')
+      .set('x-internal-secret', 'test-internal-secret')
+      .send({ provider: 'Pragmatic Play', reason: 'provider tilt' });
+
+    expect(response.status).toBe(201);
+    expect(response.body.data.provider).toBe('pragmatic-play');
+    expect(mockedDb.addExclusion).toHaveBeenCalledWith({
+      userId: 'user-2',
+      gameId: undefined,
+      category: undefined,
+      provider: 'pragmatic-play',
+      casino: undefined,
+      reason: 'provider tilt',
     });
     expect(mockedExclusionCache.invalidateExclusionCache).toHaveBeenCalledWith('user-2');
   });

@@ -1397,7 +1397,7 @@ export async function removeBuddy(userId: string, buddyId: string): Promise<bool
  */
 export async function getUserExclusions(userId: string): Promise<GameExclusion[]> {
   const sql = `
-    SELECT id, user_id, game_id, category, reason, created_at
+    SELECT id, user_id, game_id, category, provider_slug, casino_slug, reason, created_at
     FROM user_game_exclusions
     WHERE user_id = $1
     ORDER BY created_at DESC
@@ -1407,6 +1407,8 @@ export async function getUserExclusions(userId: string): Promise<GameExclusion[]
     user_id: string;
     game_id: string | null;
     category: string | null;
+    provider_slug: string | null;
+    casino_slug: string | null;
     reason: string | null;
     created_at: Date;
   }>(sql, [userId]);
@@ -1416,28 +1418,39 @@ export async function getUserExclusions(userId: string): Promise<GameExclusion[]
     userId: r.user_id,
     gameId: r.game_id,
     category: r.category as GameCategory | null,
+    provider: r.provider_slug,
+    casino: r.casino_slug,
     reason: r.reason,
     createdAt: r.created_at,
   }));
 }
 
 /**
- * Add a new exclusion entry. Caller must ensure at least one of gameId/category is set.
+ * Add a new exclusion entry. Caller must ensure at least one exclusion target is set.
  */
 export async function addExclusion(payload: CreateGameExclusionPayload): Promise<GameExclusion> {
   const sql = `
-    INSERT INTO user_game_exclusions (user_id, game_id, category, reason)
-    VALUES ($1, $2, $3, $4)
-    RETURNING id, user_id, game_id, category, reason, created_at
+    INSERT INTO user_game_exclusions (user_id, game_id, category, provider_slug, casino_slug, reason)
+    VALUES ($1, $2, $3, $4, $5, $6)
+    RETURNING id, user_id, game_id, category, provider_slug, casino_slug, reason, created_at
   `;
   const row = await queryOne<{
     id: string;
     user_id: string;
     game_id: string | null;
     category: string | null;
+    provider_slug: string | null;
+    casino_slug: string | null;
     reason: string | null;
     created_at: Date;
-  }>(sql, [payload.userId, payload.gameId ?? null, payload.category ?? null, payload.reason ?? null]);
+  }>(sql, [
+    payload.userId,
+    payload.gameId ?? null,
+    payload.category ?? null,
+    payload.provider ?? null,
+    payload.casino ?? null,
+    payload.reason ?? null,
+  ]);
 
   if (!row) throw new Error('Failed to insert exclusion');
   return {
@@ -1445,6 +1458,8 @@ export async function addExclusion(payload: CreateGameExclusionPayload): Promise
     userId: row.user_id,
     gameId: row.game_id,
     category: row.category as GameCategory | null,
+    provider: row.provider_slug,
+    casino: row.casino_slug,
     reason: row.reason,
     createdAt: row.created_at,
   };
@@ -1472,14 +1487,16 @@ export async function clearExclusions(userId: string): Promise<boolean> {
 
 /**
  * Check whether a specific game is excluded for a user.
- * Matches on exact gameId OR category match.
+ * Matches on exact gameId, category, provider, or casino match.
  */
 export async function checkGameExcluded(
   userId: string,
   gameId?: string | null,
-  category?: GameCategory | null
+  category?: GameCategory | null,
+  provider?: string | null,
+  casino?: string | null
 ): Promise<boolean> {
-  if (!gameId && !category) return false;
+  if (!gameId && !category && !provider && !casino) return false;
 
   const conditions: string[] = [];
   const params: (string | null)[] = [userId];
@@ -1491,6 +1508,14 @@ export async function checkGameExcluded(
   if (category) {
     params.push(category);
     conditions.push(`category = $${params.length}`);
+  }
+  if (provider) {
+    params.push(provider);
+    conditions.push(`provider_slug = $${params.length}`);
+  }
+  if (casino) {
+    params.push(casino);
+    conditions.push(`casino_slug = $${params.length}`);
   }
 
   const sql = `
@@ -1507,13 +1532,17 @@ export async function checkGameExcluded(
  */
 export async function buildForbiddenGamesProfile(userId: string): Promise<ForbiddenGamesProfile> {
   const exclusions = await getUserExclusions(userId);
-  const blockedGameIds = exclusions.filter((e) => !!e.gameId).map((e) => e.gameId as string);
-  const blockedCategories = exclusions.filter((e) => !!e.category).map((e) => e.category as GameCategory);
+  const blockedGameIds = [...new Set(exclusions.flatMap((e) => e.gameId ? [e.gameId] : []))];
+  const blockedCategories = [...new Set(exclusions.flatMap((e) => e.category ? [e.category] : []))] as GameCategory[];
+  const blockedProviders = [...new Set(exclusions.flatMap((e) => e.provider ? [e.provider] : []))];
+  const blockedCasinos = [...new Set(exclusions.flatMap((e) => e.casino ? [e.casino] : []))];
 
   return {
     userId,
     blockedGameIds,
     blockedCategories,
+    blockedProviders,
+    blockedCasinos,
     exclusions,
     updatedAt: new Date().toISOString(),
   };

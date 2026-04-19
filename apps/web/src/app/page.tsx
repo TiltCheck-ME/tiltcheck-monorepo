@@ -81,7 +81,7 @@ export default function Home() {
         <div className="landing-shell landing-shell--hero">
           <div className="hero-copy">
             <span className="brand-eyebrow">The degen audit layer</span>
-            <h1 className="landing-hero-title">Catch the drift before the house buries it.</h1>
+            <h1 className="landing-hero-title">The house always wins? Fuck that.</h1>
             <p className="landing-hero-subtitle">
               TiltCheck tracks live sessions, audits casino fairness, and locks profit before one bad impulse feeds it
               back into the machine.

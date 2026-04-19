@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-14
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-19
 'use client';
 
 /**
@@ -8,6 +8,7 @@
  */
 
 import React from 'react';
+import { getDashboardHandoffUrl } from '@/lib/dashboard-handoff';
 
 interface CommunityStats {
   vault: {
@@ -19,6 +20,7 @@ interface CommunityStats {
 }
 
 export default function CommunityVaultStrip() {
+  const vaultLaneUrl = getDashboardHandoffUrl('/tools/auto-vault');
   const [stats, setStats] = React.useState<CommunityStats['vault'] | null>(null);
 
   React.useEffect(() => {
@@ -66,10 +68,10 @@ export default function CommunityVaultStrip() {
           </div>
         </div>
         <a
-          href="/tools/auto-vault"
+          href={vaultLaneUrl}
           className="shrink-0 text-[10px] font-black uppercase tracking-widest text-[#17c3b2] hover:text-white transition-colors border border-[#17c3b2]/30 hover:border-[#17c3b2] px-4 py-2 rounded"
         >
-          Lock Yours →
+          Open Vault Lane →
         </a>
       </div>
     </section>

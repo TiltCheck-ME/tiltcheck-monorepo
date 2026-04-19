@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-10 -->
+<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-19 -->
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -547,7 +547,7 @@
 
 <div class="tabs">
   <button class="tab active" data-tab="status">Status</button>
-  <button class="tab" data-tab="block">Block</button>
+  <button class="tab" data-tab="block">Filters</button>
   <button class="tab" data-tab="vault">Vault</button>
   <button class="tab" data-tab="activity">Activity</button>
 </div>
@@ -622,64 +622,18 @@
 <div id="panel-block" class="panel">
 
   <div class="section-head">
-    <span class="section-title">My Exclusions</span>
+    <span class="section-title">Temptation Filters</span>
     <button class="btn btn-ghost" id="btn-add-toggle" style="padding:5px 10px; font-size:11px">
-      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-        <line x1="8" y1="2" x2="8" y2="14"/><line x1="2" y1="8" x2="14" y2="8"/>
-      </svg>
-      Block game
+      Manage in dashboard
     </button>
   </div>
-
-  <!-- Inline add form -->
-  <div class="add-form" id="add-form">
-    <div class="form-toggle">
-      <button class="toggle-btn active" data-mode="category">By category</button>
-      <button class="toggle-btn" data-mode="gameid">By game ID</button>
-    </div>
-
-    <div id="field-category" class="form-row">
-      <label>Category</label>
-      <select id="input-category">
-        <option value="">Select category...</option>
-        <option value="slots">Slots</option>
-        <option value="live_dealer">Live Dealer</option>
-        <option value="table_games">Table Games</option>
-        <option value="poker">Poker</option>
-        <option value="sports_betting">Sports Betting</option>
-        <option value="crash">Crash</option>
-        <option value="dice">Dice</option>
-        <option value="provably_fair">Provably Fair</option>
-        <option value="other">Other</option>
-      </select>
-    </div>
-
-    <div id="field-gameid" class="form-row" style="display:none">
-      <label>Game ID or slug</label>
-      <input id="input-gameid" type="text" placeholder="e.g. gates-of-olympus, sweet-bonanza" autocomplete="off" />
-    </div>
-
-    <div class="form-row">
-      <label>Note (optional)</label>
-      <textarea id="input-reason" placeholder="Why you're blocking this. Just for you."></textarea>
-    </div>
-
-    <div class="form-actions">
-      <button class="btn btn-ghost" id="btn-add-cancel">Cancel</button>
-      <button class="btn btn-primary" id="btn-add-confirm">
-        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-          <line x1="8" y1="2" x2="8" y2="14"/><line x1="2" y1="8" x2="14" y2="8"/>
-        </svg>
-        Add block
-      </button>
-    </div>
-  </div>
+  <p style="margin-bottom:12px; font-size:11px; color:var(--muted);">Summary only here. The dashboard owns durable game, category, provider, and casino filters. The extension just enforces them on-page.</p>
 
   <!-- List -->
   <div id="exclusion-list-wrap">
     <div class="empty-state" id="exclusion-empty">
       <strong>Nothing blocked yet.</strong>
-      Block a game category or specific game ID. The extension will intercept it in your browser automatically.
+      Manage filters in the dashboard. The extension will intercept them in your browser automatically.
     </div>
     <div class="exclusion-list" id="exclusion-list"></div>
   </div>
@@ -699,96 +653,18 @@
   </div>
 
   <div class="section-head">
-    <span class="section-title">Vault Rules</span>
+    <span class="section-title">Vault Snapshot</span>
     <button class="btn btn-ghost" id="btn-vault-add-toggle" style="padding:5px 10px; font-size:11px">
-      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-        <line x1="8" y1="2" x2="8" y2="14"/><line x1="2" y1="8" x2="14" y2="8"/>
-      </svg>
-      Add rule
+      Manage in dashboard
     </button>
   </div>
-
-  <!-- Add vault rule form -->
-  <div class="add-form" id="vault-add-form">
-    <div class="form-row">
-      <label>Rule type</label>
-      <select id="vault-type-select">
-        <option value="percent_of_win">Percent of each win</option>
-        <option value="fixed_per_threshold">Fixed $ per $ cumulative won</option>
-        <option value="balance_ceiling">Vault above balance ceiling</option>
-        <option value="session_profit_lock">Lock session profit target</option>
-      </select>
-    </div>
-
-    <!-- percent_of_win fields -->
-    <div class="vault-field-group active" id="vfg-percent">
-      <div class="form-row">
-        <label>Percent to vault (%)</label>
-        <input id="vault-percent" type="number" min="1" max="100" placeholder="e.g. 25" />
-      </div>
-    </div>
-
-    <!-- fixed_per_threshold fields -->
-    <div class="vault-field-group" id="vfg-fixed">
-      <div class="form-row">
-        <label>Fixed vault amount ($)</label>
-        <input id="vault-fixed-amount" type="number" min="0.01" step="0.01" placeholder="e.g. 5.00" />
-      </div>
-      <div class="form-row">
-        <label>After every $ won (threshold)</label>
-        <input id="vault-threshold" type="number" min="0.01" step="0.01" placeholder="e.g. 20.00" />
-      </div>
-    </div>
-
-    <!-- balance_ceiling fields -->
-    <div class="vault-field-group" id="vfg-ceiling">
-      <div class="form-row">
-        <label>Balance ceiling ($)</label>
-        <input id="vault-ceiling" type="number" min="0.01" step="0.01" placeholder="e.g. 100.00" />
-      </div>
-    </div>
-
-    <!-- session_profit_lock fields -->
-    <div class="vault-field-group" id="vfg-profit">
-      <div class="form-row">
-        <label>Profit target ($)</label>
-        <input id="vault-profit-target" type="number" min="0.01" step="0.01" placeholder="e.g. 50.00" />
-      </div>
-    </div>
-
-    <!-- shared fields -->
-    <div class="form-row">
-      <label>Casino</label>
-      <select id="vault-casino">
-        <option value="all">All casinos</option>
-        <option value="stake">Stake.com</option>
-        <option value="roobet">Roobet</option>
-        <option value="bcgame">BC.Game</option>
-        <option value="rollbit">Rollbit</option>
-        <option value="gamdom">Gamdom</option>
-        <option value="shuffle">Shuffle</option>
-      </select>
-    </div>
-    <div class="form-row">
-      <label>Min win to trigger ($, optional)</label>
-      <input id="vault-min-win" type="number" min="0" step="0.01" placeholder="e.g. 2.00" />
-    </div>
-    <div class="form-row">
-      <label>Label (optional)</label>
-      <input id="vault-label" type="text" maxlength="40" placeholder="e.g. Slots cleanup" />
-    </div>
-
-    <div class="form-actions">
-      <button class="btn btn-ghost" id="btn-vault-add-cancel">Cancel</button>
-      <button class="btn btn-primary" id="btn-vault-add-confirm">Save rule</button>
-    </div>
-  </div>
+  <p style="margin-bottom:12px; font-size:11px; color:var(--muted);">Summary only here. Durable LockVault rules and wallet safety settings live in the dashboard. The extension just shows what is already armed.</p>
 
   <!-- Rule list -->
   <div id="vault-rule-list"></div>
   <div class="empty-state" id="vault-empty" style="display:none">
     <strong>No vault rules set.</strong>
-    Add a rule to automatically move winnings to your vault based on your criteria.
+    Manage rules in the dashboard, then let the extension enforce them while you play.
   </div>
 
   <div id="vault-loading" style="display:none; text-align:center; padding:24px 0;">

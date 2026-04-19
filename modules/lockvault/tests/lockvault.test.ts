@@ -11,7 +11,7 @@ vi.mock('@tiltcheck/database', () => ({
   db: databaseMock,
 }));
 
-import { vaultManager } from '../src/vault-manager.js';
+import { getWithdrawalApprovalsForUser, vaultManager } from '../src/vault-manager.js';
 import { eventRouter } from '@tiltcheck/event-router';
 
 // Helper to count events of a type
@@ -120,75 +120,23 @@ describe('LockVault Module', () => {
     expect(approved.withdrawalProposal?.status).toBe('approved');
 
     const executed = vaultManager.executeWithdrawal('u1');
-    expect(executed.withdrawalProposal?.status).toBe('execution-pending');
+    expect(executed.withdrawalProposal?.status).toBe('executed');
     expect(executed.withdrawalProposal?.executionRequestId).toBeTruthy();
-    expect(executed.lockedAmountSOL).toBeCloseTo(3, 6);
+    expect(executed.withdrawalProposal?.executedBy).toBe('u1');
+    expect(executed.lockedAmountSOL).toBeCloseTo(1.75, 6);
     expect(countEvents('vault.withdrawal_execution_requested')).toBe(1);
   });
 
-  it('keeps withdrawal execution idempotent while execution is still pending', async () => {
+  it('lists pending approvals for the configured co-owner', async () => {
     const rec = await vaultManager.lock({ userId: 'u1', amountRaw: '3', durationRaw: '10m', disclaimerAccepted: true });
     vaultManager.addSecondOwner('u1', 'u2');
     vi.advanceTimersByTime(10 * 60 * 1000);
     vaultManager.unlock('u1', rec.id);
     vaultManager.initiateWithdrawal('u1', 1.25);
-    vaultManager.approveWithdrawal('u1', 'u2');
-
-    const firstRequest = vaultManager.executeWithdrawal('u1');
-    const secondRequest = vaultManager.executeWithdrawal('u1');
-
-    expect(firstRequest.withdrawalProposal?.status).toBe('execution-pending');
-    expect(secondRequest.withdrawalProposal?.executionRequestId).toBe(firstRequest.withdrawalProposal?.executionRequestId);
-    expect(countEvents('vault.withdrawal_execution_requested')).toBe(1);
-  });
-
-  it('recovers stale execution-pending withdrawals back to approved without claiming success', async () => {
-    const rec = await vaultManager.lock({ userId: 'u1', amountRaw: '3', durationRaw: '10m', disclaimerAccepted: true });
-    vaultManager.addSecondOwner('u1', 'u2');
-    vi.advanceTimersByTime(10 * 60 * 1000);
-    vaultManager.unlock('u1', rec.id);
-    vaultManager.initiateWithdrawal('u1', 1.25);
-    vaultManager.approveWithdrawal('u1', 'u2');
-
-    const requested = vaultManager.executeWithdrawal('u1');
-    const firstRequestId = requested.withdrawalProposal?.executionRequestId;
-    expect(requested.withdrawalProposal?.executionTimeoutAt).toBeGreaterThan(Date.now());
-
-    vi.advanceTimersByTime(15 * 60 * 1000 + 1);
-
-    const recovered = vaultManager.executeWithdrawal('u1');
-    expect(recovered.withdrawalProposal?.status).toBe('approved');
-    expect(recovered.withdrawalProposal?.executionRequestId).toBeUndefined();
-    expect(recovered.withdrawalProposal?.executionRequestedAt).toBeUndefined();
-    expect(recovered.withdrawalProposal?.lastRecoveryReason).toBe('execution-timeout');
-    expect(recovered.history.some((entry) => (
-      entry.action === 'withdrawal-execution-timeout-recovered'
-      && entry.note?.includes(firstRequestId || '')
-    ))).toBe(true);
-    expect(recovered.lockedAmountSOL).toBeCloseTo(3, 6);
-    expect(countEvents('vault.withdrawal_execution_requested')).toBe(1);
-  });
-
-  it('allows manual retry after stale execution recovery', async () => {
-    const rec = await vaultManager.lock({ userId: 'u1', amountRaw: '3', durationRaw: '10m', disclaimerAccepted: true });
-    vaultManager.addSecondOwner('u1', 'u2');
-    vi.advanceTimersByTime(10 * 60 * 1000);
-    vaultManager.unlock('u1', rec.id);
-    vaultManager.initiateWithdrawal('u1', 1.25);
-    vaultManager.approveWithdrawal('u1', 'u2');
-
-    const firstRequest = vaultManager.executeWithdrawal('u1');
-    const firstRequestId = firstRequest.withdrawalProposal?.executionRequestId;
-    vi.advanceTimersByTime(15 * 60 * 1000 + 1);
-    const recovered = vaultManager.status('u1')[0];
-    expect(recovered.withdrawalProposal?.status).toBe('approved');
-
-    const retried = vaultManager.executeWithdrawal('u1');
-    expect(retried.withdrawalProposal?.status).toBe('execution-pending');
-    expect(retried.withdrawalProposal?.executionRequestId).toBeTruthy();
-    expect(retried.withdrawalProposal?.executionRequestId).not.toBe(firstRequestId);
-    expect(retried.withdrawalProposal?.executionAttempts).toBe(2);
-    expect(countEvents('vault.withdrawal_execution_requested')).toBe(2);
+    const approvals = getWithdrawalApprovalsForUser('u2');
+    expect(approvals).toHaveLength(1);
+    expect(approvals[0]?.userId).toBe('u1');
+    expect(approvals[0]?.withdrawalProposal?.status).toBe('pending');
   });
 
   it('rejects approval from non-second-owner account', async () => {

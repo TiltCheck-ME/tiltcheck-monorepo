@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-  <!-- © 2024-2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-13 -->
+  <!-- © 2024-2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-19 -->
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -39,6 +39,7 @@
       <ul class="nav-links">
         <li><a href="#" class="nav-link active" data-tab="profile">Profile</a></li>
         <li><a href="#" class="nav-link" data-tab="analytics">Analytics</a></li>
+        <li><a href="#" class="nav-link" data-tab="safety">Safety</a></li>
         <li><a href="#" class="nav-link" data-tab="vault">Vault</a></li>
         <li><a href="#" class="nav-link" data-tab="buddies">Buddies</a></li>
         <li><a href="#" class="nav-link" data-tab="bonuses">Bonuses</a></li>
@@ -192,6 +193,63 @@
           </div>
         </section>
 
+        <!-- TAB: SAFETY -->
+        <section id="safety-tab" class="tab-section">
+          <div class="section-header"><h1>Temptation Filter</h1></div>
+          <p class="section-desc">Dashboard owns the durable block list. The extension enforces it live in-browser. Discord stays summary and quick-add only.</p>
+
+          <div class="card-row">
+            <div class="card">
+              <h3 class="card-title">Add Exclusion</h3>
+              <div class="form-group">
+                <label class="form-label" for="exclusion-mode">Block type</label>
+                <select id="exclusion-mode" class="input"></select>
+              </div>
+              <div class="form-group" id="exclusion-category-group">
+                <label class="form-label" for="exclusion-category">Category</label>
+                <select id="exclusion-category" class="input"></select>
+              </div>
+              <div class="form-group" id="exclusion-target-group" style="display:none;">
+                <label class="form-label" id="exclusion-target-label" for="exclusion-target-value">Game ID or slug</label>
+                <input type="text" id="exclusion-target-value" class="input" placeholder="e.g. gates-of-olympus" />
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="exclusion-reason">Reason</label>
+                <input type="text" id="exclusion-reason" class="input" placeholder="Optional note for future-you" />
+              </div>
+              <div class="inline-action-row">
+                <button id="save-exclusion-btn" class="btn btn-primary">Save Exclusion</button>
+              </div>
+              <div id="exclusionFormStatus" class="form-msg"></div>
+            </div>
+
+            <div class="card">
+              <h3 class="card-title">Safety Summary</h3>
+              <div class="safety-summary-stack">
+                <div class="safety-stat">
+                  <span class="safety-stat-label">Active exclusions</span>
+                  <span id="exclusion-count" class="safety-stat-value">0</span>
+                </div>
+                <div class="safety-stat">
+                  <span class="safety-stat-label">Extension role</span>
+                  <span class="safety-stat-copy">Enforcement and summary</span>
+                </div>
+                <div class="safety-stat">
+                  <span class="safety-stat-label">Discord role</span>
+                  <span class="safety-stat-copy">Alerts, summary, optional quick-add</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <h3 class="card-title">Current Exclusions</h3>
+            <div id="exclusionList" class="safety-list">
+              <div class="activity-empty">Loading exclusions...</div>
+            </div>
+          </div>
+        </section>
+
         <!-- TAB: ANALYTICS -->
         <section id="analytics-tab" class="tab-section">
           <div class="section-header"><h1>Session Analytics</h1></div>
@@ -244,13 +302,14 @@
         <!-- TAB: VAULT -->
         <section id="vault-tab" class="tab-section">
           <div class="section-header"><h1>Vault</h1></div>
+          <p class="section-desc">Dashboard owns LockVault, co-owner approvals, and wallet safety settings. The extension stays on enforcement and quick actions, not durable rule management.</p>
 
           <div id="vault-status-card" class="vault-hero">
             <div class="vault-status-header">
               <span id="vault-status-label" class="vault-status-badge unlocked">UNLOCKED</span>
               <div class="vault-quick-actions">
                 <button id="vault-extend-btn" class="btn btn-secondary btn-sm" style="display:none;">Extend</button>
-                <button id="vault-unlock-btn" class="btn btn-ghost btn-sm" style="display:none;">Request Unlock</button>
+                <button id="vault-unlock-btn" class="btn btn-ghost btn-sm" style="display:none;">Release Ready Lock</button>
               </div>
             </div>
             <div id="vault-locked-amount" class="vault-amount" style="display:none;"></div>
@@ -297,12 +356,182 @@
               </div>
             </div>
           </div>
+
+          <div class="card-row">
+            <div class="card">
+              <h3 class="card-title">Withdrawal Approval Flow</h3>
+              <p class="section-desc section-desc-inline">Current LockVault flow only executes after the vault owner and the assigned co-owner both act. No fake success screens.</p>
+              <div class="form-group">
+                <label class="form-label" for="vault-second-owner-input">Co-owner Discord ID</label>
+                <input type="text" id="vault-second-owner-input" class="input" placeholder="Discord ID for the approval co-owner" />
+              </div>
+              <div class="inline-action-row">
+                <button id="vault-save-second-owner-btn" class="btn btn-secondary">Save Co-owner</button>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="vault-withdrawal-amount-input">Withdrawal amount (SOL)</label>
+                <input type="number" id="vault-withdrawal-amount-input" class="input" placeholder="0.00" step="0.01" min="0" />
+              </div>
+              <div class="inline-action-row">
+                <button id="vault-initiate-withdrawal-btn" class="btn btn-primary">Request Withdrawal</button>
+                <button id="vault-execute-withdrawal-btn" class="btn btn-ghost">Execute Approved Withdrawal</button>
+              </div>
+              <div id="vaultApprovalSummary" class="activity-empty">Loading approval state...</div>
+              <div id="vaultApprovalStatusMsg" class="form-msg"></div>
+            </div>
+
+            <div class="card">
+              <h3 class="card-title">Approvals Assigned to You</h3>
+              <p class="section-desc section-desc-inline">If another degen assigned you as co-owner, approve from here after you verify the amount and owner.</p>
+              <div id="vault-approval-queue" class="safety-list">
+                <div class="activity-empty">Loading approval queue...</div>
+              </div>
+              <div id="vaultApprovalQueueStatusMsg" class="form-msg"></div>
+            </div>
+          </div>
+
+          <div class="card-row">
+            <div class="card">
+              <h3 class="card-title">Wallet Safety Lock</h3>
+              <p class="section-desc section-desc-inline">Hard-brake wallet actions from the dashboard. No local shadow timers.</p>
+              <div id="wallet-lock-summary" class="safety-summary-stack" style="margin-bottom:1rem;">
+                <div class="safety-stat">
+                  <span class="safety-stat-label">Status</span>
+                  <span id="wallet-lock-status" class="safety-stat-value">Loading...</span>
+                </div>
+                <div class="safety-stat">
+                  <span class="safety-stat-label">Unlocks</span>
+                  <span id="wallet-lock-until" class="safety-stat-copy">--</span>
+                </div>
+                <div class="safety-stat">
+                  <span class="safety-stat-label">Reason</span>
+                  <span id="wallet-lock-reason" class="safety-stat-copy">--</span>
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="wallet-lock-duration">Lock duration</label>
+                <select id="wallet-lock-duration" class="input">
+                  <option value="240">4 hours</option>
+                  <option value="1440">24 hours</option>
+                  <option value="4320">72 hours</option>
+                  <option value="10080">7 days</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="wallet-lock-reason-input">Reason</label>
+                <input type="text" id="wallet-lock-reason-input" class="input" placeholder="Optional note for why this lock exists" />
+              </div>
+              <div class="inline-action-row">
+                <button id="save-wallet-lock-btn" class="btn btn-primary">Set Wallet Lock</button>
+                <button id="request-wallet-unlock-btn" class="btn btn-ghost">Request Early Unlock</button>
+              </div>
+              <div id="walletLockStatusMsg" class="form-msg"></div>
+            </div>
+
+            <div class="card">
+              <h3 class="card-title">Auto-Vault Rules</h3>
+              <div class="form-group">
+                <label class="form-label" for="vault-rule-type">Rule type</label>
+                <select id="vault-rule-type" class="input">
+                  <option value="percent_of_win">Percent of each win</option>
+                  <option value="fixed_per_threshold">Fixed amount per threshold</option>
+                  <option value="balance_ceiling">Balance ceiling</option>
+                  <option value="session_profit_lock">Session profit target</option>
+                </select>
+              </div>
+              <div class="form-group" id="vault-rule-percent-group">
+                <label class="form-label" for="vault-rule-percent">Percent to vault</label>
+                <input type="number" id="vault-rule-percent" class="input" min="1" max="100" placeholder="25" />
+              </div>
+              <div class="form-group" id="vault-rule-fixed-group" style="display:none;">
+                <label class="form-label" for="vault-rule-fixed-amount">Fixed amount</label>
+                <input type="number" id="vault-rule-fixed-amount" class="input" min="0.01" step="0.01" placeholder="5.00" />
+              </div>
+              <div class="form-group" id="vault-rule-threshold-group" style="display:none;">
+                <label class="form-label" for="vault-rule-threshold">Threshold amount</label>
+                <input type="number" id="vault-rule-threshold" class="input" min="0.01" step="0.01" placeholder="20.00" />
+              </div>
+              <div class="form-group" id="vault-rule-ceiling-group" style="display:none;">
+                <label class="form-label" for="vault-rule-ceiling">Balance ceiling</label>
+                <input type="number" id="vault-rule-ceiling" class="input" min="0.01" step="0.01" placeholder="100.00" />
+              </div>
+              <div class="form-group" id="vault-rule-profit-group" style="display:none;">
+                <label class="form-label" for="vault-rule-profit-target">Profit target</label>
+                <input type="number" id="vault-rule-profit-target" class="input" min="0.01" step="0.01" placeholder="50.00" />
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="vault-rule-casino">Casino</label>
+                <select id="vault-rule-casino" class="input">
+                  <option value="all">All casinos</option>
+                  <option value="stake">Stake.com</option>
+                  <option value="roobet">Roobet</option>
+                  <option value="bcgame">BC.Game</option>
+                  <option value="rollbit">Rollbit</option>
+                  <option value="gamdom">Gamdom</option>
+                  <option value="shuffle">Shuffle</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="vault-rule-min-win">Min win to trigger</label>
+                <input type="number" id="vault-rule-min-win" class="input" min="0" step="0.01" placeholder="2.00" />
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="vault-rule-label">Label</label>
+                <input type="text" id="vault-rule-label" class="input" maxlength="40" placeholder="Slots cleanup" />
+              </div>
+              <div class="inline-action-row">
+                <button id="save-vault-rule-btn" class="btn btn-primary">Save Rule</button>
+              </div>
+              <div id="vaultRuleStatus" class="form-msg"></div>
+            </div>
+          </div>
+
+          <div class="card">
+            <h3 class="card-title">Current Vault Rules</h3>
+            <div id="vault-rule-list" class="safety-list">
+              <div class="activity-empty">Loading vault rules...</div>
+            </div>
+          </div>
         </section>
 
         <!-- TAB: BUDDIES -->
         <section id="buddies-tab" class="tab-section">
           <div class="section-header"><h1>Buddy System</h1></div>
-          <p class="section-desc">Accountability network. Support-only check-ins when risk spikes. No balance, win, or wallet details get shared either way.</p>
+          <p class="section-desc">Dashboard owns the durable accountability settings. Discord still does alerts and optional quick-adds. The extension only mirrors quick actions.</p>
+
+          <div class="card-row">
+            <div class="card">
+              <h3 class="card-title">Accountability Controls</h3>
+              <div class="setting-row">
+                <div>
+                  <div class="setting-row-title">Voice intervention</div>
+                  <div class="setting-row-copy">Let TiltCheck move you into accountability voice when critical tilt hits.</div>
+                </div>
+                <label class="toggle">
+                  <input type="checkbox" id="voice-intervention-toggle" />
+                  <span class="toggle-track"></span>
+                </label>
+              </div>
+              <div class="inline-action-row">
+                <button id="save-accountability-settings-btn" class="btn btn-primary">Save Accountability Settings</button>
+              </div>
+              <div id="accountabilitySettingsStatus" class="form-msg"></div>
+            </div>
+
+            <div class="card">
+              <h3 class="card-title">Supporting Surfaces</h3>
+              <div class="safety-summary-stack">
+                <div class="safety-stat">
+                  <span class="safety-stat-label">Discord</span>
+                  <span class="safety-stat-copy">Alerts, summaries, and optional quick-add only.</span>
+                </div>
+                <div class="safety-stat">
+                  <span class="safety-stat-label">Extension</span>
+                  <span class="safety-stat-copy">Quick actions and in-session nudges. Durable settings stay here.</span>
+                </div>
+              </div>
+            </div>
+          </div>
 
           <div class="card-row">
             <div class="card">

@@ -1,11 +1,36 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-12
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-19
 /**
  * Buddy Accountability Command
- * Manage your accountability buddy network.
+ * Quick-link accountability coverage without pretending Discord is the roster manager.
  */
-import { SlashCommandBuilder, ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
+import {
+  SlashCommandBuilder,
+  ChatInputCommandInteraction,
+  EmbedBuilder,
+  ActionRowBuilder,
+  ButtonBuilder,
+  ButtonStyle,
+} from 'discord.js';
 import type { Command } from '../types.js';
-import { getUserBuddies, removeBuddy, insert } from '@tiltcheck/db';
+import { getUserBuddies, insert } from '@tiltcheck/db';
+
+function getDashboardBaseUrl(): string {
+  const configuredUrl = process.env.DASHBOARD_URL?.trim();
+  if (configuredUrl && /^https?:\/\//i.test(configuredUrl)) {
+    return configuredUrl.replace(/\/+$/, '');
+  }
+
+  return 'https://dashboard.tiltcheck.me';
+}
+
+function buildBuddyControlsRow(): ActionRowBuilder<ButtonBuilder> {
+  return new ActionRowBuilder<ButtonBuilder>().addComponents(
+    new ButtonBuilder()
+      .setLabel('Open Buddy Controls')
+      .setStyle(ButtonStyle.Link)
+      .setURL(`${getDashboardBaseUrl()}/dashboard?tab=buddies`)
+  );
+}
 
 export const buddy: Command = {
   data: new SlashCommandBuilder()
@@ -18,8 +43,7 @@ export const buddy: Command = {
     )
     .addSubcommand(sub =>
       sub.setName('unlink')
-        .setDescription('Cut a buddy loose.')
-        .addUserOption(opt => opt.setName('user').setDescription('Buddy to remove').setRequired(true))
+        .setDescription('Open dashboard buddy controls for removals and full roster management.')
     )
     .addSubcommand(sub =>
       sub.setName('status')
@@ -50,20 +74,18 @@ export const buddy: Command = {
         });
 
         embed.setTitle('BUDDY LINKED')
-          .setDescription(`**${targetUser.username}** is now in the loop.\n\nWhen telemetry goes red, they get a support-only accountability ping. TiltCheck does not share your balance, wins, or wallet details.`)
+          .setDescription(`**${targetUser.username}** is now in the loop.\n\nDiscord handled the quick link. The dashboard owns roster cleanup, pending approvals, and the full buddy view. TiltCheck does not share your balance, wins, or wallet details.`)
           .setFooter({ text: 'Made for Degens. By Degens.' });
 
-        await interaction.reply({ embeds: [embed] });
+        await interaction.reply({ embeds: [embed], components: [buildBuddyControlsRow()] });
 
-      } else if (sub === 'unlink' && targetUser) {
-        await removeBuddy(interaction.user.id, targetUser.id);
-
-        embed.setTitle('BUDDY REMOVED')
-          .setColor(0xef4444)
-          .setDescription(`Safety line to **${targetUser.username}** cut.\n\nYou are raw-dogging accountability again. Try not to make that weird.`)
+      } else if (sub === 'unlink') {
+        embed.setTitle('DASHBOARD-OWNED')
+          .setColor(0xf59e0b)
+          .setDescription('Discord is not the buddy roster manager anymore.\n\nUse the dashboard buddy controls for removals, approvals, and roster cleanup.')
           .setFooter({ text: 'Made for Degens. By Degens.' });
 
-        await interaction.reply({ embeds: [embed] });
+        await interaction.reply({ embeds: [embed], components: [buildBuddyControlsRow()], ephemeral: true });
 
       } else if (sub === 'status') {
         const partners = await getUserBuddies(interaction.user.id);
@@ -71,12 +93,12 @@ export const buddy: Command = {
         embed.setTitle('BUDDY NETWORK')
           .setDescription(
             partners.length > 0
-              ? `**Active Safety Partners (${partners.length}):**\n${partners.map(p => `- <@${p.buddy_id}>`).join('\n')}\n\nIf you spiral, these people get a support-only ping while TiltCheck handles your DM and optional voice shove. No balance, winnings, or wallet details get shared.`
-              : 'No safety partners linked.\n\nRun `/buddy link user:@someone` and give future-you at least one witness.'
+              ? `**Active Safety Partners (${partners.length}):**\n${partners.map(p => `- <@${p.buddy_id}>`).join('\n')}\n\nIf you spiral, these people get a support-only ping while TiltCheck handles your DM and optional voice shove. No balance, winnings, or wallet details get shared.\n\nDashboard buddy controls own approvals, removals, and the full roster.`
+              : 'No safety partners linked.\n\nRun `/buddy link user:@someone` for a quick add, then use dashboard buddy controls for the full setup.'
           )
           .setFooter({ text: 'Made for Degens. By Degens.' });
 
-        await interaction.reply({ embeds: [embed], ephemeral: true });
+        await interaction.reply({ embeds: [embed], components: [buildBuddyControlsRow()], ephemeral: true });
       }
     } catch (err) {
       await interaction.reply({ content: `Buddy wiring failed: ${(err as Error).message}`, ephemeral: true });

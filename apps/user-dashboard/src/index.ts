@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-13
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-19
 import express from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
@@ -177,6 +177,7 @@ const OUTBOUND_FETCH_TIMEOUT_MS = 8000;
 // Configuration
 const isProd = process.env.NODE_ENV === 'production';
 const HUB_BASE_URL = isProd ? 'https://hub.tiltcheck.me' : `http://localhost:${PORT}`;
+const CANONICAL_API_BASE_URL = process.env.TILT_API_BASE_URL?.trim() || 'https://api.tiltcheck.me';
 const JWT_SECRET = process.env.JWT_SECRET;
 const MAGIC_SECRET_KEY = process.env.MAGIC_SECRET_KEY?.trim();
 
@@ -437,6 +438,110 @@ function fetchWithTimeout(input: string, init: RequestInit, timeoutMs = OUTBOUND
   }).finally(() => {
     clearTimeout(timeout);
   });
+}
+
+interface CanonicalApiResponse {
+  status: number;
+  body: unknown;
+}
+
+function getRequestAuthorizationHeader(req: Request): string | null {
+  const authHeader = req.headers.authorization;
+  if (typeof authHeader === 'string' && authHeader.trim() !== '') {
+    return authHeader;
+  }
+
+  if (Array.isArray(authHeader) && typeof authHeader[0] === 'string' && authHeader[0].trim() !== '') {
+    return authHeader[0];
+  }
+
+  return null;
+}
+
+function getCanonicalApiUrl(pathname: string): string {
+  const normalizedPath = pathname.startsWith('/') ? pathname : `/${pathname}`;
+  return `${CANONICAL_API_BASE_URL}${normalizedPath}`;
+}
+
+async function requestCanonicalApi(
+  req: Request,
+  pathname: string,
+  init: RequestInit = {}
+): Promise<CanonicalApiResponse> {
+  const headers = new Headers(init.headers || {});
+  const authHeader = getRequestAuthorizationHeader(req);
+
+  headers.set('Accept', 'application/json');
+  if (authHeader) {
+    headers.set('Authorization', authHeader);
+  }
+  if (init.body !== undefined && !headers.has('Content-Type')) {
+    headers.set('Content-Type', 'application/json');
+  }
+
+  const response = await fetchWithTimeout(getCanonicalApiUrl(pathname), {
+    ...init,
+    headers,
+  });
+
+  const rawBody = await response.text();
+  let body: unknown = null;
+
+  if (rawBody.trim() !== '') {
+    try {
+      body = JSON.parse(rawBody);
+    } catch {
+      body = { error: rawBody };
+    }
+  }
+
+  return {
+    status: response.status,
+    body,
+  };
+}
+
+function sendCanonicalApiResponse(res: Response, response: CanonicalApiResponse): void {
+  if (response.status === 204) {
+    res.status(204).end();
+    return;
+  }
+
+  res.status(response.status).json(response.body ?? {});
+}
+
+function getCanonicalApiErrorMessage(error: unknown, fallback: string): string {
+  if (error instanceof Error && error.message.trim() !== '') {
+    return error.message;
+  }
+
+  return fallback;
+}
+
+function summarizeVaultPayload(payload: any) {
+  const locks = Array.isArray(payload?.vault?.locks) ? payload.vault.locks : [];
+  const activeLock = locks.find((entry: any) => entry?.status === 'locked' || entry?.status === 'extended') ?? null;
+  const history = [...locks].sort((left: any, right: any) => {
+    const rightTs = parseTimestamp(right?.createdAt ?? right?.unlockAt ?? 0) ?? 0;
+    const leftTs = parseTimestamp(left?.createdAt ?? left?.unlockAt ?? 0) ?? 0;
+    return rightTs - leftTs;
+  });
+  const latestVault = history[0] ?? null;
+
+  return {
+    success: payload?.success === true,
+    balance: normalizeFiniteNumber(payload?.vault?.balance),
+    locks,
+    activeLock,
+    walletLock: payload?.walletLock ?? { locked: false },
+    locked: Boolean(activeLock),
+    unlockAt: activeLock?.unlockAt ? new Date(activeLock.unlockAt).toISOString() : null,
+    amount: normalizeFiniteNumber(activeLock?.lockedAmountSOL),
+    history,
+    latestVault,
+    secondOwnerId: latestVault?.secondOwnerId ?? null,
+    withdrawalProposal: latestVault?.withdrawalProposal ?? null,
+  };
 }
 
 async function readJsonFile<T>(filePath: string, fallback: T): Promise<T> {
@@ -1070,31 +1175,22 @@ app.post('/api/agent/query', authenticateToken, async (req: DashboardRequest, re
 
 
 
-// === Vault Routes ===
+// === Safety Control Routes ===
 app.get('/api/user/:discordId/vault', authenticateToken, async (req: DashboardRequest, res) => {
   try {
     const discordId = requireAuthorizedDiscordId(req, res);
     if (!discordId) return;
 
-    if (!db.isConnected()) {
-      return res.json({ locked: false, amount: 0, history: [] });
+    const response = await requestCanonicalApi(req, `/vault/${encodeURIComponent(discordId)}`);
+    if (response.status >= 400) {
+      sendCanonicalApiResponse(res, response);
+      return;
     }
 
-    const user = await findUserByDiscordId(discordId);
-    if (!user) return res.status(404).json({ error: 'User not found' });
-
-    const vaultData = await db.getVaultStatus(user.id).catch(() => null);
-    const history = await db.getVaultHistory(user.id, 5).catch(() => []);
-
-    res.json({
-      locked: vaultData?.status === 'locked',
-      unlockAt: vaultData?.unlock_at || null,
-      amount: vaultData?.amount_sol || 0,
-      history
-    });
-  } catch (err) {
-    console.error('[Vault GET]', err);
-    res.json({ locked: false, amount: 0, history: [] });
+    res.json(summarizeVaultPayload(response.body));
+  } catch (error) {
+    console.error('[Vault GET]', error);
+    res.status(502).json({ error: getCanonicalApiErrorMessage(error, 'Failed to load vault state') });
   }
 });
 
@@ -1103,25 +1199,49 @@ app.post('/api/user/:discordId/vault/lock', authenticateToken, async (req: Dashb
     const discordId = requireAuthorizedDiscordId(req, res);
     if (!discordId) return;
 
-    const { amountSol, durationMs } = req.body;
+    const amountSol = Number(req.body?.amountSol);
+    const durationMs = Number(req.body?.durationMs);
 
-    if (!amountSol || amountSol <= 0) return res.status(400).json({ error: 'Invalid amount' });
-    if (!durationMs || durationMs < 3600000) return res.status(400).json({ error: 'Minimum lock duration is 1 hour' });
-
-    const user = await findUserByDiscordId(discordId);
-    if (!user) return res.status(404).json({ error: 'User not found' });
-
-    const unlockAt = new Date(Date.now() + durationMs).toISOString();
-
-    if (db.isConnected()) {
-      await db.createVaultLock({ userId: user.id, amountSol, unlockAt });
+    if (!Number.isFinite(amountSol) || amountSol <= 0) {
+      res.status(400).json({ error: 'Invalid amount' });
+      return;
+    }
+    if (!Number.isFinite(durationMs) || durationMs < 60 * 60 * 1000) {
+      res.status(400).json({ error: 'Minimum lock duration is 1 hour' });
+      return;
     }
 
-    broadcastToUser(discordId, { type: 'vault.locked', data: { amountSol, unlockAt } });
-    res.json({ success: true, unlockAt });
-  } catch (err) {
-    console.error('[Vault LOCK]', err);
-    res.status(500).json({ error: 'Vault lock failed' });
+    const response = await requestCanonicalApi(req, `/vault/${encodeURIComponent(discordId)}/lock`, {
+      method: 'POST',
+      body: JSON.stringify({
+        amount: amountSol,
+        durationMinutes: Math.max(1, Math.trunc(durationMs / 60000)),
+        reason: 'Dashboard safety lock',
+      }),
+    });
+
+    if (response.status >= 400) {
+      sendCanonicalApiResponse(res, response);
+      return;
+    }
+
+    const vault = (response.body as any)?.vault ?? null;
+    const unlockAt = vault?.unlockAt ? new Date(vault.unlockAt).toISOString() : null;
+    broadcastToUser(discordId, {
+      type: 'vault.locked',
+      data: {
+        amountSol: normalizeFiniteNumber(vault?.lockedAmountSOL ?? amountSol),
+        unlockAt,
+      },
+    });
+    res.json({
+      success: true,
+      unlockAt,
+      vault,
+    });
+  } catch (error) {
+    console.error('[Vault LOCK]', error);
+    res.status(502).json({ error: getCanonicalApiErrorMessage(error, 'Vault lock failed') });
   }
 });
 
@@ -1130,18 +1250,170 @@ app.post('/api/user/:discordId/vault/unlock', authenticateToken, async (req: Das
     const discordId = requireAuthorizedDiscordId(req, res);
     if (!discordId) return;
 
-    const user = await findUserByDiscordId(discordId);
-    if (!user) return res.status(404).json({ error: 'User not found' });
+    const response = await requestCanonicalApi(req, `/vault/${encodeURIComponent(discordId)}/release`, {
+      method: 'POST',
+      body: JSON.stringify({ vaultId: req.body?.vaultId }),
+    });
 
-    if (db.isConnected()) {
-      await db.requestVaultUnlock(user.id);
+    if (response.status >= 400) {
+      sendCanonicalApiResponse(res, response);
+      return;
     }
 
-    broadcastToUser(discordId, { type: 'vault.unlock_requested' });
-    res.json({ success: true });
-  } catch (err) {
-    console.error('[Vault UNLOCK]', err);
-    res.status(500).json({ error: 'Unlock request failed' });
+    broadcastToUser(discordId, { type: 'vault.unlocked' });
+    res.json(response.body ?? { success: true });
+  } catch (error) {
+    console.error('[Vault UNLOCK]', error);
+    res.status(502).json({ error: getCanonicalApiErrorMessage(error, 'Vault release failed') });
+  }
+});
+
+app.post('/api/user/:discordId/vault/second-owner', authenticateToken, async (req: DashboardRequest, res) => {
+  try {
+    const discordId = requireAuthorizedDiscordId(req, res);
+    if (!discordId) return;
+
+    const secondOwnerId = typeof req.body?.secondOwnerId === 'string' ? req.body.secondOwnerId.trim() : '';
+    if (!secondOwnerId) {
+      res.status(400).json({ error: 'Second owner Discord ID is required.' });
+      return;
+    }
+
+    const response = await requestCanonicalApi(req, `/vault/${encodeURIComponent(discordId)}/add-second-owner`, {
+      method: 'POST',
+      body: JSON.stringify({ secondOwnerId }),
+    });
+    sendCanonicalApiResponse(res, response);
+  } catch (error) {
+    console.error('[Vault SECOND OWNER]', error);
+    res.status(502).json({ error: getCanonicalApiErrorMessage(error, 'Failed to save second owner') });
+  }
+});
+
+app.post('/api/user/:discordId/vault/initiate-withdrawal', authenticateToken, async (req: DashboardRequest, res) => {
+  try {
+    const discordId = requireAuthorizedDiscordId(req, res);
+    if (!discordId) return;
+
+    const amountSol = Number(req.body?.amountSol);
+    if (!Number.isFinite(amountSol) || amountSol <= 0) {
+      res.status(400).json({ error: 'Valid withdrawal amount is required.' });
+      return;
+    }
+
+    const response = await requestCanonicalApi(req, `/vault/${encodeURIComponent(discordId)}/initiate-withdrawal`, {
+      method: 'POST',
+      body: JSON.stringify({ amount: amountSol }),
+    });
+    sendCanonicalApiResponse(res, response);
+  } catch (error) {
+    console.error('[Vault INITIATE WITHDRAWAL]', error);
+    res.status(502).json({ error: getCanonicalApiErrorMessage(error, 'Failed to initiate withdrawal') });
+  }
+});
+
+app.post('/api/user/:discordId/vault/execute-withdrawal', authenticateToken, async (req: DashboardRequest, res) => {
+  try {
+    const discordId = requireAuthorizedDiscordId(req, res);
+    if (!discordId) return;
+
+    const response = await requestCanonicalApi(req, `/vault/${encodeURIComponent(discordId)}/execute-withdrawal`, {
+      method: 'POST',
+    });
+    sendCanonicalApiResponse(res, response);
+  } catch (error) {
+    console.error('[Vault EXECUTE WITHDRAWAL]', error);
+    res.status(502).json({ error: getCanonicalApiErrorMessage(error, 'Failed to execute withdrawal') });
+  }
+});
+
+app.get('/api/user/:discordId/vault/approvals', authenticateToken, async (req: DashboardRequest, res) => {
+  try {
+    const discordId = requireAuthorizedDiscordId(req, res);
+    if (!discordId) return;
+
+    const response = await requestCanonicalApi(req, `/vault/${encodeURIComponent(discordId)}/withdrawal-approvals`);
+    sendCanonicalApiResponse(res, response);
+  } catch (error) {
+    console.error('[Vault APPROVALS GET]', error);
+    res.status(502).json({ error: getCanonicalApiErrorMessage(error, 'Failed to load approval queue') });
+  }
+});
+
+app.post('/api/user/:discordId/vault/approvals/:ownerDiscordId/approve', authenticateToken, async (req: DashboardRequest, res) => {
+  try {
+    const discordId = requireAuthorizedDiscordId(req, res);
+    if (!discordId) return;
+
+    const ownerDiscordId = typeof req.params.ownerDiscordId === 'string' ? req.params.ownerDiscordId.trim() : '';
+    if (!ownerDiscordId) {
+      res.status(400).json({ error: 'Owner Discord ID is required.' });
+      return;
+    }
+
+    const response = await requestCanonicalApi(req, `/vault/${encodeURIComponent(ownerDiscordId)}/approve-withdrawal`, {
+      method: 'POST',
+    });
+    sendCanonicalApiResponse(res, response);
+  } catch (error) {
+    console.error('[Vault APPROVE WITHDRAWAL]', error);
+    res.status(502).json({ error: getCanonicalApiErrorMessage(error, 'Failed to approve withdrawal') });
+  }
+});
+
+app.get('/api/user/:discordId/exclusions', authenticateToken, async (req: DashboardRequest, res) => {
+  try {
+    const discordId = requireAuthorizedDiscordId(req, res);
+    if (!discordId) return;
+
+    const response = await requestCanonicalApi(req, `/user/${encodeURIComponent(discordId)}/exclusions`);
+    sendCanonicalApiResponse(res, response);
+  } catch (error) {
+    console.error('[Exclusions GET]', error);
+    res.status(502).json({ error: getCanonicalApiErrorMessage(error, 'Failed to load exclusions') });
+  }
+});
+
+app.get('/api/user/exclusions/taxonomy', authenticateToken, async (req: DashboardRequest, res) => {
+  try {
+    const response = await requestCanonicalApi(req, '/user/exclusions/taxonomy');
+    sendCanonicalApiResponse(res, response);
+  } catch (error) {
+    console.error('[Exclusions TAXONOMY]', error);
+    res.status(502).json({ error: getCanonicalApiErrorMessage(error, 'Failed to load exclusion taxonomy') });
+  }
+});
+
+app.post('/api/user/:discordId/exclusions', authenticateToken, async (req: DashboardRequest, res) => {
+  try {
+    const discordId = requireAuthorizedDiscordId(req, res);
+    if (!discordId) return;
+
+    const response = await requestCanonicalApi(req, `/user/${encodeURIComponent(discordId)}/exclusions`, {
+      method: 'POST',
+      body: JSON.stringify(req.body ?? {}),
+    });
+    sendCanonicalApiResponse(res, response);
+  } catch (error) {
+    console.error('[Exclusions POST]', error);
+    res.status(502).json({ error: getCanonicalApiErrorMessage(error, 'Failed to save exclusion') });
+  }
+});
+
+app.delete('/api/user/:discordId/exclusions/:exclusionId', authenticateToken, async (req: DashboardRequest, res) => {
+  try {
+    const discordId = requireAuthorizedDiscordId(req, res);
+    if (!discordId) return;
+
+    const response = await requestCanonicalApi(
+      req,
+      `/user/${encodeURIComponent(discordId)}/exclusions/${encodeURIComponent(req.params.exclusionId)}`,
+      { method: 'DELETE' }
+    );
+    sendCanonicalApiResponse(res, response);
+  } catch (error) {
+    console.error('[Exclusions DELETE]', error);
+    res.status(502).json({ error: getCanonicalApiErrorMessage(error, 'Failed to remove exclusion') });
   }
 });
 
@@ -1278,24 +1550,16 @@ app.get('/api/user/:discordId/sessions', authenticateToken, async (req: Dashboar
   }
 });
 
-// === Buddy Routes ===
 app.get('/api/user/:discordId/buddies', authenticateToken, async (req: DashboardRequest, res) => {
   try {
     const discordId = requireAuthorizedDiscordId(req, res);
     if (!discordId) return;
 
-    const user = await findUserByDiscordId(discordId);
-    if (!user) return res.status(404).json({ error: 'User not found' });
-
-    const [buddies, pending] = await Promise.all([
-      getUserBuddies(user.id).catch(() => []),
-      getPendingBuddyRequests(user.id).catch(() => [])
-    ]);
-
-    res.json({ buddies, pending });
-  } catch (err) {
-    console.error('[Buddies GET]', err);
-    res.json({ buddies: [], pending: [] });
+    const response = await requestCanonicalApi(req, `/user/${encodeURIComponent(discordId)}/buddies`);
+    sendCanonicalApiResponse(res, response);
+  } catch (error) {
+    console.error('[Buddies GET]', error);
+    res.status(502).json({ error: getCanonicalApiErrorMessage(error, 'Failed to load buddy settings') });
   }
 });
 
@@ -1304,17 +1568,14 @@ app.post('/api/user/:discordId/buddies', authenticateToken, async (req: Dashboar
     const discordId = requireAuthorizedDiscordId(req, res);
     if (!discordId) return;
 
-    const { buddyId } = req.body;
-    if (!buddyId) return res.status(400).json({ error: 'Missing buddyId' });
-
-    const user = await findUserByDiscordId(discordId);
-    if (!user) return res.status(404).json({ error: 'User not found' });
-
-    await sendBuddyRequest(user.id, buddyId);
-    res.json({ success: true });
-  } catch (err) {
-    console.error('[Buddy Invite]', err);
-    res.status(500).json({ error: 'Failed to send buddy request' });
+    const response = await requestCanonicalApi(req, `/user/${encodeURIComponent(discordId)}/buddies`, {
+      method: 'POST',
+      body: JSON.stringify(req.body ?? {}),
+    });
+    sendCanonicalApiResponse(res, response);
+  } catch (error) {
+    console.error('[Buddy Invite]', error);
+    res.status(502).json({ error: getCanonicalApiErrorMessage(error, 'Failed to send buddy request') });
   }
 });
 
@@ -1323,19 +1584,14 @@ app.post('/api/user/:discordId/buddies/:requestId/accept', authenticateToken, as
     const discordId = requireAuthorizedDiscordId(req, res);
     if (!discordId) return;
 
-    const user = await findUserByDiscordId(discordId);
-    if (!user) return res.status(404).json({ error: 'User not found' });
-
-    const pending = await getPendingBuddyRequests(user.id).catch(() => []);
-    const request = pending.find((entry) => entry.id === req.params.requestId);
-    if (!request) return res.status(404).json({ error: 'Buddy request not found' });
-
-    if (db.isConnected()) {
-      await db.acceptBuddyRequest(req.params.requestId as string);
-    }
-    res.json({ success: true });
-  } catch (err) {
-    res.status(500).json({ error: 'Failed to accept request' });
+    const response = await requestCanonicalApi(req, `/user/${encodeURIComponent(discordId)}/buddies/accept`, {
+      method: 'POST',
+      body: JSON.stringify({ requestId: req.params.requestId }),
+    });
+    sendCanonicalApiResponse(res, response);
+  } catch (error) {
+    console.error('[Buddy Accept]', error);
+    res.status(502).json({ error: getCanonicalApiErrorMessage(error, 'Failed to accept request') });
   }
 });
 
@@ -1344,19 +1600,127 @@ app.post('/api/user/:discordId/buddies/:requestId/decline', authenticateToken, a
     const discordId = requireAuthorizedDiscordId(req, res);
     if (!discordId) return;
 
-    const user = await findUserByDiscordId(discordId);
-    if (!user) return res.status(404).json({ error: 'User not found' });
+    const response = await requestCanonicalApi(req, `/user/${encodeURIComponent(discordId)}/buddies/decline`, {
+      method: 'POST',
+      body: JSON.stringify({ requestId: req.params.requestId }),
+    });
+    sendCanonicalApiResponse(res, response);
+  } catch (error) {
+    console.error('[Buddy Decline]', error);
+    res.status(502).json({ error: getCanonicalApiErrorMessage(error, 'Failed to decline request') });
+  }
+});
 
-    const pending = await getPendingBuddyRequests(user.id).catch(() => []);
-    const request = pending.find((entry) => entry.id === req.params.requestId);
-    if (!request) return res.status(404).json({ error: 'Buddy request not found' });
+app.get('/api/user/:discordId/vault-rules', authenticateToken, async (req: DashboardRequest, res) => {
+  try {
+    const discordId = requireAuthorizedDiscordId(req, res);
+    if (!discordId) return;
 
-    if (db.isConnected()) {
-      await db.declineBuddyRequest(req.params.requestId as string);
-    }
-    res.json({ success: true });
-  } catch (err) {
-    res.status(500).json({ error: 'Failed to decline request' });
+    const response = await requestCanonicalApi(req, `/user/${encodeURIComponent(discordId)}/vault-rules`);
+    sendCanonicalApiResponse(res, response);
+  } catch (error) {
+    console.error('[Vault Rules GET]', error);
+    res.status(502).json({ error: getCanonicalApiErrorMessage(error, 'Failed to load vault rules') });
+  }
+});
+
+app.post('/api/user/:discordId/vault-rules', authenticateToken, async (req: DashboardRequest, res) => {
+  try {
+    const discordId = requireAuthorizedDiscordId(req, res);
+    if (!discordId) return;
+
+    const response = await requestCanonicalApi(req, `/user/${encodeURIComponent(discordId)}/vault-rules`, {
+      method: 'POST',
+      body: JSON.stringify(req.body ?? {}),
+    });
+    sendCanonicalApiResponse(res, response);
+  } catch (error) {
+    console.error('[Vault Rules POST]', error);
+    res.status(502).json({ error: getCanonicalApiErrorMessage(error, 'Failed to save vault rule') });
+  }
+});
+
+app.patch('/api/user/:discordId/vault-rules/:ruleId', authenticateToken, async (req: DashboardRequest, res) => {
+  try {
+    const discordId = requireAuthorizedDiscordId(req, res);
+    if (!discordId) return;
+
+    const response = await requestCanonicalApi(
+      req,
+      `/user/${encodeURIComponent(discordId)}/vault-rules/${encodeURIComponent(req.params.ruleId)}`,
+      {
+        method: 'PATCH',
+        body: JSON.stringify(req.body ?? {}),
+      }
+    );
+    sendCanonicalApiResponse(res, response);
+  } catch (error) {
+    console.error('[Vault Rules PATCH]', error);
+    res.status(502).json({ error: getCanonicalApiErrorMessage(error, 'Failed to update vault rule') });
+  }
+});
+
+app.delete('/api/user/:discordId/vault-rules/:ruleId', authenticateToken, async (req: DashboardRequest, res) => {
+  try {
+    const discordId = requireAuthorizedDiscordId(req, res);
+    if (!discordId) return;
+
+    const response = await requestCanonicalApi(
+      req,
+      `/user/${encodeURIComponent(discordId)}/vault-rules/${encodeURIComponent(req.params.ruleId)}`,
+      { method: 'DELETE' }
+    );
+    sendCanonicalApiResponse(res, response);
+  } catch (error) {
+    console.error('[Vault Rules DELETE]', error);
+    res.status(502).json({ error: getCanonicalApiErrorMessage(error, 'Failed to delete vault rule') });
+  }
+});
+
+app.get('/api/user/:discordId/wallet-lock', authenticateToken, async (req: DashboardRequest, res) => {
+  try {
+    const discordId = requireAuthorizedDiscordId(req, res);
+    if (!discordId) return;
+
+    const response = await requestCanonicalApi(req, `/vault/${encodeURIComponent(discordId)}/wallet-lock-status`);
+    sendCanonicalApiResponse(res, response);
+  } catch (error) {
+    console.error('[Wallet Lock GET]', error);
+    res.status(502).json({ error: getCanonicalApiErrorMessage(error, 'Failed to load wallet lock') });
+  }
+});
+
+app.post('/api/user/:discordId/wallet-lock', authenticateToken, async (req: DashboardRequest, res) => {
+  try {
+    const discordId = requireAuthorizedDiscordId(req, res);
+    if (!discordId) return;
+
+    const response = await requestCanonicalApi(req, `/vault/${encodeURIComponent(discordId)}/wallet-lock`, {
+      method: 'POST',
+      body: JSON.stringify(req.body ?? {}),
+    });
+    sendCanonicalApiResponse(res, response);
+  } catch (error) {
+    console.error('[Wallet Lock POST]', error);
+    res.status(502).json({ error: getCanonicalApiErrorMessage(error, 'Failed to save wallet lock') });
+  }
+});
+
+app.post('/api/user/:discordId/wallet-unlock-request', authenticateToken, async (req: DashboardRequest, res) => {
+  try {
+    const discordId = requireAuthorizedDiscordId(req, res);
+    if (!discordId) return;
+
+    const response = await requestCanonicalApi(req, `/vault/${encodeURIComponent(discordId)}/wallet-unlock-request`, {
+      method: 'POST',
+      body: JSON.stringify({
+        mode: req.body?.mode ?? 'admin_approval',
+      }),
+    });
+    sendCanonicalApiResponse(res, response);
+  } catch (error) {
+    console.error('[Wallet Unlock Request POST]', error);
+    res.status(502).json({ error: getCanonicalApiErrorMessage(error, 'Failed to request early unlock') });
   }
 });
 

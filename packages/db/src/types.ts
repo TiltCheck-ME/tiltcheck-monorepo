@@ -746,6 +746,8 @@ export interface GameExclusion {
   userId: string;
   gameId?: string | null;
   category?: GameCategory | null;
+  provider?: string | null;
+  casino?: string | null;
   reason?: string | null;
   createdAt: Date;
 }
@@ -754,6 +756,8 @@ export interface CreateGameExclusionPayload {
   userId: string;
   gameId?: string | null;
   category?: GameCategory | null;
+  provider?: string | null;
+  casino?: string | null;
   reason?: string | null;
 }
 
@@ -761,6 +765,8 @@ export interface ForbiddenGamesProfile {
   userId: string;
   blockedGameIds: string[];
   blockedCategories: GameCategory[];
+  blockedProviders: string[];
+  blockedCasinos: string[];
   exclusions: GameExclusion[];
   updatedAt: string;
 }

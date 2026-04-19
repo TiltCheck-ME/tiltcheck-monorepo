@@ -94,6 +94,8 @@ export class SidebarController implements SidebarUI {
     document.getElementById('tg-guest-login')?.addEventListener('click', () => this.auth.continueAsGuest());
     document.getElementById('tg-logout')?.addEventListener('click', () => this.auth.logout());
     document.getElementById('tg-open-dashboard')?.addEventListener('click', () => this.openDashboard());
+    document.getElementById('tg-open-buddies')?.addEventListener('click', () => this.openDashboard('buddies'));
+    document.getElementById('tg-open-vault')?.addEventListener('click', () => this.openDashboard('vault'));
     document.getElementById('tg-open-report')?.addEventListener('click', () => {
       this.setPanelVisibility('tg-report-panel', true);
     });
@@ -462,9 +464,13 @@ export class SidebarController implements SidebarUI {
     }
   }
 
-  private openDashboard(): void {
-    chrome.tabs.create({ url: EXT_CONFIG.HUB_URL, active: true });
-    this.addFeedMessage('Opening dashboard.');
+  private openDashboard(tab: 'profile' | 'vault' | 'buddies' | 'safety' = 'profile'): void {
+    const dashboardUrl = new URL(EXT_CONFIG.DASHBOARD_URL);
+    if (tab !== 'profile') {
+      dashboardUrl.searchParams.set('tab', tab);
+    }
+    chrome.tabs.create({ url: dashboardUrl.toString(), active: true });
+    this.addFeedMessage(tab === 'profile' ? 'Opening dashboard.' : `Opening dashboard ${tab} controls.`);
   }
 
   public showMainContent() {
