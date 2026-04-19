@@ -1,7 +1,7 @@
 /**
  * © 2024–2026 TiltCheck Ecosystem. All Rights Reserved.
  * Created by jmenichole (https://github.com/jmenichole)
- * Last Updated: 2026-04-13
+ * Last Updated: 2026-04-19
  * 
  * This file is part of the TiltCheck project.
  * For licensing information, see LICENSE file in the project root.
@@ -2070,6 +2070,113 @@ header {
 }
 
 /* ============================================================
+   SAFETY CONTROLS
+   ============================================================ */
+.inline-action-row {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    margin-top: 1rem;
+}
+
+.section-desc-inline {
+    margin-top: 0;
+    margin-bottom: 1rem;
+}
+
+.safety-summary-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.safety-stat {
+    padding: 0.75rem;
+    border: 1px solid var(--border-subtle);
+    border-radius: 8px;
+    background: rgba(255,255,255,0.02);
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.safety-stat-label {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-muted);
+    font-weight: 700;
+}
+
+.safety-stat-value {
+    font-family: var(--font-display);
+    font-size: 1.1rem;
+    color: var(--text-primary);
+    font-weight: 700;
+}
+
+.safety-stat-copy {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+.safety-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.safety-list-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.85rem 1rem;
+    border: 1px solid var(--border-subtle);
+    border-radius: 8px;
+    background: rgba(255,255,255,0.02);
+}
+
+.safety-list-copy {
+    flex: 1;
+    min-width: 0;
+}
+
+.safety-list-title {
+    color: var(--text-primary);
+    font-weight: 600;
+    margin-bottom: 0.2rem;
+}
+
+.safety-list-meta {
+    color: var(--text-muted);
+    font-size: 0.8rem;
+}
+
+.setting-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+}
+
+.setting-row-title {
+    color: var(--text-primary);
+    font-weight: 600;
+}
+
+.setting-row-copy {
+    color: var(--text-muted);
+    font-size: 0.875rem;
+}
+
+.form-msg {
+    margin-top: 0.75rem;
+    min-height: 1.2rem;
+    color: var(--text-muted);
+    font-size: 0.85rem;
+}
+
+/* ============================================================
    RESPONSIVE
    ============================================================ */
 @media (max-width: 1024px) {
@@ -2090,4 +2197,7 @@ header {
     .card-row { grid-template-columns: 1fr; }
     .card-wide { grid-column: span 1; }
     .stats-grid, .stats-grid-4 { grid-template-columns: 1fr 1fr; }
+    .inline-action-row,
+    .safety-list-item,
+    .setting-row { flex-direction: column; align-items: stretch; }
 }

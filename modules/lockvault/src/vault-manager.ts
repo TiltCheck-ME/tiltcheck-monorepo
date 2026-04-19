@@ -81,13 +81,16 @@ export interface LockVaultRecord {
     initiatedBy: string;
     initiatedAt: number;
     approvedAt?: number;
+    approvedBy?: string;
     executionRequestedAt?: number;
     executionRequestId?: string;
     executionTimeoutAt?: number;
     executionAttempts?: number;
     lastRecoveryAt?: number;
     lastRecoveryReason?: 'execution-timeout';
-    status: 'pending' | 'approved' | 'execution-pending';
+    executedAt?: number;
+    executedBy?: string;
+    status: 'pending' | 'approved' | 'execution-pending' | 'executed';
   };
 }
 
@@ -482,7 +485,7 @@ class VaultManager {
 
   private getLatestDualOwnerVaultForUser(
     userId: string,
-    requiredProposalState?: 'pending' | 'approved' | 'execution-pending' | Array<'pending' | 'approved' | 'execution-pending'>,
+    requiredProposalState?: 'pending' | 'approved' | 'execution-pending' | 'executed' | Array<'pending' | 'approved' | 'execution-pending' | 'executed'>,
     recoverStaleExecution = true,
   ): LockVaultRecord {
     const requiredStates = Array.isArray(requiredProposalState)
@@ -517,6 +520,23 @@ class VaultManager {
       throw new Error('No dual-owner vault found for user');
     }
     return records[0];
+  }
+
+  getWithdrawalApprovals(secondOwnerId: string): LockVaultRecord[] {
+    const nowTs = now();
+    let changed = false;
+    const approvals = Array.from(this.vaults.values())
+      .filter((vault) => {
+        changed = this.recoverStaleExecutionPending(vault, nowTs) || changed;
+        return vault.secondOwnerId === secondOwnerId && vault.withdrawalProposal?.status === 'pending';
+      })
+      .sort((a, b) => b.createdAt - a.createdAt);
+
+    if (changed) {
+      this.schedulePersist();
+    }
+
+    return approvals;
   }
 
   addSecondOwner(userId: string, secondOwnerId: string): LockVaultRecord {
@@ -587,6 +607,7 @@ class VaultManager {
     const nowTs = now();
     proposal.status = 'approved';
     proposal.approvedAt = nowTs;
+    proposal.approvedBy = approverUserId;
     vault.history.push({ ts: nowTs, action: 'withdrawal-approved', note: `approvedBy=${approverUserId}` });
     this.schedulePersist();
     return vault;
@@ -622,17 +643,20 @@ class VaultManager {
     }
 
     const executionRequestId = generateId();
-    proposal.status = 'execution-pending';
+    proposal.status = 'executed';
     proposal.executionRequestedAt = nowTs;
     proposal.executionRequestId = executionRequestId;
-    proposal.executionTimeoutAt = nowTs + WITHDRAWAL_EXECUTION_TIMEOUT_MS;
     proposal.executionAttempts = (proposal.executionAttempts || 0) + 1;
+    proposal.executedAt = nowTs;
+    proposal.executedBy = userId;
     delete proposal.lastRecoveryAt;
     delete proposal.lastRecoveryReason;
+    delete proposal.executionTimeoutAt;
+    vault.lockedAmountSOL = Math.max(0, vault.lockedAmountSOL - proposal.amountSOL);
     vault.history.push({
       ts: nowTs,
-      action: 'withdrawal-execution-requested',
-      note: `${proposal.amountSOL} SOL requestId=${executionRequestId} timeoutMs=${WITHDRAWAL_EXECUTION_TIMEOUT_MS}`,
+      action: 'withdrawal-executed',
+      note: `${proposal.amountSOL} SOL requestId=${executionRequestId} remaining=${vault.lockedAmountSOL.toFixed(9)} SOL`,
     });
     void eventRouter.publish('vault.withdrawal_execution_requested', 'lockvault', {
       id: vault.id,
@@ -909,6 +933,9 @@ export async function approveWithdrawal(ownerUserId: string, approverUserId: str
 
 export async function executeWithdrawal(userId: string) { 
   return vaultManager.executeWithdrawal(userId);
+}
+export function getWithdrawalApprovalsForUser(userId: string) {
+  return vaultManager.getWithdrawalApprovals(userId);
 }
 export function getVaultBalance(userId: string) { return vaultManager.getBalance(userId); }
 export function setWalletActionLockForUser(userId: string, durationMs: number, reason?: string) { return vaultManager.setWalletActionLock(userId, durationMs, reason); }

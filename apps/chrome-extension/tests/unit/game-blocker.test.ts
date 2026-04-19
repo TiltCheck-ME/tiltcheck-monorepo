@@ -17,6 +17,8 @@ describe('GameBlocker', () => {
         data: {
           blockedGameIds: ['blocked-game'],
           blockedCategories: [],
+          blockedProviders: [],
+          blockedCasinos: [],
           exclusions: [{ gameId: 'blocked-game', reason: 'Stop punting.' }],
         },
       }),
@@ -41,5 +43,54 @@ describe('GameBlocker', () => {
 
     blocker.destroy();
     nextBlocker.destroy();
+  });
+
+  it('blocks a casino-level exclusion from the current hostname', async () => {
+    (globalThis as any).fetch = vi.fn(async () => ({
+      ok: true,
+      json: async () => ({
+        success: true,
+        data: {
+          blockedGameIds: [],
+          blockedCategories: [],
+          blockedProviders: [],
+          blockedCasinos: ['stake'],
+          exclusions: [{ casino: 'stake', reason: 'Whole site is cooked.' }],
+        },
+      }),
+    }));
+
+    const { GameBlocker } = await import('../../src/game-blocker.ts');
+    window.history.pushState({}, '', '/casino/lobby');
+
+    const blocker = new GameBlocker('discord-1', 'token-1');
+    await blocker.init();
+
+    expect(document.getElementById('tiltcheck-game-block-overlay')).toBeTruthy();
+    blocker.destroy();
+  });
+
+  it('blocks a provider-level exclusion from provider metadata', async () => {
+    (globalThis as any).fetch = vi.fn(async () => ({
+      ok: true,
+      json: async () => ({
+        success: true,
+        data: {
+          blockedGameIds: [],
+          blockedCategories: [],
+          blockedProviders: ['pragmatic-play'],
+          blockedCasinos: [],
+          exclusions: [{ provider: 'pragmatic-play', reason: 'Provider tilt.' }],
+        },
+      }),
+    }));
+    document.body.innerHTML = '<div data-provider="Pragmatic Play"></div>';
+
+    const { GameBlocker } = await import('../../src/game-blocker.ts');
+    const blocker = new GameBlocker('discord-1', 'token-1');
+    await blocker.init();
+
+    expect(document.getElementById('tiltcheck-game-block-overlay')).toBeTruthy();
+    blocker.destroy();
   });
 });

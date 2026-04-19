@@ -1,5 +1,7 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-08 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-19 */
 import type { MetadataRoute } from 'next';
+import { CASINOS } from '@/lib/casino-trust';
+import { getDashboardHandoffUrl } from '@/lib/dashboard-handoff';
 
 const BASE = 'https://tiltcheck.me';
 
@@ -8,7 +10,7 @@ const PAGES: Array<{ url: string; changeFrequency: MetadataRoute.Sitemap[number]
   { url: '/',                           changeFrequency: 'weekly',  priority: 1.0 },
   { url: '/casinos',                    changeFrequency: 'daily',   priority: 0.9 },
   { url: '/bonuses',                    changeFrequency: 'daily',   priority: 0.9 },
-  { url: '/dashboard',                  changeFrequency: 'weekly',  priority: 0.8 },
+  { url: getDashboardHandoffUrl('/dashboard'), changeFrequency: 'weekly', priority: 0.6 },
   { url: '/extension',                  changeFrequency: 'monthly', priority: 0.8 },
   // Tools
   { url: '/tools/domain-verifier',      changeFrequency: 'weekly',  priority: 0.8 },
@@ -42,10 +44,18 @@ const PAGES: Array<{ url: string; changeFrequency: MetadataRoute.Sitemap[number]
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const now = new Date().toISOString();
-  return PAGES.map(({ url, changeFrequency, priority }) => ({
-    url: `${BASE}${url}`,
-    lastModified: now,
-    changeFrequency,
-    priority,
-  }));
+  return [
+    ...PAGES.map(({ url, changeFrequency, priority }) => ({
+      url: `${BASE}${url}`,
+      lastModified: now,
+      changeFrequency,
+      priority,
+    })),
+    ...CASINOS.map((casino) => ({
+      url: `${BASE}/casinos/${casino.slug}`,
+      lastModified: now,
+      changeFrequency: 'weekly' as const,
+      priority: 0.8,
+    })),
+  ];
 }

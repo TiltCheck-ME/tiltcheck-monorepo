@@ -38,6 +38,22 @@ function cacheKey(userId: string): string {
   return `${KEY_PREFIX}${userId}`;
 }
 
+function normalizeLookupValue(value?: string | null): string | null {
+  if (!value) return null;
+  const normalized = value.trim().toLowerCase();
+  return normalized.length > 0 ? normalized : null;
+}
+
+function normalizeSlugValue(value?: string | null): string | null {
+  if (!value) return null;
+  const normalized = value
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+  return normalized.length > 0 ? normalized : null;
+}
+
 /**
  * Load profile from Redis. Returns null on miss or Redis unavailability.
  */
@@ -92,19 +108,26 @@ export async function getForbiddenGamesProfile(userId: string): Promise<Forbidde
 }
 
 /**
- * Check whether a specific game is blocked for a user.
+ * Check whether a specific game, category, provider, or casino is blocked for a user.
  * Uses cached profile so the hot path stays fast.
  */
 export async function isGameBlocked(
   userId: string,
   gameId?: string | null,
-  category?: GameCategory | null
+  category?: GameCategory | null,
+  provider?: string | null,
+  casino?: string | null
 ): Promise<boolean> {
-  if (!gameId && !category) return false;
+  if (!gameId && !category && !provider && !casino) return false;
 
   const profile = await getForbiddenGamesProfile(userId);
+  const normalizedGameId = normalizeLookupValue(gameId);
+  const normalizedProvider = normalizeSlugValue(provider);
+  const normalizedCasino = normalizeSlugValue(casino);
 
-  if (gameId && profile.blockedGameIds.includes(gameId)) return true;
+  if (normalizedGameId && profile.blockedGameIds.some((entry) => normalizeLookupValue(entry) === normalizedGameId)) return true;
   if (category && profile.blockedCategories.includes(category)) return true;
+  if (normalizedProvider && profile.blockedProviders.some((entry) => normalizeSlugValue(entry) === normalizedProvider)) return true;
+  if (normalizedCasino && profile.blockedCasinos.some((entry) => normalizeSlugValue(entry) === normalizedCasino)) return true;
   return false;
 }

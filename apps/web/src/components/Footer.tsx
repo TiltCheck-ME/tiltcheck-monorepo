@@ -3,6 +3,7 @@
 
 import Link from "next/link";
 import React, { useEffect, useState } from "react";
+import { getDashboardHandoffUrl } from "@/lib/dashboard-handoff";
 
 const QUOTES = [
   "Trust everybody, but cut the cards.",
@@ -19,19 +20,19 @@ const QUOTES = [
 
 const footerGroups = [
   {
-    title: "Tools",
-    links: [
-      { href: "/#tools", label: "All tools" },
-      { href: "/tools/auto-vault", label: "The Vault" },
-      { href: "/tools/verify", label: "Forensic Seed Audit" },
-      { href: "/tools/session-stats", label: "RTP Drift Monitor" },
-      { href: "/tools/house-edge-scanner", label: "House Edge Scanner" },
+      title: "Tools",
+      links: [
+        { href: "/#tools", label: "All tools" },
+        { href: getDashboardHandoffUrl("/tools/auto-vault"), label: "Vault Controls" },
+        { href: "/tools/verify", label: "Forensic Seed Audit" },
+        { href: "/tools/session-stats", label: "RTP Drift Monitor" },
+        { href: "/tools/house-edge-scanner", label: "House Edge Scanner" },
     ],
   },
   {
     title: "Intel",
     links: [
-      { href: "/casinos", label: "Casino Trust Scores" },
+        { href: "/casinos", label: "Casino Proof Lookup" },
       { href: "/bonuses", label: "Daily Bonus Tracker" },
       { href: "/intel/rtp", label: "RTP Scanner" },
       { href: "/intel/scams", label: "Scam Registry" },
@@ -40,15 +41,15 @@ const footerGroups = [
   },
   {
     title: "Company",
-    links: [
-      { href: "/how-it-works", label: "How it Works" },
-      { href: "/docs", label: "Docs" },
-      { href: "/blog", label: "Blog" },
-      { href: "/about", label: "About" },
-      { href: "/dashboard", label: "Your Dashboard" },
-    ],
-  },
-];
+      links: [
+        { href: "/how-it-works", label: "How it Works" },
+        { href: "/docs", label: "Docs" },
+        { href: "/blog", label: "Blog" },
+        { href: "/about", label: "About" },
+        { href: getDashboardHandoffUrl("/dashboard"), label: "Your Dashboard" },
+      ],
+    },
+  ];
 
 const Footer = () => {
   const [quote, setQuote] = useState("");
@@ -90,13 +91,17 @@ const Footer = () => {
             {footerGroups.map((group) => (
               <div key={group.title} className="footer-nav-group">
                 <h3>{group.title}</h3>
-                <ul>
-                  {group.links.map((link) => (
-                    <li key={link.href}>
-                      <Link href={link.href}>{link.label}</Link>
-                    </li>
-                  ))}
-                </ul>
+                  <ul>
+                    {group.links.map((link) => (
+                      <li key={link.href}>
+                        {link.href.startsWith("http") ? (
+                          <a href={link.href}>{link.label}</a>
+                        ) : (
+                          <Link href={link.href}>{link.label}</Link>
+                        )}
+                      </li>
+                    ))}
+                  </ul>
               </div>
             ))}
           </div>

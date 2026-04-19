@@ -1,16 +1,17 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-18 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-19 */
 /**
  * Game Blocker — Surgical Self-Exclusion enforcement for the Chrome Extension.
  *
  * Fetches the user's ForbiddenGamesProfile from the TiltCheck API, then watches
- * the casino DOM for matching game launchers. When a blocked game is detected it
- * injects a full-page overlay that prevents play and surfaces the user's own
- * exclusion rationale.
+ * the casino DOM for matching game launchers, providers, and casino hostnames.
+ * When a blocked target is detected it injects a full-page overlay that prevents
+ * play and surfaces the user's own exclusion rationale.
  *
  * Detection strategy (in priority order):
  *  1. Iframe src attribute containing a blocked game ID slug
  *  2. Play / Launch button data-game-id attribute
  *  3. URL pathname containing a blocked game ID slug or category keyword
+ *  4. DOM metadata and hostname matching blocked provider/casino slugs
  */
 
 import { EXT_CONFIG } from './config.js';
@@ -32,6 +33,8 @@ const CATEGORY_SLUGS: Record<GameCategory, string[]> = {
 interface BlockMatch {
   gameId: string | null;
   category: GameCategory | null;
+  provider: string | null;
+  casino: string | null;
   reason: string | null;
 }
 
@@ -90,14 +93,38 @@ export class GameBlocker {
 
   // ─── Matching helpers ──────────────────────────────────────────────────────
 
+  private normalizeLookupValue(value: string | null | undefined): string | null {
+    if (!value) return null;
+    const normalized = value.trim().toLowerCase();
+    return normalized.length > 0 ? normalized : null;
+  }
+
+  private normalizeSlugValue(value: string | null | undefined): string | null {
+    if (!value) return null;
+    const normalized = value
+      .trim()
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '');
+    return normalized.length > 0 ? normalized : null;
+  }
+
+  private tokenMatches(blockedValue: string, candidateValue: string): boolean {
+    return candidateValue === blockedValue
+      || candidateValue.startsWith(`${blockedValue}-`)
+      || blockedValue.startsWith(`${candidateValue}-`);
+  }
+
   private matchGameId(slug: string): BlockMatch | null {
     if (!this.profile) return null;
-    const lower = slug.toLowerCase();
+    const lower = this.normalizeLookupValue(slug);
+    if (!lower) return null;
 
     for (const id of this.profile.blockedGameIds) {
-      if (lower.includes(id.toLowerCase())) {
+      const blockedId = this.normalizeLookupValue(id);
+      if (blockedId && lower.includes(blockedId)) {
         const entry = this.profile.exclusions.find((e) => e.gameId === id) ?? null;
-        return { gameId: id, category: null, reason: entry?.reason ?? null };
+        return { gameId: id, category: null, provider: null, casino: null, reason: entry?.reason ?? null };
       }
     }
     return null;
@@ -111,14 +138,97 @@ export class GameBlocker {
       const keywords = CATEGORY_SLUGS[cat] ?? [];
       if (keywords.some((kw) => lower.includes(kw))) {
         const entry = this.profile.exclusions.find((e) => e.category === cat) ?? null;
-        return { gameId: null, category: cat, reason: entry?.reason ?? null };
+        return { gameId: null, category: cat, provider: null, casino: null, reason: entry?.reason ?? null };
       }
     }
     return null;
   }
 
+  private collectProviderCandidates(): string[] {
+    const candidates = new Set<string>();
+    const addCandidate = (value: string | null | undefined) => {
+      const normalized = this.normalizeSlugValue(value);
+      if (normalized) {
+        candidates.add(normalized);
+      }
+    };
+
+    addCandidate(document.title);
+    addCandidate(window.location.pathname);
+    addCandidate(window.location.search);
+
+    const metaProvider = document.querySelector<HTMLMetaElement>('meta[name="provider"], meta[property="og:provider"]');
+    addCandidate(metaProvider?.content);
+
+    for (const element of Array.from(document.querySelectorAll<HTMLElement>('[data-provider], [data-provider-name], [data-game-provider], [data-game-provider-name]'))) {
+      addCandidate(element.dataset['provider']);
+      addCandidate(element.dataset['providerName']);
+      addCandidate(element.dataset['gameProvider']);
+      addCandidate(element.dataset['gameProviderName']);
+      addCandidate(element.getAttribute('data-provider'));
+      addCandidate(element.getAttribute('data-provider-name'));
+      addCandidate(element.getAttribute('data-game-provider'));
+      addCandidate(element.getAttribute('data-game-provider-name'));
+    }
+
+    return [...candidates];
+  }
+
+  private collectCasinoCandidates(): string[] {
+    const hostname = window.location.hostname.toLowerCase();
+    const candidates = new Set<string>();
+    const addCandidate = (value: string | null | undefined) => {
+      const normalized = this.normalizeSlugValue(value);
+      if (normalized) {
+        candidates.add(normalized);
+      }
+    };
+
+    addCandidate(hostname);
+    for (const segment of hostname.split('.')) {
+      addCandidate(segment);
+    }
+    addCandidate(hostname.split('.')[0] ?? '');
+
+    return [...candidates];
+  }
+
+  private matchProvider(): BlockMatch | null {
+    if (!this.profile) return null;
+    const candidates = this.collectProviderCandidates();
+
+    for (const provider of this.profile.blockedProviders) {
+      const blockedProvider = this.normalizeSlugValue(provider);
+      if (!blockedProvider) continue;
+      const matched = candidates.some((candidate) => this.tokenMatches(blockedProvider, candidate));
+      if (matched) {
+        const entry = this.profile.exclusions.find((e) => e.provider === provider) ?? null;
+        return { gameId: null, category: null, provider, casino: null, reason: entry?.reason ?? null };
+      }
+    }
+
+    return null;
+  }
+
+  private matchCasino(): BlockMatch | null {
+    if (!this.profile) return null;
+    const candidates = this.collectCasinoCandidates();
+
+    for (const casino of this.profile.blockedCasinos) {
+      const blockedCasino = this.normalizeSlugValue(casino);
+      if (!blockedCasino) continue;
+      const matched = candidates.some((candidate) => this.tokenMatches(blockedCasino, candidate));
+      if (matched) {
+        const entry = this.profile.exclusions.find((e) => e.casino === casino) ?? null;
+        return { gameId: null, category: null, provider: null, casino, reason: entry?.reason ?? null };
+      }
+    }
+
+    return null;
+  }
+
   private isBlocked(slug: string): BlockMatch | null {
-    return this.matchGameId(slug) ?? this.matchCategory(slug);
+    return this.matchGameId(slug) ?? this.matchCategory(slug) ?? this.matchProvider() ?? this.matchCasino();
   }
 
   // ─── DOM scan ─────────────────────────────────────────────────────────────
@@ -185,11 +295,16 @@ export class GameBlocker {
 
     const label = match.gameId
       ? `game ID: ${match.gameId}`
-      : `category: ${(match.category ?? '').replace(/_/g, ' ')}`;
+      : match.category
+        ? `category: ${(match.category ?? '').replace(/_/g, ' ')}`
+        : match.provider
+          ? `provider: ${match.provider.replace(/[-_]/g, ' ')}`
+          : `casino: ${(match.casino ?? '').replace(/[-_]/g, ' ')}`;
 
     const reasonHtml = match.reason
       ? `<p class="tc-block-reason">"${match.reason}"</p>`
       : '';
+    const safetyUrl = `${EXT_CONFIG.DASHBOARD_URL}?tab=safety`;
 
     const overlay = document.createElement('div');
     overlay.id = OVERLAY_ID;
@@ -199,15 +314,16 @@ export class GameBlocker {
         <h2 class="tc-block-title">Not today.</h2>
         <p class="tc-block-body">
           You told TiltCheck to block ${label}.<br>
-          Past-you was looking out for present-you. Respect the call.
+          Past-you was looking out for present-you. Respect the call.<br>
+          The dashboard owns the filter. This page just enforces it.
         </p>
         ${reasonHtml}
         <div class="tc-block-actions">
-          <a class="tc-block-btn tc-block-btn--primary" href="https://tiltcheck.me/dashboard" target="_blank">
-            Open Dashboard
+          <a class="tc-block-btn tc-block-btn--primary" href="${safetyUrl}" target="_blank">
+            Open Safety Controls
           </a>
           <button class="tc-block-btn tc-block-btn--ghost" id="tc-block-dismiss">
-            I know what I'm doing — dismiss for this session
+            Dismiss for this session
           </button>
         </div>
         <footer class="tc-block-footer">Made for Degens. By Degens.</footer>

@@ -28,6 +28,7 @@ const lockvaultMock = vi.hoisted(() => ({
   requestPaidWalletUnlockForUser: vi.fn(),
   settlePaidWalletUnlockForUser: vi.fn(),
   addSecondOwner: vi.fn(),
+  getWithdrawalApprovalsForUser: vi.fn(),
   initiateWithdrawal: vi.fn(),
   approveWithdrawal: vi.fn(),
   executeWithdrawal: vi.fn(),
@@ -72,15 +73,17 @@ describe('Vault Routes', () => {
       earlyUnlockRequest: { mode: 'admin_approval', status: 'approved' },
     });
     lockvaultMock.addSecondOwner.mockResolvedValue({ id: 'v1', secondOwnerId: 'user-2' });
+    lockvaultMock.getWithdrawalApprovalsForUser.mockReturnValue([]);
     lockvaultMock.initiateWithdrawal.mockResolvedValue({ id: 'v1', withdrawalProposal: { status: 'pending' } });
     lockvaultMock.approveWithdrawal.mockResolvedValue({ id: 'v1', withdrawalProposal: { status: 'approved' } });
     lockvaultMock.executeWithdrawal.mockResolvedValue({
       id: 'v1',
-      lockedAmountSOL: 1.25,
+      lockedAmountSOL: 0.5,
       withdrawalProposal: {
-        status: 'execution-pending',
+        status: 'executed',
         executionRequestId: 'req-1',
-        executionTimeoutAt: Date.now() + 60_000,
+        amountSOL: 0.75,
+        executedBy: 'user-1',
       },
     });
   });
@@ -282,31 +285,37 @@ describe('Vault Routes', () => {
 
     mockUserId = 'user-1';
     const executeRes = await request(app).post('/vault/user-1/execute-withdrawal').send({});
-    expect(executeRes.status).toBe(202);
+    expect(executeRes.status).toBe(200);
     expect(lockvaultMock.executeWithdrawal).toHaveBeenCalledWith('user-1');
-    expect(executeRes.body.pendingExecution).toBe(true);
-    expect(executeRes.body.retryEligible).toBe(false);
-    expect(executeRes.body.success).toBe(false);
+    expect(executeRes.body.success).toBe(true);
+    expect(executeRes.body.withdrawalExecuted).toBe(true);
     expect(executeRes.body.executionRequestId).toBe('req-1');
   });
 
-  it('surfaces stale execution recovery without reporting payout success', async () => {
-    lockvaultMock.executeWithdrawal.mockResolvedValueOnce({
-      id: 'v1',
-      lockedAmountSOL: 1.25,
-      withdrawalProposal: {
-        status: 'approved',
-        lastRecoveryReason: 'execution-timeout',
-        lastRecoveryAt: Date.now(),
+  it('lists approvals assigned to the authenticated co-owner', async () => {
+    lockvaultMock.getWithdrawalApprovalsForUser.mockReturnValueOnce([
+      {
+        id: 'v1',
+        userId: 'user-9',
+        vaultAddress: 'wallet-9',
+        vaultType: 'linked',
+        unlockAt: Date.now() + 60_000,
+        createdAt: Date.now() - 60_000,
+        lockedAmountSOL: 2.25,
+        secondOwnerId: 'user-1',
+        withdrawalProposal: {
+          amountSOL: 0.75,
+          initiatedAt: Date.now() - 10_000,
+          status: 'pending',
+        },
       },
-    });
+    ]);
 
-    const executeRes = await request(app).post('/vault/user-1/execute-withdrawal').send({});
+    const res = await request(app).get('/vault/user-1/withdrawal-approvals');
 
-    expect(executeRes.status).toBe(409);
-    expect(executeRes.body.success).toBe(false);
-    expect(executeRes.body.pendingExecution).toBe(false);
-    expect(executeRes.body.retryEligible).toBe(true);
-    expect(executeRes.body.code).toBe('WITHDRAWAL_EXECUTION_STALE');
+    expect(res.status).toBe(200);
+    expect(lockvaultMock.getWithdrawalApprovalsForUser).toHaveBeenCalledWith('user-1');
+    expect(res.body.approvals).toHaveLength(1);
+    expect(res.body.approvals[0].userId).toBe('user-9');
   });
 });

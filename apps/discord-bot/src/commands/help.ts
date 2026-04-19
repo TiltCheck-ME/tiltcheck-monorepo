@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-17
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-19
 // TiltCheck Safety Bot — Help Command
 
 import { SlashCommandBuilder, ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
@@ -31,9 +31,9 @@ export const help: Command = {
         name: 'Hard Stops',
         value:
           '`/touchgrass` — Slam a 24-hour emergency lockout on yourself\n' +
-          '`/block-game` — Ban a game or category from your own orbit\n' +
-          '`/unblock-game` — Remove a block when your brain is normal again\n' +
-          '`/my-exclusions` — See the list of games you already exiled',
+          '`/block-game` — Quick-add a game, category, provider, or casino filter\n' +
+          '`/my-exclusions` — Read the current filter summary\n' +
+          '`/unblock-game` — Jump straight to dashboard safety controls for edits and removals',
         inline: false,
       },
       {

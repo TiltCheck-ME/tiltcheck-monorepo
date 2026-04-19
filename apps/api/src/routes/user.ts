@@ -26,8 +26,16 @@ import {
     findOneBy,
 } from '@tiltcheck/db';
 import { ApplicationError, ValidationError, InternalServerError } from '@tiltcheck/error-factory';
+import { db } from '@tiltcheck/database';
 import { invalidateExclusionCache, getForbiddenGamesProfile } from '../services/exclusion-cache.js';
-import type { GameCategory } from '@tiltcheck/types';
+import {
+    EXCLUSION_TARGET_LABELS,
+    EXCLUSION_TARGET_TYPES,
+    GAME_EXCLUSION_CATEGORIES,
+    GAME_EXCLUSION_CATEGORY_LABELS,
+    type ExclusionTargetType,
+    type GameCategory,
+} from '@tiltcheck/types';
 import { getUserDataConsentState } from '../lib/data-consent.js';
 
 const router: Router = Router();
@@ -151,6 +159,45 @@ function enforceExclusionOwnership(req: Request): void {
     }
 }
 
+function normalizeSlugValue(value: string | undefined): string | undefined {
+    if (!value) {
+        return undefined;
+    }
+
+    const normalized = value
+        .trim()
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '');
+    return normalized.length > 0 ? normalized : undefined;
+}
+
+function normalizeGameId(value: string | undefined): string | undefined {
+    const normalized = value?.trim().toLowerCase();
+    return normalized ? normalized : undefined;
+}
+
+function isGameCategory(value: string | undefined): value is GameCategory {
+    return typeof value === 'string' && GAME_EXCLUSION_CATEGORIES.includes(value as GameCategory);
+}
+
+function getTargetCount(targets: Array<string | undefined>): number {
+    return targets.filter((value) => typeof value === 'string' && value.length > 0).length;
+}
+
+function buildExclusionTaxonomy() {
+    return {
+        modes: EXCLUSION_TARGET_TYPES.map((value: ExclusionTargetType) => ({
+            value,
+            label: EXCLUSION_TARGET_LABELS[value],
+        })),
+        categories: GAME_EXCLUSION_CATEGORIES.map((value) => ({
+            value,
+            label: GAME_EXCLUSION_CATEGORY_LABELS[value],
+        })),
+    };
+}
+
 router.get('/lookup/:wallet', async (req: Request, res: Response, next: NextFunction) => {
     try {
         const wallet = req.params.wallet as string;
@@ -241,6 +288,13 @@ router.get('/lookup/:address', async (req: Request, res: Response, next: NextFun
     } catch (err) {
         next(err);
     }
+});
+
+router.get('/exclusions/taxonomy', async (_req: Request, res: Response) => {
+    res.json({
+        success: true,
+        data: buildExclusionTaxonomy(),
+    });
 });
 
 /**
@@ -412,6 +466,31 @@ router.post('/:discordId/buddies/accept', authMiddleware, async (req: Request, r
 });
 
 /**
+ * POST /user/:discordId/buddies/decline
+ * Decline a pending buddy request
+ */
+router.post('/:discordId/buddies/decline', authMiddleware, async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const { requestId } = req.body;
+
+        if (!requestId) {
+            return next(new ValidationError('requestId is required'));
+        }
+
+        const declined = await db.declineBuddyRequest(String(requestId));
+        if (!declined) {
+            return next(new InternalServerError('Failed to decline buddy request'));
+        }
+
+        res.json({
+            success: true
+        });
+    } catch (err) {
+        next(err);
+    }
+});
+
+/**
  * DELETE /user/:discordId/buddies/:buddyId
  * Remove a buddy relationship
  */
@@ -552,20 +631,31 @@ router.get('/:discordId/exclusions', exclusionAccessMiddleware, async (req: Requ
 
 /**
  * POST /user/:discordId/exclusions
- * Add a surgical exclusion (game_id, category, or both).
+ * Add a surgical exclusion (game_id, category, provider, or casino).
  */
 router.post('/:discordId/exclusions', exclusionAccessMiddleware, async (req: Request, res: Response, next: NextFunction) => {
     try {
         enforceExclusionOwnership(req);
         const { discordId } = req.params;
-        const { gameId, category, reason } = req.body as {
+        const { gameId: rawGameId, category: rawCategory, provider: rawProvider, casino: rawCasino, reason } = req.body as {
             gameId?: string;
-            category?: GameCategory;
+            category?: string;
+            provider?: string;
+            casino?: string;
             reason?: string;
         };
+        const gameId = normalizeGameId(rawGameId);
+        const trimmedCategory = rawCategory?.trim();
+        const provider = normalizeSlugValue(rawProvider);
+        const casino = normalizeSlugValue(rawCasino);
 
-        if (!gameId && !category) {
-            return next(new ValidationError('At least one of gameId or category is required'));
+        if (trimmedCategory && !isGameCategory(trimmedCategory)) {
+            return next(new ValidationError('Invalid exclusion category'));
+        }
+        const category = trimmedCategory && isGameCategory(trimmedCategory) ? trimmedCategory : undefined;
+
+        if (getTargetCount([gameId, category, provider, casino]) !== 1) {
+            return next(new ValidationError('Provide exactly one exclusion target: gameId, category, provider, or casino'));
         }
 
         const user = await findUserByDiscordId(discordId as string);
@@ -573,7 +663,14 @@ router.post('/:discordId/exclusions', exclusionAccessMiddleware, async (req: Req
             return res.status(404).json({ error: 'User not found' });
         }
 
-        const exclusion = await addExclusion({ userId: user.id, gameId, category, reason });
+        const exclusion = await addExclusion({
+            userId: user.id,
+            gameId,
+            category,
+            provider,
+            casino,
+            reason: reason?.trim() || undefined,
+        });
         await invalidateExclusionCache(user.id);
 
         res.status(201).json({ success: true, data: exclusion });

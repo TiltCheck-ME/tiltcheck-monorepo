@@ -1,12 +1,13 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-18
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-19
 'use client';
 import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { Menu, X } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
+import { getDashboardHandoffUrl, getWebLoginRedirect } from '@/lib/dashboard-handoff';
 
-const DASHBOARD_URL = process.env.NEXT_PUBLIC_DASHBOARD_URL || 'http://localhost:6001';
-const LOGIN_URL = '/login?redirect=%2Fdashboard';
+const DASHBOARD_URL = getDashboardHandoffUrl('/dashboard');
+const LOGIN_URL = getWebLoginRedirect('/dashboard');
 
 type NavLink = { href: string; label: string; accent?: string };
 
@@ -62,7 +63,7 @@ const Nav = () => {
     if (user) {
       return (
         <a href={DASHBOARD_URL} onClick={close} className={compact ? 'nav-auth-compact nav-auth-user' : 'nav-auth-full nav-auth-user'}>
-          {user.discordUsername}
+          {user.discordUsername || user.username}
         </a>
       );
     }

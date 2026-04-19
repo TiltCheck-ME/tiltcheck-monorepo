@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-18 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-19 */
 
 export const SIDEBAR_TEMPLATE = `
     <div class="tg-header">
@@ -75,8 +75,12 @@ export const SIDEBAR_TEMPLATE = `
           <h4>Sidebar Settings</h4>
           <div class="tg-input-group" style="display: flex; align-items: center; gap: 8px; margin-top: 10px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 10px;">
             <input type="checkbox" id="cfg-buddy-mirror" style="width: auto;" />
-            <label for="cfg-buddy-mirror" style="margin: 0; font-size: 12px;">Mirror Buddy Notifications</label>
+            <label for="cfg-buddy-mirror" style="margin: 0; font-size: 12px;">Mirror Buddy Alerts In Discord</label>
           </div>
+          <div style="font-size: 10px; opacity: 0.65; margin-top: 8px;">
+            Quick mirror only. Buddy roster and approvals stay dashboard-owned.
+          </div>
+          <button class="tg-btn tg-btn-secondary" id="tg-open-buddies" style="margin-top: 10px;">Open Buddy Controls</button>
           <button class="tg-btn tg-btn-secondary" id="close-settings">Close</button>
         </div>
 
@@ -195,19 +199,20 @@ export const SIDEBAR_TEMPLATE = `
             </div>
             <div id="tg-autovault-controls" style="display: none; background: rgba(0,255,198,0.05); padding: 10px; border-radius: 8px; border: 1px solid rgba(0,255,198,0.1);">
               <div class="tg-input-group" style="margin-bottom: 8px;">
-                <label style="font-size: 10px; opacity: 0.7;">Vault % of Profit</label>
+                <label style="font-size: 10px; opacity: 0.7;">Quick-save % of profit</label>
                 <div style="display: flex; align-items: center; gap: 8px;">
                   <input type="range" id="tg-autovault-pct" min="5" max="50" step="5" value="10" style="flex: 1;" />
                   <span id="tg-autovault-pct-val" style="font-size: 12px; font-weight: bold; width: 30px;">10%</span>
                 </div>
               </div>
               <div style="font-size: 9px; opacity: 0.6; line-height: 1.4;">
-                * Automatically moves percentage of wins to your Internal Stake Vault using session cookies. No funds leave the casino.
+                Session quick-save only. Durable vault rules and wallet safety settings stay dashboard-owned.
               </div>
               <div id="tg-autovault-stats" style="margin-top: 8px; font-size: 10px; border-top: 1px solid rgba(0,255,198,0.1); padding-top: 6px; display: flex; justify-content: space-between;">
                 <span>Session Secured:</span>
                 <span id="tg-autovault-secured" style="color: #00FFC6;">0.00 --</span>
               </div>
+              <button class="tg-btn tg-btn-secondary" id="tg-open-vault" style="margin-top: 10px;">Open Vault Controls</button>
             </div>
           </div>
 

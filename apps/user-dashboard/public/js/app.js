@@ -1,4 +1,4 @@
-// © 2024-2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-13
+// © 2024-2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-19
 
 'use strict';
 
@@ -7,7 +7,37 @@
 // ============================================================
 let currentUser = null;
 let ws = null;
-let vaultState = { locked: false, unlockAt: null, amount: 0 };
+let vaultState = {
+    locked: false,
+    unlockAt: null,
+    amount: 0,
+    balance: 0,
+    activeLock: null,
+    latestVault: null,
+    secondOwnerId: null,
+    withdrawalProposal: null,
+    readyToRelease: false
+};
+let walletLockState = { locked: false, lockUntil: null, remainingMs: 0, reason: null, earlyUnlockRequest: null };
+let vaultApprovalQueue = [];
+let exclusions = [];
+let vaultRules = [];
+let exclusionTaxonomy = {
+    modes: [
+        { value: 'category', label: 'Category' },
+        { value: 'gameId', label: 'Game ID or slug' },
+        { value: 'provider', label: 'Provider' },
+        { value: 'casino', label: 'Casino' }
+    ],
+    categories: [
+        { value: 'chicken_mines', label: 'Chicken / Mines' },
+        { value: 'bonus_buy', label: 'Bonus Buy' },
+        { value: 'live_dealer', label: 'Live Dealer' },
+        { value: 'slots', label: 'Slots' },
+        { value: 'crash', label: 'Crash' },
+        { value: 'table_games', label: 'Table Games' }
+    ]
+};
 let profileState = {
     degenIdentity: null,
     nftIdentity: null
@@ -33,6 +63,20 @@ let onboardingSettings = {
     primaryExternalAddress: null
 };
 let profitGuardSaveTimer = null;
+const EXCLUSION_TEXT_MODE_META = {
+    gameId: {
+        label: 'Game ID or slug',
+        placeholder: 'e.g. gates-of-olympus'
+    },
+    provider: {
+        label: 'Provider',
+        placeholder: 'e.g. pragmatic-play'
+    },
+    casino: {
+        label: 'Casino',
+        placeholder: 'e.g. stake'
+    }
+};
 
 // ============================================================
 // INIT
@@ -41,12 +85,18 @@ window.addEventListener('DOMContentLoaded', async () => {
     const urlToken = new URLSearchParams(window.location.search).get('token');
     if (urlToken) {
         localStorage.setItem('tiltcheck-token', urlToken);
-        window.history.replaceState({}, document.title, window.location.pathname);
+        const nextUrl = new URL(window.location.href);
+        nextUrl.searchParams.delete('token');
+        window.history.replaceState({}, document.title, nextUrl);
     }
 
     await checkAuth();
+    if (currentUser?.discordId) {
+        await loadExclusionTaxonomy();
+    }
     setupTabNavigation();
     setupAgentChat();
+    setupSafetyPanel();
     setupVaultPanel();
     setupWalletPanel();
     setupIdentityPanel();
@@ -71,12 +121,13 @@ function apiRequest(url, options = {}) {
 }
 
 async function checkAuth() {
-    const token = localStorage.getItem('tiltcheck-token');
-    if (!token) { showLogin(); return; }
-
     try {
         const res = await apiRequest('/api/auth/me');
-        if (!res.ok) { localStorage.removeItem('tiltcheck-token'); showLogin(); return; }
+        if (!res.ok) {
+            localStorage.removeItem('tiltcheck-token');
+            showLogin();
+            return;
+        }
         currentUser = await res.json();
         if (!currentUser || !currentUser.discordId) { showLogin(); return; }
         showDashboard();
@@ -134,6 +185,10 @@ async function loadAllData() {
         loadSessionAnalytics(),
         loadActivity(),
         loadVaults(),
+        loadVaultApprovals(),
+        loadExclusions(),
+        loadWalletLock(),
+        loadVaultRules(),
         loadBonuses(),
         loadBuddies()
     ]);
@@ -215,6 +270,8 @@ async function loadOnboardingSettings() {
         };
 
         renderProfitGuardSettings();
+        const voiceToggle = document.getElementById('voice-intervention-toggle');
+        if (voiceToggle) voiceToggle.checked = onboardingSettings.voiceInterventionEnabled === true;
         renderSurveyIdentityPanel();
     } catch (err) { console.error('[Onboarding]', err); }
 }
@@ -465,22 +522,43 @@ async function loadVaults() {
         vaultState = {
             locked: data.locked ?? false,
             unlockAt: data.unlockAt ? new Date(data.unlockAt) : null,
-            amount: data.amount ?? 0
+            amount: data.amount ?? 0,
+            balance: data.balance ?? 0,
+            activeLock: data.activeLock ?? null,
+            latestVault: data.latestVault ?? null,
+            secondOwnerId: data.secondOwnerId ?? null,
+            withdrawalProposal: data.withdrawalProposal ?? null,
+            readyToRelease: Boolean(data.unlockAt && new Date(data.unlockAt).getTime() <= Date.now())
         };
 
         renderVaultStatus();
+        renderWithdrawalManager();
 
         const historyEl = document.getElementById('vault-history');
         if (historyEl && Array.isArray(data.history) && data.history.length > 0) {
             historyEl.innerHTML = data.history.slice(0, 5).map(entry => `
                 <div class="vault-history-item">
-                    <span class="vault-hist-amount">${Number(entry.amount_sol ?? 0).toFixed(3)} SOL</span>
-                    <span class="vault-hist-date">${new Date(entry.locked_at).toLocaleDateString()}</span>
-                    <span class="vault-hist-status ${entry.status}">${entry.status.toUpperCase()}</span>
+                    <span class="vault-hist-amount">${Number(entry.lockedAmountSOL ?? entry.amount_sol ?? 0).toFixed(3)} SOL</span>
+                    <span class="vault-hist-date">${new Date(entry.createdAt ?? entry.locked_at ?? entry.unlockAt ?? Date.now()).toLocaleDateString()}</span>
+                    <span class="vault-hist-status ${entry.status}">${String(entry.status ?? 'unknown').toUpperCase()}</span>
                 </div>
             `).join('');
+        } else if (historyEl) {
+            historyEl.innerHTML = '<div class="activity-empty">No vault history.</div>';
         }
     } catch (err) { console.error('[Vault]', err); }
+}
+
+async function loadVaultApprovals() {
+    try {
+        const res = await apiRequest(`/api/user/${currentUser.discordId}/vault/approvals`);
+        if (!res.ok) return;
+        const data = await res.json();
+        vaultApprovalQueue = Array.isArray(data.approvals) ? data.approvals : [];
+        renderVaultApprovalQueue();
+    } catch (err) {
+        console.error('[Vault Approvals]', err);
+    }
 }
 
 function renderVaultStatus() {
@@ -498,7 +576,10 @@ function renderVaultStatus() {
         if (amountEl) { amountEl.textContent = vaultState.amount.toFixed(3) + ' SOL locked'; amountEl.style.display = 'block'; }
         if (countdownEl) countdownEl.style.display = 'block';
         if (extendBtn) extendBtn.style.display = 'inline-block';
-        if (unlockBtn) unlockBtn.style.display = 'inline-block';
+        if (unlockBtn) {
+            unlockBtn.style.display = vaultState.readyToRelease ? 'inline-block' : 'none';
+            unlockBtn.textContent = vaultState.readyToRelease ? 'Release Ready Lock' : 'Release Unavailable';
+        }
         startVaultCountdown(vaultState.unlockAt);
     } else {
         badge.textContent = 'UNLOCKED';
@@ -521,6 +602,558 @@ function startVaultCountdown(unlockDate) {
     };
     update();
     vaultCountdownTimer = setInterval(update, 1000);
+}
+
+function renderWithdrawalManager() {
+    const secondOwnerInput = document.getElementById('vault-second-owner-input');
+    const amountInput = document.getElementById('vault-withdrawal-amount-input');
+    const summaryEl = document.getElementById('vaultApprovalSummary');
+    const requestBtn = document.getElementById('vault-initiate-withdrawal-btn');
+    const executeBtn = document.getElementById('vault-execute-withdrawal-btn');
+    const proposal = vaultState.withdrawalProposal;
+    const latestVault = vaultState.latestVault;
+    const secondOwnerId = vaultState.secondOwnerId || latestVault?.secondOwnerId || '';
+    const isUnlocked = latestVault?.status === 'unlocked' || (!vaultState.locked && latestVault);
+    const hasActiveProposal = proposal && ['pending', 'approved', 'execution-pending'].includes(proposal.status);
+
+    if (secondOwnerInput) {
+        secondOwnerInput.value = secondOwnerId;
+    }
+
+    if (amountInput && !amountInput.value && proposal?.amountSOL) {
+        amountInput.value = Number(proposal.amountSOL).toFixed(3);
+    }
+
+    if (requestBtn) {
+        requestBtn.disabled = !latestVault || !isUnlocked || !secondOwnerId || Boolean(hasActiveProposal);
+    }
+
+    if (executeBtn) {
+        executeBtn.disabled = proposal?.status !== 'approved';
+    }
+
+    if (!summaryEl) return;
+
+    if (!latestVault) {
+        summaryEl.textContent = 'No vault record yet. Lock funds first, then add a co-owner before requesting a withdrawal.';
+        return;
+    }
+
+    if (!secondOwnerId) {
+        summaryEl.textContent = 'Add a co-owner Discord ID first. Without that second signer, this flow stays shut.';
+        return;
+    }
+
+    if (!proposal) {
+        summaryEl.textContent = isUnlocked
+            ? `Co-owner ${secondOwnerId} is set. Request a withdrawal when you are ready to move funds out of the current LockVault record.`
+            : `Co-owner ${secondOwnerId} is set. The vault still has to unlock before a withdrawal request can start.`;
+        return;
+    }
+
+    if (proposal.status === 'pending') {
+        summaryEl.textContent = `${Number(proposal.amountSOL ?? 0).toFixed(3)} SOL is waiting on co-owner ${secondOwnerId}. Requested ${timeAgo(proposal.initiatedAt)}.`;
+        return;
+    }
+
+    if (proposal.status === 'approved') {
+        summaryEl.textContent = `${Number(proposal.amountSOL ?? 0).toFixed(3)} SOL was approved by ${proposal.approvedBy || secondOwnerId}. Execute when you want the current LockVault balance reduced.`;
+        return;
+    }
+
+    if (proposal.status === 'executed') {
+        const remainingLockedAmount = Number(latestVault?.lockedAmountSOL ?? vaultState.amount ?? 0);
+        summaryEl.textContent = `${Number(proposal.amountSOL ?? 0).toFixed(3)} SOL executed ${proposal.executedAt ? timeAgo(proposal.executedAt) : 'recently'}. ${remainingLockedAmount.toFixed(3)} SOL remains in the current vault record.`;
+        return;
+    }
+
+    summaryEl.textContent = 'Withdrawal state is loading.';
+}
+
+function renderVaultApprovalQueue() {
+    const queueEl = document.getElementById('vault-approval-queue');
+    if (!queueEl) return;
+
+    if (!Array.isArray(vaultApprovalQueue) || vaultApprovalQueue.length === 0) {
+        queueEl.innerHTML = '<div class="activity-empty">No withdrawal approvals are assigned to you right now.</div>';
+        return;
+    }
+
+    queueEl.innerHTML = vaultApprovalQueue.map((approval) => `
+        <div class="safety-list-item">
+            <div class="safety-list-copy">
+                <div class="safety-list-title">${Number(approval.withdrawalProposal?.amountSOL ?? 0).toFixed(3)} SOL for ${escapeHtml(approval.userId)}</div>
+                <div class="safety-list-meta">
+                    Requested ${timeAgo(approval.withdrawalProposal?.initiatedAt || approval.createdAt)} ·
+                    Vault balance ${Number(approval.lockedAmountSOL ?? 0).toFixed(3)} SOL
+                </div>
+            </div>
+            <span class="badge badge-warning">PENDING</span>
+            <button class="btn btn-primary btn-sm approve-vault-withdrawal-btn" data-owner-id="${escapeHtml(approval.userId)}">Approve</button>
+        </div>
+    `).join('');
+
+    queueEl.querySelectorAll('.approve-vault-withdrawal-btn').forEach((button) => {
+        button.addEventListener('click', () => approveVaultWithdrawal(button.dataset.ownerId));
+    });
+}
+
+function setupSafetyPanel() {
+    document.getElementById('exclusion-mode')?.addEventListener('change', (event) => {
+        renderExclusionMode(event.target.value);
+    });
+
+    document.getElementById('save-exclusion-btn')?.addEventListener('click', saveExclusion);
+    document.getElementById('save-wallet-lock-btn')?.addEventListener('click', saveWalletLock);
+    document.getElementById('request-wallet-unlock-btn')?.addEventListener('click', requestWalletUnlock);
+    document.getElementById('vault-rule-type')?.addEventListener('change', (event) => {
+        renderVaultRuleFieldGroups(event.target.value);
+    });
+    document.getElementById('save-vault-rule-btn')?.addEventListener('click', saveVaultRule);
+
+    populateExclusionTaxonomy();
+    renderExclusionMode(document.getElementById('exclusion-mode')?.value || 'category');
+    renderVaultRuleFieldGroups(document.getElementById('vault-rule-type')?.value || 'percent_of_win');
+}
+
+function populateExclusionTaxonomy() {
+    const modeSelect = document.getElementById('exclusion-mode');
+    const categorySelect = document.getElementById('exclusion-category');
+    if (!modeSelect || !categorySelect) return;
+
+    const currentMode = modeSelect.value || 'category';
+    const currentCategory = categorySelect.value || '';
+
+    modeSelect.innerHTML = exclusionTaxonomy.modes.map((mode) => `
+        <option value="${escapeHtml(mode.value)}">${escapeHtml(mode.label)}</option>
+    `).join('');
+    categorySelect.innerHTML = `
+        <option value="">Select category...</option>
+        ${exclusionTaxonomy.categories.map((category) => `
+            <option value="${escapeHtml(category.value)}">${escapeHtml(category.label)}</option>
+        `).join('')}
+    `;
+
+    modeSelect.value = exclusionTaxonomy.modes.some((mode) => mode.value === currentMode) ? currentMode : 'category';
+    categorySelect.value = exclusionTaxonomy.categories.some((category) => category.value === currentCategory) ? currentCategory : '';
+}
+
+async function loadExclusionTaxonomy() {
+    try {
+        const res = await apiRequest('/api/user/exclusions/taxonomy');
+        if (!res.ok) return;
+        const data = await res.json();
+        if (Array.isArray(data.data?.modes) && Array.isArray(data.data?.categories)) {
+            exclusionTaxonomy = data.data;
+        }
+    } catch (err) {
+        console.error('[Exclusion Taxonomy]', err);
+    }
+}
+
+function renderExclusionMode(mode) {
+    const categoryGroup = document.getElementById('exclusion-category-group');
+    const targetGroup = document.getElementById('exclusion-target-group');
+    const targetLabel = document.getElementById('exclusion-target-label');
+    const targetInput = document.getElementById('exclusion-target-value');
+    const textModeMeta = EXCLUSION_TEXT_MODE_META[mode] || EXCLUSION_TEXT_MODE_META.gameId;
+
+    if (categoryGroup) categoryGroup.style.display = mode === 'category' ? 'flex' : 'none';
+    if (targetGroup) targetGroup.style.display = mode === 'category' ? 'none' : 'flex';
+    if (targetLabel) targetLabel.textContent = textModeMeta.label;
+    if (targetInput) targetInput.placeholder = textModeMeta.placeholder;
+}
+
+function humanizeSlug(value) {
+    return String(value || '')
+        .split(/[-_]+/)
+        .filter(Boolean)
+        .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+        .join(' ');
+}
+
+function getCategoryLabel(category) {
+    return exclusionTaxonomy.categories.find((entry) => entry.value === category)?.label || humanizeSlug(category);
+}
+
+function getExclusionPresentation(entry) {
+    if (entry.gameId) {
+        return { label: entry.gameId, badge: 'GAME', badgeClass: 'badge-success' };
+    }
+    if (entry.category) {
+        return { label: getCategoryLabel(entry.category), badge: 'CATEGORY', badgeClass: 'badge-warning' };
+    }
+    if (entry.provider) {
+        return { label: humanizeSlug(entry.provider), badge: 'PROVIDER', badgeClass: 'badge-success' };
+    }
+    if (entry.casino) {
+        return { label: humanizeSlug(entry.casino), badge: 'CASINO', badgeClass: 'badge-success' };
+    }
+
+    return { label: 'Unknown exclusion', badge: 'UNKNOWN', badgeClass: 'badge-warning' };
+}
+
+async function loadExclusions() {
+    try {
+        const res = await apiRequest(`/api/user/${currentUser.discordId}/exclusions`);
+        if (!res.ok) return;
+        const data = await res.json();
+        exclusions = Array.isArray(data.data?.exclusions) ? data.data.exclusions : [];
+        renderExclusions();
+    } catch (err) {
+        console.error('[Exclusions]', err);
+    }
+}
+
+function renderExclusions() {
+    const list = document.getElementById('exclusionList');
+    if (!list) return;
+
+    setText('exclusion-count', exclusions.length);
+
+    if (exclusions.length === 0) {
+        list.innerHTML = '<div class="activity-empty">No exclusions set. Add one here and the extension enforces it immediately.</div>';
+        return;
+    }
+
+    list.innerHTML = exclusions.map((entry) => {
+        const presentation = getExclusionPresentation(entry);
+        const meta = entry.reason
+            ? `${timeAgo(entry.createdAt)} · ${escapeHtml(entry.reason)}`
+            : `Added ${timeAgo(entry.createdAt)}`;
+
+        return `
+            <div class="safety-list-item">
+                <div class="safety-list-copy">
+                    <div class="safety-list-title">${escapeHtml(presentation.label)}</div>
+                    <div class="safety-list-meta">${meta}</div>
+                </div>
+                <span class="badge ${presentation.badgeClass}">${presentation.badge}</span>
+                <button class="btn btn-ghost btn-sm remove-exclusion-btn" data-id="${entry.id}">Remove</button>
+            </div>
+        `;
+    }).join('');
+
+    list.querySelectorAll('.remove-exclusion-btn').forEach((button) => {
+        button.addEventListener('click', () => removeExclusion(button.dataset.id));
+    });
+}
+
+async function saveExclusion() {
+    const mode = document.getElementById('exclusion-mode')?.value || 'category';
+    const category = document.getElementById('exclusion-category')?.value || '';
+    const targetValue = document.getElementById('exclusion-target-value')?.value?.trim() || '';
+    const reason = document.getElementById('exclusion-reason')?.value?.trim() || '';
+    const payload = reason ? { reason } : {};
+
+    if (mode === 'category') {
+        if (!category) {
+            setFormMessage('exclusionFormStatus', 'Pick a category first.', true);
+            return;
+        }
+        payload.category = category;
+    } else {
+        if (!targetValue) {
+            const targetLabel = EXCLUSION_TEXT_MODE_META[mode]?.label || 'Value';
+            setFormMessage('exclusionFormStatus', `Enter a ${targetLabel.toLowerCase()}.`, true);
+            return;
+        }
+        if (mode === 'gameId') payload.gameId = targetValue;
+        if (mode === 'provider') payload.provider = targetValue;
+        if (mode === 'casino') payload.casino = targetValue;
+    }
+
+    setFormMessage('exclusionFormStatus', 'Saving...');
+    try {
+        const res = await apiRequest(`/api/user/${currentUser.discordId}/exclusions`, {
+            method: 'POST',
+            body: JSON.stringify(payload)
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) {
+            setFormMessage('exclusionFormStatus', data.error || 'Failed to save exclusion.', true);
+            return;
+        }
+
+        const exclusionTargetValue = document.getElementById('exclusion-target-value');
+        const exclusionReason = document.getElementById('exclusion-reason');
+        if (exclusionTargetValue) exclusionTargetValue.value = '';
+        if (exclusionReason) exclusionReason.value = '';
+        setFormMessage('exclusionFormStatus', 'Saved.');
+        showNotification('Temptation filter updated.', 'success');
+        loadExclusions();
+    } catch (err) {
+        console.error('[Exclusion Save]', err);
+        setFormMessage('exclusionFormStatus', 'Failed to save exclusion.', true);
+    }
+}
+
+async function removeExclusion(exclusionId) {
+    try {
+        const res = await apiRequest(`/api/user/${currentUser.discordId}/exclusions/${exclusionId}`, {
+            method: 'DELETE'
+        });
+
+        if (!res.ok) {
+            const data = await res.json().catch(() => ({}));
+            showNotification(data.error || 'Failed to remove exclusion.', 'error');
+            return;
+        }
+
+        showNotification('Exclusion removed.', 'success');
+        loadExclusions();
+    } catch (err) {
+        console.error('[Exclusion Remove]', err);
+        showNotification('Failed to remove exclusion.', 'error');
+    }
+}
+
+async function loadWalletLock() {
+    try {
+        const res = await apiRequest(`/api/user/${currentUser.discordId}/wallet-lock`);
+        if (!res.ok) return;
+        const data = await res.json();
+        walletLockState = {
+            locked: data.locked === true,
+            lockUntil: data.lockUntil || null,
+            remainingMs: Number(data.remainingMs ?? 0),
+            reason: data.reason || null,
+            earlyUnlockRequest: data.earlyUnlockRequest || null
+        };
+        renderWalletLock();
+    } catch (err) {
+        console.error('[Wallet Lock]', err);
+    }
+}
+
+function renderWalletLock() {
+    const status = walletLockState.locked ? 'LOCKED' : 'CLEAR';
+    setText('wallet-lock-status', status);
+    setText('wallet-lock-until', walletLockState.locked && walletLockState.lockUntil ? timeUntil(walletLockState.lockUntil) : 'No active lock');
+    setText('wallet-lock-reason', walletLockState.reason || 'No note');
+
+    const requestButton = document.getElementById('request-wallet-unlock-btn');
+    if (requestButton) {
+        requestButton.disabled = !walletLockState.locked;
+        requestButton.textContent = walletLockState.earlyUnlockRequest?.status === 'pending'
+            ? 'Unlock Request Pending'
+            : 'Request Early Unlock';
+    }
+}
+
+async function saveWalletLock() {
+    const durationMinutes = Number(document.getElementById('wallet-lock-duration')?.value || 0);
+    const reason = document.getElementById('wallet-lock-reason-input')?.value?.trim() || '';
+
+    setFormMessage('walletLockStatusMsg', 'Saving...');
+    try {
+        const res = await apiRequest(`/api/user/${currentUser.discordId}/wallet-lock`, {
+            method: 'POST',
+            body: JSON.stringify({
+                durationMinutes,
+                reason: reason || undefined
+            })
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) {
+            setFormMessage('walletLockStatusMsg', data.error || 'Failed to save wallet lock.', true);
+            return;
+        }
+
+        setFormMessage('walletLockStatusMsg', 'Wallet lock saved.');
+        showNotification('Wallet safety lock updated.', 'success');
+        loadWalletLock();
+        loadVaults();
+    } catch (err) {
+        console.error('[Wallet Lock Save]', err);
+        setFormMessage('walletLockStatusMsg', 'Failed to save wallet lock.', true);
+    }
+}
+
+async function requestWalletUnlock() {
+    if (!walletLockState.locked) return;
+
+    setFormMessage('walletLockStatusMsg', 'Requesting unlock...');
+    try {
+        const res = await apiRequest(`/api/user/${currentUser.discordId}/wallet-unlock-request`, {
+            method: 'POST',
+            body: JSON.stringify({ mode: 'admin_approval' })
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) {
+            setFormMessage('walletLockStatusMsg', data.error || 'Failed to request early unlock.', true);
+            return;
+        }
+
+        setFormMessage('walletLockStatusMsg', 'Early unlock request submitted.');
+        showNotification('Early unlock request submitted.', 'success');
+        loadWalletLock();
+    } catch (err) {
+        console.error('[Wallet Unlock Request]', err);
+        setFormMessage('walletLockStatusMsg', 'Failed to request early unlock.', true);
+    }
+}
+
+async function loadVaultRules() {
+    try {
+        const res = await apiRequest(`/api/user/${currentUser.discordId}/vault-rules`);
+        if (!res.ok) return;
+        const data = await res.json();
+        vaultRules = Array.isArray(data.rules) ? data.rules : [];
+        renderVaultRules();
+    } catch (err) {
+        console.error('[Vault Rules]', err);
+    }
+}
+
+function renderVaultRuleFieldGroups(type) {
+    const visibilityMap = {
+        'vault-rule-percent-group': type === 'percent_of_win',
+        'vault-rule-fixed-group': type === 'fixed_per_threshold',
+        'vault-rule-threshold-group': type === 'fixed_per_threshold',
+        'vault-rule-ceiling-group': type === 'balance_ceiling',
+        'vault-rule-profit-group': type === 'session_profit_lock'
+    };
+
+    Object.entries(visibilityMap).forEach(([id, visible]) => {
+        const element = document.getElementById(id);
+        if (element) element.style.display = visible ? 'flex' : 'none';
+    });
+}
+
+function describeVaultRule(rule) {
+    switch (rule.type) {
+        case 'percent_of_win':
+            return `Vault ${Number(rule.percent || 0)}% of each win`;
+        case 'fixed_per_threshold':
+            return `Vault $${Number(rule.fixed_amount || 0).toFixed(2)} every $${Number(rule.threshold_amount || 0).toFixed(2)} won`;
+        case 'balance_ceiling':
+            return `Keep balance under $${Number(rule.ceiling_amount || 0).toFixed(2)}`;
+        case 'session_profit_lock':
+            return `Lock session profit at $${Number(rule.profit_target || 0).toFixed(2)}`;
+        default:
+            return rule.type || 'Rule';
+    }
+}
+
+function renderVaultRules() {
+    const list = document.getElementById('vault-rule-list');
+    if (!list) return;
+
+    if (vaultRules.length === 0) {
+        list.innerHTML = '<div class="activity-empty">No vault rules yet. Save one here and the extension can enforce it without owning the settings.</div>';
+        return;
+    }
+
+    list.innerHTML = vaultRules.map((rule) => `
+        <div class="safety-list-item">
+            <div class="safety-list-copy">
+                <div class="safety-list-title">${escapeHtml(rule.label || describeVaultRule(rule))}</div>
+                <div class="safety-list-meta">${escapeHtml(describeVaultRule(rule))} · ${escapeHtml(rule.casino || 'all')}</div>
+            </div>
+            <label class="toggle">
+                <input type="checkbox" class="vault-rule-toggle" data-id="${rule.id}" ${rule.enabled ? 'checked' : ''} />
+                <span class="toggle-track"></span>
+            </label>
+            <button class="btn btn-ghost btn-sm delete-vault-rule-btn" data-id="${rule.id}">Delete</button>
+        </div>
+    `).join('');
+
+    list.querySelectorAll('.vault-rule-toggle').forEach((toggle) => {
+        toggle.addEventListener('change', () => updateVaultRule(toggle.dataset.id, { enabled: toggle.checked }));
+    });
+    list.querySelectorAll('.delete-vault-rule-btn').forEach((button) => {
+        button.addEventListener('click', () => deleteVaultRule(button.dataset.id));
+    });
+}
+
+async function saveVaultRule() {
+    const type = document.getElementById('vault-rule-type')?.value || 'percent_of_win';
+    const payload = {
+        type,
+        casino: document.getElementById('vault-rule-casino')?.value || 'all',
+        min_win_amount: parseOptionalNumber(document.getElementById('vault-rule-min-win')?.value),
+        label: document.getElementById('vault-rule-label')?.value?.trim() || undefined
+    };
+
+    if (type === 'percent_of_win') {
+        payload.percent = parseOptionalNumber(document.getElementById('vault-rule-percent')?.value);
+    } else if (type === 'fixed_per_threshold') {
+        payload.fixed_amount = parseOptionalNumber(document.getElementById('vault-rule-fixed-amount')?.value);
+        payload.threshold_amount = parseOptionalNumber(document.getElementById('vault-rule-threshold')?.value);
+    } else if (type === 'balance_ceiling') {
+        payload.ceiling_amount = parseOptionalNumber(document.getElementById('vault-rule-ceiling')?.value);
+    } else if (type === 'session_profit_lock') {
+        payload.profit_target = parseOptionalNumber(document.getElementById('vault-rule-profit-target')?.value);
+    }
+
+    setFormMessage('vaultRuleStatus', 'Saving...');
+    try {
+        const res = await apiRequest(`/api/user/${currentUser.discordId}/vault-rules`, {
+            method: 'POST',
+            body: JSON.stringify(payload)
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) {
+            setFormMessage('vaultRuleStatus', data.error || 'Failed to save vault rule.', true);
+            return;
+        }
+
+        setFormMessage('vaultRuleStatus', 'Rule saved.');
+        showNotification('Vault rule saved.', 'success');
+        resetVaultRuleForm();
+        loadVaultRules();
+    } catch (err) {
+        console.error('[Vault Rule Save]', err);
+        setFormMessage('vaultRuleStatus', 'Failed to save vault rule.', true);
+    }
+}
+
+async function updateVaultRule(ruleId, patch) {
+    try {
+        const res = await apiRequest(`/api/user/${currentUser.discordId}/vault-rules/${ruleId}`, {
+            method: 'PATCH',
+            body: JSON.stringify(patch)
+        });
+        if (!res.ok) {
+            const data = await res.json().catch(() => ({}));
+            showNotification(data.error || 'Failed to update vault rule.', 'error');
+            return;
+        }
+        loadVaultRules();
+    } catch (err) {
+        console.error('[Vault Rule Update]', err);
+        showNotification('Failed to update vault rule.', 'error');
+    }
+}
+
+async function deleteVaultRule(ruleId) {
+    try {
+        const res = await apiRequest(`/api/user/${currentUser.discordId}/vault-rules/${ruleId}`, {
+            method: 'DELETE'
+        });
+        if (!res.ok) {
+            const data = await res.json().catch(() => ({}));
+            showNotification(data.error || 'Failed to delete vault rule.', 'error');
+            return;
+        }
+        showNotification('Vault rule removed.', 'success');
+        loadVaultRules();
+    } catch (err) {
+        console.error('[Vault Rule Delete]', err);
+        showNotification('Failed to delete vault rule.', 'error');
+    }
+}
+
+function resetVaultRuleForm() {
+    ['vault-rule-percent', 'vault-rule-fixed-amount', 'vault-rule-threshold', 'vault-rule-ceiling', 'vault-rule-profit-target', 'vault-rule-min-win', 'vault-rule-label']
+        .forEach((id) => {
+            const element = document.getElementById(id);
+            if (element) element.value = '';
+        });
+    const typeSelect = document.getElementById('vault-rule-type');
+    if (typeSelect) typeSelect.value = 'percent_of_win';
+    renderVaultRuleFieldGroups('percent_of_win');
 }
 
 async function loadBonuses() {
@@ -803,14 +1436,26 @@ function setupTabNavigation() {
     document.querySelectorAll('.nav-link[data-tab]').forEach(link => {
         link.addEventListener('click', e => {
             e.preventDefault();
-            const tab = link.dataset.tab;
-            document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
-            document.querySelectorAll('.tab-section').forEach(s => s.classList.remove('active'));
-            link.classList.add('active');
-            const section = document.getElementById(`${tab}-tab`);
-            if (section) section.classList.add('active');
+            activateTab(link.dataset.tab);
         });
     });
+
+    activateTab(new URLSearchParams(window.location.search).get('tab') || 'profile');
+}
+
+function activateTab(tab) {
+    const link = document.querySelector(`.nav-link[data-tab="${tab}"]`);
+    const section = document.getElementById(`${tab}-tab`);
+    if (!link || !section) return;
+
+    document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+    document.querySelectorAll('.tab-section').forEach(s => s.classList.remove('active'));
+    link.classList.add('active');
+    section.classList.add('active');
+
+    const nextUrl = new URL(window.location.href);
+    nextUrl.searchParams.set('tab', tab);
+    window.history.replaceState({}, document.title, nextUrl);
 }
 
 // ============================================================
@@ -885,13 +1530,125 @@ function setupVaultPanel() {
     });
 
     document.getElementById('vault-unlock-btn')?.addEventListener('click', async () => {
-        if (!confirm('Request early unlock? You will need to confirm again in 24 hours.')) return;
+        if (!confirm('Release the first vault lock that is already ready?')) return;
         try {
-            await apiRequest(`/api/user/${currentUser.discordId}/vault/unlock`, { method: 'POST' });
-            showNotification('Unlock request submitted.', 'success');
+            const res = await apiRequest(`/api/user/${currentUser.discordId}/vault/unlock`, { method: 'POST' });
+            const data = await res.json().catch(() => ({}));
+            if (!res.ok) {
+                showNotification(data.error || 'Release failed.', 'error');
+                return;
+            }
+            showNotification('Vault released.', 'success');
             loadVaults();
-        } catch (err) { showNotification('Error requesting unlock.', 'error'); }
+        } catch (err) { showNotification('Error releasing vault.', 'error'); }
     });
+
+    document.getElementById('vault-save-second-owner-btn')?.addEventListener('click', saveVaultSecondOwner);
+    document.getElementById('vault-initiate-withdrawal-btn')?.addEventListener('click', requestVaultWithdrawal);
+    document.getElementById('vault-execute-withdrawal-btn')?.addEventListener('click', executeVaultWithdrawal);
+}
+
+async function saveVaultSecondOwner() {
+    const secondOwnerId = document.getElementById('vault-second-owner-input')?.value?.trim() || '';
+    if (!secondOwnerId) {
+        setFormMessage('vaultApprovalStatusMsg', 'Enter a co-owner Discord ID first.', true);
+        return;
+    }
+
+    setFormMessage('vaultApprovalStatusMsg', 'Saving co-owner...');
+    try {
+        const res = await apiRequest(`/api/user/${currentUser.discordId}/vault/second-owner`, {
+            method: 'POST',
+            body: JSON.stringify({ secondOwnerId })
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) {
+            setFormMessage('vaultApprovalStatusMsg', data.error || 'Failed to save co-owner.', true);
+            return;
+        }
+
+        setFormMessage('vaultApprovalStatusMsg', 'Co-owner saved.');
+        showNotification('Vault co-owner saved.', 'success');
+        loadVaults();
+    } catch (err) {
+        console.error('[Vault Second Owner]', err);
+        setFormMessage('vaultApprovalStatusMsg', 'Failed to save co-owner.', true);
+    }
+}
+
+async function requestVaultWithdrawal() {
+    const amountSol = Number(document.getElementById('vault-withdrawal-amount-input')?.value || 0);
+    if (!Number.isFinite(amountSol) || amountSol <= 0) {
+        setFormMessage('vaultApprovalStatusMsg', 'Enter a valid withdrawal amount.', true);
+        return;
+    }
+
+    setFormMessage('vaultApprovalStatusMsg', 'Requesting withdrawal...');
+    try {
+        const res = await apiRequest(`/api/user/${currentUser.discordId}/vault/initiate-withdrawal`, {
+            method: 'POST',
+            body: JSON.stringify({ amountSol })
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) {
+            setFormMessage('vaultApprovalStatusMsg', data.error || 'Failed to request withdrawal.', true);
+            return;
+        }
+
+        setFormMessage('vaultApprovalStatusMsg', 'Withdrawal request submitted. Waiting on your co-owner.');
+        showNotification('Withdrawal request submitted.', 'success');
+        loadVaults();
+        loadVaultApprovals();
+    } catch (err) {
+        console.error('[Vault Withdrawal Request]', err);
+        setFormMessage('vaultApprovalStatusMsg', 'Failed to request withdrawal.', true);
+    }
+}
+
+async function executeVaultWithdrawal() {
+    setFormMessage('vaultApprovalStatusMsg', 'Executing withdrawal...');
+    try {
+        const res = await apiRequest(`/api/user/${currentUser.discordId}/vault/execute-withdrawal`, {
+            method: 'POST'
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) {
+            setFormMessage('vaultApprovalStatusMsg', data.error || 'Failed to execute withdrawal.', true);
+            return;
+        }
+
+        setFormMessage('vaultApprovalStatusMsg', 'Withdrawal executed against the current LockVault balance.');
+        showNotification('Withdrawal executed.', 'success');
+        loadVaults();
+        loadVaultApprovals();
+    } catch (err) {
+        console.error('[Vault Withdrawal Execute]', err);
+        setFormMessage('vaultApprovalStatusMsg', 'Failed to execute withdrawal.', true);
+    }
+}
+
+async function approveVaultWithdrawal(ownerId) {
+    if (!ownerId) return;
+
+    setFormMessage('vaultApprovalQueueStatusMsg', 'Approving withdrawal...');
+    try {
+        const res = await apiRequest(`/api/user/${currentUser.discordId}/vault/approvals/${encodeURIComponent(ownerId)}/approve`, {
+            method: 'POST'
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) {
+            setFormMessage('vaultApprovalQueueStatusMsg', data.error || 'Failed to approve withdrawal.', true);
+            return;
+        }
+
+        setFormMessage('vaultApprovalQueueStatusMsg', 'Withdrawal approved.');
+        showNotification('Withdrawal approved.', 'success');
+        loadVaultApprovals();
+        loadVaults();
+    } catch (err) {
+        console.error('[Vault Withdrawal Approve]', err);
+        setFormMessage('vaultApprovalQueueStatusMsg', 'Failed to approve withdrawal.', true);
+    }
 }
 
 function renderProfitGuardSettings() {
@@ -1195,6 +1952,7 @@ function setIdentitySettingsStatus(message, isError = false) {
 // BUDDY PANEL
 // ============================================================
 function setupBuddyPanel() {
+    document.getElementById('save-accountability-settings-btn')?.addEventListener('click', saveAccountabilitySettings);
     document.getElementById('sendBuddyInviteBtn')?.addEventListener('click', async () => {
         const input = document.getElementById('buddyInviteInput');
         const buddyId = input?.value?.trim();
@@ -1217,6 +1975,39 @@ function setupBuddyPanel() {
         } catch (err) { btn.textContent = 'Error'; }
         setTimeout(() => { btn.textContent = 'Send Invite'; btn.disabled = false; }, 2000);
     });
+}
+
+async function saveAccountabilitySettings() {
+    const toggle = document.getElementById('voice-intervention-toggle');
+    onboardingSettings.voiceInterventionEnabled = toggle?.checked === true;
+    setFormMessage('accountabilitySettingsStatus', 'Saving...');
+
+    try {
+        const res = await apiRequest('/api/user/onboard', {
+            method: 'POST',
+            body: JSON.stringify({
+                tos_accepted: true,
+                primary_external_address: onboardingSettings.primaryExternalAddress,
+                risk_level: onboardingSettings.riskLevel,
+                cooldown_enabled: onboardingSettings.cooldownEnabled,
+                voice_intervention_enabled: onboardingSettings.voiceInterventionEnabled,
+                redeem_threshold: normalizeProfitGuardThreshold(onboardingSettings.threshold),
+                notifications: onboardingSettings.notifications,
+                trust_engine_opt_in: onboardingSettings.trustEngineOptIn
+            })
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) {
+            setFormMessage('accountabilitySettingsStatus', data.error || 'Save failed.', true);
+            return;
+        }
+
+        setFormMessage('accountabilitySettingsStatus', 'Saved.');
+        showNotification('Accountability settings saved.', 'success');
+    } catch (err) {
+        console.error('[Accountability Settings]', err);
+        setFormMessage('accountabilitySettingsStatus', 'Save failed.', true);
+    }
 }
 
 // ============================================================
@@ -1381,6 +2172,18 @@ document.getElementById('notification-close')?.addEventListener('click', () => {
 function setText(id, value) {
     const el = document.getElementById(id);
     if (el) el.textContent = value;
+}
+
+function setFormMessage(id, message, isError = false) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.textContent = message;
+    el.style.color = isError ? 'var(--color-danger)' : '';
+}
+
+function parseOptionalNumber(value) {
+    const parsed = Number(value);
+    return Number.isFinite(parsed) && parsed > 0 ? parsed : undefined;
 }
 
 function setBarAndVal(id, value) {

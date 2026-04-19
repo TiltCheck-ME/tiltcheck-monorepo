@@ -20,6 +20,7 @@ import {
   requestPaidWalletUnlockForUser,
   settlePaidWalletUnlockForUser,
   addSecondOwner,
+  getWithdrawalApprovalsForUser,
   initiateWithdrawal,
   approveWithdrawal,
   executeWithdrawal
@@ -121,6 +122,8 @@ function buildWithdrawalExecutionResponse(record: Awaited<ReturnType<typeof exec
     status: 200,
     body: {
       success: true,
+      withdrawalExecuted: proposal?.status === 'executed',
+      executionRequestId: proposal?.executionRequestId ?? null,
       vault: record,
     },
   };
@@ -577,6 +580,37 @@ router.post('/:userId/initiate-withdrawal', authMiddleware, async (req, res) => 
 });
 
 /**
+ * GET /vault/:userId/withdrawal-approvals
+ * List owner vaults that need the authenticated user's approval
+ */
+router.get('/:userId/withdrawal-approvals', authMiddleware, async (req, res) => {
+    const userId = req.params.userId as string;
+    const auth = (req as AuthRequest).user;
+
+    if (!isAuthorized(auth, userId)) {
+      res.status(403).json({ error: 'Unauthorized' });
+      return;
+    }
+
+    const approvals = getWithdrawalApprovalsForUser(userId).map((vault) => ({
+      id: vault.id,
+      userId: vault.userId,
+      vaultAddress: vault.vaultAddress,
+      vaultType: vault.vaultType,
+      unlockAt: new Date(vault.unlockAt).toISOString(),
+      createdAt: new Date(vault.createdAt).toISOString(),
+      lockedAmountSOL: vault.lockedAmountSOL,
+      secondOwnerId: vault.secondOwnerId ?? null,
+      withdrawalProposal: vault.withdrawalProposal ?? null,
+    }));
+
+    res.json({
+      success: true,
+      approvals,
+    });
+});
+
+/**
  * POST /vault/:userId/approve-withdrawal
  * Approve a withdrawal from the vault
  */
@@ -584,13 +618,14 @@ router.post('/:userId/approve-withdrawal', authMiddleware, async (req, res) => {
     const userId = req.params.userId as string;
     const auth = (req as AuthRequest).user;
 
-    if (!auth?.id) {
+    const approverId = (auth as any)?.discordId || auth?.id;
+    if (!approverId) {
         res.status(401).json({ error: 'Unauthorized' });
         return;
     }
 
     try {
-        const record = await approveWithdrawal(userId, auth.id);
+        const record = await approveWithdrawal(userId, approverId);
         res.json({
             success: true,
             vault: record

@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-10
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-19
 /**
  * Surgical Self-Exclusion Commands
  * Block specific games or whole categories without nuking your account.
@@ -8,20 +8,66 @@ import {
   SlashCommandBuilder,
   ChatInputCommandInteraction,
   EmbedBuilder,
-  AutocompleteInteraction,
+  ActionRowBuilder,
+  ButtonBuilder,
+  ButtonStyle,
 } from 'discord.js';
 import type { Command } from '../types.js';
 import { config } from '../config.js';
-import type { GameCategory, ForbiddenGamesProfile } from '@tiltcheck/types';
+import {
+  GAME_EXCLUSION_CATEGORIES,
+  GAME_EXCLUSION_CATEGORY_LABELS,
+  type GameCategory,
+  type ForbiddenGamesProfile,
+} from '@tiltcheck/types';
 
-const GAME_CATEGORIES: { name: string; value: GameCategory }[] = [
-  { name: 'Chicken / Mines (the "I\'m-chasing" games)', value: 'chicken_mines' },
-  { name: 'Bonus Buys (bankroll killers)', value: 'bonus_buy' },
-  { name: 'Live Dealer (degens only zone)', value: 'live_dealer' },
-  { name: 'Slots (all slot machines)', value: 'slots' },
-  { name: 'Crash Games (Aviator / JetX / Spaceman)', value: 'crash' },
-  { name: 'Table Games (blackjack, roulette, baccarat)', value: 'table_games' },
-];
+const GAME_CATEGORIES: { name: string; value: GameCategory }[] = GAME_EXCLUSION_CATEGORIES.map((value) => ({
+  name: GAME_EXCLUSION_CATEGORY_LABELS[value],
+  value,
+}));
+
+function humanizeSlug(value: string | null | undefined): string {
+  return String(value ?? '')
+    .split(/[-_]+/)
+    .filter(Boolean)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(' ');
+}
+
+function formatExclusionTarget(exclusion: {
+  gameId?: string | null;
+  category?: GameCategory | null;
+  provider?: string | null;
+  casino?: string | null;
+}): string {
+  if (exclusion.gameId) return `Game: \`${exclusion.gameId}\``;
+  if (exclusion.category) return `Category: **${GAME_EXCLUSION_CATEGORY_LABELS[exclusion.category] ?? exclusion.category}**`;
+  if (exclusion.provider) return `Provider: **${humanizeSlug(exclusion.provider)}**`;
+  if (exclusion.casino) return `Casino: **${humanizeSlug(exclusion.casino)}**`;
+  return 'Unknown exclusion target';
+}
+
+function getDashboardBaseUrl(): string {
+  const configuredUrl = process.env.DASHBOARD_URL?.trim();
+  if (configuredUrl && /^https?:\/\//i.test(configuredUrl)) {
+    return configuredUrl.replace(/\/+$/, '');
+  }
+
+  return 'https://dashboard.tiltcheck.me';
+}
+
+function getSafetyControlsUrl(): string {
+  return `${getDashboardBaseUrl()}/dashboard?tab=safety`;
+}
+
+function buildSafetyControlsRow(): ActionRowBuilder<ButtonBuilder> {
+  return new ActionRowBuilder<ButtonBuilder>().addComponents(
+    new ButtonBuilder()
+      .setLabel('Open Safety Controls')
+      .setStyle(ButtonStyle.Link)
+      .setURL(getSafetyControlsUrl())
+  );
+}
 
 async function apiGet<T>(path: string): Promise<T> {
   const resp = await fetch(`${config.backendUrl}${path}`, {
@@ -50,34 +96,35 @@ async function apiPost<T>(path: string, body: unknown): Promise<T> {
   return resp.json() as Promise<T>;
 }
 
-async function apiDelete(path: string): Promise<void> {
-  const resp = await fetch(`${config.backendUrl}${path}`, {
-    method: 'DELETE',
-    headers: { 'x-internal-secret': config.internalApiSecret },
-  });
-  if (!resp.ok) {
-    const txt = await resp.text().catch(() => '');
-    throw new Error(`API ${resp.status}: ${txt}`);
-  }
-}
-
 // ─── /block-game ─────────────────────────────────────────────────────────────
 
 export const blockGame: Command = {
   data: new SlashCommandBuilder()
     .setName('block-game')
-    .setDescription('Surgically block a specific game or category from yourself.')
+    .setDescription('Quick-add a temptation filter, then manage the full set in the dashboard.')
     .addStringOption((opt) =>
       opt
         .setName('category')
-        .setDescription('Block a whole game category (e.g. Crash, Bonus Buys)')
+        .setDescription('Quick-block a whole game category')
         .setRequired(false)
         .addChoices(...GAME_CATEGORIES)
     )
     .addStringOption((opt) =>
       opt
         .setName('game_id')
-        .setDescription('Block a specific game slug (e.g. chicken_orig_01)')
+        .setDescription('Quick-block a specific game slug')
+        .setRequired(false)
+    )
+    .addStringOption((opt) =>
+      opt
+        .setName('provider')
+        .setDescription('Quick-block a provider slug (e.g. pragmatic-play)')
+        .setRequired(false)
+    )
+    .addStringOption((opt) =>
+      opt
+        .setName('casino')
+        .setDescription('Quick-block a casino slug (e.g. stake)')
         .setRequired(false)
     )
     .addStringOption((opt) =>
@@ -90,11 +137,22 @@ export const blockGame: Command = {
   async execute(interaction: ChatInputCommandInteraction) {
     const category = interaction.options.getString('category') as GameCategory | null;
     const gameId = interaction.options.getString('game_id');
+    const provider = interaction.options.getString('provider');
+    const casino = interaction.options.getString('casino');
     const reason = interaction.options.getString('reason');
+    const targets = [category, gameId, provider, casino].filter(Boolean);
 
-    if (!category && !gameId) {
+    if (targets.length === 0) {
       await interaction.reply({
-        content: 'You need to specify at least a category or a game ID. Not running from nothing here.',
+        content: 'Pick one thing to block: category, game ID, provider, or casino.',
+        ephemeral: true,
+      });
+      return;
+    }
+
+    if (targets.length > 1) {
+      await interaction.reply({
+        content: 'One target per hit. Stack another `/block-game` if you want more.',
         ephemeral: true,
       });
       return;
@@ -104,25 +162,29 @@ export const blockGame: Command = {
 
     try {
       const discordId = interaction.user.id;
-      await apiPost(`/user/${discordId}/exclusions`, { gameId, category, reason });
+      await apiPost(`/user/${discordId}/exclusions`, { gameId, category, provider, casino, reason });
 
       const label = gameId
         ? `game \`${gameId}\``
-        : `category **${GAME_CATEGORIES.find((c) => c.value === category)?.name ?? category}**`;
+        : category
+          ? `category **${GAME_CATEGORIES.find((c) => c.value === category)?.name ?? category}**`
+          : provider
+            ? `provider **${humanizeSlug(provider)}**`
+            : `casino **${humanizeSlug(casino)}**`;
 
       const embed = new EmbedBuilder()
         .setColor(0xef4444)
         .setTitle('BLOCKED')
         .setDescription(
-          `${label} is now on your no-fly list.\n\nThe extension will intercept it. The API will return a 403. Past-you just did present-you a solid.`
+          `${label} is now on your no-fly list.\n\nDiscord is doing the quick-add. The dashboard still owns the full filter set and any cleanup.`
         )
         .addFields(
           ...(reason ? [{ name: 'Your note to yourself', value: `"${reason}"` }] : []),
-          { name: 'Remove it later', value: 'Use `/my-exclusions` to see IDs, then `/unblock-game` to lift the block.' }
+          { name: 'Manage the rest', value: 'Need edits, removals, or the full filter list? Use the dashboard safety controls.' }
         )
         .setFooter({ text: 'Made for Degens. By Degens.' });
 
-      await interaction.editReply({ embeds: [embed] });
+      await interaction.editReply({ embeds: [embed], components: [buildSafetyControlsRow()] });
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
       await interaction.editReply({ content: `Failed to add exclusion: ${msg}` });
@@ -135,36 +197,18 @@ export const blockGame: Command = {
 export const unblockGame: Command = {
   data: new SlashCommandBuilder()
     .setName('unblock-game')
-    .setDescription('Remove a surgical exclusion. You sure about this?')
-    .addStringOption((opt) =>
-      opt
-        .setName('exclusion_id')
-        .setDescription('Exclusion ID — get it from /my-exclusions')
-        .setRequired(true)
-    ),
+    .setDescription('Open dashboard safety controls to remove or edit a temptation filter.'),
 
   async execute(interaction: ChatInputCommandInteraction) {
-    const exclusionId = interaction.options.getString('exclusion_id', true);
+    const embed = new EmbedBuilder()
+      .setColor(0xf59e0b)
+      .setTitle('DASHBOARD-OWNED')
+      .setDescription(
+        'Discord is not the manager for filter removals anymore.\n\nUse the dashboard safety controls to review, edit, or remove temptation filters.'
+      )
+      .setFooter({ text: 'Made for Degens. By Degens.' });
 
-    await interaction.deferReply({ ephemeral: true });
-
-    try {
-      const discordId = interaction.user.id;
-      await apiDelete(`/user/${discordId}/exclusions/${exclusionId}`);
-
-      const embed = new EmbedBuilder()
-        .setColor(0xf59e0b)
-        .setTitle('UNBLOCKED')
-        .setDescription(
-          "Exclusion lifted. That game is accessible again.\n\nHopefully you know what you're doing. Touch grass if not."
-        )
-        .setFooter({ text: 'Made for Degens. By Degens.' });
-
-      await interaction.editReply({ embeds: [embed] });
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : String(err);
-      await interaction.editReply({ content: `Could not remove exclusion: ${msg}` });
-    }
+    await interaction.reply({ embeds: [embed], components: [buildSafetyControlsRow()], ephemeral: true });
   },
 };
 
@@ -173,7 +217,7 @@ export const unblockGame: Command = {
 export const myExclusions: Command = {
   data: new SlashCommandBuilder()
     .setName('my-exclusions')
-    .setDescription('List your current surgical self-exclusions.'),
+    .setDescription('Summarize your temptation filters. Full management stays in the dashboard.'),
 
   async execute(interaction: ChatInputCommandInteraction) {
     await interaction.deferReply({ ephemeral: true });
@@ -187,32 +231,47 @@ export const myExclusions: Command = {
       const profile = result.data;
 
       if (profile.exclusions.length === 0) {
+        const embed = new EmbedBuilder()
+          .setColor(0x22d3a6)
+          .setTitle('TEMPTATION FILTERS')
+          .setDescription('No filters armed right now.\n\nUse `/block-game` for a quick add, or the dashboard for full safety control setup.')
+          .setFooter({ text: 'Made for Degens. By Degens.' });
+
         await interaction.editReply({
-          content: 'No exclusions set. Either you have iron self-control or you have not blocked anything yet.',
+          embeds: [embed],
+          components: [buildSafetyControlsRow()],
         });
         return;
       }
 
-      const lines = profile.exclusions.map((e, i) => {
-        const target = e.gameId ? `Game: \`${e.gameId}\`` : `Category: **${e.category?.replace(/_/g, ' ')}**`;
+      const lines = profile.exclusions.slice(0, 8).map((e, i) => {
+        const target = formatExclusionTarget(e);
         const note = e.reason ? ` — _"${e.reason}"_` : '';
-        return `\`${i + 1}.\` ${target}${note}\nID: \`${e.id}\``;
+        return `\`${i + 1}.\` ${target}${note}`;
       });
+      const remaining = profile.exclusions.length - lines.length;
 
       const embed = new EmbedBuilder()
         .setColor(0x22d3a6)
-        .setTitle('EXCLUSION LIST')
-        .setDescription(lines.join('\n\n'))
+        .setTitle('TEMPTATION FILTER SUMMARY')
+        .setDescription(
+          `${lines.join('\n\n')}${remaining > 0 ? `\n\n...and ${remaining} more in the dashboard.` : ''}`
+        )
         .addFields([
           {
             name: 'Quick Stats',
-            value: `${profile.blockedGameIds.length} specific games | ${profile.blockedCategories.length} categories blocked`,
+            value: `${profile.blockedGameIds.length} games | ${profile.blockedCategories.length} categories | ${profile.blockedProviders.length} providers | ${profile.blockedCasinos.length} casinos`,
+            inline: false,
+          },
+          {
+            name: 'Canonical manager',
+            value: 'Dashboard safety controls own edits and removals. Discord stays summary-first.',
             inline: false,
           },
         ])
         .setFooter({ text: 'Made for Degens. By Degens.' });
 
-      await interaction.editReply({ embeds: [embed] });
+      await interaction.editReply({ embeds: [embed], components: [buildSafetyControlsRow()] });
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
       await interaction.editReply({ content: `Could not load exclusions: ${msg}` });
