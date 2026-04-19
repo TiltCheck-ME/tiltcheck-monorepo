@@ -1,8 +1,8 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-05-08 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-19 */
 "use client";
 
-import Link from 'next/link';
-import React, { useEffect, useState } from 'react';
+import Link from "next/link";
+import React, { useEffect, useState } from "react";
 
 const QUOTES = [
   "Trust everybody, but cut the cards.",
@@ -14,11 +14,44 @@ const QUOTES = [
   "Math doesn't care about your gut feeling.",
   "The machine has a memory. You have a prayer.",
   "The best way to double your money is to fold it in half and put it back in your pocket.",
-  "Don't worry about the noise. Worry about the signal."
+  "Don't worry about the noise. Worry about the signal.",
+];
+
+const footerGroups = [
+  {
+    title: "Tools",
+    links: [
+      { href: "/#tools", label: "All tools" },
+      { href: "/tools/auto-vault", label: "The Vault" },
+      { href: "/tools/verify", label: "Forensic Seed Audit" },
+      { href: "/tools/session-stats", label: "RTP Drift Monitor" },
+      { href: "/tools/house-edge-scanner", label: "House Edge Scanner" },
+    ],
+  },
+  {
+    title: "Intel",
+    links: [
+      { href: "/casinos", label: "Casino Trust Scores" },
+      { href: "/bonuses", label: "Daily Bonus Tracker" },
+      { href: "/intel/rtp", label: "RTP Scanner" },
+      { href: "/intel/scams", label: "Scam Registry" },
+      { href: "/extension", label: "Profit Guard Extension" },
+    ],
+  },
+  {
+    title: "Company",
+    links: [
+      { href: "/how-it-works", label: "How it Works" },
+      { href: "/docs", label: "Docs" },
+      { href: "/blog", label: "Blog" },
+      { href: "/about", label: "About" },
+      { href: "/dashboard", label: "Your Dashboard" },
+    ],
+  },
 ];
 
 const Footer = () => {
-  const [quote, setQuote] = useState('');
+  const [quote, setQuote] = useState("");
 
   useEffect(() => {
     setQuote(QUOTES[Math.floor(Math.random() * QUOTES.length)]);
@@ -26,85 +59,66 @@ const Footer = () => {
 
   return (
     <footer className="site-footer" aria-label="Site footer">
-      <div className="container">
-        {/* Made for Degens by Degens */}
-      </div>
-      <div className="footer-columns">
-        <div className="footer-col">
-          <h4>The Edge</h4>
-          <ul>
-            <li><Link href="/#tools">All Tools</Link></li>
-            <li><Link href="/tools/auto-vault">Auto Vault</Link></li>
-            <li><Link href="/tools/verify">Forensic Seed Audit</Link></li>
-            <li><Link href="/tools/domain-verifier">Anti-Drainer DNS</Link></li>
-            <li><Link href="/tools/session-stats">Nerf Radar</Link></li>
-            <li><Link href="/tools/house-edge-scanner">House Edge Scanner</Link></li>
-            <li><Link href="/tools/justthetip">JustTheTip</Link></li>
-            <li><Link href="/tools/degens-arena">Degen Trivia</Link></li>
-          </ul>
+      <div className="footer-shell">
+        <div className="footer-top">
+          <div className="footer-brand">
+            <span className="brand-eyebrow footer-eyebrow">TiltCheck</span>
+            <h2 className="footer-title">See the math. Keep the edge.</h2>
+            <p className="footer-copy">
+              TiltCheck is the audit layer for players, the trust layer for platforms, and the cold-water splash before
+              one more stupid spin turns profit into regret.
+            </p>
+
+            <div className="footer-actions">
+              <Link href="/beta-tester" className="footer-action footer-action--primary">
+                Get Early Access
+              </Link>
+              <a
+                href="https://discord.gg/gdBsEJfCar"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="footer-action footer-action--secondary"
+              >
+                Join Discord
+              </a>
+            </div>
+
+            {quote && <p className="footer-quote">"{quote}"</p>}
+          </div>
+
+          <div className="footer-nav-groups">
+            {footerGroups.map((group) => (
+              <div key={group.title} className="footer-nav-group">
+                <h3>{group.title}</h3>
+                <ul>
+                  {group.links.map((link) => (
+                    <li key={link.href}>
+                      <Link href={link.href}>{link.label}</Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
         </div>
-        <div className="footer-col">
-          <h4>Intel</h4>
-          <ul>
-            <li><Link href="/casinos">Casino Trust Scores</Link></li>
-            <li><Link href="/bonuses">Daily Bonus Tracker</Link></li>
-            <li><Link href="/intel/rtp">RTP Scanner</Link></li>
-            <li><Link href="/intel/scanner">Threat Scanner</Link></li>
-            <li><Link href="/intel/scams">Scam Registry</Link></li>
-            <li><Link href="/extension">Profit Guard Extension</Link></li>
-          </ul>
+
+        <div className="footer-bottom">
+          <div className="footer-bottom-links">
+            <Link href="/touch-grass">Touch Grass Protocol</Link>
+            <Link href="/terms">Terms of Service</Link>
+            <Link href="/legal/limit">Asset Risk Limits</Link>
+            <Link href="/terms">Non-Advice Disclosure</Link>
+            <a
+              href="https://github.com/jmenichole/tiltcheck-monorepo"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              The Source
+            </a>
+          </div>
+          <p className="footer-tagline">Made for Degens. By Degens.</p>
+          <p className="footer-copyright">© 2024–2026 TiltCheck Ecosystem. All Rights Reserved.</p>
         </div>
-        <div className="footer-col">
-          <h4>Learn</h4>
-          <ul>
-            <li><Link href="/how-it-works">How It Works</Link></li>
-            <li><Link href="/getting-started">Getting Started</Link></li>
-            <li><Link href="/about">About</Link></li>
-            <li><Link href="/docs">Audit Blueprints</Link></li>
-            <li><Link href="/blog">Blog</Link></li>
-            <li><Link href="/beta-tester">Join Beta</Link></li>
-          </ul>
-        </div>
-        <div className="footer-col">
-          <h4>Compliance</h4>
-          <ul>
-            <li><Link href="/touch-grass">Touch Grass Protocol</Link></li>
-            <li><Link href="/terms">Terms of Service</Link></li>
-            <li><Link href="/legal/limit">Asset Risk Limits</Link></li>
-            <li><Link href="/terms">Non-Advice Disclosure</Link></li>
-          </ul>
-        </div>
-        <div className="footer-col">
-          <h4>Connect</h4>
-          <ul>
-            <li><Link href="/dashboard">Your Dashboard</Link></li>
-            <li>
-              <a href="https://discord.gg/gdBsEJfCar" target="_blank" rel="noopener noreferrer">TiltCheck Discord</a>
-            </li>
-            <li>
-              <a href="https://github.com/jmenichole/tiltcheck-monorepo" target="_blank" rel="noopener noreferrer">The Source</a>
-            </li>
-          </ul>
-        </div>
-      </div>
-      <div className="footer-bottom">
-        <p className="footer-mission">
-          The house has the math. You have a dopamine problem. TiltCheck is the audit layer — real-time RTP drift, provably fair verification, casino trust scores, and a hard lock on your gains before your brain talks you into one more spin. <strong>Play smarter or don&apos;t play.</strong>
-        </p>
-        <div>
-          <Link href="/touch-grass" className="footer-touchgrass-link">
-            TOUCH GRASS PROTOCOL
-          </Link>
-        </div>
-        <p className="footer-tagline" style={{ background: 'linear-gradient(to right, #ff3366, #22d3a6)', WebkitBackgroundClip: 'text', backgroundClip: 'text', WebkitTextFillColor: 'transparent', fontSize: '1.1rem', fontWeight: 'bold', letterSpacing: '1px' }}>
-          MADE FOR DEGENS. BY DEGENS.
-        </p>
-        {quote && (
-          <p className="footer-quote" style={{ fontSize: '0.8rem', opacity: 0.5, fontStyle: 'italic', maxWidth: '560px', margin: '0 auto' }}>
-            &quot;{quote}&quot;
-          </p>
-        )}
-        <p className="footer-copyright">© 2024–2026 TiltCheck Ecosystem. All Rights Reserved.</p>
       </div>
     </footer>
   );

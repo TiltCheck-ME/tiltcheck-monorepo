@@ -1,5 +1,16 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-17 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-19 */
 import { describe, it, expect, beforeEach, vi } from 'vitest';
+
+const databaseMock = vi.hoisted(() => ({
+  isConnected: vi.fn(),
+  getDegenIdentity: vi.fn(),
+  updateNftSavings: vi.fn(),
+}));
+
+vi.mock('@tiltcheck/database', () => ({
+  db: databaseMock,
+}));
+
 import { vaultManager } from '../src/vault-manager.js';
 import { eventRouter } from '@tiltcheck/event-router';
 
@@ -13,6 +24,12 @@ describe('LockVault Module', () => {
     // Reset singleton state & event history
     vaultManager.clearAll();
     eventRouter.clearHistory();
+    databaseMock.isConnected.mockReturnValue(true);
+    databaseMock.getDegenIdentity.mockResolvedValue({
+      discord_id: 'u1',
+      magic_address: null,
+      primary_external_address: 'linked-wallet-u1',
+    });
     vi.useFakeTimers();
     vi.setSystemTime(new Date('2025-01-01T00:00:00Z')); // deterministic base
   });
@@ -21,8 +38,23 @@ describe('LockVault Module', () => {
     const rec = await vaultManager.lock({ userId: 'u1', amountRaw: '5', durationRaw: '10m', reason: 'focus', disclaimerAccepted: true });
     expect(rec.userId).toBe('u1');
     expect(rec.status).toBe('locked');
+    expect(rec.vaultType).toBe('linked');
+    expect(rec.vaultAddress).toBe('linked-wallet-u1');
+    expect(rec.vaultSecret).toBeUndefined();
     expect(rec.unlockAt).toBeGreaterThan(Date.now());
     expect(countEvents('vault.locked')).toBe(1);
+  });
+
+  it('rejects new locks when no linked wallet or Degen Identity exists', async () => {
+    databaseMock.getDegenIdentity.mockResolvedValueOnce(null);
+    await expect(
+      vaultManager.lock({ userId: 'u1', amountRaw: '5', durationRaw: '10m', disclaimerAccepted: true })
+    ).rejects.toMatchObject({
+      code: 'LOCKVAULT_IDENTITY_REQUIRED',
+      httpStatus: 409,
+    });
+    expect(vaultManager.status('u1')).toEqual([]);
+    expect(countEvents('vault.locked')).toBe(0);
   });
 
   it('rejects lock below minimum duration', async () => {

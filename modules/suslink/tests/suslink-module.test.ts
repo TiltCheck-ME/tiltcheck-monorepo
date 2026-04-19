@@ -31,4 +31,18 @@ describe('SusLinkModule', () => {
     expect(['high', 'critical']).toContain(last.data.riskLevel);
     expect(last.userId).toBe('user-2');
   });
+
+  it('does not auto-penalize known casino domains in safe mode', async () => {
+    const url = 'https://mcluck.com/promotions';
+    const result = await module.scanUrl(url);
+    expect(result.riskLevel).toBe('safe');
+    expect(result.reason).toMatch(/known casino domain|no suspicious patterns/i);
+  });
+
+  it('still flags impersonation domains that mimic casino brands', async () => {
+    const url = 'https://stakee-bonus.xyz/claim-now';
+    const result = await module.scanUrl(url);
+    expect(['high', 'critical']).toContain(result.riskLevel);
+    expect(result.reason).toMatch(/impersonation|typosquat|keyword|tld/i);
+  });
 });

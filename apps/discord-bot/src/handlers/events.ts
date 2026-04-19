@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-10
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-19
 /**
  * Event Handler
  *
@@ -483,7 +483,11 @@ export class EventHandler {
         // For simplicity, we can just DM every lock as a "secure receipt", or only for magic/auto.
         const user = await this.client.users.fetch(userId).catch(() => null);
         if (user) {
-          const typeText = vaultType === 'magic' ? 'your Degen Identity' : 'a disposable vault';
+          const typeText = vaultType === 'magic'
+            ? 'your Degen Identity'
+            : vaultType === 'linked'
+              ? 'your linked wallet'
+              : 'a legacy disposable vault';
           const amountText = amountSOL === 0 ? 'ALL' : amountSOL.toFixed(4);
           await user.send(`[LOCKED] Vault Created.\n\nFunds secured in ${typeText}.\n- **ID:** \`${id}\`\n- **Target:** \`${amountText} SOL eq\`\n- **Address:** \`${vaultAddress}\`\n\nUse \`/vault status\` to view your locks.`).catch(() => { });
         }

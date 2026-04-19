@@ -1,4 +1,4 @@
-# © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-09
+# © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-18
 #
 # Wrapper called by Task Scheduler to run the email crawler.
 # Handles: full path resolution, .env loading, output logging.
@@ -7,7 +7,8 @@
 param(
     [int]$Limit = 500,
     [switch]$DryRun,
-    [switch]$All
+    [switch]$All,
+    [switch]$DeleteProcessed
 )
 
 $repoRoot = Split-Path -Parent $MyInvocation.MyCommand.Path | Split-Path -Parent
@@ -54,12 +55,12 @@ Write-Log "Crawler account: $([System.Environment]::GetEnvironmentVariable('CRAW
 # Resolve tsx — local install wins, fall back to global
 $tsxLocal = Join-Path $repoRoot "node_modules\.bin\tsx.cmd"
 $tsxPath = if (Test-Path $tsxLocal) { $tsxLocal } else {
-    $global = (Get-Command tsx -ErrorAction SilentlyContinue)?.Source
-    if (-not $global) {
+    $globalCommand = Get-Command tsx -ErrorAction SilentlyContinue
+    if (-not $globalCommand) {
         Write-Log "ERROR: tsx not found. Run 'pnpm install' in $repoRoot first."
         exit 1
     }
-    $global
+    $globalCommand.Source
 }
 Write-Log "tsx: $tsxPath"
 
@@ -68,6 +69,7 @@ $crawlerScript = Join-Path $repoRoot "scripts\email-crawler.ts"
 $args = @($crawlerScript, "--limit", $Limit)
 if ($DryRun) { $args += "--dry-run" }
 if ($All)    { $args += "--all" }
+if ($DeleteProcessed) { $args += "--delete-processed" }
 Write-Log "Running: tsx $($args -join ' ')"
 
 # Run and capture output into the log

@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-18
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-19
 /* Copyright (c) 2026 TiltCheck. All rights reserved. */
 /**
  * @tiltcheck/types
@@ -932,7 +932,7 @@ export interface VaultExpiredEventData {
 export interface VaultLockedEventData {
   userId: string;
   id: string;
-  vaultType: 'disposable' | 'magic';
+  vaultType: 'disposable' | 'linked' | 'magic';
   vaultAddress: string;
   amountSOL: number;
   unlockAt: number;
@@ -948,7 +948,7 @@ export interface VaultAutoWithdrawRequestedEventData {
   userId: string;
   id: string;
   vaultAddress: string;
-  vaultType: 'disposable' | 'magic';
+  vaultType: 'disposable' | 'linked' | 'magic';
   amountSOL: number;
   secretDecryptError: boolean;
 }
@@ -957,7 +957,7 @@ export interface VaultWithdrawalExecutionRequestedEventData {
   userId: string;
   id: string;
   vaultAddress: string;
-  vaultType: 'disposable' | 'magic';
+  vaultType: 'disposable' | 'linked' | 'magic';
   amountSOL: number;
   executionRequestId: string;
   secondOwnerId?: string;

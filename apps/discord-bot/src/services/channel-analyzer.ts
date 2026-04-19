@@ -51,6 +51,39 @@ Analyse these messages and respond with ONLY valid JSON in this exact structure:
   "actionItems": ["action1", "action2"]
 }`;
 
+const DEFAULT_PAID_PROVIDERS = new Set(['gemini', 'groq', 'openai']);
+
+function parseProviderList(value?: string): string[] {
+    if (!value?.trim()) return [];
+    return value.split(',').map((entry) => entry.trim().toLowerCase()).filter(Boolean);
+}
+
+function isProviderAllowed(provider: string): boolean {
+    const profile = (process.env.AI_PROVIDER_PROFILE || 'free-tier').toLowerCase();
+    const disablePaidProviders = process.env.AI_DISABLE_PAID_PROVIDERS === 'true';
+    const allowedOverride = parseProviderList(process.env.AI_ALLOWED_PROVIDERS);
+    const blockedProviders = new Set(parseProviderList(process.env.AI_BLOCKED_PROVIDERS));
+    const configuredPaidProviders = parseProviderList(process.env.AI_PAID_PROVIDERS);
+    const paidProviders = new Set(configuredPaidProviders.length > 0 ? configuredPaidProviders : Array.from(DEFAULT_PAID_PROVIDERS));
+    const profileProviders: Record<string, string[]> = {
+        'local-only': ['ollama'],
+        'free-tier': ['huggingface', 'ollama'],
+        'balanced': ['gemini', 'huggingface', 'ollama', 'openai'],
+        'paid': ['gemini', 'huggingface', 'ollama', 'openai'],
+        'custom': allowedOverride,
+    };
+
+    let allowedProviders = profileProviders[profile] || profileProviders.balanced;
+    if (allowedOverride.length > 0 && profile !== 'custom') {
+        allowedProviders = allowedProviders.filter((entry) => allowedOverride.includes(entry));
+    }
+    if (disablePaidProviders) {
+        allowedProviders = allowedProviders.filter((entry) => !paidProviders.has(entry));
+    }
+
+    return allowedProviders.includes(provider) && !blockedProviders.has(provider);
+}
+
 export class ChannelAnalyzer {
     private client: Client;
     private openai: OpenAI | null = null;
@@ -82,17 +115,25 @@ export class ChannelAnalyzer {
         this.maxBufferSize = options.maxBufferSize ?? 500;
 
         const geminiKey = process.env.GEMINI_API_KEY;
-        if (geminiKey) {
+        const huggingFaceToken = process.env.HUGGINGFACE_TOKEN || process.env.HF_TOKEN;
+        if (isProviderAllowed('gemini') && geminiKey) {
             this.openai = new OpenAI({
                 apiKey: geminiKey,
                 baseURL: 'https://generativelanguage.googleapis.com/v1beta/openai/',
             });
             this.aiModel = process.env.AI_MODEL || 'gemini-1.5-flash';
-        } else if (options.openaiApiKey) {
+        } else if (isProviderAllowed('huggingface') && huggingFaceToken) {
+            this.openai = new OpenAI({
+                apiKey: huggingFaceToken,
+                baseURL: 'https://router.huggingface.co/v1/',
+            });
+            this.aiModel = process.env.HUGGINGFACE_MODEL || process.env.AI_MODEL || 'Qwen/Qwen2.5-72B-Instruct';
+        } else if (isProviderAllowed('openai') && options.openaiApiKey) {
             this.openai = new OpenAI({ apiKey: options.openaiApiKey });
             this.aiModel = process.env.AI_MODEL || 'gpt-4o-mini';
         }
-        this.useOllama = process.env.AI_PROVIDER === 'ollama' || !!options.ollamaUrl || !!process.env.OLLAMA_URL;
+        this.useOllama = isProviderAllowed('ollama')
+            && (process.env.AI_PROVIDER === 'ollama' || !!options.ollamaUrl || !!process.env.OLLAMA_URL);
         if (options.ollamaUrl) this.ollamaUrl = options.ollamaUrl;
         if (options.ollamaModel) this.ollamaModel = options.ollamaModel;
     }

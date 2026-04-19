@@ -68,8 +68,15 @@ To get started, copy the `.env.example` file to `.env` in the root of the projec
 
 | Variable | Description | Default / Example |
 |---|---|---|
-| `OPENAI_API_KEY` | OpenAI API key for AI-driven chat/insights | `sk-...` |
-| `AI_PROVIDER` | AI backend selector (`ollama` or gateway default) | `ollama` |
+| `AI_PROVIDER` | Force a single provider inside the active switcher policy (`gemini`, `groq`, `huggingface`, `ollama`, `openai`, `mock`) | `ollama` |
+| `AI_PROVIDER_PROFILE` | Provider switcher profile (`local-only`, `free-tier`, `balanced`, `paid`, `custom`) | `free-tier` |
+| `AI_DISABLE_PAID_PROVIDERS` | Hard block paid providers even if they are configured | `true` |
+| `AI_ALLOWED_PROVIDERS` | Optional comma-separated allowlist that further constrains routing | `huggingface,ollama` |
+| `AI_BLOCKED_PROVIDERS` | Optional comma-separated denylist | `openai,groq` |
+| `AI_PAID_PROVIDERS` | Optional comma-separated list used by the switcher to classify paid providers | `gemini,groq,openai` |
+| `GEMINI_API_KEY` | Gemini API key for direct Gemini routing | `AIza...` |
+| `GROQ_API_KEY` | Groq API key for Groq routing | `gsk_...` |
+| `HUGGINGFACE_TOKEN` | Hugging Face token for the router-based fallback path | `hf_...` |
 | `OLLAMA_URL` | OpenAI-compatible Ollama base URL | `http://localhost:11434/v1` |
 | `AI_MODEL` | Shared model name for AI features | `llama3.2:1b` |
 | `OLLAMA_MODEL` | Optional Ollama-specific model override | `llama3.2:1b` |

@@ -18,6 +18,7 @@ import { fileURLToPath } from 'url';
 import dotenv from 'dotenv';
 import chalk from 'chalk';
 import { buildTiltCheckDailyDegenSummary } from './report-summary.js';
+import { getFallbackProviders, getRequestedProvider } from './provider-switcher.js';
 
 dotenv.config();
 
@@ -89,8 +90,7 @@ const DISCORD_MESSAGE_LIMIT = 1800;
 
 
 // ── AI Provider config ───────────────────────────────────────────────────────
-// PROVIDER options: ollama | groq | gemini | openai
-const PROVIDER = (process.env.PROVIDER || 'ollama').toLowerCase();
+const PROVIDER = getRequestedProvider('ollama');
 
 const PROVIDERS = {
     ollama: {
@@ -104,6 +104,12 @@ const PROVIDERS = {
         apiKey: process.env.GROQ_API_KEY || '',
         model: process.env.GROQ_MODEL || process.env.AI_MODEL || 'llama-3.3-70b-versatile',
         label: 'Groq (free cloud)',
+    },
+    huggingface: {
+        baseUrl: 'https://router.huggingface.co/v1',
+        apiKey: process.env.HUGGINGFACE_TOKEN || process.env.HF_TOKEN || '',
+        model: process.env.HUGGINGFACE_MODEL || process.env.AI_MODEL || 'Qwen/Qwen2.5-72B-Instruct',
+        label: 'Hugging Face',
     },
     gemini: {
         baseUrl: 'https://generativelanguage.googleapis.com/v1beta/openai',
@@ -128,15 +134,8 @@ function isProviderConfigured(providerKey) {
     return Boolean(provider.apiKey);
 }
 
-function getFallbackProviders(primaryKey) {
-    const orderedKeys = primaryKey === 'all'
-        ? Object.keys(PROVIDERS)
-        : [primaryKey, ...Object.keys(PROVIDERS).filter(key => key !== primaryKey)];
-
-    return orderedKeys
-        .map(key => ({ key, ...PROVIDERS[key] }))
-        .filter(provider => isProviderConfigured(provider.key));
-}
+const PROVIDER_SWITCH = getFallbackProviders(PROVIDER, PROVIDERS);
+const FALLBACK_PROVIDERS = PROVIDER_SWITCH.providers.filter((provider) => isProviderConfigured(provider.key));
 
 const GPT_SYSTEM_PROMPT = `You are a community intelligence analyst for TiltCheck, a responsible gambling platform.
 You are given a batch of Discord messages scraped from a gambling community server.
@@ -274,16 +273,14 @@ async function analyseMessages(messages) {
 
         let chunkReport = '';
         if (PROVIDER === 'all') {
-            const eligible = Object.values(PROVIDERS).filter(p =>
-                p.apiKey && (p.apiKey !== 'ollama' || p.label === 'Ollama (local)')
-            );
+            const eligible = FALLBACK_PROVIDERS;
             const results = await Promise.all(eligible.map(p => callProvider(p, text, chunk.length)));
             const sections = eligible
                 .map((p, i) => results[i] ? `\n---\n#### 🤖 ${p.label}\n${results[i]}` : null)
                 .filter(Boolean);
             chunkReport = sections.join('\n');
         } else {
-            const candidates = getFallbackProviders(PROVIDER);
+            const candidates = FALLBACK_PROVIDERS;
 
             for (const provider of candidates) {
                 const result = await callProvider(provider, text, chunk.length);

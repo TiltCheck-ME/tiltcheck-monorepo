@@ -84,7 +84,7 @@ describe('RGaaS email bonus feed routes', () => {
         .send({
           raw_email: [
             'From: promos@mcluck.com',
-            'Date: Thu, 16 Apr 2026 12:00:00 +0000',
+            `Date: ${new Date().toUTCString()}`,
             'Subject: Match bonus drop',
             '',
             'Get a 100% match bonus up to $500 expires in 2 days.',
@@ -167,5 +167,58 @@ describe('RGaaS email bonus feed routes', () => {
     expect(response.body.bonusFeed.detected).toBe(1);
     expect(response.body.bonusFeed.publishedEvents).toBe(0);
     expect(vi.mocked(eventRouter.publish)).not.toHaveBeenCalled();
+  });
+
+  it('publishes selective casino grade evidence for recent risky promo patterns', async () => {
+    vi.mocked(suslink.scanUrl)
+      .mockResolvedValueOnce({ riskLevel: 'low', reason: 'sender clean' } as any)
+      .mockResolvedValueOnce({ riskLevel: 'suspicious', reason: 'redirect chain' } as any)
+      .mockResolvedValueOnce({ riskLevel: 'suspicious', reason: 'tracking trampoline' } as any)
+      .mockResolvedValueOnce({ riskLevel: 'low', reason: 'safe claim link' } as any)
+      .mockResolvedValueOnce({ riskLevel: 'low', reason: 'safe image cdn' } as any)
+      .mockResolvedValueOnce({ riskLevel: 'low', reason: 'safe mirror' } as any);
+
+    const response = await request(app)
+      .post('/rgaas/email-ingest')
+      .send({
+        raw_email: [
+          'From: promos@mcluck.com',
+          `Date: ${new Date().toUTCString()}`,
+          'Subject: Last chance bonus storm',
+          '',
+          'Act now. Last chance. Limited time. Claim before midnight.',
+          'Get a 100% match bonus up to $500 and 25 free spins today only.',
+          'Primary link: https://mcluck.com/promos/claim',
+          'Tracking link: https://claim-now.example/redirect',
+          'Mirror link: https://bonusrush.example/deal',
+          'Extra link 1: https://promo1.example/path',
+          'Extra link 2: https://promo2.example/path',
+          'Extra link 3: https://promo3.example/path',
+        ].join('\n'),
+      });
+
+    expect(response.status).toBe(200);
+    expect(response.body.gradeEvidence).toMatchObject({
+      bonusDelta: -3,
+      complianceDelta: -2,
+    });
+
+    expect(vi.mocked(eventRouter.publish)).toHaveBeenCalledWith(
+      'trust.casino.rollup',
+      'rgaas-api',
+      expect.objectContaining({
+        source: 'email-intel',
+        casinos: {
+          McLuck: expect.objectContaining({
+            totalDelta: -5,
+            events: 5,
+            externalData: {
+              bonusDelta: -3,
+              complianceDelta: -2,
+            },
+          }),
+        },
+      }),
+    );
   });
 });

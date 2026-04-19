@@ -1,8 +1,9 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-13 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-19 */
 "use client";
 
 import React, { useEffect, useMemo, useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
+import { getDiscordLoginApiBase, getDiscordLoginUrl } from '@/lib/discord-login';
 import { signInWithMagicEmail } from '@/lib/magicAuth';
 
 type ApplicationPath = 'discord' | 'site';
@@ -36,7 +37,7 @@ export default function BetaTesterPage() {
   const [magicEmail, setMagicEmail] = useState('');
   const [magicLoading, setMagicLoading] = useState(false);
   const { user, loading } = useAuth();
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL || '/api';
+  const apiUrl = getDiscordLoginApiBase();
   const hasLinkedDiscord = Boolean(user?.discordId);
   const signedInEmail = user?.email?.trim() || null;
 
@@ -65,8 +66,7 @@ export default function BetaTesterPage() {
       return;
     }
 
-    const redirect = encodeURIComponent(window.location.href);
-    window.location.href = `/api/auth/discord/login?source=web&redirect=${redirect}`;
+    window.location.href = getDiscordLoginUrl(window.location.href);
   };
 
   const handleMagicSignIn = async () => {

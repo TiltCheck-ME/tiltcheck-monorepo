@@ -1,12 +1,13 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-14
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-19
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { fetchAuthSession } from '@/lib/auth-session';
+import { getDiscordLoginApiBase, getDiscordLoginUrl } from '@/lib/discord-login';
 
-const API = process.env.NEXT_PUBLIC_API_URL || '/api';
-const DISCORD_LOGIN_URL = `${API}/auth/discord/login?source=web&redirect=${encodeURIComponent('/tools/buddy-system')}`;
+const API = getDiscordLoginApiBase();
+const DISCORD_LOGIN_URL = getDiscordLoginUrl('/tools/buddy-system');
 
 interface Buddy {
   id: string;

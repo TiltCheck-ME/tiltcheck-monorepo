@@ -1,12 +1,11 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-17 */
-import { Keypair } from '@solana/web3.js';
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-19 */
 import { eventRouter } from '@tiltcheck/event-router';
 import { parseAmount } from '@tiltcheck/natural-language-parser';
 import { db } from '@tiltcheck/database';
 import { getUsdPriceSync } from '@tiltcheck/utils';
 import fs from 'fs';
 import path from 'path';
-import { createCipheriv, createDecipheriv, randomBytes } from 'crypto';
+import { createDecipheriv } from 'crypto';
 
 // Vault secret encryption key - REQUIRED in production, strongly recommended for dev/test
 const VAULT_ENC_KEY_HEX = process.env.VAULT_ENCRYPTION_KEY || '';
@@ -38,16 +37,6 @@ if (!VAULT_ENC_KEY) {
   }
 }
 
-function encryptSecret(plain: string): string {
-  if (!VAULT_ENC_KEY) return plain; // unencrypted fallback (dev/test)
-  const iv = randomBytes(12);
-  const cipher = createCipheriv('aes-256-gcm', VAULT_ENC_KEY, iv);
-  const encrypted = Buffer.concat([cipher.update(plain, 'utf8'), cipher.final()]);
-  const tag = cipher.getAuthTag();
-  // Format: iv(12):tag(16):ciphertext
-  return `${iv.toString('hex')}:${tag.toString('hex')}:${encrypted.toString('hex')}`;
-}
-
 function decryptSecret(stored: string): string {
   if (!VAULT_ENC_KEY || !stored.includes(':')) return stored; // unencrypted passthrough
   const parts = stored.split(':');
@@ -75,7 +64,7 @@ export interface LockVaultRecord {
   id: string;
   userId: string;
   vaultAddress: string;
-  vaultType: 'disposable' | 'magic';
+  vaultType: 'disposable' | 'linked' | 'magic';
   createdAt: number;
   unlockAt: number;
   lockedAmountSOL: number; // normalized to SOL
@@ -84,7 +73,7 @@ export interface LockVaultRecord {
   history: { ts: number; action: string; note?: string }[];
   reason?: string;
   extendedCount: number;
-  vaultSecret?: string; // AES-256-GCM encrypted for disposable vaults
+  vaultSecret?: string; // AES-256-GCM encrypted for legacy disposable vaults only
   autoWithdraw?: boolean; // If true, auto-send to user's wallet on timer expiry
   secondOwnerId?: string;
   withdrawalProposal?: {
@@ -152,6 +141,20 @@ function createFeatureNotImplementedError(message: string): Error & { code: stri
   const error = new Error(message) as Error & { code: string; httpStatus: number };
   error.code = 'FEATURE_NOT_IMPLEMENTED';
   error.httpStatus = 501;
+  return error;
+}
+
+function createLinkedWalletRequiredError(message: string): Error & { code: string; httpStatus: number } {
+  const error = new Error(message) as Error & { code: string; httpStatus: number };
+  error.code = 'LOCKVAULT_IDENTITY_REQUIRED';
+  error.httpStatus = 409;
+  return error;
+}
+
+function createLinkedWalletUnavailableError(message: string): Error & { code: string; httpStatus: number } {
+  const error = new Error(message) as Error & { code: string; httpStatus: number };
+  error.code = 'LOCKVAULT_IDENTITY_UNAVAILABLE';
+  error.httpStatus = 503;
   return error;
 }
 
@@ -264,28 +267,45 @@ class VaultManager {
     if (durationMs < 10 * 60 * 1000) throw new Error('Minimum lock is 10m');
     if (durationMs > 30 * 24 * 60 * 60 * 1000) throw new Error('Maximum lock is 30d');
 
-    // Check for Degen Identity (Magic Wallet)
-    let vaultAddress = '';
-    let vaultType: 'disposable' | 'magic' = 'disposable';
-
-    try {
-      if (db.isConnected()) {
-        const identity = await db.getDegenIdentity(input.userId);
-        if (identity?.magic_address) {
-          vaultAddress = identity.magic_address;
-          vaultType = 'magic';
-        }
-      }
-    } catch (err) {
-      console.error('[LockVault] Identity check failed, falling back to disposable', err);
+    if (!db.isConnected()) {
+      throw createLinkedWalletUnavailableError(
+        'LockVault could not verify a linked wallet right now. Link a wallet or Degen Identity and try again once identity services are available.'
+      );
     }
 
-    let vaultSecret: string | undefined;
-    if (!vaultAddress) {
-      const keypair = Keypair.generate();
-      vaultAddress = keypair.publicKey.toBase58();
-      vaultType = 'disposable';
-      vaultSecret = Buffer.from(keypair.secretKey).toString('hex');
+    let vaultAddress = '';
+    let vaultType: Exclude<LockVaultRecord['vaultType'], 'disposable'> | null = null;
+
+    try {
+      const identity = await db.getDegenIdentity(input.userId);
+      const linkedWallet = identity?.primary_external_address?.trim();
+      const magicWallet = identity?.magic_address?.trim();
+
+      if (linkedWallet) {
+        vaultAddress = linkedWallet;
+        vaultType = 'linked';
+      } else if (magicWallet) {
+        vaultAddress = magicWallet;
+        vaultType = 'magic';
+      } else {
+        throw createLinkedWalletRequiredError(
+          'LockVault requires a linked wallet or Degen Identity before a lock can be created. No server-managed fallback wallet will be created.'
+        );
+      }
+    } catch (err) {
+      if (err instanceof Error && 'code' in err && (err as { code?: string }).code) {
+        throw err;
+      }
+      console.error('[LockVault] Identity check failed. Refusing to create a custodial fallback vault.', err);
+      throw createLinkedWalletUnavailableError(
+        'LockVault could not verify your linked wallet right now. No server-managed fallback wallet was created.'
+      );
+    }
+
+    if (!vaultAddress || !vaultType) {
+      throw createLinkedWalletUnavailableError(
+        'LockVault could not resolve a linked wallet target. No server-managed fallback wallet was created.'
+      );
     }
 
     const record: LockVaultRecord = {
@@ -301,7 +321,6 @@ class VaultManager {
       history: [{ ts: now(), action: 'locked', note: `duration=${input.durationRaw}, type=${vaultType}` }],
       reason: input.reason,
       extendedCount: 0,
-      vaultSecret: vaultSecret ? encryptSecret(vaultSecret) : undefined,
       autoWithdraw: input.autoWithdraw ?? false,
     };
 

@@ -37,6 +37,11 @@ const CONTROL_ROOM_ALLOWED_IPS = (process.env.CONTROL_ROOM_ALLOWED_IPS || '')
   .split(',')
   .map((entry) => entry.trim())
   .filter(Boolean);
+const API_BASE_URL = (
+  process.env.CONTROL_ROOM_API_URL
+  || process.env.API_BASE_URL
+  || 'http://localhost:8080'
+).replace(/\/$/, '');
 
 if (!ADMIN_PASSWORD || !SESSION_SECRET) {
   throw new Error('[control-room] ADMIN_PASSWORD and SESSION_SECRET env vars are required');
@@ -469,6 +474,32 @@ app.get('/api/system/metrics', requireAuth, async (req, res) => {
     });
   } catch (error) {
     res.status(500).json({ error: error.message });
+  }
+});
+
+app.get('/api/ai/status', requireAuth, async (_req, res) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/health/ai`, {
+      headers: { Accept: 'application/json' },
+    });
+
+    if (!response.ok) {
+      const body = await response.text().catch(() => '');
+      res.status(response.status).json({
+        error: `AI status upstream returned ${response.status}`,
+        details: body.slice(0, 300),
+      });
+      return;
+    }
+
+    const data = await response.json();
+    res.json(data);
+  } catch (error) {
+    res.status(502).json({
+      error: 'Failed to reach API AI status endpoint',
+      details: error.message,
+      upstream: `${API_BASE_URL}/health/ai`,
+    });
   }
 });
 

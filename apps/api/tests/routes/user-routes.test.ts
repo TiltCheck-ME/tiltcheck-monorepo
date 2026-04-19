@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-17 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-19 */
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import express from 'express';
 import request from 'supertest';
@@ -16,6 +16,12 @@ const mockedDb = vi.hoisted(() => ({
   acceptBuddyRequest: vi.fn(),
   removeBuddy: vi.fn(),
   getAuditLogsByUser: vi.fn(),
+  addExclusion: vi.fn(),
+  removeExclusion: vi.fn(),
+}));
+const mockedExclusionCache = vi.hoisted(() => ({
+  getForbiddenGamesProfile: vi.fn(),
+  invalidateExclusionCache: vi.fn(),
 }));
 const mockAuthUser = vi.hoisted(() => ({
   id: 'user-1',
@@ -24,6 +30,7 @@ const mockAuthUser = vi.hoisted(() => ({
 }));
 
 vi.mock('@tiltcheck/db', () => mockedDb);
+vi.mock('../../src/services/exclusion-cache.js', () => mockedExclusionCache);
 vi.mock('../../src/middleware/auth.js', () => ({
   authMiddleware: (req: any, _res: any, next: any) => {
     if (!req.user) {
@@ -47,6 +54,7 @@ describe('User route ordering and shape', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.unstubAllEnvs();
   });
 
   it('resolves /onboarding before dynamic /:discordId route', async () => {
@@ -121,5 +129,125 @@ describe('User route ordering and shape', () => {
     expect(response.body.code).toBe('PAYMENTS_UNAVAILABLE');
     expect(response.body.error).toContain('temporarily unavailable');
     expect(mockedDb.updateUser).not.toHaveBeenCalled();
+  });
+
+  it('allows an authenticated user to read their own exclusions', async () => {
+    mockedDb.findUserByDiscordId.mockResolvedValueOnce({
+      id: 'user-1',
+      discord_id: 'discord-self',
+    });
+    mockedExclusionCache.getForbiddenGamesProfile.mockResolvedValueOnce({
+      userId: 'user-1',
+      exclusions: [],
+      blockedGameIds: [],
+      blockedCategories: [],
+    });
+
+    const response = await request(app).get('/user/discord-self/exclusions');
+
+    expect(response.status).toBe(200);
+    expect(response.body).toEqual({
+      success: true,
+      data: {
+        userId: 'user-1',
+        exclusions: [],
+        blockedGameIds: [],
+        blockedCategories: [],
+      },
+    });
+    expect(mockedDb.findUserByDiscordId).toHaveBeenCalledWith('discord-self');
+    expect(mockedExclusionCache.getForbiddenGamesProfile).toHaveBeenCalledWith('user-1');
+  });
+
+  it('blocks an authenticated user from writing exclusions for another Discord identity', async () => {
+    const response = await request(app)
+      .post('/user/discord-other/exclusions')
+      .send({ gameId: 'game-1' });
+
+    expect(response.status).toBe(403);
+    expect(response.body.code).toBe('FORBIDDEN');
+    expect(response.body.error).toContain('your own exclusions');
+    expect(mockedDb.findUserByDiscordId).not.toHaveBeenCalled();
+    expect(mockedDb.addExclusion).not.toHaveBeenCalled();
+  });
+
+  it('allows internal service reads with x-internal-secret', async () => {
+    vi.stubEnv('INTERNAL_API_SECRET', 'test-internal-secret');
+    mockedDb.findUserByDiscordId.mockResolvedValueOnce({
+      id: 'user-2',
+      discord_id: 'discord-other',
+    });
+    mockedExclusionCache.getForbiddenGamesProfile.mockResolvedValueOnce({
+      userId: 'user-2',
+      exclusions: [],
+      blockedGameIds: ['game-2'],
+      blockedCategories: [],
+    });
+
+    const response = await request(app)
+      .get('/user/discord-other/exclusions')
+      .set('x-internal-secret', 'test-internal-secret');
+
+    expect(response.status).toBe(200);
+    expect(response.body.data.userId).toBe('user-2');
+    expect(mockedDb.findUserByDiscordId).toHaveBeenCalledWith('discord-other');
+    expect(mockedExclusionCache.getForbiddenGamesProfile).toHaveBeenCalledWith('user-2');
+  });
+
+  it('allows internal service writes with x-internal-secret', async () => {
+    vi.stubEnv('INTERNAL_API_SECRET', 'test-internal-secret');
+    mockedDb.findUserByDiscordId.mockResolvedValueOnce({
+      id: 'user-2',
+      discord_id: 'discord-other',
+    });
+    mockedDb.addExclusion.mockResolvedValueOnce({
+      id: 'ex-1',
+      userId: 'user-2',
+      gameId: 'game-2',
+      category: null,
+      reason: 'keep it blocked',
+    });
+
+    const response = await request(app)
+      .post('/user/discord-other/exclusions')
+      .set('x-internal-secret', 'test-internal-secret')
+      .send({ gameId: 'game-2', reason: 'keep it blocked' });
+
+    expect(response.status).toBe(201);
+    expect(response.body).toEqual({
+      success: true,
+      data: {
+        id: 'ex-1',
+        userId: 'user-2',
+        gameId: 'game-2',
+        category: null,
+        reason: 'keep it blocked',
+      },
+    });
+    expect(mockedDb.addExclusion).toHaveBeenCalledWith({
+      userId: 'user-2',
+      gameId: 'game-2',
+      category: undefined,
+      reason: 'keep it blocked',
+    });
+    expect(mockedExclusionCache.invalidateExclusionCache).toHaveBeenCalledWith('user-2');
+  });
+
+  it('allows internal service deletes with x-internal-secret', async () => {
+    vi.stubEnv('INTERNAL_API_SECRET', 'test-internal-secret');
+    mockedDb.findUserByDiscordId.mockResolvedValueOnce({
+      id: 'user-2',
+      discord_id: 'discord-other',
+    });
+    mockedDb.removeExclusion.mockResolvedValueOnce(true);
+
+    const response = await request(app)
+      .delete('/user/discord-other/exclusions/ex-1')
+      .set('x-internal-secret', 'test-internal-secret');
+
+    expect(response.status).toBe(200);
+    expect(response.body).toEqual({ success: true });
+    expect(mockedDb.removeExclusion).toHaveBeenCalledWith('ex-1', 'user-2');
+    expect(mockedExclusionCache.invalidateExclusionCache).toHaveBeenCalledWith('user-2');
   });
 });
