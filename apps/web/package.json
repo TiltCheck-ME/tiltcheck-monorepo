@@ -17,6 +17,7 @@
     "@solana/web3.js": "^1.98.0",
     "@tanstack/react-query": "^5.95.2",
     "@tiltcheck/shared": "workspace:*",
+    "@tiltcheck/types": "workspace:*",
     "gray-matter": "^4.0.3",
     "lucide-react": "^1.7.0",
     "magic-sdk": "^33.6.3",
