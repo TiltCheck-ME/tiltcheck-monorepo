@@ -46,6 +46,7 @@ describe('DiscordBridge', () => {
     DiscordSDKMock.mockReset();
     vi.restoreAllMocks();
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+      ok: true,
       json: vi.fn().mockResolvedValue({ access_token: 'activity-token' }),
     }));
   });

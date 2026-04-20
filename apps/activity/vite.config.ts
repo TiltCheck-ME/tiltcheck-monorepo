@@ -1,4 +1,4 @@
-// © 2024-2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-04
+// © 2024-2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-20
 import { defineConfig } from 'vite';
 import { writeFileSync } from 'fs';
 import { resolve } from 'path';
@@ -35,6 +35,17 @@ export default defineConfig({
         target: 'https://discord.com',
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/\.proxy/, ''),
+      },
+      '/api': {
+        target: process.env.VITE_ACTIVITY_API_PROXY_TARGET || 'https://api.tiltcheck.me',
+        changeOrigin: true,
+        secure: false,
+      },
+      '/socket.io': {
+        target: process.env.VITE_ACTIVITY_SOCKET_PROXY_TARGET || 'http://127.0.0.1:8080',
+        changeOrigin: true,
+        secure: false,
+        ws: true,
       },
     },
   },

@@ -1,4 +1,4 @@
-# © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-06
+# © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-20
 # TiltCheck Activity - Production HUD Host
 # Multi-stage build: Node.js builds the Vite app, nginx serves the static output.
 
@@ -41,6 +41,26 @@ RUN printf 'server {\n\
         proxy_set_header Host discord.com;\n\
         proxy_set_header X-Real-IP $remote_addr;\n\
         proxy_ssl_server_name on;\n\
+    }\n\
+\n\
+    location /api/ {\n\
+        proxy_pass http://api.railway.internal:3000/;\n\
+        proxy_http_version 1.1;\n\
+        proxy_set_header Host api.railway.internal;\n\
+        proxy_set_header X-Real-IP $remote_addr;\n\
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;\n\
+        proxy_set_header X-Forwarded-Proto $scheme;\n\
+    }\n\
+\n\
+    location /socket.io/ {\n\
+        proxy_pass http://game-arena.railway.internal:3000/socket.io/;\n\
+        proxy_http_version 1.1;\n\
+        proxy_set_header Upgrade $http_upgrade;\n\
+        proxy_set_header Connection \"upgrade\";\n\
+        proxy_set_header Host game-arena.railway.internal;\n\
+        proxy_set_header X-Real-IP $remote_addr;\n\
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;\n\
+        proxy_set_header X-Forwarded-Proto $scheme;\n\
     }\n\
 \n\
     location / {\n\

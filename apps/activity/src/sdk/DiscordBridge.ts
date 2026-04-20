@@ -1,6 +1,7 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-18
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-20
 
 import { DiscordSDK, Events } from '@discord/embedded-app-sdk';
+import { getApiEndpointCandidates } from '../config.js';
 
 export interface Participant {
   id: string;
@@ -83,16 +84,37 @@ export class DiscordBridge {
       scope: ['identify', 'rpc.activities.write']
     });
 
-    const tokenRes = await fetch('https://api.tiltcheck.me/auth/discord/activity/token', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ code })
-    });
+    let accessToken: string | null = null;
 
-    const { access_token } = await tokenRes.json();
-    this.accessToken = access_token;
+    for (const endpoint of getApiEndpointCandidates('/auth/discord/activity/token')) {
+      try {
+        const tokenRes = await fetch(endpoint, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ code })
+        });
 
-    const auth = await sdk.commands.authenticate({ access_token });
+        if (!tokenRes.ok) {
+          continue;
+        }
+
+        const { access_token } = await tokenRes.json() as { access_token?: string };
+        if (typeof access_token === 'string' && access_token.length > 0) {
+          accessToken = access_token;
+          break;
+        }
+      } catch {
+        continue;
+      }
+    }
+
+    if (!accessToken) {
+      throw new Error('Unable to exchange the Discord activity code for an access token.');
+    }
+
+    this.accessToken = accessToken;
+
+    const auth = await sdk.commands.authenticate({ access_token: accessToken });
     this.state.userId = auth.user.id;
     this.state.username = auth.user.username;
     this.state.channelId = sdk.channelId;
