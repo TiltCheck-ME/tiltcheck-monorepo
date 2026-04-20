@@ -1,9 +1,8 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-18
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-20
 
 import type { SessionState, TipRain, TipEntry } from '../state/SessionState.js';
 import type { HubRelay } from '../sdk/HubRelay.js';
-
-const API_BASE = 'https://api.tiltcheck.me';
+import { getApiEndpointCandidates } from '../config.js';
 
 export class TipView {
   private container: HTMLElement;
@@ -54,30 +53,26 @@ export class TipView {
   }
 
   private async fetchEliteStatus(): Promise<void> {
-    try {
-      const res = await fetch(`${API_BASE}/user/${this.state.userId}/elite`);
-      if (!res.ok) return;
-      const data = await res.json();
-      this.state.setEliteStatus(data.isElite ?? false, data.feeSavedSol ?? 0);
-    } catch (_) { /* non-fatal */ }
+    const data = await this.fetchFirstOkJson<{ isElite?: boolean; feeSavedSol?: number }>(
+      getApiEndpointCandidates(`/user/${this.state.userId}/elite`)
+    );
+    if (!data) return;
+    this.state.setEliteStatus(data.isElite ?? false, data.feeSavedSol ?? 0);
   }
 
   private async fetchTipHistory(): Promise<void> {
-    try {
-      const res = await fetch(`${API_BASE}/justthetip/history?channelId=${encodeURIComponent(this.channelId)}`);
-      if (!res.ok) return;
-      const data = await res.json();
-      if (Array.isArray(data.tips)) {
-        data.tips.forEach((t: TipEntry) => this.state.addTipToHistory(t));
-      }
-    } catch (_) { /* non-fatal */ }
+    const data = await this.fetchFirstOkJson<{ tips?: TipEntry[] }>(
+      getApiEndpointCandidates(`/justthetip/history?channelId=${encodeURIComponent(this.channelId)}`)
+    );
+    if (!Array.isArray(data?.tips)) return;
+    data.tips.forEach((t: TipEntry) => this.state.addTipToHistory(t));
   }
 
   private async claimRain(rainId: string): Promise<void> {
     const btn = this.container.querySelector<HTMLButtonElement>('#tip-claim-btn');
     if (btn) { btn.disabled = true; btn.textContent = 'CLAIMING...'; }
     try {
-      const res = await fetch(`${API_BASE}/justthetip/claim`, {
+      const res = await this.fetchFirstOkResponse(getApiEndpointCandidates('/justthetip/claim'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ rainId, userId: this.state.userId, channelId: this.channelId })
@@ -124,7 +119,7 @@ export class TipView {
     if (btn) { btn.disabled = true; btn.textContent = 'SENDING...'; }
 
     try {
-      const res = await fetch(`${API_BASE}/justthetip/send`, {
+      const res = await this.fetchFirstOkResponse(getApiEndpointCandidates('/justthetip/send'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -155,6 +150,39 @@ export class TipView {
     } finally {
       if (btn) { btn.disabled = false; btn.textContent = 'SEND TIP'; }
     }
+  }
+
+  private async fetchFirstOkJson<T>(endpoints: readonly string[]): Promise<T | null> {
+    for (const endpoint of endpoints) {
+      try {
+        const res = await fetch(endpoint);
+        if (!res.ok) {
+          continue;
+        }
+        return await res.json() as T;
+      } catch (_) {
+        continue;
+      }
+    }
+    return null;
+  }
+
+  private async fetchFirstOkResponse(endpoints: readonly string[], init: RequestInit): Promise<Response> {
+    let fallbackResponse: Response | null = null;
+
+    for (const endpoint of endpoints) {
+      try {
+        const res = await fetch(endpoint, init);
+        if (res.ok) {
+          return res;
+        }
+        fallbackResponse = res;
+      } catch (_) {
+        continue;
+      }
+    }
+
+    return fallbackResponse ?? new Response(null, { status: 503, statusText: 'Activity API unavailable' });
   }
 
   private showToast(msg: string, isError = false): void {

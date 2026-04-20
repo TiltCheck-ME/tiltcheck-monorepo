@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-18
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-20
 
 /// <reference types="vite/client" />
 
@@ -13,11 +13,8 @@ import { LeaderboardView } from './views/LeaderboardView.js';
 import { TipView } from './views/TipView.js';
 import { HomeView } from './views/HomeView.js';
 import { RecapView } from './views/RecapView.js';
+import { DASHBOARD_URL, DISCORD_CLIENT_ID, HUB_URL } from './config.js';
 import type { ActivityView } from './state/SessionState.js';
-
-const DISCORD_CLIENT_ID = import.meta.env.VITE_DISCORD_CLIENT_ID || '1445916179163250860';
-const HUB_URL = import.meta.env.VITE_HUB_URL || 'https://arena.tiltcheck.me';
-const DASHBOARD_URL = import.meta.env.VITE_DASHBOARD_URL || 'https://dashboard.tiltcheck.me/dashboard';
 
 const VIEWS: ActivityView[] = ['home', 'play', 'bonuses', 'recap'];
 

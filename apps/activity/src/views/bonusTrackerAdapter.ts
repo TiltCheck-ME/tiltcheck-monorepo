@@ -1,9 +1,9 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-18
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-20
 
 import type { BonusItem } from '../state/SessionState.js';
+import { getApiEndpointCandidates } from '../config.js';
 import { formatDuration } from '../utils/math.js';
 
-const API_BASE = (import.meta.env.VITE_API_URL || 'https://api.tiltcheck.me').replace(/\/$/, '');
 const MAX_TRACKER_CARDS = 6;
 
 type FetchLike = typeof fetch;
@@ -299,50 +299,51 @@ function buildDedupedCards(liveItems: readonly BonusItem[], remoteSnapshot: Remo
 }
 
 async function fetchTrackerFeed(
-  url: string,
+  endpoints: readonly string[],
   fetchFn: FetchLike,
   sourceKey: BonusSourceStatus['key'],
   sourceLabel: string,
   emptyDetail: string,
 ): Promise<{ entries: TrackerFeedEntry[]; source: BonusSourceStatus }> {
-  try {
-    const response = await fetchFn(url, {
-      headers: { Accept: 'application/json' },
-    });
+  for (const endpoint of endpoints) {
+    try {
+      const response = await fetchFn(endpoint, {
+        headers: { Accept: 'application/json' },
+      });
 
-    if (!response.ok) {
+      if (!response.ok) {
+        continue;
+      }
+
+      const data = await response.json() as TrackerFeedResponse | TrackerFeedEntry[];
+      const entries = Array.isArray(data)
+        ? normalizeTrackerEntries(data)
+        : normalizeTrackerEntries(data.data);
+
       return {
-        entries: [],
-        source: createSourceStatus(sourceKey, sourceLabel, 'fallback', `${sourceLabel} unavailable`),
+        entries,
+        source: createSourceStatus(
+          sourceKey,
+          sourceLabel,
+          entries.length > 0 ? 'tracker' : 'fallback',
+          entries.length > 0 ? `${entries.length} tracker cards ready` : emptyDetail,
+        ),
       };
+    } catch {
+      continue;
     }
-
-    const data = await response.json() as TrackerFeedResponse | TrackerFeedEntry[];
-    const entries = Array.isArray(data)
-      ? normalizeTrackerEntries(data)
-      : normalizeTrackerEntries(data.data);
-
-    return {
-      entries,
-      source: createSourceStatus(
-        sourceKey,
-        sourceLabel,
-        entries.length > 0 ? 'tracker' : 'fallback',
-        entries.length > 0 ? `${entries.length} tracker cards ready` : emptyDetail,
-      ),
-    };
-  } catch {
-    return {
-      entries: [],
-      source: createSourceStatus(sourceKey, sourceLabel, 'fallback', `${sourceLabel} unreachable`),
-    };
   }
+
+  return {
+    entries: [],
+    source: createSourceStatus(sourceKey, sourceLabel, 'fallback', `${sourceLabel} unreachable`),
+  };
 }
 
 export async function fetchRemoteTrackerSnapshot(fetchFn: FetchLike = fetch): Promise<RemoteTrackerSnapshot> {
   const [collectClockResult, inboxResult] = await Promise.all([
-    fetchTrackerFeed(`${API_BASE}/bonuses`, fetchFn, 'collectclock', 'CollectClock', 'No tracker feed'),
-    fetchTrackerFeed(`${API_BASE}/bonuses/inbox`, fetchFn, 'inbox', 'Inbox intel', 'No inbox cards'),
+    fetchTrackerFeed(getApiEndpointCandidates('/bonuses'), fetchFn, 'collectclock', 'CollectClock', 'No tracker feed'),
+    fetchTrackerFeed(getApiEndpointCandidates('/bonuses/inbox'), fetchFn, 'inbox', 'Inbox intel', 'No inbox cards'),
   ]);
 
   return {
@@ -353,10 +354,7 @@ export async function fetchRemoteTrackerSnapshot(fetchFn: FetchLike = fetch): Pr
 }
 
 export async function fetchLiveBonusFeed(userId: string, fetchFn: FetchLike = fetch): Promise<LiveBonusFetchResult> {
-  const endpoints = [
-    `/api/user/${encodeURIComponent(userId)}/bonuses`,
-    `${API_BASE}/user/${encodeURIComponent(userId)}/bonuses`,
-  ];
+  const endpoints = getApiEndpointCandidates(`/user/${encodeURIComponent(userId)}/bonuses`);
 
   for (const endpoint of endpoints) {
     try {
