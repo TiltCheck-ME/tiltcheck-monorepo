@@ -805,6 +805,9 @@ importers:
       '@tiltcheck/shared':
         specifier: workspace:*
         version: link:../../packages/shared
+      '@tiltcheck/types':
+        specifier: workspace:*
+        version: link:../../packages/types
       gray-matter:
         specifier: ^4.0.3
         version: 4.0.3
@@ -1593,6 +1596,9 @@ importers:
 
   packages/shared:
     dependencies:
+      '@tiltcheck/types':
+        specifier: workspace:*
+        version: link:../types
       zod:
         specifier: ^4.3.6
         version: 4.3.6
