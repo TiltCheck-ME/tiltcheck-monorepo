@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-09 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-20 */
 import React from 'react';
 import Link from 'next/link';
 
@@ -7,11 +7,11 @@ export default function GettingStartedPage() {
     <main className="min-h-screen bg-[#0a0c10] text-white">
       <section className="border-b border-[#283347] py-32 px-4">
         <div className="max-w-4xl mx-auto text-center">
-          <h1 className="neon neon-main text-4xl md:text-5xl mb-6" data-text="PICK YOUR PATH. THE MATH DOESN'T WAIT.">
-            PICK YOUR PATH. THE MATH DOESN&apos;T WAIT.
+          <h1 className="neon neon-main text-4xl md:text-5xl mb-6" data-text="START IN THE RIGHT ORDER.">
+            START IN THE RIGHT ORDER.
           </h1>
-          <p className="text-lg text-gray-400 max-w-2xl mx-auto">
-            Three choices. Pick one. The math doesn't care which you choose — it just cares that you're informed.
+          <p className="text-lg text-gray-300 max-w-2xl mx-auto leading-relaxed">
+            If you are new to TiltCheck, this page gets you from zero to a first real session without the marketing fog.
           </p>
         </div>
       </section>
@@ -20,15 +20,15 @@ export default function GettingStartedPage() {
         <div className="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8">
           {/* Path 1: Just Wanna Install */}
           <div className="group border border-[#17c3b2]/30 bg-[#17c3b2]/5 p-8 hover:border-[#17c3b2] transition-all">
-            <div className="text-xs font-mono text-[#17c3b2] uppercase tracking-widest mb-4">[ DEPLOY ]</div>
+            <div className="text-xs font-mono text-[#17c3b2] uppercase tracking-widest mb-4">[ INSTALL ]</div>
             <h2 className="text-xl font-black uppercase tracking-tight mb-3">
-              Just Install & Go
+              Install the Extension
             </h2>
-            <p className="text-gray-400 text-sm mb-6 leading-relaxed">
-              You know the drill. Download the extension. Set your limits. Play. That's it.
+            <p className="text-gray-300 text-sm mb-6 leading-relaxed">
+              Start with the actual product. Load the extension, set your rules, and keep TiltCheck in the tab while you play.
             </p>
             <Link href="/extension" className="text-[#17c3b2] hover:underline font-bold text-sm uppercase tracking-tight">
-              Skip to Extension →
+              Open Extension Guide →
             </Link>
           </div>
 
@@ -36,10 +36,10 @@ export default function GettingStartedPage() {
           <div className="group border border-[#17c3b2]/30 bg-[#17c3b2]/5 p-8 hover:border-[#17c3b2] transition-all">
             <div className="text-xs font-mono text-[#17c3b2] uppercase tracking-widest mb-4">[ AUDIT ]</div>
             <h2 className="text-xl font-black uppercase tracking-tight mb-3">
-              Show Me the Math
+              Understand the Product
             </h2>
-            <p className="text-gray-400 text-sm mb-6 leading-relaxed">
-              RTP mechanics. Variance. How we detect tilt. The science behind the signals.
+            <p className="text-gray-300 text-sm mb-6 leading-relaxed">
+              Learn what TiltCheck watches, what it can prove, and how the guardrails work before you install.
             </p>
             <Link href="/how-it-works" className="text-[#17c3b2] hover:underline font-bold text-sm uppercase tracking-tight">
               Read How It Works →
@@ -52,8 +52,8 @@ export default function GettingStartedPage() {
             <h2 className="text-xl font-black uppercase tracking-tight mb-3">
               Help & Resources
             </h2>
-            <p className="text-gray-400 text-sm mb-6 leading-relaxed">
-              If you're spiraling, we can't code your way out. But resources exist. Let's get real.
+            <p className="text-gray-300 text-sm mb-6 leading-relaxed">
+              If you are spiraling, TiltCheck is not enough on its own. Use the support path now.
             </p>
             <Link href="/touch-grass" className="text-[#ef4444] hover:underline font-bold text-sm uppercase tracking-tight">
               Get Real Help →
@@ -66,7 +66,7 @@ export default function GettingStartedPage() {
       <section className="py-20 px-4 border-t border-[#283347]">
         <div className="max-w-4xl mx-auto">
           <h2 className="text-2xl font-black uppercase tracking-tight mb-12">
-            Quick Start (5 mins)
+            Quick Start
           </h2>
           
           <div className="space-y-6">
@@ -77,12 +77,13 @@ export default function GettingStartedPage() {
                 </div>
               </div>
               <div className="flex-1">
-                <h3 className="text-lg font-black uppercase mb-2">Install from Chrome Web Store</h3>
-                <p className="text-gray-400">
-                  Search "TiltCheck" or visit the link. One click. Requires storage, active tab, and site access — that's what the Audit Layer needs to inspect game telemetry. You own the data.
+                <h3 className="text-lg font-black uppercase mb-2">Load the Beta Extension</h3>
+                <p className="text-gray-300">
+                  Download the beta bundle and load it in your browser. TiltCheck needs storage, active tab, and site
+                  access so it can inspect session data without taking direct wallet control.
                 </p>
               </div>
-            </div>
+              </div>
 
             <div className="flex gap-6">
               <div className="flex-shrink-0">
@@ -91,12 +92,12 @@ export default function GettingStartedPage() {
                 </div>
               </div>
               <div className="flex-1">
-                <h3 className="text-lg font-black uppercase mb-2">Open Your Favorite Casino</h3>
-                <p className="text-gray-400">
-                  Hit Stake. Rollbit. BC.Game. Whatever. The extension wakes up and starts watching.
+                <h3 className="text-lg font-black uppercase mb-2">Open a Supported Session</h3>
+                <p className="text-gray-300">
+                  Open a supported session. The extension wakes up in the tab where the action is happening.
                 </p>
               </div>
-            </div>
+              </div>
 
             <div className="flex gap-6">
               <div className="flex-shrink-0">
@@ -105,12 +106,12 @@ export default function GettingStartedPage() {
                 </div>
               </div>
               <div className="flex-1">
-                <h3 className="text-lg font-black uppercase mb-2">Click the TiltCheck Icon</h3>
-                <p className="text-gray-400">
-                  Set your profit target. Set your loss limit. Set a tilt threshold. Pick a Guardian.
+                <h3 className="text-lg font-black uppercase mb-2">Set Your Session Rules</h3>
+                <p className="text-gray-300">
+                  Set your profit target, loss limit, cooldown, and any accountability settings you want active.
                 </p>
               </div>
-            </div>
+              </div>
 
             <div className="flex gap-6">
               <div className="flex-shrink-0">
@@ -119,9 +120,10 @@ export default function GettingStartedPage() {
                 </div>
               </div>
               <div className="flex-1">
-                <h3 className="text-lg font-black uppercase mb-2">Play</h3>
-                <p className="text-gray-400">
-                  You'll get nudges. Real signals. When you hit a limit? The UI locks. No escape hatch.
+                <h3 className="text-lg font-black uppercase mb-2">Let TiltCheck watch</h3>
+                <p className="text-gray-300">
+                  TiltCheck reads the session, checks drift and fairness signals, and translates the risk into plain
+                  English while you play.
                 </p>
               </div>
             </div>
@@ -133,9 +135,10 @@ export default function GettingStartedPage() {
                 </div>
               </div>
               <div className="flex-1">
-                <h3 className="text-lg font-black uppercase mb-2">Cash Out or Take the L</h3>
-                <p className="text-gray-400">
-                  You win = you cash out. You lose limit = you walk. Both happen. The math handles it.
+                <h3 className="text-lg font-black uppercase mb-2">Act on the signal</h3>
+                <p className="text-gray-300">
+                  Cash out when you hit the line. Stop when the loss cap hits. The point is not more action. The point
+                  is a cleaner exit.
                 </p>
               </div>
             </div>
@@ -156,11 +159,11 @@ export default function GettingStartedPage() {
                 <span className="w-2 h-2 bg-[#17c3b2]"></span>
                 Real-Time Audit Signals
               </h3>
-              <ul className="space-y-2 text-sm text-gray-400">
-                <li>• RNG verification on every game</li>
-                <li>• Variance tracking (is the house cheating or are you just unlucky?)</li>
-                <li>• Tilt pattern detection (3 losses in a row = you're in danger)</li>
-                <li>• RTP drift alerts (casino's edge just got worse)</li>
+              <ul className="space-y-2 text-sm text-gray-300">
+                <li>• Live session reads while you play</li>
+                <li>• RTP drift warnings when numbers look worse than expected</li>
+                <li>• Tilt pattern checks that call out risky session behavior</li>
+                <li>• Manual bet verification when you have the fairness inputs</li>
               </ul>
             </div>
 
@@ -169,11 +172,11 @@ export default function GettingStartedPage() {
                 <span className="w-2 h-2 bg-[#17c3b2]"></span>
                 Automated Profit Protection
               </h3>
-              <ul className="space-y-2 text-sm text-gray-400">
-                <li>• Auto-vault when you hit profit target</li>
-                <li>• Mandatory cooldown on loss limits</li>
-                <li>• Session lock (uninstall = your choice, but you'll remember)</li>
-                <li>• Guardian alerts (your buddy gets a ping)</li>
+              <ul className="space-y-2 text-sm text-gray-300">
+                <li>• Profit targets and stop-loss guardrails</li>
+                <li>• Cooldown prompts when a session runs too hot</li>
+                <li>• Vault and cash-out flows designed to protect wins</li>
+                <li>• Accountability options when you want backup</li>
               </ul>
             </div>
 
@@ -182,11 +185,11 @@ export default function GettingStartedPage() {
                 <span className="w-2 h-2 bg-[#17c3b2]"></span>
                 Trust Engine Access
               </h3>
-              <ul className="space-y-2 text-sm text-gray-400">
-                <li>• Casino fairness scores (updated hourly)</li>
-                <li>• Scam link detection (SusLink integration)</li>
-                <li>• Peer trust data (what other degens are saying)</li>
-                <li>• Withdrawal delay alerts</li>
+              <ul className="space-y-2 text-sm text-gray-300">
+                <li>• Public casino trust scores and reputation signals</li>
+                <li>• Scam link and domain checks before you click</li>
+                <li>• Withdrawal risk and trust intel</li>
+                <li>• Bonus and offer tracking for public surfaces</li>
               </ul>
             </div>
 
@@ -195,11 +198,11 @@ export default function GettingStartedPage() {
                 <span className="w-2 h-2 bg-[#17c3b2]"></span>
                 Community Tools
               </h3>
-              <ul className="space-y-2 text-sm text-gray-400">
-                <li>• Discord integration for accountability</li>
-                <li>• Guardian system (designate who can check on you)</li>
-                <li>• Session sharing (transparent stats)</li>
-                <li>• Degen Advisor AI (real talk, no BS)</li>
+              <ul className="space-y-2 text-sm text-gray-300">
+                <li>• Discord paths for support and product updates</li>
+                <li>• Guardian workflows for accountability</li>
+                <li>• Shared session context where the product supports it</li>
+                <li>• Public education surfaces that explain the stack</li>
               </ul>
             </div>
           </div>
@@ -213,7 +216,7 @@ export default function GettingStartedPage() {
             What You DON'T Get
           </h2>
           
-          <div className="p-8 border border-[#ef4444]/20 bg-[#ef4444]/5 space-y-3 text-gray-400">
+          <div className="p-8 border border-[#ef4444]/20 bg-[#ef4444]/5 space-y-3 text-gray-300">
             <p><strong className="text-white">No Magic.</strong> This isn't a guaranteed win system. The math still favors the house long-term. We just give you better visibility and forced stop points.</p>
             <p><strong className="text-white">No Custody.</strong> We don't hold your money. You do. If you send it to the wrong wallet, it's gone. That's on you.</p>
             <p><strong className="text-white">No Treatment.</strong> If you have a gambling disorder, this is harm reduction, not a cure. Talk to a professional.</p>
@@ -228,8 +231,8 @@ export default function GettingStartedPage() {
           <h2 className="text-2xl font-black uppercase tracking-tight mb-6">
             This is the tool. You decide what to do with it.
           </h2>
-          <p className="text-gray-400 mb-8">
-            Everything else depends on you. Your discipline. Your honesty. Your willingness to listen when the math says no.
+          <p className="text-gray-300 mb-8">
+            Everything else depends on whether you listen when the numbers tell you to stop.
           </p>
           <a href="/extension" className="btn btn-primary py-4 px-8 text-lg font-black">
             Install the Extension &rarr;

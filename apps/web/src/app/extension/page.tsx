@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-19 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-20 */
 import Link from "next/link";
 import "@/styles/stepper.css";
 import PublicPageHero, { PublicPageSectionHeader } from "@/components/PublicPageHero";
@@ -7,17 +7,17 @@ const extensionStats = [
   {
     label: "Security model",
     value: "Read only",
-    description: "The extension watches supported casino tabs and session telemetry without asking for custody.",
+    description: "The extension watches supported casino tabs and session telemetry without asking for private keys.",
   },
   {
     label: "Session fit",
     value: "In-tab",
-    description: "Drift, trust signals, and guardrails stay in the same surface where the session is happening.",
+    description: "Drift, trust signals, and guardrails stay in the same surface where the session is actually happening.",
   },
   {
     label: "Exit logic",
     value: "Player set",
-    description: "Profit targets, cooldowns, and vault rules still belong to you. The extension enforces, not invents.",
+    description: "Profit targets, cooldowns, and vault rules still belong to you. The extension enforces them. It does not invent them.",
   },
 ];
 
@@ -25,18 +25,18 @@ export default function ExtensionPage() {
   return (
     <main className="public-page text-white">
       <PublicPageHero
-        eyebrow="Extension / Audit Layer"
+        eyebrow="Browser extension"
         title={
           <>
-            The casino audit engine.
+            TiltCheck lives
             <br />
-            Loaded in your tab.
+            in the casino tab.
           </>
         }
         description={
           <p>
-            TiltCheck runs as a non-custodial, read-only browser extension. It watches live session telemetry, checks
-            RTP drift and fairness signals, and enforces the guardrails you already set.
+            TiltCheck runs as a read-only browser extension. It watches live session data, checks RTP drift and fairness
+            signals, and helps enforce the bankroll rules you already set.
           </p>
         }
         actions={
@@ -60,12 +60,12 @@ export default function ExtensionPage() {
             <p className="public-page-panel__eyebrow">Current beta path</p>
             <h2 className="public-page-panel__title">Sideload now. Store listing later.</h2>
             <p className="public-page-panel__body">
-              Download the current beta artifact, extract it locally, then load the unpacked folder in Chrome or Brave.
+              Download the current beta bundle, extract it locally, then load the unpacked folder in Chrome or Brave.
             </p>
             <ul className="public-page-list">
               <li>Current package: tiltcheck-extension.zip</li>
               <li>Chrome Web Store listing is not live yet.</li>
-              <li>Beta access route also unlocks dashboard and testing updates.</li>
+              <li>Beta access also unlocks dashboard and testing updates.</li>
             </ul>
           </>
         }
@@ -73,25 +73,25 @@ export default function ExtensionPage() {
 
       <section className="public-page-section px-4">
         <div className="landing-shell">
-          <PublicPageSectionHeader
-            eyebrow="Core signals"
-            title="Built to be useful mid-session, not just impressive on a roadmap."
-            description={<p>The homepage promise is that the product has a job. This page now uses the same framing and sharper proof language.</p>}
-          />
+            <PublicPageSectionHeader
+              eyebrow="Core signals"
+              title="Built to be useful mid-session, not just sound impressive on a page."
+              description={<p>If you are new here, this is the short version of what the extension actually does once it is loaded.</p>}
+            />
 
           <div className="public-page-grid public-page-grid--3">
             {[
               {
                 title: "Read-only by design",
-                body: "The extension inspects casino responses and session state. It does not ask for seed phrases and it does not custody funds.",
+                body: "The extension inspects casino responses and session state. It does not ask for seed phrases or direct wallet control.",
               },
               {
                 title: "Built for live sessions",
-                body: "It stays inside the tab, tracks drift, and surfaces tilt signals without forcing you to swap windows mid-session.",
+                body: "It stays inside the tab, tracks drift, and surfaces tilt signals without forcing you to bounce between dashboards.",
               },
               {
                 title: "Own your exits",
-                body: "Profit targets, cooldowns, and vault workflows are yours to set. TiltCheck just enforces the line when your brain refuses to.",
+                body: "Profit targets, cooldowns, and vault workflows are yours to set. TiltCheck helps enforce the line when your brain refuses to.",
               },
             ].map(({ title, body }) => (
               <article key={title} className="public-page-card">
@@ -106,16 +106,16 @@ export default function ExtensionPage() {
 
       <section className="public-page-section px-4">
         <div className="landing-shell">
-          <PublicPageSectionHeader
-            eyebrow="Install flow"
-            title="Three steps. Zero guesswork."
-            description={<p>The path stays honest: sideload the beta, arm the audit layer, and keep the session inside one coherent surface.</p>}
-          />
+            <PublicPageSectionHeader
+              eyebrow="Install flow"
+              title="Three steps. Zero guesswork."
+              description={<p>The honest beta path is simple: sideload the bundle, load the extension, and open a supported session.</p>}
+            />
 
           <div className="public-page-grid public-page-grid--3">
             <article className="public-page-card">
               <p className="public-page-card__eyebrow">Step 01</p>
-              <h2 className="public-page-card__title">Download and unpack</h2>
+              <h2 className="public-page-card__title">Download the beta bundle</h2>
               <p className="public-page-card__copy">
                 Grab the beta zip, extract it locally, and keep the bundled extension folder intact. Do not point Chrome
                 at the zip itself.
@@ -133,13 +133,13 @@ export default function ExtensionPage() {
 
             <article className="public-page-card public-page-card--accent">
               <p className="public-page-card__eyebrow">Step 03</p>
-              <h2 className="public-page-card__title">Arm the audit layer</h2>
+              <h2 className="public-page-card__title">Open a supported casino tab</h2>
               <p className="public-page-card__copy">
-                Open a supported casino tab and let TiltCheck watch the math. It tracks session telemetry, fairness
-                inputs, and the guardrails you already configured.
+                Open a supported casino tab and let TiltCheck watch the session. It tracks telemetry, fairness inputs,
+                and the guardrails you already configured.
               </p>
               <div className="public-page-card__body">
-                <p>Protocol: lockdown_engaged</p>
+                <p>Read only. Player-controlled exits. No mystery.</p>
               </div>
             </article>
           </div>
@@ -152,8 +152,8 @@ export default function ExtensionPage() {
             <article className="public-page-card">
               <p className="public-page-card__eyebrow">What it covers</p>
               <ul className="public-page-list">
-                <li>Real-time session telemetry and tilt detection.</li>
-                <li>RTP drift and fairness checks against certified numbers.</li>
+                <li>Real-time session telemetry and tilt signals.</li>
+                <li>RTP drift and fairness checks against expected numbers.</li>
                 <li>Vault prompts, cooldown signals, and intervention flows.</li>
                 <li>Sidebar-driven workflows for supported casino tabs.</li>
               </ul>
@@ -164,7 +164,7 @@ export default function ExtensionPage() {
               <h2 className="public-page-card__title">The toolbar popup path is not the real entry point yet.</h2>
               <p className="public-page-card__copy">
                 The extension is currently sidebar-first. The honest beta path is still sideload the package, use the
-                sidebar flow, and treat the store listing as not live.
+                sidebar flow, and treat the store listing as not live yet.
               </p>
             </article>
           </div>

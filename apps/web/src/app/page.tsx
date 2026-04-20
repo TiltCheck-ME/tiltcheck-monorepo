@@ -1,4 +1,4 @@
-// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-19
+// © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-20
 import Link from "next/link";
 
 import RtpDriftTicker from "@/components/RtpDriftTicker";
@@ -8,58 +8,76 @@ import { features } from "@/config/features";
 
 const heroSignals = [
   {
-    label: "Greed premium watch",
-    value: "-4.7% RTP",
-    description: "Catch tier-shifted slots before the house quietly taxes your session.",
+    label: "Session watch",
+    value: "Live in-tab",
+    description: "TiltCheck reads supported casino tabs in real time so the session stops hiding behind vibes.",
   },
   {
-    label: "Auto Vault armed",
-    value: "Cold exit ready",
-    description: "Lock profit out of reach before tilt turns one more spin into a donation.",
+    label: "Guardrails armed",
+    value: "Targets set",
+    description: "Set profit, loss, and cooldown lines so a good session has a clean way to end.",
   },
   {
-    label: "Seed receipts",
-    value: "HMAC verified",
-    description: "Manual bet verification when you need the raw HMAC receipt.",
+    label: "Fairness receipts",
+    value: "Proof ready",
+    description: "Verify seed inputs and keep evidence ready when a casino claim needs receipts.",
   },
 ];
 
 const trustStats = [
   {
-    value: "9",
-    label: "live tools",
-    description: "Audits, bankroll defense, and scam intel in one surface.",
+    value: "Read-only",
+    label: "extension model",
+    description: "TiltCheck watches the session, explains the risk, and does not ask for private keys to do the job.",
   },
   {
-    value: "24/7",
-    label: "signal layer",
-    description: "RTP drift, trust signals, and session telemetry without the blind spots.",
+    value: "3",
+    label: "core jobs",
+    description: "Watch the math, flag the risk, and enforce the exit before tilt makes the next move.",
   },
   {
-    value: "0",
-    label: "custodial risk",
-    description: "Your keys stay yours. TiltCheck handles guardrails, not your wallet.",
+    value: "Player-owned",
+    label: "wallet control",
+    description: "TiltCheck focuses on evidence and guardrails. Players stay in control of the wallet side.",
   },
   {
-    value: "2-sided",
-    label: "trust model",
-    description: "Players verify. Platforms prove. Everyone gets less room for bullshit.",
+    value: "Live + public",
+    label: "proof surface",
+    description: "Players get session defense. Platforms can earn public trust by proving what they claim.",
+  },
+];
+
+const storyCards = [
+  {
+    step: "01",
+    title: "Watch the session",
+    description: "The extension reads supported casino tabs in real time so bets, RTP drift, and tilt signals stop living in guesswork.",
+  },
+  {
+    step: "02",
+    title: "Explain the risk",
+    description: "TiltCheck translates raw session data into plain-English fairness checks, trust signals, and evidence you can use.",
+  },
+  {
+    step: "03",
+    title: "Protect the bankroll",
+    description: "You set the line. TiltCheck helps enforce the cash-out, cooldown, or stop-loss move when the session turns stupid.",
   },
 ];
 
 const bridgeCards = [
   {
     href: "/how-it-works",
-    eyebrow: "Audit flow",
-    title: "See how the stack catches drift, verifies fairness, and hard-locks wins.",
-    description: "Start with the mechanics. No marketing fog. Just the path from session data to hard evidence.",
+    eyebrow: "Product story",
+    title: "Understand what TiltCheck does before you install anything.",
+    description: "See the short version of how the extension watches sessions, checks fairness, and enforces exits.",
     cta: "Read how it works",
   },
   {
     href: "/casinos",
-    eyebrow: "Trust scores",
-    title: "Check which platforms earn trust and which ones are farming your bankroll.",
-    description: "Compare trust scores, transparency posture, and the behavior casinos hope you never line up side by side.",
+    eyebrow: "Casino intel",
+    title: "Compare casinos by trust signals instead of marketing copy.",
+    description: "Check public trust scores, transparency posture, and payout risk before you decide where money goes.",
     cta: "Review trust scores",
   },
 ];
@@ -80,15 +98,18 @@ export default function Home() {
       <section className="hero-surface">
         <div className="landing-shell landing-shell--hero">
           <div className="hero-copy">
-            <span className="brand-eyebrow">The degen audit layer</span>
-            <h1 className="landing-hero-title">The house always wins? Fuck that.</h1>
+            <span className="brand-eyebrow">Read-only casino audit and bankroll defense</span>
+            <h1 className="landing-hero-title">Catch bad math. Protect your bankroll.</h1>
             <p className="landing-hero-subtitle">
-              TiltCheck tracks live sessions, audits casino fairness, and locks profit before one bad impulse feeds it
-              back into the machine.
+              TiltCheck is a read-only browser extension and public trust layer for casino players. It watches live
+              sessions, flags fairness drift, and helps you cash out before tilt feeds the win back into the machine.
             </p>
 
             <div className="hero-actions">
-              <a href="/beta-tester" className="btn btn-primary" data-text="GET EARLY ACCESS">
+              <Link href="/how-it-works" className="btn btn-primary" data-text="SEE HOW IT WORKS">
+                SEE HOW IT WORKS
+              </Link>
+              <a href="/beta-tester" className="btn btn-secondary" data-text="GET EARLY ACCESS">
                 GET EARLY ACCESS
               </a>
               <a href="#tools" className="btn btn-secondary" data-text="SEE THE TOOLS">
@@ -113,9 +134,9 @@ export default function Home() {
             <div className="hero-panel__header">
               <div>
                 <p className="hero-panel__eyebrow">Signal board</p>
-                <h2 className="hero-panel__title">One glance. Plenty of signal.</h2>
+                <h2 className="hero-panel__title">What you get in one surface.</h2>
               </div>
-              <span className="hero-panel__status">24/7 watch</span>
+              <span className="hero-panel__status">Read only</span>
             </div>
 
             <div className="hero-panel__stack">
@@ -130,10 +151,11 @@ export default function Home() {
 
             <div className="hero-panel__footer">
               <p className="hero-panel__footer-copy">
-                Zero custody. Live drift watch. Seed receipts on demand. The surface stays sharp because it has a job.
+                TiltCheck has one job: show what the casino is doing, show what your session is doing, and make the next
+                sane move easier to take.
               </p>
               <Link href="/how-it-works" className="hero-panel__link">
-                See how the stack works
+                See how TiltCheck works
               </Link>
             </div>
           </aside>
@@ -144,12 +166,37 @@ export default function Home() {
         <div className="landing-shell">
           <div className="landing-section-heading landing-section-heading--split">
             <div>
-              <span className="brand-eyebrow">Trust, minus the blind part</span>
-              <h2 className="landing-section-title">Built on hard edges, not soft promises.</h2>
+              <span className="brand-eyebrow">What TiltCheck actually does</span>
+              <h2 className="landing-section-title">Three jobs. One product. No mystery theater.</h2>
             </div>
             <p className="landing-section-copy">
-              No fake badges. No fake urgency. Just the facts that matter when fairness, bankroll protection, and signal
-              quality decide whether a session stays profitable.
+              If you are new here, start with this: TiltCheck is not a casino, not a wallet, and not a prediction engine.
+              It is a read-only system for watching sessions, explaining risk, and helping players keep their money.
+            </p>
+          </div>
+
+          <div className="landing-trust-grid">
+            {storyCards.map((item) => (
+              <article key={item.step} className="landing-stat-card">
+                <p className="landing-stat-card__value">{item.step}</p>
+                <h3 className="landing-stat-card__label">{item.title}</h3>
+                <p className="landing-stat-card__description">{item.description}</p>
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="landing-section">
+        <div className="landing-shell">
+          <div className="landing-section-heading landing-section-heading--split">
+            <div>
+              <span className="brand-eyebrow">Trust, without the blind spot</span>
+              <h2 className="landing-section-title">Built to stay useful when money is on the line.</h2>
+            </div>
+            <p className="landing-section-copy">
+              No fake badges. No fake urgency. Just the facts that matter when fairness, bankroll protection, and trust
+              quality decide whether a session deserves another dollar.
             </p>
           </div>
 
@@ -170,11 +217,11 @@ export default function Home() {
           <div className="landing-section-heading landing-section-heading--split">
             <div>
               <span className="brand-eyebrow">Flagship tools</span>
-              <h2 className="landing-section-title">Start with the tools that move money and expose drift.</h2>
+              <h2 className="landing-section-title">Start with the tools that explain risk and protect wins.</h2>
             </div>
             <p className="landing-section-copy">
-              Promote the core stack first: lock profit, verify the receipts, and surface RTP drift before it chews
-              through another bankroll.
+              First-time users usually need three things fast: a way to protect profit, a way to verify claims, and a
+              way to spot drift before the session gets expensive.
             </p>
           </div>
 
@@ -190,11 +237,11 @@ export default function Home() {
             <div className="secondary-tools-header">
               <div>
                 <span className="brand-eyebrow">Secondary edges</span>
-                <h3 className="secondary-tools-title">Support tools that stay useful without hijacking the page.</h3>
+                <h3 className="secondary-tools-title">Extra surfaces that help after the basics make sense.</h3>
               </div>
               <p className="secondary-tools-copy">
-                Bonus intel, community feeds, scam checks, and utility surfaces still matter. They just do not need to
-                scream over the money tools.
+                Bonus intel, scam checks, and community surfaces still matter. They just should not bury the core story
+                for people trying to understand the product.
               </p>
             </div>
 

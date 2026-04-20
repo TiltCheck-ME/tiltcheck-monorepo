@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-19 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-20 */
 import React from "react";
 import {
   BadgeCheck,
@@ -20,9 +20,9 @@ type BenefitItem = {
 };
 
 const sectionSignals = [
-  "Players get bankroll defense and proof.",
-  "Platforms get public trust and cleaner compliance posture.",
-  "Same audit layer. Two very different wins.",
+  "Players get live session defense and proof.",
+  "Platforms get a public way to prove they are not hiding.",
+  "Same audit layer. Clearer outcomes for both sides.",
 ];
 
 const playerBenefits: BenefitItem[] = [
@@ -30,27 +30,27 @@ const playerBenefits: BenefitItem[] = [
     icon: <Brain className="vp-benefit-icon" />,
     label: "Real-time tilt detection",
     description:
-      "Know when your brain is working against you. Session monitoring catches emotional betting before your bankroll does.",
+      "Know when your session is getting sloppy. TiltCheck spots risky patterns before your bankroll pays for them.",
   },
   {
     icon: <Vault className="vp-benefit-icon" />,
-    label: "Auto-lock wins to cold storage",
-    description: "Your keys, our guardrails. Profits move to your vault automatically. Zero custodial risk.",
+    label: "Lock wins behind your rules",
+    description: "Set the line, trigger the vault flow, and get profit out of easy reach before you spin it back.",
   },
   {
     icon: <ShieldCheck className="vp-benefit-icon" />,
     label: "Provably fair seed audits",
-    description: "Paste the HMAC-SHA256 seeds. We run the math. If the house lied, we find it.",
+    description: "Paste the seed inputs, rerun the math, and keep the receipts when a fairness claim needs proof.",
   },
   {
     icon: <ChartLine className="vp-benefit-icon" />,
     label: "RTP drift alerts",
-    description: "See the gap between advertised and actual return rates. Live. Per game. Per platform.",
+    description: "See when a casino is running a weaker RTP tier than players expect, and what that gap is costing.",
   },
   {
     icon: <Users className="vp-benefit-icon" />,
     label: "Community-verified intel",
-    description: "Bonus tracking, casino blacklists, and scam registries. Sourced by degens, for degens.",
+    description: "Trust scores, scam checks, and player intel in one place instead of scattered across group chats.",
   },
 ];
 
@@ -58,27 +58,27 @@ const platformBenefits: BenefitItem[] = [
   {
     icon: <BadgeCheck className="vp-benefit-icon vp-benefit-icon--gold" />,
     label: "Certified trust scores",
-    description: "Earn a public TiltCheck Trust Score. Players see it. Competitors do not have one.",
+    description: "Earn a public TiltCheck Trust Score so players can see proof instead of another empty brand claim.",
   },
   {
     icon: <Undo2 className="vp-benefit-icon vp-benefit-icon--gold" />,
     label: "Reduce chargebacks and disputes",
-    description: "When players verify fairness themselves, disputes drop. Transparency pays for itself.",
+    description: "When players can verify what happened, weak disputes lose oxygen and support teams waste less time.",
   },
   {
     icon: <ShieldCheck className="vp-benefit-icon vp-benefit-icon--gold" />,
     label: "Provably fair compliance layer",
-    description: "Integrate our audit layer. Let players verify seeds directly. No black boxes.",
+    description: "Let players inspect fairness inputs directly instead of asking them to trust a black box.",
   },
   {
     icon: <Target className="vp-benefit-icon vp-benefit-icon--gold" />,
     label: "Attract high-value players",
-    description: "Degens want platforms that do not hide. A TiltCheck badge signals you play fair.",
+    description: "Sharp players want platforms that do not hide. Transparent proof makes that obvious.",
   },
   {
     icon: <Leaf className="vp-benefit-icon vp-benefit-icon--gold" />,
     label: "Responsible gaming built in",
-    description: "Touch Grass Protocol and session monitoring satisfy regulatory requirements out of the box.",
+    description: "Session guardrails and intervention flows help honest platforms show they take player risk seriously.",
   },
 ];
 
@@ -103,11 +103,11 @@ export default function ValueProposition() {
     <section className="landing-section vp-section" aria-label="Value proposition for players and platforms">
       <div className="vp-shell">
         <div className="vp-header">
-          <span className="brand-eyebrow">Deeper than a landing page flex</span>
-          <h2 className="vp-title">Built for players who verify and platforms willing to prove it.</h2>
+          <span className="brand-eyebrow">One product. Two sides of the market.</span>
+          <h2 className="vp-title">TiltCheck protects players and gives honest platforms a way to prove it.</h2>
           <p className="vp-lead">
-            TiltCheck is a shared audit surface. One side protects bankrolls. The other side earns trust in public.
-            Both sides get less room for hand-waving.
+            TiltCheck is a shared audit surface. Players use it to protect bankrolls and verify claims. Platforms use it
+            to show that their numbers and behavior hold up in public.
           </p>
 
           <ul className="vp-signal-list">
@@ -126,7 +126,7 @@ export default function ValueProposition() {
               <span className="vp-column-eyebrow vp-column-eyebrow--player">For players</span>
               <h3 className="vp-column-title">Protect the bankroll</h3>
               <p className="vp-column-subtitle">
-                Stop guessing. Start auditing. Every layer here exists to keep winnings intact and bad sessions honest.
+                Use live session data, fairness checks, and hard exits to stop guessing when the session turns on you.
               </p>
             </div>
             <BenefitList items={playerBenefits} />
@@ -142,7 +142,7 @@ export default function ValueProposition() {
               <span className="vp-column-eyebrow vp-column-eyebrow--platform">For platforms</span>
               <h3 className="vp-column-title">Prove the platform</h3>
               <p className="vp-column-subtitle">
-                Transparency is a competitive advantage. If you are legit, the audit layer should make that obvious.
+                If the platform is actually clean, the audit layer should make that obvious without a sales pitch.
               </p>
             </div>
             <BenefitList items={platformBenefits} />

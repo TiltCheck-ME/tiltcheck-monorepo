@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-19 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-20 */
 "use client";
 
 import Link from "next/link";
@@ -23,20 +23,20 @@ const footerGroups = [
       title: "Tools",
       links: [
         { href: "/#tools", label: "All tools" },
-        { href: getDashboardHandoffUrl("/tools/auto-vault"), label: "Vault Controls" },
-        { href: "/tools/verify", label: "Manual Bet Verifier" },
-        { href: "/tools/session-stats", label: "RTP Drift Monitor" },
+        { href: getDashboardHandoffUrl("/tools/auto-vault"), label: "Profit Guardrails" },
+        { href: "/tools/verify", label: "Bet Verifier" },
+        { href: "/tools/session-stats", label: "RTP Drift Watch" },
         { href: "/tools/house-edge-scanner", label: "House Edge Scanner" },
     ],
   },
   {
     title: "Intel",
     links: [
-        { href: "/casinos", label: "Casino Proof Lookup" },
+        { href: "/casinos", label: "Casino Trust Scores" },
       { href: "/bonuses", label: "Daily Bonus Tracker" },
-      { href: "/intel/rtp", label: "RTP Scanner" },
+      { href: "/intel/rtp", label: "RTP Intel" },
       { href: "/intel/scams", label: "Scam Registry" },
-      { href: "/extension", label: "Profit Guard Extension" },
+      { href: "/extension", label: "Browser Extension" },
     ],
   },
   {
@@ -64,10 +64,10 @@ const Footer = () => {
         <div className="footer-top">
           <div className="footer-brand">
             <span className="brand-eyebrow footer-eyebrow">TiltCheck</span>
-            <h2 className="footer-title">See the math. Keep the edge.</h2>
+            <h2 className="footer-title">See the math. Protect the bankroll.</h2>
             <p className="footer-copy">
-              TiltCheck is the audit layer for players, the trust layer for platforms, and the cold-water splash before
-              one more stupid spin turns profit into regret.
+              TiltCheck is a read-only browser extension and public trust layer for casino players. It watches live
+              sessions, checks fairness and RTP drift, and helps you leave with more signal than regret.
             </p>
 
             <div className="footer-actions">
