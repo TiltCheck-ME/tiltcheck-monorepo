@@ -10,6 +10,9 @@ export const DEFAULT_DISCORD_SCOPES = ['identify'];
 export const DEFAULT_DISCORD_CALLBACK_PATH = '/auth/discord/callback';
 export const DEFAULT_API_DISCORD_CALLBACK = `https://api.tiltcheck.me${DEFAULT_DISCORD_CALLBACK_PATH}`;
 export type OAuthSource = 'extension' | 'web';
+const LEGACY_DASHBOARD_HOST = 'hub.tiltcheck.me';
+const CANONICAL_DASHBOARD_HOST = 'dashboard.tiltcheck.me';
+const LOCAL_DASHBOARD_HOSTS = new Set(['localhost:6001', '127.0.0.1:6001']);
 
 function sanitizeUrlEnv(value: string | undefined): string | undefined {
   if (!value) return undefined;
@@ -103,6 +106,19 @@ function getPublicRequestHost(req: RedirectRequest): string | undefined {
   return req.hostname?.trim() || undefined;
 }
 
+function normalizeLegacyDashboardHost(host: string): string {
+  return getHostname(host) === LEGACY_DASHBOARD_HOST
+    ? host.replace(LEGACY_DASHBOARD_HOST, CANONICAL_DASHBOARD_HOST)
+    : host;
+}
+
+function shouldUseCanonicalApiCallback(publicHost: string): boolean {
+  const normalizedHost = getHostname(publicHost);
+  return normalizedHost === CANONICAL_DASHBOARD_HOST
+    || normalizedHost === LEGACY_DASHBOARD_HOST
+    || LOCAL_DASHBOARD_HOSTS.has(publicHost.toLowerCase());
+}
+
 function getPreferredWebRedirectOrigin(req: RedirectRequest): { protocol: string; host: string } | undefined {
   const redirectValue = typeof req.query?.redirect === 'string' ? req.query.redirect.trim() : '';
   if (!redirectValue || redirectValue.startsWith('/')) {
@@ -128,7 +144,7 @@ function getPreferredWebRedirectOrigin(req: RedirectRequest): { protocol: string
 
     return {
       protocol: parsed.protocol.replace(/:$/, ''),
-      host,
+      host: normalizeLegacyDashboardHost(host),
     };
   } catch {
     return undefined;
@@ -173,9 +189,13 @@ export function resolveDiscordRedirectUriForSource(
 ): string {
   if (normalizeOAuthSource(source) !== 'extension') {
     const preferredOrigin = getPreferredWebRedirectOrigin(req);
-    const publicHost = preferredOrigin?.host || getPublicRequestHost(req);
+    const publicHost = normalizeLegacyDashboardHost(preferredOrigin?.host || getPublicRequestHost(req) || '');
     const publicProtocol = preferredOrigin?.protocol || getPublicRequestProtocol(req);
     if (!publicHost || !publicProtocol) {
+      return config.redirectUri;
+    }
+
+    if (shouldUseCanonicalApiCallback(publicHost)) {
       return config.redirectUri;
     }
 

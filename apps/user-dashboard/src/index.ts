@@ -215,6 +215,23 @@ if (!magicAdmin) {
   console.warn('[Dashboard] MAGIC_SECRET_KEY is not configured. Magic wallet linking routes will return 503 until the secret is set.');
 }
 
+app.use((req, res, next) => {
+  const forwardedHost = typeof req.headers['x-forwarded-host'] === 'string'
+    ? req.headers['x-forwarded-host'].split(',')[0]?.trim().toLowerCase()
+    : '';
+  const requestHost = typeof req.headers.host === 'string'
+    ? req.headers.host.split(',')[0]?.trim().toLowerCase()
+    : '';
+  const activeHost = forwardedHost || requestHost;
+
+  if (isProd && activeHost === 'hub.tiltcheck.me') {
+    res.redirect(308, `https://dashboard.tiltcheck.me${req.originalUrl}`);
+    return;
+  }
+
+  next();
+});
+
 // Middleware
 app.use(cors({
   origin: (origin, callback) => {

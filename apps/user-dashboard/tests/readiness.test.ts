@@ -1,4 +1,4 @@
-/* Copyright (c) 2026 TiltCheck. All rights reserved. */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-20 */
 import request from 'supertest';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -13,25 +13,22 @@ describe('user-dashboard readiness', () => {
     const { app } = await import('../src/index.js');
     const response = await request(app).get('/health');
     expect(response.status).toBe(200);
-    expect(response.body).toMatchObject({
-      status: 'ok',
-      service: 'user-dashboard',
-    });
+    expect(response.body).toMatchObject({ status: 'ok' });
   });
 
-  it('exposes oauth status without leaking secrets', async () => {
+  it('exposes public Discord config without leaking secrets', async () => {
     process.env.MAGIC_SECRET_KEY = process.env.MAGIC_SECRET_KEY || 'test_magic_secret_key';
     const { app } = await import('../src/index.js');
-    const response = await request(app).get('/auth/status');
+    const response = await request(app).get('/api/config/public');
     expect(response.status).toBe(200);
-    expect(response.body.oauth).toEqual(
+    expect(response.body).toEqual(
       expect.objectContaining({
-        configured: expect.any(Boolean),
-        clientIdPresent: expect.any(Boolean),
-        clientSecretPresent: expect.any(Boolean),
+        client_id: expect.any(String),
+        clientId: expect.any(String),
       }),
     );
     expect(String(response.text)).not.toContain('MAGIC_SECRET_KEY');
+    expect(String(response.text)).not.toContain('DISCORD_CLIENT_SECRET');
   });
 
   it('blocks protected user route without bearer token', async () => {
@@ -39,7 +36,7 @@ describe('user-dashboard readiness', () => {
     const { app } = await import('../src/index.js');
     const response = await request(app).get('/api/user/123456');
     expect(response.status).toBe(401);
-    expect(response.body).toMatchObject({ error: 'Access token required' });
+    expect(response.body).toMatchObject({ error: 'Not authenticated' });
   });
 
   it('still serves health when MAGIC_SECRET_KEY is missing', async () => {

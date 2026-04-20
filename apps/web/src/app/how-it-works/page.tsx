@@ -1,43 +1,43 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-19 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-20 */
 import Link from "next/link";
 import PublicPageHero, { PublicPageSectionHeader } from "@/components/PublicPageHero";
 
 const workflowStats = [
   {
     label: "Install path",
-    value: "1 load",
-    description: "Sideload the extension once, then let the audit layer stay inside the tab where the session happens.",
+    value: "1 sideload",
+    description: "Load the extension once, then keep the audit layer inside the same tab where the session happens.",
   },
   {
-    label: "Signal job",
-    value: "Live drift",
-    description: "Session telemetry, RTP gaps, and trust signals get read in real time instead of after the damage.",
+    label: "Live job",
+    value: "Watch + compare",
+    description: "TiltCheck reads session activity, compares it to expected numbers, and flags problems while you play.",
   },
   {
-    label: "Escalation",
-    value: "Receipt ready",
-    description: "Evidence only gets surfaced when the numbers are strong enough to say something worth saying.",
+    label: "Output",
+    value: "Receipts + exits",
+    description: "When the sample is strong enough, you get evidence and a clearer next move instead of more guessing.",
   },
 ];
 
 const workflowSteps = [
   {
     step: "01",
-    title: "Deploy the audit layer",
-    body: "Install the extension and sync your forensic node. It needs storage, active tab access, and site permissions so it can inspect session telemetry without custody and without warning the casino it is being watched.",
-    note: "One install. Zero custody. A forensic layer between you and the shadow-nerfed math.",
+    title: "Install the extension",
+    body: "Load the read-only browser extension so TiltCheck can inspect the casino tab, session events, and fairness inputs. It does not need private keys or direct wallet control to do that job.",
+    note: "One install. It watches the session from inside your browser.",
   },
   {
     step: "02",
-    title: "Run the live audit",
-    body: "Every spin gets cross-referenced against GLI-certified RTP tiers and supporting trust signals. If a casino is pushing a greedier config than the certified top line, TiltCheck flags the gap and translates it into an actual cost.",
-    note: "Live example: certified 96.5%, platform running 92.0%, greed premium charged back to the player per $100 wagered.",
+    title: "Watch the math in real time",
+    body: "TiltCheck compares live behavior against certified RTP ranges, trust history, and the rules you set for the session. If payouts look weaker than they should, it flags the gap and shows what it is costing.",
+    note: "You stop relying on gut feel and start seeing the numbers.",
   },
   {
     step: "03",
-    title: "Enforce and escalate",
-    body: "When the math breaks, the system does not throw weak evidence over the wall. It waits until the sample is strong enough, builds the packet, and locks the bag before tilt takes another bite.",
-    note: "The point is not to complain louder. The point is to show up with numbers that hold.",
+    title: "Act on proof, not emotion",
+    body: "When the sample is meaningful, TiltCheck packages the evidence and enforces the guardrails you already set. That can mean a warning, a cash-out push, or a hard stop.",
+    note: "Catch bad math early. Stop bad decisions late.",
   },
 ];
 
@@ -45,17 +45,17 @@ const faqs = [
   {
     question: "Do you see my wallet key?",
     answer:
-      "No. We never ask for it, store it, or want it. The audit layer reads casino activity and session-visible signals. Your keys stay yours.",
+      "No. We never ask for it, store it, or want it. The audit layer reads casino activity and session-visible signals without needing your private key.",
   },
   {
-    question: 'What is a "Greed Premium"?',
+    question: "What does RTP drift mean here?",
     answer:
-      "Slot providers certify multiple RTP tiers. A game certified at 96.5% can still be deployed lower. The gap between the certified top line and the live observed tier is the greed premium players are paying.",
+      "Some slot games are certified at multiple RTP levels. A game that can run at 96.5% may still be deployed lower. TiltCheck looks for that gap and shows players when the live setup is worse than expected.",
   },
   {
-    question: "How does the Evidence Packet work?",
+    question: "When do I actually get evidence?",
     answer:
-      "The trigger stays locked until the sample is statistically worth something. Once it crosses that line, the packet assembles the supporting data and formats the receipts for escalation.",
+      "Not after one weird spin. TiltCheck waits until the sample is strong enough to be worth taking seriously, then bundles the supporting data into something you can review or escalate.",
   },
   {
     question: "What if I'm already in crisis?",
@@ -68,18 +68,20 @@ export default function HowItWorksPage() {
   return (
     <main className="public-page text-white">
       <PublicPageHero
-        eyebrow="How the stack works"
+        eyebrow="How TiltCheck works"
         title={
           <>
-            Audit the session.
+            Watch the session.
             <br />
-            Enforce the line.
+            Explain the risk.
+            <br />
+            Enforce the exit.
           </>
         }
         description={
           <p>
-            The house wins because it controls the math. TiltCheck inserts a forensic layer between the player and the
-            platform so drift, proof quality, and exit conditions stop being guesses.
+            TiltCheck is a read-only browser extension and trust layer for casino players. It watches live sessions,
+            checks fairness and RTP drift, then helps you act before a bad run turns into a dumb decision.
           </p>
         }
         actions={
@@ -102,11 +104,11 @@ export default function HowItWorksPage() {
         panel={
           <>
             <p className="public-page-panel__eyebrow">System flow</p>
-            <h2 className="public-page-panel__title">Read-only telemetry in. Hard exits and receipts out.</h2>
+            <h2 className="public-page-panel__title">Read-only data in. Plain-English signal out.</h2>
             <ul className="public-page-list">
-              <li>Extension watches supported casino tabs in real time.</li>
-              <li>Certified RTP ranges and trust signals frame what &quot;normal&quot; looks like.</li>
-              <li>Guardrails lock the bag and route you to the next sane move.</li>
+              <li>The extension watches supported casino tabs in real time.</li>
+              <li>TiltCheck compares live behavior to expected fairness and trust signals.</li>
+              <li>Your rules handle the exit when the session stops making sense.</li>
             </ul>
           </>
         }
@@ -114,11 +116,11 @@ export default function HowItWorksPage() {
 
       <section className="public-page-section px-4">
         <div className="landing-shell">
-          <PublicPageSectionHeader
-            eyebrow="Workflow"
-            title="Three steps. No mystery theater."
-            description={<p>The homepage sets the tone. This page carries the same structure deeper into the actual operating flow.</p>}
-          />
+            <PublicPageSectionHeader
+              eyebrow="Workflow"
+              title="Three steps. No mystery theater."
+              description={<p>This is the short version for first-time users: install it, let it watch, then use the signal.</p>}
+            />
 
           <div className="public-page-grid public-page-grid--3">
             {workflowSteps.map((step) => (
@@ -137,12 +139,12 @@ export default function HowItWorksPage() {
 
       <section className="public-page-section px-4">
         <div className="landing-shell">
-          <PublicPageSectionHeader
-            eyebrow="Common fears"
-            title="The questions people ask right before they install."
-            description={<p>Good. Skepticism is healthy. The point is to answer it with specifics instead of vague product comfort copy.</p>}
-            split={false}
-          />
+            <PublicPageSectionHeader
+              eyebrow="Common fears"
+              title="The questions people ask right before they install."
+              description={<p>Good. Skepticism is healthy. Here are the straight answers without the fog.</p>}
+              split={false}
+            />
 
           <div className="public-page-grid">
             {faqs.map((faq) => (
@@ -168,10 +170,10 @@ export default function HowItWorksPage() {
         <div className="landing-shell">
           <div className="public-page-cta-band">
             <p className="public-page-panel__eyebrow">Next move</p>
-            <h2 className="public-page-cta-band__title">Ready to see what the casino does not want you to see?</h2>
+            <h2 className="public-page-cta-band__title">Ready to see the product in your own tab?</h2>
             <p className="public-page-cta-band__copy">
-              Install the forensic node. Let the live audit layer do the boring math while you decide whether the
-              session still deserves your money.
+              Install the extension, let TiltCheck do the boring math, and decide whether the session still deserves
+              your money.
             </p>
             <div className="public-page-cta-band__actions">
               <Link href="/extension" className="btn btn-primary" data-text="OPEN EXTENSION PAGE">

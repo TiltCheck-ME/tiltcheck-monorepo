@@ -1,3 +1,4 @@
+<!-- © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-20 -->
 # TiltCheck Ecosystem - Discord OAuth Redirect URIs
 
 ## Domain: tiltcheck.me
@@ -109,27 +110,33 @@ DISCORD_CALLBACK_URL=https://dg.tiltcheck.me/auth/discord/callback
 
 ## Main Dashboard
 
-**Subdomain**: `dashboard.tiltcheck.me` or `www.tiltcheck.me`
+**Public Hosts**: `dashboard.tiltcheck.me`, `tiltcheck.me`, or `www.tiltcheck.me`
 
 **Discord OAuth Redirect URIs**:
 ```
-https://dashboard.tiltcheck.me/auth/discord/callback
-https://www.tiltcheck.me/auth/discord/callback
+https://api.tiltcheck.me/auth/discord/callback
+https://tiltcheck.me/api/auth/discord/callback
+https://www.tiltcheck.me/api/auth/discord/callback
 ```
 
 **Discord Application Setup**:
 1. Go to [Discord Developer Portal](https://discord.com/developers/applications)
 2. Select/Create "TiltCheck Dashboard" application
 3. OAuth2 → General → Redirects → Add:
-   - `https://dashboard.tiltcheck.me/auth/discord/callback`
-   - `https://www.tiltcheck.me/auth/discord/callback`
+   - `https://api.tiltcheck.me/auth/discord/callback`
+   - `https://tiltcheck.me/api/auth/discord/callback`
+   - `https://www.tiltcheck.me/api/auth/discord/callback`
 4. Save changes
+
+**Do Not Register**:
+- `https://hub.tiltcheck.me/api/auth/discord/callback` — `hub.tiltcheck.me` is legacy and must redirect to `dashboard.tiltcheck.me`
+- `https://dashboard.tiltcheck.me/api/auth/discord/callback` — dashboard login is routed through the canonical API callback instead
 
 **Environment Variables**:
 ```env
 DISCORD_CLIENT_ID=<from_discord_app>
 DISCORD_CLIENT_SECRET=<from_discord_app>
-DISCORD_CALLBACK_URL=https://dashboard.tiltcheck.me/auth/discord/callback
+DISCORD_CALLBACK_URL=https://api.tiltcheck.me/auth/discord/callback
 ```
 
 ---
@@ -157,8 +164,8 @@ http://localhost:8080/auth/discord/callback    # Alternative port
 | **JustTheTip** | `jt.tiltcheck.me` | `https://jt.tiltcheck.me/auth/discord/callback` |
 | **QualifyFirst** | `qf.tiltcheck.me` | `https://qf.tiltcheck.me/auth/discord/callback` |
 | **Degens (Standalone)** | `dg.tiltcheck.me` | `https://dg.tiltcheck.me/auth/discord/callback` |
-| **Dashboard** | `dashboard.tiltcheck.me` | `https://dashboard.tiltcheck.me/auth/discord/callback` |
-| **Main Site** | `www.tiltcheck.me` | `https://www.tiltcheck.me/auth/discord/callback` |
+| **Dashboard** | `dashboard.tiltcheck.me` | `https://api.tiltcheck.me/auth/discord/callback` |
+| **Main Site** | `tiltcheck.me` / `www.tiltcheck.me` | `https://tiltcheck.me/api/auth/discord/callback` and `https://www.tiltcheck.me/api/auth/discord/callback` |
 
 ---
 
@@ -213,12 +220,13 @@ When using Supabase for authentication, configure these settings in **Supabase D
 **Required Redirect URLs to add in Supabase:**
 ```
 https://tiltcheck.me/auth/callback
+https://api.tiltcheck.me/auth/discord/callback
 https://arena.tiltcheck.me/auth/discord/callback
 https://jt.tiltcheck.me/auth/discord/callback
 https://qf.tiltcheck.me/auth/discord/callback
 https://dg.tiltcheck.me/auth/discord/callback
-https://dashboard.tiltcheck.me/auth/discord/callback
-https://www.tiltcheck.me/auth/discord/callback
+https://tiltcheck.me/api/auth/discord/callback
+https://www.tiltcheck.me/api/auth/discord/callback
 http://localhost:3000/auth/callback
 http://localhost:3010/auth/discord/callback
 ```

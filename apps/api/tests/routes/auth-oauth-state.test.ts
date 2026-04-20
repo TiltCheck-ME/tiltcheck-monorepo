@@ -149,6 +149,21 @@ describe('Auth callback state/source validation', () => {
     );
   });
 
+  it('keeps the canonical API callback for stale hub dashboard redirects', async () => {
+    const response = await request(app)
+      .get('/auth/discord/login?source=web&redirect=https%3A%2F%2Fhub.tiltcheck.me%2Fdashboard%3Ftab%3Dvault')
+      .set('X-Forwarded-Proto', 'https')
+      .set('X-Forwarded-Host', 'api.tiltcheck.me');
+
+    expect(response.status).toBe(302);
+    expect(vi.mocked(getDiscordAuthUrl)).toHaveBeenCalledWith(
+      expect.objectContaining({
+        redirectUri: 'https://api.tiltcheck.me/auth/discord/callback',
+      }),
+      expect.stringMatching(/^web_/),
+    );
+  });
+
   it('prefers the localhost redirect host for web OAuth during local beta flows', async () => {
     const response = await request(app)
       .get('/auth/discord/login?source=web&redirect=http%3A%2F%2Flocalhost%3A3000%2Fbeta-tester')

@@ -1,4 +1,4 @@
-/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-19 */
+/* © 2024–2026 TiltCheck Ecosystem. All Rights Reserved. Last Updated: 2026-04-20 */
 @import "tailwindcss";
 
 /* Prevent horizontal overflow on all screen sizes */
@@ -283,7 +283,7 @@ html, body {
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  color: #6b7a8d;
+  color: #9eacbc;
   text-decoration: none;
   transition: color 0.2s, background 0.2s, border-left-color 0.2s;
   border-left: 2px solid transparent;
@@ -309,7 +309,7 @@ html, body {
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  color: #6b7a8d;
+  color: #a8b6c7;
   text-decoration: none;
   transition: color 0.2s ease;
   white-space: nowrap;
@@ -1846,7 +1846,7 @@ body.degen-background > * {
 }
 
 .landing-hero-title {
-  max-width: 11ch;
+  max-width: 13ch;
   margin: 0;
   font-size: clamp(3.1rem, 8vw, 6.4rem);
   font-weight: 850;
@@ -1861,7 +1861,7 @@ body.degen-background > * {
   margin: 1.35rem 0 0;
   font-size: clamp(1.05rem, 1.2rem + 0.25vw, 1.3rem);
   line-height: 1.72;
-  color: #9eacbc;
+  color: #becada;
   letter-spacing: -0.015em;
 }
 
@@ -1913,7 +1913,7 @@ body.degen-background > * {
   margin: 0;
   font-size: 0.9rem;
   line-height: 1.6;
-  color: #8493a5;
+  color: #afbccb;
 }
 
 .hero-panel {
@@ -2015,7 +2015,7 @@ body.degen-background > * {
   font-weight: 700;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: #8091a5;
+  color: #a9b7c8;
 }
 
 .hero-signal-card__value {
@@ -2030,7 +2030,7 @@ body.degen-background > * {
   margin-top: 0.45rem;
   font-size: 0.92rem;
   line-height: 1.55;
-  color: #93a2b3;
+  color: #bac6d2;
 }
 
 .hero-panel__footer {
@@ -2043,7 +2043,7 @@ body.degen-background > * {
 .hero-panel__footer-copy {
   font-size: 0.93rem;
   line-height: 1.65;
-  color: #8f9fb1;
+  color: #bec9d5;
 }
 
 .hero-panel__link {
@@ -2089,7 +2089,7 @@ body.degen-background > * {
   max-width: 40rem;
   font-size: 1rem;
   line-height: 1.7;
-  color: #92a1b3;
+  color: #b2bfcd;
 }
 
 .landing-trust-grid {
@@ -2132,7 +2132,7 @@ body.degen-background > * {
   margin: 0.65rem 0 0;
   font-size: 0.94rem;
   line-height: 1.6;
-  color: #8b9aac;
+  color: #b1bdca;
 }
 
 .flagship-tools-grid {
@@ -2237,7 +2237,7 @@ body.degen-background > * {
 }
 
 .tool-card__category {
-  color: #92a2b5;
+  color: #b0bcc8;
 }
 
 .tool-card__status {
@@ -2277,7 +2277,7 @@ body.degen-background > * {
   margin: 0.8rem 0 0;
   font-size: 0.98rem;
   line-height: 1.68;
-  color: #93a2b3;
+  color: #b7c4d1;
 }
 
 .tool-card__footer {
@@ -2771,7 +2771,7 @@ body.degen-background > * {
   font-weight: 700;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: #8392a4 !important;
+  color: #b1bdca !important;
 }
 
 .footer-tagline {
@@ -2786,7 +2786,7 @@ body.degen-background > * {
 .footer-copyright {
   margin: 0;
   font-size: 0.78rem;
-  color: #738397;
+  color: #99a7b7;
   text-align: left !important;
 }
 
@@ -2850,7 +2850,7 @@ body.degen-background > * {
 .public-page-section-heading__copy,
 .public-page-card__copy,
 .public-page-card__body {
-  color: #92a1b3;
+  color: #b5c1cd;
   line-height: 1.72;
 }
 
@@ -2928,7 +2928,7 @@ body.degen-background > * {
   margin: 0;
   font-size: 0.9rem;
   line-height: 1.6;
-  color: #8493a5;
+  color: #b0bcc9;
 }
 
 .public-page-hero__panel,
@@ -3009,7 +3009,7 @@ body.degen-background > * {
   margin: 0;
   font-size: 0.94rem;
   line-height: 1.68;
-  color: #8f9fb1;
+  color: #bcc8d3;
 }
 
 .public-page-section {
